@@ -1,6 +1,7 @@
 #include "BackgroundSlicingProcess.hpp"
 #include "GUI_App.hpp"
 
+#include <wx/app.h>
 #include <wx/event.h>
 #include <wx/panel.h>
 #include <wx/stdpaths.h>
@@ -103,6 +104,15 @@ void BackgroundSlicingProcess::thread_proc()
 	// End of the background processing thread. The UI thread should join m_thread now.
 }
 
+void BackgroundSlicingProcess::thread_proc_safe()
+{
+	try {
+		this->thread_proc();
+	} catch (...) {
+		wxTheApp->OnUnhandledException();
+   	}
+}
+
 void BackgroundSlicingProcess::join_background_thread()
 {
 	std::unique_lock<std::mutex> lck(m_mutex);
@@ -127,7 +137,7 @@ bool BackgroundSlicingProcess::start()
 	if (m_state == STATE_INITIAL) {
 		// The worker thread is not running yet. Start it.
 		assert(! m_thread.joinable());
-		m_thread = std::thread([this]{this->thread_proc();});
+		m_thread = std::thread([this]{this->thread_proc_safe();});
 		// Wait until the worker thread is ready to execute the background processing task.
 		m_condition.wait(lck, [this](){ return m_state == STATE_IDLE; });
 	}

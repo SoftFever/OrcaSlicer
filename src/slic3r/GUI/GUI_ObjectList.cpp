@@ -36,10 +36,10 @@ ObjectList::ObjectList(wxWindow* parent) :
 		CATEGORY_ICON[L("Advanced")]				= wxBitmap(from_u8(var("wand.png")), wxBITMAP_TYPE_PNG);
     }
 
-    init_icons();
-
     // create control
     create_objects_ctrl();
+
+    init_icons();
 
     // describe control behavior 
     Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [this](wxEvent& event) {
@@ -213,17 +213,27 @@ void ObjectList::update_extruder_in_config(const wxString& selection)
 
 void ObjectList::init_icons()
 {
-    m_bmp_modifiermesh = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("lambda.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("plugin.png")), wxBITMAP_TYPE_PNG);
-    m_bmp_solidmesh = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("object.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("package.png")), wxBITMAP_TYPE_PNG);
+    m_bmp_modifiermesh      = wxBitmap(from_u8(var("lambda.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("plugin.png")), wxBITMAP_TYPE_PNG);
+    m_bmp_solidmesh         = wxBitmap(from_u8(var("object.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("package.png")), wxBITMAP_TYPE_PNG);
+
+    m_bmp_support_enforcer  = wxBitmap(from_u8(var("support_enforcer_.png")), wxBITMAP_TYPE_PNG);
+    m_bmp_support_blocker   = wxBitmap(from_u8(var("support_blocker_.png")), wxBITMAP_TYPE_PNG);
+
+    m_bmp_vector.reserve(4); // bitmaps for different types of parts 
+    m_bmp_vector.push_back(&m_bmp_solidmesh);         // Add part
+    m_bmp_vector.push_back(&m_bmp_modifiermesh);      // Add modifier
+    m_bmp_vector.push_back(&m_bmp_support_enforcer);  // Add support enforcer
+    m_bmp_vector.push_back(&m_bmp_support_blocker);   // Add support blocker
+    m_objects_model->SetVolumeBitmaps(m_bmp_vector);
 
     // init icon for manifold warning
-    m_bmp_manifold_warning = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("exclamation_mark_.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("error.png")), wxBITMAP_TYPE_PNG);
+    m_bmp_manifold_warning  = wxBitmap(from_u8(var("exclamation_mark_.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("error.png")), wxBITMAP_TYPE_PNG);
 
     // init bitmap for "Split to sub-objects" context menu
-    m_bmp_split = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("split.png")), wxBITMAP_TYPE_PNG);
+    m_bmp_split             = wxBitmap(from_u8(var("split.png")), wxBITMAP_TYPE_PNG);
 
     // init bitmap for "Add Settings" context menu
-    m_bmp_cog = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("cog.png")), wxBITMAP_TYPE_PNG);
+    m_bmp_cog               = wxBitmap(from_u8(var("cog.png")), wxBITMAP_TYPE_PNG);
 }
 
 
@@ -377,7 +387,8 @@ void ObjectList::on_drop(wxDataViewEvent &event)
     wxDataViewItem item(event.GetItem());
 
     // only allow drops for item, not containers
-    if (item.IsOk() && m_objects_model->GetParent(item) == wxDataViewItem(0) ||
+    if (m_selected_object_id < 0 ||
+        item.IsOk() && m_objects_model->GetParent(item) == wxDataViewItem(0) ||
         event.GetDataFormat() != wxDF_UNICODETEXT || m_objects_model->GetItemType(item) != itVolume) {
         event.Veto();
         return;
@@ -518,16 +529,24 @@ void ObjectList::get_settings_choice(wxMenu *menu, int id, bool is_part)
         wxGetApp().obj_manipul()->update_settings_list();
 }
 
-void ObjectList::menu_item_add_generic(wxMenuItem* &menu, int id) {
+void ObjectList::menu_item_add_generic(wxMenuItem* &menu, int id, const int type) {
     auto sub_menu = new wxMenu;
+
+    const wxString menu_load = _(L("Load")) +" "+ dots;
+    sub_menu->Append(new wxMenuItem(sub_menu, id++, menu_load));
+    sub_menu->AppendSeparator();
 
     std::vector<std::string> menu_items = { L("Box"), L("Cylinder"), L("Sphere"), L("Slab") };
     for (auto& item : menu_items)
-        sub_menu->Append(new wxMenuItem(sub_menu, ++id, _(item)));
+        sub_menu->Append(new wxMenuItem(sub_menu, id++, _(item)));
 
 #ifndef __WXMSW__
-    sub_menu->Bind(wxEVT_MENU, [this, sub_menu](wxEvent &event) {
-        load_lambda(sub_menu->GetLabel(event.GetId()).ToStdString());
+    sub_menu->Bind(wxEVT_MENU, [sub_menu, type, menu_load, this](wxEvent &event) {
+        auto selection = sub_menu->GetLabel(event.GetId());
+        if (selection == menu_load)
+            load_subobject(type);
+        else
+            load_generic_subobject(selection.ToStdString(), type);
     });
 #endif //no __WXMSW__
 
@@ -552,55 +571,53 @@ wxMenuItem* ObjectList::menu_item_settings(wxMenu* menu, int id, const bool is_p
 wxMenu* ObjectList::create_add_part_popupmenu()
 {
     wxMenu *menu = new wxMenu;
-    std::vector<std::string> menu_items = { L("Add part"), L("Add modifier"), L("Add generic") };
+    // Note: id accords to type of the sub-object, so sequence of the menu items is important
+    std::vector<std::string> menu_object_types_items = {L("Add part"),              // ~ModelVolume::MODEL_PART
+                                                        L("Add modifier"),          // ~ModelVolume::PARAMETER_MODIFIER
+                                                        L("Add support enforcer"),  // ~ModelVolume::SUPPORT_ENFORCER
+                                                        L("Add support bloker") };  // ~ModelVolume::SUPPORT_BLOCKER
+    
+    const int obj_types_count = menu_object_types_items.size();
+    const int generics_count = 5; // "Load ...", "Box", "Cylinder", "Sphere", "Slab"
 
-    wxWindowID config_id_base = wxWindow::NewControlId(menu_items.size() + 4 + 2);
+    wxWindowID config_id_base = NewControlId(generics_count*obj_types_count + 2);
 
-    int i = 0;
-    for (auto& item : menu_items) {
-        auto menu_item = new wxMenuItem(menu, config_id_base + i, _(item));
-        menu_item->SetBitmap(i == 0 ? m_bmp_solidmesh : m_bmp_modifiermesh);
-        if (item == "Add generic")
-            menu_item_add_generic(menu_item, config_id_base + i);
+    // Add first 4 menu items
+    for (int type = 0; type < obj_types_count; type++) {
+        auto& item = menu_object_types_items[type];
+        auto menu_item = new wxMenuItem(menu, config_id_base + type, _(item));
+        menu_item->SetBitmap(*m_bmp_vector[type]);
+        menu_item_add_generic(menu_item, config_id_base + type*generics_count, type);
         menu->Append(menu_item);
-        i++;
     }
 
+    // Split object to parts
     menu->AppendSeparator();
-    auto menu_item = menu_item_split(menu, config_id_base + i + 4);
+    auto menu_item = menu_item_split(menu, config_id_base + obj_types_count * generics_count);
     menu->Append(menu_item);
     menu_item->Enable(is_splittable_object(false));
 
+    // Settings
     menu->AppendSeparator();
     // Append settings popupmenu
-    menu->Append(menu_item_settings(menu, config_id_base + i + 5, false));
+    menu->Append(menu_item_settings(menu, config_id_base + obj_types_count * generics_count+1, false));
 
-    menu->Bind(wxEVT_MENU, [config_id_base, menu, this](wxEvent &event) {
-        switch (event.GetId() - config_id_base) {
-        case 0:
-            load_subobject();
-            break;
-        case 1:
-            load_subobject(true);
-            break;
-        case 2:
-        case 3:
-        case 4:
-        case 5:
-        case 6:
-#ifdef __WXMSW__
-            load_lambda(menu->GetLabel(event.GetId()).ToStdString());
-#endif // __WXMSW__
-            break;
-        case 7: //3:
+    menu->Bind(wxEVT_MENU, [config_id_base, menu, obj_types_count, generics_count, this](wxEvent &event) {
+        auto selection = event.GetId() - config_id_base;
+        
+        if ( selection ==  0 * generics_count ||  // ~ModelVolume::MODEL_PART
+             selection ==  1 * generics_count ||  // ~ModelVolume::PARAMETER_MODIFIER
+             selection ==  2 * generics_count ||  // ~ModelVolume::SUPPORT_ENFORCER
+             selection ==  3 * generics_count  )  // ~ModelVolume::SUPPORT_BLOCKER
+            load_subobject(int(selection / generics_count));
+        else if ( selection == obj_types_count * generics_count)
             split(false);
-            break;
-        default:
 #ifdef __WXMSW__
+        else if ( selection > obj_types_count * generics_count) // "Add Settings" is selected 
             get_settings_choice(menu, event.GetId(), false);
+        else // Some generic model is selected
+            load_generic_subobject(menu->GetLabel(event.GetId()).ToStdString(), int(selection / generics_count));
 #endif // __WXMSW__
-            break;
-        }
     });
 
     return menu;
@@ -609,24 +626,33 @@ wxMenu* ObjectList::create_add_part_popupmenu()
 wxMenu* ObjectList::create_part_settings_popupmenu()
 {
     wxMenu *menu = new wxMenu;
-    wxWindowID config_id_base = wxWindow::NewControlId(2);
+    wxWindowID config_id_base = NewControlId(3);
 
     auto menu_item = menu_item_split(menu, config_id_base);
     menu->Append(menu_item);
     menu_item->Enable(is_splittable_object(true));
 
+    // Append change part type
     menu->AppendSeparator();
+    menu->Append(new wxMenuItem(menu, config_id_base + 1, _(L("Change type"))));
+
     // Append settings popupmenu
-    menu->Append(menu_item_settings(menu, config_id_base + 1, true));
+    menu->AppendSeparator();
+    menu_item = menu_item_settings(menu, config_id_base + 2, true);
+    menu->Append(menu_item);
+    menu_item->Enable(get_selected_model_volume()->type() <= ModelVolume::PARAMETER_MODIFIER);
 
     menu->Bind(wxEVT_MENU, [config_id_base, menu, this](wxEvent &event) {
         switch (event.GetId() - config_id_base) {
         case 0:
             split(true);
             break;
-        default:{
+        case 1:
+            change_part_type();
+            break;
+        default:
             get_settings_choice(menu, event.GetId(), true);
-            break; }
+            break;
         }
     });
 
@@ -655,31 +681,21 @@ wxMenu* ObjectList::create_add_settings_popupmenu(bool is_part)
     return menu;
 }
 
-
-// Load SubObjects (parts and modifiers)
-void ObjectList::load_subobject(bool is_modifier /*= false*/, bool is_lambda/* = false*/)
+void ObjectList::load_subobject(int type)
 {
     auto item = GetSelection();
-    if (!item)
+    if (!item || m_objects_model->GetParent(item) != wxDataViewItem(0))
         return;
-    int obj_idx = -1;
-    if (m_objects_model->GetParent(item) == wxDataViewItem(0))
-        obj_idx = m_objects_model->GetIdByItem(item);
-    else
-        return;
+    int obj_idx = m_objects_model->GetIdByItem(item);
 
     if (obj_idx < 0) return;
     wxArrayString part_names;
-    if (is_lambda)
-        load_lambda((*m_objects)[obj_idx], part_names, is_modifier);
-    else
-        load_part((*m_objects)[obj_idx], part_names, is_modifier);
+    load_part((*m_objects)[obj_idx], part_names, type);
 
     parts_changed(obj_idx);
 
     for (int i = 0; i < part_names.size(); ++i) {
-        const wxDataViewItem sel_item = m_objects_model->AddVolumeChild(item, part_names.Item(i),
-            is_modifier ? m_bmp_modifiermesh : m_bmp_solidmesh);
+        const wxDataViewItem sel_item = m_objects_model->AddVolumeChild(item, part_names.Item(i), /**m_bmp_vector[*/type/*]*/);
 
         if (i == part_names.size() - 1)
             select_item(sel_item);
@@ -688,11 +704,12 @@ void ObjectList::load_subobject(bool is_modifier /*= false*/, bool is_lambda/* =
 #ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
 //     selection_changed();
 #endif //no __WXOSX__//__WXMSW__
+
 }
 
 void ObjectList::load_part( ModelObject* model_object,
                             wxArrayString& part_names, 
-                            const bool is_modifier)
+                            int type)
 {
     wxWindow* parent = wxGetApp().tab_panel()->GetPage(0);
 
@@ -717,19 +734,27 @@ void ObjectList::load_part( ModelObject* model_object,
             if (model_object->origin_translation != Vec3d::Zero())
             {
                 object->center_around_origin();
+#if !ENABLE_MODELVOLUME_TRANSFORM
                 object->ensure_on_bed();
+#endif // !ENABLE_MODELVOLUME_TRANSFORM
                 delta = model_object->origin_translation - object->origin_translation;
             }
             for (auto volume : object->volumes) {
+#if ENABLE_MODELVOLUME_TRANSFORM
+                Vec3d shift = volume->mesh.bounding_box().center();
+                volume->translate_geometry(-shift);
+                volume->translate(delta + shift);
+#endif // ENABLE_MODELVOLUME_TRANSFORM
                 auto new_volume = model_object->add_volume(*volume);
-                new_volume->set_type(is_modifier ? ModelVolume::PARAMETER_MODIFIER : ModelVolume::MODEL_PART);
-                boost::filesystem::path(input_file).filename().string();
+                new_volume->set_type(static_cast<ModelVolume::Type>(type));
                 new_volume->name = boost::filesystem::path(input_file).filename().string();
 
                 part_names.Add(new_volume->name);
 
+#if !ENABLE_MODELVOLUME_TRANSFORM
                 if (delta != Vec3d::Zero())
                     new_volume->translate(delta);
+#endif // !ENABLE_MODELVOLUME_TRANSFORM
 
                 // set a default extruder value, since user can't add it manually
                 new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
@@ -738,98 +763,46 @@ void ObjectList::load_part( ModelObject* model_object,
             }
         }
     }
+
 }
 
-void ObjectList::load_lambda(   ModelObject* model_object,
-                                wxArrayString& part_names, 
-                                const bool is_modifier)
+void ObjectList::load_generic_subobject(const std::string& type_name, const int type)
 {
-    auto dlg = new LambdaObjectDialog(GetMainWindow());
-    if (dlg->ShowModal() == wxID_CANCEL) {
-        m_parts_changed = false;
-        return;
-    }
-
-    std::string name = "lambda-";
-    TriangleMesh mesh;
-
-    auto params = dlg->ObjectParameters();
-    switch (params.type)
-    {
-    case LambdaTypeBox:{
-        mesh = make_cube(params.dim[0], params.dim[1], params.dim[2]);
-        name += "Box";
-        break; }
-    case LambdaTypeCylinder:{
-        mesh = make_cylinder(params.cyl_r, params.cyl_h);
-        name += "Cylinder";
-        break; }
-    case LambdaTypeSphere:{
-        mesh = make_sphere(params.sph_rho);
-        name += "Sphere";
-        break; }
-    case LambdaTypeSlab:{
-        const auto& size = model_object->bounding_box().size();
-        mesh = make_cube(size(0)*1.5, size(1)*1.5, params.slab_h);
-        // box sets the base coordinate at 0, 0, move to center of plate and move it up to initial_z
-        mesh.translate(-size(0)*1.5 / 2.0, -size(1)*1.5 / 2.0, params.slab_z);
-        name += "Slab";
-        break; }
-    default:
-        break;
-    }
-    mesh.repair();
-
-    auto new_volume = model_object->add_volume(mesh);
-    new_volume->set_type(is_modifier ? ModelVolume::PARAMETER_MODIFIER : ModelVolume::MODEL_PART);
-
-    new_volume->name = name;
-    // set a default extruder value, since user can't add it manually
-    new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
-
-    part_names.Add(name);
-
-    m_parts_changed = true;
-}
-
-void ObjectList::load_lambda(const std::string& type_name)
-{
-    if (m_selected_object_id < 0) return;
-
-    auto dlg = new LambdaObjectDialog(GetMainWindow(), type_name);
-    if (dlg->ShowModal() == wxID_CANCEL)
-        return;
+    const auto obj_idx = get_selected_obj_idx();
+    if (obj_idx < 0) return;
 
     const std::string name = "lambda-" + type_name;
     TriangleMesh mesh;
 
-    const auto params = dlg->ObjectParameters();
+    auto& bed_shape = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionPoints>("bed_shape")->values;
+    const auto& sz = BoundingBoxf(bed_shape).size();
+    const auto side = 0.1 * std::max(sz(0), sz(1));
+
     if (type_name == _("Box"))
-        mesh = make_cube(params.dim[0], params.dim[1], params.dim[2]);
+        mesh = make_cube(side, side, side);
     else if (type_name == _("Cylinder"))
-        mesh = make_cylinder(params.cyl_r, params.cyl_h);
+        mesh = make_cylinder(0.5*side, side);
     else if (type_name == _("Sphere"))
-        mesh = make_sphere(params.sph_rho);
+        mesh = make_sphere(side, PI/18);
     else if (type_name == _("Slab")) {
-        const auto& size = (*m_objects)[m_selected_object_id]->bounding_box().size();
-        mesh = make_cube(size(0)*1.5, size(1)*1.5, params.slab_h);
+        const auto& size = (*m_objects)[obj_idx]->bounding_box().size();
+        mesh = make_cube(size(0)*1.5, size(1)*1.5, size(2)*0.5);
         // box sets the base coordinate at 0, 0, move to center of plate and move it up to initial_z
-        mesh.translate(-size(0)*1.5 / 2.0, -size(1)*1.5 / 2.0, params.slab_z);
+        mesh.translate(-size(0)*1.5 / 2.0, -size(1)*1.5 / 2.0, 0);
     }
     mesh.repair();
 
-    auto new_volume = (*m_objects)[m_selected_object_id]->add_volume(mesh);
-    new_volume->set_type(ModelVolume::PARAMETER_MODIFIER);
+    auto new_volume = (*m_objects)[obj_idx]->add_volume(mesh);
+    new_volume->set_type(static_cast<ModelVolume::Type>(type));
 
     new_volume->name = name;
     // set a default extruder value, since user can't add it manually
     new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
 
     m_parts_changed = true;
-    parts_changed(m_selected_object_id);
+    parts_changed(obj_idx);
 
-    select_item(m_objects_model->AddVolumeChild(GetSelection(),
-        name, m_bmp_modifiermesh));
+    select_item(m_objects_model->AddVolumeChild(GetSelection(), name, type));
 #ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
     selection_changed();
 #endif //no __WXOSX__ //__WXMSW__
@@ -927,8 +900,10 @@ bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, con
 void ObjectList::split(const bool split_part)
 {
     const auto item = GetSelection();
-    if (!item || m_selected_object_id < 0)
+    const int obj_idx = get_selected_obj_idx();
+    if (!item || obj_idx < 0)
         return;
+
     ModelVolume* volume;
     if (!get_volume_by_item(split_part, item, volume)) return;
     DynamicPrintConfig&	config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
@@ -938,52 +913,54 @@ void ObjectList::split(const bool split_part)
         return;
     }
 
-    auto model_object = (*m_objects)[m_selected_object_id];
+    auto model_object = (*m_objects)[obj_idx];
 
-    if (split_part) {
-        auto parent = m_objects_model->GetParent(item);
-        m_objects_model->DeleteChildren(parent);
+    auto parent = m_objects_model->GetTopParent(item);
+    if (parent)
+        m_objects_model->DeleteVolumeChildren(parent);
+    else
+        parent = item;
 
-        for (auto id = 0; id < model_object->volumes.size(); id++)
-            m_objects_model->AddVolumeChild(parent, model_object->volumes[id]->name,
-            model_object->volumes[id]->is_modifier() ? m_bmp_modifiermesh : m_bmp_solidmesh,
-            model_object->volumes[id]->config.has("extruder") ?
-            model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value : 0,
-            false);
+    for (auto id = 0; id < model_object->volumes.size(); id++) {
+        const auto vol_item = m_objects_model->AddVolumeChild(parent, model_object->volumes[id]->name,
+                                            model_object->volumes[id]->is_modifier() ? 
+                                                ModelVolume::PARAMETER_MODIFIER : ModelVolume::MODEL_PART,
+                                            model_object->volumes[id]->config.has("extruder") ?
+                                                model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value : 0,
+                                            false);
+        // add settings to the part, if it has those
+        auto opt_keys = model_object->volumes[id]->config.keys();
+        if ( !(opt_keys.size() == 1 && opt_keys[0] == "extruder") ) {
+            select_item(m_objects_model->AddSettingsChild(vol_item));
+            Collapse(vol_item);
+        }
+    }
 
+    if (parent == item)
         Expand(parent);
-    }
-    else {
-        for (auto id = 0; id < model_object->volumes.size(); id++)
-            m_objects_model->AddVolumeChild(item, model_object->volumes[id]->name,
-            m_bmp_solidmesh,
-            model_object->volumes[id]->config.has("extruder") ?
-            model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value : 0,
-            false);
-        Expand(item);
-    }
 
     m_parts_changed = true;
-    parts_changed(m_selected_object_id);
-
-    // restores selection
-    _3DScene::get_canvas(wxGetApp().canvas3D())->get_selection().add_object(m_selected_object_id);
+    parts_changed(obj_idx);
 }
 
 bool ObjectList::get_volume_by_item(const bool split_part, const wxDataViewItem& item, ModelVolume*& volume)
 {
-    if (!item || m_selected_object_id < 0)
+    auto obj_idx = get_selected_obj_idx();
+    if (!item || obj_idx < 0)
         return false;
     const auto volume_id = m_objects_model->GetVolumeIdByItem(item);
+
+    // object is selected
     if (volume_id < 0) {
-        if (split_part) return false;
-        volume = (*m_objects)[m_selected_object_id]->volumes[0];
+        if ( split_part || (*m_objects)[obj_idx]->volumes.size() > 1 ) 
+            return false;
+        volume = (*m_objects)[obj_idx]->volumes[0];
     }
+    // volume is selected
     else
-        volume = (*m_objects)[m_selected_object_id]->volumes[volume_id];
-    if (volume)
-        return true;
-    return false;
+        volume = (*m_objects)[obj_idx]->volumes[volume_id];
+    
+    return true;
 }
 
 bool ObjectList::is_splittable_object(const bool split_part)
@@ -991,20 +968,14 @@ bool ObjectList::is_splittable_object(const bool split_part)
     const wxDataViewItem item = GetSelection();
     if (!item) return false;
 
-    wxDataViewItemArray children;
-    if (!split_part && m_objects_model->GetChildren(item, children) > 0)
-        return false;
-
     ModelVolume* volume;
     if (!get_volume_by_item(split_part, item, volume) || !volume)
         return false;
 
     TriangleMeshPtrs meshptrs = volume->mesh.split();
     bool splittable = meshptrs.size() > 1;
-    for (TriangleMesh* m : meshptrs)
-    {
-        delete m;
-    }
+    for (TriangleMesh* m : meshptrs) { delete m; }
+
     return splittable;
 }
 
@@ -1017,7 +988,7 @@ void ObjectList::part_settings_changed()
 
 void ObjectList::parts_changed(int obj_idx)
 {
-    wxGetApp().plater()->changed_object(get_selected_obj_idx());
+    wxGetApp().plater()->changed_object(obj_idx);
     m_parts_changed = false;
 }
 
@@ -1105,18 +1076,27 @@ void ObjectList::add_object_to_list(size_t obj_idx)
         m_objects_model->SetValue(variant, item, 0);
     }
 
+    // add volumes to the object
     if (model_object->volumes.size() > 1) {
         for (auto id = 0; id < model_object->volumes.size(); id++)
             m_objects_model->AddVolumeChild(item,
             model_object->volumes[id]->name,
-            m_bmp_solidmesh,
+            ModelVolume::MODEL_PART,
             model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value,
             false);
         Expand(item);
     }
 
+    // add instances to the object, if it has those
     if (model_object->instances.size()>1)
         increase_object_instances(obj_idx, model_object->instances.size());
+
+    // add settings to the object, if it has those
+    auto opt_keys = model_object->config.keys();
+    if ( !(opt_keys.size() == 1 && opt_keys[0] == "extruder") ) {
+        select_item(m_objects_model->AddSettingsChild(item));
+        Collapse(item);
+    }
 
 #ifndef __WXOSX__ 
     selection_changed();
@@ -1227,11 +1207,18 @@ void ObjectList::update_selections()
     auto& selection = _3DScene::get_canvas(wxGetApp().canvas3D())->get_selection();
     wxDataViewItemArray sels;
 
-    for (auto idx: selection.get_volume_idxs())
-    {
-        const auto gl_vol = selection.get_volume(idx);
-        sels.Add(m_objects_model->GetItemByVolumeId(gl_vol->object_idx(), gl_vol->volume_idx()));
+    if (selection.is_single_full_object()) {
+        for (auto idx : selection.get_volume_idxs()) {
+            const auto gl_vol = selection.get_volume(idx);
+            sels.Add(m_objects_model->GetItemByVolumeId(gl_vol->object_idx(), gl_vol->volume_idx()));
+        }
     }
+    else if (selection.is_single_full_instance()) {
+        for (auto idx : selection.get_instance_idxs()) {            
+            sels.Add(m_objects_model->GetItemByInstanceId(selection.get_object_idx(), idx));
+        }
+    }
+    
     select_items(sels);
 }
 
@@ -1256,7 +1243,7 @@ void ObjectList::update_selections_on_canvas()
         if (m_objects_model->GetItemType(item) == itVolume) {
             const int obj_idx = m_objects_model->GetIdByItem(m_objects_model->GetParent(item));
             const int vol_idx = m_objects_model->GetVolumeIdByItem(item);
-            selection.add_volume(obj_idx, vol_idx, as_single_selection);
+            selection.add_volume(obj_idx, vol_idx, 0, as_single_selection);
         }
         else if (m_objects_model->GetItemType(item) == itInstance) {
             const int obj_idx = m_objects_model->GetIdByItem(m_objects_model->GetTopParent(item));
@@ -1332,6 +1319,54 @@ void ObjectList::fix_multiselection_conflicts()
     }
 
     m_prevent_list_events = false;
+}
+
+ModelVolume* ObjectList::get_selected_model_volume()
+{
+    auto item = GetSelection();
+    if (!item || m_objects_model->GetItemType(item) != itVolume)
+        return nullptr;
+
+    const auto vol_idx = m_objects_model->GetVolumeIdByItem(item);
+    const auto obj_idx = get_selected_obj_idx();
+    if (vol_idx < 0 || obj_idx < 0)
+        return nullptr;
+
+    return (*m_objects)[obj_idx]->volumes[vol_idx];
+}
+
+void ObjectList::change_part_type()
+{
+    ModelVolume* volume = get_selected_model_volume();
+    if (!volume)
+        return;
+    const auto type = volume->type();
+
+    const wxString names[] = { "Part", "Modifier", "Support Enforcer", "Support Blocker" };
+    
+    auto new_type = wxGetSingleChoiceIndex("Type: ", _(L("Select type of part")), wxArrayString(4, names), type);
+
+    if (new_type == type || new_type < 0)
+        return;
+
+    const auto item = GetSelection();
+    volume->set_type(static_cast<ModelVolume::Type>(new_type));
+    m_objects_model->SetVolumeType(item, new_type);
+
+    m_parts_changed = true;
+    parts_changed(get_selected_obj_idx());
+
+    // Update settings showing, if we have it
+    //(we show additional settings for Part and Modifier and hide it for Support Blocker/Enforcer)
+    const auto settings_item = m_objects_model->GetSettingsItem(item);
+    if (settings_item && 
+        new_type == ModelVolume::SUPPORT_ENFORCER || new_type == ModelVolume::SUPPORT_BLOCKER) {
+        m_objects_model->Delete(settings_item);
+    }
+    else if (!settings_item && 
+              new_type == ModelVolume::MODEL_PART || new_type == ModelVolume::PARAMETER_MODIFIER) {
+        select_item(m_objects_model->AddSettingsChild(item));
+    }
 }
 
 } //namespace GUI

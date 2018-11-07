@@ -1154,16 +1154,25 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path> &input_
         try {
             if (type_3mf || type_zip_amf) {
                 DynamicPrintConfig config;
-                config.apply(FullPrintConfig::defaults());
-                model = Slic3r::Model::read_from_archive(path.string(), &config, false);
-                Preset::normalize(config);
-                wxGetApp().preset_bundle->load_config_model(filename.string(), std::move(config));
-                for (const auto &kv : main_frame->options_tabs()) { kv.second->load_current_preset(); }
+                {
+                    DynamicPrintConfig config_loaded;
+                    model = Slic3r::Model::read_from_archive(path.string(), &config_loaded, false);
+                    if (! config_loaded.empty()) {
+						// Based on the printer technology field found in the loaded config, select the base for the config,
+						PrinterTechnology printer_technology = Preset::printer_technology(config_loaded);
+						config.apply(printer_technology == ptFFF ?
+                            static_cast<const ConfigBase&>(FullPrintConfig::defaults()) : 
+                            static_cast<const ConfigBase&>(SLAFullPrintConfig::defaults()));
+                        // and place the loaded config over the base.
+                        config += std::move(config_loaded);
+                    }
+                }
+                if (! config.empty()) {
+                    Preset::normalize(config);
+                    wxGetApp().preset_bundle->load_config_model(filename.string(), std::move(config));
+					wxGetApp().load_current_presets();
+				}
                 wxGetApp().app_config->update_config_dir(path.parent_path().string());
-                // forces the update of the config here, or it will invalidate the imported layer heights profile if done using the timer
-                // and if the config contains a "layer_height" different from the current defined one
-                // TODO:
-                // $self->async_apply_config;
             } else {
                 model = Slic3r::Model::read_from_file(path.string(), nullptr, false);
                 for (auto obj : model.objects)
@@ -1230,7 +1239,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path> &input_
 std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &model_objects)
 {
     const BoundingBoxf bed_shape = bed_shape_bb();
+#if !ENABLE_MODELVOLUME_TRANSFORM
     const Vec3d bed_center = Slic3r::to_3d(bed_shape.center().cast<double>(), 0.0);
+#endif // !ENABLE_MODELVOLUME_TRANSFORM
     const Vec3d bed_size = Slic3r::to_3d(bed_shape.size().cast<double>(), 1.0);
 
     bool need_arrange = false;
@@ -1249,8 +1260,12 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
 
             // add a default instance and center object around origin
             object->center_around_origin();  // also aligns object to Z = 0
-            auto *instance = object->add_instance();
+            ModelInstance* instance = object->add_instance();
+#if ENABLE_MODELVOLUME_TRANSFORM
+            instance->set_offset(Slic3r::to_3d(bed_shape.center().cast<double>(), -object->origin_translation(2)));
+#else
             instance->set_offset(bed_center);
+#endif // ENABLE_MODELVOLUME_TRANSFORM
         }
 
         const Vec3d size = object->bounding_box().size();
@@ -1438,7 +1453,9 @@ void Plater::priv::mirror(Axis axis)
 
 void Plater::priv::arrange()
 {
+	this->background_process.stop();
     main_frame->app_controller()->arrange_model();
+    this->schedule_background_process();
 
     // ignore arrange failures on purpose: user has visual feedback and we don't need to warn him
     // when parts don't fit in print bed
@@ -1471,13 +1488,7 @@ void Plater::priv::split_object()
     {
         unsigned int counter = 1;
         for (ModelObject* m : new_objects)
-        {
             m->name = current_model_object->name + "_" + std::to_string(counter++);
-            for (ModelInstance* i : current_model_object->instances)
-            {
-                m->add_instance(*i);
-            }
-        }
 
         remove(obj_idx);
 
@@ -2108,7 +2119,8 @@ void Plater::export_amf()
     wxString path = dialog->GetPath();
     auto path_cstr = path.c_str();
 
-    if (Slic3r::store_amf(path_cstr, &p->model, &p->print, dialog->get_checkbox_value())) {
+	DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config();
+	if (Slic3r::store_amf(path_cstr, &p->model, dialog->get_checkbox_value() ? &cfg : nullptr)) {
         // Success
         p->statusbar()->set_status_text(wxString::Format(_(L("AMF file exported to %s")), path));
     } else {
@@ -2127,7 +2139,8 @@ void Plater::export_3mf()
     wxString path = dialog->GetPath();
     auto path_cstr = path.c_str();
 
-    if (Slic3r::store_3mf(path_cstr, &p->model, &p->print, dialog->get_checkbox_value())) {
+	DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config();
+	if (Slic3r::store_3mf(path_cstr, &p->model, dialog->get_checkbox_value() ? &cfg : nullptr)) {
         // Success
         p->statusbar()->set_status_text(wxString::Format(_(L("3MF file exported to %s")), path));
     } else {
@@ -2256,7 +2269,9 @@ void Plater::changed_object(int obj_idx)
     if (list->is_parts_changed()) {
         // recenter and re - align to Z = 0
         auto model_object = p->model.objects[obj_idx];
+#if !ENABLE_MODELVOLUME_TRANSFORM
         model_object->center_around_origin();
+#endif // !ENABLE_MODELVOLUME_TRANSFORM
         model_object->ensure_on_bed();
         _3DScene::reload_scene(p->canvas3D, false);
     }

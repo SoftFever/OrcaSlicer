@@ -445,7 +445,7 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
             boost::nowide::remove(path_tmp.c_str());
             throw std::runtime_error(std::string("G-code export to ") + path + " failed\nIs the disk full?\n");
         }
-    } catch (std::exception &ex) {
+    } catch (std::exception & /* ex */) {
         // Rethrow on any exception. std::runtime_exception and CanceledException are expected to be thrown.
         // Close and remove the file.
         fclose(file);
@@ -601,15 +601,18 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
     this->apply_print_config(print.config());
     this->set_extruders(print.extruders());
     
+    // Initialize colorprint.
+    m_colorprint_heights = cast<float>(print.config().colorprint_heights.values);
+
     // Initialize autospeed.
     {
         // get the minimum cross-section used in the print
         std::vector<double> mm3_per_mm;
         for (auto object : printable_objects) {
-            for (size_t region_id = 0; region_id < print.regions().size(); ++region_id) {
-                auto region = print.regions()[region_id];
+            for (size_t region_id = 0; region_id < object->region_volumes.size(); ++ region_id) {
+                const PrintRegion* region = print.regions()[region_id];
                 for (auto layer : object->layers()) {
-                    auto layerm = layer->regions()[region_id];
+                    const LayerRegion* layerm = layer->regions()[region_id];
                     if (region->config().get_abs_value("perimeter_speed"          ) == 0 || 
                         region->config().get_abs_value("small_perimeter_speed"    ) == 0 || 
                         region->config().get_abs_value("external_perimeter_speed" ) == 0 || 
@@ -673,8 +676,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
     const PrintObject *first_object         = printable_objects.front();
     const double       layer_height         = first_object->config().layer_height.value;
     const double       first_layer_height   = first_object->config().first_layer_height.get_abs_value(layer_height);
-    for (size_t region_id = 0; region_id < print.regions().size(); ++ region_id) {
-        auto region = print.regions()[region_id];
+    for (const PrintRegion* region : print.regions()) {
         _write_format(file, "; external perimeters extrusion width = %.2fmm\n", region->flow(frExternalPerimeter, layer_height, false, false, -1., *first_object).width);
         _write_format(file, "; perimeters extrusion width = %.2fmm\n",          region->flow(frPerimeter,         layer_height, false, false, -1., *first_object).width);
         _write_format(file, "; infill extrusion width = %.2fmm\n",              region->flow(frInfill,            layer_height, false, false, -1., *first_object).width);
@@ -1319,6 +1321,18 @@ void GCode::process_layer(
         m_second_layer_things_done = true;
     }
 
+    // Let's issue a filament change command if requested at this layer.
+    // In case there are more toolchange requests that weren't done yet and should happen simultaneously, erase them all.
+    // (Layers can be close to each other, model could have been resliced with bigger layer height, ...).
+    bool colorprint_change = false;
+    while (!m_colorprint_heights.empty() && m_colorprint_heights.front()-EPSILON < layer.print_z) {
+        m_colorprint_heights.erase(m_colorprint_heights.begin());
+        colorprint_change = true;
+    }
+    if (colorprint_change)
+        gcode += "M600\n";
+
+
     // Extrude skirt at the print_z of the raft layers and normal object layers
     // not at the print_z of the interlaced support material layers.
     bool extrude_skirt = 
@@ -1442,7 +1456,7 @@ void GCode::process_layer(
             };
 
             for (size_t region_id = 0; region_id < print.regions().size(); ++ region_id) {
-                const LayerRegion *layerm = layer.regions()[region_id];
+                const LayerRegion *layerm = (region_id < layer.regions().size()) ? layer.regions()[region_id] : nullptr;
                 if (layerm == nullptr)
                     continue;
                 const PrintRegion &region = *print.regions()[region_id];

@@ -22,21 +22,35 @@ class ModelInstance;
 class ModelMaterial;
 class ModelObject;
 class ModelVolume;
-class PresetBundle;
 class Print;
 
 typedef std::string t_model_material_id;
 typedef std::string t_model_material_attribute;
-typedef std::map<t_model_material_attribute,std::string> t_model_material_attributes;
+typedef std::map<t_model_material_attribute, std::string> t_model_material_attributes;
 
-typedef std::map<t_model_material_id,ModelMaterial*> ModelMaterialMap;
+typedef std::map<t_model_material_id, ModelMaterial*> ModelMaterialMap;
 typedef std::vector<ModelObject*> ModelObjectPtrs;
 typedef std::vector<ModelVolume*> ModelVolumePtrs;
 typedef std::vector<ModelInstance*> ModelInstancePtrs;
 
 // Unique identifier of a Model, ModelObject, ModelVolume, ModelInstance or ModelMaterial.
 // Used to synchronize the front end (UI) with the back end (BackgroundSlicingProcess / Print / PrintObject)
-typedef size_t ModelID;
+// Valid IDs are strictly positive (non zero).
+// It is declared as an object, as some compilers (notably msvcc) consider a typedef size_t equivalent to size_t
+// for parameter overload.
+struct ModelID 
+{
+	ModelID(size_t id) : id(id) {}
+
+	bool operator==(const ModelID &rhs) const { return this->id == rhs.id; }
+	bool operator!=(const ModelID &rhs) const { return this->id != rhs.id; }
+	bool operator< (const ModelID &rhs) const { return this->id <  rhs.id; }
+	bool operator> (const ModelID &rhs) const { return this->id >  rhs.id; }
+	bool operator<=(const ModelID &rhs) const { return this->id <= rhs.id; }
+	bool operator>=(const ModelID &rhs) const { return this->id >= rhs.id; }
+
+	size_t	id;
+};
 
 // Base for Model, ModelObject, ModelVolume, ModelInstance or ModelMaterial to provide a unique ID
 // to synchronize the front end (UI) with the back end (BackgroundSlicingProcess / Print / PrintObject).
@@ -45,22 +59,69 @@ typedef size_t ModelID;
 class ModelBase
 {
 public:
-    ModelID  id() const { return m_id; }
+    ModelID     id() const { return m_id; }
 
 protected:
-    // Constructor to be only called by derived classes.
-    ModelBase() {}
-    ModelID  m_id = generate_new_id();
+    // Constructors to be only called by derived classes.
+    // Default constructor to assign a unique ID.
+    ModelBase() : m_id(generate_new_id()) {}
+    // Constructor with ignored int parameter to assign an invalid ID, to be replaced
+    // by an existing ID copied from elsewhere.
+    ModelBase(int) : m_id(ModelID(0)) {}
+
+    // Use with caution!
+    void        set_new_unique_id() { m_id = generate_new_id(); }
+    void        set_invalid_id()    { m_id = 0; }
+    // Use with caution!
+    void        copy_id(const ModelBase &rhs) { m_id = rhs.id(); }
+
+    // Override this method if a ModelBase derived class owns other ModelBase derived instances.
+    void        assign_new_unique_ids_recursive() { this->set_new_unique_id(); }
 
 private:
-    static inline ModelID generate_new_id() { return s_last_id ++; }
-    static ModelID s_last_id;
+    ModelID                 m_id;
+
+	static inline ModelID   generate_new_id() { return ModelID(++ s_last_id); }
+    static size_t           s_last_id;
 };
+
+#define MODELBASE_DERIVED_COPY_MOVE_CLONE(TYPE) \
+    /* Copy a model, copy the IDs. The Print::apply() will call the TYPE::copy() method */ \
+    /* to make a private copy for background processing. */ \
+    static TYPE* new_copy(const TYPE &rhs)  { return new TYPE(rhs); } \
+    static TYPE* new_copy(TYPE &&rhs)       { return new TYPE(std::move(rhs)); } \
+    static TYPE  make_copy(const TYPE &rhs) { return TYPE(rhs); } \
+    static TYPE  make_copy(TYPE &&rhs)      { return TYPE(std::move(rhs)); } \
+    TYPE&        assign_copy(const TYPE &rhs); \
+    TYPE&        assign_copy(TYPE &&rhs); \
+    /* Copy a TYPE, generate new IDs. The front end will use this call. */ \
+    static TYPE* new_clone(const TYPE &rhs) { \
+        /* Default constructor assigning an invalid ID. */ \
+        auto obj = new TYPE(-1); \
+        obj->assign_clone(rhs); \
+        return obj; \
+	} \
+    TYPE         make_clone(const TYPE &rhs) { \
+        /* Default constructor assigning an invalid ID. */ \
+        TYPE obj(-1); \
+        obj.assign_clone(rhs); \
+        return obj; \
+    } \
+    TYPE&        assign_clone(const TYPE &rhs) { \
+        this->assign_copy(rhs); \
+        this->assign_new_unique_ids_recursive(); \
+		return *this; \
+    }
+
+#define MODELBASE_DERIVED_PRIVATE_COPY_MOVE(TYPE) \
+private: \
+    /* Private constructor with an unused int parameter will create a TYPE instance with an invalid ID. */ \
+    explicit TYPE(int) : ModelBase(-1) {}; \
+    void assign_new_unique_ids_recursive();
 
 // Material, which may be shared across multiple ModelObjects of a single Model.
 class ModelMaterial : public ModelBase
 {
-    friend class Model;
 public:
     // Attributes are defined by the AMF file format, but they don't seem to be used by Slic3r for any purpose.
     t_model_material_attributes attributes;
@@ -71,14 +132,22 @@ public:
     void apply(const t_model_material_attributes &attributes)
         { this->attributes.insert(attributes.begin(), attributes.end()); }
 
+protected:
+    friend class Model;
+	// Constructor, which assigns a new unique ID.
+	ModelMaterial(Model *model) : m_model(model) {}
+	// Copy constructor copies the ID and m_model!
+	ModelMaterial(const ModelMaterial &rhs) = default;
+	void set_model(Model *model) { m_model = model; }
+
 private:
     // Parent, owning this material.
     Model *m_model;
     
-    ModelMaterial(Model *model) : m_model(model) {}
-    ModelMaterial(Model *model, const ModelMaterial &other) : attributes(other.attributes), config(other.config), m_model(model) {}
-    explicit ModelMaterial(ModelMaterial &rhs) = delete;
-    ModelMaterial& operator=(ModelMaterial &rhs) = delete;
+	ModelMaterial() = delete;
+	ModelMaterial(ModelMaterial &&rhs) = delete;
+	ModelMaterial& operator=(const ModelMaterial &rhs) = delete;
+    ModelMaterial& operator=(ModelMaterial &&rhs) = delete;
 };
 
 // A printable object, possibly having multiple print volumes (each with its own set of parameters and materials),
@@ -119,15 +188,12 @@ public:
         when user expects that. */
     Vec3d                   origin_translation;
 
-    // Assign a ModelObject to this object while keeping the original pointer to the parent Model.
-	// Make a deep copy.
-	ModelObject&            assign(const ModelObject *rhs, bool copy_volumes = true);
-
     Model*                  get_model() const { return m_model; };
     
     ModelVolume*            add_volume(const TriangleMesh &mesh);
     ModelVolume*            add_volume(TriangleMesh &&mesh);
     ModelVolume*            add_volume(const ModelVolume &volume);
+    ModelVolume*            add_volume(const ModelVolume &volume, TriangleMesh &&mesh);
     void                    delete_volume(size_t idx);
     void                    clear_volumes();
     bool                    is_multiparts() const { return volumes.size() > 1; }
@@ -163,9 +229,10 @@ public:
     void translate(double x, double y, double z);
     void scale(const Vec3d &versor);
     void scale(const double s) { this->scale(Vec3d(s, s, s)); }
-    void rotate(float angle, const Axis &axis);
-    void rotate(float angle, const Vec3d& axis);
-    void mirror(const Axis &axis);
+    void scale(double x, double y, double z) { this->scale(Vec3d(x, y, z)); }
+    void rotate(double angle, Axis axis);
+    void rotate(double angle, const Vec3d& axis);
+    void mirror(Axis axis);
     size_t materials_count() const;
     size_t facets_count() const;
     bool needed_repair() const;
@@ -184,22 +251,27 @@ public:
 
 protected:
     friend class Print;
-    // Clone this ModelObject including its volumes and instances, keep the IDs of the copies equal to the original.
-    // Called by Print::apply() to clone the Model / ModelObject hierarchy to the back end for background processing.
-    ModelObject*          clone(Model *parent);
-    void                  set_model(Model *model) { m_model = model; }
+    // Called by Print::apply() to set the model pointer after making a copy.
+    void        set_model(Model *model) { m_model = model; }
 
 private:
     ModelObject(Model *model) : layer_height_profile_valid(false), m_model(model), origin_translation(Vec3d::Zero()), m_bounding_box_valid(false) {}
-    ModelObject(Model *model, const ModelObject &rhs, bool copy_volumes = true);
-    explicit ModelObject(ModelObject &rhs) = delete;
     ~ModelObject();
-    ModelObject& operator=(ModelObject &rhs) = default;
 
-    // Parent object, owning this ModelObject.
-    Model                *m_model;
+    /* To be able to return an object from own copy / clone methods. Hopefully the compiler will do the "Copy elision" */
+    /* (Omits copy and move(since C++11) constructors, resulting in zero - copy pass - by - value semantics). */
+    ModelObject(const ModelObject &rhs) : ModelBase(-1), m_model(rhs.m_model) { this->assign_copy(rhs); }
+    explicit ModelObject(ModelObject &&rhs) : ModelBase(-1) { this->assign_copy(std::move(rhs)); }
+    ModelObject& operator=(const ModelObject &rhs) { this->assign_copy(rhs); m_model = rhs.m_model; return *this; }
+    ModelObject& operator=(ModelObject &&rhs) { this->assign_copy(std::move(rhs)); m_model = rhs.m_model; return *this; }
+
+    MODELBASE_DERIVED_COPY_MOVE_CLONE(ModelObject)
+	MODELBASE_DERIVED_PRIVATE_COPY_MOVE(ModelObject)
+
+    // Parent object, owning this ModelObject. Set to nullptr here, so the macros above will have it initialized.
+    Model                *m_model = nullptr;
+
     // Bounding box, cached.
-
     mutable BoundingBoxf3 m_bounding_box;
     mutable bool          m_bounding_box_valid;
 };
@@ -208,8 +280,6 @@ private:
 // ModelVolume instances are owned by a ModelObject.
 class ModelVolume : public ModelBase
 {
-    friend class ModelObject;
-
 public:
     std::string         name;
     // The triangular model.
@@ -225,9 +295,6 @@ public:
         SUPPORT_ENFORCER,
         SUPPORT_BLOCKER,
     };
-
-    // Clone this ModelVolume, keep the ID identical, set the parent to the cloned volume.
-    ModelVolume*        clone(ModelObject *parent) { return new ModelVolume(parent, *this); }
 
     // A parent object owning this modifier volume.
     ModelObject*        get_object() const { return this->object; };
@@ -246,11 +313,19 @@ public:
     // Return the number of volumes created from this one.
     // This is useful to assign different materials to different volumes of an object.
     size_t              split(unsigned int max_extruders);
-    void                translate(double x, double y, double z);
+    void                translate(double x, double y, double z) { translate(Vec3d(x, y, z)); }
     void                translate(const Vec3d& displacement);
+    void                scale(const Vec3d& scaling_factors);
+    void                scale(double x, double y, double z) { scale(Vec3d(x, y, z)); }
+    void                scale(double s) { scale(Vec3d(s, s, s)); }
+    void                rotate(double angle, Axis axis);
+    void                rotate(double angle, const Vec3d& axis);
+    void                mirror(Axis axis);
 
-    ModelMaterial*      assign_unique_material();
-    
+#if ENABLE_MODELVOLUME_TRANSFORM
+    void                translate_geometry(const Vec3d& displacement);
+#endif // ENABLE_MODELVOLUME_TRANSFORM
+
     void                calculate_convex_hull();
     const TriangleMesh& get_convex_hull() const;
 
@@ -289,6 +364,13 @@ public:
     const Transform3d& get_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const { return m_transformation.get_matrix(dont_translate, dont_rotate, dont_scale, dont_mirror); }
 #endif // ENABLE_MODELVOLUME_TRANSFORM
 
+protected:
+	friend class Print;
+	friend class ModelObject;
+
+	explicit ModelVolume(ModelVolume &rhs) = default;
+    void     set_model_object(ModelObject *model_object) { object = model_object; }
+
 private:
     // Parent object owning this ModelVolume.
     ModelObject*            object;
@@ -306,24 +388,45 @@ private:
         if (mesh.stl.stats.number_of_facets > 1)
             calculate_convex_hull();
     }
-    ModelVolume(ModelObject *object, TriangleMesh &&mesh, TriangleMesh &&convex_hull) : 
+    ModelVolume(ModelObject *object, TriangleMesh &&mesh, TriangleMesh &&convex_hull) :
         mesh(std::move(mesh)), m_convex_hull(std::move(convex_hull)), m_type(MODEL_PART), object(object) {}
+
+#if ENABLE_MODELVOLUME_TRANSFORM
+    // Copying an existing volume, therefore this volume will get a copy of the ID assigned.
     ModelVolume(ModelObject *object, const ModelVolume &other) :
         ModelBase(other), // copy the ID
-        name(other.name), mesh(other.mesh), m_convex_hull(other.m_convex_hull), config(other.config), m_type(other.m_type), object(object)
+        name(other.name), mesh(other.mesh), m_convex_hull(other.m_convex_hull), config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation)
     {
         this->set_material_id(other.material_id());
     }
+    // Providing a new mesh, therefore this volume will get a new unique ID assigned.
     ModelVolume(ModelObject *object, const ModelVolume &other, const TriangleMesh &&mesh) :
-        ModelBase(other), // copy the ID
-        name(other.name), mesh(std::move(mesh)), config(other.config), m_type(other.m_type), object(object)
+        name(other.name), mesh(std::move(mesh)), config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation)
     {
         this->set_material_id(other.material_id());
         if (mesh.stl.stats.number_of_facets > 1)
             calculate_convex_hull();
     }
+#else
+    // Copying an existing volume, therefore this volume will get a copy of the ID assigned.
+    ModelVolume(ModelObject *object, const ModelVolume &other) :
+        ModelBase(other), // copy the ID
+        name(other.name), mesh(other.mesh), m_convex_hull(other.m_convex_hull), config(other.config), m_type(other.m_type), object(object)
+    {
+		if (! other.material_id().empty())
+			this->set_material_id(other.material_id());
+    }
+    // Providing a new mesh, therefore this volume will get a new unique ID assigned.
+    ModelVolume(ModelObject *object, const ModelVolume &other, TriangleMesh &&mesh) :
+        name(other.name), mesh(std::move(mesh)), config(other.config), m_type(other.m_type), object(object)
+    {
+		if (! other.material_id().empty())
+			this->set_material_id(other.material_id());
+        if (mesh.stl.stats.number_of_facets > 1)
+            calculate_convex_hull();
+    }
+#endif // ENABLE_MODELVOLUME_TRANSFORM
 
-    explicit ModelVolume(ModelVolume &rhs) = delete;
     ModelVolume& operator=(ModelVolume &rhs) = delete;
 };
 
@@ -339,8 +442,6 @@ public:
         PVS_Fully_Outside,
         Num_BedStates
     };
-
-    friend class ModelObject;
 
 private:
 #if ENABLE_MODELVOLUME_TRANSFORM
@@ -430,22 +531,33 @@ public:
 
     bool is_printable() const { return print_volume_state == PVS_Inside; }
 
+protected:
+    friend class Print;
+    friend class ModelObject;
+
+    explicit ModelInstance(const ModelInstance &rhs) = default;
+    void     set_model_object(ModelObject *model_object) { object = model_object; }
+
 private:
     // Parent object, owning this instance.
     ModelObject* object;
 
 #if ENABLE_MODELVOLUME_TRANSFORM
-    ModelInstance(ModelObject *object) : object(object), print_volume_state(PVS_Inside) {}
-    ModelInstance(ModelObject *object, const ModelInstance &other) :
+    // Constructor, which assigns a new unique ID.
+    explicit ModelInstance(ModelObject *object) : object(object), print_volume_state(PVS_Inside) {}
+    // Constructor, which assigns a new unique ID.
+    explicit ModelInstance(ModelObject *object, const ModelInstance &other) :
         m_transformation(other.m_transformation), object(object), print_volume_state(PVS_Inside) {}
 #else
-    ModelInstance(ModelObject *object) : m_offset(Vec3d::Zero()), m_rotation(Vec3d::Zero()), m_scaling_factor(Vec3d::Ones()), m_mirror(Vec3d::Ones()), object(object), print_volume_state(PVS_Inside) {}
-    ModelInstance(ModelObject *object, const ModelInstance &other) :
+    explicit ModelInstance(ModelObject *object) : m_offset(Vec3d::Zero()), m_rotation(Vec3d::Zero()), m_scaling_factor(Vec3d::Ones()), m_mirror(Vec3d::Ones()), object(object), print_volume_state(PVS_Inside) {}
+    explicit ModelInstance(ModelObject *object, const ModelInstance &other) :
         m_offset(other.m_offset), m_rotation(other.m_rotation), m_scaling_factor(other.m_scaling_factor), m_mirror(other.m_mirror), object(object), print_volume_state(PVS_Inside) {}
 #endif // ENABLE_MODELVOLUME_TRANSFORM
 
-    explicit ModelInstance(ModelInstance &rhs) = delete;
-    ModelInstance& operator=(ModelInstance &rhs) = delete;
+    ModelInstance() = delete;
+    explicit ModelInstance(ModelInstance &&rhs) = delete;
+    ModelInstance& operator=(const ModelInstance &rhs) = delete;
+    ModelInstance& operator=(ModelInstance &&rhs) = delete;
 };
 
 // The print bed content.
@@ -460,30 +572,39 @@ class Model : public ModelBase
 public:
     // Materials are owned by a model and referenced by objects through t_model_material_id.
     // Single material may be shared by multiple models.
-    ModelMaterialMap materials;
+    ModelMaterialMap    materials;
     // Objects are owned by a model. Each model may have multiple instances, each instance having its own transformation (shift, scale, rotation).
-    ModelObjectPtrs objects;
+    ModelObjectPtrs     objects;
     
+    // Default constructor assigns a new ID to the model.
     Model() {}
-    Model(const Model &rhs);
-    Model& operator=(const Model &rhs);
     ~Model() { this->clear_objects(); this->clear_materials(); }
 
-    // XXX: use fs::path ?
+    /* To be able to return an object from own copy / clone methods. Hopefully the compiler will do the "Copy elision" */
+    /* (Omits copy and move(since C++11) constructors, resulting in zero - copy pass - by - value semantics). */
+    Model(const Model &rhs) : ModelBase(-1) { this->assign_copy(rhs); }
+    explicit Model(Model &&rhs) : ModelBase(-1) { this->assign_copy(std::move(rhs)); }
+    Model& operator=(const Model &rhs) { this->assign_copy(rhs); return *this; }
+    Model& operator=(Model &&rhs) { this->assign_copy(std::move(rhs)); return *this; }
+
+    MODELBASE_DERIVED_COPY_MOVE_CLONE(Model)
+
     static Model read_from_file(const std::string &input_file, DynamicPrintConfig *config = nullptr, bool add_default_instances = true);
     static Model read_from_archive(const std::string &input_file, DynamicPrintConfig *config, bool add_default_instances = true);
 
     /// Repair the ModelObjects of the current Model.
     /// This function calls repair function on each TriangleMesh of each model object volume
-    void repair();
+    void         repair();
 
+    // Add a new ModelObject to this Model, generate a new ID for this ModelObject.
     ModelObject* add_object();
     ModelObject* add_object(const char *name, const char *path, const TriangleMesh &mesh);
     ModelObject* add_object(const char *name, const char *path, TriangleMesh &&mesh);
-    ModelObject* add_object(const ModelObject &other, bool copy_volumes = true);
-    void delete_object(size_t idx);
-    void delete_object(ModelObject* object);
-    void clear_objects();
+    ModelObject* add_object(const ModelObject &other);
+    void         delete_object(size_t idx);
+    bool         delete_object(ModelID id);
+    bool         delete_object(ModelObject* object);
+    void         clear_objects();
     
     ModelMaterial* add_material(t_model_material_id material_id);
     ModelMaterial* add_material(t_model_material_id material_id, const ModelMaterial &other);
@@ -492,9 +613,9 @@ public:
         return (i == this->materials.end()) ? nullptr : i->second;
     }
 
-    void delete_material(t_model_material_id material_id);
-    void clear_materials();
-    bool add_default_instances();
+    void          delete_material(t_model_material_id material_id);
+    void          clear_materials();
+    bool          add_default_instances();
     // Returns approximate axis aligned bounding box of this model
     BoundingBoxf3 bounding_box() const;
     // Set the print_volume_state of PrintObject::instances, 
@@ -520,7 +641,13 @@ public:
     static unsigned int get_auto_extruder_id(unsigned int max_extruders);
     static std::string get_auto_extruder_id_as_string(unsigned int max_extruders);
     static void reset_auto_extruder_id();
+
+private:
+    MODELBASE_DERIVED_PRIVATE_COPY_MOVE(Model)
 };
+
+#undef MODELBASE_DERIVED_COPY_MOVE_CLONE
+#undef MODELBASE_DERIVED_PRIVATE_COPY_MOVE
 
 }
 

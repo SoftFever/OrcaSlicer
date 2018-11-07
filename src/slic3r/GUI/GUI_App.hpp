@@ -60,7 +60,7 @@ enum ConfigMenuIDs {
 
 class Tab;
 
-static wxString dots("…", wxConvUTF8);
+static wxString dots("â€¦", wxConvUTF8);
 
 class GUI_App : public wxApp
 {

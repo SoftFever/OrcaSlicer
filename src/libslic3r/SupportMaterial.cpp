@@ -2450,7 +2450,7 @@ void LoopInterfaceProcessor::generate(MyLayerExtruded &top_contact_layer, const 
     // Transform loops into ExtrusionPath objects.
     extrusion_entities_append_paths(
         top_contact_layer.extrusions,
-        STDMOVE(loop_lines),
+        std::move(loop_lines),
         erSupportMaterialInterface, flow.mm3_per_mm(), flow.width, flow.height);
 }
 
@@ -2827,7 +2827,7 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                         to_infill = offset_ex(to_infill, float(- 0.4 * flow.scaled_spacing()));
                         extrusion_entities_append_paths(
                             support_layer.support_fills.entities, 
-                            to_polylines(STDMOVE(to_infill_polygons)),
+                            to_polylines(std::move(to_infill_polygons)),
                             erSupportMaterial, flow.mm3_per_mm(), flow.width, flow.height);
                     }
                     if (! to_infill.empty()) {
@@ -2841,7 +2841,7 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                             // Destination
                             support_layer.support_fills.entities, 
                             // Regions to fill
-                            STDMOVE(to_infill), 
+                            std::move(to_infill), 
                             // Filler and its parameters
                             filler, float(support_density),
                             // Extrusion parameters
@@ -3037,14 +3037,14 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                     to_infill = offset_ex(to_infill, - 0.4 * float(flow.scaled_spacing()));
                     extrusion_entities_append_paths(
                         base_layer.extrusions, 
-                        to_polylines(STDMOVE(to_infill_polygons)),
+                        to_polylines(std::move(to_infill_polygons)),
                         erSupportMaterial, flow.mm3_per_mm(), flow.width, flow.height);
                 }
                 fill_expolygons_generate_paths(
                     // Destination
                     base_layer.extrusions, 
                     // Regions to fill
-                    STDMOVE(to_infill), 
+                    std::move(to_infill), 
                     // Filler and its parameters
                     filler, density,
                     // Extrusion parameters

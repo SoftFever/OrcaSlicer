@@ -596,8 +596,7 @@ void MainFrame::load_config_file(wxString file/* = wxEmptyString*/)
         //     if (Slic3r::GUI::catch_error(this))
         //         return;
     }
-    for (auto tab : m_options_tabs )
-        tab.second->load_current_preset();
+	wxGetApp().load_current_presets();
     wxGetApp().app_config->update_config_dir(get_dir_name(file));
     m_last_config = file;
 }
@@ -659,8 +658,7 @@ void MainFrame::load_configbundle(wxString file/* = wxEmptyString, const bool re
     }
 
     // Load the currently selected preset into the GUI, update the preset selection box.
-    for (auto tab : m_options_tabs)
-        tab.second->load_current_preset();
+	wxGetApp().load_current_presets();
 
     const auto message = wxString::Format(_(L("%d presets successfully imported.")), presets_imported);
     Slic3r::GUI::show_info(this, message, "Info");

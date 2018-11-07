@@ -80,6 +80,7 @@ public:
 
 private:
 	void 	thread_proc();
+	void 	thread_proc_safe();
 	void 	join_background_thread();
 	// To be called by Print::apply() through the Print::m_cancel_callback to stop the background
 	// processing before changing any data of running or finalized milestones.

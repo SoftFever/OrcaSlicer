@@ -193,6 +193,7 @@ const float GLVolume::SELECTED_COLOR[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
 const float GLVolume::HOVER_COLOR[4] = { 0.4f, 0.9f, 0.1f, 1.0f };
 const float GLVolume::OUTSIDE_COLOR[4] = { 0.0f, 0.38f, 0.8f, 1.0f };
 const float GLVolume::SELECTED_OUTSIDE_COLOR[4] = { 0.19f, 0.58f, 1.0f, 1.0f };
+const float GLVolume::DISABLED_COLOR[4] = { 0.25f, 0.25f, 0.25f, 1.0f };
 
 GLVolume::GLVolume(float r, float g, float b, float a)
 #if ENABLE_MODELVOLUME_TRANSFORM
@@ -211,6 +212,7 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     , composite_id(-1)
     , extruder_id(0)
     , selected(false)
+    , disabled(false)
     , is_active(true)
     , zoom_to_volumes(true)
     , shader_outside_printer_detection_enabled(false)
@@ -252,6 +254,8 @@ void GLVolume::set_render_color()
         set_render_color(is_outside ? SELECTED_OUTSIDE_COLOR : SELECTED_COLOR, 4);
     else if (hover)
         set_render_color(HOVER_COLOR, 4);
+    else if (disabled)
+        set_render_color(DISABLED_COLOR, 4);
     else if (is_outside && shader_outside_printer_detection_enabled)
         set_render_color(OUTSIDE_COLOR, 4);
     else
@@ -723,7 +727,11 @@ std::vector<int> GLVolumeCollection::load_object(
 
         for (int instance_idx : instance_idxs) {
             const ModelInstance *instance = model_object->instances[instance_idx];
+#if ENABLE_MODELVOLUME_TRANSFORM
+            const TriangleMesh& mesh = model_volume->mesh;
+#else
             TriangleMesh mesh = model_volume->mesh;
+#endif // ENABLE_MODELVOLUME_TRANSFORM
             volumes_idx.push_back(int(this->volumes.size()));
             float color[4];
             memcpy(color, colors[((color_by == "volume") ? volume_idx : obj_idx) % 4], sizeof(float) * 3);
@@ -758,7 +766,8 @@ std::vector<int> GLVolumeCollection::load_object(
             v.is_modifier = ! model_volume->is_model_part();
             v.shader_outside_printer_detection_enabled = model_volume->is_model_part();
 #if ENABLE_MODELVOLUME_TRANSFORM
-            v.set_transformation(instance->get_transformation());
+            v.set_instance_transformation(instance->get_transformation());
+            v.set_volume_transformation(model_volume->get_transformation());
 #else
             v.set_offset(instance->get_offset());
             v.set_rotation(instance->get_rotation());
@@ -833,7 +842,11 @@ int GLVolumeCollection::load_wipe_tower_preview(
     else
         v.indexed_vertex_array.load_mesh_flat_shading(mesh);
 
+#if ENABLE_MODELVOLUME_TRANSFORM
+    v.set_volume_offset(Vec3d(pos_x, pos_y, 0.0));
+#else
     v.set_offset(Vec3d(pos_x, pos_y, 0.0));
+#endif // ENABLE_MODELVOLUME_TRANSFORM
 
     // finalize_geometry() clears the vertex arrays, therefore the bounding box has to be computed before finalize_geometry().
     v.bounding_box = v.indexed_vertex_array.bounding_box();

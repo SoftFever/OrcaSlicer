@@ -28,9 +28,13 @@ class ObjectList : public wxDataViewCtrl
 
     wxBitmap	m_bmp_modifiermesh;
     wxBitmap	m_bmp_solidmesh;
+    wxBitmap	m_bmp_support_enforcer;
+    wxBitmap	m_bmp_support_blocker;
     wxBitmap	m_bmp_manifold_warning;
     wxBitmap	m_bmp_cog;
     wxBitmap	m_bmp_split;
+
+    std::vector<wxBitmap*> m_bmp_vector;
 
     int			m_selected_object_id = -1;
     bool		m_prevent_list_events = false;		// We use this flag to avoid circular event handling Select() 
@@ -78,17 +82,16 @@ public:
     void                on_drop(wxDataViewEvent &event);
 
     void                get_settings_choice(wxMenu *menu, int id, bool is_part);
-    void                menu_item_add_generic(wxMenuItem* &menu, int id);
+    void                menu_item_add_generic(wxMenuItem* &menu, int id, const int type);
     wxMenuItem*         menu_item_split(wxMenu* menu, int id);
     wxMenuItem*         menu_item_settings(wxMenu* menu, int id, const bool is_part);
     wxMenu*             create_add_part_popupmenu();
     wxMenu*             create_part_settings_popupmenu();
     wxMenu*             create_add_settings_popupmenu(bool is_part);
 
-    void                load_subobject(bool is_modifier = false, bool is_lambda = false);
-    void                load_part(ModelObject* model_object, wxArrayString& part_names, const bool is_modifier);
-    void                load_lambda(ModelObject* model_object, wxArrayString& part_names, const bool is_modifier);
-    void                load_lambda(const std::string& type_name);
+    void                load_subobject(int type);
+    void                load_part(ModelObject* model_object, wxArrayString& part_names, int type);
+    void                load_generic_subobject(const std::string& type_name, const int type);
     void                del_subobject_item(wxDataViewItem& item);
     void                del_settings_from_config();
     void                del_instances_from_object(const int obj_idx);
@@ -142,6 +145,9 @@ public:
     void select_all();
     // correct current selections to avoid of the possible conflicts
     void fix_multiselection_conflicts();
+
+    ModelVolume* get_selected_model_volume();
+    void change_part_type();
 };
 
 

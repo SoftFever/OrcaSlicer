@@ -247,7 +247,7 @@ void make_fill(LayerRegion &layerm, ExtrusionEntityCollection &out)
         // Only concentric fills are not sorted.
         eec->no_sort = f->no_sort();
         extrusion_entities_append_paths(
-            eec->entities, STDMOVE(polylines),
+            eec->entities, std::move(polylines),
             is_bridge ?
                 erBridgeInfill :
                 (surface.is_solid() ?

@@ -192,6 +192,12 @@ void PrintConfigDef::init_fff_params()
     def->mode = comExpert;
     def->default_value = new ConfigOptionBool(false);
 
+    def = this->add("colorprint_heights", coFloats);
+    def->label = L("Colorprint height");
+    def->tooltip = L("Heights at which a filament change is to occur. ");
+    def->cli = "colorprint-heights=f@";
+    def->default_value = new ConfigOptionFloats { };
+
     def = this->add("compatible_printers", coStrings);
     def->label = L("Compatible printers");
     def->mode = comAdvanced;

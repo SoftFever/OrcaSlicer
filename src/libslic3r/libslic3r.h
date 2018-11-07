@@ -47,19 +47,6 @@ typedef double  coordf_t;
 #define scale_(val) ((val) / SCALING_FACTOR)
 #define SCALED_EPSILON scale_(EPSILON)
 
-// Which C++ version is supported?
-// For example, could optimized functions with move semantics be used?
-#if __cplusplus==201402L
-	#define SLIC3R_CPPVER 14
-	#define STDMOVE(WHAT) std::move(WHAT)
-#elif __cplusplus==201103L
-	#define SLIC3R_CPPVER 11
-	#define STDMOVE(WHAT) std::move(WHAT)
-#else
-	#define SLIC3R_CPPVER 0
-	#define STDMOVE(WHAT) (WHAT)
-#endif
-
 #define SLIC3R_DEBUG_OUT_PATH_PREFIX "out/"
 
 inline std::string debug_out_path(const char *name, ...)

@@ -34,7 +34,7 @@ void LayerRegion::slices_to_fill_surfaces_clipped()
     // in place. However we're now only using its boundaries (which are invariant)
     // so we're safe. This guarantees idempotence of prepare_infill() also in case
     // that combine_infill() turns some fill_surface into VOID surfaces.
-//    Polygons fill_boundaries = to_polygons(STDMOVE(this->fill_surfaces));
+//    Polygons fill_boundaries = to_polygons(std::move(this->fill_surfaces));
     Polygons fill_boundaries = to_polygons(this->fill_expolygons);
     // Collect polygons per surface type.
     std::vector<Polygons> polygons_by_surface;
@@ -133,9 +133,9 @@ void LayerRegion::process_external_surfaces(const Layer* lower_layer)
                 if (internal_surface)
                     // Make a copy as the following line uses the move semantics.
                     internal.push_back(surface);
-                polygons_append(fill_boundaries, STDMOVE(surface.expolygon));
+                polygons_append(fill_boundaries, std::move(surface.expolygon));
             } else if (internal_surface)
-                internal.push_back(STDMOVE(surface));
+                internal.push_back(std::move(surface));
         }
     }
 
@@ -192,7 +192,7 @@ void LayerRegion::process_external_surfaces(const Layer* lower_layer)
                     polys = intersection(polys, to_polygons(fill_boundaries_ex[idx_island]));
                 }
                 bridge_bboxes.push_back(get_extents(polys));
-                bridges_grown.push_back(STDMOVE(polys));
+                bridges_grown.push_back(std::move(polys));
             }
         }
 
@@ -243,7 +243,7 @@ void LayerRegion::process_external_surfaces(const Layer* lower_layer)
                 for (size_t i = 0; i < bridges.size(); ++ i) {
                     if (bridge_group[i] != group_id)
                         continue;
-                    initial.push_back(STDMOVE(bridges[i].expolygon));
+                    initial.push_back(std::move(bridges[i].expolygon));
                     polygons_append(grown, bridges_grown[i]);
                 }
                 // detect bridge direction before merging grown surfaces otherwise adjacent bridges
@@ -269,7 +269,7 @@ void LayerRegion::process_external_surfaces(const Layer* lower_layer)
                 surfaces_append(bottom, union_ex(grown, true), bridges[idx_last]);
             }
 
-            fill_boundaries = STDMOVE(to_polygons(fill_boundaries_ex));
+            fill_boundaries = std::move(to_polygons(fill_boundaries_ex));
 			BOOST_LOG_TRIVIAL(trace) << "Processing external surface, detecting bridges - done";
 		}
 
@@ -284,7 +284,7 @@ void LayerRegion::process_external_surfaces(const Layer* lower_layer)
     Surfaces new_surfaces;
     {
         // Merge top and bottom in a single collection.
-        surfaces_append(top, STDMOVE(bottom));
+        surfaces_append(top, std::move(bottom));
         // Intersect the grown surfaces with the actual fill boundaries.
         Polygons bottom_polygons = to_polygons(bottom);
         for (size_t i = 0; i < top.size(); ++ i) {
@@ -292,11 +292,11 @@ void LayerRegion::process_external_surfaces(const Layer* lower_layer)
             if (s1.empty())
                 continue;
             Polygons polys;
-            polygons_append(polys, STDMOVE(s1));
+            polygons_append(polys, std::move(s1));
             for (size_t j = i + 1; j < top.size(); ++ j) {
                 Surface &s2 = top[j];
                 if (! s2.empty() && surfaces_could_merge(s1, s2)) {
-                    polygons_append(polys, STDMOVE(s2));
+                    polygons_append(polys, std::move(s2));
                     s2.clear();
                 }
             }
@@ -306,7 +306,7 @@ void LayerRegion::process_external_surfaces(const Layer* lower_layer)
             surfaces_append(
                 new_surfaces,
                 // Don't use a safety offset as fill_boundaries were already united using the safety offset.
-                STDMOVE(intersection_ex(polys, fill_boundaries, false)),
+                std::move(intersection_ex(polys, fill_boundaries, false)),
                 s1);
         }
     }
@@ -318,20 +318,20 @@ void LayerRegion::process_external_surfaces(const Layer* lower_layer)
         if (s1.empty())
             continue;
         Polygons polys;
-        polygons_append(polys, STDMOVE(s1));
+        polygons_append(polys, std::move(s1));
         for (size_t j = i + 1; j < internal.size(); ++ j) {
             Surface &s2 = internal[j];
             if (! s2.empty() && surfaces_could_merge(s1, s2)) {
-                polygons_append(polys, STDMOVE(s2));
+                polygons_append(polys, std::move(s2));
                 s2.clear();
             }
         }
         ExPolygons new_expolys = diff_ex(polys, new_polygons);
         polygons_append(new_polygons, to_polygons(new_expolys));
-        surfaces_append(new_surfaces, STDMOVE(new_expolys), s1);
+        surfaces_append(new_surfaces, std::move(new_expolys), s1);
     }
     
-    this->fill_surfaces.surfaces = STDMOVE(new_surfaces);
+    this->fill_surfaces.surfaces = std::move(new_surfaces);
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
     export_region_fill_surfaces_to_svg_debug("3_process_external_surfaces-final");

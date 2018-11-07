@@ -170,10 +170,12 @@ void Preset::set_num_extruders(DynamicPrintConfig &config, unsigned int num_extr
 {
     const auto &defaults = FullPrintConfig::defaults();
     for (const std::string &key : Preset::nozzle_options()) {
+		if (key == "default_filament_profile")
+			continue;
         auto *opt = config.option(key, false);
         assert(opt != nullptr);
         assert(opt->is_vector());
-        if (opt != nullptr && opt->is_vector() && key != "default_filament_profile")
+        if (opt != nullptr && opt->is_vector())
             static_cast<ConfigOptionVectorBase*>(opt)->resize(num_extruders, defaults.option(key));
     }
 }
@@ -202,8 +204,7 @@ void Preset::normalize(DynamicPrintConfig &config)
         // The following keys are mandatory for the UI, but they are not part of FullPrintConfig, therefore they are handled separately.
         for (const std::string &key : { "filament_settings_id" }) {
             auto *opt = config.option(key, false);
-            assert(opt != nullptr);
-            assert(opt->type() == coStrings);
+            assert(opt == nullptr || opt->type() == coStrings);
             if (opt != nullptr && opt->type() == coStrings)
                 static_cast<ConfigOptionStrings*>(opt)->values.resize(n, std::string());
         }
@@ -534,7 +535,8 @@ Preset& PresetCollection::load_external_preset(
     cfg.apply_only(config, cfg.keys(), true);
     // Is there a preset already loaded with the name stored inside the config?
     std::deque<Preset>::iterator it = this->find_preset_internal(original_name);
-    if (it != m_presets.end() && it->name == original_name && profile_print_params_same(it->config, cfg)) {
+	bool                         found = it != m_presets.end() && it->name == original_name;
+    if (found && profile_print_params_same(it->config, cfg)) {
         // The preset exists and it matches the values stored inside config.
         if (select)
             this->select_preset(it - m_presets.begin());
@@ -542,7 +544,7 @@ Preset& PresetCollection::load_external_preset(
     }
     // Update the "inherits" field.
     std::string &inherits = Preset::inherits(cfg);
-    if (it != m_presets.end() && inherits.empty()) {
+    if (found && inherits.empty()) {
         // There is a profile with the same name already loaded. Should we update the "inherits" field?
         if (it->vendor == nullptr)
             inherits = it->inherits();

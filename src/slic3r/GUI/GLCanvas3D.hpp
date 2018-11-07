@@ -358,9 +358,14 @@ public:
 
         enum EMode : unsigned char
         {
+#if ENABLE_MODELVOLUME_TRANSFORM
+            Volume,
+            Instance
+#else
             Volume,
             Instance,
             Object
+#endif // ENABLE_MODELVOLUME_TRANSFORM
         };
 
         enum EType : unsigned char
@@ -368,9 +373,13 @@ public:
             Invalid,
             Empty,
             WipeTower,
-            Modifier,
+            SingleModifier,
+            MultipleModifier,
+            SingleVolume,
+            MultipleVolume,
             SingleFullObject,
             SingleFullInstance,
+            MultipleFullInstance,
             Mixed
         };
 
@@ -378,21 +387,57 @@ public:
         struct VolumeCache
         {
         private:
+#if ENABLE_MODELVOLUME_TRANSFORM
+            struct TransformCache
+            {
+                Vec3d position;
+                Vec3d rotation;
+                Vec3d scaling_factor;
+                Transform3d rotation_matrix;
+                Transform3d scale_matrix;
+
+                TransformCache();
+                explicit TransformCache(const Geometry::Transformation& transform);
+            };
+
+            TransformCache m_volume;
+            TransformCache m_instance;
+#else
             Vec3d m_position;
             Vec3d m_rotation;
             Vec3d m_scaling_factor;
             Transform3d m_rotation_matrix;
             Transform3d m_scale_matrix;
+#endif // ENABLE_MODELVOLUME_TRANSFORM
 
         public:
+#if ENABLE_MODELVOLUME_TRANSFORM
+            VolumeCache() {}
+            VolumeCache(const Geometry::Transformation& volume_transform, const Geometry::Transformation& instance_transform);
+#else
             VolumeCache();
             VolumeCache(const Vec3d& position, const Vec3d& rotation, const Vec3d& scaling_factor);
+#endif // ENABLE_MODELVOLUME_TRANSFORM
 
+#if ENABLE_MODELVOLUME_TRANSFORM
+            const Vec3d& get_volume_position() const { return m_volume.position; }
+            const Vec3d& get_volume_rotation() const { return m_volume.rotation; }
+            const Vec3d& get_volume_scaling_factor() const { return m_volume.scaling_factor; }
+            const Transform3d& get_volume_rotation_matrix() const { return m_volume.rotation_matrix; }
+            const Transform3d& get_volume_scale_matrix() const { return m_volume.scale_matrix; }
+
+            const Vec3d& get_instance_position() const { return m_instance.position; }
+            const Vec3d& get_instance_rotation() const { return m_instance.rotation; }
+            const Vec3d& get_instance_scaling_factor() const { return m_instance.scaling_factor; }
+            const Transform3d& get_instance_rotation_matrix() const { return m_instance.rotation_matrix; }
+            const Transform3d& get_instance_scale_matrix() const { return m_instance.scale_matrix; }
+#else
             const Vec3d& get_position() const { return m_position; }
             const Vec3d& get_rotation() const { return m_rotation; }
             const Vec3d& get_scaling_factor() const { return m_scaling_factor; }
             const Transform3d& get_rotation_matrix() const { return m_rotation_matrix; }
             const Transform3d& get_scale_matrix() const { return m_scale_matrix; }
+#endif // ENABLE_MODELVOLUME_TRANSFORM
         };
 
         typedef std::map<unsigned int, VolumeCache> VolumesCache;
@@ -435,14 +480,14 @@ public:
         void add_instance(unsigned int object_idx, unsigned int instance_idx, bool as_single_selection = true);
         void remove_instance(unsigned int object_idx, unsigned int instance_idx);
 
-        void add_volume(unsigned int object_idx, unsigned int volume_idx, bool as_single_selection = true);
+        void add_volume(unsigned int object_idx, unsigned int volume_idx, int instance_idx, bool as_single_selection = true);
         void remove_volume(unsigned int object_idx, unsigned int volume_idx);
 
         void clear();
 
         bool is_empty() const { return m_type == Empty; }
         bool is_wipe_tower() const { return m_type == WipeTower; }
-        bool is_modifier() const { return m_type == Modifier; }
+        bool is_modifier() const { return (m_type == SingleModifier) || (m_type == MultipleModifier); }
         bool is_single_full_instance() const;
         bool is_single_full_object() const { return m_type == SingleFullObject; }
         bool is_mixed() const { return m_type == Mixed; }
@@ -455,6 +500,9 @@ public:
         int get_object_idx() const;
         // Returns the instance id if the selection is from a single object and from a single instance, otherwise is -1
         int get_instance_idx() const;
+        // Returns the indices of selected instances.
+        // Can only be called if selection is from a single object.
+        const InstanceIdxsList& get_instance_idxs() const;
 
         const IndicesList& get_volume_idxs() const { return m_list; }
         const GLVolume* get_volume(unsigned int volume_idx) const;
@@ -466,13 +514,14 @@ public:
 
         void translate(const Vec3d& displacement);
         void rotate(const Vec3d& rotation);
+        void flattening_rotate(const Vec3d& normal);
         void scale(const Vec3d& scale);
         void mirror(Axis axis);
 
         void translate(unsigned int object_idx, const Vec3d& displacement);
         void translate(unsigned int object_idx, unsigned int instance_idx, const Vec3d& displacement);
 
-        void render(bool show_indirect_selection) const;
+        void render() const;
 
     private:
         void _update_valid();
@@ -486,9 +535,10 @@ public:
         void _remove_object(unsigned int object_idx);
         void _calc_bounding_box() const;
         void _render_selected_volumes() const;
-        void _render_unselected_instances() const;
+        void _render_synchronized_volumes() const;
         void _render_bounding_box(const BoundingBoxf3& box, float* color) const;
         void _synchronize_unselected_instances();
+        void _synchronize_unselected_volumes();
     };
 
 private:
@@ -556,7 +606,7 @@ private:
         Vec3d get_rotation() const;
         void set_rotation(const Vec3d& rotation);
 
-        Vec3d get_flattening_rotation() const;
+        Vec3d get_flattening_normal() const;
 
         void set_flattening_data(const ModelObject* model_object);
         

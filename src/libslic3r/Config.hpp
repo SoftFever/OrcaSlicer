@@ -1119,7 +1119,8 @@ public:
     void load(const std::string &file);
     void load_from_ini(const std::string &file);
     void load_from_gcode_file(const std::string &file);
-    void load_from_gcode_string(const char* str);
+    // Returns number of key/value pairs extracted.
+    size_t load_from_gcode_string(const char* str);
     void load(const boost::property_tree::ptree &tree);
     void save(const std::string &file) const;
 
@@ -1237,6 +1238,7 @@ public:
     ConfigOption*           optptr(const t_config_option_key &opt_key, bool create = false) override;
     // Overrides ConfigBase::keys(). Collect names of all configuration values maintained by this configuration store.
     t_config_option_keys    keys() const override;
+    bool                    empty() const { return options.empty(); }
 
     // Set a value for an opt_key. Returns true if the value did not exist yet.
     // This DynamicConfig will take ownership of opt.

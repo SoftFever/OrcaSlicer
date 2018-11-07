@@ -424,7 +424,9 @@ private:
 
 class PrusaObjectDataViewModel :public wxDataViewModel
 {
-	std::vector<PrusaObjectDataViewModelNode*> m_objects;
+	std::vector<PrusaObjectDataViewModelNode*>  m_objects;
+    std::vector<wxBitmap*>                      m_volume_bmps;
+
 public:
     PrusaObjectDataViewModel();
     ~PrusaObjectDataViewModel();
@@ -432,7 +434,7 @@ public:
 	wxDataViewItem Add(const wxString &name);
 	wxDataViewItem AddVolumeChild(const wxDataViewItem &parent_item, 
 							const wxString &name, 
-                            const wxBitmap& icon,
+                            const int volume_type,
                             const int extruder = 0,
                             const bool create_frst_child = true);
 	wxDataViewItem AddSettingsChild(const wxDataViewItem &parent_item);
@@ -441,8 +443,10 @@ public:
 	wxDataViewItem DeleteLastInstance(const wxDataViewItem &parent_item, size_t num);
 	void DeleteAll();
     void DeleteChildren(wxDataViewItem& parent);
+    void DeleteVolumeChildren(wxDataViewItem& parent);
 	wxDataViewItem GetItemById(int obj_idx);
 	wxDataViewItem GetItemByVolumeId(int obj_idx, int volume_idx);
+	wxDataViewItem GetItemByInstanceId(int obj_idx, int inst_idx);
 	int GetIdByItem(const wxDataViewItem& item);
     int GetIdByItemAndType(const wxDataViewItem& item, const ItemType type) const;
     int GetVolumeIdByItem(const wxDataViewItem& item) const;
@@ -488,9 +492,14 @@ public:
 	virtual bool HasContainerColumns(const wxDataViewItem& WXUNUSED(item)) const override {	return true; }
 
     ItemType GetItemType(const wxDataViewItem &item) const ;
+    wxDataViewItem    GetItemByType(const wxDataViewItem &parent_item, ItemType type) const;
     wxDataViewItem    GetSettingsItem(const wxDataViewItem &item) const;
+    wxDataViewItem    GetInstanceRootItem(const wxDataViewItem &item) const;
     bool    IsSettingsItem(const wxDataViewItem &item) const;
     void    UpdateSettingsDigest(const wxDataViewItem &item, const std::vector<std::string>& categories);
+
+    void    SetVolumeBitmaps(const std::vector<wxBitmap*>& volume_bmps) { m_volume_bmps = volume_bmps; }
+    void    SetVolumeType(const wxDataViewItem &item, const int type);
 };
 
 // ----------------------------------------------------------------------------
@@ -613,6 +622,9 @@ private:
 // PrusaDoubleSlider
 // ----------------------------------------------------------------------------
 
+// custom message the slider sends to its parent to notify a tick-change:
+wxDECLARE_EVENT(wxCUSTOMEVT_TICKSCHANGED, wxEvent);
+
 enum SelectedSlider {
     ssUndef,
     ssLower,
@@ -623,6 +635,7 @@ enum TicksAction{
     taAdd,
     taDel
 };
+
 class PrusaDoubleSlider : public wxControl
 {
 public:
@@ -660,6 +673,8 @@ public:
         m_values = values;
     }
     void ChangeOneLayerLock();
+    std::vector<double> GetTicksValues() const;
+    void SetTicksValues(const std::vector<double>& heights);
 
     void OnPaint(wxPaintEvent& ) { render();}
     void OnLeftDown(wxMouseEvent& event);

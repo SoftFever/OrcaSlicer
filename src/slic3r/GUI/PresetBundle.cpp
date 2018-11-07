@@ -36,6 +36,7 @@
 namespace Slic3r {
 
 static std::vector<std::string> s_project_options {
+    "colorprint_heights",
     "wiping_volumes_extruders",
     "wiping_volumes_matrix"
 };
@@ -617,18 +618,6 @@ void PresetBundle::load_config_file(const std::string &path)
     }
 }
 
-void PresetBundle::load_config_string(const char* str, const char* source_filename)
-{
-    if (str != nullptr)
-    {
-        DynamicPrintConfig config;
-        config.apply(FullPrintConfig::defaults());
-        config.load_from_gcode_string(str);
-        Preset::normalize(config);
-        load_config_file_config((source_filename == nullptr) ? "" : source_filename, true, std::move(config));
-    }
-}
-
 // Load a config file from a boost property_tree. This is a private method called from load_config_file.
 void PresetBundle::load_config_file_config(const std::string &name_or_path, bool is_external, DynamicPrintConfig &&config)
 {
@@ -676,7 +665,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
         compatible_printers_condition = compatible_printers_condition_values[idx];
 		if (is_external)
             presets.load_external_preset(name_or_path, name,
-                config.opt_string((i_group == 0) ? ((printer_technology == ptFFF) ? "print_settings_id" : "sla_material_id") :  "printer_settings_id", true),
+                config.opt_string((i_group == 0) ? ((printer_technology == ptFFF) ? "print_settings_id" : "sla_material_settings_id") :  "printer_settings_id", true),
                 config);
         else
             presets.load_preset(presets.path_from_name(name), name, config).save();

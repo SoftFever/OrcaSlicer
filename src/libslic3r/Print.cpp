@@ -124,6 +124,7 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
         "between_objects_gcode",
         "bridge_acceleration",
         "bridge_fan_speed",
+        "colorprint_heights",
         "cooling",
         "default_acceleration",
         "deretract_speed",
@@ -603,7 +604,7 @@ static inline bool model_volume_list_changed(const ModelObject &model_object_old
     size_t i_old, i_new;
     for (i_old = 0, i_new = 0; i_old < model_object_old.volumes.size() && i_new < model_object_new.volumes.size();) {
         const ModelVolume &mv_old = *model_object_old.volumes[i_old];
-        const ModelVolume &mv_new = *model_object_new.volumes[i_old];
+		const ModelVolume &mv_new = *model_object_new.volumes[i_new];
         if (mv_old.type() != type) {
             ++ i_old;
             continue;
@@ -615,8 +616,12 @@ static inline bool model_volume_list_changed(const ModelObject &model_object_old
         if (mv_old.id() != mv_new.id())
             return true;
         //FIXME test for the content of the mesh!
-        //FIXME test for the transformation matrices!
-        ++ i_old;
+
+#if ENABLE_MODELVOLUME_TRANSFORM
+        if (!mv_old.get_matrix().isApprox(mv_new.get_matrix()))
+            return true;
+#endif // ENABLE_MODELVOLUME_TRANSFORM
+        ++i_old;
         ++ i_new;
     }
     for (; i_old < model_object_old.volumes.size(); ++ i_old) {
@@ -634,7 +639,7 @@ static inline bool model_volume_list_changed(const ModelObject &model_object_old
     return false;
 }
 
-static inline void model_volume_list_update_supports(ModelObject &model_object_dst, const ModelObject &model_object_src)
+void Print::model_volume_list_update_supports(ModelObject &model_object_dst, const ModelObject &model_object_src)
 {
     // 1) Delete the support volumes from model_object_dst.
     {
@@ -650,8 +655,10 @@ static inline void model_volume_list_update_supports(ModelObject &model_object_d
     }
     // 2) Copy the support volumes from model_object_src to the end of model_object_dst.
     for (ModelVolume *vol : model_object_src.volumes) {
-        if (vol->is_support_modifier())
-            model_object_dst.volumes.emplace_back(vol->clone(&model_object_dst));
+		if (vol->is_support_modifier()) {
+			model_object_dst.volumes.emplace_back(new ModelVolume(*vol));
+			model_object_dst.volumes.back()->set_model_object(&model_object_dst);
+		}
     }
 }
 
@@ -709,8 +716,60 @@ static std::vector<PrintInstances> print_objects_from_model_object(const ModelOb
     return std::vector<PrintInstances>(trafos.begin(), trafos.end());
 }
 
+#ifdef _DEBUG
+// Verify whether the IDs of Model / ModelObject / ModelVolume / ModelInstance / ModelMaterial are valid and unique.
+static inline void check_model_ids_validity(const Model &model)
+{
+    std::set<ModelID> ids;
+    auto check = [&ids](ModelID id) { 
+        assert(id.id > 0);
+        assert(ids.find(id) == ids.end());
+        ids.insert(id);
+    };
+    for (const ModelObject *model_object : model.objects) {
+        check(model_object->id());
+        for (const ModelVolume *model_volume : model_object->volumes)
+            check(model_volume->id());
+        for (const ModelInstance *model_instance : model_object->instances)
+            check(model_instance->id());
+    }
+    for (const auto mm : model.materials)
+        check(mm.second->id());
+}
+
+static inline void check_model_ids_equal(const Model &model1, const Model &model2)
+{
+    // Verify whether the IDs of model1 and model match.
+    assert(model1.objects.size() == model2.objects.size());
+    for (size_t idx_model = 0; idx_model < model2.objects.size(); ++ idx_model) {
+        const ModelObject &model_object1 = *model1.objects[idx_model];
+        const ModelObject &model_object2 = *  model2.objects[idx_model];
+        assert(model_object1.id() == model_object2.id());
+        assert(model_object1.volumes.size() == model_object2.volumes.size());
+        assert(model_object1.instances.size() == model_object2.instances.size());
+        for (size_t i = 0; i < model_object1.volumes.size(); ++ i)
+			assert(model_object1.volumes[i]->id() == model_object2.volumes[i]->id());
+        for (size_t i = 0; i < model_object1.instances.size(); ++ i)
+			assert(model_object1.instances[i]->id() == model_object2.instances[i]->id());
+    }
+    assert(model1.materials.size() == model2.materials.size());
+    {
+        auto it1 = model1.materials.begin();
+        auto it2 = model2.materials.begin();
+        for (; it1 != model1.materials.end(); ++ it1, ++ it2) {
+            assert(it1->first == it2->first); // compare keys
+            assert(it1->second->id() == it2->second->id());
+        }
+    }
+}
+#endif /* _DEBUG */
+
 Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &config_in)
 {
+#ifdef _DEBUG
+    check_model_ids_validity(model);
+#endif /* _DEBUG */
+
     // Make a copy of the config, normalize it.
     DynamicPrintConfig config(config_in);
     config.normalize();
@@ -774,7 +833,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
         for (PrintRegion *region : m_regions)
             delete region;
         m_regions.clear();
-        m_model = model;
+        m_model.assign_copy(model);
 		for (const ModelObject *model_object : m_model.objects)
 			model_object_status.emplace(model_object->id(), ModelObjectStatus::New);
     } else {
@@ -789,7 +848,8 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
                 model_object_status.emplace(model_object->id(), ModelObjectStatus::Old);
             for (size_t i = m_model.objects.size(); i < model.objects.size(); ++ i) {
                 model_object_status.emplace(model.objects[i]->id(), ModelObjectStatus::New);
-                m_model.objects.emplace_back(model.objects[i]->clone(&m_model));
+                m_model.objects.emplace_back(ModelObject::new_copy(*model.objects[i]));
+				m_model.objects.back()->set_model(&m_model);
             }
         } else {
             // Reorder the objects, add new objects.
@@ -806,7 +866,8 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
                 auto it = std::lower_bound(model_objects_old.begin(), model_objects_old.end(), mobj, by_id_lower);
                 if (it == model_objects_old.end() || (*it)->id() != mobj->id()) {
                     // New ModelObject added.
-                    m_model.objects.emplace_back((*it)->clone(&m_model));
+					m_model.objects.emplace_back(ModelObject::new_copy(*mobj));
+					m_model.objects.back()->set_model(&m_model);
                     model_object_status.emplace(mobj->id(), ModelObjectStatus::New);
                 } else {
                     // Existing ModelObject re-added (possibly moved in the list).
@@ -899,8 +960,8 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
                 update_apply_status(it->print_object->invalidate_all_steps());
                 const_cast<PrintObjectStatus&>(*it).status = PrintObjectStatus::Deleted;
             }
-            // Copy content of the ModelObject including its ID, reset the parent.
-            model_object.assign(&model_object_new);
+            // Copy content of the ModelObject including its ID, do not change the parent.
+            model_object.assign_copy(model_object_new);
         } else if (support_blockers_differ || support_enforcers_differ) {
             // First stop background processing before shuffling or deleting the ModelVolumes in the ModelObject's list.
             m_cancel_callback();
@@ -933,8 +994,11 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
             model_object.name       = model_object_new.name;
             model_object.input_file = model_object_new.input_file;
             model_object.clear_instances();
-            for (const ModelInstance *model_instance : model_object_new.instances)
-                model_object.add_instance(*model_instance);
+            model_object.instances.reserve(model_object_new.instances.size());
+            for (const ModelInstance *model_instance : model_object_new.instances) {
+                model_object.instances.emplace_back(new ModelInstance(*model_instance));
+                model_object.instances.back()->set_model_object(&model_object);
+            }
         }
     }
 
@@ -1136,6 +1200,11 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
             object->update_layer_height_profile();
 
     this->update_object_placeholders();
+
+#ifdef _DEBUG
+    check_model_ids_equal(m_model, model);
+#endif /* _DEBUG */
+
 	return static_cast<ApplyStatus>(apply_status);
 }
 

@@ -173,7 +173,7 @@ extern void stl_mirror_xy(stl_file *stl);
 extern void stl_mirror_yz(stl_file *stl);
 extern void stl_mirror_xz(stl_file *stl);
 extern void stl_transform(stl_file *stl, float *trafo3x4);
-extern void stl_transform(stl_file *stl, const Eigen::Transform<float, 3, Eigen::Affine, Eigen::DontAlign>& t);
+extern void stl_transform(stl_file *stl, const Eigen::Transform<double, 3, Eigen::Affine, Eigen::DontAlign>& t);
 extern void stl_open_merge(stl_file *stl, char *file);
 extern void stl_invalidate_shared_vertices(stl_file *stl);
 extern void stl_generate_shared_vertices(stl_file *stl);
@@ -189,7 +189,7 @@ inline void stl_normalize_vector(stl_normal &normal) {
   if (length < 0.000000000001)
     normal = stl_normal::Zero();
   else
-    normal *= (1.0 / length);
+    normal *= float(1.0 / length);
 }
 inline bool stl_vertex_lower(const stl_vertex &a, const stl_vertex &b) {
   return (a(0) != b(0)) ? (a(0) < b(0)) :

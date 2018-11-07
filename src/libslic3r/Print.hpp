@@ -564,6 +564,9 @@ private:
     void                _make_wipe_tower();
     void                _simplify_slices(double distance);
 
+    // Declared here to have access to Model / ModelObject / ModelInstance
+    static void         model_volume_list_update_supports(ModelObject &model_object_dst, const ModelObject &model_object_src);
+
     PrintState<PrintStep, psCount>          m_state;
     // Mutex used for synchronization of the worker thread with the UI thread:
     // The mutex will be used to guard the worker thread against entering a stage
@@ -600,12 +603,6 @@ private:
     // Allow PrintObject to access m_mutex and m_cancel_callback.
     friend class PrintObject;
 };
-
-
-#define FOREACH_BASE(type, container, iterator) for (type::const_iterator iterator = (container).begin(); iterator != (container).end(); ++iterator)
-#define FOREACH_OBJECT(print, object)       FOREACH_BASE(PrintObjectPtrs, (print)->m_objects, object)
-#define FOREACH_LAYER(object, layer)        FOREACH_BASE(LayerPtrs, (object)->m_layers, layer)
-#define FOREACH_LAYERREGION(layer, layerm)  FOREACH_BASE(LayerRegionPtrs, (layer)->m_regions, layerm)
 
 }
 

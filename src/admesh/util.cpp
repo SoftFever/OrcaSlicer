@@ -155,7 +155,7 @@ void stl_transform(stl_file *stl, float *trafo3x4) {
   calculate_normals(stl);
 }
 
-void stl_transform(stl_file *stl, const Eigen::Transform<float, 3, Eigen::Affine, Eigen::DontAlign>& t)
+void stl_transform(stl_file *stl, const Eigen::Transform<double, 3, Eigen::Affine, Eigen::DontAlign>& t)
 {
     if (stl->error)
         return;
@@ -178,7 +178,7 @@ void stl_transform(stl_file *stl, const Eigen::Transform<float, 3, Eigen::Affine
     }
 
     Eigen::MatrixXf dst_vertices(3, vertices_count);
-    dst_vertices = t * src_vertices.colwise().homogeneous();
+    dst_vertices = t.cast<float>() * src_vertices.colwise().homogeneous();
 
     facet_ptr = stl->facet_start;
     v_id = 0;

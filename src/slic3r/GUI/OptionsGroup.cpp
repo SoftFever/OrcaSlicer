@@ -22,18 +22,18 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
     // is the normal type.
     if (opt.gui_type.compare("select") == 0) {
     } else if (opt.gui_type.compare("select_open") == 0) {
-		m_fields.emplace(id, STDMOVE(Choice::Create<Choice>(parent(), opt, id)));
+		m_fields.emplace(id, std::move(Choice::Create<Choice>(parent(), opt, id)));
     } else if (opt.gui_type.compare("color") == 0) {
-		m_fields.emplace(id, STDMOVE(ColourPicker::Create<ColourPicker>(parent(), opt, id)));
+		m_fields.emplace(id, std::move(ColourPicker::Create<ColourPicker>(parent(), opt, id)));
     } else if (opt.gui_type.compare("f_enum_open") == 0 || 
                 opt.gui_type.compare("i_enum_open") == 0 ||
                 opt.gui_type.compare("i_enum_closed") == 0) {
-		m_fields.emplace(id, STDMOVE(Choice::Create<Choice>(parent(), opt, id)));
+		m_fields.emplace(id, std::move(Choice::Create<Choice>(parent(), opt, id)));
     } else if (opt.gui_type.compare("slider") == 0) {
-		m_fields.emplace(id, STDMOVE(SliderCtrl::Create<SliderCtrl>(parent(), opt, id)));
+		m_fields.emplace(id, std::move(SliderCtrl::Create<SliderCtrl>(parent(), opt, id)));
     } else if (opt.gui_type.compare("i_spin") == 0) { // Spinctrl
     } else if (opt.gui_type.compare("legend") == 0) { // StaticText
-		m_fields.emplace(id, STDMOVE(StaticText::Create<StaticText>(parent(), opt, id)));
+		m_fields.emplace(id, std::move(StaticText::Create<StaticText>(parent(), opt, id)));
     } else { 
         switch (opt.type) {
             case coFloatOrPercent:
@@ -43,21 +43,21 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
 			case coPercents:
 			case coString:
 			case coStrings:
-				m_fields.emplace(id, STDMOVE(TextCtrl::Create<TextCtrl>(parent(), opt, id)));
+				m_fields.emplace(id, std::move(TextCtrl::Create<TextCtrl>(parent(), opt, id)));
                 break;
 			case coBool:
 			case coBools:
-				m_fields.emplace(id, STDMOVE(CheckBox::Create<CheckBox>(parent(), opt, id)));
+				m_fields.emplace(id, std::move(CheckBox::Create<CheckBox>(parent(), opt, id)));
 				break;
 			case coInt:
 			case coInts:
-				m_fields.emplace(id, STDMOVE(SpinCtrl::Create<SpinCtrl>(parent(), opt, id)));
+				m_fields.emplace(id, std::move(SpinCtrl::Create<SpinCtrl>(parent(), opt, id)));
 				break;
             case coEnum:
-				m_fields.emplace(id, STDMOVE(Choice::Create<Choice>(parent(), opt, id)));
+				m_fields.emplace(id, std::move(Choice::Create<Choice>(parent(), opt, id)));
 				break;
             case coPoints:
-				m_fields.emplace(id, STDMOVE(PointCtrl::Create<PointCtrl>(parent(), opt, id)));
+				m_fields.emplace(id, std::move(PointCtrl::Create<PointCtrl>(parent(), opt, id)));
 				break;
             case coNone:   break;
             default:
