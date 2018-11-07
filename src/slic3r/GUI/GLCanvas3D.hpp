@@ -375,8 +375,11 @@ public:
             WipeTower,
             SingleModifier,
             MultipleModifier,
+            SingleVolume,
+            MultipleVolume,
             SingleFullObject,
             SingleFullInstance,
+            MultipleFullInstance,
             Mixed
         };
 
@@ -477,7 +480,7 @@ public:
         void add_instance(unsigned int object_idx, unsigned int instance_idx, bool as_single_selection = true);
         void remove_instance(unsigned int object_idx, unsigned int instance_idx);
 
-        void add_volume(unsigned int object_idx, unsigned int volume_idx, bool as_single_selection = true);
+        void add_volume(unsigned int object_idx, unsigned int volume_idx, int instance_idx, bool as_single_selection = true);
         void remove_volume(unsigned int object_idx, unsigned int volume_idx);
 
         void clear();

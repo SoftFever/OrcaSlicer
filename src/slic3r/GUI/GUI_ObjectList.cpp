@@ -1243,7 +1243,7 @@ void ObjectList::update_selections_on_canvas()
         if (m_objects_model->GetItemType(item) == itVolume) {
             const int obj_idx = m_objects_model->GetIdByItem(m_objects_model->GetParent(item));
             const int vol_idx = m_objects_model->GetVolumeIdByItem(item);
-            selection.add_volume(obj_idx, vol_idx, as_single_selection);
+            selection.add_volume(obj_idx, vol_idx, 0, as_single_selection);
         }
         else if (m_objects_model->GetItemType(item) == itInstance) {
             const int obj_idx = m_objects_model->GetIdByItem(m_objects_model->GetTopParent(item));

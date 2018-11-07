@@ -1325,7 +1325,7 @@ void GLCanvas3D::Selection::remove_instance(unsigned int object_idx, unsigned in
     m_bounding_box_dirty = true;
 }
 
-void GLCanvas3D::Selection::add_volume(unsigned int object_idx, unsigned int volume_idx, bool as_single_selection)
+void GLCanvas3D::Selection::add_volume(unsigned int object_idx, unsigned int volume_idx, int instance_idx, bool as_single_selection)
 {
     if (!m_valid)
         return;
@@ -1338,7 +1338,10 @@ void GLCanvas3D::Selection::add_volume(unsigned int object_idx, unsigned int vol
     {
         GLVolume* v = (*m_volumes)[i];
         if ((v->object_idx() == object_idx) && (v->volume_idx() == volume_idx))
+        {
+            if ((instance_idx != -1) && (v->instance_idx() == instance_idx))
             _add_volume(i);
+        }
     }
 
     _update_type();
@@ -1797,6 +1800,8 @@ void GLCanvas3D::Selection::_update_type()
                     m_type = SingleFullObject;
                 else if (volumes_count == 1) // instances_count > 1
                     m_type = SingleFullInstance;
+                else
+                    m_type = SingleVolume;
             }
         }
         else
@@ -1806,12 +1811,30 @@ void GLCanvas3D::Selection::_update_type()
                 const ModelObject* model_object = m_model->objects[m_cache.content.begin()->first];
                 unsigned int volumes_count = (unsigned int)model_object->volumes.size();
                 unsigned int instances_count = (unsigned int)model_object->instances.size();
+                unsigned int selected_instances_count = (unsigned int)m_cache.content.begin()->second.size();
                 if (volumes_count * instances_count == (unsigned int)m_list.size())
                     m_type = SingleFullObject;
-                else if ((m_cache.content.begin()->second.size() == 1) && (volumes_count == (unsigned int)m_list.size()))
-                    m_type = SingleFullInstance;
-                else if ((*m_volumes)[*m_list.begin()]->is_modifier)
-                    m_type = MultipleModifier;
+                else if (selected_instances_count == 1)
+                {
+                    if (volumes_count == (unsigned int)m_list.size())
+                        m_type = SingleFullInstance;
+                    else
+                    {
+                        unsigned int modifiers_count = 0;
+                        for (unsigned int i : m_list)
+                        {
+                            if ((*m_volumes)[i]->is_modifier)
+                                ++modifiers_count;
+                        }
+
+                        if (modifiers_count == 0)
+                            m_type = MultipleVolume;
+                        else if (modifiers_count == (unsigned int)m_list.size())
+                            m_type = MultipleModifier;
+                    }
+                }
+                else if ((selected_instances_count > 1) && (selected_instances_count * volumes_count == (unsigned int)m_list.size()))
+                    m_type = MultipleFullInstance;
             }
         }
     }
@@ -1843,6 +1866,16 @@ void GLCanvas3D::Selection::_update_type()
         std::cout << "selection type: MultipleModifier" << std::endl;
         break;
     }
+    case SingleVolume:
+    {
+        std::cout << "selection type: SingleVolume" << std::endl;
+        break;
+    }
+    case MultipleVolume:
+    {
+        std::cout << "selection type: MultipleVolume" << std::endl;
+        break;
+    }
     case SingleFullObject:
     {
         std::cout << "selection type: SingleFullObject" << std::endl;
@@ -1851,6 +1884,11 @@ void GLCanvas3D::Selection::_update_type()
     case SingleFullInstance:
     {
         std::cout << "selection type: SingleFullInstance" << std::endl;
+        break;
+    }
+    case MultipleFullInstance:
+    {
+        std::cout << "selection type: MultipleFullInstance" << std::endl;
         break;
     }
     case Mixed:
@@ -1963,11 +2001,12 @@ void GLCanvas3D::Selection::_render_bounding_box(const BoundingBoxf3& box, float
 
     Vec3f b_min = box.min.cast<float>();
     Vec3f b_max = box.max.cast<float>();
-    Vec3f size = 0.25f * box.size().cast<float>();
+    Vec3f size = 0.2f * box.size().cast<float>();
 
     ::glEnable(GL_DEPTH_TEST);
 
     ::glColor3fv(color);
+    ::glLineWidth(2.0f);
 
     ::glBegin(GL_LINES);
 
