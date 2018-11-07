@@ -26,6 +26,7 @@ option(SLIC3R_PROFILE 			"Compile Slic3r with an invasive Shiny profiler" 0)
 option(SLIC3R_MSVC_COMPILE_PARALLEL "Compile on Visual Studio in parallel" 1)
 option(SLIC3R_MSVC_PDB          "Generate PDB files on MSVC in Release mode" 1)
 option(SLIC3R_PERL_XS           "Compile XS Perl module and enable Perl unit and integration tests" 0)
+option(SLIC3R_ASAN              "Enable ASan on Clang and GCC" 0)
 
 if (MSVC)
     if (SLIC3R_MSVC_COMPILE_PARALLEL)
@@ -89,6 +90,13 @@ endif()
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     # On GCC and Clang, no return from a non-void function is a warning only. Here, we make it an error.
     add_compile_options(-Werror=return-type)
+
+    if (SLIC3R_ASAN)
+        add_compile_options(-fsanitize=address -fno-omit-frame-pointer)
+        if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lasan")
+        endif ()
+    endif ()
 endif()
 
 # Where all the bundled libraries reside?
