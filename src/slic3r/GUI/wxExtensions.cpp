@@ -532,7 +532,7 @@ wxDataViewItem PrusaObjectDataViewModel::AddInstanceChild(const wxDataViewItem &
         parent_node->Append(inst_root_node);
         // notify control
         ItemAdded(parent_item, inst_root_item);
-        if (num == 1) num++;
+//         if (num == 1) num++;
     }
 
     // Add instance nodes
