@@ -193,6 +193,7 @@ const float GLVolume::SELECTED_COLOR[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
 const float GLVolume::HOVER_COLOR[4] = { 0.4f, 0.9f, 0.1f, 1.0f };
 const float GLVolume::OUTSIDE_COLOR[4] = { 0.0f, 0.38f, 0.8f, 1.0f };
 const float GLVolume::SELECTED_OUTSIDE_COLOR[4] = { 0.19f, 0.58f, 1.0f, 1.0f };
+const float GLVolume::DISABLED_COLOR[4] = { 0.25f, 0.25f, 0.25f, 1.0f };
 
 GLVolume::GLVolume(float r, float g, float b, float a)
 #if ENABLE_MODELVOLUME_TRANSFORM
@@ -211,6 +212,7 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     , composite_id(-1)
     , extruder_id(0)
     , selected(false)
+    , disabled(false)
     , is_active(true)
     , zoom_to_volumes(true)
     , shader_outside_printer_detection_enabled(false)
@@ -252,6 +254,8 @@ void GLVolume::set_render_color()
         set_render_color(is_outside ? SELECTED_OUTSIDE_COLOR : SELECTED_COLOR, 4);
     else if (hover)
         set_render_color(HOVER_COLOR, 4);
+    else if (disabled)
+        set_render_color(DISABLED_COLOR, 4);
     else if (is_outside && shader_outside_printer_detection_enabled)
         set_render_color(OUTSIDE_COLOR, 4);
     else

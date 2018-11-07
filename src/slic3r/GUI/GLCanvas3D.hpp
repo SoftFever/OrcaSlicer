@@ -535,6 +535,7 @@ public:
         void _remove_object(unsigned int object_idx);
         void _calc_bounding_box() const;
         void _render_selected_volumes() const;
+        void _render_synchronized_volumes() const;
         void _render_bounding_box(const BoundingBoxf3& box, float* color) const;
         void _synchronize_unselected_instances();
         void _synchronize_unselected_volumes();

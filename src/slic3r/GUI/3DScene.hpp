@@ -249,6 +249,7 @@ public:
     static const float HOVER_COLOR[4];
     static const float OUTSIDE_COLOR[4];
     static const float SELECTED_OUTSIDE_COLOR[4];
+    static const float DISABLED_COLOR[4];
 
     GLVolume(float r = 1.f, float g = 1.f, float b = 1.f, float a = 1.f);
     GLVolume(const float *rgba) : GLVolume(rgba[0], rgba[1], rgba[2], rgba[3]) {}
@@ -295,6 +296,8 @@ public:
     int                 extruder_id;
     // Is this object selected?
     bool                selected;
+    // Is this object disabled from selection?
+    bool                disabled;
     // Whether or not this volume is active for rendering
     bool                is_active;
     // Whether or not to use this volume when applying zoom_to_volumes()
