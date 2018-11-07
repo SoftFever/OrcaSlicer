@@ -610,9 +610,9 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
         std::vector<double> mm3_per_mm;
         for (auto object : printable_objects) {
             for (size_t region_id = 0; region_id < object->region_volumes.size(); ++ region_id) {
-                auto region = print.regions()[region_id];
+                const PrintRegion* region = print.regions()[region_id];
                 for (auto layer : object->layers()) {
-                    auto layerm = layer->regions()[region_id];
+                    const LayerRegion* layerm = layer->regions()[region_id];
                     if (region->config().get_abs_value("perimeter_speed"          ) == 0 || 
                         region->config().get_abs_value("small_perimeter_speed"    ) == 0 || 
                         region->config().get_abs_value("external_perimeter_speed" ) == 0 || 
@@ -676,8 +676,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
     const PrintObject *first_object         = printable_objects.front();
     const double       layer_height         = first_object->config().layer_height.value;
     const double       first_layer_height   = first_object->config().first_layer_height.get_abs_value(layer_height);
-    for (size_t region_id = 0; region_id < print.regions().size(); ++ region_id) {
-        auto region = print.regions()[region_id];
+    for (const PrintRegion* region : print.regions()) {
         _write_format(file, "; external perimeters extrusion width = %.2fmm\n", region->flow(frExternalPerimeter, layer_height, false, false, -1., *first_object).width);
         _write_format(file, "; perimeters extrusion width = %.2fmm\n",          region->flow(frPerimeter,         layer_height, false, false, -1., *first_object).width);
         _write_format(file, "; infill extrusion width = %.2fmm\n",              region->flow(frInfill,            layer_height, false, false, -1., *first_object).width);

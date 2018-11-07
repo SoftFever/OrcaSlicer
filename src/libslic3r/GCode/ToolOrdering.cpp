@@ -479,7 +479,7 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, unsigned int 
 
         for (unsigned int copy = 0; copy < num_of_copies; ++copy) {    // iterate through copies first, so that we mark neighbouring infills to minimize travel moves
 
-            for (size_t region_id = 0; region_id < object->print()->regions().size(); ++ region_id) {
+            for (size_t region_id = 0; region_id < object->region_volumes.size(); ++ region_id) {
                 const auto& region = *object->print()->regions()[region_id];
 
                 if (!region.config().wipe_into_infill && !object->config().wipe_into_objects)
@@ -557,7 +557,7 @@ void WipingExtrusions::ensure_perimeters_infills_order(const Print& print)
         unsigned int num_of_copies = object->copies().size();
 
         for (unsigned int copy = 0; copy < num_of_copies; ++copy) {    // iterate through copies first, so that we mark neighbouring infills to minimize travel moves
-            for (size_t region_id = 0; region_id < object->print()->regions().size(); ++ region_id) {
+            for (size_t region_id = 0; region_id < object->region_volumes.size(); ++ region_id) {
                 const auto& region = *object->print()->regions()[region_id];
 
                 if (!region.config().wipe_into_infill && !object->config().wipe_into_objects)
