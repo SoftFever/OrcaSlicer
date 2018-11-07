@@ -1246,7 +1246,7 @@ size_t ModelVolume::split(unsigned int max_extruders)
 void ModelVolume::translate(const Vec3d& displacement)
 {
 #if ENABLE_MODELVOLUME_TRANSFORM
-    m_transformation.set_offset(m_transformation.get_offset() + displacement);
+    set_offset(get_offset() + displacement);
 #else
     mesh.translate((float)displacement(0), (float)displacement(1), (float)displacement(2));
     m_convex_hull.translate((float)displacement(0), (float)displacement(1), (float)displacement(2));
@@ -1256,7 +1256,7 @@ void ModelVolume::translate(const Vec3d& displacement)
 void ModelVolume::scale(const Vec3d& scaling_factors)
 {
 #if ENABLE_MODELVOLUME_TRANSFORM
-    m_transformation.set_scaling_factor(m_transformation.get_scaling_factor().cwiseProduct(scaling_factors));
+    set_scaling_factor(get_scaling_factor().cwiseProduct(scaling_factors));
 #else
     mesh.scale(scaling_factors);
     m_convex_hull.scale(scaling_factors);
@@ -1281,7 +1281,7 @@ void ModelVolume::rotate(double angle, Axis axis)
 void ModelVolume::rotate(double angle, const Vec3d& axis)
 {
 #if ENABLE_MODELVOLUME_TRANSFORM
-    m_transformation.set_rotation(m_transformation.get_rotation() + Geometry::extract_euler_angles(Eigen::Quaterniond(Eigen::AngleAxisd(angle, axis)).toRotationMatrix()));
+    set_rotation(get_rotation() + Geometry::extract_euler_angles(Eigen::Quaterniond(Eigen::AngleAxisd(angle, axis)).toRotationMatrix()));
 #else
     mesh.rotate(angle, axis);
     m_convex_hull.rotate(angle, axis);
@@ -1291,14 +1291,14 @@ void ModelVolume::rotate(double angle, const Vec3d& axis)
 void ModelVolume::mirror(Axis axis)
 {
 #if ENABLE_MODELVOLUME_TRANSFORM
-    Vec3d mirror = m_transformation.get_mirror();
+    Vec3d mirror = get_mirror();
     switch (axis)
     {
     case X: { mirror(0) *= -1.0; break; }
     case Y: { mirror(1) *= -1.0; break; }
     case Z: { mirror(2) *= -1.0; break; }
     }
-    m_transformation.set_mirror(mirror);
+    set_mirror(mirror);
 #else
     mesh.mirror(axis);
     m_convex_hull.mirror(axis);
@@ -1375,10 +1375,10 @@ BoundingBoxf3 ModelInstance::transform_mesh_bounding_box(const TriangleMesh* mes
         for (unsigned int i = 0; i < 3; ++i)
         {
 #if ENABLE_MODELVOLUME_TRANSFORM
-            if (std::abs(m_transformation.get_scaling_factor((Axis)i)-1.0) > EPSILON)
+            if (std::abs(get_scaling_factor((Axis)i)-1.0) > EPSILON)
             {
-                bbox.min(i) *= m_transformation.get_scaling_factor((Axis)i);
-                bbox.max(i) *= m_transformation.get_scaling_factor((Axis)i);
+                bbox.min(i) *= get_scaling_factor((Axis)i);
+                bbox.max(i) *= get_scaling_factor((Axis)i);
 #else
             if (std::abs(this->m_scaling_factor(i) - 1.0) > EPSILON)
             {
@@ -1391,8 +1391,8 @@ BoundingBoxf3 ModelInstance::transform_mesh_bounding_box(const TriangleMesh* mes
         // Translate the bounding box.
         if (! dont_translate) {
 #if ENABLE_MODELVOLUME_TRANSFORM
-            bbox.min += m_transformation.get_offset();
-            bbox.max += m_transformation.get_offset();
+            bbox.min += get_offset();
+            bbox.max += get_offset();
 #else
             bbox.min += this->m_offset;
             bbox.max += this->m_offset;
@@ -1416,9 +1416,9 @@ void ModelInstance::transform_polygon(Polygon* polygon) const
 {
 #if ENABLE_MODELVOLUME_TRANSFORM
     // CHECK_ME -> Is the following correct or it should take in account all three rotations ?
-    polygon->rotate(m_transformation.get_rotation(Z)); // rotate around polygon origin
+    polygon->rotate(get_rotation(Z)); // rotate around polygon origin
     // CHECK_ME -> Is the following correct ?
-    polygon->scale(m_transformation.get_scaling_factor(X), m_transformation.get_scaling_factor(Y)); // scale around polygon origin
+    polygon->scale(get_scaling_factor(X), get_scaling_factor(Y)); // scale around polygon origin
 #else
     // CHECK_ME -> Is the following correct or it should take in account all three rotations ?
     polygon->rotate(this->m_rotation(2));                // rotate around polygon origin

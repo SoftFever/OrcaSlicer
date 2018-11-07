@@ -6274,35 +6274,45 @@ void GLCanvas3D::_on_move()
     if (m_model == nullptr)
         return;
 
-    std::set<std::pair<int, int>> done;  // prevent moving instances twice
+    std::set<std::pair<int, int>> done;  // keeps track of moved instances
     bool object_moved = false;
     Vec3d wipe_tower_origin = Vec3d::Zero();
+
+    Selection::EMode selection_mode = m_selection.get_mode();
 
     for (const GLVolume* v : m_volumes.volumes)
     {
         int object_idx = v->object_idx();
         int instance_idx = v->instance_idx();
+        int volume_idx = v->volume_idx();
 
-        // prevent moving instances twice
         std::pair<int, int> done_id(object_idx, instance_idx);
-        if (done.find(done_id) != done.end())
-            continue;
 
-        if (object_idx < 1000)
+        if ((0 <= object_idx) && (object_idx < (int)m_model->objects.size()))
         {
             done.insert(done_id);
 
-            // Move instances.
+            // Move instances/volumes
             ModelObject* model_object = m_model->objects[object_idx];
             if (model_object != nullptr)
             {
 #if ENABLE_MODELVOLUME_TRANSFORM
-                model_object->instances[instance_idx]->set_offset(v->get_instance_offset());
+                if (selection_mode == Selection::Instance)
+                {
+                    model_object->instances[instance_idx]->set_offset(v->get_instance_offset());
+                    object_moved = true;
+                }
+                else if (selection_mode == Selection::Volume)
+                {
+                    model_object->volumes[volume_idx]->set_offset(v->get_volume_offset());
+                    object_moved = true;
+                }
+                if (object_moved)
 #else
                 model_object->instances[instance_idx]->set_offset(v->get_offset());
+                object_moved = true;
 #endif // ENABLE_MODELVOLUME_TRANSFORM
                 model_object->invalidate_bounding_box();
-                object_moved = true;
             }
         }
         else if (object_idx == 1000)
@@ -6314,6 +6324,7 @@ void GLCanvas3D::_on_move()
 #endif // ENABLE_MODELVOLUME_TRANSFORM
     }
 
+    // Fixes sinking/flying instances
     for (const std::pair<int, int>& i : done)
     {
         ModelObject* m = m_model->objects[i.first];
