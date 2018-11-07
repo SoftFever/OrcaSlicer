@@ -15,7 +15,7 @@ class ModelInstance;
 class GLCanvas3D;
 class DynamicPrintConfig;
 
-// Ok, this will be the driver to create background threads. Possibly
+// This will be the driver to create background threads. Possibly
 // implemented using a BackgroundSlicingProcess or something derived from that
 // The methods should be thread safe, obviously...
 class BackgroundProcess {
@@ -23,14 +23,23 @@ public:
 
     virtual ~BackgroundProcess() {}
 
+    /// schedule a task on the background
     virtual void schedule(std::function<void()> fn) = 0;
 
+    /// Report status change, used inside the worker thread
     virtual void status(unsigned st, const std::string& msg) = 0;
 
+    /// Check whether the calculation was canceled from the UI. Called by the
+    /// worker thread
     virtual bool is_canceled() = 0;
 
+    /// Setting up a callback that transfers the input parameters to the worker
+    /// thread. Appropriate synchronization has to be implemented here. A simple
+    /// condition variable and mutex pair should do the job.
     virtual void on_input_changed(std::function<void()> synchfn) = 0;
 
+    /// Determine the state of the background process. If something is running
+    /// returns true. If no job is running, returns false.
     virtual bool is_running() = 0;
 };
 
@@ -47,8 +56,9 @@ public:
  * triangle meshes or receiving the rendering canvas and drawing on that
  * directly.
  *
- * TODO: This class has to be implement the Print interface (not defined yet)
- * to be usable as the input to the BackgroundSlicingProcess.
+ * TODO: This class uses the BackgroundProcess interface to create workers and
+ * manage input change events. An appropriate implementation can be derived
+ * from BackgroundSlicingProcess which is now working only with the FDM Print.
  */
 class SLAPrint /* : public Print */ {
 public:
@@ -57,6 +67,7 @@ public:
         BLOCKING, NON_BLOCKING
     };
 
+    // Global SLA printing configuration
     struct GlobalConfig {
         double width_mm;
         double height_mm;
@@ -67,6 +78,9 @@ public:
 
 private:
 
+    // There will be a support tree for every instance of every ModelObject
+    // because if the object is rotated differently, the support should also be
+    // very different
     struct PrintObjectInstance {
         Transform3f tr;
         std::unique_ptr<sla::SLASupportTree> support_tree_ptr;
@@ -75,11 +89,14 @@ private:
 
     using InstanceMap = std::unordered_map<ModelInstance*, PrintObjectInstance>;
 
+    // Every ModelObject will have its PrintObject here. It will contain the
+    // cached index-triangle structure (emesh) and the map of the instance cache
     struct PrintObject {
         sla::EigenMesh3D emesh;
         InstanceMap instances;
     };
 
+    // Map definition for the print objects
     using ObjectMap = std::unordered_map<ModelObject*, PrintObject>;
 
     // Input data channels: ***************************************************
@@ -88,11 +105,12 @@ private:
 
     // something to read out the config profiles and return the values we need.
     std::function<GlobalConfig()> m_config_reader;
+
     // ************************************************************************
 
-    GlobalConfig m_gcfg;
-    ObjectMap m_data;
-    std::shared_ptr<BackgroundProcess> m_process;
+    GlobalConfig m_gcfg;        // The global SLA print config instance
+    ObjectMap m_data;           // The model data cache (PrintObject's)
+    std::shared_ptr<BackgroundProcess> m_process; // The scheduler
 
     // For now it will just stop the whole process and invalidate everything
     void synch();
@@ -108,11 +126,29 @@ private:
         }
     }
 
+    enum Stages {
+        IDLE,
+        FIND_ROTATION,
+        SUPPORT_POINTS,
+        SUPPORT_TREE,
+        BASE_POOL,
+        SLICE_MODEL,
+        SLICE_SUPPORTS,
+        EXPORT,
+        DONE,
+        ABORT,
+        NUM_STAGES
+    };
+
+    static const std::string m_stage_labels[NUM_STAGES];
+
+    bool run();
 public:
 
     SLAPrint(const Model * model,
-                    std::function<SLAPrint::GlobalConfig(void)> cfgreader = [](){ return SLAPrint::GlobalConfig(); },
-                    std::shared_ptr<BackgroundProcess> scheduler = {}):
+             std::function<SLAPrint::GlobalConfig(void)> cfgreader =
+                    [](){ return SLAPrint::GlobalConfig(); },
+             std::shared_ptr<BackgroundProcess> scheduler = {}):
         m_model(model), m_config_reader(cfgreader)
     {
         synch();
@@ -123,7 +159,7 @@ public:
     // This will start the calculation using the
     bool start(std::shared_ptr<BackgroundProcess> scheduler);
 
-    // Get the full support structure (including the supports)
+    // Get the full support structure (including the base pool)
     // This should block until the supports are not ready?
     bool support_mesh(TriangleMesh& output, CallType calltype = BLOCKING);
 

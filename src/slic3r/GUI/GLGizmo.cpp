@@ -1624,28 +1624,27 @@ void GLGizmoSlaSupports::update_mesh()
 void GLGizmoSlaSupports::on_deactivate() {
     if(!m_model_object) return;
 
-    sla::Controller supportctl;
-    std::cout << "Generating supports:" << std::endl;
+//    sla::Controller supportctl;
+//    std::cout << "Generating supports:" << std::endl;
 
-    // TODO: somehow get the global status indicator
-    supportctl.statuscb = [] (unsigned st, const std::string& msg) {
-        std::cout << st << "% "  << msg << std::endl;
-    };
+//    // TODO: somehow get the global status indicator
+//    supportctl.statuscb = [] (unsigned st, const std::string& msg) {
+//        std::cout << st << "% "  << msg << std::endl;
+//    };
 
-    TriangleMesh&& m = m_model_object->raw_mesh();
-    auto&& trafo = m_model_object_matrix.cast<float>();
-    m.transform(trafo);
-    auto emesh = sla::to_eigenmesh(m);
+//    TriangleMesh&& m = m_model_object->raw_mesh();
+//    m.transform(m_model_object_matrix);
+//    auto emesh = sla::to_eigenmesh(m);
 
-    sla::SupportConfig cfg;
-    sla::PointSet input = sla::support_points(*m_model_object, 0 /*instance*/);
+//    sla::SupportConfig cfg;
+//    sla::PointSet input = sla::support_points(*m_model_object, 0 /*instance*/);
 
-    sla::SLASupportTree stree(input, emesh, cfg, supportctl);
+//    sla::SLASupportTree stree(input, emesh, cfg, supportctl);
 
-    TriangleMesh output;
-    stree.merged_mesh(output);
+//    TriangleMesh output;
+//    stree.merged_mesh(output);
 
-    _3DScene::reload_scene(m_parent.get_wxglcanvas(), false);
+//    _3DScene::reload_scene(m_parent.get_wxglcanvas(), false);
 }
 
 Vec3f GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos)
