@@ -143,7 +143,7 @@ public:
     void merged_mesh(TriangleMesh& outmesh) const;
 
     /// Get the sliced 2d layers of the support geometry.
-    SlicedSupports slice() const;
+    SlicedSupports slice(float layerh, float init_layerh = -1.0) const;
 };
 
 }

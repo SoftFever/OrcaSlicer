@@ -644,6 +644,7 @@ class SLASupportTree::Impl {
     std::vector<Bridge> m_bridges;
     std::vector<CompactBridge> m_compact_bridges;
 public:
+    float model_height = 0; // the full height of the model
 
     template<class...Args> Head& add_head(Args&&... args) {
         m_heads.emplace_back(std::forward<Args>(args)...);
@@ -1589,8 +1590,48 @@ void SLASupportTree::merged_mesh(TriangleMesh &outmesh) const
     }
 }
 
-SlicedSupports SLASupportTree::slice() const
+template<class T> void slice_part(const T& inp,
+                                  std::vector<SlicedSupports>& mergev,
+                                  const std::vector<float>& heights)
 {
+    for(auto& part : inp) {
+        TriangleMesh&& m = mesh(part.mesh);
+        TriangleMeshSlicer slicer(&m);
+        SlicedSupports slout;
+        slicer.slice(heights, &slout, [](){});
+
+        for(size_t i = 0; i < slout.size(); i++) {
+            // move the layers obtained from this mesh to the merge area
+            mergev[i].emplace_back(std::move(slout[i]));
+        }
+    }
+}
+
+SlicedSupports SLASupportTree::slice(float layerh, float init_layerh) const
+{
+    if(init_layerh < 0) init_layerh = layerh;
+    auto& stree = get();
+    const float modelh = stree.model_height;
+
+    std::vector<float> heights; heights.reserve(size_t(modelh/layerh) + 1);
+    for(float h = init_layerh; h <= modelh; h += layerh) {
+        heights.emplace_back(h);
+    }
+
+    std::vector<SlicedSupports> mergev(heights.size(), {});
+
+    slice_part(stree.heads(), mergev, heights);
+    slice_part(stree.pillars(), mergev, heights);
+    slice_part(stree.junctions(), mergev, heights);
+    slice_part(stree.bridges(), mergev, heights);
+    slice_part(stree.compact_bridges(), mergev, heights);
+
+    // TODO: do this for all
+
+    for(SlicedSupports& level : mergev) {
+        // TODO merge all expolygon in the current level
+    }
+
     return {};
 }
 
