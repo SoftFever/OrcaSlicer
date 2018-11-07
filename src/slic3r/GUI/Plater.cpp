@@ -33,6 +33,7 @@
 #include "libslic3r/Format/AMF.hpp"
 #include "libslic3r/Format/3mf.hpp"
 #include "slic3r/AppController.hpp"
+#include "SLAPrint.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
@@ -853,6 +854,7 @@ struct Plater::priv
     // Data
     Slic3r::DynamicPrintConfig *config;
     Slic3r::Print print;
+    Slic3r::SLAPrint slaprint;
     Slic3r::Model model;
     Slic3r::GCodePreviewData gcode_preview_data;
 
@@ -954,7 +956,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     })),
     notebook(new wxNotebook(q, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_BOTTOM)),
     sidebar(new Sidebar(q)),
-    canvas3D(GLCanvas3DManager::create_wxglcanvas(notebook))
+    canvas3D(GLCanvas3DManager::create_wxglcanvas(notebook)),
+    slaprint(&model)
 {
     background_process.set_print(&print);
     background_process.set_gcode_preview_data(&gcode_preview_data);
@@ -1438,7 +1441,7 @@ void Plater::priv::arrange()
     main_frame->app_controller()->arrange_model();
 
     // ignore arrange failures on purpose: user has visual feedback and we don't need to warn him
-    // when parts don't fit in print bed
+    // when parts don't fit in print bed
 
     update();
 }
@@ -2258,7 +2261,7 @@ void Plater::changed_object(int obj_idx)
         _3DScene::reload_scene(p->canvas3D, false);
     }
 
-    // update print
+    // update print
     if (list->is_parts_changed() || list->is_part_settings_changed()) {
         this->p->schedule_background_process();
 #if !ENABLE_MODIFIED_CAMERA_TARGET

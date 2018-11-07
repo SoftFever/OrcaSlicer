@@ -536,19 +536,9 @@ enum { // For indexing Eigen vectors as v(X), v(Y), v(Z) instead of numbers
   X, Y, Z
 };
 
-EigenMesh3D to_eigenmesh(const Model& model) {
-    TriangleMesh combined_mesh;
+EigenMesh3D to_eigenmesh(const TriangleMesh& tmesh) {
 
-    for(ModelObject *o : model.objects) {
-        TriangleMesh tmp = o->raw_mesh();
-        for(ModelInstance * inst: o->instances) {
-            TriangleMesh ttmp(tmp);
-            inst->transform_mesh(&ttmp);
-            combined_mesh.merge(ttmp);
-        }
-    }
-
-    const stl_file& stl = combined_mesh.stl;
+    const stl_file& stl = tmesh.stl;
 
     EigenMesh3D outmesh;
     auto& V = outmesh.V;
@@ -573,6 +563,27 @@ EigenMesh3D to_eigenmesh(const Model& model) {
     return outmesh;
 }
 
+EigenMesh3D to_eigenmesh(const ModelObject& modelobj) {
+    return to_eigenmesh(modelobj.raw_mesh());
+}
+
+EigenMesh3D to_eigenmesh(const Model& model) {
+    TriangleMesh combined_mesh;
+
+    for(ModelObject *o : model.objects) {
+        TriangleMesh tmp = o->raw_mesh();
+        for(ModelInstance * inst: o->instances) {
+            TriangleMesh ttmp(tmp);
+            inst->transform_mesh(&ttmp);
+            combined_mesh.merge(ttmp);
+        }
+    }
+
+    return to_eigenmesh(combined_mesh);
+}
+
+
+
 Vec3d model_coord(const ModelInstance& object, const Vec3f& mesh_coord) {
     return object.transform_vector(mesh_coord.cast<double>());
 }
@@ -595,13 +606,24 @@ PointSet support_points(const Model& model) {
     return ret;
 }
 
+PointSet support_points(const ModelObject& modelobject, std::size_t instance_id)
+{
+    PointSet ret(modelobject.sla_support_points.size(), 3);
+    long i = 0;
+    ModelInstance *inst = modelobject.instances[instance_id];
+    for(const Vec3f& msource : modelobject.sla_support_points) {
+        ret.row(i++) = model_coord(*inst, msource);
+    }
+    return ret;
+}
+
 double ray_mesh_intersect(const Vec3d& s,
                           const Vec3d& dir,
                           const EigenMesh3D& m);
 
 PointSet normals(const PointSet& points, const EigenMesh3D& mesh);
 
-Vec2d to_vec2(const Vec3d& v3) {
+inline Vec2d to_vec2(const Vec3d& v3) {
     return {v3(X), v3(Y)};
 }
 
@@ -1612,7 +1634,6 @@ void add_sla_supports(Model &model,
               << " seconds" << std::endl;
 
     bench.start();
-    SLASupportTree::Impl& stree = _stree.get();
     ModelObject* o = model.add_object();
     o->add_instance();
 
@@ -1648,7 +1669,7 @@ void add_sla_supports(Model &model,
               << " second." << std::endl;
 
     bench.start();
-    poolmesh.translate(0, 0, poolcfg.min_wall_height_mm / 2);
+    poolmesh.translate(.0f, .0f, float(poolcfg.min_wall_height_mm / 2));
     o->add_volume(poolmesh);
     bench.stop();
 

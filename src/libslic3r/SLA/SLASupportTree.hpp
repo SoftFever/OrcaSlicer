@@ -20,6 +20,7 @@ typedef std::vector<Vec3crd>                            Points3;
 class TriangleMesh;
 class Model;
 class ModelInstance;
+class ModelObject;
 class ExPolygon;
 
 using SliceLayer = std::vector<ExPolygon>;
@@ -31,6 +32,9 @@ struct SupportConfig {
     // Radius in mm of the pointing side of the head.
     double head_front_radius_mm = 0.2;
 
+    // How much the pinhead has to penetrate the model surface
+    double head_penetraiton = 0.2;
+
     // Radius of the back side of the 3d arrow.
     double head_back_radius_mm = 0.5;
 
@@ -39,6 +43,10 @@ struct SupportConfig {
 
     // Radius in mm of the support pillars.
     // Warning: this value will be at most 65% of head_back_radius_mm
+    // TODO: This parameter is invalid. The pillar radius will be dynamic in
+    // nature. Merged pillars will have an increased thickness. This parameter
+    // may serve as the maximum radius, or maybe an increase when two are merged
+    // The default radius will be derived from head_back_radius_mm
     double pillar_radius_mm = 0.8;
 
     // Radius in mm of the pillar base.
@@ -63,6 +71,8 @@ struct Controller {
     std::function<bool(void)> stopcondition = [](){ return false; };
 };
 
+/// An index-triangle structure for libIGL functions. Also serves as an
+/// alternative (raw) input format for the SLASupportTree
 struct EigenMesh3D {
     Eigen::MatrixXd V;
     Eigen::MatrixXi F;
@@ -80,8 +90,12 @@ void create_head(TriangleMesh&, double r1_mm, double r2_mm, double width_mm);
 void add_sla_supports(Model& model, const SupportConfig& cfg = {},
                       const Controller& ctl = {});
 
+EigenMesh3D to_eigenmesh(const TriangleMesh& m);
 EigenMesh3D to_eigenmesh(const Model& model);
+EigenMesh3D to_eigenmesh(const ModelObject& model);
+
 PointSet support_points(const Model& model);
+PointSet support_points(const ModelObject& modelobject, size_t instance_id = 0);
 
 /* ************************************************************************** */
 

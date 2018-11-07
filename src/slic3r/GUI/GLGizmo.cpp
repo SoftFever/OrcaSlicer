@@ -1612,16 +1612,20 @@ void GLGizmoSlaSupports::on_deactivate() {
         std::cout << st << "% "  << msg << std::endl;
     };
 
-    const Model& model = *m_model_object->get_model();
-    auto emesh = sla::to_eigenmesh(model);
-    sla::PointSet input = sla::support_points(model);
+    TriangleMesh&& m = m_model_object->raw_mesh();
+    auto&& trafo = m_model_object_matrix.cast<float>();
+    m.transform(trafo);
+    auto emesh = sla::to_eigenmesh(m);
+
     sla::SupportConfig cfg;
+    sla::PointSet input = sla::support_points(*m_model_object, 0 /*instance*/);
 
     sla::SLASupportTree stree(input, emesh, cfg, supportctl);
 
     TriangleMesh output;
     stree.merged_mesh(output);
-    m_model_object->add_volume(output);
+
+    _3DScene::reload_scene(m_parent.get_wxglcanvas(), false);
 }
 
 Vec3f GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos)
