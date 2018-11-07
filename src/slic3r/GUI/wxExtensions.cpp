@@ -11,6 +11,8 @@
 #include "GUI_ObjectList.hpp"
 #include "Model.hpp"
 
+wxDEFINE_EVENT(wxCUSTOMEVT_TICKSCHANGED, wxEvent);
+
 wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const wxString& description,
     std::function<void(wxCommandEvent& event)> cb, const std::string& icon, wxEvtHandler* event_handler)
 {
@@ -1189,7 +1191,6 @@ wxSize PrusaBitmapTextRenderer::GetSize() const
 // ----------------------------------------------------------------------------
 // PrusaDoubleSlider
 // ----------------------------------------------------------------------------
-
 PrusaDoubleSlider::PrusaDoubleSlider(wxWindow *parent,
                                         wxWindowID id,
                                         int lowerValue, 
@@ -1369,6 +1370,34 @@ double PrusaDoubleSlider::get_double_value(const SelectedSlider& selection) cons
     if (m_values.empty())
         return 0.0;
     return m_values[selection == ssLower ? m_lower_value : m_higher_value].second;
+}
+
+std::vector<double> PrusaDoubleSlider::GetTicksValues() const
+{
+    std::vector<double> values;
+
+    if (!m_values.empty())
+        for (auto tick : m_ticks)
+            values.push_back(m_values[tick].second);
+
+    return values;
+}
+
+void PrusaDoubleSlider::SetTicksValues(const std::vector<double>& heights)
+{
+    if (m_values.empty())
+        return;
+
+    m_ticks.clear();
+    unsigned int i = 0;
+    for (auto h : heights) {
+        while (i < m_values.size() && m_values[i].second - 1e-6 < h)
+            ++i;
+        if (i == m_values.size())
+            return;
+        m_ticks.insert(i);
+    }
+
 }
 
 void PrusaDoubleSlider::get_lower_and_higher_position(int& lower_pos, int& higher_pos)
@@ -1795,10 +1824,13 @@ void PrusaDoubleSlider::action_tick(const TicksAction action)
             m_ticks.insert(tick);
         else if (it != m_ticks.end() && action == taDel)
             m_ticks.erase(tick);
-        else
+        else {
+            wxPostEvent(this->GetParent(), wxCommandEvent(wxCUSTOMEVT_TICKSCHANGED));
             return;
+        }
     }
 
+    wxPostEvent(this->GetParent(), wxCommandEvent(wxCUSTOMEVT_TICKSCHANGED));
     Refresh();
     Update();
 }

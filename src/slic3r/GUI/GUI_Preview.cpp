@@ -1,5 +1,6 @@
 #include "../../libslic3r/libslic3r.h"
 #include "GUI_Preview.hpp"
+#include "GUI_App.hpp"
 #include "GUI.hpp"
 #include "AppConfig.hpp"
 #include "3DScene.hpp"
@@ -21,6 +22,7 @@
 
 namespace Slic3r {
 namespace GUI {
+
 
 Preview::Preview(wxNotebook* notebook, DynamicPrintConfig* config, Print* print, GCodePreviewData* gcode_preview_data)
     : m_canvas(nullptr)
@@ -482,6 +484,11 @@ void Preview::create_double_slider()
         if (IsShown())
             m_canvas->Refresh();
     });
+
+    Bind(wxCUSTOMEVT_TICKSCHANGED, [this](wxEvent&) {
+            auto& config = wxGetApp().preset_bundle->project_config;
+            ((config.option<ConfigOptionFloats>("colorprint_heights"))->values) = (m_slider->GetTicksValues());
+        });
 }
 
 void Preview::update_double_slider(bool force_sliders_full_range)
@@ -494,6 +501,11 @@ void Preview::update_double_slider(bool force_sliders_full_range)
     const double z_high = m_slider->GetHigherValueD();
     m_slider->SetMaxValue(layers_z.size() - 1);
     m_slider->SetSliderValues(values);
+
+    const auto& config = wxGetApp().preset_bundle->project_config;
+    const std::vector<double> &ticks_from_config = (config.option<ConfigOptionFloats>("colorprint_heights"))->values;
+
+    m_slider->SetTicksValues(ticks_from_config);
 
     set_double_slider_thumbs(force_sliders_full_range, layers_z, z_low, z_high);
 }
@@ -515,6 +527,15 @@ void Preview::fill_slider_values(std::vector<std::pair<int, double>> &values,
                     break;
                 }
     }
+
+    // All ticks that would end up outside the slider range should be erased.
+    // TODO: this should probably be placed into more appropriate part of code,
+    //  this way it relies on the Preview tab being active.
+    auto& config = wxGetApp().preset_bundle->project_config;
+    std::vector<double> &ticks_from_config = (config.option<ConfigOptionFloats>("colorprint_heights"))->values;
+    ticks_from_config.erase(std::remove_if(ticks_from_config.begin(), ticks_from_config.end(),
+                                           [values](double val) { return values.back().second < val; }),
+                            ticks_from_config.end());
 }
 
 void Preview::set_double_slider_thumbs(const bool force_sliders_full_range,

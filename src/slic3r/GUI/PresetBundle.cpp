@@ -36,6 +36,7 @@
 namespace Slic3r {
 
 static std::vector<std::string> s_project_options {
+    "colorprint_heights",
     "wiping_volumes_extruders",
     "wiping_volumes_matrix"
 };

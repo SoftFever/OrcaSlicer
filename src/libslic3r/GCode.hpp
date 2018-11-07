@@ -317,6 +317,9 @@ protected:
     bool                                m_second_layer_things_done;
     // Index of a last object copy extruded.
     std::pair<const PrintObject*, Point> m_last_obj_copy;
+    // Layer heights for colorprint - updated before the export and erased during the process
+    // so no toolchange occurs twice.
+    std::vector<float> m_colorprint_heights;
 
     // Time estimators
     GCodeTimeEstimator m_normal_time_estimator;

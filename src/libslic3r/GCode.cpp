@@ -601,6 +601,9 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
     this->apply_print_config(print.config());
     this->set_extruders(print.extruders());
     
+    // Initialize colorprint.
+    m_colorprint_heights = cast<float>(print.config().colorprint_heights.values);
+
     // Initialize autospeed.
     {
         // get the minimum cross-section used in the print
@@ -1318,6 +1321,18 @@ void GCode::process_layer(
         // Mark the temperature transition from 1st to 2nd layer to be finished.
         m_second_layer_things_done = true;
     }
+
+    // Let's issue a filament change command if requested at this layer.
+    // In case there are more toolchange requests that weren't done yet and should happen simultaneously, erase them all.
+    // (Layers can be close to each other, model could have been resliced with bigger layer height, ...).
+    bool colorprint_change = false;
+    while (!m_colorprint_heights.empty() && m_colorprint_heights.front()-EPSILON < layer.print_z) {
+        m_colorprint_heights.erase(m_colorprint_heights.begin());
+        colorprint_change = true;
+    }
+    if (colorprint_change)
+        gcode += "M600\n";
+
 
     // Extrude skirt at the print_z of the raft layers and normal object layers
     // not at the print_z of the interlaced support material layers.

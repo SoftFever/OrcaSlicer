@@ -704,6 +704,7 @@ public:
     ConfigOptionInts                bridge_fan_speed;
     ConfigOptionFloat               brim_width;
     ConfigOptionBool                complete_objects;
+    ConfigOptionFloats              colorprint_heights;
     ConfigOptionBools               cooling;
     ConfigOptionFloat               default_acceleration;
     ConfigOptionInts                disable_fan_first_layers;
@@ -781,6 +782,7 @@ protected:
         OPT_PTR(bridge_fan_speed);
         OPT_PTR(brim_width);
         OPT_PTR(complete_objects);
+        OPT_PTR(colorprint_heights);
         OPT_PTR(cooling);
         OPT_PTR(default_acceleration);
         OPT_PTR(disable_fan_first_layers);

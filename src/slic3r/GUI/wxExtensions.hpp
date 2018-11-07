@@ -622,6 +622,9 @@ private:
 // PrusaDoubleSlider
 // ----------------------------------------------------------------------------
 
+// custom message the slider sends to its parent to notify a tick-change:
+wxDECLARE_EVENT(wxCUSTOMEVT_TICKSCHANGED, wxEvent);
+
 enum SelectedSlider {
     ssUndef,
     ssLower,
@@ -632,6 +635,7 @@ enum TicksAction{
     taAdd,
     taDel
 };
+
 class PrusaDoubleSlider : public wxControl
 {
 public:
@@ -669,6 +673,8 @@ public:
         m_values = values;
     }
     void ChangeOneLayerLock();
+    std::vector<double> GetTicksValues() const;
+    void SetTicksValues(const std::vector<double>& heights);
 
     void OnPaint(wxPaintEvent& ) { render();}
     void OnLeftDown(wxMouseEvent& event);
