@@ -1629,11 +1629,15 @@ void GLCanvas3D::Selection::mirror(Axis axis)
     if (!m_valid)
         return;
 
+    bool single_full_instance = is_single_full_instance();
+
     for (unsigned int i : m_list)
     {
-        if (is_single_full_instance())
+        if (single_full_instance)
 #if ENABLE_MODELVOLUME_TRANSFORM
             (*m_volumes)[i]->set_instance_mirror(axis, -(*m_volumes)[i]->get_instance_mirror(axis));
+        else if (m_mode == Volume)
+            (*m_volumes)[i]->set_volume_mirror(axis, -(*m_volumes)[i]->get_volume_mirror(axis));
 #else
             (*m_volumes)[i]->set_mirror(axis, -(*m_volumes)[i]->get_mirror(axis));
 #endif // ENABLE_MODELVOLUME_TRANSFORM
@@ -6415,7 +6419,7 @@ void GLCanvas3D::_on_scale()
 
         done.insert(std::pair<int, int>(object_idx, instance_idx));
 
-        // Rotate instances.
+        // Rotate instances/volumes
         ModelObject* model_object = m_model->objects[object_idx];
         if (model_object != nullptr)
         {
@@ -6460,29 +6464,30 @@ void GLCanvas3D::_on_mirror()
     if (m_model == nullptr)
         return;
 
-    std::set<std::pair<int, int>> done;  // prevent mirroring instances twice
+    std::set<std::pair<int, int>> done;  // keeps track of modified instances
+
+    Selection::EMode selection_mode = m_selection.get_mode();
 
     for (const GLVolume* v : m_volumes.volumes)
     {
         int object_idx = v->object_idx();
-        if (object_idx >= 1000)
+        if ((object_idx < 0) || ((int)m_model->objects.size() <= object_idx))
             continue;
 
         int instance_idx = v->instance_idx();
+        int volume_idx = v->volume_idx();
 
-        // prevent mirroring instances twice
-        std::pair<int, int> done_id(object_idx, instance_idx);
-        if (done.find(done_id) != done.end())
-            continue;
+        done.insert(std::pair<int, int>(object_idx, instance_idx));
 
-        done.insert(done_id);
-
-        // Mirror instances.
+        // Mirror instances/volumes
         ModelObject* model_object = m_model->objects[object_idx];
         if (model_object != nullptr)
         {
 #if ENABLE_MODELVOLUME_TRANSFORM
-            model_object->instances[instance_idx]->set_mirror(v->get_instance_mirror());
+            if (selection_mode == Selection::Instance)
+                model_object->instances[instance_idx]->set_mirror(v->get_instance_mirror());
+            else if (selection_mode == Selection::Volume)
+                model_object->volumes[volume_idx]->set_mirror(v->get_volume_mirror());
 #else
             model_object->instances[instance_idx]->set_mirror(v->get_mirror());
 #endif // ENABLE_MODELVOLUME_TRANSFORM
