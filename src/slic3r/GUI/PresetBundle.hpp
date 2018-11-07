@@ -84,11 +84,6 @@ public:
     // If the file is loaded successfully, its print / filament / printer profiles will be activated.
     void                        load_config_file(const std::string &path);
 
-    // Load an external config source containing the print, filament and printer presets.
-    // The given string must contain the full set of parameters (same as those exported to gcode).
-    // If the string is parsed successfully, its print / filament / printer profiles will be activated.
-    void                        load_config_string(const char* str, const char* source_filename = nullptr);
-
     // Load a config bundle file, into presets and store the loaded presets into separate files
     // of the local configuration directory.
     // Load settings into the provided settings instance.

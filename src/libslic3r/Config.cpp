@@ -439,14 +439,16 @@ void ConfigBase::load_from_gcode_file(const std::string &file)
     ifs.read(data.data(), data_length);
     ifs.close();
 
-    load_from_gcode_string(data.data());
+    size_t key_value_pairs = load_from_gcode_string(data.data());
+    if (key_value_pairs < 80)
+        throw std::runtime_error((boost::format("Suspiciously low number of configuration values extracted from %1: %2") % file % key_value_pairs).str());
 }
 
 // Load the config keys from the given string.
-void ConfigBase::load_from_gcode_string(const char* str)
+size_t ConfigBase::load_from_gcode_string(const char* str)
 {
     if (str == nullptr)
-        return;
+        return 0;
 
     // Walk line by line in reverse until a non-configuration key appears.
     char *data_start = const_cast<char*>(str);
@@ -497,11 +499,8 @@ void ConfigBase::load_from_gcode_string(const char* str)
         }
         end = start;
     }
-    if (num_key_value_pairs < 90) {
-        char msg[80];
-        sprintf(msg, "Suspiciously low number of configuration values extracted: %d", num_key_value_pairs);
-        throw std::runtime_error(msg);
-    }
+
+	return num_key_value_pairs;
 }
 
 void ConfigBase::save(const std::string &file) const

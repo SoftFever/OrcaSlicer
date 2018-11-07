@@ -186,7 +186,7 @@ int main(int argc, char **argv)
             else
                 // Remove the previous extension and add .3mf extention.
                 outfile = outfile.substr(0, outfile.find_last_of('.')) + ".3mf";
-            store_3mf(outfile.c_str(), &model, nullptr, false);
+            store_3mf(outfile.c_str(), &model, nullptr);
             boost::nowide::cout << "File file exported to " << outfile << std::endl;
         } else if (cli_config.cut > 0) {
             model.repair();

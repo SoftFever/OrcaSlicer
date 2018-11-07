@@ -813,7 +813,7 @@ namespace Slic3r {
                 std::vector<Vec3f> sla_support_points;
 
                 for (unsigned int i=0; i<object_data_points.size(); i+=3)
-                    sla_support_points.push_back(Vec3f(std::atof(object_data_points[i+0].c_str()), std::atof(object_data_points[i+1].c_str()), std::atof(object_data_points[i+2].c_str())));
+                    sla_support_points.push_back(Vec3d(std::atof(object_data_points[i+0].c_str()), std::atof(object_data_points[i+1].c_str()), std::atof(object_data_points[i+2].c_str())).cast<float>());
 
                 if (!sla_support_points.empty())
                     m_sla_support_points.insert(IdToSlaSupportPointsMap::value_type(object_id, sla_support_points));
@@ -1608,10 +1608,10 @@ namespace Slic3r {
         IdToObjectDataMap m_objects_data;
 
     public:
-        bool save_model_to_file(const std::string& filename, Model& model, const Print& print, bool export_print_config);
+        bool save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config);
 
     private:
-        bool _save_model_to_file(const std::string& filename, Model& model, const Print& print, bool export_print_config);
+        bool _save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config);
         bool _add_content_types_file_to_archive(mz_zip_archive& archive);
         bool _add_relationships_file_to_archive(mz_zip_archive& archive);
         bool _add_model_file_to_archive(mz_zip_archive& archive, Model& model);
@@ -1620,17 +1620,17 @@ namespace Slic3r {
         bool _add_build_to_model_stream(std::stringstream& stream, const BuildItemsList& build_items);
         bool _add_layer_height_profile_file_to_archive(mz_zip_archive& archive, Model& model);
         bool _add_sla_support_points_file_to_archive(mz_zip_archive& archive, Model& model);
-        bool _add_print_config_file_to_archive(mz_zip_archive& archive, const Print& print);
+        bool _add_print_config_file_to_archive(mz_zip_archive& archive, const DynamicPrintConfig &config);
         bool _add_model_config_file_to_archive(mz_zip_archive& archive, const Model& model);
     };
 
-    bool _3MF_Exporter::save_model_to_file(const std::string& filename, Model& model, const Print& print, bool export_print_config)
+    bool _3MF_Exporter::save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config)
     {
         clear_errors();
-        return _save_model_to_file(filename, model, print, export_print_config);
+        return _save_model_to_file(filename, model, config);
     }
 
-    bool _3MF_Exporter::_save_model_to_file(const std::string& filename, Model& model, const Print& print, bool export_print_config)
+    bool _3MF_Exporter::_save_model_to_file(const std::string& filename, Model& model, const DynamicPrintConfig* config)
     {
         mz_zip_archive archive;
         mz_zip_zero_struct(&archive);
@@ -1685,9 +1685,9 @@ namespace Slic3r {
         }
 
         // adds slic3r print config file
-        if (export_print_config)
+        if (config != nullptr)
         {
-            if (!_add_print_config_file_to_archive(archive, print))
+            if (!_add_print_config_file_to_archive(archive, *config))
             {
                 mz_zip_writer_end(&archive);
                 boost::filesystem::remove(filename);
@@ -2017,13 +2017,15 @@ namespace Slic3r {
         return true;
     }
 
-    bool _3MF_Exporter::_add_print_config_file_to_archive(mz_zip_archive& archive, const Print& print)
+    bool _3MF_Exporter::_add_print_config_file_to_archive(mz_zip_archive& archive, const DynamicPrintConfig &config)
     {
         char buffer[1024];
         sprintf(buffer, "; %s\n\n", header_slic3r_generated().c_str());
         std::string out = buffer;
 
-        GCode::append_full_config(print, out);
+        for (const std::string &key : config.keys())
+            if (key != "compatible_printers")
+                out += "; " + key + " = " + config.serialize(key) + "\n";
 
         if (!out.empty())
         {
@@ -2123,13 +2125,13 @@ namespace Slic3r {
         return res;
     }
 
-    bool store_3mf(const char* path, Model* model, Print* print, bool export_print_config)
+    bool store_3mf(const char* path, Model* model, const DynamicPrintConfig* config)
     {
-        if ((path == nullptr) || (model == nullptr) || (print == nullptr))
+        if ((path == nullptr) || (model == nullptr))
             return false;
 
         _3MF_Exporter exporter;
-        bool res = exporter.save_model_to_file(path, *model, *print, export_print_config);
+        bool res = exporter.save_model_to_file(path, *model, config);
 
         if (!res)
             exporter.log_errors();

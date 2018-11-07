@@ -1154,10 +1154,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path> &input_
                 {
                     DynamicPrintConfig config_loaded;
                     model = Slic3r::Model::read_from_archive(path.string(), &config_loaded, false);
-                    // Based on the printer technology field found in the loaded config, select the base for the config,
-    				PrinterTechnology printer_technology = Preset::printer_technology(config_loaded);
                     if (! config_loaded.empty()) {
-                        config.apply(printer_technology == ptFFF ? 
+						// Based on the printer technology field found in the loaded config, select the base for the config,
+						PrinterTechnology printer_technology = Preset::printer_technology(config_loaded);
+						config.apply(printer_technology == ptFFF ?
                             static_cast<const ConfigBase&>(FullPrintConfig::defaults()) : 
                             static_cast<const ConfigBase&>(SLAFullPrintConfig::defaults()));
                         // and place the loaded config over the base.
@@ -1167,8 +1167,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path> &input_
                 if (! config.empty()) {
                     Preset::normalize(config);
                     wxGetApp().preset_bundle->load_config_model(filename.string(), std::move(config));
-					for (const auto &kv : main_frame->options_tabs())
-						kv.second->load_current_preset();
+					wxGetApp().load_current_presets();
 				}
                 wxGetApp().app_config->update_config_dir(path.parent_path().string());
             } else {
@@ -2117,7 +2116,8 @@ void Plater::export_amf()
     wxString path = dialog->GetPath();
     auto path_cstr = path.c_str();
 
-    if (Slic3r::store_amf(path_cstr, &p->model, &p->print, dialog->get_checkbox_value())) {
+	DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config();
+	if (Slic3r::store_amf(path_cstr, &p->model, dialog->get_checkbox_value() ? &cfg : nullptr)) {
         // Success
         p->statusbar()->set_status_text(wxString::Format(_(L("AMF file exported to %s")), path));
     } else {
@@ -2136,7 +2136,8 @@ void Plater::export_3mf()
     wxString path = dialog->GetPath();
     auto path_cstr = path.c_str();
 
-    if (Slic3r::store_3mf(path_cstr, &p->model, &p->print, dialog->get_checkbox_value())) {
+	DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config();
+	if (Slic3r::store_3mf(path_cstr, &p->model, dialog->get_checkbox_value() ? &cfg : nullptr)) {
         // Success
         p->statusbar()->set_status_text(wxString::Format(_(L("3MF file exported to %s")), path));
     } else {

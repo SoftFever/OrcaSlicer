@@ -58,7 +58,7 @@ inline Vec2d   to_2d(const Vec3d   &pt3) { return Vec2d  (pt3(0), pt3(1)); }
 
 inline Vec3d to_3d(const Vec2d &v, double z) { return Vec3d(v(0), v(1), z); }
 inline Vec3f to_3d(const Vec2f &v, float z) { return Vec3f(v(0), v(1), z); }
-inline Vec3i64 to_3d(const Vec2i64 &v, float z) { return Vec3i64(v(0), v(1), z); }
+inline Vec3i64 to_3d(const Vec2i64 &v, float z) { return Vec3i64(int64_t(v(0)), int64_t(v(1)), int64_t(z)); }
 inline Vec3crd to_3d(const Vec3crd &p, coord_t z) { return Vec3crd(p(0), p(1), z); }
 
 inline Vec2d   unscale(coord_t x, coord_t y) { return Vec2d(unscale<double>(x), unscale<double>(y)); }

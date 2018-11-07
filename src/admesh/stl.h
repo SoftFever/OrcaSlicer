@@ -189,7 +189,7 @@ inline void stl_normalize_vector(stl_normal &normal) {
   if (length < 0.000000000001)
     normal = stl_normal::Zero();
   else
-    normal *= (1.0 / length);
+    normal *= float(1.0 / length);
 }
 inline bool stl_vertex_lower(const stl_vertex &a, const stl_vertex &b) {
   return (a(0) != b(0)) ? (a(0) < b(0)) :

@@ -834,9 +834,9 @@ bool load_amf(const char *path, DynamicPrintConfig *config, Model *model)
         return false;
 }
 
-bool store_amf(const char *path, Model *model, Print* print, bool export_print_config)
+bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
 {
-    if ((path == nullptr) || (model == nullptr) || (print == nullptr))
+    if ((path == nullptr) || (model == nullptr))
         return false;
 
     // forces ".zip.amf" extension
@@ -857,11 +857,13 @@ bool store_amf(const char *path, Model *model, Print* print, bool export_print_c
     stream << "<metadata type=\"cad\">Slic3r " << SLIC3R_VERSION << "</metadata>\n";
     stream << "<metadata type=\"" << SLIC3RPE_AMF_VERSION << "\">" << VERSION_AMF << "</metadata>\n";
 
-    if (export_print_config)
+    if (config != nullptr)
     {
-        std::string config = "\n";
-        GCode::append_full_config(*print, config);
-        stream << "<metadata type=\"" << SLIC3R_CONFIG_TYPE << "\">" << xml_escape(config) << "</metadata>\n";
+        std::string str_config = "\n";
+        for (const std::string &key : config->keys())
+            if (key != "compatible_printers")
+                str_config += "; " + key + " = " + config->serialize(key) + "\n";
+        stream << "<metadata type=\"" << SLIC3R_CONFIG_TYPE << "\">" << xml_escape(str_config) << "</metadata>\n";
     }
 
     for (const auto &material : model->materials) {
