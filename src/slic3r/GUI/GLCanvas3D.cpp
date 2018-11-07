@@ -6274,7 +6274,7 @@ void GLCanvas3D::_on_move()
     if (m_model == nullptr)
         return;
 
-    std::set<std::pair<int, int>> done;  // keeps track of moved instances
+    std::set<std::pair<int, int>> done;  // keeps track of modified instances
     bool object_moved = false;
     Vec3d wipe_tower_origin = Vec3d::Zero();
 
@@ -6345,7 +6345,7 @@ void GLCanvas3D::_on_rotate()
     if (m_model == nullptr)
         return;
 
-    std::set<std::pair<int, int>> done;  // keeps track of moved instances
+    std::set<std::pair<int, int>> done;  // keeps track of modified instances
 
     Selection::EMode selection_mode = m_selection.get_mode();
     
@@ -6400,30 +6400,36 @@ void GLCanvas3D::_on_scale()
     if (m_model == nullptr)
         return;
 
-    std::set<std::pair<int, int>> done;  // prevent scaling instances twice
+    std::set<std::pair<int, int>> done;  // keeps track of modified instances
+
+    Selection::EMode selection_mode = m_selection.get_mode();
 
     for (const GLVolume* v : m_volumes.volumes)
     {
         int object_idx = v->object_idx();
-        if (object_idx >= 1000)
+        if ((object_idx < 0) || ((int)m_model->objects.size() <= object_idx))
             continue;
 
         int instance_idx = v->instance_idx();
+        int volume_idx = v->volume_idx();
 
-        // prevent scaling instances twice
-        std::pair<int, int> done_id(object_idx, instance_idx);
-        if (done.find(done_id) != done.end())
-            continue;
-
-        done.insert(done_id);
+        done.insert(std::pair<int, int>(object_idx, instance_idx));
 
         // Rotate instances.
         ModelObject* model_object = m_model->objects[object_idx];
         if (model_object != nullptr)
         {
 #if ENABLE_MODELVOLUME_TRANSFORM
-            model_object->instances[instance_idx]->set_scaling_factor(v->get_instance_scaling_factor());
-            model_object->instances[instance_idx]->set_offset(v->get_instance_offset());
+            if (selection_mode == Selection::Instance)
+            {
+                model_object->instances[instance_idx]->set_scaling_factor(v->get_instance_scaling_factor());
+                model_object->instances[instance_idx]->set_offset(v->get_instance_offset());
+            }
+            else if (selection_mode == Selection::Volume)
+            {
+                model_object->volumes[volume_idx]->set_scaling_factor(v->get_volume_scaling_factor());
+                model_object->volumes[volume_idx]->set_offset(v->get_volume_offset());
+            }
 #else
             model_object->instances[instance_idx]->set_scaling_factor(v->get_scaling_factor());
             model_object->instances[instance_idx]->set_offset(v->get_offset());
@@ -6432,6 +6438,7 @@ void GLCanvas3D::_on_scale()
         }
     }
 
+    // Fixes sinking/flying instances
     for (const std::pair<int, int>& i : done)
     {
         ModelObject* m = m_model->objects[i.first];
