@@ -162,6 +162,12 @@ public:
 
     // Reset the print status including the copy of the Model / ModelObject hierarchy.
     virtual void            clear() = 0;
+    // The Print is empty either after clear() or after apply() over an empty model,
+    // or after apply() over a model, where no object is printable (all outside the print volume).
+    virtual bool            empty() const = 0;
+
+    // Validate the print, return empty string if valid, return error if process() cannot (or should not) be started.
+    virtual std::string     validate() const { return std::string(); }
 
     enum ApplyStatus {
         // No change after the Print::apply() call.

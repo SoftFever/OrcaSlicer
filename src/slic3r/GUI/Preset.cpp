@@ -1039,7 +1039,7 @@ std::string PresetCollection::path_from_name(const std::string &new_name) const
 const Preset& PrinterPresetCollection::default_preset_for(const DynamicPrintConfig &config) const 
 { 
     const ConfigOptionEnumGeneric *opt_printer_technology = config.opt<ConfigOptionEnumGeneric>("printer_technology");
-	return this->default_preset((opt_printer_technology == nullptr || opt_printer_technology->value == 0) ? 0 : 1);
+	return this->default_preset((opt_printer_technology == nullptr || opt_printer_technology->value == ptFFF) ? 0 : 1);
 }
 
 } // namespace Slic3r

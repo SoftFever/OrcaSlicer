@@ -301,7 +301,7 @@ unsigned int Model::update_print_volume_state(const BoundingBoxf3 &print_volume)
     return num_printable;
 }
 
-void Model::center_instances_around_point(const Vec2d &point)
+bool Model::center_instances_around_point(const Vec2d &point)
 {
     BoundingBoxf3 bb;
     for (ModelObject *o : this->objects)
@@ -309,12 +309,17 @@ void Model::center_instances_around_point(const Vec2d &point)
             bb.merge(o->instance_bounding_box(i, false));
 
     Vec2d shift2 = point - to_2d(bb.center());
-    Vec3d shift3 = Vec3d(shift2(0), shift2(1), 0.0);
-    for (ModelObject *o : this->objects) {
-        for (ModelInstance *i : o->instances)
-            i->set_offset(i->get_offset() + shift3);
-        o->invalidate_bounding_box();
-    }
+	if (std::abs(shift2(0)) < EPSILON && std::abs(shift2(1)) < EPSILON)
+		// No significant shift, don't do anything.
+		return false;
+
+	Vec3d shift3 = Vec3d(shift2(0), shift2(1), 0.0);
+	for (ModelObject *o : this->objects) {
+		for (ModelInstance *i : o->instances)
+			i->set_offset(i->get_offset() + shift3);
+		o->invalidate_bounding_box();
+	}
+	return true;
 }
 
 // flattens everything to a single mesh

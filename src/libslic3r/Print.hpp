@@ -287,6 +287,7 @@ public:
     // In case the following methods need to modify data processed by process() or export_gcode(),
     // a cancellation callback is executed to stop the background processing before the operation.
     void                clear() override;
+    bool                empty() const override { return m_objects.empty(); }
 
     ApplyStatus         apply(const Model &model, const DynamicPrintConfig &config) override;
 
@@ -295,7 +296,7 @@ public:
     void                add_model_object(ModelObject* model_object, int idx = -1);
     bool                apply_config(DynamicPrintConfig config);
 
-    void                process();
+    void                process() override;
     void                export_gcode(const std::string &path_template, GCodePreviewData *preview_data);
     // SLA export, temporary.
     void                export_png(const std::string &dirpath);
@@ -309,7 +310,7 @@ public:
     float               get_wipe_tower_depth() const { return m_wipe_tower_data.depth; }
 
     // Returns an empty string if valid, otherwise returns an error message.
-    std::string         validate() const;
+    std::string         validate() const override;
     BoundingBox         bounding_box() const;
     BoundingBox         total_bounding_box() const;
     double              skirt_first_layer_height() const;

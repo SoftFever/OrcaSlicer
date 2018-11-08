@@ -92,13 +92,12 @@ bool GUI_App::OnInit()
 
     // Suppress the '- default -' presets.
     preset_bundle->set_default_suppressed(app_config->get("no_defaults") == "1");
-    //     eval{ 
-    preset_bundle->load_presets(*app_config);
-    //     };
-    //     if ($@) {
-    //         warn $@ . "\n";
-    //         show_error(undef, $@);
-    //     }
+	try {
+		preset_bundle->load_presets(*app_config);
+	} catch (const std::exception & /* ex */) {
+		//         warn $@ . "\n";
+		//         show_error(undef, $@);
+	}
 
     // Let the libslic3r know the callback, which will translate messages on demand.
     Slic3r::I18N::set_translate_callback(libslic3r_translate_callback);

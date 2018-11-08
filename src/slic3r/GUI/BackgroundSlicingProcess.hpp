@@ -13,6 +13,7 @@ namespace Slic3r {
 class DynamicPrintConfig;
 class GCodePreviewData;
 class Model;
+class SLAPrint;
 
 // Print step IDs for keeping track of the print state.
 enum BackgroundSlicingProcessStep {
@@ -28,7 +29,8 @@ public:
 	// Stop the background processing and finalize the bacgkround processing thread, remove temp files.
 	~BackgroundSlicingProcess();
 
-	void set_print(Print *print) { m_print = print; }
+	void set_fff_print(Print *print) { m_fff_print = print; }
+	void set_sla_print(SLAPrint *print) { m_sla_print = print; }
 	void set_gcode_preview_data(GCodePreviewData *gpd) { m_gcode_preview_data = gpd; }
 	// The following wxCommandEvent will be sent to the UI thread / Platter window, when the slicing is finished
 	// and the background processing will transition into G-code export.
@@ -38,6 +40,8 @@ public:
 	// The wxCommandEvent is sent to the UI thread asynchronously without waiting for the event to be processed.
 	void set_finished_event(int event_id) { m_event_finished_id = event_id; }
 
+	// Activate either m_fff_print or m_sla_print.
+	void select_technology(PrinterTechnology tech);
 	// Start the background processing. Returns false if the background processing was already running.
 	bool start();
 	// Cancel the background processing. Returns false if the background processing was not running.
@@ -47,9 +51,8 @@ public:
 	// Useful when the Model or configuration is being changed drastically.
 	bool reset();
 
-	// Apply config over the print. Returns false, if the new config values caused any of the already
-	// processed steps to be invalidated, therefore the task will need to be restarted.
-	bool apply_config(const DynamicPrintConfig &config);
+	// Validate the print. Returns an empty string if valid, returns an error message if invalid.
+	std::string validate();
 	// Apply config over the print. Returns false, if the new config values caused any of the already
 	// processed steps to be invalidated, therefore the task will need to be restarted.
 	Print::ApplyStatus apply(const Model &model, const DynamicPrintConfig &config);
@@ -90,7 +93,14 @@ private:
 	// This function shall not trigger any UI update through the wxWidgets event.
 	void	stop_internal();
 
-	Print 					   *m_print 			 = nullptr;
+	// Helper to wrap the FFF slicing & G-code generation.
+	void	process_fff();
+
+	// Currently active print. It is one of m_fff_print and m_sla_print.
+	PrintBase				   *m_print 			 = nullptr;
+	// Non-owned pointers to Print instances.
+	Print 					   *m_fff_print 		 = nullptr;
+	SLAPrint 				   *m_sla_print			 = nullptr;
 	// Data structure, to which the G-code export writes its annotations.
 	GCodePreviewData 		   *m_gcode_preview_data = nullptr;
 	// Temporary G-code, there is one defined for the BackgroundSlicingProcess, differentiated from the other processes by a process ID.

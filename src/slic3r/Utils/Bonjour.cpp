@@ -677,7 +677,7 @@ void Bonjour::priv::lookup_perform()
 				socket.async_receive_from(asio::buffer(buffer, buffer.size()), recv_from, recv_handler);
 			}
 		}
-	} catch (std::exception& e) {
+	} catch (std::exception& /* e */) {
 	}
 }
 

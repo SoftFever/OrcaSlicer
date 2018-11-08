@@ -76,7 +76,7 @@ HexFile::HexFile(fs::path path) :
 	pt::ptree ptree;
 	try {
 		pt::read_ini(header_ini, ptree);
-	} catch (std::exception &e) {
+	} catch (std::exception & /* e */) {
 		return;
 	}
 

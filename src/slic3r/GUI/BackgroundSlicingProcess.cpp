@@ -7,9 +7,10 @@
 #include <wx/stdpaths.h>
 
 // Print now includes tbb, and tbb includes Windows. This breaks compilation of wxWidgets if included before wx.
-#include "../../libslic3r/Print.hpp"
-#include "../../libslic3r/Utils.hpp"
-#include "../../libslic3r/GCode/PostProcessor.hpp"
+#include "libslic3r/Print.hpp"
+#include "libslic3r/SLAPrint.hpp"
+#include "libslic3r/Utils.hpp"
+#include "libslic3r/GCode/PostProcessor.hpp"
 
 //#undef NDEBUG
 #include <cassert>
@@ -35,8 +36,49 @@ BackgroundSlicingProcess::~BackgroundSlicingProcess()
 	boost::nowide::remove(m_temp_output_path.c_str());
 }
 
+void BackgroundSlicingProcess::select_technology(PrinterTechnology tech)
+{
+	if (m_print == nullptr || m_print->technology() != tech) {
+		if (m_print != nullptr)
+			this->reset();
+		switch (tech) {
+		case ptFFF: m_print = m_fff_print; break;
+		case ptSLA: m_print = m_sla_print; break;
+		}
+	}
+	assert(m_print != nullptr);
+}
+
+// This function may one day be merged into the Print, but historically the print was separated
+// from the G-code generator.
+void BackgroundSlicingProcess::process_fff()
+{
+	assert(m_print == m_fff_print);
+    m_print->process();
+    if (! m_print->canceled()) {
+        wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_sliced_id));
+	    m_fff_print->export_gcode(m_temp_output_path, m_gcode_preview_data);
+	    if (! m_print->canceled() && ! this->is_step_done(bspsGCodeFinalize)) {
+	    	this->set_step_started(bspsGCodeFinalize);
+	    	if (! m_export_path.empty()) {
+	    		//FIXME localize the messages
+		    	if (copy_file(m_temp_output_path, m_export_path) != 0)
+	    			throw std::runtime_error("Copying of the temporary G-code to the output G-code failed");
+	    		m_print->set_status(95, "Running post-processing scripts");
+	    		run_post_process_scripts(m_export_path, m_fff_print->config());
+	    		m_print->set_status(100, "G-code file exported to " + m_export_path);
+	    	} else {
+	    		m_print->set_status(100, "Slicing complete");
+	    	}
+			this->set_step_done(bspsGCodeFinalize);
+	    }
+    }
+}
+
 void BackgroundSlicingProcess::thread_proc()
 {
+	assert(m_print != nullptr);
+	assert(m_print == m_fff_print || m_print == m_sla_print);
 	std::unique_lock<std::mutex> lck(m_mutex);
 	// Let the caller know we are ready to run the background processing task.
 	m_state = STATE_IDLE;
@@ -56,25 +98,10 @@ void BackgroundSlicingProcess::thread_proc()
 		std::string error;
 		try {
 			assert(m_print != nullptr);
-		    m_print->process();
-		    if (! m_print->canceled()) {
-                wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_sliced_id));
-			    m_print->export_gcode(m_temp_output_path, m_gcode_preview_data);
-			    if (! m_print->canceled() && ! this->is_step_done(bspsGCodeFinalize)) {
-			    	this->set_step_started(bspsGCodeFinalize);
-			    	if (! m_export_path.empty()) {
-			    		//FIXME localize the messages
-				    	if (copy_file(m_temp_output_path, m_export_path) != 0)
-			    			throw std::runtime_error("Copying of the temporary G-code to the output G-code failed");
-			    		m_print->set_status(95, "Running post-processing scripts");
-			    		run_post_process_scripts(m_export_path, m_print->config());
-			    		m_print->set_status(100, "G-code file exported to " + m_export_path);
-			    	} else {
-			    		m_print->set_status(100, "Slicing complete");
-			    	}
-					this->set_step_done(bspsGCodeFinalize);
-			    }
-		    }
+			switch(m_print->technology()) {
+				case ptFFF: this->process_fff(); break;
+				default: m_print->process(); break;
+			}
 		} catch (CanceledException & /* ex */) {
 			// Canceled, this is all right.
 			assert(m_print->canceled());
@@ -133,6 +160,10 @@ void BackgroundSlicingProcess::join_background_thread()
 
 bool BackgroundSlicingProcess::start()
 {
+	if (m_print->empty())
+		// The print is empty (no object in Model, or all objects are out of the print bed).
+		return false;
+
 	std::unique_lock<std::mutex> lck(m_mutex);
 	if (m_state == STATE_INITIAL) {
 		// The worker thread is not running yet. Start it.
@@ -183,6 +214,7 @@ bool BackgroundSlicingProcess::reset()
 	bool stopped = this->stop();
 	this->reset_export();
 	m_print->clear();
+	this->invalidate_all_steps();
 	return stopped;
 }
 
@@ -203,20 +235,18 @@ void BackgroundSlicingProcess::stop_internal()
 	m_print->set_cancel_callback([](){});
 }
 
-// Apply config over the print. Returns false, if the new config values caused any of the already
-// processed steps to be invalidated, therefore the task will need to be restarted.
-bool BackgroundSlicingProcess::apply_config(const DynamicPrintConfig &config)
+std::string BackgroundSlicingProcess::validate()
 {
-	this->stop();
-	bool invalidated = m_print->apply_config(config);
-	return invalidated;
+	assert(m_print != nullptr);
+	return m_print->validate();
 }
 
 // Apply config over the print. Returns false, if the new config values caused any of the already
 // processed steps to be invalidated, therefore the task will need to be restarted.
 Print::ApplyStatus BackgroundSlicingProcess::apply(const Model &model, const DynamicPrintConfig &config)
 {
-//	this->stop();
+	assert(m_print != nullptr);
+	assert(config.opt_enum<PrinterTechnology>("printer_technology") == m_print->technology());
 	Print::ApplyStatus invalidated = m_print->apply(model, config);
 	return invalidated;
 }

@@ -26,6 +26,7 @@
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Print.hpp"
+#include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/GCode/PreviewData.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Polygon.hpp"
@@ -852,6 +853,7 @@ struct Plater::priv
     // Data
     Slic3r::DynamicPrintConfig *config;
     Slic3r::Print print;
+	Slic3r::SLAPrint sla_print;
     Slic3r::Model model;
     Slic3r::GCodePreviewData gcode_preview_data;
 
@@ -949,17 +951,19 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
         "brim_width", "variable_layer_height", "serial_port", "serial_speed", "host_type", "print_host",
         "printhost_apikey", "printhost_cafile", "nozzle_diameter", "single_extruder_multi_material",
         "wipe_tower", "wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_rotation_angle",
-        "extruder_colour", "filament_colour", "max_print_height", "printer_model"
+		"extruder_colour", "filament_colour", "max_print_height", "printer_model", "printer_technology"
     })),
     notebook(new wxNotebook(q, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_BOTTOM)),
     sidebar(new Sidebar(q)),
     canvas3D(GLCanvas3DManager::create_wxglcanvas(notebook))
 {
-    // TODO: background_process.set_print(&slaprint);
-    background_process.set_print(&print);
+    background_process.set_fff_print(&print);
+	background_process.set_sla_print(&sla_print);
     background_process.set_gcode_preview_data(&gcode_preview_data);
     background_process.set_sliced_event(EVT_SLICING_COMPLETED);
     background_process.set_finished_event(EVT_PROCESS_COMPLETED);
+	// Default printer technology for default config.
+	background_process.select_technology(wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology());
     // Register progress callback from the Print class to the Platter.
     print.set_status_callback([this](int percent, const std::string &message) {
         wxCommandEvent event(EVT_PROGRESS_BAR);
@@ -1516,6 +1520,7 @@ void Plater::priv::schedule_background_process()
 void Plater::priv::async_apply_config()
 {
     DynamicPrintConfig config = wxGetApp().preset_bundle->full_config();
+    auto            printer_technology = config.opt_enum<PrinterTechnology>("printer_technology");
     BoundingBox     bed_box_2D = get_extents(Polygon::new_scale(config.opt<ConfigOptionPoints>("bed_shape")->values));
     BoundingBoxf3   print_volume(unscale(bed_box_2D.min(0), bed_box_2D.min(1), 0.0), unscale(bed_box_2D.max(0), bed_box_2D.max(1), scale_(config.opt_float("max_print_height"))));
     // Allow the objects to protrude below the print bed, only the part of the object above the print bed will be sliced.
@@ -1536,17 +1541,19 @@ void Plater::priv::async_apply_config()
         // Reset preview canvases. If the print has been invalidated, the preview canvases will be cleared.
         // Otherwise they will be just refreshed.
         this->gcode_preview_data.reset();
-        if (this->preview != nullptr)
-            this->preview->reload_print();
-        // We also need to reload 3D scene because of the wipe tower preview box
-        if (this->config->opt_bool("wipe_tower")) {
-//            std::vector<int> selections = this->collect_selections();
-//            Slic3r::_3DScene::set_objects_selections(this->canvas3D, selections);
-//            Slic3r::_3DScene::reload_scene(this->canvas3D, 1);
+        if (printer_technology == ptFFF) {
+            if (this->preview != nullptr)
+                this->preview->reload_print();
+            // We also need to reload 3D scene because of the wipe tower preview box
+            if (this->config->opt_bool("wipe_tower")) {
+    //            std::vector<int> selections = this->collect_selections();
+    //            Slic3r::_3DScene::set_objects_selections(this->canvas3D, selections);
+    //            Slic3r::_3DScene::reload_scene(this->canvas3D, 1);
+            }
         }
     }
     if (invalidated != Print::APPLY_STATUS_UNCHANGED && this->get_config("background_processing") == "1" &&
-        this->print.num_object_instances() > 0 && this->background_process.start())
+        this->background_process.start())
 		this->statusbar()->set_cancel_callback([this]() {
             this->statusbar()->set_status_text(L("Cancelling"));
 			this->background_process.stop();
@@ -1557,13 +1564,13 @@ void Plater::priv::start_background_process()
 {
 	if (this->background_process.running())
 		return;
-    // return if ! @{$self->{objects}} || $self->{background_slicing_process}->running;
     // Don't start process thread if Print is not valid.
-    std::string err = this->q->print().validate();
+    std::string err = this->background_process.validate();
     if (! err.empty()) {
         this->statusbar()->set_status_text(err);
 	} else {
 		// Copy the names of active presets into the placeholder parser.
+        //FIXME how to generate a file name for the SLA printers?
 		wxGetApp().preset_bundle->export_selections(this->q->print().placeholder_parser());
 		// Start the background process.
 		this->background_process.start();
@@ -2052,7 +2059,7 @@ void Plater::export_gcode(fs::path output_path)
 
     std::string err = wxGetApp().preset_bundle->full_config().validate();
     if (err.empty())
-        err = p->print.validate();
+        err = p->background_process.validate();
     if (! err.empty()) {
         // The config is not valid
         GUI::show_error(this, _(err));
@@ -2198,7 +2205,9 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
     bool update_scheduled = false;
     for (auto opt_key : p->config->diff(config)) {
         p->config->set_key_value(opt_key, config.option(opt_key)->clone());
-        if (opt_key  == "bed_shape") {
+        if (opt_key == "printer_technology")
+			p->background_process.select_technology(config.opt_enum<PrinterTechnology>(opt_key));
+        else if (opt_key  == "bed_shape") {
             if (p->canvas3D) _3DScene::set_bed_shape(p->canvas3D, p->config->option<ConfigOptionPoints>(opt_key)->values);
             if (p->preview) p->preview->set_bed_shape(p->config->option<ConfigOptionPoints>(opt_key)->values);
             update_scheduled = true;

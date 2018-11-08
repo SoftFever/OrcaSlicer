@@ -524,6 +524,8 @@ DynamicPrintConfig PresetBundle::full_fff_config() const
     };
     add_if_some_non_empty(std::move(compatible_printers_condition), "compatible_printers_condition_cummulative");
     add_if_some_non_empty(std::move(inherits),                      "inherits_cummulative");
+
+	out.option<ConfigOptionEnumGeneric>("printer_technology", true)->value = ptFFF;
     return out;
 }
 
@@ -566,7 +568,9 @@ DynamicPrintConfig PresetBundle::full_sla_config() const
     };
     add_if_some_non_empty(std::move(compatible_printers_condition), "compatible_printers_condition_cummulative");
     add_if_some_non_empty(std::move(inherits),                      "inherits_cummulative");
-    return out;
+
+	out.option<ConfigOptionEnumGeneric>("printer_technology", true)->value = ptSLA;
+	return out;
 }
 
 // Load an external config file containing the print, filament and printer presets.

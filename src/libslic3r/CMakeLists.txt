@@ -136,6 +136,8 @@ add_library(libslic3r STATIC
     PrintRegion.cpp
     Rasterizer/Rasterizer.hpp
     Rasterizer/Rasterizer.cpp
+    SLAPrint.cpp
+    SLAPrint.hpp
     Slicing.cpp
     Slicing.hpp
     SlicingAdaptive.cpp

@@ -52,7 +52,7 @@ void Chart::draw() {
 
     // draw x-axis:
     float last_mark = -10000;
-    for (float math_x=int(visible_area.m_x*10)/10 ; math_x < (visible_area.m_x+visible_area.m_width) ; math_x+=0.1) {
+    for (float math_x=int(visible_area.m_x*10)/10 ; math_x < (visible_area.m_x+visible_area.m_width) ; math_x+=0.1f) {
         int x = math_to_screen(wxPoint2DDouble(math_x,visible_area.m_y)).x;
         int y = m_rect.GetBottom();
         if (x-last_mark < 50) continue;

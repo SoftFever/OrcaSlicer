@@ -193,7 +193,7 @@ void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt
 			config.set_key_value(opt_key, new ConfigOptionBool(boost::any_cast<bool>(value)));
 			break;
 		case coBools:{
-			ConfigOptionBools* vec_new = new ConfigOptionBools{ (bool)boost::any_cast<unsigned char>(value) };
+			ConfigOptionBools* vec_new = new ConfigOptionBools{ boost::any_cast<unsigned char>(value) != 0 };
 			config.option<ConfigOptionBools>(opt_key)->set_at(vec_new, opt_index, 0);
 			break;}
 		case coInt:

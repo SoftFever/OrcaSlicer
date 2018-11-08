@@ -100,7 +100,7 @@ boost::optional<WindowMetrics> WindowMetrics::deserialize(const std::string &str
 
     WindowMetrics res;
     res.rect = wxRect(metrics[0], metrics[1], metrics[2], metrics[3]);
-    res.maximized = metrics[4];
+    res.maximized = metrics[4] != 0;
 
     return res;
 }

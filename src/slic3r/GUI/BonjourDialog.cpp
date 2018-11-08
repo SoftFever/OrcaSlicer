@@ -18,8 +18,9 @@
 namespace Slic3r {
 
 
-struct BonjourReplyEvent : public wxEvent
+class BonjourReplyEvent : public wxEvent
 {
+public:
 	BonjourReply reply;
 
 	BonjourReplyEvent(wxEventType eventType, int winid, BonjourReply &&reply) :

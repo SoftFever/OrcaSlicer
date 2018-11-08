@@ -622,7 +622,8 @@ public:
     // Set the print_volume_state of PrintObject::instances, 
     // return total number of printable objects.
     unsigned int update_print_volume_state(const BoundingBoxf3 &print_volume);
-    void center_instances_around_point(const Vec2d &point);
+	// Returns true if any ModelObject was modified.
+    bool center_instances_around_point(const Vec2d &point);
     void translate(coordf_t x, coordf_t y, coordf_t z) { for (ModelObject *o : this->objects) o->translate(x, y, z); }
     TriangleMesh mesh() const;
     bool arrange_objects(coordf_t dist, const BoundingBoxf* bb = NULL);

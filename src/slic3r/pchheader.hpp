@@ -87,6 +87,11 @@
 #include <tbb/parallel_for.h>
 #include <tbb/spin_mutex.h>
 
+#ifdef _MSC_VER
+	// avoid some "macro redefinition" warnings
+	#include <urlmon.h>
+#endif /* _MSC_VER */
+
 #include <wx/app.h>
 #include <wx/bitmap.h>
 #include <wx/bmpbuttn.h>

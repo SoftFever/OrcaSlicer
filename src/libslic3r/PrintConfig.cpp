@@ -2561,10 +2561,20 @@ void DynamicPrintConfig::normalize()
 std::string DynamicPrintConfig::validate()
 {
     // Full print config is initialized from the defaults.
-    FullPrintConfig fpc;
-    fpc.apply(*this, true);
-    // Verify this print options through the FullPrintConfig.
-    return fpc.validate();
+	const ConfigOption *opt = this->option("printer_technology", false);
+	auto printer_technology = (opt == nullptr) ? ptFFF : static_cast<PrinterTechnology>(dynamic_cast<const ConfigOptionEnumGeneric*>(opt)->value);
+    switch (printer_technology) {
+    case ptFFF:
+    {
+        FullPrintConfig fpc;
+        fpc.apply(*this, true);
+        // Verify this print options through the FullPrintConfig.
+        return fpc.validate();
+    }
+    default:
+        //FIXME no validation on SLA data?
+        return std::string();
+    }
 }
 
 double PrintConfig::min_object_distance() const

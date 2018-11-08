@@ -4,6 +4,16 @@
 # define NOMINMAX
 #endif
 
+// Windows Runtime
+#include <roapi.h>
+// for ComPtr
+#include <wrl/client.h>
+
+// from C:/Program Files (x86)/Windows Kits/10/Include/10.0.17134.0/
+#include <winrt/robuffer.h>
+#include <winrt/windows.storage.provider.h>
+#include <winrt/windows.graphics.printing3d.h>
+
 #include "FixModelByWin10.hpp"
 
 #include <atomic>
@@ -17,14 +27,6 @@
 #include <boost/filesystem.hpp>
 #include <boost/nowide/convert.hpp>
 #include <boost/nowide/cstdio.hpp>
-
-#include <roapi.h>
-// for ComPtr
-#include <wrl/client.h>
-// from C:/Program Files (x86)/Windows Kits/10/Include/10.0.17134.0/
-#include <winrt/robuffer.h>
-#include <winrt/windows.storage.provider.h>
-#include <winrt/windows.graphics.printing3d.h>
 
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Print.hpp"
@@ -370,7 +372,7 @@ void fix_model_by_win10_sdk_gui(const ModelObject &model_object, const Print &pr
 			success  = true;
 			finished = true;
 			on_progress(L("Model repair finished"), 100);
-		} catch (RepairCanceledException &ex) {
+		} catch (RepairCanceledException & /* ex */) {
 			canceled = true;
 			finished = true;
 			on_progress(L("Model repair canceled"), 100);

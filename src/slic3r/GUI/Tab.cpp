@@ -2327,7 +2327,7 @@ void Tab::update_page_tree_visibility()
 // Called by the UI combo box when the user switches profiles.
 // Select a preset by a name.If !defined(name), then the default preset is selected.
 // If the current profile is modified, user is asked to save the changes.
-void Tab::select_preset(std::string preset_name /*= ""*/)
+void Tab::select_preset(std::string preset_name)
 {
 	// If no name is provided, select the "-- default --" preset.
 	if (preset_name.empty())
