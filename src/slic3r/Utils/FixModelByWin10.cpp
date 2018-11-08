@@ -359,9 +359,9 @@ void fix_model_by_win10_sdk_gui(const ModelObject &model_object, const Print &pr
 			fix_model_by_win10_sdk(path_src.string().c_str(), path_dst.string(), on_progress, 
 				[&canceled]() { if (canceled) throw RepairCanceledException(); });
 			boost::filesystem::remove(path_src);
-			PresetBundle bundle;
+            DynamicPrintConfig config;// PresetBundle bundle;
 			on_progress(L("Loading the repaired model"), 80);
-		    bool loaded = Slic3r::load_3mf(path_dst.string().c_str(), &bundle, &result);
+            bool loaded = Slic3r::load_3mf(path_dst.string().c_str(), &config/*bundle*/, &result);
 			boost::filesystem::remove(path_dst);
 			if (! loaded)
  				throw std::runtime_error(L("Import of the repaired 3mf file failed"));
