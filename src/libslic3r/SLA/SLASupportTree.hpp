@@ -74,11 +74,13 @@ struct Controller {
 /// An index-triangle structure for libIGL functions. Also serves as an
 /// alternative (raw) input format for the SLASupportTree
 struct EigenMesh3D {
-    Eigen::MatrixXd V;
-    Eigen::MatrixXi F;
+//    Eigen::MatrixXd V;
+//    Eigen::MatrixXi F;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::DontAlign> V;
+    Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic, Eigen::DontAlign> F;
 };
 
-using PointSet = Eigen::MatrixXd;
+using PointSet = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::DontAlign>; //Eigen::MatrixXd;
 
 /* ************************************************************************** */
 /* TODO: May not be needed:                                                   */

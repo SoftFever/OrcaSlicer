@@ -64,7 +64,7 @@ struct Contour3D {
     }
 };
 
-using PointSet = Eigen::MatrixXd;
+//using PointSet = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::DontAlign>; //Eigen::MatrixXd;
 using ClusterEl = std::vector<unsigned>;
 using ClusteredPoints = std::vector<ClusterEl>;
 

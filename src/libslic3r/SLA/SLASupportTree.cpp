@@ -1618,7 +1618,7 @@ SlicedSupports SLASupportTree::slice(float layerh, float init_layerh) const
         heights.emplace_back(h);
     }
 
-    std::vector<SlicedSupports> mergev(heights.size(), {});
+    std::vector<SlicedSupports> mergev(heights.size());
 
     slice_part(stree.heads(), mergev, heights);
     slice_part(stree.pillars(), mergev, heights);
