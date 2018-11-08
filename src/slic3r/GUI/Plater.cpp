@@ -842,6 +842,42 @@ bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &fi
 
 // Plater / private
 
+
+// For the SLAPrint: No multi-threading here
+class DummyBackgroundProcess: public BackgroundProcess {
+public:
+
+    /// schedule a task on the background
+    virtual void schedule(std::function<void()> fn) override {
+        /*std::asynch*/ fn();
+    }
+
+    /// Report status change, used inside the worker thread
+    virtual void status(unsigned st, const std::string& msg) {
+        // TODO would use the statusbar gauge
+        std::cout << "Processing " << st << "% " << msg << std::endl;
+    }
+
+    /// Check whether the calculation was canceled from the UI. Called by the
+    /// worker thread
+    virtual bool is_canceled() {
+        // this would be connected to the statusbar's cancel button
+        // and return true if that was pushed during the processing
+        return false;
+    }
+
+    /// Determine the state of the background process. If something is running
+    /// returns true. If no job is running, returns false.
+    virtual bool is_running() { return false; }
+
+    virtual void input_changed() override {
+        /*lock();*/
+        BackgroundProcess::input_changed();
+        /*unlock();*/
+    }
+};
+
+
 struct Plater::priv
 {
     // PIMPL back pointer ("Q-Pointer")
@@ -854,9 +890,11 @@ struct Plater::priv
     // Data
     Slic3r::DynamicPrintConfig *config;
     Slic3r::Print print;
-    Slic3r::SLAPrint slaprint;
     Slic3r::Model model;
     Slic3r::GCodePreviewData gcode_preview_data;
+
+    // Will live only in this branch:
+    Slic3r::SLAPrint slaprint;
 
     // GUI elements
     wxNotebook *notebook;
@@ -864,6 +902,7 @@ struct Plater::priv
     wxGLCanvas *canvas3D;    // TODO: Use GLCanvas3D when we can
     Preview *preview;
     BackgroundSlicingProcess    background_process;
+
     wxTimer                     background_process_timer;
 
     static const std::regex pattern_bundle;
@@ -943,7 +982,6 @@ private:
 const std::regex Plater::priv::pattern_bundle(".*[.](amf|amf[.]xml|zip[.]amf|3mf|prusa)", std::regex::icase);
 const std::regex Plater::priv::pattern_3mf(".*3mf", std::regex::icase);
 const std::regex Plater::priv::pattern_zip_amf(".*[.]zip[.]amf", std::regex::icase);
-
 Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     q(q),
     main_frame(main_frame),
@@ -959,6 +997,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     canvas3D(GLCanvas3DManager::create_wxglcanvas(notebook)),
     slaprint(&model)
 {
+    slaprint.set_scheduler(std::make_shared<DummyBackgroundProcess>());
+    // TODO: background_process.set_print(&slaprint);
     background_process.set_print(&print);
     background_process.set_gcode_preview_data(&gcode_preview_data);
     background_process.set_sliced_event(EVT_SLICING_COMPLETED);
@@ -1526,6 +1566,10 @@ void Plater::priv::async_apply_config()
 
     // Apply new config to the possibly running background task.
     Print::ApplyStatus invalidated = this->background_process.apply(this->q->model(), std::move(config));
+
+    // Thread safe invalidation of the SLAPrint data cache
+    this->slaprint.synch();
+
     // Just redraw the 3D canvas without reloading the scene to consume the update of the layer height profile.
     if (Slic3r::_3DScene::is_layers_editing_enabled(this->canvas3D))
         this->canvas3D->Refresh();
@@ -1935,6 +1979,11 @@ Plater::~Plater()
 Sidebar& Plater::sidebar() { return *p->sidebar; }
 Model& Plater::model()  { return p->model; }
 Print& Plater::print()  { return p->print; }
+
+SLAPrint &Plater::sla_print()
+{
+    return p->slaprint;
+}
 
 void Plater::add()
 {

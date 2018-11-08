@@ -56,7 +56,7 @@ protected:
     GLCanvas3D& m_parent;
 
     int m_group_id;
-    EState m_state;
+    EState m_state, m_prev_state;
     // textures are assumed to be square and all with the same size in pixels, no internal check is done
     GLTexture m_textures[Num_States];
     int m_hover_id;
@@ -79,12 +79,14 @@ public:
 
     EState get_state() const { return m_state; }
     void set_state(EState state) {
-        // FIXME: this is my workaround to react on the disabling event (Tamas)
-        bool call_deactivate = ((m_state == On || m_state == Hover) &&
-                                state == Off);
+        bool call_deactivate =
+                m_prev_state == On && state == Off && m_state == Hover;
+
+        if(state == On || state == Off) m_prev_state = state;
 
         m_state = state; on_set_state();
 
+        // FIXME: this is my workaround to react on the disabling event (Tamas)
         if(call_deactivate) {
             on_deactivate();
         }

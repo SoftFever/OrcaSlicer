@@ -19,6 +19,7 @@ class DynamicPrintConfig;
 // implemented using a BackgroundSlicingProcess or something derived from that
 // The methods should be thread safe, obviously...
 class BackgroundProcess {
+    std::function<void()> m_synchfn;
 public:
 
     virtual ~BackgroundProcess() {}
@@ -33,14 +34,21 @@ public:
     /// worker thread
     virtual bool is_canceled() = 0;
 
-    /// Setting up a callback that transfers the input parameters to the worker
-    /// thread. Appropriate synchronization has to be implemented here. A simple
-    /// condition variable and mutex pair should do the job.
-    virtual void on_input_changed(std::function<void()> synchfn) = 0;
-
     /// Determine the state of the background process. If something is running
     /// returns true. If no job is running, returns false.
     virtual bool is_running() = 0;
+
+    /// Trigger the synchronization of frontend/backend data
+    virtual void input_changed() {
+        m_synchfn();  // will just call the provided synch function itself.
+    }
+
+    /// Setting up a callback that transfers the input parameters to the worker
+    /// thread. Appropriate synchronization has to be implemented here. A simple
+    /// condition variable and mutex pair should do the job.
+    void on_input_changed(std::function<void()> synchfn) {
+        m_synchfn = synchfn;
+    }
 };
 
 /**
@@ -78,21 +86,20 @@ public:
 
 private:
 
-    // There will be a support tree for every instance of every ModelObject
-    // because if the object is rotated differently, the support should also be
-    // very different
+    // Caching instance transformations and slices
     struct PrintObjectInstance {
         Transform3f tr;
-        std::unique_ptr<sla::SLASupportTree> support_tree_ptr;
         SlicedSupports slice_cache;
     };
 
     using InstanceMap = std::unordered_map<ModelInstance*, PrintObjectInstance>;
 
     // Every ModelObject will have its PrintObject here. It will contain the
-    // cached index-triangle structure (emesh) and the map of the instance cache
+    // support tree geometry, the cached index-triangle structure (emesh) and
+    // the map of the instance cache
     struct PrintObject {
         sla::EigenMesh3D emesh;
+        std::unique_ptr<sla::SLASupportTree> support_tree_ptr;
         InstanceMap instances;
     };
 
@@ -113,18 +120,7 @@ private:
     std::shared_ptr<BackgroundProcess> m_process; // The scheduler
 
     // For now it will just stop the whole process and invalidate everything
-    void synch();
     std::atomic<bool> m_dirty;
-
-    void set_scheduler(std::shared_ptr<BackgroundProcess> scheduler) {
-        if(scheduler && !scheduler->is_running()) {
-            m_process = scheduler;
-            m_process->on_input_changed([this] {
-                /*synch(); */
-                m_dirty.store(true);
-            });
-        }
-    }
 
     enum Stages {
         IDLE,
@@ -142,8 +138,19 @@ private:
 
     static const std::string m_stage_labels[NUM_STAGES];
 
-    bool run();
+    void _start();
+    void _synch();
+
 public:
+
+    void set_scheduler(std::shared_ptr<BackgroundProcess> scheduler) {
+        if(scheduler && !scheduler->is_running()) {
+            m_process = scheduler;
+            m_process->on_input_changed([this] {
+                _synch();
+            });
+        }
+    }
 
     SLAPrint(const Model * model,
              std::function<SLAPrint::GlobalConfig(void)> cfgreader =
@@ -151,13 +158,15 @@ public:
              std::shared_ptr<BackgroundProcess> scheduler = {}):
         m_model(model), m_config_reader(cfgreader)
     {
-        synch();
-        m_dirty.store(false);
         set_scheduler(scheduler);
     }
 
+    void synch() {
+        if(m_process) m_process->input_changed();
+    }
+
     // This will start the calculation using the
-    bool start(std::shared_ptr<BackgroundProcess> scheduler);
+    bool start();
 
     // Get the full support structure (including the base pool)
     // This should block until the supports are not ready?

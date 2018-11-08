@@ -18,6 +18,7 @@ namespace Slic3r {
 
 class Model;
 class Print;
+class SLAPrint;
 
 namespace GUI {
 
@@ -104,6 +105,7 @@ public:
     Sidebar& sidebar();
     Model& model();
     Print& print();
+    SLAPrint& sla_print();
 
     void add();
 
