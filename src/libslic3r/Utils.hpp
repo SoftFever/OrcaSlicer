@@ -2,6 +2,7 @@
 #define slic3r_Utils_hpp_
 
 #include <locale>
+#include <type_traits>
 
 #include "libslic3r.h"
 
@@ -124,21 +125,26 @@ inline uint64_t next_highest_power_of_2(uint64_t v)
     return ++ v;
 }
 
-#ifdef __clang__
-// On clang, the size_t is a type of its own, so we need to overload for size_t.
-// On MSC, the size_t type aliases to uint64_t / uint32_t, so the following code
-// gives a duplicate symbol error.
-inline size_t next_highest_power_of_2(size_t v)
-{ 
-#if SSIZE_MAX == 9223372036854775807
-    static_assert(sizeof(size_t) == sizeof(uint64_t), "sizeof(size_t) == sizeof(uint64_t)");
+// On some implementations (such as some versions of clang), the size_t is a type of its own, so we need to overload for size_t.
+// Typically, though, the size_t type aliases to uint64_t / uint32_t.
+// We distinguish that here and provide implementation for size_t if and only if it is a distinct type
+template<class T> size_t next_highest_power_of_2(T v,
+    typename std::enable_if<std::is_same<T, size_t>::value, T>::type = 0,     // T is size_t
+    typename std::enable_if<!std::is_same<T, uint64_t>::value, T>::type = 0,  // T is not uint64_t
+    typename std::enable_if<!std::is_same<T, uint32_t>::value, T>::type = 0,  // T is not uint32_t
+    typename std::enable_if<sizeof(T) == 8, T>::type = 0)                     // T is 64 bits
+{
     return next_highest_power_of_2(uint64_t(v));
-#else
-    static_assert(sizeof(size_t) == sizeof(uint32_t), "sizeof(size_t) == sizeof(uint32_t)");
-    return next_highest_power_of_2(uint32_t(v));
-#endif
 }
-#endif
+template<class T> size_t next_highest_power_of_2(T v,
+    typename std::enable_if<std::is_same<T, size_t>::value, T>::type = 0,     // T is size_t
+    typename std::enable_if<!std::is_same<T, uint64_t>::value, T>::type = 0,  // T is not uint64_t
+    typename std::enable_if<!std::is_same<T, uint32_t>::value, T>::type = 0,  // T is not uint32_t
+    typename std::enable_if<sizeof(T) == 4, T>::type = 0)                     // T is 32 bits
+{
+    return next_highest_power_of_2(uint32_t(v));
+}
+
 
 extern std::string xml_escape(std::string text);
 
