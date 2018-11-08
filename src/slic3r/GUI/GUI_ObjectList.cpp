@@ -1209,13 +1209,13 @@ void ObjectList::update_selections()
     auto& selection = _3DScene::get_canvas(wxGetApp().canvas3D())->get_selection();
     wxDataViewItemArray sels;
 
-    if (selection.is_single_full_object()) {
+    if (selection.is_single_full_object() || selection.is_single_volume() || selection.is_multiple_volume()) {
         for (auto idx : selection.get_volume_idxs()) {
             const auto gl_vol = selection.get_volume(idx);
             sels.Add(m_objects_model->GetItemByVolumeId(gl_vol->object_idx(), gl_vol->volume_idx()));
         }
     }
-    else if (selection.is_single_full_instance()) {
+    else if (selection.is_single_full_instance() || selection.is_multiple_full_instance()) {
         for (auto idx : selection.get_instance_idxs()) {            
             sels.Add(m_objects_model->GetItemByInstanceId(selection.get_object_idx(), idx));
         }
