@@ -127,6 +127,8 @@ add_library(libslic3r STATIC
     PolylineCollection.hpp
     Print.cpp
     Print.hpp
+    PrintBase.cpp
+    PrintBase.hpp
     PrintExport.hpp
     PrintConfig.cpp
     PrintConfig.hpp

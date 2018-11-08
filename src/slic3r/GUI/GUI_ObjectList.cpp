@@ -286,8 +286,10 @@ void ObjectList::context_menu()
         else if (title == _("Name") && pt.x >15 &&
                     m_objects_model->GetBitmap(item).GetRefData() == m_bmp_manifold_warning.GetRefData())
         {
-            if (is_windows10())
-                /*fix_through_netfabb()*/;// #ys_FIXME
+            if (is_windows10()) {
+                const auto obj_idx = m_objects_model->GetIdByItem(m_objects_model->GetTopParent(item));
+                wxGetApp().plater()->fix_through_netfabb(obj_idx);
+            }
         }
 #ifndef __WXMSW__
     GetMainWindow()->SetToolTip(""); // hide tooltip
@@ -1093,7 +1095,7 @@ void ObjectList::add_object_to_list(size_t obj_idx)
 
     // add settings to the object, if it has those
     auto opt_keys = model_object->config.keys();
-    if ( !(opt_keys.size() == 1 && opt_keys[0] == "extruder") ) {
+    if (!opt_keys.empty() && !(opt_keys.size() == 1 && opt_keys[0] == "extruder")) {
         select_item(m_objects_model->AddSettingsChild(item));
         Collapse(item);
     }

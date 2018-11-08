@@ -43,6 +43,9 @@ public:
 	// Cancel the background processing. Returns false if the background processing was not running.
 	// A stopped background processing may be restarted with start().
 	bool stop();
+	// Cancel the background processing and reset the print. Returns false if the background processing was not running.
+	// Useful when the Model or configuration is being changed drastically.
+	bool reset();
 
 	// Apply config over the print. Returns false, if the new config values caused any of the already
 	// processed steps to be invalidated, therefore the task will need to be restarted.

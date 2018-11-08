@@ -1598,8 +1598,9 @@ void GLGizmoSlaSupports::update_mesh()
 {
     Eigen::MatrixXf& V = m_V;
     Eigen::MatrixXi& F = m_F;
-    const stl_file& stl = m_model_object->mesh().stl;
-    V.resize(3*stl.stats.number_of_facets, 3);
+    TriangleMesh mesh(m_model_object->mesh());
+    const stl_file& stl = mesh.stl;
+    V.resize(3 * stl.stats.number_of_facets, 3);
     F.resize(stl.stats.number_of_facets, 3);
     for (unsigned int i=0; i<stl.stats.number_of_facets; ++i) {
         const stl_facet* facet = stl.facet_start+i;

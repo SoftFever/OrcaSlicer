@@ -178,6 +178,14 @@ bool BackgroundSlicingProcess::stop()
 	return true;
 }
 
+bool BackgroundSlicingProcess::reset()
+{
+	bool stopped = this->stop();
+	this->reset_export();
+	m_print->clear();
+	return stopped;
+}
+
 // To be called by Print::apply() through the Print::m_cancel_callback to stop the background
 // processing before changing any data of running or finalized milestones.
 // This function shall not trigger any UI update through the wxWidgets event.

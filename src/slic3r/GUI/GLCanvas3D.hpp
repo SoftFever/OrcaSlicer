@@ -489,7 +489,10 @@ public:
         bool is_wipe_tower() const { return m_type == WipeTower; }
         bool is_modifier() const { return (m_type == SingleModifier) || (m_type == MultipleModifier); }
         bool is_single_full_instance() const;
+        bool is_multiple_full_instance() const { return m_type == MultipleFullInstance; }
         bool is_single_full_object() const { return m_type == SingleFullObject; }
+        bool is_single_volume() const { return m_type == SingleVolume; }
+        bool is_multiple_volume() const { return m_type == MultipleVolume; }
         bool is_mixed() const { return m_type == Mixed; }
         bool is_from_single_instance() const { return get_instance_idx() != -1; }
         bool is_from_single_object() const { return get_object_idx() != -1; }

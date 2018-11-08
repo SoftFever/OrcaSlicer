@@ -124,6 +124,7 @@ public:
     void export_3mf();
     void reslice();
     void changed_object(int obj_idx);
+    void fix_through_netfabb(const int obj_idx);
     void send_gcode();
 
     void on_extruders_change(int extruders_count);

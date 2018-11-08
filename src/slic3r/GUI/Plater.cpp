@@ -49,7 +49,7 @@
 #include "BackgroundSlicingProcess.hpp"
 #include "ProgressStatusBar.hpp"
 #include "slic3r/Utils/ASCIIFolding.hpp"
-#include "PrintConfig.hpp"
+#include "../Utils/FixModelByWin10.hpp"
 
 #include <wx/glcanvas.h>    // Needs to be last because reasons :-/
 #include "WipeTowerDialog.hpp"
@@ -898,7 +898,7 @@ struct Plater::priv
     void start_background_process();
     void reload_from_disk();
     void export_object_stl();
-    void fix_through_netfabb();
+    void fix_through_netfabb(const int obj_idx);
 
     void on_notebook_changed(wxBookCtrlEvent&);
     void on_select_preset(wxCommandEvent&);
@@ -1434,8 +1434,9 @@ void Plater::priv::reset()
     if (_3DScene::is_layers_editing_enabled(canvas3D))
         _3DScene::enable_layers_editing(canvas3D, false);
 
+    // Stop and reset the Print content.
+    this->background_process.reset();
     model.clear_objects();
-//    print.clear_objects();
 
     // Delete all objects from list on c++ side
     sidebar->obj_list()->delete_all_objects_from_list();
@@ -1579,35 +1580,35 @@ void Plater::priv::export_object_stl()
     // TODO
 }
 
-void Plater::priv::fix_through_netfabb()
+void Plater::priv::fix_through_netfabb(const int obj_idx)
 {
-/*
-    my ($self) = @_;
-    my ($obj_idx, $object) = $self->selected_object;
-    return if !defined $obj_idx;
-    my $model_object = $self->{model}->objects->[$obj_idx];
-    my $model_fixed = Slic3r::Model->new;
-    Slic3r::GUI::fix_model_by_win10_sdk_gui($model_object, $self->{print}, $model_fixed);
+    if (obj_idx < 0)
+        return;
 
-    my @new_obj_idx = $self->load_model_objects(@{$model_fixed->objects});
-    return if !@new_obj_idx;
+    const auto model_object = model.objects[obj_idx];
+    Model model_fixed;// = new Model();
+    fix_model_by_win10_sdk_gui(*model_object, print, model_fixed);
+
+    auto new_obj_idxs = load_model_objects(model_fixed.objects);
+    if (new_obj_idxs.empty())
+        return;
     
-    foreach my $new_obj_idx (@new_obj_idx) {
-        my $o = $self->{model}->objects->[$new_obj_idx];
-        $o->clear_instances;
-        $o->add_instance($_) for @{$model_object->instances};
-        #$o->invalidate_bounding_box;
+    for(auto new_obj_idx : new_obj_idxs) {
+        auto o = model.objects[new_obj_idx];
+        o->clear_instances();
+        for (auto instance: model_object->instances)
+            o->add_instance(*instance);
+        // o->invalidate_bounding_box();
         
-        if ($o->volumes_count == $model_object->volumes_count) {
-            for my $i (0..($o->volumes_count-1)) {
-                $o->get_volume($i)->config->apply($model_object->get_volume($i)->config);
+        if (o->volumes.size() == model_object->volumes.size()) {
+            for (int i = 0; i < o->volumes.size(); i++) {
+                o->volumes[i]->config.apply(model_object->volumes[i]->config);
             }
         }
-        #FIXME restore volumes and their configs, layer_height_ranges, layer_height_profile, layer_height_profile_valid,
+        // FIXME restore volumes and their configs, layer_height_ranges, layer_height_profile, layer_height_profile_valid,
     }
     
-    $self->remove($obj_idx);
-*/
+    remove(obj_idx);
 }
 
 void Plater::priv::on_notebook_changed(wxBookCtrlEvent&)
@@ -1970,6 +1971,8 @@ void Plater::increase_instances(size_t num)
     ModelObject* model_object = p->model.objects[obj_idx];
     ModelInstance* model_instance = model_object->instances.back();
 
+    bool was_one_instance = model_object->instances.size()==1;
+        
     float offset = 10.0;
     for (size_t i = 0; i < num; i++, offset += 10.0) {
         Vec3d offset_vec = model_instance->get_offset() + Vec3d(offset, offset, 0.0);
@@ -1977,7 +1980,7 @@ void Plater::increase_instances(size_t num)
 //        p->print.get_object(obj_idx)->add_copy(Slic3r::to_2d(offset_vec));
     }
 
-    sidebar().obj_list()->increase_object_instances(obj_idx, num);
+    sidebar().obj_list()->increase_object_instances(obj_idx, was_one_instance ? num + 1 : num);
 
     if (p->get_config("autocenter") == "1") {
         p->arrange();
@@ -2000,10 +2003,8 @@ void Plater::decrease_instances(size_t num)
 
     ModelObject* model_object = p->model.objects[obj_idx];
     if (model_object->instances.size() > num) {
-        for (size_t i = 0; i < num; i++) {
+        for (size_t i = 0; i < num; ++ i)
             model_object->delete_last_instance();
-//            p->print.get_object(obj_idx)->delete_last_copy();
-        }
         sidebar().obj_list()->decrease_object_instances(obj_idx, num);
     }
     else {
@@ -2287,5 +2288,6 @@ void Plater::changed_object(int obj_idx)
 
 }
 
+void Plater::fix_through_netfabb(const int obj_idx) { p->fix_through_netfabb(obj_idx); }
 
 }}    // namespace Slic3r::GUI

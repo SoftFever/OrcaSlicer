@@ -58,10 +58,6 @@ _constant()
     Points _shifted_copies()
         %code%{ RETVAL = THIS->copies(); %};
 
-    bool add_copy(Vec2d* point)
-        %code%{ RETVAL = THIS->add_copy(*point); %};
-    bool delete_last_copy();
-    bool reload_model_instances();
     void set_layer_height_ranges(t_layer_height_ranges layer_height_ranges)
         %code%{ THIS->layer_height_ranges = layer_height_ranges; %};
 
@@ -109,12 +105,9 @@ _constant()
         %code%{ RETVAL = THIS->wipe_tower_data().number_of_toolchanges; %};
     PrintObjectPtrs* objects()
         %code%{ RETVAL = const_cast<PrintObjectPtrs*>(&THIS->objects()); %};
-    void clear_objects();
     Ref<PrintObject> get_object(int idx)
         %code%{ RETVAL = THIS->objects()[idx]; %};
-    void delete_object(int idx);
     void reload_object(int idx);
-    bool reload_model_instances();
     size_t object_count()
         %code%{ RETVAL = THIS->objects().size(); %};
 

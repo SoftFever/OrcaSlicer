@@ -216,12 +216,10 @@ int main(int argc, char **argv)
             }
             if (outfile.empty())
                 outfile = model.objects.front()->input_file + ".gcode";
-            for (auto* mo : model.objects) {
+            for (auto* mo : model.objects)
                 print.auto_assign_extruders(mo);
-                print.add_model_object(mo);
-            }
             print_config.normalize();
-            print.apply_config(print_config);
+            print.apply(model, print_config);
             std::string err = print.validate();
             if (err.empty())
                 print.export_gcode(outfile, nullptr);
