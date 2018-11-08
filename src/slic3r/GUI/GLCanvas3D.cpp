@@ -4554,7 +4554,7 @@ bool GLCanvas3D::_init_toolbar()
 
     item.name = "splitvolumes";
     item.tooltip = GUI::L_str("Split to parts");
-    item.sprite_id = 6;
+    item.sprite_id = 11;
     item.is_toggable = false;
     item.action_event = EVT_GLTOOLBAR_SPLIT_VOLUMES;
     if (!m_toolbar.add_item(item))
