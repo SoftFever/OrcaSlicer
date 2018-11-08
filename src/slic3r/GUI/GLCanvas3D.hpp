@@ -378,6 +378,7 @@ public:
             SingleVolume,
             MultipleVolume,
             SingleFullObject,
+            MultipleFullObject,
             SingleFullInstance,
             MultipleFullInstance,
             Mixed
@@ -491,6 +492,7 @@ public:
         bool is_single_full_instance() const;
         bool is_multiple_full_instance() const { return m_type == MultipleFullInstance; }
         bool is_single_full_object() const { return m_type == SingleFullObject; }
+        bool is_multiple_full_object() const { return m_type == MultipleFullObject; }
         bool is_single_volume() const { return m_type == SingleVolume; }
         bool is_multiple_volume() const { return m_type == MultipleVolume; }
         bool is_mixed() const { return m_type == Mixed; }
