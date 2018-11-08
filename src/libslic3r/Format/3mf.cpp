@@ -342,6 +342,7 @@ namespace Slic3r {
         IdToSlaSupportPointsMap m_sla_support_points;
         std::string m_curr_metadata_name;
         std::string m_curr_characters;
+        std::string m_name;
 
     public:
         _3MF_Importer();
@@ -444,6 +445,7 @@ namespace Slic3r {
         , m_unit_factor(1.0f)
         , m_curr_metadata_name("")
         , m_curr_characters("")
+        , m_name("")
     {
     }
 
@@ -504,6 +506,8 @@ namespace Slic3r {
         mz_uint num_entries = mz_zip_reader_get_num_files(&archive);
 
         mz_zip_archive_file_stat stat;
+
+        m_name = boost::filesystem::path(filename).filename().stem().string();
 
         // we first loop the entries to read from the archive the .model file only, in order to extract the version from it
         for (mz_uint i = 0; i < num_entries; ++i)
@@ -1051,6 +1055,9 @@ namespace Slic3r {
 
             // set object data
             m_curr_object.object->name = get_attribute_value_string(attributes, num_attributes, NAME_ATTR);
+            if (m_curr_object.object->name.empty())
+                m_curr_object.object->name = m_name + "_" + std::to_string(m_model->objects.size());
+
             m_curr_object.id = get_attribute_value_int(attributes, num_attributes, ID_ATTR);
         }
 
