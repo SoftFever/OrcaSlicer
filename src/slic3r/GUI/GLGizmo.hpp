@@ -56,7 +56,7 @@ protected:
     GLCanvas3D& m_parent;
 
     int m_group_id;
-    EState m_state, m_prev_state;
+    EState m_state;
     // textures are assumed to be square and all with the same size in pixels, no internal check is done
     GLTexture m_textures[Num_States];
     int m_hover_id;
@@ -79,17 +79,7 @@ public:
 
     EState get_state() const { return m_state; }
     void set_state(EState state) {
-        bool call_deactivate =
-                m_prev_state == On && state == Off && m_state == Hover;
-
-        if(state == On || state == Off) m_prev_state = state;
-
         m_state = state; on_set_state();
-
-        // FIXME: this is my workaround to react on the disabling event (Tamas)
-        if(call_deactivate) {
-            on_deactivate();
-        }
     }
 
     bool is_activable(const GLCanvas3D::Selection& selection) const { return on_is_activable(selection); }
@@ -122,7 +112,6 @@ protected:
     virtual bool on_init() = 0;
     virtual std::string on_get_name() const = 0;
     virtual void on_set_state() {}
-    virtual void on_deactivate() {}     // FIXME: how to react to disabling the Gizmo? (Tamas)
     virtual void on_set_hover_id() {}
     virtual bool on_is_activable(const GLCanvas3D::Selection& selection) const { return true; }
     virtual void on_enable_grabber(unsigned int id) {}
@@ -433,8 +422,6 @@ protected:
             update_mesh();
         }
     }
-
-    void on_deactivate() override;
 
     std::string on_get_name() const override;
 };

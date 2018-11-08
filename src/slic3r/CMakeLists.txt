@@ -121,8 +121,6 @@ add_library(libslic3r_gui STATIC
     Utils/Time.hpp
     Utils/HexFile.cpp
     Utils/HexFile.hpp
-    GUI/SLAPrint.hpp
-    GUI/SLAPrint.cpp
     AppController.hpp
     AppController.cpp
     AppControllerWx.cpp

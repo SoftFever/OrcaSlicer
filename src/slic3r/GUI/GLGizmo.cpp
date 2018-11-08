@@ -137,7 +137,6 @@ GLGizmoBase::GLGizmoBase(GLCanvas3D& parent)
     : m_parent(parent)
     , m_group_id(-1)
     , m_state(Off)
-    , m_prev_state(Off)
     , m_hover_id(-1)
     , m_dragging(false)
 {
