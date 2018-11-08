@@ -909,7 +909,8 @@ void ObjectList::split(const bool split_part)
     ModelVolume* volume;
     if (!get_volume_by_item(split_part, item, volume)) return;
     DynamicPrintConfig&	config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
-    const auto nozzle_dmrs_cnt = config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+	const ConfigOption *nozzle_dmtrs_opt = config.option("nozzle_diameter", false);
+	const auto nozzle_dmrs_cnt = (nozzle_dmtrs_opt == nullptr) ? size_t(1) : dynamic_cast<const ConfigOptionFloats*>(nozzle_dmtrs_opt)->values.size();
     if (volume->split(nozzle_dmrs_cnt) == 1) {
         wxMessageBox(_(L("The selected object couldn't be split because it contains only one part.")));
         return;
