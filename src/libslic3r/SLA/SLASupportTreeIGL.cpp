@@ -9,7 +9,15 @@
 #include "boost/geometry/index/rtree.hpp"
 
 #include <igl/ray_mesh_intersect.h>
+
+#if !defined(_MSC_VER) || defined(_WIN64)
+#define IGL_COMPATIBLE
+#endif
+
+#ifdef IGL_COMPATIBLE
 #include <igl/point_mesh_squared_distance.h>
+#endif
+
 #include "SLASpatIndex.hpp"
 #include "ClipperUtils.hpp"
 
@@ -78,9 +86,11 @@ size_t SpatIndex::size() const
 PointSet normals(const PointSet& points, const EigenMesh3D& mesh) {
 //    Eigen::VectorXd dists;
 //    Eigen::VectorXi I;
+#ifdef IGL_COMPATIBLE
     Eigen::Matrix<double, Eigen::Dynamic, 1, Eigen::DontAlign> dists;
     Eigen::Matrix<int, Eigen::Dynamic, 1, Eigen::DontAlign> I;
     PointSet C;
+
     igl::point_mesh_squared_distance( points, mesh.V, mesh.F, dists, I, C);
 
     PointSet ret(I.rows(), 3);
@@ -98,6 +108,9 @@ PointSet normals(const PointSet& points, const EigenMesh3D& mesh) {
     }
 
     return ret;
+#else
+    return {};
+#endif
 }
 
 double ray_mesh_intersect(const Vec3d& s,
