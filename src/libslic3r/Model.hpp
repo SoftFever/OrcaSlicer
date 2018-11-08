@@ -188,8 +188,9 @@ public:
         when user expects that. */
     Vec3d                   origin_translation;
 
-    Model*                  get_model() const { return m_model; };
-    
+    Model*                  get_model() { return m_model; };
+	const Model*            get_model() const { return m_model; };
+
     ModelVolume*            add_volume(const TriangleMesh &mesh);
     ModelVolume*            add_volume(TriangleMesh &&mesh);
     ModelVolume*            add_volume(const ModelVolume &volume);

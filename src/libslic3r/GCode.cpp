@@ -373,11 +373,10 @@ std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> GCode::collec
         size_t      layer_idx;
     };
 
-    PrintObjectPtrs printable_objects = print.get_printable_objects();
-    std::vector<std::vector<LayerToPrint>>  per_object(printable_objects.size(), std::vector<LayerToPrint>());
+    std::vector<std::vector<LayerToPrint>>  per_object(print.objects().size(), std::vector<LayerToPrint>());
     std::vector<OrderingItem>               ordering;
-    for (size_t i = 0; i < printable_objects.size(); ++i) {
-        per_object[i] = collect_layers_to_print(*printable_objects[i]);
+    for (size_t i = 0; i < print.objects().size(); ++i) {
+        per_object[i] = collect_layers_to_print(*print.objects()[i]);
         OrderingItem ordering_item;
         ordering_item.object_idx = i;
         ordering.reserve(ordering.size() + per_object[i].size());
@@ -402,7 +401,7 @@ std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> GCode::collec
         std::pair<coordf_t, std::vector<LayerToPrint>> merged;
         // Assign an average print_z to the set of layers with nearly equal print_z.
         merged.first = 0.5 * (ordering[i].print_z + ordering[j-1].print_z);
-        merged.second.assign(printable_objects.size(), LayerToPrint());
+        merged.second.assign(print.objects().size(), LayerToPrint());
         for (; i < j; ++i) {
             const OrderingItem &oi = ordering[i];
             assert(merged.second[oi.object_idx].layer() == nullptr);
@@ -569,10 +568,9 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
     // How many times will be change_layer() called?
     // change_layer() in turn increments the progress bar status.
     m_layer_count = 0;
-    PrintObjectPtrs printable_objects = print.get_printable_objects();
     if (print.config().complete_objects.value) {
         // Add each of the object's layers separately.
-        for (auto object : printable_objects) {
+        for (auto object : print.objects()) {
             std::vector<coordf_t> zs;
             zs.reserve(object->layers().size() + object->support_layers().size());
             for (auto layer : object->layers())
@@ -585,7 +583,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
     } else {
         // Print all objects with the same print_z together.
         std::vector<coordf_t> zs;
-        for (auto object : printable_objects) {
+        for (auto object : print.objects()) {
             zs.reserve(zs.size() + object->layers().size() + object->support_layers().size());
             for (auto layer : object->layers())
                 zs.push_back(layer->print_z);
@@ -608,7 +606,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
     {
         // get the minimum cross-section used in the print
         std::vector<double> mm3_per_mm;
-        for (auto object : printable_objects) {
+        for (auto object : print.objects()) {
             for (size_t region_id = 0; region_id < object->region_volumes.size(); ++ region_id) {
                 const PrintRegion* region = print.regions()[region_id];
                 for (auto layer : object->layers()) {
@@ -673,7 +671,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
     print.throw_if_canceled();
 
     // Write some terse information on the slicing parameters.
-    const PrintObject *first_object         = printable_objects.front();
+    const PrintObject *first_object         = print.objects().front();
     const double       layer_height         = first_object->config().layer_height.value;
     const double       first_layer_height   = first_object->config().first_layer_height.get_abs_value(layer_height);
     for (const PrintRegion* region : print.regions()) {
@@ -711,8 +709,8 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
     bool         has_wipe_tower      = false;
     if (print.config().complete_objects.value) {
         // Find the 1st printing object, find its tool ordering and the initial extruder ID.
-        for (; initial_print_object_id < printable_objects.size(); ++initial_print_object_id) {
-            tool_ordering = ToolOrdering(*printable_objects[initial_print_object_id], initial_extruder_id);
+        for (; initial_print_object_id < print.objects().size(); ++initial_print_object_id) {
+            tool_ordering = ToolOrdering(*print.objects()[initial_print_object_id], initial_extruder_id);
             if ((initial_extruder_id = tool_ordering.first_extruder()) != (unsigned int)-1)
                 break;
         }
@@ -796,7 +794,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
         // Collect outer contours of all objects over all layers.
         // Discard objects only containing thin walls (offset would fail on an empty polygon).
         Polygons islands;
-        for (const PrintObject *object : printable_objects)
+        for (const PrintObject *object : print.objects())
             for (const Layer *layer : object->layers())
                 for (const ExPolygon &expoly : layer->slices.expolygons)
                     for (const Point &copy : object->copies()) {
@@ -849,7 +847,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
     if (print.config().complete_objects.value) {
         // Print objects from the smallest to the tallest to avoid collisions
         // when moving onto next object starting point.
-        std::vector<PrintObject*> objects(printable_objects);
+        std::vector<PrintObject*> objects(print.objects());
         std::sort(objects.begin(), objects.end(), [](const PrintObject* po1, const PrintObject* po2) { return po1->size(2) < po2->size(2); });       
         size_t finished_objects = 0;
         for (size_t object_id = initial_print_object_id; object_id < objects.size(); ++ object_id) {
@@ -912,8 +910,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
         // Order objects using a nearest neighbor search.
         std::vector<size_t> object_indices;
         Points object_reference_points;
-        PrintObjectPtrs printable_objects = print.get_printable_objects();
-        for (PrintObject *object : printable_objects)
+        for (PrintObject *object : print.objects())
             object_reference_points.push_back(object->copies().front());
         Slic3r::Geometry::chained_path(object_reference_points, object_indices);
         // Sort layers by Z.
@@ -928,7 +925,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
                 // Verify, whether the print overaps the priming extrusions.
                 BoundingBoxf bbox_print(get_print_extrusions_extents(print));
                 coordf_t twolayers_printz = ((layers_to_print.size() == 1) ? layers_to_print.front() : layers_to_print[1]).first + EPSILON;
-                for (const PrintObject *print_object : printable_objects)
+                for (const PrintObject *print_object : print.objects())
                     bbox_print.merge(get_print_object_extrusions_extents(*print_object, twolayers_printz));
                 bbox_print.merge(get_wipe_tower_extrusions_extents(print, twolayers_printz));
                 BoundingBoxf bbox_prime(get_wipe_tower_priming_extrusions_extents(print));

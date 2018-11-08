@@ -25,33 +25,27 @@ namespace Slic3r {
 template class PrintState<PrintStep, psCount>;
 template class PrintState<PrintObjectStep, posCount>;
 
-void Print::clear_objects()
+void Print::clear() 
 {
-    tbb::mutex::scoped_lock lock(m_mutex);
+	tbb::mutex::scoped_lock lock(this->cancel_mutex());
+    // The following call should stop background processing if it is running.
+    this->invalidate_all_steps();
 	for (PrintObject *object : m_objects)
 		delete object;
 	m_objects.clear();
     for (PrintRegion *region : m_regions)
         delete region;
     m_regions.clear();
-	this->invalidate_all_steps();
 }
 
-void Print::delete_object(size_t idx)
-{
-    tbb::mutex::scoped_lock lock(m_mutex);
-    // destroy object and remove it from our container
-    delete m_objects[idx];
-    m_objects.erase(m_objects.begin() + idx);
-    this->invalidate_all_steps();
-    // TODO: purge unused regions
-}
-
+// Only used by the Perl test cases.
 void Print::reload_object(size_t /* idx */)
 {
 	ModelObjectPtrs model_objects;
 	{
-		tbb::mutex::scoped_lock lock(m_mutex);
+		tbb::mutex::scoped_lock lock(this->cancel_mutex());
+        // The following call should stop background processing if it is running.
+        this->invalidate_all_steps();
 		/* TODO: this method should check whether the per-object config and per-material configs
 			have changed in such a way that regions need to be rearranged or we can just apply
 			the diff and invalidate something.  Same logic as apply_config()
@@ -68,31 +62,10 @@ void Print::reload_object(size_t /* idx */)
 		for (PrintRegion *region : m_regions)
 			delete region;
 		m_regions.clear();
-		this->invalidate_all_steps();
 	}
 	// re-add model objects
     for (ModelObject *mo : model_objects)
         this->add_model_object(mo);
-}
-
-// Reloads the model instances into the print class.
-// The slicing shall not be running as the modified model instances at the print
-// are used for the brim & skirt calculation.
-// Returns true if the brim or skirt have been invalidated.
-bool Print::reload_model_instances()
-{
-    tbb::mutex::scoped_lock lock(m_mutex);
-    bool invalidated = false;
-    for (PrintObject *object : m_objects)
-        invalidated |= object->reload_model_instances();
-    return invalidated;
-}
-
-PrintObjectPtrs Print::get_printable_objects() const
-{
-    PrintObjectPtrs printable_objects(m_objects);
-    printable_objects.erase(std::remove_if(printable_objects.begin(), printable_objects.end(), [](PrintObject* o) { return !o->is_printable(); }), printable_objects.end());
-    return printable_objects;
 }
 
 PrintRegion* Print::add_region()
@@ -282,11 +255,11 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
 
 bool Print::invalidate_step(PrintStep step)
 {
-    bool invalidated = m_state.invalidate(step, m_mutex, m_cancel_callback);
+	bool invalidated = Inherited::invalidate_step(step);
     // Propagate to dependent steps.
     //FIXME Why should skirt invalidate brim? Shouldn't it be vice versa?
     if (step == psSkirt)
-        invalidated |= m_state.invalidate(psBrim, m_mutex, m_cancel_callback);
+		invalidated |= Inherited::invalidate_step(psBrim);
     return invalidated;
 }
 
@@ -399,9 +372,9 @@ static PrintRegionConfig region_config_from_model_volume(const PrintRegionConfig
 // and have explicit instance positions.
 void Print::add_model_object(ModelObject* model_object, int idx)
 {
-    tbb::mutex::scoped_lock lock(m_mutex);
+	tbb::mutex::scoped_lock lock(this->cancel_mutex());
     // Initialize a new print object and store it at the given position.
-    PrintObject *object = new PrintObject(this, model_object, model_object->raw_bounding_box());
+    PrintObject *object = new PrintObject(this, model_object);
     if (idx != -1) {
         delete m_objects[idx];
         m_objects[idx] = object;
@@ -460,7 +433,7 @@ void Print::add_model_object(ModelObject* model_object, int idx)
 
 bool Print::apply_config(DynamicPrintConfig config)
 {
-    tbb::mutex::scoped_lock lock(m_mutex);
+	tbb::mutex::scoped_lock lock(this->cancel_mutex());
 
     // we get a copy of the config object so we can modify it safely
     config.normalize();
@@ -560,7 +533,7 @@ exit_for_rearrange_regions:
         model_objects.reserve(m_objects.size());
         for (PrintObject *object : m_objects)
             model_objects.push_back(object->model_object());
-        this->clear_objects();
+        this->clear();
         for (ModelObject *mo : model_objects)
             this->add_model_object(mo);
         invalidated = true;
@@ -786,7 +759,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
         update_apply_status(false);
 
     // Grab the lock for the Print / PrintObject milestones.
-    tbb::mutex::scoped_lock lock(m_mutex);
+	tbb::mutex::scoped_lock lock(this->cancel_mutex());
 
     // The following call may stop the background processing.
     update_apply_status(this->invalidate_state_by_config_options(print_diff));
@@ -823,7 +796,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
     if (model.id() != m_model.id()) {
         // Kill everything, initialize from scratch.
         // Stop background processing.
-        m_cancel_callback();
+        this->call_cancell_callback();
         update_apply_status(this->invalidate_all_steps());
         for (PrintObject *object : m_objects) {
             model_object_status.emplace(object->model_object()->id(), ModelObjectStatus::Deleted);
@@ -854,7 +827,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
         } else {
             // Reorder the objects, add new objects.
             // First stop background processing before shuffling or deleting the PrintObjects in the object list.
-            m_cancel_callback();
+            this->call_cancell_callback();
             this->invalidate_step(psGCodeExport);
             // Second create a new list of objects.
             std::vector<ModelObject*> model_objects_old(std::move(m_model.objects));
@@ -964,7 +937,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
             model_object.assign_copy(model_object_new);
         } else if (support_blockers_differ || support_enforcers_differ) {
             // First stop background processing before shuffling or deleting the ModelVolumes in the ModelObject's list.
-            m_cancel_callback();
+            this->call_cancell_callback();
             // Invalidate just the supports step.
             auto range = print_object_status.equal_range(PrintObjectStatus(model_object.id()));
             for (auto it = range.first; it != range.second; ++ it)
@@ -1024,7 +997,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
             if (old.empty()) {
                 // Simple case, just generate new instances.
                 for (const PrintInstances &print_instances : new_print_instances) {
-                    PrintObject *print_object = new PrintObject(this, model_object, model_object->raw_bounding_box());
+                    PrintObject *print_object = new PrintObject(this, model_object);
 					print_object->set_trafo(print_instances.trafo);
                     print_object->set_copies(print_instances.copies);
                     print_object->config_apply(config);
@@ -1043,7 +1016,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
 				for (; it_old != old.end() && transform3d_lower((*it_old)->trafo, new_instances.trafo); ++ it_old);
 				if (it_old == old.end() || ! transform3d_equal((*it_old)->trafo, new_instances.trafo)) {
                     // This is a new instance (or a set of instances with the same trafo). Just add it.
-                    PrintObject *print_object = new PrintObject(this, model_object, model_object->raw_bounding_box());
+                    PrintObject *print_object = new PrintObject(this, model_object);
                     print_object->set_trafo(new_instances.trafo);
                     print_object->set_copies(new_instances.copies);
                     print_object->config_apply(config);
@@ -1066,7 +1039,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
             }
         }
         if (m_objects != print_objects_new) {
-            m_cancel_callback();
+            this->call_cancell_callback();
             m_objects = print_objects_new;
             // Delete the PrintObjects marked as Unknown or Deleted.
             bool deleted_objects = false;
@@ -1562,7 +1535,7 @@ void Print::process()
     for (PrintObject *obj : m_objects)
         obj->generate_support_material();
     this->throw_if_canceled();
-    if (! m_state.is_done(psSkirt)) {
+    if (! this->is_step_done(psSkirt)) {
         this->set_started(psSkirt);
         m_skirt.clear();
         if (this->has_skirt()) {
@@ -1572,7 +1545,7 @@ void Print::process()
         this->set_done(psSkirt);
     }
     this->throw_if_canceled();
-    if (! m_state.is_done(psBrim)) {
+	if (! this->is_step_done(psBrim)) {
         this->set_started(psBrim);
         m_brim.clear();
         if (m_config.brim_width > 0) {
@@ -1582,7 +1555,7 @@ void Print::process()
        this->set_done(psBrim);
     }
     this->throw_if_canceled();
-    if (! m_state.is_done(psWipeTower)) {
+    if (! this->is_step_done(psWipeTower)) {
         this->set_started(psWipeTower);
         m_wipe_tower_data.clear();
         if (this->has_wipe_tower()) {
@@ -1631,8 +1604,7 @@ void Print::_make_skirt()
     // prepended to the first 'n' layers (with 'n' = skirt_height).
     // $skirt_height_z in this case is the highest possible skirt height for safety.
     coordf_t skirt_height_z = 0.;
-    PrintObjectPtrs printable_objects = get_printable_objects();
-    for (const PrintObject *object : printable_objects) {
+    for (const PrintObject *object : m_objects) {
         size_t skirt_layers = this->has_infinite_skirt() ?
             object->layer_count() : 
             std::min(size_t(m_config.skirt_height.value), object->layer_count());
@@ -1641,7 +1613,7 @@ void Print::_make_skirt()
     
     // Collect points from all layers contained in skirt height.
     Points points;
-    for (const PrintObject *object : printable_objects) {
+    for (const PrintObject *object : m_objects) {
         Points object_points;
         // Get object layers up to skirt_height_z.
         for (const Layer *layer : object->m_layers) {
@@ -1756,8 +1728,7 @@ void Print::_make_brim()
     // Brim is only printed on first layer and uses perimeter extruder.
     Flow        flow = this->brim_flow();
     Polygons    islands;
-    PrintObjectPtrs printable_objects = get_printable_objects();
-    for (PrintObject *object : printable_objects) {
+    for (PrintObject *object : m_objects) {
         Polygons object_islands;
         for (ExPolygon &expoly : object->m_layers.front()->slices.expolygons)
             object_islands.push_back(expoly.contour);

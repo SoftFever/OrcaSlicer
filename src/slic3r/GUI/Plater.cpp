@@ -1434,8 +1434,9 @@ void Plater::priv::reset()
     if (_3DScene::is_layers_editing_enabled(canvas3D))
         _3DScene::enable_layers_editing(canvas3D, false);
 
+    // Stop and reset the Print content.
+    this->background_process.reset();
     model.clear_objects();
-//    print.clear_objects();
 
     // Delete all objects from list on c++ side
     sidebar->obj_list()->delete_all_objects_from_list();
@@ -2001,10 +2002,8 @@ void Plater::decrease_instances(size_t num)
 
     ModelObject* model_object = p->model.objects[obj_idx];
     if (model_object->instances.size() > num) {
-        for (size_t i = 0; i < num; i++) {
+        for (size_t i = 0; i < num; ++ i)
             model_object->delete_last_instance();
-//            p->print.get_object(obj_idx)->delete_last_copy();
-        }
         sidebar().obj_list()->decrease_object_instances(obj_idx, num);
     }
     else {

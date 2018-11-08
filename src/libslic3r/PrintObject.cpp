@@ -34,9 +34,9 @@
 
 namespace Slic3r {
 
-PrintObject::PrintObject(Print* print, ModelObject* model_object, const BoundingBoxf3 &modobj_bbox) :  
+PrintObject::PrintObject(Print* print, ModelObject* model_object) :
+    PrintObjectBaseWithState(print),
     typed_slices(false),
-    m_print(print),
     m_model_object(model_object),
     size(Vec3crd::Zero()),
     layer_height_profile_valid(false)
@@ -49,40 +49,25 @@ PrintObject::PrintObject(Print* print, ModelObject* model_object, const Bounding
         // don't assume it's already aligned and we don't alter the original position in model.
         // We store the XY translation so that we can place copies correctly in the output G-code
         // (copies are expressed in G-code coordinates and this translation is not publicly exposed).
+        const BoundingBoxf3 modobj_bbox = model_object->raw_bounding_box();
         m_copies_shift = Point::new_scale(modobj_bbox.min(0), modobj_bbox.min(1));
         // Scale the object size and store it
         this->size = (modobj_bbox.size() * (1. / SCALING_FACTOR)).cast<coord_t>();
     }
     
-    this->reload_model_instances();
+    {
+        Points copies;
+        copies.reserve(m_model_object->instances.size());
+        for (const ModelInstance *mi : m_model_object->instances) {
+            assert(mi->is_printable());
+            const Vec3d& offset = mi->get_offset();
+            copies.emplace_back(Point::new_scale(offset(0), offset(1)));
+        }
+        this->set_copies(copies);
+    }
+
     this->layer_height_ranges = model_object->layer_height_ranges;
     this->layer_height_profile = model_object->layer_height_profile;
-}
-
-void PrintObject::set_started(PrintObjectStep step) 
-{ 
-    m_state.set_started(step, m_print->m_mutex);
-}
-
-void PrintObject::set_done(PrintObjectStep step)
-{ 
-    m_state.set_done(step, m_print->m_mutex);
-}
-
-bool PrintObject::add_copy(const Vec2d &point)
-{
-    tbb::mutex::scoped_lock lock(m_print->m_mutex);    
-    Points points = m_copies;
-    points.push_back(Point::new_scale(point(0), point(1)));
-    return this->set_copies(points);
-}
-
-bool PrintObject::delete_last_copy()
-{
-    tbb::mutex::scoped_lock lock(m_print->m_mutex);
-    Points points = m_copies;
-    points.pop_back();
-    return this->set_copies(points);
 }
 
 bool PrintObject::set_copies(const Points &points)
@@ -105,21 +90,6 @@ bool PrintObject::set_copies(const Points &points)
         m_copies = copies;
     }
     return invalidated;
-}
-
-bool PrintObject::reload_model_instances()
-{
-    Points copies;
-    copies.reserve(m_model_object->instances.size());
-    for (const ModelInstance *mi : m_model_object->instances)
-    {
-        if (mi->is_printable())
-        {
-            const Vec3d& offset = mi->get_offset();
-            copies.emplace_back(Point::new_scale(offset(0), offset(1)));
-        }
-    }
-    return this->set_copies(copies);
 }
 
 // 1) Decides Z positions of the layers,
@@ -388,9 +358,6 @@ void PrintObject::prepare_infill()
 
 void PrintObject::infill()
 {
-    if (! this->is_printable())
-        return;
-
     // prerequisites
     this->prepare_infill();
 
@@ -583,7 +550,7 @@ bool PrintObject::invalidate_state_by_config_options(const std::vector<t_config_
 
 bool PrintObject::invalidate_step(PrintObjectStep step)
 {
-    bool invalidated = m_state.invalidate(step, m_print->m_mutex, m_print->m_cancel_callback);
+	bool invalidated = Inherited::invalidate_step(step);
     
     // propagate to dependent steps
     if (step == posPerimeters) {
@@ -1732,9 +1699,6 @@ void PrintObject::_simplify_slices(double distance)
 
 void PrintObject::_make_perimeters()
 {
-    if (!this->is_printable())
-        return;
-
     if (this->is_step_done(posPerimeters))
         return;
     this->set_started(posPerimeters);
@@ -2226,9 +2190,6 @@ void PrintObject::combine_infill()
 
 void PrintObject::_generate_support_material()
 {
-    if (!this->is_printable())
-        return;
-
     PrintObjectSupportMaterial support_material(this, PrintObject::slicing_parameters());
     support_material.generate(*this);
 }
@@ -2250,16 +2211,5 @@ void PrintObject::adjust_layer_height_profile(coordf_t z, coordf_t layer_thickne
     m_model_object->layer_height_profile_valid = true;
     layer_height_profile_valid = false;
 }
-
-tbb::mutex& PrintObject::cancel_mutex()
-{
-	return m_print->m_mutex;
-}
-
-std::function<void()> PrintObject::cancel_callback()
-{
-	return m_print->m_cancel_callback;
-}
-
 
 } // namespace Slic3r
