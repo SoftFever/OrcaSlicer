@@ -285,7 +285,7 @@ protected:
     bool            invalidate_all_steps() { return m_state.invalidate_all(PrintObjectBase::cancel_mutex(m_print), PrintObjectBase::cancel_callback(m_print)); }
 
 protected:
-    friend typename PrintType;
+    friend PrintType;
     PrintType                               *m_print;
 
 private:
