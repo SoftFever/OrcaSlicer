@@ -1635,6 +1635,12 @@ SlicedSupports SLASupportTree::slice(float layerh, float init_layerh) const
     return {};
 }
 
+// Here we should implement the support editing
+void SLASupportTree::mouse_event(const MouseEvent &)
+{
+
+}
+
 SLASupportTree::SLASupportTree(const Model& model,
                                const SupportConfig& cfg,
                                const Controller& ctl): m_impl(new Impl())
