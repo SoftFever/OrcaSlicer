@@ -1863,6 +1863,19 @@ void GLCanvas3D::Selection::_update_type()
                 else if ((selected_instances_count > 1) && (selected_instances_count * volumes_count == (unsigned int)m_list.size()))
                     m_type = MultipleFullInstance;
             }
+            else
+            {
+                int sels_cntr = 0;
+                for (ObjectIdxsToInstanceIdxsMap::iterator it = m_cache.content.begin(); it != m_cache.content.end(); ++it)
+                {
+                    const ModelObject* model_object = m_model->objects[it->first];
+                    unsigned int volumes_count = (unsigned int)model_object->volumes.size();
+                    unsigned int instances_count = (unsigned int)model_object->instances.size();
+                        sels_cntr += volumes_count * instances_count;
+                }
+                if (sels_cntr == (unsigned int)m_list.size())
+                    m_type = MultipleFullObject;
+            }
         }
     }
 
@@ -1913,6 +1926,11 @@ void GLCanvas3D::Selection::_update_type()
     case SingleFullObject:
     {
         std::cout << "selection type: SingleFullObject" << std::endl;
+        break;
+    }
+    case MultipleFullObject:
+    {
+        std::cout << "selection type: MultipleFullObject" << std::endl;
         break;
     }
     case SingleFullInstance:
@@ -4536,7 +4554,7 @@ bool GLCanvas3D::_init_toolbar()
 
     item.name = "splitvolumes";
     item.tooltip = GUI::L_str("Split to parts");
-    item.sprite_id = 6;
+    item.sprite_id = 11;
     item.is_toggable = false;
     item.action_event = EVT_GLTOOLBAR_SPLIT_VOLUMES;
     if (!m_toolbar.add_item(item))

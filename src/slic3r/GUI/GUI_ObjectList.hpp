@@ -143,6 +143,7 @@ public:
     void select_item(const wxDataViewItem& item);
     void select_items(const wxDataViewItemArray& sels);
     void select_all();
+    void select_item_all_children();
     // correct current selections to avoid of the possible conflicts
     void fix_multiselection_conflicts();
 

@@ -1839,9 +1839,9 @@ bool Plater::priv::init_object_menu()
         return false;
 
     wxMenuItem* item_split_objects = append_menu_item(split_menu, wxID_ANY, _(L("To objects")), _(L("Split the selected object into individual objects")),
-        [this](wxCommandEvent&) { split_object(); }, "shape_ungroup.png", &object_menu);
+        [this](wxCommandEvent&) { split_object(); }, "shape_ungroup_o.png", &object_menu);
     wxMenuItem* item_split_volumes = append_menu_item(split_menu, wxID_ANY, _(L("To parts")), _(L("Split the selected object into individual sub-parts")),
-        [this](wxCommandEvent&) { split_volume(); }, "shape_ungroup.png", &object_menu);
+        [this](wxCommandEvent&) { split_volume(); }, "shape_ungroup_p.png", &object_menu);
 
     wxMenuItem* item_split = append_submenu(&object_menu, split_menu, wxID_ANY, _(L("Split")), _(L("Split the selected object")), "shape_ungroup.png");
 

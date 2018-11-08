@@ -324,7 +324,7 @@ void ObjectList::key_event(wxKeyEvent& event)
         remove();
     }
     else if (wxGetKeyState(wxKeyCode('A')) && wxGetKeyState(WXK_CONTROL))
-        select_all();
+        select_item_all_children();
     else
         event.Skip();
 }
@@ -996,51 +996,60 @@ void ObjectList::parts_changed(int obj_idx)
 
 void ObjectList::part_selection_changed()
 {
-    auto item = GetSelection();
     int obj_idx = -1;
     ConfigOptionsGroup* og = wxGetApp().obj_manipul()->get_og();
     m_config = nullptr;
     wxString object_name = wxEmptyString;
-    if (item)
+
+    if (multiple_selection())
+        og->set_name(" " + _(L("Group manipulation")) + " ");
+    else
     {
-        const bool is_settings_item = m_objects_model->IsSettingsItem(item);
-        bool is_part = false;
-        wxString og_name = wxEmptyString;
-        if (m_objects_model->GetParent(item) == wxDataViewItem(0)) {
-            obj_idx = m_objects_model->GetIdByItem(item);
-            og_name = _(L("Object manipulation"));
-            m_config = &(*m_objects)[obj_idx]->config;
-        }
-        else {
-            auto parent = m_objects_model->GetParent(item);
-            // Take ID of the parent object to "inform" perl-side which object have to be selected on the scene
-            obj_idx = m_objects_model->GetIdByItem(parent);
-            if (is_settings_item) {
-                if (m_objects_model->GetParent(parent) == wxDataViewItem(0)) {
-                    og_name = _(L("Object Settings to modify"));
-                    m_config = &(*m_objects)[obj_idx]->config;
+        const auto item = GetSelection();
+        if (item)
+        {
+            const bool is_settings_item = m_objects_model->IsSettingsItem(item);
+            bool is_part = false;
+            wxString og_name = wxEmptyString;
+            if (m_objects_model->GetParent(item) == wxDataViewItem(0)) {
+                obj_idx = m_objects_model->GetIdByItem(item);
+                og_name = _(L("Object manipulation"));
+                m_config = &(*m_objects)[obj_idx]->config;
+            }
+            else {
+                auto parent = m_objects_model->GetParent(item);
+                // Take ID of the parent object to "inform" perl-side which object have to be selected on the scene
+                obj_idx = m_objects_model->GetIdByItem(parent);
+                if (is_settings_item) {
+                    if (m_objects_model->GetParent(parent) == wxDataViewItem(0)) {
+                        og_name = _(L("Object Settings to modify"));
+                        m_config = &(*m_objects)[obj_idx]->config;
+                    }
+                    else {
+                        og_name = _(L("Part Settings to modify"));
+                        is_part = true;
+                        auto main_parent = m_objects_model->GetParent(parent);
+                        obj_idx = m_objects_model->GetIdByItem(main_parent);
+                        const auto volume_id = m_objects_model->GetVolumeIdByItem(parent);
+                        m_config = &(*m_objects)[obj_idx]->volumes[volume_id]->config;
+                    }
                 }
-                else {
-                    og_name = _(L("Part Settings to modify"));
+                else if (m_objects_model->GetItemType(item) == itVolume) {
+                    og_name = _(L("Part manipulation"));
                     is_part = true;
-                    auto main_parent = m_objects_model->GetParent(parent);
-                    obj_idx = m_objects_model->GetIdByItem(main_parent);
-                    const auto volume_id = m_objects_model->GetVolumeIdByItem(parent);
+                    const auto volume_id = m_objects_model->GetVolumeIdByItem(item);
                     m_config = &(*m_objects)[obj_idx]->volumes[volume_id]->config;
                 }
+                else if (m_objects_model->GetItemType(item) == itInstance) {
+                    og_name = _(L("Instance manipulation"));
+                }
             }
-            else if (m_objects_model->GetItemType(item) == itVolume) {
-                og_name = _(L("Part manipulation"));
-                is_part = true;
-                const auto volume_id = m_objects_model->GetVolumeIdByItem(item);
-                m_config = &(*m_objects)[obj_idx]->volumes[volume_id]->config;
-            }
-        }
 
-        og->set_name(" " + og_name + " ");
-        object_name = m_objects_model->GetName(item);
-        if (m_default_config) delete m_default_config;
-        m_default_config = DynamicPrintConfig::new_from_defaults_keys(get_options(is_part));
+            og->set_name(" " + og_name + " ");
+            object_name = m_objects_model->GetName(item);
+            if (m_default_config) delete m_default_config;
+            m_default_config = DynamicPrintConfig::new_from_defaults_keys(get_options(is_part));
+        }
     }
     og->set_value("object_name", object_name);
 
@@ -1209,13 +1218,20 @@ void ObjectList::update_selections()
     auto& selection = _3DScene::get_canvas(wxGetApp().canvas3D())->get_selection();
     wxDataViewItemArray sels;
 
-    if (selection.is_single_full_object()) {
+    if (selection.is_single_full_object())
+    {
+        sels.Add(m_objects_model->GetItemById(selection.get_object_idx()));
+    }
+    else if (selection.is_single_volume() || selection.is_multiple_volume() || selection.is_multiple_full_object()) {
         for (auto idx : selection.get_volume_idxs()) {
             const auto gl_vol = selection.get_volume(idx);
-            sels.Add(m_objects_model->GetItemByVolumeId(gl_vol->object_idx(), gl_vol->volume_idx()));
+            if (selection.is_multiple_full_object())
+                sels.Add(m_objects_model->GetItemById(gl_vol->object_idx()));
+            else
+                sels.Add(m_objects_model->GetItemByVolumeId(gl_vol->object_idx(), gl_vol->volume_idx()));
         }
     }
-    else if (selection.is_single_full_instance()) {
+    else if (selection.is_single_full_instance() || selection.is_multiple_full_instance()) {
         for (auto idx : selection.get_instance_idxs()) {            
             sels.Add(m_objects_model->GetItemByInstanceId(selection.get_object_idx(), idx));
         }
@@ -1303,6 +1319,27 @@ void ObjectList::select_all()
     selection_changed();
 }
 
+void ObjectList::select_item_all_children()
+{
+    wxDataViewItemArray sels;
+
+    // There is no selection before OR some object is selected   =>  select all objects
+    if (!GetSelection() || m_objects_model->GetItemType(GetSelection()) == itObject) {
+        for (int i = 0; i < m_objects->size(); i++)
+            sels.Add(m_objects_model->GetItemById(i));
+    }
+    else {
+        const auto item = GetSelection();
+        // Some volume(instance) is selected    =>  select all volumes(instances) inside the current object
+        if (m_objects_model->GetItemType(item) & (itVolume | itInstance)) {
+            m_objects_model->GetChildren(m_objects_model->GetParent(item), sels);
+        }
+    }
+
+    SetSelections(sels);
+    selection_changed();
+}
+
 void ObjectList::fix_multiselection_conflicts()
 {
     if (GetSelectedItemsCount() <= 1)
@@ -1314,7 +1351,7 @@ void ObjectList::fix_multiselection_conflicts()
     GetSelections(sels);
 
     for (auto item : sels) {
-        if (m_objects_model->IsSettingsItem(item))
+        if (m_objects_model->GetItemType(item) & (itSettings|itInstanceRoot))
             Unselect(item);
         else if (m_objects_model->GetParent(item) != wxDataViewItem(0))
             Unselect(m_objects_model->GetParent(item));
