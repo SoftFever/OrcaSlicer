@@ -497,7 +497,7 @@ using ShapeData2D =
 ShapeData2D projectModelFromTop(const Slic3r::Model &model) {
     ShapeData2D ret;
 
-    auto s = std::accumulate(model.objects.begin(), model.objects.end(), 0,
+    auto s = std::accumulate(model.objects.begin(), model.objects.end(), size_t(0),
                     [](size_t s, ModelObject* o){
         return s + o->instances.size();
     });
