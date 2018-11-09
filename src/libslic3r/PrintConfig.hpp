@@ -905,59 +905,60 @@ public:
     ConfigOptionFloat                       layer_height;
 
     // Radius in mm of the pointing side of the head.
-    ConfigOptionFloat head_front_radius_mm /*= 0.2*/;
+    ConfigOptionFloat support_head_front_radius /*= 0.2*/;
 
     // How much the pinhead has to penetrate the model surface
-    ConfigOptionFloat head_penetraiton /*= 0.2*/;
+    ConfigOptionFloat support_head_penetraiton /*= 0.2*/;
 
     // Radius of the back side of the 3d arrow.
-    ConfigOptionFloat head_back_radius_mm /*= 0.5*/;
+    ConfigOptionFloat support_head_back_radius /*= 0.5*/;
 
     // Width in mm from the back sphere center to the front sphere center.
-    ConfigOptionFloat head_width_mm /*= 1.0*/;
+    ConfigOptionFloat support_head_width /*= 1.0*/;
 
     // Radius in mm of the support pillars.
     // TODO: This parameter is invalid. The pillar radius will be dynamic in
     // nature. Merged pillars will have an increased thickness. This parameter
     // may serve as the maximum radius, or maybe an increase when two are merged
     // The default radius will be derived from head_back_radius_mm
-    ConfigOptionFloat pillar_radius_mm /*= 0.8*/;
+    ConfigOptionFloat support_pillar_radius /*= 0.8*/;
 
     // Radius in mm of the pillar base.
-    ConfigOptionFloat base_radius_mm /*= 2.0*/;
+    ConfigOptionFloat support_base_radius /*= 2.0*/;
 
     // The height of the pillar base cone in mm.
-    ConfigOptionFloat base_height_mm /*= 1.0*/;
+    ConfigOptionFloat support_base_height /*= 1.0*/;
 
     // The default angle for connecting support sticks and junctions.
-    ConfigOptionFloat tilt /*= M_PI/4*/;
+    ConfigOptionFloat support_critical_angle /*= M_PI/4*/;
 
     // The max length of a bridge in mm
-    ConfigOptionFloat max_bridge_length_mm /*= 15.0*/;
+    ConfigOptionFloat support_max_bridge_length /*= 15.0*/;
 
     // Now for the base pool (plate) ///////////////////////////////////////////
 
-    ConfigOptionFloat pool_wall_thickness_mm /*= 2*/;
-    ConfigOptionFloat pool_wall_height_mm /*= 5*/;
-    ConfigOptionFloat pool_max_merge_distance_mm /*= 50*/;
-    ConfigOptionFloat pool_edge_radius_mm /*= 1*/;
+    ConfigOptionFloat pad_wall_thickness /*= 2*/;
+    ConfigOptionFloat pad_wall_height /*= 5*/;
+    ConfigOptionFloat pad_max_merge_distance /*= 50*/;
+    ConfigOptionFloat pad_edge_radius /*= 1*/;
+
 protected:
     void initialize(StaticCacheBase &cache, const char *base_ptr)
     {
         OPT_PTR(layer_height);
-        OPT_PTR(head_front_radius_mm);
-        OPT_PTR(head_penetraiton);
-        OPT_PTR(head_back_radius_mm);
-        OPT_PTR(head_width_mm);
-        OPT_PTR(pillar_radius_mm);
-        OPT_PTR(base_radius_mm);
-        OPT_PTR(base_height_mm);
-        OPT_PTR(tilt);
-        OPT_PTR(max_bridge_length_mm);
-        OPT_PTR(pool_wall_thickness_mm);
-        OPT_PTR(pool_wall_height_mm);
-        OPT_PTR(pool_max_merge_distance_mm);
-        OPT_PTR(pool_edge_radius_mm);
+        OPT_PTR(support_head_front_radius);
+        OPT_PTR(support_head_penetraiton);
+        OPT_PTR(support_head_back_radius);
+        OPT_PTR(support_head_width);
+        OPT_PTR(support_pillar_radius);
+        OPT_PTR(support_base_radius);
+        OPT_PTR(support_base_height);
+        OPT_PTR(support_critical_angle);
+        OPT_PTR(support_max_bridge_length);
+        OPT_PTR(pad_wall_thickness);
+        OPT_PTR(pad_wall_height);
+        OPT_PTR(pad_max_merge_distance);
+        OPT_PTR(pad_edge_radius);
     }
 };
 
