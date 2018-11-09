@@ -1020,9 +1020,10 @@ public:
     };
 
     // Overrides ConfigBase::def(). Static configuration definition. Any value stored into this ConfigBase shall have its definition here.
-    const ConfigDef*    def() const override { return &cli_config_def; }
+    const ConfigDef*		def() const override { return &cli_config_def; }
+	t_config_option_keys    keys() const override { return cli_config_def.keys(); }
 
-    ConfigOption*       optptr(const t_config_option_key &opt_key, bool create = false) override
+    ConfigOption*			optptr(const t_config_option_key &opt_key, bool create = false) override
     {
         OPT_PTR(cut);
         OPT_PTR(datadir);
@@ -1055,7 +1056,8 @@ public:
     DynamicPrintAndCLIConfig(const DynamicPrintAndCLIConfig &other) : DynamicPrintConfig(other) {}
 
     // Overrides ConfigBase::def(). Static configuration definition. Any value stored into this ConfigBase shall have its definition here.
-    const ConfigDef*    def() const override { return &s_def; }
+    const ConfigDef*        def() const override { return &s_def; }
+    t_config_option_keys    keys() const override { return s_def.keys(); }
 
 private:
     class PrintAndCLIConfigDef : public ConfigDef

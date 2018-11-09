@@ -635,6 +635,31 @@ void Print::model_volume_list_update_supports(ModelObject &model_object_dst, con
     }
 }
 
+static inline void model_volume_list_copy_configs(ModelObject &model_object_dst, const ModelObject &model_object_src, const ModelVolume::Type type)
+{
+    size_t i_src, i_dst;
+    for (i_src = 0, i_dst = 0; i_src < model_object_src.volumes.size() && i_dst < model_object_dst.volumes.size();) {
+        const ModelVolume &mv_src = *model_object_src.volumes[i_src];
+        ModelVolume       &mv_dst = *model_object_dst.volumes[i_dst];
+        if (mv_src.type() != type) {
+            ++ i_src;
+            continue;
+        }
+        if (mv_dst.type() != type) {
+            ++ i_dst;
+            continue;
+        }
+        assert(mv_src.id() == mv_dst.id());
+        // Copy the ModelVolume data.
+        mv_dst.name   = mv_src.name;
+        mv_dst.config = mv_src.config;
+        //FIXME what to do with the materials?
+        // mv_dst.m_material_id = mv_src.m_material_id;
+        ++ i_src;
+        ++ i_dst;
+    }
+}
+
 static inline bool transform3d_lower(const Transform3d &lhs, const Transform3d &rhs) 
 {
     typedef Transform3d::Scalar T;
@@ -786,7 +811,6 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
         ModelObjectStatus(ModelID id, Status status = Unknown) : id(id), status(status) {}
         ModelID                 id;
         Status                  status;
-        t_config_option_keys    object_config_diff;
         // Search by id.
         bool operator<(const ModelObjectStatus &rhs) const { return id < rhs.id; }
     };
@@ -946,15 +970,13 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
             model_volume_list_update_supports(model_object, model_object_new);
         }
         if (! model_parts_differ && ! modifiers_differ) {
-            // Synchronize the remaining data of ModelVolumes (name, config, m_type, m_material_id)
             // Synchronize Object's config.
-            t_config_option_keys &this_object_config_diff = const_cast<ModelObjectStatus&>(*it_status).object_config_diff;
-            this_object_config_diff = model_object.config.diff(model_object_new.config);
-            if (! this_object_config_diff.empty())
-                model_object.config.apply_only(model_object_new.config, this_object_config_diff, true);
-            if (! object_diff.empty() || ! this_object_config_diff.empty()) {
+            bool object_config_changed = model_object.config != model_object_new.config;
+			if (object_config_changed)
+                model_object.config = model_object_new.config;
+            if (! object_diff.empty() || object_config_changed) {
                 PrintObjectConfig new_config = m_default_object_config;
-                normalize_and_apply_config(new_config, model_object.config);
+				normalize_and_apply_config(new_config, model_object.config);
                 auto range = print_object_status.equal_range(PrintObjectStatus(model_object.id()));
                 for (auto it = range.first; it != range.second; ++ it) {
                     t_config_option_keys diff = it->print_object->config().diff(new_config);
@@ -964,6 +986,11 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
                     }
                 }
             }
+            // Synchronize (just copy) the remaining data of ModelVolumes (name, config).
+            //FIXME What to do with m_material_id?
+            model_volume_list_copy_configs(model_object /* dst */, model_object_new /* src */, ModelVolume::MODEL_PART);
+            model_volume_list_copy_configs(model_object /* dst */, model_object_new /* src */, ModelVolume::PARAMETER_MODIFIER);
+            // Copy the ModelObject name, input_file and instances. The instances will compared against PrintObject instances in the next step.
             model_object.name       = model_object_new.name;
             model_object.input_file = model_object_new.input_file;
             model_object.clear_instances();
