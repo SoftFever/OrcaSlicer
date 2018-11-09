@@ -3,28 +3,12 @@
 
 #include <memory>
 
-#include <wx/panel.h>
-
-#include "Preset.hpp"
+#include "GUI_ObjectSettings.hpp"
 #include "GLCanvas3D.hpp"
 
-class wxBoxSizer;
 
 namespace Slic3r {
 namespace GUI {
-class ConfigOptionsGroup;
-
-class OG_Settings
-{
-protected:
-    std::shared_ptr<ConfigOptionsGroup> m_og;
-public:
-    OG_Settings(wxWindow* parent, const bool staticbox);
-    ~OG_Settings() {}
-
-    wxSizer*            get_sizer();
-    ConfigOptionsGroup* get_og() { return m_og.get(); }
-};
 
 
 class ObjectManipulation : public OG_Settings
@@ -32,17 +16,16 @@ class ObjectManipulation : public OG_Settings
     bool        m_is_percent_scale = false;         // true  -> percentage scale unit  
                                                     // false -> uniform scale unit  
     bool        m_is_uniform_scale = false;         // It indicates if scale is uniform
-    // sizer for extra Object/Part's settings
-    wxBoxSizer* m_settings_list_sizer{ nullptr };  
-    // option groups for settings
-    std::vector <std::shared_ptr<ConfigOptionsGroup>> m_og_settings;
 
 public:
     ObjectManipulation(wxWindow* parent);
     ~ObjectManipulation() {}
 
+    void        Show(const bool show) override;
+    bool        IsShown() override;
+    void        UpdateAndShow(const bool show) override;
+
     int ol_selection();
-    void update_settings_list();
 
     void update_settings_value(const GLCanvas3D::Selection& selection);
     void reset_settings_value();
@@ -66,7 +49,7 @@ public:
     void set_uniform_scaling(const bool uniform_scale) { m_is_uniform_scale = uniform_scale; }
 
     void show_object_name(bool show);
-    void show_manipulation_og(const bool show);
+
 };
 
 }}

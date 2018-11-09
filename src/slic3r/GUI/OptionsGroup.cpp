@@ -387,6 +387,20 @@ void ConfigOptionsGroup::reload_config() {
 
 }
 
+void ConfigOptionsGroup::Hide()
+{
+    Show(false);
+}
+
+void ConfigOptionsGroup::Show(const bool show)
+{
+    sizer->ShowItems(show);
+#ifdef __WXGTK__
+    m_panel->Show(show);
+    m_grid_sizer->Show(show);
+#endif /* __WXGTK__ */
+}
+
 bool ConfigOptionsGroup::update_visibility(ConfigOptionMode mode) {
     if (m_options_mode.empty())
         return true;
@@ -394,11 +408,7 @@ bool ConfigOptionsGroup::update_visibility(ConfigOptionMode mode) {
         m_options_mode.size() == 1)
         return m_options_mode[0] <= mode;
 
-    sizer->ShowItems(true);
-#ifdef __WXGTK__
-    m_panel->Show(true);
-    m_grid_sizer->Show(true);
-#endif /* __WXGTK__ */
+    Show(true);
 
     int coef = 0;
     int hidden_row_cnt = 0;

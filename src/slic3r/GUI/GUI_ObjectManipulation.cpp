@@ -14,17 +14,6 @@ namespace Slic3r
 namespace GUI
 {
 
-OG_Settings::OG_Settings(wxWindow* parent, const bool staticbox)
-{
-    wxString title = staticbox ? " " : ""; // temporary workaround - #ys_FIXME
-    m_og = std::make_shared<ConfigOptionsGroup>(parent, title);
-}
-
-wxSizer* OG_Settings::get_sizer()
-{
-    return m_og->sizer;
-}
-
 ObjectManipulation::ObjectManipulation(wxWindow* parent):
     OG_Settings(parent, true)
 {
@@ -139,131 +128,37 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent):
     def.sidetext = "";
     def.default_value = new ConfigOptionBool{ false };
     m_og->append_single_option_line(Option(def, "place_on_bed"));
+}
 
-    m_settings_list_sizer = new wxBoxSizer(wxVERTICAL);
-    m_og->sizer->Add(m_settings_list_sizer, 1, wxEXPAND | wxLEFT, 5);
+void ObjectManipulation::Show(const bool show)
+{
+    if (show == IsShown())
+        return;
 
-    m_og->disable();
+    m_og->Show(show);
+
+    if (show && wxGetApp().get_view_mode() != ConfigMenuModeSimple) {
+        m_og->get_grid_sizer()->Show(size_t(0), false);
+        m_og->get_grid_sizer()->Show(size_t(1), false);
+    }
+}
+
+bool ObjectManipulation::IsShown()
+{
+    return m_og->get_grid_sizer()->IsShown(2);
+}
+
+void ObjectManipulation::UpdateAndShow(const bool show)
+{
+    if (show)
+        update_settings_value(_3DScene::get_canvas(wxGetApp().canvas3D())->get_selection());
+
+    OG_Settings::UpdateAndShow(show);
 }
 
 int ObjectManipulation::ol_selection()
 {
     return wxGetApp().obj_list()->get_selected_obj_idx();
-}
-
-void ObjectManipulation::update_settings_list()
-{
-#ifdef __WXGTK__
-    auto parent = m_og->get_parent();
-#else
-    auto parent = m_og->parent();
-#endif /* __WXGTK__ */
-    
-// There is a bug related to Ubuntu overlay scrollbars, see https://github.com/prusa3d/Slic3r/issues/898 and https://github.com/prusa3d/Slic3r/issues/952.
-// The issue apparently manifests when Show()ing a window with overlay scrollbars while the UI is frozen. For this reason,
-// we will Thaw the UI prematurely on Linux. This means destroing the no_updates object prematurely.
-#ifdef __linux__
-	std::unique_ptr<wxWindowUpdateLocker> no_updates(new wxWindowUpdateLocker(parent));
-#else
-	wxWindowUpdateLocker noUpdates(parent);
-#endif
-
-    m_settings_list_sizer->Clear(true);
-    bool show_manipulations = true;
-
-    auto objects_ctrl   = wxGetApp().obj_list();
-    auto objects_model  = wxGetApp().obj_list()->m_objects_model;
-    auto config         = wxGetApp().obj_list()->m_config;
-
-    const auto item = objects_ctrl->GetSelection();
-    if (!objects_ctrl->multiple_selection() && 
-        config && objects_model->IsSettingsItem(item))
-	{
-        auto extra_column = [config](wxWindow* parent, const Line& line)
-		{
-			auto opt_key = (line.get_options())[0].opt_id;  //we assume that we have one option per line
-
-			auto btn = new wxBitmapButton(parent, wxID_ANY, wxBitmap(from_u8(var("colorchange_delete_on.png")), wxBITMAP_TYPE_PNG),
-				wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-#ifdef __WXMSW__
-            btn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
-#endif // __WXMSW__
-			btn->Bind(wxEVT_BUTTON, [opt_key, config](wxEvent &event) {
-				config->erase(opt_key);
-                wxTheApp->CallAfter([]() { wxGetApp().obj_manipul()->update_settings_list(); });
-			});
-			return btn;
-		};
-
-		std::map<std::string, std::vector<std::string>> cat_options;
-		auto opt_keys = config->keys();
-        m_og_settings.resize(0);
-        std::vector<std::string> categories;
-        if (!(opt_keys.size() == 1 && opt_keys[0] == "extruder"))// return;
-        {
-            auto extruders_cnt = wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA ? 1 :
-                wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
-
-            for (auto& opt_key : opt_keys) {
-                auto category = config->def()->get(opt_key)->category;
-                if (category.empty() ||
-                    (category == "Extruders" && extruders_cnt == 1)) continue;
-
-                std::vector< std::string > new_category;
-
-                auto& cat_opt = cat_options.find(category) == cat_options.end() ? new_category : cat_options.at(category);
-                cat_opt.push_back(opt_key);
-                if (cat_opt.size() == 1)
-                    cat_options[category] = cat_opt;
-            }
-
-            for (auto& cat : cat_options) {
-                if (cat.second.size() == 1 && cat.second[0] == "extruder")
-                    continue;
-
-                auto optgroup = std::make_shared<ConfigOptionsGroup>(parent, cat.first, config, false, extra_column);
-                optgroup->label_width = 150;
-                optgroup->sidetext_width = 70;
-
-                optgroup->m_on_change = [](const t_config_option_key& opt_id, const boost::any& value) {
-                                        wxGetApp().obj_list()->part_settings_changed(); };
-
-                for (auto& opt : cat.second)
-                {
-                    if (opt == "extruder")
-                        continue;
-                    Option option = optgroup->get_option(opt);
-                    option.opt.width = 70;
-                    optgroup->append_single_option_line(option);
-                }
-                optgroup->reload_config();
-                m_settings_list_sizer->Add(optgroup->sizer, 0, wxEXPAND | wxALL, 0);
-                m_og_settings.push_back(optgroup);
-
-                categories.push_back(cat.first);
-            }
-        }
-
-        if (m_og_settings.empty()) {
-            objects_ctrl->Select(objects_model->Delete(item));
-            wxGetApp().obj_list()->part_selection_changed();
-        }
-        else {
-            if (!categories.empty())
-                objects_model->UpdateSettingsDigest(item, categories);
-            show_manipulations = false;
-        }
-	}
-
-    show_manipulation_og(show_manipulations); 
-    wxGetApp().sidebar().show_info_sizers(show_manipulations && item && objects_model->GetParent(item) == wxDataViewItem(0));
-
-#ifdef __linux__
-	no_updates.reset(nullptr);
-#endif
-
-    parent->Layout();
-    parent->GetParent()->Layout();
 }
 
 void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& selection)
@@ -479,14 +374,6 @@ void ObjectManipulation::show_object_name(bool show)
     grid_sizer->Show(static_cast<size_t>(1), show);
 }
 
-void ObjectManipulation::show_manipulation_og(const bool show)
-{
-    wxGridSizer* grid_sizer = m_og->get_grid_sizer();
-    if (show == grid_sizer->IsShown(2))
-        return;
-    for (size_t id = 2; id < 12; id++)
-        grid_sizer->Show(id, show);
-}
 
 } //namespace GUI
 } //namespace Slic3r 

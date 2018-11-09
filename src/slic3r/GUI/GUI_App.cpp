@@ -486,7 +486,7 @@ void GUI_App::update_mode()
     ConfigMenuIDs mode = wxGetApp().get_view_mode();
 
     obj_list()->get_sizer()->Show(mode == ConfigMenuModeExpert);
-    sidebar().show_info_sizers(mode == ConfigMenuModeExpert);
+    sidebar().show_info_sizer(mode == ConfigMenuModeExpert);
     sidebar().show_buttons(mode == ConfigMenuModeExpert);
     obj_manipul()->show_object_name(mode == ConfigMenuModeSimple);
     obj_list()->update_manipulation_sizer(mode == ConfigMenuModeSimple);
@@ -656,6 +656,11 @@ Sidebar& GUI_App::sidebar()
 ObjectManipulation* GUI_App::obj_manipul()
 {
     return sidebar().obj_manipul();
+}
+
+ObjectSettings* GUI_App::obj_settings()
+{
+    return sidebar().obj_settings();
 }
 
 ObjectList* GUI_App::obj_list()

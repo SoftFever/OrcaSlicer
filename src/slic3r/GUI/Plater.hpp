@@ -13,6 +13,7 @@
 class wxButton;
 class wxBoxSizer;
 class wxGLCanvas;
+class wxScrolledWindow;
 
 namespace Slic3r {
 
@@ -23,6 +24,7 @@ namespace GUI {
 class MainFrame;
 class ConfigOptionsGroup;
 class ObjectManipulation;
+class ObjectSettings;
 class ObjectList;
 
 using t_optgroups = std::vector <std::shared_ptr<ConfigOptionsGroup>>;
@@ -72,12 +74,14 @@ public:
 
     ObjectManipulation*     obj_manipul();
     ObjectList*             obj_list();
+    ObjectSettings*         obj_settings();
+    wxScrolledWindow*       scrolled_panel();
 
     ConfigOptionsGroup*     og_freq_chng_params();
     wxButton*               get_wiping_dialog_button();
     void                    update_objects_list_extruder_column(int extruders_count);
-    void                    show_info_sizers(const bool show);
-    void                    show_info_sizer();
+    void                    show_info_sizer(const bool show);
+    void                    update_info_sizer();
     void                    show_sliced_info_sizer(const bool show);
     void                    show_buttons(const bool show);
     void                    show_button(ButtonAction but_action, bool show);
@@ -131,7 +135,7 @@ public:
     void on_config_change(const DynamicPrintConfig &config);
 
     int get_selected_object_idx();
-
+    bool is_single_full_object_selection();
     wxGLCanvas* canvas3D();
 private:
     struct priv;

@@ -527,8 +527,12 @@ void ObjectList::get_settings_choice(wxMenu *menu, int id, bool is_part)
 //         part_selection_changed();
 #endif //no __WXOSX__
     }
-    else
-        wxGetApp().obj_manipul()->update_settings_list();
+    else {
+        auto panel = wxGetApp().sidebar().scrolled_panel();
+        panel->Freeze();
+        wxGetApp().obj_settings()->UpdateAndShow(true);//obj_manipul()->update_settings_list();
+        panel->Thaw();
+    }
 }
 
 void ObjectList::menu_item_add_generic(wxMenuItem* &menu, int id, const int type) {
@@ -998,30 +1002,35 @@ void ObjectList::parts_changed(int obj_idx)
 void ObjectList::part_selection_changed()
 {
     int obj_idx = -1;
-    ConfigOptionsGroup* og = wxGetApp().obj_manipul()->get_og();
     m_config = nullptr;
-    wxString object_name = wxEmptyString;
+    wxString og_name = wxEmptyString;
 
-    if (multiple_selection())
-        og->set_name(" " + _(L("Group manipulation")) + " ");
+    bool update_and_show_manipulations = false;
+    bool update_and_show_settings = false;
+    bool show_info_sizer = false;
+
+    if (multiple_selection()) {
+        og_name = _(L("Group manipulation"));
+        update_and_show_manipulations = true;
+    }
     else
     {
         const auto item = GetSelection();
         if (item)
         {
-            const bool is_settings_item = m_objects_model->IsSettingsItem(item);
             bool is_part = false;
-            wxString og_name = wxEmptyString;
             if (m_objects_model->GetParent(item) == wxDataViewItem(0)) {
                 obj_idx = m_objects_model->GetIdByItem(item);
                 og_name = _(L("Object manipulation"));
                 m_config = &(*m_objects)[obj_idx]->config;
+                update_and_show_manipulations = true;
+                show_info_sizer = true;
             }
             else {
                 auto parent = m_objects_model->GetParent(item);
                 // Take ID of the parent object to "inform" perl-side which object have to be selected on the scene
                 obj_idx = m_objects_model->GetIdByItem(parent);
-                if (is_settings_item) {
+                if (m_objects_model->GetItemType(item) == itSettings) {
                     if (m_objects_model->GetParent(parent) == wxDataViewItem(0)) {
                         og_name = _(L("Object Settings to modify"));
                         m_config = &(*m_objects)[obj_idx]->config;
@@ -1034,31 +1043,44 @@ void ObjectList::part_selection_changed()
                         const auto volume_id = m_objects_model->GetVolumeIdByItem(parent);
                         m_config = &(*m_objects)[obj_idx]->volumes[volume_id]->config;
                     }
+                    update_and_show_settings = true;
                 }
                 else if (m_objects_model->GetItemType(item) == itVolume) {
                     og_name = _(L("Part manipulation"));
                     is_part = true;
                     const auto volume_id = m_objects_model->GetVolumeIdByItem(item);
                     m_config = &(*m_objects)[obj_idx]->volumes[volume_id]->config;
+                    update_and_show_manipulations = true;
                 }
                 else if (m_objects_model->GetItemType(item) == itInstance) {
                     og_name = _(L("Instance manipulation"));
+                    update_and_show_manipulations = true;
                 }
             }
 
-            og->set_name(" " + og_name + " ");
-            object_name = m_objects_model->GetName(item);
             if (m_default_config) delete m_default_config;
             m_default_config = DynamicPrintConfig::new_from_defaults_keys(get_options(is_part));
         }
     }
-    og->set_value("object_name", object_name);
-
-    wxGetApp().obj_manipul()->update_settings_list();
 
     m_selected_object_id = obj_idx;
 
-    wxGetApp().obj_manipul()->update_settings_value(_3DScene::get_canvas(wxGetApp().canvas3D())->get_selection());
+    if (update_and_show_manipulations) {
+        wxGetApp().obj_manipul()->get_og()->set_name(" " + og_name + " ");
+        wxGetApp().obj_manipul()->get_og()->set_value("object_name", m_objects_model->GetName(GetSelection()));
+    }
+
+    if (update_and_show_settings)
+        wxGetApp().obj_settings()->get_og()->set_name(" " + og_name + " ");
+
+    auto panel = wxGetApp().sidebar().scrolled_panel();
+    panel->Freeze();
+
+    wxGetApp().obj_manipul() ->UpdateAndShow(update_and_show_manipulations);
+    wxGetApp().obj_settings()->UpdateAndShow(update_and_show_settings);
+    show_info_sizer ? wxGetApp().sidebar().update_info_sizer() : wxGetApp().sidebar().show_info_sizer(false);
+
+    panel->Thaw();
 }
 
 void ObjectList::update_manipulation_sizer(const bool is_simple_mode)

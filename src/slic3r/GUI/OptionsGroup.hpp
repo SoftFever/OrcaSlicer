@@ -247,6 +247,8 @@ public:
 	void		on_kill_focus() override{ reload_config();}
 	void		reload_config();
     // return value shows visibility : false => all options are hidden
+    void        Hide();
+    void        Show(const bool show);
     bool        update_visibility(ConfigOptionMode mode);
 	boost::any	config_value(const std::string& opt_key, int opt_index, bool deserialize);
 	// return option value from config 

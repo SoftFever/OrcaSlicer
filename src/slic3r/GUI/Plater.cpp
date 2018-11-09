@@ -430,6 +430,7 @@ struct Sidebar::priv
     FreqChangedParams   *frequently_changed_parameters;
     ObjectList          *object_list;
     ObjectManipulation  *object_manipulation;
+    ObjectSettings      *object_settings;
     ObjectInfo *object_info;
     SlicedInfo *sliced_info;
 
@@ -447,18 +448,24 @@ void Sidebar::priv::show_preset_comboboxes()
 {
     const bool showSLA = wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA;
 
-    wxWindowUpdateLocker noUpdates(wxGetApp().mainframe);
+    wxWindowUpdateLocker noUpdates_scrolled(scrolled);
+//     scrolled->Freeze();
+    
+    for (size_t i = 0; i < 4; ++i) {
+        if (sizer_presets->IsShown(i) == showSLA)
+            sizer_presets->Show(i, !showSLA);
+    }
 
-    for (size_t i = 0; i < 4; ++i)
-        sizer_presets->Show(i, !showSLA);
+    for (size_t i = 4; i < 6; ++i) {
+        if (sizer_presets->IsShown(i) != showSLA)
+            sizer_presets->Show(i, showSLA);
+    }
 
-    sizer_presets->Show(4, showSLA);
-    sizer_presets->Show(5, showSLA);
+    if (frequently_changed_parameters->IsShown() == showSLA)
+        frequently_changed_parameters->Show(!showSLA);
 
-    frequently_changed_parameters->Show(!showSLA);
-
-    wxGetApp().plater()->Layout();
-    wxGetApp().mainframe->Layout();
+    scrolled->Layout();
+//     scrolled->Thaw();
 }
 
 
@@ -467,7 +474,12 @@ void Sidebar::priv::show_preset_comboboxes()
 Sidebar::Sidebar(Plater *parent)
     : wxPanel(parent), p(new priv(parent))
 {
-    p->scrolled = new wxScrolledWindow(this);
+    p->scrolled = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxSize(400, -1));
+    p->scrolled->SetScrollbars(0, 1, 1, 1);
+
+    // Sizer in the scrolled area
+    auto *scrolled_sizer = new wxBoxSizer(wxVERTICAL);
+    p->scrolled->SetSizer(scrolled_sizer);
 
     // The preset chooser
     p->sizer_presets = new wxFlexGridSizer(4, 2, 1, 2);
@@ -513,9 +525,15 @@ Sidebar::Sidebar(Plater *parent)
     p->object_list = new ObjectList(p->scrolled);
     p->sizer_params->Add(p->object_list->get_sizer(), 1, wxEXPAND | wxTOP, 20);
  
-    // Frequently Object Settings
+    // Object Manipulations
     p->object_manipulation = new ObjectManipulation(p->scrolled);
+    p->object_manipulation->Hide();
     p->sizer_params->Add(p->object_manipulation->get_sizer(), 0, wxEXPAND | wxLEFT | wxTOP, 20);
+
+    // Frequently Object Settings
+    p->object_settings = new ObjectSettings(p->scrolled);
+    p->object_settings->Hide();
+    p->sizer_params->Add(p->object_settings->get_sizer(), 0, wxEXPAND | wxLEFT | wxTOP, 20);
 
     // Buttons in the scrolled area
     wxBitmap arrow_up(GUI::from_u8(Slic3r::var("brick_go.png")), wxBITMAP_TYPE_PNG);
@@ -530,10 +548,6 @@ Sidebar::Sidebar(Plater *parent)
     p->sliced_info = new SlicedInfo(p->scrolled);
 
     // Sizer in the scrolled area
-    auto *scrolled_sizer = new wxBoxSizer(wxVERTICAL);
-    scrolled_sizer->SetMinSize(320, -1);
-    p->scrolled->SetSizer(scrolled_sizer);
-    p->scrolled->SetScrollbars(0, 1, 1, 1);
     scrolled_sizer->Add(p->sizer_presets, 0, wxEXPAND | wxLEFT, 2);
     scrolled_sizer->Add(p->sizer_params, 1, wxEXPAND);
     scrolled_sizer->Add(p->object_info, 0, wxEXPAND | wxTOP | wxLEFT, 20);
@@ -650,6 +664,16 @@ ObjectList* Sidebar::obj_list()
     return p->object_list;
 }
 
+ObjectSettings* Sidebar::obj_settings()
+{
+    return p->object_settings;
+}
+
+wxScrolledWindow* Sidebar::scrolled_panel()
+{
+    return p->scrolled;
+}
+
 ConfigOptionsGroup* Sidebar::og_freq_chng_params()
 {
     return p->frequently_changed_parameters->get_og();
@@ -665,21 +689,23 @@ void Sidebar::update_objects_list_extruder_column(int extruders_count)
     p->object_list->update_objects_list_extruder_column(extruders_count);
 }
 
-void Sidebar::show_info_sizers(const bool show)
+void Sidebar::show_info_sizer(const bool show)
 {
     p->object_info->show_sizer(show);
+    p->scrolled->Layout();
 }
 
-void Sidebar::show_info_sizer()
+void Sidebar::update_info_sizer()
 {
-    wxWindowUpdateLocker freeze_guard(p->plater);
+    wxWindowUpdateLocker freeze_guard(p->scrolled);
 
-    int obj_idx = p->plater->get_selected_object_idx();
-
-    if (obj_idx < 0) {
+    if (/*obj_idx < 0 || */!p->plater->is_single_full_object_selection()) {
         p->object_info->Show(false);
+        p->scrolled->Layout();
         return;
     }
+
+    int obj_idx = p->plater->get_selected_object_idx();
 
     const ModelObject* model_object = (*wxGetApp().model_objects())[obj_idx];
     const ModelInstance* model_instance = !model_object->instances.empty() ? model_object->instances.front() : nullptr;
@@ -717,12 +743,11 @@ void Sidebar::show_info_sizer()
 
     p->object_info->show_sizer(true);
     p->scrolled->Layout();
-    p->plater->Layout();
 }
 
 void Sidebar::show_sliced_info_sizer(const bool show) 
 {
-    wxWindowUpdateLocker freeze_guard(p->plater);
+    wxWindowUpdateLocker freeze_guard(p->scrolled);
 
     p->sliced_info->Show(show);
     if (show) {
@@ -752,7 +777,6 @@ void Sidebar::show_sliced_info_sizer(const bool show)
     }
 
     p->scrolled->Layout();
-    p->plater->Layout();
 }
 
 void Sidebar::show_buttons(const bool show)
@@ -1388,7 +1412,7 @@ void Plater::priv::selection_changed()
     // forces a frame render to update the view (to avoid a missed update if, for example, the context menu appears)
     _3DScene::render(canvas3D);
 
-    sidebar->show_info_sizer();
+    sidebar->update_info_sizer();
 }
 
 void Plater::priv::object_list_changed()
@@ -2172,6 +2196,9 @@ void Plater::on_extruders_change(int num_extruders)
 {
     auto& choices = sidebar().combos_filament();
 
+    wxWindowUpdateLocker noUpdates_scrolled_panel(sidebar().scrolled_panel());
+//     sidebar().scrolled_panel()->Freeze();
+
     int i = choices.size();
     while ( i < num_extruders )
     {
@@ -2187,8 +2214,8 @@ void Plater::on_extruders_change(int num_extruders)
     // remove unused choices if any
     sidebar().remove_unused_filament_combos(num_extruders);
 
-    sidebar().Layout();
-    GetParent()->Layout();
+    sidebar().scrolled_panel()->Layout();
+//     sidebar().scrolled_panel()->Thaw();
 }
 
 void Plater::on_config_change(const DynamicPrintConfig &config)
@@ -2249,6 +2276,11 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
 int Plater::get_selected_object_idx()
 {
     return p->get_selected_object_idx();
+}
+
+bool Plater::is_single_full_object_selection()
+{
+    return p->get_selection().is_single_full_object();
 }
 
 wxGLCanvas* Plater::canvas3D()

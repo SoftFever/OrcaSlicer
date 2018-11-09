@@ -778,7 +778,7 @@ wxDataViewItem PrusaObjectDataViewModel::GetItemByVolumeId(int obj_idx, int volu
     }
 
     for (size_t i = 0; i < parent->GetChildCount(); i++)
-        if (parent->GetNthChild(i)->m_idx == volume_idx && parent->GetNthChild(0)->GetType() & itVolume)
+        if (parent->GetNthChild(i)->m_idx == volume_idx && parent->GetNthChild(i)->GetType() & itVolume)
             return wxDataViewItem(parent->GetNthChild(i));
 
     return wxDataViewItem(0);

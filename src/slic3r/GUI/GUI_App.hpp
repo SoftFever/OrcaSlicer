@@ -130,6 +130,7 @@ public:
 
     Sidebar&            sidebar();
     ObjectManipulation* obj_manipul();
+    ObjectSettings*     obj_settings();
     ObjectList*         obj_list();
     Plater*             plater();
     wxGLCanvas*         canvas3D();
