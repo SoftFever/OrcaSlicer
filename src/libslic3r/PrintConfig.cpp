@@ -2769,10 +2769,10 @@ StaticPrintConfig::StaticCache<class Slic3r::PrintConfig>       PrintConfig::s_c
 StaticPrintConfig::StaticCache<class Slic3r::HostConfig>        HostConfig::s_cache_HostConfig;
 StaticPrintConfig::StaticCache<class Slic3r::FullPrintConfig>   FullPrintConfig::s_cache_FullPrintConfig;
 
-StaticPrintConfig::StaticCache<class Slic3r::SLAMaterialConfig>  SLAMaterialConfig::s_cache_SLAMaterialConfig;
-StaticPrintConfig::StaticCache<class Slic3r::SLAPrinterConfig>   SLAPrinterConfig::s_cache_SLAPrinterConfig;
-StaticPrintConfig::StaticCache<class Slic3r::SLAFullPrintConfig> SLAFullPrintConfig::s_cache_SLAFullPrintConfig;
-
+StaticPrintConfig::StaticCache<class Slic3r::SLAMaterialConfig>     SLAMaterialConfig::s_cache_SLAMaterialConfig;
+StaticPrintConfig::StaticCache<class Slic3r::SLAPrintObjectConfig>  SLAPrintObjectConfig::s_cache_SLAPrintObjectConfig;
+StaticPrintConfig::StaticCache<class Slic3r::SLAPrinterConfig>      SLAPrinterConfig::s_cache_SLAPrinterConfig;
+StaticPrintConfig::StaticCache<class Slic3r::SLAFullPrintConfig>    SLAFullPrintConfig::s_cache_SLAFullPrintConfig;
 
 CLIConfigDef::CLIConfigDef()
 {

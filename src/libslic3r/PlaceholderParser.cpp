@@ -453,7 +453,7 @@ namespace client
                 param1.data.d = d;
                 param1.type = TYPE_DOUBLE;
             } else {
-                int i = 0.;
+                int i = 0;
                 switch (fun) {
                     case FUNCTION_MIN:  i = std::min(param1.as_i(), param2.as_i()); break;
                     case FUNCTION_MAX:  i = std::max(param1.as_i(), param2.as_i()); break;

@@ -270,8 +270,8 @@ template<typename PrintType, typename PrintObjectStepEnum, const size_t COUNT>
 class PrintObjectBaseWithState : public PrintObjectBase
 {
 public:
-    Print*          print()         { return m_print; }
-    const Print*    print() const   { return m_print; }
+    PrintType*       print()         { return m_print; }
+    const PrintType* print() const   { return m_print; }
 
     bool            is_step_done(PrintObjectStepEnum step) const { return m_state.is_done(step); }
 

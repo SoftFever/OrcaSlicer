@@ -898,11 +898,23 @@ protected:
     }
 };
 
+class SLAPrintObjectConfig : public StaticPrintConfig
+{
+    STATIC_PRINT_CONFIG_CACHE(SLAPrintObjectConfig)
+public:
+    ConfigOptionFloat                       layer_height;
+    // supports
+protected:
+    void initialize(StaticCacheBase &cache, const char *base_ptr)
+    {
+        OPT_PTR(layer_height);
+    }
+};
+
 class SLAMaterialConfig : public StaticPrintConfig
 {
     STATIC_PRINT_CONFIG_CACHE(SLAMaterialConfig)
 public:
-    ConfigOptionFloat                       layer_height;
     ConfigOptionFloat                       initial_layer_height;
     ConfigOptionFloat                       exposure_time;
     ConfigOptionFloat                       initial_exposure_time;
@@ -911,7 +923,6 @@ public:
 protected:
     void initialize(StaticCacheBase &cache, const char *base_ptr)
     {
-        OPT_PTR(layer_height);
         OPT_PTR(initial_layer_height);
         OPT_PTR(exposure_time);
         OPT_PTR(initial_exposure_time);
@@ -946,10 +957,10 @@ protected:
     }
 };
 
-class SLAFullPrintConfig : public SLAPrinterConfig, public SLAMaterialConfig
+class SLAFullPrintConfig : public SLAPrinterConfig, public SLAPrintObjectConfig, public SLAMaterialConfig
 {
     STATIC_PRINT_CONFIG_CACHE_DERIVED(SLAFullPrintConfig)
-    SLAFullPrintConfig() : SLAPrinterConfig(0), SLAMaterialConfig(0) { initialize_cache(); *this = s_cache_SLAFullPrintConfig.defaults(); }
+    SLAFullPrintConfig() : SLAPrinterConfig(0), SLAPrintObjectConfig(0), SLAMaterialConfig(0) { initialize_cache(); *this = s_cache_SLAFullPrintConfig.defaults(); }
 
 public:
     // Validate the SLAFullPrintConfig. Returns an empty string on success, otherwise an error message is returned.
@@ -957,11 +968,12 @@ public:
 
 protected:
     // Protected constructor to be called to initialize ConfigCache::m_default.
-    SLAFullPrintConfig(int) : SLAPrinterConfig(0), SLAMaterialConfig(0) {}
+    SLAFullPrintConfig(int) : SLAPrinterConfig(0), SLAPrintObjectConfig(0), SLAMaterialConfig(0) {}
     void initialize(StaticCacheBase &cache, const char *base_ptr)
     {
-        this->SLAPrinterConfig ::initialize(cache, base_ptr);
-        this->SLAMaterialConfig::initialize(cache, base_ptr);
+        this->SLAPrinterConfig    ::initialize(cache, base_ptr);
+        this->SLAPrintObjectConfig::initialize(cache, base_ptr);
+        this->SLAMaterialConfig   ::initialize(cache, base_ptr);
     }
 };
 
