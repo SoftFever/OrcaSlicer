@@ -1292,11 +1292,6 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
         // print.add_model_object(object);
     }
 
-    // if user turned autocentering off, automatic arranging would disappoint them
-    if (get_config("autocenter") != "1") {
-        need_arrange = false;
-    }
-
     if (scaled_down) {
         GUI::show_info(q,
             _(L("Your object appears to be too large, so it was automatically scaled down to fit your print bed.")),
@@ -1305,10 +1300,6 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
 
     for (const size_t idx : obj_idxs) {
         wxGetApp().obj_list()->add_object_to_list(idx);
-    }
-
-    if (need_arrange) {
-        // arrange();   // TODO
     }
 
     update();

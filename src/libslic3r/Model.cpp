@@ -787,7 +787,7 @@ BoundingBoxf3 ModelObject::raw_bounding_box() const
         if (v->is_model_part()) {
             if (this->instances.empty())
                 throw std::invalid_argument("Can't call raw_bounding_box() with no instances");
-            bb.merge(this->instances.front()->transform_mesh_bounding_box(&v->mesh, true));
+            bb.merge(this->instances.front()->transform_mesh_bounding_box(v->mesh, true));
         }
     return bb;
 }
@@ -796,9 +796,21 @@ BoundingBoxf3 ModelObject::raw_bounding_box() const
 BoundingBoxf3 ModelObject::instance_bounding_box(size_t instance_idx, bool dont_translate) const
 {
     BoundingBoxf3 bb;
+#if ENABLE_MODELVOLUME_TRANSFORM
+    for (ModelVolume *v : this->volumes)
+    {
+        if (v->is_model_part())
+        {
+            TriangleMesh mesh(v->mesh);
+            mesh.transform(v->get_matrix());
+            bb.merge(this->instances[instance_idx]->transform_mesh_bounding_box(mesh, dont_translate));
+        }
+    }
+#else
     for (ModelVolume *v : this->volumes)
         if (v->is_model_part())
             bb.merge(this->instances[instance_idx]->transform_mesh_bounding_box(&v->mesh, dont_translate));
+#endif // ENABLE_MODELVOLUME_TRANSFORM
     return bb;
 }
 
@@ -1368,10 +1380,10 @@ void ModelInstance::transform_mesh(TriangleMesh* mesh, bool dont_translate) cons
     mesh->transform(get_matrix(dont_translate));
 }
 
-BoundingBoxf3 ModelInstance::transform_mesh_bounding_box(const TriangleMesh* mesh, bool dont_translate) const
+BoundingBoxf3 ModelInstance::transform_mesh_bounding_box(const TriangleMesh& mesh, bool dont_translate) const
 {
     // Rotate around mesh origin.
-    TriangleMesh copy(*mesh);
+    TriangleMesh copy(mesh);
     copy.transform(get_matrix(true, false, true, true));
     BoundingBoxf3 bbox = copy.bounding_box();
 
