@@ -58,6 +58,8 @@ add_library(libslic3r_gui STATIC
     GUI/GUI_ObjectList.hpp
     GUI/GUI_ObjectManipulation.cpp
     GUI/GUI_ObjectManipulation.hpp
+    GUI/GUI_ObjectSettings.cpp
+    GUI/GUI_ObjectSettings.hpp
     GUI/LambdaObjectDialog.cpp
     GUI/LambdaObjectDialog.hpp
     GUI/Tab.cpp
