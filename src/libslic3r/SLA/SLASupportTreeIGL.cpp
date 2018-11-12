@@ -84,11 +84,11 @@ size_t SpatIndex::size() const
 }
 
 PointSet normals(const PointSet& points, const EigenMesh3D& mesh) {
-//    Eigen::VectorXd dists;
-//    Eigen::VectorXi I;
 #ifdef IGL_COMPATIBLE
-    Eigen::Matrix<double, Eigen::Dynamic, 1, Eigen::DontAlign> dists;
-    Eigen::Matrix<int, Eigen::Dynamic, 1, Eigen::DontAlign> I;
+    Eigen::VectorXd dists;
+    Eigen::VectorXi I;
+//    Eigen::Matrix<double, Eigen::Dynamic, 1, Eigen::DontAlign> dists;
+//    Eigen::Matrix<int, Eigen::Dynamic, 1, Eigen::DontAlign> I;
     PointSet C;
 
     igl::point_mesh_squared_distance( points, mesh.V, mesh.F, dists, I, C);

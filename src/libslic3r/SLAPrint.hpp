@@ -3,7 +3,6 @@
 
 #include "PrintBase.hpp"
 #include "Point.hpp"
-//#include "SLA/SLASupportTree.hpp"
 
 namespace Slic3r {
 
@@ -25,21 +24,28 @@ enum SLAPrintObjectStep {
 
 class SLAPrint;
 
-class SLAPrintObject : public PrintObjectBaseWithState<SLAPrint, SLAPrintObjectStep, slaposCount>
+using _SLAPrintObjectBase =
+    PrintObjectBaseWithState<SLAPrint, SLAPrintObjectStep, slaposCount>;
+
+class SLAPrintObject : public _SLAPrintObjectBase
 {
 private: // Prevents erroneous use by other classes.
-    typedef PrintObjectBaseWithState<Print, SLAPrintObjectStep, slaposCount> Inherited;
+    using Inherited = _SLAPrintObjectBase;
 
 public:
     const ModelObject*      model_object() const    { return m_model_object; }
     ModelObject*            model_object()          { return m_model_object; }
+
+    // I refuse to grantee copying (Tamas)
+    SLAPrintObject(const SLAPrintObject&) = delete;
+    SLAPrintObject& operator=(const SLAPrintObject&) = delete;
 
 protected:
     // to be called from SLAPrint only.
     friend class SLAPrint;
 
 	SLAPrintObject(SLAPrint* print, ModelObject* model_object);
-	~SLAPrintObject() {}
+    ~SLAPrintObject();
 
     void                    config_apply(const ConfigBase &other, bool ignore_nonexistent = false) { this->m_config.apply(other, ignore_nonexistent); }
     void                    config_apply_only(const ConfigBase &other, const t_config_option_keys &keys, bool ignore_nonexistent = false) 
@@ -65,11 +71,11 @@ private:
     Transform3d                             m_trafo = Transform3d::Identity();
     std::vector<Instance> 					m_instances;
 
-//    sla::EigenMesh3D emesh;
-//    std::unique_ptr<sla::SLASupportTree> support_tree_ptr;
-//    SlicedSupports slice_cache;
+    // Which steps have to be performed. Implicitly: all
+    std::vector<bool>                       m_stepmask;
 
-	friend SLAPrint;
+    class SupportData;
+    std::unique_ptr<SupportData> m_supportdata;
 };
 
 /**
@@ -85,9 +91,6 @@ private:
  * triangle meshes or receiving the rendering canvas and drawing on that
  * directly.
  *
- * TODO: This class uses the BackgroundProcess interface to create workers and
- * manage input change events. An appropriate implementation can be derived
- * from BackgroundSlicingProcess which is now working only with the FDM Print.
  */
 class SLAPrint : public PrintBaseWithState<SLAPrintStep, slapsCount>
 {
@@ -109,8 +112,7 @@ private:
     Model                           m_model;
     SLAPrinterConfig                m_printer_config;
     SLAMaterialConfig               m_material_config;
-
-	std::vector<SLAPrintObject*>	m_objects;
+    std::vector<SLAPrintObject*>	m_objects;
 
 	friend SLAPrintObject;
 };

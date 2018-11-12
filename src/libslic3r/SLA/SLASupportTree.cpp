@@ -924,6 +924,11 @@ bool SLASupportTree::generate(const PointSet &points,
         //...
     };
 
+    // Debug:
+    for(int pn = 0; pn < points.rows(); ++pn) {
+        std::cout << "p " << pn << " " << points.row(pn) << std::endl;
+    }
+
     auto filterfn = [] (
             const SupportConfig& cfg,
             const PointSet& points,
@@ -1511,7 +1516,7 @@ bool SLASupportTree::generate(const PointSet &points,
 
     auto progress = [&ctl, &pc, &pc_prev] () {
         static const std::array<std::string, NUM_STEPS> stepstr {
-            "",
+            "Starting",
             "Filtering",
             "Generate pinheads",
             "Classification",
