@@ -1481,6 +1481,10 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation)
 #else
             (*m_volumes)[i]->set_rotation(rotation);
 #endif // ENABLE_MODELVOLUME_TRANSFORM
+#if ENABLE_MODELVOLUME_TRANSFORM
+        else if (is_single_volume() || is_single_modifier())
+            (*m_volumes)[i]->set_volume_rotation(rotation);
+#endif // ENABLE_MODELVOLUME_TRANSFORM
         else
         {
             Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), rotation);
@@ -1496,6 +1500,7 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation)
             {
                 // extracts rotations from the composed transformation
                 Vec3d new_rotation = Geometry::extract_euler_angles(m * m_cache.volumes_data[i].get_volume_rotation_matrix());
+                (*m_volumes)[i]->set_volume_offset(m * m_cache.volumes_data[i].get_volume_position());
                 (*m_volumes)[i]->set_volume_rotation(new_rotation);
             }
 #else
@@ -1585,6 +1590,10 @@ void GLCanvas3D::Selection::scale(const Vec3d& scale)
 #else
             (*m_volumes)[i]->set_scaling_factor(scale);
 #endif // ENABLE_MODELVOLUME_TRANSFORM
+#if ENABLE_MODELVOLUME_TRANSFORM
+        else if (is_single_volume() || is_single_modifier())
+            (*m_volumes)[i]->set_volume_scaling_factor(scale);
+#endif // ENABLE_MODELVOLUME_TRANSFORM
         else
         {
             Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), scale);
@@ -1602,6 +1611,7 @@ void GLCanvas3D::Selection::scale(const Vec3d& scale)
                 Eigen::Matrix<double, 3, 3, Eigen::DontAlign> new_matrix = (m * m_cache.volumes_data[i].get_volume_scale_matrix()).matrix().block(0, 0, 3, 3);
                 // extracts scaling factors from the composed transformation
                 Vec3d new_scale(new_matrix.col(0).norm(), new_matrix.col(1).norm(), new_matrix.col(2).norm());
+                (*m_volumes)[i]->set_volume_offset(m * m_cache.volumes_data[i].get_volume_position());
                 (*m_volumes)[i]->set_volume_scaling_factor(new_scale);
             }
 #else
@@ -5180,6 +5190,16 @@ void GLCanvas3D::_update_gizmos_data()
         m_gizmos.set_model_object_ptr(model_object);
 #endif // ENABLE_MODELVOLUME_TRANSFORM
     }
+#if ENABLE_MODELVOLUME_TRANSFORM
+    else if (m_selection.is_single_volume() || m_selection.is_single_modifier())
+    {
+        const GLVolume* volume = m_volumes.volumes[*m_selection.get_volume_idxs().begin()];
+        m_gizmos.set_scale(volume->get_volume_scaling_factor());
+        m_gizmos.set_rotation(volume->get_volume_rotation());
+        m_gizmos.set_flattening_data(nullptr);
+        m_gizmos.set_model_object_ptr(nullptr);
+    }
+#endif // ENABLE_MODELVOLUME_TRANSFORM
     else
     {
         m_gizmos.set_scale(Vec3d::Ones());

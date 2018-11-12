@@ -324,7 +324,8 @@ public:
     void                mirror(Axis axis);
 
 #if ENABLE_MODELVOLUME_TRANSFORM
-    void                translate_geometry(const Vec3d& displacement);
+    // translates the mesh and the convex hull so that the origin of their vertices is in the center of this volume's bounding box
+    void                center_geometry();
 #endif // ENABLE_MODELVOLUME_TRANSFORM
 
     void                calculate_convex_hull();

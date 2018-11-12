@@ -747,9 +747,8 @@ void ObjectList::load_part( ModelObject* model_object,
             }
             for (auto volume : object->volumes) {
 #if ENABLE_MODELVOLUME_TRANSFORM
-                Vec3d shift = volume->mesh.bounding_box().center();
-                volume->translate_geometry(-shift);
-                volume->translate(delta + shift);
+                volume->center_geometry();
+                volume->translate(delta);
 #endif // ENABLE_MODELVOLUME_TRANSFORM
                 auto new_volume = model_object->add_volume(*volume);
                 new_volume->set_type(static_cast<ModelVolume::Type>(type));
@@ -797,9 +796,13 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const int 
         mesh.translate(-size(0)*1.5 / 2.0, -size(1)*1.5 / 2.0, 0);
     }
     mesh.repair();
-
+    
     auto new_volume = (*m_objects)[obj_idx]->add_volume(mesh);
     new_volume->set_type(static_cast<ModelVolume::Type>(type));
+
+#if ENABLE_MODELVOLUME_TRANSFORM
+    new_volume->center_geometry();
+#endif // ENABLE_MODELVOLUME_TRANSFORM
 
     new_volume->name = name;
     // set a default extruder value, since user can't add it manually

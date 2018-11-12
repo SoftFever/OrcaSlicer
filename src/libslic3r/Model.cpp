@@ -1177,10 +1177,12 @@ void ModelVolume::set_material(t_model_material_id material_id, const ModelMater
 }
 
 #if ENABLE_MODELVOLUME_TRANSFORM
-void ModelVolume::translate_geometry(const Vec3d& displacement)
+void ModelVolume::center_geometry()
 {
-    mesh.translate((float)displacement(0), (float)displacement(1), (float)displacement(2));
-    m_convex_hull.translate((float)displacement(0), (float)displacement(1), (float)displacement(2));
+    Vec3d shift = -mesh.bounding_box().center();
+    mesh.translate((float)shift(0), (float)shift(1), (float)shift(2));
+    m_convex_hull.translate((float)shift(0), (float)shift(1), (float)shift(2));
+    translate(-shift);
 }
 #endif // ENABLE_MODELVOLUME_TRANSFORM
 
