@@ -108,6 +108,7 @@ add_library(libslic3r STATIC
     Model.cpp
     Model.hpp
     ModelArrange.hpp
+    ModelArrange.cpp
     MotionPlanner.cpp
     MotionPlanner.hpp
     MultiPoint.cpp

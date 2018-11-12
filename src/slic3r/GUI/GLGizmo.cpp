@@ -343,7 +343,7 @@ void GLGizmoRotate::on_render(const GLCanvas3D::Selection& selection) const
         return;
 
     const BoundingBoxf3& box = selection.get_bounding_box();
-    bool single_instance = selection.is_single_full_instance();
+    bool single_selection = selection.is_single_full_instance() || selection.is_single_modifier() || selection.is_single_volume();
 
     std::string axis;
     switch (m_axis)
@@ -353,7 +353,7 @@ void GLGizmoRotate::on_render(const GLCanvas3D::Selection& selection) const
     case Z: { axis = "Z: "; break; }
     }
 
-    if ((single_instance && (m_hover_id == 0)) || m_dragging)
+    if ((single_selection && (m_hover_id == 0)) || m_dragging)
         set_tooltip(axis + format((float)Geometry::rad2deg(m_angle), 4) + "\u00B0");
     else
     {
@@ -720,19 +720,26 @@ void GLGizmoScale3D::on_process_double_click()
 void GLGizmoScale3D::on_render(const GLCanvas3D::Selection& selection) const
 {
     bool single_instance = selection.is_single_full_instance();
+    bool single_volume = selection.is_single_modifier() || selection.is_single_volume();
+    bool single_selection = single_instance || single_volume;
+
+    Vec3f scale = 100.0f * Vec3f::Ones();
 #if ENABLE_MODELVOLUME_TRANSFORM
-    Vec3f scale = single_instance ? 100.0f * selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_scaling_factor().cast<float>() : 100.0f * m_scale.cast<float>();
+    if (single_instance)
+        scale = 100.0f * selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_scaling_factor().cast<float>();
+    else if (single_volume)
+        scale = 100.0f * selection.get_volume(*selection.get_volume_idxs().begin())->get_volume_scaling_factor().cast<float>();
 #else
     Vec3f scale = single_instance ? 100.0f * selection.get_volume(*selection.get_volume_idxs().begin())->get_scaling_factor().cast<float>() : 100.0f * m_scale.cast<float>();
 #endif // ENABLE_MODELVOLUME_TRANSFORM
 
-    if ((single_instance && ((m_hover_id == 0) || (m_hover_id == 1))) || m_grabbers[0].dragging || m_grabbers[1].dragging)
+    if ((single_selection && ((m_hover_id == 0) || (m_hover_id == 1))) || m_grabbers[0].dragging || m_grabbers[1].dragging)
         set_tooltip("X: " + format(scale(0), 4) + "%");
-    else if ((single_instance && ((m_hover_id == 2) || (m_hover_id == 3))) || m_grabbers[2].dragging || m_grabbers[3].dragging)
+    else if ((single_selection && ((m_hover_id == 2) || (m_hover_id == 3))) || m_grabbers[2].dragging || m_grabbers[3].dragging)
         set_tooltip("Y: " + format(scale(1), 4) + "%");
-    else if ((single_instance && ((m_hover_id == 4) || (m_hover_id == 5))) || m_grabbers[4].dragging || m_grabbers[5].dragging)
+    else if ((single_selection && ((m_hover_id == 4) || (m_hover_id == 5))) || m_grabbers[4].dragging || m_grabbers[5].dragging)
         set_tooltip("Z: " + format(scale(2), 4) + "%");
-    else if ((single_instance && ((m_hover_id == 6) || (m_hover_id == 7) || (m_hover_id == 8) || (m_hover_id == 9)))
+    else if ((single_selection && ((m_hover_id == 6) || (m_hover_id == 7) || (m_hover_id == 8) || (m_hover_id == 9)))
         || m_grabbers[6].dragging || m_grabbers[7].dragging || m_grabbers[8].dragging || m_grabbers[9].dragging)
     {
         std::string tooltip = "X: " + format(scale(0), 4) + "%\n";
@@ -761,21 +768,31 @@ void GLGizmoScale3D::on_render(const GLCanvas3D::Selection& selection) const
         const GLVolume* v = selection.get_volume(*idxs.begin());
 #if ENABLE_MODELVOLUME_TRANSFORM
         transform = v->world_matrix();
-#else
-        transform = v->world_matrix().cast<double>();
-#endif // ENABLE_MODELVOLUME_TRANSFORM
-
         // gets angles from first selected volume
-#if ENABLE_MODELVOLUME_TRANSFORM
         angles = v->get_instance_rotation();
-#else
-        angles = v->get_rotation();
-#endif // ENABLE_MODELVOLUME_TRANSFORM
-
         // consider rotation+mirror only components of the transform for offsets
-#if ENABLE_MODELVOLUME_TRANSFORM
         offsets_transform = Geometry::assemble_transform(Vec3d::Zero(), angles, Vec3d::Ones(), v->get_instance_mirror());
 #else
+        transform = v->world_matrix().cast<double>();
+        // gets angles from first selected volume
+        angles = v->get_rotation();
+        // consider rotation+mirror only components of the transform for offsets
+        offsets_transform = Geometry::assemble_transform(Vec3d::Zero(), angles, Vec3d::Ones(), v->get_mirror());
+#endif // ENABLE_MODELVOLUME_TRANSFORM
+    }
+    else if (single_volume)
+    {
+        const GLVolume* v = selection.get_volume(*selection.get_volume_idxs().begin());
+        box = v->bounding_box;
+#if ENABLE_MODELVOLUME_TRANSFORM
+        transform = v->world_matrix();
+        angles = Geometry::extract_euler_angles(transform);
+        // consider rotation+mirror only components of the transform for offsets
+        offsets_transform = Geometry::assemble_transform(Vec3d::Zero(), angles, Vec3d::Ones(), v->get_instance_mirror());
+#else
+        transform = v->world_matrix().cast<double>();
+        angles = Geometry::extract_euler_angles(transform);
+        // consider rotation+mirror only components of the transform for offsets
         offsets_transform = Geometry::assemble_transform(Vec3d::Zero(), angles, Vec3d::Ones(), v->get_mirror());
 #endif // ENABLE_MODELVOLUME_TRANSFORM
     }

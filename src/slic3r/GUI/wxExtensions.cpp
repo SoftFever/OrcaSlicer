@@ -12,6 +12,7 @@
 #include "Model.hpp"
 
 wxDEFINE_EVENT(wxCUSTOMEVT_TICKSCHANGED, wxEvent);
+wxDEFINE_EVENT(wxCUSTOMEVT_LAST_VOLUME_IS_DELETED, wxCommandEvent);
 
 wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const wxString& description,
     std::function<void(wxCommandEvent& event)> cb, const std::string& icon, wxEvtHandler* event_handler)
@@ -564,12 +565,22 @@ wxDataViewItem PrusaObjectDataViewModel::Delete(const wxDataViewItem &item)
 	// NOTE: MyObjectTreeModelNodePtrArray is only an array of _pointers_
 	//       thus removing the node from it doesn't result in freeing it
 	if (node_parent) {
+        if (node->m_type == itInstanceRoot)
+        {
+            for (int i = node->GetChildCount() - 1; i > 0; i--)
+                Delete(wxDataViewItem(node->GetNthChild(i)));
+            return parent;
+        }
+
 		auto id = node_parent->GetChildren().Index(node);
         auto idx = node->GetIdx();
-		node_parent->GetChildren().Remove(node);
 
-        if (node->m_type == itVolume)
+
+        if (node->m_type == itVolume) {
             node_parent->m_volumes_cnt--;
+            DeleteSettings(item);
+        }
+		node_parent->GetChildren().Remove(node);
 
 		if (id > 0) { 
 			if(id == node_parent->GetChildCount()) id--;
@@ -600,13 +611,54 @@ wxDataViewItem PrusaObjectDataViewModel::Delete(const wxDataViewItem &item)
             obj_node->GetChildren().Remove(node_parent);
             delete node_parent;
             ret_item = wxDataViewItem(obj_node);
-            ItemDeleted(ret_item, wxDataViewItem(node_parent));
 
 #ifndef __WXGTK__
             if (obj_node->GetChildCount() == 0)
                 obj_node->m_container = false;
 #endif //__WXGTK__
+            ItemDeleted(ret_item, wxDataViewItem(node_parent));
             return ret_item;
+        }
+
+        // if there is last volume item after deleting, delete this last volume too
+        if (node_parent->GetChildCount() <= 3)
+        {
+            int vol_cnt = 0;
+            int vol_idx = 0;
+            for (int i = 0; i < node_parent->GetChildCount(); ++i) {
+                if (node_parent->GetNthChild(i)->GetType() == itVolume) {
+                    vol_idx = i;
+                    vol_cnt++;
+                }
+                if (vol_cnt > 1)
+                    break;
+            }
+
+            if (vol_cnt == 1) {
+                delete node;
+                ItemDeleted(parent, item);
+
+                PrusaObjectDataViewModelNode *last_child_node = node_parent->GetNthChild(vol_idx);
+                DeleteSettings(wxDataViewItem(last_child_node));
+                node_parent->GetChildren().Remove(last_child_node);
+                node_parent->m_volumes_cnt = 0;
+                delete last_child_node;
+
+#ifndef __WXGTK__
+                if (node_parent->GetChildCount() == 0)
+                    node_parent->m_container = false;
+#endif //__WXGTK__
+                ItemDeleted(parent, wxDataViewItem(last_child_node));
+
+                wxCommandEvent event(wxCUSTOMEVT_LAST_VOLUME_IS_DELETED);
+                auto it = find(m_objects.begin(), m_objects.end(), node_parent);
+                event.SetInt(it == m_objects.end() ? -1 : it - m_objects.begin());
+                wxPostEvent(m_ctrl, event);
+
+                ret_item = parent;
+
+                return ret_item;
+            }
         }
 	}
 	else
@@ -614,7 +666,15 @@ wxDataViewItem PrusaObjectDataViewModel::Delete(const wxDataViewItem &item)
 		auto it = find(m_objects.begin(), m_objects.end(), node);
 		auto id = it - m_objects.begin();
 		if (it != m_objects.end())
+		{
+            // Delete all sub-items
+            int i = m_objects[id]->GetChildCount() - 1;
+            while (i >= 0) {
+                Delete(wxDataViewItem(m_objects[id]->GetNthChild(i)));
+                i = m_objects[id]->GetChildCount() - 1;
+            }
 			m_objects.erase(it);
+        }
 		if (id > 0) { 
 			if(id == m_objects.size()) id--;
 			ret_item = wxDataViewItem(m_objects[id]);
@@ -733,8 +793,8 @@ void PrusaObjectDataViewModel::DeleteVolumeChildren(wxDataViewItem& parent)
             continue;
 
         auto item = wxDataViewItem(node);
+        DeleteSettings(item);
         children.RemoveAt(id);
-        root->m_volumes_cnt--;
 
         // free the node
         delete node;
@@ -742,11 +802,27 @@ void PrusaObjectDataViewModel::DeleteVolumeChildren(wxDataViewItem& parent)
         // notify control
         ItemDeleted(parent, item);
     }
+    root->m_volumes_cnt = 0;
 
     // set m_containet to FALSE if parent has no child
 #ifndef __WXGTK__
     root->m_container = false;
 #endif //__WXGTK__
+}
+
+void PrusaObjectDataViewModel::DeleteSettings(const wxDataViewItem& parent)
+{
+    PrusaObjectDataViewModelNode *node = (PrusaObjectDataViewModelNode*)parent.GetID();
+    if (!node) return;
+
+    // if volume has a "settings"item, than delete it before volume deleting
+    if (node->GetChildCount() > 0 && node->GetNthChild(0)->GetType() == itSettings) {
+        auto settings_node = node->GetNthChild(0);
+        auto settings_item = wxDataViewItem(settings_node);
+        node->GetChildren().RemoveAt(0);
+        delete settings_node;
+        ItemDeleted(parent, settings_item);
+    }
 }
 
 wxDataViewItem PrusaObjectDataViewModel::GetItemById(int obj_idx)
@@ -841,7 +917,7 @@ void PrusaObjectDataViewModel::GetItemInfo(const wxDataViewItem& item, ItemType&
     type = itUndef;
 
     PrusaObjectDataViewModelNode *node = (PrusaObjectDataViewModelNode*)item.GetID();
-    if (!node || node->GetIdx() < 0 && !(node->GetType() & (itObject|itSettings|itInstanceRoot))) 
+    if (!node || node->GetIdx() <-1 || node->GetIdx() ==-1 && !(node->GetType() & (itObject | itSettings | itInstanceRoot)))
         return;
 
     idx = node->GetIdx();

@@ -86,6 +86,8 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent):
 
         if (option_name == "Rotation")
             def.min = -360;
+        else
+            def.min == -1000;
 
         const std::string lower_name = boost::algorithm::to_lower_copy(option_name);
 
@@ -164,7 +166,7 @@ int ObjectManipulation::ol_selection()
 void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& selection)
 {
 #if ENABLE_MODELVOLUME_TRANSFORM
-    if (selection.is_single_full_instance())
+    if (selection.is_single_full_instance() || selection.is_single_full_object())
 #else
     if (selection.is_single_full_object())
     {

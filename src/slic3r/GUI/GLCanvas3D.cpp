@@ -3658,7 +3658,6 @@ void GLCanvas3D::reload_scene(bool force)
 {
     if ((m_canvas == nullptr) || (m_config == nullptr) || (m_model == nullptr))
         return;
-
 #if !ENABLE_USE_UNIQUE_GLCONTEXT
     // ensures this canvas is current
     if (!set_current())
@@ -3695,7 +3694,7 @@ void GLCanvas3D::reload_scene(bool force)
 
     if (m_regenerate_volumes)
     {
-        if (m_config->has("nozzle_diameter"))
+        if (m_config->has("nozzle_diameter") && wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptFFF)
         {
             // Should the wipe tower be visualized ?
             unsigned int extruders_count = (unsigned int)dynamic_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"))->values.size();
@@ -3717,7 +3716,6 @@ void GLCanvas3D::reload_scene(bool force)
                 float depth = m_print->get_wipe_tower_depth();
                 if (!m_print->is_step_done(psWipeTower))
                     depth = (900.f/w) * (float)(extruders_count - 1) ;
-
                 m_volumes.load_wipe_tower_preview(1000, x, y, w, depth, (float)height, a, m_use_VBOs && m_initialized, !m_print->is_step_done(psWipeTower),
                                                   m_print->config().nozzle_diameter.values[0] * 1.25f * 4.5f);
             }
@@ -5165,7 +5163,7 @@ void GLCanvas3D::_update_gizmos_data()
 
     bool enable_move_z = !m_selection.is_wipe_tower();
     m_gizmos.enable_grabber(Gizmos::Move, 2, enable_move_z);
-    bool enable_scale_xyz = m_selection.is_single_full_instance();
+    bool enable_scale_xyz = m_selection.is_single_full_instance() || m_selection.is_single_volume() || m_selection.is_single_modifier();
     for (int i = 0; i < 6; ++i)
     {
         m_gizmos.enable_grabber(Gizmos::Scale, i, enable_scale_xyz);
@@ -6207,16 +6205,18 @@ void GLCanvas3D::_load_shells()
         ++object_id;
     }
 
-    // adds wipe tower's volume
-    double max_z = m_print->objects()[0]->model_object()->get_model()->bounding_box().max(2);
-    const PrintConfig& config = m_print->config();
-    unsigned int extruders_count = config.nozzle_diameter.size();
-    if ((extruders_count > 1) && config.single_extruder_multi_material && config.wipe_tower && !config.complete_objects) {
-        float depth = m_print->get_wipe_tower_depth();
-        if (!m_print->is_step_done(psWipeTower))
-            depth = (900.f/config.wipe_tower_width) * (float)(extruders_count - 1) ;
-        m_volumes.load_wipe_tower_preview(1000, config.wipe_tower_x, config.wipe_tower_y, config.wipe_tower_width, depth, max_z, config.wipe_tower_rotation_angle,
-                                          m_use_VBOs && m_initialized, !m_print->is_step_done(psWipeTower), m_print->config().nozzle_diameter.values[0] * 1.25f * 4.5f);
+    if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptFFF) {
+        // adds wipe tower's volume
+        double max_z = m_print->objects()[0]->model_object()->get_model()->bounding_box().max(2);
+        const PrintConfig& config = m_print->config();
+        unsigned int extruders_count = config.nozzle_diameter.size();
+        if ((extruders_count > 1) && config.single_extruder_multi_material && config.wipe_tower && !config.complete_objects) {
+            float depth = m_print->get_wipe_tower_depth();
+            if (!m_print->is_step_done(psWipeTower))
+                depth = (900.f/config.wipe_tower_width) * (float)(extruders_count - 1) ;
+            m_volumes.load_wipe_tower_preview(1000, config.wipe_tower_x, config.wipe_tower_y, config.wipe_tower_width, depth, max_z, config.wipe_tower_rotation_angle,
+                                              m_use_VBOs && m_initialized, !m_print->is_step_done(psWipeTower), m_print->config().nozzle_diameter.values[0] * 1.25f * 4.5f);
+        }
     }
 }
 

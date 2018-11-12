@@ -20,7 +20,6 @@ class wxProgressDialog;
 namespace Slic3r {
 
 class ProgressStatusBar;
-class AppController;
 
 // #define _(s)    Slic3r::GUI::I18N::translate((s))
 
@@ -54,7 +53,6 @@ class MainFrame : public wxFrame
     wxString    m_qs_last_output_file = wxEmptyString;
     wxString    m_last_config = wxEmptyString;
 
-    AppController*                  m_appController { nullptr };
     std::map<std::string, Tab*>     m_options_tabs;
 
     wxMenuItem* m_menu_item_reslice_now { nullptr };
@@ -96,8 +94,6 @@ public:
     void        load_config(const DynamicPrintConfig& config);
     void        select_tab(size_t tab) const;
     void        select_view(const std::string& direction);
-
-    AppController* app_controller() { return m_appController; }
 
     std::vector<PresetTab>& get_preset_tabs();
 

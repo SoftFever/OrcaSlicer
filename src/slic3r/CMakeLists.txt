@@ -123,9 +123,6 @@ add_library(libslic3r_gui STATIC
     Utils/Time.hpp
     Utils/HexFile.cpp
     Utils/HexFile.hpp
-    AppController.hpp
-    AppController.cpp
-    AppControllerWx.cpp
 )
 
 target_link_libraries(libslic3r_gui libslic3r avrdude)

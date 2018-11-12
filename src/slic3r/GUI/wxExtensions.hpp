@@ -422,10 +422,15 @@ private:
 // PrusaObjectDataViewModel
 // ----------------------------------------------------------------------------
 
+// custom message the model sends to associated control to notify a last volume deleted from the object:
+wxDECLARE_EVENT(wxCUSTOMEVT_LAST_VOLUME_IS_DELETED, wxCommandEvent);
+
 class PrusaObjectDataViewModel :public wxDataViewModel
 {
 	std::vector<PrusaObjectDataViewModelNode*>  m_objects;
     std::vector<wxBitmap*>                      m_volume_bmps;
+
+    wxDataViewCtrl*                             m_ctrl{ nullptr };
 
 public:
     PrusaObjectDataViewModel();
@@ -444,6 +449,7 @@ public:
 	void DeleteAll();
     void DeleteChildren(wxDataViewItem& parent);
     void DeleteVolumeChildren(wxDataViewItem& parent);
+    void DeleteSettings(const wxDataViewItem& parent);
 	wxDataViewItem GetItemById(int obj_idx);
 	wxDataViewItem GetItemByVolumeId(int obj_idx, int volume_idx);
 	wxDataViewItem GetItemByInstanceId(int obj_idx, int inst_idx);
@@ -500,6 +506,8 @@ public:
 
     void    SetVolumeBitmaps(const std::vector<wxBitmap*>& volume_bmps) { m_volume_bmps = volume_bmps; }
     void    SetVolumeType(const wxDataViewItem &item, const int type);
+
+    void    SetAssociatedControl(wxDataViewCtrl* ctrl) { m_ctrl = ctrl; }
 };
 
 // ----------------------------------------------------------------------------

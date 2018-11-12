@@ -216,8 +216,6 @@ Ref<PrintObjectSupportMaterial>   O_OBJECT_SLIC3R_T
 Clone<PrintObjectSupportMaterial> O_OBJECT_SLIC3R_T
 
 AppConfig*	                O_OBJECT_SLIC3R
-AppController*              O_OBJECT_SLIC3R
-PrintController*            O_OBJECT_SLIC3R
 Ref<AppConfig>         		O_OBJECT_SLIC3R_T
 BackgroundSlicingProcess*   O_OBJECT_SLIC3R
 Ref<BackgroundSlicingProcess> O_OBJECT_SLIC3R_T

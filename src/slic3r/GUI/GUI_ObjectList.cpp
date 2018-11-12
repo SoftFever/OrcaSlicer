@@ -71,6 +71,8 @@ ObjectList::ObjectList(wxWindow* parent) :
     Bind(wxEVT_DATAVIEW_ITEM_BEGIN_DRAG,    [this](wxDataViewEvent& e) {on_begin_drag(e); });
     Bind(wxEVT_DATAVIEW_ITEM_DROP_POSSIBLE, [this](wxDataViewEvent& e) {on_drop_possible(e); });
     Bind(wxEVT_DATAVIEW_ITEM_DROP,          [this](wxDataViewEvent& e) {on_drop(e); });
+
+    Bind(wxCUSTOMEVT_LAST_VOLUME_IS_DELETED,[this](wxCommandEvent& e)   {last_volume_is_deleted(e.GetInt()); });
 }
 
 ObjectList::~ObjectList()
@@ -88,6 +90,7 @@ void ObjectList::create_objects_ctrl()
 
     m_objects_model = new PrusaObjectDataViewModel;
     AssociateModel(m_objects_model);
+    m_objects_model->SetAssociatedControl(this);
 #if wxUSE_DRAG_AND_DROP && wxUSE_UNICODE
     EnableDragSource(wxDF_UNICODETEXT);
     EnableDropTarget(wxDF_UNICODETEXT);
@@ -96,7 +99,7 @@ void ObjectList::create_objects_ctrl()
     // column 0(Icon+Text) of the view control: 
     // And Icon can be consisting of several bitmaps
     AppendColumn(new wxDataViewColumn(_(L("Name")), new PrusaBitmapTextRenderer(),
-        0, 250, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
+        0, 200, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
 
     // column 1 of the view control:
     AppendColumn(create_objects_list_extruder_column(4));
@@ -701,7 +704,7 @@ void ObjectList::load_subobject(int type)
     parts_changed(obj_idx);
 
     for (int i = 0; i < part_names.size(); ++i) {
-        const wxDataViewItem sel_item = m_objects_model->AddVolumeChild(item, part_names.Item(i), /**m_bmp_vector[*/type/*]*/);
+        const wxDataViewItem sel_item = m_objects_model->AddVolumeChild(item, part_names.Item(i), type);
 
         if (i == part_names.size() - 1)
             select_item(sel_item);
@@ -783,8 +786,11 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const int 
     const auto& sz = BoundingBoxf(bed_shape).size();
     const auto side = 0.1 * std::max(sz(0), sz(1));
 
-    if (type_name == _("Box"))
+    if (type_name == _("Box")) {
         mesh = make_cube(side, side, side);
+        // box sets the base coordinate at 0, 0, move to center of plate
+        mesh.translate(-side * 0.5, -side * 0.5, 0);
+    }
     else if (type_name == _("Cylinder"))
         mesh = make_cylinder(0.5*side, side);
     else if (type_name == _("Sphere"))
@@ -1248,7 +1254,8 @@ void ObjectList::update_selections()
     {
         sels.Add(m_objects_model->GetItemById(selection.get_object_idx()));
     }
-    else if (selection.is_single_volume() || selection.is_multiple_volume() || selection.is_multiple_full_object()) {
+    else if (selection.is_single_volume() || selection.is_modifier() || 
+             selection.is_multiple_volume() || selection.is_multiple_full_object()) {
         for (auto idx : selection.get_volume_idxs()) {
             const auto gl_vol = selection.get_volume(idx);
             if (selection.is_multiple_full_object())
@@ -1432,6 +1439,20 @@ void ObjectList::change_part_type()
               new_type == ModelVolume::MODEL_PART || new_type == ModelVolume::PARAMETER_MODIFIER) {
         select_item(m_objects_model->AddSettingsChild(item));
     }
+}
+
+void ObjectList::last_volume_is_deleted(const int obj_idx)
+{
+
+    if (obj_idx < 0 || (*m_objects).empty() || (*m_objects)[obj_idx]->volumes.empty())
+        return;
+    auto volume = (*m_objects)[obj_idx]->volumes[0];
+
+    // clear volume's config values
+    volume->config.clear();
+
+    // set a default extruder value, since user can't add it manually
+    volume->config.set_key_value("extruder", new ConfigOptionInt(0));
 }
 
 } //namespace GUI
