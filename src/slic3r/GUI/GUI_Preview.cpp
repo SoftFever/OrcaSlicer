@@ -24,7 +24,7 @@ namespace Slic3r {
 namespace GUI {
 
 
-Preview::Preview(wxNotebook* notebook, DynamicPrintConfig* config, Print* print, GCodePreviewData* gcode_preview_data)
+Preview::Preview(wxNotebook* notebook, DynamicPrintConfig* config, Print* print, GCodePreviewData* gcode_preview_data, std::function<void()> schedule_background_process_func)
     : m_canvas(nullptr)
     , m_double_slider_sizer(nullptr)
     , m_label_view_type(nullptr)
@@ -43,6 +43,7 @@ Preview::Preview(wxNotebook* notebook, DynamicPrintConfig* config, Print* print,
     , m_loaded(false)
     , m_enabled(false)
     , m_force_sliders_full_range(false)
+    , m_schedule_background_process(schedule_background_process_func)
 {
     if (init(notebook, config, print, gcode_preview_data))
     {
@@ -488,6 +489,7 @@ void Preview::create_double_slider()
     Bind(wxCUSTOMEVT_TICKSCHANGED, [this](wxEvent&) {
             auto& config = wxGetApp().preset_bundle->project_config;
             ((config.option<ConfigOptionFloats>("colorprint_heights"))->values) = (m_slider->GetTicksValues());
+            m_schedule_background_process();
         });
 }
 
@@ -529,13 +531,16 @@ void Preview::fill_slider_values(std::vector<std::pair<int, double>> &values,
     }
 
     // All ticks that would end up outside the slider range should be erased.
-    // TODO: this should probably be placed into more appropriate part of code,
-    //  this way it relies on the Preview tab being active.
+    // TODO: this should be placed into more appropriate part of code,
+    // this function is e.g. not called when the last object is deleted
     auto& config = wxGetApp().preset_bundle->project_config;
     std::vector<double> &ticks_from_config = (config.option<ConfigOptionFloats>("colorprint_heights"))->values;
+    unsigned int old_size = ticks_from_config.size();
     ticks_from_config.erase(std::remove_if(ticks_from_config.begin(), ticks_from_config.end(),
                                            [values](double val) { return values.back().second < val; }),
                             ticks_from_config.end());
+    if (ticks_from_config.size() != old_size)
+        m_schedule_background_process();
 }
 
 void Preview::set_double_slider_thumbs(const bool force_sliders_full_range,

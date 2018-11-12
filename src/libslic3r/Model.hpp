@@ -370,7 +370,7 @@ protected:
 	friend class Print;
 	friend class ModelObject;
 
-	explicit ModelVolume(ModelVolume &rhs) = default;
+	explicit ModelVolume(const ModelVolume &rhs) = default;
     void     set_model_object(ModelObject *model_object) { object = model_object; }
 
 private:

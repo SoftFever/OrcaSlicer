@@ -570,7 +570,14 @@ bool PrintObject::invalidate_step(PrintObjectStep step)
     // It also decides about what the wipe_into_infill / wipe_into_object features will do,
     // and that too depends on many of the settings.
     invalidated |= m_print->invalidate_step(psWipeTower);
+    // Invalidate G-code export in any case.
+    invalidated |= m_print->invalidate_step(psGCodeExport);
     return invalidated;
+}
+
+bool PrintObject::invalidate_all_steps()
+{
+    return Inherited::invalidate_all_steps() | m_print->invalidate_all_steps();
 }
 
 bool PrintObject::has_support_material() const

@@ -260,6 +260,8 @@ bool Print::invalidate_step(PrintStep step)
     //FIXME Why should skirt invalidate brim? Shouldn't it be vice versa?
     if (step == psSkirt)
 		invalidated |= Inherited::invalidate_step(psBrim);
+    if (step != psGCodeExport)
+        invalidated |= Inherited::invalidate_step(psGCodeExport);
     return invalidated;
 }
 
@@ -612,27 +614,45 @@ static inline bool model_volume_list_changed(const ModelObject &model_object_old
     return false;
 }
 
-void Print::model_volume_list_update_supports(ModelObject &model_object_dst, const ModelObject &model_object_src)
+// Add or remove support modifier ModelVolumes from model_object_dst to match the ModelVolumes of model_object_new
+// in the exact order and with the same IDs.
+// It is expected, that the model_object_dst already contains the non-support volumes of model_object_new in the correct order.
+void Print::model_volume_list_update_supports(ModelObject &model_object_dst, const ModelObject &model_object_new)
 {
-    // 1) Delete the support volumes from model_object_dst.
-    {
-        std::vector<ModelVolume*> dst;
-        dst.reserve(model_object_dst.volumes.size());
-        for (ModelVolume *vol : model_object_dst.volumes) {
-            if (vol->is_support_modifier())
-                dst.emplace_back(vol);
-            else
-                delete vol;
+	typedef std::pair<const ModelVolume*, bool> ModelVolumeWithStatus;
+	std::vector<ModelVolumeWithStatus> old_volumes;
+    old_volumes.reserve(model_object_dst.volumes.size());
+	for (const ModelVolume *model_volume : model_object_dst.volumes)
+		old_volumes.emplace_back(ModelVolumeWithStatus(model_volume, false));
+	auto model_volume_lower = [](const ModelVolumeWithStatus &mv1, const ModelVolumeWithStatus &mv2){ return mv1.first->id() <  mv2.first->id(); };
+	auto model_volume_equal = [](const ModelVolumeWithStatus &mv1, const ModelVolumeWithStatus &mv2){ return mv1.first->id() == mv2.first->id(); };
+    std::sort(old_volumes.begin(), old_volumes.end(), model_volume_lower);
+    model_object_dst.volumes.clear();
+    model_object_dst.volumes.reserve(model_object_new.volumes.size());
+    for (const ModelVolume *model_volume_src : model_object_new.volumes) {
+		ModelVolumeWithStatus key(model_volume_src, false);
+		auto it = std::lower_bound(old_volumes.begin(), old_volumes.end(), key, model_volume_lower);
+		if (it != old_volumes.end() && model_volume_equal(*it, key)) {
+            // The volume was found in the old list. Just copy it.
+            assert(! it->second); // not consumed yet
+            it->second = true;
+            ModelVolume *model_volume_dst = const_cast<ModelVolume*>(it->first);
+            assert(model_volume_dst->type() == model_volume_src->type());
+            model_object_dst.volumes.emplace_back(model_volume_dst);
+			if (model_volume_dst->is_support_modifier())
+                model_volume_dst->set_transformation(model_volume_src->get_transformation());
+            assert(model_volume_dst->get_matrix().isApprox(model_volume_src->get_matrix()));
+        } else {
+            // The volume was not found in the old list. Create a new copy.
+            assert(model_volume_src->is_support_modifier());
+            model_object_dst.volumes.emplace_back(new ModelVolume(*model_volume_src));
+            model_object_dst.volumes.back()->set_model_object(&model_object_dst);
         }
-        model_object_dst.volumes = std::move(dst);
     }
-    // 2) Copy the support volumes from model_object_src to the end of model_object_dst.
-    for (ModelVolume *vol : model_object_src.volumes) {
-		if (vol->is_support_modifier()) {
-			model_object_dst.volumes.emplace_back(new ModelVolume(*vol));
-			model_object_dst.volumes.back()->set_model_object(&model_object_dst);
-		}
-    }
+    // Release the non-consumed old volumes (those were deleted from the new list).
+	for (ModelVolumeWithStatus &mv_with_status : old_volumes)
+        if (! mv_with_status.second)
+            delete mv_with_status.first;
 }
 
 static inline void model_volume_list_copy_configs(ModelObject &model_object_dst, const ModelObject &model_object_src, const ModelVolume::Type type)
@@ -852,7 +872,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
             // Reorder the objects, add new objects.
             // First stop background processing before shuffling or deleting the PrintObjects in the object list.
             this->call_cancell_callback();
-            this->invalidate_step(psGCodeExport);
+            update_apply_status(this->invalidate_step(psGCodeExport));
             // Second create a new list of objects.
             std::vector<ModelObject*> model_objects_old(std::move(m_model.objects));
             m_model.objects.clear();
@@ -962,6 +982,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
         } else if (support_blockers_differ || support_enforcers_differ) {
             // First stop background processing before shuffling or deleting the ModelVolumes in the ModelObject's list.
             this->call_cancell_callback();
+            update_apply_status(false);
             // Invalidate just the supports step.
             auto range = print_object_status.equal_range(PrintObjectStatus(model_object.id()));
             for (auto it = range.first; it != range.second; ++ it)
@@ -1067,6 +1088,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
         }
         if (m_objects != print_objects_new) {
             this->call_cancell_callback();
+			update_apply_status(this->invalidate_all_steps());
             m_objects = print_objects_new;
             // Delete the PrintObjects marked as Unknown or Deleted.
             bool deleted_objects = false;
@@ -1131,7 +1153,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
             int ireg = 0;
             for (const std::vector<int> &volumes : print_object->region_volumes) {
                 if (! volumes.empty())
-                    -- m_regions[ireg];
+                    -- m_regions[ireg]->m_refcnt;
                 ++ ireg;
             }
             print_object->region_volumes.clear();
@@ -1164,21 +1186,24 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
                     // Get the config applied to this volume.
                     PrintRegionConfig config = region_config_from_model_volume(m_default_region_config, *volume);
                     // Find an existing print region with the same config.
-                    for (int i = 0; i < (int)m_regions.size(); ++ i)
-                        if (config.equals(m_regions[i]->config())) {
+					int idx_empty_slot = -1;
+					for (int i = 0; i < (int)m_regions.size(); ++ i) {
+						if (m_regions[i]->m_refcnt == 0)
+							idx_empty_slot = i;
+                        else if (config.equals(m_regions[i]->config())) {
                             region_id = i;
                             break;
                         }
+					}
                     // If no region exists with the same config, create a new one.
-                    if (region_id == size_t(-1)) {
-                        for (region_id = 0; region_id < m_regions.size(); ++ region_id)
-                            if (m_regions[region_id]->m_refcnt == 0) {
-                                // An empty slot was found.
-                                m_regions[region_id]->set_config(std::move(config));
-                                break;
-                            }
-                        if (region_id == m_regions.size())
-                            this->add_region(config);
+					if (region_id == -1) {
+						if (idx_empty_slot == -1) {
+							region_id = (int)m_regions.size();
+							this->add_region(config);
+						} else {
+							region_id = idx_empty_slot;
+                            m_regions[region_id]->set_config(std::move(config));
+						}
                     }
                     map_volume_to_region[volume_id] = region_id;
                 } else

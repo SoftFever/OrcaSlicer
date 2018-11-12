@@ -174,6 +174,8 @@ protected:
     bool                    set_copies(const Points &points);
     // Invalidates the step, and its depending steps in PrintObject and Print.
     bool                    invalidate_step(PrintObjectStep step);
+    // Invalidates all PrintObject and Print steps.
+    bool                    invalidate_all_steps();
 
 private:
     void make_perimeters();
