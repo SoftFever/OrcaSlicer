@@ -2,6 +2,7 @@
 #include "GLGizmo.hpp"
 
 #include "GUI.hpp"
+#include "GUI_App.hpp"
 
 #include "../../libslic3r/Utils.hpp"
 
@@ -1663,6 +1664,9 @@ void GLGizmoSlaSupports::clicked_on_object(const Vec2d& mouse_position)
         m_grabbers.push_back(Grabber());
         m_grabbers.back().center = new_pos.cast<double>();
         m_model_object->sla_support_points.push_back(new_pos);
+
+        // This should trigger the support generation
+        wxGetApp().plater()->reslice();
     }
     catch (...) {}
 }
@@ -1672,12 +1676,18 @@ void GLGizmoSlaSupports::delete_current_grabber(bool delete_all)
     if (delete_all) {
         m_grabbers.clear();
         m_model_object->sla_support_points.clear();
+
+        // This should trigger the support generation
+        wxGetApp().plater()->reslice();
     }
     else
         if (m_hover_id != -1) {
             m_grabbers.erase(m_grabbers.begin() + m_hover_id);
             m_model_object->sla_support_points.erase(m_model_object->sla_support_points.begin() + m_hover_id);
             m_hover_id = -1;
+
+            // This should trigger the support generation
+            wxGetApp().plater()->reslice();
         }
 }
 
