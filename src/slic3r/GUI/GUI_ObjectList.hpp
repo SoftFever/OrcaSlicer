@@ -149,6 +149,8 @@ public:
 
     ModelVolume* get_selected_model_volume();
     void change_part_type();
+
+    void last_volume_is_deleted(const int obj_idx);
 };
 
 
