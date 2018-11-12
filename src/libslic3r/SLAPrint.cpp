@@ -66,14 +66,17 @@ void SLAPrint::clear()
 SLAPrint::ApplyStatus SLAPrint::apply(const Model &model,
                                       const DynamicPrintConfig &config)
 {
-	if (m_objects.empty())
-		return APPLY_STATUS_UNCHANGED;
+//	if (m_objects.empty())
+//		return APPLY_STATUS_UNCHANGED;
 
     // Grab the lock for the Print / PrintObject milestones.
 	tbb::mutex::scoped_lock lock(this->cancel_mutex());
+    if(m_objects.empty() && model.objects.empty())
+        return APPLY_STATUS_UNCHANGED;
 
 	// Temporary quick fix, just invalidate everything.
 	{
+        std::cout << "deleting object cache " << std::endl;
         for (SLAPrintObject *print_object : m_objects) {
 			print_object->invalidate_all_steps();
             delete print_object;
@@ -89,7 +92,7 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model,
        		//TODO
             m_objects.emplace_back(new SLAPrintObject(this, model_object));
         }
-	}
+    }
 
 	return APPLY_STATUS_INVALIDATED;
 }
@@ -200,6 +203,8 @@ SLAPrintObject::SLAPrintObject(SLAPrint *print, ModelObject *model_object):
     m_stepmask(slaposCount, true)
 {
     m_supportdata->emesh = sla::to_eigenmesh(*m_model_object);
+    m_supportdata->support_points = sla::support_points(*m_model_object);
+    std::cout << "support points copied " << m_supportdata->support_points.rows() << std::endl;
 }
 
 SLAPrintObject::~SLAPrintObject() {}
