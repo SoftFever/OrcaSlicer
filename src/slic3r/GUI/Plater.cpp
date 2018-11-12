@@ -25,6 +25,7 @@
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/Model.hpp"
+#include "libslic3r/ModelArrange.hpp"
 #include "libslic3r/Print.hpp"
 #include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/GCode/PreviewData.hpp"
@@ -33,7 +34,7 @@
 #include "libslic3r/Format/STL.hpp"
 #include "libslic3r/Format/AMF.hpp"
 #include "libslic3r/Format/3mf.hpp"
-#include "slic3r/AppController.hpp"
+//#include "slic3r/AppController.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
@@ -863,6 +864,7 @@ struct Plater::priv
     wxGLCanvas *canvas3D;    // TODO: Use GLCanvas3D when we can
     Preview *preview;
     BackgroundSlicingProcess    background_process;
+    std::atomic<bool>           arranging;
 
     wxTimer                     background_process_timer;
 
@@ -1446,13 +1448,86 @@ void Plater::priv::mirror(Axis axis)
 
 void Plater::priv::arrange()
 {
-	this->background_process.stop();
-    main_frame->app_controller()->arrange_model();
+    // don't do anything if currently arranging. Then this is a re-entrance
+    if(arranging.load()) return;
+
+    // Guard the arrange process
+    arranging.store(true);
+
+    _3DScene::enable_toolbar_item(canvas3D, "arrange", can_arrange());
+
+    this->background_process.stop();
+    unsigned count = 0;
+    for(auto obj : model.objects) count += obj->instances.size();
+
+    auto prev_range = statusbar()->get_range();
+    statusbar()->set_range(count);
+
+    auto statusfn = [this, count] (unsigned st, const std::string& msg) {
+        /* // In case we would run the arrange asynchronously
+        wxCommandEvent event(EVT_PROGRESS_BAR);
+        event.SetInt(st);
+        event.SetString(msg);
+        wxQueueEvent(this->q, event.Clone()); */
+        statusbar()->set_progress(count - st);
+        statusbar()->set_status_text(msg);
+
+        // ok, this is dangerous, but we are protected by the atomic flag
+        // 'arranging'. This call is needed for the cancel button to work.
+        wxYieldIfNeeded();
+    };
+
+    statusbar()->set_cancel_callback([this, statusfn](){
+        arranging.store(false);
+        statusfn(0, L("Arranging canceled"));
+    });
+
+    static const std::string arrangestr = L("Arranging");
+
+    // FIXME: I don't know how to obtain the minimum distance, it depends
+    // on printer technology. I guess the following should work but it crashes.
+    double dist = 6; //PrintConfig::min_object_distance(config);
+
+    auto min_obj_distance = static_cast<coord_t>(dist/SCALING_FACTOR);
+
+    const auto *bed_shape_opt = config->opt<ConfigOptionPoints>("bed_shape");
+
+    assert(bed_shape_opt);
+    auto& bedpoints = bed_shape_opt->values;
+    Polyline bed; bed.points.reserve(bedpoints.size());
+    for(auto& v : bedpoints) bed.append(Point::new_scale(v(0), v(1)));
+
+    statusfn(0, arrangestr);
+
+    try {
+        arr::BedShapeHint hint;
+
+        // TODO: from Sasha from GUI or
+        hint.type = arr::BedShapeType::WHO_KNOWS;
+
+        arr::arrange(model,
+                     min_obj_distance,
+                     bed,
+                     hint,
+                     false, // create many piles not just one pile
+                     [statusfn](unsigned st) { statusfn(st, arrangestr); },
+                     [this] () { return !arranging.load(); });
+    } catch(std::exception& /*e*/) {
+        GUI::show_error(this->q, L("Could not arrange model objects! "
+                                   "Some geometries may be invalid."));
+    }
+
+    statusfn(0, L("Arranging done."));
+    statusbar()->set_range(prev_range);
+    statusbar()->set_cancel_callback(); // remove cancel button
+    arranging.store(false);
+
     this->schedule_background_process();
 
-    // ignore arrange failures on purpose: user has visual feedback and we don't need to warn him
-    // when parts don't fit in print bed
+    // ignore arrange failures on purpose: user has visual feedback and we
+    // don't need to warn him when parts don't fit in print bed
 
+    _3DScene::enable_toolbar_item(canvas3D, "arrange", can_arrange());
     update();
 }
 
@@ -1908,7 +1983,7 @@ bool Plater::priv::can_delete_all() const
 
 bool Plater::priv::can_arrange() const
 {
-    return !model.objects.empty();
+    return !model.objects.empty() && !arranging.load();
 }
 
 bool Plater::priv::can_mirror() const

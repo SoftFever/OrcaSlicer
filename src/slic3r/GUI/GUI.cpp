@@ -1,6 +1,5 @@
 #include "GUI.hpp"
 #include "GUI_App.hpp"
-#include "../AppController.hpp"
 #include "WipeTowerDialog.hpp"
 
 #include <assert.h>
@@ -451,25 +450,6 @@ void desktop_open_datadir_folder()
 			::wxExecute(const_cast<char**>(argv), wxEXEC_ASYNC, nullptr, nullptr);
 		}
 #endif
-}
-
-namespace {
-AppControllerPtr g_appctl;
-}
-
-AppControllerPtr get_appctl()
-{
-    return g_appctl;
-}
-
-void set_cli_appctl()
-{
-    g_appctl = std::make_shared<AppControllerCli>();
-}
-
-void set_gui_appctl()
-{
-    g_appctl = std::make_shared<AppControllerGui>();
 }
 
 } }
