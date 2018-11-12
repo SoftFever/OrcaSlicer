@@ -704,7 +704,7 @@ void ObjectList::load_subobject(int type)
     parts_changed(obj_idx);
 
     for (int i = 0; i < part_names.size(); ++i) {
-        const wxDataViewItem sel_item = m_objects_model->AddVolumeChild(item, part_names.Item(i), /**m_bmp_vector[*/type/*]*/);
+        const wxDataViewItem sel_item = m_objects_model->AddVolumeChild(item, part_names.Item(i), type);
 
         if (i == part_names.size() - 1)
             select_item(sel_item);
@@ -786,8 +786,11 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const int 
     const auto& sz = BoundingBoxf(bed_shape).size();
     const auto side = 0.1 * std::max(sz(0), sz(1));
 
-    if (type_name == _("Box"))
+    if (type_name == _("Box")) {
         mesh = make_cube(side, side, side);
+        // box sets the base coordinate at 0, 0, move to center of plate
+        mesh.translate(-side * 0.5, -side * 0.5, 0);
+    }
     else if (type_name == _("Cylinder"))
         mesh = make_cylinder(0.5*side, side);
     else if (type_name == _("Sphere"))
@@ -1251,7 +1254,8 @@ void ObjectList::update_selections()
     {
         sels.Add(m_objects_model->GetItemById(selection.get_object_idx()));
     }
-    else if (selection.is_single_volume() || selection.is_multiple_volume() || selection.is_multiple_full_object()) {
+    else if (selection.is_single_volume() || selection.is_modifier() || 
+             selection.is_multiple_volume() || selection.is_multiple_full_object()) {
         for (auto idx : selection.get_volume_idxs()) {
             const auto gl_vol = selection.get_volume(idx);
             if (selection.is_multiple_full_object())

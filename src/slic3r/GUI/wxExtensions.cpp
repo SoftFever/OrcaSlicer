@@ -641,6 +641,7 @@ wxDataViewItem PrusaObjectDataViewModel::Delete(const wxDataViewItem &item)
                 PrusaObjectDataViewModelNode *last_child_node = node_parent->GetNthChild(vol_idx);
                 DeleteSettings(wxDataViewItem(last_child_node));
                 node_parent->GetChildren().Remove(last_child_node);
+                node_parent->m_volumes_cnt = 0;
                 delete last_child_node;
 
 #ifndef __WXGTK__
