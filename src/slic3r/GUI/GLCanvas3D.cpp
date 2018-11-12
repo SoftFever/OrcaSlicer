@@ -5165,7 +5165,7 @@ void GLCanvas3D::_update_gizmos_data()
 
     bool enable_move_z = !m_selection.is_wipe_tower();
     m_gizmos.enable_grabber(Gizmos::Move, 2, enable_move_z);
-    bool enable_scale_xyz = m_selection.is_single_full_instance();
+    bool enable_scale_xyz = m_selection.is_single_full_instance() || m_selection.is_single_volume() || m_selection.is_single_modifier();
     for (int i = 0; i < 6; ++i)
     {
         m_gizmos.enable_grabber(Gizmos::Scale, i, enable_scale_xyz);
