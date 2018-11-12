@@ -75,8 +75,7 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model,
         return APPLY_STATUS_UNCHANGED;
 
 	// Temporary quick fix, just invalidate everything.
-	{
-        std::cout << "deleting object cache " << std::endl;
+    {
         for (SLAPrintObject *print_object : m_objects) {
 			print_object->invalidate_all_steps();
             delete print_object;

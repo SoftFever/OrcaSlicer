@@ -2185,10 +2185,14 @@ void Plater::export_gcode(fs::path output_path)
             // FIXME: ^ errors to handle?
         ));
         auto start_dir = wxGetApp().app_config->get_last_output_dir(default_output_file.parent_path().string());
-        wxFileDialog dlg(this, _(L("Save G-code file as:")),
+
+        auto fileType = printer_technology() == ptFFF ? FT_GCODE : FT_PNGZIP;
+        std::string dtitle = printer_technology() == ptFFF ? L("Save G-code file as:")
+                                                           : L("Save Zip file as:");
+        wxFileDialog dlg(this, _(dtitle),
             start_dir,
             default_output_file.filename().string(),
-            GUI::file_wildcards[FT_GCODE],
+            GUI::file_wildcards[fileType],
             wxFD_SAVE | wxFD_OVERWRITE_PROMPT
         );
 

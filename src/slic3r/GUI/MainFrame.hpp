@@ -83,7 +83,6 @@ public:
     bool        is_loaded() const { return m_loaded; }
     bool        is_last_input_file() const  { return !m_qs_last_input_file.IsEmpty(); }
 
-    void        slice_to_png();
     void        quick_slice(const int qs = qsUndef);
     void        reslice_now();
     void        repair_stl();
