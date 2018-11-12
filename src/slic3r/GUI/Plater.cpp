@@ -1002,7 +1002,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     _3DScene::add_canvas(canvas3D);
     _3DScene::allow_multisample(canvas3D, GLCanvas3DManager::can_multisample());
     notebook->AddPage(canvas3D, _(L("3D")));
-    preview = new GUI::Preview(notebook, config, &print, &gcode_preview_data);
+    preview = new GUI::Preview(notebook, config, &print, &gcode_preview_data, [this](){ schedule_background_process(); });
 
     // XXX: If have OpenGL
     _3DScene::enable_picking(canvas3D, true);

@@ -40,6 +40,9 @@ class Preview : public wxPanel
     Print* m_print;
     GCodePreviewData* m_gcode_preview_data;
 
+    // Calling this function object forces Plater::schedule_background_process.
+    std::function<void()> m_schedule_background_process;
+
     unsigned int m_number_extruders;
     std::string m_preferred_color_mode;
 
@@ -50,7 +53,7 @@ class Preview : public wxPanel
     PrusaDoubleSlider* m_slider {nullptr};
 
 public:
-    Preview(wxNotebook* notebook, DynamicPrintConfig* config, Print* print, GCodePreviewData* gcode_preview_data);
+    Preview(wxNotebook* notebook, DynamicPrintConfig* config, Print* print, GCodePreviewData* gcode_preview_data, std::function<void()> schedule_background_process = [](){});
     virtual ~Preview();
 
     wxGLCanvas* get_wxglcanvas() { return m_canvas; }
