@@ -89,7 +89,6 @@ extern "C" {
 #include <Polygon.hpp>
 #include <Polyline.hpp>
 #include <TriangleMesh.hpp>
-#include <slic3r/AppController.hpp>
 
 namespace Slic3r {
     

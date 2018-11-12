@@ -66,7 +66,6 @@ REGISTER_CLASS(TabIface, "GUI::Tab");
 REGISTER_CLASS(PreviewIface, "GUI::Preview");
 REGISTER_CLASS(ProgressStatusBar, "GUI::ProgressStatusBar");
 REGISTER_CLASS(PresetUpdater, "PresetUpdater");
-REGISTER_CLASS(AppController, "AppController");
 REGISTER_CLASS(PrintController, "PrintController");
 REGISTER_CLASS(PrintHost, "PrintHost");
 
