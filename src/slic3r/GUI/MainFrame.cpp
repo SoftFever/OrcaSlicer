@@ -11,7 +11,6 @@
 
 #include "Tab.hpp"
 #include "PresetBundle.hpp"
-#include "../AppController.hpp"
 #include "ProgressStatusBar.hpp"
 #include "3DScene.hpp"
 #include "Print.hpp"
@@ -30,8 +29,6 @@ wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAUL
         m_no_plater(no_plater),
         m_loaded(loaded)
 {
-    m_appController = new Slic3r::AppController();
-
     // Load the icon either from the exe, or from the ico file.
 #if _WIN32
     {
@@ -58,14 +55,6 @@ wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAUL
     m_statusbar->set_status_text(_(L("Version ")) +
                                  SLIC3R_VERSION +
                                  _(L(" - Remember to check for updates at http://github.com/prusa3d/slic3r/releases")));
-
-    m_appController->set_model(&m_plater->model());
-    m_appController->set_print(&m_plater->print());
-
-	GUI::set_gui_appctl();
-
-	// Make the global status bar and its progress indicator available in C++
-    m_appController->set_global_progress_indicator(m_statusbar);
 
     m_loaded = true;
 
@@ -373,7 +362,7 @@ void MainFrame::slice_to_png()
 {
 //     m_plater->stop_background_process();
 //     m_plater->async_apply_config();
-    m_appController->print_ctl()->slice_to_png();
+//    m_appController->print_ctl()->slice_to_png();
 }
 
 // To perform the "Quck Slice", "Quick Slice and Save As", "Repeat last Quick Slice" and "Slice to SVG".
