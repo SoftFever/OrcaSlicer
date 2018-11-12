@@ -989,7 +989,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     background_process.set_sliced_event(EVT_SLICING_COMPLETED);
     background_process.set_finished_event(EVT_PROCESS_COMPLETED);
 	// Default printer technology for default config.
-	background_process.select_technology(wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology());
+    background_process.select_technology(q->printer_technology());
     // Register progress callback from the Print class to the Platter.
     print.set_status_callback([this](int percent, const std::string &message) {
         wxCommandEvent event(EVT_PROGRESS_BAR);
@@ -1810,6 +1810,21 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
     // refresh preview
     if (this->preview != nullptr)
         this->preview->reload_print();
+
+    // TODO: this needs to be implemented somehow
+    if(q->printer_technology() == PrinterTechnology::ptSLA) {
+
+        class Renderer: public SLASupportRenderer {
+        public:
+            void add_pillar(const Mesh&, ClickCb ) override {}
+            void add_head(const Mesh&, ClickCb) override {}
+            void add_bridge(const Mesh&, ClickCb) override {}
+            void add_junction(const Mesh&, ClickCb) override {}
+            void add_pad(const Mesh&, ClickCb) override {}
+        } renderer;
+
+        sla_print.render_supports(renderer);
+    }
 }
 
 void Plater::priv::on_layer_editing_toggled(bool enable)
@@ -2361,6 +2376,11 @@ bool Plater::is_single_full_object_selection()
 wxGLCanvas* Plater::canvas3D()
 {
     return p->canvas3D;
+}
+
+PrinterTechnology Plater::printer_technology() const
+{
+    return wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology();
 }
 
 void Plater::changed_object(int obj_idx)

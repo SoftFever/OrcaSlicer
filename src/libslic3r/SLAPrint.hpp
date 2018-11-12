@@ -23,6 +23,7 @@ enum SLAPrintObjectStep {
 };
 
 class SLAPrint;
+class GLCanvas;
 
 using _SLAPrintObjectBase =
     PrintObjectBaseWithState<SLAPrint, SLAPrintObjectStep, slaposCount>;
@@ -35,6 +36,7 @@ private: // Prevents erroneous use by other classes.
 public:
     const ModelObject*      model_object() const    { return m_model_object; }
     ModelObject*            model_object()          { return m_model_object; }
+    TriangleMesh            support_mesh() const;
 
     // I refuse to grantee copying (Tamas)
     SLAPrintObject(const SLAPrintObject&) = delete;
@@ -78,6 +80,37 @@ private:
     std::unique_ptr<SupportData> m_supportdata;
 };
 
+using PrintObjects = std::vector<SLAPrintObject*>;
+
+class TriangleMesh;
+
+class SLASupportRenderer {
+public:
+
+    virtual ~SLASupportRenderer() {}
+
+    enum Buttons {
+        LEFT, RIGHT, MIDDLE
+    };
+
+    enum MType {
+        ENGAGE, RELEASE, HOVER
+    };
+
+    struct MouseEvt {
+        Buttons button; MType type;
+    };
+
+    using ClickCb = std::function<void(MouseEvt)>;
+    using Mesh = TriangleMesh;
+
+    virtual void add_pillar(const Mesh&, ClickCb on_mouse_evt) = 0;
+    virtual void add_head(const Mesh&, ClickCb on_mouse_evt) = 0;
+    virtual void add_bridge(const Mesh&, ClickCb on_mouse_evt) = 0;
+    virtual void add_junction(const Mesh&, ClickCb on_mouse_evt) = 0;
+    virtual void add_pad(const Mesh&, ClickCb on_mouse_evt) = 0;
+};
+
 /**
  * @brief This class is the high level FSM for the SLA printing process.
  *
@@ -108,11 +141,13 @@ public:
     ApplyStatus         apply(const Model &model, const DynamicPrintConfig &config) override;
     void                process() override;
 
+    void                render_supports(SLASupportRenderer& renderer);
+
 private:
     Model                           m_model;
     SLAPrinterConfig                m_printer_config;
     SLAMaterialConfig               m_material_config;
-    std::vector<SLAPrintObject*>	m_objects;
+    PrintObjects                    m_objects;
 
 	friend SLAPrintObject;
 };

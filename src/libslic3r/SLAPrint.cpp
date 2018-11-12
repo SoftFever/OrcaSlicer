@@ -196,6 +196,11 @@ void SLAPrint::process()
     }
 }
 
+void SLAPrint::render_supports(SLASupportRenderer &renderer)
+{
+    std::cout << "Would show the SLA supports" << std::endl;
+}
+
 SLAPrintObject::SLAPrintObject(SLAPrint *print, ModelObject *model_object):
     Inherited(print),
     m_model_object(model_object),

@@ -19,6 +19,8 @@ namespace Slic3r {
 
 class Model;
 class Print;
+class SLAPrint;
+
 namespace GUI {
 
 class MainFrame;
@@ -137,6 +139,8 @@ public:
     int get_selected_object_idx();
     bool is_single_full_object_selection();
     wxGLCanvas* canvas3D();
+
+    PrinterTechnology printer_technology() const;
 private:
     struct priv;
     std::unique_ptr<priv> p;
