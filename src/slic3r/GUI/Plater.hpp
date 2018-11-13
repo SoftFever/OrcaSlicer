@@ -139,7 +139,7 @@ public:
     void on_config_change(const DynamicPrintConfig &config);
 
     int get_selected_object_idx();
-    bool is_single_full_object_selection();
+    bool is_single_full_object_selection() const;
     wxGLCanvas* canvas3D();
 
     PrinterTechnology printer_technology() const;

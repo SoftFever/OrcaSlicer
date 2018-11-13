@@ -701,13 +701,20 @@ void Sidebar::show_info_sizer()
     int obj_idx = p->plater->get_selected_object_idx();
 
     const ModelObject* model_object = (*wxGetApp().model_objects())[obj_idx];
+    // hack to avoid crash when deleting the last object on the bed
+    if (model_object->volumes.empty())
+    {
+        p->object_info->Show(false);
+        return;
+    }
+
     const ModelInstance* model_instance = !model_object->instances.empty() ? model_object->instances.front() : nullptr;
 
     auto size = model_object->instance_bounding_box(0).size();    
     p->object_info->info_size->SetLabel(wxString::Format("%.2f x %.2f x %.2f",size(0), size(1), size(2)));
     p->object_info->info_materials->SetLabel(wxString::Format("%d", static_cast<int>(model_object->materials_count())));
 
-    auto& stats = model_object->volumes[0]->mesh.stl.stats;
+    auto& stats = model_object->volumes.front()->mesh.stl.stats;
     auto sf = model_instance->get_scaling_factor();
     p->object_info->info_volume->SetLabel(wxString::Format("%.2f", stats.volume * sf(0) * sf(1) * sf(2)));
     p->object_info->info_facets->SetLabel(wxString::Format(_(L("%d (%d shells)")), static_cast<int>(model_object->facets_count()), stats.number_of_parts));
@@ -2365,7 +2372,7 @@ int Plater::get_selected_object_idx()
     return p->get_selected_object_idx();
 }
 
-bool Plater::is_single_full_object_selection()
+bool Plater::is_single_full_object_selection() const
 {
     return p->get_selection().is_single_full_object();
 }
