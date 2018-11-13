@@ -48,6 +48,7 @@ const wxString file_wildcards[FT_SIZE] = {
 
     /* FT_INI */   "INI files *.ini|*.ini;*.INI",
     /* FT_SVG */   "SVG files *.svg|*.svg;*.SVG",
+    /* FT_PNGZIP */"Zipped PNG files *.zip|*.zip;*.ZIP",    // This is lame, but that's what we use for SLA
 };
 
 

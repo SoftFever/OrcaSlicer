@@ -1683,7 +1683,7 @@ void GLGizmoSlaSupports::clicked_on_object(const Vec2d& mouse_position)
         m_model_object->sla_support_points.push_back(new_pos);
 
         // This should trigger the support generation
-        wxGetApp().plater()->reslice();
+        // wxGetApp().plater()->reslice();
     }
     catch (...) {}
 }
@@ -1695,7 +1695,7 @@ void GLGizmoSlaSupports::delete_current_grabber(bool delete_all)
         m_model_object->sla_support_points.clear();
 
         // This should trigger the support generation
-        wxGetApp().plater()->reslice();
+        // wxGetApp().plater()->reslice();
     }
     else
         if (m_hover_id != -1) {
@@ -1704,7 +1704,7 @@ void GLGizmoSlaSupports::delete_current_grabber(bool delete_all)
             m_hover_id = -1;
 
             // This should trigger the support generation
-            wxGetApp().plater()->reslice();
+            // wxGetApp().plater()->reslice();
         }
 }
 

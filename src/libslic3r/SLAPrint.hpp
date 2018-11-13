@@ -2,6 +2,7 @@
 #define slic3r_SLAPrint_hpp_
 
 #include "PrintBase.hpp"
+#include "PrintExport.hpp"
 #include "Point.hpp"
 
 namespace Slic3r {
@@ -85,6 +86,7 @@ private:
 
     // Which steps have to be performed. Implicitly: all
     std::vector<bool>                       m_stepmask;
+    std::vector<ExPolygons>                 m_model_slices;
 
     class SupportData;
     std::unique_ptr<SupportData> m_supportdata;
@@ -141,7 +143,8 @@ private: // Prevents erroneous use by other classes.
     typedef PrintBaseWithState<SLAPrintStep, slapsCount> Inherited;
 
 public:
-    SLAPrint() {}
+    SLAPrint(): m_stepmask(slapsCount, true) {}
+
 	virtual ~SLAPrint() { this->clear(); }
 
 	PrinterTechnology	technology() const noexcept { return ptSLA; }
@@ -153,13 +156,22 @@ public:
 
     void                render_supports(SLASupportRenderer& renderer);
 
+    template<class Fmt> void export_raster(const std::string& fname) {
+        if(m_printer) m_printer->save<Fmt>(fname);
+        std::cout << "Would export the SLA raster" << std::endl;
+    }
     const PrintObjects& objects() const { return m_objects; }
 
 private:
+    using SLAPrinter = FilePrinter<FilePrinterFormat::SLA_PNGZIP>;
+    using SLAPrinterPtr = std::unique_ptr<SLAPrinter>;
+
     Model                           m_model;
     SLAPrinterConfig                m_printer_config;
     SLAMaterialConfig               m_material_config;
     PrintObjects                    m_objects;
+    std::vector<bool>               m_stepmask;
+    SLAPrinterPtr                   m_printer;
 
 	friend SLAPrintObject;
 };

@@ -255,8 +255,6 @@ void MainFrame::init_menubar()
         fileMenu->AppendSeparator();
         append_menu_item(fileMenu, wxID_ANY, _(L("Slice to SV&G…\tCtrl+G")), _(L("Slice file to a multi-layer SVG")),
             [this](wxCommandEvent&) { quick_slice(qsSaveAs | qsExportSVG); }, "shape_handles.png");
-        append_menu_item(fileMenu, wxID_ANY, _(L("Slice to PNG…")), _(L("Slice file to a set of PNG files")),
-            [this](wxCommandEvent&) { slice_to_png(); /*$self->quick_slice(save_as = > 0, export_png = > 1);*/ }, "shape_handles.png");
         m_menu_item_reslice_now = append_menu_item(fileMenu, wxID_ANY, _(L("(&Re)Slice Now\tCtrl+S")), _(L("Start new slicing process")),
             [this](wxCommandEvent&) { reslice_now(); }, "shape_handles.png");
         fileMenu->AppendSeparator();
@@ -356,13 +354,6 @@ void MainFrame::init_menubar()
         menubar->Append(helpMenu, L("&Help"));
         SetMenuBar(menubar);
     }
-}
-
-void MainFrame::slice_to_png()
-{
-//     m_plater->stop_background_process();
-//     m_plater->async_apply_config();
-//    m_appController->print_ctl()->slice_to_png();
 }
 
 // To perform the "Quck Slice", "Quick Slice and Save As", "Repeat last Quick Slice" and "Slice to SVG".

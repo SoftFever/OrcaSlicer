@@ -100,6 +100,9 @@ private:
 	// Helper to wrap the FFF slicing & G-code generation.
 	void	process_fff();
 
+    // Temporary: for mimicking the fff file export behavior with the raster output
+    void	process_sla();
+
 	// Currently active print. It is one of m_fff_print and m_sla_print.
 	PrintBase				   *m_print 			 = nullptr;
 	// Non-owned pointers to Print instances.
