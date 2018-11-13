@@ -87,7 +87,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent):
         if (option_name == "Rotation")
             def.min = -360;
         else
-            def.min == -1000;
+            def.min = -1000;
 
         const std::string lower_name = boost::algorithm::to_lower_copy(option_name);
 
