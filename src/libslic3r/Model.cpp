@@ -165,9 +165,6 @@ ModelObject* Model::add_object(const char *name, const char *path, const Triangl
     new_object->name = name;
     new_object->input_file = path;
     ModelVolume *new_volume = new_object->add_volume(mesh);
-#if ENABLE_MODELVOLUME_TRANSFORM
-    new_volume->center_geometry();
-#endif // ENABLE_MODELVOLUME_TRANSFORM
     new_volume->name = name;
     new_object->invalidate_bounding_box();
     return new_object;
@@ -180,9 +177,6 @@ ModelObject* Model::add_object(const char *name, const char *path, TriangleMesh 
     new_object->name = name;
     new_object->input_file = path;
     ModelVolume *new_volume = new_object->add_volume(std::move(mesh));
-#if ENABLE_MODELVOLUME_TRANSFORM
-    new_volume->center_geometry();
-#endif // ENABLE_MODELVOLUME_TRANSFORM
     new_volume->name = name;
     new_object->invalidate_bounding_box();
     return new_object;
