@@ -1155,6 +1155,11 @@ void ObjectList::delete_volume_from_list(const size_t obj_idx, const size_t vol_
     select_item(m_objects_model->Delete(m_objects_model->GetItemByVolumeId(obj_idx, vol_idx)));
 }
 
+void ObjectList::delete_instance_from_list(const size_t obj_idx, const size_t inst_idx)
+{
+    select_item(m_objects_model->Delete(m_objects_model->GetItemByInstanceId(obj_idx, inst_idx)));
+}
+
 void ObjectList::delete_all_objects_from_list()
 {
     m_objects_model->DeleteAll();

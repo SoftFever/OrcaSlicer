@@ -116,6 +116,7 @@ public:
     void delete_object_from_list();
     void delete_object_from_list(const size_t obj_idx);
     void delete_volume_from_list(const size_t obj_idx, const size_t vol_idx);
+    void delete_instance_from_list(const size_t obj_idx, const size_t inst_idx);
     // Delete all objects from the list
     void delete_all_objects_from_list();
     // Increase instances count
