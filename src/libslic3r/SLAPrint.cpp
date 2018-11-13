@@ -371,4 +371,14 @@ SLAPrintObject::SLAPrintObject(SLAPrint *print, ModelObject *model_object):
 
 SLAPrintObject::~SLAPrintObject() {}
 
+TriangleMesh SLAPrintObject::support_mesh() const
+{
+	return make_cube(10., 10., 10.);
+}
+
+TriangleMesh SLAPrintObject::pad_mesh() const
+{
+	return make_cube(10., 10., 10.);
+}
+
 } // namespace Slic3r

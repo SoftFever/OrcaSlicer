@@ -284,6 +284,14 @@ void GLCanvas3DManager::set_print(wxGLCanvas* canvas, Print* print)
         it->second->set_print(print);
 }
 
+
+void GLCanvas3DManager::set_SLA_print(wxGLCanvas* canvas, SLAPrint* print)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->set_SLA_print(print);
+}
+
 void GLCanvas3DManager::set_model(wxGLCanvas* canvas, Model* model)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);

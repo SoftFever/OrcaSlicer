@@ -62,6 +62,7 @@ enum ButtonAction
 
 class Sidebar : public wxPanel
 {
+    /*ConfigMenuIDs*/int    m_mode;
 public:
     Sidebar(Plater *parent);
     Sidebar(Sidebar &&) = delete;
@@ -82,13 +83,13 @@ public:
     ConfigOptionsGroup*     og_freq_chng_params();
     wxButton*               get_wiping_dialog_button();
     void                    update_objects_list_extruder_column(int extruders_count);
-    void                    show_info_sizer(const bool show);
-    void                    update_info_sizer();
+    void                    show_info_sizer();
     void                    show_sliced_info_sizer(const bool show);
     void                    show_buttons(const bool show);
     void                    show_button(ButtonAction but_action, bool show);
     void                    enable_buttons(bool enable);
     bool                    is_multifilament();
+    void                    set_mode_value(const /*ConfigMenuIDs*/int mode) { m_mode = mode; }
 
     std::vector<PresetComboBox*>& combos_filament();
 private:
@@ -118,6 +119,7 @@ public:
     void select_view(const std::string& direction);
 
     void remove(size_t obj_idx);
+    void delete_object_from_model(size_t obj_idx);
     void remove_selected();
     void increase_instances(size_t num = 1);
     void decrease_instances(size_t num = 1);
@@ -137,7 +139,7 @@ public:
     void on_config_change(const DynamicPrintConfig &config);
 
     int get_selected_object_idx();
-    bool is_single_full_object_selection();
+    bool is_single_full_object_selection() const;
     wxGLCanvas* canvas3D();
 
     PrinterTechnology printer_technology() const;

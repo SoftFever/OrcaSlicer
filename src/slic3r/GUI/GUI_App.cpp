@@ -482,18 +482,16 @@ ConfigMenuIDs GUI_App::get_view_mode()
 // Update view mode according to selected menu
 void GUI_App::update_mode()
 {
-    wxWindowUpdateLocker noUpdates(mainframe->m_plater);
+    wxWindowUpdateLocker noUpdates(&sidebar());
 
     ConfigMenuIDs mode = wxGetApp().get_view_mode();
 
     obj_list()->get_sizer()->Show(mode == ConfigMenuModeExpert);
-    sidebar().show_info_sizer(mode == ConfigMenuModeExpert);
+    sidebar().set_mode_value(mode);
     sidebar().show_buttons(mode == ConfigMenuModeExpert);
-    obj_manipul()->show_object_name(mode == ConfigMenuModeSimple);
-    obj_list()->update_manipulation_sizer(mode == ConfigMenuModeSimple);
+    obj_list()->update_selections();
 
     sidebar().Layout();
-    mainframe->m_plater->Layout();
 
     ConfigOptionMode opt_mode = mode == ConfigMenuModeSimple ? comSimple :
                                 mode == ConfigMenuModeExpert ? comExpert : comAdvanced;

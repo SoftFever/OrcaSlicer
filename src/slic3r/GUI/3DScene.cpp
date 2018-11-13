@@ -2,13 +2,14 @@
 
 #include "3DScene.hpp"
 
-#include "../../libslic3r/ExtrusionEntity.hpp"
-#include "../../libslic3r/ExtrusionEntityCollection.hpp"
-#include "../../libslic3r/Geometry.hpp"
-#include "../../libslic3r/GCode/PreviewData.hpp"
-#include "../../libslic3r/Print.hpp"
-#include "../../libslic3r/Slicing.hpp"
-#include "../../slic3r/GUI/PresetBundle.hpp"
+#include "libslic3r/ExtrusionEntity.hpp"
+#include "libslic3r/ExtrusionEntityCollection.hpp"
+#include "libslic3r/Geometry.hpp"
+#include "libslic3r/GCode/PreviewData.hpp"
+#include "libslic3r/Print.hpp"
+#include "libslic3r/SLAPrint.hpp"
+#include "libslic3r/Slicing.hpp"
+#include "slic3r/GUI/PresetBundle.hpp"
 #include "GCode/Analyzer.hpp"
 
 #include <stdio.h>
@@ -209,7 +210,9 @@ GLVolume::GLVolume(float r, float g, float b, float a)
 #endif // ENABLE_MODELVOLUME_TRANSFORM
     , m_transformed_convex_hull_bounding_box_dirty(true)
     , m_convex_hull(nullptr)
-    , composite_id(-1)
+    , object_id(-1)
+    , volume_id(-1)
+    , instance_id(-1)
     , extruder_id(0)
     , selected(false)
     , disabled(false)
@@ -755,7 +758,9 @@ std::vector<int> GLVolumeCollection::load_object(
             // finalize_geometry() clears the vertex arrays, therefore the bounding box has to be computed before finalize_geometry().
             v.bounding_box = v.indexed_vertex_array.bounding_box();
             v.indexed_vertex_array.finalize_geometry(use_VBOs);
-            v.composite_id = obj_idx * 1000000 + volume_idx * 1000 + instance_idx;
+            v.object_id    = obj_idx;
+            v.volume_id    = volume_idx;
+            v.instance_id  = instance_idx;
             if (model_volume->is_model_part())
             {
                 v.set_convex_hull(model_volume->get_convex_hull());
@@ -780,6 +785,61 @@ std::vector<int> GLVolumeCollection::load_object(
     return volumes_idx; 
 }
 
+// Load SLA auxiliary GLVolumes (for support trees or pad).
+std::vector<int> GLVolumeCollection::load_object_auxiliary(
+    const ModelObject       *model_object,
+    const SLAPrintObject    *print_object,
+    int                      obj_idx,
+    SLAPrintObjectStep       milestone,
+    bool                     use_VBOs)
+{
+    std::vector<int> volumes_idx;
+    // Find the SLAPrintObject's instance to it.
+    if (print_object->is_step_done(milestone)) {
+        // Get the support mesh.
+        TriangleMesh mesh;
+        switch (milestone) {
+        case slaposSupportTree: mesh = print_object->support_mesh(); break;
+        case slaposBasePool:    mesh = print_object->pad_mesh();     break;
+        default:
+            assert(false);
+        }
+		// Convex hull is required for out of print bed detection.
+		TriangleMesh convex_hull = mesh.convex_hull_3d();
+        const std::vector<SLAPrintObject::Instance> &instances = print_object->instances();
+        std::map<ModelID, int> map_instances;
+        for (int i = 0; i < (int)model_object->instances.size(); ++ i)
+            map_instances[model_object->instances[i]->id()] = i;
+        for (const SLAPrintObject::Instance &instance : instances) {
+            auto model_instance_it = map_instances.find(instance.instance_id);
+            assert(model_instance_it != map_instances.end());
+            const int instance_idx = model_instance_it->second;
+            const ModelInstance *model_instance = model_object->instances[instance_idx];
+            volumes_idx.push_back(int(this->volumes.size()));
+            float color[4] { 0.f, 0.f, 1.f, 1.f };
+            this->volumes.emplace_back(new GLVolume(color));
+            GLVolume &v = *this->volumes.back();
+            if (use_VBOs)
+                v.indexed_vertex_array.load_mesh_full_shading(mesh);
+            else
+                v.indexed_vertex_array.load_mesh_flat_shading(mesh);
+            // finalize_geometry() clears the vertex arrays, therefore the bounding box has to be computed before finalize_geometry().
+            v.bounding_box = v.indexed_vertex_array.bounding_box();
+            v.indexed_vertex_array.finalize_geometry(use_VBOs);
+            v.object_id    = obj_idx;
+            v.volume_id    = -1; // SLA supports
+            v.instance_id  = instance_idx;
+			v.set_convex_hull(convex_hull);
+            v.is_modifier  = false;
+            v.shader_outside_printer_detection_enabled = true;
+			v.set_instance_transformation(model_instance->get_transformation());
+			// Leave the volume transformation at identity.
+            // v.set_volume_transformation(model_volume->get_transformation());
+        }
+    }
+
+    return volumes_idx; 
+}
 
 int GLVolumeCollection::load_wipe_tower_preview(
     int obj_idx, float pos_x, float pos_y, float width, float depth, float height, float rotation_angle, bool use_VBOs, bool size_unknown, float brim_width)
@@ -851,7 +911,9 @@ int GLVolumeCollection::load_wipe_tower_preview(
     // finalize_geometry() clears the vertex arrays, therefore the bounding box has to be computed before finalize_geometry().
     v.bounding_box = v.indexed_vertex_array.bounding_box();
     v.indexed_vertex_array.finalize_geometry(use_VBOs);
-    v.composite_id = obj_idx * 1000000;
+    v.object_id    = obj_idx;
+    v.volume_id    = 0;
+    v.instance_id  = 0;
     v.is_wipe_tower = true;
     v.shader_outside_printer_detection_enabled = ! size_unknown;
     return int(this->volumes.size() - 1);
@@ -1846,6 +1908,11 @@ void _3DScene::set_config(wxGLCanvas* canvas, DynamicPrintConfig* config)
 void _3DScene::set_print(wxGLCanvas* canvas, Print* print)
 {
     s_canvas_mgr.set_print(canvas, print);
+}
+
+void _3DScene::set_SLA_print(wxGLCanvas* canvas, SLAPrint* print)
+{
+    s_canvas_mgr.set_SLA_print(canvas, print);
 }
 
 void _3DScene::set_model(wxGLCanvas* canvas, Model* model)

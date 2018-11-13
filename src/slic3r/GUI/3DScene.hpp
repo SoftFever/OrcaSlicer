@@ -1,13 +1,13 @@
 #ifndef slic3r_3DScene_hpp_
 #define slic3r_3DScene_hpp_
 
-#include "../../libslic3r/libslic3r.h"
-#include "../../libslic3r/Point.hpp"
-#include "../../libslic3r/Line.hpp"
-#include "../../libslic3r/TriangleMesh.hpp"
-#include "../../libslic3r/Utils.hpp"
-#include "../../libslic3r/Model.hpp"
-#include "../../slic3r/GUI/GLCanvas3DManager.hpp"
+#include "libslic3r/libslic3r.h"
+#include "libslic3r/Point.hpp"
+#include "libslic3r/Line.hpp"
+#include "libslic3r/TriangleMesh.hpp"
+#include "libslic3r/Utils.hpp"
+#include "libslic3r/Model.hpp"
+#include "slic3r/GUI/GLCanvas3DManager.hpp"
 
 class wxBitmap;
 class wxWindow;
@@ -16,6 +16,9 @@ namespace Slic3r {
 
 class Print;
 class PrintObject;
+class SLAPrint;
+class SLAPrintObject;
+enum  SLAPrintObjectStep;
 class Model;
 class ModelObject;
 class GCodePreviewData;
@@ -290,8 +293,15 @@ public:
     float               color[4];
     // Color used to render this volume.
     float               render_color[4];
-    // An ID containing the object ID, volume ID and instance ID.
-    int                 composite_id;
+    // Object ID, which is equal to the index of the respective ModelObject in Model.objects array.
+    int                 object_id;
+    // Volume ID, which is equal to the index of the respective ModelVolume in ModelObject.volumes array.
+    // If negative, it is an index of a geometry produced by the PrintObject for the respective ModelObject,
+    // and which has no associated ModelVolume in ModelObject.volumes. For example, SLA supports.
+    // Volume with a negative volume_id cannot be picked independently, it will pick the associated instance.
+    int                 volume_id;
+    // Instance ID, which is equal to the index of the respective ModelInstance in ModelObject.instances array.
+    int                 instance_id;
     // An ID containing the extruder ID (used to select color).
     int                 extruder_id;
     // Is this object selected?
@@ -404,9 +414,9 @@ public:
 
     void set_convex_hull(const TriangleMesh& convex_hull);
 
-    int                 object_idx() const { return this->composite_id / 1000000; }
-    int                 volume_idx() const { return (this->composite_id / 1000) % 1000; }
-    int                 instance_idx() const { return this->composite_id % 1000; }
+    int                 object_idx() const { return this->object_id; }
+    int                 volume_idx() const { return this->volume_id; }
+    int                 instance_idx() const { return this->instance_id; }
 
 #if ENABLE_MODELVOLUME_TRANSFORM
     Transform3d world_matrix() const { return m_instance_transformation.get_matrix() * m_volume_transformation.get_matrix(); }
@@ -489,6 +499,14 @@ public:
         const std::string       &color_by,
         bool                     use_VBOs);
 
+    // Load SLA auxiliary GLVolumes (for support trees or pad).
+    std::vector<int> load_object_auxiliary(
+        const ModelObject       *model_object,
+        const SLAPrintObject    *print_object,
+        int                      obj_idx,
+        SLAPrintObjectStep       milestone,
+        bool                     use_VBOs);
+
     int load_wipe_tower_preview(
         int obj_idx, float pos_x, float pos_y, float width, float depth, float height, float rotation_angle, bool use_VBOs, bool size_unknown, float brim_width);
 
@@ -556,6 +574,7 @@ public:
 
     static void set_config(wxGLCanvas* canvas, DynamicPrintConfig* config);
     static void set_print(wxGLCanvas* canvas, Print* print);
+    static void set_SLA_print(wxGLCanvas* canvas, SLAPrint* print);
     static void set_model(wxGLCanvas* canvas, Model* model);
 
     static void set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape);

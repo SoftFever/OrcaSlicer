@@ -294,6 +294,12 @@ void BackgroundSlicingProcess::stop_internal()
 	m_print->set_cancel_callback([](){});
 }
 
+bool BackgroundSlicingProcess::empty() const
+{
+	assert(m_print != nullptr);
+	return m_print->empty();
+}
+
 std::string BackgroundSlicingProcess::validate()
 {
 	assert(m_print != nullptr);

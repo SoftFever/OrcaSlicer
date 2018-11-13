@@ -5,7 +5,9 @@
 #include <wx/dataview.h>
 #include <map>
 #include <vector>
+
 #include "Event.hpp"
+#include "wxExtensions.hpp"
 
 class wxBoxSizer;
 class PrusaObjectDataViewModel;
@@ -19,6 +21,13 @@ class ModelVolume;
 namespace GUI {
 
 wxDECLARE_EVENT(EVT_OBJ_LIST_OBJECT_SELECT, SimpleEvent);
+
+struct ItemForDelete
+{
+    ItemType    type;
+    int         obj_idx; 
+    int         sub_obj_idx;
+};
 
 class ObjectList : public wxDataViewCtrl
 {
@@ -92,6 +101,7 @@ public:
     void                load_subobject(int type);
     void                load_part(ModelObject* model_object, wxArrayString& part_names, int type);
     void                load_generic_subobject(const std::string& type_name, const int type);
+    void                del_object(const int obj_idx);
     void                del_subobject_item(wxDataViewItem& item);
     void                del_settings_from_config();
     void                del_instances_from_object(const int obj_idx);
@@ -110,14 +120,15 @@ public:
     void                 parts_changed(int obj_idx);
     void                 part_selection_changed();
 
-    void                 update_manipulation_sizer(const bool is_simple_mode);
-
     // Add object to the list
     void add_object_to_list(size_t obj_idx);
     // Delete object from the list
     void delete_object_from_list();
     void delete_object_from_list(const size_t obj_idx);
     void delete_volume_from_list(const size_t obj_idx, const size_t vol_idx);
+    void delete_instance_from_list(const size_t obj_idx, const size_t inst_idx);
+    void delete_from_model_and_list(const ItemType type, const int obj_idx, const int sub_obj_idx);
+    void delete_from_model_and_list(const std::vector<ItemForDelete> * items_for_delete);
     // Delete all objects from the list
     void delete_all_objects_from_list();
     // Increase instances count

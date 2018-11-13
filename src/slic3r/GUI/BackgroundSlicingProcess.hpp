@@ -51,11 +51,15 @@ public:
 	// Useful when the Model or configuration is being changed drastically.
 	bool reset();
 
-	// Validate the print. Returns an empty string if valid, returns an error message if invalid.
-	std::string validate();
 	// Apply config over the print. Returns false, if the new config values caused any of the already
 	// processed steps to be invalidated, therefore the task will need to be restarted.
 	Print::ApplyStatus apply(const Model &model, const DynamicPrintConfig &config);
+	// After calling apply, the empty() call will report whether there is anything to slice.
+	bool 		empty() const;
+	// Validate the print. Returns an empty string if valid, returns an error message if invalid.
+	// Call validate before calling start().
+	std::string validate();
+
 	// Set the export path of the G-code.
 	// Once the path is set, the G-code 
 	void schedule_export(const std::string &path);

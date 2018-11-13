@@ -38,7 +38,7 @@ void OG_Settings::Hide()
 void OG_Settings::UpdateAndShow(const bool show)
 {
     Show(show);
-    m_parent->Layout();
+//     m_parent->Layout();
 }
 
 wxSizer* OG_Settings::get_sizer()

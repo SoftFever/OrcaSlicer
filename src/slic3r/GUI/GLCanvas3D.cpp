@@ -1,16 +1,16 @@
 #include "GLCanvas3D.hpp"
 
-#include "../../admesh/stl.h"
-#include "../../libslic3r/libslic3r.h"
-#include "../../slic3r/GUI/3DScene.hpp"
-#include "../../slic3r/GUI/GLShader.hpp"
-#include "../../slic3r/GUI/GUI.hpp"
-#include "../../slic3r/GUI/PresetBundle.hpp"
-#include "../../slic3r/GUI/GLGizmo.hpp"
-#include "../../libslic3r/ClipperUtils.hpp"
-#include "../../libslic3r/PrintConfig.hpp"
-#include "../../libslic3r/GCode/PreviewData.hpp"
-#include "../../libslic3r/Geometry.hpp"
+#include "admesh/stl.h"
+#include "libslic3r/libslic3r.h"
+#include "slic3r/GUI/3DScene.hpp"
+#include "slic3r/GUI/GLShader.hpp"
+#include "slic3r/GUI/GUI.hpp"
+#include "slic3r/GUI/PresetBundle.hpp"
+#include "slic3r/GUI/GLGizmo.hpp"
+#include "libslic3r/ClipperUtils.hpp"
+#include "libslic3r/PrintConfig.hpp"
+#include "libslic3r/GCode/PreviewData.hpp"
+#include "libslic3r/Geometry.hpp"
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_ObjectManipulation.hpp"
@@ -25,7 +25,8 @@
 #include <wx/tooltip.h>
 
 // Print now includes tbb, and tbb includes Windows. This breaks compilation of wxWidgets if included before wx.
-#include "../../libslic3r/Print.hpp"
+#include "libslic3r/Print.hpp"
+#include "libslic3r/SLAPrint.hpp"
 
 #include <tbb/parallel_for.h>
 #include <tbb/spin_mutex.h>
@@ -3065,6 +3066,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     , m_toolbar(*this)
     , m_config(nullptr)
     , m_print(nullptr)
+    , m_sla_print(nullptr)
     , m_model(nullptr)
     , m_dirty(true)
     , m_initialized(false)
@@ -3247,7 +3249,11 @@ bool GLCanvas3D::move_volume_up(unsigned int id)
     if ((id > 0) && (id < (unsigned int)m_volumes.volumes.size()))
     {
         std::swap(m_volumes.volumes[id - 1], m_volumes.volumes[id]);
-        std::swap(m_volumes.volumes[id - 1]->composite_id, m_volumes.volumes[id]->composite_id);
+        GLVolume &v1 = *m_volumes.volumes[id - 1];
+        GLVolume &v2 = *m_volumes.volumes[id];
+        std::swap(v1.object_id,   v2.object_id);
+        std::swap(v1.volume_id,   v2.volume_id);
+        std::swap(v1.instance_id, v2.instance_id);
         return true;
     }
 
@@ -3259,7 +3265,11 @@ bool GLCanvas3D::move_volume_down(unsigned int id)
     if ((id >= 0) && (id + 1 < (unsigned int)m_volumes.volumes.size()))
     {
         std::swap(m_volumes.volumes[id + 1], m_volumes.volumes[id]);
-        std::swap(m_volumes.volumes[id + 1]->composite_id, m_volumes.volumes[id]->composite_id);
+        GLVolume &v1 = *m_volumes.volumes[id + 1];
+        GLVolume &v2 = *m_volumes.volumes[id];
+        std::swap(v1.object_id,   v2.object_id);
+        std::swap(v1.volume_id,   v2.volume_id);
+        std::swap(v1.instance_id, v2.instance_id);
         return true;
     }
 
@@ -3274,6 +3284,11 @@ void GLCanvas3D::set_config(DynamicPrintConfig* config)
 void GLCanvas3D::set_print(Print* print)
 {
     m_print = print;
+}
+
+void GLCanvas3D::set_SLA_print(SLAPrint* print)
+{
+    m_sla_print = print;
 }
 
 void GLCanvas3D::set_model(Model* model)
@@ -3631,6 +3646,13 @@ std::vector<int> GLCanvas3D::load_object(const Model& model, int obj_idx)
     return std::vector<int>();
 }
 
+std::vector<int> GLCanvas3D::load_support_meshes(const Model& model, int obj_idx)
+{
+    std::vector<int> volumes = m_volumes.load_object_auxiliary(model.objects[obj_idx], m_sla_print->objects()[obj_idx], obj_idx, slaposSupportTree, m_use_VBOs && m_initialized);
+	append(volumes, m_volumes.load_object_auxiliary(model.objects[obj_idx], m_sla_print->objects()[obj_idx], obj_idx, slaposBasePool, m_use_VBOs && m_initialized));
+    return volumes;
+}
+
 int GLCanvas3D::get_first_volume_id(int obj_idx) const
 {
     for (int i = 0; i < (int)m_volumes.volumes.size(); ++i)
@@ -3682,11 +3704,14 @@ void GLCanvas3D::reload_scene(bool force)
 
     m_reload_delayed = false;
 
+    PrinterTechnology printer_technology = wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology();
     if (m_regenerate_volumes)
     {
         for (unsigned int obj_idx = 0; obj_idx < (unsigned int)m_model->objects.size(); ++obj_idx)
         {
             load_object(*m_model, obj_idx);
+            if (printer_technology == ptSLA)
+                load_support_meshes(*m_model, obj_idx);
         }
     }
 
@@ -3694,7 +3719,8 @@ void GLCanvas3D::reload_scene(bool force)
 
     if (m_regenerate_volumes)
     {
-        if (m_config->has("nozzle_diameter") && wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptFFF)
+        PrinterTechnology printer_technology = wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology();
+        if (printer_technology == ptFFF && m_config->has("nozzle_diameter"))
         {
             // Should the wipe tower be visualized ?
             unsigned int extruders_count = (unsigned int)dynamic_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"))->values.size();

@@ -823,9 +823,12 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const int 
 #endif //no __WXOSX__ //__WXMSW__
 }
 
+void ObjectList::del_object(const int obj_idx)
+{
+    wxGetApp().plater()->delete_object_from_model(obj_idx);
+}
 
 // Delete subobject
-
 void ObjectList::del_subobject_item(wxDataViewItem& item)
 {
     if (!item) return;
@@ -1016,7 +1019,6 @@ void ObjectList::part_selection_changed()
 
     bool update_and_show_manipulations = false;
     bool update_and_show_settings = false;
-    bool show_info_sizer = false;
 
     if (multiple_selection()) {
         og_name = _(L("Group manipulation"));
@@ -1033,7 +1035,6 @@ void ObjectList::part_selection_changed()
                 og_name = _(L("Object manipulation"));
                 m_config = &(*m_objects)[obj_idx]->config;
                 update_and_show_manipulations = true;
-                show_info_sizer = true;
             }
             else {
                 auto parent = m_objects_model->GetParent(item);
@@ -1082,25 +1083,15 @@ void ObjectList::part_selection_changed()
     if (update_and_show_settings)
         wxGetApp().obj_settings()->get_og()->set_name(" " + og_name + " ");
 
-    auto panel = wxGetApp().sidebar().scrolled_panel();
-    panel->Freeze();
+    Sidebar& panel = wxGetApp().sidebar();
+    panel.Freeze();
 
     wxGetApp().obj_manipul() ->UpdateAndShow(update_and_show_manipulations);
     wxGetApp().obj_settings()->UpdateAndShow(update_and_show_settings);
-    show_info_sizer ? wxGetApp().sidebar().update_info_sizer() : wxGetApp().sidebar().show_info_sizer(false);
+    wxGetApp().sidebar().show_info_sizer();
 
-    panel->Thaw();
-}
-
-void ObjectList::update_manipulation_sizer(const bool is_simple_mode)
-{
-    auto item = GetSelection(); /// #ys_FIXME_to_multi_sel
-    if (!item || !is_simple_mode)
-        return;
-
-    if (m_objects_model->IsSettingsItem(item)) {
-        select_item(m_objects_model->GetParent(item));
-    }
+    panel.Layout();
+    panel.Thaw();
 }
 
 void ObjectList::add_object_to_list(size_t obj_idx)
@@ -1165,6 +1156,49 @@ void ObjectList::delete_object_from_list(const size_t obj_idx)
 void ObjectList::delete_volume_from_list(const size_t obj_idx, const size_t vol_idx)
 {
     select_item(m_objects_model->Delete(m_objects_model->GetItemByVolumeId(obj_idx, vol_idx)));
+}
+
+void ObjectList::delete_instance_from_list(const size_t obj_idx, const size_t inst_idx)
+{
+    select_item(m_objects_model->Delete(m_objects_model->GetItemByInstanceId(obj_idx, inst_idx)));
+}
+
+void ObjectList::delete_from_model_and_list(const ItemType type, const int obj_idx, const int sub_obj_idx)
+{
+    if ( !(type&(itObject|itVolume|itInstance)) )
+        return;
+
+    if (type&itObject) {
+        del_object(obj_idx);
+        delete_object_from_list(obj_idx);
+    }
+    else {
+        del_subobject_from_object(obj_idx, sub_obj_idx, type);
+
+        type == itVolume ? delete_volume_from_list(obj_idx, sub_obj_idx) :
+            delete_instance_from_list(obj_idx, sub_obj_idx);
+    }
+}
+
+void ObjectList::delete_from_model_and_list(const std::vector<ItemForDelete> * items_for_delete)
+{
+    for (auto& item : *items_for_delete)
+    {
+        if ( !(item.type&(itObject|itVolume|itInstance)) )
+            continue;
+        if (item.type&itObject) {
+            del_object(item.obj_idx);
+            m_objects_model->Delete(m_objects_model->GetItemById(item.obj_idx));
+        }
+        else {
+            del_subobject_from_object(item.obj_idx, item.sub_obj_idx, item.type);
+            if (item.type&itVolume)
+                m_objects_model->Delete(m_objects_model->GetItemByVolumeId(item.obj_idx, item.sub_obj_idx));
+            else
+                m_objects_model->Delete(m_objects_model->GetItemByInstanceId(item.obj_idx, item.sub_obj_idx));
+        }
+    }
+    part_selection_changed();
 }
 
 void ObjectList::delete_all_objects_from_list()
