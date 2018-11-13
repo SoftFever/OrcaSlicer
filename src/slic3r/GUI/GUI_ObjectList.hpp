@@ -110,8 +110,6 @@ public:
     void                 parts_changed(int obj_idx);
     void                 part_selection_changed();
 
-    void                 update_manipulation_sizer(const bool is_simple_mode);
-
     // Add object to the list
     void add_object_to_list(size_t obj_idx);
     // Delete object from the list

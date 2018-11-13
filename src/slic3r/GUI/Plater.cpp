@@ -690,19 +690,11 @@ void Sidebar::update_objects_list_extruder_column(int extruders_count)
     p->object_list->update_objects_list_extruder_column(extruders_count);
 }
 
-void Sidebar::show_info_sizer(const bool show)
+void Sidebar::show_info_sizer()
 {
-    p->object_info->show_sizer(show);
-    p->scrolled->Layout();
-}
-
-void Sidebar::update_info_sizer()
-{
-    wxWindowUpdateLocker freeze_guard(p->scrolled);
-
-    if (/*obj_idx < 0 || */!p->plater->is_single_full_object_selection()) {
+    if (!p->plater->is_single_full_object_selection() ||
+        m_mode < ConfigMenuModeExpert ) {
         p->object_info->Show(false);
-        p->scrolled->Layout();
         return;
     }
 
@@ -743,12 +735,11 @@ void Sidebar::update_info_sizer()
     }
 
     p->object_info->show_sizer(true);
-    p->scrolled->Layout();
 }
 
 void Sidebar::show_sliced_info_sizer(const bool show) 
 {
-    wxWindowUpdateLocker freeze_guard(p->scrolled);
+    wxWindowUpdateLocker freeze_guard(this);
 
     p->sliced_info->Show(show);
     if (show) {
@@ -777,7 +768,7 @@ void Sidebar::show_sliced_info_sizer(const bool show)
         p->sliced_info->SetTextAndShow(siWTNumbetOfToolchanges, is_wipe_tower ? wxString::Format("%.d", p->plater->print().wipe_tower_data().number_of_toolchanges) : "N/A");
     }
 
-    p->scrolled->Layout();
+    Layout();
 }
 
 void Sidebar::show_buttons(const bool show)
@@ -1413,8 +1404,6 @@ void Plater::priv::selection_changed()
     _3DScene::enable_toolbar_item(canvas3D, "layersediting", layers_height_allowed());
     // forces a frame render to update the view (to avoid a missed update if, for example, the context menu appears)
     _3DScene::render(canvas3D);
-
-    sidebar->update_info_sizer();
 }
 
 void Plater::priv::object_list_changed()

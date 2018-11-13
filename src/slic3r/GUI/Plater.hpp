@@ -62,6 +62,7 @@ enum ButtonAction
 
 class Sidebar : public wxPanel
 {
+    /*ConfigMenuIDs*/int    m_mode;
 public:
     Sidebar(Plater *parent);
     Sidebar(Sidebar &&) = delete;
@@ -82,13 +83,13 @@ public:
     ConfigOptionsGroup*     og_freq_chng_params();
     wxButton*               get_wiping_dialog_button();
     void                    update_objects_list_extruder_column(int extruders_count);
-    void                    show_info_sizer(const bool show);
-    void                    update_info_sizer();
+    void                    show_info_sizer();
     void                    show_sliced_info_sizer(const bool show);
     void                    show_buttons(const bool show);
     void                    show_button(ButtonAction but_action, bool show);
     void                    enable_buttons(bool enable);
     bool                    is_multifilament();
+    void                    set_mode_value(const /*ConfigMenuIDs*/int mode) { m_mode = mode; }
 
     std::vector<PresetComboBox*>& combos_filament();
 private:
