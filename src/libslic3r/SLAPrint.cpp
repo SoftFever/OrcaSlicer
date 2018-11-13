@@ -96,11 +96,11 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model,
         for (ModelObject *model_object : m_model.objects) {
             auto po = new SLAPrintObject(this, model_object);
             m_objects.emplace_back(po);
-            for(ModelInstance *oinst : model_object->instances) {
+            for (ModelInstance *oinst : model_object->instances) {
                 Point tr = Point::new_scale(oinst->get_offset()(X),
                                             oinst->get_offset()(Y));
                 auto rotZ = float(oinst->get_rotation()(Z));
-                po->m_instances.emplace_back(tr, rotZ);
+				po->m_instances.emplace_back(oinst->id(), tr, rotZ);
             }
         }
     }

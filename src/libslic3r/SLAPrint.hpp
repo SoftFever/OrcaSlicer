@@ -40,12 +40,14 @@ public:
     const Transform3d&      trafo()        const    { return m_trafo; }
 
     struct Instance {
-    	ModelID instance_id;
-	    // Slic3r::Point objects in scaled G-code coordinates
+    	Instance(ModelID instance_id, const Point &shift, float rotation) : instance_id(instance_id), shift(shift), rotation(rotation) {}
+    	// ID of the corresponding ModelInstance.
+		ModelID instance_id;
+		// Slic3r::Point objects in scaled G-code coordinates
     	Point 	shift;
     	// Rotation along the Z axis, in radians.
     	float 	rotation; 
-    };
+	};
     const std::vector<Instance>& instances() const { return m_instances; }
 
     // Get a support mesh centered around origin in XY, and with zero rotation around Z applied.
