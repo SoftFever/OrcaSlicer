@@ -154,6 +154,7 @@ void SLAPrint::process()
     };
 
     using slaposFn = std::function<void(const SLAPrintObject&)>;
+    using slapsFn  = std::function<void(void)>;
 
     std::array<SLAPrintObjectStep, slaposCount> objectsteps = {
         slaposObjectSlice,
@@ -164,7 +165,7 @@ void SLAPrint::process()
         slaposSliceSupports
     };
 
-    std::array<slaposFn, slaposCount> fullprogram =
+    std::array<slaposFn, slaposCount> pobj_program =
     {
         slice_model,
         [](const SLAPrintObject&){}, // slaposSupportIslands now empty
@@ -174,8 +175,14 @@ void SLAPrint::process()
         slice_supports
     };
 
+    std::array<slapsFn, slapsCount> print_program =
+    {
+        rasterize,
+        [](){}  // validate
+    };
+
     for(SLAPrintObject * po : m_objects) {
-        for(size_t s = 0; s < fullprogram.size(); ++s) {
+        for(size_t s = 0; s < pobj_program.size(); ++s) {
             auto currentstep = objectsteps[s];
 
             // Cancellation checking. Each step will check for cancellation
@@ -188,16 +195,43 @@ void SLAPrint::process()
                            OBJ_STEP_LABELS[currentstep]);
 
                 po->set_started(currentstep);
-                fullprogram[s](*po);
+                pobj_program[s](*po);
                 po->set_done(currentstep);
             }
         }
     }
+
+    std::array<SLAPrintStep, slapsCount> printsteps = {
+        slapsRasterize, slapsValidate
+    };
+
+    for(size_t s = 0; s < print_program.size(); ++s) {
+        auto currentstep = printsteps[s];
+
+        throw_if_canceled();
+
+        if(m_stepmask[s]) {
+            set_status(PRINT_STEP_LEVELS[currentstep],
+                       PRINT_STEP_LABELS[currentstep]);
+
+            set_started(currentstep);
+            print_program[s]();
+            set_done(currentstep);
+        }
+    }
+
+    // If everything vent well
+    set_status(100, L("Slicing done"));
 }
 
 void SLAPrint::render_supports(SLASupportRenderer &renderer)
 {
     std::cout << "Would show the SLA supports" << std::endl;
+}
+
+void SLAPrint::export_raster(const std::string &fname)
+{
+    std::cout << "Would export the SLA raster" << std::endl;
 }
 
 SLAPrintObject::SLAPrintObject(SLAPrint *print, ModelObject *model_object):

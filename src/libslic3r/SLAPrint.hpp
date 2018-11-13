@@ -131,7 +131,7 @@ private: // Prevents erroneous use by other classes.
     typedef PrintBaseWithState<SLAPrintStep, slapsCount> Inherited;
 
 public:
-    SLAPrint() {}
+    SLAPrint(): m_stepmask(slapsCount, true) {}
 	virtual ~SLAPrint() { this->clear(); }
 
 	PrinterTechnology	technology() const noexcept { return ptSLA; }
@@ -143,11 +143,14 @@ public:
 
     void                render_supports(SLASupportRenderer& renderer);
 
+    void                export_raster(const std::string& fname);
+
 private:
     Model                           m_model;
     SLAPrinterConfig                m_printer_config;
     SLAMaterialConfig               m_material_config;
     PrintObjects                    m_objects;
+    std::vector<bool>               m_stepmask;
 
 	friend SLAPrintObject;
 };

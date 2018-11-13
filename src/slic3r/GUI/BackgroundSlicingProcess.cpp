@@ -75,6 +75,19 @@ void BackgroundSlicingProcess::process_fff()
     }
 }
 
+void BackgroundSlicingProcess::process_sla() {
+    assert(m_print == m_sla_print);
+    m_print->process();
+    if(!m_print->canceled() && ! this->is_step_done(bspsGCodeFinalize)) {
+        this->set_step_started(bspsGCodeFinalize);
+        if (! m_export_path.empty()) {
+            m_sla_print->export_raster(m_export_path);
+            m_print->set_status(100, "Zip file exported to " + m_export_path);
+        }
+        this->set_step_done(bspsGCodeFinalize);
+    }
+}
+
 void BackgroundSlicingProcess::thread_proc()
 {
 	assert(m_print != nullptr);
@@ -100,6 +113,7 @@ void BackgroundSlicingProcess::thread_proc()
 			assert(m_print != nullptr);
 			switch(m_print->technology()) {
 				case ptFFF: this->process_fff(); break;
+                case ptSLA: this->process_sla(); break;
 				default: m_print->process(); break;
 			}
 		} catch (CanceledException & /* ex */) {

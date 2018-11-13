@@ -991,12 +991,15 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
 	// Default printer technology for default config.
     background_process.select_technology(q->printer_technology());
     // Register progress callback from the Print class to the Platter.
-    print.set_status_callback([this](int percent, const std::string &message) {
+
+    auto statuscb = [this](int percent, const std::string &message) {
         wxCommandEvent event(EVT_PROGRESS_BAR);
         event.SetInt(percent);
         event.SetString(message);
         wxQueueEvent(this->q, event.Clone());
-    });
+    };
+    print.set_status_callback(statuscb);
+    sla_print.set_status_callback(statuscb);
     this->q->Bind(EVT_PROGRESS_BAR, &priv::on_progress_event, this);
 
     _3DScene::add_canvas(canvas3D);
@@ -2171,28 +2174,44 @@ void Plater::export_gcode(fs::path output_path)
         return;
     }
 
-    // Copy the names of active presets into the placeholder parser.
-    wxGetApp().preset_bundle->export_selections(p->print.placeholder_parser());
+    std::string final_path;
+    if(printer_technology() == ptFFF) { // TODO: custom button for SLA export
 
-    // select output file
-    if (output_path.empty()) {
-        // XXX: take output path from CLI opts? Ancient Slic3r versions used to do that...
+        // Copy the names of active presets into the placeholder parser.
+        wxGetApp().preset_bundle->export_selections(p->print.placeholder_parser());
 
-        // If possible, remove accents from accented latin characters.
-        // This function is useful for generating file names to be processed by legacy firmwares.
-        auto default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(
-            p->print.output_filepath(output_path.string())
-            // FIXME: ^ errors to handle?
-        ));
-        auto start_dir = wxGetApp().app_config->get_last_output_dir(default_output_file.parent_path().string());
+        // select output file
+        if (output_path.empty()) {
+            // XXX: take output path from CLI opts? Ancient Slic3r versions used to do that...
 
-        auto fileType = printer_technology() == ptFFF ? FT_GCODE : FT_PNGZIP;
-        std::string dtitle = printer_technology() == ptFFF ? L("Save G-code file as:")
-                                                           : L("Save Zip file as:");
-        wxFileDialog dlg(this, _(dtitle),
-            start_dir,
-            default_output_file.filename().string(),
-            GUI::file_wildcards[fileType],
+            // If possible, remove accents from accented latin characters.
+            // This function is useful for generating file names to be processed by legacy firmwares.
+            auto default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(
+                p->print.output_filepath(output_path.string())
+                // FIXME: ^ errors to handle?
+            ));
+            auto start_dir = wxGetApp().app_config->get_last_output_dir(default_output_file.parent_path().string());
+
+            wxFileDialog dlg(this, _(L("Save G-code file as:")),
+                start_dir,
+                default_output_file.filename().string(),
+                GUI::file_wildcards[FT_GCODE],
+                wxFD_SAVE | wxFD_OVERWRITE_PROMPT
+            );
+
+            if (dlg.ShowModal() == wxID_OK) {
+                fs::path path(dlg.GetPath());
+                wxGetApp().app_config->update_last_output_dir(path.parent_path().string());
+                output_path = path;
+            }
+        }
+
+        final_path = p->print.output_filepath(output_path.string());
+    } else {
+        wxFileDialog dlg(this, _(L("Save Zip file as:")),
+            wxGetApp().app_config->get_last_output_dir(""),
+            "out.zip",
+            GUI::file_wildcards[FT_PNGZIP],
             wxFD_SAVE | wxFD_OVERWRITE_PROMPT
         );
 
@@ -2201,10 +2220,12 @@ void Plater::export_gcode(fs::path output_path)
             wxGetApp().app_config->update_last_output_dir(path.parent_path().string());
             output_path = path;
         }
+
+        final_path = output_path.string();
     }
 
     if (! output_path.empty()) {
-        this->p->background_process.schedule_export(p->print.output_filepath(output_path.string()));
+        this->p->background_process.schedule_export(final_path);
         this->p->background_process.start();
     }
 }
