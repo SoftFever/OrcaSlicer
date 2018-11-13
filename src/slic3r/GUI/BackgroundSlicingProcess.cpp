@@ -6,6 +6,11 @@
 #include <wx/panel.h>
 #include <wx/stdpaths.h>
 
+// For zipped archive creation
+#include <wx/stdstream.h>
+#include <wx/wfstream.h>
+#include <wx/zipstrm.h>
+
 // Print now includes tbb, and tbb includes Windows. This breaks compilation of wxWidgets if included before wx.
 #include "libslic3r/Print.hpp"
 #include "libslic3r/SLAPrint.hpp"
@@ -75,13 +80,53 @@ void BackgroundSlicingProcess::process_fff()
     }
 }
 
+// Pseudo type for specializing LayerWriter trait class
+struct SLAZipFmt {};
+
+// The implementation of creating zipped archives with wxWidgets
+template<> class LayerWriter<SLAZipFmt> {
+    wxFileName fpath;
+    wxFFileOutputStream zipfile;
+    wxZipOutputStream zipstream;
+    wxStdOutputStream pngstream;
+
+public:
+
+    inline LayerWriter(const std::string& zipfile_path):
+        fpath(zipfile_path),
+        zipfile(zipfile_path),
+        zipstream(zipfile),
+        pngstream(zipstream)
+    {
+        if(!zipfile.IsOk())
+            throw std::runtime_error("Cannot create zip file.");
+    }
+
+    inline void next_entry(const std::string& fname) {
+        zipstream.PutNextEntry(fname);
+    }
+
+    inline std::string get_name() const {
+        return fpath.GetName().ToStdString();
+    }
+
+    template<class T> inline LayerWriter& operator<<(const T& arg) {
+        pngstream << arg; return *this;
+    }
+
+    inline void close() {
+        zipstream.Close();
+        zipfile.Close();
+    }
+};
+
 void BackgroundSlicingProcess::process_sla() {
     assert(m_print == m_sla_print);
     m_print->process();
     if(!m_print->canceled() && ! this->is_step_done(bspsGCodeFinalize)) {
         this->set_step_started(bspsGCodeFinalize);
         if (! m_export_path.empty()) {
-            m_sla_print->export_raster(m_export_path);
+            m_sla_print->export_raster<SLAZipFmt>(m_export_path);
             m_print->set_status(100, "Zip file exported to " + m_export_path);
         }
         this->set_step_done(bspsGCodeFinalize);
