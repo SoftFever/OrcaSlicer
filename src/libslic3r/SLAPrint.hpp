@@ -6,13 +6,13 @@
 
 namespace Slic3r {
 
-enum SLAPrintStep {
+enum SLAPrintStep : unsigned int {
 	slapsRasterize,
 	slapsValidate,
 	slapsCount
 };
 
-enum SLAPrintObjectStep {
+enum SLAPrintObjectStep : unsigned int {
 	slaposObjectSlice,
 	slaposSupportIslands,
 	slaposSupportPoints,

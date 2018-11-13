@@ -1220,7 +1220,7 @@ void GLCanvas3D::Selection::add(unsigned int volume_idx, bool as_single_selectio
     {
     case Volume:
     {
-        if (is_empty() || (volume->instance_idx() == get_instance_idx()))
+        if (volume->volume_idx() >= 0 && (is_empty() || (volume->instance_idx() == get_instance_idx())))
             _add_volume(volume_idx);
 
         break;

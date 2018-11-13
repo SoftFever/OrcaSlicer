@@ -18,7 +18,7 @@ class Print;
 class PrintObject;
 class SLAPrint;
 class SLAPrintObject;
-enum  SLAPrintObjectStep;
+enum  SLAPrintObjectStep : unsigned int;
 class Model;
 class ModelObject;
 class GCodePreviewData;
