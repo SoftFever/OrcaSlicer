@@ -120,6 +120,8 @@ void SLAPrint::process()
     // shortcut to initial layer height
     auto ilh = float(m_material_config.initial_layer_height.getFloat());
 
+    // Slicing the model object. This method is oversimplified and needs to
+    // be compared with the fff slicing algorithm for verification
     auto slice_model = [ilh](SLAPrintObject& po) {
         auto lh = float(po.m_config.layer_height.getFloat());
 
@@ -143,6 +145,7 @@ void SLAPrint::process()
         //}
     };
 
+    // In this step we create the supports
     auto support_tree = [this](SLAPrintObject& po) {
         auto& emesh = po.m_supportdata->emesh;
         auto& pts = po.m_supportdata->support_points; // nowhere filled yet
@@ -167,14 +170,17 @@ void SLAPrint::process()
         }
     };
 
+    // This step generates the sla base pad
     auto base_pool = [](SLAPrintObject&) {
 
     };
 
+    // Slicing the support geometries similarly to the model slicing procedure
     auto slice_supports = [](SLAPrintObject&) {
 
     };
 
+    // Rasterizing the model objects, and their supports
     auto rasterize = [this, ilh]() {
         using Layer = ExPolygons;
         using LayerCopies = std::vector<SLAPrintObject::Instance>;
@@ -198,8 +204,11 @@ void SLAPrint::process()
             auto& firstlyr = oslices.front();
             auto& initlevel = levels[initlyridx];
             initlevel.emplace_back(firstlyr, o->m_instances);
-            double lh = o->m_config.layer_height.getFloat();
 
+            // now push the support slices as well
+            // TODO
+
+            double lh = o->m_config.layer_height.getFloat();
             size_t li = 1;
             for(auto lit = std::next(oslices.begin());
                 lit != oslices.end();
@@ -309,7 +318,7 @@ void SLAPrint::process()
             // execution gets to this point and throws the canceled signal.
             throw_if_canceled();
 
-            if(po->m_stepmask[s]) {
+            if(po->m_stepmask[s] && !po->is_step_done(currentstep)) {
                 set_status(OBJ_STEP_LEVELS[currentstep],
                            OBJ_STEP_LABELS[currentstep]);
 
@@ -329,7 +338,7 @@ void SLAPrint::process()
 
         throw_if_canceled();
 
-        if(m_stepmask[s]) {
+        if(m_stepmask[s] && !is_step_done(currentstep)) {
             set_status(PRINT_STEP_LEVELS[currentstep],
                        PRINT_STEP_LABELS[currentstep]);
 
