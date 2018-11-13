@@ -1244,16 +1244,22 @@ size_t ModelVolume::split(unsigned int max_extruders)
     std::string name = this->name;
 
     Model::reset_auto_extruder_id();
+#if ENABLE_MODELVOLUME_TRANSFORM
+    Vec3d offset = this->get_offset();
+#endif // ENABLE_MODELVOLUME_TRANSFORM
 
     for (TriangleMesh *mesh : meshptrs) {
         mesh->repair();
         if (idx == 0)
             this->mesh = std::move(*mesh);
         else
-            this->object->volumes.insert(this->object->volumes.begin() + (++ ivolume), new ModelVolume(object, *this, std::move(*mesh)));
-        char str_idx[64];
-        sprintf(str_idx, "_%d", idx + 1);
-        this->object->volumes[ivolume]->name = name + str_idx;
+            this->object->volumes.insert(this->object->volumes.begin() + (++ivolume), new ModelVolume(object, *this, std::move(*mesh)));
+
+#if ENABLE_MODELVOLUME_TRANSFORM
+        this->object->volumes[ivolume]->center_geometry();
+        this->object->volumes[ivolume]->translate(offset);
+#endif // ENABLE_MODELVOLUME_TRANSFORM
+        this->object->volumes[ivolume]->name = name + "_" + std::to_string(idx + 1);
         this->object->volumes[ivolume]->config.set_deserialize("extruder", Model::get_auto_extruder_id_as_string(max_extruders));
         delete mesh;
         ++ idx;
