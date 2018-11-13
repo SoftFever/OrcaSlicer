@@ -907,6 +907,7 @@ struct Plater::priv
     void object_list_changed();
 
     void remove(size_t obj_idx);
+    void delete_object_from_model(size_t obj_idx);
     void reset();
     void mirror(Axis axis);
     void arrange();
@@ -1434,6 +1435,12 @@ void Plater::priv::remove(size_t obj_idx)
 
     object_list_changed();
     update();
+}
+
+
+void Plater::priv::delete_object_from_model(size_t obj_idx)
+{
+    model.delete_object(obj_idx);
 }
 
 void Plater::priv::reset()
@@ -2055,6 +2062,7 @@ void Plater::update(bool force_autocenter) { p->update(force_autocenter); }
 void Plater::select_view(const std::string& direction) { p->select_view(direction); }
 
 void Plater::remove(size_t obj_idx) { p->remove(obj_idx); }
+void Plater::delete_object_from_model(size_t obj_idx) { p->delete_object_from_model(obj_idx); }
 
 void Plater::remove_selected()
 {

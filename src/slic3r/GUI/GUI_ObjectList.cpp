@@ -823,9 +823,12 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const int 
 #endif //no __WXOSX__ //__WXMSW__
 }
 
+void ObjectList::del_object(const int obj_idx)
+{
+    wxGetApp().plater()->delete_object_from_model(obj_idx);
+}
 
 // Delete subobject
-
 void ObjectList::del_subobject_item(wxDataViewItem& item)
 {
     if (!item) return;
@@ -1158,6 +1161,44 @@ void ObjectList::delete_volume_from_list(const size_t obj_idx, const size_t vol_
 void ObjectList::delete_instance_from_list(const size_t obj_idx, const size_t inst_idx)
 {
     select_item(m_objects_model->Delete(m_objects_model->GetItemByInstanceId(obj_idx, inst_idx)));
+}
+
+void ObjectList::delete_from_model_and_list(const ItemType type, const int obj_idx, const int sub_obj_idx)
+{
+    if ( !(type&(itObject|itVolume|itInstance)) )
+        return;
+
+    if (type&itObject) {
+        del_object(obj_idx);
+        delete_object_from_list(obj_idx);
+    }
+    else {
+        del_subobject_from_object(obj_idx, sub_obj_idx, type);
+
+        type == itVolume ? delete_volume_from_list(obj_idx, sub_obj_idx) :
+            delete_instance_from_list(obj_idx, sub_obj_idx);
+    }
+}
+
+void ObjectList::delete_from_model_and_list(const std::vector<ItemForDelete> * items_for_delete)
+{
+    for (auto& item : *items_for_delete)
+    {
+        if ( !(item.type&(itObject|itVolume|itInstance)) )
+            continue;
+        if (item.type&itObject) {
+            del_object(item.obj_idx);
+            m_objects_model->Delete(m_objects_model->GetItemById(item.obj_idx));
+        }
+        else {
+            del_subobject_from_object(item.obj_idx, item.sub_obj_idx, item.type);
+            if (item.type&itVolume)
+                m_objects_model->Delete(m_objects_model->GetItemByVolumeId(item.obj_idx, item.sub_obj_idx));
+            else
+                m_objects_model->Delete(m_objects_model->GetItemByInstanceId(item.obj_idx, item.sub_obj_idx));
+        }
+    }
+    part_selection_changed();
 }
 
 void ObjectList::delete_all_objects_from_list()

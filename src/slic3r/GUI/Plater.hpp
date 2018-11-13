@@ -119,6 +119,7 @@ public:
     void select_view(const std::string& direction);
 
     void remove(size_t obj_idx);
+    void delete_object_from_model(size_t obj_idx);
     void remove_selected();
     void increase_instances(size_t num = 1);
     void decrease_instances(size_t num = 1);
