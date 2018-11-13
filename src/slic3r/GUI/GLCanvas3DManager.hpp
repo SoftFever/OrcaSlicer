@@ -14,6 +14,7 @@ namespace Slic3r {
 
 class DynamicPrintConfig;
 class Print;
+class SLAPrint;
 class Model;
 class ExPolygon;
 typedef std::vector<ExPolygon> ExPolygons;
@@ -95,6 +96,7 @@ public:
 
     void set_config(wxGLCanvas* canvas, DynamicPrintConfig* config);
     void set_print(wxGLCanvas* canvas, Print* print);
+    void set_SLA_print(wxGLCanvas* canvas, SLAPrint* print);
     void set_model(wxGLCanvas* canvas, Model* model);
 
     void set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape);

@@ -22,6 +22,7 @@ namespace Slic3r {
 
 class GLShader;
 class ExPolygon;
+class SLAPrint;
 
 namespace GUI {
 
@@ -447,17 +448,25 @@ public:
 
         struct Cache
         {
+            // Cache of GLVolume derived transformation matrices, valid during mouse dragging.
             VolumesCache volumes_data;
+            // Center of the dragged selection, valid during mouse dragging.
             Vec3d dragging_center;
+            // Map from indices of ModelObject instances in Model::objects
+            // to a set of indices of ModelVolume instances in ModelObject::instances
+            // Here the index means a position inside the respective std::vector, not ModelID.
             ObjectIdxsToInstanceIdxsMap content;
         };
 
+        // Volumes owned by GLCanvas3D.
         GLVolumePtrs* m_volumes;
+        // Model, not owned.
         Model* m_model;
 
         bool m_valid;
         EMode m_mode;
         EType m_type;
+        // set of indices to m_volumes
         IndicesList m_list;
         Cache m_cache;
         mutable BoundingBoxf3 m_bounding_box;
@@ -692,6 +701,7 @@ private:
     Selection m_selection;
     DynamicPrintConfig* m_config;
     Print* m_print;
+    SLAPrint* m_sla_print;
     Model* m_model;
 
     bool m_dirty;
@@ -745,6 +755,7 @@ public:
 
     void set_config(DynamicPrintConfig* config);
     void set_print(Print* print);
+    void set_SLA_print(SLAPrint* print);
     void set_model(Model* model);
 
     const Selection& get_selection() const { return m_selection; }
@@ -809,6 +820,9 @@ public:
 
     std::vector<int> load_object(const ModelObject& model_object, int obj_idx, std::vector<int> instance_idxs);
     std::vector<int> load_object(const Model& model, int obj_idx);
+
+    // Load SLA support tree and SLA pad meshes into the scene, if available at the respective SLAPrintObject instances.
+    std::vector<int> load_support_meshes(const Model& model, int obj_idx);
 
     int get_first_volume_id(int obj_idx) const;
     int get_in_object_volume_id(int scene_vol_idx) const;

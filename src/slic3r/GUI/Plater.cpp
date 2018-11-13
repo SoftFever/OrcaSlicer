@@ -447,7 +447,7 @@ struct Sidebar::priv
 
 void Sidebar::priv::show_preset_comboboxes()
 {
-    const bool showSLA = wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA;
+    const bool showSLA = plater->printer_technology() == ptSLA;
 
     wxWindowUpdateLocker noUpdates_scrolled(scrolled);
 //     scrolled->Freeze();
@@ -630,9 +630,8 @@ void Sidebar::update_presets(Preset::Type preset_type)
 
 	case Preset::TYPE_PRINTER:
 	{
-		PrinterTechnology printer_technology = preset_bundle.printers.get_edited_preset().printer_technology();
 		// Update the print choosers to only contain the compatible presets, update the dirty flags.
-		if (printer_technology == ptFFF)
+		if (p->plater->printer_technology() == ptFFF)
 			preset_bundle.prints.update_platter_ui(p->combo_print);
 		else
 			preset_bundle.sla_materials.update_platter_ui(p->combo_sla_material);
@@ -640,7 +639,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
 		preset_bundle.printers.update_platter_ui(p->combo_printer);
 		// Update the filament choosers to only contain the compatible presets, update the color preview,
 		// update the dirty flags.
-        if (printer_technology == ptFFF) {
+		if (p->plater->printer_technology() == ptFFF) {
             for (size_t i = 0; i < p->combos_filament.size(); ++ i)
                 preset_bundle.update_platter_filament_ui(i, p->combos_filament[i]);
 		}
@@ -785,7 +784,7 @@ void Sidebar::show_buttons(const bool show)
         TabPrinter *tab = dynamic_cast<TabPrinter*>(wxGetApp().tab_panel()->GetPage(i));
         if (!tab)
             continue;
-        if (wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology() == ptFFF) {
+		if (p->plater->printer_technology() == ptFFF) {
             p->btn_send_gcode->Show(show && !tab->m_config->opt_string("print_host").empty());
         }
         break;
@@ -875,10 +874,11 @@ struct Plater::priv
 
     // Data
     Slic3r::DynamicPrintConfig *config;
-    Slic3r::Print print;
-	Slic3r::SLAPrint sla_print;
-    Slic3r::Model model;
-    Slic3r::GCodePreviewData gcode_preview_data;
+    Slic3r::Print               print;
+	Slic3r::SLAPrint            sla_print;
+    Slic3r::Model               model;
+    PrinterTechnology           printer_technology = ptFFF;
+    Slic3r::GCodePreviewData    gcode_preview_data;
 
     // GUI elements
     wxNotebook *notebook;
@@ -921,8 +921,21 @@ struct Plater::priv
     void split_object();
     void split_volume();
     void schedule_background_process();
+    // Update background processing thread from the current config and Model.
+    enum UpdateBackgroundProcessReturnState {
+        // update_background_process() reports, that the Print / SLAPrint was updated in a way,
+        // that the background process was invalidated and it needs to be re-run.
+        UPDATE_BACKGROUND_PROCESS_RESTART = 1,
+        // update_background_process() reports, that the Print / SLAPrint was updated in a way,
+        // that a scene needs to be refreshed (you should call _3DScene::reload_scene(canvas3D, false))
+        UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE = 2,   
+        // update_background_process() reports, that the Print / SLAPrint is invalid, and the error message
+        // was sent to the status line.
+        UPDATE_BACKGROUND_PROCESS_INVALID = 4,
+    };
+    // returns bit mask of UpdateBackgroundProcessReturnState
+    unsigned int update_background_process();
     void async_apply_config();
-    void start_background_process();
     void reload_from_disk();
     void export_object_stl();
     void fix_through_netfabb(const int obj_idx);
@@ -988,7 +1001,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     background_process.set_sliced_event(EVT_SLICING_COMPLETED);
     background_process.set_finished_event(EVT_PROCESS_COMPLETED);
 	// Default printer technology for default config.
-    background_process.select_technology(q->printer_technology());
+    background_process.select_technology(this->printer_technology);
     // Register progress callback from the Print class to the Platter.
     print.set_status_callback([this](int percent, const std::string &message) {
         wxCommandEvent event(EVT_PROGRESS_BAR);
@@ -1009,6 +1022,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     // XXX: more config from 3D.pm
     _3DScene::set_model(canvas3D, &model);
     _3DScene::set_print(canvas3D, &print);
+    _3DScene::set_SLA_print(canvas3D, &sla_print);
     _3DScene::set_config(canvas3D, config);
     _3DScene::enable_gizmos(canvas3D, true);
     _3DScene::enable_toolbar(canvas3D, true);
@@ -1091,6 +1105,11 @@ void Plater::priv::update(bool force_autocenter)
         model.center_instances_around_point(bed_center);
     }
 
+    if (this->printer_technology == ptSLA) {
+        // Update the SLAPrint from the current Model, so that the reload_scene()
+        // pulls the correct data.
+        this->update_background_process();
+    }
     _3DScene::reload_scene(canvas3D, false);
     preview->reset_gcode_preview_data();
     preview->reload_print();
@@ -1610,10 +1629,18 @@ void Plater::priv::schedule_background_process()
     this->background_process_timer.Start(500, wxTIMER_ONE_SHOT);
 }
 
-void Plater::priv::async_apply_config()
+// Update background processing thread from the current config and Model.
+// Returns a bitmask of UpdateBackgroundProcessReturnState.
+unsigned int Plater::priv::update_background_process()
 {
+    // bitmap of enum UpdateBackgroundProcessReturnState
+    unsigned int return_state = 0;
+
+    // If the async_apply_config() was not called by the timer, kill the timer, so the async_apply_config()
+    // will not be called again in vain.
+    this->background_process_timer.Stop();
+
     DynamicPrintConfig config = wxGetApp().preset_bundle->full_config();
-    auto            printer_technology = config.opt_enum<PrinterTechnology>("printer_technology");
     BoundingBox     bed_box_2D = get_extents(Polygon::new_scale(config.opt<ConfigOptionPoints>("bed_shape")->values));
     BoundingBoxf3   print_volume(unscale(bed_box_2D.min(0), bed_box_2D.min(1), 0.0), unscale(bed_box_2D.max(0), bed_box_2D.max(1), scale_(config.opt_float("max_print_height"))));
     // Allow the objects to protrude below the print bed, only the part of the object above the print bed will be sliced.
@@ -1634,40 +1661,55 @@ void Plater::priv::async_apply_config()
         // Reset preview canvases. If the print has been invalidated, the preview canvases will be cleared.
         // Otherwise they will be just refreshed.
         this->gcode_preview_data.reset();
-        if (printer_technology == ptFFF) {
+        switch (this->printer_technology) {
+        case ptFFF:
             if (this->preview != nullptr)
+                // If the preview is not visible, the following line just invalidates the preview,
+                // but the G-code paths are calculated first once the preview is made visible.
                 this->preview->reload_print();
             // We also need to reload 3D scene because of the wipe tower preview box
             if (this->config->opt_bool("wipe_tower")) {
     //            std::vector<int> selections = this->collect_selections();
     //            Slic3r::_3DScene::set_objects_selections(this->canvas3D, selections);
-    //            Slic3r::_3DScene::reload_scene(this->canvas3D, 1);
+                return_state |= UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE;
             }
+            break;
+        case ptSLA:
+            //FIXME as of now the Print::APPLY_STATUS_INVALIDATED is not reliable, and
+            // currently the scene refresh is expensive and loses selection.
+            //return_state |= UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE;
+            break;
         }
     }
-    if (invalidated != Print::APPLY_STATUS_UNCHANGED && this->get_config("background_processing") == "1" &&
-        this->background_process.start())
-		this->statusbar()->set_cancel_callback([this]() {
-            this->statusbar()->set_status_text(L("Cancelling"));
-			this->background_process.stop();
-        });
+
+    if (! this->background_process.empty()) {
+        std::string err = this->background_process.validate();
+        if (err.empty()) {
+            if (invalidated != Print::APPLY_STATUS_UNCHANGED)
+                return_state |= UPDATE_BACKGROUND_PROCESS_RESTART;
+        } else {
+            // The print is not valid.
+            GUI::show_error(this->q, _(err));
+            return_state |= UPDATE_BACKGROUND_PROCESS_INVALID;
+        }
+    }
+    return return_state;
 }
 
-void Plater::priv::start_background_process()
+void Plater::priv::async_apply_config()
 {
-	if (this->background_process.running())
-		return;
-    // Don't start process thread if Print is not valid.
-    std::string err = this->background_process.validate();
-    if (! err.empty()) {
-        this->statusbar()->set_status_text(err);
-	} else {
-		// Copy the names of active presets into the placeholder parser.
-        //FIXME how to generate a file name for the SLA printers?
-		wxGetApp().preset_bundle->export_selections(this->q->print().placeholder_parser());
-		// Start the background process.
-		this->background_process.start();
-	}
+    // bitmask of UpdateBackgroundProcessReturnState
+    unsigned int state = this->update_background_process();
+    if (state & UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE)
+        _3DScene::reload_scene(canvas3D, false);
+    if ((state & UPDATE_BACKGROUND_PROCESS_RESTART) != 0 && this->get_config("background_processing") == "1") {
+        // The print is valid and it can be started.
+        if (this->background_process.start())
+            this->statusbar()->set_cancel_callback([this]() {
+                this->statusbar()->set_status_text(L("Cancelling"));
+                this->background_process.stop();
+            });
+    }
 }
 
 void Plater::priv::reload_from_disk()
@@ -1716,6 +1758,13 @@ void Plater::priv::on_notebook_changed(wxBookCtrlEvent&)
     const auto current_id = notebook->GetCurrentPage()->GetId();
     if (current_id == canvas3D->GetId()) {
         if (_3DScene::is_reload_delayed(canvas3D)) {
+            // Delayed loading of the 3D scene.
+            if (this->printer_technology == ptSLA) {
+                // Update the SLAPrint from the current Model, so that the reload_scene()
+                // pulls the correct data.
+                if (this->update_background_process() & UPDATE_BACKGROUND_PROCESS_RESTART)
+                    this->schedule_background_process();
+            }
             _3DScene::reload_scene(canvas3D, true);
         }
         // sets the canvas as dirty to force a render at the 1st idle event (wxWidgets IsShownOnScreen() is buggy and cannot be used reliably)
@@ -1811,22 +1860,18 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
     //$self->object_list_changed;
     
     // refresh preview
-    if (this->preview != nullptr)
-        this->preview->reload_print();
-
-    // TODO: this needs to be implemented somehow
-    if(q->printer_technology() == PrinterTechnology::ptSLA) {
-
-        class Renderer: public SLASupportRenderer {
-        public:
-            void add_pillar(const Mesh&, ClickCb ) override {}
-            void add_head(const Mesh&, ClickCb) override {}
-            void add_bridge(const Mesh&, ClickCb) override {}
-            void add_junction(const Mesh&, ClickCb) override {}
-            void add_pad(const Mesh&, ClickCb) override {}
-        } renderer;
-
-        sla_print.render_supports(renderer);
+    switch (this->printer_technology) {
+    case ptFFF:
+        if (this->preview != nullptr)
+            this->preview->reload_print();
+        break;
+    case ptSLA:
+        // Update the SLAPrint from the current Model, so that the reload_scene()
+        // pulls the correct data.
+        if (this->update_background_process() & UPDATE_BACKGROUND_PROCESS_RESTART)
+            this->schedule_background_process();
+        _3DScene::reload_scene(canvas3D, true);
+        break;
     }
 }
 
@@ -2264,21 +2309,24 @@ void Plater::export_3mf()
     }
 }
 
-
 void Plater::reslice()
 {
-    // explicitly cancel a previous thread and start a new one.
-    // Don't reslice if export of G-code or sending to OctoPrint is running.
-//    if (! defined($self->{export_gcode_output_file}) && ! defined($self->{send_gcode_file})) {
-    // Stop the background processing threads, stop the async update timer.
-//    this->p->stop_background_process();
-    // Rather perform one additional unnecessary update of the print object instead of skipping a pending async update.
-    this->p->async_apply_config();
-	this->p->statusbar()->set_cancel_callback([this]() {
-		this->p->statusbar()->set_status_text(L("Cancelling"));
-		this->p->background_process.stop();
-    });
-    this->p->start_background_process();
+    //FIXME Don't reslice if export of G-code or sending to OctoPrint is running.
+    // bitmask of UpdateBackgroundProcessReturnState
+    unsigned int state = this->p->update_background_process();
+    if (state & priv::UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE)
+        _3DScene::reload_scene(this->p->canvas3D, false);
+	if ((state & priv::UPDATE_BACKGROUND_PROCESS_INVALID) == 0 && !this->p->background_process.running()) {
+        // The print is valid and it can be started.
+        // Copy the names of active presets into the placeholder parser.
+        //FIXME how to generate a file name for the SLA printers?
+        wxGetApp().preset_bundle->export_selections(this->print().placeholder_parser());
+        if (this->p->background_process.start())
+			this->p->statusbar()->set_cancel_callback([this]() {
+				this->p->statusbar()->set_status_text(L("Cancelling"));
+				this->p->background_process.stop();
+            });
+    }
 }
 
 void Plater::send_gcode()
@@ -2317,8 +2365,10 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
     bool update_scheduled = false;
     for (auto opt_key : p->config->diff(config)) {
         p->config->set_key_value(opt_key, config.option(opt_key)->clone());
-        if (opt_key == "printer_technology")
-			p->background_process.select_technology(config.opt_enum<PrinterTechnology>(opt_key));
+        if (opt_key == "printer_technology") {
+            p->printer_technology = config.opt_enum<PrinterTechnology>(opt_key);
+			p->background_process.select_technology(this->printer_technology());
+        }
         else if (opt_key  == "bed_shape") {
             if (p->canvas3D) _3DScene::set_bed_shape(p->canvas3D, p->config->option<ConfigOptionPoints>(opt_key)->values);
             if (p->preview) p->preview->set_bed_shape(p->config->option<ConfigOptionPoints>(opt_key)->values);
@@ -2384,7 +2434,7 @@ wxGLCanvas* Plater::canvas3D()
 
 PrinterTechnology Plater::printer_technology() const
 {
-    return wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology();
+    return p->printer_technology;
 }
 
 void Plater::changed_object(int obj_idx)

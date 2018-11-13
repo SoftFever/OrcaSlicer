@@ -36,7 +36,23 @@ private: // Prevents erroneous use by other classes.
 public:
     const ModelObject*      model_object() const    { return m_model_object; }
     ModelObject*            model_object()          { return m_model_object; }
+    const Transform3d&      trafo()        const    { return m_trafo; }
+
+    struct Instance {
+    	ModelID instance_id;
+	    // Slic3r::Point objects in scaled G-code coordinates
+    	Point 	shift;
+    	// Rotation along the Z axis, in radians.
+    	float 	rotation; 
+    };
+    const std::vector<Instance>& instances() const { return m_instances; }
+
+    // Get a support mesh centered around origin in XY, and with zero rotation around Z applied.
+    // Support mesh is only valid if this->is_step_done(slaposSupportTree) is true.
     TriangleMesh            support_mesh() const;
+    // Get a pad mesh centered around origin in XY, and with zero rotation around Z applied.
+    // Support mesh is only valid if this->is_step_done(slaposPad) is true.
+    TriangleMesh            pad_mesh() const;
 
     // I refuse to grantee copying (Tamas)
     SLAPrintObject(const SLAPrintObject&) = delete;
@@ -54,12 +70,6 @@ protected:
     	{ this->m_config.apply_only(other, keys, ignore_nonexistent); }
     void                    set_trafo(const Transform3d& trafo) { m_trafo = trafo; }
 
-    struct Instance {
-	    // Slic3r::Point objects in scaled G-code coordinates
-    	Point 	shift;
-    	// Rotation along the Z axis, in radians.
-    	float 	rotation; 
-    };
     bool                    set_instances(const std::vector<Instance> &instances);
     // Invalidates the step, and its depending steps in SLAPrintObject and SLAPrint.
     bool                    invalidate_step(SLAPrintObjectStep step);
@@ -142,6 +152,8 @@ public:
     void                process() override;
 
     void                render_supports(SLASupportRenderer& renderer);
+
+    const PrintObjects& objects() const { return m_objects; }
 
 private:
     Model                           m_model;
