@@ -23,6 +23,8 @@
 #define ENABLE_MODIFIED_CAMERA_TARGET (1 && ENABLE_1_42_0)
 // Add Geometry::Transformation class and use it into ModelInstance, ModelVolume and GLVolume
 #define ENABLE_MODELVOLUME_TRANSFORM (1 && ENABLE_1_42_0)
+// Gizmos always rendered on top of objects
+#define ENABLE_GIZMOS_ON_TOP (1 && ENABLE_1_42_0)
 
 #endif // _technologies_h_
 

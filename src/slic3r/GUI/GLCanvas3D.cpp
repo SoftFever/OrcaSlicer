@@ -2714,8 +2714,6 @@ void GLCanvas3D::Gizmos::render_current_gizmo(const GLCanvas3D::Selection& selec
     if (!m_enabled)
         return;
 
-    ::glDisable(GL_DEPTH_TEST);
-
     _render_current_gizmo(selection);
 }
 
@@ -3639,6 +3637,7 @@ void GLCanvas3D::render()
     _picking_pass();
 
     // draw scene
+    ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     _render_background();
 
     if (is_custom_bed) // untextured bed needs to be rendered before objects
@@ -3647,8 +3646,8 @@ void GLCanvas3D::render()
         // disable depth testing so that axes are not covered by ground
         _render_axes(false);
     }
-    _render_objects();
 
+    _render_objects();
     _render_selection();
 
     if (!is_custom_bed) // textured bed needs to be rendered after objects
@@ -4972,8 +4971,6 @@ void GLCanvas3D::_picking_pass() const
 
 void GLCanvas3D::_render_background() const
 {
-    ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     ::glPushMatrix();
     ::glLoadIdentity();
     ::glMatrixMode(GL_PROJECTION);
