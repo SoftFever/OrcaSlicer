@@ -201,10 +201,10 @@ void GLGizmoBase::stop_dragging()
     on_stop_dragging();
 }
 
-void GLGizmoBase::update(const Linef3& mouse_ray, const Point* mouse_pos)
+void GLGizmoBase::update(const UpdateData& data)
 {
     if (m_hover_id != -1)
-        on_update(mouse_ray, mouse_pos);
+        on_update(data);
 }
 
 float GLGizmoBase::picking_color_component(unsigned int id) const
@@ -303,9 +303,9 @@ void GLGizmoRotate::on_start_dragging(const GLCanvas3D::Selection& selection)
     m_snap_fine_out_radius = m_snap_fine_in_radius + m_radius * ScaleLongTooth;
 }
 
-void GLGizmoRotate::on_update(const Linef3& mouse_ray, const Point* mouse_position)
-{ 
-    Vec2d mouse_pos = to_2d(mouse_position_in_local_plane(mouse_ray));
+void GLGizmoRotate::on_update(const UpdateData& data)
+{
+    Vec2d mouse_pos = to_2d(mouse_position_in_local_plane(data.mouse_ray));
 
     Vec2d orig_dir = Vec2d::UnitX();
     Vec2d new_dir = mouse_pos.normalized();
@@ -650,6 +650,7 @@ const float GLGizmoScale3D::Offset = 5.0f;
 GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent)
     : GLGizmoBase(parent)
     , m_scale(Vec3d::Ones())
+    , m_snap_step(0.05)
     , m_starting_scale(Vec3d::Ones())
 {
 }
@@ -702,16 +703,16 @@ void GLGizmoScale3D::on_start_dragging(const GLCanvas3D::Selection& selection)
     }
 }
 
-void GLGizmoScale3D::on_update(const Linef3& mouse_ray, const Point* mouse_pos)
+void GLGizmoScale3D::on_update(const UpdateData& data)
 {
     if ((m_hover_id == 0) || (m_hover_id == 1))
-        do_scale_x(mouse_ray);
+        do_scale_x(data);
     else if ((m_hover_id == 2) || (m_hover_id == 3))
-        do_scale_y(mouse_ray);
+        do_scale_y(data);
     else if ((m_hover_id == 4) || (m_hover_id == 5))
-        do_scale_z(mouse_ray);
+        do_scale_z(data);
     else if (m_hover_id >= 6)
-        do_scale_uniform(mouse_ray);
+        do_scale_uniform(data);
 }
 
 #if ENABLE_GIZMOS_RESET
@@ -940,39 +941,35 @@ void GLGizmoScale3D::render_grabbers_connection(unsigned int id_1, unsigned int 
     }
 }
 
-void GLGizmoScale3D::do_scale_x(const Linef3& mouse_ray)
+void GLGizmoScale3D::do_scale_x(const UpdateData& data)
 {
-    double ratio = calc_ratio(mouse_ray);
-
+    double ratio = calc_ratio(data);
     if (ratio > 0.0)
         m_scale(0) = m_starting_scale(0) * ratio;
 }
 
-void GLGizmoScale3D::do_scale_y(const Linef3& mouse_ray)
+void GLGizmoScale3D::do_scale_y(const UpdateData& data)
 {
-    double ratio = calc_ratio(mouse_ray);
-
+    double ratio = calc_ratio(data);
     if (ratio > 0.0)
         m_scale(1) = m_starting_scale(1) * ratio;
 }
 
-void GLGizmoScale3D::do_scale_z(const Linef3& mouse_ray)
+void GLGizmoScale3D::do_scale_z(const UpdateData& data)
 {
-    double ratio = calc_ratio(mouse_ray);
-
+    double ratio = calc_ratio(data);
     if (ratio > 0.0)
         m_scale(2) = m_starting_scale(2) * ratio;
 }
 
-void GLGizmoScale3D::do_scale_uniform(const Linef3& mouse_ray)
+void GLGizmoScale3D::do_scale_uniform(const UpdateData& data)
 {
-    double ratio = calc_ratio(mouse_ray);
-
+    double ratio = calc_ratio(data);
     if (ratio > 0.0)
         m_scale = m_starting_scale * ratio;
 }
 
-double GLGizmoScale3D::calc_ratio(const Linef3& mouse_ray) const
+double GLGizmoScale3D::calc_ratio(const UpdateData& data) const
 {
     double ratio = 0.0;
 
@@ -981,20 +978,23 @@ double GLGizmoScale3D::calc_ratio(const Linef3& mouse_ray) const
     double len_starting_vec = starting_vec.norm();
     if (len_starting_vec != 0.0)
     {
-        Vec3d mouse_dir = mouse_ray.unit_vector();
+        Vec3d mouse_dir = data.mouse_ray.unit_vector();
         // finds the intersection of the mouse ray with the plane parallel to the camera viewport and passing throught the starting position
         // use ray-plane intersection see i.e. https://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection algebric form
         // in our case plane normal and ray direction are the same (orthogonal view)
         // when moving to perspective camera the negative z unit axis of the camera needs to be transformed in world space and used as plane normal
-        Vec3d inters = mouse_ray.a + (m_starting_drag_position - mouse_ray.a).dot(mouse_dir) / mouse_dir.squaredNorm() * mouse_dir;
+        Vec3d inters = data.mouse_ray.a + (m_starting_drag_position - data.mouse_ray.a).dot(mouse_dir) / mouse_dir.squaredNorm() * mouse_dir;
         // vector from the starting position to the found intersection
         Vec3d inters_vec = inters - m_starting_drag_position;
 
         // finds projection of the vector along the staring direction
         double proj = inters_vec.dot(starting_vec.normalized());
 
-        return (len_starting_vec + proj) / len_starting_vec;
+        ratio = (len_starting_vec + proj) / len_starting_vec;
     }
+
+    if (data.shift_down)
+        ratio = m_snap_step * (double)std::round(ratio / m_snap_step);
 
     return ratio;
 }
@@ -1057,14 +1057,14 @@ void GLGizmoMove3D::on_stop_dragging()
     m_displacement = Vec3d::Zero();
 }
 
-void GLGizmoMove3D::on_update(const Linef3& mouse_ray, const Point* mouse_pos)
+void GLGizmoMove3D::on_update(const UpdateData& data)
 {
     if (m_hover_id == 0)
-        m_displacement(0) = calc_projection(mouse_ray);
+        m_displacement(0) = calc_projection(data);
     else if (m_hover_id == 1)
-        m_displacement(1) = calc_projection(mouse_ray);
+        m_displacement(1) = calc_projection(data);
     else if (m_hover_id == 2)
-        m_displacement(2) = calc_projection(mouse_ray);
+        m_displacement(2) = calc_projection(data);
 }
 
 void GLGizmoMove3D::on_render(const GLCanvas3D::Selection& selection) const
@@ -1140,7 +1140,7 @@ void GLGizmoMove3D::on_render_for_picking(const GLCanvas3D::Selection& selection
     render_grabbers_for_picking(selection.get_bounding_box());
 }
 
-double GLGizmoMove3D::calc_projection(const Linef3& mouse_ray) const
+double GLGizmoMove3D::calc_projection(const UpdateData& data) const
 {
     double projection = 0.0;
 
@@ -1148,12 +1148,12 @@ double GLGizmoMove3D::calc_projection(const Linef3& mouse_ray) const
     double len_starting_vec = starting_vec.norm();
     if (len_starting_vec != 0.0)
     {
-        Vec3d mouse_dir = mouse_ray.unit_vector();
+        Vec3d mouse_dir = data.mouse_ray.unit_vector();
         // finds the intersection of the mouse ray with the plane parallel to the camera viewport and passing throught the starting position
         // use ray-plane intersection see i.e. https://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection algebric form
         // in our case plane normal and ray direction are the same (orthogonal view)
         // when moving to perspective camera the negative z unit axis of the camera needs to be transformed in world space and used as plane normal
-        Vec3d inters = mouse_ray.a + (m_starting_drag_position - mouse_ray.a).dot(mouse_dir) / mouse_dir.squaredNorm() * mouse_dir;
+        Vec3d inters = data.mouse_ray.a + (m_starting_drag_position - data.mouse_ray.a).dot(mouse_dir) / mouse_dir.squaredNorm() * mouse_dir;
         // vector from the starting position to the found intersection
         Vec3d inters_vec = inters - m_starting_drag_position;
 
@@ -1718,12 +1718,12 @@ void GLGizmoSlaSupports::delete_current_grabber(bool delete_all)
         }
 }
 
-void GLGizmoSlaSupports::on_update(const Linef3& mouse_ray, const Point* mouse_pos)
+void GLGizmoSlaSupports::on_update(const UpdateData& data)
 {
-    if (m_hover_id != -1 && mouse_pos) {
+    if (m_hover_id != -1 && data.mouse_pos) {
         Vec3f new_pos;
         try {
-            new_pos = unproject_on_mesh(Vec2d((*mouse_pos)(0), (*mouse_pos)(1)));
+            new_pos = unproject_on_mesh(Vec2d((*data.mouse_pos)(0), (*data.mouse_pos)(1)));
             m_grabbers[m_hover_id].center = new_pos.cast<double>();
             m_model_object->sla_support_points[m_hover_id] = new_pos;
         }
