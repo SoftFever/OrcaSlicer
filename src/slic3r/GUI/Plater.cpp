@@ -1871,8 +1871,21 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
     case ptSLA:
         // Update the SLAPrint from the current Model, so that the reload_scene()
         // pulls the correct data.
-        if (this->update_background_process() & UPDATE_BACKGROUND_PROCESS_RESTART)
-            this->schedule_background_process();
+//        if (this->update_background_process() & UPDATE_BACKGROUND_PROCESS_RESTART)
+//            this->schedule_background_process();
+
+        {
+//        for(SLAPrintObject * po: sla_print.objects()) {
+//            TriangleMesh&& suppmesh = po->support_mesh();
+//            if(suppmesh.facets_count() > 0) {
+//                ModelObject* mo = model.add_object();
+//                for(const SLAPrintObject::Instance& inst : po->instances() ) {
+//                    mo->add_instance(*(mo->instances[inst.instance_id.id]));
+//                    mo->add_volume(suppmesh);
+//                }
+//            }
+//        }
+        }
         _3DScene::reload_scene(canvas3D, true);
         break;
     }

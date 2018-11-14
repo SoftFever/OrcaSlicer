@@ -98,33 +98,6 @@ using PrintObjects = std::vector<SLAPrintObject*>;
 
 class TriangleMesh;
 
-class SLASupportRenderer {
-public:
-
-    virtual ~SLASupportRenderer() {}
-
-    enum Buttons {
-        LEFT, RIGHT, MIDDLE
-    };
-
-    enum MType {
-        ENGAGE, RELEASE, HOVER
-    };
-
-    struct MouseEvt {
-        Buttons button; MType type;
-    };
-
-    using ClickCb = std::function<void(MouseEvt)>;
-    using Mesh = TriangleMesh;
-
-    virtual void add_pillar(const Mesh&, ClickCb on_mouse_evt) = 0;
-    virtual void add_head(const Mesh&, ClickCb on_mouse_evt) = 0;
-    virtual void add_bridge(const Mesh&, ClickCb on_mouse_evt) = 0;
-    virtual void add_junction(const Mesh&, ClickCb on_mouse_evt) = 0;
-    virtual void add_pad(const Mesh&, ClickCb on_mouse_evt) = 0;
-};
-
 /**
  * @brief This class is the high level FSM for the SLA printing process.
  *
@@ -156,11 +129,8 @@ public:
     ApplyStatus         apply(const Model &model, const DynamicPrintConfig &config) override;
     void                process() override;
 
-    void                render_supports(SLASupportRenderer& renderer);
-
     template<class Fmt> void export_raster(const std::string& fname) {
         if(m_printer) m_printer->save<Fmt>(fname);
-        std::cout << "Would export the SLA raster" << std::endl;
     }
     const PrintObjects& objects() const { return m_objects; }
 

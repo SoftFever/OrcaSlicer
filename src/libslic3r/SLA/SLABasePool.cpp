@@ -425,6 +425,8 @@ void base_plate(const TriangleMesh &mesh, ExPolygons &output, float h)
 
     TriangleMesh upper, lower;
     slicer.cut(h, &upper, &lower);
+
+    // TODO: this might be slow
     output = lower.horizontal_projection();
 
     for(auto& o : output) o = o.simplify(0.1/SCALING_FACTOR).front();

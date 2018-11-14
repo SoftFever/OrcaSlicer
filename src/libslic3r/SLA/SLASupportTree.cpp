@@ -168,9 +168,10 @@ Contour3D sphere(double rho, Portion portion = make_portion(0.0, 2.0*PI),
     return ret;
 }
 
-Contour3D cylinder(double r, double h, size_t steps) {
+Contour3D cylinder(double r, double h, size_t ssteps) {
     Contour3D ret;
 
+    auto steps = int(ssteps);
     auto& points = ret.points;
     auto& indices = ret.indices;
     points.reserve(2*steps);
@@ -275,10 +276,10 @@ struct Head {
             mesh.indices.emplace_back(i1s1, i2s2, i1s2);
         }
 
-        auto i1s1 = coord_t(s1.points.size()) - steps;
+        auto i1s1 = coord_t(s1.points.size()) - coord_t(steps);
         auto i2s1 = coord_t(s1.points.size()) - 1;
         auto i1s2 = coord_t(s1.points.size());
-        auto i2s2 = coord_t(s1.points.size()) + steps - 1;
+        auto i2s2 = coord_t(s1.points.size()) + coord_t(steps) - 1;
 
         mesh.indices.emplace_back(i2s2, i2s1, i1s1);
         mesh.indices.emplace_back(i1s2, i2s2, i1s1);
@@ -368,13 +369,13 @@ struct Pillar {
         }
 
         indices.reserve(2*steps);
-        auto offs = steps;
+        int offs = int(steps);
         for(int i = 0; i < steps - 1; ++i) {
             indices.emplace_back(i, i + offs, offs + i + 1);
             indices.emplace_back(i, offs + i + 1, i + 1);
         }
 
-        auto last = steps - 1;
+        int last = int(steps) - 1;
         indices.emplace_back(0, last, offs);
         indices.emplace_back(last, offs + last, offs);
     }
@@ -499,6 +500,27 @@ struct CompactBridge {
     }
 };
 
+// A wrapper struct around the base pool (pad)
+struct Pad {
+//    Contour3D mesh;
+    TriangleMesh tmesh;
+    PoolConfig cfg;
+    double zlevel;
+
+    Pad() {}
+
+    Pad(const TriangleMesh& object_support_mesh,
+        double ground_level,
+        const PoolConfig& cfg) : zlevel(ground_level)
+    {
+        ExPolygons basep;
+        base_plate(object_support_mesh, basep);
+        create_base_pool(basep, tmesh, cfg);
+        tmesh.translate(0, 0, float(zlevel));
+        std::cout << "pad ground level " << zlevel << std::endl;
+    }
+};
+
 EigenMesh3D to_eigenmesh(const Contour3D& cntr) {
     EigenMesh3D emesh;
 
@@ -564,7 +586,11 @@ EigenMesh3D to_eigenmesh(const TriangleMesh& tmesh) {
 }
 
 EigenMesh3D to_eigenmesh(const ModelObject& modelobj) {
-    return to_eigenmesh(modelobj.raw_mesh());
+    auto&& rmesh = modelobj.raw_mesh();
+    auto&& ret = to_eigenmesh(rmesh);
+    auto&& bb = rmesh.bounding_box();
+    ret.ground_level = bb.min(Z);
+    return ret;
 }
 
 EigenMesh3D to_eigenmesh(const Model& model) {
@@ -606,13 +632,12 @@ PointSet support_points(const Model& model) {
     return ret;
 }
 
-PointSet support_points(const ModelObject& modelobject, std::size_t instance_id)
+PointSet support_points(const ModelObject& modelobject)
 {
     PointSet ret(modelobject.sla_support_points.size(), 3);
     long i = 0;
-    ModelInstance *inst = modelobject.instances[instance_id];
     for(const Vec3f& msource : modelobject.sla_support_points) {
-        ret.row(i++) = model_coord(*inst, msource);
+        ret.row(i++) = msource.cast<double>();
     }
     return ret;
 }
@@ -643,12 +668,16 @@ class SLASupportTree::Impl {
     std::vector<Junction> m_junctions;
     std::vector<Bridge> m_bridges;
     std::vector<CompactBridge> m_compact_bridges;
+    Pad m_pad;
+    mutable TriangleMesh meshcache; mutable bool meshcache_valid;
+    mutable double model_height = 0; // the full height of the model
 public:
-    float model_height = 0; // the full height of the model
+    double ground_level = 0;
 
     template<class...Args> Head& add_head(Args&&... args) {
         m_heads.emplace_back(std::forward<Args>(args)...);
         m_heads.back().id = long(m_heads.size() - 1);
+        meshcache_valid = false;
         return m_heads.back();
     }
 
@@ -661,6 +690,7 @@ public:
         head.pillar_id = pillar.id;
         pillar.start_junction_id = head.id;
         pillar.starts_from_head = true;
+        meshcache_valid = false;
         return m_pillars.back();
     }
 
@@ -669,6 +699,7 @@ public:
         Pillar& p = m_pillars[pillar_id];
         assert(p.starts_from_head && p.start_junction_id > 0 &&
                p.start_junction_id < m_heads.size() );
+        meshcache_valid = false;
         return m_heads[p.start_junction_id];
     }
 
@@ -676,18 +707,21 @@ public:
         assert(headid >= 0 && headid < m_heads.size());
         Head& h = m_heads[headid];
         assert(h.pillar_id > 0 && h.pillar_id < m_pillars.size());
+        meshcache_valid = false;
         return m_pillars[h.pillar_id];
     }
 
     template<class...Args> const Junction& add_junction(Args&&... args) {
         m_junctions.emplace_back(std::forward<Args>(args)...);
         m_junctions.back().id = long(m_junctions.size() - 1);
+        meshcache_valid = false;
         return m_junctions.back();
     }
 
     template<class...Args> const Bridge& add_bridge(Args&&... args) {
         m_bridges.emplace_back(std::forward<Args>(args)...);
         m_bridges.back().id = long(m_bridges.size() - 1);
+        meshcache_valid = false;
         return m_bridges.back();
     }
 
@@ -695,16 +729,63 @@ public:
     const CompactBridge& add_compact_bridge(Args&&...args) {
         m_compact_bridges.emplace_back(std::forward<Args>(args)...);
         m_compact_bridges.back().id = long(m_compact_bridges.size() - 1);
+        meshcache_valid = false;
         return m_compact_bridges.back();
     }
 
     const std::vector<Head>& heads() const { return m_heads; }
-    Head& head(size_t idx) { return m_heads[idx]; }
+    Head& head(size_t idx) { meshcache_valid = false; return m_heads[idx]; }
     const std::vector<Pillar>& pillars() const { return m_pillars; }
     const std::vector<Bridge>& bridges() const { return m_bridges; }
     const std::vector<Junction>& junctions() const { return m_junctions; }
     const std::vector<CompactBridge>& compact_bridges() const {
         return m_compact_bridges;
+    }
+
+    const Pad& create_pad(const TriangleMesh& object_supports,
+                          const PoolConfig& cfg) {
+        m_pad = Pad(object_supports, ground_level, cfg);
+        return m_pad;
+    }
+
+    const Pad& pad() const { return m_pad; }
+
+    // WITHOUT THE PAD!!!
+    const TriangleMesh& merged_mesh() const {
+        if(meshcache_valid) return meshcache;
+
+        meshcache = TriangleMesh();
+
+        for(auto& head : heads()) {
+            meshcache.merge(mesh(head.mesh));
+        }
+
+        for(auto& stick : pillars()) {
+            meshcache.merge(mesh(stick.mesh));
+            meshcache.merge(mesh(stick.base));
+        }
+
+        for(auto& j : junctions()) {
+            meshcache.merge(mesh(j.mesh));
+        }
+
+        for(auto& cb : compact_bridges()) {
+            meshcache.merge(mesh(cb.mesh));
+        }
+
+        for(auto& bs : bridges()) {
+            meshcache.merge(mesh(bs.mesh));
+        }
+
+        BoundingBoxf3&& bb = meshcache.bounding_box();
+        model_height = bb.max(Z);
+
+        meshcache_valid = true;
+    }
+
+    double full_height() const {
+        if(!meshcache_valid) merged_mesh();
+        return model_height;
     }
 };
 
@@ -908,6 +989,7 @@ bool SLASupportTree::generate(const PointSet &points,
     using Result = SLASupportTree::Impl;
 
     Result& result = *m_impl;
+    result.ground_level = mesh.ground_level;
 
     enum Steps {
         BEGIN,
@@ -925,9 +1007,9 @@ bool SLASupportTree::generate(const PointSet &points,
     };
 
     // Debug:
-    for(int pn = 0; pn < points.rows(); ++pn) {
-        std::cout << "p " << pn << " " << points.row(pn) << std::endl;
-    }
+    // for(int pn = 0; pn < points.rows(); ++pn) {
+    //     std::cout << "p " << pn << " " << points.row(pn) << std::endl;
+    // }
 
     auto filterfn = [] (
             const SupportConfig& cfg,
@@ -1119,8 +1201,8 @@ bool SLASupportTree::generate(const PointSet &points,
         const Head& phead = result.pillar_head(pillar.id);
         const Head& nextphead = result.pillar_head(nextpillar.id);
 
-        double d = 2*pillar.r;
-        const Vec3d& pp = pillar.endpoint.cwiseProduct(Vec3d{1, 1, 0});
+//        double d = 2*pillar.r;
+//        const Vec3d& pp = pillar.endpoint.cwiseProduct(Vec3d{1, 1, 0});
 
         Vec3d sj = phead.junction_point();
         sj(Z) = std::min(sj(Z), nextphead.junction_point()(Z));
@@ -1176,9 +1258,12 @@ bool SLASupportTree::generate(const PointSet &points,
         const double hbr = cfg.head_back_radius_mm;
         const double pradius = cfg.pillar_radius_mm;
         const double maxbridgelen = cfg.max_bridge_length_mm;
+        const double gndlvl = emesh.ground_level - cfg.object_elevation_mm;
 
         ClusterEl cl_centroids;
         cl_centroids.reserve(gnd_clusters.size());
+
+        std::cout << "gnd_clusters size: " << gnd_clusters.size() << std::endl;
 
         SpatIndex pheadindex; // spatial index for the junctions
         for(auto cl : gnd_clusters) {
@@ -1201,7 +1286,7 @@ bool SLASupportTree::generate(const PointSet &points,
             unsigned hid = gndidx[cl[cid]]; // Head index
             Head& h = result.head(hid);
             h.transform();
-            Vec3d p = h.junction_point(); p(Z) = 0;
+            Vec3d p = h.junction_point(); p(Z) = gndlvl;
 
             pheadindex.insert(p, hid);
         }
@@ -1218,7 +1303,7 @@ bool SLASupportTree::generate(const PointSet &points,
             auto& head = result.head(index_to_heads);
 
             Vec3d startpoint = head.junction_point();
-            auto endpoint = startpoint; endpoint(Z) = 0;
+            auto endpoint = startpoint; endpoint(Z) = gndlvl;
 
             // Create the central pillar of the cluster with its base on the
             // ground
@@ -1233,7 +1318,7 @@ bool SLASupportTree::generate(const PointSet &points,
             // is distributed more effectively on the pillar.
 
             auto search_nearest =
-                    [&cfg, &result, &emesh, maxbridgelen]
+                    [&cfg, &result, &emesh, maxbridgelen, gndlvl]
                     (SpatIndex& spindex, const Vec3d& jsh)
             {
                 long nearest_id = -1;
@@ -1244,7 +1329,7 @@ bool SLASupportTree::generate(const PointSet &points,
                     // (this may happen as the clustering is not perfect)
                     // than we will bridge to this closer pillar
 
-                    Vec3d qp(jsh(X), jsh(Y), 0);
+                    Vec3d qp(jsh(X), jsh(Y), gndlvl);
                     auto ne = spindex.nearest(qp, 1).front();
                     const Head& nearhead = result.heads()[ne.second];
 
@@ -1263,7 +1348,7 @@ bool SLASupportTree::generate(const PointSet &points,
                     }
 
                     double d = distance(jp, jn);
-                    if(jn(Z) <= 0 || d > max_len) break;
+                    if(jn(Z) <= gndlvl || d > max_len) break;
 
                     double chkd = ray_mesh_intersect(jp, dirv(jp, jn), emesh);
                     if(chkd >= d) nearest_id = ne.second;
@@ -1278,7 +1363,7 @@ bool SLASupportTree::generate(const PointSet &points,
                 sidehead.transform();
 
                 Vec3d jsh = sidehead.junction_point();
-                Vec3d jp2d = {jsh(X), jsh(Y), 0};
+//                Vec3d jp2d = {jsh(X), jsh(Y), gndlvl};
                 SpatIndex spindex = pheadindex;
                 long nearest_id = search_nearest(spindex, jsh);
 
@@ -1286,7 +1371,7 @@ bool SLASupportTree::generate(const PointSet &points,
                 // to connect the sidehead to the ground
                 if(nearest_id < 0) {
                     // Could not find a pillar, create one
-                    Vec3d jp = jsh; jp(Z) = 0;
+                    Vec3d jp = jsh; jp(Z) = gndlvl;
                     result.add_pillar(sidehead.id, jp, pradius).
                         add_base(cfg.base_height_mm, cfg.base_radius_mm);
 
@@ -1571,28 +1656,12 @@ bool SLASupportTree::generate(const PointSet &points,
 
 void SLASupportTree::merged_mesh(TriangleMesh &outmesh) const
 {
-    const SLASupportTree::Impl& stree = get();
+    outmesh.merge(get().merged_mesh());
+}
 
-    for(auto& head : stree.heads()) {
-        outmesh.merge(mesh(head.mesh));
-    }
-
-    for(auto& stick : stree.pillars()) {
-        outmesh.merge(mesh(stick.mesh));
-        outmesh.merge(mesh(stick.base));
-    }
-
-    for(auto& j : stree.junctions()) {
-        outmesh.merge(mesh(j.mesh));
-    }
-
-    for(auto& cb : stree.compact_bridges()) {
-        outmesh.merge(mesh(cb.mesh));
-    }
-
-    for(auto& bs : stree.bridges()) {
-        outmesh.merge(mesh(bs.mesh));
-    }
+void SLASupportTree::merged_mesh_with_pad(TriangleMesh &outmesh) const {
+    merged_mesh(outmesh);
+    outmesh.merge(get_pad());
 }
 
 template<class T> void slice_part(const T& inp,
@@ -1616,7 +1685,7 @@ SlicedSupports SLASupportTree::slice(float layerh, float init_layerh) const
 {
     if(init_layerh < 0) init_layerh = layerh;
     auto& stree = get();
-    const float modelh = stree.model_height;
+    const float modelh = stree.full_height();
 
     std::vector<float> heights; heights.reserve(size_t(modelh/layerh) + 1);
     for(float h = init_layerh; h <= modelh; h += layerh) {
@@ -1640,10 +1709,24 @@ SlicedSupports SLASupportTree::slice(float layerh, float init_layerh) const
     return {};
 }
 
-// Here we should implement the support editing
-void SLASupportTree::mouse_event(const MouseEvent &)
+const TriangleMesh &SLASupportTree::add_pad(double min_wall_thickness_mm,
+                                            double min_wall_height_mm,
+                                            double max_merge_distance_mm,
+                                            double edge_radius_mm) const
 {
+    TriangleMesh mm;
+    merged_mesh(mm);
+    PoolConfig pcfg;
+//    pcfg.min_wall_thickness_mm = min_wall_thickness_mm;
+//    pcfg.min_wall_height_mm    = min_wall_height_mm;
+//    pcfg.max_merge_distance_mm = max_merge_distance_mm;
+//    pcfg.edge_radius_mm        = edge_radius_mm;
+    return m_impl->create_pad(mm, pcfg).tmesh;
+}
 
+const TriangleMesh &SLASupportTree::get_pad() const
+{
+    return m_impl->pad().tmesh;
 }
 
 SLASupportTree::SLASupportTree(const Model& model,

@@ -60,6 +60,10 @@ struct SupportConfig {
 
     // The max length of a bridge in mm
     double max_bridge_length_mm = 15.0;
+
+    // The elevation in Z direction upwards. This is the space between the pad
+    // and the model object's bounding box bottom.
+    double object_elevation_mm = 0;
 };
 
 /// A Control structure for the support calculation. Consists of the status
@@ -76,6 +80,7 @@ struct Controller {
 struct EigenMesh3D {
     Eigen::MatrixXd V;
     Eigen::MatrixXi F;
+    double ground_level = 0;
 
     // igl crashes with the following data types:
 //    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::DontAlign> V;
@@ -100,7 +105,7 @@ EigenMesh3D to_eigenmesh(const Model& model);
 EigenMesh3D to_eigenmesh(const ModelObject& model);
 
 PointSet support_points(const Model& model);
-PointSet support_points(const ModelObject& modelobject, size_t instance_id = 0);
+PointSet support_points(const ModelObject& modelobject);
 
 /* ************************************************************************** */
 
@@ -111,24 +116,10 @@ public:
     SLASupportsStoppedException(): std::runtime_error("") {}
 };
 
-/// A simple type carrying mouse event info. For support editing purposes
-struct MouseEvent {
-    enum Buttons {
-        M_RIGHT, M_LEFT, M_MIDDLE
-    } button;
-
-    enum Type {
-        ENGAGE, RELEASE, MOVE
-    } type;
-
-    Vec3d coords;
-};
-
 /// The class containing mesh data for the generated supports.
 class SLASupportTree {
     class Impl;
     std::unique_ptr<Impl> m_impl;
-    std::function<void()> m_vcallback;
 
     Impl& get() { return *m_impl; }
     const Impl& get() const { return *m_impl; }
@@ -160,20 +151,23 @@ public:
     ~SLASupportTree();
 
     /// Get the whole mesh united into the output TriangleMesh
+    /// WITHOUT THE PAD
     void merged_mesh(TriangleMesh& outmesh) const;
+
+    void merged_mesh_with_pad(TriangleMesh&) const;
 
     /// Get the sliced 2d layers of the support geometry.
     SlicedSupports slice(float layerh, float init_layerh = -1.0) const;
 
-    /// The function to call when mouse events should be propagated to the
-    /// supports for editing
-    void mouse_event(const MouseEvent&);
+    /// Adding the "pad" (base pool) under the supports
+    const TriangleMesh& add_pad(double min_wall_thickness_mm,
+                                double min_wall_height_mm,
+                                double max_merge_distance_mm,
+                                double edge_radius_mm) const;
 
-    /// The provided callback will be called if the supports change their shape
-    /// or need to be repainted
-    inline void on_supports_changed(std::function<void()> callback) {
-        m_vcallback = callback;
-    }
+    /// Get the pad geometry
+    const TriangleMesh& get_pad() const;
+
 };
 
 }
