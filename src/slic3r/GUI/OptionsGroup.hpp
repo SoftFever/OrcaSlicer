@@ -94,6 +94,8 @@ public:
     wxFont			label_font {wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT) };
 	int				sidetext_width{ -1 };
 
+    bool            process_enter { false };
+
     /// Returns a copy of the pointer of the parent wxWindow.
     /// Accessor function is because users are not allowed to change the parent
     /// but defining it as const means a lot of const_casts to deal with wx functions.
@@ -148,8 +150,13 @@ public:
     inline void		disable() { for (auto& field : m_fields) field.second->disable(); }
 	void			set_grid_vgap(int gap) { m_grid_sizer->SetVGap(gap); }
 
-	void set_show_modified_btns_val(bool show) {
-		m_show_modified_btns = show;
+	void            set_show_modified_btns_val(bool show) {
+		                m_show_modified_btns = show;
+    }
+
+    // The controls inside this option group will generate the event wxEVT_TEXT_ENTER
+    void            set_process_enter() { 
+                        process_enter = true;
     }
 
 	OptionsGroup(	wxWindow* _parent, const wxString& title, bool is_tab_opt = false, 

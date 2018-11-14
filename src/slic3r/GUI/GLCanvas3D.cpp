@@ -1464,7 +1464,9 @@ void GLCanvas3D::Selection::translate(const Vec3d& displacement)
     }
 
 #if !DISABLE_INSTANCES_SYNCH
-    if (m_mode == Volume)
+    if (m_mode == Instance)
+        _synchronize_unselected_instances();
+    else if (m_mode == Volume)
         _synchronize_unselected_volumes();
 #endif // !DISABLE_INSTANCES_SYNCH
 

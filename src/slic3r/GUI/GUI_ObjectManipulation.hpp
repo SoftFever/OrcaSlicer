@@ -48,8 +48,6 @@ public:
 
     void set_uniform_scaling(const bool uniform_scale) { m_is_uniform_scale = uniform_scale; }
 
-    void show_object_name(bool show);
-
 };
 
 }}

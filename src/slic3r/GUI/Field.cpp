@@ -11,22 +11,21 @@
 
 namespace Slic3r { namespace GUI {
 
-wxString double_to_string(double const value)
+wxString double_to_string(double const value, const int max_precision /*= 4*/)
 {
 	if (value - int(value) == 0)
 		return wxString::Format(_T("%i"), int(value));
-	else {
-		int precision = 4;
-		for (size_t p = 1; p < 4; p++)
-		{
-			double cur_val = pow(10, p)*value;
-			if (cur_val - int(cur_val) == 0) {
-				precision = p;
-				break;
-			}
+
+    int precision = max_precision;
+    for (size_t p = 1; p < max_precision; p++)
+	{
+		double cur_val = pow(10, p)*value;
+		if (cur_val - int(cur_val) == 0) {
+			precision = p;
+			break;
 		}
-		return wxNumberFormatter::ToString(value, precision, wxNumberFormatter::Style_None);
 	}
+	return wxNumberFormatter::ToString(value, precision, wxNumberFormatter::Style_None);
 }
 
 void Field::PostInitialize()
@@ -209,7 +208,8 @@ void TextCtrl::BUILD() {
 		break; 
 	}
 
-	auto temp = new wxTextCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size, (m_opt.multiline ? wxTE_MULTILINE : 0));
+    const long style = m_opt.multiline ? wxTE_MULTILINE : 0 | m_process_enter ? wxTE_PROCESS_ENTER : 0;
+	auto temp = new wxTextCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size, style);
 
 	temp->SetToolTip(get_tooltip_text(text_value));
     
@@ -234,21 +234,26 @@ void TextCtrl::BUILD() {
 	}), temp->GetId());
 #endif // __WXGTK__
 
-	temp->Bind(wxEVT_TEXT, ([this](wxCommandEvent& evt)
-	{
+    if (m_process_enter) {
+        temp->Bind(wxEVT_TEXT_ENTER, ([this](wxCommandEvent& evt) { on_change_field(); }), temp->GetId());
+    }
+    else {
+        temp->Bind(wxEVT_TEXT, ([this](wxCommandEvent& evt)
+        {
 #ifdef __WXGTK__
-        if (bChangedValueEvent)
+            if (bChangedValueEvent)
 #endif //__WXGTK__
-		on_change_field();
-	}), temp->GetId());
+                on_change_field();
+        }), temp->GetId());
 
 #ifdef __WXGTK__
-    // to correct value updating on GTK we should:
-    // call on_change_field() on wxEVT_KEY_UP instead of wxEVT_TEXT
-    // and prevent value updating on wxEVT_KEY_DOWN
-    temp->Bind(wxEVT_KEY_DOWN, &TextCtrl::change_field_value, this);
-    temp->Bind(wxEVT_KEY_UP, &TextCtrl::change_field_value, this);
+        // to correct value updating on GTK we should:
+        // call on_change_field() on wxEVT_KEY_UP instead of wxEVT_TEXT
+        // and prevent value updating on wxEVT_KEY_DOWN
+        temp->Bind(wxEVT_KEY_DOWN, &TextCtrl::change_field_value, this);
+        temp->Bind(wxEVT_KEY_UP, &TextCtrl::change_field_value, this);
 #endif //__WXGTK__
+    }
 
 	// select all text using Ctrl+A
 	temp->Bind(wxEVT_CHAR, ([temp](wxKeyEvent& event)
