@@ -752,8 +752,6 @@ public:
     unsigned int get_volumes_count() const;
     void reset_volumes();
     int check_volumes_outside_state(const DynamicPrintConfig* config) const;
-    bool move_volume_up(unsigned int id);
-    bool move_volume_down(unsigned int id);
 
     void set_config(DynamicPrintConfig* config);
     void set_print(Print* print);
@@ -768,8 +766,6 @@ public:
     // fills the m_bed.m_grid_lines and sets m_bed.m_origin.
     // Sets m_bed.m_polygon to limit the object placement.
     void set_bed_shape(const Pointfs& shape);
-    // Used by ObjectCutDialog and ObjectPartsPanel to generate a rectangular ground plane to support the scene objects.
-    void set_auto_bed_shape();
 
     void set_axes_length(float length);
 
@@ -783,7 +779,6 @@ public:
 
     bool is_layers_editing_enabled() const;
     bool is_layers_editing_allowed() const;
-    bool is_shader_enabled() const;
 
     bool is_reload_delayed() const;
 
@@ -827,9 +822,6 @@ public:
 
     // Load SLA support tree and SLA pad meshes into the scene, if available at the respective SLAPrintObject instances.
     std::vector<int> load_support_meshes(const Model& model, int obj_idx);
-
-    int get_first_volume_id(int obj_idx) const;
-    int get_in_object_volume_id(int scene_vol_idx) const;
 
     void mirror_selection(Axis axis);
 

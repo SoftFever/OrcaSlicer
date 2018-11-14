@@ -3305,38 +3305,6 @@ int GLCanvas3D::check_volumes_outside_state(const DynamicPrintConfig* config) co
     return (int)state;
 }
 
-bool GLCanvas3D::move_volume_up(unsigned int id)
-{
-    if ((id > 0) && (id < (unsigned int)m_volumes.volumes.size()))
-    {
-        std::swap(m_volumes.volumes[id - 1], m_volumes.volumes[id]);
-        GLVolume &v1 = *m_volumes.volumes[id - 1];
-        GLVolume &v2 = *m_volumes.volumes[id];
-        std::swap(v1.object_id,   v2.object_id);
-        std::swap(v1.volume_id,   v2.volume_id);
-        std::swap(v1.instance_id, v2.instance_id);
-        return true;
-    }
-
-    return false;
-}
-
-bool GLCanvas3D::move_volume_down(unsigned int id)
-{
-    if ((id >= 0) && (id + 1 < (unsigned int)m_volumes.volumes.size()))
-    {
-        std::swap(m_volumes.volumes[id + 1], m_volumes.volumes[id]);
-        GLVolume &v1 = *m_volumes.volumes[id + 1];
-        GLVolume &v2 = *m_volumes.volumes[id];
-        std::swap(v1.object_id,   v2.object_id);
-        std::swap(v1.volume_id,   v2.volume_id);
-        std::swap(v1.instance_id, v2.instance_id);
-        return true;
-    }
-
-    return false;
-}
-
 void GLCanvas3D::set_config(DynamicPrintConfig* config)
 {
     m_config = config;
@@ -3378,26 +3346,6 @@ void GLCanvas3D::set_bed_shape(const Pointfs& shape)
     m_dirty = true;
 }
 
-void GLCanvas3D::set_auto_bed_shape()
-{
-    // draw a default square bed around object center
-    const BoundingBoxf3& bbox = volumes_bounding_box();
-    double max_size = bbox.max_size();
-    const Vec3d center = bbox.center();
-
-    Pointfs bed_shape;
-    bed_shape.reserve(4);
-    bed_shape.emplace_back(center(0) - max_size, center(1) - max_size);
-    bed_shape.emplace_back(center(0) + max_size, center(1) - max_size);
-    bed_shape.emplace_back(center(0) + max_size, center(1) + max_size);
-    bed_shape.emplace_back(center(0) - max_size, center(1) + max_size);
-
-    set_bed_shape(bed_shape);
-
-    // Set the origin for painting of the coordinate system axes.
-    m_axes.origin = Vec3d(center(0), center(1), (double)GROUND_Z);
-}
-
 void GLCanvas3D::set_axes_length(float length)
 {
     m_axes.length = length;
@@ -3437,11 +3385,6 @@ bool GLCanvas3D::is_layers_editing_enabled() const
 bool GLCanvas3D::is_layers_editing_allowed() const
 {
     return m_layers_editing.is_allowed();
-}
-
-bool GLCanvas3D::is_shader_enabled() const
-{
-    return m_shader_enabled;
 }
 
 bool GLCanvas3D::is_reload_delayed() const
@@ -3718,22 +3661,6 @@ std::vector<int> GLCanvas3D::load_support_meshes(const Model& model, int obj_idx
     std::vector<int> volumes = m_volumes.load_object_auxiliary(model.objects[obj_idx], m_sla_print->objects()[obj_idx], obj_idx, slaposSupportTree, m_use_VBOs && m_initialized);
 	append(volumes, m_volumes.load_object_auxiliary(model.objects[obj_idx], m_sla_print->objects()[obj_idx], obj_idx, slaposBasePool, m_use_VBOs && m_initialized));
     return volumes;
-}
-
-int GLCanvas3D::get_first_volume_id(int obj_idx) const
-{
-    for (int i = 0; i < (int)m_volumes.volumes.size(); ++i)
-    {
-        if ((m_volumes.volumes[i] != nullptr) && (m_volumes.volumes[i]->object_idx() == obj_idx))
-            return i;
-    }
-
-    return -1;
-}
-
-int GLCanvas3D::get_in_object_volume_id(int scene_vol_idx) const
-{
-    return ((0 <= scene_vol_idx) && (scene_vol_idx < (int)m_volumes.volumes.size())) ? m_volumes.volumes[scene_vol_idx]->volume_idx() : -1;
 }
 
 void GLCanvas3D::mirror_selection(Axis axis)

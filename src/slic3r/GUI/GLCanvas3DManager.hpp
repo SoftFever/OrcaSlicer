@@ -89,8 +89,6 @@ public:
     unsigned int get_volumes_count(wxGLCanvas* canvas) const;
     void reset_volumes(wxGLCanvas* canvas);
     int check_volumes_outside_state(wxGLCanvas* canvas, const DynamicPrintConfig* config) const;
-    bool move_volume_up(wxGLCanvas* canvas, unsigned int id);
-    bool move_volume_down(wxGLCanvas* canvas, unsigned int id);
 
     GLCanvas3D* get_canvas(wxGLCanvas* canvas);
 
@@ -100,11 +98,6 @@ public:
     void set_model(wxGLCanvas* canvas, Model* model);
 
     void set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape);
-    void set_auto_bed_shape(wxGLCanvas* canvas);
-
-    BoundingBoxf3 get_volumes_bounding_box(wxGLCanvas* canvas);
-
-    void set_axes_length(wxGLCanvas* canvas, float length);
 
     void set_cutting_plane(wxGLCanvas* canvas, float z, const ExPolygons& polygons);
 
@@ -112,7 +105,6 @@ public:
 
     bool is_layers_editing_enabled(wxGLCanvas* canvas) const;
     bool is_layers_editing_allowed(wxGLCanvas* canvas) const;
-    bool is_shader_enabled(wxGLCanvas* canvas) const;
 
     bool is_reload_delayed(wxGLCanvas* canvas) const;
 
@@ -147,9 +139,6 @@ public:
 
     std::vector<int> load_object(wxGLCanvas* canvas, const ModelObject* model_object, int obj_idx, std::vector<int> instance_idxs);
     std::vector<int> load_object(wxGLCanvas* canvas, const Model* model, int obj_idx);
-
-    int get_first_volume_id(wxGLCanvas* canvas, int obj_idx) const;
-    int get_in_object_volume_id(wxGLCanvas* canvas, int scene_vol_idx) const;
 
     void mirror_selection(wxGLCanvas* canvas, Axis axis);
 

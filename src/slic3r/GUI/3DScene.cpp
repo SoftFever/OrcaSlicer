@@ -1885,16 +1885,6 @@ int _3DScene::check_volumes_outside_state(wxGLCanvas* canvas, const DynamicPrint
     return s_canvas_mgr.check_volumes_outside_state(canvas, config);
 }
 
-bool _3DScene::move_volume_up(wxGLCanvas* canvas, unsigned int id)
-{
-    return s_canvas_mgr.move_volume_up(canvas, id);
-}
-
-bool _3DScene::move_volume_down(wxGLCanvas* canvas, unsigned int id)
-{
-    return s_canvas_mgr.move_volume_down(canvas, id);
-}
-
 GUI::GLCanvas3D* _3DScene::get_canvas(wxGLCanvas* canvas)
 {
     return s_canvas_mgr.get_canvas(canvas);
@@ -1925,21 +1915,6 @@ void _3DScene::set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape)
     s_canvas_mgr.set_bed_shape(canvas, shape);
 }
 
-void _3DScene::set_auto_bed_shape(wxGLCanvas* canvas)
-{
-    s_canvas_mgr.set_auto_bed_shape(canvas);
-}
-
-BoundingBoxf3 _3DScene::get_volumes_bounding_box(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.get_volumes_bounding_box(canvas);
-}
-
-void _3DScene::set_axes_length(wxGLCanvas* canvas, float length)
-{
-    s_canvas_mgr.set_axes_length(canvas, length);
-}
-
 void _3DScene::set_cutting_plane(wxGLCanvas* canvas, float z, const ExPolygons& polygons)
 {
     s_canvas_mgr.set_cutting_plane(canvas, z, polygons);
@@ -1958,11 +1933,6 @@ bool _3DScene::is_layers_editing_enabled(wxGLCanvas* canvas)
 bool _3DScene::is_layers_editing_allowed(wxGLCanvas* canvas)
 {
     return s_canvas_mgr.is_layers_editing_allowed(canvas);
-}
-
-bool _3DScene::is_shader_enabled(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.is_shader_enabled(canvas);
 }
 
 bool _3DScene::is_reload_delayed(wxGLCanvas* canvas)
@@ -2115,16 +2085,6 @@ std::vector<int> _3DScene::load_object(wxGLCanvas* canvas, const ModelObject* mo
 std::vector<int> _3DScene::load_object(wxGLCanvas* canvas, const Model* model, int obj_idx)
 {
     return s_canvas_mgr.load_object(canvas, model, obj_idx);
-}
-
-int _3DScene::get_first_volume_id(wxGLCanvas* canvas, int obj_idx)
-{
-    return s_canvas_mgr.get_first_volume_id(canvas, obj_idx);
-}
-
-int _3DScene::get_in_object_volume_id(wxGLCanvas* canvas, int scene_vol_idx)
-{
-    return s_canvas_mgr.get_in_object_volume_id(canvas, scene_vol_idx);
 }
 
 void _3DScene::mirror_selection(wxGLCanvas* canvas, Axis axis)
