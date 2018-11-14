@@ -1004,6 +1004,7 @@ const double GLGizmoMove3D::Offset = 10.0;
 GLGizmoMove3D::GLGizmoMove3D(GLCanvas3D& parent)
     : GLGizmoBase(parent)
     , m_displacement(Vec3d::Zero())
+    , m_snap_step(1.0)
     , m_starting_drag_position(Vec3d::Zero())
     , m_starting_box_center(Vec3d::Zero())
     , m_starting_box_bottom_center(Vec3d::Zero())
@@ -1160,6 +1161,10 @@ double GLGizmoMove3D::calc_projection(const UpdateData& data) const
         // finds projection of the vector along the staring direction
         projection = inters_vec.dot(starting_vec.normalized());
     }
+
+    if (data.shift_down)
+        projection = m_snap_step * (double)std::round(projection / m_snap_step);
+
     return projection;
 }
 

@@ -319,12 +319,18 @@ class GLGizmoMove3D : public GLGizmoBase
     static const double Offset;
 
     Vec3d m_displacement;
+
+    double m_snap_step;
+
     Vec3d m_starting_drag_position;
     Vec3d m_starting_box_center;
     Vec3d m_starting_box_bottom_center;
 
 public:
     explicit GLGizmoMove3D(GLCanvas3D& parent);
+
+    double get_snap_step(double step) const { return m_snap_step; }
+    void set_snap_step(double step) { m_snap_step = step; }
 
     const Vec3d& get_displacement() const { return m_displacement; }
 
