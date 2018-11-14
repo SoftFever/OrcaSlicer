@@ -692,14 +692,15 @@ void Sidebar::update_objects_list_extruder_column(int extruders_count)
 void Sidebar::show_info_sizer()
 {
     if (!p->plater->is_single_full_object_selection() ||
-        m_mode < ConfigMenuModeExpert ) {
+        m_mode < ConfigMenuModeExpert ||
+        p->plater->model().objects.empty()) {
         p->object_info->Show(false);
         return;
     }
 
     int obj_idx = p->plater->get_selected_object_idx();
 
-    const ModelObject* model_object = (*wxGetApp().model_objects())[obj_idx];
+    const ModelObject* model_object = p->plater->model().objects[obj_idx];
     // hack to avoid crash when deleting the last object on the bed
     if (model_object->volumes.empty())
     {

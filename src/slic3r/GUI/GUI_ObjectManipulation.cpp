@@ -14,7 +14,7 @@ namespace Slic3r
 namespace GUI
 {
 
-ObjectManipulation::ObjectManipulation(wxWindow* parent):
+ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     OG_Settings(parent, true)
 {
     m_og->set_name(_(L("Object Manipulation")));
@@ -34,6 +34,17 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent):
             m_is_percent_scale = selection == _("%");
             update_scale_values();
             return;
+        }
+
+        std::string param; 
+        std::copy(opt_key.begin(), opt_key.end() - 2, std::back_inserter(param));
+
+        if (param == "position") {
+            Vec3d displacement;
+            displacement(0) = boost::any_cast<double>(m_og->get_value("position_x"));
+            displacement(1) = boost::any_cast<double>(m_og->get_value("position_y"));
+            displacement(2) = boost::any_cast<double>(m_og->get_value("position_z"));
+            change_position_value(displacement);
         }
     };
 
@@ -248,6 +259,8 @@ void ObjectManipulation::reset_position_value()
     m_og->set_value("position_x", def_0);
     m_og->set_value("position_y", def_0);
     m_og->set_value("position_z", def_0);
+
+    cache_position = { 0., 0., 0. };
 }
 
 void ObjectManipulation::reset_rotation_value()
@@ -324,6 +337,8 @@ void ObjectManipulation::update_position_value(const Vec3d& position)
     m_og->set_value("position_x", double_to_string(position(0), 2));
     m_og->set_value("position_y", double_to_string(position(1), 2));
     m_og->set_value("position_z", double_to_string(position(2), 2));
+
+    cache_position = position;
 }
 
 void ObjectManipulation::update_scale_value(const Vec3d& scaling_factor)
@@ -369,6 +384,26 @@ void ObjectManipulation::update_rotation_value(const Vec3d& rotation)
     m_og->set_value("rotation_x", double_to_string(round_nearest(Geometry::rad2deg(rotation(0)), 0), 2));
     m_og->set_value("rotation_y", double_to_string(round_nearest(Geometry::rad2deg(rotation(1)), 0), 2));
     m_og->set_value("rotation_z", double_to_string(round_nearest(Geometry::rad2deg(rotation(2)), 0), 2));
+}
+
+
+void ObjectManipulation::change_position_value(const Vec3d& position)
+{
+    Vec3d displacement(position - cache_position);
+
+    auto canvas = _3DScene::get_canvas(wxGetApp().canvas3D());
+    canvas->get_selection().start_dragging();
+    canvas->get_selection().translate(displacement);
+    canvas->_on_move();
+
+    cache_position = position;
+}
+
+
+
+void ObjectManipulation::print_cashe_value(const std::string& label, const Vec3d& value)
+{
+    std::cout << label << " => " << " X:" << value(0) << " Y:" << value(1) << " Z:" << value(2) << std::endl;
 }
 
 } //namespace GUI
