@@ -2121,9 +2121,7 @@ void Plater::delete_object_from_model(size_t obj_idx) { p->delete_object_from_mo
 
 void Plater::remove_selected()
 {
-    int obj_idx = p->get_selected_object_idx();
-    if (obj_idx != -1)
-        remove((size_t)obj_idx);
+    _3DScene::delete_selected(canvas3D());
 }
 
 void Plater::increase_instances(size_t num)

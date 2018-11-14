@@ -500,6 +500,13 @@ void GLCanvas3DManager::render(wxGLCanvas* canvas) const
         it->second->render();
 }
 
+void GLCanvas3DManager::delete_selected(wxGLCanvas* canvas)
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->delete_selected();
+}
+
 std::vector<double> GLCanvas3DManager::get_current_print_zs(wxGLCanvas* canvas, bool active_only) const
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);

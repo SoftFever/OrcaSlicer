@@ -27,6 +27,10 @@ struct ItemForDelete
     ItemType    type;
     int         obj_idx; 
     int         sub_obj_idx;
+
+    ItemForDelete(ItemType type, int obj_idx, int sub_obj_idx)
+        : type(type), obj_idx(obj_idx), sub_obj_idx(sub_obj_idx)
+    {}
 };
 
 class ObjectList : public wxDataViewCtrl
@@ -128,7 +132,7 @@ public:
     void delete_volume_from_list(const size_t obj_idx, const size_t vol_idx);
     void delete_instance_from_list(const size_t obj_idx, const size_t inst_idx);
     void delete_from_model_and_list(const ItemType type, const int obj_idx, const int sub_obj_idx);
-    void delete_from_model_and_list(const std::vector<ItemForDelete> * items_for_delete);
+    void delete_from_model_and_list(const std::vector<ItemForDelete>& items_for_delete);
     // Delete all objects from the list
     void delete_all_objects_from_list();
     // Increase instances count

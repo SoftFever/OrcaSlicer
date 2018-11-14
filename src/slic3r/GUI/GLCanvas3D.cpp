@@ -28,6 +28,8 @@
 #include "libslic3r/Print.hpp"
 #include "libslic3r/SLAPrint.hpp"
 
+#include "wxExtensions.hpp"
+
 #include <tbb/parallel_for.h>
 #include <tbb/spin_mutex.h>
 
@@ -1768,6 +1770,65 @@ void GLCanvas3D::Selection::translate(unsigned int object_idx, unsigned int inst
     }
 
     m_bounding_box_dirty = true;
+}
+
+void GLCanvas3D::Selection::erase()
+{
+    if (!m_valid)
+        return;
+
+    if (is_single_full_object())
+        wxGetApp().obj_list()->delete_from_model_and_list(ItemType::itObject, get_object_idx(), 0);
+    else if (is_multiple_full_object())
+    {
+        std::vector<ItemForDelete> items;
+        items.reserve(m_cache.content.size());
+        for (ObjectIdxsToInstanceIdxsMap::iterator it = m_cache.content.begin(); it != m_cache.content.end(); ++it)
+        {
+            items.emplace_back(ItemType::itObject, it->first, 0);
+        }
+        wxGetApp().obj_list()->delete_from_model_and_list(items);
+    }
+    else if (is_single_full_instance())
+        wxGetApp().obj_list()->delete_from_model_and_list(ItemType::itInstance, get_object_idx(), get_instance_idx());
+    else if (is_multiple_full_instance())
+    {
+        std::set<std::pair<int, int>> instances_idxs;
+        for (ObjectIdxsToInstanceIdxsMap::iterator obj_it = m_cache.content.begin(); obj_it != m_cache.content.end(); ++obj_it)
+        {
+            for (InstanceIdxsList::reverse_iterator inst_it = obj_it->second.rbegin(); inst_it != obj_it->second.rend(); ++inst_it)
+            {
+                instances_idxs.insert(std::make_pair(obj_it->first, *inst_it));
+            }
+        }
+
+        std::vector<ItemForDelete> items;
+        items.reserve(instances_idxs.size());
+        for (const std::pair<int, int>& i : instances_idxs)
+        {
+            items.emplace_back(ItemType::itInstance, i.first, i.second);
+        }
+
+        wxGetApp().obj_list()->delete_from_model_and_list(items);
+    }
+    else
+    {
+        std::set<std::pair<int, int>> volumes_idxs;
+        for (unsigned int i : m_list)
+        {
+            const GLVolume* v = (*m_volumes)[i];
+            volumes_idxs.insert(std::make_pair(v->object_idx(), v->volume_idx()));
+        }
+
+        std::vector<ItemForDelete> items;
+        items.reserve(volumes_idxs.size());
+        for (const std::pair<int, int>& v : volumes_idxs)
+        {
+            items.emplace_back(ItemType::itVolume, v.first, v.second);
+        }
+
+        wxGetApp().obj_list()->delete_from_model_and_list(items);
+    }
 }
 
 void GLCanvas3D::Selection::render() const
@@ -3612,6 +3673,11 @@ void GLCanvas3D::render()
     m_canvas->SwapBuffers();
 }
 
+void GLCanvas3D::delete_selected()
+{
+    m_selection.erase();
+}
+
 std::vector<double> GLCanvas3D::get_current_print_zs(bool active_only) const
 {
     return m_volumes.get_current_print_zs(active_only);
@@ -4442,7 +4508,7 @@ void GLCanvas3D::on_key_down(wxKeyEvent& evt)
 		{
 #ifdef __WXOSX__
 			if (key == WXK_BACK)
-				post_event(SimpleEvent(EVT_GLCANVAS_REMOVE_OBJECT));
+                post_event(SimpleEvent(EVT_GLCANVAS_REMOVE_OBJECT));
 #endif
 			evt.Skip();
 		}

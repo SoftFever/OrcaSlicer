@@ -536,6 +536,8 @@ public:
         void translate(unsigned int object_idx, const Vec3d& displacement);
         void translate(unsigned int object_idx, unsigned int instance_idx, const Vec3d& displacement);
 
+        void erase();
+
         void render() const;
 
     private:
@@ -814,6 +816,8 @@ public:
     bool gizmo_reset_rect_contains(const GLCanvas3D& canvas, float x, float y) const;
 
     void render();
+
+    void delete_selected();
 
     std::vector<double> get_current_print_zs(bool active_only) const;
     void set_toolpaths_range(double low, double high);

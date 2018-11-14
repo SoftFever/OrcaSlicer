@@ -1180,9 +1180,9 @@ void ObjectList::delete_from_model_and_list(const ItemType type, const int obj_i
     }
 }
 
-void ObjectList::delete_from_model_and_list(const std::vector<ItemForDelete> * items_for_delete)
+void ObjectList::delete_from_model_and_list(const std::vector<ItemForDelete>& items_for_delete)
 {
-    for (auto& item : *items_for_delete)
+    for (auto& item : items_for_delete)
     {
         if ( !(item.type&(itObject|itVolume|itInstance)) )
             continue;
