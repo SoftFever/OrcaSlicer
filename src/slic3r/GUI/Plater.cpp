@@ -1470,6 +1470,8 @@ void Plater::priv::remove(size_t obj_idx)
 void Plater::priv::delete_object_from_model(size_t obj_idx)
 {
     model.delete_object(obj_idx);
+    object_list_changed();
+    update();
 }
 
 void Plater::priv::reset()
