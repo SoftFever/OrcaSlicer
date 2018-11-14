@@ -52,7 +52,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent):
     auto line = Line{ "", "" };
     def.label = "";
     def.type = coString;
-    def.width = 55;
+    def.width = 50;
 
     std::vector<std::string> axes{ "x", "y", "z" };
     for (const auto axis : axes) {
@@ -83,7 +83,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent):
         ConfigOptionDef def;
         def.type = coFloat;
         def.default_value = new ConfigOptionFloat(0.0);
-        def.width = 55;
+        def.width = 50;
 
         if (option_name == "Rotation")
             def.min = -360;
@@ -240,42 +240,45 @@ void ObjectManipulation::reset_settings_value()
     m_og->disable();
 }
 
+wxString def_0 {"0"};
+wxString def_100 {"100"};
+
 void ObjectManipulation::reset_position_value()
 {
-    m_og->set_value("position_x", "0");
-    m_og->set_value("position_y", "0");
-    m_og->set_value("position_z", "0");
+    m_og->set_value("position_x", def_0);
+    m_og->set_value("position_y", def_0);
+    m_og->set_value("position_z", def_0);
 }
 
 void ObjectManipulation::reset_rotation_value()
 {
-    m_og->set_value("rotation_x", "0");
-    m_og->set_value("rotation_y", "0");
-    m_og->set_value("rotation_z", "0");
+    m_og->set_value("rotation_x", def_0);
+    m_og->set_value("rotation_y", def_0);
+    m_og->set_value("rotation_z", def_0);
 }
 
 void ObjectManipulation::reset_scale_value()
 {
     m_is_percent_scale = true;
     m_og->set_value("scale_unit", _("%"));
-    m_og->set_value("scale_x", "100");
-    m_og->set_value("scale_y", "100");
-    m_og->set_value("scale_z", "100");
+    m_og->set_value("scale_x", def_100);
+    m_og->set_value("scale_y", def_100);
+    m_og->set_value("scale_z", def_100);
 }
 
 void ObjectManipulation::update_values()
 {
     int selection = ol_selection();
     if (selection < 0 || wxGetApp().mainframe->m_plater->model().objects.size() <= selection) {
-        m_og->set_value("position_x", "0");
-        m_og->set_value("position_y", "0");
-        m_og->set_value("position_z", "0");
-        m_og->set_value("scale_x", "0");
-        m_og->set_value("scale_y", "0");
-        m_og->set_value("scale_z", "0");
-        m_og->set_value("rotation_x", "0");
-        m_og->set_value("rotation_y", "0");
-        m_og->set_value("rotation_z", "0");
+        m_og->set_value("position_x", def_0);
+        m_og->set_value("position_y", def_0);
+        m_og->set_value("position_z", def_0);
+        m_og->set_value("scale_x"   , def_0);
+        m_og->set_value("scale_y"   , def_0);
+        m_og->set_value("scale_z"   , def_0);
+        m_og->set_value("rotation_x", def_0);
+        m_og->set_value("rotation_y", def_0);
+        m_og->set_value("rotation_z", def_0);
         m_og->disable();
         return;
     }
