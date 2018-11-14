@@ -597,16 +597,13 @@ bool GLGizmoRotate3D::on_init()
 
     std::string path = resources_dir() + "/icons/overlay/";
 
-    std::string filename = path + "rotate_off.png";
-    if (!m_textures[Off].load_from_file(filename, false))
+    if (!m_textures[Off].load_from_file(path + "rotate_off.png", false))
         return false;
 
-    filename = path + "rotate_hover.png";
-    if (!m_textures[Hover].load_from_file(filename, false))
+    if (!m_textures[Hover].load_from_file(path + "rotate_hover.png", false))
         return false;
 
-    filename = path + "rotate_on.png";
-    if (!m_textures[On].load_from_file(filename, false))
+    if (!m_textures[On].load_from_file(path + "rotate_on.png", false))
         return false;
 
     return true;
@@ -659,16 +656,13 @@ bool GLGizmoScale3D::on_init()
 {
     std::string path = resources_dir() + "/icons/overlay/";
 
-    std::string filename = path + "scale_off.png";
-    if (!m_textures[Off].load_from_file(filename, false))
+    if (!m_textures[Off].load_from_file(path + "scale_off.png", false))
         return false;
 
-    filename = path + "scale_hover.png";
-    if (!m_textures[Hover].load_from_file(filename, false))
+    if (!m_textures[Hover].load_from_file(path + "scale_hover.png", false))
         return false;
 
-    filename = path + "scale_on.png";
-    if (!m_textures[On].load_from_file(filename, false))
+    if (!m_textures[On].load_from_file(path + "scale_on.png", false))
         return false;
 
     for (int i = 0; i < 10; ++i)
@@ -1015,16 +1009,13 @@ bool GLGizmoMove3D::on_init()
 {
     std::string path = resources_dir() + "/icons/overlay/";
 
-    std::string filename = path + "move_off.png";
-    if (!m_textures[Off].load_from_file(filename, false))
+    if (!m_textures[Off].load_from_file(path + "move_off.png", false))
         return false;
 
-    filename = path + "move_hover.png";
-    if (!m_textures[Hover].load_from_file(filename, false))
+    if (!m_textures[Hover].load_from_file(path + "move_hover.png", false))
         return false;
 
-    filename = path + "move_on.png";
-    if (!m_textures[On].load_from_file(filename, false))
+    if (!m_textures[On].load_from_file(path + "move_on.png", false))
         return false;
 
     for (int i = 0; i < 3; ++i)
@@ -1179,16 +1170,13 @@ bool GLGizmoFlatten::on_init()
 {
     std::string path = resources_dir() + "/icons/overlay/";
 
-    std::string filename = path + "layflat_off.png";
-    if (!m_textures[Off].load_from_file(filename, false))
+    if (!m_textures[Off].load_from_file(path + "layflat_off.png", false))
         return false;
 
-    filename = path + "layflat_hover.png";
-    if (!m_textures[Hover].load_from_file(filename, false))
+    if (!m_textures[Hover].load_from_file(path + "layflat_hover.png", false))
         return false;
 
-    filename = path + "layflat_on.png";
-    if (!m_textures[On].load_from_file(filename, false))
+    if (!m_textures[On].load_from_file(path + "layflat_on.png", false))
         return false;
 
     return true;
@@ -1511,16 +1499,13 @@ bool GLGizmoSlaSupports::on_init()
 {
     std::string path = resources_dir() + "/icons/overlay/";
 
-    std::string filename = path + "sla_support_points_off.png";
-    if (!m_textures[Off].load_from_file(filename, false))
+    if (!m_textures[Off].load_from_file(path + "sla_support_points_off.png", false))
         return false;
 
-    filename = path + "sla_support_points_hover.png";
-    if (!m_textures[Hover].load_from_file(filename, false))
+    if (!m_textures[Hover].load_from_file(path + "sla_support_points_hover.png", false))
         return false;
 
-    filename = path + "sla_support_points_on.png";
-    if (!m_textures[On].load_from_file(filename, false))
+    if (!m_textures[On].load_from_file(path + "sla_support_points_on.png", false))
         return false;
 
     return true;
