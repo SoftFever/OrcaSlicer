@@ -252,18 +252,6 @@ int GLCanvas3DManager::check_volumes_outside_state(wxGLCanvas* canvas, const Dyn
     return (it != m_canvases.end()) ? it->second->check_volumes_outside_state(config) : false;
 }
 
-bool GLCanvas3DManager::move_volume_up(wxGLCanvas* canvas, unsigned int id)
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->move_volume_up(id) : false;
-}
-
-bool GLCanvas3DManager::move_volume_down(wxGLCanvas* canvas, unsigned int id)
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->move_volume_down(id) : false;
-}
-
 GLCanvas3D* GLCanvas3DManager::get_canvas(wxGLCanvas* canvas)
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
@@ -284,7 +272,6 @@ void GLCanvas3DManager::set_print(wxGLCanvas* canvas, Print* print)
         it->second->set_print(print);
 }
 
-
 void GLCanvas3DManager::set_SLA_print(wxGLCanvas* canvas, SLAPrint* print)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
@@ -304,26 +291,6 @@ void GLCanvas3DManager::set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape)
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
         it->second->set_bed_shape(shape);
-}
-
-void GLCanvas3DManager::set_auto_bed_shape(wxGLCanvas* canvas)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->set_auto_bed_shape();
-}
-
-BoundingBoxf3 GLCanvas3DManager::get_volumes_bounding_box(wxGLCanvas* canvas)
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->volumes_bounding_box() : BoundingBoxf3();
-}
-
-void GLCanvas3DManager::set_axes_length(wxGLCanvas* canvas, float length)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->set_axes_length(length);
 }
 
 void GLCanvas3DManager::set_cutting_plane(wxGLCanvas* canvas, float z, const ExPolygons& polygons)
@@ -350,12 +317,6 @@ bool GLCanvas3DManager::is_layers_editing_allowed(wxGLCanvas* canvas) const
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
     return (it != m_canvases.end()) ? it->second->is_layers_editing_allowed() : false;
-}
-
-bool GLCanvas3DManager::is_shader_enabled(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->is_shader_enabled() : false;
 }
 
 bool GLCanvas3DManager::is_reload_delayed(wxGLCanvas* canvas) const
@@ -536,18 +497,6 @@ std::vector<int> GLCanvas3DManager::load_object(wxGLCanvas* canvas, const Model*
 
     CanvasesMap::const_iterator it = _get_canvas(canvas);
     return (it != m_canvases.end()) ? it->second->load_object(*model, obj_idx) : std::vector<int>();
-}
-
-int GLCanvas3DManager::get_first_volume_id(wxGLCanvas* canvas, int obj_idx) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->get_first_volume_id(obj_idx) : -1;
-}
-
-int GLCanvas3DManager::get_in_object_volume_id(wxGLCanvas* canvas, int scene_vol_idx) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->get_in_object_volume_id(scene_vol_idx) : -1;
 }
 
 void GLCanvas3DManager::mirror_selection(wxGLCanvas* canvas, Axis axis)

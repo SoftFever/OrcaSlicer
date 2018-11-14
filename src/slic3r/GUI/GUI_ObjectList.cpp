@@ -1182,20 +1182,23 @@ void ObjectList::delete_from_model_and_list(const ItemType type, const int obj_i
 
 void ObjectList::delete_from_model_and_list(const std::vector<ItemForDelete>& items_for_delete)
 {
-    for (auto& item : items_for_delete)
+    if (items_for_delete.empty())
+        return;
+
+    for (std::vector<ItemForDelete>::const_reverse_iterator item = items_for_delete.rbegin(); item != items_for_delete.rend(); ++item)
     {
-        if ( !(item.type&(itObject|itVolume|itInstance)) )
+        if (!(item->type&(itObject | itVolume | itInstance)))
             continue;
-        if (item.type&itObject) {
-            del_object(item.obj_idx);
-            m_objects_model->Delete(m_objects_model->GetItemById(item.obj_idx));
+        if (item->type&itObject) {
+            del_object(item->obj_idx);
+            m_objects_model->Delete(m_objects_model->GetItemById(item->obj_idx));
         }
         else {
-            del_subobject_from_object(item.obj_idx, item.sub_obj_idx, item.type);
-            if (item.type&itVolume)
-                m_objects_model->Delete(m_objects_model->GetItemByVolumeId(item.obj_idx, item.sub_obj_idx));
+            del_subobject_from_object(item->obj_idx, item->sub_obj_idx, item->type);
+            if (item->type&itVolume)
+                m_objects_model->Delete(m_objects_model->GetItemByVolumeId(item->obj_idx, item->sub_obj_idx));
             else
-                m_objects_model->Delete(m_objects_model->GetItemByInstanceId(item.obj_idx, item.sub_obj_idx));
+                m_objects_model->Delete(m_objects_model->GetItemByInstanceId(item->obj_idx, item->sub_obj_idx));
         }
     }
     part_selection_changed();

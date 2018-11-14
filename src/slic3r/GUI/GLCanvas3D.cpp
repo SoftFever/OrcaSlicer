@@ -1464,7 +1464,9 @@ void GLCanvas3D::Selection::translate(const Vec3d& displacement)
     }
 
 #if !DISABLE_INSTANCES_SYNCH
-    if (m_mode == Volume)
+    if (m_mode == Instance)
+        _synchronize_unselected_instances();
+    else if (m_mode == Volume)
         _synchronize_unselected_volumes();
 #endif // !DISABLE_INSTANCES_SYNCH
 
@@ -2548,14 +2550,14 @@ bool GLCanvas3D::Gizmos::grabber_contains_mouse() const
     return (curr != nullptr) ? (curr->get_hover_id() != -1) : false;
 }
 
-void GLCanvas3D::Gizmos::update(const Linef3& mouse_ray, const Point* mouse_pos)
+void GLCanvas3D::Gizmos::update(const Linef3& mouse_ray, bool shift_down, const Point* mouse_pos)
 {
     if (!m_enabled)
         return;
 
     GLGizmoBase* curr = _get_current();
     if (curr != nullptr)
-        curr->update(mouse_ray, mouse_pos);
+        curr->update(GLGizmoBase::UpdateData(mouse_ray, mouse_pos, shift_down));
 }
 
 #if ENABLE_GIZMOS_RESET
@@ -2713,8 +2715,6 @@ void GLCanvas3D::Gizmos::render_current_gizmo(const GLCanvas3D::Selection& selec
 {
     if (!m_enabled)
         return;
-
-    ::glDisable(GL_DEPTH_TEST);
 
     _render_current_gizmo(selection);
 }
@@ -3305,38 +3305,6 @@ int GLCanvas3D::check_volumes_outside_state(const DynamicPrintConfig* config) co
     return (int)state;
 }
 
-bool GLCanvas3D::move_volume_up(unsigned int id)
-{
-    if ((id > 0) && (id < (unsigned int)m_volumes.volumes.size()))
-    {
-        std::swap(m_volumes.volumes[id - 1], m_volumes.volumes[id]);
-        GLVolume &v1 = *m_volumes.volumes[id - 1];
-        GLVolume &v2 = *m_volumes.volumes[id];
-        std::swap(v1.object_id,   v2.object_id);
-        std::swap(v1.volume_id,   v2.volume_id);
-        std::swap(v1.instance_id, v2.instance_id);
-        return true;
-    }
-
-    return false;
-}
-
-bool GLCanvas3D::move_volume_down(unsigned int id)
-{
-    if ((id >= 0) && (id + 1 < (unsigned int)m_volumes.volumes.size()))
-    {
-        std::swap(m_volumes.volumes[id + 1], m_volumes.volumes[id]);
-        GLVolume &v1 = *m_volumes.volumes[id + 1];
-        GLVolume &v2 = *m_volumes.volumes[id];
-        std::swap(v1.object_id,   v2.object_id);
-        std::swap(v1.volume_id,   v2.volume_id);
-        std::swap(v1.instance_id, v2.instance_id);
-        return true;
-    }
-
-    return false;
-}
-
 void GLCanvas3D::set_config(DynamicPrintConfig* config)
 {
     m_config = config;
@@ -3378,26 +3346,6 @@ void GLCanvas3D::set_bed_shape(const Pointfs& shape)
     m_dirty = true;
 }
 
-void GLCanvas3D::set_auto_bed_shape()
-{
-    // draw a default square bed around object center
-    const BoundingBoxf3& bbox = volumes_bounding_box();
-    double max_size = bbox.max_size();
-    const Vec3d center = bbox.center();
-
-    Pointfs bed_shape;
-    bed_shape.reserve(4);
-    bed_shape.emplace_back(center(0) - max_size, center(1) - max_size);
-    bed_shape.emplace_back(center(0) + max_size, center(1) - max_size);
-    bed_shape.emplace_back(center(0) + max_size, center(1) + max_size);
-    bed_shape.emplace_back(center(0) - max_size, center(1) + max_size);
-
-    set_bed_shape(bed_shape);
-
-    // Set the origin for painting of the coordinate system axes.
-    m_axes.origin = Vec3d(center(0), center(1), (double)GROUND_Z);
-}
-
 void GLCanvas3D::set_axes_length(float length)
 {
     m_axes.length = length;
@@ -3437,11 +3385,6 @@ bool GLCanvas3D::is_layers_editing_enabled() const
 bool GLCanvas3D::is_layers_editing_allowed() const
 {
     return m_layers_editing.is_allowed();
-}
-
-bool GLCanvas3D::is_shader_enabled() const
-{
-    return m_shader_enabled;
 }
 
 bool GLCanvas3D::is_reload_delayed() const
@@ -3639,6 +3582,7 @@ void GLCanvas3D::render()
     _picking_pass();
 
     // draw scene
+    ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     _render_background();
 
     if (is_custom_bed) // untextured bed needs to be rendered before objects
@@ -3647,8 +3591,8 @@ void GLCanvas3D::render()
         // disable depth testing so that axes are not covered by ground
         _render_axes(false);
     }
-    _render_objects();
 
+    _render_objects();
     _render_selection();
 
     if (!is_custom_bed) // textured bed needs to be rendered after objects
@@ -3717,22 +3661,6 @@ std::vector<int> GLCanvas3D::load_support_meshes(const Model& model, int obj_idx
     std::vector<int> volumes = m_volumes.load_object_auxiliary(model.objects[obj_idx], m_sla_print->objects()[obj_idx], obj_idx, slaposSupportTree, m_use_VBOs && m_initialized);
 	append(volumes, m_volumes.load_object_auxiliary(model.objects[obj_idx], m_sla_print->objects()[obj_idx], obj_idx, slaposBasePool, m_use_VBOs && m_initialized));
     return volumes;
-}
-
-int GLCanvas3D::get_first_volume_id(int obj_idx) const
-{
-    for (int i = 0; i < (int)m_volumes.volumes.size(); ++i)
-    {
-        if ((m_volumes.volumes[i] != nullptr) && (m_volumes.volumes[i]->object_idx() == obj_idx))
-            return i;
-    }
-
-    return -1;
-}
-
-int GLCanvas3D::get_in_object_volume_id(int scene_vol_idx) const
-{
-    return ((0 <= scene_vol_idx) && (scene_vol_idx < (int)m_volumes.volumes.size())) ? m_volumes.volumes[scene_vol_idx]->volume_idx() : -1;
 }
 
 void GLCanvas3D::mirror_selection(Axis axis)
@@ -4312,7 +4240,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_canvas->CaptureMouse();
 
         m_mouse.dragging = true;
-        m_gizmos.update(mouse_ray(pos), &pos);
+        m_gizmos.update(mouse_ray(pos), evt.ShiftDown(), &pos);
 
         switch (m_gizmos.get_current_type())
         {
@@ -4972,8 +4900,6 @@ void GLCanvas3D::_picking_pass() const
 
 void GLCanvas3D::_render_background() const
 {
-    ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     ::glPushMatrix();
     ::glLoadIdentity();
     ::glMatrixMode(GL_PROJECTION);

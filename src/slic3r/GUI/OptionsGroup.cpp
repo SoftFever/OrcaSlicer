@@ -43,7 +43,7 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
 			case coPercents:
 			case coString:
 			case coStrings:
-				m_fields.emplace(id, std::move(TextCtrl::Create<TextCtrl>(parent(), opt, id)));
+				m_fields.emplace(id, std::move(TextCtrl::Create<TextCtrl>(parent(), opt, id, process_enter)));
                 break;
 			case coBool:
 			case coBools:

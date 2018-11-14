@@ -602,7 +602,7 @@ private:
 
         bool overlay_contains_mouse(const GLCanvas3D& canvas, const Vec2d& mouse_pos) const;
         bool grabber_contains_mouse() const;
-        void update(const Linef3& mouse_ray, const Point* mouse_pos = nullptr);
+        void update(const Linef3& mouse_ray, bool shift_down, const Point* mouse_pos = nullptr);
 #if ENABLE_GIZMOS_RESET
         void process_double_click();
 #endif // ENABLE_GIZMOS_RESET
@@ -752,8 +752,6 @@ public:
     unsigned int get_volumes_count() const;
     void reset_volumes();
     int check_volumes_outside_state(const DynamicPrintConfig* config) const;
-    bool move_volume_up(unsigned int id);
-    bool move_volume_down(unsigned int id);
 
     void set_config(DynamicPrintConfig* config);
     void set_print(Print* print);
@@ -768,8 +766,6 @@ public:
     // fills the m_bed.m_grid_lines and sets m_bed.m_origin.
     // Sets m_bed.m_polygon to limit the object placement.
     void set_bed_shape(const Pointfs& shape);
-    // Used by ObjectCutDialog and ObjectPartsPanel to generate a rectangular ground plane to support the scene objects.
-    void set_auto_bed_shape();
 
     void set_axes_length(float length);
 
@@ -783,7 +779,6 @@ public:
 
     bool is_layers_editing_enabled() const;
     bool is_layers_editing_allowed() const;
-    bool is_shader_enabled() const;
 
     bool is_reload_delayed() const;
 
@@ -827,9 +822,6 @@ public:
 
     // Load SLA support tree and SLA pad meshes into the scene, if available at the respective SLAPrintObject instances.
     std::vector<int> load_support_meshes(const Model& model, int obj_idx);
-
-    int get_first_volume_id(int obj_idx) const;
-    int get_in_object_volume_id(int scene_vol_idx) const;
 
     void mirror_selection(Axis axis);
 
@@ -941,13 +933,13 @@ private:
     void _update_gcode_volumes_visibility(const GCodePreviewData& preview_data);
     void _update_toolpath_volumes_outside_state();
     void _show_warning_texture_if_needed();
-
+public:
     void _on_move();
     void _on_rotate();
     void _on_scale();
     void _on_flatten();
     void _on_mirror();
-
+private:
     // generates the legend texture in dependence of the current shown view type
     void _generate_legend_texture(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
 

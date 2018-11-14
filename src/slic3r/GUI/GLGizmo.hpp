@@ -52,6 +52,17 @@ public:
         Num_States
     };
 
+    struct UpdateData
+    {
+        const Linef3 mouse_ray;
+        const Point* mouse_pos;
+        bool shift_down;
+
+        UpdateData(const Linef3& mouse_ray, const Point* mouse_pos = nullptr, bool shift_down = false)
+            : mouse_ray(mouse_ray), mouse_pos(mouse_pos), shift_down(shift_down)
+        {}
+    };
+
 protected:
     GLCanvas3D& m_parent;
 
@@ -78,9 +89,7 @@ public:
     void set_group_id(int id) { m_group_id = id; }
 
     EState get_state() const { return m_state; }
-    void set_state(EState state) {
-        m_state = state; on_set_state();
-    }
+    void set_state(EState state) { m_state = state; on_set_state(); }
 
     bool is_activable(const GLCanvas3D::Selection& selection) const { return on_is_activable(selection); }
 
@@ -99,7 +108,7 @@ public:
     void stop_dragging();
     bool is_dragging() const { return m_dragging; }
 
-    void update(const Linef3& mouse_ray, const Point* mouse_pos);
+    void update(const UpdateData& data);
 
 #if ENABLE_GIZMOS_RESET
     void process_double_click() { on_process_double_click(); }
@@ -118,7 +127,7 @@ protected:
     virtual void on_disable_grabber(unsigned int id) {}
     virtual void on_start_dragging(const GLCanvas3D::Selection& selection) {}
     virtual void on_stop_dragging() {}
-    virtual void on_update(const Linef3& mouse_ray, const Point* mouse_pos) = 0;
+    virtual void on_update(const UpdateData& data) = 0;
 #if ENABLE_GIZMOS_RESET
     virtual void on_process_double_click() {}
 #endif // ENABLE_GIZMOS_RESET
@@ -175,7 +184,7 @@ protected:
     virtual bool on_init();
     virtual std::string on_get_name() const { return ""; }
     virtual void on_start_dragging(const GLCanvas3D::Selection& selection);
-    virtual void on_update(const Linef3& mouse_ray, const Point* mouse_pos);
+    virtual void on_update(const UpdateData&  data);
 #if ENABLE_GIZMOS_RESET
     virtual void on_process_double_click() { m_angle = 0.0; }
 #endif // ENABLE_GIZMOS_RESET
@@ -235,11 +244,11 @@ protected:
     }
     virtual void on_start_dragging(const GLCanvas3D::Selection& selection);
     virtual void on_stop_dragging();
-    virtual void on_update(const Linef3& mouse_ray, const Point* mouse_pos)
+    virtual void on_update(const UpdateData& data)
     {
         for (GLGizmoRotate& g : m_gizmos)
         {
-            g.update(mouse_ray, mouse_pos);
+            g.update(data);
         }
     }
 #if ENABLE_GIZMOS_RESET
@@ -267,12 +276,17 @@ class GLGizmoScale3D : public GLGizmoBase
 
     Vec3d m_scale;
 
+    double m_snap_step;
+
     Vec3d m_starting_scale;
     Vec3d m_starting_drag_position;
     BoundingBoxf3 m_starting_box;
 
 public:
     explicit GLGizmoScale3D(GLCanvas3D& parent);
+
+    double get_snap_step(double step) const { return m_snap_step; }
+    void set_snap_step(double step) { m_snap_step = step; }
 
     const Vec3d& get_scale() const { return m_scale; }
     void set_scale(const Vec3d& scale) { m_starting_scale = scale; m_scale = scale; }
@@ -282,7 +296,7 @@ protected:
     virtual std::string on_get_name() const;
     virtual bool on_is_activable(const GLCanvas3D::Selection& selection) const { return !selection.is_wipe_tower(); }
     virtual void on_start_dragging(const GLCanvas3D::Selection& selection);
-    virtual void on_update(const Linef3& mouse_ray, const Point* mouse_pos);
+    virtual void on_update(const UpdateData& data);
 #if ENABLE_GIZMOS_RESET
     virtual void on_process_double_click();
 #endif // ENABLE_GIZMOS_RESET
@@ -292,12 +306,12 @@ protected:
 private:
     void render_grabbers_connection(unsigned int id_1, unsigned int id_2) const;
 
-    void do_scale_x(const Linef3& mouse_ray);
-    void do_scale_y(const Linef3& mouse_ray);
-    void do_scale_z(const Linef3& mouse_ray);
-    void do_scale_uniform(const Linef3& mouse_ray);
+    void do_scale_x(const UpdateData& data);
+    void do_scale_y(const UpdateData& data);
+    void do_scale_z(const UpdateData& data);
+    void do_scale_uniform(const UpdateData& data);
 
-    double calc_ratio(const Linef3& mouse_ray) const;
+    double calc_ratio(const UpdateData& data) const;
 };
 
 class GLGizmoMove3D : public GLGizmoBase
@@ -305,12 +319,18 @@ class GLGizmoMove3D : public GLGizmoBase
     static const double Offset;
 
     Vec3d m_displacement;
+
+    double m_snap_step;
+
     Vec3d m_starting_drag_position;
     Vec3d m_starting_box_center;
     Vec3d m_starting_box_bottom_center;
 
 public:
     explicit GLGizmoMove3D(GLCanvas3D& parent);
+
+    double get_snap_step(double step) const { return m_snap_step; }
+    void set_snap_step(double step) { m_snap_step = step; }
 
     const Vec3d& get_displacement() const { return m_displacement; }
 
@@ -319,12 +339,12 @@ protected:
     virtual std::string on_get_name() const;
     virtual void on_start_dragging(const GLCanvas3D::Selection& selection);
     virtual void on_stop_dragging();
-    virtual void on_update(const Linef3& mouse_ray, const Point* mouse_pos);
+    virtual void on_update(const UpdateData& data);
     virtual void on_render(const GLCanvas3D::Selection& selection) const;
     virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const;
 
 private:
-    double calc_projection(const Linef3& mouse_ray) const;
+    double calc_projection(const UpdateData& data) const;
 };
 
 class GLGizmoFlatten : public GLGizmoBase
@@ -366,7 +386,7 @@ protected:
     virtual std::string on_get_name() const;
     virtual bool on_is_activable(const GLCanvas3D::Selection& selection) const { return (selection.is_from_single_object() && !selection.is_wipe_tower() && !selection.is_modifier());  }
     virtual void on_start_dragging(const GLCanvas3D::Selection& selection);
-    virtual void on_update(const Linef3& mouse_ray, const Point* mouse_pos) {}
+    virtual void on_update(const UpdateData& data) {}
     virtual void on_render(const GLCanvas3D::Selection& selection) const;
     virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const;
     virtual void on_set_state()
@@ -404,7 +424,7 @@ public:
 
 private:
     bool on_init();
-    void on_update(const Linef3& mouse_ray, const Point* mouse_pos);
+    void on_update(const UpdateData& data);
     virtual void on_render(const GLCanvas3D::Selection& selection) const;
     virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const;
 
