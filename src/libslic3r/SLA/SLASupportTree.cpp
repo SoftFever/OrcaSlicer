@@ -587,6 +587,23 @@ EigenMesh3D to_eigenmesh(const TriangleMesh& tmesh) {
 
 EigenMesh3D to_eigenmesh(const ModelObject& modelobj) {
     auto&& rmesh = modelobj.raw_mesh();
+
+    // we need to transform the raw mesh...
+    // currently all the instances share the same x and y rotation and scaling
+    // so we have to extract those from e.g. the first instance and apply to the
+    // raw mesh. This is also true for the support points.
+    // BUT: when the support structure is spawned for each instance than it has
+    // to omit the X, Y rotation and scaling as those have been already applied
+    // or apply an inverse transformation on the support structure after it
+    // has been created.
+
+//    auto rot = modelobj.instances.front()->get_rotation();
+//    auto scaling = modelobj.instances.front()->get_scaling_factor();
+
+//    rmesh.rotate(float(rot(X)), Axis::X);
+//    rmesh.rotate(float(rot(Y)), Axis::Y);
+//    rmesh.scale(scaling);
+
     auto&& ret = to_eigenmesh(rmesh);
     auto&& bb = rmesh.bounding_box();
     ret.ground_level = bb.min(Z);
@@ -635,9 +652,18 @@ PointSet support_points(const Model& model) {
 PointSet support_points(const ModelObject& modelobject)
 {
     PointSet ret(modelobject.sla_support_points.size(), 3);
+    auto rot = modelobject.instances.front()->get_rotation();
+//    auto scaling = modelobject.instances.front()->get_scaling_factor();
+
+//    Transform3d tr;
+//    tr.rotate(Eigen::AngleAxisd(rot(X), Vec3d::UnitX()) *
+//              Eigen::AngleAxisd(rot(Y), Vec3d::UnitY()));
+
     long i = 0;
     for(const Vec3f& msource : modelobject.sla_support_points) {
-        ret.row(i++) = msource.cast<double>();
+        Vec3d&& p = msource.cast<double>();
+//        p = tr * p;
+        ret.row(i++) = p;
     }
     return ret;
 }
