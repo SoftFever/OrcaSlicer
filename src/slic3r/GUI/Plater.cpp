@@ -886,6 +886,11 @@ struct Plater::priv
     Sidebar *sidebar;
     wxGLCanvas *canvas3D;    // TODO: Use GLCanvas3D when we can
     Preview *preview;
+
+#if ENABLE_NEW_MENU_LAYOUT
+    wxString project_filename;
+#endif // ENABLE_NEW_MENU_LAYOUT
+
     BackgroundSlicingProcess    background_process;
     std::atomic<bool>           arranging;
 
@@ -995,6 +1000,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     notebook(new wxNotebook(q, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_BOTTOM)),
     sidebar(new Sidebar(q)),
     canvas3D(GLCanvas3DManager::create_wxglcanvas(notebook))
+#if ENABLE_NEW_MENU_LAYOUT
+    , project_filename(wxEmptyString)
+#endif // ENABLE_NEW_MENU_LAYOUT
 {
     arranging.store(false);
     background_process.set_fff_print(&print);
@@ -1478,6 +1486,10 @@ void Plater::priv::delete_object_from_model(size_t obj_idx)
 
 void Plater::priv::reset()
 {
+#if ENABLE_NEW_MENU_LAYOUT
+    project_filename.Clear();
+#endif // ENABLE_NEW_MENU_LAYOUT
+
     // Prevent toolpaths preview from rendering while we modify the Print object
     preview->set_enabled(false);
 
@@ -1906,7 +1918,11 @@ void Plater::priv::on_schedule_background_process(SimpleEvent&)
 void Plater::priv::on_action_add(SimpleEvent&)
 {
     if (q != nullptr)
+#if ENABLE_NEW_MENU_LAYOUT
+        q->add_model();
+#else
         q->add();
+#endif // ENABLE_NEW_MENU_LAYOUT
 }
 
 void Plater::priv::on_action_split_objects(SimpleEvent&)
@@ -2107,10 +2123,38 @@ Sidebar& Plater::sidebar() { return *p->sidebar; }
 Model& Plater::model()  { return p->model; }
 Print& Plater::print()  { return p->print; }
 
+#if ENABLE_NEW_MENU_LAYOUT
+void Plater::load_project()
+{
+    wxString input_file;
+    wxGetApp().load_project(this, input_file);
+
+    if (input_file.empty())
+        return;
+
+    p->reset();
+    p->project_filename = input_file;
+
+    std::vector<fs::path> input_paths;
+    input_paths.push_back(input_file.wx_str());
+    load_files(input_paths);
+}
+
+void Plater::add_model()
+#else
 void Plater::add()
+#endif // ENABLE_NEW_MENU_LAYOUT
 {
     wxArrayString input_files;
+#if ENABLE_NEW_MENU_LAYOUT
+    wxGetApp().import_model(this, input_files);
+#else
     wxGetApp().open_model(this, input_files);
+#endif // ENABLE_NEW_MENU_LAYOUT
+#if ENABLE_NEW_MENU_LAYOUT
+    if (input_files.empty())
+        return;
+#endif // ENABLE_NEW_MENU_LAYOUT
 
     std::vector<fs::path> input_paths;
     for (const auto &file : input_files) {
@@ -2321,18 +2365,42 @@ void Plater::export_amf()
     }
 }
 
+#if ENABLE_NEW_MENU_LAYOUT
+void Plater::export_3mf(const boost::filesystem::path& output_path)
+#else
 void Plater::export_3mf()
+#endif // ENABLE_NEW_MENU_LAYOUT
 {
     if (p->model.objects.empty()) { return; }
 
-    auto dialog = p->get_export_file(FT_3MF);
-    if (! dialog) { return; }
+#if ENABLE_NEW_MENU_LAYOUT
+    wxString path;
+    bool export_config = true;
+    if (output_path.empty())
+    {
+#endif // ENABLE_NEW_MENU_LAYOUT
+        auto dialog = p->get_export_file(FT_3MF);
+        if (!dialog) { return; }
+#if ENABLE_NEW_MENU_LAYOUT
+        path = dialog->GetPath();
+        export_config = dialog->get_checkbox_value();
+    }
+    else
+        path = output_path.string();
 
-    wxString path = dialog->GetPath();
-    auto path_cstr = path.c_str();
+    if (!path.Lower().EndsWith(".3mf"))
+        return;
+#else
+        wxString path = dialog->GetPath();
+        auto path_cstr = path.c_str();
+#endif // ENABLE_NEW_MENU_LAYOUT
 
 	DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config();
-	if (Slic3r::store_3mf(path_cstr, &p->model, dialog->get_checkbox_value() ? &cfg : nullptr)) {
+#if ENABLE_NEW_MENU_LAYOUT
+    if (Slic3r::store_3mf(path.c_str(), &p->model, export_config ? &cfg : nullptr)) {
+#else
+    if (Slic3r::store_3mf(path_cstr, &p->model, dialog->get_checkbox_value() ? &cfg : nullptr)) {
+#endif // ENABLE_NEW_MENU_LAYOUT
         // Success
         p->statusbar()->set_status_text(wxString::Format(_(L("3MF file exported to %s")), path));
     } else {
@@ -2448,6 +2516,18 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
     if (p->main_frame->is_loaded())
         this->p->schedule_background_process();
 }
+
+#if ENABLE_NEW_MENU_LAYOUT
+const wxString& Plater::get_project_filename() const
+{
+    return p->project_filename;
+}
+
+bool Plater::is_export_gcode_scheduled() const
+{
+    return p->background_process.is_export_scheduled();
+}
+#endif // ENABLE_NEW_MENU_LAYOUT
 
 int Plater::get_selected_object_idx()
 {

@@ -102,7 +102,12 @@ public:
 
     void            recreate_GUI();
     void            system_info();
+#if ENABLE_NEW_MENU_LAYOUT
+    void            load_project(wxWindow *parent, wxString& input_file);
+    void            import_model(wxWindow *parent, wxArrayString& input_files);
+#else
     void            open_model(wxWindow *parent, wxArrayString& input_files);
+#endif // ENABLE_NEW_MENU_LAYOUT
     static bool     catch_error(std::function<void()> cb,
 //                                 wxMessageDialog* message_dialog,
                                 const std::string& err);

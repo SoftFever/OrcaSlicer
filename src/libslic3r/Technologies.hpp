@@ -25,6 +25,8 @@
 #define ENABLE_MODELVOLUME_TRANSFORM (1 && ENABLE_1_42_0)
 // Gizmos always rendered on top of objects
 #define ENABLE_GIZMOS_ON_TOP (1 && ENABLE_1_42_0)
+// New menu layout (open/save/save as project + import/export)
+#define ENABLE_NEW_MENU_LAYOUT (1 && ENABLE_1_42_0)
 
 #endif // _technologies_h_
 

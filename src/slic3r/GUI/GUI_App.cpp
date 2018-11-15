@@ -304,20 +304,32 @@ void GUI_App::update_ui_from_settings()
     mainframe->update_ui_from_settings();
 }
 
-
-void GUI_App::open_model(wxWindow *parent, wxArrayString& input_files)
+#if ENABLE_NEW_MENU_LAYOUT
+void GUI_App::load_project(wxWindow *parent, wxString& input_file)
 {
-    auto dialog = new wxFileDialog(parent ? parent : GetTopWindow(),
+    input_file.Clear();
+    wxFileDialog dialog(parent ? parent : GetTopWindow(),
+        _(L("Choose one file (3MF):")),
+        app_config->get_last_dir(), "",
+        file_wildcards[FT_3MF], wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+
+    if (dialog.ShowModal() == wxID_OK)
+        input_file = dialog.GetPath();
+}
+
+void GUI_App::import_model(wxWindow *parent, wxArrayString& input_files)
+#else
+void GUI_App::open_model(wxWindow *parent, wxArrayString& input_files)
+#endif // ENABLE_NEW_MENU_LAYOUT
+{
+    input_files.Clear();
+    wxFileDialog dialog(parent ? parent : GetTopWindow(),
         _(L("Choose one or more files (STL/OBJ/AMF/3MF/PRUSA):")),
         app_config->get_last_dir(), "",
         file_wildcards[FT_MODEL], wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
-    if (dialog->ShowModal() != wxID_OK) {
-        dialog->Destroy();
-        return;
-    }
 
-    dialog->GetPaths(input_files);
-    dialog->Destroy();
+    if (dialog.ShowModal() == wxID_OK)
+        dialog.GetPaths(input_files);
 }
 
 void GUI_App::CallAfter(std::function<void()> cb)
