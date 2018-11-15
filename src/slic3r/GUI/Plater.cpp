@@ -405,7 +405,7 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
 void FreqChangedParams::Show(const bool show)
 {
     bool is_wdb_shown = m_wiping_dialog_button->IsShown();
-    m_og->sizer->Show(show);
+    m_og->Show(show);
 
     // correct showing of the FreqChangedParams sizer when m_wiping_dialog_button is hidden 
     if (show && !is_wdb_shown)
@@ -451,18 +451,15 @@ void Sidebar::priv::show_preset_comboboxes()
 
     wxWindowUpdateLocker noUpdates_scrolled(scrolled->GetParent());
     
-    for (size_t i = 0; i < 4; ++i) {
-        if (sizer_presets->IsShown(i) == showSLA)
-            sizer_presets->Show(i, !showSLA);
-    }
+    for (size_t i = 0; i < 4; ++i)
+        sizer_presets->Show(i, !showSLA);
 
     for (size_t i = 4; i < 6; ++i) {
         if (sizer_presets->IsShown(i) != showSLA)
             sizer_presets->Show(i, showSLA);
     }
 
-    if (frequently_changed_parameters->IsShown() == showSLA)
-        frequently_changed_parameters->Show(!showSLA);
+    frequently_changed_parameters->Show(!showSLA);
 
     scrolled->GetParent()->Layout();
     scrolled->Refresh();
