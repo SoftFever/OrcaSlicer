@@ -56,10 +56,19 @@ void GLGizmoBase::Grabber::render(bool hover, float size) const
     render(size, render_color, true);
 }
 
+float GLGizmoBase::Grabber::get_half_size(float size) const
+{
+    return std::max(size * SizeFactor, MinHalfSize);
+}
+
+float GLGizmoBase::Grabber::get_dragging_half_size(float size) const
+{
+    return std::max(size * SizeFactor * DraggingScaleFactor, MinHalfSize);
+}
+
 void GLGizmoBase::Grabber::render(float size, const float* render_color, bool use_lighting) const
 {
-    float half_size = dragging ? size * SizeFactor * DraggingScaleFactor : size * SizeFactor;
-    half_size = std::max(half_size, MinHalfSize);
+    float half_size = dragging ? get_dragging_half_size(size) : get_half_size(size);
 
     if (use_lighting)
         ::glEnable(GL_LIGHTING);
@@ -72,7 +81,6 @@ void GLGizmoBase::Grabber::render(float size, const float* render_color, bool us
     ::glRotated(Geometry::rad2deg(angles(2)), 0.0, 0.0, 1.0);
     ::glRotated(Geometry::rad2deg(angles(1)), 0.0, 1.0, 0.0);
     ::glRotated(Geometry::rad2deg(angles(0)), 1.0, 0.0, 0.0);
-
 
     // face min x
     ::glPushMatrix();
@@ -494,7 +502,7 @@ void GLGizmoRotate::render_angle() const
 
 void GLGizmoRotate::render_grabber(const BoundingBoxf3& box) const
 {
-    double grabber_radius = (double)m_radius * (1.0 + (double)GrabberOffset) + 2.0 * (double)m_axis * box.max_size() * (double)Grabber::SizeFactor;
+    double grabber_radius = (double)m_radius * (1.0 + (double)GrabberOffset) + 2.0 * (double)m_axis * (double)m_grabbers[0].get_half_size((float)box.max_size());
     m_grabbers[0].center = Vec3d(::cos(m_angle) * grabber_radius, ::sin(m_angle) * grabber_radius, 0.0);
     m_grabbers[0].angles(2) = m_angle;
 
