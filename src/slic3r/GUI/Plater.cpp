@@ -996,6 +996,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     sidebar(new Sidebar(q)),
     canvas3D(GLCanvas3DManager::create_wxglcanvas(notebook))
 {
+    arranging.store(false);
     background_process.set_fff_print(&print);
 	background_process.set_sla_print(&sla_print);
     background_process.set_gcode_preview_data(&gcode_preview_data);

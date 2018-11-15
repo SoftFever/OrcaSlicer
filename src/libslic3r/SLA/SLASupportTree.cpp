@@ -781,6 +781,7 @@ public:
         model_height = bb.max(Z);
 
         meshcache_valid = true;
+        return meshcache;
     }
 
     double full_height() const {
