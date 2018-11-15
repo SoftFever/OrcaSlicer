@@ -449,8 +449,7 @@ void Sidebar::priv::show_preset_comboboxes()
 {
     const bool showSLA = plater->printer_technology() == ptSLA;
 
-    wxWindowUpdateLocker noUpdates_scrolled(scrolled);
-//     scrolled->Freeze();
+    wxWindowUpdateLocker noUpdates_scrolled(scrolled->GetParent());
     
     for (size_t i = 0; i < 4; ++i) {
         if (sizer_presets->IsShown(i) == showSLA)
@@ -465,8 +464,8 @@ void Sidebar::priv::show_preset_comboboxes()
     if (frequently_changed_parameters->IsShown() == showSLA)
         frequently_changed_parameters->Show(!showSLA);
 
-    scrolled->Layout();
-//     scrolled->Thaw();
+    scrolled->GetParent()->Layout();
+    scrolled->Refresh();
 }
 
 
@@ -710,7 +709,7 @@ void Sidebar::show_info_sizer()
 
     const ModelInstance* model_instance = !model_object->instances.empty() ? model_object->instances.front() : nullptr;
 
-    auto size = model_object->instance_bounding_box(0).size();    
+    auto size = model_object->bounding_box().size();
     p->object_info->info_size->SetLabel(wxString::Format("%.2f x %.2f x %.2f",size(0), size(1), size(2)));
     p->object_info->info_materials->SetLabel(wxString::Format("%d", static_cast<int>(model_object->materials_count())));
 
@@ -776,6 +775,7 @@ void Sidebar::show_sliced_info_sizer(const bool show)
     }
 
     Layout();
+    p->scrolled->Refresh();
 }
 
 void Sidebar::show_buttons(const bool show)
@@ -2370,7 +2370,7 @@ void Plater::on_extruders_change(int num_extruders)
 {
     auto& choices = sidebar().combos_filament();
 
-    wxWindowUpdateLocker noUpdates_scrolled_panel(sidebar().scrolled_panel());
+    wxWindowUpdateLocker noUpdates_scrolled_panel(&sidebar()/*.scrolled_panel()*/);
 //     sidebar().scrolled_panel()->Freeze();
 
     int i = choices.size();
@@ -2388,8 +2388,8 @@ void Plater::on_extruders_change(int num_extruders)
     // remove unused choices if any
     sidebar().remove_unused_filament_combos(num_extruders);
 
-    sidebar().scrolled_panel()->Layout();
-//     sidebar().scrolled_panel()->Thaw();
+    sidebar().Layout();
+    sidebar().scrolled_panel()->Refresh();
 }
 
 void Plater::on_config_change(const DynamicPrintConfig &config)

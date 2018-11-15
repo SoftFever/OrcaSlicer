@@ -18,8 +18,6 @@ class ObjectManipulation : public OG_Settings
     bool        m_is_uniform_scale = false;         // It indicates if scale is uniform
 
     Vec3d       cache_position   { 0., 0., 0. };
-    Vec3d       cache_rotation   { 0., 0., 0. };
-    Vec3d       cache_scale      { 0., 0., 0. };
 
 public:
     ObjectManipulation(wxWindow* parent);
@@ -55,6 +53,8 @@ public:
 
     // change values 
     void    change_position_value(const Vec3d& position);
+    void    change_rotation_value(const Vec3d& rotation);
+    void    change_scale_value(const Vec3d& scale);
 
 
 private:
