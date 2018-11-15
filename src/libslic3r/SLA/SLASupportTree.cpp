@@ -416,9 +416,9 @@ struct Pillar {
         base.points.emplace_back(ep);
 
         auto& indices = base.indices;
-        auto hcenter = base.points.size() - 1;
-        auto lcenter = base.points.size() - 2;
-        auto offs = steps;
+        auto hcenter = int(base.points.size() - 1);
+        auto lcenter = int(base.points.size() - 2);
+        auto offs = int(steps);
         for(int i = 0; i < steps - 1; ++i) {
             indices.emplace_back(i, i + offs, offs + i + 1);
             indices.emplace_back(i, offs + i + 1, i + 1);
@@ -426,7 +426,7 @@ struct Pillar {
             indices.emplace_back(lcenter, offs + i + 1, offs + i);
         }
 
-        auto last = steps - 1;
+        auto last = int(steps - 1);
         indices.emplace_back(0, last, offs);
         indices.emplace_back(last, offs + last, offs);
         indices.emplace_back(hcenter, last, 0);
@@ -720,20 +720,18 @@ public:
         return m_pillars.back();
     }
 
-    const Head& pillar_head(long pillar_id) {
-        assert(pillar_id > 0 && pillar_id < m_pillars.size());
-        Pillar& p = m_pillars[pillar_id];
-        assert(p.starts_from_head && p.start_junction_id > 0 &&
+    const Head& pillar_head(long pillar_id) const {
+        assert(pillar_id >= 0 && pillar_id < m_pillars.size());
+        const Pillar& p = m_pillars[pillar_id];
+        assert(p.starts_from_head && p.start_junction_id >= 0 &&
                p.start_junction_id < m_heads.size() );
-        meshcache_valid = false;
         return m_heads[p.start_junction_id];
     }
 
-    const Pillar& head_pillar(long headid) {
+    const Pillar& head_pillar(long headid) const {
         assert(headid >= 0 && headid < m_heads.size());
-        Head& h = m_heads[headid];
-        assert(h.pillar_id > 0 && h.pillar_id < m_pillars.size());
-        meshcache_valid = false;
+        const Head& h = m_heads[headid];
+        assert(h.pillar_id >= 0 && h.pillar_id < m_pillars.size());
         return m_pillars[h.pillar_id];
     }
 
@@ -804,7 +802,7 @@ public:
         }
 
         BoundingBoxf3&& bb = meshcache.bounding_box();
-        model_height = bb.max(Z);
+        model_height = bb.max(Z) - bb.min(Z);
 
         meshcache_valid = true;
         return meshcache;
@@ -1691,49 +1689,74 @@ void SLASupportTree::merged_mesh_with_pad(TriangleMesh &outmesh) const {
     outmesh.merge(get_pad());
 }
 
-template<class T> void slice_part(const T& inp,
-                                  std::vector<SlicedSupports>& mergev,
-                                  const std::vector<float>& heights)
-{
-    for(auto& part : inp) {
-        TriangleMesh&& m = mesh(part.mesh);
-        TriangleMeshSlicer slicer(&m);
-        SlicedSupports slout;
-        slicer.slice(heights, &slout, [](){});
+//void slice_mesh(const Contour3D& cntr,
+//                std::vector<SlicedSupports>& mergev,
+//                const std::vector<float>& heights)
+//{
+//    TriangleMesh&& m = mesh(cntr);
+//    TriangleMeshSlicer slicer(&m);
+//    SlicedSupports slout;
+//    slicer.slice(heights, &slout, [](){});
 
-        for(size_t i = 0; i < slout.size(); i++) {
-            // move the layers obtained from this mesh to the merge area
-            mergev[i].emplace_back(std::move(slout[i]));
-        }
-    }
-}
+//    for(size_t i = 0; i < slout.size(); i++) {
+//        // move the layers obtained from this mesh to the merge area
+//        mergev[i].emplace_back(std::move(slout[i]));
+//    }
+//}
+
+//template<class T> void slice_part(const T& inp,
+//                                  std::vector<SlicedSupports>& mergev,
+//                                  const std::vector<float>& heights)
+//{
+//    for(auto& part : inp) {
+//        slice_mesh(part.mesh, mergev, heights);
+//    }
+//}
 
 SlicedSupports SLASupportTree::slice(float layerh, float init_layerh) const
 {
     if(init_layerh < 0) init_layerh = layerh;
     auto& stree = get();
-    const float modelh = stree.full_height();
+    const auto modelh = float(stree.full_height());
 
-    std::vector<float> heights; heights.reserve(size_t(modelh/layerh) + 1);
-    for(float h = init_layerh; h <= modelh; h += layerh) {
+    auto gndlvl = float(this->m_impl->ground_level);
+    std::vector<float> heights = {gndlvl};
+    heights.reserve(size_t(modelh/layerh) + 1);
+
+    for(float h = gndlvl + init_layerh; h < gndlvl + modelh; h += layerh) {
         heights.emplace_back(h);
     }
 
-    std::vector<SlicedSupports> mergev(heights.size());
+    TriangleMesh fullmesh = m_impl->merged_mesh();
+    TriangleMeshSlicer slicer(&fullmesh);
+    SlicedSupports ret;
+    slicer.slice(heights, &ret, [](){});
 
-    slice_part(stree.heads(), mergev, heights);
-    slice_part(stree.pillars(), mergev, heights);
-    slice_part(stree.junctions(), mergev, heights);
-    slice_part(stree.bridges(), mergev, heights);
-    slice_part(stree.compact_bridges(), mergev, heights);
+//    std::vector<SlicedSupports> mergev(heights.size());
 
-    // TODO: do this for all
+//    slice_part(stree.heads(), mergev, heights);
+//    slice_part(stree.pillars(), mergev, heights);
+//    for(auto& pillar : stree.pillars()) slice_mesh(pillar.base, mergev, heights);
+//    slice_part(stree.junctions(), mergev, heights);
+////    slice_part(stree.bridges(), mergev, heights);
+////    slice_part(stree.compact_bridges(), mergev, heights);
 
-    for(SlicedSupports& level : mergev) {
-        // TODO merge all expolygon in the current level
-    }
+//    // TODO: slicing base pool geometry
 
-    return {};
+//    // We could make a union of the slices at the same height level but at the
+//    // end they will be loaded into the rasterizer and it will unite them
+//    // anyway.
+
+//    SlicedSupports ret; ret.reserve(mergev.size());
+//    for(SlicedSupports& level : mergev) {
+//        size_t count = 0;
+//        for(auto& v : level) count += v.size();
+//        ret.emplace_back(); auto& merg = ret.back(); merg.reserve(count);
+//        for(ExPolygons& v : level)
+//            for(ExPolygon& ex : v) merg.emplace_back(ex);
+//    }
+
+    return ret;
 }
 
 const TriangleMesh &SLASupportTree::add_pad(double min_wall_thickness_mm,

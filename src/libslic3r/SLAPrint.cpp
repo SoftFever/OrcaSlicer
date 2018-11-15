@@ -138,8 +138,10 @@ void SLAPrint::process()
         auto bb3d = mesh.bounding_box();
 
         auto H = bb3d.max(Z) - bb3d.min(Z);
-        std::vector<float> heights = {ilh};
-        for(float h = ilh; h < H; h += lh) heights.emplace_back(h);
+        auto gnd = float(bb3d.min(Z));
+        std::vector<float> heights = {gnd};
+        for(float h = gnd + ilh; h < gnd + H; h += lh) heights.emplace_back(h);
+
         auto& layers = po.m_model_slices;
         slicer.slice(heights, &layers, [](){});
     };
@@ -163,6 +165,8 @@ void SLAPrint::process()
 
     // In this step we create the supports
     auto support_tree = [this](SLAPrintObject& po) {
+        if(!po.m_supportdata) return;
+
         auto& emesh = po.m_supportdata->emesh;
         auto& pts = po.m_supportdata->support_points; // nowhere filled yet
         try {
@@ -190,17 +194,18 @@ void SLAPrint::process()
         // this step can only go after the support tree has been created
         // and before the supports had been sliced. (or the slicing has to be
         // repeated)
-        if(po.is_step_done(slaposSupportTree) &&
-           po.m_supportdata &&
-           po.m_supportdata->support_tree_ptr)
-        {
-            double wt = po.m_config.pad_wall_thickness.getFloat();
-            double h =  po.m_config.pad_wall_height.getFloat();
-            double md = po.m_config.pad_max_merge_distance.getFloat();
-            double er = po.m_config.pad_edge_radius.getFloat();
 
-            po.m_supportdata->support_tree_ptr->add_pad(wt, h, md, er);
-        }
+//        if(po.is_step_done(slaposSupportTree) &&
+//           po.m_supportdata &&
+//           po.m_supportdata->support_tree_ptr)
+//        {
+//            double wt = po.m_config.pad_wall_thickness.getFloat();
+//            double h =  po.m_config.pad_wall_height.getFloat();
+//            double md = po.m_config.pad_max_merge_distance.getFloat();
+//            double er = po.m_config.pad_edge_radius.getFloat();
+
+//            po.m_supportdata->support_tree_ptr->add_pad(wt, h, md, er);
+//        }
     };
 
     // Slicing the support geometries similarly to the model slicing procedure.
@@ -211,6 +216,7 @@ void SLAPrint::process()
         if(sd && sd->support_tree_ptr) {
             auto lh = float(po.m_config.layer_height.getFloat());
             sd->support_slices = sd->support_tree_ptr->slice(lh, ilh);
+            std::cout << "support slice count " << sd->support_slices.size() << std::endl;
         }
     };
 
@@ -232,7 +238,6 @@ void SLAPrint::process()
 
         // For all print objects, go through its initial layers and place them
         // into the layers hash
-//        long long initlyridx = static_cast<long long>(scale_(ilh));
         for(SLAPrintObject *o : m_objects) {
             double lh = o->m_config.layer_height.getFloat();
             std::vector<ExPolygons> & oslices = o->m_model_slices;
@@ -243,8 +248,11 @@ void SLAPrint::process()
                 lyrs.emplace_back(oslices[i], o->m_instances);
             }
 
+            std::cout << "model slice count at rasterization: " << oslices.size() << std::endl;
+
             if(o->m_supportdata) { // deal with the support slices if present
                 auto& sslices = o->m_supportdata->support_slices;
+                std::cout << "support slice count at rasterization: " << o->m_supportdata->support_slices.size() << std::endl;
 
                 for(int i = 0; i < sslices.size(); ++i) {
                     double h = ilh + i * lh;
@@ -253,31 +261,13 @@ void SLAPrint::process()
                     lyrs.emplace_back(sslices[i], o->m_instances);
                 }
             }
-
-//            auto& oslices = o->m_model_slices;
-//            auto& firstlyr = oslices.front();
-//            auto& initlevel = levels[initlyridx];
-//            initlevel.emplace_back(firstlyr, o->m_instances);
-
-//            // now push the support slices as well
-//            // TODO
-
-//            double lh = o->m_config.layer_height.getFloat();
-//            size_t li = 1;
-//            for(auto lit = std::next(oslices.begin());
-//                lit != oslices.end();
-//                ++lit)
-//            {
-//                double h = ilh + li++ * lh;
-//                long long lyridx = static_cast<long long>(scale_(h));
-//                auto& lyrs = levels[lyridx];
-//                lyrs.emplace_back(*lit, o->m_instances);
-//            }
         }
 
         // collect all the keys
         std::vector<long long> keys; keys.reserve(levels.size());
         for(auto& e : levels) keys.emplace_back(e.first);
+
+        std::cout << "levels count at rasterization " << levels.size() << std::endl;
 
         { // create a raster printer for the current print parameters
             // I don't know any better
@@ -305,26 +295,25 @@ void SLAPrint::process()
         auto lvlfn = [&keys, &levels, &printer](unsigned level_id) {
             LayerRefs& lrange = levels[keys[level_id]];
 
-            for(auto& lyrref : lrange) { // for all layers in the current level
-                const Layer& l = lyrref.lref;   // get the layer reference
-                const LayerCopies& copies = lyrref.copies;
-                ExPolygonCollection sl = l;
+            // Switch to the appropriate layer in the printer
+            printer.begin_layer(level_id);
 
-                // Switch to the appropriate layer in the printer
-                printer.begin_layer(level_id);
+            for(auto& lyrref : lrange) { // for all layers in the current level
+                const Layer& sl = lyrref.lref;   // get the layer reference
+                const LayerCopies& copies = lyrref.copies;
 
                 // Draw all the polygons in the slice to the actual layer.
                 for(auto& cp : copies) {
-                    for(ExPolygon slice : sl.expolygons) {
+                    for(ExPolygon slice : sl) {
                         slice.translate(cp.shift(X), cp.shift(Y));
                         slice.rotate(cp.rotation);
                         printer.draw_polygon(slice, level_id);
                     }
                 }
-
-                // Finish the layer for later saving it.
-                printer.finish_layer(level_id);
             }
+
+            // Finish the layer for later saving it.
+            printer.finish_layer(level_id);
         };
 
         // Sequential version (for testing)
@@ -387,7 +376,7 @@ void SLAPrint::process()
     };
 
     // TODO: enable rasterizing
-     m_stepmask[slapsRasterize] = false;
+    // m_stepmask[slapsRasterize] = false;
 
     for(size_t s = 0; s < print_program.size(); ++s) {
         auto currentstep = printsteps[s];
