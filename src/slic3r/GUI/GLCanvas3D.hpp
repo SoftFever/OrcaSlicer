@@ -337,6 +337,9 @@ class GLCanvas3D
 
         bool dragging;
         Vec2d position;
+#if ENABLE_GIZMOS_ON_TOP
+        Vec3d scene_position;
+#endif // ENABLE_GIZMOS_ON_TOP
         Drag drag;
 #if ENABLE_GIZMOS_RESET
         bool ignore_up_event;
