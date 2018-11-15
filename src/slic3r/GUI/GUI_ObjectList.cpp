@@ -83,7 +83,10 @@ ObjectList::~ObjectList()
 
 void ObjectList::create_objects_ctrl()
 {
-    SetMinSize(wxSize(-1, 150)); // TODO - Set correct height according to the opened/closed objects
+    // temporary workaround for the correct behavior of the Scrolled sidebar panel:
+    // 1. set a height of the list to some big value 
+    // 2. change it to the normal min value (200) after first whole App updating/layouting
+    SetMinSize(wxSize(-1, 1500));   // #ys_FIXME 
 
     m_sizer = new wxBoxSizer(wxVERTICAL);
     m_sizer->Add(this, 1, wxGROW | wxLEFT, 20);

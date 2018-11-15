@@ -115,6 +115,16 @@ bool GUI_App::OnInit()
     update_mode();
     SetTopWindow(mainframe);
 
+    CallAfter([this]() {
+        // temporary workaround for the correct behavior of the Scrolled sidebar panel 
+        auto& panel = sidebar();
+        if (panel.obj_list()->GetMinHeight() > 200) {
+            wxWindowUpdateLocker noUpdates_sidebar(&panel);
+            panel.obj_list()->SetMinSize(wxSize(-1, 200));
+            panel.Layout();
+        }
+    });
+
     // This makes CallAfter() work
     Bind(wxEVT_IDLE, [this](wxIdleEvent& event)
     {
