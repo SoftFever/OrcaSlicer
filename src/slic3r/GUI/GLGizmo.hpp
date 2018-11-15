@@ -38,6 +38,9 @@ protected:
         void render(bool hover, float size) const;
         void render_for_picking(float size) const { render(size, color, false); }
 
+        float get_half_size(float size) const;
+        float get_dragging_half_size(float size) const;
+
     private:
         void render(float size, const float* render_color, bool use_lighting) const;
         void render_face(float half_size) const;
