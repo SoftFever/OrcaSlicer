@@ -233,25 +233,25 @@ void MainFrame::init_menubar()
         append_menu_item(fileMenu, wxID_ANY, _(L("&Export Config Bundle…")), _(L("Export all presets to file")), 
                         [this](wxCommandEvent&) { export_configbundle(); }, "lorry_go.png");
         fileMenu->AppendSeparator();
-        wxMenuItem* repeat = nullptr;
-        append_menu_item(fileMenu, wxID_ANY, _(L("Q&uick Slice…\tCtrl+U")), _(L("Slice a file into a G-code")), 
-            [this, repeat](wxCommandEvent&) {
-                wxTheApp->CallAfter([this, repeat]() {
+        m_menu_item_repeat = nullptr;
+        append_menu_item(fileMenu, wxID_ANY, _(L("Q&uick Slice…\tCtrl+U")), _(L("Slice a file into a G-code")),
+            [this](wxCommandEvent&) {
+                wxTheApp->CallAfter([this]() {
                     quick_slice();
-                    repeat->Enable(is_last_input_file());
-            }); }, "cog_go.png");
-        append_menu_item(fileMenu, wxID_ANY, _(L("Quick Slice and Save &As…\tCtrl+Alt+U")), _(L("Slice a file into a G-code, save as")), 
-            [this, repeat](wxCommandEvent&) {
-                wxTheApp->CallAfter([this, repeat]() {
+                    m_menu_item_repeat->Enable(is_last_input_file());
+                }); }, "cog_go.png");
+        append_menu_item(fileMenu, wxID_ANY, _(L("Quick Slice and Save &As…\tCtrl+Alt+U")), _(L("Slice a file into a G-code, save as")),
+            [this](wxCommandEvent&) {
+            wxTheApp->CallAfter([this]() {
                     quick_slice(qsSaveAs);
-                    repeat->Enable(is_last_input_file());
-            }); }, "cog_go.png");
-        repeat = append_menu_item(fileMenu, wxID_ANY, _(L("&Repeat Last Quick Slice\tCtrl+Shift+U")), _(L("Repeat last quick slice")), 
+                    m_menu_item_repeat->Enable(is_last_input_file());
+                }); }, "cog_go.png");
+        m_menu_item_repeat = append_menu_item(fileMenu, wxID_ANY, _(L("&Repeat Last Quick Slice\tCtrl+Shift+U")), _(L("Repeat last quick slice")),
             [this](wxCommandEvent&) {
             wxTheApp->CallAfter([this]() {
                 quick_slice(qsReslice);
             }); }, "cog_go.png");
-        repeat->Enable(0);
+        m_menu_item_repeat->Enable(false);
         fileMenu->AppendSeparator();
         append_menu_item(fileMenu, wxID_ANY, _(L("Slice to SV&G…\tCtrl+G")), _(L("Slice file to a multi-layer SVG")),
             [this](wxCommandEvent&) { quick_slice(qsSaveAs | qsExportSVG); }, "shape_handles.png");

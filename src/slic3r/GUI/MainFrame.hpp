@@ -55,6 +55,7 @@ class MainFrame : public wxFrame
 
     std::map<std::string, Tab*>     m_options_tabs;
 
+    wxMenuItem* m_menu_item_repeat { nullptr };
     wxMenuItem* m_menu_item_reslice_now { nullptr };
     wxMenu*     m_plater_menu { nullptr };
     wxMenu*     m_viewMenu{ nullptr };
