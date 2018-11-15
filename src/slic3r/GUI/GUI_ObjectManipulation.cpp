@@ -23,11 +23,12 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     m_og->set_process_enter(); // We need to update new values only after press ENTER 
     
     m_og->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
+        std::vector<std::string> axes{ "_x", "_y", "_z" };
+
         if (opt_key == "scale_unit") {
             const wxString& selection = boost::any_cast<wxString>(value);
-            std::vector<std::string> axes{ "x", "y", "z" };
             for (auto axis : axes) {
-                std::string key = "scale_" + axis;
+                std::string key = "scale" + axis;
                 m_og->set_side_text(key, selection);
             }
 
@@ -39,13 +40,17 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
         std::string param; 
         std::copy(opt_key.begin(), opt_key.end() - 2, std::back_inserter(param));
 
-        if (param == "position") {
-            Vec3d displacement;
-            displacement(0) = boost::any_cast<double>(m_og->get_value("position_x"));
-            displacement(1) = boost::any_cast<double>(m_og->get_value("position_y"));
-            displacement(2) = boost::any_cast<double>(m_og->get_value("position_z"));
-            change_position_value(displacement);
-        }
+        size_t i = 0;
+        Vec3d new_value;
+        for (auto axis : axes)
+            new_value(i++) = boost::any_cast<double>(m_og->get_value(param+axis));
+
+        if (param == "position")
+            change_position_value(new_value);
+        else if (param == "rotation")
+            change_rotation_value(new_value);
+        else if (param == "scale")
+            change_scale_value(new_value);
     };
 
     ConfigOptionDef def;
@@ -132,7 +137,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     m_og->append_line(add_og_to_object_settings(L("Rotation"), "°"));
     m_og->append_line(add_og_to_object_settings(L("Scale"), "mm"));
 
-
+    /* Unused parameter at this time
     def.label = L("Place on bed");
     def.type = coBool;
     def.tooltip = L("Automatic placing of models on printing bed in Y axis");
@@ -140,6 +145,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     def.sidetext = "";
     def.default_value = new ConfigOptionBool{ false };
     m_og->append_single_option_line(Option(def, "place_on_bed"));
+    */
 }
 
 void ObjectManipulation::Show(const bool show)
@@ -241,6 +247,8 @@ void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& sele
     }
     else
         reset_settings_value();
+
+    m_og->get_field("scale_unit")->disable();// temporary decision 
 }
 
 void ObjectManipulation::reset_settings_value()
@@ -317,9 +325,9 @@ void ObjectManipulation::update_scale_values()
         m_og->set_value("scale_z", double_to_string(instance->get_scaling_factor(Z) * 100, 2));
     }
     else {
-        m_og->set_value("scale_x", double_to_string(instance->get_scaling_factor(X) * size(0) + 0.5, 2));
-        m_og->set_value("scale_y", double_to_string(instance->get_scaling_factor(Y) * size(1) + 0.5, 2));
-        m_og->set_value("scale_z", double_to_string(instance->get_scaling_factor(Z) * size(2) + 0.5, 2));
+        m_og->set_value("scale_x", double_to_string(size(0), 2));
+        m_og->set_value("scale_y", double_to_string(size(1), 2));
+        m_og->set_value("scale_z", double_to_string(size(2), 2));
     }
 }
 
@@ -347,8 +355,10 @@ void ObjectManipulation::update_scale_value(const Vec3d& scaling_factor)
     // to be able to update the values as size
     // we need to store somewhere the original size
     // or have it passed as parameter
-    if (!m_is_percent_scale)
+    if (!m_is_percent_scale) {
+        m_is_percent_scale = true;
         m_og->set_value("scale_unit", _("%"));
+    }
 
     auto scale = scaling_factor * 100.0;
     m_og->set_value("scale_x", double_to_string(scale(0), 2));
@@ -399,11 +409,40 @@ void ObjectManipulation::change_position_value(const Vec3d& position)
     cache_position = position;
 }
 
-
-
-void ObjectManipulation::print_cashe_value(const std::string& label, const Vec3d& value)
+void ObjectManipulation::change_rotation_value(const Vec3d& rotation)
 {
-    std::cout << label << " => " << " X:" << value(0) << " Y:" << value(1) << " Z:" << value(2) << std::endl;
+    Vec3d rad_rotation;
+    for (size_t i = 0; i < 3; ++i)
+        rad_rotation(i) = Geometry::deg2rad(rotation(i));
+    auto canvas = _3DScene::get_canvas(wxGetApp().canvas3D());
+    canvas->get_selection().start_dragging();
+    canvas->get_selection().rotate(rad_rotation);
+    canvas->_on_rotate();
+}
+
+void ObjectManipulation::change_scale_value(const Vec3d& scale)
+{
+    Vec3d scaling_factor;
+    if (m_is_percent_scale)
+        scaling_factor = scale*0.01;
+    else {
+        int selection = ol_selection();
+        ModelObjectPtrs& objects = *wxGetApp().model_objects();
+
+        auto size = objects[selection]->instance_bounding_box(0).size();
+        for (size_t i = 0; i < 3; ++i)
+            scaling_factor(i) = scale(i) / size(i);
+    }
+
+    auto canvas = _3DScene::get_canvas(wxGetApp().canvas3D());
+    canvas->get_selection().start_dragging();
+    canvas->get_selection().scale(scaling_factor);
+    canvas->_on_scale();
+}
+
+void ObjectManipulation::print_cashe_value(const std::string& label, const Vec3d& v)
+{
+    std::cout << label << " => " << " X:" << v(0) << " Y:" << v(1) << " Z:" << v(2) << std::endl;
 }
 
 } //namespace GUI
