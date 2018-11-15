@@ -6,7 +6,7 @@
 //============
 
 // Shows camera target in the 3D scene
-#define ENABLE_SHOW_CAMERA_TARGET 1
+#define ENABLE_SHOW_CAMERA_TARGET 0
 
 //=============
 // 1.42.0 techs
