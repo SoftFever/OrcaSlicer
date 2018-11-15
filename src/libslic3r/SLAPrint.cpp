@@ -1,5 +1,6 @@
 #include "SLAPrint.hpp"
 #include "SLA/SLASupportTree.hpp"
+#include "SLA/SLABasePool.hpp"
 
 #include <tbb/parallel_for.h>
 //#include <tbb/spin_mutex.h>//#include "tbb/mutex.h"
@@ -27,12 +28,12 @@ namespace {
 
 const std::array<unsigned, slaposCount>     OBJ_STEP_LEVELS =
 {
+    0,
     20,
     30,
     50,
     70,
-    80,
-    100
+    90
 };
 
 const std::array<std::string, slaposCount> OBJ_STEP_LABELS =
@@ -47,8 +48,9 @@ const std::array<std::string, slaposCount> OBJ_STEP_LABELS =
 
 const std::array<unsigned, slapsCount> PRINT_STEP_LEVELS =
 {
+    // This is after processing all the Print objects, so we start from 50%
     50,     // slapsRasterize
-    100,    // slapsValidate
+    90,     // slapsValidate
 };
 
 const std::array<std::string, slapsCount> PRINT_STEP_LABELS =
@@ -118,8 +120,6 @@ void SLAPrint::process()
 {
     using namespace sla;
 
-    std::cout << "SLA Processing triggered" << std::endl;
-
     // Assumption: at this point the print objects should be populated only with
     // the model objects we have to process and the instances are also filtered
 
@@ -131,9 +131,7 @@ void SLAPrint::process()
     auto slice_model = [ilh](SLAPrintObject& po) {
         auto lh = float(po.m_config.layer_height.getFloat());
 
-        ModelObject *o = po.m_model_object;
-
-        TriangleMesh&& mesh = o->raw_mesh();
+        TriangleMesh mesh = po.transformed_mesh();
         TriangleMeshSlicer slicer(&mesh);
         auto bb3d = mesh.bounding_box();
 
@@ -150,11 +148,10 @@ void SLAPrint::process()
         ModelObject& mo = *po.m_model_object;
         if(!mo.sla_support_points.empty()) {
             po.m_supportdata.reset(new SLAPrintObject::SupportData());
-            po.m_supportdata->emesh = sla::to_eigenmesh(mo);
-            po.m_supportdata->support_points = sla::support_points(mo);
+            po.m_supportdata->emesh = sla::to_eigenmesh(po.transformed_mesh());
 
-            std::cout << "support points copied "
-                      << po.m_supportdata->support_points.rows() << std::endl;
+            // TODO: transform support points appropriately
+            po.m_supportdata->support_points = sla::support_points(mo);
         }
 
         // for(SLAPrintObject *po : pobjects) {
@@ -195,17 +192,19 @@ void SLAPrint::process()
         // and before the supports had been sliced. (or the slicing has to be
         // repeated)
 
-//        if(po.is_step_done(slaposSupportTree) &&
-//           po.m_supportdata &&
-//           po.m_supportdata->support_tree_ptr)
-//        {
-//            double wt = po.m_config.pad_wall_thickness.getFloat();
-//            double h =  po.m_config.pad_wall_height.getFloat();
-//            double md = po.m_config.pad_max_merge_distance.getFloat();
-//            double er = po.m_config.pad_edge_radius.getFloat();
+        if(po.is_step_done(slaposSupportTree) &&
+           po.m_supportdata &&
+           po.m_supportdata->support_tree_ptr)
+        {
+            double wt = po.m_config.pad_wall_thickness.getFloat();
+            double h =  po.m_config.pad_wall_height.getFloat();
+            double md = po.m_config.pad_max_merge_distance.getFloat();
+            double er = po.m_config.pad_edge_radius.getFloat();
 
-//            po.m_supportdata->support_tree_ptr->add_pad(wt, h, md, er);
-//        }
+            sla::ExPolygons bp;
+            sla::base_plate(po.transformed_mesh(), bp);
+            po.m_supportdata->support_tree_ptr->add_pad(bp, wt, h, md, er);
+        }
     };
 
     // Slicing the support geometries similarly to the model slicing procedure.
@@ -216,13 +215,12 @@ void SLAPrint::process()
         if(sd && sd->support_tree_ptr) {
             auto lh = float(po.m_config.layer_height.getFloat());
             sd->support_slices = sd->support_tree_ptr->slice(lh, ilh);
-            std::cout << "support slice count " << sd->support_slices.size() << std::endl;
         }
     };
 
     // Rasterizing the model objects, and their supports
     auto rasterize = [this, ilh]() {
-        using Layer = ExPolygons;
+        using Layer = sla::ExPolygons;
         using LayerCopies = std::vector<SLAPrintObject::Instance>;
         struct LayerRef {
             std::reference_wrapper<const Layer> lref;
@@ -240,7 +238,7 @@ void SLAPrint::process()
         // into the layers hash
         for(SLAPrintObject *o : m_objects) {
             double lh = o->m_config.layer_height.getFloat();
-            std::vector<ExPolygons> & oslices = o->m_model_slices;
+            SlicedModel & oslices = o->m_model_slices;
             for(int i = 0; i < oslices.size(); ++i) {
                 double h = ilh + i * lh;
                 long long lyridx = static_cast<long long>(scale_(h));
@@ -248,11 +246,8 @@ void SLAPrint::process()
                 lyrs.emplace_back(oslices[i], o->m_instances);
             }
 
-            std::cout << "model slice count at rasterization: " << oslices.size() << std::endl;
-
             if(o->m_supportdata) { // deal with the support slices if present
                 auto& sslices = o->m_supportdata->support_slices;
-                std::cout << "support slice count at rasterization: " << o->m_supportdata->support_slices.size() << std::endl;
 
                 for(int i = 0; i < sslices.size(); ++i) {
                     double h = ilh + i * lh;
@@ -263,11 +258,11 @@ void SLAPrint::process()
             }
         }
 
+        if(canceled()) return;
+
         // collect all the keys
         std::vector<long long> keys; keys.reserve(levels.size());
         for(auto& e : levels) keys.emplace_back(e.first);
-
-        std::cout << "levels count at rasterization " << levels.size() << std::endl;
 
         { // create a raster printer for the current print parameters
             // I don't know any better
@@ -291,14 +286,21 @@ void SLAPrint::process()
         auto lvlcnt = unsigned(levels.size());
         printer.layers(lvlcnt);
 
+        // TODO exclusive progress indication for this step would be good
+        // as it is the longest of all. It would require synchronization
+        // in the parallel processing.
+
         // procedure to process one height level. This will run in parallel
-        auto lvlfn = [&keys, &levels, &printer](unsigned level_id) {
+        auto lvlfn = [this, &keys, &levels, &printer](unsigned level_id) {
+            if(canceled()) return;
+
             LayerRefs& lrange = levels[keys[level_id]];
 
             // Switch to the appropriate layer in the printer
             printer.begin_layer(level_id);
 
             for(auto& lyrref : lrange) { // for all layers in the current level
+                if(canceled()) break;
                 const Layer& sl = lyrref.lref;   // get the layer reference
                 const LayerCopies& copies = lyrref.copies;
 
@@ -315,6 +317,9 @@ void SLAPrint::process()
             // Finish the layer for later saving it.
             printer.finish_layer(level_id);
         };
+
+        // last minute escape
+        if(canceled()) return;
 
         // Sequential version (for testing)
         // for(unsigned l = 0; l < lvlcnt; ++l) process_level(l);
@@ -351,6 +356,11 @@ void SLAPrint::process()
         [](){}  // validate
     };
 
+    const unsigned min_objstatus = 0;
+    const unsigned max_objstatus = PRINT_STEP_LEVELS[slapsRasterize];
+    const size_t objcount = m_objects.size();
+    const double ostepd = (max_objstatus - min_objstatus) / (objcount * 100.0);
+
     for(SLAPrintObject * po : m_objects) {
         for(size_t s = 0; s < pobj_program.size(); ++s) {
             auto currentstep = objectsteps[s];
@@ -361,8 +371,9 @@ void SLAPrint::process()
             throw_if_canceled();
 
             if(po->m_stepmask[s] && !po->is_step_done(currentstep)) {
-                set_status(OBJ_STEP_LEVELS[currentstep],
-                           OBJ_STEP_LABELS[currentstep]);
+                unsigned st = OBJ_STEP_LEVELS[currentstep];
+                st = unsigned(min_objstatus + st * ostepd);
+                set_status(st, OBJ_STEP_LABELS[currentstep]);
 
                 po->set_started(currentstep);
                 pobj_program[s](*po);
@@ -375,7 +386,7 @@ void SLAPrint::process()
         slapsRasterize, slapsValidate
     };
 
-    // TODO: enable rasterizing
+    // this would disable the rasterization step
     // m_stepmask[slapsRasterize] = false;
 
     for(size_t s = 0; s < print_program.size(); ++s) {
@@ -402,7 +413,6 @@ SLAPrintObject::SLAPrintObject(SLAPrint *print, ModelObject *model_object):
     m_model_object(model_object),
     m_stepmask(slaposCount, true)
 {
-
 }
 
 SLAPrintObject::~SLAPrintObject() {}
@@ -414,22 +424,33 @@ TriangleMesh SLAPrintObject::support_mesh() const
     if(m_supportdata && m_supportdata->support_tree_ptr)
         m_supportdata->support_tree_ptr->merged_mesh(trm);
 
+    // TODO: is this necessary?
     trm.repair();
 
-    std::cout << "support mesh united and returned" << std::endl;
     return trm;
-//    return make_cube(10., 10., 10.);
 }
 
 TriangleMesh SLAPrintObject::pad_mesh() const
 {
-    if(!m_supportdata || !m_supportdata->support_tree_ptr) {
-        std::cout << "Empty pad mesh returned.." << std::endl;
-        return TriangleMesh();
-    }
+    if(!m_supportdata || !m_supportdata->support_tree_ptr) return {};
 
-    // FIXME: pad mesh is empty here for some reason.
     return m_supportdata->support_tree_ptr->get_pad();
+}
+
+const TriangleMesh &SLAPrintObject::transformed_mesh() const {
+    // we need to transform the raw mesh...
+    // currently all the instances share the same x and y rotation and scaling
+    // so we have to extract those from e.g. the first instance and apply to the
+    // raw mesh. This is also true for the support points.
+    // BUT: when the support structure is spawned for each instance than it has
+    // to omit the X, Y rotation and scaling as those have been already applied
+    // or apply an inverse transformation on the support structure after it
+    // has been created.
+
+    if(m_trmesh_valid) return m_transformed_rmesh;
+    m_transformed_rmesh = m_model_object->raw_mesh();
+    m_transformed_rmesh.transform(m_trafo);
+    m_trmesh_valid = true;
 }
 
 } // namespace Slic3r

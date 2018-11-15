@@ -57,6 +57,9 @@ public:
     // Support mesh is only valid if this->is_step_done(slaposPad) is true.
     TriangleMesh            pad_mesh() const;
 
+    // This will return the transformed mesh which is cached
+    const TriangleMesh&     transformed_mesh() const;
+
     // I refuse to grantee copying (Tamas)
     SLAPrintObject(const SLAPrintObject&) = delete;
     SLAPrintObject& operator=(const SLAPrintObject&) = delete;
@@ -71,7 +74,7 @@ protected:
     void                    config_apply(const ConfigBase &other, bool ignore_nonexistent = false) { this->m_config.apply(other, ignore_nonexistent); }
     void                    config_apply_only(const ConfigBase &other, const t_config_option_keys &keys, bool ignore_nonexistent = false) 
     	{ this->m_config.apply_only(other, keys, ignore_nonexistent); }
-    void                    set_trafo(const Transform3d& trafo) { m_trafo = trafo; }
+    void                    set_trafo(const Transform3d& trafo) { m_trafo = trafo; m_trmesh_valid = false; }
 
     bool                    set_instances(const std::vector<Instance> &instances);
     // Invalidates the step, and its depending steps in SLAPrintObject and SLAPrint.
@@ -89,6 +92,10 @@ private:
     // Which steps have to be performed. Implicitly: all
     std::vector<bool>                       m_stepmask;
     std::vector<ExPolygons>                 m_model_slices;
+
+    // Caching the transformed (m_trafo) raw mesh of the object
+    mutable TriangleMesh                    m_transformed_rmesh;
+    mutable bool                            m_trmesh_valid = false;
 
     class SupportData;
     std::unique_ptr<SupportData> m_supportdata;

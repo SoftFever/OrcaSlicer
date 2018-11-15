@@ -9,6 +9,7 @@
 #include "SLASpatIndex.hpp"
 #include "SLABasePool.hpp"
 #include <libnest2d/tools/benchmark.h>
+#include "ClipperUtils.hpp"
 
 #include "Model.hpp"
 
@@ -510,14 +511,16 @@ struct Pad {
     Pad() {}
 
     Pad(const TriangleMesh& object_support_mesh,
+        const ExPolygons& baseplate,
         double ground_level,
         const PoolConfig& cfg) : zlevel(ground_level)
     {
         ExPolygons basep;
         base_plate(object_support_mesh, basep);
+        for(auto& bp : baseplate) basep.emplace_back(bp);
+        union_ex(basep);
         create_base_pool(basep, tmesh, cfg);
         tmesh.translate(0, 0, float(zlevel));
-        std::cout << "pad ground level " << zlevel << std::endl;
     }
 };
 
@@ -563,6 +566,10 @@ EigenMesh3D to_eigenmesh(const TriangleMesh& tmesh) {
     const stl_file& stl = tmesh.stl;
 
     EigenMesh3D outmesh;
+
+    auto&& bb = tmesh.bounding_box();
+    outmesh.ground_level += bb.min(Z);
+
     auto& V = outmesh.V;
     auto& F = outmesh.F;
 
@@ -586,28 +593,7 @@ EigenMesh3D to_eigenmesh(const TriangleMesh& tmesh) {
 }
 
 EigenMesh3D to_eigenmesh(const ModelObject& modelobj) {
-    auto&& rmesh = modelobj.raw_mesh();
-
-    // we need to transform the raw mesh...
-    // currently all the instances share the same x and y rotation and scaling
-    // so we have to extract those from e.g. the first instance and apply to the
-    // raw mesh. This is also true for the support points.
-    // BUT: when the support structure is spawned for each instance than it has
-    // to omit the X, Y rotation and scaling as those have been already applied
-    // or apply an inverse transformation on the support structure after it
-    // has been created.
-
-//    auto rot = modelobj.instances.front()->get_rotation();
-//    auto scaling = modelobj.instances.front()->get_scaling_factor();
-
-//    rmesh.rotate(float(rot(X)), Axis::X);
-//    rmesh.rotate(float(rot(Y)), Axis::Y);
-//    rmesh.scale(scaling);
-
-    auto&& ret = to_eigenmesh(rmesh);
-    auto&& bb = rmesh.bounding_box();
-    ret.ground_level = bb.min(Z);
-    return ret;
+    return to_eigenmesh(modelobj.raw_mesh());
 }
 
 EigenMesh3D to_eigenmesh(const Model& model) {
@@ -767,8 +753,9 @@ public:
     }
 
     const Pad& create_pad(const TriangleMesh& object_supports,
+                          const ExPolygons& baseplate,
                           const PoolConfig& cfg) {
-        m_pad = Pad(object_supports, ground_level, cfg);
+        m_pad = Pad(object_supports, baseplate, ground_level, cfg);
         return m_pad;
     }
 
@@ -1014,7 +1001,6 @@ bool SLASupportTree::generate(const PointSet &points,
     using Result = SLASupportTree::Impl;
 
     Result& result = *m_impl;
-    result.ground_level = mesh.ground_level;
 
     enum Steps {
         BEGIN,
@@ -1283,7 +1269,7 @@ bool SLASupportTree::generate(const PointSet &points,
         const double hbr = cfg.head_back_radius_mm;
         const double pradius = cfg.pillar_radius_mm;
         const double maxbridgelen = cfg.max_bridge_length_mm;
-        const double gndlvl = emesh.ground_level - cfg.object_elevation_mm;
+        const double gndlvl = emesh.ground_level;
 
         ClusterEl cl_centroids;
         cl_centroids.reserve(gnd_clusters.size());
@@ -1759,7 +1745,8 @@ SlicedSupports SLASupportTree::slice(float layerh, float init_layerh) const
     return ret;
 }
 
-const TriangleMesh &SLASupportTree::add_pad(double min_wall_thickness_mm,
+const TriangleMesh &SLASupportTree::add_pad(const SliceLayer& baseplate,
+                                            double min_wall_thickness_mm,
                                             double min_wall_height_mm,
                                             double max_merge_distance_mm,
                                             double edge_radius_mm) const
@@ -1771,7 +1758,7 @@ const TriangleMesh &SLASupportTree::add_pad(double min_wall_thickness_mm,
 //    pcfg.min_wall_height_mm    = min_wall_height_mm;
 //    pcfg.max_merge_distance_mm = max_merge_distance_mm;
 //    pcfg.edge_radius_mm        = edge_radius_mm;
-    return m_impl->create_pad(mm, pcfg).tmesh;
+    return m_impl->create_pad(mm, baseplate, pcfg).tmesh;
 }
 
 const TriangleMesh &SLASupportTree::get_pad() const
@@ -1791,6 +1778,7 @@ SLASupportTree::SLASupportTree(const PointSet &points,
                                const SupportConfig &cfg,
                                const Controller &ctl): m_impl(new Impl())
 {
+    m_impl->ground_level = emesh.ground_level - cfg.object_elevation_mm;
     generate(points, emesh, cfg, ctl);
 }
 

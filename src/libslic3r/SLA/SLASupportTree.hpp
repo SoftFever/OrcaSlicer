@@ -160,7 +160,8 @@ public:
     SlicedSupports slice(float layerh, float init_layerh = -1.0) const;
 
     /// Adding the "pad" (base pool) under the supports
-    const TriangleMesh& add_pad(double min_wall_thickness_mm,
+    const TriangleMesh& add_pad(const SliceLayer& baseplate,
+                                double min_wall_thickness_mm,
                                 double min_wall_height_mm,
                                 double max_merge_distance_mm,
                                 double edge_radius_mm) const;
