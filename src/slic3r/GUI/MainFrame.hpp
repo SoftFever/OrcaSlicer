@@ -73,6 +73,7 @@ class MainFrame : public wxFrame
     bool can_save() const;
     bool can_export_model() const;
     bool can_export_gcode() const;
+    bool can_change_view() const;
 #endif // ENABLE_NEW_MENU_LAYOUT
 
 public:
