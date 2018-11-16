@@ -438,6 +438,24 @@ SLAPrintObject::SLAPrintObject(SLAPrint *print, ModelObject *model_object):
 
 SLAPrintObject::~SLAPrintObject() {}
 
+double SLAPrintObject::get_elevation() const {
+    return m_supportdata && m_supportdata->support_tree_ptr?
+                m_supportdata->support_tree_ptr->get_elevation() :
+                0;
+}
+
+const std::vector<ExPolygons> &SLAPrintObject::get_support_slices() const
+{
+    if(!m_supportdata) return {};
+
+    return m_supportdata->support_slices;
+}
+
+const std::vector<ExPolygons> &SLAPrintObject::get_model_slices() const
+{
+    return m_model_slices;
+}
+
 TriangleMesh SLAPrintObject::support_mesh() const
 {
     TriangleMesh trm;
