@@ -759,6 +759,18 @@ void Tab::update_wiping_button_visibility() {
 // to uddate number of "filament" selection boxes when the number of extruders change.
 void Tab::on_presets_changed()
 {
+    if (m_type == Slic3r::Preset::TYPE_PRINTER && !m_dependent_tabs.empty()) {
+        // Printer selected at the Printer tab, update "compatible" marks at the print and filament selectors.
+        for (auto t: m_dependent_tabs)
+        {
+            // If the printer tells us that the print or filament/sla_material preset has been switched or invalidated,
+            // refresh the print or filament/sla_material tab page.
+            Tab* tab = wxGetApp().get_tab(t);
+            if (tab)
+                tab->load_current_preset();
+        }
+    }
+
 	wxCommandEvent event(EVT_TAB_PRESETS_CHANGED);
 	event.SetEventObject(this);
 	wxPostEvent(this, event);
@@ -2335,7 +2347,7 @@ void Tab::select_preset(std::string preset_name)
 	auto current_dirty = m_presets->current_is_dirty();
 	auto printer_tab   = m_presets->name() == "printer";
 	auto canceled      = false;
-	m_reload_dependent_tabs = {};
+	m_dependent_tabs = {};
 	if (current_dirty && !may_discard_current_dirty_preset()) {
 		canceled = true;
 	} else if (printer_tab) {
@@ -2350,16 +2362,16 @@ void Tab::select_preset(std::string preset_name)
 		PrinterTechnology    old_printer_technology = m_presets->get_edited_preset().printer_technology();
 		PrinterTechnology    new_printer_technology = new_printer_preset.printer_technology();
 		struct PresetUpdate {
-			std::string          name;
+			Preset::Type         tab_type;
 			PresetCollection 	*presets;
 			PrinterTechnology    technology;
 			bool    	         old_preset_dirty;
 			bool         	     new_preset_compatible;
 		};
 		std::vector<PresetUpdate> updates = {
-			{ "print",			&m_preset_bundle->prints,			ptFFF },
-			{ "filament",		&m_preset_bundle->filaments,		ptFFF },
- 			{ "sla_material",	&m_preset_bundle->sla_materials,	ptSLA }
+			{ Preset::Type::TYPE_PRINT,       &m_preset_bundle->prints,			ptFFF },
+			{ Preset::Type::TYPE_FILAMENT,    &m_preset_bundle->filaments,		ptFFF },
+ 			{ Preset::Type::TYPE_SLA_MATERIAL,&m_preset_bundle->sla_materials,	ptSLA }
 		};
 		for (PresetUpdate &pu : updates) {
 			pu.old_preset_dirty      = (old_printer_technology == pu.technology) && pu.presets->current_is_dirty();
@@ -2371,7 +2383,7 @@ void Tab::select_preset(std::string preset_name)
 			for (PresetUpdate &pu : updates) {
 				// The preset will be switched to a different, compatible preset, or the '-- default --'.
                 if (pu.technology == new_printer_technology)
-				    m_reload_dependent_tabs.emplace_back(pu.name);
+					m_dependent_tabs.emplace_back(pu.tab_type);
 				if (pu.old_preset_dirty)
 					pu.presets->discard_current_changes();
 			}
@@ -2597,6 +2609,7 @@ void Tab::update_ui_from_settings()
 	// in application preferences.
 	m_show_btn_incompatible_presets = wxGetApp().app_config->get("show_incompatible_presets")[0] == '1' ? true : false;
 	bool show = m_show_btn_incompatible_presets && m_presets->name().compare("printer") != 0;
+	Layout();
 	show ? m_btn_hide_incompatible_presets->Show() :  m_btn_hide_incompatible_presets->Hide();
 	// If the 'show / hide presets' button is hidden, hide the incompatible presets.
 	if (show) {

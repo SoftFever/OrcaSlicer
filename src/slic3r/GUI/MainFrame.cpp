@@ -783,7 +783,7 @@ void MainFrame::on_presets_changed(SimpleEvent &event)
     // Update preset combo boxes(Print settings, Filament, Material, Printer) from their respective tabs.
     auto presets = tab->get_presets();
     if (m_plater != nullptr && presets != nullptr) {
-        auto reload_dependent_tabs = tab->get_dependent_tabs();
+//         auto reload_dependent_tabs = tab->get_dependent_tabs();
 
         // FIXME: The preset type really should be a property of Tab instead
         Slic3r::Preset::Type preset_type = tab->type();
@@ -791,7 +791,7 @@ void MainFrame::on_presets_changed(SimpleEvent &event)
             wxASSERT(false);
             return;
         }
-
+/*
         m_plater->sidebar().update_presets(preset_type);
 
         if (preset_type == Slic3r::Preset::TYPE_PRINTER) {
@@ -809,7 +809,9 @@ void MainFrame::on_presets_changed(SimpleEvent &event)
                     cur_tab->load_current_preset();
             }
         }
+*/
         m_plater->on_config_change(*tab->get_config());
+        m_plater->sidebar().update_presets(preset_type);
     }
 }
 
@@ -842,9 +844,13 @@ void MainFrame::update_ui_from_settings()
 {
     m_menu_item_reslice_now->Enable(wxGetApp().app_config->get("background_processing") == "1");
 //     if (m_plater) m_plater->update_ui_from_settings();
+    /*
     std::vector<std::string> tab_names = { "print", "filament", "printer" };
     for (auto tab_name: tab_names)
         m_options_tabs[tab_name]->update_ui_from_settings();
+    */
+    for (auto tab: wxGetApp().tabs_list)
+        tab->update_ui_from_settings();
 }
 
 
