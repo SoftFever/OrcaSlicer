@@ -1639,6 +1639,10 @@ void GLCanvas3D::Selection::scale(const Vec3d& scale)
         _synchronize_unselected_volumes();
 #endif // !DISABLE_INSTANCES_SYNCH
 
+#if ENABLE_ENSURE_ON_BED_WHILE_SCALING
+    _ensure_on_bed();
+#endif // ENABLE_ENSURE_ON_BED_WHILE_SCALING
+
     m_bounding_box_dirty = true;
 }
 
@@ -2301,6 +2305,19 @@ void GLCanvas3D::Selection::_synchronize_unselected_volumes()
         }
     }
 }
+
+#if ENABLE_ENSURE_ON_BED_WHILE_SCALING
+void GLCanvas3D::Selection::_ensure_on_bed()
+{
+    for (unsigned int i : m_list)
+    {
+        GLVolume* volume = (*m_volumes)[i];
+        double min_z = volume->transformed_convex_hull_bounding_box().min(2);
+        if (min_z != 0.0)
+            volume->set_instance_offset(Z, volume->get_instance_offset(Z) - min_z);
+    }
+}
+#endif // ENABLE_ENSURE_ON_BED_WHILE_SCALING
 
 const float GLCanvas3D::Gizmos::OverlayTexturesScale = 0.75f;
 const float GLCanvas3D::Gizmos::OverlayOffsetX = 10.0f * OverlayTexturesScale;

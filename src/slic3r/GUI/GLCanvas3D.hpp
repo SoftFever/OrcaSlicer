@@ -559,6 +559,9 @@ public:
         void _render_bounding_box(const BoundingBoxf3& box, float* color) const;
         void _synchronize_unselected_instances();
         void _synchronize_unselected_volumes();
+#if ENABLE_ENSURE_ON_BED_WHILE_SCALING
+        void _ensure_on_bed();
+#endif // ENABLE_ENSURE_ON_BED_WHILE_SCALING
     };
 
 private:
