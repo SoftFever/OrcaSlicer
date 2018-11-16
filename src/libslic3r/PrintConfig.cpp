@@ -2434,6 +2434,120 @@ void PrintConfigDef::init_sla_params()
 
     def = this->add("sla_material_settings_id", coString);
     def->default_value = new ConfigOptionString("");
+
+
+    def = this->add("default_sla_print_profile", coString);
+    def->label = L("Default SLA material profile");
+    def->tooltip = L("Default print profile associated with the current printer profile. "
+                   "On selection of the current printer profile, this print profile will be activated.");
+    def->default_value = new ConfigOptionString();
+
+    def = this->add("sla_print_settings_id", coString);
+    def->default_value = new ConfigOptionString("");
+
+    def = this->add("support_head_front_radius", coFloat);
+    def->label = L("Support head front radius");
+    def->tooltip = L("Radius of the pointing side of the head");
+    def->sidetext = L("mm");
+    def->cli = "";
+    def->min = 0;
+    def->default_value = new ConfigOptionFloat(0.2);
+
+    def = this->add("support_head_penetration", coFloat);
+    def->label = L("Support head penetration");
+    def->tooltip = L("How much the pinhead has to penetrate the model surface");
+    def->sidetext = L("mm");
+    def->cli = "";
+    def->min = 0;
+    def->default_value = new ConfigOptionFloat(0.2);
+
+    def = this->add("support_head_back_radius", coFloat);
+    def->label = L("Support head back radius");
+    def->tooltip = L("Radius of the back side of the 3d arrow");
+    def->sidetext = L("mm");
+    def->cli = "";
+    def->min = 0;
+    def->default_value = new ConfigOptionFloat(0.5);
+
+    def = this->add("support_head_width", coFloat);
+    def->label = L("Support head width");
+    def->tooltip = L("Width from the back sphere center to the front sphere center");
+    def->sidetext = L("mm");
+    def->cli = "";
+    def->min = 0;
+    def->default_value = new ConfigOptionFloat(1.0);
+
+    def = this->add("support_pillar_radius", coFloat);
+    def->label = L("Support pillar radius");
+    def->tooltip = L("Radius in mm of the support pillars");
+    def->sidetext = L("mm");
+    def->cli = "";
+    def->min = 0;
+    def->default_value = new ConfigOptionFloat(0.8);
+
+    def = this->add("support_base_radius", coFloat);
+    def->label = L("Support base radius");
+    def->tooltip = L("Radius in mm of the pillar base");
+    def->sidetext = L("mm");
+    def->cli = "";
+    def->min = 0;
+    def->default_value = new ConfigOptionFloat(2.0);
+
+    def = this->add("support_base_height", coFloat);
+    def->label = L("Support base height");
+    def->tooltip = L("The height of the pillar base cone");
+    def->sidetext = L("mm");
+    def->cli = "";
+    def->min = 0;
+    def->default_value = new ConfigOptionFloat(1.0);
+
+    def = this->add("support_critical_angle", coFloat);
+    def->label = L("Critical angle");
+    def->tooltip = L("The default angle for connecting support sticks and junctions.");
+    def->sidetext = L("°");
+    def->cli = "";
+    def->min = 0;
+    def->default_value = new ConfigOptionFloat(45);
+
+    def = this->add("support_max_bridge_length", coFloat);
+    def->label = L("Max bridge length");
+    def->tooltip = L("The max length of a bridge");
+    def->sidetext = L("mm");
+    def->cli = "";
+    def->min = 0;
+    def->default_value = new ConfigOptionFloat();
+
+    def = this->add("pad_wall_thickness", coFloat);
+    def->label = L("Pad wall thickness");
+    def->tooltip = L("");
+    def->sidetext = L("mm");
+    def->cli = "";
+    def->min = 0;
+    def->default_value = new ConfigOptionFloat(2.0);
+
+    def = this->add("pad_wall_height", coFloat);
+    def->label = L("Pad wall height");
+    def->tooltip = L("");
+    def->sidetext = L("mm");
+    def->cli = "";
+    def->min = 0;
+    def->default_value = new ConfigOptionFloat(5.0);
+
+    def = this->add("pad_max_merge_distance", coFloat);
+    def->label = L("Max merge distance");
+    def->tooltip = L("");
+    def->sidetext = L("mm");
+    def->cli = "";
+    def->min = 0;
+    def->default_value = new ConfigOptionFloat(50.0);
+
+    def = this->add("pad_edge_radius", coFloat);
+    def->label = L("pad edge radius");
+    def->tooltip = L("");
+    def->sidetext = L("mm");
+    def->cli = "";
+    def->min = 0;
+    def->default_value = new ConfigOptionFloat(1.0);
 }
 
 void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &value)

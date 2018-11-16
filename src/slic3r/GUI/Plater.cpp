@@ -424,6 +424,7 @@ struct Sidebar::priv
     PresetComboBox *combo_print;
     std::vector<PresetComboBox*> combos_filament;
     wxBoxSizer *sizer_filaments;
+    PresetComboBox *combo_sla_print;
     PresetComboBox *combo_sla_material;
     PresetComboBox *combo_printer;
 
@@ -454,7 +455,7 @@ void Sidebar::priv::show_preset_comboboxes()
     for (size_t i = 0; i < 4; ++i)
         sizer_presets->Show(i, !showSLA);
 
-    for (size_t i = 4; i < 6; ++i) {
+    for (size_t i = 4; i < 8; ++i) {
         if (sizer_presets->IsShown(i) != showSLA)
             sizer_presets->Show(i, showSLA);
     }
@@ -479,7 +480,7 @@ Sidebar::Sidebar(Plater *parent)
     p->scrolled->SetSizer(scrolled_sizer);
 
     // The preset chooser
-    p->sizer_presets = new wxFlexGridSizer(4, 2, 1, 2);
+    p->sizer_presets = new wxFlexGridSizer(5, 2, 1, 2);
     p->sizer_presets->AddGrowableCol(1, 1);
     p->sizer_presets->SetFlexibleDirection(wxBOTH);
     p->sizer_filaments = new wxBoxSizer(wxVERTICAL);
@@ -502,10 +503,11 @@ Sidebar::Sidebar(Plater *parent)
     };
 
     p->combos_filament.push_back(nullptr);
-    init_combo(&p->combo_print, _(L("Print settings")), Preset::TYPE_PRINT, false);
-    init_combo(&p->combos_filament[0], _(L("Filament")), Preset::TYPE_FILAMENT, true);
-    init_combo(&p->combo_sla_material, _(L("SLA material")), Preset::TYPE_SLA_MATERIAL, false);
-    init_combo(&p->combo_printer, _(L("Printer")), Preset::TYPE_PRINTER, false);
+    init_combo(&p->combo_print,         _(L("Print settings")), Preset::TYPE_PRINT,         false);
+    init_combo(&p->combos_filament[0],  _(L("Filament")),       Preset::TYPE_FILAMENT,      true);
+    init_combo(&p->combo_sla_print,     _(L("SLA print")),      Preset::TYPE_SLA_PRINT,     false);
+    init_combo(&p->combo_sla_material,  _(L("SLA material")),   Preset::TYPE_SLA_MATERIAL,  false);
+    init_combo(&p->combo_printer,       _(L("Printer")),        Preset::TYPE_PRINTER,       false);
 
     // calculate width of the preset labels 
     p->sizer_presets->Layout();
@@ -620,6 +622,10 @@ void Sidebar::update_presets(Preset::Type preset_type)
 		preset_bundle.prints.update_platter_ui(p->combo_print);
         break;
 
+    case Preset::TYPE_SLA_PRINT:
+		preset_bundle.sla_prints.update_platter_ui(p->combo_sla_print);
+        break;
+
     case Preset::TYPE_SLA_MATERIAL:
 		preset_bundle.sla_materials.update_platter_ui(p->combo_sla_material);
         break;
@@ -629,8 +635,10 @@ void Sidebar::update_presets(Preset::Type preset_type)
 		// Update the print choosers to only contain the compatible presets, update the dirty flags.
 		if (p->plater->printer_technology() == ptFFF)
 			preset_bundle.prints.update_platter_ui(p->combo_print);
-		else
-			preset_bundle.sla_materials.update_platter_ui(p->combo_sla_material);
+        else {
+            preset_bundle.sla_prints.update_platter_ui(p->combo_sla_print);
+            preset_bundle.sla_materials.update_platter_ui(p->combo_sla_material);
+        }
 		// Update the printer choosers, update the dirty flags.
 		preset_bundle.printers.update_platter_ui(p->combo_printer);
 		// Update the filament choosers to only contain the compatible presets, update the color preview,

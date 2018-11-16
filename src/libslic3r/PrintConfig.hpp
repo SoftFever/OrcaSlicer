@@ -908,7 +908,7 @@ public:
     ConfigOptionFloat support_head_front_radius /*= 0.2*/;
 
     // How much the pinhead has to penetrate the model surface
-    ConfigOptionFloat support_head_penetraiton /*= 0.2*/;
+    ConfigOptionFloat support_head_penetration /*= 0.2*/;
 
     // Radius of the back side of the 3d arrow.
     ConfigOptionFloat support_head_back_radius /*= 0.5*/;
@@ -951,7 +951,7 @@ protected:
     {
         OPT_PTR(layer_height);
         OPT_PTR(support_head_front_radius);
-        OPT_PTR(support_head_penetraiton);
+        OPT_PTR(support_head_penetration);
         OPT_PTR(support_head_back_radius);
         OPT_PTR(support_head_width);
         OPT_PTR(support_pillar_radius);

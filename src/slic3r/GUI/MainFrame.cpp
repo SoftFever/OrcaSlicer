@@ -140,7 +140,7 @@ void MainFrame::init_tabpanel()
     Bind(EVT_TAB_PRESETS_CHANGED, &MainFrame::on_presets_changed, this);
 
     create_preset_tabs();
-    std::vector<std::string> tab_names = { "print", "filament", "sla_material", "printer" };    
+    std::vector<std::string> tab_names = { "print", "filament", "sla_print", "sla_material", "printer" };    
     for (auto tab_name : tab_names)
         m_options_tabs[tab_name] = get_preset_tab(tab_name.c_str()); 
 
@@ -160,6 +160,7 @@ void MainFrame::init_tabpanel()
 std::vector<PresetTab> preset_tabs = {
     { "print", nullptr, ptFFF },
     { "filament", nullptr, ptFFF },
+    { "sla_print", nullptr, ptSLA },
     { "sla_material", nullptr, ptSLA }
 };
 
@@ -194,6 +195,7 @@ void MainFrame::create_preset_tabs()
 {
     wxGetApp().update_label_colours_from_appconfig();
     add_created_tab(new TabPrint(m_tabpanel));
+    add_created_tab(new TabSLAPrint(m_tabpanel));
     add_created_tab(new TabFilament(m_tabpanel));
     add_created_tab(new TabSLAMaterial(m_tabpanel));
     add_created_tab(new TabPrinter(m_tabpanel));
@@ -202,7 +204,7 @@ void MainFrame::create_preset_tabs()
 void MainFrame::add_created_tab(Tab* panel)
 {
     panel->create_preset_tab();
-
+    /*
     const wxString& tab_name = panel->GetName();
     bool add_panel = true;
 
@@ -214,6 +216,8 @@ void MainFrame::add_created_tab(Tab* panel)
     }
 
     if (add_panel)
+*/    
+    if (panel->supports_printer_technology(wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology()))
         m_tabpanel->AddPage(panel, panel->title());
 }
 

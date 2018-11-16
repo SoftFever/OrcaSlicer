@@ -39,6 +39,7 @@ public:
     void            export_selections(PlaceholderParser &pp);
 
     PresetCollection            prints;
+    PresetCollection            sla_prints;
     PresetCollection            filaments;
     PresetCollection            sla_materials;
     PrinterPresetCollection     printers;
@@ -57,6 +58,7 @@ public:
 
     struct ObsoletePresets {
         std::vector<std::string> prints;
+        std::vector<std::string> sla_prints;
         std::vector<std::string> filaments;
         std::vector<std::string> sla_materials;
         std::vector<std::string> printers;

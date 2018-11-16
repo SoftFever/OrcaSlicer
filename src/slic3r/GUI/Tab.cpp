@@ -27,7 +27,6 @@
 #include "wxExtensions.hpp"
 #include <wx/wupdlock.h>
 
-#include <chrono>
 #include "GUI_App.hpp"
 
 namespace Slic3r {
@@ -41,6 +40,7 @@ wxDEFINE_EVENT(EVT_TAB_PRESETS_CHANGED, SimpleEvent);
 void Tab::set_type()
 {
     if (m_name == "print")              { m_type = Slic3r::Preset::TYPE_PRINT; }
+    else if (m_name == "sla_print")     { m_type = Slic3r::Preset::TYPE_SLA_PRINT; }
     else if (m_name == "filament")      { m_type = Slic3r::Preset::TYPE_FILAMENT; }
     else if (m_name == "sla_material")  { m_type = Slic3r::Preset::TYPE_SLA_MATERIAL; }
     else if (m_name == "printer")       { m_type = Slic3r::Preset::TYPE_PRINTER; }
@@ -828,6 +828,10 @@ void Tab::update_preset_description_line()
 				const std::string &default_sla_material_profile = preset.config.opt_string("default_sla_material_profile");
 				if (!default_sla_material_profile.empty())
 					description_line += "\n\n\t" + _(L("default SLA material profile")) + ": \n\t\t" + default_sla_material_profile;
+
+				const std::string &default_sla_print_profile = preset.config.opt_string("default_sla_print_profile");
+				if (!default_sla_print_profile.empty())
+					description_line += "\n\n\t" + _(L("default SLA print profile")) + ": \n\t\t" + default_sla_print_profile;
 				break;
 			}
 			}
@@ -2347,6 +2351,7 @@ void Tab::select_preset(std::string preset_name)
 	auto current_dirty = m_presets->current_is_dirty();
 	auto printer_tab   = m_presets->name() == "printer";
 	auto canceled      = false;
+// 	m_reload_dependent_tabs = {};
 	m_dependent_tabs = {};
 	if (current_dirty && !may_discard_current_dirty_preset()) {
 		canceled = true;
@@ -2370,6 +2375,7 @@ void Tab::select_preset(std::string preset_name)
 		};
 		std::vector<PresetUpdate> updates = {
 			{ Preset::Type::TYPE_PRINT,       &m_preset_bundle->prints,			ptFFF },
+			{ Preset::Type::TYPE_SLA_PRINT,   &m_preset_bundle->sla_prints,		ptSLA },
 			{ Preset::Type::TYPE_FILAMENT,    &m_preset_bundle->filaments,		ptFFF },
  			{ Preset::Type::TYPE_SLA_MATERIAL,&m_preset_bundle->sla_materials,	ptSLA }
 		};
@@ -2382,8 +2388,10 @@ void Tab::select_preset(std::string preset_name)
 		if (! canceled) {
 			for (PresetUpdate &pu : updates) {
 				// The preset will be switched to a different, compatible preset, or the '-- default --'.
-                if (pu.technology == new_printer_technology)
+                if (pu.technology == new_printer_technology) {
+// 				    m_reload_dependent_tabs.emplace_back(pu.name);
 					m_dependent_tabs.emplace_back(pu.tab_type);
+				}
 				if (pu.old_preset_dirty)
 					pu.presets->discard_current_changes();
 			}
@@ -2918,7 +2926,7 @@ void TabSLAMaterial::build()
     auto page = add_options_page(_(L("Material")), "package_green.png");
 
     auto optgroup = page->new_optgroup(_(L("Layers")));
-    optgroup->append_single_option_line("layer_height");
+//     optgroup->append_single_option_line("layer_height");
     optgroup->append_single_option_line("initial_layer_height");
 
     optgroup = page->new_optgroup(_(L("Exposure")));
@@ -2973,7 +2981,43 @@ void TabSLAMaterial::build()
 void TabSLAMaterial::update()
 {
     if (m_preset_bundle->printers.get_selected_preset().printer_technology() == ptFFF)
-        return; // ys_FIXME
+        return; // #ys_FIXME
+}
+
+void TabSLAPrint::build()
+{
+    m_presets = &m_preset_bundle->sla_prints;
+    load_initial_data();
+
+    auto page = add_options_page(_(L("Layers and perimeters")), "package_green.png");
+
+    auto optgroup = page->new_optgroup(_(L("Layers")));
+    optgroup->append_single_option_line("layer_height");
+
+    page = add_options_page(_(L("Dependencies")), "wrench.png");
+    optgroup = page->new_optgroup(_(L("Profile dependencies")));
+    Line line = optgroup->create_single_option_line("compatible_printers");//Line { _(L("Compatible printers")), "" };
+    line.widget = [this](wxWindow* parent) {
+        return compatible_printers_widget(parent, &m_compatible_printers_checkbox, &m_compatible_printers_btn);
+    };
+    optgroup->append_line(line, &m_colored_Label);
+
+    Option option = optgroup->get_option("compatible_printers_condition");
+    option.opt.full_width = true;
+    optgroup->append_single_option_line(option);
+
+    line = Line{ "", "" };
+    line.full_width = 1;
+    line.widget = [this](wxWindow* parent) {
+        return description_line_widget(parent, &m_parent_preset_description_line);
+    };
+    optgroup->append_line(line);
+}
+
+void TabSLAPrint::update()
+{
+    if (m_preset_bundle->printers.get_selected_preset().printer_technology() == ptFFF)
+        return; // #ys_FIXME
 }
 
 } // GUI
