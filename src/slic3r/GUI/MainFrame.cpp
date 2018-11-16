@@ -251,7 +251,7 @@ void MainFrame::init_menubar()
     wxMenu* fileMenu = new wxMenu;
     {
 #if ENABLE_NEW_MENU_LAYOUT
-        append_menu_item(fileMenu, wxID_ANY, _(L("Open…\tCtrl+O")), _(L("Open a project file")),
+        wxMenuItem* item_open = append_menu_item(fileMenu, wxID_ANY, _(L("Open…\tCtrl+O")), _(L("Open a project file")),
             [this](wxCommandEvent&) { if (m_plater) m_plater->load_project(); }, "brick_add.png");
         wxMenuItem* item_save = append_menu_item(fileMenu, wxID_ANY, _(L("Save\tCtrl+S")), _(L("Save current project file")),
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_3mf(m_plater->get_project_filename().wx_str()); }, "disk.png");
@@ -261,11 +261,14 @@ void MainFrame::init_menubar()
         fileMenu->AppendSeparator();
 
         wxMenu* import_menu = new wxMenu();
-        append_menu_item(import_menu, wxID_ANY, _(L("Import STL/OBJ/AMF/3MF…\tCtrl+I")), _(L("Load a model")),
+        wxMenuItem* item_import_model = append_menu_item(import_menu, wxID_ANY, _(L("Import STL/OBJ/AMF/3MF…\tCtrl+I")), _(L("Load a model")),
             [this](wxCommandEvent&) { if (m_plater) m_plater->add_model(); }, "brick_add.png");
         import_menu->AppendSeparator();
         append_menu_item(import_menu, wxID_ANY, _(L("Import Config…\tCtrl+L")), _(L("Load exported configuration file")),
             [this](wxCommandEvent&) { load_config_file(); }, "plugin_add.png");
+        append_menu_item(import_menu, wxID_ANY, _(L("Import Config from project…\tCtrl+Alt+L")), _(L("Load configuration from project file")),
+            [this](wxCommandEvent&) { if (m_plater) m_plater->extract_config_from_project(); }, "plugin_add.png");
+        import_menu->AppendSeparator();
         append_menu_item(import_menu, wxID_ANY, _(L("Import Config Bundle…")), _(L("Load presets from a bundle")),
             [this](wxCommandEvent&) { load_configbundle(); }, "lorry_add.png");
         append_submenu(fileMenu, import_menu, wxID_ANY, _(L("Import")), _(L("")));
@@ -332,11 +335,13 @@ void MainFrame::init_menubar()
             [this](wxCommandEvent&) { Close(false); } );
 
 #if ENABLE_NEW_MENU_LAYOUT
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_save()); }, item_save->GetId());
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_save()); }, item_save_as->GetId());
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_export_gcode()); }, item_export_gcode->GetId());
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_export_model()); }, item_export_stl->GetId());
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_export_model()); }, item_export_amf->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(m_plater != nullptr); }, item_open->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable((m_plater != nullptr) && can_save()); }, item_save->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable((m_plater != nullptr) && can_save()); }, item_save_as->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(m_plater != nullptr); }, item_import_model->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable((m_plater != nullptr) && can_export_gcode()); }, item_export_gcode->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable((m_plater != nullptr) && can_export_model()); }, item_export_stl->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable((m_plater != nullptr) && can_export_model()); }, item_export_amf->GetId());
 #endif // ENABLE_NEW_MENU_LAYOUT
     }
 

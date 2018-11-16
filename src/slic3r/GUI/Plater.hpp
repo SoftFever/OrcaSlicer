@@ -114,11 +114,16 @@ public:
 #if ENABLE_NEW_MENU_LAYOUT
     void load_project();
     void add_model();
+    void extract_config_from_project();
 #else
     void add();
 #endif // ENABLE_NEW_MENU_LAYOUT
 
+#if ENABLE_NEW_MENU_LAYOUT
+    void load_files(const std::vector<boost::filesystem::path>& input_files, bool load_model = true, bool load_config = true);
+#else
     void load_files(const std::vector<boost::filesystem::path> &input_files);
+#endif // ENABLE_NEW_MENU_LAYOUT
 
     void update(bool force_autocenter = false);
     void select_view(const std::string& direction);
