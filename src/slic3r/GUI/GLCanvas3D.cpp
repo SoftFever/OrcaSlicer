@@ -3740,7 +3740,6 @@ void GLCanvas3D::reload_scene(bool force)
 
     if (m_regenerate_volumes)
     {
-        PrinterTechnology printer_technology = wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology();
         if (printer_technology == ptFFF && m_config->has("nozzle_diameter"))
         {
             // Should the wipe tower be visualized ?
