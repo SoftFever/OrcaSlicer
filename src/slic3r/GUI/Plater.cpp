@@ -1436,7 +1436,7 @@ std::unique_ptr<CheckboxFileDialog> Plater::priv::get_export_file(GUI::FileType 
     wxGetApp().preset_bundle->export_selections(print.placeholder_parser());
 
     auto dlg = Slic3r::make_unique<CheckboxFileDialog>(q,
-        _(L("Export print config")),
+        ((file_type == FT_AMF) || (file_type == FT_3MF)) ? _(L("Export print config")) : wxEmptyString,
         true,
         _(L("Save file as:")),
         output_file.parent_path().string(),
