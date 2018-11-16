@@ -3941,7 +3941,8 @@ void GLCanvas3D::reload_scene(bool force)
                         }
                 }
                 for (size_t istep = 0; istep < sla_steps.size(); ++ istep)
-					m_volumes.load_object_auxiliary(print_object, object_idx, instances[istep], sla_steps[istep], m_use_VBOs && m_initialized);
+					if (! instances[istep].empty())
+						m_volumes.load_object_auxiliary(print_object, object_idx, instances[istep], sla_steps[istep], m_use_VBOs && m_initialized);
             }
         }
 
