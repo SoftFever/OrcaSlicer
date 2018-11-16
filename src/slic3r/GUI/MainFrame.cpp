@@ -243,6 +243,12 @@ bool MainFrame::can_export_gcode() const
 
     return true;
 }
+
+bool MainFrame::can_change_view() const
+{
+    int page_id = m_tabpanel->GetSelection();
+    return (page_id != wxNOT_FOUND) ? m_tabpanel->GetPageText((size_t)page_id).Lower() == "plater" : false;
+}
 #endif // ENABLE_NEW_MENU_LAYOUT
 
 void MainFrame::init_menubar()
@@ -388,14 +394,22 @@ void MainFrame::init_menubar()
         // \xA0 is a non-breaing space. It is entered here to spoil the automatic accelerators,
         // as the simple numeric accelerators spoil all numeric data entry.
         // The camera control accelerators are captured by GLCanvas3D::on_char().
-        append_menu_item(viewMenu, wxID_ANY, _(L("Iso")) + "\t\xA0" + "0", _(L("Iso View")), [this](wxCommandEvent&) { select_view("iso"); });
+        wxMenuItem* item_iso = append_menu_item(viewMenu, wxID_ANY, _(L("Iso")) + "\t\xA0" + "0", _(L("Iso View")), [this](wxCommandEvent&) { select_view("iso"); });
         viewMenu->AppendSeparator();
-        append_menu_item(viewMenu, wxID_ANY, _(L("Top")) + "\t\xA0" + "1", _(L("Top View")), [this](wxCommandEvent&) { select_view("top"); });
-        append_menu_item(viewMenu, wxID_ANY, _(L("Bottom")) + "\t\xA0" + "2", _(L("Bottom View")), [this](wxCommandEvent&) { select_view("bottom"); });
-        append_menu_item(viewMenu, wxID_ANY, _(L("Front")) + "\t\xA0" + "3", _(L("Front View")), [this](wxCommandEvent&) { select_view("front"); });
-        append_menu_item(viewMenu, wxID_ANY, _(L("Rear")) + "\t\xA0" + "4", _(L("Rear View")), [this](wxCommandEvent&) { select_view("rear"); });
-        append_menu_item(viewMenu, wxID_ANY, _(L("Left")) + "\t\xA0" + "5", _(L("Left View")), [this](wxCommandEvent&) { select_view("left"); });
-        append_menu_item(viewMenu, wxID_ANY, _(L("Right")) + "\t\xA0" + "6", _(L("Right View")), [this](wxCommandEvent&) { select_view("right"); });
+        wxMenuItem* item_top = append_menu_item(viewMenu, wxID_ANY, _(L("Top")) + "\t\xA0" + "1", _(L("Top View")), [this](wxCommandEvent&) { select_view("top"); });
+        wxMenuItem* item_bottom = append_menu_item(viewMenu, wxID_ANY, _(L("Bottom")) + "\t\xA0" + "2", _(L("Bottom View")), [this](wxCommandEvent&) { select_view("bottom"); });
+        wxMenuItem* item_front = append_menu_item(viewMenu, wxID_ANY, _(L("Front")) + "\t\xA0" + "3", _(L("Front View")), [this](wxCommandEvent&) { select_view("front"); });
+        wxMenuItem* item_rear = append_menu_item(viewMenu, wxID_ANY, _(L("Rear")) + "\t\xA0" + "4", _(L("Rear View")), [this](wxCommandEvent&) { select_view("rear"); });
+        wxMenuItem* item_left = append_menu_item(viewMenu, wxID_ANY, _(L("Left")) + "\t\xA0" + "5", _(L("Left View")), [this](wxCommandEvent&) { select_view("left"); });
+        wxMenuItem* item_right = append_menu_item(viewMenu, wxID_ANY, _(L("Right")) + "\t\xA0" + "6", _(L("Right View")), [this](wxCommandEvent&) { select_view("right"); });
+
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_change_view()); }, item_iso->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_change_view()); }, item_top->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_change_view()); }, item_bottom->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_change_view()); }, item_front->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_change_view()); }, item_rear->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_change_view()); }, item_left->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_change_view()); }, item_right->GetId());
     }
 #else
     if (m_plater) {
