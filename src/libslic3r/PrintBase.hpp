@@ -192,7 +192,7 @@ public:
     // Calls a registered callback to update the status, or print out the default message.
     void                    set_status(int percent, const std::string &message) { 
         if (m_status_callback) m_status_callback(percent, message);
-        /*else */printf("%d => %s\n", percent, message.c_str());
+        else printf("%d => %s\n", percent, message.c_str());
     }
 
     typedef std::function<void()>  cancel_callback_type;
