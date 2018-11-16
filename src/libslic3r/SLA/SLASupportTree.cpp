@@ -510,7 +510,8 @@ struct Pad {
         const PoolConfig& cfg) : zlevel(ground_level + cfg.min_wall_height_mm/2)
     {
         ExPolygons basep;
-        base_plate(object_support_mesh, basep, cfg.min_wall_height_mm/*,layer_height*/);
+        base_plate(object_support_mesh, basep,
+                   float(cfg.min_wall_height_mm)/*,layer_height*/);
         for(auto& bp : baseplate) basep.emplace_back(bp);
 
         create_base_pool(basep, tmesh, cfg);
@@ -796,10 +797,19 @@ public:
         return meshcache;
     }
 
+    // WITH THE PAD
     double full_height() const {
+        double h = mesh_height();
+        if(!pad().empty()) h += pad().cfg.min_wall_height_mm / 2;
+        return h;
+    }
+
+    // WITHOUT THE PAD!!!
+    double mesh_height() const {
         if(!meshcache_valid) merged_mesh();
         return model_height;
     }
+
 };
 
 template<class DistFn>
@@ -1674,37 +1684,16 @@ void SLASupportTree::merged_mesh_with_pad(TriangleMesh &outmesh) const {
     outmesh.merge(get_pad());
 }
 
-//void slice_mesh(const Contour3D& cntr,
-//                std::vector<SlicedSupports>& mergev,
-//                const std::vector<float>& heights)
-//{
-//    TriangleMesh&& m = mesh(cntr);
-//    TriangleMeshSlicer slicer(&m);
-//    SlicedSupports slout;
-//    slicer.slice(heights, &slout, [](){});
-
-//    for(size_t i = 0; i < slout.size(); i++) {
-//        // move the layers obtained from this mesh to the merge area
-//        mergev[i].emplace_back(std::move(slout[i]));
-//    }
-//}
-
-//template<class T> void slice_part(const T& inp,
-//                                  std::vector<SlicedSupports>& mergev,
-//                                  const std::vector<float>& heights)
-//{
-//    for(auto& part : inp) {
-//        slice_mesh(part.mesh, mergev, heights);
-//    }
-//}
-
 SlicedSupports SLASupportTree::slice(float layerh, float init_layerh) const
 {
     if(init_layerh < 0) init_layerh = layerh;
     auto& stree = get();
-    const auto modelh = float(stree.full_height());
 
+    const auto modelh = float(stree.full_height());
     auto gndlvl = float(this->m_impl->ground_level);
+    const Pad& pad = m_impl->pad();
+    if(!pad.empty()) gndlvl -= float(pad.cfg.min_wall_height_mm/2);
+
     std::vector<float> heights = {gndlvl};
     heights.reserve(size_t(modelh/layerh) + 1);
 
@@ -1713,33 +1702,10 @@ SlicedSupports SLASupportTree::slice(float layerh, float init_layerh) const
     }
 
     TriangleMesh fullmesh = m_impl->merged_mesh();
+    fullmesh.merge(get_pad());
     TriangleMeshSlicer slicer(&fullmesh);
     SlicedSupports ret;
-    slicer.slice(heights, &ret, [](){});
-
-//    std::vector<SlicedSupports> mergev(heights.size());
-
-//    slice_part(stree.heads(), mergev, heights);
-//    slice_part(stree.pillars(), mergev, heights);
-//    for(auto& pillar : stree.pillars()) slice_mesh(pillar.base, mergev, heights);
-//    slice_part(stree.junctions(), mergev, heights);
-////    slice_part(stree.bridges(), mergev, heights);
-////    slice_part(stree.compact_bridges(), mergev, heights);
-
-//    // TODO: slicing base pool geometry
-
-//    // We could make a union of the slices at the same height level but at the
-//    // end they will be loaded into the rasterizer and it will unite them
-//    // anyway.
-
-//    SlicedSupports ret; ret.reserve(mergev.size());
-//    for(SlicedSupports& level : mergev) {
-//        size_t count = 0;
-//        for(auto& v : level) count += v.size();
-//        ret.emplace_back(); auto& merg = ret.back(); merg.reserve(count);
-//        for(ExPolygons& v : level)
-//            for(ExPolygon& ex : v) merg.emplace_back(ex);
-//    }
+    slicer.slice(heights, &ret, m_ctl.cancelfn);
 
     return ret;
 }
@@ -1774,7 +1740,8 @@ double SLASupportTree::get_elevation() const
 
 SLASupportTree::SLASupportTree(const Model& model,
                                const SupportConfig& cfg,
-                               const Controller& ctl): m_impl(new Impl())
+                               const Controller& ctl):
+    m_impl(new Impl()), m_ctl(ctl)
 {
     generate(support_points(model), to_eigenmesh(model), cfg, ctl);
 }
@@ -1782,14 +1749,15 @@ SLASupportTree::SLASupportTree(const Model& model,
 SLASupportTree::SLASupportTree(const PointSet &points,
                                const EigenMesh3D& emesh,
                                const SupportConfig &cfg,
-                               const Controller &ctl): m_impl(new Impl())
+                               const Controller &ctl):
+    m_impl(new Impl()), m_ctl(ctl)
 {
     m_impl->ground_level = emesh.ground_level - cfg.object_elevation_mm;
     generate(points, emesh, cfg, ctl);
 }
 
 SLASupportTree::SLASupportTree(const SLASupportTree &c):
-    m_impl( new Impl(*c.m_impl)) {}
+    m_impl(new Impl(*c.m_impl)), m_ctl(c.m_ctl) {}
 
 SLASupportTree &SLASupportTree::operator=(const SLASupportTree &c)
 {

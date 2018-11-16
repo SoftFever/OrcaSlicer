@@ -69,10 +69,19 @@ struct SupportConfig {
 /// A Control structure for the support calculation. Consists of the status
 /// indicator callback and the stop condition predicate.
 struct Controller {
+
+    // This will signal the status of the calculation to the front-end
     std::function<void(unsigned, const std::string&)> statuscb =
             [](unsigned, const std::string&){};
 
+    // Returns true if the calculation should be aborted.
     std::function<bool(void)> stopcondition = [](){ return false; };
+
+    // Similar to cancel callback. This should check the stop condition and
+    // if true, throw an appropriate exception. (TriangleMeshSlicer needs this)
+    // consider it a hard abort. stopcondition is permits the algorithm to
+    // terminate itself
+    std::function<void(void)> cancelfn = [](){};
 };
 
 /// An index-triangle structure for libIGL functions. Also serves as an
@@ -124,6 +133,7 @@ public:
 class SLASupportTree {
     class Impl;
     std::unique_ptr<Impl> m_impl;
+    Controller m_ctl;
 
     Impl& get() { return *m_impl; }
     const Impl& get() const { return *m_impl; }

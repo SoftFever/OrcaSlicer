@@ -128,7 +128,7 @@ void SLAPrint::process()
 
     // Slicing the model object. This method is oversimplified and needs to
     // be compared with the fff slicing algorithm for verification
-    auto slice_model = [ilh](SLAPrintObject& po) {
+    auto slice_model = [this, ilh](SLAPrintObject& po) {
         auto lh = float(po.m_config.layer_height.getFloat());
 
         TriangleMesh mesh = po.transformed_mesh();
@@ -141,7 +141,9 @@ void SLAPrint::process()
         for(float h = gnd + ilh; h < gnd + H; h += lh) heights.emplace_back(h);
 
         auto& layers = po.m_model_slices;
-        slicer.slice(heights, &layers, [](){});
+        slicer.slice(heights, &layers, [this](){
+            throw_if_canceled();
+        });
     };
 
     auto support_points = [](SLAPrintObject& po) {
@@ -176,6 +178,7 @@ void SLAPrint::process()
                 set_status(unsigned(stinit + st*d), msg);
             };
             ctl.stopcondition = [this](){ return canceled(); };
+            ctl.cancelfn = [this]() { throw_if_canceled(); };
 
              po.m_supportdata->support_tree_ptr.reset(
                         new SLASupportTree(pts, emesh, scfg, ctl));
@@ -242,10 +245,16 @@ void SLAPrint::process()
         // For all print objects, go through its initial layers and place them
         // into the layers hash
         for(SLAPrintObject *o : m_objects) {
+
+            double gndlvl = o->transformed_mesh().bounding_box().min(Z);
+
             double lh = o->m_config.layer_height.getFloat();
             SlicedModel & oslices = o->m_model_slices;
             for(int i = 0; i < oslices.size(); ++i) {
-                double h = ilh + i * lh;
+                int a = i == 0 ? 0 : 1;
+                int b = i == 0 ? 0 : i - 1;
+
+                double h = gndlvl + ilh * a + b * lh;
                 long long lyridx = static_cast<long long>(scale_(h));
                 auto& lyrs = levels[lyridx]; // this initializes a new record
                 lyrs.emplace_back(oslices[i], o->m_instances);
@@ -253,9 +262,16 @@ void SLAPrint::process()
 
             if(o->m_supportdata) { // deal with the support slices if present
                 auto& sslices = o->m_supportdata->support_slices;
+                double el = o->m_config.support_object_elevation.getFloat();
+                //TODO: remove next line:
+                el = SupportConfig().object_elevation_mm;
 
                 for(int i = 0; i < sslices.size(); ++i) {
-                    double h = ilh + i * lh;
+                    int a = i == 0 ? 0 : 1;
+                    int b = i == 0 ? 0 : i - 1;
+
+                    double h = gndlvl - el + ilh * a + b * lh;
+
                     long long lyridx = static_cast<long long>(scale_(h));
                     auto& lyrs = levels[lyridx];
                     lyrs.emplace_back(sslices[i], o->m_instances);
@@ -392,7 +408,7 @@ void SLAPrint::process()
     };
 
     // this would disable the rasterization step
-     m_stepmask[slapsRasterize] = false;
+//    m_stepmask[slapsRasterize] = false;
 
     for(size_t s = 0; s < print_program.size(); ++s) {
         auto currentstep = printsteps[s];
