@@ -150,8 +150,8 @@ void SLAPrint::process()
             po.m_supportdata.reset(new SLAPrintObject::SupportData());
             po.m_supportdata->emesh = sla::to_eigenmesh(po.transformed_mesh());
 
-            // TODO: transform support points appropriately
-            po.m_supportdata->support_points = sla::support_points(mo);
+            po.m_supportdata->support_points =
+                    sla::to_point_set(po.transformed_support_points());
         }
 
         // for(SLAPrintObject *po : pobjects) {
@@ -452,6 +452,19 @@ const TriangleMesh &SLAPrintObject::transformed_mesh() const {
     m_transformed_rmesh.transform(m_trafo);
     m_trmesh_valid = true;
     return m_transformed_rmesh;
+}
+
+std::vector<Vec3d> SLAPrintObject::transformed_support_points() const
+{
+    assert(m_model_object != nullptr);
+    auto& spts = m_model_object->sla_support_points;
+
+    // this could be cached as well
+    std::vector<Vec3d> ret; ret.reserve(spts.size());
+
+    for(auto& sp : spts) ret.emplace_back( trafo() * Vec3d(sp.cast<double>()));
+
+    return ret;
 }
 
 } // namespace Slic3r

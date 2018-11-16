@@ -71,12 +71,6 @@ template<class Vec> double distance(const Vec& pp1, const Vec& pp2) {
     return distance(p);
 }
 
-/// The horizontally projected 2D boundary of the model as individual line
-/// segments. This can be used later to create a spatial index of line segments
-/// and query for possible pillar positions for non-ground facing support points
-std::vector<std::pair<Vec2d, Vec2d>> model_boundary(const EigenMesh3D& emesh,
-                                                    double offs = 0.01);
-
 Contour3D sphere(double rho, Portion portion = make_portion(0.0, 2.0*PI),
                  double fa=(2*PI/360)) {
 
@@ -513,7 +507,7 @@ struct Pad {
     Pad(const TriangleMesh& object_support_mesh,
         const ExPolygons& baseplate,
         double ground_level,
-        const PoolConfig& cfg) : zlevel(ground_level)
+        const PoolConfig& cfg) : zlevel(ground_level + cfg.min_wall_height_mm/2)
     {
         ExPolygons basep;
         base_plate(object_support_mesh, basep);
@@ -522,6 +516,8 @@ struct Pad {
         create_base_pool(basep, tmesh, cfg);
         tmesh.translate(0, 0, float(zlevel));
     }
+
+    bool empty() const { return tmesh.facets_count() == 0; }
 };
 
 EigenMesh3D to_eigenmesh(const Contour3D& cntr) {
@@ -611,7 +607,12 @@ EigenMesh3D to_eigenmesh(const Model& model) {
     return to_eigenmesh(combined_mesh);
 }
 
-
+PointSet to_point_set(const std::vector<Vec3d> &v)
+{
+    PointSet ret(v.size(), 3);
+    { long i = 0; for(const Vec3d& p : v) ret.row(i++) = p; }
+    return ret;
+}
 
 Vec3d model_coord(const ModelInstance& object, const Vec3f& mesh_coord) {
     return object.transform_vector(mesh_coord.cast<double>());
@@ -1269,7 +1270,7 @@ bool SLASupportTree::generate(const PointSet &points,
         const double hbr = cfg.head_back_radius_mm;
         const double pradius = cfg.pillar_radius_mm;
         const double maxbridgelen = cfg.max_bridge_length_mm;
-        const double gndlvl = emesh.ground_level;
+        const double gndlvl = result.ground_level;
 
         ClusterEl cl_centroids;
         cl_centroids.reserve(gnd_clusters.size());
@@ -1764,6 +1765,13 @@ const TriangleMesh &SLASupportTree::add_pad(const SliceLayer& baseplate,
 const TriangleMesh &SLASupportTree::get_pad() const
 {
     return m_impl->pad().tmesh;
+}
+
+double SLASupportTree::get_elevation() const
+{
+    double ph = m_impl->pad().empty()? 0 :
+                                       m_impl->pad().cfg.min_wall_height_mm/2.0;
+    return -m_impl->ground_level + ph;
 }
 
 SLASupportTree::SLASupportTree(const Model& model,

@@ -60,6 +60,8 @@ public:
     // This will return the transformed mesh which is cached
     const TriangleMesh&     transformed_mesh() const;
 
+    std::vector<Vec3d>      transformed_support_points() const;
+
     // I refuse to grantee copying (Tamas)
     SLAPrintObject(const SLAPrintObject&) = delete;
     SLAPrintObject& operator=(const SLAPrintObject&) = delete;

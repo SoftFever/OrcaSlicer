@@ -63,7 +63,7 @@ struct SupportConfig {
 
     // The elevation in Z direction upwards. This is the space between the pad
     // and the model object's bounding box bottom.
-    double object_elevation_mm = 0;
+    double object_elevation_mm = 10;
 };
 
 /// A Control structure for the support calculation. Consists of the status
@@ -101,11 +101,15 @@ void add_sla_supports(Model& model, const SupportConfig& cfg = {},
                       const Controller& ctl = {});
 
 EigenMesh3D to_eigenmesh(const TriangleMesh& m);
+PointSet    to_point_set(const std::vector<Vec3d>&);
+
+
+// obsolete, not used anymore
 EigenMesh3D to_eigenmesh(const Model& model);
 EigenMesh3D to_eigenmesh(const ModelObject& model);
-
-PointSet support_points(const Model& model);
 PointSet support_points(const ModelObject& modelobject);
+PointSet support_points(const Model& model);
+
 
 /* ************************************************************************** */
 
@@ -168,6 +172,11 @@ public:
 
     /// Get the pad geometry
     const TriangleMesh& get_pad() const;
+
+    /// The Z offset to raise the model and the supports to the ground level.
+    /// This is the elevation given in the support config and the height of the
+    /// pad (if requested).
+    double get_elevation() const;
 
 };
 
