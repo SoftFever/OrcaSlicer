@@ -200,9 +200,14 @@ void SLAPrint::process()
             double h =  po.m_config.pad_wall_height.getFloat();
             double md = po.m_config.pad_max_merge_distance.getFloat();
             double er = po.m_config.pad_edge_radius.getFloat();
+            double lh = po.m_config.layer_height.getFloat();
+            double elevation = po.m_config.support_object_elevation.getFloat();
 
             sla::ExPolygons bp;
-            sla::base_plate(po.transformed_mesh(), bp);
+            if(elevation < h/2)
+                sla::base_plate(po.transformed_mesh(), bp,
+                                float(h/2), float(lh));
+
             po.m_supportdata->support_tree_ptr->add_pad(bp, wt, h, md, er);
         }
     };
@@ -387,7 +392,7 @@ void SLAPrint::process()
     };
 
     // this would disable the rasterization step
-    // m_stepmask[slapsRasterize] = false;
+     m_stepmask[slapsRasterize] = false;
 
     for(size_t s = 0; s < print_program.size(); ++s) {
         auto currentstep = printsteps[s];

@@ -935,6 +935,10 @@ public:
     // The max length of a bridge in mm
     ConfigOptionFloat support_max_bridge_length /*= 15.0*/;
 
+    // The elevation in Z direction upwards. This is the space between the pad
+    // and the model object's bounding box bottom.
+    ConfigOptionFloat support_object_elevation;
+
     // Now for the base pool (plate) ///////////////////////////////////////////
 
     ConfigOptionFloat pad_wall_thickness /*= 2*/;

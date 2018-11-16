@@ -15,7 +15,8 @@ using ExPolygons = std::vector<ExPolygon>;
 /// Calculate the polygon representing the silhouette from the specified height
 void base_plate(const TriangleMesh& mesh,
                 ExPolygons& output,
-                float height = 0.1f);
+                float zlevel = 0.1f,
+                float layerheight = 0.05f);
 
 struct PoolConfig {
     double min_wall_thickness_mm = 2;

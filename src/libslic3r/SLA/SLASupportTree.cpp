@@ -510,9 +510,9 @@ struct Pad {
         const PoolConfig& cfg) : zlevel(ground_level + cfg.min_wall_height_mm/2)
     {
         ExPolygons basep;
-        base_plate(object_support_mesh, basep);
+        base_plate(object_support_mesh, basep, cfg.min_wall_height_mm/*,layer_height*/);
         for(auto& bp : baseplate) basep.emplace_back(bp);
-        union_ex(basep);
+
         create_base_pool(basep, tmesh, cfg);
         tmesh.translate(0, 0, float(zlevel));
     }
@@ -1274,8 +1274,6 @@ bool SLASupportTree::generate(const PointSet &points,
 
         ClusterEl cl_centroids;
         cl_centroids.reserve(gnd_clusters.size());
-
-        std::cout << "gnd_clusters size: " << gnd_clusters.size() << std::endl;
 
         SpatIndex pheadindex; // spatial index for the junctions
         for(auto cl : gnd_clusters) {
