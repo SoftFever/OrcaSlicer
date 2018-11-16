@@ -519,7 +519,7 @@ public:
         bool                     use_VBOs);
 
     // Load SLA auxiliary GLVolumes (for support trees or pad).
-    void GLVolumeCollection::load_object_auxiliary(
+    void load_object_auxiliary(
         const SLAPrintObject           *print_object,
         int                             obj_idx,
         // pairs of <instance_idx, print_instance_idx>
