@@ -451,6 +451,7 @@ const TriangleMesh &SLAPrintObject::transformed_mesh() const {
     m_transformed_rmesh = m_model_object->raw_mesh();
     m_transformed_rmesh.transform(m_trafo);
     m_trmesh_valid = true;
+    return m_transformed_rmesh;
 }
 
 } // namespace Slic3r
