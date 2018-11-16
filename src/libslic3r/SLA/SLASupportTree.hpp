@@ -63,16 +63,25 @@ struct SupportConfig {
 
     // The elevation in Z direction upwards. This is the space between the pad
     // and the model object's bounding box bottom.
-    double object_elevation_mm = 0;
+    double object_elevation_mm = 10;
 };
 
 /// A Control structure for the support calculation. Consists of the status
 /// indicator callback and the stop condition predicate.
 struct Controller {
+
+    // This will signal the status of the calculation to the front-end
     std::function<void(unsigned, const std::string&)> statuscb =
             [](unsigned, const std::string&){};
 
+    // Returns true if the calculation should be aborted.
     std::function<bool(void)> stopcondition = [](){ return false; };
+
+    // Similar to cancel callback. This should check the stop condition and
+    // if true, throw an appropriate exception. (TriangleMeshSlicer needs this)
+    // consider it a hard abort. stopcondition is permits the algorithm to
+    // terminate itself
+    std::function<void(void)> cancelfn = [](){};
 };
 
 /// An index-triangle structure for libIGL functions. Also serves as an
@@ -101,11 +110,15 @@ void add_sla_supports(Model& model, const SupportConfig& cfg = {},
                       const Controller& ctl = {});
 
 EigenMesh3D to_eigenmesh(const TriangleMesh& m);
+PointSet    to_point_set(const std::vector<Vec3d>&);
+
+
+// obsolete, not used anymore
 EigenMesh3D to_eigenmesh(const Model& model);
 EigenMesh3D to_eigenmesh(const ModelObject& model);
-
-PointSet support_points(const Model& model);
 PointSet support_points(const ModelObject& modelobject);
+PointSet support_points(const Model& model);
+
 
 /* ************************************************************************** */
 
@@ -120,6 +133,7 @@ public:
 class SLASupportTree {
     class Impl;
     std::unique_ptr<Impl> m_impl;
+    Controller m_ctl;
 
     Impl& get() { return *m_impl; }
     const Impl& get() const { return *m_impl; }
@@ -160,13 +174,19 @@ public:
     SlicedSupports slice(float layerh, float init_layerh = -1.0) const;
 
     /// Adding the "pad" (base pool) under the supports
-    const TriangleMesh& add_pad(double min_wall_thickness_mm,
+    const TriangleMesh& add_pad(const SliceLayer& baseplate,
+                                double min_wall_thickness_mm,
                                 double min_wall_height_mm,
                                 double max_merge_distance_mm,
                                 double edge_radius_mm) const;
 
     /// Get the pad geometry
     const TriangleMesh& get_pad() const;
+
+    /// The Z offset to raise the model and the supports to the ground level.
+    /// This is the elevation given in the support config and the height of the
+    /// pad (if requested).
+    double get_elevation() const;
 
 };
 

@@ -9,6 +9,7 @@
 #include "SLASpatIndex.hpp"
 #include "SLABasePool.hpp"
 #include <libnest2d/tools/benchmark.h>
+#include "ClipperUtils.hpp"
 
 #include "Model.hpp"
 
@@ -69,12 +70,6 @@ template<class Vec> double distance(const Vec& pp1, const Vec& pp2) {
     auto p = pp2 - pp1;
     return distance(p);
 }
-
-/// The horizontally projected 2D boundary of the model as individual line
-/// segments. This can be used later to create a spatial index of line segments
-/// and query for possible pillar positions for non-ground facing support points
-std::vector<std::pair<Vec2d, Vec2d>> model_boundary(const EigenMesh3D& emesh,
-                                                    double offs = 0.01);
 
 Contour3D sphere(double rho, Portion portion = make_portion(0.0, 2.0*PI),
                  double fa=(2*PI/360)) {
@@ -416,9 +411,9 @@ struct Pillar {
         base.points.emplace_back(ep);
 
         auto& indices = base.indices;
-        auto hcenter = base.points.size() - 1;
-        auto lcenter = base.points.size() - 2;
-        auto offs = steps;
+        auto hcenter = int(base.points.size() - 1);
+        auto lcenter = int(base.points.size() - 2);
+        auto offs = int(steps);
         for(int i = 0; i < steps - 1; ++i) {
             indices.emplace_back(i, i + offs, offs + i + 1);
             indices.emplace_back(i, offs + i + 1, i + 1);
@@ -426,7 +421,7 @@ struct Pillar {
             indices.emplace_back(lcenter, offs + i + 1, offs + i);
         }
 
-        auto last = steps - 1;
+        auto last = int(steps - 1);
         indices.emplace_back(0, last, offs);
         indices.emplace_back(last, offs + last, offs);
         indices.emplace_back(hcenter, last, 0);
@@ -510,15 +505,20 @@ struct Pad {
     Pad() {}
 
     Pad(const TriangleMesh& object_support_mesh,
+        const ExPolygons& baseplate,
         double ground_level,
-        const PoolConfig& cfg) : zlevel(ground_level)
+        const PoolConfig& cfg) : zlevel(ground_level + cfg.min_wall_height_mm/2)
     {
         ExPolygons basep;
-        base_plate(object_support_mesh, basep);
+        base_plate(object_support_mesh, basep,
+                   float(cfg.min_wall_height_mm)/*,layer_height*/);
+        for(auto& bp : baseplate) basep.emplace_back(bp);
+
         create_base_pool(basep, tmesh, cfg);
         tmesh.translate(0, 0, float(zlevel));
-        std::cout << "pad ground level " << zlevel << std::endl;
     }
+
+    bool empty() const { return tmesh.facets_count() == 0; }
 };
 
 EigenMesh3D to_eigenmesh(const Contour3D& cntr) {
@@ -563,6 +563,10 @@ EigenMesh3D to_eigenmesh(const TriangleMesh& tmesh) {
     const stl_file& stl = tmesh.stl;
 
     EigenMesh3D outmesh;
+
+    auto&& bb = tmesh.bounding_box();
+    outmesh.ground_level += bb.min(Z);
+
     auto& V = outmesh.V;
     auto& F = outmesh.F;
 
@@ -586,11 +590,7 @@ EigenMesh3D to_eigenmesh(const TriangleMesh& tmesh) {
 }
 
 EigenMesh3D to_eigenmesh(const ModelObject& modelobj) {
-    auto&& rmesh = modelobj.raw_mesh();
-    auto&& ret = to_eigenmesh(rmesh);
-    auto&& bb = rmesh.bounding_box();
-    ret.ground_level = bb.min(Z);
-    return ret;
+    return to_eigenmesh(modelobj.raw_mesh());
 }
 
 EigenMesh3D to_eigenmesh(const Model& model) {
@@ -608,7 +608,12 @@ EigenMesh3D to_eigenmesh(const Model& model) {
     return to_eigenmesh(combined_mesh);
 }
 
-
+PointSet to_point_set(const std::vector<Vec3d> &v)
+{
+    PointSet ret(v.size(), 3);
+    { long i = 0; for(const Vec3d& p : v) ret.row(i++) = p; }
+    return ret;
+}
 
 Vec3d model_coord(const ModelInstance& object, const Vec3f& mesh_coord) {
     return object.transform_vector(mesh_coord.cast<double>());
@@ -635,9 +640,18 @@ PointSet support_points(const Model& model) {
 PointSet support_points(const ModelObject& modelobject)
 {
     PointSet ret(modelobject.sla_support_points.size(), 3);
+    auto rot = modelobject.instances.front()->get_rotation();
+//    auto scaling = modelobject.instances.front()->get_scaling_factor();
+
+//    Transform3d tr;
+//    tr.rotate(Eigen::AngleAxisd(rot(X), Vec3d::UnitX()) *
+//              Eigen::AngleAxisd(rot(Y), Vec3d::UnitY()));
+
     long i = 0;
     for(const Vec3f& msource : modelobject.sla_support_points) {
-        ret.row(i++) = msource.cast<double>();
+        Vec3d&& p = msource.cast<double>();
+//        p = tr * p;
+        ret.row(i++) = p;
     }
     return ret;
 }
@@ -694,20 +708,18 @@ public:
         return m_pillars.back();
     }
 
-    const Head& pillar_head(long pillar_id) {
-        assert(pillar_id > 0 && pillar_id < m_pillars.size());
-        Pillar& p = m_pillars[pillar_id];
-        assert(p.starts_from_head && p.start_junction_id > 0 &&
+    const Head& pillar_head(long pillar_id) const {
+        assert(pillar_id >= 0 && pillar_id < m_pillars.size());
+        const Pillar& p = m_pillars[pillar_id];
+        assert(p.starts_from_head && p.start_junction_id >= 0 &&
                p.start_junction_id < m_heads.size() );
-        meshcache_valid = false;
         return m_heads[p.start_junction_id];
     }
 
-    const Pillar& head_pillar(long headid) {
+    const Pillar& head_pillar(long headid) const {
         assert(headid >= 0 && headid < m_heads.size());
-        Head& h = m_heads[headid];
-        assert(h.pillar_id > 0 && h.pillar_id < m_pillars.size());
-        meshcache_valid = false;
+        const Head& h = m_heads[headid];
+        assert(h.pillar_id >= 0 && h.pillar_id < m_pillars.size());
         return m_pillars[h.pillar_id];
     }
 
@@ -743,8 +755,9 @@ public:
     }
 
     const Pad& create_pad(const TriangleMesh& object_supports,
+                          const ExPolygons& baseplate,
                           const PoolConfig& cfg) {
-        m_pad = Pad(object_supports, ground_level, cfg);
+        m_pad = Pad(object_supports, baseplate, ground_level, cfg);
         return m_pad;
     }
 
@@ -778,16 +791,25 @@ public:
         }
 
         BoundingBoxf3&& bb = meshcache.bounding_box();
-        model_height = bb.max(Z);
+        model_height = bb.max(Z) - bb.min(Z);
 
         meshcache_valid = true;
         return meshcache;
     }
 
+    // WITH THE PAD
     double full_height() const {
+        double h = mesh_height();
+        if(!pad().empty()) h += pad().cfg.min_wall_height_mm / 2;
+        return h;
+    }
+
+    // WITHOUT THE PAD!!!
+    double mesh_height() const {
         if(!meshcache_valid) merged_mesh();
         return model_height;
     }
+
 };
 
 template<class DistFn>
@@ -990,7 +1012,6 @@ bool SLASupportTree::generate(const PointSet &points,
     using Result = SLASupportTree::Impl;
 
     Result& result = *m_impl;
-    result.ground_level = mesh.ground_level;
 
     enum Steps {
         BEGIN,
@@ -1259,12 +1280,10 @@ bool SLASupportTree::generate(const PointSet &points,
         const double hbr = cfg.head_back_radius_mm;
         const double pradius = cfg.pillar_radius_mm;
         const double maxbridgelen = cfg.max_bridge_length_mm;
-        const double gndlvl = emesh.ground_level - cfg.object_elevation_mm;
+        const double gndlvl = result.ground_level;
 
         ClusterEl cl_centroids;
         cl_centroids.reserve(gnd_clusters.size());
-
-        std::cout << "gnd_clusters size: " << gnd_clusters.size() << std::endl;
 
         SpatIndex pheadindex; // spatial index for the junctions
         for(auto cl : gnd_clusters) {
@@ -1665,52 +1684,34 @@ void SLASupportTree::merged_mesh_with_pad(TriangleMesh &outmesh) const {
     outmesh.merge(get_pad());
 }
 
-template<class T> void slice_part(const T& inp,
-                                  std::vector<SlicedSupports>& mergev,
-                                  const std::vector<float>& heights)
-{
-    for(auto& part : inp) {
-        TriangleMesh&& m = mesh(part.mesh);
-        TriangleMeshSlicer slicer(&m);
-        SlicedSupports slout;
-        slicer.slice(heights, &slout, [](){});
-
-        for(size_t i = 0; i < slout.size(); i++) {
-            // move the layers obtained from this mesh to the merge area
-            mergev[i].emplace_back(std::move(slout[i]));
-        }
-    }
-}
-
 SlicedSupports SLASupportTree::slice(float layerh, float init_layerh) const
 {
     if(init_layerh < 0) init_layerh = layerh;
     auto& stree = get();
-    const float modelh = stree.full_height();
 
-    std::vector<float> heights; heights.reserve(size_t(modelh/layerh) + 1);
-    for(float h = init_layerh; h <= modelh; h += layerh) {
+    const auto modelh = float(stree.full_height());
+    auto gndlvl = float(this->m_impl->ground_level);
+    const Pad& pad = m_impl->pad();
+    if(!pad.empty()) gndlvl -= float(pad.cfg.min_wall_height_mm/2);
+
+    std::vector<float> heights = {gndlvl};
+    heights.reserve(size_t(modelh/layerh) + 1);
+
+    for(float h = gndlvl + init_layerh; h < gndlvl + modelh; h += layerh) {
         heights.emplace_back(h);
     }
 
-    std::vector<SlicedSupports> mergev(heights.size());
+    TriangleMesh fullmesh = m_impl->merged_mesh();
+    fullmesh.merge(get_pad());
+    TriangleMeshSlicer slicer(&fullmesh);
+    SlicedSupports ret;
+    slicer.slice(heights, &ret, m_ctl.cancelfn);
 
-    slice_part(stree.heads(), mergev, heights);
-    slice_part(stree.pillars(), mergev, heights);
-    slice_part(stree.junctions(), mergev, heights);
-    slice_part(stree.bridges(), mergev, heights);
-    slice_part(stree.compact_bridges(), mergev, heights);
-
-    // TODO: do this for all
-
-    for(SlicedSupports& level : mergev) {
-        // TODO merge all expolygon in the current level
-    }
-
-    return {};
+    return ret;
 }
 
-const TriangleMesh &SLASupportTree::add_pad(double min_wall_thickness_mm,
+const TriangleMesh &SLASupportTree::add_pad(const SliceLayer& baseplate,
+                                            double min_wall_thickness_mm,
                                             double min_wall_height_mm,
                                             double max_merge_distance_mm,
                                             double edge_radius_mm) const
@@ -1722,7 +1723,7 @@ const TriangleMesh &SLASupportTree::add_pad(double min_wall_thickness_mm,
 //    pcfg.min_wall_height_mm    = min_wall_height_mm;
 //    pcfg.max_merge_distance_mm = max_merge_distance_mm;
 //    pcfg.edge_radius_mm        = edge_radius_mm;
-    return m_impl->create_pad(mm, pcfg).tmesh;
+    return m_impl->create_pad(mm, baseplate, pcfg).tmesh;
 }
 
 const TriangleMesh &SLASupportTree::get_pad() const
@@ -1730,9 +1731,17 @@ const TriangleMesh &SLASupportTree::get_pad() const
     return m_impl->pad().tmesh;
 }
 
+double SLASupportTree::get_elevation() const
+{
+    double ph = m_impl->pad().empty()? 0 :
+                                       m_impl->pad().cfg.min_wall_height_mm/2.0;
+    return -m_impl->ground_level + ph;
+}
+
 SLASupportTree::SLASupportTree(const Model& model,
                                const SupportConfig& cfg,
-                               const Controller& ctl): m_impl(new Impl())
+                               const Controller& ctl):
+    m_impl(new Impl()), m_ctl(ctl)
 {
     generate(support_points(model), to_eigenmesh(model), cfg, ctl);
 }
@@ -1740,13 +1749,15 @@ SLASupportTree::SLASupportTree(const Model& model,
 SLASupportTree::SLASupportTree(const PointSet &points,
                                const EigenMesh3D& emesh,
                                const SupportConfig &cfg,
-                               const Controller &ctl): m_impl(new Impl())
+                               const Controller &ctl):
+    m_impl(new Impl()), m_ctl(ctl)
 {
+    m_impl->ground_level = emesh.ground_level - cfg.object_elevation_mm;
     generate(points, emesh, cfg, ctl);
 }
 
 SLASupportTree::SLASupportTree(const SLASupportTree &c):
-    m_impl( new Impl(*c.m_impl)) {}
+    m_impl(new Impl(*c.m_impl)), m_ctl(c.m_ctl) {}
 
 SLASupportTree &SLASupportTree::operator=(const SLASupportTree &c)
 {

@@ -337,6 +337,9 @@ class GLCanvas3D
 
         bool dragging;
         Vec2d position;
+#if ENABLE_GIZMOS_ON_TOP
+        Vec3d scene_position;
+#endif // ENABLE_GIZMOS_ON_TOP
         Drag drag;
 #if ENABLE_GIZMOS_RESET
         bool ignore_up_event;
@@ -559,6 +562,9 @@ public:
         void _render_bounding_box(const BoundingBoxf3& box, float* color) const;
         void _synchronize_unselected_instances();
         void _synchronize_unselected_volumes();
+#if ENABLE_ENSURE_ON_BED_WHILE_SCALING
+        void _ensure_on_bed();
+#endif // ENABLE_ENSURE_ON_BED_WHILE_SCALING
     };
 
 private:

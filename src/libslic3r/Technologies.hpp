@@ -6,7 +6,7 @@
 //============
 
 // Shows camera target in the 3D scene
-#define ENABLE_SHOW_CAMERA_TARGET 1
+#define ENABLE_SHOW_CAMERA_TARGET 0
 
 //=============
 // 1.42.0 techs
@@ -23,8 +23,12 @@
 #define ENABLE_MODIFIED_CAMERA_TARGET (1 && ENABLE_1_42_0)
 // Add Geometry::Transformation class and use it into ModelInstance, ModelVolume and GLVolume
 #define ENABLE_MODELVOLUME_TRANSFORM (1 && ENABLE_1_42_0)
+// Keeps objects on bed while scaling them using the scale gizmo
+#define ENABLE_ENSURE_ON_BED_WHILE_SCALING (1 && ENABLE_MODELVOLUME_TRANSFORM)
 // Gizmos always rendered on top of objects
 #define ENABLE_GIZMOS_ON_TOP (1 && ENABLE_1_42_0)
+// New menu layout (open/save/save as project + import/export)
+#define ENABLE_NEW_MENU_LAYOUT (1 && ENABLE_1_42_0)
 
 #endif // _technologies_h_
 

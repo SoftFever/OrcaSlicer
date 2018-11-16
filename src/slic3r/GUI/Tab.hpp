@@ -175,6 +175,7 @@ protected:
 	bool				m_show_incompatible_presets;
 
 	std::vector<std::string>	m_reload_dependent_tabs = {};
+    std::vector<Preset::Type>	m_dependent_tabs = {};
 	enum OptStatus { osSystemValue = 1, osInitValue = 2 };
 	std::map<std::string, int>	m_options_list;
 	int							m_opt_status_value = 0;
@@ -187,7 +188,7 @@ protected:
 
 	size_t				m_selected_preset_item{ 0 };
 
-    void    set_type();
+    void                set_type();
 
 public:
 	PresetBundle*		m_preset_bundle;

@@ -5,6 +5,7 @@
 #include "GUI_App.hpp"
 
 #include "../../libslic3r/Utils.hpp"
+#include "PresetBundle.hpp"
 
 #include <Eigen/Dense>
 #include "../../libslic3r/Geometry.hpp"
@@ -1759,6 +1760,10 @@ void GLGizmoSlaSupports::render_tooltip_texture() const {
     ::glEnable(GL_DEPTH_TEST);
 }
 
+bool GLGizmoSlaSupports::on_is_activable(const GLCanvas3D::Selection& selection) const
+{
+    return (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA);
+}
 
 std::string GLGizmoSlaSupports::on_get_name() const
 {

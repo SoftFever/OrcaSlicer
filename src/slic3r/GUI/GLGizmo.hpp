@@ -447,6 +447,7 @@ protected:
     }
 
     std::string on_get_name() const override;
+    bool on_is_activable(const GLCanvas3D::Selection& selection) const override;
 };
 
 } // namespace GUI

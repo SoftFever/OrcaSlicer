@@ -83,7 +83,10 @@ ObjectList::~ObjectList()
 
 void ObjectList::create_objects_ctrl()
 {
-    SetMinSize(wxSize(-1, 150)); // TODO - Set correct height according to the opened/closed objects
+    // temporary workaround for the correct behavior of the Scrolled sidebar panel:
+    // 1. set a height of the list to some big value 
+    // 2. change it to the normal min value (200) after first whole App updating/layouting
+    SetMinSize(wxSize(-1, 1500));   // #ys_FIXME 
 
     m_sizer = new wxBoxSizer(wxVERTICAL);
     m_sizer->Add(this, 1, wxGROW | wxLEFT, 20);
@@ -724,7 +727,11 @@ void ObjectList::load_part( ModelObject* model_object,
 
     m_parts_changed = false;
     wxArrayString input_files;
+#if ENABLE_NEW_MENU_LAYOUT
+    wxGetApp().import_model(parent, input_files);
+#else
     wxGetApp().open_model(parent, input_files);
+#endif // ENABLE_NEW_MENU_LAYOUT
     for (int i = 0; i < input_files.size(); ++i) {
         std::string input_file = input_files.Item(i).ToStdString();
 

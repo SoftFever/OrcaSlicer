@@ -418,17 +418,32 @@ ExPolygons concave_hull(const ExPolygons& polys, double max_dist_mm = 50)
     return punion;
 }
 
-void base_plate(const TriangleMesh &mesh, ExPolygons &output, float h)
+void base_plate(const TriangleMesh &mesh, ExPolygons &output, float h,
+                float layerh)
 {
     TriangleMesh m = mesh;
     TriangleMeshSlicer slicer(&m);
 
-    TriangleMesh upper, lower;
-    slicer.cut(h, &upper, &lower);
+//    TriangleMesh upper, lower;
+//    slicer.cut(h, &upper, &lower);
 
-    // TODO: this might be slow
-    output = lower.horizontal_projection();
+    // TODO: this might be slow (in fact it was)
+//    output = lower.horizontal_projection();
 
+    auto bb = mesh.bounding_box();
+    float gnd = float(bb.min(Z));
+    std::vector<float> heights = {float(bb.min(Z))};
+    for(float hi = gnd + layerh; hi <= gnd + h; hi += layerh)
+        heights.emplace_back(hi);
+
+    std::vector<ExPolygons> out; out.reserve(size_t(std::ceil(h/layerh)));
+    slicer.slice(heights, &out, [](){});
+
+    size_t count = 0; for(auto& o : out) count += o.size();
+    ExPolygons tmp; tmp.reserve(count);
+    for(auto& o : out) for(auto& e : o) tmp.emplace_back(std::move(e));
+
+    output = unify(tmp);
     for(auto& o : output) o = o.simplify(0.1/SCALING_FACTOR).front();
 }
 

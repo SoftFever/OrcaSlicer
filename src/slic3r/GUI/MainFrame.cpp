@@ -217,11 +217,85 @@ void MainFrame::add_created_tab(Tab* panel)
         m_tabpanel->AddPage(panel, panel->title());
 }
 
+#if ENABLE_NEW_MENU_LAYOUT
+bool MainFrame::can_save() const
+{
+    return (m_plater != nullptr) ? !m_plater->model().objects.empty() : false;
+}
+
+bool MainFrame::can_export_model() const
+{
+    return (m_plater != nullptr) ? !m_plater->model().objects.empty() : false;
+}
+
+bool MainFrame::can_export_gcode() const
+{
+    if (m_plater == nullptr)
+        return false;
+
+    if (m_plater->model().objects.empty())
+        return false;
+
+    if (m_plater->is_export_gcode_scheduled())
+        return false;
+
+    // TODO:: add other filters
+
+    return true;
+}
+
+bool MainFrame::can_change_view() const
+{
+    int page_id = m_tabpanel->GetSelection();
+    return (page_id != wxNOT_FOUND) ? m_tabpanel->GetPageText((size_t)page_id).Lower() == "plater" : false;
+}
+#endif // ENABLE_NEW_MENU_LAYOUT
+
 void MainFrame::init_menubar()
 {
     // File menu
     wxMenu* fileMenu = new wxMenu;
     {
+#if ENABLE_NEW_MENU_LAYOUT
+        wxMenuItem* item_open = append_menu_item(fileMenu, wxID_ANY, _(L("Open…\tCtrl+O")), _(L("Open a project file")),
+            [this](wxCommandEvent&) { if (m_plater) m_plater->load_project(); }, "brick_add.png");
+        wxMenuItem* item_save = append_menu_item(fileMenu, wxID_ANY, _(L("Save\tCtrl+S")), _(L("Save current project file")),
+            [this](wxCommandEvent&) { if (m_plater) m_plater->export_3mf(m_plater->get_project_filename().wx_str()); }, "disk.png");
+        wxMenuItem* item_save_as = append_menu_item(fileMenu, wxID_ANY, _(L("Save as…\tCtrl+Alt+S")), _(L("Save current project file as")),
+            [this](wxCommandEvent&) { if (m_plater) m_plater->export_3mf(); }, "disk.png");
+
+        fileMenu->AppendSeparator();
+
+        wxMenu* import_menu = new wxMenu();
+        wxMenuItem* item_import_model = append_menu_item(import_menu, wxID_ANY, _(L("Import STL/OBJ/AMF/3MF…\tCtrl+I")), _(L("Load a model")),
+            [this](wxCommandEvent&) { if (m_plater) m_plater->add_model(); }, "brick_add.png");
+        import_menu->AppendSeparator();
+        append_menu_item(import_menu, wxID_ANY, _(L("Import Config…\tCtrl+L")), _(L("Load exported configuration file")),
+            [this](wxCommandEvent&) { load_config_file(); }, "plugin_add.png");
+        append_menu_item(import_menu, wxID_ANY, _(L("Import Config from project…\tCtrl+Alt+L")), _(L("Load configuration from project file")),
+            [this](wxCommandEvent&) { if (m_plater) m_plater->extract_config_from_project(); }, "plugin_add.png");
+        import_menu->AppendSeparator();
+        append_menu_item(import_menu, wxID_ANY, _(L("Import Config Bundle…")), _(L("Load presets from a bundle")),
+            [this](wxCommandEvent&) { load_configbundle(); }, "lorry_add.png");
+        append_submenu(fileMenu, import_menu, wxID_ANY, _(L("Import")), _(L("")));
+
+        wxMenu* export_menu = new wxMenu();
+        wxMenuItem* item_export_gcode = append_menu_item(export_menu, wxID_ANY, _(L("Export G-code…")), _(L("Export current plate as G-code")),
+            [this](wxCommandEvent&) { if (m_plater) m_plater->export_gcode(); }, "cog_go.png");
+        export_menu->AppendSeparator();
+        wxMenuItem* item_export_stl = append_menu_item(export_menu, wxID_ANY, _(L("Export plate as STL…")), _(L("Export current plate as STL")),
+            [this](wxCommandEvent&) { if (m_plater) m_plater->export_stl(); }, "brick_go.png");
+        wxMenuItem* item_export_amf = append_menu_item(export_menu, wxID_ANY, _(L("Export plate as AMF…")), _(L("Export current plate as AMF")),
+            [this](wxCommandEvent&) { if (m_plater) m_plater->export_amf(); }, "brick_go.png");
+        export_menu->AppendSeparator();
+        append_menu_item(export_menu, wxID_ANY, _(L("Export Config…\tCtrl+E")), _(L("Export current configuration to file")),
+            [this](wxCommandEvent&) { export_config(); }, "plugin_go.png");
+        append_menu_item(export_menu, wxID_ANY, _(L("Export Config Bundle…")), _(L("Export all presets to file")),
+            [this](wxCommandEvent&) { export_configbundle(); }, "lorry_go.png");
+        append_submenu(fileMenu, export_menu, wxID_ANY, _(L("Export")), _(L("")));
+
+        fileMenu->AppendSeparator();
+#else
         append_menu_item(fileMenu, wxID_ANY, _(L("Open STL/OBJ/AMF/3MF…\tCtrl+O")), _(L("Open a model")),
                         [this](wxCommandEvent&) { if (m_plater) m_plater->add(); }, "brick_add.png");
         append_menu_item(fileMenu, wxID_ANY, _(L("&Load Config…\tCtrl+L")), _(L("Load exported configuration file")), 
@@ -233,25 +307,27 @@ void MainFrame::init_menubar()
         append_menu_item(fileMenu, wxID_ANY, _(L("&Export Config Bundle…")), _(L("Export all presets to file")), 
                         [this](wxCommandEvent&) { export_configbundle(); }, "lorry_go.png");
         fileMenu->AppendSeparator();
-        wxMenuItem* repeat = nullptr;
-        append_menu_item(fileMenu, wxID_ANY, _(L("Q&uick Slice…\tCtrl+U")), _(L("Slice a file into a G-code")), 
-            [this, repeat](wxCommandEvent&) {
-                wxTheApp->CallAfter([this, repeat]() {
+#endif // ENABLE_NEW_MENU_LAYOUT
+
+        m_menu_item_repeat = nullptr;
+        append_menu_item(fileMenu, wxID_ANY, _(L("Q&uick Slice…\tCtrl+U")), _(L("Slice a file into a G-code")),
+            [this](wxCommandEvent&) {
+                wxTheApp->CallAfter([this]() {
                     quick_slice();
-                    repeat->Enable(is_last_input_file());
-            }); }, "cog_go.png");
-        append_menu_item(fileMenu, wxID_ANY, _(L("Quick Slice and Save &As…\tCtrl+Alt+U")), _(L("Slice a file into a G-code, save as")), 
-            [this, repeat](wxCommandEvent&) {
-                wxTheApp->CallAfter([this, repeat]() {
+                    m_menu_item_repeat->Enable(is_last_input_file());
+                }); }, "cog_go.png");
+        append_menu_item(fileMenu, wxID_ANY, _(L("Quick Slice and Save &As…\tCtrl+Alt+U")), _(L("Slice a file into a G-code, save as")),
+            [this](wxCommandEvent&) {
+            wxTheApp->CallAfter([this]() {
                     quick_slice(qsSaveAs);
-                    repeat->Enable(is_last_input_file());
-            }); }, "cog_go.png");
-        repeat = append_menu_item(fileMenu, wxID_ANY, _(L("&Repeat Last Quick Slice\tCtrl+Shift+U")), _(L("Repeat last quick slice")), 
+                    m_menu_item_repeat->Enable(is_last_input_file());
+                }); }, "cog_go.png");
+        m_menu_item_repeat = append_menu_item(fileMenu, wxID_ANY, _(L("&Repeat Last Quick Slice\tCtrl+Shift+U")), _(L("Repeat last quick slice")),
             [this](wxCommandEvent&) {
             wxTheApp->CallAfter([this]() {
                 quick_slice(qsReslice);
             }); }, "cog_go.png");
-        repeat->Enable(0);
+        m_menu_item_repeat->Enable(false);
         fileMenu->AppendSeparator();
         append_menu_item(fileMenu, wxID_ANY, _(L("Slice to SV&G…\tCtrl+G")), _(L("Slice file to a multi-layer SVG")),
             [this](wxCommandEvent&) { quick_slice(qsSaveAs | qsExportSVG); }, "shape_handles.png");
@@ -263,8 +339,19 @@ void MainFrame::init_menubar()
         fileMenu->AppendSeparator();
         append_menu_item(fileMenu, wxID_EXIT, _(L("&Quit")), _(L("Quit Slic3r")),
             [this](wxCommandEvent&) { Close(false); } );
+
+#if ENABLE_NEW_MENU_LAYOUT
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(m_plater != nullptr); }, item_open->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable((m_plater != nullptr) && can_save()); }, item_save->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable((m_plater != nullptr) && can_save()); }, item_save_as->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(m_plater != nullptr); }, item_import_model->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable((m_plater != nullptr) && can_export_gcode()); }, item_export_gcode->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable((m_plater != nullptr) && can_export_model()); }, item_export_stl->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable((m_plater != nullptr) && can_export_model()); }, item_export_amf->GetId());
+#endif // ENABLE_NEW_MENU_LAYOUT
     }
 
+#if !ENABLE_NEW_MENU_LAYOUT
     // Plater menu
     if (m_plater) {
         m_plater_menu = new wxMenu();
@@ -277,6 +364,7 @@ void MainFrame::init_menubar()
         append_menu_item(m_plater_menu, wxID_ANY, _(L("Export plate as 3MF...")), _(L("Export current plate as 3MF")),
             [this](wxCommandEvent&) { m_plater->export_3mf(); }, "brick_go.png");
     }
+#endif // !ENABLE_NEW_MENU_LAYOUT
 
     // Window menu
     auto windowMenu = new wxMenu();
@@ -299,6 +387,31 @@ void MainFrame::init_menubar()
     }
 
     // View menu
+#if ENABLE_NEW_MENU_LAYOUT
+    wxMenu* viewMenu = nullptr;
+    if (m_plater) {
+        viewMenu = new wxMenu();
+        // \xA0 is a non-breaing space. It is entered here to spoil the automatic accelerators,
+        // as the simple numeric accelerators spoil all numeric data entry.
+        // The camera control accelerators are captured by GLCanvas3D::on_char().
+        wxMenuItem* item_iso = append_menu_item(viewMenu, wxID_ANY, _(L("Iso")) + "\t\xA0" + "0", _(L("Iso View")), [this](wxCommandEvent&) { select_view("iso"); });
+        viewMenu->AppendSeparator();
+        wxMenuItem* item_top = append_menu_item(viewMenu, wxID_ANY, _(L("Top")) + "\t\xA0" + "1", _(L("Top View")), [this](wxCommandEvent&) { select_view("top"); });
+        wxMenuItem* item_bottom = append_menu_item(viewMenu, wxID_ANY, _(L("Bottom")) + "\t\xA0" + "2", _(L("Bottom View")), [this](wxCommandEvent&) { select_view("bottom"); });
+        wxMenuItem* item_front = append_menu_item(viewMenu, wxID_ANY, _(L("Front")) + "\t\xA0" + "3", _(L("Front View")), [this](wxCommandEvent&) { select_view("front"); });
+        wxMenuItem* item_rear = append_menu_item(viewMenu, wxID_ANY, _(L("Rear")) + "\t\xA0" + "4", _(L("Rear View")), [this](wxCommandEvent&) { select_view("rear"); });
+        wxMenuItem* item_left = append_menu_item(viewMenu, wxID_ANY, _(L("Left")) + "\t\xA0" + "5", _(L("Left View")), [this](wxCommandEvent&) { select_view("left"); });
+        wxMenuItem* item_right = append_menu_item(viewMenu, wxID_ANY, _(L("Right")) + "\t\xA0" + "6", _(L("Right View")), [this](wxCommandEvent&) { select_view("right"); });
+
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_change_view()); }, item_iso->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_change_view()); }, item_top->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_change_view()); }, item_bottom->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_change_view()); }, item_front->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_change_view()); }, item_rear->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_change_view()); }, item_left->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_change_view()); }, item_right->GetId());
+    }
+#else
     if (m_plater) {
         m_viewMenu = new wxMenu();
         // \xA0 is a non-breaing space. It is entered here to spoil the automatic accelerators,
@@ -313,6 +426,7 @@ void MainFrame::init_menubar()
         append_menu_item(m_viewMenu, wxID_ANY, _(L("Left")) + "\t\xA0" + "5", _(L("Left View")), [this](wxCommandEvent&) { select_view("left"); });
         append_menu_item(m_viewMenu, wxID_ANY, _(L("Right")) + "\t\xA0" + "6", _(L("Right View")), [this](wxCommandEvent&) { select_view("right"); });
     }
+#endif // ENABLE_NEW_MENU_LAYOUT
 
     // Help menu
     auto helpMenu = new wxMenu();
@@ -346,9 +460,15 @@ void MainFrame::init_menubar()
     {
         auto menubar = new wxMenuBar();
         menubar->Append(fileMenu, L("&File"));
-        if (m_plater_menu) menubar->Append(m_plater_menu, L("&Plater")) ;
+#if !ENABLE_NEW_MENU_LAYOUT
+        if (m_plater_menu) menubar->Append(m_plater_menu, L("&Plater"));
+#endif // !ENABLE_NEW_MENU_LAYOUT
         menubar->Append(windowMenu, L("&Window"));
+#if ENABLE_NEW_MENU_LAYOUT
+        if (viewMenu) menubar->Append(viewMenu, L("&View"));
+#else
         if (m_viewMenu) menubar->Append(m_viewMenu, L("&View"));
+#endif // !ENABLE_NEW_MENU_LAYOUT
         // Add additional menus from C++
         wxGetApp().add_config_menu(menubar);
         menubar->Append(helpMenu, L("&Help"));
@@ -677,7 +797,7 @@ void MainFrame::on_presets_changed(SimpleEvent &event)
     // Update preset combo boxes(Print settings, Filament, Material, Printer) from their respective tabs.
     auto presets = tab->get_presets();
     if (m_plater != nullptr && presets != nullptr) {
-        auto reload_dependent_tabs = tab->get_dependent_tabs();
+//         auto reload_dependent_tabs = tab->get_dependent_tabs();
 
         // FIXME: The preset type really should be a property of Tab instead
         Slic3r::Preset::Type preset_type = tab->type();
@@ -685,7 +805,7 @@ void MainFrame::on_presets_changed(SimpleEvent &event)
             wxASSERT(false);
             return;
         }
-
+/*
         m_plater->sidebar().update_presets(preset_type);
 
         if (preset_type == Slic3r::Preset::TYPE_PRINTER) {
@@ -703,7 +823,9 @@ void MainFrame::on_presets_changed(SimpleEvent &event)
                     cur_tab->load_current_preset();
             }
         }
+*/
         m_plater->on_config_change(*tab->get_config());
+        m_plater->sidebar().update_presets(preset_type);
     }
 }
 
@@ -736,9 +858,13 @@ void MainFrame::update_ui_from_settings()
 {
     m_menu_item_reslice_now->Enable(wxGetApp().app_config->get("background_processing") == "1");
 //     if (m_plater) m_plater->update_ui_from_settings();
+    /*
     std::vector<std::string> tab_names = { "print", "filament", "printer" };
     for (auto tab_name: tab_names)
         m_options_tabs[tab_name]->update_ui_from_settings();
+    */
+    for (auto tab: wxGetApp().tabs_list)
+        tab->update_ui_from_settings();
 }
 
 
