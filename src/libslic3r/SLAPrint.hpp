@@ -35,8 +35,6 @@ private: // Prevents erroneous use by other classes.
     using Inherited = _SLAPrintObjectBase;
 
 public:
-    const ModelObject*      model_object() const    { return m_model_object; }
-    ModelObject*            model_object()          { return m_model_object; }
     const Transform3d&      trafo()        const    { return m_trafo; }
 
     struct Instance {
@@ -78,8 +76,6 @@ protected:
     bool                    invalidate_step(SLAPrintObjectStep step);
 
 private:
-	// Points to the instance owned by a Model stored at the parent SLAPrint instance.
-    ModelObject                            *m_model_object;
     // Object specific configuration, pulled from the configuration layer.
     SLAPrintObjectConfig                    m_config;
     // Translation in Z + Rotation by Y and Z + Scaling / Mirroring.
@@ -138,7 +134,6 @@ private:
     using SLAPrinter = FilePrinter<FilePrinterFormat::SLA_PNGZIP>;
     using SLAPrinterPtr = std::unique_ptr<SLAPrinter>;
 
-    Model                           m_model;
     SLAPrinterConfig                m_printer_config;
     SLAMaterialConfig               m_material_config;
     PrintObjects                    m_objects;

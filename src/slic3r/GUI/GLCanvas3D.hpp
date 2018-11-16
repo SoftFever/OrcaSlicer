@@ -493,6 +493,9 @@ public:
         void add_volume(unsigned int object_idx, unsigned int volume_idx, int instance_idx, bool as_single_selection = true);
         void remove_volume(unsigned int object_idx, unsigned int volume_idx);
 
+        // Update the selection based on the map from old indices to new indices after m_volumes changed.
+        // If the current selection is by instance, this call may select newly added volumes, if they belong to already selected instances.
+        void volumes_changed(const std::vector<size_t> &map_volume_old_to_new);
         void clear();
 
         bool is_empty() const { return m_type == Empty; }
@@ -706,6 +709,7 @@ private:
     SLAPrint* m_sla_print;
     Model* m_model;
 
+    // Screen is only refreshed from the OnIdle handler if it is dirty.
     bool m_dirty;
     bool m_initialized;
     bool m_use_VBOs;
@@ -819,9 +823,6 @@ public:
 
     std::vector<int> load_object(const ModelObject& model_object, int obj_idx, std::vector<int> instance_idxs);
     std::vector<int> load_object(const Model& model, int obj_idx);
-
-    // Load SLA support tree and SLA pad meshes into the scene, if available at the respective SLAPrintObject instances.
-    std::vector<int> load_support_meshes(const Model& model, int obj_idx);
 
     void mirror_selection(Axis axis);
 

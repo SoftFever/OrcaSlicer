@@ -61,7 +61,7 @@ const std::array<std::string, slapsCount> PRINT_STEP_LABELS =
 
 void SLAPrint::clear()
 {
-	tbb::mutex::scoped_lock lock(this->cancel_mutex());
+	tbb::mutex::scoped_lock lock(this->state_mutex());
     // The following call should stop background processing if it is running.
     this->invalidate_all_steps();
 
@@ -76,7 +76,7 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model,
 //		return APPLY_STATUS_UNCHANGED;
 
     // Grab the lock for the Print / PrintObject milestones.
-	tbb::mutex::scoped_lock lock(this->cancel_mutex());
+	tbb::mutex::scoped_lock lock(this->state_mutex());
     if(m_objects.empty() && model.objects.empty())
         return APPLY_STATUS_UNCHANGED;
 
@@ -409,11 +409,9 @@ void SLAPrint::process()
 }
 
 SLAPrintObject::SLAPrintObject(SLAPrint *print, ModelObject *model_object):
-    Inherited(print),
-    m_model_object(model_object),
+    Inherited(print, model_object),
     m_stepmask(slaposCount, true)
 {
-
 }
 
 SLAPrintObject::~SLAPrintObject() {}

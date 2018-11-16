@@ -1467,4 +1467,52 @@ Transform3d ModelInstance::get_matrix(bool dont_translate, bool dont_rotate, boo
 }
 #endif // !ENABLE_MODELVOLUME_TRANSFORM
 
+#ifdef _DEBUG
+// Verify whether the IDs of Model / ModelObject / ModelVolume / ModelInstance / ModelMaterial are valid and unique.
+void check_model_ids_validity(const Model &model)
+{
+    std::set<ModelID> ids;
+    auto check = [&ids](ModelID id) { 
+        assert(id.id > 0);
+        assert(ids.find(id) == ids.end());
+        ids.insert(id);
+    };
+    for (const ModelObject *model_object : model.objects) {
+        check(model_object->id());
+        for (const ModelVolume *model_volume : model_object->volumes)
+            check(model_volume->id());
+        for (const ModelInstance *model_instance : model_object->instances)
+            check(model_instance->id());
+    }
+    for (const auto mm : model.materials)
+        check(mm.second->id());
+}
+
+void check_model_ids_equal(const Model &model1, const Model &model2)
+{
+    // Verify whether the IDs of model1 and model match.
+    assert(model1.objects.size() == model2.objects.size());
+    for (size_t idx_model = 0; idx_model < model2.objects.size(); ++ idx_model) {
+        const ModelObject &model_object1 = *model1.objects[idx_model];
+        const ModelObject &model_object2 = *  model2.objects[idx_model];
+        assert(model_object1.id() == model_object2.id());
+        assert(model_object1.volumes.size() == model_object2.volumes.size());
+        assert(model_object1.instances.size() == model_object2.instances.size());
+        for (size_t i = 0; i < model_object1.volumes.size(); ++ i)
+            assert(model_object1.volumes[i]->id() == model_object2.volumes[i]->id());
+        for (size_t i = 0; i < model_object1.instances.size(); ++ i)
+            assert(model_object1.instances[i]->id() == model_object2.instances[i]->id());
+    }
+    assert(model1.materials.size() == model2.materials.size());
+    {
+        auto it1 = model1.materials.begin();
+        auto it2 = model2.materials.begin();
+        for (; it1 != model1.materials.end(); ++ it1, ++ it2) {
+            assert(it1->first == it2->first); // compare keys
+            assert(it1->second->id() == it2->second->id());
+        }
+    }
+}
+#endif /* _DEBUG */
+
 }

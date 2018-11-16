@@ -27,7 +27,7 @@ template class PrintState<PrintObjectStep, posCount>;
 
 void Print::clear() 
 {
-	tbb::mutex::scoped_lock lock(this->cancel_mutex());
+	tbb::mutex::scoped_lock lock(this->state_mutex());
     // The following call should stop background processing if it is running.
     this->invalidate_all_steps();
 	for (PrintObject *object : m_objects)
@@ -43,7 +43,7 @@ void Print::reload_object(size_t /* idx */)
 {
 	ModelObjectPtrs model_objects;
 	{
-		tbb::mutex::scoped_lock lock(this->cancel_mutex());
+		tbb::mutex::scoped_lock lock(this->state_mutex());
         // The following call should stop background processing if it is running.
         this->invalidate_all_steps();
 		/* TODO: this method should check whether the per-object config and per-material configs
@@ -271,8 +271,9 @@ bool Print::is_step_done(PrintObjectStep step) const
 {
     if (m_objects.empty())
         return false;
+	tbb::mutex::scoped_lock lock(this->state_mutex());
     for (const PrintObject *object : m_objects)
-        if (!object->m_state.is_done(step))
+        if (! object->m_state.is_done_unguarded(step))
             return false;
     return true;
 }
@@ -374,7 +375,7 @@ static PrintRegionConfig region_config_from_model_volume(const PrintRegionConfig
 // and have explicit instance positions.
 void Print::add_model_object(ModelObject* model_object, int idx)
 {
-	tbb::mutex::scoped_lock lock(this->cancel_mutex());
+	tbb::mutex::scoped_lock lock(this->state_mutex());
     // Initialize a new print object and store it at the given position.
     PrintObject *object = new PrintObject(this, model_object);
     if (idx != -1) {
@@ -435,7 +436,7 @@ void Print::add_model_object(ModelObject* model_object, int idx)
 
 bool Print::apply_config(DynamicPrintConfig config)
 {
-	tbb::mutex::scoped_lock lock(this->cancel_mutex());
+	tbb::mutex::scoped_lock lock(this->state_mutex());
 
     // we get a copy of the config object so we can modify it safely
     config.normalize();
@@ -734,54 +735,6 @@ static std::vector<PrintInstances> print_objects_from_model_object(const ModelOb
     return std::vector<PrintInstances>(trafos.begin(), trafos.end());
 }
 
-#ifdef _DEBUG
-// Verify whether the IDs of Model / ModelObject / ModelVolume / ModelInstance / ModelMaterial are valid and unique.
-static inline void check_model_ids_validity(const Model &model)
-{
-    std::set<ModelID> ids;
-    auto check = [&ids](ModelID id) { 
-        assert(id.id > 0);
-        assert(ids.find(id) == ids.end());
-        ids.insert(id);
-    };
-    for (const ModelObject *model_object : model.objects) {
-        check(model_object->id());
-        for (const ModelVolume *model_volume : model_object->volumes)
-            check(model_volume->id());
-        for (const ModelInstance *model_instance : model_object->instances)
-            check(model_instance->id());
-    }
-    for (const auto mm : model.materials)
-        check(mm.second->id());
-}
-
-static inline void check_model_ids_equal(const Model &model1, const Model &model2)
-{
-    // Verify whether the IDs of model1 and model match.
-    assert(model1.objects.size() == model2.objects.size());
-    for (size_t idx_model = 0; idx_model < model2.objects.size(); ++ idx_model) {
-        const ModelObject &model_object1 = *model1.objects[idx_model];
-        const ModelObject &model_object2 = *  model2.objects[idx_model];
-        assert(model_object1.id() == model_object2.id());
-        assert(model_object1.volumes.size() == model_object2.volumes.size());
-        assert(model_object1.instances.size() == model_object2.instances.size());
-        for (size_t i = 0; i < model_object1.volumes.size(); ++ i)
-			assert(model_object1.volumes[i]->id() == model_object2.volumes[i]->id());
-        for (size_t i = 0; i < model_object1.instances.size(); ++ i)
-			assert(model_object1.instances[i]->id() == model_object2.instances[i]->id());
-    }
-    assert(model1.materials.size() == model2.materials.size());
-    {
-        auto it1 = model1.materials.begin();
-        auto it2 = model2.materials.begin();
-        for (; it1 != model1.materials.end(); ++ it1, ++ it2) {
-            assert(it1->first == it2->first); // compare keys
-            assert(it1->second->id() == it2->second->id());
-        }
-    }
-}
-#endif /* _DEBUG */
-
 Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &config_in)
 {
 #ifdef _DEBUG
@@ -804,7 +757,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
         update_apply_status(false);
 
     // Grab the lock for the Print / PrintObject milestones.
-	tbb::mutex::scoped_lock lock(this->cancel_mutex());
+	tbb::mutex::scoped_lock lock(this->state_mutex());
 
     // The following call may stop the background processing.
     update_apply_status(this->invalidate_state_by_config_options(print_diff));
@@ -1579,16 +1532,12 @@ void Print::process()
     BOOST_LOG_TRIVIAL(info) << "Staring the slicing process.";
     for (PrintObject *obj : m_objects)
         obj->make_perimeters();
-    this->throw_if_canceled();
     this->set_status(70, "Infilling layers");
     for (PrintObject *obj : m_objects)
         obj->infill();
-    this->throw_if_canceled();
     for (PrintObject *obj : m_objects)
         obj->generate_support_material();
-    this->throw_if_canceled();
-    if (! this->is_step_done(psSkirt)) {
-        this->set_started(psSkirt);
+    if (this->set_started(psSkirt)) {
         m_skirt.clear();
         if (this->has_skirt()) {
             this->set_status(88, "Generating skirt");
@@ -1596,9 +1545,7 @@ void Print::process()
         }
         this->set_done(psSkirt);
     }
-    this->throw_if_canceled();
-	if (! this->is_step_done(psBrim)) {
-        this->set_started(psBrim);
+	if (this->set_started(psBrim)) {
         m_brim.clear();
         if (m_config.brim_width > 0) {
             this->set_status(88, "Generating brim");
@@ -1606,9 +1553,7 @@ void Print::process()
         }
        this->set_done(psBrim);
     }
-    this->throw_if_canceled();
-    if (! this->is_step_done(psWipeTower)) {
-        this->set_started(psWipeTower);
+    if (this->set_started(psWipeTower)) {
         m_wipe_tower_data.clear();
         if (this->has_wipe_tower()) {
             //this->set_status(95, "Generating wipe tower");
@@ -1625,9 +1570,6 @@ void Print::process()
 // It is up to the caller to show an error message.
 void Print::export_gcode(const std::string &path_template, GCodePreviewData *preview_data)
 {
-    // prerequisites
-    this->process();
-    
     // output everything to a G-code file
     // The following call may die if the output_filename_format template substitution fails.
     std::string path = this->output_filepath(path_template);
