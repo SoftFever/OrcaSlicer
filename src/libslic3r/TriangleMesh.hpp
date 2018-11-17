@@ -65,6 +65,7 @@ public:
     void reset_repair_stats();
     bool needed_repair() const;
     size_t facets_count() const { return this->stl.stats.number_of_facets; }
+    bool   empty() const { return this->facets_count() == 0; }
 
     // Returns true, if there are two and more connected patches in the mesh.
     // Returns false, if one or zero connected patch is in the mesh.

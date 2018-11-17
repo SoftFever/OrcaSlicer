@@ -48,6 +48,9 @@ public:
 	};
     const std::vector<Instance>& instances() const { return m_instances; }
 
+    bool                    has_mesh(SLAPrintObjectStep step) const;
+    TriangleMesh            get_mesh(SLAPrintObjectStep step) const;
+
     // Get a support mesh centered around origin in XY, and with zero rotation around Z applied.
     // Support mesh is only valid if this->is_step_done(slaposSupportTree) is true.
     TriangleMesh            support_mesh() const;

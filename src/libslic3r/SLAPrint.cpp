@@ -79,7 +79,7 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model,
 
     // Grab the lock for the Print / PrintObject milestones.
 	tbb::mutex::scoped_lock lock(this->state_mutex());
-    if(m_objects.empty() && model.objects.empty())
+	if (m_objects.empty() && model.objects.empty() && m_model.objects.empty())
         return APPLY_STATUS_UNCHANGED;
 
     // Temporary: just to have to correct layer height for the rasterization
@@ -436,6 +436,32 @@ SLAPrintObject::SLAPrintObject(SLAPrint *print, ModelObject *model_object):
 }
 
 SLAPrintObject::~SLAPrintObject() {}
+
+bool SLAPrintObject::has_mesh(SLAPrintObjectStep step) const
+{
+    switch (step) {
+    case slaposSupportTree:
+//        return m_supportdata && m_supportdata->support_tree_ptr && ! m_supportdata->support_tree_ptr->get().merged_mesh().empty();
+		return ! this->support_mesh().empty();
+    case slaposBasePool:
+//		return m_supportdata && m_supportdata->support_tree_ptr && ! m_supportdata->support_tree_ptr->get_pad().empty();
+		return ! this->pad_mesh().empty();
+	default:
+        return false;
+    }
+}
+
+TriangleMesh SLAPrintObject::get_mesh(SLAPrintObjectStep step) const
+{
+	switch (step) {
+	case slaposSupportTree:
+		return this->support_mesh();
+	case slaposBasePool:
+		return this->pad_mesh();
+	default:
+		return TriangleMesh();
+	}
+}
 
 TriangleMesh SLAPrintObject::support_mesh() const
 {

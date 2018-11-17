@@ -1867,7 +1867,10 @@ void GLCanvas3D::Selection::erase()
         for (unsigned int i : m_list)
         {
             const GLVolume* v = (*m_volumes)[i];
-            volumes_idxs.insert(std::make_pair(v->object_idx(), v->volume_idx()));
+			// Only remove volumes associated with ModelVolumes from the object list.
+			// Temporary meshes (SLA supports or pads) are not managed by the object list.
+			if (v->volume_idx() >= 0)
+	            volumes_idxs.insert(std::make_pair(v->object_idx(), v->volume_idx()));
         }
 
         std::vector<ItemForDelete> items;
@@ -3803,9 +3806,15 @@ void GLCanvas3D::reload_scene(bool force)
                 SLASupportState state;
 				for (size_t istep = 0; istep < sla_steps.size(); ++ istep) {
 					state.step[istep] = print_object->step_state_with_timestamp(sla_steps[istep]);
-					if (state.step[istep].state == PrintStateBase::DONE)
-						for (const ModelInstance *model_instance : print_object->model_object()->instances)
-                            aux_volume_state.emplace_back(state.step[istep].timestamp, model_instance->id());
+					if (state.step[istep].state == PrintStateBase::DONE) {
+                        if (! print_object->has_mesh(sla_steps[istep]))
+                            // Consider the DONE step without a valid mesh as invalid for the purpose
+                            // of mesh visualization.
+                            state.step[istep].state = PrintStateBase::INVALID;
+                        else
+    						for (const ModelInstance *model_instance : print_object->model_object()->instances)
+                                aux_volume_state.emplace_back(state.step[istep].timestamp, model_instance->id());
+                    }
 				}
 				sla_support_state.emplace_back(state);
             }
@@ -3911,7 +3920,7 @@ void GLCanvas3D::reload_scene(bool force)
                 const ModelObject *model_object = print_object->model_object();
                 // Find an index of the ModelObject
                 int object_idx;
-				if (! std::all_of(state.step.begin(), state.step.end(), [](const PrintStateBase::StateWithTimeStamp &state){ return state.state != PrintStateBase::DONE; }))
+				if (std::all_of(state.step.begin(), state.step.end(), [](const PrintStateBase::StateWithTimeStamp &state){ return state.state != PrintStateBase::DONE; }))
 					continue;
                 // There may be new SLA volumes added to the scene for this print_object.
                 // Find the object index of this print_object in the Model::objects list.
@@ -3942,7 +3951,7 @@ void GLCanvas3D::reload_scene(bool force)
                 }
                 for (size_t istep = 0; istep < sla_steps.size(); ++ istep)
 					if (! instances[istep].empty())
-						m_volumes.load_object_auxiliary(print_object, object_idx, instances[istep], sla_steps[istep], m_use_VBOs && m_initialized);
+						m_volumes.load_object_auxiliary(print_object, object_idx, instances[istep], sla_steps[istep], state.step[istep].timestamp, m_use_VBOs && m_initialized);
             }
         }
 

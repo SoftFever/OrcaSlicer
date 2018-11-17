@@ -200,7 +200,7 @@ DECLARE_VARIANT_OBJECT(PrusaDataViewBitmapText)
 // PrusaObjectDataViewModelNode: a node inside PrusaObjectDataViewModel
 // ----------------------------------------------------------------------------
 
-enum ItemType{
+enum ItemType {
     itUndef = 0,
     itObject = 1,
     itVolume = 2,

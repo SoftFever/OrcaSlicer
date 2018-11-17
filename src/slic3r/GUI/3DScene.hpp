@@ -256,6 +256,7 @@ public:
 
     GLVolume(float r = 1.f, float g = 1.f, float b = 1.f, float a = 1.f);
     GLVolume(const float *rgba) : GLVolume(rgba[0], rgba[1], rgba[2], rgba[3]) {}
+    ~GLVolume();
 
 private:
 #if ENABLE_MODELVOLUME_TRANSFORM
@@ -280,7 +281,9 @@ private:
     // Whether or not is needed to recalculate the transformed bounding box.
     mutable bool          m_transformed_bounding_box_dirty;
     // Pointer to convex hull of the original mesh, if any.
+    // This object may or may not own the convex hull instance based on m_convex_hull_owned
     const TriangleMesh*   m_convex_hull;
+    bool                  m_convex_hull_owned;
     // Bounding box of this volume, in unscaled coordinates.
     mutable BoundingBoxf3 m_transformed_convex_hull_bounding_box;
     // Whether or not is needed to recalculate the transformed convex hull bounding box.
@@ -422,7 +425,7 @@ public:
     void set_offset(const Vec3d& offset);
 #endif // ENABLE_MODELVOLUME_TRANSFORM
 
-    void set_convex_hull(const TriangleMesh& convex_hull);
+    void set_convex_hull(const TriangleMesh *convex_hull, bool owned);
 
     int                 object_idx() const { return this->composite_id.object_id; }
     int                 volume_idx() const { return this->composite_id.volume_id; }
@@ -525,6 +528,8 @@ public:
         // pairs of <instance_idx, print_instance_idx>
         const std::vector<std::pair<size_t, size_t>> &instances,
         SLAPrintObjectStep              milestone,
+        // Timestamp of the last change of the milestone
+        size_t                          timestamp,
         bool                            use_VBOs);
 
     int load_wipe_tower_preview(

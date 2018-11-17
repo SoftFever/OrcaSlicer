@@ -216,6 +216,7 @@ GLVolume::GLVolume(float r, float g, float b, float a)
 #endif // ENABLE_MODELVOLUME_TRANSFORM
     , m_transformed_convex_hull_bounding_box_dirty(true)
     , m_convex_hull(nullptr)
+    , m_convex_hull_owned(false)
     // geometry_id == 0 -> invalid
     , geometry_id(std::pair<size_t, size_t>(0, 0))
     , extruder_id(0)
@@ -237,6 +238,12 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     color[2] = b;
     color[3] = a;
     set_render_color(r, g, b, a);
+}
+
+GLVolume::~GLVolume()
+{
+    if (m_convex_hull_owned)
+        delete m_convex_hull;
 }
 
 void GLVolume::set_render_color(float r, float g, float b, float a)
@@ -365,9 +372,10 @@ void GLVolume::set_mirror(Axis axis, double mirror)
 }
 #endif // !ENABLE_MODELVOLUME_TRANSFORM
 
-void GLVolume::set_convex_hull(const TriangleMesh& convex_hull)
+void GLVolume::set_convex_hull(const TriangleMesh *convex_hull, bool owned)
 {
-    m_convex_hull = &convex_hull;
+    m_convex_hull = convex_hull;
+    m_convex_hull_owned = owned;
 }
 
 #if !ENABLE_MODELVOLUME_TRANSFORM
@@ -779,7 +787,8 @@ int GLVolumeCollection::load_object_volume(
 	v.composite_id = GLVolume::CompositeID(obj_idx, volume_idx, instance_idx);
     if (model_volume->is_model_part())
     {
-        v.set_convex_hull(model_volume->get_convex_hull());
+		// GLVolume will reference a convex hull from model_volume!
+        v.set_convex_hull(&model_volume->get_convex_hull(), false);
         if (extruder_id != -1)
             v.extruder_id = extruder_id;
         v.layer_height_texture = layer_height_texture;
@@ -808,6 +817,8 @@ void GLVolumeCollection::load_object_auxiliary(
     // pairs of <instance_idx, print_instance_idx>
     const std::vector<std::pair<size_t, size_t>> &instances,
     SLAPrintObjectStep              milestone,
+    // Timestamp of the last change of the milestone
+    size_t                          timestamp,
     bool                            use_VBOs)
 {
     assert(print_object->is_step_done(milestone));
@@ -835,7 +846,9 @@ void GLVolumeCollection::load_object_auxiliary(
         v.bounding_box = v.indexed_vertex_array.bounding_box();
         v.indexed_vertex_array.finalize_geometry(use_VBOs);
 		v.composite_id = GLVolume::CompositeID(obj_idx, -1, (int)instance_idx.first);
-		v.set_convex_hull(convex_hull);
+        v.geometry_id = std::pair<size_t, size_t>(timestamp, model_instance.id().id);
+		// Create a copy of the convex hull mesh for each instance. Use a move operator on the last instance.
+		v.set_convex_hull((&instance_idx == &instances.back()) ? new TriangleMesh(std::move(convex_hull)) : new TriangleMesh(convex_hull), true);
         v.is_modifier  = false;
         v.shader_outside_printer_detection_enabled = true;
         //FIXME adjust with print_instance?
