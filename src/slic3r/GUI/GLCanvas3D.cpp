@@ -3949,9 +3949,17 @@ void GLCanvas3D::reload_scene(bool force)
                                 m_volumes.volumes[it->volume_idx]->composite_id = GLVolume::CompositeID(object_idx, -1, instance_idx);
                         }
                 }
-                for (size_t istep = 0; istep < sla_steps.size(); ++ istep)
-					if (! instances[istep].empty())
-						m_volumes.load_object_auxiliary(print_object, object_idx, instances[istep], sla_steps[istep], state.step[istep].timestamp, m_use_VBOs && m_initialized);
+                for (size_t istep = 0; istep < sla_steps.size(); ++istep)
+                    if (!instances[istep].empty())
+                        m_volumes.load_object_auxiliary(print_object, object_idx, instances[istep], sla_steps[istep], state.step[istep].timestamp, m_use_VBOs && m_initialized);
+
+                // Shift-up all volumes of the object so that it has the right elevation with respect to the print bed
+                Vec3d shift_z(0.0, 0.0, print_object->get_elevation());
+                for (GLVolume* volume : m_volumes.volumes)
+                {
+                    if (volume->object_idx() == object_idx)
+                        volume->set_instance_offset(volume->get_instance_offset() + shift_z);
+                }
             }
         }
 
