@@ -1779,6 +1779,11 @@ bool GLGizmoSlaSupports::on_is_activable(const GLCanvas3D::Selection& selection)
     return (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA);
 }
 
+bool GLGizmoSlaSupports::on_is_selectable() const
+{
+    return (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA);
+}
+
 std::string GLGizmoSlaSupports::on_get_name() const
 {
     return L("SLA Support Points");

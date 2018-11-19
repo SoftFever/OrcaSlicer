@@ -101,6 +101,7 @@ public:
     void set_state(EState state) { m_state = state; on_set_state(); }
 
     bool is_activable(const GLCanvas3D::Selection& selection) const { return on_is_activable(selection); }
+    bool is_selectable() const { return on_is_selectable(); }
 
     unsigned int get_texture_id() const { return m_textures[m_state].get_id(); }
     int get_textures_size() const { return m_textures[Off].get_width(); }
@@ -134,6 +135,7 @@ protected:
     virtual void on_set_state() {}
     virtual void on_set_hover_id() {}
     virtual bool on_is_activable(const GLCanvas3D::Selection& selection) const { return true; }
+    virtual bool on_is_selectable() const { return true; }
     virtual void on_enable_grabber(unsigned int id) {}
     virtual void on_disable_grabber(unsigned int id) {}
     virtual void on_start_dragging(const GLCanvas3D::Selection& selection) {}
@@ -454,8 +456,9 @@ protected:
         }
     }
 
-    std::string on_get_name() const override;
-    bool on_is_activable(const GLCanvas3D::Selection& selection) const override;
+    virtual std::string on_get_name() const;
+    virtual bool on_is_activable(const GLCanvas3D::Selection& selection) const;
+    virtual bool on_is_selectable() const;
 };
 
 
