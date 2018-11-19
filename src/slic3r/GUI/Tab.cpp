@@ -2994,6 +2994,28 @@ void TabSLAPrint::build()
     auto optgroup = page->new_optgroup(_(L("Layers")));
     optgroup->append_single_option_line("layer_height");
 
+    page = add_options_page(_(L("Supports")), "building.png");
+    optgroup = page->new_optgroup(_(L("Support head")));
+    optgroup->append_single_option_line("support_head_front_radius");
+    optgroup->append_single_option_line("support_head_back_radius");
+    optgroup->append_single_option_line("support_head_penetration");
+    optgroup->append_single_option_line("support_head_width");
+
+    optgroup = page->new_optgroup(_(L("Support pillar")));
+    optgroup->append_single_option_line("support_pillar_radius");
+    optgroup->append_single_option_line("support_base_radius");
+    optgroup->append_single_option_line("support_base_height");
+
+    optgroup = page->new_optgroup(_(L("Connection of the support sticks and junctions")));
+    optgroup->append_single_option_line("support_critical_angle");
+    optgroup->append_single_option_line("support_max_bridge_length");
+
+    optgroup = page->new_optgroup(_(L("Pad")));
+    optgroup->append_single_option_line("pad_wall_thickness");
+    optgroup->append_single_option_line("pad_wall_height");
+    optgroup->append_single_option_line("pad_max_merge_distance");
+    optgroup->append_single_option_line("pad_edge_radius");
+
     page = add_options_page(_(L("Dependencies")), "wrench.png");
     optgroup = page->new_optgroup(_(L("Profile dependencies")));
     Line line = optgroup->create_single_option_line("compatible_printers");//Line { _(L("Compatible printers")), "" };

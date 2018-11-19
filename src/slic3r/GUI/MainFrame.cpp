@@ -204,19 +204,14 @@ void MainFrame::create_preset_tabs()
 void MainFrame::add_created_tab(Tab* panel)
 {
     panel->create_preset_tab();
-    /*
+
     const wxString& tab_name = panel->GetName();
-    bool add_panel = true;
 
     auto it = std::find_if(preset_tabs.begin(), preset_tabs.end(),
         [tab_name](PresetTab& tab) {return tab.name == tab_name; });
-    if (it != preset_tabs.end()) {
+    if (it != preset_tabs.end())
         it->panel = panel;
-        add_panel = it->technology == wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology();
-    }
 
-    if (add_panel)
-*/    
     if (panel->supports_printer_technology(wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology()))
         m_tabpanel->AddPage(panel, panel->title());
 }
