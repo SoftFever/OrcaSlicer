@@ -1858,7 +1858,7 @@ namespace Slic3r {
             if (volume == nullptr)
                 continue;
 
-            VolumeToOffsetsMap::iterator volume_it = volumes_offsets.insert(VolumeToOffsetsMap::value_type(volume, Offsets(vertices_count))).first;
+            volumes_offsets.insert(VolumeToOffsetsMap::value_type(volume, Offsets(vertices_count))).first;
 
             if (!volume->mesh.repaired)
                 volume->mesh.repair();
@@ -1878,9 +1878,16 @@ namespace Slic3r {
             for (int i = 0; i < stl.stats.shared_vertices; ++i)
             {
                 stream << "     <" << VERTEX_TAG << " ";
+#if ENABLE_MODELVOLUME_TRANSFORM
+                Vec3d v = volume->get_matrix() * stl.v_shared[i].cast<double>();
+                stream << "x=\"" << v(0) << "\" ";
+                stream << "y=\"" << v(1) << "\" ";
+                stream << "z=\"" << v(2) << "\" />\n";
+#else
                 stream << "x=\"" << stl.v_shared[i](0) << "\" ";
                 stream << "y=\"" << stl.v_shared[i](1) << "\" ";
                 stream << "z=\"" << stl.v_shared[i](2) << "\" />\n";
+#endif // ENABLE_MODELVOLUME_TRANSFORM
             }
         }
 
