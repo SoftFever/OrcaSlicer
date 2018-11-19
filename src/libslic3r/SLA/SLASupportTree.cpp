@@ -541,20 +541,6 @@ EigenMesh3D to_eigenmesh(const Contour3D& cntr) {
     return emesh;
 }
 
-void create_head(TriangleMesh& out, double r1_mm, double r2_mm, double width_mm)
-{
-    Head head(r1_mm, r2_mm, width_mm, 0,
-              {0, std::sqrt(0.5), -std::sqrt(0.5)},
-              {0, 0, 30});
-    out.merge(mesh(head.mesh));
-
-    Pillar cst(head, {0, 0, 0});
-    cst.add_base();
-
-    out.merge(mesh(cst.mesh));
-    out.merge(mesh(cst.base));
-}
-
 // The minimum distance for two support points to remain valid.
 static const double /*constexpr*/ D_SP   = 0.1;
 
@@ -597,21 +583,6 @@ EigenMesh3D to_eigenmesh(const ModelObject& modelobj) {
     return to_eigenmesh(modelobj.raw_mesh());
 }
 
-EigenMesh3D to_eigenmesh(const Model& model) {
-    TriangleMesh combined_mesh;
-
-    for(ModelObject *o : model.objects) {
-        TriangleMesh tmp = o->raw_mesh();
-        for(ModelInstance * inst: o->instances) {
-            TriangleMesh ttmp(tmp);
-            inst->transform_mesh(&ttmp);
-            combined_mesh.merge(ttmp);
-        }
-    }
-
-    return to_eigenmesh(combined_mesh);
-}
-
 PointSet to_point_set(const std::vector<Vec3d> &v)
 {
     PointSet ret(v.size(), 3);
@@ -621,43 +592,6 @@ PointSet to_point_set(const std::vector<Vec3d> &v)
 
 Vec3d model_coord(const ModelInstance& object, const Vec3f& mesh_coord) {
     return object.transform_vector(mesh_coord.cast<double>());
-}
-
-PointSet support_points(const Model& model) {
-    size_t sum = 0;
-    for(auto *o : model.objects)
-        sum += o->instances.size() * o->sla_support_points.size();
-
-    PointSet ret(sum, 3);
-
-    for(ModelObject *o : model.objects)
-        for(ModelInstance *inst : o->instances) {
-            int i = 0;
-            for(Vec3f& msource : o->sla_support_points) {
-                ret.row(i++) = model_coord(*inst, msource);
-            }
-        }
-
-    return ret;
-}
-
-PointSet support_points(const ModelObject& modelobject)
-{
-    PointSet ret(modelobject.sla_support_points.size(), 3);
-    auto rot = modelobject.instances.front()->get_rotation();
-//    auto scaling = modelobject.instances.front()->get_scaling_factor();
-
-//    Transform3d tr;
-//    tr.rotate(Eigen::AngleAxisd(rot(X), Vec3d::UnitX()) *
-//              Eigen::AngleAxisd(rot(Y), Vec3d::UnitY()));
-
-    long i = 0;
-    for(const Vec3f& msource : modelobject.sla_support_points) {
-        Vec3d&& p = msource.cast<double>();
-//        p = tr * p;
-        ret.row(i++) = p;
-    }
-    return ret;
 }
 
 double ray_mesh_intersect(const Vec3d& s,
@@ -1744,14 +1678,6 @@ double SLASupportTree::get_elevation() const
     return m_elevation + ph;
 }
 
-SLASupportTree::SLASupportTree(const Model& model,
-                               const SupportConfig& cfg,
-                               const Controller& ctl):
-    m_impl(new Impl()), m_ctl(ctl)
-{
-    generate(support_points(model), to_eigenmesh(model), cfg, ctl);
-}
-
 SLASupportTree::SLASupportTree(const PointSet &points,
                                const EigenMesh3D& emesh,
                                const SupportConfig &cfg,
@@ -1773,67 +1699,6 @@ SLASupportTree &SLASupportTree::operator=(const SLASupportTree &c)
 }
 
 SLASupportTree::~SLASupportTree() {}
-
-void add_sla_supports(Model &model,
-                      const SupportConfig &cfg,
-                      const Controller &ctl)
-{
-    Benchmark bench;
-
-    bench.start();
-    SLASupportTree _stree(model, cfg, ctl);
-    bench.stop();
-
-    std::cout << "Support tree creation time: " << bench.getElapsedSec()
-              << " seconds" << std::endl;
-
-    bench.start();
-    ModelObject* o = model.add_object();
-    o->add_instance();
-
-    TriangleMesh streemsh;
-    _stree.merged_mesh(streemsh);
-    o->add_volume(streemsh);
-
-    bench.stop();
-    std::cout << "support tree added to model in: " << bench.getElapsedSec()
-              << " seconds" << std::endl;
-
-    // TODO this would roughly be the code for the base pool
-    ExPolygons plate;
-    auto modelmesh = model.mesh();
-    TriangleMesh poolmesh;
-    sla::PoolConfig poolcfg;
-    poolcfg.min_wall_height_mm = 1;
-    poolcfg.edge_radius_mm = 0.1;
-    poolcfg.min_wall_thickness_mm = 0.8;
-
-    bench.start();
-    sla::base_plate(modelmesh, plate);
-    bench.stop();
-
-    std::cout << "Base plate calculation time: " << bench.getElapsedSec()
-              << " seconds." << std::endl;
-
-    bench.start();
-    sla::create_base_pool(plate, poolmesh, poolcfg);
-    bench.stop();
-
-    std::cout << "Pool generation completed in " << bench.getElapsedSec()
-              << " second." << std::endl;
-
-    bench.start();
-    poolmesh.translate(.0f, .0f, float(poolcfg.min_wall_height_mm / 2));
-    o->add_volume(poolmesh);
-    bench.stop();
-
-    // TODO: will cause incorrect placement of the model;
-//    o->translate({0, 0, poolcfg.min_wall_height_mm / 2});
-
-    std::cout << "Added pool to model in " << bench.getElapsedSec()
-              << " seconds." << std::endl;
-
-}
 
 }
 }
