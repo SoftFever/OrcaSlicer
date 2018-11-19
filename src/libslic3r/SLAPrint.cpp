@@ -169,7 +169,17 @@ void SLAPrint::process()
         auto& emesh = po.m_supportdata->emesh;
         auto& pts = po.m_supportdata->support_points; // nowhere filled yet
         try {
-            SupportConfig scfg;  //  TODO fill or replace with po.m_config
+            sla::SupportConfig scfg;
+            SLAPrintObjectConfig& c = po.m_config;
+
+            scfg.head_front_radius_mm = c.support_head_front_radius.getFloat();
+            scfg.head_back_radius_mm = c.support_head_back_radius.getFloat();
+            scfg.head_penetraiton_mm = c.support_head_penetraiton.getFloat();
+            scfg.head_width_mm = c.support_head_width.getFloat();
+            scfg.object_elevation_mm = c.support_object_elevation.getFloat();
+            scfg.tilt = c.support_critical_angle.getFloat() * 180.0 / PI;
+            scfg.max_bridge_length_mm = c.support_max_bridge_length.getFloat();
+            scfg.pillar_radius_mm = c.support_pillar_radius.getFloat();
 
             sla::Controller ctl;
             ctl.statuscb = [this](unsigned st, const std::string& msg) {
@@ -445,8 +455,10 @@ double SLAPrintObject::get_elevation() const {
 
 const std::vector<ExPolygons> &SLAPrintObject::get_support_slices() const
 {
-    if(!m_supportdata) return {};
+    // I don't want to return a copy but the points may not exist, so ...
+    static const std::vector<ExPolygons> dummy_empty;
 
+    if(!m_supportdata) return dummy_empty;
     return m_supportdata->support_slices;
 }
 

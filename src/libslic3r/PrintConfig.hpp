@@ -905,46 +905,47 @@ public:
     ConfigOptionFloat                       layer_height;
 
     // Radius in mm of the pointing side of the head.
-    ConfigOptionFloat support_head_front_radius /*= 0.2*/;
+    ConfigOptionFloat support_head_front_radius = 0.2;
 
     // How much the pinhead has to penetrate the model surface
-    ConfigOptionFloat support_head_penetraiton /*= 0.2*/;
+    ConfigOptionFloat support_head_penetraiton = 0.2;
 
-    // Radius of the back side of the 3d arrow.
-    ConfigOptionFloat support_head_back_radius /*= 0.5*/;
+    // Radius of the back side of the 3d arrow. TODO: consider renaming this
+    // to actual pillar radius, because that's what it boils down to.
+    ConfigOptionFloat support_head_back_radius = 0.5;
 
     // Width in mm from the back sphere center to the front sphere center.
-    ConfigOptionFloat support_head_width /*= 1.0*/;
+    ConfigOptionFloat support_head_width = 1.0;
 
     // Radius in mm of the support pillars.
-    // TODO: This parameter is invalid. The pillar radius will be dynamic in
+    // TODO: This parameter is questionable. The pillar radius will be dynamic in
     // nature. Merged pillars will have an increased thickness. This parameter
     // may serve as the maximum radius, or maybe an increase when two are merged
     // The default radius will be derived from head_back_radius_mm
-    ConfigOptionFloat support_pillar_radius /*= 0.8*/;
+    ConfigOptionFloat support_pillar_radius = 0.8;
 
     // Radius in mm of the pillar base.
-    ConfigOptionFloat support_base_radius /*= 2.0*/;
+    ConfigOptionFloat support_base_radius = 2.0;
 
     // The height of the pillar base cone in mm.
-    ConfigOptionFloat support_base_height /*= 1.0*/;
+    ConfigOptionFloat support_base_height = 1.0;
 
     // The default angle for connecting support sticks and junctions.
-    ConfigOptionFloat support_critical_angle /*= M_PI/4*/;
+    ConfigOptionFloat support_critical_angle = 45;
 
     // The max length of a bridge in mm
-    ConfigOptionFloat support_max_bridge_length /*= 15.0*/;
+    ConfigOptionFloat support_max_bridge_length = 15.0;
 
     // The elevation in Z direction upwards. This is the space between the pad
-    // and the model object's bounding box bottom.
-    ConfigOptionFloat support_object_elevation;
+    // and the model object's bounding box bottom. Units in mm.
+    ConfigOptionFloat support_object_elevation = 5.0;
 
-    // Now for the base pool (plate) ///////////////////////////////////////////
+    // Now for the base pool (pad) /////////////////////////////////////////////
 
-    ConfigOptionFloat pad_wall_thickness /*= 2*/;
-    ConfigOptionFloat pad_wall_height /*= 5*/;
-    ConfigOptionFloat pad_max_merge_distance /*= 50*/;
-    ConfigOptionFloat pad_edge_radius /*= 1*/;
+    ConfigOptionFloat pad_wall_thickness= 2;
+    ConfigOptionFloat pad_wall_height = 5;
+    ConfigOptionFloat pad_max_merge_distance = 50;
+    ConfigOptionFloat pad_edge_radius = 1;
 
 protected:
     void initialize(StaticCacheBase &cache, const char *base_ptr)

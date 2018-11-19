@@ -33,7 +33,7 @@ struct SupportConfig {
     double head_front_radius_mm = 0.2;
 
     // How much the pinhead has to penetrate the model surface
-    double head_penetraiton = 0.2;
+    double head_penetraiton_mm = 0.2;
 
     // Radius of the back side of the 3d arrow.
     double head_back_radius_mm = 0.5;
