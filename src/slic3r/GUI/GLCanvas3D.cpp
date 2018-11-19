@@ -3219,7 +3219,8 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
 
     if (m_gizmos.is_enabled()) {
         if (! m_gizmos.init(*this)) { 
-            return false; 
+            std::cout << "Unable to initialize gizmos: please, check that all the required textures are available" << std::endl;
+            return false;
         }
 
         if (m_external_gizmo_widgets_parent != nullptr) {
