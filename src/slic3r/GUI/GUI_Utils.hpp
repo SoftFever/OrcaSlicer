@@ -6,6 +6,7 @@
 
 #include <boost/optional.hpp>
 
+#include <wx/event.h>
 #include <wx/filedlg.h>
 #include <wx/gdicmn.h>
 #include <wx/panel.h>
@@ -17,6 +18,48 @@ class wxRect;
 
 namespace Slic3r {
 namespace GUI {
+
+
+wxTopLevelWindow* find_toplevel_parent(wxWindow *window);
+
+
+class EventGuard
+{
+public:
+    EventGuard() {}
+    EventGuard(const EventGuard&) = delete;
+    EventGuard(EventGuard &&other) : unbinder(std::move(other.unbinder)) {}
+
+    ~EventGuard() {
+        if (unbinder) {
+            unbinder(false);
+        }
+    }
+
+    template<class EvTag, class Fun> void bind(wxEvtHandler *emitter, const EvTag &type, Fun fun)
+    {
+        // This is a way to type-erase both the event type as well as the handler:
+
+        unbinder = std::move([=](bool bind) {
+            if (bind) {
+                emitter->Bind(type, fun);
+            } else {
+                emitter->Unbind(type, fun);
+            }
+        });
+
+        unbinder(true);
+    }
+
+    EventGuard& operator=(const EventGuard&) = delete;
+    EventGuard& operator=(EventGuard &&other)
+    {
+        unbinder.swap(other.unbinder);
+        return *this;
+    }
+private:
+    std::function<void(bool)> unbinder;
+};
 
 
 class CheckboxFileDialog : public wxFileDialog

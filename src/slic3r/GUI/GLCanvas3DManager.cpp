@@ -293,13 +293,6 @@ void GLCanvas3DManager::set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape)
         it->second->set_bed_shape(shape);
 }
 
-void GLCanvas3DManager::set_cutting_plane(wxGLCanvas* canvas, float z, const ExPolygons& polygons)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->set_cutting_plane(z, polygons);
-}
-
 void GLCanvas3DManager::set_color_by(wxGLCanvas* canvas, const std::string& value)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);

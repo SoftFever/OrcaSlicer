@@ -602,8 +602,6 @@ public:
 
     static void set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape);
 
-    static void set_cutting_plane(wxGLCanvas* canvas, float z, const ExPolygons& polygons);
-
     static void set_color_by(wxGLCanvas* canvas, const std::string& value);
 
     static bool is_layers_editing_enabled(wxGLCanvas* canvas);

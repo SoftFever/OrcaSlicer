@@ -15,6 +15,18 @@ namespace Slic3r {
 namespace GUI {
 
 
+wxTopLevelWindow* find_toplevel_parent(wxWindow *window)
+{
+    for (; window != nullptr; window = window->GetParent()) {
+        if (window->IsTopLevel()) {
+            return dynamic_cast<wxTopLevelWindow*>(window);
+        }
+    }
+
+    return nullptr;
+}
+
+
 CheckboxFileDialog::ExtraPanel::ExtraPanel(wxWindow *parent)
     : wxPanel(parent, wxID_ANY)
 {
