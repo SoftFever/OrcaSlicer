@@ -85,7 +85,7 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model,
     // Temporary: just to have to correct layer height for the rasterization
     DynamicPrintConfig config(config_in);
     config.normalize();
-    auto lh = config.opt<ConfigOptionFloat>("layer_height");
+    //auto lh = config.opt<ConfigOptionFloat>("layer_height");
 
 	// Temporary quick fix, just invalidate everything.
     {
@@ -102,7 +102,10 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model,
         // Generate new SLAPrintObjects.
         for (ModelObject *model_object : m_model.objects) {
             auto po = new SLAPrintObject(this, model_object);
-            po->m_config.layer_height.set(lh);
+
+            // po->m_config.layer_height.set(lh);
+            po->m_config.apply(config, true);
+
             m_objects.emplace_back(po);
             for (ModelInstance *oinst : model_object->instances) {
                 Point tr = Point::new_scale(oinst->get_offset()(X),
@@ -172,14 +175,14 @@ void SLAPrint::process()
             sla::SupportConfig scfg;
             SLAPrintObjectConfig& c = po.m_config;
 
-//            scfg.head_front_radius_mm = c.support_head_front_radius.getFloat();
-//            scfg.head_back_radius_mm = c.support_head_back_radius.getFloat();
-//            scfg.head_penetraiton_mm = c.support_head_penetraiton.getFloat();
-//            scfg.head_width_mm = c.support_head_width.getFloat();
-//            scfg.object_elevation_mm = c.support_object_elevation.getFloat();
-//            scfg.tilt = c.support_critical_angle.getFloat() * 180.0 / PI;
-//            scfg.max_bridge_length_mm = c.support_max_bridge_length.getFloat();
-//            scfg.pillar_radius_mm = c.support_pillar_radius.getFloat();
+            scfg.head_front_radius_mm = c.support_head_front_radius.getFloat();
+            scfg.head_back_radius_mm = c.support_head_back_radius.getFloat();
+            scfg.head_penetration_mm = c.support_head_penetration.getFloat();
+            scfg.head_width_mm = c.support_head_width.getFloat();
+            scfg.object_elevation_mm = c.support_object_elevation.getFloat();
+            scfg.tilt = c.support_critical_angle.getFloat() * PI / 180.0 ;
+            scfg.max_bridge_length_mm = c.support_max_bridge_length.getFloat();
+            scfg.pillar_radius_mm = c.support_pillar_radius.getFloat();
 
             sla::Controller ctl;
             ctl.statuscb = [this](unsigned st, const std::string& msg) {
@@ -216,10 +219,11 @@ void SLAPrint::process()
             double lh = po.m_config.layer_height.getFloat();
             double elevation = po.m_config.support_object_elevation.getFloat();
 
+            std::cout << "Pad height " << h << std::endl;
+
             sla::ExPolygons bp;
-            if(elevation < h/2)
-                sla::base_plate(po.transformed_mesh(), bp,
-                                float(h/2), float(lh));
+            if(elevation < h/2) sla::base_plate(po.transformed_mesh(), bp,
+                                                float(h/2), float(lh));
 
             po.m_supportdata->support_tree_ptr->add_pad(bp, wt, h, md, er);
         }

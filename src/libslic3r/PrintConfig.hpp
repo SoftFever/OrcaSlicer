@@ -960,6 +960,7 @@ protected:
         OPT_PTR(support_base_height);
         OPT_PTR(support_critical_angle);
         OPT_PTR(support_max_bridge_length);
+        OPT_PTR(support_object_elevation);
         OPT_PTR(pad_wall_thickness);
         OPT_PTR(pad_wall_height);
         OPT_PTR(pad_max_merge_distance);

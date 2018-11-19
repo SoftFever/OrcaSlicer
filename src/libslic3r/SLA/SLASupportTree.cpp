@@ -510,7 +510,9 @@ struct Pad {
     Pad(const TriangleMesh& object_support_mesh,
         const ExPolygons& baseplate,
         double ground_level,
-        const PoolConfig& cfg) : zlevel(ground_level + cfg.min_wall_height_mm/2)
+        const PoolConfig& pcfg) :
+        cfg(pcfg),
+        zlevel(ground_level + cfg.min_wall_height_mm/2)
     {
         ExPolygons basep;
         base_plate(object_support_mesh, basep,
@@ -1092,7 +1094,7 @@ bool SLASupportTree::generate(const PointSet &points,
                         cfg.head_back_radius_mm,
                         cfg.head_front_radius_mm,
                         cfg.head_width_mm,
-                        cfg.head_penetraiton_mm,
+                        cfg.head_penetration_mm,
                         nmls.row(i),         // dir
                         head_pos.row(i)      // displacement
                         );
@@ -1460,7 +1462,7 @@ bool SLASupportTree::generate(const PointSet &points,
             Head base_head(cfg.head_back_radius_mm,
                  cfg.head_front_radius_mm,
                  cfg.head_width_mm,
-                 cfg.head_penetraiton_mm,
+                 cfg.head_penetration_mm,
                  {0.0, 0.0, 1.0},
                  {headend(X), headend(Y), headend(Z) - gh});
 
@@ -1659,10 +1661,10 @@ const TriangleMesh &SLASupportTree::add_pad(const SliceLayer& baseplate,
     TriangleMesh mm;
     merged_mesh(mm);
     PoolConfig pcfg;
-//    pcfg.min_wall_thickness_mm = min_wall_thickness_mm;
-//    pcfg.min_wall_height_mm    = min_wall_height_mm;
-//    pcfg.max_merge_distance_mm = max_merge_distance_mm;
-//    pcfg.edge_radius_mm        = edge_radius_mm;
+    pcfg.min_wall_thickness_mm = min_wall_thickness_mm;
+    pcfg.min_wall_height_mm    = min_wall_height_mm;
+    pcfg.max_merge_distance_mm = max_merge_distance_mm;
+    pcfg.edge_radius_mm        = edge_radius_mm;
     return m_impl->create_pad(mm, baseplate, pcfg).tmesh;
 }
 
