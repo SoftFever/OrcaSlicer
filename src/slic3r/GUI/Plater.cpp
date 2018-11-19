@@ -35,7 +35,6 @@
 #include "libslic3r/Format/STL.hpp"
 #include "libslic3r/Format/AMF.hpp"
 #include "libslic3r/Format/3mf.hpp"
-//#include "slic3r/AppController.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
@@ -1000,8 +999,10 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         }))
     , notebook(new wxNotebook(q, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_BOTTOM))
     , sidebar(new Sidebar(q))
-    , panel3d(new wxPanel(notebook, wxID_ANY))
-    , canvas3D(GLCanvas3DManager::create_wxglcanvas(panel3d))
+    // , panel3d(new wxPanel(notebook, wxID_ANY))
+    , panel3d(nullptr)
+    // , canvas3D(GLCanvas3DManager::create_wxglcanvas(panel3d))
+    , canvas3D(GLCanvas3DManager::create_wxglcanvas(notebook))
 #if ENABLE_NEW_MENU_LAYOUT
     , project_filename(wxEmptyString)
 #endif // ENABLE_NEW_MENU_LAYOUT
@@ -1029,17 +1030,21 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     _3DScene::add_canvas(canvas3D);
     _3DScene::allow_multisample(canvas3D, GLCanvas3DManager::can_multisample());
 
-    auto *panel3dsizer = new wxBoxSizer(wxVERTICAL);
-    panel3dsizer->Add(canvas3D, 1, wxEXPAND);
-    auto *panel_gizmo_widgets = new wxPanel(panel3d, wxID_ANY);
-    panel_gizmo_widgets->SetSizer(new wxBoxSizer(wxVERTICAL));
-    panel3dsizer->Add(panel_gizmo_widgets, 0, wxEXPAND);
+    // XXX: reverting panel3d and panel_gizmo_widgets
+    // ! cf. on_notebook_changed
 
-    panel3d->SetSizer(panel3dsizer);
-    notebook->AddPage(panel3d, _(L("3D")));
+    // auto *panel3dsizer = new wxBoxSizer(wxVERTICAL);
+    // panel3dsizer->Add(canvas3D, 1, wxEXPAND);
+    // auto *panel_gizmo_widgets = new wxPanel(panel3d, wxID_ANY);
+    // panel_gizmo_widgets->SetSizer(new wxBoxSizer(wxVERTICAL));
+    // panel3dsizer->Add(panel_gizmo_widgets, 0, wxEXPAND);
+
+    // panel3d->SetSizer(panel3dsizer);
+    // notebook->AddPage(panel3d, _(L("3D")));
+    notebook->AddPage(canvas3D, _(L("3D")));
     preview = new GUI::Preview(notebook, config, &print, &gcode_preview_data, [this](){ schedule_background_process(); });
 
-    _3DScene::get_canvas(canvas3D)->set_external_gizmo_widgets_parent(panel_gizmo_widgets);
+    // _3DScene::get_canvas(canvas3D)->set_external_gizmo_widgets_parent(panel_gizmo_widgets);
 
     // XXX: If have OpenGL
     _3DScene::enable_picking(canvas3D, true);
@@ -1819,7 +1824,8 @@ void Plater::priv::fix_through_netfabb(const int obj_idx)
 void Plater::priv::on_notebook_changed(wxBookCtrlEvent&)
 {
     const auto current_id = notebook->GetCurrentPage()->GetId();
-    if (current_id == panel3d->GetId()) {
+    // if (current_id == panel3d->GetId()) {
+    if (current_id == canvas3D->GetId()) {
         if (_3DScene::is_reload_delayed(canvas3D)) {
             // Delayed loading of the 3D scene.
             if (this->printer_technology == ptSLA) {
