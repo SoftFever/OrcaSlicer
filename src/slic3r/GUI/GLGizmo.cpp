@@ -275,10 +275,7 @@ void GLGizmoBase::set_tooltip(const std::string& tooltip) const
 
 std::string GLGizmoBase::format(float value, unsigned int decimals) const
 {
-    size_t needed_size = std::snprintf(nullptr, 0, "%.*f", decimals, value);
-    std::string res(needed_size, '\0');
-    std::snprintf(&res.front(), res.size(), "%.*f", decimals, value);
-    return res;
+    return Slic3r::string_printf("%.*f", decimals, value);
 }
 
 const float GLGizmoRotate::Offset = 5.0f;
