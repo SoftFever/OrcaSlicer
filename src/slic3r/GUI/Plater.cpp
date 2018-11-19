@@ -882,7 +882,7 @@ struct Plater::priv
     // GUI elements
     wxNotebook *notebook;
     Sidebar *sidebar;
-    wxWindow *panel3d;
+    wxPanel *panel3d;
     wxGLCanvas *canvas3D;    // TODO: Use GLCanvas3D when we can
     Preview *preview;
 
@@ -1000,7 +1000,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         }))
     , notebook(new wxNotebook(q, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_BOTTOM))
     , sidebar(new Sidebar(q))
-    , panel3d(new wxWindow(notebook, wxID_ANY))
+    , panel3d(new wxPanel(notebook, wxID_ANY))
     , canvas3D(GLCanvas3DManager::create_wxglcanvas(panel3d))
 #if ENABLE_NEW_MENU_LAYOUT
     , project_filename(wxEmptyString)
@@ -1819,7 +1819,7 @@ void Plater::priv::fix_through_netfabb(const int obj_idx)
 void Plater::priv::on_notebook_changed(wxBookCtrlEvent&)
 {
     const auto current_id = notebook->GetCurrentPage()->GetId();
-    if (current_id == canvas3D->GetId()) {
+    if (current_id == panel3d->GetId()) {
         if (_3DScene::is_reload_delayed(canvas3D)) {
             // Delayed loading of the 3D scene.
             if (this->printer_technology == ptSLA) {
