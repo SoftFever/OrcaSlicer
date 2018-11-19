@@ -2317,11 +2317,15 @@ bool GLCanvas3D::Gizmos::init(GLCanvas3D& parent)
     m_gizmos.insert(GizmosMap::value_type(Flatten, gizmo));
 
     gizmo = new GLGizmoCut(parent);
-    if (! gizmo->init()) {
+    if (gizmo == nullptr)
+        return false;
+
+    if (!gizmo->init()) {
+        _reset();
         return false;
     }
 
-    m_gizmos.insert({ Cut, gizmo });
+    m_gizmos.insert(GizmosMap::value_type(Cut, gizmo));
 
     gizmo = new GLGizmoSlaSupports(parent);
     if (gizmo == nullptr)
@@ -2359,7 +2363,7 @@ std::string GLCanvas3D::Gizmos::update_hover_state(const GLCanvas3D& canvas, con
     float top_y = 0.5f * (cnv_h - height);
     for (GizmosMap::iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
-        if (it->second == nullptr)
+        if ((it->second == nullptr) || !it->second->is_selectable())
             continue;
 
         float tex_size = (float)it->second->get_textures_size() * OverlayTexturesScale;
@@ -2389,7 +2393,7 @@ void GLCanvas3D::Gizmos::update_on_off_state(const GLCanvas3D& canvas, const Vec
     float top_y = 0.5f * (cnv_h - height);
     for (GizmosMap::iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
-        if (it->second == nullptr)
+        if ((it->second == nullptr) || !it->second->is_selectable())
             continue;
 
         float tex_size = (float)it->second->get_textures_size() * OverlayTexturesScale;
@@ -2487,7 +2491,7 @@ bool GLCanvas3D::Gizmos::overlay_contains_mouse(const GLCanvas3D& canvas, const 
     float top_y = 0.5f * (cnv_h - height);
     for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
-        if (it->second == nullptr)
+        if ((it->second == nullptr) || !it->second->is_selectable())
             continue;
 
         float tex_size = (float)it->second->get_textures_size() * OverlayTexturesScale;
@@ -2739,8 +2743,9 @@ void GLCanvas3D::Gizmos::_render_overlay(const GLCanvas3D& canvas) const
     float scaled_gap_y = OverlayGapY * inv_zoom;
     for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
-        if (it->first == SlaSupports && wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA)
+        if ((it->second == nullptr) || !it->second->is_selectable())
             continue;
+
         float tex_size = (float)it->second->get_textures_size() * OverlayTexturesScale * inv_zoom;
         GLTexture::render_texture(it->second->get_texture_id(), top_x, top_x + tex_size, top_y - tex_size, top_y);
         top_y -= (tex_size + scaled_gap_y);

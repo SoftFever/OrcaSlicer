@@ -565,8 +565,8 @@ private:
             Scale,
             Rotate,
             Flatten,
-            SlaSupports,
             Cut,
+            SlaSupports,
             Num_Types
         };
 
