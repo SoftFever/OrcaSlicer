@@ -765,9 +765,7 @@ void Tab::on_presets_changed()
         {
             // If the printer tells us that the print or filament/sla_material preset has been switched or invalidated,
             // refresh the print or filament/sla_material tab page.
-            Tab* tab = wxGetApp().get_tab(t);
-            if (tab)
-                tab->load_current_preset();
+            wxGetApp().get_tab(t)->load_current_preset();
         }
     }
 
@@ -2251,14 +2249,16 @@ void Tab::load_current_preset()
             PrinterTechnology& printer_technology = m_presets->get_edited_preset().printer_technology();
             if (printer_technology != static_cast<TabPrinter*>(this)->m_printer_technology)
             {
-                for (auto& tab : wxGetApp().mainframe->get_preset_tabs()) {
-                    if (tab.technology != printer_technology)
-                    {
-                        int page_id = wxGetApp().tab_panel()->FindPage(tab.panel);
+                for (auto tab : wxGetApp().tabs_list) {
+                    if (tab->type() == Preset::TYPE_PRINTER) // Printer tab is shown every time
+                        continue;
+                    if (tab->supports_printer_technology(printer_technology))
+                        wxGetApp().tab_panel()->InsertPage(wxGetApp().tab_panel()->FindPage(this), tab, tab->title());
+                    else {
+                        int page_id = wxGetApp().tab_panel()->FindPage(tab);
                         wxGetApp().tab_panel()->GetPage(page_id)->Show(false);
                         wxGetApp().tab_panel()->RemovePage(page_id);
-                    } else
-                        wxGetApp().tab_panel()->InsertPage(wxGetApp().tab_panel()->FindPage(this), tab.panel, tab.panel->title());
+                    } 
                 }
                 static_cast<TabPrinter*>(this)->m_printer_technology = printer_technology;
             }

@@ -2027,7 +2027,7 @@ void Plater::priv::on_wipetower_moved(Vec3dEvent &evt)
     DynamicPrintConfig cfg;
     cfg.opt<ConfigOptionFloat>("wipe_tower_x", true)->value = evt.data(0);
     cfg.opt<ConfigOptionFloat>("wipe_tower_y", true)->value = evt.data(1);
-    main_frame->get_preset_tab("print")->load_config(cfg);
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->load_config(cfg);
 }
 
 void Plater::priv::on_enable_action_buttons(Event<bool>&)
