@@ -213,6 +213,7 @@ struct Head {
     double r_back_mm = 1;
     double r_pin_mm = 0.5;
     double width_mm = 2;
+    double penetration_mm = 0.5;
 
     // For identification purposes. This will be used as the index into the
     // container holding the head structures. See SLASupportTree::Impl
@@ -224,11 +225,13 @@ struct Head {
     Head(double r_big_mm,
          double r_small_mm,
          double length_mm,
+         double penetration,
          Vec3d direction = {0, 0, -1},    // direction (normal to the dull end )
          Vec3d offset = {0, 0, 0},        // displacement
          const size_t circlesteps = 45):
             steps(circlesteps), dir(direction), tr(offset),
-            r_back_mm(r_big_mm), r_pin_mm(r_small_mm), width_mm(length_mm)
+            r_back_mm(r_big_mm), r_pin_mm(r_small_mm), width_mm(length_mm),
+            penetration_mm(penetration)
     {
 
         // We create two spheres which will be connected with a robe that fits
@@ -281,7 +284,7 @@ struct Head {
 
         // To simplify further processing, we translate the mesh so that the
         // last vertex of the pointing sphere (the pinpoint) will be at (0,0,0)
-        for(auto& p : mesh.points) { z(p) -= (h + 0.5 * r_small_mm); }
+        for(auto& p : mesh.points) z(p) -= (h + r_small_mm - penetration_mm);
     }
 
     void transform()
@@ -298,11 +301,11 @@ struct Head {
     }
 
     double fullwidth() const {
-        return 1.5 * r_pin_mm + width_mm + 2*r_back_mm;
+        return 2 * r_pin_mm + width_mm + 2*r_back_mm - penetration_mm;
     }
 
     Vec3d junction_point() const {
-        return tr + ( 1.5 * r_pin_mm + width_mm + r_back_mm)*dir;
+        return tr + ( 2 * r_pin_mm + width_mm + r_back_mm - penetration_mm)*dir;
     }
 
     double request_pillar_radius(double radius) const {
@@ -540,7 +543,8 @@ EigenMesh3D to_eigenmesh(const Contour3D& cntr) {
 
 void create_head(TriangleMesh& out, double r1_mm, double r2_mm, double width_mm)
 {
-    Head head(r1_mm, r2_mm, width_mm, {0, std::sqrt(0.5), -std::sqrt(0.5)},
+    Head head(r1_mm, r2_mm, width_mm, 0,
+              {0, std::sqrt(0.5), -std::sqrt(0.5)},
               {0, 0, 30});
     out.merge(mesh(head.mesh));
 
@@ -1154,6 +1158,7 @@ bool SLASupportTree::generate(const PointSet &points,
                         cfg.head_back_radius_mm,
                         cfg.head_front_radius_mm,
                         cfg.head_width_mm,
+                        cfg.head_penetraiton_mm,
                         nmls.row(i),         // dir
                         head_pos.row(i)      // displacement
                         );
@@ -1521,6 +1526,7 @@ bool SLASupportTree::generate(const PointSet &points,
             Head base_head(cfg.head_back_radius_mm,
                  cfg.head_front_radius_mm,
                  cfg.head_width_mm,
+                 cfg.head_penetraiton_mm,
                  {0.0, 0.0, 1.0},
                  {headend(X), headend(Y), headend(Z) - gh});
 
@@ -1735,7 +1741,7 @@ double SLASupportTree::get_elevation() const
 {
     double ph = m_impl->pad().empty()? 0 :
                                        m_impl->pad().cfg.min_wall_height_mm/2.0;
-    return -m_impl->ground_level + ph;
+    return m_elevation + ph;
 }
 
 SLASupportTree::SLASupportTree(const Model& model,
@@ -1752,6 +1758,7 @@ SLASupportTree::SLASupportTree(const PointSet &points,
                                const Controller &ctl):
     m_impl(new Impl()), m_ctl(ctl)
 {
+    m_elevation = cfg.object_elevation_mm;
     m_impl->ground_level = emesh.ground_level - cfg.object_elevation_mm;
     generate(points, emesh, cfg, ctl);
 }
