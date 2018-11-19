@@ -1879,8 +1879,6 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
         }
     }
 
-    // Synchronize config.ini with the current selections.
-    wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
     // update plater with new config
     wxGetApp().plater()->on_config_change(wxGetApp().preset_bundle->full_config());
 }
