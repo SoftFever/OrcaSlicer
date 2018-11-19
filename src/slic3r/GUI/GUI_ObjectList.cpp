@@ -1123,7 +1123,8 @@ void ObjectList::add_object_to_list(size_t obj_idx)
             m_objects_model->AddVolumeChild(item,
             model_object->volumes[id]->name,
             ModelVolume::MODEL_PART,
-            model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value,
+            !model_object->volumes[id]->config.has("extruder") ? 0 :
+                model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value,
             false);
         Expand(item);
     }

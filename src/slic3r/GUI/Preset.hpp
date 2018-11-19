@@ -84,6 +84,7 @@ public:
     {
         TYPE_INVALID,
         TYPE_PRINT,
+        TYPE_SLA_PRINT,
         TYPE_FILAMENT,
         TYPE_SLA_MATERIAL,
         TYPE_PRINTER,
@@ -173,6 +174,7 @@ public:
 
     static const std::vector<std::string>&  sla_printer_options();
     static const std::vector<std::string>&  sla_material_options();
+    static const std::vector<std::string>&  sla_print_options();
 
 	static void                             update_suffix_modified();
     static void                             normalize(DynamicPrintConfig &config);
