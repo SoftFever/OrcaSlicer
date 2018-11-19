@@ -125,11 +125,14 @@ private:
 
     PrintState<BackgroundSlicingProcessStep, bspsCount>   	m_step_state;
     mutable tbb::mutex                      				m_step_state_mutex;
-	void                set_step_started(BackgroundSlicingProcessStep step);
+	bool                set_step_started(BackgroundSlicingProcessStep step);
 	void                set_step_done(BackgroundSlicingProcessStep step);
-    bool 				is_step_done(BackgroundSlicingProcessStep step) const { return m_step_state.is_done(step); }
+	bool 				is_step_done(BackgroundSlicingProcessStep step) const;
 	bool                invalidate_step(BackgroundSlicingProcessStep step);
     bool                invalidate_all_steps();
+    // If the background processing stop was requested, throw CanceledException.
+    void                throw_if_canceled() const { if (m_print->canceled()) throw CanceledException(); }
+
 
 	// wxWidgets command ID to be sent to the platter to inform that the slicing is finished, and the G-code export will continue.
 	int 						m_event_sliced_id 	 = 0;

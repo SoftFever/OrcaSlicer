@@ -521,6 +521,7 @@ BoundingBoxf3 TriangleMesh::transformed_bounding_box(const Transform3d& t) const
 
     if (stl.stats.shared_vertices > 0)
     {
+		assert(stl.v_shared != nullptr);
         stl_vertex* vertex_ptr = stl.v_shared;
         for (int i = 0; i < stl.stats.shared_vertices; ++i)
         {

@@ -63,7 +63,7 @@ const std::array<std::string, slapsCount> PRINT_STEP_LABELS =
 
 void SLAPrint::clear()
 {
-	tbb::mutex::scoped_lock lock(this->cancel_mutex());
+	tbb::mutex::scoped_lock lock(this->state_mutex());
     // The following call should stop background processing if it is running.
     this->invalidate_all_steps();
 
@@ -78,8 +78,8 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model,
 //		return APPLY_STATUS_UNCHANGED;
 
     // Grab the lock for the Print / PrintObject milestones.
-	tbb::mutex::scoped_lock lock(this->cancel_mutex());
-    if(m_objects.empty() && model.objects.empty())
+	tbb::mutex::scoped_lock lock(this->state_mutex());
+	if (m_objects.empty() && model.objects.empty() && m_model.objects.empty())
         return APPLY_STATUS_UNCHANGED;
 
     // Temporary: just to have to correct layer height for the rasterization
@@ -430,8 +430,7 @@ void SLAPrint::process()
 }
 
 SLAPrintObject::SLAPrintObject(SLAPrint *print, ModelObject *model_object):
-    Inherited(print),
-    m_model_object(model_object),
+    Inherited(print, model_object),
     m_stepmask(slaposCount, true)
 {
 }
@@ -454,6 +453,32 @@ const std::vector<ExPolygons> &SLAPrintObject::get_support_slices() const
 const std::vector<ExPolygons> &SLAPrintObject::get_model_slices() const
 {
     return m_model_slices;
+}
+
+bool SLAPrintObject::has_mesh(SLAPrintObjectStep step) const
+{
+    switch (step) {
+    case slaposSupportTree:
+//        return m_supportdata && m_supportdata->support_tree_ptr && ! m_supportdata->support_tree_ptr->get().merged_mesh().empty();
+		return ! this->support_mesh().empty();
+    case slaposBasePool:
+//		return m_supportdata && m_supportdata->support_tree_ptr && ! m_supportdata->support_tree_ptr->get_pad().empty();
+		return ! this->pad_mesh().empty();
+	default:
+        return false;
+    }
+}
+
+TriangleMesh SLAPrintObject::get_mesh(SLAPrintObjectStep step) const
+{
+	switch (step) {
+	case slaposSupportTree:
+		return this->support_mesh();
+	case slaposBasePool:
+		return this->pad_mesh();
+	default:
+		return TriangleMesh();
+	}
 }
 
 TriangleMesh SLAPrintObject::support_mesh() const
