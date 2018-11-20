@@ -65,8 +65,7 @@ using Slic3r::Preset;
 namespace Slic3r {
 namespace GUI {
 
-
-wxDEFINE_EVENT(EVT_PROGRESS_BAR,      wxCommandEvent);
+wxDEFINE_EVENT(EVT_SLICING_UPDATE,    SlicingStatusEvent);
 wxDEFINE_EVENT(EVT_SLICING_COMPLETED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PROCESS_COMPLETED, wxCommandEvent);
 
@@ -958,8 +957,8 @@ struct Plater::priv
 
     void on_notebook_changed(wxBookCtrlEvent&);
     void on_select_preset(wxCommandEvent&);
-    void on_progress_event(wxCommandEvent&);
-    void on_update_print_preview(wxCommandEvent&);
+    void on_slicing_update(SlicingStatusEvent&);
+    void on_slicing_completed(wxCommandEvent&);
     void on_process_completed(wxCommandEvent&);
     void on_layer_editing_toggled(bool enable);
 
@@ -1017,21 +1016,18 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     background_process.set_fff_print(&print);
 	background_process.set_sla_print(&sla_print);
     background_process.set_gcode_preview_data(&gcode_preview_data);
-    background_process.set_sliced_event(EVT_SLICING_COMPLETED);
+    background_process.set_slicing_completed_event(EVT_SLICING_COMPLETED);
     background_process.set_finished_event(EVT_PROCESS_COMPLETED);
 	// Default printer technology for default config.
     background_process.select_technology(this->printer_technology);
     // Register progress callback from the Print class to the Platter.
 
-    auto statuscb = [this](int percent, const std::string &message) {
-        wxCommandEvent event(EVT_PROGRESS_BAR);
-        event.SetInt(percent);
-        event.SetString(message);
-        wxQueueEvent(this->q, event.Clone());
+    auto statuscb = [this](const Slic3r::PrintBase::Status &status) {
+        wxQueueEvent(this->q, new Slic3r::SlicingStatusEvent(EVT_SLICING_UPDATE, 0, status));
     };
     print.set_status_callback(statuscb);
     sla_print.set_status_callback(statuscb);
-    this->q->Bind(EVT_PROGRESS_BAR, &priv::on_progress_event, this);
+    this->q->Bind(EVT_SLICING_UPDATE, &priv::on_slicing_update, this);
 
     _3DScene::add_canvas(canvas3D);
     _3DScene::allow_multisample(canvas3D, GLCanvas3DManager::can_multisample());
@@ -1115,7 +1111,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     // Preview events:
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_VIEWPORT_CHANGED, &priv::on_viewport_changed, this);
 
-    q->Bind(EVT_SLICING_COMPLETED, &priv::on_update_print_preview, this);
+    q->Bind(EVT_SLICING_COMPLETED, &priv::on_slicing_completed, this);
     q->Bind(EVT_PROCESS_COMPLETED, &priv::on_process_completed, this);
 
     // Drop target:
@@ -1883,21 +1879,43 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     wxGetApp().plater()->on_config_change(wxGetApp().preset_bundle->full_config());
 }
 
-void Plater::priv::on_progress_event(wxCommandEvent &evt)
+void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
 {
-    this->statusbar()->set_progress(evt.GetInt());
-    this->statusbar()->set_status_text(evt.GetString() + wxString::FromUTF8("…"));
+    this->statusbar()->set_progress(evt.status.percent);
+    this->statusbar()->set_status_text(_(L(evt.status.text)) + wxString::FromUTF8("…"));
+    if (evt.status.flags & PrintBase::Status::RELOAD_SCENE) {
+        switch (this->printer_technology) {
+        case ptFFF:
+            if (this->preview != nullptr)
+                this->preview->reload_print();
+            break;
+        case ptSLA:
+            // Refresh the scene lazily by updating only SLA meshes.
+            //FIXME update SLAPrint?
+            _3DScene::reload_scene(canvas3D, true);
+            break;
+        }
+    }
 }
 
-void Plater::priv::on_update_print_preview(wxCommandEvent &)
+void Plater::priv::on_slicing_completed(wxCommandEvent &)
 {
-    if (this->preview != nullptr)
-        this->preview->reload_print();
-    // in case this was MM print, wipe tower bounding box on 3D tab might need redrawing with exact depth:
-//    auto selections = collect_selections();
-//    _3DScene::set_objects_selections(canvas3D, selections);
-//    if (canvas3D)
-//        _3DScene::reload_scene(canvas3D, true);
+    switch (this->printer_technology) {
+    case ptFFF:
+        if (this->preview != nullptr)
+            this->preview->reload_print();
+        // in case this was MM print, wipe tower bounding box on 3D tab might need redrawing with exact depth:
+    //    auto selections = collect_selections();
+    //    _3DScene::set_objects_selections(canvas3D, selections);
+    //    if (canvas3D)
+    //        _3DScene::reload_scene(canvas3D, true);
+        break;
+    case ptSLA:
+        // Refresh the scene lazily by updating only SLA meshes.
+        //FIXME update SLAPrint?
+        _3DScene::reload_scene(canvas3D, true);
+        break;
+    }
 }
 
 void Plater::priv::on_process_completed(wxCommandEvent &evt)
@@ -2544,6 +2562,8 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         if (opt_key == "printer_technology") {
             p->printer_technology = config.opt_enum<PrinterTechnology>(opt_key);
 			p->background_process.select_technology(this->printer_technology());
+			//FIXME for SLA synchronize 
+			//p->background_process.apply(Model)!
         }
         else if (opt_key  == "bed_shape") {
             if (p->canvas3D) _3DScene::set_bed_shape(p->canvas3D, p->config->option<ConfigOptionPoints>(opt_key)->values);

@@ -2,7 +2,6 @@
 #include "GUI_App.hpp"
 
 #include <wx/app.h>
-#include <wx/event.h>
 #include <wx/panel.h>
 #include <wx/stdpaths.h>
 
@@ -60,7 +59,7 @@ void BackgroundSlicingProcess::process_fff()
 {
 	assert(m_print == m_fff_print);
     m_print->process();
-	wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_sliced_id));
+	wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_slicing_completed_id));
 	m_fff_print->export_gcode(m_temp_output_path, m_gcode_preview_data);
 	if (this->set_step_started(bspsGCodeFinalize)) {
 	    if (! m_export_path.empty()) {
