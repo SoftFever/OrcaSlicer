@@ -416,7 +416,7 @@ void ObjectManipulation::change_rotation_value(const Vec3d& rotation)
         rad_rotation(i) = Geometry::deg2rad(rotation(i));
     auto canvas = _3DScene::get_canvas(wxGetApp().canvas3D());
     canvas->get_selection().start_dragging();
-    canvas->get_selection().rotate(rad_rotation);
+    canvas->get_selection().rotate(rad_rotation, false);
     canvas->_on_rotate();
 }
 

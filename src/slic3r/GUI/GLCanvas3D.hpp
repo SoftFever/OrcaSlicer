@@ -517,7 +517,7 @@ public:
         void start_dragging();
 
         void translate(const Vec3d& displacement);
-        void rotate(const Vec3d& rotation);
+        void rotate(const Vec3d& rotation, bool local);
         void flattening_rotate(const Vec3d& normal);
         void scale(const Vec3d& scale);
         void mirror(Axis axis);

@@ -1412,7 +1412,7 @@ void GLCanvas3D::Selection::translate(const Vec3d& displacement)
     m_bounding_box_dirty = true;
 }
 
-void GLCanvas3D::Selection::rotate(const Vec3d& rotation)
+void GLCanvas3D::Selection::rotate(const Vec3d& rotation, bool local)
 {
     if (!m_valid)
         return;
@@ -1437,14 +1437,20 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation)
             {
                 // extracts rotations from the composed transformation
                 Vec3d new_rotation = Geometry::extract_euler_angles(m * m_cache.volumes_data[i].get_instance_rotation_matrix());
-                (*m_volumes)[i]->set_instance_offset(m_cache.dragging_center + m * (m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center));
+                if (!local)
+                    (*m_volumes)[i]->set_instance_offset(m_cache.dragging_center + m * (m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center));
+
                 (*m_volumes)[i]->set_instance_rotation(new_rotation);
             }
             else if (m_mode == Volume)
             {
                 // extracts rotations from the composed transformation
                 Vec3d new_rotation = Geometry::extract_euler_angles(m * m_cache.volumes_data[i].get_volume_rotation_matrix());
-                (*m_volumes)[i]->set_volume_offset(m * m_cache.volumes_data[i].get_volume_position());
+                if (!local)
+                {
+                    Vec3d offset = m * (m_cache.volumes_data[i].get_volume_position() + m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center);
+                    (*m_volumes)[i]->set_volume_offset(m_cache.dragging_center - m_cache.volumes_data[i].get_instance_position() + offset);
+                }
                 (*m_volumes)[i]->set_volume_rotation(new_rotation);
             }
 #else
@@ -4042,7 +4048,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
         case Gizmos::Rotate:
         {
-            m_selection.rotate(m_gizmos.get_rotation());
+            m_selection.rotate(m_gizmos.get_rotation(), false);
             _on_rotate();
             wxGetApp().obj_manipul()->update_settings_value(m_selection);
             m_dirty = true;
@@ -4252,7 +4258,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         case Gizmos::Rotate:
         {
             // Apply new temporary rotations
-            m_selection.rotate(m_gizmos.get_rotation());
+            m_selection.rotate(m_gizmos.get_rotation(), evt.AltDown());
             wxGetApp().obj_manipul()->update_settings_value(m_selection);
             break;
         }
