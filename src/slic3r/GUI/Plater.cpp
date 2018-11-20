@@ -1022,7 +1022,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     background_process.select_technology(this->printer_technology);
     // Register progress callback from the Print class to the Platter.
 
-    auto statuscb = [this](const Slic3r::PrintBase::Status &status) {
+    auto statuscb = [this](const Slic3r::PrintBase::SlicingStatus &status) {
         wxQueueEvent(this->q, new Slic3r::SlicingStatusEvent(EVT_SLICING_UPDATE, 0, status));
     };
     print.set_status_callback(statuscb);
@@ -1883,7 +1883,7 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
 {
     this->statusbar()->set_progress(evt.status.percent);
     this->statusbar()->set_status_text(_(L(evt.status.text)) + wxString::FromUTF8("…"));
-    if (evt.status.flags & PrintBase::Status::RELOAD_SCENE) {
+    if (evt.status.flags & PrintBase::SlicingStatus::RELOAD_SCENE) {
         switch (this->printer_technology) {
         case ptFFF:
             if (this->preview != nullptr)

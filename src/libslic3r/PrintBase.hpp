@@ -236,8 +236,8 @@ public:
 
     virtual void            process() = 0;
 
-    struct Status {
-		Status(int percent, const std::string &text, unsigned int flags = 0) : percent(percent), text(text), flags(flags) {}
+    struct SlicingStatus {
+		SlicingStatus(int percent, const std::string &text, unsigned int flags = 0) : percent(percent), text(text), flags(flags) {}
         int             percent;
         std::string     text;
         // Bitmap of flags.
@@ -247,16 +247,16 @@ public:
         // Bitmap of FlagBits
         unsigned int    flags;
     };
-    typedef std::function<void(const Status&)>  status_callback_type;
+    typedef std::function<void(const SlicingStatus&)>  status_callback_type;
     // Default status console print out in the form of percent => message.
     void                    set_status_default() { m_status_callback = nullptr; }
     // No status output or callback whatsoever, useful mostly for automatic tests.
-    void                    set_status_silent() { m_status_callback = [](const Status&){}; }
+    void                    set_status_silent() { m_status_callback = [](const SlicingStatus&){}; }
     // Register a custom status callback.
     void                    set_status_callback(status_callback_type cb) { m_status_callback = cb; }
     // Calls a registered callback to update the status, or print out the default message.
     void                    set_status(int percent, const std::string &message, unsigned int flags = 0) {
-		if (m_status_callback) m_status_callback(Status(percent, message, flags));
+		if (m_status_callback) m_status_callback(SlicingStatus(percent, message, flags));
         else printf("%d => %s\n", percent, message.c_str());
     }
 

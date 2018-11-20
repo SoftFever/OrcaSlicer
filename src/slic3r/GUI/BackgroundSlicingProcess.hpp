@@ -20,11 +20,11 @@ class SLAPrint;
 class SlicingStatusEvent : public wxEvent
 {
 public:
-	SlicingStatusEvent(wxEventType eventType, int winid, const PrintBase::Status &status) :
+	SlicingStatusEvent(wxEventType eventType, int winid, const PrintBase::SlicingStatus &status) :
 		wxEvent(winid, eventType), status(std::move(status)) {}
 	virtual wxEvent *Clone() const { return new SlicingStatusEvent(*this); }
 
-	PrintBase::Status 	status;
+	PrintBase::SlicingStatus status;
 };
 
 wxDEFINE_EVENT(EVT_SLICING_UPDATE, SlicingStatusEvent);
