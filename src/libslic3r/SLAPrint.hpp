@@ -69,8 +69,8 @@ public:
     // as the pad height also needs to be considered.
     double get_elevation() const;
 
-    const std::vector<ExPolygons>& get_support_slices() const;
-    const std::vector<ExPolygons>& get_model_slices() const;
+//    const std::vector<ExPolygons>& get_support_slices() const;
+//    const std::vector<ExPolygons>& get_model_slices() const;
 
     // I refuse to grantee copying (Tamas)
     SLAPrintObject(const SLAPrintObject&) = delete;
@@ -93,6 +93,7 @@ protected:
     bool                    invalidate_step(SLAPrintObjectStep step);
 
 private:
+
     // Object specific configuration, pulled from the configuration layer.
     SLAPrintObjectConfig                    m_config;
     // Translation in Z + Rotation by Y and Z + Scaling / Mirroring.

@@ -85,7 +85,8 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model,
     // Temporary: just to have to correct layer height for the rasterization
     DynamicPrintConfig config(config_in);
     config.normalize();
-    //auto lh = config.opt<ConfigOptionFloat>("layer_height");
+    m_material_config.initial_layer_height.set(
+                config.opt<ConfigOptionFloat>("initial_layer_height"));
 
 	// Temporary quick fix, just invalidate everything.
     {
@@ -129,6 +130,8 @@ void SLAPrint::process()
     // shortcut to initial layer height
     auto ilh = float(m_material_config.initial_layer_height.getFloat());
 
+    std::cout << "Initial layer height: " << m_material_config.initial_layer_height.getFloat() << std::endl;
+
     // Slicing the model object. This method is oversimplified and needs to
     // be compared with the fff slicing algorithm for verification
     auto slice_model = [this, ilh](SLAPrintObject& po) {
@@ -140,8 +143,12 @@ void SLAPrint::process()
 
         auto H = bb3d.max(Z) - bb3d.min(Z);
         auto gnd = float(bb3d.min(Z));
+
+        double elevation = po.m_config.support_object_elevation.getFloat();
+        float ih = elevation > 0 ? lh : ilh;
+
         std::vector<float> heights = {gnd};
-        for(float h = gnd + ilh; h < gnd + H; h += lh) heights.emplace_back(h);
+        for(float h = gnd + ih; h < gnd + H; h += lh) heights.emplace_back(h);
 
         auto& layers = po.m_model_slices;
         slicer.slice(heights, &layers, [this](){
@@ -219,8 +226,6 @@ void SLAPrint::process()
             double lh = po.m_config.layer_height.getFloat();
             double elevation = po.m_config.support_object_elevation.getFloat();
 
-            std::cout << "Pad height " << h << std::endl;
-
             sla::ExPolygons bp;
             if(elevation < h/2) sla::base_plate(po.transformed_mesh(), bp,
                                                 float(h/2), float(lh));
@@ -251,43 +256,59 @@ void SLAPrint::process()
                 lref(std::cref(lyr)), copies(std::cref(cp)) {}
         };
 
+        using LevelID = long long;
         using LayerRefs = std::vector<LayerRef>;
 
         // layers according to quantized height levels
-        std::map<long long, LayerRefs> levels;
+        std::map<LevelID, LayerRefs> levels;
+
+        auto sinitlh = LevelID(scale_(ilh));
 
         // For all print objects, go through its initial layers and place them
         // into the layers hash
         for(SLAPrintObject *o : m_objects) {
 
             double gndlvl = o->transformed_mesh().bounding_box().min(Z);
+            double elevation = o->m_config.support_object_elevation.getFloat();
 
             double lh = o->m_config.layer_height.getFloat();
+
+            // TODO: this juust misses the support layers with a slight offset...
+            double ih = elevation > 0 ? lh : ilh;
+
+            auto sgl = LevelID(scale_(gndlvl));
+            auto slh = LevelID(scale_(lh));    // scaled layer height
+            auto sih = LevelID(scale_(ih));
+
             SlicedModel & oslices = o->m_model_slices;
             for(int i = 0; i < oslices.size(); ++i) {
                 int a = i == 0 ? 0 : 1;
                 int b = i == 0 ? 0 : i - 1;
 
-                double h = gndlvl + ilh * a + b * lh;
-                long long lyridx = static_cast<long long>(scale_(h));
-                auto& lyrs = levels[lyridx]; // this initializes a new record
+                LevelID h = sgl + sih * a + b * slh;
+
+                std::cout << "Model layer level: " << h << std::endl;
+
+                auto& lyrs = levels[h]; // this initializes a new record
                 lyrs.emplace_back(oslices[i], o->m_instances);
             }
 
             if(o->m_supportdata) { // deal with the support slices if present
                 auto& sslices = o->m_supportdata->support_slices;
-                double el = o->m_config.support_object_elevation.getFloat();
-                //TODO: remove next line:
-                el = SupportConfig().object_elevation_mm;
+
+                // Supports start below the ground level.
+                // Counting the pad height as well
+                double el = o->get_elevation();
+                auto sel = LevelID(scale_(el));
 
                 for(int i = 0; i < sslices.size(); ++i) {
                     int a = i == 0 ? 0 : 1;
                     int b = i == 0 ? 0 : i - 1;
 
-                    double h = gndlvl - el + ilh * a + b * lh;
+                    LevelID h = sgl - sel + sinitlh * a + b * slh;
+                    std::cout << "Support layer level: " << h << std::endl;
 
-                    long long lyridx = static_cast<long long>(scale_(h));
-                    auto& lyrs = levels[lyridx];
+                    auto& lyrs = levels[h];
                     lyrs.emplace_back(sslices[i], o->m_instances);
                 }
             }
@@ -457,19 +478,19 @@ double SLAPrintObject::get_elevation() const {
                 0;
 }
 
-const std::vector<ExPolygons> &SLAPrintObject::get_support_slices() const
-{
-    // I don't want to return a copy but the points may not exist, so ...
-    static const std::vector<ExPolygons> dummy_empty;
+//const std::vector<ExPolygons> &SLAPrintObject::get_support_slices() const
+//{
+//    // I don't want to return a copy but the points may not exist, so ...
+//    static const std::vector<ExPolygons> dummy_empty;
 
-    if(!m_supportdata) return dummy_empty;
-    return m_supportdata->support_slices;
-}
+//    if(!m_supportdata) return dummy_empty;
+//    return m_supportdata->support_slices;
+//}
 
-const std::vector<ExPolygons> &SLAPrintObject::get_model_slices() const
-{
-    return m_model_slices;
-}
+//const std::vector<ExPolygons> &SLAPrintObject::get_model_slices() const
+//{
+//    return m_model_slices;
+//}
 
 bool SLAPrintObject::has_mesh(SLAPrintObjectStep step) const
 {
