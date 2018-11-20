@@ -16,7 +16,7 @@
     void repair();
     void WriteOBJFile(char* output_file);
     void scale(float factor);
-    void scale_xyz(Pointf3* versor)
+    void scale_xyz(Vec3d* versor)
         %code{% THIS->scale(*versor); %};
     void translate(float x, float y, float z);
     void rotate_x(float angle);
@@ -33,7 +33,7 @@
     ExPolygons horizontal_projection();
     Clone<Polygon> convex_hull();
     Clone<BoundingBoxf3> bounding_box();
-    Clone<Pointf3> center()
+    Clone<Vec3d> center()
         %code{% RETVAL = THIS->bounding_box().center(); %};
     int facets_count();
     void reset_repair_stats();
@@ -60,14 +60,14 @@ TriangleMesh::ReadFromPerl(vertices, facets)
         for (int i = 0; i < stl.stats.number_of_facets; i++) {
             AV* facet_av = (AV*)SvRV(*av_fetch(facets_av, i, 0));
             stl_facet facet;
-            facet.normal.x = 0;
-            facet.normal.y = 0;
-            facet.normal.z = 0;
+            facet.normal(0) = 0;
+            facet.normal(1) = 0;
+            facet.normal(2) = 0;
             for (unsigned int v = 0; v <= 2; v++) {
                 AV* vertex_av = (AV*)SvRV(*av_fetch(vertices_av, SvIV(*av_fetch(facet_av, v, 0)), 0));
-                facet.vertex[v].x = SvNV(*av_fetch(vertex_av, 0, 0));
-                facet.vertex[v].y = SvNV(*av_fetch(vertex_av, 1, 0));
-                facet.vertex[v].z = SvNV(*av_fetch(vertex_av, 2, 0));
+                facet.vertex[v](0) = SvNV(*av_fetch(vertex_av, 0, 0));
+                facet.vertex[v](1) = SvNV(*av_fetch(vertex_av, 1, 0));
+                facet.vertex[v](2) = SvNV(*av_fetch(vertex_av, 2, 0));
             }
             facet.extra[0] = 0;
             facet.extra[1] = 0;
@@ -110,9 +110,9 @@ TriangleMesh::vertices()
             AV* vertex = newAV();
             av_store(vertices, i, newRV_noinc((SV*)vertex));
             av_extend(vertex, 2);
-            av_store(vertex, 0, newSVnv(THIS->stl.v_shared[i].x));
-            av_store(vertex, 1, newSVnv(THIS->stl.v_shared[i].y));
-            av_store(vertex, 2, newSVnv(THIS->stl.v_shared[i].z));
+            av_store(vertex, 0, newSVnv(THIS->stl.v_shared[i](0)));
+            av_store(vertex, 1, newSVnv(THIS->stl.v_shared[i](1)));
+            av_store(vertex, 2, newSVnv(THIS->stl.v_shared[i](2)));
         }
         
         RETVAL = newRV_noinc((SV*)vertices);
@@ -155,9 +155,9 @@ TriangleMesh::normals()
             AV* facet = newAV();
             av_store(normals, i, newRV_noinc((SV*)facet));
             av_extend(facet, 2);
-            av_store(facet, 0, newSVnv(THIS->stl.facet_start[i].normal.x));
-            av_store(facet, 1, newSVnv(THIS->stl.facet_start[i].normal.y));
-            av_store(facet, 2, newSVnv(THIS->stl.facet_start[i].normal.z));
+            av_store(facet, 0, newSVnv(THIS->stl.facet_start[i].normal(0)));
+            av_store(facet, 1, newSVnv(THIS->stl.facet_start[i].normal(1)));
+            av_store(facet, 2, newSVnv(THIS->stl.facet_start[i].normal(2)));
         }
         
         RETVAL = newRV_noinc((SV*)normals);
@@ -169,9 +169,9 @@ TriangleMesh::size()
     CODE:
         AV* size = newAV();
         av_extend(size, 2);
-        av_store(size, 0, newSVnv(THIS->stl.stats.size.x));
-        av_store(size, 1, newSVnv(THIS->stl.stats.size.y));
-        av_store(size, 2, newSVnv(THIS->stl.stats.size.z));
+        av_store(size, 0, newSVnv(THIS->stl.stats.size(0)));
+        av_store(size, 1, newSVnv(THIS->stl.stats.size(1)));
+        av_store(size, 2, newSVnv(THIS->stl.stats.size(2)));
         RETVAL = newRV_noinc((SV*)size);
     OUTPUT:
         RETVAL
@@ -181,11 +181,11 @@ TriangleMesh::slice(z)
     std::vector<double> z
     CODE:
         // convert doubles to floats
-        std::vector<float> z_f(z.begin(), z.end());
+        std::vector<float> z_f = cast<float>(z);
         
         std::vector<ExPolygons> layers;
         TriangleMeshSlicer mslicer(THIS);
-        mslicer.slice(z_f, &layers);
+        mslicer.slice(z_f, &layers, [](){});
         
         AV* layers_av = newAV();
         size_t len = layers.size();
@@ -216,12 +216,12 @@ TriangleMesh::cut(z, upper, lower)
 std::vector<double>
 TriangleMesh::bb3()
     CODE:
-        RETVAL.push_back(THIS->stl.stats.min.x);
-        RETVAL.push_back(THIS->stl.stats.min.y);
-        RETVAL.push_back(THIS->stl.stats.max.x);
-        RETVAL.push_back(THIS->stl.stats.max.y);
-        RETVAL.push_back(THIS->stl.stats.min.z);
-        RETVAL.push_back(THIS->stl.stats.max.z);
+        RETVAL.push_back(THIS->stl.stats.min(0));
+        RETVAL.push_back(THIS->stl.stats.min(1));
+        RETVAL.push_back(THIS->stl.stats.max(0));
+        RETVAL.push_back(THIS->stl.stats.max(1));
+        RETVAL.push_back(THIS->stl.stats.min(2));
+        RETVAL.push_back(THIS->stl.stats.max(2));
     OUTPUT:
         RETVAL
 

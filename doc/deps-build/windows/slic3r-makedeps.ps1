@@ -40,6 +40,8 @@ $BOOST = 'boost_1_63_0'
 $CURL = 'curl-7.58.0'
 $TBB_SHA = 'a0dc9bf76d0120f917b641ed095360448cabc85b'
 $TBB = "tbb-$TBB_SHA"
+$WXWIDGETS_VER = "3.1.1"
+$WXWIDGETS = "wxWidgets-$WXWIDGETS_VER"
 
 
 try
@@ -72,13 +74,21 @@ echo 'Downloading sources ...'
 if (!(Test-Path "$BOOST.zip")) { $webclient.DownloadFile("https://dl.bintray.com/boostorg/release/1.63.0/source/$BOOST.zip", "$BOOST.zip") }
 if (!(Test-Path "$TBB.zip")) { $webclient.DownloadFile("https://github.com/wjakob/tbb/archive/$TBB_SHA.zip", "$TBB.zip") }
 if (!(Test-Path "$CURL.zip")) { $webclient.DownloadFile("https://curl.haxx.se/download/$CURL.zip", ".\$CURL.zip") }
+if (!(Test-Path "$WXWIDGETS.zip")) { $webclient.DownloadFile("https://github.com/wxWidgets/wxWidgets/releases/download/v$WXWIDGETS_VER/$WXWIDGETS.zip", ".\$WXWIDGETS.zip") }
 
 
 # Unpack sources:
 echo 'Unpacking ...'
-if (!(Test-Path $BOOST)) { [IO.Compression.ZipFile]::ExtractToDirectory("$BOOST.zip", '.') }
-if (!(Test-Path $TBB)) { [IO.Compression.ZipFile]::ExtractToDirectory("$TBB.zip", '.') }
-if (!(Test-Path $CURL)) { [IO.Compression.ZipFile]::ExtractToDirectory("$CURL.zip", '.') }
+if (!(Test-Path "$BOOST")) { [IO.Compression.ZipFile]::ExtractToDirectory("$BOOST.zip", '.') }
+if (!(Test-Path "$TBB")) { [IO.Compression.ZipFile]::ExtractToDirectory("$TBB.zip", '.') }
+if (!(Test-Path "$CURL")) { [IO.Compression.ZipFile]::ExtractToDirectory("$CURL.zip", '.') }
+if (!(Test-Path "$WXWIDGETS")) { [IO.Compression.ZipFile]::ExtractToDirectory("$WXWIDGETS.zip", "$WXWIDGETS") }
+
+
+# Patch PNG in wxWidgets
+# PNG prefix is not applied properly to two functions
+$pngprefix_h = "$WXWIDGETS\src\png\pngprefix.h"
+"#define png_write_eXIf wx_png_write_eXIf`n#define png_handle_eXIf wx_png_handle_eXIf`n`n" + (Get-Content $pngprefix_h | Out-String) | Set-Content $pngprefix_h
 
 
 # Build libraries:
@@ -125,6 +135,22 @@ $machine = ("x86", "x64")[!$b32]
 nmake /f Makefile.vc mode=static VC=12 GEN_PDB=yes DEBUG=no "MACHINE=$machine"
 Copy-Item -R -Force ..\builds\libcurl-*-winssl\include\* "$destdir\usr\local\include\"
 Copy-Item -R -Force ..\builds\libcurl-*-winssl\lib\* "$destdir\usr\local\lib\"
+popd
+
+# Build wxWidgets
+pushd "$WXWIDGETS"
+pushd "build\msw"
+$target_cpu_opt = ("", "TARGET_CPU=X64")[!$b32]
+$lib_dir = ("vc_lib", "vc_x64_lib")[!$b32]
+nmake /f makefile.vc `
+    BUILD=release `
+    SHARED=0 `
+    UNICODE=1 `
+    USE_GUI=1 `
+    "$target_cpu_opt"
+popd
+Copy-Item -R -Force include\* "$destdir\usr\local\include\"
+Copy-Item -R -Force "lib\$lib_dir" "$destdir\usr\local\lib\"
 popd
 
 

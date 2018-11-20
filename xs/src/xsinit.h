@@ -68,7 +68,16 @@ extern "C" {
     #undef fputc
     #undef fwrite
     #undef fclose
+
+	// Breaks compilation with Eigen matrices embedded into Slic3r::Point.
+	#undef malloc
+	#undef realloc
+	#undef free
+	#undef select
 #endif /* _MSC_VER */
+#undef Zero
+#undef Packet
+#undef _
 }
 #endif
 
@@ -80,7 +89,6 @@ extern "C" {
 #include <Polygon.hpp>
 #include <Polyline.hpp>
 #include <TriangleMesh.hpp>
-#include <slic3r/AppController.hpp>
 
 namespace Slic3r {
     
@@ -188,9 +196,9 @@ void from_SV_check(SV* poly_sv, Polyline* THIS);
 SV* to_SV_pureperl(const Point* THIS);
 void from_SV(SV* point_sv, Point* point);
 void from_SV_check(SV* point_sv, Point* point);
-SV* to_SV_pureperl(const Pointf* point);
-bool from_SV(SV* point_sv, Pointf* point);
-bool from_SV_check(SV* point_sv, Pointf* point);
+SV* to_SV_pureperl(const Vec2d* point);
+bool from_SV(SV* point_sv, Vec2d* point);
+bool from_SV_check(SV* point_sv, Vec2d* point);
 void from_SV_check(SV* surface_sv, Surface* THIS);
 SV* to_SV(TriangleMesh* THIS);
 
@@ -199,6 +207,41 @@ SV* to_SV(TriangleMesh* THIS);
 // Defined in wxPerlIface.cpp
 // Return a pointer to the associated wxWidgets object instance given by classname.
 extern void* wxPli_sv_2_object( pTHX_ SV* scalar, const char* classname );
+
+inline void confess_at(const char *file, int line, const char *func, const char *pat, ...)
+{
+    #ifdef SLIC3RXS
+     va_list args;
+     SV *error_sv = newSVpvf("Error in function %s at %s:%d: ", func,
+         file, line);
+
+     va_start(args, pat);
+     sv_vcatpvf(error_sv, pat, &args);
+     va_end(args);
+
+     sv_catpvn(error_sv, "\n\t", 2);
+
+     dSP;
+     ENTER;
+     SAVETMPS;
+     PUSHMARK(SP);
+     XPUSHs( sv_2mortal(error_sv) );
+     PUTBACK;
+     call_pv("Carp::confess", G_DISCARD);
+     FREETMPS;
+     LEAVE;
+    #endif
+}
+
+#ifndef CONFESS
+/* Implementation of CONFESS("foo"): */
+#ifdef _MSC_VER
+    #define CONFESS(...) confess_at(__FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
+#else
+    #define CONFESS(...) confess_at(__FILE__, __LINE__, __func__, __VA_ARGS__)
+#endif
+/* End implementation of CONFESS("foo"): */
+#endif /* CONFESS */
 
 using namespace Slic3r;
 

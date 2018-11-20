@@ -127,7 +127,7 @@ The author of the Silk icon set is Mark James.
                             and [input_filename] (default: [input_filename_base].gcode)
         --post-process      Generated G-code will be processed with the supplied script;
                             call this more than once to process through multiple scripts.
-        --export-svg        Export a SVG file containing slices instead of G-code.
+        --export-png        Export zipped PNG files containing slices instead of G-code.
         -m, --merge         If multiple files are supplied, they will be composed into a single
                             print rather than processed individually.
     

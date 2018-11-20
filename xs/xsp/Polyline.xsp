@@ -38,7 +38,6 @@
     bool is_straight();
     Clone<BoundingBox> bounding_box();
     void remove_duplicate_points();
-    std::string wkt();
 %{
 
 Polyline*

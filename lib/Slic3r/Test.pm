@@ -158,8 +158,12 @@ sub model {
     $object->add_volume(mesh => $mesh, material_id => $model_name);
     $object->add_instance(
         offset          => Slic3r::Pointf->new(0,0),
-        rotation        => $params{rotation} // 0,
-        scaling_factor  => $params{scale} // 1,
+        # 3D full transform
+        rotation        => Slic3r::Pointf3->new(0, 0, $params{rotation} // 0),
+        scaling_factor  => Slic3r::Pointf3->new($params{scale} // 1, $params{scale} // 1, $params{scale} // 1),
+        # old transform
+#        rotation        => $params{rotation} // 0,
+#        scaling_factor  => $params{scale} // 1,
     );
     return $model;
 }
@@ -208,8 +212,9 @@ sub gcode {
     my $gcode_temp_path = abs_path($0) . '.gcode.temp';
     # Remove the existing temp file.
     unlink $gcode_temp_path;
+    $print->set_status_silent;
     $print->process;
-    $print->export_gcode(output_file => $gcode_temp_path, quiet => 1);
+    $print->export_gcode($gcode_temp_path);
     # Read the temoprary G-code file.
     my $gcode;
     {

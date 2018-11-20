@@ -1,371 +1,29 @@
-# Enable C++11 language standard.
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+project(XS)
 
-# Add our own cmake module path.
-list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules/)
-
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    # Workaround for an old CMake, which does not understand CMAKE_CXX_STANDARD.
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall" )
-    find_package(PkgConfig REQUIRED)
+# Find the Perl interpreter, add local-lib to PATH and PERL5LIB environment variables,
+# so the locally installed modules (mainly the Alien::wxPerl) will be reached.
+if (WIN32)
+    set(ENV_PATH_SEPARATOR ";")
+else()
+    set(ENV_PATH_SEPARATOR ":")
+endif()
+set(ENV{PATH}     "${PROJECT_SOURCE_DIR}/local-lib/bin${ENV_PATH_SEPARATOR}$ENV{PATH}")
+set(PERL_INCLUDE  "${PROJECT_SOURCE_DIR}/local-lib/lib/perl5${ENV_PATH_SEPARATOR}$ENV{PERL5LIB}")
+message("PATH: $ENV{PATH}")
+message("PERL_INCLUDE: ${PERL_INCLUDE}")
+find_package(Perl REQUIRED)
+if (WIN32)
+    # On Windows passing the PERL5LIB variable causes various problems (such as with MAX_PATH and others),
+    # basically I've found no good way to do it on Windows.
+    set(PERL5LIB_ENV_CMD "")
+else()
+    set(PERL5LIB_ENV_CMD ${CMAKE_COMMAND} -E env PERL5LIB=${PERL_INCLUDE})
 endif()
 
-if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUXX)
-    # Adding -fext-numeric-literals to enable GCC extensions on definitions of quad float literals, which are required by Boost.
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fext-numeric-literals" )
-endif()
-
-# Where all the bundled libraries reside?
-set(LIBDIR ${CMAKE_CURRENT_SOURCE_DIR}/src/)
-# For the bundled boost libraries (boost::nowide)
-include_directories(${LIBDIR})
-# For libslic3r.h
-include_directories(${LIBDIR}/libslic3r)
-#set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
-if(WIN32)
-    # BOOST_ALL_NO_LIB: Avoid the automatic linking of Boost libraries on Windows. Rather rely on explicit linking.
-    add_definitions(-D_USE_MATH_DEFINES -D_WIN32 -DBOOST_ALL_NO_LIB -DBOOST_USE_WINAPI_VERSION=0x601)
-    # -D_ITERATOR_DEBUG_LEVEL)
-    if(WIN10SDK_PATH)
-        message("Building with Win10 Netfabb STL fixing service support")
-        add_definitions(-DHAS_WIN10SDK)
-        include_directories("${WIN10SDK_PATH}/Include")
-    else()
-        message("Building without Win10 Netfabb STL fixing service support")
-    endif()
-endif()
-
-add_definitions(-DwxUSE_UNICODE -D_UNICODE -DUNICODE -DWXINTL_NO_GETTEXT_MACRO)
-
-add_library(libslic3r STATIC
-    ${LIBDIR}/libslic3r/BoundingBox.cpp
-    ${LIBDIR}/libslic3r/BoundingBox.hpp
-    ${LIBDIR}/libslic3r/BridgeDetector.cpp
-    ${LIBDIR}/libslic3r/BridgeDetector.hpp
-    ${LIBDIR}/libslic3r/ClipperUtils.cpp
-    ${LIBDIR}/libslic3r/ClipperUtils.hpp
-    ${LIBDIR}/libslic3r/Config.cpp
-    ${LIBDIR}/libslic3r/Config.hpp
-    ${LIBDIR}/libslic3r/EdgeGrid.cpp
-    ${LIBDIR}/libslic3r/EdgeGrid.hpp
-    ${LIBDIR}/libslic3r/ExPolygon.cpp
-    ${LIBDIR}/libslic3r/ExPolygon.hpp
-    ${LIBDIR}/libslic3r/ExPolygonCollection.cpp
-    ${LIBDIR}/libslic3r/ExPolygonCollection.hpp
-    ${LIBDIR}/libslic3r/Extruder.cpp
-    ${LIBDIR}/libslic3r/Extruder.hpp
-    ${LIBDIR}/libslic3r/ExtrusionEntity.cpp
-    ${LIBDIR}/libslic3r/ExtrusionEntity.hpp
-    ${LIBDIR}/libslic3r/ExtrusionEntityCollection.cpp
-    ${LIBDIR}/libslic3r/ExtrusionEntityCollection.hpp
-    ${LIBDIR}/libslic3r/ExtrusionSimulator.cpp
-    ${LIBDIR}/libslic3r/ExtrusionSimulator.hpp
-    ${LIBDIR}/libslic3r/FileParserError.hpp
-    ${LIBDIR}/libslic3r/Fill/Fill.cpp
-    ${LIBDIR}/libslic3r/Fill/Fill.hpp
-    ${LIBDIR}/libslic3r/Fill/Fill3DHoneycomb.cpp
-    ${LIBDIR}/libslic3r/Fill/Fill3DHoneycomb.hpp
-    ${LIBDIR}/libslic3r/Fill/FillBase.cpp
-    ${LIBDIR}/libslic3r/Fill/FillBase.hpp
-    ${LIBDIR}/libslic3r/Fill/FillConcentric.cpp
-    ${LIBDIR}/libslic3r/Fill/FillConcentric.hpp
-    ${LIBDIR}/libslic3r/Fill/FillHoneycomb.cpp
-    ${LIBDIR}/libslic3r/Fill/FillHoneycomb.hpp
-    ${LIBDIR}/libslic3r/Fill/FillGyroid.cpp
-    ${LIBDIR}/libslic3r/Fill/FillGyroid.hpp
-    ${LIBDIR}/libslic3r/Fill/FillPlanePath.cpp
-    ${LIBDIR}/libslic3r/Fill/FillPlanePath.hpp
-    ${LIBDIR}/libslic3r/Fill/FillRectilinear.cpp
-    ${LIBDIR}/libslic3r/Fill/FillRectilinear.hpp
-    ${LIBDIR}/libslic3r/Fill/FillRectilinear2.cpp
-    ${LIBDIR}/libslic3r/Fill/FillRectilinear2.hpp
-    ${LIBDIR}/libslic3r/Fill/FillRectilinear3.cpp
-    ${LIBDIR}/libslic3r/Fill/FillRectilinear3.hpp
-    ${LIBDIR}/libslic3r/Flow.cpp
-    ${LIBDIR}/libslic3r/Flow.hpp
-    ${LIBDIR}/libslic3r/Format/3mf.cpp
-    ${LIBDIR}/libslic3r/Format/3mf.hpp
-    ${LIBDIR}/libslic3r/Format/AMF.cpp
-    ${LIBDIR}/libslic3r/Format/AMF.hpp
-    ${LIBDIR}/libslic3r/Format/OBJ.cpp
-    ${LIBDIR}/libslic3r/Format/OBJ.hpp
-    ${LIBDIR}/libslic3r/Format/objparser.cpp
-    ${LIBDIR}/libslic3r/Format/objparser.hpp
-    ${LIBDIR}/libslic3r/Format/PRUS.cpp
-    ${LIBDIR}/libslic3r/Format/PRUS.hpp
-    ${LIBDIR}/libslic3r/Format/STL.cpp
-    ${LIBDIR}/libslic3r/Format/STL.hpp
-    ${LIBDIR}/libslic3r/GCode/Analyzer.cpp
-    ${LIBDIR}/libslic3r/GCode/Analyzer.hpp
-    ${LIBDIR}/libslic3r/GCode/CoolingBuffer.cpp
-    ${LIBDIR}/libslic3r/GCode/CoolingBuffer.hpp
-    ${LIBDIR}/libslic3r/GCode/PressureEqualizer.cpp
-    ${LIBDIR}/libslic3r/GCode/PressureEqualizer.hpp
-    ${LIBDIR}/libslic3r/GCode/PreviewData.cpp
-    ${LIBDIR}/libslic3r/GCode/PreviewData.hpp
-    ${LIBDIR}/libslic3r/GCode/PrintExtents.cpp
-    ${LIBDIR}/libslic3r/GCode/PrintExtents.hpp
-    ${LIBDIR}/libslic3r/GCode/SpiralVase.cpp
-    ${LIBDIR}/libslic3r/GCode/SpiralVase.hpp
-    ${LIBDIR}/libslic3r/GCode/ToolOrdering.cpp
-    ${LIBDIR}/libslic3r/GCode/ToolOrdering.hpp
-    ${LIBDIR}/libslic3r/GCode/WipeTower.hpp
-    ${LIBDIR}/libslic3r/GCode/WipeTowerPrusaMM.cpp
-    ${LIBDIR}/libslic3r/GCode/WipeTowerPrusaMM.hpp
-    ${LIBDIR}/libslic3r/GCode.cpp
-    ${LIBDIR}/libslic3r/GCode.hpp
-    ${LIBDIR}/libslic3r/GCodeReader.cpp
-    ${LIBDIR}/libslic3r/GCodeReader.hpp
-    ${LIBDIR}/libslic3r/GCodeSender.cpp
-    ${LIBDIR}/libslic3r/GCodeSender.hpp
-    ${LIBDIR}/libslic3r/GCodeTimeEstimator.cpp
-    ${LIBDIR}/libslic3r/GCodeTimeEstimator.hpp
-    ${LIBDIR}/libslic3r/GCodeWriter.cpp
-    ${LIBDIR}/libslic3r/GCodeWriter.hpp
-    ${LIBDIR}/libslic3r/Geometry.cpp
-    ${LIBDIR}/libslic3r/Geometry.hpp
-    ${LIBDIR}/libslic3r/Int128.hpp
-#    ${LIBDIR}/libslic3r/KdTree.hpp
-    ${LIBDIR}/libslic3r/Layer.cpp
-    ${LIBDIR}/libslic3r/Layer.hpp
-    ${LIBDIR}/libslic3r/LayerRegion.cpp
-    ${LIBDIR}/libslic3r/libslic3r.h
-    ${LIBDIR}/libslic3r/Line.cpp
-    ${LIBDIR}/libslic3r/Line.hpp
-    ${LIBDIR}/libslic3r/Model.cpp
-    ${LIBDIR}/libslic3r/Model.hpp
-    ${LIBDIR}/libslic3r/ModelArrange.hpp
-    ${LIBDIR}/libslic3r/MotionPlanner.cpp
-    ${LIBDIR}/libslic3r/MotionPlanner.hpp
-    ${LIBDIR}/libslic3r/MultiPoint.cpp
-    ${LIBDIR}/libslic3r/MultiPoint.hpp
-    ${LIBDIR}/libslic3r/MutablePriorityQueue.hpp
-    ${LIBDIR}/libslic3r/PerimeterGenerator.cpp
-    ${LIBDIR}/libslic3r/PerimeterGenerator.hpp
-    ${LIBDIR}/libslic3r/PlaceholderParser.cpp
-    ${LIBDIR}/libslic3r/PlaceholderParser.hpp
-    ${LIBDIR}/libslic3r/Point.cpp
-    ${LIBDIR}/libslic3r/Point.hpp
-    ${LIBDIR}/libslic3r/Polygon.cpp
-    ${LIBDIR}/libslic3r/Polygon.hpp
-    ${LIBDIR}/libslic3r/Polyline.cpp
-    ${LIBDIR}/libslic3r/Polyline.hpp
-    ${LIBDIR}/libslic3r/PolylineCollection.cpp
-    ${LIBDIR}/libslic3r/PolylineCollection.hpp
-    ${LIBDIR}/libslic3r/Print.cpp
-    ${LIBDIR}/libslic3r/Print.hpp
-    ${LIBDIR}/libslic3r/PrintConfig.cpp
-    ${LIBDIR}/libslic3r/PrintConfig.hpp
-    ${LIBDIR}/libslic3r/PrintObject.cpp
-    ${LIBDIR}/libslic3r/PrintRegion.cpp
-    ${LIBDIR}/libslic3r/Slicing.cpp
-    ${LIBDIR}/libslic3r/Slicing.hpp
-    ${LIBDIR}/libslic3r/SlicingAdaptive.cpp
-    ${LIBDIR}/libslic3r/SlicingAdaptive.hpp
-    ${LIBDIR}/libslic3r/SupportMaterial.cpp
-    ${LIBDIR}/libslic3r/SupportMaterial.hpp
-    ${LIBDIR}/libslic3r/Surface.cpp
-    ${LIBDIR}/libslic3r/Surface.hpp
-    ${LIBDIR}/libslic3r/SurfaceCollection.cpp
-    ${LIBDIR}/libslic3r/SurfaceCollection.hpp
-    ${LIBDIR}/libslic3r/SVG.cpp
-    ${LIBDIR}/libslic3r/SVG.hpp
-    ${LIBDIR}/libslic3r/TriangleMesh.cpp
-    ${LIBDIR}/libslic3r/TriangleMesh.hpp
-#    ${LIBDIR}/libslic3r/utils.cpp
-    ${LIBDIR}/libslic3r/Utils.hpp
-)
-
-add_library(libslic3r_gui STATIC
-    ${LIBDIR}/slic3r/GUI/AboutDialog.cpp
-    ${LIBDIR}/slic3r/GUI/AboutDialog.hpp
-    ${LIBDIR}/slic3r/GUI/AppConfig.cpp
-    ${LIBDIR}/slic3r/GUI/AppConfig.hpp
-    ${LIBDIR}/slic3r/GUI/BitmapCache.cpp
-    ${LIBDIR}/slic3r/GUI/BitmapCache.hpp
-    ${LIBDIR}/slic3r/GUI/ConfigSnapshotDialog.cpp
-    ${LIBDIR}/slic3r/GUI/ConfigSnapshotDialog.hpp
-    ${LIBDIR}/slic3r/GUI/3DScene.cpp
-    ${LIBDIR}/slic3r/GUI/3DScene.hpp
-    ${LIBDIR}/slic3r/GUI/GLShader.cpp
-    ${LIBDIR}/slic3r/GUI/GLShader.hpp    
-    ${LIBDIR}/slic3r/GUI/GLCanvas3D.hpp
-    ${LIBDIR}/slic3r/GUI/GLCanvas3D.cpp
-    ${LIBDIR}/slic3r/GUI/GLCanvas3DManager.hpp
-    ${LIBDIR}/slic3r/GUI/GLCanvas3DManager.cpp
-    ${LIBDIR}/slic3r/GUI/GLGizmo.hpp
-    ${LIBDIR}/slic3r/GUI/GLGizmo.cpp    
-    ${LIBDIR}/slic3r/GUI/GLTexture.hpp
-    ${LIBDIR}/slic3r/GUI/GLTexture.cpp    
-    ${LIBDIR}/slic3r/GUI/Preferences.cpp
-    ${LIBDIR}/slic3r/GUI/Preferences.hpp
-    ${LIBDIR}/slic3r/GUI/Preset.cpp
-    ${LIBDIR}/slic3r/GUI/Preset.hpp
-    ${LIBDIR}/slic3r/GUI/PresetBundle.cpp
-    ${LIBDIR}/slic3r/GUI/PresetBundle.hpp
-    ${LIBDIR}/slic3r/GUI/PresetHints.cpp
-    ${LIBDIR}/slic3r/GUI/PresetHints.hpp
-    ${LIBDIR}/slic3r/GUI/GUI.cpp
-    ${LIBDIR}/slic3r/GUI/GUI.hpp
-    ${LIBDIR}/slic3r/GUI/Tab.cpp
-    ${LIBDIR}/slic3r/GUI/Tab.hpp
-    ${LIBDIR}/slic3r/GUI/TabIface.cpp
-    ${LIBDIR}/slic3r/GUI/TabIface.hpp
-    ${LIBDIR}/slic3r/GUI/Field.cpp
-    ${LIBDIR}/slic3r/GUI/Field.hpp
-    ${LIBDIR}/slic3r/GUI/OptionsGroup.cpp
-    ${LIBDIR}/slic3r/GUI/OptionsGroup.hpp
-    ${LIBDIR}/slic3r/GUI/BedShapeDialog.cpp
-    ${LIBDIR}/slic3r/GUI/BedShapeDialog.hpp
-    ${LIBDIR}/slic3r/GUI/2DBed.cpp
-    ${LIBDIR}/slic3r/GUI/2DBed.hpp
-    ${LIBDIR}/slic3r/GUI/wxExtensions.cpp
-    ${LIBDIR}/slic3r/GUI/wxExtensions.hpp
-    ${LIBDIR}/slic3r/GUI/WipeTowerDialog.cpp
-    ${LIBDIR}/slic3r/GUI/WipeTowerDialog.hpp
-    ${LIBDIR}/slic3r/GUI/RammingChart.cpp
-    ${LIBDIR}/slic3r/GUI/RammingChart.hpp
-    ${LIBDIR}/slic3r/GUI/BonjourDialog.cpp
-    ${LIBDIR}/slic3r/GUI/BonjourDialog.hpp
-    ${LIBDIR}/slic3r/GUI/ButtonsDescription.cpp
-    ${LIBDIR}/slic3r/GUI/ButtonsDescription.hpp
-    ${LIBDIR}/slic3r/Config/Snapshot.cpp
-    ${LIBDIR}/slic3r/Config/Snapshot.hpp
-    ${LIBDIR}/slic3r/Config/Version.cpp
-    ${LIBDIR}/slic3r/Config/Version.hpp    
-    ${LIBDIR}/slic3r/Utils/ASCIIFolding.cpp
-    ${LIBDIR}/slic3r/Utils/ASCIIFolding.hpp
-    ${LIBDIR}/slic3r/Utils/Serial.cpp
-    ${LIBDIR}/slic3r/Utils/Serial.hpp
-    ${LIBDIR}/slic3r/GUI/ConfigWizard.cpp
-    ${LIBDIR}/slic3r/GUI/ConfigWizard.hpp
-    ${LIBDIR}/slic3r/GUI/MsgDialog.cpp
-    ${LIBDIR}/slic3r/GUI/MsgDialog.hpp
-    ${LIBDIR}/slic3r/GUI/UpdateDialogs.cpp
-    ${LIBDIR}/slic3r/GUI/UpdateDialogs.hpp
-    ${LIBDIR}/slic3r/GUI/FirmwareDialog.cpp
-    ${LIBDIR}/slic3r/GUI/FirmwareDialog.hpp
-    ${LIBDIR}/slic3r/Utils/Http.cpp
-    ${LIBDIR}/slic3r/Utils/Http.hpp
-    ${LIBDIR}/slic3r/Utils/FixModelByWin10.cpp
-    ${LIBDIR}/slic3r/Utils/FixModelByWin10.hpp
-    ${LIBDIR}/slic3r/Utils/PrintHostSendDialog.cpp
-    ${LIBDIR}/slic3r/Utils/PrintHostSendDialog.hpp
-    ${LIBDIR}/slic3r/Utils/OctoPrint.cpp
-    ${LIBDIR}/slic3r/Utils/OctoPrint.hpp
-    ${LIBDIR}/slic3r/Utils/Duet.cpp
-    ${LIBDIR}/slic3r/Utils/Duet.hpp
-    ${LIBDIR}/slic3r/Utils/PrintHost.cpp
-    ${LIBDIR}/slic3r/Utils/PrintHost.hpp
-    ${LIBDIR}/slic3r/Utils/Bonjour.cpp
-    ${LIBDIR}/slic3r/Utils/Bonjour.hpp
-    ${LIBDIR}/slic3r/Utils/PresetUpdater.cpp
-    ${LIBDIR}/slic3r/Utils/PresetUpdater.hpp
-    ${LIBDIR}/slic3r/Utils/Time.cpp
-    ${LIBDIR}/slic3r/Utils/Time.hpp
-    ${LIBDIR}/slic3r/Utils/HexFile.cpp
-    ${LIBDIR}/slic3r/Utils/HexFile.hpp
-    ${LIBDIR}/slic3r/ProgressIndicator.hpp
-    ${LIBDIR}/slic3r/AppController.hpp
-    ${LIBDIR}/slic3r/AppController.cpp
-    ${LIBDIR}/slic3r/AppControllerWx.cpp
-)
-
-add_library(admesh STATIC
-    ${LIBDIR}/admesh/connect.cpp
-    ${LIBDIR}/admesh/normals.cpp
-    ${LIBDIR}/admesh/shared.cpp
-    ${LIBDIR}/admesh/stl.h
-    ${LIBDIR}/admesh/stl_io.cpp
-    ${LIBDIR}/admesh/stlinit.cpp
-    ${LIBDIR}/admesh/util.cpp
-)
-
-add_library(miniz STATIC
-    ${LIBDIR}/miniz/miniz.h
-    ${LIBDIR}/miniz/miniz_common.h
-    ${LIBDIR}/miniz/miniz_tdef.h
-    ${LIBDIR}/miniz/miniz_tinfl.h
-    ${LIBDIR}/miniz/miniz_zip.h
-    ${LIBDIR}/miniz/miniz.cpp
-    ${LIBDIR}/miniz/miniz_tdef.cpp
-    ${LIBDIR}/miniz/miniz_tinfl.cpp
-    ${LIBDIR}/miniz/miniz_zip.cpp
-)
-
-add_library(clipper STATIC 
-    ${LIBDIR}/clipper.cpp
-    ${LIBDIR}/clipper.hpp
-)
-
-add_library(polypartition STATIC 
-    ${LIBDIR}/polypartition.cpp
-    ${LIBDIR}/polypartition.h
-)
-
-add_library(poly2tri STATIC
-    ${LIBDIR}/poly2tri/common/shapes.cc
-    ${LIBDIR}/poly2tri/common/shapes.h
-    ${LIBDIR}/poly2tri/common/utils.h
-    ${LIBDIR}/poly2tri/poly2tri.h
-    ${LIBDIR}/poly2tri/sweep/advancing_front.cc
-    ${LIBDIR}/poly2tri/sweep/advancing_front.h
-    ${LIBDIR}/poly2tri/sweep/cdt.cc
-    ${LIBDIR}/poly2tri/sweep/cdt.h
-    ${LIBDIR}/poly2tri/sweep/sweep.cc
-    ${LIBDIR}/poly2tri/sweep/sweep.h
-    ${LIBDIR}/poly2tri/sweep/sweep_context.cc
-    ${LIBDIR}/poly2tri/sweep/sweep_context.h
-)
-
-add_library(nowide STATIC
-    ${LIBDIR}/boost/nowide/args.hpp
-    ${LIBDIR}/boost/nowide/cenv.hpp
-    ${LIBDIR}/boost/nowide/config.hpp
-    ${LIBDIR}/boost/nowide/convert.hpp
-    ${LIBDIR}/boost/nowide/cstdio.hpp
-    ${LIBDIR}/boost/nowide/cstdlib.hpp
-    ${LIBDIR}/boost/nowide/filebuf.hpp
-    ${LIBDIR}/boost/nowide/fstream.hpp
-    ${LIBDIR}/boost/nowide/integration/filesystem.hpp
-    ${LIBDIR}/boost/nowide/iostream.cpp
-    ${LIBDIR}/boost/nowide/iostream.hpp
-    ${LIBDIR}/boost/nowide/stackstring.hpp
-    ${LIBDIR}/boost/nowide/system.hpp
-    ${LIBDIR}/boost/nowide/utf8_codecvt.hpp
-    ${LIBDIR}/boost/nowide/windows.hpp
-)
-
-add_library(Shiny STATIC
-    ${LIBDIR}/Shiny/Shiny.h
-    ${LIBDIR}/Shiny/ShinyConfig.h
-    ${LIBDIR}/Shiny/ShinyData.h
-    ${LIBDIR}/Shiny/ShinyMacros.h
-    ${LIBDIR}/Shiny/ShinyManager.c
-    ${LIBDIR}/Shiny/ShinyManager.h
-    ${LIBDIR}/Shiny/ShinyNode.c
-    ${LIBDIR}/Shiny/ShinyNode.h
-    ${LIBDIR}/Shiny/ShinyNodePool.c
-    ${LIBDIR}/Shiny/ShinyNodePool.h
-    ${LIBDIR}/Shiny/ShinyNodeState.c
-    ${LIBDIR}/Shiny/ShinyNodeState.h
-    ${LIBDIR}/Shiny/ShinyOutput.c
-    ${LIBDIR}/Shiny/ShinyOutput.h
-    ${LIBDIR}/Shiny/ShinyPrereqs.h
-    ${LIBDIR}/Shiny/ShinyTools.c
-    ${LIBDIR}/Shiny/ShinyTools.h
-    ${LIBDIR}/Shiny/ShinyVersion.h
-    ${LIBDIR}/Shiny/ShinyZone.c
-    ${LIBDIR}/Shiny/ShinyZone.h
-)
-
-add_library(semver STATIC
-    ${LIBDIR}/semver/semver.h
-    ${LIBDIR}/semver/semver.c
-)
-
+# Perl specific stuff
+find_package(PerlLibs REQUIRED)
+set(PerlEmbed_DEBUG 1)
+find_package(PerlEmbed REQUIRED)
 
 # Generate the Slic3r Perl module (XS) typemap file.
 set(MyTypemap ${CMAKE_CURRENT_BINARY_DIR}/typemap)
@@ -397,11 +55,6 @@ set(XS_XSP_FILES
     ${XSP_DIR}/GCode.xsp
     ${XSP_DIR}/GCodeSender.xsp
     ${XSP_DIR}/Geometry.xsp
-    ${XSP_DIR}/GUI.xsp
-    ${XSP_DIR}/GUI_AppConfig.xsp
-    ${XSP_DIR}/GUI_3DScene.xsp
-    ${XSP_DIR}/GUI_Preset.xsp
-    ${XSP_DIR}/GUI_Tab.xsp
     ${XSP_DIR}/Layer.xsp
     ${XSP_DIR}/Line.xsp
     ${XSP_DIR}/Model.xsp
@@ -416,9 +69,6 @@ set(XS_XSP_FILES
     ${XSP_DIR}/Surface.xsp
     ${XSP_DIR}/SurfaceCollection.xsp
     ${XSP_DIR}/TriangleMesh.xsp
-    ${XSP_DIR}/Utils_PrintHost.xsp
-    ${XSP_DIR}/Utils_PresetUpdater.xsp
-    ${XSP_DIR}/AppController.xsp
     ${XSP_DIR}/XS.xsp
 )
 foreach (file ${XS_XSP_FILES})
@@ -449,48 +99,35 @@ else()
 endif()
 add_library(XS ${XS_SHARED_LIBRARY_TYPE}
     ${XS_MAIN_CPP}
-    ${LIBDIR}/libslic3r/utils.cpp
-    ${LIBDIR}/slic3r/GUI/wxPerlIface.cpp
-    ${LIBDIR}/perlglue.cpp
-    ${LIBDIR}/ppport.h
-    ${LIBDIR}/xsinit.h
-    ${CMAKE_CURRENT_LIST_DIR}/xsp/my.map
+#    ${LIBDIR}/libslic3r/utils.cpp
+#    ${LIBDIR}/slic3r/GUI/wxPerlIface.cpp
+    src/perlglue.cpp
+#    src/callback.cpp
+#    src/callback.hpp
+    src/ppport.h
+    src/xsinit.h
+    xsp/my.map
     # mytype.map is empty. Is it required by Build.PL or the Perl xspp module?
-    ${CMAKE_CURRENT_LIST_DIR}/xsp/mytype.map
+    xsp/mytype.map
     # Used by Perl xsubpp to generate XS.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/xsp/typemap.xspt
+    xsp/typemap.xspt
 )
 if(APPLE)
     set_target_properties(XS PROPERTIES BUNDLE TRUE)
     # Ignore undefined symbols of the perl interpreter, they will be found in the caller image.
     target_link_libraries(XS "-undefined dynamic_lookup")
 endif()
-target_link_libraries(XS libslic3r libslic3r_gui admesh miniz clipper nowide polypartition poly2tri semver avrdude qhull)
-if(SLIC3R_PROFILE)
-    target_link_libraries(XS Shiny)
-endif()
+target_link_libraries(XS libslic3r)
 
-# Add the OpenGL and GLU libraries.
-if (SLIC3R_GUI)
-    if (MSVC)
-        target_link_libraries(XS user32.lib Setupapi.lib OpenGL32.Lib GlU32.Lib)
-    elseif (MINGW)
-        target_link_libraries(XS -lopengl32)
-    elseif (APPLE)
-        target_link_libraries(XS "-framework OpenGL")
-    else ()
-        target_link_libraries(XS -lGL -lGLU)
-    endif ()
-endif ()
-
-target_include_directories(XS PRIVATE src src/libslic3r) # Local include directories
+target_include_directories(XS PRIVATE src)
 target_compile_definitions(XS PRIVATE -DSLIC3RXS)
 set_target_properties(XS PROPERTIES PREFIX "") # Prevent cmake from generating libXS.so instead of XS.so
 
+target_link_libraries(XS ${Boost_LIBRARIES})
+
 if (APPLE)
-#    add_compile_options(-stdlib=libc++)
-#    add_definitions(-DBOOST_THREAD_DONT_USE_CHRONO -DBOOST_NO_CXX11_RVALUE_REFERENCES -DBOOST_THREAD_USES_MOVE)
-    target_link_libraries(XS "-framework IOKit" "-framework CoreFoundation" -lc++)
+    # -liconv: boost links to libiconv by default
+    target_link_libraries(XS "-liconv -framework IOKit" "-framework CoreFoundation" -lc++)
 elseif (MSVC)
     target_link_libraries(XS )
 else ()
@@ -510,193 +147,34 @@ if (MSVC AND SLIC3R_MSVC_PDB AND "${CMAKE_BUILD_TYPE}" STREQUAL "Release")
     )
 endif()
 
-## Configuration flags
-if (SLIC3R_GUI)
-    message("Slic3r will be built with GUI support")
-    target_compile_definitions(XS PRIVATE -DSLIC3R_GUI)
-endif ()
-
-if (SLIC3R_PROFILE)
-    message("Slic3r will be built with a Shiny invasive profiler")
-    add_definitions(-DSLIC3R_PROFILE)
-endif ()
-
 if (CMAKE_BUILD_TYPE MATCHES DEBUG)
     target_compile_definitions(XS PRIVATE -DSLIC3R_DEBUG -DDEBUG -D_DEBUG)
 else ()
     target_compile_definitions(XS PRIVATE -DNDEBUG)
 endif ()
 
-# Perl specific stuff
-find_package(PerlLibs REQUIRED)
-set(PerlEmbed_DEBUG 1)
-find_package(PerlEmbed REQUIRED)
 target_include_directories(XS PRIVATE ${PERL_INCLUDE_PATH})
 target_compile_options(XS PRIVATE ${PerlEmbed_CCFLAGS})
-# If the Perl is compiled with optimization off, disable optimization over the whole project.
-if (WIN32 AND ";${PerlEmbed_CCFLAGS};" MATCHES ";[-/]Od;")
-    message(STATUS "Perl compiled without optimization. Disabling optimization for the Slic3r build.")
-    message("Old CMAKE_CXX_FLAGS_RELEASE: ${CMAKE_CXX_FLAGS_RELEASE}")
-    message("Old CMAKE_CXX_FLAGS_RELWITHDEBINFO: ${CMAKE_CXX_FLAGS_RELEASE}")
-    message("Old CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS_RELEASE}")
-    set(CMAKE_CXX_FLAGS_RELEASE "/MD /Od /Zi /EHsc /DNDEBUG /DWIN32")
-    set(CMAKE_C_FLAGS_RELEASE "/MD /Od /Zi /DNDEBUG /DWIN32")
-    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/MD /Od /Zi /EHsc /DNDEBUG /DWIN32")
-    set(CMAKE_C_FLAGS_RELWITHDEBINFO "/MD /Od /Zi /DNDEBUG /DWIN32")
-    set(CMAKE_CXX_FLAGS "/MD /Od /Zi /EHsc /DNDEBUG /DWIN32")
-    set(CMAKE_C_FLAGS "/MD /Od /Zi /DNDEBUG /DWIN32")
-endif()
-# The following line will add -fPIC on Linux to make the XS.so rellocable.
-add_definitions(${PerlEmbed_CCCDLFLAGS})
+
 if (WIN32)
     target_link_libraries(XS ${PERL_LIBRARY})
 endif()
 
-add_subdirectory(src/avrdude)
-
-add_subdirectory(src/qhull)
-include_directories(${LIBDIR}/qhull/src)
-message(STATUS ${LIBDIR}/qhull/src)
-
-## REQUIRED packages
-
-# Find and configure boost
-if(SLIC3R_STATIC)
-    # Use static boost libraries.
-    set(Boost_USE_STATIC_LIBS ON)
-    # Use boost libraries linked statically to the C++ runtime.
-    # set(Boost_USE_STATIC_RUNTIME ON)
-endif()
-#set(Boost_DEBUG ON)
-find_package(Boost REQUIRED COMPONENTS system filesystem thread log locale regex)
-if(Boost_FOUND)
-    include_directories(${Boost_INCLUDE_DIRS})
-    target_link_libraries(XS ${Boost_LIBRARIES})
-    if (APPLE)
-        # BOOST_ASIO_DISABLE_KQUEUE : prevents a Boost ASIO bug on OS X: https://svn.boost.org/trac/boost/ticket/5339
-        add_definitions(-DBOOST_ASIO_DISABLE_KQUEUE)
-    endif()
-    if(NOT SLIC3R_STATIC)
-        add_definitions(-DBOOST_LOG_DYN_LINK)
-    endif()
-endif()
-
-# Find and configure intel-tbb
-if(SLIC3R_STATIC)
-    set(TBB_STATIC 1)
-endif()
-set(TBB_DEBUG 1)
-find_package(TBB REQUIRED)
-include_directories(${TBB_INCLUDE_DIRS})
-add_definitions(${TBB_DEFINITIONS})
-if(MSVC)
-    # Suppress implicit linking of the TBB libraries by the Visual Studio compiler.
-    add_definitions(-D__TBB_NO_IMPLICIT_LINKAGE)
-endif()
-# The Intel TBB library will use the std::exception_ptr feature of C++11.
-add_definitions(-DTBB_USE_CAPTURED_EXCEPTION=0)
+target_link_libraries(XS ${Boost_LIBRARIES})
 target_link_libraries(XS ${TBB_LIBRARIES})
-
-# Find and configure wxWidgets
-if (SLIC3R_PRUSACONTROL)
-    set(wxWidgets_UseAlienWx 1)
-    if (wxWidgets_UseAlienWx)
-        set(AlienWx_DEBUG 1)
-        find_package(AlienWx REQUIRED COMPONENTS base core adv html gl)
-        include_directories(${AlienWx_INCLUDE_DIRS})
-        #add_compile_options(${AlienWx_CXX_FLAGS})
-        add_definitions(${AlienWx_DEFINITIONS})
-        set(wxWidgets_LIBRARIES ${AlienWx_LIBRARIES})
-        # On Linux / gtk, we need to have a direct access to gtk+ for some workarounds.
-        if (AlienWx_GUI_TOOLKIT STREQUAL "gtk2")
-            pkg_check_modules(GTK2 gtk+-2.0)
-            include_directories(${GTK2_INCLUDE_DIRS})
-        endif()
-        if (AlienWx_GUI_TOOLKIT STREQUAL "gtk3")
-            pkg_check_modules(GTK3 gtk+-3.0)
-            include_directories(${GTK3_INCLUDE_DIRS})
-        endif()
-    else ()
-        find_package(wxWidgets REQUIRED COMPONENTS base core adv html gl)
-        include(${wxWidgets_USE_FILE})
-    endif ()
-    add_definitions(-DSLIC3R_GUI -DSLIC3R_PRUS)
-    target_link_libraries(XS ${wxWidgets_LIBRARIES})
-endif()
-
-find_package(CURL REQUIRED)
-include_directories(${CURL_INCLUDE_DIRS})
-target_link_libraries(XS ${CURL_LIBRARIES})
-
-if (SLIC3R_STATIC)
-    if (NOT APPLE)
-        # libcurl is always linked dynamically to the system libcurl on OSX.
-        # On other systems, libcurl is linked statically if SLIC3R_STATIC is set.
-        add_definitions(-DCURL_STATICLIB)
-    endif()
-    if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-        # As of now, our build system produces a statically linked libcurl,
-        # which links the OpenSSL library dynamically.
-        find_package(OpenSSL REQUIRED)
-        message("OpenSSL include dir: ${OPENSSL_INCLUDE_DIR}")
-        message("OpenSSL libraries: ${OPENSSL_LIBRARIES}")
-        include_directories(${OPENSSL_INCLUDE_DIR})
-        target_link_libraries(XS ${OPENSSL_LIBRARIES})
-    endif()
-endif()
-
-## OPTIONAL packages
-
-# Find eigen3 or use bundled version
-if (NOT SLIC3R_STATIC)
-    find_package(Eigen3)
-endif ()
-if (NOT Eigen3_FOUND)
-    set(Eigen3_FOUND 1)
-    set(EIGEN3_INCLUDE_DIR ${LIBDIR}/eigen/)
-endif ()
-include_directories(${EIGEN3_INCLUDE_DIR})
-
-# Find expat or use bundled version
-# Always use the system libexpat on Linux.
-if (NOT SLIC3R_STATIC OR CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    find_package(EXPAT)
-endif ()
-if (NOT EXPAT_FOUND)
-    add_library(expat STATIC
-        ${LIBDIR}/expat/xmlparse.c
-        ${LIBDIR}/expat/xmlrole.c
-        ${LIBDIR}/expat/xmltok.c
-    )
-    set(EXPAT_FOUND 1)
-    set(EXPAT_INCLUDE_DIRS ${LIBDIR}/expat/)
-    set(EXPAT_LIBRARIES expat)
-endif ()
-include_directories(${EXPAT_INCLUDE_DIRS})
+# target_link_libraries(XS ${wxWidgets_LIBRARIES})
 target_link_libraries(XS ${EXPAT_LIBRARIES})
+# target_link_libraries(XS ${GLEW_LIBRARIES})
 
-# Find glew or use bundled version
-if (NOT SLIC3R_STATIC)
-    find_package(GLEW)
-endif ()
-if (NOT GLEW_FOUND)
-    add_library(glew STATIC ${LIBDIR}/glew/src/glew.c)
-    set(GLEW_FOUND 1)
-    set(GLEW_INCLUDE_DIRS ${LIBDIR}/glew/include/)
-    set(GLEW_LIBRARIES glew)
-    add_definitions(-DGLEW_STATIC)
-endif ()
-include_directories(${GLEW_INCLUDE_DIRS})
-target_link_libraries(XS ${GLEW_LIBRARIES})
 # Install the XS.pm and XS.{so,dll,bundle} into the local-lib directory.
-set(PERL_LOCAL_LIB_DIR "${PROJECT_SOURCE_DIR}/local-lib/lib/perl5/${PerlEmbed_ARCHNAME}")
+set(PERL_LOCAL_LIB_DIR "../../local-lib/lib/perl5/${PerlEmbed_ARCHNAME}")
 add_custom_command(
     TARGET XS
     POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory "${PERL_LOCAL_LIB_DIR}/auto/Slic3r/XS/"
         COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:XS>" "${PERL_LOCAL_LIB_DIR}/auto/Slic3r/XS/"
         COMMAND ${CMAKE_COMMAND} -E make_directory "${PERL_LOCAL_LIB_DIR}/Slic3r/"
-        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/xs/lib/Slic3r/XS.pm" "${PERL_LOCAL_LIB_DIR}/Slic3r/"
+        COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/lib/Slic3r/XS.pm" "${PERL_LOCAL_LIB_DIR}/Slic3r/"
     COMMENT "Installing XS.pm and XS.{so,dll,bundle} into the local-lib directory ..."
 )
 if(APPLE)
@@ -707,18 +185,9 @@ if(APPLE)
     )
 endif()
 
-# Create a slic3r executable
-add_executable(slic3r ${PROJECT_SOURCE_DIR}/src/slic3r.cpp)
-target_include_directories(XS PRIVATE src src/libslic3r)
-target_link_libraries(slic3r libslic3r libslic3r_gui admesh miniz ${Boost_LIBRARIES} clipper ${EXPAT_LIBRARIES} ${GLEW_LIBRARIES} polypartition poly2tri ${TBB_LIBRARIES} ${wxWidgets_LIBRARIES})
 if(SLIC3R_PROFILE)
     target_link_libraries(Shiny)
 endif()
-if (APPLE)
-    target_link_libraries(slic3r "-framework IOKit" "-framework CoreFoundation" -lc++)
-elseif (NOT MSVC)
-    target_link_libraries(slic3r -lstdc++)
-endif ()
 
 if (MSVC)
     # Here we associate some additional properties with the MSVC project to enable compilation and debugging out of the box.
@@ -726,35 +195,21 @@ if (MSVC)
     string(REPLACE "/" "\\" PROPS_PERL_BIN_PATH "${PROPS_PERL_BIN_PATH}")
     string(REPLACE "/" "\\" PROPS_PERL_EXECUTABLE "${PERL_EXECUTABLE}")
     string(REPLACE "/" "\\" PROPS_CMAKE_SOURCE_DIR "${CMAKE_SOURCE_DIR}")
-    configure_file("${PROJECT_SOURCE_DIR}/cmake/msvc/xs.wperl.props.in" "${CMAKE_BINARY_DIR}/xs.wperl.props" NEWLINE_STYLE CRLF)
+    configure_file("../cmake/msvc/xs.wperl.props.in" "${CMAKE_BINARY_DIR}/xs.wperl.props" NEWLINE_STYLE CRLF)
     set_target_properties(XS PROPERTIES VS_USER_PROPS "${CMAKE_BINARY_DIR}/xs.wperl.props")
 endif()
-
-# l10n
-set(L10N_DIR "${PROJECT_SOURCE_DIR}/resources/localization")
-add_custom_target(pot
-    COMMAND xgettext --keyword=L --from-code=UTF-8 --debug
-        -f "${L10N_DIR}/list.txt"
-        -o "${L10N_DIR}/Slic3rPE.pot"
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-    COMMENT "Generate pot file from strings in the source tree"
-)
-
-# ##############################################################################
-# Adding libnest2d project for bin packing...
-# ##############################################################################
-
-set(LIBNEST2D_UNITTESTS ON CACHE BOOL "Force generating unittests for libnest2d")
-
-add_subdirectory(${LIBDIR}/libnest2d)
-target_compile_definitions(libslic3r PUBLIC -DUSE_TBB)
-target_include_directories(libslic3r PUBLIC BEFORE ${LIBNEST2D_INCLUDES})
-target_include_directories(libslic3r_gui PUBLIC BEFORE ${LIBNEST2D_INCLUDES})
-
-message(STATUS "Libnest2D Libraries: ${LIBNEST2D_LIBRARIES}")
-target_link_libraries(libslic3r ${LIBNEST2D_LIBRARIES})
-# ##############################################################################
 
 # Installation
 install(TARGETS XS DESTINATION ${PERL_VENDORARCH}/auto/Slic3r/XS)
 install(FILES lib/Slic3r/XS.pm DESTINATION ${PERL_VENDORLIB}/Slic3r)
+
+# Unit / integration tests
+enable_testing()
+get_filename_component(PERL_BIN_PATH "${PERL_EXECUTABLE}" DIRECTORY)
+if (MSVC)
+    set(PERL_PROVE "${PERL_BIN_PATH}/prove.bat")
+else ()
+    set(PERL_PROVE "${PERL_BIN_PATH}/prove")
+endif ()
+add_test (NAME xs COMMAND "${PERL_EXECUTABLE}" ${PERL_PROVE} -I ${PROJECT_SOURCE_DIR}/../local-lib/lib/perl5 WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+add_test (NAME integration COMMAND "${PERL_EXECUTABLE}" ${PERL_PROVE} WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/..)

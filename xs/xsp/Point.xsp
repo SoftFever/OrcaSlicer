@@ -3,6 +3,7 @@
 %{
 #include <xsinit.h>
 #include "libslic3r/Point.hpp"
+#include "libslic3r/Line.hpp"
 #include "libslic3r/Polygon.hpp"
 #include "libslic3r/Polyline.hpp"
 %}
@@ -12,44 +13,44 @@
     ~Point();
     Clone<Point> clone()
         %code{% RETVAL=THIS; %}; 
-    void scale(double factor);
-    void translate(double x, double y);
+    void scale(double factor)
+        %code{% *THIS *= factor; %};
+    void translate(double x, double y)
+        %code{% *THIS += Point(x, y); %};
     SV* arrayref()
         %code{% RETVAL = to_SV_pureperl(THIS); %};
     SV* pp()
         %code{% RETVAL = to_SV_pureperl(THIS); %};
     int x()
-        %code{% RETVAL = THIS->x; %};
+        %code{% RETVAL = (*THIS)(0); %};
     int y()
-        %code{% RETVAL = THIS->y; %};
+        %code{% RETVAL = (*THIS)(1); %};
     void set_x(int val)
-        %code{% THIS->x = val; %};
+        %code{% (*THIS)(0) = val; %};
     void set_y(int val)
-        %code{% THIS->y = val; %};
+        %code{% (*THIS)(1) = val; %};
     int nearest_point_index(Points points);
     Clone<Point> nearest_point(Points points)
         %code{% Point p; THIS->nearest_point(points, &p); RETVAL = p; %};
     double distance_to(Point* point)
-        %code{% RETVAL = THIS->distance_to(*point); %};
+        %code{% RETVAL = (*point - *THIS).cast<double>().norm(); %};
     double distance_to_line(Line* line)
-        %code{% RETVAL = THIS->distance_to(*line); %};
+        %code{% RETVAL = line->distance_to(*THIS); %};
     double perp_distance_to_line(Line* line)
-        %code{% RETVAL = THIS->perp_distance_to(*line); %};
+        %code{% RETVAL = line->perp_distance_to(*THIS); %};
     double ccw(Point* p1, Point* p2)
         %code{% RETVAL = THIS->ccw(*p1, *p2); %};
     double ccw_angle(Point* p1, Point* p2)
         %code{% RETVAL = THIS->ccw_angle(*p1, *p2); %};
-    Clone<Point> projection_onto_polygon(Polygon* polygon)
+    Point* projection_onto_polygon(Polygon* polygon)
         %code{% RETVAL = new Point(THIS->projection_onto(*polygon)); %};
-    Clone<Point> projection_onto_polyline(Polyline* polyline)
+    Point* projection_onto_polyline(Polyline* polyline)
         %code{% RETVAL = new Point(THIS->projection_onto(*polyline)); %};
-    Clone<Point> projection_onto_line(Line* line)
+    Point* projection_onto_line(Line* line)
         %code{% RETVAL = new Point(THIS->projection_onto(*line)); %};
-    Clone<Point> negative()
-        %code{% RETVAL = new Point(THIS->negative()); %};
-    bool coincides_with_epsilon(Point* point)
-        %code{% RETVAL = THIS->coincides_with_epsilon(*point); %};
-    std::string serialize() %code{% char buf[2048]; sprintf(buf, "%ld,%ld", THIS->x, THIS->y); RETVAL = buf; %};
+    Point* negative()
+        %code{% RETVAL = new Point(- *THIS); %};
+    std::string serialize() %code{% char buf[2048]; sprintf(buf, "%ld,%ld", (*THIS)(0), (*THIS)(1)); RETVAL = buf; %};
 
 %{
 
@@ -68,7 +69,7 @@ Point::coincides_with(point_sv)
     CODE:
         Point point;
         from_SV_check(point_sv, &point);
-        RETVAL = THIS->coincides_with(point);
+        RETVAL = (*THIS) == point;
     OUTPUT:
         RETVAL
 
@@ -76,72 +77,62 @@ Point::coincides_with(point_sv)
 
 };
 
-%name{Slic3r::Point3} class Point3 {
-    Point3(int _x = 0, int _y = 0, int _z = 0);
-    ~Point3();
-    Clone<Point3> clone()
-        %code{% RETVAL = THIS; %};
-    int x()
-        %code{% RETVAL = THIS->x; %};
-    int y()
-        %code{% RETVAL = THIS->y; %};
-    int z()
-        %code{% RETVAL = THIS->z; %};
-    std::string serialize() %code{% char buf[2048]; sprintf(buf, "%ld,%ld,%ld", THIS->x, THIS->y, THIS->z); RETVAL = buf; %};
-};
-
-%name{Slic3r::Pointf} class Pointf {
-    Pointf(double _x = 0, double _y = 0);
-    ~Pointf();
-    Clone<Pointf> clone()
+%name{Slic3r::Pointf} class Vec2d {
+    Vec2d(double _x = 0, double _y = 0);
+    ~Vec2d();
+    Clone<Vec2d> clone()
         %code{% RETVAL = THIS; %};
     SV* arrayref()
         %code{% RETVAL = to_SV_pureperl(THIS); %};
     SV* pp()
         %code{% RETVAL = to_SV_pureperl(THIS); %};
     double x()
-        %code{% RETVAL = THIS->x; %};
+        %code{% RETVAL = (*THIS)(0); %};
     double y()
-        %code{% RETVAL = THIS->y; %};
+        %code{% RETVAL = (*THIS)(1); %};
     void set_x(double val)
-        %code{% THIS->x = val; %};
+        %code{% (*THIS)(0) = val; %};
     void set_y(double val)
-        %code{% THIS->y = val; %};
-    void translate(double x, double y);
-    void scale(double factor);
-    void rotate(double angle, Pointf* center)
-        %code{% THIS->rotate(angle, *center); %};
-    Clone<Pointf> negative()
-        %code{% RETVAL = THIS->negative(); %};
-    Clone<Pointf> vector_to(Pointf* point)
-        %code{% RETVAL = THIS->vector_to(*point); %};
-    std::string serialize() %code{% char buf[2048]; sprintf(buf, "%lf,%lf", THIS->x, THIS->y); RETVAL = buf; %};
+        %code{% (*THIS)(1) = val; %};
+    void translate(double x, double y)
+        %code{% *THIS += Vec2d(x, y); %};
+    void scale(double factor)
+        %code{% *THIS *= factor; %};
+    void rotate(double angle, Vec2d* center)
+        %code{% *THIS = Eigen::Translation2d(*center) * Eigen::Rotation2Dd(angle) * Eigen::Translation2d(- *center) * Eigen::Vector2d((*THIS)(0), (*THIS)(1)); %};
+    Vec2d* negative()
+        %code{% RETVAL = new Vec2d(- *THIS); %};
+    Vec2d* vector_to(Vec2d* point)
+        %code{% RETVAL = new Vec2d(*point - *THIS); %};
+    std::string serialize() %code{% char buf[2048]; sprintf(buf, "%lf,%lf", (*THIS)(0), (*THIS)(1)); RETVAL = buf; %};
 };
 
-%name{Slic3r::Pointf3} class Pointf3 {
-    Pointf3(double _x = 0, double _y = 0, double _z = 0);
-    ~Pointf3();
-    Clone<Pointf3> clone()
+%name{Slic3r::Pointf3} class Vec3d {
+    Vec3d(double _x = 0, double _y = 0, double _z = 0);
+    ~Vec3d();
+    Clone<Vec3d> clone()
         %code{% RETVAL = THIS; %};
     double x()
-        %code{% RETVAL = THIS->x; %};
+        %code{% RETVAL = (*THIS)(0); %};
     double y()
-        %code{% RETVAL = THIS->y; %};
+        %code{% RETVAL = (*THIS)(1); %};
     double z()
-        %code{% RETVAL = THIS->z; %};
+        %code{% RETVAL = (*THIS)(2); %};
     void set_x(double val)
-        %code{% THIS->x = val; %};
+        %code{% (*THIS)(0) = val; %};
     void set_y(double val)
-        %code{% THIS->y = val; %};
+        %code{% (*THIS)(1) = val; %};
     void set_z(double val)
-        %code{% THIS->z = val; %};
-    void translate(double x, double y, double z);
-    void scale(double factor);
-    double distance_to(Pointf3* point)
-        %code{% RETVAL = THIS->distance_to(*point); %};
-    Clone<Pointf3> negative()
-        %code{% RETVAL = THIS->negative(); %};
-    Clone<Pointf3> vector_to(Pointf3* point)
-        %code{% RETVAL = THIS->vector_to(*point); %};
-    std::string serialize() %code{% char buf[2048]; sprintf(buf, "%lf,%lf,%lf", THIS->x, THIS->y, THIS->z); RETVAL = buf; %};
+        %code{% (*THIS)(2) = val; %};
+    void translate(double x, double y, double z)
+        %code{% *THIS += Vec3d(x, y, z); %};
+    void scale(double factor)
+        %code{% *THIS *= factor; %};
+    double distance_to(Vec3d* point)
+        %code{% RETVAL = (*point - *THIS).norm(); %};
+    Vec3d* negative()
+        %code{% RETVAL = new Vec3d(- *THIS); %};
+    Vec3d* vector_to(Vec3d* point)
+        %code{% RETVAL = new Vec3d(*point - *THIS); %};
+    std::string serialize() %code{% char buf[2048]; sprintf(buf, "%lf,%lf,%lf", (*THIS)(0), (*THIS)(1), (*THIS)(2)); RETVAL = buf; %};
 };

@@ -1,0 +1,2 @@
+add_executable(slabasebed EXCLUDE_FROM_ALL slabasebed.cpp)
+target_link_libraries(slabasebed libslic3r)

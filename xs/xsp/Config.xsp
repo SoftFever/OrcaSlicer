@@ -137,7 +137,7 @@ PROTOTYPES: DISABLE
 SV*
 print_config_def()
     CODE:
-        t_optiondef_map &def = Slic3r::print_config_def.options;
+        t_optiondef_map &def = *const_cast<t_optiondef_map*>(&Slic3r::print_config_def.options);
         
         HV* options_hv = newHV();
         for (t_optiondef_map::iterator oit = def.begin(); oit != def.end(); ++oit) {

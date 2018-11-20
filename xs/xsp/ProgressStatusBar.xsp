@@ -1,0 +1,48 @@
+%module{Slic3r::XS};
+
+%{
+#include <xsinit.h>
+#include "slic3r/GUI/ProgressStatusBar.hpp"
+#include "slic3r/GUI/GUI.hpp"
+%}
+
+%name{Slic3r::GUI::ProgressStatusBar} class ProgressStatusBar {
+    ProgressStatusBar();
+    ~ProgressStatusBar();
+
+    int GetProgress() const
+        %code%{ RETVAL=THIS->get_progress(); %};
+
+    void SetProgress(int val)
+        %code%{ THIS->set_progress(val); %};
+
+    void SetRange(int val = 100)
+        %code%{ THIS->set_range(val); %};
+
+    void ShowProgress(bool show)
+        %code%{ THIS->show_progress(show); %};
+
+    void StartBusy(int val = 100)
+        %code%{ THIS->start_busy(val); %};
+
+    void StopBusy()
+        %code%{ THIS->stop_busy(); %};
+
+    bool IsBusy() const
+        %code%{ RETVAL=THIS->is_busy(); %};
+    
+    void Run(int rate)
+        %code%{ THIS->run(rate); %};
+
+    void Embed()
+        %code%{ THIS->embed(); %};
+
+    void SetStatusText(const char *txt)
+        %code%{ THIS->set_status_text(_(txt)); %};
+
+    void SetCancelCallback(SV* callback)
+        %code%{ THIS->m_perl_cancel_callback.register_callback(callback);  THIS->show_cancel_button();%};
+    void ResetCancelCallback()
+        %code%{ THIS->m_perl_cancel_callback.deregister_callback();  THIS->hide_cancel_button(); %};
+
+};

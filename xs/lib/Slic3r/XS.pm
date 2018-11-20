@@ -33,16 +33,6 @@ use overload
     '@{}' => sub { $_[0]->arrayref },
     'fallback' => 1;
 
-package Slic3r::Point3;
-use overload
-    '@{}' => sub { [ $_[0]->x, $_[0]->y, $_[0]->z ] },  #,
-    'fallback' => 1;
-
-sub pp {
-    my ($self) = @_;
-    return [ @$self ];
-}
-
 package Slic3r::Pointf;
 use overload
     '@{}' => sub { $_[0]->arrayref },
@@ -241,22 +231,15 @@ sub new {
     );
 }
 
-package Slic3r::GUI::_3DScene::GLShader;
-sub CLONE_SKIP { 1 }
-
 package Slic3r::GUI::_3DScene::GLVolume::Collection;
 use overload
     '@{}' => sub { $_[0]->arrayref },
     'fallback' => 1;
 
-sub CLONE_SKIP { 1 }
-
 package Slic3r::GUI::PresetCollection;
 use overload
     '@{}' => sub { $_[0]->arrayref },
     'fallback' => 1;
-
-sub CLONE_SKIP { 1 }
 
 package main;
 for my $class (qw(

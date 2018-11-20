@@ -27,168 +27,106 @@ _constant()
 
 %}
 
-
 %name{Slic3r::Print::Region} class PrintRegion {
     // owned by Print, no constructor/destructor
 
     Ref<StaticPrintConfig> config()
-        %code%{ RETVAL = &THIS->config; %};
+        %code%{ RETVAL = &THIS->config(); %};
     Ref<Print> print();
     
     Clone<Flow> flow(FlowRole role, double layer_height, bool bridge, bool first_layer, double width, PrintObject* object)
         %code%{ RETVAL = THIS->flow(role, layer_height, bridge, first_layer, width, *object); %};
 };
 
-
 %name{Slic3r::Print::Object} class PrintObject {
     // owned by Print, no constructor/destructor
 
-    void add_region_volume(int region_id, int volume_id);
-    std::vector<int> get_region_volumes(int region_id)
-        %code%{
-            if (0 <= region_id && region_id < THIS->region_volumes.size())
-                RETVAL = THIS->region_volumes[region_id];
-        %};
     int region_count()
-        %code%{ RETVAL = THIS->print()->regions.size(); %};
+        %code%{ RETVAL = THIS->print()->regions().size(); %};
 
-    int region_volumes_count()
-        %code%{ RETVAL = THIS->region_volumes.size(); %};
     Ref<Print> print();
     Ref<ModelObject> model_object();
     Ref<StaticPrintConfig> config()
-        %code%{ RETVAL = &THIS->config; %};
+        %code%{ RETVAL = &THIS->config(); %};
     Points copies();
     t_layer_height_ranges layer_height_ranges()
         %code%{ RETVAL = THIS->layer_height_ranges; %};
     std::vector<double> layer_height_profile()
         %code%{ RETVAL = THIS->layer_height_profile; %};
-    Ref<Point3> size()
-        %code%{ RETVAL = &THIS->size; %};
     Clone<BoundingBox> bounding_box();
     
     Points _shifted_copies()
-        %code%{ RETVAL = THIS->_shifted_copies; %};
-    void set_shifted_copies(Points value)
-        %code%{ THIS->_shifted_copies = value; %};
+        %code%{ RETVAL = THIS->copies(); %};
 
-    bool add_copy(Pointf* point)
-        %code%{ RETVAL = THIS->add_copy(*point); %};
-    bool delete_last_copy();
-    bool delete_all_copies();
-    bool set_copies(Points copies);
-    bool reload_model_instances();
     void set_layer_height_ranges(t_layer_height_ranges layer_height_ranges)
         %code%{ THIS->layer_height_ranges = layer_height_ranges; %};
-    void set_layer_height_profile(std::vector<double> profile)
-        %code%{ THIS->layer_height_profile = profile; %};
 
-    size_t total_layer_count();
     size_t layer_count();
-    void clear_layers();
     Ref<Layer> get_layer(int idx);
-    Ref<Layer> add_layer(int id, coordf_t height, coordf_t print_z,
-        coordf_t slice_z);
 
     size_t support_layer_count();
-    void clear_support_layers();
     Ref<SupportLayer> get_support_layer(int idx);
 
     bool step_done(PrintObjectStep step)
-        %code%{ RETVAL = THIS->state.is_done(step); %};
-    void set_step_done(PrintObjectStep step)
-        %code%{ THIS->state.set_done(step); %};
-    void set_step_started(PrintObjectStep step)
-        %code%{ THIS->state.set_started(step); %};
+        %code%{ RETVAL = THIS->is_step_done(step); %};
 
-    void _slice();
-    std::string _fix_slicing_errors();
-    void _simplify_slices(double distance);
-    void _prepare_infill();
-    void detect_surfaces_type();
-    void process_external_surfaces();
-    void _make_perimeters();
-    void _infill();
-    void _generate_support_material();
-
-    std::vector<double> get_layer_height_min_max()
-        %code%{ 
-            SlicingParameters slicing_params = THIS->slicing_parameters();
-            RETVAL.push_back(slicing_params.min_layer_height);
-            RETVAL.push_back(slicing_params.max_layer_height);
-            RETVAL.push_back(slicing_params.first_print_layer_height);
-            RETVAL.push_back(slicing_params.first_object_layer_height);
-            RETVAL.push_back(slicing_params.layer_height);
-        %};
-
-    void reset_layer_height_profile();
-    
-    int ptr()
-        %code%{ RETVAL = (int)(intptr_t)THIS; %};
+    void slice();
 };
-
 
 %name{Slic3r::Print} class Print {
     Print();
     ~Print();
 
     Ref<StaticPrintConfig> config()
-        %code%{ RETVAL = static_cast<GCodeConfig*>(&THIS->config); %};
-    Ref<StaticPrintConfig> default_object_config()
-        %code%{ RETVAL = &THIS->default_object_config; %};
-    Ref<StaticPrintConfig> default_region_config()
-        %code%{ RETVAL = &THIS->default_region_config; %};
+        %code%{ RETVAL = const_cast<GCodeConfig*>(static_cast<const GCodeConfig*>(&THIS->config())); %};
     Ref<PlaceholderParser> placeholder_parser()
-        %code%{ RETVAL = &THIS->placeholder_parser; %};
-    // TODO: status_cb
+        %code%{ RETVAL = &THIS->placeholder_parser(); %};
     Ref<ExtrusionEntityCollection> skirt()
-        %code%{ RETVAL = &THIS->skirt; %};
+        %code%{ RETVAL = const_cast<ExtrusionEntityCollection*>(&THIS->skirt()); %};
     Ref<ExtrusionEntityCollection> brim()
-        %code%{ RETVAL = &THIS->brim; %};
+        %code%{ RETVAL = const_cast<ExtrusionEntityCollection*>(&THIS->brim()); %};
     std::string estimated_normal_print_time()
-        %code%{ RETVAL = THIS->estimated_normal_print_time; %};
+        %code%{ RETVAL = THIS->print_statistics().estimated_normal_print_time; %};
     std::string estimated_silent_print_time()
-        %code%{ RETVAL = THIS->estimated_silent_print_time; %};
-
+        %code%{ RETVAL = THIS->print_statistics().estimated_silent_print_time; %};
+    double total_used_filament()
+        %code%{ RETVAL = THIS->print_statistics().total_used_filament; %};
+    double total_extruded_volume()
+        %code%{ RETVAL = THIS->print_statistics().total_extruded_volume; %};
+    double total_weight()
+        %code%{ RETVAL = THIS->print_statistics().total_weight; %};
+    double total_cost()
+        %code%{ RETVAL = THIS->print_statistics().total_cost; %};
+    double total_wipe_tower_cost()
+        %code%{ RETVAL = THIS->print_statistics().total_wipe_tower_cost; %};
+    double total_wipe_tower_filament()
+        %code%{ RETVAL = THIS->print_statistics().total_wipe_tower_filament; %};
+    int wipe_tower_number_of_toolchanges()
+        %code%{ RETVAL = THIS->wipe_tower_data().number_of_toolchanges; %};
     PrintObjectPtrs* objects()
-        %code%{ RETVAL = &THIS->objects; %};
-    void clear_objects();
-    Ref<PrintObject> get_object(int idx);
-    void delete_object(int idx);
+        %code%{ RETVAL = const_cast<PrintObjectPtrs*>(&THIS->objects()); %};
+    Ref<PrintObject> get_object(int idx)
+        %code%{ RETVAL = THIS->objects()[idx]; %};
     void reload_object(int idx);
-    bool reload_model_instances();
     size_t object_count()
-        %code%{ RETVAL = THIS->objects.size(); %};
+        %code%{ RETVAL = THIS->objects().size(); %};
 
     PrintRegionPtrs* regions()
-        %code%{ RETVAL = &THIS->regions; %};
-    Ref<PrintRegion> get_region(int idx);
-    Ref<PrintRegion> add_region();
+        %code%{ RETVAL = const_cast<PrintRegionPtrs*>(&THIS->regions()); %};
+    Ref<PrintRegion> get_region(int idx)
+        %code%{ RETVAL = THIS->regions()[idx]; %};
     size_t region_count()
-        %code%{ RETVAL = THIS->regions.size(); %};
+        %code%{ RETVAL = THIS->regions().size(); %};
     
     bool step_done(PrintStep step)
-        %code%{ RETVAL = THIS->state.is_done(step); %};
+        %code%{ RETVAL = THIS->is_step_done(step); %};
     bool object_step_done(PrintObjectStep step)
-        %code%{ RETVAL = THIS->step_done(step); %};
-    void set_step_done(PrintStep step)
-        %code%{ THIS->state.set_done(step); %};
-    void set_step_started(PrintStep step)
-        %code%{ THIS->state.set_started(step); %};
+        %code%{ RETVAL = THIS->is_step_done(step); %};
     
-    void clear_filament_stats()
-        %code%{
-            THIS->filament_stats.clear();
-        %};
-    void set_filament_stats(int extruder_id, float length)
-        %code%{
-            THIS->filament_stats.insert(std::pair<size_t,float>(extruder_id, 0));
-            THIS->filament_stats[extruder_id] += length;
-        %};
     SV* filament_stats()
         %code%{
             HV* hv = newHV();
-            for (std::map<size_t,float>::const_iterator it = THIS->filament_stats.begin(); it != THIS->filament_stats.end(); ++it) {
+            for (std::map<size_t,float>::const_iterator it = THIS->print_statistics().filament_stats.begin(); it != THIS->print_statistics().filament_stats.end(); ++it) {
                 // stringify extruder_id
                 std::ostringstream ss;
                 ss << it->first;
@@ -198,7 +136,6 @@ _constant()
                 RETVAL = newRV_noinc((SV*)hv);
             }
         %};
-    void _simplify_slices(double distance);
     double max_allowed_layer_height() const;
     bool has_support_material() const;
     void auto_assign_extruders(ModelObject* model_object);
@@ -210,12 +147,11 @@ _constant()
                 croak("%s\n", e.what());
             }
         %};
-    
+        
     void add_model_object(ModelObject* model_object, int idx = -1);
     bool apply_config(DynamicPrintConfig* config)
         %code%{ RETVAL = THIS->apply_config(*config); %};
     bool has_infinite_skirt();
-    bool has_skirt();
     std::vector<unsigned int> extruders() const;
     int validate() %code%{ 
             std::string err = THIS->validate(); 
@@ -225,88 +161,34 @@ _constant()
         %};
     Clone<BoundingBox> bounding_box();
     Clone<BoundingBox> total_bounding_box();
-    double skirt_first_layer_height();
-    Clone<Flow> brim_flow();
-    Clone<Flow> skirt_flow();
+    Clone<Point>       size() %code%{ RETVAL = THIS->bounding_box().size(); %};
 
-    void _make_skirt();
-    void _make_brim();
+    void set_callback_event(int evt) %code%{
+        %};
+    void set_status_silent();
+    void set_status(int percent, const char *message);
 
-    bool has_wipe_tower();
-    void _clear_wipe_tower();
-    void _make_wipe_tower();
+    void process() %code%{
+            try {
+                THIS->process();
+            } catch (std::exception& e) {
+                croak(e.what());
+            }
+        %};
 
-%{
+    void export_gcode(char *path_template) %code%{
+            try {
+                THIS->export_gcode(path_template, nullptr);
+            } catch (std::exception& e) {
+                croak(e.what());
+            }
+        %};
 
-double
-Print::total_used_filament(...)
-    CODE:
-        if (items > 1) {
-            THIS->total_used_filament = (double)SvNV(ST(1));
-        }
-        RETVAL = THIS->total_used_filament;
-    OUTPUT:
-        RETVAL
-
-double
-Print::total_extruded_volume(...)
-    CODE:
-        if (items > 1) {
-            THIS->total_extruded_volume = (double)SvNV(ST(1));
-        }
-        RETVAL = THIS->total_extruded_volume;
-    OUTPUT:
-        RETVAL
-
-
-double
-Print::total_weight(...)
-    CODE:
-        if (items > 1) {
-            THIS->total_weight = (double)SvNV(ST(1));
-        }
-        RETVAL = THIS->total_weight;
-    OUTPUT:
-        RETVAL
-
-double
-Print::total_cost(...)
-    CODE:
-        if (items > 1) {
-            THIS->total_cost = (double)SvNV(ST(1));
-        }
-        RETVAL = THIS->total_cost;
-    OUTPUT:
-        RETVAL
-
-double
-Print::total_wipe_tower_cost(...)
-    CODE:
-        if (items > 1) {
-            THIS->total_wipe_tower_cost = (double)SvNV(ST(1));
-        }
-        RETVAL = THIS->total_wipe_tower_cost;
-    OUTPUT:
-        RETVAL
-
-double
-Print::total_wipe_tower_filament(...)
-    CODE:
-        if (items > 1) {
-            THIS->total_wipe_tower_filament = (double)SvNV(ST(1));
-        }
-        RETVAL = THIS->total_wipe_tower_filament;
-    OUTPUT:
-        RETVAL
-
-int
-Print::m_wipe_tower_number_of_toolchanges(...)
-    CODE:
-        if (items > 1) {
-            THIS->m_wipe_tower_number_of_toolchanges = (double)SvNV(ST(1));
-        }
-        RETVAL = THIS->m_wipe_tower_number_of_toolchanges;
-    OUTPUT:
-        RETVAL        
-%}
+    void export_png(char *path) %code%{
+            try {
+                THIS->export_png(path);
+            } catch (std::exception& e) {
+                croak(e.what());
+            }
+        %};
 };

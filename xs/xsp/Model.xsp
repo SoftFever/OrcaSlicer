@@ -21,27 +21,18 @@
     %name{read_from_file} Model(std::string input_file, bool add_default_instances = true)
         %code%{
             try {
-                RETVAL = new Model(Model::read_from_file(input_file, add_default_instances));
+                RETVAL = new Model(Model::read_from_file(input_file, nullptr, add_default_instances));
             } catch (std::exception& e) {
                 croak("Error while opening %s: %s\n", input_file.c_str(), e.what());
             }
         %};
 
-    %name{read_from_archive} Model(std::string input_file, PresetBundle* bundle, bool add_default_instances = true)
-        %code%{
-            try {
-                RETVAL = new Model(Model::read_from_archive(input_file, bundle, add_default_instances));
-            } catch (std::exception& e) {
-                croak("Error while opening %s: %s\n", input_file.c_str(), e.what());
-            }
-        %};
-        
     Clone<Model> clone()
         %code%{ RETVAL = THIS; %};
     
     %name{_add_object} Ref<ModelObject> add_object();
     Ref<ModelObject> _add_object_clone(ModelObject* other, bool copy_volumes = true)
-        %code%{ RETVAL = THIS->add_object(*other, copy_volumes); %};
+        %code%{ auto ptr = THIS->add_object(*other); if (! copy_volumes) ptr->clear_volumes(); RETVAL = ptr; %};
     void delete_object(size_t idx);
     void clear_objects();
     size_t objects_count()
@@ -81,7 +72,7 @@
 
     bool add_default_instances();
     Clone<BoundingBoxf3> bounding_box();
-    void center_instances_around_point(Pointf* point)
+    void center_instances_around_point(Vec2d* point)
         %code%{ THIS->center_instances_around_point(*point); %};
     void translate(double x, double y, double z);
     Clone<TriangleMesh> mesh();
@@ -101,10 +92,6 @@
 
     bool store_stl(char *path, bool binary)
         %code%{ TriangleMesh mesh = THIS->mesh(); RETVAL = Slic3r::store_stl(path, &mesh, binary); %};
-    bool store_amf(char *path, Print* print, bool export_print_config)
-        %code%{ RETVAL = Slic3r::store_amf(path, THIS, print, export_print_config); %};
-    bool store_3mf(char *path, Print* print, bool export_print_config)
-        %code%{ RETVAL = Slic3r::store_3mf(path, THIS, print, export_print_config); %};
 
 %{
 
@@ -122,67 +109,7 @@ load_stl(CLASS, path, object_name)
     OUTPUT:
         RETVAL
 
-Model*
-load_obj(CLASS, path, object_name)
-    char*           CLASS;
-    char*           path;
-    char*           object_name;
-    CODE:
-        RETVAL = new Model();
-        if (! load_obj(path, RETVAL, object_name)) {
-            delete RETVAL;
-            RETVAL = NULL;
-        }
-    OUTPUT:
-        RETVAL
-
-Model*
-load_amf(CLASS, bundle, path)
-    char*           CLASS;
-    PresetBundle*   bundle;
-    char*           path;
-    CODE:
-        RETVAL = new Model();
-        if (! load_amf(path, bundle, RETVAL)) {
-            delete RETVAL;
-            RETVAL = NULL;
-        }
-    OUTPUT:
-        RETVAL
-
-Model*
-load_3mf(CLASS, bundle, path)
-    char*           CLASS;
-    PresetBundle*   bundle;
-    char*           path;
-    CODE:
-        RETVAL = new Model();
-        if (! load_3mf(path, bundle, RETVAL)) {
-            delete RETVAL;
-            RETVAL = NULL;
-        }
-    OUTPUT:
-        RETVAL
-        
-Model*
-load_prus(CLASS, path)
-    char*           CLASS;
-    char*           path;
-    CODE:
-#ifdef SLIC3R_PRUS
-        RETVAL = new Model();
-        if (! load_prus(path, RETVAL)) {
-            delete RETVAL;
-            RETVAL = NULL;
-        }
-#else
-        RETVAL = nullptr;
-#endif
-    OUTPUT:
-        RETVAL
-
 %}
-
 };
 
 %name{Slic3r::Model::Material} class ModelMaterial {
@@ -289,9 +216,9 @@ ModelMaterial::attributes()
     void set_layer_height_profile(std::vector<double> profile)
         %code%{ THIS->layer_height_profile = profile; THIS->layer_height_profile_valid = true; %};
 
-    Ref<Pointf3> origin_translation()
+    Ref<Vec3d> origin_translation()
         %code%{ RETVAL = &THIS->origin_translation; %};
-    void set_origin_translation(Pointf3* point)
+    void set_origin_translation(Vec3d* point)
         %code%{ THIS->origin_translation = *point; %};
     
     bool needed_repair() const;
@@ -299,17 +226,11 @@ ModelMaterial::attributes()
     int facets_count();
     void center_around_origin();
     void translate(double x, double y, double z);
-    void scale_xyz(Pointf3* versor)
+    void scale_xyz(Vec3d* versor)
         %code{% THIS->scale(*versor); %};
-    void rotate(float angle, Pointf3* axis)
+    void rotate(float angle, Vec3d* axis)
         %code{% THIS->rotate(angle, *axis); %};
     void mirror(Axis axis);
-    
-    Model* cut(double z)
-        %code%{
-            RETVAL = new Model();
-            THIS->cut(z, RETVAL);
-        %};
 
     ModelObjectPtrs* split_object()
         %code%{
@@ -331,15 +252,13 @@ ModelMaterial::attributes()
         %code%{ THIS->name = value; %};
     t_model_material_id material_id();
     void set_material_id(t_model_material_id material_id)
-        %code%{ THIS->material_id(material_id); %};
+        %code%{ THIS->set_material_id(material_id); %};
     Ref<ModelMaterial> material();
     
     Ref<DynamicPrintConfig> config()
         %code%{ RETVAL = &THIS->config; %};
     Ref<TriangleMesh> mesh()
         %code%{ RETVAL = &THIS->mesh; %};
-    Ref<TriangleMesh> convex_hull()
-        %code%{ RETVAL = &THIS->get_convex_hull(); %};
     
     bool modifier()
         %code%{ RETVAL = THIS->is_modifier(); %};
@@ -357,8 +276,6 @@ ModelMaterial::attributes()
         %code%{ THIS->set_type(ModelVolume::SUPPORT_BLOCKER); %};
 
     size_t split(unsigned int max_extruders);
-    
-    ModelMaterial* assign_unique_material();
 };
 
 
@@ -366,20 +283,33 @@ ModelMaterial::attributes()
     Ref<ModelObject> object()
         %code%{ RETVAL = THIS->get_object(); %};
 
-    double rotation()
-        %code%{ RETVAL = THIS->rotation; %};
-    double scaling_factor()
-        %code%{ RETVAL = THIS->scaling_factor; %};
-    Ref<Pointf> offset()
-        %code%{ RETVAL = &THIS->offset; %};
-
+    Vec3d* rotation()
+        %code%{ RETVAL = new Vec3d(THIS->get_rotation(X), THIS->get_rotation(Y), THIS->get_rotation(Z)); %};
+        
+    Vec3d* scaling_factor()
+        %code%{ RETVAL = new Vec3d(THIS->get_scaling_factor(X), THIS->get_scaling_factor(Y), THIS->get_scaling_factor(Z)); %};
+        
+    Vec2d* offset()
+        %code%{ RETVAL = new Vec2d(THIS->get_offset(X), THIS->get_offset(Y)); %};
+        
     void set_rotation(double val)
-        %code%{ THIS->rotation = val; THIS->get_object()->invalidate_bounding_box(); %};
+        %code%{ THIS->set_rotation(Z, val); THIS->get_object()->invalidate_bounding_box(); %};
+        
+    void set_rotations(Vec3d *rotation)
+        %code%{ THIS->set_rotation(*rotation); THIS->get_object()->invalidate_bounding_box(); %};
+        
     void set_scaling_factor(double val)
-        %code%{ THIS->scaling_factor = val; THIS->get_object()->invalidate_bounding_box(); %};
-    void set_offset(Pointf *offset)
-        %code%{ THIS->offset = *offset; %};
-    
+        %code%{ THIS->set_scaling_factor(X, val); THIS->set_scaling_factor(Y, val); THIS->set_scaling_factor(Z, val); THIS->get_object()->invalidate_bounding_box(); %};
+        
+    void set_scaling_factors(Vec3d *scale)
+        %code%{ THIS->set_scaling_factor(*scale); THIS->get_object()->invalidate_bounding_box(); %};
+        
+    void set_offset(Vec2d *offset)
+        %code%{ 
+            THIS->set_offset(X, (*offset)(0));
+            THIS->set_offset(Y, (*offset)(1));
+        %};
+
     void transform_mesh(TriangleMesh* mesh, bool dont_translate = false) const;
     void transform_polygon(Polygon* polygon) const;
 };

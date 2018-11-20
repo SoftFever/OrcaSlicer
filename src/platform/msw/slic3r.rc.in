@@ -1,0 +1,25 @@
+1 VERSIONINFO
+FILEVERSION @SLIC3R_RC_VERSION@
+PRODUCTVERSION @SLIC3R_RC_VERSION@
+{
+ BLOCK "StringFileInfo"
+ {
+  BLOCK "040904E4"
+  {
+   VALUE "CompanyName", "Prusa Research"
+   VALUE "FileDescription", "Slic3r Prusa Edition"
+   VALUE "FileVersion", "@SLIC3R_BUILD_ID@"
+   VALUE "ProductName", "Slic3r Prusa Edition"
+   VALUE "ProductVersion", "@SLIC3R_BUILD_ID@"
+   VALUE "InternalName", "Slic3r Prusa Edition"
+   VALUE "LegalCopyright", "Copyright \251 2011-2017 Alessandro Ranelucci, \251 2016 Prusa Research"
+   VALUE "OriginalFilename", "slic3r.exe"
+  }
+ }
+ BLOCK "VarFileInfo"
+ {
+   VALUE "Translation", 0x409, 1252
+ }
+}
+2 ICON "@SLIC3R_RESOURCES_DIR@/icons/Slic3r.ico"
+1 24 "slic3r.manifest" 

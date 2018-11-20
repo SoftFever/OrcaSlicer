@@ -6,25 +6,10 @@ use utf8;
 use File::Basename qw(basename);
 use FindBin;
 use List::Util qw(first);
-use Slic3r::GUI::2DBed;
-use Slic3r::GUI::Controller;
-use Slic3r::GUI::Controller::ManualControlDialog;
-use Slic3r::GUI::Controller::PrinterPanel;
 use Slic3r::GUI::MainFrame;
 use Slic3r::GUI::Plater;
-use Slic3r::GUI::Plater::2D;
-use Slic3r::GUI::Plater::2DToolpaths;
 use Slic3r::GUI::Plater::3D;
 use Slic3r::GUI::Plater::3DPreview;
-use Slic3r::GUI::Plater::ObjectPartsPanel;
-use Slic3r::GUI::Plater::ObjectCutDialog;
-use Slic3r::GUI::Plater::ObjectSettingsDialog;
-use Slic3r::GUI::Plater::LambdaObjectDialog;
-use Slic3r::GUI::Plater::OverrideSettingsPanel;
-use Slic3r::GUI::ProgressStatusBar;
-use Slic3r::GUI::OptionsGroup;
-use Slic3r::GUI::OptionsGroup::Field;
-use Slic3r::GUI::SystemInfo;
 
 use Wx::Locale gettext => 'L';
 
@@ -43,13 +28,11 @@ use constant FILE_WILDCARDS => {
     prusa   => 'Prusa Control files (*.prusa)|*.prusa;*.PRUSA',
     ini     => 'INI files *.ini|*.ini;*.INI',
     gcode   => 'G-code files (*.gcode, *.gco, *.g, *.ngc)|*.gcode;*.GCODE;*.gco;*.GCO;*.g;*.G;*.ngc;*.NGC',
-    svg     => 'SVG files *.svg|*.svg;*.SVG',
 };
 use constant MODEL_WILDCARD => join '|', @{&FILE_WILDCARDS}{qw(known stl obj amf threemf prusa)};
 
 # Datadir provided on the command line.
 our $datadir;
-# If set, the "Controller" tab for the control of the printer over serial line and the serial port settings are hidden.
 our $no_plater;
 our @cb;
 
@@ -119,8 +102,6 @@ sub OnInit {
     print STDERR "Creating main frame...\n";
     Wx::Image::FindHandlerType(wxBITMAP_TYPE_PNG) || Wx::Image::AddHandler(Wx::PNGHandler->new);
     $self->{mainframe} = my $frame = Slic3r::GUI::MainFrame->new(
-        # If set, the "Controller" tab for the control of the printer over serial line and the serial port settings are hidden.
-        no_controller   => $self->{app_config}->get('no_controller'),
         no_plater       => $no_plater,
         lang_ch_event   => $LANGUAGE_CHANGE_EVENT,
         preferences_event => $PREFERENCES_EVENT,
@@ -186,8 +167,6 @@ sub recreate_GUI{
     my ($self) = @_;
     my $topwindow = $self->GetTopWindow();
     $self->{mainframe} = my $frame = Slic3r::GUI::MainFrame->new(
-        # If set, the "Controller" tab for the control of the printer over serial line and the serial port settings are hidden.
-        no_controller   => $self->{app_config}->get('no_controller'),
         no_plater       => $no_plater,
         lang_ch_event   => $LANGUAGE_CHANGE_EVENT,
         preferences_event => $PREFERENCES_EVENT,
@@ -226,16 +205,15 @@ sub system_info {
         $opengl_info = Slic3r::GUI::_3DScene::get_gl_info(1, 1);
         $opengl_info_txt = Slic3r::GUI::_3DScene::get_gl_info(0, 1);
     }
-    my $about = Slic3r::GUI::SystemInfo->new(
-        parent      => undef, 
-        slic3r_info => $slic3r_info,
-#        copyright_info => $copyright_info,
-        system_info => $system_info, 
-        opengl_info => $opengl_info,
-        text_info => Slic3r::slic3r_info . Slic3r::system_info . $opengl_info_txt,
-    );
-    $about->ShowModal;
-    $about->Destroy;
+#    my $about = Slic3r::GUI::SystemInfo->new(
+#        parent      => undef, 
+#        slic3r_info => $slic3r_info,
+#        system_info => $system_info, 
+#        opengl_info => $opengl_info,
+#        text_info => Slic3r::slic3r_info . Slic3r::system_info . $opengl_info_txt,
+#    );
+#    $about->ShowModal;
+#    $about->Destroy;
 }
 
 # static method accepting a wxWindow object as first parameter
