@@ -512,7 +512,7 @@ struct Pad {
         double ground_level,
         const PoolConfig& pcfg) :
         cfg(pcfg),
-        zlevel(ground_level + cfg.min_wall_height_mm/2)
+        zlevel(ground_level + sla::get_pad_elevation(pcfg))
     {
         ExPolygons basep;
         base_plate(object_support_mesh, basep,
@@ -1634,7 +1634,7 @@ SlicedSupports SLASupportTree::slice(float layerh, float init_layerh) const
     const auto modelh = float(stree.full_height());
     auto gndlvl = float(this->m_impl->ground_level);
     const Pad& pad = m_impl->pad();
-    if(!pad.empty()) gndlvl -= float(pad.cfg.min_wall_height_mm/2);
+    if(!pad.empty()) gndlvl -= float(get_pad_elevation(pad.cfg));
 
     std::vector<float> heights = {gndlvl};
     heights.reserve(size_t(modelh/layerh) + 1);
@@ -1673,20 +1673,12 @@ const TriangleMesh &SLASupportTree::get_pad() const
     return m_impl->pad().tmesh;
 }
 
-double SLASupportTree::get_elevation() const
-{
-    double ph = m_impl->pad().empty()? 0 :
-                                       m_impl->pad().cfg.min_wall_height_mm/2.0;
-    return m_elevation + ph;
-}
-
 SLASupportTree::SLASupportTree(const PointSet &points,
                                const EigenMesh3D& emesh,
                                const SupportConfig &cfg,
                                const Controller &ctl):
     m_impl(new Impl()), m_ctl(ctl)
 {
-    m_elevation = cfg.object_elevation_mm;
     m_impl->ground_level = emesh.ground_level - cfg.object_elevation_mm;
     generate(points, emesh, cfg, ctl);
 }

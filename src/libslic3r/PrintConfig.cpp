@@ -2525,6 +2525,13 @@ void PrintConfigDef::init_sla_params()
     def->min = 0;
     def->default_value = new ConfigOptionFloat(5.0);
 
+    def = this->add("pad_enable", coBool);
+    def->label = L("Use pad");
+    def->tooltip = L("Add a pad underneath the supported model");
+    def->sidetext = L("");
+    def->cli = "";
+    def->default_value = new ConfigOptionBool(true);
+
     def = this->add("pad_wall_thickness", coFloat);
     def->label = L("Pad wall thickness");
     def->tooltip = L("");
