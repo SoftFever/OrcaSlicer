@@ -519,7 +519,7 @@ public:
         void translate(const Vec3d& displacement);
         void rotate(const Vec3d& rotation, bool local);
         void flattening_rotate(const Vec3d& normal);
-        void scale(const Vec3d& scale);
+        void scale(const Vec3d& scale, bool local);
         void mirror(Axis axis);
 
         void translate(unsigned int object_idx, const Vec3d& displacement);

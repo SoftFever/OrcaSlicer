@@ -1526,8 +1526,7 @@ void GLCanvas3D::Selection::flattening_rotate(const Vec3d& normal)
     m_bounding_box_dirty = true;
 }
 
-
-void GLCanvas3D::Selection::scale(const Vec3d& scale)
+void GLCanvas3D::Selection::scale(const Vec3d& scale, bool local)
 {
     if (!m_valid)
         return;
@@ -1553,7 +1552,9 @@ void GLCanvas3D::Selection::scale(const Vec3d& scale)
                 Eigen::Matrix<double, 3, 3, Eigen::DontAlign> new_matrix = (m * m_cache.volumes_data[i].get_instance_scale_matrix()).matrix().block(0, 0, 3, 3);
                 // extracts scaling factors from the composed transformation
                 Vec3d new_scale(new_matrix.col(0).norm(), new_matrix.col(1).norm(), new_matrix.col(2).norm());
-                (*m_volumes)[i]->set_instance_offset(m_cache.dragging_center + m * (m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center));
+                if (!local)
+                    (*m_volumes)[i]->set_instance_offset(m_cache.dragging_center + m * (m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center));
+
                 (*m_volumes)[i]->set_instance_scaling_factor(new_scale);
             }
             else if (m_mode == Volume)
@@ -1561,7 +1562,12 @@ void GLCanvas3D::Selection::scale(const Vec3d& scale)
                 Eigen::Matrix<double, 3, 3, Eigen::DontAlign> new_matrix = (m * m_cache.volumes_data[i].get_volume_scale_matrix()).matrix().block(0, 0, 3, 3);
                 // extracts scaling factors from the composed transformation
                 Vec3d new_scale(new_matrix.col(0).norm(), new_matrix.col(1).norm(), new_matrix.col(2).norm());
-                (*m_volumes)[i]->set_volume_offset(m * m_cache.volumes_data[i].get_volume_position());
+                if (!local)
+                {
+                    Vec3d offset = m * (m_cache.volumes_data[i].get_volume_position() + m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center);
+                    std::cout << to_string(offset) << std::endl;
+                    (*m_volumes)[i]->set_volume_offset(m_cache.dragging_center - m_cache.volumes_data[i].get_instance_position() + offset);
+                }
                 (*m_volumes)[i]->set_volume_scaling_factor(new_scale);
             }
 #else
@@ -2251,15 +2257,30 @@ void GLCanvas3D::Selection::_synchronize_unselected_volumes()
 #if ENABLE_ENSURE_ON_BED_WHILE_SCALING
 void GLCanvas3D::Selection::_ensure_on_bed()
 {
+    typedef std::map<std::pair<int, int>, double> InstancesToZMap;
+    InstancesToZMap instances_min_z;
+
     for (unsigned int i : m_list)
     {
         GLVolume* volume = (*m_volumes)[i];
         if (!volume->is_modifier)
         {
             double min_z = volume->transformed_convex_hull_bounding_box().min(2);
-            if (min_z != 0.0)
-                volume->set_instance_offset(Z, volume->get_instance_offset(Z) - min_z);
+            std::pair<int, int> instance = std::make_pair(volume->object_idx(), volume->instance_idx());
+            InstancesToZMap::iterator it = instances_min_z.find(instance);
+            if (it == instances_min_z.end())
+                it = instances_min_z.insert(InstancesToZMap::value_type(instance, DBL_MAX)).first;
+
+            it->second = std::min(it->second, min_z);
         }
+    }
+
+    for (GLVolume* volume : *m_volumes)
+    {
+        std::pair<int, int> instance = std::make_pair(volume->object_idx(), volume->instance_idx());
+        InstancesToZMap::iterator it = instances_min_z.find(instance);
+        if (it != instances_min_z.end())
+            volume->set_instance_offset(Z, volume->get_instance_offset(Z) - it->second);
     }
 }
 #endif // ENABLE_ENSURE_ON_BED_WHILE_SCALING
@@ -4040,7 +4061,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         {
         case Gizmos::Scale:
         {
-            m_selection.scale(m_gizmos.get_scale());
+            m_selection.scale(m_gizmos.get_scale(), false);
             _on_scale();
             wxGetApp().obj_manipul()->update_settings_value(m_selection);
             m_dirty = true;
@@ -4251,7 +4272,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         case Gizmos::Scale:
         {
             // Apply new temporary scale factors
-            m_selection.scale(m_gizmos.get_scale());
+            m_selection.scale(m_gizmos.get_scale(), evt.AltDown());
             wxGetApp().obj_manipul()->update_settings_value(m_selection);
             break;
         }
@@ -6482,6 +6503,7 @@ void GLCanvas3D::_on_scale()
             }
             else if (selection_mode == Selection::Volume)
             {
+                model_object->instances[instance_idx]->set_offset(v->get_instance_offset());
                 model_object->volumes[volume_idx]->set_scaling_factor(v->get_volume_scaling_factor());
                 model_object->volumes[volume_idx]->set_offset(v->get_volume_offset());
             }

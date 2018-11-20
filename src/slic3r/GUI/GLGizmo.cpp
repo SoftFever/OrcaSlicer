@@ -787,13 +787,14 @@ void GLGizmoScale3D::on_render(const GLCanvas3D::Selection& selection) const
         const GLCanvas3D::Selection::IndicesList& idxs = selection.get_volume_idxs();
         for (unsigned int idx : idxs)
         {
-            box.merge(selection.get_volume(idx)->bounding_box);
+            const GLVolume* vol = selection.get_volume(idx);
+            box.merge(vol->bounding_box.transformed(vol->get_volume_transformation().get_matrix()));
         }
 
         // gets transform from first selected volume
         const GLVolume* v = selection.get_volume(*idxs.begin());
 #if ENABLE_MODELVOLUME_TRANSFORM
-        transform = v->world_matrix();
+        transform = v->get_instance_transformation().get_matrix();
         // gets angles from first selected volume
         angles = v->get_instance_rotation();
         // consider rotation+mirror only components of the transform for offsets

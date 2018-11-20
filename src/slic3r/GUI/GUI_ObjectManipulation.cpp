@@ -436,7 +436,7 @@ void ObjectManipulation::change_scale_value(const Vec3d& scale)
 
     auto canvas = _3DScene::get_canvas(wxGetApp().canvas3D());
     canvas->get_selection().start_dragging();
-    canvas->get_selection().scale(scaling_factor);
+    canvas->get_selection().scale(scaling_factor, false);
     canvas->_on_scale();
 }
 
