@@ -190,9 +190,6 @@ protected:
     // Declared here to allow access from PrintBase through friendship.
 	static tbb::mutex&            state_mutex(PrintBase *print);
 	static std::function<void()>  cancel_callback(PrintBase *print);
-	// If the background processing stop was requested, throw CanceledException.
-	// To be called by the worker thread and its sub-threads (mostly launched on the TBB thread pool) regularly.
-	static void					  throw_if_canceled(PrintBase *print);
 
     ModelObject                  *m_model_object;
 };
@@ -353,9 +350,9 @@ protected:
 	PrintObjectBaseWithState(PrintType *print, ModelObject *model_object) : PrintObjectBase(model_object), m_print(print) {}
 
     bool            set_started(PrintObjectStepEnum step) 
-        { return m_state.set_started(step, PrintObjectBase::state_mutex(m_print), [this](){ PrintObjectBase::throw_if_canceled(this->m_print); }); }
+        { return m_state.set_started(step, PrintObjectBase::state_mutex(m_print), [this](){ this->throw_if_canceled(); }); }
 	PrintStateBase::TimeStamp set_done(PrintObjectStepEnum step) 
-        { return m_state.set_done(step, PrintObjectBase::state_mutex(m_print), [this](){ PrintObjectBase::throw_if_canceled(this->m_print); }); }
+        { return m_state.set_done(step, PrintObjectBase::state_mutex(m_print), [this](){ this->throw_if_canceled(); }); }
 
     bool            invalidate_step(PrintObjectStepEnum step)
         { return m_state.invalidate(step, PrintObjectBase::cancel_callback(m_print)); }
@@ -368,6 +365,10 @@ protected:
         { return m_state.invalidate_all(PrintObjectBase::cancel_callback(m_print)); }
 
 protected:
+    // If the background processing stop was requested, throw CanceledException.
+    // To be called by the worker thread and its sub-threads (mostly launched on the TBB thread pool) regularly.
+    void            throw_if_canceled() { if (m_print->canceled()) throw CanceledException(); }
+
     friend PrintType;
     PrintType                               *m_print;
 
