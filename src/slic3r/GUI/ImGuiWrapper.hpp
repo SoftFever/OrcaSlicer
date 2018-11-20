@@ -1,11 +1,12 @@
 #ifndef slic3r_ImGuiWrapper_hpp_
 #define slic3r_ImGuiWrapper_hpp_
 
-#include <imgui\imgui.h>
 #include <string>
 #include <map>
 
 class wxMouseEvent;
+class ImFont;
+class ImDrawData;
 
 namespace Slic3r {
 namespace GUI {

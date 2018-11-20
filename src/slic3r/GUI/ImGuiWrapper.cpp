@@ -7,9 +7,11 @@
 
 #include <GL/glew.h>
 
+#include <imgui/imgui.h>
+
 namespace Slic3r {
 namespace GUI {
-    
+
 
 ImGuiWrapper::ImGuiWrapper()
     : m_glsl_version_string("")
