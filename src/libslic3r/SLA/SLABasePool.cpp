@@ -424,12 +424,6 @@ void base_plate(const TriangleMesh &mesh, ExPolygons &output, float h,
     TriangleMesh m = mesh;
     TriangleMeshSlicer slicer(&m);
 
-//    TriangleMesh upper, lower;
-//    slicer.cut(h, &upper, &lower);
-
-    // TODO: this might be slow (in fact it was)
-//    output = lower.horizontal_projection();
-
     auto bb = mesh.bounding_box();
     float gnd = float(bb.min(Z));
     std::vector<float> heights = {float(bb.min(Z))};

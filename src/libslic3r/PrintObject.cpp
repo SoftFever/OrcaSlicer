@@ -35,9 +35,8 @@
 namespace Slic3r {
 
 PrintObject::PrintObject(Print* print, ModelObject* model_object) :
-    PrintObjectBaseWithState(print),
+    PrintObjectBaseWithState(print, model_object),
     typed_slices(false),
-    m_model_object(model_object),
     size(Vec3crd::Zero()),
     layer_height_profile_valid(false)
 {
@@ -103,9 +102,8 @@ bool PrintObject::set_copies(const Points &points)
 // this should be idempotent
 void PrintObject::slice()
 {
-    if (this->is_step_done(posSlice))
+    if (! this->set_started(posSlice))
         return;
-    this->set_started(posSlice);
     m_print->set_status(10, "Processing triangulated mesh");
     this->_slice();
     m_print->throw_if_canceled();
@@ -131,10 +129,9 @@ void PrintObject::make_perimeters()
     // prerequisites
     this->slice();
 
-    if (this->is_step_done(posPerimeters))
+    if (! this->set_started(posPerimeters))
         return;
 
-    this->set_started(posPerimeters);
     m_print->set_status(20, "Generating perimeters");
     BOOST_LOG_TRIVIAL(info) << "Generating perimeters...";
     
@@ -242,10 +239,9 @@ void PrintObject::make_perimeters()
 
 void PrintObject::prepare_infill()
 {
-    if (this->is_step_done(posPrepareInfill))
+    if (! this->set_started(posPrepareInfill))
         return;
 
-    this->set_started(posPrepareInfill);
     m_print->set_status(30, "Preparing infill");
 
     // This will assign a type (top/bottom/internal) to $layerm->slices.
@@ -361,8 +357,7 @@ void PrintObject::infill()
     // prerequisites
     this->prepare_infill();
 
-    if (! this->is_step_done(posInfill)) {
-        this->set_started(posInfill);        
+    if (this->set_started(posInfill)) {
         BOOST_LOG_TRIVIAL(debug) << "Filling layers in parallel - start";
         tbb::parallel_for(
             tbb::blocked_range<size_t>(0, m_layers.size()),
@@ -384,8 +379,7 @@ void PrintObject::infill()
 
 void PrintObject::generate_support_material()
 {
-    if (! this->is_step_done(posSupportMaterial)) {
-        this->set_started(posSupportMaterial);
+    if (this->set_started(posSupportMaterial)) {
         this->clear_support_layers();
         if ((m_config.support_material || m_config.raft_layers > 0) && m_layers.size() > 1) {
             m_print->set_status(85, "Generating support material");    
@@ -1706,9 +1700,8 @@ void PrintObject::_simplify_slices(double distance)
 
 void PrintObject::_make_perimeters()
 {
-    if (this->is_step_done(posPerimeters))
+    if (! this->set_started(posPerimeters))
         return;
-    this->set_started(posPerimeters);
 
     BOOST_LOG_TRIVIAL(info) << "Generating perimeters...";
     

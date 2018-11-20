@@ -35,8 +35,6 @@ private: // Prevents erroneous use by other classes.
     using Inherited = _SLAPrintObjectBase;
 
 public:
-    const ModelObject*      model_object() const    { return m_model_object; }
-    ModelObject*            model_object()          { return m_model_object; }
     const Transform3d&      trafo()        const    { return m_trafo; }
 
     struct Instance {
@@ -50,6 +48,9 @@ public:
 	};
     const std::vector<Instance>& instances() const { return m_instances; }
 
+    bool                    has_mesh(SLAPrintObjectStep step) const;
+    TriangleMesh            get_mesh(SLAPrintObjectStep step) const;
+
     // Get a support mesh centered around origin in XY, and with zero rotation around Z applied.
     // Support mesh is only valid if this->is_step_done(slaposSupportTree) is true.
     TriangleMesh            support_mesh() const;
@@ -61,6 +62,15 @@ public:
     const TriangleMesh&     transformed_mesh() const;
 
     std::vector<Vec3d>      transformed_support_points() const;
+
+    // Get the needed Z elevation for the model geometry if supports should be
+    // displayed. This Z offset should also be applied to the support
+    // geometries. Note that this is not the same as the value stored in config
+    // as the pad height also needs to be considered.
+    double get_elevation() const;
+
+//    const std::vector<ExPolygons>& get_support_slices() const;
+//    const std::vector<ExPolygons>& get_model_slices() const;
 
     // I refuse to grantee copying (Tamas)
     SLAPrintObject(const SLAPrintObject&) = delete;
@@ -83,8 +93,7 @@ protected:
     bool                    invalidate_step(SLAPrintObjectStep step);
 
 private:
-	// Points to the instance owned by a Model stored at the parent SLAPrint instance.
-    ModelObject                            *m_model_object;
+
     // Object specific configuration, pulled from the configuration layer.
     SLAPrintObjectConfig                    m_config;
     // Translation in Z + Rotation by Y and Z + Scaling / Mirroring.
@@ -147,7 +156,6 @@ private:
     using SLAPrinter = FilePrinter<FilePrinterFormat::SLA_PNGZIP>;
     using SLAPrinterPtr = std::unique_ptr<SLAPrinter>;
 
-    Model                           m_model;
     SLAPrinterConfig                m_printer_config;
     SLAMaterialConfig               m_material_config;
     PrintObjects                    m_objects;

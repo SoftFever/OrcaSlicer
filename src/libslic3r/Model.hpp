@@ -652,6 +652,12 @@ private:
 #undef MODELBASE_DERIVED_COPY_MOVE_CLONE
 #undef MODELBASE_DERIVED_PRIVATE_COPY_MOVE
 
+#ifdef _DEBUG
+// Verify whether the IDs of Model / ModelObject / ModelVolume / ModelInstance / ModelMaterial are valid and unique.
+void check_model_ids_validity(const Model &model);
+void check_model_ids_equal(const Model &model1, const Model &model2);
+#endif /* _DEBUG */
+
 }
 
 #endif

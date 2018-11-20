@@ -2515,7 +2515,22 @@ void PrintConfigDef::init_sla_params()
     def->sidetext = L("mm");
     def->cli = "";
     def->min = 0;
-    def->default_value = new ConfigOptionFloat();
+    def->default_value = new ConfigOptionFloat(15.0);
+
+    def = this->add("support_object_elevation", coFloat);
+    def->label = L("Object elevation");
+    def->tooltip = L("How much the supports should lift up the supported object.");
+    def->sidetext = L("mm");
+    def->cli = "";
+    def->min = 0;
+    def->default_value = new ConfigOptionFloat(5.0);
+
+    def = this->add("pad_enable", coBool);
+    def->label = L("Use pad");
+    def->tooltip = L("Add a pad underneath the supported model");
+    def->sidetext = L("");
+    def->cli = "";
+    def->default_value = new ConfigOptionBool(true);
 
     def = this->add("pad_wall_thickness", coFloat);
     def->label = L("Pad wall thickness");
@@ -2542,7 +2557,7 @@ void PrintConfigDef::init_sla_params()
     def->default_value = new ConfigOptionFloat(50.0);
 
     def = this->add("pad_edge_radius", coFloat);
-    def->label = L("pad edge radius");
+    def->label = L("Pad edge radius");
     def->tooltip = L("");
     def->sidetext = L("mm");
     def->cli = "";

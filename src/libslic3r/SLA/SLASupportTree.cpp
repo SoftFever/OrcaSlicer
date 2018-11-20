@@ -213,6 +213,7 @@ struct Head {
     double r_back_mm = 1;
     double r_pin_mm = 0.5;
     double width_mm = 2;
+    double penetration_mm = 0.5;
 
     // For identification purposes. This will be used as the index into the
     // container holding the head structures. See SLASupportTree::Impl
@@ -224,11 +225,13 @@ struct Head {
     Head(double r_big_mm,
          double r_small_mm,
          double length_mm,
+         double penetration,
          Vec3d direction = {0, 0, -1},    // direction (normal to the dull end )
          Vec3d offset = {0, 0, 0},        // displacement
          const size_t circlesteps = 45):
             steps(circlesteps), dir(direction), tr(offset),
-            r_back_mm(r_big_mm), r_pin_mm(r_small_mm), width_mm(length_mm)
+            r_back_mm(r_big_mm), r_pin_mm(r_small_mm), width_mm(length_mm),
+            penetration_mm(penetration)
     {
 
         // We create two spheres which will be connected with a robe that fits
@@ -281,7 +284,7 @@ struct Head {
 
         // To simplify further processing, we translate the mesh so that the
         // last vertex of the pointing sphere (the pinpoint) will be at (0,0,0)
-        for(auto& p : mesh.points) { z(p) -= (h + 0.5 * r_small_mm); }
+        for(auto& p : mesh.points) z(p) -= (h + r_small_mm - penetration_mm);
     }
 
     void transform()
@@ -298,11 +301,11 @@ struct Head {
     }
 
     double fullwidth() const {
-        return 1.5 * r_pin_mm + width_mm + 2*r_back_mm;
+        return 2 * r_pin_mm + width_mm + 2*r_back_mm - penetration_mm;
     }
 
     Vec3d junction_point() const {
-        return tr + ( 1.5 * r_pin_mm + width_mm + r_back_mm)*dir;
+        return tr + ( 2 * r_pin_mm + width_mm + r_back_mm - penetration_mm)*dir;
     }
 
     double request_pillar_radius(double radius) const {
@@ -507,7 +510,9 @@ struct Pad {
     Pad(const TriangleMesh& object_support_mesh,
         const ExPolygons& baseplate,
         double ground_level,
-        const PoolConfig& cfg) : zlevel(ground_level + cfg.min_wall_height_mm/2)
+        const PoolConfig& pcfg) :
+        cfg(pcfg),
+        zlevel(ground_level + sla::get_pad_elevation(pcfg))
     {
         ExPolygons basep;
         base_plate(object_support_mesh, basep,
@@ -536,19 +541,6 @@ EigenMesh3D to_eigenmesh(const Contour3D& cntr) {
     }
 
     return emesh;
-}
-
-void create_head(TriangleMesh& out, double r1_mm, double r2_mm, double width_mm)
-{
-    Head head(r1_mm, r2_mm, width_mm, {0, std::sqrt(0.5), -std::sqrt(0.5)},
-              {0, 0, 30});
-    out.merge(mesh(head.mesh));
-
-    Pillar cst(head, {0, 0, 0});
-    cst.add_base();
-
-    out.merge(mesh(cst.mesh));
-    out.merge(mesh(cst.base));
 }
 
 // The minimum distance for two support points to remain valid.
@@ -593,21 +585,6 @@ EigenMesh3D to_eigenmesh(const ModelObject& modelobj) {
     return to_eigenmesh(modelobj.raw_mesh());
 }
 
-EigenMesh3D to_eigenmesh(const Model& model) {
-    TriangleMesh combined_mesh;
-
-    for(ModelObject *o : model.objects) {
-        TriangleMesh tmp = o->raw_mesh();
-        for(ModelInstance * inst: o->instances) {
-            TriangleMesh ttmp(tmp);
-            inst->transform_mesh(&ttmp);
-            combined_mesh.merge(ttmp);
-        }
-    }
-
-    return to_eigenmesh(combined_mesh);
-}
-
 PointSet to_point_set(const std::vector<Vec3d> &v)
 {
     PointSet ret(v.size(), 3);
@@ -617,43 +594,6 @@ PointSet to_point_set(const std::vector<Vec3d> &v)
 
 Vec3d model_coord(const ModelInstance& object, const Vec3f& mesh_coord) {
     return object.transform_vector(mesh_coord.cast<double>());
-}
-
-PointSet support_points(const Model& model) {
-    size_t sum = 0;
-    for(auto *o : model.objects)
-        sum += o->instances.size() * o->sla_support_points.size();
-
-    PointSet ret(sum, 3);
-
-    for(ModelObject *o : model.objects)
-        for(ModelInstance *inst : o->instances) {
-            int i = 0;
-            for(Vec3f& msource : o->sla_support_points) {
-                ret.row(i++) = model_coord(*inst, msource);
-            }
-        }
-
-    return ret;
-}
-
-PointSet support_points(const ModelObject& modelobject)
-{
-    PointSet ret(modelobject.sla_support_points.size(), 3);
-    auto rot = modelobject.instances.front()->get_rotation();
-//    auto scaling = modelobject.instances.front()->get_scaling_factor();
-
-//    Transform3d tr;
-//    tr.rotate(Eigen::AngleAxisd(rot(X), Vec3d::UnitX()) *
-//              Eigen::AngleAxisd(rot(Y), Vec3d::UnitY()));
-
-    long i = 0;
-    for(const Vec3f& msource : modelobject.sla_support_points) {
-        Vec3d&& p = msource.cast<double>();
-//        p = tr * p;
-        ret.row(i++) = p;
-    }
-    return ret;
 }
 
 double ray_mesh_intersect(const Vec3d& s,
@@ -1154,6 +1094,7 @@ bool SLASupportTree::generate(const PointSet &points,
                         cfg.head_back_radius_mm,
                         cfg.head_front_radius_mm,
                         cfg.head_width_mm,
+                        cfg.head_penetration_mm,
                         nmls.row(i),         // dir
                         head_pos.row(i)      // displacement
                         );
@@ -1521,6 +1462,7 @@ bool SLASupportTree::generate(const PointSet &points,
             Head base_head(cfg.head_back_radius_mm,
                  cfg.head_front_radius_mm,
                  cfg.head_width_mm,
+                 cfg.head_penetration_mm,
                  {0.0, 0.0, 1.0},
                  {headend(X), headend(Y), headend(Z) - gh});
 
@@ -1692,7 +1634,7 @@ SlicedSupports SLASupportTree::slice(float layerh, float init_layerh) const
     const auto modelh = float(stree.full_height());
     auto gndlvl = float(this->m_impl->ground_level);
     const Pad& pad = m_impl->pad();
-    if(!pad.empty()) gndlvl -= float(pad.cfg.min_wall_height_mm/2);
+    if(!pad.empty()) gndlvl -= float(get_pad_elevation(pad.cfg));
 
     std::vector<float> heights = {gndlvl};
     heights.reserve(size_t(modelh/layerh) + 1);
@@ -1719,31 +1661,16 @@ const TriangleMesh &SLASupportTree::add_pad(const SliceLayer& baseplate,
     TriangleMesh mm;
     merged_mesh(mm);
     PoolConfig pcfg;
-//    pcfg.min_wall_thickness_mm = min_wall_thickness_mm;
-//    pcfg.min_wall_height_mm    = min_wall_height_mm;
-//    pcfg.max_merge_distance_mm = max_merge_distance_mm;
-//    pcfg.edge_radius_mm        = edge_radius_mm;
+    pcfg.min_wall_thickness_mm = min_wall_thickness_mm;
+    pcfg.min_wall_height_mm    = min_wall_height_mm;
+    pcfg.max_merge_distance_mm = max_merge_distance_mm;
+    pcfg.edge_radius_mm        = edge_radius_mm;
     return m_impl->create_pad(mm, baseplate, pcfg).tmesh;
 }
 
 const TriangleMesh &SLASupportTree::get_pad() const
 {
     return m_impl->pad().tmesh;
-}
-
-double SLASupportTree::get_elevation() const
-{
-    double ph = m_impl->pad().empty()? 0 :
-                                       m_impl->pad().cfg.min_wall_height_mm/2.0;
-    return -m_impl->ground_level + ph;
-}
-
-SLASupportTree::SLASupportTree(const Model& model,
-                               const SupportConfig& cfg,
-                               const Controller& ctl):
-    m_impl(new Impl()), m_ctl(ctl)
-{
-    generate(support_points(model), to_eigenmesh(model), cfg, ctl);
 }
 
 SLASupportTree::SLASupportTree(const PointSet &points,
@@ -1766,67 +1693,6 @@ SLASupportTree &SLASupportTree::operator=(const SLASupportTree &c)
 }
 
 SLASupportTree::~SLASupportTree() {}
-
-void add_sla_supports(Model &model,
-                      const SupportConfig &cfg,
-                      const Controller &ctl)
-{
-    Benchmark bench;
-
-    bench.start();
-    SLASupportTree _stree(model, cfg, ctl);
-    bench.stop();
-
-    std::cout << "Support tree creation time: " << bench.getElapsedSec()
-              << " seconds" << std::endl;
-
-    bench.start();
-    ModelObject* o = model.add_object();
-    o->add_instance();
-
-    TriangleMesh streemsh;
-    _stree.merged_mesh(streemsh);
-    o->add_volume(streemsh);
-
-    bench.stop();
-    std::cout << "support tree added to model in: " << bench.getElapsedSec()
-              << " seconds" << std::endl;
-
-    // TODO this would roughly be the code for the base pool
-    ExPolygons plate;
-    auto modelmesh = model.mesh();
-    TriangleMesh poolmesh;
-    sla::PoolConfig poolcfg;
-    poolcfg.min_wall_height_mm = 1;
-    poolcfg.edge_radius_mm = 0.1;
-    poolcfg.min_wall_thickness_mm = 0.8;
-
-    bench.start();
-    sla::base_plate(modelmesh, plate);
-    bench.stop();
-
-    std::cout << "Base plate calculation time: " << bench.getElapsedSec()
-              << " seconds." << std::endl;
-
-    bench.start();
-    sla::create_base_pool(plate, poolmesh, poolcfg);
-    bench.stop();
-
-    std::cout << "Pool generation completed in " << bench.getElapsedSec()
-              << " second." << std::endl;
-
-    bench.start();
-    poolmesh.translate(.0f, .0f, float(poolcfg.min_wall_height_mm / 2));
-    o->add_volume(poolmesh);
-    bench.stop();
-
-    // TODO: will cause incorrect placement of the model;
-//    o->translate({0, 0, poolcfg.min_wall_height_mm / 2});
-
-    std::cout << "Added pool to model in " << bench.getElapsedSec()
-              << " seconds." << std::endl;
-
-}
 
 }
 }

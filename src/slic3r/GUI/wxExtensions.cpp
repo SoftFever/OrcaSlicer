@@ -308,7 +308,7 @@ bool PrusaCollapsiblePaneMSW::Create(wxWindow *parent, wxWindowID id, const wxSt
 	m_pPane = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
 		wxTAB_TRAVERSAL | wxNO_BORDER, wxT("wxCollapsiblePanePane"));
 
-	wxColour& clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
+    wxColour&& clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 	m_pDisclosureTriangleButton->SetBackgroundColour(clr);
 	this->SetBackgroundColour(clr);
 	m_pPane->SetBackgroundColour(clr);

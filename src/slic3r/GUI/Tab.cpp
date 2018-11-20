@@ -3005,12 +3005,14 @@ void TabSLAPrint::build()
     optgroup->append_single_option_line("support_pillar_radius");
     optgroup->append_single_option_line("support_base_radius");
     optgroup->append_single_option_line("support_base_height");
+    optgroup->append_single_option_line("support_object_elevation");
 
     optgroup = page->new_optgroup(_(L("Connection of the support sticks and junctions")));
     optgroup->append_single_option_line("support_critical_angle");
     optgroup->append_single_option_line("support_max_bridge_length");
 
     optgroup = page->new_optgroup(_(L("Pad")));
+    optgroup->append_single_option_line("pad_enable");
     optgroup->append_single_option_line("pad_wall_thickness");
     optgroup->append_single_option_line("pad_wall_height");
     optgroup->append_single_option_line("pad_max_merge_distance");

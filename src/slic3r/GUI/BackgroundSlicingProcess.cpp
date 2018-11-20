@@ -2,7 +2,6 @@
 #include "GUI_App.hpp"
 
 #include <wx/app.h>
-#include <wx/event.h>
 #include <wx/panel.h>
 #include <wx/stdpaths.h>
 
@@ -60,24 +59,21 @@ void BackgroundSlicingProcess::process_fff()
 {
 	assert(m_print == m_fff_print);
     m_print->process();
-    if (! m_print->canceled()) {
-        wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_sliced_id));
-	    m_fff_print->export_gcode(m_temp_output_path, m_gcode_preview_data);
-	    if (! m_print->canceled() && ! this->is_step_done(bspsGCodeFinalize)) {
-	    	this->set_step_started(bspsGCodeFinalize);
-	    	if (! m_export_path.empty()) {
-	    		//FIXME localize the messages
-		    	if (copy_file(m_temp_output_path, m_export_path) != 0)
-	    			throw std::runtime_error("Copying of the temporary G-code to the output G-code failed");
-	    		m_print->set_status(95, "Running post-processing scripts");
-	    		run_post_process_scripts(m_export_path, m_fff_print->config());
-	    		m_print->set_status(100, "G-code file exported to " + m_export_path);
-	    	} else {
-	    		m_print->set_status(100, "Slicing complete");
-	    	}
-			this->set_step_done(bspsGCodeFinalize);
+	wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_slicing_completed_id));
+	m_fff_print->export_gcode(m_temp_output_path, m_gcode_preview_data);
+	if (this->set_step_started(bspsGCodeFinalize)) {
+	    if (! m_export_path.empty()) {
+	    	//FIXME localize the messages
+		    if (copy_file(m_temp_output_path, m_export_path) != 0)
+	    		throw std::runtime_error("Copying of the temporary G-code to the output G-code failed");
+	    	m_print->set_status(95, "Running post-processing scripts");
+	    	run_post_process_scripts(m_export_path, m_fff_print->config());
+	    	m_print->set_status(100, "G-code file exported to " + m_export_path);
+	    } else {
+	    	m_print->set_status(100, "Slicing complete");
 	    }
-    }
+		this->set_step_done(bspsGCodeFinalize);
+	}
 }
 
 // Pseudo type for specializing LayerWriter trait class
@@ -120,11 +116,11 @@ public:
     }
 };
 
-void BackgroundSlicingProcess::process_sla() {
+void BackgroundSlicingProcess::process_sla()
+{
     assert(m_print == m_sla_print);
     m_print->process();
-    if(!m_print->canceled() && ! this->is_step_done(bspsGCodeFinalize)) {
-        this->set_step_started(bspsGCodeFinalize);
+    if (this->set_step_started(bspsGCodeFinalize)) {
         if (! m_export_path.empty()) {
             m_sla_print->export_raster<SLAZipFmt>(m_export_path);
             m_print->set_status(100, "Zip file exported to " + m_export_path);
@@ -246,6 +242,7 @@ bool BackgroundSlicingProcess::start()
 
 bool BackgroundSlicingProcess::stop()
 {
+	// m_print->state_mutex() shall NOT be held. Unfortunately there is no interface to test for it.
 	std::unique_lock<std::mutex> lck(m_mutex);
 	if (m_state == STATE_INITIAL) {
 //		this->m_export_path.clear();
@@ -282,12 +279,23 @@ bool BackgroundSlicingProcess::reset()
 // This function shall not trigger any UI update through the wxWidgets event.
 void BackgroundSlicingProcess::stop_internal()
 {
+	// m_print->state_mutex() shall be held. Unfortunately there is no interface to test for it.
+	if (m_state == STATE_IDLE)
+		// The worker thread is waiting on m_mutex/m_condition for wake up. The following lock of the mutex would block.
+		return;
 	std::unique_lock<std::mutex> lck(m_mutex);
 	assert(m_state == STATE_STARTED || m_state == STATE_RUNNING || m_state == STATE_FINISHED || m_state == STATE_CANCELED);
 	if (m_state == STATE_STARTED || m_state == STATE_RUNNING) {
+		// At this point of time the worker thread may be blocking on m_print->state_mutex().
+		// Set the print state to canceled before unlocking the state_mutex(), so when the worker thread wakes up,
+		// it throws the CanceledException().
 		m_print->cancel_internal();
+		// Allow the worker thread to wake up if blocking on a milestone.
+		m_print->state_mutex().unlock();
 		// Wait until the background processing stops by being canceled.
 		m_condition.wait(lck, [this](){ return m_state == STATE_CANCELED; });
+		// Lock it back to be in a consistent state.
+		m_print->state_mutex().lock();
 	}
 	// In the "Canceled" state. Reset the state to "Idle".
 	m_state = STATE_IDLE;
@@ -324,7 +332,7 @@ void BackgroundSlicingProcess::schedule_export(const std::string &path)
 		return;
 
 	// Guard against entering the export step before changing the export path.
-	tbb::mutex::scoped_lock lock(m_step_state_mutex);
+	tbb::mutex::scoped_lock lock(m_print->state_mutex());
 	this->invalidate_step(bspsGCodeFinalize);
 	m_export_path = path;
 }
@@ -335,34 +343,35 @@ void BackgroundSlicingProcess::reset_export()
 	if (! this->running()) {
 		m_export_path.clear();
 		// invalidate_step expects the mutex to be locked.
-		tbb::mutex::scoped_lock lock(m_step_state_mutex);
+		tbb::mutex::scoped_lock lock(m_print->state_mutex());
 		this->invalidate_step(bspsGCodeFinalize);
 	}
 }
 
-void BackgroundSlicingProcess::set_step_started(BackgroundSlicingProcessStep step)
+bool BackgroundSlicingProcess::set_step_started(BackgroundSlicingProcessStep step)
 { 
-	m_step_state.set_started(step, m_step_state_mutex);
-	if (m_print->canceled())
-		throw CanceledException();
+	return m_step_state.set_started(step, m_print->state_mutex(), [this](){ this->throw_if_canceled(); });
 }
 
 void BackgroundSlicingProcess::set_step_done(BackgroundSlicingProcessStep step)
 { 
-	m_step_state.set_done(step, m_step_state_mutex);
-	if (m_print->canceled())
-		throw CanceledException();
+	m_step_state.set_done(step, m_print->state_mutex(), [this](){ this->throw_if_canceled(); });
+}
+
+bool BackgroundSlicingProcess::is_step_done(BackgroundSlicingProcessStep step) const
+{ 
+	return m_step_state.is_done(step, m_print->state_mutex());
 }
 
 bool BackgroundSlicingProcess::invalidate_step(BackgroundSlicingProcessStep step)
 {
-    bool invalidated = m_step_state.invalidate(step, m_step_state_mutex, [this](){ this->stop(); });
+    bool invalidated = m_step_state.invalidate(step, [this](){ this->stop_internal(); });
     return invalidated;
 }
 
 bool BackgroundSlicingProcess::invalidate_all_steps()
 { 
-	return m_step_state.invalidate_all(m_step_state_mutex, [this](){ this->stop(); });
+	return m_step_state.invalidate_all([this](){ this->stop_internal(); });
 }
 
 }; // namespace Slic3r

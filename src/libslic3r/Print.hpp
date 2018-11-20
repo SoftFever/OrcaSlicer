@@ -97,8 +97,6 @@ public:
 
     Vec3crd                 size;           // XYZ in scaled coordinates
 
-    const ModelObject*      model_object() const    { return m_model_object; }
-    ModelObject*            model_object()          { return m_model_object; }
     const PrintObjectConfig& config() const         { return m_config; }    
     const LayerPtrs&        layers() const          { return m_layers; }
     const SupportLayerPtrs& support_layers() const  { return m_support_layers; }
@@ -197,7 +195,6 @@ private:
     void combine_infill();
     void _generate_support_material();
 
-    ModelObject                            *m_model_object;
     PrintObjectConfig                       m_config;
     // Translation in Z + Rotation + Scaling / Mirroring.
     Transform3d                             m_trafo = Transform3d::Identity();
@@ -381,7 +378,6 @@ private:
     // Declared here to have access to Model / ModelObject / ModelInstance
     static void         model_volume_list_update_supports(ModelObject &model_object_dst, const ModelObject &model_object_src);
 
-    Model                                   m_model;
     PrintConfig                             m_config;
     PrintObjectConfig                       m_default_object_config;
     PrintRegionConfig                       m_default_region_config;
