@@ -237,16 +237,19 @@ public:
     virtual void            process() = 0;
 
     struct Status {
-		Status(int percent, const std::string &text, unsigned int flags = 0) : percent(percent), text(text), flags(flags) {}
         int             percent;
         std::string     text;
+        unsigned int    flags; // Bitmap of FlagBits
+
         // Bitmap of flags.
         enum FlagBits {
             RELOAD_SCENE = 1,
         };
-        // Bitmap of FlagBits
-        unsigned int    flags;
+
+        inline Status(int percent, const std::string &text, unsigned int flags = 0) :
+            percent(percent), text(text), flags(flags) {}
     };
+
     typedef std::function<void(const Status&)>  status_callback_type;
     // Default status console print out in the form of percent => message.
     void                    set_status_default() { m_status_callback = nullptr; }
