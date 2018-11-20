@@ -3322,13 +3322,7 @@ void GLCanvas3D::set_bed_shape(const Pointfs& shape)
     set_axes_length(0.3f * (float)m_bed.get_bounding_box().max_size());
 
     if (new_shape)
-    {
-        // forces the selection of the proper camera target
-        if (m_volumes.volumes.empty())
-            zoom_to_bed();
-        else
-            zoom_to_volumes();
-    }
+        zoom_to_bed();
 
     m_dirty = true;
 }
