@@ -118,9 +118,6 @@ class SLASupportTree {
     std::unique_ptr<Impl> m_impl;
     Controller m_ctl;
 
-    // the only value from config that is also needed after construction
-    double m_elevation = 0;
-
     Impl& get() { return *m_impl; }
     const Impl& get() const { return *m_impl; }
 

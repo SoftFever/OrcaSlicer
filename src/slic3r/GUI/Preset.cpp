@@ -412,6 +412,7 @@ const std::vector<std::string>& Preset::sla_print_options()
             "support_critical_angle",
             "support_max_bridge_length",
             "support_object_elevation",
+            "pad_enable",
             "pad_wall_thickness",
             "pad_wall_height",
             "pad_max_merge_distance",

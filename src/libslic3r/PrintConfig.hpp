@@ -942,6 +942,7 @@ public:
 
     // Now for the base pool (pad) /////////////////////////////////////////////
 
+    ConfigOptionBool  pad_enable;
     ConfigOptionFloat pad_wall_thickness /*= 2*/;
     ConfigOptionFloat pad_wall_height /*= 5*/;
     ConfigOptionFloat pad_max_merge_distance /*= 50*/;
@@ -961,6 +962,7 @@ protected:
         OPT_PTR(support_critical_angle);
         OPT_PTR(support_max_bridge_length);
         OPT_PTR(support_object_elevation);
+        OPT_PTR(pad_enable);
         OPT_PTR(pad_wall_thickness);
         OPT_PTR(pad_wall_height);
         OPT_PTR(pad_max_merge_distance);

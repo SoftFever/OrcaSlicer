@@ -3,6 +3,8 @@
 #include "SLA/SLABasePool.hpp"
 
 #include <tbb/parallel_for.h>
+#include <boost/log/trivial.hpp>
+
 //#include <tbb/spin_mutex.h>//#include "tbb/mutex.h"
 
 #include "I18N.hpp"
@@ -128,32 +130,36 @@ void SLAPrint::process()
     // the model objects we have to process and the instances are also filtered
 
     // shortcut to initial layer height
-    auto ilh = float(m_material_config.initial_layer_height.getFloat());
-
-    std::cout << "Initial layer height: " << m_material_config.initial_layer_height.getFloat() << std::endl;
+    double ilhd = m_material_config.initial_layer_height.getFloat();
+    auto   ilh  = float(ilhd);
 
     // Slicing the model object. This method is oversimplified and needs to
     // be compared with the fff slicing algorithm for verification
-    auto slice_model = [this, ilh](SLAPrintObject& po) {
-        auto lh = float(po.m_config.layer_height.getFloat());
+    auto slice_model = [this, ilh, ilhd](SLAPrintObject& po) {
+        double lh = po.m_config.layer_height.getFloat();
 
         TriangleMesh mesh = po.transformed_mesh();
         TriangleMeshSlicer slicer(&mesh);
         auto bb3d = mesh.bounding_box();
 
-        auto H = bb3d.max(Z) - bb3d.min(Z);
+        double elevation = po.get_elevation();
+
+        float minZ = float(bb3d.min(Z)) - float(elevation);
+        float maxZ = float(bb3d.max(Z)) ;
+        auto flh = float(lh);
         auto gnd = float(bb3d.min(Z));
 
-        double elevation = po.m_config.support_object_elevation.getFloat();
-        float ih = elevation > 0 ? lh : ilh;
+        std::vector<float> heights;
 
-        std::vector<float> heights = {gnd};
-        for(float h = gnd + ih; h < gnd + H; h += lh) heights.emplace_back(h);
+        // The first layer (the one before the initial height) is added only
+        // if the there is no pad and no elevation value
+        if(minZ >= gnd) heights.emplace_back(minZ);
+
+        for(float h = minZ + ilh; h < maxZ; h += flh)
+            if(h >= gnd) heights.emplace_back(h);
 
         auto& layers = po.m_model_slices;
-        slicer.slice(heights, &layers, [this](){
-            throw_if_canceled();
-        });
+        slicer.slice(heights, &layers, [this](){ throw_if_canceled(); });
     };
 
     auto support_points = [](SLAPrintObject& po) {
@@ -216,6 +222,7 @@ void SLAPrint::process()
         // repeated)
 
         if(po.is_step_done(slaposSupportTree) &&
+           po.m_config.pad_enable.getBool() &&
            po.m_supportdata &&
            po.m_supportdata->support_tree_ptr)
         {
@@ -225,10 +232,12 @@ void SLAPrint::process()
             double er = po.m_config.pad_edge_radius.getFloat();
             double lh = po.m_config.layer_height.getFloat();
             double elevation = po.m_config.support_object_elevation.getFloat();
+            sla::PoolConfig pcfg(wt, h, md, er);
 
             sla::ExPolygons bp;
-            if(elevation < h/2) sla::base_plate(po.transformed_mesh(), bp,
-                                                float(h/2), float(lh));
+            double pad_h = sla::get_pad_elevation(pcfg);
+            if(elevation < pad_h) sla::base_plate(po.transformed_mesh(), bp,
+                                                  float(pad_h), float(lh));
 
             po.m_supportdata->support_tree_ptr->add_pad(bp, wt, h, md, er);
         }
@@ -246,7 +255,7 @@ void SLAPrint::process()
     };
 
     // Rasterizing the model objects, and their supports
-    auto rasterize = [this, ilh]() {
+    auto rasterize = [this, ilh, ilhd]() {
         using Layer = sla::ExPolygons;
         using LayerCopies = std::vector<SLAPrintObject::Instance>;
         struct LayerRef {
@@ -262,51 +271,60 @@ void SLAPrint::process()
         // layers according to quantized height levels
         std::map<LevelID, LayerRefs> levels;
 
-        auto sinitlh = LevelID(scale_(ilh));
+        auto sih = LevelID(scale_(ilh));
 
         // For all print objects, go through its initial layers and place them
         // into the layers hash
         for(SLAPrintObject *o : m_objects) {
-
-            double gndlvl = o->transformed_mesh().bounding_box().min(Z);
-            double elevation = o->m_config.support_object_elevation.getFloat();
-
+            auto bb = o->transformed_mesh().bounding_box();
+            double modelgnd = bb.min(Z);
+            double elevation = o->get_elevation();
             double lh = o->m_config.layer_height.getFloat();
+            double minZ = modelgnd - elevation;
 
-            // TODO: this juust misses the support layers with a slight offset...
-            double ih = elevation > 0 ? lh : ilh;
+            // scaled values:
+            auto sminZ = LevelID(scale_(minZ));
+            auto smaxZ = LevelID(scale_(bb.max(Z)));
+            auto smodelgnd = LevelID(scale_(modelgnd));
+            auto slh = LevelID(scale_(lh));
 
-            auto sgl = LevelID(scale_(gndlvl));
-            auto slh = LevelID(scale_(lh));    // scaled layer height
-            auto sih = LevelID(scale_(ih));
+            // It is important that the next levels math the levels in
+            // model_slice method. Only difference is that here it works with
+            // scaled coordinates
+            std::vector<LevelID> levelids;
+            if(sminZ >= smodelgnd) levelids.emplace_back(sminZ);
+            for(LevelID h = sminZ + sih; h < smaxZ; h += slh)
+                if(h >= smodelgnd) levelids.emplace_back(h);
 
             SlicedModel & oslices = o->m_model_slices;
+
+            // If everything went well this code should not run at all, but
+            // let's be robust...
+            assert(levelids.size() == oslices.size());
+            if(levelids.size() < oslices.size()) { // extend the levels until...
+
+                BOOST_LOG_TRIVIAL(warning)
+                        << "Height level mismatch at rasterization!\n";
+
+                LevelID lastlvl = levelids.back();
+                while(levelids.size() < oslices.size()) {
+                    lastlvl += slh;
+                    levelids.emplace_back(lastlvl);
+                }
+            }
+
             for(int i = 0; i < oslices.size(); ++i) {
-                int a = i == 0 ? 0 : 1;
-                int b = i == 0 ? 0 : i - 1;
-
-                LevelID h = sgl + sih * a + b * slh;
-
-                std::cout << "Model layer level: " << h << std::endl;
-
+                LevelID h = levelids[i];
                 auto& lyrs = levels[h]; // this initializes a new record
                 lyrs.emplace_back(oslices[i], o->m_instances);
             }
 
             if(o->m_supportdata) { // deal with the support slices if present
                 auto& sslices = o->m_supportdata->support_slices;
-
-                // Supports start below the ground level.
-                // Counting the pad height as well
-                double el = o->get_elevation();
-                auto sel = LevelID(scale_(el));
-
                 for(int i = 0; i < sslices.size(); ++i) {
                     int a = i == 0 ? 0 : 1;
                     int b = i == 0 ? 0 : i - 1;
-
-                    LevelID h = sgl - sel + sinitlh * a + b * slh;
-                    std::cout << "Support layer level: " << h << std::endl;
+                    LevelID h = sminZ + a * sih + b * slh;
 
                     auto& lyrs = levels[h];
                     lyrs.emplace_back(sslices[i], o->m_instances);
@@ -473,9 +491,23 @@ SLAPrintObject::SLAPrintObject(SLAPrint *print, ModelObject *model_object):
 SLAPrintObject::~SLAPrintObject() {}
 
 double SLAPrintObject::get_elevation() const {
-    return m_supportdata && m_supportdata->support_tree_ptr?
-                m_supportdata->support_tree_ptr->get_elevation() :
-                0;
+    double ret = m_config.support_object_elevation.getFloat();
+
+    // if the pad is enabled, then half of the pad height is its base plate
+    if(m_config.pad_enable.getBool()) {
+        // Normally the elevation for the pad itself would be the thickness of
+        // its walls but currently it is half of its thickness. Whatever it
+        // will be in the future, we provide the config to the get_pad_elevation
+        // method and we will have the correct value
+        sla::PoolConfig pcfg;
+        pcfg.min_wall_height_mm = m_config.pad_wall_height.getFloat();
+        pcfg.min_wall_thickness_mm = m_config.pad_wall_thickness.getFloat();
+        pcfg.edge_radius_mm = m_config.pad_edge_radius.getFloat();
+        pcfg.max_merge_distance_mm = m_config.pad_max_merge_distance.getFloat();
+        ret += sla::get_pad_elevation(pcfg);
+    }
+
+    return ret;
 }
 
 //const std::vector<ExPolygons> &SLAPrintObject::get_support_slices() const
