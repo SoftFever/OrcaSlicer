@@ -787,7 +787,14 @@ BoundingBoxf3 ModelObject::raw_bounding_box() const
         if (v->is_model_part()) {
             if (this->instances.empty())
                 throw std::invalid_argument("Can't call raw_bounding_box() with no instances");
+
+#if ENABLE_MODELVOLUME_TRANSFORM
+            TriangleMesh vol_mesh(v->mesh);
+            vol_mesh.transform(v->get_matrix());
+            bb.merge(this->instances.front()->transform_mesh_bounding_box(vol_mesh, true));
+#else
             bb.merge(this->instances.front()->transform_mesh_bounding_box(v->mesh, true));
+#endif // ENABLE_MODELVOLUME_TRANSFORM
         }
     return bb;
 }
