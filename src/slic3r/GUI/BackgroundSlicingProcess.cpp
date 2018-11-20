@@ -2,7 +2,6 @@
 #include "GUI_App.hpp"
 
 #include <wx/app.h>
-#include <wx/event.h>
 #include <wx/panel.h>
 #include <wx/stdpaths.h>
 

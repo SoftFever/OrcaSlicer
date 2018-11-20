@@ -6,6 +6,8 @@
 #include <mutex>
 #include <thread>
 
+#include <wx/event.h>
+
 #include "Print.hpp"
 
 namespace Slic3r {
