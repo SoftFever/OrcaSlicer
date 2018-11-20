@@ -147,8 +147,7 @@ enum SlisedInfoIdx
     siFilament_mm3,
     siFilament_g,
     siCost,
-    siTimeNormal,
-    siTimeSilent,
+    siEstimatedTime,
     siWTNumbetOfToolchanges,
 
     siCount
@@ -158,7 +157,7 @@ class SlicedInfo : public wxStaticBoxSizer
 {
 public:
     SlicedInfo(wxWindow *parent);
-    void SetTextAndShow(SlisedInfoIdx idx, const wxString& text);
+    void SetTextAndShow(SlisedInfoIdx idx, const wxString& text, const wxString& new_label="");
 
 private:
     std::vector<std::pair<wxStaticText*, wxStaticText*>> info_vec;
@@ -169,9 +168,8 @@ SlicedInfo::SlicedInfo(wxWindow *parent) :
 {
     GetStaticBox()->SetFont(wxGetApp().bold_font());
 
-    auto *grid_sizer = new wxFlexGridSizer(2, 5, 5);
-    grid_sizer->SetFlexibleDirection(wxHORIZONTAL);
-    grid_sizer->AddGrowableCol(1, 1);
+    auto *grid_sizer = new wxFlexGridSizer(2, 5, 15);
+    grid_sizer->SetFlexibleDirection(wxVERTICAL);
 
     info_vec.reserve(siCount);
 
@@ -189,19 +187,20 @@ SlicedInfo::SlicedInfo(wxWindow *parent) :
     init_info_label(_(L("Used Filament (mm³)")));
     init_info_label(_(L("Used Filament (g)")));
     init_info_label(_(L("Cost")));
-    init_info_label(_(L("Estimated printing time (normal mode)")));
-    init_info_label(_(L("Estimated printing time (silent mode)")));
+    init_info_label(_(L("Estimated printing time")));
     init_info_label(_(L("Number of tool changes")));
 
     Add(grid_sizer, 0, wxEXPAND);
     this->Show(false);
 }
 
-void SlicedInfo::SetTextAndShow(SlisedInfoIdx idx, const wxString& text)
+void SlicedInfo::SetTextAndShow(SlisedInfoIdx idx, const wxString& text, const wxString& new_label/*=""*/)
 {
     const bool show = text != "N/A";
     if (show)
         info_vec[idx].second->SetLabelText(text);
+    if (!new_label.IsEmpty())
+        info_vec[idx].first->SetLabelText(new_label);
     info_vec[idx].first->Show(show);
     info_vec[idx].second->Show(show);
 }
@@ -757,23 +756,47 @@ void Sidebar::show_sliced_info_sizer(const bool show)
         const PrintStatistics& ps = p->plater->print().print_statistics();
         const bool is_wipe_tower = ps.total_wipe_tower_filament > 0;
 
+        wxString new_label = _(L("Used Filament (m)"));
+        if (is_wipe_tower)
+            new_label += wxString::Format(" :\n    - %s\n    - %s", _(L("objects")), _(L("wipe tower")));
+
         wxString info_text = is_wipe_tower ?
-                            wxString::Format("%.2f  (%.2f %s + %.2f %s)", ps.total_used_filament / 1000,
-                                            (ps.total_used_filament - ps.total_wipe_tower_filament) / 1000, _(L("objects")),
-                                            ps.total_wipe_tower_filament / 1000, _(L("wipe tower"))) :
+                            wxString::Format("%.2f \n%.2f \n%.2f", ps.total_used_filament / 1000,
+                                            (ps.total_used_filament - ps.total_wipe_tower_filament) / 1000, 
+                                            ps.total_wipe_tower_filament / 1000) :
                             wxString::Format("%.2f", ps.total_used_filament / 1000);
-        p->sliced_info->SetTextAndShow(siFilament_m,    info_text);
+        p->sliced_info->SetTextAndShow(siFilament_m,    info_text,      new_label);
+
         p->sliced_info->SetTextAndShow(siFilament_mm3,  wxString::Format("%.2f", ps.total_extruded_volume));
         p->sliced_info->SetTextAndShow(siFilament_g,    wxString::Format("%.2f", ps.total_weight));
 
+
+        new_label = _(L("Cost"));
+        if (is_wipe_tower)
+            new_label += wxString::Format(" :\n    - %s\n    - %s", _(L("objects")), _(L("wipe tower")));
+                     
         info_text = is_wipe_tower ?
-                    wxString::Format("%.2f  (%.2f %s + %.2f %s)", ps.total_cost,
-                                    (ps.total_cost - ps.total_wipe_tower_cost), _(L("objects")),
-                                    ps.total_wipe_tower_cost, _(L("wipe tower"))) :
+                    wxString::Format("%.2f \n%.2f \n%.2f", ps.total_cost,
+                                        (ps.total_cost - ps.total_wipe_tower_cost), 
+                                        ps.total_wipe_tower_cost) :
                     wxString::Format("%.2f", ps.total_cost);
-        p->sliced_info->SetTextAndShow(siCost,       info_text);
-        p->sliced_info->SetTextAndShow(siTimeNormal, ps.estimated_normal_print_time);
-        p->sliced_info->SetTextAndShow(siTimeSilent, ps.estimated_silent_print_time);
+        p->sliced_info->SetTextAndShow(siCost,       info_text,      new_label);
+
+        if (ps.estimated_normal_print_time == "N/A" && ps.estimated_silent_print_time == "N/A")
+            p->sliced_info->SetTextAndShow(siEstimatedTime, "N/A");
+        else {
+            new_label = "Estimated printing time :";
+            info_text = "";
+            if (ps.estimated_normal_print_time != "N/A") {
+                new_label += wxString::Format("\n    - %s", _(L("normal mode")));
+                info_text += wxString::Format("\n%s", ps.estimated_normal_print_time);
+            }
+            if (ps.estimated_silent_print_time != "N/A") {
+                new_label += wxString::Format("\n    - %s", _(L("silent mode")));
+                info_text += wxString::Format("\n%s", ps.estimated_silent_print_time);
+            }
+            p->sliced_info->SetTextAndShow(siEstimatedTime,  info_text,      new_label);
+        }
 
         // if there is a wipe tower, insert number of toolchanges info into the array:
         p->sliced_info->SetTextAndShow(siWTNumbetOfToolchanges, is_wipe_tower ? wxString::Format("%.d", p->plater->print().wipe_tower_data().number_of_toolchanges) : "N/A");
