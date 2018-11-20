@@ -168,7 +168,9 @@ add_library(libslic3r STATIC
     SLA/SLASpatIndex.hpp
 )
 
-add_precompiled_header(libslic3r pchheader.hpp FORCEINCLUDE)
+if (NOT SLIC3R_SYNTAXONLY)
+    add_precompiled_header(libslic3r pchheader.hpp FORCEINCLUDE)
+endif ()
 
 target_compile_definitions(libslic3r PUBLIC -DUSE_TBB ${PNG_DEFINITIONS})
 target_include_directories(libslic3r PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ${LIBNEST2D_INCLUDES} ${PNG_INCLUDE_DIRS})

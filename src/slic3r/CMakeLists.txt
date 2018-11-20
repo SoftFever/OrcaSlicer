@@ -126,4 +126,6 @@ add_library(libslic3r_gui STATIC
 )
 
 target_link_libraries(libslic3r_gui libslic3r avrdude)
-add_precompiled_header(libslic3r_gui pchheader.hpp FORCEINCLUDE)
+if (NOT SLIC3R_SYNTAXONLY)
+    add_precompiled_header(libslic3r_gui pchheader.hpp FORCEINCLUDE)
+endif ()
