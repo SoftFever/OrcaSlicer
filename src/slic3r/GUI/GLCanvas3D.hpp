@@ -16,6 +16,7 @@ class wxKeyEvent;
 class wxMouseEvent;
 class wxTimerEvent;
 class wxPaintEvent;
+class wxGLCanvas;
 
 
 namespace Slic3r {
@@ -217,23 +218,6 @@ class GLCanvas3D
         Axes();
 
         void render(bool depth_test) const;
-    };
-
-    class CuttingPlane
-    {
-        float m_z;
-        GeometryBuffer m_lines;
-
-    public:
-        CuttingPlane();
-
-        bool set(float z, const ExPolygons& polygons);
-
-        void render(const BoundingBoxf3& bb) const;
-
-    private:
-        void _render_plane(const BoundingBoxf3& bb) const;
-        void _render_contour() const;
     };
 
     class Shader
@@ -479,6 +463,8 @@ public:
         Selection();
 
         void set_volumes(GLVolumePtrs* volumes);
+
+        Model* get_model() const { return m_model; }
         void set_model(Model* model);
 
         EMode get_mode() const { return m_mode; }
@@ -582,6 +568,7 @@ private:
             Scale,
             Rotate,
             Flatten,
+            Cut,
             SlaSupports,
             Num_Types
         };
@@ -645,6 +632,8 @@ private:
 
         void render_overlay(const GLCanvas3D& canvas) const;
 
+        void create_external_gizmo_widgets(wxWindow *parent);
+
     private:
         void _reset();
 
@@ -701,7 +690,6 @@ private:
     Camera m_camera;
     Bed m_bed;
     Axes m_axes;
-    CuttingPlane m_cutting_plane;
     LayersEditing m_layers_editing;
     Shader m_shader;
     Mouse m_mouse;
@@ -737,6 +725,8 @@ private:
     bool m_reload_delayed;
 
     GCodePreviewVolumeIndex m_gcode_preview_volume_index;
+
+    wxWindow *m_external_gizmo_widgets_parent;
 
     void post_event(wxEvent &&event);
     void viewport_changed();
@@ -778,8 +768,6 @@ public:
     void set_bed_shape(const Pointfs& shape);
 
     void set_axes_length(float length);
-
-    void set_cutting_plane(float z, const ExPolygons& polygons);
 
     void set_color_by(const std::string& value);
 
@@ -856,6 +844,8 @@ public:
 
     void set_tooltip(const std::string& tooltip) const;
 
+    void set_external_gizmo_widgets_parent(wxWindow *parent);
+
 private:
     bool _is_shown_on_screen() const;
     void _force_zoom_to_bed();
@@ -882,7 +872,6 @@ private:
     void _render_axes(bool depth_test) const;
     void _render_objects() const;
     void _render_selection() const;
-    void _render_cutting_plane() const;
     void _render_warning_texture() const;
     void _render_legend_texture() const;
     void _render_layer_editing_overlay() const;

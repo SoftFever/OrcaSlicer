@@ -43,7 +43,7 @@
 #include <ctype.h>
 #include <sys/types.h>
 
-#if !defined(WIN32NATIVE)
+#if !defined(WIN32NATIVE) || defined(__GNUC__)
 #  include <sys/time.h>
 #  include <sys/types.h>
 #  include <sys/stat.h>

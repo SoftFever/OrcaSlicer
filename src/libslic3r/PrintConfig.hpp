@@ -31,7 +31,7 @@ enum PrinterTechnology
 };
 
 enum GCodeFlavor {
-    gcfRepRap, gcfRepetier, gcfTeacup, gcfMakerWare, gcfMarlin, gcfSailfish, gcfMach3, gcfMachinekit, 
+    gcfRepRap, gcfRepetier, gcfTeacup, gcfMakerWare, gcfMarlin, gcfSailfish, gcfMach3, gcfMachinekit,
     gcfSmoothie, gcfNoExtrusion,
 };
 
@@ -167,7 +167,7 @@ private:
 // This definition is constant.
 extern const PrintConfigDef print_config_def;
 
-// Slic3r dynamic configuration, used to override the configuration 
+// Slic3r dynamic configuration, used to override the configuration
 // per object, per modification volume or per printing material.
 // The dynamic configuration is also used to store user modifications of the print global parameters,
 // so the modified configuration values may be diffed against the active configuration
@@ -274,12 +274,12 @@ protected:
             m_defaults = defaults;
             m_keys.clear();
             m_keys.reserve(m_map_name_to_offset.size());
-			for (const auto &kvp : defs->options) {
-				// Find the option given the option name kvp.first by an offset from (char*)m_defaults.
-				ConfigOption *opt = this->optptr(kvp.first, m_defaults);
-				if (opt == nullptr)
-					// This option is not defined by the ConfigBase of type T.
-					continue;
+            for (const auto &kvp : defs->options) {
+                // Find the option given the option name kvp.first by an offset from (char*)m_defaults.
+                ConfigOption *opt = this->optptr(kvp.first, m_defaults);
+                if (opt == nullptr)
+                    // This option is not defined by the ConfigBase of type T.
+                    continue;
                 m_keys.emplace_back(kvp.first);
                 const ConfigOptionDef *def = defs->get(kvp.first);
                 assert(def != nullptr);
@@ -463,7 +463,7 @@ public:
     ConfigOptionInt                 top_solid_layers;
     ConfigOptionFloatOrPercent      top_solid_infill_speed;
     ConfigOptionBool                wipe_into_infill;
-    
+
 protected:
     void initialize(StaticCacheBase &cache, const char *base_ptr)
     {
@@ -768,7 +768,7 @@ public:
     ConfigOptionInt                 pixel_height;
     ConfigOptionFloat               exp_time;
     ConfigOptionFloat               exp_time_first;
-    
+
 protected:
     PrintConfig(int) : GCodeConfig(1) {}
     void initialize(StaticCacheBase &cache, const char *base_ptr)
@@ -859,7 +859,7 @@ public:
     ConfigOptionString              printhost_cafile;
     ConfigOptionString              serial_port;
     ConfigOptionInt                 serial_speed;
-    
+
 protected:
     void initialize(StaticCacheBase &cache, const char *base_ptr)
     {
@@ -873,14 +873,14 @@ protected:
 };
 
 // This object is mapped to Perl as Slic3r::Config::Full.
-class FullPrintConfig : 
-    public PrintObjectConfig, 
+class FullPrintConfig :
+    public PrintObjectConfig,
     public PrintRegionConfig,
     public PrintConfig,
     public HostConfig
 {
     STATIC_PRINT_CONFIG_CACHE_DERIVED(FullPrintConfig)
-	FullPrintConfig() : PrintObjectConfig(0), PrintRegionConfig(0), PrintConfig(0), HostConfig(0) { initialize_cache(); *this = s_cache_FullPrintConfig.defaults(); }
+    FullPrintConfig() : PrintObjectConfig(0), PrintRegionConfig(0), PrintConfig(0), HostConfig(0) { initialize_cache(); *this = s_cache_FullPrintConfig.defaults(); }
 
 public:
     // Validate the FullPrintConfig. Returns an empty string on success, otherwise an error message is returned.
@@ -908,16 +908,17 @@ public:
     ConfigOptionFloat support_head_front_radius /*= 0.2*/;
 
     // How much the pinhead has to penetrate the model surface
-    ConfigOptionFloat support_head_penetraiton /*= 0.2*/;
+    ConfigOptionFloat support_head_penetration /*= 0.2*/;
 
-    // Radius of the back side of the 3d arrow.
+    // Radius of the back side of the 3d arrow. TODO: consider renaming this
+    // to actual pillar radius, because that's what it boils down to.
     ConfigOptionFloat support_head_back_radius /*= 0.5*/;
 
     // Width in mm from the back sphere center to the front sphere center.
     ConfigOptionFloat support_head_width /*= 1.0*/;
 
     // Radius in mm of the support pillars.
-    // TODO: This parameter is invalid. The pillar radius will be dynamic in
+    // TODO: This parameter is questionable. The pillar radius will be dynamic in
     // nature. Merged pillars will have an increased thickness. This parameter
     // may serve as the maximum radius, or maybe an increase when two are merged
     // The default radius will be derived from head_back_radius_mm
@@ -930,16 +931,16 @@ public:
     ConfigOptionFloat support_base_height /*= 1.0*/;
 
     // The default angle for connecting support sticks and junctions.
-    ConfigOptionFloat support_critical_angle /*= M_PI/4*/;
+    ConfigOptionFloat support_critical_angle /*= 45*/;
 
     // The max length of a bridge in mm
     ConfigOptionFloat support_max_bridge_length /*= 15.0*/;
 
     // The elevation in Z direction upwards. This is the space between the pad
-    // and the model object's bounding box bottom.
-    ConfigOptionFloat support_object_elevation;
+    // and the model object's bounding box bottom. Units in mm.
+    ConfigOptionFloat support_object_elevation /*= 5.0*/;
 
-    // Now for the base pool (plate) ///////////////////////////////////////////
+    // Now for the base pool (pad) /////////////////////////////////////////////
 
     ConfigOptionFloat pad_wall_thickness /*= 2*/;
     ConfigOptionFloat pad_wall_height /*= 5*/;
@@ -951,7 +952,7 @@ protected:
     {
         OPT_PTR(layer_height);
         OPT_PTR(support_head_front_radius);
-        OPT_PTR(support_head_penetraiton);
+        OPT_PTR(support_head_penetration);
         OPT_PTR(support_head_back_radius);
         OPT_PTR(support_head_width);
         OPT_PTR(support_pillar_radius);
@@ -959,6 +960,7 @@ protected:
         OPT_PTR(support_base_height);
         OPT_PTR(support_critical_angle);
         OPT_PTR(support_max_bridge_length);
+        OPT_PTR(support_object_elevation);
         OPT_PTR(pad_wall_thickness);
         OPT_PTR(pad_wall_height);
         OPT_PTR(pad_max_merge_distance);
@@ -1068,7 +1070,7 @@ public:
     ConfigOptionFloat               scale;
 //    ConfigOptionPoint3              scale_to_fit;
     ConfigOptionBool                slice;
-    
+
     CLIConfig() : ConfigBase(), StaticConfig()
     {
         this->set_defaults();
@@ -1076,7 +1078,7 @@ public:
 
     // Overrides ConfigBase::def(). Static configuration definition. Any value stored into this ConfigBase shall have its definition here.
     const ConfigDef*		def() const override { return &cli_config_def; }
-	t_config_option_keys    keys() const override { return cli_config_def.keys(); }
+    t_config_option_keys    keys() const override { return cli_config_def.keys(); }
 
     ConfigOption*			optptr(const t_config_option_key &opt_key, bool create = false) override
     {
@@ -1118,7 +1120,7 @@ private:
     class PrintAndCLIConfigDef : public ConfigDef
     {
     public:
-        PrintAndCLIConfigDef() { 
+        PrintAndCLIConfigDef() {
             this->options.insert(print_config_def.options.begin(), print_config_def.options.end());
             this->options.insert(cli_config_def.options.begin(), cli_config_def.options.end());
         }

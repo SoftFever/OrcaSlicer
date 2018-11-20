@@ -192,20 +192,21 @@ int main(int argc, char **argv)
             model.repair();
             model.translate(0, 0, - model.bounding_box().min(2));
             if (! model.objects.empty()) {
-                Model out;
-                model.objects.front()->cut(cli_config.cut, &out);
-                ModelObject &upper = *out.objects[0];
-                ModelObject &lower = *out.objects[1];
-                // Use the input name and trim off the extension.
-                std::string outfile = cli_config.output.value;
-                if (outfile.empty()) 
-                    outfile = model.objects.front()->input_file;
-                outfile = outfile.substr(0, outfile.find_last_of('.'));
-                std::cerr << outfile << "\n";
-                if (upper.facets_count() > 0)
-                    upper.mesh().write_binary((outfile + "_upper.stl").c_str());
-                if (lower.facets_count() > 0)
-                    lower.mesh().write_binary((outfile + "_lower.stl").c_str());
+                // XXX
+                // Model out;
+                // model.objects.front()->cut(cli_config.cut, &out);
+                // ModelObject &upper = *out.objects[0];
+                // ModelObject &lower = *out.objects[1];
+                // // Use the input name and trim off the extension.
+                // std::string outfile = cli_config.output.value;
+                // if (outfile.empty())
+                //     outfile = model.objects.front()->input_file;
+                // outfile = outfile.substr(0, outfile.find_last_of('.'));
+                // std::cerr << outfile << "\n";
+                // if (upper.facets_count() > 0)
+                //     upper.mesh().write_binary((outfile + "_upper.stl").c_str());
+                // if (lower.facets_count() > 0)
+                //     lower.mesh().write_binary((outfile + "_lower.stl").c_str());
             }
         } else if (cli_config.slice) {
             std::string outfile = cli_config.output.value;

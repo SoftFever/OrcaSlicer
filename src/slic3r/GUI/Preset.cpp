@@ -396,6 +396,35 @@ const std::vector<std::string>& Preset::sla_material_options()
     return s_opts;
 }
 
+const std::vector<std::string>& Preset::sla_print_options()
+{    
+    static std::vector<std::string> s_opts;
+    if (s_opts.empty()) {
+        s_opts = {
+            "layer_height",
+            "support_head_front_radius",
+            "support_head_penetration",
+            "support_head_back_radius",
+            "support_head_width",
+            "support_pillar_radius",
+            "support_base_radius",
+            "support_base_height",
+            "support_critical_angle",
+            "support_max_bridge_length",
+            "support_object_elevation",
+            "pad_wall_thickness",
+            "pad_wall_height",
+            "pad_max_merge_distance",
+            "pad_edge_radius",
+            "default_sla_print_profile",
+            "compatible_printers",
+            "compatible_printers_condition", 
+            "inherits"
+        };
+    }
+    return s_opts;
+}
+
 PresetCollection::PresetCollection(Preset::Type type, const std::vector<std::string> &keys, const Slic3r::StaticPrintConfig &defaults, const std::string &default_name) :
     m_type(type),
     m_edited_preset(type, "", false),

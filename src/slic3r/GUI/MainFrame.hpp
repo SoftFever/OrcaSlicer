@@ -53,8 +53,6 @@ class MainFrame : public wxFrame
     wxString    m_qs_last_output_file = wxEmptyString;
     wxString    m_last_config = wxEmptyString;
 
-    std::map<std::string, Tab*>     m_options_tabs;
-
     wxMenuItem* m_menu_item_repeat { nullptr };
     wxMenuItem* m_menu_item_reslice_now { nullptr };
 #if !ENABLE_NEW_MENU_LAYOUT
@@ -67,7 +65,6 @@ class MainFrame : public wxFrame
 
     void on_presets_changed(SimpleEvent&);
     void on_value_changed(wxCommandEvent&);
-    Tab*         get_tab(const std::string& name);
 
 #if ENABLE_NEW_MENU_LAYOUT
     bool can_save() const;
@@ -81,10 +78,9 @@ public:
     MainFrame(const bool no_plater, const bool loaded);
     ~MainFrame() {}
 
+    Plater*     plater() { return m_plater; }
 
     void        init_tabpanel();
-    const std::map<std::string, Tab*>& options_tabs() const { return m_options_tabs; }
-    Tab*        get_preset_tab(const std::string& name);
     void        create_preset_tabs();
     void        add_created_tab(Tab* panel);
     void        init_menubar();
@@ -103,8 +99,6 @@ public:
     void        load_config(const DynamicPrintConfig& config);
     void        select_tab(size_t tab) const;
     void        select_view(const std::string& direction);
-
-    std::vector<PresetTab>& get_preset_tabs();
 
     Plater*             m_plater { nullptr };
     wxNotebook*         m_tabpanel { nullptr };

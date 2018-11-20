@@ -370,6 +370,19 @@ public:
     bool 		supports_printer_technology(const PrinterTechnology tech) override { return tech == ptSLA; }
 };
 
+class TabSLAPrint : public Tab
+{
+public:
+    TabSLAPrint() {}
+    TabSLAPrint(wxNotebook* parent) :
+        Tab(parent, _(L("SLA Print Settings")), "sla_print") {}
+    ~TabSLAPrint() {}
+        void		build() override;
+    void		update() override;
+//     void		init_options_list() override;
+    bool 		supports_printer_technology(const PrinterTechnology tech) override { return tech == ptSLA; }
+};
+
 class SavePresetWindow :public wxDialog
 {
 public:

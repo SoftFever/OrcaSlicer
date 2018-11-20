@@ -66,7 +66,7 @@ set(AVRDUDE_SOURCES
     avrdude-slic3r.hpp
     avrdude-slic3r.cpp
 )
-if (WIN32)
+if (MSVC)
     set(AVRDUDE_SOURCES ${AVRDUDE_SOURCES}
         windows/unistd.cpp
         windows/getopt.c

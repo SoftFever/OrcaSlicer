@@ -20,7 +20,8 @@
 #include <wx/progdlg.h>
 #include <wx/wupdlock.h>
 #include <wx/colordlg.h>
-#include <wx/numdlg.h> 
+#include <wx/numdlg.h>
+#include <wx/debug.h>
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/PrintConfig.hpp"
@@ -34,7 +35,6 @@
 #include "libslic3r/Format/STL.hpp"
 #include "libslic3r/Format/AMF.hpp"
 #include "libslic3r/Format/3mf.hpp"
-//#include "slic3r/AppController.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
@@ -423,6 +423,7 @@ struct Sidebar::priv
     PresetComboBox *combo_print;
     std::vector<PresetComboBox*> combos_filament;
     wxBoxSizer *sizer_filaments;
+    PresetComboBox *combo_sla_print;
     PresetComboBox *combo_sla_material;
     PresetComboBox *combo_printer;
 
@@ -453,7 +454,7 @@ void Sidebar::priv::show_preset_comboboxes()
     for (size_t i = 0; i < 4; ++i)
         sizer_presets->Show(i, !showSLA);
 
-    for (size_t i = 4; i < 6; ++i) {
+    for (size_t i = 4; i < 8; ++i) {
         if (sizer_presets->IsShown(i) != showSLA)
             sizer_presets->Show(i, showSLA);
     }
@@ -478,7 +479,7 @@ Sidebar::Sidebar(Plater *parent)
     p->scrolled->SetSizer(scrolled_sizer);
 
     // The preset chooser
-    p->sizer_presets = new wxFlexGridSizer(4, 2, 1, 2);
+    p->sizer_presets = new wxFlexGridSizer(5, 2, 1, 2);
     p->sizer_presets->AddGrowableCol(1, 1);
     p->sizer_presets->SetFlexibleDirection(wxBOTH);
     p->sizer_filaments = new wxBoxSizer(wxVERTICAL);
@@ -501,10 +502,11 @@ Sidebar::Sidebar(Plater *parent)
     };
 
     p->combos_filament.push_back(nullptr);
-    init_combo(&p->combo_print, _(L("Print settings")), Preset::TYPE_PRINT, false);
-    init_combo(&p->combos_filament[0], _(L("Filament")), Preset::TYPE_FILAMENT, true);
-    init_combo(&p->combo_sla_material, _(L("SLA material")), Preset::TYPE_SLA_MATERIAL, false);
-    init_combo(&p->combo_printer, _(L("Printer")), Preset::TYPE_PRINTER, false);
+    init_combo(&p->combo_print,         _(L("Print settings")), Preset::TYPE_PRINT,         false);
+    init_combo(&p->combos_filament[0],  _(L("Filament")),       Preset::TYPE_FILAMENT,      true);
+    init_combo(&p->combo_sla_print,     _(L("SLA print")),      Preset::TYPE_SLA_PRINT,     false);
+    init_combo(&p->combo_sla_material,  _(L("SLA material")),   Preset::TYPE_SLA_MATERIAL,  false);
+    init_combo(&p->combo_printer,       _(L("Printer")),        Preset::TYPE_PRINTER,       false);
 
     // calculate width of the preset labels 
     p->sizer_presets->Layout();
@@ -619,6 +621,10 @@ void Sidebar::update_presets(Preset::Type preset_type)
 		preset_bundle.prints.update_platter_ui(p->combo_print);
         break;
 
+    case Preset::TYPE_SLA_PRINT:
+		preset_bundle.sla_prints.update_platter_ui(p->combo_sla_print);
+        break;
+
     case Preset::TYPE_SLA_MATERIAL:
 		preset_bundle.sla_materials.update_platter_ui(p->combo_sla_material);
         break;
@@ -628,8 +634,10 @@ void Sidebar::update_presets(Preset::Type preset_type)
 		// Update the print choosers to only contain the compatible presets, update the dirty flags.
 		if (p->plater->printer_technology() == ptFFF)
 			preset_bundle.prints.update_platter_ui(p->combo_print);
-		else
-			preset_bundle.sla_materials.update_platter_ui(p->combo_sla_material);
+        else {
+            preset_bundle.sla_prints.update_platter_ui(p->combo_sla_print);
+            preset_bundle.sla_materials.update_platter_ui(p->combo_sla_material);
+        }
 		// Update the printer choosers, update the dirty flags.
 		preset_bundle.printers.update_platter_ui(p->combo_printer);
 		// Update the filament choosers to only contain the compatible presets, update the color preview,
@@ -880,6 +888,7 @@ struct Plater::priv
     // GUI elements
     wxNotebook *notebook;
     Sidebar *sidebar;
+    wxPanel *panel3d;
     wxGLCanvas *canvas3D;    // TODO: Use GLCanvas3D when we can
     Preview *preview;
 
@@ -958,7 +967,6 @@ struct Plater::priv
     void on_action_add(SimpleEvent&);
     void on_action_split_objects(SimpleEvent&);
     void on_action_split_volumes(SimpleEvent&);
-    void on_action_cut(SimpleEvent&);
     void on_action_layersediting(SimpleEvent&);
 
     void on_object_select(SimpleEvent&);
@@ -977,7 +985,6 @@ private:
     bool can_decrease_instances() const;
     bool can_split_to_objects() const;
     bool can_split_to_volumes() const;
-    bool can_cut_object() const;
     bool layers_height_allowed() const;
     bool can_delete_all() const;
     bool can_arrange() const;
@@ -987,19 +994,20 @@ private:
 const std::regex Plater::priv::pattern_bundle(".*[.](amf|amf[.]xml|zip[.]amf|3mf|prusa)", std::regex::icase);
 const std::regex Plater::priv::pattern_3mf(".*3mf", std::regex::icase);
 const std::regex Plater::priv::pattern_zip_amf(".*[.]zip[.]amf", std::regex::icase);
-Plater::priv::priv(Plater *q, MainFrame *main_frame) :
-    q(q),
-    main_frame(main_frame),
-    config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({
+Plater::priv::priv(Plater *q, MainFrame *main_frame)
+    : q(q)
+    , main_frame(main_frame)
+    , config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({
         "bed_shape", "complete_objects", "extruder_clearance_radius", "skirts", "skirt_distance",
         "brim_width", "variable_layer_height", "serial_port", "serial_speed", "host_type", "print_host",
         "printhost_apikey", "printhost_cafile", "nozzle_diameter", "single_extruder_multi_material",
         "wipe_tower", "wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_rotation_angle",
-		"extruder_colour", "filament_colour", "max_print_height", "printer_model", "printer_technology"
-    })),
-    notebook(new wxNotebook(q, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_BOTTOM)),
-    sidebar(new Sidebar(q)),
-    canvas3D(GLCanvas3DManager::create_wxglcanvas(notebook))
+        "extruder_colour", "filament_colour", "max_print_height", "printer_model", "printer_technology"
+        }))
+    , notebook(new wxNotebook(q, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_BOTTOM))
+    , sidebar(new Sidebar(q))
+    , panel3d(new wxPanel(notebook, wxID_ANY))
+    , canvas3D(GLCanvas3DManager::create_wxglcanvas(panel3d))
 #if ENABLE_NEW_MENU_LAYOUT
     , project_filename(wxEmptyString)
 #endif // ENABLE_NEW_MENU_LAYOUT
@@ -1023,8 +1031,18 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
 
     _3DScene::add_canvas(canvas3D);
     _3DScene::allow_multisample(canvas3D, GLCanvas3DManager::can_multisample());
-    notebook->AddPage(canvas3D, _(L("3D")));
+
+    auto *panel3dsizer = new wxBoxSizer(wxVERTICAL);
+    panel3dsizer->Add(canvas3D, 1, wxEXPAND);
+    auto *panel_gizmo_widgets = new wxPanel(panel3d, wxID_ANY);
+    panel_gizmo_widgets->SetSizer(new wxBoxSizer(wxVERTICAL));
+    panel3dsizer->Add(panel_gizmo_widgets, 0, wxEXPAND);
+
+    panel3d->SetSizer(panel3dsizer);
+    notebook->AddPage(panel3d, _(L("3D")));
     preview = new GUI::Preview(notebook, config, &print, &gcode_preview_data, [this](){ schedule_background_process(); });
+
+    _3DScene::get_canvas(canvas3D)->set_external_gizmo_widgets_parent(panel_gizmo_widgets);
 
     // XXX: If have OpenGL
     _3DScene::enable_picking(canvas3D, true);
@@ -1088,7 +1106,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     canvas3D->Bind(EVT_GLTOOLBAR_FEWER, [q](SimpleEvent&) { q->decrease_instances(); });
     canvas3D->Bind(EVT_GLTOOLBAR_SPLIT_OBJECTS, &priv::on_action_split_objects, this);
     canvas3D->Bind(EVT_GLTOOLBAR_SPLIT_VOLUMES, &priv::on_action_split_volumes, this);
-    canvas3D->Bind(EVT_GLTOOLBAR_CUT, &priv::on_action_cut, this);
     canvas3D->Bind(EVT_GLTOOLBAR_LAYERSEDITING, &priv::on_action_layersediting, this);
 
     // Preview events:
@@ -1471,7 +1488,6 @@ void Plater::priv::selection_changed()
     _3DScene::enable_toolbar_item(canvas3D, "fewer", can_decrease_instances());
     _3DScene::enable_toolbar_item(canvas3D, "splitobjects", can_split_to_objects());
     _3DScene::enable_toolbar_item(canvas3D, "splitvolumes", can_split_to_volumes());
-    _3DScene::enable_toolbar_item(canvas3D, "cut", can_cut_object());
     _3DScene::enable_toolbar_item(canvas3D, "layersediting", layers_height_allowed());
     // forces a frame render to update the view (to avoid a missed update if, for example, the context menu appears)
     _3DScene::render(canvas3D);
@@ -1806,7 +1822,7 @@ void Plater::priv::fix_through_netfabb(const int obj_idx)
 void Plater::priv::on_notebook_changed(wxBookCtrlEvent&)
 {
     const auto current_id = notebook->GetCurrentPage()->GetId();
-    if (current_id == canvas3D->GetId()) {
+    if (current_id == panel3d->GetId()) {
         if (_3DScene::is_reload_delayed(canvas3D)) {
             // Delayed loading of the 3D scene.
             if (this->printer_technology == ptSLA) {
@@ -1859,8 +1875,6 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
         }
     }
 
-    // Synchronize config.ini with the current selections.
-    wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
     // update plater with new config
     wxGetApp().plater()->on_config_change(wxGetApp().preset_bundle->full_config());
 }
@@ -1988,11 +2002,6 @@ void Plater::priv::on_action_split_volumes(SimpleEvent&)
     split_volume();
 }
 
-void Plater::priv::on_action_cut(SimpleEvent&)
-{
-    // TODO
-}
-
 void Plater::priv::on_action_layersediting(SimpleEvent&)
 {
     bool enable = !_3DScene::is_layers_editing_enabled(canvas3D);
@@ -2036,7 +2045,7 @@ void Plater::priv::on_wipetower_moved(Vec3dEvent &evt)
     DynamicPrintConfig cfg;
     cfg.opt<ConfigOptionFloat>("wipe_tower_x", true)->value = evt.data(0);
     cfg.opt<ConfigOptionFloat>("wipe_tower_y", true)->value = evt.data(1);
-    main_frame->get_preset_tab("print")->load_config(cfg);
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->load_config(cfg);
 }
 
 void Plater::priv::on_enable_action_buttons(Event<bool>&)
@@ -2130,12 +2139,6 @@ bool Plater::priv::can_split_to_volumes() const
 {
     int obj_idx = get_selected_object_idx();
     return (0 <= obj_idx) && (obj_idx < (int)model.objects.size()) && !model.objects[obj_idx]->is_multiparts();
-}
-
-bool Plater::priv::can_cut_object() const
-{
-    int obj_idx = get_selected_object_idx();
-    return (0 <= obj_idx) && (obj_idx < (int)model.objects.size());
 }
 
 bool Plater::priv::layers_height_allowed() const
@@ -2329,6 +2332,21 @@ void Plater::set_number_of_copies(/*size_t num*/)
         increase_instances(diff);
     else if (diff < 0)
         decrease_instances(-diff);
+}
+
+void Plater::cut(size_t obj_idx, size_t instance_idx, coordf_t z)
+{
+    wxCHECK_RET(obj_idx < p->model.objects.size(), "obj_idx out of bounds");
+    auto *object = p->model.objects[obj_idx];
+
+    wxCHECK_RET(instance_idx < object->instances.size(), "instance_idx out of bounds");
+
+    const auto new_objects = object->cut(instance_idx, z);
+
+    remove(obj_idx);
+    p->load_model_objects(new_objects);
+
+    p->arrange();
 }
 
 void Plater::export_gcode(fs::path output_path)

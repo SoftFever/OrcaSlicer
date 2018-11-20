@@ -7,6 +7,7 @@
 #include <wx/menu.h>
 #include <wx/progdlg.h>
 #include <wx/tooltip.h>
+#include <wx/glcanvas.h>
 #include <wx/debug.h>
 
 #include "Tab.hpp"
@@ -100,7 +101,6 @@ wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAUL
     });
 
     update_ui_from_settings();
-    return;
 }
 
 void MainFrame::init_tabpanel()
@@ -109,20 +109,15 @@ void MainFrame::init_tabpanel()
 
     m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGED, [this](wxEvent&) {
         auto panel = m_tabpanel->GetCurrentPage();
-//             panel->OnActivate(); if panel->can('OnActivate');
 
         if (panel == nullptr)
             return;
 
-        for (auto& tab_name : { "print", "filament", "printer" }) {
-            if (tab_name == panel->GetName()) {
-                // On GTK, the wxEVT_NOTEBOOK_PAGE_CHANGED event is triggered
-                // before the MainFrame is fully set up.
-                auto it = m_options_tabs.find(tab_name);
-                assert(it != m_options_tabs.end());
-                if (it != m_options_tabs.end())
-                    it->second->OnActivate();
-            }
+        auto& tabs_list = wxGetApp().tabs_list;
+        if (find(tabs_list.begin(), tabs_list.end(), panel) != tabs_list.end()) {
+            // On GTK, the wxEVT_NOTEBOOK_PAGE_CHANGED event is triggered
+            // before the MainFrame is fully set up.
+            static_cast<Tab*>(panel)->OnActivate();
         }
     });
 
@@ -140,9 +135,6 @@ void MainFrame::init_tabpanel()
     Bind(EVT_TAB_PRESETS_CHANGED, &MainFrame::on_presets_changed, this);
 
     create_preset_tabs();
-    std::vector<std::string> tab_names = { "print", "filament", "sla_material", "printer" };    
-    for (auto tab_name : tab_names)
-        m_options_tabs[tab_name] = get_preset_tab(tab_name.c_str()); 
 
     if (m_plater) {
         // load initial config
@@ -157,44 +149,12 @@ void MainFrame::init_tabpanel()
     }
 }
 
-std::vector<PresetTab> preset_tabs = {
-    { "print", nullptr, ptFFF },
-    { "filament", nullptr, ptFFF },
-    { "sla_material", nullptr, ptSLA }
-};
-
-std::vector<PresetTab>& MainFrame::get_preset_tabs() {
-    return preset_tabs;
-}
-
-Tab* MainFrame::get_tab(const std::string& name)
-{
-    std::vector<PresetTab>::iterator it = std::find_if(preset_tabs.begin(), preset_tabs.end(),
-        [name](PresetTab& tab) { return name == tab.name; });
-    return it != preset_tabs.end() ? it->panel : nullptr;
-}
-
-Tab* MainFrame::get_preset_tab(const std::string& name)
-{
-    Tab* tab = get_tab(name);
-    if (tab) return tab;
-
-    for (size_t i = 0; i < m_tabpanel->GetPageCount(); ++i) {
-        tab = dynamic_cast<Tab*>(m_tabpanel->GetPage(i));
-        if (!tab)
-            continue;
-        if (tab->name() == name) {
-            return tab;
-        }
-    }
-    return nullptr;
-}
-
 void MainFrame::create_preset_tabs()
 {
     wxGetApp().update_label_colours_from_appconfig();
     add_created_tab(new TabPrint(m_tabpanel));
     add_created_tab(new TabFilament(m_tabpanel));
+    add_created_tab(new TabSLAPrint(m_tabpanel));
     add_created_tab(new TabSLAMaterial(m_tabpanel));
     add_created_tab(new TabPrinter(m_tabpanel));
 }
@@ -203,17 +163,9 @@ void MainFrame::add_created_tab(Tab* panel)
 {
     panel->create_preset_tab();
 
-    const wxString& tab_name = panel->GetName();
-    bool add_panel = true;
+    const auto printer_tech = wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology();
 
-    auto it = std::find_if(preset_tabs.begin(), preset_tabs.end(),
-        [tab_name](PresetTab& tab) {return tab.name == tab_name; });
-    if (it != preset_tabs.end()) {
-        it->panel = panel;
-        add_panel = it->technology == wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology();
-    }
-
-    if (add_panel)
+    if (panel->supports_printer_technology(printer_tech))
         m_tabpanel->AddPage(panel, panel->title());
 }
 
@@ -768,8 +720,8 @@ void MainFrame::load_configbundle(wxString file/* = wxEmptyString, const bool re
 // Also update the platter with the new presets.
 void MainFrame::load_config(const DynamicPrintConfig& config)
 {
-    for (auto tab : m_options_tabs)
-        tab.second->load_config(config);
+    for (auto tab : wxGetApp().tabs_list)
+        tab->load_config(config);
     if (m_plater) 
         m_plater->on_config_change(config);
 }
@@ -797,7 +749,6 @@ void MainFrame::on_presets_changed(SimpleEvent &event)
     // Update preset combo boxes(Print settings, Filament, Material, Printer) from their respective tabs.
     auto presets = tab->get_presets();
     if (m_plater != nullptr && presets != nullptr) {
-//         auto reload_dependent_tabs = tab->get_dependent_tabs();
 
         // FIXME: The preset type really should be a property of Tab instead
         Slic3r::Preset::Type preset_type = tab->type();
@@ -805,25 +756,7 @@ void MainFrame::on_presets_changed(SimpleEvent &event)
             wxASSERT(false);
             return;
         }
-/*
-        m_plater->sidebar().update_presets(preset_type);
 
-        if (preset_type == Slic3r::Preset::TYPE_PRINTER) {
-            // Printer selected at the Printer tab, update "compatible" marks at the print and filament selectors.
-            // XXX: Do this in a more C++ way
-            for (const auto tab_name_other : { "print", "filament", "sla_material" }) {
-                Tab* cur_tab = m_options_tabs[tab_name_other];
-                // If the printer tells us that the print or filament preset has been switched or invalidated,
-                // refresh the print or filament tab page.Otherwise just refresh the combo box.
-                if (reload_dependent_tabs.empty() ||
-                    find(reload_dependent_tabs.begin(), reload_dependent_tabs.end(), tab_name_other) ==
-                    reload_dependent_tabs.end() )
-                    cur_tab->update_tab_ui();
-                else
-                    cur_tab->load_current_preset();
-            }
-        }
-*/
         m_plater->on_config_change(*tab->get_config());
         m_plater->sidebar().update_presets(preset_type);
     }
@@ -858,11 +791,7 @@ void MainFrame::update_ui_from_settings()
 {
     m_menu_item_reslice_now->Enable(wxGetApp().app_config->get("background_processing") == "1");
 //     if (m_plater) m_plater->update_ui_from_settings();
-    /*
-    std::vector<std::string> tab_names = { "print", "filament", "printer" };
-    for (auto tab_name: tab_names)
-        m_options_tabs[tab_name]->update_ui_from_settings();
-    */
+
     for (auto tab: wxGetApp().tabs_list)
         tab->update_ui_from_settings();
 }

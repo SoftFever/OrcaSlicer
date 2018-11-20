@@ -80,7 +80,7 @@ elseif (MSVC)
     # Manifest is provided through slic3r.rc, don't generate your own.
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /MANIFEST:NO")
 else ()
-    target_link_libraries(slic3r -ldl -lstdc++)
+    target_link_libraries(slic3r ${CMAKE_DL_LIBS} -lstdc++)
 endif ()
 
 # Add the Slic3r GUI library, libcurl, OpenGL and GLU libraries.

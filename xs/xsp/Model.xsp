@@ -231,12 +231,6 @@ ModelMaterial::attributes()
     void rotate(float angle, Vec3d* axis)
         %code{% THIS->rotate(angle, *axis); %};
     void mirror(Axis axis);
-    
-    Model* cut(double z)
-        %code%{
-            RETVAL = new Model();
-            THIS->cut(z, RETVAL);
-        %};
 
     ModelObjectPtrs* split_object()
         %code%{

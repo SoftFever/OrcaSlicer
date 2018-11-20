@@ -33,7 +33,7 @@ struct SupportConfig {
     double head_front_radius_mm = 0.2;
 
     // How much the pinhead has to penetrate the model surface
-    double head_penetraiton = 0.2;
+    double head_penetration_mm = 0.5;
 
     // Radius of the back side of the 3d arrow.
     double head_back_radius_mm = 0.5;
@@ -90,34 +90,17 @@ struct EigenMesh3D {
     Eigen::MatrixXd V;
     Eigen::MatrixXi F;
     double ground_level = 0;
-
-    // igl crashes with the following data types:
-//    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::DontAlign> V;
-//    Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic, Eigen::DontAlign> F;
 };
 
-//using PointSet = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::DontAlign>; //Eigen::MatrixXd;
 using PointSet = Eigen::MatrixXd;
 
-/* ************************************************************************** */
-/* TODO: May not be needed:                                                   */
-/* ************************************************************************** */
-
-void create_head(TriangleMesh&, double r1_mm, double r2_mm, double width_mm);
-
-/// Add support volumes to the model directly
-void add_sla_supports(Model& model, const SupportConfig& cfg = {},
-                      const Controller& ctl = {});
-
 EigenMesh3D to_eigenmesh(const TriangleMesh& m);
-PointSet    to_point_set(const std::vector<Vec3d>&);
 
-
-// obsolete, not used anymore
-EigenMesh3D to_eigenmesh(const Model& model);
+// needed for find best rotation
 EigenMesh3D to_eigenmesh(const ModelObject& model);
-PointSet support_points(const ModelObject& modelobject);
-PointSet support_points(const Model& model);
+
+// Simple conversion of 'vector of points' to an Eigen matrix
+PointSet    to_point_set(const std::vector<Vec3d>&);
 
 
 /* ************************************************************************** */
@@ -135,6 +118,9 @@ class SLASupportTree {
     std::unique_ptr<Impl> m_impl;
     Controller m_ctl;
 
+    // the only value from config that is also needed after construction
+    double m_elevation = 0;
+
     Impl& get() { return *m_impl; }
     const Impl& get() const { return *m_impl; }
 
@@ -148,11 +134,6 @@ class SLASupportTree {
                   const SupportConfig& cfg = {},
                   const Controller& ctl = {});
 public:
-
-    // Constructors will throw if the stop condition becomes true.
-    SLASupportTree(const Model& model,
-                   const SupportConfig& cfg = {},
-                   const Controller& ctl = {});
 
     SLASupportTree(const PointSet& pts,
                    const EigenMesh3D& em,
