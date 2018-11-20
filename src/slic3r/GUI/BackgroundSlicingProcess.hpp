@@ -15,6 +15,18 @@ class GCodePreviewData;
 class Model;
 class SLAPrint;
 
+class SlicingStatusEvent : public wxEvent
+{
+public:
+	SlicingStatusEvent(wxEventType eventType, int winid, const PrintBase::Status &status) :
+		wxEvent(winid, eventType), status(std::move(status)) {}
+	virtual wxEvent *Clone() const { return new SlicingStatusEvent(*this); }
+
+	PrintBase::Status 	status;
+};
+
+wxDEFINE_EVENT(EVT_SLICING_UPDATE, SlicingStatusEvent);
+
 // Print step IDs for keeping track of the print state.
 enum BackgroundSlicingProcessStep {
     bspsGCodeFinalize, bspsCount,
@@ -35,7 +47,7 @@ public:
 	// The following wxCommandEvent will be sent to the UI thread / Platter window, when the slicing is finished
 	// and the background processing will transition into G-code export.
 	// The wxCommandEvent is sent to the UI thread asynchronously without waiting for the event to be processed.
-	void set_sliced_event(int event_id) { m_event_sliced_id = event_id; }
+	void set_slicing_completed_event(int event_id) { m_event_slicing_completed_id = event_id; }
 	// The following wxCommandEvent will be sent to the UI thread / Platter window, when the G-code export is finished.
 	// The wxCommandEvent is sent to the UI thread asynchronously without waiting for the event to be processed.
 	void set_finished_event(int event_id) { m_event_finished_id = event_id; }
@@ -133,11 +145,10 @@ private:
     // If the background processing stop was requested, throw CanceledException.
     void                throw_if_canceled() const { if (m_print->canceled()) throw CanceledException(); }
 
-
 	// wxWidgets command ID to be sent to the platter to inform that the slicing is finished, and the G-code export will continue.
-	int 						m_event_sliced_id 	 = 0;
+	int 						m_event_slicing_completed_id 	= 0;
 	// wxWidgets command ID to be sent to the platter to inform that the task finished.
-	int 						m_event_finished_id  = 0;
+	int 						m_event_finished_id  			= 0;
 };
 
 }; // namespace Slic3r

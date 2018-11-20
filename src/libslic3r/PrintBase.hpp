@@ -31,12 +31,14 @@ public:
         DONE,
     };
 
+    typedef size_t TimeStamp;
+
     // A new unique timestamp is being assigned to the step every time the step changes its state.
     struct StateWithTimeStamp
     {
         StateWithTimeStamp() : state(INVALID), timestamp(0) {}
-        State   state;
-        size_t  timestamp;
+        State       state;
+        TimeStamp   timestamp;
     };
 
 protected:
@@ -90,13 +92,14 @@ public:
     // Set the step as done. Block on mutex while the Print / PrintObject / PrintRegion objects are being
     // modified by the UI thread.
 	template<typename ThrowIfCanceled>
-	void set_done(StepType step, tbb::mutex &mtx, ThrowIfCanceled throw_if_canceled) {
+	TimeStamp set_done(StepType step, tbb::mutex &mtx, ThrowIfCanceled throw_if_canceled) {
         tbb::mutex::scoped_lock lock(mtx);
         // If canceled, throw before changing the step state.
         throw_if_canceled();
         assert(m_state[step].state != DONE);
         m_state[step].state = DONE;
         m_state[step].timestamp = ++ g_last_timestamp;
+        return m_state[step].timestamp;
     }
 
     // Make the step invalid.
@@ -236,16 +239,27 @@ public:
 
     virtual void            process() = 0;
 
-    typedef std::function<void(int, const std::string&)>  status_callback_type;
+    struct Status {
+		Status(int percent, const std::string &text, unsigned int flags = 0) : percent(percent), text(text), flags(flags) {}
+        int             percent;
+        std::string     text;
+        // Bitmap of flags.
+        enum FlagBits {
+            RELOAD_SCENE = 1,
+        };
+        // Bitmap of FlagBits
+        unsigned int    flags;
+    };
+    typedef std::function<void(const Status&)>  status_callback_type;
     // Default status console print out in the form of percent => message.
     void                    set_status_default() { m_status_callback = nullptr; }
     // No status output or callback whatsoever, useful mostly for automatic tests.
-    void                    set_status_silent() { m_status_callback = [](int, const std::string&){}; }
+    void                    set_status_silent() { m_status_callback = [](const Status&){}; }
     // Register a custom status callback.
     void                    set_status_callback(status_callback_type cb) { m_status_callback = cb; }
     // Calls a registered callback to update the status, or print out the default message.
-    void                    set_status(int percent, const std::string &message) { 
-        if (m_status_callback) m_status_callback(percent, message);
+    void                    set_status(int percent, const std::string &message, unsigned int flags = 0) {
+		if (m_status_callback) m_status_callback(Status(percent, message, flags));
         else printf("%d => %s\n", percent, message.c_str());
     }
 
@@ -309,7 +323,7 @@ public:
 
 protected:
     bool            set_started(PrintStepEnum step) { return m_state.set_started(step, this->state_mutex(), [this](){ this->throw_if_canceled(); }); }
-	void            set_done(PrintStepEnum step) { m_state.set_done(step, this->state_mutex(), [this](){ this->throw_if_canceled(); }); }
+	PrintStateBase::TimeStamp set_done(PrintStepEnum step) { return m_state.set_done(step, this->state_mutex(), [this](){ this->throw_if_canceled(); }); }
     bool            invalidate_step(PrintStepEnum step)
 		{ return m_state.invalidate(step, this->cancel_callback()); }
     template<typename StepTypeIterator>
@@ -340,8 +354,8 @@ protected:
 
     bool            set_started(PrintObjectStepEnum step) 
         { return m_state.set_started(step, PrintObjectBase::state_mutex(m_print), [this](){ PrintObjectBase::throw_if_canceled(this->m_print); }); }
-	void            set_done(PrintObjectStepEnum step) 
-        { m_state.set_done(step, PrintObjectBase::state_mutex(m_print), [this](){ PrintObjectBase::throw_if_canceled(this->m_print); }); }
+	PrintStateBase::TimeStamp set_done(PrintObjectStepEnum step) 
+        { return m_state.set_done(step, PrintObjectBase::state_mutex(m_print), [this](){ PrintObjectBase::throw_if_canceled(this->m_print); }); }
 
     bool            invalidate_step(PrintObjectStepEnum step)
         { return m_state.invalidate(step, PrintObjectBase::cancel_callback(m_print)); }
