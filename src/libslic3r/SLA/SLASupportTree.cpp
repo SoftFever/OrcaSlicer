@@ -730,6 +730,9 @@ public:
             meshcache.merge(mesh(bs.mesh));
         }
 
+        // TODO: Is this necessary?
+        meshcache.repair();
+
         BoundingBoxf3&& bb = meshcache.bounding_box();
         model_height = bb.max(Z) - bb.min(Z);
 
@@ -1616,13 +1619,13 @@ bool SLASupportTree::generate(const PointSet &points,
     return pc == ABORT;
 }
 
-void SLASupportTree::merged_mesh(TriangleMesh &outmesh) const
+const TriangleMesh &SLASupportTree::merged_mesh() const
 {
-    outmesh.merge(get().merged_mesh());
+    return get().merged_mesh();
 }
 
 void SLASupportTree::merged_mesh_with_pad(TriangleMesh &outmesh) const {
-    merged_mesh(outmesh);
+    outmesh.merge(merged_mesh());
     outmesh.merge(get_pad());
 }
 
@@ -1658,14 +1661,12 @@ const TriangleMesh &SLASupportTree::add_pad(const SliceLayer& baseplate,
                                             double max_merge_distance_mm,
                                             double edge_radius_mm) const
 {
-    TriangleMesh mm;
-    merged_mesh(mm);
     PoolConfig pcfg;
     pcfg.min_wall_thickness_mm = min_wall_thickness_mm;
     pcfg.min_wall_height_mm    = min_wall_height_mm;
     pcfg.max_merge_distance_mm = max_merge_distance_mm;
     pcfg.edge_radius_mm        = edge_radius_mm;
-    return m_impl->create_pad(mm, baseplate, pcfg).tmesh;
+    return m_impl->create_pad(merged_mesh(), baseplate, pcfg).tmesh;
 }
 
 const TriangleMesh &SLASupportTree::get_pad() const
