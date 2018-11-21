@@ -1589,6 +1589,7 @@ void Plater::priv::arrange()
     // Guard the arrange process
     arranging.store(true);
 
+    // Disable the arrange button (to prevent reentrancies, we will call wxYied)
     _3DScene::enable_toolbar_item(canvas3D, "arrange", can_arrange());
 
     this->background_process.stop();
@@ -1608,7 +1609,8 @@ void Plater::priv::arrange()
         statusbar()->set_status_text(msg);
 
         // ok, this is dangerous, but we are protected by the atomic flag
-        // 'arranging'. This call is needed for the cancel button to work.
+        // 'arranging' and the arrange button is also disabled.
+        // This call is needed for the cancel button to work.
         wxYieldIfNeeded();
     };
 
@@ -1657,12 +1659,11 @@ void Plater::priv::arrange()
     statusbar()->set_cancel_callback(); // remove cancel button
     arranging.store(false);
 
-    this->schedule_background_process();
-
-    // ignore arrange failures on purpose: user has visual feedback and we
-    // don't need to warn him when parts don't fit in print bed
-
+    // We enable back the arrange button
     _3DScene::enable_toolbar_item(canvas3D, "arrange", can_arrange());
+
+    // FIXME: none of the following seem to work now. (update did the job previously)
+    // _3DScene::reload_scene(canvas3D, false);
     update();
 }
 
