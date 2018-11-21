@@ -503,7 +503,7 @@ struct Pad {
 //    Contour3D mesh;
     TriangleMesh tmesh;
     PoolConfig cfg;
-    double zlevel;
+    double zlevel = 0;
 
     Pad() {}
 

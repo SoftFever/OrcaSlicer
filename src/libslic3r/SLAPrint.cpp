@@ -230,11 +230,12 @@ void SLAPrint::process()
         // and before the supports had been sliced. (or the slicing has to be
         // repeated)
 
-        if(po.is_step_done(slaposSupportTree) &&
+        if(/*po.is_step_done(slaposSupportTree) &&*/
            po.m_config.pad_enable.getBool() &&
            po.m_supportdata &&
            po.m_supportdata->support_tree_ptr)
         {
+            std::cout << "Generating base pool for real" << std::endl;
             double wt = po.m_config.pad_wall_thickness.getFloat();
             double h =  po.m_config.pad_wall_height.getFloat();
             double md = po.m_config.pad_max_merge_distance.getFloat();
@@ -445,14 +446,11 @@ void SLAPrint::process()
     const size_t objcount = m_objects.size();
     const double ostepd = (max_objstatus - min_objstatus) / (objcount * 100.0);
 
+    static const auto RELOAD_SCENE = SlicingStatus::RELOAD_SCENE;
+
     for(SLAPrintObject * po : m_objects) {
         for(size_t s = 0; s < objectsteps.size(); ++s) {
             auto currentstep = objectsteps[s];
-
-            // if the base pool (which means also the support tree) is done,
-            // do a refresh when indicating progress
-            auto flg = currentstep == slaposObjectSlice ?
-                        SlicingStatus::RELOAD_SCENE : SlicingStatus::DEFAULT;
 
             // Cancellation checking. Each step will check for cancellation
             // on its own and return earlier gracefully. Just after it returns
@@ -464,10 +462,20 @@ void SLAPrint::process()
 
                 unsigned st = OBJ_STEP_LEVELS[currentstep];
                 st = unsigned(min_objstatus + st * ostepd);
-                set_status(st, OBJ_STEP_LABELS[currentstep], flg);
+                set_status(st, OBJ_STEP_LABELS[currentstep]);
 
                 pobj_program[currentstep](*po);
                 po->set_done(currentstep);
+
+                if(currentstep == slaposBasePool) {
+                    // if the base pool (which means also the support tree) is
+                    // done, do a refresh when indicating progress. Now the
+                    // geometries for the supports and the optional base pad are
+                    // ready. We can grant access for the control thread to read
+                    // the geometries, but first we have to update the caches:
+                    po->support_mesh(); /*po->pad_mesh();*/
+                    set_status(st, L("Visualizing supports"), RELOAD_SCENE);
+                }
             }
         }
     }
