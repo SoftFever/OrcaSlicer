@@ -201,6 +201,16 @@ bool MainFrame::can_change_view() const
     int page_id = m_tabpanel->GetSelection();
     return (page_id != wxNOT_FOUND) ? m_tabpanel->GetPageText((size_t)page_id).Lower() == "plater" : false;
 }
+
+bool MainFrame::can_select() const
+{
+    return (m_plater != nullptr) ? !m_plater->model().objects.empty() : false;
+}
+
+bool MainFrame::can_delete() const
+{
+    return (m_plater != nullptr) ? !m_plater->is_selection_empty() : false;
+}
 #endif // ENABLE_NEW_MENU_LAYOUT
 
 void MainFrame::init_menubar()
@@ -301,6 +311,22 @@ void MainFrame::init_menubar()
 #endif // ENABLE_NEW_MENU_LAYOUT
     }
 
+#if ENABLE_NEW_MENU_LAYOUT
+    // Edit menu
+    wxMenu* editMenu = nullptr;
+    if (m_plater != nullptr)
+    {
+        editMenu = new wxMenu();
+        wxMenuItem* item_select_all = append_menu_item(editMenu, wxID_ANY, L("Select all\tCtrl+A"), L("Selects all objects"),
+            [this](wxCommandEvent&) { m_plater->select_all(); }, "");
+        wxMenuItem* item_delete_sel = append_menu_item(editMenu, wxID_ANY, L("Delete selected\tDel"), L("Deletes the current selection"),
+            [this](wxCommandEvent&) { m_plater->remove_selected(); }, "");
+
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_select()); }, item_select_all->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_delete()); }, item_delete_sel->GetId());
+    }
+#endif // ENABLE_NEW_MENU_LAYOUT
+
 #if !ENABLE_NEW_MENU_LAYOUT
     // Plater menu
     if (m_plater) {
@@ -321,18 +347,18 @@ void MainFrame::init_menubar()
     {
         size_t tab_offset = 0;
         if (m_plater) {
-            append_menu_item(windowMenu, wxID_ANY, L("Select &Plater Tab\tCtrl+1"), L("Show the plater"), 
+            append_menu_item(windowMenu, wxID_ANY, L("Select Plater Tab\tCtrl+1"), L("Show the plater"),
                 [this](wxCommandEvent&) { select_tab(0); }, "application_view_tile.png");
             tab_offset += 1;
         }
         if (tab_offset > 0) {
             windowMenu->AppendSeparator();
         }
-        append_menu_item(windowMenu, wxID_ANY, L("Select P&rint Settings Tab\tCtrl+2"), L("Show the print settings"), 
+        append_menu_item(windowMenu, wxID_ANY, L("Select Print Settings Tab\tCtrl+2"), L("Show the print settings"),
             [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 0); }, "cog.png");
-        append_menu_item(windowMenu, wxID_ANY, L("Select &Filament Settings Tab\tCtrl+3"), L("Show the filament settings"), 
+        append_menu_item(windowMenu, wxID_ANY, L("Select Filament Settings Tab\tCtrl+3"), L("Show the filament settings"),
             [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 1); }, "spool.png");
-        append_menu_item(windowMenu, wxID_ANY, L("Select Print&er Settings Tab\tCtrl+4"), L("Show the printer settings"), 
+        append_menu_item(windowMenu, wxID_ANY, L("Select Printer Settings Tab\tCtrl+4"), L("Show the printer settings"),
             [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 2); }, "printer_empty.png");
     }
 
@@ -389,18 +415,18 @@ void MainFrame::init_menubar()
 //#            wxTheApp->check_version(1);
 //#        });
 //#        $versioncheck->Enable(wxTheApp->have_version_check);
-        append_menu_item(helpMenu, wxID_ANY, _(L("Slic3r &Website")), _(L("Open the Slic3r website in your browser")), 
+        append_menu_item(helpMenu, wxID_ANY, _(L("Slic3r Website")), _(L("Open the Slic3r website in your browser")),
             [this](wxCommandEvent&) { wxLaunchDefaultBrowser("http://slic3r.org/"); });
-        append_menu_item(helpMenu, wxID_ANY, _(L("Slic3r &Manual")), _(L("Open the Slic3r manual in your browser")), 
+        append_menu_item(helpMenu, wxID_ANY, _(L("Slic3r Manual")), _(L("Open the Slic3r manual in your browser")),
             [this](wxCommandEvent&) { wxLaunchDefaultBrowser("http://manual.slic3r.org/"); });
         helpMenu->AppendSeparator();
         append_menu_item(helpMenu, wxID_ANY, _(L("System Info")), _(L("Show system information")), 
             [this](wxCommandEvent&) { wxGetApp().system_info(); });
-        append_menu_item(helpMenu, wxID_ANY, _(L("Show &Configuration Folder")), _(L("Show user configuration folder (datadir)")), 
+        append_menu_item(helpMenu, wxID_ANY, _(L("Show Configuration Folder")), _(L("Show user configuration folder (datadir)")),
             [this](wxCommandEvent&) { Slic3r::GUI::desktop_open_datadir_folder(); });
         append_menu_item(helpMenu, wxID_ANY, _(L("Report an Issue")), _(L("Report an issue on the Slic3r Prusa Edition")), 
             [this](wxCommandEvent&) { wxLaunchDefaultBrowser("http://github.com/prusa3d/slic3r/issues/new"); });
-        append_menu_item(helpMenu, wxID_ANY, _(L("&About Slic3r")), _(L("Show about dialog")), 
+        append_menu_item(helpMenu, wxID_ANY, _(L("About Slic3r")), _(L("Show about dialog")),
             [this](wxCommandEvent&) { Slic3r::GUI::about(); });
     }
 
@@ -410,6 +436,9 @@ void MainFrame::init_menubar()
     {
         auto menubar = new wxMenuBar();
         menubar->Append(fileMenu, L("&File"));
+#if ENABLE_NEW_MENU_LAYOUT
+        if (editMenu) menubar->Append(editMenu, L("&Edit"));
+#endif // ENABLE_NEW_MENU_LAYOUT
 #if !ENABLE_NEW_MENU_LAYOUT
         if (m_plater_menu) menubar->Append(m_plater_menu, L("&Plater"));
 #endif // !ENABLE_NEW_MENU_LAYOUT

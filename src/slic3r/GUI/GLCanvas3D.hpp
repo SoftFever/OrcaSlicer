@@ -485,6 +485,8 @@ public:
         void add_volume(unsigned int object_idx, unsigned int volume_idx, int instance_idx, bool as_single_selection = true);
         void remove_volume(unsigned int object_idx, unsigned int volume_idx);
 
+        void add_all();
+
         // Update the selection based on the map from old indices to new indices after m_volumes changed.
         // If the current selection is by instance, this call may select newly added volumes, if they belong to already selected instances.
         void volumes_changed(const std::vector<size_t> &map_volume_old_to_new);
@@ -813,6 +815,7 @@ public:
 
     void render();
 
+    void select_all();
     void delete_selected();
     void ensure_on_bed(unsigned int object_idx);
 
