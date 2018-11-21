@@ -1461,14 +1461,30 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation, bool local)
     for (unsigned int i : m_list)
     {
         if (is_single_full_instance())
+#if ENABLE_WORLD_ROTATIONS
+        {
+            Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), rotation);
+            Vec3d new_rotation = Geometry::extract_euler_angles(m * m_cache.volumes_data[i].get_instance_rotation_matrix());
+            (*m_volumes)[i]->set_instance_rotation(new_rotation);
+        }
+#else
 #if ENABLE_MODELVOLUME_TRANSFORM
             (*m_volumes)[i]->set_instance_rotation(rotation);
 #else
             (*m_volumes)[i]->set_rotation(rotation);
 #endif // ENABLE_MODELVOLUME_TRANSFORM
+#endif // ENABLE_WORLD_ROTATIONS
 #if ENABLE_MODELVOLUME_TRANSFORM
         else if (is_single_volume() || is_single_modifier())
+#if ENABLE_WORLD_ROTATIONS
+        {
+            Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), rotation);
+            Vec3d new_rotation = Geometry::extract_euler_angles(m * m_cache.volumes_data[i].get_volume_rotation_matrix());
+            (*m_volumes)[i]->set_volume_rotation(new_rotation);
+    }
+#else
             (*m_volumes)[i]->set_volume_rotation(rotation);
+#endif // ENABLE_WORLD_ROTATIONS
 #endif // ENABLE_MODELVOLUME_TRANSFORM
         else
         {
@@ -4652,6 +4668,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 break;
             }
             m_gizmos.stop_dragging();
+#if ENABLE_WORLD_ROTATIONS
+            _update_gizmos_data();
+#endif // ENABLE_WORLD_ROTATIONS
             wxGetApp().obj_manipul()->update_settings_value(m_selection);
         }
 
@@ -5443,7 +5462,11 @@ void GLCanvas3D::_update_gizmos_data()
         // all volumes in the selection belongs to the same instance, any of them contains the needed data, so we take the first
         const GLVolume* volume = m_volumes.volumes[*m_selection.get_volume_idxs().begin()];
         m_gizmos.set_scale(volume->get_instance_scaling_factor());
+#if ENABLE_WORLD_ROTATIONS
+        m_gizmos.set_rotation(Vec3d::Zero());
+#else
         m_gizmos.set_rotation(volume->get_instance_rotation());
+#endif // ENABLE_WORLD_ROTATIONS
         ModelObject* model_object = m_model->objects[m_selection.get_object_idx()];
         m_gizmos.set_flattening_data(model_object);
         m_gizmos.set_model_object_ptr(model_object);
@@ -5451,7 +5474,11 @@ void GLCanvas3D::_update_gizmos_data()
         ModelObject* model_object = m_model->objects[m_selection.get_object_idx()];
         ModelInstance* model_instance = model_object->instances[m_selection.get_instance_idx()];
         m_gizmos.set_scale(model_instance->get_scaling_factor());
+#if ENABLE_WORLD_ROTATIONS
+        m_gizmos.set_rotation(Vec3d::Zero());
+#else
         m_gizmos.set_rotation(model_instance->get_rotation());
+#endif // ENABLE_WORLD_ROTATIONS
         m_gizmos.set_flattening_data(model_object);
         m_gizmos.set_model_object_ptr(model_object);
 #endif // ENABLE_MODELVOLUME_TRANSFORM
@@ -5461,7 +5488,11 @@ void GLCanvas3D::_update_gizmos_data()
     {
         const GLVolume* volume = m_volumes.volumes[*m_selection.get_volume_idxs().begin()];
         m_gizmos.set_scale(volume->get_volume_scaling_factor());
+#if ENABLE_WORLD_ROTATIONS
+        m_gizmos.set_rotation(Vec3d::Zero());
+#else
         m_gizmos.set_rotation(volume->get_volume_rotation());
+#endif // ENABLE_WORLD_ROTATIONS
         m_gizmos.set_flattening_data(nullptr);
         m_gizmos.set_model_object_ptr(nullptr);
     }

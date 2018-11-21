@@ -367,7 +367,9 @@ void GLGizmoRotate::on_render(const GLCanvas3D::Selection& selection) const
         return;
 
     const BoundingBoxf3& box = selection.get_bounding_box();
+#if !ENABLE_WORLD_ROTATIONS
     bool single_selection = selection.is_single_full_instance() || selection.is_single_modifier() || selection.is_single_volume();
+#endif // !ENABLE_WORLD_ROTATIONS
 
     std::string axis;
     switch (m_axis)
@@ -377,7 +379,11 @@ void GLGizmoRotate::on_render(const GLCanvas3D::Selection& selection) const
     case Z: { axis = "Z: "; break; }
     }
 
+#if ENABLE_WORLD_ROTATIONS
+    if (m_dragging)
+#else
     if ((single_selection && (m_hover_id == 0)) || m_dragging)
+#endif // ENABLE_WORLD_ROTATIONS
         set_tooltip(axis + format((float)Geometry::rad2deg(m_angle), 4) + "\u00B0");
     else
     {
@@ -517,7 +523,11 @@ void GLGizmoRotate::render_angle() const
 
 void GLGizmoRotate::render_grabber(const BoundingBoxf3& box) const
 {
+#if ENABLE_WORLD_ROTATIONS
+    double grabber_radius = (double)m_radius * (1.0 + (double)GrabberOffset);
+#else
     double grabber_radius = (double)m_radius * (1.0 + (double)GrabberOffset) + 2.0 * (double)m_axis * (double)m_grabbers[0].get_half_size((float)box.max_size());
+#endif // ENABLE_WORLD_ROTATIONS
     m_grabbers[0].center = Vec3d(::cos(m_angle) * grabber_radius, ::sin(m_angle) * grabber_radius, 0.0);
     m_grabbers[0].angles(2) = m_angle;
 

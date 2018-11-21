@@ -199,7 +199,9 @@ protected:
     virtual void on_start_dragging(const GLCanvas3D::Selection& selection);
     virtual void on_update(const UpdateData&  data);
 #if ENABLE_GIZMOS_RESET
+#if !ENABLE_WORLD_ROTATIONS
     virtual void on_process_double_click() { m_angle = 0.0; }
+#endif // !ENABLE_WORLD_ROTATIONS
 #endif // ENABLE_GIZMOS_RESET
     virtual void on_render(const GLCanvas3D::Selection& selection) const;
     virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const;
@@ -265,11 +267,13 @@ protected:
         }
     }
 #if ENABLE_GIZMOS_RESET
+#if !ENABLE_WORLD_ROTATIONS
     virtual void on_process_double_click()
     {
         if (m_hover_id != -1)
             m_gizmos[m_hover_id].process_double_click();
     }
+#endif // !ENABLE_WORLD_ROTATIONS
 #endif // ENABLE_GIZMOS_RESET
     virtual void on_render(const GLCanvas3D::Selection& selection) const;
     virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const
