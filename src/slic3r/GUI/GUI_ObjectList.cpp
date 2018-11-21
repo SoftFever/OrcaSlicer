@@ -1205,7 +1205,10 @@ void ObjectList::delete_from_model_and_list(const std::vector<ItemForDelete>& it
         else {
             del_subobject_from_object(item->obj_idx, item->sub_obj_idx, item->type);
             if (item->type&itVolume)
+            {
                 m_objects_model->Delete(m_objects_model->GetItemByVolumeId(item->obj_idx, item->sub_obj_idx));
+                _3DScene::ensure_on_bed(wxGetApp().canvas3D(), item->obj_idx);
+            }
             else
                 m_objects_model->Delete(m_objects_model->GetItemByInstanceId(item->obj_idx, item->sub_obj_idx));
         }

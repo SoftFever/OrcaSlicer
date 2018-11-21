@@ -634,6 +634,7 @@ public:
     static void render(wxGLCanvas* canvas);
 
     static void delete_selected(wxGLCanvas* canvas);
+    static void ensure_on_bed(wxGLCanvas* canvas, unsigned int object_idx);
 
     static std::vector<double> get_current_print_zs(wxGLCanvas* canvas, bool active_only);
     static void set_toolpaths_range(wxGLCanvas* canvas, double low, double high);

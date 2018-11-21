@@ -814,6 +814,7 @@ public:
     void render();
 
     void delete_selected();
+    void ensure_on_bed(unsigned int object_idx);
 
     std::vector<double> get_current_print_zs(bool active_only) const;
     void set_toolpaths_range(double low, double high);

@@ -131,6 +131,7 @@ public:
     void render(wxGLCanvas* canvas) const;
 
     void delete_selected(wxGLCanvas* canvas);
+    void ensure_on_bed(wxGLCanvas* canvas, unsigned int object_idx);
 
     std::vector<double> get_current_print_zs(wxGLCanvas* canvas, bool active_only) const;
     void set_toolpaths_range(wxGLCanvas* canvas, double low, double high);

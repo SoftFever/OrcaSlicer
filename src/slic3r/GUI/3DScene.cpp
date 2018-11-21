@@ -2050,6 +2050,11 @@ void _3DScene::delete_selected(wxGLCanvas* canvas)
     s_canvas_mgr.delete_selected(canvas);
 }
 
+void _3DScene::ensure_on_bed(wxGLCanvas* canvas, unsigned int object_idx)
+{
+    s_canvas_mgr.ensure_on_bed(canvas, object_idx);
+}
+
 std::vector<double> _3DScene::get_current_print_zs(wxGLCanvas* canvas, bool active_only)
 {
     return s_canvas_mgr.get_current_print_zs(canvas, active_only);
