@@ -2,6 +2,8 @@
 #include "SLA/SLASupportTree.hpp"
 #include "SLA/SLABasePool.hpp"
 
+#include <unordered_set>
+
 #include <tbb/parallel_for.h>
 #include <boost/log/trivial.hpp>
 
