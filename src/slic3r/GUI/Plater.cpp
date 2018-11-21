@@ -2366,6 +2366,11 @@ void Plater::set_number_of_copies(/*size_t num*/)
         decrease_instances(-diff);
 }
 
+bool Plater::is_selection_empty() const
+{
+    return p->get_selection().is_empty();
+}
+
 void Plater::cut(size_t obj_idx, size_t instance_idx, coordf_t z)
 {
     wxCHECK_RET(obj_idx < p->model.objects.size(), "obj_idx out of bounds");

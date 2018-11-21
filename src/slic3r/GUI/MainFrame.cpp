@@ -206,6 +206,11 @@ bool MainFrame::can_select() const
 {
     return (m_plater != nullptr) ? !m_plater->model().objects.empty() : false;
 }
+
+bool MainFrame::can_delete() const
+{
+    return (m_plater != nullptr) ? !m_plater->is_selection_empty() : false;
+}
 #endif // ENABLE_NEW_MENU_LAYOUT
 
 void MainFrame::init_menubar()
@@ -314,8 +319,11 @@ void MainFrame::init_menubar()
         editMenu = new wxMenu();
         wxMenuItem* item_select_all = append_menu_item(editMenu, wxID_ANY, L("Select all\tCtrl+A"), L("Selects all objects"),
             [this](wxCommandEvent&) { m_plater->select_all(); }, "");
+        wxMenuItem* item_delete_sel = append_menu_item(editMenu, wxID_ANY, L("Delete selected\tCtrl+D"), L("Deletes the current selection"),
+            [this](wxCommandEvent&) { m_plater->remove_selected(); }, "");
 
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_select()); }, item_select_all->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_delete()); }, item_delete_sel->GetId());
     }
 #endif // ENABLE_NEW_MENU_LAYOUT
 
