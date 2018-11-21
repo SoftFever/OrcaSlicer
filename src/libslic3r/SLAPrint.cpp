@@ -133,6 +133,15 @@ void SLAPrint::process()
     double ilhd = m_material_config.initial_layer_height.getFloat();
     auto   ilh  = float(ilhd);
 
+    // The slicing will be performed on an imaginary 1D grid which starts from
+    // the bottom of the bounding box created around the supported model. So
+    // the first layer which is usually thicker will be part of the supports
+    // not the model geometry. Exception is when the model is not in the air
+    // (elevation is zero) and no pad creation was requested. In this case the
+    // model geometry starts on the ground level and the initial layer is part
+    // of it. In any case, the model and the supports have to be sliced in the
+    // same imaginary grid (the height vector argument to TriangleMeshSlicer).
+
     // Slicing the model object. This method is oversimplified and needs to
     // be compared with the fff slicing algorithm for verification
     auto slice_model = [this, ilh, ilhd](SLAPrintObject& po) {
@@ -152,7 +161,7 @@ void SLAPrint::process()
         std::vector<float> heights;
 
         // The first layer (the one before the initial height) is added only
-        // if the there is no pad and no elevation value
+        // if there is no pad and no elevation value
         if(minZ >= gnd) heights.emplace_back(minZ);
 
         for(float h = minZ + ilh; h < maxZ; h += flh)

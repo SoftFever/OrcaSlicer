@@ -123,12 +123,6 @@ class TriangleMesh;
  * metadata for the support geometries and their slicing. It should also
  * dispatch the SLA printing configuration values to the appropriate calculation
  * steps.
- *
- * TODO (decide): The last important feature is the support for visualization
- * which (at least for now) will be implemented as a method(s) returning the
- * triangle meshes or receiving the rendering canvas and drawing on that
- * directly.
- *
  */
 class SLAPrint : public PrintBaseWithState<SLAPrintStep, slapsCount>
 {
