@@ -1300,6 +1300,8 @@ size_t ModelVolume::split(unsigned int max_extruders)
         {
             this->mesh = std::move(*mesh);
             this->calculate_convex_hull();
+            // Assign a new unique ID, so that a new GLVolume will be generated.
+            this->set_new_unique_id();
         }
         else
             this->object->volumes.insert(this->object->volumes.begin() + (++ivolume), new ModelVolume(object, *this, std::move(*mesh)));
