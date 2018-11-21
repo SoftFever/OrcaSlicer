@@ -232,7 +232,7 @@ void MainFrame::init_menubar()
         append_submenu(fileMenu, import_menu, wxID_ANY, _(L("Import")), _(L("")));
 
         wxMenu* export_menu = new wxMenu();
-        wxMenuItem* item_export_gcode = append_menu_item(export_menu, wxID_ANY, _(L("Export G-code…")), _(L("Export current plate as G-code")),
+        wxMenuItem* item_export_gcode = append_menu_item(export_menu, wxID_ANY, _(L("Export G-code…\tCtrl+G")), _(L("Export current plate as G-code")),
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_gcode(); }, "cog_go.png");
         export_menu->AppendSeparator();
         wxMenuItem* item_export_stl = append_menu_item(export_menu, wxID_ANY, _(L("Export plate as STL…")), _(L("Export current plate as STL")),
@@ -262,35 +262,33 @@ void MainFrame::init_menubar()
 #endif // ENABLE_NEW_MENU_LAYOUT
 
         m_menu_item_repeat = nullptr;
-        append_menu_item(fileMenu, wxID_ANY, _(L("Q&uick Slice…\tCtrl+U")), _(L("Slice a file into a G-code")),
+        append_menu_item(fileMenu, wxID_ANY, _(L("Quick Slice…\tCtrl+U")), _(L("Slice a file into a G-code")),
             [this](wxCommandEvent&) {
                 wxTheApp->CallAfter([this]() {
                     quick_slice();
                     m_menu_item_repeat->Enable(is_last_input_file());
                 }); }, "cog_go.png");
-        append_menu_item(fileMenu, wxID_ANY, _(L("Quick Slice and Save &As…\tCtrl+Alt+U")), _(L("Slice a file into a G-code, save as")),
+        append_menu_item(fileMenu, wxID_ANY, _(L("Quick Slice and Save As…\tCtrl+Alt+U")), _(L("Slice a file into a G-code, save as")),
             [this](wxCommandEvent&) {
             wxTheApp->CallAfter([this]() {
                     quick_slice(qsSaveAs);
                     m_menu_item_repeat->Enable(is_last_input_file());
                 }); }, "cog_go.png");
-        m_menu_item_repeat = append_menu_item(fileMenu, wxID_ANY, _(L("&Repeat Last Quick Slice\tCtrl+Shift+U")), _(L("Repeat last quick slice")),
+        m_menu_item_repeat = append_menu_item(fileMenu, wxID_ANY, _(L("Repeat Last Quick Slice\tCtrl+Shift+U")), _(L("Repeat last quick slice")),
             [this](wxCommandEvent&) {
             wxTheApp->CallAfter([this]() {
                 quick_slice(qsReslice);
             }); }, "cog_go.png");
         m_menu_item_repeat->Enable(false);
         fileMenu->AppendSeparator();
-        append_menu_item(fileMenu, wxID_ANY, _(L("Slice to SV&G…\tCtrl+G")), _(L("Slice file to a multi-layer SVG")),
-            [this](wxCommandEvent&) { quick_slice(qsSaveAs | qsExportSVG); }, "shape_handles.png");
-        m_menu_item_reslice_now = append_menu_item(fileMenu, wxID_ANY, _(L("(&Re)Slice Now\tCtrl+S")), _(L("Start new slicing process")),
+        m_menu_item_reslice_now = append_menu_item(fileMenu, wxID_ANY, _(L("(Re)Slice Now\tCtrl+R")), _(L("Start new slicing process")),
             [this](wxCommandEvent&) { reslice_now(); }, "shape_handles.png");
         fileMenu->AppendSeparator();
         append_menu_item(fileMenu, wxID_ANY, _(L("Repair STL file…")), _(L("Automatically repair an STL file")),
             [this](wxCommandEvent&) { repair_stl(); }, "wrench.png");
         fileMenu->AppendSeparator();
-        append_menu_item(fileMenu, wxID_EXIT, _(L("&Quit")), _(L("Quit Slic3r")),
-            [this](wxCommandEvent&) { Close(false); } );
+        append_menu_item(fileMenu, wxID_EXIT, _(L("Quit")), _(L("Quit Slic3r")),
+            [this](wxCommandEvent&) { Close(false); });
 
 #if ENABLE_NEW_MENU_LAYOUT
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(m_plater != nullptr); }, item_open->GetId());
