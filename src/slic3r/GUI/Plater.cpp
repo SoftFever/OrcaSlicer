@@ -930,7 +930,7 @@ struct Plater::priv
 
     priv(Plater *q, MainFrame *main_frame);
 
-    void update(bool force_autocenter = false);
+    void update();
     void select_view(const std::string& direction);
     void update_ui_from_settings();
     ProgressStatusBar* statusbar();
@@ -1144,10 +1144,10 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     q->Layout();
 }
 
-void Plater::priv::update(bool force_autocenter)
+void Plater::priv::update()
 {
     wxWindowUpdateLocker freeze_guard(q);
-    if (get_config("autocenter") == "1" || force_autocenter) {
+    if (get_config("autocenter") == "1") {
         // auto *bed_shape_opt = config->opt<ConfigOptionPoints>("bed_shape");
         // const auto bed_shape = Slic3r::Polygon::new_scale(bed_shape_opt->values);
         // const BoundingBox bed_shape_bb = bed_shape.bounding_box();
@@ -2268,7 +2268,7 @@ void Plater::load_files(const std::vector<fs::path>& input_files, bool load_mode
 void Plater::load_files(const std::vector<fs::path> &input_files) { p->load_files(input_files); }
 #endif // ENABLE_NEW_MENU_LAYOUT
 
-void Plater::update(bool force_autocenter) { p->update(force_autocenter); }
+void Plater::update() { p->update(); }
 
 void Plater::select_view(const std::string& direction) { p->select_view(direction); }
 
