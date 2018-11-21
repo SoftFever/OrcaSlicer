@@ -822,16 +822,13 @@ void GLVolumeCollection::load_object_auxiliary(
     bool                            use_VBOs)
 {
     assert(print_object->is_step_done(milestone));
+    Transform3d  mesh_trafo_inv = print_object->trafo().inverse();
     // Get the support mesh.
-    TriangleMesh mesh;
-    switch (milestone) {
-    case slaposSupportTree: mesh = print_object->support_mesh(); break;
-    case slaposBasePool:    mesh = print_object->pad_mesh();     break;
-    default:
-        assert(false);
-    }
+    TriangleMesh mesh = print_object->get_mesh(milestone);
+    mesh.transform(mesh_trafo_inv);
 	// Convex hull is required for out of print bed detection.
 	TriangleMesh convex_hull = mesh.convex_hull_3d();
+    convex_hull.transform(mesh_trafo_inv);
     for (const std::pair<size_t, size_t> &instance_idx : instances) {
         const ModelInstance            &model_instance = *print_object->model_object()->instances[instance_idx.first];
         const SLAPrintObject::Instance &print_instance = print_object->instances()[instance_idx.second];
@@ -851,7 +848,6 @@ void GLVolumeCollection::load_object_auxiliary(
 		v.set_convex_hull((&instance_idx == &instances.back()) ? new TriangleMesh(std::move(convex_hull)) : new TriangleMesh(convex_hull), true);
         v.is_modifier  = false;
         v.shader_outside_printer_detection_enabled = true;
-        //FIXME adjust with print_instance?
 		v.set_instance_transformation(model_instance.get_transformation());
 		// Leave the volume transformation at identity.
         // v.set_volume_transformation(model_volume->get_transformation());

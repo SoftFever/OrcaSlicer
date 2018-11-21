@@ -1515,6 +1515,71 @@ Transform3d ModelInstance::get_matrix(bool dont_translate, bool dont_rotate, boo
 }
 #endif // !ENABLE_MODELVOLUME_TRANSFORM
 
+// Test whether the two models contain the same number of ModelObjects with the same set of IDs
+// ordered in the same order. In that case it is not necessary to kill the background processing.
+bool model_object_list_equal(const Model &model_old, const Model &model_new)
+{
+    if (model_old.objects.size() != model_new.objects.size())
+        return false;
+    for (size_t i = 0; i < model_old.objects.size(); ++ i)
+        if (model_old.objects[i]->id() != model_new.objects[i]->id())
+            return false;
+    return true;
+}
+
+// Test whether the new model is just an extension of the old model (new objects were added
+// to the end of the original list. In that case it is not necessary to kill the background processing.
+bool model_object_list_extended(const Model &model_old, const Model &model_new)
+{
+    if (model_old.objects.size() >= model_new.objects.size())
+        return false;
+    for (size_t i = 0; i < model_old.objects.size(); ++ i)
+        if (model_old.objects[i]->id() != model_new.objects[i]->id())
+            return false;
+    return true;
+}
+
+bool model_volume_list_changed(const ModelObject &model_object_old, const ModelObject &model_object_new, const ModelVolume::Type type)
+{
+    bool modifiers_differ = false;
+    size_t i_old, i_new;
+    for (i_old = 0, i_new = 0; i_old < model_object_old.volumes.size() && i_new < model_object_new.volumes.size();) {
+        const ModelVolume &mv_old = *model_object_old.volumes[i_old];
+        const ModelVolume &mv_new = *model_object_new.volumes[i_new];
+        if (mv_old.type() != type) {
+            ++ i_old;
+            continue;
+        }
+        if (mv_new.type() != type) {
+            ++ i_new;
+            continue;
+        }
+        if (mv_old.id() != mv_new.id())
+            return true;
+        //FIXME test for the content of the mesh!
+
+#if ENABLE_MODELVOLUME_TRANSFORM
+        if (!mv_old.get_matrix().isApprox(mv_new.get_matrix()))
+            return true;
+#endif // ENABLE_MODELVOLUME_TRANSFORM
+        ++i_old;
+        ++ i_new;
+    }
+    for (; i_old < model_object_old.volumes.size(); ++ i_old) {
+        const ModelVolume &mv_old = *model_object_old.volumes[i_old];
+        if (mv_old.type() == type)
+            // ModelVolume was deleted.
+            return true;
+    }
+    for (; i_new < model_object_new.volumes.size(); ++ i_new) {
+        const ModelVolume &mv_new = *model_object_new.volumes[i_new];
+        if (mv_new.type() == type)
+            // ModelVolume was added.
+            return true;
+    }
+    return false;
+}
+
 #ifdef _DEBUG
 // Verify whether the IDs of Model / ModelObject / ModelVolume / ModelInstance / ModelMaterial are valid and unique.
 void check_model_ids_validity(const Model &model)

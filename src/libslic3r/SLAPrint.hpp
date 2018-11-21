@@ -35,16 +35,18 @@ private: // Prevents erroneous use by other classes.
     using Inherited = _SLAPrintObjectBase;
 
 public:
-    const Transform3d&      trafo()        const    { return m_trafo; }
+    const SLAPrintObjectConfig& config() const { return m_config; }
+    const Transform3d&          trafo()  const { return m_trafo; }
 
     struct Instance {
     	Instance(ModelID instance_id, const Point &shift, float rotation) : instance_id(instance_id), shift(shift), rotation(rotation) {}
+		bool operator==(const Instance &rhs) const { return this->instance_id == rhs.instance_id && this->shift == rhs.shift && this->rotation == rhs.rotation; }
     	// ID of the corresponding ModelInstance.
 		ModelID instance_id;
 		// Slic3r::Point objects in scaled G-code coordinates
     	Point 	shift;
     	// Rotation along the Z axis, in radians.
-    	float 	rotation; 
+    	float 	rotation;
 	};
     const std::vector<Instance>& instances() const { return m_instances; }
 
@@ -88,12 +90,14 @@ protected:
     	{ this->m_config.apply_only(other, keys, ignore_nonexistent); }
     void                    set_trafo(const Transform3d& trafo) { m_trafo = trafo; m_trmesh_valid = false; }
 
-    bool                    set_instances(const std::vector<Instance> &instances);
+    void                    set_instances(const std::vector<Instance> &instances) { m_instances = instances; }
     // Invalidates the step, and its depending steps in SLAPrintObject and SLAPrint.
     bool                    invalidate_step(SLAPrintObjectStep step);
+    bool                    invalidate_all_steps();
+    // Invalidate steps based on a set of parameters changed.
+    bool                    invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
 
 private:
-
     // Object specific configuration, pulled from the configuration layer.
     SLAPrintObjectConfig                    m_config;
     // Translation in Z + Rotation by Y and Z + Scaling / Mirroring.
@@ -150,8 +154,13 @@ private:
     using SLAPrinter = FilePrinter<FilePrinterFormat::SLA_PNGZIP>;
     using SLAPrinterPtr = std::unique_ptr<SLAPrinter>;
 
+    // Invalidate steps based on a set of parameters changed.
+    bool invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
+
     SLAPrinterConfig                m_printer_config;
     SLAMaterialConfig               m_material_config;
+    SLAPrintObjectConfig            m_default_object_config;
+
     PrintObjects                    m_objects;
     std::vector<bool>               m_stepmask;
     SLAPrinterPtr                   m_printer;
