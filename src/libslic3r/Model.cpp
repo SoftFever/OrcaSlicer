@@ -1051,9 +1051,6 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
     ModelVolume* volume = this->volumes.front();
     TriangleMeshPtrs meshptrs = volume->mesh.split();
     for (TriangleMesh *mesh : meshptrs) {
-        // Snap the mesh to Z=0.
-        float z0 = FLT_MAX;
-        
         mesh->repair();
         
         // XXX: this seems to be the only real usage of m_model, maybe refactor this so that it's not needed?
@@ -1063,7 +1060,20 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
 		new_object->instances.reserve(this->instances.size());
 		for (const ModelInstance *model_instance : this->instances)
 			new_object->add_instance(*model_instance);
+#if ENABLE_MODELVOLUME_TRANSFORM
+        ModelVolume* new_vol = new_object->add_volume(*volume, std::move(*mesh));
+        new_vol->center_geometry();
+
+        for (ModelInstance* model_instance : new_object->instances)
+        {
+            Vec3d shift = model_instance->get_transformation().get_matrix(true) * new_vol->get_offset();
+            model_instance->set_offset(model_instance->get_offset() + shift);
+        }
+
+        new_vol->set_offset(Vec3d::Zero());
+#else
         new_object->add_volume(*volume, std::move(*mesh));
+#endif // ENABLE_MODELVOLUME_TRANSFORM
         new_objects->emplace_back(new_object);
         delete mesh;
     }
