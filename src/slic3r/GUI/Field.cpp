@@ -161,6 +161,13 @@ void Field::get_value_by_opt_type(wxString& str)
 	}
 }
 
+bool TextCtrl::is_defined_input_value()
+{
+    if (static_cast<wxTextCtrl*>(window)->GetValue().empty() && m_opt.type != coString && m_opt.type != coStrings)
+        return false;
+    return true;
+}
+
 void TextCtrl::BUILD() {
     auto size = wxSize(wxDefaultSize);
     if (m_opt.height >= 0) size.SetHeight(m_opt.height);
@@ -226,16 +233,21 @@ void TextCtrl::BUILD() {
 		temp->GetToolTip()->Enable(flag);
 	}), temp->GetId());
 
-#if !defined(__WXGTK__)
 	temp->Bind(wxEVT_KILL_FOCUS, ([this, temp](wxEvent& e)
 	{
-		e.Skip();//	on_kill_focus(e);
+#if !defined(__WXGTK__)
+		e.Skip();
 		temp->GetToolTip()->Enable(true);
-	}), temp->GetId());
 #endif // __WXGTK__
+        if (!is_defined_input_value()) 
+            on_kill_focus(e);
+	}), temp->GetId());
 
     if (m_process_enter) {
-        temp->Bind(wxEVT_TEXT_ENTER, ([this](wxCommandEvent& evt) { on_change_field(); }), temp->GetId());
+        temp->Bind(wxEVT_TEXT_ENTER, ([this](wxCommandEvent& evt) {
+            if(is_defined_input_value()) 
+                on_change_field();
+        }), temp->GetId());
     }
     else {
         temp->Bind(wxEVT_TEXT, ([this](wxCommandEvent& evt)
@@ -243,6 +255,7 @@ void TextCtrl::BUILD() {
 #ifdef __WXGTK__
             if (bChangedValueEvent)
 #endif //__WXGTK__
+            if(is_defined_input_value()) 
                 on_change_field();
         }), temp->GetId());
 
@@ -357,7 +370,7 @@ void SpinCtrl::BUILD() {
 		0, min_val, max_val, default_value);
 
 // 	temp->Bind(wxEVT_SPINCTRL, ([this](wxCommandEvent e) { tmp_value = undef_spin_val; on_change_field(); }), temp->GetId());
-// 	temp->Bind(wxEVT_KILL_FOCUS, ([this](wxEvent& e) { tmp_value = undef_spin_val; on_kill_focus(e); }), temp->GetId());
+	temp->Bind(wxEVT_KILL_FOCUS, ([this](wxEvent& e) { on_kill_focus(e); }), temp->GetId());
 	temp->Bind(wxEVT_TEXT, ([this](wxCommandEvent e)
 	{
 // 		# On OSX / Cocoa, wxSpinCtrl::GetValue() doesn't return the new value

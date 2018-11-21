@@ -131,6 +131,7 @@ public:
     void render(wxGLCanvas* canvas) const;
 
     void delete_selected(wxGLCanvas* canvas);
+    void ensure_on_bed(wxGLCanvas* canvas, unsigned int object_idx);
 
     std::vector<double> get_current_print_zs(wxGLCanvas* canvas, bool active_only) const;
     void set_toolpaths_range(wxGLCanvas* canvas, double low, double high);
@@ -140,7 +141,7 @@ public:
 
     void mirror_selection(wxGLCanvas* canvas, Axis axis);
 
-    void reload_scene(wxGLCanvas* canvas, bool force);
+    void reload_scene(wxGLCanvas* canvas, bool refresh_immediately, bool force_full_scene_refresh = false);
 
     void load_gcode_preview(wxGLCanvas* canvas, const GCodePreviewData* preview_data, const std::vector<std::string>& str_tool_colors);
     void load_preview(wxGLCanvas* canvas, const std::vector<std::string>& str_tool_colors);

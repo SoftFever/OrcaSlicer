@@ -3692,6 +3692,34 @@ void GLCanvas3D::delete_selected()
     m_selection.erase();
 }
 
+void GLCanvas3D::ensure_on_bed(unsigned int object_idx)
+{
+    typedef std::map<std::pair<int, int>, double> InstancesToZMap;
+    InstancesToZMap instances_min_z;
+
+    for (GLVolume* volume : m_volumes.volumes)
+    {
+        if ((volume->object_idx() == object_idx) && !volume->is_modifier)
+        {
+            double min_z = volume->transformed_convex_hull_bounding_box().min(2);
+            std::pair<int, int> instance = std::make_pair(volume->object_idx(), volume->instance_idx());
+            InstancesToZMap::iterator it = instances_min_z.find(instance);
+            if (it == instances_min_z.end())
+                it = instances_min_z.insert(InstancesToZMap::value_type(instance, DBL_MAX)).first;
+
+            it->second = std::min(it->second, min_z);
+        }
+    }
+
+    for (GLVolume* volume : m_volumes.volumes)
+    {
+        std::pair<int, int> instance = std::make_pair(volume->object_idx(), volume->instance_idx());
+        InstancesToZMap::iterator it = instances_min_z.find(instance);
+        if (it != instances_min_z.end())
+            volume->set_instance_offset(Z, volume->get_instance_offset(Z) - it->second);
+    }
+}
+
 std::vector<double> GLCanvas3D::get_current_print_zs(bool active_only) const
 {
     return m_volumes.get_current_print_zs(active_only);
@@ -3739,7 +3767,7 @@ void GLCanvas3D::mirror_selection(Axis axis)
 // 3) SLA support meshes for their respective ModelObjects / ModelInstances
 // 4) Wipe tower preview
 // 5) Out of bed collision status & message overlay (texture)
-void GLCanvas3D::reload_scene(bool force)
+void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_refresh)
 {
     if ((m_canvas == nullptr) || (m_config == nullptr) || (m_model == nullptr))
         return;
@@ -3781,7 +3809,7 @@ void GLCanvas3D::reload_scene(bool force)
     glvolumes_new.reserve(m_volumes.volumes.size());
     auto model_volume_state_lower = [](const ModelVolumeState &m1, const ModelVolumeState &m2) { return m1.geometry_id < m2.geometry_id; };
 
-    m_reload_delayed = ! m_canvas->IsShown() && ! force;
+    m_reload_delayed = ! m_canvas->IsShown() && ! refresh_immediately && ! force_full_scene_refresh;
 
     PrinterTechnology printer_technology = wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology();
 
@@ -3838,7 +3866,7 @@ void GLCanvas3D::reload_scene(bool force)
                 if (it != model_volume_state.end() && it->geometry_id == key.geometry_id)
 					mvs = &(*it);
             }
-            if (mvs == nullptr) {
+            if (mvs == nullptr || force_full_scene_refresh) {
                 // This GLVolume will be released.
                 volume->release_geometry();
                 if (! m_reload_delayed)

@@ -2050,6 +2050,11 @@ void _3DScene::delete_selected(wxGLCanvas* canvas)
     s_canvas_mgr.delete_selected(canvas);
 }
 
+void _3DScene::ensure_on_bed(wxGLCanvas* canvas, unsigned int object_idx)
+{
+    s_canvas_mgr.ensure_on_bed(canvas, object_idx);
+}
+
 std::vector<double> _3DScene::get_current_print_zs(wxGLCanvas* canvas, bool active_only)
 {
     return s_canvas_mgr.get_current_print_zs(canvas, active_only);
@@ -2102,9 +2107,9 @@ void _3DScene::mirror_selection(wxGLCanvas* canvas, Axis axis)
     s_canvas_mgr.mirror_selection(canvas, axis);
 }
 
-void _3DScene::reload_scene(wxGLCanvas* canvas, bool force)
+void _3DScene::reload_scene(wxGLCanvas* canvas, bool refresh_immediately, bool force_full_scene_refresh)
 {
-    s_canvas_mgr.reload_scene(canvas, force);
+    s_canvas_mgr.reload_scene(canvas, refresh_immediately, force_full_scene_refresh);
 }
 
 void _3DScene::load_gcode_preview(wxGLCanvas* canvas, const GCodePreviewData* preview_data, const std::vector<std::string>& str_tool_colors)

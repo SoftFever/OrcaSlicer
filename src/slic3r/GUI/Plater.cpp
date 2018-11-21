@@ -930,7 +930,7 @@ struct Plater::priv
 
     priv(Plater *q, MainFrame *main_frame);
 
-    void update(bool force_autocenter = false);
+    void update(bool force_full_scene_refresh = false);
     void select_view(const std::string& direction);
     void update_ui_from_settings();
     ProgressStatusBar* statusbar();
@@ -1144,10 +1144,10 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     q->Layout();
 }
 
-void Plater::priv::update(bool force_autocenter)
+void Plater::priv::update(bool force_full_scene_refresh)
 {
     wxWindowUpdateLocker freeze_guard(q);
-    if (get_config("autocenter") == "1" || force_autocenter) {
+    if (get_config("autocenter") == "1") {
         // auto *bed_shape_opt = config->opt<ConfigOptionPoints>("bed_shape");
         // const auto bed_shape = Slic3r::Polygon::new_scale(bed_shape_opt->values);
         // const BoundingBox bed_shape_bb = bed_shape.bounding_box();
@@ -1160,7 +1160,7 @@ void Plater::priv::update(bool force_autocenter)
         // pulls the correct data.
         this->update_background_process();
     }
-    _3DScene::reload_scene(canvas3D, false);
+    _3DScene::reload_scene(canvas3D, false, force_full_scene_refresh);
     preview->reset_gcode_preview_data();
     preview->reload_print();
 
@@ -1662,9 +1662,9 @@ void Plater::priv::arrange()
     // We enable back the arrange button
     _3DScene::enable_toolbar_item(canvas3D, "arrange", can_arrange());
 
-    // FIXME: none of the following seem to work now. (update did the job previously)
-    // _3DScene::reload_scene(canvas3D, false);
-    update();
+    // Do a full refresh of scene tree, including regenerating all the GLVolumes.
+    //FIXME The update function shall just reload the modified matrices.
+    update(true);
 }
 
 void Plater::priv::split_object()
@@ -2268,7 +2268,7 @@ void Plater::load_files(const std::vector<fs::path>& input_files, bool load_mode
 void Plater::load_files(const std::vector<fs::path> &input_files) { p->load_files(input_files); }
 #endif // ENABLE_NEW_MENU_LAYOUT
 
-void Plater::update(bool force_autocenter) { p->update(force_autocenter); }
+void Plater::update() { p->update(); }
 
 void Plater::select_view(const std::string& direction) { p->select_view(direction); }
 

@@ -125,7 +125,7 @@ public:
     void load_files(const std::vector<boost::filesystem::path> &input_files);
 #endif // ENABLE_NEW_MENU_LAYOUT
 
-    void update(bool force_autocenter = false);
+    void update();
     void select_view(const std::string& direction);
 
     void remove(size_t obj_idx);

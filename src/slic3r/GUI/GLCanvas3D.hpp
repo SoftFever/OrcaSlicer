@@ -814,6 +814,7 @@ public:
     void render();
 
     void delete_selected();
+    void ensure_on_bed(unsigned int object_idx);
 
     std::vector<double> get_current_print_zs(bool active_only) const;
     void set_toolpaths_range(double low, double high);
@@ -823,7 +824,7 @@ public:
 
     void mirror_selection(Axis axis);
 
-    void reload_scene(bool force);
+    void reload_scene(bool refresh_immediately, bool force_full_scene_refresh);
 
     void load_gcode_preview(const GCodePreviewData& preview_data, const std::vector<std::string>& str_tool_colors);
     void load_preview(const std::vector<std::string>& str_tool_colors);

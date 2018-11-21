@@ -1,7 +1,7 @@
 #ifndef MTUTILS_HPP
 #define MTUTILS_HPP
 
-#include <atomic>       // for std::atomic_flag
+#include <atomic>       // for std::atomic_flag and memory orders
 #include <mutex>        // for std::lock_guard
 #include <functional>   // for std::function
 #include <utility>      // for std::forward
@@ -44,7 +44,7 @@ public:
 
     // invalidate the value of the object. The object will be refreshed at the
     // next retrieval (Setter will be called). The data that is used in
-    // the setter function should be guarded as well if it is modified so the
+    // the setter function should be guarded as well during modification so the
     // modification has to take place in fn.
     inline void invalidate(std::function<void()> fn) {
         std::lock_guard<SpinMutex> lck(m_lck); fn(); m_valid = false;
