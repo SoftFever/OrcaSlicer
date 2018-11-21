@@ -846,6 +846,12 @@ public:
 
     void set_external_gizmo_widgets_parent(wxWindow *parent);
 
+    void do_move();
+    void do_rotate();
+    void do_scale();
+    void do_flatten();
+    void do_mirror();
+
 private:
     bool _is_shown_on_screen() const;
     void _force_zoom_to_bed();
@@ -929,13 +935,7 @@ private:
     void _update_gcode_volumes_visibility(const GCodePreviewData& preview_data);
     void _update_toolpath_volumes_outside_state();
     void _show_warning_texture_if_needed();
-public:
-    void _on_move();
-    void _on_rotate();
-    void _on_scale();
-    void _on_flatten();
-    void _on_mirror();
-private:
+
     // generates the legend texture in dependence of the current shown view type
     void _generate_legend_texture(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
 

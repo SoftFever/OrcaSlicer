@@ -404,7 +404,7 @@ void ObjectManipulation::change_position_value(const Vec3d& position)
     auto canvas = _3DScene::get_canvas(wxGetApp().canvas3D());
     canvas->get_selection().start_dragging();
     canvas->get_selection().translate(displacement);
-    canvas->_on_move();
+    canvas->do_move();
 
     cache_position = position;
 }
@@ -417,7 +417,7 @@ void ObjectManipulation::change_rotation_value(const Vec3d& rotation)
     auto canvas = _3DScene::get_canvas(wxGetApp().canvas3D());
     canvas->get_selection().start_dragging();
     canvas->get_selection().rotate(rad_rotation, false);
-    canvas->_on_rotate();
+    canvas->do_rotate();
 }
 
 void ObjectManipulation::change_scale_value(const Vec3d& scale)
@@ -437,7 +437,7 @@ void ObjectManipulation::change_scale_value(const Vec3d& scale)
     auto canvas = _3DScene::get_canvas(wxGetApp().canvas3D());
     canvas->get_selection().start_dragging();
     canvas->get_selection().scale(scaling_factor, false);
-    canvas->_on_scale();
+    canvas->do_scale();
 }
 
 void ObjectManipulation::print_cashe_value(const std::string& label, const Vec3d& v)
