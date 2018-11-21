@@ -508,32 +508,36 @@ ShapeData2D projectModelFromTop(const Slic3r::Model &model) {
 
     ret.reserve(s);
 
-    for(auto objptr : model.objects) {
+    for(ModelObject* objptr : model.objects) {
         if(objptr) {
 
-            auto rmesh = objptr->raw_mesh();
+            TriangleMesh rmesh = objptr->raw_mesh();
 
-            for(auto objinst : objptr->instances) {
+            ModelInstance * finst = objptr->instances.front();
+
+            // Object instances should carry the same scaling and
+            // x, y rotation that is why we use the first instance
+            rmesh.scale(finst->get_scaling_factor());
+            rmesh.rotate_x(float(finst->get_rotation()(X)));
+            rmesh.rotate_y(float(finst->get_rotation()(Y)));
+
+            // TODO export the exact 2D projection
+            auto p = rmesh.convex_hull();
+
+            p.make_clockwise();
+            p.append(p.first_point());
+            auto clpath = Slic3rMultiPoint_to_ClipperPath(p);
+
+            for(ModelInstance* objinst : objptr->instances) {
                 if(objinst) {
-                    Slic3r::TriangleMesh tmpmesh = rmesh;
                     ClipperLib::PolygonImpl pn;
-
-                    // CHECK_ME -> is the following correct ?
-                    tmpmesh.scale(objinst->get_scaling_factor());
-
-                    // TODO export the exact 2D projection
-                    auto p = tmpmesh.convex_hull();
-
-                    p.make_clockwise();
-                    p.append(p.first_point());
-                    pn.Contour = Slic3rMultiPoint_to_ClipperPath( p );
+                    pn.Contour = clpath;
 
                     // Efficient conversion to item.
                     Item item(std::move(pn));
 
                     // Invalid geometries would throw exceptions when arranging
                     if(item.vertexCount() > 3) {
-                        // CHECK_ME -> is the following correct or it should take in account all three rotations ?
                         item.rotation(objinst->get_rotation(Z));
                         item.translation({
                         ClipperLib::cInt(objinst->get_offset(X)/SCALING_FACTOR),
@@ -565,9 +569,10 @@ void applyResult(
         // appropriately
         auto off = item.translation();
         Radians rot = item.rotation();
+
         Vec3d foff(off.X*SCALING_FACTOR + batch_offset,
                    off.Y*SCALING_FACTOR,
-                   inst_ptr->get_offset()(2));
+                   inst_ptr->get_offset()(Z));
 
         // write the transformation data into the model instance
         inst_ptr->set_rotation(Z, rot);
