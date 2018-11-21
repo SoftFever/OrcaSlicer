@@ -141,7 +141,7 @@ public:
 
     void mirror_selection(wxGLCanvas* canvas, Axis axis);
 
-    void reload_scene(wxGLCanvas* canvas, bool force);
+    void reload_scene(wxGLCanvas* canvas, bool refresh_immediately, bool force_full_scene_refresh = false);
 
     void load_gcode_preview(wxGLCanvas* canvas, const GCodePreviewData* preview_data, const std::vector<std::string>& str_tool_colors);
     void load_preview(wxGLCanvas* canvas, const std::vector<std::string>& str_tool_colors);

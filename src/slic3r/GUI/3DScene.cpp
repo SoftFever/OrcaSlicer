@@ -2107,9 +2107,9 @@ void _3DScene::mirror_selection(wxGLCanvas* canvas, Axis axis)
     s_canvas_mgr.mirror_selection(canvas, axis);
 }
 
-void _3DScene::reload_scene(wxGLCanvas* canvas, bool force)
+void _3DScene::reload_scene(wxGLCanvas* canvas, bool refresh_immediately, bool force_full_scene_refresh)
 {
-    s_canvas_mgr.reload_scene(canvas, force);
+    s_canvas_mgr.reload_scene(canvas, refresh_immediately, force_full_scene_refresh);
 }
 
 void _3DScene::load_gcode_preview(wxGLCanvas* canvas, const GCodePreviewData* preview_data, const std::vector<std::string>& str_tool_colors)

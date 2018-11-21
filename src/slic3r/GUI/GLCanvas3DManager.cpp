@@ -506,11 +506,11 @@ void GLCanvas3DManager::mirror_selection(wxGLCanvas* canvas, Axis axis)
         it->second->mirror_selection(axis);
 }
 
-void GLCanvas3DManager::reload_scene(wxGLCanvas* canvas, bool force)
+void GLCanvas3DManager::reload_scene(wxGLCanvas* canvas, bool refresh_immediately, bool force_full_scene_refresh)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
-        it->second->reload_scene(force);
+        it->second->reload_scene(refresh_immediately, force_full_scene_refresh);
 }
 
 void GLCanvas3DManager::load_gcode_preview(wxGLCanvas* canvas, const GCodePreviewData* preview_data, const std::vector<std::string>& str_tool_colors)

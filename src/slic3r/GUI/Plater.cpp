@@ -930,7 +930,7 @@ struct Plater::priv
 
     priv(Plater *q, MainFrame *main_frame);
 
-    void update();
+    void update(bool force_full_scene_refresh = false);
     void select_view(const std::string& direction);
     void update_ui_from_settings();
     ProgressStatusBar* statusbar();
@@ -1144,7 +1144,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     q->Layout();
 }
 
-void Plater::priv::update()
+void Plater::priv::update(bool force_full_scene_refresh)
 {
     wxWindowUpdateLocker freeze_guard(q);
     if (get_config("autocenter") == "1") {
@@ -1160,7 +1160,7 @@ void Plater::priv::update()
         // pulls the correct data.
         this->update_background_process();
     }
-    _3DScene::reload_scene(canvas3D, false);
+    _3DScene::reload_scene(canvas3D, false, force_full_scene_refresh);
     preview->reset_gcode_preview_data();
     preview->reload_print();
 
@@ -1662,9 +1662,9 @@ void Plater::priv::arrange()
     // We enable back the arrange button
     _3DScene::enable_toolbar_item(canvas3D, "arrange", can_arrange());
 
-    // FIXME: none of the following seem to work now. (update did the job previously)
-    // _3DScene::reload_scene(canvas3D, false);
-    update();
+    // Do a full refresh of scene tree, including regenerating all the GLVolumes.
+    //FIXME The update function shall just reload the modified matrices.
+    update(true);
 }
 
 void Plater::priv::split_object()

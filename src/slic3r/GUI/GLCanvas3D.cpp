@@ -3767,7 +3767,7 @@ void GLCanvas3D::mirror_selection(Axis axis)
 // 3) SLA support meshes for their respective ModelObjects / ModelInstances
 // 4) Wipe tower preview
 // 5) Out of bed collision status & message overlay (texture)
-void GLCanvas3D::reload_scene(bool force)
+void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_refresh)
 {
     if ((m_canvas == nullptr) || (m_config == nullptr) || (m_model == nullptr))
         return;
@@ -3809,7 +3809,7 @@ void GLCanvas3D::reload_scene(bool force)
     glvolumes_new.reserve(m_volumes.volumes.size());
     auto model_volume_state_lower = [](const ModelVolumeState &m1, const ModelVolumeState &m2) { return m1.geometry_id < m2.geometry_id; };
 
-    m_reload_delayed = ! m_canvas->IsShown() && ! force;
+    m_reload_delayed = ! m_canvas->IsShown() && ! refresh_immediately && ! force_full_scene_refresh;
 
     PrinterTechnology printer_technology = wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology();
 
@@ -3866,7 +3866,7 @@ void GLCanvas3D::reload_scene(bool force)
                 if (it != model_volume_state.end() && it->geometry_id == key.geometry_id)
 					mvs = &(*it);
             }
-            if (mvs == nullptr) {
+            if (mvs == nullptr || force_full_scene_refresh) {
                 // This GLVolume will be released.
                 volume->release_geometry();
                 if (! m_reload_delayed)
