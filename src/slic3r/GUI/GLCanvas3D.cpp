@@ -1075,6 +1075,7 @@ GLCanvas3D::Selection::VolumeCache::TransformCache::TransformCache()
     , scaling_factor(Vec3d::Ones())
     , rotation_matrix(Transform3d::Identity())
     , scale_matrix(Transform3d::Identity())
+    , no_position_matrix(Transform3d::Identity())
 {
 }
 
@@ -1085,6 +1086,7 @@ GLCanvas3D::Selection::VolumeCache::TransformCache::TransformCache(const Geometr
 {
     rotation_matrix = Geometry::assemble_transform(Vec3d::Zero(), rotation);
     scale_matrix = Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), scaling_factor);
+    no_position_matrix = transform.get_matrix(true);
 }
 
 GLCanvas3D::Selection::VolumeCache::VolumeCache(const Geometry::Transformation& volume_transform, const Geometry::Transformation& instance_transform)
@@ -1437,7 +1439,10 @@ void GLCanvas3D::Selection::translate(const Vec3d& displacement)
         if (m_mode == Instance)
             (*m_volumes)[i]->set_instance_offset(m_cache.volumes_data[i].get_instance_position() + displacement);
         else if (m_mode == Volume)
-            (*m_volumes)[i]->set_volume_offset(m_cache.volumes_data[i].get_volume_position() + displacement);
+        {
+            Vec3d local_displacement = (m_cache.volumes_data[i].get_instance_no_position_matrix() * m_cache.volumes_data[i].get_volume_no_position_matrix()).inverse() * displacement;
+            (*m_volumes)[i]->set_volume_offset(m_cache.volumes_data[i].get_volume_position() + local_displacement);
+        }
 #else
         (*m_volumes)[i]->set_offset(m_cache.volumes_data[i].get_position() + displacement);
 #endif // ENABLE_MODELVOLUME_TRANSFORM
@@ -4323,6 +4328,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_dirty = true;
             break;
         }
+#if !ENABLE_WORLD_ROTATIONS
         case Gizmos::Rotate:
         {
             m_selection.rotate(m_gizmos.get_rotation(), false);
@@ -4331,6 +4337,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_dirty = true;
             break;
         }
+#endif // !ENABLE_WORLD_ROTATIONS
         default:
         {
             break;
@@ -4501,9 +4508,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         // we do not want to translate objects if the user just clicked on an object while pressing shift to remove it from the selection and then drag
         Vec3d cur_pos = m_selection.contains_volume(m_hover_volume_id) ? Linef3(_mouse_to_3d(pos, &z0), _mouse_to_3d(pos, &z1)).intersect_plane(m_mouse.drag.start_position_3D(2)) : m_mouse.drag.start_position_3D;
 
-        // Calculate the translation vector.
-        Vec3d displacement = cur_pos - m_mouse.drag.start_position_3D;
-        m_selection.translate(displacement);
+        m_selection.translate(cur_pos - m_mouse.drag.start_position_3D);
         wxGetApp().obj_manipul()->update_settings_value(m_selection);
 
         m_dirty = true;

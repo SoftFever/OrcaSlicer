@@ -384,6 +384,7 @@ public:
                 Vec3d scaling_factor;
                 Transform3d rotation_matrix;
                 Transform3d scale_matrix;
+                Transform3d no_position_matrix;
 
                 TransformCache();
                 explicit TransformCache(const Geometry::Transformation& transform);
@@ -414,12 +415,14 @@ public:
             const Vec3d& get_volume_scaling_factor() const { return m_volume.scaling_factor; }
             const Transform3d& get_volume_rotation_matrix() const { return m_volume.rotation_matrix; }
             const Transform3d& get_volume_scale_matrix() const { return m_volume.scale_matrix; }
+            const Transform3d& get_volume_no_position_matrix() const { return m_volume.no_position_matrix; }
 
             const Vec3d& get_instance_position() const { return m_instance.position; }
             const Vec3d& get_instance_rotation() const { return m_instance.rotation; }
             const Vec3d& get_instance_scaling_factor() const { return m_instance.scaling_factor; }
             const Transform3d& get_instance_rotation_matrix() const { return m_instance.rotation_matrix; }
             const Transform3d& get_instance_scale_matrix() const { return m_instance.scale_matrix; }
+            const Transform3d& get_instance_no_position_matrix() const { return m_instance.no_position_matrix; }
 #else
             const Vec3d& get_position() const { return m_position; }
             const Vec3d& get_rotation() const { return m_rotation; }
