@@ -242,6 +242,8 @@ public:
         std::string     text;
         // Bitmap of flags.
         enum FlagBits {
+            DEFAULT,
+            NO_RELOAD_SCENE = 0,
             RELOAD_SCENE = 1,
         };
         // Bitmap of FlagBits
@@ -255,7 +257,7 @@ public:
     // Register a custom status callback.
     void                    set_status_callback(status_callback_type cb) { m_status_callback = cb; }
     // Calls a registered callback to update the status, or print out the default message.
-    void                    set_status(int percent, const std::string &message, unsigned int flags = 0) {
+    void                    set_status(int percent, const std::string &message, unsigned int flags = SlicingStatus::DEFAULT) {
 		if (m_status_callback) m_status_callback(SlicingStatus(percent, message, flags));
         else printf("%d => %s\n", percent, message.c_str());
     }

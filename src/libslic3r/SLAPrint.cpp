@@ -414,12 +414,13 @@ void SLAPrint::process()
     using slaposFn = std::function<void(SLAPrintObject&)>;
     using slapsFn  = std::function<void(void)>;
 
+    // This is the actual order of steps done on each PrintObject
     std::array<SLAPrintObjectStep, slaposCount> objectsteps = {
-        slaposObjectSlice,
         slaposSupportIslands,
         slaposSupportPoints,
         slaposSupportTree,
         slaposBasePool,
+        slaposObjectSlice,
         slaposSliceSupports
     };
 
@@ -445,21 +446,27 @@ void SLAPrint::process()
     const double ostepd = (max_objstatus - min_objstatus) / (objcount * 100.0);
 
     for(SLAPrintObject * po : m_objects) {
-        for(size_t s = 0; s < pobj_program.size(); ++s) {
+        for(size_t s = 0; s < objectsteps.size(); ++s) {
             auto currentstep = objectsteps[s];
+
+            // if the base pool (which means also the support tree) is done,
+            // do a refresh when indicating progress
+            auto flg = currentstep == slaposObjectSlice ?
+                        SlicingStatus::RELOAD_SCENE : SlicingStatus::DEFAULT;
 
             // Cancellation checking. Each step will check for cancellation
             // on its own and return earlier gracefully. Just after it returns
             // execution gets to this point and throws the canceled signal.
             throw_if_canceled();
 
-            if(po->m_stepmask[s] && !po->is_step_done(currentstep)) {
+            if(po->m_stepmask[currentstep] && !po->is_step_done(currentstep)) {
+                po->set_started(currentstep);
+
                 unsigned st = OBJ_STEP_LEVELS[currentstep];
                 st = unsigned(min_objstatus + st * ostepd);
-                set_status(st, OBJ_STEP_LABELS[currentstep]);
+                set_status(st, OBJ_STEP_LABELS[currentstep], flg);
 
-                po->set_started(currentstep);
-                pobj_program[s](*po);
+                pobj_program[currentstep](*po);
                 po->set_done(currentstep);
             }
         }
@@ -477,12 +484,12 @@ void SLAPrint::process()
 
         throw_if_canceled();
 
-        if(m_stepmask[s] && !is_step_done(currentstep)) {
+        if(m_stepmask[currentstep] && !is_step_done(currentstep)) {
             set_status(PRINT_STEP_LEVELS[currentstep],
                        PRINT_STEP_LABELS[currentstep]);
 
             set_started(currentstep);
-            print_program[s]();
+            print_program[currentstep]();
             set_done(currentstep);
         }
     }
