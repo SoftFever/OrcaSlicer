@@ -265,7 +265,8 @@ public:
     }
 
 	boost::any&		get_value() override;
-
+    bool            is_defined_input_value();
+    
     virtual void	enable();
     virtual void	disable();
     virtual wxWindow* getWindow() { return window; }

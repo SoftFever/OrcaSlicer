@@ -1315,6 +1315,22 @@ void GLCanvas3D::Selection::remove_volume(unsigned int object_idx, unsigned int 
     m_bounding_box_dirty = true;
 }
 
+void GLCanvas3D::Selection::add_all()
+{
+    if (!m_valid)
+        return;
+
+    m_mode = Instance;
+
+    for (unsigned int i = 0; i < (unsigned int)m_volumes->size(); ++i)
+    {
+        _add_volume(i);
+    }
+
+    _update_type();
+    m_bounding_box_dirty = true;
+}
+
 void GLCanvas3D::Selection::clear()
 {
     if (!m_valid)
@@ -3685,6 +3701,11 @@ void GLCanvas3D::render()
     _render_layer_editing_overlay();
 
     m_canvas->SwapBuffers();
+}
+
+void GLCanvas3D::select_all()
+{
+    m_selection.add_all();
 }
 
 void GLCanvas3D::delete_selected()

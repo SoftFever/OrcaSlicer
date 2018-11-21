@@ -951,6 +951,7 @@ struct Plater::priv
     void selection_changed();
     void object_list_changed();
 
+    void select_all();
     void remove(size_t obj_idx);
     void delete_object_from_model(size_t obj_idx);
     void reset();
@@ -1527,6 +1528,11 @@ void Plater::priv::object_list_changed()
     const bool model_fits = _3DScene::check_volumes_outside_state(canvas3D, config) == ModelInstance::PVS_Inside;
 
     sidebar->enable_buttons(!model.objects.empty() && !export_in_progress && model_fits);
+}
+
+void Plater::priv::select_all()
+{
+    _3DScene::select_all(canvas3D);
 }
 
 void Plater::priv::remove(size_t obj_idx)
@@ -2272,6 +2278,8 @@ void Plater::update() { p->update(); }
 
 void Plater::select_view(const std::string& direction) { p->select_view(direction); }
 
+void Plater::select_all() { p->select_all(); }
+
 void Plater::remove(size_t obj_idx) { p->remove(obj_idx); }
 void Plater::delete_object_from_model(size_t obj_idx) { p->delete_object_from_model(obj_idx); }
 
@@ -2356,6 +2364,11 @@ void Plater::set_number_of_copies(/*size_t num*/)
         increase_instances(diff);
     else if (diff < 0)
         decrease_instances(-diff);
+}
+
+bool Plater::is_selection_empty() const
+{
+    return p->get_selection().is_empty();
 }
 
 void Plater::cut(size_t obj_idx, size_t instance_idx, coordf_t z)

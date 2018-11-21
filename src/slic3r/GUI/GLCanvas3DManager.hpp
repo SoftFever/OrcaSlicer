@@ -130,6 +130,7 @@ public:
 
     void render(wxGLCanvas* canvas) const;
 
+    void select_all(wxGLCanvas* canvas);
     void delete_selected(wxGLCanvas* canvas);
     void ensure_on_bed(wxGLCanvas* canvas, unsigned int object_idx);
 

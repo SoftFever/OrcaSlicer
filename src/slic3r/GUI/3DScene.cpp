@@ -2041,6 +2041,11 @@ void _3DScene::render(wxGLCanvas* canvas)
     s_canvas_mgr.render(canvas);
 }
 
+void _3DScene::select_all(wxGLCanvas* canvas)
+{
+    s_canvas_mgr.select_all(canvas);
+}
+
 void _3DScene::delete_selected(wxGLCanvas* canvas)
 {
     s_canvas_mgr.delete_selected(canvas);

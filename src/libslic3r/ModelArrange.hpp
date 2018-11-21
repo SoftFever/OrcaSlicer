@@ -20,9 +20,6 @@ public:
     inline double radius() const { return radius_; }
     inline const Point& center() const { return center_; }
     inline operator bool() { return !std::isnan(radius_); }
-//    inline operator lnCircle() {
-//        return lnCircle({center_(0), center_(1)}, radius_);
-//    }
 };
 
 enum class BedShapeType {

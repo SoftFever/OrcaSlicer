@@ -128,12 +128,14 @@ public:
     void update();
     void select_view(const std::string& direction);
 
+    void select_all();
     void remove(size_t obj_idx);
     void delete_object_from_model(size_t obj_idx);
     void remove_selected();
     void increase_instances(size_t num = 1);
     void decrease_instances(size_t num = 1);
     void set_number_of_copies(/*size_t num*/);
+    bool is_selection_empty() const;
 
     void cut(size_t obj_idx, size_t instance_idx, coordf_t z);
 

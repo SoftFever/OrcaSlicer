@@ -633,6 +633,7 @@ public:
 
     static void render(wxGLCanvas* canvas);
 
+    static void select_all(wxGLCanvas* canvas);
     static void delete_selected(wxGLCanvas* canvas);
     static void ensure_on_bed(wxGLCanvas* canvas, unsigned int object_idx);
 

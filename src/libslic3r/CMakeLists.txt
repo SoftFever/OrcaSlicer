@@ -156,6 +156,7 @@ add_library(libslic3r STATIC
     TriangleMesh.hpp
     utils.cpp
     Utils.hpp
+    MTUtils.hpp
     SLA/SLABoilerPlate.hpp
     SLA/SLABasePool.hpp
     SLA/SLABasePool.cpp

@@ -454,6 +454,13 @@ void GLCanvas3DManager::render(wxGLCanvas* canvas) const
         it->second->render();
 }
 
+void GLCanvas3DManager::select_all(wxGLCanvas* canvas)
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->select_all();
+}
+
 void GLCanvas3DManager::delete_selected(wxGLCanvas* canvas)
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);

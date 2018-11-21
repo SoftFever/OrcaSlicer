@@ -1,9 +1,12 @@
 #ifndef slic3r_SLAPrint_hpp_
 #define slic3r_SLAPrint_hpp_
 
+#include <mutex>
+
 #include "PrintBase.hpp"
 #include "PrintExport.hpp"
 #include "Point.hpp"
+#include "MTUtils.hpp"
 
 namespace Slic3r {
 
@@ -55,10 +58,10 @@ public:
 
     // Get a support mesh centered around origin in XY, and with zero rotation around Z applied.
     // Support mesh is only valid if this->is_step_done(slaposSupportTree) is true.
-    TriangleMesh            support_mesh() const;
+    const TriangleMesh&     support_mesh() const;
     // Get a pad mesh centered around origin in XY, and with zero rotation around Z applied.
     // Support mesh is only valid if this->is_step_done(slaposPad) is true.
-    TriangleMesh            pad_mesh() const;
+    const TriangleMesh&     pad_mesh() const;
 
     // This will return the transformed mesh which is cached
     const TriangleMesh&     transformed_mesh() const;
@@ -71,8 +74,9 @@ public:
     // as the pad height also needs to be considered.
     double get_elevation() const;
 
-//    const std::vector<ExPolygons>& get_support_slices() const;
-//    const std::vector<ExPolygons>& get_model_slices() const;
+    // Should be obvious
+    const std::vector<ExPolygons>& get_support_slices() const;
+    const std::vector<ExPolygons>& get_model_slices() const;
 
     // I refuse to grantee copying (Tamas)
     SLAPrintObject(const SLAPrintObject&) = delete;
@@ -88,7 +92,10 @@ protected:
     void                    config_apply(const ConfigBase &other, bool ignore_nonexistent = false) { this->m_config.apply(other, ignore_nonexistent); }
     void                    config_apply_only(const ConfigBase &other, const t_config_option_keys &keys, bool ignore_nonexistent = false) 
     	{ this->m_config.apply_only(other, keys, ignore_nonexistent); }
-    void                    set_trafo(const Transform3d& trafo) { m_trafo = trafo; m_trmesh_valid = false; }
+
+    void                    set_trafo(const Transform3d& trafo) {
+        m_transformed_rmesh.invalidate([this, &trafo](){ m_trafo = trafo; });
+    }
 
     void                    set_instances(const std::vector<Instance> &instances) { m_instances = instances; }
     // Invalidates the step, and its depending steps in SLAPrintObject and SLAPrint.
@@ -109,8 +116,7 @@ private:
     std::vector<ExPolygons>                 m_model_slices;
 
     // Caching the transformed (m_trafo) raw mesh of the object
-    mutable TriangleMesh                    m_transformed_rmesh;
-    mutable bool                            m_trmesh_valid = false;
+    mutable CachedObject<TriangleMesh>      m_transformed_rmesh;
 
     class SupportData;
     std::unique_ptr<SupportData> m_supportdata;

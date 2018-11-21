@@ -144,7 +144,7 @@ public:
 
     /// Get the whole mesh united into the output TriangleMesh
     /// WITHOUT THE PAD
-    void merged_mesh(TriangleMesh& outmesh) const;
+    const TriangleMesh& merged_mesh() const;
 
     void merged_mesh_with_pad(TriangleMesh&) const;
 

@@ -798,7 +798,10 @@ bool SLAPrint::invalidate_state_by_config_options(const std::vector<t_config_opt
 
 SLAPrintObject::SLAPrintObject(SLAPrint *print, ModelObject *model_object):
     Inherited(print, model_object),
-    m_stepmask(slaposCount, true)
+    m_stepmask(slaposCount, true),
+    m_transformed_rmesh( [this](TriangleMesh& obj){
+            obj = m_model_object->raw_mesh(); obj.transform(m_trafo);
+        })
 {
 }
 
@@ -893,28 +896,29 @@ double SLAPrintObject::get_elevation() const {
     return ret;
 }
 
-//const std::vector<ExPolygons> &SLAPrintObject::get_support_slices() const
-//{
-//    // I don't want to return a copy but the points may not exist, so ...
-//    static const std::vector<ExPolygons> dummy_empty;
+namespace { // dummy empty static containers for return values in some methods
+const std::vector<ExPolygons> EMPTY_SLICES;
+const TriangleMesh EMPTY_MESH;
+}
 
-//    if(!m_supportdata) return dummy_empty;
-//    return m_supportdata->support_slices;
-//}
+const std::vector<ExPolygons> &SLAPrintObject::get_support_slices() const
+{
+    if(!is_step_done(slaposSliceSupports) || !m_supportdata) return EMPTY_SLICES;
+    return m_supportdata->support_slices;
+}
 
-//const std::vector<ExPolygons> &SLAPrintObject::get_model_slices() const
-//{
-//    return m_model_slices;
-//}
+const std::vector<ExPolygons> &SLAPrintObject::get_model_slices() const
+{
+    if(!is_step_done(slaposObjectSlice)) return EMPTY_SLICES;
+    return m_model_slices;
+}
 
 bool SLAPrintObject::has_mesh(SLAPrintObjectStep step) const
 {
     switch (step) {
     case slaposSupportTree:
-//        return m_supportdata && m_supportdata->support_tree_ptr && ! m_supportdata->support_tree_ptr->get().merged_mesh().empty();
 		return ! this->support_mesh().empty();
     case slaposBasePool:
-//		return m_supportdata && m_supportdata->support_tree_ptr && ! m_supportdata->support_tree_ptr->get_pad().empty();
 		return ! this->pad_mesh().empty();
 	default:
         return false;
@@ -933,22 +937,19 @@ TriangleMesh SLAPrintObject::get_mesh(SLAPrintObjectStep step) const
 	}
 }
 
-TriangleMesh SLAPrintObject::support_mesh() const
+
+
+const TriangleMesh& SLAPrintObject::support_mesh() const
 {
-    TriangleMesh trm;
-
     if(m_supportdata && m_supportdata->support_tree_ptr)
-        m_supportdata->support_tree_ptr->merged_mesh(trm);
+        return m_supportdata->support_tree_ptr->merged_mesh();
 
-    // TODO: is this necessary?
-    trm.repair();
-
-    return trm;
+    return EMPTY_MESH;
 }
 
-TriangleMesh SLAPrintObject::pad_mesh() const
+const TriangleMesh& SLAPrintObject::pad_mesh() const
 {
-    if(!m_supportdata || !m_supportdata->support_tree_ptr) return {};
+    if(!m_supportdata || !m_supportdata->support_tree_ptr) return EMPTY_MESH;
 
     return m_supportdata->support_tree_ptr->get_pad();
 }
@@ -963,11 +964,7 @@ const TriangleMesh &SLAPrintObject::transformed_mesh() const {
     // or apply an inverse transformation on the support structure after it
     // has been created.
 
-    if(m_trmesh_valid) return m_transformed_rmesh;
-    m_transformed_rmesh = m_model_object->raw_mesh();
-    m_transformed_rmesh.transform(m_trafo);
-    m_trmesh_valid = true;
-    return m_transformed_rmesh;
+    return m_transformed_rmesh.get();
 }
 
 std::vector<Vec3d> SLAPrintObject::transformed_support_points() const
