@@ -230,7 +230,7 @@ void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& sele
 #endif // ENABLE_MODELVOLUME_TRANSFORM
         m_og->enable();
     }
-    else if (selection.is_modifier())
+    else if (selection.is_single_modifier() || selection.is_single_volume())
     {
         // the selection contains a single volume
         const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
