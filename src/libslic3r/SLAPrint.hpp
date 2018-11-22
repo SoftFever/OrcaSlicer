@@ -74,6 +74,11 @@ public:
     // as the pad height also needs to be considered.
     double get_elevation() const;
 
+    // This method returns the needed elevation according to the processing
+    // status. If the supports are not ready, it is zero, if they are and the
+    // pad is not, then without the pad, otherwise the full value is returned.
+    double get_current_elevation() const;
+
     // Should be obvious
     const std::vector<ExPolygons>& get_support_slices() const;
     const std::vector<ExPolygons>& get_model_slices() const;

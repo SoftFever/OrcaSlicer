@@ -1,6 +1,7 @@
 #include "SLAPrint.hpp"
 #include "SLA/SLASupportTree.hpp"
 #include "SLA/SLABasePool.hpp"
+#include "MTUtils.hpp"
 
 #include <unordered_set>
 
@@ -30,14 +31,15 @@ public:
 
 namespace {
 
+// should add up to 100 (%)
 const std::array<unsigned, slaposCount>     OBJ_STEP_LEVELS =
 {
-    0,
-    20,
-    30,
-    50,
-    70,
-    90
+    10,     // slaposObjectSlice,
+    10,     // slaposSupportIslands,
+    20,     // slaposSupportPoints,
+    25,     // slaposSupportTree,
+    25,     // slaposBasePool,
+    10      // slaposSliceSupports,
 };
 
 const std::array<std::string, slaposCount> OBJ_STEP_LABELS =
@@ -50,11 +52,11 @@ const std::array<std::string, slaposCount> OBJ_STEP_LABELS =
     L("Slicing supports")               // slaposSliceSupports,
 };
 
+// Should also add up to 100 (%)
 const std::array<unsigned, slapsCount> PRINT_STEP_LEVELS =
 {
-    // This is after processing all the Print objects, so we start from 50%
-    50,     // slapsRasterize
-    90,     // slapsValidate
+    80,     // slapsRasterize
+    20,     // slapsValidate
 };
 
 const std::array<std::string, slapsCount> PRINT_STEP_LABELS =
@@ -377,6 +379,11 @@ void SLAPrint::process()
     // shortcut to initial layer height
     double ilhd = m_material_config.initial_layer_height.getFloat();
     auto   ilh  = float(ilhd);
+    const size_t objcount = m_objects.size();
+
+    const unsigned min_objstatus = 0;
+    const unsigned max_objstatus = 80;
+    const double ostepd = (max_objstatus - min_objstatus) / (objcount * 100.0);
 
     // The slicing will be performed on an imaginary 1D grid which starts from
     // the bottom of the bounding box created around the supported model. So
@@ -433,7 +440,7 @@ void SLAPrint::process()
     };
 
     // In this step we create the supports
-    auto support_tree = [this](SLAPrintObject& po) {
+    auto support_tree = [this, objcount, ostepd](SLAPrintObject& po) {
         if(!po.m_supportdata) return;
 
         auto& emesh = po.m_supportdata->emesh;
@@ -452,10 +459,15 @@ void SLAPrint::process()
             scfg.pillar_radius_mm = c.support_pillar_radius.getFloat();
 
             sla::Controller ctl;
-            ctl.statuscb = [this](unsigned st, const std::string& msg) {
-                unsigned stinit = OBJ_STEP_LEVELS[slaposSupportTree];
-                double d = (OBJ_STEP_LEVELS[slaposBasePool] - stinit) / 100.0;
-                set_status(unsigned(stinit + st*d), msg);
+
+            auto stfirst = OBJ_STEP_LEVELS.begin();
+            auto stthis = stfirst + slaposSupportTree;
+            unsigned init = std::accumulate(stfirst, stthis, 0);
+            init = unsigned(init * ostepd);
+            double d = *stthis / (objcount * 100.0);
+
+            ctl.statuscb = [this, init, d](unsigned st, const std::string& msg){
+                set_status(unsigned(init + st*d), msg);
             };
             ctl.stopcondition = [this](){ return canceled(); };
             ctl.cancelfn = [this]() { throw_if_canceled(); };
@@ -475,7 +487,7 @@ void SLAPrint::process()
         // and before the supports had been sliced. (or the slicing has to be
         // repeated)
 
-        if(po.is_step_done(slaposSupportTree) &&
+        if(/*po.is_step_done(slaposSupportTree) &&*/
            po.m_config.pad_enable.getBool() &&
            po.m_supportdata &&
            po.m_supportdata->support_tree_ptr)
@@ -509,7 +521,7 @@ void SLAPrint::process()
     };
 
     // Rasterizing the model objects, and their supports
-    auto rasterize = [this, ilh, ilhd]() {
+    auto rasterize = [this, ilh, ilhd, max_objstatus]() {
         using Layer = sla::ExPolygons;
         using LayerCopies = std::vector<SLAPrintObject::Instance>;
         struct LayerRef {
@@ -554,7 +566,7 @@ void SLAPrint::process()
 
             // If everything went well this code should not run at all, but
             // let's be robust...
-            assert(levelids.size() == oslices.size());
+            // assert(levelids.size() == oslices.size());
             if(levelids.size() < oslices.size()) { // extend the levels until...
 
                 BOOST_LOG_TRIVIAL(warning)
@@ -614,12 +626,16 @@ void SLAPrint::process()
         auto lvlcnt = unsigned(levels.size());
         printer.layers(lvlcnt);
 
-        // TODO exclusive progress indication for this step would be good
-        // as it is the longest of all. It would require synchronization
-        // in the parallel processing.
+        unsigned slot = PRINT_STEP_LEVELS[slapsRasterize];
+        unsigned ist = max_objstatus, pst = ist;
+        double sd = (100 - ist) / 100.0;
+        SpinMutex slck;
 
         // procedure to process one height level. This will run in parallel
-        auto lvlfn = [this, &keys, &levels, &printer](unsigned level_id) {
+        auto lvlfn =
+        [this, &slck, &keys, &levels, &printer, slot, sd, ist, &pst]
+            (unsigned level_id)
+        {
             if(canceled()) return;
 
             LayerRefs& lrange = levels[keys[level_id]];
@@ -644,6 +660,15 @@ void SLAPrint::process()
 
             // Finish the layer for later saving it.
             printer.finish_layer(level_id);
+
+            // Status indication
+            auto st = ist + unsigned(sd*level_id*slot/levels.size());
+            { std::lock_guard<SpinMutex> lck(slck);
+            if( st > pst) {
+                set_status(st, PRINT_STEP_LABELS[slapsRasterize]);
+                pst = st;
+            }
+            }
         };
 
         // last minute escape
@@ -661,11 +686,11 @@ void SLAPrint::process()
 
     // This is the actual order of steps done on each PrintObject
     std::array<SLAPrintObjectStep, slaposCount> objectsteps = {
+        slaposObjectSlice,      // Support Islands will need this step
         slaposSupportIslands,
         slaposSupportPoints,
         slaposSupportTree,
         slaposBasePool,
-        slaposObjectSlice,
         slaposSliceSupports
     };
 
@@ -685,35 +710,43 @@ void SLAPrint::process()
         [](){}  // validate
     };
 
-    const unsigned min_objstatus = 0;
-    const unsigned max_objstatus = PRINT_STEP_LEVELS[slapsRasterize];
-    const size_t objcount = m_objects.size();
-    const double ostepd = (max_objstatus - min_objstatus) / (objcount * 100.0);
+    static const auto RELOAD_SCENE = SlicingStatus::RELOAD_SCENE;
 
+    unsigned st = min_objstatus;
+    unsigned incr = 0;
+
+    // TODO: this loop could run in parallel but should not exhaust all the CPU
+    // power available
     for(SLAPrintObject * po : m_objects) {
         for(size_t s = 0; s < objectsteps.size(); ++s) {
             auto currentstep = objectsteps[s];
-
-            // if the base pool (which means also the support tree) is done,
-            // do a refresh when indicating progress
-            auto flg = currentstep == slaposObjectSlice ?
-                        SlicingStatus::RELOAD_SCENE : SlicingStatus::DEFAULT;
 
             // Cancellation checking. Each step will check for cancellation
             // on its own and return earlier gracefully. Just after it returns
             // execution gets to this point and throws the canceled signal.
             throw_if_canceled();
 
-            if(po->m_stepmask[currentstep] && !po->is_step_done(currentstep)) {
-                po->set_started(currentstep);
+            st += unsigned(incr * ostepd);
 
-                unsigned st = OBJ_STEP_LEVELS[currentstep];
-                st = unsigned(min_objstatus + st * ostepd);
-                set_status(st, OBJ_STEP_LABELS[currentstep], flg);
+            if(po->m_stepmask[currentstep] && po->set_started(currentstep)) {
+
+                set_status(st, OBJ_STEP_LABELS[currentstep]);
 
                 pobj_program[currentstep](*po);
                 po->set_done(currentstep);
+
+                if(currentstep == slaposBasePool) {
+                    // if the base pool (which means also the support tree) is
+                    // done, do a refresh when indicating progress. Now the
+                    // geometries for the supports and the optional base pad are
+                    // ready. We can grant access for the control thread to read
+                    // the geometries, but first we have to update the caches:
+                    po->support_mesh(); /*po->pad_mesh();*/
+                    set_status(st, L("Visualizing supports"), RELOAD_SCENE);
+                }
             }
+
+            incr = OBJ_STEP_LEVELS[currentstep];
         }
     }
 
@@ -724,19 +757,21 @@ void SLAPrint::process()
     // this would disable the rasterization step
 //    m_stepmask[slapsRasterize] = false;
 
+    double pstd = (100 - max_objstatus) / 100.0;
+    st = max_objstatus;
     for(size_t s = 0; s < print_program.size(); ++s) {
         auto currentstep = printsteps[s];
 
         throw_if_canceled();
 
-        if(m_stepmask[currentstep] && !is_step_done(currentstep)) {
-            set_status(PRINT_STEP_LEVELS[currentstep],
-                       PRINT_STEP_LABELS[currentstep]);
-
-            set_started(currentstep);
+        if(m_stepmask[currentstep] && set_started(currentstep))
+        {
+            set_status(st, PRINT_STEP_LABELS[currentstep]);
             print_program[currentstep]();
             set_done(currentstep);
         }
+
+        st += unsigned(PRINT_STEP_LEVELS[currentstep] * pstd);
     }
 
     // If everything vent well
@@ -896,6 +931,18 @@ double SLAPrintObject::get_elevation() const {
     }
 
     return ret;
+}
+
+double SLAPrintObject::get_current_elevation() const
+{
+    bool has_supports = is_step_done(slaposSupportTree);
+    bool has_pad = is_step_done(slaposBasePool);
+    if(!has_supports && !has_pad) return 0;
+    else if(has_supports && !has_pad)
+        return m_config.support_object_elevation.getFloat();
+    else return get_elevation();
+
+    return 0;
 }
 
 namespace { // dummy empty static containers for return values in some methods
