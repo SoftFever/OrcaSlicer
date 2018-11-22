@@ -4311,7 +4311,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
                 default:
                 {
 #if ENABLE_GIZMOS_SHORTCUT
-                    if (evt.ShiftDown() && m_gizmos.handle_shortcut(keyCode, m_selection))
+                    if (m_gizmos.handle_shortcut(keyCode, m_selection))
                     {
                         _update_gizmos_data();
                         render();
