@@ -25,6 +25,7 @@ ObjectList::ObjectList(wxWindow* parent) :
 {
     // Fill CATEGORY_ICON
     {
+        // ptFFF
 		CATEGORY_ICON[L("Layers and Perimeters")]	= wxBitmap(from_u8(var("layers.png")), wxBITMAP_TYPE_PNG);
 		CATEGORY_ICON[L("Infill")]					= wxBitmap(from_u8(var("infill.png")), wxBITMAP_TYPE_PNG);
 		CATEGORY_ICON[L("Support material")]		= wxBitmap(from_u8(var("building.png")), wxBITMAP_TYPE_PNG);
@@ -34,6 +35,9 @@ ObjectList::ObjectList(wxWindow* parent) :
 // 		CATEGORY_ICON[L("Skirt and brim")]			= wxBitmap(from_u8(var("box.png")), wxBITMAP_TYPE_PNG);
 // 		CATEGORY_ICON[L("Speed > Acceleration")]	= wxBitmap(from_u8(var("time.png")), wxBITMAP_TYPE_PNG);
 		CATEGORY_ICON[L("Advanced")]				= wxBitmap(from_u8(var("wand.png")), wxBITMAP_TYPE_PNG);
+		// ptSLA
+		CATEGORY_ICON[L("Supports")]				= wxBitmap(from_u8(var("building.png")), wxBITMAP_TYPE_PNG);
+		CATEGORY_ICON[L("Pad")]				        = wxBitmap(from_u8(var("brick.png")), wxBITMAP_TYPE_PNG);
     }
 
     // create control
@@ -310,8 +314,8 @@ void ObjectList::show_context_menu()
         if (!(m_objects_model->GetItemType(item) & (itObject | itVolume)))
             return;
         const auto menu = m_objects_model->GetParent(item) == wxDataViewItem(0) ?
-            create_add_part_popupmenu() :
-            create_part_settings_popupmenu();
+            create_object_popupmenu() :
+            create_part_popupmenu();
         wxGetApp().tab_panel()->GetPage(0)->PopupMenu(menu);
     }
 }
@@ -436,6 +440,13 @@ void ObjectList::on_drop(wxDataViewEvent &event)
 
 std::vector<std::string> get_options(const bool is_part)
 {
+    if (wxGetApp().plater()->printer_technology() == ptSLA) {
+        SLAPrintObjectConfig full_sla_config;
+        auto options = full_sla_config.keys();
+        options.erase(find(options.begin(), options.end(), "layer_height"));
+        return options;
+    }
+
     PrintRegionConfig reg_config;
     auto options = reg_config.keys();
     if (!is_part) {
@@ -463,7 +474,10 @@ void get_options_menu(settings_menu_hierarchy& settings_menu, bool is_part)
         if (category.empty() ||
             (category == "Extruders" && extruders_cnt == 1)) continue;
 
-        std::pair<std::string, std::string> option_label(option, opt->label);
+        const std::string& label = opt->label.empty() ? opt->full_label : 
+                                   opt->full_label.empty() ? opt->label :
+                                   opt->full_label + " " + opt->label;;
+        std::pair<std::string, std::string> option_label(option, label);
         std::vector< std::pair<std::string, std::string> > new_category;
         auto& cat_opt_label = settings_menu.find(category) == settings_menu.end() ? new_category : settings_menu.at(category);
         cat_opt_label.push_back(option_label);
@@ -575,14 +589,27 @@ wxMenuItem* ObjectList::menu_item_settings(wxMenu* menu, int id, const bool is_p
     auto  menu_item = new wxMenuItem(menu, id, _(L("Add settings")));
     menu_item->SetBitmap(m_bmp_cog);
 
-    auto sub_menu = create_add_settings_popupmenu(is_part);
+    auto sub_menu = create_settings_popupmenu(is_part);
     menu_item->SetSubMenu(sub_menu);
     return menu_item;
 }
 
-wxMenu* ObjectList::create_add_part_popupmenu()
+wxMenu* ObjectList::create_object_popupmenu()
 {
     wxMenu *menu = new wxMenu;
+    if (wxGetApp().plater()->printer_technology() == ptSLA)
+    {
+        wxWindowID config_id_base = NewControlId(1);
+        // Append settings popupmenu
+        menu->Append(menu_item_settings(menu, config_id_base, false));
+
+        menu->Bind(wxEVT_MENU, [menu, this](wxEvent &event) {
+            get_settings_choice(menu, event.GetId(), false);
+        });
+
+        return menu;
+    }
+
     // Note: id accords to type of the sub-object, so sequence of the menu items is important
     std::vector<std::string> menu_object_types_items = {L("Add part"),              // ~ModelVolume::MODEL_PART
                                                         L("Add modifier"),          // ~ModelVolume::PARAMETER_MODIFIER
@@ -635,7 +662,7 @@ wxMenu* ObjectList::create_add_part_popupmenu()
     return menu;
 }
 
-wxMenu* ObjectList::create_part_settings_popupmenu()
+wxMenu* ObjectList::create_part_popupmenu()
 {
     wxMenu *menu = new wxMenu;
     wxWindowID config_id_base = NewControlId(3);
@@ -671,7 +698,7 @@ wxMenu* ObjectList::create_part_settings_popupmenu()
     return menu;
 }
 
-wxMenu* ObjectList::create_add_settings_popupmenu(bool is_part)
+wxMenu* ObjectList::create_settings_popupmenu(bool is_part)
 {
     wxMenu *menu = new wxMenu;
 

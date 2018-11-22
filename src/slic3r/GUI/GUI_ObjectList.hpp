@@ -98,9 +98,9 @@ public:
     void                menu_item_add_generic(wxMenuItem* &menu, int id, const int type);
     wxMenuItem*         menu_item_split(wxMenu* menu, int id);
     wxMenuItem*         menu_item_settings(wxMenu* menu, int id, const bool is_part);
-    wxMenu*             create_add_part_popupmenu();
-    wxMenu*             create_part_settings_popupmenu();
-    wxMenu*             create_add_settings_popupmenu(bool is_part);
+    wxMenu*             create_object_popupmenu();
+    wxMenu*             create_part_popupmenu();
+    wxMenu*             create_settings_popupmenu(bool is_part);
 
     void                load_subobject(int type);
     void                load_part(ModelObject* model_object, wxArrayString& part_names, int type);
