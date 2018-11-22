@@ -3941,9 +3941,11 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 mvs->volume_idx = glvolumes_new.size();
                 glvolumes_new.emplace_back(volume);
                 // Update color of the volume based on the current extruder.
-                int extruder_id = mvs->model_volume->extruder_id();
-                if (extruder_id != -1)
-                    volume->extruder_id = extruder_id;
+				if (mvs->model_volume != nullptr) {
+					int extruder_id = mvs->model_volume->extruder_id();
+					if (extruder_id != -1)
+						volume->extruder_id = extruder_id;
+				}
             }
         }
     }
