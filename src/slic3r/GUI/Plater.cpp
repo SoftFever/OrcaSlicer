@@ -52,6 +52,7 @@
 #include "ProgressStatusBar.hpp"
 #include "slic3r/Utils/ASCIIFolding.hpp"
 #include "../Utils/FixModelByWin10.hpp"
+#include "SLA/SLARotfinder.hpp"
 
 #include <wx/glcanvas.h>    // Needs to be last because reasons :-/
 #include "WipeTowerDialog.hpp"
@@ -899,6 +900,7 @@ struct Plater::priv
 
     // Object popup menu
     wxMenu object_menu;
+    wxMenuItem* item_sla_autorot = nullptr;
 
     // Data
     Slic3r::DynamicPrintConfig *config;
@@ -921,6 +923,7 @@ struct Plater::priv
 
     BackgroundSlicingProcess    background_process;
     std::atomic<bool>           arranging;
+    std::atomic<bool>           rotoptimizing;
 
     wxTimer                     background_process_timer;
 
@@ -957,6 +960,7 @@ struct Plater::priv
     void reset();
     void mirror(Axis axis);
     void arrange();
+    void sla_optimize_rotation();
     void split_object();
     void split_volume();
     void schedule_background_process();
@@ -1673,6 +1677,55 @@ void Plater::priv::arrange()
     update(true);
 }
 
+// This method will find an optimal orientation for the currently selected item
+// Very similar in nature to the arrange method above...
+void Plater::priv::sla_optimize_rotation() {
+
+    // TODO: we should decide whether to allow arrange when the search is
+    // running we should probably disable explicit slicing and background
+    // processing
+
+    if(rotoptimizing.load()) return;
+    rotoptimizing.store(true);
+
+    int obj_idx = get_selected_object_idx();
+    ModelObject * o = model.objects[obj_idx];
+
+    background_process.stop();
+
+    auto prev_range = statusbar()->get_range();
+    statusbar()->set_range(100);
+
+    auto stfn = [this] (unsigned st, const std::string& msg) {
+        statusbar()->set_progress(st);
+        statusbar()->set_status_text(msg);
+
+        // could be problematic, but we need the cancel button.
+        wxYieldIfNeeded();
+    };
+
+    statusbar()->set_cancel_callback([this, stfn](){
+        rotoptimizing.store(false);
+        stfn(0, L("Orientation search canceled"));
+    });
+
+    auto r = sla::find_best_rotation(
+                *o, .1f,
+                [stfn](unsigned s) { stfn(s, L("Searching for optimal orientation")); },
+                [this](){ return !rotoptimizing.load(); }
+    );
+
+    if(rotoptimizing.load()) // wasn't canceled
+    for(ModelInstance * oi : o->instances) oi->set_rotation({r[X], r[Y], r[Z]});
+
+    stfn(0, L("Orientation found."));
+    statusbar()->set_range(prev_range);
+    statusbar()->set_cancel_callback();
+    rotoptimizing.store(false);
+
+    update(true);
+}
+
 void Plater::priv::split_object()
 {
     int obj_idx = get_selected_object_idx();
@@ -2117,6 +2170,12 @@ bool Plater::priv::init_object_menu()
         [this](wxCommandEvent&) { split_volume(); }, "shape_ungroup_p.png", &object_menu);
 
     wxMenuItem* item_split = append_submenu(&object_menu, split_menu, wxID_ANY, _(L("Split")), _(L("Split the selected object")), "shape_ungroup.png");
+
+    // Add the automatic rotation sub-menu
+    item_sla_autorot = append_menu_item(&object_menu, wxID_ANY, _(L("Optimize orientation\t+")), _(L("Optimize the rotation of the object for better print results.")),
+                                            [this](wxCommandEvent&) { sla_optimize_rotation(); });
+
+    if(printer_technology == ptFFF) item_sla_autorot = object_menu.Remove(item_sla_autorot);
 
     // ui updates needs to be binded to the parent panel
     if (q != nullptr)
@@ -2636,6 +2695,22 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             if (p->preview) p->preview->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values);
             update_scheduled = true;
         }
+    }
+
+    bool attached = false;
+    for(const wxMenuItem * m : p->object_menu.GetMenuItems())
+        if(m == p->item_sla_autorot) { attached = true; break; }
+
+    switch(printer_technology()) {
+    case ptFFF: {
+        // hide sla auto rotation menuitem
+        if(attached) p->item_sla_autorot = p->object_menu.Remove(p->item_sla_autorot);
+        std::cout << "sla autorot menu should be removed" << std::endl;
+    }
+    case ptSLA: {
+        // show sla auto rotation menuitem
+        if(!attached) p->object_menu.Append(p->item_sla_autorot);
+    }
     }
 
     if (update_scheduled) 
