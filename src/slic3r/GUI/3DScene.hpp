@@ -278,6 +278,8 @@ private:
     // Whether or not is needed to recalculate the world matrix.
     mutable bool          m_world_matrix_dirty;
 #endif // ENABLE_MODELVOLUME_TRANSFORM
+    // Shift in z required by sla supports+pad
+    double m_sla_shift_z;
     // Bounding box of this volume, in unscaled coordinates.
     mutable BoundingBoxf3 m_transformed_bounding_box;
     // Whether or not is needed to recalculate the transformed bounding box.
@@ -426,6 +428,9 @@ public:
     const Vec3d& get_offset() const;
     void set_offset(const Vec3d& offset);
 #endif // ENABLE_MODELVOLUME_TRANSFORM
+     
+    double get_sla_shift_z() const { return m_sla_shift_z; }
+    void set_sla_shift_z(double z) { m_sla_shift_z = z; }
 
     void set_convex_hull(const TriangleMesh *convex_hull, bool owned);
 
@@ -434,7 +439,7 @@ public:
     int                 instance_idx() const { return this->composite_id.instance_id; }
 
 #if ENABLE_MODELVOLUME_TRANSFORM
-    Transform3d world_matrix() const { return m_instance_transformation.get_matrix() * m_volume_transformation.get_matrix(); }
+    Transform3d world_matrix() const;
 #else
     const Transform3f&   world_matrix() const;
 #endif // ENABLE_MODELVOLUME_TRANSFORM
