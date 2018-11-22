@@ -31,6 +31,8 @@
 #define ENABLE_NEW_MENU_LAYOUT (1 && ENABLE_1_42_0)
 // All rotations made using the rotate gizmo are done with respect to the world reference system
 #define ENABLE_WORLD_ROTATIONS (1 && ENABLE_1_42_0)
+// Enables shortcut keys for gizmos
+#define ENABLE_GIZMOS_SHORTCUT (1 && ENABLE_1_42_0)
 
 #endif // _technologies_h_
 

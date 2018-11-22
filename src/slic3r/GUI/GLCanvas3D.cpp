@@ -2659,6 +2659,43 @@ bool GLCanvas3D::Gizmos::is_running() const
     return (curr != nullptr) ? (curr->get_state() == GLGizmoBase::On) : false;
 }
 
+#if ENABLE_GIZMOS_SHORTCUT
+bool GLCanvas3D::Gizmos::handle_shortcut(int key, const Selection& selection)
+{
+    if (!m_enabled)
+        return false;
+
+    bool handled = false;
+    for (GizmosMap::iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
+    {
+        if ((it->second == nullptr) || !it->second->is_selectable())
+            continue;
+
+        int it_key = it->second->get_shortcut_key();
+
+        if (it->second->is_activable(selection) && ((it_key == key - 64) || (it_key == key - 96)))
+        {
+            if ((it->second->get_state() == GLGizmoBase::On))
+            {
+                it->second->set_state(GLGizmoBase::Off);
+                m_current = Undefined;
+                handled = true;
+            }
+            else if ((it->second->get_state() == GLGizmoBase::Off))
+            {
+                it->second->set_state(GLGizmoBase::On);
+                m_current = it->first;
+                handled = true;
+            }
+        }
+        else
+            it->second->set_state(GLGizmoBase::Off);
+    }
+
+    return handled;
+}
+#endif // ENABLE_GIZMOS_SHORTCUT
+
 bool GLCanvas3D::Gizmos::is_dragging() const
 {
     if (!m_enabled)
@@ -4273,7 +4310,16 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 #endif // ENABLE_MODIFIED_CAMERA_TARGET
                 default:
                 {
-                    evt.Skip();
+#if ENABLE_GIZMOS_SHORTCUT
+                    if (evt.ShiftDown() && m_gizmos.handle_shortcut(keyCode, m_selection))
+                    {
+                        _update_gizmos_data();
+                        render();
+                    }
+                    else
+#endif // ENABLE_GIZMOS_SHORTCUT
+                        evt.Skip();
+
                     break;
                 }
                 }
@@ -4761,16 +4807,14 @@ void GLCanvas3D::on_key_down(wxKeyEvent& evt)
     else
     {
         int key = evt.GetKeyCode();
+#ifdef __WXOSX__
+        if (key == WXK_BACK)
+#else
         if (key == WXK_DELETE)
+#endif // __WXOSX__
             post_event(SimpleEvent(EVT_GLCANVAS_REMOVE_OBJECT));
         else
-		{
-#ifdef __WXOSX__
-			if (key == WXK_BACK)
-                post_event(SimpleEvent(EVT_GLCANVAS_REMOVE_OBJECT));
-#endif
-			evt.Skip();
-		}
+            evt.Skip();
     }
 }
 

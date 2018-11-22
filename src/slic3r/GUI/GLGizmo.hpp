@@ -77,6 +77,9 @@ protected:
 
     int m_group_id;
     EState m_state;
+#if ENABLE_GIZMOS_SHORTCUT
+    int m_shortcut_key;
+#endif // ENABLE_GIZMOS_SHORTCUT
     // textures are assumed to be square and all with the same size in pixels, no internal check is done
     GLTexture m_textures[Num_States];
     int m_hover_id;
@@ -99,6 +102,11 @@ public:
 
     EState get_state() const { return m_state; }
     void set_state(EState state) { m_state = state; on_set_state(); }
+
+#if ENABLE_GIZMOS_SHORTCUT
+    int get_shortcut_key() const { return m_shortcut_key; }
+    void set_shortcut_key(int key) { m_shortcut_key = key; }
+#endif // ENABLE_GIZMOS_SHORTCUT
 
     bool is_activable(const GLCanvas3D::Selection& selection) const { return on_is_activable(selection); }
     bool is_selectable() const { return on_is_selectable(); }

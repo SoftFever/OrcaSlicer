@@ -611,6 +611,9 @@ private:
         EType get_current_type() const;
 
         bool is_running() const;
+#if ENABLE_GIZMOS_SHORTCUT
+        bool handle_shortcut(int key, const Selection& selection);
+#endif // ENABLE_GIZMOS_SHORTCUT
 
         bool is_dragging() const;
         void start_dragging(const Selection& selection);
