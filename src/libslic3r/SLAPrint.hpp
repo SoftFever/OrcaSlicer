@@ -147,7 +147,7 @@ public:
 	PrinterTechnology	technology() const noexcept { return ptSLA; }
 
     void                clear() override;
-    bool                empty() const override { return false; }
+    bool                empty() const override { return m_objects.empty(); }
     ApplyStatus         apply(const Model &model, const DynamicPrintConfig &config) override;
     void                process() override;
 
