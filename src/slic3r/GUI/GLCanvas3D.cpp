@@ -1075,7 +1075,6 @@ GLCanvas3D::Selection::VolumeCache::TransformCache::TransformCache()
     , scaling_factor(Vec3d::Ones())
     , rotation_matrix(Transform3d::Identity())
     , scale_matrix(Transform3d::Identity())
-    , no_position_matrix(Transform3d::Identity())
 {
 }
 
@@ -1086,7 +1085,6 @@ GLCanvas3D::Selection::VolumeCache::TransformCache::TransformCache(const Geometr
 {
     rotation_matrix = Geometry::assemble_transform(Vec3d::Zero(), rotation);
     scale_matrix = Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), scaling_factor);
-    no_position_matrix = transform.get_matrix(true);
 }
 
 GLCanvas3D::Selection::VolumeCache::VolumeCache(const Geometry::Transformation& volume_transform, const Geometry::Transformation& instance_transform)
@@ -1456,7 +1454,7 @@ void GLCanvas3D::Selection::translate(const Vec3d& displacement)
             (*m_volumes)[i]->set_instance_offset(m_cache.volumes_data[i].get_instance_position() + displacement);
         else if (m_mode == Volume)
         {
-            Vec3d local_displacement = (m_cache.volumes_data[i].get_instance_no_position_matrix() * m_cache.volumes_data[i].get_volume_no_position_matrix()).inverse() * displacement;
+            Vec3d local_displacement = (m_cache.volumes_data[i].get_instance_rotation_matrix() * m_cache.volumes_data[i].get_volume_rotation_matrix()).inverse() * displacement;
             (*m_volumes)[i]->set_volume_offset(m_cache.volumes_data[i].get_volume_position() + local_displacement);
         }
 #else
