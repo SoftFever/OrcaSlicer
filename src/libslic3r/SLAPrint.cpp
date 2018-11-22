@@ -381,8 +381,11 @@ void SLAPrint::process()
     auto   ilh  = float(ilhd);
     const size_t objcount = m_objects.size();
 
-    const unsigned min_objstatus = 0;
-    const unsigned max_objstatus = 80;
+    const unsigned min_objstatus = 0;   // where the per object operations start
+    const unsigned max_objstatus = 80;  // where the per object operations end
+
+    // the coefficient that multiplies the per object status values which
+    // are set up for <0, 100>. They need to be scaled into the whole process
     const double ostepd = (max_objstatus - min_objstatus) / (objcount * 100.0);
 
     // The slicing will be performed on an imaginary 1D grid which starts from
@@ -410,6 +413,7 @@ void SLAPrint::process()
         auto flh = float(lh);
         auto gnd = float(bb3d.min(Z));
 
+        // The 1D grid heights
         std::vector<float> heights;
 
         // The first layer (the one before the initial height) is added only
@@ -423,25 +427,28 @@ void SLAPrint::process()
         slicer.slice(heights, &layers, [this](){ throw_if_canceled(); });
     };
 
+    // this procedure simply converts the points and copies them into
+    // the support data cache
     auto support_points = [](SLAPrintObject& po) {
         ModelObject& mo = *po.m_model_object;
-        if(!mo.sla_support_points.empty()) {
-            po.m_supportdata.reset(new SLAPrintObject::SupportData());
-            po.m_supportdata->emesh = sla::to_eigenmesh(po.transformed_mesh());
+        po.m_supportdata.reset(new SLAPrintObject::SupportData());
 
+        if(!mo.sla_support_points.empty()) {
+            po.m_supportdata->emesh = sla::to_eigenmesh(po.transformed_mesh());
             po.m_supportdata->support_points =
                     sla::to_point_set(po.transformed_support_points());
         }
-
-        // for(SLAPrintObject *po : pobjects) {
-            // TODO: calculate automatic support points
-            // po->m_supportdata->slice_cache contains the slices at this point
-        //}
     };
 
     // In this step we create the supports
     auto support_tree = [this, objcount, ostepd](SLAPrintObject& po) {
         if(!po.m_supportdata) return;
+
+        if(!po.m_config.supports_enable.getBool()) {
+            // Generate empty support tree. It can still host a pad
+            po.m_supportdata->support_tree_ptr.reset(new SLASupportTree());
+            return;
+        }
 
         auto& emesh = po.m_supportdata->emesh;
         auto& pts = po.m_supportdata->support_points; // nowhere filled yet
@@ -460,10 +467,15 @@ void SLAPrint::process()
 
             sla::Controller ctl;
 
+            // some magic to scale the status values coming from the support
+            // tree creation into the whole print process
             auto stfirst = OBJ_STEP_LEVELS.begin();
             auto stthis = stfirst + slaposSupportTree;
+            // we need to add up the status portions until this operation
             unsigned init = std::accumulate(stfirst, stthis, 0);
-            init = unsigned(init * ostepd);
+            init = unsigned(init * ostepd);     // scale the init portion
+
+            // scaling for the sub operations
             double d = *stthis / (objcount * 100.0);
 
             ctl.statuscb = [this, init, d](unsigned st, const std::string& msg){
@@ -472,7 +484,7 @@ void SLAPrint::process()
             ctl.stopcondition = [this](){ return canceled(); };
             ctl.cancelfn = [this]() { throw_if_canceled(); };
 
-             po.m_supportdata->support_tree_ptr.reset(
+            po.m_supportdata->support_tree_ptr.reset(
                         new SLASupportTree(pts, emesh, scfg, ctl));
 
         } catch(sla::SLASupportsStoppedException&) {
@@ -487,8 +499,7 @@ void SLAPrint::process()
         // and before the supports had been sliced. (or the slicing has to be
         // repeated)
 
-        if(/*po.is_step_done(slaposSupportTree) &&*/
-           po.m_config.pad_enable.getBool() &&
+        if(po.m_config.pad_enable.getBool() &&
            po.m_supportdata &&
            po.m_supportdata->support_tree_ptr)
         {
@@ -498,12 +509,21 @@ void SLAPrint::process()
             double er = po.m_config.pad_edge_radius.getFloat();
             double lh = po.m_config.layer_height.getFloat();
             double elevation = po.m_config.support_object_elevation.getFloat();
+            if(!po.m_config.supports_enable.getBool()) elevation = 0;
             sla::PoolConfig pcfg(wt, h, md, er);
 
             sla::ExPolygons bp;
             double pad_h = sla::get_pad_elevation(pcfg);
-            if(elevation < pad_h) sla::base_plate(po.transformed_mesh(), bp,
+            auto&& trmesh = po.transformed_mesh();
+
+            // This call can get pretty time consuming
+            if(elevation < pad_h) sla::base_plate(trmesh, bp,
                                                   float(pad_h), float(lh));
+
+            std::cout << "Mesh is empty: " << trmesh.empty() << std::endl;
+            std::cout << "Pad height: " << pad_h << std::endl;
+            std::cout << "Elevation " << elevation << std::endl;
+            std::cout << "Pad plate vertices: " << bp.size() << std::endl;
 
             po.m_supportdata->support_tree_ptr->add_pad(bp, wt, h, md, er);
         }
@@ -914,7 +934,8 @@ bool SLAPrintObject::invalidate_all_steps()
 }
 
 double SLAPrintObject::get_elevation() const {
-    double ret = m_config.support_object_elevation.getFloat();
+    bool se = m_config.supports_enable.getBool();
+    double ret = se? m_config.support_object_elevation.getFloat() : 0;
 
     // if the pad is enabled, then half of the pad height is its base plate
     if(m_config.pad_enable.getBool()) {
@@ -935,11 +956,12 @@ double SLAPrintObject::get_elevation() const {
 
 double SLAPrintObject::get_current_elevation() const
 {
+    bool se = m_config.supports_enable.getBool();
     bool has_supports = is_step_done(slaposSupportTree);
     bool has_pad = is_step_done(slaposBasePool);
     if(!has_supports && !has_pad) return 0;
     else if(has_supports && !has_pad)
-        return m_config.support_object_elevation.getFloat();
+        return se ? m_config.support_object_elevation.getFloat() : 0;
     else return get_elevation();
 
     return 0;

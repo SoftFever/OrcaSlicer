@@ -2445,6 +2445,14 @@ void PrintConfigDef::init_sla_params()
     def = this->add("sla_print_settings_id", coString);
     def->default_value = new ConfigOptionString("");
 
+    def = this->add("supports_enable", coBool);
+    def->label = L("Generate supports");
+    def->category = L("Supports");
+    def->tooltip = L("Generate supports for the models");
+    def->sidetext = L("");
+    def->cli = "";
+    def->default_value = new ConfigOptionBool(true);
+
     def = this->add("support_head_front_radius", coFloat);
     def->label = L("Support head front radius");
     def->category = L("Supports");

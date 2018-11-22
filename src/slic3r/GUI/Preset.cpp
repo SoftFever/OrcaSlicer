@@ -402,6 +402,7 @@ const std::vector<std::string>& Preset::sla_print_options()
     if (s_opts.empty()) {
         s_opts = {
             "layer_height",
+            "supports_enable",
             "support_head_front_radius",
             "support_head_penetration",
             "support_head_back_radius",

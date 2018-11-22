@@ -904,6 +904,9 @@ class SLAPrintObjectConfig : public StaticPrintConfig
 public:
     ConfigOptionFloat layer_height;
 
+    // Enabling or disabling support creation
+    ConfigOptionBool  supports_enable;
+
     // Radius in mm of the pointing side of the head.
     ConfigOptionFloat support_head_front_radius /*= 0.2*/;
 
@@ -942,16 +945,27 @@ public:
 
     // Now for the base pool (pad) /////////////////////////////////////////////
 
+    // Enabling or disabling support creation
     ConfigOptionBool  pad_enable;
+
+    // The thickness of the pad walls
     ConfigOptionFloat pad_wall_thickness /*= 2*/;
+
+    // The height of the pad from the bottom to the top not considering the pit
     ConfigOptionFloat pad_wall_height /*= 5*/;
+
+    // The greatest distance where two individual pads are merged into one. The
+    // distance is measured roughly from the centroids of the pads.
     ConfigOptionFloat pad_max_merge_distance /*= 50*/;
+
+    // The smoothing radius of the pad edges
     ConfigOptionFloat pad_edge_radius /*= 1*/;
 
 protected:
     void initialize(StaticCacheBase &cache, const char *base_ptr)
     {
         OPT_PTR(layer_height);
+        OPT_PTR(supports_enable);
         OPT_PTR(support_head_front_radius);
         OPT_PTR(support_head_penetration);
         OPT_PTR(support_head_back_radius);

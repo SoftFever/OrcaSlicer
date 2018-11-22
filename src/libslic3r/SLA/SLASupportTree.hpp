@@ -132,6 +132,8 @@ class SLASupportTree {
                   const Controller& ctl = {});
 public:
 
+    SLASupportTree();
+
     SLASupportTree(const PointSet& pts,
                    const EigenMesh3D& em,
                    const SupportConfig& cfg = {},
@@ -160,11 +162,6 @@ public:
 
     /// Get the pad geometry
     const TriangleMesh& get_pad() const;
-
-    /// The Z offset to raise the model and the supports to the ground level.
-    /// This is the elevation given in the support config and the height of the
-    /// pad (if requested).
-    double get_elevation() const;
 
 };
 

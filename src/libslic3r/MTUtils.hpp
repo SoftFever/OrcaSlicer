@@ -8,8 +8,6 @@
 
 namespace Slic3r {
 
-// TODO: these classes are untested
-
 /// Handy little spin mutex for the cached meshes.
 /// Implements the "Lockable" concept
 class SpinMutex {

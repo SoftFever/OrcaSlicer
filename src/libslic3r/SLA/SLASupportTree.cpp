@@ -1619,6 +1619,11 @@ bool SLASupportTree::generate(const PointSet &points,
     return pc == ABORT;
 }
 
+SLASupportTree::SLASupportTree(): m_impl(new Impl())
+{
+
+}
+
 const TriangleMesh &SLASupportTree::merged_mesh() const
 {
     return get().merged_mesh();

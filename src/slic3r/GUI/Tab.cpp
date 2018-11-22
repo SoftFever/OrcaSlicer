@@ -2997,6 +2997,9 @@ void TabSLAPrint::build()
     optgroup->append_single_option_line("layer_height");
 
     page = add_options_page(_(L("Supports")), "building.png");
+    optgroup = page->new_optgroup(_(L("Supports")));
+    optgroup->append_single_option_line("supports_enable");
+
     optgroup = page->new_optgroup(_(L("Support head")));
     optgroup->append_single_option_line("support_head_front_radius");
     optgroup->append_single_option_line("support_head_back_radius");
