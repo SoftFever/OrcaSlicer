@@ -747,18 +747,9 @@ int GLVolumeCollection::load_object_volume(
         { 0.5f, 0.5f, 1.0f, 1.f }
     };
 
-    const ModelVolume *model_volume = model_object->volumes[volume_idx];
-
-    int extruder_id = -1;
-    if (model_volume->is_model_part())
-    {
-        const ConfigOption *opt = model_volume->config.option("extruder");
-        if (opt == nullptr)
-            opt = model_object->config.option("extruder");
-        extruder_id = (opt == nullptr) ? 0 : opt->getInt();
-    }
-
-    const ModelInstance *instance = model_object->instances[instance_idx];
+    const ModelVolume   *model_volume = model_object->volumes[volume_idx];
+    const int            extruder_id  = model_volume->extruder_id();
+    const ModelInstance *instance     = model_object->instances[instance_idx];
 #if ENABLE_MODELVOLUME_TRANSFORM
     const TriangleMesh& mesh = model_volume->mesh;
 #else

@@ -1232,6 +1232,19 @@ void ModelVolume::set_material(t_model_material_id material_id, const ModelMater
         this->object->get_model()->add_material(material_id, material);
 }
 
+// Extract the current extruder ID based on this ModelVolume's config and the parent ModelObject's config.
+int ModelVolume::extruder_id() const
+{
+    int extruder_id = -1;
+    if (this->is_model_part()) {
+        const ConfigOption *opt = this->config.option("extruder");
+        if (opt == nullptr)
+            opt = this->object->config.option("extruder");
+        extruder_id = (opt == nullptr) ? 0 : opt->getInt();
+    }
+    return extruder_id;
+}
+
 #if ENABLE_MODELVOLUME_TRANSFORM
 void ModelVolume::center_geometry()
 {
