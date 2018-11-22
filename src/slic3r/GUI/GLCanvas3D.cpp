@@ -1075,7 +1075,6 @@ GLCanvas3D::Selection::VolumeCache::TransformCache::TransformCache()
     , scaling_factor(Vec3d::Ones())
     , rotation_matrix(Transform3d::Identity())
     , scale_matrix(Transform3d::Identity())
-    , no_position_matrix(Transform3d::Identity())
 {
 }
 
@@ -1086,7 +1085,6 @@ GLCanvas3D::Selection::VolumeCache::TransformCache::TransformCache(const Geometr
 {
     rotation_matrix = Geometry::assemble_transform(Vec3d::Zero(), rotation);
     scale_matrix = Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), scaling_factor);
-    no_position_matrix = transform.get_matrix(true);
 }
 
 GLCanvas3D::Selection::VolumeCache::VolumeCache(const Geometry::Transformation& volume_transform, const Geometry::Transformation& instance_transform)
@@ -1456,7 +1454,7 @@ void GLCanvas3D::Selection::translate(const Vec3d& displacement)
             (*m_volumes)[i]->set_instance_offset(m_cache.volumes_data[i].get_instance_position() + displacement);
         else if (m_mode == Volume)
         {
-            Vec3d local_displacement = (m_cache.volumes_data[i].get_instance_no_position_matrix() * m_cache.volumes_data[i].get_volume_no_position_matrix()).inverse() * displacement;
+            Vec3d local_displacement = (m_cache.volumes_data[i].get_instance_rotation_matrix() * m_cache.volumes_data[i].get_volume_rotation_matrix()).inverse() * displacement;
             (*m_volumes)[i]->set_volume_offset(m_cache.volumes_data[i].get_volume_position() + local_displacement);
         }
 #else
@@ -1940,7 +1938,14 @@ void GLCanvas3D::Selection::_update_type()
             if (m_cache.content.size() == 1) // single object
             {
                 const ModelObject* model_object = m_model->objects[m_cache.content.begin()->first];
-                unsigned int volumes_count = (unsigned int)model_object->volumes.size();
+                unsigned int model_volumes_count = (unsigned int)model_object->volumes.size();
+                unsigned int sla_volumes_count = 0;
+                for (unsigned int i : m_list)
+                {
+                    if ((*m_volumes)[i]->volume_idx() < 0)
+                        ++sla_volumes_count;
+                }
+                unsigned int volumes_count = model_volumes_count + sla_volumes_count;
                 unsigned int instances_count = (unsigned int)model_object->instances.size();
                 unsigned int selected_instances_count = (unsigned int)m_cache.content.begin()->second.size();
                 if (volumes_count * instances_count == (unsigned int)m_list.size())
@@ -2658,6 +2663,43 @@ bool GLCanvas3D::Gizmos::is_running() const
     GLGizmoBase* curr = _get_current();
     return (curr != nullptr) ? (curr->get_state() == GLGizmoBase::On) : false;
 }
+
+#if ENABLE_GIZMOS_SHORTCUT
+bool GLCanvas3D::Gizmos::handle_shortcut(int key, const Selection& selection)
+{
+    if (!m_enabled)
+        return false;
+
+    bool handled = false;
+    for (GizmosMap::iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
+    {
+        if ((it->second == nullptr) || !it->second->is_selectable())
+            continue;
+
+        int it_key = it->second->get_shortcut_key();
+
+        if (it->second->is_activable(selection) && ((it_key == key - 64) || (it_key == key - 96)))
+        {
+            if ((it->second->get_state() == GLGizmoBase::On))
+            {
+                it->second->set_state(GLGizmoBase::Off);
+                m_current = Undefined;
+                handled = true;
+            }
+            else if ((it->second->get_state() == GLGizmoBase::Off))
+            {
+                it->second->set_state(GLGizmoBase::On);
+                m_current = it->first;
+                handled = true;
+            }
+        }
+        else
+            it->second->set_state(GLGizmoBase::Off);
+    }
+
+    return handled;
+}
+#endif // ENABLE_GIZMOS_SHORTCUT
 
 bool GLCanvas3D::Gizmos::is_dragging() const
 {
@@ -3800,12 +3842,13 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
     struct ModelVolumeState {
         ModelVolumeState(const GLVolume *volume) : 
-			geometry_id(volume->geometry_id), volume_idx(-1) {}
-		ModelVolumeState(const ModelID &volume_id, const ModelID &instance_id, const GLVolume::CompositeID &composite_id) :
-			geometry_id(std::make_pair(volume_id.id, instance_id.id)), composite_id(composite_id), volume_idx(-1) {}
+			model_volume(nullptr), geometry_id(volume->geometry_id), volume_idx(-1) {}
+		ModelVolumeState(const ModelVolume *model_volume, const ModelID &instance_id, const GLVolume::CompositeID &composite_id) :
+			model_volume(model_volume), geometry_id(std::make_pair(model_volume->id().id, instance_id.id)), composite_id(composite_id), volume_idx(-1) {}
 		ModelVolumeState(const ModelID &volume_id, const ModelID &instance_id) :
-			geometry_id(std::make_pair(volume_id.id, instance_id.id)), volume_idx(-1) {}
+			model_volume(nullptr), geometry_id(std::make_pair(volume_id.id, instance_id.id)), volume_idx(-1) {}
 		bool new_geometry() const { return this->volume_idx == size_t(-1); }
+		const ModelVolume		   *model_volume;
         // ModelID of ModelVolume + ModelID of ModelInstance
         // or timestamp of an SLAPrintObjectStep + ModelID of ModelInstance
         std::pair<size_t, size_t>   geometry_id;
@@ -3844,7 +3887,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 const ModelInstance *model_instance = model_object->instances[instance_idx];
                 for (int volume_idx = 0; volume_idx < (int)model_object->volumes.size(); ++ volume_idx) {
                     const ModelVolume *model_volume = model_object->volumes[volume_idx];
-					model_volume_state.emplace_back(model_volume->id(), model_instance->id(), GLVolume::CompositeID(object_idx, volume_idx, instance_idx));
+					model_volume_state.emplace_back(model_volume, model_instance->id(), GLVolume::CompositeID(object_idx, volume_idx, instance_idx));
                 }
             }
         }
@@ -3894,9 +3937,16 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                     delete volume;
             } else {
                 // This GLVolume will be reused.
+                volume->set_sla_shift_z(0.0);
                 map_glvolume_old_to_new[volume_id] = glvolumes_new.size();
                 mvs->volume_idx = glvolumes_new.size();
                 glvolumes_new.emplace_back(volume);
+                // Update color of the volume based on the current extruder.
+				if (mvs->model_volume != nullptr) {
+					int extruder_id = mvs->model_volume->extruder_id();
+					if (extruder_id != -1)
+						volume->extruder_id = extruder_id;
+				}
             }
         }
     }
@@ -3998,7 +4048,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                                 instances[istep].emplace_back(std::pair<size_t, size_t>(instance_idx, print_instance_idx));
                             else
 								// Recycling an old GLVolume. Update the Object/Instance indices into the current Model.
-                                m_volumes.volumes[it->volume_idx]->composite_id = GLVolume::CompositeID(object_idx, -1, instance_idx);
+                                m_volumes.volumes[it->volume_idx]->composite_id = GLVolume::CompositeID(object_idx, m_volumes.volumes[it->volume_idx]->volume_idx(), instance_idx);
                         }
                 }
 
@@ -4013,11 +4063,11 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 {
                     // If any volume has been added
                     // Shift-up all volumes of the object so that it has the right elevation with respect to the print bed
-                    Vec3d shift_z(0.0, 0.0, print_object->get_elevation());
+                    double shift_z = print_object->get_elevation();
                     for (GLVolume* volume : m_volumes.volumes)
                     {
                         if (volume->object_idx() == object_idx)
-                            volume->set_instance_offset(volume->get_instance_offset() + shift_z);
+                            volume->set_sla_shift_z(shift_z);
                     }
                 }
             }
@@ -4273,7 +4323,16 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 #endif // ENABLE_MODIFIED_CAMERA_TARGET
                 default:
                 {
-                    evt.Skip();
+#if ENABLE_GIZMOS_SHORTCUT
+                    if (m_gizmos.handle_shortcut(keyCode, m_selection))
+                    {
+                        _update_gizmos_data();
+                        render();
+                    }
+                    else
+#endif // ENABLE_GIZMOS_SHORTCUT
+                        evt.Skip();
+
                     break;
                 }
                 }
@@ -4761,16 +4820,14 @@ void GLCanvas3D::on_key_down(wxKeyEvent& evt)
     else
     {
         int key = evt.GetKeyCode();
+#ifdef __WXOSX__
+        if (key == WXK_BACK)
+#else
         if (key == WXK_DELETE)
+#endif // __WXOSX__
             post_event(SimpleEvent(EVT_GLCANVAS_REMOVE_OBJECT));
         else
-		{
-#ifdef __WXOSX__
-			if (key == WXK_BACK)
-                post_event(SimpleEvent(EVT_GLCANVAS_REMOVE_OBJECT));
-#endif
-			evt.Skip();
-		}
+            evt.Skip();
     }
 }
 

@@ -30,6 +30,10 @@
 #include "GUI_Utils.hpp"
 #include "GUI_App.hpp"
 
+#if ENABLE_GIZMOS_SHORTCUT
+#include <wx/defs.h>
+#endif // ENABLE_GIZMOS_SHORTCUT
+
 // TODO: Display tooltips quicker on Linux
 
 static const float DEFAULT_BASE_COLOR[3] = { 0.625f, 0.625f, 0.625f };
@@ -161,6 +165,9 @@ GLGizmoBase::GLGizmoBase(GLCanvas3D& parent)
     : m_parent(parent)
     , m_group_id(-1)
     , m_state(Off)
+#if ENABLE_GIZMOS_SHORTCUT
+    , m_shortcut_key(0)
+#endif // ENABLE_GIZMOS_SHORTCUT
     , m_hover_id(-1)
     , m_dragging(false)
 {
@@ -639,6 +646,10 @@ bool GLGizmoRotate3D::on_init()
     if (!m_textures[On].load_from_file(path + "rotate_on.png", false))
         return false;
 
+#if ENABLE_GIZMOS_SHORTCUT
+    m_shortcut_key = WXK_CONTROL_R;
+#endif // ENABLE_GIZMOS_SHORTCUT
+
     return true;
 }
 
@@ -712,6 +723,10 @@ bool GLGizmoScale3D::on_init()
     // y axis
     m_grabbers[2].angles(0) = half_pi;
     m_grabbers[3].angles(0) = half_pi;
+
+#if ENABLE_GIZMOS_SHORTCUT
+    m_shortcut_key = WXK_CONTROL_S;
+#endif // ENABLE_GIZMOS_SHORTCUT
 
     return true;
 }
@@ -1057,6 +1072,10 @@ bool GLGizmoMove3D::on_init()
         m_grabbers.push_back(Grabber());
     }
 
+#if ENABLE_GIZMOS_SHORTCUT
+    m_shortcut_key = WXK_CONTROL_M;
+#endif // ENABLE_GIZMOS_SHORTCUT
+
     return true;
 }
 
@@ -1212,6 +1231,10 @@ bool GLGizmoFlatten::on_init()
 
     if (!m_textures[On].load_from_file(path + "layflat_on.png", false))
         return false;
+
+#if ENABLE_GIZMOS_SHORTCUT
+    m_shortcut_key = WXK_CONTROL_F;
+#endif // ENABLE_GIZMOS_SHORTCUT
 
     return true;
 }
@@ -1541,6 +1564,10 @@ bool GLGizmoSlaSupports::on_init()
 
     if (!m_textures[On].load_from_file(path + "sla_support_points_on.png", false))
         return false;
+
+#if ENABLE_GIZMOS_SHORTCUT
+    m_shortcut_key = WXK_CONTROL_L;
+#endif // ENABLE_GIZMOS_SHORTCUT
 
     return true;
 }
@@ -1892,6 +1919,10 @@ bool GLGizmoCut::on_init()
     }
 
     m_grabbers.emplace_back();
+
+#if ENABLE_GIZMOS_SHORTCUT
+    m_shortcut_key = WXK_CONTROL_C;
+#endif // ENABLE_GIZMOS_SHORTCUT
 
     return true;
 }

@@ -73,6 +73,7 @@ class MainFrame : public wxFrame
     bool can_change_view() const;
     bool can_select() const;
     bool can_delete() const;
+    bool can_delete_all() const;
 #endif // ENABLE_NEW_MENU_LAYOUT
 
 public:

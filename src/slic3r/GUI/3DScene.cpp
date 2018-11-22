@@ -201,6 +201,8 @@ const float GLVolume::HOVER_COLOR[4] = { 0.4f, 0.9f, 0.1f, 1.0f };
 const float GLVolume::OUTSIDE_COLOR[4] = { 0.0f, 0.38f, 0.8f, 1.0f };
 const float GLVolume::SELECTED_OUTSIDE_COLOR[4] = { 0.19f, 0.58f, 1.0f, 1.0f };
 const float GLVolume::DISABLED_COLOR[4] = { 0.25f, 0.25f, 0.25f, 1.0f };
+const float GLVolume::SLA_SUPPORT_COLOR[4] = { 0.75f, 0.75f, 0.75f, 1.0f };
+const float GLVolume::SLA_PAD_COLOR[4] = { 0.0f, 0.2f, 0.0f, 1.0f };
 
 GLVolume::GLVolume(float r, float g, float b, float a)
 #if ENABLE_MODELVOLUME_TRANSFORM
@@ -214,6 +216,7 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     , m_world_matrix_dirty(true)
     , m_transformed_bounding_box_dirty(true)
 #endif // ENABLE_MODELVOLUME_TRANSFORM
+    , m_sla_shift_z(0.0)
     , m_transformed_convex_hull_bounding_box_dirty(true)
     , m_convex_hull(nullptr)
     , m_convex_hull_owned(false)
@@ -378,7 +381,14 @@ void GLVolume::set_convex_hull(const TriangleMesh *convex_hull, bool owned)
     m_convex_hull_owned = owned;
 }
 
-#if !ENABLE_MODELVOLUME_TRANSFORM
+#if ENABLE_MODELVOLUME_TRANSFORM
+Transform3d GLVolume::world_matrix() const
+{
+    Transform3d m = m_instance_transformation.get_matrix() * m_volume_transformation.get_matrix();
+    m.translation()(2) += m_sla_shift_z;
+    return m;
+}
+#else
 const Transform3f& GLVolume::world_matrix() const
 {
     if (m_world_matrix_dirty)
@@ -388,7 +398,7 @@ const Transform3f& GLVolume::world_matrix() const
     }
     return m_world_matrix;
 }
-#endif // !ENABLE_MODELVOLUME_TRANSFORM
+#endif // ENABLE_MODELVOLUME_TRANSFORM
 
 const BoundingBoxf3& GLVolume::transformed_bounding_box() const
 {
@@ -745,18 +755,9 @@ int GLVolumeCollection::load_object_volume(
         { 0.5f, 0.5f, 1.0f, 1.f }
     };
 
-    const ModelVolume *model_volume = model_object->volumes[volume_idx];
-
-    int extruder_id = -1;
-    if (model_volume->is_model_part())
-    {
-        const ConfigOption *opt = model_volume->config.option("extruder");
-        if (opt == nullptr)
-            opt = model_object->config.option("extruder");
-        extruder_id = (opt == nullptr) ? 0 : opt->getInt();
-    }
-
-    const ModelInstance *instance = model_object->instances[instance_idx];
+    const ModelVolume   *model_volume = model_object->volumes[volume_idx];
+    const int            extruder_id  = model_volume->extruder_id();
+    const ModelInstance *instance     = model_object->instances[instance_idx];
 #if ENABLE_MODELVOLUME_TRANSFORM
     const TriangleMesh& mesh = model_volume->mesh;
 #else
@@ -822,21 +823,17 @@ void GLVolumeCollection::load_object_auxiliary(
     bool                            use_VBOs)
 {
     assert(print_object->is_step_done(milestone));
+    Transform3d  mesh_trafo_inv = print_object->trafo().inverse();
     // Get the support mesh.
-    TriangleMesh mesh;
-    switch (milestone) {
-    case slaposSupportTree: mesh = print_object->support_mesh(); break;
-    case slaposBasePool:    mesh = print_object->pad_mesh();     break;
-    default:
-        assert(false);
-    }
+    TriangleMesh mesh = print_object->get_mesh(milestone);
+    mesh.transform(mesh_trafo_inv);
 	// Convex hull is required for out of print bed detection.
 	TriangleMesh convex_hull = mesh.convex_hull_3d();
+    convex_hull.transform(mesh_trafo_inv);
     for (const std::pair<size_t, size_t> &instance_idx : instances) {
         const ModelInstance            &model_instance = *print_object->model_object()->instances[instance_idx.first];
         const SLAPrintObject::Instance &print_instance = print_object->instances()[instance_idx.second];
-        float color[4] { 0.f, 0.f, 1.f, 1.f };
-        this->volumes.emplace_back(new GLVolume(color));
+        this->volumes.emplace_back(new GLVolume((milestone == slaposBasePool) ? GLVolume::SLA_PAD_COLOR : GLVolume::SLA_SUPPORT_COLOR));
         GLVolume &v = *this->volumes.back();
         if (use_VBOs)
             v.indexed_vertex_array.load_mesh_full_shading(mesh);
@@ -845,13 +842,12 @@ void GLVolumeCollection::load_object_auxiliary(
         // finalize_geometry() clears the vertex arrays, therefore the bounding box has to be computed before finalize_geometry().
         v.bounding_box = v.indexed_vertex_array.bounding_box();
         v.indexed_vertex_array.finalize_geometry(use_VBOs);
-		v.composite_id = GLVolume::CompositeID(obj_idx, -1, (int)instance_idx.first);
+        v.composite_id = GLVolume::CompositeID(obj_idx, -milestone, (int)instance_idx.first);
         v.geometry_id = std::pair<size_t, size_t>(timestamp, model_instance.id().id);
 		// Create a copy of the convex hull mesh for each instance. Use a move operator on the last instance.
 		v.set_convex_hull((&instance_idx == &instances.back()) ? new TriangleMesh(std::move(convex_hull)) : new TriangleMesh(convex_hull), true);
         v.is_modifier  = false;
         v.shader_outside_printer_detection_enabled = true;
-        //FIXME adjust with print_instance?
 		v.set_instance_transformation(model_instance.get_transformation());
 		// Leave the volume transformation at identity.
         // v.set_volume_transformation(model_volume->get_transformation());
@@ -1106,7 +1102,7 @@ void GLVolumeCollection::update_colors_by_extruder(const DynamicPrintConfig* con
 
     for (GLVolume* volume : volumes)
     {
-        if ((volume == nullptr) || volume->is_modifier || volume->is_wipe_tower)
+        if ((volume == nullptr) || volume->is_modifier || volume->is_wipe_tower || (volume->volume_idx() < 0))
             continue;
 
         int extruder_id = volume->extruder_id - 1;

@@ -23,6 +23,7 @@ class ModelMaterial;
 class ModelObject;
 class ModelVolume;
 class Print;
+class SLAPrint;
 
 typedef std::string t_model_material_id;
 typedef std::string t_model_material_attribute;
@@ -252,6 +253,7 @@ public:
 
 protected:
     friend class Print;
+    friend class SLAPrint;
     // Called by Print::apply() to set the model pointer after making a copy.
     void        set_model(Model *model) { m_model = model; }
 
@@ -310,6 +312,10 @@ public:
     void                set_material_id(t_model_material_id material_id);
     ModelMaterial*      material() const;
     void                set_material(t_model_material_id material_id, const ModelMaterial &material);
+    // Extract the current extruder ID based on this ModelVolume's config and the parent ModelObject's config.
+    // Extruder ID is only valid for FFF. Returns -1 for SLA or if the extruder ID is not applicable (support volumes).
+    int                 extruder_id() const;
+
     // Split this volume, append the result to the object owning this volume.
     // Return the number of volumes created from this one.
     // This is useful to assign different materials to different volumes of an object.
@@ -368,6 +374,7 @@ public:
 
 protected:
 	friend class Print;
+    friend class SLAPrint;
 	friend class ModelObject;
 
 	explicit ModelVolume(const ModelVolume &rhs) = default;
@@ -535,6 +542,7 @@ public:
 
 protected:
     friend class Print;
+    friend class SLAPrint;
     friend class ModelObject;
 
     explicit ModelInstance(const ModelInstance &rhs) = default;
@@ -651,6 +659,18 @@ private:
 
 #undef MODELBASE_DERIVED_COPY_MOVE_CLONE
 #undef MODELBASE_DERIVED_PRIVATE_COPY_MOVE
+
+// Test whether the two models contain the same number of ModelObjects with the same set of IDs
+// ordered in the same order. In that case it is not necessary to kill the background processing.
+extern bool model_object_list_equal(const Model &model_old, const Model &model_new);
+
+// Test whether the new model is just an extension of the old model (new objects were added
+// to the end of the original list. In that case it is not necessary to kill the background processing.
+extern bool model_object_list_extended(const Model &model_old, const Model &model_new);
+
+// Test whether the new ModelObject contains a different set of volumes (or sorted in a different order)
+// than the old ModelObject.
+extern bool model_volume_list_changed(const ModelObject &model_object_old, const ModelObject &model_object_new, const ModelVolume::Type type);
 
 #ifdef _DEBUG
 // Verify whether the IDs of Model / ModelObject / ModelVolume / ModelInstance / ModelMaterial are valid and unique.

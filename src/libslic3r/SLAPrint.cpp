@@ -3,6 +3,8 @@
 #include "SLA/SLABasePool.hpp"
 #include "MTUtils.hpp"
 
+#include <unordered_set>
+
 #include <tbb/parallel_for.h>
 #include <boost/log/trivial.hpp>
 
@@ -75,53 +77,296 @@ void SLAPrint::clear()
 	m_objects.clear();
 }
 
+// Transformation without rotation around Z and without a shift by X and Y.
+static Transform3d sla_trafo(const ModelObject &model_object)
+{
+    ModelInstance &model_instance = *model_object.instances.front();
+    Vec3d          offset         = model_instance.get_offset();
+    Vec3d          rotation       = model_instance.get_rotation();
+    offset(0) = 0.;
+    offset(1) = 0.;
+    rotation(2) = 0.;
+    return Geometry::assemble_transform(offset, rotation, model_instance.get_scaling_factor(), model_instance.get_mirror());
+}
+
+// List of instances, where the ModelInstance transformation is a composite of sla_trafo and the transformation defined by SLAPrintObject::Instance.
+static std::vector<SLAPrintObject::Instance> sla_instances(const ModelObject &model_object)
+{
+    std::vector<SLAPrintObject::Instance> instances;
+    for (ModelInstance *model_instance : model_object.instances)
+        if (model_instance->is_printable()) {
+            instances.emplace_back(SLAPrintObject::Instance(
+                model_instance->id(), 
+                Point::new_scale(model_instance->get_offset(X), model_instance->get_offset(Y)),
+                float(model_instance->get_rotation(Z))));
+        }
+    return instances;
+}
+
 SLAPrint::ApplyStatus SLAPrint::apply(const Model &model,
                                       const DynamicPrintConfig &config_in)
 {
-//	if (m_objects.empty())
-//		return APPLY_STATUS_UNCHANGED;
+#ifdef _DEBUG
+    check_model_ids_validity(model);
+#endif /* _DEBUG */
+
+    // Make a copy of the config, normalize it.
+    DynamicPrintConfig config(config_in);
+    config.normalize();
+    // Collect changes to print config.
+    t_config_option_keys printer_diff  = m_printer_config.diff(config);
+    t_config_option_keys material_diff = m_material_config.diff(config);
+    t_config_option_keys object_diff   = m_default_object_config.diff(config);
+
+    // Do not use the ApplyStatus as we will use the max function when updating apply_status. 
+    unsigned int apply_status = APPLY_STATUS_UNCHANGED;
+    auto update_apply_status = [&apply_status](bool invalidated)
+        { apply_status = std::max<unsigned int>(apply_status, invalidated ? APPLY_STATUS_INVALIDATED : APPLY_STATUS_CHANGED); };
+    if (! (printer_diff.empty() && material_diff.empty() && object_diff.empty()))
+        update_apply_status(false);
 
     // Grab the lock for the Print / PrintObject milestones.
 	tbb::mutex::scoped_lock lock(this->state_mutex());
-	if (m_objects.empty() && model.objects.empty() && m_model.objects.empty())
-        return APPLY_STATUS_UNCHANGED;
 
-    // Temporary: just to have to correct layer height for the rasterization
-    DynamicPrintConfig config(config_in);
-    config.normalize();
-    m_material_config.initial_layer_height.set(
-                config.opt<ConfigOptionFloat>("initial_layer_height"));
+    // The following call may stop the background processing.
+    update_apply_status(this->invalidate_state_by_config_options(printer_diff));
+    update_apply_status(this->invalidate_state_by_config_options(material_diff));
 
-	// Temporary quick fix, just invalidate everything.
-    {
-        for (SLAPrintObject *print_object : m_objects) {
-			print_object->invalidate_all_steps();
-            delete print_object;
-		}
-		m_objects.clear();
-		this->invalidate_all_steps();
+    // It is also safe to change m_config now after this->invalidate_state_by_config_options() call.
+	m_printer_config.apply_only(config, printer_diff, true);
+    // Handle changes to material config.
+    m_material_config.apply_only(config, material_diff, true);
+    // Handle changes to object config defaults
+    m_default_object_config.apply_only(config, object_diff, true);
 
-        // Copy the model by value (deep copy),
-        // keep the Model / ModelObject / ModelInstance / ModelVolume IDs.
+    struct ModelObjectStatus {
+        enum Status {
+            Unknown,
+            Old,
+            New,
+            Moved,
+            Deleted,
+        };
+        ModelObjectStatus(ModelID id, Status status = Unknown) : id(id), status(status) {}
+        ModelID                 id;
+        Status                  status;
+        // Search by id.
+        bool operator<(const ModelObjectStatus &rhs) const { return id < rhs.id; }
+    };
+    std::set<ModelObjectStatus> model_object_status;
+
+    // 1) Synchronize model objects.
+    if (model.id() != m_model.id()) {
+        // Kill everything, initialize from scratch.
+        // Stop background processing.
+        this->call_cancell_callback();
+        update_apply_status(this->invalidate_all_steps());
+        for (SLAPrintObject *object : m_objects) {
+            model_object_status.emplace(object->model_object()->id(), ModelObjectStatus::Deleted);
+            delete object;
+        }
+        m_objects.clear();
         m_model.assign_copy(model);
-        // Generate new SLAPrintObjects.
-        for (ModelObject *model_object : m_model.objects) {
-            auto po = new SLAPrintObject(this, model_object);
-
-            // po->m_config.layer_height.set(lh);
-            po->m_config.apply(config, true);
-
-            m_objects.emplace_back(po);
-            for (ModelInstance *oinst : model_object->instances) {
-                Point tr = Point::new_scale(oinst->get_offset()(X),
-                                            oinst->get_offset()(Y));
-                auto rotZ = float(oinst->get_rotation()(Z));
-				po->m_instances.emplace_back(oinst->id(), tr, rotZ);
+        for (const ModelObject *model_object : m_model.objects)
+            model_object_status.emplace(model_object->id(), ModelObjectStatus::New);
+    } else {
+        if (model_object_list_equal(m_model, model)) {
+            // The object list did not change.
+            for (const ModelObject *model_object : m_model.objects)
+                model_object_status.emplace(model_object->id(), ModelObjectStatus::Old);
+        } else if (model_object_list_extended(m_model, model)) {
+            // Add new objects. Their volumes and configs will be synchronized later.
+            update_apply_status(this->invalidate_step(slapsRasterize));
+            for (const ModelObject *model_object : m_model.objects)
+                model_object_status.emplace(model_object->id(), ModelObjectStatus::Old);
+            for (size_t i = m_model.objects.size(); i < model.objects.size(); ++ i) {
+                model_object_status.emplace(model.objects[i]->id(), ModelObjectStatus::New);
+                m_model.objects.emplace_back(ModelObject::new_copy(*model.objects[i]));
+                m_model.objects.back()->set_model(&m_model);
+            }
+        } else {
+            // Reorder the objects, add new objects.
+            // First stop background processing before shuffling or deleting the PrintObjects in the object list.
+            this->call_cancell_callback();
+            update_apply_status(this->invalidate_step(slapsRasterize));
+            // Second create a new list of objects.
+            std::vector<ModelObject*> model_objects_old(std::move(m_model.objects));
+            m_model.objects.clear();
+            m_model.objects.reserve(model.objects.size());
+            auto by_id_lower = [](const ModelObject *lhs, const ModelObject *rhs){ return lhs->id() < rhs->id(); };
+            std::sort(model_objects_old.begin(), model_objects_old.end(), by_id_lower);
+            for (const ModelObject *mobj : model.objects) {
+                auto it = std::lower_bound(model_objects_old.begin(), model_objects_old.end(), mobj, by_id_lower);
+                if (it == model_objects_old.end() || (*it)->id() != mobj->id()) {
+                    // New ModelObject added.
+                    m_model.objects.emplace_back(ModelObject::new_copy(*mobj));
+                    m_model.objects.back()->set_model(&m_model);
+                    model_object_status.emplace(mobj->id(), ModelObjectStatus::New);
+                } else {
+                    // Existing ModelObject re-added (possibly moved in the list).
+                    m_model.objects.emplace_back(*it);
+                    model_object_status.emplace(mobj->id(), ModelObjectStatus::Moved);
+                }
+            }
+            bool deleted_any = false;
+            for (ModelObject *&model_object : model_objects_old) {
+                if (model_object_status.find(ModelObjectStatus(model_object->id())) == model_object_status.end()) {
+                    model_object_status.emplace(model_object->id(), ModelObjectStatus::Deleted);
+                    deleted_any = true;
+                } else
+                    // Do not delete this ModelObject instance.
+                    model_object = nullptr;
+            }
+            if (deleted_any) {
+                // Delete PrintObjects of the deleted ModelObjects.
+                std::vector<SLAPrintObject*> print_objects_old = std::move(m_objects);
+                m_objects.clear();
+                m_objects.reserve(print_objects_old.size());
+                for (SLAPrintObject *print_object : print_objects_old) {
+                    auto it_status = model_object_status.find(ModelObjectStatus(print_object->model_object()->id()));
+                    assert(it_status != model_object_status.end());
+                    if (it_status->status == ModelObjectStatus::Deleted) {
+                        update_apply_status(print_object->invalidate_all_steps());
+                        delete print_object;
+                    } else
+                        m_objects.emplace_back(print_object);
+                }
+                for (ModelObject *model_object : model_objects_old)
+                    delete model_object;
             }
         }
     }
 
-	return APPLY_STATUS_INVALIDATED;
+    // 2) Map print objects including their transformation matrices.
+    struct PrintObjectStatus {
+        enum Status {
+            Unknown,
+            Deleted,
+            Reused,
+            New
+        };
+        PrintObjectStatus(SLAPrintObject *print_object, Status status = Unknown) : 
+            id(print_object->model_object()->id()),
+            print_object(print_object),
+            trafo(print_object->trafo()),
+            status(status) {}
+        PrintObjectStatus(ModelID id) : id(id), print_object(nullptr), trafo(Transform3d::Identity()), status(Unknown) {}
+        // ID of the ModelObject & PrintObject
+        ModelID          id;
+        // Pointer to the old PrintObject
+        SLAPrintObject  *print_object;
+        // Trafo generated with model_object->world_matrix(true) 
+        Transform3d      trafo;
+        Status           status;
+        // Search by id.
+        bool operator<(const PrintObjectStatus &rhs) const { return id < rhs.id; }
+    };
+    std::multiset<PrintObjectStatus> print_object_status;
+    for (SLAPrintObject *print_object : m_objects)
+        print_object_status.emplace(PrintObjectStatus(print_object));
+
+    // 3) Synchronize ModelObjects & PrintObjects.
+    std::vector<SLAPrintObject*> print_objects_new;
+    print_objects_new.reserve(std::max(m_objects.size(), m_model.objects.size()));
+    bool new_objects = false;
+    for (size_t idx_model_object = 0; idx_model_object < model.objects.size(); ++ idx_model_object) {
+        ModelObject &model_object = *m_model.objects[idx_model_object];
+        auto it_status = model_object_status.find(ModelObjectStatus(model_object.id()));
+        assert(it_status != model_object_status.end());
+        assert(it_status->status != ModelObjectStatus::Deleted);
+        if (it_status->status == ModelObjectStatus::New)
+            // PrintObject instances will be added in the next loop.
+            continue;
+        // Update the ModelObject instance, possibly invalidate the linked PrintObjects.
+        assert(it_status->status == ModelObjectStatus::Old || it_status->status == ModelObjectStatus::Moved);
+        const ModelObject &model_object_new       = *model.objects[idx_model_object];
+        auto               it_print_object_status = print_object_status.lower_bound(PrintObjectStatus(model_object.id()));
+		if (it_print_object_status != print_object_status.end() && it_print_object_status->id != model_object.id())
+            it_print_object_status = print_object_status.end();
+        // Check whether a model part volume was added or removed, their transformations or order changed.
+        bool model_parts_differ = model_volume_list_changed(model_object, model_object_new, ModelVolume::MODEL_PART);
+        bool sla_trafo_differs  = model_object.instances.empty() != model_object_new.instances.empty() || 
+            (! model_object.instances.empty() && ! sla_trafo(model_object).isApprox(sla_trafo(model_object_new)));
+        if (model_parts_differ || sla_trafo_differs) {
+            // The very first step (the slicing step) is invalidated. One may freely remove all associated PrintObjects.
+			if (it_print_object_status != print_object_status.end()) {
+				update_apply_status(it_print_object_status->print_object->invalidate_all_steps());
+				const_cast<PrintObjectStatus&>(*it_print_object_status).status = PrintObjectStatus::Deleted;
+            }
+            // Copy content of the ModelObject including its ID, do not change the parent.
+            model_object.assign_copy(model_object_new);
+        } else {
+            // Synchronize Object's config.
+            bool object_config_changed = model_object.config != model_object_new.config;
+            if (object_config_changed)
+                model_object.config = model_object_new.config;
+            if (! object_diff.empty() || object_config_changed) {
+                SLAPrintObjectConfig new_config = m_default_object_config;
+                normalize_and_apply_config(new_config, model_object.config);
+                if (it_print_object_status != print_object_status.end()) {
+					t_config_option_keys diff = it_print_object_status->print_object->config().diff(new_config);
+                    if (! diff.empty()) {
+                        update_apply_status(it_print_object_status->print_object->invalidate_state_by_config_options(diff));
+                        it_print_object_status->print_object->config_apply_only(new_config, diff, true);
+                    }
+                }
+            }
+            if (model_object.sla_support_points != model_object_new.sla_support_points) {
+                model_object.sla_support_points = model_object_new.sla_support_points;
+                if (it_print_object_status != print_object_status.end())
+                    update_apply_status(it_print_object_status->print_object->invalidate_step(slaposSupportPoints));
+            }
+            // Copy the ModelObject name, input_file and instances. The instances will compared against PrintObject instances in the next step.
+            model_object.name       = model_object_new.name;
+            model_object.input_file = model_object_new.input_file;
+            model_object.clear_instances();
+            model_object.instances.reserve(model_object_new.instances.size());
+            for (const ModelInstance *model_instance : model_object_new.instances) {
+                model_object.instances.emplace_back(new ModelInstance(*model_instance));
+                model_object.instances.back()->set_model_object(&model_object);
+            }
+        }
+
+        std::vector<SLAPrintObject::Instance> new_instances = sla_instances(model_object);
+        if (it_print_object_status != print_object_status.end() && it_print_object_status->status != PrintObjectStatus::Deleted) {
+            // The SLAPrintObject is already there.
+            if (new_instances != it_print_object_status->print_object->instances()) {
+                // Instances changed.
+                it_print_object_status->print_object->set_instances(new_instances);
+                update_apply_status(this->invalidate_step(slapsRasterize));
+            }
+            print_objects_new.emplace_back(it_print_object_status->print_object);
+            const_cast<PrintObjectStatus&>(*it_print_object_status).status = PrintObjectStatus::Reused;
+        } else {
+            auto print_object = new SLAPrintObject(this, &model_object);
+            print_object->set_trafo(sla_trafo(model_object));
+            print_object->set_instances(new_instances);
+            print_object->config_apply(config, true);
+            print_objects_new.emplace_back(print_object);
+            new_objects = true;
+        }
+    }
+
+    if (m_objects != print_objects_new) {
+        this->call_cancell_callback();
+        update_apply_status(this->invalidate_all_steps());
+        m_objects = print_objects_new;
+        // Delete the PrintObjects marked as Unknown or Deleted.
+        bool deleted_objects = false;
+        for (auto &pos : print_object_status)
+            if (pos.status == PrintObjectStatus::Unknown || pos.status == PrintObjectStatus::Deleted) {
+                // update_apply_status(pos.print_object->invalidate_all_steps());
+                delete pos.print_object;
+                deleted_objects = true;
+            }
+        update_apply_status(new_objects);
+    }
+
+#ifdef _DEBUG
+    check_model_ids_equal(m_model, model);
+#endif /* _DEBUG */
+
+    return static_cast<ApplyStatus>(apply_status);
 }
 
 void SLAPrint::process()
@@ -418,12 +663,12 @@ void SLAPrint::process()
 
             // Status indication
             auto st = ist + unsigned(sd*level_id*slot/levels.size());
-            slck.lock();
+            { std::lock_guard<SpinMutex> lck(slck);
             if( st > pst) {
                 set_status(st, PRINT_STEP_LABELS[slapsRasterize]);
                 pst = st;
             }
-            slck.unlock();
+            }
         };
 
         // last minute escape
@@ -534,6 +779,61 @@ void SLAPrint::process()
     set_status(100, L("Slicing done"));
 }
 
+bool SLAPrint::invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys)
+{
+    if (opt_keys.empty())
+        return false;
+
+    // Cache the plenty of parameters, which influence the final rasterization only,
+    // or they are only notes not influencing the rasterization step.
+    static std::unordered_set<std::string> steps_rasterize = {
+        "exposure_time",
+        "initial_exposure_time",
+        "material_correction_printing",
+        "material_correction_curing",
+        "display_width",
+        "display_height",
+        "display_pixels_x",
+        "display_pixels_y",
+        "printer_correction"
+    };
+
+    static std::unordered_set<std::string> steps_ignore = {
+        "bed_shape",
+        "max_print_height",
+        "printer_technology",
+    };
+
+    std::vector<SLAPrintStep> steps;
+    std::vector<SLAPrintObjectStep> osteps;
+    bool invalidated = false;
+
+    for (const t_config_option_key &opt_key : opt_keys) {
+        if (steps_rasterize.find(opt_key) != steps_rasterize.end()) {
+            // These options only affect the final rasterization, or they are just notes without influence on the output,
+            // so there is nothing to invalidate.
+            steps.emplace_back(slapsRasterize);
+        } else if (steps_ignore.find(opt_key) != steps_ignore.end()) {
+            // These steps have no influence on the output. Just ignore them.
+        } else if (opt_key == "initial_layer_height") {
+            steps.emplace_back(slapsRasterize);
+            osteps.emplace_back(slaposObjectSlice);
+        } else {
+            // All values should be covered.
+            assert(false);
+        }
+    }
+
+    sort_remove_duplicates(steps);
+    for (SLAPrintStep step : steps)
+        invalidated |= this->invalidate_step(step);
+    sort_remove_duplicates(osteps);
+    for (SLAPrintObjectStep ostep : osteps)
+        for (SLAPrintObject *object : m_objects)
+            invalidated |= object->invalidate_step(ostep);
+    return invalidated;
+}
+
 SLAPrintObject::SLAPrintObject(SLAPrint *print, ModelObject *model_object):
     Inherited(print, model_object),
     m_stepmask(slaposCount, true),
@@ -544,6 +844,75 @@ SLAPrintObject::SLAPrintObject(SLAPrint *print, ModelObject *model_object):
 }
 
 SLAPrintObject::~SLAPrintObject() {}
+
+// Called by SLAPrint::apply_config().
+// This method only accepts SLAPrintObjectConfig option keys.
+bool SLAPrintObject::invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys)
+{
+    if (opt_keys.empty())
+        return false;
+
+    std::vector<SLAPrintObjectStep> steps;
+    bool invalidated = false;
+    for (const t_config_option_key &opt_key : opt_keys) {
+        if (   opt_key == "support_head_front_radius"
+            || opt_key == "support_head_penetration"
+            || opt_key == "support_head_back_radius"
+            || opt_key == "support_head_width"
+            || opt_key == "support_pillar_radius"
+            || opt_key == "support_base_radius"
+            || opt_key == "support_base_height"
+            || opt_key == "support_critical_angle"
+            || opt_key == "support_max_bridge_length"
+            || opt_key == "support_object_elevation") {
+            steps.emplace_back(slaposSupportTree);
+        } else if (
+               opt_key == "pad_enable"
+            || opt_key == "pad_wall_thickness"
+            || opt_key == "pad_wall_height"
+            || opt_key == "pad_max_merge_distance"
+            || opt_key == "pad_edge_radius") {
+            steps.emplace_back(slaposBasePool);
+        } else {
+            // All keys should be covered.
+            assert(false);
+        }
+    }
+
+    sort_remove_duplicates(steps);
+    for (SLAPrintObjectStep step : steps)
+        invalidated |= this->invalidate_step(step);
+    return invalidated;
+}
+
+bool SLAPrintObject::invalidate_step(SLAPrintObjectStep step)
+{
+    bool invalidated = Inherited::invalidate_step(step);
+    // propagate to dependent steps
+    if (step == slaposObjectSlice) {
+        invalidated |= this->invalidate_all_steps();
+    } else if (step == slaposSupportIslands) {
+        invalidated |= this->invalidate_steps({ slaposSupportPoints, slaposSupportTree, slaposBasePool, slaposSliceSupports });
+        invalidated |= m_print->invalidate_step(slapsRasterize);
+    } else if (step == slaposSupportPoints) {
+        invalidated |= this->invalidate_steps({ slaposSupportTree, slaposBasePool, slaposSliceSupports });
+        invalidated |= m_print->invalidate_step(slapsRasterize);
+    } else if (step == slaposSupportTree) {
+        invalidated |= this->invalidate_steps({ slaposBasePool, slaposSliceSupports });
+        invalidated |= m_print->invalidate_step(slapsRasterize);
+    } else if (step == slaposBasePool) {
+        invalidated |= this->invalidate_step(slaposSliceSupports);
+        invalidated |= m_print->invalidate_step(slapsRasterize);
+    } else if (step == slaposSliceSupports) {
+        invalidated |= m_print->invalidate_step(slapsRasterize);
+    }
+    return invalidated;
+}
+
+bool SLAPrintObject::invalidate_all_steps()
+{
+    return Inherited::invalidate_all_steps() | m_print->invalidate_all_steps();
+}
 
 double SLAPrintObject::get_elevation() const {
     double ret = m_config.support_object_elevation.getFloat();
@@ -563,6 +932,18 @@ double SLAPrintObject::get_elevation() const {
     }
 
     return ret;
+}
+
+double SLAPrintObject::get_current_elevation() const
+{
+    bool has_supports = is_step_done(slaposSupportTree);
+    bool has_pad = is_step_done(slaposBasePool);
+    if(!has_supports && !has_pad) return 0;
+    else if(has_supports && !has_pad)
+        return m_config.support_object_elevation.getFloat();
+    else return get_elevation();
+
+    return 0;
 }
 
 namespace { // dummy empty static containers for return values in some methods

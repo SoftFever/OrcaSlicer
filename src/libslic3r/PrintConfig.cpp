@@ -2447,6 +2447,7 @@ void PrintConfigDef::init_sla_params()
 
     def = this->add("support_head_front_radius", coFloat);
     def->label = L("Support head front radius");
+    def->category = L("Supports");
     def->tooltip = L("Radius of the pointing side of the head");
     def->sidetext = L("mm");
     def->cli = "";
@@ -2455,6 +2456,7 @@ void PrintConfigDef::init_sla_params()
 
     def = this->add("support_head_penetration", coFloat);
     def->label = L("Support head penetration");
+    def->category = L("Supports");
     def->tooltip = L("How much the pinhead has to penetrate the model surface");
     def->sidetext = L("mm");
     def->cli = "";
@@ -2463,6 +2465,7 @@ void PrintConfigDef::init_sla_params()
 
     def = this->add("support_head_back_radius", coFloat);
     def->label = L("Support head back radius");
+    def->category = L("Supports");
     def->tooltip = L("Radius of the back side of the 3d arrow");
     def->sidetext = L("mm");
     def->cli = "";
@@ -2471,6 +2474,7 @@ void PrintConfigDef::init_sla_params()
 
     def = this->add("support_head_width", coFloat);
     def->label = L("Support head width");
+    def->category = L("Supports");
     def->tooltip = L("Width from the back sphere center to the front sphere center");
     def->sidetext = L("mm");
     def->cli = "";
@@ -2479,6 +2483,7 @@ void PrintConfigDef::init_sla_params()
 
     def = this->add("support_pillar_radius", coFloat);
     def->label = L("Support pillar radius");
+    def->category = L("Supports");
     def->tooltip = L("Radius in mm of the support pillars");
     def->sidetext = L("mm");
     def->cli = "";
@@ -2487,6 +2492,7 @@ void PrintConfigDef::init_sla_params()
 
     def = this->add("support_base_radius", coFloat);
     def->label = L("Support base radius");
+    def->category = L("Supports");
     def->tooltip = L("Radius in mm of the pillar base");
     def->sidetext = L("mm");
     def->cli = "";
@@ -2495,6 +2501,7 @@ void PrintConfigDef::init_sla_params()
 
     def = this->add("support_base_height", coFloat);
     def->label = L("Support base height");
+    def->category = L("Supports");
     def->tooltip = L("The height of the pillar base cone");
     def->sidetext = L("mm");
     def->cli = "";
@@ -2503,6 +2510,7 @@ void PrintConfigDef::init_sla_params()
 
     def = this->add("support_critical_angle", coFloat);
     def->label = L("Critical angle");
+    def->category = L("Supports");
     def->tooltip = L("The default angle for connecting support sticks and junctions.");
     def->sidetext = L("°");
     def->cli = "";
@@ -2511,6 +2519,7 @@ void PrintConfigDef::init_sla_params()
 
     def = this->add("support_max_bridge_length", coFloat);
     def->label = L("Max bridge length");
+    def->category = L("Supports");
     def->tooltip = L("The max length of a bridge");
     def->sidetext = L("mm");
     def->cli = "";
@@ -2519,6 +2528,7 @@ void PrintConfigDef::init_sla_params()
 
     def = this->add("support_object_elevation", coFloat);
     def->label = L("Object elevation");
+    def->category = L("Supports");
     def->tooltip = L("How much the supports should lift up the supported object.");
     def->sidetext = L("mm");
     def->cli = "";
@@ -2527,6 +2537,7 @@ void PrintConfigDef::init_sla_params()
 
     def = this->add("pad_enable", coBool);
     def->label = L("Use pad");
+    def->category = L("Pad");
     def->tooltip = L("Add a pad underneath the supported model");
     def->sidetext = L("");
     def->cli = "";
@@ -2534,6 +2545,7 @@ void PrintConfigDef::init_sla_params()
 
     def = this->add("pad_wall_thickness", coFloat);
     def->label = L("Pad wall thickness");
+    def->category = L("Pad");
     def->tooltip = L("");
     def->sidetext = L("mm");
     def->cli = "";
@@ -2542,6 +2554,7 @@ void PrintConfigDef::init_sla_params()
 
     def = this->add("pad_wall_height", coFloat);
     def->label = L("Pad wall height");
+    def->category = L("Pad");
     def->tooltip = L("");
     def->sidetext = L("mm");
     def->cli = "";
@@ -2550,6 +2563,7 @@ void PrintConfigDef::init_sla_params()
 
     def = this->add("pad_max_merge_distance", coFloat);
     def->label = L("Max merge distance");
+    def->category = L("Pad");
     def->tooltip = L("");
     def->sidetext = L("mm");
     def->cli = "";
@@ -2558,6 +2572,7 @@ void PrintConfigDef::init_sla_params()
 
     def = this->add("pad_edge_radius", coFloat);
     def->label = L("Pad edge radius");
+    def->category = L("Pad");
     def->tooltip = L("");
     def->sidetext = L("mm");
     def->cli = "";

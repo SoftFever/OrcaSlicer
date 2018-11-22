@@ -902,7 +902,7 @@ class SLAPrintObjectConfig : public StaticPrintConfig
 {
     STATIC_PRINT_CONFIG_CACHE(SLAPrintObjectConfig)
 public:
-    ConfigOptionFloat                       layer_height;
+    ConfigOptionFloat layer_height;
 
     // Radius in mm of the pointing side of the head.
     ConfigOptionFloat support_head_front_radius /*= 0.2*/;

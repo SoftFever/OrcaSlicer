@@ -131,9 +131,6 @@ public:
     SupportLayerPtrs::const_iterator insert_support_layer(SupportLayerPtrs::const_iterator pos, int id, coordf_t height, coordf_t print_z, coordf_t slice_z);
     void delete_support_layer(int idx);
     
-    // methods for handling state
-    bool invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
-
     // To be used over the layer_height_profile of both the PrintObject and ModelObject
     // to initialize the height profile with the height ranges.
     bool update_layer_height_profile(std::vector<coordf_t> &layer_height_profile) const;
@@ -174,6 +171,8 @@ protected:
     bool                    invalidate_step(PrintObjectStep step);
     // Invalidates all PrintObject and Print steps.
     bool                    invalidate_all_steps();
+    // Invalidate steps based on a set of parameters changed.
+    bool                    invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
 
 private:
     void make_perimeters();
