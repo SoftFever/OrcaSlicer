@@ -28,14 +28,15 @@ public:
 
 namespace {
 
+// should add up to 100 (%)
 const std::array<unsigned, slaposCount>     OBJ_STEP_LEVELS =
 {
-    0,
-    20,
-    30,
-    50,
-    70,
-    90
+    10,     // slaposObjectSlice,
+    10,     // slaposSupportIslands,
+    20,     // slaposSupportPoints,
+    25,     // slaposSupportTree,
+    25,     // slaposBasePool,
+    10      // slaposSliceSupports,
 };
 
 const std::array<std::string, slaposCount> OBJ_STEP_LABELS =
@@ -48,11 +49,11 @@ const std::array<std::string, slaposCount> OBJ_STEP_LABELS =
     L("Slicing supports")               // slaposSliceSupports,
 };
 
+// Should also add up to 100 (%)
 const std::array<unsigned, slapsCount> PRINT_STEP_LEVELS =
 {
-    // This is after processing all the Print objects, so we start from 50%
-    50,     // slapsRasterize
-    90,     // slapsValidate
+    80,     // slapsRasterize
+    20,     // slapsValidate
 };
 
 const std::array<std::string, slapsCount> PRINT_STEP_LABELS =
@@ -132,6 +133,11 @@ void SLAPrint::process()
     // shortcut to initial layer height
     double ilhd = m_material_config.initial_layer_height.getFloat();
     auto   ilh  = float(ilhd);
+    const size_t objcount = m_objects.size();
+
+    const unsigned min_objstatus = 0;
+    const unsigned max_objstatus = 80;
+    const double ostepd = (max_objstatus - min_objstatus) / (objcount * 100.0);
 
     // The slicing will be performed on an imaginary 1D grid which starts from
     // the bottom of the bounding box created around the supported model. So
@@ -188,7 +194,7 @@ void SLAPrint::process()
     };
 
     // In this step we create the supports
-    auto support_tree = [this](SLAPrintObject& po) {
+    auto support_tree = [this, objcount, ostepd](SLAPrintObject& po) {
         if(!po.m_supportdata) return;
 
         auto& emesh = po.m_supportdata->emesh;
@@ -207,10 +213,15 @@ void SLAPrint::process()
             scfg.pillar_radius_mm = c.support_pillar_radius.getFloat();
 
             sla::Controller ctl;
-            ctl.statuscb = [this](unsigned st, const std::string& msg) {
-                unsigned stinit = OBJ_STEP_LEVELS[slaposSupportTree];
-                double d = (OBJ_STEP_LEVELS[slaposBasePool] - stinit) / 100.0;
-                set_status(unsigned(stinit + st*d), msg);
+
+            auto stfirst = OBJ_STEP_LEVELS.begin();
+            auto stthis = stfirst + slaposSupportTree;
+            unsigned init = std::accumulate(stfirst, stthis, 0);
+            init = unsigned(init * ostepd);
+            double d = *stthis / (objcount * 100.0);
+
+            ctl.statuscb = [this, init, d](unsigned st, const std::string& msg){
+                set_status(unsigned(init + st*d), msg);
             };
             ctl.stopcondition = [this](){ return canceled(); };
             ctl.cancelfn = [this]() { throw_if_canceled(); };
@@ -235,7 +246,6 @@ void SLAPrint::process()
            po.m_supportdata &&
            po.m_supportdata->support_tree_ptr)
         {
-            std::cout << "Generating base pool for real" << std::endl;
             double wt = po.m_config.pad_wall_thickness.getFloat();
             double h =  po.m_config.pad_wall_height.getFloat();
             double md = po.m_config.pad_max_merge_distance.getFloat();
@@ -417,11 +427,11 @@ void SLAPrint::process()
 
     // This is the actual order of steps done on each PrintObject
     std::array<SLAPrintObjectStep, slaposCount> objectsteps = {
+        slaposObjectSlice,      // Support Islands will need this step
         slaposSupportIslands,
         slaposSupportPoints,
         slaposSupportTree,
         slaposBasePool,
-        slaposObjectSlice,
         slaposSliceSupports
     };
 
@@ -441,13 +451,13 @@ void SLAPrint::process()
         [](){}  // validate
     };
 
-    const unsigned min_objstatus = 0;
-    const unsigned max_objstatus = PRINT_STEP_LEVELS[slapsRasterize];
-    const size_t objcount = m_objects.size();
-    const double ostepd = (max_objstatus - min_objstatus) / (objcount * 100.0);
-
     static const auto RELOAD_SCENE = SlicingStatus::RELOAD_SCENE;
 
+    unsigned st = min_objstatus;
+    unsigned incr = 0;
+
+    // TODO: this loop could run in parallel but should not exhaust all the CPU
+    // power available
     for(SLAPrintObject * po : m_objects) {
         for(size_t s = 0; s < objectsteps.size(); ++s) {
             auto currentstep = objectsteps[s];
@@ -457,11 +467,10 @@ void SLAPrint::process()
             // execution gets to this point and throws the canceled signal.
             throw_if_canceled();
 
-            if(po->m_stepmask[currentstep] && !po->is_step_done(currentstep)) {
-                po->set_started(currentstep);
+            st += unsigned(incr * ostepd);
 
-                unsigned st = OBJ_STEP_LEVELS[currentstep];
-                st = unsigned(min_objstatus + st * ostepd);
+            if(po->m_stepmask[currentstep] && !po->is_step_done(currentstep) ) {
+                po->set_started(currentstep);
                 set_status(st, OBJ_STEP_LABELS[currentstep]);
 
                 pobj_program[currentstep](*po);
@@ -477,6 +486,8 @@ void SLAPrint::process()
                     set_status(st, L("Visualizing supports"), RELOAD_SCENE);
                 }
             }
+
+            incr = OBJ_STEP_LEVELS[currentstep];
         }
     }
 
@@ -487,19 +498,22 @@ void SLAPrint::process()
     // this would disable the rasterization step
 //    m_stepmask[slapsRasterize] = false;
 
+    double pstd = (100 - max_objstatus) / 100.0;
+    st = max_objstatus;
     for(size_t s = 0; s < print_program.size(); ++s) {
         auto currentstep = printsteps[s];
 
         throw_if_canceled();
 
-        if(m_stepmask[currentstep] && !is_step_done(currentstep)) {
-            set_status(PRINT_STEP_LEVELS[currentstep],
-                       PRINT_STEP_LABELS[currentstep]);
-
+        if(m_stepmask[currentstep] && !is_step_done(currentstep))
+        {
+            set_status(st, PRINT_STEP_LABELS[currentstep]);
             set_started(currentstep);
             print_program[currentstep]();
             set_done(currentstep);
         }
+
+        st += unsigned(PRINT_STEP_LEVELS[currentstep] * pstd);
     }
 
     // If everything vent well
