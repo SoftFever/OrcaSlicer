@@ -1,6 +1,7 @@
 #include "SLAPrint.hpp"
 #include "SLA/SLASupportTree.hpp"
 #include "SLA/SLABasePool.hpp"
+#include "MTUtils.hpp"
 
 #include <tbb/parallel_for.h>
 #include <boost/log/trivial.hpp>
@@ -275,7 +276,7 @@ void SLAPrint::process()
     };
 
     // Rasterizing the model objects, and their supports
-    auto rasterize = [this, ilh, ilhd]() {
+    auto rasterize = [this, ilh, ilhd, max_objstatus]() {
         using Layer = sla::ExPolygons;
         using LayerCopies = std::vector<SLAPrintObject::Instance>;
         struct LayerRef {
@@ -380,12 +381,16 @@ void SLAPrint::process()
         auto lvlcnt = unsigned(levels.size());
         printer.layers(lvlcnt);
 
-        // TODO exclusive progress indication for this step would be good
-        // as it is the longest of all. It would require synchronization
-        // in the parallel processing.
+        unsigned slot = PRINT_STEP_LEVELS[slapsRasterize];
+        unsigned ist = max_objstatus, pst = ist;
+        double sd = (100 - ist) / 100.0;
+        SpinMutex slck;
 
         // procedure to process one height level. This will run in parallel
-        auto lvlfn = [this, &keys, &levels, &printer](unsigned level_id) {
+        auto lvlfn =
+        [this, &slck, &keys, &levels, &printer, slot, sd, ist, &pst]
+            (unsigned level_id)
+        {
             if(canceled()) return;
 
             LayerRefs& lrange = levels[keys[level_id]];
@@ -410,6 +415,15 @@ void SLAPrint::process()
 
             // Finish the layer for later saving it.
             printer.finish_layer(level_id);
+
+            // Status indication
+            auto st = ist + unsigned(sd*level_id*slot/levels.size());
+            slck.lock();
+            if( st > pst) {
+                set_status(st, PRINT_STEP_LABELS[slapsRasterize]);
+                pst = st;
+            }
+            slck.unlock();
         };
 
         // last minute escape
