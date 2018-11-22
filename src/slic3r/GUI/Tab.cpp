@@ -2225,6 +2225,8 @@ void Tab::load_current_preset()
     // For the printer profile, generate the extruder pages.
     if (preset.printer_technology() == ptFFF)
         on_preset_loaded();
+    else
+        wxGetApp().sidebar().update_objects_list_extruder_column(1);
     // Reload preset pages with the new configuration values.
     reload_config();
 
