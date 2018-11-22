@@ -27,7 +27,7 @@ namespace sla {
   */
 std::array<double, 3> find_best_rotation(
         const ModelObject& modelobj,
-        float accuracy = .0f,
+        float accuracy = 1.0f,
         std::function<void(unsigned)> statuscb = [] (unsigned) {},
         std::function<bool()> stopcond = [] () { return false; }
         );
