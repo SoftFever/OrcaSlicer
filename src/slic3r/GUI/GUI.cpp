@@ -165,7 +165,7 @@ void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt
 				std::vector<std::string> values;
 				boost::split(values, str, boost::is_any_of(";"));
 				if (values.size() == 1 && values[0] == "") 
-					break;
+					values.resize(0);//break;
 				config.option<ConfigOptionStrings>(opt_key)->values = values;
 			}
 			else{
