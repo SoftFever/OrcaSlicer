@@ -112,7 +112,7 @@ public:
     }
 #endif /* __WXGTK__ */
 
-	void		append_line(const Line& line, wxStaticText** colored_Label = nullptr);
+	void		append_line(const Line& line, wxStaticText** full_Label = nullptr);
     Line		create_single_option_line(const Option& option) const;
     void		append_single_option_line(const Option& option) { append_line(create_single_option_line(option)); }
 

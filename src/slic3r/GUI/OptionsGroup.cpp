@@ -106,7 +106,7 @@ void OptionsGroup::add_undo_buttuns_to_sizer(wxSizer* sizer, const t_field& fiel
 	sizer->Add(field->m_Undo_btn, 0, wxALIGN_CENTER_VERTICAL);
 }
 
-void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* = nullptr*/) {
+void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = nullptr*/) {
 //!    if (line.sizer != nullptr || (line.widget != nullptr && line.full_width > 0)) {
 	if ( (line.sizer != nullptr || line.widget != nullptr) && line.full_width) {
 		if (line.sizer != nullptr) {
@@ -191,12 +191,13 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
 			label->SetToolTip(line.label_tooltip);
     }
 
+	if (full_Label != nullptr) 
+        *full_Label = label; // Initiate the pointer to the control of the full label, if we need this one.
     // If there's a widget, build it and add the result to the sizer.
 	if (line.widget != nullptr) {
 		auto wgt = line.widget(parent());
 		// If widget doesn't have label, don't use border
 		grid_sizer->Add(wgt, 0, wxEXPAND | wxBOTTOM | wxTOP, (wxOSX || line.label.IsEmpty()) ? 0 : 5);
-		if (colored_Label != nullptr) *colored_Label = label;
 		return;
 	}
 	

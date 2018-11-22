@@ -18,6 +18,7 @@ class ObjectManipulation : public OG_Settings
     bool        m_is_uniform_scale = false;         // It indicates if scale is uniform
 
     Vec3d       cache_position   { 0., 0., 0. };
+    wxStaticText*   m_move_Label = nullptr;
 
 public:
     ObjectManipulation(wxWindow* parent);

@@ -133,7 +133,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
 
 
     // Settings table
-    m_og->append_line(add_og_to_object_settings(L("Position"), L("mm")));
+    m_og->append_line(add_og_to_object_settings(L("Position"), L("mm")), &m_move_Label);
     m_og->append_line(add_og_to_object_settings(L("Rotation"), "°"));
     m_og->append_line(add_og_to_object_settings(L("Scale"), "mm"));
 
@@ -181,6 +181,7 @@ int ObjectManipulation::ol_selection()
 
 void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& selection)
 {
+    wxString move_label = _(L("Position"));
 #if ENABLE_MODELVOLUME_TRANSFORM
     if (selection.is_single_full_instance() || selection.is_single_full_object())
 #else
@@ -245,9 +246,16 @@ void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& sele
 #endif // ENABLE_MODELVOLUME_TRANSFORM
         m_og->enable();
     }
+    else if (wxGetApp().obj_list()->multiple_selection())
+    {
+        reset_settings_value();
+        move_label = _(L("Displacement"));
+        m_og->enable();
+    }
     else
         reset_settings_value();
 
+    m_move_Label->SetLabel(move_label);
     m_og->get_field("scale_unit")->disable();// temporary decision 
 }
 
