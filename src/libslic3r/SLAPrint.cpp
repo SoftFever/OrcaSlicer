@@ -4,6 +4,7 @@
 #include "MTUtils.hpp"
 
 #include <unordered_set>
+#include <numeric>
 
 #include <tbb/parallel_for.h>
 #include <boost/log/trivial.hpp>
