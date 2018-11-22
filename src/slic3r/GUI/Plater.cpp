@@ -1771,9 +1771,7 @@ unsigned int Plater::priv::update_background_process()
             }
             break;
         case ptSLA:
-            //FIXME as of now the Print::APPLY_STATUS_INVALIDATED is not reliable, and
-            // currently the scene refresh is expensive and loses selection.
-            //return_state |= UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE;
+            return_state |= UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE;
             break;
         }
     }
@@ -1984,13 +1982,8 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
     case ptSLA:
         // Update the SLAPrint from the current Model, so that the reload_scene()
         // pulls the correct data.
-
-        // FIXME: SLAPrint::apply is not ready for this. At this stage it would
-        // invalidate the previous result and the supports would not be available
-        // for rendering.
-//        if (this->update_background_process() & UPDATE_BACKGROUND_PROCESS_RESTART)
-//            this->schedule_background_process();
-
+        if (this->update_background_process() & UPDATE_BACKGROUND_PROCESS_RESTART)
+            this->schedule_background_process();
         _3DScene::reload_scene(canvas3D, true);
         break;
     }
