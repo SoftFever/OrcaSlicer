@@ -566,7 +566,7 @@ void SLAPrint::process()
 
             // If everything went well this code should not run at all, but
             // let's be robust...
-            assert(levelids.size() == oslices.size());
+            // assert(levelids.size() == oslices.size());
             if(levelids.size() < oslices.size()) { // extend the levels until...
 
                 BOOST_LOG_TRIVIAL(warning)
@@ -728,8 +728,8 @@ void SLAPrint::process()
 
             st += unsigned(incr * ostepd);
 
-            if(po->m_stepmask[currentstep] && !po->is_step_done(currentstep) ) {
-                po->set_started(currentstep);
+            if(po->m_stepmask[currentstep] && po->set_started(currentstep)) {
+
                 set_status(st, OBJ_STEP_LABELS[currentstep]);
 
                 pobj_program[currentstep](*po);
@@ -764,10 +764,9 @@ void SLAPrint::process()
 
         throw_if_canceled();
 
-        if(m_stepmask[currentstep] && !is_step_done(currentstep))
+        if(m_stepmask[currentstep] && set_started(currentstep))
         {
             set_status(st, PRINT_STEP_LABELS[currentstep]);
-            set_started(currentstep);
             print_program[currentstep]();
             set_done(currentstep);
         }
