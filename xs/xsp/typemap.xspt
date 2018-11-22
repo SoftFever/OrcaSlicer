@@ -194,35 +194,13 @@
 %typemap{ModelInstancePtrs*};
 %typemap{Ref<ModelInstancePtrs>}{simple};
 %typemap{Clone<ModelInstancePtrs>}{simple};
-%typemap{AppConfig*};
-%typemap{Ref<AppConfig>}{simple};
-%typemap{BackgroundSlicingProcess*};
-%typemap{Ref<BackgroundSlicingProcess>}{simple};
-%typemap{GLShader*};
-%typemap{Ref<GLShader>}{simple};
-%typemap{GLVolume*};
-%typemap{Ref<GLVolume>}{simple};
-%typemap{GLVolumeCollection*};
-%typemap{Ref<GLVolumeCollection>}{simple};
-%typemap{Preset*};
-%typemap{Ref<Preset>}{simple};
-%typemap{PresetCollection*};
-%typemap{Ref<PresetCollection>}{simple};
-%typemap{PresetBundle*};
-%typemap{Ref<PresetBundle>}{simple};
-%typemap{PresetUpdater*};
-%typemap{Ref<PresetUpdater>}{simple};
 %typemap{PresetHints*};
 %typemap{Ref<PresetHints>}{simple};
-%typemap{TabIface*};
-%typemap{PreviewIface*};
-%typemap{ProgressStatusBar*};
 
 %typemap{PrintRegionPtrs*};
 %typemap{PrintObjectPtrs*};
 %typemap{LayerPtrs*};
 %typemap{SupportLayerPtrs*};
-
 
 %typemap{Axis}{parsed}{
   %cpp_type{Axis};
@@ -272,6 +250,3 @@
     $CVar = (PrintObjectStep)SvUV($PerlVar);
   %};
 };
-%typemap{AppController*};
-%typemap{PrintController*};
-%typemap{PrintHost*};

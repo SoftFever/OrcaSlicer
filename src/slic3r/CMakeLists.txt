@@ -44,8 +44,6 @@ add_library(libslic3r_gui STATIC
     GUI/GUI.hpp
     GUI/GUI_Preview.cpp
     GUI/GUI_Preview.hpp
-    GUI/GUI_PreviewIface.cpp
-    GUI/GUI_PreviewIface.hpp
     GUI/GUI_App.cpp
     GUI/GUI_App.hpp
     GUI/GUI_Utils.cpp

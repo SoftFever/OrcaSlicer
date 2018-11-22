@@ -23,7 +23,7 @@ namespace Slic3r {
 
 class GLShader;
 class ExPolygon;
-class SLAPrint;
+class BackgroundSlicingProcess;
 
 namespace GUI {
 
@@ -704,9 +704,8 @@ private:
     mutable GLVolumeCollection m_volumes;
     Selection m_selection;
     DynamicPrintConfig* m_config;
-    Print* m_print;
-    SLAPrint* m_sla_print;
     Model* m_model;
+    BackgroundSlicingProcess *m_process;
 
     // Screen is only refreshed from the OnIdle handler if it is dirty.
     bool m_dirty;
@@ -759,8 +758,7 @@ public:
     int check_volumes_outside_state(const DynamicPrintConfig* config) const;
 
     void set_config(DynamicPrintConfig* config);
-    void set_print(Print* print);
-    void set_SLA_print(SLAPrint* print);
+    void set_process(BackgroundSlicingProcess* process);
     void set_model(Model* model);
 
     const Selection& get_selection() const { return m_selection; }
@@ -955,6 +953,9 @@ private:
     void _resize_toolbar() const;
 
     static std::vector<float> _parse_colors(const std::vector<std::string>& colors);
+
+    const Print* fff_print() const;
+    const SLAPrint* sla_print() const;
 };
 
 } // namespace GUI

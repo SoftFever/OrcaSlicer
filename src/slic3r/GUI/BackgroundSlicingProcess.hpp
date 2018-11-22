@@ -56,6 +56,14 @@ public:
 
 	// Activate either m_fff_print or m_sla_print.
 	void select_technology(PrinterTechnology tech);
+
+	// Get the currently active printer technology.
+	PrinterTechnology   current_printer_technology() const;
+	// Get the current print. It is either m_fff_print or m_sla_print.
+	const PrintBase*    current_print() const { return m_print; }
+	const Print* 		fff_print() const { return m_fff_print; }
+	const SLAPrint* 	sla_print() const { return m_sla_print; }
+
 	// Start the background processing. Returns false if the background processing was already running.
 	bool start();
 	// Cancel the background processing. Returns false if the background processing was not running.

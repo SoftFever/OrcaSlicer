@@ -17,7 +17,6 @@ namespace Slic3r {
 
 class AppConfig;
 class DynamicPrintConfig;
-class PreviewIface;
 class Print;
 class GCodePreviewData;
 class AppControllerBase;
@@ -69,8 +68,6 @@ extern bool config_wizard_startup(bool app_config_exists);
 // Opens the configuration wizard, returns true if wizard is finished & accepted.
 // The run_reason argument is actually ConfigWizard::RunReason, but int is used here because of Perl.
 extern void config_wizard(int run_reason);
-
-PreviewIface* create_preview_iface(wxNotebook* notebook, DynamicPrintConfig* config, Print* print, GCodePreviewData* gcode_preview_data);
 
 // Change option value in config
 void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt_key, const boost::any& value, int opt_index = 0);

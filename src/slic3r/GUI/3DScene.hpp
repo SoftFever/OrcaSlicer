@@ -603,8 +603,7 @@ public:
     static GUI::GLCanvas3D* get_canvas(wxGLCanvas* canvas);
 
     static void set_config(wxGLCanvas* canvas, DynamicPrintConfig* config);
-    static void set_print(wxGLCanvas* canvas, Print* print);
-    static void set_SLA_print(wxGLCanvas* canvas, SLAPrint* print);
+    static void set_process(wxGLCanvas* canvas, BackgroundSlicingProcess* process);
     static void set_model(wxGLCanvas* canvas, Model* model);
 
     static void set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape);

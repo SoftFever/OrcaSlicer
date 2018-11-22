@@ -53,6 +53,11 @@ void BackgroundSlicingProcess::select_technology(PrinterTechnology tech)
 	assert(m_print != nullptr);
 }
 
+PrinterTechnology BackgroundSlicingProcess::current_printer_technology() const
+{
+	return m_print->technology();
+}
+
 // This function may one day be merged into the Print, but historically the print was separated
 // from the G-code generator.
 void BackgroundSlicingProcess::process_fff()

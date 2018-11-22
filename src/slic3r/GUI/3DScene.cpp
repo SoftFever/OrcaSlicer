@@ -842,7 +842,7 @@ void GLVolumeCollection::load_object_auxiliary(
         // finalize_geometry() clears the vertex arrays, therefore the bounding box has to be computed before finalize_geometry().
         v.bounding_box = v.indexed_vertex_array.bounding_box();
         v.indexed_vertex_array.finalize_geometry(use_VBOs);
-        v.composite_id = GLVolume::CompositeID(obj_idx, -milestone, (int)instance_idx.first);
+        v.composite_id = GLVolume::CompositeID(obj_idx, - int(milestone), (int)instance_idx.first);
         v.geometry_id = std::pair<size_t, size_t>(timestamp, model_instance.id().id);
 		// Create a copy of the convex hull mesh for each instance. Use a move operator on the last instance.
 		v.set_convex_hull((&instance_idx == &instances.back()) ? new TriangleMesh(std::move(convex_hull)) : new TriangleMesh(convex_hull), true);
@@ -1906,14 +1906,9 @@ void _3DScene::set_config(wxGLCanvas* canvas, DynamicPrintConfig* config)
     s_canvas_mgr.set_config(canvas, config);
 }
 
-void _3DScene::set_print(wxGLCanvas* canvas, Print* print)
+void _3DScene::set_process(wxGLCanvas* canvas, BackgroundSlicingProcess* process)
 {
-    s_canvas_mgr.set_print(canvas, print);
-}
-
-void _3DScene::set_SLA_print(wxGLCanvas* canvas, SLAPrint* print)
-{
-    s_canvas_mgr.set_SLA_print(canvas, print);
+	s_canvas_mgr.set_process(canvas, process);
 }
 
 void _3DScene::set_model(wxGLCanvas* canvas, Model* model)

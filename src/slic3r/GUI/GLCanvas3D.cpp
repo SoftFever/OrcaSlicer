@@ -3,6 +3,7 @@
 #include "admesh/stl.h"
 #include "libslic3r/libslic3r.h"
 #include "slic3r/GUI/3DScene.hpp"
+#include "slic3r/GUI/BackgroundSlicingProcess.hpp"
 #include "slic3r/GUI/GLShader.hpp"
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/PresetBundle.hpp"
@@ -3249,8 +3250,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     , m_context(nullptr)
     , m_toolbar(*this)
     , m_config(nullptr)
-    , m_print(nullptr)
-    , m_sla_print(nullptr)
+    , m_process(nullptr)
     , m_model(nullptr)
     , m_dirty(true)
     , m_initialized(false)
@@ -3443,14 +3443,9 @@ void GLCanvas3D::set_config(DynamicPrintConfig* config)
     m_config = config;
 }
 
-void GLCanvas3D::set_print(Print* print)
+void GLCanvas3D::set_process(BackgroundSlicingProcess *process)
 {
-    m_print = print;
-}
-
-void GLCanvas3D::set_SLA_print(SLAPrint* print)
-{
-    m_sla_print = print;
+    m_process = process;
 }
 
 void GLCanvas3D::set_model(Model* model)
@@ -3875,7 +3870,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
     m_reload_delayed = ! m_canvas->IsShown() && ! refresh_immediately && ! force_full_scene_refresh;
 
-    PrinterTechnology printer_technology = wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology();
+    PrinterTechnology printer_technology = m_process->current_printer_technology();
 
     if (m_regenerate_volumes)
     {
@@ -3892,12 +3887,13 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             }
         }
         if (printer_technology == ptSLA) {
+            const SLAPrint *sla_print = this->sla_print();
         #ifdef _DEBUG
             // Verify that the SLAPrint object is synchronized with m_model.
-            check_model_ids_equal(*m_model, m_sla_print->model());
+            check_model_ids_equal(*m_model, sla_print->model());
         #endif /* _DEBUG */
-            sla_support_state.reserve(m_sla_print->objects().size());
-            for (const SLAPrintObject *print_object : m_sla_print->objects()) {
+            sla_support_state.reserve(sla_print->objects().size());
+            for (const SLAPrintObject *print_object : sla_print->objects()) {
                 SLASupportState state;
 				for (size_t istep = 0; istep < sla_steps.size(); ++ istep) {
 					state.step[istep] = print_object->step_state_with_timestamp(sla_steps[istep]);
@@ -4017,7 +4013,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         }
         if (printer_technology == ptSLA) {
             size_t idx = 0;
-            for (const SLAPrintObject *print_object : m_sla_print->objects()) {
+            const SLAPrint *sla_print = this->sla_print();
+            for (const SLAPrintObject *print_object : sla_print->objects()) {
                 SLASupportState   &state        = sla_support_state[idx ++];
                 const ModelObject *model_object = print_object->model_object();
                 // Find an index of the ModelObject
@@ -4026,9 +4023,9 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 					continue;
                 // There may be new SLA volumes added to the scene for this print_object.
                 // Find the object index of this print_object in the Model::objects list.
-                auto it = std::find(m_sla_print->model().objects.begin(), m_sla_print->model().objects.end(), model_object);
-                assert(it != m_sla_print->model().objects.end());
-				object_idx = it - m_sla_print->model().objects.begin();
+                auto it = std::find(sla_print->model().objects.begin(), sla_print->model().objects.end(), model_object);
+                assert(it != sla_print->model().objects.end());
+				object_idx = it - sla_print->model().objects.begin();
                 // Collect indices of this print_object's instances, for which the SLA support meshes are to be added to the scene.
                 // pairs of <instance_idx, print_instance_idx>
 				std::vector<std::pair<size_t, size_t>> instances[std::tuple_size<SLASteps>::value];
@@ -4092,11 +4089,12 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 float w = dynamic_cast<const ConfigOptionFloat*>(m_config->option("wipe_tower_width"))->value;
                 float a = dynamic_cast<const ConfigOptionFloat*>(m_config->option("wipe_tower_rotation_angle"))->value;
 
-                float depth = m_print->get_wipe_tower_depth();
-                if (!m_print->is_step_done(psWipeTower))
+                const Print *print = m_process->fff_print();
+                float depth = print->get_wipe_tower_depth();
+                if (!print->is_step_done(psWipeTower))
                     depth = (900.f/w) * (float)(extruders_count - 1) ;
-                m_volumes.load_wipe_tower_preview(1000, x, y, w, depth, (float)height, a, m_use_VBOs && m_initialized, !m_print->is_step_done(psWipeTower),
-                                                  m_print->config().nozzle_diameter.values[0] * 1.25f * 4.5f);
+                m_volumes.load_wipe_tower_preview(1000, x, y, w, depth, (float)height, a, m_use_VBOs && m_initialized, !print->is_step_done(psWipeTower),
+                                                  print->config().nozzle_diameter.values[0] * 1.25f * 4.5f);
             }
         }
 
@@ -4145,7 +4143,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
 void GLCanvas3D::load_gcode_preview(const GCodePreviewData& preview_data, const std::vector<std::string>& str_tool_colors)
 {
-    if ((m_canvas != nullptr) && (m_print != nullptr))
+    const Print *print = this->fff_print();
+    if ((m_canvas != nullptr) && (print != nullptr))
     {
 #if !ENABLE_USE_UNIQUE_GLCONTEXT
         // ensures that this canvas is current
@@ -4186,12 +4185,13 @@ void GLCanvas3D::load_gcode_preview(const GCodePreviewData& preview_data, const 
 
 void GLCanvas3D::load_preview(const std::vector<std::string>& str_tool_colors)
 {
-    if (m_print == nullptr)
+    const Print *print = this->fff_print();
+    if (print == nullptr)
         return;
 
     _load_print_toolpaths();
     _load_wipe_tower_toolpaths(str_tool_colors);
-    for (const PrintObject* object : m_print->objects())
+    for (const PrintObject* object : print->objects())
     {
         if (object != nullptr)
             _load_print_object_toolpaths(*object, str_tool_colors);
@@ -4472,7 +4472,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 // A volume is selected and the mouse is inside the reset button.
                 // The PrintObject::adjust_layer_height_profile() call adjusts the profile of its associated ModelObject, it does not modify the profile of the PrintObject itself,
                 // therefore it is safe to call it while the background processing is running.
-                const_cast<PrintObject*>(m_print->get_object(layer_editing_object_idx))->reset_layer_height_profile();
+                const_cast<PrintObject*>(this->fff_print()->get_object(layer_editing_object_idx))->reset_layer_height_profile();
                 // Index 2 means no editing, just wait for mouse up event.
                 m_layers_editing.state = LayersEditing::Completed;
 
@@ -5400,7 +5400,8 @@ float GLCanvas3D::_get_zoom_to_bounding_box_factor(const BoundingBoxf3& bbox) co
 
 void GLCanvas3D::_mark_volumes_for_layer_height() const
 {
-    if (m_print == nullptr)
+    const Print *print = (m_process == nullptr) ? nullptr : m_process->fff_print();
+    if (print == nullptr)
         return;
 
     for (GLVolume* vol : m_volumes.volumes)
@@ -5409,10 +5410,10 @@ void GLCanvas3D::_mark_volumes_for_layer_height() const
         int shader_id = m_layers_editing.get_shader_program_id();
 
         if (is_layers_editing_enabled() && (shader_id != -1) && vol->selected &&
-            vol->has_layer_height_texture() && (object_id < (int)m_print->objects().size()))
+            vol->has_layer_height_texture() && (object_id < (int)print->objects().size()))
         {
             vol->set_layer_height_texture_data(m_layers_editing.get_z_texture_id(), shader_id,
-                m_print->get_object(object_id), _get_layers_editing_cursor_z_relative(), m_layers_editing.band_width);
+                print->get_object(object_id), _get_layers_editing_cursor_z_relative(), m_layers_editing.band_width);
         }
         else
             vol->reset_layer_height_texture_data();
@@ -5623,7 +5624,8 @@ void GLCanvas3D::_render_legend_texture() const
 
 void GLCanvas3D::_render_layer_editing_overlay() const
 {
-    if ((m_print == nullptr) || m_print->objects().empty())
+    const Print *print = this->fff_print();
+    if ((print == nullptr) || print->objects().empty())
         return;
 
     GLVolume* volume = nullptr;
@@ -5643,10 +5645,10 @@ void GLCanvas3D::_render_layer_editing_overlay() const
     // If the active object was not allocated at the Print, go away.This should only be a momentary case between an object addition / deletion
     // and an update by Platter::async_apply_config.
     int object_idx = volume->object_idx();
-    if ((int)m_print->objects().size() <= object_idx)
+    if ((int)print->objects().size() <= object_idx)
         return;
 
-    const PrintObject* print_object = m_print->get_object(object_idx);
+    const PrintObject* print_object = print->get_object(object_idx);
     if (print_object == nullptr)
         return;
 
@@ -5854,10 +5856,11 @@ void GLCanvas3D::_perform_layer_editing_action(wxMouseEvent* evt)
     if (object_idx_selected == -1)
         return;
 
-    if (m_print == nullptr)
+    const Print *print = this->fff_print();
+    if (print == nullptr)
         return;
 
-    const PrintObject* selected_obj = m_print->get_object(object_idx_selected);
+    const PrintObject* selected_obj = print->get_object(object_idx_selected);
     if (selected_obj == nullptr)
         return;
 
@@ -5880,7 +5883,7 @@ void GLCanvas3D::_perform_layer_editing_action(wxMouseEvent* evt)
     int volume_idx = 0;
     for (int i = 0; i < object_idx_selected; ++i)
     {
-        const PrintObject* obj = m_print->get_object(i);
+        const PrintObject* obj = print->get_object(i);
         if (obj != nullptr)
         {
             for (int j = 0; j < (int)obj->region_volumes.size(); ++j)
@@ -5953,29 +5956,30 @@ void GLCanvas3D::_load_print_toolpaths()
         return;
 #endif // !ENABLE_USE_UNIQUE_GLCONTEXT
 
-    if (m_print == nullptr)
+    const Print *print = this->fff_print();
+    if (print == nullptr)
         return;
 
-    if (!m_print->is_step_done(psSkirt) || !m_print->is_step_done(psBrim))
+    if (!print->is_step_done(psSkirt) || !print->is_step_done(psBrim))
         return;
 
-    if (!m_print->has_skirt() && (m_print->config().brim_width.value == 0))
+    if (!print->has_skirt() && (print->config().brim_width.value == 0))
         return;
 
     const float color[] = { 0.5f, 1.0f, 0.5f, 1.0f }; // greenish
 
     // number of skirt layers
     size_t total_layer_count = 0;
-    for (const PrintObject* print_object : m_print->objects())
+    for (const PrintObject* print_object : print->objects())
     {
         total_layer_count = std::max(total_layer_count, print_object->total_layer_count());
     }
-    size_t skirt_height = m_print->has_infinite_skirt() ? total_layer_count : std::min<size_t>(m_print->config().skirt_height.value, total_layer_count);
-    if ((skirt_height == 0) && (m_print->config().brim_width.value > 0))
+    size_t skirt_height = print->has_infinite_skirt() ? total_layer_count : std::min<size_t>(print->config().skirt_height.value, total_layer_count);
+    if ((skirt_height == 0) && (print->config().brim_width.value > 0))
         skirt_height = 1;
 
     // get first skirt_height layers (maybe this should be moved to a PrintObject method?)
-    const PrintObject* object0 = m_print->objects().front();
+    const PrintObject* object0 = print->objects().front();
     std::vector<float> print_zs;
     print_zs.reserve(skirt_height * 2);
     for (size_t i = 0; i < std::min(skirt_height, object0->layers().size()); ++i)
@@ -5998,9 +6002,9 @@ void GLCanvas3D::_load_print_toolpaths()
         volume.offsets.push_back(volume.indexed_vertex_array.quad_indices.size());
         volume.offsets.push_back(volume.indexed_vertex_array.triangle_indices.size());
         if (i == 0)
-            _3DScene::extrusionentity_to_verts(m_print->brim(), print_zs[i], Point(0, 0), volume);
+            _3DScene::extrusionentity_to_verts(print->brim(), print_zs[i], Point(0, 0), volume);
 
-        _3DScene::extrusionentity_to_verts(m_print->skirt(), print_zs[i], Point(0, 0), volume);
+        _3DScene::extrusionentity_to_verts(print->skirt(), print_zs[i], Point(0, 0), volume);
     }
     volume.bounding_box = volume.indexed_vertex_array.bounding_box();
     volume.indexed_vertex_array.finalize_geometry(m_use_VBOs && m_initialized);
@@ -6162,10 +6166,11 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
 
 void GLCanvas3D::_load_wipe_tower_toolpaths(const std::vector<std::string>& str_tool_colors)
 {
-    if ((m_print == nullptr) || m_print->wipe_tower_data().tool_changes.empty())
+    const Print *print = this->fff_print();
+    if ((print == nullptr) || print->wipe_tower_data().tool_changes.empty())
         return;
 
-    if (!m_print->is_step_done(psWipeTower))
+    if (!print->is_step_done(psWipeTower))
         return;
 
     std::vector<float> tool_colors = _parse_colors(str_tool_colors);
@@ -6202,12 +6207,12 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const std::vector<std::string>& str_
         std::vector<WipeTower::ToolChangeResult> final;
     } ctxt;
 
-    ctxt.print = m_print;
+    ctxt.print = print;
     ctxt.tool_colors = tool_colors.empty() ? nullptr : &tool_colors;
-    if (m_print->wipe_tower_data().priming && m_print->config().single_extruder_multi_material_priming)
-        ctxt.priming.emplace_back(*m_print->wipe_tower_data().priming.get());
-    if (m_print->wipe_tower_data().final_purge)
-        ctxt.final.emplace_back(*m_print->wipe_tower_data().final_purge.get());
+    if (print->wipe_tower_data().priming && print->config().single_extruder_multi_material_priming)
+        ctxt.priming.emplace_back(*print->wipe_tower_data().priming.get());
+    if (print->wipe_tower_data().final_purge)
+        ctxt.final.emplace_back(*print->wipe_tower_data().final_purge.get());
 
     ctxt.wipe_tower_angle = ctxt.print->config().wipe_tower_rotation_angle.value/180.f * PI;
     ctxt.wipe_tower_pos = WipeTower::xy(ctxt.print->config().wipe_tower_x.value, ctxt.print->config().wipe_tower_y.value);
@@ -6215,7 +6220,7 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const std::vector<std::string>& str_
     BOOST_LOG_TRIVIAL(debug) << "Loading wipe tower toolpaths in parallel - start";
 
     //FIXME Improve the heuristics for a grain size.
-    size_t          n_items = m_print->wipe_tower_data().tool_changes.size() + (ctxt.priming.empty() ? 0 : 1);
+    size_t          n_items = print->wipe_tower_data().tool_changes.size() + (ctxt.priming.empty() ? 0 : 1);
     size_t          grain_size = std::max(n_items / 128, size_t(1));
     tbb::spin_mutex new_volume_mutex;
     auto            new_volume = [this, &new_volume_mutex](const float *color) -> GLVolume* {
@@ -6820,13 +6825,14 @@ void GLCanvas3D::_load_shells()
     size_t initial_volumes_count = m_volumes.volumes.size();
     m_gcode_preview_volume_index.first_volumes.emplace_back(GCodePreviewVolumeIndex::Shell, 0, (unsigned int)initial_volumes_count);
 
-    if (m_print->objects().empty())
+    const Print *print = this->fff_print();
+    if (print->objects().empty())
         // nothing to render, return
         return;
 
     // adds objects' volumes 
     unsigned int object_id = 0;
-    for (const PrintObject* obj : m_print->objects())
+    for (const PrintObject* obj : print->objects())
     {
         const ModelObject* model_obj = obj->model_object();
 
@@ -6843,15 +6849,15 @@ void GLCanvas3D::_load_shells()
 
     if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptFFF) {
         // adds wipe tower's volume
-        double max_z = m_print->objects()[0]->model_object()->get_model()->bounding_box().max(2);
-        const PrintConfig& config = m_print->config();
+        double max_z = print->objects()[0]->model_object()->get_model()->bounding_box().max(2);
+        const PrintConfig& config = print->config();
         unsigned int extruders_count = config.nozzle_diameter.size();
         if ((extruders_count > 1) && config.single_extruder_multi_material && config.wipe_tower && !config.complete_objects) {
-            float depth = m_print->get_wipe_tower_depth();
-            if (!m_print->is_step_done(psWipeTower))
+            float depth = print->get_wipe_tower_depth();
+            if (!print->is_step_done(psWipeTower))
                 depth = (900.f/config.wipe_tower_width) * (float)(extruders_count - 1) ;
             m_volumes.load_wipe_tower_preview(1000, config.wipe_tower_x, config.wipe_tower_y, config.wipe_tower_width, depth, max_z, config.wipe_tower_rotation_angle,
-                                              m_use_VBOs && m_initialized, !m_print->is_step_done(psWipeTower), m_print->config().nozzle_diameter.values[0] * 1.25f * 4.5f);
+                                              m_use_VBOs && m_initialized, !print->is_step_done(psWipeTower), print->config().nozzle_diameter.values[0] * 1.25f * 4.5f);
         }
     }
 }
@@ -7048,6 +7054,16 @@ void GLCanvas3D::_resize_toolbar() const
         break;
     }
     }
+}
+
+const Print* GLCanvas3D::fff_print() const
+{
+    return (m_process == nullptr) ? nullptr : m_process->fff_print();
+}
+
+const SLAPrint* GLCanvas3D::sla_print() const
+{
+    return (m_process == nullptr) ? nullptr : m_process->sla_print();
 }
 
 } // namespace GUI

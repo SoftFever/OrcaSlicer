@@ -27,7 +27,6 @@
 
 #include "wxExtensions.hpp"
 #include "GUI_Preview.hpp"
-#include "GUI_PreviewIface.hpp"
 #include "AboutDialog.hpp"
 #include "AppConfig.hpp"
 #include "ConfigWizard.hpp"
@@ -81,8 +80,6 @@ void break_to_debugger()
     #endif /* _WIN32 */
 }
 
-PreviewIface* g_preview = nullptr; 
-
 bool config_wizard_startup(bool app_config_exists)
 {
     if (!app_config_exists || wxGetApp().preset_bundle->printers.size() <= 1) {
@@ -117,17 +114,6 @@ void config_wizard(int reason)
 
 	// Load the currently selected preset into the GUI, update the preset selection box.
 	wxGetApp().load_current_presets();
-}
-
-PreviewIface* create_preview_iface(wxNotebook* parent, DynamicPrintConfig* config, Print* print, GCodePreviewData* gcode_preview_data)
-{
-    if (g_preview == nullptr)
-    {
-        Preview* panel = new Preview(parent, config, print, gcode_preview_data);
-        g_preview = new PreviewIface(panel);
-    }
-
-    return g_preview;
 }
 
 // opt_index = 0, by the reason of zero-index in ConfigOptionVector by default (in case only one element)

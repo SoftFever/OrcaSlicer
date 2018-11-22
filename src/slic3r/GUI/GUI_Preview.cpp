@@ -1,11 +1,12 @@
-#include "../../libslic3r/libslic3r.h"
+#include "libslic3r/libslic3r.h"
+#include "libslic3r/GCode/PreviewData.hpp"
 #include "GUI_Preview.hpp"
 #include "GUI_App.hpp"
 #include "GUI.hpp"
 #include "AppConfig.hpp"
 #include "3DScene.hpp"
+#include "BackgroundSlicingProcess.hpp"
 #include "GLCanvas3DManager.hpp"
-#include "../../libslic3r/GCode/PreviewData.hpp"
 #include "PresetBundle.hpp"
 #include "wxExtensions.hpp"
 
@@ -24,7 +25,7 @@ namespace Slic3r {
 namespace GUI {
 
 
-Preview::Preview(wxNotebook* notebook, DynamicPrintConfig* config, Print* print, GCodePreviewData* gcode_preview_data, std::function<void()> schedule_background_process_func)
+Preview::Preview(wxNotebook* notebook, DynamicPrintConfig* config, BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, std::function<void()> schedule_background_process_func)
     : m_canvas(nullptr)
     , m_double_slider_sizer(nullptr)
     , m_label_view_type(nullptr)
@@ -36,7 +37,7 @@ Preview::Preview(wxNotebook* notebook, DynamicPrintConfig* config, Print* print,
     , m_checkbox_unretractions(nullptr)
     , m_checkbox_shells(nullptr)
     , m_config(config)
-    , m_print(print)
+    , m_process(process)
     , m_gcode_preview_data(gcode_preview_data)
     , m_number_extruders(1)
     , m_preferred_color_mode("feature")
@@ -45,7 +46,7 @@ Preview::Preview(wxNotebook* notebook, DynamicPrintConfig* config, Print* print,
     , m_force_sliders_full_range(false)
     , m_schedule_background_process(schedule_background_process_func)
 {
-    if (init(notebook, config, print, gcode_preview_data))
+    if (init(notebook, config, process, gcode_preview_data))
     {
         notebook->AddPage(this, _(L("Preview")));
         show_hide_ui_elements("none");
@@ -53,9 +54,9 @@ Preview::Preview(wxNotebook* notebook, DynamicPrintConfig* config, Print* print,
     }
 }
 
-bool Preview::init(wxNotebook* notebook, DynamicPrintConfig* config, Print* print, GCodePreviewData* gcode_preview_data)
+bool Preview::init(wxNotebook* notebook, DynamicPrintConfig* config, BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data)
 {
-    if ((notebook == nullptr) || (config == nullptr) || (print == nullptr) || (gcode_preview_data == nullptr))
+    if ((notebook == nullptr) || (config == nullptr) || (process == nullptr) || (gcode_preview_data == nullptr))
         return false;
 
     // creates this panel add append it to the given notebook as a new page
@@ -68,7 +69,7 @@ bool Preview::init(wxNotebook* notebook, DynamicPrintConfig* config, Print* prin
     _3DScene::allow_multisample(m_canvas, GLCanvas3DManager::can_multisample());
     _3DScene::enable_shader(m_canvas, true);
     _3DScene::set_config(m_canvas, m_config);
-    _3DScene::set_print(m_canvas, m_print);
+    _3DScene::set_process(m_canvas, process);
     _3DScene::enable_legend_texture(m_canvas, true);
     _3DScene::enable_dynamic_background(m_canvas, true);
 
@@ -250,10 +251,12 @@ void Preview::load_print()
     // is performed on all of them(this ensures that _shifted_copies was
     // populated and we know the number of layers)
     unsigned int n_layers = 0;
-    if (m_print->is_step_done(posSlice))
+    assert(m_process->current_printer_technology() == ptFFF);
+    const Print *print = m_process->fff_print();
+    if (print->is_step_done(posSlice))
     {
         std::set<float> zs;
-        for (const PrintObject* print_object : m_print->objects())
+        for (const PrintObject* print_object : print->objects())
         {
             const LayerPtrs& layers = print_object->layers();
             const SupportLayerPtrs& support_layers = print_object->support_layers();
@@ -285,7 +288,7 @@ void Preview::load_print()
     {
         // It is left to Slic3r to decide whether the print shall be colored by the tool or by the feature.
         // Color by feature if it is a single extruder print.
-        unsigned int number_extruders = (unsigned int)m_print->extruders().size();
+        unsigned int number_extruders = (unsigned int)print->extruders().size();
         int tool_idx = m_choice_view_type->FindString(_(L("Tool")));
         int type = (number_extruders > 1) ? tool_idx /* color by a tool number */ : 0; // color by a feature type
         m_choice_view_type->SetSelection(type);

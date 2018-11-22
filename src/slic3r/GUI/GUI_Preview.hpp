@@ -19,6 +19,7 @@ namespace Slic3r {
 
 class DynamicPrintConfig;
 class Print;
+class BackgroundSlicingProcess;
 class GCodePreviewData;
 
 namespace GUI {
@@ -37,7 +38,7 @@ class Preview : public wxPanel
     wxCheckBox* m_checkbox_shells;
 
     DynamicPrintConfig* m_config;
-    Print* m_print;
+    BackgroundSlicingProcess* m_process;
     GCodePreviewData* m_gcode_preview_data;
 
     // Calling this function object forces Plater::schedule_background_process.
@@ -53,7 +54,7 @@ class Preview : public wxPanel
     PrusaDoubleSlider* m_slider {nullptr};
 
 public:
-    Preview(wxNotebook* notebook, DynamicPrintConfig* config, Print* print, GCodePreviewData* gcode_preview_data, std::function<void()> schedule_background_process = [](){});
+    Preview(wxNotebook* notebook, DynamicPrintConfig* config, BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, std::function<void()> schedule_background_process = [](){});
     virtual ~Preview();
 
     wxGLCanvas* get_wxglcanvas() { return m_canvas; }
@@ -73,7 +74,7 @@ public:
     void refresh_print();
 
 private:
-    bool init(wxNotebook* notebook, DynamicPrintConfig* config, Print* print, GCodePreviewData* gcode_preview_data);
+	bool init(wxNotebook* notebook, DynamicPrintConfig* config, BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data);
 
     void bind_event_handlers();
     void unbind_event_handlers();

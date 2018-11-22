@@ -1064,7 +1064,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
     panel3d->SetSizer(panel3dsizer);
     notebook->AddPage(panel3d, _(L("3D")));
-    preview = new GUI::Preview(notebook, config, &print, &gcode_preview_data, [this](){ schedule_background_process(); });
+	preview = new GUI::Preview(notebook, config, &background_process, &gcode_preview_data, [this](){ schedule_background_process(); });
 
     _3DScene::get_canvas(canvas3D)->set_external_gizmo_widgets_parent(panel_gizmo_widgets);
 
@@ -1073,8 +1073,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     _3DScene::enable_moving(canvas3D, true);
     // XXX: more config from 3D.pm
     _3DScene::set_model(canvas3D, &model);
-    _3DScene::set_print(canvas3D, &print);
-    _3DScene::set_SLA_print(canvas3D, &sla_print);
+	_3DScene::set_process(canvas3D, &background_process);
     _3DScene::set_config(canvas3D, config);
     _3DScene::enable_gizmos(canvas3D, true);
     _3DScene::enable_toolbar(canvas3D, true);

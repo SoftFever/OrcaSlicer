@@ -265,18 +265,11 @@ void GLCanvas3DManager::set_config(wxGLCanvas* canvas, DynamicPrintConfig* confi
         it->second->set_config(config);
 }
 
-void GLCanvas3DManager::set_print(wxGLCanvas* canvas, Print* print)
+void GLCanvas3DManager::set_process(wxGLCanvas* canvas, BackgroundSlicingProcess* process)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
-        it->second->set_print(print);
-}
-
-void GLCanvas3DManager::set_SLA_print(wxGLCanvas* canvas, SLAPrint* print)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->set_SLA_print(print);
+        it->second->set_process(process);
 }
 
 void GLCanvas3DManager::set_model(wxGLCanvas* canvas, Model* model)
