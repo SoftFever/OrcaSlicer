@@ -1940,7 +1940,14 @@ void GLCanvas3D::Selection::_update_type()
             if (m_cache.content.size() == 1) // single object
             {
                 const ModelObject* model_object = m_model->objects[m_cache.content.begin()->first];
-                unsigned int volumes_count = (unsigned int)model_object->volumes.size();
+                unsigned int model_volumes_count = (unsigned int)model_object->volumes.size();
+                unsigned int sla_volumes_count = 0;
+                for (unsigned int i : m_list)
+                {
+                    if ((*m_volumes)[i]->volume_idx() < 0)
+                        ++sla_volumes_count;
+                }
+                unsigned int volumes_count = model_volumes_count + sla_volumes_count;
                 unsigned int instances_count = (unsigned int)model_object->instances.size();
                 unsigned int selected_instances_count = (unsigned int)m_cache.content.begin()->second.size();
                 if (volumes_count * instances_count == (unsigned int)m_list.size())
