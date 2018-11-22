@@ -201,6 +201,8 @@ const float GLVolume::HOVER_COLOR[4] = { 0.4f, 0.9f, 0.1f, 1.0f };
 const float GLVolume::OUTSIDE_COLOR[4] = { 0.0f, 0.38f, 0.8f, 1.0f };
 const float GLVolume::SELECTED_OUTSIDE_COLOR[4] = { 0.19f, 0.58f, 1.0f, 1.0f };
 const float GLVolume::DISABLED_COLOR[4] = { 0.25f, 0.25f, 0.25f, 1.0f };
+const float GLVolume::SLA_SUPPORT_COLOR[4] = { 0.75f, 0.75f, 0.75f, 1.0f };
+const float GLVolume::SLA_PAD_COLOR[4] = { 0.0f, 0.2f, 0.0f, 1.0f };
 
 GLVolume::GLVolume(float r, float g, float b, float a)
 #if ENABLE_MODELVOLUME_TRANSFORM
@@ -832,8 +834,7 @@ void GLVolumeCollection::load_object_auxiliary(
     for (const std::pair<size_t, size_t> &instance_idx : instances) {
         const ModelInstance            &model_instance = *print_object->model_object()->instances[instance_idx.first];
         const SLAPrintObject::Instance &print_instance = print_object->instances()[instance_idx.second];
-        float color[4] { 0.f, 0.f, 1.f, 1.f };
-        this->volumes.emplace_back(new GLVolume(color));
+        this->volumes.emplace_back(new GLVolume((milestone == slaposBasePool) ? GLVolume::SLA_PAD_COLOR : GLVolume::SLA_SUPPORT_COLOR));
         GLVolume &v = *this->volumes.back();
         if (use_VBOs)
             v.indexed_vertex_array.load_mesh_full_shading(mesh);
@@ -842,7 +843,7 @@ void GLVolumeCollection::load_object_auxiliary(
         // finalize_geometry() clears the vertex arrays, therefore the bounding box has to be computed before finalize_geometry().
         v.bounding_box = v.indexed_vertex_array.bounding_box();
         v.indexed_vertex_array.finalize_geometry(use_VBOs);
-		v.composite_id = GLVolume::CompositeID(obj_idx, -1, (int)instance_idx.first);
+        v.composite_id = GLVolume::CompositeID(obj_idx, -milestone, (int)instance_idx.first);
         v.geometry_id = std::pair<size_t, size_t>(timestamp, model_instance.id().id);
 		// Create a copy of the convex hull mesh for each instance. Use a move operator on the last instance.
 		v.set_convex_hull((&instance_idx == &instances.back()) ? new TriangleMesh(std::move(convex_hull)) : new TriangleMesh(convex_hull), true);
@@ -1102,7 +1103,7 @@ void GLVolumeCollection::update_colors_by_extruder(const DynamicPrintConfig* con
 
     for (GLVolume* volume : volumes)
     {
-        if ((volume == nullptr) || volume->is_modifier || volume->is_wipe_tower)
+        if ((volume == nullptr) || volume->is_modifier || volume->is_wipe_tower || (volume->volume_idx() < 0))
             continue;
 
         int extruder_id = volume->extruder_id - 1;
