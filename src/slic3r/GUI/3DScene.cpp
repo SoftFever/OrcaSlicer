@@ -216,6 +216,7 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     , m_world_matrix_dirty(true)
     , m_transformed_bounding_box_dirty(true)
 #endif // ENABLE_MODELVOLUME_TRANSFORM
+    , m_sla_shift_z(0.0)
     , m_transformed_convex_hull_bounding_box_dirty(true)
     , m_convex_hull(nullptr)
     , m_convex_hull_owned(false)
@@ -380,7 +381,14 @@ void GLVolume::set_convex_hull(const TriangleMesh *convex_hull, bool owned)
     m_convex_hull_owned = owned;
 }
 
-#if !ENABLE_MODELVOLUME_TRANSFORM
+#if ENABLE_MODELVOLUME_TRANSFORM
+Transform3d GLVolume::world_matrix() const
+{
+    Transform3d m = m_instance_transformation.get_matrix() * m_volume_transformation.get_matrix();
+    m.translation()(2) += m_sla_shift_z;
+    return m;
+}
+#else
 const Transform3f& GLVolume::world_matrix() const
 {
     if (m_world_matrix_dirty)
@@ -390,7 +398,7 @@ const Transform3f& GLVolume::world_matrix() const
     }
     return m_world_matrix;
 }
-#endif // !ENABLE_MODELVOLUME_TRANSFORM
+#endif // ENABLE_MODELVOLUME_TRANSFORM
 
 const BoundingBoxf3& GLVolume::transformed_bounding_box() const
 {

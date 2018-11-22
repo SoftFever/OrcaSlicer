@@ -3937,6 +3937,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                     delete volume;
             } else {
                 // This GLVolume will be reused.
+                volume->set_sla_shift_z(0.0);
                 map_glvolume_old_to_new[volume_id] = glvolumes_new.size();
                 mvs->volume_idx = glvolumes_new.size();
                 glvolumes_new.emplace_back(volume);
@@ -4047,7 +4048,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                                 instances[istep].emplace_back(std::pair<size_t, size_t>(instance_idx, print_instance_idx));
                             else
 								// Recycling an old GLVolume. Update the Object/Instance indices into the current Model.
-                                m_volumes.volumes[it->volume_idx]->composite_id = GLVolume::CompositeID(object_idx, -1, instance_idx);
+                                m_volumes.volumes[it->volume_idx]->composite_id = GLVolume::CompositeID(object_idx, m_volumes.volumes[it->volume_idx]->volume_idx(), instance_idx);
                         }
                 }
 
@@ -4062,11 +4063,11 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 {
                     // If any volume has been added
                     // Shift-up all volumes of the object so that it has the right elevation with respect to the print bed
-                    Vec3d shift_z(0.0, 0.0, print_object->get_elevation());
+                    double shift_z = print_object->get_elevation();
                     for (GLVolume* volume : m_volumes.volumes)
                     {
                         if (volume->object_idx() == object_idx)
-                            volume->set_instance_offset(volume->get_instance_offset() + shift_z);
+                            volume->set_sla_shift_z(shift_z);
                     }
                 }
             }
