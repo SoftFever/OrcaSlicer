@@ -2281,6 +2281,8 @@ void Plater::select_view(const std::string& direction) { p->select_view(directio
 void Plater::select_all() { p->select_all(); }
 
 void Plater::remove(size_t obj_idx) { p->remove(obj_idx); }
+void Plater::reset() { p->reset(); }
+
 void Plater::delete_object_from_model(size_t obj_idx) { p->delete_object_from_model(obj_idx); }
 
 void Plater::remove_selected()
