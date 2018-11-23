@@ -584,21 +584,13 @@ class _3DScene
     static GUI::GLCanvas3DManager s_canvas_mgr;
 
 public:
-    static void init_gl();
     static std::string get_gl_info(bool format_as_html, bool extensions);
-    static bool use_VBOs();
 
     static bool add_canvas(wxGLCanvas* canvas);
     static bool remove_canvas(wxGLCanvas* canvas);
     static void remove_all_canvases();
 
     static bool init(wxGLCanvas* canvas);
-
-    static void set_as_dirty(wxGLCanvas* canvas);
-
-    static unsigned int get_volumes_count(wxGLCanvas* canvas);
-    static void reset_volumes(wxGLCanvas* canvas);
-    static int check_volumes_outside_state(wxGLCanvas* canvas, const DynamicPrintConfig* config);
 
     static GUI::GLCanvas3D* get_canvas(wxGLCanvas* canvas);
 
@@ -609,11 +601,6 @@ public:
     static void set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape);
 
     static void set_color_by(wxGLCanvas* canvas, const std::string& value);
-
-    static bool is_layers_editing_enabled(wxGLCanvas* canvas);
-    static bool is_layers_editing_allowed(wxGLCanvas* canvas);
-
-    static bool is_reload_delayed(wxGLCanvas* canvas);
 
     static void enable_layers_editing(wxGLCanvas* canvas, bool enable);
     static void enable_warning_texture(wxGLCanvas* canvas, bool enable);

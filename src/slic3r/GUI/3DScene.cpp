@@ -1841,19 +1841,9 @@ void _3DScene::point3_to_verts(const Vec3crd& point, double width, double height
 
 GUI::GLCanvas3DManager _3DScene::s_canvas_mgr;
 
-void _3DScene::init_gl()
-{
-    s_canvas_mgr.init_gl();
-}
-
 std::string _3DScene::get_gl_info(bool format_as_html, bool extensions)
 {
     return s_canvas_mgr.get_gl_info(format_as_html, extensions);
-}
-
-bool _3DScene::use_VBOs()
-{
-    return s_canvas_mgr.use_VBOs();
 }
 
 bool _3DScene::add_canvas(wxGLCanvas* canvas)
@@ -1874,26 +1864,6 @@ void _3DScene::remove_all_canvases()
 bool _3DScene::init(wxGLCanvas* canvas)
 {
     return s_canvas_mgr.init(canvas);
-}
-
-void _3DScene::set_as_dirty(wxGLCanvas* canvas)
-{
-    s_canvas_mgr.set_as_dirty(canvas);
-}
-
-unsigned int _3DScene::get_volumes_count(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.get_volumes_count(canvas);
-}
-
-void _3DScene::reset_volumes(wxGLCanvas* canvas)
-{
-    s_canvas_mgr.reset_volumes(canvas);
-}
-
-int _3DScene::check_volumes_outside_state(wxGLCanvas* canvas, const DynamicPrintConfig* config)
-{
-    return s_canvas_mgr.check_volumes_outside_state(canvas, config);
 }
 
 GUI::GLCanvas3D* _3DScene::get_canvas(wxGLCanvas* canvas)
@@ -1924,21 +1894,6 @@ void _3DScene::set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape)
 void _3DScene::set_color_by(wxGLCanvas* canvas, const std::string& value)
 {
     s_canvas_mgr.set_color_by(canvas, value);
-}
-
-bool _3DScene::is_layers_editing_enabled(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.is_layers_editing_enabled(canvas);
-}
-
-bool _3DScene::is_layers_editing_allowed(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.is_layers_editing_allowed(canvas);
-}
-
-bool _3DScene::is_reload_delayed(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.is_reload_delayed(canvas);
 }
 
 void _3DScene::enable_layers_editing(wxGLCanvas* canvas, bool enable)

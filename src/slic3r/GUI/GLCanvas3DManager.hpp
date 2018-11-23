@@ -78,16 +78,9 @@ public:
     void init_gl();
     std::string get_gl_info(bool format_as_html, bool extensions) const;
 
-    bool use_VBOs() const;
     bool layer_editing_allowed() const;
 
     bool init(wxGLCanvas* canvas);
-
-    void set_as_dirty(wxGLCanvas* canvas);
-
-    unsigned int get_volumes_count(wxGLCanvas* canvas) const;
-    void reset_volumes(wxGLCanvas* canvas);
-    int check_volumes_outside_state(wxGLCanvas* canvas, const DynamicPrintConfig* config) const;
 
     GLCanvas3D* get_canvas(wxGLCanvas* canvas);
 
@@ -98,11 +91,6 @@ public:
     void set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape);
 
     void set_color_by(wxGLCanvas* canvas, const std::string& value);
-
-    bool is_layers_editing_enabled(wxGLCanvas* canvas) const;
-    bool is_layers_editing_allowed(wxGLCanvas* canvas) const;
-
-    bool is_reload_delayed(wxGLCanvas* canvas) const;
 
     void enable_layers_editing(wxGLCanvas* canvas, bool enable);
     void enable_warning_texture(wxGLCanvas* canvas, bool enable);

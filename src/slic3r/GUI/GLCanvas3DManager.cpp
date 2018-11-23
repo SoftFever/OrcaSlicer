@@ -212,11 +212,6 @@ std::string GLCanvas3DManager::get_gl_info(bool format_as_html, bool extensions)
     return m_gl_info.to_string(format_as_html, extensions);
 }
 
-bool GLCanvas3DManager::use_VBOs() const
-{
-    return m_use_VBOs;
-}
-
 bool GLCanvas3DManager::init(wxGLCanvas* canvas)
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
@@ -224,32 +219,6 @@ bool GLCanvas3DManager::init(wxGLCanvas* canvas)
         return (it->second != nullptr) ? _init(*it->second) : false;
     else
         return false;
-}
-
-void GLCanvas3DManager::set_as_dirty(wxGLCanvas* canvas)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->set_as_dirty();
-}
-
-unsigned int GLCanvas3DManager::get_volumes_count(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->get_volumes_count() : 0;
-}
-
-void GLCanvas3DManager::reset_volumes(wxGLCanvas* canvas)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->reset_volumes();
-}
-
-int GLCanvas3DManager::check_volumes_outside_state(wxGLCanvas* canvas, const DynamicPrintConfig* config) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->check_volumes_outside_state(config) : false;
 }
 
 GLCanvas3D* GLCanvas3DManager::get_canvas(wxGLCanvas* canvas)
@@ -291,24 +260,6 @@ void GLCanvas3DManager::set_color_by(wxGLCanvas* canvas, const std::string& valu
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
         it->second->set_color_by(value);
-}
-
-bool GLCanvas3DManager::is_layers_editing_enabled(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->is_layers_editing_enabled() : false;
-}
-
-bool GLCanvas3DManager::is_layers_editing_allowed(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->is_layers_editing_allowed() : false;
-}
-
-bool GLCanvas3DManager::is_reload_delayed(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->is_reload_delayed() : false;
 }
 
 void GLCanvas3DManager::enable_layers_editing(wxGLCanvas* canvas, bool enable)
