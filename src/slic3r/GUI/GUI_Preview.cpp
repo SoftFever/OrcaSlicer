@@ -244,14 +244,13 @@ void Preview::set_drop_target(wxDropTarget* target)
 
 void Preview::load_print()
 {
-    if (m_loaded)
+	if (m_loaded || m_process->current_printer_technology() != ptFFF)
         return;
 
     // we require that there's at least one object and the posSlice step
     // is performed on all of them(this ensures that _shifted_copies was
     // populated and we know the number of layers)
     unsigned int n_layers = 0;
-    assert(m_process->current_printer_technology() == ptFFF);
     const Print *print = m_process->fff_print();
     if (print->is_step_done(posSlice))
     {

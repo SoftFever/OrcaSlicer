@@ -4060,7 +4060,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 {
                     // If any volume has been added
                     // Shift-up all volumes of the object so that it has the right elevation with respect to the print bed
-                    double shift_z = print_object->get_elevation();
+                    double shift_z = print_object->get_current_elevation();
                     for (GLVolume* volume : m_volumes.volumes)
                     {
                         if (volume->object_idx() == object_idx)
