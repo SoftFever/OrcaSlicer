@@ -1320,10 +1320,12 @@ void GLCanvas3D::Selection::add_all()
         return;
 
     m_mode = Instance;
+    clear();
 
     for (unsigned int i = 0; i < (unsigned int)m_volumes->size(); ++i)
     {
-        _add_volume(i);
+        if (!(*m_volumes)[i]->is_wipe_tower)
+            _add_volume(i);
     }
 
     _update_type();
@@ -1397,6 +1399,12 @@ bool GLCanvas3D::Selection::is_single_full_instance() const
         return m_model->objects[object_idx]->volumes.size() == m_list.size();
 
     return false;
+}
+
+bool GLCanvas3D::Selection::is_from_single_object() const
+{
+    int idx = get_object_idx();
+    return (0 <= idx) && (idx < 1000);
 }
 
 int GLCanvas3D::Selection::get_object_idx() const
