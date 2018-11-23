@@ -913,19 +913,17 @@ public:
     // How much the pinhead has to penetrate the model surface
     ConfigOptionFloat support_head_penetration /*= 0.2*/;
 
-    // Radius of the back side of the 3d arrow. TODO: consider renaming this
-    // to actual pillar radius, because that's what it boils down to.
-    ConfigOptionFloat support_head_back_radius /*= 0.5*/;
-
     // Width in mm from the back sphere center to the front sphere center.
     ConfigOptionFloat support_head_width /*= 1.0*/;
 
     // Radius in mm of the support pillars.
-    // TODO: This parameter is questionable. The pillar radius will be dynamic in
-    // nature. Merged pillars will have an increased thickness. This parameter
-    // may serve as the maximum radius, or maybe an increase when two are merged
-    // The default radius will be derived from head_back_radius_mm
     ConfigOptionFloat support_pillar_radius /*= 0.8*/;
+
+    // TODO: unimplemented at the moment. This coefficient will have an impact
+    // when bridges and pillars are merged. The resulting pillar should be a bit
+    // thicker than the ones merging into it. How much thicker? I don't know
+    // but it will be derived from this value.
+    ConfigOptionFloat support_pillar_widening_factor;
 
     // Radius in mm of the pillar base.
     ConfigOptionFloat support_base_radius /*= 2.0*/;
@@ -968,9 +966,9 @@ protected:
         OPT_PTR(supports_enable);
         OPT_PTR(support_head_front_radius);
         OPT_PTR(support_head_penetration);
-        OPT_PTR(support_head_back_radius);
         OPT_PTR(support_head_width);
         OPT_PTR(support_pillar_radius);
+        OPT_PTR(support_pillar_widening_factor);
         OPT_PTR(support_base_radius);
         OPT_PTR(support_base_height);
         OPT_PTR(support_critical_angle);

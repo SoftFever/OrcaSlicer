@@ -3002,12 +3002,12 @@ void TabSLAPrint::build()
 
     optgroup = page->new_optgroup(_(L("Support head")));
     optgroup->append_single_option_line("support_head_front_radius");
-    optgroup->append_single_option_line("support_head_back_radius");
     optgroup->append_single_option_line("support_head_penetration");
     optgroup->append_single_option_line("support_head_width");
 
     optgroup = page->new_optgroup(_(L("Support pillar")));
     optgroup->append_single_option_line("support_pillar_radius");
+    optgroup->append_single_option_line("support_pillar_widening_factor");
     optgroup->append_single_option_line("support_base_radius");
     optgroup->append_single_option_line("support_base_height");
     optgroup->append_single_option_line("support_object_elevation");
