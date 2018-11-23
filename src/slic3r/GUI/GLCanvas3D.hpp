@@ -502,7 +502,7 @@ public:
         bool is_multiple_volume() const { return m_type == MultipleVolume; }
         bool is_mixed() const { return m_type == Mixed; }
         bool is_from_single_instance() const { return get_instance_idx() != -1; }
-        bool is_from_single_object() const { return get_object_idx() != -1; }
+        bool is_from_single_object() const;
 
         bool contains_volume(unsigned int volume_idx) const { return std::find(m_list.begin(), m_list.end(), volume_idx) != m_list.end(); }
 

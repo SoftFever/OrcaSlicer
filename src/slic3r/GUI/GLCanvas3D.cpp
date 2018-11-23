@@ -1320,10 +1320,12 @@ void GLCanvas3D::Selection::add_all()
         return;
 
     m_mode = Instance;
+    clear();
 
     for (unsigned int i = 0; i < (unsigned int)m_volumes->size(); ++i)
     {
-        _add_volume(i);
+        if (!(*m_volumes)[i]->is_wipe_tower)
+            _add_volume(i);
     }
 
     _update_type();
@@ -1399,6 +1401,12 @@ bool GLCanvas3D::Selection::is_single_full_instance() const
     return false;
 }
 
+bool GLCanvas3D::Selection::is_from_single_object() const
+{
+    int idx = get_object_idx();
+    return (0 <= idx) && (idx < 1000);
+}
+
 int GLCanvas3D::Selection::get_object_idx() const
 {
     return (m_cache.content.size() == 1) ? m_cache.content.begin()->first : -1;
@@ -1455,7 +1463,7 @@ void GLCanvas3D::Selection::translate(const Vec3d& displacement)
             (*m_volumes)[i]->set_instance_offset(m_cache.volumes_data[i].get_instance_position() + displacement);
         else if (m_mode == Volume)
         {
-            Vec3d local_displacement = (m_cache.volumes_data[i].get_instance_rotation_matrix() * m_cache.volumes_data[i].get_volume_rotation_matrix()).inverse() * displacement;
+            Vec3d local_displacement = m_cache.volumes_data[i].get_instance_rotation_matrix().inverse() * displacement;
             (*m_volumes)[i]->set_volume_offset(m_cache.volumes_data[i].get_volume_position() + local_displacement);
         }
 #else
@@ -1924,9 +1932,17 @@ void GLCanvas3D::Selection::_update_type()
                 unsigned int volumes_count = (unsigned int)model_object->volumes.size();
                 unsigned int instances_count = (unsigned int)model_object->instances.size();
                 if (volumes_count * instances_count == 1)
+                {
                     m_type = SingleFullObject;
+                    // ensures the correct mode is selected
+                    m_mode = Instance;
+                }
                 else if (volumes_count == 1) // instances_count > 1
+                {
                     m_type = SingleFullInstance;
+                    // ensures the correct mode is selected
+                    m_mode = Instance;
+                }
                 else
                 {
                     m_type = SingleVolume;
@@ -1950,11 +1966,19 @@ void GLCanvas3D::Selection::_update_type()
                 unsigned int instances_count = (unsigned int)model_object->instances.size();
                 unsigned int selected_instances_count = (unsigned int)m_cache.content.begin()->second.size();
                 if (volumes_count * instances_count == (unsigned int)m_list.size())
+                {
                     m_type = SingleFullObject;
+                    // ensures the correct mode is selected
+                    m_mode = Instance;
+                }
                 else if (selected_instances_count == 1)
                 {
                     if (volumes_count == (unsigned int)m_list.size())
+                    {
                         m_type = SingleFullInstance;
+                        // ensures the correct mode is selected
+                        m_mode = Instance;
+                    }
                     else
                     {
                         unsigned int modifiers_count = 0;
@@ -1977,7 +2001,11 @@ void GLCanvas3D::Selection::_update_type()
                     }
                 }
                 else if ((selected_instances_count > 1) && (selected_instances_count * volumes_count == (unsigned int)m_list.size()))
+                {
                     m_type = MultipleFullInstance;
+                    // ensures the correct mode is selected
+                    m_mode = Instance;
+                }
             }
             else
             {
@@ -1990,7 +2018,11 @@ void GLCanvas3D::Selection::_update_type()
                         sels_cntr += volumes_count * instances_count;
                 }
                 if (sels_cntr == (unsigned int)m_list.size())
+                {
                     m_type = MultipleFullObject;
+                    // ensures the correct mode is selected
+                    m_mode = Instance;
+                }
             }
         }
     }
@@ -2002,66 +2034,84 @@ void GLCanvas3D::Selection::_update_type()
         v->disabled = requires_disable ? (v->object_idx() != object_idx) || (v->instance_idx() != instance_idx) : false;
     }
 
+    std::cout << "Selection: ";
+    std::cout << "mode: ";
+    switch (m_mode)
+    {
+    case Volume:
+    {
+        std::cout << "Volume";
+        break;
+    }
+    case Instance:
+    {
+        std::cout << "Instance";
+        break;
+    }
+    }
+
+    std::cout << " - type: ";
+
     switch (m_type)
     {
     case Invalid:
     {
-        std::cout << "selection type: Invalid" << std::endl;
+        std::cout << "Invalid" << std::endl;
         break;
     }
     case Empty:
     {
-        std::cout << "selection type: Empty" << std::endl;
+        std::cout << "Empty" << std::endl;
         break;
     }
     case WipeTower:
     {
-        std::cout << "selection type: WipeTower" << std::endl;
+        std::cout << "WipeTower" << std::endl;
         break;
     }
     case SingleModifier:
     {
-        std::cout << "selection type: SingleModifier" << std::endl;
+        std::cout << "SingleModifier" << std::endl;
         break;
     }
     case MultipleModifier:
     {
-        std::cout << "selection type: MultipleModifier" << std::endl;
+        std::cout << "MultipleModifier" << std::endl;
         break;
     }
     case SingleVolume:
     {
-        std::cout << "selection type: SingleVolume" << std::endl;
+        std::cout << "SingleVolume" << std::endl;
         break;
     }
     case MultipleVolume:
     {
-        std::cout << "selection type: MultipleVolume" << std::endl;
+        std::cout << "MultipleVolume" << std::endl;
         break;
     }
     case SingleFullObject:
     {
-        std::cout << "selection type: SingleFullObject" << std::endl;
+        std::cout << "SingleFullObject" << std::endl;
         break;
     }
     case MultipleFullObject:
     {
-        std::cout << "selection type: MultipleFullObject" << std::endl;
+        std::cout << "MultipleFullObject" << std::endl;
         break;
     }
     case SingleFullInstance:
     {
-        std::cout << "selection type: SingleFullInstance" << std::endl;
+        std::cout << "SingleFullInstance" << std::endl;
         break;
     }
     case MultipleFullInstance:
     {
-        std::cout << "selection type: MultipleFullInstance" << std::endl;
+        std::cout << "MultipleFullInstance" << std::endl;
         break;
     }
     case Mixed:
     {
-        std::cout << "selection type: Mixed" << std::endl;
+        std::cout << "Mixed" << std::endl;
         break;
     }
     }
@@ -3943,7 +3993,11 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 					int extruder_id = mvs->model_volume->extruder_id();
 					if (extruder_id != -1)
 						volume->extruder_id = extruder_id;
-				}
+
+                    // updates volumes transformations
+                    volume->set_instance_transformation(mvs->model_volume->get_object()->instances[volume->instance_idx()]->get_transformation());
+                    volume->set_volume_transformation(mvs->model_volume->get_transformation());
+                }
             }
         }
     }
@@ -4016,6 +4070,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             size_t idx = 0;
             const SLAPrint *sla_print = this->sla_print();
             for (const SLAPrintObject *print_object : sla_print->objects()) {
+                std::cout << "Current elevation: "<< print_object->get_current_elevation() << std::endl;
                 SLASupportState   &state        = sla_support_state[idx ++];
                 const ModelObject *model_object = print_object->model_object();
                 // Find an index of the ModelObject

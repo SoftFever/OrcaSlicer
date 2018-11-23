@@ -458,13 +458,16 @@ void SLAPrint::process()
             SLAPrintObjectConfig& c = po.m_config;
 
             scfg.head_front_radius_mm = c.support_head_front_radius.getFloat();
-            scfg.head_back_radius_mm = c.support_head_back_radius.getFloat();
+            scfg.head_back_radius_mm = c.support_pillar_radius.getFloat();
             scfg.head_penetration_mm = c.support_head_penetration.getFloat();
             scfg.head_width_mm = c.support_head_width.getFloat();
             scfg.object_elevation_mm = c.support_object_elevation.getFloat();
             scfg.tilt = c.support_critical_angle.getFloat() * PI / 180.0 ;
             scfg.max_bridge_length_mm = c.support_max_bridge_length.getFloat();
-            scfg.pillar_radius_mm = c.support_pillar_radius.getFloat();
+            scfg.headless_pillar_radius_mm = 0.75*c.support_pillar_radius.getFloat();
+            scfg.pillar_widening_factor = c.support_pillar_widening_factor.getFloat();
+            scfg.base_radius_mm = c.support_base_radius.getFloat();
+            scfg.base_height_mm = c.support_base_height.getFloat();
 
             sla::Controller ctl;
 
@@ -520,11 +523,6 @@ void SLAPrint::process()
             // This call can get pretty time consuming
             if(elevation < pad_h) sla::base_plate(trmesh, bp,
                                                   float(pad_h), float(lh));
-
-            std::cout << "Mesh is empty: " << trmesh.empty() << std::endl;
-            std::cout << "Pad height: " << pad_h << std::endl;
-            std::cout << "Elevation " << elevation << std::endl;
-            std::cout << "Pad plate vertices: " << bp.size() << std::endl;
 
             po.m_supportdata->support_tree_ptr->add_pad(bp, wt, h, md, er);
         }

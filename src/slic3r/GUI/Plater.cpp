@@ -2200,7 +2200,7 @@ bool Plater::priv::init_object_menu()
     wxMenuItem* item_split = append_submenu(&object_menu, split_menu, wxID_ANY, _(L("Split")), _(L("Split the selected object")), "shape_ungroup.png");
 
     // Add the automatic rotation sub-menu
-    item_sla_autorot = append_menu_item(&object_menu, wxID_ANY, _(L("Optimize orientation\t+")), _(L("Optimize the rotation of the object for better print results.")),
+    item_sla_autorot = append_menu_item(&object_menu, wxID_ANY, _(L("Optimize orientation")), _(L("Optimize the rotation of the object for better print results.")),
                                             [this](wxCommandEvent&) { sla_optimize_rotation(); });
 
     if(printer_technology == ptFFF) item_sla_autorot = object_menu.Remove(item_sla_autorot);

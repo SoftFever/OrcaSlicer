@@ -41,13 +41,16 @@ struct SupportConfig {
     // Width in mm from the back sphere center to the front sphere center.
     double head_width_mm = 1.0;
 
-    // Radius in mm of the support pillars.
-    // Warning: this value will be at most 65% of head_back_radius_mm
-    // TODO: This parameter is invalid. The pillar radius will be dynamic in
-    // nature. Merged pillars will have an increased thickness. This parameter
-    // may serve as the maximum radius, or maybe an increase when two are merged
-    // The default radius will be derived from head_back_radius_mm
-    double pillar_radius_mm = 0.8;
+    // Radius in mm of the support pillars. The actual radius of the pillars
+    // beginning with a head will not be higher than head_back_radius but the
+    // headless pillars will have half of this value.
+    double headless_pillar_radius_mm = 0.4;
+
+    // TODO: unimplemented at the moment. This coefficient will have an impact
+    // when bridges and pillars are merged. The resulting pillar should be a bit
+    // thicker than the ones merging into it. How much thicker? I don't know
+    // but it will be derived from this value.
+    double pillar_widening_factor = 0.5;
 
     // Radius in mm of the pillar base.
     double base_radius_mm = 2.0;

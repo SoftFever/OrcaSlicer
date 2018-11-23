@@ -309,7 +309,7 @@ struct Head {
     }
 
     double request_pillar_radius(double radius) const {
-        const double rmax = r_back_mm /* * 0.65*/ ;
+        const double rmax = r_back_mm;
         return radius > 0 && radius < rmax ? radius : rmax;
     }
 };
@@ -929,6 +929,9 @@ bool SLASupportTree::generate(const PointSet &points,
                               const SupportConfig &cfg,
                               const Controller &ctl)
 {
+    // If there are no input points there is no point in doing anything
+    if(points.rows() == 0) return false;
+
     PointSet filtered_points;       // all valid support points
     PointSet head_positions;        // support points with pinhead
     PointSet head_normals;          // head normals
@@ -1183,7 +1186,7 @@ bool SLASupportTree::generate(const PointSet &points,
 
         // If the pillars are so close that they touch each other,
         // there is no need to bridge them together.
-        if(pillar_dist > 2*cfg.pillar_radius_mm &&
+        if(pillar_dist > 2*cfg.head_back_radius_mm &&
            bridge_distance < cfg.max_bridge_length_mm)
             while(sj(Z) > pillar.endpoint(Z) &&
                   ej(Z) > nextpillar.endpoint(Z))
@@ -1222,7 +1225,7 @@ bool SLASupportTree::generate(const PointSet &points,
             Result& result)
     {
         const double hbr = cfg.head_back_radius_mm;
-        const double pradius = cfg.pillar_radius_mm;
+        const double pradius = cfg.head_back_radius_mm;
         const double maxbridgelen = cfg.max_bridge_length_mm;
         const double gndlvl = result.ground_level;
 
@@ -1475,7 +1478,7 @@ bool SLASupportTree::generate(const PointSet &points,
 
             result.add_pillar(idx,
                 Vec3d{headend(X), headend(Y), headend(Z) - gh + hl},
-                cfg.pillar_radius_mm
+                cfg.head_back_radius_mm
             ).base = base_head.mesh;
         }
     };
@@ -1490,7 +1493,7 @@ bool SLASupportTree::generate(const PointSet &points,
         // For now we will just generate smaller headless sticks with a sharp
         // ending point that connects to the mesh surface.
 
-        const double R = 0.5*cfg.pillar_radius_mm;
+        const double R = cfg.headless_pillar_radius_mm;
         const double HWIDTH_MM = R/3;
 
         // We will sink the pins into the model surface for a distance of 1/3 of
@@ -1619,10 +1622,7 @@ bool SLASupportTree::generate(const PointSet &points,
     return pc == ABORT;
 }
 
-SLASupportTree::SLASupportTree(): m_impl(new Impl())
-{
-
-}
+SLASupportTree::SLASupportTree(): m_impl(new Impl()) {}
 
 const TriangleMesh &SLASupportTree::merged_mesh() const
 {

@@ -661,6 +661,23 @@ void ModelObject::delete_volume(size_t idx)
     ModelVolumePtrs::iterator i = this->volumes.begin() + idx;
     delete *i;
     this->volumes.erase(i);
+
+    if (this->volumes.size() == 1)
+    {
+        // only one volume left
+        // center it and update the instances accordingly
+        // rationale: the volume may be shifted with respect to the object center and this may lead to wrong rotation and scaling 
+        // when modifying the instance matrix of the derived GLVolume
+        ModelVolume* v = this->volumes.front();
+        v->center_geometry();
+        const Vec3d& vol_offset = v->get_offset();
+        for (ModelInstance* inst : this->instances)
+        {
+            inst->set_offset(inst->get_offset() + inst->get_matrix(true) * vol_offset);
+        }
+        v->set_offset(Vec3d::Zero());
+    }
+
     this->invalidate_bounding_box();
 }
 

@@ -2471,15 +2471,6 @@ void PrintConfigDef::init_sla_params()
     def->min = 0;
     def->default_value = new ConfigOptionFloat(0.2);
 
-    def = this->add("support_head_back_radius", coFloat);
-    def->label = L("Support head back radius");
-    def->category = L("Supports");
-    def->tooltip = L("Radius of the back side of the 3d arrow");
-    def->sidetext = L("mm");
-    def->cli = "";
-    def->min = 0;
-    def->default_value = new ConfigOptionFloat(0.5);
-
     def = this->add("support_head_width", coFloat);
     def->label = L("Support head width");
     def->category = L("Supports");
@@ -2496,7 +2487,19 @@ void PrintConfigDef::init_sla_params()
     def->sidetext = L("mm");
     def->cli = "";
     def->min = 0;
-    def->default_value = new ConfigOptionFloat(0.8);
+    def->default_value = new ConfigOptionFloat(0.5);
+
+    def = this->add("support_pillar_widening_factor", coFloat);
+    def->label = L("Pillar widening factor");
+    def->category = L("Supports");
+    def->tooltip = L("Merging bridges or pillars into another pillars can "
+                     "increase the radius. Zero means no increase, one means "
+                     "full increase.");
+    def->sidetext = L("");
+    def->cli = "";
+    def->min = 0;
+    def->max = 1.0;
+    def->default_value = new ConfigOptionFloat(0.0);
 
     def = this->add("support_base_radius", coFloat);
     def->label = L("Support base radius");
