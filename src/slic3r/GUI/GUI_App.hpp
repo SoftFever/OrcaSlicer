@@ -139,7 +139,6 @@ public:
     ObjectSettings*     obj_settings();
     ObjectList*         obj_list();
     Plater*             plater();
-    wxGLCanvas*         canvas3D();
     std::vector<ModelObject*> *model_objects();
 
     AppConfig*      app_config{ nullptr };

@@ -914,7 +914,8 @@ struct Plater::priv
     wxNotebook *notebook;
     Sidebar *sidebar;
     wxPanel *panel3d;
-    wxGLCanvas *canvas3D;    // TODO: Use GLCanvas3D when we can
+    wxGLCanvas *canvas3Dwidget;    // TODO: Use GLCanvas3D when we can
+    GLCanvas3D *canvas3D;
     Preview *preview;
 
 #if ENABLE_NEW_MENU_LAYOUT
@@ -924,6 +925,7 @@ struct Plater::priv
     BackgroundSlicingProcess    background_process;
     std::atomic<bool>           arranging;
     std::atomic<bool>           rotoptimizing;
+    bool                        delayed_scene_refresh;
 
     wxTimer                     background_process_timer;
 
@@ -970,7 +972,7 @@ struct Plater::priv
         // that the background process was invalidated and it needs to be re-run.
         UPDATE_BACKGROUND_PROCESS_RESTART = 1,
         // update_background_process() reports, that the Print / SLAPrint was updated in a way,
-        // that a scene needs to be refreshed (you should call _3DScene::reload_scene(canvas3D, false))
+        // that a scene needs to be refreshed (you should call _3DScene::reload_scene(canvas3Dwidget, false))
         UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE = 2,   
         // update_background_process() reports, that the Print / SLAPrint is invalid, and the error message
         // was sent to the status line.
@@ -1004,6 +1006,7 @@ struct Plater::priv
     void on_wipetower_moved(Vec3dEvent&);
     void on_enable_action_buttons(Event<bool>&);
     void on_update_geometry(Vec3dsEvent<2>&);
+    void on_3dcanvas_mouse_dragging_finished(SimpleEvent&);
 
 private:
     bool init_object_menu();
@@ -1017,6 +1020,8 @@ private:
     bool can_delete_all() const;
     bool can_arrange() const;
     bool can_mirror() const;
+
+    void update_sla_scene();
 };
 
 const std::regex Plater::priv::pattern_bundle(".*[.](amf|amf[.]xml|zip[.]amf|3mf|prusa)", std::regex::icase);
@@ -1035,7 +1040,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     , notebook(new wxNotebook(q, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_BOTTOM))
     , sidebar(new Sidebar(q))
     , panel3d(new wxPanel(notebook, wxID_ANY))
-    , canvas3D(GLCanvas3DManager::create_wxglcanvas(panel3d))
+    , canvas3Dwidget(GLCanvas3DManager::create_wxglcanvas(panel3d))
+    , canvas3D(nullptr)
+    , delayed_scene_refresh(false)
 #if ENABLE_NEW_MENU_LAYOUT
     , project_filename(wxEmptyString)
 #endif // ENABLE_NEW_MENU_LAYOUT
@@ -1057,11 +1064,12 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     sla_print.set_status_callback(statuscb);
     this->q->Bind(EVT_SLICING_UPDATE, &priv::on_slicing_update, this);
 
-    _3DScene::add_canvas(canvas3D);
-    _3DScene::allow_multisample(canvas3D, GLCanvas3DManager::can_multisample());
+    _3DScene::add_canvas(canvas3Dwidget);
+    this->canvas3D = _3DScene::get_canvas(this->canvas3Dwidget);
+    this->canvas3D->allow_multisample(GLCanvas3DManager::can_multisample());
 
     auto *panel3dsizer = new wxBoxSizer(wxVERTICAL);
-    panel3dsizer->Add(canvas3D, 1, wxEXPAND);
+    panel3dsizer->Add(canvas3Dwidget, 1, wxEXPAND);
     auto *panel_gizmo_widgets = new wxPanel(panel3d, wxID_ANY);
     panel_gizmo_widgets->SetSizer(new wxBoxSizer(wxVERTICAL));
     panel3dsizer->Add(panel_gizmo_widgets, 0, wxEXPAND);
@@ -1070,26 +1078,26 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     notebook->AddPage(panel3d, _(L("3D")));
 	preview = new GUI::Preview(notebook, config, &background_process, &gcode_preview_data, [this](){ schedule_background_process(); });
 
-    _3DScene::get_canvas(canvas3D)->set_external_gizmo_widgets_parent(panel_gizmo_widgets);
+    canvas3D->set_external_gizmo_widgets_parent(panel_gizmo_widgets);
 
     // XXX: If have OpenGL
-    _3DScene::enable_picking(canvas3D, true);
-    _3DScene::enable_moving(canvas3D, true);
+    this->canvas3D->enable_picking(true);
+    this->canvas3D->enable_moving(true);
     // XXX: more config from 3D.pm
-    _3DScene::set_model(canvas3D, &model);
-	_3DScene::set_process(canvas3D, &background_process);
-    _3DScene::set_config(canvas3D, config);
-    _3DScene::enable_gizmos(canvas3D, true);
-    _3DScene::enable_toolbar(canvas3D, true);
-    _3DScene::enable_shader(canvas3D, true);
-    _3DScene::enable_force_zoom_to_bed(canvas3D, true);
+    this->canvas3D->set_model(&model);
+	this->canvas3D->set_process(&background_process);
+    this->canvas3D->set_config(config);
+    this->canvas3D->enable_gizmos(true);
+    this->canvas3D->enable_toolbar(true);
+    this->canvas3D->enable_shader(true);
+    this->canvas3D->enable_force_zoom_to_bed(true);
 
     this->background_process_timer.SetOwner(this->q, 0);
     this->q->Bind(wxEVT_TIMER, [this](wxTimerEvent &evt) { this->async_apply_config(); });
 
     auto *bed_shape = config->opt<ConfigOptionPoints>("bed_shape");
-    _3DScene::set_bed_shape(canvas3D, bed_shape->values);
-    _3DScene::zoom_to_bed(canvas3D);
+    this->canvas3D->set_bed_shape(bed_shape->values);
+    this->canvas3D->zoom_to_bed();
     preview->set_bed_shape(bed_shape->values);
 
     update();
@@ -1112,28 +1120,29 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     sidebar->Bind(EVT_OBJ_LIST_OBJECT_SELECT, [this](wxEvent&) { priv::selection_changed(); });
 
     // 3DScene events:
-    canvas3D->Bind(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, &priv::on_schedule_background_process, this);
-    canvas3D->Bind(EVT_GLCANVAS_OBJECT_SELECT, &priv::on_object_select, this);
-    canvas3D->Bind(EVT_GLCANVAS_VIEWPORT_CHANGED, &priv::on_viewport_changed, this);
-    canvas3D->Bind(EVT_GLCANVAS_RIGHT_CLICK, &priv::on_right_click, this);
-    canvas3D->Bind(EVT_GLCANVAS_MODEL_UPDATE, &priv::on_model_update, this);
-    canvas3D->Bind(EVT_GLCANVAS_REMOVE_OBJECT, [q](SimpleEvent&) { q->remove_selected(); });
-    canvas3D->Bind(EVT_GLCANVAS_ARRANGE, [this](SimpleEvent&) { arrange(); });
-    canvas3D->Bind(EVT_GLCANVAS_INCREASE_INSTANCES, [q](Event<int> &evt) { evt.data == 1 ? q->increase_instances() : q->decrease_instances(); });
-    canvas3D->Bind(EVT_GLCANVAS_INSTANCE_MOVED, [this](SimpleEvent&) { update(); });
-    canvas3D->Bind(EVT_GLCANVAS_WIPETOWER_MOVED, &priv::on_wipetower_moved, this);
-    canvas3D->Bind(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, &priv::on_enable_action_buttons, this);
-    canvas3D->Bind(EVT_GLCANVAS_UPDATE_GEOMETRY, &priv::on_update_geometry, this);
+    canvas3Dwidget->Bind(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, &priv::on_schedule_background_process, this);
+    canvas3Dwidget->Bind(EVT_GLCANVAS_OBJECT_SELECT, &priv::on_object_select, this);
+    canvas3Dwidget->Bind(EVT_GLCANVAS_VIEWPORT_CHANGED, &priv::on_viewport_changed, this);
+    canvas3Dwidget->Bind(EVT_GLCANVAS_RIGHT_CLICK, &priv::on_right_click, this);
+    canvas3Dwidget->Bind(EVT_GLCANVAS_MODEL_UPDATE, &priv::on_model_update, this);
+    canvas3Dwidget->Bind(EVT_GLCANVAS_REMOVE_OBJECT, [q](SimpleEvent&) { q->remove_selected(); });
+    canvas3Dwidget->Bind(EVT_GLCANVAS_ARRANGE, [this](SimpleEvent&) { arrange(); });
+    canvas3Dwidget->Bind(EVT_GLCANVAS_INCREASE_INSTANCES, [q](Event<int> &evt) { evt.data == 1 ? q->increase_instances() : q->decrease_instances(); });
+    canvas3Dwidget->Bind(EVT_GLCANVAS_INSTANCE_MOVED, [this](SimpleEvent&) { update(); });
+    canvas3Dwidget->Bind(EVT_GLCANVAS_WIPETOWER_MOVED, &priv::on_wipetower_moved, this);
+    canvas3Dwidget->Bind(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, &priv::on_enable_action_buttons, this);
+    canvas3Dwidget->Bind(EVT_GLCANVAS_UPDATE_GEOMETRY, &priv::on_update_geometry, this);
+    canvas3Dwidget->Bind(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, &priv::on_3dcanvas_mouse_dragging_finished, this);
     // 3DScene/Toolbar:
-    canvas3D->Bind(EVT_GLTOOLBAR_ADD, &priv::on_action_add, this);
-    canvas3D->Bind(EVT_GLTOOLBAR_DELETE, [q](SimpleEvent&) { q->remove_selected(); } );
-    canvas3D->Bind(EVT_GLTOOLBAR_DELETE_ALL, [this](SimpleEvent&) { reset(); });
-    canvas3D->Bind(EVT_GLTOOLBAR_ARRANGE, [this](SimpleEvent&) { arrange(); });
-    canvas3D->Bind(EVT_GLTOOLBAR_MORE, [q](SimpleEvent&) { q->increase_instances(); });
-    canvas3D->Bind(EVT_GLTOOLBAR_FEWER, [q](SimpleEvent&) { q->decrease_instances(); });
-    canvas3D->Bind(EVT_GLTOOLBAR_SPLIT_OBJECTS, &priv::on_action_split_objects, this);
-    canvas3D->Bind(EVT_GLTOOLBAR_SPLIT_VOLUMES, &priv::on_action_split_volumes, this);
-    canvas3D->Bind(EVT_GLTOOLBAR_LAYERSEDITING, &priv::on_action_layersediting, this);
+    canvas3Dwidget->Bind(EVT_GLTOOLBAR_ADD, &priv::on_action_add, this);
+    canvas3Dwidget->Bind(EVT_GLTOOLBAR_DELETE, [q](SimpleEvent&) { q->remove_selected(); } );
+    canvas3Dwidget->Bind(EVT_GLTOOLBAR_DELETE_ALL, [this](SimpleEvent&) { reset(); });
+    canvas3Dwidget->Bind(EVT_GLTOOLBAR_ARRANGE, [this](SimpleEvent&) { arrange(); });
+    canvas3Dwidget->Bind(EVT_GLTOOLBAR_MORE, [q](SimpleEvent&) { q->increase_instances(); });
+    canvas3Dwidget->Bind(EVT_GLTOOLBAR_FEWER, [q](SimpleEvent&) { q->decrease_instances(); });
+    canvas3Dwidget->Bind(EVT_GLTOOLBAR_SPLIT_OBJECTS, &priv::on_action_split_objects, this);
+    canvas3Dwidget->Bind(EVT_GLTOOLBAR_SPLIT_VOLUMES, &priv::on_action_split_volumes, this);
+    canvas3Dwidget->Bind(EVT_GLTOOLBAR_LAYERSEDITING, &priv::on_action_layersediting, this);
 
     // Preview events:
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_VIEWPORT_CHANGED, &priv::on_viewport_changed, this);
@@ -1164,7 +1173,7 @@ void Plater::priv::update(bool force_full_scene_refresh)
         // pulls the correct data.
         this->update_background_process();
     }
-    _3DScene::reload_scene(canvas3D, false, force_full_scene_refresh);
+    this->canvas3D->reload_scene(false, force_full_scene_refresh);
     preview->reset_gcode_preview_data();
     preview->reload_print();
 
@@ -1178,7 +1187,7 @@ void Plater::priv::select_view(const std::string& direction)
     {
         const wxString& page_text = notebook->GetPageText(page_id);
         if (page_text == _(L("3D")))
-            _3DScene::select_view(canvas3D, direction);
+            this->canvas3D->select_view(direction);
         else if (page_text == _(L("Preview")))
             preview->select_view(direction);
     }
@@ -1436,7 +1445,7 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
 
     update();
 #if !ENABLE_MODIFIED_CAMERA_TARGET
-    _3DScene::zoom_to_volumes(canvas3D);
+    this->canvas3D->zoom_to_volumes();
 #endif // !ENABLE_MODIFIED_CAMERA_TARGET
     object_list_changed();
 
@@ -1494,12 +1503,12 @@ std::unique_ptr<CheckboxFileDialog> Plater::priv::get_export_file(GUI::FileType 
 
 const GLCanvas3D::Selection& Plater::priv::get_selection() const
 {
-    return _3DScene::get_canvas(canvas3D)->get_selection();
+    return canvas3D->get_selection();
 }
 
 GLCanvas3D::Selection& Plater::priv::get_selection()
 {
-    return _3DScene::get_canvas(canvas3D)->get_selection();
+    return canvas3D->get_selection();
 }
 
 int Plater::priv::get_selected_object_idx() const
@@ -1510,32 +1519,32 @@ int Plater::priv::get_selected_object_idx() const
 
 void Plater::priv::selection_changed()
 {
-    _3DScene::enable_toolbar_item(canvas3D, "delete", can_delete_object());
-    _3DScene::enable_toolbar_item(canvas3D, "more", can_increase_instances());
-    _3DScene::enable_toolbar_item(canvas3D, "fewer", can_decrease_instances());
-    _3DScene::enable_toolbar_item(canvas3D, "splitobjects", can_split_to_objects());
-    _3DScene::enable_toolbar_item(canvas3D, "splitvolumes", can_split_to_volumes());
-    _3DScene::enable_toolbar_item(canvas3D, "layersediting", layers_height_allowed());
+    this->canvas3D->enable_toolbar_item("delete", can_delete_object());
+    this->canvas3D->enable_toolbar_item("more", can_increase_instances());
+    this->canvas3D->enable_toolbar_item("fewer", can_decrease_instances());
+    this->canvas3D->enable_toolbar_item("splitobjects", can_split_to_objects());
+    this->canvas3D->enable_toolbar_item("splitvolumes", can_split_to_volumes());
+    this->canvas3D->enable_toolbar_item("layersediting", layers_height_allowed());
     // forces a frame render to update the view (to avoid a missed update if, for example, the context menu appears)
-    _3DScene::render(canvas3D);
+    this->canvas3D->render();
 }
 
 void Plater::priv::object_list_changed()
 {
     // Enable/disable buttons depending on whether there are any objects on the platter.
-    _3DScene::enable_toolbar_item(canvas3D, "deleteall", can_delete_all());
-    _3DScene::enable_toolbar_item(canvas3D, "arrange", can_arrange());
+    this->canvas3D->enable_toolbar_item("deleteall", can_delete_all());
+    this->canvas3D->enable_toolbar_item("arrange", can_arrange());
 
     const bool export_in_progress = this->background_process.is_export_scheduled(); // || ! send_gcode_file.empty());
     // XXX: is this right?
-    const bool model_fits = _3DScene::check_volumes_outside_state(canvas3D, config) == ModelInstance::PVS_Inside;
+    const bool model_fits = this->canvas3D->check_volumes_outside_state(config) == ModelInstance::PVS_Inside;
 
     sidebar->enable_buttons(!model.objects.empty() && !export_in_progress && model_fits);
 }
 
 void Plater::priv::select_all()
 {
-    _3DScene::select_all(canvas3D);
+    this->canvas3D->select_all();
 }
 
 void Plater::priv::remove(size_t obj_idx)
@@ -1543,8 +1552,8 @@ void Plater::priv::remove(size_t obj_idx)
     // Prevent toolpaths preview from rendering while we modify the Print object
     preview->set_enabled(false);
 
-    if (_3DScene::is_layers_editing_enabled(canvas3D))
-        _3DScene::enable_layers_editing(canvas3D, false);
+    if (this->canvas3D->is_layers_editing_enabled())
+        this->canvas3D->enable_layers_editing(false);
 
     model.delete_object(obj_idx);
 //    print.delete_object(obj_idx);
@@ -1572,8 +1581,8 @@ void Plater::priv::reset()
     // Prevent toolpaths preview from rendering while we modify the Print object
     preview->set_enabled(false);
 
-    if (_3DScene::is_layers_editing_enabled(canvas3D))
-        _3DScene::enable_layers_editing(canvas3D, false);
+    if (this->canvas3D->is_layers_editing_enabled())
+        this->canvas3D->enable_layers_editing(false);
 
     // Stop and reset the Print content.
     this->background_process.reset();
@@ -1587,7 +1596,7 @@ void Plater::priv::reset()
 
 void Plater::priv::mirror(Axis axis)
 {
-    _3DScene::mirror_selection(canvas3D, axis);
+    this->canvas3D->mirror_selection(axis);
 }
 
 void Plater::priv::arrange()
@@ -1599,7 +1608,7 @@ void Plater::priv::arrange()
     arranging.store(true);
 
     // Disable the arrange button (to prevent reentrancies, we will call wxYied)
-    _3DScene::enable_toolbar_item(canvas3D, "arrange", can_arrange());
+    this->canvas3D->enable_toolbar_item("arrange", can_arrange());
 
     this->background_process.stop();
     unsigned count = 0;
@@ -1669,7 +1678,7 @@ void Plater::priv::arrange()
     arranging.store(false);
 
     // We enable back the arrange button
-    _3DScene::enable_toolbar_item(canvas3D, "arrange", can_arrange());
+    this->canvas3D->enable_toolbar_item("arrange", can_arrange());
 
     // Do a full refresh of scene tree, including regenerating all the GLVolumes.
     //FIXME The update function shall just reload the modified matrices.
@@ -1799,8 +1808,8 @@ unsigned int Plater::priv::update_background_process()
     Print::ApplyStatus invalidated = this->background_process.apply(this->q->model(), std::move(config));
 
     // Just redraw the 3D canvas without reloading the scene to consume the update of the layer height profile.
-    if (Slic3r::_3DScene::is_layers_editing_enabled(this->canvas3D))
-        this->canvas3D->Refresh();
+    if (this->canvas3D->is_layers_editing_enabled())
+        this->canvas3Dwidget->Refresh();
 
     if (invalidated == Print::APPLY_STATUS_INVALIDATED) {
         // Some previously calculated data on the Print was invalidated.
@@ -1818,7 +1827,7 @@ unsigned int Plater::priv::update_background_process()
             // We also need to reload 3D scene because of the wipe tower preview box
             if (this->config->opt_bool("wipe_tower")) {
     //            std::vector<int> selections = this->collect_selections();
-    //            Slic3r::_3DScene::set_objects_selections(this->canvas3D, selections);
+    //            this->canvas3D->set_objects_selections(selections);
                 return_state |= UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE;
             }
             break;
@@ -1847,7 +1856,7 @@ void Plater::priv::async_apply_config()
     // bitmask of UpdateBackgroundProcessReturnState
     unsigned int state = this->update_background_process();
     if (state & UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE)
-        _3DScene::reload_scene(canvas3D, false);
+        this->canvas3D->reload_scene(false);
     if ((state & UPDATE_BACKGROUND_PROCESS_RESTART) != 0 && this->get_config("background_processing") == "1") {
         // The print is valid and it can be started.
         if (this->background_process.start())
@@ -1856,6 +1865,16 @@ void Plater::priv::async_apply_config()
                 this->background_process.stop();
             });
     }
+}
+
+void Plater::priv::update_sla_scene()
+{
+    // Update the SLAPrint from the current Model, so that the reload_scene()
+    // pulls the correct data.
+    if (this->update_background_process() & UPDATE_BACKGROUND_PROCESS_RESTART)
+        this->schedule_background_process();
+    this->canvas3D->reload_scene(true);
+    delayed_scene_refresh = false;
 }
 
 void Plater::priv::reload_from_disk()
@@ -1903,7 +1922,7 @@ void Plater::priv::on_notebook_changed(wxBookCtrlEvent&)
 {
     const auto current_id = notebook->GetCurrentPage()->GetId();
     if (current_id == panel3d->GetId()) {
-        if (_3DScene::is_reload_delayed(canvas3D)) {
+        if (this->canvas3D->is_reload_delayed()) {
             // Delayed loading of the 3D scene.
             if (this->printer_technology == ptSLA) {
                 // Update the SLAPrint from the current Model, so that the reload_scene()
@@ -1911,10 +1930,10 @@ void Plater::priv::on_notebook_changed(wxBookCtrlEvent&)
                 if (this->update_background_process() & UPDATE_BACKGROUND_PROCESS_RESTART)
                     this->schedule_background_process();
             }
-            _3DScene::reload_scene(canvas3D, true);
+            this->canvas3D->reload_scene(true);
         }
         // sets the canvas as dirty to force a render at the 1st idle event (wxWidgets IsShownOnScreen() is buggy and cannot be used reliably)
-        _3DScene::set_as_dirty(canvas3D);
+        this->canvas3D->set_as_dirty();
     } else if (current_id == preview->GetId()) {
         preview->reload_print();
         preview->set_canvas_as_dirty();
@@ -1970,9 +1989,10 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
                 this->preview->reload_print();
             break;
         case ptSLA:
-            // Refresh the scene lazily by updating only SLA meshes.
-            //FIXME update SLAPrint?
-            _3DScene::reload_scene(canvas3D, true);
+            if (this->canvas3D->is_gizmo_dragging())
+                delayed_scene_refresh = true;
+            else
+                this->update_sla_scene();
             break;
         }
     }
@@ -1986,14 +2006,14 @@ void Plater::priv::on_slicing_completed(wxCommandEvent &)
             this->preview->reload_print();
         // in case this was MM print, wipe tower bounding box on 3D tab might need redrawing with exact depth:
     //    auto selections = collect_selections();
-    //    _3DScene::set_objects_selections(canvas3D, selections);
-    //    if (canvas3D)
-    //        _3DScene::reload_scene(canvas3D, true);
+    //    this->canvas3D->set_objects_selections(selections);
+    //    this->canvas3D->reload_scene(true);
         break;
     case ptSLA:
-        // Refresh the scene lazily by updating only SLA meshes.
-        //FIXME update SLAPrint?
-        _3DScene::reload_scene(canvas3D, true);
+        if (this->canvas3D->is_gizmo_dragging())
+            delayed_scene_refresh = true;
+        else
+            this->update_sla_scene();
         break;
     }
 }
@@ -2032,24 +2052,23 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
             this->preview->reload_print();
         break;
     case ptSLA:
-        // Update the SLAPrint from the current Model, so that the reload_scene()
-        // pulls the correct data.
-        if (this->update_background_process() & UPDATE_BACKGROUND_PROCESS_RESTART)
-            this->schedule_background_process();
-        _3DScene::reload_scene(canvas3D, true);
+        if (this->canvas3D->is_gizmo_dragging())
+            delayed_scene_refresh = true;
+        else
+            this->update_sla_scene();
         break;
     }
 }
 
 void Plater::priv::on_layer_editing_toggled(bool enable)
 {
-    _3DScene::enable_layers_editing(canvas3D, enable);
-    if (enable && !_3DScene::is_layers_editing_enabled(canvas3D)) {
+    this->canvas3D->enable_layers_editing(enable);
+    if (enable && ! this->canvas3D->is_layers_editing_enabled()) {
         // Initialization of the OpenGL shaders failed. Disable the tool.
-        _3DScene::enable_toolbar_item(canvas3D, "layersediting", false);
+        this->canvas3D->enable_toolbar_item("layersediting", false);
     }
-    canvas3D->Refresh();
-    canvas3D->Update();
+    canvas3Dwidget->Refresh();
+    canvas3Dwidget->Update();
 }
 
 void Plater::priv::on_schedule_background_process(SimpleEvent&)
@@ -2079,10 +2098,10 @@ void Plater::priv::on_action_split_volumes(SimpleEvent&)
 
 void Plater::priv::on_action_layersediting(SimpleEvent&)
 {
-    bool enable = !_3DScene::is_layers_editing_enabled(canvas3D);
-    _3DScene::enable_layers_editing(canvas3D, enable);
-    if (enable && !_3DScene::is_layers_editing_enabled(canvas3D))
-        _3DScene::enable_toolbar_item(canvas3D, "layersediting", false);
+    bool enable = ! this->canvas3D->is_layers_editing_enabled();
+    this->canvas3D->enable_layers_editing(enable);
+    if (enable && ! this->canvas3D->is_layers_editing_enabled())
+        this->canvas3D->enable_toolbar_item("layersediting", false);
 }
 
 void Plater::priv::on_object_select(SimpleEvent& evt)
@@ -2096,7 +2115,7 @@ void Plater::priv::on_viewport_changed(SimpleEvent& evt)
     wxObject* o = evt.GetEventObject();
     if (o == preview->get_wxglcanvas())
         preview->set_viewport_into_scene(canvas3D);
-    else if (o == canvas3D)
+    else if (o == canvas3Dwidget)
         preview->set_viewport_from_scene(canvas3D);
 }
 
@@ -2131,6 +2150,16 @@ void Plater::priv::on_enable_action_buttons(Event<bool>&)
 void Plater::priv::on_update_geometry(Vec3dsEvent<2>&)
 {
     // TODO
+}
+
+// Update the scene from the background processing, 
+// if the update message was received during mouse manipulation.
+void Plater::priv::on_3dcanvas_mouse_dragging_finished(SimpleEvent&)
+{
+    if (this->delayed_scene_refresh) {
+        this->delayed_scene_refresh = false;
+        this->update_sla_scene();
+    }
 }
 
 bool Plater::priv::init_object_menu()
@@ -2225,7 +2254,7 @@ bool Plater::priv::can_split_to_volumes() const
 bool Plater::priv::layers_height_allowed() const
 {
     int obj_idx = get_selected_object_idx();
-    return (0 <= obj_idx) && (obj_idx < (int)model.objects.size()) && config->opt_bool("variable_layer_height") && _3DScene::is_layers_editing_allowed(canvas3D);
+    return (0 <= obj_idx) && (obj_idx < (int)model.objects.size()) && config->opt_bool("variable_layer_height") && this->canvas3D->is_layers_editing_allowed();
 }
 
 bool Plater::priv::can_delete_all() const
@@ -2253,7 +2282,8 @@ Plater::Plater(wxWindow *parent, MainFrame *main_frame)
 
 Plater::~Plater()
 {
-    _3DScene::remove_canvas(p->canvas3D);
+    _3DScene::remove_canvas(p->canvas3Dwidget);
+    p->canvas3D = nullptr;
 }
 
 Sidebar& Plater::sidebar() { return *p->sidebar; }
@@ -2338,7 +2368,7 @@ void Plater::delete_object_from_model(size_t obj_idx) { p->delete_object_from_mo
 
 void Plater::remove_selected()
 {
-    _3DScene::delete_selected(canvas3D());
+    this->p->canvas3D->delete_selected();
 }
 
 void Plater::increase_instances(size_t num)
@@ -2599,7 +2629,7 @@ void Plater::reslice()
     // bitmask of UpdateBackgroundProcessReturnState
     unsigned int state = this->p->update_background_process();
     if (state & priv::UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE)
-        _3DScene::reload_scene(this->p->canvas3D, false);
+        this->p->canvas3D->reload_scene(false);
 	if ((state & priv::UPDATE_BACKGROUND_PROCESS_INVALID) == 0 && !this->p->background_process.running()) {
         // The print is valid and it can be started.
         // Copy the names of active presets into the placeholder parser.
@@ -2656,7 +2686,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
 			//p->background_process.apply(Model)!
         }
         else if (opt_key  == "bed_shape") {
-            if (p->canvas3D) _3DScene::set_bed_shape(p->canvas3D, p->config->option<ConfigOptionPoints>(opt_key)->values);
+			this->p->canvas3D->set_bed_shape(p->config->option<ConfigOptionPoints>(opt_key)->values);
             if (p->preview) p->preview->set_bed_shape(p->config->option<ConfigOptionPoints>(opt_key)->values);
             update_scheduled = true;
         } 
@@ -2674,13 +2704,13 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         }
         else if(opt_key == "variable_layer_height") {
             if (p->config->opt_bool("variable_layer_height") != true) {
-                _3DScene::enable_toolbar_item(p->canvas3D, "layersediting", false);
-                _3DScene::enable_layers_editing(p->canvas3D, 0);
-                p->canvas3D->Refresh();
-                p->canvas3D->Update();
+                p->canvas3D->enable_toolbar_item("layersediting", false);
+                p->canvas3D->enable_layers_editing(0);
+                p->canvas3Dwidget->Refresh();
+                p->canvas3Dwidget->Update();
             }
-            else if (_3DScene::is_layers_editing_allowed(p->canvas3D)) {
-                _3DScene::enable_toolbar_item(p->canvas3D, "layersediting", true);
+            else if (p->canvas3D->is_layers_editing_allowed()) {
+                p->canvas3D->enable_toolbar_item("layersediting", true);
             }
         } 
         else if(opt_key == "extruder_colour") {
@@ -2690,7 +2720,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             update_scheduled = true;
         } else if(opt_key == "printer_model") {
             // update to force bed selection(for texturing)
-            if (p->canvas3D) _3DScene::set_bed_shape(p->canvas3D, p->config->option<ConfigOptionPoints>("bed_shape")->values);
+            p->canvas3D->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values);
             if (p->preview) p->preview->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values);
             update_scheduled = true;
         }
@@ -2741,7 +2771,7 @@ bool Plater::is_single_full_object_selection() const
     return p->get_selection().is_single_full_object();
 }
 
-wxGLCanvas* Plater::canvas3D()
+GLCanvas3D* Plater::canvas3D()
 {
     return p->canvas3D;
 }
@@ -2767,14 +2797,14 @@ void Plater::changed_object(int obj_idx)
         model_object->center_around_origin();
 #endif // !ENABLE_MODELVOLUME_TRANSFORM
         model_object->ensure_on_bed();
-        _3DScene::reload_scene(p->canvas3D, false);
+        p->canvas3D->reload_scene(false);
     }
 
     // update print
     if (list->is_parts_changed() || list->is_part_settings_changed()) {
         this->p->schedule_background_process();
 #if !ENABLE_MODIFIED_CAMERA_TARGET
-        _3DScene::zoom_to_volumes(p->canvas3D);
+        p->canvas3D->zoom_to_volumes();
 #endif // !ENABLE_MODIFIED_CAMERA_TARGET
     }
     else {

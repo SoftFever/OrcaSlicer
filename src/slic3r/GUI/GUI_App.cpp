@@ -694,11 +694,6 @@ Plater* GUI_App::plater()
     return plater_;
 }
 
-wxGLCanvas* GUI_App::canvas3D()
-{
-    return plater_->canvas3D();
-}
-
 ModelObjectPtrs* GUI_App::model_objects()
 {
     return &plater_->model().objects;

@@ -1234,7 +1234,7 @@ void ObjectList::delete_from_model_and_list(const std::vector<ItemForDelete>& it
             if (item->type&itVolume)
             {
                 m_objects_model->Delete(m_objects_model->GetItemByVolumeId(item->obj_idx, item->sub_obj_idx));
-                _3DScene::ensure_on_bed(wxGetApp().canvas3D(), item->obj_idx);
+                wxGetApp().plater()->canvas3D()->ensure_on_bed(item->obj_idx);
             }
             else
                 m_objects_model->Delete(m_objects_model->GetItemByInstanceId(item->obj_idx, item->sub_obj_idx));
@@ -1323,7 +1323,7 @@ bool ObjectList::multiple_selection() const
 
 void ObjectList::update_selections()
 {
-    auto& selection = _3DScene::get_canvas(wxGetApp().canvas3D())->get_selection();
+    auto& selection = wxGetApp().plater()->canvas3D()->get_selection();
     wxDataViewItemArray sels;
 
     if (selection.is_single_full_object())
@@ -1354,12 +1354,12 @@ void ObjectList::update_selections()
 
 void ObjectList::update_selections_on_canvas()
 {
-    auto& selection = _3DScene::get_canvas(wxGetApp().canvas3D())->get_selection();
+    auto& selection = wxGetApp().plater()->canvas3D()->get_selection();
 
     const int sel_cnt = GetSelectedItemsCount();
     if (sel_cnt == 0) {
         selection.clear();
-        _3DScene::render(wxGetApp().canvas3D());
+        wxGetApp().plater()->canvas3D()->render();
         return;
     }
 
@@ -1389,7 +1389,7 @@ void ObjectList::update_selections_on_canvas()
         else
             add_to_selection(item, selection, true);
             
-        _3DScene::render(wxGetApp().canvas3D());
+        wxGetApp().plater()->canvas3D()->render();
         return;
     }
     
@@ -1400,7 +1400,7 @@ void ObjectList::update_selections_on_canvas()
     for (auto item: sels)
         add_to_selection(item, selection, false);
 
-    _3DScene::render(wxGetApp().canvas3D());
+    wxGetApp().plater()->canvas3D()->render();
 }
 
 void ObjectList::select_item(const wxDataViewItem& item)

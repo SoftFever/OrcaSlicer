@@ -169,7 +169,7 @@ bool ObjectManipulation::IsShown()
 void ObjectManipulation::UpdateAndShow(const bool show)
 {
     if (show)
-        update_settings_value(_3DScene::get_canvas(wxGetApp().canvas3D())->get_selection());
+        update_settings_value(wxGetApp().plater()->canvas3D()->get_selection());
 
     OG_Settings::UpdateAndShow(show);
 }
@@ -409,7 +409,7 @@ void ObjectManipulation::change_position_value(const Vec3d& position)
 {
     Vec3d displacement(position - cache_position);
 
-    auto canvas = _3DScene::get_canvas(wxGetApp().canvas3D());
+    auto canvas = wxGetApp().plater()->canvas3D();
     canvas->get_selection().start_dragging();
     canvas->get_selection().translate(displacement);
     canvas->do_move();
@@ -422,7 +422,7 @@ void ObjectManipulation::change_rotation_value(const Vec3d& rotation)
     Vec3d rad_rotation;
     for (size_t i = 0; i < 3; ++i)
         rad_rotation(i) = Geometry::deg2rad(rotation(i));
-    auto canvas = _3DScene::get_canvas(wxGetApp().canvas3D());
+    auto canvas = wxGetApp().plater()->canvas3D();
     canvas->get_selection().start_dragging();
     canvas->get_selection().rotate(rad_rotation, false);
     canvas->do_rotate();
@@ -442,7 +442,7 @@ void ObjectManipulation::change_scale_value(const Vec3d& scale)
             scaling_factor(i) = scale(i) / size(i);
     }
 
-    auto canvas = _3DScene::get_canvas(wxGetApp().canvas3D());
+    auto canvas = wxGetApp().plater()->canvas3D();
     canvas->get_selection().start_dragging();
     canvas->get_selection().scale(scaling_factor, false);
     canvas->do_scale();

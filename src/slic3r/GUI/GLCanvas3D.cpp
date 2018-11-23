@@ -3244,6 +3244,7 @@ wxDEFINE_EVENT(EVT_GLCANVAS_INSTANCE_MOVED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_WIPETOWER_MOVED, Vec3dEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, Event<bool>);
 wxDEFINE_EVENT(EVT_GLCANVAS_UPDATE_GEOMETRY, Vec3dsEvent<2>);
+wxDEFINE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, SimpleEvent);
 
 GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     : m_canvas(canvas)
@@ -4785,6 +4786,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             _update_gizmos_data();
 #endif // ENABLE_WORLD_ROTATIONS
             wxGetApp().obj_manipul()->update_settings_value(m_selection);
+            // Let the platter know that the dragging finished, so a delayed refresh
+            // of the scene with the background processing data should be performed.
+            post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
         }
 
         m_mouse.drag.move_volume_idx = -1;

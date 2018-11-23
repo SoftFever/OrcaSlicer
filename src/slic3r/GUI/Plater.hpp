@@ -28,6 +28,7 @@ class ConfigOptionsGroup;
 class ObjectManipulation;
 class ObjectSettings;
 class ObjectList;
+class GLCanvas3D;
 
 using t_optgroups = std::vector <std::shared_ptr<ConfigOptionsGroup>>;
 
@@ -164,7 +165,7 @@ public:
 
     int get_selected_object_idx();
     bool is_single_full_object_selection() const;
-    wxGLCanvas* canvas3D();
+    GLCanvas3D* canvas3D();
 
     PrinterTechnology printer_technology() const;
 private:

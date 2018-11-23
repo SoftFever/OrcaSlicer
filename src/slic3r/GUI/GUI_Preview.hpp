@@ -24,9 +24,12 @@ class GCodePreviewData;
 
 namespace GUI {
 
+class GLCanvas3D;
+
 class Preview : public wxPanel
 {
-    wxGLCanvas* m_canvas;
+    wxGLCanvas* m_canvas_widget;
+    GLCanvas3D* m_canvas;
     wxBoxSizer* m_double_slider_sizer;
     wxStaticText* m_label_view_type;
     wxChoice* m_choice_view_type;
@@ -57,7 +60,7 @@ public:
     Preview(wxNotebook* notebook, DynamicPrintConfig* config, BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, std::function<void()> schedule_background_process = [](){});
     virtual ~Preview();
 
-    wxGLCanvas* get_wxglcanvas() { return m_canvas; }
+    wxGLCanvas* get_wxglcanvas() { return m_canvas_widget; }
 
     void set_number_extruders(unsigned int number_extruders);
     void reset_gcode_preview_data();
@@ -65,8 +68,8 @@ public:
     void set_enabled(bool enabled);
     void set_bed_shape(const Pointfs& shape);
     void select_view(const std::string& direction);
-    void set_viewport_from_scene(wxGLCanvas* canvas);
-    void set_viewport_into_scene(wxGLCanvas* canvas);
+    void set_viewport_from_scene(GLCanvas3D* canvas);
+    void set_viewport_into_scene(GLCanvas3D* canvas);
     void set_drop_target(wxDropTarget* target);
 
     void load_print();

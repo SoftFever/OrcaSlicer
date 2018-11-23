@@ -103,6 +103,7 @@ wxDECLARE_EVENT(EVT_GLCANVAS_INSTANCE_MOVED, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_WIPETOWER_MOVED, Vec3dEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, Event<bool>);
 wxDECLARE_EVENT(EVT_GLCANVAS_UPDATE_GEOMETRY, Vec3dsEvent<2>);
+wxDECLARE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, SimpleEvent);
 
 class GLCanvas3D
 {
@@ -810,6 +811,7 @@ public:
 
     Rect get_gizmo_reset_rect(const GLCanvas3D& canvas, bool viewport) const;
     bool gizmo_reset_rect_contains(const GLCanvas3D& canvas, float x, float y) const;
+    bool is_gizmo_dragging() const { return m_gizmos.is_dragging(); }
 
     void render();
 
@@ -825,7 +827,7 @@ public:
 
     void mirror_selection(Axis axis);
 
-    void reload_scene(bool refresh_immediately, bool force_full_scene_refresh);
+    void reload_scene(bool refresh_immediately, bool force_full_scene_refresh = false);
 
     void load_gcode_preview(const GCodePreviewData& preview_data, const std::vector<std::string>& str_tool_colors);
     void load_preview(const std::vector<std::string>& str_tool_colors);

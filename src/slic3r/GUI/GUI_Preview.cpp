@@ -7,6 +7,7 @@
 #include "3DScene.hpp"
 #include "BackgroundSlicingProcess.hpp"
 #include "GLCanvas3DManager.hpp"
+#include "GLCanvas3D.hpp"
 #include "PresetBundle.hpp"
 #include "wxExtensions.hpp"
 
@@ -26,7 +27,8 @@ namespace GUI {
 
 
 Preview::Preview(wxNotebook* notebook, DynamicPrintConfig* config, BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, std::function<void()> schedule_background_process_func)
-    : m_canvas(nullptr)
+    : m_canvas_widget(nullptr)
+    , m_canvas(nullptr)
     , m_double_slider_sizer(nullptr)
     , m_label_view_type(nullptr)
     , m_choice_view_type(nullptr)
@@ -63,15 +65,15 @@ bool Preview::init(wxNotebook* notebook, DynamicPrintConfig* config, BackgroundS
     if (!Create(notebook, wxID_ANY, wxDefaultPosition, wxDefaultSize))
         return false;
 
-    m_canvas = GLCanvas3DManager::create_wxglcanvas(this);
-
-    _3DScene::add_canvas(m_canvas);
-    _3DScene::allow_multisample(m_canvas, GLCanvas3DManager::can_multisample());
-    _3DScene::enable_shader(m_canvas, true);
-    _3DScene::set_config(m_canvas, m_config);
-    _3DScene::set_process(m_canvas, process);
-    _3DScene::enable_legend_texture(m_canvas, true);
-    _3DScene::enable_dynamic_background(m_canvas, true);
+    m_canvas_widget = GLCanvas3DManager::create_wxglcanvas(this);
+	_3DScene::add_canvas(m_canvas_widget);
+	m_canvas = _3DScene::get_canvas(this->m_canvas_widget);
+    m_canvas->allow_multisample(GLCanvas3DManager::can_multisample());
+    m_canvas->enable_shader(true);
+    m_canvas->set_config(m_config);
+    m_canvas->set_process(process);
+    m_canvas->enable_legend_texture(true);
+    m_canvas->enable_dynamic_background(true);
 
     m_double_slider_sizer = new wxBoxSizer(wxHORIZONTAL);
     create_double_slider();
@@ -115,7 +117,7 @@ bool Preview::init(wxNotebook* notebook, DynamicPrintConfig* config, BackgroundS
     m_checkbox_shells = new wxCheckBox(this, wxID_ANY, _(L("Shells")));
 
     wxBoxSizer* top_sizer = new wxBoxSizer(wxHORIZONTAL);
-    top_sizer->Add(m_canvas, 1, wxALL | wxEXPAND, 0);
+    top_sizer->Add(m_canvas_widget, 1, wxALL | wxEXPAND, 0);
     top_sizer->Add(m_double_slider_sizer, 0, wxEXPAND, 0);
 
     wxBoxSizer* bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -168,10 +170,11 @@ Preview::~Preview()
 {
     unbind_event_handlers();
 
-    if (m_canvas != nullptr)
+    if (m_canvas_widget != nullptr)
     {
-        _3DScene::remove_canvas(m_canvas);
-        delete m_canvas;
+		_3DScene::remove_canvas(m_canvas_widget);
+        delete m_canvas_widget;
+        m_canvas = nullptr;
     }
 }
 
@@ -197,14 +200,12 @@ void Preview::set_number_extruders(unsigned int number_extruders)
 void Preview::reset_gcode_preview_data()
 {
     m_gcode_preview_data->reset();
-    if (m_canvas != nullptr)
-        _3DScene::reset_legend_texture(m_canvas);
+    m_canvas->reset_legend_texture();
 }
 
 void Preview::set_canvas_as_dirty()
 {
-    if (m_canvas != nullptr)
-        _3DScene::set_as_dirty(m_canvas);
+    m_canvas->set_as_dirty();
 }
 
 void Preview::set_enabled(bool enabled)
@@ -214,26 +215,24 @@ void Preview::set_enabled(bool enabled)
 
 void Preview::set_bed_shape(const Pointfs& shape)
 {
-    if (m_canvas != nullptr)
-        _3DScene::set_bed_shape(m_canvas, shape);
+    m_canvas->set_bed_shape(shape);
 }
 
 void Preview::select_view(const std::string& direction)
 {
-    if (m_canvas != nullptr)
-        _3DScene::select_view(m_canvas, direction);
+    m_canvas->select_view(direction);
 }
 
-void Preview::set_viewport_from_scene(wxGLCanvas* canvas)
+void Preview::set_viewport_from_scene(GLCanvas3D* canvas)
 {
-    if ((m_canvas != nullptr) && (canvas != nullptr))
-        _3DScene::set_viewport_from_scene(m_canvas, canvas);
+    if (canvas != nullptr)
+        m_canvas->set_viewport_from_scene(*canvas);
 }
 
-void Preview::set_viewport_into_scene(wxGLCanvas* canvas)
+void Preview::set_viewport_into_scene(GLCanvas3D* canvas)
 {
-    if ((m_canvas != nullptr) && (canvas != nullptr))
-        _3DScene::set_viewport_from_scene(canvas, m_canvas);
+    if (canvas != nullptr)
+		canvas->set_viewport_from_scene(*m_canvas);
 }
 
 void Preview::set_drop_target(wxDropTarget* target)
@@ -275,11 +274,8 @@ void Preview::load_print()
     if (n_layers == 0)
     {
         reset_sliders();
-        if (m_canvas != nullptr)
-        {
-            _3DScene::reset_legend_texture(m_canvas);
-            m_canvas->Refresh();
-        }
+        m_canvas->reset_legend_texture();
+        m_canvas_widget->Refresh();
         return;
     }
 
@@ -320,7 +316,7 @@ void Preview::load_print()
         }
     }
 
-    if (IsShown() && (m_canvas != nullptr))
+    if (IsShown())
     {
         // used to set the sliders to the extremes of the current zs range
         m_force_sliders_full_range = false;
@@ -328,22 +324,22 @@ void Preview::load_print()
         if (m_gcode_preview_data->empty())
         {
             // load skirt and brim
-            _3DScene::load_preview(m_canvas, colors);
+            m_canvas->load_preview(colors);
             show_hide_ui_elements("simple");
         }
         else
         {
-            m_force_sliders_full_range = (_3DScene::get_volumes_count(m_canvas) == 0);
-            _3DScene::load_gcode_preview(m_canvas, m_gcode_preview_data, colors);
+            m_force_sliders_full_range = (m_canvas->get_volumes_count() == 0);
+            m_canvas->load_gcode_preview(*m_gcode_preview_data, colors);
             show_hide_ui_elements("full");
 
             // recalculates zs and update sliders accordingly
-            n_layers = (unsigned int)_3DScene::get_current_print_zs(m_canvas, true).size();
+            n_layers = (unsigned int)m_canvas->get_current_print_zs( true).size();
             if (n_layers == 0)
             {
                 // all layers filtered out
                 reset_sliders();
-                m_canvas->Refresh();
+                m_canvas_widget->Refresh();
             }
         }
 
@@ -356,7 +352,7 @@ void Preview::load_print()
 
 void Preview::reload_print(bool force)
 {
-    _3DScene::reset_volumes(m_canvas);
+    m_canvas->reset_volumes();
     m_loaded = false;
 
     if (!IsShown() && !force)
@@ -479,13 +475,13 @@ void Preview::create_double_slider()
     m_slider = new PrusaDoubleSlider(this, wxID_ANY, 0, 0, 0, 100);
     m_double_slider_sizer->Add(m_slider, 0, wxEXPAND, 0);
 
-    // sizer, m_canvas
-    m_canvas->Bind(wxEVT_KEY_DOWN, &Preview::update_double_slider_from_canvas, this);
+    // sizer, m_canvas_widget
+    m_canvas_widget->Bind(wxEVT_KEY_DOWN, &Preview::update_double_slider_from_canvas, this);
 
     m_slider->Bind(wxEVT_SCROLL_CHANGED, [this](wxEvent& event) {
-        _3DScene::set_toolpaths_range(m_canvas, m_slider->GetLowerValueD() - 1e-6, m_slider->GetHigherValueD() + 1e-6);
+        m_canvas->set_toolpaths_range(m_slider->GetLowerValueD() - 1e-6, m_slider->GetHigherValueD() + 1e-6);
         if (IsShown())
-            m_canvas->Refresh();
+            m_canvas_widget->Refresh();
     });
 
     Bind(wxCUSTOMEVT_TICKSCHANGED, [this](wxEvent&) {
@@ -498,7 +494,7 @@ void Preview::create_double_slider()
 void Preview::update_double_slider(bool force_sliders_full_range)
 {
     std::vector<std::pair<int, double>> values;
-    std::vector<double> layers_z = _3DScene::get_current_print_zs(m_canvas, true);
+    std::vector<double> layers_z = m_canvas->get_current_print_zs(true);
     fill_slider_values(values, layers_z);
 
     const double z_low = m_slider->GetLowerValueD();
@@ -517,7 +513,7 @@ void Preview::update_double_slider(bool force_sliders_full_range)
 void Preview::fill_slider_values(std::vector<std::pair<int, double>> &values,
                                  const std::vector<double> &layers_z)
 {
-    std::vector<double> layers_all_z = _3DScene::get_current_print_zs(m_canvas, false);
+    std::vector<double> layers_all_z = m_canvas->get_current_print_zs(false);
     if (layers_all_z.size() == layers_z.size())
         for (int i = 0; i < layers_z.size(); i++)
             values.push_back(std::pair<int, double>(i + 1, layers_z[i]));
