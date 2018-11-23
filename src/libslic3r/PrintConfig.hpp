@@ -907,8 +907,8 @@ public:
     // Enabling or disabling support creation
     ConfigOptionBool  supports_enable;
 
-    // Radius in mm of the pointing side of the head.
-    ConfigOptionFloat support_head_front_radius /*= 0.2*/;
+    // Diameter in mm of the pointing side of the head.
+    ConfigOptionFloat support_head_front_diameter /*= 0.2*/;
 
     // How much the pinhead has to penetrate the model surface
     ConfigOptionFloat support_head_penetration /*= 0.2*/;
@@ -917,7 +917,7 @@ public:
     ConfigOptionFloat support_head_width /*= 1.0*/;
 
     // Radius in mm of the support pillars.
-    ConfigOptionFloat support_pillar_radius /*= 0.8*/;
+    ConfigOptionFloat support_pillar_diameter /*= 0.8*/;
 
     // TODO: unimplemented at the moment. This coefficient will have an impact
     // when bridges and pillars are merged. The resulting pillar should be a bit
@@ -926,7 +926,7 @@ public:
     ConfigOptionFloat support_pillar_widening_factor;
 
     // Radius in mm of the pillar base.
-    ConfigOptionFloat support_base_radius /*= 2.0*/;
+    ConfigOptionFloat support_base_diameter /*= 2.0*/;
 
     // The height of the pillar base cone in mm.
     ConfigOptionFloat support_base_height /*= 1.0*/;
@@ -964,12 +964,12 @@ protected:
     {
         OPT_PTR(layer_height);
         OPT_PTR(supports_enable);
-        OPT_PTR(support_head_front_radius);
+        OPT_PTR(support_head_front_diameter);
         OPT_PTR(support_head_penetration);
         OPT_PTR(support_head_width);
-        OPT_PTR(support_pillar_radius);
+        OPT_PTR(support_pillar_diameter);
         OPT_PTR(support_pillar_widening_factor);
-        OPT_PTR(support_base_radius);
+        OPT_PTR(support_base_diameter);
         OPT_PTR(support_base_height);
         OPT_PTR(support_critical_angle);
         OPT_PTR(support_max_bridge_length);

@@ -370,6 +370,27 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model,
     return static_cast<ApplyStatus>(apply_status);
 }
 
+namespace {
+// Compile the argument for support creation from the static print config.
+sla::SupportConfig make_support_cfg(const SLAPrintObjectConfig& c) {
+    sla::SupportConfig scfg;
+
+    scfg.head_front_radius_mm = 0.5*c.support_head_front_diameter.getFloat();
+    scfg.head_back_radius_mm = 0.5*c.support_pillar_diameter.getFloat();
+    scfg.head_penetration_mm = c.support_head_penetration.getFloat();
+    scfg.head_width_mm = c.support_head_width.getFloat();
+    scfg.object_elevation_mm = c.support_object_elevation.getFloat();
+    scfg.tilt = c.support_critical_angle.getFloat() * PI / 180.0 ;
+    scfg.max_bridge_length_mm = c.support_max_bridge_length.getFloat();
+    scfg.headless_pillar_radius_mm = 0.375*c.support_pillar_diameter.getFloat();
+    scfg.pillar_widening_factor = c.support_pillar_widening_factor.getFloat();
+    scfg.base_radius_mm = 0.5*c.support_base_diameter.getFloat();
+    scfg.base_height_mm = c.support_base_height.getFloat();
+
+    return scfg;
+}
+}
+
 void SLAPrint::process()
 {
     using namespace sla;
@@ -454,21 +475,7 @@ void SLAPrint::process()
         auto& emesh = po.m_supportdata->emesh;
         auto& pts = po.m_supportdata->support_points; // nowhere filled yet
         try {
-            sla::SupportConfig scfg;
-            SLAPrintObjectConfig& c = po.m_config;
-
-            scfg.head_front_radius_mm = c.support_head_front_radius.getFloat();
-            scfg.head_back_radius_mm = c.support_pillar_radius.getFloat();
-            scfg.head_penetration_mm = c.support_head_penetration.getFloat();
-            scfg.head_width_mm = c.support_head_width.getFloat();
-            scfg.object_elevation_mm = c.support_object_elevation.getFloat();
-            scfg.tilt = c.support_critical_angle.getFloat() * PI / 180.0 ;
-            scfg.max_bridge_length_mm = c.support_max_bridge_length.getFloat();
-            scfg.headless_pillar_radius_mm = 0.75*c.support_pillar_radius.getFloat();
-            scfg.pillar_widening_factor = c.support_pillar_widening_factor.getFloat();
-            scfg.base_radius_mm = c.support_base_radius.getFloat();
-            scfg.base_height_mm = c.support_base_height.getFloat();
-
+            sla::SupportConfig scfg = make_support_cfg(po.m_config);
             sla::Controller ctl;
 
             // some magic to scale the status values coming from the support

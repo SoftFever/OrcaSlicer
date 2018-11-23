@@ -4070,7 +4070,6 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             size_t idx = 0;
             const SLAPrint *sla_print = this->sla_print();
             for (const SLAPrintObject *print_object : sla_print->objects()) {
-                std::cout << "Current elevation: "<< print_object->get_current_elevation() << std::endl;
                 SLASupportState   &state        = sla_support_state[idx ++];
                 const ModelObject *model_object = print_object->model_object();
                 // Find an index of the ModelObject

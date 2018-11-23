@@ -2453,14 +2453,14 @@ void PrintConfigDef::init_sla_params()
     def->cli = "";
     def->default_value = new ConfigOptionBool(true);
 
-    def = this->add("support_head_front_radius", coFloat);
-    def->label = L("Support head front radius");
+    def = this->add("support_head_front_diameter", coFloat);
+    def->label = L("Support head front diameter");
     def->category = L("Supports");
-    def->tooltip = L("Radius of the pointing side of the head");
+    def->tooltip = L("Diameter of the pointing side of the head");
     def->sidetext = L("mm");
     def->cli = "";
     def->min = 0;
-    def->default_value = new ConfigOptionFloat(0.2);
+    def->default_value = new ConfigOptionFloat(0.4);
 
     def = this->add("support_head_penetration", coFloat);
     def->label = L("Support head penetration");
@@ -2480,14 +2480,14 @@ void PrintConfigDef::init_sla_params()
     def->min = 0;
     def->default_value = new ConfigOptionFloat(1.0);
 
-    def = this->add("support_pillar_radius", coFloat);
-    def->label = L("Support pillar radius");
+    def = this->add("support_pillar_diameter", coFloat);
+    def->label = L("Support pillar diameter");
     def->category = L("Supports");
-    def->tooltip = L("Radius in mm of the support pillars");
+    def->tooltip = L("Diameter in mm of the support pillars");
     def->sidetext = L("mm");
     def->cli = "";
     def->min = 0;
-    def->default_value = new ConfigOptionFloat(0.5);
+    def->default_value = new ConfigOptionFloat(1.0);
 
     def = this->add("support_pillar_widening_factor", coFloat);
     def->label = L("Pillar widening factor");
@@ -2498,17 +2498,17 @@ void PrintConfigDef::init_sla_params()
     def->sidetext = L("");
     def->cli = "";
     def->min = 0;
-    def->max = 1.0;
+    def->max = 1;
     def->default_value = new ConfigOptionFloat(0.0);
 
-    def = this->add("support_base_radius", coFloat);
-    def->label = L("Support base radius");
+    def = this->add("support_base_diameter", coFloat);
+    def->label = L("Support base diameter");
     def->category = L("Supports");
-    def->tooltip = L("Radius in mm of the pillar base");
+    def->tooltip = L("Diameter in mm of the pillar base");
     def->sidetext = L("mm");
     def->cli = "";
     def->min = 0;
-    def->default_value = new ConfigOptionFloat(2.0);
+    def->default_value = new ConfigOptionFloat(4.0);
 
     def = this->add("support_base_height", coFloat);
     def->label = L("Support base height");
