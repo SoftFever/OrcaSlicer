@@ -130,8 +130,10 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model,
 	tbb::mutex::scoped_lock lock(this->state_mutex());
 
     // The following call may stop the background processing.
-    update_apply_status(this->invalidate_state_by_config_options(printer_diff));
-    update_apply_status(this->invalidate_state_by_config_options(material_diff));
+	if (! printer_diff.empty())
+		update_apply_status(this->invalidate_state_by_config_options(printer_diff));
+	if (! material_diff.empty())
+		update_apply_status(this->invalidate_state_by_config_options(material_diff));
 
     // It is also safe to change m_config now after this->invalidate_state_by_config_options() call.
 	m_printer_config.apply_only(config, printer_diff, true);

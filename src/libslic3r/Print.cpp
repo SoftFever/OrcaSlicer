@@ -695,7 +695,8 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
 	tbb::mutex::scoped_lock lock(this->state_mutex());
 
     // The following call may stop the background processing.
-    update_apply_status(this->invalidate_state_by_config_options(print_diff));
+    if (! print_diff.empty())
+        update_apply_status(this->invalidate_state_by_config_options(print_diff));
     // Apply variables to placeholder parser. The placeholder parser is used by G-code export,
     // which should be stopped if print_diff is not empty.
     if (m_placeholder_parser.apply_config(config))
