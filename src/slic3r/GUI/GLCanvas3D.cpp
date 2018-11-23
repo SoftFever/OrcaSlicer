@@ -1650,7 +1650,6 @@ void GLCanvas3D::Selection::scale(const Vec3d& scale, bool local)
                 if (!local)
                 {
                     Vec3d offset = m * (m_cache.volumes_data[i].get_volume_position() + m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center);
-                    std::cout << to_string(offset) << std::endl;
                     (*m_volumes)[i]->set_volume_offset(m_cache.dragging_center - m_cache.volumes_data[i].get_instance_position() + offset);
                 }
                 (*m_volumes)[i]->set_volume_scaling_factor(new_scale);
@@ -2393,10 +2392,9 @@ void GLCanvas3D::Selection::_ensure_on_bed()
     typedef std::map<std::pair<int, int>, double> InstancesToZMap;
     InstancesToZMap instances_min_z;
 
-    for (unsigned int i : m_list)
+    for (GLVolume* volume : *m_volumes)
     {
-        GLVolume* volume = (*m_volumes)[i];
-        if (!volume->is_modifier)
+        if (!volume->is_wipe_tower && !volume->is_modifier)
         {
             double min_z = volume->transformed_convex_hull_bounding_box().min(2);
             std::pair<int, int> instance = std::make_pair(volume->object_idx(), volume->instance_idx());
