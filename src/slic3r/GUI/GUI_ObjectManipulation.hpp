@@ -6,6 +6,7 @@
 #include "GUI_ObjectSettings.hpp"
 #include "GLCanvas3D.hpp"
 
+class wxStaticText;
 
 namespace Slic3r {
 namespace GUI {

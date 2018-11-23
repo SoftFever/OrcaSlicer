@@ -410,6 +410,8 @@ bool PrusaObjectDataViewModelNode::update_settings_digest(const std::vector<std:
 
     for (auto& cat : m_opt_categories)
         m_name += cat + "; ";
+    if (!m_name.IsEmpty())
+        m_name.erase(m_name.Length()-2, 2); // Delete last "; "
 
     wxBitmap *bmp = m_bitmap_cache->find(m_name.ToStdString());
     if (bmp == nullptr) {

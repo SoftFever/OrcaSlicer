@@ -333,7 +333,7 @@ void ObjectList::key_event(wxKeyEvent& event)
         printf("WXK_BACK\n");
         remove();
     }
-    else if (wxGetKeyState(wxKeyCode('A')) && wxGetKeyState(WXK_CONTROL))
+    else if (wxGetKeyState(wxKeyCode('A')) && wxGetKeyState(WXK_SHIFT))
         select_item_all_children();
     else
         event.Skip();
@@ -1230,7 +1230,8 @@ void ObjectList::delete_from_model_and_list(const std::vector<ItemForDelete>& it
             m_objects_model->Delete(m_objects_model->GetItemById(item->obj_idx));
         }
         else {
-            del_subobject_from_object(item->obj_idx, item->sub_obj_idx, item->type);
+            if (!del_subobject_from_object(item->obj_idx, item->sub_obj_idx, item->type))
+                continue;
             if (item->type&itVolume)
             {
                 m_objects_model->Delete(m_objects_model->GetItemByVolumeId(item->obj_idx, item->sub_obj_idx));
@@ -1305,7 +1306,7 @@ void ObjectList::remove()
     for (auto& item : sels)
     {
         if (m_objects_model->GetParent(item) == wxDataViewItem(0))
-            wxGetApp().plater()->remove(m_objects_model->GetIdByItem(item));
+            delete_from_model_and_list(itObject, m_objects_model->GetIdByItem(item), -1);
         else
             del_subobject_item(item);
     }
