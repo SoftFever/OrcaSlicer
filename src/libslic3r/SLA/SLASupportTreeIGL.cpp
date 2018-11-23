@@ -84,6 +84,7 @@ size_t SpatIndex::size() const
 }
 
 PointSet normals(const PointSet& points, const EigenMesh3D& mesh) {
+    if(points.rows() == 0 || mesh.V.rows() == 0 || mesh.F.rows() == 0) return {};
 #ifdef IGL_COMPATIBLE
     Eigen::VectorXd dists;
     Eigen::VectorXi I;
@@ -108,7 +109,7 @@ PointSet normals(const PointSet& points, const EigenMesh3D& mesh) {
     }
 
     return ret;
-#else
+#else // TODO:  do something on 32 bit windows
     return {};
 #endif
 }

@@ -929,6 +929,9 @@ bool SLASupportTree::generate(const PointSet &points,
                               const SupportConfig &cfg,
                               const Controller &ctl)
 {
+    // If there are no input points there is no point in doing anything
+    if(points.rows() == 0) return false;
+
     PointSet filtered_points;       // all valid support points
     PointSet head_positions;        // support points with pinhead
     PointSet head_normals;          // head normals
@@ -1619,10 +1622,7 @@ bool SLASupportTree::generate(const PointSet &points,
     return pc == ABORT;
 }
 
-SLASupportTree::SLASupportTree(): m_impl(new Impl())
-{
-
-}
+SLASupportTree::SLASupportTree(): m_impl(new Impl()) {}
 
 const TriangleMesh &SLASupportTree::merged_mesh() const
 {
