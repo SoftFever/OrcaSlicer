@@ -55,7 +55,6 @@ class GLCanvas3DManager
 #if ENABLE_USE_UNIQUE_GLCONTEXT
     wxGLContext* m_context;
 #endif // ENABLE_USE_UNIQUE_GLCONTEXT
-    wxGLCanvas* m_current;
     GLInfo m_gl_info;
     bool m_gl_initialized;
     bool m_use_legacy_opengl;
@@ -70,7 +69,6 @@ public:
 
     bool add(wxGLCanvas* canvas);
     bool remove(wxGLCanvas* canvas);
-
     void remove_all();
 
     unsigned int count() const;
@@ -78,62 +76,9 @@ public:
     void init_gl();
     std::string get_gl_info(bool format_as_html, bool extensions) const;
 
-    bool layer_editing_allowed() const;
-
     bool init(wxGLCanvas* canvas);
 
     GLCanvas3D* get_canvas(wxGLCanvas* canvas);
-
-    void set_config(wxGLCanvas* canvas, DynamicPrintConfig* config);
-    void set_process(wxGLCanvas* canvas, BackgroundSlicingProcess* process);
-    void set_model(wxGLCanvas* canvas, Model* model);
-
-    void set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape);
-
-    void set_color_by(wxGLCanvas* canvas, const std::string& value);
-
-    void enable_layers_editing(wxGLCanvas* canvas, bool enable);
-    void enable_warning_texture(wxGLCanvas* canvas, bool enable);
-    void enable_legend_texture(wxGLCanvas* canvas, bool enable);
-    void enable_picking(wxGLCanvas* canvas, bool enable);
-    void enable_moving(wxGLCanvas* canvas, bool enable);
-    void enable_gizmos(wxGLCanvas* canvas, bool enable);
-    void enable_toolbar(wxGLCanvas* canvas, bool enable);
-    void enable_shader(wxGLCanvas* canvas, bool enable);
-    void enable_force_zoom_to_bed(wxGLCanvas* canvas, bool enable);
-    void enable_dynamic_background(wxGLCanvas* canvas, bool enable);
-    void allow_multisample(wxGLCanvas* canvas, bool allow);
-
-    void enable_toolbar_item(wxGLCanvas* canvas, const std::string& name, bool enable);
-    bool is_toolbar_item_pressed(wxGLCanvas* canvas, const std::string& name) const;
-
-    void zoom_to_bed(wxGLCanvas* canvas);
-    void zoom_to_volumes(wxGLCanvas* canvas);
-    void select_view(wxGLCanvas* canvas, const std::string& direction);
-    void set_viewport_from_scene(wxGLCanvas* canvas, wxGLCanvas* other);
-
-    void update_volumes_colors_by_extruder(wxGLCanvas* canvas);
-
-    void render(wxGLCanvas* canvas) const;
-
-    void select_all(wxGLCanvas* canvas);
-    void delete_selected(wxGLCanvas* canvas);
-    void ensure_on_bed(wxGLCanvas* canvas, unsigned int object_idx);
-
-    std::vector<double> get_current_print_zs(wxGLCanvas* canvas, bool active_only) const;
-    void set_toolpaths_range(wxGLCanvas* canvas, double low, double high);
-
-    std::vector<int> load_object(wxGLCanvas* canvas, const ModelObject* model_object, int obj_idx, std::vector<int> instance_idxs);
-    std::vector<int> load_object(wxGLCanvas* canvas, const Model* model, int obj_idx);
-
-    void mirror_selection(wxGLCanvas* canvas, Axis axis);
-
-    void reload_scene(wxGLCanvas* canvas, bool refresh_immediately, bool force_full_scene_refresh = false);
-
-    void load_gcode_preview(wxGLCanvas* canvas, const GCodePreviewData* preview_data, const std::vector<std::string>& str_tool_colors);
-    void load_preview(wxGLCanvas* canvas, const std::vector<std::string>& str_tool_colors);
-
-    void reset_legend_texture(wxGLCanvas* canvas);
 
     static bool can_multisample() { return s_multisample == MS_Enabled; }
     static wxGLCanvas* create_wxglcanvas(wxWindow *parent);
