@@ -738,7 +738,6 @@ private:
     wxWindow *m_external_gizmo_widgets_parent;
 #endif // not ENABLE_IMGUI
 
-    void post_event(wxEvent &&event);
     void viewport_changed();
 
 public:
@@ -752,6 +751,7 @@ public:
     wxGLCanvas* get_wxglcanvas() { return m_canvas; }
 
     bool init(bool useVBOs, bool use_legacy_opengl);
+    void post_event(wxEvent &&event);
 
 #if !ENABLE_USE_UNIQUE_GLCONTEXT
     bool set_current();

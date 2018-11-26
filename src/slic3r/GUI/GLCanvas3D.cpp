@@ -1,3 +1,4 @@
+#include "slic3r/GUI/GLGizmo.hpp"
 #include "GLCanvas3D.hpp"
 
 #include "admesh/stl.h"
@@ -7,7 +8,6 @@
 #include "slic3r/GUI/GLShader.hpp"
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/PresetBundle.hpp"
-#include "slic3r/GUI/GLGizmo.hpp"
 #include "libslic3r/ClipperUtils.hpp"
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/GCode/PreviewData.hpp"

@@ -1,6 +1,8 @@
 #ifndef slic3r_GLGizmo_hpp_
 #define slic3r_GLGizmo_hpp_
 
+#include <igl/AABB.h>
+
 #include "../../slic3r/GUI/GLTexture.hpp"
 #include "../../slic3r/GUI/GLCanvas3D.hpp"
 #include "../../libslic3r/Point.hpp"
@@ -449,11 +451,13 @@ class GLGizmoSlaSupports : public GLGizmoBase
 {
 private:
     ModelObject* m_model_object = nullptr;
-    Transform3d m_model_object_matrix;
+    Transform3d m_instance_matrix;
     Vec3f unproject_on_mesh(const Vec2d& mouse_pos);
 
     Eigen::MatrixXf m_V; // vertices
     Eigen::MatrixXi m_F; // facets indices
+    igl::AABB<Eigen::MatrixXf,3> m_AABB;
+
     struct SourceDataSummary {
         BoundingBoxf3 bounding_box;
         Transform3d matrix;
