@@ -219,6 +219,7 @@ void GCodePreviewData::Travel::set_default()
     width = Default_Width;
     height = Default_Height;
     ::memcpy((void*)type_colors, (const void*)Default_Type_Colors, Num_Types * sizeof(Color));
+    color_print_idx = 0;
 
     is_visible = false;
 }
@@ -374,12 +375,14 @@ std::string GCodePreviewData::get_legend_title() const
         return L("Volumetric flow rate (mm3/s)");
     case Extrusion::Tool:
         return L("Tool");
+    case Extrusion::ColorPrint:
+        return L("Color Print");
     }
 
     return "";
 }
 
-GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::vector<float>& tool_colors) const
+GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::vector<float>& tool_colors, const int color_print_cnt /*= 0*/) const
 {
     struct Helper
     {
@@ -445,6 +448,18 @@ GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::
                 items.emplace_back((boost::format(Slic3r::I18N::translate(L("Extruder %d"))) % (i + 1)).str(), color);
             }
 
+            break;
+        }
+    case Extrusion::ColorPrint:
+        {
+            for (int i = color_print_cnt; i >= 0 ; --i)
+            {
+                int val = i;
+                while (val >= GCodePreviewData::Range::Colors_Count)
+                    val -= GCodePreviewData::Range::Colors_Count;
+                GCodePreviewData::Color color = Range::Default_Colors[val];
+                items.emplace_back((boost::format(Slic3r::I18N::translate(L("Color %d"))) % (i + 1)).str(), color);
+            }
             break;
         }
     }

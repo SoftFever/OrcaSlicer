@@ -1657,6 +1657,8 @@ void GLGizmoSlaSupports::on_render(const GLCanvas3D::Selection& selection) const
 
     ::glPushMatrix();
     //::glTranslatef((GLfloat)dragged_offset(0), (GLfloat)dragged_offset(1), (GLfloat)dragged_offset(2));
+    float z_shift = m_parent.get_selection().get_volume(0)->get_sla_shift_z();
+    ::glTranslatef((GLfloat)0, (GLfloat)0, (GLfloat)z_shift);
     render_grabbers();
     ::glPopMatrix();
 

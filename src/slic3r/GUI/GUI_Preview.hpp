@@ -85,7 +85,7 @@ private:
     void show_hide_ui_elements(const std::string& what);
 
     void reset_sliders();
-    void update_sliders();
+    void update_sliders(const std::vector<double>& layers_z);
 
     void on_size(wxSizeEvent& evt);
     void on_choice_view_type(wxCommandEvent& evt);
@@ -97,8 +97,8 @@ private:
 
     // Create/Update/Reset double slider on 3dPreview
     void create_double_slider();
-    void update_double_slider(bool force_sliders_full_range);
-    void fill_slider_values(std::vector<std::pair<int, double>> &values, 
+    void update_double_slider(const std::vector<double>& layers_z, bool force_sliders_full_range);
+    void fill_slider_values(std::vector<std::pair<int, double>> &values,
                             const std::vector<double> &layers_z);
     void set_double_slider_thumbs(  const bool force_sliders_full_range, 
                                     const std::vector<double> &layers_z, 
