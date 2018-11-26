@@ -1989,7 +1989,7 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
                 this->preview->reload_print();
             break;
         case ptSLA:
-            if (this->canvas3D->is_gizmo_dragging())
+            if (this->canvas3D->is_dragging())
                 delayed_scene_refresh = true;
             else
                 this->update_sla_scene();
@@ -2010,7 +2010,7 @@ void Plater::priv::on_slicing_completed(wxCommandEvent &)
     //    this->canvas3D->reload_scene(true);
         break;
     case ptSLA:
-        if (this->canvas3D->is_gizmo_dragging())
+        if (this->canvas3D->is_dragging())
             delayed_scene_refresh = true;
         else
             this->update_sla_scene();
@@ -2052,7 +2052,7 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
             this->preview->reload_print();
         break;
     case ptSLA:
-        if (this->canvas3D->is_gizmo_dragging())
+        if (this->canvas3D->is_dragging())
             delayed_scene_refresh = true;
         else
             this->update_sla_scene();

@@ -724,6 +724,7 @@ private:
     bool m_dynamic_background_enabled;
     bool m_multisample_allowed;
     bool m_regenerate_volumes;
+    bool m_moving;
 
     std::string m_color_by;
 
@@ -811,7 +812,7 @@ public:
 
     Rect get_gizmo_reset_rect(const GLCanvas3D& canvas, bool viewport) const;
     bool gizmo_reset_rect_contains(const GLCanvas3D& canvas, float x, float y) const;
-    bool is_gizmo_dragging() const { return m_gizmos.is_dragging(); }
+    bool is_dragging() const { return m_gizmos.is_dragging() || m_moving; }
 
     void render();
 

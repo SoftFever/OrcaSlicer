@@ -3316,6 +3316,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     , m_dynamic_background_enabled(false)
     , m_multisample_allowed(false)
     , m_regenerate_volumes(true)
+    , m_moving(false)
     , m_color_by("volume")
     , m_reload_delayed(false)
     , m_external_gizmo_widgets_parent(nullptr)
@@ -4631,6 +4632,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #else
                         m_mouse.drag.start_position_3D = pos3d;
 #endif // ENABLE_GIZMOS_ON_TOP
+                        m_moving = true;
                     }
                 }
                 else if (evt.RightDown())
@@ -4784,6 +4786,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // Let the platter know that the dragging finished, so a delayed refresh
             // of the scene with the background processing data should be performed.
             post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
+            m_moving = false;
         }
         else if (m_gizmos.get_current_type() == Gizmos::SlaSupports && m_hover_volume_id != -1)
         {
