@@ -4245,13 +4245,22 @@ void GLCanvas3D::load_gcode_preview(const GCodePreviewData& preview_data, const 
                 m_volumes.volumes.erase(std::remove_if(m_volumes.volumes.begin(), m_volumes.volumes.end(),
                     [](const GLVolume* volume) { return volume->print_zs.empty(); }), m_volumes.volumes.end());
 
-                _load_shells();
+                _load_shells_fff();
             }
             _update_toolpath_volumes_outside_state();
         }
         
         _update_gcode_volumes_visibility(preview_data);
         _show_warning_texture_if_needed();
+    }
+}
+
+void GLCanvas3D::load_sla_preview()
+{
+    const SLAPrint* print = this->sla_print();
+    if ((m_canvas != nullptr) && (print != nullptr))
+    {
+        _load_shells_sla();
     }
 }
 
@@ -6916,7 +6925,7 @@ void GLCanvas3D::_load_gcode_unretractions(const GCodePreviewData& preview_data)
     }
 }
 
-void GLCanvas3D::_load_shells()
+void GLCanvas3D::_load_shells_fff()
 {
     size_t initial_volumes_count = m_volumes.volumes.size();
     m_gcode_preview_volume_index.first_volumes.emplace_back(GCodePreviewVolumeIndex::Shell, 0, (unsigned int)initial_volumes_count);
@@ -6927,7 +6936,7 @@ void GLCanvas3D::_load_shells()
         return;
 
     // adds objects' volumes 
-    unsigned int object_id = 0;
+    int object_id = 0;
     for (const PrintObject* obj : print->objects())
     {
         const ModelObject* model_obj = obj->model_object();
@@ -6956,6 +6965,95 @@ void GLCanvas3D::_load_shells()
                                               m_use_VBOs && m_initialized, !print->is_step_done(psWipeTower), print->config().nozzle_diameter.values[0] * 1.25f * 4.5f);
         }
     }
+}
+
+void GLCanvas3D::_load_shells_sla()
+{
+    const SLAPrint* print = this->sla_print();
+    if (print->objects().empty())
+        // nothing to render, return
+        return;
+
+    // adds objects' volumes 
+    int obj_idx = 0;
+    for (const SLAPrintObject* obj : print->objects())
+    {
+        unsigned int initial_volumes_count = (unsigned int)m_volumes.volumes.size();
+
+        const ModelObject* model_obj = obj->model_object();
+        std::vector<int> instance_idxs(model_obj->instances.size());
+        for (int i = 0; i < (int)model_obj->instances.size(); ++i)
+        {
+            instance_idxs[i] = i;
+        }
+
+        m_volumes.load_object(model_obj, obj_idx, instance_idxs, "object", m_use_VBOs && m_initialized);
+
+        const std::vector<SLAPrintObject::Instance>& instances = obj->instances();
+
+        for (const SLAPrintObject::Instance& instance : instances)
+        {
+            Vec3d offset = unscale(instance.shift(0), instance.shift(1), 0);
+            Vec3d rotation(0.0, 0.0, (double)instance.rotation);
+
+            unsigned int partial_volumes_count = (unsigned int)m_volumes.volumes.size();
+
+            // add supports
+            if (obj->is_step_done(slaposSupportTree))
+            {
+                const TriangleMesh& mesh = obj->support_mesh();
+                m_volumes.volumes.emplace_back(new GLVolume(GLVolume::SLA_SUPPORT_COLOR));
+                GLVolume& v = *m_volumes.volumes.back();
+
+                if (m_use_VBOs)
+                    v.indexed_vertex_array.load_mesh_full_shading(mesh);
+                else
+                    v.indexed_vertex_array.load_mesh_flat_shading(mesh);
+
+                v.shader_outside_printer_detection_enabled = true;
+                v.composite_id.volume_id = -1;
+                v.set_instance_offset(offset);
+                v.set_instance_rotation(rotation);
+            }
+
+            // add pad
+            if (obj->is_step_done(slaposBasePool))
+            {
+                const TriangleMesh& mesh = obj->pad_mesh();
+                m_volumes.volumes.emplace_back(new GLVolume(GLVolume::SLA_PAD_COLOR));
+                GLVolume& v = *m_volumes.volumes.back();
+
+                if (m_use_VBOs)
+                    v.indexed_vertex_array.load_mesh_full_shading(mesh);
+                else
+                    v.indexed_vertex_array.load_mesh_flat_shading(mesh);
+
+                v.shader_outside_printer_detection_enabled = true;
+                v.composite_id.volume_id = -1;
+                v.set_instance_offset(offset);
+                v.set_instance_rotation(rotation);
+            }
+
+            // finalize volumes and sends geometry to gpu
+            for (unsigned int i = partial_volumes_count; i < m_volumes.volumes.size(); ++i)
+            {
+                GLVolume& v = *m_volumes.volumes[i];
+                v.bounding_box = v.indexed_vertex_array.bounding_box();
+                v.indexed_vertex_array.finalize_geometry(m_use_VBOs);
+            }
+
+            ++obj_idx;
+        }
+
+        // apply shift z
+        double shift_z = obj->get_current_elevation();
+        for (unsigned int i = initial_volumes_count; i < m_volumes.volumes.size(); ++i)
+        {
+            m_volumes.volumes[i]->set_sla_shift_z(shift_z);
+        }
+    }
+
+    update_volumes_colors_by_extruder();
 }
 
 void GLCanvas3D::_update_gcode_volumes_visibility(const GCodePreviewData& preview_data)

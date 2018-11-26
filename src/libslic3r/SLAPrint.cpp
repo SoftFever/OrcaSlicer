@@ -564,6 +564,8 @@ void SLAPrint::process()
     // layers according to quantized height levels
     std::map<LevelID, LayerRefs> levels;
 
+    // We have the layer polygon collection but we need to unite them into
+    // an index where the key is the height level in discrete levels (clipper)
     auto index_slices = [this, ilh, ilhd, &levels](SLAPrintObject& po) {
         auto sih = LevelID(scale_(ilh));
 
@@ -606,11 +608,18 @@ void SLAPrint::process()
             }
         }
 
+        // shortcut for empty index into the slice vectors
+        static const auto EMPTY_SLICE = SLAPrintObject::SliceRecord::NONE;
+
         for(int i = 0; i < oslices.size(); ++i) {
             LevelID h = levelids[i];
             auto& lyrs = levels[h]; // this initializes a new record
             lyrs.emplace_back(oslices[i], po.m_instances);
+
+            // now for the public slice index:
             SLAPrintObject::SliceRecord& sr = po.m_slice_index[h];
+            // There should be only one slice layer for each print object
+            assert(sr.model_slices_idx == EMPTY_SLICE);
             sr.model_slices_idx = i;
         }
 
@@ -625,6 +634,7 @@ void SLAPrint::process()
                 lyrs.emplace_back(sslices[i], po.m_instances);
 
                 SLAPrintObject::SliceRecord& sr = po.m_slice_index[h];
+                assert(sr.support_slices_idx == EMPTY_SLICE);
                 sr.support_slices_idx = i;
             }
         }

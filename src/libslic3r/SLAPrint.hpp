@@ -87,12 +87,16 @@ public:
     const std::vector<ExPolygons>& get_model_slices() const;
     const std::vector<ExPolygons>& get_support_slices() const;
 
+    // An index record referencing the slices
+    // (get_model_slices(), get_support_slices()) where the keys are the height
+    // levels of the model in scaled-clipper coordinates. The levels correspond
+    // to the z coordinate of the object coordinate system.
     struct SliceRecord {
         using Key = long long;
         inline static float scale_back(Key h) { return float(scale_(h)); }
 
         using Idx = size_t;
-        static const Idx NONE = ULONG_MAX; // std::numeric_limits<Idx>::max() // damn msvc 2013... ;
+        static const Idx NONE = Idx(-1); // this will be the max limit of size_t
 
         Idx model_slices_idx = NONE;
         Idx support_slices_idx = NONE;

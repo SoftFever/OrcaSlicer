@@ -835,6 +835,7 @@ public:
     void reload_scene(bool refresh_immediately, bool force_full_scene_refresh = false);
 
     void load_gcode_preview(const GCodePreviewData& preview_data, const std::vector<std::string>& str_tool_colors);
+    void load_sla_preview();
     void load_preview(const std::vector<std::string>& str_tool_colors);
 
     void bind_event_handlers();
@@ -944,7 +945,8 @@ private:
     // generates gcode unretractions geometry
     void _load_gcode_unretractions(const GCodePreviewData& preview_data);
     // generates objects and wipe tower geometry
-    void _load_shells();
+    void _load_shells_fff();
+    void _load_shells_sla();
     // sets gcode geometry visibility according to user selection
     void _update_gcode_volumes_visibility(const GCodePreviewData& preview_data);
     void _update_toolpath_volumes_outside_state();
