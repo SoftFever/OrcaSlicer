@@ -4091,7 +4091,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         if (printer_technology == ptSLA) {
             size_t idx = 0;
             const SLAPrint *sla_print = this->sla_print();
-            for (const SLAPrintObject *print_object : sla_print->objects()) {
+			std::vector<double> shift_zs(m_model->objects.size(), 0);
+			for (const SLAPrintObject *print_object : sla_print->objects()) {
                 SLASupportState   &state        = sla_support_state[idx ++];
                 const ModelObject *model_object = print_object->model_object();
                 // Find an index of the ModelObject
@@ -4103,6 +4104,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 auto it = std::find(sla_print->model().objects.begin(), sla_print->model().objects.end(), model_object);
                 assert(it != sla_print->model().objects.end());
 				object_idx = it - sla_print->model().objects.begin();
+				// Cache the Z offset to be applied to all volumes with this object_idx.
+				shift_zs[object_idx] = print_object->get_current_elevation();
                 // Collect indices of this print_object's instances, for which the SLA support meshes are to be added to the scene.
                 // pairs of <instance_idx, print_instance_idx>
 				std::vector<std::pair<size_t, size_t>> instances[std::tuple_size<SLASteps>::value];
@@ -4132,19 +4135,11 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 for (size_t istep = 0; istep < sla_steps.size(); ++istep)
                     if (!instances[istep].empty())
                         m_volumes.load_object_auxiliary(print_object, object_idx, instances[istep], sla_steps[istep], state.step[istep].timestamp, m_use_VBOs && m_initialized);
-
-                if (volumes_count != m_volumes.volumes.size())
-                {
-                    // If any volume has been added
-                    // Shift-up all volumes of the object so that it has the right elevation with respect to the print bed
-                    double shift_z = print_object->get_current_elevation();
-                    for (GLVolume* volume : m_volumes.volumes)
-                    {
-                        if (volume->object_idx() == object_idx)
-                            volume->set_sla_shift_z(shift_z);
-                    }
-                }
             }
+
+			// Shift-up all volumes of the object so that it has the right elevation with respect to the print bed
+			for (GLVolume* volume : m_volumes.volumes)
+				volume->set_sla_shift_z(shift_zs[volume->object_idx()]);
         }
 
         if (printer_technology == ptFFF && m_config->has("nozzle_diameter"))

@@ -1,4 +1,6 @@
-// #include <igl/unproject_onto_mesh.h>
+// Include GLGizmo.hpp before I18N.hpp as it includes some libigl code, which overrides our localization "L" macro.
+#include "GLGizmo.hpp"
+
 #include <GL/glew.h>
 #include <Eigen/Dense>
 
@@ -22,7 +24,6 @@
 #include "GUI_Utils.hpp"
 #include "GUI_App.hpp"
 #include "I18N.hpp"
-#include "GLGizmo.hpp"
 #include "PresetBundle.hpp"
 
 #if ENABLE_GIZMOS_SHORTCUT
