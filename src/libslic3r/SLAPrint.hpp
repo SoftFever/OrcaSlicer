@@ -23,6 +23,7 @@ enum SLAPrintObjectStep : unsigned int {
 	slaposSupportTree,
 	slaposBasePool,
 	slaposSliceSupports,
+    slaposIndexSlices,
 	slaposCount
 };
 
@@ -60,7 +61,7 @@ public:
     // Support mesh is only valid if this->is_step_done(slaposSupportTree) is true.
     const TriangleMesh&     support_mesh() const;
     // Get a pad mesh centered around origin in XY, and with zero rotation around Z applied.
-    // Support mesh is only valid if this->is_step_done(slaposPad) is true.
+    // Support mesh is only valid if this->is_step_done(slaposBasePool) is true.
     const TriangleMesh&     pad_mesh() const;
 
     // This will return the transformed mesh which is cached
@@ -79,9 +80,29 @@ public:
     // pad is not, then without the pad, otherwise the full value is returned.
     double get_current_elevation() const;
 
-    // Should be obvious
-    const std::vector<ExPolygons>& get_support_slices() const;
+    // These two methods should be callable on the client side (e.g. UI thread)
+    // when the appropriate steps slaposObjectSlice and slaposSliceSupports
+    // are ready. All the print objects are processed before slapsRasterize so
+    // it is safe to call them during and/or after slapsRasterize.
     const std::vector<ExPolygons>& get_model_slices() const;
+    const std::vector<ExPolygons>& get_support_slices() const;
+
+    struct SliceRecord {
+        using Key = long long;
+        inline static float scale_back(Key h) { return float(scale_(h)); }
+
+        using Idx = size_t;
+        static const Idx NONE = ULONG_MAX; // std::numeric_limits<Idx>::max() // damn msvc 2013... ;
+
+        Idx model_slices_idx = NONE;
+        Idx support_slices_idx = NONE;
+    };
+
+    using SliceIndex = std::map<SliceRecord::Key, SliceRecord>;
+
+    // Retrieve the slice index which is readable only after slaposIndexSlices
+    // is done.
+    const SliceIndex& get_slice_index() const;
 
     // I refuse to grantee copying (Tamas)
     SLAPrintObject(const SLAPrintObject&) = delete;
@@ -119,6 +140,7 @@ private:
     // Which steps have to be performed. Implicitly: all
     std::vector<bool>                       m_stepmask;
     std::vector<ExPolygons>                 m_model_slices;
+    SliceIndex                              m_slice_index;
 
     // Caching the transformed (m_trafo) raw mesh of the object
     mutable CachedObject<TriangleMesh>      m_transformed_rmesh;
