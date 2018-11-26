@@ -3711,6 +3711,7 @@ void GLCanvas3D::update_volumes_colors_by_extruder()
 
 // Returns a Rect object denoting size and position of the Reset button used by a gizmo.
 // Returns in either screen or viewport coords.
+#ifndef ENABLE_IMGUI
 Rect GLCanvas3D::get_gizmo_reset_rect(const GLCanvas3D& canvas, bool viewport) const
 {
     const Size& cnv_size = canvas.get_canvas_size();
@@ -3728,6 +3729,7 @@ bool GLCanvas3D::gizmo_reset_rect_contains(const GLCanvas3D& canvas, float x, fl
     const Rect& rect = get_gizmo_reset_rect(canvas, false);
     return (rect.get_left() <= x) && (x <= rect.get_right()) && (rect.get_top() <= y) && (y <= rect.get_bottom());
 }
+#endif // not ENABLE_IMGUI
 
 void GLCanvas3D::render()
 {
@@ -4570,6 +4572,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 m_dirty = true;
             }
         }
+#ifndef ENABLE_IMGUI
         else if ((m_gizmos.get_current_type() == Gizmos::SlaSupports) && gizmo_reset_rect_contains(*this, pos(0), pos(1)))
         {
             if (evt.LeftDown())
@@ -4581,6 +4584,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 m_dirty = true;
             }
         }
+#endif // not ENABLE_IMGUI
         else if (!m_selection.is_empty() && gizmos_overlay_contains_mouse)
         {
             m_gizmos.update_on_off_state(*this, m_mouse.position, m_selection);
@@ -4824,7 +4828,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // of the scene with the background processing data should be performed.
             post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
         }
-        else if (m_gizmos.get_current_type() == Gizmos::SlaSupports && m_hover_volume_id != -1)
+        else if (evt.LeftUp() && m_gizmos.get_current_type() == Gizmos::SlaSupports && m_hover_volume_id != -1)
         {
             int id = m_selection.get_object_idx();
 

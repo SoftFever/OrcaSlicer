@@ -482,12 +482,14 @@ private:
     virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const;
 
     void render_grabbers(bool picking = false) const;
-    void render_tooltip_texture() const;
     bool is_mesh_update_necessary() const;
     void update_mesh();
 
+#ifndef ENABLE_IMGUI
+    void render_tooltip_texture() const;
     mutable GLTexture m_tooltip_texture;
     mutable GLTexture m_reset_texture;
+#endif // not ENABLE_IMGUI
 
 protected:
     void on_set_state() override {
@@ -495,6 +497,10 @@ protected:
             update_mesh();
         }
     }
+
+#if ENABLE_IMGUI
+    virtual void on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection) override;
+#endif // ENABLE_IMGUI
 
     virtual std::string on_get_name() const;
     virtual bool on_is_activable(const GLCanvas3D::Selection& selection) const;

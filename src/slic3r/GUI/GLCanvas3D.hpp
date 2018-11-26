@@ -814,8 +814,11 @@ public:
 
     void update_volumes_colors_by_extruder();
 
+#ifndef ENABLE_IMGUI
     Rect get_gizmo_reset_rect(const GLCanvas3D& canvas, bool viewport) const;
     bool gizmo_reset_rect_contains(const GLCanvas3D& canvas, float x, float y) const;
+#endif // not ENABLE_IMGUI
+
     bool is_dragging() const { return m_gizmos.is_dragging() || m_moving; }
 
     void render();
