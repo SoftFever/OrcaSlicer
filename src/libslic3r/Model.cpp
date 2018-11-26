@@ -1072,10 +1072,12 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
 
     if (keep_upper && upper->volumes.size() > 0) {
         upper->invalidate_bounding_box();
+        upper->center_around_origin();
         res.push_back(upper);
     }
     if (keep_lower && lower->volumes.size() > 0) {
         lower->invalidate_bounding_box();
+        lower->center_around_origin();
         res.push_back(lower);
     }
 
