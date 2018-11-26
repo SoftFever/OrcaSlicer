@@ -4817,7 +4817,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // Let the platter know that the dragging finished, so a delayed refresh
             // of the scene with the background processing data should be performed.
             post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
-            m_moving = false;
         }
         else if (m_gizmos.get_current_type() == Gizmos::SlaSupports && m_hover_volume_id != -1)
         {
@@ -4880,6 +4879,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
         }
 
+        m_moving = false;
         m_mouse.drag.move_volume_idx = -1;
         m_mouse.set_start_position_3D_as_invalid();
         m_mouse.set_start_position_2D_as_invalid();
