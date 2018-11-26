@@ -8,6 +8,8 @@
 #include "libslic3r/PrintConfig.hpp"
 #include "Http.hpp"
 
+#include "slic3r/GUI/I18N.hpp"
+
 namespace fs = boost::filesystem;
 
 

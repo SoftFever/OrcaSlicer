@@ -1,18 +1,11 @@
-#include "libslic3r/libslic3r.h"
-#include "GLGizmo.hpp"
-
-#include "GUI.hpp"
-#include "GUI_App.hpp"
-
-#include "../../libslic3r/Utils.hpp"
-#include "PresetBundle.hpp"
-
-#include <Eigen/Dense>
-#include "libslic3r/Geometry.hpp"
-
+// #include <igl/unproject_onto_mesh.h>
 #include <GL/glew.h>
+#include <Eigen/Dense>
 
-#include <SLA/SLASupportTree.hpp>
+#include "libslic3r/libslic3r.h"
+#include "libslic3r/Geometry.hpp"
+#include "libslic3r/Utils.hpp"
+#include "libslic3r/SLA/SLASupportTree.hpp"
 
 #include <cstdio>
 #include <numeric>
@@ -28,6 +21,9 @@
 #include "GUI.hpp"
 #include "GUI_Utils.hpp"
 #include "GUI_App.hpp"
+#include "I18N.hpp"
+#include "GLGizmo.hpp"
+#include "PresetBundle.hpp"
 
 #if ENABLE_GIZMOS_SHORTCUT
 #include <wx/defs.h>

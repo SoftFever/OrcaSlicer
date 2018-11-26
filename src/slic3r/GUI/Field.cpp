@@ -1,13 +1,14 @@
-#include "GUI.hpp"//"slic3r_gui.hpp"
+#include "GUI.hpp"
+#include "GUI_App.hpp"
+#include "I18N.hpp"
 #include "Field.hpp"
 
-//#include <wx/event.h>
+#include "libslic3r/PrintConfig.hpp"
+
 #include <regex>
 #include <wx/numformatter.h>
 #include <wx/tooltip.h>
-#include "PrintConfig.hpp"
 #include <boost/algorithm/string/predicate.hpp>
-#include "GUI_App.hpp"
 
 namespace Slic3r { namespace GUI {
 

@@ -14,6 +14,7 @@ class wxButton;
 class wxBoxSizer;
 class wxGLCanvas;
 class wxScrolledWindow;
+class wxString;
 
 namespace Slic3r {
 

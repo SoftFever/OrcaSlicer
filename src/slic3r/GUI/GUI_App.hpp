@@ -3,7 +3,7 @@
 
 #include <memory>
 #include <string>
-#include "PrintConfig.hpp"
+#include "libslic3r/PrintConfig.hpp"
 #include "MainFrame.hpp"
 #if ENABLE_IMGUI
 #include "ImGuiWrapper.hpp"
@@ -12,6 +12,7 @@
 #include <wx/app.h>
 #include <wx/colour.h>
 #include <wx/font.h>
+#include <wx/string.h>
 
 #include <mutex>
 #include <stack>

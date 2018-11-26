@@ -3,8 +3,7 @@
 
 #include "../libslic3r.h"
 #include "../ExtrusionEntity.hpp"
-
-#include "Point.hpp"
+#include "../Point.hpp"
 
 namespace Slic3r {
 

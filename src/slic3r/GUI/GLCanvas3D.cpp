@@ -3,18 +3,20 @@
 
 #include "admesh/stl.h"
 #include "libslic3r/libslic3r.h"
+#include "libslic3r/ClipperUtils.hpp"
+#include "libslic3r/PrintConfig.hpp"
+#include "libslic3r/GCode/PreviewData.hpp"
+#include "libslic3r/Geometry.hpp"
 #include "slic3r/GUI/3DScene.hpp"
 #include "slic3r/GUI/BackgroundSlicingProcess.hpp"
 #include "slic3r/GUI/GLShader.hpp"
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/PresetBundle.hpp"
-#include "libslic3r/ClipperUtils.hpp"
-#include "libslic3r/PrintConfig.hpp"
-#include "libslic3r/GCode/PreviewData.hpp"
-#include "libslic3r/Geometry.hpp"
+//#include "slic3r/GUI/GLGizmo.hpp"
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_ObjectManipulation.hpp"
+#include "I18N.hpp"
 
 #include <GL/glew.h>
 

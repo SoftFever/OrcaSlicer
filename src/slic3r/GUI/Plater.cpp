@@ -24,17 +24,19 @@
 #include <wx/debug.h>
 
 #include "libslic3r/libslic3r.h"
-#include "libslic3r/PrintConfig.hpp"
-#include "libslic3r/Model.hpp"
-#include "libslic3r/ModelArrange.hpp"
-#include "libslic3r/Print.hpp"
-#include "libslic3r/SLAPrint.hpp"
-#include "libslic3r/GCode/PreviewData.hpp"
-#include "libslic3r/Utils.hpp"
-#include "libslic3r/Polygon.hpp"
 #include "libslic3r/Format/STL.hpp"
 #include "libslic3r/Format/AMF.hpp"
 #include "libslic3r/Format/3mf.hpp"
+#include "libslic3r/GCode/PreviewData.hpp"
+#include "libslic3r/Model.hpp"
+#include "libslic3r/ModelArrange.hpp"
+#include "libslic3r/Polygon.hpp"
+#include "libslic3r/Print.hpp"
+#include "libslic3r/PrintConfig.hpp"
+#include "libslic3r/SLAPrint.hpp"
+#include "libslic3r/SLA/SLARotfinder.hpp"
+#include "libslic3r/Utils.hpp"
+
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
@@ -50,9 +52,8 @@
 #include "PresetBundle.hpp"
 #include "BackgroundSlicingProcess.hpp"
 #include "ProgressStatusBar.hpp"
-#include "slic3r/Utils/ASCIIFolding.hpp"
+#include "../Utils/ASCIIFolding.hpp"
 #include "../Utils/FixModelByWin10.hpp"
-#include "SLA/SLARotfinder.hpp"
 
 #include <wx/glcanvas.h>    // Needs to be last because reasons :-/
 #include "WipeTowerDialog.hpp"
@@ -66,9 +67,10 @@ using Slic3r::Preset;
 namespace Slic3r {
 namespace GUI {
 
-wxDEFINE_EVENT(EVT_SLICING_UPDATE,    SlicingStatusEvent);
-wxDEFINE_EVENT(EVT_SLICING_COMPLETED, wxCommandEvent);
-wxDEFINE_EVENT(EVT_PROCESS_COMPLETED, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SCHEDULE_BACKGROUND_PROCESS,     SimpleEvent);
+wxDEFINE_EVENT(EVT_SLICING_UPDATE,                  SlicingStatusEvent);
+wxDEFINE_EVENT(EVT_SLICING_COMPLETED,               wxCommandEvent);
+wxDEFINE_EVENT(EVT_PROCESS_COMPLETED,               wxCommandEvent);
 
 // Sidebar widgets
 
@@ -392,7 +394,7 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
                 std::vector<float> extruders = dlg.get_extruders();
                 (config.option<ConfigOptionFloats>("wiping_volumes_matrix"))->values = std::vector<double>(matrix.begin(), matrix.end());
                 (config.option<ConfigOptionFloats>("wiping_volumes_extruders"))->values = std::vector<double>(extruders.begin(), extruders.end());
-                g_on_request_update_callback.call();
+				wxPostEvent(parent, SimpleEvent(EVT_SCHEDULE_BACKGROUND_PROCESS, parent));
             }
         }));
         return sizer;
@@ -1129,6 +1131,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     sidebar->Bind(wxEVT_COMBOBOX, &priv::on_select_preset, this);
 
     sidebar->Bind(EVT_OBJ_LIST_OBJECT_SELECT, [this](wxEvent&) { priv::selection_changed(); });
+    sidebar->Bind(EVT_SCHEDULE_BACKGROUND_PROCESS, &priv::on_schedule_background_process, this);
 
     // 3DScene events:
     canvas3Dwidget->Bind(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, &priv::on_schedule_background_process, this);

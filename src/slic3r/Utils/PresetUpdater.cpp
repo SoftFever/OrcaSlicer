@@ -18,13 +18,14 @@
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Utils.hpp"
 #include "slic3r/GUI/GUI.hpp"
+#include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/PresetBundle.hpp"
 #include "slic3r/GUI/UpdateDialogs.hpp"
 #include "slic3r/GUI/ConfigWizard.hpp"
+#include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/Config/Version.hpp"
 #include "slic3r/Config/Snapshot.hpp"
-#include "slic3r/GUI/GUI_App.hpp"
 
 namespace fs = boost::filesystem;
 using Slic3r::GUI::Config::Index;

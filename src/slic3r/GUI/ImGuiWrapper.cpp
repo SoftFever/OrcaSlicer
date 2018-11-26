@@ -12,8 +12,8 @@
 #include <GL/glew.h>
 
 #include "libslic3r/libslic3r.h"
+#include "libslic3r/Utils.hpp"
 #include "GUI.hpp"
-#include "Utils.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -88,7 +88,7 @@ bool ImGuiWrapper::update_mouse_data(wxMouseEvent& evt)
     io.MouseDown[1] = evt.RightDown();
     io.MouseDown[2] = evt.MiddleDown();
 
-    unsigned buttons = evt.LeftDown() | evt.RightDown() << 1 | evt.MiddleDown() << 2;
+    unsigned buttons = (evt.LeftDown() ? 1 : 0) | (evt.RightDown() ? 2 : 0) | (evt.MiddleDown() ? 4 : 0);
     bool res = buttons != m_mouse_buttons;
     m_mouse_buttons = buttons;
     return res;

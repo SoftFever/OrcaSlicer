@@ -2,7 +2,7 @@
 #define slic3r_2DBed_hpp_
 
 #include <wx/wx.h>
-#include "Config.hpp"
+#include "libslic3r/Config.hpp"
 
 namespace Slic3r {
 namespace GUI {

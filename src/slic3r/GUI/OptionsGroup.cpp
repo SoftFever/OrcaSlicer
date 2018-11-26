@@ -5,7 +5,8 @@
 #include <wx/numformatter.h>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
-#include "Utils.hpp"
+#include "libslic3r/Utils.hpp"
+#include "I18N.hpp"
 
 namespace Slic3r { namespace GUI {
 

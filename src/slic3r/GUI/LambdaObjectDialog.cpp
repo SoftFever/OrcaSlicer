@@ -3,6 +3,7 @@
 #include <wx/window.h>
 #include <wx/button.h>
 #include "OptionsGroup.hpp"
+#include "I18N.hpp"
 
 namespace Slic3r
 {

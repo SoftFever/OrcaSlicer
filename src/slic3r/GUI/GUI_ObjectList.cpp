@@ -1,12 +1,13 @@
 #include "GUI_ObjectList.hpp"
 #include "GUI_ObjectManipulation.hpp"
 #include "GUI_App.hpp"
+#include "I18N.hpp"
 
 #include "OptionsGroup.hpp"
 #include "PresetBundle.hpp"
 #include "Tab.hpp"
 #include "wxExtensions.hpp"
-#include "Model.hpp"
+#include "libslic3r/Model.hpp"
 #include "LambdaObjectDialog.hpp"
 #include "GLCanvas3D.hpp"
 

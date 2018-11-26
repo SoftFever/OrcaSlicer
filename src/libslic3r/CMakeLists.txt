@@ -174,7 +174,7 @@ if (NOT SLIC3R_SYNTAXONLY)
 endif ()
 
 target_compile_definitions(libslic3r PUBLIC -DUSE_TBB ${PNG_DEFINITIONS})
-target_include_directories(libslic3r PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ${LIBNEST2D_INCLUDES} ${PNG_INCLUDE_DIRS})
+target_include_directories(libslic3r PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${LIBNEST2D_INCLUDES} ${PNG_INCLUDE_DIRS} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(libslic3r
     libnest2d
     admesh

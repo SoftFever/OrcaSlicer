@@ -48,6 +48,8 @@ add_library(libslic3r_gui STATIC
     GUI/GUI_App.hpp
     GUI/GUI_Utils.cpp
     GUI/GUI_Utils.hpp
+    GUI/I18N.cpp
+    GUI/I18N.hpp
     GUI/MainFrame.cpp
     GUI/MainFrame.hpp
     GUI/Plater.cpp

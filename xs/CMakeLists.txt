@@ -99,11 +99,7 @@ else()
 endif()
 add_library(XS ${XS_SHARED_LIBRARY_TYPE}
     ${XS_MAIN_CPP}
-#    ${LIBDIR}/libslic3r/utils.cpp
-#    ${LIBDIR}/slic3r/GUI/wxPerlIface.cpp
     src/perlglue.cpp
-#    src/callback.cpp
-#    src/callback.hpp
     src/ppport.h
     src/xsinit.h
     xsp/my.map
@@ -119,7 +115,7 @@ if(APPLE)
 endif()
 target_link_libraries(XS libslic3r)
 
-target_include_directories(XS PRIVATE src)
+target_include_directories(XS PRIVATE src ${LIBDIR}/libslic3r)
 target_compile_definitions(XS PRIVATE -DSLIC3RXS)
 set_target_properties(XS PROPERTIES PREFIX "") # Prevent cmake from generating libXS.so instead of XS.so
 

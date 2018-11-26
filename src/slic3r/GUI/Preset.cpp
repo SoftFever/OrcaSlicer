@@ -1,9 +1,9 @@
-//#undef NDEBUG
 #include <cassert>
 
 #include "Preset.hpp"
 #include "AppConfig.hpp"
 #include "BitmapCache.hpp"
+#include "I18N.hpp"
 
 #include <fstream>
 #include <stdexcept>
@@ -25,9 +25,9 @@
 #include <wx/bmpcbox.h>
 #include <wx/wupdlock.h>
 
-#include "../../libslic3r/libslic3r.h"
-#include "../../libslic3r/Utils.hpp"
-#include "../../libslic3r/PlaceholderParser.hpp"
+#include "libslic3r/libslic3r.h"
+#include "libslic3r/Utils.hpp"
+#include "libslic3r/PlaceholderParser.hpp"
 #include "Plater.hpp"
 
 using boost::property_tree::ptree;

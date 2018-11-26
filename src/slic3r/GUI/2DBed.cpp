@@ -1,9 +1,10 @@
 #include "2DBed.hpp"
 
 #include <wx/dcbuffer.h>
-#include "BoundingBox.hpp"
-#include "Geometry.hpp"
-#include "ClipperUtils.hpp"
+
+#include "libslic3r/BoundingBox.hpp"
+#include "libslic3r/Geometry.hpp"
+#include "libslic3r/ClipperUtils.hpp"
 
 namespace Slic3r {
 namespace GUI {

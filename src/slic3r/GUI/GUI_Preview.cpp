@@ -3,6 +3,7 @@
 #include "GUI_Preview.hpp"
 #include "GUI_App.hpp"
 #include "GUI.hpp"
+#include "I18N.hpp"
 #include "AppConfig.hpp"
 #include "3DScene.hpp"
 #include "BackgroundSlicingProcess.hpp"
@@ -20,7 +21,7 @@
 #include <wx/checkbox.h>
 
 // this include must follow the wxWidgets ones or it won't compile on Windows -> see http://trac.wxwidgets.org/ticket/2421
-#include "../../libslic3r/Print.hpp"
+#include "libslic3r/Print.hpp"
 
 namespace Slic3r {
 namespace GUI {

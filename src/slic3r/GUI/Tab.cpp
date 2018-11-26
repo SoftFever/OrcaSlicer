@@ -2017,7 +2017,7 @@ void TabPrinter::build_extruder_pages()
 
 	for (auto extruder_idx = m_extruders_count_old; extruder_idx < m_extruders_count; ++extruder_idx) {
 		//# build page
-		char buf[MIN_BUF_LENGTH_FOR_L];
+		char buf[512];
 		sprintf(buf, _CHB(L("Extruder %d")), extruder_idx + 1);
 		auto page = add_options_page(from_u8(buf), "funnel.png", true);
 		m_pages.insert(m_pages.begin() + n_before_extruders + extruder_idx, page);

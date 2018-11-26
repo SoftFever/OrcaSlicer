@@ -12,6 +12,7 @@
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Utils.hpp"
 #include "GUI.hpp"
+#include "I18N.hpp"
 #include "ConfigWizard.hpp"
 
 namespace Slic3r {

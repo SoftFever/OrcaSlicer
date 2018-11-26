@@ -10,14 +10,16 @@
 #include <wx/glcanvas.h>
 #include <wx/debug.h>
 
+#include "libslic3r/Print.hpp"
+#include "libslic3r/Polygon.hpp"
+
 #include "Tab.hpp"
 #include "PresetBundle.hpp"
 #include "ProgressStatusBar.hpp"
 #include "3DScene.hpp"
-#include "Print.hpp"
-#include "Polygon.hpp"
 #include "AppConfig.hpp"
 #include "wxExtensions.hpp"
+#include "I18N.hpp"
 
 #include <fstream>
 #include "GUI_App.hpp"

@@ -129,7 +129,7 @@ set(LIBDIR ${CMAKE_CURRENT_SOURCE_DIR}/src/)
 # For the bundled boost libraries (boost::nowide)
 include_directories(${LIBDIR})
 # For libslic3r.h
-include_directories(${LIBDIR}/libslic3r ${LIBDIR}/clipper ${LIBDIR}/polypartition)
+include_directories(${LIBDIR}/clipper ${LIBDIR}/polypartition)
 #set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 if(WIN32)
