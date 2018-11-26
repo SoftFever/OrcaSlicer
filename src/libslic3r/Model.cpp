@@ -1100,14 +1100,10 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
         for (auto *instance : lower->instances) {
             const Vec3d offset = instance->get_offset();
             const double rot_z = instance->get_rotation()(2);
+
             instance->set_transformation(Geometry::Transformation());
-
-            if (rotate_lower) {
-                instance->set_rotation({Geometry::deg2rad(180.0), 0.0, 0.0});
-            }
-
             instance->set_offset(offset);
-            instance->set_rotation(Vec3d(0.0, 0.0, rot_z));
+            instance->set_rotation(Vec3d(rotate_lower ? Geometry::deg2rad(180.0) : 0.0, 0.0, rot_z));
         }
 
         res.push_back(lower);
