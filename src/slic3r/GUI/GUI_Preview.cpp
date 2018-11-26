@@ -22,6 +22,7 @@
 
 // this include must follow the wxWidgets ones or it won't compile on Windows -> see http://trac.wxwidgets.org/ticket/2421
 #include "libslic3r/Print.hpp"
+#include "libslic3r/SLAPrint.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -326,10 +327,10 @@ void Preview::reset_sliders()
     m_double_slider_sizer->Hide((size_t)0);
 }
 
-void Preview::update_sliders()
+void Preview::update_sliders(const std::vector<double>& layers_z)
 {
     m_enabled = true;
-    update_double_slider(m_force_sliders_full_range);
+    update_double_slider(layers_z, m_force_sliders_full_range);
     m_double_slider_sizer->Show((size_t)0);
     Layout();
 }
@@ -402,10 +403,9 @@ void Preview::create_double_slider()
         });
 }
 
-void Preview::update_double_slider(bool force_sliders_full_range)
+void Preview::update_double_slider(const std::vector<double>& layers_z, bool force_sliders_full_range)
 {
     std::vector<std::pair<int, double>> values;
-    std::vector<double> layers_z = m_canvas->get_current_print_zs(true);
     fill_slider_values(values, layers_z);
 
     const double z_low = m_slider->GetLowerValueD();
@@ -606,7 +606,7 @@ void Preview::load_print_as_fff()
         }
 
         if (n_layers > 0)
-            update_sliders();
+            update_sliders(m_canvas->get_current_print_zs(true));
 
         m_loaded = true;
     }
@@ -617,9 +617,44 @@ void Preview::load_print_as_sla()
     if (m_loaded || (m_process->current_printer_technology() != ptSLA))
         return;
 
-    std::cout << "Preview::load_print_as_sla()" << std::endl;
-    m_canvas->load_sla_preview();
-    show_hide_ui_elements("none");
+    unsigned int n_layers = 0;
+    const SLAPrint* print = m_process->sla_print();
+
+    std::set<float> zs;
+    for (const SLAPrintObject* obj : print->objects())
+    {
+        if (obj->is_step_done(slaposIndexSlices))
+        {
+            const SLAPrintObject::SliceIndex& index = obj->get_slice_index();
+            for (const SLAPrintObject::SliceIndex::value_type& id : index)
+            {
+                zs.insert(id.second.scale_back(id.first));
+            }
+        }
+    }
+
+    n_layers = (unsigned int)zs.size();
+    if (n_layers == 0)
+    {
+        reset_sliders();
+        m_canvas_widget->Refresh();
+    }
+
+    if (IsShown())
+    {
+        std::cout << "Preview::load_print_as_sla()" << std::endl;
+        m_canvas->load_sla_preview();
+        show_hide_ui_elements("none");
+
+        if (n_layers > 0)
+        {
+            std::vector<double> layer_zs;
+            std::copy(zs.begin(), zs.end(), std::back_inserter(layer_zs));
+            update_sliders(layer_zs);
+        }
+
+        m_loaded = true;
+    }
 }
 
 } // namespace GUI

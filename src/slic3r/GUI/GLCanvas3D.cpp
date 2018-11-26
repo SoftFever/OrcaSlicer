@@ -7003,7 +7003,7 @@ void GLCanvas3D::_load_shells_sla()
             unsigned int partial_volumes_count = (unsigned int)m_volumes.volumes.size();
 
             // add supports
-            if (obj->is_step_done(slaposSupportTree))
+            if (obj->is_step_done(slaposSupportTree) && obj->has_mesh(slaposSupportTree))
             {
                 const TriangleMesh& mesh = obj->support_mesh();
                 m_volumes.volumes.emplace_back(new GLVolume(GLVolume::SLA_SUPPORT_COLOR));
@@ -7021,7 +7021,7 @@ void GLCanvas3D::_load_shells_sla()
             }
 
             // add pad
-            if (obj->is_step_done(slaposBasePool))
+            if (obj->is_step_done(slaposBasePool) && obj->has_mesh(slaposBasePool))
             {
                 const TriangleMesh& mesh = obj->pad_mesh();
                 m_volumes.volumes.emplace_back(new GLVolume(GLVolume::SLA_PAD_COLOR));
