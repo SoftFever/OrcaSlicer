@@ -2,6 +2,7 @@
 #include <sstream>
 #include "WipeTowerDialog.hpp"
 #include "GUI.hpp"
+#include "I18N.hpp"
 
 #include <wx/sizer.h>
 

@@ -32,6 +32,7 @@
 #include "libslic3r/Print.hpp"
 #include "libslic3r/Format/3mf.hpp"
 #include "../GUI/GUI.hpp"
+#include "../GUI/I18N.hpp"
 #include "../GUI/PresetBundle.hpp"
 
 #include <wx/msgdlg.h>

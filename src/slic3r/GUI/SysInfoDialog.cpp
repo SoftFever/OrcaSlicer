@@ -1,12 +1,10 @@
 #include "SysInfoDialog.hpp"
-// #include "AboutDialog.hpp"
+#include "I18N.hpp"
+#include "3DScene.hpp"
+#include "GUI.hpp"
 
 #include <wx/clipbrd.h>
 #include <wx/platinfo.h>
-
-// #include "../../libslic3r/Utils.hpp"
-#include "3DScene.hpp"
-#include "GUI.hpp"
 
 namespace Slic3r { 
 namespace GUI {

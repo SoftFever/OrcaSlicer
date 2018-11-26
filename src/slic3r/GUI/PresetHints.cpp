@@ -1,15 +1,16 @@
-//#undef NDEBUG
 #include <cassert>
+
+#include "libslic3r/Flow.hpp"
+#include "libslic3r/libslic3r.h"
 
 #include "PresetBundle.hpp"
 #include "PresetHints.hpp"
-#include "Flow.hpp"
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <wx/intl.h> 
 
-#include "../../libslic3r/libslic3r.h"
 #include "GUI.hpp"
+#include "I18N.hpp"
 
 namespace Slic3r {
 

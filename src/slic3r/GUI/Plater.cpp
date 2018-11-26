@@ -24,17 +24,19 @@
 #include <wx/debug.h>
 
 #include "libslic3r/libslic3r.h"
-#include "libslic3r/PrintConfig.hpp"
-#include "libslic3r/Model.hpp"
-#include "libslic3r/ModelArrange.hpp"
-#include "libslic3r/Print.hpp"
-#include "libslic3r/SLAPrint.hpp"
-#include "libslic3r/GCode/PreviewData.hpp"
-#include "libslic3r/Utils.hpp"
-#include "libslic3r/Polygon.hpp"
 #include "libslic3r/Format/STL.hpp"
 #include "libslic3r/Format/AMF.hpp"
 #include "libslic3r/Format/3mf.hpp"
+#include "libslic3r/GCode/PreviewData.hpp"
+#include "libslic3r/Model.hpp"
+#include "libslic3r/ModelArrange.hpp"
+#include "libslic3r/Polygon.hpp"
+#include "libslic3r/Print.hpp"
+#include "libslic3r/PrintConfig.hpp"
+#include "libslic3r/SLAPrint.hpp"
+#include "libslic3r/SLA/SLARotfinder.hpp"
+#include "libslic3r/Utils.hpp"
+
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
@@ -50,9 +52,8 @@
 #include "PresetBundle.hpp"
 #include "BackgroundSlicingProcess.hpp"
 #include "ProgressStatusBar.hpp"
-#include "slic3r/Utils/ASCIIFolding.hpp"
+#include "../Utils/ASCIIFolding.hpp"
 #include "../Utils/FixModelByWin10.hpp"
-#include "SLA/SLARotfinder.hpp"
 
 #include <wx/glcanvas.h>    // Needs to be last because reasons :-/
 #include "WipeTowerDialog.hpp"
@@ -66,9 +67,10 @@ using Slic3r::Preset;
 namespace Slic3r {
 namespace GUI {
 
-wxDEFINE_EVENT(EVT_SLICING_UPDATE,    SlicingStatusEvent);
-wxDEFINE_EVENT(EVT_SLICING_COMPLETED, wxCommandEvent);
-wxDEFINE_EVENT(EVT_PROCESS_COMPLETED, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SCHEDULE_BACKGROUND_PROCESS,     SimpleEvent);
+wxDEFINE_EVENT(EVT_SLICING_UPDATE,                  SlicingStatusEvent);
+wxDEFINE_EVENT(EVT_SLICING_COMPLETED,               wxCommandEvent);
+wxDEFINE_EVENT(EVT_PROCESS_COMPLETED,               wxCommandEvent);
 
 // Sidebar widgets
 
@@ -392,7 +394,7 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
                 std::vector<float> extruders = dlg.get_extruders();
                 (config.option<ConfigOptionFloats>("wiping_volumes_matrix"))->values = std::vector<double>(matrix.begin(), matrix.end());
                 (config.option<ConfigOptionFloats>("wiping_volumes_extruders"))->values = std::vector<double>(extruders.begin(), extruders.end());
-                g_on_request_update_callback.call();
+				wxPostEvent(parent, SimpleEvent(EVT_SCHEDULE_BACKGROUND_PROCESS, parent));
             }
         }));
         return sizer;
@@ -913,7 +915,9 @@ struct Plater::priv
     // GUI elements
     wxNotebook *notebook;
     Sidebar *sidebar;
+#ifndef ENABLE_IMGUI
     wxPanel *panel3d;
+#endif // not ENABLE_IMGUI
     wxGLCanvas *canvas3Dwidget;    // TODO: Use GLCanvas3D when we can
     GLCanvas3D *canvas3D;
     Preview *preview;
@@ -1039,8 +1043,12 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         }))
     , notebook(new wxNotebook(q, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_BOTTOM))
     , sidebar(new Sidebar(q))
+#ifdef ENABLE_IMGUI
+    , canvas3Dwidget(GLCanvas3DManager::create_wxglcanvas(notebook))
+#else
     , panel3d(new wxPanel(notebook, wxID_ANY))
     , canvas3Dwidget(GLCanvas3DManager::create_wxglcanvas(panel3d))
+#endif // ENABLE_IMGUI
     , canvas3D(nullptr)
     , delayed_scene_refresh(false)
 #if ENABLE_NEW_MENU_LAYOUT
@@ -1068,6 +1076,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     this->canvas3D = _3DScene::get_canvas(this->canvas3Dwidget);
     this->canvas3D->allow_multisample(GLCanvas3DManager::can_multisample());
 
+#ifdef ENABLE_IMGUI
+    notebook->AddPage(canvas3Dwidget, _(L("3D")));
+#else
     auto *panel3dsizer = new wxBoxSizer(wxVERTICAL);
     panel3dsizer->Add(canvas3Dwidget, 1, wxEXPAND);
     auto *panel_gizmo_widgets = new wxPanel(panel3d, wxID_ANY);
@@ -1076,9 +1087,11 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
     panel3d->SetSizer(panel3dsizer);
     notebook->AddPage(panel3d, _(L("3D")));
-	preview = new GUI::Preview(notebook, config, &background_process, &gcode_preview_data, [this](){ schedule_background_process(); });
 
     canvas3D->set_external_gizmo_widgets_parent(panel_gizmo_widgets);
+#endif // ENABLE_IMGUI
+
+    preview = new GUI::Preview(notebook, config, &background_process, &gcode_preview_data, [this](){ schedule_background_process(); });
 
     // XXX: If have OpenGL
     this->canvas3D->enable_picking(true);
@@ -1118,6 +1131,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     sidebar->Bind(wxEVT_COMBOBOX, &priv::on_select_preset, this);
 
     sidebar->Bind(EVT_OBJ_LIST_OBJECT_SELECT, [this](wxEvent&) { priv::selection_changed(); });
+    sidebar->Bind(EVT_SCHEDULE_BACKGROUND_PROCESS, &priv::on_schedule_background_process, this);
 
     // 3DScene events:
     canvas3Dwidget->Bind(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, &priv::on_schedule_background_process, this);
@@ -1921,7 +1935,11 @@ void Plater::priv::fix_through_netfabb(const int obj_idx)
 void Plater::priv::on_notebook_changed(wxBookCtrlEvent&)
 {
     const auto current_id = notebook->GetCurrentPage()->GetId();
+#ifdef ENABLE_IMGUI
+    if (current_id == canvas3Dwidget->GetId()) {
+#else
     if (current_id == panel3d->GetId()) {
+#endif // ENABLE_IMGUI
         if (this->canvas3D->is_reload_delayed()) {
             // Delayed loading of the 3D scene.
             if (this->printer_technology == ptSLA) {
@@ -1989,7 +2007,7 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
                 this->preview->reload_print();
             break;
         case ptSLA:
-            if (this->canvas3D->is_gizmo_dragging())
+            if (this->canvas3D->is_dragging())
                 delayed_scene_refresh = true;
             else
                 this->update_sla_scene();
@@ -2010,7 +2028,7 @@ void Plater::priv::on_slicing_completed(wxCommandEvent &)
     //    this->canvas3D->reload_scene(true);
         break;
     case ptSLA:
-        if (this->canvas3D->is_gizmo_dragging())
+        if (this->canvas3D->is_dragging())
             delayed_scene_refresh = true;
         else
             this->update_sla_scene();
@@ -2052,7 +2070,7 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
             this->preview->reload_print();
         break;
     case ptSLA:
-        if (this->canvas3D->is_gizmo_dragging())
+        if (this->canvas3D->is_dragging())
             delayed_scene_refresh = true;
         else
             this->update_sla_scene();
@@ -2454,14 +2472,14 @@ bool Plater::is_selection_empty() const
     return p->get_selection().is_empty();
 }
 
-void Plater::cut(size_t obj_idx, size_t instance_idx, coordf_t z)
+void Plater::cut(size_t obj_idx, size_t instance_idx, coordf_t z, bool keep_upper, bool keep_lower, bool rotate_lower)
 {
     wxCHECK_RET(obj_idx < p->model.objects.size(), "obj_idx out of bounds");
     auto *object = p->model.objects[obj_idx];
 
     wxCHECK_RET(instance_idx < object->instances.size(), "instance_idx out of bounds");
 
-    const auto new_objects = object->cut(instance_idx, z);
+    const auto new_objects = object->cut(instance_idx, z, keep_upper, keep_lower, rotate_lower);
 
     remove(obj_idx);
     p->load_model_objects(new_objects);

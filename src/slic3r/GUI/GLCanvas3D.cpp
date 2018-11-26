@@ -1,20 +1,22 @@
+#include "slic3r/GUI/GLGizmo.hpp"
 #include "GLCanvas3D.hpp"
 
 #include "admesh/stl.h"
 #include "libslic3r/libslic3r.h"
+#include "libslic3r/ClipperUtils.hpp"
+#include "libslic3r/PrintConfig.hpp"
+#include "libslic3r/GCode/PreviewData.hpp"
+#include "libslic3r/Geometry.hpp"
 #include "slic3r/GUI/3DScene.hpp"
 #include "slic3r/GUI/BackgroundSlicingProcess.hpp"
 #include "slic3r/GUI/GLShader.hpp"
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/PresetBundle.hpp"
-#include "slic3r/GUI/GLGizmo.hpp"
-#include "libslic3r/ClipperUtils.hpp"
-#include "libslic3r/PrintConfig.hpp"
-#include "libslic3r/GCode/PreviewData.hpp"
-#include "libslic3r/Geometry.hpp"
+//#include "slic3r/GUI/GLGizmo.hpp"
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_ObjectManipulation.hpp"
+#include "I18N.hpp"
 
 #include <GL/glew.h>
 
@@ -2893,7 +2895,7 @@ void GLCanvas3D::Gizmos::render_current_gizmo_for_picking_pass(const GLCanvas3D:
         curr->render_for_picking(selection);
 }
 
-void GLCanvas3D::Gizmos::render_overlay(const GLCanvas3D& canvas) const
+void GLCanvas3D::Gizmos::render_overlay(const GLCanvas3D& canvas, const GLCanvas3D::Selection& selection) const
 {
     if (!m_enabled)
         return;
@@ -2903,17 +2905,19 @@ void GLCanvas3D::Gizmos::render_overlay(const GLCanvas3D& canvas) const
     ::glPushMatrix();
     ::glLoadIdentity();
 
-    _render_overlay(canvas);
+    _render_overlay(canvas, selection);
 
     ::glPopMatrix();
 }
 
+#ifndef ENABLE_IMGUI
 void GLCanvas3D::Gizmos::create_external_gizmo_widgets(wxWindow *parent)
 {
     for (auto &entry : m_gizmos) {
         entry.second->create_external_gizmo_widgets(parent);
     }
 }
+#endif // not ENABLE_IMGUI
 
 void GLCanvas3D::Gizmos::_reset()
 {
@@ -2926,12 +2930,15 @@ void GLCanvas3D::Gizmos::_reset()
     m_gizmos.clear();
 }
 
-void GLCanvas3D::Gizmos::_render_overlay(const GLCanvas3D& canvas) const
+void GLCanvas3D::Gizmos::_render_overlay(const GLCanvas3D& canvas, const GLCanvas3D::Selection& selection) const
 {
     if (m_gizmos.empty())
         return;
 
     float cnv_w = (float)canvas.get_canvas_size().get_width();
+#if ENABLE_IMGUI
+    float cnv_h = (float)canvas.get_canvas_size().get_height();
+#endif // ENABLE_IMGUI
     float zoom = canvas.get_camera_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
@@ -2946,6 +2953,10 @@ void GLCanvas3D::Gizmos::_render_overlay(const GLCanvas3D& canvas) const
 
         float tex_size = (float)it->second->get_textures_size() * OverlayTexturesScale * inv_zoom;
         GLTexture::render_texture(it->second->get_texture_id(), top_x, top_x + tex_size, top_y - tex_size, top_y);
+#if ENABLE_IMGUI
+        if (it->second->get_state() == GLGizmoBase::On)
+            it->second->render_input_window(2.0f * OverlayOffsetX + tex_size * zoom, 0.5f * cnv_h - top_y * zoom, selection);
+#endif // ENABLE_IMGUI
         top_y -= (tex_size + scaled_gap_y);
     }
 }
@@ -3316,9 +3327,12 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     , m_dynamic_background_enabled(false)
     , m_multisample_allowed(false)
     , m_regenerate_volumes(true)
+    , m_moving(false)
     , m_color_by("volume")
     , m_reload_delayed(false)
+#ifndef ENABLE_IMGUI
     , m_external_gizmo_widgets_parent(nullptr)
+#endif // not ENABLE_IMGUI
 {
     if (m_canvas != nullptr)
     {
@@ -3426,10 +3440,12 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
             return false;
         }
 
+#ifndef ENABLE_IMGUI
         if (m_external_gizmo_widgets_parent != nullptr) {
             m_gizmos.create_external_gizmo_widgets(m_external_gizmo_widgets_parent);
             m_canvas->GetParent()->Layout();
         }
+#endif // not ENABLE_IMGUI
     }
 
     if (!_init_toolbar())
@@ -3744,6 +3760,10 @@ void GLCanvas3D::render()
 
     set_tooltip("");
 
+#if ENABLE_IMGUI
+    wxGetApp().imgui()->new_frame();
+#endif // ENABLE_IMGUI
+
     // picking pass
     _picking_pass();
 
@@ -3785,6 +3805,10 @@ void GLCanvas3D::render()
     _render_legend_texture();
     _render_toolbar();
     _render_layer_editing_overlay();
+
+#if ENABLE_IMGUI
+    wxGetApp().imgui()->render();
+#endif // ENABLE_IMGUI
 
     m_canvas->SwapBuffers();
 }
@@ -4445,6 +4469,16 @@ void GLCanvas3D::on_timer(wxTimerEvent& evt)
 
 void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 {
+#if ENABLE_IMGUI
+    auto imgui = wxGetApp().imgui();
+    if (imgui->update_mouse_data(evt)) {
+        render();
+        if (imgui->want_any_input()) {
+            return;
+        }
+    }
+#endif // ENABLE_IMGUI
+
     Point pos(evt.GetX(), evt.GetY());
 
     int selected_object_idx = m_selection.get_object_idx();
@@ -4631,6 +4665,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #else
                         m_mouse.drag.start_position_3D = pos3d;
 #endif // ENABLE_GIZMOS_ON_TOP
+                        m_moving = true;
                     }
                 }
                 else if (evt.RightDown())
@@ -4846,6 +4881,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
         }
 
+        m_moving = false;
         m_mouse.drag.move_volume_idx = -1;
         m_mouse.set_start_position_3D_as_invalid();
         m_mouse.set_start_position_2D_as_invalid();
@@ -4935,10 +4971,12 @@ void GLCanvas3D::set_tooltip(const std::string& tooltip) const
     }
 }
 
+#ifndef ENABLE_IMGUI
 void GLCanvas3D::set_external_gizmo_widgets_parent(wxWindow *parent)
 {
     m_external_gizmo_widgets_parent = parent;
 }
+#endif // not ENABLE_IMGUI
 
 void GLCanvas3D::do_move()
 {
@@ -5299,6 +5337,10 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
 {
     if ((m_canvas == nullptr) && (m_context == nullptr))
         return;
+
+#if ENABLE_IMGUI
+    wxGetApp().imgui()->set_display_size((float)w, (float)h);
+#endif // ENABLE_IMGUI
 
     // ensures that this canvas is current
 #if ENABLE_USE_UNIQUE_GLCONTEXT
@@ -5770,7 +5812,7 @@ void GLCanvas3D::_render_current_gizmo() const
 
 void GLCanvas3D::_render_gizmos_overlay() const
 {
-    m_gizmos.render_overlay(*this);
+    m_gizmos.render_overlay(*this, m_selection);
 }
 
 void GLCanvas3D::_render_toolbar() const

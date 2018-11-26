@@ -1,9 +1,10 @@
 ﻿#ifndef slic3r_MainFrame_hpp_
 #define slic3r_MainFrame_hpp_
 
-#include "PrintConfig.hpp"
+#include "libslic3r/PrintConfig.hpp"
 
 #include <wx/frame.h>
+#include <wx/string.h>
 
 #include <string>
 #include <map>

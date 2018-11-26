@@ -5,7 +5,7 @@
 
 #include "OptionsGroup.hpp"
 #include "2DBed.hpp"
-
+#include "I18N.hpp"
 
 #include <wx/dialog.h>
 #include <wx/choicebk.h>

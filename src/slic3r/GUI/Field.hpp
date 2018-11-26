@@ -13,12 +13,11 @@
 #include <wx/spinctrl.h>
 #include <wx/clrpicker.h>
 
-#include "../../libslic3r/libslic3r.h"
-#include "../../libslic3r/Config.hpp"
+#include "libslic3r/libslic3r.h"
+#include "libslic3r/Config.hpp"
+#include "libslic3r/Utils.hpp"
 
-//#include "slic3r_gui.hpp"
 #include "GUI.hpp"
-#include "Utils.hpp"
 
 #ifdef __WXMSW__
 #define wxMSW true

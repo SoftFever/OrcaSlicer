@@ -1,16 +1,14 @@
 #ifndef slic3r_GUI_hpp_
 #define slic3r_GUI_hpp_
 
-#include "Config.hpp"
-#include "callback.hpp"
-
-#include <wx/intl.h>
+#include "libslic3r/Config.hpp"
 
 class wxWindow;
 class wxMenuBar;
 class wxNotebook;
 class wxComboCtrl;
 class wxFileDialog;
+class wxString;
 class wxTopLevelWindow;
 
 namespace Slic3r { 
@@ -19,32 +17,6 @@ class AppConfig;
 class DynamicPrintConfig;
 class Print;
 class GCodePreviewData;
-class AppControllerBase;
-
-using AppControllerPtr = std::shared_ptr<AppControllerBase>;
-
-#define _(s)    Slic3r::GUI::I18N::translate((s))
-
-namespace GUI { namespace I18N {
-	inline wxString translate(const char *s)    	 { return wxGetTranslation(wxString(s, wxConvUTF8)); }
-	inline wxString translate(const wchar_t *s) 	 { return wxGetTranslation(s); }
-	inline wxString translate(const std::string &s)  { return wxGetTranslation(wxString(s.c_str(), wxConvUTF8)); }
-	inline wxString translate(const std::wstring &s) { return wxGetTranslation(s.c_str()); }
-} }
-
-// !!! If you needed to translate some wxString,
-// !!! please use _(L(string))
-// !!! _() - is a standard wxWidgets macro to translate
-// !!! L() is used only for marking localizable string 
-// !!! It will be used in "xgettext" to create a Locating Message Catalog.
-#define L(s) s
-
-//! macro used to localization, return wxScopedCharBuffer
-//! With wxConvUTF8 explicitly specify that the source string is already in UTF-8 encoding
-#define _CHB(s) wxGetTranslation(wxString(s, wxConvUTF8)).utf8_str()
-
-// Minimal buffer length for translated string (char buf[MIN_BUF_LENGTH_FOR_L])
-#define MIN_BUF_LENGTH_FOR_L	512
 
 namespace GUI {
 
@@ -54,10 +26,6 @@ bool debugged();
 void break_to_debugger();
 
 AppConfig*		get_app_config();
-
-AppControllerPtr get_appctl();
-void             set_cli_appctl();
-void             set_gui_appctl();
 
 extern void add_menus(wxMenuBar *menu, int event_preferences_changed, int event_language_change);
 
@@ -86,15 +54,10 @@ void create_combochecklist(wxComboCtrl* comboCtrl, std::string text, std::string
 // encoded inside an int.
 int combochecklist_get_flags(wxComboCtrl* comboCtrl);
 
-// Return translated std::string as a wxString
-wxString	L_str(const std::string &str);
 // Return wxString from std::string in UTF8
 wxString	from_u8(const std::string &str);
 // Return std::string in UTF8 from wxString
 std::string	into_u8(const wxString &str);
-
-// Callback to trigger a configuration update timer on the Plater.
-static PerlCallback g_on_request_update_callback;
 
 // Returns the dimensions of the screen on which the main frame is displayed
 bool get_current_screen_size(wxWindow *window, unsigned &width, unsigned &height);

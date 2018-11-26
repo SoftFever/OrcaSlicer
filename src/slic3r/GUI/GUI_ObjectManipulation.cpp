@@ -1,11 +1,12 @@
 #include "GUI_ObjectManipulation.hpp"
 #include "GUI_ObjectList.hpp"
+#include "I18N.hpp"
 
 #include "OptionsGroup.hpp"
 #include "wxExtensions.hpp"
 #include "PresetBundle.hpp"
-#include "Model.hpp"
-#include "Geometry.hpp"
+#include "libslic3r/Model.hpp"
+#include "libslic3r/Geometry.hpp"
 
 #include <boost/algorithm/string.hpp>
 

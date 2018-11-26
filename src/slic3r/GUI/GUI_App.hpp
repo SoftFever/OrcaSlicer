@@ -1,13 +1,18 @@
 #ifndef slic3r_GUI_App_hpp_
 #define slic3r_GUI_App_hpp_
 
+#include <memory>
 #include <string>
-#include "PrintConfig.hpp"
+#include "libslic3r/PrintConfig.hpp"
 #include "MainFrame.hpp"
+#if ENABLE_IMGUI
+#include "ImGuiWrapper.hpp"
+#endif // ENABLE_IMGUI
 
 #include <wx/app.h>
 #include <wx/colour.h>
 #include <wx/font.h>
+#include <wx/string.h>
 
 #include <mutex>
 #include <stack>
@@ -82,9 +87,14 @@ class GUI_App : public wxApp
 
     wxLocale*	    m_wxLocale{ nullptr };
 
+#if ENABLE_IMGUI
+    std::unique_ptr<ImGuiWrapper> m_imgui;
+#endif // ENABLE_IMGUI
+
 public:
     bool            OnInit() override;
-    GUI_App() : wxApp() {}
+
+    GUI_App();
 
     unsigned        get_colour_approx_luma(const wxColour &colour);
     void            init_label_colours();
@@ -150,6 +160,10 @@ public:
     wxNotebook*     tab_panel() const ;
 
     std::vector<Tab *>      tabs_list;
+
+#if ENABLE_IMGUI
+    ImGuiWrapper* imgui() { return m_imgui.get(); }
+#endif // ENABLE_IMGUI
 
 };
 DECLARE_APP(GUI_App)

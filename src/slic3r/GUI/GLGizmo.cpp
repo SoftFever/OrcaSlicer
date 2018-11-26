@@ -1,19 +1,11 @@
-#include "libslic3r/libslic3r.h"
-#include "GLGizmo.hpp"
-
-#include "GUI.hpp"
-#include "GUI_App.hpp"
-
-#include "../../libslic3r/Utils.hpp"
-#include "PresetBundle.hpp"
-
-#include <Eigen/Dense>
-#include "libslic3r/Geometry.hpp"
-
-#include <igl/unproject_onto_mesh.h>
+// #include <igl/unproject_onto_mesh.h>
 #include <GL/glew.h>
+#include <Eigen/Dense>
 
-#include <SLA/SLASupportTree.hpp>
+#include "libslic3r/libslic3r.h"
+#include "libslic3r/Geometry.hpp"
+#include "libslic3r/Utils.hpp"
+#include "libslic3r/SLA/SLASupportTree.hpp"
 
 #include <cstdio>
 #include <numeric>
@@ -29,6 +21,9 @@
 #include "GUI.hpp"
 #include "GUI_Utils.hpp"
 #include "GUI_App.hpp"
+#include "I18N.hpp"
+#include "GLGizmo.hpp"
+#include "PresetBundle.hpp"
 
 #if ENABLE_GIZMOS_SHORTCUT
 #include <wx/defs.h>
@@ -170,6 +165,7 @@ GLGizmoBase::GLGizmoBase(GLCanvas3D& parent)
 #endif // ENABLE_GIZMOS_SHORTCUT
     , m_hover_id(-1)
     , m_dragging(false)
+    , m_imgui(wxGetApp().imgui())
 {
     ::memcpy((void*)m_base_color, (const void*)DEFAULT_BASE_COLOR, 3 * sizeof(float));
     ::memcpy((void*)m_drag_color, (const void*)DEFAULT_DRAG_COLOR, 3 * sizeof(float));
@@ -273,7 +269,9 @@ void GLGizmoBase::render_grabbers_for_picking(const BoundingBoxf3& box) const
     }
 }
 
+#ifndef ENABLE_IMGUI
 void GLGizmoBase::create_external_gizmo_widgets(wxWindow *parent) {}
+#endif // not ENABLE_IMGUI
 
 void GLGizmoBase::set_tooltip(const std::string& tooltip) const
 {
@@ -686,6 +684,20 @@ void GLGizmoRotate3D::on_render(const GLCanvas3D::Selection& selection) const
         m_gizmos[Z].render(selection);
 }
 
+#if ENABLE_IMGUI
+void GLGizmoRotate3D::on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection)
+{
+    Vec3d rotation(Geometry::rad2deg(m_gizmos[0].get_angle()), Geometry::rad2deg(m_gizmos[1].get_angle()), Geometry::rad2deg(m_gizmos[2].get_angle()));
+    wxString label = _(L("Rotation (deg)"));
+
+    m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
+    m_imgui->set_next_window_bg_alpha(0.5f);
+    m_imgui->begin(label, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+    m_imgui->input_vec3("", rotation, 100.0f, "%.2f");
+    m_imgui->end();
+}
+#endif // ENABLE_IMGUI
+
 const float GLGizmoScale3D::Offset = 5.0f;
 
 GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent)
@@ -972,6 +984,20 @@ void GLGizmoScale3D::on_render_for_picking(const GLCanvas3D::Selection& selectio
     render_grabbers_for_picking(selection.get_bounding_box());
 }
 
+#if ENABLE_IMGUI
+void GLGizmoScale3D::on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection)
+{
+    bool single_instance = selection.is_single_full_instance();
+    wxString label = _(L("Scale (%)"));
+
+    m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
+    m_imgui->set_next_window_bg_alpha(0.5f);
+    m_imgui->begin(label, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+    m_imgui->input_vec3("", m_scale, 100.0f, "%.2f");
+    m_imgui->end();
+}
+#endif // ENABLE_IMGUI
+
 void GLGizmoScale3D::render_grabbers_connection(unsigned int id_1, unsigned int id_2) const
 {
     unsigned int grabbers_count = (unsigned int)m_grabbers.size();
@@ -1185,6 +1211,24 @@ void GLGizmoMove3D::on_render_for_picking(const GLCanvas3D::Selection& selection
     render_grabbers_for_picking(selection.get_bounding_box());
 }
 
+#if ENABLE_IMGUI
+void GLGizmoMove3D::on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection)
+{
+    bool show_position = selection.is_single_full_instance();
+    const Vec3d& position = selection.get_bounding_box().center();
+
+    Vec3d displacement = show_position ? position : m_displacement;
+    wxString label = show_position ? _(L("Position (mm)")) : _(L("Displacement (mm)"));
+
+    m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
+    m_imgui->set_next_window_bg_alpha(0.5f);
+    m_imgui->begin(label, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+    m_imgui->input_vec3("", displacement, 100.0f, "%.2f");
+
+    m_imgui->end();
+}
+#endif // ENABLE_IMGUI
+
 double GLGizmoMove3D::calc_projection(const UpdateData& data) const
 {
     double projection = 0.0;
@@ -1264,16 +1308,18 @@ void GLGizmoFlatten::on_render(const GLCanvas3D::Selection& selection) const
     if (dragged_offset.norm() > 0.001)
         return;
 
-    ::glEnable(GL_BLEND);
+
+#if ENABLE_GIZMOS_ON_TOP
+    ::glClear(GL_DEPTH_BUFFER_BIT);
+#endif // ENABLE_GIZMOS_ON_TOP
     ::glEnable(GL_DEPTH_TEST);
-    ::glDisable(GL_CULL_FACE);
+    ::glEnable(GL_BLEND);
 
     if (selection.is_from_single_object()) {
-        const std::set<int>& instances_list = selection.get_instance_idxs();
-
-        if (!instances_list.empty() && m_model_object) {
-            for (const int instance_idx : instances_list) {
-            Transform3d m = m_model_object->instances[instance_idx]->get_matrix();
+        if (m_model_object) {
+            //for (const int instance_idx : instances_list) {
+            for (const ModelInstance* inst : m_model_object->instances) {
+                Transform3d m = inst->get_matrix();
                 for (int i=0; i<(int)m_planes.size(); ++i) {
                     if (i == m_hover_id)
                         ::glColor4f(0.9f, 0.9f, 0.9f, 0.75f);
@@ -1299,16 +1345,16 @@ void GLGizmoFlatten::on_render(const GLCanvas3D::Selection& selection) const
 
 void GLGizmoFlatten::on_render_for_picking(const GLCanvas3D::Selection& selection) const
 {
-    ::glEnable(GL_DEPTH_TEST);
-    ::glDisable(GL_CULL_FACE);
+    ::glDisable(GL_DEPTH_TEST);
+    ::glDisable(GL_BLEND);
+
     if (selection.is_from_single_object()) {
-        const std::set<int>& instances_list = selection.get_instance_idxs();
-        if (!instances_list.empty() && m_model_object) {
-            for (const int instance_idx : instances_list) {
+        if (m_model_object)
+            for (const ModelInstance* inst : m_model_object->instances) {
                 for (int i=0; i<(int)m_planes.size(); ++i) {
                     ::glColor3f(1.0f, 1.0f, picking_color_component(i));
                     ::glPushMatrix();
-                    ::glMultMatrixd(m_model_object->instances[instance_idx]->get_matrix().data());
+                    ::glMultMatrixd(inst->get_matrix().data());
                     ::glBegin(GL_POLYGON);
                     for (const Vec3d& vertex : m_planes[i].vertices)
                         ::glVertex3dv(vertex.data());
@@ -1316,7 +1362,6 @@ void GLGizmoFlatten::on_render_for_picking(const GLCanvas3D::Selection& selectio
                     ::glPopMatrix();
                 }
             }
-        }
     }
 
     ::glEnable(GL_CULL_FACE);
@@ -1338,6 +1383,8 @@ void GLGizmoFlatten::update_planes()
     for (const ModelVolume* vol : m_model_object->volumes)
 #if ENABLE_MODELVOLUME_TRANSFORM
     {
+        if (vol->type() != ModelVolume::Type::MODEL_PART)
+            continue;
         TriangleMesh vol_ch = vol->get_convex_hull();
         vol_ch.transform(vol->get_matrix());
         ch.merge(vol_ch);
@@ -1578,7 +1625,11 @@ void GLGizmoSlaSupports::set_model_object_ptr(ModelObject* model_object)
     {
         m_starting_center = Vec3d::Zero();
         m_model_object = model_object;
-        m_model_object_matrix = model_object->instances.front()->get_matrix();
+
+        int selected_instance = m_parent.get_selection().get_instance_idx();
+        assert(selected_instance < (int)model_object->instances.size());
+
+        m_instance_matrix = model_object->instances[selected_instance]->get_matrix();
         if (is_mesh_update_necessary())
             update_mesh();
     }
@@ -1590,7 +1641,7 @@ void GLGizmoSlaSupports::on_render(const GLCanvas3D::Selection& selection) const
     ::glEnable(GL_DEPTH_TEST);
 
     // the dragged_offset is a vector measuring where was the object moved
-    // with the gizmo being on. This is reset in set_flattening_data and
+    // with the gizmo being on. This is reset in set_model_object_ptr and
     // does not work correctly when there are multiple copies.
     
     if (m_starting_center == Vec3d::Zero())
@@ -1604,7 +1655,7 @@ void GLGizmoSlaSupports::on_render(const GLCanvas3D::Selection& selection) const
     }
 
     ::glPushMatrix();
-    ::glTranslatef((GLfloat)dragged_offset(0), (GLfloat)dragged_offset(1), (GLfloat)dragged_offset(2));
+    //::glTranslatef((GLfloat)dragged_offset(0), (GLfloat)dragged_offset(1), (GLfloat)dragged_offset(2));
     render_grabbers();
     ::glPopMatrix();
 
@@ -1626,33 +1677,35 @@ void GLGizmoSlaSupports::on_render_for_picking(const GLCanvas3D::Selection& sele
 
 void GLGizmoSlaSupports::render_grabbers(bool picking) const
 {
-    for (int i = 0; i < (int)m_grabbers.size(); ++i)
-    {
-        if (!m_grabbers[i].enabled)
-            continue;
+    for (const ModelInstance* inst : m_model_object->instances) {
+        for (int i = 0; i < (int)m_grabbers.size(); ++i)
+        {
+            if (!m_grabbers[i].enabled)
+                continue;
 
-        float render_color[3];
-        if (!picking && m_hover_id == i) {
-            render_color[0] = 1.0f - m_grabbers[i].color[0];
-            render_color[1] = 1.0f - m_grabbers[i].color[1];
-            render_color[2] = 1.0f - m_grabbers[i].color[2];
+            float render_color[3];
+            if (!picking && m_hover_id == i) {
+                render_color[0] = 1.0f - m_grabbers[i].color[0];
+                render_color[1] = 1.0f - m_grabbers[i].color[1];
+                render_color[2] = 1.0f - m_grabbers[i].color[2];
+            }
+            else
+                ::memcpy((void*)render_color, (const void*)m_grabbers[i].color, 3 * sizeof(float));
+            if (!picking)
+                ::glEnable(GL_LIGHTING);
+            ::glColor3f((GLfloat)render_color[0], (GLfloat)render_color[1], (GLfloat)render_color[2]);
+            ::glPushMatrix();
+            Vec3d center = inst->get_matrix() * m_grabbers[i].center;
+            ::glTranslatef((GLfloat)center(0), (GLfloat)center(1), (GLfloat)center(2));
+            GLUquadricObj *quadric;
+            quadric = ::gluNewQuadric();
+            ::gluQuadricDrawStyle(quadric, GLU_FILL );
+            ::gluSphere( quadric , 0.75f, 36 , 18 );
+            ::gluDeleteQuadric(quadric);
+            ::glPopMatrix();
+            if (!picking)
+                ::glDisable(GL_LIGHTING);
         }
-        else
-            ::memcpy((void*)render_color, (const void*)m_grabbers[i].color, 3 * sizeof(float));
-        if (!picking)
-            ::glEnable(GL_LIGHTING);
-        ::glColor3f((GLfloat)render_color[0], (GLfloat)render_color[1], (GLfloat)render_color[2]);
-        ::glPushMatrix();
-        Vec3d center = m_model_object_matrix * m_grabbers[i].center;
-        ::glTranslatef((GLfloat)center(0), (GLfloat)center(1), (GLfloat)center(2));
-        GLUquadricObj *quadric;
-        quadric = ::gluNewQuadric();
-        ::gluQuadricDrawStyle(quadric, GLU_FILL );
-        ::gluSphere( quadric , 0.75f, 36 , 18 );
-        ::gluDeleteQuadric(quadric);
-        ::glPopMatrix();
-        if (!picking)
-            ::glDisable(GL_LIGHTING);
     }
 }
 
@@ -1661,7 +1714,7 @@ bool GLGizmoSlaSupports::is_mesh_update_necessary() const
     if (m_state != On || !m_model_object || m_model_object->instances.empty())
         return false;
 
-    if ((m_model_object->instances.front()->get_matrix() * m_source_data.matrix.inverse() * Vec3d(1., 1., 1.) - Vec3d(1., 1., 1.)).norm() > 0.001)
+    if ((m_instance_matrix * m_source_data.matrix.inverse() * Vec3d(1., 1., 1.) - Vec3d(1., 1., 1.)).norm() > 0.001)
         return true;
 
     // following should detect direct mesh changes (can be removed after the mesh is made completely immutable):
@@ -1677,7 +1730,7 @@ void GLGizmoSlaSupports::update_mesh()
 {
     Eigen::MatrixXf& V = m_V;
     Eigen::MatrixXi& F = m_F;
-    TriangleMesh mesh(m_model_object->mesh());
+    TriangleMesh mesh = m_model_object->mesh();
     const stl_file& stl = mesh.stl;
     V.resize(3 * stl.stats.number_of_facets, 3);
     F.resize(stl.stats.number_of_facets, 3);
@@ -1690,15 +1743,19 @@ void GLGizmoSlaSupports::update_mesh()
         F(i, 1) = 3*i+1;
         F(i, 2) = 3*i+2;
     }
-    m_source_data.matrix = m_model_object->instances.front()->get_matrix();
-    const float* first_vertex = m_model_object->volumes.front()->get_convex_hull().first_vertex();
-    m_source_data.mesh_first_point = Vec3d((double)first_vertex[0], (double)first_vertex[1], (double)first_vertex[2]);
+
+    m_AABB = igl::AABB<Eigen::MatrixXf,3>();
+    m_AABB.init(m_V, m_F);
+
+    m_source_data.matrix = m_instance_matrix;
+
     // we'll now reload Grabbers (selection might have changed):
     m_grabbers.clear();
     for (const Vec3f& point : m_model_object->sla_support_points) {
         m_grabbers.push_back(Grabber());
         m_grabbers.back().center = point.cast<double>();
     }
+    m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
 }
 
 Vec3f GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos)
@@ -1714,24 +1771,21 @@ Vec3f GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos)
     Eigen::Matrix<GLdouble, 4, 4, Eigen::DontAlign> projection_matrix;
     ::glGetDoublev(GL_PROJECTION_MATRIX, projection_matrix.data());
 
-    int fid = 0;
-    Eigen::Vector3f bc(0, 0, 0);
-    if (!igl::unproject_onto_mesh(Vec2f(mouse_pos(0), viewport(3)-mouse_pos(1)), modelview_matrix.cast<float>(), projection_matrix.cast<float>(), viewport.cast<float>(), m_V, m_F, fid, bc))
-    /*if (!igl::embree::unproject_onto_mesh(Vec2f(mouse_pos(0), viewport(3)-mouse_pos(1)),
-                                 m_F,
-                                 modelview_matrix.cast<float>(),
-                                 projection_matrix.cast<float>(),
-                                 viewport.cast<float>(),
-                                 m_intersector,
-                                 fid,
-                                 bc))*/
-        throw "unable to unproject_onto_mesh";
+    Vec3d point1;
+    Vec3d point2;
+    ::gluUnProject(mouse_pos(0), viewport(3)-mouse_pos(1), 0.f, modelview_matrix.data(), projection_matrix.data(), viewport.data(), &point1(0), &point1(1), &point1(2));
+    ::gluUnProject(mouse_pos(0), viewport(3)-mouse_pos(1), 1.f, modelview_matrix.data(), projection_matrix.data(), viewport.data(), &point2(0), &point2(1), &point2(2));
 
-    const Vec3f& a = m_V.row(m_F(fid, 0));
-    const Vec3f& b = m_V.row(m_F(fid, 1));
-    const Vec3f& c = m_V.row(m_F(fid, 2));
-    Vec3f point = bc(0)*a + bc(1)*b + bc(2)*c;
-    return m_model_object->instances.front()->get_matrix().inverse().cast<float>() * point;
+    igl::Hit hit;
+
+    if (!m_AABB.intersect_ray(m_V, m_F, point1.cast<float>(), (point2-point1).cast<float>(), hit))
+        throw std::invalid_argument("unproject_on_mesh(): No intersection found.");
+
+    int fid = hit.id;
+    Vec3f bc(1-hit.u-hit.v, hit.u, hit.v);
+    Vec3f point = bc(0) * m_V.row(m_F(fid, 0)) + bc(1) * m_V.row(m_F(fid, 1)) + bc(2)*m_V.row(m_F(fid, 2));
+
+    return m_instance_matrix.inverse().cast<float>() * point;
 }
 
 void GLGizmoSlaSupports::clicked_on_object(const Vec2d& mouse_position)
@@ -1739,14 +1793,17 @@ void GLGizmoSlaSupports::clicked_on_object(const Vec2d& mouse_position)
     Vec3f new_pos;
     try {
         new_pos = unproject_on_mesh(mouse_position); // this can throw - we don't want to create a new grabber in that case
-        m_grabbers.push_back(Grabber());
-        m_grabbers.back().center = new_pos.cast<double>();
-        m_model_object->sla_support_points.push_back(new_pos);
-
-        // This should trigger the support generation
-        // wxGetApp().plater()->reslice();
     }
-    catch (...) {}
+    catch (...) { return; }
+
+    m_grabbers.push_back(Grabber());
+    m_grabbers.back().center = new_pos.cast<double>();
+    m_model_object->sla_support_points.push_back(new_pos);
+
+    // This should trigger the support generation
+    // wxGetApp().plater()->reslice();
+
+    m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
 }
 
 void GLGizmoSlaSupports::delete_current_grabber(bool delete_all)
@@ -1767,6 +1824,8 @@ void GLGizmoSlaSupports::delete_current_grabber(bool delete_all)
             // This should trigger the support generation
             // wxGetApp().plater()->reslice();
         }
+
+    m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
 }
 
 void GLGizmoSlaSupports::on_update(const UpdateData& data)
@@ -1775,20 +1834,21 @@ void GLGizmoSlaSupports::on_update(const UpdateData& data)
         Vec3f new_pos;
         try {
             new_pos = unproject_on_mesh(Vec2d((*data.mouse_pos)(0), (*data.mouse_pos)(1)));
-            m_grabbers[m_hover_id].center = new_pos.cast<double>();
-            m_model_object->sla_support_points[m_hover_id] = new_pos;
         }
-        catch (...) {}
+        catch (...) { return; }
+        m_grabbers[m_hover_id].center = new_pos.cast<double>();
+        m_model_object->sla_support_points[m_hover_id] = new_pos;
+        m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
     }
 }
 
 
 void GLGizmoSlaSupports::render_tooltip_texture() const {
     if (m_tooltip_texture.get_id() == 0)
-        if (!m_tooltip_texture.load_from_file(resources_dir() + "/icons/variable_layer_height_tooltip.png", false))
+        if (!m_tooltip_texture.load_from_file(resources_dir() + "/icons/sla_support_points_tooltip.png", false))
             return;
     if (m_reset_texture.get_id() == 0)
-        if (!m_reset_texture.load_from_file(resources_dir() + "/icons/variable_layer_height_reset.png", false))
+        if (!m_reset_texture.load_from_file(resources_dir() + "/icons/sla_support_points_reset.png", false))
             return;
 
     float zoom = m_parent.get_camera_zoom();
@@ -1814,7 +1874,8 @@ void GLGizmoSlaSupports::render_tooltip_texture() const {
 
 bool GLGizmoSlaSupports::on_is_activable(const GLCanvas3D::Selection& selection) const
 {
-    return (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA);
+    return (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA)
+        && selection.is_from_single_instance();
 }
 
 bool GLGizmoSlaSupports::on_is_selectable() const
@@ -1879,9 +1940,15 @@ const std::array<float, 3> GLGizmoCut::GrabberColor = { 1.0, 0.5, 0.0 };
 GLGizmoCut::GLGizmoCut(GLCanvas3D& parent)
     : GLGizmoBase(parent)
     , m_cut_z(0.0)
+#ifndef ENABLE_IMGUI
     , m_panel(nullptr)
+#endif // not ENABLE_IMGUI
+    , m_keep_upper(true)
+    , m_keep_lower(true)
+    , m_rotate_lower(false)
 {}
 
+#ifndef ENABLE_IMGUI
 void GLGizmoCut::create_external_gizmo_widgets(wxWindow *parent)
 {
     wxASSERT(m_panel == nullptr);
@@ -1896,9 +1963,10 @@ void GLGizmoCut::create_external_gizmo_widgets(wxWindow *parent)
 
     m_panel->Hide();
     m_panel->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
-        perform_cut();
+        perform_cut(m_parent.get_selection());
     }, wxID_OK);
 }
+#endif // not ENABLE_IMGUI
 
 bool GLGizmoCut::on_init()
 {
@@ -1936,13 +2004,15 @@ void GLGizmoCut::on_set_state()
 {
     // Reset m_cut_z on gizmo activation
     if (get_state() == On) {
-        m_cut_z = 0.0;
+        m_cut_z = m_parent.get_selection().get_bounding_box().size()(2) / 2.0;
     }
 
+#ifndef ENABLE_IMGUI
     // Display or hide the extra panel
     if (m_panel != nullptr) {
         m_panel->display(get_state() == On);
     }
+#endif // not ENABLE_IMGUI
 }
 
 bool GLGizmoCut::on_is_activable(const GLCanvas3D::Selection& selection) const
@@ -1956,10 +2026,10 @@ void GLGizmoCut::on_start_dragging(const GLCanvas3D::Selection& selection)
 
     const BoundingBoxf3& box = selection.get_bounding_box();
     m_start_z = m_cut_z;
-    m_max_z = box.size()(2) / 2.0;
+    m_max_z = box.size()(2);
     m_drag_pos = m_grabbers[m_hover_id].center;
     m_drag_center = box.center();
-    m_drag_center(2) += m_cut_z;
+    m_drag_center(2) = m_cut_z;
 }
 
 void GLGizmoCut::on_update(const UpdateData& data)
@@ -1967,7 +2037,7 @@ void GLGizmoCut::on_update(const UpdateData& data)
     if (m_hover_id != -1) {
         // Clamp the plane to the object's bounding box
         const double new_z = m_start_z + calc_projection(data.mouse_ray);
-        m_cut_z = std::max(-m_max_z, std::min(m_max_z, new_z));
+        m_cut_z = std::max(0.0, std::min(m_max_z, new_z));
     }
 }
 
@@ -1979,7 +2049,7 @@ void GLGizmoCut::on_render(const GLCanvas3D::Selection& selection) const
 
     const BoundingBoxf3& box = selection.get_bounding_box();
     Vec3d plane_center = box.center();
-    plane_center(2) += m_cut_z;
+    plane_center(2) = m_cut_z;
 
     const float min_x = box.min(0) - Margin;
     const float max_x = box.max(0) + Margin;
@@ -2027,16 +2097,38 @@ void GLGizmoCut::on_render_for_picking(const GLCanvas3D::Selection& selection) c
     render_grabbers_for_picking(selection.get_bounding_box());
 }
 
-void GLGizmoCut::perform_cut()
+#if ENABLE_IMGUI
+void GLGizmoCut::on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection)
 {
-    const auto &selection = m_parent.get_selection();
+    m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
+    m_imgui->set_next_window_bg_alpha(0.5f);
+    m_imgui->begin(_(L("Cut")), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
+    ImGui::PushItemWidth(100.0f);
+    bool _value_changed = ImGui::InputDouble("Z", &m_cut_z, 0.0f, 0.0f, "%.2f");
+
+    m_imgui->checkbox(_(L("Keep upper part")), m_keep_upper);
+    m_imgui->checkbox(_(L("Keep lower part")), m_keep_lower);
+    m_imgui->checkbox(_(L("Rotate lower part upwards")), m_rotate_lower);
+
+    const bool cut_clicked = m_imgui->button(_(L("Perform cut")));
+
+    m_imgui->end();
+
+    if (cut_clicked) {
+        perform_cut(selection);
+    }
+}
+#endif // ENABLE_IMGUI
+
+void GLGizmoCut::perform_cut(const GLCanvas3D::Selection& selection)
+{
     const auto instance_idx = selection.get_instance_idx();
     const auto object_idx = selection.get_object_idx();
 
     wxCHECK_RET(instance_idx >= 0 && object_idx >= 0, "GLGizmoCut: Invalid object selection");
 
-    wxGetApp().plater()->cut(object_idx, instance_idx, m_cut_z);
+    wxGetApp().plater()->cut(object_idx, instance_idx, m_cut_z, m_keep_upper, m_keep_lower, m_rotate_lower);
 }
 
 double GLGizmoCut::calc_projection(const Linef3& mouse_ray) const

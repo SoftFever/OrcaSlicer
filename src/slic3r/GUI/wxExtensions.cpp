@@ -1,15 +1,16 @@
 #include "wxExtensions.hpp"
 
-#include "../../libslic3r/Utils.hpp"
-#include "BitmapCache.hpp"
+#include "libslic3r/Utils.hpp"
+#include "libslic3r/Model.hpp"
 
 #include <wx/sizer.h>
 #include <wx/statline.h>
 #include <wx/dcclient.h>
 #include <wx/numformatter.h>
+
+#include "BitmapCache.hpp"
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
-#include "Model.hpp"
 
 wxDEFINE_EVENT(wxCUSTOMEVT_TICKSCHANGED, wxEvent);
 wxDEFINE_EVENT(wxCUSTOMEVT_LAST_VOLUME_IS_DELETED, wxCommandEvent);

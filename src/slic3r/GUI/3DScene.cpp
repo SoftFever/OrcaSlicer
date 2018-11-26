@@ -9,8 +9,8 @@
 #include "libslic3r/Print.hpp"
 #include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/Slicing.hpp"
+#include "libslic3r/GCode/Analyzer.hpp"
 #include "slic3r/GUI/PresetBundle.hpp"
-#include "GCode/Analyzer.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,9 +1,10 @@
 #include "ConfigSnapshotDialog.hpp"
+#include "I18N.hpp"
 
 #include "../Config/Snapshot.hpp"
 #include "../Utils/Time.hpp"
 
-#include "../../libslic3r/Utils.hpp"
+#include "libslic3r/Utils.hpp"
 
 namespace Slic3r { 
 namespace GUI {

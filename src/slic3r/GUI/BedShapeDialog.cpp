@@ -1,12 +1,14 @@
 #include "BedShapeDialog.hpp"
 
+#include <wx/wx.h> 
+#include <wx/numformatter.h>
 #include <wx/sizer.h>
 #include <wx/statbox.h>
-#include <wx/wx.h> 
-#include "Polygon.hpp"
-#include "BoundingBox.hpp"
-#include <wx/numformatter.h>
-#include "Model.hpp"
+
+#include "libslic3r/BoundingBox.hpp"
+#include "libslic3r/Model.hpp"
+#include "libslic3r/Polygon.hpp"
+
 #include "boost/nowide/iostream.hpp"
 
 #include <algorithm>

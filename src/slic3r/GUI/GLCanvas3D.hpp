@@ -636,14 +636,16 @@ private:
         void render_current_gizmo(const Selection& selection) const;
         void render_current_gizmo_for_picking_pass(const Selection& selection) const;
 
-        void render_overlay(const GLCanvas3D& canvas) const;
+        void render_overlay(const GLCanvas3D& canvas, const Selection& selection) const;
 
+#ifndef ENABLE_IMGUI
         void create_external_gizmo_widgets(wxWindow *parent);
+#endif // not ENABLE_IMGUI
 
     private:
         void _reset();
 
-        void _render_overlay(const GLCanvas3D& canvas) const;
+        void _render_overlay(const GLCanvas3D& canvas, const Selection& selection) const;
         void _render_current_gizmo(const Selection& selection) const;
 
         float _get_total_overlay_height() const;
@@ -724,6 +726,7 @@ private:
     bool m_dynamic_background_enabled;
     bool m_multisample_allowed;
     bool m_regenerate_volumes;
+    bool m_moving;
 
     std::string m_color_by;
 
@@ -731,9 +734,10 @@ private:
 
     GCodePreviewVolumeIndex m_gcode_preview_volume_index;
 
+#ifndef ENABLE_IMGUI
     wxWindow *m_external_gizmo_widgets_parent;
+#endif // not ENABLE_IMGUI
 
-    void post_event(wxEvent &&event);
     void viewport_changed();
 
 public:
@@ -747,6 +751,7 @@ public:
     wxGLCanvas* get_wxglcanvas() { return m_canvas; }
 
     bool init(bool useVBOs, bool use_legacy_opengl);
+    void post_event(wxEvent &&event);
 
 #if !ENABLE_USE_UNIQUE_GLCONTEXT
     bool set_current();
@@ -811,7 +816,7 @@ public:
 
     Rect get_gizmo_reset_rect(const GLCanvas3D& canvas, bool viewport) const;
     bool gizmo_reset_rect_contains(const GLCanvas3D& canvas, float x, float y) const;
-    bool is_gizmo_dragging() const { return m_gizmos.is_dragging(); }
+    bool is_dragging() const { return m_gizmos.is_dragging() || m_moving; }
 
     void render();
 
@@ -851,7 +856,9 @@ public:
 
     void set_tooltip(const std::string& tooltip) const;
 
+#ifndef ENABLE_IMGUI
     void set_external_gizmo_widgets_parent(wxWindow *parent);
+#endif // not ENABLE_IMGUI
 
     void do_move();
     void do_rotate();

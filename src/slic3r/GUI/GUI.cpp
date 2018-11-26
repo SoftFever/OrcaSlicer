@@ -1,5 +1,6 @@
 #include "GUI.hpp"
 #include "GUI_App.hpp"
+#include "I18N.hpp"
 #include "WipeTowerDialog.hpp"
 
 #include <assert.h>
@@ -33,8 +34,8 @@
 #include "PresetBundle.hpp"
 #include "UpdateDialogs.hpp"
 
-#include "../../libslic3r/Utils.hpp"
-#include "../../libslic3r/Print.hpp"
+#include "libslic3r/Utils.hpp"
+#include "libslic3r/Print.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -305,12 +306,6 @@ int combochecklist_get_flags(wxComboCtrl* comboCtrl)
 AppConfig* get_app_config()
 {
     return wxGetApp().app_config;
-}
-
-wxString L_str(const std::string &str)
-{
-	//! Explicitly specify that the source string is already in UTF-8 encoding
-	return wxGetTranslation(wxString(str.c_str(), wxConvUTF8));
 }
 
 wxString from_u8(const std::string &str)

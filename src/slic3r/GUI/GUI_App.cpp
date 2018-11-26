@@ -1,6 +1,7 @@
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_ObjectManipulation.hpp"
+#include "I18N.hpp"
 
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
@@ -13,14 +14,17 @@
 #include <wx/menuitem.h>
 #include <wx/filedlg.h>
 #include <wx/dir.h>
+#include <wx/wupdlock.h>
 
-#include "Utils.hpp"
+#include "libslic3r/Utils.hpp"
+#include "libslic3r/Model.hpp"
+#include "libslic3r/I18N.hpp"
+
 #include "GUI.hpp"
 #include "GUI_Utils.hpp"
 #include "AppConfig.hpp"
 #include "PresetBundle.hpp"
 #include "3DScene.hpp"
-#include "Model.hpp"
 
 #include "../Utils/PresetUpdater.hpp"
 #include "ConfigWizard_private.hpp"
@@ -29,8 +33,6 @@
 #include "FirmwareDialog.hpp"
 #include "Preferences.hpp"
 #include "Tab.hpp"
-#include <I18N.hpp>
-#include <wx/wupdlock.h>
 #include "SysInfoDialog.hpp"
 
 namespace Slic3r {
@@ -55,8 +57,18 @@ const wxString file_wildcards[FT_SIZE] = {
 static std::string libslic3r_translate_callback(const char *s) { return wxGetTranslation(wxString(s, wxConvUTF8)).utf8_str().data(); }
 
 IMPLEMENT_APP(GUI_App)
+
+GUI_App::GUI_App()
+    : wxApp()
+    , m_imgui(new ImGuiWrapper())
+{}
+
 bool GUI_App::OnInit()
 {
+#if ENABLE_IMGUI
+    wxCHECK_MSG(m_imgui->init(), false, "Failed to initialize ImGui");
+#endif // ENABLE_IMGUI
+
     SetAppName("Slic3rPE-alpha");
     SetAppDisplayName("Slic3r Prusa Edition");
 

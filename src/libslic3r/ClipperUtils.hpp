@@ -1,7 +1,7 @@
 #ifndef slic3r_ClipperUtils_hpp_
 #define slic3r_ClipperUtils_hpp_
 
-#include <libslic3r.h>
+#include "libslic3r.h"
 #include "clipper.hpp"
 #include "ExPolygon.hpp"
 #include "Polygon.hpp"

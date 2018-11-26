@@ -5,8 +5,8 @@
 #include "../PrintConfig.hpp"
 #include "../ExtrusionEntity.hpp"
 
-#include "Point.hpp"
-#include "GCodeReader.hpp"
+#include "../Point.hpp"
+#include "../GCodeReader.hpp"
 
 namespace Slic3r {
 

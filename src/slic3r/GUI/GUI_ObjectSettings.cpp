@@ -4,9 +4,11 @@
 #include "OptionsGroup.hpp"
 #include "wxExtensions.hpp"
 #include "PresetBundle.hpp"
-#include "Model.hpp"
+#include "libslic3r/Model.hpp"
 
 #include <boost/algorithm/string.hpp>
+
+#include "I18N.hpp"
 
 namespace Slic3r
 {

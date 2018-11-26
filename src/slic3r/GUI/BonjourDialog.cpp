@@ -12,8 +12,8 @@
 #include <wx/timer.h>
 
 #include "slic3r/GUI/GUI.hpp"
+#include "slic3r/GUI/I18N.hpp"
 #include "slic3r/Utils/Bonjour.hpp"
-
 
 namespace Slic3r {
 

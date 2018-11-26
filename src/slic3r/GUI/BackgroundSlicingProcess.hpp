@@ -8,7 +8,7 @@
 
 #include <wx/event.h>
 
-#include "Print.hpp"
+#include "libslic3r/Print.hpp"
 
 namespace Slic3r {
 

@@ -12,15 +12,6 @@
     __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 #endif /* WIN32 */
 
-#include "libslic3r/libslic3r_version.h.in"
-#include "Config.hpp"
-#include "Geometry.hpp"
-#include "Model.hpp"
-#include "Print.hpp"
-#include "TriangleMesh.hpp"
-#include "Format/3mf.hpp"
-#include "libslic3r.h"
-#include "Utils.hpp"
 #include <cstdio>
 #include <string>
 #include <cstring>
@@ -31,9 +22,15 @@
 #include <boost/nowide/cenv.hpp>
 #include <boost/nowide/iostream.hpp>
 
-#ifdef USE_WX
-//    #include "GUI/GUI.hpp"
-#endif
+#include "libslic3r/libslic3r.h"
+#include "libslic3r/Config.hpp"
+#include "libslic3r/Geometry.hpp"
+#include "libslic3r/Model.hpp"
+#include "libslic3r/Print.hpp"
+#include "libslic3r/TriangleMesh.hpp"
+#include "libslic3r/Format/3mf.hpp"
+#include "libslic3r/Utils.hpp"
+
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 

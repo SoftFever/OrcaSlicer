@@ -3,7 +3,7 @@
 
 #include "RammingChart.hpp"
 #include "GUI.hpp"
-
+#include "I18N.hpp"
 
 wxDEFINE_EVENT(EVT_WIPE_TOWER_CHART_CHANGED, wxCommandEvent);
 
