@@ -40,7 +40,8 @@ const std::array<unsigned, slaposCount>     OBJ_STEP_LEVELS =
     20,     // slaposSupportPoints,
     25,     // slaposSupportTree,
     25,     // slaposBasePool,
-    10      // slaposSliceSupports,
+    5,      // slaposSliceSupports,
+    5       // slaposIndexSlices
 };
 
 const std::array<std::string, slaposCount> OBJ_STEP_LABELS =
@@ -50,7 +51,8 @@ const std::array<std::string, slaposCount> OBJ_STEP_LABELS =
     L("Scanning model structure"),      // slaposSupportPoints,
     L("Generating support tree"),       // slaposSupportTree,
     L("Generating base pool"),          // slaposBasePool,
-    L("Slicing supports")               // slaposSliceSupports,
+    L("Slicing supports"),              // slaposSliceSupports,
+    L("Slicing supports")               // slaposIndexSlices,
 };
 
 // Should also add up to 100 (%)
@@ -548,84 +550,88 @@ void SLAPrint::process()
         }
     };
 
-    // Rasterizing the model objects, and their supports
-    auto rasterize = [this, ilh, ilhd, max_objstatus]() {
-        using Layer = sla::ExPolygons;
-        using LayerCopies = std::vector<SLAPrintObject::Instance>;
-        struct LayerRef {
-            std::reference_wrapper<const Layer> lref;
-            std::reference_wrapper<const LayerCopies> copies;
-            LayerRef(const Layer& lyr, const LayerCopies& cp) :
-                lref(std::cref(lyr)), copies(std::cref(cp)) {}
-        };
+    using Layer = sla::ExPolygons;
+    using LayerCopies = std::vector<SLAPrintObject::Instance>;
+    struct LayerRef {
+        std::reference_wrapper<const Layer> lref;
+        std::reference_wrapper<const LayerCopies> copies;
+        LayerRef(const Layer& lyr, const LayerCopies& cp) :
+            lref(std::cref(lyr)), copies(std::cref(cp)) {}
+    };
 
-        using LevelID = long long;
-        using LayerRefs = std::vector<LayerRef>;
+    using LevelID = long long;
+    using LayerRefs = std::vector<LayerRef>;
+    // layers according to quantized height levels
+    std::map<LevelID, LayerRefs> levels;
 
-        // layers according to quantized height levels
-        std::map<LevelID, LayerRefs> levels;
-
+    auto index_slices = [this, ilh, ilhd, &levels](SLAPrintObject& po) {
         auto sih = LevelID(scale_(ilh));
 
         // For all print objects, go through its initial layers and place them
         // into the layers hash
-        for(SLAPrintObject *o : m_objects) {
-            auto bb = o->transformed_mesh().bounding_box();
-            double modelgnd = bb.min(Z);
-            double elevation = o->get_elevation();
-            double lh = o->m_config.layer_height.getFloat();
-            double minZ = modelgnd - elevation;
+        auto bb = po.transformed_mesh().bounding_box();
+        double modelgnd = bb.min(Z);
+        double elevation = po.get_elevation();
+        double lh = po.m_config.layer_height.getFloat();
+        double minZ = modelgnd - elevation;
 
-            // scaled values:
-            auto sminZ = LevelID(scale_(minZ));
-            auto smaxZ = LevelID(scale_(bb.max(Z)));
-            auto smodelgnd = LevelID(scale_(modelgnd));
-            auto slh = LevelID(scale_(lh));
+        // scaled values:
+        auto sminZ = LevelID(scale_(minZ));
+        auto smaxZ = LevelID(scale_(bb.max(Z)));
+        auto smodelgnd = LevelID(scale_(modelgnd));
+        auto slh = LevelID(scale_(lh));
 
-            // It is important that the next levels math the levels in
-            // model_slice method. Only difference is that here it works with
-            // scaled coordinates
-            std::vector<LevelID> levelids;
-            if(sminZ >= smodelgnd) levelids.emplace_back(sminZ);
-            for(LevelID h = sminZ + sih; h < smaxZ; h += slh)
-                if(h >= smodelgnd) levelids.emplace_back(h);
+        // It is important that the next levels math the levels in
+        // model_slice method. Only difference is that here it works with
+        // scaled coordinates
+        std::vector<LevelID> levelids;
+        if(sminZ >= smodelgnd) levelids.emplace_back(sminZ);
+        for(LevelID h = sminZ + sih; h < smaxZ; h += slh)
+            if(h >= smodelgnd) levelids.emplace_back(h);
 
-            SlicedModel & oslices = o->m_model_slices;
+        SlicedModel & oslices = po.m_model_slices;
 
-            // If everything went well this code should not run at all, but
-            // let's be robust...
-            // assert(levelids.size() == oslices.size());
-            if(levelids.size() < oslices.size()) { // extend the levels until...
+        // If everything went well this code should not run at all, but
+        // let's be robust...
+        // assert(levelids.size() == oslices.size());
+        if(levelids.size() < oslices.size()) { // extend the levels until...
 
-                BOOST_LOG_TRIVIAL(warning)
-                        << "Height level mismatch at rasterization!\n";
+            BOOST_LOG_TRIVIAL(warning)
+                    << "Height level mismatch at rasterization!\n";
 
-                LevelID lastlvl = levelids.back();
-                while(levelids.size() < oslices.size()) {
-                    lastlvl += slh;
-                    levelids.emplace_back(lastlvl);
-                }
-            }
-
-            for(int i = 0; i < oslices.size(); ++i) {
-                LevelID h = levelids[i];
-                auto& lyrs = levels[h]; // this initializes a new record
-                lyrs.emplace_back(oslices[i], o->m_instances);
-            }
-
-            if(o->m_supportdata) { // deal with the support slices if present
-                auto& sslices = o->m_supportdata->support_slices;
-                for(int i = 0; i < sslices.size(); ++i) {
-                    int a = i == 0 ? 0 : 1;
-                    int b = i == 0 ? 0 : i - 1;
-                    LevelID h = sminZ + a * sih + b * slh;
-
-                    auto& lyrs = levels[h];
-                    lyrs.emplace_back(sslices[i], o->m_instances);
-                }
+            LevelID lastlvl = levelids.back();
+            while(levelids.size() < oslices.size()) {
+                lastlvl += slh;
+                levelids.emplace_back(lastlvl);
             }
         }
 
+        for(int i = 0; i < oslices.size(); ++i) {
+            LevelID h = levelids[i];
+            auto& lyrs = levels[h]; // this initializes a new record
+            lyrs.emplace_back(oslices[i], po.m_instances);
+            SLAPrintObject::SliceRecord& sr = po.m_slice_index[h];
+            sr.model_slices_idx = i;
+        }
+
+        if(po.m_supportdata) { // deal with the support slices if present
+            auto& sslices = po.m_supportdata->support_slices;
+            for(int i = 0; i < sslices.size(); ++i) {
+                int a = i == 0 ? 0 : 1;
+                int b = i == 0 ? 0 : i - 1;
+                LevelID h = sminZ + a * sih + b * slh;
+
+                auto& lyrs = levels[h];
+                lyrs.emplace_back(sslices[i], po.m_instances);
+
+                SLAPrintObject::SliceRecord& sr = po.m_slice_index[h];
+                sr.support_slices_idx = i;
+            }
+        }
+    };
+
+    // Rasterizing the model objects, and their supports
+    auto rasterize = [this, ilh, ilhd, max_objstatus, &levels]() {
         if(canceled()) return;
 
         // collect all the keys
@@ -719,7 +725,8 @@ void SLAPrint::process()
         slaposSupportPoints,
         slaposSupportTree,
         slaposBasePool,
-        slaposSliceSupports
+        slaposSliceSupports,
+        slaposIndexSlices
     };
 
     std::array<slaposFn, slaposCount> pobj_program =
@@ -729,7 +736,8 @@ void SLAPrint::process()
         support_points,
         support_tree,
         base_pool,
-        slice_supports
+        slice_supports,
+        index_slices
     };
 
     std::array<slapsFn, slapsCount> print_program =
@@ -982,13 +990,20 @@ const TriangleMesh EMPTY_MESH;
 
 const std::vector<ExPolygons> &SLAPrintObject::get_support_slices() const
 {
-    if(!is_step_done(slaposSliceSupports) || !m_supportdata) return EMPTY_SLICES;
+    // assert(is_step_done(slaposSliceSupports));
+    if(!!m_supportdata) return EMPTY_SLICES;
     return m_supportdata->support_slices;
+}
+
+const SLAPrintObject::SliceIndex &SLAPrintObject::get_slice_index() const
+{
+    // assert(is_step_done(slaposIndexSlices));
+    return m_slice_index;
 }
 
 const std::vector<ExPolygons> &SLAPrintObject::get_model_slices() const
 {
-    if(!is_step_done(slaposObjectSlice)) return EMPTY_SLICES;
+    // assert(is_step_done(slaposObjectSlice));
     return m_model_slices;
 }
 
