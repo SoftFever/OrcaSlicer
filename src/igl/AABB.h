@@ -68,10 +68,13 @@ public:
         //swap(first.m_low_sqr_d,second.m_low_sqr_d);
         //swap(first.m_depth,second.m_depth);
       }
-      // Pass-by-value (aka copy)
-      AABB& operator=(AABB other)
+      AABB& operator=(const AABB &other)
       {
-        swap(*this,other);
+        this->deinit();
+        m_left  = other.m_left ? new AABB(*other.m_left) : NULL;
+        m_right = other.m_right ? new AABB(*other.m_right) : NULL;
+        m_box   = other.m_box;
+        m_primitive = other.m_primitive;
         return *this;
       }
       AABB(AABB&& other):
