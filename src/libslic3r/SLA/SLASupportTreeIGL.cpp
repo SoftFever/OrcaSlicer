@@ -10,7 +10,8 @@
 
 #include <igl/ray_mesh_intersect.h>
 
-#if !defined(_MSC_VER) || defined(_WIN64)
+//#if !defined(_MSC_VER) || defined(_WIN64)
+#if 1
 #define IGL_COMPATIBLE
 #endif
 
