@@ -279,7 +279,7 @@ private:
     mutable bool          m_world_matrix_dirty;
 #endif // ENABLE_MODELVOLUME_TRANSFORM
     // Shift in z required by sla supports+pad
-    double m_sla_shift_z;
+    double                m_sla_shift_z;
     // Bounding box of this volume, in unscaled coordinates.
     mutable BoundingBoxf3 m_transformed_bounding_box;
     // Whether or not is needed to recalculate the transformed bounding box.

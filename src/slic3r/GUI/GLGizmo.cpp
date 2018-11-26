@@ -1655,12 +1655,8 @@ void GLGizmoSlaSupports::on_render(const GLCanvas3D::Selection& selection) const
         g.color[2] = 0.f;
     }
 
-    ::glPushMatrix();
     //::glTranslatef((GLfloat)dragged_offset(0), (GLfloat)dragged_offset(1), (GLfloat)dragged_offset(2));
-    float z_shift = m_parent.get_selection().get_volume(0)->get_sla_shift_z();
-    ::glTranslatef((GLfloat)0, (GLfloat)0, (GLfloat)z_shift);
     render_grabbers();
-    ::glPopMatrix();
 
 #ifndef ENABLE_IMGUI
     render_tooltip_texture();
@@ -1682,6 +1678,12 @@ void GLGizmoSlaSupports::on_render_for_picking(const GLCanvas3D::Selection& sele
 
 void GLGizmoSlaSupports::render_grabbers(bool picking) const
 {
+	if (m_parent.get_selection().is_empty())
+		return;
+
+    float z_shift = m_parent.get_selection().get_volume(0)->get_sla_shift_z();
+    ::glTranslatef((GLfloat)0, (GLfloat)0, (GLfloat)z_shift);
+
     for (const ModelInstance* inst : m_model_object->instances) {
         for (int i = 0; i < (int)m_grabbers.size(); ++i)
         {
@@ -1712,29 +1714,30 @@ void GLGizmoSlaSupports::render_grabbers(bool picking) const
                 ::glDisable(GL_LIGHTING);
         }
     }
+
+    ::glTranslatef((GLfloat)0, (GLfloat)0, (GLfloat)-z_shift);
 }
 
 bool GLGizmoSlaSupports::is_mesh_update_necessary() const
 {
-    if (m_state != On || !m_model_object || m_model_object->instances.empty())
-        return false;
+    return m_state == On && m_model_object && ! m_model_object->instances.empty() && ! m_instance_matrix.isApprox(m_source_data.matrix);
 
-    if ((m_instance_matrix * m_source_data.matrix.inverse() * Vec3d(1., 1., 1.) - Vec3d(1., 1., 1.)).norm() > 0.001)
-        return true;
+    //if (m_state != On || !m_model_object || m_model_object->instances.empty() || ! m_instance_matrix.isApprox(m_source_data.matrix))
+    //    return false;
 
     // following should detect direct mesh changes (can be removed after the mesh is made completely immutable):
     /*const float* first_vertex = m_model_object->volumes.front()->get_convex_hull().first_vertex();
     Vec3d first_point((double)first_vertex[0], (double)first_vertex[1], (double)first_vertex[2]);
     if (first_point != m_source_data.mesh_first_point)
         return true;*/
-
-    return false;
 }
 
 void GLGizmoSlaSupports::update_mesh()
 {
     Eigen::MatrixXf& V = m_V;
     Eigen::MatrixXi& F = m_F;
+    // Composite mesh of all instances in the world coordinate system.
+    // This mesh does not account for the possible Z up SLA offset.
     TriangleMesh mesh = m_model_object->mesh();
     const stl_file& stl = mesh.stl;
     V.resize(3 * stl.stats.number_of_facets, 3);
@@ -1781,6 +1784,10 @@ Vec3f GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos)
     ::gluUnProject(mouse_pos(0), viewport(3)-mouse_pos(1), 1.f, modelview_matrix.data(), projection_matrix.data(), viewport.data(), &point2(0), &point2(1), &point2(2));
 
     igl::Hit hit;
+
+	double z_offset = m_parent.get_selection().get_volume(0)->get_sla_shift_z();
+	point1(2) -= z_offset;
+	point2(2) -= z_offset;
 
     if (!m_AABB.intersect_ray(m_V, m_F, point1.cast<float>(), (point2-point1).cast<float>(), hit))
         throw std::invalid_argument("unproject_on_mesh(): No intersection found.");
@@ -1842,7 +1849,8 @@ void GLGizmoSlaSupports::on_update(const UpdateData& data)
         catch (...) { return; }
         m_grabbers[m_hover_id].center = new_pos.cast<double>();
         m_model_object->sla_support_points[m_hover_id] = new_pos;
-        m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
+        // Do not update immediately, wait until the mouse is released.
+        // m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
     }
 }
 

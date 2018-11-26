@@ -4879,6 +4879,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 do_rotate();
                 break;
             }
+            case Gizmos::SlaSupports:
+                // End of mouse dragging, update the SLAPrint/SLAPrintObjects with the new support points.
+                post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
+                break;
             default:
                 break;
             }
