@@ -32,9 +32,6 @@
 #include <I18N.hpp>
 #include <wx/wupdlock.h>
 #include "SysInfoDialog.hpp"
-#if ENABLE_IMGUI
-#include <imgui\imgui.h>
-#endif // ENABLE_IMGUI
 
 namespace Slic3r {
 namespace GUI {
@@ -58,11 +55,16 @@ const wxString file_wildcards[FT_SIZE] = {
 static std::string libslic3r_translate_callback(const char *s) { return wxGetTranslation(wxString(s, wxConvUTF8)).utf8_str().data(); }
 
 IMPLEMENT_APP(GUI_App)
+
+GUI_App::GUI_App()
+    : wxApp()
+    , m_imgui(new ImGuiWrapper())
+{}
+
 bool GUI_App::OnInit()
 {
 #if ENABLE_IMGUI
-    if (!m_imgui.init())
-        return false;
+    wxCHECK_MSG(m_imgui->init(), false, "Failed to initialize ImGui");
 #endif // ENABLE_IMGUI
 
     SetAppName("Slic3rPE-alpha");
@@ -184,14 +186,6 @@ bool GUI_App::OnInit()
     mainframe->Show(true);
     return true;
 }
-
-#if ENABLE_IMGUI
-int GUI_App::OnExit()
-{
-    m_imgui.shutdown();
-    return 0;
-}
-#endif // ENABLE_IMGUI
 
 unsigned GUI_App::get_colour_approx_luma(const wxColour &colour)
 {

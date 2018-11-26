@@ -139,7 +139,7 @@ public:
     void set_number_of_copies(/*size_t num*/);
     bool is_selection_empty() const;
 
-    void cut(size_t obj_idx, size_t instance_idx, coordf_t z);
+    void cut(size_t obj_idx, size_t instance_idx, coordf_t z, bool keep_upper = true, bool keep_lower = true, bool rotate_lower = false);
 
     // Note: empty path means "use the default"
     void export_gcode(boost::filesystem::path output_path = boost::filesystem::path());

@@ -170,6 +170,7 @@ GLGizmoBase::GLGizmoBase(GLCanvas3D& parent)
 #endif // ENABLE_GIZMOS_SHORTCUT
     , m_hover_id(-1)
     , m_dragging(false)
+    , m_imgui(wxGetApp().imgui())
 {
     ::memcpy((void*)m_base_color, (const void*)DEFAULT_BASE_COLOR, 3 * sizeof(float));
     ::memcpy((void*)m_drag_color, (const void*)DEFAULT_DRAG_COLOR, 3 * sizeof(float));
@@ -273,7 +274,9 @@ void GLGizmoBase::render_grabbers_for_picking(const BoundingBoxf3& box) const
     }
 }
 
+#ifndef ENABLE_IMGUI
 void GLGizmoBase::create_external_gizmo_widgets(wxWindow *parent) {}
+#endif // not ENABLE_IMGUI
 
 void GLGizmoBase::set_tooltip(const std::string& tooltip) const
 {
@@ -687,16 +690,16 @@ void GLGizmoRotate3D::on_render(const GLCanvas3D::Selection& selection) const
 }
 
 #if ENABLE_IMGUI
-void GLGizmoRotate3D::on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection) const
+void GLGizmoRotate3D::on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection)
 {
     Vec3d rotation(Geometry::rad2deg(m_gizmos[0].get_angle()), Geometry::rad2deg(m_gizmos[1].get_angle()), Geometry::rad2deg(m_gizmos[2].get_angle()));
-    std::string label = _("Rotation (deg)");
+    wxString label = _(L("Rotation (deg)"));
 
-    wxGetApp().get_imgui().set_next_window_pos(x, y, ImGuiCond_Always);
-    wxGetApp().get_imgui().set_next_window_bg_alpha(0.5f);
-    wxGetApp().get_imgui().begin(label, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
-    wxGetApp().get_imgui().input_vec3("", rotation, 100.0f, "%.2f");
-    wxGetApp().get_imgui().end();
+    m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
+    m_imgui->set_next_window_bg_alpha(0.5f);
+    m_imgui->begin(label, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+    m_imgui->input_vec3("", rotation, 100.0f, "%.2f");
+    m_imgui->end();
 }
 #endif // ENABLE_IMGUI
 
@@ -987,17 +990,16 @@ void GLGizmoScale3D::on_render_for_picking(const GLCanvas3D::Selection& selectio
 }
 
 #if ENABLE_IMGUI
-void GLGizmoScale3D::on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection) const
+void GLGizmoScale3D::on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection)
 {
     bool single_instance = selection.is_single_full_instance();
-    Vec3d scale = single_instance ? 100.0 * selection.get_volume(*selection.get_volume_idxs().begin())->get_scaling_factor() : 100.0 * m_scale;
-    std::string label = _("Scale (%)");
+    wxString label = _(L("Scale (%)"));
 
-    wxGetApp().get_imgui().set_next_window_pos(x, y, ImGuiCond_Always);
-    wxGetApp().get_imgui().set_next_window_bg_alpha(0.5f);
-    wxGetApp().get_imgui().begin(label, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
-    wxGetApp().get_imgui().input_vec3("", scale, 100.0f, "%.2f");
-    wxGetApp().get_imgui().end();
+    m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
+    m_imgui->set_next_window_bg_alpha(0.5f);
+    m_imgui->begin(label, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+    m_imgui->input_vec3("", m_scale, 100.0f, "%.2f");
+    m_imgui->end();
 }
 #endif // ENABLE_IMGUI
 
@@ -1215,26 +1217,20 @@ void GLGizmoMove3D::on_render_for_picking(const GLCanvas3D::Selection& selection
 }
 
 #if ENABLE_IMGUI
-void GLGizmoMove3D::on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection) const
+void GLGizmoMove3D::on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection)
 {
     bool show_position = selection.is_single_full_instance();
     const Vec3d& position = selection.get_bounding_box().center();
 
     Vec3d displacement = show_position ? position : m_displacement;
-    std::string label = show_position ? _("Position (mm)") : _("Displacement (mm)");
+    wxString label = show_position ? _(L("Position (mm)")) : _(L("Displacement (mm)"));
 
-    wxGetApp().get_imgui().set_next_window_pos(x, y, ImGuiCond_Always);
-    wxGetApp().get_imgui().set_next_window_bg_alpha(0.5f);
-    wxGetApp().get_imgui().begin(label, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
-    wxGetApp().get_imgui().input_vec3("", displacement, 100.0f, "%.2f");
+    m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
+    m_imgui->set_next_window_bg_alpha(0.5f);
+    m_imgui->begin(label, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+    m_imgui->input_vec3("", displacement, 100.0f, "%.2f");
 
-    if (ImGui::Button("Test"))
-    {
-        std::cout << "WOW" << std::endl;
-    }
-
-
-    wxGetApp().get_imgui().end();
+    m_imgui->end();
 }
 #endif // ENABLE_IMGUI
 
@@ -1932,9 +1928,15 @@ const std::array<float, 3> GLGizmoCut::GrabberColor = { 1.0, 0.5, 0.0 };
 GLGizmoCut::GLGizmoCut(GLCanvas3D& parent)
     : GLGizmoBase(parent)
     , m_cut_z(0.0)
+#ifndef ENABLE_IMGUI
     , m_panel(nullptr)
+#endif // not ENABLE_IMGUI
+    , m_keep_upper(true)
+    , m_keep_lower(true)
+    , m_rotate_lower(false)
 {}
 
+#ifndef ENABLE_IMGUI
 void GLGizmoCut::create_external_gizmo_widgets(wxWindow *parent)
 {
     wxASSERT(m_panel == nullptr);
@@ -1949,9 +1951,10 @@ void GLGizmoCut::create_external_gizmo_widgets(wxWindow *parent)
 
     m_panel->Hide();
     m_panel->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
-        perform_cut();
+        perform_cut(m_parent.get_selection());
     }, wxID_OK);
 }
+#endif // not ENABLE_IMGUI
 
 bool GLGizmoCut::on_init()
 {
@@ -1992,10 +1995,12 @@ void GLGizmoCut::on_set_state()
         m_cut_z = 0.0;
     }
 
+#ifndef ENABLE_IMGUI
     // Display or hide the extra panel
     if (m_panel != nullptr) {
         m_panel->display(get_state() == On);
     }
+#endif // not ENABLE_IMGUI
 }
 
 bool GLGizmoCut::on_is_activable(const GLCanvas3D::Selection& selection) const
@@ -2080,16 +2085,38 @@ void GLGizmoCut::on_render_for_picking(const GLCanvas3D::Selection& selection) c
     render_grabbers_for_picking(selection.get_bounding_box());
 }
 
-void GLGizmoCut::perform_cut()
+#if ENABLE_IMGUI
+void GLGizmoCut::on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection)
 {
-    const auto &selection = m_parent.get_selection();
+    m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
+    m_imgui->set_next_window_bg_alpha(0.5f);
+    m_imgui->begin(_(L("Cut")), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
+    ImGui::PushItemWidth(100.0f);
+    bool _value_changed = ImGui::InputDouble("Z", &m_cut_z, 0.0f, 0.0f, "%.2f");
+
+    m_imgui->checkbox(_(L("Keep upper part")), m_keep_upper);
+    m_imgui->checkbox(_(L("Keep lower part")), m_keep_lower);
+    m_imgui->checkbox(_(L("Rotate lower part upwards")), m_rotate_lower);
+
+    const bool cut_clicked = m_imgui->button(_(L("Perform cut")));
+
+    m_imgui->end();
+
+    if (cut_clicked) {
+        perform_cut(selection);
+    }
+}
+#endif // ENABLE_IMGUI
+
+void GLGizmoCut::perform_cut(const GLCanvas3D::Selection& selection)
+{
     const auto instance_idx = selection.get_instance_idx();
     const auto object_idx = selection.get_object_idx();
 
     wxCHECK_RET(instance_idx >= 0 && object_idx >= 0, "GLGizmoCut: Invalid object selection");
 
-    wxGetApp().plater()->cut(object_idx, instance_idx, m_cut_z);
+    wxGetApp().plater()->cut(object_idx, instance_idx, m_cut_z, m_keep_upper, m_keep_lower, m_rotate_lower);
 }
 
 double GLGizmoCut::calc_projection(const Linef3& mouse_ray) const

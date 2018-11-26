@@ -23,6 +23,7 @@ class ModelObject;
 namespace GUI {
 
 class GLCanvas3D;
+class ImGuiWrapper;
 
 class GLGizmoBase
 {
@@ -88,6 +89,7 @@ protected:
     float m_drag_color[3];
     float m_highlight_color[3];
     mutable std::vector<Grabber> m_grabbers;
+    ImGuiWrapper* m_imgui;
 
 public:
     explicit GLGizmoBase(GLCanvas3D& parent);
@@ -135,10 +137,12 @@ public:
     void render(const GLCanvas3D::Selection& selection) const { on_render(selection); }
     void render_for_picking(const GLCanvas3D::Selection& selection) const { on_render_for_picking(selection); }
 
+#ifndef ENABLE_IMGUI
     virtual void create_external_gizmo_widgets(wxWindow *parent);
+#endif // not ENABLE_IMGUI
 
 #if ENABLE_IMGUI
-    void render_input_window(float x, float y, const GLCanvas3D::Selection& selection) const { on_render_input_window(x, y, selection); }
+    void render_input_window(float x, float y, const GLCanvas3D::Selection& selection) { on_render_input_window(x, y, selection); }
 #endif // ENABLE_IMGUI
 
 protected:
@@ -160,7 +164,7 @@ protected:
     virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const = 0;
 
 #if ENABLE_IMGUI
-    virtual void on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection) const {}
+    virtual void on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection) {}
 #endif // ENABLE_IMGUI
 
     float picking_color_component(unsigned int id) const;
@@ -301,7 +305,7 @@ protected:
     }
 
 #if ENABLE_IMGUI
-    virtual void on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection) const;
+    virtual void on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection);
 #endif // ENABLE_IMGUI
 };
 
@@ -341,7 +345,7 @@ protected:
     virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const;
 
 #if ENABLE_IMGUI
-    virtual void on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection) const;
+    virtual void on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection);
 #endif // ENABLE_IMGUI
 
 private:
@@ -385,7 +389,7 @@ protected:
     virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const;
 
 #if ENABLE_IMGUI
-    virtual void on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection) const;
+    virtual void on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection);
 #endif // ENABLE_IMGUI
 
 private:
@@ -494,7 +498,9 @@ protected:
 };
 
 
+#ifndef ENABLE_IMGUI
 class GLGizmoCutPanel;
+#endif // not ENABLE_IMGUI
 
 class GLGizmoCut : public GLGizmoBase
 {
@@ -507,12 +513,21 @@ class GLGizmoCut : public GLGizmoBase
     double m_max_z;
     Vec3d m_drag_pos;
     Vec3d m_drag_center;
+    bool m_keep_upper;
+    bool m_keep_lower;
+    bool m_rotate_lower;
+#ifndef ENABLE_IMGUI
     GLGizmoCutPanel *m_panel;
+#endif // not ENABLE_IMGUI
 
 public:
     explicit GLGizmoCut(GLCanvas3D& parent);
 
+#ifndef ENABLE_IMGUI
     virtual void create_external_gizmo_widgets(wxWindow *parent);
+#endif // not ENABLE_IMGUI
+#ifndef ENABLE_IMGUI
+#endif // not ENABLE_IMGUI
 
 protected:
     virtual bool on_init();
@@ -524,8 +539,11 @@ protected:
     virtual void on_render(const GLCanvas3D::Selection& selection) const;
     virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const;
 
+#if ENABLE_IMGUI
+    virtual void on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection);
+#endif // ENABLE_IMGUI
 private:
-    void perform_cut();
+    void perform_cut(const GLCanvas3D::Selection& selection);
     double calc_projection(const Linef3& mouse_ray) const;
 };
 

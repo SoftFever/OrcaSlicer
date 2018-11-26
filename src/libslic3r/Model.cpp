@@ -981,19 +981,25 @@ template<class T> static void cut_reset_transform(T *thing) {
     thing->set_offset(offset);
 }
 
-ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z)
+ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, bool keep_lower, bool rotate_lower)
 {
     // Clone the object to duplicate instances, materials etc.
-    ModelObject* upper = ModelObject::new_clone(*this);
-    ModelObject* lower = ModelObject::new_clone(*this);
-    upper->set_model(nullptr);
-    lower->set_model(nullptr);
-    upper->sla_support_points.clear();
-    lower->sla_support_points.clear();
-    upper->clear_volumes();
-    lower->clear_volumes();
-    upper->input_file = "";
-    lower->input_file = "";
+    ModelObject* upper = keep_upper ? ModelObject::new_clone(*this) : nullptr;
+    ModelObject* lower = keep_lower ? ModelObject::new_clone(*this) : nullptr;
+
+    if (keep_upper) {
+        upper->set_model(nullptr);
+        upper->sla_support_points.clear();
+        upper->clear_volumes();
+        upper->input_file = "";
+    }
+
+    if (keep_lower) {
+        lower->set_model(nullptr);
+        lower->sla_support_points.clear();
+        lower->clear_volumes();
+        lower->input_file = "";
+    }
 
     const auto instance_matrix = instances[instance]->get_matrix(true);
 
@@ -1008,14 +1014,18 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z)
     const auto bb = instance_bounding_box(instance, true);
     z -= bb.min(2);
 
-    for (auto *instance : upper->instances) { cut_reset_transform(instance); }
-    for (auto *instance : lower->instances) { cut_reset_transform(instance); }
+    if (keep_upper) {
+        for (auto *instance : upper->instances) { cut_reset_transform(instance); }
+    }
+    if (keep_lower) {
+        for (auto *instance : lower->instances) { cut_reset_transform(instance); }
+    }
 
     for (ModelVolume *volume : volumes) {
         if (! volume->is_model_part()) {
             // don't cut modifiers
-            upper->add_volume(*volume);
-            lower->add_volume(*volume);
+            if (keep_upper) { upper->add_volume(*volume); }
+            if (keep_lower) { lower->add_volume(*volume); }
         } else {
             TriangleMesh upper_mesh, lower_mesh;
 
@@ -1026,18 +1036,22 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z)
             TriangleMeshSlicer tms(&volume->mesh);
             tms.cut(z, &upper_mesh, &lower_mesh);
 
-            upper_mesh.repair();
-            lower_mesh.repair();
-            upper_mesh.reset_repair_stats();
-            lower_mesh.reset_repair_stats();
+            if (keep_upper) {
+                upper_mesh.repair();
+                upper_mesh.reset_repair_stats();
+            }
+            if (keep_lower) {
+                lower_mesh.repair();
+                lower_mesh.reset_repair_stats();
+            }
 
-            if (upper_mesh.facets_count() > 0) {
+            if (keep_upper && upper_mesh.facets_count() > 0) {
                 ModelVolume* vol    = upper->add_volume(upper_mesh);
                 vol->name           = volume->name;
                 vol->config         = volume->config;
                 vol->set_material(volume->material_id(), *volume->material());
             }
-            if (lower_mesh.facets_count() > 0) {
+            if (keep_lower && lower_mesh.facets_count() > 0) {
                 ModelVolume* vol    = lower->add_volume(lower_mesh);
                 vol->name           = volume->name;
                 vol->config         = volume->config;
@@ -1046,12 +1060,25 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z)
         }
     }
 
-    upper->invalidate_bounding_box();
-    lower->invalidate_bounding_box();
+    if (keep_lower && rotate_lower) {
+        for (auto *instance : lower->instances) {
+            Geometry::Transformation tr;
+            tr.set_offset(instance->get_offset());
+            tr.set_rotation({Geometry::deg2rad(180.0), 0.0, 0.0});
+            instance->set_transformation(tr);
+        }
+    }
 
     ModelObjectPtrs res;
-    if (upper->volumes.size() > 0) { res.push_back(upper); }
-    if (lower->volumes.size() > 0) { res.push_back(lower); }
+
+    if (keep_upper && upper->volumes.size() > 0) {
+        upper->invalidate_bounding_box();
+        res.push_back(upper);
+    }
+    if (keep_lower && lower->volumes.size() > 0) {
+        lower->invalidate_bounding_box();
+        res.push_back(lower);
+    }
 
     return res;
 }

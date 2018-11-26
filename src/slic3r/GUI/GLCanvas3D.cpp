@@ -2893,7 +2893,7 @@ void GLCanvas3D::Gizmos::render_current_gizmo_for_picking_pass(const GLCanvas3D:
         curr->render_for_picking(selection);
 }
 
-void GLCanvas3D::Gizmos::render_overlay(const GLCanvas3D& canvas) const
+void GLCanvas3D::Gizmos::render_overlay(const GLCanvas3D& canvas, const GLCanvas3D::Selection& selection) const
 {
     if (!m_enabled)
         return;
@@ -2903,17 +2903,19 @@ void GLCanvas3D::Gizmos::render_overlay(const GLCanvas3D& canvas) const
     ::glPushMatrix();
     ::glLoadIdentity();
 
-    _render_overlay(canvas);
+    _render_overlay(canvas, selection);
 
     ::glPopMatrix();
 }
 
+#ifndef ENABLE_IMGUI
 void GLCanvas3D::Gizmos::create_external_gizmo_widgets(wxWindow *parent)
 {
     for (auto &entry : m_gizmos) {
         entry.second->create_external_gizmo_widgets(parent);
     }
 }
+#endif // not ENABLE_IMGUI
 
 void GLCanvas3D::Gizmos::_reset()
 {
@@ -2926,7 +2928,7 @@ void GLCanvas3D::Gizmos::_reset()
     m_gizmos.clear();
 }
 
-void GLCanvas3D::Gizmos::_render_overlay(const GLCanvas3D& canvas) const
+void GLCanvas3D::Gizmos::_render_overlay(const GLCanvas3D& canvas, const GLCanvas3D::Selection& selection) const
 {
     if (m_gizmos.empty())
         return;
@@ -3326,7 +3328,9 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     , m_moving(false)
     , m_color_by("volume")
     , m_reload_delayed(false)
+#ifndef ENABLE_IMGUI
     , m_external_gizmo_widgets_parent(nullptr)
+#endif // not ENABLE_IMGUI
 {
     if (m_canvas != nullptr)
     {
@@ -3434,10 +3438,12 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
             return false;
         }
 
+#ifndef ENABLE_IMGUI
         if (m_external_gizmo_widgets_parent != nullptr) {
             m_gizmos.create_external_gizmo_widgets(m_external_gizmo_widgets_parent);
             m_canvas->GetParent()->Layout();
         }
+#endif // not ENABLE_IMGUI
     }
 
     if (!_init_toolbar())
@@ -3753,7 +3759,7 @@ void GLCanvas3D::render()
     set_tooltip("");
 
 #if ENABLE_IMGUI
-    wxGetApp().get_imgui().new_frame();
+    wxGetApp().imgui()->new_frame();
 #endif // ENABLE_IMGUI
 
     // picking pass
@@ -3799,7 +3805,7 @@ void GLCanvas3D::render()
     _render_layer_editing_overlay();
 
 #if ENABLE_IMGUI
-    wxGetApp().get_imgui().render();
+    wxGetApp().imgui()->render();
 #endif // ENABLE_IMGUI
 
     m_canvas->SwapBuffers();
@@ -4462,7 +4468,13 @@ void GLCanvas3D::on_timer(wxTimerEvent& evt)
 void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 {
 #if ENABLE_IMGUI
-    wxGetApp().get_imgui().update_mouse_data(evt);
+    auto imgui = wxGetApp().imgui();
+    if (imgui->update_mouse_data(evt)) {
+        render();
+        if (imgui->want_any_input()) {
+            return;
+        }
+    }
 #endif // ENABLE_IMGUI
 
     Point pos(evt.GetX(), evt.GetY());
@@ -4957,10 +4969,12 @@ void GLCanvas3D::set_tooltip(const std::string& tooltip) const
     }
 }
 
+#ifndef ENABLE_IMGUI
 void GLCanvas3D::set_external_gizmo_widgets_parent(wxWindow *parent)
 {
     m_external_gizmo_widgets_parent = parent;
 }
+#endif // not ENABLE_IMGUI
 
 void GLCanvas3D::do_move()
 {
@@ -5323,7 +5337,7 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
         return;
 
 #if ENABLE_IMGUI
-    wxGetApp().get_imgui().set_display_size((float)w, (float)h);
+    wxGetApp().imgui()->set_display_size((float)w, (float)h);
 #endif // ENABLE_IMGUI
 
     // ensures that this canvas is current
@@ -5796,7 +5810,7 @@ void GLCanvas3D::_render_current_gizmo() const
 
 void GLCanvas3D::_render_gizmos_overlay() const
 {
-    m_gizmos.render_overlay(*this);
+    m_gizmos.render_overlay(*this, m_selection);
 }
 
 void GLCanvas3D::_render_toolbar() const

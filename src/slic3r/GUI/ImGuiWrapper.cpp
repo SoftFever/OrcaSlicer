@@ -1,13 +1,19 @@
-#include "../../libslic3r/libslic3r.h"
 #include "ImGuiWrapper.hpp"
 
-#include "Utils.hpp"
+#include <vector>
 
+#include <boost/format.hpp>
+#include <boost/log/trivial.hpp>
+
+#include <wx/string.h>
 #include <wx/event.h>
+#include <wx/debug.h>
 
 #include <GL/glew.h>
 
-#include <imgui/imgui.h>
+#include "libslic3r/libslic3r.h"
+#include "GUI.hpp"
+#include "Utils.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -26,7 +32,14 @@ ImGuiWrapper::ImGuiWrapper()
     , m_attrib_location_position(0)
     , m_attrib_location_uv(0)
     , m_attrib_location_color(0)
+    , m_mouse_buttons(0)
 {
+}
+
+ImGuiWrapper::~ImGuiWrapper()
+{
+    destroy_device_objects();
+    ImGui::DestroyContext();
 }
 
 bool ImGuiWrapper::init()
@@ -45,25 +58,19 @@ bool ImGuiWrapper::init()
     ImGui::CreateContext();
 
     ImGuiIO& io = ImGui::GetIO();
-    ImFont* font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "\\fonts\\NotoSans-Regular.ttf").c_str(), 18.0f);
-    if (font == nullptr)
-    {
+    ImFont* font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/NotoSans-Regular.ttf").c_str(), 18.0f);
+    if (font == nullptr) {
         font = io.Fonts->AddFontDefault();
         if (font == nullptr)
             return false;
     }
-    else
+    else {
         m_fonts.insert(FontsMap::value_type("Noto Sans Regular 18", font));
+    }
 
     io.IniFilename = nullptr;
 
     return true;
-}
-
-void ImGuiWrapper::shutdown()
-{
-    destroy_device_objects();
-    ImGui::DestroyContext();
 }
 
 void ImGuiWrapper::set_display_size(float w, float h)
@@ -73,7 +80,7 @@ void ImGuiWrapper::set_display_size(float w, float h)
     io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
 }
 
-void ImGuiWrapper::update_mouse_data(wxMouseEvent& evt)
+bool ImGuiWrapper::update_mouse_data(wxMouseEvent& evt)
 {
     ImGuiIO& io = ImGui::GetIO();
     io.MousePos = ImVec2((float)evt.GetX(), (float)evt.GetY());
@@ -81,10 +88,10 @@ void ImGuiWrapper::update_mouse_data(wxMouseEvent& evt)
     io.MouseDown[1] = evt.RightDown();
     io.MouseDown[2] = evt.MiddleDown();
 
-    if (io.MouseDown[0])
-    {
-        int a = 0;
-    }
+    unsigned buttons = evt.LeftDown() | evt.RightDown() << 1 | evt.MiddleDown() << 2;
+    bool res = buttons != m_mouse_buttons;
+    m_mouse_buttons = buttons;
+    return res;
 }
 
 void ImGuiWrapper::new_frame()
@@ -97,9 +104,6 @@ void ImGuiWrapper::new_frame()
 
 void ImGuiWrapper::render()
 {
-    ImGuiIO& io = ImGui::GetIO();
-
-
     ImGui::Render();
     render_draw_data(ImGui::GetDrawData());
 }
@@ -114,9 +118,14 @@ void ImGuiWrapper::set_next_window_bg_alpha(float alpha)
     ImGui::SetNextWindowBgAlpha(alpha);
 }
 
-bool ImGuiWrapper::begin(const std::string& name, int flags)
+bool ImGuiWrapper::begin(const std::string &name, int flags)
 {
     return ImGui::Begin(name.c_str(), nullptr, (ImGuiWindowFlags)flags);
+}
+
+bool ImGuiWrapper::begin(const wxString &name, int flags)
+{
+    return begin(into_u8(name), flags);
 }
 
 void ImGuiWrapper::end()
@@ -124,12 +133,18 @@ void ImGuiWrapper::end()
     ImGui::End();
 }
 
-bool ImGuiWrapper::input_double(const std::string& label, double& value, const std::string& format)
+bool ImGuiWrapper::button(const wxString &label)
 {
-    return ImGui::InputDouble(label.c_str(), &value, 0.0f, 0.0f, format.c_str());
+    auto label_utf8 = into_u8(label);
+    return ImGui::Button(label_utf8.c_str());
 }
 
-bool ImGuiWrapper::input_vec3(const std::string& label, Vec3d& value, float width, const std::string& format)
+bool ImGuiWrapper::input_double(const std::string &label, const double &value, const std::string &format)
+{
+    return ImGui::InputDouble(label.c_str(), const_cast<double*>(&value), 0.0f, 0.0f, format.c_str());
+}
+
+bool ImGuiWrapper::input_vec3(const std::string &label, const Vec3d &value, float width, const std::string &format)
 {
     bool value_changed = false;
 
@@ -140,12 +155,39 @@ bool ImGuiWrapper::input_vec3(const std::string& label, Vec3d& value, float widt
         std::string item_label = (i == 0) ? "X" : ((i == 1) ? "Y" : "Z");
         ImGui::PushID(i);
         ImGui::PushItemWidth(width);
-        value_changed |= ImGui::InputDouble(item_label.c_str(), &value(i), 0.0f, 0.0f, format.c_str());
+        value_changed |= ImGui::InputDouble(item_label.c_str(), const_cast<double*>(&value(i)), 0.0f, 0.0f, format.c_str());
         ImGui::PopID();
     }
     ImGui::EndGroup();
 
     return value_changed;
+}
+
+bool ImGuiWrapper::checkbox(const wxString &label, bool &value)
+{
+    auto label_utf8 = into_u8(label);
+    return ImGui::Checkbox(label_utf8.c_str(), &value);
+}
+
+bool ImGuiWrapper::want_mouse() const
+{
+    return ImGui::GetIO().WantCaptureMouse;
+}
+
+bool ImGuiWrapper::want_keyboard() const
+{
+    return ImGui::GetIO().WantCaptureKeyboard;
+}
+
+bool ImGuiWrapper::want_text_input() const
+{
+    return ImGui::GetIO().WantTextInput;
+}
+
+bool ImGuiWrapper::want_any_input() const
+{
+    const auto io = ImGui::GetIO();
+    return io.WantCaptureMouse || io.WantCaptureKeyboard || io.WantTextInput;
 }
 
 void ImGuiWrapper::create_device_objects()
@@ -289,19 +331,19 @@ void ImGuiWrapper::create_device_objects()
     m_vert_handle = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(m_vert_handle, 2, vertex_shader_with_version, nullptr);
     glCompileShader(m_vert_handle);
-    check_shader(m_vert_handle, "vertex shader");
+    wxASSERT(check_shader(m_vert_handle, "vertex shader"));
 
     const GLchar* fragment_shader_with_version[2] = { m_glsl_version_string.c_str(), fragment_shader };
     m_frag_handle = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(m_frag_handle, 2, fragment_shader_with_version, nullptr);
     glCompileShader(m_frag_handle);
-    check_shader(m_frag_handle, "fragment shader");
+    wxASSERT(check_shader(m_frag_handle, "fragment shader"));
 
     m_shader_handle = glCreateProgram();
     glAttachShader(m_shader_handle, m_vert_handle);
     glAttachShader(m_shader_handle, m_frag_handle);
     glLinkProgram(m_shader_handle);
-    check_program(m_shader_handle, "shader program");
+    wxASSERT(check_program(m_shader_handle, "shader program"));
 
     m_attrib_location_tex = glGetUniformLocation(m_shader_handle, "Texture");
     m_attrib_location_proj_mtx = glGetUniformLocation(m_shader_handle, "ProjMtx");
@@ -351,36 +393,40 @@ bool ImGuiWrapper::check_program(unsigned int handle, const char* desc)
     GLint status = 0, log_length = 0;
     glGetProgramiv(handle, GL_LINK_STATUS, &status);
     glGetProgramiv(handle, GL_INFO_LOG_LENGTH, &log_length);
-    if ((GLboolean)status == GL_FALSE)
-        fprintf(stderr, "ERROR: ImGuiWrapper::check_program(): failed to link %s! (with GLSL '%s')\n", desc, m_glsl_version_string);
-    if (log_length > 0)
-    {
-        ImVector<char> buf;
-        buf.resize((int)(log_length + 1));
-        glGetProgramInfoLog(handle, log_length, NULL, (GLchar*)buf.begin());
-        fprintf(stderr, "%s\n", buf.begin());
+
+    if (status == GL_FALSE) {
+        BOOST_LOG_TRIVIAL(error) << boost::format("ImGuiWrapper::check_program(): failed to link %1% (GLSL `%1%`)") % desc, m_glsl_version_string;
     }
-    return (GLboolean)status == GL_TRUE;
+
+    if (log_length > 0) {
+        std::vector<GLchar> buf(log_length + 1, 0);
+        glGetProgramInfoLog(handle, log_length, nullptr, buf.data());
+        BOOST_LOG_TRIVIAL(error) << boost::format("ImGuiWrapper::check_program(): error log:\n%1%\n") % buf.data();
+    }
+
+    return status == GL_TRUE;
 }
 
-bool ImGuiWrapper::check_shader(unsigned int handle, const char* desc)
+bool ImGuiWrapper::check_shader(unsigned int handle, const char *desc)
 {
     GLint status = 0, log_length = 0;
     glGetShaderiv(handle, GL_COMPILE_STATUS, &status);
     glGetShaderiv(handle, GL_INFO_LOG_LENGTH, &log_length);
-    if ((GLboolean)status == GL_FALSE)
-        fprintf(stderr, "ERROR: ImGui_ImplOpenGL3_CreateDeviceObjects: failed to compile %s!\n", desc);
-    if (log_length > 0)
-    {
-        ImVector<char> buf;
-        buf.resize((int)(log_length + 1));
-        glGetShaderInfoLog(handle, log_length, NULL, (GLchar*)buf.begin());
-        fprintf(stderr, "%s\n", buf.begin());
+
+    if (status == GL_FALSE) {
+        BOOST_LOG_TRIVIAL(error) << boost::format("ImGuiWrapper::check_shader(): failed to compile %1%") % desc;
     }
-    return (GLboolean)status == GL_TRUE;
+
+    if (log_length > 0) {
+        std::vector<GLchar> buf(log_length + 1, 0);
+        glGetProgramInfoLog(handle, log_length, nullptr, buf.data());
+        BOOST_LOG_TRIVIAL(error) << boost::format("ImGuiWrapper::check_program(): error log:\n%1%\n") % buf.data();
+    }
+
+    return status == GL_TRUE;
 }
 
-void ImGuiWrapper::render_draw_data(ImDrawData* draw_data)
+void ImGuiWrapper::render_draw_data(ImDrawData *draw_data)
 {
     // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
     ImGuiIO& io = ImGui::GetIO();
