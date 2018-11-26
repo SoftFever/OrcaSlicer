@@ -53,9 +53,10 @@ public:
         float width;     // mm
         float height;    // mm
         float feedrate;  // mm/s
+        unsigned int cp_color_id;
 
         Metadata();
-        Metadata(ExtrusionRole extrusion_role, unsigned int extruder_id, double mm3_per_mm, float width, float height, float feedrate);
+        Metadata(ExtrusionRole extrusion_role, unsigned int extruder_id, double mm3_per_mm, float width, float height, float feedrate, unsigned int cp_color_id = 0);
 
         bool operator != (const Metadata& other) const;
     };
@@ -79,7 +80,7 @@ public:
         Vec3d end_position;
         float delta_extruder;
 
-        GCodeMove(EType type, ExtrusionRole extrusion_role, unsigned int extruder_id, double mm3_per_mm, float width, float height, float feedrate, const Vec3d& start_position, const Vec3d& end_position, float delta_extruder);
+        GCodeMove(EType type, ExtrusionRole extrusion_role, unsigned int extruder_id, double mm3_per_mm, float width, float height, float feedrate, const Vec3d& start_position, const Vec3d& end_position, float delta_extruder, unsigned int cp_color_id = 0);
         GCodeMove(EType type, const Metadata& data, const Vec3d& start_position, const Vec3d& end_position, float delta_extruder);
     };
 
@@ -96,6 +97,7 @@ private:
         Vec3d start_position = Vec3d::Zero();
         float start_extrusion;
         float position[Num_Axis];
+        unsigned int cur_cp_color_id = 0;
     };
 
 private:
@@ -154,6 +156,9 @@ private:
     // Set extruder to relative mode
     void _processM83(const GCodeReader::GCodeLine& line);
 
+    // Set color change
+    void _processM600(const GCodeReader::GCodeLine& line);
+
     // Processes T line (Select Tool)
     void _processT(const GCodeReader::GCodeLine& line);
 
@@ -187,6 +192,9 @@ private:
 
     void _set_extruder_id(unsigned int id);
     unsigned int _get_extruder_id() const;
+
+    void _set_cp_color_id(unsigned int id);
+    unsigned int _get_cp_color_id() const;
 
     void _set_mm3_per_mm(double value);
     double _get_mm3_per_mm() const;

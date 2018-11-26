@@ -71,6 +71,7 @@ public:
             Feedrate,
             VolumetricRate,
             Tool,
+            ColorPrint,
             Num_View_Types
         };
 
@@ -140,6 +141,7 @@ public:
         float height;
         Color type_colors[Num_Types];
         bool is_visible;
+        size_t color_print_idx;
 
         void set_default();
     };
@@ -196,7 +198,7 @@ public:
     void set_extrusion_paths_colors(const std::vector<std::string>& colors);
 
     std::string get_legend_title() const;
-    LegendItemsList get_legend_items(const std::vector<float>& tool_colors) const;
+    LegendItemsList get_legend_items(const std::vector<float>& tool_colors, const int color_print_cnt = 1) const;
 };
 
 GCodePreviewData::Color operator + (const GCodePreviewData::Color& c1, const GCodePreviewData::Color& c2);

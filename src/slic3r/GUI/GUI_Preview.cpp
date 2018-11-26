@@ -89,6 +89,7 @@ bool Preview::init(wxNotebook* notebook, DynamicPrintConfig* config, BackgroundS
     m_choice_view_type->Append(_(L("Speed")));
     m_choice_view_type->Append(_(L("Volumetric flow rate")));
     m_choice_view_type->Append(_(L("Tool")));
+    m_choice_view_type->Append(_(L("Color Print")));
     m_choice_view_type->SetSelection(0);
 
     m_label_show_features = new wxStaticText(this, wxID_ANY, _(L("Show")));
@@ -466,12 +467,14 @@ void Preview::set_double_slider_thumbs(const bool force_sliders_full_range,
     }
 
     for (int i = layers_z.size() - 1; i >= 0; i--)
-        if (z_low >= layers_z[i]) {
+//         if (z_low >= layers_z[i]) {
+        if (fabs(z_low - layers_z[i]) <= 1e-6) {
             m_slider->SetLowerValue(i);
             break;
         }
     for (int i = layers_z.size() - 1; i >= 0; i--)
-        if (z_high >= layers_z[i]) {
+//         if (z_high >= layers_z[i]) {
+        if (fabs(z_high-layers_z[i]) <= 1e-6) {
             m_slider->SetHigherValue(i);
             break;
         }

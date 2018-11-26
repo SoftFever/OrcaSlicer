@@ -3119,7 +3119,10 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
 
     // collects items to render
     auto title = _(preview_data.get_legend_title());
-    const GCodePreviewData::LegendItemsList& items = preview_data.get_legend_items(tool_colors);
+
+    const auto& config = wxGetApp().preset_bundle->full_config();
+    const int color_print_cnt = config.option<ConfigOptionFloats>("colorprint_heights")->values.size();
+    const GCodePreviewData::LegendItemsList& items = preview_data.get_legend_items(tool_colors, color_print_cnt);
 
     unsigned int items_count = (unsigned int)items.size();
     if (items_count == 0)
@@ -6473,6 +6476,8 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
                 return path.feedrate * (float)path.mm3_per_mm;
             case GCodePreviewData::Extrusion::Tool:
                 return (float)path.extruder_id;
+            case GCodePreviewData::Extrusion::ColorPrint:
+                return (float)path.cp_color_id;
             default:
                 return 0.0f;
             }
@@ -6498,6 +6503,15 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
             {
                 GCodePreviewData::Color color;
                 ::memcpy((void*)color.rgba, (const void*)(tool_colors.data() + (unsigned int)value * 4), 4 * sizeof(float));
+                return color;
+            }
+            case GCodePreviewData::Extrusion::ColorPrint:
+            {
+                int val = int(value);
+                while (val >= GCodePreviewData::Range::Colors_Count)
+                    val -= GCodePreviewData::Range::Colors_Count;
+                    
+                GCodePreviewData::Color color = GCodePreviewData::Range::Default_Colors[val];
                 return color;
             }
             default:

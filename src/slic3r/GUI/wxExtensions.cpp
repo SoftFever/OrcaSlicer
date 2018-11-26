@@ -1474,7 +1474,7 @@ void PrusaDoubleSlider::SetTicksValues(const std::vector<double>& heights)
             ++i;
         if (i == m_values.size())
             return;
-        m_ticks.insert(i);
+        m_ticks.insert(i-1);
     }
 
 }
@@ -1895,18 +1895,16 @@ void PrusaDoubleSlider::action_tick(const TicksAction action)
 
     const int tick = m_selection == ssLower ? m_lower_value : m_higher_value;
 
-    if (action == taOnIcon && !m_ticks.insert(tick).second)
-        m_ticks.erase(tick);
+    if (action == taOnIcon) {
+        if (!m_ticks.insert(tick).second)
+            m_ticks.erase(tick);
+    }
     else {
         const auto it = m_ticks.find(tick);
         if (it == m_ticks.end() && action == taAdd)
             m_ticks.insert(tick);
         else if (it != m_ticks.end() && action == taDel)
             m_ticks.erase(tick);
-        else {
-            wxPostEvent(this->GetParent(), wxCommandEvent(wxCUSTOMEVT_TICKSCHANGED));
-            return;
-        }
     }
 
     wxPostEvent(this->GetParent(), wxCommandEvent(wxCUSTOMEVT_TICKSCHANGED));
