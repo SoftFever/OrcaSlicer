@@ -1992,7 +1992,7 @@ void GLGizmoCut::on_set_state()
 {
     // Reset m_cut_z on gizmo activation
     if (get_state() == On) {
-        m_cut_z = 0.0;
+        m_cut_z = m_parent.get_selection().get_bounding_box().size()(2) / 2.0;
     }
 
 #ifndef ENABLE_IMGUI
@@ -2014,10 +2014,10 @@ void GLGizmoCut::on_start_dragging(const GLCanvas3D::Selection& selection)
 
     const BoundingBoxf3& box = selection.get_bounding_box();
     m_start_z = m_cut_z;
-    m_max_z = box.size()(2) / 2.0;
+    m_max_z = box.size()(2);
     m_drag_pos = m_grabbers[m_hover_id].center;
     m_drag_center = box.center();
-    m_drag_center(2) += m_cut_z;
+    m_drag_center(2) = m_cut_z;
 }
 
 void GLGizmoCut::on_update(const UpdateData& data)
@@ -2025,7 +2025,7 @@ void GLGizmoCut::on_update(const UpdateData& data)
     if (m_hover_id != -1) {
         // Clamp the plane to the object's bounding box
         const double new_z = m_start_z + calc_projection(data.mouse_ray);
-        m_cut_z = std::max(-m_max_z, std::min(m_max_z, new_z));
+        m_cut_z = std::max(0.0, std::min(m_max_z, new_z));
     }
 }
 
@@ -2037,7 +2037,7 @@ void GLGizmoCut::on_render(const GLCanvas3D::Selection& selection) const
 
     const BoundingBoxf3& box = selection.get_bounding_box();
     Vec3d plane_center = box.center();
-    plane_center(2) += m_cut_z;
+    plane_center(2) = m_cut_z;
 
     const float min_x = box.min(0) - Margin;
     const float max_x = box.max(0) + Margin;

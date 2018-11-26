@@ -1005,14 +1005,9 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
 
     // Because transformations are going to be applied to meshes directly,
     // we reset transformation of all instances and volumes,
-    // _except_ for translation, which is preserved in the transformation matrix
+    // except for translation, which is preserved in the transformation matrix
     // and not applied to the mesh transform.
     // TODO: Do the same for Z-rotation as well?
-
-    // Convert z from relative to bb's base to object coordinates
-    // FIXME: doesn't work well for rotated objects
-    const auto bb = instance_bounding_box(instance, true);
-    z -= bb.min(2);
 
     if (keep_upper) {
         for (auto *instance : upper->instances) { cut_reset_transform(instance); }
@@ -1030,11 +1025,15 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
             TriangleMesh upper_mesh, lower_mesh;
 
             // Transform the mesh by the object transformation matrix
-            volume->mesh.transform(instance_matrix * volume->get_matrix(true));
+            const auto volume_tr = instance_matrix * volume->get_matrix(true);
+            volume->mesh.transform(volume_tr);
             cut_reset_transform(volume);
 
+            // Transform z from world to object
+            const auto local_z = volume_tr * Vec3d(0.0, 0.0, z);
+
             TriangleMeshSlicer tms(&volume->mesh);
-            tms.cut(z, &upper_mesh, &lower_mesh);
+            tms.cut(local_z(2), &upper_mesh, &lower_mesh);
 
             if (keep_upper) {
                 upper_mesh.repair();
