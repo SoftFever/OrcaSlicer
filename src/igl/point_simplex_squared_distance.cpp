@@ -43,7 +43,7 @@ IGL_INLINE void igl::point_simplex_squared_distance(
   };
   // Real-time collision detection, Ericson, Chapter 5
   const auto & ClosestBaryPtPointTriangle = 
-    [&Dot](const Point &p, const Point &a, const Point &Point b, const Point &Point c, BaryPoint& bary_out )->Point 
+    [&Dot](const Point &p, const Point &a, const Point &b, const Point &c, BaryPoint& bary_out )->Point 
   {
     // Check if P in vertex region outside A
     Vector ab = b - a;
