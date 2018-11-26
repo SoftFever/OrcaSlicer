@@ -2483,8 +2483,6 @@ void Plater::cut(size_t obj_idx, size_t instance_idx, coordf_t z, bool keep_uppe
 
     remove(obj_idx);
     p->load_model_objects(new_objects);
-
-    p->arrange();
 }
 
 void Plater::export_gcode(fs::path output_path)

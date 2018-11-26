@@ -975,12 +975,6 @@ bool ModelObject::needed_repair() const
     return false;
 }
 
-template<class T> static void cut_reset_transform(T *thing) {
-    const Vec3d offset = thing->get_offset();
-    thing->set_transformation(Geometry::Transformation());
-    thing->set_offset(offset);
-}
-
 ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, bool keep_lower, bool rotate_lower)
 {
     // Clone the object to duplicate instances, materials etc.
@@ -1001,24 +995,25 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
         lower->input_file = "";
     }
 
-    const auto instance_matrix = instances[instance]->get_matrix(true);
-
     // Because transformations are going to be applied to meshes directly,
     // we reset transformation of all instances and volumes,
-    // except for translation, which is preserved in the transformation matrix
-    // and not applied to the mesh transform.
-    // TODO: Do the same for Z-rotation as well?
+    // except for translation and Z-rotation on instances, which are preserved
+    // in the transformation matrix and not applied to the mesh transform.
 
-    if (keep_upper) {
-        for (auto *instance : upper->instances) { cut_reset_transform(instance); }
-    }
-    if (keep_lower) {
-        for (auto *instance : lower->instances) { cut_reset_transform(instance); }
-    }
+    // const auto instance_matrix = instances[instance]->get_matrix(true);
+    const auto instance_matrix = Geometry::assemble_transform(
+        Vec3d::Zero(),  // don't apply offset
+        instances[instance]->get_rotation().cwiseProduct(Vec3d(1.0, 1.0, 0.0)),   // don't apply Z-rotation
+        instances[instance]->get_scaling_factor(),
+        instances[instance]->get_mirror()
+    );
+
+    // Lower part per-instance bounding boxes
+    std::vector<BoundingBoxf3> lower_bboxes { instances.size() };
 
     for (ModelVolume *volume : volumes) {
         if (! volume->is_model_part()) {
-            // don't cut modifiers
+            // Don't cut modifiers
             if (keep_upper) { upper->add_volume(*volume); }
             if (keep_lower) { lower->add_volume(*volume); }
         } else {
@@ -1027,13 +1022,23 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
             // Transform the mesh by the object transformation matrix
             const auto volume_tr = instance_matrix * volume->get_matrix(true);
             volume->mesh.transform(volume_tr);
-            cut_reset_transform(volume);
 
             // Transform z from world to object
-            const auto local_z = volume_tr * Vec3d(0.0, 0.0, z);
+            const double local_z = (volume_tr * Vec3d(0.0, 0.0, z))(2);
 
+            // Perform cut
             TriangleMeshSlicer tms(&volume->mesh);
-            tms.cut(local_z(2), &upper_mesh, &lower_mesh);
+            tms.cut(local_z, &upper_mesh, &lower_mesh);
+
+            // Move the upper mesh to down to zero in Z
+            if (keep_upper) {
+                upper_mesh.translate(0.0, 0.0, -local_z);
+            }
+
+            // Reset volume transformation except for offset
+            const Vec3d offset = volume->get_offset();
+            volume->set_transformation(Geometry::Transformation());
+            volume->set_offset(offset);
 
             if (keep_upper) {
                 upper_mesh.repair();
@@ -1055,16 +1060,15 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
                 vol->name           = volume->name;
                 vol->config         = volume->config;
                 vol->set_material(volume->material_id(), *volume->material());
-            }
-        }
-    }
 
-    if (keep_lower && rotate_lower) {
-        for (auto *instance : lower->instances) {
-            Geometry::Transformation tr;
-            tr.set_offset(instance->get_offset());
-            tr.set_rotation({Geometry::deg2rad(180.0), 0.0, 0.0});
-            instance->set_transformation(tr);
+                // Compute the lower part instances' bounding boxes to figure out where to place
+                // the upper part
+                if (keep_upper) {
+                    for (size_t i = 0; i < instances.size(); i++) {
+                        lower_bboxes[i].merge(instances[i]->transform_mesh_bounding_box(lower_mesh, true));
+                    }
+                }
+            }
         }
     }
 
@@ -1073,11 +1077,39 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
     if (keep_upper && upper->volumes.size() > 0) {
         upper->invalidate_bounding_box();
         upper->center_around_origin();
+
+        // Reset instance transformation except offset and Z-rotation
+        for (size_t i = 0; i < instances.size(); i++) {
+            auto &instance = upper->instances[i];
+            const Vec3d offset = instance->get_offset();
+            const double rot_z = instance->get_rotation()(2);
+            const Vec3d displace = lower_bboxes[i].size().cwiseProduct(Vec3d(-0.5, -0.5, 0.0));
+
+            instance->set_transformation(Geometry::Transformation());
+            instance->set_offset(offset + displace);
+            instance->set_rotation(Vec3d(0.0, 0.0, rot_z));
+        }
+
         res.push_back(upper);
     }
     if (keep_lower && lower->volumes.size() > 0) {
         lower->invalidate_bounding_box();
         lower->center_around_origin();
+
+        // Reset instance transformation except offset and Z-rotation
+        for (auto *instance : lower->instances) {
+            const Vec3d offset = instance->get_offset();
+            const double rot_z = instance->get_rotation()(2);
+            instance->set_transformation(Geometry::Transformation());
+
+            if (rotate_lower) {
+                instance->set_rotation({Geometry::deg2rad(180.0), 0.0, 0.0});
+            }
+
+            instance->set_offset(offset);
+            instance->set_rotation(Vec3d(0.0, 0.0, rot_z));
+        }
+
         res.push_back(lower);
     }
 
