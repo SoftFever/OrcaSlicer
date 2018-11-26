@@ -1312,16 +1312,18 @@ void GLGizmoFlatten::on_render(const GLCanvas3D::Selection& selection) const
     if (dragged_offset.norm() > 0.001)
         return;
 
-    ::glEnable(GL_BLEND);
+
+#if ENABLE_GIZMOS_ON_TOP
+    ::glClear(GL_DEPTH_BUFFER_BIT);
+#endif // ENABLE_GIZMOS_ON_TOP
     ::glEnable(GL_DEPTH_TEST);
-    ::glDisable(GL_CULL_FACE);
+    ::glEnable(GL_BLEND);
 
     if (selection.is_from_single_object()) {
-        const std::set<int>& instances_list = selection.get_instance_idxs();
-
-        if (!instances_list.empty() && m_model_object) {
-            for (const int instance_idx : instances_list) {
-            Transform3d m = m_model_object->instances[instance_idx]->get_matrix();
+        if (m_model_object) {
+            //for (const int instance_idx : instances_list) {
+            for (const ModelInstance* inst : m_model_object->instances) {
+                Transform3d m = inst->get_matrix();
                 for (int i=0; i<(int)m_planes.size(); ++i) {
                     if (i == m_hover_id)
                         ::glColor4f(0.9f, 0.9f, 0.9f, 0.75f);
@@ -1347,16 +1349,16 @@ void GLGizmoFlatten::on_render(const GLCanvas3D::Selection& selection) const
 
 void GLGizmoFlatten::on_render_for_picking(const GLCanvas3D::Selection& selection) const
 {
-    ::glEnable(GL_DEPTH_TEST);
-    ::glDisable(GL_CULL_FACE);
+    ::glDisable(GL_DEPTH_TEST);
+    ::glDisable(GL_BLEND);
+
     if (selection.is_from_single_object()) {
-        const std::set<int>& instances_list = selection.get_instance_idxs();
-        if (!instances_list.empty() && m_model_object) {
-            for (const int instance_idx : instances_list) {
+        if (m_model_object)
+            for (const ModelInstance* inst : m_model_object->instances) {
                 for (int i=0; i<(int)m_planes.size(); ++i) {
                     ::glColor3f(1.0f, 1.0f, picking_color_component(i));
                     ::glPushMatrix();
-                    ::glMultMatrixd(m_model_object->instances[instance_idx]->get_matrix().data());
+                    ::glMultMatrixd(inst->get_matrix().data());
                     ::glBegin(GL_POLYGON);
                     for (const Vec3d& vertex : m_planes[i].vertices)
                         ::glVertex3dv(vertex.data());
@@ -1364,7 +1366,6 @@ void GLGizmoFlatten::on_render_for_picking(const GLCanvas3D::Selection& selectio
                     ::glPopMatrix();
                 }
             }
-        }
     }
 
     ::glEnable(GL_CULL_FACE);
@@ -1386,6 +1387,8 @@ void GLGizmoFlatten::update_planes()
     for (const ModelVolume* vol : m_model_object->volumes)
 #if ENABLE_MODELVOLUME_TRANSFORM
     {
+        if (vol->type() != ModelVolume::Type::MODEL_PART)
+            continue;
         TriangleMesh vol_ch = vol->get_convex_hull();
         vol_ch.transform(vol->get_matrix());
         ch.merge(vol_ch);
