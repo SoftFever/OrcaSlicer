@@ -1656,7 +1656,7 @@ void GLGizmoSlaSupports::on_render(const GLCanvas3D::Selection& selection) const
     }
 
     //::glTranslatef((GLfloat)dragged_offset(0), (GLfloat)dragged_offset(1), (GLfloat)dragged_offset(2));
-    render_grabbers();
+    render_grabbers(false);
 
 #ifndef ENABLE_IMGUI
     render_tooltip_texture();
@@ -1684,20 +1684,28 @@ void GLGizmoSlaSupports::render_grabbers(bool picking) const
     float z_shift = m_parent.get_selection().get_volume(0)->get_sla_shift_z();
     ::glTranslatef((GLfloat)0, (GLfloat)0, (GLfloat)z_shift);
 
+    int selected_instance = m_parent.get_selection().get_instance_idx();
+    assert(selected_instance < (int)m_model_object->instances.size());
+
+    float render_color_inactive[3] = { 0.5f, 0.5f, 0.5f };
+
     for (const ModelInstance* inst : m_model_object->instances) {
+		bool active = inst == m_model_object->instances[selected_instance];
+        if (picking && ! active)
+            continue;
         for (int i = 0; i < (int)m_grabbers.size(); ++i)
         {
             if (!m_grabbers[i].enabled)
                 continue;
 
             float render_color[3];
-            if (!picking && m_hover_id == i) {
+            if (! picking && active && m_hover_id == i) {
                 render_color[0] = 1.0f - m_grabbers[i].color[0];
                 render_color[1] = 1.0f - m_grabbers[i].color[1];
                 render_color[2] = 1.0f - m_grabbers[i].color[2];
             }
             else
-                ::memcpy((void*)render_color, (const void*)m_grabbers[i].color, 3 * sizeof(float));
+                ::memcpy((void*)render_color, active ? (const void*)m_grabbers[i].color : (const void*)render_color_inactive, 3 * sizeof(float));
             if (!picking)
                 ::glEnable(GL_LIGHTING);
             ::glColor3f((GLfloat)render_color[0], (GLfloat)render_color[1], (GLfloat)render_color[2]);
@@ -1738,7 +1746,7 @@ void GLGizmoSlaSupports::update_mesh()
     Eigen::MatrixXi& F = m_F;
     // Composite mesh of all instances in the world coordinate system.
     // This mesh does not account for the possible Z up SLA offset.
-    TriangleMesh mesh = m_model_object->mesh();
+    TriangleMesh mesh = m_model_object->raw_mesh();
     const stl_file& stl = mesh.stl;
     V.resize(3 * stl.stats.number_of_facets, 3);
     F.resize(stl.stats.number_of_facets, 3);
@@ -1788,15 +1796,16 @@ Vec3f GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos)
 	double z_offset = m_parent.get_selection().get_volume(0)->get_sla_shift_z();
 	point1(2) -= z_offset;
 	point2(2) -= z_offset;
+    Transform3d inv = m_instance_matrix.inverse();
+    point1 = inv * point1;
+    point2 = inv * point2;
 
     if (!m_AABB.intersect_ray(m_V, m_F, point1.cast<float>(), (point2-point1).cast<float>(), hit))
         throw std::invalid_argument("unproject_on_mesh(): No intersection found.");
 
     int fid = hit.id;
     Vec3f bc(1-hit.u-hit.v, hit.u, hit.v);
-    Vec3f point = bc(0) * m_V.row(m_F(fid, 0)) + bc(1) * m_V.row(m_F(fid, 1)) + bc(2)*m_V.row(m_F(fid, 2));
-
-    return m_instance_matrix.inverse().cast<float>() * point;
+    return bc(0) * m_V.row(m_F(fid, 0)) + bc(1) * m_V.row(m_F(fid, 1)) + bc(2)*m_V.row(m_F(fid, 2));
 }
 
 void GLGizmoSlaSupports::clicked_on_object(const Vec2d& mouse_position)
