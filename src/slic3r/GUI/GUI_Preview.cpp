@@ -244,111 +244,11 @@ void Preview::set_drop_target(wxDropTarget* target)
 
 void Preview::load_print()
 {
-	if (m_loaded || m_process->current_printer_technology() != ptFFF)
-        return;
-
-    // we require that there's at least one object and the posSlice step
-    // is performed on all of them(this ensures that _shifted_copies was
-    // populated and we know the number of layers)
-    unsigned int n_layers = 0;
-    const Print *print = m_process->fff_print();
-    if (print->is_step_done(posSlice))
-    {
-        std::set<float> zs;
-        for (const PrintObject* print_object : print->objects())
-        {
-            const LayerPtrs& layers = print_object->layers();
-            const SupportLayerPtrs& support_layers = print_object->support_layers();
-            for (const Layer* layer : layers)
-            {
-                zs.insert(layer->print_z);
-            }
-            for (const SupportLayer* layer : support_layers)
-            {
-                zs.insert(layer->print_z);
-            }
-        }
-
-        n_layers = (unsigned int)zs.size();
-    }
-
-    if (n_layers == 0)
-    {
-        reset_sliders();
-        m_canvas->reset_legend_texture();
-        m_canvas_widget->Refresh();
-        return;
-    }
-
-    if (m_preferred_color_mode == "tool_or_feature")
-    {
-        // It is left to Slic3r to decide whether the print shall be colored by the tool or by the feature.
-        // Color by feature if it is a single extruder print.
-        unsigned int number_extruders = (unsigned int)print->extruders().size();
-        int tool_idx = m_choice_view_type->FindString(_(L("Tool")));
-        int type = (number_extruders > 1) ? tool_idx /* color by a tool number */ : 0; // color by a feature type
-        m_choice_view_type->SetSelection(type);
-        if ((0 <= type) && (type < (int)GCodePreviewData::Extrusion::Num_View_Types))
-            m_gcode_preview_data->extrusion.view_type = (GCodePreviewData::Extrusion::EViewType)type;
-        // If the->SetSelection changed the following line, revert it to "decide yourself".
-        m_preferred_color_mode = "tool_or_feature";
-    }
-
-    // Collect colors per extruder.
-    std::vector<std::string> colors;
-    if (!m_gcode_preview_data->empty() || (m_gcode_preview_data->extrusion.view_type == GCodePreviewData::Extrusion::Tool))
-    {
-        const ConfigOptionStrings* extruders_opt = dynamic_cast<const ConfigOptionStrings*>(m_config->option("extruder_colour"));
-        const ConfigOptionStrings* filamemts_opt = dynamic_cast<const ConfigOptionStrings*>(m_config->option("filament_colour"));
-        unsigned int colors_count = std::max((unsigned int)extruders_opt->values.size(), (unsigned int)filamemts_opt->values.size());
-
-        unsigned char rgb[3];
-        for (unsigned int i = 0; i < colors_count; ++i)
-        {
-            std::string color = m_config->opt_string("extruder_colour", i);
-            if (!PresetBundle::parse_color(color, rgb))
-            {
-                color = m_config->opt_string("filament_colour", i);
-                if (!PresetBundle::parse_color(color, rgb))
-                    color = "#FFFFFF";
-            }
-
-            colors.push_back(color);
-        }
-    }
-
-    if (IsShown())
-    {
-        // used to set the sliders to the extremes of the current zs range
-        m_force_sliders_full_range = false;
-
-        if (m_gcode_preview_data->empty())
-        {
-            // load skirt and brim
-            m_canvas->load_preview(colors);
-            show_hide_ui_elements("simple");
-        }
-        else
-        {
-            m_force_sliders_full_range = (m_canvas->get_volumes_count() == 0);
-            m_canvas->load_gcode_preview(*m_gcode_preview_data, colors);
-            show_hide_ui_elements("full");
-
-            // recalculates zs and update sliders accordingly
-            n_layers = (unsigned int)m_canvas->get_current_print_zs( true).size();
-            if (n_layers == 0)
-            {
-                // all layers filtered out
-                reset_sliders();
-                m_canvas_widget->Refresh();
-            }
-        }
-
-        if (n_layers > 0)
-            update_sliders();
-
-        m_loaded = true;
-    }
+    PrinterTechnology tech = m_process->current_printer_technology();
+    if (tech == ptFFF)
+        load_print_as_fff();
+    else if (tech == ptSLA)
+        load_print_as_sla();
 }
 
 void Preview::reload_print(bool force)
@@ -407,6 +307,16 @@ void Preview::show_hide_ui_elements(const std::string& what)
     enable = (what != "none");
     m_label_view_type->Enable(enable);
     m_choice_view_type->Enable(enable);
+
+    bool visible = (what != "none");
+    m_label_show_features->Show(visible);
+    m_combochecklist_features->Show(visible);
+    m_checkbox_travel->Show(visible);
+    m_checkbox_retractions->Show(visible);
+    m_checkbox_unretractions->Show(visible);
+    m_checkbox_shells->Show(visible);
+    m_label_view_type->Show(visible);
+    m_choice_view_type->Show(visible);
 }
 
 void Preview::reset_sliders()
@@ -591,6 +501,125 @@ void Preview::update_double_slider_from_canvas(wxKeyEvent& event)
         m_slider->ChangeOneLayerLock();
     else
         event.Skip();
+}
+
+void Preview::load_print_as_fff()
+{
+    if (m_loaded || m_process->current_printer_technology() != ptFFF)
+        return;
+
+    // we require that there's at least one object and the posSlice step
+    // is performed on all of them(this ensures that _shifted_copies was
+    // populated and we know the number of layers)
+    unsigned int n_layers = 0;
+    const Print *print = m_process->fff_print();
+    if (print->is_step_done(posSlice))
+    {
+        std::set<float> zs;
+        for (const PrintObject* print_object : print->objects())
+        {
+            const LayerPtrs& layers = print_object->layers();
+            const SupportLayerPtrs& support_layers = print_object->support_layers();
+            for (const Layer* layer : layers)
+            {
+                zs.insert(layer->print_z);
+            }
+            for (const SupportLayer* layer : support_layers)
+            {
+                zs.insert(layer->print_z);
+            }
+        }
+
+        n_layers = (unsigned int)zs.size();
+    }
+
+    if (n_layers == 0)
+    {
+        reset_sliders();
+        m_canvas->reset_legend_texture();
+        m_canvas_widget->Refresh();
+        return;
+    }
+
+    if (m_preferred_color_mode == "tool_or_feature")
+    {
+        // It is left to Slic3r to decide whether the print shall be colored by the tool or by the feature.
+        // Color by feature if it is a single extruder print.
+        unsigned int number_extruders = (unsigned int)print->extruders().size();
+        int tool_idx = m_choice_view_type->FindString(_(L("Tool")));
+        int type = (number_extruders > 1) ? tool_idx /* color by a tool number */ : 0; // color by a feature type
+        m_choice_view_type->SetSelection(type);
+        if ((0 <= type) && (type < (int)GCodePreviewData::Extrusion::Num_View_Types))
+            m_gcode_preview_data->extrusion.view_type = (GCodePreviewData::Extrusion::EViewType)type;
+        // If the->SetSelection changed the following line, revert it to "decide yourself".
+        m_preferred_color_mode = "tool_or_feature";
+    }
+
+    // Collect colors per extruder.
+    std::vector<std::string> colors;
+    if (!m_gcode_preview_data->empty() || (m_gcode_preview_data->extrusion.view_type == GCodePreviewData::Extrusion::Tool))
+    {
+        const ConfigOptionStrings* extruders_opt = dynamic_cast<const ConfigOptionStrings*>(m_config->option("extruder_colour"));
+        const ConfigOptionStrings* filamemts_opt = dynamic_cast<const ConfigOptionStrings*>(m_config->option("filament_colour"));
+        unsigned int colors_count = std::max((unsigned int)extruders_opt->values.size(), (unsigned int)filamemts_opt->values.size());
+
+        unsigned char rgb[3];
+        for (unsigned int i = 0; i < colors_count; ++i)
+        {
+            std::string color = m_config->opt_string("extruder_colour", i);
+            if (!PresetBundle::parse_color(color, rgb))
+            {
+                color = m_config->opt_string("filament_colour", i);
+                if (!PresetBundle::parse_color(color, rgb))
+                    color = "#FFFFFF";
+            }
+
+            colors.push_back(color);
+        }
+    }
+
+    if (IsShown())
+    {
+        // used to set the sliders to the extremes of the current zs range
+        m_force_sliders_full_range = false;
+
+        if (m_gcode_preview_data->empty())
+        {
+            // load skirt and brim
+            m_canvas->load_preview(colors);
+            show_hide_ui_elements("simple");
+        }
+        else
+        {
+            m_force_sliders_full_range = (m_canvas->get_volumes_count() == 0);
+            m_canvas->load_gcode_preview(*m_gcode_preview_data, colors);
+            show_hide_ui_elements("full");
+
+            // recalculates zs and update sliders accordingly
+            n_layers = (unsigned int)m_canvas->get_current_print_zs(true).size();
+            if (n_layers == 0)
+            {
+                // all layers filtered out
+                reset_sliders();
+                m_canvas_widget->Refresh();
+            }
+        }
+
+        if (n_layers > 0)
+            update_sliders();
+
+        m_loaded = true;
+    }
+}
+
+void Preview::load_print_as_sla()
+{
+    if (m_loaded || (m_process->current_printer_technology() != ptSLA))
+        return;
+
+    std::cout << "Preview::load_print_as_sla()" << std::endl;
+    m_canvas->load_sla_preview();
+    show_hide_ui_elements("none");
 }
 
 } // namespace GUI

@@ -107,6 +107,9 @@ private:
     void reset_double_slider();
     // update DoubleSlider after keyDown in canvas
     void update_double_slider_from_canvas(wxKeyEvent& event);
+
+    void load_print_as_fff();
+    void load_print_as_sla();
 };
 
 } // namespace GUI
