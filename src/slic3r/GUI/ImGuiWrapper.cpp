@@ -169,6 +169,12 @@ bool ImGuiWrapper::checkbox(const wxString &label, bool &value)
     return ImGui::Checkbox(label_utf8.c_str(), &value);
 }
 
+void ImGuiWrapper::text(const wxString &label)
+{
+    auto label_utf8 = into_u8(label);
+    ImGui::Text(label_utf8.c_str(), NULL);
+}
+
 bool ImGuiWrapper::want_mouse() const
 {
     return ImGui::GetIO().WantCaptureMouse;

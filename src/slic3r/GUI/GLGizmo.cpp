@@ -1660,7 +1660,9 @@ void GLGizmoSlaSupports::on_render(const GLCanvas3D::Selection& selection) const
     render_grabbers();
     ::glPopMatrix();
 
+#ifndef ENABLE_IMGUI
     render_tooltip_texture();
+#endif // not ENABLE_IMGUI
     ::glDisable(GL_BLEND);
 }
 
@@ -1756,7 +1758,6 @@ void GLGizmoSlaSupports::update_mesh()
         m_grabbers.push_back(Grabber());
         m_grabbers.back().center = point.cast<double>();
     }
-    m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
 }
 
 Vec3f GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos)
@@ -1812,6 +1813,7 @@ void GLGizmoSlaSupports::delete_current_grabber(bool delete_all)
     if (delete_all) {
         m_grabbers.clear();
         m_model_object->sla_support_points.clear();
+        m_parent.reload_scene(true); // in case this was called from ImGui overlay dialog, the refresh would be delayed
 
         // This should trigger the support generation
         // wxGetApp().plater()->reslice();
@@ -1825,7 +1827,6 @@ void GLGizmoSlaSupports::delete_current_grabber(bool delete_all)
             // This should trigger the support generation
             // wxGetApp().plater()->reslice();
         }
-
     m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
 }
 
@@ -1843,7 +1844,7 @@ void GLGizmoSlaSupports::on_update(const UpdateData& data)
     }
 }
 
-
+#ifndef ENABLE_IMGUI
 void GLGizmoSlaSupports::render_tooltip_texture() const {
     if (m_tooltip_texture.get_id() == 0)
         if (!m_tooltip_texture.load_from_file(resources_dir() + "/icons/sla_support_points_tooltip.png", false))
@@ -1872,6 +1873,29 @@ void GLGizmoSlaSupports::render_tooltip_texture() const {
     ::glPopMatrix();
     ::glEnable(GL_DEPTH_TEST);
 }
+#endif // not ENABLE_IMGUI
+
+
+#if ENABLE_IMGUI
+void GLGizmoSlaSupports::on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection)
+{
+    m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
+    m_imgui->set_next_window_bg_alpha(0.5f);
+    m_imgui->begin(on_get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+
+    ImGui::PushItemWidth(100.0f);
+    m_imgui->text(_(L("Left mouse click - add point")));
+    m_imgui->text(_(L("Right mouse click - remove point")));
+    m_imgui->text(" ");
+
+    bool remove_all_clicked = m_imgui->button(_(L("Remove all points")));
+
+    m_imgui->end();
+
+    if (remove_all_clicked)
+        delete_current_grabber(true);
+}
+#endif // ENABLE_IMGUI
 
 bool GLGizmoSlaSupports::on_is_activable(const GLCanvas3D::Selection& selection) const
 {
