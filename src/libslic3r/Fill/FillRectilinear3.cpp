@@ -22,7 +22,7 @@
     #undef NDEBUG
     #define DEBUG
     #define _DEBUG
-    #include "SVG.hpp"
+    #include "../SVG.hpp"
 #endif
 
 #include <cassert>
