@@ -900,12 +900,12 @@ bool SLAPrintObject::invalidate_state_by_config_options(const std::vector<t_conf
     std::vector<SLAPrintObjectStep> steps;
     bool invalidated = false;
     for (const t_config_option_key &opt_key : opt_keys) {
-        if (   opt_key == "support_head_front_radius"
+        if (   opt_key == "supports_enable"
+            || opt_key == "support_head_front_diameter"
             || opt_key == "support_head_penetration"
-            || opt_key == "support_head_back_radius"
             || opt_key == "support_head_width"
-            || opt_key == "support_pillar_radius"
-            || opt_key == "support_base_radius"
+            || opt_key == "support_pillar_diameter"
+            || opt_key == "support_base_diameter"
             || opt_key == "support_base_height"
             || opt_key == "support_critical_angle"
             || opt_key == "support_max_bridge_length"
@@ -937,18 +937,21 @@ bool SLAPrintObject::invalidate_step(SLAPrintObjectStep step)
     if (step == slaposObjectSlice) {
         invalidated |= this->invalidate_all_steps();
     } else if (step == slaposSupportIslands) {
-        invalidated |= this->invalidate_steps({ slaposSupportPoints, slaposSupportTree, slaposBasePool, slaposSliceSupports });
+        invalidated |= this->invalidate_steps({ slaposSupportPoints, slaposSupportTree, slaposBasePool, slaposSliceSupports, slaposIndexSlices });
         invalidated |= m_print->invalidate_step(slapsRasterize);
     } else if (step == slaposSupportPoints) {
-        invalidated |= this->invalidate_steps({ slaposSupportTree, slaposBasePool, slaposSliceSupports });
+        invalidated |= this->invalidate_steps({ slaposSupportTree, slaposBasePool, slaposSliceSupports, slaposIndexSlices });
         invalidated |= m_print->invalidate_step(slapsRasterize);
     } else if (step == slaposSupportTree) {
-        invalidated |= this->invalidate_steps({ slaposBasePool, slaposSliceSupports });
+        invalidated |= this->invalidate_steps({ slaposBasePool, slaposSliceSupports, slaposIndexSlices });
         invalidated |= m_print->invalidate_step(slapsRasterize);
     } else if (step == slaposBasePool) {
-        invalidated |= this->invalidate_step(slaposSliceSupports);
+        invalidated |= this->invalidate_steps({slaposSliceSupports, slaposIndexSlices});
         invalidated |= m_print->invalidate_step(slapsRasterize);
     } else if (step == slaposSliceSupports) {
+        invalidated |= this->invalidate_step(slaposIndexSlices);
+        invalidated |= m_print->invalidate_step(slapsRasterize);
+    } else if(step == slaposIndexSlices) {
         invalidated |= m_print->invalidate_step(slapsRasterize);
     }
     return invalidated;
