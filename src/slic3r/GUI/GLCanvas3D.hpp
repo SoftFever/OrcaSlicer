@@ -717,6 +717,7 @@ private:
 
     wxGLCanvas* m_canvas;
     wxGLContext* m_context;
+    bool m_in_render;
     LegendTexture m_legend_texture;
     WarningTexture m_warning_texture;
     wxTimer m_timer;

@@ -7,6 +7,7 @@
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/GCode/PreviewData.hpp"
 #include "libslic3r/Geometry.hpp"
+#include "libslic3r/Utils.hpp"
 #include "slic3r/GUI/3DScene.hpp"
 #include "slic3r/GUI/BackgroundSlicingProcess.hpp"
 #include "slic3r/GUI/GLShader.hpp"
@@ -26,6 +27,7 @@
 #include <wx/image.h>
 #include <wx/settings.h>
 #include <wx/tooltip.h>
+#include <wx/debug.h>
 
 // Print now includes tbb, and tbb includes Windows. This breaks compilation of wxWidgets if included before wx.
 #include "libslic3r/Print.hpp"
@@ -3311,6 +3313,7 @@ wxDEFINE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, SimpleEvent);
 GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     : m_canvas(canvas)
     , m_context(nullptr)
+    , m_in_render(false)
     , m_toolbar(*this)
     , m_use_clipping_planes(false)
     , m_config(nullptr)
@@ -3737,6 +3740,11 @@ bool GLCanvas3D::gizmo_reset_rect_contains(const GLCanvas3D& canvas, float x, fl
 
 void GLCanvas3D::render()
 {
+    wxCHECK_RET(!m_in_render, "GLCanvas3D::render() called recursively");
+    m_in_render = true;
+    Slic3r::ScopeGuard in_render_guard([this]() { m_in_render = false; });
+    (void)in_render_guard;
+
     if (m_canvas == nullptr)
         return;
 
