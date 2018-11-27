@@ -166,7 +166,9 @@ GLGizmoBase::GLGizmoBase(GLCanvas3D& parent)
 #endif // ENABLE_GIZMOS_SHORTCUT
     , m_hover_id(-1)
     , m_dragging(false)
+#if ENABLE_IMGUI
     , m_imgui(wxGetApp().imgui())
+#endif // ENABLE_IMGUI
 {
     ::memcpy((void*)m_base_color, (const void*)DEFAULT_BASE_COLOR, 3 * sizeof(float));
     ::memcpy((void*)m_drag_color, (const void*)DEFAULT_DRAG_COLOR, 3 * sizeof(float));

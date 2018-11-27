@@ -25,7 +25,9 @@ class ModelObject;
 namespace GUI {
 
 class GLCanvas3D;
+#if ENABLE_IMGUI
 class ImGuiWrapper;
+#endif // ENABLE_IMGUI
 
 class GLGizmoBase
 {
@@ -91,7 +93,9 @@ protected:
     float m_drag_color[3];
     float m_highlight_color[3];
     mutable std::vector<Grabber> m_grabbers;
+#if ENABLE_IMGUI
     ImGuiWrapper* m_imgui;
+#endif // ENABLE_IMGUI
 
 public:
     explicit GLGizmoBase(GLCanvas3D& parent);
