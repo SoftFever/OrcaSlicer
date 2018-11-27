@@ -100,8 +100,7 @@ private:
     void update_double_slider(const std::vector<double>& layers_z, bool force_sliders_full_range);
     void fill_slider_values(std::vector<std::pair<int, double>> &values,
                             const std::vector<double> &layers_z);
-    void set_double_slider_thumbs(  const bool force_sliders_full_range, 
-                                    const std::vector<double> &layers_z, 
+    void set_double_slider_thumbs(  const std::vector<double> &layers_z,
                                     const double z_low, 
                                     const double z_high);
     void reset_double_slider();

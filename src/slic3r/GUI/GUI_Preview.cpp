@@ -406,6 +406,9 @@ void Preview::update_double_slider(const std::vector<double>& layers_z, bool for
     fill_slider_values(values, layers_z);
 
     m_slider->SetMaxValue(layers_z.size() - 1);
+    if (force_sliders_full_range)
+        m_slider->SetHigherValue(layers_z.size() - 1);
+
     m_slider->SetSliderValues(values);
     const double z_low = m_slider->GetLowerValueD();
     const double z_high = m_slider->GetHigherValueD();
@@ -415,7 +418,7 @@ void Preview::update_double_slider(const std::vector<double>& layers_z, bool for
 
     m_slider->SetTicksValues(ticks_from_config);
 
-    set_double_slider_thumbs(force_sliders_full_range, layers_z, z_low, z_high);
+    set_double_slider_thumbs(layers_z, z_low, z_high);
 }
 
 void Preview::fill_slider_values(std::vector<std::pair<int, double>> &values,
@@ -440,14 +443,13 @@ void Preview::fill_slider_values(std::vector<std::pair<int, double>> &values,
         m_schedule_background_process();
 }
 
-void Preview::set_double_slider_thumbs(const bool force_sliders_full_range,
-                                       const std::vector<double> &layers_z,
+void Preview::set_double_slider_thumbs(const std::vector<double> &layers_z,
                                        const double z_low, 
                                        const double z_high)
 {
     // Force slider full range only when slider is created.
     // Support selected diapason on the all next steps
-    if (/*force_sliders_full_range*/z_high == 0.0) {
+    if (z_high == 0.0) {
         m_slider->SetLowerValue(0);
         m_slider->SetHigherValue(layers_z.size() - 1);
         return;
@@ -640,6 +642,7 @@ void Preview::load_print_as_sla()
         {
             std::vector<double> layer_zs;
             std::copy(zs.begin(), zs.end(), std::back_inserter(layer_zs));
+            m_force_sliders_full_range = true;
             update_sliders(layer_zs);
         }
 
@@ -662,7 +665,7 @@ void Preview::on_sliders_scroll_changed(wxEvent& event)
         {
             m_canvas->set_clipping_plane(0, GLCanvas3D::ClippingPlane(Vec3d(0.0, 0.0, 1.0), m_slider->GetLowerValueD() - 1e-6));
             m_canvas->set_clipping_plane(1, GLCanvas3D::ClippingPlane(Vec3d(0.0, 0.0, -1.0), m_slider->GetHigherValueD() + 1e-6));
-            m_canvas->set_use_clipping_planes(true);
+            m_canvas->set_use_clipping_planes(m_slider->GetHigherValue() != 0);
             m_canvas_widget->Refresh();
         }
     }
