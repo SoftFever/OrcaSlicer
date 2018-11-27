@@ -915,7 +915,7 @@ struct Plater::priv
     // GUI elements
     wxNotebook *notebook;
     Sidebar *sidebar;
-#ifndef ENABLE_IMGUI
+#if !ENABLE_IMGUI
     wxPanel *panel3d;
 #endif // not ENABLE_IMGUI
     wxGLCanvas *canvas3Dwidget;    // TODO: Use GLCanvas3D when we can
@@ -1043,7 +1043,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         }))
     , notebook(new wxNotebook(q, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_BOTTOM))
     , sidebar(new Sidebar(q))
-#ifdef ENABLE_IMGUI
+#if ENABLE_IMGUI
     , canvas3Dwidget(GLCanvas3DManager::create_wxglcanvas(notebook))
 #else
     , panel3d(new wxPanel(notebook, wxID_ANY))
@@ -1076,7 +1076,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     this->canvas3D = _3DScene::get_canvas(this->canvas3Dwidget);
     this->canvas3D->allow_multisample(GLCanvas3DManager::can_multisample());
 
-#ifdef ENABLE_IMGUI
+#if ENABLE_IMGUI
     notebook->AddPage(canvas3Dwidget, _(L("3D")));
 #else
     auto *panel3dsizer = new wxBoxSizer(wxVERTICAL);
@@ -1935,7 +1935,7 @@ void Plater::priv::fix_through_netfabb(const int obj_idx)
 void Plater::priv::on_notebook_changed(wxBookCtrlEvent&)
 {
     const auto current_id = notebook->GetCurrentPage()->GetId();
-#ifdef ENABLE_IMGUI
+#if ENABLE_IMGUI
     if (current_id == canvas3Dwidget->GetId()) {
 #else
     if (current_id == panel3d->GetId()) {

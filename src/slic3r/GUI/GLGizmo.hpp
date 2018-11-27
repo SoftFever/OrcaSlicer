@@ -139,7 +139,7 @@ public:
     void render(const GLCanvas3D::Selection& selection) const { on_render(selection); }
     void render_for_picking(const GLCanvas3D::Selection& selection) const { on_render_for_picking(selection); }
 
-#ifndef ENABLE_IMGUI
+#if !ENABLE_IMGUI
     virtual void create_external_gizmo_widgets(wxWindow *parent);
 #endif // not ENABLE_IMGUI
 
@@ -485,7 +485,7 @@ private:
     bool is_mesh_update_necessary() const;
     void update_mesh();
 
-#ifndef ENABLE_IMGUI
+#if !ENABLE_IMGUI
     void render_tooltip_texture() const;
     mutable GLTexture m_tooltip_texture;
     mutable GLTexture m_reset_texture;
@@ -508,7 +508,7 @@ protected:
 };
 
 
-#ifndef ENABLE_IMGUI
+#if !ENABLE_IMGUI
 class GLGizmoCutPanel;
 #endif // not ENABLE_IMGUI
 
@@ -526,17 +526,17 @@ class GLGizmoCut : public GLGizmoBase
     bool m_keep_upper;
     bool m_keep_lower;
     bool m_rotate_lower;
-#ifndef ENABLE_IMGUI
+#if !ENABLE_IMGUI
     GLGizmoCutPanel *m_panel;
 #endif // not ENABLE_IMGUI
 
 public:
     explicit GLGizmoCut(GLCanvas3D& parent);
 
-#ifndef ENABLE_IMGUI
+#if !ENABLE_IMGUI
     virtual void create_external_gizmo_widgets(wxWindow *parent);
 #endif // not ENABLE_IMGUI
-#ifndef ENABLE_IMGUI
+#if !ENABLE_IMGUI
 #endif // not ENABLE_IMGUI
 
 protected:
