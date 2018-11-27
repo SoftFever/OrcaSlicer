@@ -1444,10 +1444,14 @@ void PrusaDoubleSlider::get_size(int *w, int *h)
     is_horizontal() ? *w -= m_lock_icon_dim : *h -= m_lock_icon_dim;
 }
 
-double PrusaDoubleSlider::get_double_value(const SelectedSlider& selection) const
+double PrusaDoubleSlider::get_double_value(const SelectedSlider& selection)
 {
     if (m_values.empty())
         return 0.0;
+    if (m_values.size() <= m_higher_value) {
+        correct_higher_value();
+        return m_values.back().second;
+    }
     return m_values[selection == ssLower ? m_lower_value : m_higher_value].second;
 }
 

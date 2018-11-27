@@ -3121,8 +3121,8 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
     auto title = _(preview_data.get_legend_title());
 
     const auto& config = wxGetApp().preset_bundle->full_config();
-    const int color_print_cnt = config.option<ConfigOptionFloats>("colorprint_heights")->values.size();
-    const GCodePreviewData::LegendItemsList& items = preview_data.get_legend_items(tool_colors, color_print_cnt);
+    const std::vector<double>& color_print_values = config.option<ConfigOptionFloats>("colorprint_heights")->values;
+    const GCodePreviewData::LegendItemsList& items = preview_data.get_legend_items(tool_colors, color_print_values);
 
     unsigned int items_count = (unsigned int)items.size();
     if (items_count == 0)

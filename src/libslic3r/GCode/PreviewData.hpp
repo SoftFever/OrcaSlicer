@@ -198,7 +198,7 @@ public:
     void set_extrusion_paths_colors(const std::vector<std::string>& colors);
 
     std::string get_legend_title() const;
-    LegendItemsList get_legend_items(const std::vector<float>& tool_colors, const int color_print_cnt = 1) const;
+    LegendItemsList get_legend_items(const std::vector<float>& tool_colors, const std::vector<double>& cp_values) const;
 };
 
 GCodePreviewData::Color operator + (const GCodePreviewData::Color& c1, const GCodePreviewData::Color& c2);
