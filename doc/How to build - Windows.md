@@ -1,3 +1,9 @@
+
+### NOTE: This document is currently outdated wrt. the new post-Perl Slic3rPE. A new build process and the description thereof is a work in progress and is comming soon. Please stay tuned.
+
+--
+
+
 # Building Slic3r PE on Microsoft Windows
 
 The currently supported way of building Slic3r PE on Windows is with CMake and MS Visual Studio 2013
