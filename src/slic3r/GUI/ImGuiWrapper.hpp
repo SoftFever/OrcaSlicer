@@ -18,11 +18,12 @@ namespace GUI {
 class ImGuiWrapper
 {
     std::string m_glsl_version_string;
-    unsigned int m_shader_handle;
-    unsigned int m_vert_handle;
-    unsigned int m_frag_handle;
-    unsigned int m_vbo_handle;
-    unsigned int m_elements_handle;
+    unsigned m_glsl_version;
+    unsigned m_shader_handle;
+    unsigned m_vert_handle;
+    unsigned m_frag_handle;
+    unsigned m_vbo_handle;
+    unsigned m_elements_handle;
     int m_attrib_location_tex;
     int m_attrib_location_proj_mtx;
     int m_attrib_location_position;
@@ -32,7 +33,7 @@ class ImGuiWrapper
     typedef std::map<std::string, ImFont*> FontsMap;
 
     FontsMap m_fonts;
-    unsigned int m_font_texture;
+    unsigned m_font_texture;
 
     unsigned m_mouse_buttons;
 
@@ -41,6 +42,7 @@ public:
     ~ImGuiWrapper();
 
     bool init();
+    void read_glsl_version();
 
     void set_display_size(float w, float h);
     bool update_mouse_data(wxMouseEvent &evt);
