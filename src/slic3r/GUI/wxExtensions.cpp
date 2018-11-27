@@ -1754,6 +1754,23 @@ bool PrusaDoubleSlider::is_point_in_rect(const wxPoint& pt, const wxRect& rect)
     return false;
 }
 
+int PrusaDoubleSlider::is_point_near_tick(const wxPoint& pt)
+{
+    for (auto tick : m_ticks) {
+        const wxCoord pos = get_position_from_value(tick);
+
+        if (is_horizontal()) {
+            if (pos - 4 <= pt.x && pt.x <= pos + 4)
+                return tick;
+        }
+        else {
+            if (pos - 4 <= pt.y && pt.y <= pos + 4) 
+                return tick;
+        }
+    }
+    return -1;
+}
+
 void PrusaDoubleSlider::ChangeOneLayerLock()
 {
     m_is_one_layer = !m_is_one_layer;
@@ -1781,11 +1798,32 @@ void PrusaDoubleSlider::OnLeftDown(wxMouseEvent& event)
     m_is_left_down = true;
     if (is_point_in_rect(pos, m_rect_one_layer_icon)) {
         m_is_one_layer = !m_is_one_layer;
+        if (!m_is_one_layer) {
+            SetLowerValue(m_min_value);
+            SetHigherValue(m_max_value);
+        }
         m_selection == ssLower ? correct_lower_value() : correct_higher_value();
         if (!m_selection) m_selection = ssHigher;
     }
     else
         detect_selected_slider(pos);
+
+    if (!m_selection) {
+        const auto tick = is_point_near_tick(pos);
+        if (tick >= 0)
+        {
+            if (abs(tick - m_lower_value) < abs(tick - m_higher_value)) {
+                SetLowerValue(tick);
+                correct_lower_value();
+                m_selection = ssLower;
+            }
+            else {
+                SetHigherValue(tick);
+                correct_higher_value();
+                m_selection = ssHigher;
+            }
+        }
+    }
 
     Refresh();
     Update();

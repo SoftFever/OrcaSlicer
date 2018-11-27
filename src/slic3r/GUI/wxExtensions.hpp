@@ -719,6 +719,7 @@ protected:
     void    enter_window(wxMouseEvent& event, const bool enter);
 
     bool    is_point_in_rect(const wxPoint& pt, const wxRect& rect);
+    int     is_point_near_tick(const wxPoint& pt);
     bool    is_horizontal() const { return m_style == wxSL_HORIZONTAL; }
 
     double      get_scroll_step();
