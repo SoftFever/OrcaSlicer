@@ -638,7 +638,7 @@ private:
 
         void render_overlay(const GLCanvas3D& canvas, const Selection& selection) const;
 
-#ifndef ENABLE_IMGUI
+#if !ENABLE_IMGUI
         void create_external_gizmo_widgets(wxWindow *parent);
 #endif // not ENABLE_IMGUI
 
@@ -734,7 +734,7 @@ private:
 
     GCodePreviewVolumeIndex m_gcode_preview_volume_index;
 
-#ifndef ENABLE_IMGUI
+#if !ENABLE_IMGUI
     wxWindow *m_external_gizmo_widgets_parent;
 #endif // not ENABLE_IMGUI
 
@@ -814,7 +814,7 @@ public:
 
     void update_volumes_colors_by_extruder();
 
-#ifndef ENABLE_IMGUI
+#if !ENABLE_IMGUI
     Rect get_gizmo_reset_rect(const GLCanvas3D& canvas, bool viewport) const;
     bool gizmo_reset_rect_contains(const GLCanvas3D& canvas, float x, float y) const;
 #endif // not ENABLE_IMGUI
@@ -860,7 +860,7 @@ public:
 
     void set_tooltip(const std::string& tooltip) const;
 
-#ifndef ENABLE_IMGUI
+#if !ENABLE_IMGUI
     void set_external_gizmo_widgets_parent(wxWindow *parent);
 #endif // not ENABLE_IMGUI
 

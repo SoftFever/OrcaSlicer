@@ -2910,7 +2910,7 @@ void GLCanvas3D::Gizmos::render_overlay(const GLCanvas3D& canvas, const GLCanvas
     ::glPopMatrix();
 }
 
-#ifndef ENABLE_IMGUI
+#if !ENABLE_IMGUI
 void GLCanvas3D::Gizmos::create_external_gizmo_widgets(wxWindow *parent)
 {
     for (auto &entry : m_gizmos) {
@@ -3333,7 +3333,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     , m_moving(false)
     , m_color_by("volume")
     , m_reload_delayed(false)
-#ifndef ENABLE_IMGUI
+#if !ENABLE_IMGUI
     , m_external_gizmo_widgets_parent(nullptr)
 #endif // not ENABLE_IMGUI
 {
@@ -3443,7 +3443,7 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
             return false;
         }
 
-#ifndef ENABLE_IMGUI
+#if !ENABLE_IMGUI
         if (m_external_gizmo_widgets_parent != nullptr) {
             m_gizmos.create_external_gizmo_widgets(m_external_gizmo_widgets_parent);
             m_canvas->GetParent()->Layout();
@@ -3714,7 +3714,7 @@ void GLCanvas3D::update_volumes_colors_by_extruder()
 
 // Returns a Rect object denoting size and position of the Reset button used by a gizmo.
 // Returns in either screen or viewport coords.
-#ifndef ENABLE_IMGUI
+#if !ENABLE_IMGUI
 Rect GLCanvas3D::get_gizmo_reset_rect(const GLCanvas3D& canvas, bool viewport) const
 {
     const Size& cnv_size = canvas.get_canvas_size();
@@ -4575,7 +4575,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 m_dirty = true;
             }
         }
-#ifndef ENABLE_IMGUI
+#if !ENABLE_IMGUI
         else if ((m_gizmos.get_current_type() == Gizmos::SlaSupports) && gizmo_reset_rect_contains(*this, pos(0), pos(1)))
         {
             if (evt.LeftDown())
@@ -4986,7 +4986,7 @@ void GLCanvas3D::set_tooltip(const std::string& tooltip) const
     }
 }
 
-#ifndef ENABLE_IMGUI
+#if !ENABLE_IMGUI
 void GLCanvas3D::set_external_gizmo_widgets_parent(wxWindow *parent)
 {
     m_external_gizmo_widgets_parent = parent;

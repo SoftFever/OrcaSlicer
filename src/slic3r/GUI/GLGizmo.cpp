@@ -272,7 +272,7 @@ void GLGizmoBase::render_grabbers_for_picking(const BoundingBoxf3& box) const
     }
 }
 
-#ifndef ENABLE_IMGUI
+#if !ENABLE_IMGUI
 void GLGizmoBase::create_external_gizmo_widgets(wxWindow *parent) {}
 #endif // not ENABLE_IMGUI
 
@@ -1660,7 +1660,7 @@ void GLGizmoSlaSupports::on_render(const GLCanvas3D::Selection& selection) const
     //::glTranslatef((GLfloat)dragged_offset(0), (GLfloat)dragged_offset(1), (GLfloat)dragged_offset(2));
     render_grabbers(false);
 
-#ifndef ENABLE_IMGUI
+#if !ENABLE_IMGUI
     render_tooltip_texture();
 #endif // not ENABLE_IMGUI
     ::glDisable(GL_BLEND);
@@ -1865,7 +1865,7 @@ void GLGizmoSlaSupports::on_update(const UpdateData& data)
     }
 }
 
-#ifndef ENABLE_IMGUI
+#if !ENABLE_IMGUI
 void GLGizmoSlaSupports::render_tooltip_texture() const {
     if (m_tooltip_texture.get_id() == 0)
         if (!m_tooltip_texture.load_from_file(resources_dir() + "/icons/sla_support_points_tooltip.png", false))
@@ -1986,7 +1986,7 @@ const std::array<float, 3> GLGizmoCut::GrabberColor = { 1.0, 0.5, 0.0 };
 GLGizmoCut::GLGizmoCut(GLCanvas3D& parent)
     : GLGizmoBase(parent)
     , m_cut_z(0.0)
-#ifndef ENABLE_IMGUI
+#if !ENABLE_IMGUI
     , m_panel(nullptr)
 #endif // not ENABLE_IMGUI
     , m_keep_upper(true)
@@ -1994,7 +1994,7 @@ GLGizmoCut::GLGizmoCut(GLCanvas3D& parent)
     , m_rotate_lower(false)
 {}
 
-#ifndef ENABLE_IMGUI
+#if !ENABLE_IMGUI
 void GLGizmoCut::create_external_gizmo_widgets(wxWindow *parent)
 {
     wxASSERT(m_panel == nullptr);
@@ -2053,7 +2053,7 @@ void GLGizmoCut::on_set_state()
         m_cut_z = m_parent.get_selection().get_bounding_box().size()(2) / 2.0;
     }
 
-#ifndef ENABLE_IMGUI
+#if !ENABLE_IMGUI
     // Display or hide the extra panel
     if (m_panel != nullptr) {
         m_panel->display(get_state() == On);

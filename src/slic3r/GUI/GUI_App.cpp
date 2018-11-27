@@ -60,7 +60,9 @@ IMPLEMENT_APP(GUI_App)
 
 GUI_App::GUI_App()
     : wxApp()
+#if ENABLE_IMGUI
     , m_imgui(new ImGuiWrapper())
+#endif // ENABLE_IMGUI
 {}
 
 bool GUI_App::OnInit()
