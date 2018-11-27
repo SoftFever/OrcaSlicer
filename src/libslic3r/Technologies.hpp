@@ -34,7 +34,7 @@
 // Enables shortcut keys for gizmos
 #define ENABLE_GIZMOS_SHORTCUT (1 && ENABLE_1_42_0)
 // Scene's GUI made using imgui library
-#define ENABLE_IMGUI (1 && !__APPLE__ && ENABLE_1_42_0)
+#define ENABLE_IMGUI (1 && ENABLE_1_42_0)
 
 #endif // _technologies_h_
 
