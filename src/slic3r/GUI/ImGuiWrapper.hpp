@@ -17,19 +17,6 @@ namespace GUI {
 
 class ImGuiWrapper
 {
-    std::string m_glsl_version_string;
-    unsigned m_glsl_version;
-    unsigned m_shader_handle;
-    unsigned m_vert_handle;
-    unsigned m_frag_handle;
-    unsigned m_vbo_handle;
-    unsigned m_elements_handle;
-    int m_attrib_location_tex;
-    int m_attrib_location_proj_mtx;
-    int m_attrib_location_position;
-    int m_attrib_location_uv;
-    int m_attrib_location_color;
-
     typedef std::map<std::string, ImFont*> FontsMap;
 
     FontsMap m_fonts;
@@ -70,12 +57,11 @@ public:
 private:
     void create_device_objects();
     void create_fonts_texture();
-    bool check_program(unsigned int handle, const char *desc);
-    bool check_shader(unsigned int handle, const char *desc);
     void render_draw_data(ImDrawData *draw_data);
     void destroy_device_objects();
     void destroy_fonts_texture();
 };
+
 
 } // namespace GUI
 } // namespace Slic3r
