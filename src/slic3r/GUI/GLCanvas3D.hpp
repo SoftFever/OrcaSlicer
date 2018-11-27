@@ -556,6 +556,31 @@ public:
 #endif // ENABLE_ENSURE_ON_BED_WHILE_SCALING
     };
 
+    class ClippingPlane
+    {
+        double m_data[4];
+
+    public:
+        ClippingPlane()
+        {
+            m_data[0] = 0.0;
+            m_data[1] = 0.0;
+            m_data[2] = 1.0;
+            m_data[3] = 0.0;
+        }
+
+        ClippingPlane(const Vec3d& direction, double offset)
+        {
+            Vec3d norm_dir = direction.normalized();
+            m_data[0] = norm_dir(0);
+            m_data[1] = norm_dir(1);
+            m_data[2] = norm_dir(2);
+            m_data[3] = offset;
+        }
+
+        const double* get_data() const { return m_data; }
+    };
+
 private:
     class Gizmos
     {
@@ -703,6 +728,8 @@ private:
     Mouse m_mouse;
     mutable Gizmos m_gizmos;
     mutable GLToolbar m_toolbar;
+    ClippingPlane m_clipping_planes[2];
+    bool m_use_clipping_planes;
 
     mutable GLVolumeCollection m_volumes;
     Selection m_selection;
@@ -777,6 +804,13 @@ public:
     void set_bed_shape(const Pointfs& shape);
 
     void set_axes_length(float length);
+
+    void set_clipping_plane(unsigned int id, const ClippingPlane& plane)
+    {
+        if (id < 2)
+            m_clipping_planes[id] = plane;
+    }
+    void set_use_clipping_planes(bool use) { m_use_clipping_planes = use; }
 
     void set_color_by(const std::string& value);
 

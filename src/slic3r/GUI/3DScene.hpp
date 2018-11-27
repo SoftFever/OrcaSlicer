@@ -506,6 +506,9 @@ class GLVolumeCollection
     float print_box_min[3];
     float print_box_max[3];
 
+    // z range for clipping in shaders
+    float z_range[2];
+
 public:
     GLVolumePtrs volumes;
 
@@ -563,6 +566,8 @@ public:
         print_box_min[0] = min_x; print_box_min[1] = min_y; print_box_min[2] = min_z;
         print_box_max[0] = max_x; print_box_max[1] = max_y; print_box_max[2] = max_z;
     }
+
+    void set_z_range(float min_z, float max_z) { z_range[0] = min_z; z_range[1] = max_z; }
 
     // returns true if all the volumes are completely contained in the print volume
     // returns the containment state in the given out_state, if non-null

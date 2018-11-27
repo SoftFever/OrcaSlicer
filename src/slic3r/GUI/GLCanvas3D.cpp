@@ -3312,6 +3312,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     : m_canvas(canvas)
     , m_context(nullptr)
     , m_toolbar(*this)
+    , m_use_clipping_planes(false)
     , m_config(nullptr)
     , m_process(nullptr)
     , m_model(nullptr)
@@ -3754,6 +3755,12 @@ void GLCanvas3D::render()
         _force_zoom_to_bed();
 
     _camera_tranform();
+
+    if (m_use_clipping_planes)
+    {
+        ::glClipPlane(GL_CLIP_PLANE0, (GLdouble*)m_clipping_planes[0].get_data());
+        ::glClipPlane(GL_CLIP_PLANE1, (GLdouble*)m_clipping_planes[1].get_data());
+    }
 
     GLfloat position_cam[4] = { 1.0f, 0.0f, 1.0f, 0.0f };
     ::glLightfv(GL_LIGHT1, GL_POSITION, position_cam);
@@ -5694,6 +5701,11 @@ void GLCanvas3D::_render_objects() const
             ::glDisable(GL_CULL_FACE);
         }
 
+        if (m_use_clipping_planes)
+            m_volumes.set_z_range(m_clipping_planes[0].get_data()[3], m_clipping_planes[1].get_data()[3]);
+        else
+            m_volumes.set_z_range(-FLT_MAX, FLT_MAX);
+
         m_shader.start_using();
         m_volumes.render_VBOs();
         m_shader.stop_using();
@@ -5703,6 +5715,12 @@ void GLCanvas3D::_render_objects() const
     }
     else
     {
+        if (m_use_clipping_planes)
+        {
+            ::glEnable(GL_CLIP_PLANE0);
+            ::glEnable(GL_CLIP_PLANE1);
+        }
+
         // do not cull backfaces to show broken geometry, if any
         if (m_picking_enabled)
             ::glDisable(GL_CULL_FACE);
@@ -5711,6 +5729,12 @@ void GLCanvas3D::_render_objects() const
 
         if (m_picking_enabled)
             ::glEnable(GL_CULL_FACE);
+
+        if (m_use_clipping_planes)
+        {
+            ::glDisable(GL_CLIP_PLANE0);
+            ::glDisable(GL_CLIP_PLANE1);
+        }
     }
 
     ::glDisable(GL_LIGHTING);

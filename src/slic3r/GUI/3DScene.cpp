@@ -942,6 +942,7 @@ void GLVolumeCollection::render_VBOs() const
     GLint current_program_id;
     ::glGetIntegerv(GL_CURRENT_PROGRAM, &current_program_id);
     GLint color_id = (current_program_id > 0) ? glGetUniformLocation(current_program_id, "uniform_color") : -1;
+    GLint z_range_id = (current_program_id > 0) ? glGetUniformLocation(current_program_id, "z_range") : -1;
     GLint print_box_min_id = (current_program_id > 0) ? glGetUniformLocation(current_program_id, "print_box.min") : -1;
     GLint print_box_max_id = (current_program_id > 0) ? glGetUniformLocation(current_program_id, "print_box.max") : -1;
     GLint print_box_detection_id = (current_program_id > 0) ? glGetUniformLocation(current_program_id, "print_box.volume_detection") : -1;
@@ -952,6 +953,9 @@ void GLVolumeCollection::render_VBOs() const
 
     if (print_box_max_id != -1)
         ::glUniform3fv(print_box_max_id, 1, (const GLfloat*)print_box_max);
+
+    if (z_range_id != -1)
+        ::glUniform2fv(z_range_id, 1, (const GLfloat*)z_range);
 
     for (GLVolume *volume : this->volumes)
     {

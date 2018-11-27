@@ -1854,6 +1854,8 @@ void PrusaDoubleSlider::correct_higher_value()
 
 void PrusaDoubleSlider::OnMotion(wxMouseEvent& event)
 {
+    bool action = false;
+
     const wxClientDC dc(this);
     const wxPoint pos = event.GetLogicalPosition(dc);
     m_is_one_layer_icon_focesed = is_point_in_rect(pos, m_rect_one_layer_icon);
@@ -1864,19 +1866,24 @@ void PrusaDoubleSlider::OnMotion(wxMouseEvent& event)
         if (m_selection == ssLower) {
             m_lower_value = get_value_from_position(pos.x, pos.y);
             correct_lower_value();
+            action = true;
         }
         else if (m_selection == ssHigher) {
             m_higher_value = get_value_from_position(pos.x, pos.y);
             correct_higher_value();
+            action = true;
         }
     }
     Refresh();
     Update();
     event.Skip();
 
-    wxCommandEvent e(wxEVT_SCROLL_CHANGED);
-    e.SetEventObject(this);
-    ProcessWindowEvent(e);
+    if (action)
+    {
+        wxCommandEvent e(wxEVT_SCROLL_CHANGED);
+        e.SetEventObject(this);
+        ProcessWindowEvent(e);
+    }
 }
 
 void PrusaDoubleSlider::OnLeftUp(wxMouseEvent& event)

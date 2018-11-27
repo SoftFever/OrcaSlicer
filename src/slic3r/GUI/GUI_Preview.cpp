@@ -391,11 +391,7 @@ void Preview::create_double_slider()
     // sizer, m_canvas_widget
     m_canvas_widget->Bind(wxEVT_KEY_DOWN, &Preview::update_double_slider_from_canvas, this);
 
-    m_slider->Bind(wxEVT_SCROLL_CHANGED, [this](wxEvent& event) {
-        m_canvas->set_toolpaths_range(m_slider->GetLowerValueD() - 1e-6, m_slider->GetHigherValueD() + 1e-6);
-        if (IsShown())
-            m_canvas_widget->Refresh();
-    });
+    m_slider->Bind(wxEVT_SCROLL_CHANGED, &Preview::on_sliders_scroll_changed, this);
 
     Bind(wxCUSTOMEVT_TICKSCHANGED, [this](wxEvent&) {
             auto& config = wxGetApp().preset_bundle->project_config;
@@ -409,10 +405,10 @@ void Preview::update_double_slider(const std::vector<double>& layers_z, bool for
     std::vector<std::pair<int, double>> values;
     fill_slider_values(values, layers_z);
 
-    const double z_low = m_slider->GetLowerValueD();
-    const double z_high = m_slider->GetHigherValueD();
     m_slider->SetMaxValue(layers_z.size() - 1);
     m_slider->SetSliderValues(values);
+    const double z_low = m_slider->GetLowerValueD();
+    const double z_high = m_slider->GetHigherValueD();
 
     const auto& config = wxGetApp().preset_bundle->project_config;
     const std::vector<double> &ticks_from_config = (config.option<ConfigOptionFloats>("colorprint_heights"))->values;
@@ -425,19 +421,10 @@ void Preview::update_double_slider(const std::vector<double>& layers_z, bool for
 void Preview::fill_slider_values(std::vector<std::pair<int, double>> &values,
                                  const std::vector<double> &layers_z)
 {
-    std::vector<double> layers_all_z = m_canvas->get_current_print_zs(false);
-    if (layers_all_z.size() == layers_z.size())
-        for (int i = 0; i < layers_z.size(); i++)
-            values.push_back(std::pair<int, double>(i + 1, layers_z[i]));
-    else if (layers_all_z.size() > layers_z.size()) {
-        int cur_id = 0;
-        for (int i = 0; i < layers_z.size(); i++)
-            for (int j = cur_id; j < layers_all_z.size(); j++)
-                if (layers_z[i] - 1e-6 < layers_all_z[j] && layers_all_z[j] < layers_z[i] + 1e-6) {
-                    values.push_back(std::pair<int, double>(j + 1, layers_z[i]));
-                    cur_id = j;
-                    break;
-                }
+    values.clear();
+    for (int i = 0; i < layers_z.size(); ++i)
+    {
+        values.push_back(std::pair<int, double>(i + 1, layers_z[i]));
     }
 
     // All ticks that would end up outside the slider range should be erased.
@@ -626,12 +613,13 @@ void Preview::load_print_as_sla()
     std::set<float> zs;
     for (const SLAPrintObject* obj : print->objects())
     {
+        double shift_z = obj->get_current_elevation();
         if (obj->is_step_done(slaposIndexSlices))
         {
             const SLAPrintObject::SliceIndex& index = obj->get_slice_index();
             for (const SLAPrintObject::SliceIndex::value_type& id : index)
             {
-                zs.insert(id.second.scale_back(id.first));
+                zs.insert(shift_z + id.second.scale_back(id.first));
             }
         }
     }
@@ -645,7 +633,6 @@ void Preview::load_print_as_sla()
 
     if (IsShown())
     {
-        std::cout << "Preview::load_print_as_sla()" << std::endl;
         m_canvas->load_sla_preview();
         show_hide_ui_elements("none");
 
@@ -657,6 +644,27 @@ void Preview::load_print_as_sla()
         }
 
         m_loaded = true;
+    }
+}
+
+void Preview::on_sliders_scroll_changed(wxEvent& event)
+{
+    if (IsShown())
+    {
+        PrinterTechnology tech = m_process->current_printer_technology();
+        if (tech == ptFFF)
+        {
+            m_canvas->set_toolpaths_range(m_slider->GetLowerValueD() - 1e-6, m_slider->GetHigherValueD() + 1e-6);
+            m_canvas_widget->Refresh();
+            m_canvas->set_use_clipping_planes(false);
+        }
+        else if (tech == ptSLA)
+        {
+            m_canvas->set_clipping_plane(0, GLCanvas3D::ClippingPlane(Vec3d(0.0, 0.0, 1.0), m_slider->GetLowerValueD() - 1e-6));
+            m_canvas->set_clipping_plane(1, GLCanvas3D::ClippingPlane(Vec3d(0.0, 0.0, -1.0), m_slider->GetHigherValueD() + 1e-6));
+            m_canvas->set_use_clipping_planes(true);
+            m_canvas_widget->Refresh();
+        }
     }
 }
 

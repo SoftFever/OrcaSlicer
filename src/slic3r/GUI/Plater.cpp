@@ -1889,6 +1889,7 @@ void Plater::priv::update_sla_scene()
         this->schedule_background_process();
     this->canvas3D->reload_scene(true);
     delayed_scene_refresh = false;
+    this->preview->reload_print();
 }
 
 void Plater::priv::reload_from_disk()
