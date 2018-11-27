@@ -1732,7 +1732,7 @@ void Plater::priv::sla_optimize_rotation() {
     });
 
     auto r = sla::find_best_rotation(
-                *o, .1f,
+                *o, .005f,
                 [stfn](unsigned s) { stfn(s, L("Searching for optimal orientation")); },
                 [this](){ return !rotoptimizing.load(); }
     );
