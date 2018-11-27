@@ -72,12 +72,12 @@ const std::array<std::string, slapsCount> PRINT_STEP_LABELS =
 
 void SLAPrint::clear()
 {
-	tbb::mutex::scoped_lock lock(this->state_mutex());
+    tbb::mutex::scoped_lock lock(this->state_mutex());
     // The following call should stop background processing if it is running.
     this->invalidate_all_steps();
 
     for (SLAPrintObject *object : m_objects) delete object;
-	m_objects.clear();
+    m_objects.clear();
 }
 
 // Transformation without rotation around Z and without a shift by X and Y.
@@ -99,7 +99,7 @@ static std::vector<SLAPrintObject::Instance> sla_instances(const ModelObject &mo
     for (ModelInstance *model_instance : model_object.instances)
         if (model_instance->is_printable()) {
             instances.emplace_back(SLAPrintObject::Instance(
-                model_instance->id(), 
+                model_instance->id(),
                 Point::new_scale(model_instance->get_offset(X), model_instance->get_offset(Y)),
                 float(model_instance->get_rotation(Z))));
         }
@@ -121,7 +121,7 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model,
     t_config_option_keys material_diff = m_material_config.diff(config);
     t_config_option_keys object_diff   = m_default_object_config.diff(config);
 
-    // Do not use the ApplyStatus as we will use the max function when updating apply_status. 
+    // Do not use the ApplyStatus as we will use the max function when updating apply_status.
     unsigned int apply_status = APPLY_STATUS_UNCHANGED;
     auto update_apply_status = [&apply_status](bool invalidated)
         { apply_status = std::max<unsigned int>(apply_status, invalidated ? APPLY_STATUS_INVALIDATED : APPLY_STATUS_CHANGED); };
@@ -129,16 +129,16 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model,
         update_apply_status(false);
 
     // Grab the lock for the Print / PrintObject milestones.
-	tbb::mutex::scoped_lock lock(this->state_mutex());
+    tbb::mutex::scoped_lock lock(this->state_mutex());
 
     // The following call may stop the background processing.
-	if (! printer_diff.empty())
-		update_apply_status(this->invalidate_state_by_config_options(printer_diff));
-	if (! material_diff.empty())
-		update_apply_status(this->invalidate_state_by_config_options(material_diff));
+    if (! printer_diff.empty())
+        update_apply_status(this->invalidate_state_by_config_options(printer_diff));
+    if (! material_diff.empty())
+        update_apply_status(this->invalidate_state_by_config_options(material_diff));
 
     // It is also safe to change m_config now after this->invalidate_state_by_config_options() call.
-	m_printer_config.apply_only(config, printer_diff, true);
+    m_printer_config.apply_only(config, printer_diff, true);
     // Handle changes to material config.
     m_material_config.apply_only(config, material_diff, true);
     // Handle changes to object config defaults
@@ -250,7 +250,7 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model,
             Reused,
             New
         };
-        PrintObjectStatus(SLAPrintObject *print_object, Status status = Unknown) : 
+        PrintObjectStatus(SLAPrintObject *print_object, Status status = Unknown) :
             id(print_object->model_object()->id()),
             print_object(print_object),
             trafo(print_object->trafo()),
@@ -260,7 +260,7 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model,
         ModelID          id;
         // Pointer to the old PrintObject
         SLAPrintObject  *print_object;
-        // Trafo generated with model_object->world_matrix(true) 
+        // Trafo generated with model_object->world_matrix(true)
         Transform3d      trafo;
         Status           status;
         // Search by id.
@@ -286,17 +286,17 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model,
         assert(it_status->status == ModelObjectStatus::Old || it_status->status == ModelObjectStatus::Moved);
         const ModelObject &model_object_new       = *model.objects[idx_model_object];
         auto               it_print_object_status = print_object_status.lower_bound(PrintObjectStatus(model_object.id()));
-		if (it_print_object_status != print_object_status.end() && it_print_object_status->id != model_object.id())
+        if (it_print_object_status != print_object_status.end() && it_print_object_status->id != model_object.id())
             it_print_object_status = print_object_status.end();
         // Check whether a model part volume was added or removed, their transformations or order changed.
         bool model_parts_differ = model_volume_list_changed(model_object, model_object_new, ModelVolume::MODEL_PART);
-        bool sla_trafo_differs  = model_object.instances.empty() != model_object_new.instances.empty() || 
+        bool sla_trafo_differs  = model_object.instances.empty() != model_object_new.instances.empty() ||
             (! model_object.instances.empty() && ! sla_trafo(model_object).isApprox(sla_trafo(model_object_new)));
         if (model_parts_differ || sla_trafo_differs) {
             // The very first step (the slicing step) is invalidated. One may freely remove all associated PrintObjects.
-			if (it_print_object_status != print_object_status.end()) {
-				update_apply_status(it_print_object_status->print_object->invalidate_all_steps());
-				const_cast<PrintObjectStatus&>(*it_print_object_status).status = PrintObjectStatus::Deleted;
+            if (it_print_object_status != print_object_status.end()) {
+                update_apply_status(it_print_object_status->print_object->invalidate_all_steps());
+                const_cast<PrintObjectStatus&>(*it_print_object_status).status = PrintObjectStatus::Deleted;
             }
             // Copy content of the ModelObject including its ID, do not change the parent.
             model_object.assign_copy(model_object_new);
@@ -309,7 +309,7 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model,
                 SLAPrintObjectConfig new_config = m_default_object_config;
                 normalize_and_apply_config(new_config, model_object.config);
                 if (it_print_object_status != print_object_status.end()) {
-					t_config_option_keys diff = it_print_object_status->print_object->config().diff(new_config);
+                    t_config_option_keys diff = it_print_object_status->print_object->config().diff(new_config);
                     if (! diff.empty()) {
                         update_apply_status(it_print_object_status->print_object->invalidate_state_by_config_options(diff));
                         it_print_object_status->print_object->config_apply_only(new_config, diff, true);
@@ -463,6 +463,14 @@ void SLAPrint::process()
             po.m_supportdata->emesh = sla::to_eigenmesh(po.transformed_mesh());
             po.m_supportdata->support_points =
                     sla::to_point_set(po.transformed_support_points());
+        } else if(po.m_config.supports_enable.getBool()) {
+            // Supports are enabled but there are no support points to process.
+            // We throw here a runtime exception with some explanation and
+            // the background processing framework will handle it.
+            throw std::runtime_error(
+                L("Supports are enabled but no support points selected."
+                  " Hint: create some support points or disable support "
+                  "creation."));
         }
     };
 
@@ -487,14 +495,14 @@ void SLAPrint::process()
             auto stfirst = OBJ_STEP_LEVELS.begin();
             auto stthis = stfirst + slaposSupportTree;
             // we need to add up the status portions until this operation
-            unsigned init = std::accumulate(stfirst, stthis, 0);
-            init = unsigned(init * ostepd);     // scale the init portion
+            int init = std::accumulate(stfirst, stthis, 0);
+            init = int(init * ostepd);     // scale the init portion
 
             // scaling for the sub operations
             double d = *stthis / (objcount * 100.0);
 
             ctl.statuscb = [this, init, d](unsigned st, const std::string& msg){
-                set_status(unsigned(init + st*d), msg);
+                set_status(int(init + st*d), msg);
             };
             ctl.stopcondition = [this](){ return canceled(); };
             ctl.cancelfn = [this]() { throw_if_canceled(); };
@@ -583,7 +591,7 @@ void SLAPrint::process()
         auto smodelgnd = LevelID(scale_(modelgnd));
         auto slh = LevelID(scale_(lh));
 
-        // It is important that the next levels math the levels in
+        // It is important that the next levels match the levels in
         // model_slice method. Only difference is that here it works with
         // scaled coordinates
         std::vector<LevelID> levelids;
@@ -709,7 +717,7 @@ void SLAPrint::process()
             auto st = ist + unsigned(sd*level_id*slot/levels.size());
             { std::lock_guard<SpinMutex> lck(slck);
             if( st > pst) {
-                set_status(st, PRINT_STEP_LABELS[slapsRasterize]);
+                set_status(int(st), PRINT_STEP_LABELS[slapsRasterize]);
                 pst = st;
             }
             }
@@ -776,7 +784,7 @@ void SLAPrint::process()
 
             if(po->m_stepmask[currentstep] && po->set_started(currentstep)) {
 
-                set_status(st, OBJ_STEP_LABELS[currentstep]);
+                set_status(int(st), OBJ_STEP_LABELS[currentstep]);
 
                 pobj_program[currentstep](*po);
                 po->set_done(currentstep);
@@ -788,7 +796,7 @@ void SLAPrint::process()
                     // ready. We can grant access for the control thread to read
                     // the geometries, but first we have to update the caches:
                     po->support_mesh(); /*po->pad_mesh();*/
-                    set_status(st, L("Visualizing supports"), RELOAD_SCENE);
+                    set_status(int(st), L("Visualizing supports"), RELOAD_SCENE);
                 }
             }
 
@@ -812,7 +820,7 @@ void SLAPrint::process()
 
         if(m_stepmask[currentstep] && set_started(currentstep))
         {
-            set_status(st, PRINT_STEP_LABELS[currentstep]);
+            set_status(int(st), PRINT_STEP_LABELS[currentstep]);
             print_program[currentstep]();
             set_done(currentstep);
         }
@@ -900,12 +908,12 @@ bool SLAPrintObject::invalidate_state_by_config_options(const std::vector<t_conf
     std::vector<SLAPrintObjectStep> steps;
     bool invalidated = false;
     for (const t_config_option_key &opt_key : opt_keys) {
-        if (   opt_key == "supports_enable"
-            || opt_key == "support_head_front_diameter"
+        if (   opt_key == "support_head_front_radius"
             || opt_key == "support_head_penetration"
+            || opt_key == "support_head_back_radius"
             || opt_key == "support_head_width"
-            || opt_key == "support_pillar_diameter"
-            || opt_key == "support_base_diameter"
+            || opt_key == "support_pillar_radius"
+            || opt_key == "support_base_radius"
             || opt_key == "support_base_height"
             || opt_key == "support_critical_angle"
             || opt_key == "support_max_bridge_length"
@@ -937,21 +945,18 @@ bool SLAPrintObject::invalidate_step(SLAPrintObjectStep step)
     if (step == slaposObjectSlice) {
         invalidated |= this->invalidate_all_steps();
     } else if (step == slaposSupportIslands) {
-        invalidated |= this->invalidate_steps({ slaposSupportPoints, slaposSupportTree, slaposBasePool, slaposSliceSupports, slaposIndexSlices });
+        invalidated |= this->invalidate_steps({ slaposSupportPoints, slaposSupportTree, slaposBasePool, slaposSliceSupports });
         invalidated |= m_print->invalidate_step(slapsRasterize);
     } else if (step == slaposSupportPoints) {
-        invalidated |= this->invalidate_steps({ slaposSupportTree, slaposBasePool, slaposSliceSupports, slaposIndexSlices });
+        invalidated |= this->invalidate_steps({ slaposSupportTree, slaposBasePool, slaposSliceSupports });
         invalidated |= m_print->invalidate_step(slapsRasterize);
     } else if (step == slaposSupportTree) {
-        invalidated |= this->invalidate_steps({ slaposBasePool, slaposSliceSupports, slaposIndexSlices });
+        invalidated |= this->invalidate_steps({ slaposBasePool, slaposSliceSupports });
         invalidated |= m_print->invalidate_step(slapsRasterize);
     } else if (step == slaposBasePool) {
-        invalidated |= this->invalidate_steps({slaposSliceSupports, slaposIndexSlices});
+        invalidated |= this->invalidate_step(slaposSliceSupports);
         invalidated |= m_print->invalidate_step(slapsRasterize);
     } else if (step == slaposSliceSupports) {
-        invalidated |= this->invalidate_step(slaposIndexSlices);
-        invalidated |= m_print->invalidate_step(slapsRasterize);
-    } else if(step == slaposIndexSlices) {
         invalidated |= m_print->invalidate_step(slapsRasterize);
     }
     return invalidated;
@@ -1024,24 +1029,24 @@ bool SLAPrintObject::has_mesh(SLAPrintObjectStep step) const
 {
     switch (step) {
     case slaposSupportTree:
-		return ! this->support_mesh().empty();
+        return ! this->support_mesh().empty();
     case slaposBasePool:
-		return ! this->pad_mesh().empty();
-	default:
+        return ! this->pad_mesh().empty();
+    default:
         return false;
     }
 }
 
 TriangleMesh SLAPrintObject::get_mesh(SLAPrintObjectStep step) const
 {
-	switch (step) {
-	case slaposSupportTree:
-		return this->support_mesh();
-	case slaposBasePool:
-		return this->pad_mesh();
-	default:
-		return TriangleMesh();
-	}
+    switch (step) {
+    case slaposSupportTree:
+        return this->support_mesh();
+    case slaposBasePool:
+        return this->pad_mesh();
+    default:
+        return TriangleMesh();
+    }
 }
 
 
