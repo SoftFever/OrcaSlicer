@@ -643,7 +643,8 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
                   "\n\n");
 
     // Ask our writer about how much material was consumed:
-    m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
+    if (m_current_tool < m_used_filament_length.size())
+        m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
 
 	ToolChangeResult result;
     result.priming      = false;
@@ -1069,7 +1070,8 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::finish_layer()
     m_depth_traversed = m_wipe_tower_depth-m_perimeter_width;
 
     // Ask our writer about how much material was consumed:
-    m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
+    if (m_current_tool < m_used_filament_length.size())
+        m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
 
 	ToolChangeResult result;
     result.priming      = false;
