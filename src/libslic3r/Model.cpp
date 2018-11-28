@@ -1008,6 +1008,8 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
         instances[instance]->get_mirror()
     );
 
+    z -= instances[instance]->get_offset()(2);
+
     // Lower part per-instance bounding boxes
     std::vector<BoundingBoxf3> lower_bboxes { instances.size() };
 
@@ -1019,21 +1021,12 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
         } else {
             TriangleMesh upper_mesh, lower_mesh;
 
-            // Transform the mesh by the object transformation matrix
-            const auto volume_tr = instance_matrix * volume->get_matrix(true);
-            volume->mesh.transform(volume_tr);
-
-            // Transform z from world to object
-            const double local_z = (volume_tr * Vec3d(0.0, 0.0, z))(2);
+            // Transform the mesh by the combined transformation matrix
+            volume->mesh.transform(instance_matrix * volume->get_matrix());
 
             // Perform cut
             TriangleMeshSlicer tms(&volume->mesh);
-            tms.cut(local_z, &upper_mesh, &lower_mesh);
-
-            // Move the upper mesh to down to zero in Z
-            if (keep_upper) {
-                upper_mesh.translate(0.0, 0.0, -local_z);
-            }
+            tms.cut(z, &upper_mesh, &lower_mesh);
 
             // Reset volume transformation except for offset
             const Vec3d offset = volume->get_offset();
@@ -1083,6 +1076,8 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
             auto &instance = upper->instances[i];
             const Vec3d offset = instance->get_offset();
             const double rot_z = instance->get_rotation()(2);
+            // The upper part displacement is set to half of the lower part bounding box
+            // this is done in hope at least a part of the upper part will always be visible and draggable
             const Vec3d displace = lower_bboxes[i].size().cwiseProduct(Vec3d(-0.5, -0.5, 0.0));
 
             instance->set_transformation(Geometry::Transformation());
