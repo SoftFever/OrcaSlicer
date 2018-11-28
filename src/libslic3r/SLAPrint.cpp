@@ -624,8 +624,10 @@ void SLAPrint::process()
             auto& lyrs = levels[h]; // this initializes a new record
             lyrs.emplace_back(oslices[i], po.m_instances);
 
+            float fh = float(double(h) * SCALING_FACTOR);
+
             // now for the public slice index:
-            SLAPrintObject::SliceRecord& sr = po.m_slice_index[h];
+            SLAPrintObject::SliceRecord& sr = po.m_slice_index[fh];
             // There should be only one slice layer for each print object
             assert(sr.model_slices_idx == EMPTY_SLICE);
             sr.model_slices_idx = i;
@@ -641,7 +643,9 @@ void SLAPrint::process()
                 auto& lyrs = levels[h];
                 lyrs.emplace_back(sslices[i], po.m_instances);
 
-                SLAPrintObject::SliceRecord& sr = po.m_slice_index[h];
+                float fh = float(double(h) * SCALING_FACTOR);
+
+                SLAPrintObject::SliceRecord& sr = po.m_slice_index[fh];
                 assert(sr.support_slices_idx == EMPTY_SLICE);
                 sr.support_slices_idx = i;
             }

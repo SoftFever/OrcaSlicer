@@ -92,8 +92,8 @@ public:
     // levels of the model in scaled-clipper coordinates. The levels correspond
     // to the z coordinate of the object coordinate system.
     struct SliceRecord {
-        using Key = long long;
-        inline static float scale_back(Key h) { return float(h * SCALING_FACTOR); }
+        using Key = float;
+//        inline static float scale_back(Key h) { return float(h * SCALING_FACTOR); }
 
         using Idx = size_t;
         static const Idx NONE = Idx(-1); // this will be the max limit of size_t
