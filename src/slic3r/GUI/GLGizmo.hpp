@@ -435,7 +435,7 @@ public:
 protected:
     virtual bool on_init();
     virtual std::string on_get_name() const;
-    virtual bool on_is_activable(const GLCanvas3D::Selection& selection) const { return (selection.is_from_single_object() && !selection.is_wipe_tower() && !selection.is_modifier());  }
+    virtual bool on_is_activable(const GLCanvas3D::Selection& selection) const;
     virtual void on_start_dragging(const GLCanvas3D::Selection& selection);
     virtual void on_update(const UpdateData& data) {}
     virtual void on_render(const GLCanvas3D::Selection& selection) const;

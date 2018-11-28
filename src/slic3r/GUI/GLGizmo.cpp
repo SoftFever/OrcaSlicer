@@ -1291,6 +1291,13 @@ std::string GLGizmoFlatten::on_get_name() const
     return L("Flatten");
 }
 
+bool GLGizmoFlatten::on_is_activable(const GLCanvas3D::Selection& selection) const
+{
+    return (selection.is_from_single_object()
+        && (selection.is_single_full_instance() || selection.is_multiple_full_instance() || selection.is_single_full_object())
+        && !selection.is_wipe_tower()           && !selection.is_modifier());
+}
+
 void GLGizmoFlatten::on_start_dragging(const GLCanvas3D::Selection& selection)
 {
     if (m_hover_id != -1)
