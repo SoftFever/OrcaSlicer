@@ -941,6 +941,7 @@ private:
 #if ENABLE_SHOW_CAMERA_TARGET
     void _render_camera_target() const;
 #endif // ENABLE_SHOW_CAMERA_TARGET
+    void _render_sla_slices() const;
 
     void _update_volumes_hover_state() const;
     void _update_gizmos_data();
@@ -984,6 +985,7 @@ private:
     void _load_gcode_unretractions(const GCodePreviewData& preview_data);
     // generates objects and wipe tower geometry
     void _load_shells_fff();
+    // generates objects geometry for sla
     void _load_shells_sla();
     // sets gcode geometry visibility according to user selection
     void _update_gcode_volumes_visibility(const GCodePreviewData& preview_data);

@@ -1013,7 +1013,7 @@ const TriangleMesh EMPTY_MESH;
 const std::vector<ExPolygons> &SLAPrintObject::get_support_slices() const
 {
     // assert(is_step_done(slaposSliceSupports));
-    if(!!m_supportdata) return EMPTY_SLICES;
+    if (!m_supportdata) return EMPTY_SLICES;
     return m_supportdata->support_slices;
 }
 

@@ -619,7 +619,7 @@ void Preview::load_print_as_sla()
     unsigned int n_layers = 0;
     const SLAPrint* print = m_process->sla_print();
 
-    std::set<float> zs;
+    std::set<double> zs;
     for (const SLAPrintObject* obj : print->objects())
     {
         double shift_z = obj->get_current_elevation();
@@ -628,7 +628,7 @@ void Preview::load_print_as_sla()
             const SLAPrintObject::SliceIndex& index = obj->get_slice_index();
             for (const SLAPrintObject::SliceIndex::value_type& id : index)
             {
-                zs.insert(shift_z + id.second.scale_back(id.first));
+                zs.insert(shift_z + id.first);
             }
         }
     }
@@ -670,8 +670,8 @@ void Preview::on_sliders_scroll_changed(wxEvent& event)
         }
         else if (tech == ptSLA)
         {
-            m_canvas->set_clipping_plane(0, GLCanvas3D::ClippingPlane(Vec3d::UnitZ(), -(m_slider->GetLowerValueD() - 1e-6)));
-            m_canvas->set_clipping_plane(1, GLCanvas3D::ClippingPlane(-Vec3d::UnitZ(), m_slider->GetHigherValueD() + 1e-6));
+            m_canvas->set_clipping_plane(0, GLCanvas3D::ClippingPlane(Vec3d::UnitZ(), -m_slider->GetLowerValueD()));
+            m_canvas->set_clipping_plane(1, GLCanvas3D::ClippingPlane(-Vec3d::UnitZ(), m_slider->GetHigherValueD()));
             m_canvas->set_use_clipping_planes(m_slider->GetHigherValue() != 0);
             m_canvas_widget->Refresh();
         }

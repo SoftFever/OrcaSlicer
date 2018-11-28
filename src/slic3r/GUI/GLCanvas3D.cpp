@@ -3793,6 +3793,7 @@ void GLCanvas3D::render()
     }
 
     _render_objects();
+    _render_sla_slices();
     _render_selection();
 
     if (!is_custom_bed) // textured bed needs to be rendered after objects
@@ -5704,7 +5705,7 @@ void GLCanvas3D::_render_objects() const
         }
 
         if (m_use_clipping_planes)
-            m_volumes.set_z_range(m_clipping_planes[0].get_data()[3], m_clipping_planes[1].get_data()[3]);
+            m_volumes.set_z_range(-m_clipping_planes[0].get_data()[3], m_clipping_planes[1].get_data()[3]);
         else
             m_volumes.set_z_range(-FLT_MAX, FLT_MAX);
 
@@ -5890,6 +5891,184 @@ void GLCanvas3D::_render_camera_target() const
     ::glEnd();
 }
 #endif // ENABLE_SHOW_CAMERA_TARGET
+
+void GLCanvas3D::_render_sla_slices() const
+{
+    if (!m_use_clipping_planes || wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA)
+        return;
+
+    const SLAPrint* print = this->sla_print();
+    if (print->objects().empty())
+        // nothing to render, return
+        return;
+
+    double clip_min_z = -m_clipping_planes[0].get_data()[3];
+    double clip_max_z = m_clipping_planes[1].get_data()[3];
+    for (const SLAPrintObject* obj : print->objects())
+    {
+        if (obj->is_step_done(slaposIndexSlices))
+        {
+            const SLAPrintObject::SliceIndex& index = obj->get_slice_index();
+            const std::vector<ExPolygons>& model_slices = obj->get_model_slices();
+            const std::vector<ExPolygons>& support_slices = obj->get_support_slices();
+            const std::vector<SLAPrintObject::Instance>& instances = obj->instances();
+            double shift_z = obj->get_current_elevation();
+
+            struct InstanceTransform
+            {
+                Vec3d offset;
+                float rotation;
+            };
+
+            std::vector<InstanceTransform> instance_transforms;
+            for (const SLAPrintObject::Instance& inst : instances)
+            {
+                instance_transforms.push_back({ to_3d(unscale(inst.shift), shift_z), Geometry::rad2deg(inst.rotation) });
+            }
+
+            double min_z = clip_min_z - shift_z;
+            double max_z = clip_max_z - shift_z;
+            SLAPrintObject::SliceIndex::const_iterator it_min_z = std::find_if(index.begin(), index.end(), [min_z](const SLAPrintObject::SliceIndex::value_type& id) -> bool { return std::abs(min_z - id.first) < EPSILON; });
+            SLAPrintObject::SliceIndex::const_iterator it_max_z = std::find_if(index.begin(), index.end(), [max_z](const SLAPrintObject::SliceIndex::value_type& id) -> bool { return std::abs(max_z - id.first) < EPSILON; });
+
+            ::glColor3f(1.0f, 0.37f, 0.0f);
+
+            if (it_min_z != index.end())
+            {
+                // render model bottom slices
+                if (it_min_z->second.model_slices_idx < model_slices.size())
+                {
+                    const ExPolygons& polys = model_slices[it_min_z->second.model_slices_idx];
+                    for (const ExPolygon& poly : polys)
+                    {
+                        Polygons triangles;
+                        poly.triangulate(&triangles);
+                        if (!triangles.empty())
+                        {
+                            for (unsigned int i = 0; i < (unsigned int)instances.size(); ++i)
+                            {
+                                ::glPushMatrix();
+                                ::glTranslated(instance_transforms[i].offset(0), instance_transforms[i].offset(1), instance_transforms[i].offset(2));
+                                ::glRotatef(instance_transforms[i].rotation, 0.0, 0.0, 1.0);
+
+                                ::glBegin(GL_TRIANGLES);
+                                ::glNormal3f(0.0f, 0.0f, -1.0f);
+                                for (const Polygon& p : triangles)
+                                {
+                                    ::glVertex3dv((GLdouble*)to_3d(unscale(p.points[2]), min_z).data());
+                                    ::glVertex3dv((GLdouble*)to_3d(unscale(p.points[1]), min_z).data());
+                                    ::glVertex3dv((GLdouble*)to_3d(unscale(p.points[0]), min_z).data());
+                                }
+                                ::glEnd();
+
+                                ::glPopMatrix();
+                            }
+                        }
+                    }
+                }
+
+                // render support bottom slices
+                if (it_min_z->second.support_slices_idx < support_slices.size())
+                {
+                    const ExPolygons& polys = support_slices[it_min_z->second.support_slices_idx];
+                    for (const ExPolygon& poly : polys)
+                    {
+                        Polygons triangles;
+                        poly.triangulate(&triangles);
+                        if (!triangles.empty())
+                        {
+                            for (unsigned int i = 0; i < (unsigned int)instances.size(); ++i)
+                            {
+                                ::glPushMatrix();
+                                ::glTranslated(instance_transforms[i].offset(0), instance_transforms[i].offset(1), instance_transforms[i].offset(2));
+                                ::glRotatef(instance_transforms[i].rotation, 0.0, 0.0, 1.0);
+
+                                ::glBegin(GL_TRIANGLES);
+                                ::glNormal3f(0.0f, 0.0f, -1.0f);
+                                for (const Polygon& p : triangles)
+                                {
+                                    ::glVertex3dv((GLdouble*)to_3d(unscale(p.points[2]), min_z).data());
+                                    ::glVertex3dv((GLdouble*)to_3d(unscale(p.points[1]), min_z).data());
+                                    ::glVertex3dv((GLdouble*)to_3d(unscale(p.points[0]), min_z).data());
+                                }
+                                ::glEnd();
+
+                                ::glPopMatrix();
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (it_max_z != index.end())
+            {
+                // render model top slices
+                if (it_max_z->second.model_slices_idx < model_slices.size())
+                {
+                    const ExPolygons& polys = model_slices[it_max_z->second.model_slices_idx];
+                    for (const ExPolygon& poly : polys)
+                    {
+                        Polygons triangles;
+                        poly.triangulate(&triangles);
+                        if (!triangles.empty())
+                        {
+                            for (unsigned int i = 0; i < (unsigned int)instances.size(); ++i)
+                            {
+                                ::glPushMatrix();
+                                ::glTranslated(instance_transforms[i].offset(0), instance_transforms[i].offset(1), instance_transforms[i].offset(2));
+                                ::glRotatef(instance_transforms[i].rotation, 0.0, 0.0, 1.0);
+
+                                ::glBegin(GL_TRIANGLES);
+                                ::glNormal3f(0.0f, 0.0f, 1.0f);
+                                for (const Polygon& p : triangles)
+                                {
+                                    ::glVertex3dv((GLdouble*)to_3d(unscale(p.points[0]), max_z).data());
+                                    ::glVertex3dv((GLdouble*)to_3d(unscale(p.points[1]), max_z).data());
+                                    ::glVertex3dv((GLdouble*)to_3d(unscale(p.points[2]), max_z).data());
+                                }
+                                ::glEnd();
+
+                                ::glPopMatrix();
+                            }
+                        }
+                    }
+                }
+
+                // render support top slices
+                if (it_max_z->second.support_slices_idx < support_slices.size())
+                {
+                    const ExPolygons& polys = support_slices[it_max_z->second.support_slices_idx];
+                    for (const ExPolygon& poly : polys)
+                    {
+                        Polygons triangles;
+                        poly.triangulate(&triangles);
+                        if (!triangles.empty())
+                        {
+                            for (unsigned int i = 0; i < (unsigned int)instances.size(); ++i)
+                            {
+                                ::glPushMatrix();
+                                ::glTranslated(instance_transforms[i].offset(0), instance_transforms[i].offset(1), instance_transforms[i].offset(2));
+                                ::glRotatef(instance_transforms[i].rotation, 0.0, 0.0, 1.0);
+
+                                ::glBegin(GL_TRIANGLES);
+                                ::glNormal3f(0.0f, 0.0f, 1.0f);
+                                for (const Polygon& p : triangles)
+                                {
+                                    ::glVertex3dv((GLdouble*)to_3d(unscale(p.points[0]), max_z).data());
+                                    ::glVertex3dv((GLdouble*)to_3d(unscale(p.points[1]), max_z).data());
+                                    ::glVertex3dv((GLdouble*)to_3d(unscale(p.points[2]), max_z).data());
+                                }
+                                ::glEnd();
+
+                                ::glPopMatrix();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 void GLCanvas3D::_update_volumes_hover_state() const
 {
