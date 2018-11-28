@@ -3764,12 +3764,6 @@ void GLCanvas3D::render()
 
     _camera_tranform();
 
-    if (m_use_clipping_planes)
-    {
-        ::glClipPlane(GL_CLIP_PLANE0, (GLdouble*)m_clipping_planes[0].get_data());
-        ::glClipPlane(GL_CLIP_PLANE1, (GLdouble*)m_clipping_planes[1].get_data());
-    }
-
     GLfloat position_cam[4] = { 1.0f, 0.0f, 1.0f, 0.0f };
     ::glLightfv(GL_LIGHT1, GL_POSITION, position_cam);
     GLfloat position_top[4] = { -0.5f, -0.5f, 1.0f, 0.0f };
@@ -5725,7 +5719,9 @@ void GLCanvas3D::_render_objects() const
     {
         if (m_use_clipping_planes)
         {
+            ::glClipPlane(GL_CLIP_PLANE0, (GLdouble*)m_clipping_planes[0].get_data());
             ::glEnable(GL_CLIP_PLANE0);
+            ::glClipPlane(GL_CLIP_PLANE1, (GLdouble*)m_clipping_planes[1].get_data());
             ::glEnable(GL_CLIP_PLANE1);
         }
 

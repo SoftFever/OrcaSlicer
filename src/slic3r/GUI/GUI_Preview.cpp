@@ -670,8 +670,8 @@ void Preview::on_sliders_scroll_changed(wxEvent& event)
         }
         else if (tech == ptSLA)
         {
-            m_canvas->set_clipping_plane(0, GLCanvas3D::ClippingPlane(Vec3d(0.0, 0.0, 1.0), m_slider->GetLowerValueD() - 1e-6));
-            m_canvas->set_clipping_plane(1, GLCanvas3D::ClippingPlane(Vec3d(0.0, 0.0, -1.0), m_slider->GetHigherValueD() + 1e-6));
+            m_canvas->set_clipping_plane(0, GLCanvas3D::ClippingPlane(Vec3d::UnitZ(), -(m_slider->GetLowerValueD() - 1e-6)));
+            m_canvas->set_clipping_plane(1, GLCanvas3D::ClippingPlane(-Vec3d::UnitZ(), m_slider->GetHigherValueD() + 1e-6));
             m_canvas->set_use_clipping_planes(m_slider->GetHigherValue() != 0);
             m_canvas_widget->Refresh();
         }
