@@ -98,7 +98,7 @@ Contour3D sphere(double rho, Portion portion = make_portion(0.0, 2.0*PI),
     const auto send = size_t(2*std::get<1>(portion)/angle);
 
     const size_t steps = ring.size();
-    const double increment = (double)(1.0 / (double)steps);
+    const double increment = 1.0 / double(steps);
 
     // special case: first ring connects to 0,0,0
     // insert and form facets.
@@ -110,7 +110,7 @@ Contour3D sphere(double rho, Portion portion = make_portion(0.0, 2.0*PI),
         // Fixed scaling
         const double z = -rho + increment*rho*2.0 * (sbegin + 1.0);
         // radius of the circle for this step.
-        const double r = sqrt(abs(rho*rho - z*z));
+        const double r = std::sqrt(std::abs(rho*rho - z*z));
         Vec2d b = Eigen::Rotation2Dd(ring[i]) * Eigen::Vector2d(0, r);
         vertices.emplace_back(Vec3d(b(0), b(1), z));
 
@@ -123,13 +123,13 @@ Contour3D sphere(double rho, Portion portion = make_portion(0.0, 2.0*PI),
     // General case: insert and form facets for each step,
     // joining it to the ring below it.
     for (size_t s = sbegin + 2; s < send - 1; s++) {
-        const double z = -rho + increment*(double)s*2.0*rho;
-        const double r = sqrt(abs(rho*rho - z*z));
+        const double z = -rho + increment*double(s*2.0*rho);
+        const double r = std::sqrt(std::abs(rho*rho - z*z));
 
         for (size_t i = 0; i < ring.size(); i++) {
             Vec2d b = Eigen::Rotation2Dd(ring[i]) * Eigen::Vector2d(0, r);
             vertices.emplace_back(Vec3d(b(0), b(1), z));
-            auto id_ringsize = coord_t(id - ring.size());
+            auto id_ringsize = coord_t(id - int(ring.size()));
             if (i == 0) {
                 // wrap around
                 facets.emplace_back(Vec3crd(id - 1, id,
@@ -148,12 +148,12 @@ Contour3D sphere(double rho, Portion portion = make_portion(0.0, 2.0*PI),
     if(send >= size_t(2*PI / angle)) {
         vertices.emplace_back(Vec3d(0.0, 0.0, -rho + increment*send*2.0*rho));
         for (size_t i = 0; i < ring.size(); i++) {
-            auto id_ringsize = coord_t(id - ring.size());
+            auto id_ringsize = coord_t(id - int(ring.size()));
             if (i == 0) {
                 // third vertex is on the other side of the ring.
                 facets.emplace_back(Vec3crd(id - 1, id_ringsize, id));
             } else {
-                auto ci = coord_t(id_ringsize + i);
+                auto ci = coord_t(id_ringsize + coord_t(i));
                 facets.emplace_back(Vec3crd(ci - 1, ci, id));
             }
         }
@@ -710,7 +710,8 @@ public:
         meshcache = TriangleMesh();
 
         for(auto& head : heads()) {
-            meshcache.merge(mesh(head.mesh));
+            auto&& m = mesh(head.mesh);
+            meshcache.merge(m);
         }
 
         for(auto& stick : pillars()) {
