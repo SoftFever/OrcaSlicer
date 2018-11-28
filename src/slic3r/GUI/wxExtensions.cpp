@@ -1446,7 +1446,7 @@ void PrusaDoubleSlider::get_size(int *w, int *h)
 
 double PrusaDoubleSlider::get_double_value(const SelectedSlider& selection)
 {
-    if (m_values.empty())
+    if (m_values.empty() || m_lower_value<0)
         return 0.0;
     if (m_values.size() <= m_higher_value) {
         correct_higher_value();

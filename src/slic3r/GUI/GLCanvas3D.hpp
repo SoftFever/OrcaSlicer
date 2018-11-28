@@ -710,7 +710,7 @@ private:
     public:
         LegendTexture();
 
-        bool generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
+        bool generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors, const GLCanvas3D& canvas);
 
         void render(const GLCanvas3D& canvas) const;
     };

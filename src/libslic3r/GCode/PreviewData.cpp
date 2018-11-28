@@ -382,7 +382,7 @@ std::string GCodePreviewData::get_legend_title() const
     return "";
 }
 
-GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::vector<float>& tool_colors, const std::vector<double>& cp_values) const
+GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::vector<float>& tool_colors, const std::vector</*double*/std::pair<double, double>>& cp_values) const
 {
     struct Helper
     {
@@ -465,15 +465,16 @@ GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::
                     break;
                 }
                 if (i == 0) {
-                    items.emplace_back((boost::format(Slic3r::I18N::translate(L("up to %.2f mm"))) % cp_values[0]).str(), color);
+                    items.emplace_back((boost::format(Slic3r::I18N::translate(L("up to %.2f mm"))) % cp_values[0].first).str(), color);
                     break;
                 }
                 if (i == color_print_cnt) {
-                    items.emplace_back((boost::format(Slic3r::I18N::translate(L("above %.2f mm"))) % cp_values[i-1]).str(), color);
+                    items.emplace_back((boost::format(Slic3r::I18N::translate(L("above %.2f mm"))) % cp_values[i-1].second).str(), color);
                     continue;
                 }
 
-                items.emplace_back((boost::format(Slic3r::I18N::translate(L("%.2f - %.2f mm"))) %  cp_values[i-1] % cp_values[i]).str(), color);
+//                 items.emplace_back((boost::format(Slic3r::I18N::translate(L("%.2f - %.2f mm"))) %  cp_values[i-1] % cp_values[i]).str(), color);
+                items.emplace_back((boost::format(Slic3r::I18N::translate(L("%.2f - %.2f mm"))) %  cp_values[i-1].second % cp_values[i].first).str(), color);
             }
             break;
         }

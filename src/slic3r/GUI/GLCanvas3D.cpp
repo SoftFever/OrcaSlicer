@@ -3115,16 +3115,38 @@ GLCanvas3D::LegendTexture::LegendTexture()
 {
 }
 
-bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors)
+bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors, const GLCanvas3D& canvas)
 {
     reset();
 
     // collects items to render
     auto title = _(preview_data.get_legend_title());
 
-    const auto& config = wxGetApp().preset_bundle->full_config();
-    const std::vector<double>& color_print_values = config.option<ConfigOptionFloats>("colorprint_heights")->values;
-    const GCodePreviewData::LegendItemsList& items = preview_data.get_legend_items(tool_colors, color_print_values);
+    std::vector<std::pair<double, double>> cp_legend_values;
+    if (preview_data.extrusion.view_type == GCodePreviewData::Extrusion::ColorPrint) 
+    {
+        const auto& config = wxGetApp().preset_bundle->full_config();
+        const std::vector<double>& color_print_values = config.option<ConfigOptionFloats>("colorprint_heights")->values;
+        const int values_cnt = color_print_values.size();
+        if (values_cnt > 0) {
+            auto print_zs = canvas.get_current_print_zs(true);
+            auto z = 0;
+            for (auto i = 0; i < values_cnt; ++i)
+            {
+                double prev_z = -1.0;
+                for (z; z < print_zs.size(); ++z)
+                    if (fabs(color_print_values[i] - print_zs[z]) < EPSILON) {
+                        prev_z = print_zs[z - 1];
+                        break;
+                    }
+                if (prev_z < 0)
+                    continue;
+                
+                cp_legend_values.push_back(std::pair<double, double>(prev_z, color_print_values[i]));
+            }
+        }
+    }
+    const GCodePreviewData::LegendItemsList& items = preview_data.get_legend_items(tool_colors, /*color_print_values*/cp_legend_values);
 
     unsigned int items_count = (unsigned int)items.size();
     if (items_count == 0)
@@ -7414,7 +7436,7 @@ void GLCanvas3D::_generate_legend_texture(const GCodePreviewData& preview_data, 
         return;
 #endif // !ENABLE_USE_UNIQUE_GLCONTEXT
 
-    m_legend_texture.generate(preview_data, tool_colors);
+    m_legend_texture.generate(preview_data, tool_colors, *this);
 }
 
 void GLCanvas3D::_generate_warning_texture(const std::string& msg)
