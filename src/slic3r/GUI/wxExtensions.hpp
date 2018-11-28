@@ -683,6 +683,12 @@ public:
     void ChangeOneLayerLock();
     std::vector<double> GetTicksValues() const;
     void SetTicksValues(const std::vector<double>& heights);
+    void EnableTickManipulation(bool enable = true) {
+        m_is_enabled_tick_manipulation = enable;
+    }
+    void DisableTickManipulation() {
+        EnableTickManipulation(false);
+    }
 
     void OnPaint(wxPaintEvent& ) { render();}
     void OnLeftDown(wxMouseEvent& event);
@@ -753,6 +759,7 @@ private:
     bool        m_is_focused = false;
     bool        m_is_action_icon_focesed = false;
     bool        m_is_one_layer_icon_focesed = false;
+    bool        m_is_enabled_tick_manipulation = true;
 
     wxRect      m_rect_lower_thumb;
     wxRect      m_rect_higher_thumb;

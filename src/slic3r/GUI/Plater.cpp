@@ -1606,6 +1606,10 @@ void Plater::priv::reset()
     sidebar->obj_list()->delete_all_objects_from_list();
     object_list_changed();
     update();
+
+
+    auto& config = wxGetApp().preset_bundle->project_config;
+    config.option<ConfigOptionFloats>("colorprint_heights")->values.clear();
 }
 
 void Plater::priv::mirror(Axis axis)

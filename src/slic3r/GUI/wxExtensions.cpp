@@ -1569,7 +1569,8 @@ void PrusaDoubleSlider::draw_info_line_with_icon(wxDC& dc, const wxPoint& pos, c
         dc.DrawLine(pt_beg, pt_end);
 
         //draw action icon
-        draw_action_icon(dc, pt_beg, pt_end);
+        if (m_is_enabled_tick_manipulation)
+            draw_action_icon(dc, pt_beg, pt_end);
     }
 }
 
@@ -1677,7 +1678,7 @@ void PrusaDoubleSlider::draw_thumbs(wxDC& dc, const wxCoord& lower_pos, const wx
 
 void PrusaDoubleSlider::draw_ticks(wxDC& dc)
 {
-    dc.SetPen(DARK_GREY_PEN);
+    dc.SetPen(m_is_enabled_tick_manipulation ? DARK_GREY_PEN : LIGHT_GREY_PEN );
     int height, width;
     get_size(&width, &height);
     const wxCoord mid = is_horizontal() ? 0.5*height : 0.5*width;
@@ -1794,7 +1795,7 @@ void PrusaDoubleSlider::OnLeftDown(wxMouseEvent& event)
     this->CaptureMouse();
     wxClientDC dc(this);
     wxPoint pos = event.GetLogicalPosition(dc);
-    if (is_point_in_rect(pos, m_rect_tick_action)) {
+    if (is_point_in_rect(pos, m_rect_tick_action) && m_is_enabled_tick_manipulation) {
         action_tick(taOnIcon);
         return;
     }
@@ -1812,7 +1813,7 @@ void PrusaDoubleSlider::OnLeftDown(wxMouseEvent& event)
     else
         detect_selected_slider(pos);
 
-    if (!m_selection) {
+    if (!m_selection && m_is_enabled_tick_manipulation) {
         const auto tick = is_point_near_tick(pos);
         if (tick >= 0)
         {
