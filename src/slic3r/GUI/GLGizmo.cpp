@@ -1559,11 +1559,9 @@ void GLGizmoFlatten::update_planes()
     m_planes.resize(std::min((int)m_planes.size(), 254));
 
     // Planes are finished - let's save what we calculated it from:
-    m_source_data.bounding_boxes.clear();
-    for (const auto& vol : m_model_object->volumes)
-        m_source_data.bounding_boxes.push_back(vol->get_convex_hull().bounding_box());
-    const float* first_vertex = m_model_object->volumes.front()->get_convex_hull().first_vertex();
-    m_source_data.mesh_first_point = Vec3d((double)first_vertex[0], (double)first_vertex[1], (double)first_vertex[2]);
+    m_volumes_matrices.clear();
+    for (const ModelVolume* vol : m_model_object->volumes)
+        m_volumes_matrices.push_back(vol->get_matrix());
 }
 
 // Check if the bounding boxes of each volume's convex hull is the same as before
@@ -1573,18 +1571,12 @@ bool GLGizmoFlatten::is_plane_update_necessary() const
     if (m_state != On || !m_model_object || m_model_object->instances.empty())
         return false;
 
-    if (m_model_object->volumes.size() != m_source_data.bounding_boxes.size())
+    if (m_model_object->volumes.size() != m_volumes_matrices.size())
         return true;
 
-    // now compare the bounding boxes:
-    for (unsigned int i=0; i<m_model_object->volumes.size(); ++i)
-        if (m_model_object->volumes[i]->get_convex_hull().bounding_box() != m_source_data.bounding_boxes[i])
+    for (unsigned int i=0; i < m_model_object->volumes.size(); ++i)
+        if (! m_model_object->volumes[i]->get_matrix().isApprox(m_volumes_matrices[i]))
             return true;
-
-    const float* first_vertex = m_model_object->volumes.front()->get_convex_hull().first_vertex();
-    Vec3d first_point((double)first_vertex[0], (double)first_vertex[1], (double)first_vertex[2]);
-    if (first_point != m_source_data.mesh_first_point)
-        return true;
 
     return false;
 }

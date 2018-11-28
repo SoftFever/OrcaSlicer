@@ -414,13 +414,9 @@ private:
         Vec3d normal;
         float area;
     };
-    struct SourceDataSummary {
-        std::vector<BoundingBoxf3> bounding_boxes; // bounding boxes of convex hulls of individual volumes
-        Vec3d mesh_first_point;
-    };
 
     // This holds information to decide whether recalculation is necessary:
-    SourceDataSummary m_source_data;
+    std::vector<Transform3d> m_volumes_matrices;
 
     std::vector<PlaneData> m_planes;
     mutable Vec3d m_starting_center;
