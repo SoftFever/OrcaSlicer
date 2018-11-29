@@ -567,19 +567,7 @@ void SLAPrint::process()
         }
     };
 
-    using Layer = sla::ExPolygons;
-    using LayerCopies = std::vector<SLAPrintObject::Instance>;
-    struct LayerRef {
-        std::reference_wrapper<const Layer> lref;
-        std::reference_wrapper<const LayerCopies> copies;
-        LayerRef(const Layer& lyr, const LayerCopies& cp) :
-            lref(std::cref(lyr)), copies(std::cref(cp)) {}
-    };
-
-    using LevelID = long long;
-    using LayerRefs = std::vector<LayerRef>;
-    // layers according to quantized height levels
-    std::map<LevelID, LayerRefs> levels;
+    auto& levels = m_printer_input;
 
     // We have the layer polygon collection but we need to unite them into
     // an index where the key is the height level in discrete levels (clipper)
