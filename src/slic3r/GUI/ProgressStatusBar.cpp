@@ -75,7 +75,11 @@ void ProgressStatusBar::set_progress(int val)
     if(val == m_prog->GetRange()) {
         m_prog->SetValue(0);
         show_progress(false);
-    } else {
+    }
+    else if(val < 0) {
+        m_prog->Pulse();
+    }
+    else {
         m_prog->SetValue(val);
     }
 }

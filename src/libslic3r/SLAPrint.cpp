@@ -517,7 +517,7 @@ void SLAPrint::process()
     };
 
     // This step generates the sla base pad
-    auto base_pool = [](SLAPrintObject& po) {
+    auto base_pool = [this](SLAPrintObject& po) {
         // this step can only go after the support tree has been created
         // and before the supports had been sliced. (or the slicing has to be
         // repeated)
@@ -545,6 +545,15 @@ void SLAPrint::process()
 
             po.m_supportdata->support_tree_ptr->add_pad(bp, wt, h, md, er);
         }
+
+        // if the base pool (which means also the support tree) is
+        // done, do a refresh when indicating progress. Now the
+        // geometries for the supports and the optional base pad are
+        // ready. We can grant access for the control thread to read
+        // the geometries, but first we have to update the caches:
+        po.support_mesh(); /*po->pad_mesh();*/
+        auto rc = SlicingStatus::RELOAD_SCENE;
+        set_status(-1, L("Visualizing supports"), rc);
     };
 
     // Slicing the support geometries similarly to the model slicing procedure.
@@ -768,8 +777,6 @@ void SLAPrint::process()
         [](){}  // validate
     };
 
-    static const auto RELOAD_SCENE = SlicingStatus::RELOAD_SCENE;
-
     unsigned st = min_objstatus;
     unsigned incr = 0;
 
@@ -789,19 +796,8 @@ void SLAPrint::process()
             if(po->m_stepmask[currentstep] && po->set_started(currentstep)) {
 
                 set_status(int(st), OBJ_STEP_LABELS[currentstep]);
-
                 pobj_program[currentstep](*po);
                 po->set_done(currentstep);
-
-                if(currentstep == slaposBasePool) {
-                    // if the base pool (which means also the support tree) is
-                    // done, do a refresh when indicating progress. Now the
-                    // geometries for the supports and the optional base pad are
-                    // ready. We can grant access for the control thread to read
-                    // the geometries, but first we have to update the caches:
-                    po->support_mesh(); /*po->pad_mesh();*/
-                    set_status(int(st), L("Visualizing supports"), RELOAD_SCENE);
-                }
             }
 
             incr = OBJ_STEP_LEVELS[currentstep];
