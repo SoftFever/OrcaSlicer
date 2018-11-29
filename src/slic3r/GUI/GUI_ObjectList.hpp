@@ -18,6 +18,9 @@ class DynamicPrintConfig;
 class ModelObject;
 class ModelVolume;
 
+// FIXME: broken build on mac os because of this is missing:
+typedef std::vector<std::string>    t_config_option_keys;
+
 namespace GUI {
 
 wxDECLARE_EVENT(EVT_OBJ_LIST_OBJECT_SELECT, SimpleEvent);
