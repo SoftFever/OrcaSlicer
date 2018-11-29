@@ -7,6 +7,8 @@
 #include "GLToolbar.hpp"
 #include "Event.hpp"
 
+#include <float.h>
+
 #include <wx/timer.h>
 
 class wxWindow;

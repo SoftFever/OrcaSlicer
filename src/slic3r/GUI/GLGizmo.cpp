@@ -435,6 +435,7 @@ void GLGizmoRotate::on_render(const GLCanvas3D::Selection& selection) const
         render_angle();
 
     render_grabber(box);
+    render_grabber_extension(box, false);
 
     ::glPopMatrix();
 }
@@ -446,7 +447,10 @@ void GLGizmoRotate::on_render_for_picking(const GLCanvas3D::Selection& selection
     ::glPushMatrix();
 
     transform_to_local();
-    render_grabbers_for_picking(selection.get_bounding_box());
+
+    const BoundingBoxf3& box = selection.get_bounding_box();
+    render_grabbers_for_picking(box);
+    render_grabber_extension(box, true);
 
     ::glPopMatrix();
 }
@@ -559,6 +563,50 @@ void GLGizmoRotate::render_grabber(const BoundingBoxf3& box) const
     render_grabbers(box);
 }
 
+void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool picking) const
+{
+    float size = m_dragging ? m_grabbers[0].get_dragging_half_size((float)box.max_size()) : m_grabbers[0].get_half_size((float)box.max_size());
+
+    float color[3];
+    ::memcpy((void*)color, (const void*)m_grabbers[0].color, 3 * sizeof(float));
+    if (!picking && (m_hover_id != -1))
+    {
+        color[0] = 1.0f - color[0];
+        color[1] = 1.0f - color[1];
+        color[2] = 1.0f - color[2];
+    }
+
+    if (!picking)
+        ::glEnable(GL_LIGHTING);
+
+    ::glColor3fv(color);
+    GLUquadricObj* quadric = ::gluNewQuadric();
+    ::gluQuadricDrawStyle(quadric, GLU_FILL);
+    ::glPushMatrix();
+    ::glTranslated(m_grabbers[0].center(0), m_grabbers[0].center(1), m_grabbers[0].center(2));
+    ::glRotated(Geometry::rad2deg(m_angle), 0.0, 0.0, 1.0);
+    ::glRotated(90.0, 1.0, 0.0, 0.0);
+    ::glTranslated(0.0, 0.0, 2.0 * size);
+    ::gluCylinder(quadric, 0.75f * size, 0.0f, 3.0f * size, 36, 1);
+    ::gluQuadricOrientation(quadric, GLU_INSIDE);
+    ::gluDisk(quadric, 0.0f, 0.75f * size, 36, 1);
+    ::glPopMatrix();
+    ::glPushMatrix();
+    ::glTranslated(m_grabbers[0].center(0), m_grabbers[0].center(1), m_grabbers[0].center(2));
+    ::glRotated(Geometry::rad2deg(m_angle), 0.0, 0.0, 1.0);
+    ::glRotated(-90.0, 1.0, 0.0, 0.0);
+    ::glTranslated(0.0, 0.0, 2.0 * size);
+    ::gluQuadricOrientation(quadric, GLU_OUTSIDE);
+    ::gluCylinder(quadric, 0.75f * size, 0.0f, 3.0f * size, 36, 1);
+    ::gluQuadricOrientation(quadric, GLU_INSIDE);
+    ::gluDisk(quadric, 0.0f, 0.75f * size, 36, 1);
+    ::glPopMatrix();
+    ::gluDeleteQuadric(quadric);
+
+    if (!picking)
+        ::glDisable(GL_LIGHTING);
+}
+
 void GLGizmoRotate::transform_to_local() const
 {
     ::glTranslated(m_center(0), m_center(1), m_center(2));
@@ -574,7 +622,7 @@ void GLGizmoRotate::transform_to_local() const
     case Y:
     {
         ::glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
-        ::glRotatef(180.0f, 0.0f, 0.0f, 1.0f);
+        ::glRotatef(90.0f, 0.0f, 0.0f, 1.0f);
         break;
     }
     default:
@@ -602,7 +650,7 @@ Vec3d GLGizmoRotate::mouse_position_in_local_plane(const Linef3& mouse_ray) cons
     }
     case Y:
     {
-        m.rotate(Eigen::AngleAxisd(-(double)PI, Vec3d::UnitZ()));
+        m.rotate(Eigen::AngleAxisd(-half_pi, Vec3d::UnitZ()));
         m.rotate(Eigen::AngleAxisd(half_pi, Vec3d::UnitX()));
         break;
     }
