@@ -200,7 +200,31 @@ private:
 
     PrintObjects                    m_objects;
     std::vector<bool>               m_stepmask;
-    SLAPrinterPtr                   m_printer;
+
+    // Definition of the print input map. It consists of the slices indexed
+    // with scaled (clipper) Z coordinates. Also contains the instance
+    // transformations in scaled and filtered version. This is enough for the
+    // rasterizer to be able to draw every layer in the right position
+    using Layer = ExPolygons;
+    using LayerCopies = std::vector<SLAPrintObject::Instance>;
+    struct LayerRef {
+        std::reference_wrapper<const Layer> lref;
+        std::reference_wrapper<const LayerCopies> copies;
+        LayerRef(const Layer& lyr, const LayerCopies& cp) :
+            lref(std::cref(lyr)), copies(std::cref(cp)) {}
+    };
+
+    // Layers according to quantized height levels. This will be consumed by
+    // the printer (rasterizer) in the SLAPrint class.
+    using LevelID = long long;
+
+    // One level may contain multiple slices from multiple objects and their
+    // supports
+    using LayerRefs = std::vector<LayerRef>;
+    std::map<LevelID, LayerRefs>            m_printer_input;
+
+    // The printer itself
+    SLAPrinterPtr                           m_printer;
 
 	friend SLAPrintObject;
 };

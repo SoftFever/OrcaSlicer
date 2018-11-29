@@ -517,7 +517,7 @@ void SLAPrint::process()
     };
 
     // This step generates the sla base pad
-    auto base_pool = [](SLAPrintObject& po) {
+    auto base_pool = [this](SLAPrintObject& po) {
         // this step can only go after the support tree has been created
         // and before the supports had been sliced. (or the slicing has to be
         // repeated)
@@ -545,6 +545,15 @@ void SLAPrint::process()
 
             po.m_supportdata->support_tree_ptr->add_pad(bp, wt, h, md, er);
         }
+
+        // if the base pool (which means also the support tree) is
+        // done, do a refresh when indicating progress. Now the
+        // geometries for the supports and the optional base pad are
+        // ready. We can grant access for the control thread to read
+        // the geometries, but first we have to update the caches:
+        po.support_mesh(); /*po->pad_mesh();*/
+        auto rc = SlicingStatus::RELOAD_SCENE;
+        set_status(-1, L("Visualizing supports"), rc);
     };
 
     // Slicing the support geometries similarly to the model slicing procedure.
@@ -558,19 +567,7 @@ void SLAPrint::process()
         }
     };
 
-    using Layer = sla::ExPolygons;
-    using LayerCopies = std::vector<SLAPrintObject::Instance>;
-    struct LayerRef {
-        std::reference_wrapper<const Layer> lref;
-        std::reference_wrapper<const LayerCopies> copies;
-        LayerRef(const Layer& lyr, const LayerCopies& cp) :
-            lref(std::cref(lyr)), copies(std::cref(cp)) {}
-    };
-
-    using LevelID = long long;
-    using LayerRefs = std::vector<LayerRef>;
-    // layers according to quantized height levels
-    std::map<LevelID, LayerRefs> levels;
+    auto& levels = m_printer_input;
 
     // We have the layer polygon collection but we need to unite them into
     // an index where the key is the height level in discrete levels (clipper)
@@ -768,8 +765,6 @@ void SLAPrint::process()
         [](){}  // validate
     };
 
-    static const auto RELOAD_SCENE = SlicingStatus::RELOAD_SCENE;
-
     unsigned st = min_objstatus;
     unsigned incr = 0;
 
@@ -789,19 +784,8 @@ void SLAPrint::process()
             if(po->m_stepmask[currentstep] && po->set_started(currentstep)) {
 
                 set_status(int(st), OBJ_STEP_LABELS[currentstep]);
-
                 pobj_program[currentstep](*po);
                 po->set_done(currentstep);
-
-                if(currentstep == slaposBasePool) {
-                    // if the base pool (which means also the support tree) is
-                    // done, do a refresh when indicating progress. Now the
-                    // geometries for the supports and the optional base pad are
-                    // ready. We can grant access for the control thread to read
-                    // the geometries, but first we have to update the caches:
-                    po->support_mesh(); /*po->pad_mesh();*/
-                    set_status(int(st), L("Visualizing supports"), RELOAD_SCENE);
-                }
             }
 
             incr = OBJ_STEP_LEVELS[currentstep];
@@ -912,12 +896,12 @@ bool SLAPrintObject::invalidate_state_by_config_options(const std::vector<t_conf
     std::vector<SLAPrintObjectStep> steps;
     bool invalidated = false;
     for (const t_config_option_key &opt_key : opt_keys) {
-        if (   opt_key == "support_head_front_radius"
+        if (   opt_key == "supports_enable"
+            || opt_key == "support_head_front_diameter"
             || opt_key == "support_head_penetration"
-            || opt_key == "support_head_back_radius"
             || opt_key == "support_head_width"
-            || opt_key == "support_pillar_radius"
-            || opt_key == "support_base_radius"
+            || opt_key == "support_pillar_diameter"
+            || opt_key == "support_base_diameter"
             || opt_key == "support_base_height"
             || opt_key == "support_critical_angle"
             || opt_key == "support_max_bridge_length"
@@ -949,18 +933,21 @@ bool SLAPrintObject::invalidate_step(SLAPrintObjectStep step)
     if (step == slaposObjectSlice) {
         invalidated |= this->invalidate_all_steps();
     } else if (step == slaposSupportIslands) {
-        invalidated |= this->invalidate_steps({ slaposSupportPoints, slaposSupportTree, slaposBasePool, slaposSliceSupports });
+        invalidated |= this->invalidate_steps({ slaposSupportPoints, slaposSupportTree, slaposBasePool, slaposSliceSupports, slaposIndexSlices });
         invalidated |= m_print->invalidate_step(slapsRasterize);
     } else if (step == slaposSupportPoints) {
-        invalidated |= this->invalidate_steps({ slaposSupportTree, slaposBasePool, slaposSliceSupports });
+        invalidated |= this->invalidate_steps({ slaposSupportTree, slaposBasePool, slaposSliceSupports, slaposIndexSlices });
         invalidated |= m_print->invalidate_step(slapsRasterize);
     } else if (step == slaposSupportTree) {
-        invalidated |= this->invalidate_steps({ slaposBasePool, slaposSliceSupports });
+        invalidated |= this->invalidate_steps({ slaposBasePool, slaposSliceSupports, slaposIndexSlices });
         invalidated |= m_print->invalidate_step(slapsRasterize);
     } else if (step == slaposBasePool) {
-        invalidated |= this->invalidate_step(slaposSliceSupports);
+        invalidated |= this->invalidate_steps({slaposSliceSupports, slaposIndexSlices});
         invalidated |= m_print->invalidate_step(slapsRasterize);
     } else if (step == slaposSliceSupports) {
+        invalidated |= this->invalidate_step(slaposIndexSlices);
+        invalidated |= m_print->invalidate_step(slapsRasterize);
+    } else if(step == slaposIndexSlices) {
         invalidated |= m_print->invalidate_step(slapsRasterize);
     }
     return invalidated;

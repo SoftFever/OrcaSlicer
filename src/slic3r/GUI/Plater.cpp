@@ -1746,6 +1746,9 @@ void Plater::priv::sla_optimize_rotation() {
     if(rotoptimizing.load()) // wasn't canceled
     for(ModelInstance * oi : o->instances) oi->set_rotation({r[X], r[Y], r[Z]});
 
+    // Correct the z offset of the object which was corrupted be the rotation
+    o->ensure_on_bed();
+
     stfn(0, L("Orientation found."));
     statusbar()->set_range(prev_range);
     statusbar()->set_cancel_callback();
