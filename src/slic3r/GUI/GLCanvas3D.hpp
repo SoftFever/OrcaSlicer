@@ -905,6 +905,8 @@ public:
     void do_flatten();
     void do_mirror();
 
+    void set_camera_zoom(float zoom);
+
 private:
     bool _is_shown_on_screen() const;
     void _force_zoom_to_bed();

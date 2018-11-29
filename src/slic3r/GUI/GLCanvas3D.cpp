@@ -4422,6 +4422,12 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
                 // key B/b
                 case 66:
                 case 98: { zoom_to_bed(); break; }
+                // key I/i
+                case 73:
+                case 105: { set_camera_zoom(1.0f); break; }
+                // key O/o
+                case 79:
+                case 111: { set_camera_zoom(-1.0f); break; }
 #if ENABLE_MODIFIED_CAMERA_TARGET
                 // key Z/z
                 case 90:
@@ -4486,18 +4492,7 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
 
     // Calculate the zoom delta and apply it to the current zoom factor
     float zoom = (float)evt.GetWheelRotation() / (float)evt.GetWheelDelta();
-    zoom = std::max(std::min(zoom, 4.0f), -4.0f) / 10.0f;
-    zoom = get_camera_zoom() / (1.0f - zoom);
-    
-    // Don't allow to zoom too far outside the scene.
-    float zoom_min = _get_zoom_to_bounding_box_factor(_max_bounding_box());
-    if (zoom_min > 0.0f)
-        zoom = std::max(zoom, zoom_min * 0.8f);
-    
-    m_camera.zoom = zoom;
-    viewport_changed();
-
-    _refresh_if_shown_on_screen();
+    set_camera_zoom(zoom);
 }
 
 void GLCanvas3D::on_timer(wxTimerEvent& evt)
@@ -5249,6 +5244,21 @@ void GLCanvas3D::do_mirror()
     }
 
     post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
+}
+
+void GLCanvas3D::set_camera_zoom(float zoom)
+{
+    zoom = std::max(std::min(zoom, 4.0f), -4.0f) / 10.0f;
+    zoom = get_camera_zoom() / (1.0f - zoom);
+
+    // Don't allow to zoom too far outside the scene.
+    float zoom_min = _get_zoom_to_bounding_box_factor(_max_bounding_box());
+    if (zoom_min > 0.0f)
+        zoom = std::max(zoom, zoom_min * 0.8f);
+
+    m_camera.zoom = zoom;
+    viewport_changed();
+    _refresh_if_shown_on_screen();
 }
 
 bool GLCanvas3D::_is_shown_on_screen() const
