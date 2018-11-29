@@ -1,7 +1,7 @@
 #ifndef slic3r_GUI_Utils_hpp_
 #define slic3r_GUI_Utils_hpp_
 
-#include <functional>
+#include <memory>
 #include <string>
 
 #include <boost/optional.hpp>
@@ -10,6 +10,7 @@
 #include <wx/filedlg.h>
 #include <wx/gdicmn.h>
 #include <wx/panel.h>
+#include <wx/debug.h>
 
 class wxCheckBox;
 class wxTopLevelWindow;
@@ -25,40 +26,80 @@ wxTopLevelWindow* find_toplevel_parent(wxWindow *window);
 
 class EventGuard
 {
+    // This is a RAII-style smart-ptr-like guard that will bind any event to any event handler
+    // and unbind it as soon as it goes out of scope or unbind() is called.
+    // This can be used to solve the annoying problem of wx events being delivered to freed objects.
+
+private:
+    // This is a way to type-erase both the event type as well as the handler:
+
+    struct EventStorageBase {
+        virtual ~EventStorageBase() {}
+    };
+
+    template<class EvTag, class Fun>
+    struct EventStorageFun : EventStorageBase {
+        wxEvtHandler *emitter;
+        EvTag tag;
+        Fun fun;
+
+        EventStorageFun(wxEvtHandler *emitter, const EvTag &tag, Fun fun)
+            : emitter(emitter)
+            , tag(tag)
+            , fun(std::move(fun))
+        {
+            emitter->Bind(this->tag, this->fun);
+        }
+
+        virtual ~EventStorageFun() { emitter->Unbind(tag, fun); }
+    };
+
+    template<typename EvTag, typename Class, typename EvArg, typename EvHandler>
+    struct EventStorageMethod : EventStorageBase {
+        typedef void(Class::* MethodPtr)(EvArg &);
+
+        wxEvtHandler *emitter;
+        EvTag tag;
+        MethodPtr method;
+        EvHandler *handler;
+
+        EventStorageMethod(wxEvtHandler *emitter, const EvTag &tag, MethodPtr method, EvHandler *handler)
+            : emitter(emitter)
+            , tag(tag)
+            , method(method)
+            , handler(handler)
+        {
+            emitter->Bind(tag, method, handler);
+        }
+
+        virtual ~EventStorageMethod() { emitter->Unbind(tag, method, handler); }
+    };
+
+    std::unique_ptr<EventStorageBase> event_storage;
 public:
     EventGuard() {}
     EventGuard(const EventGuard&) = delete;
-    EventGuard(EventGuard &&other) : unbinder(std::move(other.unbinder)) {}
+    EventGuard(EventGuard &&other) : event_storage(std::move(other.event_storage)) {}
 
-    ~EventGuard() {
-        if (unbinder) {
-            unbinder(false);
-        }
-    }
+    template<class EvTag, class Fun>
+    EventGuard(wxEvtHandler *emitter, const EvTag &tag, Fun fun)
+        :event_storage(new EventStorageFun<EvTag, Fun>(emitter, tag, std::move(fun)))
+    {}
 
-    template<class EvTag, class Fun> void bind(wxEvtHandler *emitter, const EvTag &type, Fun fun)
-    {
-        // This is a way to type-erase both the event type as well as the handler:
-
-        unbinder = std::move([=](bool bind) {
-            if (bind) {
-                emitter->Bind(type, fun);
-            } else {
-                emitter->Unbind(type, fun);
-            }
-        });
-
-        unbinder(true);
-    }
+    template<typename EvTag, typename Class, typename EvArg, typename EvHandler>
+    EventGuard(wxEvtHandler *emitter, const EvTag &tag, void(Class::* method)(EvArg &), EvHandler *handler)
+        :event_storage(new EventStorageMethod<EvTag, Class, EvArg, EvHandler>(emitter, tag, method, handler))
+    {}
 
     EventGuard& operator=(const EventGuard&) = delete;
     EventGuard& operator=(EventGuard &&other)
     {
-        unbinder.swap(other.unbinder);
+        event_storage = std::move(other.event_storage);
         return *this;
     }
-private:
-    std::function<void(bool)> unbinder;
+
+    void unbind() { event_storage.reset(nullptr); }
+    explicit operator bool() const noexcept { return !!event_storage; }
 };
 
 

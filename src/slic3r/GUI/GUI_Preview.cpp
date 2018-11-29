@@ -426,6 +426,14 @@ void Preview::update_double_slider(const std::vector<double>& layers_z, bool for
     m_slider->SetTicksValues(ticks_from_config);
 
     set_double_slider_thumbs(layers_z, z_low, z_high);
+
+    bool color_print_enable = (wxGetApp().plater()->printer_technology() == ptFFF);
+    if (color_print_enable) {
+        const auto& config = wxGetApp().preset_bundle->full_config();
+        if (config.opt<ConfigOptionFloats>("nozzle_diameter")->values.size() > 1) 
+            color_print_enable = false;
+    }
+    m_slider->EnableTickManipulation(color_print_enable);
 }
 
 void Preview::fill_slider_values(std::vector<std::pair<int, double>> &values,

@@ -677,6 +677,16 @@ private:
         GLGizmoBase* _get_current() const;
     };
 
+    struct SlaCap
+    {
+        double z;
+        Pointf3s triangles;
+
+        SlaCap() { reset(); }
+        void reset() { z = DBL_MAX; triangles.clear(); }
+        bool matches(double z) const { return this->z == z; }
+    };
+
     class WarningTexture : public GUI::GLTexture
     {
         static const unsigned char Background_Color[3];
@@ -710,7 +720,7 @@ private:
     public:
         LegendTexture();
 
-        bool generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
+        bool generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors, const GLCanvas3D& canvas);
 
         void render(const GLCanvas3D& canvas) const;
     };
@@ -731,6 +741,7 @@ private:
     mutable GLToolbar m_toolbar;
     ClippingPlane m_clipping_planes[2];
     bool m_use_clipping_planes;
+    mutable SlaCap m_sla_caps[2];
 
     mutable GLVolumeCollection m_volumes;
     Selection m_selection;
@@ -809,7 +820,10 @@ public:
     void set_clipping_plane(unsigned int id, const ClippingPlane& plane)
     {
         if (id < 2)
+        {
             m_clipping_planes[id] = plane;
+            m_sla_caps[id].reset();
+        }
     }
     void set_use_clipping_planes(bool use) { m_use_clipping_planes = use; }
 
@@ -904,6 +918,8 @@ public:
     void do_scale();
     void do_flatten();
     void do_mirror();
+
+    void set_camera_zoom(float zoom);
 
 private:
     bool _is_shown_on_screen() const;

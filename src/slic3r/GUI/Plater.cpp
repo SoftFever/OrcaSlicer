@@ -914,6 +914,10 @@ struct Plater::priv
 
     // GUI elements
     wxNotebook *notebook;
+    EventGuard guard_on_notebook_changed;
+    // Note: ^ The on_notebook_changed is guarded here because the wxNotebook d-tor tends to generate
+    // wxEVT_NOTEBOOK_PAGE_CHANGED events on some platforms, which causes them to be received by a freed Plater.
+    // EventGuard unbinds the handler in its d-tor.
     Sidebar *sidebar;
 #if !ENABLE_IMGUI
     wxPanel *panel3d;
@@ -1042,6 +1046,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         "extruder_colour", "filament_colour", "max_print_height", "printer_model", "printer_technology"
         }))
     , notebook(new wxNotebook(q, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_BOTTOM))
+    , guard_on_notebook_changed(notebook, wxEVT_NOTEBOOK_PAGE_CHANGED, &priv::on_notebook_changed, this)
     , sidebar(new Sidebar(q))
 #if ENABLE_IMGUI
     , canvas3Dwidget(GLCanvas3DManager::create_wxglcanvas(notebook))
@@ -1123,9 +1128,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     init_object_menu();
 
     // Events:
-
-    // Notebook page change event
-    notebook->Bind(wxEVT_NOTEBOOK_PAGE_CHANGED, &priv::on_notebook_changed, this);
 
     // Preset change event
     sidebar->Bind(wxEVT_COMBOBOX, &priv::on_select_preset, this);
@@ -1606,6 +1608,10 @@ void Plater::priv::reset()
     sidebar->obj_list()->delete_all_objects_from_list();
     object_list_changed();
     update();
+
+
+    auto& config = wxGetApp().preset_bundle->project_config;
+    config.option<ConfigOptionFloats>("colorprint_heights")->values.clear();
 }
 
 void Plater::priv::mirror(Axis axis)
@@ -1739,6 +1745,9 @@ void Plater::priv::sla_optimize_rotation() {
 
     if(rotoptimizing.load()) // wasn't canceled
     for(ModelInstance * oi : o->instances) oi->set_rotation({r[X], r[Y], r[Z]});
+
+    // Correct the z offset of the object which was corrupted be the rotation
+    o->ensure_on_bed();
 
     stfn(0, L("Orientation found."));
     statusbar()->set_range(prev_range);
@@ -1935,6 +1944,8 @@ void Plater::priv::fix_through_netfabb(const int obj_idx)
 
 void Plater::priv::on_notebook_changed(wxBookCtrlEvent&)
 {
+    wxCHECK_RET(canvas3D != nullptr, "on_notebook_changed on freed Plater");
+
     const auto current_id = notebook->GetCurrentPage()->GetId();
 #if ENABLE_IMGUI
     if (current_id == canvas3Dwidget->GetId()) {

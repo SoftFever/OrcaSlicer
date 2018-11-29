@@ -175,6 +175,7 @@ protected:
 
     float picking_color_component(unsigned int id) const;
     void render_grabbers(const BoundingBoxf3& box) const;
+    void render_grabbers(float size) const;
     void render_grabbers_for_picking(const BoundingBoxf3& box) const;
 
     void set_tooltip(const std::string& tooltip) const;

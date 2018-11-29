@@ -1322,11 +1322,11 @@ void GCode::process_layer(
     // In case there are more toolchange requests that weren't done yet and should happen simultaneously, erase them all.
     // (Layers can be close to each other, model could have been resliced with bigger layer height, ...).
     bool colorprint_change = false;
-    while (!m_colorprint_heights.empty() && m_colorprint_heights.front()/*-EPSILON*/ < layer.print_z-EPSILON) {
+    while (!m_colorprint_heights.empty() && m_colorprint_heights.front()-EPSILON < layer.print_z) {
         m_colorprint_heights.erase(m_colorprint_heights.begin());
         colorprint_change = true;
     }
-    if (colorprint_change)
+    if (colorprint_change && print.extruders().size()==1)
         gcode += "M600\n";
 
 
