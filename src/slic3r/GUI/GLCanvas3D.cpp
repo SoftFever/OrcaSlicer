@@ -4412,6 +4412,8 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
                 // text input
                 switch (keyCode)
                 {
+                // key ESC
+                case 27: { m_gizmos.reset_all_states(); m_dirty = true;  break; }
                 // key +
                 case 43: { post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, +1)); break; }
                 // key -
@@ -4451,7 +4453,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
                     if (m_gizmos.handle_shortcut(keyCode, m_selection))
                     {
                         _update_gizmos_data();
-                        render();
+                        m_dirty = true;
                     }
                     else
 #endif // ENABLE_GIZMOS_SHORTCUT
