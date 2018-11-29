@@ -35,6 +35,8 @@ public:
     ~ProgressStatusBar();
 
     int         get_progress() const;
+    // if the argument is less than 0 it shows the last state or
+    // pulses if no state was set before.
     void        set_progress(int);
     int         get_range() const;
     void        set_range(int = 100);

@@ -218,8 +218,10 @@ public:
                     std::sprintf(lyrnum, "%.5d", i);
                     auto zfilename = project + lyrnum + ".png";
                     writer.next_entry(zfilename);
-                    writer << m_layers_rst[i].second.rdbuf();
-                    m_layers_rst[i].second.str("");
+                    writer << m_layers_rst[i].second.str();
+                    // writer << m_layers_rst[i].second.rdbuf();
+                    // we can keep the date for later calls of this method
+                    //m_layers_rst[i].second.str("");
                 }
             }
 
@@ -249,146 +251,6 @@ public:
         m_layers_rst[i].first.reset();
     }
 };
-
-//// Let's shadow this eigen interface
-//inline coord_t  px(const Point& p) { return p(0); }
-//inline coord_t  py(const Point& p) { return p(1); }
-//inline coordf_t px(const Vec2d& p) { return p(0); }
-//inline coordf_t py(const Vec2d& p) { return p(1); }
-
-//template<FilePrinterFormat format, class LayerFormat, class...Args>
-//void print_to(Print& print,
-//              std::string dirpath,
-//              double width_mm,
-//              double height_mm,
-//              Args&&...args)
-//{
-
-//    std::string& dir = dirpath;
-
-//    // This map will hold the layers sorted by z coordinate. Layers on the
-//    // same height (from different objects) will be mapped to the same key and
-//    // rasterized to the same image.
-//    std::map<long long, LayerPtrs> layers;
-
-//    auto& objects = print.objects();
-
-//    // Merge the sliced layers with the support layers
-//    std::for_each(objects.cbegin(), objects.cend(),
-//                  [&layers](const PrintObject *o)
-//    {
-//        for(const auto l : o->layers()) {
-//            auto& lyrs = layers[static_cast<long long>(scale_(l->print_z))];
-//            lyrs.push_back(l);
-//        }
-
-//        for(const auto l : o->support_layers()) {
-//            auto& lyrs = layers[static_cast<long long>(scale_(l->print_z))];
-//            lyrs.push_back(l);
-//        }
-//    });
-
-//    auto print_bb = print.bounding_box();
-//    Vec2d punsc = unscale(print_bb.size());
-
-//    // If the print does not fit into the print area we should cry about it.
-//    if(px(punsc) > width_mm || py(punsc) > height_mm) {
-//        BOOST_LOG_TRIVIAL(warning) << "Warning: Print will not fit!" << "\n"
-//            << "Width needed: " << px(punsc) << "\n"
-//            << "Height needed: " << py(punsc) << "\n";
-//    }
-
-//    // Offset for centering the print onto the print area
-//    auto cx = scale_(width_mm)/2 - (px(print_bb.center()) - px(print_bb.min));
-//    auto cy = scale_(height_mm)/2 - (py(print_bb.center()) - py(print_bb.min));
-
-//    // Create the actual printer, forward any additional arguments to it.
-//    FilePrinter<format, LayerFormat> printer(width_mm, height_mm,
-//                                             std::forward<Args>(args)...);
-
-//    printer.print_config(print);
-
-//    printer.layers(layers.size());  // Allocate space for all the layers
-
-//    int st_prev = 0;
-//    const std::string jobdesc = "Rasterizing and compressing sliced layers";
-//    tbb::spin_mutex m;
-
-//    std::vector<long long> keys;
-//    keys.reserve(layers.size());
-//    for(auto& e : layers) keys.push_back(e.first);
-
-//    print.set_status(0, jobdesc);
-
-//    // Method that prints one layer
-//    auto process_layer = [&layers, &keys, &printer, &st_prev, &m,
-//            &jobdesc, print_bb, dir, cx, cy, &print]
-//            (unsigned layer_id)
-//    {
-//        LayerPtrs lrange = layers[keys[layer_id]];
-
-//        printer.begin_layer(layer_id);   // Switch to the appropriate layer
-
-//        for(Layer *lp : lrange) {
-//            Layer& l = *lp;
-
-//            ExPolygonCollection slices = l.slices;  // Copy the layer slices
-
-//            // Sort the polygons in the layer
-//            std::stable_sort(slices.expolygons.begin(), slices.expolygons.end(),
-//                             [](const ExPolygon& a, const ExPolygon& b) {
-//                return a.contour.contains(b.contour.first_point()) ? false :
-//                                                                     true;
-//            });
-
-//            // Draw all the polygons in the slice to the actual layer.
-//            for (const Point &d : l.object()->copies())
-//                for (ExPolygon slice : slices.expolygons) {
-//                    slice.translate(px(d), py(d));
-//                    slice.translate(-px(print_bb.min) + cx,
-//                                    -py(print_bb.min) + cy);
-
-//                    printer.draw_polygon(slice, layer_id);
-//                }
-
-//            /*if(print.has_support_material() && layer_id > 0) {
-//                BOOST_LOG_TRIVIAL(warning) << "support material for layer "
-//                                           << layer_id
-//                                           << " defined but export is "
-//                                              "not yet implemented.";
-
-//            }*/
-
-//        }
-
-//        printer.finish_layer(layer_id);  // Finish the layer for later saving it.
-
-//        auto st = static_cast<int>(layer_id*80.0/layers.size());
-//        m.lock();
-//        if( st - st_prev > 10) {
-//            print.set_status(st, jobdesc);
-//            st_prev = st;
-//        }
-//        m.unlock();
-
-//        // printer.saveLayer(layer_id, dir); We could save the layer immediately
-//    };
-
-//    // Print all the layers in parallel
-//    tbb::parallel_for<size_t, decltype(process_layer)>(0,
-//                                                       layers.size(),
-//                                                       process_layer);
-
-//    // Sequential version (for testing)
-//    // for(unsigned l = 0; l < layers.size(); ++l) process_layer(l);
-
-////    print.set_status(100, jobdesc);
-
-//    // Save the print into the file system.
-//    print.set_status(90, "Writing layers to disk");
-//    printer.save(dir);
-//    print.set_status(100, "Writing layers completed");
-//}
 
 }
 

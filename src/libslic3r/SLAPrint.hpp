@@ -33,6 +33,10 @@ class GLCanvas;
 using _SLAPrintObjectBase =
     PrintObjectBaseWithState<SLAPrint, SLAPrintObjectStep, slaposCount>;
 
+// Layers according to quantized height levels. This will be consumed by
+// the printer (rasterizer) in the SLAPrint class.
+using LevelID = long long;
+
 class SLAPrintObject : public _SLAPrintObjectBase
 {
 private: // Prevents erroneous use by other classes.
@@ -93,7 +97,6 @@ public:
     // to the z coordinate of the object coordinate system.
     struct SliceRecord {
         using Key = float;
-//        inline static float scale_back(Key h) { return float(h * SCALING_FACTOR); }
 
         using Idx = size_t;
         static const Idx NONE = Idx(-1); // this will be the max limit of size_t
@@ -145,6 +148,7 @@ private:
     std::vector<bool>                       m_stepmask;
     std::vector<ExPolygons>                 m_model_slices;
     SliceIndex                              m_slice_index;
+    std::vector<LevelID>                    m_level_ids;
 
     // Caching the transformed (m_trafo) raw mesh of the object
     mutable CachedObject<TriangleMesh>      m_transformed_rmesh;
@@ -213,10 +217,6 @@ private:
         LayerRef(const Layer& lyr, const LayerCopies& cp) :
             lref(std::cref(lyr)), copies(std::cref(cp)) {}
     };
-
-    // Layers according to quantized height levels. This will be consumed by
-    // the printer (rasterizer) in the SLAPrint class.
-    using LevelID = long long;
 
     // One level may contain multiple slices from multiple objects and their
     // supports

@@ -28,6 +28,7 @@ public:
     sla::PointSet    support_points;     // all the support points (manual/auto)
     SupportTreePtr   support_tree_ptr;   // the supports
     SlicedSupports   support_slices;     // sliced supports
+    std::vector<LevelID>    level_ids;
 };
 
 namespace {
@@ -567,11 +568,10 @@ void SLAPrint::process()
         }
     };
 
-    auto& levels = m_printer_input;
-
     // We have the layer polygon collection but we need to unite them into
     // an index where the key is the height level in discrete levels (clipper)
-    auto index_slices = [this, ilh, ilhd, &levels](SLAPrintObject& po) {
+    auto index_slices = [this, ilh, ilhd](SLAPrintObject& po) {
+        po.m_slice_index.clear();
         auto sih = LevelID(scale_(ilh));
 
         // For all print objects, go through its initial layers and place them
@@ -591,7 +591,7 @@ void SLAPrint::process()
         // It is important that the next levels match the levels in
         // model_slice method. Only difference is that here it works with
         // scaled coordinates
-        std::vector<LevelID> levelids;
+        auto& levelids = po.m_level_ids; levelids.clear();
         if(sminZ >= smodelgnd) levelids.emplace_back(sminZ);
         for(LevelID h = sminZ + sih; h < smaxZ; h += slh)
             if(h >= smodelgnd) levelids.emplace_back(h);
@@ -615,11 +615,9 @@ void SLAPrint::process()
 
         // shortcut for empty index into the slice vectors
         static const auto EMPTY_SLICE = SLAPrintObject::SliceRecord::NONE;
-
+        
         for(int i = 0; i < oslices.size(); ++i) {
             LevelID h = levelids[i];
-            auto& lyrs = levels[h]; // this initializes a new record
-            lyrs.emplace_back(oslices[i], po.m_instances);
 
             float fh = float(double(h) * SCALING_FACTOR);
 
@@ -632,13 +630,14 @@ void SLAPrint::process()
 
         if(po.m_supportdata) { // deal with the support slices if present
             auto& sslices = po.m_supportdata->support_slices;
+            po.m_supportdata->level_ids.clear();
+            po.m_supportdata->level_ids.reserve(sslices.size());
+
             for(int i = 0; i < sslices.size(); ++i) {
                 int a = i == 0 ? 0 : 1;
                 int b = i == 0 ? 0 : i - 1;
                 LevelID h = sminZ + a * sih + b * slh;
-
-                auto& lyrs = levels[h];
-                lyrs.emplace_back(sslices[i], po.m_instances);
+                po.m_supportdata->level_ids.emplace_back(h);
 
                 float fh = float(double(h) * SCALING_FACTOR);
 
@@ -649,9 +648,39 @@ void SLAPrint::process()
         }
     };
 
+    auto& levels = m_printer_input;
+
     // Rasterizing the model objects, and their supports
     auto rasterize = [this, ilh, ilhd, max_objstatus, &levels]() {
         if(canceled()) return;
+
+        // clear the rasterizer input
+        m_printer_input.clear();
+
+        for(SLAPrintObject * o : m_objects) {
+            auto& po = *o;
+            SlicedModel & oslices = po.m_model_slices;
+
+            // We need to adjust the min Z level of the slices to be zero
+            LevelID smfirst = po.m_supportdata? po.m_supportdata->level_ids.front() : 0;
+            LevelID mfirst = po.m_level_ids.front();
+            LevelID gndlvl = -(std::min(smfirst, mfirst));
+
+            // now merge this object's support and object slices with the rest
+            // of the print object slices
+
+            for(int i = 0; i < oslices.size(); ++i) {
+                auto& lyrs = levels[gndlvl + po.m_level_ids[i]];
+                lyrs.emplace_back(oslices[i], po.m_instances);
+            }
+
+            if(!po.m_supportdata) continue;
+            auto& sslices = po.m_supportdata->support_slices;
+            for(int i = 0; i < sslices.size(); ++i) {
+                auto& lyrs = levels[gndlvl + po.m_supportdata->level_ids[i]];
+                lyrs.emplace_back(sslices[i], po.m_instances);
+            }
+        }
 
         // collect all the keys
         std::vector<long long> keys; keys.reserve(levels.size());
@@ -704,8 +733,10 @@ void SLAPrint::process()
                 // Draw all the polygons in the slice to the actual layer.
                 for(auto& cp : copies) {
                     for(ExPolygon slice : sl) {
-                        slice.translate(cp.shift(X), cp.shift(Y));
+                        // The order is important here:
+                        // apply rotation before translation...
                         slice.rotate(cp.rotation);
+                        slice.translate(cp.shift(X), cp.shift(Y));
                         printer.draw_polygon(slice, level_id);
                     }
                 }
