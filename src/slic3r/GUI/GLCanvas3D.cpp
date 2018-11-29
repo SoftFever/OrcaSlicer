@@ -5940,7 +5940,6 @@ void GLCanvas3D::_render_sla_slices() const
     {
         if (obj->is_step_done(slaposIndexSlices))
         {
-            const SLAPrintObject::SliceIndex& index = obj->get_slice_index();
             const std::vector<ExPolygons>& model_slices = obj->get_model_slices();
             const std::vector<ExPolygons>& support_slices = obj->get_support_slices();
             const std::vector<SLAPrintObject::Instance>& instances = obj->instances();
@@ -5960,142 +5959,136 @@ void GLCanvas3D::_render_sla_slices() const
 
             double min_z = clip_min_z - shift_z;
             double max_z = clip_max_z - shift_z;
-            SLAPrintObject::SliceIndex::const_iterator it_min_z = std::find_if(index.begin(), index.end(), [min_z](const SLAPrintObject::SliceIndex::value_type& id) -> bool { return std::abs(min_z - id.first) < EPSILON; });
-            SLAPrintObject::SliceIndex::const_iterator it_max_z = std::find_if(index.begin(), index.end(), [max_z](const SLAPrintObject::SliceIndex::value_type& id) -> bool { return std::abs(max_z - id.first) < EPSILON; });
 
-            ::glColor3f(1.0f, 0.37f, 0.0f);
+            Pointf3s bottom_triangles;
+            Pointf3s top_triangles;
 
-            if (it_min_z != index.end())
+            if (m_sla_caps[0].matches(min_z))
+                bottom_triangles = m_sla_caps[0].triangles;
+
+            if (m_sla_caps[1].matches(max_z))
+                top_triangles = m_sla_caps[1].triangles;
+
+            if (bottom_triangles.empty() || top_triangles.empty())
             {
-                // render model bottom slices
-                if (it_min_z->second.model_slices_idx < model_slices.size())
+                const SLAPrintObject::SliceIndex& index = obj->get_slice_index();
+                SLAPrintObject::SliceIndex::const_iterator it_min_z = std::find_if(index.begin(), index.end(), [min_z](const SLAPrintObject::SliceIndex::value_type& id) -> bool { return std::abs(min_z - id.first) < EPSILON; });
+                SLAPrintObject::SliceIndex::const_iterator it_max_z = std::find_if(index.begin(), index.end(), [max_z](const SLAPrintObject::SliceIndex::value_type& id) -> bool { return std::abs(max_z - id.first) < EPSILON; });
+
+                if (bottom_triangles.empty() && (it_min_z != index.end()))
                 {
-                    const ExPolygons& polys = model_slices[it_min_z->second.model_slices_idx];
-                    for (const ExPolygon& poly : polys)
+                    // calculate model bottom cap
+                    if (it_min_z->second.model_slices_idx < model_slices.size())
                     {
-                        Polygons triangles;
-                        poly.triangulate(&triangles);
-                        if (!triangles.empty())
+                        const ExPolygons& polys = model_slices[it_min_z->second.model_slices_idx];
+                        for (const ExPolygon& poly : polys)
                         {
-                            for (unsigned int i = 0; i < (unsigned int)instances.size(); ++i)
+                            Polygons triangles;
+                            poly.triangulate(&triangles);
+                            for (const Polygon& t : triangles)
                             {
-                                ::glPushMatrix();
-                                ::glTranslated(instance_transforms[i].offset(0), instance_transforms[i].offset(1), instance_transforms[i].offset(2));
-                                ::glRotatef(instance_transforms[i].rotation, 0.0, 0.0, 1.0);
-
-                                ::glBegin(GL_TRIANGLES);
-                                ::glNormal3f(0.0f, 0.0f, -1.0f);
-                                for (const Polygon& p : triangles)
+                                for (int v = 2; v >= 0; --v)
                                 {
-                                    ::glVertex3dv((GLdouble*)to_3d(unscale(p.points[2]), min_z).data());
-                                    ::glVertex3dv((GLdouble*)to_3d(unscale(p.points[1]), min_z).data());
-                                    ::glVertex3dv((GLdouble*)to_3d(unscale(p.points[0]), min_z).data());
+                                    bottom_triangles.emplace_back(to_3d(unscale(t.points[v]), min_z));
                                 }
-                                ::glEnd();
-
-                                ::glPopMatrix();
                             }
                         }
                     }
+
+                    // calculate  support bottom cap
+                    if (it_min_z->second.support_slices_idx < support_slices.size())
+                    {
+                        const ExPolygons& polys = support_slices[it_min_z->second.support_slices_idx];
+                        for (const ExPolygon& poly : polys)
+                        {
+                            Polygons triangles;
+                            poly.triangulate(&triangles);
+                            for (const Polygon& t : triangles)
+                            {
+                                for (int v = 2; v >= 0; --v)
+                                {
+                                    bottom_triangles.emplace_back(to_3d(unscale(t.points[v]), min_z));
+                                }
+                            }
+                        }
+                    }
+                    m_sla_caps[0].z = min_z;
+                    m_sla_caps[0].triangles = bottom_triangles;
                 }
 
-                // render support bottom slices
-                if (it_min_z->second.support_slices_idx < support_slices.size())
+                if (top_triangles.empty() && (it_max_z != index.end()))
                 {
-                    const ExPolygons& polys = support_slices[it_min_z->second.support_slices_idx];
-                    for (const ExPolygon& poly : polys)
+                    // calculate  model top cap
+                    if (it_max_z->second.model_slices_idx < model_slices.size())
                     {
-                        Polygons triangles;
-                        poly.triangulate(&triangles);
-                        if (!triangles.empty())
+                        const ExPolygons& polys = model_slices[it_max_z->second.model_slices_idx];
+                        for (const ExPolygon& poly : polys)
                         {
-                            for (unsigned int i = 0; i < (unsigned int)instances.size(); ++i)
+                            Polygons triangles;
+                            poly.triangulate(&triangles);
+                            for (const Polygon& t : triangles)
                             {
-                                ::glPushMatrix();
-                                ::glTranslated(instance_transforms[i].offset(0), instance_transforms[i].offset(1), instance_transforms[i].offset(2));
-                                ::glRotatef(instance_transforms[i].rotation, 0.0, 0.0, 1.0);
-
-                                ::glBegin(GL_TRIANGLES);
-                                ::glNormal3f(0.0f, 0.0f, -1.0f);
-                                for (const Polygon& p : triangles)
+                                for (int v = 0; v < 3; ++v)
                                 {
-                                    ::glVertex3dv((GLdouble*)to_3d(unscale(p.points[2]), min_z).data());
-                                    ::glVertex3dv((GLdouble*)to_3d(unscale(p.points[1]), min_z).data());
-                                    ::glVertex3dv((GLdouble*)to_3d(unscale(p.points[0]), min_z).data());
+                                    top_triangles.emplace_back(to_3d(unscale(t.points[v]), max_z));
                                 }
-                                ::glEnd();
-
-                                ::glPopMatrix();
                             }
                         }
                     }
+
+                    // calculate  support top cap
+                    if (it_max_z->second.support_slices_idx < support_slices.size())
+                    {
+                        const ExPolygons& polys = support_slices[it_max_z->second.support_slices_idx];
+                        for (const ExPolygon& poly : polys)
+                        {
+                            Polygons triangles;
+                            poly.triangulate(&triangles);
+                            for (const Polygon& t : triangles)
+                            {
+                                for (int v = 0; v < 3; ++v)
+                                {
+                                    top_triangles.emplace_back(to_3d(unscale(t.points[v]), max_z));
+                                }
+                            }
+                        }
+                    }
+                    m_sla_caps[1].z = max_z;
+                    m_sla_caps[1].triangles = top_triangles;
                 }
             }
 
-            if (it_max_z != index.end())
+            if (!bottom_triangles.empty() || !top_triangles.empty())
             {
-                // render model top slices
-                if (it_max_z->second.model_slices_idx < model_slices.size())
+                ::glColor3f(1.0f, 0.37f, 0.0f);
+
+                for (const InstanceTransform& inst : instance_transforms)
                 {
-                    const ExPolygons& polys = model_slices[it_max_z->second.model_slices_idx];
-                    for (const ExPolygon& poly : polys)
+                    ::glPushMatrix();
+                    ::glTranslated(inst.offset(0), inst.offset(1), inst.offset(2));
+                    ::glRotatef(inst.rotation, 0.0, 0.0, 1.0);
+
+                    ::glBegin(GL_TRIANGLES);
+
+                    if (!bottom_triangles.empty())
                     {
-                        Polygons triangles;
-                        poly.triangulate(&triangles);
-                        if (!triangles.empty())
+                        for (const Vec3d& v : bottom_triangles)
                         {
-                            for (unsigned int i = 0; i < (unsigned int)instances.size(); ++i)
-                            {
-                                ::glPushMatrix();
-                                ::glTranslated(instance_transforms[i].offset(0), instance_transforms[i].offset(1), instance_transforms[i].offset(2));
-                                ::glRotatef(instance_transforms[i].rotation, 0.0, 0.0, 1.0);
-
-                                ::glBegin(GL_TRIANGLES);
-                                ::glNormal3f(0.0f, 0.0f, 1.0f);
-                                for (const Polygon& p : triangles)
-                                {
-                                    ::glVertex3dv((GLdouble*)to_3d(unscale(p.points[0]), max_z).data());
-                                    ::glVertex3dv((GLdouble*)to_3d(unscale(p.points[1]), max_z).data());
-                                    ::glVertex3dv((GLdouble*)to_3d(unscale(p.points[2]), max_z).data());
-                                }
-                                ::glEnd();
-
-                                ::glPopMatrix();
-                            }
+                            ::glVertex3dv((GLdouble*)v.data());
                         }
                     }
-                }
 
-                // render support top slices
-                if (it_max_z->second.support_slices_idx < support_slices.size())
-                {
-                    const ExPolygons& polys = support_slices[it_max_z->second.support_slices_idx];
-                    for (const ExPolygon& poly : polys)
+                    if (!top_triangles.empty())
                     {
-                        Polygons triangles;
-                        poly.triangulate(&triangles);
-                        if (!triangles.empty())
+                        for (const Vec3d& v : top_triangles)
                         {
-                            for (unsigned int i = 0; i < (unsigned int)instances.size(); ++i)
-                            {
-                                ::glPushMatrix();
-                                ::glTranslated(instance_transforms[i].offset(0), instance_transforms[i].offset(1), instance_transforms[i].offset(2));
-                                ::glRotatef(instance_transforms[i].rotation, 0.0, 0.0, 1.0);
-
-                                ::glBegin(GL_TRIANGLES);
-                                ::glNormal3f(0.0f, 0.0f, 1.0f);
-                                for (const Polygon& p : triangles)
-                                {
-                                    ::glVertex3dv((GLdouble*)to_3d(unscale(p.points[0]), max_z).data());
-                                    ::glVertex3dv((GLdouble*)to_3d(unscale(p.points[1]), max_z).data());
-                                    ::glVertex3dv((GLdouble*)to_3d(unscale(p.points[2]), max_z).data());
-                                }
-                                ::glEnd();
-
-                                ::glPopMatrix();
-                            }
+                            ::glVertex3dv((GLdouble*)v.data());
                         }
                     }
+
+                    ::glEnd();
+
+                    ::glPopMatrix();
                 }
             }
         }
