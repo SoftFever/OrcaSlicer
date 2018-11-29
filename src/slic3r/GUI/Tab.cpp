@@ -28,6 +28,7 @@
 #include <wx/wupdlock.h>
 
 #include "GUI_App.hpp"
+#include "GUI_ObjectList.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -2368,36 +2369,38 @@ void Tab::select_preset(std::string preset_name)
 		const Preset 		&new_printer_preset     = *m_presets->find_preset(preset_name, true);
 		PrinterTechnology    old_printer_technology = m_presets->get_edited_preset().printer_technology();
 		PrinterTechnology    new_printer_technology = new_printer_preset.printer_technology();
-		struct PresetUpdate {
-			Preset::Type         tab_type;
-			PresetCollection 	*presets;
-			PrinterTechnology    technology;
-			bool    	         old_preset_dirty;
-			bool         	     new_preset_compatible;
-		};
-		std::vector<PresetUpdate> updates = {
-			{ Preset::Type::TYPE_PRINT,       &m_preset_bundle->prints,			ptFFF },
-			{ Preset::Type::TYPE_SLA_PRINT,   &m_preset_bundle->sla_prints,		ptSLA },
-			{ Preset::Type::TYPE_FILAMENT,    &m_preset_bundle->filaments,		ptFFF },
- 			{ Preset::Type::TYPE_SLA_MATERIAL,&m_preset_bundle->sla_materials,	ptSLA }
-		};
-		for (PresetUpdate &pu : updates) {
-			pu.old_preset_dirty      = (old_printer_technology == pu.technology) && pu.presets->current_is_dirty();
-			pu.new_preset_compatible = (new_printer_technology == pu.technology) && pu.presets->get_edited_preset().is_compatible_with_printer(new_printer_preset);
-			if (! canceled)
-				canceled = pu.old_preset_dirty && ! pu.new_preset_compatible && ! may_discard_current_dirty_preset(pu.presets, preset_name);
-		}
-		if (! canceled) {
-			for (PresetUpdate &pu : updates) {
-				// The preset will be switched to a different, compatible preset, or the '-- default --'.
-                if (pu.technology == new_printer_technology) {
-// 				    m_reload_dependent_tabs.emplace_back(pu.name);
-					m_dependent_tabs.emplace_back(pu.tab_type);
-				}
-				if (pu.old_preset_dirty)
-					pu.presets->discard_current_changes();
-			}
-		}
+        if (new_printer_technology == ptSLA && old_printer_technology == ptFFF && !may_switch_to_SLA_preset())
+            canceled = true;
+        else {
+            struct PresetUpdate {
+                Preset::Type         tab_type;
+                PresetCollection 	*presets;
+                PrinterTechnology    technology;
+                bool    	         old_preset_dirty;
+                bool         	     new_preset_compatible;
+            };
+            std::vector<PresetUpdate> updates = {
+                { Preset::Type::TYPE_PRINT,         &m_preset_bundle->prints,       ptFFF },
+                { Preset::Type::TYPE_SLA_PRINT,     &m_preset_bundle->sla_prints,   ptSLA },
+                { Preset::Type::TYPE_FILAMENT,      &m_preset_bundle->filaments,    ptFFF },
+                { Preset::Type::TYPE_SLA_MATERIAL,  &m_preset_bundle->sla_materials,ptSLA }
+            };
+            for (PresetUpdate &pu : updates) {
+                pu.old_preset_dirty = (old_printer_technology == pu.technology) && pu.presets->current_is_dirty();
+                pu.new_preset_compatible = (new_printer_technology == pu.technology) && pu.presets->get_edited_preset().is_compatible_with_printer(new_printer_preset);
+                if (!canceled)
+                    canceled = pu.old_preset_dirty && !pu.new_preset_compatible && !may_discard_current_dirty_preset(pu.presets, preset_name);
+            }
+            if (!canceled) {
+                for (PresetUpdate &pu : updates) {
+                    // The preset will be switched to a different, compatible preset, or the '-- default --'.
+                    if (pu.technology == new_printer_technology)
+                        m_dependent_tabs.emplace_back(pu.tab_type);
+                    if (pu.old_preset_dirty)
+                        pu.presets->discard_current_changes();
+                }
+            }
+        }
 	}
 	if (canceled) {
 		update_tab_ui();
@@ -2455,6 +2458,21 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
 		message + "\n" +changes +_(L("\n\nDiscard changes and continue anyway?")),
 		_(L("Unsaved Changes")), wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
 	return confirm->ShowModal() == wxID_YES;
+}
+
+// If we are switching from the FFF-preset to the SLA, we should to control the printed objects if they have a part(s).
+// Because of we can't to print the multi-part objects with SLA technology.
+bool Tab::may_switch_to_SLA_preset()
+{
+    if (wxGetApp().obj_list()->has_multi_part_objects())
+    {
+        show_info( parent(), 
+                    _(L("It's impossible to print multi-part object(s) with SLA technology.")) + 
+                    _(L("\n\nPlease check your object list before preset changing.")),
+                    _(L("Attention!")) );
+        return false;
+    }
+    return true;
 }
 
 void Tab::OnTreeSelChange(wxTreeEvent& event)

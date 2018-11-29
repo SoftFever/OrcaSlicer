@@ -222,6 +222,7 @@ public:
 	void        update_page_tree_visibility();
 	void		select_preset(std::string preset_name = "");
 	bool		may_discard_current_dirty_preset(PresetCollection* presets = nullptr, const std::string& new_printer_name = "");
+    bool        may_switch_to_SLA_preset();
 	wxSizer*	compatible_printers_widget(wxWindow* parent, wxCheckBox** checkbox, wxButton** btn);
 
 	void		load_key_value(const std::string& opt_key, const boost::any& value, bool saved_value = false);

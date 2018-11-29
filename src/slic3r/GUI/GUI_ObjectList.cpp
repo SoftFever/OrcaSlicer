@@ -1536,5 +1536,18 @@ void ObjectList::last_volume_is_deleted(const int obj_idx)
     volume->config.set_key_value("extruder", new ConfigOptionInt(0));
 }
 
+bool ObjectList::has_multi_part_objects()
+{
+    if (!m_objects_model->IsEmpty()) {
+        wxDataViewItemArray items;
+        m_objects_model->GetChildren(wxDataViewItem(0), items);
+
+        for (auto& item : items)
+            if (m_objects_model->GetItemByType(item, itVolume))
+                return true;
+    }
+    return false;
+}
+
 } //namespace GUI
 } //namespace Slic3r 
