@@ -2001,6 +2001,7 @@ const std::array<float, 3> GLGizmoCut::GrabberColor = { 1.0, 0.5, 0.0 };
 GLGizmoCut::GLGizmoCut(GLCanvas3D& parent)
     : GLGizmoBase(parent)
     , m_cut_z(0.0)
+    , m_max_z(0.0)
 #if !ENABLE_IMGUI
     , m_panel(nullptr)
 #endif // not ENABLE_IMGUI
@@ -2087,7 +2088,7 @@ void GLGizmoCut::on_start_dragging(const GLCanvas3D::Selection& selection)
 
     const BoundingBoxf3& box = selection.get_bounding_box();
     m_start_z = m_cut_z;
-    m_max_z = box.size()(2);
+    update_max_z(selection);
     m_drag_pos = m_grabbers[m_hover_id].center;
     m_drag_center = box.center();
     m_drag_center(2) = m_cut_z;
@@ -2096,9 +2097,7 @@ void GLGizmoCut::on_start_dragging(const GLCanvas3D::Selection& selection)
 void GLGizmoCut::on_update(const UpdateData& data)
 {
     if (m_hover_id != -1) {
-        // Clamp the plane to the object's bounding box
-        const double new_z = m_start_z + calc_projection(data.mouse_ray);
-        m_cut_z = std::max(0.0, std::min(m_max_z, new_z));
+        set_cut_z(m_start_z + calc_projection(data.mouse_ray));
     }
 }
 
@@ -2107,6 +2106,8 @@ void GLGizmoCut::on_render(const GLCanvas3D::Selection& selection) const
     if (m_grabbers[0].dragging) {
         set_tooltip("Z: " + format(m_cut_z, 2));
     }
+
+    update_max_z(selection);
 
     const BoundingBoxf3& box = selection.get_bounding_box();
     Vec3d plane_center = box.center();
@@ -2181,6 +2182,18 @@ void GLGizmoCut::on_render_input_window(float x, float y, const GLCanvas3D::Sele
     }
 }
 #endif // ENABLE_IMGUI
+
+void GLGizmoCut::update_max_z(const GLCanvas3D::Selection& selection) const
+{
+    m_max_z = selection.get_bounding_box().size()(2);
+    set_cut_z(m_cut_z);
+}
+
+void GLGizmoCut::set_cut_z(double cut_z) const
+{
+    // Clamp the plane to the object's bounding box
+    m_cut_z = std::max(0.0, std::min(m_max_z, cut_z));
+}
 
 void GLGizmoCut::perform_cut(const GLCanvas3D::Selection& selection)
 {

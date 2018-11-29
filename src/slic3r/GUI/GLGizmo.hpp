@@ -519,9 +519,9 @@ class GLGizmoCut : public GLGizmoBase
     static const double Margin;
     static const std::array<float, 3> GrabberColor;
 
-    double m_cut_z;
+    mutable double m_cut_z;
     double m_start_z;
-    double m_max_z;
+    mutable double m_max_z;
     Vec3d m_drag_pos;
     Vec3d m_drag_center;
     bool m_keep_upper;
@@ -554,6 +554,8 @@ protected:
     virtual void on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection);
 #endif // ENABLE_IMGUI
 private:
+    void update_max_z(const GLCanvas3D::Selection& selection) const;
+    void set_cut_z(double cut_z) const;
     void perform_cut(const GLCanvas3D::Selection& selection);
     double calc_projection(const Linef3& mouse_ray) const;
 };
