@@ -721,6 +721,14 @@ wxMenu* ObjectList::create_settings_popupmenu(bool is_part)
     return menu;
 }
 
+void ObjectList::update_opt_keys(t_config_option_keys& opt_keys)
+{
+    auto full_current_opts = get_options(false);
+    for (int i = opt_keys.size()-1; i >= 0; --i)
+        if (find(full_current_opts.begin(), full_current_opts.end(), opt_keys[i]) == full_current_opts.end())
+            opt_keys.erase(opt_keys.begin() + i);
+}
+
 void ObjectList::load_subobject(int type)
 {
     auto item = GetSelection();
@@ -1547,6 +1555,18 @@ bool ObjectList::has_multi_part_objects()
                 return true;
     }
     return false;
+}
+
+void ObjectList::update_settings_items()
+{
+    wxDataViewItemArray items;
+    m_objects_model->GetChildren(wxDataViewItem(0), items);
+
+    for (auto& item : items) {        
+        const wxDataViewItem& settings_item = m_objects_model->GetSettingsItem(item);
+        select_item(settings_item ? settings_item : m_objects_model->AddSettingsChild(item));
+    }
+    UnselectAll();
 }
 
 } //namespace GUI

@@ -102,6 +102,8 @@ public:
     wxMenu*             create_part_popupmenu();
     wxMenu*             create_settings_popupmenu(bool is_part);
 
+    void                update_opt_keys(t_config_option_keys& t_optopt_keys);
+
     void                load_subobject(int type);
     void                load_part(ModelObject* model_object, wxArrayString& part_names, int type);
     void                load_generic_subobject(const std::string& type_name, const int type);
@@ -167,6 +169,7 @@ public:
 
     void last_volume_is_deleted(const int obj_idx);
     bool has_multi_part_objects();
+    void update_settings_items();
 };
 
 

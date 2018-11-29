@@ -2006,6 +2006,8 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
 
     // update plater with new config
     wxGetApp().plater()->on_config_change(wxGetApp().preset_bundle->full_config());
+    if (preset_type == Preset::TYPE_PRINTER)
+        wxGetApp().obj_list()->update_settings_items();
 }
 
 void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)

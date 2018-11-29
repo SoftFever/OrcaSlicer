@@ -92,6 +92,8 @@ void ObjectSettings::update_settings_list()
 
 		std::map<std::string, std::vector<std::string>> cat_options;
 		auto opt_keys = config->keys();
+        objects_ctrl->update_opt_keys(opt_keys); // update options list according to print technology
+
         m_og_settings.resize(0);
         std::vector<std::string> categories;
         if (!(opt_keys.size() == 1 && opt_keys[0] == "extruder"))// return;
