@@ -1467,7 +1467,7 @@ void GLCanvas3D::Selection::translate(const Vec3d& displacement)
             (*m_volumes)[i]->set_instance_offset(m_cache.volumes_data[i].get_instance_position() + displacement);
         else if (m_mode == Volume)
         {
-            Vec3d local_displacement = m_cache.volumes_data[i].get_instance_rotation_matrix().inverse() * displacement;
+            Vec3d local_displacement = (m_cache.volumes_data[i].get_instance_rotation_matrix() * m_cache.volumes_data[i].get_instance_scale_matrix()).inverse() * displacement;
             (*m_volumes)[i]->set_volume_offset(m_cache.volumes_data[i].get_volume_position() + local_displacement);
         }
 #else
