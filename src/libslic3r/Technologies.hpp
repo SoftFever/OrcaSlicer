@@ -13,8 +13,6 @@
 //=============
 #define ENABLE_1_42_0 1
 
-// Add double click on gizmo grabbers to reset transformation components to their default value
-#define ENABLE_GIZMOS_RESET (1 && ENABLE_1_42_0)
 // Uses a unique opengl context
 #define ENABLE_USE_UNIQUE_GLCONTEXT (1 && ENABLE_1_42_0)
 // Disable synchronization of unselected instances

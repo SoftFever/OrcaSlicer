@@ -136,10 +136,6 @@ public:
 
     void update(const UpdateData& data);
 
-#if ENABLE_GIZMOS_RESET
-    void process_double_click() { on_process_double_click(); }
-#endif // ENABLE_GIZMOS_RESET
-
     void render(const GLCanvas3D::Selection& selection) const { on_render(selection); }
     void render_for_picking(const GLCanvas3D::Selection& selection) const { on_render_for_picking(selection); }
 
@@ -163,9 +159,6 @@ protected:
     virtual void on_start_dragging(const GLCanvas3D::Selection& selection) {}
     virtual void on_stop_dragging() {}
     virtual void on_update(const UpdateData& data) = 0;
-#if ENABLE_GIZMOS_RESET
-    virtual void on_process_double_click() {}
-#endif // ENABLE_GIZMOS_RESET
     virtual void on_render(const GLCanvas3D::Selection& selection) const = 0;
     virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const = 0;
 
@@ -225,11 +218,6 @@ protected:
     virtual std::string on_get_name() const { return ""; }
     virtual void on_start_dragging(const GLCanvas3D::Selection& selection);
     virtual void on_update(const UpdateData&  data);
-#if ENABLE_GIZMOS_RESET
-#if !ENABLE_WORLD_ROTATIONS
-    virtual void on_process_double_click() { m_angle = 0.0; }
-#endif // !ENABLE_WORLD_ROTATIONS
-#endif // ENABLE_GIZMOS_RESET
     virtual void on_render(const GLCanvas3D::Selection& selection) const;
     virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const;
 
@@ -294,15 +282,6 @@ protected:
             g.update(data);
         }
     }
-#if ENABLE_GIZMOS_RESET
-#if !ENABLE_WORLD_ROTATIONS
-    virtual void on_process_double_click()
-    {
-        if (m_hover_id != -1)
-            m_gizmos[m_hover_id].process_double_click();
-    }
-#endif // !ENABLE_WORLD_ROTATIONS
-#endif // ENABLE_GIZMOS_RESET
     virtual void on_render(const GLCanvas3D::Selection& selection) const;
     virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const
     {
@@ -346,9 +325,6 @@ protected:
     virtual bool on_is_activable(const GLCanvas3D::Selection& selection) const { return !selection.is_wipe_tower(); }
     virtual void on_start_dragging(const GLCanvas3D::Selection& selection);
     virtual void on_update(const UpdateData& data);
-#if ENABLE_GIZMOS_RESET
-    virtual void on_process_double_click();
-#endif // ENABLE_GIZMOS_RESET
     virtual void on_render(const GLCanvas3D::Selection& selection) const;
     virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const;
 

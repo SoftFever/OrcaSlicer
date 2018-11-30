@@ -1047,9 +1047,6 @@ GLCanvas3D::Mouse::Mouse()
 #if ENABLE_GIZMOS_ON_TOP
     , scene_position(DBL_MAX, DBL_MAX, DBL_MAX)
 #endif // ENABLE_GIZMOS_ON_TOP
-#if ENABLE_GIZMOS_RESET
-    , ignore_up_event(false)
-#endif // ENABLE_GIZMOS_RESET
 {
 }
 
@@ -2690,18 +2687,6 @@ void GLCanvas3D::Gizmos::update(const Linef3& mouse_ray, bool shift_down, const 
     if (curr != nullptr)
         curr->update(GLGizmoBase::UpdateData(mouse_ray, mouse_pos, shift_down));
 }
-
-#if ENABLE_GIZMOS_RESET
-void GLCanvas3D::Gizmos::process_double_click()
-{
-    if (!m_enabled)
-        return;
-
-    GLGizmoBase* curr = _get_current();
-    if (curr != nullptr)
-        curr->process_double_click();
-}
-#endif // ENABLE_GIZMOS_RESET
 
 GLCanvas3D::Gizmos::EType GLCanvas3D::Gizmos::get_current_type() const
 {
@@ -4546,38 +4531,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_toolbar_action_running = true;
         m_toolbar.do_action((unsigned int)toolbar_contains_mouse);
     }
-#if ENABLE_GIZMOS_RESET
-    else if (evt.LeftDClick() && m_gizmos.grabber_contains_mouse())
-    {
-        m_mouse.ignore_up_event = true;
-        m_gizmos.process_double_click();
-        switch (m_gizmos.get_current_type())
-        {
-        case Gizmos::Scale:
-        {
-            m_selection.scale(m_gizmos.get_scale(), false);
-            do_scale();
-            wxGetApp().obj_manipul()->update_settings_value(m_selection);
-            m_dirty = true;
-            break;
-        }
-#if !ENABLE_WORLD_ROTATIONS
-        case Gizmos::Rotate:
-        {
-            m_selection.rotate(m_gizmos.get_rotation(), false);
-            do_rotate();
-            wxGetApp().obj_manipul()->update_settings_value(m_selection);
-            m_dirty = true;
-            break;
-        }
-#endif // !ENABLE_WORLD_ROTATIONS
-        default:
-        {
-            break;
-        }
-        }
-    }
-#endif // ENABLE_GIZMOS_RESET
     else if (evt.LeftDown() || evt.RightDown())
     {
         // If user pressed left or right button we first check whether this happened
@@ -4610,9 +4563,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             if (evt.LeftDown())
             {
                 m_gizmos.delete_current_grabber(true);
-#if ENABLE_GIZMOS_RESET
-                m_mouse.ignore_up_event = true;
-#endif // ENABLE_GIZMOS_RESET
                 m_dirty = true;
             }
         }
@@ -4871,11 +4821,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         else if (evt.LeftUp() && !m_mouse.dragging && (m_hover_volume_id == -1) && !gizmos_overlay_contains_mouse && !m_gizmos.is_dragging() && !is_layers_editing_enabled())
         {
             // deselect and propagate event through callback
-#if ENABLE_GIZMOS_RESET
-            if (!m_mouse.ignore_up_event && m_picking_enabled && !m_toolbar_action_running)
-#else
             if (m_picking_enabled && !m_toolbar_action_running)
-#endif // ENABLE_GIZMOS_RESET
             {
                 m_selection.clear();
                 m_selection.set_mode(Selection::Instance);
@@ -4883,10 +4829,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
                 _update_gizmos_data();
             }
-#if ENABLE_GIZMOS_RESET
-            else if (m_mouse.ignore_up_event)
-                m_mouse.ignore_up_event = false;
-#endif // ENABLE_GIZMOS_RESET
         }
         else if (evt.LeftUp() && m_gizmos.is_dragging())
         {

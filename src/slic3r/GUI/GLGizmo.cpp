@@ -829,14 +829,6 @@ void GLGizmoScale3D::on_update(const UpdateData& data)
         do_scale_uniform(data);
 }
 
-#if ENABLE_GIZMOS_RESET
-void GLGizmoScale3D::on_process_double_click()
-{
-    if (m_hover_id >= 6)
-        m_scale = Vec3d::Ones();
-}
-#endif // ENABLE_GIZMOS_RESET
-
 void GLGizmoScale3D::on_render(const GLCanvas3D::Selection& selection) const
 {
     bool single_instance = selection.is_single_full_instance();
@@ -1352,7 +1344,7 @@ bool GLGizmoFlatten::on_init()
 
 std::string GLGizmoFlatten::on_get_name() const
 {
-    return L("Flatten");
+    return L("Place on face");
 }
 
 bool GLGizmoFlatten::on_is_activable(const GLCanvas3D::Selection& selection) const
