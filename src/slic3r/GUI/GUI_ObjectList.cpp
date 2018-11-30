@@ -1358,6 +1358,41 @@ void ObjectList::update_selections()
             sels.Add(m_objects_model->GetItemByInstanceId(selection.get_object_idx(), idx));
         }
     }
+    else if (selection.is_mixed())
+    {
+        auto& objects_content_list = selection.get_content();
+
+        for (auto idx : selection.get_volume_idxs()) {
+            const auto gl_vol = selection.get_volume(idx);
+            const auto& glv_obj_idx = gl_vol->object_idx();
+            const auto& glv_ins_idx = gl_vol->instance_idx();
+
+            bool is_selected = false;
+
+            for (auto obj_ins : objects_content_list) {
+                if (obj_ins.first == glv_obj_idx) {
+                    if (obj_ins.second.find(glv_ins_idx) != obj_ins.second.end()) {
+                        if (glv_ins_idx == 0 && (*m_objects)[glv_obj_idx]->instances.size() == 1)
+                            sels.Add(m_objects_model->GetItemById(glv_obj_idx));
+                        else
+                            sels.Add(m_objects_model->GetItemByInstanceId(glv_obj_idx, glv_ins_idx));
+
+                        is_selected = true;
+                        break;
+                    }
+                }
+            }
+
+            if (is_selected)
+                continue;
+
+            const auto& glv_vol_idx = gl_vol->volume_idx();
+            if (glv_vol_idx == 0 && (*m_objects)[glv_obj_idx]->volumes.size() == 1)
+                sels.Add(m_objects_model->GetItemById(glv_obj_idx));
+            else
+                sels.Add(m_objects_model->GetItemByVolumeId(glv_obj_idx, glv_vol_idx));
+        }
+    }
     
     select_items(sels);
 }

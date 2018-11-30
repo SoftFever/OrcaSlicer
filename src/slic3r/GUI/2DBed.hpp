@@ -28,6 +28,7 @@ public:
 	Bed_2D(wxWindow* parent) 
 	{
 		Create(parent, wxID_ANY, wxDefaultPosition, wxSize(250, -1), wxTAB_TRAVERSAL);
+        SetBackgroundStyle(wxBG_STYLE_PAINT); // to avoid assert message after wxAutoBufferedPaintDC 
 //		m_user_drawn_background = $^O ne 'darwin';
 #ifdef __APPLE__
 		m_user_drawn_background = false;

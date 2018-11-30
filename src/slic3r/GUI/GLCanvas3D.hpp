@@ -323,14 +323,12 @@ class GLCanvas3D
         };
 
         bool dragging;
+        bool left_down;
         Vec2d position;
 #if ENABLE_GIZMOS_ON_TOP
         Vec3d scene_position;
 #endif // ENABLE_GIZMOS_ON_TOP
         Drag drag;
-#if ENABLE_GIZMOS_RESET
-        bool ignore_up_event;
-#endif // ENABLE_GIZMOS_RESET
 
         Mouse();
 
@@ -519,6 +517,8 @@ public:
         const IndicesList& get_volume_idxs() const { return m_list; }
         const GLVolume* get_volume(unsigned int volume_idx) const;
 
+        const ObjectIdxsToInstanceIdxsMap& get_content() const { return m_cache.content; }
+
         unsigned int volumes_count() const { return (unsigned int)m_list.size(); }
         const BoundingBoxf3& get_bounding_box() const;
 
@@ -629,9 +629,6 @@ private:
         bool overlay_contains_mouse(const GLCanvas3D& canvas, const Vec2d& mouse_pos) const;
         bool grabber_contains_mouse() const;
         void update(const Linef3& mouse_ray, bool shift_down, const Point* mouse_pos = nullptr);
-#if ENABLE_GIZMOS_RESET
-        void process_double_click();
-#endif // ENABLE_GIZMOS_RESET
         Rect get_reset_rect_viewport(const GLCanvas3D& canvas) const;
         EType get_current_type() const;
 

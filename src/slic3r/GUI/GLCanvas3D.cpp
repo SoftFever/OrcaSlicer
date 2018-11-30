@@ -1043,13 +1043,11 @@ GLCanvas3D::Mouse::Drag::Drag()
 
 GLCanvas3D::Mouse::Mouse()
     : dragging(false)
+    , left_down(false)
     , position(DBL_MAX, DBL_MAX)
 #if ENABLE_GIZMOS_ON_TOP
     , scene_position(DBL_MAX, DBL_MAX, DBL_MAX)
 #endif // ENABLE_GIZMOS_ON_TOP
-#if ENABLE_GIZMOS_RESET
-    , ignore_up_event(false)
-#endif // ENABLE_GIZMOS_RESET
 {
 }
 
@@ -1467,7 +1465,7 @@ void GLCanvas3D::Selection::translate(const Vec3d& displacement)
             (*m_volumes)[i]->set_instance_offset(m_cache.volumes_data[i].get_instance_position() + displacement);
         else if (m_mode == Volume)
         {
-            Vec3d local_displacement = m_cache.volumes_data[i].get_instance_rotation_matrix().inverse() * displacement;
+            Vec3d local_displacement = (m_cache.volumes_data[i].get_instance_rotation_matrix() * m_cache.volumes_data[i].get_instance_scale_matrix()).inverse() * displacement;
             (*m_volumes)[i]->set_volume_offset(m_cache.volumes_data[i].get_volume_position() + local_displacement);
         }
 #else
@@ -2420,7 +2418,7 @@ void GLCanvas3D::Selection::_ensure_on_bed()
 }
 #endif // ENABLE_ENSURE_ON_BED_WHILE_SCALING
 
-const float GLCanvas3D::Gizmos::OverlayTexturesScale = 0.75f;
+const float GLCanvas3D::Gizmos::OverlayTexturesScale = 1.0f;
 const float GLCanvas3D::Gizmos::OverlayOffsetX = 10.0f * OverlayTexturesScale;
 const float GLCanvas3D::Gizmos::OverlayGapY = 5.0f * OverlayTexturesScale;
 
@@ -2690,18 +2688,6 @@ void GLCanvas3D::Gizmos::update(const Linef3& mouse_ray, bool shift_down, const 
     if (curr != nullptr)
         curr->update(GLGizmoBase::UpdateData(mouse_ray, mouse_pos, shift_down));
 }
-
-#if ENABLE_GIZMOS_RESET
-void GLCanvas3D::Gizmos::process_double_click()
-{
-    if (!m_enabled)
-        return;
-
-    GLGizmoBase* curr = _get_current();
-    if (curr != nullptr)
-        curr->process_double_click();
-}
-#endif // ENABLE_GIZMOS_RESET
 
 GLCanvas3D::Gizmos::EType GLCanvas3D::Gizmos::get_current_type() const
 {
@@ -2978,7 +2964,8 @@ float GLCanvas3D::Gizmos::_get_total_overlay_height() const
     {
         if (it->first == SlaSupports && wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA)
             continue;
-        height += (float)it->second->get_textures_size() + OverlayGapY;
+
+        height += (float)it->second->get_textures_size() * OverlayTexturesScale + OverlayGapY;
     }
 
     return height - OverlayGapY;
@@ -4546,40 +4533,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_toolbar_action_running = true;
         m_toolbar.do_action((unsigned int)toolbar_contains_mouse);
     }
-#if ENABLE_GIZMOS_RESET
-    else if (evt.LeftDClick() && m_gizmos.grabber_contains_mouse())
-    {
-        m_mouse.ignore_up_event = true;
-        m_gizmos.process_double_click();
-        switch (m_gizmos.get_current_type())
-        {
-        case Gizmos::Scale:
-        {
-            m_selection.scale(m_gizmos.get_scale(), false);
-            do_scale();
-            wxGetApp().obj_manipul()->update_settings_value(m_selection);
-            m_dirty = true;
-            break;
-        }
-#if !ENABLE_WORLD_ROTATIONS
-        case Gizmos::Rotate:
-        {
-            m_selection.rotate(m_gizmos.get_rotation(), false);
-            do_rotate();
-            wxGetApp().obj_manipul()->update_settings_value(m_selection);
-            m_dirty = true;
-            break;
-        }
-#endif // !ENABLE_WORLD_ROTATIONS
-        default:
-        {
-            break;
-        }
-        }
-    }
-#endif // ENABLE_GIZMOS_RESET
     else if (evt.LeftDown() || evt.RightDown())
     {
+        m_mouse.left_down = evt.LeftDown();
+
         // If user pressed left or right button we first check whether this happened
         // on a volume or not.
         m_layers_editing.state = LayersEditing::Unknown;
@@ -4610,9 +4567,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             if (evt.LeftDown())
             {
                 m_gizmos.delete_current_grabber(true);
-#if ENABLE_GIZMOS_RESET
-                m_mouse.ignore_up_event = true;
-#endif // ENABLE_GIZMOS_RESET
                 m_dirty = true;
             }
         }
@@ -4646,6 +4600,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         {
             m_toolbar_action_running = true;
             m_toolbar.do_action((unsigned int)toolbar_contains_mouse);
+            m_mouse.left_down = false;
         }
         else
         {
@@ -4664,7 +4619,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                         m_selection.remove(m_hover_volume_id);
                     else
                     {
-                        bool add_as_single = !already_selected && !evt.ShiftDown();
+                        bool add_as_single = !already_selected && !shift_down;
                         m_selection.add(m_hover_volume_id, add_as_single);
                     }
 
@@ -4871,11 +4826,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         else if (evt.LeftUp() && !m_mouse.dragging && (m_hover_volume_id == -1) && !gizmos_overlay_contains_mouse && !m_gizmos.is_dragging() && !is_layers_editing_enabled())
         {
             // deselect and propagate event through callback
-#if ENABLE_GIZMOS_RESET
-            if (!m_mouse.ignore_up_event && m_picking_enabled && !m_toolbar_action_running)
-#else
             if (m_picking_enabled && !m_toolbar_action_running)
-#endif // ENABLE_GIZMOS_RESET
             {
                 m_selection.clear();
                 m_selection.set_mode(Selection::Instance);
@@ -4883,10 +4834,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
                 _update_gizmos_data();
             }
-#if ENABLE_GIZMOS_RESET
-            else if (m_mouse.ignore_up_event)
-                m_mouse.ignore_up_event = false;
-#endif // ENABLE_GIZMOS_RESET
         }
         else if (evt.LeftUp() && m_gizmos.is_dragging())
         {
@@ -4930,6 +4877,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_mouse.set_start_position_3D_as_invalid();
         m_mouse.set_start_position_2D_as_invalid();
         m_mouse.dragging = false;
+        m_mouse.left_down = false;
         m_toolbar_action_running = false;
         m_dirty = true;
 
@@ -5612,7 +5560,7 @@ void GLCanvas3D::_picking_pass() const
 {
     const Vec2d& pos = m_mouse.position;
 
-    if (m_picking_enabled && !m_mouse.dragging && (pos != Vec2d(DBL_MAX, DBL_MAX)))
+    if (m_picking_enabled && !m_mouse.dragging && !m_mouse.left_down && (pos != Vec2d(DBL_MAX, DBL_MAX)))
     {
         // Render the object for picking.
         // FIXME This cannot possibly work in a multi - sampled context as the color gets mangled by the anti - aliasing.
