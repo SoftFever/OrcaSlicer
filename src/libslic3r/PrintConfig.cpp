@@ -2349,14 +2349,14 @@ void PrintConfigDef::init_sla_params()
     def->tooltip = L("Width of the display");
     def->cli = "display-width=f";
     def->min = 1;
-    def->default_value = new ConfigOptionFloat(150.);
+    def->default_value = new ConfigOptionFloat(120.);
 
     def = this->add("display_height", coFloat);
     def->label = L("Display height");
     def->tooltip = L("Height of the display");
     def->cli = "display-height=f";
     def->min = 1;
-    def->default_value = new ConfigOptionFloat(100.);
+    def->default_value = new ConfigOptionFloat(68.);
 
     def = this->add("display_pixels_x", coInt);
     def->full_label = L("Number of pixels in");
@@ -2364,14 +2364,14 @@ void PrintConfigDef::init_sla_params()
     def->tooltip = L("Number of pixels in X");
     def->cli = "display-pixels-x=i";
     def->min = 100;
-    def->default_value = new ConfigOptionInt(2000);
+    def->default_value = new ConfigOptionInt(2560);
 
     def = this->add("display_pixels_y", coInt);
     def->label = ("Y");
     def->tooltip = L("Number of pixels in Y");
     def->cli = "display-pixels-y=i";
     def->min = 100;
-    def->default_value = new ConfigOptionInt(1000);
+    def->default_value = new ConfigOptionInt(1440);
 
     def = this->add("printer_correction", coFloats);
     def->full_label = L("Printer scaling correction");
