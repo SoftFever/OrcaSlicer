@@ -45,7 +45,7 @@ ExternalProject_Add(dep_tbb
     URL_HASH SHA256=0545cb6033bd1873fcae3ea304def720a380a88292726943ae3b9b207f322efe
     CMAKE_GENERATOR "${DEP_MSVC_GEN}"
     CMAKE_ARGS
-        -DCMAKE_DEBUG_POSTFIX=d
+        -DCMAKE_DEBUG_POSTFIX=_debug
         -DTBB_BUILD_SHARED=OFF
         -DTBB_BUILD_TESTS=OFF
         "-DCMAKE_INSTALL_PREFIX:PATH=${DESTDIR}\\usr\\local"
@@ -69,6 +69,7 @@ ExternalProject_Add(dep_gtest
     URL_HASH SHA256=9bf1fe5182a604b4135edc1a425ae356c9ad15e9b23f9f12a02e80184c3a249c
     CMAKE_GENERATOR "${DEP_MSVC_GEN}"
     CMAKE_ARGS -DBUILD_GMOCK=OFF
+        -Dgtest_force_shared_crt=ON
         -DCMAKE_POSITION_INDEPENDENT_CODE=ON
         "-DCMAKE_INSTALL_PREFIX:PATH=${DESTDIR}\\usr\\local"
     BUILD_COMMAND msbuild /P:Configuration=Release INSTALL.vcxproj
@@ -91,6 +92,7 @@ ExternalProject_Add(dep_nlopt
     URL_HASH SHA256=c6dd7a5701fff8ad5ebb45a3dc8e757e61d52658de3918e38bab233e7fd3b4ae
     CMAKE_GENERATOR "${DEP_MSVC_GEN}"
     CMAKE_ARGS
+        -DBUILD_SHARED_LIBS=OFF
         -DNLOPT_PYTHON=OFF
         -DNLOPT_OCTAVE=OFF
         -DNLOPT_MATLAB=OFF
@@ -118,6 +120,7 @@ ExternalProject_Add(dep_zlib
     URL_HASH SHA256=4ff941449631ace0d4d203e3483be9dbc9da454084111f97ea0a2114e19bf066
     CMAKE_GENERATOR "${DEP_MSVC_GEN}"
     CMAKE_ARGS
+        "-DINSTALL_BIN_DIR=${CMAKE_CURRENT_BINARY_DIR}\\fallout"   # I found no better way of preventing zlib creating & installing DLLs :-/
         -DCMAKE_POSITION_INDEPENDENT_CODE=ON
         "-DCMAKE_INSTALL_PREFIX:PATH=${DESTDIR}\\usr\\local"
     BUILD_COMMAND msbuild /P:Configuration=Release INSTALL.vcxproj
