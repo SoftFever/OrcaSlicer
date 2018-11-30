@@ -5357,7 +5357,7 @@ bool GLCanvas3D::_init_toolbar()
 
     item.name = "splitvolumes";
     item.tooltip = GUI::L_str("Split to parts");
-    item.sprite_id = 11;
+    item.sprite_id = 8;
     item.is_toggable = false;
     item.action_event = EVT_GLTOOLBAR_SPLIT_VOLUMES;
     if (!m_toolbar.add_item(item))
@@ -5368,7 +5368,7 @@ bool GLCanvas3D::_init_toolbar()
 
     item.name = "layersediting";
     item.tooltip = GUI::L_str("Layers editing");
-    item.sprite_id = 9;
+    item.sprite_id = 7;
     item.is_toggable = true;
     item.action_event = EVT_GLTOOLBAR_LAYERSEDITING;
     if (!m_toolbar.add_item(item))
