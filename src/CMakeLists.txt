@@ -163,6 +163,13 @@ if (MSVC)
             VERBATIM
         )
     endif ()
+elseif (XCODE)
+    # Because of Debug/Release/etc. configurations (similar to MSVC) the slic3r binary is located in an extra level
+    add_custom_command(TARGET slic3r POST_BUILD
+        COMMAND ln -sf "${SLIC3R_RESOURCES_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/resources"
+        COMMENT "Symlinking the resources directory into the build tree"
+        VERBATIM
+    )
 else ()
     add_custom_command(TARGET slic3r POST_BUILD
         COMMAND ln -sf "${SLIC3R_RESOURCES_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/../resources"

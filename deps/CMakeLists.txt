@@ -20,16 +20,18 @@ project(Slic3r-deps)
 cmake_minimum_required(VERSION 3.2)
 
 include(ExternalProject)
-
 include(ProcessorCount)
+
 ProcessorCount(NPROC)
 if (NPROC EQUAL 0)
     set(NPROC 1)
 endif ()
 
 set(DESTDIR "${CMAKE_CURRENT_BINARY_DIR}/destdir" CACHE PATH "Destination directory")
-option(DEP_DEBUG "Build debug variants (currently only works on Windows)" ON)
+option(DEP_DEBUG "Build debug variants (only applicable on Windows)" ON)
 
+message(STATUS "Slic3r deps DESTDIR: ${DESTDIR}")
+message(STATUS "Slic3r deps debug build: ${DEP_DEBUG}")
 
 if (MSVC)
     if ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "8")
@@ -43,8 +45,16 @@ if (MSVC)
     else ()
         message(FATAL_ERROR "Unable to detect architecture")
     endif ()
+elseif (APPLE)
+    set(DEPS_OSX_TARGET "10.9" CACHE STRING "OS X SDK version to build against")
+    set(DEPS_OSX_SYSROOT
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX${DEPS_OSX_TARGET}.sdk"
+        CACHE PATH "OS X SDK directory"
+    )
+
+    include("deps-macos.cmake")
 else ()
-    include("deps-unix-static.cmake")
+    include("deps-linux.cmake")
 endif()
 
 add_custom_target(deps ALL

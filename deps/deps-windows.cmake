@@ -68,7 +68,8 @@ ExternalProject_Add(dep_gtest
     URL "https://github.com/google/googletest/archive/release-1.8.1.tar.gz"
     URL_HASH SHA256=9bf1fe5182a604b4135edc1a425ae356c9ad15e9b23f9f12a02e80184c3a249c
     CMAKE_GENERATOR "${DEP_MSVC_GEN}"
-    CMAKE_ARGS -DBUILD_GMOCK=OFF
+    CMAKE_ARGS
+        -DBUILD_GMOCK=OFF
         -Dgtest_force_shared_crt=ON
         -DCMAKE_POSITION_INDEPENDENT_CODE=ON
         "-DCMAKE_INSTALL_PREFIX:PATH=${DESTDIR}\\usr\\local"
