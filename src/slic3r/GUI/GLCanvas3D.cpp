@@ -2418,7 +2418,7 @@ void GLCanvas3D::Selection::_ensure_on_bed()
 }
 #endif // ENABLE_ENSURE_ON_BED_WHILE_SCALING
 
-const float GLCanvas3D::Gizmos::OverlayTexturesScale = 0.75f;
+const float GLCanvas3D::Gizmos::OverlayTexturesScale = 1.0f;
 const float GLCanvas3D::Gizmos::OverlayOffsetX = 10.0f * OverlayTexturesScale;
 const float GLCanvas3D::Gizmos::OverlayGapY = 5.0f * OverlayTexturesScale;
 
@@ -2964,7 +2964,8 @@ float GLCanvas3D::Gizmos::_get_total_overlay_height() const
     {
         if (it->first == SlaSupports && wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA)
             continue;
-        height += (float)it->second->get_textures_size() + OverlayGapY;
+
+        height += (float)it->second->get_textures_size() * OverlayTexturesScale + OverlayGapY;
     }
 
     return height - OverlayGapY;
