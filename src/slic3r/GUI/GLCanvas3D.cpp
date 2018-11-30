@@ -1043,6 +1043,7 @@ GLCanvas3D::Mouse::Drag::Drag()
 
 GLCanvas3D::Mouse::Mouse()
     : dragging(false)
+    , left_down(false)
     , position(DBL_MAX, DBL_MAX)
 #if ENABLE_GIZMOS_ON_TOP
     , scene_position(DBL_MAX, DBL_MAX, DBL_MAX)
@@ -4533,6 +4534,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     }
     else if (evt.LeftDown() || evt.RightDown())
     {
+        m_mouse.left_down = evt.LeftDown();
+
         // If user pressed left or right button we first check whether this happened
         // on a volume or not.
         m_layers_editing.state = LayersEditing::Unknown;
@@ -4596,6 +4599,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         {
             m_toolbar_action_running = true;
             m_toolbar.do_action((unsigned int)toolbar_contains_mouse);
+            m_mouse.left_down = false;
         }
         else
         {
@@ -4614,7 +4618,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                         m_selection.remove(m_hover_volume_id);
                     else
                     {
-                        bool add_as_single = !already_selected && !evt.ShiftDown();
+                        bool add_as_single = !already_selected && !shift_down;
                         m_selection.add(m_hover_volume_id, add_as_single);
                     }
 
@@ -4872,6 +4876,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_mouse.set_start_position_3D_as_invalid();
         m_mouse.set_start_position_2D_as_invalid();
         m_mouse.dragging = false;
+        m_mouse.left_down = false;
         m_toolbar_action_running = false;
         m_dirty = true;
 
@@ -5554,7 +5559,7 @@ void GLCanvas3D::_picking_pass() const
 {
     const Vec2d& pos = m_mouse.position;
 
-    if (m_picking_enabled && !m_mouse.dragging && (pos != Vec2d(DBL_MAX, DBL_MAX)))
+    if (m_picking_enabled && !m_mouse.dragging && !m_mouse.left_down && (pos != Vec2d(DBL_MAX, DBL_MAX)))
     {
         // Render the object for picking.
         // FIXME This cannot possibly work in a multi - sampled context as the color gets mangled by the anti - aliasing.

@@ -323,6 +323,7 @@ class GLCanvas3D
         };
 
         bool dragging;
+        bool left_down;
         Vec2d position;
 #if ENABLE_GIZMOS_ON_TOP
         Vec3d scene_position;
