@@ -309,7 +309,7 @@ GLCanvas3D::Bed::Bed()
 
 bool GLCanvas3D::Bed::is_prusa() const
 {
-    return (m_type == MK2) || (m_type == MK3);
+    return (m_type == MK2) || (m_type == MK3) || (m_type == SL1);
 }
 
 bool GLCanvas3D::Bed::is_custom() const
@@ -371,12 +371,17 @@ void GLCanvas3D::Bed::render(float theta) const
     {
     case MK2:
     {
-        _render_mk2(theta);
+        _render_prusa("mk2", theta);
         break;
     }
     case MK3:
     {
-        _render_mk3(theta);
+        _render_prusa("mk3", theta);
+        break;
+    }
+    case SL1:
+    {
+        _render_prusa("sl1", theta);
         break;
     }
     default:
@@ -445,22 +450,31 @@ GLCanvas3D::Bed::EType GLCanvas3D::Bed::_detect_type() const
         const Preset* curr = &bundle->printers.get_selected_preset();
         while (curr != nullptr)
         {
-            if (curr->config.has("bed_shape") && _are_equal(m_shape, dynamic_cast<const ConfigOptionPoints*>(curr->config.option("bed_shape"))->values))
-            {
-                if ((curr->vendor != nullptr) && (curr->vendor->name == "Prusa Research"))
-                {
-                    if (boost::contains(curr->name, "MK2"))
-                    {
-                        type = MK2;
-                        break;
-                    }
-                    else if (boost::contains(curr->name, "MK3"))
-                    {
-                        type = MK3;
-                        break;
-                    }
-                }
-            }
+			if (curr->config.has("bed_shape"))
+			{
+				if (boost::contains(curr->name, "SL1"))
+				{
+					//FIXME add a condition on the size of the print bed?
+					type = SL1;
+					break;
+				}
+				else if (_are_equal(m_shape, dynamic_cast<const ConfigOptionPoints*>(curr->config.option("bed_shape"))->values))
+				{
+					if ((curr->vendor != nullptr) && (curr->vendor->name == "Prusa Research"))
+					{
+						if (boost::contains(curr->name, "MK2"))
+						{
+							type = MK2;
+							break;
+						}
+						else if (boost::contains(curr->name, "MK3"))
+						{
+							type = MK3;
+							break;
+						}
+					}
+				}
+			}
 
             curr = bundle->printers.get_preset_parent(*curr);
         }
@@ -469,9 +483,9 @@ GLCanvas3D::Bed::EType GLCanvas3D::Bed::_detect_type() const
     return type;
 }
 
-void GLCanvas3D::Bed::_render_mk2(float theta) const
+void GLCanvas3D::Bed::_render_prusa(const std::string &key, float theta) const
 {
-    std::string filename = resources_dir() + "/icons/bed/mk2_top.png";
+    std::string filename = resources_dir() + "/icons/bed/" + key + "_top.png";
     if ((m_top_texture.get_id() == 0) || (m_top_texture.get_source() != filename))
     {
         if (!m_top_texture.load_from_file(filename, true))
@@ -481,7 +495,7 @@ void GLCanvas3D::Bed::_render_mk2(float theta) const
         }
     }
 
-    filename = resources_dir() + "/icons/bed/mk2_bottom.png";
+    filename = resources_dir() + "/icons/bed/" + key + "_bottom.png";
     if ((m_bottom_texture.get_id() == 0) || (m_bottom_texture.get_source() != filename))
     {
         if (!m_bottom_texture.load_from_file(filename, true))
@@ -491,36 +505,6 @@ void GLCanvas3D::Bed::_render_mk2(float theta) const
         }
     }
 
-    _render_prusa(theta);
-}
-
-void GLCanvas3D::Bed::_render_mk3(float theta) const
-{
-    std::string filename = resources_dir() + "/icons/bed/mk3_top.png";
-    if ((m_top_texture.get_id() == 0) || (m_top_texture.get_source() != filename))
-    {
-        if (!m_top_texture.load_from_file(filename, true))
-        {
-            _render_custom();
-            return;
-        }
-    }
-
-    filename = resources_dir() + "/icons/bed/mk3_bottom.png";
-    if ((m_bottom_texture.get_id() == 0) || (m_bottom_texture.get_source() != filename))
-    {
-        if (!m_bottom_texture.load_from_file(filename, true))
-        {
-            _render_custom();
-            return;
-        }
-    }
-
-    _render_prusa(theta);
-}
-
-void GLCanvas3D::Bed::_render_prusa(float theta) const
-{
     unsigned int triangles_vcount = m_triangles.get_vertices_count();
     if (triangles_vcount > 0)
     {

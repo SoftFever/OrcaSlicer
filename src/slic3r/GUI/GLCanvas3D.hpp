@@ -171,6 +171,7 @@ class GLCanvas3D
         {
             MK2,
             MK3,
+            SL1,
             Custom,
             Num_Types
         };
@@ -206,9 +207,7 @@ class GLCanvas3D
         void _calc_triangles(const ExPolygon& poly);
         void _calc_gridlines(const ExPolygon& poly, const BoundingBox& bed_bbox);
         EType _detect_type() const;
-        void _render_mk2(float theta) const;
-        void _render_mk3(float theta) const;
-        void _render_prusa(float theta) const;
+        void _render_prusa(const std::string &key, float theta) const;
         void _render_custom() const;
         static bool _are_equal(const Pointfs& bed_1, const Pointfs& bed_2);
     };
