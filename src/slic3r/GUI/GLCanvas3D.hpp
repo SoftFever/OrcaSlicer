@@ -519,6 +519,8 @@ public:
         const IndicesList& get_volume_idxs() const { return m_list; }
         const GLVolume* get_volume(unsigned int volume_idx) const;
 
+        const ObjectIdxsToInstanceIdxsMap& get_content() const { return m_cache.content; }
+
         unsigned int volumes_count() const { return (unsigned int)m_list.size(); }
         const BoundingBoxf3& get_bounding_box() const;
 
