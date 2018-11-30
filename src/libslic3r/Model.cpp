@@ -676,6 +676,7 @@ void ModelObject::delete_volume(size_t idx)
             inst->set_offset(inst->get_offset() + inst->get_matrix(true) * vol_offset);
         }
         v->set_offset(Vec3d::Zero());
+        v->set_new_unique_id();
     }
 
     this->invalidate_bounding_box();
