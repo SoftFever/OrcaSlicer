@@ -949,6 +949,7 @@ bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, con
             return false;
         }
         (*m_objects)[obj_idx]->delete_instance(idx);
+        (*m_objects)[obj_idx]->reset_volumes_idxs();
     }
     else
         return false;

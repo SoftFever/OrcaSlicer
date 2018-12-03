@@ -200,6 +200,9 @@ public:
     void                    clear_volumes();
     bool                    is_multiparts() const { return volumes.size() > 1; }
 
+    // set a new unique id to all volumes
+    void                    reset_volumes_idxs();
+
     ModelInstance*          add_instance();
     ModelInstance*          add_instance(const ModelInstance &instance);
     ModelInstance*          add_instance(const Vec3d &offset, const Vec3d &scaling_factor, const Vec3d &rotation);
