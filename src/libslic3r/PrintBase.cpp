@@ -1,5 +1,7 @@
 #include "PrintBase.hpp"
 
+#include <boost/lexical_cast.hpp>
+
 #include "I18N.hpp"
 
 //! macro used to mark string used at localization, 
