@@ -418,17 +418,19 @@ void GLGizmoRotate::on_render(const GLCanvas3D::Selection& selection) const
     std::string axis;
     switch (m_axis)
     {
-    case X: { axis = "X: "; break; }
-    case Y: { axis = "Y: "; break; }
-    case Z: { axis = "Z: "; break; }
+    case X: { axis = "X"; break; }
+    case Y: { axis = "Y"; break; }
+    case Z: { axis = "Z"; break; }
     }
 
 #if ENABLE_WORLD_ROTATIONS
-    if (m_dragging)
+    if (!m_dragging && (m_hover_id == 0))
+        set_tooltip(axis);
+    else if (m_dragging)
 #else
     if ((single_selection && (m_hover_id == 0)) || m_dragging)
 #endif // ENABLE_WORLD_ROTATIONS
-        set_tooltip(axis + format((float)Geometry::rad2deg(m_angle), 4) + "\u00B0");
+        set_tooltip(axis + ": " + format((float)Geometry::rad2deg(m_angle), 4) + "\u00B0");
     else
     {
         m_center = box.center();
@@ -875,10 +877,16 @@ void GLGizmoScale3D::on_render(const GLCanvas3D::Selection& selection) const
 
     if ((single_selection && ((m_hover_id == 0) || (m_hover_id == 1))) || m_grabbers[0].dragging || m_grabbers[1].dragging)
         set_tooltip("X: " + format(scale(0), 4) + "%");
+    else if (!m_grabbers[0].dragging && !m_grabbers[1].dragging && ((m_hover_id == 0) || (m_hover_id == 1)))
+        set_tooltip("X");
     else if ((single_selection && ((m_hover_id == 2) || (m_hover_id == 3))) || m_grabbers[2].dragging || m_grabbers[3].dragging)
         set_tooltip("Y: " + format(scale(1), 4) + "%");
+    else if (!m_grabbers[2].dragging && !m_grabbers[3].dragging && ((m_hover_id == 2) || (m_hover_id == 3)))
+        set_tooltip("Y");
     else if ((single_selection && ((m_hover_id == 4) || (m_hover_id == 5))) || m_grabbers[4].dragging || m_grabbers[5].dragging)
         set_tooltip("Z: " + format(scale(2), 4) + "%");
+    else if (!m_grabbers[4].dragging && !m_grabbers[5].dragging && ((m_hover_id == 4) || (m_hover_id == 5)))
+        set_tooltip("Z");
     else if ((single_selection && ((m_hover_id == 6) || (m_hover_id == 7) || (m_hover_id == 8) || (m_hover_id == 9)))
         || m_grabbers[6].dragging || m_grabbers[7].dragging || m_grabbers[8].dragging || m_grabbers[9].dragging)
     {
@@ -887,6 +895,9 @@ void GLGizmoScale3D::on_render(const GLCanvas3D::Selection& selection) const
         tooltip += "Z: " + format(scale(2), 4) + "%";
         set_tooltip(tooltip);
     }
+    else if (!m_grabbers[6].dragging && !m_grabbers[7].dragging && !m_grabbers[8].dragging && !m_grabbers[9].dragging &&
+        ((m_hover_id == 6) || (m_hover_id == 7) || (m_hover_id == 8) || (m_hover_id == 9)))
+        set_tooltip("X/Y/Z");
 
 #if ENABLE_GIZMOS_ON_TOP
     ::glClear(GL_DEPTH_BUFFER_BIT);
@@ -1256,10 +1267,16 @@ void GLGizmoMove3D::on_render(const GLCanvas3D::Selection& selection) const
 
     if ((show_position && (m_hover_id == 0)) || m_grabbers[0].dragging)
         set_tooltip("X: " + format(show_position ? position(0) : m_displacement(0), 2));
+    else if (!m_grabbers[0].dragging && (m_hover_id == 0))
+        set_tooltip("X");
     else if ((show_position && (m_hover_id == 1)) || m_grabbers[1].dragging)
         set_tooltip("Y: " + format(show_position ? position(1) : m_displacement(1), 2));
+    else if (!m_grabbers[1].dragging && (m_hover_id == 1))
+        set_tooltip("Y");
     else if ((show_position && (m_hover_id == 2)) || m_grabbers[2].dragging)
         set_tooltip("Z: " + format(show_position ? position(2) : m_displacement(2), 2));
+    else if (!m_grabbers[2].dragging && (m_hover_id == 2))
+        set_tooltip("Z");
 
 #if ENABLE_GIZMOS_ON_TOP
     ::glClear(GL_DEPTH_BUFFER_BIT);
