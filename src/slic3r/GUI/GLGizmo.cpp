@@ -1464,9 +1464,7 @@ std::string GLGizmoFlatten::on_get_name() const
 
 bool GLGizmoFlatten::on_is_activable(const GLCanvas3D::Selection& selection) const
 {
-    return (selection.is_from_single_object()
-        && (selection.is_single_full_instance() || selection.is_multiple_full_instance() || selection.is_single_full_object())
-        && !selection.is_wipe_tower()           && !selection.is_modifier());
+    return selection.is_single_full_instance();
 }
 
 void GLGizmoFlatten::on_start_dragging(const GLCanvas3D::Selection& selection)
@@ -1480,44 +1478,33 @@ void GLGizmoFlatten::on_start_dragging(const GLCanvas3D::Selection& selection)
 
 void GLGizmoFlatten::on_render(const GLCanvas3D::Selection& selection) const
 {
-    // The planes are rendered incorrectly when the object is being moved. We better won't render anything in that case.
-    // This indeed has a better solution (to be implemented when there is more time)
-    Vec3d dragged_offset(Vec3d::Zero());
-    if (m_starting_center == Vec3d::Zero())
-        m_starting_center = selection.get_bounding_box().center();
-    dragged_offset = selection.get_bounding_box().center() - m_starting_center;
-    if (dragged_offset.norm() > 0.001)
-        return;
-
-
 #if ENABLE_GIZMOS_ON_TOP
     ::glClear(GL_DEPTH_BUFFER_BIT);
 #endif // ENABLE_GIZMOS_ON_TOP
+
     ::glEnable(GL_DEPTH_TEST);
     ::glEnable(GL_BLEND);
 
-    if (selection.is_from_single_object()) {
-        if (m_model_object) {
-            //for (const int instance_idx : instances_list) {
-            for (const ModelInstance* inst : m_model_object->instances) {
-                Transform3d m = inst->get_matrix();
-                for (int i=0; i<(int)m_planes.size(); ++i) {
-                    if (i == m_hover_id)
-                        ::glColor4f(0.9f, 0.9f, 0.9f, 0.75f);
-                    else
-                        ::glColor4f(0.9f, 0.9f, 0.9f, 0.5f);
+    if (selection.is_single_full_instance())
+    {
+        const Transform3d& m = selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix();
+        ::glPushMatrix();
+        ::glMultMatrixd(m.data());
+        for (int i = 0; i < (int)m_planes.size(); ++i)
+        {
+            if (i == m_hover_id)
+                ::glColor4f(0.9f, 0.9f, 0.9f, 0.75f);
+            else
+                ::glColor4f(0.9f, 0.9f, 0.9f, 0.5f);
 
-                    m.pretranslate(dragged_offset);
-                    ::glPushMatrix();
-                    ::glMultMatrixd(m.data());
-                    ::glBegin(GL_POLYGON);
-                    for (const Vec3d& vertex : m_planes[i].vertices)
-                        ::glVertex3dv(vertex.data());
-                    ::glEnd();
-                    ::glPopMatrix();
-                }
+            ::glBegin(GL_POLYGON);
+            for (const Vec3d& vertex : m_planes[i].vertices)
+            {
+                ::glVertex3dv(vertex.data());
             }
+            ::glEnd();
         }
+        ::glPopMatrix();
     }
 
     ::glEnable(GL_CULL_FACE);
@@ -1529,20 +1516,22 @@ void GLGizmoFlatten::on_render_for_picking(const GLCanvas3D::Selection& selectio
     ::glDisable(GL_DEPTH_TEST);
     ::glDisable(GL_BLEND);
 
-    if (selection.is_from_single_object()) {
-        if (m_model_object)
-            for (const ModelInstance* inst : m_model_object->instances) {
-                for (int i=0; i<(int)m_planes.size(); ++i) {
-                    ::glColor3f(1.0f, 1.0f, picking_color_component(i));
-                    ::glPushMatrix();
-                    ::glMultMatrixd(inst->get_matrix().data());
-                    ::glBegin(GL_POLYGON);
-                    for (const Vec3d& vertex : m_planes[i].vertices)
-                        ::glVertex3dv(vertex.data());
-                    ::glEnd();
-                    ::glPopMatrix();
-                }
+    if (selection.is_single_full_instance())
+    {
+        const Transform3d& m = selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix();
+        ::glPushMatrix();
+        ::glMultMatrixd(m.data());
+        for (int i = 0; i < (int)m_planes.size(); ++i)
+        {
+            ::glColor3f(1.0f, 1.0f, picking_color_component(i));
+            ::glBegin(GL_POLYGON);
+            for (const Vec3d& vertex : m_planes[i].vertices)
+            {
+                ::glVertex3dv(vertex.data());
             }
+            ::glEnd();
+        }
+        ::glPopMatrix();
     }
 
     ::glEnable(GL_CULL_FACE);
