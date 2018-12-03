@@ -34,6 +34,7 @@ void Print::clear()
     for (PrintRegion *region : m_regions)
         delete region;
     m_regions.clear();
+    m_model.clear_objects();
 }
 
 // Only used by the Perl test cases.
@@ -374,6 +375,9 @@ static PrintRegionConfig region_config_from_model_volume(const PrintRegionConfig
 void Print::add_model_object(ModelObject* model_object, int idx)
 {
 	tbb::mutex::scoped_lock lock(this->state_mutex());
+    // Add a copy of this ModelObject to this Print.
+    m_model.objects.emplace_back(ModelObject::new_copy(*model_object));
+    m_model.objects.back()->set_model(&m_model);
     // Initialize a new print object and store it at the given position.
     PrintObject *object = new PrintObject(this, model_object);
     if (idx != -1) {

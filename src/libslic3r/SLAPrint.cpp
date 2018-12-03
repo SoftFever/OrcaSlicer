@@ -76,9 +76,10 @@ void SLAPrint::clear()
     tbb::mutex::scoped_lock lock(this->state_mutex());
     // The following call should stop background processing if it is running.
     this->invalidate_all_steps();
-
-    for (SLAPrintObject *object : m_objects) delete object;
+    for (SLAPrintObject *object : m_objects)
+        delete object;
     m_objects.clear();
+    m_model.clear_objects();
 }
 
 // Transformation without rotation around Z and without a shift by X and Y.
