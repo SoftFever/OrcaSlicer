@@ -5248,6 +5248,12 @@ void GLCanvas3D::set_camera_zoom(float zoom)
     _refresh_if_shown_on_screen();
 }
 
+void GLCanvas3D::update_gizmos_on_off_state()
+{
+    set_as_dirty();
+    m_gizmos.update_on_off_state(get_selection());
+}
+
 bool GLCanvas3D::_is_shown_on_screen() const
 {
     return (m_canvas != nullptr) ? m_canvas->IsShownOnScreen() : false;

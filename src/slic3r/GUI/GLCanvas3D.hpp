@@ -919,6 +919,8 @@ public:
 
     void set_camera_zoom(float zoom);
 
+    void update_gizmos_on_off_state();
+
 private:
     bool _is_shown_on_screen() const;
     void _force_zoom_to_bed();

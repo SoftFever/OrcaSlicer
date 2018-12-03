@@ -1405,7 +1405,7 @@ void ObjectList::update_selections_on_canvas()
     const int sel_cnt = GetSelectedItemsCount();
     if (sel_cnt == 0) {
         selection.clear();
-        wxGetApp().plater()->canvas3D()->set_as_dirty();
+        wxGetApp().plater()->canvas3D()->update_gizmos_on_off_state();
         return;
     }
 
@@ -1435,7 +1435,7 @@ void ObjectList::update_selections_on_canvas()
         else
             add_to_selection(item, selection, true);
             
-        wxGetApp().plater()->canvas3D()->set_as_dirty();
+        wxGetApp().plater()->canvas3D()->update_gizmos_on_off_state();
         return;
     }
     
@@ -1446,7 +1446,7 @@ void ObjectList::update_selections_on_canvas()
     for (auto item: sels)
         add_to_selection(item, selection, false);
 
-    wxGetApp().plater()->canvas3D()->set_as_dirty();
+    wxGetApp().plater()->canvas3D()->update_gizmos_on_off_state();
 }
 
 void ObjectList::select_item(const wxDataViewItem& item)

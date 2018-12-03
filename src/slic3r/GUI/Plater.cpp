@@ -1563,6 +1563,7 @@ void Plater::priv::object_list_changed()
 void Plater::priv::select_all()
 {
     this->canvas3D->select_all();
+    this->sidebar->obj_list()->update_selections();
 }
 
 void Plater::priv::remove(size_t obj_idx)
