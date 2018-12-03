@@ -1854,6 +1854,59 @@ void GLCanvas3D::Selection::erase()
 
         wxGetApp().obj_list()->delete_from_model_and_list(items);
     }
+    else if (is_mixed())
+    {
+        std::set<ItemForDelete> items_set;
+        std::map<int, int> volumes_in_obj;
+
+        for (auto i : m_list) {
+            const auto gl_vol = (*m_volumes)[i];
+            const auto glv_obj_idx = gl_vol->object_idx();
+            const auto model_object = m_model->objects[glv_obj_idx];
+
+            if (model_object->instances.size() == 1) {
+                if (model_object->volumes.size() == 1)
+                    items_set.insert(ItemForDelete(ItemType::itObject, glv_obj_idx, -1));
+                else {
+                    items_set.insert(ItemForDelete(ItemType::itVolume, glv_obj_idx, gl_vol->volume_idx()));
+                    int idx = (volumes_in_obj.find(glv_obj_idx) == volumes_in_obj.end()) ? 0 : volumes_in_obj.at(glv_obj_idx);
+                    volumes_in_obj[glv_obj_idx] = ++idx;
+                }
+                continue;
+            }
+
+            const auto glv_ins_idx = gl_vol->instance_idx();
+
+            for (auto obj_ins : m_cache.content) {
+                if (obj_ins.first == glv_obj_idx) {
+                    if (obj_ins.second.find(glv_ins_idx) != obj_ins.second.end()) {
+                        if (obj_ins.second.size() == model_object->instances.size())
+                            items_set.insert(ItemForDelete(ItemType::itVolume, glv_obj_idx, gl_vol->volume_idx()));
+                        else
+                            items_set.insert(ItemForDelete(ItemType::itInstance, glv_obj_idx, glv_ins_idx));
+
+                        break;
+                    }
+                }
+            }
+        }
+
+        std::vector<ItemForDelete> items;
+        items.reserve(items_set.size());
+        for (const ItemForDelete& i : items_set) {
+            if (i.type == ItemType::itVolume ) {
+                const int vol_in_obj_cnt = volumes_in_obj.find(i.obj_idx) == volumes_in_obj.end() ? 0 : volumes_in_obj.at(i.obj_idx);
+                if (vol_in_obj_cnt == m_model->objects[i.obj_idx]->volumes.size()) {
+                    if (i.sub_obj_idx == vol_in_obj_cnt - 1)
+                        items.emplace_back(ItemType::itObject, i.obj_idx, 0);
+                    continue;
+                }
+            }
+            items.emplace_back(i.type, i.obj_idx, i.sub_obj_idx);
+        }
+
+        wxGetApp().obj_list()->delete_from_model_and_list(items);
+    }
     else
     {
         std::set<std::pair<int, int>> volumes_idxs;
