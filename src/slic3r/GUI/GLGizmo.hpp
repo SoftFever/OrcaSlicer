@@ -365,7 +365,6 @@ class GLGizmoMove3D : public GLGizmoBase
 
 public:
     explicit GLGizmoMove3D(GLCanvas3D& parent);
-    GLGizmoMove3D(const GLGizmoMove3D& other);
     virtual ~GLGizmoMove3D();
 
     double get_snap_step(double step) const { return m_snap_step; }
@@ -440,16 +439,27 @@ class GLGizmoSlaSupports : public GLGizmoBase
 {
 private:
     ModelObject* m_model_object = nullptr;
+#if ENABLE_SLA_SUPPORT_GIZMO_MOD
+    ModelObject* m_old_model_object = nullptr;
+    int m_old_instance_id = -1;
+#else
     Transform3d m_instance_matrix;
+#endif // ENABLE_SLA_SUPPORT_GIZMO_MOD
     Vec3f unproject_on_mesh(const Vec2d& mouse_pos);
+
+#if ENABLE_SLA_SUPPORT_GIZMO_MOD
+    GLUquadricObj* m_quadric;
+#endif // ENABLE_SLA_SUPPORT_GIZMO_MOD
 
     Eigen::MatrixXf m_V; // vertices
     Eigen::MatrixXi m_F; // facets indices
     igl::AABB<Eigen::MatrixXf,3> m_AABB;
 
     struct SourceDataSummary {
+#if !ENABLE_SLA_SUPPORT_GIZMO_MOD
         BoundingBoxf3 bounding_box;
         Transform3d matrix;
+#endif // !ENABLE_SLA_SUPPORT_GIZMO_MOD
         Vec3d mesh_first_point;
     };
 
@@ -460,7 +470,12 @@ private:
 
 public:
     explicit GLGizmoSlaSupports(GLCanvas3D& parent);
+#if ENABLE_SLA_SUPPORT_GIZMO_MOD
+    virtual ~GLGizmoSlaSupports();
+    void set_sla_support_data(ModelObject* model_object, const GLCanvas3D::Selection& selection);
+#else
     void set_model_object_ptr(ModelObject* model_object);
+#endif // ENABLE_SLA_SUPPORT_GIZMO_MOD
     void clicked_on_object(const Vec2d& mouse_position);
     void delete_current_grabber(bool delete_all);
 
@@ -470,7 +485,11 @@ private:
     virtual void on_render(const GLCanvas3D::Selection& selection) const;
     virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const;
 
+#if ENABLE_SLA_SUPPORT_GIZMO_MOD
+    void render_grabbers(const GLCanvas3D::Selection& selection, bool picking = false) const;
+#else
     void render_grabbers(bool picking = false) const;
+#endif // ENABLE_SLA_SUPPORT_GIZMO_MOD
     bool is_mesh_update_necessary() const;
     void update_mesh();
 

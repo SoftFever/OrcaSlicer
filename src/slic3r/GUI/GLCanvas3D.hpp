@@ -651,8 +651,12 @@ private:
         Vec3d get_flattening_normal() const;
 
         void set_flattening_data(const ModelObject* model_object);
-        
+
+#if ENABLE_SLA_SUPPORT_GIZMO_MOD
+        void set_sla_support_data(ModelObject* model_object, const GLCanvas3D::Selection& selection);
+#else
         void set_model_object_ptr(ModelObject* model_object);
+#endif // ENABLE_SLA_SUPPORT_GIZMO_MOD
         void clicked_on_object(const Vec2d& mouse_position);
         void delete_current_grabber(bool delete_all = false);
 
@@ -918,6 +922,8 @@ public:
     void do_mirror();
 
     void set_camera_zoom(float zoom);
+
+    void update_gizmos_on_off_state();
 
 private:
     bool _is_shown_on_screen() const;

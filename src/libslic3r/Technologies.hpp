@@ -33,6 +33,8 @@
 #define ENABLE_GIZMOS_SHORTCUT (1 && ENABLE_1_42_0)
 // Scene's GUI made using imgui library
 #define ENABLE_IMGUI (1 && ENABLE_1_42_0)
+// Modified Sla support gizmo
+#define ENABLE_SLA_SUPPORT_GIZMO_MOD (1 && ENABLE_1_42_0)
 
 #endif // _technologies_h_
 
