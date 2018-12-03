@@ -309,6 +309,7 @@ GLGizmoRotate::GLGizmoRotate(GLCanvas3D& parent, GLGizmoRotate::Axis axis)
     : GLGizmoBase(parent)
     , m_axis(axis)
     , m_angle(0.0)
+    , m_quadric(nullptr)
     , m_center(0.0, 0.0, 0.0)
     , m_radius(0.0f)
     , m_snap_coarse_in_radius(0.0f)
@@ -316,6 +317,32 @@ GLGizmoRotate::GLGizmoRotate(GLCanvas3D& parent, GLGizmoRotate::Axis axis)
     , m_snap_fine_in_radius(0.0f)
     , m_snap_fine_out_radius(0.0f)
 {
+    m_quadric = ::gluNewQuadric();
+    if (m_quadric != nullptr)
+        ::gluQuadricDrawStyle(m_quadric, GLU_FILL);
+}
+
+GLGizmoRotate::GLGizmoRotate(const GLGizmoRotate& other)
+    : GLGizmoBase(other.m_parent)
+    , m_axis(other.m_axis)
+    , m_angle(other.m_angle)
+    , m_quadric(nullptr)
+    , m_center(other.m_center)
+    , m_radius(other.m_radius)
+    , m_snap_coarse_in_radius(other.m_snap_coarse_in_radius)
+    , m_snap_coarse_out_radius(other.m_snap_coarse_out_radius)
+    , m_snap_fine_in_radius(other.m_snap_fine_in_radius)
+    , m_snap_fine_out_radius(other.m_snap_fine_out_radius)
+{
+    m_quadric = ::gluNewQuadric();
+    if (m_quadric != nullptr)
+        ::gluQuadricDrawStyle(m_quadric, GLU_FILL);
+}
+
+GLGizmoRotate::~GLGizmoRotate()
+{
+    if (m_quadric != nullptr)
+        ::gluDeleteQuadric(m_quadric);
 }
 
 void GLGizmoRotate::set_angle(double angle)
@@ -565,6 +592,9 @@ void GLGizmoRotate::render_grabber(const BoundingBoxf3& box) const
 
 void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool picking) const
 {
+    if (m_quadric == nullptr)
+        return;
+
     double size = m_dragging ? (double)m_grabbers[0].get_dragging_half_size((float)box.max_size()) : (double)m_grabbers[0].get_half_size((float)box.max_size());
 
     float color[3];
@@ -580,28 +610,26 @@ void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool pick
         ::glEnable(GL_LIGHTING);
 
     ::glColor3fv(color);
-    GLUquadricObj* quadric = ::gluNewQuadric();
-    ::gluQuadricDrawStyle(quadric, GLU_FILL);
     ::glPushMatrix();
     ::glTranslated(m_grabbers[0].center(0), m_grabbers[0].center(1), m_grabbers[0].center(2));
     ::glRotated(Geometry::rad2deg(m_angle), 0.0, 0.0, 1.0);
     ::glRotated(90.0, 1.0, 0.0, 0.0);
     ::glTranslated(0.0, 0.0, 2.0 * size);
-    ::gluCylinder(quadric, 0.75 * size, 0.0, 3.0 * size, 36, 1);
-    ::gluQuadricOrientation(quadric, GLU_INSIDE);
-    ::gluDisk(quadric, 0.0, 0.75 * size, 36, 1);
+    ::gluQuadricOrientation(m_quadric, GLU_OUTSIDE);
+    ::gluCylinder(m_quadric, 0.75 * size, 0.0, 3.0 * size, 36, 1);
+    ::gluQuadricOrientation(m_quadric, GLU_INSIDE);
+    ::gluDisk(m_quadric, 0.0, 0.75 * size, 36, 1);
     ::glPopMatrix();
     ::glPushMatrix();
     ::glTranslated(m_grabbers[0].center(0), m_grabbers[0].center(1), m_grabbers[0].center(2));
     ::glRotated(Geometry::rad2deg(m_angle), 0.0, 0.0, 1.0);
     ::glRotated(-90.0, 1.0, 0.0, 0.0);
     ::glTranslated(0.0, 0.0, 2.0 * size);
-    ::gluQuadricOrientation(quadric, GLU_OUTSIDE);
-    ::gluCylinder(quadric, 0.75 * size, 0.0, 3.0 * size, 36, 1);
-    ::gluQuadricOrientation(quadric, GLU_INSIDE);
-    ::gluDisk(quadric, 0.0, 0.75 * size, 36, 1);
+    ::gluQuadricOrientation(m_quadric, GLU_OUTSIDE);
+    ::gluCylinder(m_quadric, 0.75 * size, 0.0, 3.0 * size, 36, 1);
+    ::gluQuadricOrientation(m_quadric, GLU_INSIDE);
+    ::gluDisk(m_quadric, 0.0, 0.75 * size, 36, 1);
     ::glPopMatrix();
-    ::gluDeleteQuadric(quadric);
 
     if (!picking)
         ::glDisable(GL_LIGHTING);
@@ -1136,7 +1164,31 @@ GLGizmoMove3D::GLGizmoMove3D(GLCanvas3D& parent)
     , m_starting_drag_position(Vec3d::Zero())
     , m_starting_box_center(Vec3d::Zero())
     , m_starting_box_bottom_center(Vec3d::Zero())
+    , m_quadric(nullptr)
 {
+    m_quadric = ::gluNewQuadric();
+    if (m_quadric != nullptr)
+        ::gluQuadricDrawStyle(m_quadric, GLU_FILL);
+}
+
+GLGizmoMove3D::GLGizmoMove3D(const GLGizmoMove3D& other)
+    : GLGizmoBase(other.m_parent)
+    , m_displacement(other.m_displacement)
+    , m_snap_step(other.m_snap_step)
+    , m_starting_drag_position(other.m_starting_drag_position)
+    , m_starting_box_center(other.m_starting_box_center)
+    , m_starting_box_bottom_center(other.m_starting_box_bottom_center)
+    , m_quadric(nullptr)
+{
+    m_quadric = ::gluNewQuadric();
+    if (m_quadric != nullptr)
+        ::gluQuadricDrawStyle(m_quadric, GLU_FILL);
+}
+
+GLGizmoMove3D::~GLGizmoMove3D()
+{
+    if (m_quadric != nullptr)
+        ::gluDeleteQuadric(m_quadric);
 }
 
 bool GLGizmoMove3D::on_init()
@@ -1325,6 +1377,9 @@ double GLGizmoMove3D::calc_projection(const UpdateData& data) const
 
 void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box, bool picking) const
 {
+    if (m_quadric == nullptr)
+        return;
+
     double size = m_dragging ? (double)m_grabbers[axis].get_dragging_half_size((float)box.max_size()) : (double)m_grabbers[axis].get_half_size((float)box.max_size());
 
     float color[3];
@@ -1340,8 +1395,6 @@ void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box
         ::glEnable(GL_LIGHTING);
 
     ::glColor3fv(color);
-    GLUquadricObj* quadric = ::gluNewQuadric();
-    ::gluQuadricDrawStyle(quadric, GLU_FILL);
     ::glPushMatrix();
     ::glTranslated(m_grabbers[axis].center(0), m_grabbers[axis].center(1), m_grabbers[axis].center(2));
     if (axis == X)
@@ -1350,11 +1403,11 @@ void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box
         ::glRotated(-90.0, 1.0, 0.0, 0.0);
 
     ::glTranslated(0.0, 0.0, 2.0 * size);
-    ::gluCylinder(quadric, 0.75 * size, 0.0, 3.0 * size, 36, 1);
-    ::gluQuadricOrientation(quadric, GLU_INSIDE);
-    ::gluDisk(quadric, 0.0, 0.75 * size, 36, 1);
+    ::gluQuadricOrientation(m_quadric, GLU_OUTSIDE);
+    ::gluCylinder(m_quadric, 0.75 * size, 0.0, 3.0 * size, 36, 1);
+    ::gluQuadricOrientation(m_quadric, GLU_INSIDE);
+    ::gluDisk(m_quadric, 0.0, 0.75 * size, 36, 1);
     ::glPopMatrix();
-    ::gluDeleteQuadric(quadric);
 
     if (!picking)
         ::glDisable(GL_LIGHTING);
