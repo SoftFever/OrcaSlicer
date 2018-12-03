@@ -1182,20 +1182,6 @@ GLGizmoMove3D::GLGizmoMove3D(GLCanvas3D& parent)
         ::gluQuadricDrawStyle(m_quadric, GLU_FILL);
 }
 
-GLGizmoMove3D::GLGizmoMove3D(const GLGizmoMove3D& other)
-    : GLGizmoBase(other.m_parent)
-    , m_displacement(other.m_displacement)
-    , m_snap_step(other.m_snap_step)
-    , m_starting_drag_position(other.m_starting_drag_position)
-    , m_starting_box_center(other.m_starting_box_center)
-    , m_starting_box_bottom_center(other.m_starting_box_bottom_center)
-    , m_quadric(nullptr)
-{
-    m_quadric = ::gluNewQuadric();
-    if (m_quadric != nullptr)
-        ::gluQuadricDrawStyle(m_quadric, GLU_FILL);
-}
-
 GLGizmoMove3D::~GLGizmoMove3D()
 {
     if (m_quadric != nullptr)
@@ -1757,9 +1743,26 @@ Vec3d GLGizmoFlatten::get_flattening_normal() const
 }
 
 GLGizmoSlaSupports::GLGizmoSlaSupports(GLCanvas3D& parent)
+#if ENABLE_SLA_SUPPORT_GIZMO_MOD
+    : GLGizmoBase(parent), m_starting_center(Vec3d::Zero()), m_quadric(nullptr)
+#else
     : GLGizmoBase(parent), m_starting_center(Vec3d::Zero())
+#endif // ENABLE_SLA_SUPPORT_GIZMO_MOD
 {
+#if ENABLE_SLA_SUPPORT_GIZMO_MOD
+    m_quadric = ::gluNewQuadric();
+    if (m_quadric != nullptr)
+        ::gluQuadricDrawStyle(m_quadric, GLU_FILL);
+#endif // ENABLE_SLA_SUPPORT_GIZMO_MOD
 }
+
+#if ENABLE_SLA_SUPPORT_GIZMO_MOD
+GLGizmoSlaSupports::~GLGizmoSlaSupports()
+{
+    if (m_quadric != nullptr)
+        ::gluDeleteQuadric(m_quadric);
+}
+#endif // ENABLE_SLA_SUPPORT_GIZMO_MOD
 
 bool GLGizmoSlaSupports::on_init()
 {
@@ -1781,6 +1784,20 @@ bool GLGizmoSlaSupports::on_init()
     return true;
 }
 
+#if ENABLE_SLA_SUPPORT_GIZMO_MOD
+void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const GLCanvas3D::Selection& selection)
+{
+    m_starting_center = Vec3d::Zero();
+    m_old_model_object = m_model_object;
+    m_model_object = model_object;
+
+    if ((model_object != nullptr) && selection.is_from_single_instance())
+    {
+        if (is_mesh_update_necessary())
+            update_mesh();
+    }
+}
+#else
 void GLGizmoSlaSupports::set_model_object_ptr(ModelObject* model_object)
 {
     if (model_object != nullptr)
@@ -1796,12 +1813,14 @@ void GLGizmoSlaSupports::set_model_object_ptr(ModelObject* model_object)
             update_mesh();
     }
 }
+#endif // ENABLE_SLA_SUPPORT_GIZMO_MOD
 
 void GLGizmoSlaSupports::on_render(const GLCanvas3D::Selection& selection) const
 {
     ::glEnable(GL_BLEND);
     ::glEnable(GL_DEPTH_TEST);
 
+#if !ENABLE_SLA_SUPPORT_GIZMO_MOD
     // the dragged_offset is a vector measuring where was the object moved
     // with the gizmo being on. This is reset in set_model_object_ptr and
     // does not work correctly when there are multiple copies.
@@ -1809,6 +1828,7 @@ void GLGizmoSlaSupports::on_render(const GLCanvas3D::Selection& selection) const
     if (m_starting_center == Vec3d::Zero())
         m_starting_center = selection.get_bounding_box().center();
     Vec3d dragged_offset = selection.get_bounding_box().center() - m_starting_center;
+#endif // !ENABLE_SLA_SUPPORT_GIZMO_MOD
 
     for (auto& g : m_grabbers) {
         g.color[0] = 1.f;
@@ -1816,8 +1836,12 @@ void GLGizmoSlaSupports::on_render(const GLCanvas3D::Selection& selection) const
         g.color[2] = 0.f;
     }
 
+#if ENABLE_SLA_SUPPORT_GIZMO_MOD
+    render_grabbers(selection, false);
+#else
     //::glTranslatef((GLfloat)dragged_offset(0), (GLfloat)dragged_offset(1), (GLfloat)dragged_offset(2));
     render_grabbers(false);
+#endif // ENABLE_SLA_SUPPORT_GIZMO_MOD
 
 #if !ENABLE_IMGUI
     render_tooltip_texture();
@@ -1834,9 +1858,59 @@ void GLGizmoSlaSupports::on_render_for_picking(const GLCanvas3D::Selection& sele
         m_grabbers[i].color[1] = 1.0f;
         m_grabbers[i].color[2] = picking_color_component(i);
     }
+#if ENABLE_SLA_SUPPORT_GIZMO_MOD
+    render_grabbers(selection, true);
+#else
     render_grabbers(true);
+#endif // ENABLE_SLA_SUPPORT_GIZMO_MOD
 }
 
+#if ENABLE_SLA_SUPPORT_GIZMO_MOD
+void GLGizmoSlaSupports::render_grabbers(const GLCanvas3D::Selection& selection, bool picking) const
+{
+    if (m_quadric == nullptr)
+        return;
+
+    if (!selection.is_from_single_instance())
+        return;
+
+    const GLVolume* v = selection.get_volume(*selection.get_volume_idxs().begin());
+    double z_shift = v->get_sla_shift_z();
+
+    ::glPushMatrix();
+    ::glTranslated(0.0, 0.0, z_shift);
+
+    const Transform3d& m = selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix();
+    ::glMultMatrixd(m.data());
+
+    if (!picking)
+        ::glEnable(GL_LIGHTING);
+
+    float render_color[3];
+    for (int i = 0; i < (int)m_grabbers.size(); ++i)
+    {
+        if (!picking && (m_hover_id == i))
+        {
+            render_color[0] = 1.0f - m_grabbers[i].color[0];
+            render_color[1] = 1.0f - m_grabbers[i].color[1];
+            render_color[2] = 1.0f - m_grabbers[i].color[2];
+        }
+        else
+            ::memcpy((void*)render_color, (const void*)m_grabbers[i].color, 3 * sizeof(float));
+
+        ::glColor3fv(render_color);
+        ::glPushMatrix();
+        ::glTranslated(m_grabbers[i].center(0), m_grabbers[i].center(1), m_grabbers[i].center(2));
+        ::gluSphere(m_quadric, 0.75, 36, 18);
+        ::glPopMatrix();
+    }
+
+    if (!picking)
+        ::glDisable(GL_LIGHTING);
+
+    ::glPopMatrix();
+}
+#else
 void GLGizmoSlaSupports::render_grabbers(bool picking) const
 {
 	if (m_parent.get_selection().is_empty())
@@ -1886,10 +1960,15 @@ void GLGizmoSlaSupports::render_grabbers(bool picking) const
 
     ::glTranslatef((GLfloat)0, (GLfloat)0, (GLfloat)-z_shift);
 }
+#endif // ENABLE_SLA_SUPPORT_GIZMO_MOD
 
 bool GLGizmoSlaSupports::is_mesh_update_necessary() const
 {
-    return m_state == On && m_model_object && ! m_model_object->instances.empty() && ! m_instance_matrix.isApprox(m_source_data.matrix);
+#if ENABLE_SLA_SUPPORT_GIZMO_MOD
+    return (m_state == On) && (m_model_object != nullptr) && (m_model_object != m_old_model_object) && !m_model_object->instances.empty();
+#else
+    return m_state == On && m_model_object && !m_model_object->instances.empty() && !m_instance_matrix.isApprox(m_source_data.matrix);
+#endif // ENABLE_SLA_SUPPORT_GIZMO_MOD
 
     //if (m_state != On || !m_model_object || m_model_object->instances.empty() || ! m_instance_matrix.isApprox(m_source_data.matrix))
     //    return false;
@@ -1924,7 +2003,9 @@ void GLGizmoSlaSupports::update_mesh()
     m_AABB = igl::AABB<Eigen::MatrixXf,3>();
     m_AABB.init(m_V, m_F);
 
+#if !ENABLE_SLA_SUPPORT_GIZMO_MOD
     m_source_data.matrix = m_instance_matrix;
+#endif // !ENABLE_SLA_SUPPORT_GIZMO_MOD
 
     // we'll now reload Grabbers (selection might have changed):
     m_grabbers.clear();
@@ -1937,7 +2018,11 @@ void GLGizmoSlaSupports::update_mesh()
 Vec3f GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos)
 {
     // if the gizmo doesn't have the V, F structures for igl, calculate them first:
+#if ENABLE_SLA_SUPPORT_GIZMO_MOD
+    if (m_V.size() == 0)
+#else
     if (m_V.size() == 0 || is_mesh_update_necessary())
+#endif // ENABLE_SLA_SUPPORT_GIZMO_MOD
         update_mesh();
 
     Eigen::Matrix<GLint, 4, 1, Eigen::DontAlign> viewport;
@@ -1954,10 +2039,20 @@ Vec3f GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos)
 
     igl::Hit hit;
 
-	double z_offset = m_parent.get_selection().get_volume(0)->get_sla_shift_z();
-	point1(2) -= z_offset;
+#if ENABLE_SLA_SUPPORT_GIZMO_MOD
+    const GLCanvas3D::Selection& selection = m_parent.get_selection();
+    const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
+    double z_offset = volume->get_sla_shift_z();
+#else
+    double z_offset = m_parent.get_selection().get_volume(0)->get_sla_shift_z();
+#endif // ENABLE_SLA_SUPPORT_GIZMO_MOD
+    point1(2) -= z_offset;
 	point2(2) -= z_offset;
+#if ENABLE_SLA_SUPPORT_GIZMO_MOD
+    Transform3d inv = volume->get_instance_transformation().get_matrix().inverse();
+#else
     Transform3d inv = m_instance_matrix.inverse();
+#endif // ENABLE_SLA_SUPPORT_GIZMO_MOD
     point1 = inv * point1;
     point2 = inv * point2;
 
@@ -1971,6 +2066,17 @@ Vec3f GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos)
 
 void GLGizmoSlaSupports::clicked_on_object(const Vec2d& mouse_position)
 {
+#if ENABLE_SLA_SUPPORT_GIZMO_MOD
+    int instance_id = m_parent.get_selection().get_instance_idx();
+    if (m_old_instance_id != instance_id)
+    {
+        m_old_instance_id = instance_id;
+        return;
+    }
+    if (instance_id == -1)
+        return;
+#endif // ENABLE_SLA_SUPPORT_GIZMO_MOD
+
     Vec3f new_pos;
     try {
         new_pos = unproject_on_mesh(mouse_position); // this can throw - we don't want to create a new grabber in that case

@@ -2872,14 +2872,22 @@ void GLCanvas3D::Gizmos::set_flattening_data(const ModelObject* model_object)
         reinterpret_cast<GLGizmoFlatten*>(it->second)->set_flattening_data(model_object);
 }
 
+#if ENABLE_SLA_SUPPORT_GIZMO_MOD
+void GLCanvas3D::Gizmos::set_sla_support_data(ModelObject* model_object, const GLCanvas3D::Selection& selection)
+#else
 void GLCanvas3D::Gizmos::set_model_object_ptr(ModelObject* model_object)
+#endif // ENABLE_SLA_SUPPORT_GIZMO_MOD
 {
     if (!m_enabled)
         return;
 
     GizmosMap::const_iterator it = m_gizmos.find(SlaSupports);
     if (it != m_gizmos.end())
+#if ENABLE_SLA_SUPPORT_GIZMO_MOD
+        reinterpret_cast<GLGizmoSlaSupports*>(it->second)->set_sla_support_data(model_object, selection);
+#else
         reinterpret_cast<GLGizmoSlaSupports*>(it->second)->set_model_object_ptr(model_object);
+#endif // ENABLE_SLA_SUPPORT_GIZMO_MOD
 }
 
 void GLCanvas3D::Gizmos::clicked_on_object(const Vec2d& mouse_position)
@@ -6149,7 +6157,11 @@ void GLCanvas3D::_update_gizmos_data()
 #endif // ENABLE_WORLD_ROTATIONS
         ModelObject* model_object = m_model->objects[m_selection.get_object_idx()];
         m_gizmos.set_flattening_data(model_object);
+#if ENABLE_SLA_SUPPORT_GIZMO_MOD
+        m_gizmos.set_sla_support_data(model_object, m_selection);
+#else
         m_gizmos.set_model_object_ptr(model_object);
+#endif // ENABLE_SLA_SUPPORT_GIZMO_MOD
 #else
         ModelObject* model_object = m_model->objects[m_selection.get_object_idx()];
         ModelInstance* model_instance = model_object->instances[m_selection.get_instance_idx()];
@@ -6160,7 +6172,11 @@ void GLCanvas3D::_update_gizmos_data()
         m_gizmos.set_rotation(model_instance->get_rotation());
 #endif // ENABLE_WORLD_ROTATIONS
         m_gizmos.set_flattening_data(model_object);
+#if ENABLE_SLA_SUPPORT_GIZMO_MOD
+        m_gizmos.set_sla_support_data(model_object, m_selection);
+#else
         m_gizmos.set_model_object_ptr(model_object);
+#endif // ENABLE_SLA_SUPPORT_GIZMO_MOD
 #endif // ENABLE_MODELVOLUME_TRANSFORM
     }
 #if ENABLE_MODELVOLUME_TRANSFORM
@@ -6174,7 +6190,11 @@ void GLCanvas3D::_update_gizmos_data()
         m_gizmos.set_rotation(volume->get_volume_rotation());
 #endif // ENABLE_WORLD_ROTATIONS
         m_gizmos.set_flattening_data(nullptr);
+#if ENABLE_SLA_SUPPORT_GIZMO_MOD
+        m_gizmos.set_sla_support_data(nullptr, m_selection);
+#else
         m_gizmos.set_model_object_ptr(nullptr);
+#endif // ENABLE_SLA_SUPPORT_GIZMO_MOD
     }
 #endif // ENABLE_MODELVOLUME_TRANSFORM
     else
@@ -6182,7 +6202,11 @@ void GLCanvas3D::_update_gizmos_data()
         m_gizmos.set_scale(Vec3d::Ones());
         m_gizmos.set_rotation(Vec3d::Zero());
         m_gizmos.set_flattening_data(m_selection.is_from_single_object() ? m_model->objects[m_selection.get_object_idx()] : nullptr);
+#if ENABLE_SLA_SUPPORT_GIZMO_MOD
+        m_gizmos.set_sla_support_data(nullptr, m_selection);
+#else
         m_gizmos.set_model_object_ptr(nullptr);
+#endif // ENABLE_SLA_SUPPORT_GIZMO_MOD
     }
 }
 
