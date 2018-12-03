@@ -154,11 +154,8 @@ bool PlaceholderParser::apply_config(const DynamicPrintConfig &rhs)
 
 void PlaceholderParser::apply_only(const DynamicPrintConfig &rhs, const std::vector<std::string> &keys)
 {
-#ifdef _DEBUG
-    const ConfigDef *def = rhs.def();
-#endif /* _DEBUG */
     for (const t_config_option_key &opt_key : keys) {
-        assert(! placeholder_parser_ignore(def, opt_key));
+        assert(! placeholder_parser_ignore(rhs.def(), opt_key));
         // Store a copy of the config option.
         // Convert FloatOrPercent values to floats first.
         //FIXME there are some ratio_over chains, which end with empty ratio_with.

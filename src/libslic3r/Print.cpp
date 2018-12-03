@@ -10,8 +10,6 @@
 #include "GCode/WipeTowerPrusaMM.hpp"
 #include <algorithm>
 #include <unordered_set>
-#include <boost/filesystem.hpp>
-#include <boost/lexical_cast.hpp>
 #include <boost/log/trivial.hpp>
 
 #include "PrintExport.hpp"
