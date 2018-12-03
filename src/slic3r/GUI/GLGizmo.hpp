@@ -14,6 +14,8 @@
 
 
 class wxWindow;
+class GLUquadric;
+typedef class GLUquadric GLUquadricObj;
 
 
 namespace Slic3r {
@@ -199,6 +201,8 @@ private:
     Axis m_axis;
     double m_angle;
 
+    GLUquadricObj* m_quadric;
+
     mutable Vec3d m_center;
     mutable float m_radius;
 
@@ -209,6 +213,8 @@ private:
 
 public:
     GLGizmoRotate(GLCanvas3D& parent, Axis axis);
+    GLGizmoRotate(const GLGizmoRotate& other);
+    virtual ~GLGizmoRotate();
 
     double get_angle() const { return m_angle; }
     void set_angle(double angle);
@@ -355,8 +361,12 @@ class GLGizmoMove3D : public GLGizmoBase
     Vec3d m_starting_box_center;
     Vec3d m_starting_box_bottom_center;
 
+    GLUquadricObj* m_quadric;
+
 public:
     explicit GLGizmoMove3D(GLCanvas3D& parent);
+    GLGizmoMove3D(const GLGizmoMove3D& other);
+    virtual ~GLGizmoMove3D();
 
     double get_snap_step(double step) const { return m_snap_step; }
     void set_snap_step(double step) { m_snap_step = step; }
@@ -378,6 +388,7 @@ protected:
 
 private:
     double calc_projection(const UpdateData& data) const;
+    void render_grabber_extension(Axis axis, const BoundingBoxf3& box, bool picking) const;
 };
 
 class GLGizmoFlatten : public GLGizmoBase

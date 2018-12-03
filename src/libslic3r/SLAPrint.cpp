@@ -948,8 +948,10 @@ bool SLAPrintObject::invalidate_state_by_config_options(const std::vector<t_conf
     for (const t_config_option_key &opt_key : opt_keys) {
 		if (opt_key == "layer_height") {
 			steps.emplace_back(slaposObjectSlice);
-		} else if (opt_key == "supports_enable"
-            || opt_key == "support_head_front_diameter"
+        } else if (opt_key == "supports_enable") {
+            steps.emplace_back(slaposSupportPoints);
+		} else if (
+               opt_key == "support_head_front_diameter"
             || opt_key == "support_head_penetration"
             || opt_key == "support_head_width"
             || opt_key == "support_pillar_diameter"
@@ -1092,21 +1094,20 @@ TriangleMesh SLAPrintObject::get_mesh(SLAPrintObjectStep step) const
     }
 }
 
-
-
 const TriangleMesh& SLAPrintObject::support_mesh() const
 {
-    if(m_supportdata && m_supportdata->support_tree_ptr)
-        return m_supportdata->support_tree_ptr->merged_mesh();
+    if(m_config.supports_enable.getBool() && m_supportdata &&
+       m_supportdata->support_tree_ptr) return m_supportdata->support_tree_ptr->merged_mesh();
 
     return EMPTY_MESH;
 }
 
 const TriangleMesh& SLAPrintObject::pad_mesh() const
 {
-    if(!m_supportdata || !m_supportdata->support_tree_ptr) return EMPTY_MESH;
+    if(m_config.pad_enable.getBool() && m_supportdata && m_supportdata->support_tree_ptr)
+        return m_supportdata->support_tree_ptr->get_pad();
 
-    return m_supportdata->support_tree_ptr->get_pad();
+    return EMPTY_MESH;
 }
 
 const TriangleMesh &SLAPrintObject::transformed_mesh() const {

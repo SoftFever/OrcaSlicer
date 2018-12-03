@@ -1,4 +1,9 @@
 
+set(DEP_CMAKE_OPTS "-DCMAKE_POSITION_INDEPENDENT_CODE=ON")
+
+include("deps-unix-common.cmake")
+
+
 ExternalProject_Add(dep_boost
     EXCLUDE_FROM_ALL 1
     URL "https://dl.bintray.com/boostorg/release/1.66.0/source/boost_1_66_0.tar.gz"
@@ -9,72 +14,15 @@ ExternalProject_Add(dep_boost
         "--prefix=${DESTDIR}/usr/local"
     BUILD_COMMAND ./b2
         -j ${NPROC}
+        --reconfigure
         link=static
         variant=release
         threading=multi
         boost.locale.icu=off
-        cxxflags=-fPIC cflags=-fPIC
+        cflags=-fPIC
+        cxxflags=-fPIC
         install
     INSTALL_COMMAND ""   # b2 does that already
-)
-
-ExternalProject_Add(dep_tbb
-    EXCLUDE_FROM_ALL 1
-    URL "https://github.com/wjakob/tbb/archive/a0dc9bf76d0120f917b641ed095360448cabc85b.tar.gz"
-    URL_HASH SHA256=0545cb6033bd1873fcae3ea304def720a380a88292726943ae3b9b207f322efe
-    CMAKE_ARGS -DTBB_BUILD_SHARED=OFF
-        -DTBB_BUILD_TESTS=OFF
-        -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-    INSTALL_COMMAND make install "DESTDIR=${DESTDIR}"
-)
-
-ExternalProject_Add(dep_gtest
-    EXCLUDE_FROM_ALL 1
-    URL "https://github.com/google/googletest/archive/release-1.8.1.tar.gz"
-    URL_HASH SHA256=9bf1fe5182a604b4135edc1a425ae356c9ad15e9b23f9f12a02e80184c3a249c
-    CMAKE_ARGS -DBUILD_GMOCK=OFF
-        -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-    INSTALL_COMMAND make install "DESTDIR=${DESTDIR}"
-)
-
-ExternalProject_Add(dep_nlopt
-    EXCLUDE_FROM_ALL 1
-    URL "https://github.com/stevengj/nlopt/archive/v2.5.0.tar.gz"
-    URL_HASH SHA256=c6dd7a5701fff8ad5ebb45a3dc8e757e61d52658de3918e38bab233e7fd3b4ae
-    CMAKE_GENERATOR "${DEP_MSVC_GEN}"
-    CMAKE_ARGS
-        -DNLOPT_PYTHON=OFF
-        -DNLOPT_OCTAVE=OFF
-        -DNLOPT_MATLAB=OFF
-        -DNLOPT_GUILE=OFF
-        -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-    INSTALL_COMMAND make install "DESTDIR=${DESTDIR}"
-    INSTALL_COMMAND ""
-)
-
-ExternalProject_Add(dep_zlib
-    EXCLUDE_FROM_ALL 1
-    URL "https://zlib.net/zlib-1.2.11.tar.xz"
-    URL_HASH SHA256=4ff941449631ace0d4d203e3483be9dbc9da454084111f97ea0a2114e19bf066
-    CMAKE_GENERATOR "${DEP_MSVC_GEN}"
-    CMAKE_ARGS
-        -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-    INSTALL_COMMAND make install "DESTDIR=${DESTDIR}"
-    INSTALL_COMMAND ""
-)
-
-ExternalProject_Add(dep_libpng
-    DEPENDS dep_zlib
-    EXCLUDE_FROM_ALL 1
-    URL "http://prdownloads.sourceforge.net/libpng/libpng-1.6.35.tar.xz?download"
-    URL_HASH SHA256=23912ec8c9584917ed9b09c5023465d71709dce089be503c7867fec68a93bcd7
-    CMAKE_GENERATOR "${DEP_MSVC_GEN}"
-    CMAKE_ARGS
-        -DPNG_SHARED=OFF
-        -DPNG_TESTS=OFF
-        -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-    INSTALL_COMMAND make install "DESTDIR=${DESTDIR}"
-    INSTALL_COMMAND ""
 )
 
 ExternalProject_Add(dep_libopenssl
@@ -94,7 +42,7 @@ ExternalProject_Add(dep_libopenssl
 
 ExternalProject_Add(dep_libcurl
     EXCLUDE_FROM_ALL 1
-    DEPENDS dep_libopenssl
+   DEPENDS dep_libopenssl
     URL "https://curl.haxx.se/download/curl-7.58.0.tar.gz"
     URL_HASH SHA256=cc245bf9a1a42a45df491501d97d5593392a03f7b4f07b952793518d97666115
     BUILD_IN_SOURCE 1
@@ -145,10 +93,11 @@ ExternalProject_Add(dep_wxwidgets
     URL "https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.1/wxWidgets-3.1.1.tar.bz2"
     URL_HASH SHA256=c925dfe17e8f8b09eb7ea9bfdcfcc13696a3e14e92750effd839f5e10726159e
     BUILD_IN_SOURCE 1
+    PATCH_COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_CURRENT_SOURCE_DIR}/wxwidgets-pngprefix.h" src/png/pngprefix.h
     CONFIGURE_COMMAND ./configure
         "--prefix=${DESTDIR}/usr/local"
         --disable-shared
-        --with-gtk=2
+       --with-gtk=2
         --with-opengl
         --enable-unicode
         --enable-graphics_ctx
@@ -162,6 +111,8 @@ ExternalProject_Add(dep_wxwidgets
         --disable-precomp-headers
         --enable-debug_info
         --enable-debug_gdb
+        --disable-debug
+        --disable-debug_flag
     BUILD_COMMAND make "-j${NPROC}" && make -C locale allmo
     INSTALL_COMMAND make install
 )

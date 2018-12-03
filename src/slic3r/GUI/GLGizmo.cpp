@@ -309,6 +309,7 @@ GLGizmoRotate::GLGizmoRotate(GLCanvas3D& parent, GLGizmoRotate::Axis axis)
     : GLGizmoBase(parent)
     , m_axis(axis)
     , m_angle(0.0)
+    , m_quadric(nullptr)
     , m_center(0.0, 0.0, 0.0)
     , m_radius(0.0f)
     , m_snap_coarse_in_radius(0.0f)
@@ -316,6 +317,32 @@ GLGizmoRotate::GLGizmoRotate(GLCanvas3D& parent, GLGizmoRotate::Axis axis)
     , m_snap_fine_in_radius(0.0f)
     , m_snap_fine_out_radius(0.0f)
 {
+    m_quadric = ::gluNewQuadric();
+    if (m_quadric != nullptr)
+        ::gluQuadricDrawStyle(m_quadric, GLU_FILL);
+}
+
+GLGizmoRotate::GLGizmoRotate(const GLGizmoRotate& other)
+    : GLGizmoBase(other.m_parent)
+    , m_axis(other.m_axis)
+    , m_angle(other.m_angle)
+    , m_quadric(nullptr)
+    , m_center(other.m_center)
+    , m_radius(other.m_radius)
+    , m_snap_coarse_in_radius(other.m_snap_coarse_in_radius)
+    , m_snap_coarse_out_radius(other.m_snap_coarse_out_radius)
+    , m_snap_fine_in_radius(other.m_snap_fine_in_radius)
+    , m_snap_fine_out_radius(other.m_snap_fine_out_radius)
+{
+    m_quadric = ::gluNewQuadric();
+    if (m_quadric != nullptr)
+        ::gluQuadricDrawStyle(m_quadric, GLU_FILL);
+}
+
+GLGizmoRotate::~GLGizmoRotate()
+{
+    if (m_quadric != nullptr)
+        ::gluDeleteQuadric(m_quadric);
 }
 
 void GLGizmoRotate::set_angle(double angle)
@@ -391,17 +418,19 @@ void GLGizmoRotate::on_render(const GLCanvas3D::Selection& selection) const
     std::string axis;
     switch (m_axis)
     {
-    case X: { axis = "X: "; break; }
-    case Y: { axis = "Y: "; break; }
-    case Z: { axis = "Z: "; break; }
+    case X: { axis = "X"; break; }
+    case Y: { axis = "Y"; break; }
+    case Z: { axis = "Z"; break; }
     }
 
 #if ENABLE_WORLD_ROTATIONS
-    if (m_dragging)
+    if (!m_dragging && (m_hover_id == 0))
+        set_tooltip(axis);
+    else if (m_dragging)
 #else
     if ((single_selection && (m_hover_id == 0)) || m_dragging)
 #endif // ENABLE_WORLD_ROTATIONS
-        set_tooltip(axis + format((float)Geometry::rad2deg(m_angle), 4) + "\u00B0");
+        set_tooltip(axis + ": " + format((float)Geometry::rad2deg(m_angle), 4) + "\u00B0");
     else
     {
         m_center = box.center();
@@ -565,7 +594,10 @@ void GLGizmoRotate::render_grabber(const BoundingBoxf3& box) const
 
 void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool picking) const
 {
-    float size = m_dragging ? m_grabbers[0].get_dragging_half_size((float)box.max_size()) : m_grabbers[0].get_half_size((float)box.max_size());
+    if (m_quadric == nullptr)
+        return;
+
+    double size = m_dragging ? (double)m_grabbers[0].get_dragging_half_size((float)box.max_size()) : (double)m_grabbers[0].get_half_size((float)box.max_size());
 
     float color[3];
     ::memcpy((void*)color, (const void*)m_grabbers[0].color, 3 * sizeof(float));
@@ -580,28 +612,26 @@ void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool pick
         ::glEnable(GL_LIGHTING);
 
     ::glColor3fv(color);
-    GLUquadricObj* quadric = ::gluNewQuadric();
-    ::gluQuadricDrawStyle(quadric, GLU_FILL);
     ::glPushMatrix();
     ::glTranslated(m_grabbers[0].center(0), m_grabbers[0].center(1), m_grabbers[0].center(2));
     ::glRotated(Geometry::rad2deg(m_angle), 0.0, 0.0, 1.0);
     ::glRotated(90.0, 1.0, 0.0, 0.0);
     ::glTranslated(0.0, 0.0, 2.0 * size);
-    ::gluCylinder(quadric, 0.75f * size, 0.0f, 3.0f * size, 36, 1);
-    ::gluQuadricOrientation(quadric, GLU_INSIDE);
-    ::gluDisk(quadric, 0.0f, 0.75f * size, 36, 1);
+    ::gluQuadricOrientation(m_quadric, GLU_OUTSIDE);
+    ::gluCylinder(m_quadric, 0.75 * size, 0.0, 3.0 * size, 36, 1);
+    ::gluQuadricOrientation(m_quadric, GLU_INSIDE);
+    ::gluDisk(m_quadric, 0.0, 0.75 * size, 36, 1);
     ::glPopMatrix();
     ::glPushMatrix();
     ::glTranslated(m_grabbers[0].center(0), m_grabbers[0].center(1), m_grabbers[0].center(2));
     ::glRotated(Geometry::rad2deg(m_angle), 0.0, 0.0, 1.0);
     ::glRotated(-90.0, 1.0, 0.0, 0.0);
     ::glTranslated(0.0, 0.0, 2.0 * size);
-    ::gluQuadricOrientation(quadric, GLU_OUTSIDE);
-    ::gluCylinder(quadric, 0.75f * size, 0.0f, 3.0f * size, 36, 1);
-    ::gluQuadricOrientation(quadric, GLU_INSIDE);
-    ::gluDisk(quadric, 0.0f, 0.75f * size, 36, 1);
+    ::gluQuadricOrientation(m_quadric, GLU_OUTSIDE);
+    ::gluCylinder(m_quadric, 0.75 * size, 0.0, 3.0 * size, 36, 1);
+    ::gluQuadricOrientation(m_quadric, GLU_INSIDE);
+    ::gluDisk(m_quadric, 0.0, 0.75 * size, 36, 1);
     ::glPopMatrix();
-    ::gluDeleteQuadric(quadric);
 
     if (!picking)
         ::glDisable(GL_LIGHTING);
@@ -847,10 +877,16 @@ void GLGizmoScale3D::on_render(const GLCanvas3D::Selection& selection) const
 
     if ((single_selection && ((m_hover_id == 0) || (m_hover_id == 1))) || m_grabbers[0].dragging || m_grabbers[1].dragging)
         set_tooltip("X: " + format(scale(0), 4) + "%");
+    else if (!m_grabbers[0].dragging && !m_grabbers[1].dragging && ((m_hover_id == 0) || (m_hover_id == 1)))
+        set_tooltip("X");
     else if ((single_selection && ((m_hover_id == 2) || (m_hover_id == 3))) || m_grabbers[2].dragging || m_grabbers[3].dragging)
         set_tooltip("Y: " + format(scale(1), 4) + "%");
+    else if (!m_grabbers[2].dragging && !m_grabbers[3].dragging && ((m_hover_id == 2) || (m_hover_id == 3)))
+        set_tooltip("Y");
     else if ((single_selection && ((m_hover_id == 4) || (m_hover_id == 5))) || m_grabbers[4].dragging || m_grabbers[5].dragging)
         set_tooltip("Z: " + format(scale(2), 4) + "%");
+    else if (!m_grabbers[4].dragging && !m_grabbers[5].dragging && ((m_hover_id == 4) || (m_hover_id == 5)))
+        set_tooltip("Z");
     else if ((single_selection && ((m_hover_id == 6) || (m_hover_id == 7) || (m_hover_id == 8) || (m_hover_id == 9)))
         || m_grabbers[6].dragging || m_grabbers[7].dragging || m_grabbers[8].dragging || m_grabbers[9].dragging)
     {
@@ -859,6 +895,9 @@ void GLGizmoScale3D::on_render(const GLCanvas3D::Selection& selection) const
         tooltip += "Z: " + format(scale(2), 4) + "%";
         set_tooltip(tooltip);
     }
+    else if (!m_grabbers[6].dragging && !m_grabbers[7].dragging && !m_grabbers[8].dragging && !m_grabbers[9].dragging &&
+        ((m_hover_id == 6) || (m_hover_id == 7) || (m_hover_id == 8) || (m_hover_id == 9)))
+        set_tooltip("X/Y/Z");
 
 #if ENABLE_GIZMOS_ON_TOP
     ::glClear(GL_DEPTH_BUFFER_BIT);
@@ -1136,7 +1175,31 @@ GLGizmoMove3D::GLGizmoMove3D(GLCanvas3D& parent)
     , m_starting_drag_position(Vec3d::Zero())
     , m_starting_box_center(Vec3d::Zero())
     , m_starting_box_bottom_center(Vec3d::Zero())
+    , m_quadric(nullptr)
 {
+    m_quadric = ::gluNewQuadric();
+    if (m_quadric != nullptr)
+        ::gluQuadricDrawStyle(m_quadric, GLU_FILL);
+}
+
+GLGizmoMove3D::GLGizmoMove3D(const GLGizmoMove3D& other)
+    : GLGizmoBase(other.m_parent)
+    , m_displacement(other.m_displacement)
+    , m_snap_step(other.m_snap_step)
+    , m_starting_drag_position(other.m_starting_drag_position)
+    , m_starting_box_center(other.m_starting_box_center)
+    , m_starting_box_bottom_center(other.m_starting_box_bottom_center)
+    , m_quadric(nullptr)
+{
+    m_quadric = ::gluNewQuadric();
+    if (m_quadric != nullptr)
+        ::gluQuadricDrawStyle(m_quadric, GLU_FILL);
+}
+
+GLGizmoMove3D::~GLGizmoMove3D()
+{
+    if (m_quadric != nullptr)
+        ::gluDeleteQuadric(m_quadric);
 }
 
 bool GLGizmoMove3D::on_init()
@@ -1204,10 +1267,16 @@ void GLGizmoMove3D::on_render(const GLCanvas3D::Selection& selection) const
 
     if ((show_position && (m_hover_id == 0)) || m_grabbers[0].dragging)
         set_tooltip("X: " + format(show_position ? position(0) : m_displacement(0), 2));
+    else if (!m_grabbers[0].dragging && (m_hover_id == 0))
+        set_tooltip("X");
     else if ((show_position && (m_hover_id == 1)) || m_grabbers[1].dragging)
         set_tooltip("Y: " + format(show_position ? position(1) : m_displacement(1), 2));
+    else if (!m_grabbers[1].dragging && (m_hover_id == 1))
+        set_tooltip("Y");
     else if ((show_position && (m_hover_id == 2)) || m_grabbers[2].dragging)
         set_tooltip("Z: " + format(show_position ? position(2) : m_displacement(2), 2));
+    else if (!m_grabbers[2].dragging && (m_hover_id == 2))
+        set_tooltip("Z");
 
 #if ENABLE_GIZMOS_ON_TOP
     ::glClear(GL_DEPTH_BUFFER_BIT);
@@ -1248,6 +1317,9 @@ void GLGizmoMove3D::on_render(const GLCanvas3D::Selection& selection) const
 
         // draw grabbers
         render_grabbers(box);
+        render_grabber_extension(X, box, false);
+        render_grabber_extension(Y, box, false);
+        render_grabber_extension(Z, box, false);
     }
     else
     {
@@ -1260,6 +1332,7 @@ void GLGizmoMove3D::on_render(const GLCanvas3D::Selection& selection) const
 
         // draw grabber
         m_grabbers[m_hover_id].render(true, box.max_size());
+        render_grabber_extension((Axis)m_hover_id, box, false);
     }
 }
 
@@ -1267,7 +1340,11 @@ void GLGizmoMove3D::on_render_for_picking(const GLCanvas3D::Selection& selection
 {
     ::glDisable(GL_DEPTH_TEST);
 
-    render_grabbers_for_picking(selection.get_bounding_box());
+    const BoundingBoxf3& box = selection.get_bounding_box();
+    render_grabbers_for_picking(box);
+    render_grabber_extension(X, box, true);
+    render_grabber_extension(Y, box, true);
+    render_grabber_extension(Z, box, true);
 }
 
 #if ENABLE_IMGUI
@@ -1315,6 +1392,44 @@ double GLGizmoMove3D::calc_projection(const UpdateData& data) const
     return projection;
 }
 
+void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box, bool picking) const
+{
+    if (m_quadric == nullptr)
+        return;
+
+    double size = m_dragging ? (double)m_grabbers[axis].get_dragging_half_size((float)box.max_size()) : (double)m_grabbers[axis].get_half_size((float)box.max_size());
+
+    float color[3];
+    ::memcpy((void*)color, (const void*)m_grabbers[axis].color, 3 * sizeof(float));
+    if (!picking && (m_hover_id != -1))
+    {
+        color[0] = 1.0f - color[0];
+        color[1] = 1.0f - color[1];
+        color[2] = 1.0f - color[2];
+    }
+
+    if (!picking)
+        ::glEnable(GL_LIGHTING);
+
+    ::glColor3fv(color);
+    ::glPushMatrix();
+    ::glTranslated(m_grabbers[axis].center(0), m_grabbers[axis].center(1), m_grabbers[axis].center(2));
+    if (axis == X)
+        ::glRotated(90.0, 0.0, 1.0, 0.0);
+    else if (axis == Y)
+        ::glRotated(-90.0, 1.0, 0.0, 0.0);
+
+    ::glTranslated(0.0, 0.0, 2.0 * size);
+    ::gluQuadricOrientation(m_quadric, GLU_OUTSIDE);
+    ::gluCylinder(m_quadric, 0.75 * size, 0.0, 3.0 * size, 36, 1);
+    ::gluQuadricOrientation(m_quadric, GLU_INSIDE);
+    ::gluDisk(m_quadric, 0.0, 0.75 * size, 36, 1);
+    ::glPopMatrix();
+
+    if (!picking)
+        ::glDisable(GL_LIGHTING);
+}
+
 GLGizmoFlatten::GLGizmoFlatten(GLCanvas3D& parent)
     : GLGizmoBase(parent)
     , m_normal(Vec3d::Zero())
@@ -1349,9 +1464,7 @@ std::string GLGizmoFlatten::on_get_name() const
 
 bool GLGizmoFlatten::on_is_activable(const GLCanvas3D::Selection& selection) const
 {
-    return (selection.is_from_single_object()
-        && (selection.is_single_full_instance() || selection.is_multiple_full_instance() || selection.is_single_full_object())
-        && !selection.is_wipe_tower()           && !selection.is_modifier());
+    return selection.is_single_full_instance();
 }
 
 void GLGizmoFlatten::on_start_dragging(const GLCanvas3D::Selection& selection)
@@ -1365,44 +1478,33 @@ void GLGizmoFlatten::on_start_dragging(const GLCanvas3D::Selection& selection)
 
 void GLGizmoFlatten::on_render(const GLCanvas3D::Selection& selection) const
 {
-    // The planes are rendered incorrectly when the object is being moved. We better won't render anything in that case.
-    // This indeed has a better solution (to be implemented when there is more time)
-    Vec3d dragged_offset(Vec3d::Zero());
-    if (m_starting_center == Vec3d::Zero())
-        m_starting_center = selection.get_bounding_box().center();
-    dragged_offset = selection.get_bounding_box().center() - m_starting_center;
-    if (dragged_offset.norm() > 0.001)
-        return;
-
-
 #if ENABLE_GIZMOS_ON_TOP
     ::glClear(GL_DEPTH_BUFFER_BIT);
 #endif // ENABLE_GIZMOS_ON_TOP
+
     ::glEnable(GL_DEPTH_TEST);
     ::glEnable(GL_BLEND);
 
-    if (selection.is_from_single_object()) {
-        if (m_model_object) {
-            //for (const int instance_idx : instances_list) {
-            for (const ModelInstance* inst : m_model_object->instances) {
-                Transform3d m = inst->get_matrix();
-                for (int i=0; i<(int)m_planes.size(); ++i) {
-                    if (i == m_hover_id)
-                        ::glColor4f(0.9f, 0.9f, 0.9f, 0.75f);
-                    else
-                        ::glColor4f(0.9f, 0.9f, 0.9f, 0.5f);
+    if (selection.is_single_full_instance())
+    {
+        const Transform3d& m = selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix();
+        ::glPushMatrix();
+        ::glMultMatrixd(m.data());
+        for (int i = 0; i < (int)m_planes.size(); ++i)
+        {
+            if (i == m_hover_id)
+                ::glColor4f(0.9f, 0.9f, 0.9f, 0.75f);
+            else
+                ::glColor4f(0.9f, 0.9f, 0.9f, 0.5f);
 
-                    m.pretranslate(dragged_offset);
-                    ::glPushMatrix();
-                    ::glMultMatrixd(m.data());
-                    ::glBegin(GL_POLYGON);
-                    for (const Vec3d& vertex : m_planes[i].vertices)
-                        ::glVertex3dv(vertex.data());
-                    ::glEnd();
-                    ::glPopMatrix();
-                }
+            ::glBegin(GL_POLYGON);
+            for (const Vec3d& vertex : m_planes[i].vertices)
+            {
+                ::glVertex3dv(vertex.data());
             }
+            ::glEnd();
         }
+        ::glPopMatrix();
     }
 
     ::glEnable(GL_CULL_FACE);
@@ -1414,20 +1516,22 @@ void GLGizmoFlatten::on_render_for_picking(const GLCanvas3D::Selection& selectio
     ::glDisable(GL_DEPTH_TEST);
     ::glDisable(GL_BLEND);
 
-    if (selection.is_from_single_object()) {
-        if (m_model_object)
-            for (const ModelInstance* inst : m_model_object->instances) {
-                for (int i=0; i<(int)m_planes.size(); ++i) {
-                    ::glColor3f(1.0f, 1.0f, picking_color_component(i));
-                    ::glPushMatrix();
-                    ::glMultMatrixd(inst->get_matrix().data());
-                    ::glBegin(GL_POLYGON);
-                    for (const Vec3d& vertex : m_planes[i].vertices)
-                        ::glVertex3dv(vertex.data());
-                    ::glEnd();
-                    ::glPopMatrix();
-                }
+    if (selection.is_single_full_instance())
+    {
+        const Transform3d& m = selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix();
+        ::glPushMatrix();
+        ::glMultMatrixd(m.data());
+        for (int i = 0; i < (int)m_planes.size(); ++i)
+        {
+            ::glColor3f(1.0f, 1.0f, picking_color_component(i));
+            ::glBegin(GL_POLYGON);
+            for (const Vec3d& vertex : m_planes[i].vertices)
+            {
+                ::glVertex3dv(vertex.data());
             }
+            ::glEnd();
+        }
+        ::glPopMatrix();
     }
 
     ::glEnable(GL_CULL_FACE);

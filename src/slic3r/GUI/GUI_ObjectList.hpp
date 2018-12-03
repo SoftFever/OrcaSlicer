@@ -34,6 +34,18 @@ struct ItemForDelete
     ItemForDelete(ItemType type, int obj_idx, int sub_obj_idx)
         : type(type), obj_idx(obj_idx), sub_obj_idx(sub_obj_idx)
     {}
+
+    bool operator==(const ItemForDelete& r) const 
+    {
+        return (type == r.type && obj_idx == r.obj_idx && sub_obj_idx == r.sub_obj_idx);
+    }
+
+    bool operator<(const ItemForDelete& r) const
+    {
+        if (obj_idx != r.obj_idx)
+            return (obj_idx < r.obj_idx);
+        return (sub_obj_idx < r.sub_obj_idx);
+    }
 };
 
 class ObjectList : public wxDataViewCtrl

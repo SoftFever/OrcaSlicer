@@ -1063,6 +1063,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 #endif // ENABLE_NEW_MENU_LAYOUT
 {
     arranging.store(false);
+    rotoptimizing.store(false);
     background_process.set_fff_print(&fff_print);
 	background_process.set_sla_print(&sla_print);
     background_process.set_gcode_preview_data(&gcode_preview_data);
