@@ -763,11 +763,7 @@ void ObjectList::load_part( ModelObject* model_object,
 
     m_parts_changed = false;
     wxArrayString input_files;
-#if ENABLE_NEW_MENU_LAYOUT
     wxGetApp().import_model(parent, input_files);
-#else
-    wxGetApp().open_model(parent, input_files);
-#endif // ENABLE_NEW_MENU_LAYOUT
     for (int i = 0; i < input_files.size(); ++i) {
         std::string input_file = input_files.Item(i).ToStdString();
 

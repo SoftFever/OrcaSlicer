@@ -267,6 +267,12 @@ void PresetComboBox::set_label_marker(int item)
     this->SetClientData(item, (void*)LABEL_ITEM_MARKER);
 }
 
+void PresetComboBox::check_selection()
+{
+    if (this->last_selected != GetSelection())
+        this->last_selected = GetSelection();
+}
+
 // Frequently changed parameters
 
 class FreqChangedParams : public OG_Settings
@@ -641,7 +647,10 @@ void Sidebar::update_presets(Preset::Type preset_type)
             preset_bundle.sla_materials.update_platter_ui(p->combo_sla_material);
         }
 		// Update the printer choosers, update the dirty flags.
+        auto prev_selection = p->combo_printer->GetSelection();
 		preset_bundle.printers.update_platter_ui(p->combo_printer);
+        if (prev_selection != p->combo_printer->GetSelection())
+            p->combo_printer->check_selection();
 		// Update the filament choosers to only contain the compatible presets, update the color preview,
 		// update the dirty flags.
 		if (p->plater->printer_technology() == ptFFF) {
@@ -926,9 +935,7 @@ struct Plater::priv
     GLCanvas3D *canvas3D;
     Preview *preview;
 
-#if ENABLE_NEW_MENU_LAYOUT
     wxString project_filename;
-#endif // ENABLE_NEW_MENU_LAYOUT
 
     BackgroundSlicingProcess    background_process;
     std::atomic<bool>           arranging;
@@ -950,11 +957,7 @@ struct Plater::priv
     std::string get_config(const std::string &key) const;
     BoundingBoxf bed_shape_bb() const;
     BoundingBox scaled_bed_shape_bb() const;
-#if ENABLE_NEW_MENU_LAYOUT
     std::vector<size_t> load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config);
-#else
-    std::vector<size_t> load_files(const std::vector<fs::path> &input_files);
-#endif // ENABLE_NEW_MENU_LAYOUT
     std::vector<size_t> load_model_objects(const ModelObjectPtrs &model_objects);
     std::unique_ptr<CheckboxFileDialog> get_export_file(GUI::FileType file_type);
 
@@ -1058,9 +1061,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 #endif // ENABLE_IMGUI
     , canvas3D(nullptr)
     , delayed_scene_refresh(false)
-#if ENABLE_NEW_MENU_LAYOUT
     , project_filename(wxEmptyString)
-#endif // ENABLE_NEW_MENU_LAYOUT
 {
     arranging.store(false);
     rotoptimizing.store(false);
@@ -1245,11 +1246,7 @@ BoundingBox Plater::priv::scaled_bed_shape_bb() const
     return bed_shape.bounding_box();
 }
 
-#if ENABLE_NEW_MENU_LAYOUT
 std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config)
-#else
-std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path> &input_files)
-#endif // ENABLE_NEW_MENU_LAYOUT
 {
     if (input_files.empty()) { return std::vector<size_t>(); }
 
@@ -1269,11 +1266,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path> &input_
     wxProgressDialog dlg(loading, loading);
     dlg.Pulse();
 
-#if ENABLE_NEW_MENU_LAYOUT
     auto *new_model = (!load_model || one_by_one) ? nullptr : new Slic3r::Model();
-#else
-    auto *new_model = one_by_one ? nullptr : new Slic3r::Model();
-#endif // ENABLE_NEW_MENU_LAYOUT
     std::vector<size_t> obj_idxs;
 
     for (size_t i = 0; i < input_files.size(); i++) {
@@ -1292,11 +1285,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path> &input_
                 {
                     DynamicPrintConfig config_loaded;
                     model = Slic3r::Model::read_from_archive(path.string(), &config_loaded, false);
-#if ENABLE_NEW_MENU_LAYOUT
                     if (load_config && !config_loaded.empty()) {
-#else
-                    if (!config_loaded.empty()) {
-#endif // ENABLE_NEW_MENU_LAYOUT
                         // Based on the printer technology field found in the loaded config, select the base for the config,
 					    PrinterTechnology printer_technology = Preset::printer_technology(config_loaded);
 					    config.apply(printer_technology == ptFFF ?
@@ -1306,19 +1295,16 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path> &input_
                         config += std::move(config_loaded);
                     }
                 }
-#if ENABLE_NEW_MENU_LAYOUT
+
                 if (load_config)
                 {
-#endif // ENABLE_NEW_MENU_LAYOUT
                     if (!config.empty()) {
                         Preset::normalize(config);
                         wxGetApp().preset_bundle->load_config_model(filename.string(), std::move(config));
                         wxGetApp().load_current_presets();
                     }
                     wxGetApp().app_config->update_config_dir(path.parent_path().string());
-#if ENABLE_NEW_MENU_LAYOUT
                 }
-#endif // ENABLE_NEW_MENU_LAYOUT
             }
             else {
                 model = Slic3r::Model::read_from_file(path.string(), nullptr, false);
@@ -1331,10 +1317,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path> &input_
             continue;
         }
 
-#if ENABLE_NEW_MENU_LAYOUT
         if (load_model)
         {
-#endif // ENABLE_NEW_MENU_LAYOUT
             // The model should now be initialized
 
             if (model.looks_like_multipart_object()) {
@@ -1364,9 +1348,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path> &input_
                     new_model->add_object(*model_object);
                 }
             }
-#if ENABLE_NEW_MENU_LAYOUT
         }
-#endif // ENABLE_NEW_MENU_LAYOUT
     }
 
     if (new_model != nullptr) {
@@ -1383,16 +1365,13 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path> &input_
         obj_idxs.insert(obj_idxs.end(), loaded_idxs.begin(), loaded_idxs.end());
     }
 
-#if ENABLE_NEW_MENU_LAYOUT
     if (load_model)
     {
-#endif // ENABLE_NEW_MENU_LAYOUT
         wxGetApp().app_config->update_skein_dir(input_files[input_files.size() - 1].parent_path().string());
         // XXX: Plater.pm had @loaded_files, but didn't seem to fill them with the filenames...
         statusbar()->set_status_text(_(L("Loaded")));
-#if ENABLE_NEW_MENU_LAYOUT
     }
-#endif // ENABLE_NEW_MENU_LAYOUT
+
     return obj_idxs;
 }
 
@@ -1593,9 +1572,7 @@ void Plater::priv::delete_object_from_model(size_t obj_idx)
 
 void Plater::priv::reset()
 {
-#if ENABLE_NEW_MENU_LAYOUT
     project_filename.Clear();
-#endif // ENABLE_NEW_MENU_LAYOUT
 
     // Prevent toolpaths preview from rendering while we modify the Print object
     preview->set_enabled(false);
@@ -2117,11 +2094,7 @@ void Plater::priv::on_schedule_background_process(SimpleEvent&)
 void Plater::priv::on_action_add(SimpleEvent&)
 {
     if (q != nullptr)
-#if ENABLE_NEW_MENU_LAYOUT
         q->add_model();
-#else
-        q->add();
-#endif // ENABLE_NEW_MENU_LAYOUT
 }
 
 void Plater::priv::on_action_split_objects(SimpleEvent&)
@@ -2332,7 +2305,6 @@ Print&          Plater::fff_print()         { return p->fff_print; }
 const SLAPrint& Plater::sla_print() const   { return p->sla_print; }
 SLAPrint&       Plater::sla_print()         { return p->sla_print; }
 
-#if ENABLE_NEW_MENU_LAYOUT
 void Plater::load_project()
 {
     wxString input_file;
@@ -2350,33 +2322,19 @@ void Plater::load_project()
 }
 
 void Plater::add_model()
-#else
-void Plater::add()
-#endif // ENABLE_NEW_MENU_LAYOUT
 {
     wxArrayString input_files;
-#if ENABLE_NEW_MENU_LAYOUT
     wxGetApp().import_model(this, input_files);
-#else
-    wxGetApp().open_model(this, input_files);
-#endif // ENABLE_NEW_MENU_LAYOUT
-#if ENABLE_NEW_MENU_LAYOUT
     if (input_files.empty())
         return;
-#endif // ENABLE_NEW_MENU_LAYOUT
 
     std::vector<fs::path> input_paths;
     for (const auto &file : input_files) {
         input_paths.push_back(file.wx_str());
     }
-#if ENABLE_NEW_MENU_LAYOUT
     load_files(input_paths, true, false);
-#else
-    load_files(input_paths);
-#endif // ENABLE_NEW_MENU_LAYOUT
 }
 
-#if ENABLE_NEW_MENU_LAYOUT
 void Plater::extract_config_from_project()
 {
     wxString input_file;
@@ -2389,13 +2347,8 @@ void Plater::extract_config_from_project()
     input_paths.push_back(input_file.wx_str());
     load_files(input_paths, false, true);
 }
-#endif // ENABLE_NEW_MENU_LAYOUT
 
-#if ENABLE_NEW_MENU_LAYOUT
 void Plater::load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config) { p->load_files(input_files, load_model, load_config); }
-#else
-void Plater::load_files(const std::vector<fs::path> &input_files) { p->load_files(input_files); }
-#endif // ENABLE_NEW_MENU_LAYOUT
 
 void Plater::update() { p->update(); }
 
@@ -2611,23 +2564,16 @@ void Plater::export_amf()
     }
 }
 
-#if ENABLE_NEW_MENU_LAYOUT
 void Plater::export_3mf(const boost::filesystem::path& output_path)
-#else
-void Plater::export_3mf()
-#endif // ENABLE_NEW_MENU_LAYOUT
 {
     if (p->model.objects.empty()) { return; }
 
-#if ENABLE_NEW_MENU_LAYOUT
     wxString path;
     bool export_config = true;
     if (output_path.empty())
     {
-#endif // ENABLE_NEW_MENU_LAYOUT
         auto dialog = p->get_export_file(FT_3MF);
         if (!dialog) { return; }
-#if ENABLE_NEW_MENU_LAYOUT
         path = dialog->GetPath();
         export_config = dialog->get_checkbox_value();
     }
@@ -2636,17 +2582,9 @@ void Plater::export_3mf()
 
     if (!path.Lower().EndsWith(".3mf"))
         return;
-#else
-        wxString path = dialog->GetPath();
-        auto path_cstr = path.c_str();
-#endif // ENABLE_NEW_MENU_LAYOUT
 
 	DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config();
-#if ENABLE_NEW_MENU_LAYOUT
     if (Slic3r::store_3mf(path.c_str(), &p->model, export_config ? &cfg : nullptr)) {
-#else
-    if (Slic3r::store_3mf(path_cstr, &p->model, dialog->get_checkbox_value() ? &cfg : nullptr)) {
-#endif // ENABLE_NEW_MENU_LAYOUT
         // Success
         p->statusbar()->set_status_text(wxString::Format(_(L("3MF file exported to %s")), path));
     } else {
@@ -2774,7 +2712,6 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         this->p->schedule_background_process();
 }
 
-#if ENABLE_NEW_MENU_LAYOUT
 const wxString& Plater::get_project_filename() const
 {
     return p->project_filename;
@@ -2784,7 +2721,6 @@ bool Plater::is_export_gcode_scheduled() const
 {
     return p->background_process.is_export_scheduled();
 }
-#endif // ENABLE_NEW_MENU_LAYOUT
 
 int Plater::get_selected_object_idx()
 {
