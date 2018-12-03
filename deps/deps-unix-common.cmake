@@ -26,6 +26,7 @@ ExternalProject_Add(dep_nlopt
     URL_HASH SHA256=c6dd7a5701fff8ad5ebb45a3dc8e757e61d52658de3918e38bab233e7fd3b4ae
     CMAKE_GENERATOR "${DEP_MSVC_GEN}"
     CMAKE_ARGS
+        -DBUILD_SHARED_LIBS=OFF
         -DNLOPT_PYTHON=OFF
         -DNLOPT_OCTAVE=OFF
         -DNLOPT_MATLAB=OFF
@@ -35,18 +36,7 @@ ExternalProject_Add(dep_nlopt
     INSTALL_COMMAND ""
 )
 
-ExternalProject_Add(dep_zlib
-    EXCLUDE_FROM_ALL 1
-    URL "https://zlib.net/zlib-1.2.11.tar.xz"
-    URL_HASH SHA256=4ff941449631ace0d4d203e3483be9dbc9da454084111f97ea0a2114e19bf066
-    CMAKE_GENERATOR "${DEP_MSVC_GEN}"
-    CMAKE_ARGS ${DEP_CMAKE_OPTS}
-    INSTALL_COMMAND make install "DESTDIR=${DESTDIR}"
-    INSTALL_COMMAND ""
-)
-
 ExternalProject_Add(dep_libpng
-    DEPENDS dep_zlib
     EXCLUDE_FROM_ALL 1
     URL "http://prdownloads.sourceforge.net/libpng/libpng-1.6.35.tar.xz?download"
     URL_HASH SHA256=23912ec8c9584917ed9b09c5023465d71709dce089be503c7867fec68a93bcd7
