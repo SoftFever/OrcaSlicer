@@ -378,6 +378,7 @@ protected:
 
 private:
     double calc_projection(const UpdateData& data) const;
+    void render_grabber_extension(Axis axis, const BoundingBoxf3& box, bool picking) const;
 };
 
 class GLGizmoFlatten : public GLGizmoBase

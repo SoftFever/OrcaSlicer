@@ -565,7 +565,7 @@ void GLGizmoRotate::render_grabber(const BoundingBoxf3& box) const
 
 void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool picking) const
 {
-    float size = m_dragging ? m_grabbers[0].get_dragging_half_size((float)box.max_size()) : m_grabbers[0].get_half_size((float)box.max_size());
+    double size = m_dragging ? (double)m_grabbers[0].get_dragging_half_size((float)box.max_size()) : (double)m_grabbers[0].get_half_size((float)box.max_size());
 
     float color[3];
     ::memcpy((void*)color, (const void*)m_grabbers[0].color, 3 * sizeof(float));
@@ -587,9 +587,9 @@ void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool pick
     ::glRotated(Geometry::rad2deg(m_angle), 0.0, 0.0, 1.0);
     ::glRotated(90.0, 1.0, 0.0, 0.0);
     ::glTranslated(0.0, 0.0, 2.0 * size);
-    ::gluCylinder(quadric, 0.75f * size, 0.0f, 3.0f * size, 36, 1);
+    ::gluCylinder(quadric, 0.75 * size, 0.0, 3.0 * size, 36, 1);
     ::gluQuadricOrientation(quadric, GLU_INSIDE);
-    ::gluDisk(quadric, 0.0f, 0.75f * size, 36, 1);
+    ::gluDisk(quadric, 0.0, 0.75 * size, 36, 1);
     ::glPopMatrix();
     ::glPushMatrix();
     ::glTranslated(m_grabbers[0].center(0), m_grabbers[0].center(1), m_grabbers[0].center(2));
@@ -597,9 +597,9 @@ void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool pick
     ::glRotated(-90.0, 1.0, 0.0, 0.0);
     ::glTranslated(0.0, 0.0, 2.0 * size);
     ::gluQuadricOrientation(quadric, GLU_OUTSIDE);
-    ::gluCylinder(quadric, 0.75f * size, 0.0f, 3.0f * size, 36, 1);
+    ::gluCylinder(quadric, 0.75 * size, 0.0, 3.0 * size, 36, 1);
     ::gluQuadricOrientation(quadric, GLU_INSIDE);
-    ::gluDisk(quadric, 0.0f, 0.75f * size, 36, 1);
+    ::gluDisk(quadric, 0.0, 0.75 * size, 36, 1);
     ::glPopMatrix();
     ::gluDeleteQuadric(quadric);
 
@@ -1248,6 +1248,9 @@ void GLGizmoMove3D::on_render(const GLCanvas3D::Selection& selection) const
 
         // draw grabbers
         render_grabbers(box);
+        render_grabber_extension(X, box, false);
+        render_grabber_extension(Y, box, false);
+        render_grabber_extension(Z, box, false);
     }
     else
     {
@@ -1260,6 +1263,7 @@ void GLGizmoMove3D::on_render(const GLCanvas3D::Selection& selection) const
 
         // draw grabber
         m_grabbers[m_hover_id].render(true, box.max_size());
+        render_grabber_extension((Axis)m_hover_id, box, false);
     }
 }
 
@@ -1267,7 +1271,11 @@ void GLGizmoMove3D::on_render_for_picking(const GLCanvas3D::Selection& selection
 {
     ::glDisable(GL_DEPTH_TEST);
 
-    render_grabbers_for_picking(selection.get_bounding_box());
+    const BoundingBoxf3& box = selection.get_bounding_box();
+    render_grabbers_for_picking(box);
+    render_grabber_extension(X, box, true);
+    render_grabber_extension(Y, box, true);
+    render_grabber_extension(Z, box, true);
 }
 
 #if ENABLE_IMGUI
@@ -1313,6 +1321,43 @@ double GLGizmoMove3D::calc_projection(const UpdateData& data) const
         projection = m_snap_step * (double)std::round(projection / m_snap_step);
 
     return projection;
+}
+
+void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box, bool picking) const
+{
+    double size = m_dragging ? (double)m_grabbers[axis].get_dragging_half_size((float)box.max_size()) : (double)m_grabbers[axis].get_half_size((float)box.max_size());
+
+    float color[3];
+    ::memcpy((void*)color, (const void*)m_grabbers[axis].color, 3 * sizeof(float));
+    if (!picking && (m_hover_id != -1))
+    {
+        color[0] = 1.0f - color[0];
+        color[1] = 1.0f - color[1];
+        color[2] = 1.0f - color[2];
+    }
+
+    if (!picking)
+        ::glEnable(GL_LIGHTING);
+
+    ::glColor3fv(color);
+    GLUquadricObj* quadric = ::gluNewQuadric();
+    ::gluQuadricDrawStyle(quadric, GLU_FILL);
+    ::glPushMatrix();
+    ::glTranslated(m_grabbers[axis].center(0), m_grabbers[axis].center(1), m_grabbers[axis].center(2));
+    if (axis == X)
+        ::glRotated(90.0, 0.0, 1.0, 0.0);
+    else if (axis == Y)
+        ::glRotated(-90.0, 1.0, 0.0, 0.0);
+
+    ::glTranslated(0.0, 0.0, 2.0 * size);
+    ::gluCylinder(quadric, 0.75 * size, 0.0, 3.0 * size, 36, 1);
+    ::gluQuadricOrientation(quadric, GLU_INSIDE);
+    ::gluDisk(quadric, 0.0, 0.75 * size, 36, 1);
+    ::glPopMatrix();
+    ::gluDeleteQuadric(quadric);
+
+    if (!picking)
+        ::glDisable(GL_LIGHTING);
 }
 
 GLGizmoFlatten::GLGizmoFlatten(GLCanvas3D& parent)
