@@ -116,19 +116,11 @@ public:
     const SLAPrint& sla_print() const;
     SLAPrint& sla_print();
 
-#if ENABLE_NEW_MENU_LAYOUT
     void load_project();
     void add_model();
     void extract_config_from_project();
-#else
-    void add();
-#endif // ENABLE_NEW_MENU_LAYOUT
 
-#if ENABLE_NEW_MENU_LAYOUT
     void load_files(const std::vector<boost::filesystem::path>& input_files, bool load_model = true, bool load_config = true);
-#else
-    void load_files(const std::vector<boost::filesystem::path> &input_files);
-#endif // ENABLE_NEW_MENU_LAYOUT
 
     void update();
     void select_view(const std::string& direction);
@@ -149,11 +141,7 @@ public:
     void export_gcode(boost::filesystem::path output_path = boost::filesystem::path());
     void export_stl();
     void export_amf();
-#if ENABLE_NEW_MENU_LAYOUT
     void export_3mf(const boost::filesystem::path& output_path = boost::filesystem::path());
-#else
-    void export_3mf();
-#endif // ENABLE_NEW_MENU_LAYOUT
     void reslice();
     void changed_object(int obj_idx);
     void fix_through_netfabb(const int obj_idx);
@@ -162,10 +150,8 @@ public:
     void on_extruders_change(int extruders_count);
     void on_config_change(const DynamicPrintConfig &config);
 
-#if ENABLE_NEW_MENU_LAYOUT
     const wxString& get_project_filename() const;
     bool is_export_gcode_scheduled() const;
-#endif // ENABLE_NEW_MENU_LAYOUT
 
     int get_selected_object_idx();
     bool is_single_full_object_selection() const;

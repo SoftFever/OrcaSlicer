@@ -56,10 +56,6 @@ class MainFrame : public wxFrame
 
     wxMenuItem* m_menu_item_repeat { nullptr };
     wxMenuItem* m_menu_item_reslice_now { nullptr };
-#if !ENABLE_NEW_MENU_LAYOUT
-    wxMenu*     m_plater_menu{ nullptr };
-    wxMenu*     m_viewMenu{ nullptr };
-#endif // !ENABLE_NEW_MENU_LAYOUT
 
     std::string     get_base_name(const wxString full_name) const ;
     std::string     get_dir_name(const wxString full_name) const ;
@@ -67,7 +63,6 @@ class MainFrame : public wxFrame
     void on_presets_changed(SimpleEvent&);
     void on_value_changed(wxCommandEvent&);
 
-#if ENABLE_NEW_MENU_LAYOUT
     bool can_save() const;
     bool can_export_model() const;
     bool can_export_gcode() const;
@@ -75,7 +70,6 @@ class MainFrame : public wxFrame
     bool can_select() const;
     bool can_delete() const;
     bool can_delete_all() const;
-#endif // ENABLE_NEW_MENU_LAYOUT
 
 public:
     MainFrame() {}

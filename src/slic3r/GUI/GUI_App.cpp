@@ -318,7 +318,6 @@ void GUI_App::update_ui_from_settings()
     mainframe->update_ui_from_settings();
 }
 
-#if ENABLE_NEW_MENU_LAYOUT
 void GUI_App::load_project(wxWindow *parent, wxString& input_file)
 {
     input_file.Clear();
@@ -332,9 +331,6 @@ void GUI_App::load_project(wxWindow *parent, wxString& input_file)
 }
 
 void GUI_App::import_model(wxWindow *parent, wxArrayString& input_files)
-#else
-void GUI_App::open_model(wxWindow *parent, wxArrayString& input_files)
-#endif // ENABLE_NEW_MENU_LAYOUT
 {
     input_files.Clear();
     wxFileDialog dialog(parent ? parent : GetTopWindow(),
