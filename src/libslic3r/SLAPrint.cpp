@@ -107,8 +107,7 @@ static std::vector<SLAPrintObject::Instance> sla_instances(const ModelObject &mo
     return instances;
 }
 
-SLAPrint::ApplyStatus SLAPrint::apply(const Model &model,
-                                      const DynamicPrintConfig &config_in)
+SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConfig &config_in)
 {
 #ifdef _DEBUG
     check_model_ids_validity(model);
@@ -118,27 +117,44 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model,
     DynamicPrintConfig config(config_in);
     config.normalize();
     // Collect changes to print config.
+    t_config_option_keys print_diff    = m_print_config.diff(config);    
     t_config_option_keys printer_diff  = m_printer_config.diff(config);
     t_config_option_keys material_diff = m_material_config.diff(config);
     t_config_option_keys object_diff   = m_default_object_config.diff(config);
+    t_config_option_keys placeholder_parser_diff = this->placeholder_parser().config_diff(config);
 
     // Do not use the ApplyStatus as we will use the max function when updating apply_status.
     unsigned int apply_status = APPLY_STATUS_UNCHANGED;
     auto update_apply_status = [&apply_status](bool invalidated)
         { apply_status = std::max<unsigned int>(apply_status, invalidated ? APPLY_STATUS_INVALIDATED : APPLY_STATUS_CHANGED); };
-    if (! (printer_diff.empty() && material_diff.empty() && object_diff.empty()))
+    if (! (print_diff.empty() && printer_diff.empty() && material_diff.empty() && object_diff.empty()))
         update_apply_status(false);
 
     // Grab the lock for the Print / PrintObject milestones.
     tbb::mutex::scoped_lock lock(this->state_mutex());
 
     // The following call may stop the background processing.
+    if (! print_diff.empty())
+        update_apply_status(this->invalidate_state_by_config_options(print_diff));
     if (! printer_diff.empty())
         update_apply_status(this->invalidate_state_by_config_options(printer_diff));
     if (! material_diff.empty())
         update_apply_status(this->invalidate_state_by_config_options(material_diff));
 
+    // Apply variables to placeholder parser. The placeholder parser is currently used
+    // only to generate the output file name.
+	if (! placeholder_parser_diff.empty()) {
+        // update_apply_status(this->invalidate_step(slapsRasterize));
+		PlaceholderParser &pp = this->placeholder_parser();
+		pp.apply_config(config);
+        // Set the profile aliases for the PrintBase::output_filename()
+		pp.set("print_preset", config_in.option("sla_print_settings_id")->clone());
+		pp.set("material_preset", config_in.option("sla_material_settings_id")->clone());
+		pp.set("printer_preset", config_in.option("printer_settings_id")->clone());
+    }
+
     // It is also safe to change m_config now after this->invalidate_state_by_config_options() call.
+    m_print_config.apply_only(config, print_diff, true);
     m_printer_config.apply_only(config, printer_diff, true);
     // Handle changes to material config.
     m_material_config.apply_only(config, material_diff, true);
@@ -367,6 +383,8 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model,
             }
         update_apply_status(new_objects);
     }
+
+    this->update_object_placeholders();
 
 #ifdef _DEBUG
     check_model_ids_equal(m_model, model);
@@ -874,6 +892,7 @@ bool SLAPrint::invalidate_state_by_config_options(const std::vector<t_config_opt
         "bed_shape",
         "max_print_height",
         "printer_technology",
+        "output_filename_format"
     };
 
     std::vector<SLAPrintStep> steps;
@@ -927,7 +946,9 @@ bool SLAPrintObject::invalidate_state_by_config_options(const std::vector<t_conf
     std::vector<SLAPrintObjectStep> steps;
     bool invalidated = false;
     for (const t_config_option_key &opt_key : opt_keys) {
-        if (   opt_key == "supports_enable"
+		if (opt_key == "layer_height") {
+			steps.emplace_back(slaposObjectSlice);
+		} else if (opt_key == "supports_enable"
             || opt_key == "support_head_front_diameter"
             || opt_key == "support_head_penetration"
             || opt_key == "support_head_width"

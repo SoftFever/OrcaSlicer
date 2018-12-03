@@ -191,6 +191,9 @@ public:
     }
     const PrintObjects& objects() const { return m_objects; }
 
+	std::string         output_filename() const override 
+        { return this->PrintBase::output_filename(m_print_config.output_filename_format.value, "zip"); }
+
 private:
     using SLAPrinter = FilePrinter<FilePrinterFormat::SLA_PNGZIP>;
     using SLAPrinterPtr = std::unique_ptr<SLAPrinter>;
@@ -198,6 +201,7 @@ private:
     // Invalidate steps based on a set of parameters changed.
     bool invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
 
+    SLAPrintConfig                  m_print_config;
     SLAPrinterConfig                m_printer_config;
     SLAMaterialConfig               m_material_config;
     SLAPrintObjectConfig            m_default_object_config;

@@ -1322,7 +1322,7 @@ void PrintConfigDef::init_fff_params()
     def->cli = "output-filename-format=s";
     def->full_width = true;
     def->mode = comExpert;
-    def->default_value = new ConfigOptionString("[input_filename_base].gcode");
+    def->default_value = new ConfigOptionString("[input_filename_base]");
 
     def = this->add("overhangs", coBool);
     def->label = L("Detect bridging perimeters");
@@ -2925,6 +2925,7 @@ StaticPrintConfig::StaticCache<class Slic3r::HostConfig>        HostConfig::s_ca
 StaticPrintConfig::StaticCache<class Slic3r::FullPrintConfig>   FullPrintConfig::s_cache_FullPrintConfig;
 
 StaticPrintConfig::StaticCache<class Slic3r::SLAMaterialConfig>     SLAMaterialConfig::s_cache_SLAMaterialConfig;
+StaticPrintConfig::StaticCache<class Slic3r::SLAPrintConfig>        SLAPrintConfig::s_cache_SLAPrintConfig;
 StaticPrintConfig::StaticCache<class Slic3r::SLAPrintObjectConfig>  SLAPrintObjectConfig::s_cache_SLAPrintObjectConfig;
 StaticPrintConfig::StaticCache<class Slic3r::SLAPrinterConfig>      SLAPrinterConfig::s_cache_SLAPrinterConfig;
 StaticPrintConfig::StaticCache<class Slic3r::SLAFullPrintConfig>    SLAFullPrintConfig::s_cache_SLAFullPrintConfig;

@@ -681,10 +681,9 @@ void MainFrame::load_config_file(wxString file/* = wxEmptyString*/)
     }
     try {
         wxGetApp().preset_bundle->load_config_file(file.ToStdString()); 
-    } catch (std::exception & /* ex */) {
-        // Dont proceed further if the config file cannot be loaded.
-        //     if (Slic3r::GUI::catch_error(this))
-        //         return;
+    } catch (const std::exception &ex) {
+        show_error(this, ex.what());
+        return;
     }
 	wxGetApp().load_current_presets();
     wxGetApp().app_config->update_config_dir(get_dir_name(file));
@@ -696,9 +695,9 @@ void MainFrame::export_configbundle()
     if (!wxGetApp().check_unsaved_changes())
         return;
     // validate current configuration in case it's dirty
-    auto valid = wxGetApp().preset_bundle->full_config().validate();
-    if (!valid.empty()) {
-//         Slic3r::GUI::catch_error(this);
+    auto err = wxGetApp().preset_bundle->full_config().validate();
+    if (! err.empty()) {
+        show_error(this, err);
         return;
     }
     // Ask user for a file name.
@@ -715,8 +714,8 @@ void MainFrame::export_configbundle()
         wxGetApp().app_config->update_config_dir(get_dir_name(file));
         try {
             wxGetApp().preset_bundle->export_configbundle(file.ToStdString()); 
-        } catch (std::exception & /* ex */) {
-//         Slic3r::GUI::catch_error(this);
+        } catch (const std::exception &ex) {
+			show_error(this, ex.what());
         }
     }
 }
@@ -742,9 +741,10 @@ void MainFrame::load_configbundle(wxString file/* = wxEmptyString, const bool re
 
     auto presets_imported = 0;
     try {
-    presets_imported = wxGetApp().preset_bundle->load_configbundle(file.ToStdString());
-    } catch (std::exception & /* ex */) {
-//     Slic3r::GUI::catch_error(this) and return;
+        presets_imported = wxGetApp().preset_bundle->load_configbundle(file.ToStdString());
+    } catch (const std::exception &ex) {
+        show_error(this, ex.what());
+        return;
     }
 
     // Load the currently selected preset into the GUI, update the preset selection box.

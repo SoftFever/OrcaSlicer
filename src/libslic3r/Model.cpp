@@ -540,6 +540,15 @@ void Model::reset_auto_extruder_id()
     s_auto_extruder_id = 1;
 }
 
+std::string Model::propose_export_file_name() const
+{
+    for (const ModelObject *model_object : this->objects)
+        for (ModelInstance *model_instance : model_object->instances)
+            if (model_instance->is_printable())
+                return model_object->input_file;
+    return std::string();
+}
+
 ModelObject::~ModelObject()
 {
     this->clear_volumes();

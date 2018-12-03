@@ -402,6 +402,8 @@ const Transform3f& GLVolume::world_matrix() const
 
 const BoundingBoxf3& GLVolume::transformed_bounding_box() const
 {
+	assert(bounding_box.defined || bounding_box.min(0) >= bounding_box.max(0) || bounding_box.min(1) >= bounding_box.max(1) || bounding_box.min(2) >= bounding_box.max(2));
+
     if (m_transformed_bounding_box_dirty)
     {
 #if ENABLE_MODELVOLUME_TRANSFORM

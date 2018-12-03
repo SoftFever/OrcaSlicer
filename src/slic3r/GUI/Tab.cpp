@@ -3042,6 +3042,12 @@ void TabSLAPrint::build()
     optgroup->append_single_option_line("pad_max_merge_distance");
     optgroup->append_single_option_line("pad_edge_radius");
 
+	page = add_options_page(_(L("Output options")), "page_white_go.png");
+	optgroup = page->new_optgroup(_(L("Output file")));
+	Option option = optgroup->get_option("output_filename_format");
+	option.opt.full_width = true;
+	optgroup->append_single_option_line(option);
+
     page = add_options_page(_(L("Dependencies")), "wrench.png");
     optgroup = page->new_optgroup(_(L("Profile dependencies")));
     Line line = optgroup->create_single_option_line("compatible_printers");//Line { _(L("Compatible printers")), "" };
@@ -3050,7 +3056,7 @@ void TabSLAPrint::build()
     };
     optgroup->append_line(line, &m_colored_Label);
 
-    Option option = optgroup->get_option("compatible_printers_condition");
+    option = optgroup->get_option("compatible_printers_condition");
     option.opt.full_width = true;
     optgroup->append_single_option_line(option);
 

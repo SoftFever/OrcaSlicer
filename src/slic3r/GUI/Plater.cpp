@@ -755,7 +755,7 @@ void Sidebar::show_sliced_info_sizer(const bool show)
 
     p->sliced_info->Show(show);
     if (show) {
-        const PrintStatistics& ps = p->plater->print().print_statistics();
+        const PrintStatistics& ps = p->plater->fff_print().print_statistics();
         const bool is_wipe_tower = ps.total_wipe_tower_filament > 0;
 
         wxString new_label = _(L("Used Filament (m)"));
@@ -801,7 +801,7 @@ void Sidebar::show_sliced_info_sizer(const bool show)
         }
 
         // if there is a wipe tower, insert number of toolchanges info into the array:
-        p->sliced_info->SetTextAndShow(siWTNumbetOfToolchanges, is_wipe_tower ? wxString::Format("%.d", p->plater->print().wipe_tower_data().number_of_toolchanges) : "N/A");
+        p->sliced_info->SetTextAndShow(siWTNumbetOfToolchanges, is_wipe_tower ? wxString::Format("%.d", p->plater->fff_print().wipe_tower_data().number_of_toolchanges) : "N/A");
     }
 
     Layout();
@@ -906,7 +906,7 @@ struct Plater::priv
 
     // Data
     Slic3r::DynamicPrintConfig *config;
-    Slic3r::Print               print;
+    Slic3r::Print               fff_print;
 	Slic3r::SLAPrint            sla_print;
     Slic3r::Model               model;
     PrinterTechnology           printer_technology = ptFFF;
@@ -973,6 +973,8 @@ struct Plater::priv
     void sla_optimize_rotation();
     void split_object();
     void split_volume();
+	bool background_processing_enabled() const { return this->get_config("background_processing") == "1"; }
+    void update_print_volume_state();
     void schedule_background_process();
     // Update background processing thread from the current config and Model.
     enum UpdateBackgroundProcessReturnState {
@@ -1061,7 +1063,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 #endif // ENABLE_NEW_MENU_LAYOUT
 {
     arranging.store(false);
-    background_process.set_fff_print(&print);
+    background_process.set_fff_print(&fff_print);
 	background_process.set_sla_print(&sla_print);
     background_process.set_gcode_preview_data(&gcode_preview_data);
     background_process.set_slicing_completed_event(EVT_SLICING_COMPLETED);
@@ -1073,7 +1075,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     auto statuscb = [this](const Slic3r::PrintBase::SlicingStatus &status) {
         wxQueueEvent(this->q, new Slic3r::SlicingStatusEvent(EVT_SLICING_UPDATE, 0, status));
     };
-    print.set_status_callback(statuscb);
+    fff_print.set_status_callback(statuscb);
     sla_print.set_status_callback(statuscb);
     this->q->Bind(EVT_SLICING_UPDATE, &priv::on_slicing_update, this);
 
@@ -1323,8 +1325,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path> &input_
                     if (obj->name.empty())
                         obj->name = fs::path(obj->input_file).filename().string();
             }
-        }
-        catch (const std::runtime_error &e) {
+        } catch (const std::exception &e) {
             GUI::show_error(q, e.what());
             continue;
         }
@@ -1480,13 +1481,15 @@ std::unique_ptr<CheckboxFileDialog> Plater::priv::get_export_file(GUI::FileType 
         case FT_GCODE:
             wildcard = file_wildcards[file_type];
         break;
-// FT_GCODE
         default:
             wildcard = file_wildcards[FT_MODEL];
         break;
     }
 
-    fs::path output_file(print.output_filepath(std::string()));
+    // Update printbility state of each of the ModelInstances.
+    this->update_print_volume_state();
+    // Find the file name of the first printable object.
+	fs::path output_file = this->model.propose_export_file_name();
 
     switch (file_type) {
         case FT_STL: output_file.replace_extension("stl"); break;
@@ -1494,8 +1497,6 @@ std::unique_ptr<CheckboxFileDialog> Plater::priv::get_export_file(GUI::FileType 
         case FT_3MF: output_file.replace_extension("3mf"); break;
         default: break;
     }
-
-    wxGetApp().preset_bundle->export_selections(print.placeholder_parser());
 
     auto dlg = Slic3r::make_unique<CheckboxFileDialog>(q,
         ((file_type == FT_AMF) || (file_type == FT_3MF)) ? _(L("Export print config")) : "",
@@ -1809,6 +1810,15 @@ void Plater::priv::schedule_background_process()
     this->background_process_timer.Start(500, wxTIMER_ONE_SHOT);
 }
 
+void Plater::priv::update_print_volume_state()
+{
+    BoundingBox     bed_box_2D = get_extents(Polygon::new_scale(this->config->opt<ConfigOptionPoints>("bed_shape")->values));
+    BoundingBoxf3   print_volume(unscale(bed_box_2D.min(0), bed_box_2D.min(1), 0.0), unscale(bed_box_2D.max(0), bed_box_2D.max(1), scale_(this->config->opt_float("max_print_height"))));
+    // Allow the objects to protrude below the print bed, only the part of the object above the print bed will be sliced.
+    print_volume.min(2) = -1e10;
+    this->q->model().update_print_volume_state(print_volume);
+}
+
 // Update background processing thread from the current config and Model.
 // Returns a bitmask of UpdateBackgroundProcessReturnState.
 unsigned int Plater::priv::update_background_process()
@@ -1819,16 +1829,10 @@ unsigned int Plater::priv::update_background_process()
     // If the async_apply_config() was not called by the timer, kill the timer, so the async_apply_config()
     // will not be called again in vain.
     this->background_process_timer.Stop();
-
-    DynamicPrintConfig config = wxGetApp().preset_bundle->full_config();
-    BoundingBox     bed_box_2D = get_extents(Polygon::new_scale(config.opt<ConfigOptionPoints>("bed_shape")->values));
-    BoundingBoxf3   print_volume(unscale(bed_box_2D.min(0), bed_box_2D.min(1), 0.0), unscale(bed_box_2D.max(0), bed_box_2D.max(1), scale_(config.opt_float("max_print_height"))));
-    // Allow the objects to protrude below the print bed, only the part of the object above the print bed will be sliced.
-    print_volume.min(2) = -1e10;
-    this->q->model().update_print_volume_state(print_volume);
-
+    // Update the "out of print bed" state of ModelInstances.
+    this->update_print_volume_state();
     // Apply new config to the possibly running background task.
-    Print::ApplyStatus invalidated = this->background_process.apply(this->q->model(), std::move(config));
+    Print::ApplyStatus invalidated = this->background_process.apply(this->q->model(), wxGetApp().preset_bundle->full_config());
 
     // Just redraw the 3D canvas without reloading the scene to consume the update of the layer height profile.
     if (this->canvas3D->is_layers_editing_enabled())
@@ -1880,7 +1884,7 @@ void Plater::priv::async_apply_config()
     unsigned int state = this->update_background_process();
     if (state & UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE)
         this->canvas3D->reload_scene(false);
-    if ((state & UPDATE_BACKGROUND_PROCESS_RESTART) != 0 && this->get_config("background_processing") == "1") {
+    if ((state & UPDATE_BACKGROUND_PROCESS_RESTART) != 0 && this->background_processing_enabled()) {
         // The print is valid and it can be started.
         if (this->background_process.start())
             this->statusbar()->set_cancel_callback([this]() {
@@ -1918,7 +1922,7 @@ void Plater::priv::fix_through_netfabb(const int obj_idx)
 
     const auto model_object = model.objects[obj_idx];
     Model model_fixed;// = new Model();
-    fix_model_by_win10_sdk_gui(*model_object, print, model_fixed);
+    fix_model_by_win10_sdk_gui(*model_object, this->fff_print, model_fixed);
 
     auto new_obj_idxs = load_model_objects(model_fixed.objects);
     if (new_obj_idxs.empty())
@@ -2235,7 +2239,8 @@ bool Plater::priv::init_object_menu()
     item_sla_autorot = append_menu_item(&object_menu, wxID_ANY, _(L("Optimize orientation")), _(L("Optimize the rotation of the object for better print results.")),
                                             [this](wxCommandEvent&) { sla_optimize_rotation(); });
 
-    if(printer_technology == ptFFF) item_sla_autorot = object_menu.Remove(item_sla_autorot);
+    if (printer_technology == ptFFF) 
+        item_sla_autorot = object_menu.Remove(item_sla_autorot);
 
     // ui updates needs to be binded to the parent panel
     if (q != nullptr)
@@ -2318,9 +2323,12 @@ Plater::~Plater()
     p->canvas3D = nullptr;
 }
 
-Sidebar& Plater::sidebar() { return *p->sidebar; }
-Model& Plater::model()  { return p->model; }
-Print& Plater::print()  { return p->print; }
+Sidebar&        Plater::sidebar()           { return *p->sidebar; }
+Model&          Plater::model()             { return p->model; }
+const Print&    Plater::fff_print() const   { return p->fff_print; }
+Print&          Plater::fff_print()         { return p->fff_print; }
+const SLAPrint& Plater::sla_print() const   { return p->sla_print; }
+SLAPrint&       Plater::sla_print()         { return p->sla_print; }
 
 #if ENABLE_NEW_MENU_LAYOUT
 void Plater::load_project()
@@ -2509,53 +2517,33 @@ void Plater::export_gcode(fs::path output_path)
         return;
     }
 
-    std::string err = wxGetApp().preset_bundle->full_config().validate();
-    if (err.empty())
-        err = p->background_process.validate();
-    if (! err.empty()) {
-        // The config is not valid
-        GUI::show_error(this, _(err));
+    // bitmask of UpdateBackgroundProcessReturnState
+    unsigned int state = this->p->update_background_process();
+    if (state & priv::UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE)
+        this->p->canvas3D->reload_scene(false);
+    if ((state & priv::UPDATE_BACKGROUND_PROCESS_INVALID) != 0)
         return;
-    }
 
-    std::string final_path;
-    if(printer_technology() == ptFFF) { // TODO: custom button for SLA export
+    // select output file
+    if (output_path.empty()) {
+        // XXX: take output path from CLI opts? Ancient Slic3r versions used to do that...
 
-        // Copy the names of active presets into the placeholder parser.
-        wxGetApp().preset_bundle->export_selections(p->print.placeholder_parser());
-
-        // select output file
-        if (output_path.empty()) {
-            // XXX: take output path from CLI opts? Ancient Slic3r versions used to do that...
-
-            // If possible, remove accents from accented latin characters.
-            // This function is useful for generating file names to be processed by legacy firmwares.
-            auto default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(
-                p->print.output_filepath(output_path.string())
-                // FIXME: ^ errors to handle?
-            ));
-            auto start_dir = wxGetApp().app_config->get_last_output_dir(default_output_file.parent_path().string());
-
-            wxFileDialog dlg(this, _(L("Save G-code file as:")),
-                start_dir,
-                default_output_file.filename().string(),
-                GUI::file_wildcards[FT_GCODE],
-                wxFD_SAVE | wxFD_OVERWRITE_PROMPT
-            );
-
-            if (dlg.ShowModal() == wxID_OK) {
-                fs::path path(dlg.GetPath());
-                wxGetApp().app_config->update_last_output_dir(path.parent_path().string());
-                output_path = path;
-            }
+        // If possible, remove accents from accented latin characters.
+        // This function is useful for generating file names to be processed by legacy firmwares.
+		fs::path default_output_file;
+        try {
+			default_output_file = this->p->background_process.current_print()->output_filepath(output_path.string());
+        } catch (const std::exception &ex) {
+            show_error(this, ex.what());
+            return;
         }
+		default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string()));
+        auto start_dir = wxGetApp().app_config->get_last_output_dir(default_output_file.parent_path().string());
 
-        final_path = p->print.output_filepath(output_path.string());
-    } else {
-        wxFileDialog dlg(this, _(L("Save Zip file as:")),
-            wxGetApp().app_config->get_last_output_dir(""),
-            "out.zip",
-            GUI::file_wildcards[FT_PNGZIP],
+		wxFileDialog dlg(this, (printer_technology() == ptFFF) ? _(L("Save G-code file as:")) : _(L("Save Zip file as:")),
+            start_dir,
+            default_output_file.filename().string(),
+			GUI::file_wildcards[(printer_technology() == ptFFF) ? FT_GCODE : FT_PNGZIP],
             wxFD_SAVE | wxFD_OVERWRITE_PROMPT
         );
 
@@ -2564,13 +2552,25 @@ void Plater::export_gcode(fs::path output_path)
             wxGetApp().app_config->update_last_output_dir(path.parent_path().string());
             output_path = path;
         }
-
-        final_path = output_path.string();
+    } else {
+        try {
+			output_path = this->p->background_process.current_print()->output_filepath(output_path.string());
+        } catch (const std::exception &ex) {
+            show_error(this, ex.what());
+            return;
+        }
     }
 
-    if (! output_path.empty()) {
-        this->p->background_process.schedule_export(final_path);
-        this->p->background_process.start();
+    if (! output_path.empty())
+        this->p->background_process.schedule_export(output_path.string());
+
+    if ((! output_path.empty() || this->p->background_processing_enabled()) && ! this->p->background_process.running()) {
+        // The print is valid and it should be started.
+        if (this->p->background_process.start())
+            this->p->statusbar()->set_cancel_callback([this]() {
+                this->p->statusbar()->set_status_text(L("Cancelling"));
+                this->p->background_process.stop();
+            });
     }
 }
 
@@ -2660,11 +2660,8 @@ void Plater::reslice()
     unsigned int state = this->p->update_background_process();
     if (state & priv::UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE)
         this->p->canvas3D->reload_scene(false);
-	if ((state & priv::UPDATE_BACKGROUND_PROCESS_INVALID) == 0 && !this->p->background_process.running()) {
+	if ((state & priv::UPDATE_BACKGROUND_PROCESS_INVALID) == 0 && ! this->p->background_process.running()) {
         // The print is valid and it can be started.
-        // Copy the names of active presets into the placeholder parser.
-        //FIXME how to generate a file name for the SLA printers?
-        wxGetApp().preset_bundle->export_selections(this->print().placeholder_parser());
         if (this->p->background_process.start())
 			this->p->statusbar()->set_cancel_callback([this]() {
 				this->p->statusbar()->set_status_text(L("Cancelling"));
@@ -2709,12 +2706,8 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
     bool update_scheduled = false;
     for (auto opt_key : p->config->diff(config)) {
         p->config->set_key_value(opt_key, config.option(opt_key)->clone());
-        if (opt_key == "printer_technology") {
-            p->printer_technology = config.opt_enum<PrinterTechnology>(opt_key);
-			p->background_process.select_technology(this->printer_technology());
-			//FIXME for SLA synchronize 
-			//p->background_process.apply(Model)!
-        }
+        if (opt_key == "printer_technology")
+            this->set_printer_technology(config.opt_enum<PrinterTechnology>(opt_key));
         else if (opt_key  == "bed_shape") {
 			this->p->canvas3D->set_bed_shape(p->config->option<ConfigOptionPoints>(opt_key)->values);
             if (p->preview) p->preview->set_bed_shape(p->config->option<ConfigOptionPoints>(opt_key)->values);
@@ -2811,6 +2804,16 @@ PrinterTechnology Plater::printer_technology() const
     return p->printer_technology;
 }
 
+void Plater::set_printer_technology(PrinterTechnology printer_technology)
+{
+    p->printer_technology = printer_technology;
+    if (p->background_process.select_technology(printer_technology)) {
+        // Update the active presets.
+    }
+    //FIXME for SLA synchronize 
+    //p->background_process.apply(Model)!
+}
+
 void Plater::changed_object(int obj_idx)
 {
     if (obj_idx < 0)
@@ -2827,20 +2830,21 @@ void Plater::changed_object(int obj_idx)
         model_object->center_around_origin();
 #endif // !ENABLE_MODELVOLUME_TRANSFORM
         model_object->ensure_on_bed();
+        if (this->p->printer_technology == ptSLA) {
+            // Update the SLAPrint from the current Model, so that the reload_scene()
+            // pulls the correct data.
+            this->p->update_background_process();
+        }
         p->canvas3D->reload_scene(false);
     }
 
     // update print
+    this->p->schedule_background_process();
     if (list->is_parts_changed() || list->is_part_settings_changed()) {
-        this->p->schedule_background_process();
 #if !ENABLE_MODIFIED_CAMERA_TARGET
         p->canvas3D->zoom_to_volumes();
 #endif // !ENABLE_MODIFIED_CAMERA_TARGET
     }
-    else {
-        this->p->schedule_background_process();
-    }
-
 }
 
 void Plater::fix_through_netfabb(const int obj_idx) { p->fix_through_netfabb(obj_idx); }

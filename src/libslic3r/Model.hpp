@@ -653,6 +653,9 @@ public:
     static std::string get_auto_extruder_id_as_string(unsigned int max_extruders);
     static void reset_auto_extruder_id();
 
+    // Propose an output file name based on the first printable object's name.
+    std::string         propose_export_file_name() const;
+
 private:
     MODELBASE_DERIVED_PRIVATE_COPY_MOVE(Model)
 };

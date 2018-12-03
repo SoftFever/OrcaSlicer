@@ -213,7 +213,7 @@ int main(int argc, char **argv)
                 model.center_instances_around_point(cli_config.print_center);
             }
             if (outfile.empty())
-                outfile = model.objects.front()->input_file + ".gcode";
+                outfile = model.propose_export_file_name() + ".gcode";
             for (auto* mo : model.objects)
                 print.auto_assign_extruders(mo);
             print_config.normalize();

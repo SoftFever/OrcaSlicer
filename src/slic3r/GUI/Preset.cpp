@@ -363,39 +363,6 @@ const std::vector<std::string>& Preset::nozzle_options()
     return s_opts;
 }
 
-const std::vector<std::string>& Preset::sla_printer_options()
-{    
-    static std::vector<std::string> s_opts;
-    if (s_opts.empty()) {
-        s_opts = {
-            "printer_technology",
-            "bed_shape", "max_print_height",
-            "display_width", "display_height", "display_pixels_x", "display_pixels_y",
-            "printer_correction",
-            "printer_notes",
-            "inherits"
-        };
-    }
-    return s_opts;
-}
-
-const std::vector<std::string>& Preset::sla_material_options()
-{    
-    static std::vector<std::string> s_opts;
-    if (s_opts.empty()) {
-        s_opts = {
-            "layer_height", "initial_layer_height",
-            "exposure_time", "initial_exposure_time",
-            "material_correction_printing", "material_correction_curing",
-            "material_notes",
-            "default_sla_material_profile",
-            "compatible_printers",
-            "compatible_printers_condition", "inherits"
-        };
-    }
-    return s_opts;
-}
-
 const std::vector<std::string>& Preset::sla_print_options()
 {    
     static std::vector<std::string> s_opts;
@@ -418,9 +385,43 @@ const std::vector<std::string>& Preset::sla_print_options()
             "pad_wall_height",
             "pad_max_merge_distance",
             "pad_edge_radius",
+            "output_filename_format", 
             "default_sla_print_profile",
             "compatible_printers",
             "compatible_printers_condition", 
+            "inherits"
+        };
+    }
+    return s_opts;
+}
+
+const std::vector<std::string>& Preset::sla_material_options()
+{    
+    static std::vector<std::string> s_opts;
+    if (s_opts.empty()) {
+        s_opts = {
+            "initial_layer_height",
+            "exposure_time", "initial_exposure_time",
+            "material_correction_printing", "material_correction_curing",
+            "material_notes",
+            "default_sla_material_profile",
+            "compatible_printers",
+            "compatible_printers_condition", "inherits"
+        };
+    }
+    return s_opts;
+}
+
+const std::vector<std::string>& Preset::sla_printer_options()
+{    
+    static std::vector<std::string> s_opts;
+    if (s_opts.empty()) {
+        s_opts = {
+            "printer_technology",
+            "bed_shape", "max_print_height",
+            "display_width", "display_height", "display_pixels_x", "display_pixels_y",
+            "printer_correction",
+            "printer_notes",
             "inherits"
         };
     }
@@ -539,8 +540,8 @@ static bool profile_print_params_same(const DynamicPrintConfig &cfg1, const Dyna
     // Following keys are used by the UI, not by the slicing core, therefore they are not important
     // when comparing profiles for equality. Ignore them.
     for (const char *key : { "compatible_printers", "compatible_printers_condition", "inherits", 
-                             "print_settings_id", "filament_settings_id", "sla_material_settings_id", "printer_settings_id",
-                             "printer_model", "printer_variant", "default_print_profile", "default_filament_profile", "default_sla_material_profile" })
+                             "print_settings_id", "filament_settings_id", "sla_print_settings_id", "sla_material_settings_id", "printer_settings_id",
+                             "printer_model", "printer_variant", "default_print_profile", "default_filament_profile", "default_sla_print_profile", "default_sla_material_profile" })
         diff.erase(std::remove(diff.begin(), diff.end(), key), diff.end());
     // Preset with the same name as stored inside the config exists.
     return diff.empty();
@@ -562,7 +563,7 @@ Preset& PresetCollection::load_external_preset(
     bool                         select)
 {
     // Load the preset over a default preset, so that the missing fields are filled in from the default preset.
-    DynamicPrintConfig cfg(this->default_preset().config);
+    DynamicPrintConfig cfg(this->default_preset_for(config).config);
     cfg.apply_only(config, cfg.keys(), true);
     // Is there a preset already loaded with the name stored inside the config?
     std::deque<Preset>::iterator it = this->find_preset_internal(original_name);

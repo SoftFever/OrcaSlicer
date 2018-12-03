@@ -442,7 +442,7 @@ bool Print::apply_config(DynamicPrintConfig config)
     config.normalize();
     
     // apply variables to placeholder parser
-    m_placeholder_parser.apply_config(config);
+	this->placeholder_parser().apply_config(config);
     
     // handle changes to print config
     t_config_option_keys print_diff = m_config.diff(config);
@@ -683,6 +683,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
     t_config_option_keys print_diff  = m_config.diff(config);
     t_config_option_keys object_diff = m_default_object_config.diff(config);
     t_config_option_keys region_diff = m_default_region_config.diff(config);
+    t_config_option_keys placeholder_parser_diff = this->placeholder_parser().config_diff(config);
 
     // Do not use the ApplyStatus as we will use the max function when updating apply_status. 
     unsigned int apply_status = APPLY_STATUS_UNCHANGED;
@@ -699,8 +700,15 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
         update_apply_status(this->invalidate_state_by_config_options(print_diff));
     // Apply variables to placeholder parser. The placeholder parser is used by G-code export,
     // which should be stopped if print_diff is not empty.
-    if (m_placeholder_parser.apply_config(config))
+	if (! placeholder_parser_diff.empty()) {
         update_apply_status(this->invalidate_step(psGCodeExport));
+		PlaceholderParser &pp = this->placeholder_parser();
+		pp.apply_only(config, placeholder_parser_diff);
+        // Set the profile aliases for the PrintBase::output_filename()
+        pp.set("print_preset",    config_in.option("print_settings_id"   )->clone());
+        pp.set("filament_preset", config_in.option("filament_settings_id")->clone());
+        pp.set("printer_preset",  config_in.option("printer_settings_id" )->clone());
+    }
 
     // It is also safe to change m_config now after this->invalidate_state_by_config_options() call.
     m_config.apply_only(config, print_diff, true);
@@ -1113,6 +1121,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
         if (! object->layer_height_profile_valid)
             object->update_layer_height_profile();
 
+    //FIXME there may be a race condition with the G-code export running at the background thread.
     this->update_object_placeholders();
 
 #ifdef _DEBUG
@@ -1120,33 +1129,6 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
 #endif /* _DEBUG */
 
 	return static_cast<ApplyStatus>(apply_status);
-}
-
-// Update "scale", "input_filename", "input_filename_base" placeholders from the current m_objects.
-void Print::update_object_placeholders()
-{
-    // get the first input file name
-    std::string input_file;
-    std::vector<std::string> v_scale;
-    for (const PrintObject *object : m_objects) {
-        const ModelObject &mobj = *object->model_object();
-        // CHECK_ME -> Is the following correct ?
-        v_scale.push_back("x:" + boost::lexical_cast<std::string>(mobj.instances[0]->get_scaling_factor(X) * 100) +
-            "% y:" + boost::lexical_cast<std::string>(mobj.instances[0]->get_scaling_factor(Y) * 100) +
-            "% z:" + boost::lexical_cast<std::string>(mobj.instances[0]->get_scaling_factor(Z) * 100) + "%");
-        if (input_file.empty())
-            input_file = mobj.input_file;
-    }
-    
-    PlaceholderParser &pp = m_placeholder_parser;
-    pp.set("scale", v_scale);
-    if (! input_file.empty()) {
-        // get basename with and without suffix
-        const std::string input_basename = boost::filesystem::path(input_file).filename().string();
-        pp.set("input_filename", input_basename);
-        const std::string input_basename_base = input_basename.substr(0, input_basename.find_last_of("."));
-        pp.set("input_filename_base", input_basename_base);
-    }
 }
 
 bool Print::has_infinite_skirt() const
@@ -1849,60 +1831,6 @@ void Print::_make_wipe_tower()
 
     m_wipe_tower_data.used_filament = wipe_tower.get_used_filament();
     m_wipe_tower_data.number_of_toolchanges = wipe_tower.get_number_of_toolchanges();
-}
-
-std::string Print::output_filename() const
-{
-    DynamicConfig cfg_timestamp;
-    PlaceholderParser::update_timestamp(cfg_timestamp);
-    try {
-        return this->placeholder_parser().process(m_config.output_filename_format.value, 0, &cfg_timestamp);
-    } catch (std::runtime_error &err) {
-        throw std::runtime_error(L("Failed processing of the output_filename_format template.") + "\n" + err.what());
-    }
-}
-
-std::string Print::output_filepath(const std::string &path) const
-{
-    // if we were supplied no path, generate an automatic one based on our first object's input file
-    if (path.empty()) {
-        // get the first input file name
-        std::string input_file;
-        for (const PrintObject *object : m_objects) {
-            input_file = object->model_object()->input_file;
-            if (! input_file.empty())
-                break;
-        }
-        return (boost::filesystem::path(input_file).parent_path() / this->output_filename()).make_preferred().string();
-    }
-    
-    // if we were supplied a directory, use it and append our automatically generated filename
-    boost::filesystem::path p(path);
-    if (boost::filesystem::is_directory(p))
-        return (p / this->output_filename()).make_preferred().string();
-    
-    // if we were supplied a file which is not a directory, use it
-    return path;
-}
-
-void Print::export_png(const std::string &dirpath)
-{
-//    size_t idx = 0;
-//    for (PrintObject *obj : m_objects) {
-//        obj->slice();
-//        this->set_status(int(floor(idx * 100. / m_objects.size() + 0.5)), "Slicing...");
-//        ++ idx;
-//    }
-//    this->set_status(90, "Exporting zipped archive...");
-//    print_to<FilePrinterFormat::PNG>(*this,
-//        dirpath,
-//        float(m_config.bed_size_x.value),
-//        float(m_config.bed_size_y.value),
-//        int(m_config.pixel_width.value),
-//        int(m_config.pixel_height.value),
-//        float(m_config.exp_time.value),
-//        float(m_config.exp_time_first.value));
-//    this->set_status(100, "Done.");
 }
 
 // Returns extruder this eec should be printed with, according to PrintRegion config

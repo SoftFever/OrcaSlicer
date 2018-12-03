@@ -111,7 +111,10 @@ public:
 
     Sidebar& sidebar();
     Model& model();
-    Print& print();
+    const Print& fff_print() const;
+    Print& fff_print();
+    const SLAPrint& sla_print() const;
+    SLAPrint& sla_print();
 
 #if ENABLE_NEW_MENU_LAYOUT
     void load_project();
@@ -168,7 +171,9 @@ public:
     bool is_single_full_object_selection() const;
     GLCanvas3D* canvas3D();
 
-    PrinterTechnology printer_technology() const;
+    PrinterTechnology   printer_technology() const;
+    void                set_printer_technology(PrinterTechnology printer_technology);
+
 private:
     struct priv;
     std::unique_ptr<priv> p;

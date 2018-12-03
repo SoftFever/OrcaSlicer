@@ -88,16 +88,18 @@ bool GUI_App::OnInit()
 
     // just checking for existence of Slic3r::data_dir is not enough : it may be an empty directory
     // supplied as argument to --datadir; in that case we should still run the wizard
-    //     eval{ 
-    preset_bundle->setup_directories();
-    //     };
-    //     if ($@) {
-    //         warn $@ . "\n";
-    //         fatal_error(undef, $@);
-    //     }
+    try { 
+        preset_bundle->setup_directories();
+    } catch (const std::exception &ex) {
+        show_error(nullptr, ex.what());
+        // Exit the application.
+        return false;
+    }
+
     app_conf_exists = app_config->exists();
     // load settings
-    if (app_conf_exists) app_config->load();
+    if (app_conf_exists)
+        app_config->load();
     app_config->set("version", SLIC3R_VERSION);
     app_config->save();
 
@@ -109,9 +111,8 @@ bool GUI_App::OnInit()
     preset_bundle->set_default_suppressed(app_config->get("no_defaults") == "1");
 	try {
 		preset_bundle->load_presets(*app_config);
-	} catch (const std::exception & /* ex */) {
-		//         warn $@ . "\n";
-		//         show_error(undef, $@);
+	} catch (const std::exception &ex) {
+        show_error(nullptr, ex.what());
 	}
 
     // Let the libslic3r know the callback, which will translate messages on demand.
@@ -168,14 +169,13 @@ bool GUI_App::OnInit()
     // are shown before or in the same event callback with the main frame creation.
     // Therefore we schedule them for later using CallAfter.
     CallAfter([this]() {
-        //         eval{
-        if (!preset_updater->config_update())
+        try {
+            if (!preset_updater->config_update())
+                mainframe->Close();
+        } catch (const std::exception &ex) {
+            show_error(nullptr, ex.what());
             mainframe->Close();
-        //         };
-        //         if ($@) {
-        //             show_error(undef, $@);
-        //             mainframe->Close();
-        //         }
+        }
     });
 
     CallAfter([this]() {
@@ -675,6 +675,7 @@ void GUI_App::delete_tab_from_list(Tab* tab)
 void GUI_App::load_current_presets()
 {
     PrinterTechnology printer_technology = preset_bundle->printers.get_edited_preset().printer_technology();
+	this->plater()->set_printer_technology(printer_technology);
     for (Tab *tab : tabs_list)
 		if (tab->supports_printer_technology(printer_technology)) {
 			if (tab->name() == "printer")

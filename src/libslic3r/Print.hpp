@@ -8,7 +8,6 @@
 #include "Point.hpp"
 #include "Layer.hpp"
 #include "Model.hpp"
-#include "PlaceholderParser.hpp"
 #include "Slicing.hpp"
 #include "GCode/ToolOrdering.hpp"
 #include "GCode/WipeTower.hpp"
@@ -296,8 +295,6 @@ public:
 
     void                process() override;
     void                export_gcode(const std::string &path_template, GCodePreviewData *preview_data);
-    // SLA export, temporary.
-    void                export_png(const std::string &dirpath);
 
     // methods for handling state
     bool                is_step_done(PrintStep step) const { return Inherited::is_step_done(step); }
@@ -330,8 +327,6 @@ public:
     PrintObject*                get_object(size_t idx) { return m_objects[idx]; }
     const PrintObject*          get_object(size_t idx) const { return m_objects[idx]; }
     const PrintRegionPtrs&      regions() const { return m_regions; }
-    const PlaceholderParser&    placeholder_parser() const { return m_placeholder_parser; }
-    PlaceholderParser&          placeholder_parser() { return m_placeholder_parser; }
     // How many of PrintObject::copies() over all print objects are there?
     // If zero, then the print is empty and the print shall not be executed.
     unsigned int                num_object_instances() const;
@@ -348,8 +343,8 @@ public:
     bool                        has_wipe_tower() const;
     const WipeTowerData&        wipe_tower_data() const { return m_wipe_tower_data; }
 
-    std::string                 output_filename() const;
-    std::string                 output_filepath(const std::string &path) const;
+	std::string                 output_filename() const override 
+        { return this->PrintBase::output_filename(m_config.output_filename_format.value, "gcode"); }
 
     // Accessed by SupportMaterial
     const PrintRegion*  get_region(size_t idx) const  { return m_regions[idx]; }
@@ -364,9 +359,6 @@ protected:
     bool                invalidate_step(PrintStep step);
 
 private:
-    // Update "scale", "input_filename", "input_filename_base" placeholders from the current m_objects.
-    void                update_object_placeholders();
-
     bool                invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
 
     void                _make_skirt();
@@ -382,7 +374,6 @@ private:
     PrintRegionConfig                       m_default_region_config;
     PrintObjectPtrs                         m_objects;
     PrintRegionPtrs                         m_regions;
-    PlaceholderParser                       m_placeholder_parser;
 
     // Ordered collections of extrusion paths to build skirt loops and brim.
     ExtrusionEntityCollection               m_skirt;

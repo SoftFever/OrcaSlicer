@@ -40,8 +40,9 @@ BackgroundSlicingProcess::~BackgroundSlicingProcess()
 	boost::nowide::remove(m_temp_output_path.c_str());
 }
 
-void BackgroundSlicingProcess::select_technology(PrinterTechnology tech)
+bool BackgroundSlicingProcess::select_technology(PrinterTechnology tech)
 {
+	bool changed = false;
 	if (m_print == nullptr || m_print->technology() != tech) {
 		if (m_print != nullptr)
 			this->reset();
@@ -49,8 +50,10 @@ void BackgroundSlicingProcess::select_technology(PrinterTechnology tech)
 		case ptFFF: m_print = m_fff_print; break;
 		case ptSLA: m_print = m_sla_print; break;
 		}
+		changed = true;
 	}
 	assert(m_print != nullptr);
+	return changed;
 }
 
 PrinterTechnology BackgroundSlicingProcess::current_printer_technology() const

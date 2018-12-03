@@ -55,7 +55,8 @@ public:
 	void set_finished_event(int event_id) { m_event_finished_id = event_id; }
 
 	// Activate either m_fff_print or m_sla_print.
-	void select_technology(PrinterTechnology tech);
+	// Return true if changed.
+	bool select_technology(PrinterTechnology tech);
 
 	// Get the currently active printer technology.
 	PrinterTechnology   current_printer_technology() const;

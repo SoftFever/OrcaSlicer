@@ -14,8 +14,14 @@ class PlaceholderParser
 public:    
     PlaceholderParser();
     
+    // Return a list of keys, which should be changed in m_config from rhs.
+    // This contains keys, which are found in rhs, but not in m_config.
+    std::vector<std::string> config_diff(const DynamicPrintConfig &rhs);
     // Return true if modified.
     bool apply_config(const DynamicPrintConfig &config);
+    // To be called on the values returned by PlaceholderParser::config_diff().
+    // The keys should already be valid.
+    void apply_only(const DynamicPrintConfig &config, const std::vector<std::string> &keys);
     void apply_env_variables();
 
     // Add new ConfigOption values to m_config.

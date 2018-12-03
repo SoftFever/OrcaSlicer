@@ -26,7 +26,6 @@
 #include <wx/wupdlock.h>
 
 #include "libslic3r/libslic3r.h"
-#include "libslic3r/PlaceholderParser.hpp"
 #include "libslic3r/Utils.hpp"
 
 // Store the print/filament/printer presets into a "presets" subdirectory of the Slic3rPE config dir.
@@ -95,8 +94,8 @@ PresetBundle::PresetBundle() :
             preset.config.option<ConfigOptionStrings>("default_filament_profile", true)->values = { "" };
         }
         else {
-            preset.config.optptr("default_sla_material_profile", true);
             preset.config.optptr("default_sla_print_profile", true);
+            preset.config.optptr("default_sla_material_profile", true);
         }
         // default_sla_material_profile
         preset.inherits();
@@ -391,24 +390,7 @@ void PresetBundle::export_selections(AppConfig &config)
     }
     config.set("presets", "sla_print",    sla_prints.get_selected_preset_name());
     config.set("presets", "sla_material", sla_materials.get_selected_preset_name());
-    config.set("presets", "printer",  printers.get_selected_preset_name());
-}
-
-void PresetBundle::export_selections(PlaceholderParser &pp)
-{
-    assert(filament_presets.size() >= 1);
-    assert(filament_presets.size() > 1 || filaments.get_selected_preset_name() == filament_presets.front());
-    switch (printers.get_edited_preset().printer_technology()) {
-    case ptFFF:
-        pp.set("print_preset",        prints.get_selected_preset().name);
-        pp.set("filament_preset",     filament_presets);
-        break;
-    case ptSLA:
-        pp.set("sla_print_preset",    sla_prints.get_selected_preset().name);
-        pp.set("sla_material_preset", sla_materials.get_selected_preset().name);
-        break;
-    }
-    pp.set("printer_preset",      printers.get_selected_preset().name);
+    config.set("presets", "printer",      printers.get_selected_preset_name());
 }
 
 bool PresetBundle::load_compatible_bitmaps()
@@ -676,7 +658,8 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
     size_t num_extruders = (printer_technology == ptFFF) ?
         std::min(config.option<ConfigOptionFloats>("nozzle_diameter"  )->values.size(), 
                  config.option<ConfigOptionFloats>("filament_diameter")->values.size()) :
-        0;
+		// 1 SLA material
+        1;
     // Make a copy of the "compatible_printers_condition_cummulative" and "inherits_cummulative" vectors, which 
     // accumulate values over all presets (print, filaments, printers).
     // These values will be distributed into their particular presets when loading.
@@ -687,8 +670,16 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
     compatible_printers_condition_values.resize(num_extruders + 2, std::string());
     inherits_values.resize(num_extruders + 2, std::string());
     // The "default_filament_profile" will be later extracted into the printer profile.
-    if (printer_technology == ptFFF)
-        config.option<ConfigOptionStrings>("default_filament_profile", true)->values.resize(num_extruders, std::string());
+	switch (printer_technology) {
+	case ptFFF:
+		config.option<ConfigOptionString>("default_print_profile", true);
+		config.option<ConfigOptionStrings>("default_filament_profile", true)->values.resize(num_extruders, std::string());
+		break;
+	case ptSLA:
+		config.option<ConfigOptionString>("default_sla_print_profile", true);
+		config.option<ConfigOptionString>("default_sla_material_profile", true);
+		break;
+	}
 
     // 1) Create a name from the file name.
     // Keep the suffix (.ini, .gcode, .amf, .3mf etc) to differentiate it from the normal profiles.
@@ -697,22 +688,24 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
     // 2) If the loading succeeded, split and load the config into print / filament / printer settings.
     // First load the print and printer presets.
 
-    // #ys_FIXME_SLA_PRINT
-    for (size_t i_group = 0; i_group < 2; ++ i_group) {
-        PresetCollection &presets = (i_group == 0) ? ((printer_technology == ptFFF) ? this->prints : this->sla_materials) : this->printers;
-        // Split the "compatible_printers_condition" and "inherits" values one by one from a single vector to the print & printer profiles.
-        size_t idx = (i_group == 0) ? 0 : num_extruders + 1;
-        inherits                      = inherits_values[idx];
-        compatible_printers_condition = compatible_printers_condition_values[idx];
+	auto load_preset = 
+		[&config, &inherits, &inherits_values, &compatible_printers_condition, &compatible_printers_condition_values, is_external, &name, &name_or_path]
+		(PresetCollection &presets, size_t idx, const std::string &key) {
+		// Split the "compatible_printers_condition" and "inherits" values one by one from a single vector to the print & printer profiles.
+		inherits = inherits_values[idx];
+		compatible_printers_condition = compatible_printers_condition_values[idx];
 		if (is_external)
-            presets.load_external_preset(name_or_path, name,
-                config.opt_string((i_group == 0) ? ((printer_technology == ptFFF) ? "print_settings_id" : "sla_material_settings_id") :  "printer_settings_id", true),
-                config);
-        else
-            presets.load_preset(presets.path_from_name(name), name, config).save();
-    }
+			presets.load_external_preset(name_or_path, name, config.opt_string(key, true), config);
+		else
+			presets.load_preset(presets.path_from_name(name), name, config).save();
+	};
 
-    if (Preset::printer_technology(config) == ptFFF) {
+    switch (Preset::printer_technology(config)) {
+    case ptFFF:
+    {
+        load_preset(this->prints, 0, "print_settings_id");
+        load_preset(this->printers, num_extruders + 1, "printer_settings_id");
+
         // 3) Now load the filaments. If there are multiple filament presets, split them and load them.
         auto old_filament_profile_names = config.option<ConfigOptionStrings>("filament_settings_id", true);
     	old_filament_profile_names->values.resize(num_extruders, std::string());
@@ -721,12 +714,15 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
             // Split the "compatible_printers_condition" and "inherits" from the cummulative vectors to separate filament presets.
             inherits                      = inherits_values[1];
             compatible_printers_condition = compatible_printers_condition_values[1];
-            if (is_external)
-                this->filaments.load_external_preset(name_or_path, name, old_filament_profile_names->values.front(), config);
-            else
-                this->filaments.load_preset(this->filaments.path_from_name(name), name, config).save();
+			Preset                *loaded = nullptr;
+			if (is_external) {
+				loaded = &this->filaments.load_external_preset(name_or_path, name, old_filament_profile_names->values.front(), config);
+			} else {
+				loaded = &this->filaments.load_preset(this->filaments.path_from_name(name), name, config);
+				loaded->save();
+			}
             this->filament_presets.clear();
-            this->filament_presets.emplace_back(name);
+			this->filament_presets.emplace_back(loaded->name);
         } else {
             // Split the filament presets, load each of them separately.
             std::vector<DynamicPrintConfig> configs(num_extruders, this->filaments.default_preset().config);
@@ -772,12 +768,18 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
                 this->filament_presets.emplace_back(loaded->name);
             }
         }
-
         // 4) Load the project config values (the per extruder wipe matrix etc).
         this->project_config.apply_only(config, s_project_options);
+        break;
+    }
+    case ptSLA:
+        load_preset(this->sla_prints,    0, "sla_print_settings_id");
+        load_preset(this->sla_materials, 1, "sla_material_settings_id");
+        load_preset(this->printers,      2, "printer_settings_id");
+        break;
     }
 
-    this->update_compatible_with_printer(false);
+	this->update_compatible_with_printer(false);
 }
 
 // Load the active configuration of a config bundle from a boost property_tree. This is a private method called from load_config_file.
@@ -1229,7 +1231,9 @@ void PresetBundle::update_compatible_with_printer(bool select_other_if_incompati
     switch (printers.get_edited_preset().printer_technology()) {
     case ptFFF:
     {
-        const std::string              &prefered_print_profile     = printer_preset.config.opt_string("default_print_profile");
+		assert(printer_preset.config.has("default_print_profile"));
+		assert(printer_preset.config.has("default_filament_profile"));
+		const std::string              &prefered_print_profile = printer_preset.config.opt_string("default_print_profile");
         const std::vector<std::string> &prefered_filament_profiles = printer_preset.config.option<ConfigOptionStrings>("default_filament_profile")->values;
         prefered_print_profile.empty() ?
             this->prints.update_compatible_with_printer(printer_preset, select_other_if_incompatible) :
@@ -1263,18 +1267,18 @@ void PresetBundle::update_compatible_with_printer(bool select_other_if_incompati
     }
     case ptSLA:
     {
-        const std::string              &prefered_sla_material_profile     = printer_preset.config.opt_string("default_sla_material_profile");
+		assert(printer_preset.config.has("default_sla_print_profile"));
+		assert(printer_preset.config.has("default_sla_material_profile"));
+		const std::string &prefered_sla_print_profile = printer_preset.config.opt_string("default_sla_print_profile");
+		(prefered_sla_print_profile.empty()) ?
+			this->sla_prints.update_compatible_with_printer(printer_preset, select_other_if_incompatible) :
+			this->sla_prints.update_compatible_with_printer(printer_preset, select_other_if_incompatible,
+			[&prefered_sla_print_profile](const std::string& profile_name){ return profile_name == prefered_sla_print_profile; });
+		const std::string &prefered_sla_material_profile = printer_preset.config.opt_string("default_sla_material_profile");
         prefered_sla_material_profile.empty() ?
             this->sla_materials.update_compatible_with_printer(printer_preset, select_other_if_incompatible) :
 			this->sla_materials.update_compatible_with_printer(printer_preset, select_other_if_incompatible,
                 [&prefered_sla_material_profile](const std::string& profile_name){ return profile_name == prefered_sla_material_profile; });
-		
-        const std::string              &prefered_sla_print_profile        = printer_preset.config.opt_string("default_sla_print_profile");
-        prefered_sla_print_profile.empty() ?
-            this->sla_prints.update_compatible_with_printer(printer_preset, select_other_if_incompatible) :
-			this->sla_prints.update_compatible_with_printer(printer_preset, select_other_if_incompatible,
-            [&prefered_sla_print_profile](const std::string& profile_name){ return profile_name == prefered_sla_print_profile; });
-
 		break;
 	}
     }

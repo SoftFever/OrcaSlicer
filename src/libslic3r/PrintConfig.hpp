@@ -898,6 +898,20 @@ protected:
     }
 };
 
+// This object is mapped to Perl as Slic3r::Config::PrintRegion.
+class SLAPrintConfig : public StaticPrintConfig
+{
+    STATIC_PRINT_CONFIG_CACHE(SLAPrintConfig)
+public:
+    ConfigOptionString     output_filename_format;
+
+protected:
+    void initialize(StaticCacheBase &cache, const char *base_ptr)
+    {
+        OPT_PTR(output_filename_format);
+    }
+};
+
 class SLAPrintObjectConfig : public StaticPrintConfig
 {
     STATIC_PRINT_CONFIG_CACHE(SLAPrintObjectConfig)
@@ -1028,10 +1042,10 @@ protected:
     }
 };
 
-class SLAFullPrintConfig : public SLAPrinterConfig, public SLAPrintObjectConfig, public SLAMaterialConfig
+class SLAFullPrintConfig : public SLAPrinterConfig, public SLAPrintConfig, public SLAPrintObjectConfig, public SLAMaterialConfig
 {
     STATIC_PRINT_CONFIG_CACHE_DERIVED(SLAFullPrintConfig)
-    SLAFullPrintConfig() : SLAPrinterConfig(0), SLAPrintObjectConfig(0), SLAMaterialConfig(0) { initialize_cache(); *this = s_cache_SLAFullPrintConfig.defaults(); }
+    SLAFullPrintConfig() : SLAPrinterConfig(0), SLAPrintConfig(0), SLAPrintObjectConfig(0), SLAMaterialConfig(0) { initialize_cache(); *this = s_cache_SLAFullPrintConfig.defaults(); }
 
 public:
     // Validate the SLAFullPrintConfig. Returns an empty string on success, otherwise an error message is returned.
@@ -1039,10 +1053,11 @@ public:
 
 protected:
     // Protected constructor to be called to initialize ConfigCache::m_default.
-    SLAFullPrintConfig(int) : SLAPrinterConfig(0), SLAPrintObjectConfig(0), SLAMaterialConfig(0) {}
+    SLAFullPrintConfig(int) : SLAPrinterConfig(0), SLAPrintConfig(0), SLAPrintObjectConfig(0), SLAMaterialConfig(0) {}
     void initialize(StaticCacheBase &cache, const char *base_ptr)
     {
         this->SLAPrinterConfig    ::initialize(cache, base_ptr);
+        this->SLAPrintConfig      ::initialize(cache, base_ptr);
         this->SLAPrintObjectConfig::initialize(cache, base_ptr);
         this->SLAMaterialConfig   ::initialize(cache, base_ptr);
     }

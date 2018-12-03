@@ -184,11 +184,4 @@ _constant()
             }
         %};
 
-    void export_png(char *path) %code%{
-            try {
-                THIS->export_png(path);
-            } catch (std::exception& e) {
-                croak(e.what());
-            }
-        %};
 };

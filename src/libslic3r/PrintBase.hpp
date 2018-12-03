@@ -14,6 +14,7 @@
 #include "tbb/mutex.h"
 
 #include "Model.hpp"
+#include "PlaceholderParser.hpp"
 #include "PrintConfig.hpp"
 
 namespace Slic3r {
@@ -266,7 +267,7 @@ public:
     // Various methods will call this callback to stop the background processing (the Print::process() call)
     // in case a successive change of the Print / PrintObject / PrintRegion instances changed
     // the state of the finished or running calculations.
-    void                    set_cancel_callback(cancel_callback_type cancel_callback) { m_cancel_callback = cancel_callback; }
+    void                       set_cancel_callback(cancel_callback_type cancel_callback) { m_cancel_callback = cancel_callback; }
     // Has the calculation been canceled?
 	enum CancelStatus {
 		// No cancelation, background processing should run.
@@ -276,14 +277,20 @@ public:
 		// Canceled internally from Print::apply() through the Print/PrintObject::invalidate_step() or ::invalidate_all_steps().
 		CANCELED_INTERNAL = 2
 	};
-    CancelStatus            cancel_status() const { return m_cancel_status; }
+    CancelStatus               cancel_status() const { return m_cancel_status; }
     // Has the calculation been canceled?
-	bool                   canceled() const { return m_cancel_status != NOT_CANCELED; }
+	bool                       canceled() const { return m_cancel_status != NOT_CANCELED; }
     // Cancel the running computation. Stop execution of all the background threads.
-	void                   cancel() { m_cancel_status = CANCELED_BY_USER; }
-	void                   cancel_internal() { m_cancel_status = CANCELED_INTERNAL; }
+	void                       cancel() { m_cancel_status = CANCELED_BY_USER; }
+	void                       cancel_internal() { m_cancel_status = CANCELED_INTERNAL; }
     // Cancel the running computation. Stop execution of all the background threads.
-	void                   restart() { m_cancel_status = NOT_CANCELED; }
+	void                       restart() { m_cancel_status = NOT_CANCELED; }
+
+    const PlaceholderParser&   placeholder_parser() const { return m_placeholder_parser; }
+    PlaceholderParser&         placeholder_parser() { return m_placeholder_parser; }
+
+    virtual std::string        output_filename() const = 0;
+    std::string                output_filepath(const std::string &path) const;
 
 protected:
 	friend class PrintObjectBase;
@@ -296,6 +303,11 @@ protected:
     // If the background processing stop was requested, throw CanceledException.
     // To be called by the worker thread and its sub-threads (mostly launched on the TBB thread pool) regularly.
     void                   throw_if_canceled() const { if (m_cancel_status) throw CanceledException(); }
+
+    // To be called by this->output_filename() with the format string pulled from the configuration layer.
+    std::string            output_filename(const std::string &format, const std::string &default_ext) const;
+    // Update "scale", "input_filename", "input_filename_base" placeholders from the current printable ModelObjects.
+    void                   update_object_placeholders();
 
 	Model                                   m_model;
 
@@ -311,6 +323,8 @@ private:
     // The mutex will be used to guard the worker thread against entering a stage
     // while the data influencing the stage is modified.
     mutable tbb::mutex                      m_state_mutex;
+
+    PlaceholderParser                       m_placeholder_parser;
 };
 
 template<typename PrintStepEnum, const size_t COUNT>

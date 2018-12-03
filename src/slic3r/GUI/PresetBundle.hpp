@@ -13,8 +13,6 @@ namespace GUI {
     class BitmapCache;
 };
 
-class PlaceholderParser;
-
 // Bundle of Print + Filament + Printer presets.
 class PresetBundle
 {
@@ -35,8 +33,6 @@ public:
 
     // Export selections (current print, current filaments, current printer) into config.ini
     void            export_selections(AppConfig &config);
-    // Export selections (current print, current filaments, current printer) into a placeholder parser.
-    void            export_selections(PlaceholderParser &pp);
 
     PresetCollection            prints;
     PresetCollection            sla_prints;
