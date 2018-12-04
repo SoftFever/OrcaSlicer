@@ -122,8 +122,19 @@ protected:
 	wxBoxSizer*			m_left_sizer;
 	wxTreeCtrl*			m_treectrl;
 	wxImageList*		m_icons;
-	wxCheckBox*			m_compatible_printers_checkbox;
-	wxButton*			m_compatible_printers_btn;
+
+   	struct PresetDependencies {
+		Preset::Type type	  = Preset::TYPE_INVALID;
+		wxCheckBox 	*checkbox = nullptr;
+		wxButton 	*btn   	  = nullptr;
+		std::string  key_list; // "compatible_printers"
+		std::string  key_condition;
+		std::string  dialog_title;
+		std::string  dialog_label;
+	};
+	PresetDependencies 	m_compatible_printers;
+	PresetDependencies 	m_compatible_prints;
+
 	wxButton*			m_undo_btn;
 	wxButton*			m_undo_to_sys_btn;
 	wxButton*			m_question_btn;
@@ -199,13 +210,7 @@ public:
 	wxStaticText*		m_colored_Label = nullptr;
 
 public:
-	Tab() {}
-	Tab(wxNotebook* parent, const wxString& title, const char* name) : 
-		m_parent(parent), m_title(title), m_name(name) {
-		Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL, name);
-        set_type();
-		wxGetApp().tabs_list.push_back(this);
-	}
+	Tab(wxNotebook* parent, const wxString& title, const char* name); 
 	~Tab() {
 		wxGetApp().delete_tab_from_list(this);
 	}
@@ -223,10 +228,6 @@ public:
 	void		select_preset(std::string preset_name = "");
 	bool		may_discard_current_dirty_preset(PresetCollection* presets = nullptr, const std::string& new_printer_name = "");
     bool        may_switch_to_SLA_preset();
-	wxSizer*	compatible_printers_widget(wxWindow* parent, wxCheckBox** checkbox, wxButton** btn);
-
-	void		load_key_value(const std::string& opt_key, const boost::any& value, bool saved_value = false);
-	void		reload_compatible_printers_widget();
 
 	void		OnTreeSelChange(wxTreeEvent& event);
 	void		OnKeyDown(wxKeyEvent& event);
@@ -270,7 +271,12 @@ public:
 	void			on_value_change(const std::string& opt_key, const boost::any& value);
 
     void            update_wiping_button_visibility();
+
 protected:
+	wxSizer*		compatible_widget_create(wxWindow* parent, PresetDependencies &deps);
+	void 			compatible_widget_reload(PresetDependencies &deps);
+	void			load_key_value(const std::string& opt_key, const boost::any& value, bool saved_value = false);
+
 	void			on_presets_changed();
 	void			update_preset_description_line();
 	void			update_frequently_changed_parameters();
@@ -278,11 +284,9 @@ protected:
 	void			set_tooltips_text();
 };
 
-//Slic3r::GUI::Tab::Print;
 class TabPrint : public Tab
 {
 public:
-	TabPrint() {}
 	TabPrint(wxNotebook* parent) : 
 		Tab(parent, _(L("Print Settings")), "print") {}
 	~TabPrint() {}
@@ -296,14 +300,11 @@ public:
 	void		OnActivate() override;
     bool 		supports_printer_technology(const PrinterTechnology tech) override { return tech == ptFFF; }
 };
-
-//Slic3r::GUI::Tab::Filament;
 class TabFilament : public Tab
 {
 	ogStaticText*	m_volumetric_speed_description_line;
 	ogStaticText*	m_cooling_description_line;
 public:
-	TabFilament() {}
 	TabFilament(wxNotebook* parent) : 
 		Tab(parent, _(L("Filament Settings")), "filament") {}
 	~TabFilament() {}
@@ -315,7 +316,6 @@ public:
     bool 		supports_printer_technology(const PrinterTechnology tech) override { return tech == ptFFF; }
 };
 
-//Slic3r::GUI::Tab::Printer;
 class TabPrinter : public Tab
 {
 	bool		m_has_single_extruder_MM_page = false;
@@ -337,7 +337,6 @@ public:
 
     PrinterTechnology               m_printer_technology = ptFFF;
 
-	TabPrinter() {}
 	TabPrinter(wxNotebook* parent) : Tab(parent, _(L("Printer Settings")), "printer") {}
 	~TabPrinter() {}
 
@@ -360,12 +359,12 @@ public:
 class TabSLAMaterial : public Tab
 {
 public:
-    TabSLAMaterial() {}
     TabSLAMaterial(wxNotebook* parent) :
 		Tab(parent, _(L("SLA Material Settings")), "sla_material") {}
     ~TabSLAMaterial() {}
 
 	void		build() override;
+	void		reload_config() override;
 	void		update() override;
     void		init_options_list() override;
     bool 		supports_printer_technology(const PrinterTechnology tech) override { return tech == ptSLA; }
@@ -374,11 +373,11 @@ public:
 class TabSLAPrint : public Tab
 {
 public:
-    TabSLAPrint() {}
     TabSLAPrint(wxNotebook* parent) :
         Tab(parent, _(L("SLA Print Settings")), "sla_print") {}
     ~TabSLAPrint() {}
-        void		build() override;
+    void		build() override;
+	void		reload_config() override;
     void		update() override;
 //     void		init_options_list() override;
     bool 		supports_printer_technology(const PrinterTechnology tech) override { return tech == ptSLA; }

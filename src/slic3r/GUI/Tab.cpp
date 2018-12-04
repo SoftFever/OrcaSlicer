@@ -1,8 +1,8 @@
-#include "../../libslic3r/GCodeSender.hpp"
+#include "libslic3r/GCodeSender.hpp"
 #include "Tab.hpp"
 #include "PresetBundle.hpp"
 #include "PresetHints.hpp"
-#include "../../libslic3r/Utils.hpp"
+#include "libslic3r/Utils.hpp"
 
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/Utils/PrintHost.hpp"
@@ -37,6 +37,26 @@ namespace GUI {
 wxDEFINE_EVENT(EVT_TAB_VALUE_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_TAB_PRESETS_CHANGED, SimpleEvent);
 
+Tab::Tab(wxNotebook* parent, const wxString& title, const char* name) : 
+	m_parent(parent), m_title(title), m_name(name)
+{
+	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL, name);
+    set_type();
+
+	m_compatible_printers.type			= Preset::TYPE_PRINTER;
+	m_compatible_printers.key_list		= "compatible_printers";
+	m_compatible_printers.key_condition	= "compatible_printers_condition";
+	m_compatible_printers.dialog_title 	= _(L("Compatible printers"));
+	m_compatible_printers.dialog_label 	= _(L("Select the printers this profile is compatible with."));
+
+	m_compatible_prints.type			= Preset::TYPE_PRINT;
+   	m_compatible_prints.key_list 		= "compatible_prints";
+	m_compatible_prints.key_condition	= "compatible_prints_condition";
+	m_compatible_prints.dialog_title 	= _(L("Compatible print profiles"));
+	m_compatible_prints.dialog_label 	= _(L("Select the print profiles this profile is compatible with."));
+
+	wxGetApp().tabs_list.push_back(this);
+}
 
 void Tab::set_type()
 {
@@ -45,7 +65,7 @@ void Tab::set_type()
     else if (m_name == "filament")      { m_type = Slic3r::Preset::TYPE_FILAMENT; }
     else if (m_name == "sla_material")  { m_type = Slic3r::Preset::TYPE_SLA_MATERIAL; }
     else if (m_name == "printer")       { m_type = Slic3r::Preset::TYPE_PRINTER; }
-    else                                { m_type = Slic3r::Preset::TYPE_INVALID; }
+    else                                { m_type = Slic3r::Preset::TYPE_INVALID; assert(false); }
 }
 
 // sub new
@@ -290,7 +310,7 @@ void Tab::update_labels_colour()
 			else
 				color = &m_modified_label_clr;
 		}
-		if (opt.first == "bed_shape" || opt.first == "compatible_printers") {
+		if (opt.first == "bed_shape" || opt.first == "compatible_prints" || opt.first == "compatible_printers") {
 			if (m_colored_Label != nullptr)	{
 				m_colored_Label->SetForegroundColour(*color);
 				m_colored_Label->Refresh(true);
@@ -332,7 +352,7 @@ void Tab::update_changed_ui()
 	const bool deep_compare = (m_name == "printer" || m_name == "sla_material");
 	auto dirty_options = m_presets->current_dirty_options(deep_compare);
 	auto nonsys_options = m_presets->current_different_from_parent_options(deep_compare);
-    if (name() == "printer") {
+    if (m_type == Slic3r::Preset::TYPE_PRINTER) {
 		TabPrinter* tab = static_cast<TabPrinter*>(this);
 		if (tab->m_initial_extruders_count != tab->m_extruders_count)
 			dirty_options.emplace_back("extruders_count");
@@ -378,7 +398,7 @@ void Tab::update_changed_ui()
 			icon = &m_bmp_white_bullet;
 			tt = &m_tt_white_bullet;
 		}
-		if (opt.first == "bed_shape" || opt.first == "compatible_printers") {
+		if (opt.first == "bed_shape" || opt.first == "compatible_prints" || opt.first == "compatible_printers") {
 			if (m_colored_Label != nullptr)	{
 				m_colored_Label->SetForegroundColour(*color);
 				m_colored_Label->Refresh(true);
@@ -452,7 +472,7 @@ void TabSLAMaterial::init_options_list()
 
     for (const auto opt_key : m_config->keys())
     {
-        if (opt_key == "compatible_printers") {
+        if (opt_key == "compatible_prints" || opt_key == "compatible_printers") {
             m_options_list.emplace(opt_key, m_opt_status_value);
             continue;
         }
@@ -473,7 +493,7 @@ void Tab::get_sys_and_mod_flags(const std::string& opt_key, bool& sys_page, bool
 {
 	auto opt = m_options_list.find(opt_key);
 	if (sys_page) sys_page = (opt->second & osSystemValue) != 0;
-	if (!modified_page) modified_page = (opt->second & osInitValue) == 0;
+	modified_page |= (opt->second & osInitValue) == 0;
 }
 
 void Tab::update_changed_tree_ui()
@@ -497,11 +517,13 @@ void Tab::update_changed_tree_ui()
 				}
 			}
 			if (title == _("Dependencies")) {
-				if (name() != "printer")
-					get_sys_and_mod_flags("compatible_printers", sys_page, modified_page);
-				else {
-					sys_page = m_presets->get_selected_preset_parent() ? true:false;
+				if (m_type == Slic3r::Preset::TYPE_PRINTER) {
+					sys_page = m_presets->get_selected_preset_parent() != nullptr;
 					modified_page = false;
+				} else {
+					if (m_type == Slic3r::Preset::TYPE_FILAMENT || m_type == Slic3r::Preset::TYPE_SLA_MATERIAL)
+						get_sys_and_mod_flags("compatible_prints", sys_page, modified_page);
+					get_sys_and_mod_flags("compatible_printers", sys_page, modified_page);
 				}
 			}
 			for (auto group : page->m_optgroups)
@@ -574,18 +596,26 @@ void Tab::on_roll_back_value(const bool to_sys /*= true*/)
 					}
 
 				}
-				if (group->title == _("Profile dependencies") && name() != "printer") {
-					if ((m_options_list["compatible_printers"] & os) == 0) {
+				if (group->title == _("Profile dependencies")) {
+					if (m_type != Slic3r::Preset::TYPE_PRINTER && (m_options_list["compatible_printers"] & os) == 0) {
 						to_sys ? group->back_to_sys_value("compatible_printers") : group->back_to_initial_value("compatible_printers");
 						load_key_value("compatible_printers", true/*some value*/, true);
 
 						bool is_empty = m_config->option<ConfigOptionStrings>("compatible_printers")->values.empty();
-						m_compatible_printers_checkbox->SetValue(is_empty);
-						is_empty ? m_compatible_printers_btn->Disable() : m_compatible_printers_btn->Enable();
+						m_compatible_printers.checkbox->SetValue(is_empty);
+						is_empty ? m_compatible_printers.btn->Disable() : m_compatible_printers.btn->Enable();
+					}
+					if ((m_type == Slic3r::Preset::TYPE_PRINT || m_type == Slic3r::Preset::TYPE_SLA_PRINT) && (m_options_list["compatible_prints"] & os) == 0) {
+						to_sys ? group->back_to_sys_value("compatible_prints") : group->back_to_initial_value("compatible_prints");
+						load_key_value("compatible_prints", true/*some value*/, true);
+
+						bool is_empty = m_config->option<ConfigOptionStrings>("compatible_prints")->values.empty();
+						m_compatible_prints.checkbox->SetValue(is_empty);
+						is_empty ? m_compatible_prints.btn->Disable() : m_compatible_prints.btn->Enable();
 					}
 				}
-				for (t_opt_map::iterator it = group->m_opt_map.begin(); it != group->m_opt_map.end(); ++it) {
-					const std::string& opt_key = it->first;
+				for (auto kvp : group->m_opt_map) {
+					const std::string& opt_key = kvp.first;
 					if ((m_options_list[opt_key] & os) == 0)
 						to_sys ? group->back_to_sys_value(opt_key) : group->back_to_initial_value(opt_key);
 				}
@@ -687,10 +717,10 @@ void Tab::load_key_value(const std::string& opt_key, const boost::any& value, bo
 {
 	if (!saved_value) change_opt_value(*m_config, opt_key, value);
 	// Mark the print & filament enabled if they are compatible with the currently selected preset.
-	if (opt_key.compare("compatible_printers") == 0) {
+	if (opt_key == "compatible_printers" || opt_key == "compatible_prints") {
 		// Don't select another profile if this profile happens to become incompatible.
-		m_preset_bundle->update_compatible_with_printer(false);
-	} 
+		m_preset_bundle->update_compatible(false);
+	}
 	m_presets->update_dirty_ui(m_presets_choice);
 	on_presets_changed();
 	update();
@@ -760,14 +790,12 @@ void Tab::update_wiping_button_visibility() {
 // to uddate number of "filament" selection boxes when the number of extruders change.
 void Tab::on_presets_changed()
 {
-    if (m_type == Slic3r::Preset::TYPE_PRINTER && !m_dependent_tabs.empty()) {
-        // Printer selected at the Printer tab, update "compatible" marks at the print and filament selectors.
-        for (auto t: m_dependent_tabs)
-        {
-            // If the printer tells us that the print or filament/sla_material preset has been switched or invalidated,
-            // refresh the print or filament/sla_material tab page.
-            wxGetApp().get_tab(t)->load_current_preset();
-        }
+    // Printer selected at the Printer tab, update "compatible" marks at the print and filament selectors.
+    for (auto t: m_dependent_tabs)
+    {
+        // If the printer tells us that the print or filament/sla_material preset has been switched or invalidated,
+        // refresh the print or filament/sla_material tab page.
+        wxGetApp().get_tab(t)->load_current_preset();
     }
 
 	wxCommandEvent event(EVT_TAB_PRESETS_CHANGED);
@@ -796,9 +824,9 @@ void Tab::update_preset_description_line()
 	if (parent && parent->vendor)
 	{
 		description_line += "\n\n" + _(L("Additional information:")) + "\n";
-		description_line += "\t" + _(L("vendor")) + ": " + (name()=="printer" ? "\n\t\t" : "") + parent->vendor->name +
+		description_line += "\t" + _(L("vendor")) + ": " + (m_type == Slic3r::Preset::TYPE_PRINTER ? "\n\t\t" : "") + parent->vendor->name +
 							", ver: " + parent->vendor->config_version.to_string();
-		if (name() == "printer") {
+		if (m_type == Slic3r::Preset::TYPE_PRINTER) {
 			const std::string &printer_model = preset.config.opt_string("printer_model");
 			if (! printer_model.empty())
 				description_line += "\n\n\t" + _(L("printer model")) + ": \n\t\t" + printer_model;
@@ -858,14 +886,6 @@ void Tab::update_frequently_changed_parameters()
     og_freq_chng_params->set_value("brim", val);
 
 	update_wiping_button_visibility();
-}
-
-void Tab::reload_compatible_printers_widget()
-{
-	bool has_any = !m_config->option<ConfigOptionStrings>("compatible_printers")->values.empty();
-	has_any ? m_compatible_printers_btn->Enable() : m_compatible_printers_btn->Disable();
-	m_compatible_printers_checkbox->SetValue(!has_any);
-	get_field("compatible_printers_condition")->toggle(!has_any);
 }
 
 void TabPrint::build()
@@ -1072,12 +1092,11 @@ void TabPrint::build()
 
 	page = add_options_page(_(L("Dependencies")), "wrench.png");
 		optgroup = page->new_optgroup(_(L("Profile dependencies")));
-        line = optgroup->create_single_option_line("compatible_printers");//{ _(L("Compatible printers")), "" };
-		line.widget = [this](wxWindow* parent) {
-			return compatible_printers_widget(parent, &m_compatible_printers_checkbox, &m_compatible_printers_btn);
+        line = optgroup->create_single_option_line("compatible_printers");
+        line.widget = [this](wxWindow* parent) {
+			return compatible_widget_create(parent, m_compatible_printers);
 		};
 		optgroup->append_line(line, &m_colored_Label);
-
 		option = optgroup->get_option("compatible_printers_condition");
 		option.opt.full_width = true;
 		optgroup->append_single_option_line(option);
@@ -1093,7 +1112,7 @@ void TabPrint::build()
 // Reload current config (aka presets->edited_preset->config) into the UI fields.
 void TabPrint::reload_config()
 {
-	reload_compatible_printers_widget();
+	this->compatible_widget_reload(m_compatible_printers);
 	Tab::reload_config();
 }
 
@@ -1208,11 +1227,11 @@ void TabPrint::update()
 			}
 		}
 		if (!str_fill_pattern.empty()) {
-			auto external_fill_pattern = m_config->def()->get("external_fill_pattern")->enum_values;
+			const std::vector<std::string> &external_fill_pattern = m_config->def()->get("external_fill_pattern")->enum_values;
 			bool correct_100p_fill = false;
-			for (auto fill : external_fill_pattern)
+			for (const std::string &fill : external_fill_pattern)
 			{
-				if (str_fill_pattern.compare(fill) == 0)
+				if (str_fill_pattern == fill)
 					correct_100p_fill = true;
 			}
 			// get fill_pattern name from enum_labels for using this one at dialog_msg
@@ -1439,13 +1458,22 @@ void TabFilament::build()
 
 	page = add_options_page(_(L("Dependencies")), "wrench.png");
 		optgroup = page->new_optgroup(_(L("Profile dependencies")));
-        line = optgroup->create_single_option_line("compatible_printers");//{ _(L("Compatible printers")), "" };
-		line.widget = [this](wxWindow* parent) {
-			return compatible_printers_widget(parent, &m_compatible_printers_checkbox, &m_compatible_printers_btn);
+        
+        line = optgroup->create_single_option_line("compatible_printers");
+        line.widget = [this](wxWindow* parent) {
+			return compatible_widget_create(parent, m_compatible_printers);
 		};
 		optgroup->append_line(line, &m_colored_Label);
-
 		option = optgroup->get_option("compatible_printers_condition");
+		option.opt.full_width = true;
+		optgroup->append_single_option_line(option);
+
+        line = optgroup->create_single_option_line("compatible_prints");
+        line.widget = [this](wxWindow* parent) {
+			return compatible_widget_create(parent, m_compatible_prints);
+		};
+		optgroup->append_line(line, &m_colored_Label);
+		option = optgroup->get_option("compatible_prints_condition");
 		option.opt.full_width = true;
 		optgroup->append_single_option_line(option);
 
@@ -1460,7 +1488,8 @@ void TabFilament::build()
 // Reload current config (aka presets->edited_preset->config) into the UI fields.
 void TabFilament::reload_config()
 {
-	reload_compatible_printers_widget();
+	this->compatible_widget_reload(m_compatible_printers);
+	this->compatible_widget_reload(m_compatible_prints);
 	Tab::reload_config();
 }
 
@@ -1575,10 +1604,10 @@ void TabPrinter::build_fff()
 		optgroup->m_on_change = [this, optgroup](t_config_option_key opt_key, boost::any value) {
 			size_t extruders_count = boost::any_cast<int>(optgroup->get_value("extruders_count"));
 			wxTheApp->CallAfter([this, opt_key, value, extruders_count]() {
-				if (opt_key.compare("extruders_count")==0 || opt_key.compare("single_extruder_multi_material")==0) {
+				if (opt_key == "extruders_count" || opt_key == "single_extruder_multi_material") {
 					extruders_count_changed(extruders_count);
 					update_dirty();
-                    if (opt_key.compare("single_extruder_multi_material")==0) // the single_extruder_multimaterial was added to force pages
+                    if (opt_key == "single_extruder_multi_material") // the single_extruder_multimaterial was added to force pages
                         on_value_change(opt_key, value);                      // rebuild - let's make sure the on_value_change is not skipped
 				}
 				else {
@@ -1734,7 +1763,7 @@ void TabPrinter::build_fff()
 
 		optgroup->m_on_change = [this, optgroup](t_config_option_key opt_key, boost::any value) {
 			wxTheApp->CallAfter([this, opt_key, value]() {
-				if (opt_key.compare("silent_mode") == 0) {
+				if (opt_key == "silent_mode") {
 					bool val = boost::any_cast<bool>(value);
 					if (m_use_silent_mode != val) {
 						m_rebuild_kinematics_page = true;
@@ -2351,13 +2380,31 @@ void Tab::select_preset(std::string preset_name)
 	// If no name is provided, select the "-- default --" preset.
 	if (preset_name.empty())
 		preset_name = m_presets->default_preset().name;
-	auto current_dirty = m_presets->current_is_dirty();
-	auto printer_tab   = m_presets->name() == "printer";
-	auto canceled      = false;
+	bool current_dirty = m_presets->current_is_dirty();
+	bool print_tab     = m_presets->type() == Preset::TYPE_PRINT || m_presets->type() == Preset::TYPE_SLA_PRINT;
+	bool printer_tab   = m_presets->type() == Preset::TYPE_PRINTER;
+	bool canceled      = false;
 // 	m_reload_dependent_tabs = {};
 	m_dependent_tabs = {};
 	if (current_dirty && !may_discard_current_dirty_preset()) {
 		canceled = true;
+	} else if (print_tab) {
+		// Before switching the print profile to a new one, verify, whether the currently active filament or SLA material
+		// are compatible with the new print.
+		// If it is not compatible and the current filament or SLA material are dirty, let user decide
+		// whether to discard the changes or keep the current print selection.
+		PrinterTechnology  printer_technology = m_preset_bundle->printers.get_edited_preset().printer_technology();
+		PresetCollection  &dependent = (printer_technology == ptFFF) ? m_preset_bundle->filaments : m_preset_bundle->sla_materials;
+        bool 			   old_preset_dirty = dependent.current_is_dirty();
+        bool 			   new_preset_compatible = dependent.get_edited_preset().is_compatible_with_print(*m_presets->find_preset(preset_name, true));
+        if (! canceled)
+            canceled = old_preset_dirty && ! new_preset_compatible && ! may_discard_current_dirty_preset(&dependent, preset_name);
+        if (! canceled) {
+            // The preset will be switched to a different, compatible preset, or the '-- default --'.
+            m_dependent_tabs.emplace_back((printer_technology == ptFFF) ? Preset::Type::TYPE_FILAMENT : Preset::Type::TYPE_SLA_MATERIAL);
+            if (old_preset_dirty)
+                dependent.discard_current_changes();
+        }
 	} else if (printer_tab) {
 		// Before switching the printer to a new one, verify, whether the currently active print and filament
 		// are compatible with the new printer.
@@ -2409,13 +2456,13 @@ void Tab::select_preset(std::string preset_name)
 		on_presets_changed();
 	} else {
 		if (current_dirty)
-			m_presets->discard_current_changes() ;
+			m_presets->discard_current_changes();
 		m_presets->select_preset_by_name(preset_name, false);
 		// Mark the print & filament enabled if they are compatible with the currently selected preset.
 		// The following method should not discard changes of current print or filament presets on change of a printer profile,
 		// if they are compatible with the current printer.
-		if (current_dirty || printer_tab)
-			m_preset_bundle->update_compatible_with_printer(true);
+		if (current_dirty || print_tab || printer_tab)
+			m_preset_bundle->update_compatible(true);
 		// Initialize the UI from the current preset.
         if (printer_tab)
             static_cast<TabPrinter*>(this)->update_pages();
@@ -2449,13 +2496,20 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
 	}
 	// Show a confirmation dialog with the list of dirty options.
 	std::string changes = "";
-	for (auto changed_name : option_names)
+	for (const std::string &changed_name : option_names)
 		changes += tab + changed_name + "\n";
-	auto message = (!new_printer_name.empty()) ?
-		name + _(L("\n\nis not compatible with printer\n")) +tab + new_printer_name+ _(L("\n\nand it has the following unsaved changes:")) :
-		name + _(L("\n\nhas the following unsaved changes:"));
+	std::string message = name + "\n\n";
+	if (new_printer_name.empty())
+		message += _(L("has the following unsaved changes:"));
+	else {
+		message += (m_type == Slic3r::Preset::TYPE_PRINTER) ?
+				_(L("is not compatible with printer")) :
+				_(L("is not compatible with print profile"));
+		message += std::string("\n") + tab + new_printer_name + "\n\n";
+		message += _(L("and it has the following unsaved changes:"));
+	}
 	auto confirm = new wxMessageDialog(parent(),
-		message + "\n" +changes +_(L("\n\nDiscard changes and continue anyway?")),
+		message + "\n" + changes + _(L("\n\nDiscard changes and continue anyway?")),
 		_(L("Unsaved Changes")), wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
 	return confirm->ShowModal() == wxID_YES;
 }
@@ -2579,7 +2633,7 @@ void Tab::save_preset(std::string name /*= ""*/)
 	// Save the preset into Slic3r::data_dir / presets / section_name / preset_name.ini
 	m_presets->save_current_preset(name);
 	// Mark the print & filament enabled if they are compatible with the currently selected preset.
-	m_preset_bundle->update_compatible_with_printer(false);
+	m_preset_bundle->update_compatible(false);
 	// Add the new item into the UI component, remove dirty flags and activate the saved item.
 	update_tab_ui();
 	// Update the selection boxes at the platter.
@@ -2636,7 +2690,7 @@ void Tab::update_ui_from_settings()
 	// Show the 'show / hide presets' button only for the print and filament tabs, and only if enabled
 	// in application preferences.
 	m_show_btn_incompatible_presets = wxGetApp().app_config->get("show_incompatible_presets")[0] == '1' ? true : false;
-	bool show = m_show_btn_incompatible_presets && m_presets->name().compare("printer") != 0;
+	bool show = m_show_btn_incompatible_presets && m_type != Slic3r::Preset::TYPE_PRINTER;
 	Layout();
 	show ? m_btn_hide_incompatible_presets->Show() :  m_btn_hide_incompatible_presets->Hide();
 	// If the 'show / hide presets' button is hidden, hide the incompatible presets.
@@ -2652,50 +2706,53 @@ void Tab::update_ui_from_settings()
 }
 
 // Return a callback to create a Tab widget to mark the preferences as compatible / incompatible to the current printer.
-wxSizer* Tab::compatible_printers_widget(wxWindow* parent, wxCheckBox** checkbox, wxButton** btn)
+wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &deps)
 {
-	*checkbox = new wxCheckBox(parent, wxID_ANY, _(L("All")));
-	*btn = new wxButton(parent, wxID_ANY, _(L(" Set "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
+	deps.checkbox = new wxCheckBox(parent, wxID_ANY, _(L("All")));
+	deps.btn = new wxButton(parent, wxID_ANY, _(L(" Set "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
 
-	(*btn)->SetBitmap(wxBitmap(from_u8(Slic3r::var("printer_empty.png")), wxBITMAP_TYPE_PNG));
+	deps.btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("printer_empty.png")), wxBITMAP_TYPE_PNG));
 
 	auto sizer = new wxBoxSizer(wxHORIZONTAL);
-	sizer->Add((*checkbox), 0, wxALIGN_CENTER_VERTICAL);
-	sizer->Add((*btn), 0, wxALIGN_CENTER_VERTICAL);
+	sizer->Add((deps.checkbox), 0, wxALIGN_CENTER_VERTICAL);
+	sizer->Add((deps.btn), 0, wxALIGN_CENTER_VERTICAL);
 
-	(*checkbox)->Bind(wxEVT_CHECKBOX, ([=](wxCommandEvent e)
+	deps.checkbox->Bind(wxEVT_CHECKBOX, ([this, &deps](wxCommandEvent e)
 	{
-		(*btn)->Enable(!(*checkbox)->GetValue());
+		deps.btn->Enable(! deps.checkbox->GetValue());
 		// All printers have been made compatible with this preset.
-		if ((*checkbox)->GetValue())
-			load_key_value("compatible_printers", std::vector<std::string> {});
-		get_field("compatible_printers_condition")->toggle((*checkbox)->GetValue());
-		update_changed_ui();
+		if (deps.checkbox->GetValue())
+			this->load_key_value(deps.key_list, std::vector<std::string> {});
+		this->get_field(deps.key_condition)->toggle(deps.checkbox->GetValue());
+		this->update_changed_ui();
 	}) );
 
-	(*btn)->Bind(wxEVT_BUTTON, ([this, parent, checkbox, btn](wxCommandEvent e)
+	deps.btn->Bind(wxEVT_BUTTON, ([this, parent, &deps](wxCommandEvent e)
 	{
-		// # Collect names of non-default non-external printer profiles.
-		PresetCollection *printers = &m_preset_bundle->printers;
+		// Collect names of non-default non-external profiles.
+		PrinterTechnology printer_technology = m_preset_bundle->printers.get_edited_preset().printer_technology();
+		PresetCollection &depending_presets  = (deps.type == Preset::TYPE_PRINTER) ? m_preset_bundle->printers :
+				(printer_technology == ptFFF) ? m_preset_bundle->prints : m_preset_bundle->sla_prints;
 		wxArrayString presets;
-		for (size_t idx = 0; idx < printers->size(); ++idx)
+		for (size_t idx = 0; idx < depending_presets.size(); ++ idx)
 		{
-			Preset& preset = printers->preset(idx);
-			if (!preset.is_default && !preset.is_external && !preset.is_system)
-				presets.Add(preset.name);
+			Preset& preset = depending_presets.preset(idx);
+			bool add = ! preset.is_default && ! preset.is_external;
+			if (add && deps.type == Preset::TYPE_PRINTER)
+				// Only add printers with the same technology as the active printer.
+				add &= preset.printer_technology() == printer_technology;
+			if (add)
+				presets.Add(from_u8(preset.name));
 		}
 
-		wxMultiChoiceDialog dlg(parent,
-			_(L("Select the printers this profile is compatible with.")),
-			_(L("Compatible printers")),  presets);
-		// # Collect and set indices of printers marked as compatible.
+		wxMultiChoiceDialog dlg(parent, deps.dialog_title, deps.dialog_label, presets);
+		// Collect and set indices of depending_presets marked as compatible.
 		wxArrayInt selections;
-		auto *compatible_printers = dynamic_cast<const ConfigOptionStrings*>(m_config->option("compatible_printers"));
+		auto *compatible_printers = dynamic_cast<const ConfigOptionStrings*>(m_config->option(deps.key_list));
 		if (compatible_printers != nullptr || !compatible_printers->values.empty())
 			for (auto preset_name : compatible_printers->values)
 				for (size_t idx = 0; idx < presets.GetCount(); ++idx)
-					if (presets[idx].compare(preset_name) == 0)
-					{
+					if (presets[idx] == preset_name) {
 						selections.Add(idx);
 						break;
 					}
@@ -2708,15 +2765,23 @@ wxSizer* Tab::compatible_printers_widget(wxWindow* parent, wxCheckBox** checkbox
 			for (auto idx : selections)
 				value.push_back(presets[idx].ToStdString());
 			if (value.empty()) {
-				(*checkbox)->SetValue(1);
-				(*btn)->Disable();
+				deps.checkbox->SetValue(1);
+				deps.btn->Disable();
 			}
-			// All printers have been made compatible with this preset.
-			load_key_value("compatible_printers", value);
-			update_changed_ui();
+			// All depending_presets have been made compatible with this preset.
+			this->load_key_value(deps.key_list, value);
+			this->update_changed_ui();
 		}
 	}));
-	return sizer; 
+	return sizer;
+}
+
+void Tab::compatible_widget_reload(PresetDependencies &deps)
+{
+	bool has_any = ! m_config->option<ConfigOptionStrings>(deps.key_list)->values.empty();
+	has_any ? deps.btn->Enable() : deps.btn->Disable();
+	deps.checkbox->SetValue(! has_any);
+	this->get_field(deps.key_condition)->toggle(! has_any);
 }
 
 void Tab::fill_icon_descriptions()
@@ -2929,7 +2994,7 @@ void SavePresetWindow::accept()
 							_(L("the following postfix are not allowed:")) + "\n\t" + //unusable_postfix);
 							wxString::FromUTF8(unusable_postfix.c_str()));
 		}
-		else if (m_chosen_name.compare("- default -") == 0) {
+		else if (m_chosen_name == "- default -") {
 			show_error(this, _(L("The supplied name is not available.")));
 		}
 		else {
@@ -2980,15 +3045,23 @@ void TabSLAMaterial::build()
 
     page = add_options_page(_(L("Dependencies")), "wrench.png");
     optgroup = page->new_optgroup(_(L("Profile dependencies")));
-    Line line = optgroup->create_single_option_line("compatible_printers");//Line { _(L("Compatible printers")), "" };
+    Line line = optgroup->create_single_option_line("compatible_printers");
     line.widget = [this](wxWindow* parent) {
-        return compatible_printers_widget(parent, &m_compatible_printers_checkbox, &m_compatible_printers_btn);
+        return compatible_widget_create(parent, m_compatible_printers);
     };
     optgroup->append_line(line, &m_colored_Label);
-
     option = optgroup->get_option("compatible_printers_condition");
     option.opt.full_width = true;
     optgroup->append_single_option_line(option);
+
+    line = optgroup->create_single_option_line("compatible_prints");
+    line.widget = [this](wxWindow* parent) {
+		return compatible_widget_create(parent, m_compatible_prints);
+	};
+	optgroup->append_line(line, &m_colored_Label);
+	option = optgroup->get_option("compatible_prints_condition");
+	option.opt.full_width = true;
+	optgroup->append_single_option_line(option);
 
     line = Line{ "", "" };
     line.full_width = 1;
@@ -2996,6 +3069,14 @@ void TabSLAMaterial::build()
         return description_line_widget(parent, &m_parent_preset_description_line);
     };
     optgroup->append_line(line);
+}
+
+// Reload current config (aka presets->edited_preset->config) into the UI fields.
+void TabSLAMaterial::reload_config()
+{
+	this->compatible_widget_reload(m_compatible_printers);
+	this->compatible_widget_reload(m_compatible_prints);
+	Tab::reload_config();
 }
 
 void TabSLAMaterial::update()
@@ -3052,7 +3133,7 @@ void TabSLAPrint::build()
     optgroup = page->new_optgroup(_(L("Profile dependencies")));
     Line line = optgroup->create_single_option_line("compatible_printers");//Line { _(L("Compatible printers")), "" };
     line.widget = [this](wxWindow* parent) {
-        return compatible_printers_widget(parent, &m_compatible_printers_checkbox, &m_compatible_printers_btn);
+        return compatible_widget_create(parent, m_compatible_printers);
     };
     optgroup->append_line(line, &m_colored_Label);
 
@@ -3066,6 +3147,13 @@ void TabSLAPrint::build()
         return description_line_widget(parent, &m_parent_preset_description_line);
     };
     optgroup->append_line(line);
+}
+
+// Reload current config (aka presets->edited_preset->config) into the UI fields.
+void TabSLAPrint::reload_config()
+{
+	this->compatible_widget_reload(m_compatible_printers);
+	Tab::reload_config();
 }
 
 void TabSLAPrint::update()

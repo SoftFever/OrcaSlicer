@@ -211,9 +211,24 @@ void PrintConfigDef::init_fff_params()
     def->mode = comExpert;
     def->default_value = new ConfigOptionString();
 
+    def = this->add("compatible_prints", coStrings);
+    def->label = L("Compatible print profiles");
+    def->mode = comAdvanced;
+    def->default_value = new ConfigOptionStrings();
+
+    def = this->add("compatible_prints_condition", coString);
+    def->label = L("Compatible print profiles condition");
+    def->tooltip = L("A boolean expression using the configuration values of an active print profile. "
+                   "If this expression evaluates to true, this profile is considered compatible "
+                   "with the active print profile.");
+    def->mode = comExpert;
+    def->default_value = new ConfigOptionString();
+
     // The following value is to be stored into the project file (AMF, 3MF, Config ...)
     // and it contains a sum of "compatible_printers_condition" values over the print and filament profiles.
     def = this->add("compatible_printers_condition_cummulative", coStrings);
+    def->default_value = new ConfigOptionStrings();
+    def = this->add("compatible_prints_condition_cummulative", coStrings);
     def->default_value = new ConfigOptionStrings();
 
     def = this->add("complete_objects", coBool);

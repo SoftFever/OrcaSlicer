@@ -117,11 +117,11 @@ public:
     void                        update_multi_material_filament_presets();
 
     // Update the is_compatible flag of all print and filament presets depending on whether they are marked
-    // as compatible with the currently selected printer.
+    // as compatible with the currently selected printer (and print in case of filament presets).
     // Also updates the is_visible flag of each preset.
     // If select_other_if_incompatible is true, then the print or filament preset is switched to some compatible
     // preset if the current print or filament preset is not compatible.
-    void                        update_compatible_with_printer(bool select_other_if_incompatible);
+    void                        update_compatible(bool select_other_if_incompatible);
 
     static bool                 parse_color(const std::string &scolor, unsigned char *rgb_out);
 

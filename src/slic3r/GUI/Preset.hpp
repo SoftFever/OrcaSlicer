@@ -6,8 +6,8 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/property_tree/ptree_fwd.hpp>
 
-#include "../../libslic3r/libslic3r.h"
-#include "../../libslic3r/PrintConfig.hpp"
+#include "libslic3r/libslic3r.h"
+#include "libslic3r/PrintConfig.hpp"
 #include "slic3r/Utils/Semver.hpp"
 
 class wxBitmap;
@@ -136,6 +136,7 @@ public:
     void                set_dirty(bool dirty = true) { this->is_dirty = dirty; }
     void                reset_dirty() { this->is_dirty = false; }
 
+    bool                is_compatible_with_print(const Preset &active_print) const;
     bool                is_compatible_with_printer(const Preset &active_printer, const DynamicPrintConfig *extra_config) const;
     bool                is_compatible_with_printer(const Preset &active_printer) const;
 
@@ -144,17 +145,28 @@ public:
     std::string&        inherits() { return Preset::inherits(this->config); }
     const std::string&  inherits() const { return Preset::inherits(const_cast<Preset*>(this)->config); }
 
+    // Returns the "compatible_prints_condition".
+    static std::string& compatible_prints_condition(DynamicPrintConfig &cfg) { return cfg.option<ConfigOptionString>("compatible_prints_condition", true)->value; }
+    std::string&        compatible_prints_condition() { 
+		assert(this->type == TYPE_FILAMENT || this->type == TYPE_SLA_MATERIAL);
+        return Preset::compatible_prints_condition(this->config);
+    }
+    const std::string&  compatible_prints_condition() const { return const_cast<Preset*>(this)->compatible_prints_condition(); }
+
     // Returns the "compatible_printers_condition".
     static std::string& compatible_printers_condition(DynamicPrintConfig &cfg) { return cfg.option<ConfigOptionString>("compatible_printers_condition", true)->value; }
-    std::string&        compatible_printers_condition() { return Preset::compatible_printers_condition(this->config); }
-    const std::string&  compatible_printers_condition() const { return Preset::compatible_printers_condition(const_cast<Preset*>(this)->config); }
+    std::string&        compatible_printers_condition() {
+		assert(this->type == TYPE_PRINT || this->type == TYPE_SLA_PRINT || this->type == TYPE_FILAMENT || this->type == TYPE_SLA_MATERIAL);
+        return Preset::compatible_printers_condition(this->config);
+    }
+    const std::string&  compatible_printers_condition() const { return const_cast<Preset*>(this)->compatible_printers_condition(); }
 
     static PrinterTechnology& printer_technology(DynamicPrintConfig &cfg) { return cfg.option<ConfigOptionEnum<PrinterTechnology>>("printer_technology", true)->value; }
     PrinterTechnology&        printer_technology() { return Preset::printer_technology(this->config); }
     const PrinterTechnology&  printer_technology() const { return Preset::printer_technology(const_cast<Preset*>(this)->config); }
 
     // Mark this preset as compatible if it is compatible with active_printer.
-    bool                update_compatible_with_printer(const Preset &active_printer, const DynamicPrintConfig *extra_config);
+    bool                update_compatible(const Preset &active_printer, const DynamicPrintConfig *extra_config, const Preset *active_print = nullptr);
 
     // Set is_visible according to application config
     void                set_visible_from_appconfig(const AppConfig &app_config);
@@ -333,14 +345,14 @@ public:
 
     // For Print / Filament presets, disable those, which are not compatible with the printer.
     template<typename PreferedCondition>
-    void            update_compatible_with_printer(const Preset &active_printer, bool select_other_if_incompatible, PreferedCondition prefered_condition)
+    void            update_compatible(const Preset &active_printer, const Preset *active_print, bool select_other_if_incompatible, PreferedCondition prefered_condition)
     {
-        if (this->update_compatible_with_printer_internal(active_printer, select_other_if_incompatible) == (size_t)-1)
+        if (this->update_compatible_internal(active_printer, active_print, select_other_if_incompatible) == (size_t)-1)
             // Find some other compatible preset, or the "-- default --" preset.
             this->select_preset(this->first_compatible_idx(prefered_condition));        
     }
-    void            update_compatible_with_printer(const Preset &active_printer, bool select_other_if_incompatible)
-        { this->update_compatible_with_printer(active_printer, select_other_if_incompatible, [](const std::string&){return true;}); }
+    void            update_compatible(const Preset &active_printer, const Preset *active_print, bool select_other_if_incompatible)
+        { this->update_compatible(active_printer, active_print, select_other_if_incompatible, [](const std::string&){return true;}); }
 
     size_t          num_visible() const { return std::count_if(m_presets.begin(), m_presets.end(), [](const Preset &preset){return preset.is_visible;}); }
 
@@ -408,7 +420,7 @@ private:
     std::deque<Preset>::const_iterator find_preset_internal(const std::string &name) const
         { return const_cast<PresetCollection*>(this)->find_preset_internal(name); }
 
-    size_t update_compatible_with_printer_internal(const Preset &active_printer, bool unselect_if_incompatible);
+    size_t update_compatible_internal(const Preset &active_printer, const Preset *active_print, bool unselect_if_incompatible);
 
     static std::vector<std::string> dirty_options(const Preset *edited, const Preset *reference, const bool is_printer_type = false);
 

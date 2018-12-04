@@ -1547,7 +1547,6 @@ void Plater::priv::remove(size_t obj_idx)
         this->canvas3D->enable_layers_editing(false);
 
     model.delete_object(obj_idx);
-//    print.delete_object(obj_idx);
     // Delete object from Sidebar list
     sidebar->obj_list()->delete_object_from_list(obj_idx);
 

@@ -1666,7 +1666,7 @@ void GCode::append_full_config(const Print& print, std::string& str)
 		"print_settings_id", "filament_settings_id", "sla_print_settings_id", "sla_material_settings_id", "printer_settings_id",
 		"printer_model", "printer_variant", 
 	    "default_print_profile", "default_filament_profile", "default_sla_print_profile", "default_sla_material_profile",
-		"compatible_printers_condition_cummulative", "inherits_cummulative" }) {
+		"compatible_prints_condition_cummulative", "compatible_printers_condition_cummulative", "inherits_cummulative" }) {
 		const ConfigOption *opt = full_config.option(key);
 		if (opt != nullptr)
 			str += std::string("; ") + key + " = " + opt->serialize() + "\n";
