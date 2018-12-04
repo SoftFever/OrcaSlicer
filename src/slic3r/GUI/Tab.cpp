@@ -2502,7 +2502,7 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
 		message += (m_type == Slic3r::Preset::TYPE_PRINTER) ?
 				_(L("is not compatible with printer")) :
 				_(L("is not compatible with print profile"));
-		message += wxString("\n") + tab + from_utf8(new_printer_name) + "\n\n";
+		message += wxString("\n") + tab + from_u8(new_printer_name) + "\n\n";
 		message += _(L("and it has the following unsaved changes:"));
 	}
 	auto confirm = new wxMessageDialog(parent(),
