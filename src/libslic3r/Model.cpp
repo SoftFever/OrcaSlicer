@@ -699,14 +699,6 @@ void ModelObject::clear_volumes()
     this->invalidate_bounding_box();
 }
 
-void ModelObject::reset_volumes_idxs()
-{
-    for (ModelVolume *v : this->volumes)
-    {
-        v->set_new_unique_id();
-    }
-}
-
 ModelInstance* ModelObject::add_instance()
 {
     ModelInstance* i = new ModelInstance(this);

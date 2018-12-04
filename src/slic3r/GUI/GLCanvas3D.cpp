@@ -4087,7 +4087,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 						volume->extruder_id = extruder_id;
 
                     // updates volumes transformations
-                    volume->set_instance_transformation(mvs->model_volume->get_object()->instances[volume->instance_idx()]->get_transformation());
+                    volume->set_instance_transformation(mvs->model_volume->get_object()->instances[mvs->composite_id.instance_id]->get_transformation());
                     volume->set_volume_transformation(mvs->model_volume->get_transformation());
                 }
             }
