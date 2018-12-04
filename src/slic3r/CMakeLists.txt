@@ -64,8 +64,6 @@ add_library(libslic3r_gui STATIC
     GUI/LambdaObjectDialog.hpp
     GUI/Tab.cpp
     GUI/Tab.hpp
-    GUI/TabIface.cpp
-    GUI/TabIface.hpp
     GUI/Field.cpp
     GUI/Field.hpp
     GUI/OptionsGroup.cpp

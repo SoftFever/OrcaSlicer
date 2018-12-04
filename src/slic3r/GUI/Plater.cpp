@@ -1005,8 +1005,6 @@ struct Plater::priv
     void on_process_completed(wxCommandEvent&);
     void on_layer_editing_toggled(bool enable);
 
-    void on_schedule_background_process(SimpleEvent&);
-
     void on_action_add(SimpleEvent&);
     void on_action_split_objects(SimpleEvent&);
     void on_action_split_volumes(SimpleEvent&);
@@ -1015,9 +1013,7 @@ struct Plater::priv
     void on_object_select(SimpleEvent&);
     void on_viewport_changed(SimpleEvent&);
     void on_right_click(Vec2dEvent&);
-    void on_model_update(SimpleEvent&);
     void on_wipetower_moved(Vec3dEvent&);
-    void on_enable_action_buttons(Event<bool>&);
     void on_update_geometry(Vec3dsEvent<2>&);
     void on_3dcanvas_mouse_dragging_finished(SimpleEvent&);
 
@@ -1137,20 +1133,20 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     sidebar->Bind(wxEVT_COMBOBOX, &priv::on_select_preset, this);
 
     sidebar->Bind(EVT_OBJ_LIST_OBJECT_SELECT, [this](wxEvent&) { priv::selection_changed(); });
-    sidebar->Bind(EVT_SCHEDULE_BACKGROUND_PROCESS, &priv::on_schedule_background_process, this);
+    sidebar->Bind(EVT_SCHEDULE_BACKGROUND_PROCESS, [this](SimpleEvent&) { this->schedule_background_process(); });
 
     // 3DScene events:
-    canvas3Dwidget->Bind(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, &priv::on_schedule_background_process, this);
+    canvas3Dwidget->Bind(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, [this](SimpleEvent&) { this->schedule_background_process(); });
     canvas3Dwidget->Bind(EVT_GLCANVAS_OBJECT_SELECT, &priv::on_object_select, this);
     canvas3Dwidget->Bind(EVT_GLCANVAS_VIEWPORT_CHANGED, &priv::on_viewport_changed, this);
     canvas3Dwidget->Bind(EVT_GLCANVAS_RIGHT_CLICK, &priv::on_right_click, this);
-    canvas3Dwidget->Bind(EVT_GLCANVAS_MODEL_UPDATE, &priv::on_model_update, this);
+    canvas3Dwidget->Bind(EVT_GLCANVAS_MODEL_UPDATE, [this](SimpleEvent&) { this->schedule_background_process(); });
     canvas3Dwidget->Bind(EVT_GLCANVAS_REMOVE_OBJECT, [q](SimpleEvent&) { q->remove_selected(); });
     canvas3Dwidget->Bind(EVT_GLCANVAS_ARRANGE, [this](SimpleEvent&) { arrange(); });
     canvas3Dwidget->Bind(EVT_GLCANVAS_INCREASE_INSTANCES, [q](Event<int> &evt) { evt.data == 1 ? q->increase_instances() : q->decrease_instances(); });
     canvas3Dwidget->Bind(EVT_GLCANVAS_INSTANCE_MOVED, [this](SimpleEvent&) { update(); });
     canvas3Dwidget->Bind(EVT_GLCANVAS_WIPETOWER_MOVED, &priv::on_wipetower_moved, this);
-    canvas3Dwidget->Bind(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, &priv::on_enable_action_buttons, this);
+    canvas3Dwidget->Bind(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, [this](Event<bool> &evt) { this->sidebar->enable_buttons(evt.data); });
     canvas3Dwidget->Bind(EVT_GLCANVAS_UPDATE_GEOMETRY, &priv::on_update_geometry, this);
     canvas3Dwidget->Bind(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, &priv::on_3dcanvas_mouse_dragging_finished, this);
     // 3DScene/Toolbar:
@@ -1213,6 +1209,8 @@ void Plater::priv::select_view(const std::string& direction)
     }
 }
 
+// Called after the Preferences dialog is closed and the program settings are saved.
+// Update the UI based on the current preferences.
 void Plater::priv::update_ui_from_settings()
 {
     // TODO: (?)
@@ -1843,7 +1841,15 @@ unsigned int Plater::priv::update_background_process()
         }
     }
 
-    if (! this->background_process.empty()) {
+	if (this->background_process.empty()) {
+		if (invalidated != Print::APPLY_STATUS_UNCHANGED) {
+            // The background processing will not be restarted, because the Print / SLAPrint is empty.
+            // Simulate a "canceled" callback message.
+            wxCommandEvent evt;
+            evt.SetInt(-1); // canceled
+            this->on_process_completed(evt);
+		}
+	} else {
         std::string err = this->background_process.validate();
         if (err.empty()) {
             if (invalidated != Print::APPLY_STATUS_UNCHANGED)
@@ -2057,8 +2063,10 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
 
     this->sidebar->show_sliced_info_sizer(success);
 
-    // this updates buttons status
-    //$self->object_list_changed;
+    // This updates the "Slice now", "Export G-code", "Arrange" buttons status.
+    // Namely, it refreshes the "Out of print bed" property of all the ModelObjects, and it enables
+    // the "Slice now" and "Export G-code" buttons based on their "out of bed" status.
+    this->object_list_changed();
     
     // refresh preview
     switch (this->printer_technology) {
@@ -2084,11 +2092,6 @@ void Plater::priv::on_layer_editing_toggled(bool enable)
     }
     canvas3Dwidget->Refresh();
     canvas3Dwidget->Update();
-}
-
-void Plater::priv::on_schedule_background_process(SimpleEvent&)
-{
-    schedule_background_process();
 }
 
 void Plater::priv::on_action_add(SimpleEvent&)
@@ -2140,22 +2143,12 @@ void Plater::priv::on_right_click(Vec2dEvent& evt)
         q->PopupMenu(&object_menu, (int)evt.data.x(), (int)evt.data.y());
 }
 
-void Plater::priv::on_model_update(SimpleEvent&)
-{
-    // TODO
-}
-
 void Plater::priv::on_wipetower_moved(Vec3dEvent &evt)
 {
     DynamicPrintConfig cfg;
     cfg.opt<ConfigOptionFloat>("wipe_tower_x", true)->value = evt.data(0);
     cfg.opt<ConfigOptionFloat>("wipe_tower_y", true)->value = evt.data(1);
     wxGetApp().get_tab(Preset::TYPE_PRINT)->load_config(cfg);
-}
-
-void Plater::priv::on_enable_action_buttons(Event<bool>&)
-{
-    // TODO
 }
 
 void Plater::priv::on_update_geometry(Vec3dsEvent<2>&)
@@ -2351,6 +2344,8 @@ void Plater::extract_config_from_project()
 void Plater::load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config) { p->load_files(input_files, load_model, load_config); }
 
 void Plater::update() { p->update(); }
+
+void Plater::update_ui_from_settings() { p->update_ui_from_settings(); }
 
 void Plater::select_view(const std::string& direction) { p->select_view(direction); }
 

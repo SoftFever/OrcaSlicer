@@ -43,6 +43,13 @@ wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAUL
     SetIcon(wxIcon(Slic3r::var("Slic3r_128px.png"), wxBITMAP_TYPE_PNG));
 #endif // _WIN32
 
+	// initialize status bar
+	m_statusbar = new ProgressStatusBar(this);
+	m_statusbar->embed(this);
+	m_statusbar->set_status_text(_(L("Version ")) +
+		SLIC3R_VERSION +
+		_(L(" - Remember to check for updates at http://github.com/prusa3d/slic3r/releases")));
+
     // initialize tabpanel and menubar
     init_tabpanel();
     init_menubar();
@@ -51,13 +58,6 @@ wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAUL
     // SetAutoPop supposedly accepts long integers but some bug doesn't allow for larger values
     // (SetAutoPop is not available on GTK.)
     wxToolTip::SetAutoPop(32767);
-
-    // initialize status bar
-    m_statusbar = new ProgressStatusBar(this);
-    m_statusbar->embed(this);
-    m_statusbar->set_status_text(_(L("Version ")) +
-                                 SLIC3R_VERSION +
-                                 _(L(" - Remember to check for updates at http://github.com/prusa3d/slic3r/releases")));
 
     m_loaded = true;
 
@@ -767,12 +767,11 @@ void MainFrame::on_value_changed(wxCommandEvent& event)
 void MainFrame::update_ui_from_settings()
 {
     m_menu_item_reslice_now->Enable(wxGetApp().app_config->get("background_processing") == "1");
-//     if (m_plater) m_plater->update_ui_from_settings();
-
+    if (m_plater)
+        m_plater->update_ui_from_settings();
     for (auto tab: wxGetApp().tabs_list)
         tab->update_ui_from_settings();
 }
-
 
 std::string MainFrame::get_base_name(const wxString full_name) const 
 {

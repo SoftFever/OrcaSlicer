@@ -125,6 +125,9 @@ public:
 
     void update();
     void select_view(const std::string& direction);
+    // Called after the Preferences dialog is closed and the program settings are saved.
+    // Update the UI based on the current preferences.
+    void update_ui_from_settings();
 
     void select_all();
     void remove(size_t obj_idx);
