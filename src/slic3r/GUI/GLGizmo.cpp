@@ -2225,7 +2225,7 @@ GLGizmoCutPanel::GLGizmoCutPanel(wxWindow *parent)
 {
     enum { MARGIN = 5 };
 
-    auto *sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto *sizer = new wxBoxSizer(wxHORIZONTAL);    
 
     auto *label = new wxStaticText(this, wxID_ANY, _(L("Cut object:")));
     sizer->Add(label, 0, wxALL | wxALIGN_CENTER, MARGIN);

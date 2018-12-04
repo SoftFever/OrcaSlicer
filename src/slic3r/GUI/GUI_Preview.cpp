@@ -31,6 +31,9 @@ namespace GUI {
     View3D::View3D(wxWindow* parent, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)
     : m_canvas_widget(nullptr)
     , m_canvas(nullptr)
+#if !ENABLE_IMGUI
+    , m_gizmo_widget(nullptr)
+#endif // !ENABLE_IMGUI
     , m_model(nullptr)
     , m_config(nullptr)
     , m_process(nullptr)
@@ -70,8 +73,17 @@ bool View3D::init(wxWindow* parent, Model* model, DynamicPrintConfig* config, Ba
     m_canvas->enable_shader(true);
     m_canvas->enable_force_zoom_to_bed(true);
 
+#if !ENABLE_IMGUI
+    m_gizmo_widget = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+    m_gizmo_widget->SetSizer(new wxBoxSizer(wxVERTICAL));
+    m_canvas->set_external_gizmo_widgets_parent(m_gizmo_widget);
+#endif // !ENABLE_IMGUI
+
     wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
     main_sizer->Add(m_canvas_widget, 1, wxALL | wxEXPAND, 0);
+#if !ENABLE_IMGUI
+    main_sizer->Add(m_gizmo_widget, 0, wxALL | wxEXPAND, 0);
+#endif // !ENABLE_IMGUI
 
     SetSizer(main_sizer);
     SetMinSize(GetSize());

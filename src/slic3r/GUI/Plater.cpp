@@ -929,12 +929,12 @@ struct Plater::priv
     // EventGuard unbinds the handler in its d-tor.
 #endif // ENABLE_REMOVE_TABS_FROM_PLATER
     Sidebar *sidebar;
-#if !ENABLE_IMGUI
-    wxPanel *panel3d;
-#endif // not ENABLE_IMGUI
 #if ENABLE_REMOVE_TABS_FROM_PLATER
     View3D* view3D;
 #else
+#if !ENABLE_IMGUI
+    wxPanel *panel3d;
+#endif // not ENABLE_IMGUI
     wxGLCanvas *canvas3Dwidget;    // TODO: Use GLCanvas3D when we can
     GLCanvas3D *canvas3D;
 #endif // !ENABLE_REMOVE_TABS_FROM_PLATER
@@ -1063,17 +1063,13 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     , guard_on_notebook_changed(notebook, wxEVT_NOTEBOOK_PAGE_CHANGED, &priv::on_notebook_changed, this)
 #endif // !ENABLE_REMOVE_TABS_FROM_PLATER
     , sidebar(new Sidebar(q))
-#if ENABLE_IMGUI
 #if !ENABLE_REMOVE_TABS_FROM_PLATER
+#if ENABLE_IMGUI
     , canvas3Dwidget(GLCanvas3DManager::create_wxglcanvas(notebook))
-#endif // !ENABLE_REMOVE_TABS_FROM_PLATER
 #else
     , panel3d(new wxPanel(notebook, wxID_ANY))
-#if !ENABLE_REMOVE_TABS_FROM_PLATER
     , canvas3Dwidget(GLCanvas3DManager::create_wxglcanvas(panel3d))
-#endif // !ENABLE_REMOVE_TABS_FROM_PLATER
 #endif // ENABLE_IMGUI
-#if !ENABLE_REMOVE_TABS_FROM_PLATER
     , canvas3D(nullptr)
 #endif // !ENABLE_REMOVE_TABS_FROM_PLATER
     , delayed_scene_refresh(false)
@@ -1101,12 +1097,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     _3DScene::add_canvas(canvas3Dwidget);
     this->canvas3D = _3DScene::get_canvas(this->canvas3Dwidget);
     this->canvas3D->allow_multisample(GLCanvas3DManager::can_multisample());
-#endif // !ENABLE_REMOVE_TABS_FROM_PLATER
-
 #if ENABLE_IMGUI
-#if !ENABLE_REMOVE_TABS_FROM_PLATER
     notebook->AddPage(canvas3Dwidget, _(L("3D")));
-#endif // !ENABLE_REMOVE_TABS_FROM_PLATER
 #else
     auto *panel3dsizer = new wxBoxSizer(wxVERTICAL);
     panel3dsizer->Add(canvas3Dwidget, 1, wxEXPAND);
@@ -1119,6 +1111,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
     canvas3D->set_external_gizmo_widgets_parent(panel_gizmo_widgets);
 #endif // ENABLE_IMGUI
+#endif // !ENABLE_REMOVE_TABS_FROM_PLATER
 
 #if ENABLE_REMOVE_TABS_FROM_PLATER
     view3D = new View3D(q, &model, config, &background_process);

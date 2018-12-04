@@ -35,6 +35,10 @@ class View3D : public wxPanel
     wxGLCanvas* m_canvas_widget;
     GLCanvas3D* m_canvas;
 
+#if !ENABLE_IMGUI
+    wxPanel* m_gizmo_widget;
+#endif // !ENABLE_IMGUI
+
     Model* m_model;
     DynamicPrintConfig* m_config;
     BackgroundSlicingProcess* m_process;
