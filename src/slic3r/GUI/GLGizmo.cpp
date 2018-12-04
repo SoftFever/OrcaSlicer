@@ -26,9 +26,7 @@
 #include "I18N.hpp"
 #include "PresetBundle.hpp"
 
-#if ENABLE_GIZMOS_SHORTCUT
 #include <wx/defs.h>
-#endif // ENABLE_GIZMOS_SHORTCUT
 
 // TODO: Display tooltips quicker on Linux
 
@@ -161,9 +159,7 @@ GLGizmoBase::GLGizmoBase(GLCanvas3D& parent)
     : m_parent(parent)
     , m_group_id(-1)
     , m_state(Off)
-#if ENABLE_GIZMOS_SHORTCUT
     , m_shortcut_key(0)
-#endif // ENABLE_GIZMOS_SHORTCUT
     , m_hover_id(-1)
     , m_dragging(false)
 #if ENABLE_IMGUI
@@ -734,9 +730,7 @@ bool GLGizmoRotate3D::on_init()
     if (!m_textures[On].load_from_file(path + "rotate_on.png", false))
         return false;
 
-#if ENABLE_GIZMOS_SHORTCUT
     m_shortcut_key = WXK_CONTROL_R;
-#endif // ENABLE_GIZMOS_SHORTCUT
 
     return true;
 }
@@ -760,9 +754,7 @@ void GLGizmoRotate3D::on_stop_dragging()
 
 void GLGizmoRotate3D::on_render(const GLCanvas3D::Selection& selection) const
 {
-#if ENABLE_GIZMOS_ON_TOP
     ::glClear(GL_DEPTH_BUFFER_BIT);
-#endif // ENABLE_GIZMOS_ON_TOP
 
     if ((m_hover_id == -1) || (m_hover_id == 0))
         m_gizmos[X].render(selection);
@@ -826,9 +818,7 @@ bool GLGizmoScale3D::on_init()
     m_grabbers[2].angles(0) = half_pi;
     m_grabbers[3].angles(0) = half_pi;
 
-#if ENABLE_GIZMOS_SHORTCUT
     m_shortcut_key = WXK_CONTROL_S;
-#endif // ENABLE_GIZMOS_SHORTCUT
 
     return true;
 }
@@ -899,9 +889,7 @@ void GLGizmoScale3D::on_render(const GLCanvas3D::Selection& selection) const
         ((m_hover_id == 6) || (m_hover_id == 7) || (m_hover_id == 8) || (m_hover_id == 9)))
         set_tooltip("X/Y/Z");
 
-#if ENABLE_GIZMOS_ON_TOP
     ::glClear(GL_DEPTH_BUFFER_BIT);
-#endif // ENABLE_GIZMOS_ON_TOP
     ::glEnable(GL_DEPTH_TEST);
 
     BoundingBoxf3 box;
@@ -1206,9 +1194,7 @@ bool GLGizmoMove3D::on_init()
         m_grabbers.push_back(Grabber());
     }
 
-#if ENABLE_GIZMOS_SHORTCUT
     m_shortcut_key = WXK_CONTROL_M;
-#endif // ENABLE_GIZMOS_SHORTCUT
 
     return true;
 }
@@ -1264,9 +1250,7 @@ void GLGizmoMove3D::on_render(const GLCanvas3D::Selection& selection) const
     else if (!m_grabbers[2].dragging && (m_hover_id == 2))
         set_tooltip("Z");
 
-#if ENABLE_GIZMOS_ON_TOP
     ::glClear(GL_DEPTH_BUFFER_BIT);
-#endif // ENABLE_GIZMOS_ON_TOP
     ::glEnable(GL_DEPTH_TEST);
 
     const BoundingBoxf3& box = selection.get_bounding_box();
@@ -1436,9 +1420,7 @@ bool GLGizmoFlatten::on_init()
     if (!m_textures[On].load_from_file(path + "layflat_on.png", false))
         return false;
 
-#if ENABLE_GIZMOS_SHORTCUT
     m_shortcut_key = WXK_CONTROL_F;
-#endif // ENABLE_GIZMOS_SHORTCUT
 
     return true;
 }
@@ -1464,9 +1446,7 @@ void GLGizmoFlatten::on_start_dragging(const GLCanvas3D::Selection& selection)
 
 void GLGizmoFlatten::on_render(const GLCanvas3D::Selection& selection) const
 {
-#if ENABLE_GIZMOS_ON_TOP
     ::glClear(GL_DEPTH_BUFFER_BIT);
-#endif // ENABLE_GIZMOS_ON_TOP
 
     ::glEnable(GL_DEPTH_TEST);
     ::glEnable(GL_BLEND);
@@ -1777,9 +1757,7 @@ bool GLGizmoSlaSupports::on_init()
     if (!m_textures[On].load_from_file(path + "sla_support_points_on.png", false))
         return false;
 
-#if ENABLE_GIZMOS_SHORTCUT
     m_shortcut_key = WXK_CONTROL_L;
-#endif // ENABLE_GIZMOS_SHORTCUT
 
     return true;
 }
@@ -2225,7 +2203,7 @@ GLGizmoCutPanel::GLGizmoCutPanel(wxWindow *parent)
 {
     enum { MARGIN = 5 };
 
-    auto *sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto *sizer = new wxBoxSizer(wxHORIZONTAL);    
 
     auto *label = new wxStaticText(this, wxID_ANY, _(L("Cut object:")));
     sizer->Add(label, 0, wxALL | wxALIGN_CENTER, MARGIN);
@@ -2300,9 +2278,7 @@ bool GLGizmoCut::on_init()
 
     m_grabbers.emplace_back();
 
-#if ENABLE_GIZMOS_SHORTCUT
     m_shortcut_key = WXK_CONTROL_C;
-#endif // ENABLE_GIZMOS_SHORTCUT
 
     return true;
 }

@@ -917,17 +917,27 @@ struct Plater::priv
     Slic3r::GCodePreviewData    gcode_preview_data;
 
     // GUI elements
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    wxSizer* panel_sizer;
+    wxPanel* current_panel;
+    std::vector<wxPanel*> panels;
+#else
     wxNotebook *notebook;
     EventGuard guard_on_notebook_changed;
     // Note: ^ The on_notebook_changed is guarded here because the wxNotebook d-tor tends to generate
     // wxEVT_NOTEBOOK_PAGE_CHANGED events on some platforms, which causes them to be received by a freed Plater.
     // EventGuard unbinds the handler in its d-tor.
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
     Sidebar *sidebar;
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    View3D* view3D;
+#else
 #if !ENABLE_IMGUI
     wxPanel *panel3d;
 #endif // not ENABLE_IMGUI
     wxGLCanvas *canvas3Dwidget;    // TODO: Use GLCanvas3D when we can
     GLCanvas3D *canvas3D;
+#endif // !ENABLE_REMOVE_TABS_FROM_PLATER
     Preview *preview;
 
     wxString project_filename;
@@ -947,6 +957,9 @@ struct Plater::priv
 
     void update(bool force_full_scene_refresh = false);
     void select_view(const std::string& direction);
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    void select_view_3D(const std::string& name);
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
     void update_ui_from_settings();
     ProgressStatusBar* statusbar();
     std::string get_config(const std::string &key) const;
@@ -993,7 +1006,11 @@ struct Plater::priv
     void export_object_stl();
     void fix_through_netfabb(const int obj_idx);
 
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    void set_current_panel(wxPanel* panel);
+#else
     void on_notebook_changed(wxBookCtrlEvent&);
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
     void on_select_preset(wxCommandEvent&);
     void on_slicing_update(SlicingStatusEvent&);
     void on_slicing_completed(wxCommandEvent&);
@@ -1041,9 +1058,12 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         "wipe_tower", "wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_rotation_angle",
         "extruder_colour", "filament_colour", "max_print_height", "printer_model", "printer_technology"
         }))
+#if !ENABLE_REMOVE_TABS_FROM_PLATER
     , notebook(new wxNotebook(q, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_BOTTOM))
     , guard_on_notebook_changed(notebook, wxEVT_NOTEBOOK_PAGE_CHANGED, &priv::on_notebook_changed, this)
+#endif // !ENABLE_REMOVE_TABS_FROM_PLATER
     , sidebar(new Sidebar(q))
+#if !ENABLE_REMOVE_TABS_FROM_PLATER
 #if ENABLE_IMGUI
     , canvas3Dwidget(GLCanvas3DManager::create_wxglcanvas(notebook))
 #else
@@ -1051,6 +1071,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     , canvas3Dwidget(GLCanvas3DManager::create_wxglcanvas(panel3d))
 #endif // ENABLE_IMGUI
     , canvas3D(nullptr)
+#endif // !ENABLE_REMOVE_TABS_FROM_PLATER
     , delayed_scene_refresh(false)
     , project_filename(wxEmptyString)
 {
@@ -1072,10 +1093,10 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     sla_print.set_status_callback(statuscb);
     this->q->Bind(EVT_SLICING_UPDATE, &priv::on_slicing_update, this);
 
+#if !ENABLE_REMOVE_TABS_FROM_PLATER
     _3DScene::add_canvas(canvas3Dwidget);
     this->canvas3D = _3DScene::get_canvas(this->canvas3Dwidget);
     this->canvas3D->allow_multisample(GLCanvas3DManager::can_multisample());
-
 #if ENABLE_IMGUI
     notebook->AddPage(canvas3Dwidget, _(L("3D")));
 #else
@@ -1090,7 +1111,15 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
     canvas3D->set_external_gizmo_widgets_parent(panel_gizmo_widgets);
 #endif // ENABLE_IMGUI
+#endif // !ENABLE_REMOVE_TABS_FROM_PLATER
 
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    view3D = new View3D(q, &model, config, &background_process);
+    preview = new Preview(q, config, &background_process, &gcode_preview_data, [this](){ schedule_background_process(); });
+
+    panels.push_back(view3D);
+    panels.push_back(preview);
+#else
     preview = new GUI::Preview(notebook, config, &background_process, &gcode_preview_data, [this](){ schedule_background_process(); });
 
     // XXX: If have OpenGL
@@ -1104,21 +1133,37 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     this->canvas3D->enable_toolbar(true);
     this->canvas3D->enable_shader(true);
     this->canvas3D->enable_force_zoom_to_bed(true);
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
     this->background_process_timer.SetOwner(this->q, 0);
     this->q->Bind(wxEVT_TIMER, [this](wxTimerEvent &evt) { this->async_apply_config(); });
 
     auto *bed_shape = config->opt<ConfigOptionPoints>("bed_shape");
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    view3D->set_bed_shape(bed_shape->values);
+#else
     this->canvas3D->set_bed_shape(bed_shape->values);
     this->canvas3D->zoom_to_bed();
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
     preview->set_bed_shape(bed_shape->values);
 
     update();
 
     auto *hsizer = new wxBoxSizer(wxHORIZONTAL);
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    panel_sizer = new wxBoxSizer(wxHORIZONTAL);
+    panel_sizer->Add(view3D, 1, wxEXPAND | wxALL, 0);
+    panel_sizer->Add(preview, 1, wxEXPAND | wxALL, 0);
+    hsizer->Add(panel_sizer, 1, wxEXPAND | wxALL, 0);
+#else
     hsizer->Add(notebook, 1, wxEXPAND | wxTOP, 1);
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
     hsizer->Add(sidebar, 0, wxEXPAND | wxLEFT | wxRIGHT, 0);
     q->SetSizer(hsizer);
+
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    set_current_panel(view3D);
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
     init_object_menu();
 
@@ -1130,6 +1175,33 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     sidebar->Bind(EVT_OBJ_LIST_OBJECT_SELECT, [this](wxEvent&) { priv::selection_changed(); });
     sidebar->Bind(EVT_SCHEDULE_BACKGROUND_PROCESS, [this](SimpleEvent&) { this->schedule_background_process(); });
 
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    wxGLCanvas* view3D_canvas = view3D->get_wxglcanvas();
+    // 3DScene events:
+    view3D_canvas->Bind(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, [this](SimpleEvent&) { this->schedule_background_process(); });
+    view3D_canvas->Bind(EVT_GLCANVAS_OBJECT_SELECT, &priv::on_object_select, this);
+    view3D_canvas->Bind(EVT_GLCANVAS_VIEWPORT_CHANGED, &priv::on_viewport_changed, this);
+    view3D_canvas->Bind(EVT_GLCANVAS_RIGHT_CLICK, &priv::on_right_click, this);
+    view3D_canvas->Bind(EVT_GLCANVAS_MODEL_UPDATE, [this](SimpleEvent&) { this->schedule_background_process(); });
+    view3D_canvas->Bind(EVT_GLCANVAS_REMOVE_OBJECT, [q](SimpleEvent&) { q->remove_selected(); });
+    view3D_canvas->Bind(EVT_GLCANVAS_ARRANGE, [this](SimpleEvent&) { arrange(); });
+    view3D_canvas->Bind(EVT_GLCANVAS_INCREASE_INSTANCES, [q](Event<int> &evt) { evt.data == 1 ? q->increase_instances() : q->decrease_instances(); });
+    view3D_canvas->Bind(EVT_GLCANVAS_INSTANCE_MOVED, [this](SimpleEvent&) { update(); });
+    view3D_canvas->Bind(EVT_GLCANVAS_WIPETOWER_MOVED, &priv::on_wipetower_moved, this);
+    view3D_canvas->Bind(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, [this](Event<bool> &evt) { this->sidebar->enable_buttons(evt.data); });
+    view3D_canvas->Bind(EVT_GLCANVAS_UPDATE_GEOMETRY, &priv::on_update_geometry, this);
+    view3D_canvas->Bind(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, &priv::on_3dcanvas_mouse_dragging_finished, this);
+    // 3DScene/Toolbar:
+    view3D_canvas->Bind(EVT_GLTOOLBAR_ADD, &priv::on_action_add, this);
+    view3D_canvas->Bind(EVT_GLTOOLBAR_DELETE, [q](SimpleEvent&) { q->remove_selected(); });
+    view3D_canvas->Bind(EVT_GLTOOLBAR_DELETE_ALL, [this](SimpleEvent&) { reset(); });
+    view3D_canvas->Bind(EVT_GLTOOLBAR_ARRANGE, [this](SimpleEvent&) { arrange(); });
+    view3D_canvas->Bind(EVT_GLTOOLBAR_MORE, [q](SimpleEvent&) { q->increase_instances(); });
+    view3D_canvas->Bind(EVT_GLTOOLBAR_FEWER, [q](SimpleEvent&) { q->decrease_instances(); });
+    view3D_canvas->Bind(EVT_GLTOOLBAR_SPLIT_OBJECTS, &priv::on_action_split_objects, this);
+    view3D_canvas->Bind(EVT_GLTOOLBAR_SPLIT_VOLUMES, &priv::on_action_split_volumes, this);
+    view3D_canvas->Bind(EVT_GLTOOLBAR_LAYERSEDITING, &priv::on_action_layersediting, this);
+#else
     // 3DScene events:
     canvas3Dwidget->Bind(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, [this](SimpleEvent&) { this->schedule_background_process(); });
     canvas3Dwidget->Bind(EVT_GLCANVAS_OBJECT_SELECT, &priv::on_object_select, this);
@@ -1154,6 +1226,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     canvas3Dwidget->Bind(EVT_GLTOOLBAR_SPLIT_OBJECTS, &priv::on_action_split_objects, this);
     canvas3Dwidget->Bind(EVT_GLTOOLBAR_SPLIT_VOLUMES, &priv::on_action_split_volumes, this);
     canvas3Dwidget->Bind(EVT_GLTOOLBAR_LAYERSEDITING, &priv::on_action_layersediting, this);
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
     // Preview events:
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_VIEWPORT_CHANGED, &priv::on_viewport_changed, this);
@@ -1184,13 +1257,34 @@ void Plater::priv::update(bool force_full_scene_refresh)
         // pulls the correct data.
         this->update_background_process();
     }
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    view3D->reload_scene(false, force_full_scene_refresh);
+#else
     this->canvas3D->reload_scene(false, force_full_scene_refresh);
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
     preview->reset_gcode_preview_data();
     preview->reload_print();
 
     this->schedule_background_process();
 }
 
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+void Plater::priv::select_view(const std::string& direction)
+{
+    if (current_panel == view3D)
+        view3D->select_view(direction);
+    else if (current_panel == preview)
+        preview->select_view(direction);
+}
+
+void Plater::priv::select_view_3D(const std::string& name)
+{
+    if (name == "3D")
+        set_current_panel(view3D);
+    else if (name == "Preview")
+        set_current_panel(preview);
+}
+#else
 void Plater::priv::select_view(const std::string& direction)
 {
     int page_id = notebook->GetSelection();
@@ -1203,6 +1297,7 @@ void Plater::priv::select_view(const std::string& direction)
             preview->select_view(direction);
     }
 }
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
 // Called after the Preferences dialog is closed and the program settings are saved.
 // Update the UI based on the current preferences.
@@ -1493,12 +1588,20 @@ std::unique_ptr<CheckboxFileDialog> Plater::priv::get_export_file(GUI::FileType 
 
 const GLCanvas3D::Selection& Plater::priv::get_selection() const
 {
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    return view3D->get_canvas3d()->get_selection();
+#else
     return canvas3D->get_selection();
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 }
 
 GLCanvas3D::Selection& Plater::priv::get_selection()
 {
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    return view3D->get_canvas3d()->get_selection();
+#else
     return canvas3D->get_selection();
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 }
 
 int Plater::priv::get_selected_object_idx() const
@@ -1509,6 +1612,16 @@ int Plater::priv::get_selected_object_idx() const
 
 void Plater::priv::selection_changed()
 {
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    view3D->enable_toolbar_item("delete", can_delete_object());
+    view3D->enable_toolbar_item("more", can_increase_instances());
+    view3D->enable_toolbar_item("fewer", can_decrease_instances());
+    view3D->enable_toolbar_item("splitobjects", can_split_to_objects());
+    view3D->enable_toolbar_item("splitvolumes", can_split_to_volumes());
+    view3D->enable_toolbar_item("layersediting", layers_height_allowed());
+    // forces a frame render to update the view (to avoid a missed update if, for example, the context menu appears)
+    view3D->render();
+#else
     this->canvas3D->enable_toolbar_item("delete", can_delete_object());
     this->canvas3D->enable_toolbar_item("more", can_increase_instances());
     this->canvas3D->enable_toolbar_item("fewer", can_decrease_instances());
@@ -1517,24 +1630,39 @@ void Plater::priv::selection_changed()
     this->canvas3D->enable_toolbar_item("layersediting", layers_height_allowed());
     // forces a frame render to update the view (to avoid a missed update if, for example, the context menu appears)
     this->canvas3D->render();
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 }
 
 void Plater::priv::object_list_changed()
 {
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    // Enable/disable buttons depending on whether there are any objects on the platter.
+    view3D->enable_toolbar_item("deleteall", can_delete_all());
+    view3D->enable_toolbar_item("arrange", can_arrange());
+#else
     // Enable/disable buttons depending on whether there are any objects on the platter.
     this->canvas3D->enable_toolbar_item("deleteall", can_delete_all());
     this->canvas3D->enable_toolbar_item("arrange", can_arrange());
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
     const bool export_in_progress = this->background_process.is_export_scheduled(); // || ! send_gcode_file.empty());
     // XXX: is this right?
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    const bool model_fits = view3D->check_volumes_outside_state() == ModelInstance::PVS_Inside;
+#else
     const bool model_fits = this->canvas3D->check_volumes_outside_state(config) == ModelInstance::PVS_Inside;
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
     sidebar->enable_buttons(!model.objects.empty() && !export_in_progress && model_fits);
 }
 
 void Plater::priv::select_all()
 {
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    view3D->select_all();
+#else
     this->canvas3D->select_all();
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
     this->sidebar->obj_list()->update_selections();
 }
 
@@ -1543,8 +1671,13 @@ void Plater::priv::remove(size_t obj_idx)
     // Prevent toolpaths preview from rendering while we modify the Print object
     preview->set_enabled(false);
 
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    if (view3D->is_layers_editing_enabled())
+        view3D->enable_layers_editing(false);
+#else
     if (this->canvas3D->is_layers_editing_enabled())
         this->canvas3D->enable_layers_editing(false);
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
     model.delete_object(obj_idx);
     // Delete object from Sidebar list
@@ -1569,8 +1702,13 @@ void Plater::priv::reset()
     // Prevent toolpaths preview from rendering while we modify the Print object
     preview->set_enabled(false);
 
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    if (view3D->is_layers_editing_enabled())
+        view3D->enable_layers_editing(false);
+#else
     if (this->canvas3D->is_layers_editing_enabled())
         this->canvas3D->enable_layers_editing(false);
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
     // Stop and reset the Print content.
     this->background_process.reset();
@@ -1588,7 +1726,11 @@ void Plater::priv::reset()
 
 void Plater::priv::mirror(Axis axis)
 {
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    view3D->mirror_selection(axis);
+#else
     this->canvas3D->mirror_selection(axis);
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 }
 
 void Plater::priv::arrange()
@@ -1600,7 +1742,11 @@ void Plater::priv::arrange()
     arranging.store(true);
 
     // Disable the arrange button (to prevent reentrancies, we will call wxYied)
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    view3D->enable_toolbar_item("arrange", can_arrange());
+#else
     this->canvas3D->enable_toolbar_item("arrange", can_arrange());
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
     this->background_process.stop();
     unsigned count = 0;
@@ -1670,7 +1816,11 @@ void Plater::priv::arrange()
     arranging.store(false);
 
     // We enable back the arrange button
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    view3D->enable_toolbar_item("arrange", can_arrange());
+#else
     this->canvas3D->enable_toolbar_item("arrange", can_arrange());
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
     // Do a full refresh of scene tree, including regenerating all the GLVolumes.
     //FIXME The update function shall just reload the modified matrices.
@@ -1806,8 +1956,13 @@ unsigned int Plater::priv::update_background_process()
     Print::ApplyStatus invalidated = this->background_process.apply(this->q->model(), wxGetApp().preset_bundle->full_config());
 
     // Just redraw the 3D canvas without reloading the scene to consume the update of the layer height profile.
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    if (view3D->is_layers_editing_enabled())
+        view3D->get_wxglcanvas()->Refresh();
+#else
     if (this->canvas3D->is_layers_editing_enabled())
         this->canvas3Dwidget->Refresh();
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
     if (invalidated == Print::APPLY_STATUS_INVALIDATED) {
         // Some previously calculated data on the Print was invalidated.
@@ -1862,7 +2017,11 @@ void Plater::priv::async_apply_config()
     // bitmask of UpdateBackgroundProcessReturnState
     unsigned int state = this->update_background_process();
     if (state & UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE)
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+        view3D->reload_scene(false);
+#else
         this->canvas3D->reload_scene(false);
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
     if ((state & UPDATE_BACKGROUND_PROCESS_RESTART) != 0 && this->background_processing_enabled()) {
         // The print is valid and it can be started.
         if (this->background_process.start())
@@ -1879,7 +2038,11 @@ void Plater::priv::update_sla_scene()
     // pulls the correct data.
     if (this->update_background_process() & UPDATE_BACKGROUND_PROCESS_RESTART)
         this->schedule_background_process();
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    view3D->reload_scene(true);
+#else
     this->canvas3D->reload_scene(true);
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
     delayed_scene_refresh = false;
     this->preview->reload_print();
 }
@@ -1925,6 +2088,49 @@ void Plater::priv::fix_through_netfabb(const int obj_idx)
     remove(obj_idx);
 }
 
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+void Plater::priv::set_current_panel(wxPanel* panel)
+{
+    if (std::find(panels.begin(), panels.end(), panel) == panels.end())
+        return;
+
+    if (current_panel == panel)
+        return;
+
+    current_panel = panel;
+    for (wxPanel* p : panels)
+    {
+        p->Show(p == current_panel);
+    }
+
+    q->Freeze();
+    panel_sizer->Layout();
+    q->Thaw();
+
+    if (current_panel == view3D)
+    {
+        if (view3D->is_reload_delayed())
+        {
+            // Delayed loading of the 3D scene.
+            if (this->printer_technology == ptSLA)
+            {
+                // Update the SLAPrint from the current Model, so that the reload_scene()
+                // pulls the correct data.
+                if (this->update_background_process() & UPDATE_BACKGROUND_PROCESS_RESTART)
+                    this->schedule_background_process();
+            }
+            view3D->reload_scene(true);
+        }
+        // sets the canvas as dirty to force a render at the 1st idle event (wxWidgets IsShownOnScreen() is buggy and cannot be used reliably)
+        view3D->set_as_dirty();
+    }
+    else if (current_panel == preview)
+    {
+        preview->reload_print();
+        preview->set_canvas_as_dirty();
+    }
+}
+#else
 void Plater::priv::on_notebook_changed(wxBookCtrlEvent&)
 {
     wxCHECK_RET(canvas3D != nullptr, "on_notebook_changed on freed Plater");
@@ -1952,6 +2158,7 @@ void Plater::priv::on_notebook_changed(wxBookCtrlEvent&)
         preview->set_canvas_as_dirty();
     }
 }
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
 void Plater::priv::on_select_preset(wxCommandEvent &evt)
 {
@@ -2004,7 +2211,11 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
                 this->preview->reload_print();
             break;
         case ptSLA:
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+            if (view3D->is_dragging())
+#else
             if (this->canvas3D->is_dragging())
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
                 delayed_scene_refresh = true;
             else
                 this->update_sla_scene();
@@ -2025,7 +2236,11 @@ void Plater::priv::on_slicing_completed(wxCommandEvent &)
     //    this->canvas3D->reload_scene(true);
         break;
     case ptSLA:
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+        if (view3D->is_dragging())
+#else
         if (this->canvas3D->is_dragging())
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
             delayed_scene_refresh = true;
         else
             this->update_sla_scene();
@@ -2069,7 +2284,11 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
             this->preview->reload_print();
         break;
     case ptSLA:
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+        if (view3D->is_dragging())
+#else
         if (this->canvas3D->is_dragging())
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
             delayed_scene_refresh = true;
         else
             this->update_sla_scene();
@@ -2079,13 +2298,22 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
 
 void Plater::priv::on_layer_editing_toggled(bool enable)
 {
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    view3D->enable_layers_editing(enable);
+    if (enable && !view3D->is_layers_editing_enabled()) {
+        // Initialization of the OpenGL shaders failed. Disable the tool.
+        view3D->enable_toolbar_item("layersediting", false);
+    }
+    view3D->set_as_dirty();
+#else
     this->canvas3D->enable_layers_editing(enable);
-    if (enable && ! this->canvas3D->is_layers_editing_enabled()) {
+    if (enable && !this->canvas3D->is_layers_editing_enabled()) {
         // Initialization of the OpenGL shaders failed. Disable the tool.
         this->canvas3D->enable_toolbar_item("layersediting", false);
     }
     canvas3Dwidget->Refresh();
     canvas3Dwidget->Update();
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 }
 
 void Plater::priv::on_action_add(SimpleEvent&)
@@ -2106,10 +2334,17 @@ void Plater::priv::on_action_split_volumes(SimpleEvent&)
 
 void Plater::priv::on_action_layersediting(SimpleEvent&)
 {
-    bool enable = ! this->canvas3D->is_layers_editing_enabled();
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    bool enable = !view3D->is_layers_editing_enabled();
+    view3D->enable_layers_editing(enable);
+    if (enable && !view3D->is_layers_editing_enabled())
+        view3D->enable_toolbar_item("layersediting", false);
+#else
+    bool enable = !this->canvas3D->is_layers_editing_enabled();
     this->canvas3D->enable_layers_editing(enable);
-    if (enable && ! this->canvas3D->is_layers_editing_enabled())
+    if (enable && !this->canvas3D->is_layers_editing_enabled())
         this->canvas3D->enable_toolbar_item("layersediting", false);
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 }
 
 void Plater::priv::on_object_select(SimpleEvent& evt)
@@ -2121,10 +2356,17 @@ void Plater::priv::on_object_select(SimpleEvent& evt)
 void Plater::priv::on_viewport_changed(SimpleEvent& evt)
 {
     wxObject* o = evt.GetEventObject();
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    if (o == preview->get_wxglcanvas())
+        preview->set_viewport_into_scene(view3D->get_canvas3d());
+    else if (o == view3D->get_wxglcanvas())
+        preview->set_viewport_from_scene(view3D->get_canvas3d());
+#else
     if (o == preview->get_wxglcanvas())
         preview->set_viewport_into_scene(canvas3D);
     else if (o == canvas3Dwidget)
         preview->set_viewport_from_scene(canvas3D);
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 }
 
 void Plater::priv::on_right_click(Vec2dEvent& evt)
@@ -2253,7 +2495,11 @@ bool Plater::priv::can_split_to_volumes() const
 bool Plater::priv::layers_height_allowed() const
 {
     int obj_idx = get_selected_object_idx();
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    return (0 <= obj_idx) && (obj_idx < (int)model.objects.size()) && config->opt_bool("variable_layer_height") && view3D->is_layers_editing_allowed();
+#else
     return (0 <= obj_idx) && (obj_idx < (int)model.objects.size()) && config->opt_bool("variable_layer_height") && this->canvas3D->is_layers_editing_allowed();
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 }
 
 bool Plater::priv::can_delete_all() const
@@ -2281,8 +2527,10 @@ Plater::Plater(wxWindow *parent, MainFrame *main_frame)
 
 Plater::~Plater()
 {
+#if !ENABLE_REMOVE_TABS_FROM_PLATER
     _3DScene::remove_canvas(p->canvas3Dwidget);
     p->canvas3D = nullptr;
+#endif // !ENABLE_REMOVE_TABS_FROM_PLATER
 }
 
 Sidebar&        Plater::sidebar()           { return *p->sidebar; }
@@ -2343,6 +2591,10 @@ void Plater::update_ui_from_settings() { p->update_ui_from_settings(); }
 
 void Plater::select_view(const std::string& direction) { p->select_view(direction); }
 
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+void Plater::select_view_3D(const std::string& name) { p->select_view_3D(name); }
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
+
 void Plater::select_all() { p->select_all(); }
 
 void Plater::remove(size_t obj_idx) { p->remove(obj_idx); }
@@ -2352,7 +2604,11 @@ void Plater::delete_object_from_model(size_t obj_idx) { p->delete_object_from_mo
 
 void Plater::remove_selected()
 {
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    this->p->view3D->delete_selected();
+#else
     this->p->canvas3D->delete_selected();
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 }
 
 void Plater::increase_instances(size_t num)
@@ -2464,7 +2720,11 @@ void Plater::export_gcode(fs::path output_path)
     // bitmask of UpdateBackgroundProcessReturnState
     unsigned int state = this->p->update_background_process();
     if (state & priv::UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE)
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+        this->p->view3D->reload_scene(false);
+#else
         this->p->canvas3D->reload_scene(false);
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
     if ((state & priv::UPDATE_BACKGROUND_PROCESS_INVALID) != 0)
         return;
 
@@ -2588,8 +2848,12 @@ void Plater::reslice()
     // bitmask of UpdateBackgroundProcessReturnState
     unsigned int state = this->p->update_background_process();
     if (state & priv::UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE)
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+        this->p->view3D->reload_scene(false);
+#else
         this->p->canvas3D->reload_scene(false);
-	if ((state & priv::UPDATE_BACKGROUND_PROCESS_INVALID) == 0 && ! this->p->background_process.running()) {
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
+    if ((state & priv::UPDATE_BACKGROUND_PROCESS_INVALID) == 0 && !this->p->background_process.running()) {
         // The print is valid and it can be started.
         if (this->p->background_process.start())
 			this->p->statusbar()->set_cancel_callback([this]() {
@@ -2638,7 +2902,11 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         if (opt_key == "printer_technology")
             this->set_printer_technology(config.opt_enum<PrinterTechnology>(opt_key));
         else if (opt_key  == "bed_shape") {
-			this->p->canvas3D->set_bed_shape(p->config->option<ConfigOptionPoints>(opt_key)->values);
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+            if (p->view3D) p->view3D->set_bed_shape(p->config->option<ConfigOptionPoints>(opt_key)->values);
+#else
+            this->p->canvas3D->set_bed_shape(p->config->option<ConfigOptionPoints>(opt_key)->values);
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
             if (p->preview) p->preview->set_bed_shape(p->config->option<ConfigOptionPoints>(opt_key)->values);
             update_scheduled = true;
         } 
@@ -2656,13 +2924,24 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         }
         else if(opt_key == "variable_layer_height") {
             if (p->config->opt_bool("variable_layer_height") != true) {
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+                p->view3D->enable_toolbar_item("layersediting", false);
+                p->view3D->enable_layers_editing(false);
+                p->view3D->set_as_dirty();
+#else
                 p->canvas3D->enable_toolbar_item("layersediting", false);
                 p->canvas3D->enable_layers_editing(0);
                 p->canvas3Dwidget->Refresh();
                 p->canvas3Dwidget->Update();
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
             }
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+            else if (p->view3D->is_layers_editing_allowed()) {
+                p->view3D->enable_toolbar_item("layersediting", true);
+#else
             else if (p->canvas3D->is_layers_editing_allowed()) {
                 p->canvas3D->enable_toolbar_item("layersediting", true);
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
             }
         } 
         else if(opt_key == "extruder_colour") {
@@ -2672,7 +2951,11 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             update_scheduled = true;
         } else if(opt_key == "printer_model") {
             // update to force bed selection(for texturing)
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+            if (p->view3D) p->view3D->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values);
+#else
             p->canvas3D->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values);
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
             if (p->preview) p->preview->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values);
             update_scheduled = true;
         }
@@ -2723,7 +3006,11 @@ bool Plater::is_single_full_object_selection() const
 
 GLCanvas3D* Plater::canvas3D()
 {
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    return p->view3D->get_canvas3d();
+#else
     return p->canvas3D;
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 }
 
 PrinterTechnology Plater::printer_technology() const
@@ -2762,7 +3049,11 @@ void Plater::changed_object(int obj_idx)
             // pulls the correct data.
             this->p->update_background_process();
         }
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+        p->view3D->reload_scene(false);
+#else
         p->canvas3D->reload_scene(false);
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
     }
 
     // update print

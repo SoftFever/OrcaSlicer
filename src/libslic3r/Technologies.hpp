@@ -23,16 +23,14 @@
 #define ENABLE_MODELVOLUME_TRANSFORM (1 && ENABLE_1_42_0)
 // Keeps objects on bed while scaling them using the scale gizmo
 #define ENABLE_ENSURE_ON_BED_WHILE_SCALING (1 && ENABLE_MODELVOLUME_TRANSFORM)
-// Gizmos always rendered on top of objects
-#define ENABLE_GIZMOS_ON_TOP (1 && ENABLE_1_42_0)
 // All rotations made using the rotate gizmo are done with respect to the world reference system
 #define ENABLE_WORLD_ROTATIONS (1 && ENABLE_1_42_0)
-// Enables shortcut keys for gizmos
-#define ENABLE_GIZMOS_SHORTCUT (1 && ENABLE_1_42_0)
 // Scene's GUI made using imgui library
 #define ENABLE_IMGUI (1 && ENABLE_1_42_0)
 // Modified Sla support gizmo
 #define ENABLE_SLA_SUPPORT_GIZMO_MOD (1 && ENABLE_1_42_0)
+// Removes the wxNotebook from plater
+#define ENABLE_REMOVE_TABS_FROM_PLATER (1 && ENABLE_1_42_0)
 
 #endif // _technologies_h_
 

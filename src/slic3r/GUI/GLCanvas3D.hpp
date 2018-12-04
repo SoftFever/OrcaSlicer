@@ -324,9 +324,7 @@ class GLCanvas3D
         bool dragging;
         bool left_down;
         Vec2d position;
-#if ENABLE_GIZMOS_ON_TOP
         Vec3d scene_position;
-#endif // ENABLE_GIZMOS_ON_TOP
         Drag drag;
 
         Mouse();
@@ -632,9 +630,7 @@ private:
         EType get_current_type() const;
 
         bool is_running() const;
-#if ENABLE_GIZMOS_SHORTCUT
         bool handle_shortcut(int key, const Selection& selection);
-#endif // ENABLE_GIZMOS_SHORTCUT
 
         bool is_dragging() const;
         void start_dragging(const Selection& selection);
@@ -802,7 +798,11 @@ public:
 
     unsigned int get_volumes_count() const;
     void reset_volumes();
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    int check_volumes_outside_state() const;
+#else
     int check_volumes_outside_state(const DynamicPrintConfig* config) const;
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
     void set_config(DynamicPrintConfig* config);
     void set_process(BackgroundSlicingProcess* process);

@@ -77,7 +77,13 @@ ObjectList::ObjectList(wxWindow* parent) :
     Bind(wxEVT_DATAVIEW_ITEM_DROP_POSSIBLE, [this](wxDataViewEvent& e) {on_drop_possible(e); });
     Bind(wxEVT_DATAVIEW_ITEM_DROP,          [this](wxDataViewEvent& e) {on_drop(e); });
 
-    Bind(wxCUSTOMEVT_LAST_VOLUME_IS_DELETED,[this](wxCommandEvent& e)   {last_volume_is_deleted(e.GetInt()); });
+    Bind(wxCUSTOMEVT_LAST_VOLUME_IS_DELETED, [this](wxCommandEvent& e)   {last_volume_is_deleted(e.GetInt()); });
+
+//     Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED,     &ObjectList::OnValueChanged,    this);
+//     Bind(wxEVT_DATAVIEW_ITEM_ACTIVATED,         &ObjectList::OnActivated,       this);
+    Bind(wxEVT_DATAVIEW_ITEM_START_EDITING,     &ObjectList::OnStartEditing,    this);
+//     Bind(wxEVT_DATAVIEW_ITEM_EDITING_STARTED,   &ObjectList::OnEditingStarted,  this);
+//     Bind(wxEVT_DATAVIEW_ITEM_EDITING_DONE,      &ObjectList::OnEditingDone,     this
 }
 
 ObjectList::~ObjectList()
@@ -203,6 +209,8 @@ void ObjectList::update_objects_list_extruder_column(int extruders_count)
     InsertColumn(1, create_objects_list_extruder_column(extruders_count));
     // set show/hide for this column 
     set_extruder_column_hidden(extruders_count <= 1);
+    //a workaround for a wrong last column width updating under OSX 
+    GetColumn(2)->SetWidth(25);
 }
 
 void ObjectList::set_extruder_column_hidden(bool hide)
@@ -1598,6 +1606,13 @@ void ObjectList::update_settings_items()
         select_item(settings_item ? settings_item : m_objects_model->AddSettingsChild(item));
     }
     UnselectAll();
+}
+
+void ObjectList::OnStartEditing(wxDataViewEvent &event)
+{
+    const auto item_type = m_objects_model->GetItemType(event.GetItem());
+    if ( !(item_type&(itObject|itVolume)) )
+        event.Veto();
 }
 
 } //namespace GUI

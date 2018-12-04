@@ -1029,9 +1029,7 @@ GLCanvas3D::Mouse::Mouse()
     : dragging(false)
     , left_down(false)
     , position(DBL_MAX, DBL_MAX)
-#if ENABLE_GIZMOS_ON_TOP
     , scene_position(DBL_MAX, DBL_MAX, DBL_MAX)
-#endif // ENABLE_GIZMOS_ON_TOP
 {
 }
 
@@ -2740,7 +2738,6 @@ bool GLCanvas3D::Gizmos::is_running() const
     return (curr != nullptr) ? (curr->get_state() == GLGizmoBase::On) : false;
 }
 
-#if ENABLE_GIZMOS_SHORTCUT
 bool GLCanvas3D::Gizmos::handle_shortcut(int key, const Selection& selection)
 {
     if (!m_enabled)
@@ -2775,7 +2772,6 @@ bool GLCanvas3D::Gizmos::handle_shortcut(int key, const Selection& selection)
 
     return handled;
 }
-#endif // ENABLE_GIZMOS_SHORTCUT
 
 bool GLCanvas3D::Gizmos::is_dragging() const
 {
@@ -3557,12 +3553,21 @@ void GLCanvas3D::reset_volumes()
     _reset_warning_texture();
 }
 
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+int GLCanvas3D::check_volumes_outside_state() const
+{
+    ModelInstance::EPrintVolumeState state;
+    m_volumes.check_outside_state(m_config, &state);
+    return (int)state;
+}
+#else
 int GLCanvas3D::check_volumes_outside_state(const DynamicPrintConfig* config) const
 {
     ModelInstance::EPrintVolumeState state;
     m_volumes.check_outside_state(config, &state);
     return (int)state;
 }
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
 void GLCanvas3D::set_config(DynamicPrintConfig* config)
 {
@@ -3856,12 +3861,10 @@ void GLCanvas3D::render()
         _render_bed(theta);
     }
 
-#if ENABLE_GIZMOS_ON_TOP
     // we need to set the mouse's scene position here because the depth buffer
     // could be invalidated by the following gizmo render methods
     // this position is used later into on_mouse() to drag the objects
     m_mouse.scene_position = _mouse_to_3d(m_mouse.position.cast<int>());
-#endif // ENABLE_GIZMOS_ON_TOP
 
     _render_current_gizmo();
 #if ENABLE_SHOW_CAMERA_TARGET
@@ -4482,14 +4485,12 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 #endif // ENABLE_MODIFIED_CAMERA_TARGET
                 default:
                 {
-#if ENABLE_GIZMOS_SHORTCUT
                     if (m_gizmos.handle_shortcut(keyCode, m_selection))
                     {
                         _update_gizmos_data();
                         m_dirty = true;
                     }
                     else
-#endif // ENABLE_GIZMOS_SHORTCUT
                         evt.Skip();
 
                     break;
@@ -4683,29 +4684,15 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             {
                 if (evt.LeftDown() && m_moving_enabled && (m_mouse.drag.move_volume_idx == -1))
                 {
-#if !ENABLE_GIZMOS_ON_TOP
-                    // The mouse_to_3d gets the Z coordinate from the Z buffer at the screen coordinate pos x, y,
-                    // an converts the screen space coordinate to unscaled object space.
-                    Vec3d pos3d = _mouse_to_3d(pos);
-#endif // !ENABLE_GIZMOS_ON_TOP
-
                     // Only accept the initial position, if it is inside the volume bounding box.
                     BoundingBoxf3 volume_bbox = m_volumes.volumes[m_hover_volume_id]->transformed_bounding_box();
                     volume_bbox.offset(1.0);
-#if ENABLE_GIZMOS_ON_TOP
                     if (volume_bbox.contains(m_mouse.scene_position))
-#else
-                    if (volume_bbox.contains(pos3d))
-#endif // ENABLE_GIZMOS_ON_TOP
                     {
                         // The dragging operation is initiated.
                         m_mouse.drag.move_volume_idx = m_hover_volume_id;
                         m_selection.start_dragging();
-#if ENABLE_GIZMOS_ON_TOP
                         m_mouse.drag.start_position_3D = m_mouse.scene_position;
-#else
-                        m_mouse.drag.start_position_3D = pos3d;
-#endif // ENABLE_GIZMOS_ON_TOP
                         m_moving = true;
                     }
                 }
