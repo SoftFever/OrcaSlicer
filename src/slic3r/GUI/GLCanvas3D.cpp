@@ -2738,7 +2738,6 @@ bool GLCanvas3D::Gizmos::is_running() const
     return (curr != nullptr) ? (curr->get_state() == GLGizmoBase::On) : false;
 }
 
-#if ENABLE_GIZMOS_SHORTCUT
 bool GLCanvas3D::Gizmos::handle_shortcut(int key, const Selection& selection)
 {
     if (!m_enabled)
@@ -2773,7 +2772,6 @@ bool GLCanvas3D::Gizmos::handle_shortcut(int key, const Selection& selection)
 
     return handled;
 }
-#endif // ENABLE_GIZMOS_SHORTCUT
 
 bool GLCanvas3D::Gizmos::is_dragging() const
 {
@@ -4487,14 +4485,12 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 #endif // ENABLE_MODIFIED_CAMERA_TARGET
                 default:
                 {
-#if ENABLE_GIZMOS_SHORTCUT
                     if (m_gizmos.handle_shortcut(keyCode, m_selection))
                     {
                         _update_gizmos_data();
                         m_dirty = true;
                     }
                     else
-#endif // ENABLE_GIZMOS_SHORTCUT
                         evt.Skip();
 
                     break;

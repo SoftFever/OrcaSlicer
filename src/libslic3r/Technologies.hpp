@@ -25,8 +25,6 @@
 #define ENABLE_ENSURE_ON_BED_WHILE_SCALING (1 && ENABLE_MODELVOLUME_TRANSFORM)
 // All rotations made using the rotate gizmo are done with respect to the world reference system
 #define ENABLE_WORLD_ROTATIONS (1 && ENABLE_1_42_0)
-// Enables shortcut keys for gizmos
-#define ENABLE_GIZMOS_SHORTCUT (1 && ENABLE_1_42_0)
 // Scene's GUI made using imgui library
 #define ENABLE_IMGUI (1 && ENABLE_1_42_0)
 // Modified Sla support gizmo
