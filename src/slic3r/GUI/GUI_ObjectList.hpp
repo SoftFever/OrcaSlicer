@@ -185,6 +185,10 @@ public:
     void last_volume_is_deleted(const int obj_idx);
     bool has_multi_part_objects();
     void update_settings_items();
+
+private:
+    void OnStartEditing(wxDataViewEvent &event);
+
 };
 
 
