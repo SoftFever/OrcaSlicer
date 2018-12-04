@@ -760,9 +760,7 @@ void GLGizmoRotate3D::on_stop_dragging()
 
 void GLGizmoRotate3D::on_render(const GLCanvas3D::Selection& selection) const
 {
-#if ENABLE_GIZMOS_ON_TOP
     ::glClear(GL_DEPTH_BUFFER_BIT);
-#endif // ENABLE_GIZMOS_ON_TOP
 
     if ((m_hover_id == -1) || (m_hover_id == 0))
         m_gizmos[X].render(selection);
@@ -899,9 +897,7 @@ void GLGizmoScale3D::on_render(const GLCanvas3D::Selection& selection) const
         ((m_hover_id == 6) || (m_hover_id == 7) || (m_hover_id == 8) || (m_hover_id == 9)))
         set_tooltip("X/Y/Z");
 
-#if ENABLE_GIZMOS_ON_TOP
     ::glClear(GL_DEPTH_BUFFER_BIT);
-#endif // ENABLE_GIZMOS_ON_TOP
     ::glEnable(GL_DEPTH_TEST);
 
     BoundingBoxf3 box;
@@ -1264,9 +1260,7 @@ void GLGizmoMove3D::on_render(const GLCanvas3D::Selection& selection) const
     else if (!m_grabbers[2].dragging && (m_hover_id == 2))
         set_tooltip("Z");
 
-#if ENABLE_GIZMOS_ON_TOP
     ::glClear(GL_DEPTH_BUFFER_BIT);
-#endif // ENABLE_GIZMOS_ON_TOP
     ::glEnable(GL_DEPTH_TEST);
 
     const BoundingBoxf3& box = selection.get_bounding_box();
@@ -1464,9 +1458,7 @@ void GLGizmoFlatten::on_start_dragging(const GLCanvas3D::Selection& selection)
 
 void GLGizmoFlatten::on_render(const GLCanvas3D::Selection& selection) const
 {
-#if ENABLE_GIZMOS_ON_TOP
     ::glClear(GL_DEPTH_BUFFER_BIT);
-#endif // ENABLE_GIZMOS_ON_TOP
 
     ::glEnable(GL_DEPTH_TEST);
     ::glEnable(GL_BLEND);
