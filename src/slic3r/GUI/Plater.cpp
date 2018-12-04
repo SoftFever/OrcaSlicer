@@ -565,6 +565,7 @@ Sidebar::Sidebar(Plater *parent)
     p->btn_export_gcode->SetFont(wxGetApp().bold_font());
     p->btn_reslice = new wxButton(this, wxID_ANY, _(L("Slice now")));
     p->btn_reslice->SetFont(wxGetApp().bold_font());
+    enable_buttons(false);
 
     auto *btns_sizer = new wxBoxSizer(wxVERTICAL);
     btns_sizer->Add(p->btn_reslice, 0, wxEXPAND | wxTOP, 5);
@@ -820,15 +821,9 @@ void Sidebar::show_sliced_info_sizer(const bool show)
 void Sidebar::show_buttons(const bool show)
 {
     p->btn_reslice->Show(show);
-    for (size_t i = 0; i < wxGetApp().tab_panel()->GetPageCount(); ++i) {
-        TabPrinter *tab = dynamic_cast<TabPrinter*>(wxGetApp().tab_panel()->GetPage(i));
-        if (!tab)
-            continue;
-		if (p->plater->printer_technology() == ptFFF) {
-            p->btn_send_gcode->Show(show && !tab->m_config->opt_string("print_host").empty());
-        }
-        break;
-    }
+    TabPrinter *tab = dynamic_cast<TabPrinter*>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
+	if (tab && p->plater->printer_technology() == ptFFF)
+        p->btn_send_gcode->Show(show && !tab->m_config->opt_string("print_host").empty());
 }
 
 void Sidebar::enable_buttons(bool enable)
@@ -1821,6 +1816,8 @@ unsigned int Plater::priv::update_background_process()
         // Some previously calculated data on the Print was invalidated.
         // Hide the slicing results, as the current slicing status is no more valid.
         this->sidebar->show_sliced_info_sizer(false);
+        // Disable buttons during background process.
+        this->sidebar->enable_buttons(false);
         // Reset preview canvases. If the print has been invalidated, the preview canvases will be cleared.
         // Otherwise they will be just refreshed.
         this->gcode_preview_data.reset();
@@ -2056,6 +2053,7 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
 		this->statusbar()->set_status_text(L("Cancelled"));
 
     this->sidebar->show_sliced_info_sizer(success);
+    this->sidebar->enable_buttons(success);
 
     // this updates buttons status
     //$self->object_list_changed;

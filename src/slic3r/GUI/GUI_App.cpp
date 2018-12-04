@@ -520,7 +520,7 @@ void GUI_App::update_mode()
 
     obj_list()->get_sizer()->Show(mode == ConfigMenuModeExpert);
     sidebar().set_mode_value(mode);
-    sidebar().show_buttons(mode == ConfigMenuModeExpert);
+//    sidebar().show_buttons(mode == ConfigMenuModeExpert);
     obj_list()->update_selections();
 
     sidebar().Layout();
