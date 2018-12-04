@@ -1075,8 +1075,8 @@ bool PrusaObjectDataViewModel::IsEnabled(const wxDataViewItem &item, unsigned in
     wxASSERT(item.IsOk());
     PrusaObjectDataViewModelNode *node = (PrusaObjectDataViewModelNode*)item.GetID();
 
-    // disable extruder selection for the "Settings" item
-    return !(col == 2 && node->m_extruder.IsEmpty());
+    // disable extruder selection for the non "itObject|itVolume" item
+    return !(col == 1 && node->m_extruder.IsEmpty());
 }
 
 wxDataViewItem PrusaObjectDataViewModel::GetParent(const wxDataViewItem &item) const
