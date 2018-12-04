@@ -360,7 +360,7 @@ class TabSLAMaterial : public Tab
 {
 public:
     TabSLAMaterial(wxNotebook* parent) :
-		Tab(parent, _(L("SLA Material Settings")), "sla_material") {}
+		Tab(parent, _(L("Material Settings")), "sla_material") {}
     ~TabSLAMaterial() {}
 
 	void		build() override;
@@ -374,7 +374,7 @@ class TabSLAPrint : public Tab
 {
 public:
     TabSLAPrint(wxNotebook* parent) :
-        Tab(parent, _(L("SLA Print Settings")), "sla_print") {}
+        Tab(parent, _(L("Print Settings")), "sla_print") {}
     ~TabSLAPrint() {}
     void		build() override;
 	void		reload_config() override;

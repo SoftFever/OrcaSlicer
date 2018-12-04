@@ -2476,36 +2476,33 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
 {
 	if (presets == nullptr) presets = m_presets;
 	// Display a dialog showing the dirty options in a human readable form.
-	auto old_preset = presets->get_edited_preset();
-	auto type_name = presets->name();
-	auto tab = "          ";
-	auto name = old_preset.is_default ?
+	const Preset& old_preset = presets->get_edited_preset();
+	std::string   type_name  = presets->name();
+	wxString      tab        = "          ";
+	wxString      name       = old_preset.is_default ?
 		_(L("Default ")) + type_name + _(L(" preset")) :
 		(type_name + _(L(" preset\n")) + tab + old_preset.name);
 	// Collect descriptions of the dirty options.
-	std::vector<std::string> option_names;
-	for(auto opt_key: presets->current_dirty_options()) {
-		auto opt = m_config->def()->options.at(opt_key);
+	wxString changes;
+	for (const std::string &opt_key : presets->current_dirty_options()) {
+		const ConfigOptionDef &opt = m_config->def()->options.at(opt_key);
 		std::string name = "";
-		if (!opt.category.empty())
+		if (! opt.category.empty())
 			name += opt.category + " > ";
 		name += !opt.full_label.empty() ?
 				opt.full_label : 
 				opt.label;
-		option_names.push_back(name);
+		changes += tab + from_u8(name) + "\n";
 	}
 	// Show a confirmation dialog with the list of dirty options.
-	std::string changes = "";
-	for (const std::string &changed_name : option_names)
-		changes += tab + changed_name + "\n";
-	std::string message = name + "\n\n";
+	wxString message = name + "\n\n";
 	if (new_printer_name.empty())
 		message += _(L("has the following unsaved changes:"));
 	else {
 		message += (m_type == Slic3r::Preset::TYPE_PRINTER) ?
 				_(L("is not compatible with printer")) :
 				_(L("is not compatible with print profile"));
-		message += std::string("\n") + tab + new_printer_name + "\n\n";
+		message += wxString("\n") + tab + from_utf8(new_printer_name) + "\n\n";
 		message += _(L("and it has the following unsaved changes:"));
 	}
 	auto confirm = new wxMessageDialog(parent(),
