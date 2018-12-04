@@ -3885,6 +3885,7 @@ void GLCanvas3D::render()
 void GLCanvas3D::select_all()
 {
     m_selection.add_all();
+    m_dirty = true;
 }
 
 void GLCanvas3D::delete_selected()
