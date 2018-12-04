@@ -1814,8 +1814,6 @@ unsigned int Plater::priv::update_background_process()
         // Some previously calculated data on the Print was invalidated.
         // Hide the slicing results, as the current slicing status is no more valid.
         this->sidebar->show_sliced_info_sizer(false);
-        // Disable buttons during background process.
-        this->sidebar->enable_buttons(false);
         // Reset preview canvases. If the print has been invalidated, the preview canvases will be cleared.
         // Otherwise they will be just refreshed.
         this->gcode_preview_data.reset();
@@ -2059,7 +2057,6 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
 		this->statusbar()->set_status_text(L("Cancelled"));
 
     this->sidebar->show_sliced_info_sizer(success);
-    this->sidebar->enable_buttons(success);
 
     // This updates the "Slice now", "Export G-code", "Arrange" buttons status.
     // Namely, it refreshes the "Out of print bed" property of all the ModelObjects, and it enables

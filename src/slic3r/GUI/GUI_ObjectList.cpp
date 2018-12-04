@@ -263,7 +263,6 @@ void ObjectList::selection_changed()
         event.SetEventObject(this);
         wxPostEvent(this, event);
     }
-    wxGetApp().sidebar().enable_buttons(!m_objects_model->IsEmpty());
 
     part_selection_changed();
 

@@ -766,7 +766,9 @@ void MainFrame::on_value_changed(wxCommandEvent& event)
 // Update the UI based on the current preferences.
 void MainFrame::update_ui_from_settings()
 {
-    m_menu_item_reslice_now->Enable(wxGetApp().app_config->get("background_processing") == "1");
+    bool bp_on = wxGetApp().app_config->get("background_processing") == "1";
+    m_menu_item_reslice_now->Enable(bp_on);
+    m_plater->sidebar().show_button(baReslice, !bp_on);
     if (m_plater)
         m_plater->update_ui_from_settings();
     for (auto tab: wxGetApp().tabs_list)
