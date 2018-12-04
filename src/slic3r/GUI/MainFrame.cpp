@@ -323,19 +323,43 @@ void MainFrame::init_menubar()
     {
         size_t tab_offset = 0;
         if (m_plater) {
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+            append_menu_item(windowMenu, wxID_ANY, L("Plater Tab\tCtrl+1"), L("Show the plater"),
+                [this](wxCommandEvent&) { select_tab(0); }, "application_view_tile.png");
+#else
             append_menu_item(windowMenu, wxID_ANY, L("Select Plater Tab\tCtrl+1"), L("Show the plater"),
                 [this](wxCommandEvent&) { select_tab(0); }, "application_view_tile.png");
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
             tab_offset += 1;
         }
         if (tab_offset > 0) {
             windowMenu->AppendSeparator();
         }
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+        append_menu_item(windowMenu, wxID_ANY, L("Print Settings Tab\tCtrl+2"), L("Show the print settings"),
+            [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 0); }, "cog.png");
+        append_menu_item(windowMenu, wxID_ANY, L("Filament Settings Tab\tCtrl+3"), L("Show the filament settings"),
+            [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 1); }, "spool.png");
+        append_menu_item(windowMenu, wxID_ANY, L("Printer Settings Tab\tCtrl+4"), L("Show the printer settings"),
+            [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 2); }, "printer_empty.png");
+        if (m_plater) {
+            windowMenu->AppendSeparator();
+            wxMenuItem* item_3d = append_menu_item(windowMenu, wxID_ANY, L("3D\tCtrl+5"), L("Show the 3D editing view"),
+                [this](wxCommandEvent&) { m_plater->select_view_3D("3D"); }, "");
+            wxMenuItem* item_preview = append_menu_item(windowMenu, wxID_ANY, L("Preview\tCtrl+6"), L("Show the 3D slices preview"),
+                [this](wxCommandEvent&) { m_plater->select_view_3D("Preview"); }, "");
+
+            Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_change_view()); }, item_3d->GetId());
+            Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_change_view()); }, item_preview->GetId());
+        }
+#else
         append_menu_item(windowMenu, wxID_ANY, L("Select Print Settings Tab\tCtrl+2"), L("Show the print settings"),
             [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 0); }, "cog.png");
         append_menu_item(windowMenu, wxID_ANY, L("Select Filament Settings Tab\tCtrl+3"), L("Show the filament settings"),
             [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 1); }, "spool.png");
         append_menu_item(windowMenu, wxID_ANY, L("Select Printer Settings Tab\tCtrl+4"), L("Show the printer settings"),
             [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 2); }, "printer_empty.png");
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
     }
 
     // View menu

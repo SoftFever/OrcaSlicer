@@ -33,6 +33,8 @@
 #define ENABLE_IMGUI (1 && ENABLE_1_42_0)
 // Modified Sla support gizmo
 #define ENABLE_SLA_SUPPORT_GIZMO_MOD (1 && ENABLE_1_42_0)
+// Removes the wxNotebook from plater
+#define ENABLE_REMOVE_TABS_FROM_PLATER (1 && ENABLE_1_42_0)
 
 #endif // _technologies_h_
 

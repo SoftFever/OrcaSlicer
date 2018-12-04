@@ -21,10 +21,56 @@ class DynamicPrintConfig;
 class Print;
 class BackgroundSlicingProcess;
 class GCodePreviewData;
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+class Model;
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
 namespace GUI {
 
 class GLCanvas3D;
+
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+class View3D : public wxPanel
+{
+    wxGLCanvas* m_canvas_widget;
+    GLCanvas3D* m_canvas;
+
+    Model* m_model;
+    DynamicPrintConfig* m_config;
+    BackgroundSlicingProcess* m_process;
+
+public:
+    View3D(wxWindow* parent, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process);
+    virtual ~View3D();
+
+    wxGLCanvas* get_wxglcanvas() { return m_canvas_widget; }
+    GLCanvas3D* get_canvas3d() { return m_canvas; }
+
+    void set_as_dirty();
+    void set_bed_shape(const Pointfs& shape);
+
+    void select_view(const std::string& direction);
+    void select_all();
+    void delete_selected();
+    void mirror_selection(Axis axis);
+
+    void enable_toolbar_item(const std::string& name, bool enable);
+    int check_volumes_outside_state() const;
+
+    bool is_layers_editing_enabled() const;
+    bool is_layers_editing_allowed() const;
+    void enable_layers_editing(bool enable);
+
+    bool is_dragging() const;
+    bool is_reload_delayed() const;
+
+    void reload_scene(bool refresh_immediately, bool force_full_scene_refresh = false);
+    void render();
+
+private:
+    bool init(wxWindow* parent, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process);
+};
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
 class Preview : public wxPanel
 {
@@ -57,7 +103,11 @@ class Preview : public wxPanel
     PrusaDoubleSlider* m_slider {nullptr};
 
 public:
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    Preview(wxWindow* parent, DynamicPrintConfig* config, BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, std::function<void()> schedule_background_process = [](){});
+#else
     Preview(wxNotebook* notebook, DynamicPrintConfig* config, BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, std::function<void()> schedule_background_process = [](){});
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
     virtual ~Preview();
 
     wxGLCanvas* get_wxglcanvas() { return m_canvas_widget; }
@@ -77,7 +127,11 @@ public:
     void refresh_print();
 
 private:
-	bool init(wxNotebook* notebook, DynamicPrintConfig* config, BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data);
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    bool init(wxWindow* parent, DynamicPrintConfig* config, BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data);
+#else
+    bool init(wxNotebook* notebook, DynamicPrintConfig* config, BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data);
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
     void bind_event_handlers();
     void unbind_event_handlers();

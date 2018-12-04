@@ -3557,12 +3557,21 @@ void GLCanvas3D::reset_volumes()
     _reset_warning_texture();
 }
 
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+int GLCanvas3D::check_volumes_outside_state() const
+{
+    ModelInstance::EPrintVolumeState state;
+    m_volumes.check_outside_state(m_config, &state);
+    return (int)state;
+}
+#else
 int GLCanvas3D::check_volumes_outside_state(const DynamicPrintConfig* config) const
 {
     ModelInstance::EPrintVolumeState state;
     m_volumes.check_outside_state(config, &state);
     return (int)state;
 }
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
 void GLCanvas3D::set_config(DynamicPrintConfig* config)
 {

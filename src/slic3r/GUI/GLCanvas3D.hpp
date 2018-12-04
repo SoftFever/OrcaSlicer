@@ -802,7 +802,11 @@ public:
 
     unsigned int get_volumes_count() const;
     void reset_volumes();
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    int check_volumes_outside_state() const;
+#else
     int check_volumes_outside_state(const DynamicPrintConfig* config) const;
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
     void set_config(DynamicPrintConfig* config);
     void set_process(BackgroundSlicingProcess* process);

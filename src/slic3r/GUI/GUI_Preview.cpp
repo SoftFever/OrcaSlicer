@@ -27,8 +27,153 @@
 namespace Slic3r {
 namespace GUI {
 
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    View3D::View3D(wxWindow* parent, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)
+    : m_canvas_widget(nullptr)
+    , m_canvas(nullptr)
+    , m_model(nullptr)
+    , m_config(nullptr)
+    , m_process(nullptr)
+{
+    init(parent, model, config, process);
+}
 
+View3D::~View3D()
+{
+    if (m_canvas_widget != nullptr)
+    {
+        _3DScene::remove_canvas(m_canvas_widget);
+        delete m_canvas_widget;
+        m_canvas = nullptr;
+    }
+}
+
+bool View3D::init(wxWindow* parent, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)
+{
+    if (!Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize))
+        return false;
+
+    m_canvas_widget = GLCanvas3DManager::create_wxglcanvas(this);
+    _3DScene::add_canvas(m_canvas_widget);
+    m_canvas = _3DScene::get_canvas(this->m_canvas_widget);
+
+    m_canvas->allow_multisample(GLCanvas3DManager::can_multisample());
+    // XXX: If have OpenGL
+    m_canvas->enable_picking(true);
+    m_canvas->enable_moving(true);
+    // XXX: more config from 3D.pm
+    m_canvas->set_model(model);
+    m_canvas->set_process(process);
+    m_canvas->set_config(config);
+    m_canvas->enable_gizmos(true);
+    m_canvas->enable_toolbar(true);
+    m_canvas->enable_shader(true);
+    m_canvas->enable_force_zoom_to_bed(true);
+
+    wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
+    main_sizer->Add(m_canvas_widget, 1, wxALL | wxEXPAND, 0);
+
+    SetSizer(main_sizer);
+    SetMinSize(GetSize());
+    GetSizer()->SetSizeHints(this);
+
+    return true;
+}
+
+void View3D::set_as_dirty()
+{
+    if (m_canvas != nullptr)
+        m_canvas->set_as_dirty();
+}
+
+void View3D::set_bed_shape(const Pointfs& shape)
+{
+    if (m_canvas != nullptr)
+    {
+        m_canvas->set_bed_shape(shape);
+        m_canvas->zoom_to_bed();
+    }
+}
+
+void View3D::select_view(const std::string& direction)
+{
+    if (m_canvas != nullptr)
+        m_canvas->select_view(direction);
+}
+
+void View3D::select_all()
+{
+    if (m_canvas != nullptr)
+        m_canvas->select_all();
+}
+
+void View3D::delete_selected()
+{
+    if (m_canvas != nullptr)
+        m_canvas->delete_selected();
+}
+
+void View3D::mirror_selection(Axis axis)
+{
+    if (m_canvas != nullptr)
+        m_canvas->mirror_selection(axis);
+}
+
+void View3D::enable_toolbar_item(const std::string& name, bool enable)
+{
+    if (m_canvas != nullptr)
+        m_canvas->enable_toolbar_item(name, enable);
+}
+
+int View3D::check_volumes_outside_state() const
+{
+    return (m_canvas != nullptr) ? m_canvas->check_volumes_outside_state() : false;
+}
+
+bool View3D::is_layers_editing_enabled() const
+{
+    return (m_canvas != nullptr) ? m_canvas->is_layers_editing_enabled() : false;
+}
+
+bool View3D::is_layers_editing_allowed() const
+{
+    return (m_canvas != nullptr) ? m_canvas->is_layers_editing_allowed() : false;
+}
+
+void View3D::enable_layers_editing(bool enable)
+{
+    if (m_canvas != nullptr)
+        m_canvas->enable_layers_editing(enable);
+}
+
+bool View3D::is_dragging() const
+{
+    return (m_canvas != nullptr) ? m_canvas->is_dragging() : false;
+}
+
+bool View3D::is_reload_delayed() const
+{
+    return (m_canvas != nullptr) ? m_canvas->is_reload_delayed() : false;
+}
+
+void View3D::reload_scene(bool refresh_immediately, bool force_full_scene_refresh)
+{
+    if (m_canvas != nullptr)
+        m_canvas->reload_scene(refresh_immediately, force_full_scene_refresh);
+}
+
+void View3D::render()
+{
+    if (m_canvas != nullptr)
+        m_canvas->render();
+}
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
+
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+Preview::Preview(wxWindow* parent, DynamicPrintConfig* config, BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, std::function<void()> schedule_background_process_func)
+#else
 Preview::Preview(wxNotebook* notebook, DynamicPrintConfig* config, BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, std::function<void()> schedule_background_process_func)
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
     : m_canvas_widget(nullptr)
     , m_canvas(nullptr)
     , m_double_slider_sizer(nullptr)
@@ -50,22 +195,42 @@ Preview::Preview(wxNotebook* notebook, DynamicPrintConfig* config, BackgroundSli
     , m_force_sliders_full_range(false)
     , m_schedule_background_process(schedule_background_process_func)
 {
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    if (init(parent, config, process, gcode_preview_data))
+    {
+        show_hide_ui_elements("none");
+        load_print();
+    }
+#else
     if (init(notebook, config, process, gcode_preview_data))
     {
         notebook->AddPage(this, _(L("Preview")));
         show_hide_ui_elements("none");
         load_print();
     }
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 }
 
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+bool Preview::init(wxWindow* parent, DynamicPrintConfig* config, BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data)
+#else
 bool Preview::init(wxNotebook* notebook, DynamicPrintConfig* config, BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data)
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 {
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    if ((config == nullptr) || (process == nullptr) || (gcode_preview_data == nullptr))
+        return false;
+
+    if (!Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize))
+        return false;
+#else
     if ((notebook == nullptr) || (config == nullptr) || (process == nullptr) || (gcode_preview_data == nullptr))
         return false;
 
     // creates this panel add append it to the given notebook as a new page
     if (!Create(notebook, wxID_ANY, wxDefaultPosition, wxDefaultSize))
         return false;
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
     m_canvas_widget = GLCanvas3DManager::create_wxglcanvas(this);
 	_3DScene::add_canvas(m_canvas_widget);
