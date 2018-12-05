@@ -623,7 +623,7 @@ wxMenu* ObjectList::create_object_popupmenu()
     std::vector<std::string> menu_object_types_items = {L("Add part"),              // ~ModelVolume::MODEL_PART
                                                         L("Add modifier"),          // ~ModelVolume::PARAMETER_MODIFIER
                                                         L("Add support enforcer"),  // ~ModelVolume::SUPPORT_ENFORCER
-                                                        L("Add support bloker") };  // ~ModelVolume::SUPPORT_BLOCKER
+                                                        L("Add support blocker") }; // ~ModelVolume::SUPPORT_BLOCKER
     
     const int obj_types_count = menu_object_types_items.size();
     const int generics_count = 5; // "Load ...", "Box", "Cylinder", "Sphere", "Slab"
