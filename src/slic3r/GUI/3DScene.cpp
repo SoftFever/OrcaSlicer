@@ -280,6 +280,26 @@ void GLVolume::set_render_color()
         set_render_color(color, 4);
 }
 
+void GLVolume::set_color_from_model_volume(const ModelVolume *model_volume)
+{
+    if (model_volume->is_modifier()) {
+        color[0] = 0.2f;
+        color[1] = 1.0f;
+        color[2] = 0.2f;
+    }
+    else if (model_volume->is_support_blocker()) {
+        color[0] = 1.0f;
+        color[1] = 0.2f;
+        color[2] = 0.2f;
+    }
+    else if (model_volume->is_support_enforcer()) {
+        color[0] = 0.2f;
+        color[1] = 0.2f;
+        color[2] = 1.0f;
+    }
+    color[3] = model_volume->is_model_part() ? 1.f : 0.5f;
+}
+
 #if !ENABLE_MODELVOLUME_TRANSFORM
 const Vec3d& GLVolume::get_rotation() const
 {
@@ -767,7 +787,7 @@ int GLVolumeCollection::load_object_volume(
 #endif // ENABLE_MODELVOLUME_TRANSFORM
     float color[4];
     memcpy(color, colors[((color_by == "volume") ? volume_idx : obj_idx) % 4], sizeof(float) * 3);
-    if (model_volume->is_support_blocker()) {
+/*    if (model_volume->is_support_blocker()) {
         color[0] = 1.0f;
         color[1] = 0.2f;
         color[2] = 0.2f;
@@ -776,9 +796,10 @@ int GLVolumeCollection::load_object_volume(
         color[1] = 0.2f;
         color[2] = 1.0f;
     }
-    color[3] = model_volume->is_model_part() ? 1.f : 0.5f;
+    color[3] = model_volume->is_model_part() ? 1.f : 0.5f; */
     this->volumes.emplace_back(new GLVolume(color));
     GLVolume &v = *this->volumes.back();
+    v.set_color_from_model_volume(model_volume);
     if (use_VBOs)
         v.indexed_vertex_array.load_mesh_full_shading(mesh);
     else

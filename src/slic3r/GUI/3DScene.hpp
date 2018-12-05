@@ -358,6 +358,8 @@ public:
     void set_render_color(const float* rgba, unsigned int size);
     // Sets render color in dependence of current state
     void set_render_color();
+    // set color according to model volume
+    void set_color_from_model_volume(const ModelVolume *model_volume);
 
 #if ENABLE_MODELVOLUME_TRANSFORM
     const Geometry::Transformation& get_instance_transformation() const { return m_instance_transformation; }
