@@ -81,6 +81,7 @@ public:
     bool first_intersection(const Line& line, Point* intersection) const;
     
     static Points _douglas_peucker(const Points &points, const double tolerance);
+    static Points visivalingam(const Points& pts, const double& tolerance);
 };
 
 class MultiPoint3
