@@ -1388,8 +1388,9 @@ bool GLCanvas3D::Selection::is_single_full_instance() const
     int instance_idx = (*m_volumes)[*m_list.begin()]->instance_idx();
 
     std::set<int> volumes_idxs;
-    for (const GLVolume* v : *m_volumes)
+    for (unsigned int i : m_list)
     {
+        const GLVolume* v = (*m_volumes)[i];
         int volume_idx = v->volume_idx();
         if ((v->object_idx() == object_idx) && (v->instance_idx() == instance_idx) && (volume_idx >= 0))
             volumes_idxs.insert(volume_idx);
