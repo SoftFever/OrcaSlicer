@@ -1768,6 +1768,8 @@ void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const G
     m_starting_center = Vec3d::Zero();
     m_old_model_object = m_model_object;
     m_model_object = model_object;
+    if (selection.is_empty())
+        m_old_instance_id = -1;
 
     if ((model_object != nullptr) && selection.is_from_single_instance())
     {
@@ -2048,8 +2050,10 @@ void GLGizmoSlaSupports::clicked_on_object(const Vec2d& mouse_position)
     int instance_id = m_parent.get_selection().get_instance_idx();
     if (m_old_instance_id != instance_id)
     {
+        bool something_selected = (m_old_instance_id != -1);
         m_old_instance_id = instance_id;
-        return;
+        if (something_selected)
+            return;
     }
     if (instance_id == -1)
         return;

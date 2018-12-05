@@ -1378,11 +1378,24 @@ bool GLCanvas3D::Selection::is_single_full_instance() const
     if (m_type == SingleFullInstance)
         return true;
 
-    int object_idx = m_valid ? get_object_idx() : -1;
-    if ((0 <= object_idx) && (object_idx < (int)m_model->objects.size()))
-        return m_model->objects[object_idx]->volumes.size() == m_list.size();
+    if (m_list.empty() || m_volumes->empty())
+        return false;
 
-    return false;
+    int object_idx = m_valid ? get_object_idx() : -1;
+    if (object_idx == -1)
+        return false;
+
+    int instance_idx = (*m_volumes)[*m_list.begin()]->instance_idx();
+
+    std::set<int> volumes_idxs;
+    for (const GLVolume* v : *m_volumes)
+    {
+        int volume_idx = v->volume_idx();
+        if ((v->object_idx() == object_idx) && (v->instance_idx() == instance_idx) && (volume_idx >= 0))
+            volumes_idxs.insert(volume_idx);
+    }
+
+    return m_model->objects[object_idx]->volumes.size() == volumes_idxs.size();
 }
 
 bool GLCanvas3D::Selection::is_from_single_object() const
