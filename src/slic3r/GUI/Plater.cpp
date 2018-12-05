@@ -911,7 +911,7 @@ struct Plater::priv
     wxMenuItem* item_sla_autorot = nullptr;
 
     // Data
-    Slic3r::DynamicPrintConfig *config;
+    Slic3r::DynamicPrintConfig *config;        // FIXME: leak?
     Slic3r::Print               fff_print;
 	Slic3r::SLAPrint            sla_print;
     Slic3r::Model               model;
@@ -1007,7 +1007,6 @@ struct Plater::priv
     unsigned int update_background_process();
     void async_apply_config();
     void reload_from_disk();
-    void export_object_stl();
     void fix_through_netfabb(const int obj_idx);
 
 #if ENABLE_REMOVE_TABS_FROM_PLATER
@@ -2088,12 +2087,33 @@ void Plater::priv::update_sla_scene()
 
 void Plater::priv::reload_from_disk()
 {
-    // TODO
-}
+    const auto &selection = get_selection();
+    const auto obj_orig_idx = selection.get_object_idx();
+    if (selection.is_wipe_tower() || obj_orig_idx == -1) { return; }
 
-void Plater::priv::export_object_stl()
-{
-    // TODO
+    auto *object_orig = model.objects[obj_orig_idx];
+    std::vector<fs::path> input_paths(1, object_orig->input_file);
+
+    const auto new_idxs = load_files(input_paths, true, false);
+
+    for (const auto idx : new_idxs) {
+        ModelObject *object = model.objects[idx];
+
+        object->clear_instances();
+        for (const ModelInstance *instance : object_orig->instances) {
+            object->add_instance(*instance);
+        }
+
+        if (object->volumes.size() == object_orig->volumes.size()) {
+            for (size_t i = 0; i < object->volumes.size(); i++) {
+                object->volumes[i]->config.apply(object_orig->volumes[i]->config);
+            }
+        }
+
+        // XXX: Restore more: layer_height_ranges, layer_height_profile, layer_height_profile_valid (?)
+    }
+
+    remove(obj_orig_idx);
 }
 
 void Plater::priv::fix_through_netfabb(const int obj_idx)
@@ -2477,6 +2497,12 @@ bool Plater::priv::init_object_menu()
 
     wxMenuItem* item_split = append_submenu(&object_menu, split_menu, wxID_ANY, _(L("Split")), _(L("Split the selected object")), "shape_ungroup.png");
 
+    append_menu_item(&object_menu, wxID_ANY, _(L("Reload from Disk")), _(L("Reload the selected file from Disk")),
+        [this](wxCommandEvent&) { reload_from_disk(); });
+
+    append_menu_item(&object_menu, wxID_ANY, _(L("Export object as STL…")), _(L("Export this single object as STL file")),
+        [this](wxCommandEvent&) { q->export_stl(true); });
+
     // Add the automatic rotation sub-menu
     item_sla_autorot = append_menu_item(&object_menu, wxID_ANY, _(L("Optimize orientation")), _(L("Optimize the rotation of the object for better print results.")),
                                             [this](wxCommandEvent&) { sla_optimize_rotation(); });
@@ -2845,7 +2871,7 @@ void Plater::export_gcode(fs::path output_path)
     }
 }
 
-void Plater::export_stl()
+void Plater::export_stl(bool selection_only)
 {
     if (p->model.objects.empty()) { return; }
 
@@ -2855,7 +2881,19 @@ void Plater::export_stl()
     // Store a binary STL
     wxString path = dialog->GetPath();
     auto path_cstr = path.c_str();
-    auto mesh = p->model.mesh();
+
+    TriangleMesh mesh;
+    if (selection_only) {
+        const auto &selection = p->get_selection();
+        if (selection.is_wipe_tower()) { return; }
+
+        const auto obj_idx = selection.get_object_idx();
+        if (obj_idx == -1) { return; }
+        mesh = p->model.objects[obj_idx]->mesh();
+    } else {
+        auto mesh = p->model.mesh();
+    }
+
     Slic3r::store_stl(path_cstr, &mesh, true);
     p->statusbar()->set_status_text(wxString::Format(_(L("STL file exported to %s")), path));
 }
