@@ -1030,6 +1030,7 @@ GLCanvas3D::Mouse::Mouse()
     , left_down(false)
     , position(DBL_MAX, DBL_MAX)
     , scene_position(DBL_MAX, DBL_MAX, DBL_MAX)
+    , ignore_up_event(false)
 {
 }
 
@@ -4618,6 +4619,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_toolbar_action_running = true;
         m_toolbar.do_action((unsigned int)toolbar_contains_mouse);
     }
+    else if (evt.LeftDClick() && (m_gizmos.get_current_type() != Gizmos::Undefined))
+    {
+        m_mouse.ignore_up_event = true;
+    }
     else if (evt.LeftDown() || evt.RightDown())
     {
         m_mouse.left_down = evt.LeftDown();
@@ -4817,18 +4822,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             break;
         }
 
-//        if (!volumes.empty())
-//        {
-//          BoundingBoxf3 bb;
-//            for (const GLVolume* volume : volumes)
-//            {
-//                bb.merge(volume->transformed_bounding_box());
-//            }
-//            const Vec3d& size = bb.size();
-//            const Vec3d& scale = m_gizmos.get_scale();
-//            post_event(Vec3dsEvent<2>(EVT_GLCANVAS_UPDATE_GEOMETRY, {size, scale}));
-//        }
-
         m_dirty = true;
     }
     else if (evt.Dragging() && !gizmos_overlay_contains_mouse)
@@ -4904,7 +4897,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         else if (evt.LeftUp() && !m_mouse.dragging && (m_hover_volume_id == -1) && !gizmos_overlay_contains_mouse && !m_gizmos.is_dragging() && !is_layers_editing_enabled())
         {
             // deselect and propagate event through callback
-            if (m_picking_enabled && !m_toolbar_action_running)
+            if (m_picking_enabled && !m_toolbar_action_running && !m_mouse.ignore_up_event)
             {
                 m_selection.clear();
                 m_selection.set_mode(Selection::Instance);
@@ -4912,6 +4905,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
                 _update_gizmos_data();
             }
+            m_mouse.ignore_up_event = false;
         }
         else if (evt.LeftUp() && m_gizmos.is_dragging())
         {
