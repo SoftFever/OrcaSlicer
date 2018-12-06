@@ -854,7 +854,7 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const int 
     new_volume->set_type(static_cast<ModelVolume::Type>(type));
 
 #if ENABLE_MODELVOLUME_TRANSFORM
-    new_volume->set_offset((*m_objects)[obj_idx]->origin_translation + Vec3d(0.0, 0.0, -mesh.stl.stats.min(2)));
+    new_volume->set_offset(Vec3d(0.0, 0.0, (*m_objects)[obj_idx]->origin_translation(2) - mesh.stl.stats.min(2)));
     new_volume->center_geometry();
 #endif // ENABLE_MODELVOLUME_TRANSFORM
 
