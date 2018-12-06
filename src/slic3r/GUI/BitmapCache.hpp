@@ -6,8 +6,8 @@
     #include <wx/wx.h>
 #endif
 
-#include "../../libslic3r/libslic3r.h"
-#include "../../libslic3r/Config.hpp"
+#include "libslic3r/libslic3r.h"
+#include "libslic3r/Config.hpp"
 
 #include "GUI.hpp"
 

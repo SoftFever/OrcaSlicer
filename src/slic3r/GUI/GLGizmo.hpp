@@ -5,8 +5,8 @@
 
 #include "../../slic3r/GUI/GLTexture.hpp"
 #include "../../slic3r/GUI/GLCanvas3D.hpp"
-#include "../../libslic3r/Point.hpp"
-#include "../../libslic3r/BoundingBox.hpp"
+#include "libslic3r/Point.hpp"
+#include "libslic3r/BoundingBox.hpp"
 
 #include <array>
 #include <vector>

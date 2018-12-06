@@ -6,7 +6,7 @@
 
 #include <boost/filesystem.hpp>
 
-#include "../../libslic3r/FileParserError.hpp"
+#include "libslic3r/FileParserError.hpp"
 #include "../Utils/Semver.hpp"
 
 namespace Slic3r { 

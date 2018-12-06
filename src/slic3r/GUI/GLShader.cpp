@@ -2,7 +2,7 @@
 
 #include "GLShader.hpp"
 
-#include "../../libslic3r/Utils.hpp"
+#include "libslic3r/Utils.hpp"
 #include <boost/nowide/fstream.hpp>
 
 #include <string>

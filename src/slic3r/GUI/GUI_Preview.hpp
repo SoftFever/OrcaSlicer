@@ -2,7 +2,7 @@
 #define slic3r_GUI_Preview_hpp_
 
 #include <wx/panel.h>
-#include "../../libslic3r/Point.hpp"
+#include "libslic3r/Point.hpp"
 
 #include <string>
 

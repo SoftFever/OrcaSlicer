@@ -12,10 +12,10 @@
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 
-#include "../../libslic3r/libslic3r.h"
-#include "../../libslic3r/Config.hpp"
-#include "../../libslic3r/FileParserError.hpp"
-#include "../../libslic3r/Utils.hpp"
+#include "libslic3r/libslic3r.h"
+#include "libslic3r/Config.hpp"
+#include "libslic3r/FileParserError.hpp"
+#include "libslic3r/Utils.hpp"
 
 #define SLIC3R_SNAPSHOTS_DIR "snapshots"
 #define SLIC3R_SNAPSHOT_FILE "snapshot.ini"

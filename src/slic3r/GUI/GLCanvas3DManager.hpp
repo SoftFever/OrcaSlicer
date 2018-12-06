@@ -1,7 +1,7 @@
 #ifndef slic3r_GLCanvas3DManager_hpp_
 #define slic3r_GLCanvas3DManager_hpp_
 
-#include "../../libslic3r/BoundingBox.hpp"
+#include "libslic3r/BoundingBox.hpp"
 
 #include <map>
 #include <vector>

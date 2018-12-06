@@ -1,7 +1,8 @@
-#include "../../libslic3r/Point.hpp"
+#include "libslic3r/Point.hpp"
+#include "libslic3r/libslic3r.h"
+
 #include "GLToolbar.hpp"
 
-#include "../../libslic3r/libslic3r.h"
 #include "../../slic3r/GUI/GLCanvas3D.hpp"
 
 #include <GL/glew.h>

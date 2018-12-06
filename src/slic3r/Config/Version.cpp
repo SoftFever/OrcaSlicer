@@ -4,10 +4,10 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/nowide/fstream.hpp>
 
-#include "../../libslic3r/libslic3r.h"
-#include "../../libslic3r/Config.hpp"
-#include "../../libslic3r/FileParserError.hpp"
-#include "../../libslic3r/Utils.hpp"
+#include "libslic3r/libslic3r.h"
+#include "libslic3r/Config.hpp"
+#include "libslic3r/FileParserError.hpp"
+#include "libslic3r/Utils.hpp"
 
 namespace Slic3r { 
 namespace GUI {

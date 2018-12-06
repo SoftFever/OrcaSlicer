@@ -10,7 +10,7 @@
 
 #include <curl/curl.h>
 
-#include "../../libslic3r/libslic3r.h"
+#include "libslic3r/libslic3r.h"
 
 namespace fs = boost::filesystem;
 
