@@ -65,6 +65,8 @@ public:
         { return prints.has_defaults_only() && filaments.has_defaults_only() && printers.has_defaults_only(); }
 
     DynamicPrintConfig          full_config() const;
+    // full_config() with the "printhost_apikey" and "printhost_cafile" removed.
+    DynamicPrintConfig          full_config_secure() const;
 
     // Load user configuration and store it into the user profiles.
     // This method is called by the configuration wizard.

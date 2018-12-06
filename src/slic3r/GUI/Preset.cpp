@@ -565,7 +565,8 @@ static bool profile_print_params_same(const DynamicPrintConfig &cfg1, const Dyna
     for (const char *key : { "compatible_prints", "compatible_prints_condition", 
                              "compatible_printers", "compatible_printers_condition", "inherits", 
                              "print_settings_id", "filament_settings_id", "sla_print_settings_id", "sla_material_settings_id", "printer_settings_id",
-                             "printer_model", "printer_variant", "default_print_profile", "default_filament_profile", "default_sla_print_profile", "default_sla_material_profile" })
+                             "printer_model", "printer_variant", "default_print_profile", "default_filament_profile", "default_sla_print_profile", "default_sla_material_profile",
+                             "printhost_apikey", "printhost_cafile" })
         diff.erase(std::remove(diff.begin(), diff.end(), key), diff.end());
     // Preset with the same name as stored inside the config exists.
     return diff.empty();

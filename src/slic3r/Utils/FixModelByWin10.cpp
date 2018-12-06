@@ -352,7 +352,7 @@ void fix_model_by_win10_sdk_gui(const ModelObject &model_object, const Print &pr
 			Model model;
             DynamicPrintConfig config;
 			model.add_object(model_object);
-			if (! Slic3r::store_3mf(path_src.string().c_str(), &model, &config/*const_cast<Print*>(&print), false*/)) {
+			if (! Slic3r::store_3mf(path_src.string().c_str(), &model, &config)) {
 				boost::filesystem::remove(path_src);
 				throw std::runtime_error(L("Export of a temporary 3mf file failed"));
 			}
@@ -365,7 +365,7 @@ void fix_model_by_win10_sdk_gui(const ModelObject &model_object, const Print &pr
 			boost::filesystem::remove(path_src);
             // PresetBundle bundle;
 			on_progress(L("Loading the repaired model"), 80);
-            bool loaded = Slic3r::load_3mf(path_dst.string().c_str(), &config/*bundle*/, &result);
+            bool loaded = Slic3r::load_3mf(path_dst.string().c_str(), &config, &result);
             result.objects[0]->name = boost::filesystem::path(model_object.name).filename().stem().string() + "_fixed";
 		    boost::filesystem::remove(path_dst);
 			if (! loaded)
