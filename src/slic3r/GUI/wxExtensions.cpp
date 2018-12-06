@@ -16,21 +16,31 @@ wxDEFINE_EVENT(wxCUSTOMEVT_TICKSCHANGED, wxEvent);
 wxDEFINE_EVENT(wxCUSTOMEVT_LAST_VOLUME_IS_DELETED, wxCommandEvent);
 
 wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const wxString& description,
-    std::function<void(wxCommandEvent& event)> cb, const std::string& icon, wxEvtHandler* event_handler)
+    std::function<void(wxCommandEvent& event)> cb, const wxBitmap& icon, wxEvtHandler* event_handler)
 {
     if (id == wxID_ANY)
         id = wxNewId();
 
     wxMenuItem* item = menu->Append(id, string, description);
-    if (!icon.empty())
-        item->SetBitmap(wxBitmap(Slic3r::var(icon), wxBITMAP_TYPE_PNG));
+    item->SetBitmap(icon);
 
-    if (event_handler != nullptr)
+    if (event_handler != nullptr && event_handler != menu)
+#ifdef __WXMSW__
         event_handler->Bind(wxEVT_MENU, cb, id);
+#else
+        menu->Bind(wxEVT_MENU, cb, id);
+#endif
     else
         menu->Bind(wxEVT_MENU, cb, id);
 
     return item;
+}
+
+wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const wxString& description,
+    std::function<void(wxCommandEvent& event)> cb, const std::string& icon, wxEvtHandler* event_handler)
+{
+    const wxBitmap& bmp = !icon.empty() ? wxBitmap(Slic3r::var(icon), wxBITMAP_TYPE_PNG) : wxNullBitmap;
+    return append_menu_item(menu, id, string, description, cb, bmp, event_handler);
 }
 
 wxMenuItem* append_submenu(wxMenu* menu, wxMenu* sub_menu, int id, const wxString& string, const wxString& description, const std::string& icon)

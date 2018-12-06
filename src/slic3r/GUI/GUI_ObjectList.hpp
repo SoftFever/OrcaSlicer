@@ -54,6 +54,8 @@ class ObjectList : public wxDataViewCtrl
 
     DynamicPrintConfig  *m_default_config {nullptr};
 
+    wxWindow            *m_parent {nullptr};
+
     wxBitmap	m_bmp_modifiermesh;
     wxBitmap	m_bmp_solidmesh;
     wxBitmap	m_bmp_support_enforcer;
@@ -61,6 +63,13 @@ class ObjectList : public wxDataViewCtrl
     wxBitmap	m_bmp_manifold_warning;
     wxBitmap	m_bmp_cog;
     wxBitmap	m_bmp_split;
+
+    wxMenu      m_menu_object;
+    wxMenu      m_menu_part;
+    wxMenu      m_menu_sla_object;
+    wxMenuItem* m_menu_item_split { nullptr };
+    wxMenuItem* m_menu_item_split_part { nullptr };
+    wxMenuItem* m_menu_item_settings { nullptr };
 
     std::vector<wxBitmap*> m_bmp_vector;
 
@@ -109,13 +118,14 @@ public:
     void                on_drop_possible(wxDataViewEvent &event);
     void                on_drop(wxDataViewEvent &event);
 
-    void                get_settings_choice(wxMenu *menu, int id, bool is_part);
-    void                menu_item_add_generic(wxMenuItem* &menu, int id, const int type);
-    wxMenuItem*         menu_item_split(wxMenu* menu, int id);
-    wxMenuItem*         menu_item_settings(wxMenu* menu, int id, const bool is_part);
-    wxMenu*             create_object_popupmenu();
-    wxMenu*             create_part_popupmenu();
-    wxMenu*             create_settings_popupmenu(bool is_part);
+    void                get_settings_choice(const wxString& cat_name, const bool is_part);
+    void                menu_item_add_generic(wxMenuItem* &menu, const int type);
+    wxMenuItem*         menu_item_split(wxMenu* menu);
+    wxMenuItem*         menu_item_settings(wxMenu* menu, const bool is_part, const bool is_sla_menu);
+    void                create_object_popupmenu(wxMenu *menu);
+    void                create_sla_object_popupmenu(wxMenu *menu);
+    void                create_part_popupmenu(wxMenu *menu);
+    wxMenu*             create_settings_popupmenu(wxMenu *parent_menu, bool is_part, const bool is_sla_menu);
 
     void                update_opt_keys(t_config_option_keys& t_optopt_keys);
 
@@ -127,9 +137,9 @@ public:
     void                del_settings_from_config();
     void                del_instances_from_object(const int obj_idx);
     bool                del_subobject_from_object(const int obj_idx, const int idx, const int type);
-    void                split(const bool split_part);
-    bool                get_volume_by_item(const bool split_part, const wxDataViewItem& item, ModelVolume*& volume);
-    bool                is_splittable_object(const bool split_part);
+    void                split();
+    bool                get_volume_by_item(const wxDataViewItem& item, ModelVolume*& volume);
+    bool                is_splittable();
 
     wxPoint             get_mouse_position_in_control();
     wxBoxSizer*         get_sizer() {return  m_sizer;}
