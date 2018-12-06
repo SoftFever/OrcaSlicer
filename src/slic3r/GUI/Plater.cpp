@@ -2112,14 +2112,20 @@ void Plater::priv::set_current_panel(wxPanel* panel)
         return;
 
     current_panel = panel;
+    // to reduce flickering when changing view, first set as visible the new current panel
     for (wxPanel* p : panels)
     {
-        p->Show(p == current_panel);
+        if (p == current_panel)
+            p->Show();
+    }
+    // then set to invisible the other
+    for (wxPanel* p : panels)
+    {
+        if (p != current_panel)
+            p->Hide();
     }
 
-    q->Freeze();
     panel_sizer->Layout();
-    q->Thaw();
 
     if (current_panel == view3D)
     {
@@ -2479,7 +2485,7 @@ bool Plater::priv::init_object_menu()
 #if ENABLE_REMOVE_TABS_FROM_PLATER
 void Plater::priv::init_view_toolbar()
 {
-    if (!view_toolbar.init("view_toolbar.png", 36, 1, 1))
+    if (!view_toolbar.init("view_toolbar.png", 64, 0, 0))
         return;
 
     GLRadioToolbarItem::Data item;
