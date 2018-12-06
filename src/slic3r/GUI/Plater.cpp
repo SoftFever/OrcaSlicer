@@ -1046,6 +1046,7 @@ private:
     bool can_arrange() const;
     bool can_mirror() const;
 
+    void update_fff_scene();
     void update_sla_scene();
 };
 
@@ -1961,7 +1962,7 @@ unsigned int Plater::priv::update_background_process()
     // bitmap of enum UpdateBackgroundProcessReturnState
     unsigned int return_state = 0;
 
-    // If the async_apply_config() was not called by the timer, kill the timer, so the async_apply_config()
+    // If the update_background_process() was not called by the timer, kill the timer, so the async_apply_config()
     // will not be called again in vain.
     this->background_process_timer.Stop();
     // Update the "out of print bed" state of ModelInstances.
@@ -1992,11 +1993,8 @@ unsigned int Plater::priv::update_background_process()
                 // but the G-code paths are calculated first once the preview is made visible.
                 this->preview->reload_print();
             // We also need to reload 3D scene because of the wipe tower preview box
-            if (this->config->opt_bool("wipe_tower")) {
-    //            std::vector<int> selections = this->collect_selections();
-    //            this->canvas3D->set_objects_selections(selections);
+            if (this->config->opt_bool("wipe_tower"))
                 return_state |= UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE;
-            }
             break;
         case ptSLA:
             return_state |= UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE;
@@ -2044,6 +2042,18 @@ void Plater::priv::async_apply_config()
                 this->background_process.stop();
             });
     }
+}
+
+void Plater::priv::update_fff_scene()
+{
+    if (this->preview != nullptr)
+        this->preview->reload_print();
+    // In case this was MM print, wipe tower bounding box on 3D tab might need redrawing with exact depth:
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+	view3D->reload_scene(true);
+#else
+	this->canvas3D->reload_scene(true);
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 }
 
 void Plater::priv::update_sla_scene()
@@ -2227,8 +2237,7 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
     if (evt.status.flags & PrintBase::SlicingStatus::RELOAD_SCENE) {
         switch (this->printer_technology) {
         case ptFFF:
-            if (this->preview != nullptr)
-                this->preview->reload_print();
+            this->update_fff_scene();
             break;
         case ptSLA:
 #if ENABLE_REMOVE_TABS_FROM_PLATER
@@ -2248,12 +2257,7 @@ void Plater::priv::on_slicing_completed(wxCommandEvent &)
 {
     switch (this->printer_technology) {
     case ptFFF:
-        if (this->preview != nullptr)
-            this->preview->reload_print();
-        // in case this was MM print, wipe tower bounding box on 3D tab might need redrawing with exact depth:
-    //    auto selections = collect_selections();
-    //    this->canvas3D->set_objects_selections(selections);
-    //    this->canvas3D->reload_scene(true);
+        this->update_fff_scene();
         break;
     case ptSLA:
 #if ENABLE_REMOVE_TABS_FROM_PLATER
@@ -2300,8 +2304,7 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
     // refresh preview
     switch (this->printer_technology) {
     case ptFFF:
-        if (this->preview != nullptr)
-            this->preview->reload_print();
+        this->update_fff_scene();
         break;
     case ptSLA:
 #if ENABLE_REMOVE_TABS_FROM_PLATER
@@ -2959,8 +2962,9 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             if (p->preview) p->preview->set_bed_shape(p->config->option<ConfigOptionPoints>(opt_key)->values);
             update_scheduled = true;
         } 
-        else if(opt_key == "wipe_tower" /*|| opt_key == "filament_minimal_purge_on_wipe_tower"*/ || // ? #ys_FIXME
-                opt_key == "single_extruder_multi_material") {
+        else if (boost::starts_with(opt_key, "wipe_tower") ||
+            // opt_key == "filament_minimal_purge_on_wipe_tower" // ? #ys_FIXME
+            opt_key == "single_extruder_multi_material") {
             update_scheduled = true;
         } 
 //         else if(opt_key == "serial_port") {
