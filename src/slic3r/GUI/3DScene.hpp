@@ -9,9 +9,6 @@
 #include "libslic3r/Model.hpp"
 #include "slic3r/GUI/GLCanvas3DManager.hpp"
 
-class wxBitmap;
-class wxWindow;
-
 namespace Slic3r {
 
 class Print;

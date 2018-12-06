@@ -123,8 +123,8 @@ bool GUI_App::OnInit()
 
     // application frame
     std::cerr << "Creating main frame..." << std::endl;
-    //     wxImage::FindHandlerType(wxBITMAP_TYPE_PNG) ||
-    wxImage::AddHandler(new wxPNGHandler());
+    if (wxImage::FindHandler(wxBITMAP_TYPE_PNG) == nullptr)
+        wxImage::AddHandler(new wxPNGHandler());
     mainframe = new MainFrame(no_plater, false);
     sidebar().obj_list()->init_objects(); // propagate model objects to object list
     update_mode();

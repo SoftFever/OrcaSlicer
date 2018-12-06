@@ -2852,7 +2852,7 @@ void Plater::export_amf()
     wxString path = dialog->GetPath();
     auto path_cstr = path.c_str();
 
-	DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config();
+	DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config_secure();
 	if (Slic3r::store_amf(path_cstr, &p->model, dialog->get_checkbox_value() ? &cfg : nullptr)) {
         // Success
         p->statusbar()->set_status_text(wxString::Format(_(L("AMF file exported to %s")), path));
@@ -2881,7 +2881,7 @@ void Plater::export_3mf(const boost::filesystem::path& output_path)
     if (!path.Lower().EndsWith(".3mf"))
         return;
 
-	DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config();
+	DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config_secure();
     if (Slic3r::store_3mf(path.c_str(), &p->model, export_config ? &cfg : nullptr)) {
         // Success
         p->statusbar()->set_status_text(wxString::Format(_(L("3MF file exported to %s")), path));

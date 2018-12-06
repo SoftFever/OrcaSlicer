@@ -12,17 +12,12 @@
 #include "Plater.hpp"
 #include "Event.hpp"
 
-class wxMenuBar;
 class wxNotebook;
-class wxPanel;
-class wxMenu;
 class wxProgressDialog;
 
 namespace Slic3r {
 
 class ProgressStatusBar;
-
-// #define _(s)    Slic3r::GUI::I18N::translate((s))
 
 namespace GUI
 {

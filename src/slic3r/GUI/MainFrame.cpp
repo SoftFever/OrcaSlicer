@@ -262,6 +262,7 @@ void MainFrame::init_menubar()
 
         fileMenu->AppendSeparator();
 
+#if 0
         m_menu_item_repeat = nullptr;
         append_menu_item(fileMenu, wxID_ANY, _(L("Quick Slice…\tCtrl+U")), _(L("Slice a file into a G-code")),
             [this](wxCommandEvent&) {
@@ -282,6 +283,7 @@ void MainFrame::init_menubar()
             }); }, "cog_go.png");
         m_menu_item_repeat->Enable(false);
         fileMenu->AppendSeparator();
+#endif
         m_menu_item_reslice_now = append_menu_item(fileMenu, wxID_ANY, _(L("(Re)Slice Now\tCtrl+R")), _(L("Start new slicing process")),
             [this](wxCommandEvent&) { reslice_now(); }, "shape_handles.png");
         fileMenu->AppendSeparator();
