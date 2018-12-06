@@ -931,6 +931,7 @@ struct Plater::priv
     Sidebar *sidebar;
 #if ENABLE_REMOVE_TABS_FROM_PLATER
     View3D* view3D;
+    GLRadioToolbar view_toolbar;
 #else
 #if !ENABLE_IMGUI
     wxPanel *panel3d;
@@ -1031,6 +1032,9 @@ struct Plater::priv
 
 private:
     bool init_object_menu();
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    void init_view_toolbar();
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
     bool can_delete_object() const;
     bool can_increase_instances() const;
@@ -1201,6 +1205,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     view3D_canvas->Bind(EVT_GLTOOLBAR_SPLIT_OBJECTS, &priv::on_action_split_objects, this);
     view3D_canvas->Bind(EVT_GLTOOLBAR_SPLIT_VOLUMES, &priv::on_action_split_volumes, this);
     view3D_canvas->Bind(EVT_GLTOOLBAR_LAYERSEDITING, &priv::on_action_layersediting, this);
+    view3D_canvas->Bind(EVT_GLCANVAS_INIT, [this](SimpleEvent&) { init_view_toolbar(); });
 #else
     // 3DScene events:
     canvas3Dwidget->Bind(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, [this](SimpleEvent&) { this->schedule_background_process(); });
@@ -1230,9 +1235,16 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
     // Preview events:
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_VIEWPORT_CHANGED, &priv::on_viewport_changed, this);
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    view3D_canvas->Bind(EVT_GLCANVAS_INIT, [this](SimpleEvent&) { init_view_toolbar(); });
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
     q->Bind(EVT_SLICING_COMPLETED, &priv::on_slicing_completed, this);
     q->Bind(EVT_PROCESS_COMPLETED, &priv::on_process_completed, this);
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    q->Bind(EVT_GLVIEWTOOLBAR_3D, [q](SimpleEvent&) { q->select_view_3D("3D"); });
+    q->Bind(EVT_GLVIEWTOOLBAR_PREVIEW, [q](SimpleEvent&) { q->select_view_3D("Preview"); });
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
     // Drop target:
     q->SetDropTarget(new PlaterDropTarget(q));   // if my understanding is right, wxWindow takes the owenership
@@ -2461,6 +2473,35 @@ bool Plater::priv::init_object_menu()
 
     return true;
 }
+
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+void Plater::priv::init_view_toolbar()
+{
+    if (!view_toolbar.init("view_toolbar.png", 36, 1, 1))
+        return;
+
+    GLRadioToolbarItem::Data item;
+
+    item.name = "3d";
+    item.tooltip = GUI::L_str("3D editor view");
+    item.sprite_id = 0;
+    item.action_event = EVT_GLVIEWTOOLBAR_3D;
+    if (!view_toolbar.add_item(item))
+        return;
+
+    item.name = "preview";
+    item.tooltip = GUI::L_str("Preview");
+    item.sprite_id = 1;
+    item.action_event = EVT_GLVIEWTOOLBAR_PREVIEW;
+    if (!view_toolbar.add_item(item))
+        return;
+
+    view3D->set_view_toolbar(&view_toolbar);
+    preview->set_view_toolbar(&view_toolbar);
+
+    view_toolbar.set_selection("3d");
+}
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
 bool Plater::priv::can_delete_object() const
 {

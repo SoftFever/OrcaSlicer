@@ -92,6 +92,12 @@ bool View3D::init(wxWindow* parent, Model* model, DynamicPrintConfig* config, Ba
     return true;
 }
 
+void View3D::set_view_toolbar(GLRadioToolbar* toolbar)
+{
+    if (m_canvas != nullptr)
+        m_canvas->set_view_toolbar(toolbar);
+}
+
 void View3D::set_as_dirty()
 {
     if (m_canvas != nullptr)
@@ -357,6 +363,14 @@ Preview::~Preview()
         m_canvas = nullptr;
     }
 }
+
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+void Preview::set_view_toolbar(GLRadioToolbar* toolbar)
+{
+    if (m_canvas != nullptr)
+        m_canvas->set_view_toolbar(toolbar);
+}
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
 void Preview::set_number_extruders(unsigned int number_extruders)
 {

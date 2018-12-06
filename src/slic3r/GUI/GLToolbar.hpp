@@ -26,6 +26,9 @@ wxDECLARE_EVENT(EVT_GLTOOLBAR_SPLIT_OBJECTS, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLTOOLBAR_SPLIT_VOLUMES, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLTOOLBAR_LAYERSEDITING, SimpleEvent);
 
+wxDECLARE_EVENT(EVT_GLVIEWTOOLBAR_3D, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLVIEWTOOLBAR_PREVIEW, SimpleEvent);
+
 class GLToolbarItem
 {
 public:
@@ -86,25 +89,25 @@ private:
     GLTexture::Quad_UVs get_uvs(unsigned int texture_size, unsigned int border_size, unsigned int icon_size, unsigned int gap_size) const;
 };
 
+// items icon textures are assumed to be square and all with the same size in pixels, no internal check is done
+// icons are layed-out into the texture starting from the top-left corner in the same order as enum GLToolbarItem::EState
+// from left to right
+struct ItemsIconsTexture
+{
+    GLTexture texture;
+    // size of the square icons, in pixels
+    unsigned int items_icon_size;
+    // distance from the border, in pixels
+    unsigned int items_icon_border_size;
+    // distance between two adjacent icons (to avoid filtering artifacts), in pixels
+    unsigned int items_icon_gap_size;
+
+    ItemsIconsTexture();
+};
+
 class GLToolbar
 {
 public:
-    // items icon textures are assumed to be square and all with the same size in pixels, no internal check is done
-    // icons are layed-out into the texture starting from the top-left corner in the same order as enum GLToolbarItem::EState
-    // from left to right
-    struct ItemsIconsTexture
-    {
-        GLTexture texture;
-        // size of the square icons, in pixels
-        unsigned int items_icon_size;
-        // distance from the border, in pixels
-        unsigned int items_icon_border_size;
-        // distance between two adjacent icons (to avoid filtering artifacts), in pixels
-        unsigned int items_icon_gap_size;
-
-        ItemsIconsTexture();
-    };
-
     struct Layout
     {
         enum Type : unsigned char
@@ -160,7 +163,11 @@ public:
 
     bool is_item_pressed(const std::string& name) const;
 
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    std::string update_hover_state(const Vec2d& mouse_pos);
+#else
     void update_hover_state(const Vec2d& mouse_pos);
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
     // returns the id of the item under the given mouse position or -1 if none
     int contains_mouse(const Vec2d& mouse_pos) const;
@@ -175,13 +182,97 @@ private:
     float get_height_horizontal() const;
     float get_height_vertical() const;
     float get_main_size() const;
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    std::string update_hover_state_horizontal(const Vec2d& mouse_pos);
+    std::string update_hover_state_vertical(const Vec2d& mouse_pos);
+#else
     void update_hover_state_horizontal(const Vec2d& mouse_pos);
     void update_hover_state_vertical(const Vec2d& mouse_pos);
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
     int contains_mouse_horizontal(const Vec2d& mouse_pos) const;
     int contains_mouse_vertical(const Vec2d& mouse_pos) const;
 
     void render_horizontal() const;
     void render_vertical() const;
+};
+
+class GLRadioToolbarItem
+{
+public:
+    struct Data
+    {
+        std::string name;
+        std::string tooltip;
+        unsigned int sprite_id;
+        wxEventType action_event;
+
+        Data();
+    };
+
+    enum EState : unsigned char
+    {
+        Normal,
+        Pressed,
+        Hover,
+        HoverPressed,
+        Num_States
+    };
+
+private:
+    EState m_state;
+    Data m_data;
+
+public:
+    GLRadioToolbarItem(const Data& data);
+
+    EState get_state() const;
+    void set_state(EState state);
+
+    const std::string& get_name() const;
+    const std::string& get_tooltip() const;
+
+    bool is_hovered() const;
+    bool is_pressed() const;
+
+    void do_action(wxEvtHandler *target);
+
+    void render(unsigned int tex_id, float left, float right, float bottom, float top, unsigned int texture_size, unsigned int border_size, unsigned int icon_size, unsigned int gap_size) const;
+
+private:
+    GLTexture::Quad_UVs get_uvs(unsigned int texture_size, unsigned int border_size, unsigned int icon_size, unsigned int gap_size) const;
+};
+
+class GLRadioToolbar
+{
+    typedef std::vector<GLRadioToolbarItem*> ItemsList;
+
+    ItemsIconsTexture m_icons_texture;
+
+    ItemsList m_items;
+    float m_top;
+    float m_left;
+
+public:
+    GLRadioToolbar();
+    ~GLRadioToolbar();
+
+    bool init(const std::string& icons_texture_filename, unsigned int items_icon_size, unsigned int items_icon_border_size, unsigned int items_icon_gap_size);
+
+    bool add_item(const GLRadioToolbarItem::Data& data);
+
+    float get_height() const;
+
+    void set_position(float top, float left);
+    void set_selection(const std::string& name);
+
+    // returns the id of the item under the given mouse position or -1 if none
+    int contains_mouse(const Vec2d& mouse_pos, const GLCanvas3D& parent) const;
+
+    std::string update_hover_state(const Vec2d& mouse_pos, const GLCanvas3D& parent);
+
+    void do_action(unsigned int item_id, GLCanvas3D& parent);
+
+    void render(const GLCanvas3D& parent) const;
 };
 
 } // namespace GUI

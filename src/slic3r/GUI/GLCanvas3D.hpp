@@ -94,6 +94,9 @@ template <size_t N> using Vec2dsEvent = ArrayEvent<Vec2d, N>;
 using Vec3dEvent = Event<Vec3d>;
 template <size_t N> using Vec3dsEvent = ArrayEvent<Vec3d, N>;
 
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+wxDECLARE_EVENT(EVT_GLCANVAS_INIT, SimpleEvent);
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 wxDECLARE_EVENT(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_VIEWPORT_CHANGED, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_RIGHT_CLICK, Vec2dEvent);
@@ -737,6 +740,9 @@ private:
     Mouse m_mouse;
     mutable Gizmos m_gizmos;
     mutable GLToolbar m_toolbar;
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    GLRadioToolbar* m_view_toolbar;
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
     ClippingPlane m_clipping_planes[2];
     bool m_use_clipping_planes;
     mutable SlaCap m_sla_caps[2];
@@ -786,6 +792,10 @@ public:
 #endif // ENABLE_USE_UNIQUE_GLCONTEXT
 
     wxGLCanvas* get_wxglcanvas() { return m_canvas; }
+
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    void set_view_toolbar(GLRadioToolbar* toolbar) { m_view_toolbar = toolbar; }
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
     bool init(bool useVBOs, bool use_legacy_opengl);
     void post_event(wxEvent &&event);
@@ -958,6 +968,9 @@ private:
     void _render_current_gizmo() const;
     void _render_gizmos_overlay() const;
     void _render_toolbar() const;
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    void _render_view_toolbar() const;
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 #if ENABLE_SHOW_CAMERA_TARGET
     void _render_camera_target() const;
 #endif // ENABLE_SHOW_CAMERA_TARGET
@@ -1021,7 +1034,11 @@ private:
 
     bool _is_any_volume_outside() const;
 
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    void _resize_toolbars() const;
+#else
     void _resize_toolbar() const;
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
     static std::vector<float> _parse_colors(const std::vector<std::string>& colors);
 
