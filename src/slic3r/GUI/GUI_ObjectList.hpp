@@ -1,15 +1,18 @@
 #ifndef slic3r_GUI_ObjectList_hpp_
 #define slic3r_GUI_ObjectList_hpp_
 
-#include <wx/bitmap.h>
-#include <wx/dataview.h>
 #include <map>
 #include <vector>
+
+#include <wx/bitmap.h>
+#include <wx/dataview.h>
+#include <wx/menu.h>
 
 #include "Event.hpp"
 #include "wxExtensions.hpp"
 
 class wxBoxSizer;
+class wxMenuItem;
 class PrusaObjectDataViewModel;
 
 namespace Slic3r {
