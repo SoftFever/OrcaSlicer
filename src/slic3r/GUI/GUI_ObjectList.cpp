@@ -22,7 +22,8 @@ namespace GUI
 wxDEFINE_EVENT(EVT_OBJ_LIST_OBJECT_SELECT, SimpleEvent);
 
 ObjectList::ObjectList(wxWindow* parent) :
-    wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxDV_MULTIPLE)
+    wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxDV_MULTIPLE),
+    m_parent(parent)
 {
     // Fill CATEGORY_ICON
     {
@@ -45,6 +46,11 @@ ObjectList::ObjectList(wxWindow* parent) :
     create_objects_ctrl();
 
     init_icons();
+
+    // create popup menus for object and part
+    create_object_popupmenu(&m_menu_object);
+    create_part_popupmenu(&m_menu_part);
+    create_sla_object_popupmenu(&m_menu_sla_object);
 
     // describe control behavior 
     Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [this](wxEvent& event) {
@@ -79,11 +85,7 @@ ObjectList::ObjectList(wxWindow* parent) :
 
     Bind(wxCUSTOMEVT_LAST_VOLUME_IS_DELETED, [this](wxCommandEvent& e)   {last_volume_is_deleted(e.GetInt()); });
 
-//     Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED,     &ObjectList::OnValueChanged,    this);
-//     Bind(wxEVT_DATAVIEW_ITEM_ACTIVATED,         &ObjectList::OnActivated,       this);
     Bind(wxEVT_DATAVIEW_ITEM_START_EDITING,     &ObjectList::OnStartEditing,    this);
-//     Bind(wxEVT_DATAVIEW_ITEM_EDITING_STARTED,   &ObjectList::OnEditingStarted,  this);
-//     Bind(wxEVT_DATAVIEW_ITEM_EDITING_DONE,      &ObjectList::OnEditingDone,     this
 }
 
 ObjectList::~ObjectList()
@@ -322,10 +324,20 @@ void ObjectList::show_context_menu()
     {
         if (!(m_objects_model->GetItemType(item) & (itObject | itVolume)))
             return;
-        const auto menu = m_objects_model->GetParent(item) == wxDataViewItem(0) ?
-            create_object_popupmenu() :
-            create_part_popupmenu();
-        wxGetApp().tab_panel()->GetPage(0)->PopupMenu(menu);
+        wxMenu* menu = m_objects_model->GetParent(item) != wxDataViewItem(0) ? &m_menu_part :
+                       wxGetApp().plater()->printer_technology() == ptFFF ? &m_menu_object : &m_menu_sla_object;
+
+        wxGetApp().plater()->PopupMenu(menu);
+
+        wxGetApp().plater()->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) {
+            evt.Enable(is_splittable()); }, m_menu_item_split->GetId());
+
+        wxGetApp().plater()->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) {
+            evt.Enable(is_splittable()); }, m_menu_item_split_part->GetId());
+
+        wxGetApp().plater()->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) {
+            evt.Enable(get_selected_model_volume()->type() <= ModelVolume::PARAMETER_MODIFIER); 
+        }, m_menu_item_settings->GetId());
     }
 }
 
@@ -447,9 +459,9 @@ void ObjectList::on_drop(wxDataViewEvent &event)
 
 // Context Menu
 
-std::vector<std::string> get_options(const bool is_part)
+std::vector<std::string> get_options(const bool is_part, const bool is_sla)
 {
-    if (wxGetApp().plater()->printer_technology() == ptSLA) {
+    if (is_sla) {
         SLAPrintObjectConfig full_sla_config;
         auto options = full_sla_config.keys();
         options.erase(find(options.begin(), options.end(), "layer_height"));
@@ -466,11 +478,16 @@ std::vector<std::string> get_options(const bool is_part)
     return options;
 }
 
+std::vector<std::string> get_options(const bool is_part)
+{
+    return get_options(is_part, wxGetApp().plater()->printer_technology() == ptSLA);
+}
+
 //				  category ->		vector 			 ( option	;  label )
 typedef std::map< std::string, std::vector< std::pair<std::string, std::string> > > settings_menu_hierarchy;
-void get_options_menu(settings_menu_hierarchy& settings_menu, bool is_part)
+void get_options_menu(settings_menu_hierarchy& settings_menu, const bool is_part, const bool is_sla)
 {
-    auto options = get_options(is_part);
+    auto options = get_options(is_part, is_sla);
 
     auto extruders_cnt = wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA ? 1 :
         wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
@@ -495,10 +512,13 @@ void get_options_menu(settings_menu_hierarchy& settings_menu, bool is_part)
     }
 }
 
-void ObjectList::get_settings_choice(wxMenu *menu, int id, bool is_part)
+void get_options_menu(settings_menu_hierarchy& settings_menu, const bool is_part)
 {
-    const auto category_name = menu->GetLabel(id);
+    get_options_menu(settings_menu, is_part, wxGetApp().plater()->printer_technology() == ptSLA);
+}
 
+void ObjectList::get_settings_choice(const wxString& category_name, const bool is_part)
+{
     wxArrayString names;
     wxArrayInt selections;
 
@@ -564,168 +584,97 @@ void ObjectList::get_settings_choice(wxMenu *menu, int id, bool is_part)
     }
 }
 
-void ObjectList::menu_item_add_generic(wxMenuItem* &menu, int id, const int type) {
+void ObjectList::menu_item_add_generic(wxMenuItem* &menu, const int type) {
     auto sub_menu = new wxMenu;
 
-    const wxString menu_load = _(L("Load")) +" "+ dots;
-    sub_menu->Append(new wxMenuItem(sub_menu, id++, menu_load));
+    append_menu_item(sub_menu, wxID_ANY, _(L("Load")) + " " + dots, "",
+        [this, type](wxCommandEvent&) { load_subobject(type); }, "", menu->GetMenu());
     sub_menu->AppendSeparator();
 
     std::vector<std::string> menu_items = { L("Box"), L("Cylinder"), L("Sphere"), L("Slab") };
-    for (auto& item : menu_items)
-        sub_menu->Append(new wxMenuItem(sub_menu, id++, _(item)));
-
-#ifndef __WXMSW__
-    sub_menu->Bind(wxEVT_MENU, [sub_menu, type, menu_load, this](wxEvent &event) {
-        auto selection = sub_menu->GetLabel(event.GetId());
-        if (selection == menu_load)
-            load_subobject(type);
-        else
-            load_generic_subobject(selection.ToStdString(), type);
-    });
-#endif //no __WXMSW__
+    for (auto& item : menu_items) {
+        append_menu_item(sub_menu, wxID_ANY, _(item), "",
+            [this, type, item](wxCommandEvent&) { load_generic_subobject(_(item).ToStdString(), type); }, "", menu->GetMenu());
+    }
 
     menu->SetSubMenu(sub_menu);
 }
 
-wxMenuItem* ObjectList::menu_item_split(wxMenu* menu, int id) {
-    auto menu_item = new wxMenuItem(menu, id, _(L("Split to parts")));
-    menu_item->SetBitmap(m_bmp_split);
-    return menu_item;
+wxMenuItem* ObjectList::menu_item_split(wxMenu* menu) {
+    return append_menu_item(menu, wxID_ANY, _(L("Split to parts")), "",
+        [this](wxCommandEvent&) { split(); }, m_bmp_split, menu);
 }
 
-wxMenuItem* ObjectList::menu_item_settings(wxMenu* menu, int id, const bool is_part) {
-    auto  menu_item = new wxMenuItem(menu, id, _(L("Add settings")));
+wxMenuItem* ObjectList::menu_item_settings(wxMenu* menu, const bool is_part, const bool is_sla_menu) {
+    auto  menu_item = new wxMenuItem(menu, wxID_ANY, _(L("Add settings")));
     menu_item->SetBitmap(m_bmp_cog);
 
-    auto sub_menu = create_settings_popupmenu(is_part);
-    menu_item->SetSubMenu(sub_menu);
+    menu_item->SetSubMenu(create_settings_popupmenu(menu, is_part, is_sla_menu));
+
     return menu_item;
 }
 
-wxMenu* ObjectList::create_object_popupmenu()
+void ObjectList::create_object_popupmenu(wxMenu *menu)
 {
-    wxMenu *menu = new wxMenu;
-    if (wxGetApp().plater()->printer_technology() == ptSLA)
-    {
-        wxWindowID config_id_base = NewControlId(1);
-        // Append settings popupmenu
-        menu->Append(menu_item_settings(menu, config_id_base, false));
-
-        menu->Bind(wxEVT_MENU, [menu, this](wxEvent &event) {
-            get_settings_choice(menu, event.GetId(), false);
-        });
-
-        return menu;
-    }
-
     // Note: id accords to type of the sub-object, so sequence of the menu items is important
     std::vector<std::string> menu_object_types_items = {L("Add part"),              // ~ModelVolume::MODEL_PART
                                                         L("Add modifier"),          // ~ModelVolume::PARAMETER_MODIFIER
                                                         L("Add support enforcer"),  // ~ModelVolume::SUPPORT_ENFORCER
                                                         L("Add support blocker") }; // ~ModelVolume::SUPPORT_BLOCKER
     
-    const int obj_types_count = menu_object_types_items.size();
-    const int generics_count = 5; // "Load ...", "Box", "Cylinder", "Sphere", "Slab"
-
-    wxWindowID config_id_base = NewControlId(generics_count*obj_types_count + 2);
-
     // Add first 4 menu items
-    for (int type = 0; type < obj_types_count; type++) {
+    for (int type = 0; type < menu_object_types_items.size(); type++) {
         auto& item = menu_object_types_items[type];
-        auto menu_item = new wxMenuItem(menu, config_id_base + type, _(item));
+        auto menu_item = new wxMenuItem(menu, wxID_ANY, _(item));
         menu_item->SetBitmap(*m_bmp_vector[type]);
-        menu_item_add_generic(menu_item, config_id_base + type*generics_count, type);
+        menu_item_add_generic(menu_item, type);
         menu->Append(menu_item);
     }
 
     // Split object to parts
     menu->AppendSeparator();
-    auto menu_item = menu_item_split(menu, config_id_base + obj_types_count * generics_count);
-    menu->Append(menu_item);
-    menu_item->Enable(is_splittable_object(false));
+    m_menu_item_split = menu_item_split(menu);
 
     // Settings
     menu->AppendSeparator();
     // Append settings popupmenu
-    menu->Append(menu_item_settings(menu, config_id_base + obj_types_count * generics_count+1, false));
-
-    menu->Bind(wxEVT_MENU, [config_id_base, menu, obj_types_count, generics_count, this](wxEvent &event) {
-        auto selection = event.GetId() - config_id_base;
-        
-        if ( selection ==  0 * generics_count ||  // ~ModelVolume::MODEL_PART
-             selection ==  1 * generics_count ||  // ~ModelVolume::PARAMETER_MODIFIER
-             selection ==  2 * generics_count ||  // ~ModelVolume::SUPPORT_ENFORCER
-             selection ==  3 * generics_count  )  // ~ModelVolume::SUPPORT_BLOCKER
-            load_subobject(int(selection / generics_count));
-        else if ( selection == obj_types_count * generics_count)
-            split(false);
-#ifdef __WXMSW__
-        else if ( selection > obj_types_count * generics_count) // "Add Settings" is selected 
-            get_settings_choice(menu, event.GetId(), false);
-        else // Some generic model is selected
-            load_generic_subobject(menu->GetLabel(event.GetId()).ToStdString(), int(selection / generics_count));
-#endif // __WXMSW__
-    });
-
-    return menu;
+    menu->Append(menu_item_settings(menu, false, false));
 }
 
-wxMenu* ObjectList::create_part_popupmenu()
+void ObjectList::create_sla_object_popupmenu(wxMenu *menu)
 {
-    wxMenu *menu = new wxMenu;
-    wxWindowID config_id_base = NewControlId(3);
+    // Append settings popupmenu
+    menu->Append(menu_item_settings(menu, false, true));
+}
 
-    auto menu_item = menu_item_split(menu, config_id_base);
-    menu->Append(menu_item);
-    menu_item->Enable(is_splittable_object(true));
+void ObjectList::create_part_popupmenu(wxMenu *menu)
+{
+    m_menu_item_split_part = menu_item_split(menu);
 
     // Append change part type
     menu->AppendSeparator();
-    menu->Append(new wxMenuItem(menu, config_id_base + 1, _(L("Change type"))));
+    append_menu_item(menu, wxID_ANY, _(L("Change type")), "",
+                    [this](wxCommandEvent&) { change_part_type(); }, "", menu);
 
     // Append settings popupmenu
     menu->AppendSeparator();
-    menu_item = menu_item_settings(menu, config_id_base + 2, true);
-    menu->Append(menu_item);
-    menu_item->Enable(get_selected_model_volume()->type() <= ModelVolume::PARAMETER_MODIFIER);
-
-    menu->Bind(wxEVT_MENU, [config_id_base, menu, this](wxEvent &event) {
-        switch (event.GetId() - config_id_base) {
-        case 0:
-            split(true);
-            break;
-        case 1:
-            change_part_type();
-            break;
-        default:
-            get_settings_choice(menu, event.GetId(), true);
-            break;
-        }
-    });
-
-    return menu;
+    m_menu_item_settings = menu_item_settings(menu, true, false);
+    menu->Append(m_menu_item_settings);
 }
 
-wxMenu* ObjectList::create_settings_popupmenu(bool is_part)
+wxMenu* ObjectList::create_settings_popupmenu(wxMenu *parent_menu, bool is_part, const bool is_sla_menu)
 {
     wxMenu *menu = new wxMenu;
 
     settings_menu_hierarchy settings_menu;
-    get_options_menu(settings_menu, is_part);
+    get_options_menu(settings_menu, is_part, is_sla_menu);
 
-    for (auto cat : settings_menu)
-    {
-        auto menu_item = new wxMenuItem(menu, wxID_ANY, _(cat.first));
-        menu_item->SetBitmap(CATEGORY_ICON.find(cat.first) == CATEGORY_ICON.end() ?
-        wxNullBitmap : CATEGORY_ICON.at(cat.first));
-        menu->Append(menu_item);
+    for (auto cat : settings_menu) {
+        append_menu_item(menu, wxID_ANY, _(cat.first), "",
+                        [menu, this, is_part](wxCommandEvent& event) { get_settings_choice(menu->GetLabel(event.GetId()), is_part); }, 
+                        CATEGORY_ICON.find(cat.first) == CATEGORY_ICON.end() ? wxNullBitmap : CATEGORY_ICON.at(cat.first), parent_menu); 
     }
-#ifndef __WXMSW__
-    menu->Bind(wxEVT_MENU, [this, menu, is_part](wxEvent &event) {
-        get_settings_choice(menu, event.GetId(), is_part);
-    });
-#endif //no __WXMSW__
+
     return menu;
 }
 
@@ -841,7 +790,7 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const int 
     else if (type_name == _("Cylinder"))
         mesh = make_cylinder(0.5*side, side);
     else if (type_name == _("Sphere"))
-        mesh = make_sphere(side, PI/18);
+        mesh = make_sphere(0.5*side, PI/18);
     else if (type_name == _("Slab")) {
         const auto& size = (*m_objects)[obj_idx]->bounding_box().size();
         mesh = make_cube(size(0)*1.5, size(1)*1.5, size(2)*0.5);
@@ -963,7 +912,7 @@ bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, con
     return true;
 }
 
-void ObjectList::split(const bool split_part)
+void ObjectList::split()
 {
     const auto item = GetSelection();
     const int obj_idx = get_selected_obj_idx();
@@ -971,7 +920,7 @@ void ObjectList::split(const bool split_part)
         return;
 
     ModelVolume* volume;
-    if (!get_volume_by_item(split_part, item, volume)) return;
+    if (!get_volume_by_item(item, volume)) return;
     DynamicPrintConfig&	config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
 	const ConfigOption *nozzle_dmtrs_opt = config.option("nozzle_diameter", false);
 	const auto nozzle_dmrs_cnt = (nozzle_dmtrs_opt == nullptr) ? size_t(1) : dynamic_cast<const ConfigOptionFloats*>(nozzle_dmtrs_opt)->values.size();
@@ -1010,12 +959,13 @@ void ObjectList::split(const bool split_part)
     parts_changed(obj_idx);
 }
 
-bool ObjectList::get_volume_by_item(const bool split_part, const wxDataViewItem& item, ModelVolume*& volume)
+bool ObjectList::get_volume_by_item(const wxDataViewItem& item, ModelVolume*& volume)
 {
     auto obj_idx = get_selected_obj_idx();
     if (!item || obj_idx < 0)
         return false;
     const auto volume_id = m_objects_model->GetVolumeIdByItem(item);
+    const bool split_part = m_objects_model->GetItemType(item) == itVolume;
 
     // object is selected
     if (volume_id < 0) {
@@ -1030,13 +980,13 @@ bool ObjectList::get_volume_by_item(const bool split_part, const wxDataViewItem&
     return true;
 }
 
-bool ObjectList::is_splittable_object(const bool split_part)
+bool ObjectList::is_splittable()
 {
     const wxDataViewItem item = GetSelection();
     if (!item) return false;
 
     ModelVolume* volume;
-    if (!get_volume_by_item(split_part, item, volume) || !volume)
+    if (!get_volume_by_item(item, volume) || !volume)
         return false;
 
     TriangleMeshPtrs meshptrs = volume->mesh.split();

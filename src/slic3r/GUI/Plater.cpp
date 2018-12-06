@@ -973,6 +973,7 @@ struct Plater::priv
     const GLCanvas3D::Selection& get_selection() const;
     GLCanvas3D::Selection& get_selection();
     int get_selected_object_idx() const;
+    int get_selected_volume_idx() const;
     void selection_changed();
     void object_list_changed();
 
@@ -1625,6 +1626,18 @@ int Plater::priv::get_selected_object_idx() const
     return ((0 <= idx) && (idx < 1000)) ? idx : -1;
 }
 
+int Plater::priv::get_selected_volume_idx() const
+{
+    auto& selection = get_selection();
+    int idx = selection.get_object_idx();
+    if ((0 > idx) || (idx > 1000)) 
+        return-1;
+    const GLVolume* v = selection.get_volume(*selection.get_volume_idxs().begin());
+    if (model.objects[idx]->volumes.size() > 1)
+        return v->volume_idx();
+    return -1;
+}
+
 void Plater::priv::selection_changed()
 {
 #if ENABLE_REMOVE_TABS_FROM_PLATER
@@ -1937,7 +1950,7 @@ void Plater::priv::split_object()
 
 void Plater::priv::split_volume()
 {
-    wxGetApp().obj_list()->split(false);
+    wxGetApp().obj_list()->split();
 }
 
 void Plater::priv::schedule_background_process()
