@@ -1088,7 +1088,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::finish_layer()
 // Appends a toolchange into m_plan and calculates neccessary depth of the corresponding box
 void WipeTowerPrusaMM::plan_toolchange(float z_par, float layer_height_par, unsigned int old_tool, unsigned int new_tool, bool brim, float wipe_volume)
 {
-	assert(m_plan.back().z <= z_par + WT_EPSILON );	// refuses to add a layer below the last one
+	assert(m_plan.empty() || m_plan.back().z <= z_par + WT_EPSILON);	// refuses to add a layer below the last one
 
 	if (m_plan.empty() || m_plan.back().z + WT_EPSILON < z_par) // if we moved to a new layer, we'll add it to m_plan first
 		m_plan.push_back(WipeTowerInfo(z_par, layer_height_par));

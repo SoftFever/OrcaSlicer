@@ -360,13 +360,27 @@ double Print::max_allowed_layer_height() const
     return nozzle_diameter_max;
 }
 
-static PrintRegionConfig region_config_from_model_volume(const PrintRegionConfig &default_region_config, const ModelVolume &volume)
+static PrintObjectConfig object_config_from_model(const PrintObjectConfig &default_object_config, const ModelObject &object, size_t num_extruders)
+{
+    PrintObjectConfig config = default_object_config;
+    normalize_and_apply_config(config, object.config);
+    // Clamp extruders to the number of extruders this printer is physically equipped with.
+    config.support_material_extruder.value           = std::min(config.support_material_extruder.value,           (int)num_extruders);
+    config.support_material_interface_extruder.value = std::min(config.support_material_interface_extruder.value, (int)num_extruders);
+    return config;
+}
+
+static PrintRegionConfig region_config_from_model_volume(const PrintRegionConfig &default_region_config, const ModelVolume &volume, size_t num_extruders)
 {
     PrintRegionConfig config = default_region_config;
     normalize_and_apply_config(config, volume.get_object()->config);
     normalize_and_apply_config(config, volume.config);
     if (! volume.material_id().empty())
         normalize_and_apply_config(config, volume.material()->config);
+    // Clamp extruders to the number of extruders this printer is physically equipped with.
+    config.infill_extruder.value        = std::min(config.infill_extruder.value,        (int)num_extruders);
+    config.perimeter_extruder.value     = std::min(config.perimeter_extruder.value,     (int)num_extruders);
+    config.solid_infill_extruder.value  = std::min(config.solid_infill_extruder.value,  (int)num_extruders);
     return config;
 }
 
@@ -406,7 +420,7 @@ void Print::add_model_object(ModelObject* model_object, int idx)
         if (! volume->is_model_part() && ! volume->is_modifier())
             continue;
         // Get the config applied to this volume.
-        PrintRegionConfig config = region_config_from_model_volume(m_default_region_config, *volume);
+        PrintRegionConfig config = region_config_from_model_volume(m_default_region_config, *volume, false);
         // Find an existing print region with the same config.
         size_t region_id = size_t(-1);
         for (size_t i = 0; i < m_regions.size(); ++ i)
@@ -479,6 +493,7 @@ bool Print::apply_config(DynamicPrintConfig config)
     // All regions now have distinct settings.
     // Check whether applying the new region config defaults we'd get different regions.
     bool rearrange_regions = false;
+    size_t num_extruders = m_config.nozzle_diameter.size();
     {
         // Collect the already visited region configs into other_region_configs,
         // so one may check for duplicates.
@@ -495,12 +510,12 @@ bool Print::apply_config(DynamicPrintConfig config)
                             // If the new config for this volume differs from the other
                             // volume configs currently associated to this region, it means
                             // the region subdivision does not make sense anymore.
-                            if (! this_region_config.equals(region_config_from_model_volume(m_default_region_config, volume))) {
+                            if (! this_region_config.equals(region_config_from_model_volume(m_default_region_config, volume, num_extruders))) {
                                 rearrange_regions = true;
                                 goto exit_for_rearrange_regions;
                             }
                         } else {
-                            this_region_config = region_config_from_model_volume(m_default_region_config, volume);
+                            this_region_config = region_config_from_model_volume(m_default_region_config, volume, num_extruders);
                             this_region_config_set = true;
                         }
                         for (const PrintRegionConfig &cfg : other_region_configs) {
@@ -849,6 +864,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
         print_object_status.emplace(PrintObjectStatus(print_object));
 
     // 3) Synchronize ModelObjects & PrintObjects.
+    size_t num_extruders = m_config.nozzle_diameter.size();
     for (size_t idx_model_object = 0; idx_model_object < model.objects.size(); ++ idx_model_object) {
         ModelObject &model_object = *m_model.objects[idx_model_object];
         auto it_status = model_object_status.find(ModelObjectStatus(model_object.id()));
@@ -895,8 +911,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
 			if (object_config_changed)
                 model_object.config = model_object_new.config;
             if (! object_diff.empty() || object_config_changed) {
-                PrintObjectConfig new_config = m_default_object_config;
-				normalize_and_apply_config(new_config, model_object.config);
+                PrintObjectConfig new_config = object_config_from_model(m_default_object_config, model_object, num_extruders);
                 auto range = print_object_status.equal_range(PrintObjectStatus(model_object.id()));
                 for (auto it = range.first; it != range.second; ++ it) {
                     t_config_option_keys diff = it->print_object->config().diff(new_config);
@@ -938,8 +953,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
                         old.emplace_back(&(*it));
             }
             // Generate a list of trafos and XY offsets for instances of a ModelObject
-            PrintObjectConfig config = m_default_object_config;
-            normalize_and_apply_config(config, model_object->config);
+            PrintObjectConfig config = object_config_from_model(m_default_object_config, *model_object, num_extruders);
             std::vector<PrintInstances> new_print_instances = print_objects_from_model_object(*model_object);
             if (old.empty()) {
                 // Simple case, just generate new instances.
@@ -1032,11 +1046,11 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
                         // If the new config for this volume differs from the other
                         // volume configs currently associated to this region, it means
                         // the region subdivision does not make sense anymore.
-                        if (! this_region_config.equals(region_config_from_model_volume(m_default_region_config, volume)))
+                        if (! this_region_config.equals(region_config_from_model_volume(m_default_region_config, volume, num_extruders)))
                             // Regions were split. Reset this print_object.
                             goto print_object_end;
                     } else {
-                        this_region_config = region_config_from_model_volume(m_default_region_config, volume);
+                        this_region_config = region_config_from_model_volume(m_default_region_config, volume, num_extruders);
                         for (size_t i = 0; i < region_id; ++ i)
                             if (m_regions[i]->config().equals(this_region_config))
                                 // Regions were merged. Reset this print_object.
@@ -1083,7 +1097,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
                 int region_id = -1;
                 if (&print_object == &print_object0) {
                     // Get the config applied to this volume.
-                    PrintRegionConfig config = region_config_from_model_volume(m_default_region_config, *volume);
+                    PrintRegionConfig config = region_config_from_model_volume(m_default_region_config, *volume, num_extruders);
                     // Find an existing print region with the same config.
 					int idx_empty_slot = -1;
 					for (int i = 0; i < (int)m_regions.size(); ++ i) {
@@ -1271,10 +1285,15 @@ std::string Print::validate() const
         for (unsigned int extruder_id : extruders)
             nozzle_diameters.push_back(m_config.nozzle_diameter.get_at(extruder_id));
         double min_nozzle_diameter = *std::min_element(nozzle_diameters.begin(), nozzle_diameters.end());
+
+#if 0
+        // We currently allow one to assign extruders with a higher index than the number
+        // of physical extruders the machine is equipped with, as the Printer::apply() clamps them.
         unsigned int total_extruders_count = m_config.nozzle_diameter.size();
         for (const auto& extruder_idx : extruders)
             if ( extruder_idx >= total_extruders_count )
                 return L("One or more object were assigned an extruder that the printer does not have.");
+#endif
 
         for (PrintObject *object : m_objects) {
             if ((object->config().support_material_extruder == -1 || object->config().support_material_interface_extruder == -1) &&
