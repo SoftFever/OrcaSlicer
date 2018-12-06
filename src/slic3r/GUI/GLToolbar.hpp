@@ -268,7 +268,7 @@ public:
     // returns the id of the item under the given mouse position or -1 if none
     int contains_mouse(const Vec2d& mouse_pos, const GLCanvas3D& parent) const;
 
-    std::string update_hover_state(const Vec2d& mouse_pos, const GLCanvas3D& parent);
+    std::string update_hover_state(const Vec2d& mouse_pos, GLCanvas3D& parent);
 
     void do_action(unsigned int item_id, GLCanvas3D& parent);
 

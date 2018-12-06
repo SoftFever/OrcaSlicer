@@ -4985,7 +4985,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         // updates view toolbar overlay
         if (tooltip.empty() && (m_view_toolbar != nullptr))
         {
-            tooltip = m_view_toolbar->update_hover_state(m_mouse.position, *this);
+            tooltip = m_view_toolbar->update_hover_state(m_mouse.position, *this);    
             if (!tooltip.empty())
                 m_dirty = true;
         }

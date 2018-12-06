@@ -939,7 +939,7 @@ int GLRadioToolbar::contains_mouse(const Vec2d& mouse_pos, const GLCanvas3D& par
     return -1;
 }
 
-std::string GLRadioToolbar::update_hover_state(const Vec2d& mouse_pos, const GLCanvas3D& parent)
+std::string GLRadioToolbar::update_hover_state(const Vec2d& mouse_pos, GLCanvas3D& parent)
 {
     float zoom = parent.get_camera_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
@@ -967,7 +967,10 @@ std::string GLRadioToolbar::update_hover_state(const Vec2d& mouse_pos, const GLC
         case GLRadioToolbarItem::Normal:
         {
             if (inside)
+            {
                 item->set_state(GLRadioToolbarItem::Hover);
+                parent.set_as_dirty();
+            }
 
             break;
         }
@@ -976,14 +979,20 @@ std::string GLRadioToolbar::update_hover_state(const Vec2d& mouse_pos, const GLC
             if (inside)
                 tooltip = item->get_tooltip();
             else
+            {
                 item->set_state(GLRadioToolbarItem::Normal);
+                parent.set_as_dirty();
+            }
 
             break;
         }
         case GLRadioToolbarItem::Pressed:
         {
             if (inside)
+            {
                 item->set_state(GLRadioToolbarItem::HoverPressed);
+                parent.set_as_dirty();
+            }
 
             break;
         }
@@ -992,7 +1001,10 @@ std::string GLRadioToolbar::update_hover_state(const Vec2d& mouse_pos, const GLC
             if (inside)
                 tooltip = item->get_tooltip();
             else
+            {
                 item->set_state(GLRadioToolbarItem::Pressed);
+                parent.set_as_dirty();
+            }
 
             break;
         }

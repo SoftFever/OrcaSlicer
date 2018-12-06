@@ -345,9 +345,9 @@ void MainFrame::init_menubar()
         if (m_plater) {
             windowMenu->AppendSeparator();
             wxMenuItem* item_3d = append_menu_item(windowMenu, wxID_ANY, L("3D\tCtrl+5"), L("Show the 3D editing view"),
-                [this](wxCommandEvent&) { m_plater->select_view_3D("3D"); }, "");
+            [this](wxCommandEvent&) { m_plater->select_view_3D("3D"); }, "");
             wxMenuItem* item_preview = append_menu_item(windowMenu, wxID_ANY, L("Preview\tCtrl+6"), L("Show the 3D slices preview"),
-                [this](wxCommandEvent&) { m_plater->select_view_3D("Preview"); }, "");
+            [this](wxCommandEvent&) { m_plater->select_view_3D("Preview"); }, "");
 
             Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_change_view()); }, item_3d->GetId());
             Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_change_view()); }, item_preview->GetId());

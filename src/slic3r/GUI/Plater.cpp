@@ -1295,6 +1295,8 @@ void Plater::priv::select_view_3D(const std::string& name)
         set_current_panel(view3D);
     else if (name == "Preview")
         set_current_panel(preview);
+
+    view_toolbar.set_selection(name);
 }
 #else
 void Plater::priv::select_view(const std::string& direction)
@@ -2482,14 +2484,14 @@ void Plater::priv::init_view_toolbar()
 
     GLRadioToolbarItem::Data item;
 
-    item.name = "3d";
+    item.name = "3D";
     item.tooltip = GUI::L_str("3D editor view");
     item.sprite_id = 0;
     item.action_event = EVT_GLVIEWTOOLBAR_3D;
     if (!view_toolbar.add_item(item))
         return;
 
-    item.name = "preview";
+    item.name = "Preview";
     item.tooltip = GUI::L_str("Preview");
     item.sprite_id = 1;
     item.action_event = EVT_GLVIEWTOOLBAR_PREVIEW;
@@ -2499,7 +2501,7 @@ void Plater::priv::init_view_toolbar()
     view3D->set_view_toolbar(&view_toolbar);
     preview->set_view_toolbar(&view_toolbar);
 
-    view_toolbar.set_selection("3d");
+    view_toolbar.set_selection("3D");
 }
 #endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
