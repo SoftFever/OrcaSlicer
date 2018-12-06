@@ -420,7 +420,7 @@ void Print::add_model_object(ModelObject* model_object, int idx)
         if (! volume->is_model_part() && ! volume->is_modifier())
             continue;
         // Get the config applied to this volume.
-        PrintRegionConfig config = region_config_from_model_volume(m_default_region_config, *volume, false);
+        PrintRegionConfig config = region_config_from_model_volume(m_default_region_config, *volume, 99999);
         // Find an existing print region with the same config.
         size_t region_id = size_t(-1);
         for (size_t i = 0; i < m_regions.size(); ++ i)
@@ -493,7 +493,6 @@ bool Print::apply_config(DynamicPrintConfig config)
     // All regions now have distinct settings.
     // Check whether applying the new region config defaults we'd get different regions.
     bool rearrange_regions = false;
-    size_t num_extruders = m_config.nozzle_diameter.size();
     {
         // Collect the already visited region configs into other_region_configs,
         // so one may check for duplicates.
@@ -510,12 +509,12 @@ bool Print::apply_config(DynamicPrintConfig config)
                             // If the new config for this volume differs from the other
                             // volume configs currently associated to this region, it means
                             // the region subdivision does not make sense anymore.
-                            if (! this_region_config.equals(region_config_from_model_volume(m_default_region_config, volume, num_extruders))) {
+                            if (! this_region_config.equals(region_config_from_model_volume(m_default_region_config, volume, 99999))) {
                                 rearrange_regions = true;
                                 goto exit_for_rearrange_regions;
                             }
                         } else {
-                            this_region_config = region_config_from_model_volume(m_default_region_config, volume, num_extruders);
+                            this_region_config = region_config_from_model_volume(m_default_region_config, volume, 99999);
                             this_region_config_set = true;
                         }
                         for (const PrintRegionConfig &cfg : other_region_configs) {
