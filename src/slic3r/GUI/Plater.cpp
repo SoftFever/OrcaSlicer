@@ -5,6 +5,8 @@
 #include <vector>
 #include <string>
 #include <regex>
+#include <boost/algorithm/string/predicate.hpp>
+#include <boost/algorithm/string/trim.hpp>
 #include <boost/optional.hpp>
 #include <boost/filesystem/path.hpp>
 
@@ -1563,10 +1565,10 @@ std::unique_ptr<CheckboxFileDialog> Plater::priv::get_export_file(GUI::FileType 
         case FT_AMF:
         case FT_3MF:
         case FT_GCODE:
-            wildcard = file_wildcards[file_type];
+            wildcard = file_wildcards(file_type);
         break;
         default:
-            wildcard = file_wildcards[FT_MODEL];
+            wildcard = file_wildcards(FT_MODEL);
         break;
     }
 
@@ -2812,7 +2814,7 @@ void Plater::export_gcode(fs::path output_path)
 		wxFileDialog dlg(this, (printer_technology() == ptFFF) ? _(L("Save G-code file as:")) : _(L("Save Zip file as:")),
             start_dir,
             default_output_file.filename().string(),
-			GUI::file_wildcards[(printer_technology() == ptFFF) ? FT_GCODE : FT_PNGZIP],
+			GUI::file_wildcards((printer_technology() == ptFFF) ? FT_GCODE : FT_PNGZIP, default_output_file.extension().string()),
             wxFD_SAVE | wxFD_OVERWRITE_PROMPT
         );
 

@@ -39,20 +39,30 @@ namespace Slic3r {
 namespace GUI {
 
 
-const wxString file_wildcards[FT_SIZE] = {
-    /* FT_STL */   "STL files (*.stl)|*.stl;*.STL",
-    /* FT_OBJ */   "OBJ files (*.obj)|*.obj;*.OBJ",
-    /* FT_AMF */   "AMF files (*.amf)|*.zip.amf;*.amf;*.AMF;*.xml;*.XML",
-    /* FT_3MF */   "3MF files (*.3mf)|*.3mf;*.3MF;",
-    /* FT_PRUSA */ "Prusa Control files (*.prusa)|*.prusa;*.PRUSA",
-    /* FT_GCODE */ "G-code files (*.gcode, *.gco, *.g, *.ngc)|*.gcode;*.GCODE;*.gco;*.GCO;*.g;*.G;*.ngc;*.NGC",
-    /* FT_MODEL */ "Known files (*.stl, *.obj, *.amf, *.xml, *.3mf, *.prusa)|*.stl;*.STL;*.obj;*.OBJ;*.amf;*.AMF;*.xml;*.XML;*.3mf;*.3MF;*.prusa;*.PRUSA",
+wxString file_wildcards(FileType file_type, const std::string &custom_extension)
+{
+    static const wxString defaults[FT_SIZE] = {
+        /* FT_STL */   "STL files (*.stl)|*.stl;*.STL",
+        /* FT_OBJ */   "OBJ files (*.obj)|*.obj;*.OBJ",
+        /* FT_AMF */   "AMF files (*.amf)|*.zip.amf;*.amf;*.AMF;*.xml;*.XML",
+        /* FT_3MF */   "3MF files (*.3mf)|*.3mf;*.3MF;",
+        /* FT_PRUSA */ "Prusa Control files (*.prusa)|*.prusa;*.PRUSA",
+        /* FT_GCODE */ "G-code files (*.gcode, *.gco, *.g, *.ngc)|*.gcode;*.GCODE;*.gco;*.GCO;*.g;*.G;*.ngc;*.NGC",
+        /* FT_MODEL */ "Known files (*.stl, *.obj, *.amf, *.xml, *.3mf, *.prusa)|*.stl;*.STL;*.obj;*.OBJ;*.amf;*.AMF;*.xml;*.XML;*.3mf;*.3MF;*.prusa;*.PRUSA",
 
-    /* FT_INI */   "INI files *.ini|*.ini;*.INI",
-    /* FT_SVG */   "SVG files *.svg|*.svg;*.SVG",
-    /* FT_PNGZIP */"Zipped PNG files *.zip|*.zip;*.ZIP",    // This is lame, but that's what we use for SLA
-};
+        /* FT_INI */   "INI files (*.ini)|*.ini;*.INI",
+        /* FT_SVG */   "SVG files (*.svg)|*.svg;*.SVG",
+        /* FT_PNGZIP */"Zipped PNG files (*.zip)|*.zip;*.ZIP",    // This is lame, but that's what we use for SLA
+    };
 
+    wxString out = defaults[file_type];
+    if (! custom_extension.empty()) {
+        // Append the custom extension to the wildcards, so that the file dialog would not add the default extension to it.
+        out += ";*";
+        out += from_u8(custom_extension);
+    }
+    return out;
+}
 
 static std::string libslic3r_translate_callback(const char *s) { return wxGetTranslation(wxString(s, wxConvUTF8)).utf8_str().data(); }
 
@@ -324,7 +334,7 @@ void GUI_App::load_project(wxWindow *parent, wxString& input_file)
     wxFileDialog dialog(parent ? parent : GetTopWindow(),
         _(L("Choose one file (3MF):")),
         app_config->get_last_dir(), "",
-        file_wildcards[FT_3MF], wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+        file_wildcards(FT_3MF), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 
     if (dialog.ShowModal() == wxID_OK)
         input_file = dialog.GetPath();
@@ -336,7 +346,7 @@ void GUI_App::import_model(wxWindow *parent, wxArrayString& input_files)
     wxFileDialog dialog(parent ? parent : GetTopWindow(),
         _(L("Choose one or more files (STL/OBJ/AMF/3MF/PRUSA):")),
         app_config->get_last_dir(), "",
-        file_wildcards[FT_MODEL], wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
+        file_wildcards(FT_MODEL), wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
 
     if (dialog.ShowModal() == wxID_OK)
         dialog.GetPaths(input_files);
