@@ -26,11 +26,7 @@
 #include <wx/dcmemory.h>
 #include <wx/image.h>
 #include <wx/settings.h>
-#if ENABLE_REMOVE_TABS_FROM_PLATER
-#include <wx/tipwin.h>
-#else
 #include <wx/tooltip.h>
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 #include <wx/debug.h>
 
 // Print now includes tbb, and tbb includes Windows. This breaks compilation of wxWidgets if included before wx.
