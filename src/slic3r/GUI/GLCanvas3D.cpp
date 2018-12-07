@@ -1458,13 +1458,13 @@ void GLCanvas3D::Selection::translate(const Vec3d& displacement)
     for (unsigned int i : m_list)
     {
 #if ENABLE_MODELVOLUME_TRANSFORM
-        if (m_mode == Instance)
-            (*m_volumes)[i]->set_instance_offset(m_cache.volumes_data[i].get_instance_position() + displacement);
-        else if (m_mode == Volume)
-        {
-            Vec3d local_displacement = (m_cache.volumes_data[i].get_instance_rotation_matrix() * m_cache.volumes_data[i].get_instance_scale_matrix()).inverse() * displacement;
-            (*m_volumes)[i]->set_volume_offset(m_cache.volumes_data[i].get_volume_position() + local_displacement);
-        }
+    if ((m_mode == Volume) || (*m_volumes)[i]->is_wipe_tower)
+    {
+        Vec3d local_displacement = (m_cache.volumes_data[i].get_instance_rotation_matrix() * m_cache.volumes_data[i].get_instance_scale_matrix()).inverse() * displacement;
+        (*m_volumes)[i]->set_volume_offset(m_cache.volumes_data[i].get_volume_position() + local_displacement);
+    }
+    else if (m_mode == Instance)
+        (*m_volumes)[i]->set_instance_offset(m_cache.volumes_data[i].get_instance_position() + displacement);
 #else
         (*m_volumes)[i]->set_offset(m_cache.volumes_data[i].get_position() + displacement);
 #endif // ENABLE_MODELVOLUME_TRANSFORM
