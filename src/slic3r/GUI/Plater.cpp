@@ -2505,6 +2505,13 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
             q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_decrease_instances()); }, item_decrease->GetId());
             q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_increase_instances()); }, item_set_number_of_copies->GetId());
         }
+        menu->AppendSeparator();
+
+        append_menu_item(menu, wxID_ANY, _(L("Reload from Disk")), _(L("Reload the selected file from Disk")),
+            [this](wxCommandEvent&) { reload_from_disk(); });
+
+        append_menu_item(menu, wxID_ANY, _(L("Export object as STL…")), _(L("Export this single object as STL file")),
+            [this](wxCommandEvent&) { q->export_stl(true); });
     }
     menu->AppendSeparator();
 
@@ -2544,11 +2551,11 @@ bool Plater::priv::complit_init_object_menu()
 
     wxMenuItem* item_split = append_submenu(&object_menu, split_menu, wxID_ANY, _(L("Split")), _(L("Split the selected object")), "shape_ungroup.png");
 
-    append_menu_item(&object_menu, wxID_ANY, _(L("Reload from Disk")), _(L("Reload the selected file from Disk")),
-        [this](wxCommandEvent&) { reload_from_disk(); });
-
-    append_menu_item(&object_menu, wxID_ANY, _(L("Export object as STL…")), _(L("Export this single object as STL file")),
-        [this](wxCommandEvent&) { q->export_stl(true); });
+//     append_menu_item(&object_menu, wxID_ANY, _(L("Reload from Disk")), _(L("Reload the selected file from Disk")),
+//         [this](wxCommandEvent&) { reload_from_disk(); });
+// 
+//     append_menu_item(&object_menu, wxID_ANY, _(L("Export object as STL…")), _(L("Export this single object as STL file")),
+//         [this](wxCommandEvent&) { q->export_stl(true); });
 
     // Append "Add..." popupmenu
     object_menu.AppendSeparator();
