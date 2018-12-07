@@ -24,13 +24,11 @@ wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const
     wxMenuItem* item = menu->Append(id, string, description);
     item->SetBitmap(icon);
 
-    if (event_handler != nullptr && event_handler != menu)
 #ifdef __WXMSW__
+    if (event_handler != nullptr && event_handler != menu)
         event_handler->Bind(wxEVT_MENU, cb, id);
-#else
-        menu->Bind(wxEVT_MENU, cb, id);
-#endif
     else
+#endif // __WXMSW__
         menu->Bind(wxEVT_MENU, cb, id);
 
     return item;

@@ -908,7 +908,10 @@ struct Plater::priv
 
     // Object popup menu
     wxMenu object_menu;
-    wxMenuItem* item_sla_autorot = nullptr;
+    // Part popup menu
+    wxMenu part_menu;
+    // SLA-Object popup menu
+    wxMenu sla_object_menu;
 
     // Data
     Slic3r::DynamicPrintConfig *config;
@@ -1033,8 +1036,14 @@ struct Plater::priv
     void on_update_geometry(Vec3dsEvent<2>&);
     void on_3dcanvas_mouse_dragging_finished(SimpleEvent&);
 
+    void update_object_menu();
+
 private:
     bool init_object_menu();
+    bool init_common_menu(wxMenu* menu, const bool is_part = false);
+    bool complit_init_object_menu();
+    bool complit_init_sla_object_menu();
+    bool complit_init_part_menu();
 #if ENABLE_REMOVE_TABS_FROM_PLATER
     void init_view_toolbar();
 #endif // ENABLE_REMOVE_TABS_FROM_PLATER
@@ -2413,8 +2422,13 @@ void Plater::priv::on_right_click(Vec2dEvent& evt)
     if (obj_idx == -1)
         return;
 
+    wxMenu* menu = printer_technology == ptSLA ? &sla_object_menu :
+                   get_selection().is_single_full_object() ? &object_menu : &part_menu;
+
+    sidebar->obj_list()->append_menu_item_settings(menu);
+
     if (q != nullptr)
-        q->PopupMenu(&object_menu, (int)evt.data.x(), (int)evt.data.y());
+        q->PopupMenu(menu, (int)evt.data.x(), (int)evt.data.y());
 }
 
 void Plater::priv::on_wipetower_moved(Vec3dEvent &evt)
@@ -2442,30 +2456,63 @@ void Plater::priv::on_3dcanvas_mouse_dragging_finished(SimpleEvent&)
 
 bool Plater::priv::init_object_menu()
 {
-    wxMenuItem* item_delete = append_menu_item(&object_menu, wxID_ANY, _(L("Delete\tDel")), _(L("Remove the selected object")),
-        [this](wxCommandEvent&) { q->remove_selected(); }, "brick_delete.png");
-    wxMenuItem* item_increase = append_menu_item(&object_menu, wxID_ANY, _(L("Increase copies\t+")), _(L("Place one more copy of the selected object")),
-        [this](wxCommandEvent&) { q->increase_instances(); }, "add.png");
-    wxMenuItem* item_decrease = append_menu_item(&object_menu, wxID_ANY, _(L("Decrease copies\t-")), _(L("Remove one copy of the selected object")),
-        [this](wxCommandEvent&) { q->decrease_instances(); }, "delete.png");
-    wxMenuItem* item_set_number_of_copies = append_menu_item(&object_menu, wxID_ANY, _(L("Set number of copies…")), _(L("Change the number of copies of the selected object")),
-        [this](wxCommandEvent&) { q->set_number_of_copies(); }, "textfield.png");
+    init_common_menu(&object_menu);
+    complit_init_object_menu();
 
-    object_menu.AppendSeparator();
-    
+    init_common_menu(&sla_object_menu);
+    complit_init_sla_object_menu();
+
+    init_common_menu(&part_menu, true);
+    complit_init_part_menu();
+
+    return true;
+}
+
+bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/)
+{
+    wxMenuItem* item_delete = append_menu_item(menu, wxID_ANY, _(L("Delete\tDel")), _(L("Remove the selected object")),
+        [this](wxCommandEvent&) { q->remove_selected(); }, "brick_delete.png");
+    if (!is_part){
+        wxMenuItem* item_increase = append_menu_item(menu, wxID_ANY, _(L("Increase copies\t+")), _(L("Place one more copy of the selected object")),
+            [this](wxCommandEvent&) { q->increase_instances(); }, "add.png");
+        wxMenuItem* item_decrease = append_menu_item(menu, wxID_ANY, _(L("Decrease copies\t-")), _(L("Remove one copy of the selected object")),
+            [this](wxCommandEvent&) { q->decrease_instances(); }, "delete.png");
+        wxMenuItem* item_set_number_of_copies = append_menu_item(menu, wxID_ANY, _(L("Set number of copies…")), _(L("Change the number of copies of the selected object")),
+            [this](wxCommandEvent&) { q->set_number_of_copies(); }, "textfield.png");
+        if (q != nullptr)
+        {
+            q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_increase_instances()); }, item_increase->GetId());
+            q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_decrease_instances()); }, item_decrease->GetId());
+            q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_increase_instances()); }, item_set_number_of_copies->GetId());
+        }
+    }
+    menu->AppendSeparator();
+
     wxMenu* mirror_menu = new wxMenu();
     if (mirror_menu == nullptr)
         return false;
 
     append_menu_item(mirror_menu, wxID_ANY, _(L("Along X axis")), _(L("Mirror the selected object along the X axis")),
-        [this](wxCommandEvent&) { mirror(X); }, "bullet_red.png", &object_menu);
+        [this](wxCommandEvent&) { mirror(X); }, "bullet_red.png", menu);
     append_menu_item(mirror_menu, wxID_ANY, _(L("Along Y axis")), _(L("Mirror the selected object along the Y axis")),
-        [this](wxCommandEvent&) { mirror(Y); }, "bullet_green.png", &object_menu);
+        [this](wxCommandEvent&) { mirror(Y); }, "bullet_green.png", menu);
     append_menu_item(mirror_menu, wxID_ANY, _(L("Along Z axis")), _(L("Mirror the selected object along the Z axis")),
-        [this](wxCommandEvent&) { mirror(Z); }, "bullet_blue.png", &object_menu);
+        [this](wxCommandEvent&) { mirror(Z); }, "bullet_blue.png", menu);
 
-    wxMenuItem* item_mirror = append_submenu(&object_menu, mirror_menu, wxID_ANY, _(L("Mirror")), _(L("Mirror the selected object")));
+    wxMenuItem* item_mirror = append_submenu(menu, mirror_menu, wxID_ANY, _(L("Mirror")), _(L("Mirror the selected object")));
 
+    // ui updates needs to be binded to the parent panel
+    if (q != nullptr)
+    {
+        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_mirror()); }, item_mirror->GetId());
+        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_delete_object()); }, item_delete->GetId());
+    }
+
+    return true;
+}
+
+bool Plater::priv::complit_init_object_menu()
+{
     wxMenu* split_menu = new wxMenu();
     if (split_menu == nullptr)
         return false;
@@ -2477,24 +2524,56 @@ bool Plater::priv::init_object_menu()
 
     wxMenuItem* item_split = append_submenu(&object_menu, split_menu, wxID_ANY, _(L("Split")), _(L("Split the selected object")), "shape_ungroup.png");
 
-    // Add the automatic rotation sub-menu
-    item_sla_autorot = append_menu_item(&object_menu, wxID_ANY, _(L("Optimize orientation")), _(L("Optimize the rotation of the object for better print results.")),
-                                            [this](wxCommandEvent&) { sla_optimize_rotation(); });
+    // Append "Add..." popupmenu
+    object_menu.AppendSeparator();
+    sidebar->obj_list()->append_menu_items_add_volume(&object_menu);
 
-    if (printer_technology == ptFFF) 
-        item_sla_autorot = object_menu.Remove(item_sla_autorot);
+//     object_menu.AppendSeparator();
 
     // ui updates needs to be binded to the parent panel
     if (q != nullptr)
     {
-        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_mirror()); }, item_mirror->GetId());
-        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_delete_object()); }, item_delete->GetId());
-        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_increase_instances()); }, item_increase->GetId());
-        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_decrease_instances()); }, item_decrease->GetId());
-        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_increase_instances()); }, item_set_number_of_copies->GetId());
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split_to_objects() || can_split_to_volumes()); }, item_split->GetId());
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split_to_objects()); }, item_split_objects->GetId());
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split_to_volumes()); }, item_split_volumes->GetId());
+    }
+    return true;
+}
+
+bool Plater::priv::complit_init_sla_object_menu()
+{
+    wxMenuItem* item_split = append_menu_item(&sla_object_menu, wxID_ANY, _(L("Split")), _(L("Split the selected object into individual objects")),
+        [this](wxCommandEvent&) { split_object(); }, "shape_ungroup_o.png");
+
+    // Add the automatic rotation sub-menu
+    append_menu_item(&sla_object_menu, wxID_ANY, _(L("Optimize orientation")), _(L("Optimize the rotation of the object for better print results.")),
+        [this](wxCommandEvent&) { sla_optimize_rotation(); });
+
+//     sla_object_menu.AppendSeparator();
+
+    // ui updates needs to be binded to the parent panel
+    if (q != nullptr)
+    {
+        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split_to_objects()); }, item_split->GetId());
+    }
+
+    return true;
+}
+
+bool Plater::priv::complit_init_part_menu()
+{
+    wxMenuItem* item_split = append_menu_item(&part_menu, wxID_ANY, _(L("Split")), _(L("Split the selected object into individual sub-parts")),
+        [this](wxCommandEvent&) { split_volume(); }, "shape_ungroup_p.png");
+
+    auto obj_list = sidebar->obj_list();
+    obj_list->append_menu_item_change_type(&part_menu);
+
+//     part_menu.AppendSeparator();
+
+    // ui updates needs to be binded to the parent panel
+    if (q != nullptr)
+    {
+        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split_to_volumes()); },  item_split->GetId());
     }
 
     return true;
@@ -2555,8 +2634,11 @@ bool Plater::priv::can_split_to_objects() const
 
 bool Plater::priv::can_split_to_volumes() const
 {
-    int obj_idx = get_selected_object_idx();
-    return (0 <= obj_idx) && (obj_idx < (int)model.objects.size()) && !model.objects[obj_idx]->is_multiparts();
+    if (printer_technology == ptSLA)
+        return false;
+//     int obj_idx = get_selected_object_idx();
+//     return (0 <= obj_idx) && (obj_idx < (int)model.objects.size()) && !model.objects[obj_idx]->is_multiparts();
+    return sidebar->obj_list()->is_splittable();
 }
 
 bool Plater::priv::layers_height_allowed() const
@@ -2582,6 +2664,11 @@ bool Plater::priv::can_arrange() const
 bool Plater::priv::can_mirror() const
 {
     return get_selection().is_from_single_instance();
+}
+
+void Plater::priv::update_object_menu()
+{
+    sidebar->obj_list()->append_menu_items_add_volume(&object_menu);
 }
 
 // Plater / Public
@@ -3029,22 +3116,6 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         }
     }
 
-    bool attached = false;
-    for(const wxMenuItem * m : p->object_menu.GetMenuItems())
-        if(m == p->item_sla_autorot) { attached = true; break; }
-
-    switch(printer_technology()) {
-    case ptFFF: {
-        // hide sla auto rotation menuitem
-        if(attached) p->item_sla_autorot = p->object_menu.Remove(p->item_sla_autorot);
-        std::cout << "sla autorot menu should be removed" << std::endl;
-    }
-    case ptSLA: {
-        // show sla auto rotation menuitem
-        if(!attached) p->object_menu.Append(p->item_sla_autorot);
-    }
-    }
-
     if (update_scheduled) 
         update();
 
@@ -3134,5 +3205,7 @@ void Plater::changed_object(int obj_idx)
 }
 
 void Plater::fix_through_netfabb(const int obj_idx) { p->fix_through_netfabb(obj_idx); }
+
+void Plater::update_object_menu() { p->update_object_menu(); }
 
 }}    // namespace Slic3r::GUI

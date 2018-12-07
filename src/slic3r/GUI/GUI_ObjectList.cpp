@@ -327,6 +327,8 @@ void ObjectList::show_context_menu()
         wxMenu* menu = m_objects_model->GetParent(item) != wxDataViewItem(0) ? &m_menu_part :
                        wxGetApp().plater()->printer_technology() == ptFFF ? &m_menu_object : &m_menu_sla_object;
 
+        append_menu_item_settings(menu);
+
         wxGetApp().plater()->PopupMenu(menu);
 
         wxGetApp().plater()->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) {
@@ -334,10 +336,6 @@ void ObjectList::show_context_menu()
 
         wxGetApp().plater()->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) {
             evt.Enable(is_splittable()); }, m_menu_item_split_part->GetId());
-
-        wxGetApp().plater()->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) {
-            evt.Enable(get_selected_model_volume()->type() <= ModelVolume::PARAMETER_MODIFIER); 
-        }, m_menu_item_settings->GetId());
     }
 }
 
@@ -517,12 +515,13 @@ void get_options_menu(settings_menu_hierarchy& settings_menu, const bool is_part
     get_options_menu(settings_menu, is_part, wxGetApp().plater()->printer_technology() == ptSLA);
 }
 
-void ObjectList::get_settings_choice(const wxString& category_name, const bool is_part)
+void ObjectList::get_settings_choice(const wxString& category_name)
 {
     wxArrayString names;
     wxArrayInt selections;
 
     settings_menu_hierarchy settings_menu;
+    const bool is_part = m_objects_model->GetParent(GetSelection()) != wxDataViewItem(0);
     get_options_menu(settings_menu, is_part);
     std::vector< std::pair<std::string, std::string> > *settings_list = nullptr;
 
@@ -584,7 +583,7 @@ void ObjectList::get_settings_choice(const wxString& category_name, const bool i
     }
 }
 
-void ObjectList::menu_item_add_generic(wxMenuItem* &menu, const int type) {
+void ObjectList::append_menu_item_add_generic(wxMenuItem* menu, const int type) {
     auto sub_menu = new wxMenu;
 
     append_menu_item(sub_menu, wxID_ANY, _(L("Load")) + " " + dots, "",
@@ -600,78 +599,121 @@ void ObjectList::menu_item_add_generic(wxMenuItem* &menu, const int type) {
     menu->SetSubMenu(sub_menu);
 }
 
-wxMenuItem* ObjectList::menu_item_split(wxMenu* menu) {
-    return append_menu_item(menu, wxID_ANY, _(L("Split to parts")), "",
-        [this](wxCommandEvent&) { split(); }, m_bmp_split, menu);
-}
-
-wxMenuItem* ObjectList::menu_item_settings(wxMenu* menu, const bool is_part, const bool is_sla_menu) {
-    auto  menu_item = new wxMenuItem(menu, wxID_ANY, _(L("Add settings")));
-    menu_item->SetBitmap(m_bmp_cog);
-
-    menu_item->SetSubMenu(create_settings_popupmenu(menu, is_part, is_sla_menu));
-
-    return menu_item;
-}
-
-void ObjectList::create_object_popupmenu(wxMenu *menu)
+void ObjectList::append_menu_items_add_volume(wxMenu* menu)
 {
     // Note: id accords to type of the sub-object, so sequence of the menu items is important
     std::vector<std::string> menu_object_types_items = {L("Add part"),              // ~ModelVolume::MODEL_PART
                                                         L("Add modifier"),          // ~ModelVolume::PARAMETER_MODIFIER
                                                         L("Add support enforcer"),  // ~ModelVolume::SUPPORT_ENFORCER
                                                         L("Add support blocker") }; // ~ModelVolume::SUPPORT_BLOCKER
-    
-    // Add first 4 menu items
-    for (int type = 0; type < menu_object_types_items.size(); type++) {
+
+    // Update "add" items(delete old & create new)  settings popupmenu
+    for (auto& item : menu_object_types_items){
+        const auto settings_id = menu->FindItem(_(item));
+        if (settings_id != wxNOT_FOUND)
+            menu->Destroy(settings_id);
+    }
+
+    if (wxGetApp().get_view_mode() == ConfigMenuModeSimple)
+    {
+        append_menu_item(menu, wxID_ANY, _(L("Add part")), "",
+            [this](wxCommandEvent&) { load_subobject(ModelVolume::MODEL_PART); }, *m_bmp_vector[ModelVolume::MODEL_PART]);
+        append_menu_item(menu, wxID_ANY, _(L("Add support enforcer")), "",
+            [this](wxCommandEvent&) { load_generic_subobject(_(L("Box")).ToStdString(), ModelVolume::SUPPORT_ENFORCER); }, 
+            *m_bmp_vector[ModelVolume::SUPPORT_ENFORCER]);
+        append_menu_item(menu, wxID_ANY, _(L("Add support blocker")), "",
+            [this](wxCommandEvent&) { load_generic_subobject(_(L("Box")).ToStdString(), ModelVolume::SUPPORT_BLOCKER); }, 
+            *m_bmp_vector[ModelVolume::SUPPORT_BLOCKER]);
+
+        return;
+    }
+
+    for (int type = 0; type < menu_object_types_items.size(); type++) 
+    {
         auto& item = menu_object_types_items[type];
+
         auto menu_item = new wxMenuItem(menu, wxID_ANY, _(item));
         menu_item->SetBitmap(*m_bmp_vector[type]);
-        menu_item_add_generic(menu_item, type);
+        append_menu_item_add_generic(menu_item, type);
+
         menu->Append(menu_item);
     }
+}
+
+wxMenuItem* ObjectList::append_menu_item_split(wxMenu* menu) 
+{
+    return append_menu_item(menu, wxID_ANY, _(L("Split to parts")), "",
+        [this](wxCommandEvent&) { split(); }, m_bmp_split, menu);
+}
+
+wxMenuItem* ObjectList::append_menu_item_settings(wxMenu* menu) 
+{
+    // Update (delete old & create new)  settings popupmenu
+    const auto settings_id = menu->FindItem(_("Add settings"));
+    if (settings_id != wxNOT_FOUND)
+        menu->Destroy(settings_id);
+
+    if (wxGetApp().get_view_mode() == ConfigMenuModeSimple)
+        return nullptr;
+
+    auto  menu_item = new wxMenuItem(menu, wxID_ANY, _(L("Add settings")));
+    menu_item->SetBitmap(m_bmp_cog);
+
+    const auto sel_vol = get_selected_model_volume();
+    if (sel_vol && sel_vol->type() >= ModelVolume::SUPPORT_ENFORCER)
+        menu_item->Enable(false);
+    else
+        menu_item->SetSubMenu(create_settings_popupmenu(menu));
+
+    return menu->Append(menu_item);
+}
+
+wxMenuItem* ObjectList::append_menu_item_change_type(wxMenu* menu)
+{
+    return append_menu_item(menu, wxID_ANY, _(L("Change type")), "",
+        [this](wxCommandEvent&) { change_part_type(); }, "", menu);
+
+}
+
+void ObjectList::create_object_popupmenu(wxMenu *menu)
+{
+    append_menu_items_add_volume(menu);
 
     // Split object to parts
     menu->AppendSeparator();
-    m_menu_item_split = menu_item_split(menu);
+    m_menu_item_split = append_menu_item_split(menu);
 
     // Settings
     menu->AppendSeparator();
-    // Append settings popupmenu
-    menu->Append(menu_item_settings(menu, false, false));
 }
 
 void ObjectList::create_sla_object_popupmenu(wxMenu *menu)
 {
-    // Append settings popupmenu
-    menu->Append(menu_item_settings(menu, false, true));
 }
 
 void ObjectList::create_part_popupmenu(wxMenu *menu)
 {
-    m_menu_item_split_part = menu_item_split(menu);
+    m_menu_item_split_part = append_menu_item_split(menu);
 
     // Append change part type
     menu->AppendSeparator();
-    append_menu_item(menu, wxID_ANY, _(L("Change type")), "",
-                    [this](wxCommandEvent&) { change_part_type(); }, "", menu);
+    append_menu_item_change_type(menu);
 
     // Append settings popupmenu
     menu->AppendSeparator();
-    m_menu_item_settings = menu_item_settings(menu, true, false);
-    menu->Append(m_menu_item_settings);
 }
 
-wxMenu* ObjectList::create_settings_popupmenu(wxMenu *parent_menu, bool is_part, const bool is_sla_menu)
+wxMenu* ObjectList::create_settings_popupmenu(wxMenu *parent_menu)
 {
     wxMenu *menu = new wxMenu;
 
     settings_menu_hierarchy settings_menu;
-    get_options_menu(settings_menu, is_part, is_sla_menu);
+    const bool is_part = m_objects_model->GetParent(GetSelection()) != wxDataViewItem(0);
+    get_options_menu(settings_menu, is_part);
 
     for (auto cat : settings_menu) {
         append_menu_item(menu, wxID_ANY, _(cat.first), "",
-                        [menu, this, is_part](wxCommandEvent& event) { get_settings_choice(menu->GetLabel(event.GetId()), is_part); }, 
+                        [menu, this](wxCommandEvent& event) { get_settings_choice(menu->GetLabel(event.GetId())); }, 
                         CATEGORY_ICON.find(cat.first) == CATEGORY_ICON.end() ? wxNullBitmap : CATEGORY_ICON.at(cat.first), parent_menu); 
     }
 

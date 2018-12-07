@@ -121,14 +121,16 @@ public:
     void                on_drop_possible(wxDataViewEvent &event);
     void                on_drop(wxDataViewEvent &event);
 
-    void                get_settings_choice(const wxString& cat_name, const bool is_part);
-    void                menu_item_add_generic(wxMenuItem* &menu, const int type);
-    wxMenuItem*         menu_item_split(wxMenu* menu);
-    wxMenuItem*         menu_item_settings(wxMenu* menu, const bool is_part, const bool is_sla_menu);
+    void                get_settings_choice(const wxString& category_name);
+    void                append_menu_item_add_generic(wxMenuItem* menu, const int type);
+    void                append_menu_items_add_volume(wxMenu* menu);
+    wxMenuItem*         append_menu_item_split(wxMenu* menu);
+    wxMenuItem*         append_menu_item_settings(wxMenu* menu);
+    wxMenuItem*         append_menu_item_change_type(wxMenu* menu);
     void                create_object_popupmenu(wxMenu *menu);
-    void                create_sla_object_popupmenu(wxMenu *menu);
-    void                create_part_popupmenu(wxMenu *menu);
-    wxMenu*             create_settings_popupmenu(wxMenu *parent_menu, bool is_part, const bool is_sla_menu);
+    void                create_sla_object_popupmenu(wxMenu*menu);
+    void                create_part_popupmenu(wxMenu*menu);
+    wxMenu*             create_settings_popupmenu(wxMenu *parent_menu);
 
     void                update_opt_keys(t_config_option_keys& t_optopt_keys);
 
