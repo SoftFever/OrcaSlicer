@@ -5,8 +5,10 @@
 
 #include "../../slic3r/GUI/GLTexture.hpp"
 #include "../../slic3r/GUI/GLCanvas3D.hpp"
+
 #include "libslic3r/Point.hpp"
 #include "libslic3r/BoundingBox.hpp"
+#include "libslic3r/SLA/SLAAutoSupports.hpp"
 
 #include <array>
 #include <vector>
@@ -434,6 +436,7 @@ protected:
 class GLGizmoSlaSupports : public GLGizmoBase
 {
 private:
+    SLAAutoSupports* m_sas = nullptr;
     ModelObject* m_model_object = nullptr;
 #if ENABLE_SLA_SUPPORT_GIZMO_MOD
     ModelObject* m_old_model_object = nullptr;

@@ -955,6 +955,11 @@ public:
     // and the model object's bounding box bottom. Units in mm.
     ConfigOptionFloat support_object_elevation /*= 5.0*/;
 
+    /////// Following options influence automatic support points placement:
+    ConfigOptionInt support_density_at_horizontal;
+    ConfigOptionInt support_density_at_45;
+    ConfigOptionFloat support_minimal_z;
+
     // Now for the base pool (pad) /////////////////////////////////////////////
 
     // Enabling or disabling support creation
@@ -987,6 +992,9 @@ protected:
         OPT_PTR(support_base_height);
         OPT_PTR(support_critical_angle);
         OPT_PTR(support_max_bridge_length);
+        OPT_PTR(support_density_at_horizontal);
+        OPT_PTR(support_density_at_45);
+        OPT_PTR(support_minimal_z);
         OPT_PTR(support_object_elevation);
         OPT_PTR(pad_enable);
         OPT_PTR(pad_wall_thickness);

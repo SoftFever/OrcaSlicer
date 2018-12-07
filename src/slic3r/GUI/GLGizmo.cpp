@@ -20,6 +20,7 @@
 #include <wx/stattext.h>
 #include <wx/debug.h>
 
+#include "Tab.hpp"
 #include "GUI.hpp"
 #include "GUI_Utils.hpp"
 #include "GUI_App.hpp"
@@ -1079,7 +1080,7 @@ void GLGizmoScale3D::on_render_input_window(float x, float y, const GLCanvas3D::
     m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
     m_imgui->set_next_window_bg_alpha(0.5f);
     m_imgui->begin(label, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
-    m_imgui->input_vec3("", m_scale, 100.0f, "%.2f");
+    m_imgui->input_vec3("", m_scale * 100.f, 100.0f, "%.2f");
     m_imgui->end();
 }
 #endif // ENABLE_IMGUI
@@ -1782,8 +1783,7 @@ void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const G
 #else
 void GLGizmoSlaSupports::set_model_object_ptr(ModelObject* model_object)
 {
-    if (model_object != nullptr)
-    {
+    if (model_object != nullptr) {
         m_starting_center = Vec3d::Zero();
         m_model_object = model_object;
 
@@ -1811,6 +1811,7 @@ void GLGizmoSlaSupports::on_render(const GLCanvas3D::Selection& selection) const
         m_starting_center = selection.get_bounding_box().center();
     Vec3d dragged_offset = selection.get_bounding_box().center() - m_starting_center;
 #endif // !ENABLE_SLA_SUPPORT_GIZMO_MOD
+
 
     for (auto& g : m_grabbers) {
         g.color[0] = 1.f;
@@ -1871,6 +1872,16 @@ void GLGizmoSlaSupports::render_grabbers(const GLCanvas3D::Selection& selection,
     float render_color[3];
     for (int i = 0; i < (int)m_grabbers.size(); ++i)
     {
+        // first precalculate the grabber position in world coordinates, so that the grabber
+        // is not scaled with the object (as it would be if rendered with current gl matrix).
+        Eigen::Matrix<GLfloat, 4, 4> glmatrix;
+        glGetFloatv (GL_MODELVIEW_MATRIX, glmatrix.data());
+        Eigen::Matrix<float, 4, 1> grabber_pos;
+        for (int j=0; j<3; ++j)
+            grabber_pos(j) = m_grabbers[i].center(j);
+        grabber_pos[3] = 1.f;
+        Eigen::Matrix<float, 4, 1> grabber_world_position = glmatrix * grabber_pos;
+
         if (!picking && (m_hover_id == i))
         {
             render_color[0] = 1.0f - m_grabbers[i].color[0];
@@ -1882,9 +1893,10 @@ void GLGizmoSlaSupports::render_grabbers(const GLCanvas3D::Selection& selection,
 
         ::glColor3fv(render_color);
         ::glPushMatrix();
-        ::glTranslated(m_grabbers[i].center(0), m_grabbers[i].center(1), m_grabbers[i].center(2));
+        ::glLoadIdentity();
+        ::glTranslated(grabber_world_position(0), grabber_world_position(1), grabber_world_position(2) + z_shift);
         ::gluQuadricDrawStyle(m_quadric, GLU_SILHOUETTE);
-        ::gluSphere(m_quadric, 0.75, 64, 32);
+        ::gluSphere(m_quadric, 0.75, 64, 36);
         ::glPopMatrix();
     }
 
@@ -1933,7 +1945,7 @@ void GLGizmoSlaSupports::render_grabbers(bool picking) const
             GLUquadricObj *quadric;
             quadric = ::gluNewQuadric();
             ::gluQuadricDrawStyle(quadric, GLU_FILL );
-            ::gluSphere( quadric , 0.75f, 36 , 18 );
+            ::gluSphere( quadric , 0.75f, 64 , 32 );
             ::gluDeleteQuadric(quadric);
             ::glPopMatrix();
             if (!picking)
@@ -1992,6 +2004,7 @@ void GLGizmoSlaSupports::update_mesh()
 
     // we'll now reload Grabbers (selection might have changed):
     m_grabbers.clear();
+
     for (const Vec3f& point : m_model_object->sla_support_points) {
         m_grabbers.push_back(Grabber());
         m_grabbers.back().center = point.cast<double>();
@@ -2083,7 +2096,6 @@ void GLGizmoSlaSupports::delete_current_grabber(bool delete_all)
     if (delete_all) {
         m_grabbers.clear();
         m_model_object->sla_support_points.clear();
-        m_parent.reload_scene(true); // in case this was called from ImGui overlay dialog, the refresh would be delayed
 
         // This should trigger the support generation
         // wxGetApp().plater()->reslice();
@@ -2159,12 +2171,34 @@ void GLGizmoSlaSupports::on_render_input_window(float x, float y, const GLCanvas
     m_imgui->text(_(L("Right mouse click - remove point")));
     m_imgui->text(" ");
 
-    bool remove_all_clicked = m_imgui->button(_(L("Remove all points")));
+    bool generate = m_imgui->button(_(L("Generate points automatically")));
+    bool remove_all_clicked = m_imgui->button(_(L("Remove all points")) + (m_model_object == nullptr ? "" : " (" + std::to_string(m_model_object->sla_support_points.size())+")"));
 
     m_imgui->end();
 
     if (remove_all_clicked)
         delete_current_grabber(true);
+
+    if (generate) {
+        const DynamicPrintConfig& cfg = *wxGetApp().get_tab(Preset::TYPE_SLA_PRINT)->get_config();
+        SLAAutoSupports::Config config;
+        config.density_at_horizontal = cfg.opt_int("support_density_at_horizontal") / 10000.f;
+        config.density_at_45 = cfg.opt_int("support_density_at_45") / 10000.f;
+        config.minimal_z = cfg.opt_float("support_minimal_z");
+
+        SLAAutoSupports sas(*m_model_object, config);
+        sas.generate();
+        m_grabbers.clear();
+        for (const Vec3f& point : m_model_object->sla_support_points) {
+            m_grabbers.push_back(Grabber());
+            m_grabbers.back().center = point.cast<double>();
+        }
+    }
+
+    if (remove_all_clicked || generate) {
+        m_parent.reload_scene(true);
+        m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
+    }
 }
 #endif // ENABLE_IMGUI
 
@@ -2180,6 +2214,7 @@ bool GLGizmoSlaSupports::on_is_selectable() const
 }
 
 std::string GLGizmoSlaSupports::on_get_name() const
+
 {
     return L("SLA Support Points");
 }

@@ -2561,6 +2561,33 @@ void PrintConfigDef::init_sla_params()
     def->min = 0;
     def->default_value = new ConfigOptionFloat(5.0);
 
+    def = this->add("support_density_at_horizontal", coInt);
+    def->label = L("Density on horizontal surfaces");
+    def->category = L("Supports");
+    def->tooltip = L("How many support points (approximately) should be placed on horizontal surface.");
+    def->sidetext = L("points per square dm");
+    def->cli = "";
+    def->min = 0;
+    def->default_value = new ConfigOptionInt(500);
+
+    def = this->add("support_density_at_45", coInt);
+    def->label = L("Density on surfaces at 45 degrees");
+    def->category = L("Supports");
+    def->tooltip = L("How many support points (approximately) should be placed on surface sloping at 45 degrees.");
+    def->sidetext = L("points per square dm");
+    def->cli = "";
+    def->min = 0;
+    def->default_value = new ConfigOptionInt(250);
+
+    def = this->add("support_minimal_z", coFloat);
+    def->label = L("Minimal support point height");
+    def->category = L("Supports");
+    def->tooltip = L("No support points will be placed lower than this value from the bottom.");
+    def->sidetext = L("mm");
+    def->cli = "";
+    def->min = 0;
+    def->default_value = new ConfigOptionFloat(0.f);
+
     def = this->add("pad_enable", coBool);
     def->label = L("Use pad");
     def->category = L("Pad");
