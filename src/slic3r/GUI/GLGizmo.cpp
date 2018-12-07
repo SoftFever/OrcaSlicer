@@ -770,6 +770,7 @@ void GLGizmoRotate3D::on_render(const GLCanvas3D::Selection& selection) const
 #if ENABLE_IMGUI
 void GLGizmoRotate3D::on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection)
 {
+#if !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
     Vec3d rotation(Geometry::rad2deg(m_gizmos[0].get_angle()), Geometry::rad2deg(m_gizmos[1].get_angle()), Geometry::rad2deg(m_gizmos[2].get_angle()));
     wxString label = _(L("Rotation (deg)"));
 
@@ -778,6 +779,7 @@ void GLGizmoRotate3D::on_render_input_window(float x, float y, const GLCanvas3D:
     m_imgui->begin(label, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
     m_imgui->input_vec3("", rotation, 100.0f, "%.2f");
     m_imgui->end();
+#endif // !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
 }
 #endif // ENABLE_IMGUI
 
@@ -1074,6 +1076,7 @@ void GLGizmoScale3D::on_render_for_picking(const GLCanvas3D::Selection& selectio
 #if ENABLE_IMGUI
 void GLGizmoScale3D::on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection)
 {
+#if !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
     bool single_instance = selection.is_single_full_instance();
     wxString label = _(L("Scale (%)"));
 
@@ -1082,6 +1085,7 @@ void GLGizmoScale3D::on_render_input_window(float x, float y, const GLCanvas3D::
     m_imgui->begin(label, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
     m_imgui->input_vec3("", m_scale * 100.f, 100.0f, "%.2f");
     m_imgui->end();
+#endif // !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
 }
 #endif // ENABLE_IMGUI
 
@@ -1321,6 +1325,7 @@ void GLGizmoMove3D::on_render_for_picking(const GLCanvas3D::Selection& selection
 #if ENABLE_IMGUI
 void GLGizmoMove3D::on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection)
 {
+#if !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
     bool show_position = selection.is_single_full_instance();
     const Vec3d& position = selection.get_bounding_box().center();
 
@@ -1333,6 +1338,7 @@ void GLGizmoMove3D::on_render_input_window(float x, float y, const GLCanvas3D::S
     m_imgui->input_vec3("", displacement, 100.0f, "%.2f");
 
     m_imgui->end();
+#endif // !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
 }
 #endif // ENABLE_IMGUI
 
