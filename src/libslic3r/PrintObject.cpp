@@ -34,7 +34,7 @@
 
 namespace Slic3r {
 
-PrintObject::PrintObject(Print* print, ModelObject* model_object) :
+PrintObject::PrintObject(Print* print, ModelObject* model_object, bool add_instances) :
     PrintObjectBaseWithState(print, model_object),
     typed_slices(false),
     size(Vec3crd::Zero()),
@@ -54,7 +54,7 @@ PrintObject::PrintObject(Print* print, ModelObject* model_object) :
         this->size = (modobj_bbox.size() * (1. / SCALING_FACTOR)).cast<coord_t>();
     }
     
-    {
+    if (add_instances) {
         Points copies;
         copies.reserve(m_model_object->instances.size());
         for (const ModelInstance *mi : m_model_object->instances) {

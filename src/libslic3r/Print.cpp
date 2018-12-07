@@ -400,7 +400,7 @@ void Print::add_model_object(ModelObject* model_object, int idx)
     m_model.objects.emplace_back(ModelObject::new_copy(*model_object));
     m_model.objects.back()->set_model(&m_model);
     // Initialize a new print object and store it at the given position.
-    PrintObject *object = new PrintObject(this, model_object);
+    PrintObject *object = new PrintObject(this, model_object, true);
     if (idx != -1) {
         delete m_objects[idx];
         m_objects[idx] = object;
@@ -964,7 +964,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
             if (old.empty()) {
                 // Simple case, just generate new instances.
                 for (const PrintInstances &print_instances : new_print_instances) {
-                    PrintObject *print_object = new PrintObject(this, model_object);
+                    PrintObject *print_object = new PrintObject(this, model_object, false);
 					print_object->set_trafo(print_instances.trafo);
                     print_object->set_copies(print_instances.copies);
                     print_object->config_apply(config);
@@ -983,7 +983,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
 				for (; it_old != old.end() && transform3d_lower((*it_old)->trafo, new_instances.trafo); ++ it_old);
 				if (it_old == old.end() || ! transform3d_equal((*it_old)->trafo, new_instances.trafo)) {
                     // This is a new instance (or a set of instances with the same trafo). Just add it.
-                    PrintObject *print_object = new PrintObject(this, model_object);
+                    PrintObject *print_object = new PrintObject(this, model_object, false);
                     print_object->set_trafo(new_instances.trafo);
                     print_object->set_copies(new_instances.copies);
                     print_object->config_apply(config);
