@@ -1383,7 +1383,7 @@ bool GLCanvas3D::Selection::is_single_full_instance() const
         return false;
 
     int object_idx = m_valid ? get_object_idx() : -1;
-    if (object_idx == -1)
+    if ((object_idx < 0) || ((int)m_model->objects.size() < object_idx))
         return false;
 
     int instance_idx = (*m_volumes)[*m_list.begin()]->instance_idx();
