@@ -539,6 +539,8 @@ void GUI_App::update_mode()
                                 mode == ConfigMenuModeExpert ? comExpert : comAdvanced;
     for (auto tab : tabs_list)
         tab->update_visibility(opt_mode);
+
+    plater()->update_object_menu();
 }
 
 void GUI_App::add_config_menu(wxMenuBar *menu)

@@ -157,6 +157,8 @@ public:
     void on_extruders_change(int extruders_count);
     void on_config_change(const DynamicPrintConfig &config);
 
+    void update_object_menu();
+
     const wxString& get_project_filename() const;
     bool is_export_gcode_scheduled() const;
 
