@@ -642,13 +642,13 @@ void GLGizmoRotate::transform_to_local() const
     case X:
     {
         ::glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-        ::glRotatef(90.0f, 0.0f, 0.0f, 1.0f);
+        ::glRotatef(-90.0f, 0.0f, 0.0f, 1.0f);
         break;
     }
     case Y:
     {
-        ::glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
-        ::glRotatef(90.0f, 0.0f, 0.0f, 1.0f);
+        ::glRotatef(-90.0f, 0.0f, 0.0f, 1.0f);
+        ::glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
         break;
     }
     default:
@@ -670,14 +670,14 @@ Vec3d GLGizmoRotate::mouse_position_in_local_plane(const Linef3& mouse_ray) cons
     {
     case X:
     {
-        m.rotate(Eigen::AngleAxisd(-half_pi, Vec3d::UnitZ()));
+        m.rotate(Eigen::AngleAxisd(half_pi, Vec3d::UnitZ()));
         m.rotate(Eigen::AngleAxisd(-half_pi, Vec3d::UnitY()));
         break;
     }
     case Y:
     {
-        m.rotate(Eigen::AngleAxisd(-half_pi, Vec3d::UnitZ()));
-        m.rotate(Eigen::AngleAxisd(half_pi, Vec3d::UnitX()));
+        m.rotate(Eigen::AngleAxisd(half_pi, Vec3d::UnitY()));
+        m.rotate(Eigen::AngleAxisd(half_pi, Vec3d::UnitZ()));
         break;
     }
     default:
