@@ -159,7 +159,7 @@ protected:
     // to be called from Print only.
     friend class Print;
 
-	PrintObject(Print* print, ModelObject* model_object);
+	PrintObject(Print* print, ModelObject* model_object, bool add_instances = true);
 	~PrintObject() {}
 
     void                    config_apply(const ConfigBase &other, bool ignore_nonexistent = false) { this->m_config.apply(other, ignore_nonexistent); }

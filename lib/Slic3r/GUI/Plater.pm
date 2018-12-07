@@ -1876,7 +1876,7 @@ sub export_stl {
     $self->statusbar->SetStatusText(L("STL file exported to ").$output_file);
 }
 
-# XXX: not done
+# XXX: VK: done
 sub reload_from_disk {
     my ($self) = @_;
     
@@ -1908,7 +1908,7 @@ sub reload_from_disk {
     $self->remove($obj_idx);
 }
 
-# XXX: VK: done
+# XXX: VK: integrated into Plater::export_stl()
 sub export_object_stl {
     my ($self) = @_;
     my ($obj_idx, $object) = $self->selected_object;

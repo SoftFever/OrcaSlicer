@@ -3112,6 +3112,11 @@ void TabSLAPrint::build()
     optgroup->append_single_option_line("support_critical_angle");
     optgroup->append_single_option_line("support_max_bridge_length");
 
+    optgroup = page->new_optgroup(_(L("Automatic generation")));
+    optgroup->append_single_option_line("support_density_at_horizontal");
+    optgroup->append_single_option_line("support_density_at_45");
+    optgroup->append_single_option_line("support_minimal_z");
+
     page = add_options_page(_(L("Pad")), "brick.png");
     optgroup = page->new_optgroup(_(L("Pad")));
     optgroup->append_single_option_line("pad_enable");

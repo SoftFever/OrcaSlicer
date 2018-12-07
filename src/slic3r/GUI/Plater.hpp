@@ -146,7 +146,7 @@ public:
 
     // Note: empty path means "use the default"
     void export_gcode(boost::filesystem::path output_path = boost::filesystem::path());
-    void export_stl();
+    void export_stl(bool selection_only = false);
     void export_amf();
     void export_3mf(const boost::filesystem::path& output_path = boost::filesystem::path());
     void reslice();

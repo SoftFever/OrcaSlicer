@@ -139,6 +139,8 @@ add_library(libslic3r STATIC
     Rasterizer/Rasterizer.cpp
     SLAPrint.cpp
     SLAPrint.hpp
+    SLA/SLAAutoSupports.hpp
+    SLA/SLAAutoSupports.cpp
     Slicing.cpp
     Slicing.hpp
     SlicingAdaptive.cpp
