@@ -2,6 +2,7 @@
 #define SLAAUTOSUPPORTS_HPP_
 
 #include <libslic3r/Point.hpp>
+#include <libslic3r/TriangleMesh.hpp>
 
 
 namespace Slic3r {
