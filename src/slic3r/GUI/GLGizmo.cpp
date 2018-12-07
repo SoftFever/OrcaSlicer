@@ -1732,7 +1732,9 @@ GLGizmoSlaSupports::GLGizmoSlaSupports(GLCanvas3D& parent)
 #if ENABLE_SLA_SUPPORT_GIZMO_MOD
     m_quadric = ::gluNewQuadric();
     if (m_quadric != nullptr)
-        ::gluQuadricDrawStyle(m_quadric, GLU_FILL);
+        // using GLU_FILL does not work when the instance's transformation
+        // contains mirroring (normals are reverted)
+        ::gluQuadricDrawStyle(m_quadric, GLU_SILHOUETTE);
 #endif // ENABLE_SLA_SUPPORT_GIZMO_MOD
 }
 
@@ -1881,7 +1883,8 @@ void GLGizmoSlaSupports::render_grabbers(const GLCanvas3D::Selection& selection,
         ::glColor3fv(render_color);
         ::glPushMatrix();
         ::glTranslated(m_grabbers[i].center(0), m_grabbers[i].center(1), m_grabbers[i].center(2));
-        ::gluSphere(m_quadric, 0.75, 36, 18);
+        ::gluQuadricDrawStyle(m_quadric, GLU_SILHOUETTE);
+        ::gluSphere(m_quadric, 0.75, 64, 32);
         ::glPopMatrix();
     }
 
