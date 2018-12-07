@@ -92,7 +92,7 @@ void SLAAutoSupports::generate()
     Vec3f normal;
     int added_points = 0;
     int refused_points = 0;
-    const int refused_limit = std::min(100, (int)(1. / m_config.density_at_horizontal));
+    const int refused_limit = 30;
     // Angle at which the density reaches zero:
     const float threshold_angle = std::min(M_PI_2, M_PI_4 * acos(0.f/m_config.density_at_horizontal) / acos(m_config.density_at_45/m_config.density_at_horizontal));
 
@@ -146,8 +146,8 @@ float SLAAutoSupports::get_required_density(float angle) const
 {
     // calculation would be density_0 * cos(angle). To provide one more degree of freedom, we will scale the angle
     // to get the user-set density for 45 deg. So it ends up as density_0 * cos(K * angle).
-    float K = 4*acos(m_config.density_at_45/m_config.density_at_horizontal) / M_PI;
-    return std::max(0., m_config.density_at_horizontal * cos(K*angle));
+    float K = 4.f * float(acos(m_config.density_at_45/m_config.density_at_horizontal) / M_PI);
+    return std::max(0.f, float(m_config.density_at_horizontal * cos(K*angle)));
 }
 
 
