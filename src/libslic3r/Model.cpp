@@ -987,6 +987,8 @@ bool ModelObject::needed_repair() const
 
 ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, bool keep_lower, bool rotate_lower)
 {
+    if (!keep_upper && !keep_lower) { return {}; }
+
     // Clone the object to duplicate instances, materials etc.
     ModelObject* upper = keep_upper ? ModelObject::new_clone(*this) : nullptr;
     ModelObject* lower = keep_lower ? ModelObject::new_clone(*this) : nullptr;
@@ -1024,15 +1026,21 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
     std::vector<BoundingBoxf3> lower_bboxes { instances.size() };
 
     for (ModelVolume *volume : volumes) {
+        const auto volume_matrix = volume->get_matrix();
+
         if (! volume->is_model_part()) {
-            // Don't cut modifiers
+            // Modifiers are not cut, but we still need to add the instance transformation
+            // to the modifier volume transformation to preserve their shape properly.
+
+            volume->set_transformation(Geometry::Transformation(instance_matrix * volume_matrix));
+
             if (keep_upper) { upper->add_volume(*volume); }
             if (keep_lower) { lower->add_volume(*volume); }
         } else {
             TriangleMesh upper_mesh, lower_mesh;
 
             // Transform the mesh by the combined transformation matrix
-            volume->mesh.transform(instance_matrix * volume->get_matrix());
+            volume->mesh.transform(instance_matrix * volume_matrix);
 
             // Perform cut
             TriangleMeshSlicer tms(&volume->mesh);
