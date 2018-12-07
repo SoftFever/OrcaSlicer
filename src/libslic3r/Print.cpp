@@ -360,13 +360,20 @@ double Print::max_allowed_layer_height() const
     return nozzle_diameter_max;
 }
 
+static void clamp_exturder_to_default(ConfigOptionInt &opt, size_t num_extruders)
+{
+    if (opt.value > (int)num_extruders)
+        // assign the default extruder
+        opt.value = 1;
+}
+
 static PrintObjectConfig object_config_from_model(const PrintObjectConfig &default_object_config, const ModelObject &object, size_t num_extruders)
 {
     PrintObjectConfig config = default_object_config;
     normalize_and_apply_config(config, object.config);
-    // Clamp extruders to the number of extruders this printer is physically equipped with.
-    config.support_material_extruder.value           = std::min(config.support_material_extruder.value,           (int)num_extruders);
-    config.support_material_interface_extruder.value = std::min(config.support_material_interface_extruder.value, (int)num_extruders);
+    // Clamp invalid extruders to the default extruder (with index 1).
+    clamp_exturder_to_default(config.support_material_extruder,           num_extruders);
+    clamp_exturder_to_default(config.support_material_interface_extruder, num_extruders);
     return config;
 }
 
@@ -377,10 +384,10 @@ static PrintRegionConfig region_config_from_model_volume(const PrintRegionConfig
     normalize_and_apply_config(config, volume.config);
     if (! volume.material_id().empty())
         normalize_and_apply_config(config, volume.material()->config);
-    // Clamp extruders to the number of extruders this printer is physically equipped with.
-    config.infill_extruder.value        = std::min(config.infill_extruder.value,        (int)num_extruders);
-    config.perimeter_extruder.value     = std::min(config.perimeter_extruder.value,     (int)num_extruders);
-    config.solid_infill_extruder.value  = std::min(config.solid_infill_extruder.value,  (int)num_extruders);
+    // Clamp invalid extruders to the default extruder (with index 1).
+    clamp_exturder_to_default(config.infill_extruder,       num_extruders);
+    clamp_exturder_to_default(config.perimeter_extruder,    num_extruders);
+    clamp_exturder_to_default(config.solid_infill_extruder, num_extruders);
     return config;
 }
 
