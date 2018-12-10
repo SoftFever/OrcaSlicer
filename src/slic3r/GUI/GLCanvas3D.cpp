@@ -4994,6 +4994,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
 #if ENABLE_CONSTRAINED_CAMERA_TARGET
             m_camera.set_scene_box(scene_bounding_box(), *this);
+            set_camera_zoom(0.0f);
 #endif // ENABLE_CONSTRAINED_CAMERA_TARGET
         }
 
