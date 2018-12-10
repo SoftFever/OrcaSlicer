@@ -7426,6 +7426,9 @@ void GLCanvas3D::_load_shells_sla()
     int obj_idx = 0;
     for (const SLAPrintObject* obj : print->objects())
     {
+        if (!obj->is_step_done(slaposIndexSlices))
+            continue;
+
         unsigned int initial_volumes_count = (unsigned int)m_volumes.volumes.size();
 
         const ModelObject* model_obj = obj->model_object();
