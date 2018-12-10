@@ -1,5 +1,7 @@
 #include "PostProcessor.hpp"
 
+#include <boost/log/trivial.hpp>
+
 #ifdef WIN32
 
 namespace Slic3r {
@@ -25,9 +27,10 @@ void run_post_process_scripts(const std::string &path, const PrintConfig &config
 {
     if (config.post_process.values.empty())
         return;
-    //config.setenv_();
+
+    config.setenv_();
     auto gcode_file = boost::filesystem::path(path);
-    if (!boost::filesystem::exists(gcode_file))
+    if (! boost::filesystem::exists(gcode_file))
         throw std::runtime_error(std::string("Post-processor can't find exported gcode file"));
 
     for (std::string script: config.post_process.values) {
