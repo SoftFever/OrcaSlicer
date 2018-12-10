@@ -68,24 +68,26 @@ ObjectList::ObjectList(wxWindow* parent) :
 
 #ifdef __WXMSW__
     // Extruder value changed
-    Bind(wxEVT_CHOICE, [this](wxCommandEvent& event) { update_extruder_in_config(event.GetString()); });
+//     Bind(wxEVT_CHOICE, [this](wxCommandEvent& event) { update_extruder_in_config(event.GetString()); });
 
     GetMainWindow()->Bind(wxEVT_MOTION, [this](wxMouseEvent& event) {
         set_tooltip_for_item(/*event.GetPosition()*/get_mouse_position_in_control());
         event.Skip();
     });
-#else
+// #else
     // equivalent to wxEVT_CHOICE on __WXMSW__
-    Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, [this](wxDataViewEvent& e) { item_value_change(e); });
+//     Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, [this](wxDataViewEvent& e) { item_value_change(e); });
 #endif //__WXMSW__
 
-    Bind(wxEVT_DATAVIEW_ITEM_BEGIN_DRAG,    [this](wxDataViewEvent& e) {on_begin_drag(e); });
-    Bind(wxEVT_DATAVIEW_ITEM_DROP_POSSIBLE, [this](wxDataViewEvent& e) {on_drop_possible(e); });
-    Bind(wxEVT_DATAVIEW_ITEM_DROP,          [this](wxDataViewEvent& e) {on_drop(e); });
+    Bind(wxEVT_DATAVIEW_ITEM_BEGIN_DRAG,    [this](wxDataViewEvent& e) { on_begin_drag(e); });
+    Bind(wxEVT_DATAVIEW_ITEM_DROP_POSSIBLE, [this](wxDataViewEvent& e) { on_drop_possible(e); });
+    Bind(wxEVT_DATAVIEW_ITEM_DROP,          [this](wxDataViewEvent& e) { on_drop(e); });
 
-    Bind(wxCUSTOMEVT_LAST_VOLUME_IS_DELETED, [this](wxCommandEvent& e)   {last_volume_is_deleted(e.GetInt()); });
+    Bind(wxCUSTOMEVT_LAST_VOLUME_IS_DELETED, [this](wxCommandEvent& e)   { last_volume_is_deleted(e.GetInt()); });
 
-    Bind(wxEVT_DATAVIEW_ITEM_START_EDITING,     &ObjectList::OnStartEditing,    this);
+//    Bind(wxEVT_DATAVIEW_ITEM_START_EDITING,     &ObjectList::OnStartEditing,    this);
+//     Bind(wxEVT_DATAVIEW_ITEM_EDITING_DONE,      &ObjectList::OnEditingDone,    this);
+    Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED,     &ObjectList::ItemValueChanged, this);
 }
 
 ObjectList::~ObjectList()
@@ -276,9 +278,9 @@ void ObjectList::selection_changed()
 
     part_selection_changed();
 
-#ifdef __WXOSX__
-    update_extruder_in_config(m_selected_extruder);
-#endif //__WXOSX__        
+// #ifdef __WXOSX__
+//     update_extruder_in_config(m_selected_extruder);
+// #endif //__WXOSX__        
 }
 
 void ObjectList::context_menu()
@@ -1623,11 +1625,35 @@ void ObjectList::update_settings_items()
     UnselectAll();
 }
 
-void ObjectList::OnStartEditing(wxDataViewEvent &event)
+// void ObjectList::OnEditingDone(wxDataViewEvent &event)
+// {
+//     m_selected_extruder = event.GetValue().GetString();
+// }
+
+void ObjectList::ItemValueChanged(wxDataViewEvent &event)
 {
-    const auto item_type = m_objects_model->GetItemType(event.GetItem());
-    if ( !(item_type&(itObject|itVolume)) )
-        event.Veto();
+    const wxDataViewItem item = event.GetItem();
+    if (m_objects_model->GetParent(item) == wxDataViewItem(0)) {
+        const int obj_idx = m_objects_model->GetIdByItem(item);
+        m_config = &(*m_objects)[obj_idx]->config;
+    }
+    else {
+        const int obj_idx = m_objects_model->GetIdByItem(m_objects_model->GetParent(item));
+        const int volume_id = m_objects_model->GetVolumeIdByItem(item);
+        m_config = &(*m_objects)[obj_idx]->volumes[volume_id]->config;
+    }
+
+    wxVariant variant;
+    m_objects_model->GetValue(variant, event.GetItem(), 1);
+    const wxString sel_extr = variant.GetString();
+    if (!m_config || sel_extr.empty())
+        return;
+
+    int extruder = sel_extr.size() > 1 ? 0 : atoi(sel_extr.c_str());
+    m_config->set_key_value("extruder", new ConfigOptionInt(extruder));
+
+    // update scene
+    wxGetApp().plater()->update();
 }
 
 } //namespace GUI

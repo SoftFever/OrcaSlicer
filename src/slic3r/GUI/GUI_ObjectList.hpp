@@ -80,9 +80,9 @@ class ObjectList : public wxDataViewCtrl
     bool		m_prevent_list_events = false;		// We use this flag to avoid circular event handling Select() 
                                                     // happens to fire a wxEVT_LIST_ITEM_SELECTED on OSX, whose event handler 
                                                     // calls this method again and again and again
-#ifdef __WXOSX__
-    wxString    m_selected_extruder = "";
-#endif //__WXOSX__
+// #ifdef __WXOSX__
+//     wxString    m_selected_extruder = "";
+// #endif //__WXOSX__
     bool        m_parts_changed = false;
     bool        m_part_settings_changed = false;
 
@@ -202,8 +202,8 @@ public:
     void update_settings_items();
 
 private:
-    void OnStartEditing(wxDataViewEvent &event);
-
+//     void OnEditingDone(wxDataViewEvent &event);
+    void ItemValueChanged(wxDataViewEvent &event);
 };
 
 
