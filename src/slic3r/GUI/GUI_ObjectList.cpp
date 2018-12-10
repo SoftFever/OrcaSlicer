@@ -1152,13 +1152,19 @@ void ObjectList::add_object_to_list(size_t obj_idx)
 
     // add volumes to the object
     if (model_object->volumes.size() > 1) {
-        for (auto id = 0; id < model_object->volumes.size(); id++)
-            m_objects_model->AddVolumeChild(item,
-            model_object->volumes[id]->name,
-            ModelVolume::MODEL_PART,
-            !model_object->volumes[id]->config.has("extruder") ? 0 :
+        for (auto id = 0; id < model_object->volumes.size(); id++) {
+            auto vol_item = m_objects_model->AddVolumeChild(item,
+                model_object->volumes[id]->name,
+                model_object->volumes[id]->type()/*ModelVolume::MODEL_PART*/,
+                !model_object->volumes[id]->config.has("extruder") ? 0 :
                 model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value,
-            false);
+                false);
+            auto opt_keys = model_object->volumes[id]->config.keys();
+            if (!opt_keys.empty() && !(opt_keys.size() == 1 && opt_keys[0] == "extruder")) {
+                select_item(m_objects_model->AddSettingsChild(vol_item));
+                Collapse(vol_item);
+            }
+        }
         Expand(item);
     }
 
@@ -1532,7 +1538,24 @@ void ObjectList::change_part_type()
     ModelVolume* volume = get_selected_model_volume();
     if (!volume)
         return;
+
     const auto type = volume->type();
+    if (type == ModelVolume::MODEL_PART)
+    {
+        const int obj_idx = get_selected_obj_idx();
+        if (obj_idx < 0) return;
+
+        int model_part_cnt = 0;
+        for (auto vol : (*m_objects)[obj_idx]->volumes) {
+            if (vol->type() == ModelVolume::MODEL_PART)
+                ++model_part_cnt;
+        }
+
+        if (model_part_cnt == 1) {
+            Slic3r::GUI::show_error(nullptr, _(L("You can't change a type of the last solid part of the object.")));
+            return;
+        }
+    }
 
     const wxString names[] = { "Part", "Modifier", "Support Enforcer", "Support Blocker" };
     
@@ -1552,11 +1575,11 @@ void ObjectList::change_part_type()
     //(we show additional settings for Part and Modifier and hide it for Support Blocker/Enforcer)
     const auto settings_item = m_objects_model->GetSettingsItem(item);
     if (settings_item && 
-        new_type == ModelVolume::SUPPORT_ENFORCER || new_type == ModelVolume::SUPPORT_BLOCKER) {
+        (new_type == ModelVolume::SUPPORT_ENFORCER || new_type == ModelVolume::SUPPORT_BLOCKER)) {
         m_objects_model->Delete(settings_item);
     }
     else if (!settings_item && 
-              new_type == ModelVolume::MODEL_PART || new_type == ModelVolume::PARAMETER_MODIFIER) {
+              (new_type == ModelVolume::MODEL_PART || new_type == ModelVolume::PARAMETER_MODIFIER)) {
         select_item(m_objects_model->AddSettingsChild(item));
     }
 }
