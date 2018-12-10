@@ -222,12 +222,28 @@ void ObjectList::set_extruder_column_hidden(bool hide)
     GetColumn(1)->SetHidden(hide);
 }
 
-void ObjectList::update_extruder_in_config(const wxString& selection)
+void ObjectList::update_extruder_in_config(const wxDataViewItem& item/*wxString& selection*/)
 {
+    if (m_objects_model->GetParent(item) == wxDataViewItem(0)) {
+        const int obj_idx = m_objects_model->GetIdByItem(item);
+        m_config = &(*m_objects)[obj_idx]->config;
+    }
+    else {
+        const int obj_idx = m_objects_model->GetIdByItem(m_objects_model->GetParent(item));
+        const int volume_id = m_objects_model->GetVolumeIdByItem(item);
+        if (obj_idx < 0 || volume_id < 0)
+            return;
+        m_config = &(*m_objects)[obj_idx]->volumes[volume_id]->config;
+    }
+
+    wxVariant variant;
+    m_objects_model->GetValue(variant, item, 1);
+    const wxString selection = variant.GetString();
+
     if (!m_config || selection.empty())
         return;
 
-    int extruder = selection.size() > 1 ? 0 : atoi(selection.c_str());
+    const int extruder = selection.size() > 1 ? 0 : atoi(selection.c_str());
     m_config->set_key_value("extruder", new ConfigOptionInt(extruder));
 
     // update scene
@@ -366,11 +382,11 @@ void ObjectList::item_value_change(wxDataViewEvent& event)
     {
         wxVariant variant;
         m_objects_model->GetValue(variant, event.GetItem(), 1);
-#ifdef __WXOSX__
-        m_selected_extruder = variant.GetString();
-#else // --> for Linux
-        update_extruder_in_config(variant.GetString());
-#endif //__WXOSX__  
+// #ifdef __WXOSX__
+//         m_selected_extruder = variant.GetString();
+// #else // --> for Linux
+//         update_extruder_in_config(variant.GetString());
+// #endif //__WXOSX__  
     }
 }
 
@@ -1632,28 +1648,7 @@ void ObjectList::update_settings_items()
 
 void ObjectList::ItemValueChanged(wxDataViewEvent &event)
 {
-    const wxDataViewItem item = event.GetItem();
-    if (m_objects_model->GetParent(item) == wxDataViewItem(0)) {
-        const int obj_idx = m_objects_model->GetIdByItem(item);
-        m_config = &(*m_objects)[obj_idx]->config;
-    }
-    else {
-        const int obj_idx = m_objects_model->GetIdByItem(m_objects_model->GetParent(item));
-        const int volume_id = m_objects_model->GetVolumeIdByItem(item);
-        m_config = &(*m_objects)[obj_idx]->volumes[volume_id]->config;
-    }
-
-    wxVariant variant;
-    m_objects_model->GetValue(variant, event.GetItem(), 1);
-    const wxString sel_extr = variant.GetString();
-    if (!m_config || sel_extr.empty())
-        return;
-
-    int extruder = sel_extr.size() > 1 ? 0 : atoi(sel_extr.c_str());
-    m_config->set_key_value("extruder", new ConfigOptionInt(extruder));
-
-    // update scene
-    wxGetApp().plater()->update();
+    update_extruder_in_config(event.GetItem());
 }
 
 } //namespace GUI

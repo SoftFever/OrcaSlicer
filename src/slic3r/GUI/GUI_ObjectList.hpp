@@ -105,7 +105,7 @@ public:
     // show/hide "Extruder" column for Objects List
     void                set_extruder_column_hidden(bool hide);
     // update extruder in current config
-    void                update_extruder_in_config(const wxString& selection);
+    void                update_extruder_in_config(const wxDataViewItem& item/*wxString& selection*/);
 
     void                init_icons();
 
