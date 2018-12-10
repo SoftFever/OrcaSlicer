@@ -6084,166 +6084,190 @@ void GLCanvas3D::_render_sla_slices() const
         return;
 
     const SLAPrint* print = this->sla_print();
-    if (print->objects().empty())
+    const PrintObjects& print_objects = print->objects();
+    if (print_objects.empty())
         // nothing to render, return
         return;
 
     double clip_min_z = -m_clipping_planes[0].get_data()[3];
     double clip_max_z = m_clipping_planes[1].get_data()[3];
-    for (const SLAPrintObject* obj : print->objects())
+    for (unsigned int i = 0; i < (unsigned int)print_objects.size(); ++i)
     {
-        if (obj->is_step_done(slaposIndexSlices))
+        const SLAPrintObject* obj = print_objects[i];
+
+        Pointf3s bottom_obj_triangles;
+        Pointf3s bottom_sup_triangles;
+        Pointf3s top_obj_triangles;
+        Pointf3s top_sup_triangles;
+
+        double shift_z = obj->get_current_elevation();
+        double min_z = clip_min_z - shift_z;
+        double max_z = clip_max_z - shift_z;
+
+        if (m_sla_caps[0].matches(min_z))
+        {
+            SlaCap::ObjectIdToTrianglesMap::const_iterator it = m_sla_caps[0].triangles.find(i);
+            if (it != m_sla_caps[0].triangles.end())
+            {
+                bottom_obj_triangles = it->second.object;
+                bottom_sup_triangles = it->second.suppports;
+            }
+        }
+
+        if (m_sla_caps[1].matches(max_z))
+        {
+            SlaCap::ObjectIdToTrianglesMap::const_iterator it = m_sla_caps[1].triangles.find(i);
+            if (it != m_sla_caps[1].triangles.end())
+            {
+                top_obj_triangles = it->second.object;
+                top_sup_triangles = it->second.suppports;
+            }
+        }
+
+        const std::vector<SLAPrintObject::Instance>& instances = obj->instances();
+        struct InstanceTransform
+        {
+            Vec3d offset;
+            float rotation;
+        };
+
+        std::vector<InstanceTransform> instance_transforms;
+        for (const SLAPrintObject::Instance& inst : instances)
+        {
+            instance_transforms.push_back({ to_3d(unscale(inst.shift), shift_z), Geometry::rad2deg(inst.rotation) });
+        }
+
+        if ((bottom_obj_triangles.empty() || bottom_sup_triangles.empty() || top_obj_triangles.empty() || top_sup_triangles.empty()) && obj->is_step_done(slaposIndexSlices))
         {
             const std::vector<ExPolygons>& model_slices = obj->get_model_slices();
             const std::vector<ExPolygons>& support_slices = obj->get_support_slices();
-            const std::vector<SLAPrintObject::Instance>& instances = obj->instances();
-            double shift_z = obj->get_current_elevation();
 
-            struct InstanceTransform
+            const SLAPrintObject::SliceIndex& index = obj->get_slice_index();
+            SLAPrintObject::SliceIndex::const_iterator it_min_z = std::find_if(index.begin(), index.end(), [min_z](const SLAPrintObject::SliceIndex::value_type& id) -> bool { return std::abs(min_z - id.first) < EPSILON; });
+            SLAPrintObject::SliceIndex::const_iterator it_max_z = std::find_if(index.begin(), index.end(), [max_z](const SLAPrintObject::SliceIndex::value_type& id) -> bool { return std::abs(max_z - id.first) < EPSILON; });
+
+            if (it_min_z != index.end())
             {
-                Vec3d offset;
-                float rotation;
-            };
-
-            std::vector<InstanceTransform> instance_transforms;
-            for (const SLAPrintObject::Instance& inst : instances)
-            {
-                instance_transforms.push_back({ to_3d(unscale(inst.shift), shift_z), Geometry::rad2deg(inst.rotation) });
-            }
-
-            double min_z = clip_min_z - shift_z;
-            double max_z = clip_max_z - shift_z;
-
-            Pointf3s bottom_triangles;
-            Pointf3s top_triangles;
-
-            if (m_sla_caps[0].matches(min_z))
-                bottom_triangles = m_sla_caps[0].triangles;
-
-            if (m_sla_caps[1].matches(max_z))
-                top_triangles = m_sla_caps[1].triangles;
-
-            if (bottom_triangles.empty() || top_triangles.empty())
-            {
-                const SLAPrintObject::SliceIndex& index = obj->get_slice_index();
-                SLAPrintObject::SliceIndex::const_iterator it_min_z = std::find_if(index.begin(), index.end(), [min_z](const SLAPrintObject::SliceIndex::value_type& id) -> bool { return std::abs(min_z - id.first) < EPSILON; });
-                SLAPrintObject::SliceIndex::const_iterator it_max_z = std::find_if(index.begin(), index.end(), [max_z](const SLAPrintObject::SliceIndex::value_type& id) -> bool { return std::abs(max_z - id.first) < EPSILON; });
-
-                if (bottom_triangles.empty() && (it_min_z != index.end()))
+                if (bottom_obj_triangles.empty() && (it_min_z->second.model_slices_idx < model_slices.size()))
                 {
                     // calculate model bottom cap
-                    if (it_min_z->second.model_slices_idx < model_slices.size())
+                    const ExPolygons& polys = model_slices[it_min_z->second.model_slices_idx];
+                    for (const ExPolygon& poly : polys)
                     {
-                        const ExPolygons& polys = model_slices[it_min_z->second.model_slices_idx];
-                        for (const ExPolygon& poly : polys)
+                        Polygons poly_triangles;
+                        poly.triangulate(&poly_triangles);
+                        for (const Polygon& t : poly_triangles)
                         {
-                            Polygons triangles;
-                            poly.triangulate(&triangles);
-                            for (const Polygon& t : triangles)
+                            for (int v = 2; v >= 0; --v)
                             {
-                                for (int v = 2; v >= 0; --v)
-                                {
-                                    bottom_triangles.emplace_back(to_3d(unscale(t.points[v]), min_z));
-                                }
+                                bottom_obj_triangles.emplace_back(to_3d(unscale(t.points[v]), min_z));
                             }
                         }
                     }
-
-                    // calculate  support bottom cap
-                    if (it_min_z->second.support_slices_idx < support_slices.size())
-                    {
-                        const ExPolygons& polys = support_slices[it_min_z->second.support_slices_idx];
-                        for (const ExPolygon& poly : polys)
-                        {
-                            Polygons triangles;
-                            poly.triangulate(&triangles);
-                            for (const Polygon& t : triangles)
-                            {
-                                for (int v = 2; v >= 0; --v)
-                                {
-                                    bottom_triangles.emplace_back(to_3d(unscale(t.points[v]), min_z));
-                                }
-                            }
-                        }
-                    }
-                    m_sla_caps[0].z = min_z;
-                    m_sla_caps[0].triangles = bottom_triangles;
                 }
 
-                if (top_triangles.empty() && (it_max_z != index.end()))
+                if (bottom_sup_triangles.empty() && (it_min_z->second.support_slices_idx < support_slices.size()))
                 {
-                    // calculate  model top cap
-                    if (it_max_z->second.model_slices_idx < model_slices.size())
+                    // calculate support bottom cap
+                    const ExPolygons& polys = support_slices[it_min_z->second.support_slices_idx];
+                    for (const ExPolygon& poly : polys)
                     {
-                        const ExPolygons& polys = model_slices[it_max_z->second.model_slices_idx];
-                        for (const ExPolygon& poly : polys)
+                        Polygons poly_triangles;
+                        poly.triangulate(&poly_triangles);
+                        for (const Polygon& t : poly_triangles)
                         {
-                            Polygons triangles;
-                            poly.triangulate(&triangles);
-                            for (const Polygon& t : triangles)
+                            for (int v = 2; v >= 0; --v)
                             {
-                                for (int v = 0; v < 3; ++v)
-                                {
-                                    top_triangles.emplace_back(to_3d(unscale(t.points[v]), max_z));
-                                }
+                                bottom_sup_triangles.emplace_back(to_3d(unscale(t.points[v]), min_z));
                             }
                         }
                     }
 
-                    // calculate  support top cap
-                    if (it_max_z->second.support_slices_idx < support_slices.size())
-                    {
-                        const ExPolygons& polys = support_slices[it_max_z->second.support_slices_idx];
-                        for (const ExPolygon& poly : polys)
-                        {
-                            Polygons triangles;
-                            poly.triangulate(&triangles);
-                            for (const Polygon& t : triangles)
-                            {
-                                for (int v = 0; v < 3; ++v)
-                                {
-                                    top_triangles.emplace_back(to_3d(unscale(t.points[v]), max_z));
-                                }
-                            }
-                        }
-                    }
-                    m_sla_caps[1].z = max_z;
-                    m_sla_caps[1].triangles = top_triangles;
+                    m_sla_caps[0].triangles.insert(SlaCap::ObjectIdToTrianglesMap::value_type(i, { bottom_obj_triangles, bottom_sup_triangles }));
+                    m_sla_caps[0].z = min_z;
                 }
             }
 
-            if (!bottom_triangles.empty() || !top_triangles.empty())
+            if (it_max_z != index.end())
             {
+                if (top_obj_triangles.empty() && (it_max_z->second.model_slices_idx < model_slices.size()))
+                {
+                    // calculate model top cap
+                    const ExPolygons& polys = model_slices[it_max_z->second.model_slices_idx];
+                    for (const ExPolygon& poly : polys)
+                    {
+                        Polygons poly_triangles;
+                        poly.triangulate(&poly_triangles);
+                        for (const Polygon& t : poly_triangles)
+                        {
+                            for (int v = 0; v < 3; ++v)
+                            {
+                                top_obj_triangles.emplace_back(to_3d(unscale(t.points[v]), max_z));
+                            }
+                        }
+                    }
+                }
+
+                if (top_sup_triangles.empty() && (it_max_z->second.support_slices_idx < support_slices.size()))
+                {
+                    // calculate support top cap
+                    const ExPolygons& polys = support_slices[it_max_z->second.support_slices_idx];
+                    for (const ExPolygon& poly : polys)
+                    {
+                        Polygons poly_triangles;
+                        poly.triangulate(&poly_triangles);
+                        for (const Polygon& t : poly_triangles)
+                        {
+                            for (int v = 0; v < 3; ++v)
+                            {
+                                top_sup_triangles.emplace_back(to_3d(unscale(t.points[v]), max_z));
+                            }
+                        }
+                    }
+                }
+
+                m_sla_caps[1].triangles.insert(SlaCap::ObjectIdToTrianglesMap::value_type(i, { top_obj_triangles, top_sup_triangles }));
+                m_sla_caps[1].z = max_z;
+            }
+        }
+
+        if (!bottom_obj_triangles.empty() || !top_obj_triangles.empty() || !bottom_sup_triangles.empty() || !top_sup_triangles.empty())
+        {
+            for (const InstanceTransform& inst : instance_transforms)
+            {
+                ::glPushMatrix();
+                ::glTranslated(inst.offset(0), inst.offset(1), inst.offset(2));
+                ::glRotatef(inst.rotation, 0.0, 0.0, 1.0);
+
+                ::glBegin(GL_TRIANGLES);
+
                 ::glColor3f(1.0f, 0.37f, 0.0f);
 
-                for (const InstanceTransform& inst : instance_transforms)
+                for (const Vec3d& v : bottom_obj_triangles)
                 {
-                    ::glPushMatrix();
-                    ::glTranslated(inst.offset(0), inst.offset(1), inst.offset(2));
-                    ::glRotatef(inst.rotation, 0.0, 0.0, 1.0);
-
-                    ::glBegin(GL_TRIANGLES);
-
-                    if (!bottom_triangles.empty())
-                    {
-                        for (const Vec3d& v : bottom_triangles)
-                        {
-                            ::glVertex3dv((GLdouble*)v.data());
-                        }
-                    }
-
-                    if (!top_triangles.empty())
-                    {
-                        for (const Vec3d& v : top_triangles)
-                        {
-                            ::glVertex3dv((GLdouble*)v.data());
-                        }
-                    }
-
-                    ::glEnd();
-
-                    ::glPopMatrix();
+                    ::glVertex3dv((GLdouble*)v.data());
                 }
+
+                for (const Vec3d& v : top_obj_triangles)
+                {
+                    ::glVertex3dv((GLdouble*)v.data());
+                }
+
+                ::glColor3f(1.0f, 0.0f, 0.37f);
+
+                for (const Vec3d& v : bottom_sup_triangles)
+                {
+                    ::glVertex3dv((GLdouble*)v.data());
+                }
+
+                for (const Vec3d& v : top_sup_triangles)
+                {
+                    ::glVertex3dv((GLdouble*)v.data());
+                }
+
+                ::glEnd();
+
+                ::glPopMatrix();
             }
         }
     }

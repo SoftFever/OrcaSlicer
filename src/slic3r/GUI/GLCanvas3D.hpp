@@ -701,8 +701,14 @@ private:
 
     struct SlaCap
     {
+        struct Triangles
+        {
+            Pointf3s object;
+            Pointf3s suppports;
+        };
+        typedef std::map<unsigned int, Triangles> ObjectIdToTrianglesMap;
         double z;
-        Pointf3s triangles;
+        ObjectIdToTrianglesMap triangles;
 
         SlaCap() { reset(); }
         void reset() { z = DBL_MAX; triangles.clear(); }
