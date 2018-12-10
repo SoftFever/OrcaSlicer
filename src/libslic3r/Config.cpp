@@ -336,7 +336,7 @@ double ConfigBase::get_abs_value(const t_config_option_key &opt_key, double rati
     return static_cast<const ConfigOptionFloatOrPercent*>(raw_opt)->get_abs_value(ratio_over);
 }
 
-void ConfigBase::setenv_()
+void ConfigBase::setenv_() const
 {
     t_config_option_keys opt_keys = this->keys();
     for (t_config_option_keys::const_iterator it = opt_keys.begin(); it != opt_keys.end(); ++it) {
