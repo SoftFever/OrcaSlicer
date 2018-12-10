@@ -80,9 +80,10 @@ class ObjectList : public wxDataViewCtrl
     bool		m_prevent_list_events = false;		// We use this flag to avoid circular event handling Select() 
                                                     // happens to fire a wxEVT_LIST_ITEM_SELECTED on OSX, whose event handler 
                                                     // calls this method again and again and again
-// #ifdef __WXOSX__
-//     wxString    m_selected_extruder = "";
-// #endif //__WXOSX__
+
+    bool        m_prevent_update_extruder_in_config = false; // We use this flag to avoid updating of the extruder value in config 
+                                                             // during updating of the extruder count.
+
     bool        m_parts_changed = false;
     bool        m_part_settings_changed = false;
 
@@ -106,6 +107,7 @@ public:
     void                set_extruder_column_hidden(bool hide);
     // update extruder in current config
     void                update_extruder_in_config(const wxDataViewItem& item/*wxString& selection*/);
+    void                update_extruder_values_for_items(const int max_extruder);
 
     void                init_icons();
 
@@ -115,7 +117,6 @@ public:
     void                context_menu();
     void                show_context_menu();
     void                key_event(wxKeyEvent& event);
-    void                item_value_change(wxDataViewEvent& event);
 
     void                on_begin_drag(wxDataViewEvent &event);
     void                on_drop_possible(wxDataViewEvent &event);
@@ -202,7 +203,6 @@ public:
     void update_settings_items();
 
 private:
-//     void OnEditingDone(wxDataViewEvent &event);
     void ItemValueChanged(wxDataViewEvent &event);
 };
 

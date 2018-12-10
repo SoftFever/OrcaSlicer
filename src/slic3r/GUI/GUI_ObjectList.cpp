@@ -67,16 +67,10 @@ ObjectList::ObjectList(wxWindow* parent) :
     Bind(wxEVT_CHAR, [this](wxKeyEvent& event) { key_event(event); }); // doesn't work on OSX
 
 #ifdef __WXMSW__
-    // Extruder value changed
-//     Bind(wxEVT_CHOICE, [this](wxCommandEvent& event) { update_extruder_in_config(event.GetString()); });
-
     GetMainWindow()->Bind(wxEVT_MOTION, [this](wxMouseEvent& event) {
         set_tooltip_for_item(/*event.GetPosition()*/get_mouse_position_in_control());
         event.Skip();
     });
-// #else
-    // equivalent to wxEVT_CHOICE on __WXMSW__
-//     Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, [this](wxDataViewEvent& e) { item_value_change(e); });
 #endif //__WXMSW__
 
     Bind(wxEVT_DATAVIEW_ITEM_BEGIN_DRAG,    [this](wxDataViewEvent& e) { on_begin_drag(e); });
@@ -201,11 +195,53 @@ wxDataViewColumn* ObjectList::create_objects_list_extruder_column(int extruders_
     return column;
 }
 
+void ObjectList::update_extruder_values_for_items(const int max_extruder)
+{
+    for (int i = 0; i < m_objects->size(); ++i)
+    {
+        wxDataViewItem item = m_objects_model->GetItemById(i);
+        if (!item) continue;
+            
+        auto object = (*m_objects)[i];
+        wxString extruder;
+        if (!object->config.has("extruder") ||
+            object->config.option<ConfigOptionInt>("extruder")->value > max_extruder)
+            extruder = "default";
+        else
+            extruder = wxString::Format("%d", object->config.option<ConfigOptionInt>("extruder")->value);
+
+        m_objects_model->SetValue(extruder, item, 1);
+
+        if (object->volumes.size() > 1) {
+            for (auto id = 0; id < object->volumes.size(); id++) {
+                item = m_objects_model->GetItemByVolumeId(i, id);
+                if (!item) continue;
+                if (!object->volumes[id]->config.has("extruder") ||
+                    object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value > max_extruder)
+                    extruder = "default";
+                else
+                    extruder = wxString::Format("%d", object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value); 
+
+                m_objects_model->SetValue(extruder, item, 1);
+            }
+        }
+    }
+}
+
 void ObjectList::update_objects_list_extruder_column(int extruders_count)
 {
     if (!this) return; // #ys_FIXME
     if (wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA)
         extruders_count = 1;
+
+    wxDataViewChoiceRenderer* ch_render = dynamic_cast<wxDataViewChoiceRenderer*>(GetColumn(1)->GetRenderer());
+    if (ch_render->GetChoices().GetCount() - 1 == extruders_count)
+        return;
+    
+    m_prevent_update_extruder_in_config = true;
+
+    if (m_objects && extruders_count > 1)
+        update_extruder_values_for_items(extruders_count);
 
     // delete old 2nd column
     DeleteColumn(GetColumn(1));
@@ -215,6 +251,8 @@ void ObjectList::update_objects_list_extruder_column(int extruders_count)
     set_extruder_column_hidden(extruders_count <= 1);
     //a workaround for a wrong last column width updating under OSX 
     GetColumn(2)->SetWidth(25);
+
+    m_prevent_update_extruder_in_config = false;
 }
 
 void ObjectList::set_extruder_column_hidden(bool hide)
@@ -222,8 +260,10 @@ void ObjectList::set_extruder_column_hidden(bool hide)
     GetColumn(1)->SetHidden(hide);
 }
 
-void ObjectList::update_extruder_in_config(const wxDataViewItem& item/*wxString& selection*/)
+void ObjectList::update_extruder_in_config(const wxDataViewItem& item)
 {
+    if (m_prevent_update_extruder_in_config)
+        return;
     if (m_objects_model->GetParent(item) == wxDataViewItem(0)) {
         const int obj_idx = m_objects_model->GetIdByItem(item);
         m_config = &(*m_objects)[obj_idx]->config;
@@ -374,20 +414,6 @@ void ObjectList::key_event(wxKeyEvent& event)
         select_item_all_children();
     else
         event.Skip();
-}
-
-void ObjectList::item_value_change(wxDataViewEvent& event)
-{
-    if (event.GetColumn() == 1)
-    {
-        wxVariant variant;
-        m_objects_model->GetValue(variant, event.GetItem(), 1);
-// #ifdef __WXOSX__
-//         m_selected_extruder = variant.GetString();
-// #else // --> for Linux
-//         update_extruder_in_config(variant.GetString());
-// #endif //__WXOSX__  
-    }
 }
 
 struct draging_item_data
@@ -589,9 +615,6 @@ void ObjectList::get_settings_choice(const wxString& category_name)
         const auto settings_item = m_objects_model->GetSettingsItem(item);
         select_item(settings_item ? settings_item :
             m_objects_model->AddSettingsChild(item));
-#ifndef __WXOSX__
-//         part_selection_changed();
-#endif //no __WXOSX__
     }
     else {
         auto panel = wxGetApp().sidebar().scrolled_panel();
@@ -765,11 +788,6 @@ void ObjectList::load_subobject(int type)
         if (i == part_names.size() - 1)
             select_item(sel_item);
     }
-
-#ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
-//     selection_changed();
-#endif //no __WXOSX__//__WXMSW__
-
 }
 
 void ObjectList::load_part( ModelObject* model_object,
@@ -1640,11 +1658,6 @@ void ObjectList::update_settings_items()
     }
     UnselectAll();
 }
-
-// void ObjectList::OnEditingDone(wxDataViewEvent &event)
-// {
-//     m_selected_extruder = event.GetValue().GetString();
-// }
 
 void ObjectList::ItemValueChanged(wxDataViewEvent &event)
 {
