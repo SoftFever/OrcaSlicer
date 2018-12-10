@@ -1080,8 +1080,10 @@ GLCanvas3D::Selection::VolumeCache::TransformCache::TransformCache()
     : position(Vec3d::Zero())
     , rotation(Vec3d::Zero())
     , scaling_factor(Vec3d::Ones())
+    , mirror(Vec3d::Ones())
     , rotation_matrix(Transform3d::Identity())
     , scale_matrix(Transform3d::Identity())
+    , mirror_matrix(Transform3d::Identity())
 {
 }
 
@@ -1089,9 +1091,11 @@ GLCanvas3D::Selection::VolumeCache::TransformCache::TransformCache(const Geometr
     : position(transform.get_offset())
     , rotation(transform.get_rotation())
     , scaling_factor(transform.get_scaling_factor())
+    , mirror(transform.get_mirror())
 {
     rotation_matrix = Geometry::assemble_transform(Vec3d::Zero(), rotation);
     scale_matrix = Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), scaling_factor);
+    mirror_matrix = Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), Vec3d::Ones(), mirror);
 }
 
 GLCanvas3D::Selection::VolumeCache::VolumeCache(const Geometry::Transformation& volume_transform, const Geometry::Transformation& instance_transform)
@@ -1481,7 +1485,7 @@ void GLCanvas3D::Selection::translate(const Vec3d& displacement)
 #if ENABLE_MODELVOLUME_TRANSFORM
     if ((m_mode == Volume) || (*m_volumes)[i]->is_wipe_tower)
     {
-        Vec3d local_displacement = (m_cache.volumes_data[i].get_instance_rotation_matrix() * m_cache.volumes_data[i].get_instance_scale_matrix()).inverse() * displacement;
+        Vec3d local_displacement = (m_cache.volumes_data[i].get_instance_rotation_matrix() * m_cache.volumes_data[i].get_instance_scale_matrix() * m_cache.volumes_data[i].get_instance_mirror_matrix()).inverse() * displacement;
         (*m_volumes)[i]->set_volume_offset(m_cache.volumes_data[i].get_volume_position() + local_displacement);
     }
     else if (m_mode == Instance)
@@ -5336,6 +5340,15 @@ void GLCanvas3D::do_mirror()
 #endif // ENABLE_MODELVOLUME_TRANSFORM
             model_object->invalidate_bounding_box();
         }
+    }
+
+    // Fixes sinking/flying instances
+    for (const std::pair<int, int>& i : done)
+    {
+        ModelObject* m = m_model->objects[i.first];
+        Vec3d shift(0.0, 0.0, -m->get_instance_min_z(i.second));
+        m_selection.translate(i.first, i.second, shift);
+        m->translate_instance(i.second, shift);
     }
 
     post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
