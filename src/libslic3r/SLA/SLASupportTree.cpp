@@ -743,8 +743,11 @@ public:
 
     // WITH THE PAD
     double full_height() const {
+        if(merged_mesh().empty() && !pad().empty())
+            return pad().cfg.min_wall_height_mm;
+
         double h = mesh_height();
-        if(!pad().empty()) h += pad().cfg.min_wall_height_mm / 2;
+        if(!pad().empty()) h += sla::get_pad_elevation(pad().cfg);
         return h;
     }
 
