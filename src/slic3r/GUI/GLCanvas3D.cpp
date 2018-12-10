@@ -7479,7 +7479,7 @@ void GLCanvas3D::_load_shells_sla()
                 else
                     v.indexed_vertex_array.load_mesh_flat_shading(mesh);
 
-                v.shader_outside_printer_detection_enabled = true;
+                v.shader_outside_printer_detection_enabled = false;
                 v.composite_id.volume_id = -1;
                 v.set_instance_offset(offset);
                 v.set_instance_rotation(rotation);
