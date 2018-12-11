@@ -193,7 +193,7 @@ public:
         const Point *pt = m_point_accessor(value);
         if (pt != nullptr) {
             // Range of fragment starts around grid_corner, close to pt.
-            auto range = m_map.equal_range(Point(pt->x>>m_grid_log2, pt->y>>m_grid_log2));
+            auto range = m_map.equal_range(Point((*pt)(0)>>m_grid_log2, (*pt)(1)>>m_grid_log2));
             // Remove the first item.
             for (auto it = range.first; it != range.second; ++ it) {
                 if (it->second == value) {
