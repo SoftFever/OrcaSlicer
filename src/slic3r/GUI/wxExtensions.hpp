@@ -222,7 +222,8 @@ class PrusaObjectDataViewModelNode
     size_t                          m_volumes_cnt = 0;
     std::vector< std::string >      m_opt_categories;
 public:
-	PrusaObjectDataViewModelNode(const wxString &name) {
+    PrusaObjectDataViewModelNode(const wxString &name, 
+                                 const wxString& extruder) {
 		m_parent	= NULL;
 		m_name		= name;
 		m_type		= itObject;
@@ -232,6 +233,7 @@ public:
         // it will be produce "segmentation fault"
         m_container = true;
 #endif  //__WXGTK__
+        m_extruder = extruder;
 		set_object_action_icon();
 	}
 
@@ -438,7 +440,7 @@ public:
     PrusaObjectDataViewModel();
     ~PrusaObjectDataViewModel();
 
-	wxDataViewItem Add(const wxString &name);
+	wxDataViewItem Add(const wxString &name, const int extruder);
 	wxDataViewItem AddVolumeChild(const wxDataViewItem &parent_item, 
 							const wxString &name, 
                             const int volume_type,

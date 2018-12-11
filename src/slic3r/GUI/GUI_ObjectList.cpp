@@ -1174,7 +1174,9 @@ void ObjectList::add_object_to_list(size_t obj_idx)
 {
     auto model_object = (*m_objects)[obj_idx];
     wxString item_name = model_object->name;
-    auto item = m_objects_model->Add(item_name);
+    const auto item = m_objects_model->Add(item_name,
+                      !model_object->config.has("extruder") ? 0 :
+                      model_object->config.option<ConfigOptionInt>("extruder")->value);
 
     // Add error icon if detected auto-repaire
     auto stats = model_object->volumes[0]->mesh.stl.stats;

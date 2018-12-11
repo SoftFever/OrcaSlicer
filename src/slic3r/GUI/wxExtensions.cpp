@@ -454,9 +454,10 @@ PrusaObjectDataViewModel::~PrusaObjectDataViewModel()
     m_bitmap_cache = nullptr;
 }
 
-wxDataViewItem PrusaObjectDataViewModel::Add(const wxString &name)
+wxDataViewItem PrusaObjectDataViewModel::Add(const wxString &name, const int extruder)
 {
-	auto root = new PrusaObjectDataViewModelNode(name);
+    const wxString extruder_str = extruder == 0 ? "default" : wxString::Format("%d", extruder);
+	auto root = new PrusaObjectDataViewModelNode(name, extruder_str);
 	m_objects.push_back(root);
 	// notify control
 	wxDataViewItem child((void*)root);
