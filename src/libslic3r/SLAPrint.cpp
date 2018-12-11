@@ -680,7 +680,7 @@ void SLAPrint::process()
     auto& levels = m_printer_input;
 
     // Rasterizing the model objects, and their supports
-    auto rasterize = [this, &levels]() {
+    auto rasterize = [this, max_objstatus, &levels]() {
         if(canceled()) return;
 
         // clear the rasterizer input
