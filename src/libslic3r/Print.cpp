@@ -281,16 +281,17 @@ bool Print::is_step_done(PrintObjectStep step) const
 std::vector<unsigned int> Print::object_extruders() const
 {
     std::vector<unsigned int> extruders;
+    extruders.reserve(m_regions.size() * 3);
     
-    for (PrintRegion* region : m_regions) {
+    for (const PrintRegion *region : m_regions) {
         // these checks reflect the same logic used in the GUI for enabling/disabling
         // extruder selection fields
         if (region->config().perimeters.value > 0 || m_config.brim_width.value > 0)
-            extruders.push_back(region->config().perimeter_extruder - 1);
+            extruders.emplace_back(region->config().perimeter_extruder - 1);
         if (region->config().fill_density.value > 0)
-            extruders.push_back(region->config().infill_extruder - 1);
+            extruders.emplace_back(region->config().infill_extruder - 1);
         if (region->config().top_solid_layers.value > 0 || region->config().bottom_solid_layers.value > 0)
-            extruders.push_back(region->config().solid_infill_extruder - 1);
+            extruders.emplace_back(region->config().solid_infill_extruder - 1);
     }
     
     sort_remove_duplicates(extruders);
@@ -480,14 +481,6 @@ bool Print::apply_config(DynamicPrintConfig config)
         PrintObjectConfig new_config = this->default_object_config();
         // we override the new config with object-specific options
         normalize_and_apply_config(new_config, object->model_object()->config);
-        // Force a refresh of a variable layer height profile at the PrintObject if it is not valid.
-        if (! object->layer_height_profile_valid) {
-            // The layer_height_profile is not valid for some reason (updated by the user or invalidated due to some option change).
-            // Invalidate the slicing step, which in turn invalidates everything.
-            object->invalidate_step(posSlice);
-            // Trigger recalculation.
-            invalidated = true;
-        }
         // check whether the new config is different from the current one
         t_config_option_keys diff = object->config().diff(new_config);
         object->config_apply_only(new_config, diff, true);
@@ -567,8 +560,7 @@ exit_for_rearrange_regions:
 
     // Always make sure that the layer_height_profiles are set, as they should not be modified from the worker threads.
     for (PrintObject *object : m_objects)
-        if (! object->layer_height_profile_valid)
-            object->update_layer_height_profile();
+        object->update_layer_height_profile();
     
     return invalidated;
 }
@@ -1141,6 +1133,8 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
     // Always make sure that the layer_height_profiles are set, as they should not be modified from the worker threads.
     for (PrintObject *object : m_objects)
         if (! object->layer_height_profile_valid)
+            // No need to call the next line as the step should already be invalidated above.
+            // update_apply_status(object->invalidate_step(posSlice));
             object->update_layer_height_profile();
 
     //FIXME there may be a race condition with the G-code export running at the background thread.
@@ -1165,6 +1159,7 @@ bool Print::has_skirt() const
         || this->has_infinite_skirt();
 }
 
+// Precondition: Print::validate() requires the Print::apply() to be called its invocation.
 std::string Print::validate() const
 {
     if (m_objects.empty())
@@ -1253,12 +1248,10 @@ std::string Print::validate() const
                 return L("The Wipe Tower is only supported for multiple objects if they are printed with the same support_material_contact_distance");
             if (! equal_layering(slicing_params, slicing_params0))
                 return L("The Wipe Tower is only supported for multiple objects if they are sliced equally.");
-            bool was_layer_height_profile_valid = object->layer_height_profile_valid;
-            object->update_layer_height_profile();
-            object->layer_height_profile_valid = was_layer_height_profile_valid;
 
             if ( m_config.variable_layer_height ) { // comparing layer height profiles
                 bool failed = false;
+                // layer_height_profile should be set by Print::apply().
                 if (tallest_object->layer_height_profile.size() >= object->layer_height_profile.size() ) {
                     int i = 0;
                     while ( i < object->layer_height_profile.size() && i < tallest_object->layer_height_profile.size()) {

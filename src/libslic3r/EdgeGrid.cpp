@@ -9,7 +9,9 @@
 #endif /* SLIC3R_GUI */
 
 #include "libslic3r.h"
+#include "ClipperUtils.hpp"
 #include "EdgeGrid.hpp"
+#include "SVG.hpp"
 
 #if 0
 // Enable debugging and assert in this file.
@@ -756,8 +758,8 @@ void EdgeGrid::Grid::calculate_sdf()
 	float search_radius = float(m_resolution<<1);
 	m_signed_distance_field.assign(nrows * ncols, search_radius);
 	// For each cell:
-	for (size_t r = 0; r < m_rows; ++ r) {
-		for (size_t c = 0; c < m_cols; ++ c) {
+	for (int r = 0; r < (int)m_rows; ++ r) {
+		for (int c = 0; c < (int)m_cols; ++ c) {
 			const Cell &cell = m_cells[r * m_cols + c];
 			// For each segment in the cell:
 			for (size_t i = cell.begin; i != cell.end; ++ i) {
@@ -842,6 +844,8 @@ void EdgeGrid::Grid::calculate_sdf()
 #if 0
 	static int iRun = 0;
 	++ iRun;
+    if (wxImage::FindHandler(wxBITMAP_TYPE_PNG) == nullptr)
+        wxImage::AddHandler(new wxPNGHandler);
 //#ifdef SLIC3R_GUI
 	{ 
 		wxImage img(ncols, nrows);
@@ -1356,9 +1360,101 @@ Polygons EdgeGrid::Grid::contours_simplified(coord_t offset, bool fill_holes) co
 	return out;
 }
 
+inline int segments_could_intersect(
+	const Slic3r::Point &ip1, const Slic3r::Point &ip2, 
+	const Slic3r::Point &jp1, const Slic3r::Point &jp2)
+{
+	Vec2i64 iv   = (ip2 - ip1).cast<int64_t>();
+	Vec2i64 vij1 = (jp1 - ip1).cast<int64_t>();
+	Vec2i64 vij2 = (jp2 - ip1).cast<int64_t>();
+	int64_t tij1 = cross2(iv, vij1);
+	int64_t tij2 = cross2(iv, vij2);
+	int     sij1 = (tij1 > 0) ? 1 : ((tij1 < 0) ? -1 : 0); // signum
+	int     sij2 = (tij2 > 0) ? 1 : ((tij2 < 0) ? -1 : 0);
+	return sij1 * sij2;
+}
+
+inline bool segments_intersect(
+	const Slic3r::Point &ip1, const Slic3r::Point &ip2, 
+	const Slic3r::Point &jp1, const Slic3r::Point &jp2)
+{
+	return segments_could_intersect(ip1, ip2, jp1, jp2) <= 0 && 
+		   segments_could_intersect(jp1, jp2, ip1, ip2) <= 0;
+}
+
+std::vector<std::pair<EdgeGrid::Grid::ContourEdge, EdgeGrid::Grid::ContourEdge>> EdgeGrid::Grid::intersecting_edges() const
+{
+	std::vector<std::pair<ContourEdge, ContourEdge>> out;
+	// For each cell:
+	for (int r = 0; r < (int)m_rows; ++ r) {
+		for (int c = 0; c < (int)m_cols; ++ c) {
+			const Cell &cell = m_cells[r * m_cols + c];
+			// For each pair of segments in the cell:
+			for (size_t i = cell.begin; i != cell.end; ++ i) {
+				const Slic3r::Points &ipts = *m_contours[m_cell_data[i].first];
+				size_t ipt = m_cell_data[i].second;
+				// End points of the line segment and their vector.
+				const Slic3r::Point &ip1 = ipts[ipt];
+				const Slic3r::Point &ip2 = ipts[(ipt + 1 == ipts.size()) ? 0 : ipt + 1];
+				for (size_t j = i + 1; j != cell.end; ++ j) {
+					const Slic3r::Points &jpts = *m_contours[m_cell_data[j].first];
+					size_t 				  jpt  = m_cell_data[j].second;
+					// End points of the line segment and their vector.
+					const Slic3r::Point  &jp1  = jpts[jpt];
+					const Slic3r::Point  &jp2  = jpts[(jpt + 1 == jpts.size()) ? 0 : jpt + 1];
+					if (&ipts == &jpts && (&ip1 == &jp2 || &jp1 == &ip2))
+						// Segments of the same contour share a common vertex.
+						continue;
+					if (segments_intersect(ip1, ip2, jp1, jp2)) {
+						// The two segments intersect. Add them to the output.
+						int jfirst = (&jpts < &ipts) || (&jpts == &ipts && jpt < ipt);
+						out.emplace_back(jfirst ? 
+							std::make_pair(std::make_pair(&ipts, ipt), std::make_pair(&jpts, jpt)) : 
+							std::make_pair(std::make_pair(&ipts, ipt), std::make_pair(&jpts, jpt)));
+					}
+				}
+			}
+		}
+	}
+	Slic3r::sort_remove_duplicates(out);
+	return out;
+}
+
+bool EdgeGrid::Grid::has_intersecting_edges() const
+{
+	// For each cell:
+	for (int r = 0; r < (int)m_rows; ++ r) {
+		for (int c = 0; c < (int)m_cols; ++ c) {
+			const Cell &cell = m_cells[r * m_cols + c];
+			// For each pair of segments in the cell:
+			for (size_t i = cell.begin; i != cell.end; ++ i) {
+				const Slic3r::Points &ipts = *m_contours[m_cell_data[i].first];
+				size_t ipt = m_cell_data[i].second;
+				// End points of the line segment and their vector.
+				const Slic3r::Point &ip1 = ipts[ipt];
+				const Slic3r::Point &ip2 = ipts[(ipt + 1 == ipts.size()) ? 0 : ipt + 1];
+				for (size_t j = i + 1; j != cell.end; ++ j) {
+					const Slic3r::Points &jpts = *m_contours[m_cell_data[j].first];
+					size_t 				  jpt  = m_cell_data[j].second;
+					// End points of the line segment and their vector.
+					const Slic3r::Point  &jp1  = jpts[jpt];
+					const Slic3r::Point  &jp2  = jpts[(jpt + 1 == jpts.size()) ? 0 : jpt + 1];
+					if (! (&ipts == &jpts && (&ip1 == &jp2 || &jp1 == &ip2)) && 
+						segments_intersect(ip1, ip2, jp1, jp2))
+						return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
 #if 0
 void EdgeGrid::save_png(const EdgeGrid::Grid &grid, const BoundingBox &bbox, coord_t resolution, const char *path)
 {
+    if (wxImage::FindHandler(wxBITMAP_TYPE_PNG) == nullptr)
+        wxImage::AddHandler(new wxPNGHandler);
+
 	unsigned int w = (bbox.max(0) - bbox.min(0) + resolution - 1) / resolution;
 	unsigned int h = (bbox.max(1) - bbox.min(1) + resolution - 1) / resolution;
 	wxImage img(w, h);
@@ -1449,5 +1545,60 @@ void EdgeGrid::save_png(const EdgeGrid::Grid &grid, const BoundingBox &bbox, coo
     img.SaveFile(path, wxBITMAP_TYPE_PNG);
 }
 #endif /* SLIC3R_GUI */
+
+// Find all pairs of intersectiong edges from the set of polygons.
+std::vector<std::pair<EdgeGrid::Grid::ContourEdge, EdgeGrid::Grid::ContourEdge>> intersecting_edges(const Polygons &polygons)
+{
+	double len = 0;
+	size_t cnt = 0;
+	BoundingBox bbox;
+	for (const Polygon &poly : polygons) {
+		if (poly.points.size() < 2)
+			continue;
+		for (size_t i = 0; i < poly.points.size(); ++ i) {
+			bbox.merge(poly.points[i]);
+			size_t j = (i == 0) ? (poly.points.size() - 1) : i - 1;
+			len += (poly.points[j] - poly.points[i]).cast<double>().norm();
+			++ cnt;
+		}
+	}
+	len /= double(cnt);
+	bbox.offset(20);
+	EdgeGrid::Grid grid;
+	grid.set_bbox(bbox);
+	grid.create(polygons, len);
+	return grid.intersecting_edges();
+}
+
+// Find all pairs of intersectiong edges from the set of polygons, highlight them in an SVG.
+void export_intersections_to_svg(const std::string &filename, const Polygons &polygons)
+{
+	std::vector<std::pair<EdgeGrid::Grid::ContourEdge, EdgeGrid::Grid::ContourEdge>> intersections = intersecting_edges(polygons);
+    BoundingBox bbox = get_extents(polygons);
+    SVG svg(filename.c_str(), bbox);
+    svg.draw(union_ex(polygons), "gray", 0.25f);
+    svg.draw_outline(polygons, "black");
+    std::set<const Points*> intersecting_contours;
+    for (const std::pair<EdgeGrid::Grid::ContourEdge, EdgeGrid::Grid::ContourEdge> &ie : intersections) {
+    	intersecting_contours.insert(ie.first.first);
+    	intersecting_contours.insert(ie.second.first);
+    }
+    // Highlight the contours with intersections.
+    coord_t line_width = coord_t(scale_(0.01));
+    for (const Points *ic : intersecting_contours) {
+	    svg.draw_outline(Polygon(*ic), "green");
+	    svg.draw_outline(Polygon(*ic), "black", line_width);
+    }
+	// Paint the intersections.
+    for (const std::pair<EdgeGrid::Grid::ContourEdge, EdgeGrid::Grid::ContourEdge> &intersecting_edges : intersections) {
+    	auto edge = [](const EdgeGrid::Grid::ContourEdge &e) {
+    		return Line(e.first->at(e.second),
+    					e.first->at((e.second + 1 == e.first->size()) ? 0 : e.second + 1));
+    	};
+        svg.draw(edge(intersecting_edges.first), "red", line_width);
+        svg.draw(edge(intersecting_edges.second), "red", line_width);
+    }
+    svg.Close();
+}
 
 } // namespace Slic3r

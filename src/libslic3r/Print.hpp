@@ -78,7 +78,6 @@ private: // Prevents erroneous use by other classes.
 public:
     // vector of (vectors of volume ids), indexed by region_id
     std::vector<std::vector<int>> region_volumes;
-    t_layer_height_ranges   layer_height_ranges;
 
     // Profile of increasing z to a layer height, to be linearly interpolated when calculating the layers.
     // The pairs of <z, layer_height> are packed into a 1D array to simplify handling by the Perl XS.
@@ -298,7 +297,10 @@ public:
 
     // methods for handling state
     bool                is_step_done(PrintStep step) const { return Inherited::is_step_done(step); }
+    // Returns true if an object step is done on all objects and there's at least one object.    
     bool                is_step_done(PrintObjectStep step) const;
+    // Returns true if the last step was finished with success.
+    bool                finished() const override { return this->is_step_done(psGCodeExport); }
 
     bool                has_infinite_skirt() const;
     bool                has_skirt() const;

@@ -545,7 +545,8 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(
 	m_print_brim = true;
 
     // Ask our writer about how much material was consumed:
-    m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
+    if (m_current_tool < m_used_filament_length.size())
+    	m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
 
 	ToolChangeResult result;
     result.priming      = true;
@@ -698,7 +699,8 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::toolchange_Brim(bool sideOnly, flo
     m_print_brim = false;  // Mark the brim as extruded
 
     // Ask our writer about how much material was consumed:
-    m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
+    if (m_current_tool < m_used_filament_length.size())
+    	m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
 
 	ToolChangeResult result;
     result.priming      = false;
@@ -868,7 +870,8 @@ void WipeTowerPrusaMM::toolchange_Change(
 	material_type 		new_material)
 {
     // Ask the writer about how much of the old filament we consumed:
-    m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
+    if (m_current_tool < m_used_filament_length.size())
+    	m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
 
 	// Speed override for the material. Go slow for flex and soluble materials.
 	int speed_override;

@@ -936,6 +936,18 @@ bool SLAPrint::invalidate_state_by_config_options(const std::vector<t_config_opt
     return invalidated;
 }
 
+// Returns true if an object step is done on all objects and there's at least one object.
+bool SLAPrint::is_step_done(SLAPrintObjectStep step) const
+{
+    if (m_objects.empty())
+        return false;
+    tbb::mutex::scoped_lock lock(this->state_mutex());
+    for (const SLAPrintObject *object : m_objects)
+        if (! object->m_state.is_done_unguarded(step))
+            return false;
+    return true;
+}
+
 SLAPrintObject::SLAPrintObject(SLAPrint *print, ModelObject *model_object):
     Inherited(print, model_object),
     m_stepmask(slaposCount, true),

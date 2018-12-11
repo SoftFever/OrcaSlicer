@@ -49,17 +49,12 @@ _constant()
     Ref<StaticPrintConfig> config()
         %code%{ RETVAL = &THIS->config(); %};
     Points copies();
-    t_layer_height_ranges layer_height_ranges()
-        %code%{ RETVAL = THIS->layer_height_ranges; %};
     std::vector<double> layer_height_profile()
         %code%{ RETVAL = THIS->layer_height_profile; %};
     Clone<BoundingBox> bounding_box();
     
     Points _shifted_copies()
         %code%{ RETVAL = THIS->copies(); %};
-
-    void set_layer_height_ranges(t_layer_height_ranges layer_height_ranges)
-        %code%{ THIS->layer_height_ranges = layer_height_ranges; %};
 
     size_t layer_count();
     Ref<Layer> get_layer(int idx);
