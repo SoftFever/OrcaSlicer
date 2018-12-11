@@ -2212,6 +2212,7 @@ void Plater::priv::set_current_panel(wxPanel* panel)
     }
     else if (current_panel == preview)
     {
+        this->q->reslice();        
         preview->reload_print();
         preview->set_canvas_as_dirty();
     }
@@ -3064,7 +3065,7 @@ void Plater::reslice()
 #else
         this->p->canvas3D->reload_scene(false);
 #endif // ENABLE_REMOVE_TABS_FROM_PLATER
-    if ((state & priv::UPDATE_BACKGROUND_PROCESS_INVALID) == 0 && !this->p->background_process.running()) {
+    if ((state & priv::UPDATE_BACKGROUND_PROCESS_INVALID) == 0 && !this->p->background_process.running() && !this->p->background_process.finished()) {
         // The print is valid and it can be started.
         if (this->p->background_process.start())
 			this->p->statusbar()->set_cancel_callback([this]() {

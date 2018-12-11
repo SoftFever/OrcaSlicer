@@ -185,6 +185,9 @@ public:
     bool                empty() const override { return m_objects.empty(); }
     ApplyStatus         apply(const Model &model, const DynamicPrintConfig &config) override;
     void                process() override;
+    bool                is_step_done(SLAPrintObjectStep step) const;
+    // Returns true if the last step was finished with success.
+    bool                finished() const override { return this->is_step_done(slaposIndexSlices); }
 
     template<class Fmt> void export_raster(const std::string& fname) {
         if(m_printer) m_printer->save<Fmt>(fname);

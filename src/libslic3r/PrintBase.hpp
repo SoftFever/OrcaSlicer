@@ -285,6 +285,8 @@ public:
 	void                       cancel_internal() { m_cancel_status = CANCELED_INTERNAL; }
     // Cancel the running computation. Stop execution of all the background threads.
 	void                       restart() { m_cancel_status = NOT_CANCELED; }
+    // Returns true if the last step was finished with success.
+    virtual bool               finished() const = 0;
 
     const PlaceholderParser&   placeholder_parser() const { return m_placeholder_parser; }
     PlaceholderParser&         placeholder_parser() { return m_placeholder_parser; }
