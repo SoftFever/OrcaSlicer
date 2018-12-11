@@ -10,10 +10,6 @@
 
 namespace Slic3r { namespace sla {
 
-namespace {
-ThrowOnCancel throw_on_cancel = [](){};
-}
-
 /// Convert the triangulation output to an intermediate mesh.
 Contour3D convert(const Polygons& triangles, coord_t z, bool dir) {
 
@@ -35,7 +31,9 @@ Contour3D convert(const Polygons& triangles, coord_t z, bool dir) {
 }
 
 Contour3D walls(const ExPolygon& floor_plate, const ExPolygon& ceiling,
-                       double floor_z_mm, double ceiling_z_mm) {
+                double floor_z_mm, double ceiling_z_mm,
+                ThrowOnCancel thr)
+{
     using std::transform; using std::back_inserter;
 
     ExPolygon poly;
@@ -63,8 +61,6 @@ Contour3D walls(const ExPolygon& floor_plate, const ExPolygon& ceiling,
             return l.distance_to(p) < mm(1e-6);
         });
     };
-
-    auto& thr = throw_on_cancel;
 
     std::for_each(tri.begin(), tri.end(),
                   [&rp, &rpi, thr, &idx, is_upper, fz, cz](const Polygon& pp)
@@ -221,11 +217,12 @@ inline Contour3D roofs(const ExPolygon& poly, coord_t z_distance) {
 
 template<class ExP, class D>
 Contour3D round_edges(const ExPolygon& base_plate,
-                            double radius_mm,
-                            double degrees,
-                            double ceilheight_mm,
-                            bool dir,
-                            ExP&& last_offset = ExP(), D&& last_height = D())
+                      double radius_mm,
+                      double degrees,
+                      double ceilheight_mm,
+                      bool dir,
+                      ThrowOnCancel throw_on_cancel,
+                      ExP&& last_offset = ExP(), D&& last_height = D())
 {
     auto ob = base_plate;
     auto ob_prev = ob;
@@ -252,7 +249,7 @@ Contour3D round_edges(const ExPolygon& base_plate,
             wh = ceilheight_mm - radius_mm + stepy;
 
             Contour3D pwalls;
-            pwalls = walls(ob, ob_prev, wh, wh_prev);
+            pwalls = walls(ob, ob_prev, wh, wh_prev, throw_on_cancel);
 
             curvedwalls.merge(pwalls);
             ob_prev = ob;
@@ -275,7 +272,7 @@ Contour3D round_edges(const ExPolygon& base_plate,
         wh = ceilheight_mm - radius_mm - stepy;
 
         Contour3D pwalls;
-        pwalls = walls(ob_prev, ob, wh_prev, wh);
+        pwalls = walls(ob_prev, ob, wh_prev, wh, throw_on_cancel);
 
         curvedwalls.merge(pwalls);
         ob_prev = ob;
@@ -359,7 +356,8 @@ inline Point centroid(const ExPolygon& poly) {
 /// with explicit bridges. Bridges are generated from each shape's centroid
 /// to the center of the "scene" which is the centroid calculated from the shape
 /// centroids (a star is created...)
-ExPolygons concave_hull(const ExPolygons& polys, double max_dist_mm = 50)
+ExPolygons concave_hull(const ExPolygons& polys, double max_dist_mm = 50,
+                        ThrowOnCancel throw_on_cancel = [](){})
 {
     namespace bgi = boost::geometry::index;
     using SpatElement = std::pair<BoundingBox, unsigned>;
@@ -394,7 +392,8 @@ ExPolygons concave_hull(const ExPolygons& polys, double max_dist_mm = 50)
     idx = 0;
     std::transform(centroids.begin(), centroids.end(),
                    std::back_inserter(punion),
-                   [&punion, &boxindex, cc, max_dist_mm, &idx](const Point& c)
+                   [&punion, &boxindex, cc, max_dist_mm, &idx, throw_on_cancel]
+                   (const Point& c)
     {
         throw_on_cancel();
         double dx = x(c) - x(cc), dy = y(c) - y(cc);
@@ -455,12 +454,10 @@ void base_plate(const TriangleMesh &mesh, ExPolygons &output, float h,
 void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
                       const PoolConfig& cfg)
 {
-    throw_on_cancel = cfg.throw_on_cancel;
-
     double mdist = 2*(1.8*cfg.min_wall_thickness_mm + 4*cfg.edge_radius_mm) +
                    cfg.max_merge_distance_mm;
 
-    auto concavehs = concave_hull(ground_layer, mdist);
+    auto concavehs = concave_hull(ground_layer, mdist, cfg.throw_on_cancel);
     for(ExPolygon& concaveh : concavehs) {
         if(concaveh.contour.points.empty()) return;
         concaveh.holes.clear();
@@ -518,6 +515,7 @@ void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
                                        phi,  // 170 degrees
                                        0,    // z position of the input plane
                                        true,
+                                       cfg.throw_on_cancel,
                                        ob, wh);
 
         pool.merge(curvedwalls);
@@ -525,7 +523,8 @@ void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
         ExPolygon ob_contr = ob;
         ob_contr.holes.clear();
 
-        auto pwalls = walls(ob_contr, inner_base, wh, -cfg.min_wall_height_mm);
+        auto pwalls = walls(ob_contr, inner_base, wh, -cfg.min_wall_height_mm,
+                            cfg.throw_on_cancel);
         pool.merge(pwalls);
 
         Polygons top_triangles, bottom_triangles;
@@ -541,6 +540,7 @@ void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
                                   90,   // 90 degrees
                                   0,    // z position of the input plane
                                   false,
+                                  cfg.throw_on_cancel,
                                   ob, wh);
         pool.merge(curvedwalls);
 
