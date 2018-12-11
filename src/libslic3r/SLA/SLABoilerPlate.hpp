@@ -58,7 +58,7 @@ struct Contour3D {
         points.insert(points.end(), ctr.points.begin(), ctr.points.end());
         indices.insert(indices.end(), ctr.indices.begin(), ctr.indices.end());
 
-        for(auto n = s; n < indices.size(); n++) {
+        for(size_t n = s; n < indices.size(); n++) {
             auto& idx = indices[n]; x(idx) += s3; y(idx) += s3; z(idx) += s3;
         }
     }

@@ -1,10 +1,10 @@
 #include <iostream>
 #include <string>
 
-#include <libslic3r.h>
-#include "TriangleMesh.hpp"
-#include "SLABasePool.hpp"
-#include "benchmark.h"
+#include <libslic3r/libslic3r.h>
+#include <libslic3r/TriangleMesh.hpp>
+#include <libslic3r/SLA/SLABasePool.hpp>
+#include <libnest2d/tools/benchmark.h>
 
 const std::string USAGE_STR = {
     "Usage: slabasebed stlfilename.stl"
@@ -28,7 +28,7 @@ int main(const int argc, const char *argv[]) {
     ExPolygons ground_slice;
     TriangleMesh basepool;
 
-    sla::ground_layer(model, ground_slice, 0.1f);
+    sla::base_plate(model, ground_slice, 0.1f);
 
     bench.start();
     sla::create_base_pool(ground_slice, basepool);
