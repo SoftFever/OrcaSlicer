@@ -1370,7 +1370,7 @@ bool SLASupportTree::generate(const PointSet &points,
                         add_base(cfg.base_height_mm, cfg.base_radius_mm);
 
                     // connects to ground, eligible for bridging
-                    cl_centroids.emplace_back(sidehead.id);
+                    cl_centroids.emplace_back(c);
                 } else {
                     // Creating the bridge to the nearest pillar
 
