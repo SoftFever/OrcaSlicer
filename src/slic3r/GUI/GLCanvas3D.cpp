@@ -1405,7 +1405,7 @@ bool GLCanvas3D::Selection::is_single_full_instance() const
         return true;
 
     if (m_type == SingleFullObject)
-        return false;
+        return get_instance_idx() != -1;
 
     if (m_list.empty() || m_volumes->empty())
         return false;
