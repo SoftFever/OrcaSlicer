@@ -21,9 +21,8 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     m_og->set_name(_(L("Object Manipulation")));
     m_og->label_width = 100;
     m_og->set_grid_vgap(5);
-    m_og->set_process_enter(); // We need to update new values only after press ENTER 
     
-    m_og->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
+    m_og->m_on_change = [this](const std::string& opt_key, const boost::any& value) {
         std::vector<std::string> axes{ "_x", "_y", "_z" };
 
         if (opt_key == "scale_unit") {
@@ -52,6 +51,24 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
             change_rotation_value(new_value);
         else if (param == "scale")
             change_scale_value(new_value);
+    };
+
+    m_og->m_fill_empty_value = [this](const std::string& opt_key)
+    {
+        if (opt_key == "scale_unit")
+            return;
+
+        std::string param;
+        std::copy(opt_key.begin(), opt_key.end() - 2, std::back_inserter(param)); 
+        if (param == "position") {
+            int axis = opt_key.back() == 'x' ? 0 :
+                       opt_key.back() == 'y' ? 1 : 2;
+
+            m_og->set_value(opt_key, double_to_string(cache_position(axis)));
+            return;
+        }
+
+        m_og->set_value(opt_key, double_to_string(0.0));
     };
 
     ConfigOptionDef def;

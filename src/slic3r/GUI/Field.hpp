@@ -29,8 +29,8 @@ namespace Slic3r { namespace GUI {
 
 class Field;
 using t_field = std::unique_ptr<Field>;
-using t_kill_focus = std::function<void()>;
-using t_change = std::function<void(t_config_option_key, const boost::any&)>;
+using t_kill_focus = std::function<void(const std::string&)>;
+using t_change = std::function<void(const t_config_option_key&, const boost::any&)>;
 using t_back_to_init = std::function<void(const std::string&)>;
 
 wxString double_to_string(double const value, const int max_precision = 4);
@@ -139,10 +139,9 @@ public:
 
     /// Factory method for generating new derived classes.
     template<class T>
-    static t_field Create(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id, const bool process_enter = false)// interface for creating shared objects
+    static t_field Create(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id)// interface for creating shared objects
     {
         auto p = Slic3r::make_unique<T>(parent, opt, id);
-        p->m_process_enter = process_enter;
         p->PostInitialize();
 		return std::move(p); //!p;
     }
@@ -223,9 +222,6 @@ protected:
 	// current value
 	boost::any			m_value;
     
-    //this variable shows a mode of a call of the on_change function
-    bool                m_process_enter { false };
-
 	friend class OptionsGroup;
 };
 
@@ -265,7 +261,7 @@ public:
     }
 
 	boost::any&		get_value() override;
-    bool            is_defined_input_value();
+    bool            is_defined_input_value() const ;
     
     virtual void	enable();
     virtual void	disable();
