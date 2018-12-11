@@ -71,6 +71,11 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
         m_og->set_value(opt_key, double_to_string(0.0));
     };
 
+    m_og->m_set_focus = [this](const std::string& opt_key)
+    {
+        wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event(opt_key);
+    };
+
     ConfigOptionDef def;
 
     // Objects(sub-objects) name

@@ -87,6 +87,7 @@ public:
     column_t		extra_column {nullptr};
     t_change		m_on_change { nullptr };
     t_kill_focus    m_fill_empty_value { nullptr };
+    t_kill_focus    m_set_focus { nullptr };
 	std::function<DynamicPrintConfig()>	m_get_initial_config{ nullptr };
 	std::function<DynamicPrintConfig()>	m_get_sys_config{ nullptr };
 	std::function<bool()>	have_sys_config{ nullptr };
@@ -210,6 +211,7 @@ protected:
 	void				add_undo_buttuns_to_sizer(wxSizer* sizer, const t_field& field);
 
     virtual void		on_kill_focus(const std::string& opt_key) {};
+	virtual void		on_set_focus(const std::string& opt_key);
 	virtual void		on_change_OG(const t_config_option_key& opt_id, const boost::any& value);
 	virtual void		back_to_initial_value(const std::string& opt_key) {}
 	virtual void		back_to_sys_value(const std::string& opt_key) {}

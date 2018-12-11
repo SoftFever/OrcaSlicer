@@ -76,6 +76,8 @@ protected:
 	//! in another case we can't unfocused control at all
 	void			on_kill_focus(wxEvent& event);
     /// Call the attached on_change method. 
+    void			on_set_focus(wxEvent& event);
+    /// Call the attached on_change method. 
     void			on_change_field();
     /// Call the attached m_back_to_initial_value method. 
 	void			on_back_to_initial_value();
@@ -88,6 +90,9 @@ public:
 
     /// Function object to store callback passed in from owning object.
 	t_kill_focus	m_on_kill_focus {nullptr};
+
+    /// Function object to store callback passed in from owning object.
+	t_kill_focus	m_on_set_focus {nullptr};
 
     /// Function object to store callback passed in from owning object.
 	t_change		m_on_change {nullptr};

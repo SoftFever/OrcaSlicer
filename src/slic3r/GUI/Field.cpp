@@ -77,6 +77,15 @@ void Field::on_kill_focus(wxEvent& event)
         m_on_kill_focus(m_opt_id);
 }
 
+void Field::on_set_focus(wxEvent& event)
+{
+    // to allow the default behavior
+	event.Skip();
+	// call the registered function if it is available
+    if (m_on_set_focus!=nullptr) 
+        m_on_set_focus(m_opt_id);
+}
+
 void Field::on_change_field()
 {
 //       std::cerr << "calling Field::_on_change \n";
@@ -220,6 +229,8 @@ void TextCtrl::BUILD() {
 	auto temp = new wxTextCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size, style);
 
 	temp->SetToolTip(get_tooltip_text(text_value));
+
+    temp->Bind(wxEVT_SET_FOCUS, ([this](wxEvent& e) { on_set_focus(e); }), temp->GetId());
     
 	temp->Bind(wxEVT_LEFT_DOWN, ([temp](wxEvent& event)
 	{
