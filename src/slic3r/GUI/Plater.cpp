@@ -54,7 +54,9 @@
 #include "PresetBundle.hpp"
 #include "BackgroundSlicingProcess.hpp"
 #include "ProgressStatusBar.hpp"
+#include "PrintHostDialogs.hpp"
 #include "../Utils/ASCIIFolding.hpp"
+#include "../Utils/PrintHost.hpp"
 #include "../Utils/FixModelByWin10.hpp"
 
 #include <wx/glcanvas.h>    // Needs to be last because reasons :-/
@@ -64,6 +66,7 @@ using boost::optional;
 namespace fs = boost::filesystem;
 using Slic3r::_3DScene;
 using Slic3r::Preset;
+using Slic3r::PrintHostJob;
 
 
 namespace Slic3r {
@@ -447,7 +450,6 @@ struct Sidebar::priv
 
     wxButton *btn_export_gcode;
     wxButton *btn_reslice;
-    // wxButton *btn_print;  // XXX: remove
     wxButton *btn_send_gcode;
 
     priv(Plater *plater) : plater(plater) {}
@@ -543,13 +545,12 @@ Sidebar::Sidebar(Plater *parent)
     p->object_settings->Hide();
     p->sizer_params->Add(p->object_settings->get_sizer(), 0, wxEXPAND | wxLEFT | wxTOP, 20);
 
-    // Buttons in the scrolled area
     wxBitmap arrow_up(GUI::from_u8(Slic3r::var("brick_go.png")), wxBITMAP_TYPE_PNG);
     p->btn_send_gcode = new wxButton(p->scrolled, wxID_ANY, _(L("Send to printer")));
+    p->btn_send_gcode = new wxButton(this, wxID_ANY, _(L("Send to printer")));
     p->btn_send_gcode->SetBitmap(arrow_up);
+    p->btn_send_gcode->SetFont(wxGetApp().bold_font());
     p->btn_send_gcode->Hide();
-    auto *btns_sizer_scrolled = new wxBoxSizer(wxHORIZONTAL);
-    btns_sizer_scrolled->Add(p->btn_send_gcode);
 
     // Info boxes
     p->object_info = new ObjectInfo(p->scrolled);
@@ -559,7 +560,6 @@ Sidebar::Sidebar(Plater *parent)
     scrolled_sizer->Add(p->sizer_presets, 0, wxEXPAND | wxLEFT, 2);
     scrolled_sizer->Add(p->sizer_params, 1, wxEXPAND);
     scrolled_sizer->Add(p->object_info, 0, wxEXPAND | wxTOP | wxLEFT, 20);
-    scrolled_sizer->Add(btns_sizer_scrolled, 0, wxEXPAND, 0);
     scrolled_sizer->Add(p->sliced_info, 0, wxEXPAND | wxTOP | wxLEFT, 20);
 
     // Buttons underneath the scrolled area
@@ -571,6 +571,7 @@ Sidebar::Sidebar(Plater *parent)
 
     auto *btns_sizer = new wxBoxSizer(wxVERTICAL);
     btns_sizer->Add(p->btn_reslice, 0, wxEXPAND | wxTOP, 5);
+    btns_sizer->Add(p->btn_send_gcode, 0, wxEXPAND | wxTOP, 5);
     btns_sizer->Add(p->btn_export_gcode, 0, wxEXPAND | wxTOP, 5);
 
     auto *sizer = new wxBoxSizer(wxVERTICAL);
@@ -820,14 +821,6 @@ void Sidebar::show_sliced_info_sizer(const bool show)
     p->scrolled->Refresh();
 }
 
-void Sidebar::show_buttons(const bool show)
-{
-    p->btn_reslice->Show(show);
-    TabPrinter *tab = dynamic_cast<TabPrinter*>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
-	if (tab && p->plater->printer_technology() == ptFFF)
-        p->btn_send_gcode->Show(show && !tab->m_config->opt_string("print_host").empty());
-}
-
 void Sidebar::enable_buttons(bool enable)
 {
     p->btn_reslice->Enable(enable);
@@ -835,23 +828,8 @@ void Sidebar::enable_buttons(bool enable)
     p->btn_send_gcode->Enable(enable);
 }
 
-void Sidebar::show_button(ButtonAction but_action, bool show)
-{
-    switch (but_action)
-    {
-    case baReslice:
-        p->btn_reslice->Show(show);
-        break;
-    case baExportGcode:
-        p->btn_export_gcode->Show(show);
-        break;
-    case baSendGcode:
-        p->btn_send_gcode->Show(show);
-        break;
-    default:
-        break;
-    }
-}
+void Sidebar::show_reslice(bool show) { p->btn_reslice->Show(show); }
+void Sidebar::show_send(bool show) { p->btn_send_gcode->Show(show); }
 
 bool Sidebar::is_multifilament()
 {
@@ -1008,6 +986,7 @@ struct Plater::priv
     };
     // returns bit mask of UpdateBackgroundProcessReturnState
     unsigned int update_background_process();
+    void export_gcode(fs::path output_path, PrintHostJob upload_job);
     void async_apply_config();
     void reload_from_disk();
     void fix_through_netfabb(const int obj_idx);
@@ -2059,6 +2038,45 @@ unsigned int Plater::priv::update_background_process()
     return return_state;
 }
 
+void Plater::priv::export_gcode(fs::path output_path, PrintHostJob upload_job)
+{
+    wxCHECK_RET(!(output_path.empty() && upload_job.empty()), "export_gcode: output_path and upload_job empty");
+
+    if (model.objects.empty())
+        return;
+
+    if (background_process.is_export_scheduled()) {
+        GUI::show_error(q, _(L("Another export job is currently running.")));
+        return;
+    }
+
+    // bitmask of UpdateBackgroundProcessReturnState
+    unsigned int state = update_background_process();
+    if (state & priv::UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE)
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+        view3D->reload_scene(false);
+#else
+        canvas3D->reload_scene(false);
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
+    if ((state & priv::UPDATE_BACKGROUND_PROCESS_INVALID) != 0)
+        return;
+
+    if (! output_path.empty()) {
+        background_process.schedule_export(output_path.string());
+    } else {
+        background_process.schedule_upload(std::move(upload_job));
+    }
+
+    if (! background_process.running()) {
+        // The print is valid and it should be started.
+        if (background_process.start())
+            statusbar()->set_cancel_callback([this]() {
+                statusbar()->set_status_text(L("Cancelling"));
+                background_process.stop();
+            });
+    }
+}
+
 void Plater::priv::async_apply_config()
 {
     // bitmask of UpdateBackgroundProcessReturnState
@@ -2912,42 +2930,26 @@ void Plater::export_gcode(fs::path output_path)
     if (p->model.objects.empty())
         return;
 
-    if (this->p->background_process.is_export_scheduled()) {
-        GUI::show_error(this, _(L("Another export job is currently running.")));
-        return;
-    }
-
-    // bitmask of UpdateBackgroundProcessReturnState
-    unsigned int state = this->p->update_background_process();
-    if (state & priv::UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE)
-#if ENABLE_REMOVE_TABS_FROM_PLATER
-        this->p->view3D->reload_scene(false);
-#else
-        this->p->canvas3D->reload_scene(false);
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
-    if ((state & priv::UPDATE_BACKGROUND_PROCESS_INVALID) != 0)
-        return;
-
     // select output file
     if (output_path.empty()) {
         // XXX: take output path from CLI opts? Ancient Slic3r versions used to do that...
 
         // If possible, remove accents from accented latin characters.
         // This function is useful for generating file names to be processed by legacy firmwares.
-		fs::path default_output_file;
+        fs::path default_output_file;
         try {
-			default_output_file = this->p->background_process.current_print()->output_filepath(output_path.string());
+            default_output_file = this->p->background_process.current_print()->output_filepath(output_path.string());
         } catch (const std::exception &ex) {
             show_error(this, ex.what());
             return;
         }
-		default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string()));
+        default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string()));
         auto start_dir = wxGetApp().app_config->get_last_output_dir(default_output_file.parent_path().string());
 
-		wxFileDialog dlg(this, (printer_technology() == ptFFF) ? _(L("Save G-code file as:")) : _(L("Save Zip file as:")),
+        wxFileDialog dlg(this, (printer_technology() == ptFFF) ? _(L("Save G-code file as:")) : _(L("Save Zip file as:")),
             start_dir,
             default_output_file.filename().string(),
-			GUI::file_wildcards((printer_technology() == ptFFF) ? FT_GCODE : FT_PNGZIP, default_output_file.extension().string()),
+            GUI::file_wildcards((printer_technology() == ptFFF) ? FT_GCODE : FT_PNGZIP, default_output_file.extension().string()),
             wxFD_SAVE | wxFD_OVERWRITE_PROMPT
         );
 
@@ -2958,23 +2960,15 @@ void Plater::export_gcode(fs::path output_path)
         }
     } else {
         try {
-			output_path = this->p->background_process.current_print()->output_filepath(output_path.string());
+            output_path = this->p->background_process.current_print()->output_filepath(output_path.string());
         } catch (const std::exception &ex) {
             show_error(this, ex.what());
             return;
         }
     }
 
-    if (! output_path.empty())
-        this->p->background_process.schedule_export(output_path.string());
-
-    if ((! output_path.empty() || this->p->background_processing_enabled()) && ! this->p->background_process.running()) {
-        // The print is valid and it should be started.
-        if (this->p->background_process.start())
-            this->p->statusbar()->set_cancel_callback([this]() {
-                this->p->statusbar()->set_status_text(L("Cancelling"));
-                this->p->background_process.stop();
-            });
+    if (! output_path.empty()) {
+        p->export_gcode(std::move(output_path), PrintHostJob());
     }
 }
 
@@ -3077,7 +3071,28 @@ void Plater::reslice()
 
 void Plater::send_gcode()
 {
-//    p->send_gcode_file = export_gcode();
+    if (p->model.objects.empty()) { return; }
+
+    PrintHostJob upload_job(p->config);
+    if (upload_job.empty()) { return; }
+
+    // Obtain default output path
+    fs::path default_output_file;
+    try {
+        default_output_file = this->p->background_process.current_print()->output_filepath("");
+    } catch (const std::exception &ex) {
+        show_error(this, ex.what());
+        return;
+    }
+    default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string()));
+
+    Slic3r::PrintHostSendDialog dlg(default_output_file);
+    if (dlg.ShowModal() == wxID_OK) {
+        upload_job.upload_data.upload_path = dlg.filename();
+        upload_job.upload_data.start_print = dlg.start_print();
+
+        p->export_gcode(fs::path(), std::move(upload_job));
+    }
 }
 
 void Plater::on_extruders_change(int num_extruders)
@@ -3127,14 +3142,6 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             opt_key == "single_extruder_multi_material") {
             update_scheduled = true;
         } 
-//         else if(opt_key == "serial_port") {
-//             sidebar()->p->btn_print->Show(config.get("serial_port"));  // ???: btn_print is removed
-//             Layout();
-//         } 
-        else if (opt_key == "print_host") {
-            sidebar().show_button(baReslice, !p->config->option<ConfigOptionString>(opt_key)->value.empty());
-            Layout();
-        }
         else if(opt_key == "variable_layer_height") {
             if (p->config->opt_bool("variable_layer_height") != true) {
 #if ENABLE_REMOVE_TABS_FROM_PLATER
@@ -3172,6 +3179,11 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             if (p->preview) p->preview->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values);
             update_scheduled = true;
         }
+    }
+
+    {
+        const auto prin_host_opt = p->config->option<ConfigOptionString>("print_host");
+        p->sidebar->show_send(prin_host_opt != nullptr && !prin_host_opt->value.empty());
     }
 
     if (update_scheduled) 

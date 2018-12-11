@@ -1,5 +1,4 @@
 #include "Duet.hpp"
-#include "PrintHostSendDialog.hpp"
 
 #include <algorithm>
 #include <ctime>
@@ -21,6 +20,7 @@
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/MsgDialog.hpp"
+#include "slic3r/GUI/PrintHostDialogs.hpp"   // XXX
 #include "Http.hpp"
 
 namespace fs = boost::filesystem;
@@ -62,10 +62,10 @@ bool Duet::send_gcode(const std::string &filename) const
 	const auto errortitle = _(L("Error while uploading to the Duet"));
 	fs::path filepath(filename);
 
-	PrintHostSendDialog send_dialog(filepath.filename(), true);
+	PrintHostSendDialog send_dialog(filepath.filename());
 	if (send_dialog.ShowModal() != wxID_OK) { return false; }
 
-	const bool print = send_dialog.print(); 
+	const bool print = send_dialog.start_print();
 	const auto upload_filepath = send_dialog.filename();
 	const auto upload_filename = upload_filepath.filename();
 	const auto upload_parent_path = upload_filepath.parent_path();
@@ -134,6 +134,11 @@ bool Duet::send_gcode(const std::string &filename) const
 	disconnect();
 
 	return res;
+}
+
+bool Duet::upload(PrintHostUpload upload_data) const
+{
+	throw "unimplemented";
 }
 
 bool Duet::has_auto_discovery() const
