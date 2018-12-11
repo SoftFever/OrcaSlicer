@@ -445,7 +445,7 @@ void SLAPrint::process()
 
     // Slicing the model object. This method is oversimplified and needs to
     // be compared with the fff slicing algorithm for verification
-    auto slice_model = [this, ilh, ilhd](SLAPrintObject& po) {
+    auto slice_model = [this, ilh](SLAPrintObject& po) {
         double lh = po.m_config.layer_height.getFloat();
 
         TriangleMesh mesh = po.transformed_mesh();
@@ -530,6 +530,11 @@ void SLAPrint::process()
             po.m_supportdata->support_tree_ptr.reset(
                         new SLASupportTree(pts, emesh, scfg, ctl));
 
+            // Create the unified mesh
+            auto rc = SlicingStatus::RELOAD_SCENE;
+            set_status(-1, L("Visualizing supports"));
+            po.m_supportdata->support_tree_ptr->merged_mesh();
+            set_status(-1, L("Visualizing supports"), rc);
         } catch(sla::SLASupportsStoppedException&) {
             // no need to rethrow
             // throw_if_canceled();
@@ -560,18 +565,23 @@ void SLAPrint::process()
             auto&& trmesh = po.transformed_mesh();
 
             // This call can get pretty time consuming
-            if(elevation < pad_h) sla::base_plate(trmesh, bp,
-                                                  float(pad_h), float(lh));
+            auto thrfn = [this](){ throw_if_canceled(); };
 
-            po.m_supportdata->support_tree_ptr->add_pad(bp, wt, h, md, er);
+            if(elevation < pad_h)
+                sla::base_plate(trmesh, bp, float(pad_h), float(lh),
+                                            thrfn);
+
+            pcfg.throw_on_cancel = thrfn;
+            po.m_supportdata->support_tree_ptr->add_pad(bp, pcfg);
         }
 
-        // if the base pool (which means also the support tree) is
-        // done, do a refresh when indicating progress. Now the
-        // geometries for the supports and the optional base pad are
-        // ready. We can grant access for the control thread to read
-        // the geometries, but first we have to update the caches:
-        po.support_mesh(); /*po->pad_mesh();*/
+//        // if the base pool (which means also the support tree) is
+//        // done, do a refresh when indicating progress. Now the
+//        // geometries for the supports and the optional base pad are
+//        // ready. We can grant access for the control thread to read
+//        // the geometries, but first we have to update the caches:
+//        po.support_mesh(); /*po->pad_mesh();*/
+        po.throw_if_canceled();
         auto rc = SlicingStatus::RELOAD_SCENE;
         set_status(-1, L("Visualizing supports"), rc);
     };
@@ -589,9 +599,9 @@ void SLAPrint::process()
 
     // We have the layer polygon collection but we need to unite them into
     // an index where the key is the height level in discrete levels (clipper)
-    auto index_slices = [this, ilh, ilhd](SLAPrintObject& po) {
+    auto index_slices = [ilhd](SLAPrintObject& po) {
         po.m_slice_index.clear();
-        auto sih = LevelID(scale_(ilh));
+        auto sih = LevelID(scale_(ilhd));
 
         // For all print objects, go through its initial layers and place them
         // into the layers hash
@@ -635,7 +645,7 @@ void SLAPrint::process()
         // shortcut for empty index into the slice vectors
         static const auto EMPTY_SLICE = SLAPrintObject::SliceRecord::NONE;
         
-        for(int i = 0; i < oslices.size(); ++i) {
+        for(size_t i = 0; i < oslices.size(); ++i) {
             LevelID h = levelids[i];
 
             float fh = float(double(h) * SCALING_FACTOR);
@@ -652,7 +662,7 @@ void SLAPrint::process()
             po.m_supportdata->level_ids.clear();
             po.m_supportdata->level_ids.reserve(sslices.size());
 
-            for(int i = 0; i < sslices.size(); ++i) {
+            for(int i = 0; i < int(sslices.size()); ++i) {
                 int a = i == 0 ? 0 : 1;
                 int b = i == 0 ? 0 : i - 1;
                 LevelID h = sminZ + a * sih + b * slh;
@@ -662,7 +672,7 @@ void SLAPrint::process()
 
                 SLAPrintObject::SliceRecord& sr = po.m_slice_index[fh];
                 assert(sr.support_slices_idx == EMPTY_SLICE);
-                sr.support_slices_idx = i;
+                sr.support_slices_idx = SLAPrintObject::SliceRecord::Idx(i);
             }
         }
     };
@@ -670,7 +680,7 @@ void SLAPrint::process()
     auto& levels = m_printer_input;
 
     // Rasterizing the model objects, and their supports
-    auto rasterize = [this, ilh, ilhd, max_objstatus, &levels]() {
+    auto rasterize = [this, max_objstatus, &levels]() {
         if(canceled()) return;
 
         // clear the rasterizer input
@@ -688,14 +698,14 @@ void SLAPrint::process()
             // now merge this object's support and object slices with the rest
             // of the print object slices
 
-            for(int i = 0; i < oslices.size(); ++i) {
+            for(size_t i = 0; i < oslices.size(); ++i) {
                 auto& lyrs = levels[gndlvl + po.m_level_ids[i]];
                 lyrs.emplace_back(oslices[i], po.m_instances);
             }
 
             if(!po.m_supportdata) continue;
             auto& sslices = po.m_supportdata->support_slices;
-            for(int i = 0; i < sslices.size(); ++i) {
+            for(size_t i = 0; i < sslices.size(); ++i) {
                 auto& lyrs = levels[gndlvl + po.m_supportdata->level_ids[i]];
                 lyrs.emplace_back(sslices[i], po.m_instances);
             }
@@ -713,8 +723,8 @@ void SLAPrint::process()
 
             double w = printcfg.display_width.getFloat();
             double h = printcfg.display_height.getFloat();
-            unsigned pw = printcfg.display_pixels_x.getInt();
-            unsigned ph = printcfg.display_pixels_y.getInt();
+            auto pw = unsigned(printcfg.display_pixels_x.getInt());
+            auto ph = unsigned(printcfg.display_pixels_y.getInt());
             double lh = ocfg.layer_height.getFloat();
             double exp_t = matcfg.exposure_time.getFloat();
             double iexp_t = matcfg.initial_exposure_time.getFloat();
@@ -1098,7 +1108,9 @@ TriangleMesh SLAPrintObject::get_mesh(SLAPrintObjectStep step) const
 const TriangleMesh& SLAPrintObject::support_mesh() const
 {
     if(m_config.supports_enable.getBool() && m_supportdata &&
-       m_supportdata->support_tree_ptr) return m_supportdata->support_tree_ptr->merged_mesh();
+       m_supportdata->support_tree_ptr) {
+        return m_supportdata->support_tree_ptr->merged_mesh();
+    }
 
     return EMPTY_MESH;
 }

@@ -17,7 +17,7 @@ protected:
     wxWindow* m_parent;
 public:
     OG_Settings(wxWindow* parent, const bool staticbox);
-    ~OG_Settings() {}
+    virtual ~OG_Settings() {}
 
     virtual bool        IsShown();
     virtual void        Show(const bool show);

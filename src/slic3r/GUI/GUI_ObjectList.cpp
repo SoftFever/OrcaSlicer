@@ -453,7 +453,6 @@ void ObjectList::OnBeginDrag(wxDataViewEvent &event)
     obj->SetText(wxString::Format("%d", m_objects_model->GetVolumeIdByItem(item)));
     event.SetDataObject(obj);
     event.SetDragFlags(/*wxDrag_AllowMove*/wxDrag_DefaultMove); // allows both copy and move;
-    printf("BeginDrag\n");
 }
 
 void ObjectList::OnDropPossible(wxDataViewEvent &event)
@@ -464,7 +463,6 @@ void ObjectList::OnDropPossible(wxDataViewEvent &event)
     if (event.GetDataFormat() != wxDF_UNICODETEXT || item.IsOk() && 
         (m_objects_model->GetParent(item) == wxDataViewItem(0) || m_objects_model->GetItemType(item) != itVolume))
         event.Veto();
-    printf("DropPossible\n");
 }
 
 void ObjectList::OnDrop(wxDataViewEvent &event)
@@ -477,13 +475,14 @@ void ObjectList::OnDrop(wxDataViewEvent &event)
         event.Veto();
         return;
     }
-    printf("Drop\n");
 
     wxTextDataObject obj;
     obj.SetData(wxDF_UNICODETEXT, event.GetDataSize(), event.GetDataBuffer());
+    printf("Drop\n");
 
     int from_volume_id = std::stoi(obj.GetText().ToStdString());
     int to_volume_id = m_objects_model->GetVolumeIdByItem(item);
+    printf("from %d to %d\n", from_volume_id, to_volume_id);
 
 #ifdef __WXGTK__
     /* Under GTK, DnD moves an item between another two items.
@@ -498,10 +497,12 @@ void ObjectList::OnDrop(wxDataViewEvent &event)
     int cnt = 0;
     for (int id = from_volume_id; cnt < abs(from_volume_id - to_volume_id); id += delta, cnt++)
         std::swap(volumes[id], volumes[id + delta]);
+    printf("Volumes are swapped\n");
 
     select_item(m_objects_model->ReorganizeChildren(from_volume_id, to_volume_id,
                                                     m_objects_model->GetParent(item)));
 
+    printf("ItemChildren are Reorganized\n");
     m_parts_changed = true;
     parts_changed(m_selected_object_id);
 

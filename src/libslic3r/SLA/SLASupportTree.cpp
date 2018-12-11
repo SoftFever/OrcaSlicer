@@ -515,8 +515,13 @@ struct Pad {
         zlevel(ground_level + sla::get_pad_elevation(pcfg))
     {
         ExPolygons basep;
+        cfg.throw_on_cancel();
+
+        // The 0.1f is the layer height with which the mesh is sampled and then
+        // the layers are unified into one vector of polygons.
         base_plate(object_support_mesh, basep,
-                   float(cfg.min_wall_height_mm)/*,layer_height*/);
+                   float(cfg.min_wall_height_mm), 0.1f, pcfg.throw_on_cancel);
+
         for(auto& bp : baseplate) basep.emplace_back(bp);
 
         create_base_pool(basep, tmesh, cfg);
@@ -622,11 +627,18 @@ class SLASupportTree::Impl {
     std::vector<Junction> m_junctions;
     std::vector<Bridge> m_bridges;
     std::vector<CompactBridge> m_compact_bridges;
+    Controller m_ctl;
+
     Pad m_pad;
     mutable TriangleMesh meshcache; mutable bool meshcache_valid;
     mutable double model_height = 0; // the full height of the model
 public:
     double ground_level = 0;
+
+    Impl() = default;
+    inline Impl(const Controller& ctl): m_ctl(ctl) {}
+
+    const Controller& ctl() const { return m_ctl; }
 
     template<class...Args> Head& add_head(Args&&... args) {
         m_heads.emplace_back(std::forward<Args>(args)...);
@@ -710,25 +722,36 @@ public:
         meshcache = TriangleMesh();
 
         for(auto& head : heads()) {
+            if(m_ctl.stopcondition()) break;
             auto&& m = mesh(head.mesh);
             meshcache.merge(m);
         }
 
         for(auto& stick : pillars()) {
+            if(m_ctl.stopcondition()) break;
             meshcache.merge(mesh(stick.mesh));
             meshcache.merge(mesh(stick.base));
         }
 
         for(auto& j : junctions()) {
+            if(m_ctl.stopcondition()) break;
             meshcache.merge(mesh(j.mesh));
         }
 
         for(auto& cb : compact_bridges()) {
+            if(m_ctl.stopcondition()) break;
             meshcache.merge(mesh(cb.mesh));
         }
 
         for(auto& bs : bridges()) {
+            if(m_ctl.stopcondition()) break;
             meshcache.merge(mesh(bs.mesh));
+        }
+
+        if(m_ctl.stopcondition()) {
+            // In case of failure we have to return an empty mesh
+            meshcache = TriangleMesh();
+            return meshcache;
         }
 
         // TODO: Is this necessary?
@@ -1659,22 +1682,19 @@ SlicedSupports SLASupportTree::slice(float layerh, float init_layerh) const
     fullmesh.merge(get_pad());
     TriangleMeshSlicer slicer(&fullmesh);
     SlicedSupports ret;
-    slicer.slice(heights, &ret, m_ctl.cancelfn);
+    slicer.slice(heights, &ret, get().ctl().cancelfn);
 
     return ret;
 }
 
 const TriangleMesh &SLASupportTree::add_pad(const SliceLayer& baseplate,
-                                            double min_wall_thickness_mm,
-                                            double min_wall_height_mm,
-                                            double max_merge_distance_mm,
-                                            double edge_radius_mm) const
+                                            const PoolConfig& pcfg) const
 {
-    PoolConfig pcfg;
-    pcfg.min_wall_thickness_mm = min_wall_thickness_mm;
-    pcfg.min_wall_height_mm    = min_wall_height_mm;
-    pcfg.max_merge_distance_mm = max_merge_distance_mm;
-    pcfg.edge_radius_mm        = edge_radius_mm;
+//    PoolConfig pcfg;
+//    pcfg.min_wall_thickness_mm = min_wall_thickness_mm;
+//    pcfg.min_wall_height_mm    = min_wall_height_mm;
+//    pcfg.max_merge_distance_mm = max_merge_distance_mm;
+//    pcfg.edge_radius_mm        = edge_radius_mm;
     return m_impl->create_pad(merged_mesh(), baseplate, pcfg).tmesh;
 }
 
@@ -1687,14 +1707,14 @@ SLASupportTree::SLASupportTree(const PointSet &points,
                                const EigenMesh3D& emesh,
                                const SupportConfig &cfg,
                                const Controller &ctl):
-    m_impl(new Impl()), m_ctl(ctl)
+    m_impl(new Impl(ctl))
 {
     m_impl->ground_level = emesh.ground_level - cfg.object_elevation_mm;
     generate(points, emesh, cfg, ctl);
 }
 
 SLASupportTree::SLASupportTree(const SLASupportTree &c):
-    m_impl(new Impl(*c.m_impl)), m_ctl(c.m_ctl) {}
+    m_impl(new Impl(*c.m_impl)) {}
 
 SLASupportTree &SLASupportTree::operator=(const SLASupportTree &c)
 {

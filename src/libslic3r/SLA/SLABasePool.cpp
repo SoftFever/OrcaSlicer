@@ -10,6 +10,10 @@
 
 namespace Slic3r { namespace sla {
 
+namespace {
+ThrowOnCancel throw_on_cancel = [](){};
+}
+
 /// Convert the triangulation output to an intermediate mesh.
 Contour3D convert(const Polygons& triangles, coord_t z, bool dir) {
 
@@ -60,9 +64,13 @@ Contour3D walls(const ExPolygon& floor_plate, const ExPolygon& ceiling,
         });
     };
 
+    auto& thr = throw_on_cancel;
+
     std::for_each(tri.begin(), tri.end(),
-                  [&rp, &rpi, &poly, &idx, is_upper, fz, cz](const Polygon& pp)
+                  [&rp, &rpi, thr, &idx, is_upper, fz, cz](const Polygon& pp)
     {
+        thr(); // may throw if cancellation was requested
+
         for(auto& p : pp.points)
             if(is_upper(p))
                 rp.emplace_back(unscale(x(p), y(p), mm(cz)));
@@ -231,6 +239,8 @@ Contour3D round_edges(const ExPolygon& base_plate,
 
     if(degrees >= 90) {
         for(int i = 1; i <= steps; ++i) {
+            throw_on_cancel();
+
             ob = base_plate;
 
             double r2 = radius_mm * radius_mm;
@@ -254,6 +264,7 @@ Contour3D round_edges(const ExPolygon& base_plate,
     int tos = int(tox / stepx);
 
     for(int i = 1; i <= tos; ++i) {
+        throw_on_cancel();
         ob = base_plate;
 
         double r2 = radius_mm * radius_mm;
@@ -385,7 +396,7 @@ ExPolygons concave_hull(const ExPolygons& polys, double max_dist_mm = 50)
                    std::back_inserter(punion),
                    [&punion, &boxindex, cc, max_dist_mm, &idx](const Point& c)
     {
-
+        throw_on_cancel();
         double dx = x(c) - x(cc), dy = y(c) - y(cc);
         double l = std::sqrt(dx * dx + dy * dy);
         double nx = dx / l, ny = dy / l;
@@ -419,7 +430,7 @@ ExPolygons concave_hull(const ExPolygons& polys, double max_dist_mm = 50)
 }
 
 void base_plate(const TriangleMesh &mesh, ExPolygons &output, float h,
-                float layerh)
+                float layerh, ThrowOnCancel thrfn)
 {
     TriangleMesh m = mesh;
     TriangleMeshSlicer slicer(&m);
@@ -431,7 +442,7 @@ void base_plate(const TriangleMesh &mesh, ExPolygons &output, float h,
         heights.emplace_back(hi);
 
     std::vector<ExPolygons> out; out.reserve(size_t(std::ceil(h/layerh)));
-    slicer.slice(heights, &out, [](){});
+    slicer.slice(heights, &out, thrfn);
 
     size_t count = 0; for(auto& o : out) count += o.size();
     ExPolygons tmp; tmp.reserve(count);
@@ -444,6 +455,8 @@ void base_plate(const TriangleMesh &mesh, ExPolygons &output, float h,
 void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
                       const PoolConfig& cfg)
 {
+    throw_on_cancel = cfg.throw_on_cancel;
+
     double mdist = 2*(1.8*cfg.min_wall_thickness_mm + 4*cfg.edge_radius_mm) +
                    cfg.max_merge_distance_mm;
 

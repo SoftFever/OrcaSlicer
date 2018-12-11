@@ -44,7 +44,7 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
 			case coPercents:
 			case coString:
 			case coStrings:
-				m_fields.emplace(id, std::move(TextCtrl::Create<TextCtrl>(parent(), opt, id, process_enter)));
+				m_fields.emplace(id, std::move(TextCtrl::Create<TextCtrl>(parent(), opt, id)));
                 break;
 			case coBool:
 			case coBools:
@@ -67,16 +67,21 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
     }
     // Grab a reference to fields for convenience
     const t_field& field = m_fields[id];
-	field->m_on_change = [this](std::string opt_id, boost::any value) {
+	field->m_on_change = [this](const std::string& opt_id, const boost::any& value) {
 			//! This function will be called from Field.					
 			//! Call OptionGroup._on_change(...)
 			if (!m_disabled) 
 				this->on_change_OG(opt_id, value);
 	};
-	field->m_on_kill_focus = [this]() {
+    field->m_on_kill_focus = [this](const std::string& opt_id) {
 			//! This function will be called from Field.					
 			if (!m_disabled) 
-				this->on_kill_focus();
+				this->on_kill_focus(opt_id);
+	};
+    field->m_on_set_focus = [this](const std::string& opt_id) {
+			//! This function will be called from Field.					
+			if (!m_disabled) 
+				this->on_set_focus(opt_id);
 	};
     field->m_parent = parent();
 	
@@ -277,6 +282,12 @@ Line OptionsGroup::create_single_option_line(const Option& option) const {
     return retval;
 }
 
+void OptionsGroup::on_set_focus(const std::string& opt_key)
+{
+    if (m_set_focus != nullptr)
+        m_set_focus(opt_key);
+}
+
 void OptionsGroup::on_change_OG(const t_config_option_key& opt_id, const boost::any& value) {
 	if (m_on_change != nullptr)
 		m_on_change(opt_id, value);
@@ -376,6 +387,15 @@ void ConfigOptionsGroup::back_to_config_value(const DynamicPrintConfig& config, 
 
 	set_value(opt_key, value);
 	on_change_OG(opt_key, get_value(opt_key));
+}
+
+void ConfigOptionsGroup::on_kill_focus(const std::string& opt_key)
+{
+    if (m_fill_empty_value) {
+        m_fill_empty_value(opt_key);
+        return;
+    }
+    reload_config();
 }
 
 void ConfigOptionsGroup::reload_config() {
