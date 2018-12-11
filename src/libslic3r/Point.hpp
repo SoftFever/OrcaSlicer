@@ -187,6 +187,24 @@ public:
             m_map.emplace(std::make_pair(Vec2crd(pt->x()>>m_grid_log2, pt->y()>>m_grid_log2), std::move(value)));
     }
 
+    // Erase a data point equal to value. (ValueType has to declare the operator==).
+    // Returns true if the data point equal to value was found and removed.
+    bool erase(const ValueType &value) {
+        const Point *pt = m_point_accessor(value);
+        if (pt != nullptr) {
+            // Range of fragment starts around grid_corner, close to pt.
+            auto range = m_map.equal_range(Point(pt->x>>m_grid_log2, pt->y>>m_grid_log2));
+            // Remove the first item.
+            for (auto it = range.first; it != range.second; ++ it) {
+                if (it->second == value) {
+                    m_map.erase(it);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     // Return a pair of <ValueType*, distance_squared>
     std::pair<const ValueType*, double> find(const Vec2crd &pt) {
         // Iterate over 4 closest grid cells around pt,
@@ -214,7 +232,7 @@ public:
                 }
             }
         }
-        return (value_min != nullptr && dist_min < coordf_t(m_search_radius * m_search_radius)) ? 
+        return (value_min != nullptr && dist_min < coordf_t(m_search_radius) * coordf_t(m_search_radius)) ? 
             std::make_pair(value_min, dist_min) : 
             std::make_pair(nullptr, std::numeric_limits<double>::max());
     }

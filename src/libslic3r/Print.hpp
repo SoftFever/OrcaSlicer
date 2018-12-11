@@ -78,7 +78,6 @@ private: // Prevents erroneous use by other classes.
 public:
     // vector of (vectors of volume ids), indexed by region_id
     std::vector<std::vector<int>> region_volumes;
-    t_layer_height_ranges   layer_height_ranges;
 
     // Profile of increasing z to a layer height, to be linearly interpolated when calculating the layers.
     // The pairs of <z, layer_height> are packed into a 1D array to simplify handling by the Perl XS.

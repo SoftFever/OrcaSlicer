@@ -107,6 +107,23 @@ extern BoundingBox get_extents(const MultiPoint &mp);
 extern BoundingBox get_extents_rotated(const std::vector<Point> &points, double angle);
 extern BoundingBox get_extents_rotated(const MultiPoint &mp, double angle);
 
+inline double length(const Points &pts) {
+    double total = 0;
+    if (! pts.empty()) {
+        auto it = pts.begin();
+        for (auto it_prev = it ++; it != pts.end(); ++ it, ++ it_prev)
+            total += (*it - *it_prev).cast<double>().norm();
+    }
+    return total;
+}
+
+inline double area(const Points &polygon) {
+    double area = 0.;
+    for (size_t i = 0, j = polygon.size() - 1; i < polygon.size(); j = i ++)
+		area += double(polygon[i](0) + polygon[j](0)) * double(polygon[i](1) - polygon[j](1));
+    return area;
+}
+
 } // namespace Slic3r
 
 #endif
