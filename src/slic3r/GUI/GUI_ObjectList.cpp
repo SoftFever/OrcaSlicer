@@ -60,11 +60,7 @@ ObjectList::ObjectList(wxWindow* parent) :
 #endif //__WXMSW__        
     });
 
-    Bind(wxEVT_DATAVIEW_ITEM_CONTEXT_MENU, [this](wxDataViewEvent& event) {
-        context_menu();
-    });
-
-    Bind(wxEVT_CHAR, [this](wxKeyEvent& event) { key_event(event); }); // doesn't work on OSX
+//     Bind(wxEVT_CHAR, [this](wxKeyEvent& event) { key_event(event); }); // doesn't work on OSX
 
 #ifdef __WXMSW__
     GetMainWindow()->Bind(wxEVT_MOTION, [this](wxMouseEvent& event) {
@@ -73,15 +69,15 @@ ObjectList::ObjectList(wxWindow* parent) :
     });
 #endif //__WXMSW__
 
-    Bind(wxEVT_DATAVIEW_ITEM_BEGIN_DRAG,    [this](wxDataViewEvent& e) { on_begin_drag(e); });
-    Bind(wxEVT_DATAVIEW_ITEM_DROP_POSSIBLE, [this](wxDataViewEvent& e) { on_drop_possible(e); });
-    Bind(wxEVT_DATAVIEW_ITEM_DROP,          [this](wxDataViewEvent& e) { on_drop(e); });
+    Bind(wxEVT_DATAVIEW_ITEM_CONTEXT_MENU,  &ObjectList::OnContextMenu,     this);
+
+    Bind(wxEVT_DATAVIEW_ITEM_BEGIN_DRAG,    &ObjectList::OnBeginDrag,       this);
+    Bind(wxEVT_DATAVIEW_ITEM_DROP_POSSIBLE, &ObjectList::OnDropPossible,    this);
+    Bind(wxEVT_DATAVIEW_ITEM_DROP,          &ObjectList::OnDrop,            this);
+
+    Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, &ObjectList::ItemValueChanged,  this);
 
     Bind(wxCUSTOMEVT_LAST_VOLUME_IS_DELETED, [this](wxCommandEvent& e)   { last_volume_is_deleted(e.GetInt()); });
-
-//    Bind(wxEVT_DATAVIEW_ITEM_START_EDITING,     &ObjectList::OnStartEditing,    this);
-//     Bind(wxEVT_DATAVIEW_ITEM_EDITING_DONE,      &ObjectList::OnEditingDone,    this);
-    Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED,     &ObjectList::ItemValueChanged, this);
 }
 
 ObjectList::~ObjectList()
@@ -96,6 +92,10 @@ void ObjectList::create_objects_ctrl()
     // 1. set a height of the list to some big value 
     // 2. change it to the normal min value (200) after first whole App updating/layouting
     SetMinSize(wxSize(-1, 1500));   // #ys_FIXME 
+
+#ifdef __WXOSX__
+    Connect(wxEVT_CHAR, wxKeyEventHandler(ObjectList::OnChar), NULL, this);
+#endif //__WXOSX__
 
     m_sizer = new wxBoxSizer(wxVERTICAL);
     m_sizer->Add(this, 1, wxGROW | wxLEFT, 20);
@@ -255,7 +255,7 @@ void ObjectList::update_objects_list_extruder_column(int extruders_count)
     m_prevent_update_extruder_in_config = false;
 }
 
-void ObjectList::set_extruder_column_hidden(bool hide)
+void ObjectList::set_extruder_column_hidden(const bool hide) const
 {
     GetColumn(1)->SetHidden(hide);
 }
@@ -333,13 +333,21 @@ void ObjectList::selection_changed()
     }
 
     part_selection_changed();
-
-// #ifdef __WXOSX__
-//     update_extruder_in_config(m_selected_extruder);
-// #endif //__WXOSX__        
 }
 
-void ObjectList::context_menu()
+void ObjectList::OnChar(wxKeyEvent& event)
+{
+    if (event.GetKeyCode() == WXK_DELETE && event.GetKeyCode() == WXK_BACK){
+        printf("WXK_BACK\n");
+        remove();
+    }
+    else if (wxGetKeyState(wxKeyCode('A')) && wxGetKeyState(WXK_SHIFT))
+        select_item_all_children();
+    else
+        event.Skip();
+}
+
+void ObjectList::OnContextMenu(wxDataViewEvent&)
 {
     wxDataViewItem item;
     wxDataViewColumn* col;
@@ -422,7 +430,7 @@ struct draging_item_data
     int vol_idx;
 };
 
-void ObjectList::on_begin_drag(wxDataViewEvent &event)
+void ObjectList::OnBeginDrag(wxDataViewEvent &event)
 {
     wxDataViewItem item(event.GetItem());
 
@@ -437,7 +445,7 @@ void ObjectList::on_begin_drag(wxDataViewEvent &event)
     /* Under MSW or OSX, DnD moves an item to the place of another selected item
     * But under GTK, DnD moves an item between another two items.
     * And as a result - call EVT_CHANGE_SELECTION to unselect all items.
-    * To prevent such behavior use g_prevent_list_events
+    * To prevent such behavior use m_prevent_list_events
     **/
     m_prevent_list_events = true;//it's needed for GTK
 
@@ -445,29 +453,31 @@ void ObjectList::on_begin_drag(wxDataViewEvent &event)
     obj->SetText(wxString::Format("%d", m_objects_model->GetVolumeIdByItem(item)));
     event.SetDataObject(obj);
     event.SetDragFlags(/*wxDrag_AllowMove*/wxDrag_DefaultMove); // allows both copy and move;
+    printf("BeginDrag\n");
 }
 
-void ObjectList::on_drop_possible(wxDataViewEvent &event)
+void ObjectList::OnDropPossible(wxDataViewEvent &event)
 {
     wxDataViewItem item(event.GetItem());
 
     // only allow drags for item or background, not containers
-    if (item.IsOk() && m_objects_model->GetParent(item) == wxDataViewItem(0) ||
-        event.GetDataFormat() != wxDF_UNICODETEXT || m_objects_model->GetItemType(item) != itVolume)
+    if (event.GetDataFormat() != wxDF_UNICODETEXT || item.IsOk() && 
+        (m_objects_model->GetParent(item) == wxDataViewItem(0) || m_objects_model->GetItemType(item) != itVolume))
         event.Veto();
+    printf("DropPossible\n");
 }
 
-void ObjectList::on_drop(wxDataViewEvent &event)
+void ObjectList::OnDrop(wxDataViewEvent &event)
 {
     wxDataViewItem item(event.GetItem());
 
-    // only allow drops for item, not containers
-    if (m_selected_object_id < 0 ||
-        item.IsOk() && m_objects_model->GetParent(item) == wxDataViewItem(0) ||
-        event.GetDataFormat() != wxDF_UNICODETEXT || m_objects_model->GetItemType(item) != itVolume) {
+    if (m_selected_object_id < 0 || event.GetDataFormat() != wxDF_UNICODETEXT || 
+        item.IsOk() && ( m_objects_model->GetParent(item) == wxDataViewItem(0) ||
+                         m_objects_model->GetItemType(item) != itVolume) ) {
         event.Veto();
         return;
     }
+    printf("Drop\n");
 
     wxTextDataObject obj;
     obj.SetData(wxDF_UNICODETEXT, event.GetDataSize(), event.GetDataBuffer());
@@ -494,6 +504,8 @@ void ObjectList::on_drop(wxDataViewEvent &event)
 
     m_parts_changed = true;
     parts_changed(m_selected_object_id);
+
+    printf("DropCompleted\n");
 
 //     m_prevent_list_events = false;
 }

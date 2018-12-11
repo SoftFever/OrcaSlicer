@@ -104,9 +104,9 @@ public:
     wxDataViewColumn*   create_objects_list_extruder_column(int extruders_count);
     void                update_objects_list_extruder_column(int extruders_count);
     // show/hide "Extruder" column for Objects List
-    void                set_extruder_column_hidden(bool hide);
+    void                set_extruder_column_hidden(const bool hide) const;
     // update extruder in current config
-    void                update_extruder_in_config(const wxDataViewItem& item/*wxString& selection*/);
+    void                update_extruder_in_config(const wxDataViewItem& item);
     void                update_extruder_values_for_items(const int max_extruder);
 
     void                init_icons();
@@ -114,13 +114,8 @@ public:
     void                set_tooltip_for_item(const wxPoint& pt);
 
     void                selection_changed();
-    void                context_menu();
     void                show_context_menu();
     void                key_event(wxKeyEvent& event);
-
-    void                on_begin_drag(wxDataViewEvent &event);
-    void                on_drop_possible(wxDataViewEvent &event);
-    void                on_drop(wxDataViewEvent &event);
 
     void                get_settings_choice(const wxString& category_name);
     void                append_menu_item_add_generic(wxMenuItem* menu, const int type);
@@ -203,6 +198,13 @@ public:
     void update_settings_items();
 
 private:
+    void OnChar(wxKeyEvent& event);
+    void OnContextMenu(wxDataViewEvent &event);
+
+    void OnBeginDrag(wxDataViewEvent &event);
+    void OnDropPossible(wxDataViewEvent &event);
+    void OnDrop(wxDataViewEvent &event);
+
     void ItemValueChanged(wxDataViewEvent &event);
 };
 
