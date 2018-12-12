@@ -538,10 +538,12 @@ public:
                                  const wxVariant& value) override;
     bool        GetValueFromEditorCtrl( wxWindow* ctrl, 
                                         wxVariant& value) override;
+    bool        WasCanceled() const { return m_was_unusable_symbol; }
 
 private:
     PrusaDataViewBitmapText m_value;
     wxBitmap                m_bmp_from_editing_item;
+    bool                    m_was_unusable_symbol;
 };
 
 

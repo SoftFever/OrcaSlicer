@@ -128,6 +128,8 @@ public:
     void                set_extruder_column_hidden(const bool hide) const;
     // update extruder in current config
     void                update_extruder_in_config(const wxDataViewItem& item);
+    // update changed name in the object model
+    void                update_name_in_model(const wxDataViewItem& item);
     void                update_extruder_values_for_items(const int max_extruder);
 
     void                init_icons();
@@ -227,6 +229,7 @@ private:
     void OnDrop(wxDataViewEvent &event);
 
     void ItemValueChanged(wxDataViewEvent &event);
+    void OnEditingDone(wxDataViewEvent &event);
 };
 
 

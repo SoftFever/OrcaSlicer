@@ -1292,6 +1292,7 @@ wxWindow* PrusaBitmapTextRenderer::CreateEditorCtrl(wxWindow* parent, wxRect lab
     PrusaDataViewBitmapText data;
     data << value;
     m_bmp_from_editing_item = data.GetBitmap();
+    m_was_unusable_symbol = false;
 
     wxPoint position = labelRect.GetPosition();
     if (m_bmp_from_editing_item.IsOk()) {
@@ -1310,8 +1311,17 @@ wxWindow* PrusaBitmapTextRenderer::CreateEditorCtrl(wxWindow* parent, wxRect lab
 bool PrusaBitmapTextRenderer::GetValueFromEditorCtrl(wxWindow* ctrl, wxVariant& value)
 {
     wxTextCtrl* text_editor = wxDynamicCast(ctrl, wxTextCtrl);
-    if (!text_editor)
+    if (!text_editor || text_editor->GetValue().IsEmpty())
         return false;
+
+    std::string chosen_name = Slic3r::normalize_utf8_nfc(text_editor->GetValue().ToUTF8());
+    const char* unusable_symbols = "<>:/\\|?*\"";
+    for (size_t i = 0; i < std::strlen(unusable_symbols); i++) {
+        if (chosen_name.find_first_of(unusable_symbols[i]) != std::string::npos) {
+            m_was_unusable_symbol = true;
+            return false;
+        }
+    }
 
     value << PrusaDataViewBitmapText(text_editor->GetValue(), m_bmp_from_editing_item);
     return true;
