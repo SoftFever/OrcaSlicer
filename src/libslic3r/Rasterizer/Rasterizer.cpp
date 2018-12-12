@@ -45,15 +45,20 @@ private:
     TRawRenderer m_raw_renderer;
     TRendererAA m_renderer;
     Origin m_o;
-    std::function<void(agg::path_storage&)> m_flipy = [](agg::path_storage&) {};
+
+    inline void flipy(agg::path_storage& path) const {
+        path.flip_y(0, m_resolution.height_px);
+    }
+
 public:
+
     inline Impl(const Raster::Resolution& res, const Raster::PixelDim &pd,
                 Origin o):
         m_resolution(res), m_pxdim(pd),
         m_buf(res.pixels()),
         m_rbuf(reinterpret_cast<TPixelRenderer::value_type*>(m_buf.data()),
               res.width_px, res.height_px,
-              res.width_px*TPixelRenderer::num_components),
+              int(res.width_px*TPixelRenderer::num_components)),
         m_pixfmt(m_rbuf),
         m_raw_renderer(m_pixfmt),
         m_renderer(m_raw_renderer),
@@ -65,10 +70,6 @@ public:
         // ras.gamma(agg::gamma_power(1.0));
 
         clear();
-
-        if(m_o == Origin::TOP_LEFT) m_flipy = [this](agg::path_storage& path) {
-            path.flip_y(0, m_resolution.height_px);
-        };
     }
 
     void draw(const ExPolygon &poly) {
@@ -76,12 +77,14 @@ public:
         agg::scanline_p8 scanlines;
 
         auto&& path = to_path(poly.contour);
-        m_flipy(path);
+
+        if(m_o == Origin::TOP_LEFT) flipy(path);
+
         ras.add_path(path);
 
         for(auto h : poly.holes) {
             auto&& holepath = to_path(h);
-            m_flipy(holepath);
+            if(m_o == Origin::TOP_LEFT) flipy(holepath);
             ras.add_path(holepath);
         }
 
@@ -205,8 +208,9 @@ void Raster::save(std::ostream& stream, Compression comp)
                << m_impl->resolution().height_px << " "
                << "255 ";
 
+        auto sz = m_impl->buffer().size()*sizeof(Impl::TBuffer::value_type);
         stream.write(reinterpret_cast<const char*>(m_impl->buffer().data()),
-                     m_impl->buffer().size()*sizeof(Impl::TBuffer::value_type));
+                     std::streamsize(sz));
     }
     }
 }

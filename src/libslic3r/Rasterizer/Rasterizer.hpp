@@ -27,6 +27,13 @@ public:
         PNG     //!> PNG compression
     };
 
+    /// The Rasterizer expects the input polygons to have their coordinate
+    /// system origin in the bottom left corner. If the raster is then
+    /// configured with the TOP_LEFT origin parameter (in the constructor) than
+    /// it will flip the Y axis in output to maintain the correct orientation.
+    /// This is the default case with PNG images. They have the origin in the
+    /// top left corner. Without the flipping, the image would be upside down
+    /// with the scaled (clipper) coordinate system of the input polygons.
     enum class Origin {
         TOP_LEFT,
         BOTTOM_LEFT

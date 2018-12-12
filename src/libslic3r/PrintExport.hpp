@@ -31,8 +31,6 @@ template<FilePrinterFormat format>
 class FilePrinter {
 public:
 
-    void print_config(const Print&);
-
     // Draw an ExPolygon which is a polygon inside a slice on the specified layer.
     void draw_polygon(const ExPolygon& p, unsigned lyr);
 
@@ -147,8 +145,8 @@ template<> class FilePrinter<FilePrinterFormat::SLA_PNGZIP>
                   +layerh_str+"+printer=DWARF3\n";
     }
 
-    // Change this to TOP_LEFT if you want correct PNG orientation
-    static const Raster::Origin ORIGIN = Raster::Origin::BOTTOM_LEFT;
+    // The PNG format has its origin in the top left corner.
+    static const Raster::Origin ORIGIN = Raster::Origin::TOP_LEFT;
 
 public:
     inline FilePrinter(double width_mm, double height_mm,
