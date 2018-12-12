@@ -469,7 +469,7 @@ void SLAPrint::process()
         for(float h = minZ + ilh; h < maxZ; h += flh)
             if(h >= gnd) heights.emplace_back(h);
 
-        auto& layers = po.m_model_slices;
+        auto& layers = po.m_model_slices; layers.clear();
         slicer.slice(heights, &layers, [this](){ throw_if_canceled(); });
     };
 

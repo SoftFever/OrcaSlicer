@@ -447,8 +447,11 @@ void base_plate(const TriangleMesh &mesh, ExPolygons &output, float h,
     ExPolygons tmp; tmp.reserve(count);
     for(auto& o : out) for(auto& e : o) tmp.emplace_back(std::move(e));
 
-    output = unify(tmp);
-    for(auto& o : output) o = o.simplify(0.1/SCALING_FACTOR).front();
+    ExPolygons utmp = unify(tmp);
+    for(auto& o : utmp) {
+        auto&& smp = o.simplify(0.1/SCALING_FACTOR);
+        output.insert(output.end(), smp.begin(), smp.end());
+    }
 }
 
 void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
