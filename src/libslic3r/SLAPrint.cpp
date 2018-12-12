@@ -715,6 +715,8 @@ void SLAPrint::process()
         std::vector<long long> keys; keys.reserve(levels.size());
         for(auto& e : levels) keys.emplace_back(e.first);
 
+        bool flpXY = m_printer_config.display_flip_xy.getBool();
+
         { // create a raster printer for the current print parameters
             // I don't know any better
             auto& ocfg = m_objects.front()->m_config;
@@ -728,6 +730,8 @@ void SLAPrint::process()
             double lh = ocfg.layer_height.getFloat();
             double exp_t = matcfg.exposure_time.getFloat();
             double iexp_t = matcfg.initial_exposure_time.getFloat();
+
+            if(flpXY) { std::swap(w, h); std::swap(pw, ph); }
 
             m_printer.reset(new SLAPrinter(w, h, pw, ph, lh, exp_t, iexp_t));
         }
@@ -744,7 +748,7 @@ void SLAPrint::process()
 
         // procedure to process one height level. This will run in parallel
         auto lvlfn =
-        [this, &slck, &keys, &levels, &printer, slot, sd, ist, &pst]
+        [this, &slck, &keys, &levels, &printer, slot, sd, ist, &pst, flpXY]
             (unsigned level_id)
         {
             if(canceled()) return;
@@ -764,8 +768,12 @@ void SLAPrint::process()
                     for(ExPolygon slice : sl) {
                         // The order is important here:
                         // apply rotation before translation...
-                        slice.rotate(cp.rotation);
+                        slice.rotate(double(cp.rotation));
                         slice.translate(cp.shift(X), cp.shift(Y));
+                        if(flpXY) {
+                            for(auto& p : slice.contour.points) std::swap(p(X), p(Y));
+                            for(auto& h : slice.holes) for(auto& p : h.points) std::swap(p(X), p(Y));
+                        }
                         printer.draw_polygon(slice, level_id);
                     }
                 }
