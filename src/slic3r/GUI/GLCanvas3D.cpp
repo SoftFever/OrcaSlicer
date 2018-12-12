@@ -4094,7 +4094,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
     m_reload_delayed = ! m_canvas->IsShown() && ! refresh_immediately && ! force_full_scene_refresh;
 
-    PrinterTechnology printer_technology = m_process->current_printer_technology();
+    PrinterTechnology printer_technology        = m_process->current_printer_technology();
+    int               volume_idx_wipe_tower_old = -1;
 
     if (m_regenerate_volumes)
     {
@@ -4152,6 +4153,11 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             }
             if (mvs == nullptr || force_full_scene_refresh) {
                 // This GLVolume will be released.
+                if (volume->is_wipe_tower) {
+                    // There is only one wipe tower.
+                    assert(volume_idx_wipe_tower_old == -1);
+                    volume_idx_wipe_tower_old = (int)volume_id;
+                }
                 volume->release_geometry();
                 if (! m_reload_delayed)
                     delete volume;
@@ -4319,8 +4325,11 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 float depth = print->get_wipe_tower_depth();
                 if (!print->is_step_done(psWipeTower))
                     depth = (900.f/w) * (float)(extruders_count - 1) ;
-                m_volumes.load_wipe_tower_preview(1000, x, y, w, depth, (float)height, a, m_use_VBOs && m_initialized, !print->is_step_done(psWipeTower),
-                                                  print->config().nozzle_diameter.values[0] * 1.25f * 4.5f);
+                int volume_idx_wipe_tower_new = m_volumes.load_wipe_tower_preview(
+                    1000, x, y, w, depth, (float)height, a, m_use_VBOs && m_initialized, !print->is_step_done(psWipeTower),
+                    print->config().nozzle_diameter.values[0] * 1.25f * 4.5f);
+                if (volume_idx_wipe_tower_old != -1)
+                    map_glvolume_old_to_new[volume_idx_wipe_tower_old] = volume_idx_wipe_tower_new;
             }
         }
 

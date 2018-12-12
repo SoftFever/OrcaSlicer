@@ -14,6 +14,8 @@
 
 #include "PrintExport.hpp"
 
+#include <boost/filesystem/path.hpp>
+
 //! macro used to mark string used at localization, 
 //! return same string
 #define L(s) Slic3r::I18N::translate(s)
@@ -1864,14 +1866,92 @@ std::string Print::output_filename() const
 { 
     // Set the placeholders for the data know first after the G-code export is finished.
     // These values will be just propagated into the output file name.
+    DynamicConfig config = this->finished() ? this->print_statistics().config() : this->print_statistics().placeholders();
+    return this->PrintBase::output_filename(m_config.output_filename_format.value, "gcode", &config);
+}
+
+// Shorten the dhms time by removing the seconds, rounding the dhm to full minutes
+// and removing spaces.
+static std::string short_time(const std::string &time)
+{
+    // Parse the dhms time format.
+    int days    = 0;
+    int hours   = 0;
+    int minutes = 0;
+    int seconds = 0;
+    if (time.find('d') != std::string::npos)
+        ::sscanf(time.c_str(), "%dd %dh %dm %ds", &days, &hours, &minutes, &seconds);
+    else if (time.find('h') != std::string::npos)
+        ::sscanf(time.c_str(), "%dh %dm %ds", &hours, &minutes, &seconds);
+    else if (time.find('m') != std::string::npos)
+        ::sscanf(time.c_str(), "%dm %ds", &minutes, &seconds);
+    else if (time.find('s') != std::string::npos)
+        ::sscanf(time.c_str(), "%ds", &seconds);
+    // Round to full minutes.
+    if (days + hours + minutes > 0 && seconds >= 30) {
+        if (++ minutes == 60) {
+            minutes = 0;
+            if (++ hours == 24) {
+                hours = 0;
+                ++ days;
+            }
+        }
+    }
+    // Format the dhm time.
+    char buffer[64];
+    if (days > 0)
+        ::sprintf(buffer, "%dd%dh%dm", days, hours, minutes);
+    else if (hours > 0)
+        ::sprintf(buffer, "%dh%dm", hours, minutes);
+    else if (minutes > 0)
+        ::sprintf(buffer, "%dm", minutes);
+    else
+        ::sprintf(buffer, "%ds", seconds);
+    return buffer;
+}
+
+DynamicConfig PrintStatistics::config() const
+{
+    DynamicConfig config;
+    std::string normal_print_time = short_time(this->estimated_normal_print_time);
+    std::string silent_print_time = short_time(this->estimated_silent_print_time);
+    config.set_key_value("print_time",                new ConfigOptionString(normal_print_time));
+    config.set_key_value("normal_print_time",         new ConfigOptionString(normal_print_time));
+    config.set_key_value("silent_print_time",         new ConfigOptionString(silent_print_time));
+    config.set_key_value("used_filament",             new ConfigOptionFloat (this->total_used_filament));
+    config.set_key_value("extruded_volume",           new ConfigOptionFloat (this->total_extruded_volume));
+    config.set_key_value("total_cost",                new ConfigOptionFloat (this->total_cost));
+    config.set_key_value("total_weight",              new ConfigOptionFloat (this->total_weight));
+    config.set_key_value("total_wipe_tower_cost",     new ConfigOptionFloat (this->total_wipe_tower_cost));
+    config.set_key_value("total_wipe_tower_filament", new ConfigOptionFloat (this->total_wipe_tower_filament));
+    return config;
+}
+
+DynamicConfig PrintStatistics::placeholders()
+{
     DynamicConfig config;
     for (const std::string &key : { 
         "print_time", "normal_print_time", "silent_print_time", 
         "used_filament", "extruded_volume", "total_cost", "total_weight", 
         "total_wipe_tower_cost", "total_wipe_tower_filament"})
-        config.set_key_value(key, new ConfigOptionString(std::string("{") + key + "}"));
-    return this->PrintBase::output_filename(m_config.output_filename_format.value, "gcode", &config);
+        config.set_key_value(key, new ConfigOptionString(std::string("{") + key + "}"));    
+    return config;
+}
+
+std::string PrintStatistics::finalize_output_path(const std::string &path_in) const
+{
+    std::string final_path;
+    try {
+        boost::filesystem::path path(path_in);
+        DynamicConfig cfg = this->config();
+        PlaceholderParser pp;
+        std::string new_stem = pp.process(path.stem().string(), 0, &cfg);
+        final_path = (path.parent_path() / (new_stem + path.extension().string())).string();
+    } catch (const std::exception &ex) {
+        BOOST_LOG_TRIVIAL(error) << "Failed to apply the print statistics to the export file name: " << ex.what();
+        final_path = path_in;
+    }
+    return final_path;
 }
 
 } // namespace Slic3r
-
