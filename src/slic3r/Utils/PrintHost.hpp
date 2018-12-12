@@ -43,9 +43,23 @@ struct PrintHostJob
     std::unique_ptr<PrintHost> printhost;
 
     PrintHostJob() {}
+    PrintHostJob(const PrintHostJob&) = delete;
+    PrintHostJob(PrintHostJob &&other)
+        : upload_data(std::move(other.upload_data))
+        , printhost(std::move(other.printhost))
+    {}
+
     PrintHostJob(DynamicPrintConfig *config)
         : printhost(PrintHost::get_print_host(config))
     {}
+
+    PrintHostJob& operator=(const PrintHostJob&) = delete;
+    PrintHostJob& operator=(PrintHostJob &&other)
+    {
+        upload_data = std::move(other.upload_data);
+        printhost = std::move(other.printhost);
+        return *this;
+    }
 
     bool empty() const { return !printhost; }
     operator bool() const { return !!printhost; }
