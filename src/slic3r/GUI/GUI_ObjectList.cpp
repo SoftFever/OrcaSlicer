@@ -337,9 +337,7 @@ void ObjectList::selection_changed()
 
 void ObjectList::OnChar(wxKeyEvent& event)
 {
-//     printf("KeyDown event\n");
     if (event.GetKeyCode() == WXK_BACK){
-        printf("WXK_BACK\n");
         remove();
     }
     else if (wxGetKeyState(wxKeyCode('A')) && wxGetKeyState(WXK_SHIFT))
@@ -370,15 +368,14 @@ void ObjectList::OnContextMenu(wxDataViewEvent&)
 
     if (title == " ")
         show_context_menu();
-
-        else if (title == _("Name") && pt.x >15 &&
-                    m_objects_model->GetBitmap(item).GetRefData() == m_bmp_manifold_warning.GetRefData())
-        {
-            if (is_windows10()) {
-                const auto obj_idx = m_objects_model->GetIdByItem(m_objects_model->GetTopParent(item));
-                wxGetApp().plater()->fix_through_netfabb(obj_idx);
-            }
+    else if (title == _("Name") && pt.x >15 &&
+             m_objects_model->GetBitmap(item).GetRefData() == m_bmp_manifold_warning.GetRefData())
+    {
+        if (is_windows10()) {
+            const auto obj_idx = m_objects_model->GetIdByItem(m_objects_model->GetTopParent(item));
+            wxGetApp().plater()->fix_through_netfabb(obj_idx);
         }
+    }
 #ifndef __WXMSW__
     GetMainWindow()->SetToolTip(""); // hide tooltip
 #endif //__WXMSW__

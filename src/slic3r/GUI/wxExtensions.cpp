@@ -1281,6 +1281,42 @@ wxSize PrusaBitmapTextRenderer::GetSize() const
 }
 
 
+wxWindow* PrusaBitmapTextRenderer::CreateEditorCtrl(wxWindow* parent, wxRect labelRect, const wxVariant& value)
+{
+    wxDataViewCtrl* const dv_ctrl = GetOwner()->GetOwner();
+    PrusaObjectDataViewModel* const model = dynamic_cast<PrusaObjectDataViewModel*>(dv_ctrl->GetModel());
+
+    if ( !(model->GetItemType(dv_ctrl->GetSelection()) & (itVolume | itObject)) )
+        return nullptr;
+
+    PrusaDataViewBitmapText data;
+    data << value;
+    m_bmp_from_editing_item = data.GetBitmap();
+
+    wxPoint position = labelRect.GetPosition();
+    if (m_bmp_from_editing_item.IsOk()) {
+        const int bmp_width = m_bmp_from_editing_item.GetWidth();
+        position.x += bmp_width;
+        labelRect.SetWidth(labelRect.GetWidth() - bmp_width);
+    }
+
+    wxTextCtrl* text_editor = new wxTextCtrl(parent, wxID_ANY, data.GetText(),
+                                             position, labelRect.GetSize(), wxTE_PROCESS_ENTER);
+    text_editor->SetInsertionPointEnd();
+
+    return text_editor;
+}
+
+bool PrusaBitmapTextRenderer::GetValueFromEditorCtrl(wxWindow* ctrl, wxVariant& value)
+{
+    wxTextCtrl* text_editor = wxDynamicCast(ctrl, wxTextCtrl);
+    if (!text_editor)
+        return false;
+
+    value << PrusaDataViewBitmapText(text_editor->GetValue(), m_bmp_from_editing_item);
+    return true;
+}
+
 // ----------------------------------------------------------------------------
 // PrusaDoubleSlider
 // ----------------------------------------------------------------------------

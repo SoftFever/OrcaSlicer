@@ -522,7 +522,7 @@ public:
 class PrusaBitmapTextRenderer : public wxDataViewCustomRenderer
 {
 public:
-    PrusaBitmapTextRenderer(  wxDataViewCellMode mode = wxDATAVIEW_CELL_INERT,
+    PrusaBitmapTextRenderer(  wxDataViewCellMode mode = wxDATAVIEW_CELL_EDITABLE,
                             int align = wxDVR_DEFAULT_ALIGNMENT): 
                             wxDataViewCustomRenderer(wxT("PrusaDataViewBitmapText"), mode, align) {}
 
@@ -532,10 +532,16 @@ public:
     virtual bool Render(wxRect cell, wxDC *dc, int state);
     virtual wxSize GetSize() const;
 
-    virtual bool HasEditorCtrl() const { return false; }
+    bool        HasEditorCtrl() const override { return true; }
+    wxWindow*   CreateEditorCtrl(wxWindow* parent, 
+                                 wxRect labelRect, 
+                                 const wxVariant& value) override;
+    bool        GetValueFromEditorCtrl( wxWindow* ctrl, 
+                                        wxVariant& value) override;
 
 private:
     PrusaDataViewBitmapText m_value;
+    wxBitmap                m_bmp_from_editing_item;
 };
 
 
