@@ -546,7 +546,6 @@ Sidebar::Sidebar(Plater *parent)
     p->sizer_params->Add(p->object_settings->get_sizer(), 0, wxEXPAND | wxLEFT | wxTOP, 20);
 
     wxBitmap arrow_up(GUI::from_u8(Slic3r::var("brick_go.png")), wxBITMAP_TYPE_PNG);
-    p->btn_send_gcode = new wxButton(p->scrolled, wxID_ANY, _(L("Send to printer")));
     p->btn_send_gcode = new wxButton(this, wxID_ANY, _(L("Send to printer")));
     p->btn_send_gcode->SetBitmap(arrow_up);
     p->btn_send_gcode->SetFont(wxGetApp().bold_font());
