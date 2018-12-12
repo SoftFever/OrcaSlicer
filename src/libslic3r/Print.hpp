@@ -249,6 +249,13 @@ struct PrintStatistics
     double                          total_wipe_tower_filament;
     std::map<size_t, float>         filament_stats;
 
+    // Config with the filled in print statistics.
+    DynamicConfig           config() const;
+    // Config with the statistics keys populated with placeholder strings.
+    static DynamicConfig    placeholders();
+    // Replace the print statistics placeholders in the path.
+    std::string             finalize_output_path(const std::string &path_in) const;
+
     void clear() {
         estimated_normal_print_time.clear();
         estimated_silent_print_time.clear();

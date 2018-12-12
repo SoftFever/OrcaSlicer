@@ -82,32 +82,7 @@ void BackgroundSlicingProcess::process_fff()
 	    if (! m_export_path.empty()) {
 	    	//FIXME localize the messages
 	    	// Perform the final post-processing of the export path by applying the print statistics over the file name.
-	    	std::string export_path;
-	    	{
-		    	const PrintStatistics &stats = m_fff_print->print_statistics();
-		    	PlaceholderParser pp;
-		    	std::string normal_print_time = stats.estimated_normal_print_time;
-		    	std::string silent_print_time = stats.estimated_silent_print_time;
-				normal_print_time.erase(std::remove_if(normal_print_time.begin(), normal_print_time.end(), isspace), normal_print_time.end());
-				silent_print_time.erase(std::remove_if(silent_print_time.begin(), silent_print_time.end(), isspace), silent_print_time.end());
-		    	pp.set("print_time",        		new ConfigOptionString(normal_print_time));
-		    	pp.set("normal_print_time", 		new ConfigOptionString(normal_print_time));
-		    	pp.set("silent_print_time", 		new ConfigOptionString(silent_print_time));
-		    	pp.set("used_filament",     		new ConfigOptionFloat (stats.total_used_filament));
-				pp.set("extruded_volume",     		new ConfigOptionFloat (stats.total_extruded_volume));
-				pp.set("total_cost",     			new ConfigOptionFloat (stats.total_cost));
-				pp.set("total_weight",    			new ConfigOptionFloat (stats.total_weight));
-				pp.set("total_wipe_tower_cost",     new ConfigOptionFloat (stats.total_wipe_tower_cost));
-				pp.set("total_wipe_tower_filament", new ConfigOptionFloat (stats.total_wipe_tower_filament));
-	    		boost::filesystem::path path(m_export_path);
-				try {
-					std::string new_stem = pp.process(path.stem().string(), 0);
-					export_path = (path.parent_path() / (new_stem + path.extension().string())).string();
-				} catch (const std::exception &ex) {
-    				BOOST_LOG_TRIVIAL(error) << "Failed to apply the print statistics to the export file name: " << ex.what();
-					export_path = m_export_path;
-				}
-			}
+	    	std::string export_path = m_fff_print->print_statistics().finalize_output_path(m_export_path);
 		    if (copy_file(m_temp_output_path, export_path) != 0)
 	    		throw std::runtime_error("Copying of the temporary G-code to the output G-code failed");
 	    	m_print->set_status(95, "Running post-processing scripts");
