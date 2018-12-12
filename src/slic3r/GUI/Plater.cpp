@@ -323,17 +323,17 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
                 double brim_width = config->opt_float("brim_width");
                 if (boost::any_cast<bool>(value) == true)
                 {
-                    new_val = m_brim_width == 0.0 ? 10 :
+                    new_val = m_brim_width == 0.0 ? 5 :
                         m_brim_width < 0.0 ? m_brim_width * (-1) :
                         m_brim_width;
                 }
-                else{
+                else {
                     m_brim_width = brim_width * (-1);
                     new_val = 0;
                 }
                 new_conf.set_key_value("brim_width", new ConfigOptionFloat(new_val));
             }
-            else{ //(opt_key == "support")
+            else { //(opt_key == "support")
                 const wxString& selection = boost::any_cast<wxString>(value);
 
                 auto support_material = selection == _("None") ? false : true;
@@ -2212,6 +2212,7 @@ void Plater::priv::set_current_panel(wxPanel* panel)
     }
     else if (current_panel == preview)
     {
+        this->q->reslice();        
         preview->reload_print();
         preview->set_canvas_as_dirty();
     }
@@ -3064,7 +3065,7 @@ void Plater::reslice()
 #else
         this->p->canvas3D->reload_scene(false);
 #endif // ENABLE_REMOVE_TABS_FROM_PLATER
-    if ((state & priv::UPDATE_BACKGROUND_PROCESS_INVALID) == 0 && !this->p->background_process.running()) {
+    if ((state & priv::UPDATE_BACKGROUND_PROCESS_INVALID) == 0 && !this->p->background_process.running() && !this->p->background_process.finished()) {
         // The print is valid and it can be started.
         if (this->p->background_process.start())
 			this->p->statusbar()->set_cancel_callback([this]() {

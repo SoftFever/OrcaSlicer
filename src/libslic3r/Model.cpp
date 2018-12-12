@@ -521,10 +521,14 @@ void Model::adjust_min_z()
 unsigned int Model::get_auto_extruder_id(unsigned int max_extruders)
 {
     unsigned int id = s_auto_extruder_id;
-
-    if (++s_auto_extruder_id > max_extruders)
+    if (id > max_extruders) {
+        // The current counter is invalid, likely due to switching the printer profiles
+        // to a profile with a lower number of extruders.
         reset_auto_extruder_id();
-
+        id = s_auto_extruder_id;
+    } else if (++ s_auto_extruder_id > max_extruders) {
+        reset_auto_extruder_id();
+    }
     return id;
 }
 
