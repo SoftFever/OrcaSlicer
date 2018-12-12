@@ -20,7 +20,6 @@ std::array<double, 3> find_best_rotation(const ModelObject& modelobj,
     using libnest2d::opt::Optimizer;
     using libnest2d::opt::TOptimizer;
     using libnest2d::opt::StopCriteria;
-    using Quaternion = Eigen::Quaternion<double>;
 
     static const unsigned MAX_TRIES = 100000;
 

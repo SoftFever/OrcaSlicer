@@ -1883,6 +1883,7 @@ void TabPrinter::build_sla()
     line.append_option(option);
     line.append_option(optgroup->get_option("display_pixels_y"));
     optgroup->append_line(line);
+    optgroup->append_single_option_line("display_flip_xy");
 
     optgroup = page->new_optgroup(_(L("Corrections")));
     line = Line{ m_config->def()->get("printer_correction")->full_label, "" };

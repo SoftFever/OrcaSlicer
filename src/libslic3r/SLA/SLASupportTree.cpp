@@ -169,7 +169,7 @@ Contour3D cylinder(double r, double h, size_t ssteps) {
     auto steps = int(ssteps);
     auto& points = ret.points;
     auto& indices = ret.indices;
-    points.reserve(2*steps);
+    points.reserve(2*ssteps);
     double a = 2*PI/steps;
 
     Vec3d jp = {0, 0, 0};
@@ -189,7 +189,7 @@ Contour3D cylinder(double r, double h, size_t ssteps) {
         points.emplace_back(x, y, jp(Z));
     }
 
-    indices.reserve(2*steps);
+    indices.reserve(2*ssteps);
     auto offs = steps;
     for(int i = 0; i < steps - 1; ++i) {
         indices.emplace_back(i, i + offs, offs + i + 1);
@@ -347,19 +347,22 @@ struct Pillar {
            double radius = 1, size_t st = 45):
         r(radius), steps(st), endpoint(endp), starts_from_head(false)
     {
+        assert(steps > 0);
+        int steps_1 = int(steps - 1);
+
         auto& points = mesh.points;
         auto& indices = mesh.indices;
         points.reserve(2*steps);
         double a = 2*PI/steps;
 
-        for(int i = 0; i < steps; ++i) {
+        for(size_t i = 0; i < steps; ++i) {
             double phi = i*a;
             double x = jp(X) + r*std::cos(phi);
             double y = jp(Y) + r*std::sin(phi);
             points.emplace_back(x, y, jp(Z));
         }
 
-        for(int i = 0; i < steps; ++i) {
+        for(size_t i = 0; i < steps; ++i) {
             double phi = i*a;
             double ex = endp(X) + r*std::cos(phi);
             double ey = endp(Y) + r*std::sin(phi);
@@ -368,14 +371,13 @@ struct Pillar {
 
         indices.reserve(2*steps);
         int offs = int(steps);
-        for(int i = 0; i < steps - 1; ++i) {
+        for(int i = 0; i < steps_1 ; ++i) {
             indices.emplace_back(i, i + offs, offs + i + 1);
             indices.emplace_back(i, offs + i + 1, i + 1);
         }
 
-        int last = int(steps) - 1;
-        indices.emplace_back(0, last, offs);
-        indices.emplace_back(last, offs + last, offs);
+        indices.emplace_back(0, steps_1, offs);
+        indices.emplace_back(steps_1, offs + steps_1, offs);
     }
 
     Pillar(const Junction& junc, const Vec3d& endp):
@@ -390,19 +392,22 @@ struct Pillar {
     void add_base(double height = 3, double radius = 2) {
         if(height <= 0) return;
 
+        assert(steps > 0);
+        auto last = int(steps - 1);
+
         if(radius < r ) radius = r;
 
         double a = 2*PI/steps;
         double z = endpoint(2) + height;
 
-        for(int i = 0; i < steps; ++i) {
+        for(size_t i = 0; i < steps; ++i) {
             double phi = i*a;
             double x = endpoint(0) + r*std::cos(phi);
             double y = endpoint(1) + r*std::sin(phi);
             base.points.emplace_back(x, y, z);
         }
 
-        for(int i = 0; i < steps; ++i) {
+        for(size_t i = 0; i < steps; ++i) {
             double phi = i*a;
             double x = endpoint(0) + radius*std::cos(phi);
             double y = endpoint(1) + radius*std::sin(phi);
@@ -417,14 +422,13 @@ struct Pillar {
         auto hcenter = int(base.points.size() - 1);
         auto lcenter = int(base.points.size() - 2);
         auto offs = int(steps);
-        for(int i = 0; i < steps - 1; ++i) {
+        for(int i = 0; i < last; ++i) {
             indices.emplace_back(i, i + offs, offs + i + 1);
             indices.emplace_back(i, offs + i + 1, i + 1);
             indices.emplace_back(i, i + 1, hcenter);
             indices.emplace_back(lcenter, offs + i + 1, offs + i);
         }
 
-        auto last = int(steps - 1);
         indices.emplace_back(0, last, offs);
         indices.emplace_back(last, offs + last, offs);
         indices.emplace_back(hcenter, last, 0);
@@ -461,8 +465,6 @@ struct Bridge {
 
     Bridge(const Junction& j1, const Junction& j2, double r_mm = 0.8):
         Bridge(j1.pos, j2.pos, r_mm, j1.steps) {}
-
-    Bridge(const Junction& j, const Pillar& cl) {}
 
 };
 
@@ -537,12 +539,12 @@ EigenMesh3D to_eigenmesh(const Contour3D& cntr) {
     auto& V = emesh.V;
     auto& F = emesh.F;
 
-    V.resize(cntr.points.size(), 3);
-    F.resize(cntr.indices.size(), 3);
+    V.resize(Eigen::Index(cntr.points.size()), 3);
+    F.resize(Eigen::Index(cntr.indices.size()), 3);
 
     for (int i = 0; i < V.rows(); ++i) {
-        V.row(i) = cntr.points[i];
-        F.row(i) = cntr.indices[i];
+        V.row(i) = cntr.points[size_t(i)];
+        F.row(i) = cntr.indices[size_t(i)];
     }
 
     return emesh;
@@ -569,18 +571,23 @@ EigenMesh3D to_eigenmesh(const TriangleMesh& tmesh) {
 
     V.resize(3*stl.stats.number_of_facets, 3);
     F.resize(stl.stats.number_of_facets, 3);
-    for (unsigned int i=0; i<stl.stats.number_of_facets; ++i) {
+    for (unsigned int i = 0; i < stl.stats.number_of_facets; ++i) {
         const stl_facet* facet = stl.facet_start+i;
-        V(3*i+0, 0) = facet->vertex[0](0); V(3*i+0, 1) =
-                facet->vertex[0](1); V(3*i+0, 2) = facet->vertex[0](2);
-        V(3*i+1, 0) = facet->vertex[1](0); V(3*i+1, 1) =
-                facet->vertex[1](1); V(3*i+1, 2) = facet->vertex[1](2);
-        V(3*i+2, 0) = facet->vertex[2](0); V(3*i+2, 1) =
-                facet->vertex[2](1); V(3*i+2, 2) = facet->vertex[2](2);
+        V(3*i+0, 0) = double(facet->vertex[0](0));
+        V(3*i+0, 1) = double(facet->vertex[0](1));
+        V(3*i+0, 2) = double(facet->vertex[0](2));
 
-        F(i, 0) = 3*i+0;
-        F(i, 1) = 3*i+1;
-        F(i, 2) = 3*i+2;
+        V(3*i+1, 0) = double(facet->vertex[1](0));
+        V(3*i+1, 1) = double(facet->vertex[1](1));
+        V(3*i+1, 2) = double(facet->vertex[1](2));
+
+        V(3*i+2, 0) = double(facet->vertex[2](0));
+        V(3*i+2, 1) = double(facet->vertex[2](1));
+        V(3*i+2, 2) = double(facet->vertex[2](2));
+
+        F(i, 0) = int(3*i+0);
+        F(i, 1) = int(3*i+1);
+        F(i, 2) = int(3*i+2);
     }
 
     return outmesh;
@@ -630,7 +637,7 @@ class SLASupportTree::Impl {
     Controller m_ctl;
 
     Pad m_pad;
-    mutable TriangleMesh meshcache; mutable bool meshcache_valid;
+    mutable TriangleMesh meshcache; mutable bool meshcache_valid = false;
     mutable double model_height = 0; // the full height of the model
 public:
     double ground_level = 0;
@@ -649,7 +656,7 @@ public:
 
     template<class...Args> Pillar& add_pillar(long headid, Args&&... args) {
         assert(headid >= 0 && headid < m_heads.size());
-        Head& head = m_heads[headid];
+        Head& head = m_heads[size_t(headid)];
         m_pillars.emplace_back(head, std::forward<Args>(args)...);
         Pillar& pillar = m_pillars.back();
         pillar.id = long(m_pillars.size() - 1);
@@ -662,17 +669,17 @@ public:
 
     const Head& pillar_head(long pillar_id) const {
         assert(pillar_id >= 0 && pillar_id < m_pillars.size());
-        const Pillar& p = m_pillars[pillar_id];
+        const Pillar& p = m_pillars[size_t(pillar_id)];
         assert(p.starts_from_head && p.start_junction_id >= 0 &&
                p.start_junction_id < m_heads.size() );
-        return m_heads[p.start_junction_id];
+        return m_heads[size_t(p.start_junction_id)];
     }
 
     const Pillar& head_pillar(long headid) const {
         assert(headid >= 0 && headid < m_heads.size());
-        const Head& h = m_heads[headid];
+        const Head& h = m_heads[size_t(headid)];
         assert(h.pillar_id >= 0 && h.pillar_id < m_pillars.size());
-        return m_pillars[h.pillar_id];
+        return m_pillars[size_t(h.pillar_id)];
     }
 
     template<class...Args> const Junction& add_junction(Args&&... args) {
@@ -882,8 +889,8 @@ ClusterEl pts_convex_hull(const ClusterEl& inpts,
     }
 
     // Find the leftmost (bottom) point
-    int l = 0;
-    for (int i = 1; i < n; i++) {
+    size_t l = 0;
+    for (size_t i = 1; i < n; i++) {
         if(std::abs(points[i](X) - points[l](X)) < ERR) {
             if(points[i](Y) < points[l](Y)) l = i;
         }
@@ -894,7 +901,6 @@ ClusterEl pts_convex_hull(const ClusterEl& inpts,
         // fill the output with the spatially ordered set of points.
 
         // find the direction
-        Vec2d dir = (points[l] - points[(l+1)%n]).normalized();
         hull = inpts;
         auto& lp = points[l];
         std::sort(hull.begin(), hull.end(),
@@ -912,7 +918,7 @@ ClusterEl pts_convex_hull(const ClusterEl& inpts,
     // Start from leftmost point, keep moving counterclockwise
     // until reach the start point again.  This loop runs O(h)
     // times where h is number of points in result or output.
-    int p = l;
+    size_t p = l;
     do
     {
         // Add current point to result
@@ -923,8 +929,8 @@ ClusterEl pts_convex_hull(const ClusterEl& inpts,
         // is to keep track of last visited most counterclock-
         // wise point in q. If any point 'i' is more counterclock-
         // wise than q, then update q.
-        int q = (p+1)%n;
-        for (int i = 0; i < n; i++)
+        size_t q = (p + 1) % n;
+        for (size_t i = 0; i < n; i++)
         {
            // If i is more counterclockwise than current q, then
            // update q
@@ -1006,7 +1012,10 @@ bool SLASupportTree::generate(const PointSet &points,
     //     std::cout << "p " << pn << " " << points.row(pn) << std::endl;
     // }
 
-    auto filterfn = [] (
+
+    auto& tifcl = ctl.cancelfn;
+
+    auto filterfn = [tifcl] (
             const SupportConfig& cfg,
             const PointSet& points,
             const EigenMesh3D& mesh,
@@ -1016,25 +1025,28 @@ bool SLASupportTree::generate(const PointSet &points,
             PointSet& headless_pos,
             PointSet& headless_norm)
     {
-
         /* ******************************************************** */
         /* Filtering step                                           */
         /* ******************************************************** */
 
         // Get the points that are too close to each other and keep only the
         // first one
-        auto aliases = cluster(points,
-                               [cfg](const SpatElement& p,
-                               const SpatElement& se){
+        auto aliases =
+                cluster(points,
+                        [tifcl](const SpatElement& p, const SpatElement& se)
+        {
+            tifcl();
             return distance(p.first, se.first) < D_SP;
         }, 2);
 
-        filt_pts.resize(aliases.size(), 3);
+        filt_pts.resize(Eigen::Index(aliases.size()), 3);
         int count = 0;
         for(auto& a : aliases) {
-            // Here we keep only the front point of the cluster. TODO: centroid
+            // Here we keep only the front point of the cluster.
             filt_pts.row(count++) = points.row(a.front());
         }
+
+        tifcl();
 
         // calculate the normals to the triangles belonging to filtered points
         auto nmls = sla::normals(filt_pts, mesh);
@@ -1051,6 +1063,7 @@ bool SLASupportTree::generate(const PointSet &points,
 
         int pcount = 0, hlcount = 0;
         for(int i = 0; i < count; i++) {
+            tifcl();
             auto n = nmls.row(i);
 
             // for all normals we generate the spherical coordinates and
@@ -1110,7 +1123,7 @@ bool SLASupportTree::generate(const PointSet &points,
     };
 
     // Function to write the pinheads into the result
-    auto pinheadfn = [] (
+    auto pinheadfn = [tifcl] (
             const SupportConfig& cfg,
             PointSet& head_pos,
             PointSet& nmls,
@@ -1123,6 +1136,7 @@ bool SLASupportTree::generate(const PointSet &points,
         /* ******************************************************** */
 
         for (int i = 0; i < head_pos.rows(); ++i) {
+            tifcl();
             result.add_head(
                         cfg.head_back_radius_mm,
                         cfg.head_front_radius_mm,
@@ -1136,7 +1150,7 @@ bool SLASupportTree::generate(const PointSet &points,
 
     // &filtered_points, &head_positions, &result, &mesh,
     // &gndidx, &gndheight, &nogndidx, cfg
-    auto classifyfn = [] (
+    auto classifyfn = [tifcl] (
             const SupportConfig& cfg,
             const EigenMesh3D& mesh,
             PointSet& head_pos,
@@ -1152,11 +1166,12 @@ bool SLASupportTree::generate(const PointSet &points,
         /* ******************************************************** */
 
         // We should first get the heads that reach the ground directly
-        gndheight.reserve(head_pos.rows());
-        gndidx.reserve(head_pos.rows());
-        nogndidx.reserve(head_pos.rows());
+        gndheight.reserve(size_t(head_pos.rows()));
+        gndidx.reserve(size_t(head_pos.rows()));
+        nogndidx.reserve(size_t(head_pos.rows()));
 
         for(unsigned i = 0; i < head_pos.rows(); i++) {
+            tifcl();
             auto& head = result.heads()[i];
 
             Vec3d dir(0, 0, -1);
@@ -1173,18 +1188,22 @@ bool SLASupportTree::generate(const PointSet &points,
         PointSet gnd(gndidx.size(), 3);
 
         for(size_t i = 0; i < gndidx.size(); i++)
-            gnd.row(i) = head_pos.row(gndidx[i]);
+            gnd.row(long(i)) = head_pos.row(gndidx[i]);
 
         // We want to search for clusters of points that are far enough from
         // each other in the XY plane to not cross their pillar bases
         // These clusters of support points will join in one pillar, possibly in
         // their centroid support point.
         auto d_base = 2*cfg.base_radius_mm;
-        ground_clusters = cluster(gnd,
-            [d_base, &cfg](const SpatElement& p, const SpatElement& s){
-                return distance(Vec2d(p.first(X), p.first(Y)),
-                                Vec2d(s.first(X), s.first(Y))) < d_base;
-            }, 3); // max 3 heads to connect to one centroid
+        ground_clusters =
+                cluster(
+                    gnd,
+                    [d_base, tifcl](const SpatElement& p, const SpatElement& s)
+        {
+            tifcl();
+            return distance(Vec2d(p.first(X), p.first(Y)),
+                            Vec2d(s.first(X), s.first(Y))) < d_base;
+        }, 3); // max 3 heads to connect to one centroid
     };
 
     // Helper function for interconnecting two pillars with zig-zag bridges
@@ -1196,9 +1215,6 @@ bool SLASupportTree::generate(const PointSet &points,
     {
         const Head& phead = result.pillar_head(pillar.id);
         const Head& nextphead = result.pillar_head(nextpillar.id);
-
-//        double d = 2*pillar.r;
-//        const Vec3d& pp = pillar.endpoint.cwiseProduct(Vec3d{1, 1, 0});
 
         Vec3d sj = phead.junction_point();
         sj(Z) = std::min(sj(Z), nextphead.junction_point()(Z));
@@ -1244,7 +1260,7 @@ bool SLASupportTree::generate(const PointSet &points,
         }
     };
 
-    auto routing_ground_fn = [gnd_head_pt, interconnect](
+    auto routing_ground_fn = [gnd_head_pt, interconnect, tifcl](
             const SupportConfig& cfg,
             const ClusteredPoints& gnd_clusters,
             const IndexSet& gndidx,
@@ -1260,22 +1276,27 @@ bool SLASupportTree::generate(const PointSet &points,
         cl_centroids.reserve(gnd_clusters.size());
 
         SpatIndex pheadindex; // spatial index for the junctions
-        for(auto cl : gnd_clusters) {
+        for(auto& cl : gnd_clusters) { tifcl();
             // place all the centroid head positions into the index. We will
             // query for alternative pillar positions. If a sidehead cannot
             // connect to the cluster centroid, we have to search for another
             // head with a full pillar. Also when there are two elements in the
             // cluster, the centroid is arbitrary and the sidehead is allowed to
             // connect to a nearby pillar to increase structural stability.
+            if(cl.empty()) continue;
 
             // get the current cluster centroid
-            unsigned cid = cluster_centroid(cl, gnd_head_pt,
-                [](const Vec3d& p1, const Vec3d& p2)
+            long lcid = cluster_centroid(cl, gnd_head_pt,
+                [tifcl](const Vec3d& p1, const Vec3d& p2)
             {
+                tifcl();
                 return distance(Vec2d(p1(X), p1(Y)), Vec2d(p2(X), p2(Y)));
             });
 
-            cl_centroids.push_back(cid);
+            assert(lcid > 0);
+            auto cid = unsigned(lcid);
+
+            cl_centroids.push_back(unsigned(cid));
 
             unsigned hid = gndidx[cl[cid]]; // Head index
             Head& h = result.head(hid);
@@ -1288,12 +1309,13 @@ bool SLASupportTree::generate(const PointSet &points,
         // now we will go through the clusters ones again and connect the
         // sidepoints with the cluster centroid (which is a ground pillar)
         // or a nearby pillar if the centroid is unreachable.
-        long ci = 0;
-        for(auto cl : gnd_clusters) {
+        size_t ci = 0;
+        for(auto cl : gnd_clusters) { tifcl();
+
             auto cidx = cl_centroids[ci];
             cl_centroids[ci++] = cl[cidx];
 
-            long index_to_heads = gndidx[cl[cidx]];
+            size_t index_to_heads = gndidx[cl[cidx]];
             auto& head = result.head(index_to_heads);
 
             Vec3d startpoint = head.junction_point();
@@ -1301,7 +1323,7 @@ bool SLASupportTree::generate(const PointSet &points,
 
             // Create the central pillar of the cluster with its base on the
             // ground
-            result.add_pillar(index_to_heads, endpoint, pradius)
+            result.add_pillar(long(index_to_heads), endpoint, pradius)
                   .add_base(cfg.base_height_mm, cfg.base_radius_mm);
 
             // Process side point in current cluster
@@ -1352,12 +1374,11 @@ bool SLASupportTree::generate(const PointSet &points,
                 return nearest_id;
             };
 
-            for(auto c : cl) {
+            for(auto c : cl) { tifcl();
                 auto& sidehead = result.head(gndidx[c]);
                 sidehead.transform();
 
                 Vec3d jsh = sidehead.junction_point();
-//                Vec3d jp2d = {jsh(X), jsh(Y), gndlvl};
                 SpatIndex spindex = pheadindex;
                 long nearest_id = search_nearest(spindex, jsh);
 
@@ -1374,7 +1395,7 @@ bool SLASupportTree::generate(const PointSet &points,
                 } else {
                     // Creating the bridge to the nearest pillar
 
-                    const Head& nearhead = result.heads()[nearest_id];
+                    const Head& nearhead = result.heads()[size_t(nearest_id)];
                     Vec3d jp = jsh;
                     Vec3d jh = nearhead.junction_point();
 
@@ -1419,6 +1440,7 @@ bool SLASupportTree::generate(const PointSet &points,
         ClusterEl ring;
 
         while(!rem.empty()) { // loop until all the points belong to some ring
+            tifcl();
             std::sort(rem.begin(), rem.end());
 
             auto newring = pts_convex_hull(rem,
@@ -1432,7 +1454,8 @@ bool SLASupportTree::generate(const PointSet &points,
                 SpatIndex innerring;
                 for(unsigned i : newring) {
                     const Pillar& pill = result.head_pillar(gndidx[i]);
-                    innerring.insert(pill.endpoint, pill.id);
+                    assert(pill.id > 0);
+                    innerring.insert(pill.endpoint, unsigned(pill.id));
                 }
 
                 // For all pillars in the outer ring find the closest in the
@@ -1478,14 +1501,14 @@ bool SLASupportTree::generate(const PointSet &points,
         }
     };
 
-    auto routing_nongnd_fn = [](
+    auto routing_nongnd_fn = [tifcl](
             const SupportConfig& cfg,
             const std::vector<double>& gndheight,
             const IndexSet& nogndidx,
             Result& result)
     {
         // TODO: connect these to the ground pillars if possible
-        for(auto idx : nogndidx) {
+        for(auto idx : nogndidx) { tifcl();
             auto& head = result.head(idx);
             head.transform();
 
@@ -1510,7 +1533,7 @@ bool SLASupportTree::generate(const PointSet &points,
         }
     };
 
-    auto process_headless = [](
+    auto process_headless = [tifcl](
             const SupportConfig& cfg,
             const PointSet& headless_pts,
             const PointSet& headless_norm,
@@ -1525,7 +1548,7 @@ bool SLASupportTree::generate(const PointSet &points,
 
         // We will sink the pins into the model surface for a distance of 1/3 of
         // HWIDTH_MM
-        for(int i = 0; i < headless_pts.rows(); i++) {
+        for(int i = 0; i < headless_pts.rows(); i++) { tifcl();
             Vec3d sp = headless_pts.row(i);
 
             Vec3d n = headless_norm.row(i);
@@ -1634,6 +1657,7 @@ bool SLASupportTree::generate(const PointSet &points,
         case HALT: pc = pc_prev; break;
         case DONE:
         case ABORT: break;
+        default: ;
         }
         ctl.statuscb(stepstate[pc], stepstr[pc]);
     };
@@ -1723,6 +1747,9 @@ SLASupportTree &SLASupportTree::operator=(const SLASupportTree &c)
 }
 
 SLASupportTree::~SLASupportTree() {}
+
+SLASupportsStoppedException::SLASupportsStoppedException():
+    std::runtime_error("") {}
 
 }
 }

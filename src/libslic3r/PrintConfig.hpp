@@ -1035,6 +1035,7 @@ public:
     ConfigOptionFloat                       display_height;
     ConfigOptionInt                         display_pixels_x;
     ConfigOptionInt                         display_pixels_y;
+    ConfigOptionBool                        display_flip_xy;
     ConfigOptionFloats                      printer_correction;
 protected:
     void initialize(StaticCacheBase &cache, const char *base_ptr)
@@ -1046,6 +1047,7 @@ protected:
         OPT_PTR(display_height);
         OPT_PTR(display_pixels_x);
         OPT_PTR(display_pixels_y);
+        OPT_PTR(display_flip_xy);
         OPT_PTR(printer_correction);
     }
 };

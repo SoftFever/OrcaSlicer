@@ -114,7 +114,7 @@ PointSet    to_point_set(const std::vector<Vec3d>&);
 class SLASupportsStoppedException: public std::runtime_error {
 public:
     using std::runtime_error::runtime_error;
-    SLASupportsStoppedException(): std::runtime_error("") {}
+    SLASupportsStoppedException();
 };
 
 /// The class containing mesh data for the generated supports.

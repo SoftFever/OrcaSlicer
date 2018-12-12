@@ -446,6 +446,7 @@ const std::vector<std::string>& Preset::sla_printer_options()
             "printer_technology",
             "bed_shape", "max_print_height",
             "display_width", "display_height", "display_pixels_x", "display_pixels_y",
+            "display_flip_xy",
             "printer_correction",
             "printer_notes",
             "inherits"
