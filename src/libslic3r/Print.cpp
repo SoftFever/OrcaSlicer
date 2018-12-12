@@ -1228,8 +1228,8 @@ std::string Print::validate() const
     }
 
     if (this->has_wipe_tower() && ! m_objects.empty()) {
-        if (m_config.gcode_flavor != gcfRepRap && m_config.gcode_flavor != gcfMarlin)
-            return L("The Wipe Tower is currently only supported for the Marlin and RepRap/Sprinter G-code flavors.");
+        if (m_config.gcode_flavor != gcfRepRap && m_config.gcode_flavor != gcfRepetier && m_config.gcode_flavor != gcfMarlin)
+            return L("The Wipe Tower is currently only supported for the Marlin, RepRap/Sprinter and Repetier G-code flavors.");
         if (! m_config.use_relative_e_distances)
             return L("The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1).");
         SlicingParameters slicing_params0 = m_objects.front()->slicing_parameters();
