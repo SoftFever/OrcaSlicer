@@ -48,12 +48,14 @@ void PrintBase::update_object_placeholders()
     }
 }
 
-std::string PrintBase::output_filename(const std::string &format, const std::string &default_ext) const
+std::string PrintBase::output_filename(const std::string &format, const std::string &default_ext, const DynamicConfig *config_override) const
 {
-    DynamicConfig cfg_timestamp;
-    PlaceholderParser::update_timestamp(cfg_timestamp);
+    DynamicConfig cfg;
+    if (config_override != nullptr)
+    	cfg = *config_override;
+    PlaceholderParser::update_timestamp(cfg);
     try {
-        boost::filesystem::path filename = this->placeholder_parser().process(format, 0, &cfg_timestamp);
+        boost::filesystem::path filename = this->placeholder_parser().process(format, 0, &cfg);
         if (filename.extension().empty())
         	filename = boost::filesystem::change_extension(filename, default_ext);
         return filename.string();

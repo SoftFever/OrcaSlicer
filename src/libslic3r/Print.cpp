@@ -1860,5 +1860,18 @@ int Print::get_extruder(const ExtrusionEntityCollection& fill, const PrintRegion
                                     std::max<int>(region.config().perimeter_extruder.value - 1, 0);
 }
 
+std::string Print::output_filename() const 
+{ 
+    // Set the placeholders for the data know first after the G-code export is finished.
+    // These values will be just propagated into the output file name.
+    DynamicConfig config;
+    for (const std::string &key : { 
+        "print_time", "normal_print_time", "silent_print_time", 
+        "used_filament", "extruded_volume", "total_cost", "total_weight", 
+        "total_wipe_tower_cost", "total_wipe_tower_filament"})
+        config.set_key_value(key, new ConfigOptionString(std::string("{") + key + "}"));
+    return this->PrintBase::output_filename(m_config.output_filename_format.value, "gcode", &config);
+}
+
 } // namespace Slic3r
 
