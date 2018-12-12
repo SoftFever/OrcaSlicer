@@ -3,6 +3,8 @@
 
 #include <memory>
 #include <string>
+#include <boost/filesystem/path.hpp>
+
 #include <wx/string.h>
 
 
