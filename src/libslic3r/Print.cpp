@@ -1870,13 +1870,51 @@ std::string Print::output_filename() const
     return this->PrintBase::output_filename(m_config.output_filename_format.value, "gcode", &config);
 }
 
+// Shorten the dhms time by removing the seconds, rounding the dhm to full minutes
+// and removing spaces.
+static std::string short_time(const std::string &time)
+{
+    // Parse the dhms time format.
+    int days    = 0;
+    int hours   = 0;
+    int minutes = 0;
+    int seconds = 0;
+    if (time.find('d') != std::string::npos)
+        ::sscanf(time.c_str(), "%dd %dh %dm %ds", &days, &hours, &minutes, &seconds);
+    else if (time.find('h') != std::string::npos)
+        ::sscanf(time.c_str(), "%dh %dm %ds", &hours, &minutes, &seconds);
+    else if (time.find('m') != std::string::npos)
+        ::sscanf(time.c_str(), "%dm %ds", &minutes, &seconds);
+    else if (time.find('s') != std::string::npos)
+        ::sscanf(time.c_str(), "%ds", &seconds);
+    // Round to full minutes.
+    if (days + hours + minutes > 0 && seconds >= 30) {
+        if (++ minutes == 60) {
+            minutes = 0;
+            if (++ hours == 24) {
+                hours = 0;
+                ++ days;
+            }
+        }
+    }
+    // Format the dhm time.
+    char buffer[64];
+    if (days > 0)
+        ::sprintf(buffer, "%dd%dh%dm", days, hours, minutes);
+    else if (hours > 0)
+        ::sprintf(buffer, "%dh%dm", hours, minutes);
+    else if (minutes > 0)
+        ::sprintf(buffer, "%dm", minutes);
+    else
+        ::sprintf(buffer, "%ds", seconds);
+    return buffer;
+}
+
 DynamicConfig PrintStatistics::config() const
 {
     DynamicConfig config;
-    std::string normal_print_time = this->estimated_normal_print_time;
-    std::string silent_print_time = this->estimated_silent_print_time;
-    normal_print_time.erase(std::remove_if(normal_print_time.begin(), normal_print_time.end(), std::isspace), normal_print_time.end());
-    silent_print_time.erase(std::remove_if(silent_print_time.begin(), silent_print_time.end(), std::isspace), silent_print_time.end());
+    std::string normal_print_time = short_time(this->estimated_normal_print_time);
+    std::string silent_print_time = short_time(this->estimated_silent_print_time);
     config.set_key_value("print_time",                new ConfigOptionString(normal_print_time));
     config.set_key_value("normal_print_time",         new ConfigOptionString(normal_print_time));
     config.set_key_value("silent_print_time",         new ConfigOptionString(silent_print_time));
