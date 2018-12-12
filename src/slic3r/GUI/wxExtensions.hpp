@@ -457,8 +457,9 @@ public:
 	wxDataViewItem GetItemById(int obj_idx);
 	wxDataViewItem GetItemByVolumeId(int obj_idx, int volume_idx);
 	wxDataViewItem GetItemByInstanceId(int obj_idx, int inst_idx);
-	int GetIdByItem(const wxDataViewItem& item);
+	int GetIdByItem(const wxDataViewItem& item) const;
     int GetIdByItemAndType(const wxDataViewItem& item, const ItemType type) const;
+    int GetObjectIdByItem(const wxDataViewItem& item) const;
     int GetVolumeIdByItem(const wxDataViewItem& item) const;
     int GetInstanceIdByItem(const wxDataViewItem& item) const;
     void GetItemInfo(const wxDataViewItem& item, ItemType& type, int& obj_idx, int& idx);

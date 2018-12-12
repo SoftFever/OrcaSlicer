@@ -53,6 +53,27 @@ struct ItemForDelete
 
 class ObjectList : public wxDataViewCtrl
 {
+
+    struct dragged_item_data
+    {
+        void init(const int obj_idx, const int vol_idx) {
+            m_obj_idx = obj_idx;
+            m_vol_idx = vol_idx;            
+        }
+
+        void clear() {
+            m_obj_idx = -1;
+            m_vol_idx = -1;            
+        }
+
+        int obj_idx() const  { return m_obj_idx; }
+        int vol_idx() const  { return m_vol_idx; }
+
+    private:
+        int m_obj_idx = -1;
+        int m_vol_idx = -1;
+    } m_dragged_data;
+
     wxBoxSizer          *m_sizer {nullptr};
 
     DynamicPrintConfig  *m_default_config {nullptr};
