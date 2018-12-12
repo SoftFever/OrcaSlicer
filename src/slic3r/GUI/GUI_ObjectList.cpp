@@ -337,7 +337,7 @@ void ObjectList::selection_changed()
 
 void ObjectList::OnChar(wxKeyEvent& event)
 {
-    printf("KeyDown event\n");
+//     printf("KeyDown event\n");
     if (event.GetKeyCode() == WXK_BACK){
         printf("WXK_BACK\n");
         remove();
@@ -427,10 +427,10 @@ void ObjectList::key_event(wxKeyEvent& event)
 
 void ObjectList::OnBeginDrag(wxDataViewEvent &event)
 {
-    wxDataViewItem item(event.GetItem());
+    const wxDataViewItem item(event.GetItem());
 
     // only allow drags for item, not containers
-    if (multiple_selection() ||
+    if (multiple_selection() || GetSelection()!=item || 
         m_objects_model->GetParent(item) == wxDataViewItem(0) ||
         m_objects_model->GetItemType(item) != itVolume ) {
         event.Veto();

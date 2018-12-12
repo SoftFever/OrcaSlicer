@@ -68,8 +68,10 @@ static const float UNIT_MATRIX[] = { 1.0f, 0.0f, 0.0f, 0.0f,
                                      0.0f, 0.0f, 1.0f, 0.0f,
                                      0.0f, 0.0f, 0.0f, 1.0f };
 
-static const float DEFAULT_BG_COLOR[3] = { 10.0f / 255.0f, 98.0f / 255.0f, 144.0f / 255.0f };
-static const float ERROR_BG_COLOR[3] = { 144.0f / 255.0f, 49.0f / 255.0f, 10.0f / 255.0f };
+static const float DEFAULT_BG_DARK_COLOR[3] = { 0.478f, 0.478f, 0.478f };
+static const float DEFAULT_BG_LIGHT_COLOR[3] = { 0.753f, 0.753f, 0.753f };
+static const float ERROR_BG_DARK_COLOR[3] = { 0.478f, 0.192f, 0.039f };
+static const float ERROR_BG_LIGHT_COLOR[3] = { 0.753f, 0.192f, 0.039f };
 
 namespace Slic3r {
 namespace GUI {
@@ -5810,14 +5812,18 @@ void GLCanvas3D::_render_background() const
     ::glDisable(GL_DEPTH_TEST);
 
     ::glBegin(GL_QUADS);
-    ::glColor3f(0.0f, 0.0f, 0.0f);
+    if (m_dynamic_background_enabled && _is_any_volume_outside())
+        ::glColor3fv(ERROR_BG_DARK_COLOR);
+    else
+        ::glColor3fv(DEFAULT_BG_DARK_COLOR);
+
     ::glVertex2f(-1.0f, -1.0f);
     ::glVertex2f(1.0f, -1.0f);
 
     if (m_dynamic_background_enabled && _is_any_volume_outside())
-        ::glColor3fv(ERROR_BG_COLOR);
+        ::glColor3fv(ERROR_BG_LIGHT_COLOR);
     else
-        ::glColor3fv(DEFAULT_BG_COLOR);
+        ::glColor3fv(DEFAULT_BG_LIGHT_COLOR);
 
     ::glVertex2f(1.0f, 1.0f);
     ::glVertex2f(-1.0f, 1.0f);

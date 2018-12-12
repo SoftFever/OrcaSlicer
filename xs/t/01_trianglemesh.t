@@ -79,7 +79,9 @@ my $cube = {
     my $m = Slic3r::TriangleMesh->new;
     $m->ReadFromPerl($cube->{vertices}, $cube->{facets});
     $m->repair;
-    my @z = (0,2,4,8,6,8,10,12,14,16,18,20);
+    # The slice at zero height does not belong to the mesh, the slicing considers the vertical structures to be
+    # open intervals at the bottom end, closed at the top end.
+    my @z = (0.0001,2,4,8,6,8,10,12,14,16,18,20);
     my $result = $m->slice(\@z);
     my $SCALING_FACTOR = 0.000001;
     for my $i (0..$#z) {
@@ -105,7 +107,9 @@ my $cube = {
         # this second test also checks that performing a second slice on a mesh after
         # a transformation works properly (shared_vertices is correctly invalidated);
         # at Z = -10 we have a bottom horizontal surface
-        my $slices = $m->slice([ -5, -10 ]);
+        # (The slice at zero height does not belong to the mesh, the slicing considers the vertical structures to be
+        #  open intervals at the bottom end, closed at the top end, so the Z = -10 is shifted a bit up to get a valid slice).
+        my $slices = $m->slice([ -5, -10+0.00001 ]);
         is $slices->[0][0]->area, $slices->[1][0]->area, 'slicing a bottom tangent plane includes its area';
     }
 }
