@@ -1313,7 +1313,7 @@ void PresetBundle::update_compatible(bool select_other_if_incompatible)
     }
 }
 
-void PresetBundle::export_configbundle(const std::string &path) //, const DynamicPrintConfig &settings
+void PresetBundle::export_configbundle(const std::string &path, bool export_system_settings)
 {
     boost::nowide::ofstream c;
     c.open(path, std::ios::out | std::ios::trunc);
@@ -1323,14 +1323,15 @@ void PresetBundle::export_configbundle(const std::string &path) //, const Dynami
 
     // Export the print, filament and printer profiles.
 
-    // #ys_FIXME_SLA_PRINT
-    for (size_t i_group = 0; i_group < 3; ++ i_group) {
-        const PresetCollection &presets = (i_group == 0) ? this->prints : (i_group == 1) ? this->filaments : this->printers;
-        for (const Preset &preset : presets()) {
-            if (preset.is_default || preset.is_external)
+	for (const PresetCollection *presets : { 
+		(const PresetCollection*)&this->prints, (const PresetCollection*)&this->filaments, 
+		(const PresetCollection*)&this->sla_prints, (const PresetCollection*)&this->sla_materials, 
+		(const PresetCollection*)&this->printers }) {
+        for (const Preset &preset : (*presets)()) {
+            if (preset.is_default || preset.is_external || (preset.is_system && ! export_system_settings))
                 // Only export the common presets, not external files or the default preset.
                 continue;
-            c << std::endl << "[" << presets.name() << ":" << preset.name << "]" << std::endl;
+            c << std::endl << "[" << presets->name() << ":" << preset.name << "]" << std::endl;
             for (const std::string &opt_key : preset.config.keys())
                 c << opt_key << " = " << preset.config.serialize(opt_key) << std::endl;
         }

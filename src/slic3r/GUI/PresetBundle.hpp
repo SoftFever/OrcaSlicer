@@ -102,7 +102,7 @@ public:
     size_t                      load_configbundle(const std::string &path, unsigned int flags = LOAD_CFGBNDLE_SAVE);
 
     // Export a config bundle file containing all the presets and the names of the active presets.
-    void                        export_configbundle(const std::string &path); // , const DynamicPrintConfig &settings);
+    void                        export_configbundle(const std::string &path, bool export_system_settings = false);
 
     // Update a filament selection combo box on the platter for an idx_extruder.
     void                        update_platter_filament_ui(unsigned int idx_extruder, GUI::PresetComboBox *ui);
