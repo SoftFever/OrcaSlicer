@@ -891,7 +891,7 @@ wxDataViewItem PrusaObjectDataViewModel::GetItemByInstanceId(int obj_idx, int in
     return wxDataViewItem(0);
 }
 
-int PrusaObjectDataViewModel::GetIdByItem(const wxDataViewItem& item)
+int PrusaObjectDataViewModel::GetIdByItem(const wxDataViewItem& item) const
 {
 	wxASSERT(item.IsOk());
 
@@ -911,6 +911,11 @@ int PrusaObjectDataViewModel::GetIdByItemAndType(const wxDataViewItem& item, con
 	if (!node || node->m_type != type)
 		return -1;
 	return node->GetIdx();
+}
+
+int PrusaObjectDataViewModel::GetObjectIdByItem(const wxDataViewItem& item) const
+{
+    return GetIdByItem(GetTopParent(item));
 }
 
 int PrusaObjectDataViewModel::GetVolumeIdByItem(const wxDataViewItem& item) const

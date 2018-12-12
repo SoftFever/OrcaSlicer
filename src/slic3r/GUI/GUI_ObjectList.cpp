@@ -78,6 +78,10 @@ ObjectList::ObjectList(wxWindow* parent) :
     Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, &ObjectList::ItemValueChanged,  this);
 
     Bind(wxCUSTOMEVT_LAST_VOLUME_IS_DELETED, [this](wxCommandEvent& e)   { last_volume_is_deleted(e.GetInt()); });
+
+#ifdef __WXOSX__
+    Bind(wxEVT_KEY_DOWN, &ObjectList::OnChar, this);
+#endif //__WXOSX__
 }
 
 ObjectList::~ObjectList()
@@ -92,10 +96,6 @@ void ObjectList::create_objects_ctrl()
     // 1. set a height of the list to some big value 
     // 2. change it to the normal min value (200) after first whole App updating/layouting
     SetMinSize(wxSize(-1, 1500));   // #ys_FIXME 
-
-#ifdef __WXOSX__
-    Connect(wxEVT_CHAR, wxKeyEventHandler(ObjectList::OnChar), NULL, this);
-#endif //__WXOSX__
 
     m_sizer = new wxBoxSizer(wxVERTICAL);
     m_sizer->Add(this, 1, wxGROW | wxLEFT, 20);
@@ -337,14 +337,15 @@ void ObjectList::selection_changed()
 
 void ObjectList::OnChar(wxKeyEvent& event)
 {
-    if (event.GetKeyCode() == WXK_DELETE && event.GetKeyCode() == WXK_BACK){
+    printf("KeyDown event\n");
+    if (event.GetKeyCode() == WXK_BACK){
         printf("WXK_BACK\n");
         remove();
     }
     else if (wxGetKeyState(wxKeyCode('A')) && wxGetKeyState(WXK_SHIFT))
         select_item_all_children();
-    else
-        event.Skip();
+
+    event.Skip();
 }
 
 void ObjectList::OnContextMenu(wxDataViewEvent&)
@@ -424,12 +425,6 @@ void ObjectList::key_event(wxKeyEvent& event)
         event.Skip();
 }
 
-struct draging_item_data
-{
-    int obj_idx;
-    int vol_idx;
-};
-
 void ObjectList::OnBeginDrag(wxDataViewEvent &event)
 {
     wxDataViewItem item(event.GetItem());
@@ -449,10 +444,10 @@ void ObjectList::OnBeginDrag(wxDataViewEvent &event)
     **/
     m_prevent_list_events = true;//it's needed for GTK
 
-    wxTextDataObject *obj = new wxTextDataObject;
-    obj->SetText(wxString::Format("%d", m_objects_model->GetVolumeIdByItem(item)));
-    event.SetDataObject(obj);
-    event.SetDragFlags(/*wxDrag_AllowMove*/wxDrag_DefaultMove); // allows both copy and move;
+    m_dragged_data.init(m_objects_model->GetObjectIdByItem(item), m_objects_model->GetVolumeIdByItem(item));
+
+    event.SetDataObject(new wxTextDataObject);
+    event.SetDragFlags(wxDrag_DefaultMove); // allows both copy and move;
 }
 
 void ObjectList::OnDropPossible(wxDataViewEvent &event)
@@ -460,8 +455,10 @@ void ObjectList::OnDropPossible(wxDataViewEvent &event)
     wxDataViewItem item(event.GetItem());
 
     // only allow drags for item or background, not containers
-    if (event.GetDataFormat() != wxDF_UNICODETEXT || item.IsOk() && 
-        (m_objects_model->GetParent(item) == wxDataViewItem(0) || m_objects_model->GetItemType(item) != itVolume))
+    if (item.IsOk() &&
+        (m_objects_model->GetParent(item) == wxDataViewItem(0) || 
+        m_objects_model->GetItemType(item) != itVolume ||
+        m_dragged_data.obj_idx() != m_objects_model->GetObjectIdByItem(item)))
         event.Veto();
 }
 
@@ -469,20 +466,16 @@ void ObjectList::OnDrop(wxDataViewEvent &event)
 {
     wxDataViewItem item(event.GetItem());
 
-    if (m_selected_object_id < 0 || event.GetDataFormat() != wxDF_UNICODETEXT || 
-        item.IsOk() && ( m_objects_model->GetParent(item) == wxDataViewItem(0) ||
-                         m_objects_model->GetItemType(item) != itVolume) ) {
+    if (item.IsOk() && ( m_objects_model->GetParent(item) == wxDataViewItem(0) ||
+                         m_objects_model->GetItemType(item) != itVolume) ||
+                         m_dragged_data.obj_idx() != m_objects_model->GetObjectIdByItem(item)) {
         event.Veto();
+        m_dragged_data.clear();
         return;
     }
 
-    wxTextDataObject obj;
-    obj.SetData(wxDF_UNICODETEXT, event.GetDataSize(), event.GetDataBuffer());
-    printf("Drop\n");
-
-    int from_volume_id = std::stoi(obj.GetText().ToStdString());
+    const int from_volume_id = m_dragged_data.vol_idx();
     int to_volume_id = m_objects_model->GetVolumeIdByItem(item);
-    printf("from %d to %d\n", from_volume_id, to_volume_id);
 
 #ifdef __WXGTK__
     /* Under GTK, DnD moves an item between another two items.
@@ -497,16 +490,14 @@ void ObjectList::OnDrop(wxDataViewEvent &event)
     int cnt = 0;
     for (int id = from_volume_id; cnt < abs(from_volume_id - to_volume_id); id += delta, cnt++)
         std::swap(volumes[id], volumes[id + delta]);
-    printf("Volumes are swapped\n");
 
     select_item(m_objects_model->ReorganizeChildren(from_volume_id, to_volume_id,
                                                     m_objects_model->GetParent(item)));
 
-    printf("ItemChildren are Reorganized\n");
     m_parts_changed = true;
     parts_changed(m_selected_object_id);
 
-    printf("DropCompleted\n");
+    m_dragged_data.clear();
 
 //     m_prevent_list_events = false;
 }
