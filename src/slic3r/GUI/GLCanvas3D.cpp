@@ -581,7 +581,7 @@ void GLCanvas3D::Bed::_render_custom() const
 
         ::glEnableClientState(GL_VERTEX_ARRAY);
 
-        ::glColor4f(0.8f, 0.6f, 0.5f, 0.4f);
+        ::glColor4f(0.35f, 0.35f, 0.35f, 0.4f);
         ::glNormal3d(0.0f, 0.0f, 1.0f);
         ::glVertexPointer(3, GL_FLOAT, 0, (GLvoid*)m_triangles.get_vertices());
         ::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)triangles_vcount);
