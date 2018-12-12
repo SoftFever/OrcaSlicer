@@ -1,14 +1,14 @@
 #include "OctoPrint.hpp"
-#include "PrintHostSendDialog.hpp"
 
 #include <algorithm>
 #include <boost/format.hpp>
 #include <boost/log/trivial.hpp>
 
 #include "libslic3r/PrintConfig.hpp"
+#include "slic3r/GUI/I18N.hpp"
+#include "slic3r/GUI/PrintHostDialogs.hpp"   // XXX
 #include "Http.hpp"
 
-#include "slic3r/GUI/I18N.hpp"
 
 namespace fs = boost::filesystem;
 
@@ -66,10 +66,10 @@ bool OctoPrint::send_gcode(const std::string &filename) const
 	const auto errortitle = _(L("Error while uploading to the OctoPrint server"));
 	fs::path filepath(filename);
 
-	PrintHostSendDialog send_dialog(filepath.filename(), true);
+	PrintHostSendDialog send_dialog(filepath.filename());
 	if (send_dialog.ShowModal() != wxID_OK) { return false; }
 
-	const bool print = send_dialog.print();
+	const bool print = send_dialog.start_print();
 	const auto upload_filepath = send_dialog.filename();
 	const auto upload_filename = upload_filepath.filename();
 	const auto upload_parent_path = upload_filepath.parent_path();
@@ -101,7 +101,7 @@ bool OctoPrint::send_gcode(const std::string &filename) const
 	auto http = Http::post(std::move(url));
 	set_auth(http);
 	http.form_add("print", print ? "true" : "false")
-		.form_add("path", upload_parent_path.string())
+		.form_add("path", upload_parent_path.string())      // XXX: slashes on windows ???
 		.form_add_file("file", filename, upload_filename.string())
 		.on_complete([&](std::string body, unsigned status) {
 			BOOST_LOG_TRIVIAL(debug) << boost::format("Octoprint: File uploaded: HTTP %1%: %2%") % status % body;
@@ -127,6 +127,11 @@ bool OctoPrint::send_gcode(const std::string &filename) const
 		.perform_sync();
 
 	return res;
+}
+
+bool OctoPrint::upload(PrintHostUpload upload_data) const
+{
+	throw "unimplemented";
 }
 
 bool OctoPrint::has_auto_discovery() const

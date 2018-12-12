@@ -9,6 +9,7 @@
 #include <wx/event.h>
 
 #include "libslic3r/Print.hpp"
+#include "slic3r/Utils/PrintHost.hpp"
 
 namespace Slic3r {
 
@@ -86,6 +87,9 @@ public:
 	// Set the export path of the G-code.
 	// Once the path is set, the G-code 
 	void schedule_export(const std::string &path);
+	// Set print host upload job data to be enqueued to the PrintHostJobQueue
+	// after current print slicing is complete
+	void schedule_upload(Slic3r::PrintHostJob upload_job);
 	// Clear m_export_path.
 	void reset_export();
 	// Once the G-code export is scheduled, the apply() methods will do nothing.
@@ -143,6 +147,9 @@ private:
 	// Output path provided by the user. The output path may be set even if the slicing is running,
 	// but once set, it cannot be re-set.
 	std::string 				m_export_path;
+	// Print host upload job to schedule after slicing is complete, used by schedule_upload(),
+	// empty by default (ie. no upload to schedule)
+	PrintHostJob                m_upload_job;
 	// Thread, on which the background processing is executed. The thread will always be present
 	// and ready to execute the slicing process.
 	std::thread		 			m_thread;

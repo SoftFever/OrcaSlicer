@@ -27,6 +27,7 @@
 #include "3DScene.hpp"
 
 #include "../Utils/PresetUpdater.hpp"
+#include "../Utils/PrintHost.hpp"
 #include "ConfigWizard_private.hpp"
 #include "slic3r/Config/Snapshot.hpp"
 #include "ConfigSnapshotDialog.hpp"
@@ -72,6 +73,7 @@ GUI_App::GUI_App()
     : wxApp()
 #if ENABLE_IMGUI
     , m_imgui(new ImGuiWrapper())
+    , m_printhost_queue(new PrintHostJobQueue())
 #endif // ENABLE_IMGUI
 {}
 

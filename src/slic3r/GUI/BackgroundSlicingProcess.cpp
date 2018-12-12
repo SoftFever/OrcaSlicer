@@ -19,9 +19,12 @@
 //#undef NDEBUG
 #include <cassert>
 #include <stdexcept>
+#include <cctype>
+#include <algorithm>
 
 #include <boost/format.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/cstdio.hpp>
 
@@ -62,6 +65,11 @@ PrinterTechnology BackgroundSlicingProcess::current_printer_technology() const
 	return m_print->technology();
 }
 
+static bool isspace(int ch)
+{
+	return std::isspace(ch) != 0;
+}
+
 // This function may one day be merged into the Print, but historically the print was separated
 // from the G-code generator.
 void BackgroundSlicingProcess::process_fff()
@@ -80,8 +88,8 @@ void BackgroundSlicingProcess::process_fff()
 		    	PlaceholderParser pp;
 		    	std::string normal_print_time = stats.estimated_normal_print_time;
 		    	std::string silent_print_time = stats.estimated_silent_print_time;
-				normal_print_time.erase(std::remove_if(normal_print_time.begin(), normal_print_time.end(), std::isspace), normal_print_time.end());
-				silent_print_time.erase(std::remove_if(silent_print_time.begin(), silent_print_time.end(), std::isspace), silent_print_time.end());
+				normal_print_time.erase(std::remove_if(normal_print_time.begin(), normal_print_time.end(), isspace), normal_print_time.end());
+				silent_print_time.erase(std::remove_if(silent_print_time.begin(), silent_print_time.end(), isspace), silent_print_time.end());
 		    	pp.set("print_time",        		new ConfigOptionString(normal_print_time));
 		    	pp.set("normal_print_time", 		new ConfigOptionString(normal_print_time));
 		    	pp.set("silent_print_time", 		new ConfigOptionString(silent_print_time));
@@ -371,6 +379,22 @@ void BackgroundSlicingProcess::schedule_export(const std::string &path)
 	tbb::mutex::scoped_lock lock(m_print->state_mutex());
 	this->invalidate_step(bspsGCodeFinalize);
 	m_export_path = path;
+}
+
+void BackgroundSlicingProcess::schedule_upload(Slic3r::PrintHostJob upload_job)
+{
+	assert(m_export_path.empty());
+	if (! m_export_path.empty())
+		return;
+
+	const boost::filesystem::path path = boost::filesystem::temp_directory_path()
+		/ boost::filesystem::unique_path(".upload.%%%%-%%%%-%%%%-%%%%.gcode");
+
+	// Guard against entering the export step before changing the export path.
+	tbb::mutex::scoped_lock lock(m_print->state_mutex());
+	this->invalidate_step(bspsGCodeFinalize);
+	m_export_path = path.string();
+	m_upload_job = std::move(upload_job);
 }
 
 void BackgroundSlicingProcess::reset_export()

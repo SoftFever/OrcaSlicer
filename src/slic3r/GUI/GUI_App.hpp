@@ -27,6 +27,7 @@ class AppConfig;
 class PresetBundle;
 class PresetUpdater;
 class ModelObject;
+class PrintHostJobQueue;
 
 namespace GUI
 {
@@ -90,6 +91,8 @@ class GUI_App : public wxApp
 #if ENABLE_IMGUI
     std::unique_ptr<ImGuiWrapper> m_imgui;
 #endif // ENABLE_IMGUI
+
+    std::unique_ptr<PrintHostJobQueue> m_printhost_queue;
 
 public:
     bool            OnInit() override;
@@ -160,6 +163,8 @@ public:
 #if ENABLE_IMGUI
     ImGuiWrapper* imgui() { return m_imgui.get(); }
 #endif // ENABLE_IMGUI
+
+    PrintHostJobQueue& printhost_queue() { return *m_printhost_queue.get(); }
 
 };
 DECLARE_APP(GUI_App)
