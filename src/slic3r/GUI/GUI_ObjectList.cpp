@@ -75,6 +75,8 @@ ObjectList::ObjectList(wxWindow* parent) :
     Bind(wxEVT_DATAVIEW_ITEM_DROP_POSSIBLE, &ObjectList::OnDropPossible,    this);
     Bind(wxEVT_DATAVIEW_ITEM_DROP,          &ObjectList::OnDrop,            this);
 
+    Bind(wxEVT_DATAVIEW_ITEM_EDITING_DONE,  &ObjectList::OnEditingDone,     this);
+
     Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, &ObjectList::ItemValueChanged,  this);
 
     Bind(wxCUSTOMEVT_LAST_VOLUME_IS_DELETED, [this](wxCommandEvent& e)   { last_volume_is_deleted(e.GetInt()); });
@@ -290,6 +292,21 @@ void ObjectList::update_extruder_in_config(const wxDataViewItem& item)
     wxGetApp().plater()->update();
 }
 
+void ObjectList::update_name_in_model(const wxDataViewItem& item)
+{
+    const int obj_idx = m_objects_model->GetObjectIdByItem(item);
+    if (obj_idx < 0) return;
+
+    if (m_objects_model->GetParent(item) == wxDataViewItem(0)) {
+        (*m_objects)[obj_idx]->name = m_objects_model->GetName(item).ToStdString();
+        return;
+    }
+
+    const int volume_id = m_objects_model->GetVolumeIdByItem(item);
+    if (volume_id < 0) return;
+    (*m_objects)[obj_idx]->volumes[volume_id]->name = m_objects_model->GetName(item).ToStdString();
+}
+
 void ObjectList::init_icons()
 {
     m_bmp_modifiermesh      = wxBitmap(from_u8(var("lambda.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("plugin.png")), wxBITMAP_TYPE_PNG);
@@ -337,9 +354,7 @@ void ObjectList::selection_changed()
 
 void ObjectList::OnChar(wxKeyEvent& event)
 {
-//     printf("KeyDown event\n");
     if (event.GetKeyCode() == WXK_BACK){
-        printf("WXK_BACK\n");
         remove();
     }
     else if (wxGetKeyState(wxKeyCode('A')) && wxGetKeyState(WXK_SHIFT))
@@ -370,15 +385,14 @@ void ObjectList::OnContextMenu(wxDataViewEvent&)
 
     if (title == " ")
         show_context_menu();
-
-        else if (title == _("Name") && pt.x >15 &&
-                    m_objects_model->GetBitmap(item).GetRefData() == m_bmp_manifold_warning.GetRefData())
-        {
-            if (is_windows10()) {
-                const auto obj_idx = m_objects_model->GetIdByItem(m_objects_model->GetTopParent(item));
-                wxGetApp().plater()->fix_through_netfabb(obj_idx);
-            }
+    else if (title == _("Name") && pt.x >15 &&
+             m_objects_model->GetBitmap(item).GetRefData() == m_bmp_manifold_warning.GetRefData())
+    {
+        if (is_windows10()) {
+            const auto obj_idx = m_objects_model->GetIdByItem(m_objects_model->GetTopParent(item));
+            wxGetApp().plater()->fix_through_netfabb(obj_idx);
         }
+    }
 #ifndef __WXMSW__
     GetMainWindow()->SetToolTip(""); // hide tooltip
 #endif //__WXMSW__
@@ -455,10 +469,10 @@ void ObjectList::OnDropPossible(wxDataViewEvent &event)
     wxDataViewItem item(event.GetItem());
 
     // only allow drags for item or background, not containers
-    if (item.IsOk() &&
-        (m_objects_model->GetParent(item) == wxDataViewItem(0) || 
+    if (!item.IsOk() ||
+        m_objects_model->GetParent(item) == wxDataViewItem(0) || 
         m_objects_model->GetItemType(item) != itVolume ||
-        m_dragged_data.obj_idx() != m_objects_model->GetObjectIdByItem(item)))
+        m_dragged_data.obj_idx() != m_objects_model->GetObjectIdByItem(item))
         event.Veto();
 }
 
@@ -466,9 +480,9 @@ void ObjectList::OnDrop(wxDataViewEvent &event)
 {
     wxDataViewItem item(event.GetItem());
 
-    if (item.IsOk() && ( m_objects_model->GetParent(item) == wxDataViewItem(0) ||
-                         m_objects_model->GetItemType(item) != itVolume) ||
-                         m_dragged_data.obj_idx() != m_objects_model->GetObjectIdByItem(item)) {
+    if (!item.IsOk() || m_objects_model->GetParent(item) == wxDataViewItem(0) ||
+                        m_objects_model->GetItemType(item) != itVolume ||
+                        m_dragged_data.obj_idx() != m_objects_model->GetObjectIdByItem(item)) {
         event.Veto();
         m_dragged_data.clear();
         return;
@@ -1667,7 +1681,22 @@ void ObjectList::update_settings_items()
 
 void ObjectList::ItemValueChanged(wxDataViewEvent &event)
 {
-    update_extruder_in_config(event.GetItem());
+    if (event.GetColumn() == 0)
+        update_name_in_model(event.GetItem());
+    else if (event.GetColumn() == 1)
+        update_extruder_in_config(event.GetItem());
+}
+
+void ObjectList::OnEditingDone(wxDataViewEvent &event)
+{
+    if (event.GetColumn() != 0)
+        return;
+
+    const auto renderer = dynamic_cast<PrusaBitmapTextRenderer*>(GetColumn(0)->GetRenderer());
+
+    if (renderer->WasCanceled())
+        show_error(this, _(L("The supplied name is not valid;")) + "\n" +
+                         _(L("the following characters are not allowed:")) + " <>:/\\|?*\"");
 }
 
 } //namespace GUI
