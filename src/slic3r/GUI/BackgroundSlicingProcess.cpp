@@ -17,7 +17,6 @@
 #include "libslic3r/GCode/PostProcessor.hpp"
 
 //#undef NDEBUG
-#include <iostream>    // XXX
 #include <cassert>
 #include <stdexcept>
 #include <cctype>
@@ -80,10 +79,6 @@ void BackgroundSlicingProcess::process_fff()
 	wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_slicing_completed_id));
 	m_fff_print->export_gcode(m_temp_output_path, m_gcode_preview_data);
 	if (this->set_step_started(bspsGCodeFinalize)) {
-
-		std::cerr << "BackgroundSlicingProcess: m_upload_job: " << !!m_upload_job << std::endl;
-		std::cerr << "BackgroundSlicingProcess: m_export_path: " << m_export_path << std::endl;
-
 	    if (! m_export_path.empty()) {
 	    	//FIXME localize the messages
 	    	// Perform the final post-processing of the export path by applying the print statistics over the file name.
@@ -398,7 +393,7 @@ void BackgroundSlicingProcess::schedule_upload(Slic3r::PrintHostJob upload_job)
 	// Guard against entering the export step before changing the export path.
 	tbb::mutex::scoped_lock lock(m_print->state_mutex());
 	this->invalidate_step(bspsGCodeFinalize);
-	m_export_path = path.native();
+	m_export_path = path.string();
 	m_upload_job = std::move(upload_job);
 }
 
