@@ -739,7 +739,8 @@ private:
         static const int Px_Square_Contour = 1;
         static const int Px_Border = Px_Square / 2;
         static const unsigned char Squares_Border_Color[3];
-        static const unsigned char Background_Color[3];
+        static const unsigned char Default_Background_Color[3];
+        static const unsigned char Error_Background_Color[3];
         static const unsigned char Opacity;
 
         int m_original_width;
@@ -748,7 +749,7 @@ private:
     public:
         LegendTexture();
 
-        bool generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors, const GLCanvas3D& canvas);
+        bool generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors, const GLCanvas3D& canvas, bool use_error_colors);
 
         void render(const GLCanvas3D& canvas) const;
     };

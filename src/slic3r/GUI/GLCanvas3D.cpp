@@ -3181,7 +3181,8 @@ void GLCanvas3D::WarningTexture::render(const GLCanvas3D& canvas) const
 }
 
 const unsigned char GLCanvas3D::LegendTexture::Squares_Border_Color[3] = { 64, 64, 64 };
-const unsigned char GLCanvas3D::LegendTexture::Background_Color[3] = { 9, 91, 134 };
+const unsigned char GLCanvas3D::LegendTexture::Default_Background_Color[3] = { (unsigned char)(DEFAULT_BG_LIGHT_COLOR[0] * 255.0f), (unsigned char)(DEFAULT_BG_LIGHT_COLOR[1] * 255.0f), (unsigned char)(DEFAULT_BG_LIGHT_COLOR[2] * 255.0f) };
+const unsigned char GLCanvas3D::LegendTexture::Error_Background_Color[3] = { (unsigned char)(ERROR_BG_LIGHT_COLOR[0] * 255.0f), (unsigned char)(ERROR_BG_LIGHT_COLOR[1] * 255.0f), (unsigned char)(ERROR_BG_LIGHT_COLOR[2] * 255.0f) };
 const unsigned char GLCanvas3D::LegendTexture::Opacity = 255;
 
 GLCanvas3D::LegendTexture::LegendTexture()
@@ -3191,7 +3192,7 @@ GLCanvas3D::LegendTexture::LegendTexture()
 {
 }
 
-bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors, const GLCanvas3D& canvas)
+bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors, const GLCanvas3D& canvas, bool use_error_colors)
 {
     reset();
 
@@ -3230,8 +3231,11 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
         return false;
 
     wxMemoryDC memDC;
+    wxMemoryDC mask_memDC;
+
     // select default font
     memDC.SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
+    mask_memDC.SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
 
     // calculates texture size
     wxCoord w, h;
@@ -3260,16 +3264,28 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
 
     // generates bitmap
     wxBitmap bitmap(m_width, m_height);
+    wxBitmap mask(m_width, m_height);
 
     memDC.SelectObject(bitmap);
-    memDC.SetBackground(wxBrush(wxColour(Background_Color[0], Background_Color[1], Background_Color[2])));
+    mask_memDC.SelectObject(mask);
+
+    memDC.SetBackground(wxBrush(use_error_colors ? *wxWHITE : *wxBLACK));
+    mask_memDC.SetBackground(wxBrush(*wxBLACK));
+
     memDC.Clear();
+    mask_memDC.Clear();
 
     // draw title
-    memDC.SetTextForeground(*wxWHITE);
+    memDC.SetTextForeground(use_error_colors ? *wxWHITE : *wxBLACK);
+    mask_memDC.SetTextForeground(*wxWHITE);
+
     int title_x = Px_Border;
     int title_y = Px_Border;
     memDC.DrawText(title, title_x, title_y);
+    mask_memDC.DrawText(title, title_x, title_y);
+
+    mask_memDC.SetPen(wxPen(*wxWHITE));
+    mask_memDC.SetBrush(wxBrush(*wxWHITE));
 
     // draw icons contours as background
     int squares_contour_x = Px_Border;
@@ -3285,6 +3301,7 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
     memDC.SetPen(pen);
     memDC.SetBrush(brush);
     memDC.DrawRectangle(wxRect(squares_contour_x, squares_contour_y, squares_contour_width, squares_contour_height));
+    mask_memDC.DrawRectangle(wxRect(squares_contour_x, squares_contour_y, squares_contour_width, squares_contour_height));
 
     // draw items (colored icon + text)
     int icon_x = squares_contour_x + Px_Square_Contour;
@@ -3321,16 +3338,18 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
 
         // draw text
         memDC.DrawText(GUI::from_u8(item.text), text_x, icon_y + text_y_offset);
+        mask_memDC.DrawText(GUI::from_u8(item.text), text_x, icon_y + text_y_offset);
 
         // update y
         icon_y += icon_y_step;
     }
 
     memDC.SelectObject(wxNullBitmap);
+    mask_memDC.SelectObject(wxNullBitmap);
 
     // Convert the bitmap into a linear data ready to be loaded into the GPU.
     wxImage image = bitmap.ConvertToImage();
-    image.SetMaskColour(Background_Color[0], Background_Color[1], Background_Color[2]);
+    wxImage mask_image = mask.ConvertToImage();
 
     // prepare buffer
     std::vector<unsigned char> data(4 * m_width * m_height, 0);
@@ -3343,7 +3362,7 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
             *px_ptr++ = image.GetRed(w, h);
             *px_ptr++ = image.GetGreen(w, h);
             *px_ptr++ = image.GetBlue(w, h);
-            *px_ptr++ = image.IsTransparent(w, h) ? 0 : Opacity;
+            *px_ptr++ = (mask_image.GetRed(w, h) + mask_image.GetGreen(w, h) + mask_image.GetBlue(w, h)) / 3;
         }
     }
 
@@ -4395,10 +4414,10 @@ void GLCanvas3D::load_gcode_preview(const GCodePreviewData& preview_data, const 
             return;
 #endif // !ENABLE_USE_UNIQUE_GLCONTEXT
 
+        std::vector<float> tool_colors = _parse_colors(str_tool_colors);
+
         if (m_volumes.empty())
         {
-            std::vector<float> tool_colors = _parse_colors(str_tool_colors);
-            
             m_gcode_preview_volume_index.reset();
             
             _load_gcode_extrusion_paths(preview_data, tool_colors);
@@ -4406,12 +4425,8 @@ void GLCanvas3D::load_gcode_preview(const GCodePreviewData& preview_data, const 
             _load_gcode_retractions(preview_data);
             _load_gcode_unretractions(preview_data);
             
-            if (m_volumes.empty())
-                reset_legend_texture();
-            else
+            if (!m_volumes.empty())
             {
-                _generate_legend_texture(preview_data, tool_colors);
-
                 // removes empty volumes
                 m_volumes.volumes.erase(std::remove_if(m_volumes.volumes.begin(), m_volumes.volumes.end(),
                     [](const GLVolume* volume) { return volume->print_zs.empty(); }), m_volumes.volumes.end());
@@ -4423,6 +4438,11 @@ void GLCanvas3D::load_gcode_preview(const GCodePreviewData& preview_data, const 
         
         _update_gcode_volumes_visibility(preview_data);
         _show_warning_texture_if_needed();
+
+        if (m_volumes.empty())
+            reset_legend_texture();
+        else
+            _generate_legend_texture(preview_data, tool_colors);
     }
 }
 
@@ -5819,7 +5839,7 @@ void GLCanvas3D::_render_background() const
     ::glPushMatrix();
     ::glLoadIdentity();
 
-    // Draws a bluish bottom to top gradient over the complete screen.
+    // Draws a bottom to top gradient over the complete screen.
     ::glDisable(GL_DEPTH_TEST);
 
     ::glBegin(GL_QUADS);
@@ -7657,7 +7677,7 @@ void GLCanvas3D::_generate_legend_texture(const GCodePreviewData& preview_data, 
         return;
 #endif // !ENABLE_USE_UNIQUE_GLCONTEXT
 
-    m_legend_texture.generate(preview_data, tool_colors, *this);
+    m_legend_texture.generate(preview_data, tool_colors, *this, m_dynamic_background_enabled && _is_any_volume_outside());
 }
 
 void GLCanvas3D::_generate_warning_texture(const std::string& msg)
