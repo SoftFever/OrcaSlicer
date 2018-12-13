@@ -227,29 +227,35 @@ public:
     inline void save(const std::string& path) {
         try {
             LayerWriter<LyrFmt> writer(path);
+            if(!writer.is_ok()) return;
 
             std::string project = writer.get_name();
 
             writer.next_entry("config.ini");
+            if(!writer.is_ok()) return;
+
             writer << createIniContent(project);
 
-            for(unsigned i = 0; i < m_layers_rst.size(); i++) {
+            for(unsigned i = 0; i < m_layers_rst.size() && writer.is_ok(); i++)
+            {
                 if(m_layers_rst[i].second.rdbuf()->in_avail() > 0) {
                     char lyrnum[6];
                     std::sprintf(lyrnum, "%.5d", i);
                     auto zfilename = project + lyrnum + ".png";
                     writer.next_entry(zfilename);
+
+                    if(!writer.is_ok()) break;
+
                     writer << m_layers_rst[i].second.str();
                     // writer << m_layers_rst[i].second.rdbuf();
                     // we can keep the date for later calls of this method
                     //m_layers_rst[i].second.str("");
                 }
             }
-
-            writer.close();
         } catch(std::exception& e) {
             BOOST_LOG_TRIVIAL(error) << e.what();
-            return;
+            // Rethrow the exception
+            throw;
         }
     }
 

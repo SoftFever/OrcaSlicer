@@ -113,8 +113,15 @@ public:
         zipstream(zipfile),
         pngstream(zipstream)
     {
-        if(!zipfile.IsOk())
+        if(!is_ok())
             throw std::runtime_error("Cannot create zip file.");
+    }
+
+    ~LayerWriter() {
+        // In case of an error (disk space full) zipstream destructor would
+        // crash.
+        pngstream.clear();
+        zipstream.CloseEntry();
     }
 
     inline void next_entry(const std::string& fname) {
@@ -127,6 +134,10 @@ public:
 
     template<class T> inline LayerWriter& operator<<(const T& arg) {
         pngstream << arg; return *this;
+    }
+
+    bool is_ok() const {
+        return pngstream.good() && zipstream.IsOk() && zipfile.IsOk();
     }
 
     inline void close() {
