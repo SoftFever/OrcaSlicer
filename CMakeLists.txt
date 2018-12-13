@@ -82,6 +82,13 @@ if(WIN32)
     endif()
 endif()
 
+if (APPLE)
+    if (NOT CMAKE_OSX_DEPLOYMENT_TARGET)
+        set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE STRING "OS X Deployment target (SDK version)" FORCE)
+    endif ()
+    message(STATUS "Mac OS deployment target (SDK version): ${CMAKE_OSX_DEPLOYMENT_TARGET}")
+endif ()
+
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     # Workaround for an old CMake, which does not understand CMAKE_CXX_STANDARD.
     add_compile_options(-std=c++11 -Wall -Wno-reorder)
