@@ -1459,11 +1459,13 @@ void ObjectList::update_selections()
     
     select_items(sels);
 
+#ifdef __WXMSW__
     if (GetSelection()) {
         const int sel_item_row = GetRowByItem(GetSelection());
         ScrollLines(sel_item_row - m_selected_row);
         m_selected_row = sel_item_row;
     }
+#endif //__WXMSW__
 }
 
 void ObjectList::update_selections_on_canvas()
