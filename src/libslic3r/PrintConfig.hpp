@@ -56,6 +56,11 @@ enum FilamentType {
     ftPLA, ftABS, ftPET, ftHIPS, ftFLEX, ftSCAFF, ftEDGE, ftNGEN, ftPVA
 };
 
+enum SLADisplayOrientation {
+    sladoLandscape,
+    sladoPortrait
+};
+
 template<> inline const t_config_enum_values& ConfigOptionEnum<PrinterTechnology>::get_enum_values() {
     static t_config_enum_values keys_map;
     if (keys_map.empty()) {
@@ -145,6 +150,15 @@ template<> inline const t_config_enum_values& ConfigOptionEnum<FilamentType>::ge
         keys_map["NGEN"]            = ftNGEN;
         keys_map["PVA"]             = ftPVA;
     }
+    return keys_map;
+}
+
+template<> inline const t_config_enum_values& ConfigOptionEnum<SLADisplayOrientation>::get_enum_values() {
+    static const t_config_enum_values keys_map = {
+        { "Landscape", sladoLandscape},
+        { "Portrait",  sladoPortrait}
+    };
+
     return keys_map;
 }
 
@@ -1035,7 +1049,7 @@ public:
     ConfigOptionFloat                       display_height;
     ConfigOptionInt                         display_pixels_x;
     ConfigOptionInt                         display_pixels_y;
-    ConfigOptionBool                        display_flip_xy;
+    ConfigOptionEnum<SLADisplayOrientation> display_orientation;
     ConfigOptionFloats                      printer_correction;
 protected:
     void initialize(StaticCacheBase &cache, const char *base_ptr)
@@ -1047,7 +1061,7 @@ protected:
         OPT_PTR(display_height);
         OPT_PTR(display_pixels_x);
         OPT_PTR(display_pixels_y);
-        OPT_PTR(display_flip_xy);
+        OPT_PTR(display_orientation);
         OPT_PTR(printer_correction);
     }
 };

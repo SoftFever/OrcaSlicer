@@ -392,7 +392,7 @@ struct Pillar {
     void add_base(double height = 3, double radius = 2) {
         if(height <= 0) return;
 
-        assert(steps > 0);
+        assert(steps >= 0);
         auto last = int(steps - 1);
 
         if(radius < r ) radius = r;
@@ -1293,7 +1293,7 @@ bool SLASupportTree::generate(const PointSet &points,
                 return distance(Vec2d(p1(X), p1(Y)), Vec2d(p2(X), p2(Y)));
             });
 
-            assert(lcid > 0);
+            assert(lcid >= 0);
             auto cid = unsigned(lcid);
 
             cl_centroids.push_back(unsigned(cid));
@@ -1454,7 +1454,7 @@ bool SLASupportTree::generate(const PointSet &points,
                 SpatIndex innerring;
                 for(unsigned i : newring) {
                     const Pillar& pill = result.head_pillar(gndidx[i]);
-                    assert(pill.id > 0);
+                    assert(pill.id >= 0);
                     innerring.insert(pill.endpoint, unsigned(pill.id));
                 }
 

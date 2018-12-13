@@ -413,6 +413,12 @@ sla::SupportConfig make_support_cfg(const SLAPrintObjectConfig& c) {
 
     return scfg;
 }
+
+void swapXY(ExPolygon& expoly) {
+    for(auto& p : expoly.contour.points) std::swap(p(X), p(Y));
+    for(auto& h : expoly.holes) for(auto& p : h.points) std::swap(p(X), p(Y));
+}
+
 }
 
 void SLAPrint::process()
@@ -715,7 +721,9 @@ void SLAPrint::process()
         std::vector<long long> keys; keys.reserve(levels.size());
         for(auto& e : levels) keys.emplace_back(e.first);
 
-        bool flpXY = m_printer_config.display_flip_xy.getBool();
+        // If the raster has vertical orientation, we will flip the coordinates
+        bool flpXY = m_printer_config.display_orientation.getInt() ==
+                SLADisplayOrientation::sladoPortrait;
 
         { // create a raster printer for the current print parameters
             // I don't know any better
@@ -733,7 +741,9 @@ void SLAPrint::process()
 
             if(flpXY) { std::swap(w, h); std::swap(pw, ph); }
 
-            m_printer.reset(new SLAPrinter(w, h, pw, ph, lh, exp_t, iexp_t));
+            m_printer.reset(new SLAPrinter(w, h, pw, ph, lh, exp_t, iexp_t,
+                                           flpXY? SLAPrinter::RO_PORTRAIT :
+                                                  SLAPrinter::RO_LANDSCAPE));
         }
 
         // Allocate space for all the layers
@@ -770,10 +780,7 @@ void SLAPrint::process()
                         // apply rotation before translation...
                         slice.rotate(double(cp.rotation));
                         slice.translate(cp.shift(X), cp.shift(Y));
-                        if(flpXY) {
-                            for(auto& p : slice.contour.points) std::swap(p(X), p(Y));
-                            for(auto& h : slice.holes) for(auto& p : h.points) std::swap(p(X), p(Y));
-                        }
+                        if(flpXY) swapXY(slice);
                         printer.draw_polygon(slice, level_id);
                     }
                 }

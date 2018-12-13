@@ -116,6 +116,7 @@ template<> class FilePrinter<FilePrinterFormat::SLA_PNGZIP>
     Raster::PixelDim m_pxdim;
     double m_exp_time_s = .0, m_exp_time_first_s = .0;
     double m_layer_height = .0;
+    Raster::Origin m_o = Raster::Origin::TOP_LEFT;
 
     std::string createIniContent(const std::string& projectname) {
         double layer_height = m_layer_height;
@@ -145,19 +146,41 @@ template<> class FilePrinter<FilePrinterFormat::SLA_PNGZIP>
                   +layerh_str+"+printer=DWARF3\n";
     }
 
-    // The PNG format has its origin in the top left corner.
-    static const Raster::Origin ORIGIN = Raster::Origin::TOP_LEFT;
-
 public:
+
+    enum RasterOrientation {
+        RO_LANDSCAPE,
+        RO_PORTRAIT
+    };
+
+    // We will play with the raster's coordinate origin parameter. When the
+    // printer should print in landscape mode it should have the Y axis flipped
+    // because the layers should be displayed upside down. PNG has its
+    // coordinate origin in the top-left corner so normally the Raster objects
+    // should be instantiated with the TOP_LEFT flag. However, in landscape mode
+    // we do want the pictures to be upside down so we will make BOTTOM_LEFT
+    // type rasters and the PNG format will do the flipping automatically.
+
+    // In case of portrait images, we have to rotate the image by a 90 degrees
+    // and flip the y axis. To get the correct upside-down orientation of the
+    // slice images, we can flip the x and y coordinates of the input polygons
+    // and do the Y flipping of the image. This will generate the correct
+    // orientation in portrait mode.
+
     inline FilePrinter(double width_mm, double height_mm,
                        unsigned width_px, unsigned height_px,
                        double layer_height,
-                       double exp_time, double exp_time_first):
+                       double exp_time, double exp_time_first,
+                       RasterOrientation ro = RO_PORTRAIT):
         m_res(width_px, height_px),
         m_pxdim(width_mm/width_px, height_mm/height_px),
         m_exp_time_s(exp_time),
         m_exp_time_first_s(exp_time_first),
-        m_layer_height(layer_height)
+        m_layer_height(layer_height),
+
+        // Here is the trick with the orientation.
+        m_o(ro == RO_LANDSCAPE? Raster::Origin::BOTTOM_LEFT :
+                                Raster::Origin::TOP_LEFT )
     {
     }
 
@@ -177,12 +200,12 @@ public:
 
     inline void begin_layer(unsigned lyr) {
         if(m_layers_rst.size() <= lyr) m_layers_rst.resize(lyr+1);
-        m_layers_rst[lyr].first.reset(m_res, m_pxdim, ORIGIN);
+        m_layers_rst[lyr].first.reset(m_res, m_pxdim, m_o);
     }
 
     inline void begin_layer() {
         m_layers_rst.emplace_back();
-        m_layers_rst.front().first.reset(m_res, m_pxdim, ORIGIN);
+        m_layers_rst.front().first.reset(m_res, m_pxdim, m_o);
     }
 
     inline void finish_layer(unsigned lyr_id) {

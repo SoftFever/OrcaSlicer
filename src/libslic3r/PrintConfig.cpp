@@ -2389,12 +2389,14 @@ void PrintConfigDef::init_sla_params()
     def->min = 100;
     def->default_value = new ConfigOptionInt(1440);
 
-    def = this->add("display_flip_xy", coBool);
-    def->label = ("Flip X and Y axis");
-    def->tooltip = L("Flip X and Y axis in the output raster");
-    def->cli = "display-flip-xy=i";
-    def->min = 0;
-    def->default_value = new ConfigOptionBool(true);
+    def = this->add("display_orientation", coEnum);
+    def->label = L("Display orientation");
+    def->tooltip = L("Display orientation");
+    def->cli = "display-orientation=s";
+    def->enum_keys_map = &ConfigOptionEnum<SLADisplayOrientation>::get_enum_values();
+    def->enum_values.push_back("Landscape");
+    def->enum_values.push_back("Portrait");
+    def->default_value = new ConfigOptionEnum<SLADisplayOrientation>(sladoPortrait);
 
     def = this->add("printer_correction", coFloats);
     def->full_label = L("Printer scaling correction");

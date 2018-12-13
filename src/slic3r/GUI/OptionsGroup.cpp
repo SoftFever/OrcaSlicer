@@ -554,6 +554,9 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
 		else if (opt_key.compare("host_type") == 0) {
 			ret = static_cast<int>(config.option<ConfigOptionEnum<PrintHostType>>(opt_key)->value);
 		}
+        else if (opt_key.compare("display_orientation") == 0) {
+            ret  = static_cast<int>(config.option<ConfigOptionEnum<SLADisplayOrientation>>(opt_key)->value);
+        }
 	}
 		break;
 	case coPoints:
