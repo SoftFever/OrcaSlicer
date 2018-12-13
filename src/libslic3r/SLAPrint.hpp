@@ -177,9 +177,9 @@ private: // Prevents erroneous use by other classes.
 public:
     SLAPrint(): m_stepmask(slapsCount, true) {}
 
-	virtual ~SLAPrint() { this->clear(); }
+    virtual ~SLAPrint() override { this->clear(); }
 
-	PrinterTechnology	technology() const noexcept { return ptSLA; }
+    PrinterTechnology	technology() const noexcept override { return ptSLA; }
 
     void                clear() override;
     bool                empty() const override { return m_objects.empty(); }
