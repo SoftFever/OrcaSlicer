@@ -512,8 +512,6 @@ void ObjectList::OnDrop(wxDataViewEvent &event)
     parts_changed(m_selected_object_id);
 
     m_dragged_data.clear();
-
-//     m_prevent_list_events = false;
 }
 
 
@@ -1453,6 +1451,12 @@ void ObjectList::update_selections()
     }
     
     select_items(sels);
+
+    if (GetSelection()) {
+        const int sel_item_row = GetRowByItem(GetSelection());
+        ScrollLines(sel_item_row - m_selected_row);
+        m_selected_row = sel_item_row;
+    }
 }
 
 void ObjectList::update_selections_on_canvas()

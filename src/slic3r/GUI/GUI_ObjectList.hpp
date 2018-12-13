@@ -108,6 +108,8 @@ class ObjectList : public wxDataViewCtrl
     bool        m_parts_changed = false;
     bool        m_part_settings_changed = false;
 
+    int         m_selected_row = 0;
+
 public:
     ObjectList(wxWindow* parent);
     ~ObjectList();
