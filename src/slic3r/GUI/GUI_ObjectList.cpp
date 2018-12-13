@@ -451,6 +451,8 @@ void ObjectList::OnBeginDrag(wxDataViewEvent &event)
         return;
     }
 
+    m_dragged_data.init(m_objects_model->GetObjectIdByItem(item), m_objects_model->GetVolumeIdByItem(item));
+
     /* Under MSW or OSX, DnD moves an item to the place of another selected item
     * But under GTK, DnD moves an item between another two items.
     * And as a result - call EVT_CHANGE_SELECTION to unselect all items.
@@ -458,9 +460,13 @@ void ObjectList::OnBeginDrag(wxDataViewEvent &event)
     **/
     m_prevent_list_events = true;//it's needed for GTK
 
-    m_dragged_data.init(m_objects_model->GetObjectIdByItem(item), m_objects_model->GetVolumeIdByItem(item));
+    /* Under GTK, DnD requires to the wxTextDataObject been initialized with some valid value,
+     * so set some nonempty string
+     */
+    wxTextDataObject* obj = new wxTextDataObject;
+    obj->SetText("Some text");//it's needed for GTK
 
-    event.SetDataObject(new wxTextDataObject);
+    event.SetDataObject(obj);
     event.SetDragFlags(wxDrag_DefaultMove); // allows both copy and move;
 }
 
@@ -491,15 +497,16 @@ void ObjectList::OnDrop(wxDataViewEvent &event)
     const int from_volume_id = m_dragged_data.vol_idx();
     int to_volume_id = m_objects_model->GetVolumeIdByItem(item);
 
-#ifdef __WXGTK__
-    /* Under GTK, DnD moves an item between another two items.
-    * And event.GetItem() return item, which is under "insertion line"
-    * So, if we move item down we should to decrease the to_volume_id value
-    **/
-    if (to_volume_id > from_volume_id) to_volume_id--;
-#endif // __WXGTK__
+// It looks like a fixed in current version of the wxWidgets
+// #ifdef __WXGTK__
+//     /* Under GTK, DnD moves an item between another two items.
+//     * And event.GetItem() return item, which is under "insertion line"
+//     * So, if we move item down we should to decrease the to_volume_id value
+//     **/
+//     if (to_volume_id > from_volume_id) to_volume_id--;
+// #endif // __WXGTK__
 
-    auto& volumes = (*m_objects)[m_selected_object_id]->volumes;
+    auto& volumes = (*m_objects)[/*m_selected_object_id*/m_dragged_data.obj_idx()]->volumes;
     auto delta = to_volume_id < from_volume_id ? -1 : 1;
     int cnt = 0;
     for (int id = from_volume_id; cnt < abs(from_volume_id - to_volume_id); id += delta, cnt++)
@@ -509,7 +516,7 @@ void ObjectList::OnDrop(wxDataViewEvent &event)
                                                     m_objects_model->GetParent(item)));
 
     m_parts_changed = true;
-    parts_changed(m_selected_object_id);
+    parts_changed(/*m_selected_object_id*/m_dragged_data.obj_idx());
 
     m_dragged_data.clear();
 }

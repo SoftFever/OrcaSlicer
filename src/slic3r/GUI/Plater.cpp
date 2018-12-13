@@ -2473,7 +2473,8 @@ void Plater::priv::on_right_click(Vec2dEvent& evt)
         return;
 
     wxMenu* menu = printer_technology == ptSLA ? &sla_object_menu :
-                   get_selection().is_single_full_object() ? &object_menu : &part_menu;
+                   get_selection().is_single_full_instance/*object*/() ? // show "Object menu" for each FullInstance instead of FullObject
+                   &object_menu : &part_menu;
 
     sidebar->obj_list()->append_menu_item_settings(menu);
 
