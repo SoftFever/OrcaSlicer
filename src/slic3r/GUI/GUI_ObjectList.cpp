@@ -1460,9 +1460,12 @@ void ObjectList::update_selections()
     select_items(sels);
 
     if (GetSelection()) {
-        const wxRect& top_rc = GetItemRect(GetTopItem());
         const wxRect& sel_rc = GetItemRect(GetSelection());
-        ScrollLines(int((sel_rc.y - top_rc.y) / top_rc.GetHeight()) - 0.5*GetCountPerPage());
+        if (!sel_rc.IsEmpty()) {
+            const int rc_h = sel_rc.height;
+            const int displ = GetMainWindow()->GetClientRect().GetHeight()/(2*rc_h)+1;
+            ScrollLines(int(sel_rc.y / rc_h - displ));
+        }
     }
 }
 
@@ -1654,7 +1657,9 @@ void ObjectList::change_part_type()
 void ObjectList::last_volume_is_deleted(const int obj_idx)
 {
 
-    if (obj_idx < 0 || (*m_objects).empty() || (*m_objects)[obj_idx]->volumes.empty())
+    if (obj_idx < 0 || m_objects->empty() ||
+        obj_idx <= m_objects->size() ||
+        (*m_objects)[obj_idx]->volumes.empty())
         return;
     auto volume = (*m_objects)[obj_idx]->volumes[0];
 
