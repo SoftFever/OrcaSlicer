@@ -2189,12 +2189,12 @@ void GLGizmoSlaSupports::on_render_input_window(float x, float y, const GLCanvas
 
     if (generate) {
         const DynamicPrintConfig& cfg = *wxGetApp().get_tab(Preset::TYPE_SLA_PRINT)->get_config();
-        SLAAutoSupports::Config config;
+        SLAAutoSupports::SLAAutoSupports::Config config;
         config.density_at_horizontal = cfg.opt_int("support_density_at_horizontal") / 10000.f;
         config.density_at_45 = cfg.opt_int("support_density_at_45") / 10000.f;
         config.minimal_z = cfg.opt_float("support_minimal_z");
 
-        SLAAutoSupports sas(*m_model_object, config);
+        SLAAutoSupports::SLAAutoSupports sas(*m_model_object, config);
         sas.generate();
         m_grabbers.clear();
         for (const Vec3f& point : m_model_object->sla_support_points) {

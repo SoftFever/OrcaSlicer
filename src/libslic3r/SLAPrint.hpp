@@ -18,7 +18,6 @@ enum SLAPrintStep : unsigned int {
 
 enum SLAPrintObjectStep : unsigned int {
 	slaposObjectSlice,
-	slaposSupportIslands,
 	slaposSupportPoints,
 	slaposSupportTree,
 	slaposBasePool,
@@ -225,6 +224,8 @@ private:
         LayerRef(const Layer& lyr, const LayerCopies& cp) :
             lref(std::cref(lyr)), copies(std::cref(cp)) {}
     };
+
+    std::vector<float> calculate_heights(const BoundingBoxf3& bb, float elevation, float initial_layer_height, float layer_height) const;
 
     // One level may contain multiple slices from multiple objects and their
     // supports

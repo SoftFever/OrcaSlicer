@@ -1,6 +1,7 @@
 #include "SLAPrint.hpp"
 #include "SLA/SLASupportTree.hpp"
 #include "SLA/SLABasePool.hpp"
+#include "SLA/SLAAutoSupports.hpp"
 #include "MTUtils.hpp"
 
 #include <unordered_set>
@@ -36,8 +37,7 @@ namespace {
 const std::array<unsigned, slaposCount>     OBJ_STEP_LEVELS =
 {
     10,     // slaposObjectSlice,
-    10,     // slaposSupportIslands,
-    20,     // slaposSupportPoints,
+    30,     // slaposSupportPoints,
     25,     // slaposSupportTree,
     25,     // slaposBasePool,
     5,      // slaposSliceSupports,
@@ -47,8 +47,7 @@ const std::array<unsigned, slaposCount>     OBJ_STEP_LEVELS =
 const std::array<std::string, slaposCount> OBJ_STEP_LABELS =
 {
     L("Slicing model"),                 // slaposObjectSlice,
-    L("Generating islands"),            // slaposSupportIslands,
-    L("Scanning model structure"),      // slaposSupportPoints,
+    L("Generating support points"),      // slaposSupportPoints,
     L("Generating support tree"),       // slaposSupportTree,
     L("Generating base pool"),          // slaposBasePool,
     L("Slicing supports"),              // slaposSliceSupports,
@@ -420,6 +419,24 @@ void swapXY(ExPolygon& expoly) {
 
 }
 
+std::vector<float> SLAPrint::calculate_heights(const BoundingBoxf3& bb3d, float elevation, float initial_layer_height, float layer_height) const
+{
+    std::vector<float> heights;
+    float minZ = float(bb3d.min(Z)) - float(elevation);
+    float maxZ = float(bb3d.max(Z)) ;
+    auto flh = float(layer_height);
+    auto gnd = float(bb3d.min(Z));
+
+    // The first layer (the one before the initial height) is added only
+    // if there is no pad and no elevation value
+    if(minZ >= gnd) heights.emplace_back(minZ);
+
+    for(float h = minZ + initial_layer_height; h < maxZ; h += flh)
+        if(h >= gnd) heights.emplace_back(h);
+    return heights;
+}
+
+
 void SLAPrint::process()
 {
     using namespace sla;
@@ -455,24 +472,9 @@ void SLAPrint::process()
 
         TriangleMesh mesh = po.transformed_mesh();
         TriangleMeshSlicer slicer(&mesh);
-        auto bb3d = mesh.bounding_box();
-
-        double elevation = po.get_elevation();
-
-        float minZ = float(bb3d.min(Z)) - float(elevation);
-        float maxZ = float(bb3d.max(Z)) ;
-        auto flh = float(lh);
-        auto gnd = float(bb3d.min(Z));
 
         // The 1D grid heights
-        std::vector<float> heights;
-
-        // The first layer (the one before the initial height) is added only
-        // if there is no pad and no elevation value
-        if(minZ >= gnd) heights.emplace_back(minZ);
-
-        for(float h = minZ + ilh; h < maxZ; h += flh)
-            if(h >= gnd) heights.emplace_back(h);
+        std::vector<float> heights = calculate_heights(mesh.bounding_box(), po.get_elevation(), ilh, lh);
 
         auto& layers = po.m_model_slices; layers.clear();
         slicer.slice(heights, &layers, [this](){ throw_if_canceled(); });
@@ -480,8 +482,8 @@ void SLAPrint::process()
 
     // this procedure simply converts the points and copies them into
     // the support data cache
-    auto support_points = [](SLAPrintObject& po) {
-        ModelObject& mo = *po.m_model_object;
+    /*auto support_points = [](SLAPrintObject& po) {
+        const ModelObject& mo = *po.m_model_object;
         po.m_supportdata.reset(new SLAPrintObject::SupportData());
 
         if(!mo.sla_support_points.empty()) {
@@ -497,6 +499,36 @@ void SLAPrint::process()
                   " Hint: create some support points or disable support "
                   "creation."));
         }
+    };*/
+
+    // In this step we check the slices, identify island and cover them with
+    // support points. Then we sprinkle the rest of the mesh.
+    auto support_points = [this, ilh](SLAPrintObject& po) {
+        // find islands to support
+        double lh = po.m_config.layer_height.getFloat();
+        std::vector<float> heights = calculate_heights(po.transformed_mesh().bounding_box(), po.get_elevation(), ilh, lh);
+        //SLAAutoSupports auto_supports(po.get_model_slices(), heights, *po.m_model_object);
+        std::vector<Vec3d> points = SLAAutoSupports::find_islands(po.get_model_slices(), heights);
+
+        // TODO:
+        
+        // create mesh in igl format
+
+        // cover the islands with points, use igl to get precise z coordinate
+
+        // sprinkle the mesh with points (SLAAutoSupports::generate())
+
+
+        /*for (const auto& p: points)
+            std::cout << p(0) << " " << p(1) << " " << p(2) << std::endl;
+        std::cout << std::endl;
+        */
+        //for (auto& p: points)
+          //  p = po.trafo().inverse() * p;
+
+        po.m_supportdata.reset(new SLAPrintObject::SupportData());
+        po.m_supportdata->emesh = sla::to_eigenmesh(po.transformed_mesh());
+        po.m_supportdata->support_points = sla::to_point_set(points);
     };
 
     // In this step we create the supports
@@ -803,8 +835,7 @@ void SLAPrint::process()
 
     // This is the actual order of steps done on each PrintObject
     std::array<SLAPrintObjectStep, slaposCount> objectsteps = {
-        slaposObjectSlice,      // Support Islands will need this step
-        slaposSupportIslands,
+        slaposObjectSlice,      // SupportPoints will need this step
         slaposSupportPoints,
         slaposSupportTree,
         slaposBasePool,
@@ -815,7 +846,6 @@ void SLAPrint::process()
     std::array<slaposFn, slaposCount> pobj_program =
     {
         slice_model,
-        [](SLAPrintObject&){}, // slaposSupportIslands now empty
         support_points,
         support_tree,
         base_pool,
@@ -1014,9 +1044,6 @@ bool SLAPrintObject::invalidate_step(SLAPrintObjectStep step)
     // propagate to dependent steps
     if (step == slaposObjectSlice) {
         invalidated |= this->invalidate_all_steps();
-    } else if (step == slaposSupportIslands) {
-        invalidated |= this->invalidate_steps({ slaposSupportPoints, slaposSupportTree, slaposBasePool, slaposSliceSupports, slaposIndexSlices });
-        invalidated |= m_print->invalidate_step(slapsRasterize);
     } else if (step == slaposSupportPoints) {
         invalidated |= this->invalidate_steps({ slaposSupportTree, slaposBasePool, slaposSliceSupports, slaposIndexSlices });
         invalidated |= m_print->invalidate_step(slapsRasterize);

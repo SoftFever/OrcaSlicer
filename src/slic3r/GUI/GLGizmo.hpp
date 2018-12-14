@@ -436,7 +436,6 @@ protected:
 class GLGizmoSlaSupports : public GLGizmoBase
 {
 private:
-    SLAAutoSupports* m_sas = nullptr;
     ModelObject* m_model_object = nullptr;
 #if ENABLE_SLA_SUPPORT_GIZMO_MOD
     ModelObject* m_old_model_object = nullptr;

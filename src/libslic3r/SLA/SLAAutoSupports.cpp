@@ -3,12 +3,15 @@
 
 #include "SLAAutoSupports.hpp"
 #include "Model.hpp"
+#include "ExPolygon.hpp"
+#include "SVG.hpp"
+#include "Point.hpp"
 
 #include <iostream>
 
 
 namespace Slic3r {
-
+namespace SLAAutoSupports {
 SLAAutoSupports::SLAAutoSupports(ModelObject& mo, const SLAAutoSupports::Config& c)
 : m_model_object(mo), mesh(), m_config(c)
 {}
@@ -152,4 +155,90 @@ float SLAAutoSupports::get_required_density(float angle) const
 
 
 
+
+
+
+
+void output_expolygons(const ExPolygons& expolys, std::string filename)
+{
+    BoundingBox bb(Point(-30000000, -30000000), Point(30000000, 30000000));
+    Slic3r::SVG svg_cummulative(filename, bb);
+    for (size_t i = 0; i < expolys.size(); ++ i) {
+        /*Slic3r::SVG svg("single"+std::to_string(i)+".svg", bb);
+        svg.draw(expolys[i]);
+        svg.draw_outline(expolys[i].contour, "black", scale_(0.05));
+        svg.draw_outline(expolys[i].holes, "blue", scale_(0.05));
+        svg.Close();*/
+
+        svg_cummulative.draw(expolys[i]);
+        svg_cummulative.draw_outline(expolys[i].contour, "black", scale_(0.05));
+        svg_cummulative.draw_outline(expolys[i].holes, "blue", scale_(0.05));
+    }
+}
+
+std::vector<Vec3d> find_islands(const std::vector<ExPolygons>& slices, const std::vector<float>& heights)
+{
+    std::vector<Vec3d> support_points_out;
+
+    struct PointAccessor {
+        const Point* operator()(const Point &pt) const { return &pt; }
+    };
+    typedef ClosestPointInRadiusLookup<Point, PointAccessor> ClosestPointLookupType;
+
+    for (unsigned int i = 0; i<slices.size(); ++i) {
+        const ExPolygons& expolys_top = slices[i];
+        const ExPolygons& expolys_bottom = (i == 0 ? ExPolygons() : slices[i-1]);
+
+        std::string layer_num_str = std::string((i<10 ? "0" : "")) + std::string((i<100 ? "0" : "")) + std::to_string(i);
+        output_expolygons(expolys_top, "top" + layer_num_str + ".svg");
+        ExPolygons diff = diff_ex(expolys_top, expolys_bottom);
+        ExPolygons islands;
+
+        output_expolygons(diff, "diff" + layer_num_str + ".svg");
+
+        ClosestPointLookupType cpl(SCALED_EPSILON);
+        for (const ExPolygon& expol : expolys_top) {
+            for (const Point& p : expol.contour.points)
+                cpl.insert(p);
+            for (const Polygon& hole : expol.holes)
+                for (const Point& p : hole.points)
+                    cpl.insert(p);
+            // the lookup structure now contains all points from the top slice
+        }
+
+        for (const ExPolygon& polygon : diff) {
+            // we want to check all boundary points of the diff polygon
+            bool island = true;
+            for (const Point& p : polygon.contour.points) {
+                if (cpl.find(p).second != 0) { // the point belongs to the bottom slice - this cannot be an island
+                    island = false;
+                    goto NO_ISLAND;
+                }
+            }
+            for (const Polygon& hole : polygon.holes)
+                for (const Point& p : hole.points)
+                if (cpl.find(p).second != 0) {
+                    island = false;
+                    goto NO_ISLAND;
+                }
+
+            if (island) { // all points of the diff polygon are from the top slice
+                islands.push_back(polygon);
+            }
+            NO_ISLAND: ;// continue with next ExPolygon
+        }
+
+        if (!islands.empty())
+            output_expolygons(islands, "islands" + layer_num_str + ".svg");
+        for (const ExPolygon& island : islands) {
+            Point centroid = island.contour.centroid();
+            Vec3d centroid_d(centroid(0), centroid(1), scale_(i!=0 ? heights[i-1] : heights[0]-(heights[1]-heights[0]))) ;
+            support_points_out.push_back(unscale(centroid_d));
+        }
+    }
+
+    return support_points_out;
+}
+
+} // namespace SLAAutoSupports
 } // namespace Slic3r

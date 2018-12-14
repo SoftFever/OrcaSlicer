@@ -10,7 +10,7 @@ namespace Slic3r {
 
 class ModelObject;
 
-
+namespace SLAAutoSupports {
 
 
 class SLAAutoSupports {
@@ -35,7 +35,9 @@ private:
 };
 
 
+std::vector<Vec3d> find_islands(const std::vector<ExPolygons>& slices, const std::vector<float>& heights);
 
+} // namespace SLAAutoSupports
 
 } // namespace Slic3r
 
