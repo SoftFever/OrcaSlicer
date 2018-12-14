@@ -564,7 +564,7 @@ void SLAPrint::process()
             if(!po.m_config.supports_enable.getBool()) elevation = 0;
             sla::PoolConfig pcfg(wt, h, md, er);
 
-            sla::ExPolygons bp;
+            ExPolygons bp;
             double pad_h = sla::get_pad_elevation(pcfg);
             auto&& trmesh = po.transformed_mesh();
 
