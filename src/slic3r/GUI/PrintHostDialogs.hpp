@@ -2,23 +2,26 @@
 #define slic3r_PrintHostSendDialog_hpp_
 
 #include <string>
-
 #include <boost/filesystem/path.hpp>
 
 #include <wx/string.h>
-#include <wx/frame.h>
 #include <wx/event.h>
-#include <wx/progdlg.h>
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
+#include <wx/dialog.h>
 
-#include "slic3r/GUI/GUI.hpp"
-#include "slic3r/GUI/MsgDialog.hpp"
+#include "GUI.hpp"
+#include "GUI_Utils.hpp"
+#include "MsgDialog.hpp"
+#include "../Utils/PrintHost.hpp"
 
+class wxTextCtrl;
+class wxCheckBox;
+class wxDataViewListCtrl;
 
 namespace Slic3r {
+
+struct PrintHostJob;
+
+namespace GUI {
 
 
 class PrintHostSendDialog : public GUI::MsgDialog
@@ -38,12 +41,38 @@ private:
 class PrintHostQueueDialog : public wxDialog
 {
 public:
-    PrintHostQueueDialog();
+    class Event : public wxEvent
+    {
+    public:
+        size_t job_id;
+        int progress = 0;    // in percent
+        wxString error;
 
+        Event(wxEventType eventType, int winid, size_t job_id);
+        Event(wxEventType eventType, int winid, size_t job_id, int progress);
+        Event(wxEventType eventType, int winid, size_t job_id, wxString error);
+
+        virtual wxEvent *Clone() const;
+    };
+
+
+    PrintHostQueueDialog(wxWindow *parent);
+
+    void append_job(const PrintHostJob &job);
 private:
+    wxDataViewListCtrl *job_list;
+    // Note: EventGuard prevents delivery of progress evts to a freed PrintHostQueueDialog
+    EventGuard on_progress_evt;
+    EventGuard on_error_evt;
+
+    void on_progress(Event&);
+    void on_error(Event&);
 };
 
+wxDECLARE_EVENT(EVT_PRINTHOST_PROGRESS, PrintHostQueueDialog::Event);
+wxDECLARE_EVENT(EVT_PRINTHOST_ERROR, PrintHostQueueDialog::Event);
 
-}
+
+}}
 
 #endif

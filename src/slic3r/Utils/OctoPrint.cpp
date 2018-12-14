@@ -4,9 +4,10 @@
 #include <boost/format.hpp>
 #include <boost/log/trivial.hpp>
 
+#include <wx/progdlg.h>
+
 #include "libslic3r/PrintConfig.hpp"
 #include "slic3r/GUI/I18N.hpp"
-#include "slic3r/GUI/PrintHostDialogs.hpp"   // XXX
 #include "Http.hpp"
 
 
@@ -59,32 +60,19 @@ wxString OctoPrint::get_test_failed_msg (wxString &msg) const
 						_(L("Could not connect to OctoPrint")), msg, _(L("Note: OctoPrint version at least 1.1.0 is required.")));
 }
 
-bool OctoPrint::send_gcode(const std::string &filename) const
+bool OctoPrint::upload(PrintHostUpload upload_data, Http::ProgressFn prorgess_fn, Http::ErrorFn error_fn) const
 {
-	enum { PROGRESS_RANGE = 1000 };
-
-	const auto errortitle = _(L("Error while uploading to the OctoPrint server"));
-	fs::path filepath(filename);
-
-	PrintHostSendDialog send_dialog(filepath.filename());
-	if (send_dialog.ShowModal() != wxID_OK) { return false; }
-
-	const bool print = send_dialog.start_print();
-	const auto upload_filepath = send_dialog.filename();
-	const auto upload_filename = upload_filepath.filename();
-	const auto upload_parent_path = upload_filepath.parent_path();
-
-	wxProgressDialog progress_dialog(
-		_(L("OctoPrint upload")),
-		_(L("Sending G-code file to the OctoPrint server...")),
-		PROGRESS_RANGE, nullptr, wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT);
-	progress_dialog.Pulse();
+	const auto upload_filename = upload_data.upload_path.filename();
+	const auto upload_parent_path = upload_data.upload_path.parent_path();
 
 	wxString test_msg;
-	if (!test(test_msg)) {
-		auto errormsg = wxString::Format("%s: %s", errortitle, test_msg);
-		GUI::show_error(&progress_dialog, std::move(errormsg));
-		return false;
+	if (! test(test_msg)) {
+
+		// TODO:
+
+		// auto errormsg = wxString::Format("%s: %s", errortitle, test_msg);
+		// GUI::show_error(&progress_dialog, std::move(errormsg));
+		// return false;
 	}
 
 	bool res = true;
@@ -92,46 +80,36 @@ bool OctoPrint::send_gcode(const std::string &filename) const
 	auto url = make_url("api/files/local");
 
 	BOOST_LOG_TRIVIAL(info) << boost::format("Octoprint: Uploading file %1% at %2%, filename: %3%, path: %4%, print: %5%")
-		% filepath.string()
+		% upload_data.source_path.string()
 		% url
 		% upload_filename.string()
 		% upload_parent_path.string()
-		% print;
+		% upload_data.start_print;
 
 	auto http = Http::post(std::move(url));
 	set_auth(http);
-	http.form_add("print", print ? "true" : "false")
+	http.form_add("print", upload_data.start_print ? "true" : "false")
 		.form_add("path", upload_parent_path.string())      // XXX: slashes on windows ???
-		.form_add_file("file", filename, upload_filename.string())
+		.form_add_file("file", upload_data.source_path.string(), upload_filename.string())
 		.on_complete([&](std::string body, unsigned status) {
 			BOOST_LOG_TRIVIAL(debug) << boost::format("Octoprint: File uploaded: HTTP %1%: %2%") % status % body;
-			progress_dialog.Update(PROGRESS_RANGE);
 		})
 		.on_error([&](std::string body, std::string error, unsigned status) {
 			BOOST_LOG_TRIVIAL(error) << boost::format("Octoprint: Error uploading file: %1%, HTTP %2%, body: `%3%`") % error % status % body;
-			auto errormsg = wxString::Format("%s: %s", errortitle, format_error(body, error, status));
-			GUI::show_error(&progress_dialog, std::move(errormsg));
+			error_fn(std::move(body), std::move(error), status);
 			res = false;
 		})
 		.on_progress([&](Http::Progress progress, bool &cancel) {
+			prorgess_fn(std::move(progress), cancel);
 			if (cancel) {
 				// Upload was canceled
+				BOOST_LOG_TRIVIAL(error) << "Octoprint: Upload canceled";
 				res = false;
-			} else if (progress.ultotal > 0) {
-				int value = PROGRESS_RANGE * progress.ulnow / progress.ultotal;
-				cancel = !progress_dialog.Update(std::min(value, PROGRESS_RANGE - 1));    // Cap the value to prevent premature dialog closing
-			} else {
-				cancel = !progress_dialog.Pulse();
 			}
 		})
 		.perform_sync();
 
 	return res;
-}
-
-bool OctoPrint::upload(PrintHostUpload upload_data) const
-{
-	throw "unimplemented";
 }
 
 bool OctoPrint::has_auto_discovery() const

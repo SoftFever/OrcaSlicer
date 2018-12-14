@@ -21,7 +21,9 @@ class ProgressStatusBar;
 
 namespace GUI
 {
+
 class Tab;
+class PrintHostQueueDialog;
 
 enum QuickSlice
 {
@@ -51,6 +53,8 @@ class MainFrame : public wxFrame
 
     wxMenuItem* m_menu_item_repeat { nullptr };
     wxMenuItem* m_menu_item_reslice_now { nullptr };
+
+    PrintHostQueueDialog *m_printhost_queue_dlg;
 
     std::string     get_base_name(const wxString full_name) const ;
     std::string     get_dir_name(const wxString full_name) const ;
@@ -92,6 +96,8 @@ public:
     void        load_config(const DynamicPrintConfig& config);
     void        select_tab(size_t tab) const;
     void        select_view(const std::string& direction);
+
+    PrintHostQueueDialog* printhost_queue_dlg() { return m_printhost_queue_dlg; }
 
     Plater*             m_plater { nullptr };
     wxNotebook*         m_tabpanel { nullptr };

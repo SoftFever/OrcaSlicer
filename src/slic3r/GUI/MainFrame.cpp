@@ -18,6 +18,7 @@
 #include "ProgressStatusBar.hpp"
 #include "3DScene.hpp"
 #include "AppConfig.hpp"
+#include "PrintHostDialogs.hpp"
 #include "wxExtensions.hpp"
 #include "I18N.hpp"
 
@@ -30,7 +31,8 @@ namespace GUI {
 MainFrame::MainFrame(const bool no_plater, const bool loaded) :
 wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE),
         m_no_plater(no_plater),
-        m_loaded(loaded)
+        m_loaded(loaded),
+        m_printhost_queue_dlg(new PrintHostQueueDialog(this))
 {
     // Load the icon either from the exe, or from the ico file.
 #if _WIN32
@@ -375,6 +377,10 @@ void MainFrame::init_menubar()
         append_menu_item(windowMenu, wxID_ANY, L("Select Printer Settings Tab\tCtrl+4"), L("Show the printer settings"),
             [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 2); }, "printer_empty.png");
 #endif // ENABLE_REMOVE_TABS_FROM_PLATER
+
+        windowMenu->AppendSeparator();
+        append_menu_item(windowMenu, wxID_ANY, L("Print Host Upload Queue"), L("Display the Print Host Upload Queue window"),
+            [this](wxCommandEvent&) { m_printhost_queue_dlg->ShowModal(); }, "arrow_up.png");
     }
 
     // View menu

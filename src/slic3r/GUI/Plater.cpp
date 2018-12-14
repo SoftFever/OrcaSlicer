@@ -3144,7 +3144,7 @@ void Plater::send_gcode()
     }
     default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string()));
 
-    Slic3r::PrintHostSendDialog dlg(default_output_file);
+    PrintHostSendDialog dlg(default_output_file);
     if (dlg.ShowModal() == wxID_OK) {
         upload_job.upload_data.upload_path = dlg.filename();
         upload_job.upload_data.start_print = dlg.start_print();

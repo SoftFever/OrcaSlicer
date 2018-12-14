@@ -7,6 +7,8 @@
 
 #include <wx/string.h>
 
+#include "Http.hpp"
+
 
 namespace Slic3r {
 
@@ -29,11 +31,10 @@ public:
     virtual bool test(wxString &curl_msg) const = 0;
     virtual wxString get_test_ok_msg () const = 0;
     virtual wxString get_test_failed_msg (wxString &msg) const = 0;
-    // Send gcode file to print host, filename is expected to be in UTF-8
-    virtual bool send_gcode(const std::string &filename) const = 0;         // XXX: remove in favor of upload()
-    virtual bool upload(PrintHostUpload upload_data) const = 0;
+    virtual bool upload(PrintHostUpload upload_data, Http::ProgressFn prorgess_fn, Http::ErrorFn error_fn) const = 0;
     virtual bool has_auto_discovery() const = 0;
     virtual bool can_test() const = 0;
+    virtual std::string get_host() const = 0;
 
     static PrintHost* get_print_host(DynamicPrintConfig *config);
 };
@@ -43,6 +44,7 @@ struct PrintHostJob
 {
     PrintHostUpload upload_data;
     std::unique_ptr<PrintHost> printhost;
+    bool cancelled = false;
 
     PrintHostJob() {}
     PrintHostJob(const PrintHostJob&) = delete;
@@ -68,16 +70,21 @@ struct PrintHostJob
 };
 
 
+namespace GUI { class PrintHostQueueDialog; }
+
 class PrintHostJobQueue
 {
 public:
-    PrintHostJobQueue();
+    PrintHostJobQueue(GUI::PrintHostQueueDialog *queue_dialog);
     PrintHostJobQueue(const PrintHostJobQueue &) = delete;
     PrintHostJobQueue(PrintHostJobQueue &&other) = delete;
     ~PrintHostJobQueue();
 
     PrintHostJobQueue& operator=(const PrintHostJobQueue &) = delete;
     PrintHostJobQueue& operator=(PrintHostJobQueue &&other) = delete;
+
+    void enqueue(PrintHostJob job);
+    void cancel(size_t id);
 
 private:
     struct priv;
