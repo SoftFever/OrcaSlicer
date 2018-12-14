@@ -23,8 +23,8 @@ ExternalProject_Add(dep_boost
         variant=release
         threading=multi
         boost.locale.icu=off
-        "cflags=cflags=-fPIC -mmacosx-version-min=${DEPS_OSX_TARGET}"
-        "cxxflags=cxxflags=-fPIC -mmacosx-version-min=${DEPS_OSX_TARGET}"
+        "cflags=-fPIC -mmacosx-version-min=${DEPS_OSX_TARGET}"
+        "cxxflags=-fPIC -mmacosx-version-min=${DEPS_OSX_TARGET}"
         install
     INSTALL_COMMAND ""   # b2 does that already
 )

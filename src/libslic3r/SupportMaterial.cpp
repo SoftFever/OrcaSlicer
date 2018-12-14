@@ -458,6 +458,8 @@ Polygons collect_slices_outer(const Layer &layer)
 class SupportGridPattern
 {
 public:
+    // Achtung! The support_polygons need to be trimmed by trimming_polygons, otherwise
+    // the selection by island_samples (see the island_samples() method) will not work!
     SupportGridPattern(
         // Support islands, to be stretched into a grid. Already trimmed with min(lower_layer_offset, m_gap_xy)
         const Polygons &support_polygons, 
@@ -485,6 +487,18 @@ public:
         bbox.align_to_grid(grid_resolution);
         m_grid.set_bbox(bbox);
         m_grid.create(*m_support_polygons, grid_resolution);
+#if 0
+        if (m_grid.has_intersecting_edges()) {
+            // EdgeGrid fails to produce valid signed distance function for self-intersecting polygons.
+            m_support_polygons_rotated = simplify_polygons(*m_support_polygons);
+            m_support_polygons  = &m_support_polygons_rotated;
+            m_grid.set_bbox(bbox);
+            m_grid.create(*m_support_polygons, grid_resolution);
+//            assert(! m_grid.has_intersecting_edges());
+            printf("SupportGridPattern: fixing polygons with intersection %s\n",
+                m_grid.has_intersecting_edges() ? "FAILED" : "SUCCEEDED");
+        }
+#endif
         m_grid.calculate_sdf();
         // Sample a single point per input support polygon, keep it as a reference to maintain corresponding
         // polygons if ever these polygons get split into parts by the trimming polygons.
@@ -499,9 +513,12 @@ public:
     {
         // Generate islands, so each island may be tested for overlap with m_island_samples.
         assert(std::abs(2 * offset_in_grid) < m_grid.resolution());
-        ExPolygons islands = diff_ex(
-            m_grid.contours_simplified(offset_in_grid, fill_holes),
-            *m_trimming_polygons, false);
+#ifdef SLIC3R_DEBUG
+        Polygons   support_polygons_simplified = m_grid.contours_simplified(offset_in_grid, fill_holes);
+        ExPolygons islands = diff_ex(support_polygons_simplified, *m_trimming_polygons, false);
+#else
+        ExPolygons islands = diff_ex(m_grid.contours_simplified(offset_in_grid, fill_holes), *m_trimming_polygons, false);
+#endif
 
         // Extract polygons, which contain some of the m_island_samples.
         Polygons out;
@@ -551,7 +568,10 @@ public:
             bbox.merge(get_extents(islands));
         if (!out.empty())
             bbox.merge(get_extents(out));
+        if (!support_polygons_simplified.empty())
+            bbox.merge(get_extents(support_polygons_simplified));
         SVG svg(debug_out_path("extract_support_from_grid_trimmed-%d.svg", iRun).c_str(), bbox);
+        svg.draw(union_ex(support_polygons_simplified), "gray", 0.25f);
         svg.draw(islands, "red", 0.5f);
         svg.draw(union_ex(out), "green", 0.5f);
         svg.draw(union_ex(*m_support_polygons), "blue", 0.5f);
@@ -568,7 +588,121 @@ public:
         return out;
     }
 
+#ifdef SLIC3R_DEBUG
+    void serialize(const std::string &path)
+    {
+        FILE *file = ::fopen(path.c_str(), "wb");
+        ::fwrite(&m_support_spacing, 8, 1, file);
+        ::fwrite(&m_support_angle, 8, 1, file);
+        uint32_t n_polygons = m_support_polygons->size();
+        ::fwrite(&n_polygons, 4, 1, file);
+        for (uint32_t i = 0; i < n_polygons; ++ i) {
+            const Polygon &poly = (*m_support_polygons)[i];
+            uint32_t n_points = poly.size();
+            ::fwrite(&n_points, 4, 1, file);
+            for (uint32_t j = 0; j < n_points; ++ j) {
+                const Point &pt = poly.points[j];
+                ::fwrite(&pt.x, sizeof(coord_t), 1, file);
+                ::fwrite(&pt.y, sizeof(coord_t), 1, file);
+            }
+        }
+        n_polygons = m_trimming_polygons->size();
+        ::fwrite(&n_polygons, 4, 1, file);
+        for (uint32_t i = 0; i < n_polygons; ++ i) {
+            const Polygon &poly = (*m_trimming_polygons)[i];
+            uint32_t n_points = poly.size();
+            ::fwrite(&n_points, 4, 1, file);
+            for (uint32_t j = 0; j < n_points; ++ j) {
+                const Point &pt = poly.points[j];
+                ::fwrite(&pt.x, sizeof(coord_t), 1, file);
+                ::fwrite(&pt.y, sizeof(coord_t), 1, file);
+            }
+        }
+        ::fclose(file);
+    }
+
+    static SupportGridPattern deserialize(const std::string &path, int which = -1)
+    {
+        SupportGridPattern out;
+        out.deserialize_(path, which);
+        return out;
+    }
+
+    // Deserialization constructor
+	bool deserialize_(const std::string &path, int which = -1)
+    {
+        FILE *file = ::fopen(path.c_str(), "rb");
+        if (file == nullptr)
+            return false;
+
+        m_support_polygons = &m_support_polygons_deserialized;
+        m_trimming_polygons = &m_trimming_polygons_deserialized;
+
+        ::fread(&m_support_spacing, 8, 1, file);
+        ::fread(&m_support_angle, 8, 1, file);
+        //FIXME
+        //m_support_spacing *= 0.01 / 2;
+        uint32_t n_polygons;
+        ::fread(&n_polygons, 4, 1, file);
+        m_support_polygons_deserialized.reserve(n_polygons);
+        int32_t scale = 1;
+        for (uint32_t i = 0; i < n_polygons; ++ i) {
+            Polygon poly;
+            uint32_t n_points;
+            ::fread(&n_points, 4, 1, file);
+            poly.points.reserve(n_points);
+            for (uint32_t j = 0; j < n_points; ++ j) {
+                coord_t x, y;
+                ::fread(&x, sizeof(coord_t), 1, file);
+                ::fread(&y, sizeof(coord_t), 1, file);
+                poly.points.emplace_back(Point(x * scale, y * scale));
+            }
+            if (which == -1 || which == i)
+				m_support_polygons_deserialized.emplace_back(std::move(poly));
+            printf("Polygon %d, area: %lf\n", i, area(poly.points));
+        }
+        ::fread(&n_polygons, 4, 1, file);
+        m_trimming_polygons_deserialized.reserve(n_polygons);
+        for (uint32_t i = 0; i < n_polygons; ++ i) {
+            Polygon poly;
+            uint32_t n_points;
+            ::fread(&n_points, 4, 1, file);
+            poly.points.reserve(n_points);
+            for (uint32_t j = 0; j < n_points; ++ j) {
+                coord_t x, y;
+                ::fread(&x, sizeof(coord_t), 1, file);
+                ::fread(&y, sizeof(coord_t), 1, file);
+                poly.points.emplace_back(Point(x * scale, y * scale));
+            }
+            m_trimming_polygons_deserialized.emplace_back(std::move(poly));
+        }
+        ::fclose(file);
+
+        m_support_polygons_deserialized = simplify_polygons(m_support_polygons_deserialized, false);
+        //m_support_polygons_deserialized = to_polygons(union_ex(m_support_polygons_deserialized, false));
+
+		// Create an EdgeGrid, initialize it with projection, initialize signed distance field.
+		coord_t grid_resolution = coord_t(scale_(m_support_spacing));
+		BoundingBox bbox = get_extents(*m_support_polygons);
+        bbox.offset(20);
+		bbox.align_to_grid(grid_resolution);
+		m_grid.set_bbox(bbox);
+		m_grid.create(*m_support_polygons, grid_resolution);
+		m_grid.calculate_sdf();
+		// Sample a single point per input support polygon, keep it as a reference to maintain corresponding
+		// polygons if ever these polygons get split into parts by the trimming polygons.
+		m_island_samples = island_samples(*m_support_polygons);
+        return true;
+    }
+
+    const Polygons& support_polygons() const { return *m_support_polygons; }
+    const Polygons& trimming_polygons() const { return *m_trimming_polygons; }
+    const EdgeGrid::Grid& grid() const { return m_grid; }
+
+#endif /* SLIC3R_DEBUG */
+
 private:
+    SupportGridPattern() {}
     SupportGridPattern& operator=(const SupportGridPattern &rhs);
 
 #if 0
@@ -639,6 +773,12 @@ private:
     // Internal sample points of supporting expolygons. These internal points are used to pick regions corresponding
     // to the initial supporting regions, after these regions werre grown and possibly split to many by the trimming polygons.
     Points                  m_island_samples;
+
+#ifdef SLIC3R_DEBUG
+    // support for deserialization of m_support_polygons, m_trimming_polygons
+    Polygons                m_support_polygons_deserialized;
+    Polygons                m_trimming_polygons_deserialized;
+#endif /* SLIC3R_DEBUG */
 };
 
 namespace SupportMaterialInternal {
@@ -783,16 +923,39 @@ namespace SupportMaterialInternal {
             if (surface.surface_type == stBottomBridge && surface.bridge_angle != -1)
                 polygons_append(bridges, surface.expolygon);
         //FIXME add the gap filled areas. Extrude the gaps with a bridge flow?
-        contact_polygons = diff(contact_polygons, bridges, true);
-        // Add the bridge anchors into the region.
+        // Remove the unsupported ends of the bridges from the bridged areas.
         //FIXME add supports at regular intervals to support long bridges!
-        polygons_append(contact_polygons,
-            intersection(
+        bridges = diff(bridges,
                 // Offset unsupported edges into polygons.
-                offset(layerm->unsupported_bridge_edges.polylines, scale_(SUPPORT_MATERIAL_MARGIN), SUPPORT_SURFACES_OFFSET_PARAMETERS),
-                bridges));
+                offset(layerm->unsupported_bridge_edges.polylines, scale_(SUPPORT_MATERIAL_MARGIN), SUPPORT_SURFACES_OFFSET_PARAMETERS));
+        // Remove bridged areas from the supported areas.
+        contact_polygons = diff(contact_polygons, bridges, true);
     }
 }
+
+#if 0
+static int Test()
+{
+//    for (int i = 0; i < 30; ++ i)
+    {
+        int i = -1;
+//        SupportGridPattern grid("d:\\temp\\support-top-contacts-final-run1-layer460-z70.300000-prev.bin", i);
+//        SupportGridPattern grid("d:\\temp\\support-top-contacts-final-run1-layer460-z70.300000.bin", i);
+        auto grid = SupportGridPattern::deserialize("d:\\temp\\support-top-contacts-final-run1-layer27-z5.650000.bin", i);
+        std::vector<std::pair<EdgeGrid::Grid::ContourEdge, EdgeGrid::Grid::ContourEdge>> intersections = grid.grid().intersecting_edges();
+        if (! intersections.empty())
+            printf("Intersections between contours!\n");
+        Slic3r::export_intersections_to_svg("d:\\temp\\support_polygon_intersections.svg", grid.support_polygons());
+        Slic3r::SVG::export_expolygons("d:\\temp\\support_polygons.svg", union_ex(grid.support_polygons(), false));
+        Slic3r::SVG::export_expolygons("d:\\temp\\trimming_polygons.svg", union_ex(grid.trimming_polygons(), false));
+        Polygons extracted = grid.extract_support(scale_(0.21 / 2), true);
+        Slic3r::SVG::export_expolygons("d:\\temp\\extracted.svg", union_ex(extracted, false));
+        printf("hu!");
+    }
+    return 0;
+}
+static int run_support_test = Test();
+#endif /* SLIC3R_DEBUG */
 
 // Generate top contact layers supporting overhangs.
 // For a soluble interface material synchronize the layer heights with the object, otherwise leave the layer height undefined.
@@ -1096,6 +1259,8 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                         }
                     }
 
+                    // Achtung! The contact_polygons need to be trimmed by slices_margin_cached, otherwise
+                    // the selection by island_samples (see the SupportGridPattern::island_samples() method) will not work!
                     SupportGridPattern support_grid_pattern(
                         // Support islands, to be stretched into a grid.
                         contact_polygons, 
@@ -1114,9 +1279,14 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                         // Reduce the amount of dense interfaces: Do not generate dense interfaces below overhangs with 60% overhang of the extrusions.
                         Polygons dense_interface_polygons = diff(overhang_polygons, 
                             offset2(lower_layer_polygons, - no_interface_offset * 0.5f, no_interface_offset * (0.6f + 0.5f), SUPPORT_SURFACES_OFFSET_PARAMETERS));
-//                            offset(lower_layer_polygons, no_interface_offset * 0.6f, SUPPORT_SURFACES_OFFSET_PARAMETERS));
                         if (! dense_interface_polygons.empty()) {
-                            //FIXME do it for the bridges only?
+                            dense_interface_polygons =
+                                // Achtung! The dense_interface_polygons need to be trimmed by slices_margin_cached, otherwise
+                                // the selection by island_samples (see the SupportGridPattern::island_samples() method) will not work!
+                                diff(
+                                    // Regularize the contour.
+                                    offset(dense_interface_polygons, no_interface_offset * 0.1f),
+                                    slices_margin_cached);
                             SupportGridPattern support_grid_pattern(
                                 // Support islands, to be stretched into a grid.
                                 dense_interface_polygons, 
@@ -1126,8 +1296,34 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                                 m_object_config->support_material_spacing.value + m_support_material_flow.spacing(),
                                 Geometry::deg2rad(m_object_config->support_material_angle.value));                        
                             new_layer.polygons = support_grid_pattern.extract_support(m_support_material_flow.scaled_spacing()/2 + 5, false);
+                    #ifdef SLIC3R_DEBUG
+                            {
+                                support_grid_pattern.serialize(debug_out_path("support-top-contacts-final-run%d-layer%d-z%f.bin", iRun, layer_id, layer.print_z));
+
+                                BoundingBox bbox = get_extents(contact_polygons);
+                                bbox.merge(get_extents(new_layer.polygons));
+                                ::Slic3r::SVG svg(debug_out_path("support-top-contacts-final0-run%d-layer%d-z%f.svg", iRun, layer_id, layer.print_z));
+                                svg.draw(union_ex(*new_layer.contact_polygons, false), "gray", 0.5f);
+                                svg.draw(union_ex(contact_polygons, false), "blue", 0.5f);
+                                svg.draw(union_ex(dense_interface_polygons, false), "green", 0.5f);
+                                svg.draw(union_ex(new_layer.polygons, true), "red", 0.5f);
+                                svg.draw_outline(union_ex(new_layer.polygons, true), "black", "black", scale_(0.1f));
+                            }
+                    #endif /* SLIC3R_DEBUG */
                         }
                     }
+                    #ifdef SLIC3R_DEBUG
+                    {
+                        BoundingBox bbox = get_extents(contact_polygons);
+                        bbox.merge(get_extents(new_layer.polygons));
+                        ::Slic3r::SVG svg(debug_out_path("support-top-contacts-final-run%d-layer%d-z%f.svg", iRun, layer_id, layer.print_z));
+                        svg.draw(union_ex(*new_layer.contact_polygons, false), "gray", 0.5f);
+                        svg.draw(union_ex(contact_polygons, false), "blue", 0.5f);
+                        svg.draw(union_ex(overhang_polygons, false), "green", 0.5f);
+                        svg.draw(union_ex(new_layer.polygons, true), "red", 0.5f);
+                        svg.draw_outline(union_ex(new_layer.polygons, true), "black", "black", scale_(0.1f));
+                    }
+                    #endif /* SLIC3R_DEBUG */
 
                     // Even after the contact layer was expanded into a grid, some of the contact islands may be too tiny to be extruded.
                     // Remove those tiny islands from new_layer.polygons and new_layer.contact_polygons.

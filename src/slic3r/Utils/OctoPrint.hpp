@@ -24,6 +24,7 @@ public:
 	wxString get_test_failed_msg (wxString &msg) const;
 	// Send gcode file to octoprint, filename is expected to be in UTF-8
 	bool send_gcode(const std::string &filename) const;
+	bool upload(PrintHostUpload upload_data) const;
 	bool has_auto_discovery() const;
 	bool can_test() const;
 private:

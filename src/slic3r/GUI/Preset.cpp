@@ -5,6 +5,12 @@
 #include "BitmapCache.hpp"
 #include "I18N.hpp"
 
+#ifdef _MSC_VER
+    #define WIN32_LEAN_AND_MEAN
+    #define NOMINMAX
+    #include <Windows.h>
+#endif /* _MSC_VER */
+
 #include <fstream>
 #include <stdexcept>
 #include <boost/format.hpp>
@@ -13,6 +19,7 @@
 #include <boost/algorithm/string/predicate.hpp>
 
 #include <boost/nowide/cenv.hpp>
+#include <boost/nowide/convert.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <boost/property_tree/ini_parser.hpp>
@@ -446,6 +453,7 @@ const std::vector<std::string>& Preset::sla_printer_options()
             "printer_technology",
             "bed_shape", "max_print_height",
             "display_width", "display_height", "display_pixels_x", "display_pixels_y",
+            "display_orientation",
             "printer_correction",
             "printer_notes",
             "inherits"
@@ -498,6 +506,16 @@ void PresetCollection::add_default_preset(const std::vector<std::string> &keys, 
     ++ m_num_default_presets;
 }
 
+bool is_file_plain(const std::string &path)
+{
+#ifdef _MSC_VER
+    DWORD attributes = GetFileAttributesW(boost::nowide::widen(path).c_str());
+    return (attributes & (FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_SYSTEM)) == 0;
+#else
+    return true;
+#endif
+}
+
 // Load all presets found in dir_path.
 // Throws an exception on error.
 void PresetCollection::load_presets(const std::string &dir_path, const std::string &subdir)
@@ -506,7 +524,10 @@ void PresetCollection::load_presets(const std::string &dir_path, const std::stri
 	m_dir_path = dir.string();
     std::string errors_cummulative;
 	for (auto &dir_entry : boost::filesystem::directory_iterator(dir))
-        if (boost::filesystem::is_regular_file(dir_entry.status()) && boost::algorithm::iends_with(dir_entry.path().filename().string(), ".ini")) {
+        if (boost::filesystem::is_regular_file(dir_entry.status()) && boost::algorithm::iends_with(dir_entry.path().filename().string(), ".ini") &&
+            // Ignore system and hidden files, which may be created by the DropBox synchronisation process.
+            // https://github.com/prusa3d/Slic3r/issues/1298
+            is_file_plain(dir_entry.path().string())) {
             std::string name = dir_entry.path().filename().string();
             // Remove the .ini suffix.
             name.erase(name.size() - 4);

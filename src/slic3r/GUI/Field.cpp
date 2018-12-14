@@ -74,7 +74,16 @@ void Field::on_kill_focus(wxEvent& event)
 	event.Skip();
 	// call the registered function if it is available
     if (m_on_kill_focus!=nullptr) 
-        m_on_kill_focus();
+        m_on_kill_focus(m_opt_id);
+}
+
+void Field::on_set_focus(wxEvent& event)
+{
+    // to allow the default behavior
+	event.Skip();
+	// call the registered function if it is available
+    if (m_on_set_focus!=nullptr) 
+        m_on_set_focus(m_opt_id);
 }
 
 void Field::on_change_field()
@@ -125,9 +134,9 @@ void Field::get_value_by_opt_type(wxString& str)
 	case coPercents:
 	case coFloats:
 	case coFloat:{
-		if (m_opt.type == coPercent && str.Last() == '%') 
+		if (m_opt.type == coPercent && !str.IsEmpty() &&  str.Last() == '%') 
 			str.RemoveLast();
-		else if (str.Last() == '%')	{
+		else if (!str.IsEmpty() && str.Last() == '%')	{
 			wxString label = m_Label->GetLabel();
 			if		(label.Last() == '\n')	label.RemoveLast();
 			while	(label.Last() == ' ')	label.RemoveLast();
@@ -162,7 +171,7 @@ void Field::get_value_by_opt_type(wxString& str)
 	}
 }
 
-bool TextCtrl::is_defined_input_value()
+bool TextCtrl::is_defined_input_value() const 
 {
     if (static_cast<wxTextCtrl*>(window)->GetValue().empty() && m_opt.type != coString && m_opt.type != coStrings)
         return false;
@@ -216,10 +225,12 @@ void TextCtrl::BUILD() {
 		break; 
 	}
 
-    const long style = m_opt.multiline ? wxTE_MULTILINE : 0 | m_process_enter ? wxTE_PROCESS_ENTER : 0;
+    const long style = m_opt.multiline ? wxTE_MULTILINE : 0;
 	auto temp = new wxTextCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size, style);
 
 	temp->SetToolTip(get_tooltip_text(text_value));
+
+    temp->Bind(wxEVT_SET_FOCUS, ([this](wxEvent& e) { on_set_focus(e); }), temp->GetId());
     
 	temp->Bind(wxEVT_LEFT_DOWN, ([temp](wxEvent& event)
 	{
@@ -240,17 +251,13 @@ void TextCtrl::BUILD() {
 		e.Skip();
 		temp->GetToolTip()->Enable(true);
 #endif // __WXGTK__
-        if (!is_defined_input_value()) 
+//         if (!is_defined_input_value()) 
+        if (is_defined_input_value())
+            on_change_field();
+        else
             on_kill_focus(e);
 	}), temp->GetId());
-
-    if (m_process_enter) {
-        temp->Bind(wxEVT_TEXT_ENTER, ([this](wxCommandEvent& evt) {
-            if(is_defined_input_value()) 
-                on_change_field();
-        }), temp->GetId());
-    }
-    else {
+    /*
         temp->Bind(wxEVT_TEXT, ([this](wxCommandEvent& evt)
         {
 #ifdef __WXGTK__
@@ -267,8 +274,7 @@ void TextCtrl::BUILD() {
         temp->Bind(wxEVT_KEY_DOWN, &TextCtrl::change_field_value, this);
         temp->Bind(wxEVT_KEY_UP, &TextCtrl::change_field_value, this);
 #endif //__WXGTK__
-    }
-
+*/
 	// select all text using Ctrl+A
 	temp->Bind(wxEVT_CHAR, ([temp](wxKeyEvent& event)
 	{
@@ -371,7 +377,15 @@ void SpinCtrl::BUILD() {
 		0, min_val, max_val, default_value);
 
 // 	temp->Bind(wxEVT_SPINCTRL, ([this](wxCommandEvent e) { tmp_value = undef_spin_val; on_change_field(); }), temp->GetId());
-	temp->Bind(wxEVT_KILL_FOCUS, ([this](wxEvent& e) { on_kill_focus(e); }), temp->GetId());
+	temp->Bind(wxEVT_KILL_FOCUS, ([this](wxEvent& e)
+	{
+        if (tmp_value < 0)
+	        on_kill_focus(e);
+        else {
+            e.Skip();
+            on_change_field();
+        }
+	}), temp->GetId());
 	temp->Bind(wxEVT_TEXT, ([this](wxCommandEvent e)
 	{
 // 		# On OSX / Cocoa, wxSpinCtrl::GetValue() doesn't return the new value
@@ -382,7 +396,8 @@ void SpinCtrl::BUILD() {
 		std::string value = e.GetString().utf8_str().data();
 		if (is_matched(value, "^\\d+$"))
 			tmp_value = std::stoi(value);
-		on_change_field();
+        else tmp_value = -9999;
+// 		on_change_field();
 // 		# We don't reset tmp_value here because _on_change might put callbacks
 // 		# in the CallAfter queue, and we want the tmp value to be available from
 // 		# them as well.

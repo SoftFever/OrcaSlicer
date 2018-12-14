@@ -1292,9 +1292,11 @@ void GLGizmoMove3D::on_render(const GLCanvas3D::Selection& selection) const
 
         // draw grabbers
         render_grabbers(box);
-        render_grabber_extension(X, box, false);
-        render_grabber_extension(Y, box, false);
-        render_grabber_extension(Z, box, false);
+        for (unsigned int i = 0; i < 3; ++i)
+        {
+            if (m_grabbers[i].enabled)
+                render_grabber_extension((Axis)i, box, false);
+        }
     }
     else
     {

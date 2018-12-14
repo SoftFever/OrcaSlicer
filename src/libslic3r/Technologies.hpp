@@ -7,6 +7,8 @@
 
 // Shows camera target in the 3D scene
 #define ENABLE_SHOW_CAMERA_TARGET 0
+// Log debug messages to console when changing selection
+#define ENABLE_SELECTION_DEBUG_OUTPUT 0
 
 //=============
 // 1.42.0 techs

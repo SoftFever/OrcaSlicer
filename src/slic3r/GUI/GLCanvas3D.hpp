@@ -701,8 +701,14 @@ private:
 
     struct SlaCap
     {
+        struct Triangles
+        {
+            Pointf3s object;
+            Pointf3s suppports;
+        };
+        typedef std::map<unsigned int, Triangles> ObjectIdToTrianglesMap;
         double z;
-        Pointf3s triangles;
+        ObjectIdToTrianglesMap triangles;
 
         SlaCap() { reset(); }
         void reset() { z = DBL_MAX; triangles.clear(); }
@@ -733,7 +739,8 @@ private:
         static const int Px_Square_Contour = 1;
         static const int Px_Border = Px_Square / 2;
         static const unsigned char Squares_Border_Color[3];
-        static const unsigned char Background_Color[3];
+        static const unsigned char Default_Background_Color[3];
+        static const unsigned char Error_Background_Color[3];
         static const unsigned char Opacity;
 
         int m_original_width;
@@ -742,7 +749,7 @@ private:
     public:
         LegendTexture();
 
-        bool generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors, const GLCanvas3D& canvas);
+        bool generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors, const GLCanvas3D& canvas, bool use_error_colors);
 
         void render(const GLCanvas3D& canvas) const;
     };
@@ -964,6 +971,8 @@ public:
 #if ENABLE_CONSTRAINED_CAMERA_TARGET
     void viewport_changed();
 #endif // ENABLE_CONSTRAINED_CAMERA_TARGET
+
+    void handle_sidebar_focus_event(const std::string& opt_key) {}
 
 private:
     bool _is_shown_on_screen() const;

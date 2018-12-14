@@ -1113,7 +1113,7 @@ public:
 
     double get_abs_value(const t_config_option_key &opt_key) const;
     double get_abs_value(const t_config_option_key &opt_key, double ratio_over) const;
-    void setenv_();
+    void setenv_() const;
     void load(const std::string &file);
     void load_from_ini(const std::string &file);
     void load_from_gcode_file(const std::string &file);

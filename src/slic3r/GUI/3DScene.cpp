@@ -870,8 +870,8 @@ void GLVolumeCollection::load_object_auxiliary(
 		// Create a copy of the convex hull mesh for each instance. Use a move operator on the last instance.
 		v.set_convex_hull((&instance_idx == &instances.back()) ? new TriangleMesh(std::move(convex_hull)) : new TriangleMesh(convex_hull), true);
         v.is_modifier  = false;
-        v.shader_outside_printer_detection_enabled = true;
-		v.set_instance_transformation(model_instance.get_transformation());
+        v.shader_outside_printer_detection_enabled = (milestone == slaposSupportTree);
+        v.set_instance_transformation(model_instance.get_transformation());
 		// Leave the volume transformation at identity.
         // v.set_volume_transformation(model_volume->get_transformation());
     }
@@ -1039,20 +1039,20 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
 
     for (GLVolume* volume : this->volumes)
     {
-        if ((volume != nullptr) && !volume->is_modifier && (!volume->is_wipe_tower || (volume->is_wipe_tower && volume->shader_outside_printer_detection_enabled)))
-        {
-            const BoundingBoxf3& bb = volume->transformed_convex_hull_bounding_box();
-            bool contained = print_volume.contains(bb);
-            all_contained &= contained;
+        if ((volume == nullptr) || volume->is_modifier || (volume->is_wipe_tower && !volume->shader_outside_printer_detection_enabled) || ((volume->composite_id.volume_id < 0) && !volume->shader_outside_printer_detection_enabled))
+            continue;
 
-            volume->is_outside = !contained;
+        const BoundingBoxf3& bb = volume->transformed_convex_hull_bounding_box();
+        bool contained = print_volume.contains(bb);
+        all_contained &= contained;
 
-            if ((state == ModelInstance::PVS_Inside) && volume->is_outside)
-                state = ModelInstance::PVS_Fully_Outside;
+        volume->is_outside = !contained;
 
-            if ((state == ModelInstance::PVS_Fully_Outside) && volume->is_outside && print_volume.intersects(bb))
-                state = ModelInstance::PVS_Partly_Outside;
-        }
+        if ((state == ModelInstance::PVS_Inside) && volume->is_outside)
+            state = ModelInstance::PVS_Fully_Outside;
+
+        if ((state == ModelInstance::PVS_Fully_Outside) && volume->is_outside && print_volume.intersects(bb))
+            state = ModelInstance::PVS_Partly_Outside;
     }
 
     if (out_state != nullptr)

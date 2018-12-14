@@ -69,6 +69,8 @@ struct SupportConfig {
     double object_elevation_mm = 10;
 };
 
+struct PoolConfig;
+
 /// A Control structure for the support calculation. Consists of the status
 /// indicator callback and the stop condition predicate.
 struct Controller {
@@ -112,14 +114,13 @@ PointSet    to_point_set(const std::vector<Vec3d>&);
 class SLASupportsStoppedException: public std::runtime_error {
 public:
     using std::runtime_error::runtime_error;
-    SLASupportsStoppedException(): std::runtime_error("") {}
+    SLASupportsStoppedException();
 };
 
 /// The class containing mesh data for the generated supports.
 class SLASupportTree {
     class Impl;
     std::unique_ptr<Impl> m_impl;
-    Controller m_ctl;
 
     Impl& get() { return *m_impl; }
     const Impl& get() const { return *m_impl; }
@@ -158,10 +159,7 @@ public:
 
     /// Adding the "pad" (base pool) under the supports
     const TriangleMesh& add_pad(const SliceLayer& baseplate,
-                                double min_wall_thickness_mm,
-                                double min_wall_height_mm,
-                                double max_merge_distance_mm,
-                                double edge_radius_mm) const;
+                                const PoolConfig& pcfg) const;
 
     /// Get the pad geometry
     const TriangleMesh& get_pad() const;

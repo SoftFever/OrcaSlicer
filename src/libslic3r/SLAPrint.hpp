@@ -177,14 +177,18 @@ private: // Prevents erroneous use by other classes.
 public:
     SLAPrint(): m_stepmask(slapsCount, true) {}
 
-	virtual ~SLAPrint() { this->clear(); }
+    virtual ~SLAPrint() override { this->clear(); }
 
-	PrinterTechnology	technology() const noexcept { return ptSLA; }
+    PrinterTechnology	technology() const noexcept override { return ptSLA; }
 
     void                clear() override;
     bool                empty() const override { return m_objects.empty(); }
     ApplyStatus         apply(const Model &model, const DynamicPrintConfig &config) override;
     void                process() override;
+    // Returns true if an object step is done on all objects and there's at least one object.    
+    bool                is_step_done(SLAPrintObjectStep step) const;
+    // Returns true if the last step was finished with success.
+    bool                finished() const override { return this->is_step_done(slaposIndexSlices); }
 
     template<class Fmt> void export_raster(const std::string& fname) {
         if(m_printer) m_printer->save<Fmt>(fname);

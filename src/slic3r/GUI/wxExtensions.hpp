@@ -222,7 +222,8 @@ class PrusaObjectDataViewModelNode
     size_t                          m_volumes_cnt = 0;
     std::vector< std::string >      m_opt_categories;
 public:
-	PrusaObjectDataViewModelNode(const wxString &name) {
+    PrusaObjectDataViewModelNode(const wxString &name, 
+                                 const wxString& extruder) {
 		m_parent	= NULL;
 		m_name		= name;
 		m_type		= itObject;
@@ -232,6 +233,7 @@ public:
         // it will be produce "segmentation fault"
         m_container = true;
 #endif  //__WXGTK__
+        m_extruder = extruder;
 		set_object_action_icon();
 	}
 
@@ -438,7 +440,7 @@ public:
     PrusaObjectDataViewModel();
     ~PrusaObjectDataViewModel();
 
-	wxDataViewItem Add(const wxString &name);
+	wxDataViewItem Add(const wxString &name, const int extruder);
 	wxDataViewItem AddVolumeChild(const wxDataViewItem &parent_item, 
 							const wxString &name, 
                             const int volume_type,
@@ -455,8 +457,9 @@ public:
 	wxDataViewItem GetItemById(int obj_idx);
 	wxDataViewItem GetItemByVolumeId(int obj_idx, int volume_idx);
 	wxDataViewItem GetItemByInstanceId(int obj_idx, int inst_idx);
-	int GetIdByItem(const wxDataViewItem& item);
+	int GetIdByItem(const wxDataViewItem& item) const;
     int GetIdByItemAndType(const wxDataViewItem& item, const ItemType type) const;
+    int GetObjectIdByItem(const wxDataViewItem& item) const;
     int GetVolumeIdByItem(const wxDataViewItem& item) const;
     int GetInstanceIdByItem(const wxDataViewItem& item) const;
     void GetItemInfo(const wxDataViewItem& item, ItemType& type, int& obj_idx, int& idx);
@@ -519,7 +522,7 @@ public:
 class PrusaBitmapTextRenderer : public wxDataViewCustomRenderer
 {
 public:
-    PrusaBitmapTextRenderer(  wxDataViewCellMode mode = wxDATAVIEW_CELL_INERT,
+    PrusaBitmapTextRenderer(  wxDataViewCellMode mode = wxDATAVIEW_CELL_EDITABLE,
                             int align = wxDVR_DEFAULT_ALIGNMENT): 
                             wxDataViewCustomRenderer(wxT("PrusaDataViewBitmapText"), mode, align) {}
 
@@ -529,10 +532,18 @@ public:
     virtual bool Render(wxRect cell, wxDC *dc, int state);
     virtual wxSize GetSize() const;
 
-    virtual bool HasEditorCtrl() const { return false; }
+    bool        HasEditorCtrl() const override { return true; }
+    wxWindow*   CreateEditorCtrl(wxWindow* parent, 
+                                 wxRect labelRect, 
+                                 const wxVariant& value) override;
+    bool        GetValueFromEditorCtrl( wxWindow* ctrl, 
+                                        wxVariant& value) override;
+    bool        WasCanceled() const { return m_was_unusable_symbol; }
 
 private:
     PrusaDataViewBitmapText m_value;
+    wxBitmap                m_bmp_from_editing_item;
+    bool                    m_was_unusable_symbol;
 };
 
 

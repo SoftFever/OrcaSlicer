@@ -65,7 +65,6 @@ PrintObject::PrintObject(Print* print, ModelObject* model_object, bool add_insta
         this->set_copies(copies);
     }
 
-    this->layer_height_ranges = model_object->layer_height_ranges;
     this->layer_height_profile = model_object->layer_height_profile;
 }
 
@@ -1109,7 +1108,7 @@ void PrintObject::discover_vertical_shells()
 #if 1
                     // Intentionally inflate a bit more than how much the region has been shrunk, 
                     // so there will be some overlap between this solid infill and the other infill regions (mainly the sparse infill).
-                    shell = offset2(shell, - 0.5f * min_perimeter_infill_spacing, 0.8f * min_perimeter_infill_spacing, ClipperLib::jtSquare);
+                    shell = offset(offset_ex(union_ex(shell), - 0.5f * min_perimeter_infill_spacing), 0.8f * min_perimeter_infill_spacing, ClipperLib::jtSquare);
                     if (shell.empty())
                         continue;
 #else
@@ -1330,7 +1329,7 @@ bool PrintObject::update_layer_height_profile(std::vector<coordf_t> &layer_heigh
     bool updated = false;
 
     // If the layer height profile is not set, try to use the one stored at the ModelObject.
-    if (layer_height_profile.empty() && layer_height_profile.data() != this->model_object()->layer_height_profile.data()) {
+    if (layer_height_profile.empty()) {
         layer_height_profile = this->model_object()->layer_height_profile;
         updated = true;
     }
@@ -1347,10 +1346,9 @@ bool PrintObject::update_layer_height_profile(std::vector<coordf_t> &layer_heigh
     if (layer_height_profile.empty()) {
         if (0)
 //        if (this->layer_height_profile.empty())
-            layer_height_profile = layer_height_profile_adaptive(slicing_params, this->layer_height_ranges,
-                this->model_object()->volumes);
+			layer_height_profile = layer_height_profile_adaptive(slicing_params, this->model_object()->layer_height_ranges, this->model_object()->volumes);
         else
-            layer_height_profile = layer_height_profile_from_ranges(slicing_params, this->layer_height_ranges);
+			layer_height_profile = layer_height_profile_from_ranges(slicing_params, this->model_object()->layer_height_ranges);
         updated = true;
     }
     return updated;

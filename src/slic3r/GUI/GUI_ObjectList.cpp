@@ -60,32 +60,30 @@ ObjectList::ObjectList(wxWindow* parent) :
 #endif //__WXMSW__        
     });
 
-    Bind(wxEVT_DATAVIEW_ITEM_CONTEXT_MENU, [this](wxDataViewEvent& event) {
-        context_menu();
-    });
-
-    Bind(wxEVT_CHAR, [this](wxKeyEvent& event) { key_event(event); }); // doesn't work on OSX
+//     Bind(wxEVT_CHAR, [this](wxKeyEvent& event) { key_event(event); }); // doesn't work on OSX
 
 #ifdef __WXMSW__
-    // Extruder value changed
-    Bind(wxEVT_CHOICE, [this](wxCommandEvent& event) { update_extruder_in_config(event.GetString()); });
-
     GetMainWindow()->Bind(wxEVT_MOTION, [this](wxMouseEvent& event) {
         set_tooltip_for_item(/*event.GetPosition()*/get_mouse_position_in_control());
         event.Skip();
     });
-#else
-    // equivalent to wxEVT_CHOICE on __WXMSW__
-    Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, [this](wxDataViewEvent& e) { item_value_change(e); });
 #endif //__WXMSW__
 
-    Bind(wxEVT_DATAVIEW_ITEM_BEGIN_DRAG,    [this](wxDataViewEvent& e) {on_begin_drag(e); });
-    Bind(wxEVT_DATAVIEW_ITEM_DROP_POSSIBLE, [this](wxDataViewEvent& e) {on_drop_possible(e); });
-    Bind(wxEVT_DATAVIEW_ITEM_DROP,          [this](wxDataViewEvent& e) {on_drop(e); });
+    Bind(wxEVT_DATAVIEW_ITEM_CONTEXT_MENU,  &ObjectList::OnContextMenu,     this);
 
-    Bind(wxCUSTOMEVT_LAST_VOLUME_IS_DELETED, [this](wxCommandEvent& e)   {last_volume_is_deleted(e.GetInt()); });
+    Bind(wxEVT_DATAVIEW_ITEM_BEGIN_DRAG,    &ObjectList::OnBeginDrag,       this);
+    Bind(wxEVT_DATAVIEW_ITEM_DROP_POSSIBLE, &ObjectList::OnDropPossible,    this);
+    Bind(wxEVT_DATAVIEW_ITEM_DROP,          &ObjectList::OnDrop,            this);
 
-    Bind(wxEVT_DATAVIEW_ITEM_START_EDITING,     &ObjectList::OnStartEditing,    this);
+    Bind(wxEVT_DATAVIEW_ITEM_EDITING_DONE,  &ObjectList::OnEditingDone,     this);
+
+    Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, &ObjectList::ItemValueChanged,  this);
+
+    Bind(wxCUSTOMEVT_LAST_VOLUME_IS_DELETED, [this](wxCommandEvent& e)   { last_volume_is_deleted(e.GetInt()); });
+
+#ifdef __WXOSX__
+    Bind(wxEVT_KEY_DOWN, &ObjectList::OnChar, this);
+#endif //__WXOSX__
 }
 
 ObjectList::~ObjectList()
@@ -199,11 +197,53 @@ wxDataViewColumn* ObjectList::create_objects_list_extruder_column(int extruders_
     return column;
 }
 
+void ObjectList::update_extruder_values_for_items(const int max_extruder)
+{
+    for (int i = 0; i < m_objects->size(); ++i)
+    {
+        wxDataViewItem item = m_objects_model->GetItemById(i);
+        if (!item) continue;
+            
+        auto object = (*m_objects)[i];
+        wxString extruder;
+        if (!object->config.has("extruder") ||
+            object->config.option<ConfigOptionInt>("extruder")->value > max_extruder)
+            extruder = "default";
+        else
+            extruder = wxString::Format("%d", object->config.option<ConfigOptionInt>("extruder")->value);
+
+        m_objects_model->SetValue(extruder, item, 1);
+
+        if (object->volumes.size() > 1) {
+            for (auto id = 0; id < object->volumes.size(); id++) {
+                item = m_objects_model->GetItemByVolumeId(i, id);
+                if (!item) continue;
+                if (!object->volumes[id]->config.has("extruder") ||
+                    object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value > max_extruder)
+                    extruder = "default";
+                else
+                    extruder = wxString::Format("%d", object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value); 
+
+                m_objects_model->SetValue(extruder, item, 1);
+            }
+        }
+    }
+}
+
 void ObjectList::update_objects_list_extruder_column(int extruders_count)
 {
     if (!this) return; // #ys_FIXME
     if (wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA)
         extruders_count = 1;
+
+    wxDataViewChoiceRenderer* ch_render = dynamic_cast<wxDataViewChoiceRenderer*>(GetColumn(1)->GetRenderer());
+    if (ch_render->GetChoices().GetCount() - 1 == extruders_count)
+        return;
+    
+    m_prevent_update_extruder_in_config = true;
+
+    if (m_objects && extruders_count > 1)
+        update_extruder_values_for_items(extruders_count);
 
     // delete old 2nd column
     DeleteColumn(GetColumn(1));
@@ -213,23 +253,58 @@ void ObjectList::update_objects_list_extruder_column(int extruders_count)
     set_extruder_column_hidden(extruders_count <= 1);
     //a workaround for a wrong last column width updating under OSX 
     GetColumn(2)->SetWidth(25);
+
+    m_prevent_update_extruder_in_config = false;
 }
 
-void ObjectList::set_extruder_column_hidden(bool hide)
+void ObjectList::set_extruder_column_hidden(const bool hide) const
 {
     GetColumn(1)->SetHidden(hide);
 }
 
-void ObjectList::update_extruder_in_config(const wxString& selection)
+void ObjectList::update_extruder_in_config(const wxDataViewItem& item)
 {
+    if (m_prevent_update_extruder_in_config)
+        return;
+    if (m_objects_model->GetParent(item) == wxDataViewItem(0)) {
+        const int obj_idx = m_objects_model->GetIdByItem(item);
+        m_config = &(*m_objects)[obj_idx]->config;
+    }
+    else {
+        const int obj_idx = m_objects_model->GetIdByItem(m_objects_model->GetParent(item));
+        const int volume_id = m_objects_model->GetVolumeIdByItem(item);
+        if (obj_idx < 0 || volume_id < 0)
+            return;
+        m_config = &(*m_objects)[obj_idx]->volumes[volume_id]->config;
+    }
+
+    wxVariant variant;
+    m_objects_model->GetValue(variant, item, 1);
+    const wxString selection = variant.GetString();
+
     if (!m_config || selection.empty())
         return;
 
-    int extruder = selection.size() > 1 ? 0 : atoi(selection.c_str());
+    const int extruder = selection.size() > 1 ? 0 : atoi(selection.c_str());
     m_config->set_key_value("extruder", new ConfigOptionInt(extruder));
 
     // update scene
     wxGetApp().plater()->update();
+}
+
+void ObjectList::update_name_in_model(const wxDataViewItem& item)
+{
+    const int obj_idx = m_objects_model->GetObjectIdByItem(item);
+    if (obj_idx < 0) return;
+
+    if (m_objects_model->GetParent(item) == wxDataViewItem(0)) {
+        (*m_objects)[obj_idx]->name = m_objects_model->GetName(item).ToStdString();
+        return;
+    }
+
+    const int volume_id = m_objects_model->GetVolumeIdByItem(item);
+    if (volume_id < 0) return;
+    (*m_objects)[obj_idx]->volumes[volume_id]->name = m_objects_model->GetName(item).ToStdString();
 }
 
 void ObjectList::init_icons()
@@ -275,13 +350,20 @@ void ObjectList::selection_changed()
     }
 
     part_selection_changed();
-
-#ifdef __WXOSX__
-    update_extruder_in_config(m_selected_extruder);
-#endif //__WXOSX__        
 }
 
-void ObjectList::context_menu()
+void ObjectList::OnChar(wxKeyEvent& event)
+{
+    if (event.GetKeyCode() == WXK_BACK){
+        remove();
+    }
+    else if (wxGetKeyState(wxKeyCode('A')) && wxGetKeyState(WXK_SHIFT))
+        select_item_all_children();
+
+    event.Skip();
+}
+
+void ObjectList::OnContextMenu(wxDataViewEvent&)
 {
     wxDataViewItem item;
     wxDataViewColumn* col;
@@ -303,15 +385,14 @@ void ObjectList::context_menu()
 
     if (title == " ")
         show_context_menu();
-
-        else if (title == _("Name") && pt.x >15 &&
-                    m_objects_model->GetBitmap(item).GetRefData() == m_bmp_manifold_warning.GetRefData())
-        {
-            if (is_windows10()) {
-                const auto obj_idx = m_objects_model->GetIdByItem(m_objects_model->GetTopParent(item));
-                wxGetApp().plater()->fix_through_netfabb(obj_idx);
-            }
+    else if (title == _("Name") && pt.x >15 &&
+             m_objects_model->GetBitmap(item).GetRefData() == m_bmp_manifold_warning.GetRefData())
+    {
+        if (is_windows10()) {
+            const auto obj_idx = m_objects_model->GetIdByItem(m_objects_model->GetTopParent(item));
+            wxGetApp().plater()->fix_through_netfabb(obj_idx);
         }
+    }
 #ifndef __WXMSW__
     GetMainWindow()->SetToolTip(""); // hide tooltip
 #endif //__WXMSW__
@@ -358,88 +439,74 @@ void ObjectList::key_event(wxKeyEvent& event)
         event.Skip();
 }
 
-void ObjectList::item_value_change(wxDataViewEvent& event)
+void ObjectList::OnBeginDrag(wxDataViewEvent &event)
 {
-    if (event.GetColumn() == 1)
-    {
-        wxVariant variant;
-        m_objects_model->GetValue(variant, event.GetItem(), 1);
-#ifdef __WXOSX__
-        m_selected_extruder = variant.GetString();
-#else // --> for Linux
-        update_extruder_in_config(variant.GetString());
-#endif //__WXOSX__  
-    }
-}
-
-struct draging_item_data
-{
-    int obj_idx;
-    int vol_idx;
-};
-
-void ObjectList::on_begin_drag(wxDataViewEvent &event)
-{
-    wxDataViewItem item(event.GetItem());
+    const wxDataViewItem item(event.GetItem());
 
     // only allow drags for item, not containers
-    if (multiple_selection() ||
+    if (multiple_selection() || GetSelection()!=item || 
         m_objects_model->GetParent(item) == wxDataViewItem(0) ||
         m_objects_model->GetItemType(item) != itVolume ) {
         event.Veto();
         return;
     }
 
+    m_dragged_data.init(m_objects_model->GetObjectIdByItem(item), m_objects_model->GetVolumeIdByItem(item));
+
     /* Under MSW or OSX, DnD moves an item to the place of another selected item
     * But under GTK, DnD moves an item between another two items.
     * And as a result - call EVT_CHANGE_SELECTION to unselect all items.
-    * To prevent such behavior use g_prevent_list_events
+    * To prevent such behavior use m_prevent_list_events
     **/
     m_prevent_list_events = true;//it's needed for GTK
 
-    wxTextDataObject *obj = new wxTextDataObject;
-    obj->SetText(wxString::Format("%d", m_objects_model->GetVolumeIdByItem(item)));
+    /* Under GTK, DnD requires to the wxTextDataObject been initialized with some valid value,
+     * so set some nonempty string
+     */
+    wxTextDataObject* obj = new wxTextDataObject;
+    obj->SetText("Some text");//it's needed for GTK
+
     event.SetDataObject(obj);
-    event.SetDragFlags(/*wxDrag_AllowMove*/wxDrag_DefaultMove); // allows both copy and move;
+    event.SetDragFlags(wxDrag_DefaultMove); // allows both copy and move;
 }
 
-void ObjectList::on_drop_possible(wxDataViewEvent &event)
+void ObjectList::OnDropPossible(wxDataViewEvent &event)
 {
     wxDataViewItem item(event.GetItem());
 
     // only allow drags for item or background, not containers
-    if (item.IsOk() && m_objects_model->GetParent(item) == wxDataViewItem(0) ||
-        event.GetDataFormat() != wxDF_UNICODETEXT || m_objects_model->GetItemType(item) != itVolume)
+    if (!item.IsOk() ||
+        m_objects_model->GetParent(item) == wxDataViewItem(0) || 
+        m_objects_model->GetItemType(item) != itVolume ||
+        m_dragged_data.obj_idx() != m_objects_model->GetObjectIdByItem(item))
         event.Veto();
 }
 
-void ObjectList::on_drop(wxDataViewEvent &event)
+void ObjectList::OnDrop(wxDataViewEvent &event)
 {
     wxDataViewItem item(event.GetItem());
 
-    // only allow drops for item, not containers
-    if (m_selected_object_id < 0 ||
-        item.IsOk() && m_objects_model->GetParent(item) == wxDataViewItem(0) ||
-        event.GetDataFormat() != wxDF_UNICODETEXT || m_objects_model->GetItemType(item) != itVolume) {
+    if (!item.IsOk() || m_objects_model->GetParent(item) == wxDataViewItem(0) ||
+                        m_objects_model->GetItemType(item) != itVolume ||
+                        m_dragged_data.obj_idx() != m_objects_model->GetObjectIdByItem(item)) {
         event.Veto();
+        m_dragged_data.clear();
         return;
     }
 
-    wxTextDataObject obj;
-    obj.SetData(wxDF_UNICODETEXT, event.GetDataSize(), event.GetDataBuffer());
-
-    int from_volume_id = std::stoi(obj.GetText().ToStdString());
+    const int from_volume_id = m_dragged_data.vol_idx();
     int to_volume_id = m_objects_model->GetVolumeIdByItem(item);
 
-#ifdef __WXGTK__
-    /* Under GTK, DnD moves an item between another two items.
-    * And event.GetItem() return item, which is under "insertion line"
-    * So, if we move item down we should to decrease the to_volume_id value
-    **/
-    if (to_volume_id > from_volume_id) to_volume_id--;
-#endif // __WXGTK__
+// It looks like a fixed in current version of the wxWidgets
+// #ifdef __WXGTK__
+//     /* Under GTK, DnD moves an item between another two items.
+//     * And event.GetItem() return item, which is under "insertion line"
+//     * So, if we move item down we should to decrease the to_volume_id value
+//     **/
+//     if (to_volume_id > from_volume_id) to_volume_id--;
+// #endif // __WXGTK__
 
-    auto& volumes = (*m_objects)[m_selected_object_id]->volumes;
+    auto& volumes = (*m_objects)[/*m_selected_object_id*/m_dragged_data.obj_idx()]->volumes;
     auto delta = to_volume_id < from_volume_id ? -1 : 1;
     int cnt = 0;
     for (int id = from_volume_id; cnt < abs(from_volume_id - to_volume_id); id += delta, cnt++)
@@ -449,9 +516,9 @@ void ObjectList::on_drop(wxDataViewEvent &event)
                                                     m_objects_model->GetParent(item)));
 
     m_parts_changed = true;
-    parts_changed(m_selected_object_id);
+    parts_changed(/*m_selected_object_id*/m_dragged_data.obj_idx());
 
-//     m_prevent_list_events = false;
+    m_dragged_data.clear();
 }
 
 
@@ -571,9 +638,6 @@ void ObjectList::get_settings_choice(const wxString& category_name)
         const auto settings_item = m_objects_model->GetSettingsItem(item);
         select_item(settings_item ? settings_item :
             m_objects_model->AddSettingsChild(item));
-#ifndef __WXOSX__
-//         part_selection_changed();
-#endif //no __WXOSX__
     }
     else {
         auto panel = wxGetApp().sidebar().scrolled_panel();
@@ -747,11 +811,6 @@ void ObjectList::load_subobject(int type)
         if (i == part_names.size() - 1)
             select_item(sel_item);
     }
-
-#ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
-//     selection_changed();
-#endif //no __WXOSX__//__WXMSW__
-
 }
 
 void ObjectList::load_part( ModelObject* model_object,
@@ -1138,7 +1197,9 @@ void ObjectList::add_object_to_list(size_t obj_idx)
 {
     auto model_object = (*m_objects)[obj_idx];
     wxString item_name = model_object->name;
-    auto item = m_objects_model->Add(item_name);
+    const auto item = m_objects_model->Add(item_name,
+                      !model_object->config.has("extruder") ? 0 :
+                      model_object->config.option<ConfigOptionInt>("extruder")->value);
 
     // Add error icon if detected auto-repaire
     auto stats = model_object->volumes[0]->mesh.stl.stats;
@@ -1152,13 +1213,19 @@ void ObjectList::add_object_to_list(size_t obj_idx)
 
     // add volumes to the object
     if (model_object->volumes.size() > 1) {
-        for (auto id = 0; id < model_object->volumes.size(); id++)
-            m_objects_model->AddVolumeChild(item,
-            model_object->volumes[id]->name,
-            ModelVolume::MODEL_PART,
-            !model_object->volumes[id]->config.has("extruder") ? 0 :
+        for (auto id = 0; id < model_object->volumes.size(); id++) {
+            auto vol_item = m_objects_model->AddVolumeChild(item,
+                model_object->volumes[id]->name,
+                model_object->volumes[id]->type()/*ModelVolume::MODEL_PART*/,
+                !model_object->volumes[id]->config.has("extruder") ? 0 :
                 model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value,
-            false);
+                false);
+            auto opt_keys = model_object->volumes[id]->config.keys();
+            if (!opt_keys.empty() && !(opt_keys.size() == 1 && opt_keys[0] == "extruder")) {
+                select_item(m_objects_model->AddSettingsChild(vol_item));
+                Collapse(vol_item);
+            }
+        }
         Expand(item);
     }
 
@@ -1391,6 +1458,14 @@ void ObjectList::update_selections()
     }
     
     select_items(sels);
+
+#ifdef __WXMSW__
+    if (GetSelection()) {
+        const int sel_item_row = GetRowByItem(GetSelection());
+        ScrollLines(sel_item_row - m_selected_row);
+        m_selected_row = sel_item_row;
+    }
+#endif //__WXMSW__
 }
 
 void ObjectList::update_selections_on_canvas()
@@ -1532,7 +1607,24 @@ void ObjectList::change_part_type()
     ModelVolume* volume = get_selected_model_volume();
     if (!volume)
         return;
+
     const auto type = volume->type();
+    if (type == ModelVolume::MODEL_PART)
+    {
+        const int obj_idx = get_selected_obj_idx();
+        if (obj_idx < 0) return;
+
+        int model_part_cnt = 0;
+        for (auto vol : (*m_objects)[obj_idx]->volumes) {
+            if (vol->type() == ModelVolume::MODEL_PART)
+                ++model_part_cnt;
+        }
+
+        if (model_part_cnt == 1) {
+            Slic3r::GUI::show_error(nullptr, _(L("You can't change a type of the last solid part of the object.")));
+            return;
+        }
+    }
 
     const wxString names[] = { "Part", "Modifier", "Support Enforcer", "Support Blocker" };
     
@@ -1552,11 +1644,11 @@ void ObjectList::change_part_type()
     //(we show additional settings for Part and Modifier and hide it for Support Blocker/Enforcer)
     const auto settings_item = m_objects_model->GetSettingsItem(item);
     if (settings_item && 
-        new_type == ModelVolume::SUPPORT_ENFORCER || new_type == ModelVolume::SUPPORT_BLOCKER) {
+        (new_type == ModelVolume::SUPPORT_ENFORCER || new_type == ModelVolume::SUPPORT_BLOCKER)) {
         m_objects_model->Delete(settings_item);
     }
     else if (!settings_item && 
-              new_type == ModelVolume::MODEL_PART || new_type == ModelVolume::PARAMETER_MODIFIER) {
+              (new_type == ModelVolume::MODEL_PART || new_type == ModelVolume::PARAMETER_MODIFIER)) {
         select_item(m_objects_model->AddSettingsChild(item));
     }
 }
@@ -1600,11 +1692,24 @@ void ObjectList::update_settings_items()
     UnselectAll();
 }
 
-void ObjectList::OnStartEditing(wxDataViewEvent &event)
+void ObjectList::ItemValueChanged(wxDataViewEvent &event)
 {
-    const auto item_type = m_objects_model->GetItemType(event.GetItem());
-    if ( !(item_type&(itObject|itVolume)) )
-        event.Veto();
+    if (event.GetColumn() == 0)
+        update_name_in_model(event.GetItem());
+    else if (event.GetColumn() == 1)
+        update_extruder_in_config(event.GetItem());
+}
+
+void ObjectList::OnEditingDone(wxDataViewEvent &event)
+{
+    if (event.GetColumn() != 0)
+        return;
+
+    const auto renderer = dynamic_cast<PrusaBitmapTextRenderer*>(GetColumn(0)->GetRenderer());
+
+    if (renderer->WasCanceled())
+        show_error(this, _(L("The supplied name is not valid;")) + "\n" +
+                         _(L("the following characters are not allowed:")) + " <>:/\\|?*\"");
 }
 
 } //namespace GUI

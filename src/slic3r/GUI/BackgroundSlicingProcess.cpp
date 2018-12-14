@@ -19,9 +19,13 @@
 //#undef NDEBUG
 #include <cassert>
 #include <stdexcept>
+#include <cctype>
+#include <algorithm>
 
 #include <boost/format.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/log/trivial.hpp>
 #include <boost/nowide/cstdio.hpp>
 
 namespace Slic3r {
@@ -61,6 +65,11 @@ PrinterTechnology BackgroundSlicingProcess::current_printer_technology() const
 	return m_print->technology();
 }
 
+static bool isspace(int ch)
+{
+	return std::isspace(ch) != 0;
+}
+
 // This function may one day be merged into the Print, but historically the print was separated
 // from the G-code generator.
 void BackgroundSlicingProcess::process_fff()
@@ -72,11 +81,13 @@ void BackgroundSlicingProcess::process_fff()
 	if (this->set_step_started(bspsGCodeFinalize)) {
 	    if (! m_export_path.empty()) {
 	    	//FIXME localize the messages
-		    if (copy_file(m_temp_output_path, m_export_path) != 0)
+	    	// Perform the final post-processing of the export path by applying the print statistics over the file name.
+	    	std::string export_path = m_fff_print->print_statistics().finalize_output_path(m_export_path);
+		    if (copy_file(m_temp_output_path, export_path) != 0)
 	    		throw std::runtime_error("Copying of the temporary G-code to the output G-code failed");
 	    	m_print->set_status(95, "Running post-processing scripts");
-	    	run_post_process_scripts(m_export_path, m_fff_print->config());
-	    	m_print->set_status(100, "G-code file exported to " + m_export_path);
+	    	run_post_process_scripts(export_path, m_fff_print->config());
+	    	m_print->set_status(100, "G-code file exported to " + export_path);
 	    } else {
 	    	m_print->set_status(100, "Slicing complete");
 	    }
@@ -102,8 +113,15 @@ public:
         zipstream(zipfile),
         pngstream(zipstream)
     {
-        if(!zipfile.IsOk())
+        if(!is_ok())
             throw std::runtime_error("Cannot create zip file.");
+    }
+
+    ~LayerWriter() {
+        // In case of an error (disk space full) zipstream destructor would
+        // crash.
+        pngstream.clear();
+        zipstream.CloseEntry();
     }
 
     inline void next_entry(const std::string& fname) {
@@ -116,6 +134,10 @@ public:
 
     template<class T> inline LayerWriter& operator<<(const T& arg) {
         pngstream << arg; return *this;
+    }
+
+    bool is_ok() const {
+        return pngstream.good() && zipstream.IsOk() && zipfile.IsOk();
     }
 
     inline void close() {
@@ -343,6 +365,22 @@ void BackgroundSlicingProcess::schedule_export(const std::string &path)
 	tbb::mutex::scoped_lock lock(m_print->state_mutex());
 	this->invalidate_step(bspsGCodeFinalize);
 	m_export_path = path;
+}
+
+void BackgroundSlicingProcess::schedule_upload(Slic3r::PrintHostJob upload_job)
+{
+	assert(m_export_path.empty());
+	if (! m_export_path.empty())
+		return;
+
+	const boost::filesystem::path path = boost::filesystem::temp_directory_path()
+		/ boost::filesystem::unique_path(".upload.%%%%-%%%%-%%%%-%%%%.gcode");
+
+	// Guard against entering the export step before changing the export path.
+	tbb::mutex::scoped_lock lock(m_print->state_mutex());
+	this->invalidate_step(bspsGCodeFinalize);
+	m_export_path = path.string();
+	m_upload_job = std::move(upload_job);
 }
 
 void BackgroundSlicingProcess::reset_export()

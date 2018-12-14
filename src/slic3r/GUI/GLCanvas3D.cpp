@@ -68,8 +68,10 @@ static const float UNIT_MATRIX[] = { 1.0f, 0.0f, 0.0f, 0.0f,
                                      0.0f, 0.0f, 1.0f, 0.0f,
                                      0.0f, 0.0f, 0.0f, 1.0f };
 
-static const float DEFAULT_BG_COLOR[3] = { 10.0f / 255.0f, 98.0f / 255.0f, 144.0f / 255.0f };
-static const float ERROR_BG_COLOR[3] = { 144.0f / 255.0f, 49.0f / 255.0f, 10.0f / 255.0f };
+static const float DEFAULT_BG_DARK_COLOR[3] = { 0.478f, 0.478f, 0.478f };
+static const float DEFAULT_BG_LIGHT_COLOR[3] = { 0.753f, 0.753f, 0.753f };
+static const float ERROR_BG_DARK_COLOR[3] = { 0.478f, 0.192f, 0.039f };
+static const float ERROR_BG_LIGHT_COLOR[3] = { 0.753f, 0.192f, 0.039f };
 
 namespace Slic3r {
 namespace GUI {
@@ -579,7 +581,7 @@ void GLCanvas3D::Bed::_render_custom() const
 
         ::glEnableClientState(GL_VERTEX_ARRAY);
 
-        ::glColor4f(0.8f, 0.6f, 0.5f, 0.4f);
+        ::glColor4f(0.35f, 0.35f, 0.35f, 0.4f);
         ::glNormal3d(0.0f, 0.0f, 1.0f);
         ::glVertexPointer(3, GL_FLOAT, 0, (GLvoid*)m_triangles.get_vertices());
         ::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)triangles_vcount);
@@ -1404,6 +1406,9 @@ bool GLCanvas3D::Selection::is_single_full_instance() const
     if (m_type == SingleFullInstance)
         return true;
 
+    if (m_type == SingleFullObject)
+        return get_instance_idx() != -1;
+
     if (m_list.empty() || m_volumes->empty())
         return false;
 
@@ -1531,7 +1536,8 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation, bool local)
 #if ENABLE_WORLD_ROTATIONS
         {
             Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), rotation);
-            Vec3d new_rotation = Geometry::extract_euler_angles(m * m_cache.volumes_data[i].get_volume_rotation_matrix());
+            const Transform3d& inst_m = m_cache.volumes_data[i].get_instance_rotation_matrix();
+            Vec3d new_rotation = Geometry::extract_euler_angles(inst_m.inverse() * m * inst_m * m_cache.volumes_data[i].get_volume_rotation_matrix());
             (*m_volumes)[i]->set_volume_rotation(new_rotation);
     }
 #else
@@ -2110,6 +2116,7 @@ void GLCanvas3D::Selection::_update_type()
         v->disabled = requires_disable ? (v->object_idx() != object_idx) || (v->instance_idx() != instance_idx) : false;
     }
 
+#if ENABLE_SELECTION_DEBUG_OUTPUT
     std::cout << "Selection: ";
     std::cout << "mode: ";
     switch (m_mode)
@@ -2191,6 +2198,7 @@ void GLCanvas3D::Selection::_update_type()
         break;
     }
     }
+#endif // ENABLE_SELECTION_DEBUG_OUTPUT
 }
 
 void GLCanvas3D::Selection::_set_caches()
@@ -3173,7 +3181,8 @@ void GLCanvas3D::WarningTexture::render(const GLCanvas3D& canvas) const
 }
 
 const unsigned char GLCanvas3D::LegendTexture::Squares_Border_Color[3] = { 64, 64, 64 };
-const unsigned char GLCanvas3D::LegendTexture::Background_Color[3] = { 9, 91, 134 };
+const unsigned char GLCanvas3D::LegendTexture::Default_Background_Color[3] = { (unsigned char)(DEFAULT_BG_LIGHT_COLOR[0] * 255.0f), (unsigned char)(DEFAULT_BG_LIGHT_COLOR[1] * 255.0f), (unsigned char)(DEFAULT_BG_LIGHT_COLOR[2] * 255.0f) };
+const unsigned char GLCanvas3D::LegendTexture::Error_Background_Color[3] = { (unsigned char)(ERROR_BG_LIGHT_COLOR[0] * 255.0f), (unsigned char)(ERROR_BG_LIGHT_COLOR[1] * 255.0f), (unsigned char)(ERROR_BG_LIGHT_COLOR[2] * 255.0f) };
 const unsigned char GLCanvas3D::LegendTexture::Opacity = 255;
 
 GLCanvas3D::LegendTexture::LegendTexture()
@@ -3183,7 +3192,7 @@ GLCanvas3D::LegendTexture::LegendTexture()
 {
 }
 
-bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors, const GLCanvas3D& canvas)
+bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors, const GLCanvas3D& canvas, bool use_error_colors)
 {
     reset();
 
@@ -3222,8 +3231,11 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
         return false;
 
     wxMemoryDC memDC;
+    wxMemoryDC mask_memDC;
+
     // select default font
     memDC.SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
+    mask_memDC.SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
 
     // calculates texture size
     wxCoord w, h;
@@ -3252,16 +3264,28 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
 
     // generates bitmap
     wxBitmap bitmap(m_width, m_height);
+    wxBitmap mask(m_width, m_height);
 
     memDC.SelectObject(bitmap);
-    memDC.SetBackground(wxBrush(wxColour(Background_Color[0], Background_Color[1], Background_Color[2])));
+    mask_memDC.SelectObject(mask);
+
+    memDC.SetBackground(wxBrush(use_error_colors ? *wxWHITE : *wxBLACK));
+    mask_memDC.SetBackground(wxBrush(*wxBLACK));
+
     memDC.Clear();
+    mask_memDC.Clear();
 
     // draw title
-    memDC.SetTextForeground(*wxWHITE);
+    memDC.SetTextForeground(use_error_colors ? *wxWHITE : *wxBLACK);
+    mask_memDC.SetTextForeground(*wxWHITE);
+
     int title_x = Px_Border;
     int title_y = Px_Border;
     memDC.DrawText(title, title_x, title_y);
+    mask_memDC.DrawText(title, title_x, title_y);
+
+    mask_memDC.SetPen(wxPen(*wxWHITE));
+    mask_memDC.SetBrush(wxBrush(*wxWHITE));
 
     // draw icons contours as background
     int squares_contour_x = Px_Border;
@@ -3277,6 +3301,7 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
     memDC.SetPen(pen);
     memDC.SetBrush(brush);
     memDC.DrawRectangle(wxRect(squares_contour_x, squares_contour_y, squares_contour_width, squares_contour_height));
+    mask_memDC.DrawRectangle(wxRect(squares_contour_x, squares_contour_y, squares_contour_width, squares_contour_height));
 
     // draw items (colored icon + text)
     int icon_x = squares_contour_x + Px_Square_Contour;
@@ -3313,16 +3338,18 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
 
         // draw text
         memDC.DrawText(GUI::from_u8(item.text), text_x, icon_y + text_y_offset);
+        mask_memDC.DrawText(GUI::from_u8(item.text), text_x, icon_y + text_y_offset);
 
         // update y
         icon_y += icon_y_step;
     }
 
     memDC.SelectObject(wxNullBitmap);
+    mask_memDC.SelectObject(wxNullBitmap);
 
     // Convert the bitmap into a linear data ready to be loaded into the GPU.
     wxImage image = bitmap.ConvertToImage();
-    image.SetMaskColour(Background_Color[0], Background_Color[1], Background_Color[2]);
+    wxImage mask_image = mask.ConvertToImage();
 
     // prepare buffer
     std::vector<unsigned char> data(4 * m_width * m_height, 0);
@@ -3335,7 +3362,7 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
             *px_ptr++ = image.GetRed(w, h);
             *px_ptr++ = image.GetGreen(w, h);
             *px_ptr++ = image.GetBlue(w, h);
-            *px_ptr++ = image.IsTransparent(w, h) ? 0 : Opacity;
+            *px_ptr++ = (mask_image.GetRed(w, h) + mask_image.GetGreen(w, h) + mask_image.GetBlue(w, h)) / 3;
         }
     }
 
@@ -4088,7 +4115,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
     m_reload_delayed = ! m_canvas->IsShown() && ! refresh_immediately && ! force_full_scene_refresh;
 
-    PrinterTechnology printer_technology = m_process->current_printer_technology();
+    PrinterTechnology printer_technology        = m_process->current_printer_technology();
+    int               volume_idx_wipe_tower_old = -1;
 
     if (m_regenerate_volumes)
     {
@@ -4146,6 +4174,11 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             }
             if (mvs == nullptr || force_full_scene_refresh) {
                 // This GLVolume will be released.
+                if (volume->is_wipe_tower) {
+                    // There is only one wipe tower.
+                    assert(volume_idx_wipe_tower_old == -1);
+                    volume_idx_wipe_tower_old = (int)volume_id;
+                }
                 volume->release_geometry();
                 if (! m_reload_delayed)
                     delete volume;
@@ -4313,8 +4346,11 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 float depth = print->get_wipe_tower_depth();
                 if (!print->is_step_done(psWipeTower))
                     depth = (900.f/w) * (float)(extruders_count - 1) ;
-                m_volumes.load_wipe_tower_preview(1000, x, y, w, depth, (float)height, a, m_use_VBOs && m_initialized, !print->is_step_done(psWipeTower),
-                                                  print->config().nozzle_diameter.values[0] * 1.25f * 4.5f);
+                int volume_idx_wipe_tower_new = m_volumes.load_wipe_tower_preview(
+                    1000, x, y, w, depth, (float)height, a, m_use_VBOs && m_initialized, !print->is_step_done(psWipeTower),
+                    print->config().nozzle_diameter.values[0] * 1.25f * 4.5f);
+                if (volume_idx_wipe_tower_old != -1)
+                    map_glvolume_old_to_new[volume_idx_wipe_tower_old] = volume_idx_wipe_tower_new;
             }
         }
 
@@ -4378,10 +4414,10 @@ void GLCanvas3D::load_gcode_preview(const GCodePreviewData& preview_data, const 
             return;
 #endif // !ENABLE_USE_UNIQUE_GLCONTEXT
 
+        std::vector<float> tool_colors = _parse_colors(str_tool_colors);
+
         if (m_volumes.empty())
         {
-            std::vector<float> tool_colors = _parse_colors(str_tool_colors);
-            
             m_gcode_preview_volume_index.reset();
             
             _load_gcode_extrusion_paths(preview_data, tool_colors);
@@ -4389,12 +4425,8 @@ void GLCanvas3D::load_gcode_preview(const GCodePreviewData& preview_data, const 
             _load_gcode_retractions(preview_data);
             _load_gcode_unretractions(preview_data);
             
-            if (m_volumes.empty())
-                reset_legend_texture();
-            else
+            if (!m_volumes.empty())
             {
-                _generate_legend_texture(preview_data, tool_colors);
-
                 // removes empty volumes
                 m_volumes.volumes.erase(std::remove_if(m_volumes.volumes.begin(), m_volumes.volumes.end(),
                     [](const GLVolume* volume) { return volume->print_zs.empty(); }), m_volumes.volumes.end());
@@ -4406,6 +4438,11 @@ void GLCanvas3D::load_gcode_preview(const GCodePreviewData& preview_data, const 
         
         _update_gcode_volumes_visibility(preview_data);
         _show_warning_texture_if_needed();
+
+        if (m_volumes.empty())
+            reset_legend_texture();
+        else
+            _generate_legend_texture(preview_data, tool_colors);
     }
 }
 
@@ -4994,6 +5031,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
 #if ENABLE_CONSTRAINED_CAMERA_TARGET
             m_camera.set_scene_box(scene_bounding_box(), *this);
+            set_camera_zoom(0.0f);
 #endif // ENABLE_CONSTRAINED_CAMERA_TARGET
         }
 
@@ -5801,18 +5839,22 @@ void GLCanvas3D::_render_background() const
     ::glPushMatrix();
     ::glLoadIdentity();
 
-    // Draws a bluish bottom to top gradient over the complete screen.
+    // Draws a bottom to top gradient over the complete screen.
     ::glDisable(GL_DEPTH_TEST);
 
     ::glBegin(GL_QUADS);
-    ::glColor3f(0.0f, 0.0f, 0.0f);
+    if (m_dynamic_background_enabled && _is_any_volume_outside())
+        ::glColor3fv(ERROR_BG_DARK_COLOR);
+    else
+        ::glColor3fv(DEFAULT_BG_DARK_COLOR);
+
     ::glVertex2f(-1.0f, -1.0f);
     ::glVertex2f(1.0f, -1.0f);
 
     if (m_dynamic_background_enabled && _is_any_volume_outside())
-        ::glColor3fv(ERROR_BG_COLOR);
+        ::glColor3fv(ERROR_BG_LIGHT_COLOR);
     else
-        ::glColor3fv(DEFAULT_BG_COLOR);
+        ::glColor3fv(DEFAULT_BG_LIGHT_COLOR);
 
     ::glVertex2f(1.0f, 1.0f);
     ::glVertex2f(-1.0f, 1.0f);
@@ -6083,166 +6125,190 @@ void GLCanvas3D::_render_sla_slices() const
         return;
 
     const SLAPrint* print = this->sla_print();
-    if (print->objects().empty())
+    const PrintObjects& print_objects = print->objects();
+    if (print_objects.empty())
         // nothing to render, return
         return;
 
     double clip_min_z = -m_clipping_planes[0].get_data()[3];
     double clip_max_z = m_clipping_planes[1].get_data()[3];
-    for (const SLAPrintObject* obj : print->objects())
+    for (unsigned int i = 0; i < (unsigned int)print_objects.size(); ++i)
     {
-        if (obj->is_step_done(slaposIndexSlices))
+        const SLAPrintObject* obj = print_objects[i];
+
+        Pointf3s bottom_obj_triangles;
+        Pointf3s bottom_sup_triangles;
+        Pointf3s top_obj_triangles;
+        Pointf3s top_sup_triangles;
+
+        double shift_z = obj->get_current_elevation();
+        double min_z = clip_min_z - shift_z;
+        double max_z = clip_max_z - shift_z;
+
+        if (m_sla_caps[0].matches(min_z))
+        {
+            SlaCap::ObjectIdToTrianglesMap::const_iterator it = m_sla_caps[0].triangles.find(i);
+            if (it != m_sla_caps[0].triangles.end())
+            {
+                bottom_obj_triangles = it->second.object;
+                bottom_sup_triangles = it->second.suppports;
+            }
+        }
+
+        if (m_sla_caps[1].matches(max_z))
+        {
+            SlaCap::ObjectIdToTrianglesMap::const_iterator it = m_sla_caps[1].triangles.find(i);
+            if (it != m_sla_caps[1].triangles.end())
+            {
+                top_obj_triangles = it->second.object;
+                top_sup_triangles = it->second.suppports;
+            }
+        }
+
+        const std::vector<SLAPrintObject::Instance>& instances = obj->instances();
+        struct InstanceTransform
+        {
+            Vec3d offset;
+            float rotation;
+        };
+
+        std::vector<InstanceTransform> instance_transforms;
+        for (const SLAPrintObject::Instance& inst : instances)
+        {
+            instance_transforms.push_back({ to_3d(unscale(inst.shift), shift_z), Geometry::rad2deg(inst.rotation) });
+        }
+
+        if ((bottom_obj_triangles.empty() || bottom_sup_triangles.empty() || top_obj_triangles.empty() || top_sup_triangles.empty()) && obj->is_step_done(slaposIndexSlices))
         {
             const std::vector<ExPolygons>& model_slices = obj->get_model_slices();
             const std::vector<ExPolygons>& support_slices = obj->get_support_slices();
-            const std::vector<SLAPrintObject::Instance>& instances = obj->instances();
-            double shift_z = obj->get_current_elevation();
 
-            struct InstanceTransform
+            const SLAPrintObject::SliceIndex& index = obj->get_slice_index();
+            SLAPrintObject::SliceIndex::const_iterator it_min_z = std::find_if(index.begin(), index.end(), [min_z](const SLAPrintObject::SliceIndex::value_type& id) -> bool { return std::abs(min_z - id.first) < EPSILON; });
+            SLAPrintObject::SliceIndex::const_iterator it_max_z = std::find_if(index.begin(), index.end(), [max_z](const SLAPrintObject::SliceIndex::value_type& id) -> bool { return std::abs(max_z - id.first) < EPSILON; });
+
+            if (it_min_z != index.end())
             {
-                Vec3d offset;
-                float rotation;
-            };
-
-            std::vector<InstanceTransform> instance_transforms;
-            for (const SLAPrintObject::Instance& inst : instances)
-            {
-                instance_transforms.push_back({ to_3d(unscale(inst.shift), shift_z), Geometry::rad2deg(inst.rotation) });
-            }
-
-            double min_z = clip_min_z - shift_z;
-            double max_z = clip_max_z - shift_z;
-
-            Pointf3s bottom_triangles;
-            Pointf3s top_triangles;
-
-            if (m_sla_caps[0].matches(min_z))
-                bottom_triangles = m_sla_caps[0].triangles;
-
-            if (m_sla_caps[1].matches(max_z))
-                top_triangles = m_sla_caps[1].triangles;
-
-            if (bottom_triangles.empty() || top_triangles.empty())
-            {
-                const SLAPrintObject::SliceIndex& index = obj->get_slice_index();
-                SLAPrintObject::SliceIndex::const_iterator it_min_z = std::find_if(index.begin(), index.end(), [min_z](const SLAPrintObject::SliceIndex::value_type& id) -> bool { return std::abs(min_z - id.first) < EPSILON; });
-                SLAPrintObject::SliceIndex::const_iterator it_max_z = std::find_if(index.begin(), index.end(), [max_z](const SLAPrintObject::SliceIndex::value_type& id) -> bool { return std::abs(max_z - id.first) < EPSILON; });
-
-                if (bottom_triangles.empty() && (it_min_z != index.end()))
+                if (bottom_obj_triangles.empty() && (it_min_z->second.model_slices_idx < model_slices.size()))
                 {
                     // calculate model bottom cap
-                    if (it_min_z->second.model_slices_idx < model_slices.size())
+                    const ExPolygons& polys = model_slices[it_min_z->second.model_slices_idx];
+                    for (const ExPolygon& poly : polys)
                     {
-                        const ExPolygons& polys = model_slices[it_min_z->second.model_slices_idx];
-                        for (const ExPolygon& poly : polys)
+                        Polygons poly_triangles;
+                        poly.triangulate(&poly_triangles);
+                        for (const Polygon& t : poly_triangles)
                         {
-                            Polygons triangles;
-                            poly.triangulate(&triangles);
-                            for (const Polygon& t : triangles)
+                            for (int v = 2; v >= 0; --v)
                             {
-                                for (int v = 2; v >= 0; --v)
-                                {
-                                    bottom_triangles.emplace_back(to_3d(unscale(t.points[v]), min_z));
-                                }
+                                bottom_obj_triangles.emplace_back(to_3d(unscale(t.points[v]), min_z));
                             }
                         }
                     }
-
-                    // calculate  support bottom cap
-                    if (it_min_z->second.support_slices_idx < support_slices.size())
-                    {
-                        const ExPolygons& polys = support_slices[it_min_z->second.support_slices_idx];
-                        for (const ExPolygon& poly : polys)
-                        {
-                            Polygons triangles;
-                            poly.triangulate(&triangles);
-                            for (const Polygon& t : triangles)
-                            {
-                                for (int v = 2; v >= 0; --v)
-                                {
-                                    bottom_triangles.emplace_back(to_3d(unscale(t.points[v]), min_z));
-                                }
-                            }
-                        }
-                    }
-                    m_sla_caps[0].z = min_z;
-                    m_sla_caps[0].triangles = bottom_triangles;
                 }
 
-                if (top_triangles.empty() && (it_max_z != index.end()))
+                if (bottom_sup_triangles.empty() && (it_min_z->second.support_slices_idx < support_slices.size()))
                 {
-                    // calculate  model top cap
-                    if (it_max_z->second.model_slices_idx < model_slices.size())
+                    // calculate support bottom cap
+                    const ExPolygons& polys = support_slices[it_min_z->second.support_slices_idx];
+                    for (const ExPolygon& poly : polys)
                     {
-                        const ExPolygons& polys = model_slices[it_max_z->second.model_slices_idx];
-                        for (const ExPolygon& poly : polys)
+                        Polygons poly_triangles;
+                        poly.triangulate(&poly_triangles);
+                        for (const Polygon& t : poly_triangles)
                         {
-                            Polygons triangles;
-                            poly.triangulate(&triangles);
-                            for (const Polygon& t : triangles)
+                            for (int v = 2; v >= 0; --v)
                             {
-                                for (int v = 0; v < 3; ++v)
-                                {
-                                    top_triangles.emplace_back(to_3d(unscale(t.points[v]), max_z));
-                                }
+                                bottom_sup_triangles.emplace_back(to_3d(unscale(t.points[v]), min_z));
                             }
                         }
                     }
 
-                    // calculate  support top cap
-                    if (it_max_z->second.support_slices_idx < support_slices.size())
-                    {
-                        const ExPolygons& polys = support_slices[it_max_z->second.support_slices_idx];
-                        for (const ExPolygon& poly : polys)
-                        {
-                            Polygons triangles;
-                            poly.triangulate(&triangles);
-                            for (const Polygon& t : triangles)
-                            {
-                                for (int v = 0; v < 3; ++v)
-                                {
-                                    top_triangles.emplace_back(to_3d(unscale(t.points[v]), max_z));
-                                }
-                            }
-                        }
-                    }
-                    m_sla_caps[1].z = max_z;
-                    m_sla_caps[1].triangles = top_triangles;
+                    m_sla_caps[0].triangles.insert(SlaCap::ObjectIdToTrianglesMap::value_type(i, { bottom_obj_triangles, bottom_sup_triangles }));
+                    m_sla_caps[0].z = min_z;
                 }
             }
 
-            if (!bottom_triangles.empty() || !top_triangles.empty())
+            if (it_max_z != index.end())
             {
+                if (top_obj_triangles.empty() && (it_max_z->second.model_slices_idx < model_slices.size()))
+                {
+                    // calculate model top cap
+                    const ExPolygons& polys = model_slices[it_max_z->second.model_slices_idx];
+                    for (const ExPolygon& poly : polys)
+                    {
+                        Polygons poly_triangles;
+                        poly.triangulate(&poly_triangles);
+                        for (const Polygon& t : poly_triangles)
+                        {
+                            for (int v = 0; v < 3; ++v)
+                            {
+                                top_obj_triangles.emplace_back(to_3d(unscale(t.points[v]), max_z));
+                            }
+                        }
+                    }
+                }
+
+                if (top_sup_triangles.empty() && (it_max_z->second.support_slices_idx < support_slices.size()))
+                {
+                    // calculate support top cap
+                    const ExPolygons& polys = support_slices[it_max_z->second.support_slices_idx];
+                    for (const ExPolygon& poly : polys)
+                    {
+                        Polygons poly_triangles;
+                        poly.triangulate(&poly_triangles);
+                        for (const Polygon& t : poly_triangles)
+                        {
+                            for (int v = 0; v < 3; ++v)
+                            {
+                                top_sup_triangles.emplace_back(to_3d(unscale(t.points[v]), max_z));
+                            }
+                        }
+                    }
+                }
+
+                m_sla_caps[1].triangles.insert(SlaCap::ObjectIdToTrianglesMap::value_type(i, { top_obj_triangles, top_sup_triangles }));
+                m_sla_caps[1].z = max_z;
+            }
+        }
+
+        if (!bottom_obj_triangles.empty() || !top_obj_triangles.empty() || !bottom_sup_triangles.empty() || !top_sup_triangles.empty())
+        {
+            for (const InstanceTransform& inst : instance_transforms)
+            {
+                ::glPushMatrix();
+                ::glTranslated(inst.offset(0), inst.offset(1), inst.offset(2));
+                ::glRotatef(inst.rotation, 0.0, 0.0, 1.0);
+
+                ::glBegin(GL_TRIANGLES);
+
                 ::glColor3f(1.0f, 0.37f, 0.0f);
 
-                for (const InstanceTransform& inst : instance_transforms)
+                for (const Vec3d& v : bottom_obj_triangles)
                 {
-                    ::glPushMatrix();
-                    ::glTranslated(inst.offset(0), inst.offset(1), inst.offset(2));
-                    ::glRotatef(inst.rotation, 0.0, 0.0, 1.0);
-
-                    ::glBegin(GL_TRIANGLES);
-
-                    if (!bottom_triangles.empty())
-                    {
-                        for (const Vec3d& v : bottom_triangles)
-                        {
-                            ::glVertex3dv((GLdouble*)v.data());
-                        }
-                    }
-
-                    if (!top_triangles.empty())
-                    {
-                        for (const Vec3d& v : top_triangles)
-                        {
-                            ::glVertex3dv((GLdouble*)v.data());
-                        }
-                    }
-
-                    ::glEnd();
-
-                    ::glPopMatrix();
+                    ::glVertex3dv((GLdouble*)v.data());
                 }
+
+                for (const Vec3d& v : top_obj_triangles)
+                {
+                    ::glVertex3dv((GLdouble*)v.data());
+                }
+
+                ::glColor3f(1.0f, 0.0f, 0.37f);
+
+                for (const Vec3d& v : bottom_sup_triangles)
+                {
+                    ::glVertex3dv((GLdouble*)v.data());
+                }
+
+                for (const Vec3d& v : top_sup_triangles)
+                {
+                    ::glVertex3dv((GLdouble*)v.data());
+                }
+
+                ::glEnd();
+
+                ::glPopMatrix();
             }
         }
     }
@@ -7401,6 +7467,9 @@ void GLCanvas3D::_load_shells_sla()
     int obj_idx = 0;
     for (const SLAPrintObject* obj : print->objects())
     {
+        if (!obj->is_step_done(slaposIndexSlices))
+            continue;
+
         unsigned int initial_volumes_count = (unsigned int)m_volumes.volumes.size();
 
         const ModelObject* model_obj = obj->model_object();
@@ -7451,7 +7520,7 @@ void GLCanvas3D::_load_shells_sla()
                 else
                     v.indexed_vertex_array.load_mesh_flat_shading(mesh);
 
-                v.shader_outside_printer_detection_enabled = true;
+                v.shader_outside_printer_detection_enabled = false;
                 v.composite_id.volume_id = -1;
                 v.set_instance_offset(offset);
                 v.set_instance_rotation(rotation);
@@ -7608,7 +7677,7 @@ void GLCanvas3D::_generate_legend_texture(const GCodePreviewData& preview_data, 
         return;
 #endif // !ENABLE_USE_UNIQUE_GLCONTEXT
 
-    m_legend_texture.generate(preview_data, tool_colors, *this);
+    m_legend_texture.generate(preview_data, tool_colors, *this, m_dynamic_background_enabled && _is_any_volume_outside());
 }
 
 void GLCanvas3D::_generate_warning_texture(const std::string& msg)

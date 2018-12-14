@@ -27,6 +27,7 @@
 #include "libslic3r/Geometry.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Print.hpp"
+#include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/TriangleMesh.hpp"
 #include "libslic3r/Format/3mf.hpp"
 #include "libslic3r/Utils.hpp"
@@ -105,7 +106,7 @@ int main(int argc, char **argv)
     }
     // load config files supplied via --load
     for (const std::string &file : cli_config.load.values) {
-        if (!boost::filesystem::exists(file)) {
+        if (! boost::filesystem::exists(file)) {
             boost::nowide::cout << "No such file: " << file << std::endl;
             exit(1);
         }
@@ -206,22 +207,35 @@ int main(int argc, char **argv)
                 //     lower.mesh().write_binary((outfile + "_lower.stl").c_str());
             }
         } else if (cli_config.slice) {
+            PrinterTechnology printer_technology = print_config.option<ConfigOptionEnum<PrinterTechnology>>("printer_technology", true)->value;
             std::string outfile = cli_config.output.value;
-            Print print;
+            Print       fff_print;
+            SLAPrint    sla_print;
+            PrintBase  *print = (printer_technology == ptFFF) ? static_cast<PrintBase*>(&fff_print) : static_cast<PrintBase*>(&sla_print);
             if (! cli_config.dont_arrange) {
-                model.arrange_objects(print.config().min_object_distance());
+                //FIXME make the min_object_distance configurable.
+                model.arrange_objects(fff_print.config().min_object_distance());
                 model.center_instances_around_point(cli_config.print_center);
             }
-            if (outfile.empty())
-                outfile = model.propose_export_file_name() + ".gcode";
-            for (auto* mo : model.objects)
-                print.auto_assign_extruders(mo);
+            if (outfile.empty()) {
+                outfile = model.propose_export_file_name();
+                outfile += (printer_technology == ptFFF) ? ".gcode" : ".zip";
+            }
+            if (printer_technology == ptFFF) {
+                for (auto* mo : model.objects)
+                    fff_print.auto_assign_extruders(mo);
+            }
             print_config.normalize();
-            print.apply(model, print_config);
-            std::string err = print.validate();
-            if (err.empty())
-                print.export_gcode(outfile, nullptr);
-            else
+            print->apply(model, print_config);
+            std::string err = print->validate();
+            if (err.empty()) {
+                if (printer_technology == ptFFF) {
+                    fff_print.export_gcode(outfile, nullptr);
+                } else {
+                    assert(printer_technology == ptSLA);
+					//FIXME add the output here
+                }
+            } else
                 std::cerr << err << "\n";
         } else {
             boost::nowide::cerr << "error: command not supported" << std::endl;

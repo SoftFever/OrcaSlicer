@@ -89,8 +89,6 @@ PointSet normals(const PointSet& points, const EigenMesh3D& mesh) {
 #ifdef IGL_COMPATIBLE
     Eigen::VectorXd dists;
     Eigen::VectorXi I;
-//    Eigen::Matrix<double, Eigen::Dynamic, 1, Eigen::DontAlign> dists;
-//    Eigen::Matrix<int, Eigen::Dynamic, 1, Eigen::DontAlign> I;
     PointSet C;
 
     igl::point_mesh_squared_distance( points, mesh.V, mesh.F, dists, I, C);
@@ -122,7 +120,7 @@ double ray_mesh_intersect(const Vec3d& s,
     igl::Hit hit;
     hit.t = std::numeric_limits<float>::infinity();
     igl::ray_mesh_intersect(s, dir, m.V, m.F, hit);
-    return hit.t;
+    return double(hit.t);
 }
 
 // Clustering a set of points by the given criteria
@@ -208,7 +206,7 @@ Segments model_boundary(const EigenMesh3D& emesh, double offs)
 {
     Segments ret;
     Polygons pp;
-    pp.reserve(emesh.F.rows());
+    pp.reserve(size_t(emesh.F.rows()));
 
     for (int i = 0; i < emesh.F.rows(); i++) {
         auto trindex = emesh.F.row(i);

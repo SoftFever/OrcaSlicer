@@ -270,7 +270,7 @@ Slic3r::GUI::PageShp Tab::add_options_page(const wxString& title, const std::str
 	auto panel = this;
 #endif
 	PageShp page(new Page(panel, title, icon_idx));
-	page->SetScrollbars(1, 1, 1, 1);
+	page->SetScrollbars(1, 1, 1, 2);
 	page->Hide();
 	m_hsizer->Add(page.get(), 1, wxEXPAND | wxLEFT, 5);
 
@@ -1883,6 +1883,7 @@ void TabPrinter::build_sla()
     line.append_option(option);
     line.append_option(optgroup->get_option("display_pixels_y"));
     optgroup->append_line(line);
+    optgroup->append_single_option_line("display_orientation");
 
     optgroup = page->new_optgroup(_(L("Corrections")));
     line = Line{ m_config->def()->get("printer_correction")->full_label, "" };

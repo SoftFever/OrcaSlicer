@@ -14,6 +14,8 @@
 
 #include "PrintExport.hpp"
 
+#include <boost/filesystem/path.hpp>
+
 //! macro used to mark string used at localization, 
 //! return same string
 #define L(s) Slic3r::I18N::translate(s)
@@ -281,16 +283,17 @@ bool Print::is_step_done(PrintObjectStep step) const
 std::vector<unsigned int> Print::object_extruders() const
 {
     std::vector<unsigned int> extruders;
+    extruders.reserve(m_regions.size() * 3);
     
-    for (PrintRegion* region : m_regions) {
+    for (const PrintRegion *region : m_regions) {
         // these checks reflect the same logic used in the GUI for enabling/disabling
         // extruder selection fields
         if (region->config().perimeters.value > 0 || m_config.brim_width.value > 0)
-            extruders.push_back(region->config().perimeter_extruder - 1);
+            extruders.emplace_back(region->config().perimeter_extruder - 1);
         if (region->config().fill_density.value > 0)
-            extruders.push_back(region->config().infill_extruder - 1);
+            extruders.emplace_back(region->config().infill_extruder - 1);
         if (region->config().top_solid_layers.value > 0 || region->config().bottom_solid_layers.value > 0)
-            extruders.push_back(region->config().solid_infill_extruder - 1);
+            extruders.emplace_back(region->config().solid_infill_extruder - 1);
     }
     
     sort_remove_duplicates(extruders);
@@ -480,14 +483,6 @@ bool Print::apply_config(DynamicPrintConfig config)
         PrintObjectConfig new_config = this->default_object_config();
         // we override the new config with object-specific options
         normalize_and_apply_config(new_config, object->model_object()->config);
-        // Force a refresh of a variable layer height profile at the PrintObject if it is not valid.
-        if (! object->layer_height_profile_valid) {
-            // The layer_height_profile is not valid for some reason (updated by the user or invalidated due to some option change).
-            // Invalidate the slicing step, which in turn invalidates everything.
-            object->invalidate_step(posSlice);
-            // Trigger recalculation.
-            invalidated = true;
-        }
         // check whether the new config is different from the current one
         t_config_option_keys diff = object->config().diff(new_config);
         object->config_apply_only(new_config, diff, true);
@@ -567,8 +562,7 @@ exit_for_rearrange_regions:
 
     // Always make sure that the layer_height_profiles are set, as they should not be modified from the worker threads.
     for (PrintObject *object : m_objects)
-        if (! object->layer_height_profile_valid)
-            object->update_layer_height_profile();
+        object->update_layer_height_profile();
     
     return invalidated;
 }
@@ -1141,6 +1135,8 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
     // Always make sure that the layer_height_profiles are set, as they should not be modified from the worker threads.
     for (PrintObject *object : m_objects)
         if (! object->layer_height_profile_valid)
+            // No need to call the next line as the step should already be invalidated above.
+            // update_apply_status(object->invalidate_step(posSlice));
             object->update_layer_height_profile();
 
     //FIXME there may be a race condition with the G-code export running at the background thread.
@@ -1165,6 +1161,7 @@ bool Print::has_skirt() const
         || this->has_infinite_skirt();
 }
 
+// Precondition: Print::validate() requires the Print::apply() to be called its invocation.
 std::string Print::validate() const
 {
     if (m_objects.empty())
@@ -1231,8 +1228,8 @@ std::string Print::validate() const
     }
 
     if (this->has_wipe_tower() && ! m_objects.empty()) {
-        if (m_config.gcode_flavor != gcfRepRap && m_config.gcode_flavor != gcfMarlin)
-            return L("The Wipe Tower is currently only supported for the Marlin and RepRap/Sprinter G-code flavors.");
+        if (m_config.gcode_flavor != gcfRepRap && m_config.gcode_flavor != gcfRepetier && m_config.gcode_flavor != gcfMarlin)
+            return L("The Wipe Tower is currently only supported for the Marlin, RepRap/Sprinter and Repetier G-code flavors.");
         if (! m_config.use_relative_e_distances)
             return L("The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1).");
         SlicingParameters slicing_params0 = m_objects.front()->slicing_parameters();
@@ -1253,12 +1250,10 @@ std::string Print::validate() const
                 return L("The Wipe Tower is only supported for multiple objects if they are printed with the same support_material_contact_distance");
             if (! equal_layering(slicing_params, slicing_params0))
                 return L("The Wipe Tower is only supported for multiple objects if they are sliced equally.");
-            bool was_layer_height_profile_valid = object->layer_height_profile_valid;
-            object->update_layer_height_profile();
-            object->layer_height_profile_valid = was_layer_height_profile_valid;
 
             if ( m_config.variable_layer_height ) { // comparing layer height profiles
                 bool failed = false;
+                // layer_height_profile should be set by Print::apply().
                 if (tallest_object->layer_height_profile.size() >= object->layer_height_profile.size() ) {
                     int i = 0;
                     while ( i < object->layer_height_profile.size() && i < tallest_object->layer_height_profile.size()) {
@@ -1867,5 +1862,96 @@ int Print::get_extruder(const ExtrusionEntityCollection& fill, const PrintRegion
                                     std::max<int>(region.config().perimeter_extruder.value - 1, 0);
 }
 
-} // namespace Slic3r
+std::string Print::output_filename() const 
+{ 
+    // Set the placeholders for the data know first after the G-code export is finished.
+    // These values will be just propagated into the output file name.
+    DynamicConfig config = this->finished() ? this->print_statistics().config() : this->print_statistics().placeholders();
+    return this->PrintBase::output_filename(m_config.output_filename_format.value, "gcode", &config);
+}
 
+// Shorten the dhms time by removing the seconds, rounding the dhm to full minutes
+// and removing spaces.
+static std::string short_time(const std::string &time)
+{
+    // Parse the dhms time format.
+    int days    = 0;
+    int hours   = 0;
+    int minutes = 0;
+    int seconds = 0;
+    if (time.find('d') != std::string::npos)
+        ::sscanf(time.c_str(), "%dd %dh %dm %ds", &days, &hours, &minutes, &seconds);
+    else if (time.find('h') != std::string::npos)
+        ::sscanf(time.c_str(), "%dh %dm %ds", &hours, &minutes, &seconds);
+    else if (time.find('m') != std::string::npos)
+        ::sscanf(time.c_str(), "%dm %ds", &minutes, &seconds);
+    else if (time.find('s') != std::string::npos)
+        ::sscanf(time.c_str(), "%ds", &seconds);
+    // Round to full minutes.
+    if (days + hours + minutes > 0 && seconds >= 30) {
+        if (++ minutes == 60) {
+            minutes = 0;
+            if (++ hours == 24) {
+                hours = 0;
+                ++ days;
+            }
+        }
+    }
+    // Format the dhm time.
+    char buffer[64];
+    if (days > 0)
+        ::sprintf(buffer, "%dd%dh%dm", days, hours, minutes);
+    else if (hours > 0)
+        ::sprintf(buffer, "%dh%dm", hours, minutes);
+    else if (minutes > 0)
+        ::sprintf(buffer, "%dm", minutes);
+    else
+        ::sprintf(buffer, "%ds", seconds);
+    return buffer;
+}
+
+DynamicConfig PrintStatistics::config() const
+{
+    DynamicConfig config;
+    std::string normal_print_time = short_time(this->estimated_normal_print_time);
+    std::string silent_print_time = short_time(this->estimated_silent_print_time);
+    config.set_key_value("print_time",                new ConfigOptionString(normal_print_time));
+    config.set_key_value("normal_print_time",         new ConfigOptionString(normal_print_time));
+    config.set_key_value("silent_print_time",         new ConfigOptionString(silent_print_time));
+    config.set_key_value("used_filament",             new ConfigOptionFloat (this->total_used_filament));
+    config.set_key_value("extruded_volume",           new ConfigOptionFloat (this->total_extruded_volume));
+    config.set_key_value("total_cost",                new ConfigOptionFloat (this->total_cost));
+    config.set_key_value("total_weight",              new ConfigOptionFloat (this->total_weight));
+    config.set_key_value("total_wipe_tower_cost",     new ConfigOptionFloat (this->total_wipe_tower_cost));
+    config.set_key_value("total_wipe_tower_filament", new ConfigOptionFloat (this->total_wipe_tower_filament));
+    return config;
+}
+
+DynamicConfig PrintStatistics::placeholders()
+{
+    DynamicConfig config;
+    for (const std::string &key : { 
+        "print_time", "normal_print_time", "silent_print_time", 
+        "used_filament", "extruded_volume", "total_cost", "total_weight", 
+        "total_wipe_tower_cost", "total_wipe_tower_filament"})
+        config.set_key_value(key, new ConfigOptionString(std::string("{") + key + "}"));    
+    return config;
+}
+
+std::string PrintStatistics::finalize_output_path(const std::string &path_in) const
+{
+    std::string final_path;
+    try {
+        boost::filesystem::path path(path_in);
+        DynamicConfig cfg = this->config();
+        PlaceholderParser pp;
+        std::string new_stem = pp.process(path.stem().string(), 0, &cfg);
+        final_path = (path.parent_path() / (new_stem + path.extension().string())).string();
+    } catch (const std::exception &ex) {
+        BOOST_LOG_TRIVIAL(error) << "Failed to apply the print statistics to the export file name: " << ex.what();
+        final_path = path_in;
+    }
+    return final_path;
+}
+
+} // namespace Slic3r

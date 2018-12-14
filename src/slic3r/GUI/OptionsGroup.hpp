@@ -85,7 +85,9 @@ public:
     size_t			label_width {200};
     wxSizer*		sizer {nullptr};
     column_t		extra_column {nullptr};
-    t_change		m_on_change {nullptr};
+    t_change		m_on_change { nullptr };
+    t_kill_focus    m_fill_empty_value { nullptr };
+    t_kill_focus    m_set_focus { nullptr };
 	std::function<DynamicPrintConfig()>	m_get_initial_config{ nullptr };
 	std::function<DynamicPrintConfig()>	m_get_sys_config{ nullptr };
 	std::function<bool()>	have_sys_config{ nullptr };
@@ -93,8 +95,6 @@ public:
     wxFont			sidetext_font {wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT) };
     wxFont			label_font {wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT) };
 	int				sidetext_width{ -1 };
-
-    bool            process_enter { false };
 
     /// Returns a copy of the pointer of the parent wxWindow.
     /// Accessor function is because users are not allowed to change the parent
@@ -154,11 +154,6 @@ public:
 		                m_show_modified_btns = show;
     }
 
-    // The controls inside this option group will generate the event wxEVT_TEXT_ENTER
-    void            set_process_enter() { 
-                        process_enter = true;
-    }
-
 	OptionsGroup(	wxWindow* _parent, const wxString& title, bool is_tab_opt = false, 
 					column_t extra_clmn = nullptr) :
 					m_parent(_parent), title(title), 
@@ -215,7 +210,8 @@ protected:
 	const t_field&		build_field(const Option& opt, wxStaticText* label = nullptr);
 	void				add_undo_buttuns_to_sizer(wxSizer* sizer, const t_field& field);
 
-    virtual void		on_kill_focus () {};
+    virtual void		on_kill_focus(const std::string& opt_key) {};
+	virtual void		on_set_focus(const std::string& opt_key);
 	virtual void		on_change_OG(const t_config_option_key& opt_id, const boost::any& value);
 	virtual void		back_to_initial_value(const std::string& opt_key) {}
 	virtual void		back_to_sys_value(const std::string& opt_key) {}
@@ -251,7 +247,7 @@ public:
 	void		back_to_initial_value(const std::string& opt_key) override;
 	void		back_to_sys_value(const std::string& opt_key) override;
 	void		back_to_config_value(const DynamicPrintConfig& config, const std::string& opt_key);
-	void		on_kill_focus() override{ reload_config();}
+    void		on_kill_focus(const std::string& opt_key) override;// { reload_config(); }
 	void		reload_config();
     // return value shows visibility : false => all options are hidden
     void        Hide();

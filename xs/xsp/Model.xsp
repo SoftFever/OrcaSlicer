@@ -211,11 +211,6 @@ ModelMaterial::attributes()
     void set_layer_height_ranges(t_layer_height_ranges ranges)
         %code%{ THIS->layer_height_ranges = ranges; %};
 
-    std::vector<double> layer_height_profile() 
-        %code%{ RETVAL = THIS->layer_height_profile_valid ? THIS->layer_height_profile : std::vector<double>(); %};
-    void set_layer_height_profile(std::vector<double> profile)
-        %code%{ THIS->layer_height_profile = profile; THIS->layer_height_profile_valid = true; %};
-
     Ref<Vec3d> origin_translation()
         %code%{ RETVAL = &THIS->origin_translation; %};
     void set_origin_translation(Vec3d* point)
