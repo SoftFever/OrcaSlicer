@@ -213,6 +213,7 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
             || opt_key == "filament_cooling_final_speed"
             || opt_key == "filament_ramming_parameters"
             || opt_key == "gcode_flavor"
+            || opt_key == "high_current_on_filament_swap"
             || opt_key == "infill_first"
             || opt_key == "single_extruder_multi_material"
             || opt_key == "spiral_vase"
@@ -1768,7 +1769,8 @@ void Print::_make_wipe_tower()
         float(m_config.wipe_tower_width.value),
         float(m_config.wipe_tower_rotation_angle.value), float(m_config.cooling_tube_retraction.value),
         float(m_config.cooling_tube_length.value), float(m_config.parking_pos_retraction.value),
-        float(m_config.extra_loading_move.value), float(m_config.wipe_tower_bridging), wipe_volumes,
+        float(m_config.extra_loading_move.value), float(m_config.wipe_tower_bridging), 
+        m_config.high_current_on_filament_swap.value, wipe_volumes,
         m_wipe_tower_data.tool_ordering.first_extruder());
 
     //wipe_tower.set_retract();
