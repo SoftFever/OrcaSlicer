@@ -68,7 +68,7 @@ if(TBB_FOUND)
        target_compile_definitions(libnest2d INTERFACE -D__TBB_NO_IMPLICIT_LINKAGE)
     endif()
     # The Intel TBB library will use the std::exception_ptr feature of C++11.
-    target_compile_definitions(libnest2d INTERFACE -DTBB_USE_CAPTURED_EXCEPTION=1)
+    target_compile_definitions(libnest2d INTERFACE -DTBB_USE_CAPTURED_EXCEPTION=0)
 
     target_link_libraries(libnest2d INTERFACE tbb)
 else()
