@@ -1460,9 +1460,12 @@ void ObjectList::update_selections()
     select_items(sels);
 
     if (GetSelection()) {
-        const wxRect& top_rc = GetItemRect(GetTopItem());
         const wxRect& sel_rc = GetItemRect(GetSelection());
-        ScrollLines(int((sel_rc.y - top_rc.y) / top_rc.GetHeight()) - 0.5*GetCountPerPage());
+        if (!sel_rc.IsEmpty()) {
+            const int rc_h = sel_rc.height;
+            const int displ = GetMainWindow()->GetClientRect().GetHeight()/(2*rc_h)+1;
+            ScrollLines(int(sel_rc.y / rc_h - displ));
+        }
     }
 }
 
