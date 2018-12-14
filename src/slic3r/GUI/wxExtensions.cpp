@@ -1228,6 +1228,14 @@ void PrusaObjectDataViewModel::SetVolumeType(const wxDataViewItem &item, const i
     ItemChanged(item);
 }
 
+PrusaBitmapTextRenderer::PrusaBitmapTextRenderer(wxDataViewCellMode mode /*= wxDATAVIEW_CELL_EDITABLE*/, 
+                                                 int align /*= wxDVR_DEFAULT_ALIGNMENT*/): 
+wxDataViewRenderer(wxT("PrusaDataViewBitmapText"), mode, align)
+{
+    SetMode(mode);
+    SetAlignment(align);
+}
+
 //-----------------------------------------------------------------------------
 // PrusaDataViewBitmapText
 //-----------------------------------------------------------------------------
@@ -1250,6 +1258,13 @@ bool PrusaBitmapTextRenderer::GetValue(wxVariant& WXUNUSED(value)) const
 {
     return false;
 }
+
+#if wxUSE_ACCESSIBILITY
+wxString PrusaBitmapTextRenderer::GetAccessibleDescription() const
+{
+    return m_value.GetText();
+}
+#endif // wxUSE_ACCESSIBILITY
 
 bool PrusaBitmapTextRenderer::Render(wxRect rect, wxDC *dc, int state)
 {
@@ -1291,12 +1306,12 @@ wxWindow* PrusaBitmapTextRenderer::CreateEditorCtrl(wxWindow* parent, wxRect lab
 
     PrusaDataViewBitmapText data;
     data << value;
-    m_bmp_from_editing_item = data.GetBitmap();
+
     m_was_unusable_symbol = false;
 
     wxPoint position = labelRect.GetPosition();
-    if (m_bmp_from_editing_item.IsOk()) {
-        const int bmp_width = m_bmp_from_editing_item.GetWidth();
+    if (data.GetBitmap().IsOk()) {
+        const int bmp_width = data.GetBitmap().GetWidth();
         position.x += bmp_width;
         labelRect.SetWidth(labelRect.GetWidth() - bmp_width);
     }
@@ -1304,6 +1319,7 @@ wxWindow* PrusaBitmapTextRenderer::CreateEditorCtrl(wxWindow* parent, wxRect lab
     wxTextCtrl* text_editor = new wxTextCtrl(parent, wxID_ANY, data.GetText(),
                                              position, labelRect.GetSize(), wxTE_PROCESS_ENTER);
     text_editor->SetInsertionPointEnd();
+    text_editor->SelectAll();
 
     return text_editor;
 }
@@ -1323,7 +1339,17 @@ bool PrusaBitmapTextRenderer::GetValueFromEditorCtrl(wxWindow* ctrl, wxVariant& 
         }
     }
 
-    value << PrusaDataViewBitmapText(text_editor->GetValue(), m_bmp_from_editing_item);
+    // The icon can't be edited so get its old value and reuse it.
+    wxVariant valueOld;
+    GetView()->GetModel()->GetValue(valueOld, m_item, 0); 
+    
+    PrusaDataViewBitmapText bmpText;
+    bmpText << valueOld;
+
+    // But replace the text with the value entered by user.
+    bmpText.SetText(text_editor->GetValue());
+
+    value << bmpText;
     return true;
 }
 

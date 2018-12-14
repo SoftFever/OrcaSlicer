@@ -1654,7 +1654,9 @@ void ObjectList::change_part_type()
 void ObjectList::last_volume_is_deleted(const int obj_idx)
 {
 
-    if (obj_idx < 0 || (*m_objects).empty() || (*m_objects)[obj_idx]->volumes.empty())
+    if (obj_idx < 0 || m_objects->empty() ||
+        obj_idx <= m_objects->size() ||
+        (*m_objects)[obj_idx]->volumes.empty())
         return;
     auto volume = (*m_objects)[obj_idx]->volumes[0];
 
