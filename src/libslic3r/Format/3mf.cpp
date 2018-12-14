@@ -1876,7 +1876,7 @@ namespace Slic3r {
             vertices_count += stl.stats.shared_vertices;
 
 #if ENABLE_MODELVOLUME_TRANSFORM
-            Transform3d matrix = volume->get_matrix();
+            const Transform3d& matrix = volume->get_matrix();
 #endif // ENABLE_MODELVOLUME_TRANSFORM
 
             for (int i = 0; i < stl.stats.shared_vertices; ++i)

@@ -512,7 +512,7 @@ void Model::adjust_min_z()
             {
                 coordf_t obj_min_z = obj->bounding_box().min(2);
                 if (obj_min_z < 0.0)
-                    obj->translate(0.0, 0.0, -obj_min_z);
+                    obj->translate_instances(Vec3d(0.0, 0.0, -obj_min_z));
             }
         }
     }
