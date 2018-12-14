@@ -1459,13 +1459,11 @@ void ObjectList::update_selections()
     
     select_items(sels);
 
-#ifdef __WXMSW__
     if (GetSelection()) {
-        const int sel_item_row = GetRowByItem(GetSelection());
-        ScrollLines(sel_item_row - m_selected_row);
-        m_selected_row = sel_item_row;
+        const wxRect& top_rc = GetItemRect(GetTopItem());
+        const wxRect& sel_rc = GetItemRect(GetSelection());
+        ScrollLines(int((sel_rc.y - top_rc.y) / top_rc.GetHeight()) - 0.5*GetCountPerPage());
     }
-#endif //__WXMSW__
 }
 
 void ObjectList::update_selections_on_canvas()
