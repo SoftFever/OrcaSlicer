@@ -384,6 +384,12 @@ void PrintObject::generate_support_material()
             m_print->set_status(85, "Generating support material");    
             this->_generate_support_material();
             m_print->throw_if_canceled();
+        } else {
+            // Printing without supports. Empty layer means some objects or object parts are levitating,
+            // therefore they cannot be printed without supports.
+            for (const Layer *layer : m_layers)
+                if (layer->empty())
+                    throw std::runtime_error("Levitating objects cannot be printed without supports.");
         }
         this->set_done(posSupportMaterial);
     }
@@ -522,11 +528,13 @@ bool PrintObject::invalidate_state_by_config_options(const std::vector<t_config_
             || opt_key == "perimeter_speed"
             || opt_key == "small_perimeter_speed"
             || opt_key == "solid_infill_speed"
-            || opt_key == "top_solid_infill_speed"
-            || opt_key == "wipe_into_infill"    // when these these two are changed, we only need to invalidate the wipe tower,
-            || opt_key == "wipe_into_objects"   // which we already did at the very beginning - nothing more to be done
-            ) {
-            // these options only affect G-code export, so nothing to invalidate
+            || opt_key == "top_solid_infill_speed") {
+            invalidated |= m_print->invalidate_step(psGCodeExport);
+        } else if (
+               opt_key == "wipe_into_infill"
+            || opt_key == "wipe_into_objects") {
+            invalidated |= m_print->invalidate_step(psWipeTower);
+            invalidated |= m_print->invalidate_step(psGCodeExport);
         } else {
             // for legacy, if we can't handle this option let's invalidate all steps
             this->invalidate_all_steps();
@@ -1463,10 +1471,8 @@ void PrintObject::_slice()
     BOOST_LOG_TRIVIAL(debug) << "Slicing objects - removing top empty layers";
     while (! m_layers.empty()) {
         const Layer *layer = m_layers.back();
-        for (size_t region_id = 0; region_id < this->region_volumes.size(); ++ region_id)
-            if (layer->m_regions[region_id] != nullptr && ! layer->m_regions[region_id]->slices.empty())
-                // Non empty layer.
-                goto end;
+        if (! layer->empty())
+            goto end;
         delete layer;
         m_layers.pop_back();
 		if (! m_layers.empty())
