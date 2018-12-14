@@ -7,11 +7,12 @@
 namespace Slic3r {
 
 class ExPolygon;
+using ExPolygons = std::vector<ExPolygon>;
+
 class TriangleMesh;
 
 namespace sla {
 
-using ExPolygons = std::vector<ExPolygon>;
 using ThrowOnCancel = std::function<void(void)>;
 
 /// Calculate the polygon representing the silhouette from the specified height
