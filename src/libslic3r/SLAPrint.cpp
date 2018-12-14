@@ -423,6 +423,7 @@ void swapXY(ExPolygon& expoly) {
 void SLAPrint::process()
 {
     using namespace sla;
+    using ExPolygon = Slic3r::ExPolygon;
 
     // Assumption: at this point the print objects should be populated only with
     // the model objects we have to process and the instances are also filtered
