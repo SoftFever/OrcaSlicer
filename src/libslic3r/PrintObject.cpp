@@ -385,11 +385,13 @@ void PrintObject::generate_support_material()
             this->_generate_support_material();
             m_print->throw_if_canceled();
         } else {
+#if 0
             // Printing without supports. Empty layer means some objects or object parts are levitating,
             // therefore they cannot be printed without supports.
             for (const Layer *layer : m_layers)
                 if (layer->empty())
                     throw std::runtime_error("Levitating objects cannot be printed without supports.");
+#endif
         }
         this->set_done(posSupportMaterial);
     }
