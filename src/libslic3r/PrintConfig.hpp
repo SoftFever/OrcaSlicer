@@ -155,8 +155,8 @@ template<> inline const t_config_enum_values& ConfigOptionEnum<FilamentType>::ge
 
 template<> inline const t_config_enum_values& ConfigOptionEnum<SLADisplayOrientation>::get_enum_values() {
     static const t_config_enum_values keys_map = {
-        { "Landscape", sladoLandscape},
-        { "Portrait",  sladoPortrait}
+        { "landscape", sladoLandscape},
+        { "portrait",  sladoPortrait}
     };
 
     return keys_map;

@@ -2394,8 +2394,10 @@ void PrintConfigDef::init_sla_params()
     def->tooltip = L("Display orientation");
     def->cli = "display-orientation=s";
     def->enum_keys_map = &ConfigOptionEnum<SLADisplayOrientation>::get_enum_values();
-    def->enum_values.push_back("Landscape");
-    def->enum_values.push_back("Portrait");
+    def->enum_values.push_back("landscape");
+    def->enum_values.push_back("portrait");
+    def->enum_labels.push_back(L("Landscape"));
+    def->enum_labels.push_back(L("Portrait"));
     def->default_value = new ConfigOptionEnum<SLADisplayOrientation>(sladoPortrait);
 
     def = this->add("printer_correction", coFloats);
