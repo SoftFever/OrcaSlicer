@@ -1095,8 +1095,10 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
 			bool         fresh = print_object.region_volumes.empty();
             unsigned int volume_id = 0;
             for (const ModelVolume *volume : model_object.volumes) {
-                if (! volume->is_model_part() && ! volume->is_modifier())
-                    continue;
+                if (! volume->is_model_part() && ! volume->is_modifier()) {
+					++ volume_id;
+					continue;
+				}
                 int region_id = -1;
                 if (&print_object == &print_object0) {
                     // Get the config applied to this volume.

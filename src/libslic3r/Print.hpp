@@ -107,7 +107,7 @@ public:
     // adds region_id, too, if necessary
     void add_region_volume(unsigned int region_id, int volume_id) {
         if (region_id >= region_volumes.size())
-			region_volumes.assign(region_id + 1, std::vector<int>());
+			region_volumes.resize(region_id + 1);
         region_volumes[region_id].emplace_back(volume_id);
     }
     // This is the *total* layer count (including support layers)
