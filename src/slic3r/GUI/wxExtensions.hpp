@@ -518,19 +518,26 @@ public:
 // ----------------------------------------------------------------------------
 // PrusaBitmapTextRenderer
 // ----------------------------------------------------------------------------
-
-class PrusaBitmapTextRenderer : public wxDataViewRenderer//CustomRenderer
+#if ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
+class PrusaBitmapTextRenderer : public wxDataViewRenderer
+#else
+class PrusaBitmapTextRenderer : public wxDataViewCustomRenderer
+#endif //ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
 {
 public:
     PrusaBitmapTextRenderer(wxDataViewCellMode mode = wxDATAVIEW_CELL_EDITABLE,
-                            int align = wxDVR_DEFAULT_ALIGNMENT);//: 
-//                             wxDataViewRenderer/*CustomRenderer*/(wxT("PrusaDataViewBitmapText"), mode, align) {}
+                            int align = wxDVR_DEFAULT_ALIGNMENT
+#if ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
+                            );
+#else
+                            ) : wxDataViewCustomRenderer(wxT("PrusaDataViewBitmapText"), mode, align) {}
+#endif //ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
 
     bool SetValue(const wxVariant &value);
     bool GetValue(wxVariant &value) const;
-#if wxUSE_ACCESSIBILITY
+#if ENABLE_NONCUSTOM_DATA_VIEW_RENDERING && wxUSE_ACCESSIBILITY
     virtual wxString GetAccessibleDescription() const override;
-#endif // wxUSE_ACCESSIBILITY
+#endif // wxUSE_ACCESSIBILITY && ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
 
     virtual bool Render(wxRect cell, wxDC *dc, int state);
     virtual wxSize GetSize() const;
