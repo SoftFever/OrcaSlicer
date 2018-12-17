@@ -20,6 +20,8 @@ class wxTimerEvent;
 class wxPaintEvent;
 class wxGLCanvas;
 
+class GLUquadric;
+typedef class GLUquadric GLUquadricObj;
 
 namespace Slic3r {
 
@@ -231,12 +233,20 @@ class GLCanvas3D
 
     struct Axes
     {
+        static const double Radius;
+        static const double ArrowBaseRadius;
+        static const double ArrowLength;
         Vec3d origin;
-        float length;
+        Vec3d length;
+        GLUquadricObj* m_quadric;
 
         Axes();
+        ~Axes();
 
-        void render(bool depth_test) const;
+        void render() const;
+
+    private:
+        void render_axis(double length) const;
     };
 
     class Shader
@@ -870,8 +880,7 @@ public:
     // fills the m_bed.m_grid_lines and sets m_bed.m_origin.
     // Sets m_bed.m_polygon to limit the object placement.
     void set_bed_shape(const Pointfs& shape);
-
-    void set_axes_length(float length);
+    void set_bed_axes_length(double length);
 
     void set_clipping_plane(unsigned int id, const ClippingPlane& plane)
     {
@@ -1011,7 +1020,7 @@ private:
     void _picking_pass() const;
     void _render_background() const;
     void _render_bed(float theta) const;
-    void _render_axes(bool depth_test) const;
+    void _render_axes() const;
     void _render_objects() const;
     void _render_selection() const;
     void _render_warning_texture() const;
