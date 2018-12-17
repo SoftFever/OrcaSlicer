@@ -75,6 +75,11 @@ public:
         m_filpar.push_back(FilamentParameters());
 
         m_filpar[idx].material = material;
+        if (material == FLEX || material == SCAFF || material == PVA) {
+    		// MMU2 lowers the print speed using the speed override (M220) for printing of soluble PVA/BVOH and flex materials.
+    		// Therefore it does not make sense to use the new M220 B and M220 R (backup / restore).
+        	m_retain_speed_override = false;
+        }
         m_filpar[idx].temperature = temp;
         m_filpar[idx].first_layer_temperature = first_layer_temp;
         m_filpar[idx].loading_speed = loading_speed;
@@ -215,6 +220,7 @@ private:
     float           m_extra_loading_move        = 0.f;
     float           m_bridging                  = 0.f;
     bool            m_set_extruder_trimpot      = false;
+    bool 			m_retain_speed_override		= true;
     bool            m_adhesion                  = true;
 
 	float m_perimeter_width = 0.4 * Width_To_Nozzle_Ratio; // Width of an extrusion line, also a perimeter spacing for 100% infill.
