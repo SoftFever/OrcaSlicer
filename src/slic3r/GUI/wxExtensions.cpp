@@ -1228,14 +1228,6 @@ void PrusaObjectDataViewModel::SetVolumeType(const wxDataViewItem &item, const i
     ItemChanged(item);
 }
 
-PrusaBitmapTextRenderer::PrusaBitmapTextRenderer(wxDataViewCellMode mode /*= wxDATAVIEW_CELL_EDITABLE*/, 
-                                                 int align /*= wxDVR_DEFAULT_ALIGNMENT*/): 
-wxDataViewRenderer(wxT("PrusaDataViewBitmapText"), mode, align)
-{
-    SetMode(mode);
-    SetAlignment(align);
-}
-
 //-----------------------------------------------------------------------------
 // PrusaDataViewBitmapText
 //-----------------------------------------------------------------------------
@@ -1248,6 +1240,16 @@ IMPLEMENT_VARIANT_OBJECT(PrusaDataViewBitmapText)
 // PrusaIconTextRenderer
 // ---------------------------------------------------------
 
+#if ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
+PrusaBitmapTextRenderer::PrusaBitmapTextRenderer(wxDataViewCellMode mode /*= wxDATAVIEW_CELL_EDITABLE*/, 
+                                                 int align /*= wxDVR_DEFAULT_ALIGNMENT*/): 
+wxDataViewRenderer(wxT("PrusaDataViewBitmapText"), mode, align)
+{
+    SetMode(mode);
+    SetAlignment(align);
+}
+#endif // ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
+
 bool PrusaBitmapTextRenderer::SetValue(const wxVariant &value)
 {
     m_value << value;
@@ -1259,12 +1261,12 @@ bool PrusaBitmapTextRenderer::GetValue(wxVariant& WXUNUSED(value)) const
     return false;
 }
 
-#if wxUSE_ACCESSIBILITY
+#if ENABLE_NONCUSTOM_DATA_VIEW_RENDERING && wxUSE_ACCESSIBILITY
 wxString PrusaBitmapTextRenderer::GetAccessibleDescription() const
 {
     return m_value.GetText();
 }
-#endif // wxUSE_ACCESSIBILITY
+#endif // wxUSE_ACCESSIBILITY && ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
 
 bool PrusaBitmapTextRenderer::Render(wxRect rect, wxDC *dc, int state)
 {
