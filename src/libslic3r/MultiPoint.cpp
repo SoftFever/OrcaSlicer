@@ -162,45 +162,51 @@ bool MultiPoint::first_intersection(const Line& line, Point* intersection) const
     return found;
 }
 
-//FIXME This is very inefficient in term of memory use.
-// The recursive algorithm shall run in place, not allocating temporary data in each recursion.
-Points
-MultiPoint::_douglas_peucker(const Points &points, const double tolerance)
+std::vector<Point> MultiPoint::_douglas_peucker(const std::vector<Point>& pts, const double tolerance)
 {
-    assert(points.size() >= 2);
-    Points results;
-    double dmax = 0;
-    size_t index = 0;
-    Line full(points.front(), points.back());
-    for (Points::const_iterator it = points.begin() + 1; it != points.end(); ++it) {
-        // we use shortest distance, not perpendicular distance
-        double d = full.distance_to(*it);
-        if (d > dmax) {
-            index = it - points.begin();
-            dmax = d;
+    std::vector<Point> result_pts;
+    if (! pts.empty()) {
+        const Point  *anchor      = &pts.front();
+        size_t        anchor_idx  = 0;
+        const Point  *floater     = &pts.back();
+        size_t        floater_idx = pts.size() - 1;
+        result_pts.reserve(pts.size());
+        result_pts.emplace_back(*anchor);
+        if (anchor_idx != floater_idx) {
+            assert(pts.size() > 1);
+            std::vector<size_t> dpStack;
+            dpStack.reserve(pts.size());
+            dpStack.emplace_back(floater_idx);
+            for (;;) {
+                double max_distSq   = 0.0;
+                size_t furthest_idx = anchor_idx;
+                // find point furthest from line seg created by (anchor, floater) and note it
+                for (size_t i = anchor_idx + 1; i < floater_idx; ++ i) {
+                    double dist = Line::distance_to_squared(pts[i], *anchor, *floater);
+                    if (dist > max_distSq) {
+                        max_distSq   = dist;
+                        furthest_idx = i;
+                    }
+                }
+                // remove point if less than tolerance
+                if (max_distSq <= tolerance) {
+                    result_pts.emplace_back(*floater);
+                    anchor_idx = floater_idx;
+                    anchor     = floater;
+                    assert(dpStack.back() == floater_idx);
+                    dpStack.pop_back();
+                    if (dpStack.empty())
+                        break;
+                    floater_idx = dpStack.back();
+                } else {
+                    floater_idx = furthest_idx;
+                    dpStack.emplace_back(floater_idx);
+                }
+                floater = &pts[floater_idx];
+            }
         }
     }
-    if (dmax >= tolerance) {
-        Points dp0;
-        dp0.reserve(index + 1);
-        dp0.insert(dp0.end(), points.begin(), points.begin() + index + 1);
-        // Recursive call.
-        Points dp1 = MultiPoint::_douglas_peucker(dp0, tolerance);
-        results.reserve(results.size() + dp1.size() - 1);
-        results.insert(results.end(), dp1.begin(), dp1.end() - 1);
-        
-        dp0.clear();
-        dp0.reserve(points.size() - index);
-        dp0.insert(dp0.end(), points.begin() + index, points.end());
-        // Recursive call.
-        dp1 = MultiPoint::_douglas_peucker(dp0, tolerance);
-        results.reserve(results.size() + dp1.size());
-        results.insert(results.end(), dp1.begin(), dp1.end());
-    } else {
-        results.push_back(points.front());
-        results.push_back(points.back());
-    }
-    return results;
+    return result_pts;
 }
 
 // Visivalingam simplification algorithm https://github.com/slic3r/Slic3r/pull/3825

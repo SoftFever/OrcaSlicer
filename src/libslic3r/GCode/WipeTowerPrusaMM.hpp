@@ -44,7 +44,8 @@ public:
 	// width		-- width of wipe tower in mm ( default 60 mm - leave as it is )
 	// wipe_area	-- space available for one toolchange in mm
 	WipeTowerPrusaMM(float x, float y, float width, float rotation_angle, float cooling_tube_retraction,
-                     float cooling_tube_length, float parking_pos_retraction, float extra_loading_move, float bridging,
+                     float cooling_tube_length, float parking_pos_retraction, float extra_loading_move, 
+                     float bridging, bool set_extruder_trimpot,
                      const std::vector<std::vector<float>>& wiping_matrix, unsigned int initial_tool) :
     m_wipe_tower_pos(x, y),
 		m_wipe_tower_width(width),
@@ -57,6 +58,7 @@ public:
         m_parking_pos_retraction(parking_pos_retraction),
         m_extra_loading_move(extra_loading_move),
 		m_bridging(bridging),
+		m_set_extruder_trimpot(set_extruder_trimpot),
         m_current_tool(initial_tool),
         wipe_volumes(wiping_matrix)
         {}
@@ -212,6 +214,7 @@ private:
     float           m_parking_pos_retraction    = 0.f;
     float           m_extra_loading_move        = 0.f;
     float           m_bridging                  = 0.f;
+    bool            m_set_extruder_trimpot      = false;
     bool            m_adhesion                  = true;
 
 	float m_perimeter_width = 0.4 * Width_To_Nozzle_Ratio; // Width of an extrusion line, also a perimeter spacing for 100% infill.

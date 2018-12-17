@@ -1459,13 +1459,14 @@ void ObjectList::update_selections()
     
     select_items(sels);
 
-#ifdef __WXMSW__
     if (GetSelection()) {
-        const int sel_item_row = GetRowByItem(GetSelection());
-        ScrollLines(sel_item_row - m_selected_row);
-        m_selected_row = sel_item_row;
+        const wxRect& sel_rc = GetItemRect(GetSelection());
+        if (!sel_rc.IsEmpty()) {
+            const int rc_h = sel_rc.height;
+            const int displ = GetMainWindow()->GetClientRect().GetHeight()/(2*rc_h)+1;
+            ScrollLines(int(sel_rc.y / rc_h - displ));
+        }
     }
-#endif //__WXMSW__
 }
 
 void ObjectList::update_selections_on_canvas()
@@ -1656,7 +1657,9 @@ void ObjectList::change_part_type()
 void ObjectList::last_volume_is_deleted(const int obj_idx)
 {
 
-    if (obj_idx < 0 || (*m_objects).empty() || (*m_objects)[obj_idx]->volumes.empty())
+    if (obj_idx < 0 || m_objects->empty() ||
+        obj_idx <= m_objects->size() ||
+        (*m_objects)[obj_idx]->volumes.empty())
         return;
     auto volume = (*m_objects)[obj_idx]->volumes[0];
 

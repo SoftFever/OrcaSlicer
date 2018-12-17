@@ -519,15 +519,18 @@ public:
 // PrusaBitmapTextRenderer
 // ----------------------------------------------------------------------------
 
-class PrusaBitmapTextRenderer : public wxDataViewCustomRenderer
+class PrusaBitmapTextRenderer : public wxDataViewRenderer//CustomRenderer
 {
 public:
-    PrusaBitmapTextRenderer(  wxDataViewCellMode mode = wxDATAVIEW_CELL_EDITABLE,
-                            int align = wxDVR_DEFAULT_ALIGNMENT): 
-                            wxDataViewCustomRenderer(wxT("PrusaDataViewBitmapText"), mode, align) {}
+    PrusaBitmapTextRenderer(wxDataViewCellMode mode = wxDATAVIEW_CELL_EDITABLE,
+                            int align = wxDVR_DEFAULT_ALIGNMENT);//: 
+//                             wxDataViewRenderer/*CustomRenderer*/(wxT("PrusaDataViewBitmapText"), mode, align) {}
 
     bool SetValue(const wxVariant &value);
     bool GetValue(wxVariant &value) const;
+#if wxUSE_ACCESSIBILITY
+    virtual wxString GetAccessibleDescription() const override;
+#endif // wxUSE_ACCESSIBILITY
 
     virtual bool Render(wxRect cell, wxDC *dc, int state);
     virtual wxSize GetSize() const;
@@ -542,8 +545,7 @@ public:
 
 private:
     PrusaDataViewBitmapText m_value;
-    wxBitmap                m_bmp_from_editing_item;
-    bool                    m_was_unusable_symbol;
+    bool                    m_was_unusable_symbol {false};
 };
 
 

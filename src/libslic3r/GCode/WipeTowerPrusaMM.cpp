@@ -505,8 +505,9 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(
 		  .speed_override(100);
 
 	writer.set_initial_position(xy(0.f, 0.f))	// Always move to the starting position
-		.travel(cleaning_box.ld, 7200)
-		.set_extruder_trimpot(750); 			// Increase the extruder driver current to allow fast ramming.
+		.travel(cleaning_box.ld, 7200);
+	if (m_set_extruder_trimpot)
+		writer.set_extruder_trimpot(750); 			// Increase the extruder driver current to allow fast ramming.
 
     for (size_t idx_tool = 0; idx_tool < tools.size(); ++ idx_tool) {
         unsigned int tool = tools[idx_tool];
@@ -533,8 +534,9 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(
                             // in the output gcode - we should not remember emitting them (we will output them twice in the worst case)
 
 	// Reset the extruder current to a normal value.
-	writer.set_extruder_trimpot(550)
-		  .feedrate(6000)
+	if (m_set_extruder_trimpot)
+		writer.set_extruder_trimpot(550);
+	writer.feedrate(6000)
 		  .flush_planner_queue()
 		  .reset_extruder()
 		  .append("; CP PRIMING END\n"
@@ -607,7 +609,8 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
     writer.set_initial_position(initial_position, m_wipe_tower_width, m_wipe_tower_depth, m_internal_rotation);
 
     // Increase the extruder driver current to allow fast ramming.
-    writer.set_extruder_trimpot(750);
+	if (m_set_extruder_trimpot)
+		writer.set_extruder_trimpot(550);
 
     // Ram the hot material out of the melt zone, retract the filament into the cooling tubes and let it cool.
     if (tool != (unsigned int)-1){ 			// This is not the last change.
@@ -635,8 +638,9 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
         }
     }
 
-    writer.set_extruder_trimpot(550)    // Reset the extruder current to a normal value.
-          .feedrate(6000)
+	if (m_set_extruder_trimpot)
+		writer.set_extruder_trimpot(550);    // Reset the extruder current to a normal value.
+    writer.feedrate(6000)
           .flush_planner_queue()
           .reset_extruder()
           .append("; CP TOOLCHANGE END\n"
@@ -916,11 +920,9 @@ void WipeTowerPrusaMM::toolchange_Load(
 		  .resume_preview();
 
 	// Reset the extruder current to the normal value.
-	writer.set_extruder_trimpot(550);
+	if (m_set_extruder_trimpot)
+		writer.set_extruder_trimpot(550);
 }
-
-
-
 
 // Wipe the newly loaded filament until the end of the assigned wipe area.
 void WipeTowerPrusaMM::toolchange_Wipe(

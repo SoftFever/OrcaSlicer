@@ -420,6 +420,12 @@ void swapXY(ExPolygon& expoly) {
 
 }
 
+template<class...Args>
+void report_status(SLAPrint& p, int st, const std::string& msg, Args&&...args) {
+    BOOST_LOG_TRIVIAL(info) << st << "% " << msg;
+    p.set_status(st, msg, std::forward<Args>(args)...);
+}
+
 void SLAPrint::process()
 {
     using namespace sla;
@@ -525,9 +531,11 @@ void SLAPrint::process()
             // scaling for the sub operations
             double d = *stthis / (objcount * 100.0);
 
-            ctl.statuscb = [this, init, d](unsigned st, const std::string& msg){
-                set_status(int(init + st*d), msg);
+            ctl.statuscb = [this, init, d](unsigned st, const std::string& msg)
+            {
+                report_status(*this, int(init + st*d), msg);
             };
+
             ctl.stopcondition = [this](){ return canceled(); };
             ctl.cancelfn = [this]() { throw_if_canceled(); };
 
@@ -537,9 +545,9 @@ void SLAPrint::process()
 
             // Create the unified mesh
             auto rc = SlicingStatus::RELOAD_SCENE;
-            set_status(-1, L("Visualizing supports"));
+            report_status(*this, -1, L("Visualizing supports"));
             po.m_supportdata->support_tree_ptr->merged_mesh();
-            set_status(-1, L("Visualizing supports"), rc);
+            report_status(*this, -1, L("Visualizing supports"), rc);
         } catch(sla::SLASupportsStoppedException&) {
             // no need to rethrow
             // throw_if_canceled();
@@ -582,7 +590,7 @@ void SLAPrint::process()
 
         po.throw_if_canceled();
         auto rc = SlicingStatus::RELOAD_SCENE;
-        set_status(-1, L("Visualizing supports"), rc);
+        report_status(*this, -1, L("Visualizing supports"), rc);
     };
 
     // Slicing the support geometries similarly to the model slicing procedure.
@@ -741,8 +749,12 @@ void SLAPrint::process()
         auto lvlcnt = unsigned(m_printer_input.size());
         printer.layers(lvlcnt);
 
+        // slot is the portion of 100% that is realted to rasterization
         unsigned slot = PRINT_STEP_LEVELS[slapsRasterize];
+        // ist: initial state; pst: previous state
         unsigned ist = max_objstatus, pst = ist;
+        // coefficient to map the rasterization state (0-99) to the allocated
+        // portion (slot) of the process state
         double sd = (100 - ist) / 100.0;
         SpinMutex slck;
 
@@ -779,11 +791,11 @@ void SLAPrint::process()
             // Finish the layer for later saving it.
             printer.finish_layer(level_id);
 
-            // Status indication
+            // Status indication guarded with the spinlock
             auto st = ist + unsigned(sd*level_id*slot/m_printer_input.size());
             { std::lock_guard<SpinMutex> lck(slck);
             if( st > pst) {
-                set_status(int(st), PRINT_STEP_LABELS[slapsRasterize]);
+                report_status(*this, int(st), PRINT_STEP_LABELS[slapsRasterize]);
                 pst = st;
             }
             }
@@ -833,9 +845,14 @@ void SLAPrint::process()
     unsigned st = min_objstatus;
     unsigned incr = 0;
 
+    BOOST_LOG_TRIVIAL(info) << "Start slicing process.";
+
     // TODO: this loop could run in parallel but should not exhaust all the CPU
     // power available
     for(SLAPrintObject * po : m_objects) {
+
+        BOOST_LOG_TRIVIAL(info) << "Slicing object " << po->model_object()->name;
+
         for(size_t s = 0; s < objectsteps.size(); ++s) {
             auto currentstep = objectsteps[s];
 
@@ -847,8 +864,7 @@ void SLAPrint::process()
             st += unsigned(incr * ostepd);
 
             if(po->m_stepmask[currentstep] && po->set_started(currentstep)) {
-
-                set_status(int(st), OBJ_STEP_LABELS[currentstep]);
+                report_status(*this, int(st), OBJ_STEP_LABELS[currentstep]);
                 pobj_program[currentstep](*po);
                 po->set_done(currentstep);
             }
@@ -873,7 +889,7 @@ void SLAPrint::process()
 
         if(m_stepmask[currentstep] && set_started(currentstep))
         {
-            set_status(int(st), PRINT_STEP_LABELS[currentstep]);
+            report_status(*this, int(st), PRINT_STEP_LABELS[currentstep]);
             print_program[currentstep]();
             set_done(currentstep);
         }
@@ -882,7 +898,7 @@ void SLAPrint::process()
     }
 
     // If everything vent well
-    set_status(100, L("Slicing done"));
+    report_status(*this, 100, L("Slicing done"));
 }
 
 bool SLAPrint::invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys)
