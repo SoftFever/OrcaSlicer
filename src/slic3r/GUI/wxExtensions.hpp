@@ -463,6 +463,7 @@ public:
     int GetVolumeIdByItem(const wxDataViewItem& item) const;
     int GetInstanceIdByItem(const wxDataViewItem& item) const;
     void GetItemInfo(const wxDataViewItem& item, ItemType& type, int& obj_idx, int& idx);
+    int GetRowByItem(const wxDataViewItem& item) const;
     bool IsEmpty() { return m_objects.empty(); }
 
 	// helper method for wxLog
@@ -525,8 +526,14 @@ class PrusaBitmapTextRenderer : public wxDataViewCustomRenderer
 #endif //ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
 {
 public:
-    PrusaBitmapTextRenderer(wxDataViewCellMode mode = wxDATAVIEW_CELL_EDITABLE,
-                            int align = wxDVR_DEFAULT_ALIGNMENT
+    PrusaBitmapTextRenderer(wxDataViewCellMode mode =
+#ifdef __WXOSX__
+                                                        wxDATAVIEW_CELL_INERT
+#else
+                                                        wxDATAVIEW_CELL_EDITABLE
+#endif
+
+                            ,int align = wxDVR_DEFAULT_ALIGNMENT
 #if ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
                             );
 #else
@@ -542,7 +549,14 @@ public:
     virtual bool Render(wxRect cell, wxDC *dc, int state);
     virtual wxSize GetSize() const;
 
-    bool        HasEditorCtrl() const override { return true; }
+    bool        HasEditorCtrl() const override
+    {
+#ifdef __WXOSX__
+        return false;
+#else
+        return true;
+#endif        
+    }
     wxWindow*   CreateEditorCtrl(wxWindow* parent, 
                                  wxRect labelRect, 
                                  const wxVariant& value) override;

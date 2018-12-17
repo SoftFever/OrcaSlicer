@@ -953,6 +953,44 @@ void PrusaObjectDataViewModel::GetItemInfo(const wxDataViewItem& item, ItemType&
         type = itUndef;
 }
 
+int PrusaObjectDataViewModel::GetRowByItem(const wxDataViewItem& item) const
+{
+    if (m_objects.empty())
+        return -1;
+
+    int row_num = 0;
+    
+    for (int i = 0; i < m_objects.size(); i++)
+    {
+        row_num++;
+        if (item == wxDataViewItem(m_objects[i]))
+            return row_num;
+
+        for (int j = 0; j < m_objects[i]->GetChildCount(); j++)
+        {
+            row_num++;
+            PrusaObjectDataViewModelNode* cur_node = m_objects[i]->GetNthChild(j);
+            if (item == wxDataViewItem(cur_node))
+                return row_num;
+
+            if (cur_node->m_type == itVolume && cur_node->GetChildCount() == 1)
+                row_num++;
+            if (cur_node->m_type == itInstanceRoot)
+            {
+                row_num++;
+                for (int t = 0; t < cur_node->GetChildCount(); t++)
+                {
+                    row_num++;
+                    if (item == wxDataViewItem(cur_node->GetNthChild(t)))
+                        return row_num;
+                }
+            }
+        }        
+    }
+
+    return -1;
+}
+
 wxString PrusaObjectDataViewModel::GetName(const wxDataViewItem &item) const
 {
 	PrusaObjectDataViewModelNode *node = (PrusaObjectDataViewModelNode*)item.GetID();
