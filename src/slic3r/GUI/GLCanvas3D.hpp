@@ -628,6 +628,9 @@ private:
         bool m_enabled;
         typedef std::map<EType, GLGizmoBase*> GizmosMap;
         GizmosMap m_gizmos;
+#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
+        BackgroundTexture m_background_texture;
+#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
         EType m_current;
 
     public:
@@ -696,6 +699,9 @@ private:
         void _render_current_gizmo(const Selection& selection) const;
 
         float _get_total_overlay_height() const;
+#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
+        float _get_total_overlay_width() const;
+#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
         GLGizmoBase* _get_current() const;
     };
 
