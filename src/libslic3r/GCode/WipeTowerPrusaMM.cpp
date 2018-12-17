@@ -487,7 +487,6 @@ WipeTowerPrusaMM::material_type WipeTowerPrusaMM::parse_material(const char *nam
 	return INVALID;
 }
 
-
 // Returns gcode to prime the nozzles at the front edge of the print bed.
 WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(
 	// print_z of the first layer.
