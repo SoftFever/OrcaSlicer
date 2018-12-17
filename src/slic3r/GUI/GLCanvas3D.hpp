@@ -769,7 +769,11 @@ private:
     mutable Gizmos m_gizmos;
     mutable GLToolbar m_toolbar;
 #if ENABLE_REMOVE_TABS_FROM_PLATER
+#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
+    GLToolbar* m_view_toolbar;
+#else
     GLRadioToolbar* m_view_toolbar;
+#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 #endif // ENABLE_REMOVE_TABS_FROM_PLATER
     ClippingPlane m_clipping_planes[2];
     bool m_use_clipping_planes;
@@ -824,7 +828,11 @@ public:
     wxGLCanvas* get_wxglcanvas() { return m_canvas; }
 
 #if ENABLE_REMOVE_TABS_FROM_PLATER
+#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
+    void set_view_toolbar(GLToolbar* toolbar) { m_view_toolbar = toolbar; }
+#else
     void set_view_toolbar(GLRadioToolbar* toolbar) { m_view_toolbar = toolbar; }
+#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 #endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
     bool init(bool useVBOs, bool use_legacy_opengl);

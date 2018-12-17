@@ -913,7 +913,11 @@ struct Plater::priv
     Sidebar *sidebar;
 #if ENABLE_REMOVE_TABS_FROM_PLATER
     View3D* view3D;
+#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
+    GLToolbar view_toolbar;
+#else
     GLRadioToolbar view_toolbar;
+#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 #else
 #if !ENABLE_IMGUI
     wxPanel *panel3d;
@@ -1068,6 +1072,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 #endif // !ENABLE_REMOVE_TABS_FROM_PLATER
     , delayed_scene_refresh(false)
     , project_filename(wxEmptyString)
+#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
+    , view_toolbar(GLToolbar::Radio)
+#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 {
     arranging.store(false);
     rotoptimizing.store(false);
@@ -1286,7 +1293,9 @@ void Plater::priv::select_view_3D(const std::string& name)
     else if (name == "Preview")
         set_current_panel(preview);
 
+#if !ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     view_toolbar.set_selection(name);
+#endif // !ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 }
 #else
 void Plater::priv::select_view(const std::string& direction)
@@ -2646,9 +2655,58 @@ bool Plater::priv::complit_init_part_menu()
 #if ENABLE_REMOVE_TABS_FROM_PLATER
 void Plater::priv::init_view_toolbar()
 {
+#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
+    ItemsIconsTexture::Metadata icons_data;
+    icons_data.filename = "view_toolbar.png";
+    icons_data.icon_size = 64;
+    icons_data.icon_border_size = 0;
+    icons_data.icon_gap_size = 0;
+
+    BackgroundTexture::Metadata background_data;
+    background_data.filename = "toolbar_background.png";
+    background_data.left = 16;
+    background_data.top = 16;
+    background_data.right = 16;
+    background_data.bottom = 16;
+
+    if (!view_toolbar.init(icons_data, background_data))
+#else
     if (!view_toolbar.init("view_toolbar.png", 64, 0, 0))
+#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
         return;
 
+#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
+    view_toolbar.set_layout_orientation(GLToolbar::Layout::Bottom);
+    view_toolbar.set_border(5.0f);
+    view_toolbar.set_gap_size(1.0f);
+
+    GLToolbarItem::Data item;
+
+    item.name = "3D";
+    item.tooltip = GUI::L_str("3D editor view");
+    item.sprite_id = 0;
+    item.action_event = EVT_GLVIEWTOOLBAR_3D;
+    item.is_toggable = false;
+    if (!view_toolbar.add_item(item))
+        return;
+
+    item.name = "Preview";
+    item.tooltip = GUI::L_str("Preview");
+    item.sprite_id = 1;
+    item.action_event = EVT_GLVIEWTOOLBAR_PREVIEW;
+    item.is_toggable = false;
+    if (!view_toolbar.add_item(item))
+        return;
+
+    view_toolbar.enable_item("3D");
+    view_toolbar.enable_item("Preview");
+
+    view_toolbar.select_item("3D");
+    view_toolbar.set_enabled(true);
+
+    view3D->set_view_toolbar(&view_toolbar);
+    preview->set_view_toolbar(&view_toolbar);
+#else
     GLRadioToolbarItem::Data item;
 
     item.name = "3D";
@@ -2669,6 +2727,7 @@ void Plater::priv::init_view_toolbar()
     preview->set_view_toolbar(&view_toolbar);
 
     view_toolbar.set_selection("3D");
+#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 }
 #endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
