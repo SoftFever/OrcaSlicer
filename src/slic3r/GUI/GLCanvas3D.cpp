@@ -2501,9 +2501,9 @@ void GLCanvas3D::Selection::_ensure_on_bed()
 }
 #endif // ENABLE_ENSURE_ON_BED_WHILE_SCALING
 
-const float GLCanvas3D::Gizmos::OverlayTexturesScale = 1.0f;
-const float GLCanvas3D::Gizmos::OverlayOffsetX = 10.0f * OverlayTexturesScale;
-const float GLCanvas3D::Gizmos::OverlayGapY = 5.0f * OverlayTexturesScale;
+const float GLCanvas3D::Gizmos::OverlayIconsScale = 1.0f;
+const float GLCanvas3D::Gizmos::OverlayBorder = 5.0f;
+const float GLCanvas3D::Gizmos::OverlayGapY = 5.0f * OverlayIconsScale;
 
 GLCanvas3D::Gizmos::Gizmos()
     : m_enabled(false)
@@ -2606,19 +2606,18 @@ std::string GLCanvas3D::Gizmos::update_hover_state(const GLCanvas3D& canvas, con
 
     float cnv_h = (float)canvas.get_canvas_size().get_height();
     float height = _get_total_overlay_height();
-    float top_y = 0.5f * (cnv_h - height);
+    float top_y = 0.5f * (cnv_h - height) + OverlayBorder;
     for (GizmosMap::iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
         if ((it->second == nullptr) || !it->second->is_selectable())
             continue;
 
-        float tex_size = (float)it->second->get_textures_size() * OverlayTexturesScale;
-        float half_tex_size = 0.5f * tex_size;
+        float tex_size = (float)it->second->get_textures_size() * OverlayIconsScale;
 
         // we currently use circular icons for gizmo, so we check the radius
         if (it->second->is_activable(selection) && (it->second->get_state() != GLGizmoBase::On))
         {
-            bool inside = (mouse_pos - Vec2d(OverlayOffsetX + half_tex_size, top_y + half_tex_size)).norm() < half_tex_size;
+            bool inside = (OverlayBorder <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= OverlayBorder + tex_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + tex_size);
             it->second->set_state(inside ? GLGizmoBase::Hover : GLGizmoBase::Off);
             if (inside)
                 name = it->second->get_name();
@@ -2636,17 +2635,17 @@ void GLCanvas3D::Gizmos::update_on_off_state(const GLCanvas3D& canvas, const Vec
 
     float cnv_h = (float)canvas.get_canvas_size().get_height();
     float height = _get_total_overlay_height();
-    float top_y = 0.5f * (cnv_h - height);
+    float top_y = 0.5f * (cnv_h - height) + OverlayBorder;
     for (GizmosMap::iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
         if ((it->second == nullptr) || !it->second->is_selectable())
             continue;
 
-        float tex_size = (float)it->second->get_textures_size() * OverlayTexturesScale;
-        float half_tex_size = 0.5f * tex_size;
+        float tex_size = (float)it->second->get_textures_size() * OverlayIconsScale;
 
         // we currently use circular icons for gizmo, so we check the radius
-        if (it->second->is_activable(selection) && ((mouse_pos - Vec2d(OverlayOffsetX + half_tex_size, top_y + half_tex_size)).norm() < half_tex_size))
+        bool inside = (OverlayBorder <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= OverlayBorder + tex_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + tex_size);
+        if (it->second->is_activable(selection) && inside)
         {
             if ((it->second->get_state() == GLGizmoBase::On))
             {
@@ -2734,17 +2733,17 @@ bool GLCanvas3D::Gizmos::overlay_contains_mouse(const GLCanvas3D& canvas, const 
 
     float cnv_h = (float)canvas.get_canvas_size().get_height();
     float height = _get_total_overlay_height();
-    float top_y = 0.5f * (cnv_h - height);
+    float top_y = 0.5f * (cnv_h - height) + OverlayBorder;
     for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
         if ((it->second == nullptr) || !it->second->is_selectable())
             continue;
 
-        float tex_size = (float)it->second->get_textures_size() * OverlayTexturesScale;
+        float tex_size = (float)it->second->get_textures_size() * OverlayIconsScale;
         float half_tex_size = 0.5f * tex_size;
 
         // we currently use circular icons for gizmo, so we check the radius
-        if ((mouse_pos - Vec2d(OverlayOffsetX + half_tex_size, top_y + half_tex_size)).norm() < half_tex_size)
+        if ((OverlayBorder <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= OverlayBorder + tex_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + tex_size))
             return true;
 
         top_y += (tex_size + OverlayGapY);
@@ -3020,19 +3019,19 @@ void GLCanvas3D::Gizmos::_render_overlay(const GLCanvas3D& canvas, const GLCanva
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
     float height = _get_total_overlay_height();
-    float top_x = (OverlayOffsetX - 0.5f * cnv_w) * inv_zoom;
-    float top_y = 0.5f * height * inv_zoom;
+    float top_x = (OverlayBorder - 0.5f * cnv_w) * inv_zoom;
+    float top_y = (0.5f * height - OverlayBorder) * inv_zoom;
     float scaled_gap_y = OverlayGapY * inv_zoom;
     for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
         if ((it->second == nullptr) || !it->second->is_selectable())
             continue;
 
-        float tex_size = (float)it->second->get_textures_size() * OverlayTexturesScale * inv_zoom;
+        float tex_size = (float)it->second->get_textures_size() * OverlayIconsScale * inv_zoom;
         GLTexture::render_texture(it->second->get_texture_id(), top_x, top_x + tex_size, top_y - tex_size, top_y);
 #if ENABLE_IMGUI
         if (it->second->get_state() == GLGizmoBase::On)
-            it->second->render_input_window(2.0f * OverlayOffsetX + tex_size * zoom, 0.5f * cnv_h - top_y * zoom, selection);
+            it->second->render_input_window(2.0f * OverlayBorder + tex_size * zoom, 0.5f * cnv_h - top_y * zoom, selection);
 #endif // ENABLE_IMGUI
         top_y -= (tex_size + scaled_gap_y);
     }
@@ -3047,14 +3046,14 @@ void GLCanvas3D::Gizmos::_render_current_gizmo(const GLCanvas3D::Selection& sele
 
 float GLCanvas3D::Gizmos::_get_total_overlay_height() const
 {
-    float height = 0.0f;
+    float height = 2.0f * OverlayBorder;
 
     for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
-        if (it->first == SlaSupports && wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA)
+        if ((it->second == nullptr) || !it->second->is_selectable())
             continue;
 
-        height += (float)it->second->get_textures_size() * OverlayTexturesScale + OverlayGapY;
+        height += (float)it->second->get_textures_size() * OverlayIconsScale + OverlayGapY;
     }
 
     return height - OverlayGapY;
