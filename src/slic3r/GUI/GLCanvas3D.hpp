@@ -607,8 +607,8 @@ public:
 private:
     class Gizmos
     {
-        static const float OverlayTexturesScale;
-        static const float OverlayOffsetX;
+        static const float OverlayIconsScale;
+        static const float OverlayBorder;
         static const float OverlayGapY;
 
     public:
