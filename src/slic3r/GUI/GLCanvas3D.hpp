@@ -155,7 +155,7 @@ class GLCanvas3D
 //        float distance;
 #if !ENABLE_CONSTRAINED_CAMERA_TARGET
         Vec3d target;
-#endif !// ENABLE_CONSTRAINED_CAMERA_TARGET
+#endif // ENABLE_CONSTRAINED_CAMERA_TARGET
 
     private:
 #if ENABLE_CONSTRAINED_CAMERA_TARGET

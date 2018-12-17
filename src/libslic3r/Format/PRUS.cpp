@@ -329,7 +329,7 @@ bool load_prus(const char *path, Model *model)
             if (! mz_zip_reader_file_stat(&archive, i, &stat))
                 continue;
             std::vector<char> buffer;
-            buffer.assign((size_t)stat.m_uncomp_size + 1, 0);
+            buffer.assign((size_t)stat.m_uncomp_size, 0);
             res = mz_zip_reader_extract_file_to_mem(&archive, stat.m_filename, (char*)buffer.data(), (size_t)stat.m_uncomp_size, 0);
             if (res == MZ_FALSE)
                 std::runtime_error(std::string("Error while extracting a file from ") + path);
