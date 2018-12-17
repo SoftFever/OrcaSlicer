@@ -315,6 +315,20 @@ public:
 		return *this;
 	};
 
+	// Let the firmware back up the active speed override value.
+	Writer& speed_override_backup() 
+	{
+		m_gcode += "M220 B\n";
+		return *this;
+	};
+
+	// Let the firmware restore the active speed override value.
+	Writer& speed_override_restore() 
+	{
+		m_gcode += "M220 R\n";
+		return *this;
+	};
+
 	// Set digital trimpot motor
 	Writer& set_extruder_trimpot(int current) 
 	{
@@ -501,8 +515,10 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(
 		  .set_initial_tool(m_current_tool)
 		  .append(";--------------------\n"
 			 	  "; CP PRIMING START\n")
-		  .append(";--------------------\n")
-		  .speed_override(100);
+		  .append(";--------------------\n");
+	if (m_retain_speed_override)
+		writer.speed_override_backup();
+	writer.speed_override(100);
 
 	writer.set_initial_position(xy(0.f, 0.f))	// Always move to the starting position
 		.travel(cleaning_box.ld, 7200);
@@ -536,6 +552,8 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(
 	// Reset the extruder current to a normal value.
 	if (m_set_extruder_trimpot)
 		writer.set_extruder_trimpot(550);
+	if (m_retain_speed_override)
+		writer.speed_override_restore();
 	writer.feedrate(6000)
 		  .flush_planner_queue()
 		  .reset_extruder()
@@ -602,8 +620,10 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
 				"; CP TOOLCHANGE START\n")
 		.comment_with_value(" toolchange #", m_num_tool_changes + 1) // the number is zero-based
 		.comment_material(m_filpar[m_current_tool].material)
-		.append(";--------------------\n")
-		.speed_override(100);
+		.append(";--------------------\n");
+	if (m_retain_speed_override)
+		writer.speed_override_backup();
+	writer.speed_override(100);
 
 	xy initial_position = cleaning_box.ld + WipeTower::xy(0.f,m_depth_traversed);
     writer.set_initial_position(initial_position, m_wipe_tower_width, m_wipe_tower_depth, m_internal_rotation);
@@ -640,6 +660,8 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
 
 	if (m_set_extruder_trimpot)
 		writer.set_extruder_trimpot(550);    // Reset the extruder current to a normal value.
+	if (m_retain_speed_override)
+		writer.speed_override_restore();
     writer.feedrate(6000)
           .flush_planner_queue()
           .reset_extruder()
@@ -885,13 +907,14 @@ void WipeTowerPrusaMM::toolchange_Change(
 	case FLEX:  speed_override = 35; break;
 	default:    speed_override = 100;
 	}
-	writer.set_tool(new_tool)
-	      .speed_override(speed_override)
-	      .flush_planner_queue();
+	writer.set_tool(new_tool);
+	if (m_retain_speed_override)
+		assert(speed_override == 100);
+	else
+		writer.speed_override(speed_override);
+	writer.flush_planner_queue();
 	m_current_tool = new_tool;
 }
-
-
 
 void WipeTowerPrusaMM::toolchange_Load(
 	PrusaMultiMaterial::Writer &writer,
