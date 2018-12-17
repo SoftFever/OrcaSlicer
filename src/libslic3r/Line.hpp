@@ -31,7 +31,8 @@ public:
     Point  midpoint() const { return (this->a + this->b) / 2; }
     bool   intersection_infinite(const Line &other, Point* point) const;
     bool   operator==(const Line &rhs) const { return this->a == rhs.a && this->b == rhs.b; }
-    double distance_to(const Point &point) const;
+    double distance_to_squared(const Point &point) const { return distance_to_squared(point, this->a, this->b); }
+    double distance_to(const Point &point) const { return distance_to(point, this->a, this->b); }
     double perp_distance_to(const Point &point) const;
     bool   parallel_to(double angle) const;
     bool   parallel_to(const Line &line) const { return this->parallel_to(line.direction()); }
@@ -42,6 +43,9 @@ public:
     Vector normal() const { return Vector((this->b(1) - this->a(1)), -(this->b(0) - this->a(0))); }
     bool   intersection(const Line& line, Point* intersection) const;
     double ccw(const Point& point) const { return point.ccw(*this); }
+
+    static double distance_to_squared(const Point &point, const Point &a, const Point &b);
+    static double distance_to(const Point &point, const Point &a, const Point &b) { return sqrt(distance_to_squared(point, a, b)); }
 
     Point a;
     Point b;

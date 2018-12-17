@@ -155,8 +155,8 @@ template<> inline const t_config_enum_values& ConfigOptionEnum<FilamentType>::ge
 
 template<> inline const t_config_enum_values& ConfigOptionEnum<SLADisplayOrientation>::get_enum_values() {
     static const t_config_enum_values keys_map = {
-        { "Landscape", sladoLandscape},
-        { "Portrait",  sladoPortrait}
+        { "landscape", sladoLandscape},
+        { "portrait",  sladoPortrait}
     };
 
     return keys_map;
@@ -627,6 +627,7 @@ public:
     ConfigOptionBool                variable_layer_height;
     ConfigOptionFloat               cooling_tube_retraction;
     ConfigOptionFloat               cooling_tube_length;
+    ConfigOptionBool                high_current_on_filament_swap;
     ConfigOptionFloat               parking_pos_retraction;
     ConfigOptionBool                remaining_times;
     ConfigOptionBool                silent_mode;
@@ -695,6 +696,7 @@ protected:
         OPT_PTR(variable_layer_height);
         OPT_PTR(cooling_tube_retraction);
         OPT_PTR(cooling_tube_length);
+        OPT_PTR(high_current_on_filament_swap);
         OPT_PTR(parking_pos_retraction);
         OPT_PTR(remaining_times);
         OPT_PTR(silent_mode);

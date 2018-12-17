@@ -34,23 +34,22 @@ bool Line::intersection_infinite(const Line &other, Point* point) const
     return true;
 }
 
-/* distance to the closest point of line */
-double Line::distance_to(const Point &point) const
+// Distance to the closest point of line.
+double Line::distance_to_squared(const Point &point, const Point &a, const Point &b)
 {
-    const Line   &line = *this;
-    const Vec2d   v  = (line.b - line.a).cast<double>();
-    const Vec2d   va = (point  - line.a).cast<double>();
+    const Vec2d   v  = (b - a).cast<double>();
+    const Vec2d   va = (point  - a).cast<double>();
     const double  l2 = v.squaredNorm();  // avoid a sqrt
     if (l2 == 0.0) 
-        // line.a == line.b case
-        return va.norm();
-    // Consider the line extending the segment, parameterized as line.a + t (line.b - line.a).
+        // a == b case
+        return va.squaredNorm();
+    // Consider the line extending the segment, parameterized as a + t (b - a).
     // We find projection of this point onto the line. 
-    // It falls where t = [(this-line.a) . (line.b-line.a)] / |line.b-line.a|^2
+    // It falls where t = [(this-a) . (b-a)] / |b-a|^2
     const double t = va.dot(v) / l2;
-    if (t < 0.0)      return va.norm();  // beyond the 'a' end of the segment
-    else if (t > 1.0) return (point - line.b).cast<double>().norm();  // beyond the 'b' end of the segment
-    return (t * v - va).norm();
+    if (t < 0.0)      return va.squaredNorm();  // beyond the 'a' end of the segment
+    else if (t > 1.0) return (point - b).cast<double>().squaredNorm();  // beyond the 'b' end of the segment
+    return (t * v - va).squaredNorm();
 }
 
 double Line::perp_distance_to(const Point &point) const
