@@ -173,6 +173,7 @@ GLToolbar::Layout::Layout()
 #endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     , separator_size(0.0f)
     , gap_size(0.0f)
+    , icons_scale(1.0f)
 #if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     , width(0.0f)
     , height(0.0f)
@@ -285,6 +286,14 @@ void GLToolbar::set_separator_size(float size)
 void GLToolbar::set_gap_size(float size)
 {
     m_layout.gap_size = size;
+#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
+    m_layout.dirty = true;
+#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
+}
+
+void GLToolbar::set_icons_scale(float scale)
+{
+    m_layout.icons_scale = scale;
 #if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     m_layout.dirty = true;
 #endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
@@ -625,18 +634,18 @@ float GLToolbar::get_width_horizontal() const
 float GLToolbar::get_width_vertical() const
 {
 #if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
-    return 2.0f * m_layout.border + m_icons_texture.metadata.icon_size;
+    return 2.0f * m_layout.border + m_icons_texture.metadata.icon_size * m_layout.icons_scale;
 #else
-    return m_icons_texture.items_icon_size;
+    return m_icons_texture.items_icon_size * m_layout.icons_scale;
 #endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 }
 
 float GLToolbar::get_height_horizontal() const
 {
 #if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
-    return 2.0f * m_layout.border + m_icons_texture.metadata.icon_size;
+    return 2.0f * m_layout.border + m_icons_texture.metadata.icon_size * m_layout.icons_scale;
 #else
-    return m_icons_texture.items_icon_size;
+    return m_icons_texture.items_icon_size * m_layout.icons_scale;
 #endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 }
 
@@ -658,9 +667,9 @@ float GLToolbar::get_main_size() const
             size += m_layout.separator_size;
         else
 #if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
-            size += (float)m_icons_texture.metadata.icon_size;
+            size += (float)m_icons_texture.metadata.icon_size * m_layout.icons_scale;
 #else
-            size += (float)m_icons_texture.items_icon_size;
+            size += (float)m_icons_texture.items_icon_size * m_layout.icons_scale;
 #endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     }
 
@@ -699,9 +708,9 @@ void GLToolbar::update_hover_state_horizontal(const Vec2d& mouse_pos)
     Vec2d scaled_mouse_pos((mouse_pos(0) - 0.5 * (double)cnv_size.get_width()) * inv_zoom, (0.5 * (double)cnv_size.get_height() - mouse_pos(1)) * inv_zoom);
 
 #if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
-    float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * inv_zoom;
+    float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * m_layout.icons_scale * inv_zoom;
 #else
-    float scaled_icons_size = (float)m_icons_texture.items_icon_size * inv_zoom;
+    float scaled_icons_size = (float)m_icons_texture.items_icon_size * m_layout.icons_scale * inv_zoom;
 #endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float scaled_separator_size = m_layout.separator_size * inv_zoom;
     float scaled_gap_size = m_layout.gap_size * inv_zoom;
@@ -844,9 +853,9 @@ void GLToolbar::update_hover_state_vertical(const Vec2d& mouse_pos)
     Vec2d scaled_mouse_pos((mouse_pos(0) - 0.5 * (double)cnv_size.get_width()) * inv_zoom, (0.5 * (double)cnv_size.get_height() - mouse_pos(1)) * inv_zoom);
 
 #if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
-    float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * inv_zoom;
+    float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * m_layout.icons_scale * inv_zoom;
 #else
-    float scaled_icons_size = (float)m_icons_texture.items_icon_size * inv_zoom;
+    float scaled_icons_size = (float)m_icons_texture.items_icon_size * m_layout.icons_scale * inv_zoom;
 #endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float scaled_separator_size = m_layout.separator_size * inv_zoom;
     float scaled_gap_size = m_layout.gap_size * inv_zoom;
@@ -980,9 +989,9 @@ int GLToolbar::contains_mouse_horizontal(const Vec2d& mouse_pos) const
     Vec2d scaled_mouse_pos((mouse_pos(0) - 0.5 * (double)cnv_size.get_width()) * inv_zoom, (0.5 * (double)cnv_size.get_height() - mouse_pos(1)) * inv_zoom);
 
 #if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
-    float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * inv_zoom;
+    float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * m_layout.icons_scale * inv_zoom;
 #else
-    float scaled_icons_size = (float)m_icons_texture.items_icon_size * inv_zoom;
+    float scaled_icons_size = (float)m_icons_texture.items_icon_size * m_layout.icons_scale * inv_zoom;
 #endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float scaled_separator_size = m_layout.separator_size * inv_zoom;
     float scaled_gap_size = m_layout.gap_size * inv_zoom;
@@ -1045,9 +1054,9 @@ int GLToolbar::contains_mouse_vertical(const Vec2d& mouse_pos) const
     Vec2d scaled_mouse_pos((mouse_pos(0) - 0.5 * (double)cnv_size.get_width()) * inv_zoom, (0.5 * (double)cnv_size.get_height() - mouse_pos(1)) * inv_zoom);
 
 #if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
-    float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * inv_zoom;
+    float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * m_layout.icons_scale * inv_zoom;
 #else
-    float scaled_icons_size = (float)m_icons_texture.items_icon_size * inv_zoom;
+    float scaled_icons_size = (float)m_icons_texture.items_icon_size * m_layout.icons_scale * inv_zoom;
 #endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float scaled_separator_size = m_layout.separator_size * inv_zoom;
     float scaled_gap_size = m_layout.gap_size * inv_zoom;
@@ -1109,9 +1118,9 @@ void GLToolbar::render_horizontal() const
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
 #if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
-    float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * inv_zoom;
+    float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * m_layout.icons_scale * inv_zoom;
 #else
-    float scaled_icons_size = (float)m_icons_texture.items_icon_size * inv_zoom;
+    float scaled_icons_size = (float)m_icons_texture.items_icon_size * m_layout.icons_scale * inv_zoom;
 #endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float scaled_separator_size = m_layout.separator_size * inv_zoom;
     float scaled_gap_size = m_layout.gap_size * inv_zoom;
@@ -1257,9 +1266,9 @@ void GLToolbar::render_vertical() const
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
 #if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
-    float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * inv_zoom;
+    float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * m_layout.icons_scale * inv_zoom;
 #else
-    float scaled_icons_size = (float)m_icons_texture.items_icon_size * inv_zoom;
+    float scaled_icons_size = (float)m_icons_texture.items_icon_size * m_layout.icons_scale  * inv_zoom;
 #endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float scaled_separator_size = m_layout.separator_size * inv_zoom;
     float scaled_gap_size = m_layout.gap_size * inv_zoom;

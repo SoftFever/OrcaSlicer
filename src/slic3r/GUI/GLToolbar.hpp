@@ -193,6 +193,7 @@ public:
 #endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
         float separator_size;
         float gap_size;
+        float icons_scale;
 
 #if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
         float width;
@@ -249,6 +250,7 @@ public:
 #endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     void set_separator_size(float size);
     void set_gap_size(float size);
+    void set_icons_scale(float scale);
 
     bool is_enabled() const;
     void set_enabled(bool enable);
