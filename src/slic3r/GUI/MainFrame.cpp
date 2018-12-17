@@ -326,7 +326,7 @@ void MainFrame::init_menubar()
         size_t tab_offset = 0;
         if (m_plater) {
 #if ENABLE_REMOVE_TABS_FROM_PLATER
-            append_menu_item(windowMenu, wxID_ANY, L("Plater Tab\tCtrl+1"), L("Show the plater"),
+            append_menu_item(windowMenu, wxID_HIGHEST + 1, L("Plater Tab\tCtrl+1"), L("Show the plater"),
                 [this](wxCommandEvent&) { select_tab(0); }, "application_view_tile.png");
 #else
             append_menu_item(windowMenu, wxID_ANY, L("Select Plater Tab\tCtrl+1"), L("Show the plater"),
@@ -338,22 +338,35 @@ void MainFrame::init_menubar()
             windowMenu->AppendSeparator();
         }
 #if ENABLE_REMOVE_TABS_FROM_PLATER
-        append_menu_item(windowMenu, wxID_ANY, L("Print Settings Tab\tCtrl+2"), L("Show the print settings"),
+        append_menu_item(windowMenu, wxID_HIGHEST + 2, L("Print Settings Tab\tCtrl+2"), L("Show the print settings"),
             [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 0); }, "cog.png");
-        append_menu_item(windowMenu, wxID_ANY, L("Filament Settings Tab\tCtrl+3"), L("Show the filament settings"),
+        append_menu_item(windowMenu, wxID_HIGHEST + 3, L("Filament Settings Tab\tCtrl+3"), L("Show the filament settings"),
             [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 1); }, "spool.png");
-        append_menu_item(windowMenu, wxID_ANY, L("Printer Settings Tab\tCtrl+4"), L("Show the printer settings"),
+        append_menu_item(windowMenu, wxID_HIGHEST + 4, L("Printer Settings Tab\tCtrl+4"), L("Show the printer settings"),
             [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 2); }, "printer_empty.png");
         if (m_plater) {
             windowMenu->AppendSeparator();
-            wxMenuItem* item_3d = append_menu_item(windowMenu, wxID_ANY, L("3D\tCtrl+5"), L("Show the 3D editing view"),
-            [this](wxCommandEvent&) { m_plater->select_view_3D("3D"); }, "");
-            wxMenuItem* item_preview = append_menu_item(windowMenu, wxID_ANY, L("Preview\tCtrl+6"), L("Show the 3D slices preview"),
-            [this](wxCommandEvent&) { m_plater->select_view_3D("Preview"); }, "");
+            wxMenuItem* item_3d = append_menu_item(windowMenu, wxID_HIGHEST + 5, L("3D\tCtrl+5"), L("Show the 3D editing view"),
+                [this](wxCommandEvent&) { m_plater->select_view_3D("3D"); }, "");
+            wxMenuItem* item_preview = append_menu_item(windowMenu, wxID_HIGHEST + 6, L("Preview\tCtrl+6"), L("Show the 3D slices preview"),
+                [this](wxCommandEvent&) { m_plater->select_view_3D("Preview"); }, "");
 
             Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_change_view()); }, item_3d->GetId());
             Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_change_view()); }, item_preview->GetId());
         }
+
+#if _WIN32
+        // This is needed on Windows to fake the CTRL+# of the window menu when using the numpad
+        wxAcceleratorEntry entries[6];
+        entries[0].Set(wxACCEL_CTRL, WXK_NUMPAD1, wxID_HIGHEST + 1);
+        entries[1].Set(wxACCEL_CTRL, WXK_NUMPAD2, wxID_HIGHEST + 2);
+        entries[2].Set(wxACCEL_CTRL, WXK_NUMPAD3, wxID_HIGHEST + 3);
+        entries[3].Set(wxACCEL_CTRL, WXK_NUMPAD4, wxID_HIGHEST + 4);
+        entries[4].Set(wxACCEL_CTRL, WXK_NUMPAD5, wxID_HIGHEST + 5);
+        entries[5].Set(wxACCEL_CTRL, WXK_NUMPAD6, wxID_HIGHEST + 6);
+        wxAcceleratorTable accel(6, entries);
+        SetAcceleratorTable(accel);
+#endif // _WIN32
 #else
         append_menu_item(windowMenu, wxID_ANY, L("Select Print Settings Tab\tCtrl+2"), L("Show the print settings"),
             [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 0); }, "cog.png");
