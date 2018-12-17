@@ -732,8 +732,7 @@ void Sidebar::show_info_sizer()
     p->object_info->info_materials->SetLabel(wxString::Format("%d", static_cast<int>(model_object->materials_count())));
 
     auto& stats = model_object->volumes.front()->mesh.stl.stats;
-    auto sf = model_instance->get_scaling_factor();
-    p->object_info->info_volume->SetLabel(wxString::Format("%.2f", size(0) * size(1) * size(2) * sf(0) * sf(1) * sf(2)));
+    p->object_info->info_volume->SetLabel(wxString::Format("%.2f", size(0) * size(1) * size(2)));
     p->object_info->info_facets->SetLabel(wxString::Format(_(L("%d (%d shells)")), static_cast<int>(model_object->facets_count()), stats.number_of_parts));
 
     int errors = stats.degenerate_facets + stats.edges_fixed + stats.facets_removed +
@@ -3145,7 +3144,7 @@ void Plater::send_gcode()
     }
     default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string()));
 
-    Slic3r::PrintHostSendDialog dlg(default_output_file);
+    PrintHostSendDialog dlg(default_output_file);
     if (dlg.ShowModal() == wxID_OK) {
         upload_job.upload_data.upload_path = dlg.filename();
         upload_job.upload_data.start_print = dlg.start_print();

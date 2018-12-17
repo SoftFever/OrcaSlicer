@@ -92,7 +92,7 @@ class GUI_App : public wxApp
     std::unique_ptr<ImGuiWrapper> m_imgui;
 #endif // ENABLE_IMGUI
 
-    std::unique_ptr<PrintHostJobQueue> m_printhost_queue;
+    std::unique_ptr<PrintHostJobQueue> m_printhost_job_queue;
 
 public:
     bool            OnInit() override;
@@ -164,7 +164,7 @@ public:
     ImGuiWrapper* imgui() { return m_imgui.get(); }
 #endif // ENABLE_IMGUI
 
-    PrintHostJobQueue& printhost_queue() { return *m_printhost_queue.get(); }
+    PrintHostJobQueue& printhost_job_queue() { return *m_printhost_job_queue.get(); }
 
 };
 DECLARE_APP(GUI_App)

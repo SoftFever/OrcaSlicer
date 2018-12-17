@@ -20,7 +20,6 @@
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/MsgDialog.hpp"
-#include "slic3r/GUI/PrintHostDialogs.hpp"   // XXX
 #include "Http.hpp"
 
 namespace fs = boost::filesystem;
@@ -55,89 +54,90 @@ wxString Duet::get_test_failed_msg (wxString &msg) const
 	return wxString::Format("%s: %s", _(L("Could not connect to Duet")), msg);
 }
 
-bool Duet::send_gcode(const std::string &filename) const
+// bool Duet::send_gcode(const std::string &filename) const
+// {
+// 	enum { PROGRESS_RANGE = 1000 };
+
+// 	const auto errortitle = _(L("Error while uploading to the Duet"));
+// 	fs::path filepath(filename);
+
+// 	GUI::PrintHostSendDialog send_dialog(filepath.filename());
+// 	if (send_dialog.ShowModal() != wxID_OK) { return false; }
+
+// 	const bool print = send_dialog.start_print();
+// 	const auto upload_filepath = send_dialog.filename();
+// 	const auto upload_filename = upload_filepath.filename();
+// 	const auto upload_parent_path = upload_filepath.parent_path();
+
+// 	wxProgressDialog progress_dialog(
+// 	 	_(L("Duet upload")),
+// 	 	_(L("Sending G-code file to Duet...")),
+// 		PROGRESS_RANGE, nullptr, wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT);
+// 	progress_dialog.Pulse();
+
+// 	wxString connect_msg;
+// 	if (!connect(connect_msg)) {
+// 		auto errormsg = wxString::Format("%s: %s", errortitle, connect_msg);
+// 		GUI::show_error(&progress_dialog, std::move(errormsg));
+// 		return false;
+// 	}
+
+// 	bool res = true;
+
+// 	auto upload_cmd = get_upload_url(upload_filepath.string());
+// 	BOOST_LOG_TRIVIAL(info) << boost::format("Duet: Uploading file %1%, filename: %2%, path: %3%, print: %4%, command: %5%")
+// 		% filepath.string()
+// 		% upload_filename.string()
+// 		% upload_parent_path.string()
+// 		% print
+// 		% upload_cmd;
+
+// 	auto http = Http::post(std::move(upload_cmd));
+// 	http.set_post_body(filename)
+// 		.on_complete([&](std::string body, unsigned status) {
+// 			BOOST_LOG_TRIVIAL(debug) << boost::format("Duet: File uploaded: HTTP %1%: %2%") % status % body;
+// 			progress_dialog.Update(PROGRESS_RANGE);
+
+// 			int err_code = get_err_code_from_body(body);
+// 			if (err_code != 0) {
+// 				auto msg = format_error(body, L("Unknown error occured"), 0);
+// 				GUI::show_error(&progress_dialog, std::move(msg));
+// 				res = false;
+// 			} else if (print) {
+// 				wxString errormsg;
+// 				res = start_print(errormsg, upload_filepath.string());
+// 				if (!res) {
+// 					GUI::show_error(&progress_dialog, std::move(errormsg));
+// 				}
+// 			}
+// 		})
+// 		.on_error([&](std::string body, std::string error, unsigned status) {
+// 			BOOST_LOG_TRIVIAL(error) << boost::format("Duet: Error uploading file: %1%, HTTP %2%, body: `%3%`") % error % status % body;
+// 			auto errormsg = wxString::Format("%s: %s", errortitle, format_error(body, error, status));
+// 			GUI::show_error(&progress_dialog, std::move(errormsg));
+// 			res = false;
+// 		})
+// 		.on_progress([&](Http::Progress progress, bool &cancel) {
+// 			if (cancel) {
+// 				// Upload was canceled
+// 				res = false;
+// 			} else if (progress.ultotal > 0) {
+// 				int value = PROGRESS_RANGE * progress.ulnow / progress.ultotal;
+// 				cancel = !progress_dialog.Update(std::min(value, PROGRESS_RANGE - 1));    // Cap the value to prevent premature dialog closing
+// 			} else {
+// 				cancel = !progress_dialog.Pulse();
+// 			}
+// 		})
+// 		.perform_sync();
+
+// 	disconnect();
+
+// 	return res;
+// }
+
+bool Duet::upload(PrintHostUpload upload_data, Http::ProgressFn prorgess_fn, Http::ErrorFn error_fn) const
 {
-	enum { PROGRESS_RANGE = 1000 };
-
-	const auto errortitle = _(L("Error while uploading to the Duet"));
-	fs::path filepath(filename);
-
-	PrintHostSendDialog send_dialog(filepath.filename());
-	if (send_dialog.ShowModal() != wxID_OK) { return false; }
-
-	const bool print = send_dialog.start_print();
-	const auto upload_filepath = send_dialog.filename();
-	const auto upload_filename = upload_filepath.filename();
-	const auto upload_parent_path = upload_filepath.parent_path();
-
-	wxProgressDialog progress_dialog(
-	 	_(L("Duet upload")),
-	 	_(L("Sending G-code file to Duet...")),
-		PROGRESS_RANGE, nullptr, wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT);
-	progress_dialog.Pulse();
-
-	wxString connect_msg;
-	if (!connect(connect_msg)) {
-		auto errormsg = wxString::Format("%s: %s", errortitle, connect_msg);
-		GUI::show_error(&progress_dialog, std::move(errormsg));
-		return false;
-	}
-
-	bool res = true;
-
-	auto upload_cmd = get_upload_url(upload_filepath.string());
-	BOOST_LOG_TRIVIAL(info) << boost::format("Duet: Uploading file %1%, filename: %2%, path: %3%, print: %4%, command: %5%")
-		% filepath.string()
-		% upload_filename.string()
-		% upload_parent_path.string()
-		% print
-		% upload_cmd;
-
-	auto http = Http::post(std::move(upload_cmd));
-	http.set_post_body(filename)
-		.on_complete([&](std::string body, unsigned status) {
-			BOOST_LOG_TRIVIAL(debug) << boost::format("Duet: File uploaded: HTTP %1%: %2%") % status % body;
-			progress_dialog.Update(PROGRESS_RANGE);
-
-			int err_code = get_err_code_from_body(body);
-			if (err_code != 0) {
-				auto msg = format_error(body, L("Unknown error occured"), 0);
-				GUI::show_error(&progress_dialog, std::move(msg));
-				res = false;
-			} else if (print) {
-				wxString errormsg;
-				res = start_print(errormsg, upload_filepath.string());
-				if (!res) {
-					GUI::show_error(&progress_dialog, std::move(errormsg));
-				}
-			}
-		})
-		.on_error([&](std::string body, std::string error, unsigned status) {
-			BOOST_LOG_TRIVIAL(error) << boost::format("Duet: Error uploading file: %1%, HTTP %2%, body: `%3%`") % error % status % body;
-			auto errormsg = wxString::Format("%s: %s", errortitle, format_error(body, error, status));
-			GUI::show_error(&progress_dialog, std::move(errormsg));
-			res = false;
-		})
-		.on_progress([&](Http::Progress progress, bool &cancel) {
-			if (cancel) {
-				// Upload was canceled
-				res = false;
-			} else if (progress.ultotal > 0) {
-				int value = PROGRESS_RANGE * progress.ulnow / progress.ultotal;
-				cancel = !progress_dialog.Update(std::min(value, PROGRESS_RANGE - 1));    // Cap the value to prevent premature dialog closing
-			} else {
-				cancel = !progress_dialog.Pulse();
-			}
-		})
-		.perform_sync();
-
-	disconnect();
-
-	return res;
-}
-
-bool Duet::upload(PrintHostUpload upload_data) const
-{
+	// XXX: TODO
 	throw "unimplemented";
 }
 

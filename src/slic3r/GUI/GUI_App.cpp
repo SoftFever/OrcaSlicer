@@ -73,7 +73,6 @@ GUI_App::GUI_App()
     : wxApp()
 #if ENABLE_IMGUI
     , m_imgui(new ImGuiWrapper())
-    , m_printhost_queue(new PrintHostJobQueue())
 #endif // ENABLE_IMGUI
 {}
 
@@ -141,6 +140,8 @@ bool GUI_App::OnInit()
     sidebar().obj_list()->init_objects(); // propagate model objects to object list
     update_mode();
     SetTopWindow(mainframe);
+
+    m_printhost_job_queue.reset(new PrintHostJobQueue(mainframe->printhost_queue_dlg()));
 
     CallAfter([this]() {
         // temporary workaround for the correct behavior of the Scrolled sidebar panel 
