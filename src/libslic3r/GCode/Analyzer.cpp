@@ -4,6 +4,7 @@
 
 #include "../libslic3r.h"
 #include "../PrintConfig.hpp"
+#include "../Utils.hpp"
 #include "Print.hpp"
 
 #include "Analyzer.hpp"
@@ -850,6 +851,16 @@ void GCodeAnalyzer::_calc_gcode_preview_unretractions(GCodePreviewData& preview_
         Vec3crd position(scale_(move.start_position.x()), scale_(move.start_position.y()), scale_(move.start_position.z()));
         preview_data.unretraction.positions.emplace_back(position, move.data.width, move.data.height);
     }
+}
+
+// Return an estimate of the memory consumed by the time estimator.
+size_t GCodeAnalyzer::memory_used() const
+{
+    size_t out = sizeof(*this);
+    for (const std::pair<GCodeMove::EType, GCodeMovesList> &kvp : m_moves_map)
+        out += sizeof(kvp) + SLIC3R_STDVEC_MEMSIZE(kvp.second, GCodeMove);
+    out += m_process_output.size();
+    return out;
 }
 
 GCodePreviewData::Color operator + (const GCodePreviewData::Color& c1, const GCodePreviewData::Color& c2)

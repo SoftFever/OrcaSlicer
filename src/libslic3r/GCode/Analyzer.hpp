@@ -120,6 +120,9 @@ public:
     // Calculates all data needed for gcode visualization
     void calc_gcode_preview_data(GCodePreviewData& preview_data);
 
+    // Return an estimate of the memory consumed by the time estimator.
+    size_t memory_used() const;
+
     static bool is_valid_extrusion_role(ExtrusionRole role);
 
 private:

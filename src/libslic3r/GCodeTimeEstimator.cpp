@@ -672,14 +672,8 @@ namespace Slic3r {
 	size_t GCodeTimeEstimator::memory_used() const
     {
         size_t out = sizeof(*this);
-#if WIN32
-	#define STDVEC_MEMSIZE(NAME, TYPE) NAME.capacity() * ((sizeof(TYPE) + __alignof(TYPE) - 1) / __alignof(TYPE)) * __alignof(TYPE)
-#else
-	#define STDVEC_MEMSIZE(NAME, TYPE) NAME.capacity() * ((sizeof(TYPE) + alignof(TYPE) - 1) / alignof(TYPE)) * alignof(TYPE)
-#endif
-		out += STDVEC_MEMSIZE(this->_blocks, Block);
-		out += STDVEC_MEMSIZE(this->_g1_line_ids, G1LineIdToBlockId);
-#undef STDVEC_MEMSIZE
+		out += SLIC3R_STDVEC_MEMSIZE(this->_blocks, Block);
+		out += SLIC3R_STDVEC_MEMSIZE(this->_g1_line_ids, G1LineIdToBlockId);
         return out;
     }
 
