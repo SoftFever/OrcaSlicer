@@ -5,6 +5,7 @@
 #include "SupportMaterial.hpp"
 #include "Surface.hpp"
 #include "Slicing.hpp"
+#include "Utils.hpp"
 
 #include <utility>
 #include <boost/log/trivial.hpp>
@@ -132,7 +133,7 @@ void PrintObject::make_perimeters()
         return;
 
     m_print->set_status(20, "Generating perimeters");
-    BOOST_LOG_TRIVIAL(info) << "Generating perimeters...";
+    BOOST_LOG_TRIVIAL(info) << "Generating perimeters..." << log_memory_info();
     
     // merge slices if they were split into types
     if (this->typed_slices) {
@@ -253,7 +254,7 @@ void PrintObject::prepare_infill()
     // Decide what surfaces are to be filled.
     // Here the S_TYPE_TOP / S_TYPE_BOTTOMBRIDGE / S_TYPE_BOTTOM infill is turned to just S_TYPE_INTERNAL if zero top / bottom infill layers are configured.
     // Also tiny S_TYPE_INTERNAL surfaces are turned to S_TYPE_INTERNAL_SOLID.
-    BOOST_LOG_TRIVIAL(info) << "Preparing fill surfaces...";
+    BOOST_LOG_TRIVIAL(info) << "Preparing fill surfaces..." << log_memory_info();
     for (auto *layer : m_layers)
         for (auto *region : layer->m_regions) {
             region->prepare_fill_surfaces();
@@ -601,7 +602,7 @@ bool PrintObject::has_support_material() const
 // If a part of a region is of stBottom and stTop, the stBottom wins.
 void PrintObject::detect_surfaces_type()
 {
-    BOOST_LOG_TRIVIAL(info) << "Detecting solid surfaces...";
+    BOOST_LOG_TRIVIAL(info) << "Detecting solid surfaces..." << log_memory_info();
 
     // Interface shells: the intersecting parts are treated as self standing objects supporting each other.
     // Each of the objects will have a full number of top / bottom layers, even if these top / bottom layers
@@ -793,7 +794,7 @@ void PrintObject::detect_surfaces_type()
 
 void PrintObject::process_external_surfaces()
 {
-    BOOST_LOG_TRIVIAL(info) << "Processing external surfaces...";
+    BOOST_LOG_TRIVIAL(info) << "Processing external surfaces..." << log_memory_info();
 
 	for (size_t region_id = 0; region_id < this->region_volumes.size(); ++region_id) {
         const PrintRegion &region = *m_print->regions()[region_id];
@@ -818,7 +819,7 @@ void PrintObject::discover_vertical_shells()
 {
     PROFILE_FUNC();
 
-    BOOST_LOG_TRIVIAL(info) << "Discovering vertical shells...";
+    BOOST_LOG_TRIVIAL(info) << "Discovering vertical shells..." << log_memory_info();
 
     struct DiscoverVerticalShellsCacheEntry
     {
@@ -1202,7 +1203,7 @@ void PrintObject::discover_vertical_shells()
    sparse infill */
 void PrintObject::bridge_over_infill()
 {
-    BOOST_LOG_TRIVIAL(info) << "Bridge over infill...";
+    BOOST_LOG_TRIVIAL(info) << "Bridge over infill..." << log_memory_info();
 
     for (size_t region_id = 0; region_id < this->region_volumes.size(); ++ region_id) {
         const PrintRegion &region = *m_print->regions()[region_id];
@@ -1387,7 +1388,7 @@ bool PrintObject::update_layer_height_profile()
 // this should be idempotent
 void PrintObject::_slice()
 {
-    BOOST_LOG_TRIVIAL(info) << "Slicing objects...";
+    BOOST_LOG_TRIVIAL(info) << "Slicing objects..." << log_memory_info();
 
     this->typed_slices = false;
 
@@ -1709,7 +1710,7 @@ void PrintObject::_make_perimeters()
     if (! this->set_started(posPerimeters))
         return;
 
-    BOOST_LOG_TRIVIAL(info) << "Generating perimeters...";
+    BOOST_LOG_TRIVIAL(info) << "Generating perimeters..." << log_memory_info();
     
     // merge slices if they were split into types
     if (this->typed_slices) {

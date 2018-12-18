@@ -8,6 +8,7 @@
 
 #ifdef WIN32
 #include <windows.h>
+#include <psapi.h>
 #else
 #include <unistd.h>
 #endif
@@ -364,5 +365,67 @@ std::string xml_escape(std::string text)
 
     return text;
 }
+
+#ifdef WIN32
+
+#ifndef PROCESS_MEMORY_COUNTERS_EX
+    // MingW32 doesn't have this struct in psapi.h
+    typedef struct _PROCESS_MEMORY_COUNTERS_EX {
+      DWORD  cb;
+      DWORD  PageFaultCount;
+      SIZE_T PeakWorkingSetSize;
+      SIZE_T WorkingSetSize;
+      SIZE_T QuotaPeakPagedPoolUsage;
+      SIZE_T QuotaPagedPoolUsage;
+      SIZE_T QuotaPeakNonPagedPoolUsage;
+      SIZE_T QuotaNonPagedPoolUsage;
+      SIZE_T PagefileUsage;
+      SIZE_T PeakPagefileUsage;
+      SIZE_T PrivateUsage;
+    } PROCESS_MEMORY_COUNTERS_EX, *PPROCESS_MEMORY_COUNTERS_EX;
+#endif /* PROCESS_MEMORY_COUNTERS_EX */
+
+std::string format_memsize_MB(size_t n) 
+{
+	std::string out;
+	size_t n2 = 0;
+	size_t scale = 1;
+	// Round to MB
+	n +=  500000;
+	n /= 1000000;
+	while (n >= 1000) {
+		n2 = n2 + scale * (n % 1000);
+		n /= 1000;
+		scale *= 1000;
+	}
+	char buf[8];
+	sprintf(buf, "%d", n);
+	out = buf;
+	while (scale != 1) {
+		scale /= 1000;
+		n = n2 / scale;
+		n2 = n2  % scale;
+		sprintf(buf, ",%03d", n);
+		out += buf;
+	}
+	return out + "MB";
+}
+
+std::string log_memory_info()
+{
+    std::string out;
+    if (logSeverity <= boost::log::trivial::info) {
+        HANDLE hProcess = ::OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, ::GetCurrentProcessId());
+        if (hProcess != nullptr) {
+            PROCESS_MEMORY_COUNTERS_EX pmc;
+            if (GetProcessMemoryInfo(hProcess, (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc)))
+				out = " WorkingSet: " + format_memsize_MB(pmc.WorkingSetSize) + " PrivateBytes: " + format_memsize_MB(pmc.PrivateUsage) + " Pagefile(peak): " + format_memsize_MB(pmc.PagefileUsage) + "(" + format_memsize_MB(pmc.PeakPagefileUsage) + ")";
+            CloseHandle(hProcess);
+        }
+    }
+    return out;
+}
+
+#endif
 
 }; // namespace Slic3r

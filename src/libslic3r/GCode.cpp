@@ -423,7 +423,7 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
 
 	print->set_started(psGCodeExport);
 
-    BOOST_LOG_TRIVIAL(info) << "Exporting G-code...";
+    BOOST_LOG_TRIVIAL(info) << "Exporting G-code..." << log_memory_info();
 
     // Remove the old g-code if it exists.
     boost::nowide::remove(path);
@@ -480,7 +480,7 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
             std::string("Failed to rename the output G-code file from ") + path_tmp + " to " + path + '\n' +
             "Is " + path_tmp + " locked?" + '\n');
 
-    BOOST_LOG_TRIVIAL(info) << "Exporting G-code finished";
+    BOOST_LOG_TRIVIAL(info) << "Exporting G-code finished" << log_memory_info();
 	print->set_done(psGCodeExport);
 
     // Write the profiler measurements to file
