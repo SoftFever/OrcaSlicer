@@ -484,7 +484,7 @@ Sidebar::Sidebar(Plater *parent)
     : wxPanel(parent), p(new priv(parent))
 {
     p->scrolled = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxSize(400, -1));
-    p->scrolled->SetScrollbars(0, 1, 1, 1);
+    p->scrolled->SetScrollbars(0, 20, 1, 2);
 
     // Sizer in the scrolled area
     auto *scrolled_sizer = new wxBoxSizer(wxVERTICAL);
