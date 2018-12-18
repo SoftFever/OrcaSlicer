@@ -40,6 +40,8 @@
 #define ENABLE_NONCUSTOM_DATA_VIEW_RENDERING (0 && ENABLE_1_42_0)
 // Adds background texture to toolbars
 #define ENABLE_TOOLBAR_BACKGROUND_TEXTURE (1 && ENABLE_1_42_0)
+// Renders a small sphere in the center of the bounding box of the current selection when no gizmo is active
+#define ENABLE_RENDER_SELECTION_CENTER (0 && ENABLE_1_42_0)
 
 #endif // _technologies_h_
 
