@@ -456,6 +456,7 @@ const std::vector<std::string>& Preset::sla_printer_options()
             "display_width", "display_height", "display_pixels_x", "display_pixels_y",
             "display_orientation",
             "printer_correction",
+            "print_host", "printhost_apikey", "printhost_cafile",
             "printer_notes",
             "inherits"
         };

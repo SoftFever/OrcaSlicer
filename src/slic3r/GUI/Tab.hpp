@@ -325,6 +325,8 @@ class TabPrinter : public Tab
 
     std::vector<PageShp>			m_pages_fff;
     std::vector<PageShp>			m_pages_sla;
+
+    void build_printhost(ConfigOptionsGroup *optgroup);
 public:
 	wxButton*	m_serial_test_btn = nullptr;
 	wxButton*	m_print_host_test_btn = nullptr;

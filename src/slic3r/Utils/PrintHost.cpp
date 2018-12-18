@@ -24,13 +24,15 @@ PrintHost::~PrintHost() {}
 
 PrintHost* PrintHost::get_print_host(DynamicPrintConfig *config)
 {
-    PrintHostType kind = config->option<ConfigOptionEnum<PrintHostType>>("host_type")->value;
-    if (kind == htOctoPrint) {
-        return new OctoPrint(config);
-    } else if (kind == htDuet) {
-        return new Duet(config);
+    const auto opt = config->option<ConfigOptionEnum<PrintHostType>>("host_type");
+    if (opt == nullptr) { return nullptr; }
+
+    switch (opt->value) {
+        case htOctoPrint: return new OctoPrint(config);
+        case htSL1:       return new SL1Host(config);
+        case htDuet:      return new Duet(config);
+        default: return nullptr;
     }
-    return nullptr;
 }
 
 

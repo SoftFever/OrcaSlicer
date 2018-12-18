@@ -36,7 +36,7 @@ enum GCodeFlavor {
 };
 
 enum PrintHostType {
-    htOctoPrint, htDuet,
+    htOctoPrint, htDuet, htSL1,
 };
 
 enum InfillPattern {

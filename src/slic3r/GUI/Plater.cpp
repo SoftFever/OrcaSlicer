@@ -3244,6 +3244,8 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
 #endif // ENABLE_REMOVE_TABS_FROM_PLATER
             if (p->preview) p->preview->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values);
             update_scheduled = true;
+        } else if (opt_key == "host_type" && this->p->printer_technology == ptSLA) {
+            p->config->option<ConfigOptionEnum<PrintHostType>>(opt_key)->value = htSL1;
         }
     }
 
