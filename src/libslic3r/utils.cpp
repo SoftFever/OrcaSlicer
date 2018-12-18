@@ -426,6 +426,11 @@ std::string log_memory_info()
     return out;
 }
 
+#else
+std::string log_memory_info()
+{
+    return std::string();
+}
 #endif
 
 }; // namespace Slic3r
