@@ -366,6 +366,32 @@ std::string xml_escape(std::string text)
     return text;
 }
 
+std::string format_memsize_MB(size_t n) 
+{
+    std::string out;
+    size_t n2 = 0;
+    size_t scale = 1;
+    // Round to MB
+    n +=  500000;
+    n /= 1000000;
+    while (n >= 1000) {
+        n2 = n2 + scale * (n % 1000);
+        n /= 1000;
+        scale *= 1000;
+    }
+    char buf[8];
+    sprintf(buf, "%d", n);
+    out = buf;
+    while (scale != 1) {
+        scale /= 1000;
+        n = n2 / scale;
+        n2 = n2  % scale;
+        sprintf(buf, ",%03d", n);
+        out += buf;
+    }
+    return out + "MB";
+}
+
 #ifdef WIN32
 
 #ifndef PROCESS_MEMORY_COUNTERS_EX
@@ -384,32 +410,6 @@ std::string xml_escape(std::string text)
       SIZE_T PrivateUsage;
     } PROCESS_MEMORY_COUNTERS_EX, *PPROCESS_MEMORY_COUNTERS_EX;
 #endif /* PROCESS_MEMORY_COUNTERS_EX */
-
-std::string format_memsize_MB(size_t n) 
-{
-	std::string out;
-	size_t n2 = 0;
-	size_t scale = 1;
-	// Round to MB
-	n +=  500000;
-	n /= 1000000;
-	while (n >= 1000) {
-		n2 = n2 + scale * (n % 1000);
-		n /= 1000;
-		scale *= 1000;
-	}
-	char buf[8];
-	sprintf(buf, "%d", n);
-	out = buf;
-	while (scale != 1) {
-		scale /= 1000;
-		n = n2 / scale;
-		n2 = n2  % scale;
-		sprintf(buf, ",%03d", n);
-		out += buf;
-	}
-	return out + "MB";
-}
 
 std::string log_memory_info()
 {
