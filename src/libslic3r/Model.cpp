@@ -809,6 +809,25 @@ TriangleMesh ModelObject::raw_mesh() const
     return mesh;
 }
 
+// Non-transformed (non-rotated, non-scaled, non-translated) sum of all object volumes.
+TriangleMesh ModelObject::full_raw_mesh() const
+{
+    TriangleMesh mesh;
+    for (const ModelVolume *v : this->volumes)
+#if ENABLE_MODELVOLUME_TRANSFORM
+    {
+        TriangleMesh vol_mesh(v->mesh);
+        vol_mesh.transform(v->get_matrix());
+        mesh.merge(vol_mesh);
+    }
+#else
+    {
+        mesh.merge(v->mesh);
+    }
+#endif // ENABLE_MODELVOLUME_TRANSFORM
+    return mesh;
+}
+
 // A transformed snug bounding box around the non-modifier object volumes, without the translation applied.
 // This bounding box is only used for the actual slicing.
 BoundingBoxf3 ModelObject::raw_bounding_box() const
