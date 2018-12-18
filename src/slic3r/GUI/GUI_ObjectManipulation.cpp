@@ -144,8 +144,8 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
 
     // Settings table
     m_og->append_line(add_og_to_object_settings(L("Position"), L("mm")), &m_move_Label);
-    m_og->append_line(add_og_to_object_settings(L("Rotation"), "°"));
-    m_og->append_line(add_og_to_object_settings(L("Scale"), "%"));
+    m_og->append_line(add_og_to_object_settings(L("Rotation"), "°"), &m_rotate_Label);
+    m_og->append_line(add_og_to_object_settings(L("Scale"), "%"), &m_scale_Label);
     m_og->append_line(add_og_to_object_settings(L("Size"), "mm"));
 
     /* Unused parameter at this time
@@ -192,9 +192,11 @@ int ObjectManipulation::ol_selection()
 
 void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& selection)
 {
-    wxString move_label = _(L("Position"));
+    wxString move_label = _(L("Position:"));
+    wxString rotate_label = _(L("Rotation:"));
+    wxString scale_label = _(L("Scale factors:"));
 #if ENABLE_MODELVOLUME_TRANSFORM
-    if (selection.is_single_full_instance() || selection.is_single_full_object())
+    if (selection.is_single_full_instance())
 #else
     if (selection.is_single_full_object())
     {
@@ -228,19 +230,15 @@ void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& sele
 #endif // ENABLE_MODELVOLUME_TRANSFORM
         m_og->enable();
     }
-    else if (selection.is_wipe_tower())
+    else if (selection.is_single_full_object())
     {
-        // the selection contains a single volume
-        const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
-#if ENABLE_MODELVOLUME_TRANSFORM
-        update_position_value(volume->get_volume_offset());
-        update_rotation_value(volume->get_volume_rotation());
-        update_scale_value(volume->get_volume_scaling_factor());
-#else
-        update_position_value(volume->get_offset());
-        update_rotation_value(volume->get_rotation());
-        update_scale_value(volume->get_scaling_factor());
-#endif // ENABLE_MODELVOLUME_TRANSFORM
+        const BoundingBoxf3& box = selection.get_bounding_box();
+        update_position_value(box.center());
+        reset_rotation_value();
+        reset_scale_value();
+        update_size_value(box.size());
+        rotate_label = _(L("Rotate:"));
+        scale_label = _(L("Scale:"));
         m_og->enable();
     }
     else if (selection.is_single_modifier() || selection.is_single_volume())
@@ -262,7 +260,7 @@ void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& sele
     else if (wxGetApp().obj_list()->multiple_selection())
     {
         reset_settings_value();
-        move_label = _(L("Displacement"));
+        move_label = _(L("Translate:"));
         update_size_value(selection.get_bounding_box().size());
         m_og->enable();
     }
@@ -270,6 +268,8 @@ void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& sele
         reset_settings_value();
 
     m_move_Label->SetLabel(move_label);
+    m_rotate_Label->SetLabel(rotate_label);
+    m_scale_Label->SetLabel(scale_label);
 }
 
 void ObjectManipulation::reset_settings_value()
@@ -358,11 +358,9 @@ void ObjectManipulation::update_rotation_value(const Vec3d& rotation)
 
 void ObjectManipulation::change_position_value(const Vec3d& position)
 {
-    Vec3d displacement(position - cache_position);
-
     auto canvas = wxGetApp().plater()->canvas3D();
     canvas->get_selection().start_dragging();
-    canvas->get_selection().translate(displacement);
+    canvas->get_selection().translate(position - cache_position);
     canvas->do_move();
 
     cache_position = position;
@@ -370,12 +368,17 @@ void ObjectManipulation::change_position_value(const Vec3d& position)
 
 void ObjectManipulation::change_rotation_value(const Vec3d& rotation)
 {
+    GLCanvas3D* canvas = wxGetApp().plater()->canvas3D();
+    const GLCanvas3D::Selection& selection = canvas->get_selection();
+
     Vec3d rad_rotation;
     for (size_t i = 0; i < 3; ++i)
+    {
         rad_rotation(i) = Geometry::deg2rad(rotation(i));
-    auto canvas = wxGetApp().plater()->canvas3D();
+    }
+
     canvas->get_selection().start_dragging();
-    canvas->get_selection().rotate(rad_rotation, false);
+    canvas->get_selection().rotate(rad_rotation, selection.is_single_full_instance());
     canvas->do_rotate();
 }
 
