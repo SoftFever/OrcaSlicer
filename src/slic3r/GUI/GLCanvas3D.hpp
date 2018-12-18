@@ -597,6 +597,7 @@ public:
 #if ENABLE_ENSURE_ON_BED_WHILE_SCALING
         void _ensure_on_bed();
 #endif // ENABLE_ENSURE_ON_BED_WHILE_SCALING
+        bool _requires_local_axes() const;
     };
 
     class ClippingPlane
