@@ -41,6 +41,8 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
             change_scale_value(new_value);
         else if (param == "size")
             change_size_value(new_value);
+
+        wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event(opt_key, false);
     };
 
     m_og->m_fill_empty_value = [this](const std::string& opt_key)
@@ -76,11 +78,12 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
         }
 
         m_og->set_value(opt_key, double_to_string(value));
+        wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event(opt_key, false);
     };
 
     m_og->m_set_focus = [this](const std::string& opt_key)
     {
-        wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event(opt_key);
+        wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event(opt_key, true);
     };
 
     ConfigOptionDef def;
@@ -300,7 +303,6 @@ void ObjectManipulation::reset_rotation_value()
 
 void ObjectManipulation::reset_scale_value()
 {
-    m_og->set_value("scale_unit", _("%"));
     m_og->set_value("scale_x", def_100);
     m_og->set_value("scale_y", def_100);
     m_og->set_value("scale_z", def_100);
