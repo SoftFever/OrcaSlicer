@@ -11,6 +11,7 @@
 #include <curl/curl.h>
 
 #include "libslic3r/libslic3r.h"
+#include "libslic3r/Utils.hpp"
 
 namespace fs = boost::filesystem;
 
@@ -44,6 +45,7 @@ struct Http::priv
 	// Using a deque here because unlike vector it doesn't ivalidate pointers on insertion
 	std::deque<fs::ifstream> form_files;
 	std::string postfields;
+	std::string error_buffer;    // Used for CURLOPT_ERRORBUFFER
 	size_t limit;
 	bool cancel;
 
@@ -69,13 +71,14 @@ struct Http::priv
 	void http_perform();
 };
 
-Http::priv::priv(const std::string &url) :
-	curl(::curl_easy_init()),
-	form(nullptr),
-	form_end(nullptr),
-	headerlist(nullptr),
-	limit(0),
-	cancel(false)
+Http::priv::priv(const std::string &url)
+	: curl(::curl_easy_init())
+	, form(nullptr)
+	, form_end(nullptr)
+	, headerlist(nullptr)
+	, error_buffer(CURL_ERROR_SIZE + 1, '\0')
+	, limit(0)
+	, cancel(false)
 {
 	if (curl == nullptr) {
 		throw std::runtime_error(std::string("Could not construct Curl object"));
@@ -83,6 +86,7 @@ Http::priv::priv(const std::string &url) :
 
 	::curl_easy_setopt(curl, CURLOPT_URL, url.c_str());   // curl makes a copy internally
 	::curl_easy_setopt(curl, CURLOPT_USERAGENT, SLIC3R_FORK_NAME "/" SLIC3R_VERSION);
+	::curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error_buffer.front());
 }
 
 Http::priv::~priv()
@@ -199,9 +203,10 @@ void Http::priv::set_post_body(const fs::path &path)
 
 std::string Http::priv::curl_error(CURLcode curlcode)
 {
-	return (boost::format("%1% (%2%)")
+	return (boost::format("%1% (%2%): %3%")
 		% ::curl_easy_strerror(curlcode)
 		% curlcode
+		% error_buffer
 	).str();
 }
 
@@ -227,9 +232,7 @@ void Http::priv::http_perform()
 	::curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, static_cast<void*>(this));
 #endif
 
-#ifndef NDEBUG
-	::curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-#endif
+	::curl_easy_setopt(curl, CURLOPT_VERBOSE, get_logging_level() >= 4);
 
 	if (headerlist != nullptr) {
 		::curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);

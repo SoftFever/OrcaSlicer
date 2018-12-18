@@ -3,6 +3,7 @@
 #include <vector>
 #include <thread>
 #include <boost/optional.hpp>
+#include <boost/log/trivial.hpp>
 #include <boost/filesystem.hpp>
 
 #include <wx/app.h>
@@ -144,6 +145,10 @@ void PrintHostJobQueue::priv::perform_job(PrintHostJob the_job)
 {
     if (bg_exit || the_job.empty()) { return; }
 
+    BOOST_LOG_TRIVIAL(debug) << boost::format("PrintHostJobQueue/bg_thread: Got job: `%1%` -> `%1%`")
+        % the_job.upload_data.upload_path
+        % the_job.printhost->get_host();
+
     const fs::path gcode_path = the_job.upload_data.source_path;
 
     the_job.printhost->upload(std::move(the_job.upload_data),
@@ -154,7 +159,11 @@ void PrintHostJobQueue::priv::perform_job(PrintHostJob the_job)
     auto evt = new PrintHostQueueDialog::Event(GUI::EVT_PRINTHOST_PROGRESS, queue_dialog->GetId(), job_id, 100);
     wxQueueEvent(queue_dialog, evt);
 
-    fs::remove(gcode_path);   // XXX: error handling
+    boost::system::error_code ec;
+    fs::remove(gcode_path, ec);
+    if (ec) {
+        BOOST_LOG_TRIVIAL(error) << boost::format("PrintHostJobQueue: Error removing file `%1%`: %2%") % gcode_path % ec;
+    }
 }
 
 void PrintHostJobQueue::enqueue(PrintHostJob job)

@@ -59,6 +59,18 @@ void set_logging_level(unsigned int level)
     );
 }
 
+unsigned get_logging_level()
+{
+    switch (logSeverity) {
+    case boost::log::trivial::fatal : return 0;
+    case boost::log::trivial::error : return 1;
+    case boost::log::trivial::warning : return 2;
+    case boost::log::trivial::info : return 3;
+    case boost::log::trivial::debug : return 4;
+    default: return 1;
+    }
+}
+
 // Force set_logging_level(<=error) after loading of the DLL.
 // Switch boost::filesystem to utf8.
 static struct RunOnInit {

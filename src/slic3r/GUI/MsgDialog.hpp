@@ -50,14 +50,18 @@ protected:
 
 
 // Generic error dialog, used for displaying exceptions
-struct ErrorDialog : MsgDialog
+class ErrorDialog : public MsgDialog
 {
+public:
 	ErrorDialog(wxWindow *parent, const wxString &msg);
 	ErrorDialog(ErrorDialog &&) = delete;
 	ErrorDialog(const ErrorDialog &) = delete;
 	ErrorDialog &operator=(ErrorDialog &&) = delete;
 	ErrorDialog &operator=(const ErrorDialog &) = delete;
 	virtual ~ErrorDialog();
+
+private:
+	wxString msg;
 };
 
 
