@@ -261,6 +261,8 @@ void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& sele
     {
         reset_settings_value();
         move_label = _(L("Translate:"));
+        rotate_label = _(L("Rotate:"));
+        scale_label = _(L("Scale:"));
         update_size_value(selection.get_bounding_box().size());
         m_og->enable();
     }
@@ -386,9 +388,7 @@ void ObjectManipulation::change_scale_value(const Vec3d& scale)
 {
     Vec3d scaling_factor = scale;
     const GLCanvas3D::Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
-    bool needs_uniform_scale = selection.is_single_full_object() && !selection.is_single_full_instance();
-
-    if (needs_uniform_scale)
+    if (selection.requires_uniform_scale())
     {
         Vec3d abs_scale_diff = (scale - cache_scale).cwiseAbs();
         double max_diff = abs_scale_diff(X);

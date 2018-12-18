@@ -1478,6 +1478,14 @@ bool GLCanvas3D::Selection::is_from_single_object() const
     return (0 <= idx) && (idx < 1000);
 }
 
+bool GLCanvas3D::Selection::requires_uniform_scale() const
+{
+    if (is_single_full_instance() || is_single_modifier() || is_single_volume())
+        return false;
+
+    return true;
+}
+
 int GLCanvas3D::Selection::get_object_idx() const
 {
     return (m_cache.content.size() == 1) ? m_cache.content.begin()->first : -1;
