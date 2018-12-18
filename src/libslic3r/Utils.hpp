@@ -12,6 +12,8 @@ namespace Slic3r {
 
 extern void set_logging_level(unsigned int level);
 extern void trace(unsigned int level, const char *message);
+// Format memory allocated, separate thousands by comma.
+extern std::string format_memsize_MB(size_t n);
 // Return string to be added to the boost::log output to inform about the current process memory allocation.
 // The string is non-empty only if the loglevel >= info (3).
 extern std::string log_memory_info();

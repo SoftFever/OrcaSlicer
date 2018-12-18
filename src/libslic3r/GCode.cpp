@@ -1231,7 +1231,7 @@ void GCode::process_layer(
     const Print                     &print,
     // Set of object & print layers of the same PrintObject and with the same print_z.
     const std::vector<LayerToPrint> &layers,
-    const LayerTools  &layer_tools,
+    const LayerTools                &layer_tools,
     // If set to size_t(-1), then print all copies of all objects.
     // Otherwise print a single copy of a single object.
     const size_t                     single_object_idx)
@@ -1644,6 +1644,8 @@ void GCode::process_layer(
     // printf("G-code after filter:\n%s\n", out.c_str());
     
     _write(file, gcode);
+    BOOST_LOG_TRIVIAL(trace) << "Exported layer " << layer.id() << " print_z " << print_z << ", time estimator memory: " + 
+        format_memsize_MB(m_normal_time_estimator.memory_used() + m_silent_time_estimator_enabled ? m_silent_time_estimator.memory_used() : 0);
 }
 
 void GCode::apply_print_config(const PrintConfig &print_config)
