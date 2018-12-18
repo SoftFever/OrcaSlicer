@@ -557,15 +557,15 @@ bool PrintObject::invalidate_step(PrintObjectStep step)
     
     // propagate to dependent steps
     if (step == posPerimeters) {
-        invalidated |= this->invalidate_step(posPrepareInfill);
+		invalidated |= this->invalidate_steps({ posPrepareInfill, posInfill });
         invalidated |= m_print->invalidate_steps({ psSkirt, psBrim });
     } else if (step == posPrepareInfill) {
         invalidated |= this->invalidate_step(posInfill);
     } else if (step == posInfill) {
         invalidated |= m_print->invalidate_steps({ psSkirt, psBrim });
     } else if (step == posSlice) {
-        invalidated |= this->invalidate_steps({ posPerimeters, posSupportMaterial });
-        invalidated |= m_print->invalidate_step(psWipeTower);
+		invalidated |= this->invalidate_steps({ posPerimeters, posPrepareInfill, posInfill, posSupportMaterial });
+		invalidated |= m_print->invalidate_steps({ psSkirt, psBrim });
     } else if (step == posSupportMaterial)
         invalidated |= m_print->invalidate_steps({ psSkirt, psBrim });
 
