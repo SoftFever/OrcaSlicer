@@ -3581,6 +3581,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     , m_view_toolbar(nullptr)
 #endif // ENABLE_REMOVE_TABS_FROM_PLATER
     , m_use_clipping_planes(false)
+    , m_sidebar_field("")
     , m_config(nullptr)
     , m_process(nullptr)
     , m_model(nullptr)
@@ -5564,6 +5565,17 @@ void GLCanvas3D::update_gizmos_on_off_state()
 {
     set_as_dirty();
     m_gizmos.update_on_off_state(get_selection());
+}
+
+void GLCanvas3D::handle_sidebar_focus_event(const std::string& opt_key, bool focus_on)
+{
+    m_sidebar_field = focus_on ? opt_key : "";
+
+    if (!m_sidebar_field.empty())
+    {
+        m_gizmos.reset_all_states();
+        m_dirty = true;
+    }
 }
 
 bool GLCanvas3D::_is_shown_on_screen() const
