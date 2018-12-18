@@ -390,12 +390,20 @@ void ObjectManipulation::change_scale_value(const Vec3d& scale)
 
     if (needs_uniform_scale)
     {
-        double min = scaling_factor.minCoeff();
-        double max = scaling_factor.maxCoeff();
-        if (min != 100.0)
-            scaling_factor = Vec3d(min, min, min);
-        else if (max != 100.0)
-            scaling_factor = Vec3d(max, max, max);
+        Vec3d abs_scale_diff = (scale - cache_scale).cwiseAbs();
+        double max_diff = abs_scale_diff(X);
+        Axis max_diff_axis = X;
+        if (max_diff < abs_scale_diff(Y))
+        {
+            max_diff = abs_scale_diff(Y);
+            max_diff_axis = Y;
+        }
+        if (max_diff < abs_scale_diff(Z))
+        {
+            max_diff = abs_scale_diff(Z);
+            max_diff_axis = Z;
+        }
+        scaling_factor = Vec3d(scale(max_diff_axis), scale(max_diff_axis), scale(max_diff_axis));
     }
 
     scaling_factor *= 0.01;
