@@ -532,6 +532,7 @@ public:
         bool is_wipe_tower() const { return m_type == WipeTower; }
         bool is_modifier() const { return (m_type == SingleModifier) || (m_type == MultipleModifier); }
         bool is_single_modifier() const { return m_type == SingleModifier; }
+        bool is_multiple_modifier() const { return m_type == MultipleModifier; }
         bool is_single_full_instance() const;
         bool is_multiple_full_instance() const { return m_type == MultipleFullInstance; }
         bool is_single_full_object() const { return m_type == SingleFullObject; }
@@ -543,6 +544,7 @@ public:
         bool is_from_single_object() const;
 
         bool contains_volume(unsigned int volume_idx) const { return std::find(m_list.begin(), m_list.end(), volume_idx) != m_list.end(); }
+        bool requires_uniform_scale() const;
 
         // Returns the the object id if the selection is from a single object, otherwise is -1
         int get_object_idx() const;
