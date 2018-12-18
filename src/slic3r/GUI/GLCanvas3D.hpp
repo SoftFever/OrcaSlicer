@@ -794,6 +794,7 @@ private:
     ClippingPlane m_clipping_planes[2];
     bool m_use_clipping_planes;
     mutable SlaCap m_sla_caps[2];
+    std::string m_sidebar_field;
 
     mutable GLVolumeCollection m_volumes;
     Selection m_selection;
@@ -995,7 +996,7 @@ public:
     void viewport_changed();
 #endif // ENABLE_CONSTRAINED_CAMERA_TARGET
 
-    void handle_sidebar_focus_event(const std::string& opt_key) {}
+    void handle_sidebar_focus_event(const std::string& opt_key, bool focus_on);
 
 private:
     bool _is_shown_on_screen() const;
