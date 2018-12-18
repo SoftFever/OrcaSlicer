@@ -309,8 +309,9 @@ namespace Slic3r {
                gcode_line += "\n";
 
             // add remaining time lines where needed
+            G1LineIdToBlockIdMap::const_iterator it_line_id = _g1_line_ids.begin();
             _parser.parse_line(gcode_line,
-                [this, &g1_lines_count, &last_recorded_time, &time_line, &gcode_line, time_mask, interval](GCodeReader& reader, const GCodeReader::GCodeLine& line)
+                [this, &it_line_id, &g1_lines_count, &last_recorded_time, &time_line, &gcode_line, time_mask, interval](GCodeReader& reader, const GCodeReader::GCodeLine& line)
             {
                 if (line.cmd_is("G1"))
                 {
@@ -319,10 +320,10 @@ namespace Slic3r {
                     if (!line.has_e())
                         return;
 
-                    G1LineIdToBlockIdMap::const_iterator it = _g1_line_ids.find(g1_lines_count);
-                    if ((it != _g1_line_ids.end()) && (it->second < (unsigned int)_blocks.size()))
+                    if ((it_line_id != _g1_line_ids.end()) && (it_line_id->first == g1_lines_count) && (it_line_id->second < (unsigned int)_blocks.size()))
                     {
-                        const Block& block = _blocks[it->second];
+                        const Block& block = _blocks[it_line_id->second];
+                        ++ it_line_id;
                         if (block.elapsed_time != -1.0f)
                         {
                             float block_remaining_time = _time - block.elapsed_time;
@@ -665,6 +666,21 @@ namespace Slic3r {
     std::string GCodeTimeEstimator::get_time_minutes() const
     {
         return _get_time_minutes(get_time());
+    }
+
+    // Return an estimate of the memory consumed by the time estimator.
+	size_t GCodeTimeEstimator::memory_used() const
+    {
+        size_t out = sizeof(*this);
+#if WIN32
+	#define STDVEC_MEMSIZE(NAME, TYPE) NAME.capacity() * ((sizeof(TYPE) + __alignof(TYPE) - 1) / __alignof(TYPE)) * __alignof(TYPE)
+#else
+	#define STDVEC_MEMSIZE(NAME, TYPE) NAME.capacity() * ((sizeof(TYPE) + alignof(TYPE) - 1) / alignof(TYPE)) * alignof(TYPE)
+#endif
+		out += STDVEC_MEMSIZE(this->_blocks, Block);
+		out += STDVEC_MEMSIZE(this->_g1_line_ids, G1LineIdToBlockId);
+#undef STDVEC_MEMSIZE
+        return out;
     }
 
     void GCodeTimeEstimator::_reset()
@@ -1072,7 +1088,7 @@ namespace Slic3r {
 
         // adds block to blocks list
         _blocks.emplace_back(block);
-        _g1_line_ids.insert(G1LineIdToBlockIdMap::value_type(get_g1_line_id(), (unsigned int)_blocks.size() - 1));
+        _g1_line_ids.emplace_back(G1LineIdToBlockIdMap::value_type(get_g1_line_id(), (unsigned int)_blocks.size() - 1));
     }
 
     void GCodeTimeEstimator::_processG4(const GCodeReader::GCodeLine& line)

@@ -209,7 +209,8 @@ namespace Slic3r {
         typedef std::map<Block::EMoveType, MoveStats> MovesStatsMap;
 #endif // ENABLE_MOVE_STATS
 
-        typedef std::map<unsigned int, unsigned int> G1LineIdToBlockIdMap;
+        typedef std::pair<unsigned int, unsigned int> G1LineIdToBlockId;
+        typedef std::vector<G1LineIdToBlockId> G1LineIdToBlockIdMap;
 
     private:
         EMode _mode;
@@ -337,6 +338,9 @@ namespace Slic3r {
 
         // Returns the estimated time, in minutes (integer)
         std::string get_time_minutes() const;
+
+        // Return an estimate of the memory consumed by the time estimator.
+        size_t memory_used() const;
 
     private:
         void _reset();
