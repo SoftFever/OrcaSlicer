@@ -163,9 +163,31 @@ void Field::get_value_by_opt_type(wxString& str)
 		break; }
 	case coString:
 	case coStrings:
-	case coFloatOrPercent:
-		m_value = str.ToStdString();
-		break;
+    case coFloatOrPercent: {
+        if (m_opt.type == coFloatOrPercent && !str.IsEmpty() &&  str.Last() != '%')
+        {
+            double val;
+            if (!str.ToCDouble(&val))
+            {
+                show_error(m_parent, _(L("Input value contains incorrect symbol(s).\nUse, please, only digits")));
+                set_value(double_to_string(val), true);                
+            }
+            else if (val > 1)
+            {
+                const int nVal = int(val);
+                wxString msg_text = wxString::Format(_(L("Do you mean %d%% instead of %dmm?\n"
+                    "Select YES if you want to change this value to %d%%, \n"
+                    "or NO if you are sure that %dmm is a correct value.")), nVal, nVal, nVal, nVal);
+                auto dialog = new wxMessageDialog(m_parent, msg_text, _(L("Parameter validation")), wxICON_WARNING | wxYES | wxNO);
+                if (dialog->ShowModal() == wxID_YES) {
+                    set_value(wxString::Format("%s%%", str), true);
+                    str += "%%";
+                }
+            }
+        }
+    
+        m_value = str.ToStdString();
+		break; }
 	default:
 		break;
 	}
@@ -611,9 +633,7 @@ boost::any& Choice::get_value()
 		if (m_opt_id == rp_option)
 			return m_value = boost::any(ret_str);
 
-	if (m_opt.type != coEnum)
-		/*m_value = */get_value_by_opt_type(ret_str);
-	else
+	if (m_opt.type == coEnum)
 	{
 		int ret_enum = static_cast<wxComboBox*>(window)->GetSelection(); 
 		if (m_opt_id.compare("external_fill_pattern") == 0)
@@ -640,7 +660,16 @@ boost::any& Choice::get_value()
 			m_value = static_cast<PrintHostType>(ret_enum);
 		else if (m_opt_id.compare("display_orientation") == 0)
 			m_value = static_cast<SLADisplayOrientation>(ret_enum);
-	}	
+	}
+    else if (m_opt.gui_type == "f_enum_open") {
+        const int ret_enum = static_cast<wxComboBox*>(window)->GetSelection();
+        if (ret_enum < 0 || m_opt.enum_values.empty())
+            get_value_by_opt_type(ret_str);
+        else 
+            m_value = m_opt.enum_values[ret_enum];            
+    }
+	else	
+        get_value_by_opt_type(ret_str);
 
 	return m_value;
 }

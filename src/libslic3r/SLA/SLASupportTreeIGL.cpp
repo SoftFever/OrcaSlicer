@@ -1,3 +1,4 @@
+#include <cmath>
 #include "SLA/SLASupportTree.hpp"
 #include "SLA/SLABoilerPlate.hpp"
 #include "SLA/SLASpatIndex.hpp"
@@ -9,15 +10,8 @@
 #include "boost/geometry/index/rtree.hpp"
 
 #include <igl/ray_mesh_intersect.h>
-
-//#if !defined(_MSC_VER) || defined(_WIN64)
-#if 1
-#define IGL_COMPATIBLE
-#endif
-
-#ifdef IGL_COMPATIBLE
 #include <igl/point_mesh_squared_distance.h>
-#endif
+#include <igl/remove_duplicate_vertices.h>
 
 #include "SLASpatIndex.hpp"
 #include "ClipperUtils.hpp"
@@ -84,33 +78,124 @@ size_t SpatIndex::size() const
     return m_impl->m_store.size();
 }
 
-PointSet normals(const PointSet& points, const EigenMesh3D& mesh) {
-    if(points.rows() == 0 || mesh.V.rows() == 0 || mesh.F.rows() == 0) return {};
-#ifdef IGL_COMPATIBLE
+bool point_on_edge(const Vec3d& p, const Vec3d& e1, const Vec3d& e2,
+                   double eps = 0.05)
+{
+    using Line3D = Eigen::ParametrizedLine<double, 3>;
+
+    auto line = Line3D::Through(e1, e2);
+    double d = line.distance(p);
+    return std::abs(d) < eps;
+}
+
+template<class Vec> double distance(const Vec& pp1, const Vec& pp2) {
+    auto p = pp2 - pp1;
+    return std::sqrt(p.transpose() * p);
+}
+
+PointSet normals(const PointSet& points, const EigenMesh3D& emesh,
+                 double eps,
+                 std::function<void()> throw_on_cancel) {
+    if(points.rows() == 0 || emesh.V.rows() == 0 || emesh.F.rows() == 0)
+        return {};
+
     Eigen::VectorXd dists;
     Eigen::VectorXi I;
     PointSet C;
+
+    // We need to remove duplicate vertices and have a true index triangle
+    // structure
+    EigenMesh3D  mesh;
+    Eigen::VectorXi SVI, SVJ;
+    igl::remove_duplicate_vertices(emesh.V, emesh.F, 1e-6,
+                                   mesh.V, SVI, SVJ, mesh.F);
 
     igl::point_mesh_squared_distance( points, mesh.V, mesh.F, dists, I, C);
 
     PointSet ret(I.rows(), 3);
     for(int i = 0; i < I.rows(); i++) {
+        throw_on_cancel();
         auto idx = I(i);
         auto trindex = mesh.F.row(idx);
 
-        auto& p1 = mesh.V.row(trindex(0));
-        auto& p2 = mesh.V.row(trindex(1));
-        auto& p3 = mesh.V.row(trindex(2));
+        const Vec3d& p1 = mesh.V.row(trindex(0));
+        const Vec3d& p2 = mesh.V.row(trindex(1));
+        const Vec3d& p3 = mesh.V.row(trindex(2));
 
-        Eigen::Vector3d U = p2 - p1;
-        Eigen::Vector3d V = p3 - p1;
-        ret.row(i) = U.cross(V).normalized();
+        // We should check if the point lies on an edge of the hosting triangle.
+        // If it does than all the other triangles using the same two points
+        // have to be searched and the final normal should be some kind of
+        // aggregation of the participating triangle normals. We should also
+        // consider the cases where the support point lies right on a vertex
+        // of its triangle. The procedure is the same, get the neighbor
+        // triangles and calculate an average normal.
+
+        const Vec3d& p = C.row(i);
+
+        // mark the vertex indices of the edge. ia and ib marks and edge ic
+        // will mark a single vertex.
+        int ia = -1, ib = -1, ic = -1;
+
+        if(std::abs(distance(p, p1)) < eps) {
+            ic = trindex(0);
+        }
+        else if(std::abs(distance(p, p2)) < eps) {
+            ic = trindex(1);
+        }
+        else if(std::abs(distance(p, p3)) < eps) {
+            ic = trindex(2);
+        }
+        else if(point_on_edge(p, p1, p2, eps)) {
+            ia = trindex(0); ib = trindex(1);
+        }
+        else if(point_on_edge(p, p2, p3, eps)) {
+            ia = trindex(1); ib = trindex(2);
+        }
+        else if(point_on_edge(p, p1, p3, eps)) {
+            ia = trindex(0); ib = trindex(2);
+        }
+
+        std::vector<Vec3i> neigh;
+        if(ic >= 0) { // The point is right on a vertex of the triangle
+            for(int n = 0; n < mesh.F.rows(); ++n) {
+                throw_on_cancel();
+                Vec3i ni = mesh.F.row(n);
+                if((ni(X) == ic || ni(Y) == ic || ni(Z) == ic))
+                    neigh.emplace_back(ni);
+            }
+        }
+        else if(ia >= 0 && ib >= 0) { // the point is on and edge
+            // now get all the neigboring triangles
+            for(int n = 0; n < mesh.F.rows(); ++n) {
+                throw_on_cancel();
+                Vec3i ni = mesh.F.row(n);
+                if((ni(X) == ia || ni(Y) == ia || ni(Z) == ia) &&
+                   (ni(X) == ib || ni(Y) == ib || ni(Z) == ib))
+                    neigh.emplace_back(ni);
+            }
+        }
+
+        if(!neigh.empty()) { // there were neighbors to count with
+            Vec3d sumnorm(0, 0, 0);
+            for(const Vec3i& tri : neigh) {
+                const Vec3d& pt1 = mesh.V.row(tri(0));
+                const Vec3d& pt2 = mesh.V.row(tri(1));
+                const Vec3d& pt3 = mesh.V.row(tri(2));
+                Eigen::Vector3d U = pt2 - pt1;
+                Eigen::Vector3d V = pt3 - pt1;
+                sumnorm += U.cross(V).normalized();
+            }
+            sumnorm /= neigh.size();
+            ret.row(i) = sumnorm;
+        }
+        else { // point lies safely within its triangle
+            Eigen::Vector3d U = p2 - p1;
+            Eigen::Vector3d V = p3 - p1;
+            ret.row(i) = U.cross(V).normalized();
+        }
     }
 
     return ret;
-#else // TODO:  do something on 32 bit windows
-    return {};
-#endif
 }
 
 double ray_mesh_intersect(const Vec3d& s,
@@ -223,7 +308,7 @@ Segments model_boundary(const EigenMesh3D& emesh, double offs)
         pp.emplace_back(p);
     }
 
-    ExPolygons merged = union_ex(offset(pp, float(scale_(offs))), true);
+    ExPolygons merged = union_ex(Slic3r::offset(pp, float(scale_(offs))), true);
 
     for(auto& expoly : merged) {
         auto lines = expoly.lines();

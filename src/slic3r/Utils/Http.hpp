@@ -29,7 +29,7 @@ public:
 
 	typedef std::shared_ptr<Http> Ptr;
 	typedef std::function<void(std::string /* body */, unsigned /* http_status */)> CompleteFn;
-	
+
 	// A HTTP request may fail at various stages of completeness (URL parsing, DNS lookup, TCP connection, ...).
 	// If the HTTP request could not be made or failed before completion, the `error` arg contains a description
 	// of the error and `http_status` is zero.

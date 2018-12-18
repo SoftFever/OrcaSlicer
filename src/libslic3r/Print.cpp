@@ -1052,10 +1052,12 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
                             goto print_object_end;
                     } else {
                         this_region_config = region_config_from_model_volume(m_default_region_config, volume, num_extruders);
-                        for (size_t i = 0; i < region_id; ++ i)
-                            if (m_regions[i]->config().equals(this_region_config))
-                                // Regions were merged. Reset this print_object.
-                                goto print_object_end;
+						for (size_t i = 0; i < region_id; ++i) {
+							const PrintRegion &region_other = *m_regions[i];
+							if (region_other.m_refcnt != 0 && region_other.config().equals(this_region_config))
+								// Regions were merged. Reset this print_object.
+								goto print_object_end;
+						}
                         this_region_config_set = true;
                     }
                 }
@@ -1093,8 +1095,10 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
 			bool         fresh = print_object.region_volumes.empty();
             unsigned int volume_id = 0;
             for (const ModelVolume *volume : model_object.volumes) {
-                if (! volume->is_model_part() && ! volume->is_modifier())
-                    continue;
+                if (! volume->is_model_part() && ! volume->is_modifier()) {
+					++ volume_id;
+					continue;
+				}
                 int region_id = -1;
                 if (&print_object == &print_object0) {
                     // Get the config applied to this volume.
@@ -1102,9 +1106,10 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
                     // Find an existing print region with the same config.
 					int idx_empty_slot = -1;
 					for (int i = 0; i < (int)m_regions.size(); ++ i) {
-						if (m_regions[i]->m_refcnt == 0)
-							idx_empty_slot = i;
-                        else if (config.equals(m_regions[i]->config())) {
+						if (m_regions[i]->m_refcnt == 0) {
+                            if (idx_empty_slot == -1)
+                                idx_empty_slot = i;
+                        } else if (config.equals(m_regions[i]->config())) {
                             region_id = i;
                             break;
                         }

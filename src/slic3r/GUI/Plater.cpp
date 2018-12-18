@@ -1033,6 +1033,7 @@ private:
     bool can_decrease_instances() const;
     bool can_split_to_objects() const;
     bool can_split_to_volumes() const;
+    bool can_split() const;
     bool layers_height_allowed() const;
     bool can_delete_all() const;
     bool can_arrange() const;
@@ -1652,8 +1653,8 @@ void Plater::priv::selection_changed()
     view3D->enable_toolbar_item("delete", can_delete_object());
     view3D->enable_toolbar_item("more", can_increase_instances());
     view3D->enable_toolbar_item("fewer", can_decrease_instances());
-    view3D->enable_toolbar_item("splitobjects", can_split_to_objects());
-    view3D->enable_toolbar_item("splitvolumes", can_split_to_volumes());
+    view3D->enable_toolbar_item("splitobjects", can_split/*_to_objects*/());
+    view3D->enable_toolbar_item("splitvolumes", can_split/*_to_volumes*/());
     view3D->enable_toolbar_item("layersediting", layers_height_allowed());
     // forces a frame render to update the view (to avoid a missed update if, for example, the context menu appears)
     view3D->render();
@@ -1661,8 +1662,8 @@ void Plater::priv::selection_changed()
     this->canvas3D->enable_toolbar_item("delete", can_delete_object());
     this->canvas3D->enable_toolbar_item("more", can_increase_instances());
     this->canvas3D->enable_toolbar_item("fewer", can_decrease_instances());
-    this->canvas3D->enable_toolbar_item("splitobjects", can_split_to_objects());
-    this->canvas3D->enable_toolbar_item("splitvolumes", can_split_to_volumes());
+    this->canvas3D->enable_toolbar_item("splitobjects", can_split/*_to_objects*/());
+    this->canvas3D->enable_toolbar_item("splitvolumes", can_split/*_to_volumes*/());
     this->canvas3D->enable_toolbar_item("layersediting", layers_height_allowed());
     // forces a frame render to update the view (to avoid a missed update if, for example, the context menu appears)
     this->canvas3D->render();
@@ -2454,8 +2455,8 @@ void Plater::priv::on_action_layersediting(SimpleEvent&)
 
 void Plater::priv::on_object_select(SimpleEvent& evt)
 {
-    selection_changed();
     wxGetApp().obj_list()->update_selections();
+    selection_changed();
 }
 
 void Plater::priv::on_viewport_changed(SimpleEvent& evt)
@@ -2605,9 +2606,9 @@ bool Plater::priv::complit_init_object_menu()
     // ui updates needs to be binded to the parent panel
     if (q != nullptr)
     {
-        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split_to_objects() || can_split_to_volumes()); }, item_split->GetId());
-        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split_to_objects()); }, item_split_objects->GetId());
-        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split_to_volumes()); }, item_split_volumes->GetId());
+        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split/*_to_objects() || can_split_to_volumes*/()); }, item_split->GetId());
+        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split/*_to_objects*/()); }, item_split_objects->GetId());
+        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split/*_to_volumes*/()); }, item_split_volumes->GetId());
     }
     return true;
 }
@@ -2626,7 +2627,7 @@ bool Plater::priv::complit_init_sla_object_menu()
     // ui updates needs to be binded to the parent panel
     if (q != nullptr)
     {
-        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split_to_objects()); }, item_split->GetId());
+        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split/*_to_objects*/()); }, item_split->GetId());
     }
 
     return true;
@@ -2645,7 +2646,7 @@ bool Plater::priv::complit_init_part_menu()
     // ui updates needs to be binded to the parent panel
     if (q != nullptr)
     {
-        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split_to_volumes()); },  item_split->GetId());
+        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split/*_to_volumes*/()); },  item_split->GetId());
     }
 
     return true;
@@ -2760,6 +2761,13 @@ bool Plater::priv::can_split_to_volumes() const
         return false;
 //     int obj_idx = get_selected_object_idx();
 //     return (0 <= obj_idx) && (obj_idx < (int)model.objects.size()) && !model.objects[obj_idx]->is_multiparts();
+    return sidebar->obj_list()->is_splittable();
+}
+
+bool Plater::priv::can_split() const
+{
+    if (printer_technology == ptSLA)
+        return false;
     return sidebar->obj_list()->is_splittable();
 }
 
@@ -3144,7 +3152,7 @@ void Plater::send_gcode()
     }
     default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string()));
 
-    Slic3r::PrintHostSendDialog dlg(default_output_file);
+    PrintHostSendDialog dlg(default_output_file);
     if (dlg.ShowModal() == wxID_OK) {
         upload_job.upload_data.upload_path = dlg.filename();
         upload_job.upload_data.start_print = dlg.start_print();

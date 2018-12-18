@@ -612,7 +612,9 @@ double ray_mesh_intersect(const Vec3d& s,
                           const Vec3d& dir,
                           const EigenMesh3D& m);
 
-PointSet normals(const PointSet& points, const EigenMesh3D& mesh);
+PointSet normals(const PointSet& points, const EigenMesh3D& mesh,
+                 double eps = 0.05,  // min distance from edges
+                 std::function<void()> throw_on_cancel = [](){});
 
 inline Vec2d to_vec2(const Vec3d& v3) {
     return {v3(X), v3(Y)};
@@ -1049,7 +1051,7 @@ bool SLASupportTree::generate(const PointSet &points,
         tifcl();
 
         // calculate the normals to the triangles belonging to filtered points
-        auto nmls = sla::normals(filt_pts, mesh);
+        auto nmls = sla::normals(filt_pts, mesh, cfg.head_front_radius_mm, tifcl);
 
         head_norm.resize(count, 3);
         head_pos.resize(count, 3);
