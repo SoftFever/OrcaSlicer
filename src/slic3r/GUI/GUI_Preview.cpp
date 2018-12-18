@@ -385,17 +385,13 @@ void Preview::set_number_extruders(unsigned int number_extruders)
     if (m_number_extruders != number_extruders)
     {
         m_number_extruders = number_extruders;
-        int type = 0; // color by a feature type
-        if (number_extruders > 1)
-        {
-            int tool_idx = m_choice_view_type->FindString(_(L("Tool")));
-            int type = (number_extruders > 1) ? tool_idx /* color by a tool number */  : 0; // color by a feature type
-            m_choice_view_type->SetSelection(type);
-            if ((0 <= type) && (type < (int)GCodePreviewData::Extrusion::Num_View_Types))
-                m_gcode_preview_data->extrusion.view_type = (GCodePreviewData::Extrusion::EViewType)type;
+        int tool_idx = m_choice_view_type->FindString(_(L("Tool")));
+        int type = (number_extruders > 1) ? tool_idx /* color by a tool number */  : 0; // color by a feature type
+        m_choice_view_type->SetSelection(type);
+        if ((0 <= type) && (type < (int)GCodePreviewData::Extrusion::Num_View_Types))
+            m_gcode_preview_data->extrusion.view_type = (GCodePreviewData::Extrusion::EViewType)type;
 
-            m_preferred_color_mode = (type == tool_idx) ? "tool_or_feature" : "feature";
-        }
+        m_preferred_color_mode = (type == tool_idx) ? "tool_or_feature" : "feature";
     }
 }
 
