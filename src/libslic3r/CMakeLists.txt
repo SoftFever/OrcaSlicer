@@ -194,6 +194,10 @@ target_link_libraries(libslic3r
     tbb
     )
 
+if(WIN32)
+    target_link_libraries(libslic3r Psapi.lib)
+endif()
+
 if(SLIC3R_PROFILE)
     target_link_libraries(slic3r Shiny)
 endif()
