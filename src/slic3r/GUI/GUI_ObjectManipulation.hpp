@@ -37,17 +37,11 @@ public:
     void reset_rotation_value();
     void reset_scale_value();
 
-    void update_values();
     // update position values displacements or "gizmos"
-    void update_position_values();
     void update_position_value(const Vec3d& position);
     // update scale values after scale unit changing or "gizmos"
-    void update_scale_values();
     void update_scale_value(const Vec3d& scaling_factor);
-    // update rotation values object selection changing
-    void update_rotation_values();
     // update rotation value after "gizmos"
-    void update_rotation_value(double angle, Axis axis);
     void update_rotation_value(const Vec3d& rotation);
 
     void set_uniform_scaling(const bool uniform_scale) { m_is_uniform_scale = uniform_scale; }
