@@ -1549,9 +1549,14 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation, bool local)
         if (is_single_full_instance())
 #if ENABLE_WORLD_ROTATIONS
         {
-            Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), rotation);
-            Vec3d new_rotation = Geometry::extract_euler_angles(m * m_cache.volumes_data[i].get_instance_rotation_matrix());
-            (*m_volumes)[i]->set_instance_rotation(new_rotation);
+            if (local)
+                (*m_volumes)[i]->set_instance_rotation(rotation);
+            else
+            {
+                Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), rotation);
+                Vec3d new_rotation = Geometry::extract_euler_angles(m * m_cache.volumes_data[i].get_instance_rotation_matrix());
+                (*m_volumes)[i]->set_instance_rotation(new_rotation);
+            }
         }
 #else
 #if ENABLE_MODELVOLUME_TRANSFORM

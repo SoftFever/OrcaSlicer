@@ -20,6 +20,8 @@ class ObjectManipulation : public OG_Settings
     Vec3d       cache_size       { 0., 0., 0. };
 
     wxStaticText*   m_move_Label = nullptr;
+    wxStaticText*   m_scale_Label = nullptr;
+    wxStaticText*   m_rotate_Label = nullptr;
 
 public:
     ObjectManipulation(wxWindow* parent);
