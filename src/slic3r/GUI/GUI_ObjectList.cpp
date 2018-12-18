@@ -1399,6 +1399,20 @@ void ObjectList::update_selections()
     auto& selection = wxGetApp().plater()->canvas3D()->get_selection();
     wxDataViewItemArray sels;
 
+    // We doesn't update selection if SettingsItem for the current object/part is selected
+    if (GetSelectedItemsCount() == 1 && m_objects_model->GetItemType(GetSelection()) == itSettings )
+    {
+        const auto item = GetSelection();
+        if (selection.is_single_full_object() && 
+            m_objects_model->GetIdByItem(m_objects_model->GetParent(item)) == selection.get_object_idx())
+            return; 
+        if (selection.is_single_volume() || selection.is_modifier()) {
+            const auto gl_vol = selection.get_volume(*selection.get_volume_idxs().begin());
+            if (m_objects_model->GetVolumeIdByItem(m_objects_model->GetParent(item)) == gl_vol->volume_idx())
+                return;
+        }
+    }
+
     if (selection.is_single_full_object())
     {
         sels.Add(m_objects_model->GetItemById(selection.get_object_idx()));
