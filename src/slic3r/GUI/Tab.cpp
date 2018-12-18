@@ -270,7 +270,7 @@ Slic3r::GUI::PageShp Tab::add_options_page(const wxString& title, const std::str
 	auto panel = this;
 #endif
 	PageShp page(new Page(panel, title, icon_idx));
-	page->SetScrollbars(1, 1, 1, 2);
+	page->SetScrollbars(1, 20, 1, 2);
 	page->Hide();
 	m_hsizer->Add(page.get(), 1, wxEXPAND | wxLEFT, 5);
 
@@ -1538,6 +1538,108 @@ bool Tab::current_preset_is_dirty()
 	return m_presets->current_is_dirty();
 }
 
+void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
+{
+	const bool sla = m_presets->get_selected_preset().printer_technology() == ptSLA;
+
+	// Only offer the host type selection for FFF, for SLA it's always the SL1 printer (at the moment)
+	if (! sla) {
+		optgroup->append_single_option_line("host_type");
+	} else {
+		m_config->option<ConfigOptionEnum<PrintHostType>>("host_type", true)->value = htSL1;
+	}
+
+	auto printhost_browse = [this, optgroup] (wxWindow* parent) {
+
+		// TODO: SLA
+
+		auto btn = m_printhost_browse_btn = new wxButton(parent, wxID_ANY, _(L(" Browse "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+		btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("zoom.png")), wxBITMAP_TYPE_PNG));
+		auto sizer = new wxBoxSizer(wxHORIZONTAL);
+		sizer->Add(btn);
+
+		btn->Bind(wxEVT_BUTTON, [this, parent, optgroup](wxCommandEvent e) {
+			BonjourDialog dialog(parent);
+			if (dialog.show_and_lookup()) {
+				optgroup->set_value("print_host", std::move(dialog.get_selected()), true);
+			}
+		});
+
+		return sizer;
+	};
+
+	auto print_host_test = [this](wxWindow* parent) {
+		auto btn = m_print_host_test_btn = new wxButton(parent, wxID_ANY, _(L("Test")), 
+			wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
+		btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("wrench.png")), wxBITMAP_TYPE_PNG));
+		auto sizer = new wxBoxSizer(wxHORIZONTAL);
+		sizer->Add(btn);
+
+		btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent e) {
+			std::unique_ptr<PrintHost> host(PrintHost::get_print_host(m_config));
+			if (! host) {
+				const auto text = wxString::Format("%s",
+					_(L("Could not get a valid Printer Host reference")));
+				show_error(this, text);
+				return;
+			}
+			wxString msg;
+			if (host->test(msg)) {
+				show_info(this, host->get_test_ok_msg(), _(L("Success!")));
+			} else {
+				show_error(this, host->get_test_failed_msg(msg));
+			}
+		});
+
+		return sizer;
+	};
+
+	Line host_line = optgroup->create_single_option_line("print_host");
+	host_line.append_widget(printhost_browse);
+	host_line.append_widget(print_host_test);
+	optgroup->append_line(host_line);
+	optgroup->append_single_option_line("printhost_apikey");
+
+	if (Http::ca_file_supported()) {
+
+		Line cafile_line = optgroup->create_single_option_line("printhost_cafile");
+
+		auto printhost_cafile_browse = [this, optgroup] (wxWindow* parent) {
+			auto btn = new wxButton(parent, wxID_ANY, _(L(" Browse "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+			btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("zoom.png")), wxBITMAP_TYPE_PNG));
+			auto sizer = new wxBoxSizer(wxHORIZONTAL);
+			sizer->Add(btn);
+
+			btn->Bind(wxEVT_BUTTON, [this, optgroup] (wxCommandEvent e) {
+				static const auto filemasks = _(L("Certificate files (*.crt, *.pem)|*.crt;*.pem|All files|*.*"));
+				wxFileDialog openFileDialog(this, _(L("Open CA certificate file")), "", "", filemasks, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+				if (openFileDialog.ShowModal() != wxID_CANCEL) {
+					optgroup->set_value("printhost_cafile", std::move(openFileDialog.GetPath()), true);
+				}
+			});
+
+			return sizer;
+		};
+
+		cafile_line.append_widget(printhost_cafile_browse);
+		optgroup->append_line(cafile_line);
+
+		auto printhost_cafile_hint = [this, optgroup] (wxWindow* parent) {
+			auto txt = new wxStaticText(parent, wxID_ANY, 
+				_(L("HTTPS CA file is optional. It is only needed if you use HTTPS with a self-signed certificate.")));
+			auto sizer = new wxBoxSizer(wxHORIZONTAL);
+			sizer->Add(txt);
+			return sizer;
+		};
+
+		Line cafile_hint { "", "" };
+		cafile_hint.full_width = 1;
+		cafile_hint.widget = std::move(printhost_cafile_hint);
+		optgroup->append_line(cafile_hint);
+
+	}
+}
+
 void TabPrinter::build()
 {
 	m_presets = &m_preset_bundle->printers;
@@ -1665,96 +1767,8 @@ void TabPrinter::build_fff()
 		}
 #endif
 
-		optgroup = page->new_optgroup(_(L("Printer Host upload")));
-
-		optgroup->append_single_option_line("host_type");
-
-		auto printhost_browse = [this, optgroup] (wxWindow* parent) {
-			auto btn = m_printhost_browse_btn = new wxButton(parent, wxID_ANY, _(L(" Browse "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
-			btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("zoom.png")), wxBITMAP_TYPE_PNG));
-			auto sizer = new wxBoxSizer(wxHORIZONTAL);
-			sizer->Add(btn);
-
-			btn->Bind(wxEVT_BUTTON, [this, parent, optgroup](wxCommandEvent e) {
-				BonjourDialog dialog(parent);
-				if (dialog.show_and_lookup()) {
-					optgroup->set_value("print_host", std::move(dialog.get_selected()), true);
-				}
-			});
-
-			return sizer;
-		};
-
-		auto print_host_test = [this](wxWindow* parent) {
-			auto btn = m_print_host_test_btn = new wxButton(parent, wxID_ANY, _(L("Test")), 
-				wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
-			btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("wrench.png")), wxBITMAP_TYPE_PNG));
-			auto sizer = new wxBoxSizer(wxHORIZONTAL);
-			sizer->Add(btn);
-
-			btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent e) {
-				std::unique_ptr<PrintHost> host(PrintHost::get_print_host(m_config));
-				if (! host) {
-					const auto text = wxString::Format("%s",
-						_(L("Could not get a valid Printer Host reference")));
-					show_error(this, text);
-					return;
-				}
-				wxString msg;
-				if (host->test(msg)) {
-					show_info(this, host->get_test_ok_msg(), _(L("Success!")));
-				} else {
-					show_error(this, host->get_test_failed_msg(msg));
-				}
-			});
-
-			return sizer;
-		};
-
-		Line host_line = optgroup->create_single_option_line("print_host");
-		host_line.append_widget(printhost_browse);
-		host_line.append_widget(print_host_test);
-		optgroup->append_line(host_line);
-		optgroup->append_single_option_line("printhost_apikey");
-
-		if (Http::ca_file_supported()) {
-
-			Line cafile_line = optgroup->create_single_option_line("printhost_cafile");
-
-			auto printhost_cafile_browse = [this, optgroup] (wxWindow* parent) {
-				auto btn = new wxButton(parent, wxID_ANY, _(L(" Browse "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
-				btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("zoom.png")), wxBITMAP_TYPE_PNG));
-				auto sizer = new wxBoxSizer(wxHORIZONTAL);
-				sizer->Add(btn);
-
-				btn->Bind(wxEVT_BUTTON, [this, optgroup] (wxCommandEvent e) {
-					static const auto filemasks = _(L("Certificate files (*.crt, *.pem)|*.crt;*.pem|All files|*.*"));
-					wxFileDialog openFileDialog(this, _(L("Open CA certificate file")), "", "", filemasks, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
-					if (openFileDialog.ShowModal() != wxID_CANCEL) {
-						optgroup->set_value("printhost_cafile", std::move(openFileDialog.GetPath()), true);
-					}
-				});
-
-				return sizer;
-			};
-
-			cafile_line.append_widget(printhost_cafile_browse);
-			optgroup->append_line(cafile_line);
-
-			auto printhost_cafile_hint = [this, optgroup] (wxWindow* parent) {
-				auto txt = new wxStaticText(parent, wxID_ANY, 
-					_(L("HTTPS CA file is optional. It is only needed if you use HTTPS with a self-signed certificate.")));
-				auto sizer = new wxBoxSizer(wxHORIZONTAL);
-				sizer->Add(txt);
-				return sizer;
-			};
-
-			Line cafile_hint { "", "" };
-			cafile_hint.full_width = 1;
-			cafile_hint.widget = std::move(printhost_cafile_hint);
-			optgroup->append_line(cafile_hint);
-
-		}
+		optgroup = page->new_optgroup(_(L("Print Host upload")));
+		build_printhost(optgroup.get());
 
 		optgroup = page->new_optgroup(_(L("Firmware")));
 		optgroup->append_single_option_line("gcode_flavor");
@@ -1896,6 +1910,9 @@ void TabPrinter::build_sla()
         ++id;
     }
     optgroup->append_line(line);
+
+    optgroup = page->new_optgroup(_(L("Print Host upload")));
+    build_printhost(optgroup.get());
 
     page = add_options_page(_(L("Notes")), "note.png");
     optgroup = page->new_optgroup(_(L("Notes")), 0);

@@ -484,7 +484,7 @@ Sidebar::Sidebar(Plater *parent)
     : wxPanel(parent), p(new priv(parent))
 {
     p->scrolled = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxSize(400, -1));
-    p->scrolled->SetScrollbars(0, 1, 1, 1);
+    p->scrolled->SetScrollbars(0, 20, 1, 2);
 
     // Sizer in the scrolled area
     auto *scrolled_sizer = new wxBoxSizer(wxVERTICAL);
@@ -3244,6 +3244,8 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
 #endif // ENABLE_REMOVE_TABS_FROM_PLATER
             if (p->preview) p->preview->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values);
             update_scheduled = true;
+        } else if (opt_key == "host_type" && this->p->printer_technology == ptSLA) {
+            p->config->option<ConfigOptionEnum<PrintHostType>>(opt_key)->value = htSL1;
         }
     }
 

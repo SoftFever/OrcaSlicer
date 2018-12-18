@@ -266,7 +266,6 @@ public:
     }
 
 	boost::any&		get_value() override;
-    bool            is_defined_input_value() const ;
     
     virtual void	enable();
     virtual void	disable();
@@ -395,6 +394,7 @@ public:
 
 	void			BUILD()  override;
 
+    void            OnKillFocus(wxEvent& e, wxTextCtrl* win);
 	void			set_value(const Vec2d& value, bool change_event = false);
 	void			set_value(const boost::any& value, bool change_event = false);
 	boost::any&		get_value() override;
