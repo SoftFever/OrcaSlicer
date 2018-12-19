@@ -42,10 +42,7 @@ struct PresetTab {
 
 class MainFrame : public wxFrame
 {
-    bool        m_no_plater;
-    bool        m_loaded;
-    int         m_lang_ch_event;
-    int         m_preferences_event;
+    bool        m_loaded {false};
 
     wxString    m_qs_last_input_file = wxEmptyString;
     wxString    m_qs_last_output_file = wxEmptyString;
@@ -71,8 +68,7 @@ class MainFrame : public wxFrame
     bool can_delete_all() const;
 
 public:
-    MainFrame() {}
-    MainFrame(const bool no_plater, const bool loaded);
+    MainFrame();
     ~MainFrame() {}
 
     Plater*     plater() { return m_plater; }
