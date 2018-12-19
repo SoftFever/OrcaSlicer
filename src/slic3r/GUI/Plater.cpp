@@ -1496,7 +1496,7 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
 #if !ENABLE_MODELVOLUME_TRANSFORM
     const Vec3d bed_center = Slic3r::to_3d(bed_shape.center().cast<double>(), 0.0);
 #endif // !ENABLE_MODELVOLUME_TRANSFORM
-    const Vec3d bed_size = Slic3r::to_3d(bed_shape.size().cast<double>(), 1.0);
+    const Vec3d bed_size = Slic3r::to_3d(bed_shape.size().cast<double>(), 1.0) - 2.0 * Vec3d::Ones();
 
     bool need_arrange = false;
     bool scaled_down = false;
@@ -1529,7 +1529,9 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
             // the size of the object is too big -> this could lead to overflow when moving to clipper coordinates,
             // so scale down the mesh
 			double inv = 1. / max_ratio;
-			object->scale(Vec3d(inv, inv, inv));
+            object->scale_mesh(Vec3d(inv, inv, inv));
+            object->origin_translation = Vec3d::Zero();
+            object->center_around_origin();
             scaled_down = true;
         } else if (max_ratio > 5) {
             const Vec3d inverse = ratio.cwiseInverse();

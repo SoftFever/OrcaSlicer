@@ -5200,7 +5200,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         else if (evt.LeftUp() && !m_mouse.dragging && (m_hover_volume_id == -1) && !gizmos_overlay_contains_mouse && !m_gizmos.is_dragging() && !is_layers_editing_enabled())
         {
             // deselect and propagate event through callback
-            if (m_picking_enabled && !m_toolbar_action_running && !m_mouse.ignore_up_event)
+            if (!evt.ShiftDown() && m_picking_enabled && !m_toolbar_action_running && !m_mouse.ignore_up_event)
             {
                 m_selection.clear();
                 m_selection.set_mode(Selection::Instance);
