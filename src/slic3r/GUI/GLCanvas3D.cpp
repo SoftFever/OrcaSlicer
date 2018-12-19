@@ -1154,6 +1154,12 @@ GLCanvas3D::Selection::VolumeCache::VolumeCache(const Vec3d& position, const Vec
 }
 #endif // ENABLE_MODELVOLUME_TRANSFORM
 
+#if ENABLE_SIDEBAR_VISUAL_HINTS
+const float GLCanvas3D::Selection::RED[3] = { 1.0f, 0.0f, 0.0f };
+const float GLCanvas3D::Selection::GREEN[3] = { 0.0f, 1.0f, 0.0f };
+const float GLCanvas3D::Selection::BLUE[3] = { 0.0f, 0.0f, 1.0f };
+#endif // ENABLE_SIDEBAR_VISUAL_HINTS
+
 GLCanvas3D::Selection::Selection()
     : m_volumes(nullptr)
     , m_model(nullptr)
@@ -1182,6 +1188,19 @@ void GLCanvas3D::Selection::set_volumes(GLVolumePtrs* volumes)
     m_volumes = volumes;
     _update_valid();
 }
+
+#if ENABLE_SIDEBAR_VISUAL_HINTS
+bool GLCanvas3D::Selection::init(bool useVBOs)
+{
+    if (m_arrow.init(useVBOs))
+    {
+        m_arrow.set_scale(5.0 * Vec3d::Ones());
+        return true;
+    }
+
+    return false;
+}
+#endif // ENABLE_SIDEBAR_VISUAL_HINTS
 
 void GLCanvas3D::Selection::set_model(Model* model)
 {
@@ -1530,7 +1549,7 @@ void GLCanvas3D::Selection::start_dragging()
     _set_caches();
 }
 
-void GLCanvas3D::Selection::translate(const Vec3d& displacement)
+void GLCanvas3D::Selection::translate(const Vec3d& displacement, bool local)
 {
     if (!m_valid)
         return;
@@ -1540,7 +1559,7 @@ void GLCanvas3D::Selection::translate(const Vec3d& displacement)
 #if ENABLE_MODELVOLUME_TRANSFORM
     if ((m_mode == Volume) || (*m_volumes)[i]->is_wipe_tower)
     {
-        if (_requires_local_axes())
+        if (local)
             (*m_volumes)[i]->set_volume_offset(m_cache.volumes_data[i].get_volume_position() + displacement);
         else
         {
@@ -1595,7 +1614,7 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation, bool local)
         else if (is_single_volume() || is_single_modifier())
 #if ENABLE_WORLD_ROTATIONS
         {
-            if (_requires_local_axes())
+            if (requires_local_axes())
                 (*m_volumes)[i]->set_volume_rotation(rotation);
             else
             {
@@ -2055,6 +2074,55 @@ void GLCanvas3D::Selection::render_center() const
 }
 #endif // ENABLE_RENDER_SELECTION_CENTER
 
+#if ENABLE_SIDEBAR_VISUAL_HINTS
+void GLCanvas3D::Selection::render_sidebar_hints(const std::string& sidebar_field) const
+{
+    if (sidebar_field.empty())
+        return;
+
+    ::glClear(GL_DEPTH_BUFFER_BIT);
+    ::glEnable(GL_DEPTH_TEST);
+
+    ::glEnable(GL_LIGHTING);
+
+    ::glPushMatrix();
+
+    const Vec3d& center = get_bounding_box().center();
+
+    if (is_single_full_instance())
+        ::glTranslated(center(0), center(1), center(2));
+    else if (is_single_volume() || is_single_modifier())
+    {
+        const GLVolume* volume = (*m_volumes)[*m_list.begin()];
+        Transform3d orient_matrix = volume->get_instance_transformation().get_matrix(true, false, true, true) * volume->get_volume_transformation().get_matrix(true, false, true, true);
+        const Vec3d& offset = get_bounding_box().center();
+
+        ::glTranslated(offset(0), offset(1), offset(2));
+        ::glMultMatrixd(orient_matrix.data());
+    }
+    else
+        ::glTranslated(center(0), center(1), center(2));
+
+    if (boost::starts_with(sidebar_field, "position"))
+        _render_sidebar_position_hints(sidebar_field);
+    else if (boost::starts_with(sidebar_field, "rotation"))
+        _render_sidebar_rotation_hints(sidebar_field);
+    else if (boost::starts_with(sidebar_field, "scale"))
+        _render_sidebar_scale_hints(sidebar_field);
+    else if (boost::starts_with(sidebar_field, "size"))
+        _render_sidebar_size_hints(sidebar_field);
+
+    ::glPopMatrix();
+
+    ::glDisable(GL_LIGHTING);
+}
+#endif // ENABLE_SIDEBAR_VISUAL_HINTS
+
+bool GLCanvas3D::Selection::requires_local_axes() const
+{
+    return (m_mode == Volume) && is_from_single_instance();
+}
+
 void GLCanvas3D::Selection::_update_valid()
 {
     m_valid = (m_volumes != nullptr) && (m_model != nullptr);
@@ -2457,6 +2525,101 @@ void GLCanvas3D::Selection::_render_bounding_box(const BoundingBoxf3& box, float
     ::glEnd();
 }
 
+#if ENABLE_SIDEBAR_VISUAL_HINTS
+void GLCanvas3D::Selection::_render_sidebar_position_hints(const std::string& sidebar_field) const
+{
+    if (boost::ends_with(sidebar_field, "x"))
+    {
+        ::glRotated(-90.0, 0.0, 0.0, 1.0);
+        _render_sidebar_position_hint(X);
+    }
+    else if (boost::ends_with(sidebar_field, "y"))
+        _render_sidebar_position_hint(Y);
+    else if (boost::ends_with(sidebar_field, "z"))
+    {
+        ::glRotated(90.0, 1.0, 0.0, 0.0);
+        _render_sidebar_position_hint(Z);
+    }
+}
+
+void GLCanvas3D::Selection::_render_sidebar_rotation_hints(const std::string& sidebar_field) const
+{
+}
+
+void GLCanvas3D::Selection::_render_sidebar_scale_hints(const std::string& sidebar_field) const
+{
+    if (boost::ends_with(sidebar_field, "x") || requires_uniform_scale())
+    {
+        ::glPushMatrix();
+        ::glRotated(-90.0, 0.0, 0.0, 1.0);
+        _render_sidebar_scale_hint(X);
+        ::glPopMatrix();
+    }
+
+    if (boost::ends_with(sidebar_field, "y") || requires_uniform_scale())
+    {
+        ::glPushMatrix();
+        _render_sidebar_scale_hint(Y);
+        ::glPopMatrix();
+    }
+
+    if (boost::ends_with(sidebar_field, "z") || requires_uniform_scale())
+    {
+        ::glPushMatrix();
+        ::glRotated(90.0, 1.0, 0.0, 0.0);
+        _render_sidebar_scale_hint(Z);
+        ::glPopMatrix();
+    }
+}
+
+void GLCanvas3D::Selection::_render_sidebar_size_hints(const std::string& sidebar_field) const
+{
+    _render_sidebar_scale_hints(sidebar_field);
+}
+
+void GLCanvas3D::Selection::_render_sidebar_position_hint(Axis axis) const
+{
+    float color[3];
+    switch (axis)
+    {
+    case X: { ::memcpy((void*)color, (const void*)RED, 3 * sizeof(float)); break; }
+    case Y: { ::memcpy((void*)color, (const void*)GREEN, 3 * sizeof(float)); break; }
+    case Z: { ::memcpy((void*)color, (const void*)BLUE, 3 * sizeof(float)); break; }
+    }
+
+    m_arrow.set_color(color, 3);
+    m_arrow.render();
+}
+
+void GLCanvas3D::Selection::_render_sidebar_rotation_hint(Axis axis, double length) const
+{
+}
+
+void GLCanvas3D::Selection::_render_sidebar_scale_hint(Axis axis) const
+{
+    float color[3];
+    switch (axis)
+    {
+    case X: { ::memcpy((void*)color, (const void*)RED, 3 * sizeof(float)); break; }
+    case Y: { ::memcpy((void*)color, (const void*)GREEN, 3 * sizeof(float)); break; }
+    case Z: { ::memcpy((void*)color, (const void*)BLUE, 3 * sizeof(float)); break; }
+    }
+
+    m_arrow.set_color(color, 3);
+
+    ::glTranslated(0.0, 5.0, 0.0);
+    m_arrow.render();
+
+    ::glTranslated(0.0, -10.0, 0.0);
+    ::glRotated(180.0, 0.0, 0.0, 1.0);
+    m_arrow.render();
+}
+
+void GLCanvas3D::Selection::_render_sidebar_size_hint(Axis axis, double length) const
+{
+}
+#endif // ENABLE_SIDEBAR_VISUAL_HINTS
+
 void GLCanvas3D::Selection::_synchronize_unselected_instances()
 {
     std::set<unsigned int> done;  // prevent processing volumes twice
@@ -2587,11 +2750,6 @@ void GLCanvas3D::Selection::_ensure_on_bed()
     }
 }
 #endif // ENABLE_ENSURE_ON_BED_WHILE_SCALING
-
-bool GLCanvas3D::Selection::_requires_local_axes() const
-{
-    return (m_mode == Volume) && is_from_single_instance();
-}
 
 const float GLCanvas3D::Gizmos::OverlayIconsScale = 1.0f;
 const float GLCanvas3D::Gizmos::OverlayBorder = 5.0f;
@@ -3624,6 +3782,7 @@ wxDEFINE_EVENT(EVT_GLCANVAS_RIGHT_CLICK, Vec2dEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_MODEL_UPDATE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_REMOVE_OBJECT, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ARRANGE, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_QUESTION_MARK, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_INCREASE_INSTANCES, Event<int>);
 wxDEFINE_EVENT(EVT_GLCANVAS_INSTANCE_MOVED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_WIPETOWER_MOVED, Vec3dEvent);
@@ -3786,6 +3945,11 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
 
     if (!_init_toolbar())
         return false;
+
+#if ENABLE_SIDEBAR_VISUAL_HINTS
+    if (!m_selection.init(m_use_VBOs))
+        return false;
+#endif // ENABLE_SIDEBAR_VISUAL_HINTS
 
 #if ENABLE_REMOVE_TABS_FROM_PLATER
     post_event(SimpleEvent(EVT_GLCANVAS_INIT));
@@ -4163,6 +4327,10 @@ void GLCanvas3D::render()
     // could be invalidated by the following gizmo render methods
     // this position is used later into on_mouse() to drag the objects
     m_mouse.scene_position = _mouse_to_3d(m_mouse.position.cast<int>());
+
+#if ENABLE_SIDEBAR_VISUAL_HINTS
+    _render_selection_sidebar_hints();
+#endif // ENABLE_SIDEBAR_VISUAL_HINTS
 
     _render_current_gizmo();
 #if ENABLE_SHOW_CAMERA_TARGET
@@ -4777,6 +4945,8 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
                 case 43: { post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, +1)); break; }
                 // key -
                 case 45: { post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, -1)); break; }
+                // key ?
+                case 63: { post_event(SimpleEvent(EVT_GLCANVAS_QUESTION_MARK)); break; }
                 // key A/a
                 case 65:
                 case 97: { post_event(SimpleEvent(EVT_GLCANVAS_ARRANGE)); break; }
@@ -5667,6 +5837,11 @@ bool GLCanvas3D::_init_toolbar()
     icons_data.icon_size = 36;
     icons_data.icon_border_size = 1;
     icons_data.icon_gap_size = 1;
+
+//    icons_data.filename = "toolbar141.png";
+//    icons_data.icon_size = 52;
+//    icons_data.icon_border_size = 0;
+//    icons_data.icon_gap_size = 0;
 
     BackgroundTexture::Metadata background_data;
     background_data.filename = "toolbar_background.png";
@@ -6573,6 +6748,19 @@ void GLCanvas3D::_render_sla_slices() const
         }
     }
 }
+
+#if ENABLE_SIDEBAR_VISUAL_HINTS
+void GLCanvas3D::_render_selection_sidebar_hints() const
+{
+    if (m_use_VBOs)
+        m_shader.start_using();
+
+    m_selection.render_sidebar_hints(m_sidebar_field);
+
+    if (m_use_VBOs)
+        m_shader.stop_using();
+}
+#endif // ENABLE_SIDEBAR_VISUAL_HINTS
 
 void GLCanvas3D::_update_volumes_hover_state() const
 {

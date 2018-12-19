@@ -16,7 +16,6 @@ namespace Slic3r {
 class AppConfig;
 class DynamicPrintConfig;
 class Print;
-class GCodePreviewData;
 
 namespace GUI {
 

@@ -115,6 +115,7 @@ public:
 
     void            recreate_GUI();
     void            system_info();
+    void            keyboard_shortcuts();
     void            load_project(wxWindow *parent, wxString& input_file);
     void            import_model(wxWindow *parent, wxArrayString& input_files);
     static bool     catch_error(std::function<void()> cb,

@@ -432,6 +432,9 @@ void MainFrame::init_menubar()
             [this](wxCommandEvent&) { wxLaunchDefaultBrowser("http://github.com/prusa3d/slic3r/issues/new"); });
         append_menu_item(helpMenu, wxID_ANY, _(L("About Slic3r")), _(L("Show about dialog")),
             [this](wxCommandEvent&) { Slic3r::GUI::about(); });
+        helpMenu->AppendSeparator();
+        append_menu_item(helpMenu, wxID_ANY, _(L("Keyboard Shortcuts")) + "\t?", _(L("Show the list of the keyboard shortcuts")),
+            [this](wxCommandEvent&) { wxGetApp().keyboard_shortcuts(); });
     }
 
     // menubar

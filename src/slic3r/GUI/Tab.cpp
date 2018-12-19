@@ -1551,7 +1551,7 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 
 	auto printhost_browse = [this, optgroup] (wxWindow* parent) {
 
-		// TODO: SLA
+		// TODO: SLA Bonjour
 
 		auto btn = m_printhost_browse_btn = new wxButton(parent, wxID_ANY, _(L(" Browse "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
 		btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("zoom.png")), wxBITMAP_TYPE_PNG));
@@ -1562,6 +1562,7 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 			BonjourDialog dialog(parent);
 			if (dialog.show_and_lookup()) {
 				optgroup->set_value("print_host", std::move(dialog.get_selected()), true);
+				// FIXME: emit killfocus on the edit widget
 			}
 		});
 

@@ -35,6 +35,7 @@
 #include "Preferences.hpp"
 #include "Tab.hpp"
 #include "SysInfoDialog.hpp"
+#include "KBShortcutsDialog.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -301,6 +302,13 @@ void GUI_App::system_info()
     dlg.Destroy();
 }
 
+void GUI_App::keyboard_shortcuts()
+{
+    KBShortcutsDialog dlg;
+    dlg.ShowModal();
+    dlg.Destroy();
+}
+
 // static method accepting a wxWindow object as first parameter
 bool GUI_App::catch_error(std::function<void()> cb,
     //                       wxMessageDialog* message_dialog,
@@ -426,7 +434,7 @@ bool GUI_App::select_language(  wxArrayString & names,
         m_wxLocale = new wxLocale;
         m_wxLocale->Init(identifiers[index]);
         m_wxLocale->AddCatalogLookupPathPrefix(localization_dir());
-        m_wxLocale->AddCatalog(GetAppName());
+        m_wxLocale->AddCatalog(/*GetAppName()*/"Slic3rPE");
         wxSetlocale(LC_NUMERIC, "C");
         Preset::update_suffix_modified();
         return true;
@@ -453,7 +461,7 @@ bool GUI_App::load_language()
             m_wxLocale = new wxLocale;
             m_wxLocale->Init(identifiers[i]);
             m_wxLocale->AddCatalogLookupPathPrefix(localization_dir());
-            m_wxLocale->AddCatalog(GetAppName());
+            m_wxLocale->AddCatalog(/*GetAppName()*/"Slic3rPE");
             wxSetlocale(LC_NUMERIC, "C");
             Preset::update_suffix_modified();
             return true;
@@ -496,7 +504,8 @@ void GUI_App::get_installed_languages(wxArrayString & names, wxArrayLong & ident
         {
             auto full_file_name = dir.GetName() + wxFileName::GetPathSeparator() +
                 filename + wxFileName::GetPathSeparator() +
-                GetAppName() + wxT(".mo");
+                /*GetAppName()*/"Slic3rPE" + 
+                wxT(".mo");
             if (wxFileExists(full_file_name))
             {
                 names.Add(langinfo->Description);

@@ -1186,6 +1186,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     view3D_canvas->Bind(EVT_GLCANVAS_MODEL_UPDATE, [this](SimpleEvent&) { this->schedule_background_process(); });
     view3D_canvas->Bind(EVT_GLCANVAS_REMOVE_OBJECT, [q](SimpleEvent&) { q->remove_selected(); });
     view3D_canvas->Bind(EVT_GLCANVAS_ARRANGE, [this](SimpleEvent&) { arrange(); });
+    view3D_canvas->Bind(EVT_GLCANVAS_QUESTION_MARK, [this](SimpleEvent&) { wxGetApp().keyboard_shortcuts(); });
     view3D_canvas->Bind(EVT_GLCANVAS_INCREASE_INSTANCES, [this](Event<int> &evt) 
         { if (evt.data == 1) this->q->increase_instances(); else if (this->can_decrease_instances()) this->q->decrease_instances(); });
     view3D_canvas->Bind(EVT_GLCANVAS_INSTANCE_MOVED, [this](SimpleEvent&) { update(); });
@@ -1273,7 +1274,6 @@ void Plater::priv::update(bool force_full_scene_refresh)
 #else
     this->canvas3D->reload_scene(false, force_full_scene_refresh);
 #endif // ENABLE_REMOVE_TABS_FROM_PLATER
-    preview->reset_gcode_preview_data();
     preview->reload_print();
 
     this->schedule_background_process();
@@ -2010,7 +2010,6 @@ unsigned int Plater::priv::update_background_process()
         this->sidebar->show_sliced_info_sizer(false);
         // Reset preview canvases. If the print has been invalidated, the preview canvases will be cleared.
         // Otherwise they will be just refreshed.
-        this->gcode_preview_data.reset();
         switch (this->printer_technology) {
         case ptFFF:
             if (this->preview != nullptr)

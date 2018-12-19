@@ -18,7 +18,6 @@ class SLAPrintObject;
 enum  SLAPrintObjectStep : unsigned int;
 class Model;
 class ModelObject;
-class GCodePreviewData;
 class DynamicPrintConfig;
 class ExtrusionPath;
 class ExtrusionMultiPath;
@@ -582,6 +581,41 @@ private:
     GLVolumeCollection(const GLVolumeCollection &other);
     GLVolumeCollection& operator=(const GLVolumeCollection &);
 };
+
+#if ENABLE_SIDEBAR_VISUAL_HINTS
+class GLModel
+{
+protected:
+    GLVolume m_volume;
+    bool m_useVBOs;
+
+public:
+    GLModel();
+    virtual ~GLModel();
+
+    bool init(bool useVBOs) { return on_init(useVBOs); }
+
+    void set_color(float* color, unsigned int size);
+    void set_scale(const Vec3d& scale);
+
+    void render() const; 
+
+protected:
+    virtual bool on_init(bool useVBOs) = 0;
+
+private:
+    void render_VBOs() const;
+};
+
+class GLArrow : public GLModel
+{
+public:
+    GLArrow();
+
+protected:
+    virtual bool on_init(bool useVBOs);
+};
+#endif // ENABLE_SIDEBAR_VISUAL_HINTS
 
 class _3DScene
 {

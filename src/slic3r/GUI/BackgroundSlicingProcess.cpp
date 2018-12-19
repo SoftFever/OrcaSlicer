@@ -15,8 +15,8 @@
 #include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/GCode/PostProcessor.hpp"
+#include "libslic3r/GCode/PreviewData.hpp"
 
-//#undef NDEBUG
 #include <cassert>
 #include <stdexcept>
 #include <cctype>
@@ -367,6 +367,13 @@ Print::ApplyStatus BackgroundSlicingProcess::apply(const Model &model, const Dyn
 	assert(m_print != nullptr);
 	assert(config.opt_enum<PrinterTechnology>("printer_technology") == m_print->technology());
 	Print::ApplyStatus invalidated = m_print->apply(model, config);
+	if ((invalidated & PrintBase::APPLY_STATUS_INVALIDATED) != 0 && m_print->technology() == ptFFF &&
+		m_gcode_preview_data != nullptr && ! this->m_fff_print->is_step_done(psGCodeExport)) {
+		// Some FFF status was invalidated, and the G-code was not exported yet.
+		// Let the G-code preview UI know that the final G-code preview is not valid.
+		// In addition, this early memory deallocation reduces memory footprint.
+		m_gcode_preview_data->reset();
+	}
 	return invalidated;
 }
 
@@ -392,7 +399,7 @@ void BackgroundSlicingProcess::schedule_upload(Slic3r::PrintHostJob upload_job)
 	// Guard against entering the export step before changing the export path.
 	tbb::mutex::scoped_lock lock(m_print->state_mutex());
 	this->invalidate_step(bspsGCodeFinalize);
-	m_export_path = std::string();
+	m_export_path.clear();
 	m_upload_job = std::move(upload_job);
 }
 

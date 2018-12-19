@@ -22,6 +22,7 @@ public:
         static const Color Dummy;
     };
 
+    // Color mapping from a <min, max> range into a smooth rainbow of 10 colors.
     struct Range
     {
         static const unsigned int Colors_Count = 10;
@@ -45,9 +46,13 @@ public:
 
     struct Ranges
     {
+        // Color mapping by layer height.
         Range height;
+        // Color mapping by extrusion width.
         Range width;
+        // Color mapping by feedrate.
         Range feedrate;
+        // Color mapping by volumetric extrusion rate.
         Range volumetric_rate;
     };
 

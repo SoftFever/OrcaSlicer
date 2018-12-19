@@ -140,7 +140,6 @@ public:
 #endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
     void set_number_extruders(unsigned int number_extruders);
-    void reset_gcode_preview_data();
     void set_canvas_as_dirty();
     void set_enabled(bool enabled);
     void set_bed_shape(const Pointfs& shape);

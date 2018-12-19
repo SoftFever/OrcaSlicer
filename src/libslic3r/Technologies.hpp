@@ -42,6 +42,8 @@
 #define ENABLE_TOOLBAR_BACKGROUND_TEXTURE (1 && ENABLE_1_42_0)
 // Renders a small sphere in the center of the bounding box of the current selection when no gizmo is active
 #define ENABLE_RENDER_SELECTION_CENTER (0 && ENABLE_1_42_0)
+// Show visual hints in the 3D scene when sidebar matrix fields have focus
+#define ENABLE_SIDEBAR_VISUAL_HINTS (0 && ENABLE_1_42_0)
 
 #endif // _technologies_h_
 

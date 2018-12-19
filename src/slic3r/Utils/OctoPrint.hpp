@@ -3,6 +3,7 @@
 
 #include <string>
 #include <wx/string.h>
+#include <boost/optional.hpp>
 
 #include "PrintHost.hpp"
 
@@ -19,16 +20,16 @@ public:
     OctoPrint(DynamicPrintConfig *config);
     virtual ~OctoPrint();
 
-    bool test(wxString &curl_msg) const;
-    wxString get_test_ok_msg () const;
-    wxString get_test_failed_msg (wxString &msg) const;
-    bool upload(PrintHostUpload upload_data, Http::ProgressFn prorgess_fn, Http::ErrorFn error_fn) const;
-    bool has_auto_discovery() const;
-    bool can_test() const;
+    virtual bool test(wxString &curl_msg) const;
+    virtual wxString get_test_ok_msg () const;
+    virtual wxString get_test_failed_msg (wxString &msg) const;
+    virtual bool upload(PrintHostUpload upload_data, Http::ProgressFn prorgess_fn, Http::ErrorFn error_fn) const;
+    virtual bool has_auto_discovery() const;
+    virtual bool can_test() const;
     virtual std::string get_host() const { return host; }
 
 protected:
-    virtual bool validate_version_text(const std::string &version_text);
+    virtual bool validate_version_text(const boost::optional<std::string> &version_text) const;
 
 private:
     std::string host;
@@ -41,14 +42,16 @@ private:
 };
 
 
-class SL1Host: public OctoPrint
+class SLAHost: public OctoPrint
 {
 public:
-    SL1Host(DynamicPrintConfig *config) : OctoPrint(config) {}
-    virtual ~SL1Host();
+    SLAHost(DynamicPrintConfig *config) : OctoPrint(config) {}
+    virtual ~SLAHost();
 
+    virtual wxString get_test_ok_msg () const;
+    virtual wxString get_test_failed_msg (wxString &msg) const;
 protected:
-    virtual bool validate_version_text(const std::string &version_text);
+    virtual bool validate_version_text(const boost::optional<std::string> &version_text) const;
 };
 
 

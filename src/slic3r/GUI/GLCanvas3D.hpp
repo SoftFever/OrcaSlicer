@@ -28,6 +28,7 @@ namespace Slic3r {
 class GLShader;
 class ExPolygon;
 class BackgroundSlicingProcess;
+class GCodePreviewData;
 
 namespace GUI {
 
@@ -105,6 +106,7 @@ wxDECLARE_EVENT(EVT_GLCANVAS_RIGHT_CLICK, Vec2dEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_MODEL_UPDATE, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_REMOVE_OBJECT, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_ARRANGE, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLCANVAS_QUESTION_MARK, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_INCREASE_INSTANCES, Event<int>); // data: +1 => increase, -1 => decrease
 wxDECLARE_EVENT(EVT_GLCANVAS_INSTANCE_MOVED, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_WIPETOWER_MOVED, Vec3dEvent);
@@ -367,6 +369,12 @@ class GLCanvas3D
 public:
     class Selection
     {
+#if ENABLE_SIDEBAR_VISUAL_HINTS
+        static const float RED[3];
+        static const float GREEN[3];
+        static const float BLUE[3];
+#endif // ENABLE_SIDEBAR_VISUAL_HINTS
+
     public:
         typedef std::set<unsigned int> IndicesList;
 
@@ -494,6 +502,9 @@ public:
 #if ENABLE_RENDER_SELECTION_CENTER
         GLUquadricObj* m_quadric;
 #endif // ENABLE_RENDER_SELECTION_CENTER
+#if ENABLE_SIDEBAR_VISUAL_HINTS
+        mutable GLArrow m_arrow;
+#endif // ENABLE_SIDEBAR_VISUAL_HINTS
 
     public:
         Selection();
@@ -502,6 +513,9 @@ public:
 #endif // ENABLE_RENDER_SELECTION_CENTER
 
         void set_volumes(GLVolumePtrs* volumes);
+#if ENABLE_SIDEBAR_VISUAL_HINTS
+        bool init(bool useVBOs);
+#endif // ENABLE_SIDEBAR_VISUAL_HINTS
 
         Model* get_model() const { return m_model; }
         void set_model(Model* model);
@@ -564,7 +578,7 @@ public:
 
         void start_dragging();
 
-        void translate(const Vec3d& displacement);
+        void translate(const Vec3d& displacement, bool local = false);
         void rotate(const Vec3d& rotation, bool local);
         void flattening_rotate(const Vec3d& normal);
         void scale(const Vec3d& scale, bool local);
@@ -579,6 +593,11 @@ public:
 #if ENABLE_RENDER_SELECTION_CENTER
         void render_center() const;
 #endif // ENABLE_RENDER_SELECTION_CENTER
+#if ENABLE_SIDEBAR_VISUAL_HINTS
+        void render_sidebar_hints(const std::string& sidebar_field) const;
+#endif // ENABLE_SIDEBAR_VISUAL_HINTS
+
+        bool requires_local_axes() const;
 
     private:
         void _update_valid();
@@ -594,12 +613,21 @@ public:
         void _render_selected_volumes() const;
         void _render_synchronized_volumes() const;
         void _render_bounding_box(const BoundingBoxf3& box, float* color) const;
+#if ENABLE_SIDEBAR_VISUAL_HINTS
+        void _render_sidebar_position_hints(const std::string& sidebar_field) const;
+        void _render_sidebar_rotation_hints(const std::string& sidebar_field) const;
+        void _render_sidebar_scale_hints(const std::string& sidebar_field) const;
+        void _render_sidebar_size_hints(const std::string& sidebar_field) const;
+        void _render_sidebar_position_hint(Axis axis) const;
+        void _render_sidebar_rotation_hint(Axis axis, double length) const;
+        void _render_sidebar_scale_hint(Axis axis) const;
+        void _render_sidebar_size_hint(Axis axis, double length) const;
+#endif // ENABLE_SIDEBAR_VISUAL_HINTS
         void _synchronize_unselected_instances();
         void _synchronize_unselected_volumes();
 #if ENABLE_ENSURE_ON_BED_WHILE_SCALING
         void _ensure_on_bed();
 #endif // ENABLE_ENSURE_ON_BED_WHILE_SCALING
-        bool _requires_local_axes() const;
     };
 
     class ClippingPlane
@@ -1054,6 +1082,9 @@ private:
     void _render_camera_target() const;
 #endif // ENABLE_SHOW_CAMERA_TARGET
     void _render_sla_slices() const;
+#if ENABLE_SIDEBAR_VISUAL_HINTS
+    void _render_selection_sidebar_hints() const;
+#endif // ENABLE_SIDEBAR_VISUAL_HINTS
 
     void _update_volumes_hover_state() const;
     void _update_gizmos_data();

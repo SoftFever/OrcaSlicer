@@ -395,12 +395,6 @@ void Preview::set_number_extruders(unsigned int number_extruders)
     }
 }
 
-void Preview::reset_gcode_preview_data()
-{
-    m_gcode_preview_data->reset();
-    m_canvas->reset_legend_texture();
-}
-
 void Preview::set_canvas_as_dirty()
 {
     m_canvas->set_as_dirty();
@@ -451,6 +445,7 @@ void Preview::load_print()
 void Preview::reload_print(bool force)
 {
     m_canvas->reset_volumes();
+    m_canvas->reset_legend_texture();
     m_loaded = false;
 
     if (!IsShown() && !force)
@@ -759,7 +754,8 @@ void Preview::load_print_as_fff()
 
     // Collect colors per extruder.
     std::vector<std::string> colors;
-    if (!m_gcode_preview_data->empty() || (m_gcode_preview_data->extrusion.view_type == GCodePreviewData::Extrusion::Tool))
+    bool gcode_preview_data_valid = print->is_step_done(psGCodeExport) && ! m_gcode_preview_data->empty();
+    if (gcode_preview_data_valid || (m_gcode_preview_data->extrusion.view_type == GCodePreviewData::Extrusion::Tool))
     {
         const ConfigOptionStrings* extruders_opt = dynamic_cast<const ConfigOptionStrings*>(m_config->option("extruder_colour"));
         const ConfigOptionStrings* filamemts_opt = dynamic_cast<const ConfigOptionStrings*>(m_config->option("filament_colour"));
@@ -785,13 +781,7 @@ void Preview::load_print_as_fff()
         // used to set the sliders to the extremes of the current zs range
         m_force_sliders_full_range = false;
 
-        if (m_gcode_preview_data->empty())
-        {
-            // load skirt and brim
-            m_canvas->load_preview(colors);
-            show_hide_ui_elements("simple");
-        }
-        else
+        if (gcode_preview_data_valid)
         {
             m_force_sliders_full_range = (m_canvas->get_volumes_count() == 0);
             m_canvas->load_gcode_preview(*m_gcode_preview_data, colors);
@@ -805,7 +795,14 @@ void Preview::load_print_as_fff()
                 reset_sliders();
                 m_canvas_widget->Refresh();
             }
+        } 
+        else
+        {
+            // load skirt and brim
+            m_canvas->load_preview(colors);
+            show_hide_ui_elements("simple");
         }
+
 
         if (n_layers > 0)
             update_sliders(m_canvas->get_current_print_zs(true));
