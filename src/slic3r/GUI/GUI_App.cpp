@@ -35,6 +35,7 @@
 #include "Preferences.hpp"
 #include "Tab.hpp"
 #include "SysInfoDialog.hpp"
+#include "KBShortcutsDialog.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -297,6 +298,13 @@ void GUI_App::recreate_GUI()
 void GUI_App::system_info()
 {
     SysInfoDialog dlg;
+    dlg.ShowModal();
+    dlg.Destroy();
+}
+
+void GUI_App::keyboard_shortcuts()
+{
+    KBShortcutsDialog dlg;
     dlg.ShowModal();
     dlg.Destroy();
 }

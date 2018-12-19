@@ -1868,6 +1868,130 @@ void _3DScene::point3_to_verts(const Vec3crd& point, double width, double height
 
 GUI::GLCanvas3DManager _3DScene::s_canvas_mgr;
 
+#if ENABLE_SIDEBAR_VISUAL_HINTS
+GLModel::GLModel()
+    : m_useVBOs(false)
+{
+}
+
+GLModel::~GLModel()
+{
+    m_volume.release_geometry();
+}
+
+void GLModel::set_color(float* color, unsigned int size)
+{
+    m_volume.set_render_color(color, size);
+}
+
+void GLModel::set_scale(const Vec3d& scale)
+{
+    m_volume.set_volume_scaling_factor(scale);
+}
+
+void GLModel::render() const
+{
+    if (m_useVBOs)
+        render_VBOs();
+    else
+    {
+    }
+}
+
+void GLModel::render_VBOs() const
+{
+    ::glEnable(GL_BLEND);
+    ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    ::glCullFace(GL_BACK);
+    ::glEnableClientState(GL_VERTEX_ARRAY);
+    ::glEnableClientState(GL_NORMAL_ARRAY);
+
+    GLint current_program_id;
+    ::glGetIntegerv(GL_CURRENT_PROGRAM, &current_program_id);
+    GLint color_id = (current_program_id > 0) ? glGetUniformLocation(current_program_id, "uniform_color") : -1;
+
+    m_volume.render_VBOs(color_id, -1, -1);
+
+    ::glBindBuffer(GL_ARRAY_BUFFER, 0);
+    ::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+    ::glDisableClientState(GL_VERTEX_ARRAY);
+    ::glDisableClientState(GL_NORMAL_ARRAY);
+
+    ::glDisable(GL_BLEND);
+}
+
+GLArrow::GLArrow()
+    : GLModel()
+{
+}
+
+bool GLArrow::on_init(bool useVBOs)
+{
+    Pointf3s vertices;
+    std::vector<Vec3crd> triangles;
+
+    // top face
+    vertices.emplace_back(0.5, 0.0, -0.1);
+    vertices.emplace_back(0.5, 2.0, -0.1);
+    vertices.emplace_back(1.0, 2.0, -0.1);
+    vertices.emplace_back(0.0, 3.0, -0.1);
+    vertices.emplace_back(-1.0, 2.0, -0.1);
+    vertices.emplace_back(-0.5, 2.0, -0.1);
+    vertices.emplace_back(-0.5, 0.0, -0.1);
+
+    // bottom face
+    vertices.emplace_back(0.5, 0.0, 0.1);
+    vertices.emplace_back(0.5, 2.0, 0.1);
+    vertices.emplace_back(1.0, 2.0, 0.1);
+    vertices.emplace_back(0.0, 3.0, 0.1);
+    vertices.emplace_back(-1.0, 2.0, 0.1);
+    vertices.emplace_back(-0.5, 2.0, 0.1);
+    vertices.emplace_back(-0.5, 0.0, 0.1);
+
+    // bottom face
+    triangles.emplace_back(0, 6, 1);
+    triangles.emplace_back(6, 5, 1);
+    triangles.emplace_back(5, 4, 3);
+    triangles.emplace_back(5, 3, 1);
+    triangles.emplace_back(1, 3, 2);
+
+    // top face
+    triangles.emplace_back(7, 8, 13);
+    triangles.emplace_back(13, 8, 12);
+    triangles.emplace_back(12, 10, 11);
+    triangles.emplace_back(8, 10, 12);
+    triangles.emplace_back(8, 9, 10);
+
+    // side face
+    triangles.emplace_back(0, 1, 8);
+    triangles.emplace_back(8, 7, 0);
+    triangles.emplace_back(1, 2, 9);
+    triangles.emplace_back(9, 8, 1);
+    triangles.emplace_back(2, 3, 10);
+    triangles.emplace_back(10, 9, 2);
+    triangles.emplace_back(3, 4, 11);
+    triangles.emplace_back(11, 10, 3);
+    triangles.emplace_back(4, 5, 12);
+    triangles.emplace_back(12, 11, 4);
+    triangles.emplace_back(5, 6, 13);
+    triangles.emplace_back(13, 12, 5);
+    triangles.emplace_back(6, 0, 7);
+    triangles.emplace_back(7, 13, 6);
+
+    m_useVBOs = useVBOs;
+
+    if (m_useVBOs)
+        m_volume.indexed_vertex_array.load_mesh_full_shading(TriangleMesh(vertices, triangles));
+    else
+        m_volume.indexed_vertex_array.load_mesh_flat_shading(TriangleMesh(vertices, triangles));
+
+    m_volume.finalize_geometry(m_useVBOs);
+    return true;
+}
+#endif // ENABLE_SIDEBAR_VISUAL_HINTS
+
 std::string _3DScene::get_gl_info(bool format_as_html, bool extensions)
 {
     return s_canvas_mgr.get_gl_info(format_as_html, extensions);
