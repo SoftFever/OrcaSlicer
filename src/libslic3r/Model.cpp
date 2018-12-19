@@ -983,6 +983,16 @@ void ModelObject::mirror(Axis axis)
     this->invalidate_bounding_box();
 }
 
+void ModelObject::scale_mesh(const Vec3d &versor)
+{
+    for (ModelVolume *v : this->volumes)
+    {
+        v->scale_geometry(versor);
+        v->set_offset(versor.cwiseProduct(v->get_offset()));
+    }
+    this->invalidate_bounding_box();
+}
+
 size_t ModelObject::materials_count() const
 {
     std::set<t_model_material_id> material_ids;
@@ -1512,6 +1522,12 @@ void ModelVolume::mirror(Axis axis)
     mesh.mirror(axis);
     m_convex_hull.mirror(axis);
 #endif // ENABLE_MODELVOLUME_TRANSFORM
+}
+
+void ModelVolume::scale_geometry(const Vec3d& versor)
+{
+    mesh.scale(versor);
+    m_convex_hull.scale(versor);
 }
 
 #if !ENABLE_MODELVOLUME_TRANSFORM
