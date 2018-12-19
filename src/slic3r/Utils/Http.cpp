@@ -64,6 +64,7 @@ struct Http::priv
 	static int xfercb_legacy(void *userp, double dltotal, double dlnow, double ultotal, double ulnow);
 	static size_t form_file_read_cb(char *buffer, size_t size, size_t nitems, void *userp);
 
+	void set_timeout(long timeout);
 	void form_add_file(const char *name, const fs::path &path, const char* filename);
 	void set_post_body(const fs::path &path);
 
@@ -85,7 +86,7 @@ Http::priv::priv(const std::string &url)
 		throw std::runtime_error(std::string("Could not construct Curl object"));
 	}
 
-	::curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, DEFAULT_TIMEOUT);
+	set_timeout(DEFAULT_TIMEOUT);
 	::curl_easy_setopt(curl, CURLOPT_URL, url.c_str());   // curl makes a copy internally
 	::curl_easy_setopt(curl, CURLOPT_USERAGENT, SLIC3R_FORK_NAME "/" SLIC3R_VERSION);
 	::curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error_buffer.front());
@@ -169,6 +170,12 @@ size_t Http::priv::form_file_read_cb(char *buffer, size_t size, size_t nitems, v
 	return stream->gcount();
 }
 
+void Http::priv::set_timeout(long timeout)
+{
+	::curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, timeout);
+	::curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
+}
+
 void Http::priv::form_add_file(const char *name, const fs::path &path, const char* filename)
 {
 	// We can't use CURLFORM_FILECONTENT, because curl doesn't support Unicode filenames on Windows
@@ -205,10 +212,10 @@ void Http::priv::set_post_body(const fs::path &path)
 
 std::string Http::priv::curl_error(CURLcode curlcode)
 {
-	return (boost::format("%1% (%2%): %3%")
+	return (boost::format("%1%:\n%2%\n[Error %3%]")
 		% ::curl_easy_strerror(curlcode)
+		% error_buffer.c_str()
 		% curlcode
-		% error_buffer
 	).str();
 }
 
@@ -298,7 +305,7 @@ Http::~Http()
 Http& Http::timeout(long timeout)
 {
 	if (timeout < 1) { timeout = priv::DEFAULT_TIMEOUT; }
-	if (p) { ::curl_easy_setopt(p->curl, CURLOPT_CONNECTTIMEOUT, timeout); }
+	if (p) { p->set_timeout(timeout); }
 	return *this;
 }
 

@@ -62,7 +62,7 @@ bool OctoPrint::test(wxString &msg) const
                 const auto text = ptree.get_optional<std::string>("text");
                 res = validate_version_text(text);
                 if (! res) {
-                    msg = wxString::Format("Mismatched type of print host: %s", text ? *text : "OctoPrint");
+                    msg = wxString::Format(_(L("Mismatched type of print host: %s")), text ? *text : "OctoPrint");
                 }
             }
             catch (...) {
@@ -77,28 +77,24 @@ bool OctoPrint::test(wxString &msg) const
 
 wxString OctoPrint::get_test_ok_msg () const
 {
-    return wxString::Format("%s", _(L("Connection to OctoPrint works correctly.")));
+    return _(L("Connection to OctoPrint works correctly."));
 }
 
 wxString OctoPrint::get_test_failed_msg (wxString &msg) const
 {
     return wxString::Format("%s: %s\n\n%s",
-                        _(L("Could not connect to OctoPrint")), msg, _(L("Note: OctoPrint version at least 1.1.0 is required.")));
+        _(L("Could not connect to OctoPrint")), msg, _(L("Note: OctoPrint version at least 1.1.0 is required.")));
 }
 
-bool OctoPrint::upload(PrintHostUpload upload_data, Http::ProgressFn prorgess_fn, Http::ErrorFn error_fn) const
+bool OctoPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn error_fn) const
 {
     const auto upload_filename = upload_data.upload_path.filename();
     const auto upload_parent_path = upload_data.upload_path.parent_path();
 
     wxString test_msg;
     if (! test(test_msg)) {
-
-        // FIXME:
-
-        // auto errormsg = wxString::Format("%s: %s", errortitle, test_msg);
-        // GUI::show_error(&progress_dialog, std::move(errormsg));
-        // return false;
+        error_fn(std::move(test_msg));
+        return false;
     }
 
     bool res = true;
@@ -122,7 +118,8 @@ bool OctoPrint::upload(PrintHostUpload upload_data, Http::ProgressFn prorgess_fn
         })
         .on_error([&](std::string body, std::string error, unsigned status) {
             BOOST_LOG_TRIVIAL(error) << boost::format("Octoprint: Error uploading file: %1%, HTTP %2%, body: `%3%`") % error % status % body;
-            error_fn(std::move(body), std::move(error), status);
+            // error_fn(std::move(body), std::move(error), status);
+            error_fn(format_error(body, error, status));
             res = false;
         })
         .on_progress([&](Http::Progress progress, bool &cancel) {
@@ -192,7 +189,7 @@ SLAHost::~SLAHost() {}
 
 wxString SLAHost::get_test_ok_msg () const
 {
-    return wxString::Format("%s", _(L("Connection to Prusa SLA works correctly.")));
+    return _(L("Connection to Prusa SLA works correctly."));
 }
 
 wxString SLAHost::get_test_failed_msg (wxString &msg) const

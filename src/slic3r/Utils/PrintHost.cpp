@@ -2,10 +2,12 @@
 
 #include <vector>
 #include <thread>
+#include <exception>
 #include <boost/optional.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/filesystem.hpp>
 
+#include <wx/string.h>
 #include <wx/app.h>
 
 #include "libslic3r/PrintConfig.hpp"
@@ -58,7 +60,6 @@ struct PrintHostJobQueue::priv
     void start_bg_thread();
     void bg_thread_main();
     void progress_fn(Http::Progress progress, bool &cancel);
-    void error_fn(std::string body, std::string error, unsigned http_status);
     void perform_job(PrintHostJob the_job);
 };
 
@@ -100,6 +101,9 @@ void PrintHostJobQueue::priv::bg_thread_main()
             }
             job_id++;
         }
+    } catch (const std::exception &e) {
+        auto evt = new PrintHostQueueDialog::Event(GUI::EVT_PRINTHOST_ERROR, queue_dialog->GetId(), job_id, e.what());
+        wxQueueEvent(queue_dialog, evt);
     } catch (...) {
         wxTheApp->OnUnhandledException();
     }
@@ -136,28 +140,28 @@ void PrintHostJobQueue::priv::progress_fn(Http::Progress progress, bool &cancel)
     }
 }
 
-void PrintHostJobQueue::priv::error_fn(std::string body, std::string error, unsigned http_status)
-{
-    // TODO
-}
-
 void PrintHostJobQueue::priv::perform_job(PrintHostJob the_job)
 {
     if (bg_exit || the_job.empty()) { return; }
 
-    BOOST_LOG_TRIVIAL(debug) << boost::format("PrintHostJobQueue/bg_thread: Got job: `%1%` -> `%1%`")
+    BOOST_LOG_TRIVIAL(debug) << boost::format("PrintHostJobQueue/bg_thread: Got job: `%1%` -> `%2%`")
         % the_job.upload_data.upload_path
         % the_job.printhost->get_host();
 
     const fs::path gcode_path = the_job.upload_data.source_path;
 
-    the_job.printhost->upload(std::move(the_job.upload_data),
+    bool success = the_job.printhost->upload(std::move(the_job.upload_data),
         [this](Http::Progress progress, bool &cancel) { this->progress_fn(std::move(progress), cancel); },
-        [this](std::string body, std::string error, unsigned http_status) { this->error_fn(std::move(body), std::move(error), http_status); }
+        [this](wxString error) {
+            auto evt = new PrintHostQueueDialog::Event(GUI::EVT_PRINTHOST_ERROR, queue_dialog->GetId(), job_id, std::move(error));
+            wxQueueEvent(queue_dialog, evt);
+        }
     );
 
-    auto evt = new PrintHostQueueDialog::Event(GUI::EVT_PRINTHOST_PROGRESS, queue_dialog->GetId(), job_id, 100);
-    wxQueueEvent(queue_dialog, evt);
+    if (success) {
+        auto evt = new PrintHostQueueDialog::Event(GUI::EVT_PRINTHOST_PROGRESS, queue_dialog->GetId(), job_id, 100);
+        wxQueueEvent(queue_dialog, evt);
+    }
 
     boost::system::error_code ec;
     fs::remove(gcode_path, ec);
