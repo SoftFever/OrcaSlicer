@@ -1,8 +1,12 @@
 #include "OctoPrint.hpp"
 
 #include <algorithm>
+#include <sstream>
 #include <boost/format.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 
 #include <wx/progdlg.h>
 
@@ -12,6 +16,7 @@
 
 
 namespace fs = boost::filesystem;
+namespace pt = boost::property_tree;
 
 
 namespace Slic3r {
@@ -41,11 +46,29 @@ bool OctoPrint::test(wxString &msg) const
             res = false;
             msg = format_error(body, error, status);
         })
-        .on_complete([&](std::string body, unsigned) {
+        .on_complete([&, this](std::string body, unsigned) {
             BOOST_LOG_TRIVIAL(debug) << boost::format("Octoprint: Got version: %1%") % body;
 
-            // TODO: parse body, call validate_version_text
+            try {
+                std::stringstream ss(body);
+                pt::ptree ptree;
+                pt::read_json(ss, ptree);
 
+                if (! ptree.get_optional<std::string>("api")) {
+                    res = false;
+                    return;
+                }
+
+                const auto text = ptree.get_optional<std::string>("text");
+                res = validate_version_text(text);
+                if (! res) {
+                    msg = wxString::Format("Mismatched type of print host: %s", text ? *text : "OctoPrint");
+                }
+            }
+            catch (...) {
+                res = false;
+                msg = "Could not parse server response";
+            }
         })
         .perform_sync();
 
@@ -71,7 +94,7 @@ bool OctoPrint::upload(PrintHostUpload upload_data, Http::ProgressFn prorgess_fn
     wxString test_msg;
     if (! test(test_msg)) {
 
-        // TODO:
+        // FIXME:
 
         // auto errormsg = wxString::Format("%s: %s", errortitle, test_msg);
         // GUI::show_error(&progress_dialog, std::move(errormsg));
@@ -125,10 +148,9 @@ bool OctoPrint::can_test() const
     return true;
 }
 
-bool OctoPrint::validate_version_text(const std::string &version_text)
+bool OctoPrint::validate_version_text(const boost::optional<std::string> &version_text) const
 {
-    // FIXME
-    return true;
+    return version_text ? boost::starts_with(*version_text, "OctoPrint") : true;
 }
 
 void OctoPrint::set_auth(Http &http) const
@@ -164,14 +186,23 @@ wxString OctoPrint::format_error(const std::string &body, const std::string &err
 }
 
 
-// SL1
+// SLAHost
 
-SL1Host::~SL1Host() {}
+SLAHost::~SLAHost() {}
 
-bool SL1Host::validate_version_text(const std::string &version_text)
+wxString SLAHost::get_test_ok_msg () const
 {
-    // FIXME
-    return true;
+    return wxString::Format("%s", _(L("Connection to Prusa SLA works correctly.")));
+}
+
+wxString SLAHost::get_test_failed_msg (wxString &msg) const
+{
+    return wxString::Format("%s: %s", _(L("Could not connect to Prusa SLA")), msg);
+}
+
+bool SLAHost::validate_version_text(const boost::optional<std::string> &version_text) const
+{
+    return version_text ? boost::starts_with(*version_text, "Prusa SLA") : false;
 }
 
 

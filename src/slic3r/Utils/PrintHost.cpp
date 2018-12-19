@@ -30,8 +30,8 @@ PrintHost* PrintHost::get_print_host(DynamicPrintConfig *config)
 
     switch (opt->value) {
         case htOctoPrint: return new OctoPrint(config);
-        case htSL1:       return new SL1Host(config);
         case htDuet:      return new Duet(config);
+        case htSL1:       return new SLAHost(config);
         default: return nullptr;
     }
 }
