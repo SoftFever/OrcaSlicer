@@ -32,6 +32,7 @@ class CurlGlobalInit
 struct Http::priv
 {
 	enum {
+		DEFAULT_TIMEOUT = 10,
 		DEFAULT_SIZE_LIMIT = 5 * 1024 * 1024,
 	};
 
@@ -84,6 +85,7 @@ Http::priv::priv(const std::string &url)
 		throw std::runtime_error(std::string("Could not construct Curl object"));
 	}
 
+	::curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, DEFAULT_TIMEOUT);
 	::curl_easy_setopt(curl, CURLOPT_URL, url.c_str());   // curl makes a copy internally
 	::curl_easy_setopt(curl, CURLOPT_USERAGENT, SLIC3R_FORK_NAME "/" SLIC3R_VERSION);
 	::curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error_buffer.front());
@@ -292,6 +294,13 @@ Http::~Http()
 	}
 }
 
+
+Http& Http::timeout(long timeout)
+{
+	if (timeout < 1) { timeout = priv::DEFAULT_TIMEOUT; }
+	if (p) { ::curl_easy_setopt(p->curl, CURLOPT_CONNECTTIMEOUT, timeout); }
+	return *this;
+}
 
 Http& Http::size_limit(size_t sizeLimit)
 {
