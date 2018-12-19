@@ -668,6 +668,7 @@ void GCodeAnalyzer::_calc_gcode_preview_extrusion_layers(GCodePreviewData& previ
     {
         static GCodePreviewData::Extrusion::Layer& get_layer_at_z(GCodePreviewData::Extrusion::LayersList& layers, float z)
         {
+            //FIXME this has a terrible time complexity
             for (GCodePreviewData::Extrusion::Layer& layer : layers)
             {
                 // if layer found, return it
@@ -861,22 +862,6 @@ size_t GCodeAnalyzer::memory_used() const
         out += sizeof(kvp) + SLIC3R_STDVEC_MEMSIZE(kvp.second, GCodeMove);
     out += m_process_output.size();
     return out;
-}
-
-GCodePreviewData::Color operator + (const GCodePreviewData::Color& c1, const GCodePreviewData::Color& c2)
-{
-    return GCodePreviewData::Color(clamp(0.0f, 1.0f, c1.rgba[0] + c2.rgba[0]),
-        clamp(0.0f, 1.0f, c1.rgba[1] + c2.rgba[1]),
-        clamp(0.0f, 1.0f, c1.rgba[2] + c2.rgba[2]),
-        clamp(0.0f, 1.0f, c1.rgba[3] + c2.rgba[3]));
-}
-
-GCodePreviewData::Color operator * (float f, const GCodePreviewData::Color& color)
-{
-    return GCodePreviewData::Color(clamp(0.0f, 1.0f, f * color.rgba[0]),
-        clamp(0.0f, 1.0f, f * color.rgba[1]),
-        clamp(0.0f, 1.0f, f * color.rgba[2]),
-        clamp(0.0f, 1.0f, f * color.rgba[3]));
 }
 
 } // namespace Slic3r

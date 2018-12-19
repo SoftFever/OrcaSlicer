@@ -19,7 +19,6 @@ class ExPolygon;
 typedef std::vector<ExPolygon> ExPolygons;
 class ModelObject;
 class PrintObject;
-class GCodePreviewData;
 
 namespace GUI {
 

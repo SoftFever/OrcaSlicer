@@ -28,6 +28,7 @@ namespace Slic3r {
 class GLShader;
 class ExPolygon;
 class BackgroundSlicingProcess;
+class GCodePreviewData;
 
 namespace GUI {
 

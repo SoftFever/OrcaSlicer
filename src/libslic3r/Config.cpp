@@ -483,8 +483,9 @@ bool DynamicConfig::operator==(const DynamicConfig &rhs) const
     t_options_map::const_iterator it2     = rhs.options.begin();
     t_options_map::const_iterator it2_end = rhs.options.end();
     for (; it1 != it1_end && it2 != it2_end; ++ it1, ++ it2)
-        if (*it1->second != *it2->second)
-            return false;
+		if (it1->first != it2->first || *it1->second != *it2->second)
+			// key or value differ
+			return false;
     return it1 == it1_end && it2 == it2_end;
 }
 

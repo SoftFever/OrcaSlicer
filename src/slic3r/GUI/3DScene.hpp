@@ -18,7 +18,6 @@ class SLAPrintObject;
 enum  SLAPrintObjectStep : unsigned int;
 class Model;
 class ModelObject;
-class GCodePreviewData;
 class DynamicPrintConfig;
 class ExtrusionPath;
 class ExtrusionMultiPath;
