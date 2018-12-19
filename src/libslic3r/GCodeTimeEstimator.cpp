@@ -290,7 +290,8 @@ namespace Slic3r {
         // buffer line to export only when greater than 64K to reduce writing calls
         std::string export_line;
         char time_line[64];
-        while (std::getline(in, gcode_line))
+		G1LineIdToBlockIdMap::const_iterator it_line_id = _g1_line_ids.begin();
+		while (std::getline(in, gcode_line))
         {
             if (!in.good())
             {
@@ -310,29 +311,29 @@ namespace Slic3r {
 
             // add remaining time lines where needed
             _parser.parse_line(gcode_line,
-                [this, &g1_lines_count, &last_recorded_time, &time_line, &gcode_line, time_mask, interval](GCodeReader& reader, const GCodeReader::GCodeLine& line)
+                [this, &it_line_id, &g1_lines_count, &last_recorded_time, &time_line, &gcode_line, time_mask, interval](GCodeReader& reader, const GCodeReader::GCodeLine& line)
             {
                 if (line.cmd_is("G1"))
                 {
                     ++g1_lines_count;
 
-                    if (!line.has_e())
-                        return;
+					assert(it_line_id == _g1_line_ids.end() || it_line_id->first >= g1_lines_count);
 
-                    G1LineIdToBlockIdMap::const_iterator it = _g1_line_ids.find(g1_lines_count);
-                    if ((it != _g1_line_ids.end()) && (it->second < (unsigned int)_blocks.size()))
-                    {
-                        const Block& block = _blocks[it->second];
-                        if (block.elapsed_time != -1.0f)
+					const Block *block = nullptr;
+					if (it_line_id != _g1_line_ids.end() && it_line_id->first == g1_lines_count) {
+						if (line.has_e() && it_line_id->second < (unsigned int)_blocks.size())
+							block = &_blocks[it_line_id->second];
+						++it_line_id;
+					}
+
+					if (block != nullptr && block->elapsed_time != -1.0f) {
+                        float block_remaining_time = _time - block->elapsed_time;
+                        if (std::abs(last_recorded_time - block_remaining_time) > interval)
                         {
-                            float block_remaining_time = _time - block.elapsed_time;
-                            if (std::abs(last_recorded_time - block_remaining_time) > interval)
-                            {
-                                sprintf(time_line, time_mask.c_str(), std::to_string((int)(100.0f * block.elapsed_time / _time)).c_str(), _get_time_minutes(block_remaining_time).c_str());
-                                gcode_line += time_line;
+                            sprintf(time_line, time_mask.c_str(), std::to_string((int)(100.0f * block->elapsed_time / _time)).c_str(), _get_time_minutes(block_remaining_time).c_str());
+                            gcode_line += time_line;
 
-                                last_recorded_time = block_remaining_time;
-                            }
+                            last_recorded_time = block_remaining_time;
                         }
                     }
                 }
@@ -665,6 +666,15 @@ namespace Slic3r {
     std::string GCodeTimeEstimator::get_time_minutes() const
     {
         return _get_time_minutes(get_time());
+    }
+
+    // Return an estimate of the memory consumed by the time estimator.
+	size_t GCodeTimeEstimator::memory_used() const
+    {
+        size_t out = sizeof(*this);
+		out += SLIC3R_STDVEC_MEMSIZE(this->_blocks, Block);
+		out += SLIC3R_STDVEC_MEMSIZE(this->_g1_line_ids, G1LineIdToBlockId);
+        return out;
     }
 
     void GCodeTimeEstimator::_reset()
@@ -1072,7 +1082,7 @@ namespace Slic3r {
 
         // adds block to blocks list
         _blocks.emplace_back(block);
-        _g1_line_ids.insert(G1LineIdToBlockIdMap::value_type(get_g1_line_id(), (unsigned int)_blocks.size() - 1));
+        _g1_line_ids.emplace_back(G1LineIdToBlockIdMap::value_type(get_g1_line_id(), (unsigned int)_blocks.size() - 1));
     }
 
     void GCodeTimeEstimator::_processG4(const GCodeReader::GCodeLine& line)
@@ -1223,7 +1233,8 @@ namespace Slic3r {
             return;
 
         // see http://reprap.org/wiki/G-code#M203:_Set_maximum_feedrate
-        float factor = (dialect == gcfMarlin) ? 1.0f : MMMIN_TO_MMSEC;
+        // http://smoothieware.org/supported-g-codes
+        float factor = (dialect == gcfMarlin || dialect == gcfSmoothie) ? 1.0f : MMMIN_TO_MMSEC;
 
         if (line.has_x())
             set_axis_max_feedrate(X, line.x() * factor);

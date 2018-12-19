@@ -65,11 +65,6 @@ PrinterTechnology BackgroundSlicingProcess::current_printer_technology() const
 	return m_print->technology();
 }
 
-static bool isspace(int ch)
-{
-	return std::isspace(ch) != 0;
-}
-
 // This function may one day be merged into the Print, but historically the print was separated
 // from the G-code generator.
 void BackgroundSlicingProcess::process_fff()
@@ -88,6 +83,27 @@ void BackgroundSlicingProcess::process_fff()
 	    	m_print->set_status(95, "Running post-processing scripts");
 	    	run_post_process_scripts(export_path, m_fff_print->config());
 	    	m_print->set_status(100, "G-code file exported to " + export_path);
+	    } else if (! m_upload_job.empty()) {
+			// A print host upload job has been scheduled
+
+	    	// XXX: is fs::path::string() right?
+
+			// Generate a unique temp path to which the gcode is copied
+			boost::filesystem::path source_path = boost::filesystem::temp_directory_path()
+				/ boost::filesystem::unique_path(".printhost.%%%%-%%%%-%%%%-%%%%.gcode");
+
+			if (copy_file(m_temp_output_path, source_path.string()) != 0) {
+				throw std::runtime_error("Copying of the temporary G-code to the output G-code failed");
+			}
+
+			m_print->set_status(95, "Running post-processing scripts");
+			run_post_process_scripts(source_path.string(), m_fff_print->config());
+			m_print->set_status(100, (boost::format("Scheduling upload to `%1%`. See Window -> Print Host Upload Queue") % m_upload_job.printhost->get_host()).str());
+
+			m_upload_job.upload_data.source_path = std::move(source_path);
+			m_upload_job.upload_data.upload_path = m_fff_print->print_statistics().finalize_output_path(m_upload_job.upload_data.upload_path.string());
+
+			GUI::wxGetApp().printhost_job_queue().enqueue(std::move(m_upload_job));
 	    } else {
 	    	m_print->set_status(100, "Slicing complete");
 	    }
@@ -373,13 +389,10 @@ void BackgroundSlicingProcess::schedule_upload(Slic3r::PrintHostJob upload_job)
 	if (! m_export_path.empty())
 		return;
 
-	const boost::filesystem::path path = boost::filesystem::temp_directory_path()
-		/ boost::filesystem::unique_path(".upload.%%%%-%%%%-%%%%-%%%%.gcode");
-
 	// Guard against entering the export step before changing the export path.
 	tbb::mutex::scoped_lock lock(m_print->state_mutex());
 	this->invalidate_step(bspsGCodeFinalize);
-	m_export_path = path.string();
+	m_export_path = std::string();
 	m_upload_job = std::move(upload_job);
 }
 

@@ -11,7 +11,13 @@
 namespace Slic3r {
 
 extern void set_logging_level(unsigned int level);
+extern unsigned get_logging_level();
 extern void trace(unsigned int level, const char *message);
+// Format memory allocated, separate thousands by comma.
+extern std::string format_memsize_MB(size_t n);
+// Return string to be added to the boost::log output to inform about the current process memory allocation.
+// The string is non-empty only if the loglevel >= info (3).
+extern std::string log_memory_info();
 extern void disable_multi_threading();
 
 // Set a path with GUI resource files.
@@ -182,7 +188,12 @@ public:
     void reset() { closure = Closure(); }
 };
 
-
 } // namespace Slic3r
+
+#if WIN32
+    #define SLIC3R_STDVEC_MEMSIZE(NAME, TYPE) NAME.capacity() * ((sizeof(TYPE) + __alignof(TYPE) - 1) / __alignof(TYPE)) * __alignof(TYPE)
+#else
+    #define SLIC3R_STDVEC_MEMSIZE(NAME, TYPE) NAME.capacity() * ((sizeof(TYPE) + alignof(TYPE) - 1) / alignof(TYPE)) * alignof(TYPE)
+#endif
 
 #endif // slic3r_Utils_hpp_

@@ -809,6 +809,25 @@ TriangleMesh ModelObject::raw_mesh() const
     return mesh;
 }
 
+// Non-transformed (non-rotated, non-scaled, non-translated) sum of all object volumes.
+TriangleMesh ModelObject::full_raw_mesh() const
+{
+    TriangleMesh mesh;
+    for (const ModelVolume *v : this->volumes)
+#if ENABLE_MODELVOLUME_TRANSFORM
+    {
+        TriangleMesh vol_mesh(v->mesh);
+        vol_mesh.transform(v->get_matrix());
+        mesh.merge(vol_mesh);
+    }
+#else
+    {
+        mesh.merge(v->mesh);
+    }
+#endif // ENABLE_MODELVOLUME_TRANSFORM
+    return mesh;
+}
+
 // A transformed snug bounding box around the non-modifier object volumes, without the translation applied.
 // This bounding box is only used for the actual slicing.
 BoundingBoxf3 ModelObject::raw_bounding_box() const
@@ -961,6 +980,16 @@ void ModelObject::mirror(Axis axis)
 #if !ENABLE_MODELVOLUME_TRANSFORM
     this->origin_translation = Vec3d::Zero();
 #endif // !ENABLE_MODELVOLUME_TRANSFORM
+    this->invalidate_bounding_box();
+}
+
+void ModelObject::scale_mesh(const Vec3d &versor)
+{
+    for (ModelVolume *v : this->volumes)
+    {
+        v->scale_geometry(versor);
+        v->set_offset(versor.cwiseProduct(v->get_offset()));
+    }
     this->invalidate_bounding_box();
 }
 
@@ -1493,6 +1522,12 @@ void ModelVolume::mirror(Axis axis)
     mesh.mirror(axis);
     m_convex_hull.mirror(axis);
 #endif // ENABLE_MODELVOLUME_TRANSFORM
+}
+
+void ModelVolume::scale_geometry(const Vec3d& versor)
+{
+    mesh.scale(versor);
+    m_convex_hull.scale(versor);
 }
 
 #if !ENABLE_MODELVOLUME_TRANSFORM

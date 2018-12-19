@@ -218,6 +218,8 @@ public:
     // Non-transformed (non-rotated, non-scaled, non-translated) sum of non-modifier object volumes.
     // Currently used by ModelObject::mesh() and to calculate the 2D envelope for 2D platter.
     TriangleMesh raw_mesh() const;
+    // Non-transformed (non-rotated, non-scaled, non-translated) sum of all object volumes.
+    TriangleMesh full_raw_mesh() const;
     // A transformed snug bounding box around the non-modifier object volumes, without the translation applied.
     // This bounding box is only used for the actual slicing.
     BoundingBoxf3 raw_bounding_box() const;
@@ -235,6 +237,9 @@ public:
     void rotate(double angle, Axis axis);
     void rotate(double angle, const Vec3d& axis);
     void mirror(Axis axis);
+
+    void scale_mesh(const Vec3d& versor);
+
     size_t materials_count() const;
     size_t facets_count() const;
     bool needed_repair() const;
@@ -328,6 +333,8 @@ public:
     void                rotate(double angle, Axis axis);
     void                rotate(double angle, const Vec3d& axis);
     void                mirror(Axis axis);
+
+    void                scale_geometry(const Vec3d& versor);
 
 #if ENABLE_MODELVOLUME_TRANSFORM
     // translates the mesh and the convex hull so that the origin of their vertices is in the center of this volume's bounding box

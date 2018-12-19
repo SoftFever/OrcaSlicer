@@ -213,7 +213,7 @@ void SlicedInfo::SetTextAndShow(SlisedInfoIdx idx, const wxString& text, const w
 }
 
 PresetComboBox::PresetComboBox(wxWindow *parent, Preset::Type preset_type) :
-    wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY),
+    wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(200,-1), 0, nullptr, wxCB_READONLY),
     preset_type(preset_type),
     last_selected(wxNOT_FOUND)
 {
@@ -484,7 +484,7 @@ Sidebar::Sidebar(Plater *parent)
     : wxPanel(parent), p(new priv(parent))
 {
     p->scrolled = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxSize(400, -1));
-    p->scrolled->SetScrollbars(0, 1, 1, 1);
+    p->scrolled->SetScrollbars(0, 20, 1, 2);
 
     // Sizer in the scrolled area
     auto *scrolled_sizer = new wxBoxSizer(wxVERTICAL);
@@ -732,8 +732,7 @@ void Sidebar::show_info_sizer()
     p->object_info->info_materials->SetLabel(wxString::Format("%d", static_cast<int>(model_object->materials_count())));
 
     auto& stats = model_object->volumes.front()->mesh.stl.stats;
-    auto sf = model_instance->get_scaling_factor();
-    p->object_info->info_volume->SetLabel(wxString::Format("%.2f", size(0) * size(1) * size(2) * sf(0) * sf(1) * sf(2)));
+    p->object_info->info_volume->SetLabel(wxString::Format("%.2f", size(0) * size(1) * size(2)));
     p->object_info->info_facets->SetLabel(wxString::Format(_(L("%d (%d shells)")), static_cast<int>(model_object->facets_count()), stats.number_of_parts));
 
     int errors = stats.degenerate_facets + stats.edges_fixed + stats.facets_removed +
@@ -913,7 +912,11 @@ struct Plater::priv
     Sidebar *sidebar;
 #if ENABLE_REMOVE_TABS_FROM_PLATER
     View3D* view3D;
+#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
+    GLToolbar view_toolbar;
+#else
     GLRadioToolbar view_toolbar;
+#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 #else
 #if !ENABLE_IMGUI
     wxPanel *panel3d;
@@ -1030,6 +1033,7 @@ private:
     bool can_decrease_instances() const;
     bool can_split_to_objects() const;
     bool can_split_to_volumes() const;
+    bool can_split() const;
     bool layers_height_allowed() const;
     bool can_delete_all() const;
     bool can_arrange() const;
@@ -1068,6 +1072,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 #endif // !ENABLE_REMOVE_TABS_FROM_PLATER
     , delayed_scene_refresh(false)
     , project_filename(wxEmptyString)
+#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
+    , view_toolbar(GLToolbar::Radio)
+#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 {
     arranging.store(false);
     rotoptimizing.store(false);
@@ -1179,7 +1186,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     view3D_canvas->Bind(EVT_GLCANVAS_MODEL_UPDATE, [this](SimpleEvent&) { this->schedule_background_process(); });
     view3D_canvas->Bind(EVT_GLCANVAS_REMOVE_OBJECT, [q](SimpleEvent&) { q->remove_selected(); });
     view3D_canvas->Bind(EVT_GLCANVAS_ARRANGE, [this](SimpleEvent&) { arrange(); });
-    view3D_canvas->Bind(EVT_GLCANVAS_INCREASE_INSTANCES, [q](Event<int> &evt) { evt.data == 1 ? q->increase_instances() : q->decrease_instances(); });
+    view3D_canvas->Bind(EVT_GLCANVAS_INCREASE_INSTANCES, [this](Event<int> &evt) 
+        { if (evt.data == 1) this->q->increase_instances(); else if (this->can_decrease_instances()) this->q->decrease_instances(); });
     view3D_canvas->Bind(EVT_GLCANVAS_INSTANCE_MOVED, [this](SimpleEvent&) { update(); });
     view3D_canvas->Bind(EVT_GLCANVAS_WIPETOWER_MOVED, &priv::on_wipetower_moved, this);
     view3D_canvas->Bind(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, [this](Event<bool> &evt) { this->sidebar->enable_buttons(evt.data); });
@@ -1205,7 +1213,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     canvas3Dwidget->Bind(EVT_GLCANVAS_MODEL_UPDATE, [this](SimpleEvent&) { this->schedule_background_process(); });
     canvas3Dwidget->Bind(EVT_GLCANVAS_REMOVE_OBJECT, [q](SimpleEvent&) { q->remove_selected(); });
     canvas3Dwidget->Bind(EVT_GLCANVAS_ARRANGE, [this](SimpleEvent&) { arrange(); });
-    canvas3Dwidget->Bind(EVT_GLCANVAS_INCREASE_INSTANCES, [q](Event<int> &evt) { evt.data == 1 ? q->increase_instances() : q->decrease_instances(); });
+	canvas3Dwidget->Bind(EVT_GLCANVAS_INCREASE_INSTANCES, [this](Event<int> &evt) 
+        { if (evt.data == 1) this->q->increase_instances(); else if (this->can_decrease_instances()) this->q->decrease_instances(); });
     canvas3Dwidget->Bind(EVT_GLCANVAS_INSTANCE_MOVED, [this](SimpleEvent&) { update(); });
     canvas3Dwidget->Bind(EVT_GLCANVAS_WIPETOWER_MOVED, &priv::on_wipetower_moved, this);
     canvas3Dwidget->Bind(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, [this](Event<bool> &evt) { this->sidebar->enable_buttons(evt.data); });
@@ -1286,7 +1295,9 @@ void Plater::priv::select_view_3D(const std::string& name)
     else if (name == "Preview")
         set_current_panel(preview);
 
+#if !ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     view_toolbar.set_selection(name);
+#endif // !ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 }
 #else
 void Plater::priv::select_view(const std::string& direction)
@@ -1485,7 +1496,7 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
 #if !ENABLE_MODELVOLUME_TRANSFORM
     const Vec3d bed_center = Slic3r::to_3d(bed_shape.center().cast<double>(), 0.0);
 #endif // !ENABLE_MODELVOLUME_TRANSFORM
-    const Vec3d bed_size = Slic3r::to_3d(bed_shape.size().cast<double>(), 1.0);
+    const Vec3d bed_size = Slic3r::to_3d(bed_shape.size().cast<double>(), 1.0) - 2.0 * Vec3d::Ones();
 
     bool need_arrange = false;
     bool scaled_down = false;
@@ -1517,9 +1528,10 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
         if (max_ratio > 10000) {
             // the size of the object is too big -> this could lead to overflow when moving to clipper coordinates,
             // so scale down the mesh
-            // const Vec3d inverse = ratio.cwiseInverse();
-            // object->scale(inverse);
-            object->scale(ratio.cwiseInverse());
+			double inv = 1. / max_ratio;
+            object->scale_mesh(Vec3d(inv, inv, inv));
+            object->origin_translation = Vec3d::Zero();
+            object->center_around_origin();
             scaled_down = true;
         } else if (max_ratio > 5) {
             const Vec3d inverse = ratio.cwiseInverse();
@@ -1644,8 +1656,8 @@ void Plater::priv::selection_changed()
     view3D->enable_toolbar_item("delete", can_delete_object());
     view3D->enable_toolbar_item("more", can_increase_instances());
     view3D->enable_toolbar_item("fewer", can_decrease_instances());
-    view3D->enable_toolbar_item("splitobjects", can_split_to_objects());
-    view3D->enable_toolbar_item("splitvolumes", can_split_to_volumes());
+    view3D->enable_toolbar_item("splitobjects", can_split/*_to_objects*/());
+    view3D->enable_toolbar_item("splitvolumes", can_split/*_to_volumes*/());
     view3D->enable_toolbar_item("layersediting", layers_height_allowed());
     // forces a frame render to update the view (to avoid a missed update if, for example, the context menu appears)
     view3D->render();
@@ -1653,8 +1665,8 @@ void Plater::priv::selection_changed()
     this->canvas3D->enable_toolbar_item("delete", can_delete_object());
     this->canvas3D->enable_toolbar_item("more", can_increase_instances());
     this->canvas3D->enable_toolbar_item("fewer", can_decrease_instances());
-    this->canvas3D->enable_toolbar_item("splitobjects", can_split_to_objects());
-    this->canvas3D->enable_toolbar_item("splitvolumes", can_split_to_volumes());
+    this->canvas3D->enable_toolbar_item("splitobjects", can_split/*_to_objects*/());
+    this->canvas3D->enable_toolbar_item("splitvolumes", can_split/*_to_volumes*/());
     this->canvas3D->enable_toolbar_item("layersediting", layers_height_allowed());
     // forces a frame render to update the view (to avoid a missed update if, for example, the context menu appears)
     this->canvas3D->render();
@@ -2446,8 +2458,8 @@ void Plater::priv::on_action_layersediting(SimpleEvent&)
 
 void Plater::priv::on_object_select(SimpleEvent& evt)
 {
-    selection_changed();
     wxGetApp().obj_list()->update_selections();
+    selection_changed();
 }
 
 void Plater::priv::on_viewport_changed(SimpleEvent& evt)
@@ -2597,9 +2609,9 @@ bool Plater::priv::complit_init_object_menu()
     // ui updates needs to be binded to the parent panel
     if (q != nullptr)
     {
-        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split_to_objects() || can_split_to_volumes()); }, item_split->GetId());
-        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split_to_objects()); }, item_split_objects->GetId());
-        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split_to_volumes()); }, item_split_volumes->GetId());
+        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split/*_to_objects() || can_split_to_volumes*/()); }, item_split->GetId());
+        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split/*_to_objects*/()); }, item_split_objects->GetId());
+        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split/*_to_volumes*/()); }, item_split_volumes->GetId());
     }
     return true;
 }
@@ -2618,7 +2630,7 @@ bool Plater::priv::complit_init_sla_object_menu()
     // ui updates needs to be binded to the parent panel
     if (q != nullptr)
     {
-        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split_to_objects()); }, item_split->GetId());
+        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split/*_to_objects*/()); }, item_split->GetId());
     }
 
     return true;
@@ -2637,7 +2649,7 @@ bool Plater::priv::complit_init_part_menu()
     // ui updates needs to be binded to the parent panel
     if (q != nullptr)
     {
-        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split_to_volumes()); },  item_split->GetId());
+        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split/*_to_volumes*/()); },  item_split->GetId());
     }
 
     return true;
@@ -2646,9 +2658,58 @@ bool Plater::priv::complit_init_part_menu()
 #if ENABLE_REMOVE_TABS_FROM_PLATER
 void Plater::priv::init_view_toolbar()
 {
+#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
+    ItemsIconsTexture::Metadata icons_data;
+    icons_data.filename = "view_toolbar.png";
+    icons_data.icon_size = 64;
+    icons_data.icon_border_size = 0;
+    icons_data.icon_gap_size = 0;
+
+    BackgroundTexture::Metadata background_data;
+    background_data.filename = "toolbar_background.png";
+    background_data.left = 16;
+    background_data.top = 16;
+    background_data.right = 16;
+    background_data.bottom = 16;
+
+    if (!view_toolbar.init(icons_data, background_data))
+#else
     if (!view_toolbar.init("view_toolbar.png", 64, 0, 0))
+#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
         return;
 
+#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
+    view_toolbar.set_layout_orientation(GLToolbar::Layout::Bottom);
+    view_toolbar.set_border(5.0f);
+    view_toolbar.set_gap_size(1.0f);
+
+    GLToolbarItem::Data item;
+
+    item.name = "3D";
+    item.tooltip = GUI::L_str("3D editor view");
+    item.sprite_id = 0;
+    item.action_event = EVT_GLVIEWTOOLBAR_3D;
+    item.is_toggable = false;
+    if (!view_toolbar.add_item(item))
+        return;
+
+    item.name = "Preview";
+    item.tooltip = GUI::L_str("Preview");
+    item.sprite_id = 1;
+    item.action_event = EVT_GLVIEWTOOLBAR_PREVIEW;
+    item.is_toggable = false;
+    if (!view_toolbar.add_item(item))
+        return;
+
+    view_toolbar.enable_item("3D");
+    view_toolbar.enable_item("Preview");
+
+    view_toolbar.select_item("3D");
+    view_toolbar.set_enabled(true);
+
+    view3D->set_view_toolbar(&view_toolbar);
+    preview->set_view_toolbar(&view_toolbar);
+#else
     GLRadioToolbarItem::Data item;
 
     item.name = "3D";
@@ -2669,6 +2730,7 @@ void Plater::priv::init_view_toolbar()
     preview->set_view_toolbar(&view_toolbar);
 
     view_toolbar.set_selection("3D");
+#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 }
 #endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
@@ -2702,6 +2764,13 @@ bool Plater::priv::can_split_to_volumes() const
         return false;
 //     int obj_idx = get_selected_object_idx();
 //     return (0 <= obj_idx) && (obj_idx < (int)model.objects.size()) && !model.objects[obj_idx]->is_multiparts();
+    return sidebar->obj_list()->is_splittable();
+}
+
+bool Plater::priv::can_split() const
+{
+    if (printer_technology == ptSLA)
+        return false;
     return sidebar->obj_list()->is_splittable();
 }
 
@@ -3086,7 +3155,7 @@ void Plater::send_gcode()
     }
     default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string()));
 
-    Slic3r::PrintHostSendDialog dlg(default_output_file);
+    PrintHostSendDialog dlg(default_output_file);
     if (dlg.ShowModal() == wxID_OK) {
         upload_job.upload_data.upload_path = dlg.filename();
         upload_job.upload_data.start_print = dlg.start_print();
@@ -3178,6 +3247,8 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
 #endif // ENABLE_REMOVE_TABS_FROM_PLATER
             if (p->preview) p->preview->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values);
             update_scheduled = true;
+        } else if (opt_key == "host_type" && this->p->printer_technology == ptSLA) {
+            p->config->option<ConfigOptionEnum<PrintHostType>>(opt_key)->value = htSL1;
         }
     }
 

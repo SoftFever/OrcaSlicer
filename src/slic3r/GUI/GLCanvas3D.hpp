@@ -20,6 +20,8 @@ class wxTimerEvent;
 class wxPaintEvent;
 class wxGLCanvas;
 
+class GLUquadric;
+typedef class GLUquadric GLUquadricObj;
 
 namespace Slic3r {
 
@@ -155,7 +157,7 @@ class GLCanvas3D
 //        float distance;
 #if !ENABLE_CONSTRAINED_CAMERA_TARGET
         Vec3d target;
-#endif !// ENABLE_CONSTRAINED_CAMERA_TARGET
+#endif // ENABLE_CONSTRAINED_CAMERA_TARGET
 
     private:
 #if ENABLE_CONSTRAINED_CAMERA_TARGET
@@ -231,12 +233,20 @@ class GLCanvas3D
 
     struct Axes
     {
+        static const double Radius;
+        static const double ArrowBaseRadius;
+        static const double ArrowLength;
         Vec3d origin;
-        float length;
+        Vec3d length;
+        GLUquadricObj* m_quadric;
 
         Axes();
+        ~Axes();
 
-        void render(bool depth_test) const;
+        void render() const;
+
+    private:
+        void render_axis(double length) const;
     };
 
     class Shader
@@ -481,8 +491,15 @@ public:
         mutable BoundingBoxf3 m_bounding_box;
         mutable bool m_bounding_box_dirty;
 
+#if ENABLE_RENDER_SELECTION_CENTER
+        GLUquadricObj* m_quadric;
+#endif // ENABLE_RENDER_SELECTION_CENTER
+
     public:
         Selection();
+#if ENABLE_RENDER_SELECTION_CENTER
+        ~Selection();
+#endif // ENABLE_RENDER_SELECTION_CENTER
 
         void set_volumes(GLVolumePtrs* volumes);
 
@@ -515,6 +532,7 @@ public:
         bool is_wipe_tower() const { return m_type == WipeTower; }
         bool is_modifier() const { return (m_type == SingleModifier) || (m_type == MultipleModifier); }
         bool is_single_modifier() const { return m_type == SingleModifier; }
+        bool is_multiple_modifier() const { return m_type == MultipleModifier; }
         bool is_single_full_instance() const;
         bool is_multiple_full_instance() const { return m_type == MultipleFullInstance; }
         bool is_single_full_object() const { return m_type == SingleFullObject; }
@@ -526,6 +544,7 @@ public:
         bool is_from_single_object() const;
 
         bool contains_volume(unsigned int volume_idx) const { return std::find(m_list.begin(), m_list.end(), volume_idx) != m_list.end(); }
+        bool requires_uniform_scale() const;
 
         // Returns the the object id if the selection is from a single object, otherwise is -1
         int get_object_idx() const;
@@ -557,6 +576,9 @@ public:
         void erase();
 
         void render() const;
+#if ENABLE_RENDER_SELECTION_CENTER
+        void render_center() const;
+#endif // ENABLE_RENDER_SELECTION_CENTER
 
     private:
         void _update_valid();
@@ -577,6 +599,7 @@ public:
 #if ENABLE_ENSURE_ON_BED_WHILE_SCALING
         void _ensure_on_bed();
 #endif // ENABLE_ENSURE_ON_BED_WHILE_SCALING
+        bool _requires_local_axes() const;
     };
 
     class ClippingPlane
@@ -607,8 +630,8 @@ public:
 private:
     class Gizmos
     {
-        static const float OverlayTexturesScale;
-        static const float OverlayOffsetX;
+        static const float OverlayIconsScale;
+        static const float OverlayBorder;
         static const float OverlayGapY;
 
     public:
@@ -628,6 +651,9 @@ private:
         bool m_enabled;
         typedef std::map<EType, GLGizmoBase*> GizmosMap;
         GizmosMap m_gizmos;
+#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
+        BackgroundTexture m_background_texture;
+#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
         EType m_current;
 
     public:
@@ -696,6 +722,9 @@ private:
         void _render_current_gizmo(const Selection& selection) const;
 
         float _get_total_overlay_height() const;
+#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
+        float _get_total_overlay_width() const;
+#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
         GLGizmoBase* _get_current() const;
     };
 
@@ -769,11 +798,16 @@ private:
     mutable Gizmos m_gizmos;
     mutable GLToolbar m_toolbar;
 #if ENABLE_REMOVE_TABS_FROM_PLATER
+#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
+    GLToolbar* m_view_toolbar;
+#else
     GLRadioToolbar* m_view_toolbar;
+#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 #endif // ENABLE_REMOVE_TABS_FROM_PLATER
     ClippingPlane m_clipping_planes[2];
     bool m_use_clipping_planes;
     mutable SlaCap m_sla_caps[2];
+    std::string m_sidebar_field;
 
     mutable GLVolumeCollection m_volumes;
     Selection m_selection;
@@ -824,7 +858,11 @@ public:
     wxGLCanvas* get_wxglcanvas() { return m_canvas; }
 
 #if ENABLE_REMOVE_TABS_FROM_PLATER
+#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
+    void set_view_toolbar(GLToolbar* toolbar) { m_view_toolbar = toolbar; }
+#else
     void set_view_toolbar(GLRadioToolbar* toolbar) { m_view_toolbar = toolbar; }
+#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 #endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
     bool init(bool useVBOs, bool use_legacy_opengl);
@@ -856,8 +894,7 @@ public:
     // fills the m_bed.m_grid_lines and sets m_bed.m_origin.
     // Sets m_bed.m_polygon to limit the object placement.
     void set_bed_shape(const Pointfs& shape);
-
-    void set_axes_length(float length);
+    void set_bed_axes_length(double length);
 
     void set_clipping_plane(unsigned int id, const ClippingPlane& plane)
     {
@@ -972,7 +1009,7 @@ public:
     void viewport_changed();
 #endif // ENABLE_CONSTRAINED_CAMERA_TARGET
 
-    void handle_sidebar_focus_event(const std::string& opt_key) {}
+    void handle_sidebar_focus_event(const std::string& opt_key, bool focus_on);
 
 private:
     bool _is_shown_on_screen() const;
@@ -997,9 +1034,12 @@ private:
     void _picking_pass() const;
     void _render_background() const;
     void _render_bed(float theta) const;
-    void _render_axes(bool depth_test) const;
+    void _render_axes() const;
     void _render_objects() const;
     void _render_selection() const;
+#if ENABLE_RENDER_SELECTION_CENTER
+    void _render_selection_center() const;
+#endif // ENABLE_RENDER_SELECTION_CENTER
     void _render_warning_texture() const;
     void _render_legend_texture() const;
     void _render_layer_editing_overlay() const;

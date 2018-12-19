@@ -982,6 +982,10 @@ void ObjectList::del_instances_from_object(const int obj_idx)
 
 bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, const int type)
 {
+	if (obj_idx == 1000)
+		// Cannot delete a wipe tower.
+		return false;
+
     if (type == itVolume) {
         const auto volume = (*m_objects)[obj_idx]->volumes[idx];
 
@@ -1399,6 +1403,20 @@ void ObjectList::update_selections()
     auto& selection = wxGetApp().plater()->canvas3D()->get_selection();
     wxDataViewItemArray sels;
 
+    // We doesn't update selection if SettingsItem for the current object/part is selected
+    if (GetSelectedItemsCount() == 1 && m_objects_model->GetItemType(GetSelection()) == itSettings )
+    {
+        const auto item = GetSelection();
+        if (selection.is_single_full_object() && 
+            m_objects_model->GetIdByItem(m_objects_model->GetParent(item)) == selection.get_object_idx())
+            return; 
+        if (selection.is_single_volume() || selection.is_modifier()) {
+            const auto gl_vol = selection.get_volume(*selection.get_volume_idxs().begin());
+            if (m_objects_model->GetVolumeIdByItem(m_objects_model->GetParent(item)) == gl_vol->volume_idx())
+                return;
+        }
+    }
+
     if (selection.is_single_full_object())
     {
         sels.Add(m_objects_model->GetItemById(selection.get_object_idx()));
@@ -1459,13 +1477,11 @@ void ObjectList::update_selections()
     
     select_items(sels);
 
-#ifdef __WXMSW__
     if (GetSelection()) {
-        const int sel_item_row = GetRowByItem(GetSelection());
+        const int sel_item_row = m_objects_model->GetRowByItem(GetSelection());
         ScrollLines(sel_item_row - m_selected_row);
         m_selected_row = sel_item_row;
     }
-#endif //__WXMSW__
 }
 
 void ObjectList::update_selections_on_canvas()
@@ -1656,7 +1672,9 @@ void ObjectList::change_part_type()
 void ObjectList::last_volume_is_deleted(const int obj_idx)
 {
 
-    if (obj_idx < 0 || (*m_objects).empty() || (*m_objects)[obj_idx]->volumes.empty())
+    if (obj_idx < 0 || m_objects->empty() ||
+        obj_idx <= m_objects->size() ||
+        (*m_objects)[obj_idx]->volumes.empty())
         return;
     auto volume = (*m_objects)[obj_idx]->volumes[0];
 

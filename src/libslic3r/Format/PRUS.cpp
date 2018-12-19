@@ -96,7 +96,6 @@ static void extract_model_from_archive(
     const char *model_xml = strstr(scene_xml_data.data(), model_name_tag);
     const char *zero_tag  = "<zero>";
     const char *zero_xml  = strstr(scene_xml_data.data(), zero_tag);
-    float  trafo[3][4] = { 0 };
     Vec3d instance_rotation = Vec3d::Zero();
     Vec3d instance_scaling_factor = Vec3d::Ones();
     Vec3d instance_offset = Vec3d::Zero();
@@ -124,19 +123,7 @@ static void extract_model_from_archive(
                 "[%f, %f, %f]", zero, zero+1, zero+2) == 3) {
             instance_scaling_factor = Vec3d((double)scale[0], (double)scale[1], (double)scale[2]);
             instance_rotation = Vec3d(-(double)rotation[0], -(double)rotation[1], -(double)rotation[2]);
-            Eigen::Matrix3f mat_rot, mat_scale, mat_trafo;
-            mat_rot = Eigen::AngleAxisf(-rotation[2], Eigen::Vector3f::UnitZ()) * 
-                      Eigen::AngleAxisf(-rotation[1], Eigen::Vector3f::UnitY()) *
-                      Eigen::AngleAxisf(-rotation[0], Eigen::Vector3f::UnitX());
-            mat_scale = Eigen::Scaling(scale[0], scale[1], scale[2]);
-            mat_trafo = mat_rot * mat_scale;
-            for (size_t r = 0; r < 3; ++ r) {
-                for (size_t c = 0; c < 3; ++ c)
-                    trafo[r][c] += mat_trafo(r, c);
-            }
             instance_offset = Vec3d((double)(position[0] - zero[0]), (double)(position[1] - zero[1]), (double)(position[2] - zero[2]));
-            // CHECK_ME -> Is the following correct ?
-            trafo[2][3] = position[2] / (float)instance_scaling_factor(2);
             trafo_set = true;
         }
         const char *group_tag    = "<group>";
@@ -189,8 +176,6 @@ static void extract_model_from_archive(
                 // All the faces have been read.
                 stl_get_size(&stl);
                 mesh.repair();
-                // Transform the model.
-                stl_transform(&stl, &trafo[0][0]);
                 if (std::abs(stl.stats.min(2)) < EPSILON)
                     stl.stats.min(2) = 0.;
                 // Add a mesh to a model.
@@ -274,8 +259,6 @@ static void extract_model_from_archive(
             memcpy((void*)stl.facet_start, facets.data(), facets.size() * 50);
             stl_get_size(&stl);
             mesh.repair();
-            // Transform the model.
-            stl_transform(&stl, &trafo[0][0]);
             // Add a mesh to a model.
             if (mesh.facets_count() > 0)
                 mesh_valid = true;
@@ -329,7 +312,7 @@ bool load_prus(const char *path, Model *model)
             if (! mz_zip_reader_file_stat(&archive, i, &stat))
                 continue;
             std::vector<char> buffer;
-            buffer.assign((size_t)stat.m_uncomp_size + 1, 0);
+            buffer.assign((size_t)stat.m_uncomp_size, 0);
             res = mz_zip_reader_extract_file_to_mem(&archive, stat.m_filename, (char*)buffer.data(), (size_t)stat.m_uncomp_size, 0);
             if (res == MZ_FALSE)
                 std::runtime_error(std::string("Error while extracting a file from ") + path);

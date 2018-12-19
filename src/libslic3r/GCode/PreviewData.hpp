@@ -99,6 +99,9 @@ public:
         void set_default();
         bool is_role_flag_set(ExtrusionRole role) const;
 
+        // Return an estimate of the memory consumed by the time estimator.
+        size_t memory_used() const;
+
         static bool is_role_flag_set(unsigned int flags, ExtrusionRole role);
     };
 
@@ -144,6 +147,9 @@ public:
         size_t color_print_idx;
 
         void set_default();
+
+        // Return an estimate of the memory consumed by the time estimator.
+        size_t memory_used() const;
     };
 
     struct Retraction
@@ -166,6 +172,9 @@ public:
         bool is_visible;
 
         void set_default();
+
+        // Return an estimate of the memory consumed by the time estimator.
+        size_t memory_used() const;
     };
 
     struct Shell
@@ -199,6 +208,9 @@ public:
 
     std::string get_legend_title() const;
     LegendItemsList get_legend_items(const std::vector<float>& tool_colors, const std::vector</*double*/std::pair<double, double>>& cp_values) const;
+
+    // Return an estimate of the memory consumed by the time estimator.
+    size_t memory_used() const;
 };
 
 GCodePreviewData::Color operator + (const GCodePreviewData::Color& c1, const GCodePreviewData::Color& c2);

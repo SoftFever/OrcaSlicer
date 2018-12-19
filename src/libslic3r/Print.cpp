@@ -8,13 +8,14 @@
 #include "SupportMaterial.hpp"
 #include "GCode.hpp"
 #include "GCode/WipeTowerPrusaMM.hpp"
-#include <algorithm>
-#include <unordered_set>
-#include <boost/log/trivial.hpp>
+#include "Utils.hpp"
 
 #include "PrintExport.hpp"
 
+#include <algorithm>
+#include <unordered_set>
 #include <boost/filesystem/path.hpp>
+#include <boost/log/trivial.hpp>
 
 //! macro used to mark string used at localization, 
 //! return same string
@@ -213,6 +214,7 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
             || opt_key == "filament_cooling_final_speed"
             || opt_key == "filament_ramming_parameters"
             || opt_key == "gcode_flavor"
+            || opt_key == "high_current_on_filament_swap"
             || opt_key == "infill_first"
             || opt_key == "single_extruder_multi_material"
             || opt_key == "spiral_vase"
@@ -1051,10 +1053,12 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
                             goto print_object_end;
                     } else {
                         this_region_config = region_config_from_model_volume(m_default_region_config, volume, num_extruders);
-                        for (size_t i = 0; i < region_id; ++ i)
-                            if (m_regions[i]->config().equals(this_region_config))
-                                // Regions were merged. Reset this print_object.
-                                goto print_object_end;
+						for (size_t i = 0; i < region_id; ++i) {
+							const PrintRegion &region_other = *m_regions[i];
+							if (region_other.m_refcnt != 0 && region_other.config().equals(this_region_config))
+								// Regions were merged. Reset this print_object.
+								goto print_object_end;
+						}
                         this_region_config_set = true;
                     }
                 }
@@ -1092,8 +1096,10 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
 			bool         fresh = print_object.region_volumes.empty();
             unsigned int volume_id = 0;
             for (const ModelVolume *volume : model_object.volumes) {
-                if (! volume->is_model_part() && ! volume->is_modifier())
-                    continue;
+                if (! volume->is_model_part() && ! volume->is_modifier()) {
+					++ volume_id;
+					continue;
+				}
                 int region_id = -1;
                 if (&print_object == &print_object0) {
                     // Get the config applied to this volume.
@@ -1101,9 +1107,10 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
                     // Find an existing print region with the same config.
 					int idx_empty_slot = -1;
 					for (int i = 0; i < (int)m_regions.size(); ++ i) {
-						if (m_regions[i]->m_refcnt == 0)
-							idx_empty_slot = i;
-                        else if (config.equals(m_regions[i]->config())) {
+						if (m_regions[i]->m_refcnt == 0) {
+                            if (idx_empty_slot == -1)
+                                idx_empty_slot = i;
+                        } else if (config.equals(m_regions[i]->config())) {
                             region_id = i;
                             break;
                         }
@@ -1469,7 +1476,7 @@ void Print::auto_assign_extruders(ModelObject* model_object) const
 // Slicing process, running at a background thread.
 void Print::process()
 {
-    BOOST_LOG_TRIVIAL(info) << "Staring the slicing process.";
+    BOOST_LOG_TRIVIAL(info) << "Staring the slicing process." << log_memory_info();
     for (PrintObject *obj : m_objects)
         obj->make_perimeters();
     this->set_status(70, "Infilling layers");
@@ -1501,7 +1508,7 @@ void Print::process()
         }
        this->set_done(psWipeTower);
     }
-    BOOST_LOG_TRIVIAL(info) << "Slicing process finished.";
+    BOOST_LOG_TRIVIAL(info) << "Slicing process finished." << log_memory_info();
 }
 
 // G-code export process, running at a background thread.
@@ -1768,7 +1775,8 @@ void Print::_make_wipe_tower()
         float(m_config.wipe_tower_width.value),
         float(m_config.wipe_tower_rotation_angle.value), float(m_config.cooling_tube_retraction.value),
         float(m_config.cooling_tube_length.value), float(m_config.parking_pos_retraction.value),
-        float(m_config.extra_loading_move.value), float(m_config.wipe_tower_bridging), wipe_volumes,
+        float(m_config.extra_loading_move.value), float(m_config.wipe_tower_bridging), 
+        m_config.high_current_on_filament_swap.value, wipe_volumes,
         m_wipe_tower_data.tool_ordering.first_extruder());
 
     //wipe_tower.set_retract();

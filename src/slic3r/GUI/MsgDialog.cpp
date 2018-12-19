@@ -6,6 +6,7 @@
 #include <wx/button.h>
 #include <wx/statbmp.h>
 #include <wx/scrolwin.h>
+#include <wx/clipbrd.h>
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Utils.hpp"
@@ -61,8 +62,11 @@ MsgDialog::~MsgDialog() {}
 
 // ErrorDialog
 
-ErrorDialog::ErrorDialog(wxWindow *parent, const wxString &msg) :
-	MsgDialog(parent, _(L("Slic3r error")), _(L("Slic3r has encountered an error")), wxBitmap(from_u8(Slic3r::var("Slic3r_192px_grayscale.png")), wxBITMAP_TYPE_PNG))
+ErrorDialog::ErrorDialog(wxWindow *parent, const wxString &msg)
+	: MsgDialog(parent, _(L("Slic3r error")), _(L("Slic3r has encountered an error")),
+		wxBitmap(from_u8(Slic3r::var("Slic3r_192px_grayscale.png")), wxBITMAP_TYPE_PNG),
+		wxID_NONE)
+	, msg(msg)
 {
 	auto *panel = new wxScrolledWindow(this);
 	auto *p_sizer = new wxBoxSizer(wxVERTICAL);
@@ -76,6 +80,20 @@ ErrorDialog::ErrorDialog(wxWindow *parent, const wxString &msg) :
 	panel->SetScrollRate(0, 5);
 
 	content_sizer->Add(panel, 1, wxEXPAND);
+
+	auto *btn_copy = new wxButton(this, wxID_ANY, _(L("Copy to clipboard")));
+	btn_copy->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
+		if (wxTheClipboard->Open()) {
+			wxTheClipboard->SetData(new wxTextDataObject(this->msg));   // Note: the clipboard takes ownership of the pointer
+			wxTheClipboard->Close();
+		}
+	});
+
+	auto *btn_ok = new wxButton(this, wxID_OK);
+	btn_ok->SetFocus();
+
+	btn_sizer->Add(btn_copy, 0, wxRIGHT, HORIZ_SPACING);
+	btn_sizer->Add(btn_ok);
 
 	SetMaxSize(wxSize(-1, CONTENT_MAX_HEIGHT));
 	Fit();

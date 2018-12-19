@@ -28,9 +28,15 @@ class Model;
 namespace GUI {
 
 class GLCanvas3D;
+#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+class GLToolbar;
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
+#else
 #if ENABLE_REMOVE_TABS_FROM_PLATER
 class GLRadioToolbar;
 #endif // ENABLE_REMOVE_TABS_FROM_PLATER
+#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 
 #if ENABLE_REMOVE_TABS_FROM_PLATER
 class View3D : public wxPanel
@@ -53,7 +59,11 @@ public:
     wxGLCanvas* get_wxglcanvas() { return m_canvas_widget; }
     GLCanvas3D* get_canvas3d() { return m_canvas; }
 
+#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
+    void set_view_toolbar(GLToolbar* toolbar);
+#else
     void set_view_toolbar(GLRadioToolbar* toolbar);
+#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 
     void set_as_dirty();
     void set_bed_shape(const Pointfs& shape);
@@ -122,7 +132,11 @@ public:
     wxGLCanvas* get_wxglcanvas() { return m_canvas_widget; }
 
 #if ENABLE_REMOVE_TABS_FROM_PLATER
+#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
+    void set_view_toolbar(GLToolbar* toolbar);
+#else
     void set_view_toolbar(GLRadioToolbar* toolbar);
+#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 #endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
     void set_number_extruders(unsigned int number_extruders);

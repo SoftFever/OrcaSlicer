@@ -953,6 +953,44 @@ void PrusaObjectDataViewModel::GetItemInfo(const wxDataViewItem& item, ItemType&
         type = itUndef;
 }
 
+int PrusaObjectDataViewModel::GetRowByItem(const wxDataViewItem& item) const
+{
+    if (m_objects.empty())
+        return -1;
+
+    int row_num = 0;
+    
+    for (int i = 0; i < m_objects.size(); i++)
+    {
+        row_num++;
+        if (item == wxDataViewItem(m_objects[i]))
+            return row_num;
+
+        for (int j = 0; j < m_objects[i]->GetChildCount(); j++)
+        {
+            row_num++;
+            PrusaObjectDataViewModelNode* cur_node = m_objects[i]->GetNthChild(j);
+            if (item == wxDataViewItem(cur_node))
+                return row_num;
+
+            if (cur_node->m_type == itVolume && cur_node->GetChildCount() == 1)
+                row_num++;
+            if (cur_node->m_type == itInstanceRoot)
+            {
+                row_num++;
+                for (int t = 0; t < cur_node->GetChildCount(); t++)
+                {
+                    row_num++;
+                    if (item == wxDataViewItem(cur_node->GetNthChild(t)))
+                        return row_num;
+                }
+            }
+        }        
+    }
+
+    return -1;
+}
+
 wxString PrusaObjectDataViewModel::GetName(const wxDataViewItem &item) const
 {
 	PrusaObjectDataViewModelNode *node = (PrusaObjectDataViewModelNode*)item.GetID();
@@ -1240,6 +1278,16 @@ IMPLEMENT_VARIANT_OBJECT(PrusaDataViewBitmapText)
 // PrusaIconTextRenderer
 // ---------------------------------------------------------
 
+#if ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
+PrusaBitmapTextRenderer::PrusaBitmapTextRenderer(wxDataViewCellMode mode /*= wxDATAVIEW_CELL_EDITABLE*/, 
+                                                 int align /*= wxDVR_DEFAULT_ALIGNMENT*/): 
+wxDataViewRenderer(wxT("PrusaDataViewBitmapText"), mode, align)
+{
+    SetMode(mode);
+    SetAlignment(align);
+}
+#endif // ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
+
 bool PrusaBitmapTextRenderer::SetValue(const wxVariant &value)
 {
     m_value << value;
@@ -1250,6 +1298,13 @@ bool PrusaBitmapTextRenderer::GetValue(wxVariant& WXUNUSED(value)) const
 {
     return false;
 }
+
+#if ENABLE_NONCUSTOM_DATA_VIEW_RENDERING && wxUSE_ACCESSIBILITY
+wxString PrusaBitmapTextRenderer::GetAccessibleDescription() const
+{
+    return m_value.GetText();
+}
+#endif // wxUSE_ACCESSIBILITY && ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
 
 bool PrusaBitmapTextRenderer::Render(wxRect rect, wxDC *dc, int state)
 {
@@ -1291,12 +1346,12 @@ wxWindow* PrusaBitmapTextRenderer::CreateEditorCtrl(wxWindow* parent, wxRect lab
 
     PrusaDataViewBitmapText data;
     data << value;
-    m_bmp_from_editing_item = data.GetBitmap();
+
     m_was_unusable_symbol = false;
 
     wxPoint position = labelRect.GetPosition();
-    if (m_bmp_from_editing_item.IsOk()) {
-        const int bmp_width = m_bmp_from_editing_item.GetWidth();
+    if (data.GetBitmap().IsOk()) {
+        const int bmp_width = data.GetBitmap().GetWidth();
         position.x += bmp_width;
         labelRect.SetWidth(labelRect.GetWidth() - bmp_width);
     }
@@ -1304,6 +1359,7 @@ wxWindow* PrusaBitmapTextRenderer::CreateEditorCtrl(wxWindow* parent, wxRect lab
     wxTextCtrl* text_editor = new wxTextCtrl(parent, wxID_ANY, data.GetText(),
                                              position, labelRect.GetSize(), wxTE_PROCESS_ENTER);
     text_editor->SetInsertionPointEnd();
+    text_editor->SelectAll();
 
     return text_editor;
 }
@@ -1323,7 +1379,17 @@ bool PrusaBitmapTextRenderer::GetValueFromEditorCtrl(wxWindow* ctrl, wxVariant& 
         }
     }
 
-    value << PrusaDataViewBitmapText(text_editor->GetValue(), m_bmp_from_editing_item);
+    // The icon can't be edited so get its old value and reuse it.
+    wxVariant valueOld;
+    GetView()->GetModel()->GetValue(valueOld, m_item, 0); 
+    
+    PrusaDataViewBitmapText bmpText;
+    bmpText << valueOld;
+
+    // But replace the text with the value entered by user.
+    bmpText.SetText(text_editor->GetValue());
+
+    value << bmpText;
     return true;
 }
 

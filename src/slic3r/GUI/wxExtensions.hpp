@@ -463,6 +463,7 @@ public:
     int GetVolumeIdByItem(const wxDataViewItem& item) const;
     int GetInstanceIdByItem(const wxDataViewItem& item) const;
     void GetItemInfo(const wxDataViewItem& item, ItemType& type, int& obj_idx, int& idx);
+    int GetRowByItem(const wxDataViewItem& item) const;
     bool IsEmpty() { return m_objects.empty(); }
 
 	// helper method for wxLog
@@ -518,21 +519,44 @@ public:
 // ----------------------------------------------------------------------------
 // PrusaBitmapTextRenderer
 // ----------------------------------------------------------------------------
-
+#if ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
+class PrusaBitmapTextRenderer : public wxDataViewRenderer
+#else
 class PrusaBitmapTextRenderer : public wxDataViewCustomRenderer
+#endif //ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
 {
 public:
-    PrusaBitmapTextRenderer(  wxDataViewCellMode mode = wxDATAVIEW_CELL_EDITABLE,
-                            int align = wxDVR_DEFAULT_ALIGNMENT): 
-                            wxDataViewCustomRenderer(wxT("PrusaDataViewBitmapText"), mode, align) {}
+    PrusaBitmapTextRenderer(wxDataViewCellMode mode =
+#ifdef __WXOSX__
+                                                        wxDATAVIEW_CELL_INERT
+#else
+                                                        wxDATAVIEW_CELL_EDITABLE
+#endif
+
+                            ,int align = wxDVR_DEFAULT_ALIGNMENT
+#if ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
+                            );
+#else
+                            ) : wxDataViewCustomRenderer(wxT("PrusaDataViewBitmapText"), mode, align) {}
+#endif //ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
 
     bool SetValue(const wxVariant &value);
     bool GetValue(wxVariant &value) const;
+#if ENABLE_NONCUSTOM_DATA_VIEW_RENDERING && wxUSE_ACCESSIBILITY
+    virtual wxString GetAccessibleDescription() const override;
+#endif // wxUSE_ACCESSIBILITY && ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
 
     virtual bool Render(wxRect cell, wxDC *dc, int state);
     virtual wxSize GetSize() const;
 
-    bool        HasEditorCtrl() const override { return true; }
+    bool        HasEditorCtrl() const override
+    {
+#ifdef __WXOSX__
+        return false;
+#else
+        return true;
+#endif        
+    }
     wxWindow*   CreateEditorCtrl(wxWindow* parent, 
                                  wxRect labelRect, 
                                  const wxVariant& value) override;
@@ -542,8 +566,7 @@ public:
 
 private:
     PrusaDataViewBitmapText m_value;
-    wxBitmap                m_bmp_from_editing_item;
-    bool                    m_was_unusable_symbol;
+    bool                    m_was_unusable_symbol {false};
 };
 
 

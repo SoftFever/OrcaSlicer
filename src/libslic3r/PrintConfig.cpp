@@ -925,6 +925,15 @@ void PrintConfigDef::init_fff_params()
     def->mode = comExpert;
     def->default_value = new ConfigOptionEnum<GCodeFlavor>(gcfRepRap);
 
+    def = this->add("high_current_on_filament_swap", coBool);
+    def->label = L("High extruder current on filament swap");
+    def->tooltip = L("It may be beneficial to increase the extruder motor current during the filament exchange"
+                   " sequence to allow for rapid ramming feed rates and to overcome resistance when loading"
+                   " a filament with an ugly shaped tip.");
+    def->cli = "high-current-on-filament-swap!";
+    def->mode = comExpert;
+    def->default_value = new ConfigOptionBool(0);
+
     def = this->add("infill_acceleration", coFloat);
     def->label = L("Infill");
     def->tooltip = L("This is the acceleration your printer will use for infill. Set zero to disable "
@@ -2394,8 +2403,10 @@ void PrintConfigDef::init_sla_params()
     def->tooltip = L("Display orientation");
     def->cli = "display-orientation=s";
     def->enum_keys_map = &ConfigOptionEnum<SLADisplayOrientation>::get_enum_values();
-    def->enum_values.push_back("Landscape");
-    def->enum_values.push_back("Portrait");
+    def->enum_values.push_back("landscape");
+    def->enum_values.push_back("portrait");
+    def->enum_labels.push_back(L("Landscape"));
+    def->enum_labels.push_back(L("Portrait"));
     def->default_value = new ConfigOptionEnum<SLADisplayOrientation>(sladoPortrait);
 
     def = this->add("printer_correction", coFloats);

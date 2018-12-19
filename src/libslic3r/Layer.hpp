@@ -114,7 +114,8 @@ public:
     LayerRegion*            get_region(int idx) { return m_regions[idx]; }
     LayerRegion*            add_region(PrintRegion* print_region);
     const LayerRegionPtrs&  regions() const { return m_regions; }
-    
+    // Test whether whether there are any slices assigned to this layer.
+    bool                    empty() const;    
     void                    make_slices();
     void                    merge_slices();
     template <class T> bool any_internal_region_slice_contains(const T &item) const {

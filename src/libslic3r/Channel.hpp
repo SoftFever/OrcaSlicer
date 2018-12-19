@@ -1,6 +1,7 @@
 #ifndef slic3r_Channel_hpp_
 #define slic3r_Channel_hpp_
 
+#include <memory>
 #include <deque>
 #include <condition_variable>
 #include <mutex>
@@ -13,32 +14,26 @@ namespace Slic3r {
 
 template<class T> class Channel
 {
-private:
-    using UniqueLock = std::unique_lock<std::mutex>;
-    using Queue = std::deque<T>;
 public:
-    class Guard
+    using UniqueLock = std::unique_lock<std::mutex>;
+
+    template<class Ptr> class Unlocker
     {
     public:
-        Guard(UniqueLock lock, const Queue &queue) : m_lock(std::move(lock)), m_queue(queue) {}
-        Guard(const Guard &other) = delete;
-        Guard(Guard &&other) = delete;
-        ~Guard() {}
+        Unlocker(UniqueLock lock) : m_lock(std::move(lock)) {}
+        Unlocker(const Unlocker &other) noexcept : m_lock(std::move(other.m_lock)) {}     // XXX: done beacuse of MSVC 2013 not supporting init of deleter by move
+        Unlocker(Unlocker &&other) noexcept : m_lock(std::move(other.m_lock)) {}
+        Unlocker& operator=(const Unlocker &other) = delete;
+        Unlocker& operator=(Unlocker &&other) { m_lock = std::move(other.m_lock); }
 
-        // Access trampolines
-        size_t size() const noexcept { return m_queue.size(); }
-        bool empty() const noexcept { return m_queue.empty(); }
-        typename Queue::const_iterator begin() const noexcept { return m_queue.begin(); }
-        typename Queue::const_iterator end() const noexcept { return m_queue.end(); }
-        typename Queue::const_reference operator[](size_t i) const { return m_queue[i]; }
-
-        Guard& operator=(const Guard &other) = delete;
-        Guard& operator=(Guard &&other) = delete;
+        void operator()(Ptr*) { m_lock.unlock(); }
     private:
-        UniqueLock m_lock;
-        const Queue &m_queue;
+        mutable UniqueLock m_lock;    // XXX: mutable: see above
     };
 
+    using Queue = std::deque<T>;
+    using LockedConstPtr = std::unique_ptr<const Queue, Unlocker<const Queue>>;
+    using LockedPtr = std::unique_ptr<Queue, Unlocker<Queue>>;
 
     Channel() {}
     ~Channel() {}
@@ -56,7 +51,7 @@ public:
     {
         {
             UniqueLock lock(m_mutex);
-            m_queue.push_back(std::forward(item));
+            m_queue.push_back(std::forward<T>(item));
         }
         if (! silent) { m_condition.notify_one(); }
     }
@@ -82,19 +77,22 @@ public:
         }
     }
 
-    // Unlocked observers
-    // Thread unsafe! Keep in mind you need to re-verify the result after acquiring lock!
-    size_t size() const noexcept { return m_queue.size(); }
-    bool empty() const noexcept { return m_queue.empty(); }
+    // Unlocked observers/hints
+    // Thread unsafe! Keep in mind you need to re-verify the result after locking!
+    size_t size_hint() const noexcept { return m_queue.size(); }
 
-    Guard read() const
+    LockedConstPtr lock_read() const
     {
-        return Guard(UniqueLock(m_mutex), m_queue);
+        return LockedConstPtr(&m_queue, Unlocker<const Queue>(UniqueLock(m_mutex)));
     }
 
+    LockedPtr lock_rw()
+    {
+        return LockedPtr(&m_queue, Unlocker<Queue>(UniqueLock(m_mutex)));
+    }
 private:
     Queue m_queue;
-    std::mutex m_mutex;
+    mutable std::mutex m_mutex;
     std::condition_variable m_condition;
 };
 

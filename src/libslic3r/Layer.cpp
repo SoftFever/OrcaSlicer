@@ -17,6 +17,16 @@ Layer::~Layer()
     m_regions.clear();
 }
 
+// Test whether whether there are any slices assigned to this layer.
+bool Layer::empty() const
+{
+	for (const LayerRegion *layerm : m_regions)
+        if (layerm != nullptr && ! layerm->slices.empty())
+            // Non empty layer.
+            return false;
+    return true;
+}
+
 LayerRegion* Layer::add_region(PrintRegion* print_region)
 {
     m_regions.emplace_back(new LayerRegion(this, print_region));
