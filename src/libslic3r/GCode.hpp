@@ -180,7 +180,7 @@ public:
     static void append_full_config(const Print& print, std::string& str);
 
 protected:
-    void            _do_export(Print &print, FILE *file, GCodePreviewData *preview_data);
+    void            _do_export(Print &print, FILE *file);
 
     // Object and support extrusions of the same PrintObject at the same print_z.
     struct LayerToPrint

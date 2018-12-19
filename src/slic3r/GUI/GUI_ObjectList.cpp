@@ -982,6 +982,10 @@ void ObjectList::del_instances_from_object(const int obj_idx)
 
 bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, const int type)
 {
+	if (obj_idx == 1000)
+		// Cannot delete a wipe tower.
+		return false;
+
     if (type == itVolume) {
         const auto volume = (*m_objects)[obj_idx]->volumes[idx];
 

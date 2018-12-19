@@ -1526,9 +1526,8 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
         if (max_ratio > 10000) {
             // the size of the object is too big -> this could lead to overflow when moving to clipper coordinates,
             // so scale down the mesh
-            // const Vec3d inverse = ratio.cwiseInverse();
-            // object->scale(inverse);
-            object->scale(ratio.cwiseInverse());
+			double inv = 1. / max_ratio;
+			object->scale(Vec3d(inv, inv, inv));
             scaled_down = true;
         } else if (max_ratio > 5) {
             const Vec3d inverse = ratio.cwiseInverse();

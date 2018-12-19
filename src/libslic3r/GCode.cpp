@@ -435,9 +435,11 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
     if (file == nullptr)
         throw std::runtime_error(std::string("G-code export to ") + path + " failed.\nCannot open the file for writing.\n");
 
+    m_enable_analyzer = preview_data != nullptr;
+
     try {
         m_placeholder_parser_failed_templates.clear();
-        this->_do_export(*print, file, preview_data);
+        this->_do_export(*print, file);
         fflush(file);
         if (ferror(file)) {
             fclose(file);
@@ -453,15 +455,6 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
     }
     fclose(file);
 
-    if (print->config().remaining_times.value) {
-        BOOST_LOG_TRIVIAL(debug) << "Processing remaining times for normal mode";
-        m_normal_time_estimator.post_process_remaining_times(path_tmp, 60.0f);
-        if (m_silent_time_estimator_enabled) {
-            BOOST_LOG_TRIVIAL(debug) << "Processing remaining times for silent mode";
-            m_silent_time_estimator.post_process_remaining_times(path_tmp, 60.0f);
-        }
-    }
-
     if (! m_placeholder_parser_failed_templates.empty()) {
         // G-code export proceeded, but some of the PlaceholderParser substitutions failed.
         std::string msg = std::string("G-code export to ") + path + " failed due to invalid custom G-code sections:\n\n";
@@ -473,6 +466,24 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
         msg += "and\n";
         msg += "        !!!!! End of an error report for the custom G-code template ...\n";
         throw std::runtime_error(msg);
+    }
+
+    if (print->config().remaining_times.value) {
+        BOOST_LOG_TRIVIAL(debug) << "Processing remaining times for normal mode";
+        m_normal_time_estimator.post_process_remaining_times(path_tmp, 60.0f);
+        m_normal_time_estimator.reset();
+        if (m_silent_time_estimator_enabled) {
+            BOOST_LOG_TRIVIAL(debug) << "Processing remaining times for silent mode";
+            m_silent_time_estimator.post_process_remaining_times(path_tmp, 60.0f);
+            m_silent_time_estimator.reset();
+        }
+    }
+
+    // starts analyzer calculations
+    if (m_enable_analyzer) {
+        BOOST_LOG_TRIVIAL(debug) << "Preparing G-code preview data";
+        m_analyzer.calc_gcode_preview_data(*preview_data);
+        m_analyzer.reset();
     }
 
     if (rename_file(path_tmp, path) != 0)
@@ -488,7 +499,7 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
     PROFILE_OUTPUT(debug_out_path("gcode-export-profile.txt").c_str());
 }
 
-void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
+void GCode::_do_export(Print &print, FILE *file)
 {
     PROFILE_FUNC();
 
@@ -558,7 +569,6 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
 
     // resets analyzer
     m_analyzer.reset();
-    m_enable_analyzer = preview_data != nullptr;
 
     // resets analyzer's tracking data
     m_last_mm3_per_mm = GCodeAnalyzer::Default_mm3_per_mm;
@@ -1034,12 +1044,6 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
             _write(file, full_config);
     }
     print.throw_if_canceled();
-
-    // starts analyzer calculations
-    if (preview_data != nullptr) {
-        BOOST_LOG_TRIVIAL(debug) << "Preparing G-code preview data";
-        m_analyzer.calc_gcode_preview_data(*preview_data);
-    }
 }
 
 std::string GCode::placeholder_parser_process(const std::string &name, const std::string &templ, unsigned int current_extruder_id, const DynamicConfig *config_override)
@@ -1644,8 +1648,11 @@ void GCode::process_layer(
     // printf("G-code after filter:\n%s\n", out.c_str());
     
     _write(file, gcode);
-    BOOST_LOG_TRIVIAL(trace) << "Exported layer " << layer.id() << " print_z " << print_z << ", time estimator memory: " + 
-        format_memsize_MB(m_normal_time_estimator.memory_used() + m_silent_time_estimator_enabled ? m_silent_time_estimator.memory_used() : 0);
+    BOOST_LOG_TRIVIAL(trace) << "Exported layer " << layer.id() << " print_z " << print_z << 
+        ", time estimator memory: " <<
+            format_memsize_MB(m_normal_time_estimator.memory_used() + m_silent_time_estimator_enabled ? m_silent_time_estimator.memory_used() : 0) <<
+        ", analyzer memory: " <<
+            format_memsize_MB(m_analyzer.memory_used());
 }
 
 void GCode::apply_print_config(const PrintConfig &print_config)
