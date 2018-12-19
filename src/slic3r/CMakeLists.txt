@@ -10,6 +10,8 @@ add_library(libslic3r_gui STATIC
     GUI/AboutDialog.hpp
     GUI/SysInfoDialog.cpp
     GUI/SysInfoDialog.hpp
+    GUI/KBShortcutsDialog.cpp
+    GUI/KBShortcutsDialog.hpp
     GUI/AppConfig.cpp
     GUI/AppConfig.hpp
     GUI/BackgroundSlicingProcess.cpp
