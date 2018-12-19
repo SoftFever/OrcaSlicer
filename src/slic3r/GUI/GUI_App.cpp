@@ -434,7 +434,7 @@ bool GUI_App::select_language(  wxArrayString & names,
         m_wxLocale = new wxLocale;
         m_wxLocale->Init(identifiers[index]);
         m_wxLocale->AddCatalogLookupPathPrefix(localization_dir());
-        m_wxLocale->AddCatalog(GetAppName());
+        m_wxLocale->AddCatalog(/*GetAppName()*/"Slic3rPE");
         wxSetlocale(LC_NUMERIC, "C");
         Preset::update_suffix_modified();
         return true;
@@ -461,7 +461,7 @@ bool GUI_App::load_language()
             m_wxLocale = new wxLocale;
             m_wxLocale->Init(identifiers[i]);
             m_wxLocale->AddCatalogLookupPathPrefix(localization_dir());
-            m_wxLocale->AddCatalog(GetAppName());
+            m_wxLocale->AddCatalog(/*GetAppName()*/"Slic3rPE");
             wxSetlocale(LC_NUMERIC, "C");
             Preset::update_suffix_modified();
             return true;
@@ -504,7 +504,8 @@ void GUI_App::get_installed_languages(wxArrayString & names, wxArrayLong & ident
         {
             auto full_file_name = dir.GetName() + wxFileName::GetPathSeparator() +
                 filename + wxFileName::GetPathSeparator() +
-                GetAppName() + wxT(".mo");
+                /*GetAppName()*/"Slic3rPE" + 
+                wxT(".mo");
             if (wxFileExists(full_file_name))
             {
                 names.Add(langinfo->Description);

@@ -23,7 +23,7 @@ KBShortcutsDialog::KBShortcutsDialog()
 
     wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
     font.SetPointSize(10);
-    const wxFont bold_font = font.Bold();
+    wxFont bold_font = font.Bold();
 #ifdef __WXOSX__
     font.SetPointSize(12);
     bold_font.SetPointSize(14);
