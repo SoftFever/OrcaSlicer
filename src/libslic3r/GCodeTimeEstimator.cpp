@@ -290,7 +290,8 @@ namespace Slic3r {
         // buffer line to export only when greater than 64K to reduce writing calls
         std::string export_line;
         char time_line[64];
-        while (std::getline(in, gcode_line))
+		G1LineIdToBlockIdMap::const_iterator it_line_id = _g1_line_ids.begin();
+		while (std::getline(in, gcode_line))
         {
             if (!in.good())
             {
@@ -309,7 +310,6 @@ namespace Slic3r {
                gcode_line += "\n";
 
             // add remaining time lines where needed
-            G1LineIdToBlockIdMap::const_iterator it_line_id = _g1_line_ids.begin();
             _parser.parse_line(gcode_line,
                 [this, &it_line_id, &g1_lines_count, &last_recorded_time, &time_line, &gcode_line, time_mask, interval](GCodeReader& reader, const GCodeReader::GCodeLine& line)
             {
@@ -317,23 +317,23 @@ namespace Slic3r {
                 {
                     ++g1_lines_count;
 
-                    if (!line.has_e())
-                        return;
+					assert(it_line_id == _g1_line_ids.end() || it_line_id->first >= g1_lines_count);
 
-                    if ((it_line_id != _g1_line_ids.end()) && (it_line_id->first == g1_lines_count) && (it_line_id->second < (unsigned int)_blocks.size()))
-                    {
-                        const Block& block = _blocks[it_line_id->second];
-                        ++ it_line_id;
-                        if (block.elapsed_time != -1.0f)
+					const Block *block = nullptr;
+					if (it_line_id != _g1_line_ids.end() && it_line_id->first == g1_lines_count) {
+						if (line.has_e() && it_line_id->second < (unsigned int)_blocks.size())
+							block = &_blocks[it_line_id->second];
+						++it_line_id;
+					}
+
+					if (block != nullptr && block->elapsed_time != -1.0f) {
+                        float block_remaining_time = _time - block->elapsed_time;
+                        if (std::abs(last_recorded_time - block_remaining_time) > interval)
                         {
-                            float block_remaining_time = _time - block.elapsed_time;
-                            if (std::abs(last_recorded_time - block_remaining_time) > interval)
-                            {
-                                sprintf(time_line, time_mask.c_str(), std::to_string((int)(100.0f * block.elapsed_time / _time)).c_str(), _get_time_minutes(block_remaining_time).c_str());
-                                gcode_line += time_line;
+                            sprintf(time_line, time_mask.c_str(), std::to_string((int)(100.0f * block->elapsed_time / _time)).c_str(), _get_time_minutes(block_remaining_time).c_str());
+                            gcode_line += time_line;
 
-                                last_recorded_time = block_remaining_time;
-                            }
+                            last_recorded_time = block_remaining_time;
                         }
                     }
                 }
