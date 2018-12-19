@@ -1,6 +1,6 @@
 #include "KBShortcutsDialog.hpp"
 #include "I18N.hpp"
-#include "..\libslic3r\Utils.hpp"
+#include "libslic3r/Utils.hpp"
 #include "GUI.hpp"
 #include <wx/scrolwin.h>
 
@@ -104,6 +104,7 @@ void KBShortcutsDialog::fill_shortcuts()
     main_shortcuts.push_back(Shortcut("0-6",            L("Camera view ")));
     main_shortcuts.push_back(Shortcut("+",              L("Add Instance to selected object ")));
     main_shortcuts.push_back(Shortcut("-",              L("Remove Instance from selected object")));
+    main_shortcuts.push_back(Shortcut("?",              L("Show keyboard shortcuts list")));
     main_shortcuts.push_back(Shortcut("PgUp/PgDn",      L("Switch between 3D and Preview")));
     main_shortcuts.push_back(Shortcut("Shift+LeftMouse",L("Select multiple object/Move multiple object")));
 
