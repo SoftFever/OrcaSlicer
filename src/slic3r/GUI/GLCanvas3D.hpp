@@ -369,12 +369,6 @@ class GLCanvas3D
 public:
     class Selection
     {
-#if ENABLE_SIDEBAR_VISUAL_HINTS
-        static const float RED[3];
-        static const float GREEN[3];
-        static const float BLUE[3];
-#endif // ENABLE_SIDEBAR_VISUAL_HINTS
-
     public:
         typedef std::set<unsigned int> IndicesList;
 
@@ -504,6 +498,7 @@ public:
 #endif // ENABLE_RENDER_SELECTION_CENTER
 #if ENABLE_SIDEBAR_VISUAL_HINTS
         mutable GLArrow m_arrow;
+        mutable GLCurvedArrow m_curved_arrow;
 #endif // ENABLE_SIDEBAR_VISUAL_HINTS
 
     public:
@@ -619,7 +614,7 @@ public:
         void _render_sidebar_scale_hints(const std::string& sidebar_field) const;
         void _render_sidebar_size_hints(const std::string& sidebar_field) const;
         void _render_sidebar_position_hint(Axis axis) const;
-        void _render_sidebar_rotation_hint(Axis axis, double length) const;
+        void _render_sidebar_rotation_hint(Axis axis) const;
         void _render_sidebar_scale_hint(Axis axis) const;
         void _render_sidebar_size_hint(Axis axis, double length) const;
 #endif // ENABLE_SIDEBAR_VISUAL_HINTS

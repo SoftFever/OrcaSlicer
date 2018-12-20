@@ -1872,6 +1872,7 @@ GUI::GLCanvas3DManager _3DScene::s_canvas_mgr;
 GLModel::GLModel()
     : m_useVBOs(false)
 {
+    m_volume.shader_outside_printer_detection_enabled = false;
 }
 
 GLModel::~GLModel()
@@ -1879,9 +1880,34 @@ GLModel::~GLModel()
     m_volume.release_geometry();
 }
 
-void GLModel::set_color(float* color, unsigned int size)
+void GLModel::set_color(const float* color, unsigned int size)
 {
     m_volume.set_render_color(color, size);
+}
+
+const Vec3d& GLModel::get_offset() const
+{
+    return m_volume.get_volume_offset();
+}
+
+void GLModel::set_offset(const Vec3d& offset)
+{
+    m_volume.set_volume_offset(offset);
+}
+
+const Vec3d& GLModel::get_rotation() const
+{
+    return m_volume.get_volume_rotation();
+}
+
+void GLModel::set_rotation(const Vec3d& rotation)
+{
+    m_volume.set_volume_rotation(rotation);
+}
+
+const Vec3d& GLModel::get_scale() const
+{
+    return m_volume.get_volume_scaling_factor();
 }
 
 void GLModel::set_scale(const Vec3d& scale)
@@ -1910,8 +1936,9 @@ void GLModel::render_VBOs() const
     GLint current_program_id;
     ::glGetIntegerv(GL_CURRENT_PROGRAM, &current_program_id);
     GLint color_id = (current_program_id > 0) ? glGetUniformLocation(current_program_id, "uniform_color") : -1;
+    GLint print_box_detection_id = (current_program_id > 0) ? glGetUniformLocation(current_program_id, "print_box.volume_detection") : -1;
 
-    m_volume.render_VBOs(color_id, -1, -1);
+    m_volume.render_VBOs(color_id, print_box_detection_id, -1);
 
     ::glBindBuffer(GL_ARRAY_BUFFER, 0);
     ::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -1922,17 +1949,12 @@ void GLModel::render_VBOs() const
     ::glDisable(GL_BLEND);
 }
 
-GLArrow::GLArrow()
-    : GLModel()
-{
-}
-
 bool GLArrow::on_init(bool useVBOs)
 {
     Pointf3s vertices;
     std::vector<Vec3crd> triangles;
 
-    // top face
+    // bottom face
     vertices.emplace_back(0.5, 0.0, -0.1);
     vertices.emplace_back(0.5, 2.0, -0.1);
     vertices.emplace_back(1.0, 2.0, -0.1);
@@ -1941,7 +1963,7 @@ bool GLArrow::on_init(bool useVBOs)
     vertices.emplace_back(-0.5, 2.0, -0.1);
     vertices.emplace_back(-0.5, 0.0, -0.1);
 
-    // bottom face
+    // top face
     vertices.emplace_back(0.5, 0.0, 0.1);
     vertices.emplace_back(0.5, 2.0, 0.1);
     vertices.emplace_back(1.0, 2.0, 0.1);
@@ -1979,6 +2001,126 @@ bool GLArrow::on_init(bool useVBOs)
     triangles.emplace_back(13, 12, 5);
     triangles.emplace_back(6, 0, 7);
     triangles.emplace_back(7, 13, 6);
+
+    m_useVBOs = useVBOs;
+
+    if (m_useVBOs)
+        m_volume.indexed_vertex_array.load_mesh_full_shading(TriangleMesh(vertices, triangles));
+    else
+        m_volume.indexed_vertex_array.load_mesh_flat_shading(TriangleMesh(vertices, triangles));
+
+    m_volume.finalize_geometry(m_useVBOs);
+    return true;
+}
+
+GLCurvedArrow::GLCurvedArrow(unsigned int resolution)
+    : GLModel()
+    , m_resolution(resolution)
+{
+    if (m_resolution == 0)
+        m_resolution = 1;
+}
+
+bool GLCurvedArrow::on_init(bool useVBOs)
+{
+    Pointf3s vertices;
+    std::vector<Vec3crd> triangles;
+
+    double ext_radius = 2.5;
+    double int_radius = 1.5;
+    double step = 0.5 * (double)PI / (double)m_resolution;
+
+    unsigned int vertices_per_level = 4 + 2 * m_resolution;
+
+    // bottom face
+    vertices.emplace_back(0.0, 1.5, -0.1);
+    vertices.emplace_back(0.0, 1.0, -0.1);
+    vertices.emplace_back(-1.0, 2.0, -0.1);
+    vertices.emplace_back(0.0, 3.0, -0.1);
+    vertices.emplace_back(0.0, 2.5, -0.1);
+
+    for (unsigned int i = 1; i <= m_resolution; ++i)
+    {
+        double angle = (double)i * step;
+        double x = ext_radius * ::sin(angle);
+        double y = ext_radius * ::cos(angle);
+
+        vertices.emplace_back(x, y, -0.1);
+    }
+
+    for (unsigned int i = 0; i < m_resolution; ++i)
+    {
+        double angle = (double)i * step;
+        double x = int_radius * ::cos(angle);
+        double y = int_radius * ::sin(angle);
+
+        vertices.emplace_back(x, y, -0.1);
+    }
+
+    // top face
+    vertices.emplace_back(0.0, 1.5, 0.1);
+    vertices.emplace_back(0.0, 1.0, 0.1);
+    vertices.emplace_back(-1.0, 2.0, 0.1);
+    vertices.emplace_back(0.0, 3.0, 0.1);
+    vertices.emplace_back(0.0, 2.5, 0.1);
+
+    for (unsigned int i = 1; i <= m_resolution; ++i)
+    {
+        double angle = (double)i * step;
+        double x = ext_radius * ::sin(angle);
+        double y = ext_radius * ::cos(angle);
+
+        vertices.emplace_back(x, y, 0.1);
+    }
+
+    for (unsigned int i = 0; i < m_resolution; ++i)
+    {
+        double angle = (double)i * step;
+        double x = int_radius * ::cos(angle);
+        double y = int_radius * ::sin(angle);
+
+        vertices.emplace_back(x, y, 0.1);
+    }
+
+    // bottom face
+    triangles.emplace_back(0, 1, 2);
+    triangles.emplace_back(0, 2, 4);
+    triangles.emplace_back(4, 2, 3);
+
+    int first_id = 4;
+    int last_id = (int)vertices_per_level;
+    triangles.emplace_back(last_id, 0, first_id);
+    triangles.emplace_back(last_id, first_id, first_id + 1);
+    for (unsigned int i = 1; i < m_resolution; ++i)
+    {
+        triangles.emplace_back(last_id - i, last_id - i + 1, first_id + i);
+        triangles.emplace_back(last_id - i, first_id + i, first_id + i + 1);
+    }
+
+    // top face
+    last_id += 1;
+    triangles.emplace_back(last_id + 0, last_id + 2, last_id + 1);
+    triangles.emplace_back(last_id + 0, last_id + 4, last_id + 2);
+    triangles.emplace_back(last_id + 4, last_id + 3, last_id + 2);
+
+    first_id = last_id + 4;
+    last_id = last_id + 4 + 2 * (int)m_resolution;
+    triangles.emplace_back(last_id, first_id, (int)vertices_per_level + 1);
+    triangles.emplace_back(last_id, first_id + 1, first_id);
+    for (unsigned int i = 1; i < m_resolution; ++i)
+    {
+        triangles.emplace_back(last_id - i, first_id + i, last_id - i + 1);
+        triangles.emplace_back(last_id - i, first_id + i + 1, first_id + i);
+    }
+
+    // side face
+    for (unsigned int i = 0; i < 4 + 2 * (int)m_resolution; ++i)
+    {
+        triangles.emplace_back(i, vertices_per_level + 2 + i, i + 1);
+        triangles.emplace_back(i, vertices_per_level + 1 + i, vertices_per_level + 2 + i);
+    }
+    triangles.emplace_back(vertices_per_level, vertices_per_level + 1, 0);
+    triangles.emplace_back(vertices_per_level, 2 * vertices_per_level + 1, vertices_per_level + 1);
 
     m_useVBOs = useVBOs;
 
