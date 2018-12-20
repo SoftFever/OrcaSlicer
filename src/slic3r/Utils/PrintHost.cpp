@@ -127,6 +127,7 @@ void PrintHostJobQueue::priv::progress_fn(Http::Progress progress, bool &cancel)
             } else if (cancel_id > job_id) {
                 jobs->at(cancel_id - job_id).cancelled = true;
             }
+            // TODO: emit cancelled
         }
 
         cancels->clear();

@@ -13,9 +13,11 @@
 #include "MsgDialog.hpp"
 #include "../Utils/PrintHost.hpp"
 
+class wxButton;
 class wxTextCtrl;
 class wxCheckBox;
 class wxDataViewListCtrl;
+
 
 namespace Slic3r {
 
@@ -60,11 +62,34 @@ public:
 
     void append_job(const PrintHostJob &job);
 private:
+    enum Column {
+        COL_ID,
+        COL_PROGRESS,
+        COL_STATUS,
+        COL_HOST,
+        COL_FILENAME,
+        COL_ERRORMSG,
+    };
+
+    enum JobState {
+        ST_NEW,
+        ST_PROGRESS,
+        ST_ERROR,
+        ST_CANCELLING,
+        ST_CANCELLED,
+        ST_COMPLETED,
+    };
+
+    wxButton *btn_cancel;
+    wxButton *btn_error;
     wxDataViewListCtrl *job_list;
     // Note: EventGuard prevents delivery of progress evts to a freed PrintHostQueueDialog
     EventGuard on_progress_evt;
     EventGuard on_error_evt;
 
+    JobState get_state(int idx);
+    void set_state(int idx, JobState);
+    void on_list_select();
     void on_progress(Event&);
     void on_error(Event&);
 };
