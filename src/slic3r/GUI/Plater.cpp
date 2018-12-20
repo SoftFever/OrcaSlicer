@@ -1162,9 +1162,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     hsizer->Add(sidebar, 0, wxEXPAND | wxLEFT | wxRIGHT, 0);
     q->SetSizer(hsizer);
 
-#if ENABLE_REMOVE_TABS_FROM_PLATER
-    set_current_panel(view3D);
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
+//#if ENABLE_REMOVE_TABS_FROM_PLATER
+//    set_current_panel(view3D);
+//#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
     init_object_menu();
 
@@ -1251,6 +1251,10 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
     update_ui_from_settings();
     q->Layout();
+
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    set_current_panel(view3D);
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 }
 
 void Plater::priv::update(bool force_full_scene_refresh)
