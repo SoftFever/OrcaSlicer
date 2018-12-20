@@ -872,6 +872,7 @@ void SLAPrint::process()
             if(po->m_stepmask[currentstep] && po->set_started(currentstep)) {
                 report_status(*this, int(st), OBJ_STEP_LABELS[currentstep]);
                 pobj_program[currentstep](*po);
+                throw_if_canceled();
                 po->set_done(currentstep);
             }
 
@@ -897,6 +898,7 @@ void SLAPrint::process()
         {
             report_status(*this, int(st), PRINT_STEP_LABELS[currentstep]);
             print_program[currentstep]();
+            throw_if_canceled();
             set_done(currentstep);
         }
 
