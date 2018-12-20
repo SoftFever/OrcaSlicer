@@ -1506,6 +1506,21 @@ void PrusaDoubleSlider::SetHigherValue(const int higher_val)
     ProcessWindowEvent(e);
 }
 
+void PrusaDoubleSlider::SetSelectionSpan(const int lower_val, const int higher_val)
+{
+    m_lower_value  = std::max(lower_val, m_min_value);
+    m_higher_value = std::max(std::min(higher_val, m_max_value), m_lower_value);
+    if (m_lower_value < m_higher_value)
+        m_is_one_layer = false;
+
+    Refresh();
+    Update();
+
+    wxCommandEvent e(wxEVT_SCROLL_CHANGED);
+    e.SetEventObject(this);
+    ProcessWindowEvent(e);
+}
+
 void PrusaDoubleSlider::SetMaxValue(const int max_value)
 {
     m_max_value = max_value;

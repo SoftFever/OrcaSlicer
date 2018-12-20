@@ -697,18 +697,20 @@ public:
         const wxString& name = wxEmptyString);
     ~PrusaDoubleSlider() {}
 
-    int GetLowerValue() const {
-        return m_lower_value;
-    }
-    int GetHigherValue() const {
-        return m_higher_value;
-    }
+    int GetMinValue() const { return m_min_value; }
+    int GetMaxValue() const { return m_max_value; }
+    double GetMinValueD()  { return m_values.empty() ? 0. : m_values[m_min_value].second; }
+    double GetMaxValueD() { return m_values.empty() ? 0. : m_values[m_max_value].second; }
+    int GetLowerValue() const { return m_lower_value; }
+    int GetHigherValue() const { return m_higher_value; }
     int GetActiveValue() const;
     double GetLowerValueD()  { return get_double_value(ssLower); }
     double GetHigherValueD() { return get_double_value(ssHigher); }
     wxSize DoGetBestSize() const override;
     void SetLowerValue(const int lower_val);
     void SetHigherValue(const int higher_val);
+    // Set low and high slider position. If the span is non-empty, disable the "one layer" mode.
+    void SetSelectionSpan(const int lower_val, const int higher_val);
     void SetMaxValue(const int max_value);
     void SetKoefForLabels(const double koef) {
         m_label_koef = koef;
@@ -725,6 +727,12 @@ public:
     void DisableTickManipulation() {
         EnableTickManipulation(false);
     }
+
+	bool is_horizontal() const { return m_style == wxSL_HORIZONTAL; }
+	bool is_one_layer() const { return m_is_one_layer; }
+    bool is_lower_at_min() const { return m_lower_value == m_min_value; }
+    bool is_higher_at_max() const { return m_higher_value == m_max_value; }
+    bool is_full_span() const { return this->is_lower_at_min() && this->is_higher_at_max(); }
 
     void OnPaint(wxPaintEvent& ) { render();}
     void OnLeftDown(wxMouseEvent& event);
@@ -762,7 +770,6 @@ protected:
 
     bool    is_point_in_rect(const wxPoint& pt, const wxRect& rect);
     int     is_point_near_tick(const wxPoint& pt);
-    bool    is_horizontal() const { return m_style == wxSL_HORIZONTAL; }
 
     double      get_scroll_step();
     wxString    get_label(const SelectedSlider& selection) const;
