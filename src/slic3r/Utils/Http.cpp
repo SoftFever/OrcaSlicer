@@ -235,7 +235,9 @@ void Http::priv::http_perform()
 #if LIBCURL_VERSION_MAJOR >= 7 && LIBCURL_VERSION_MINOR >= 32
 	::curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, xfercb);
 	::curl_easy_setopt(curl, CURLOPT_XFERINFODATA, static_cast<void*>(this));
+#ifndef _WIN32
 	(void)xfercb_legacy;   // prevent unused function warning
+#endif
 #else
 	::curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, xfercb);
 	::curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, static_cast<void*>(this));

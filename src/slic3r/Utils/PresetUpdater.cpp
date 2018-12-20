@@ -9,6 +9,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
+#include <boost/lexical_cast.hpp>
 #include <boost/log/trivial.hpp>
 
 #include <wx/app.h>
@@ -112,7 +113,7 @@ struct PresetUpdater::priv
 	bool get_file(const std::string &url, const fs::path &target_path) const;
 	void prune_tmps() const;
 	void sync_version() const;
-	void sync_config(const std::set<VendorProfile> vendors) const;
+	void sync_config(const std::set<VendorProfile> vendors);
 
 	void check_install_indices() const;
 	Updates get_config_updates() const;
@@ -130,7 +131,7 @@ PresetUpdater::priv::priv() :
 {
 	set_download_prefs(GUI::wxGetApp().app_config);
 	check_install_indices();
-	index_db = std::move(Index::load_db());
+	index_db = Index::load_db();
 }
 
 // Pull relevant preferences from AppConfig
@@ -220,14 +221,14 @@ void PresetUpdater::priv::sync_version() const
 
 // Download vendor indices. Also download new bundles if an index indicates there's a new one available.
 // Both are saved in cache.
-void PresetUpdater::priv::sync_config(const std::set<VendorProfile> vendors) const
+void PresetUpdater::priv::sync_config(const std::set<VendorProfile> vendors)
 {
 	BOOST_LOG_TRIVIAL(info) << "Syncing configuration cache";
 
 	if (!enabled_config_update) { return; }
 
 	// Donwload vendor preset bundles
-	for (const auto &index : index_db) {
+	for (auto &index : index_db) {
 		if (cancel) { return; }
 
 		const auto vendor_it = vendors.find(VendorProfile(index.vendor()));
@@ -245,17 +246,33 @@ void PresetUpdater::priv::sync_config(const std::set<VendorProfile> vendors) con
 		// Download a fresh index
 		BOOST_LOG_TRIVIAL(info) << "Downloading index for vendor: " << vendor.name;
 		const auto idx_url = vendor.config_update_url + "/" + INDEX_FILENAME;
-		const auto idx_path = cache_path / (vendor.id + ".idx");
-		if (! get_file(idx_url, idx_path)) { continue; }
+		const std::string idx_path = (cache_path / (vendor.id + ".idx")).string();
+		const std::string idx_path_temp = idx_path + "-update";
+		if (!get_file(idx_url, idx_path_temp)) { continue; }
 		if (cancel) { return; }
 
 		// Load the fresh index up
-		Index new_index;
-		new_index.load(idx_path);
+		{
+			Index new_index;
+			try {
+				new_index.load(idx_path_temp);
+			} catch (const std::exception &err) {
+				BOOST_LOG_TRIVIAL(error) << boost::format("Failed loading a downloaded index %1% for vendor %2%: invalid index?") % idx_path_temp % vendor.name;
+				continue;
+			}
+			if (new_index.version() < index.version()) {
+				BOOST_LOG_TRIVIAL(error) << boost::format("The downloaded index %1% for vendor %2% is older than the active one. Ignoring the downloaded index.") % idx_path_temp % vendor.name;
+				continue;
+			}
+			Slic3r::rename_file(idx_path_temp, idx_path);
+			index = std::move(new_index);
+			if (cancel)
+				return;
+		}
 
 		// See if a there's a new version to download
-		const auto recommended_it = new_index.recommended();
-		if (recommended_it == new_index.end()) {
+		const auto recommended_it = index.recommended();
+		if (recommended_it == index.end()) {
 			BOOST_LOG_TRIVIAL(error) << boost::format("No recommended version for vendor: %1%, invalid index?") % vendor.name;
 			continue;
 		}
