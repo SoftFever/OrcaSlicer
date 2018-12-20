@@ -361,8 +361,9 @@ void ObjectManipulation::update_rotation_value(const Vec3d& rotation)
 void ObjectManipulation::change_position_value(const Vec3d& position)
 {
     auto canvas = wxGetApp().plater()->canvas3D();
-    canvas->get_selection().start_dragging();
-    canvas->get_selection().translate(position - cache_position);
+    GLCanvas3D::Selection& selection = canvas->get_selection();
+    selection.start_dragging();
+    selection.translate(position - cache_position, selection.requires_local_axes());
     canvas->do_move();
 
     cache_position = position;

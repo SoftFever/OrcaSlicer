@@ -46,7 +46,7 @@ bool Duet::test(wxString &msg) const
 
 wxString Duet::get_test_ok_msg () const
 {
-	return wxString::Format("%s", _(L("Connection to Duet works correctly.")));
+	return _(L("Connection to Duet works correctly."));
 }
 
 wxString Duet::get_test_failed_msg (wxString &msg) const
@@ -135,7 +135,7 @@ wxString Duet::get_test_failed_msg (wxString &msg) const
 // 	return res;
 // }
 
-bool Duet::upload(PrintHostUpload upload_data, Http::ProgressFn prorgess_fn, Http::ErrorFn error_fn) const
+bool Duet::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn error_fn) const
 {
 	// XXX: TODO
 	throw "unimplemented";

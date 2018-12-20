@@ -586,7 +586,8 @@ void Preview::create_double_slider()
             auto& config = wxGetApp().preset_bundle->project_config;
             ((config.option<ConfigOptionFloats>("colorprint_heights"))->values) = (m_slider->GetTicksValues());
             m_schedule_background_process();
-            int type = m_choice_view_type->FindString(_(L("Color Print")));
+            bool color_print = !config.option<ConfigOptionFloats>("colorprint_heights")->values.empty();
+            int type = m_choice_view_type->FindString(color_print ? _(L("Color Print")) : _(L("Feature type")) );
             if (m_choice_view_type->GetSelection() != type) {
                 m_choice_view_type->SetSelection(type);
                 if ((0 <= type) && (type < (int)GCodePreviewData::Extrusion::Num_View_Types))

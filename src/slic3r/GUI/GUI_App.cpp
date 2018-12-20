@@ -137,7 +137,7 @@ bool GUI_App::OnInit()
     std::cerr << "Creating main frame..." << std::endl;
     if (wxImage::FindHandler(wxBITMAP_TYPE_PNG) == nullptr)
         wxImage::AddHandler(new wxPNGHandler());
-    mainframe = new MainFrame(no_plater, false);
+    mainframe = new MainFrame();
     sidebar().obj_list()->init_objects(); // propagate model objects to object list
     update_mode();
     SetTopWindow(mainframe);
@@ -277,8 +277,8 @@ void GUI_App::recreate_GUI()
 {
     std::cerr << "recreate_GUI" << std::endl;
 
-    auto topwindow = GetTopWindow();
-    mainframe = new MainFrame(no_plater,false);
+    MainFrame* topwindow = dynamic_cast<MainFrame*>(GetTopWindow());
+    mainframe = new MainFrame();
     sidebar().obj_list()->init_objects(); // propagate model objects to object list
     update_mode();
 
@@ -286,6 +286,20 @@ void GUI_App::recreate_GUI()
         SetTopWindow(mainframe);
         topwindow->Destroy();
     }
+
+    m_printhost_job_queue.reset(new PrintHostJobQueue(mainframe->printhost_queue_dlg()));
+
+    CallAfter([this]() {
+        // temporary workaround for the correct behavior of the Scrolled sidebar panel
+        auto& panel = sidebar();
+        if (panel.obj_list()->GetMinHeight() > 200) {
+            wxWindowUpdateLocker noUpdates_sidebar(&panel);
+            panel.obj_list()->SetMinSize(wxSize(-1, 200));
+            panel.Layout();
+        }
+    });
+ 
+    mainframe->Show(true);
 
     // On OSX the UI was not initialized correctly if the wizard was called
     // before the UI was up and running.
@@ -434,7 +448,7 @@ bool GUI_App::select_language(  wxArrayString & names,
         m_wxLocale = new wxLocale;
         m_wxLocale->Init(identifiers[index]);
         m_wxLocale->AddCatalogLookupPathPrefix(localization_dir());
-        m_wxLocale->AddCatalog(GetAppName());
+        m_wxLocale->AddCatalog(/*GetAppName()*/"Slic3rPE");
         wxSetlocale(LC_NUMERIC, "C");
         Preset::update_suffix_modified();
         return true;
@@ -461,7 +475,7 @@ bool GUI_App::load_language()
             m_wxLocale = new wxLocale;
             m_wxLocale->Init(identifiers[i]);
             m_wxLocale->AddCatalogLookupPathPrefix(localization_dir());
-            m_wxLocale->AddCatalog(GetAppName());
+            m_wxLocale->AddCatalog(/*GetAppName()*/"Slic3rPE");
             wxSetlocale(LC_NUMERIC, "C");
             Preset::update_suffix_modified();
             return true;
@@ -504,7 +518,8 @@ void GUI_App::get_installed_languages(wxArrayString & names, wxArrayLong & ident
         {
             auto full_file_name = dir.GetName() + wxFileName::GetPathSeparator() +
                 filename + wxFileName::GetPathSeparator() +
-                GetAppName() + wxT(".mo");
+                /*GetAppName()*/"Slic3rPE" + 
+                wxT(".mo");
             if (wxFileExists(full_file_name))
             {
                 names.Add(langinfo->Description);

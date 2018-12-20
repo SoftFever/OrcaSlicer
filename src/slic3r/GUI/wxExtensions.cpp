@@ -2058,7 +2058,7 @@ void PrusaDoubleSlider::enter_window(wxMouseEvent& event, const bool enter)
 //    -  value decrease (if wxSL_HORIZONTAL) 
 void PrusaDoubleSlider::move_current_thumb(const bool condition)
 {
-    m_is_one_layer = wxGetKeyState(WXK_CONTROL);
+//     m_is_one_layer = wxGetKeyState(WXK_CONTROL);
     int delta = condition ? -1 : 1;
     if (is_horizontal())
         delta *= -1;

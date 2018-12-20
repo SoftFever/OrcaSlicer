@@ -102,7 +102,7 @@ PrintHostQueueDialog::PrintHostQueueDialog(wxWindow *parent)
     job_list->AppendTextColumn("Filename", wxDATAVIEW_CELL_INERT);
 
     auto *btnsizer = new wxBoxSizer(wxHORIZONTAL);
-    auto *btn_cancel = new wxButton(this, wxID_DELETE, _(L("Cancel selected")));
+    auto *btn_cancel = new wxButton(this, wxID_DELETE, _(L("Cancel selected")));   // TODO: enable based on status ("show error" for failed jobs)
     auto *btn_close = new wxButton(this, wxID_CANCEL, _(L("Close")));
     btnsizer->Add(btn_cancel, 0, wxRIGHT, SPACING);
     btnsizer->AddStretchSpacer();
@@ -140,7 +140,13 @@ void PrintHostQueueDialog::on_error(Event &evt)
 {
     wxCHECK_RET(evt.job_id < job_list->GetItemCount(), "Out of bounds access to job list");
 
-    // TODO
+    job_list->SetValue(wxVariant(0), evt.job_id, 1);
+    job_list->SetValue(wxVariant(_(L("Error"))), evt.job_id, 2);
+
+    // TODO: keep the error for repeated display
+
+    auto errormsg = wxString::Format("%s\n%s", _(L("Error uploading to print host:")), evt.error);
+    GUI::show_error(nullptr, std::move(errormsg));
 }
 
 

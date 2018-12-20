@@ -578,7 +578,7 @@ public:
 
         void start_dragging();
 
-        void translate(const Vec3d& displacement);
+        void translate(const Vec3d& displacement, bool local = false);
         void rotate(const Vec3d& rotation, bool local);
         void flattening_rotate(const Vec3d& normal);
         void scale(const Vec3d& scale, bool local);
@@ -596,6 +596,8 @@ public:
 #if ENABLE_SIDEBAR_VISUAL_HINTS
         void render_sidebar_hints(const std::string& sidebar_field) const;
 #endif // ENABLE_SIDEBAR_VISUAL_HINTS
+
+        bool requires_local_axes() const;
 
     private:
         void _update_valid();
@@ -626,7 +628,6 @@ public:
 #if ENABLE_ENSURE_ON_BED_WHILE_SCALING
         void _ensure_on_bed();
 #endif // ENABLE_ENSURE_ON_BED_WHILE_SCALING
-        bool _requires_local_axes() const;
     };
 
     class ClippingPlane

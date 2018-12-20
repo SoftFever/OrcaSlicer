@@ -1549,7 +1549,7 @@ void GLCanvas3D::Selection::start_dragging()
     _set_caches();
 }
 
-void GLCanvas3D::Selection::translate(const Vec3d& displacement)
+void GLCanvas3D::Selection::translate(const Vec3d& displacement, bool local)
 {
     if (!m_valid)
         return;
@@ -1559,7 +1559,7 @@ void GLCanvas3D::Selection::translate(const Vec3d& displacement)
 #if ENABLE_MODELVOLUME_TRANSFORM
     if ((m_mode == Volume) || (*m_volumes)[i]->is_wipe_tower)
     {
-        if (_requires_local_axes())
+        if (local)
             (*m_volumes)[i]->set_volume_offset(m_cache.volumes_data[i].get_volume_position() + displacement);
         else
         {
@@ -1614,7 +1614,7 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation, bool local)
         else if (is_single_volume() || is_single_modifier())
 #if ENABLE_WORLD_ROTATIONS
         {
-            if (_requires_local_axes())
+            if (requires_local_axes())
                 (*m_volumes)[i]->set_volume_rotation(rotation);
             else
             {
@@ -2117,6 +2117,11 @@ void GLCanvas3D::Selection::render_sidebar_hints(const std::string& sidebar_fiel
     ::glDisable(GL_LIGHTING);
 }
 #endif // ENABLE_SIDEBAR_VISUAL_HINTS
+
+bool GLCanvas3D::Selection::requires_local_axes() const
+{
+    return (m_mode == Volume) && is_from_single_instance();
+}
 
 void GLCanvas3D::Selection::_update_valid()
 {
@@ -2745,11 +2750,6 @@ void GLCanvas3D::Selection::_ensure_on_bed()
     }
 }
 #endif // ENABLE_ENSURE_ON_BED_WHILE_SCALING
-
-bool GLCanvas3D::Selection::_requires_local_axes() const
-{
-    return (m_mode == Volume) && is_from_single_instance();
-}
 
 const float GLCanvas3D::Gizmos::OverlayIconsScale = 1.0f;
 const float GLCanvas3D::Gizmos::OverlayBorder = 5.0f;

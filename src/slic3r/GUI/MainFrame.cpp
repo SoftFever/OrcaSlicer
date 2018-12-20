@@ -28,10 +28,8 @@
 namespace Slic3r {
 namespace GUI {
 
-MainFrame::MainFrame(const bool no_plater, const bool loaded) :
+MainFrame::MainFrame() :
 wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE),
-        m_no_plater(no_plater),
-        m_loaded(loaded),
         m_printhost_queue_dlg(new PrintHostQueueDialog(this))
 {
     // Load the icon either from the exe, or from the ico file.
@@ -125,11 +123,9 @@ void MainFrame::init_tabpanel()
         }
     });
 
-    if (!m_no_plater) {
-        m_plater = new Slic3r::GUI::Plater(m_tabpanel, this);
-        wxGetApp().plater_ = m_plater;
-        m_tabpanel->AddPage(m_plater, _(L("Plater")));
-    }
+    m_plater = new Slic3r::GUI::Plater(m_tabpanel, this);
+    wxGetApp().plater_ = m_plater;
+    m_tabpanel->AddPage(m_plater, _(L("Plater")));
 
     // The following event is emited by Tab implementation on config value change.
     Bind(EVT_TAB_VALUE_CHANGED, &MainFrame::on_value_changed, this);
