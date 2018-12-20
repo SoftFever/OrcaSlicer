@@ -172,12 +172,14 @@ void Field::get_value_by_opt_type(wxString& str)
                 show_error(m_parent, _(L("Input value contains incorrect symbol(s).\nUse, please, only digits")));
                 set_value(double_to_string(val), true);                
             }
-            else if (val > 1)
+            else if (m_opt.sidetext.rfind("mm/s") != std::string::npos && val > m_opt.max ||
+                     m_opt.sidetext.rfind("mm ") != std::string::npos && val > 1)
             {
+                std::string sidetext = m_opt.sidetext.rfind("mm/s") != std::string::npos ? "mm/s" : "mm";
                 const int nVal = int(val);
-                wxString msg_text = wxString::Format(_(L("Do you mean %d%% instead of %dmm?\n"
+                wxString msg_text = wxString::Format(_(L("Do you mean %d%% instead of %d %s?\n"
                     "Select YES if you want to change this value to %d%%, \n"
-                    "or NO if you are sure that %dmm is a correct value.")), nVal, nVal, nVal, nVal);
+                    "or NO if you are sure that %d %s is a correct value.")), nVal, nVal, sidetext, nVal, nVal, sidetext);
                 auto dialog = new wxMessageDialog(m_parent, msg_text, _(L("Parameter validation")), wxICON_WARNING | wxYES | wxNO);
                 if (dialog->ShowModal() == wxID_YES) {
                     set_value(wxString::Format("%s%%", str), true);
@@ -274,7 +276,6 @@ void TextCtrl::BUILD() {
 		e.Skip();
 		temp->GetToolTip()->Enable(true);
 #endif // __WXGTK__
-//         if (!is_defined_input_value()) 
         if (is_defined_input_value<wxTextCtrl>(window, m_opt.type))
             on_change_field();
         else
