@@ -595,7 +595,13 @@ public:
 
     bool init(bool useVBOs) { return on_init(useVBOs); }
 
-    void set_color(float* color, unsigned int size);
+    void set_color(const float* color, unsigned int size);
+
+    const Vec3d& get_offset() const;
+    void set_offset(const Vec3d& offset);
+    const Vec3d& get_rotation() const;
+    void set_rotation(const Vec3d& rotation);
+    const Vec3d& get_scale() const;
     void set_scale(const Vec3d& scale);
 
     void render() const; 
@@ -605,12 +611,21 @@ protected:
 
 private:
     void render_VBOs() const;
+    void render_legacy() const;
 };
 
 class GLArrow : public GLModel
 {
+protected:
+    virtual bool on_init(bool useVBOs);
+};
+
+class GLCurvedArrow : public GLModel
+{
+    unsigned int m_resolution;
+
 public:
-    GLArrow();
+    explicit GLCurvedArrow(unsigned int resolution);
 
 protected:
     virtual bool on_init(bool useVBOs);

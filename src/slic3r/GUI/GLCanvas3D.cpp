@@ -73,6 +73,11 @@ static const float DEFAULT_BG_LIGHT_COLOR[3] = { 0.753f, 0.753f, 0.753f };
 static const float ERROR_BG_DARK_COLOR[3] = { 0.478f, 0.192f, 0.039f };
 static const float ERROR_BG_LIGHT_COLOR[3] = { 0.753f, 0.192f, 0.039f };
 
+#if ENABLE_SIDEBAR_VISUAL_HINTS
+static const float UNIFORM_SCALE_COLOR[3] = { 1.0f, 0.38f, 0.0f };
+static const float AXES_COLOR[3][3] = { { 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f, 1.0f } };
+#endif // ENABLE_SIDEBAR_VISUAL_HINTS
+
 namespace Slic3r {
 namespace GUI {
 
@@ -1154,12 +1159,6 @@ GLCanvas3D::Selection::VolumeCache::VolumeCache(const Vec3d& position, const Vec
 }
 #endif // ENABLE_MODELVOLUME_TRANSFORM
 
-#if ENABLE_SIDEBAR_VISUAL_HINTS
-const float GLCanvas3D::Selection::RED[3] = { 1.0f, 0.0f, 0.0f };
-const float GLCanvas3D::Selection::GREEN[3] = { 0.0f, 1.0f, 0.0f };
-const float GLCanvas3D::Selection::BLUE[3] = { 0.0f, 0.0f, 1.0f };
-#endif // ENABLE_SIDEBAR_VISUAL_HINTS
-
 GLCanvas3D::Selection::Selection()
     : m_volumes(nullptr)
     , m_model(nullptr)
@@ -1167,6 +1166,7 @@ GLCanvas3D::Selection::Selection()
     , m_type(Empty)
     , m_valid(false)
     , m_bounding_box_dirty(true)
+    , m_curved_arrow(16)
 {
 #if ENABLE_RENDER_SELECTION_CENTER
     m_quadric = ::gluNewQuadric();
@@ -1192,13 +1192,16 @@ void GLCanvas3D::Selection::set_volumes(GLVolumePtrs* volumes)
 #if ENABLE_SIDEBAR_VISUAL_HINTS
 bool GLCanvas3D::Selection::init(bool useVBOs)
 {
-    if (m_arrow.init(useVBOs))
-    {
-        m_arrow.set_scale(5.0 * Vec3d::Ones());
-        return true;
-    }
+    if (!m_arrow.init(useVBOs))
+        return false;
 
-    return false;
+    m_arrow.set_scale(5.0 * Vec3d::Ones());
+
+    if (!m_curved_arrow.init(useVBOs))
+        return false;
+
+    m_curved_arrow.set_scale(5.0 * Vec3d::Ones());
+    return true;
 }
 #endif // ENABLE_SIDEBAR_VISUAL_HINTS
 
@@ -2094,14 +2097,22 @@ void GLCanvas3D::Selection::render_sidebar_hints(const std::string& sidebar_fiel
     else if (is_single_volume() || is_single_modifier())
     {
         const GLVolume* volume = (*m_volumes)[*m_list.begin()];
-        Transform3d orient_matrix = volume->get_instance_transformation().get_matrix(true, false, true, true) * volume->get_volume_transformation().get_matrix(true, false, true, true);
+        Transform3d orient_matrix = volume->get_instance_transformation().get_matrix(true, false, true, true);
         const Vec3d& offset = get_bounding_box().center();
 
         ::glTranslated(offset(0), offset(1), offset(2));
         ::glMultMatrixd(orient_matrix.data());
     }
     else
+    {
         ::glTranslated(center(0), center(1), center(2));
+        if (requires_local_axes())
+        {
+            const GLVolume* volume = (*m_volumes)[*m_list.begin()];
+            Transform3d orient_matrix = volume->get_instance_transformation().get_matrix(true, false, true, true);
+            ::glMultMatrixd(orient_matrix.data());
+        }
+    }
 
     if (boost::starts_with(sidebar_field, "position"))
         _render_sidebar_position_hints(sidebar_field);
@@ -2544,6 +2555,18 @@ void GLCanvas3D::Selection::_render_sidebar_position_hints(const std::string& si
 
 void GLCanvas3D::Selection::_render_sidebar_rotation_hints(const std::string& sidebar_field) const
 {
+    if (boost::ends_with(sidebar_field, "x"))
+    {
+        ::glRotated(90.0, 0.0, 1.0, 0.0);
+        _render_sidebar_rotation_hint(X);
+    }
+    else if (boost::ends_with(sidebar_field, "y"))
+    {
+        ::glRotated(-90.0, 1.0, 0.0, 0.0);
+        _render_sidebar_rotation_hint(Y);
+    }
+    else if (boost::ends_with(sidebar_field, "z"))
+        _render_sidebar_rotation_hint(Z);
 }
 
 void GLCanvas3D::Selection::_render_sidebar_scale_hints(const std::string& sidebar_field) const
@@ -2579,33 +2602,22 @@ void GLCanvas3D::Selection::_render_sidebar_size_hints(const std::string& sideba
 
 void GLCanvas3D::Selection::_render_sidebar_position_hint(Axis axis) const
 {
-    float color[3];
-    switch (axis)
-    {
-    case X: { ::memcpy((void*)color, (const void*)RED, 3 * sizeof(float)); break; }
-    case Y: { ::memcpy((void*)color, (const void*)GREEN, 3 * sizeof(float)); break; }
-    case Z: { ::memcpy((void*)color, (const void*)BLUE, 3 * sizeof(float)); break; }
-    }
-
-    m_arrow.set_color(color, 3);
+    m_arrow.set_color(AXES_COLOR[axis], 3);
     m_arrow.render();
 }
 
-void GLCanvas3D::Selection::_render_sidebar_rotation_hint(Axis axis, double length) const
+void GLCanvas3D::Selection::_render_sidebar_rotation_hint(Axis axis) const
 {
+    m_curved_arrow.set_color(AXES_COLOR[axis], 3);
+    m_curved_arrow.render();
+
+    ::glRotated(180.0, 0.0, 0.0, 1.0);
+    m_curved_arrow.render();
 }
 
 void GLCanvas3D::Selection::_render_sidebar_scale_hint(Axis axis) const
 {
-    float color[3];
-    switch (axis)
-    {
-    case X: { ::memcpy((void*)color, (const void*)RED, 3 * sizeof(float)); break; }
-    case Y: { ::memcpy((void*)color, (const void*)GREEN, 3 * sizeof(float)); break; }
-    case Z: { ::memcpy((void*)color, (const void*)BLUE, 3 * sizeof(float)); break; }
-    }
-
-    m_arrow.set_color(color, 3);
+    m_arrow.set_color((requires_uniform_scale() ? UNIFORM_SCALE_COLOR : AXES_COLOR[axis]), 3);
 
     ::glTranslated(0.0, 5.0, 0.0);
     m_arrow.render();
@@ -3818,7 +3830,6 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     , m_legend_texture_enabled(false)
     , m_picking_enabled(false)
     , m_moving_enabled(false)
-    , m_shader_enabled(false)
     , m_dynamic_background_enabled(false)
     , m_multisample_allowed(false)
     , m_regenerate_volumes(true)
@@ -4130,11 +4141,6 @@ void GLCanvas3D::enable_gizmos(bool enable)
 void GLCanvas3D::enable_toolbar(bool enable)
 {
     m_toolbar.set_enabled(enable);
-}
-
-void GLCanvas3D::enable_shader(bool enable)
-{
-    m_shader_enabled = enable;
 }
 
 void GLCanvas3D::enable_force_zoom_to_bed(bool enable)
@@ -6310,9 +6316,7 @@ void GLCanvas3D::_render_objects() const
     ::glEnable(GL_LIGHTING);
     ::glEnable(GL_DEPTH_TEST);
 
-    if (!m_shader_enabled)
-        _render_volumes(false);
-    else if (m_use_VBOs)
+    if (m_use_VBOs)
     {
         if (m_picking_enabled)
         {

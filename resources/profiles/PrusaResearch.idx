@@ -1,6 +1,21 @@
 min_slic3r_version = 1.42.0-alpha
+0.4.0-alpha3 Update of SLA profiles
 0.4.0-alpha2 First SLA profiles
+min_slic3r_version = 1.41.1
+0.3.3 Prusament PETG released
+0.3.2 New MK2.5 and MK3 FW versions
+0.3.1 New MK2.5 and MK3 FW versions
+0.3.0 New MK2.5 and MK3 FW version
 min_slic3r_version = 1.41.0-alpha
+0.2.9 New MK2.5 and MK3 FW versions
+0.2.8 New MK2.5 and MK3 FW version
+min_slic3r_version = 1.41.1
+0.2.7 New MK2.5 and MK3 FW version
+0.2.6 Added MMU2 MK2.5 settings
+min_slic3r_version = 1.41.0-alpha
+0.2.5 Prusament is out - added prusament settings
+0.2.4 Added soluble support profiles for MMU2
+0.2.3 Added materials for MMU2 single mode, edited MK3 xy stealth feedrate limit
 0.2.2 Edited MMU2 Single mode purge line
 0.2.1 Added PET and BVOH settings for MMU2
 0.2.0-beta5 Fixed MMU1 ramming parameters

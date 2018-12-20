@@ -545,8 +545,8 @@ public:
     _NofitPolyPlacer& operator=(const _NofitPolyPlacer&) = default;
 
 #ifndef BP2D_COMPILER_MSVC12 // MSVC2013 does not support default move ctors
-    _NofitPolyPlacer(_NofitPolyPlacer&&) BP2D_NOEXCEPT = default;
-    _NofitPolyPlacer& operator=(_NofitPolyPlacer&&) BP2D_NOEXCEPT = default;
+    _NofitPolyPlacer(_NofitPolyPlacer&&) /*BP2D_NOEXCEPT*/ = default;
+    _NofitPolyPlacer& operator=(_NofitPolyPlacer&&) /*BP2D_NOEXCEPT*/ = default;
 #endif
 
     static inline double overfit(const Box& bb, const RawShape& bin) {

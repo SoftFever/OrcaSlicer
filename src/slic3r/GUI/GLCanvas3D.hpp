@@ -369,12 +369,6 @@ class GLCanvas3D
 public:
     class Selection
     {
-#if ENABLE_SIDEBAR_VISUAL_HINTS
-        static const float RED[3];
-        static const float GREEN[3];
-        static const float BLUE[3];
-#endif // ENABLE_SIDEBAR_VISUAL_HINTS
-
     public:
         typedef std::set<unsigned int> IndicesList;
 
@@ -504,6 +498,7 @@ public:
 #endif // ENABLE_RENDER_SELECTION_CENTER
 #if ENABLE_SIDEBAR_VISUAL_HINTS
         mutable GLArrow m_arrow;
+        mutable GLCurvedArrow m_curved_arrow;
 #endif // ENABLE_SIDEBAR_VISUAL_HINTS
 
     public:
@@ -619,7 +614,7 @@ public:
         void _render_sidebar_scale_hints(const std::string& sidebar_field) const;
         void _render_sidebar_size_hints(const std::string& sidebar_field) const;
         void _render_sidebar_position_hint(Axis axis) const;
-        void _render_sidebar_rotation_hint(Axis axis, double length) const;
+        void _render_sidebar_rotation_hint(Axis axis) const;
         void _render_sidebar_scale_hint(Axis axis) const;
         void _render_sidebar_size_hint(Axis axis, double length) const;
 #endif // ENABLE_SIDEBAR_VISUAL_HINTS
@@ -855,7 +850,6 @@ private:
     bool m_legend_texture_enabled;
     bool m_picking_enabled;
     bool m_moving_enabled;
-    bool m_shader_enabled;
     bool m_dynamic_background_enabled;
     bool m_multisample_allowed;
     bool m_regenerate_volumes;
@@ -955,7 +949,6 @@ public:
     void enable_moving(bool enable);
     void enable_gizmos(bool enable);
     void enable_toolbar(bool enable);
-    void enable_shader(bool enable);
     void enable_force_zoom_to_bed(bool enable);
     void enable_dynamic_background(bool enable);
     void allow_multisample(bool allow);

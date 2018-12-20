@@ -43,7 +43,7 @@ namespace GUI {
 
 wxString file_wildcards(FileType file_type, const std::string &custom_extension)
 {
-    static const wxString defaults[FT_SIZE] = {
+    static const std::string defaults[FT_SIZE] = {
         /* FT_STL */   "STL files (*.stl)|*.stl;*.STL",
         /* FT_OBJ */   "OBJ files (*.obj)|*.obj;*.OBJ",
         /* FT_AMF */   "AMF files (*.amf)|*.zip.amf;*.amf;*.AMF;*.xml;*.XML",
@@ -57,13 +57,17 @@ wxString file_wildcards(FileType file_type, const std::string &custom_extension)
         /* FT_PNGZIP */"Zipped PNG files (*.zip)|*.zip;*.ZIP",    // This is lame, but that's what we use for SLA
     };
 
-    wxString out = defaults[file_type];
+	std::string out = defaults[file_type];
     if (! custom_extension.empty()) {
-        // Append the custom extension to the wildcards, so that the file dialog would not add the default extension to it.
-        out += ";*";
-        out += from_u8(custom_extension);
+        // Find the custom extension in the template.
+        if (out.find(std::string("*") + custom_extension + ",") == std::string::npos && out.find(std::string("*") + custom_extension + ")") == std::string::npos) {
+            // The custom extension was not found in the template.
+            // Append the custom extension to the wildcards, so that the file dialog would not add the default extension to it.
+			boost::replace_first(out, ")|", std::string(", *") + custom_extension + ")|");
+			out += std::string(";*") + custom_extension;
+        }
     }
-    return out;
+	return wxString::FromUTF8(out.c_str());
 }
 
 static std::string libslic3r_translate_callback(const char *s) { return wxGetTranslation(wxString(s, wxConvUTF8)).utf8_str().data(); }
@@ -137,7 +141,7 @@ bool GUI_App::OnInit()
     std::cerr << "Creating main frame..." << std::endl;
     if (wxImage::FindHandler(wxBITMAP_TYPE_PNG) == nullptr)
         wxImage::AddHandler(new wxPNGHandler());
-    mainframe = new MainFrame(no_plater, false);
+    mainframe = new MainFrame();
     sidebar().obj_list()->init_objects(); // propagate model objects to object list
     update_mode();
     SetTopWindow(mainframe);
@@ -177,6 +181,9 @@ bool GUI_App::OnInit()
 
         if (app_config->dirty())
             app_config->save();
+
+        if (this->plater() != nullptr)
+            this->obj_manipul()->update_if_dirty();
     });
 
     // On OS X the UI tends to freeze in weird ways if modal dialogs(config wizard, update notifications, ...)
@@ -277,8 +284,8 @@ void GUI_App::recreate_GUI()
 {
     std::cerr << "recreate_GUI" << std::endl;
 
-    auto topwindow = GetTopWindow();
-    mainframe = new MainFrame(no_plater,false);
+    MainFrame* topwindow = dynamic_cast<MainFrame*>(GetTopWindow());
+    mainframe = new MainFrame();
     sidebar().obj_list()->init_objects(); // propagate model objects to object list
     update_mode();
 
@@ -286,6 +293,20 @@ void GUI_App::recreate_GUI()
         SetTopWindow(mainframe);
         topwindow->Destroy();
     }
+
+    m_printhost_job_queue.reset(new PrintHostJobQueue(mainframe->printhost_queue_dlg()));
+
+    CallAfter([this]() {
+        // temporary workaround for the correct behavior of the Scrolled sidebar panel
+        auto& panel = sidebar();
+        if (panel.obj_list()->GetMinHeight() > 200) {
+            wxWindowUpdateLocker noUpdates_sidebar(&panel);
+            panel.obj_list()->SetMinSize(wxSize(-1, 200));
+            panel.Layout();
+        }
+    });
+ 
+    mainframe->Show(true);
 
     // On OSX the UI was not initialized correctly if the wizard was called
     // before the UI was up and running.

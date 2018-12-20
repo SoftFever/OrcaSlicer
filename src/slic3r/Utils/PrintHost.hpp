@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <string>
+#include <functional>
 #include <boost/filesystem/path.hpp>
 
 #include <wx/string.h>
@@ -28,15 +29,21 @@ class PrintHost
 public:
     virtual ~PrintHost();
 
+    typedef Http::ProgressFn ProgressFn;
+    typedef std::function<void(wxString /* error */)> ErrorFn;
+
     virtual bool test(wxString &curl_msg) const = 0;
     virtual wxString get_test_ok_msg () const = 0;
     virtual wxString get_test_failed_msg (wxString &msg) const = 0;
-    virtual bool upload(PrintHostUpload upload_data, Http::ProgressFn prorgess_fn, Http::ErrorFn error_fn) const = 0;
+    virtual bool upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn error_fn) const = 0;
     virtual bool has_auto_discovery() const = 0;
     virtual bool can_test() const = 0;
     virtual std::string get_host() const = 0;
 
     static PrintHost* get_print_host(DynamicPrintConfig *config);
+
+protected:
+    virtual wxString format_error(const std::string &body, const std::string &error, unsigned status) const;
 };
 
 
@@ -51,6 +58,7 @@ struct PrintHostJob
     PrintHostJob(PrintHostJob &&other)
         : upload_data(std::move(other.upload_data))
         , printhost(std::move(other.printhost))
+        , cancelled(other.cancelled)
     {}
 
     PrintHostJob(DynamicPrintConfig *config)
@@ -62,6 +70,7 @@ struct PrintHostJob
     {
         upload_data = std::move(other.upload_data);
         printhost = std::move(other.printhost);
+        cancelled = other.cancelled;
         return *this;
     }
 

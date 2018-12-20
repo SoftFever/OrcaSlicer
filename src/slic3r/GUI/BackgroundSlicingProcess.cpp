@@ -84,26 +84,7 @@ void BackgroundSlicingProcess::process_fff()
 	    	run_post_process_scripts(export_path, m_fff_print->config());
 	    	m_print->set_status(100, "G-code file exported to " + export_path);
 	    } else if (! m_upload_job.empty()) {
-			// A print host upload job has been scheduled
-
-	    	// XXX: is fs::path::string() right?
-
-			// Generate a unique temp path to which the gcode is copied
-			boost::filesystem::path source_path = boost::filesystem::temp_directory_path()
-				/ boost::filesystem::unique_path(".printhost.%%%%-%%%%-%%%%-%%%%.gcode");
-
-			if (copy_file(m_temp_output_path, source_path.string()) != 0) {
-				throw std::runtime_error("Copying of the temporary G-code to the output G-code failed");
-			}
-
-			m_print->set_status(95, "Running post-processing scripts");
-			run_post_process_scripts(source_path.string(), m_fff_print->config());
-			m_print->set_status(100, (boost::format("Scheduling upload to `%1%`. See Window -> Print Host Upload Queue") % m_upload_job.printhost->get_host()).str());
-
-			m_upload_job.upload_data.source_path = std::move(source_path);
-			m_upload_job.upload_data.upload_path = m_fff_print->print_statistics().finalize_output_path(m_upload_job.upload_data.upload_path.string());
-
-			GUI::wxGetApp().printhost_job_queue().enqueue(std::move(m_upload_job));
+			prepare_upload();
 	    } else {
 	    	m_print->set_status(100, "Slicing complete");
 	    }
@@ -170,6 +151,10 @@ void BackgroundSlicingProcess::process_sla()
         if (! m_export_path.empty()) {
             m_sla_print->export_raster<SLAZipFmt>(m_export_path);
             m_print->set_status(100, "Zip file exported to " + m_export_path);
+        } else if (! m_upload_job.empty()) {
+            prepare_upload();
+        } else {
+            m_print->set_status(100, "Slicing complete");
         }
         this->set_step_done(bspsGCodeFinalize);
     }
@@ -438,6 +423,37 @@ bool BackgroundSlicingProcess::invalidate_step(BackgroundSlicingProcessStep step
 bool BackgroundSlicingProcess::invalidate_all_steps()
 { 
 	return m_step_state.invalidate_all([this](){ this->stop_internal(); });
+}
+
+void BackgroundSlicingProcess::prepare_upload()
+{
+	// A print host upload job has been scheduled, enqueue it to the printhost job queue
+
+	// XXX: is fs::path::string() right?
+
+	// Generate a unique temp path to which the gcode/zip file is copied/exported
+	boost::filesystem::path source_path = boost::filesystem::temp_directory_path()
+		/ boost::filesystem::unique_path(".printhost.%%%%-%%%%-%%%%-%%%%.gcode");
+
+	if (m_print == m_fff_print) {
+		m_print->set_status(95, "Running post-processing scripts");
+		run_post_process_scripts(source_path.string(), m_fff_print->config());
+
+		if (copy_file(m_temp_output_path, source_path.string()) != 0) {
+			throw std::runtime_error("Copying of the temporary G-code to the output G-code failed");
+		}
+
+		m_upload_job.upload_data.upload_path = m_fff_print->print_statistics().finalize_output_path(m_upload_job.upload_data.upload_path.string());
+	} else {
+		m_sla_print->export_raster<SLAZipFmt>(source_path.string());
+		// TODO: Also finalize upload path like with FFF when there are statistics for SLA print
+	}
+
+	m_print->set_status(100, (boost::format("Scheduling upload to `%1%`. See Window -> Print Host Upload Queue") % m_upload_job.printhost->get_host()).str());
+
+	m_upload_job.upload_data.source_path = std::move(source_path);
+
+	GUI::wxGetApp().printhost_job_queue().enqueue(std::move(m_upload_job));
 }
 
 }; // namespace Slic3r

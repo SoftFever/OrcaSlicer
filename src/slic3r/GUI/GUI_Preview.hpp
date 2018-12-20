@@ -117,7 +117,6 @@ class Preview : public wxPanel
 
     bool m_loaded;
     bool m_enabled;
-    bool m_force_sliders_full_range;
 
     PrusaDoubleSlider* m_slider {nullptr};
 
@@ -177,12 +176,9 @@ private:
 
     // Create/Update/Reset double slider on 3dPreview
     void create_double_slider();
-    void update_double_slider(const std::vector<double>& layers_z, bool force_sliders_full_range);
+    void update_double_slider(const std::vector<double>& layers_z, bool force_sliders_full_range = false);
     void fill_slider_values(std::vector<std::pair<int, double>> &values,
                             const std::vector<double> &layers_z);
-    void set_double_slider_thumbs(  const std::vector<double> &layers_z,
-                                    const double z_low, 
-                                    const double z_high);
     void reset_double_slider();
     // update DoubleSlider after keyDown in canvas
     void update_double_slider_from_canvas(wxKeyEvent& event);

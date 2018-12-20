@@ -1601,8 +1601,9 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 	optgroup->append_line(host_line);
 	optgroup->append_single_option_line("printhost_apikey");
 
-	if (Http::ca_file_supported()) {
+	const auto ca_file_hint = _(L("HTTPS CA file is optional. It is only needed if you use HTTPS with a self-signed certificate."));
 
+	if (Http::ca_file_supported()) {   
 		Line cafile_line = optgroup->create_single_option_line("printhost_cafile");
 
 		auto printhost_cafile_browse = [this, optgroup] (wxWindow* parent) {
@@ -1625,19 +1626,31 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 		cafile_line.append_widget(printhost_cafile_browse);
 		optgroup->append_line(cafile_line);
 
-		auto printhost_cafile_hint = [this, optgroup] (wxWindow* parent) {
-			auto txt = new wxStaticText(parent, wxID_ANY, 
-				_(L("HTTPS CA file is optional. It is only needed if you use HTTPS with a self-signed certificate.")));
+		Line cafile_hint { "", "" };
+		cafile_hint.full_width = 1;
+		cafile_hint.widget = [this, ca_file_hint](wxWindow* parent) {
+			auto txt = new wxStaticText(parent, wxID_ANY, ca_file_hint);
+			auto sizer = new wxBoxSizer(wxHORIZONTAL);
+			sizer->Add(txt);
+			return sizer;
+		};
+		optgroup->append_line(cafile_hint);
+	} else {
+		Line line { "", "" };
+		line.full_width = 1;
+
+		line.widget = [this, ca_file_hint] (wxWindow* parent) {
+			auto txt = new wxStaticText(parent, wxID_ANY, wxString::Format("%s\n\n\t%s",
+				_(L("HTTPS CA File:\n\
+\tOn this system, Slic3r uses HTTPS certificates from the system Certificate Store or Keychain.\n\
+\tTo use a custom CA file, please import your CA file into Certificate Store / Keychain.")),
+				ca_file_hint));
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(txt);
 			return sizer;
 		};
 
-		Line cafile_hint { "", "" };
-		cafile_hint.full_width = 1;
-		cafile_hint.widget = std::move(printhost_cafile_hint);
-		optgroup->append_line(cafile_hint);
-
+		optgroup->append_line(line);
 	}
 }
 

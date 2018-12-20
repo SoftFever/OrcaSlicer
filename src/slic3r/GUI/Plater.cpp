@@ -1117,6 +1117,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 #if ENABLE_REMOVE_TABS_FROM_PLATER
     view3D = new View3D(q, &model, config, &background_process);
     preview = new Preview(q, config, &background_process, &gcode_preview_data, [this](){ schedule_background_process(); });
+    // Let the Tab key switch between the 3D view and the layer preview.
+    view3D->Bind(wxEVT_NAVIGATION_KEY, [this](wxNavigationKeyEvent &evt) { if (evt.IsFromTab()) this->q->select_view_3D("Preview"); });
+    preview->Bind(wxEVT_NAVIGATION_KEY, [this](wxNavigationKeyEvent &evt) { if (evt.IsFromTab()) this->q->select_view_3D("3D"); });
 
     panels.push_back(view3D);
     panels.push_back(preview);
@@ -1132,7 +1135,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     this->canvas3D->set_config(config);
     this->canvas3D->enable_gizmos(true);
     this->canvas3D->enable_toolbar(true);
-    this->canvas3D->enable_shader(true);
     this->canvas3D->enable_force_zoom_to_bed(true);
 #endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
@@ -1162,9 +1164,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     hsizer->Add(sidebar, 0, wxEXPAND | wxLEFT | wxRIGHT, 0);
     q->SetSizer(hsizer);
 
-#if ENABLE_REMOVE_TABS_FROM_PLATER
-    set_current_panel(view3D);
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
+//#if ENABLE_REMOVE_TABS_FROM_PLATER
+//    set_current_panel(view3D);
+//#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
     init_object_menu();
 
@@ -1251,6 +1253,10 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
     update_ui_from_settings();
     q->Layout();
+
+#if ENABLE_REMOVE_TABS_FROM_PLATER
+    set_current_panel(view3D);
+#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 }
 
 void Plater::priv::update(bool force_full_scene_refresh)
