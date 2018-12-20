@@ -49,6 +49,7 @@ struct PrintHostJobQueue::priv
     Channel<size_t> channel_cancels;
     size_t job_id = 0;
     int prev_progress = -1;
+    fs::path source_to_remove;
 
     std::thread bg_thread;
     bool bg_exit = false;
@@ -57,9 +58,14 @@ struct PrintHostJobQueue::priv
 
     priv(PrintHostJobQueue *q) : q(q) {}
 
+    void emit_progress(int progress);
+    void emit_error(wxString error);
+    void emit_cancel(size_t id);
     void start_bg_thread();
     void bg_thread_main();
     void progress_fn(Http::Progress progress, bool &cancel);
+    void remove_source(const fs::path &path);
+    void remove_source();
     void perform_job(PrintHostJob the_job);
 };
 
@@ -76,6 +82,24 @@ PrintHostJobQueue::~PrintHostJobQueue()
         p->channel_jobs.push(PrintHostJob()); // Push an empty job to wake up bg_thread in case it's sleeping
         p->bg_thread.detach();                // Let the background thread go, it should exit on its own
     }
+}
+
+void PrintHostJobQueue::priv::emit_progress(int progress)
+{
+    auto evt = new PrintHostQueueDialog::Event(GUI::EVT_PRINTHOST_PROGRESS, queue_dialog->GetId(), job_id, progress);
+    wxQueueEvent(queue_dialog, evt);
+}
+
+void PrintHostJobQueue::priv::emit_error(wxString error)
+{
+    auto evt = new PrintHostQueueDialog::Event(GUI::EVT_PRINTHOST_ERROR, queue_dialog->GetId(), job_id, std::move(error));
+    wxQueueEvent(queue_dialog, evt);
+}
+
+void PrintHostJobQueue::priv::emit_cancel(size_t id)
+{
+    auto evt = new PrintHostQueueDialog::Event(GUI::EVT_PRINTHOST_CANCEL, queue_dialog->GetId(), id);
+    wxQueueEvent(queue_dialog, evt);
 }
 
 void PrintHostJobQueue::priv::start_bg_thread()
@@ -96,21 +120,43 @@ void PrintHostJobQueue::priv::bg_thread_main()
         // Pick up jobs from the job channel:
         while (! bg_exit) {
             auto job = channel_jobs.pop();   // Sleeps in a cond var if there are no jobs
+            source_to_remove = job.upload_data.source_path;
+
+            BOOST_LOG_TRIVIAL(debug) << boost::format("PrintHostJobQueue/bg_thread: Received job: [%1%]: `%2%` -> `%3%`, cancelled: %4%")
+                % job_id
+                % job.upload_data.upload_path
+                % job.printhost->get_host()
+                % job.cancelled;
+
             if (! job.cancelled) {
                 perform_job(std::move(job));
             }
+
+            remove_source();
             job_id++;
         }
     } catch (const std::exception &e) {
-        auto evt = new PrintHostQueueDialog::Event(GUI::EVT_PRINTHOST_ERROR, queue_dialog->GetId(), job_id, e.what());
-        wxQueueEvent(queue_dialog, evt);
+        emit_error(e.what());
     } catch (...) {
         wxTheApp->OnUnhandledException();
+    }
+
+    // Cleanup leftover files, if any
+    remove_source();
+    auto jobs = channel_jobs.lock_rw();
+    for (const PrintHostJob &job : *jobs) {
+        remove_source(job.upload_data.source_path);
     }
 }
 
 void PrintHostJobQueue::priv::progress_fn(Http::Progress progress, bool &cancel)
 {
+    if (cancel) {
+        // When cancel is true from the start, Http indicates request has been cancelled
+        emit_cancel(job_id);
+        return;
+    }
+
     if (bg_exit) {
         cancel = true;
         return;
@@ -125,49 +171,57 @@ void PrintHostJobQueue::priv::progress_fn(Http::Progress progress, bool &cancel)
             if (cancel_id == job_id) {
                 cancel = true;
             } else if (cancel_id > job_id) {
-                jobs->at(cancel_id - job_id).cancelled = true;
+                const size_t idx = cancel_id - job_id - 1;
+                if (idx < jobs->size()) {
+                    jobs->at(idx).cancelled = true;
+                    BOOST_LOG_TRIVIAL(debug) << boost::format("PrintHostJobQueue: Job id %1% cancelled") % cancel_id;
+                    emit_cancel(cancel_id);
+                }
             }
-            // TODO: emit cancelled
         }
 
         cancels->clear();
     }
 
-    int gui_progress = progress.ultotal > 0 ? 100*progress.ulnow / progress.ultotal : 0;
-    if (gui_progress != prev_progress) {
-        auto evt = new PrintHostQueueDialog::Event(GUI::EVT_PRINTHOST_PROGRESS, queue_dialog->GetId(), job_id, gui_progress);
-        wxQueueEvent(queue_dialog, evt);
-        prev_progress = gui_progress;
+    if (! cancel) {
+        int gui_progress = progress.ultotal > 0 ? 100*progress.ulnow / progress.ultotal : 0;
+        if (gui_progress != prev_progress) {
+            emit_progress(gui_progress);
+            prev_progress = gui_progress;
+        }
     }
+}
+
+void PrintHostJobQueue::priv::remove_source(const fs::path &path)
+{
+    if (! path.empty()) {
+        boost::system::error_code ec;
+        fs::remove(path, ec);
+        if (ec) {
+            BOOST_LOG_TRIVIAL(error) << boost::format("PrintHostJobQueue: Error removing file `%1%`: %2%") % path % ec;
+        }
+    }
+}
+
+void PrintHostJobQueue::priv::remove_source()
+{
+    remove_source(source_to_remove);
+    source_to_remove.clear();
 }
 
 void PrintHostJobQueue::priv::perform_job(PrintHostJob the_job)
 {
     if (bg_exit || the_job.empty()) { return; }
 
-    BOOST_LOG_TRIVIAL(debug) << boost::format("PrintHostJobQueue/bg_thread: Got job: `%1%` -> `%2%`")
-        % the_job.upload_data.upload_path
-        % the_job.printhost->get_host();
-
-    const fs::path gcode_path = the_job.upload_data.source_path;
-
     bool success = the_job.printhost->upload(std::move(the_job.upload_data),
         [this](Http::Progress progress, bool &cancel) { this->progress_fn(std::move(progress), cancel); },
         [this](wxString error) {
-            auto evt = new PrintHostQueueDialog::Event(GUI::EVT_PRINTHOST_ERROR, queue_dialog->GetId(), job_id, std::move(error));
-            wxQueueEvent(queue_dialog, evt);
+            emit_error(std::move(error));
         }
     );
 
     if (success) {
-        auto evt = new PrintHostQueueDialog::Event(GUI::EVT_PRINTHOST_PROGRESS, queue_dialog->GetId(), job_id, 100);
-        wxQueueEvent(queue_dialog, evt);
-    }
-
-    boost::system::error_code ec;
-    fs::remove(gcode_path, ec);
-    if (ec) {
-        BOOST_LOG_TRIVIAL(error) << boost::format("PrintHostJobQueue: Error removing file `%1%`: %2%") % gcode_path % ec;
+        emit_progress(100);
     }
 }
 
@@ -176,6 +230,11 @@ void PrintHostJobQueue::enqueue(PrintHostJob job)
     p->start_bg_thread();
     p->queue_dialog->append_job(job);
     p->channel_jobs.push(std::move(job));
+}
+
+void PrintHostJobQueue::cancel(size_t id)
+{
+    p->channel_cancels.push(id);
 }
 
 

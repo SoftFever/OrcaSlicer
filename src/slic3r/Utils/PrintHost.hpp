@@ -55,6 +55,7 @@ struct PrintHostJob
     PrintHostJob(PrintHostJob &&other)
         : upload_data(std::move(other.upload_data))
         , printhost(std::move(other.printhost))
+        , cancelled(other.cancelled)
     {}
 
     PrintHostJob(DynamicPrintConfig *config)
@@ -66,6 +67,7 @@ struct PrintHostJob
     {
         upload_data = std::move(other.upload_data);
         printhost = std::move(other.printhost);
+        cancelled = other.cancelled;
         return *this;
     }
 

@@ -14,6 +14,7 @@
 #include <wx/debug.h>
 
 #include "GUI.hpp"
+#include "GUI_App.hpp"
 #include "MsgDialog.hpp"
 #include "I18N.hpp"
 #include "../Utils/PrintHost.hpp"
@@ -59,7 +60,8 @@ bool PrintHostSendDialog::start_print() const
 
 
 wxDEFINE_EVENT(EVT_PRINTHOST_PROGRESS, PrintHostQueueDialog::Event);
-wxDEFINE_EVENT(EVT_PRINTHOST_ERROR, PrintHostQueueDialog::Event);
+wxDEFINE_EVENT(EVT_PRINTHOST_ERROR,    PrintHostQueueDialog::Event);
+wxDEFINE_EVENT(EVT_PRINTHOST_CANCEL,   PrintHostQueueDialog::Event);
 
 PrintHostQueueDialog::Event::Event(wxEventType eventType, int winid, size_t job_id)
     : wxEvent(winid, eventType)
@@ -87,6 +89,7 @@ PrintHostQueueDialog::PrintHostQueueDialog(wxWindow *parent)
     : wxDialog(parent, wxID_ANY, _(L("Print host upload queue")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
     , on_progress_evt(this, EVT_PRINTHOST_PROGRESS, &PrintHostQueueDialog::on_progress, this)
     , on_error_evt(this, EVT_PRINTHOST_ERROR, &PrintHostQueueDialog::on_error, this)
+    , on_cancel_evt(this, EVT_PRINTHOST_CANCEL, &PrintHostQueueDialog::on_cancel, this)
 {
     enum { HEIGHT = 800, WIDTH = 400, SPACING = 5 };
 
@@ -127,6 +130,7 @@ PrintHostQueueDialog::PrintHostQueueDialog(wxWindow *parent)
         const JobState state = get_state(selected);
         if (state < ST_ERROR) {
             // TODO: cancel
+            GUI::wxGetApp().printhost_job_queue().cancel(selected);
         }
     });
 
@@ -161,6 +165,15 @@ void PrintHostQueueDialog::set_state(int idx, JobState state)
 {
     wxCHECK_RET(idx >= 0 && idx < job_list->GetItemCount(), "Out of bounds access to job list");
     job_list->SetItemData(job_list->RowToItem(idx), static_cast<wxUIntPtr>(state));
+
+    switch (state) {
+        case ST_NEW:        job_list->SetValue(_(L("Enqueued")), idx, COL_STATUS); break;
+        case ST_PROGRESS:   job_list->SetValue(_(L("Uploading")), idx, COL_STATUS); break;
+        case ST_ERROR:      job_list->SetValue(_(L("Error")), idx, COL_STATUS); break;
+        case ST_CANCELLING: job_list->SetValue(_(L("Cancelling")), idx, COL_STATUS); break;
+        case ST_CANCELLED:  job_list->SetValue(_(L("Cancelled")), idx, COL_STATUS); break;
+        case ST_COMPLETED:  job_list->SetValue(_(L("Completed")), idx, COL_STATUS); break;
+    }
 }
 
 void PrintHostQueueDialog::on_list_select()
@@ -183,11 +196,9 @@ void PrintHostQueueDialog::on_progress(Event &evt)
     if (evt.progress < 100) {
         set_state(evt.job_id, ST_PROGRESS);
         job_list->SetValue(wxVariant(evt.progress), evt.job_id, COL_PROGRESS);
-        job_list->SetValue(_(L("Uploading")), evt.job_id, COL_STATUS);
     } else {
         set_state(evt.job_id, ST_COMPLETED);
         job_list->SetValue(wxVariant(100), evt.job_id, COL_PROGRESS);
-        job_list->SetValue(_(L("Complete")), evt.job_id, COL_STATUS);
     }
 
     on_list_select();
@@ -201,12 +212,21 @@ void PrintHostQueueDialog::on_error(Event &evt)
 
     auto errormsg = wxString::Format("%s\n%s", _(L("Error uploading to print host:")), evt.error);
     job_list->SetValue(wxVariant(0), evt.job_id, COL_PROGRESS);
-    job_list->SetValue(wxVariant(_(L("Error"))), evt.job_id, COL_STATUS);
     job_list->SetValue(wxVariant(errormsg), evt.job_id, COL_ERRORMSG);    // Stashes the error message into a hidden column for later
 
     on_list_select();
 
     GUI::show_error(nullptr, std::move(errormsg));
+}
+
+void PrintHostQueueDialog::on_cancel(Event &evt)
+{
+    wxCHECK_RET(evt.job_id < job_list->GetItemCount(), "Out of bounds access to job list");
+
+    set_state(evt.job_id, ST_CANCELLED);
+    job_list->SetValue(wxVariant(0), evt.job_id, COL_PROGRESS);
+
+    on_list_select();
 }
 
 

@@ -86,16 +86,19 @@ private:
     // Note: EventGuard prevents delivery of progress evts to a freed PrintHostQueueDialog
     EventGuard on_progress_evt;
     EventGuard on_error_evt;
+    EventGuard on_cancel_evt;
 
     JobState get_state(int idx);
     void set_state(int idx, JobState);
     void on_list_select();
     void on_progress(Event&);
     void on_error(Event&);
+    void on_cancel(Event&);
 };
 
 wxDECLARE_EVENT(EVT_PRINTHOST_PROGRESS, PrintHostQueueDialog::Event);
 wxDECLARE_EVENT(EVT_PRINTHOST_ERROR, PrintHostQueueDialog::Event);
+wxDECLARE_EVENT(EVT_PRINTHOST_CANCEL, PrintHostQueueDialog::Event);
 
 
 }}
