@@ -1132,7 +1132,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     this->canvas3D->set_config(config);
     this->canvas3D->enable_gizmos(true);
     this->canvas3D->enable_toolbar(true);
-    this->canvas3D->enable_shader(true);
     this->canvas3D->enable_force_zoom_to_bed(true);
 #endif // ENABLE_REMOVE_TABS_FROM_PLATER
 

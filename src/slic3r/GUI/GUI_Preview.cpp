@@ -70,7 +70,6 @@ bool View3D::init(wxWindow* parent, Model* model, DynamicPrintConfig* config, Ba
     m_canvas->set_config(config);
     m_canvas->enable_gizmos(true);
     m_canvas->enable_toolbar(true);
-    m_canvas->enable_shader(true);
     m_canvas->enable_force_zoom_to_bed(true);
 
 #if !ENABLE_IMGUI
@@ -257,7 +256,6 @@ bool Preview::init(wxNotebook* notebook, DynamicPrintConfig* config, BackgroundS
 	_3DScene::add_canvas(m_canvas_widget);
 	m_canvas = _3DScene::get_canvas(this->m_canvas_widget);
     m_canvas->allow_multisample(GLCanvas3DManager::can_multisample());
-    m_canvas->enable_shader(true);
     m_canvas->set_config(m_config);
     m_canvas->set_process(process);
     m_canvas->enable_legend_texture(true);
