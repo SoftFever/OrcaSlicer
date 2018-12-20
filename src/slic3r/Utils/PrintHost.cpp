@@ -38,6 +38,16 @@ PrintHost* PrintHost::get_print_host(DynamicPrintConfig *config)
     }
 }
 
+wxString PrintHost::format_error(const std::string &body, const std::string &error, unsigned status) const
+{
+    if (status != 0) {
+        auto wxbody = wxString::FromUTF8(body.data());
+        return wxString::Format("HTTP %u: %s", status, wxbody);
+    } else {
+        return wxString::FromUTF8(error.data());
+    }
+}
+
 
 struct PrintHostJobQueue::priv
 {

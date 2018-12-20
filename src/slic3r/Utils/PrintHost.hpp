@@ -41,6 +41,9 @@ public:
     virtual std::string get_host() const = 0;
 
     static PrintHost* get_print_host(DynamicPrintConfig *config);
+
+protected:
+    virtual wxString format_error(const std::string &body, const std::string &error, unsigned status) const;
 };
 
 

@@ -102,7 +102,7 @@ bool OctoPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, Erro
     auto url = make_url("api/files/local");
 
     BOOST_LOG_TRIVIAL(info) << boost::format("Octoprint: Uploading file %1% at %2%, filename: %3%, path: %4%, print: %5%")
-        % upload_data.source_path.string()
+        % upload_data.source_path
         % url
         % upload_filename.string()
         % upload_parent_path.string()
@@ -118,7 +118,6 @@ bool OctoPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, Erro
         })
         .on_error([&](std::string body, std::string error, unsigned status) {
             BOOST_LOG_TRIVIAL(error) << boost::format("Octoprint: Error uploading file: %1%, HTTP %2%, body: `%3%`") % error % status % body;
-            // error_fn(std::move(body), std::move(error), status);
             error_fn(format_error(body, error, status));
             res = false;
         })
@@ -126,7 +125,7 @@ bool OctoPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, Erro
             prorgess_fn(std::move(progress), cancel);
             if (cancel) {
                 // Upload was canceled
-                BOOST_LOG_TRIVIAL(error) << "Octoprint: Upload canceled";
+                BOOST_LOG_TRIVIAL(info) << "Octoprint: Upload canceled";
                 res = false;
             }
         })
@@ -169,16 +168,6 @@ std::string OctoPrint::make_url(const std::string &path) const
         }
     } else {
         return (boost::format("http://%1%/%2%") % host % path).str();
-    }
-}
-
-wxString OctoPrint::format_error(const std::string &body, const std::string &error, unsigned status)
-{
-    if (status != 0) {
-        auto wxbody = wxString::FromUTF8(body.data());
-        return wxString::Format("HTTP %u: %s", status, wxbody);
-    } else {
-        return wxString::FromUTF8(error.data());
     }
 }
 

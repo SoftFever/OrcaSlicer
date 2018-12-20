@@ -26,6 +26,7 @@ public:
 	virtual bool has_auto_discovery() const;
 	virtual bool can_test() const;
 	virtual std::string get_host() const { return host; }
+
 private:
 	std::string host;
 	std::string password;
@@ -38,7 +39,6 @@ private:
 	void disconnect() const;
 	bool start_print(wxString &msg, const std::string &filename) const;
 	int get_err_code_from_body(const std::string &body) const;
-	static wxString format_error(const std::string &body, const std::string &error, unsigned status);
 };
 
 
