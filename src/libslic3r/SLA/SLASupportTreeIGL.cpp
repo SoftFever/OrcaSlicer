@@ -107,7 +107,8 @@ PointSet normals(const PointSet& points, const EigenMesh3D& emesh,
     // structure
     EigenMesh3D  mesh;
     Eigen::VectorXi SVI, SVJ;
-    igl::remove_duplicate_vertices(emesh.V, emesh.F, 1e-6,
+    static const double dEPS = 1e-6;
+    igl::remove_duplicate_vertices(emesh.V, emesh.F, dEPS,
                                    mesh.V, SVI, SVJ, mesh.F);
 
     igl::point_mesh_squared_distance( points, mesh.V, mesh.F, dists, I, C);
@@ -155,6 +156,7 @@ PointSet normals(const PointSet& points, const EigenMesh3D& emesh,
             ia = trindex(0); ib = trindex(2);
         }
 
+        // vector for the neigboring triangles including the detected one.
         std::vector<Vec3i> neigh;
         if(ic >= 0) { // The point is right on a vertex of the triangle
             for(int n = 0; n < mesh.F.rows(); ++n) {
@@ -175,17 +177,32 @@ PointSet normals(const PointSet& points, const EigenMesh3D& emesh,
             }
         }
 
-        if(!neigh.empty()) { // there were neighbors to count with
+        // Calculate the normals for the neighboring triangles
+        std::vector<Vec3d> neighnorms; neighnorms.reserve(neigh.size());
+        for(const Vec3i& tri : neigh) {
+            const Vec3d& pt1 = mesh.V.row(tri(0));
+            const Vec3d& pt2 = mesh.V.row(tri(1));
+            const Vec3d& pt3 = mesh.V.row(tri(2));
+            Eigen::Vector3d U = pt2 - pt1;
+            Eigen::Vector3d V = pt3 - pt1;
+            neighnorms.emplace_back(U.cross(V).normalized());
+        }
+
+        // Throw out duplicates. They would case trouble with summing.
+        auto lend = std::unique(neighnorms.begin(), neighnorms.end(),
+                                [](const Vec3d& n1, const Vec3d& n2) {
+            // Compare normals for equivalence. This is controvers stuff.
+            // We will go for the third significant digit precision.
+            auto deq = [](double a, double b) { return std::abs(a-b) < 1e-3; };
+            return deq(n1(X), n2(X)) && deq(n1(Y), n2(Y)) && deq(n1(Z), n2(Z));
+        });
+
+        if(!neighnorms.empty()) { // there were neighbors to count with
+            // sum up the normals and than normalize the result again.
+            // This unification seems to be enough.
             Vec3d sumnorm(0, 0, 0);
-            for(const Vec3i& tri : neigh) {
-                const Vec3d& pt1 = mesh.V.row(tri(0));
-                const Vec3d& pt2 = mesh.V.row(tri(1));
-                const Vec3d& pt3 = mesh.V.row(tri(2));
-                Eigen::Vector3d U = pt2 - pt1;
-                Eigen::Vector3d V = pt3 - pt1;
-                sumnorm += U.cross(V).normalized();
-            }
-            sumnorm /= neigh.size();
+            sumnorm = std::accumulate(neighnorms.begin(), lend, sumnorm);
+            sumnorm.normalize();
             ret.row(i) = sumnorm;
         }
         else { // point lies safely within its triangle
