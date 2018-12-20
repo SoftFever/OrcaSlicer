@@ -47,6 +47,8 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
 
     m_og->m_fill_empty_value = [this](const std::string& opt_key)
     {
+        this->update_if_dirty();
+
         std::string param;
         std::copy(opt_key.begin(), opt_key.end() - 2, std::back_inserter(param)); 
 
@@ -83,6 +85,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
 
     m_og->m_set_focus = [this](const std::string& opt_key)
     {
+        this->update_if_dirty();
         wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event(opt_key, true);
     };
 
@@ -179,22 +182,19 @@ bool ObjectManipulation::IsShown()
 
 void ObjectManipulation::UpdateAndShow(const bool show)
 {
-    if (show)
+    if (show) {
         update_settings_value(wxGetApp().plater()->canvas3D()->get_selection());
+        update_if_dirty();
+    }
 
     OG_Settings::UpdateAndShow(show);
 }
 
-int ObjectManipulation::ol_selection()
-{
-    return wxGetApp().obj_list()->get_selected_obj_idx();
-}
-
 void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& selection)
 {
-    wxString move_label = _(L("Position:"));
-    wxString rotate_label = _(L("Rotation:"));
-    wxString scale_label = _(L("Scale factors:"));
+	m_new_move_label_string   = L("Position:");
+    m_new_rotate_label_string = L("Rotation:");
+    m_new_scale_label_string  = L("Scale factors:");
 #if ENABLE_MODELVOLUME_TRANSFORM
     if (selection.is_single_full_instance())
 #else
@@ -205,10 +205,10 @@ void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& sele
         {
             // all volumes in the selection belongs to the same instance, any of them contains the needed data, so we take the first
             const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
-            update_position_value(volume->get_offset());
-            update_rotation_value(volume->get_rotation());
-            update_scale_value(volume->get_scaling_factor());
-            m_og->enable();
+            m_new_position = volume->get_offset();
+            m_new_rotation = volume->get_rotation();
+            m_new_scale    = volume->get_scaling_factor();
+            m_new_enabled  = true;
         }
         else
             reset_settings_value();
@@ -219,143 +219,104 @@ void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& sele
         // all volumes in the selection belongs to the same instance, any of them contains the needed data, so we take the first
         const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
 #if ENABLE_MODELVOLUME_TRANSFORM
-        update_position_value(volume->get_instance_offset());
-        update_rotation_value(volume->get_instance_rotation());
-        update_scale_value(volume->get_instance_scaling_factor());
-        update_size_value(volume->get_instance_transformation().get_matrix(true, true) * volume->bounding_box.size());
+        m_new_position = volume->get_instance_offset();
+        m_new_rotation = volume->get_instance_rotation();
+        m_new_scale    = volume->get_instance_scaling_factor();
+        m_new_size     = volume->get_instance_transformation().get_matrix(true, true) * volume->bounding_box.size();
 #else
-        update_position_value(volume->get_offset());
-        update_rotation_value(volume->get_rotation());
-        update_scale_value(volume->get_scaling_factor());
+        m_new_position = volume->get_offset();
+        m_new_rotation = volume->get_rotation();
+        m_new_scale    = volume->get_scaling_factor();
 #endif // ENABLE_MODELVOLUME_TRANSFORM
-        m_og->enable();
+        m_new_enabled  = true;
     }
     else if (selection.is_single_full_object())
     {
         const BoundingBoxf3& box = selection.get_bounding_box();
-        update_position_value(box.center());
-        reset_rotation_value();
-        reset_scale_value();
-        update_size_value(box.size());
-        rotate_label = _(L("Rotate:"));
-        scale_label = _(L("Scale:"));
-        m_og->enable();
+        m_new_position = box.center();
+        m_new_rotation = Vec3d::Zero();
+        m_new_scale    = Vec3d(1.0, 1.0, 1.0);
+        m_new_size     = box.size();
+        m_new_rotate_label_string = L("Rotate:");
+		m_new_scale_label_string  = L("Scale:");
+        m_new_enabled  = true;
     }
     else if (selection.is_single_modifier() || selection.is_single_volume())
     {
         // the selection contains a single volume
         const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
 #if ENABLE_MODELVOLUME_TRANSFORM
-        update_position_value(volume->get_volume_offset());
-        update_rotation_value(volume->get_volume_rotation());
-        update_scale_value(volume->get_volume_scaling_factor());
-        update_size_value(volume->bounding_box.size());
+        m_new_position = volume->get_volume_offset();
+        m_new_rotation = volume->get_volume_rotation();
+        m_new_scale    = volume->get_volume_scaling_factor();
+        m_new_size     = volume->bounding_box.size();
 #else
-        update_position_value(volume->get_offset());
-        update_rotation_value(volume->get_rotation());
-        update_scale_value(volume->get_scaling_factor());
+        m_new_position = volume->get_offset();
+        m_new_rotation = volume->get_rotation();
+        m_new_scale    = volume->get_scaling_factor();
 #endif // ENABLE_MODELVOLUME_TRANSFORM
-        m_og->enable();
+        m_new_enabled  = true;
     }
     else if (wxGetApp().obj_list()->multiple_selection())
     {
         reset_settings_value();
-        move_label = _(L("Translate:"));
-        rotate_label = _(L("Rotate:"));
-        scale_label = _(L("Scale:"));
-        update_size_value(selection.get_bounding_box().size());
-        m_og->enable();
+		m_new_move_label_string   = L("Translate:");
+		m_new_rotate_label_string = L("Rotate:");
+		m_new_scale_label_string  = L("Scale:");
+        m_new_size = selection.get_bounding_box().size();
+        m_new_enabled  = true;
     }
     else
         reset_settings_value();
 
-    m_move_Label->SetLabel(move_label);
-    m_rotate_Label->SetLabel(rotate_label);
-    m_scale_Label->SetLabel(scale_label);
+    m_dirty = true;
+}
+
+void ObjectManipulation::update_if_dirty()
+{
+    if (! m_dirty)
+        return;
+
+    m_move_Label->SetLabel(_(m_new_move_label_string));
+    m_rotate_Label->SetLabel(_(m_new_rotate_label_string));
+    m_scale_Label->SetLabel(_(m_new_scale_label_string));
+
+    m_og->set_value("position_x", double_to_string(m_new_position(0), 2));
+    m_og->set_value("position_y", double_to_string(m_new_position(1), 2));
+    m_og->set_value("position_z", double_to_string(m_new_position(2), 2));
+    cache_position = m_new_position;
+
+    auto scale = m_new_scale * 100.0;
+    m_og->set_value("scale_x", double_to_string(scale(0), 2));
+    m_og->set_value("scale_y", double_to_string(scale(1), 2));
+    m_og->set_value("scale_z", double_to_string(scale(2), 2));
+    cache_scale = scale;
+
+    m_og->set_value("size_x", double_to_string(m_new_size(0), 2));
+    m_og->set_value("size_y", double_to_string(m_new_size(1), 2));
+    m_og->set_value("size_z", double_to_string(m_new_size(2), 2));
+    cache_size = m_new_size;
+
+    m_og->set_value("rotation_x", double_to_string(round_nearest(Geometry::rad2deg(m_new_rotation(0)), 0), 2));
+    m_og->set_value("rotation_y", double_to_string(round_nearest(Geometry::rad2deg(m_new_rotation(1)), 0), 2));
+    m_og->set_value("rotation_z", double_to_string(round_nearest(Geometry::rad2deg(m_new_rotation(2)), 0), 2));
+	cache_rotation = m_new_rotation;
+
+    if (m_new_enabled)
+        m_og->enable();
+    else
+        m_og->disable();
+
+    m_dirty = false;
 }
 
 void ObjectManipulation::reset_settings_value()
 {
-    reset_position_value();
-    reset_rotation_value();
-    reset_scale_value();
-    m_og->disable();
-}
-
-wxString def_0 {"0"};
-wxString def_100 {"100"};
-
-void ObjectManipulation::reset_position_value()
-{
-    m_og->set_value("position_x", def_0);
-    m_og->set_value("position_y", def_0);
-    m_og->set_value("position_z", def_0);
-
-    cache_position = Vec3d::Zero();
-}
-
-void ObjectManipulation::reset_rotation_value()
-{
-    m_og->set_value("rotation_x", def_0);
-    m_og->set_value("rotation_y", def_0);
-    m_og->set_value("rotation_z", def_0);
-
-    cache_rotation = Vec3d::Zero();
-}
-
-void ObjectManipulation::reset_scale_value()
-{
-    m_og->set_value("scale_x", def_100);
-    m_og->set_value("scale_y", def_100);
-    m_og->set_value("scale_z", def_100);
-
-    cache_scale = Vec3d(100.0, 100.0, 100.0);
-}
-
-void ObjectManipulation::reset_size_value()
-{
-    m_og->set_value("size_x", def_0);
-    m_og->set_value("size_y", def_0);
-    m_og->set_value("size_z", def_0);
-
-    cache_size = Vec3d::Zero();
-}
-
-void ObjectManipulation::update_position_value(const Vec3d& position)
-{
-    m_og->set_value("position_x", double_to_string(position(0), 2));
-    m_og->set_value("position_y", double_to_string(position(1), 2));
-    m_og->set_value("position_z", double_to_string(position(2), 2));
-
-    cache_position = position;
-}
-
-void ObjectManipulation::update_scale_value(const Vec3d& scaling_factor)
-{
-    auto scale = scaling_factor * 100.0;
-    m_og->set_value("scale_x", double_to_string(scale(0), 2));
-    m_og->set_value("scale_y", double_to_string(scale(1), 2));
-    m_og->set_value("scale_z", double_to_string(scale(2), 2));
-
-    cache_scale = scale;
-}
-
-void ObjectManipulation::update_size_value(const Vec3d& size)
-{
-    m_og->set_value("size_x", double_to_string(size(0), 2));
-    m_og->set_value("size_y", double_to_string(size(1), 2));
-    m_og->set_value("size_z", double_to_string(size(2), 2));
-
-    cache_size = size;
-}
-
-void ObjectManipulation::update_rotation_value(const Vec3d& rotation)
-{
-    m_og->set_value("rotation_x", double_to_string(round_nearest(Geometry::rad2deg(rotation(0)), 0), 2));
-    m_og->set_value("rotation_y", double_to_string(round_nearest(Geometry::rad2deg(rotation(1)), 0), 2));
-    m_og->set_value("rotation_z", double_to_string(round_nearest(Geometry::rad2deg(rotation(2)), 0), 2));
-
-    cache_rotation = rotation;
+    m_new_position  = Vec3d::Zero();
+    m_new_rotation  = Vec3d::Zero();
+    m_new_scale     = Vec3d(1.0, 1.0, 1.0);
+    m_new_size      = Vec3d::Zero();
+    m_new_enabled   = false;
 }
 
 void ObjectManipulation::change_position_value(const Vec3d& position)

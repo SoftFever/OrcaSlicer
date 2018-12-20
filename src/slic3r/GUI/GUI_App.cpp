@@ -181,6 +181,9 @@ bool GUI_App::OnInit()
 
         if (app_config->dirty())
             app_config->save();
+
+        if (this->plater() != nullptr)
+            this->obj_manipul()->update_if_dirty();
     });
 
     // On OS X the UI tends to freeze in weird ways if modal dialogs(config wizard, update notifications, ...)
