@@ -149,7 +149,9 @@ int Http::priv::xfercb(void *userp, curl_off_t dltotal, curl_off_t dlnow, curl_o
 		self->progressfn(progress, cb_cancel);
 	}
 
-	return self->cancel || cb_cancel;
+	if (cb_cancel) { self->cancel = true; }
+
+	return self->cancel;
 }
 
 int Http::priv::xfercb_legacy(void *userp, double dltotal, double dlnow, double ultotal, double ulnow)
@@ -280,7 +282,7 @@ void Http::priv::http_perform()
 	} else {
 		long http_status = 0;
 		::curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_status);
-		
+
 		if (http_status >= 400) {
 			if (errorfn) { errorfn(std::move(buffer), std::string(), http_status); }
 		} else {

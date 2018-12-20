@@ -77,8 +77,7 @@ public:
         }
     }
 
-    // Unlocked observers/hints
-    // Thread unsafe! Keep in mind you need to re-verify the result after locking!
+    // Unlocked observer/hint. Thread unsafe! Keep in mind you need to re-verify the result after locking.
     size_t size_hint() const noexcept { return m_queue.size(); }
 
     LockedConstPtr lock_read() const

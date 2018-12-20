@@ -611,6 +611,7 @@ protected:
 
 private:
     void render_VBOs() const;
+    void render_legacy() const;
 };
 
 class GLArrow : public GLModel

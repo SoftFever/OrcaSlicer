@@ -850,7 +850,6 @@ private:
     bool m_legend_texture_enabled;
     bool m_picking_enabled;
     bool m_moving_enabled;
-    bool m_shader_enabled;
     bool m_dynamic_background_enabled;
     bool m_multisample_allowed;
     bool m_regenerate_volumes;
@@ -950,7 +949,6 @@ public:
     void enable_moving(bool enable);
     void enable_gizmos(bool enable);
     void enable_toolbar(bool enable);
-    void enable_shader(bool enable);
     void enable_force_zoom_to_bed(bool enable);
     void enable_dynamic_background(bool enable);
     void allow_multisample(bool allow);

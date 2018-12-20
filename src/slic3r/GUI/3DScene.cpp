@@ -1920,8 +1920,7 @@ void GLModel::render() const
     if (m_useVBOs)
         render_VBOs();
     else
-    {
-    }
+        render_legacy();
 }
 
 void GLModel::render_VBOs() const
@@ -1947,6 +1946,25 @@ void GLModel::render_VBOs() const
     ::glDisableClientState(GL_NORMAL_ARRAY);
 
     ::glDisable(GL_BLEND);
+}
+
+void GLModel::render_legacy() const
+{
+    ::glEnable(GL_LIGHTING);
+    ::glEnable(GL_BLEND);
+    ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    ::glCullFace(GL_BACK);
+    ::glEnableClientState(GL_VERTEX_ARRAY);
+    ::glEnableClientState(GL_NORMAL_ARRAY);
+
+    m_volume.render_legacy();
+
+    ::glDisableClientState(GL_VERTEX_ARRAY);
+    ::glDisableClientState(GL_NORMAL_ARRAY);
+
+    ::glDisable(GL_BLEND);
+    ::glDisable(GL_LIGHTING);
 }
 
 bool GLArrow::on_init(bool useVBOs)

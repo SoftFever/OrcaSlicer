@@ -3,6 +3,7 @@
 #include "libslic3r/Utils.hpp"
 #include "GUI.hpp"
 #include <wx/scrolwin.h>
+#include "GUI_App.hpp"
 
 namespace Slic3r { 
 namespace GUI {
@@ -19,41 +20,46 @@ KBShortcutsDialog::KBShortcutsDialog()
 
     // fonts
     wxFont head_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold();
-    head_font.SetPointSize(19);
-
-    wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
-    font.SetPointSize(10);
-    wxFont bold_font = font.Bold();
 #ifdef __WXOSX__
-    font.SetPointSize(12);
-    bold_font.SetPointSize(14);
-#endif /*__WXOSX__*/
+    head_font.SetPointSize(14);
+#else
+    head_font.SetPointSize(12);
+#endif // __WXOSX__
+
+    const wxFont& font = wxGetApp().small_font();
+    const wxFont& bold_font = wxGetApp().bold_font();
 
     fill_shortcuts();
 
-    auto panel = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxSize(500, 600));
-    panel->SetScrollbars(0, 20, 1, 2);
-    auto  sizer = new wxBoxSizer(wxVERTICAL);
-    panel->SetSizer(sizer);
+    auto panel = new wxPanel(this);
+    auto main_grid_sizer = new wxFlexGridSizer(2, 10, 10);
+    panel->SetSizer(main_grid_sizer);
     main_sizer->Add(panel, 1, wxEXPAND | wxALL, 0);
+
+    wxBoxSizer* l_sizer = new wxBoxSizer(wxVERTICAL);
+    main_grid_sizer->Add(l_sizer, 0);
+
+    wxBoxSizer* r_sizer = new wxBoxSizer(wxVERTICAL);
+    main_grid_sizer->Add(r_sizer, 0);
 
     for (auto& sc : m_full_shortcuts)
     {
+        auto sizer = sc.first == _(L("Main Shortcuts")) ? l_sizer : r_sizer;
         wxBoxSizer* hsizer = new wxBoxSizer(wxHORIZONTAL);
-        sizer->Add(hsizer, 0, wxEXPAND | wxTOP, 25);
+        sizer->Add(hsizer, 0, wxEXPAND | wxTOP | wxBOTTOM, 10);
 
         // logo
         auto *logo = new wxStaticBitmap(panel, wxID_ANY, logo_bmp);
         hsizer->Add(logo, 0, wxEXPAND | wxLEFT | wxRIGHT, 15);
 
         // head
-        wxStaticText* head = new wxStaticText(panel, wxID_ANY, sc.first, wxDefaultPosition, wxSize(400,-1));
+        wxStaticText* head = new wxStaticText(panel, wxID_ANY, sc.first, wxDefaultPosition, wxSize(200,-1));
         head->SetFont(head_font);
         hsizer->Add(head, 0, wxALIGN_CENTER_VERTICAL);
 
         // Shortcuts list
-        auto grid_sizer = new wxFlexGridSizer(2, 10, 25);
-        sizer->Add(grid_sizer, 0, wxEXPAND | wxLEFT | wxTOP, 10);
+        auto grid_sizer = new wxFlexGridSizer(2, 5, 15);
+        sizer->Add(grid_sizer, 0, wxEXPAND | wxLEFT| wxRIGHT, 15);
 
         for (auto pair : sc.second)
         {
@@ -69,9 +75,9 @@ KBShortcutsDialog::KBShortcutsDialog()
   
     wxStdDialogButtonSizer* buttons = this->CreateStdDialogButtonSizer(wxOK);
 
-    this->SetEscapeId(wxID_CLOSE);
+    this->SetEscapeId(wxID_OK);
     this->Bind(wxEVT_BUTTON, &KBShortcutsDialog::onCloseDialog, this, wxID_OK);
-    main_sizer->Add(buttons, 0, wxEXPAND | wxALL, 15);
+    main_sizer->Add(buttons, 0, wxEXPAND | wxRIGHT | wxBOTTOM, 15);
     
     this->Bind(wxEVT_LEFT_DOWN, &KBShortcutsDialog::onCloseDialog, this);
 
@@ -81,32 +87,40 @@ KBShortcutsDialog::KBShortcutsDialog()
 
 void KBShortcutsDialog::fill_shortcuts()
 {
+#ifdef __WXOSX__
+    const std::string ctrl = "Cmd+";    // #ys_FIXME_cmd_smb    // Change it for the accorded symbol
+    const std::string alt = "Alt+";     // #ys_FIXME_cmd_smb    // Change it for the accorded symbol
+#else
+    const std::string ctrl = "Ctrl+";
+    const std::string alt = "Alt+";
+#endif // __WXOSX__
+
     Shortcuts main_shortcuts;
     main_shortcuts.reserve(25);
 
-    main_shortcuts.push_back(Shortcut("Ctrl+O",         L("Open project STL/OBJ/AMF/3MF with config, delete bed")));
-    main_shortcuts.push_back(Shortcut("Ctrl+I",         L("Import STL//OBJ/AMF/3MF without config, keep bed")));
-    main_shortcuts.push_back(Shortcut("Ctrl+L",         L("Load Config from .ini/amf/3mf/gcode")));
-    main_shortcuts.push_back(Shortcut("Ctrl+Alt+L",     L("Load Config from .ini/amf/3mf/gcode and merge")));
-    main_shortcuts.push_back(Shortcut("Ctrl+G",         L("Export Gcode")));
-    main_shortcuts.push_back(Shortcut("Ctrl+S",         L("Save project (3MF)")));
-    main_shortcuts.push_back(Shortcut("Ctrl+R",         L("(Re)slice")));
-    main_shortcuts.push_back(Shortcut("Ctrl+U",         L("Quick slice")));
-    main_shortcuts.push_back(Shortcut("Ctrl+Alt+U",     L("Quick slice and Save as")));
-    main_shortcuts.push_back(Shortcut("Ctrl+Shift+U",   L("Repeat last quick slice")));
-    main_shortcuts.push_back(Shortcut("Ctrl+1",         L("Select Plater Tab")));
-    main_shortcuts.push_back(Shortcut("Ctrl+2",         L("Select Print Settings Tab")));
-    main_shortcuts.push_back(Shortcut("Ctrl+3",         L("Select Filament Setting Tab")));
-    main_shortcuts.push_back(Shortcut("Ctrl+4",         L("Select Printer Setting Tab")));
-    main_shortcuts.push_back(Shortcut("Ctrl+5",         L("Switch to 3D")));
-    main_shortcuts.push_back(Shortcut("Ctrl+6",         L("Switch to Preview")));
-    main_shortcuts.push_back(Shortcut("Ctrl+P",         L("Preferences")));
-    main_shortcuts.push_back(Shortcut("0-6",            L("Camera view ")));
-    main_shortcuts.push_back(Shortcut("+",              L("Add Instance to selected object ")));
-    main_shortcuts.push_back(Shortcut("-",              L("Remove Instance from selected object")));
-    main_shortcuts.push_back(Shortcut("?",              L("Show keyboard shortcuts list")));
-    main_shortcuts.push_back(Shortcut("PgUp/PgDn",      L("Switch between 3D and Preview")));
-    main_shortcuts.push_back(Shortcut("Shift+LeftMouse",L("Select multiple object/Move multiple object")));
+    main_shortcuts.push_back(Shortcut(ctrl+"O"          ,L("Open project STL/OBJ/AMF/3MF with config, delete bed")));
+    main_shortcuts.push_back(Shortcut(ctrl+"I"          ,L("Import STL//OBJ/AMF/3MF without config, keep bed")));
+    main_shortcuts.push_back(Shortcut(ctrl+"L"          ,L("Load Config from .ini/amf/3mf/gcode")));
+    main_shortcuts.push_back(Shortcut(ctrl+"G"          ,L("Export Gcode")));
+    main_shortcuts.push_back(Shortcut(ctrl+"S"          ,L("Save project (3MF)")));
+    main_shortcuts.push_back(Shortcut(ctrl+alt+"L"      ,L("Load Config from .ini/amf/3mf/gcode and merge")));
+    main_shortcuts.push_back(Shortcut(ctrl+"R"          ,L("(Re)slice")));
+    main_shortcuts.push_back(Shortcut(ctrl+"U"          ,L("Quick slice")));
+    main_shortcuts.push_back(Shortcut(ctrl+"Shift+U"    ,L("Repeat last quick slice")));
+    main_shortcuts.push_back(Shortcut(ctrl+"1"          ,L("Select Plater Tab")));
+    main_shortcuts.push_back(Shortcut(ctrl+alt+"U"      ,L("Quick slice and Save as")));
+    main_shortcuts.push_back(Shortcut(ctrl+"2"          ,L("Select Print Settings Tab")));
+    main_shortcuts.push_back(Shortcut(ctrl+"3"          ,L("Select Filament Setting Tab")));
+    main_shortcuts.push_back(Shortcut(ctrl+"4"          ,L("Select Printer Setting Tab")));
+    main_shortcuts.push_back(Shortcut(ctrl+"5"          ,L("Switch to 3D")));
+    main_shortcuts.push_back(Shortcut(ctrl+"6"          ,L("Switch to Preview")));
+    main_shortcuts.push_back(Shortcut(ctrl+"P"          ,L("Preferences")));
+    main_shortcuts.push_back(Shortcut("0-6"             ,L("Camera view ")));
+    main_shortcuts.push_back(Shortcut("+"               ,L("Add Instance to selected object ")));
+    main_shortcuts.push_back(Shortcut("-"               ,L("Remove Instance from selected object")));
+    main_shortcuts.push_back(Shortcut("?"               ,L("Show keyboard shortcuts list")));
+    main_shortcuts.push_back(Shortcut("PgUp/PgDn"       ,L("Switch between 3D and Preview")));
+    main_shortcuts.push_back(Shortcut("Shift+LeftMouse" ,L("Select multiple object/Move multiple object")));
 
     m_full_shortcuts.emplace(_(L("Main Shortcuts")),    main_shortcuts);
 
@@ -115,9 +129,9 @@ void KBShortcutsDialog::fill_shortcuts()
     plater_shortcuts.reserve(20);
 
     plater_shortcuts.push_back(Shortcut("A",        L("Arrange")));
-    plater_shortcuts.push_back(Shortcut("Ctrl+A",   L("Select All objects")));
+    plater_shortcuts.push_back(Shortcut(ctrl+"A",   L("Select All objects")));
     plater_shortcuts.push_back(Shortcut("Del",      L("Delete selected")));
-    plater_shortcuts.push_back(Shortcut("Ctrl+Del", L("Delete all")));
+    plater_shortcuts.push_back(Shortcut(ctrl+"Del", L("Delete all")));
     plater_shortcuts.push_back(Shortcut("M",        L("Gizmo move")));
     plater_shortcuts.push_back(Shortcut("S",        L("Gizmo scale")));
     plater_shortcuts.push_back(Shortcut("R",        L("Gizmo rotate")));

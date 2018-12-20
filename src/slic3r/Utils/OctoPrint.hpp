@@ -38,7 +38,6 @@ private:
 
     void set_auth(Http &http) const;
     std::string make_url(const std::string &path) const;
-    static wxString format_error(const std::string &body, const std::string &error, unsigned status);
 };
 
 

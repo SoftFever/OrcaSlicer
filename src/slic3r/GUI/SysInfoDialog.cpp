@@ -116,7 +116,7 @@ SysInfoDialog::SysInfoDialog()
     buttons->Insert(0, btn_copy_to_clipboard, 0, wxLEFT, 5);
     btn_copy_to_clipboard->Bind(wxEVT_BUTTON, &SysInfoDialog::onCopyToClipboard, this);
 
-    this->SetEscapeId(wxID_CLOSE);
+    this->SetEscapeId(wxID_OK);
     this->Bind(wxEVT_BUTTON, &SysInfoDialog::onCloseDialog, this, wxID_OK);
     main_sizer->Add(buttons, 0, wxEXPAND | wxRIGHT | wxBOTTOM, 3);
     

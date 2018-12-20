@@ -135,11 +135,6 @@ objfunc(const PointImpl& bincenter,
         const ItemGroup& remaining
         )
 {
-    using Coord = TCoord<PointImpl>;
-
-    static const double ROUNDNESS_RATIO = 0.5;
-    static const double DENSITY_RATIO = 1.0 - ROUNDNESS_RATIO;
-
     // We will treat big items (compared to the print bed) differently
     auto isBig = [bin_area](double a) {
         return a/bin_area > BIG_ITEM_TRESHOLD ;
@@ -629,11 +624,12 @@ BedShapeHint bedShape(const Polyline &bed) {
         avg_dist /= vertex_distances.size();
 
         Circle ret(center, avg_dist);
-        for (auto el: vertex_distances)
+        for(auto el : vertex_distances)
         {
-            if (abs(el - avg_dist) > 10 * SCALED_EPSILON)
+            if (std::abs(el - avg_dist) > 10 * SCALED_EPSILON) {
                 ret = Circle();
-            break;
+                break;
+            }
         }
 
         return ret;
@@ -665,8 +661,6 @@ bool arrange(Model &model,
              std::function<void (unsigned)> progressind,
              std::function<bool ()> stopcondition)
 {
-    using ArrangeResult = _IndexedPackGroup<PolygonImpl>;
-
     bool ret = true;
 
     // Get the 2D projected shapes with their 3D model instance pointers

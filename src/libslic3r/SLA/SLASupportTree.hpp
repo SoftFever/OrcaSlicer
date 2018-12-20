@@ -164,6 +164,8 @@ public:
     /// Get the pad geometry
     const TriangleMesh& get_pad() const;
 
+    void remove_pad();
+
 };
 
 }

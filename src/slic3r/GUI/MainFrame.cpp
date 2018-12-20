@@ -376,7 +376,7 @@ void MainFrame::init_menubar()
 
         windowMenu->AppendSeparator();
         append_menu_item(windowMenu, wxID_ANY, L("Print Host Upload Queue"), L("Display the Print Host Upload Queue window"),
-            [this](wxCommandEvent&) { m_printhost_queue_dlg->ShowModal(); }, "arrow_up.png");
+            [this](wxCommandEvent&) { m_printhost_queue_dlg->Show(); }, "arrow_up.png");
     }
 
     // View menu

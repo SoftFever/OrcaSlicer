@@ -41,6 +41,9 @@ public:
     virtual std::string get_host() const = 0;
 
     static PrintHost* get_print_host(DynamicPrintConfig *config);
+
+protected:
+    virtual wxString format_error(const std::string &body, const std::string &error, unsigned status) const;
 };
 
 
@@ -55,6 +58,7 @@ struct PrintHostJob
     PrintHostJob(PrintHostJob &&other)
         : upload_data(std::move(other.upload_data))
         , printhost(std::move(other.printhost))
+        , cancelled(other.cancelled)
     {}
 
     PrintHostJob(DynamicPrintConfig *config)
@@ -66,6 +70,7 @@ struct PrintHostJob
     {
         upload_data = std::move(other.upload_data);
         printhost = std::move(other.printhost);
+        cancelled = other.cancelled;
         return *this;
     }
 

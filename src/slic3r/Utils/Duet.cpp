@@ -54,91 +54,46 @@ wxString Duet::get_test_failed_msg (wxString &msg) const
 	return wxString::Format("%s: %s", _(L("Could not connect to Duet")), msg);
 }
 
-// bool Duet::send_gcode(const std::string &filename) const
-// {
-// 	enum { PROGRESS_RANGE = 1000 };
-
-// 	const auto errortitle = _(L("Error while uploading to the Duet"));
-// 	fs::path filepath(filename);
-
-// 	GUI::PrintHostSendDialog send_dialog(filepath.filename());
-// 	if (send_dialog.ShowModal() != wxID_OK) { return false; }
-
-// 	const bool print = send_dialog.start_print();
-// 	const auto upload_filepath = send_dialog.filename();
-// 	const auto upload_filename = upload_filepath.filename();
-// 	const auto upload_parent_path = upload_filepath.parent_path();
-
-// 	wxProgressDialog progress_dialog(
-// 	 	_(L("Duet upload")),
-// 	 	_(L("Sending G-code file to Duet...")),
-// 		PROGRESS_RANGE, nullptr, wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT);
-// 	progress_dialog.Pulse();
-
-// 	wxString connect_msg;
-// 	if (!connect(connect_msg)) {
-// 		auto errormsg = wxString::Format("%s: %s", errortitle, connect_msg);
-// 		GUI::show_error(&progress_dialog, std::move(errormsg));
-// 		return false;
-// 	}
-
-// 	bool res = true;
-
-// 	auto upload_cmd = get_upload_url(upload_filepath.string());
-// 	BOOST_LOG_TRIVIAL(info) << boost::format("Duet: Uploading file %1%, filename: %2%, path: %3%, print: %4%, command: %5%")
-// 		% filepath.string()
-// 		% upload_filename.string()
-// 		% upload_parent_path.string()
-// 		% print
-// 		% upload_cmd;
-
-// 	auto http = Http::post(std::move(upload_cmd));
-// 	http.set_post_body(filename)
-// 		.on_complete([&](std::string body, unsigned status) {
-// 			BOOST_LOG_TRIVIAL(debug) << boost::format("Duet: File uploaded: HTTP %1%: %2%") % status % body;
-// 			progress_dialog.Update(PROGRESS_RANGE);
-
-// 			int err_code = get_err_code_from_body(body);
-// 			if (err_code != 0) {
-// 				auto msg = format_error(body, L("Unknown error occured"), 0);
-// 				GUI::show_error(&progress_dialog, std::move(msg));
-// 				res = false;
-// 			} else if (print) {
-// 				wxString errormsg;
-// 				res = start_print(errormsg, upload_filepath.string());
-// 				if (!res) {
-// 					GUI::show_error(&progress_dialog, std::move(errormsg));
-// 				}
-// 			}
-// 		})
-// 		.on_error([&](std::string body, std::string error, unsigned status) {
-// 			BOOST_LOG_TRIVIAL(error) << boost::format("Duet: Error uploading file: %1%, HTTP %2%, body: `%3%`") % error % status % body;
-// 			auto errormsg = wxString::Format("%s: %s", errortitle, format_error(body, error, status));
-// 			GUI::show_error(&progress_dialog, std::move(errormsg));
-// 			res = false;
-// 		})
-// 		.on_progress([&](Http::Progress progress, bool &cancel) {
-// 			if (cancel) {
-// 				// Upload was canceled
-// 				res = false;
-// 			} else if (progress.ultotal > 0) {
-// 				int value = PROGRESS_RANGE * progress.ulnow / progress.ultotal;
-// 				cancel = !progress_dialog.Update(std::min(value, PROGRESS_RANGE - 1));    // Cap the value to prevent premature dialog closing
-// 			} else {
-// 				cancel = !progress_dialog.Pulse();
-// 			}
-// 		})
-// 		.perform_sync();
-
-// 	disconnect();
-
-// 	return res;
-// }
-
 bool Duet::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn error_fn) const
 {
-	// XXX: TODO
-	throw "unimplemented";
+	wxString connect_msg;
+	if (!connect(connect_msg)) {
+		error_fn(std::move(connect_msg));
+		return false;
+	}
+
+	bool res = true;
+
+	auto upload_cmd = get_upload_url(upload_data.upload_path.string());
+	BOOST_LOG_TRIVIAL(info) << boost::format("Duet: Uploading file %1%, filepath: %2%, print: %3%, command: %4%")
+		% upload_data.source_path
+		% upload_data.upload_path
+		% upload_data.start_print
+		% upload_cmd;
+
+	auto http = Http::post(std::move(upload_cmd));
+	http.set_post_body(upload_data.source_path)
+		.on_complete([&](std::string body, unsigned status) {
+			BOOST_LOG_TRIVIAL(debug) << boost::format("Duet: File uploaded: HTTP %1%: %2%") % status % body;
+		})
+		.on_error([&](std::string body, std::string error, unsigned status) {
+			BOOST_LOG_TRIVIAL(error) << boost::format("Duet: Error uploading file: %1%, HTTP %2%, body: `%3%`") % error % status % body;
+			error_fn(format_error(body, error, status));
+			res = false;
+		})
+		.on_progress([&](Http::Progress progress, bool &cancel) {
+			prorgess_fn(std::move(progress), cancel);
+			if (cancel) {
+				// Upload was canceled
+				BOOST_LOG_TRIVIAL(info) << "Duet: Upload canceled";
+				res = false;
+			}
+		})
+		.perform_sync();
+
+	disconnect();
+
+	return res;
 }
 
 bool Duet::has_auto_discovery() const
@@ -241,20 +196,10 @@ std::string Duet::timestamp_str() const
 	return std::string(buffer);
 }
 
-wxString Duet::format_error(const std::string &body, const std::string &error, unsigned status)
-{
-	if (status != 0) {
-		auto wxbody = wxString::FromUTF8(body.data());
-		return wxString::Format("HTTP %u: %s", status, wxbody);
-	} else {
-		return wxString::FromUTF8(error.data());
-	}
-}
-
 bool Duet::start_print(wxString &msg, const std::string &filename) const 
 {
 	bool res = false;
-	
+
 	auto url = (boost::format("%1%rr_gcode?gcode=M32%%20\"%2%\"")
 			% get_base_url()
 			% Http::url_encode(filename)).str();

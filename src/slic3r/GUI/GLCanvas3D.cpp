@@ -3830,7 +3830,6 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     , m_legend_texture_enabled(false)
     , m_picking_enabled(false)
     , m_moving_enabled(false)
-    , m_shader_enabled(false)
     , m_dynamic_background_enabled(false)
     , m_multisample_allowed(false)
     , m_regenerate_volumes(true)
@@ -4142,11 +4141,6 @@ void GLCanvas3D::enable_gizmos(bool enable)
 void GLCanvas3D::enable_toolbar(bool enable)
 {
     m_toolbar.set_enabled(enable);
-}
-
-void GLCanvas3D::enable_shader(bool enable)
-{
-    m_shader_enabled = enable;
 }
 
 void GLCanvas3D::enable_force_zoom_to_bed(bool enable)
@@ -6322,9 +6316,7 @@ void GLCanvas3D::_render_objects() const
     ::glEnable(GL_LIGHTING);
     ::glEnable(GL_DEPTH_TEST);
 
-    if (!m_shader_enabled)
-        _render_volumes(false);
-    else if (m_use_VBOs)
+    if (m_use_VBOs)
     {
         if (m_picking_enabled)
         {
