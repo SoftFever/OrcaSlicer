@@ -213,6 +213,8 @@ void PrintHostJobQueue::priv::perform_job(PrintHostJob the_job)
 {
     if (bg_exit || the_job.empty()) { return; }
 
+    emit_progress(0);   // Indicate the upload is starting
+
     bool success = the_job.printhost->upload(std::move(the_job.upload_data),
         [this](Http::Progress progress, bool &cancel) { this->progress_fn(std::move(progress), cancel); },
         [this](wxString error) {
