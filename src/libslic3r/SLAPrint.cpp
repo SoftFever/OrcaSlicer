@@ -560,9 +560,13 @@ void SLAPrint::process()
         // and before the supports had been sliced. (or the slicing has to be
         // repeated)
 
-        if(po.m_config.pad_enable.getBool() &&
-           po.m_supportdata &&
-           po.m_supportdata->support_tree_ptr)
+        if(!po.m_supportdata || !po.m_supportdata->support_tree_ptr) {
+            BOOST_LOG_TRIVIAL(warning) << "Uninitialized support data at "
+                                       << "pad creation.";
+            return;
+        }
+
+        if(po.m_config.pad_enable.getBool())
         {
             double wt = po.m_config.pad_wall_thickness.getFloat();
             double h =  po.m_config.pad_wall_height.getFloat();
@@ -586,6 +590,8 @@ void SLAPrint::process()
 
             pcfg.throw_on_cancel = thrfn;
             po.m_supportdata->support_tree_ptr->add_pad(bp, pcfg);
+        } else {
+            po.m_supportdata->support_tree_ptr->remove_pad();
         }
 
         po.throw_if_canceled();

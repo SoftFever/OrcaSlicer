@@ -722,6 +722,10 @@ public:
         return m_pad;
     }
 
+    void remove_pad() {
+        m_pad = Pad();
+    }
+
     const Pad& pad() const { return m_pad; }
 
     // WITHOUT THE PAD!!!
@@ -1727,6 +1731,11 @@ const TriangleMesh &SLASupportTree::add_pad(const SliceLayer& baseplate,
 const TriangleMesh &SLASupportTree::get_pad() const
 {
     return m_impl->pad().tmesh;
+}
+
+void SLASupportTree::remove_pad()
+{
+    m_impl->remove_pad();
 }
 
 SLASupportTree::SLASupportTree(const PointSet &points,

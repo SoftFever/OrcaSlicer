@@ -198,7 +198,7 @@ PointSet normals(const PointSet& points, const EigenMesh3D& emesh,
         });
 
         if(!neighnorms.empty()) { // there were neighbors to count with
-            // sum up the normals and than normalize the result again.
+            // sum up the normals and then normalize the result again.
             // This unification seems to be enough.
             Vec3d sumnorm(0, 0, 0);
             sumnorm = std::accumulate(neighnorms.begin(), lend, sumnorm);
