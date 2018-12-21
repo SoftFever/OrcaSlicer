@@ -88,8 +88,8 @@ KBShortcutsDialog::KBShortcutsDialog()
 void KBShortcutsDialog::fill_shortcuts()
 {
 #ifdef __WXOSX__
-    const std::string ctrl = "Cmd+";    // #ys_FIXME_cmd_smb    // Change it for the accorded symbol
-    const std::string alt = "Alt+";     // #ys_FIXME_cmd_smb    // Change it for the accorded symbol
+    const std::string ctrl = "⌘";
+    const std::string alt = "⌥";
 #else
     const std::string ctrl = "Ctrl+";
     const std::string alt = "Alt+";
