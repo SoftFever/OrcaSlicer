@@ -419,11 +419,14 @@ void swapXY(ExPolygon& expoly) {
 
 }
 
-std::vector<float> SLAPrint::calculate_heights(const BoundingBoxf3& bb3d, float elevation, float initial_layer_height, float layer_height) const
+std::vector<float> SLAPrint::calculate_heights(const BoundingBoxf3& bb3d,
+                                               float elevation,
+                                               float initial_layer_height,
+                                               float layer_height) const
 {
     std::vector<float> heights;
     float minZ = float(bb3d.min(Z)) - float(elevation);
-    float maxZ = float(bb3d.max(Z)) ;
+    float maxZ = float(bb3d.max(Z));
     auto flh = float(layer_height);
     auto gnd = float(bb3d.min(Z));
 
@@ -433,6 +436,7 @@ std::vector<float> SLAPrint::calculate_heights(const BoundingBoxf3& bb3d, float 
 
     for(float h = minZ + initial_layer_height; h < maxZ; h += flh)
         if(h >= gnd) heights.emplace_back(h);
+
     return heights;
 }
 
@@ -481,32 +485,13 @@ void SLAPrint::process()
         TriangleMeshSlicer slicer(&mesh);
 
         // The 1D grid heights
-        std::vector<float> heights = calculate_heights(mesh.bounding_box(), po.get_elevation(), ilh, lh);
+        std::vector<float> heights = calculate_heights(mesh.bounding_box(),
+                                                       float(po.get_elevation()),
+                                                       ilh, float(lh));
 
         auto& layers = po.m_model_slices; layers.clear();
         slicer.slice(heights, &layers, [this](){ throw_if_canceled(); });
     };
-
-    // this procedure simply converts the points and copies them into
-    // the support data cache
-    /*auto support_points = [](SLAPrintObject& po) {
-        const ModelObject& mo = *po.m_model_object;
-        po.m_supportdata.reset(new SLAPrintObject::SupportData());
-
-        if(!mo.sla_support_points.empty()) {
-            po.m_supportdata->emesh = sla::to_eigenmesh(po.transformed_mesh());
-            po.m_supportdata->support_points =
-                    sla::to_point_set(po.transformed_support_points());
-        } else if(po.m_config.supports_enable.getBool()) {
-            // Supports are enabled but there are no support points to process.
-            // We throw here a runtime exception with some explanation and
-            // the background processing framework will handle it.
-            throw std::runtime_error(
-                L("Supports are enabled but no support points selected."
-                  " Hint: create some support points or disable support "
-                  "creation."));
-        }
-    };*/
 
     // In this step we check the slices, identify island and cover them with
     // support points. Then we sprinkle the rest of the mesh.
@@ -515,28 +500,39 @@ void SLAPrint::process()
         po.m_supportdata.reset(new SLAPrintObject::SupportData());
         po.m_supportdata->emesh = sla::to_eigenmesh(po.transformed_mesh());
 
-        // If there are no points on the front-end, we will do the autoplacement.
-        // Otherwise we will just blindly copy the frontend data into the backend cache.
+        // If there are no points on the front-end, we will do the
+        // autoplacement. Otherwise we will just blindly copy the frontend data
+        // into the backend cache.
         if(mo.sla_support_points.empty()) {
             // calculate heights of slices (slices are calculated already)
             double lh = po.m_config.layer_height.getFloat();
-            std::vector<float> heights = calculate_heights(po.transformed_mesh().bounding_box(), po.get_elevation(), ilh, lh);
+
+            std::vector<float> heights =
+                    calculate_heights(po.transformed_mesh().bounding_box(),
+                                      float(po.get_elevation()),
+                                      ilh, float(lh));
 
             SLAAutoSupports::Config config;
             const SLAPrintObjectConfig& cfg = po.config();
-            config.density_at_horizontal = cfg.support_density_at_horizontal / 10000.f;
+            config.minimal_z = float(cfg.support_minimal_z);
             config.density_at_45 = cfg.support_density_at_45 / 10000.f;
-            config.minimal_z = cfg.support_minimal_z;
+            config.density_at_horizontal = cfg.support_density_at_horizontal / 10000.f;
 
             // Construction of this object does the calculation.
-            SLAAutoSupports auto_supports(po.transformed_mesh(), po.m_supportdata->emesh, po.get_model_slices(), heights, config);
+            SLAAutoSupports auto_supports(po.transformed_mesh(),
+                                          po.m_supportdata->emesh,
+                                          po.get_model_slices(),
+                                          heights,
+                                          config);
+
             // Now let's extract the result.
             const std::vector<Vec3d>& points = auto_supports.output();
             po.m_supportdata->support_points = sla::to_point_set(points);
         }
         else {
             // There are some points on the front-end, no calculation will be done.
-            po.m_supportdata->support_points = sla::to_point_set(po.transformed_support_points());
+            po.m_supportdata->support_points =
+                    sla::to_point_set(po.transformed_support_points());
         }
     };
 
@@ -1120,12 +1116,13 @@ double SLAPrintObject::get_current_elevation() const
     bool se = m_config.supports_enable.getBool();
     bool has_supports = is_step_done(slaposSupportTree);
     bool has_pad = is_step_done(slaposBasePool);
-    if(!has_supports && !has_pad) return 0;
+
+    if(!has_supports && !has_pad)
+        return 0;
     else if(has_supports && !has_pad)
         return se ? m_config.support_object_elevation.getFloat() : 0;
-    else return get_elevation();
 
-    return 0;
+    return get_elevation();
 }
 
 namespace { // dummy empty static containers for return values in some methods
