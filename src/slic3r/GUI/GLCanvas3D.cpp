@@ -5267,6 +5267,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         // we do not want to translate objects if the user just clicked on an object while pressing shift to remove it from the selection and then drag
         Vec3d cur_pos = m_selection.contains_volume(m_hover_volume_id) ? Linef3(_mouse_to_3d(pos, &z0), _mouse_to_3d(pos, &z1)).intersect_plane(m_mouse.drag.start_position_3D(2)) : m_mouse.drag.start_position_3D;
 
+        m_regenerate_volumes = false;
         m_selection.translate(cur_pos - m_mouse.drag.start_position_3D);
         wxGetApp().obj_manipul()->update_settings_value(m_selection);
 
@@ -5374,6 +5375,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // Let the platter know that the dragging finished, so a delayed refresh
             // of the scene with the background processing data should be performed.
             post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
+            m_moving = false;
         }
         else if (evt.LeftUp() && m_gizmos.get_current_type() == Gizmos::SlaSupports && m_hover_volume_id != -1)
         {
@@ -5438,7 +5440,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #endif // ENABLE_CONSTRAINED_CAMERA_TARGET
         }
 
-        m_moving = false;
         m_mouse.drag.move_volume_idx = -1;
         m_mouse.set_start_position_3D_as_invalid();
         m_mouse.set_start_position_2D_as_invalid();
