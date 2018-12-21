@@ -99,7 +99,7 @@ void KBShortcutsDialog::fill_shortcuts()
     main_shortcuts.reserve(25);
 
     main_shortcuts.push_back(Shortcut(ctrl+"O"          ,L("Open project STL/OBJ/AMF/3MF with config, delete bed")));
-    main_shortcuts.push_back(Shortcut(ctrl+"I"          ,L("Import STL//OBJ/AMF/3MF without config, keep bed")));
+    main_shortcuts.push_back(Shortcut(ctrl+"I"          ,L("Import STL/OBJ/AMF/3MF without config, keep bed")));
     main_shortcuts.push_back(Shortcut(ctrl+"L"          ,L("Load Config from .ini/amf/3mf/gcode")));
     main_shortcuts.push_back(Shortcut(ctrl+"G"          ,L("Export Gcode")));
     main_shortcuts.push_back(Shortcut(ctrl+"S"          ,L("Save project (3MF)")));

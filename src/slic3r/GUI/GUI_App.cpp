@@ -554,6 +554,13 @@ ConfigMenuIDs GUI_App::get_view_mode()
            mode == "simple" ? ConfigMenuModeSimple : ConfigMenuModeAdvanced;
 }
 
+ConfigOptionMode GUI_App::get_opt_mode()  {
+    const ConfigMenuIDs mode = wxGetApp().get_view_mode();
+
+    return  mode == ConfigMenuModeSimple ? comSimple :
+            mode == ConfigMenuModeExpert ? comExpert : comAdvanced;
+}
+
 // Update view mode according to selected menu
 void GUI_App::update_mode()
 {
@@ -568,10 +575,8 @@ void GUI_App::update_mode()
 
     sidebar().Layout();
 
-    ConfigOptionMode opt_mode = mode == ConfigMenuModeSimple ? comSimple :
-                                mode == ConfigMenuModeExpert ? comExpert : comAdvanced;
     for (auto tab : tabs_list)
-        tab->update_visibility(opt_mode);
+        tab->update_visibility();
 
     plater()->update_object_menu();
 }
