@@ -143,7 +143,7 @@ bool GUI_App::OnInit()
         wxImage::AddHandler(new wxPNGHandler());
     mainframe = new MainFrame();
     sidebar().obj_list()->init_objects(); // propagate model objects to object list
-    update_mode();
+//     update_mode(); // do that later
     SetTopWindow(mainframe);
 
     m_printhost_job_queue.reset(new PrintHostJobQueue(mainframe->printhost_queue_dlg()));
@@ -154,8 +154,10 @@ bool GUI_App::OnInit()
         if (panel.obj_list()->GetMinHeight() > 200) {
             wxWindowUpdateLocker noUpdates_sidebar(&panel);
             panel.obj_list()->SetMinSize(wxSize(-1, 200));
-            panel.Layout();
+//          panel.Layout();
         }
+        update_mode(); // update view mode after fix of the object_list size 
+                       // to correct later layouts
     });
 
     // This makes CallAfter() work
@@ -287,8 +289,7 @@ void GUI_App::recreate_GUI()
     MainFrame* topwindow = dynamic_cast<MainFrame*>(GetTopWindow());
     mainframe = new MainFrame();
     sidebar().obj_list()->init_objects(); // propagate model objects to object list
-    update_mode();
-
+//     update_mode(); // do that later
     if (topwindow) {
         SetTopWindow(mainframe);
         topwindow->Destroy();
@@ -302,8 +303,10 @@ void GUI_App::recreate_GUI()
         if (panel.obj_list()->GetMinHeight() > 200) {
             wxWindowUpdateLocker noUpdates_sidebar(&panel);
             panel.obj_list()->SetMinSize(wxSize(-1, 200));
-            panel.Layout();
+//             panel.Layout();
         }
+        update_mode(); // update view mode after fix of the object_list size 
+        			   // to correct later layouts
     });
  
     mainframe->Show(true);
