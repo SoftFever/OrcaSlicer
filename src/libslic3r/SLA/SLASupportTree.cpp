@@ -1553,7 +1553,7 @@ bool SLASupportTree::generate(const PointSet &points,
         const double HWIDTH_MM = R/3;
 
         // We will sink the pins into the model surface for a distance of 1/3 of
-        // HWIDTH_MM
+        // the pin radius
         for(int i = 0; i < headless_pts.rows(); i++) { tifcl();
             Vec3d sp = headless_pts.row(i);
 
@@ -1564,7 +1564,7 @@ bool SLASupportTree::generate(const PointSet &points,
             Vec3d sj = sp + R * n;
             double dist = ray_mesh_intersect(sj, dir, emesh);
 
-            if(std::isinf(dist) || std::isnan(dist)) continue;
+            if(std::isinf(dist) || std::isnan(dist) || dist < 2*R) continue;
 
             Vec3d ej = sj + (dist + HWIDTH_MM)* dir;
             result.add_compact_bridge(sp, ej, n, R);
