@@ -133,7 +133,12 @@ VendorProfile VendorProfile::from_ini(const ptree &tree, const boost::filesystem
                 BOOST_LOG_TRIVIAL(error) << boost::format("Vendor bundle: `%1%`: Invalid printer technology field: `%2%`") % id % technology_field;
                 model.technology = ptFFF;
             }
-            section.second.get<std::string>("variants", "");
+#if 0
+			// Remove SLA printers from the initial alpha.
+			if (model.technology == ptSLA)
+				continue;
+#endif
+			section.second.get<std::string>("variants", "");
             const auto variants_field = section.second.get<std::string>("variants", "");
             std::vector<std::string> variants;
             if (Slic3r::unescape_strings_cstyle(variants_field, variants)) {
