@@ -1120,7 +1120,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     view3D = new View3D(q, &model, config, &background_process);
     preview = new Preview(q, config, &background_process, &gcode_preview_data, [this](){ schedule_background_process(); });
     // Let the Tab key switch between the 3D view and the layer preview.
-    this->q->Bind(wxEVT_NAVIGATION_KEY, [this](wxNavigationKeyEvent &evt) { if (evt.IsFromTab()) this->select_next_view_3D(); });
+    view3D->Bind(wxEVT_NAVIGATION_KEY, [this](wxNavigationKeyEvent &evt) { if (evt.IsFromTab()) this->select_next_view_3D(); });
+    preview->Bind(wxEVT_NAVIGATION_KEY, [this](wxNavigationKeyEvent &evt) { if (evt.IsFromTab()) this->select_next_view_3D(); });
 
     panels.push_back(view3D);
     panels.push_back(preview);
@@ -2257,6 +2258,8 @@ void Plater::priv::set_current_panel(wxPanel* panel)
         preview->set_canvas_as_dirty();
         view_toolbar.select_item("Preview");
     }
+
+    current_panel->SetFocusFromKbd();
 }
 #else
 void Plater::priv::on_notebook_changed(wxBookCtrlEvent&)
