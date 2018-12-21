@@ -797,6 +797,9 @@ int GLVolumeCollection::load_object_volume(
         color[2] = 1.0f;
     }
     color[3] = model_volume->is_model_part() ? 1.f : 0.5f; */
+#if ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
+    color[3] = model_volume->is_model_part() ? 1.f : 0.5f;
+#endif // ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
     this->volumes.emplace_back(new GLVolume(color));
     GLVolume &v = *this->volumes.back();
     v.set_color_from_model_volume(model_volume);
@@ -953,12 +956,54 @@ int GLVolumeCollection::load_wipe_tower_preview(
     return int(this->volumes.size() - 1);
 }
 
+#if ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
+typedef std::pair<GLVolume*, double> GLVolumeWithZ;
+typedef std::vector<GLVolumeWithZ> GLVolumesWithZList;
+GLVolumesWithZList volumes_to_render(const GLVolumePtrs& volumes, GLVolumeCollection::ERenderType type)
+{
+    GLVolumesWithZList list;
+
+    for (GLVolume* volume : volumes)
+    {
+        bool is_transparent = (volume->render_color[3] < 1.0f);
+        if (((type == GLVolumeCollection::Opaque) && !is_transparent) ||
+            ((type == GLVolumeCollection::Transparent) && is_transparent) ||
+            (type == GLVolumeCollection::All))
+            list.push_back(std::make_pair(volume, 0.0));
+    }
+
+    if ((type == GLVolumeCollection::Transparent) && (list.size() > 1))
+    {
+        Transform3d modelview_matrix;
+        ::glGetDoublev(GL_MODELVIEW_MATRIX, modelview_matrix.data());
+
+        for (GLVolumeWithZ& volume : list)
+        {
+            volume.second = volume.first->bounding_box.transformed(modelview_matrix * volume.first->world_matrix()).max(2);
+        }
+
+        std::sort(list.begin(), list.end(),
+            [](const GLVolumeWithZ& v1, const GLVolumeWithZ& v2) -> bool { return v1.second < v2.second;  }
+        );
+    }
+
+    return list;
+}
+
+void GLVolumeCollection::render_VBOs(GLVolumeCollection::ERenderType type, bool disable_cullface) const
+#else
 void GLVolumeCollection::render_VBOs() const
+#endif // ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
 {
     ::glEnable(GL_BLEND);
     ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     ::glCullFace(GL_BACK);
+#if ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
+    if (disable_cullface)
+        ::glDisable(GL_CULL_FACE);
+#endif // ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
+
     ::glEnableClientState(GL_VERTEX_ARRAY);
     ::glEnableClientState(GL_NORMAL_ARRAY);
  
@@ -980,6 +1025,18 @@ void GLVolumeCollection::render_VBOs() const
     if (z_range_id != -1)
         ::glUniform2fv(z_range_id, 1, (const GLfloat*)z_range);
 
+#if ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
+    GLVolumesWithZList to_render = volumes_to_render(this->volumes, type);
+    for (GLVolumeWithZ& volume : to_render)
+    {
+        if (volume.first->layer_height_texture_data.can_use())
+            volume.first->generate_layer_height_texture(volume.first->layer_height_texture_data.print_object, false);
+        else
+            volume.first->set_render_color();
+
+        volume.first->render_VBOs(color_id, print_box_detection_id, print_box_worldmatrix_id);
+    }
+#else
     for (GLVolume *volume : this->volumes)
     {
         if (volume->layer_height_texture_data.can_use())
@@ -989,6 +1046,7 @@ void GLVolumeCollection::render_VBOs() const
 
         volume->render_VBOs(color_id, print_box_detection_id, print_box_worldmatrix_id);
     }
+#endif // ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
 
     ::glBindBuffer(GL_ARRAY_BUFFER, 0);
     ::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -996,26 +1054,54 @@ void GLVolumeCollection::render_VBOs() const
     ::glDisableClientState(GL_VERTEX_ARRAY);
     ::glDisableClientState(GL_NORMAL_ARRAY);
 
+#if ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
+    if (disable_cullface)
+        ::glEnable(GL_CULL_FACE);
+#endif // ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
+
     ::glDisable(GL_BLEND);
 }
 
+#if ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
+void GLVolumeCollection::render_legacy(ERenderType type, bool disable_cullface) const
+#else
 void GLVolumeCollection::render_legacy() const
+#endif // ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
 {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glCullFace(GL_BACK);
+#if ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
+    if (disable_cullface)
+        ::glDisable(GL_CULL_FACE);
+#endif // ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
+
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_NORMAL_ARRAY);
  
+#if ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
+    GLVolumesWithZList to_render = volumes_to_render(this->volumes, type);
+    for (GLVolumeWithZ& volume : to_render)
+    {
+        volume.first->set_render_color();
+        volume.first->render_legacy();
+    }
+#else
     for (GLVolume *volume : this->volumes)
     {
         volume->set_render_color();
         volume->render_legacy();
     }
+#endif // ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
 
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
+
+#if ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
+    if (disable_cullface)
+        ::glEnable(GL_CULL_FACE);
+#endif // ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
 
     glDisable(GL_BLEND);
 }
