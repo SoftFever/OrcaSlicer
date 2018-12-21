@@ -72,6 +72,7 @@ struct PrintHostJobQueue::priv
     void emit_error(wxString error);
     void emit_cancel(size_t id);
     void start_bg_thread();
+    void stop_bg_thread();
     void bg_thread_main();
     void progress_fn(Http::Progress progress, bool &cancel);
     void remove_source(const fs::path &path);
@@ -87,11 +88,7 @@ PrintHostJobQueue::PrintHostJobQueue(PrintHostQueueDialog *queue_dialog)
 
 PrintHostJobQueue::~PrintHostJobQueue()
 {
-    if (p && p->bg_thread.joinable()) {
-        p->bg_exit = true;
-        p->channel_jobs.push(PrintHostJob()); // Push an empty job to wake up bg_thread in case it's sleeping
-        p->bg_thread.detach();                // Let the background thread go, it should exit on its own
-    }
+    if (p) { p->stop_bg_thread(); }
 }
 
 void PrintHostJobQueue::priv::emit_progress(int progress)
@@ -122,6 +119,15 @@ void PrintHostJobQueue::priv::start_bg_thread()
     });
 }
 
+void PrintHostJobQueue::priv::stop_bg_thread()
+{
+    if (bg_thread.joinable()) {
+        bg_exit = true;
+        channel_jobs.push(PrintHostJob()); // Push an empty job to wake up bg_thread in case it's sleeping
+        bg_thread.detach();                // Let the background thread go, it should exit on its own
+    }
+}
+
 void PrintHostJobQueue::priv::bg_thread_main()
 {
     // bg thread entry point
@@ -130,6 +136,11 @@ void PrintHostJobQueue::priv::bg_thread_main()
         // Pick up jobs from the job channel:
         while (! bg_exit) {
             auto job = channel_jobs.pop();   // Sleeps in a cond var if there are no jobs
+            if (job.empty()) {
+                // This happens when the thread is being stopped
+                break;
+            }
+
             source_to_remove = job.upload_data.source_path;
 
             BOOST_LOG_TRIVIAL(debug) << boost::format("PrintHostJobQueue/bg_thread: Received job: [%1%]: `%2%` -> `%3%`, cancelled: %4%")
@@ -221,8 +232,6 @@ void PrintHostJobQueue::priv::remove_source()
 
 void PrintHostJobQueue::priv::perform_job(PrintHostJob the_job)
 {
-    if (bg_exit || the_job.empty()) { return; }
-
     emit_progress(0);   // Indicate the upload is starting
 
     bool success = the_job.printhost->upload(std::move(the_job.upload_data),
