@@ -254,12 +254,11 @@ std::vector<Vec3d> SLAAutoSupports::uniformly_cover(const std::pair<ExPolygon, c
     // In case there is just one point to place, we'll place it into the polygon's centroid (unless it lies in a hole).
     if (num_of_points == 1) {
         Point out(island.first.contour.centroid());
-        out(2) = island.second;
 
         for (const auto& hole : island.first.holes)
             if (hole.contains(out))
                 goto HOLE_HIT;
-        return std::vector<Vec3d>{unscale(out(0), out(1), out(2))};
+        return std::vector<Vec3d>{unscale(out(0), out(1), island.second)};
     }
 
 HOLE_HIT:
@@ -296,10 +295,8 @@ HOLE_HIT:
                 }
             }
         }
-        if (add_it) {
-            out(2) = island.second;
+        if (add_it)
             island_new_points.emplace_back(unscaled_out);
-        }
     }
     return island_new_points;
 }
