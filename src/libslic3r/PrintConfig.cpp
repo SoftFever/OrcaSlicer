@@ -2400,7 +2400,9 @@ void PrintConfigDef::init_sla_params()
 
     def = this->add("display_orientation", coEnum);
     def->label = L("Display orientation");
-    def->tooltip = L("Display orientation");
+    def->tooltip = L("Set the actual LCD display orientation inside the SLA printer."
+                     " Portrait mode will flip the meaning of display width and height parameters"
+                     " and the output images will be rotated by 90 degrees.");
     def->cli = "display-orientation=s";
     def->enum_keys_map = &ConfigOptionEnum<SLADisplayOrientation>::get_enum_values();
     def->enum_values.push_back("landscape");
