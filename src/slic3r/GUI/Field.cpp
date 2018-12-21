@@ -400,10 +400,11 @@ void SpinCtrl::BUILD() {
 	auto temp = new wxSpinCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size,
 		0, min_val, max_val, default_value);
 
-// 	temp->Bind(wxEVT_SPINCTRL, ([this](wxCommandEvent e) { tmp_value = undef_spin_val; on_change_field(); }), temp->GetId());
-
+#ifndef __WXOSX__
     // #ys_FIXME_KILL_FOCUS 
-    // wxEVT_KILL_FOCUS doesn't handled on OSX now 
+    // wxEVT_KILL_FOCUS doesn't handled on OSX now (wxWidgets 3.1.1)
+    // So, we will update values on KILL_FOCUS & SPINCTRL events under MSW and GTK
+    // and on TEXT event under OSX
 	temp->Bind(wxEVT_KILL_FOCUS, ([this](wxEvent& e)
 	{
         if (tmp_value < 0)
@@ -413,6 +414,9 @@ void SpinCtrl::BUILD() {
             on_change_field();
         }
 	}), temp->GetId());
+
+	temp->Bind(wxEVT_SPINCTRL, ([this](wxCommandEvent e) {  on_change_field();  }), temp->GetId());
+#endif
 
 	temp->Bind(wxEVT_TEXT, ([this](wxCommandEvent e)
 	{
@@ -425,9 +429,7 @@ void SpinCtrl::BUILD() {
 		if (is_matched(value, "^\\d+$"))
 			tmp_value = std::stoi(value);
         else tmp_value = -9999;
-// 		on_change_field();
 #ifdef __WXOSX__
-    // #ys_FIXME_KILL_FOCUS so call on_change_field() inside wxEVT_TEXT
         if (tmp_value < 0) {
             if (m_on_kill_focus != nullptr)
                 m_on_kill_focus(m_opt_id);

@@ -224,7 +224,8 @@ PresetComboBox::PresetComboBox(wxWindow *parent, Preset::Type preset_type) :
         if (marker == LABEL_ITEM_MARKER) {
             this->SetSelection(this->last_selected);
             evt.StopPropagation();
-        } else if (this->last_selected != selected_item) {
+        } else if ( this->last_selected != selected_item || 
+                    wxGetApp().get_tab(this->preset_type)->get_presets()->current_is_dirty() ) {
             this->last_selected = selected_item;
             evt.SetInt(this->preset_type);
             evt.Skip();
