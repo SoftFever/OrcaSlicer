@@ -4313,7 +4313,13 @@ void GLCanvas3D::render()
     ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     _render_background();
 
+#if ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
+    // textured bed needs to be rendered after objects if the texture is transparent
+    bool early_bed_render = is_custom_bed || (theta <= 90.0f);
+    if (early_bed_render) 
+#else
     if (is_custom_bed) // untextured bed needs to be rendered before objects
+#endif // ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
         _render_bed(theta);
 
     _render_objects();
@@ -4322,7 +4328,11 @@ void GLCanvas3D::render()
 
     _render_axes();
 
+#if ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
+    if (!early_bed_render)
+#else
     if (!is_custom_bed) // textured bed needs to be rendered after objects
+#endif // ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
         _render_bed(theta);
 
 #if ENABLE_RENDER_SELECTION_CENTER
@@ -6119,7 +6129,7 @@ float GLCanvas3D::_get_zoom_to_bounding_box_factor(const BoundingBoxf3& bbox) co
     // margin factor to give some empty space around the bbox
     double margin_factor = 1.25;
 
-    for (const Vec3d v : vertices)
+    for (const Vec3d& v : vertices)
     {
         // project vertex on the plane perpendicular to camera forward axis
         Vec3d pos(v(0) - bb_center(0), v(1) - bb_center(1), v(2) - bb_center(2));
@@ -6328,8 +6338,10 @@ void GLCanvas3D::_render_objects() const
                 m_volumes.set_print_box((float)bed_bb.min(0), (float)bed_bb.min(1), 0.0f, (float)bed_bb.max(0), (float)bed_bb.max(1), (float)m_config->opt_float("max_print_height"));
                 m_volumes.check_outside_state(m_config, nullptr);
             }
+#if !ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
             // do not cull backfaces to show broken geometry, if any
             ::glDisable(GL_CULL_FACE);
+#endif // !ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
         }
 
         if (m_use_clipping_planes)
@@ -6338,11 +6350,19 @@ void GLCanvas3D::_render_objects() const
             m_volumes.set_z_range(-FLT_MAX, FLT_MAX);
 
         m_shader.start_using();
+#if ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
+        // do not cull backfaces to show broken geometry, if any
+        m_volumes.render_VBOs(GLVolumeCollection::Opaque, m_picking_enabled);
+        m_volumes.render_VBOs(GLVolumeCollection::Transparent, false);
+#else
         m_volumes.render_VBOs();
+#endif // ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
         m_shader.stop_using();
 
+#if !ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
         if (m_picking_enabled)
             ::glEnable(GL_CULL_FACE);
+#endif // !ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
     }
     else
     {
@@ -6354,14 +6374,24 @@ void GLCanvas3D::_render_objects() const
             ::glEnable(GL_CLIP_PLANE1);
         }
 
+#if !ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
         // do not cull backfaces to show broken geometry, if any
         if (m_picking_enabled)
             ::glDisable(GL_CULL_FACE);
+#endif // !ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
 
+#if ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
+        // do not cull backfaces to show broken geometry, if any
+        m_volumes.render_legacy(GLVolumeCollection::Opaque, m_picking_enabled);
+        m_volumes.render_legacy(GLVolumeCollection::Transparent, false);
+#else
         m_volumes.render_legacy();
+#endif // ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
 
+#if !ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
         if (m_picking_enabled)
             ::glEnable(GL_CULL_FACE);
+#endif // !ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
 
         if (m_use_clipping_planes)
         {

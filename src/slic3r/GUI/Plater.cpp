@@ -224,7 +224,8 @@ PresetComboBox::PresetComboBox(wxWindow *parent, Preset::Type preset_type) :
         if (marker == LABEL_ITEM_MARKER) {
             this->SetSelection(this->last_selected);
             evt.StopPropagation();
-        } else if (this->last_selected != selected_item) {
+        } else if ( this->last_selected != selected_item || 
+                    wxGetApp().get_tab(this->preset_type)->get_presets()->current_is_dirty() ) {
             this->last_selected = selected_item;
             evt.SetInt(this->preset_type);
             evt.Skip();
@@ -945,6 +946,7 @@ struct Plater::priv
     void select_view(const std::string& direction);
 #if ENABLE_REMOVE_TABS_FROM_PLATER
     void select_view_3D(const std::string& name);
+    void select_next_view_3D();
 #endif // ENABLE_REMOVE_TABS_FROM_PLATER
     void update_ui_from_settings();
     ProgressStatusBar* statusbar();
@@ -1118,8 +1120,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     view3D = new View3D(q, &model, config, &background_process);
     preview = new Preview(q, config, &background_process, &gcode_preview_data, [this](){ schedule_background_process(); });
     // Let the Tab key switch between the 3D view and the layer preview.
-    view3D->Bind(wxEVT_NAVIGATION_KEY, [this](wxNavigationKeyEvent &evt) { if (evt.IsFromTab()) this->q->select_view_3D("Preview"); });
-    preview->Bind(wxEVT_NAVIGATION_KEY, [this](wxNavigationKeyEvent &evt) { if (evt.IsFromTab()) this->q->select_view_3D("3D"); });
+    view3D->Bind(wxEVT_NAVIGATION_KEY, [this](wxNavigationKeyEvent &evt) { if (evt.IsFromTab()) this->select_next_view_3D(); });
+    preview->Bind(wxEVT_NAVIGATION_KEY, [this](wxNavigationKeyEvent &evt) { if (evt.IsFromTab()) this->select_next_view_3D(); });
 
     panels.push_back(view3D);
     panels.push_back(preview);
@@ -1300,10 +1302,14 @@ void Plater::priv::select_view_3D(const std::string& name)
         set_current_panel(view3D);
     else if (name == "Preview")
         set_current_panel(preview);
+}
 
-#if !ENABLE_TOOLBAR_BACKGROUND_TEXTURE
-    view_toolbar.set_selection(name);
-#endif // !ENABLE_TOOLBAR_BACKGROUND_TEXTURE
+void Plater::priv::select_next_view_3D()
+{
+    if (current_panel == view3D)
+        set_current_panel(preview);
+    else if (current_panel == preview)
+        set_current_panel(view3D);
 }
 #else
 void Plater::priv::select_view(const std::string& direction)
@@ -2243,13 +2249,17 @@ void Plater::priv::set_current_panel(wxPanel* panel)
         }
         // sets the canvas as dirty to force a render at the 1st idle event (wxWidgets IsShownOnScreen() is buggy and cannot be used reliably)
         view3D->set_as_dirty();
+        view_toolbar.select_item("3D");
     }
     else if (current_panel == preview)
     {
         this->q->reslice();        
         preview->reload_print();
         preview->set_canvas_as_dirty();
+        view_toolbar.select_item("Preview");
     }
+
+    current_panel->SetFocusFromKbd();
 }
 #else
 void Plater::priv::on_notebook_changed(wxBookCtrlEvent&)

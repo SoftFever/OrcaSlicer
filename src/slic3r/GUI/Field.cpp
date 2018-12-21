@@ -172,12 +172,14 @@ void Field::get_value_by_opt_type(wxString& str)
                 show_error(m_parent, _(L("Input value contains incorrect symbol(s).\nUse, please, only digits")));
                 set_value(double_to_string(val), true);                
             }
-            else if (val > 1)
+            else if (m_opt.sidetext.rfind("mm/s") != std::string::npos && val > m_opt.max ||
+                     m_opt.sidetext.rfind("mm ") != std::string::npos && val > 1)
             {
+                std::string sidetext = m_opt.sidetext.rfind("mm/s") != std::string::npos ? "mm/s" : "mm";
                 const int nVal = int(val);
-                wxString msg_text = wxString::Format(_(L("Do you mean %d%% instead of %dmm?\n"
+                wxString msg_text = wxString::Format(_(L("Do you mean %d%% instead of %d %s?\n"
                     "Select YES if you want to change this value to %d%%, \n"
-                    "or NO if you are sure that %dmm is a correct value.")), nVal, nVal, nVal, nVal);
+                    "or NO if you are sure that %d %s is a correct value.")), nVal, nVal, sidetext, nVal, nVal, sidetext);
                 auto dialog = new wxMessageDialog(m_parent, msg_text, _(L("Parameter validation")), wxICON_WARNING | wxYES | wxNO);
                 if (dialog->ShowModal() == wxID_YES) {
                     set_value(wxString::Format("%s%%", str), true);
@@ -274,7 +276,6 @@ void TextCtrl::BUILD() {
 		e.Skip();
 		temp->GetToolTip()->Enable(true);
 #endif // __WXGTK__
-//         if (!is_defined_input_value()) 
         if (is_defined_input_value<wxTextCtrl>(window, m_opt.type))
             on_change_field();
         else
@@ -399,10 +400,11 @@ void SpinCtrl::BUILD() {
 	auto temp = new wxSpinCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size,
 		0, min_val, max_val, default_value);
 
-// 	temp->Bind(wxEVT_SPINCTRL, ([this](wxCommandEvent e) { tmp_value = undef_spin_val; on_change_field(); }), temp->GetId());
-
+#ifndef __WXOSX__
     // #ys_FIXME_KILL_FOCUS 
-    // wxEVT_KILL_FOCUS doesn't handled on OSX now 
+    // wxEVT_KILL_FOCUS doesn't handled on OSX now (wxWidgets 3.1.1)
+    // So, we will update values on KILL_FOCUS & SPINCTRL events under MSW and GTK
+    // and on TEXT event under OSX
 	temp->Bind(wxEVT_KILL_FOCUS, ([this](wxEvent& e)
 	{
         if (tmp_value < 0)
@@ -412,6 +414,9 @@ void SpinCtrl::BUILD() {
             on_change_field();
         }
 	}), temp->GetId());
+
+	temp->Bind(wxEVT_SPINCTRL, ([this](wxCommandEvent e) {  on_change_field();  }), temp->GetId());
+#endif
 
 	temp->Bind(wxEVT_TEXT, ([this](wxCommandEvent e)
 	{
@@ -424,9 +429,7 @@ void SpinCtrl::BUILD() {
 		if (is_matched(value, "^\\d+$"))
 			tmp_value = std::stoi(value);
         else tmp_value = -9999;
-// 		on_change_field();
 #ifdef __WXOSX__
-    // #ys_FIXME_KILL_FOCUS so call on_change_field() inside wxEVT_TEXT
         if (tmp_value < 0) {
             if (m_on_kill_focus != nullptr)
                 m_on_kill_focus(m_opt_id);

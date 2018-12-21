@@ -32,7 +32,7 @@ class CurlGlobalInit
 struct Http::priv
 {
 	enum {
-		DEFAULT_TIMEOUT = 10,
+		DEFAULT_TIMEOUT_CONNECT = 10,
 		DEFAULT_SIZE_LIMIT = 5 * 1024 * 1024,
 	};
 
@@ -64,7 +64,7 @@ struct Http::priv
 	static int xfercb_legacy(void *userp, double dltotal, double dlnow, double ultotal, double ulnow);
 	static size_t form_file_read_cb(char *buffer, size_t size, size_t nitems, void *userp);
 
-	void set_timeout(long timeout);
+	void set_timeout_connect(long timeout);
 	void form_add_file(const char *name, const fs::path &path, const char* filename);
 	void set_post_body(const fs::path &path);
 
@@ -86,7 +86,7 @@ Http::priv::priv(const std::string &url)
 		throw std::runtime_error(std::string("Could not construct Curl object"));
 	}
 
-	set_timeout(DEFAULT_TIMEOUT);
+	set_timeout_connect(DEFAULT_TIMEOUT_CONNECT);
 	::curl_easy_setopt(curl, CURLOPT_URL, url.c_str());   // curl makes a copy internally
 	::curl_easy_setopt(curl, CURLOPT_USERAGENT, SLIC3R_FORK_NAME "/" SLIC3R_VERSION);
 	::curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error_buffer.front());
@@ -172,10 +172,9 @@ size_t Http::priv::form_file_read_cb(char *buffer, size_t size, size_t nitems, v
 	return stream->gcount();
 }
 
-void Http::priv::set_timeout(long timeout)
+void Http::priv::set_timeout_connect(long timeout)
 {
 	::curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, timeout);
-	::curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
 }
 
 void Http::priv::form_add_file(const char *name, const fs::path &path, const char* filename)
@@ -306,10 +305,10 @@ Http::~Http()
 }
 
 
-Http& Http::timeout(long timeout)
+Http& Http::timeout_connect(long timeout)
 {
-	if (timeout < 1) { timeout = priv::DEFAULT_TIMEOUT; }
-	if (p) { p->set_timeout(timeout); }
+	if (timeout < 1) { timeout = priv::DEFAULT_TIMEOUT_CONNECT; }
+	if (p) { p->set_timeout_connect(timeout); }
 	return *this;
 }
 

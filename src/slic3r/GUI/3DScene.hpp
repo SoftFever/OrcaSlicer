@@ -500,6 +500,17 @@ typedef std::vector<GLVolume*> GLVolumePtrs;
 
 class GLVolumeCollection
 {
+#if ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
+public:
+    enum ERenderType : unsigned char
+    {
+        Opaque,
+        Transparent,
+        All
+    };
+
+private:
+#endif // ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
     // min and max vertex of the print box volume
     float print_box_min[3];
     float print_box_max[3];
@@ -544,8 +555,13 @@ public:
         int obj_idx, float pos_x, float pos_y, float width, float depth, float height, float rotation_angle, bool use_VBOs, bool size_unknown, float brim_width);
 
     // Render the volumes by OpenGL.
+#if ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
+    void render_VBOs(ERenderType type, bool disable_cullface) const;
+    void render_legacy(ERenderType type, bool disable_cullface) const;
+#else
     void render_VBOs() const;
     void render_legacy() const;
+#endif // ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
 
     // Finalize the initialization of the geometry & indices,
     // upload the geometry and indices to OpenGL VBO objects

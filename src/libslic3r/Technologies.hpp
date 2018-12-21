@@ -44,6 +44,8 @@
 #define ENABLE_RENDER_SELECTION_CENTER (0 && ENABLE_1_42_0)
 // Show visual hints in the 3D scene when sidebar matrix fields have focus
 #define ENABLE_SIDEBAR_VISUAL_HINTS (1 && ENABLE_1_42_0)
+// Separate rendering for opaque and transparent volumes
+#define ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING (1 && ENABLE_1_42_0)
 
 #endif // _technologies_h_
 

@@ -135,6 +135,7 @@ public:
 
     Tab*            get_tab(Preset::Type type);
     ConfigMenuIDs   get_view_mode();
+    ConfigOptionMode get_opt_mode();
     void            update_mode();
 
     void            add_config_menu(wxMenuBar *menu);

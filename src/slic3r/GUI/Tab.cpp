@@ -667,8 +667,9 @@ void Tab::reload_config()
  	Thaw();
 }
 
-void Tab::update_visibility(ConfigOptionMode mode)
+void Tab::update_visibility()
 {
+    const ConfigOptionMode mode = wxGetApp().get_opt_mode();
     Freeze();
 
 	for (auto page : m_pages)
@@ -1988,6 +1989,7 @@ PageShp TabPrinter::build_kinematics_page()
 		def.type = coString;
 		def.width = 150;
 		def.gui_type = "legend";
+        def.mode = comAdvanced;
 		def.tooltip = L("Values in this column are for Full Power mode");
 		def.default_value = new ConfigOptionString{ L("Full Power") };
 
@@ -2345,12 +2347,15 @@ void Tab::load_current_preset()
 		init_options_list();
 		update_changed_ui();
 	});
+    update_page_tree_visibility();
 }
 
 //Regerenerate content of the page tree.
 void Tab::rebuild_page_tree(bool tree_sel_change_event /*= false*/)
 {
 	Freeze();
+    update_visibility();
+
 	// get label of the currently selected item
     const auto sel_item = m_treectrl->GetSelection();
 	const auto selected = sel_item ? m_treectrl->GetItemText(sel_item) : "";
@@ -2363,8 +2368,8 @@ void Tab::rebuild_page_tree(bool tree_sel_change_event /*= false*/)
 		auto itemId = m_treectrl->AppendItem(rootItem, p->title(), p->iconID());
 		m_treectrl->SetItemTextColour(itemId, p->get_item_colour());
 		if (p->title() == selected) {
-			if (!(p->title() == _(L("Machine limits")) || p->title() == _(L("Single extruder MM setup")))) // These Pages have to be updated inside OnTreeSelChange
-				m_disable_tree_sel_changed_event = !tree_sel_change_event;
+// 			if (!(p->title() == _(L("Machine limits")) || p->title() == _(L("Single extruder MM setup")))) // These Pages have to be updated inside OnTreeSelChange
+// 				m_disable_tree_sel_changed_event = !tree_sel_change_event;
 			m_treectrl->SelectItem(itemId);
 			m_disable_tree_sel_changed_event = false;
 			have_selection = 1;
@@ -2924,14 +2929,15 @@ ConfigOptionsGroupShp Page::new_optgroup(const wxString& title, int noncommon_la
     auto extra_column = [](wxWindow* parent, const Line& line)
     {
         std::string bmp_name;
-        if (line.get_options().size() == 0)
-            bmp_name = "error.png";
+        const std::vector<Option>& options = line.get_options();
+        if (options.size() == 0 || options[0].opt.gui_type == "legend")
+            bmp_name = "";// "error.png";
         else {
-            auto mode = line.get_options()[0].opt.mode;  //we assume that we have one option per line
+            auto mode = options[0].opt.mode;  //we assume that we have one option per line
             bmp_name = mode == comExpert   ? "mode_expert_.png" :
                        mode == comAdvanced ? "mode_middle_.png" : "mode_simple_.png";
         }                               
-        auto bmp = new wxStaticBitmap(parent, wxID_ANY, wxBitmap(from_u8(var(bmp_name)), wxBITMAP_TYPE_PNG));
+        auto bmp = new wxStaticBitmap(parent, wxID_ANY, bmp_name.empty() ? wxNullBitmap : wxBitmap(from_u8(var(bmp_name)), wxBITMAP_TYPE_PNG));
         return bmp;
     };
 
