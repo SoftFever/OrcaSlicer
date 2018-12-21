@@ -8,6 +8,7 @@
 #include "libslic3r/Geometry.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/SLA/SLASupportTree.hpp"
+#include "libslic3r/SLAPrint.hpp"
 
 #include <cstdio>
 #include <numeric>
@@ -1786,6 +1787,18 @@ void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const G
     {
         if (is_mesh_update_necessary())
             update_mesh();
+
+        // If there are no points, let's ask the backend if it calculated some.
+        if (model_object->sla_support_points.empty() && m_parent.sla_print()->is_step_done(slaposSupportPoints)) {
+            for (const SLAPrintObject* po : m_parent.sla_print()->objects()) {
+                if (po->model_object()->id() == model_object->id()) {
+                    const Eigen::MatrixXd& points = po->get_support_points();
+                    for (unsigned int i=0; i<points.rows();++i)
+                        model_object->sla_support_points.push_back(Vec3f(po->trafo().inverse().cast<float>() * Vec3f(points(i,0), points(i,1), points(i,2))));
+                        break;
+                }
+            }
+        }
     }
 }
 #else
@@ -2170,6 +2183,9 @@ void GLGizmoSlaSupports::render_tooltip_texture() const {
 #if ENABLE_IMGUI
 void GLGizmoSlaSupports::on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection)
 {
+    bool first_run = true; // This is a hack to redraw the button when all points are removed,
+                           // so it is not delayed until the background process finishes.
+RENDER_AGAIN:
     m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
     m_imgui->set_next_window_bg_alpha(0.5f);
     m_imgui->begin(on_get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
@@ -2184,22 +2200,11 @@ void GLGizmoSlaSupports::on_render_input_window(float x, float y, const GLCanvas
 
     m_imgui->end();
 
-    if (remove_all_clicked)
+    if (remove_all_clicked) {
         delete_current_grabber(true);
-
-    if (generate) {
-        const DynamicPrintConfig& cfg = *wxGetApp().get_tab(Preset::TYPE_SLA_PRINT)->get_config();
-        SLAAutoSupports::SLAAutoSupports::Config config;
-        config.density_at_horizontal = cfg.opt_int("support_density_at_horizontal") / 10000.f;
-        config.density_at_45 = cfg.opt_int("support_density_at_45") / 10000.f;
-        config.minimal_z = cfg.opt_float("support_minimal_z");
-
-        SLAAutoSupports::SLAAutoSupports sas(*m_model_object, config);
-        sas.generate();
-        m_grabbers.clear();
-        for (const Vec3f& point : m_model_object->sla_support_points) {
-            m_grabbers.push_back(Grabber());
-            m_grabbers.back().center = point.cast<double>();
+        if (first_run) {
+            first_run = false;
+            goto RENDER_AGAIN;
         }
     }
 

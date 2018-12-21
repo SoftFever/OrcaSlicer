@@ -90,6 +90,9 @@ public:
     const std::vector<ExPolygons>& get_model_slices() const;
     const std::vector<ExPolygons>& get_support_slices() const;
 
+    // This method returns the support points of this SLAPrintObject.
+    const Eigen::MatrixXd& get_support_points() const;
+
     // An index record referencing the slices
     // (get_model_slices(), get_support_slices()) where the keys are the height
     // levels of the model in scaled-clipper coordinates. The levels correspond

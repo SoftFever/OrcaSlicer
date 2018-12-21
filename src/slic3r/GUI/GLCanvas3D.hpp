@@ -1145,6 +1145,7 @@ private:
 
     static std::vector<float> _parse_colors(const std::vector<std::string>& colors);
 
+public:
     const Print* fff_print() const;
     const SLAPrint* sla_print() const;
 };

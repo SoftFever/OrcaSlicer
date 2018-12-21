@@ -511,31 +511,33 @@ void SLAPrint::process()
     // In this step we check the slices, identify island and cover them with
     // support points. Then we sprinkle the rest of the mesh.
     auto support_points = [this, ilh](SLAPrintObject& po) {
-        // find islands to support
-        double lh = po.m_config.layer_height.getFloat();
-        std::vector<float> heights = calculate_heights(po.transformed_mesh().bounding_box(), po.get_elevation(), ilh, lh);
-        //SLAAutoSupports auto_supports(po.get_model_slices(), heights, *po.m_model_object);
-        std::vector<Vec3d> points = SLAAutoSupports::find_islands(po.get_model_slices(), heights);
-
-        // TODO:
-        
-        // create mesh in igl format
-
-        // cover the islands with points, use igl to get precise z coordinate
-
-        // sprinkle the mesh with points (SLAAutoSupports::generate())
-
-
-        /*for (const auto& p: points)
-            std::cout << p(0) << " " << p(1) << " " << p(2) << std::endl;
-        std::cout << std::endl;
-        */
-        //for (auto& p: points)
-          //  p = po.trafo().inverse() * p;
-
+        const ModelObject& mo = *po.m_model_object;
         po.m_supportdata.reset(new SLAPrintObject::SupportData());
         po.m_supportdata->emesh = sla::to_eigenmesh(po.transformed_mesh());
-        po.m_supportdata->support_points = sla::to_point_set(points);
+
+        // If there are no points on the front-end, we will do the autoplacement.
+        // Otherwise we will just blindly copy the frontend data into the backend cache.
+        if(mo.sla_support_points.empty()) {
+            // calculate heights of slices (slices are calculated already)
+            double lh = po.m_config.layer_height.getFloat();
+            std::vector<float> heights = calculate_heights(po.transformed_mesh().bounding_box(), po.get_elevation(), ilh, lh);
+
+            SLAAutoSupports::Config config;
+            const SLAPrintObjectConfig& cfg = po.config();
+            config.density_at_horizontal = cfg.support_density_at_horizontal / 10000.f;
+            config.density_at_45 = cfg.support_density_at_45 / 10000.f;
+            config.minimal_z = cfg.support_minimal_z;
+
+            // Construction of this object does the calculation.
+            SLAAutoSupports auto_supports(po.transformed_mesh(), po.m_supportdata->emesh, po.get_model_slices(), heights, config);
+            // Now let's extract the result.
+            const std::vector<Vec3d>& points = auto_supports.output();
+            po.m_supportdata->support_points = sla::to_point_set(points);
+        }
+        else {
+            // There are some points on the front-end, no calculation will be done.
+            po.m_supportdata->support_points = sla::to_point_set(po.transformed_support_points());
+        }
     };
 
     // In this step we create the supports
@@ -1129,6 +1131,11 @@ double SLAPrintObject::get_current_elevation() const
 namespace { // dummy empty static containers for return values in some methods
 const std::vector<ExPolygons> EMPTY_SLICES;
 const TriangleMesh EMPTY_MESH;
+}
+
+const Eigen::MatrixXd& SLAPrintObject::get_support_points() const
+{
+    return m_supportdata->support_points;
 }
 
 const std::vector<ExPolygons> &SLAPrintObject::get_support_slices() const
