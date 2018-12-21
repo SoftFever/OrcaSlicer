@@ -1723,6 +1723,7 @@ void TabPrinter::build_fff()
 			wxTheApp->CallAfter([this, opt_key, value, extruders_count]() {
 				if (opt_key == "extruders_count" || opt_key == "single_extruder_multi_material") {
 					extruders_count_changed(extruders_count);
+                    init_options_list(); // m_options_list should be updated before UI updating
 					update_dirty();
                     if (opt_key == "single_extruder_multi_material") // the single_extruder_multimaterial was added to force pages
                         on_value_change(opt_key, value);                      // rebuild - let's make sure the on_value_change is not skipped
@@ -2345,16 +2346,15 @@ void Tab::load_current_preset()
 
 		m_opt_status_value = (m_presets->get_selected_preset_parent() ? osSystemValue : 0) | osInitValue;
 		init_options_list();
+        update_visibility();
 		update_changed_ui();
 	});
-    update_page_tree_visibility();
 }
 
 //Regerenerate content of the page tree.
 void Tab::rebuild_page_tree(bool tree_sel_change_event /*= false*/)
 {
 	Freeze();
-    update_visibility();
 
 	// get label of the currently selected item
     const auto sel_item = m_treectrl->GetSelection();
