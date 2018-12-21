@@ -983,7 +983,7 @@ GLVolumesWithZList volumes_to_render(const GLVolumePtrs& volumes, GLVolumeCollec
         }
 
         std::sort(list.begin(), list.end(),
-            [](const GLVolumeWithZ& v1, const GLVolumeWithZ& v2) -> bool { return v1.second < v2.second;  }
+            [](const GLVolumeWithZ& v1, const GLVolumeWithZ& v2) -> bool { return v1.second < v2.second; }
         );
     }
 

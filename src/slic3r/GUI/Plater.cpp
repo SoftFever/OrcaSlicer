@@ -1301,9 +1301,11 @@ void Plater::priv::select_view_3D(const std::string& name)
     else if (name == "Preview")
         set_current_panel(preview);
 
-#if !ENABLE_TOOLBAR_BACKGROUND_TEXTURE
+#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
+    view_toolbar.select_item(name);
+#else
     view_toolbar.set_selection(name);
-#endif // !ENABLE_TOOLBAR_BACKGROUND_TEXTURE
+#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 }
 #else
 void Plater::priv::select_view(const std::string& direction)
