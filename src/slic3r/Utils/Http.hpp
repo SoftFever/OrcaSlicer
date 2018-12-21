@@ -56,7 +56,7 @@ public:
 	Http& operator=(Http &&) = delete;
 
 	// Sets a maximum connection timeout in seconds
-	Http& timeout(long timeout);
+	Http& timeout_connect(long timeout);
 	// Sets a maximum size of the data that can be received.
 	// A value of zero sets the default limit, which is is 5MB.
 	Http& size_limit(size_t sizeLimit);
