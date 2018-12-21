@@ -6,6 +6,7 @@
 #include "ExPolygon.hpp"
 #include "SVG.hpp"
 #include "Point.hpp"
+#include "ClipperUtils.hpp"
 
 #include <iostream>
 #include <random>
