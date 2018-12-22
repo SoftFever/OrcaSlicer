@@ -514,6 +514,7 @@ void SLAPrint::process()
                                       float(po.get_elevation()),
                                       ilh, float(lh));
 
+            this->throw_if_canceled();
             SLAAutoSupports::Config config;
             const SLAPrintObjectConfig& cfg = po.config();
             config.minimal_z = float(cfg.support_minimal_z);
@@ -521,14 +522,17 @@ void SLAPrint::process()
             config.density_at_horizontal = cfg.support_density_at_horizontal / 10000.f;
 
             // Construction of this object does the calculation.
+            this->throw_if_canceled();
             SLAAutoSupports auto_supports(po.transformed_mesh(),
                                           po.m_supportdata->emesh,
                                           po.get_model_slices(),
                                           heights,
-                                          config);
+                                          config, 
+                                          [this]() { throw_if_canceled(); });
 
             // Now let's extract the result.
             const std::vector<Vec3d>& points = auto_supports.output();
+            this->throw_if_canceled();
             po.m_supportdata->support_points = sla::to_point_set(points);
         }
         else {

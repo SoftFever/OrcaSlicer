@@ -17,7 +17,8 @@ public:
             float minimal_z;
         };
 
-    SLAAutoSupports(const TriangleMesh& mesh, const sla::EigenMesh3D& emesh, const std::vector<ExPolygons>& slices, const std::vector<float>& heights, const Config& config);
+    SLAAutoSupports(const TriangleMesh& mesh, const sla::EigenMesh3D& emesh, const std::vector<ExPolygons>& slices, 
+        const std::vector<float>& heights, const Config& config, std::function<void(void)> throw_on_cancel);
     const std::vector<Vec3d>& output() { return m_output; }
 
 private:
@@ -38,6 +39,7 @@ private:
 #endif /* SLA_AUTOSUPPORTS_DEBUG */
 
     SLAAutoSupports::Config m_config;
+    std::function<void(void)> m_throw_on_cancel;
     const Eigen::MatrixXd& m_V;
     const Eigen::MatrixXi& m_F;
 };

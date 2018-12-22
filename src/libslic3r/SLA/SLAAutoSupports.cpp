@@ -13,8 +13,9 @@
 
 namespace Slic3r {
 
-SLAAutoSupports::SLAAutoSupports(const TriangleMesh& mesh, const sla::EigenMesh3D& emesh, const std::vector<ExPolygons>& slices, const std::vector<float>& heights, const Config& config)
-: m_config(config), m_V(emesh.V), m_F(emesh.F)
+SLAAutoSupports::SLAAutoSupports(const TriangleMesh& mesh, const sla::EigenMesh3D& emesh, const std::vector<ExPolygons>& slices, const std::vector<float>& heights, 
+    const Config& config, std::function<void(void)> throw_on_cancel)
+: m_config(config), m_V(emesh.V), m_F(emesh.F), m_throw_on_cancel(throw_on_cancel)
 {
     // FIXME: It might be safer to get rid of the rand() calls altogether, because it is probably
     // not always thread-safe and can be slow if it is.
@@ -28,8 +29,10 @@ SLAAutoSupports::SLAAutoSupports(const TriangleMesh& mesh, const sla::EigenMesh3
     // Uniformly cover each of the islands with support points.
     for (const auto& island : islands) {
         std::vector<Vec3d> points = uniformly_cover(island);
+        m_throw_on_cancel();
         project_upward_onto_mesh(points);
         m_output.insert(m_output.end(), points.begin(), points.end());
+        m_throw_on_cancel();
     }
 
     // We are done with the islands. Let's sprinkle the rest of the mesh.
@@ -111,7 +114,14 @@ void SLAAutoSupports::sprinkle_mesh(const TriangleMesh& mesh)
     // Angle at which the density reaches zero:
     const float threshold_angle = std::min(M_PI_2, M_PI_4 * acos(0.f/m_config.density_at_horizontal) / acos(m_config.density_at_45/m_config.density_at_horizontal));
 
+    size_t cancel_test_cntr = 0;
     while (refused_points < refused_limit) {
+        if (++ cancel_test_cntr == 500) {
+            // Don't call the cancellation routine too often as the multi-core cache synchronization
+            // may be pretty expensive.
+            m_throw_on_cancel();
+            cancel_test_cntr = 0;
+        }
         // Place a random point on the mesh and calculate corresponding facet's normal:
         Eigen::VectorXi FI;
         Eigen::MatrixXd B;
@@ -249,6 +259,7 @@ std::vector<std::pair<ExPolygon, coord_t>> SLAAutoSupports::find_islands(const s
         //if (!islands.empty())
           //  output_expolygons(islands, "islands" + layer_num_str + ".svg");
 #endif /* SLA_AUTOSUPPORTS_DEBUG */
+        m_throw_on_cancel();
     }
 
     return islands;
