@@ -987,11 +987,17 @@ struct Plater::priv
         // update_background_process() reports, that the Print / SLAPrint is invalid, and the error message
         // was sent to the status line.
         UPDATE_BACKGROUND_PROCESS_INVALID = 4,
+        // Restart even if the background processing is disabled.
+        UPDATE_BACKGROUND_PROCESS_FORCE_RESTART = 8,
+        // Restart for G-code (or SLA zip) export or upload.
+        UPDATE_BACKGROUND_PROCESS_FORCE_EXPORT = 16,
     };
     // returns bit mask of UpdateBackgroundProcessReturnState
     unsigned int update_background_process();
+    // Restart background processing thread based on a bitmask of UpdateBackgroundProcessReturnState.
+    bool restart_background_process(unsigned int state);
+    void update_restart_background_process(bool force_scene_update, bool force_preview_update);
     void export_gcode(fs::path output_path, PrintHostJob upload_job);
-    void async_apply_config();
     void reload_from_disk();
     void fix_through_netfabb(const int obj_idx);
 
@@ -1141,7 +1147,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 #endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
     this->background_process_timer.SetOwner(this->q, 0);
-    this->q->Bind(wxEVT_TIMER, [this](wxTimerEvent &evt) { this->async_apply_config(); });
+    this->q->Bind(wxEVT_TIMER, [this](wxTimerEvent &evt) { this->update_restart_background_process(false, false); });
 
     auto *bed_shape = config->opt<ConfigOptionPoints>("bed_shape");
 #if ENABLE_REMOVE_TABS_FROM_PLATER
@@ -1239,6 +1245,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
     // Preview events:
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_VIEWPORT_CHANGED, &priv::on_viewport_changed, this);
+    preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_QUESTION_MARK, [this](SimpleEvent&) { wxGetApp().keyboard_shortcuts(); });
 #if ENABLE_REMOVE_TABS_FROM_PLATER
     view3D_canvas->Bind(EVT_GLCANVAS_INIT, [this](SimpleEvent&) { init_view_toolbar(); });
 #endif // ENABLE_REMOVE_TABS_FROM_PLATER
@@ -1272,19 +1279,21 @@ void Plater::priv::update(bool force_full_scene_refresh)
         model.center_instances_around_point(bed_center);
     }
 
-    if (this->printer_technology == ptSLA) {
+    unsigned int update_status = 0;
+    if (this->printer_technology == ptSLA)
         // Update the SLAPrint from the current Model, so that the reload_scene()
         // pulls the correct data.
-        this->update_background_process();
-    }
+        update_status = this->update_background_process();
 #if ENABLE_REMOVE_TABS_FROM_PLATER
-    view3D->reload_scene(false, force_full_scene_refresh);
+    this->view3D->reload_scene(false, force_full_scene_refresh);
 #else
     this->canvas3D->reload_scene(false, force_full_scene_refresh);
 #endif // ENABLE_REMOVE_TABS_FROM_PLATER
-    preview->reload_print();
-
-    this->schedule_background_process();
+	this->preview->reload_print();
+    if (this->printer_technology == ptSLA)
+        this->restart_background_process(update_status);
+    else
+        this->schedule_background_process();
 }
 
 #if ENABLE_REMOVE_TABS_FROM_PLATER
@@ -1999,12 +2008,13 @@ unsigned int Plater::priv::update_background_process()
     // bitmap of enum UpdateBackgroundProcessReturnState
     unsigned int return_state = 0;
 
-    // If the update_background_process() was not called by the timer, kill the timer, so the async_apply_config()
-    // will not be called again in vain.
+    // If the update_background_process() was not called by the timer, kill the timer, 
+    // so the update_restart_background_process() will not be called again in vain.
     this->background_process_timer.Stop();
     // Update the "out of print bed" state of ModelInstances.
     this->update_print_volume_state();
     // Apply new config to the possibly running background task.
+    bool               was_running = this->background_process.running();
     Print::ApplyStatus invalidated = this->background_process.apply(this->q->model(), wxGetApp().preset_bundle->full_config());
 
     // Just redraw the 3D canvas without reloading the scene to consume the update of the layer height profile.
@@ -2038,18 +2048,10 @@ unsigned int Plater::priv::update_background_process()
         }
     }
 
-	if (this->background_process.empty()) {
-		if (invalidated != Print::APPLY_STATUS_UNCHANGED) {
-            // The background processing will not be restarted, because the Print / SLAPrint is empty.
-            // Simulate a "canceled" callback message.
-            wxCommandEvent evt;
-            evt.SetInt(-1); // canceled
-            this->on_process_completed(evt);
-		}
-	} else {
+	if (! this->background_process.empty()) {
         std::string err = this->background_process.validate();
         if (err.empty()) {
-            if (invalidated != Print::APPLY_STATUS_UNCHANGED)
+			if (invalidated != Print::APPLY_STATUS_UNCHANGED && this->background_processing_enabled())
                 return_state |= UPDATE_BACKGROUND_PROCESS_RESTART;
         } else {
             // The print is not valid.
@@ -2057,7 +2059,37 @@ unsigned int Plater::priv::update_background_process()
             return_state |= UPDATE_BACKGROUND_PROCESS_INVALID;
         }
     }
+
+	if (invalidated != Print::APPLY_STATUS_UNCHANGED && was_running && ! this->background_process.running() &&
+        (return_state & UPDATE_BACKGROUND_PROCESS_RESTART) == 0) {
+		// The background processing was killed and it will not be restarted.
+		wxCommandEvent evt(EVT_PROCESS_COMPLETED);
+		evt.SetInt(-1);
+		// Post the "canceled" callback message, so that it will be processed after any possible pending status bar update messages.
+		wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, evt.Clone());
+	}
+
     return return_state;
+}
+
+// Restart background processing thread based on a bitmask of UpdateBackgroundProcessReturnState.
+bool Plater::priv::restart_background_process(unsigned int state)
+{
+	if ( ! this->background_process.empty() &&
+		 (state & priv::UPDATE_BACKGROUND_PROCESS_INVALID) == 0 &&
+		 ( ((state & UPDATE_BACKGROUND_PROCESS_FORCE_RESTART) != 0 && ! this->background_process.finished()) ||
+           (state & UPDATE_BACKGROUND_PROCESS_FORCE_EXPORT) != 0 ||
+           (state & UPDATE_BACKGROUND_PROCESS_RESTART) != 0 ) ) {
+        // The print is valid and it can be started.
+        if (this->background_process.start()) {
+            this->statusbar()->set_cancel_callback([this]() {
+                this->statusbar()->set_status_text(L("Cancelling"));
+                this->background_process.stop();
+            });
+            return true;
+        }
+    }
+    return false;
 }
 
 void Plater::priv::export_gcode(fs::path output_path, PrintHostJob upload_job)
@@ -2089,34 +2121,22 @@ void Plater::priv::export_gcode(fs::path output_path, PrintHostJob upload_job)
         background_process.schedule_upload(std::move(upload_job));
     }
 
-    if (! background_process.running()) {
-        // The print is valid and it should be started.
-        if (background_process.start())
-            statusbar()->set_cancel_callback([this]() {
-                statusbar()->set_status_text(L("Cancelling"));
-                background_process.stop();
-            });
-    }
+    this->restart_background_process(priv::UPDATE_BACKGROUND_PROCESS_FORCE_EXPORT);
 }
 
-void Plater::priv::async_apply_config()
+void Plater::priv::update_restart_background_process(bool force_update_scene, bool force_update_preview)
 {
     // bitmask of UpdateBackgroundProcessReturnState
     unsigned int state = this->update_background_process();
-    if (state & UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE)
+    if (force_update_scene || (state & UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE) != 0)
 #if ENABLE_REMOVE_TABS_FROM_PLATER
         view3D->reload_scene(false);
 #else
         this->canvas3D->reload_scene(false);
 #endif // ENABLE_REMOVE_TABS_FROM_PLATER
-    if ((state & UPDATE_BACKGROUND_PROCESS_RESTART) != 0 && this->background_processing_enabled()) {
-        // The print is valid and it can be started.
-        if (this->background_process.start())
-            this->statusbar()->set_cancel_callback([this]() {
-                this->statusbar()->set_status_text(L("Cancelling"));
-                this->background_process.stop();
-            });
-    }
+    if (force_update_preview)
+        this->preview->reload_print();
+    this->restart_background_process(state);
 }
 
 void Plater::priv::update_fff_scene()
@@ -2135,15 +2155,8 @@ void Plater::priv::update_sla_scene()
 {
     // Update the SLAPrint from the current Model, so that the reload_scene()
     // pulls the correct data.
-    if (this->update_background_process() & UPDATE_BACKGROUND_PROCESS_RESTART)
-        this->schedule_background_process();
-#if ENABLE_REMOVE_TABS_FROM_PLATER
-    view3D->reload_scene(true);
-#else
-    this->canvas3D->reload_scene(true);
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
     delayed_scene_refresh = false;
-    this->preview->reload_print();
+    this->update_restart_background_process(true, true);
 }
 
 void Plater::priv::reload_from_disk()
@@ -2242,10 +2255,9 @@ void Plater::priv::set_current_panel(wxPanel* panel)
             {
                 // Update the SLAPrint from the current Model, so that the reload_scene()
                 // pulls the correct data.
-                if (this->update_background_process() & UPDATE_BACKGROUND_PROCESS_RESTART)
-                    this->schedule_background_process();
-            }
-            view3D->reload_scene(true);
+                this->update_restart_background_process(true, false);
+            } else
+                view3D->reload_scene(true);
         }
         // sets the canvas as dirty to force a render at the 1st idle event (wxWidgets IsShownOnScreen() is buggy and cannot be used reliably)
         view3D->set_as_dirty();
@@ -2277,10 +2289,9 @@ void Plater::priv::on_notebook_changed(wxBookCtrlEvent&)
             if (this->printer_technology == ptSLA) {
                 // Update the SLAPrint from the current Model, so that the reload_scene()
                 // pulls the correct data.
-                if (this->update_background_process() & UPDATE_BACKGROUND_PROCESS_RESTART)
-                    this->schedule_background_process();
-            }
-            this->canvas3D->reload_scene(true);
+                this->update_restart_background_process(true, false);
+            } else
+                this->canvas3D->reload_scene(true);
         }
         // sets the canvas as dirty to force a render at the 1st idle event (wxWidgets IsShownOnScreen() is buggy and cannot be used reliably)
         this->canvas3D->set_as_dirty();
@@ -3143,14 +3154,8 @@ void Plater::reslice()
 #else
         this->p->canvas3D->reload_scene(false);
 #endif // ENABLE_REMOVE_TABS_FROM_PLATER
-    if ((state & priv::UPDATE_BACKGROUND_PROCESS_INVALID) == 0 && !this->p->background_process.running() && !this->p->background_process.finished()) {
-        // The print is valid and it can be started.
-        if (this->p->background_process.start())
-			this->p->statusbar()->set_cancel_callback([this]() {
-				this->p->statusbar()->set_status_text(L("Cancelling"));
-				this->p->background_process.stop();
-            });
-    }
+    // Only restarts if the state is valid.
+    this->p->restart_background_process(state | priv::UPDATE_BACKGROUND_PROCESS_FORCE_RESTART);
 }
 
 void Plater::send_gcode()
@@ -3341,13 +3346,13 @@ void Plater::changed_object(int obj_idx)
         model_object->ensure_on_bed();
         if (this->p->printer_technology == ptSLA) {
             // Update the SLAPrint from the current Model, so that the reload_scene()
-            // pulls the correct data.
-            this->p->update_background_process();
-        }
+            // pulls the correct data, update the 3D scene.
+            this->p->update_restart_background_process(true, false);
+        } else
 #if ENABLE_REMOVE_TABS_FROM_PLATER
-        p->view3D->reload_scene(false);
+            p->view3D->reload_scene(false);
 #else
-        p->canvas3D->reload_scene(false);
+            p->canvas3D->reload_scene(false);
 #endif // ENABLE_REMOVE_TABS_FROM_PLATER
     }
 

@@ -256,7 +256,7 @@ void PresetUpdater::priv::sync_config(const std::set<VendorProfile> vendors)
 			Index new_index;
 			try {
 				new_index.load(idx_path_temp);
-			} catch (const std::exception &err) {
+			} catch (const std::exception & /* err */) {
 				BOOST_LOG_TRIVIAL(error) << boost::format("Failed loading a downloaded index %1% for vendor %2%: invalid index?") % idx_path_temp % vendor.name;
 				continue;
 			}

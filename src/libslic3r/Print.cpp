@@ -760,7 +760,8 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
         update_apply_status(this->invalidate_all_steps());
         for (PrintObject *object : m_objects) {
             model_object_status.emplace(object->model_object()->id(), ModelObjectStatus::Deleted);
-            delete object;
+			update_apply_status(object->invalidate_all_steps());
+			delete object;
         }
         m_objects.clear();
         for (PrintRegion *region : m_regions)
@@ -990,12 +991,9 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
                         const_cast<PrintObjectStatus*>(*it_old)->status = PrintObjectStatus::Deleted;
                 } else {
                     // The PrintObject already exists and the copies differ.
-                    if ((*it_old)->print_object->copies().size() != new_instances.copies.size())
-                        update_apply_status(this->invalidate_step(psWipeTower));
-					if ((*it_old)->print_object->set_copies(new_instances.copies)) {
-						// Invalidated
-						update_apply_status(this->invalidate_steps({ psSkirt, psBrim, psGCodeExport }));
-					}
+					PrintBase::ApplyStatus status = (*it_old)->print_object->set_copies(new_instances.copies);
+                    if (status != PrintBase::APPLY_STATUS_UNCHANGED)
+						update_apply_status(status == PrintBase::APPLY_STATUS_INVALIDATED);
 					print_objects_new.emplace_back((*it_old)->print_object);
 					const_cast<PrintObjectStatus*>(*it_old)->status = PrintObjectStatus::Reused;
 				}
@@ -1009,13 +1007,14 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
             bool deleted_objects = false;
             for (auto &pos : print_object_status)
                 if (pos.status == PrintObjectStatus::Unknown || pos.status == PrintObjectStatus::Deleted) {
-                    // update_apply_status(pos.print_object->invalidate_all_steps());
+                    update_apply_status(pos.print_object->invalidate_all_steps());
                     delete pos.print_object;
 					deleted_objects = true;
                 }
 			if (new_objects || deleted_objects)
 				update_apply_status(this->invalidate_steps({ psSkirt, psBrim, psWipeTower, psGCodeExport }));
-            update_apply_status(new_objects);
+			if (new_objects)
+	            update_apply_status(false);
         }
         print_object_status.clear();
     }
@@ -1629,7 +1628,9 @@ void Print::_make_skirt()
         {
             Polygons loops = offset(convex_hull, distance, ClipperLib::jtRound, scale_(0.1));
             Geometry::simplify_polygons(loops, scale_(0.05), &loops);
-            loop = loops.front();
+			if (loops.empty())
+				break;
+			loop = loops.front();
         }
         // Extrude the skirt loop.
         ExtrusionLoop eloop(elrSkirt);

@@ -184,6 +184,7 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
         update_apply_status(this->invalidate_all_steps());
         for (SLAPrintObject *object : m_objects) {
             model_object_status.emplace(object->model_object()->id(), ModelObjectStatus::Deleted);
+            update_apply_status(object->invalidate_all_steps());
             delete object;
         }
         m_objects.clear();
@@ -376,11 +377,12 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
         bool deleted_objects = false;
         for (auto &pos : print_object_status)
             if (pos.status == PrintObjectStatus::Unknown || pos.status == PrintObjectStatus::Deleted) {
-                // update_apply_status(pos.print_object->invalidate_all_steps());
+                update_apply_status(pos.print_object->invalidate_all_steps());
                 delete pos.print_object;
                 deleted_objects = true;
             }
-        update_apply_status(new_objects);
+        if (new_objects)
+            update_apply_status(false);
     }
 
     this->update_object_placeholders();

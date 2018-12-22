@@ -2218,7 +2218,7 @@ bool GLCurvedArrow::on_init(bool useVBOs)
     }
 
     // side face
-    for (unsigned int i = 0; i < 4 + 2 * (int)m_resolution; ++i)
+	for (unsigned int i = 0; i < 4 + 2 * (unsigned int)m_resolution; ++i)
     {
         triangles.emplace_back(i, vertices_per_level + 2 + i, i + 1);
         triangles.emplace_back(i, vertices_per_level + 1 + i, vertices_per_level + 2 + i);

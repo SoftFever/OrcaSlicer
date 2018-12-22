@@ -13,8 +13,8 @@ namespace igl
   // Define a standard value for double epsilon
   const double DOUBLE_EPS    = 1.0e-14;
   const double DOUBLE_EPS_SQ = 1.0e-28;
-  const float FLOAT_EPS    = 1.0e-7;
-  const float FLOAT_EPS_SQ = 1.0e-14;
+  const float FLOAT_EPS    = 1.0e-7f;
+  const float FLOAT_EPS_SQ = 1.0e-14f;
   // Function returning EPS for corresponding type
   template <typename S_type> IGL_INLINE S_type EPS();
   template <typename S_type> IGL_INLINE S_type EPS_SQ();

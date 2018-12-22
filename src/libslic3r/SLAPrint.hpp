@@ -190,7 +190,7 @@ public:
     // Returns true if an object step is done on all objects and there's at least one object.    
     bool                is_step_done(SLAPrintObjectStep step) const;
     // Returns true if the last step was finished with success.
-    bool                finished() const override { return this->is_step_done(slaposIndexSlices); }
+	bool                finished() const override { return this->is_step_done(slaposIndexSlices) && this->Inherited::is_step_done(slapsRasterize); }
 
     template<class Fmt> void export_raster(const std::string& fname) {
         if(m_printer) m_printer->save<Fmt>(fname);

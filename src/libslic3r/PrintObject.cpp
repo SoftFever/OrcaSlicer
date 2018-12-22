@@ -69,7 +69,7 @@ PrintObject::PrintObject(Print* print, ModelObject* model_object, bool add_insta
     this->layer_height_profile = model_object->layer_height_profile;
 }
 
-bool PrintObject::set_copies(const Points &points)
+PrintBase::ApplyStatus PrintObject::set_copies(const Points &points)
 {
     // Order copies with a nearest-neighbor search.
     std::vector<Point> copies;
@@ -81,14 +81,15 @@ bool PrintObject::set_copies(const Points &points)
             copies.emplace_back(points[point_idx] + m_copies_shift);
     }
     // Invalidate and set copies.
-    bool invalidated = false;
+    PrintBase::ApplyStatus status = PrintBase::APPLY_STATUS_UNCHANGED;
     if (copies != m_copies) {
-        invalidated = m_print->invalidate_steps({ psSkirt, psBrim, psGCodeExport });
-        if (copies.size() != m_copies.size())
-            invalidated |= m_print->invalidate_step(psWipeTower);
+        status = PrintBase::APPLY_STATUS_CHANGED;
+        if (m_print->invalidate_steps({ psSkirt, psBrim, psGCodeExport }) ||
+            (copies.size() != m_copies.size() && m_print->invalidate_step(psWipeTower)))
+            status = PrintBase::APPLY_STATUS_INVALIDATED;
         m_copies = copies;
     }
-    return invalidated;
+    return status;
 }
 
 // 1) Decides Z positions of the layers,
