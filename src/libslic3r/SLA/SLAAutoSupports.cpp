@@ -171,7 +171,7 @@ float SLAAutoSupports::distance_limit(float angle) const
     return 1./(2.4*get_required_density(angle));
 }
 
-
+#ifdef SLA_AUTOSUPPORTS_DEBUG
 void SLAAutoSupports::output_expolygons(const ExPolygons& expolys, std::string filename) const
 {
     BoundingBox bb(Point(-30000000, -30000000), Point(30000000, 30000000));
@@ -188,6 +188,7 @@ void SLAAutoSupports::output_expolygons(const ExPolygons& expolys, std::string f
         svg_cummulative.draw_outline(expolys[i].holes, "blue", scale_(0.05));
     }
 }
+#endif /* SLA_AUTOSUPPORTS_DEBUG */
 
 std::vector<std::pair<ExPolygon, coord_t>> SLAAutoSupports::find_islands(const std::vector<ExPolygons>& slices, const std::vector<float>& heights) const
 {
@@ -203,10 +204,14 @@ std::vector<std::pair<ExPolygon, coord_t>> SLAAutoSupports::find_islands(const s
         const ExPolygons& expolys_bottom = (i == 0 ? ExPolygons() : slices[i-1]);
 
         std::string layer_num_str = std::string((i<10 ? "0" : "")) + std::string((i<100 ? "0" : "")) + std::to_string(i);
+#ifdef SLA_AUTOSUPPORTS_DEBUG
         output_expolygons(expolys_top, "top" + layer_num_str + ".svg");
+#endif /* SLA_AUTOSUPPORTS_DEBUG */
         ExPolygons diff = diff_ex(expolys_top, expolys_bottom);
 
+#ifdef SLA_AUTOSUPPORTS_DEBUG
         output_expolygons(diff, "diff" + layer_num_str + ".svg");
+#endif /* SLA_AUTOSUPPORTS_DEBUG */
 
         ClosestPointLookupType cpl(SCALED_EPSILON);
         for (const ExPolygon& expol : expolys_top) {
@@ -240,8 +245,10 @@ std::vector<std::pair<ExPolygon, coord_t>> SLAAutoSupports::find_islands(const s
             NO_ISLAND: ;// continue with next ExPolygon
         }
 
+#ifdef SLA_AUTOSUPPORTS_DEBUG
         //if (!islands.empty())
           //  output_expolygons(islands, "islands" + layer_num_str + ".svg");
+#endif /* SLA_AUTOSUPPORTS_DEBUG */
     }
 
     return islands;

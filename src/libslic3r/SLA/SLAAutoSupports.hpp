@@ -5,7 +5,7 @@
 #include <libslic3r/TriangleMesh.hpp>
 #include <libslic3r/SLA/SLASupportTree.hpp>
 
-
+// #define SLA_AUTOSUPPORTS_DEBUG
 
 namespace Slic3r {
 
@@ -33,7 +33,9 @@ private:
     std::vector<Vec3d> uniformly_cover(const std::pair<ExPolygon, coord_t>& island);
     void project_upward_onto_mesh(std::vector<Vec3d>& points) const;
 
+#ifdef SLA_AUTOSUPPORTS_DEBUG
     void output_expolygons(const ExPolygons& expolys, std::string filename) const;
+#endif /* SLA_AUTOSUPPORTS_DEBUG */
 
     SLAAutoSupports::Config m_config;
     const Eigen::MatrixXd& m_V;
