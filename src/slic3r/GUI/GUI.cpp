@@ -377,7 +377,6 @@ void about()
 {
     AboutDialog dlg;
     dlg.ShowModal();
-    dlg.Destroy();
 }
 
 void desktop_open_datadir_folder()
