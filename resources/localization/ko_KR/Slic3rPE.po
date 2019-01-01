@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: slic3rkorean\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2018-07-23 12:06+0200\n"
-"PO-Revision-Date: 2018-12-18 20:36+0900\n"
+"PO-Revision-Date: 2018-12-29 09:32+0900\n"
 "Last-Translator: 이학민 <hangmini12@naver.com>\n"
 "Language-Team: Korean\n"
 "Language: ko_KR\n"
@@ -430,7 +430,7 @@ msgstr "구성 도우미"
 
 #: xs/src/slic3r/GUI/FirmwareDialog.cpp:87
 msgid "Flash!"
-msgstr "완료!"
+msgstr "플래시!"
 
 #: xs/src/slic3r/GUI/FirmwareDialog.cpp:88
 msgid "Cancel"
