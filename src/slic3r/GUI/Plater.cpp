@@ -3045,7 +3045,7 @@ void Plater::export_stl(bool selection_only)
         if (obj_idx == -1) { return; }
         mesh = p->model.objects[obj_idx]->mesh();
     } else {
-        auto mesh = p->model.mesh();
+        mesh = p->model.mesh();
     }
 
     Slic3r::store_stl(path_u8.c_str(), &mesh, true);
