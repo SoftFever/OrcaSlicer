@@ -4906,8 +4906,15 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     {
 #if defined(__WXMSW__) || defined(__linux__)
         // On Windows and Linux needs focus in order to catch key events
-        if (m_canvas != nullptr)
-            m_canvas->SetFocus();
+        if (m_canvas != nullptr) {
+            // Only set focus, if the top level window of this canvas is active.
+			auto p = dynamic_cast<wxWindow*>(evt.GetEventObject());
+            while (p->GetParent())
+                p = p->GetParent();
+            auto *top_level_wnd = dynamic_cast<wxTopLevelWindow*>(p);
+            if (top_level_wnd && top_level_wnd->IsActive())
+                m_canvas->SetFocus();
+        }
 
         m_mouse.set_start_position_2D_as_invalid();
 #endif
