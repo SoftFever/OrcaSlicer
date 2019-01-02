@@ -8,10 +8,11 @@
 #include "SLABoilerPlate.hpp"
 #include "SLASpatIndex.hpp"
 #include "SLABasePool.hpp"
-#include <libnest2d/tools/benchmark.h>
-#include "ClipperUtils.hpp"
 
+#include "ClipperUtils.hpp"
 #include "Model.hpp"
+
+#include <boost/log/trivial.hpp>
 
 /**
  * Terminology:
@@ -1515,22 +1516,39 @@ bool SLASupportTree::generate(const PointSet &points,
     {
         // TODO: connect these to the ground pillars if possible
         for(auto idx : nogndidx) { tifcl();
+            double gh = gndheight[idx];
+            double base_width = cfg.head_width_mm;
+
             auto& head = result.head(idx);
+
+            // In this case there is no room for the base pinhead.
+            if(gh < head.fullwidth()) {
+                base_width = gh - 2 * cfg.head_front_radius_mm -
+                        2*cfg.head_back_radius_mm + cfg.head_penetration_mm;
+            }
+
             head.transform();
 
-            double gh = gndheight[idx];
             Vec3d headend = head.junction_point();
 
             Head base_head(cfg.head_back_radius_mm,
                  cfg.head_front_radius_mm,
-                 cfg.head_width_mm,
+                 base_width,
                  cfg.head_penetration_mm,
                  {0.0, 0.0, 1.0},
                  {headend(X), headend(Y), headend(Z) - gh});
 
             base_head.transform();
 
-            double hl = head.fullwidth() - head.r_back_mm;
+            // Robustness check:
+            if(headend(Z) < base_head.junction_point()(Z)) {
+                // This should not happen it is against all assumptions
+                BOOST_LOG_TRIVIAL(warning)
+                        << "Ignoring invalid supports connecting to model body";
+                continue;
+            }
+
+            double hl = base_head.fullwidth() - head.r_back_mm;
 
             result.add_pillar(idx,
                 Vec3d{headend(X), headend(Y), headend(Z) - gh + hl},
