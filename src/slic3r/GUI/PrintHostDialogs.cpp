@@ -49,7 +49,7 @@ PrintHostSendDialog::PrintHostSendDialog(const fs::path &path)
 
 fs::path PrintHostSendDialog::filename() const
 {
-    return fs::path(txt_filename->GetValue().wx_str());
+    return into_path(txt_filename->GetValue());
 }
 
 bool PrintHostSendDialog::start_print() const

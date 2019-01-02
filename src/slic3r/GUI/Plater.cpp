@@ -863,7 +863,7 @@ bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &fi
     std::vector<fs::path> paths;
 
     for (const auto &filename : filenames) {
-        fs::path path(filename);
+        fs::path path(into_path(filename));
 
         if (std::regex_match(path.string(), pattern_drop)) {
             paths.push_back(std::move(path));
@@ -1396,7 +1396,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     for (size_t i = 0; i < input_files.size(); i++) {
         const auto &path = input_files[i];
         const auto filename = path.filename();
-        const auto dlg_info = wxString::Format(_(L("Processing input file %s\n")), filename.string());
+        const auto dlg_info = wxString::Format(_(L("Processing input file %s\n")), from_path(filename));
         dlg.Update(100 * i / input_files.size(), dlg_info);
 
         const bool type_3mf = std::regex_match(path.string(), pattern_3mf);
@@ -1470,7 +1470,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     if ( obj->volumes.size()>1 ) {
                         Slic3r::GUI::show_error(nullptr, 
                             wxString::Format(_(L("You can't to add the object(s) from %s because of one or some of them is(are) multi-part")), 
-                                             filename.string()));
+                                             from_path(filename)));
                         return std::vector<size_t>();
                     }
             }
@@ -1609,8 +1609,8 @@ std::unique_ptr<CheckboxFileDialog> Plater::priv::get_export_file(GUI::FileType 
         ((file_type == FT_AMF) || (file_type == FT_3MF)) ? _(L("Export print config")) : "",
         true,
         _(L("Save file as:")),
-        output_file.parent_path().string(),
-        output_file.filename().string(),
+        from_path(output_file.parent_path()),
+        from_path(output_file.filename()),
         wildcard,
         wxFD_SAVE | wxFD_OVERWRITE_PROMPT
     );
@@ -1619,7 +1619,7 @@ std::unique_ptr<CheckboxFileDialog> Plater::priv::get_export_file(GUI::FileType 
         return nullptr;
     }
 
-    fs::path path(dlg->GetPath());
+    fs::path path(into_path(dlg->GetPath()));
     wxGetApp().app_config->update_last_output_dir(path.parent_path().string());
 
     return dlg;
@@ -2855,7 +2855,7 @@ void Plater::load_project()
     p->project_filename = input_file;
 
     std::vector<fs::path> input_paths;
-    input_paths.push_back(input_file.wx_str());
+    input_paths.push_back(into_path(input_file));
     load_files(input_paths);
 }
 
@@ -2868,7 +2868,7 @@ void Plater::add_model()
 
     std::vector<fs::path> input_paths;
     for (const auto &file : input_files) {
-        input_paths.push_back(file.wx_str());
+        input_paths.push_back(into_path(file));
     }
     load_files(input_paths, true, false);
 }
@@ -2882,7 +2882,7 @@ void Plater::extract_config_from_project()
         return;
 
     std::vector<fs::path> input_paths;
-    input_paths.push_back(input_file.wx_str());
+    input_paths.push_back(into_path(input_file));
     load_files(input_paths, false, true);
 }
 
@@ -3033,15 +3033,15 @@ void Plater::export_gcode(fs::path output_path)
 
         wxFileDialog dlg(this, (printer_technology() == ptFFF) ? _(L("Save G-code file as:")) : _(L("Save Zip file as:")),
             start_dir,
-            default_output_file.filename().string(),
+            from_path(default_output_file.filename()),
             GUI::file_wildcards((printer_technology() == ptFFF) ? FT_GCODE : FT_PNGZIP, default_output_file.extension().string()),
             wxFD_SAVE | wxFD_OVERWRITE_PROMPT
         );
 
         if (dlg.ShowModal() == wxID_OK) {
-            fs::path path(dlg.GetPath());
+            fs::path path = into_path(dlg.GetPath());
             wxGetApp().app_config->update_last_output_dir(path.parent_path().string());
-            output_path = path;
+            output_path = std::move(path);
         }
     } else {
         try {
@@ -3065,8 +3065,8 @@ void Plater::export_stl(bool selection_only)
     if (! dialog) { return; }
 
     // Store a binary STL
-    wxString path = dialog->GetPath();
-    auto path_cstr = path.c_str();
+    const wxString path = dialog->GetPath();
+    const std::string path_u8 = into_u8(path);
 
     TriangleMesh mesh;
     if (selection_only) {
@@ -3080,7 +3080,7 @@ void Plater::export_stl(bool selection_only)
         auto mesh = p->model.mesh();
     }
 
-    Slic3r::store_stl(path_cstr, &mesh, true);
+    Slic3r::store_stl(path_u8.c_str(), &mesh, true);
     p->statusbar()->set_status_text(wxString::Format(_(L("STL file exported to %s")), path));
 }
 
@@ -3091,11 +3091,11 @@ void Plater::export_amf()
     auto dialog = p->get_export_file(FT_AMF);
     if (! dialog) { return; }
 
-    wxString path = dialog->GetPath();
-    auto path_cstr = path.c_str();
+    const wxString path = dialog->GetPath();
+    const std::string path_u8 = into_u8(path);
 
 	DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config_secure();
-	if (Slic3r::store_amf(path_cstr, &p->model, dialog->get_checkbox_value() ? &cfg : nullptr)) {
+	if (Slic3r::store_amf(path_u8.c_str(), &p->model, dialog->get_checkbox_value() ? &cfg : nullptr)) {
         // Success
         p->statusbar()->set_status_text(wxString::Format(_(L("AMF file exported to %s")), path));
     } else {
@@ -3118,13 +3118,14 @@ void Plater::export_3mf(const boost::filesystem::path& output_path)
         export_config = dialog->get_checkbox_value();
     }
     else
-        path = output_path.string();
+        path = from_path(output_path);
 
     if (!path.Lower().EndsWith(".3mf"))
         return;
 
 	DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config_secure();
-    if (Slic3r::store_3mf(path.c_str(), &p->model, export_config ? &cfg : nullptr)) {
+    const std::string path_u8 = into_u8(path);
+    if (Slic3r::store_3mf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr)) {
         // Success
         p->statusbar()->set_status_text(wxString::Format(_(L("3MF file exported to %s")), path));
     } else {

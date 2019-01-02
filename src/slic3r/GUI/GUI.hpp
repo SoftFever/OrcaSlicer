@@ -1,6 +1,10 @@
 #ifndef slic3r_GUI_hpp_
 #define slic3r_GUI_hpp_
 
+#include <boost/filesystem/path.hpp>
+
+#include <wx/string.h>
+
 #include "libslic3r/Config.hpp"
 
 class wxWindow;
@@ -8,7 +12,6 @@ class wxMenuBar;
 class wxNotebook;
 class wxComboCtrl;
 class wxFileDialog;
-class wxString;
 class wxTopLevelWindow;
 
 namespace Slic3r { 
@@ -53,10 +56,16 @@ void create_combochecklist(wxComboCtrl* comboCtrl, std::string text, std::string
 // encoded inside an int.
 int combochecklist_get_flags(wxComboCtrl* comboCtrl);
 
-// Return wxString from std::string in UTF8
+// wxString conversions:
+
+// wxString from std::string in UTF8
 wxString	from_u8(const std::string &str);
-// Return std::string in UTF8 from wxString
+// std::string in UTF8 from wxString
 std::string	into_u8(const wxString &str);
+// wxString from boost path
+wxString	from_path(const boost::filesystem::path &path);
+// boost path from wxString
+boost::filesystem::path	into_path(const wxString &str);
 
 // Returns the dimensions of the screen on which the main frame is displayed
 bool get_current_screen_size(wxWindow *window, unsigned &width, unsigned &height);
