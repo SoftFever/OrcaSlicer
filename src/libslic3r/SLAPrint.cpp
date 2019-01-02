@@ -502,6 +502,9 @@ void SLAPrint::process()
         po.m_supportdata.reset(new SLAPrintObject::SupportData());
         po.m_supportdata->emesh = sla::to_eigenmesh(po.transformed_mesh());
 
+        BOOST_LOG_TRIVIAL(debug)
+                << "Support point count " << mo.sla_support_points.size();
+
         // If there are no points on the front-end, we will do the
         // autoplacement. Otherwise we will just blindly copy the frontend data
         // into the backend cache.
@@ -581,8 +584,16 @@ void SLAPrint::process()
 
             // Create the unified mesh
             auto rc = SlicingStatus::RELOAD_SCENE;
-            report_status(*this, -1, L("Visualizing supports"));
             po.m_supportdata->support_tree_ptr->merged_mesh();
+
+            // Check the mesh for later troubleshooting.
+
+            BOOST_LOG_TRIVIAL(debug) << "Processed support point count "
+                                     << po.m_supportdata->support_points.rows();
+
+            if(po.support_mesh().empty())
+                BOOST_LOG_TRIVIAL(warning) << "Support mesh is empty";
+
             report_status(*this, -1, L("Visualizing supports"), rc);
         } catch(sla::SLASupportsStoppedException&) {
             // no need to rethrow

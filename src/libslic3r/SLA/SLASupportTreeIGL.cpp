@@ -192,7 +192,6 @@ PointSet normals(const PointSet& points, const EigenMesh3D& emesh,
         auto lend = std::unique(neighnorms.begin(), neighnorms.end(),
                                 [](const Vec3d& n1, const Vec3d& n2) {
             // Compare normals for equivalence. This is controvers stuff.
-            // We will go for the third significant digit precision.
             auto deq = [](double a, double b) { return std::abs(a-b) < 1e-3; };
             return deq(n1(X), n2(X)) && deq(n1(Y), n2(Y)) && deq(n1(Z), n2(Z));
         });
