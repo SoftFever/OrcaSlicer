@@ -640,9 +640,7 @@ private:
         bool m_enabled;
         typedef std::map<EType, GLGizmoBase*> GizmosMap;
         GizmosMap m_gizmos;
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
         BackgroundTexture m_background_texture;
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
         EType m_current;
 
     public:
@@ -711,9 +709,8 @@ private:
         void _render_current_gizmo(const Selection& selection) const;
 
         float _get_total_overlay_height() const;
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
         float _get_total_overlay_width() const;
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
+
         GLGizmoBase* _get_current() const;
     };
 
@@ -787,11 +784,7 @@ private:
     mutable Gizmos m_gizmos;
     mutable GLToolbar m_toolbar;
 #if ENABLE_REMOVE_TABS_FROM_PLATER
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     GLToolbar* m_view_toolbar;
-#else
-    GLRadioToolbar* m_view_toolbar;
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 #endif // ENABLE_REMOVE_TABS_FROM_PLATER
     ClippingPlane m_clipping_planes[2];
     bool m_use_clipping_planes;
@@ -842,11 +835,7 @@ public:
     wxGLCanvas* get_wxglcanvas() { return m_canvas; }
 
 #if ENABLE_REMOVE_TABS_FROM_PLATER
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     void set_view_toolbar(GLToolbar* toolbar) { m_view_toolbar = toolbar; }
-#else
-    void set_view_toolbar(GLRadioToolbar* toolbar) { m_view_toolbar = toolbar; }
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 #endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
     bool init(bool useVBOs, bool use_legacy_opengl);
