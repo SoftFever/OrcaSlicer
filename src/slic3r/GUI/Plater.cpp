@@ -246,7 +246,8 @@ PresetComboBox::PresetComboBox(wxWindow *parent, Preset::Type preset_type) :
             // Swallow the mouse click and open the color picker.
             auto data = new wxColourData();
             data->SetChooseFull(1);
-            auto dialog = new wxColourDialog(wxGetApp().mainframe, data);
+            auto dialog = new wxColourDialog(/* wxGetApp().mainframe */this, data);
+            dialog->CenterOnParent();
             if (dialog->ShowModal() == wxID_OK) {
                 DynamicPrintConfig cfg = *wxGetApp().get_tab(Preset::TYPE_PRINTER)->get_config(); 
 
