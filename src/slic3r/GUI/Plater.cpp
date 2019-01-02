@@ -913,11 +913,7 @@ struct Plater::priv
     Sidebar *sidebar;
 #if ENABLE_REMOVE_TABS_FROM_PLATER
     View3D* view3D;
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     GLToolbar view_toolbar;
-#else
-    GLRadioToolbar view_toolbar;
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 #else
 #if !ENABLE_IMGUI
     wxPanel *panel3d;
@@ -1080,9 +1076,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 #endif // !ENABLE_REMOVE_TABS_FROM_PLATER
     , delayed_scene_refresh(false)
     , project_filename(wxEmptyString)
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     , view_toolbar(GLToolbar::Radio)
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 {
     arranging.store(false);
     rotoptimizing.store(false);
@@ -2674,7 +2668,6 @@ bool Plater::priv::complit_init_part_menu()
 #if ENABLE_REMOVE_TABS_FROM_PLATER
 void Plater::priv::init_view_toolbar()
 {
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     ItemsIconsTexture::Metadata icons_data;
     icons_data.filename = "view_toolbar.png";
     icons_data.icon_size = 64;
@@ -2689,12 +2682,8 @@ void Plater::priv::init_view_toolbar()
     background_data.bottom = 16;
 
     if (!view_toolbar.init(icons_data, background_data))
-#else
-    if (!view_toolbar.init("view_toolbar.png", 64, 0, 0))
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
         return;
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     view_toolbar.set_layout_orientation(GLToolbar::Layout::Bottom);
     view_toolbar.set_border(5.0f);
     view_toolbar.set_gap_size(1.0f);
@@ -2725,28 +2714,6 @@ void Plater::priv::init_view_toolbar()
 
     view3D->set_view_toolbar(&view_toolbar);
     preview->set_view_toolbar(&view_toolbar);
-#else
-    GLRadioToolbarItem::Data item;
-
-    item.name = "3D";
-    item.tooltip = GUI::L_str("3D editor view");
-    item.sprite_id = 0;
-    item.action_event = EVT_GLVIEWTOOLBAR_3D;
-    if (!view_toolbar.add_item(item))
-        return;
-
-    item.name = "Preview";
-    item.tooltip = GUI::L_str("Preview");
-    item.sprite_id = 1;
-    item.action_event = EVT_GLVIEWTOOLBAR_PREVIEW;
-    if (!view_toolbar.add_item(item))
-        return;
-
-    view3D->set_view_toolbar(&view_toolbar);
-    preview->set_view_toolbar(&view_toolbar);
-
-    view_toolbar.set_selection("3D");
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 }
 #endif // ENABLE_REMOVE_TABS_FROM_PLATER
 

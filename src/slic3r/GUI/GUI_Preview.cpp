@@ -91,11 +91,7 @@ bool View3D::init(wxWindow* parent, Model* model, DynamicPrintConfig* config, Ba
     return true;
 }
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 void View3D::set_view_toolbar(GLToolbar* toolbar)
-#else
-void View3D::set_view_toolbar(GLRadioToolbar* toolbar)
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 {
     if (m_canvas != nullptr)
         m_canvas->set_view_toolbar(toolbar);
@@ -366,11 +362,7 @@ Preview::~Preview()
 }
 
 #if ENABLE_REMOVE_TABS_FROM_PLATER
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 void Preview::set_view_toolbar(GLToolbar* toolbar)
-#else
-void Preview::set_view_toolbar(GLRadioToolbar* toolbar)
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 {
     if (m_canvas != nullptr)
         m_canvas->set_view_toolbar(toolbar);

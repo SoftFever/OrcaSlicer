@@ -75,12 +75,10 @@ bool GLToolbarItem::is_enabled() const
     return m_state != Disabled;
 }
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 bool GLToolbarItem::is_disabled() const
 {
     return m_state == Disabled;
 }
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 
 bool GLToolbarItem::is_hovered() const
 {
@@ -131,7 +129,6 @@ GLTexture::Quad_UVs GLToolbarItem::get_uvs(unsigned int texture_size, unsigned i
     return uvs;
 }
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 ItemsIconsTexture::Metadata::Metadata()
     : filename("")
     , icon_size(0)
@@ -139,18 +136,7 @@ ItemsIconsTexture::Metadata::Metadata()
     , icon_gap_size(0)
 {
 }
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 
-#if !ENABLE_TOOLBAR_BACKGROUND_TEXTURE
-ItemsIconsTexture::ItemsIconsTexture()
-    : items_icon_size(0)
-    , items_icon_border_size(0)
-    , items_icon_gap_size(0)
-{
-}
-#endif // !ENABLE_TOOLBAR_BACKGROUND_TEXTURE
-
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 BackgroundTexture::Metadata::Metadata()
     : filename("")
     , left(0)
@@ -159,36 +145,24 @@ BackgroundTexture::Metadata::Metadata()
     , bottom(0)
 {
 }
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 
 GLToolbar::Layout::Layout()
     : type(Horizontal)
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     , orientation(Center)
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     , top(0.0f)
     , left(0.0f)
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     , border(0.0f)
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     , separator_size(0.0f)
     , gap_size(0.0f)
     , icons_scale(1.0f)
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     , width(0.0f)
     , height(0.0f)
     , dirty(true)
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 {
 }
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 GLToolbar::GLToolbar(GLToolbar::EType type)
     : m_type(type)
-#else
-GLToolbar::GLToolbar(GLCanvas3D& parent)
-    : m_parent(parent)
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     , m_enabled(false)
 {
 }
@@ -201,7 +175,6 @@ GLToolbar::~GLToolbar()
     }
 }
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 bool GLToolbar::init(const ItemsIconsTexture::Metadata& icons_texture, const BackgroundTexture::Metadata& background_texture)
 {
     if (m_icons_texture.texture.get_id() != 0)
@@ -220,21 +193,6 @@ bool GLToolbar::init(const ItemsIconsTexture::Metadata& icons_texture, const Bac
 
     return res;
 }
-#else
-bool GLToolbar::init(const std::string& icons_texture_filename, unsigned int items_icon_size, unsigned int items_icon_border_size, unsigned int items_icon_gap_size)
-{
-    std::string path = resources_dir() + "/icons/";
-    bool res = !icons_texture_filename.empty() && m_icons_texture.texture.load_from_file(path + icons_texture_filename, false);
-    if (res)
-    {
-        m_icons_texture.items_icon_size = items_icon_size;
-        m_icons_texture.items_icon_border_size = items_icon_border_size;
-        m_icons_texture.items_icon_gap_size = items_icon_gap_size;
-    }
-
-    return res;
-}
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 
 GLToolbar::Layout::EType GLToolbar::get_layout_type() const
 {
@@ -244,12 +202,9 @@ GLToolbar::Layout::EType GLToolbar::get_layout_type() const
 void GLToolbar::set_layout_type(GLToolbar::Layout::EType type)
 {
     m_layout.type = type;
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     m_layout.dirty = true;
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 }
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 GLToolbar::Layout::EOrientation GLToolbar::get_layout_orientation() const
 {
     return m_layout.orientation;
@@ -259,7 +214,6 @@ void GLToolbar::set_layout_orientation(GLToolbar::Layout::EOrientation orientati
 {
     m_layout.orientation = orientation;
 }
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 
 void GLToolbar::set_position(float top, float left)
 {
@@ -267,36 +221,28 @@ void GLToolbar::set_position(float top, float left)
     m_layout.left = left;
 }
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 void GLToolbar::set_border(float border)
 {
     m_layout.border = border;
     m_layout.dirty = true;
 }
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 
 void GLToolbar::set_separator_size(float size)
 {
     m_layout.separator_size = size;
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     m_layout.dirty = true;
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 }
 
 void GLToolbar::set_gap_size(float size)
 {
     m_layout.gap_size = size;
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     m_layout.dirty = true;
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 }
 
 void GLToolbar::set_icons_scale(float scale)
 {
     m_layout.icons_scale = scale;
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     m_layout.dirty = true;
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 }
 
 bool GLToolbar::is_enabled() const
@@ -316,9 +262,7 @@ bool GLToolbar::add_item(const GLToolbarItem::Data& data)
         return false;
 
     m_items.push_back(item);
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     m_layout.dirty = true;
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     return true;
 }
 
@@ -330,56 +274,24 @@ bool GLToolbar::add_separator()
         return false;
 
     m_items.push_back(item);
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     m_layout.dirty = true;
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     return true;
 }
 
 float GLToolbar::get_width() const
 {
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     if (m_layout.dirty)
         calc_layout();
 
     return m_layout.width;
-#else
-    switch (m_layout.type)
-    {
-    default:
-    case Layout::Horizontal:
-    {
-        return get_width_horizontal();
-    }
-    case Layout::Vertical:
-    {
-        return get_width_vertical();
-    }
-    }
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 }
 
 float GLToolbar::get_height() const
 {
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     if (m_layout.dirty)
         calc_layout();
 
     return m_layout.height;
-#else
-    switch (m_layout.type)
-    {
-    default:
-    case Layout::Horizontal:
-    {
-        return get_height_horizontal();
-    }
-    case Layout::Vertical:
-    {
-        return get_height_vertical();
-    }
-    }
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 }
 
 void GLToolbar::enable_item(const std::string& name)
@@ -406,7 +318,6 @@ void GLToolbar::disable_item(const std::string& name)
     }
 }
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 void GLToolbar::select_item(const std::string& name)
 {
     if (is_item_disabled(name))
@@ -421,7 +332,6 @@ void GLToolbar::select_item(const std::string& name)
         }
     }
 }
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 
 bool GLToolbar::is_item_pressed(const std::string& name) const
 {
@@ -434,7 +344,6 @@ bool GLToolbar::is_item_pressed(const std::string& name) const
     return false;
 }
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 bool GLToolbar::is_item_disabled(const std::string& name) const
 {
     for (GLToolbarItem* item : m_items)
@@ -445,20 +354,11 @@ bool GLToolbar::is_item_disabled(const std::string& name) const
 
     return false;
 }
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 
 #if ENABLE_REMOVE_TABS_FROM_PLATER
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 std::string GLToolbar::update_hover_state(const Vec2d& mouse_pos, GLCanvas3D& parent)
 #else
-std::string GLToolbar::update_hover_state(const Vec2d& mouse_pos)
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
-#else
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 void GLToolbar::update_hover_state(const Vec2d& mouse_pos, GLCanvas3D& parent)
-#else
-void GLToolbar::update_hover_state(const Vec2d& mouse_pos)
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 #endif // ENABLE_REMOVE_TABS_FROM_PLATER
 {
 #if ENABLE_REMOVE_TABS_FROM_PLATER
@@ -473,30 +373,16 @@ void GLToolbar::update_hover_state(const Vec2d& mouse_pos)
     {
     default:
 #if ENABLE_REMOVE_TABS_FROM_PLATER
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     case Layout::Horizontal: { return update_hover_state_horizontal(mouse_pos, parent); }
     case Layout::Vertical: { return update_hover_state_vertical(mouse_pos, parent); }
 #else
-    case Layout::Horizontal: { return update_hover_state_horizontal(mouse_pos); }
-    case Layout::Vertical: { return update_hover_state_vertical(mouse_pos); }
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
-#else
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     case Layout::Horizontal: { update_hover_state_horizontal(mouse_pos, parent); break; }
     case Layout::Vertical: { update_hover_state_vertical(mouse_pos, parent); break; }
-#else
-    case Layout::Horizontal: { update_hover_state_horizontal(mouse_pos); break; }
-    case Layout::Vertical: { update_hover_state_vertical(mouse_pos); break; }
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 #endif // ENABLE_REMOVE_TABS_FROM_PLATER
     }
 }
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 int GLToolbar::contains_mouse(const Vec2d& mouse_pos, const GLCanvas3D& parent) const
-#else
-int GLToolbar::contains_mouse(const Vec2d& mouse_pos) const
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 {
     if (!m_enabled)
         return -1;
@@ -504,21 +390,12 @@ int GLToolbar::contains_mouse(const Vec2d& mouse_pos) const
     switch (m_layout.type)
     {
     default:
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     case Layout::Horizontal: { return contains_mouse_horizontal(mouse_pos, parent); }
     case Layout::Vertical: { return contains_mouse_vertical(mouse_pos, parent); }
-#else
-    case Layout::Horizontal: { return contains_mouse_horizontal(mouse_pos); }
-    case Layout::Vertical: { return contains_mouse_vertical(mouse_pos); }
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     }
 }
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 void GLToolbar::do_action(unsigned int item_id, GLCanvas3D& parent)
-#else
-void GLToolbar::do_action(unsigned int item_id)
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 {
     if (item_id < (unsigned int)m_items.size())
     {
@@ -533,51 +410,30 @@ void GLToolbar::do_action(unsigned int item_id)
                 else if (state == GLToolbarItem::HoverPressed)
                     item->set_state(GLToolbarItem::Hover);
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
                 parent.render();
                 item->do_action(parent.get_wxglcanvas());
-#else
-                m_parent.render();
-                item->do_action(m_parent.get_wxglcanvas());
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
             }
             else
             {
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
                 if (m_type == Radio)
                     select_item(item->get_name());
                 else
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
                     item->set_state(GLToolbarItem::HoverPressed);
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
                 parent.render();
                 item->do_action(parent.get_wxglcanvas());
                 if ((m_type == Normal) && (item->get_state() != GLToolbarItem::Disabled))
-#else
-                m_parent.render();
-                item->do_action(m_parent.get_wxglcanvas());
-                if (item->get_state() != GLToolbarItem::Disabled)
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
                 {
                     // the item may get disabled during the action, if not, set it back to hover state
                     item->set_state(GLToolbarItem::Hover);
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
                     parent.render();
-#else
-                    m_parent.render();
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
                 }
             }
         }
     }
 }
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 void GLToolbar::render(const GLCanvas3D& parent) const
-#else
-void GLToolbar::render() const
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 {
     if (!m_enabled || m_items.empty())
         return;
@@ -590,19 +446,13 @@ void GLToolbar::render() const
     switch (m_layout.type)
     {
     default:
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     case Layout::Horizontal: { render_horizontal(parent); break; }
     case Layout::Vertical: { render_vertical(parent); break; }
-#else
-    case Layout::Horizontal: { render_horizontal(); break; }
-    case Layout::Vertical: { render_vertical(); break; }
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     }
 
     ::glPopMatrix();
 }
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 void GLToolbar::calc_layout() const
 {
     switch (m_layout.type)
@@ -624,7 +474,6 @@ void GLToolbar::calc_layout() const
 
     m_layout.dirty = false;
 }
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 
 float GLToolbar::get_width_horizontal() const
 {
@@ -633,20 +482,12 @@ float GLToolbar::get_width_horizontal() const
 
 float GLToolbar::get_width_vertical() const
 {
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     return 2.0f * m_layout.border + m_icons_texture.metadata.icon_size * m_layout.icons_scale;
-#else
-    return m_icons_texture.items_icon_size * m_layout.icons_scale;
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 }
 
 float GLToolbar::get_height_horizontal() const
 {
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     return 2.0f * m_layout.border + m_icons_texture.metadata.icon_size * m_layout.icons_scale;
-#else
-    return m_icons_texture.items_icon_size * m_layout.icons_scale;
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 }
 
 float GLToolbar::get_height_vertical() const
@@ -656,21 +497,13 @@ float GLToolbar::get_height_vertical() const
 
 float GLToolbar::get_main_size() const
 {
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float size = 2.0f * m_layout.border;
-#else
-    float size = 0.0f;
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     for (unsigned int i = 0; i < (unsigned int)m_items.size(); ++i)
     {
         if (m_items[i]->is_separator())
             size += m_layout.separator_size;
         else
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
             size += (float)m_icons_texture.metadata.icon_size * m_layout.icons_scale;
-#else
-            size += (float)m_icons_texture.items_icon_size * m_layout.icons_scale;
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     }
 
     if (m_items.size() > 1)
@@ -680,54 +513,27 @@ float GLToolbar::get_main_size() const
 }
 
 #if ENABLE_REMOVE_TABS_FROM_PLATER
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 std::string GLToolbar::update_hover_state_horizontal(const Vec2d& mouse_pos, GLCanvas3D& parent)
 #else
-std::string GLToolbar::update_hover_state_horizontal(const Vec2d& mouse_pos)
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
-#else
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 void GLToolbar::update_hover_state_horizontal(const Vec2d& mouse_pos, GLCanvas3D& parent)
-#else
-void GLToolbar::update_hover_state_horizontal(const Vec2d& mouse_pos)
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 #endif // ENABLE_REMOVE_TABS_FROM_PLATER
 {
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float zoom = parent.get_camera_zoom();
-#else
-    float zoom = m_parent.get_camera_zoom();
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     Size cnv_size = parent.get_canvas_size();
-#else
-    Size cnv_size = m_parent.get_canvas_size();
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     Vec2d scaled_mouse_pos((mouse_pos(0) - 0.5 * (double)cnv_size.get_width()) * inv_zoom, (0.5 * (double)cnv_size.get_height() - mouse_pos(1)) * inv_zoom);
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * m_layout.icons_scale * inv_zoom;
-#else
-    float scaled_icons_size = (float)m_icons_texture.items_icon_size * m_layout.icons_scale * inv_zoom;
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float scaled_separator_size = m_layout.separator_size * inv_zoom;
     float scaled_gap_size = m_layout.gap_size * inv_zoom;
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float scaled_border = m_layout.border * inv_zoom;
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 
     float separator_stride = scaled_separator_size + scaled_gap_size;
     float icon_stride = scaled_icons_size + scaled_gap_size;
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float left = m_layout.left + scaled_border;
     float top = m_layout.top - scaled_border;
-#else
-    float left = m_layout.left;
-    float top = m_layout.top;
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 
     std::string tooltip = "";
         
@@ -748,14 +554,10 @@ void GLToolbar::update_hover_state_horizontal(const Vec2d& mouse_pos)
             case GLToolbarItem::Normal:
             {
                 if (inside)
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
                 {
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
                     item->set_state(GLToolbarItem::Hover);
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
                     parent.set_as_dirty();
                 }
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 
                 break;
             }
@@ -764,28 +566,20 @@ void GLToolbar::update_hover_state_horizontal(const Vec2d& mouse_pos)
                 if (inside)
                     tooltip = item->get_tooltip();
                 else
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
                 {
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
                     item->set_state(GLToolbarItem::Normal);
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
                     parent.set_as_dirty();
                 }
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 
                 break;
             }
             case GLToolbarItem::Pressed:
             {
                 if (inside)
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
                 {
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
                     item->set_state(GLToolbarItem::HoverPressed);
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
                     parent.set_as_dirty();
                 }
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 
                 break;
             }
@@ -794,14 +588,10 @@ void GLToolbar::update_hover_state_horizontal(const Vec2d& mouse_pos)
                 if (inside)
                     tooltip = item->get_tooltip();
                 else
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
                 {
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
                     item->set_state(GLToolbarItem::Pressed);
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
                     parent.set_as_dirty();
                 }
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 
                 break;
             }
@@ -825,54 +615,27 @@ void GLToolbar::update_hover_state_horizontal(const Vec2d& mouse_pos)
 }
 
 #if ENABLE_REMOVE_TABS_FROM_PLATER
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 std::string GLToolbar::update_hover_state_vertical(const Vec2d& mouse_pos, GLCanvas3D& parent)
 #else
-std::string GLToolbar::update_hover_state_vertical(const Vec2d& mouse_pos)
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
-#else
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 void GLToolbar::update_hover_state_vertical(const Vec2d& mouse_pos, GLCanvas3D& parent)
-#else
-void GLToolbar::update_hover_state_vertical(const Vec2d& mouse_pos)
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 #endif // ENABLE_REMOVE_TABS_FROM_PLATER
 {
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float zoom = parent.get_camera_zoom();
-#else
-    float zoom = m_parent.get_camera_zoom();
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     Size cnv_size = parent.get_canvas_size();
-#else
-    Size cnv_size = m_parent.get_canvas_size();
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     Vec2d scaled_mouse_pos((mouse_pos(0) - 0.5 * (double)cnv_size.get_width()) * inv_zoom, (0.5 * (double)cnv_size.get_height() - mouse_pos(1)) * inv_zoom);
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * m_layout.icons_scale * inv_zoom;
-#else
-    float scaled_icons_size = (float)m_icons_texture.items_icon_size * m_layout.icons_scale * inv_zoom;
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float scaled_separator_size = m_layout.separator_size * inv_zoom;
     float scaled_gap_size = m_layout.gap_size * inv_zoom;
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float scaled_border = m_layout.border * inv_zoom;
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 
     float separator_stride = scaled_separator_size + scaled_gap_size;
     float icon_stride = scaled_icons_size + scaled_gap_size;
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float left = m_layout.left + scaled_border;
     float top = m_layout.top - scaled_border;
-#else
-    float left = m_layout.left;
-    float top = m_layout.top;
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 
     std::string tooltip = "";
 
@@ -893,14 +656,10 @@ void GLToolbar::update_hover_state_vertical(const Vec2d& mouse_pos)
             case GLToolbarItem::Normal:
             {
                 if (inside)
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
                 {
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
                     item->set_state(GLToolbarItem::Hover);
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
                     parent.set_as_dirty();
                 }
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 
                 break;
             }
@@ -909,28 +668,20 @@ void GLToolbar::update_hover_state_vertical(const Vec2d& mouse_pos)
                 if (inside)
                     tooltip = item->get_tooltip();
                 else
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
                 {
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
                     item->set_state(GLToolbarItem::Normal);
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
                     parent.set_as_dirty();
                 }
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 
                 break;
             }
             case GLToolbarItem::Pressed:
             {
                 if (inside)
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
                 {
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
                     item->set_state(GLToolbarItem::HoverPressed);
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
                     parent.set_as_dirty();
                 }
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 
                 break;
             }
@@ -939,14 +690,10 @@ void GLToolbar::update_hover_state_vertical(const Vec2d& mouse_pos)
                 if (inside)
                     tooltip = item->get_tooltip();
                 else
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
                 {
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
                     item->set_state(GLToolbarItem::Pressed);
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
                     parent.set_as_dirty();
                 }
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 
                 break;
             }
@@ -968,47 +715,24 @@ void GLToolbar::update_hover_state_vertical(const Vec2d& mouse_pos)
 #endif // ENABLE_REMOVE_TABS_FROM_PLATER
 }
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 int GLToolbar::contains_mouse_horizontal(const Vec2d& mouse_pos, const GLCanvas3D& parent) const
-#else
-int GLToolbar::contains_mouse_horizontal(const Vec2d& mouse_pos) const
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 {
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float zoom = parent.get_camera_zoom();
-#else
-    float zoom = m_parent.get_camera_zoom();
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     Size cnv_size = parent.get_canvas_size();
-#else
-    Size cnv_size = m_parent.get_canvas_size();
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     Vec2d scaled_mouse_pos((mouse_pos(0) - 0.5 * (double)cnv_size.get_width()) * inv_zoom, (0.5 * (double)cnv_size.get_height() - mouse_pos(1)) * inv_zoom);
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * m_layout.icons_scale * inv_zoom;
-#else
-    float scaled_icons_size = (float)m_icons_texture.items_icon_size * m_layout.icons_scale * inv_zoom;
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float scaled_separator_size = m_layout.separator_size * inv_zoom;
     float scaled_gap_size = m_layout.gap_size * inv_zoom;
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float scaled_border = m_layout.border * inv_zoom;
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 
     float separator_stride = scaled_separator_size + scaled_gap_size;
     float icon_stride = scaled_icons_size + scaled_gap_size;
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float left = m_layout.left + scaled_border;
     float top = m_layout.top - scaled_border;
-#else
-    float left = m_layout.left;
-    float top = m_layout.top;
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 
     int id = -1;
     
@@ -1033,47 +757,24 @@ int GLToolbar::contains_mouse_horizontal(const Vec2d& mouse_pos) const
     return -1;
 }
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 int GLToolbar::contains_mouse_vertical(const Vec2d& mouse_pos, const GLCanvas3D& parent) const
-#else
-int GLToolbar::contains_mouse_vertical(const Vec2d& mouse_pos) const
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 {
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float zoom = parent.get_camera_zoom();
-#else
-    float zoom = m_parent.get_camera_zoom();
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     Size cnv_size = parent.get_canvas_size();
-#else
-    Size cnv_size = m_parent.get_canvas_size();
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     Vec2d scaled_mouse_pos((mouse_pos(0) - 0.5 * (double)cnv_size.get_width()) * inv_zoom, (0.5 * (double)cnv_size.get_height() - mouse_pos(1)) * inv_zoom);
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * m_layout.icons_scale * inv_zoom;
-#else
-    float scaled_icons_size = (float)m_icons_texture.items_icon_size * m_layout.icons_scale * inv_zoom;
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float scaled_separator_size = m_layout.separator_size * inv_zoom;
     float scaled_gap_size = m_layout.gap_size * inv_zoom;
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float scaled_border = m_layout.border * inv_zoom;
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 
     float separator_stride = scaled_separator_size + scaled_gap_size;
     float icon_stride = scaled_icons_size + scaled_gap_size;
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float left = m_layout.left + scaled_border;
     float top = m_layout.top - scaled_border;
-#else
-    float left = m_layout.left;
-    float top = m_layout.top;
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 
     int id = -1;
 
@@ -1098,11 +799,7 @@ int GLToolbar::contains_mouse_vertical(const Vec2d& mouse_pos) const
     return -1;
 }
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 void GLToolbar::render_horizontal(const GLCanvas3D& parent) const
-#else
-void GLToolbar::render_horizontal() const
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 {
     unsigned int tex_id = m_icons_texture.texture.get_id();
     int tex_size = m_icons_texture.texture.get_width();
@@ -1110,30 +807,19 @@ void GLToolbar::render_horizontal() const
     if ((tex_id == 0) || (tex_size <= 0))
         return;
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float zoom = parent.get_camera_zoom();
-#else
-    float zoom = m_parent.get_camera_zoom();
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * m_layout.icons_scale * inv_zoom;
-#else
-    float scaled_icons_size = (float)m_icons_texture.items_icon_size * m_layout.icons_scale * inv_zoom;
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float scaled_separator_size = m_layout.separator_size * inv_zoom;
     float scaled_gap_size = m_layout.gap_size * inv_zoom;
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float scaled_border = m_layout.border * inv_zoom;
     float scaled_width = get_width() * inv_zoom;
     float scaled_height = get_height() * inv_zoom;
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 
     float separator_stride = scaled_separator_size + scaled_gap_size;
     float icon_stride = scaled_icons_size + scaled_gap_size;
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float left = m_layout.left;
     float top = m_layout.top;
     float right = left + scaled_width;
@@ -1224,10 +910,6 @@ void GLToolbar::render_horizontal() const
 
     left += scaled_border;
     top -= scaled_border;
-#else
-    float left = m_layout.left;
-    float top = m_layout.top;
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 
     // renders icons
     for (const GLToolbarItem* item : m_items)
@@ -1236,21 +918,13 @@ void GLToolbar::render_horizontal() const
             left += separator_stride;
         else
         {
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
             item->render(tex_id, left, left + scaled_icons_size, top - scaled_icons_size, top, (unsigned int)tex_size, m_icons_texture.metadata.icon_border_size, m_icons_texture.metadata.icon_size, m_icons_texture.metadata.icon_gap_size);
-#else
-            item->render(tex_id, left, left + scaled_icons_size, top - scaled_icons_size, top, (unsigned int)tex_size, m_icons_texture.items_icon_border_size, m_icons_texture.items_icon_size, m_icons_texture.items_icon_gap_size);
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
             left += icon_stride;
         }
     }
 }
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 void GLToolbar::render_vertical(const GLCanvas3D& parent) const
-#else
-void GLToolbar::render_vertical() const
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 {
     unsigned int tex_id = m_icons_texture.texture.get_id();
     int tex_size = m_icons_texture.texture.get_width();
@@ -1258,30 +932,19 @@ void GLToolbar::render_vertical() const
     if ((tex_id == 0) || (tex_size <= 0))
         return;
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float zoom = parent.get_camera_zoom();
-#else
-    float zoom = m_parent.get_camera_zoom();
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * m_layout.icons_scale * inv_zoom;
-#else
-    float scaled_icons_size = (float)m_icons_texture.items_icon_size * m_layout.icons_scale  * inv_zoom;
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float scaled_separator_size = m_layout.separator_size * inv_zoom;
     float scaled_gap_size = m_layout.gap_size * inv_zoom;
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float scaled_border = m_layout.border * inv_zoom;
     float scaled_width = get_width() * inv_zoom;
     float scaled_height = get_height() * inv_zoom;
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 
     float separator_stride = scaled_separator_size + scaled_gap_size;
     float icon_stride = scaled_icons_size + scaled_gap_size;
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float left = m_layout.left;
     float top = m_layout.top;
     float right = left + scaled_width;
@@ -1372,10 +1035,6 @@ void GLToolbar::render_vertical() const
 
     left += scaled_border;
     top -= scaled_border;
-#else
-    float left = m_layout.left;
-    float top = m_layout.top;
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 
     // renders icons
     for (const GLToolbarItem* item : m_items)
@@ -1384,321 +1043,11 @@ void GLToolbar::render_vertical() const
             top -= separator_stride;
         else
         {
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
             item->render(tex_id, left, left + scaled_icons_size, top - scaled_icons_size, top, (unsigned int)tex_size, m_icons_texture.metadata.icon_border_size, m_icons_texture.metadata.icon_size, m_icons_texture.metadata.icon_gap_size);
-#else
-            item->render(tex_id, left, left + scaled_icons_size, top - scaled_icons_size, top, (unsigned int)tex_size, m_icons_texture.items_icon_border_size, m_icons_texture.items_icon_size, m_icons_texture.items_icon_gap_size);
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
             top -= icon_stride;
         }
     }
 }
-
-#if !ENABLE_TOOLBAR_BACKGROUND_TEXTURE
-GLRadioToolbarItem::Data::Data()
-    : name("")
-    , tooltip("")
-    , sprite_id(-1)
-{
-}
-
-GLRadioToolbarItem::GLRadioToolbarItem(const GLRadioToolbarItem::Data& data)
-    : m_state(Normal)
-    , m_data(data)
-{
-}
-
-GLRadioToolbarItem::EState GLRadioToolbarItem::get_state() const
-{
-    return m_state;
-}
-
-void GLRadioToolbarItem::set_state(GLRadioToolbarItem::EState state)
-{
-    m_state = state;
-}
-
-const std::string& GLRadioToolbarItem::get_name() const
-{
-    return m_data.name;
-}
-
-const std::string& GLRadioToolbarItem::get_tooltip() const
-{
-    return m_data.tooltip;
-}
-
-bool GLRadioToolbarItem::is_hovered() const
-{
-    return (m_state == Hover) || (m_state == HoverPressed);
-}
-
-bool GLRadioToolbarItem::is_pressed() const
-{
-    return (m_state == Pressed) || (m_state == HoverPressed);
-}
-
-void GLRadioToolbarItem::do_action(wxEvtHandler *target)
-{
-    wxPostEvent(target, SimpleEvent(m_data.action_event));
-}
-
-void GLRadioToolbarItem::render(unsigned int tex_id, float left, float right, float bottom, float top, unsigned int texture_size, unsigned int border_size, unsigned int icon_size, unsigned int gap_size) const
-{
-    GLTexture::render_sub_texture(tex_id, left, right, bottom, top, get_uvs(texture_size, border_size, icon_size, gap_size));
-}
-
-GLTexture::Quad_UVs GLRadioToolbarItem::get_uvs(unsigned int texture_size, unsigned int border_size, unsigned int icon_size, unsigned int gap_size) const
-{
-    GLTexture::Quad_UVs uvs;
-
-    float inv_texture_size = (texture_size != 0) ? 1.0f / (float)texture_size : 0.0f;
-
-    float scaled_icon_size = (float)icon_size * inv_texture_size;
-    float scaled_border_size = (float)border_size * inv_texture_size;
-    float scaled_gap_size = (float)gap_size * inv_texture_size;
-    float stride = scaled_icon_size + scaled_gap_size;
-
-    float left = scaled_border_size + (float)m_state * stride;
-    float right = left + scaled_icon_size;
-    float top = scaled_border_size + (float)m_data.sprite_id * stride;
-    float bottom = top + scaled_icon_size;
-
-    uvs.left_top = { left, top };
-    uvs.left_bottom = { left, bottom };
-    uvs.right_bottom = { right, bottom };
-    uvs.right_top = { right, top };
-
-    return uvs;
-}
-
-GLRadioToolbar::GLRadioToolbar()
-    : m_top(0.0f)
-    , m_left(0.0f)
-{
-}
-
-GLRadioToolbar::~GLRadioToolbar()
-{
-    for (GLRadioToolbarItem* item : m_items)
-    {
-        delete item;
-    }
-}
-
-bool GLRadioToolbar::init(const std::string& icons_texture_filename, unsigned int items_icon_size, unsigned int items_icon_border_size, unsigned int items_icon_gap_size)
-{
-    if (m_icons_texture.texture.get_id() != 0)
-        return true;
-
-    std::string path = resources_dir() + "/icons/";
-    bool res = !icons_texture_filename.empty() && m_icons_texture.texture.load_from_file(path + icons_texture_filename, false);
-    if (res)
-    {
-        m_icons_texture.items_icon_size = items_icon_size;
-        m_icons_texture.items_icon_border_size = items_icon_border_size;
-        m_icons_texture.items_icon_gap_size = items_icon_gap_size;
-    }
-
-    return res;
-}
-
-bool GLRadioToolbar::add_item(const GLRadioToolbarItem::Data& data)
-{
-    GLRadioToolbarItem* item = new GLRadioToolbarItem(data);
-    if (item == nullptr)
-        return false;
-
-    m_items.push_back(item);
-    return true;
-}
-
-float GLRadioToolbar::get_height() const
-{
-    return m_icons_texture.items_icon_size;
-}
-
-void GLRadioToolbar::set_position(float top, float left)
-{
-    m_top = top;
-    m_left = left;
-}
-
-void GLRadioToolbar::set_selection(const std::string& name)
-{
-    for (GLRadioToolbarItem* item : m_items)
-    {
-        item->set_state((item->get_name() == name) ? GLRadioToolbarItem::Pressed : GLRadioToolbarItem::Normal);
-    }
-}
-
-int GLRadioToolbar::contains_mouse(const Vec2d& mouse_pos, const GLCanvas3D& parent) const
-{
-    float zoom = parent.get_camera_zoom();
-    float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
-
-    Size cnv_size = parent.get_canvas_size();
-    Vec2d scaled_mouse_pos((mouse_pos(0) - 0.5 * (double)cnv_size.get_width()) * inv_zoom, (0.5 * (double)cnv_size.get_height() - mouse_pos(1)) * inv_zoom);
-
-    float scaled_icons_size = (float)m_icons_texture.items_icon_size * inv_zoom;
-
-    float left = m_left;
-    float top = m_top;
-
-    int id = -1;
-
-    for (GLRadioToolbarItem* item : m_items)
-    {
-        ++id;
-
-        float right = left + scaled_icons_size;
-        float bottom = top - scaled_icons_size;
-
-        if ((left <= (float)scaled_mouse_pos(0)) && ((float)scaled_mouse_pos(0) <= right) && (bottom <= (float)scaled_mouse_pos(1)) && ((float)scaled_mouse_pos(1) <= top))
-            return id;
-
-        left += scaled_icons_size;
-    }
-
-    return -1;
-}
-
-std::string GLRadioToolbar::update_hover_state(const Vec2d& mouse_pos, GLCanvas3D& parent)
-{
-    float zoom = parent.get_camera_zoom();
-    float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
-
-    Size cnv_size = parent.get_canvas_size();
-    Vec2d scaled_mouse_pos((mouse_pos(0) - 0.5 * (double)cnv_size.get_width()) * inv_zoom, (0.5 * (double)cnv_size.get_height() - mouse_pos(1)) * inv_zoom);
-
-    float scaled_icons_size = (float)m_icons_texture.items_icon_size * inv_zoom;
-
-    float left = m_left;
-    float top = m_top;
-
-    std::string tooltip = "";
-
-    for (GLRadioToolbarItem* item : m_items)
-    {
-        float right = left + scaled_icons_size;
-        float bottom = top - scaled_icons_size;
-
-        GLRadioToolbarItem::EState state = item->get_state();
-        bool inside = (left <= (float)scaled_mouse_pos(0)) && ((float)scaled_mouse_pos(0) <= right) && (bottom <= (float)scaled_mouse_pos(1)) && ((float)scaled_mouse_pos(1) <= top);
-
-        switch (state)
-        {
-        case GLRadioToolbarItem::Normal:
-        {
-            if (inside)
-            {
-                item->set_state(GLRadioToolbarItem::Hover);
-                parent.set_as_dirty();
-            }
-
-            break;
-        }
-        case GLRadioToolbarItem::Hover:
-        {
-            if (inside)
-                tooltip = item->get_tooltip();
-            else
-            {
-                item->set_state(GLRadioToolbarItem::Normal);
-                parent.set_as_dirty();
-            }
-
-            break;
-        }
-        case GLRadioToolbarItem::Pressed:
-        {
-            if (inside)
-            {
-                item->set_state(GLRadioToolbarItem::HoverPressed);
-                parent.set_as_dirty();
-            }
-
-            break;
-        }
-        case GLRadioToolbarItem::HoverPressed:
-        {
-            if (inside)
-                tooltip = item->get_tooltip();
-            else
-            {
-                item->set_state(GLRadioToolbarItem::Pressed);
-                parent.set_as_dirty();
-            }
-
-            break;
-        }
-        default:
-        {
-            break;
-        }
-        }
-
-        left += scaled_icons_size;
-    }
-
-    return tooltip;
-}
-
-void GLRadioToolbar::do_action(unsigned int item_id, GLCanvas3D& parent)
-{
-    for (unsigned int i = 0; i < (unsigned int)m_items.size(); ++i)
-    {
-        if (i != item_id)
-            m_items[i]->set_state(GLRadioToolbarItem::Normal);
-    }
-
-    if (item_id < (unsigned int)m_items.size())
-    {
-        GLRadioToolbarItem* item = m_items[item_id];
-        if ((item != nullptr) && item->is_hovered() && !item->is_pressed())
-        {
-            item->set_state(GLRadioToolbarItem::HoverPressed);
-            item->do_action(parent.get_wxglcanvas());
-        }
-    }
-
-    parent.set_as_dirty();
-}
-
-void GLRadioToolbar::render(const GLCanvas3D& parent) const
-{
-    if (m_items.empty())
-        return;
-
-    ::glDisable(GL_DEPTH_TEST);
-
-    ::glPushMatrix();
-    ::glLoadIdentity();
-
-    unsigned int tex_id = m_icons_texture.texture.get_id();
-    int tex_size = m_icons_texture.texture.get_width();
-
-    if ((tex_id == 0) || (tex_size <= 0))
-        return;
-
-    float zoom = parent.get_camera_zoom();
-    float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
-
-    float scaled_icons_size = (float)m_icons_texture.items_icon_size * inv_zoom;
-
-    float left = m_left;
-    float top = m_top;
-
-    // renders icons
-    for (const GLRadioToolbarItem* item : m_items)
-    {
-        item->render(tex_id, left, left + scaled_icons_size, top - scaled_icons_size, top, (unsigned int)tex_size, m_icons_texture.items_icon_border_size, m_icons_texture.items_icon_size, m_icons_texture.items_icon_gap_size);
-        left += scaled_icons_size;
-    }
-
-    ::glPopMatrix();
-}
-#endif // !ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 
 } // namespace GUI
 } // namespace Slic3r

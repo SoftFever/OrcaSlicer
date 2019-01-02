@@ -2706,7 +2706,6 @@ bool GLCanvas3D::Gizmos::init(GLCanvas3D& parent)
 
     m_gizmos.insert(GizmosMap::value_type(SlaSupports, gizmo));
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     m_background_texture.metadata.filename = "toolbar_background.png";
     m_background_texture.metadata.left = 16;
     m_background_texture.metadata.top = 16;
@@ -2721,7 +2720,6 @@ bool GLCanvas3D::Gizmos::init(GLCanvas3D& parent)
             return false;
         }
     }
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 
     return true;
 }
@@ -3154,7 +3152,6 @@ void GLCanvas3D::Gizmos::_render_overlay(const GLCanvas3D& canvas, const GLCanva
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
     float height = _get_total_overlay_height();
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float scaled_border = OverlayBorder * inv_zoom;
 
     float top_x = (-0.5f * cnv_w) * inv_zoom;
@@ -3233,10 +3230,6 @@ void GLCanvas3D::Gizmos::_render_overlay(const GLCanvas3D& canvas, const GLCanva
 
     top_x += OverlayBorder * inv_zoom;
     top_y -= OverlayBorder * inv_zoom;
-#else
-    float top_x = (OverlayBorder - 0.5f * cnv_w) * inv_zoom;
-    float top_y = (0.5f * height - OverlayBorder) * inv_zoom;
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     float scaled_gap_y = OverlayGapY * inv_zoom;
     for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
@@ -3275,7 +3268,6 @@ float GLCanvas3D::Gizmos::_get_total_overlay_height() const
     return height - OverlayGapY;
 }
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 float GLCanvas3D::Gizmos::_get_total_overlay_width() const
 {
     float max_icon_width = 0.0f;
@@ -3289,7 +3281,6 @@ float GLCanvas3D::Gizmos::_get_total_overlay_width() const
 
     return max_icon_width + 2.0f * OverlayBorder;
 }
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 
 GLGizmoBase* GLCanvas3D::Gizmos::_get_current() const
 {
@@ -3666,11 +3657,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     : m_canvas(canvas)
     , m_context(nullptr)
     , m_in_render(false)
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     , m_toolbar(GLToolbar::Normal)
-#else
-    , m_toolbar(*this)
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 #if ENABLE_REMOVE_TABS_FROM_PLATER
     , m_view_toolbar(nullptr)
 #endif // ENABLE_REMOVE_TABS_FROM_PLATER
@@ -4910,11 +4897,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     int layer_editing_object_idx = is_layers_editing_enabled() ? selected_object_idx : -1;
     m_layers_editing.last_object_id = layer_editing_object_idx;
     bool gizmos_overlay_contains_mouse = m_gizmos.overlay_contains_mouse(*this, m_mouse.position);
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     int toolbar_contains_mouse = m_toolbar.contains_mouse(m_mouse.position, *this);
-#else
-    int toolbar_contains_mouse = m_toolbar.contains_mouse(m_mouse.position);
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 #if ENABLE_REMOVE_TABS_FROM_PLATER
     int view_toolbar_contains_mouse = (m_view_toolbar != nullptr) ? m_view_toolbar->contains_mouse(m_mouse.position, *this) : -1;
 #endif // ENABLE_REMOVE_TABS_FROM_PLATER
@@ -4938,11 +4921,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     else if (evt.LeftDClick() && (toolbar_contains_mouse != -1))
     {
         m_toolbar_action_running = true;
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
         m_toolbar.do_action((unsigned int)toolbar_contains_mouse, *this);
-#else
-        m_toolbar.do_action((unsigned int)toolbar_contains_mouse);
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     }
     else if (evt.LeftDClick() && (m_gizmos.get_current_type() != Gizmos::Undefined))
     {
@@ -5021,11 +5000,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         else if (toolbar_contains_mouse != -1)
         {
             m_toolbar_action_running = true;
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
             m_toolbar.do_action((unsigned int)toolbar_contains_mouse, *this);
-#else
-            m_toolbar.do_action((unsigned int)toolbar_contains_mouse);
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
             m_mouse.left_down = false;
         }
         else
@@ -5303,11 +5278,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
         // updates toolbar overlay
         if (tooltip.empty())
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
             tooltip = m_toolbar.update_hover_state(m_mouse.position, *this);
-#else
-            tooltip = m_toolbar.update_hover_state(m_mouse.position);
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 
         // updates view toolbar overlay
         if (tooltip.empty() && (m_view_toolbar != nullptr))
@@ -5664,7 +5635,6 @@ bool GLCanvas3D::_init_toolbar()
     if (!m_toolbar.is_enabled())
         return true;
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     ItemsIconsTexture::Metadata icons_data;
     icons_data.filename = "toolbar.png";
     icons_data.icon_size = 36;
@@ -5684,9 +5654,6 @@ bool GLCanvas3D::_init_toolbar()
     background_data.bottom = 16;
 
     if (!m_toolbar.init(icons_data, background_data))
-#else
-    if (!m_toolbar.init("toolbar.png", 36, 1, 1))
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     {
         // unable to init the toolbar texture, disable it
         m_toolbar.set_enabled(false);
@@ -5695,10 +5662,8 @@ bool GLCanvas3D::_init_toolbar()
 
 //    m_toolbar.set_layout_type(GLToolbar::Layout::Vertical);
     m_toolbar.set_layout_type(GLToolbar::Layout::Horizontal);
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     m_toolbar.set_layout_orientation(GLToolbar::Layout::Top);
     m_toolbar.set_border(5.0f);
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     m_toolbar.set_separator_size(5);
     m_toolbar.set_gap_size(2);
 
@@ -6339,11 +6304,7 @@ void GLCanvas3D::_render_toolbar() const
 #if !ENABLE_REMOVE_TABS_FROM_PLATER
     _resize_toolbar();
 #endif // !ENABLE_REMOVE_TABS_FROM_PLATER
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     m_toolbar.render(*this);
-#else
-    m_toolbar.render();
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 }
 
 #if ENABLE_REMOVE_TABS_FROM_PLATER
@@ -7976,9 +7937,7 @@ void GLCanvas3D::_resize_toolbar() const
     float zoom = get_camera_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
     GLToolbar::Layout::EOrientation orientation = m_toolbar.get_layout_orientation();
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
 
     switch (m_toolbar.get_layout_type())
     {
@@ -7986,7 +7945,6 @@ void GLCanvas3D::_resize_toolbar() const
     case GLToolbar::Layout::Horizontal:
     {
         // centers the toolbar on the top edge of the 3d scene
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
         float top, left;
         if (orientation == GLToolbar::Layout::Top)
         {
@@ -7998,17 +7956,12 @@ void GLCanvas3D::_resize_toolbar() const
             top = (-0.5f * (float)cnv_size.get_height() + m_view_toolbar->get_height()) * inv_zoom;
             left = -0.5f * m_toolbar.get_width() * inv_zoom;
         }
-#else
-        float top = 0.5f * (float)cnv_size.get_height() * inv_zoom;
-        float left = -0.5f * m_toolbar.get_width() * inv_zoom;
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
         m_toolbar.set_position(top, left);
         break;
     }
     case GLToolbar::Layout::Vertical:
     {
         // centers the toolbar on the right edge of the 3d scene
-#if ENABLE_TOOLBAR_BACKGROUND_TEXTURE
         float top, left;
         if (orientation == GLToolbar::Layout::Left)
         {
@@ -8020,10 +7973,6 @@ void GLCanvas3D::_resize_toolbar() const
             top = 0.5f * m_toolbar.get_height() * inv_zoom;
             left = (0.5f * (float)cnv_size.get_width() - m_toolbar.get_width()) * inv_zoom;
         }
-#else
-        float top = 0.5f * m_toolbar.get_height() * inv_zoom;
-        float left = (0.5f * (float)cnv_size.get_width() - m_toolbar.get_width()) * inv_zoom;
-#endif // ENABLE_TOOLBAR_BACKGROUND_TEXTURE
         m_toolbar.set_position(top, left);
         break;
     }
