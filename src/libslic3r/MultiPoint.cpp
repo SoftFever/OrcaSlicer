@@ -18,8 +18,8 @@ void MultiPoint::scale(double factor_x, double factor_y)
 {
     for (Point &pt : points)
     {
-        pt(0) *= factor_x;
-        pt(1) *= factor_y;
+		pt(0) = coord_t(pt(0) * factor_x);
+		pt(1) = coord_t(pt(1) * factor_y);
     }
 }
 
@@ -83,7 +83,7 @@ MultiPoint::find_point(const Point &point) const
 {
     for (const Point &pt : this->points)
         if (pt == point)
-            return &pt - &this->points.front();
+            return int(&pt - &this->points.front());
     return -1;  // not found
 }
 
@@ -165,6 +165,7 @@ bool MultiPoint::first_intersection(const Line& line, Point* intersection) const
 std::vector<Point> MultiPoint::_douglas_peucker(const std::vector<Point>& pts, const double tolerance)
 {
     std::vector<Point> result_pts;
+	double tolerance_sq = tolerance * tolerance;
     if (! pts.empty()) {
         const Point  *anchor      = &pts.front();
         size_t        anchor_idx  = 0;
@@ -178,18 +179,18 @@ std::vector<Point> MultiPoint::_douglas_peucker(const std::vector<Point>& pts, c
             dpStack.reserve(pts.size());
             dpStack.emplace_back(floater_idx);
             for (;;) {
-                double max_distSq   = 0.0;
+                double max_dist_sq  = 0.0;
                 size_t furthest_idx = anchor_idx;
                 // find point furthest from line seg created by (anchor, floater) and note it
                 for (size_t i = anchor_idx + 1; i < floater_idx; ++ i) {
-                    double dist = Line::distance_to_squared(pts[i], *anchor, *floater);
-                    if (dist > max_distSq) {
-                        max_distSq   = dist;
+                    double dist_sq = Line::distance_to_squared(pts[i], *anchor, *floater);
+                    if (dist_sq > max_dist_sq) {
+                        max_dist_sq  = dist_sq;
                         furthest_idx = i;
                     }
                 }
                 // remove point if less than tolerance
-                if (max_distSq <= tolerance) {
+                if (max_dist_sq <= tolerance_sq) {
                     result_pts.emplace_back(*floater);
                     anchor_idx = floater_idx;
                     anchor     = floater;
@@ -332,8 +333,8 @@ Points MultiPoint::visivalingam(const Points& pts, const double& tolerance)
 void MultiPoint3::translate(double x, double y)
 {
     for (Vec3crd &p : points) {
-        p(0) += x;
-        p(1) += y;
+        p(0) += coord_t(x);
+        p(1) += coord_t(y);
     }
 }
 
