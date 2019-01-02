@@ -1578,15 +1578,11 @@ std::vector<ExPolygons> PrintObject::_slice_volumes(const std::vector<float> &z,
         //FIXME better to perform slicing over each volume separately and then to use a Boolean operation to merge them.
         TriangleMesh mesh;
         for (const ModelVolume *v : volumes)
-#if ENABLE_MODELVOLUME_TRANSFORM
         {
             TriangleMesh vol_mesh(v->mesh);
             vol_mesh.transform(v->get_matrix());
             mesh.merge(vol_mesh);
         }
-#else
-        mesh.merge(v->mesh);
-#endif // ENABLE_MODELVOLUME_TRANSFORM
         if (mesh.stl.stats.number_of_facets > 0) {
             mesh.transform(m_trafo);
             // apply XY shift

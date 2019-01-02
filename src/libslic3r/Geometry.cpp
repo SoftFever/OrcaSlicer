@@ -1213,7 +1213,6 @@ Vec3d extract_euler_angles(const Transform3d& transform)
     return extract_euler_angles(m);
 }
 
-#if ENABLE_MODELVOLUME_TRANSFORM
 Transformation::Flags::Flags()
     : dont_translate(true)
     , dont_rotate(true)
@@ -1383,6 +1382,5 @@ Transformation Transformation::operator * (const Transformation& other) const
 {
     return Transformation(get_matrix() * other.get_matrix());
 }
-#endif // ENABLE_MODELVOLUME_TRANSFORM
 
 } }

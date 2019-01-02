@@ -860,14 +860,10 @@ void GLGizmoScale3D::on_render(const GLCanvas3D::Selection& selection) const
     bool single_selection = single_instance || single_volume;
 
     Vec3f scale = 100.0f * Vec3f::Ones();
-#if ENABLE_MODELVOLUME_TRANSFORM
     if (single_instance)
         scale = 100.0f * selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_scaling_factor().cast<float>();
     else if (single_volume)
         scale = 100.0f * selection.get_volume(*selection.get_volume_idxs().begin())->get_volume_scaling_factor().cast<float>();
-#else
-    Vec3f scale = single_instance ? 100.0f * selection.get_volume(*selection.get_volume_idxs().begin())->get_scaling_factor().cast<float>() : 100.0f * m_scale.cast<float>();
-#endif // ENABLE_MODELVOLUME_TRANSFORM
 
     if ((single_selection && ((m_hover_id == 0) || (m_hover_id == 1))) || m_grabbers[0].dragging || m_grabbers[1].dragging)
         set_tooltip("X: " + format(scale(0), 4) + "%");
@@ -915,37 +911,22 @@ void GLGizmoScale3D::on_render(const GLCanvas3D::Selection& selection) const
 
         // gets transform from first selected volume
         const GLVolume* v = selection.get_volume(*idxs.begin());
-#if ENABLE_MODELVOLUME_TRANSFORM
         transform = v->get_instance_transformation().get_matrix();
         // gets angles from first selected volume
         angles = v->get_instance_rotation();
         // consider rotation+mirror only components of the transform for offsets
         offsets_transform = Geometry::assemble_transform(Vec3d::Zero(), angles, Vec3d::Ones(), v->get_instance_mirror());
         grabber_size = v->get_instance_transformation().get_matrix(true, true, false, true) * box.size();
-#else
-        transform = v->world_matrix().cast<double>();
-        // gets angles from first selected volume
-        angles = v->get_rotation();
-        // consider rotation+mirror only components of the transform for offsets
-        offsets_transform = Geometry::assemble_transform(Vec3d::Zero(), angles, Vec3d::Ones(), v->get_mirror());
-#endif // ENABLE_MODELVOLUME_TRANSFORM
     }
     else if (single_volume)
     {
         const GLVolume* v = selection.get_volume(*selection.get_volume_idxs().begin());
         box = v->bounding_box;
-#if ENABLE_MODELVOLUME_TRANSFORM
         transform = v->world_matrix();
         angles = Geometry::extract_euler_angles(transform);
         // consider rotation+mirror only components of the transform for offsets
         offsets_transform = Geometry::assemble_transform(Vec3d::Zero(), angles, Vec3d::Ones(), v->get_instance_mirror());
         grabber_size = v->get_volume_transformation().get_matrix(true, true, false, true) * box.size();
-#else
-        transform = v->world_matrix().cast<double>();
-        angles = Geometry::extract_euler_angles(transform);
-        // consider rotation+mirror only components of the transform for offsets
-        offsets_transform = Geometry::assemble_transform(Vec3d::Zero(), angles, Vec3d::Ones(), v->get_mirror());
-#endif // ENABLE_MODELVOLUME_TRANSFORM
     }
     else
     {
@@ -1529,7 +1510,6 @@ void GLGizmoFlatten::update_planes()
 {
     TriangleMesh ch;
     for (const ModelVolume* vol : m_model_object->volumes)
-#if ENABLE_MODELVOLUME_TRANSFORM
     {
         if (vol->type() != ModelVolume::Type::MODEL_PART)
             continue;
@@ -1537,9 +1517,6 @@ void GLGizmoFlatten::update_planes()
         vol_ch.transform(vol->get_matrix());
         ch.merge(vol_ch);
     }
-#else
-        ch.merge(vol->get_convex_hull());
-#endif // ENABLE_MODELVOLUME_TRANSFORM
 
     ch = ch.convex_hull_3d();
 

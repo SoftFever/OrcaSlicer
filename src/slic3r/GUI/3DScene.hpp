@@ -257,23 +257,9 @@ public:
     ~GLVolume();
 
 private:
-#if ENABLE_MODELVOLUME_TRANSFORM
     Geometry::Transformation m_instance_transformation;
     Geometry::Transformation m_volume_transformation;
-#else
-    // Offset of the volume to be rendered.
-    Vec3d                 m_offset;
-    // Rotation around three axes of the volume to be rendered.
-    Vec3d                 m_rotation;
-    // Scale factor along the three axes of the volume to be rendered.
-    Vec3d                 m_scaling_factor;
-    // Mirroring along the three axes of the volume to be rendered.
-    Vec3d m_mirror;
-    // World matrix of the volume to be rendered.
-    mutable Transform3f   m_world_matrix;
-    // Whether or not is needed to recalculate the world matrix.
-    mutable bool          m_world_matrix_dirty;
-#endif // ENABLE_MODELVOLUME_TRANSFORM
+
     // Shift in z required by sla supports+pad
     double                m_sla_shift_z;
     // Bounding box of this volume, in unscaled coordinates.
@@ -357,7 +343,6 @@ public:
     // set color according to model volume
     void set_color_from_model_volume(const ModelVolume *model_volume);
 
-#if ENABLE_MODELVOLUME_TRANSFORM
     const Geometry::Transformation& get_instance_transformation() const { return m_instance_transformation; }
     void set_instance_transformation(const Geometry::Transformation& transformation) { m_instance_transformation = transformation; set_bounding_boxes_as_dirty(); }
 
@@ -411,21 +396,6 @@ public:
 
     void set_volume_mirror(const Vec3d& mirror) { m_volume_transformation.set_mirror(mirror); set_bounding_boxes_as_dirty(); }
     void set_volume_mirror(Axis axis, double mirror) { m_volume_transformation.set_mirror(axis, mirror); set_bounding_boxes_as_dirty(); }
-#else
-    const Vec3d& get_rotation() const;
-    void set_rotation(const Vec3d& rotation);
-
-    const Vec3d& get_scaling_factor() const;
-    void set_scaling_factor(const Vec3d& scaling_factor);
-
-    const Vec3d& get_mirror() const;
-    double get_mirror(Axis axis) const;
-    void set_mirror(const Vec3d& mirror);
-    void set_mirror(Axis axis, double mirror);
-
-    const Vec3d& get_offset() const;
-    void set_offset(const Vec3d& offset);
-#endif // ENABLE_MODELVOLUME_TRANSFORM
      
     double get_sla_shift_z() const { return m_sla_shift_z; }
     void set_sla_shift_z(double z) { m_sla_shift_z = z; }
@@ -436,11 +406,8 @@ public:
     int                 volume_idx() const { return this->composite_id.volume_id; }
     int                 instance_idx() const { return this->composite_id.instance_id; }
 
-#if ENABLE_MODELVOLUME_TRANSFORM
     Transform3d world_matrix() const;
-#else
-    const Transform3f&   world_matrix() const;
-#endif // ENABLE_MODELVOLUME_TRANSFORM
+
     const BoundingBoxf3& transformed_bounding_box() const;
     const BoundingBoxf3& transformed_convex_hull_bounding_box() const;
 
@@ -491,9 +458,7 @@ public:
 
     void reset_layer_height_texture_data() { layer_height_texture_data.reset(); }
 
-#if ENABLE_MODELVOLUME_TRANSFORM
     void set_bounding_boxes_as_dirty() { m_transformed_bounding_box_dirty = true; m_transformed_convex_hull_bounding_box_dirty = true; }
-#endif // ENABLE_MODELVOLUME_TRANSFORM
 };
 
 typedef std::vector<GLVolume*> GLVolumePtrs;

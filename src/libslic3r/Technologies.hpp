@@ -21,10 +21,8 @@
 #define DISABLE_INSTANCES_SYNCH (0 && ENABLE_1_42_0)
 // Modified camera target behavior
 #define ENABLE_MODIFIED_CAMERA_TARGET (1 && ENABLE_1_42_0)
-// Add Geometry::Transformation class and use it into ModelInstance, ModelVolume and GLVolume
-#define ENABLE_MODELVOLUME_TRANSFORM (1 && ENABLE_1_42_0)
 // Keeps objects on bed while scaling them using the scale gizmo
-#define ENABLE_ENSURE_ON_BED_WHILE_SCALING (1 && ENABLE_MODELVOLUME_TRANSFORM)
+#define ENABLE_ENSURE_ON_BED_WHILE_SCALING (1 && ENABLE_1_42_0)
 // All rotations made using the rotate gizmo are done with respect to the world reference system
 #define ENABLE_WORLD_ROTATIONS (1 && ENABLE_1_42_0)
 // Scene's GUI made using imgui library

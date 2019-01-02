@@ -11,9 +11,7 @@
 #include <string>
 #include <utility>
 #include <vector>
-#if ENABLE_MODELVOLUME_TRANSFORM
 #include "Geometry.hpp"
-#endif // ENABLE_MODELVOLUME_TRANSFORM
 
 namespace Slic3r {
 
@@ -336,10 +334,8 @@ public:
 
     void                scale_geometry(const Vec3d& versor);
 
-#if ENABLE_MODELVOLUME_TRANSFORM
     // translates the mesh and the convex hull so that the origin of their vertices is in the center of this volume's bounding box
     void                center_geometry();
-#endif // ENABLE_MODELVOLUME_TRANSFORM
 
     void                calculate_convex_hull();
     const TriangleMesh& get_convex_hull() const;
@@ -348,7 +344,6 @@ public:
     static Type         type_from_string(const std::string &s);
     static std::string  type_to_string(const Type t);
 
-#if ENABLE_MODELVOLUME_TRANSFORM
     const Geometry::Transformation& get_transformation() const { return m_transformation; }
     void set_transformation(const Geometry::Transformation& transformation) { m_transformation = transformation; }
 
@@ -377,7 +372,6 @@ public:
     void set_mirror(Axis axis, double mirror) { m_transformation.set_mirror(axis, mirror); }
 
     const Transform3d& get_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const { return m_transformation.get_matrix(dont_translate, dont_rotate, dont_scale, dont_mirror); }
-#endif // ENABLE_MODELVOLUME_TRANSFORM
 
 protected:
 	friend class Print;
@@ -395,9 +389,7 @@ private:
     t_model_material_id     m_material_id;
     // The convex hull of this model's mesh.
     TriangleMesh             m_convex_hull;
-#if ENABLE_MODELVOLUME_TRANSFORM
     Geometry::Transformation m_transformation;
-#endif // ENABLE_MODELVOLUME_TRANSFORM
 
     ModelVolume(ModelObject *object, const TriangleMesh &mesh) : mesh(mesh), m_type(MODEL_PART), object(object)
     {
@@ -407,7 +399,6 @@ private:
     ModelVolume(ModelObject *object, TriangleMesh &&mesh, TriangleMesh &&convex_hull) :
         mesh(std::move(mesh)), m_convex_hull(std::move(convex_hull)), m_type(MODEL_PART), object(object) {}
 
-#if ENABLE_MODELVOLUME_TRANSFORM
     // Copying an existing volume, therefore this volume will get a copy of the ID assigned.
     ModelVolume(ModelObject *object, const ModelVolume &other) :
         ModelBase(other), // copy the ID
@@ -423,25 +414,6 @@ private:
         if (mesh.stl.stats.number_of_facets > 1)
             calculate_convex_hull();
     }
-#else
-    // Copying an existing volume, therefore this volume will get a copy of the ID assigned.
-    ModelVolume(ModelObject *object, const ModelVolume &other) :
-        ModelBase(other), // copy the ID
-        name(other.name), mesh(other.mesh), m_convex_hull(other.m_convex_hull), config(other.config), m_type(other.m_type), object(object)
-    {
-		if (! other.material_id().empty())
-			this->set_material_id(other.material_id());
-    }
-    // Providing a new mesh, therefore this volume will get a new unique ID assigned.
-    ModelVolume(ModelObject *object, const ModelVolume &other, TriangleMesh &&mesh) :
-        name(other.name), mesh(std::move(mesh)), config(other.config), m_type(other.m_type), object(object)
-    {
-		if (! other.material_id().empty())
-			this->set_material_id(other.material_id());
-        if (mesh.stl.stats.number_of_facets > 1)
-            calculate_convex_hull();
-    }
-#endif // ENABLE_MODELVOLUME_TRANSFORM
 
     ModelVolume& operator=(ModelVolume &rhs) = delete;
 };
@@ -460,14 +432,7 @@ public:
     };
 
 private:
-#if ENABLE_MODELVOLUME_TRANSFORM
     Geometry::Transformation m_transformation;
-#else
-    Vec3d m_offset;              // in unscaled coordinates
-    Vec3d m_rotation;            // Rotation around the three axes, in radians around mesh center point
-    Vec3d m_scaling_factor;      // Scaling factors along the three axes
-    Vec3d m_mirror;              // Mirroring along the three axes
-#endif // ENABLE_MODELVOLUME_TRANSFORM
 
 public:
     // flag showing the position of this instance with respect to the print volume (set by Print::validate() using ModelObject::check_instances_print_volume_state())
@@ -475,7 +440,6 @@ public:
 
     ModelObject* get_object() const { return this->object; }
 
-#if ENABLE_MODELVOLUME_TRANSFORM
     const Geometry::Transformation& get_transformation() const { return m_transformation; }
     void set_transformation(const Geometry::Transformation& transformation) { m_transformation = transformation; }
 
@@ -502,31 +466,6 @@ public:
 
     void set_mirror(const Vec3d& mirror) { m_transformation.set_mirror(mirror); }
     void set_mirror(Axis axis, double mirror) { m_transformation.set_mirror(axis, mirror); }
-#else
-    const Vec3d& get_offset() const { return m_offset; }
-    double get_offset(Axis axis) const { return m_offset(axis); }
-
-    void set_offset(const Vec3d& offset) { m_offset = offset; }
-    void set_offset(Axis axis, double offset) { m_offset(axis) = offset; }
-
-    const Vec3d& get_rotation() const { return m_rotation; }
-    double get_rotation(Axis axis) const { return m_rotation(axis); }
-
-    void set_rotation(const Vec3d& rotation);
-    void set_rotation(Axis axis, double rotation);
-
-    Vec3d get_scaling_factor() const { return m_scaling_factor; }
-    double get_scaling_factor(Axis axis) const { return m_scaling_factor(axis); }
-
-    void set_scaling_factor(const Vec3d& scaling_factor);
-    void set_scaling_factor(Axis axis, double scaling_factor);
-
-    const Vec3d& get_mirror() const { return m_mirror; }
-    double get_mirror(Axis axis) const { return m_mirror(axis); }
-
-    void set_mirror(const Vec3d& mirror);
-    void set_mirror(Axis axis, double mirror);
-#endif // ENABLE_MODELVOLUME_TRANSFORM
 
     // To be called on an external mesh
     void transform_mesh(TriangleMesh* mesh, bool dont_translate = false) const;
@@ -539,11 +478,7 @@ public:
     // To be called on an external polygon. It does not translate the polygon, only rotates and scales.
     void transform_polygon(Polygon* polygon) const;
 
-#if ENABLE_MODELVOLUME_TRANSFORM
     const Transform3d& get_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const { return m_transformation.get_matrix(dont_translate, dont_rotate, dont_scale, dont_mirror); }
-#else
-    Transform3d get_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const;
-#endif // ENABLE_MODELVOLUME_TRANSFORM
 
     bool is_printable() const { return print_volume_state == PVS_Inside; }
 
@@ -559,17 +494,11 @@ private:
     // Parent object, owning this instance.
     ModelObject* object;
 
-#if ENABLE_MODELVOLUME_TRANSFORM
     // Constructor, which assigns a new unique ID.
     explicit ModelInstance(ModelObject *object) : object(object), print_volume_state(PVS_Inside) {}
     // Constructor, which assigns a new unique ID.
     explicit ModelInstance(ModelObject *object, const ModelInstance &other) :
         m_transformation(other.m_transformation), object(object), print_volume_state(PVS_Inside) {}
-#else
-    explicit ModelInstance(ModelObject *object) : m_offset(Vec3d::Zero()), m_rotation(Vec3d::Zero()), m_scaling_factor(Vec3d::Ones()), m_mirror(Vec3d::Ones()), object(object), print_volume_state(PVS_Inside) {}
-    explicit ModelInstance(ModelObject *object, const ModelInstance &other) :
-        m_offset(other.m_offset), m_rotation(other.m_rotation), m_scaling_factor(other.m_scaling_factor), m_mirror(other.m_mirror), object(object), print_volume_state(PVS_Inside) {}
-#endif // ENABLE_MODELVOLUME_TRANSFORM
 
     ModelInstance() = delete;
     explicit ModelInstance(ModelInstance &&rhs) = delete;

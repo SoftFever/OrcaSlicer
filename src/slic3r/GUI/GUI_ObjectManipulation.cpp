@@ -195,30 +195,10 @@ void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& sele
 	m_new_move_label_string   = L("Position:");
     m_new_rotate_label_string = L("Rotation:");
     m_new_scale_label_string  = L("Scale factors:");
-#if ENABLE_MODELVOLUME_TRANSFORM
     if (selection.is_single_full_instance())
-#else
-    if (selection.is_single_full_object())
-    {
-        auto obj_idx = selection.get_object_idx();
-        if (obj_idx >=0 && !wxGetApp().model_objects()->empty() && (*wxGetApp().model_objects())[obj_idx]->instances.size() == 1)
-        {
-            // all volumes in the selection belongs to the same instance, any of them contains the needed data, so we take the first
-            const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
-            m_new_position = volume->get_offset();
-            m_new_rotation = volume->get_rotation();
-            m_new_scale    = volume->get_scaling_factor();
-            m_new_enabled  = true;
-        }
-        else
-            reset_settings_value();
-    }
-    else if (selection.is_single_full_instance())
-#endif // ENABLE_MODELVOLUME_TRANSFORM
     {
         // all volumes in the selection belongs to the same instance, any of them contains the needed instance data, so we take the first one
         const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
-#if ENABLE_MODELVOLUME_TRANSFORM
         m_new_position = volume->get_instance_offset();
         m_new_rotation = volume->get_instance_rotation();
         m_new_scale    = volume->get_instance_scaling_factor();
@@ -228,11 +208,7 @@ void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& sele
         else
             // this should never happen
             m_new_size = Vec3d::Zero();
-#else
-        m_new_position = volume->get_offset();
-        m_new_rotation = volume->get_rotation();
-        m_new_scale    = volume->get_scaling_factor();
-#endif // ENABLE_MODELVOLUME_TRANSFORM
+
         m_new_enabled  = true;
     }
     else if (selection.is_single_full_object())
@@ -250,16 +226,10 @@ void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& sele
     {
         // the selection contains a single volume
         const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
-#if ENABLE_MODELVOLUME_TRANSFORM
         m_new_position = volume->get_volume_offset();
         m_new_rotation = volume->get_volume_rotation();
         m_new_scale    = volume->get_volume_scaling_factor();
         m_new_size = volume->get_instance_transformation().get_matrix(true, true) * volume->get_volume_transformation().get_matrix(true, true) * volume->bounding_box.size();
-#else
-        m_new_position = volume->get_offset();
-        m_new_rotation = volume->get_rotation();
-        m_new_scale    = volume->get_scaling_factor();
-#endif // ENABLE_MODELVOLUME_TRANSFORM
         m_new_enabled  = true;
     }
     else if (wxGetApp().obj_list()->multiple_selection())

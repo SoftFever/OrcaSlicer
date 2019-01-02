@@ -205,17 +205,7 @@ const float GLVolume::SLA_SUPPORT_COLOR[4] = { 0.75f, 0.75f, 0.75f, 1.0f };
 const float GLVolume::SLA_PAD_COLOR[4] = { 0.0f, 0.2f, 0.0f, 1.0f };
 
 GLVolume::GLVolume(float r, float g, float b, float a)
-#if ENABLE_MODELVOLUME_TRANSFORM
     : m_transformed_bounding_box_dirty(true)
-#else
-    : m_offset(Vec3d::Zero())
-    , m_rotation(Vec3d::Zero())
-    , m_scaling_factor(Vec3d::Ones())
-    , m_mirror(Vec3d::Ones())
-    , m_world_matrix(Transform3f::Identity())
-    , m_world_matrix_dirty(true)
-    , m_transformed_bounding_box_dirty(true)
-#endif // ENABLE_MODELVOLUME_TRANSFORM
     , m_sla_shift_z(0.0)
     , m_transformed_convex_hull_bounding_box_dirty(true)
     , m_convex_hull(nullptr)
@@ -300,125 +290,18 @@ void GLVolume::set_color_from_model_volume(const ModelVolume *model_volume)
     color[3] = model_volume->is_model_part() ? 1.f : 0.5f;
 }
 
-#if !ENABLE_MODELVOLUME_TRANSFORM
-const Vec3d& GLVolume::get_rotation() const
-{
-    return m_rotation;
-}
-
-void GLVolume::set_rotation(const Vec3d& rotation)
-{
-    static const double TWO_PI = 2.0 * (double)PI;
-
-    if (m_rotation != rotation)
-    {
-        m_rotation = rotation;
-        for (int i = 0; i < 3; ++i)
-        {
-            while (m_rotation(i) < 0.0)
-            {
-                m_rotation(i) += TWO_PI;
-            }
-            while (TWO_PI < m_rotation(i))
-            {
-                m_rotation(i) -= TWO_PI;
-            }
-        }
-        m_world_matrix_dirty = true;
-        m_transformed_bounding_box_dirty = true;
-        m_transformed_convex_hull_bounding_box_dirty = true;
-    }
-}
-
-const Vec3d& GLVolume::get_offset() const
-{
-    return m_offset;
-}
-
-void GLVolume::set_offset(const Vec3d& offset)
-{
-    if (m_offset != offset)
-    {
-        m_offset = offset;
-        m_world_matrix_dirty = true;
-        m_transformed_bounding_box_dirty = true;
-        m_transformed_convex_hull_bounding_box_dirty = true;
-    }
-}
-
-const Vec3d& GLVolume::get_scaling_factor() const
-{
-    return m_scaling_factor;
-}
-
-void GLVolume::set_scaling_factor(const Vec3d& scaling_factor)
-{
-    if (m_scaling_factor != scaling_factor)
-    {
-        m_scaling_factor = scaling_factor;
-        m_world_matrix_dirty = true;
-        m_transformed_bounding_box_dirty = true;
-        m_transformed_convex_hull_bounding_box_dirty = true;
-    }
-}
-
-const Vec3d& GLVolume::get_mirror() const
-{
-    return m_mirror;
-}
-
-double GLVolume::get_mirror(Axis axis) const
-{
-    return m_mirror(axis);
-}
-
-void GLVolume::set_mirror(const Vec3d& mirror)
-{
-    if (m_mirror != mirror)
-    {
-        m_mirror = mirror;
-        m_world_matrix_dirty = true;
-        m_transformed_bounding_box_dirty = true;
-        m_transformed_convex_hull_bounding_box_dirty = true;
-    }
-}
-
-void GLVolume::set_mirror(Axis axis, double mirror)
-{
-    if (m_mirror(axis) != mirror)
-    {
-        m_mirror(axis) = mirror;
-        m_world_matrix_dirty = true;
-        m_transformed_bounding_box_dirty = true;
-        m_transformed_convex_hull_bounding_box_dirty = true;
-    }
-}
-#endif // !ENABLE_MODELVOLUME_TRANSFORM
-
 void GLVolume::set_convex_hull(const TriangleMesh *convex_hull, bool owned)
 {
     m_convex_hull = convex_hull;
     m_convex_hull_owned = owned;
 }
 
-#if ENABLE_MODELVOLUME_TRANSFORM
 Transform3d GLVolume::world_matrix() const
 {
     Transform3d m = m_instance_transformation.get_matrix() * m_volume_transformation.get_matrix();
     m.translation()(2) += m_sla_shift_z;
     return m;
 }
-#else
-const Transform3f& GLVolume::world_matrix() const
-{
-    if (m_world_matrix_dirty)
-    {
-        m_world_matrix = Geometry::assemble_transform(m_offset, m_rotation, m_scaling_factor, m_mirror).cast<float>();
-        m_world_matrix_dirty = false;
-    }
-    return m_world_matrix;
-}
-#endif // ENABLE_MODELVOLUME_TRANSFORM
 
 const BoundingBoxf3& GLVolume::transformed_bounding_box() const
 {
@@ -426,11 +309,7 @@ const BoundingBoxf3& GLVolume::transformed_bounding_box() const
 
     if (m_transformed_bounding_box_dirty)
     {
-#if ENABLE_MODELVOLUME_TRANSFORM
         m_transformed_bounding_box = bounding_box.transformed(world_matrix());
-#else
-        m_transformed_bounding_box = bounding_box.transformed(world_matrix().cast<double>());
-#endif // ENABLE_MODELVOLUME_TRANSFORM
         m_transformed_bounding_box_dirty = false;
     }
 
@@ -441,17 +320,10 @@ const BoundingBoxf3& GLVolume::transformed_convex_hull_bounding_box() const
 {
     if (m_transformed_convex_hull_bounding_box_dirty)
     {
-#if ENABLE_MODELVOLUME_TRANSFORM
         if ((m_convex_hull != nullptr) && (m_convex_hull->stl.stats.number_of_facets > 0))
             m_transformed_convex_hull_bounding_box = m_convex_hull->transformed_bounding_box(world_matrix());
         else
             m_transformed_convex_hull_bounding_box = bounding_box.transformed(world_matrix());
-#else
-        if ((m_convex_hull != nullptr) && (m_convex_hull->stl.stats.number_of_facets > 0))
-            m_transformed_convex_hull_bounding_box = m_convex_hull->transformed_bounding_box(world_matrix().cast<double>());
-        else
-            m_transformed_convex_hull_bounding_box = bounding_box.transformed(world_matrix().cast<double>());
-#endif // ENABLE_MODELVOLUME_TRANSFORM
 
         m_transformed_convex_hull_bounding_box_dirty = false;
     }
@@ -502,11 +374,7 @@ void GLVolume::render() const
     ::glCullFace(GL_BACK);
     ::glPushMatrix();
 
-#if ENABLE_MODELVOLUME_TRANSFORM
     ::glMultMatrixd(world_matrix().data());
-#else
-    ::glMultMatrixf(world_matrix().data());
-#endif // ENABLE_MODELVOLUME_TRANSFORM
     if (this->indexed_vertex_array.indexed())
         this->indexed_vertex_array.render(this->tverts_range, this->qverts_range);
     else
@@ -544,11 +412,7 @@ void GLVolume::render_using_layer_height() const
         glUniform1f(z_cursor_band_width_id, (GLfloat)layer_height_texture_data.edit_band_width);
 
     if (world_matrix_id >= 0)
-#if ENABLE_MODELVOLUME_TRANSFORM
         ::glUniformMatrix4fv(world_matrix_id, 1, GL_FALSE, (const GLfloat*)world_matrix().cast<float>().data());
-#else
-        ::glUniformMatrix4fv(world_matrix_id, 1, GL_FALSE, (const GLfloat*)world_matrix().data());
-#endif // ENABLE_MODELVOLUME_TRANSFORM
 
     GLsizei w = (GLsizei)layer_height_texture_width();
     GLsizei h = (GLsizei)layer_height_texture_height();
@@ -608,11 +472,7 @@ void GLVolume::render_VBOs(int color_id, int detection_id, int worldmatrix_id) c
             ::glUniform1i(detection_id, shader_outside_printer_detection_enabled ? 1 : 0);
 
         if (worldmatrix_id != -1)
-#if ENABLE_MODELVOLUME_TRANSFORM
             ::glUniformMatrix4fv(worldmatrix_id, 1, GL_FALSE, (const GLfloat*)world_matrix().cast<float>().data());
-#else
-            ::glUniformMatrix4fv(worldmatrix_id, 1, GL_FALSE, (const GLfloat*)world_matrix().data());
-#endif // ENABLE_MODELVOLUME_TRANSFORM
 
         render();
 
@@ -631,11 +491,7 @@ void GLVolume::render_VBOs(int color_id, int detection_id, int worldmatrix_id) c
         ::glUniform1i(detection_id, shader_outside_printer_detection_enabled ? 1 : 0);
 
     if (worldmatrix_id != -1)
-#if ENABLE_MODELVOLUME_TRANSFORM
         ::glUniformMatrix4fv(worldmatrix_id, 1, GL_FALSE, (const GLfloat*)world_matrix().cast<float>().data());
-#else
-        ::glUniformMatrix4fv(worldmatrix_id, 1, GL_FALSE, (const GLfloat*)world_matrix().data());
-#endif // ENABLE_MODELVOLUME_TRANSFORM
 
     ::glBindBuffer(GL_ARRAY_BUFFER, indexed_vertex_array.vertices_and_normals_interleaved_VBO_id);
     ::glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), (const void*)(3 * sizeof(float)));
@@ -643,11 +499,7 @@ void GLVolume::render_VBOs(int color_id, int detection_id, int worldmatrix_id) c
 
     ::glPushMatrix();
 
-#if ENABLE_MODELVOLUME_TRANSFORM
     ::glMultMatrixd(world_matrix().data());
-#else
-    ::glMultMatrixf(world_matrix().data());
-#endif // ENABLE_MODELVOLUME_TRANSFORM
 
     if (n_triangles > 0)
     {
@@ -691,11 +543,7 @@ void GLVolume::render_legacy() const
 
     ::glPushMatrix();
 
-#if ENABLE_MODELVOLUME_TRANSFORM
     ::glMultMatrixd(world_matrix().data());
-#else
-    ::glMultMatrixf(world_matrix().data());
-#endif // ENABLE_MODELVOLUME_TRANSFORM
 
     if (n_triangles > 0)
         ::glDrawElements(GL_TRIANGLES, n_triangles, GL_UNSIGNED_INT, indexed_vertex_array.triangle_indices.data() + tverts_range.first);
@@ -780,11 +628,7 @@ int GLVolumeCollection::load_object_volume(
     const ModelVolume   *model_volume = model_object->volumes[volume_idx];
     const int            extruder_id  = model_volume->extruder_id();
     const ModelInstance *instance     = model_object->instances[instance_idx];
-#if ENABLE_MODELVOLUME_TRANSFORM
     const TriangleMesh& mesh = model_volume->mesh;
-#else
-    TriangleMesh mesh = model_volume->mesh;
-#endif // ENABLE_MODELVOLUME_TRANSFORM
     float color[4];
     memcpy(color, colors[((color_by == "volume") ? volume_idx : obj_idx) % 4], sizeof(float) * 3);
 /*    if (model_volume->is_support_blocker()) {
@@ -822,15 +666,8 @@ int GLVolumeCollection::load_object_volume(
     }
     v.is_modifier = ! model_volume->is_model_part();
     v.shader_outside_printer_detection_enabled = model_volume->is_model_part();
-#if ENABLE_MODELVOLUME_TRANSFORM
     v.set_instance_transformation(instance->get_transformation());
     v.set_volume_transformation(model_volume->get_transformation());
-#else
-    v.set_offset(instance->get_offset());
-    v.set_rotation(instance->get_rotation());
-    v.set_scaling_factor(instance->get_scaling_factor());
-    v.set_mirror(instance->get_mirror());
-#endif // ENABLE_MODELVOLUME_TRANSFORM
 
     return int(this->volumes.size() - 1); 
 }
@@ -941,11 +778,7 @@ int GLVolumeCollection::load_wipe_tower_preview(
     else
         v.indexed_vertex_array.load_mesh_flat_shading(mesh);
 
-#if ENABLE_MODELVOLUME_TRANSFORM
     v.set_volume_offset(Vec3d(pos_x, pos_y, 0.0));
-#else
-    v.set_offset(Vec3d(pos_x, pos_y, 0.0));
-#endif // ENABLE_MODELVOLUME_TRANSFORM
 
     // finalize_geometry() clears the vertex arrays, therefore the bounding box has to be computed before finalize_geometry().
     v.bounding_box = v.indexed_vertex_array.bounding_box();

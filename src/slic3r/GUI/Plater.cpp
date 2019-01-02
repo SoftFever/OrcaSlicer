@@ -1514,9 +1514,6 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &model_objects)
 {
     const BoundingBoxf bed_shape = bed_shape_bb();
-#if !ENABLE_MODELVOLUME_TRANSFORM
-    const Vec3d bed_center = Slic3r::to_3d(bed_shape.center().cast<double>(), 0.0);
-#endif // !ENABLE_MODELVOLUME_TRANSFORM
     const Vec3d bed_size = Slic3r::to_3d(bed_shape.size().cast<double>(), 1.0) - 2.0 * Vec3d::Ones();
 
     bool need_arrange = false;
@@ -1536,11 +1533,7 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
             // add a default instance and center object around origin
             object->center_around_origin();  // also aligns object to Z = 0
             ModelInstance* instance = object->add_instance();
-#if ENABLE_MODELVOLUME_TRANSFORM
             instance->set_offset(Slic3r::to_3d(bed_shape.center().cast<double>(), -object->origin_translation(2)));
-#else
-            instance->set_offset(bed_center);
-#endif // ENABLE_MODELVOLUME_TRANSFORM
         }
 
         const Vec3d size = object->bounding_box().size();
@@ -3340,9 +3333,6 @@ void Plater::changed_object(int obj_idx)
     if (list->is_parts_changed()) {
         // recenter and re - align to Z = 0
         auto model_object = p->model.objects[obj_idx];
-#if !ENABLE_MODELVOLUME_TRANSFORM
-        model_object->center_around_origin();
-#endif // !ENABLE_MODELVOLUME_TRANSFORM
         model_object->ensure_on_bed();
         if (this->p->printer_technology == ptSLA) {
             // Update the SLAPrint from the current Model, so that the reload_scene()

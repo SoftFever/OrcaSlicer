@@ -1336,49 +1336,12 @@ namespace Slic3r {
 
     void _3MF_Importer::_apply_transform(ModelInstance& instance, const Transform3d& transform)
     {
-#if ENABLE_MODELVOLUME_TRANSFORM
         Slic3r::Geometry::Transformation t(transform);
         // invalid scale value, return
         if (!t.get_scaling_factor().all())
             return;
 
         instance.set_transformation(t);
-#else
-        // translation
-        Vec3d offset = transform.matrix().block(0, 3, 3, 1);
-
-        Eigen::Matrix<double, 3, 3, Eigen::DontAlign> m3x3 = transform.matrix().block(0, 0, 3, 3);
-        // mirror
-        // it is impossible to reconstruct the original mirroring factors from a matrix,
-        // we can only detect if the matrix contains a left handed reference system
-        // in which case we reorient it back to right handed by mirroring the x axis
-        Vec3d mirror = Vec3d::Ones();
-        if (m3x3.col(0).dot(m3x3.col(1).cross(m3x3.col(2))) < 0.0)
-        {
-            mirror(0) = -1.0;
-            // remove mirror
-            m3x3.col(0) *= -1.0;
-        }
-
-        // scale
-        Vec3d scale(m3x3.col(0).norm(), m3x3.col(1).norm(), m3x3.col(2).norm());
-
-        // invalid scale value, return
-        if ((scale(0) == 0.0) || (scale(1) == 0.0) || (scale(2) == 0.0))
-            return;
-
-        // remove scale
-        m3x3.col(0).normalize();
-        m3x3.col(1).normalize();
-        m3x3.col(2).normalize();
-
-        Vec3d rotation = Slic3r::Geometry::extract_euler_angles(m3x3);
-
-        instance.set_offset(offset);
-        instance.set_scaling_factor(scale);
-        instance.set_rotation(rotation);
-        instance.set_mirror(mirror);
-#endif // ENABLE_MODELVOLUME_TRANSFORM
     }
 
     bool _3MF_Importer::_handle_start_config(const char** attributes, unsigned int num_attributes)
@@ -1875,23 +1838,15 @@ namespace Slic3r {
 
             vertices_count += stl.stats.shared_vertices;
 
-#if ENABLE_MODELVOLUME_TRANSFORM
             const Transform3d& matrix = volume->get_matrix();
-#endif // ENABLE_MODELVOLUME_TRANSFORM
 
             for (int i = 0; i < stl.stats.shared_vertices; ++i)
             {
                 stream << "     <" << VERTEX_TAG << " ";
-#if ENABLE_MODELVOLUME_TRANSFORM
                 Vec3d v = matrix * stl.v_shared[i].cast<double>();
                 stream << "x=\"" << v(0) << "\" ";
                 stream << "y=\"" << v(1) << "\" ";
                 stream << "z=\"" << v(2) << "\" />\n";
-#else
-                stream << "x=\"" << stl.v_shared[i](0) << "\" ";
-                stream << "y=\"" << stl.v_shared[i](1) << "\" ";
-                stream << "z=\"" << stl.v_shared[i](2) << "\" />\n";
-#endif // ENABLE_MODELVOLUME_TRANSFORM
             }
         }
 

@@ -197,7 +197,6 @@ Vec3d extract_euler_angles(const Eigen::Matrix<double, 3, 3, Eigen::DontAlign>& 
 // Warning -> The transform should not contain any shear !!!
 Vec3d extract_euler_angles(const Transform3d& transform);
 
-#if ENABLE_MODELVOLUME_TRANSFORM
 class Transformation
 {
     struct Flags
@@ -256,7 +255,6 @@ public:
 
     Transformation operator * (const Transformation& other) const;
 };
-#endif // ENABLE_MODELVOLUME_TRANSFORM
 
 } }
 
