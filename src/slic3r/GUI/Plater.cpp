@@ -1571,9 +1571,6 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
     }
 
     update();
-#if !ENABLE_MODIFIED_CAMERA_TARGET
-    this->canvas3D->zoom_to_volumes();
-#endif // !ENABLE_MODIFIED_CAMERA_TARGET
     object_list_changed();
 
     this->schedule_background_process();
@@ -3348,11 +3345,6 @@ void Plater::changed_object(int obj_idx)
 
     // update print
     this->p->schedule_background_process();
-    if (list->is_parts_changed() || list->is_part_settings_changed()) {
-#if !ENABLE_MODIFIED_CAMERA_TARGET
-        p->canvas3D->zoom_to_volumes();
-#endif // !ENABLE_MODIFIED_CAMERA_TARGET
-    }
 }
 
 void Plater::fix_through_netfabb(const int obj_idx) { p->fix_through_netfabb(obj_idx); }

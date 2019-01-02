@@ -4041,13 +4041,11 @@ void GLCanvas3D::zoom_to_volumes()
     m_apply_zoom_to_volumes_filter = false;
 }
 
-#if ENABLE_MODIFIED_CAMERA_TARGET
 void GLCanvas3D::zoom_to_selection()
 {
     if (!m_selection.is_empty())
         _zoom_to_bounding_box(m_selection.get_bounding_box());
 }
-#endif // ENABLE_MODIFIED_CAMERA_TARGET
 
 void GLCanvas3D::select_view(const std::string& direction)
 {
@@ -4827,7 +4825,6 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
                 // key O/o
                 case 79:
                 case 111: { set_camera_zoom(-1.0f); break; }
-#if ENABLE_MODIFIED_CAMERA_TARGET
                 // key Z/z
                 case 90:
                 case 122:
@@ -4839,11 +4836,6 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 
                     break;
                 }
-#else
-                // key Z/z
-                case 90:
-                case 122: { zoom_to_volumes(); break; }
-#endif // ENABLE_MODIFIED_CAMERA_TARGET
                 default:
                 {
                     if (m_gizmos.handle_shortcut(keyCode, m_selection))

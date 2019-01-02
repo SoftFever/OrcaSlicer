@@ -19,8 +19,6 @@
 #define ENABLE_USE_UNIQUE_GLCONTEXT (1 && ENABLE_1_42_0)
 // Disable synchronization of unselected instances
 #define DISABLE_INSTANCES_SYNCH (0 && ENABLE_1_42_0)
-// Modified camera target behavior
-#define ENABLE_MODIFIED_CAMERA_TARGET (1 && ENABLE_1_42_0)
 // Keeps objects on bed while scaling them using the scale gizmo
 #define ENABLE_ENSURE_ON_BED_WHILE_SCALING (1 && ENABLE_1_42_0)
 // All rotations made using the rotate gizmo are done with respect to the world reference system
