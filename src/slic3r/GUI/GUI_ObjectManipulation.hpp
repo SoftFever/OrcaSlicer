@@ -14,18 +14,26 @@ namespace GUI {
 
 class ObjectManipulation : public OG_Settings
 {
-    Vec3d       cache_position   { 0., 0., 0. };
-    Vec3d       cache_rotation   { 0., 0., 0. };
-    Vec3d       cache_scale      { 100., 100., 100. };
-    Vec3d       cache_size       { 0., 0., 0. };
+#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
+    Vec3d m_cache_position;
+    Vec3d m_cache_rotation;
+    Vec3d m_cache_scale;
+    Vec3d m_cache_size;
+#else
+    Vec3d       m_cache_position{ 0., 0., 0. };
+    Vec3d       m_cache_rotation{ 0., 0., 0. };
+    Vec3d       m_cache_scale{ 100., 100., 100. };
+    Vec3d       m_cache_size{ 0., 0., 0. };
+#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 
     wxStaticText*   m_move_Label = nullptr;
     wxStaticText*   m_scale_Label = nullptr;
     wxStaticText*   m_rotate_Label = nullptr;
 
-
+#if !ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     // Needs to be updated from OnIdle?
     bool            m_dirty = false;
+#endif // !ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     // Cached labels for the delayed update, not localized!
     std::string     m_new_move_label_string;
 	std::string     m_new_rotate_label_string;

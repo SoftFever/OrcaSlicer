@@ -43,6 +43,13 @@
 // Separate rendering for opaque and transparent volumes
 #define ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING (1 && ENABLE_1_42_0)
 
+//====================
+// 1.42.0.alpha1 techs
+//====================
+#define ENABLE_1_42_0_ALPHA1 1
+
+#define ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION (1 && ENABLE_1_42_0_ALPHA1)
+
 #endif // _technologies_h_
 
 

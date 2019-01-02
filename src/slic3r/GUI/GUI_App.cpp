@@ -184,8 +184,10 @@ bool GUI_App::OnInit()
         if (app_config->dirty())
             app_config->save();
 
+#if !ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
         if (this->plater() != nullptr)
             this->obj_manipul()->update_if_dirty();
+#endif // !ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     });
 
     // On OS X the UI tends to freeze in weird ways if modal dialogs(config wizard, update notifications, ...)
