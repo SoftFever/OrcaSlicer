@@ -462,6 +462,9 @@ bool GUI_App::select_language(  wxArrayString & names,
         m_wxLocale->AddCatalogLookupPathPrefix(localization_dir());
         m_wxLocale->AddCatalog(/*GetAppName()*/"Slic3rPE");
         wxSetlocale(LC_NUMERIC, "C");
+#ifdef WIN32
+        ::SetLocaleInfoA(LOCALE_CUSTOM_DEFAULT, LOCALE_SDECIMAL, ".");
+#endif /* WIN32 */
         Preset::update_suffix_modified();
         return true;
     }
@@ -489,7 +492,10 @@ bool GUI_App::load_language()
             m_wxLocale->AddCatalogLookupPathPrefix(localization_dir());
             m_wxLocale->AddCatalog(/*GetAppName()*/"Slic3rPE");
             wxSetlocale(LC_NUMERIC, "C");
-            Preset::update_suffix_modified();
+#ifdef WIN32
+			::SetLocaleInfoA(LOCALE_CUSTOM_DEFAULT, LOCALE_SDECIMAL, ".");
+#endif /* WIN32 */
+			Preset::update_suffix_modified();
             return true;
         }
     }
