@@ -1085,7 +1085,8 @@ bool SLASupportTree::generate(const PointSet &points,
             double polar = std::acos(z / r);
             double azimuth = std::atan2(n(1), n(0));
 
-            if(polar >= PI / 2) { // skip if the tilt is not sane
+            // skip if the tilt is not sane
+            if(polar >= PI - cfg.normal_cutoff_angle) {
 
                 // We saturate the polar angle to 3pi/4
                 polar = std::max(polar, 3*PI / 4);

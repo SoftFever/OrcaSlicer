@@ -188,7 +188,15 @@ PointSet normals(const PointSet& points, const EigenMesh3D& emesh,
             neighnorms.emplace_back(U.cross(V).normalized());
         }
 
-        // Throw out duplicates. They would case trouble with summing.
+        // Throw out duplicates. They would cause trouble with summing. We will
+        // use std::unique which works on sorted ranges. We will sort by the
+        // coefficient-wise sum of the normals. It should force the same
+        // elements to be consecutive.
+        std::sort(neighnorms.begin(), neighnorms.end(),
+                  [](const Vec3d& v1, const Vec3d& v2){
+            return v1.sum() < v2.sum();
+        });
+
         auto lend = std::unique(neighnorms.begin(), neighnorms.end(),
                                 [](const Vec3d& n1, const Vec3d& n2) {
             // Compare normals for equivalence. This is controvers stuff.
