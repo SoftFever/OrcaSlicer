@@ -42,7 +42,24 @@ if (MSVC)
     add_compile_options(-bigobj -Zm316)
 endif ()
 
-message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
+
+# Display and check CMAKE_PREFIX_PATH
+message(STATUS "SLIC3R_STATIC: ${SLIC3R_STATIC}")
+if (NOT "${CMAKE_PREFIX_PATH}" STREQUAL "")
+    message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH} (from cache or command line)")
+    set(PREFIX_PATH_CHECK ${CMAKE_PREFIX_PATH})
+elseif (NOT "$ENV{CMAKE_PREFIX_PATH}" STREQUAL "")
+    message(STATUS "CMAKE_PREFIX_PATH: $ENV{CMAKE_PREFIX_PATH} (from environment)")
+    set(PREFIX_PATH_CHECK $ENV{CMAKE_PREFIX_PATH})
+else ()
+    message(STATUS "CMAKE_PREFIX_PATH: (default)")
+endif ()
+
+foreach (DIR ${PREFIX_PATH_CHECK})
+    if (NOT EXISTS "${DIR}")
+        message(WARNING "CMAKE_PREFIX_PATH element doesn't exist: ${DIR}")
+    endif ()
+endforeach ()
 
 # Add our own cmake module path.
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules/)
