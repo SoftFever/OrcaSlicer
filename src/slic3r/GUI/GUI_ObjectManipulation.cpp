@@ -216,13 +216,18 @@ void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& sele
     else if (selection.is_single_full_instance())
 #endif // ENABLE_MODELVOLUME_TRANSFORM
     {
-        // all volumes in the selection belongs to the same instance, any of them contains the needed data, so we take the first
+        // all volumes in the selection belongs to the same instance, any of them contains the needed instance data, so we take the first one
         const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
 #if ENABLE_MODELVOLUME_TRANSFORM
         m_new_position = volume->get_instance_offset();
         m_new_rotation = volume->get_instance_rotation();
         m_new_scale    = volume->get_instance_scaling_factor();
-        m_new_size     = volume->get_instance_transformation().get_matrix(true, true) * volume->bounding_box.size();
+        int obj_idx = volume->object_idx();
+        if ((0 <= obj_idx) && (obj_idx < (int)wxGetApp().model_objects()->size()))
+            m_new_size = volume->get_instance_transformation().get_matrix(true, true) * (*wxGetApp().model_objects())[obj_idx]->raw_mesh().bounding_box().size();
+        else
+            // this should never happen
+            m_new_size = Vec3d::Zero();
 #else
         m_new_position = volume->get_offset();
         m_new_rotation = volume->get_rotation();
@@ -249,7 +254,7 @@ void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& sele
         m_new_position = volume->get_volume_offset();
         m_new_rotation = volume->get_volume_rotation();
         m_new_scale    = volume->get_volume_scaling_factor();
-        m_new_size     = volume->bounding_box.size();
+        m_new_size = volume->get_instance_transformation().get_matrix(true, true) * volume->get_volume_transformation().get_matrix(true, true) * volume->bounding_box.size();
 #else
         m_new_position = volume->get_offset();
         m_new_rotation = volume->get_rotation();
