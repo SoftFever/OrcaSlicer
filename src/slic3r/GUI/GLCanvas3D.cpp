@@ -280,13 +280,8 @@ GLCanvas3D::Camera::Camera()
     , zoom(1.0f)
     , phi(45.0f)
 //    , distance(0.0f)
-#if !ENABLE_CONSTRAINED_CAMERA_TARGET
-    , target(0.0, 0.0, 0.0)
-#endif // !ENABLE_CONSTRAINED_CAMERA_TARGET
     , m_theta(45.0f)
-#if ENABLE_CONSTRAINED_CAMERA_TARGET
     , m_target(Vec3d::Zero())
-#endif // ENABLE_CONSTRAINED_CAMERA_TARGET
 {
 }
 
@@ -309,7 +304,6 @@ void GLCanvas3D::Camera::set_theta(float theta)
     m_theta = clamp(0.0f, GIMBALL_LOCK_THETA_MAX, theta);
 }
 
-#if ENABLE_CONSTRAINED_CAMERA_TARGET
 void GLCanvas3D::Camera::set_target(const Vec3d& target, GLCanvas3D& canvas)
 {
     m_target = target;
@@ -328,7 +322,6 @@ void GLCanvas3D::Camera::set_scene_box(const BoundingBoxf3& box, GLCanvas3D& can
         canvas.viewport_changed();
     }
 }
-#endif // ENABLE_CONSTRAINED_CAMERA_TARGET
 
 GLCanvas3D::Bed::Bed()
     : m_type(Custom)
@@ -4083,14 +4076,12 @@ BoundingBoxf3 GLCanvas3D::volumes_bounding_box() const
     return bb;
 }
 
-#if ENABLE_CONSTRAINED_CAMERA_TARGET
 BoundingBoxf3 GLCanvas3D::scene_bounding_box() const
 {
     BoundingBoxf3 bb = volumes_bounding_box();
     bb.merge(m_bed.get_bounding_box());
     return bb;
 }
-#endif // ENABLE_CONSTRAINED_CAMERA_TARGET
 
 bool GLCanvas3D::is_layers_editing_enabled() const
 {
@@ -4226,12 +4217,8 @@ void GLCanvas3D::set_viewport_from_scene(const GLCanvas3D& other)
 {
     m_camera.phi = other.m_camera.phi;
     m_camera.set_theta(other.m_camera.get_theta());
-#if ENABLE_CONSTRAINED_CAMERA_TARGET
     m_camera.set_scene_box(other.m_camera.get_scene_box(), *this);
     m_camera.set_target(other.m_camera.get_target(), *this);
-#else
-    m_camera.target = other.m_camera.target;
-#endif // ENABLE_CONSTRAINED_CAMERA_TARGET
     m_camera.zoom = other.m_camera.zoom;
     m_dirty = true;
 }
@@ -4783,10 +4770,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     // restore to default value
     m_regenerate_volumes = true;
 
-#if ENABLE_CONSTRAINED_CAMERA_TARGET
     m_camera.set_scene_box(scene_bounding_box(), *this);
     m_camera.set_target(m_camera.get_target(), *this);
-#endif // ENABLE_CONSTRAINED_CAMERA_TARGET
 
     // and force this canvas to be redrawn.
     m_dirty = true;
@@ -5343,11 +5328,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 float z = 0.0f;
                 const Vec3d& cur_pos = _mouse_to_3d(pos, &z);
                 Vec3d orig = _mouse_to_3d(m_mouse.drag.start_position_2D, &z);
-#if ENABLE_CONSTRAINED_CAMERA_TARGET
                 m_camera.set_target(m_camera.get_target() + orig - cur_pos, *this);
-#else
-                m_camera.target += orig - cur_pos;
-#endif // ENABLE_CONSTRAINED_CAMERA_TARGET
 
                 viewport_changed();
 
@@ -5433,10 +5414,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // Let the platter know that the dragging finished, so a delayed refresh
             // of the scene with the background processing data should be performed.
             post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
-#if ENABLE_CONSTRAINED_CAMERA_TARGET
             m_camera.set_scene_box(scene_bounding_box(), *this);
             set_camera_zoom(0.0f);
-#endif // ENABLE_CONSTRAINED_CAMERA_TARGET
         }
 
         m_moving = false;
@@ -6075,11 +6054,7 @@ void GLCanvas3D::_zoom_to_bounding_box(const BoundingBoxf3& bbox)
     {
         m_camera.zoom = zoom;
         // center view around bounding box center
-#if ENABLE_CONSTRAINED_CAMERA_TARGET
         m_camera.set_target(bbox.center(), *this);
-#else
-        m_camera.target = bbox.center();
-#endif // ENABLE_CONSTRAINED_CAMERA_TARGET
 
         viewport_changed();
 
@@ -6201,12 +6176,8 @@ void GLCanvas3D::_camera_tranform() const
     ::glRotatef(-m_camera.get_theta(), 1.0f, 0.0f, 0.0f); // pitch
     ::glRotatef(m_camera.phi, 0.0f, 0.0f, 1.0f);          // yaw
 
-#if ENABLE_CONSTRAINED_CAMERA_TARGET
     Vec3d target = -m_camera.get_target();
     ::glTranslated(target(0), target(1), target(2));
-#else
-    ::glTranslated(-m_camera.target(0), -m_camera.target(1), -m_camera.target(2));
-#endif // ENABLE_CONSTRAINED_CAMERA_TARGET
 }
 
 void GLCanvas3D::_picking_pass() const
@@ -6555,7 +6526,6 @@ void GLCanvas3D::_render_camera_target() const
 
     ::glLineWidth(2.0f);
     ::glBegin(GL_LINES);
-#if ENABLE_CONSTRAINED_CAMERA_TARGET
     const Vec3d& target = m_camera.get_target();
     // draw line for x axis
     ::glColor3f(1.0f, 0.0f, 0.0f);
@@ -6569,22 +6539,6 @@ void GLCanvas3D::_render_camera_target() const
     ::glColor3f(0.0f, 0.0f, 1.0f);
     ::glVertex3d(target(0), target(1), target(2) - half_length);
     ::glVertex3d(target(0), target(1), target(2) + half_length);
-#else
-    // draw line for x axis
-    ::glColor3f(1.0f, 0.0f, 0.0f);
-    ::glVertex3d(m_camera.target(0) - half_length, m_camera.target(1), m_camera.target(2));
-    ::glVertex3d(m_camera.target(0) + half_length, m_camera.target(1), m_camera.target(2));
-    // draw line for y axis
-    ::glColor3f(0.0f, 1.0f, 0.0f);
-    ::glVertex3d(m_camera.target(0), m_camera.target(1) - half_length, m_camera.target(2));
-    ::glVertex3d(m_camera.target(0), m_camera.target(1) + half_length, m_camera.target(2));
-    ::glEnd();
-
-    ::glBegin(GL_LINES);
-    ::glColor3f(0.0f, 0.0f, 1.0f);
-    ::glVertex3d(m_camera.target(0), m_camera.target(1), m_camera.target(2) - half_length);
-    ::glVertex3d(m_camera.target(0), m_camera.target(1), m_camera.target(2) + half_length);
-#endif // ENABLE_CONSTRAINED_CAMERA_TARGET
     ::glEnd();
 }
 #endif // ENABLE_SHOW_CAMERA_TARGET

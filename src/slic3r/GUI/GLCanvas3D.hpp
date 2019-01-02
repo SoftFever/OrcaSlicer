@@ -157,15 +157,10 @@ class GLCanvas3D
         float zoom;
         float phi;
 //        float distance;
-#if !ENABLE_CONSTRAINED_CAMERA_TARGET
-        Vec3d target;
-#endif // ENABLE_CONSTRAINED_CAMERA_TARGET
 
     private:
-#if ENABLE_CONSTRAINED_CAMERA_TARGET
         Vec3d m_target;
         BoundingBoxf3 m_scene_box;
-#endif // ENABLE_CONSTRAINED_CAMERA_TARGET
         float m_theta;
 
     public:
@@ -176,13 +171,11 @@ class GLCanvas3D
         float get_theta() const { return m_theta; }
         void set_theta(float theta);
 
-#if ENABLE_CONSTRAINED_CAMERA_TARGET
         const Vec3d& get_target() const { return m_target; }
         void set_target(const Vec3d& target, GLCanvas3D& canvas);
 
         const BoundingBoxf3& get_scene_box() const { return m_scene_box; }
         void set_scene_box(const BoundingBoxf3& box, GLCanvas3D& canvas);
-#endif // ENABLE_CONSTRAINED_CAMERA_TARGET
     };
 
     class Bed
@@ -865,10 +858,6 @@ private:
     wxWindow *m_external_gizmo_widgets_parent;
 #endif // not ENABLE_IMGUI
 
-#if !ENABLE_CONSTRAINED_CAMERA_TARGET
-    void viewport_changed();
-#endif // !ENABLE_CONSTRAINED_CAMERA_TARGET
-
 public:
     GLCanvas3D(wxGLCanvas* canvas);
     ~GLCanvas3D();
@@ -933,9 +922,7 @@ public:
     float get_camera_zoom() const;
 
     BoundingBoxf3 volumes_bounding_box() const;
-#if ENABLE_CONSTRAINED_CAMERA_TARGET
     BoundingBoxf3 scene_bounding_box() const;
-#endif // ENABLE_CONSTRAINED_CAMERA_TARGET
 
     bool is_layers_editing_enabled() const;
     bool is_layers_editing_allowed() const;
@@ -1026,9 +1013,7 @@ public:
 
     void update_gizmos_on_off_state();
 
-#if ENABLE_CONSTRAINED_CAMERA_TARGET
     void viewport_changed();
-#endif // ENABLE_CONSTRAINED_CAMERA_TARGET
 
     void handle_sidebar_focus_event(const std::string& opt_key, bool focus_on);
 

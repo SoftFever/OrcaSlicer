@@ -34,8 +34,6 @@
 #define ENABLE_SLA_SUPPORT_GIZMO_MOD (1 && ENABLE_1_42_0)
 // Removes the wxNotebook from plater
 #define ENABLE_REMOVE_TABS_FROM_PLATER (1 && ENABLE_1_42_0)
-// Constrains the camera target into the scene bounding box
-#define ENABLE_CONSTRAINED_CAMERA_TARGET (1 && ENABLE_1_42_0)
 // Use wxDataViewRender instead of wxDataViewCustomRenderer
 #define ENABLE_NONCUSTOM_DATA_VIEW_RENDERING (0 && ENABLE_1_42_0)
 // Adds background texture to toolbars
