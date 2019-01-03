@@ -75,6 +75,19 @@ bool Duet::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn e
 	http.set_post_body(upload_data.source_path)
 		.on_complete([&](std::string body, unsigned status) {
 			BOOST_LOG_TRIVIAL(debug) << boost::format("Duet: File uploaded: HTTP %1%: %2%") % status % body;
+
+			int err_code = get_err_code_from_body(body);
+			if (err_code != 0) {
+				BOOST_LOG_TRIVIAL(error) << boost::format("Duet: Request completed but error code was received: %1%") % err_code;
+				error_fn(format_error(body, L("Unknown error occured"), 0));
+				res = false;
+			} else if (upload_data.start_print) {
+				wxString errormsg;
+				res = start_print(errormsg, upload_data.upload_path.string());
+				if (! res) {
+					error_fn(std::move(errormsg));
+				}
+			}
 		})
 		.on_error([&](std::string body, std::string error, unsigned status) {
 			BOOST_LOG_TRIVIAL(error) << boost::format("Duet: Error uploading file: %1%, HTTP %2%, body: `%3%`") % error % status % body;
