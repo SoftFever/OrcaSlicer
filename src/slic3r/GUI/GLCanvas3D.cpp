@@ -4896,6 +4896,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
 
         m_mouse.set_start_position_2D_as_invalid();
+        m_mouse.set_start_position_3D_as_invalid();
 #endif
     }
     else if (evt.Leaving())
