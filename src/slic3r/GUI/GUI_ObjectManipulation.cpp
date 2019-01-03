@@ -413,6 +413,10 @@ void ObjectManipulation::change_rotation_value(const Vec3d& rotation)
     canvas->get_selection().start_dragging();
     canvas->get_selection().rotate(rad_rotation, selection.is_single_full_instance());
     canvas->do_rotate();
+
+#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
+    m_cache_rotation = rotation;
+#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 }
 
 void ObjectManipulation::change_scale_value(const Vec3d& scale)
@@ -443,6 +447,10 @@ void ObjectManipulation::change_scale_value(const Vec3d& scale)
     canvas->get_selection().start_dragging();
     canvas->get_selection().scale(scaling_factor, false);
     canvas->do_scale();
+
+#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
+    m_cache_scale = scale;
+#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 }
 
 void ObjectManipulation::change_size_value(const Vec3d& size)
@@ -457,6 +465,10 @@ void ObjectManipulation::change_size_value(const Vec3d& size)
     }
 
     change_scale_value(100.0 * Vec3d(size(0) / ref_size(0), size(1) / ref_size(1), size(2) / ref_size(2)));
+
+#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
+    m_cache_size = size;
+#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 }
 
 } //namespace GUI

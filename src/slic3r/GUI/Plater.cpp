@@ -936,6 +936,7 @@ struct Plater::priv
     static const std::regex pattern_bundle;
     static const std::regex pattern_3mf;
     static const std::regex pattern_zip_amf;
+    static const std::regex pattern_any_amf;
 
     priv(Plater *q, MainFrame *main_frame);
 
@@ -1051,6 +1052,8 @@ private:
 const std::regex Plater::priv::pattern_bundle(".*[.](amf|amf[.]xml|zip[.]amf|3mf|prusa)", std::regex::icase);
 const std::regex Plater::priv::pattern_3mf(".*3mf", std::regex::icase);
 const std::regex Plater::priv::pattern_zip_amf(".*[.]zip[.]amf", std::regex::icase);
+const std::regex Plater::priv::pattern_any_amf(".*[.](amf|amf[.]xml|zip[.]amf)", std::regex::icase);
+
 Plater::priv::priv(Plater *q, MainFrame *main_frame)
     : q(q)
     , main_frame(main_frame)
@@ -1196,6 +1199,10 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         { if (evt.data == 1) this->q->increase_instances(); else if (this->can_decrease_instances()) this->q->decrease_instances(); });
     view3D_canvas->Bind(EVT_GLCANVAS_INSTANCE_MOVED, [this](SimpleEvent&) { update(); });
     view3D_canvas->Bind(EVT_GLCANVAS_WIPETOWER_MOVED, &priv::on_wipetower_moved, this);
+#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
+    view3D_canvas->Bind(EVT_GLCANVAS_INSTANCE_ROTATED, [this](SimpleEvent&) { update(); });
+    view3D_canvas->Bind(EVT_GLCANVAS_INSTANCE_SCALED, [this](SimpleEvent&) { update(); });
+#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     view3D_canvas->Bind(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, [this](Event<bool> &evt) { this->sidebar->enable_buttons(evt.data); });
     view3D_canvas->Bind(EVT_GLCANVAS_UPDATE_GEOMETRY, &priv::on_update_geometry, this);
     view3D_canvas->Bind(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, &priv::on_3dcanvas_mouse_dragging_finished, this);
@@ -1396,6 +1403,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
         const bool type_3mf = std::regex_match(path.string(), pattern_3mf);
         const bool type_zip_amf = !type_3mf && std::regex_match(path.string(), pattern_zip_amf);
+        const bool type_any_amf = !type_3mf && std::regex_match(path.string(), pattern_any_amf);
 
         Slic3r::Model model;
         try {
@@ -1451,7 +1459,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 }
             }
 
-            if (type_3mf) {
+            if (type_3mf || type_any_amf) {
                 for (ModelObject* model_object : model.objects) {
                     model_object->center_around_origin();
                     model_object->ensure_on_bed();
