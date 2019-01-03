@@ -459,7 +459,7 @@ bool GUI_App::select_language(  wxArrayString & names,
     {
         m_wxLocale = new wxLocale;
         m_wxLocale->Init(identifiers[index]);
-        m_wxLocale->AddCatalogLookupPathPrefix(localization_dir());
+		m_wxLocale->AddCatalogLookupPathPrefix(wxString::FromUTF8(localization_dir()));
         m_wxLocale->AddCatalog(/*GetAppName()*/"Slic3rPE");
         wxSetlocale(LC_NUMERIC, "C");
 #ifdef WIN32
@@ -489,7 +489,7 @@ bool GUI_App::load_language()
         {
             m_wxLocale = new wxLocale;
             m_wxLocale->Init(identifiers[i]);
-            m_wxLocale->AddCatalogLookupPathPrefix(localization_dir());
+			m_wxLocale->AddCatalogLookupPathPrefix(wxString::FromUTF8(localization_dir()));
             m_wxLocale->AddCatalog(/*GetAppName()*/"Slic3rPE");
             wxSetlocale(LC_NUMERIC, "C");
 #ifdef WIN32
@@ -519,7 +519,7 @@ void GUI_App::get_installed_languages(wxArrayString & names, wxArrayLong & ident
     names.Clear();
     identifiers.Clear();
 
-    wxDir dir(localization_dir());
+	wxDir dir(wxString::FromUTF8(localization_dir()));
     wxString filename;
     const wxLanguageInfo * langinfo;
     wxString name = wxLocale::GetLanguageName(wxLANGUAGE_DEFAULT);
