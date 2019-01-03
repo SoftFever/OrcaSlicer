@@ -1117,7 +1117,9 @@ bool SLASupportTree::generate(const PointSet &points,
                     head_norm.row(pcount) = nn;
 
                     ++pcount;
-                } else {
+                } else if( polar >= 3*PI/4 ) {
+                    // Headless supports do not tilt like the headed ones so
+                    // the normal should point almost to the ground.
                     headless_norm.row(hlcount) = nn;
                     headless_pos.row(hlcount++) = hp;
                 }

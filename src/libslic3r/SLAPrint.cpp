@@ -502,8 +502,8 @@ void SLAPrint::process()
         po.m_supportdata.reset(new SLAPrintObject::SupportData());
         po.m_supportdata->emesh = sla::to_eigenmesh(po.transformed_mesh());
 
-        BOOST_LOG_TRIVIAL(debug)
-                << "Support point count " << mo.sla_support_points.size();
+        BOOST_LOG_TRIVIAL(debug) << "Support point count "
+                                 << mo.sla_support_points.size();
 
         // If there are no points on the front-end, we will do the
         // autoplacement. Otherwise we will just blindly copy the frontend data
@@ -537,6 +537,9 @@ void SLAPrint::process()
             const std::vector<Vec3d>& points = auto_supports.output();
             this->throw_if_canceled();
             po.m_supportdata->support_points = sla::to_point_set(points);
+
+            BOOST_LOG_TRIVIAL(debug) << "Automatic support points: "
+                                     << po.m_supportdata->support_points.rows();
         }
         else {
             // There are some points on the front-end, no calculation will be done.
@@ -584,13 +587,15 @@ void SLAPrint::process()
 
             // Create the unified mesh
             auto rc = SlicingStatus::RELOAD_SCENE;
-            po.m_supportdata->support_tree_ptr->merged_mesh();
 
-            // Check the mesh for later troubleshooting.
+            // This is to prevent "Done." being displayed during merged_mesh()
+            report_status(*this, -1, L("Visualizing supports"));
+            po.m_supportdata->support_tree_ptr->merged_mesh();
 
             BOOST_LOG_TRIVIAL(debug) << "Processed support point count "
                                      << po.m_supportdata->support_points.rows();
 
+            // Check the mesh for later troubleshooting.
             if(po.support_mesh().empty())
                 BOOST_LOG_TRIVIAL(warning) << "Support mesh is empty";
 
