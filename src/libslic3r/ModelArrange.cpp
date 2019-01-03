@@ -511,8 +511,9 @@ ShapeData2D projectModelFromTop(const Slic3r::Model &model) {
             ModelInstance * finst = objptr->instances.front();
 
             // Object instances should carry the same scaling and
-            // x, y rotation that is why we use the first instance
-            rmesh.scale(finst->get_scaling_factor());
+            // x, y rotation that is why we use the first instance.
+            // The next line will apply only the full mirroring and scaling
+            rmesh.transform(finst->get_matrix(true, true, false, false));
             rmesh.rotate_x(float(finst->get_rotation()(X)));
             rmesh.rotate_y(float(finst->get_rotation()(Y)));
 
