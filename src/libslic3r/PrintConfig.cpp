@@ -3118,6 +3118,13 @@ CLIConfigDef::CLIConfigDef()
 const CLIConfigDef cli_config_def;
 DynamicPrintAndCLIConfig::PrintAndCLIConfigDef DynamicPrintAndCLIConfig::s_def;
 
+void DynamicPrintAndCLIConfig::handle_legacy(t_config_option_key &opt_key, std::string &value) const
+{
+    if (cli_config_def.options.find(opt_key) == cli_config_def.options.end()) {
+        PrintConfigDef::handle_legacy(opt_key, value);
+    }
+}
+
 std::ostream& print_cli_options(std::ostream& out)
 {
     for (const auto& opt : cli_config_def.options) {
