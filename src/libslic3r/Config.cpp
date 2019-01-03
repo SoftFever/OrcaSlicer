@@ -404,7 +404,7 @@ void ConfigBase::load_from_gcode_file(const std::string &file)
 
     size_t key_value_pairs = load_from_gcode_string(data.data());
     if (key_value_pairs < 80)
-        throw std::runtime_error((boost::format("Suspiciously low number of configuration values extracted from %1: %2") % file % key_value_pairs).str());
+        throw std::runtime_error((boost::format("Suspiciously low number of configuration values extracted from %1%: %2%") % file % key_value_pairs).str());
 }
 
 // Load the config keys from the given string.
@@ -536,7 +536,7 @@ void DynamicConfig::read_cli(const std::vector<std::string> &tokens, t_config_op
     args.emplace_back(const_cast<char*>(""));
     for (size_t i = 0; i < tokens.size(); ++ i)
         args.emplace_back(const_cast<char *>(tokens[i].c_str()));
-    this->read_cli(args.size(), &args[0], extra);
+    this->read_cli(int(args.size()), &args[0], extra);
 }
 
 bool DynamicConfig::read_cli(int argc, char** argv, t_config_option_keys* extra)

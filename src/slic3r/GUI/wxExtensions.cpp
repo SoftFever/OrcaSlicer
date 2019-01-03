@@ -422,13 +422,13 @@ bool PrusaObjectDataViewModelNode::update_settings_digest(const std::vector<std:
     if (!m_name.IsEmpty())
         m_name.erase(m_name.Length()-2, 2); // Delete last "; "
 
-    wxBitmap *bmp = m_bitmap_cache->find(m_name.ToStdString());
+    wxBitmap *bmp = m_bitmap_cache->find(m_name.ToUTF8().data());
     if (bmp == nullptr) {
         std::vector<wxBitmap> bmps;
         for (auto& cat : m_opt_categories)
             bmps.emplace_back(categories_icon.find(cat) == categories_icon.end() ?
                               wxNullBitmap : categories_icon.at(cat));
-        bmp = m_bitmap_cache->insert(m_name.ToStdString(), bmps);
+        bmp = m_bitmap_cache->insert(m_name.ToUTF8().data(), bmps);
     }
 
     m_bmp = *bmp;

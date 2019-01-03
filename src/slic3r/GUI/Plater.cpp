@@ -2083,7 +2083,7 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     //! So, to get selected string we do 
     //!     combo->GetString(combo->GetSelection()) 
     //! instead of 
-    //!     combo->GetStringSelection().ToStdString()); 
+    //!     combo->GetStringSelection().ToUTF8().data()); 
 
     std::string selected_string = combo->GetString(combo->GetSelection()).ToUTF8().data();
 

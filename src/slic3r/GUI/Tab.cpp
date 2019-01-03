@@ -209,7 +209,7 @@ void Tab::create_preset_tab()
 	m_presets_choice->Bind(wxEVT_COMBOBOX, ([this](wxCommandEvent e) {
 		//! Because of The MSW and GTK version of wxBitmapComboBox derived from wxComboBox, 
 		//! but the OSX version derived from wxOwnerDrawnCombo, instead of:
-		//! select_preset(m_presets_choice->GetStringSelection().ToStdString()); 
+		//! select_preset(m_presets_choice->GetStringSelection().ToUTF8().data()); 
 		//! we doing next:
 		int selected_item = m_presets_choice->GetSelection();
 		if (m_selected_preset_item == selected_item && !m_presets->current_is_dirty())
@@ -2804,7 +2804,7 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
 			selections.Clear();
 			selections = dlg.GetSelections();
 			for (auto idx : selections)
-				value.push_back(presets[idx].ToStdString());
+				value.push_back(presets[idx].ToUTF8().data());
 			if (value.empty()) {
 				deps.checkbox->SetValue(1);
 				deps.btn->Disable();

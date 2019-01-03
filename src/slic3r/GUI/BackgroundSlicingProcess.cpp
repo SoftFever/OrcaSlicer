@@ -126,7 +126,7 @@ public:
     }
 
     inline std::string get_name() const {
-        return fpath.GetName().ToStdString();
+        return fpath.GetName().ToUTF8().data();
     }
 
     template<class T> inline LayerWriter& operator<<(const T& arg) {

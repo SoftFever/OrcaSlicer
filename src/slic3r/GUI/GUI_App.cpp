@@ -509,7 +509,7 @@ void GUI_App::save_language()
     if (m_wxLocale)
         language = m_wxLocale->GetCanonicalName();
 
-    app_config->set("translation_language", language.ToStdString());
+    app_config->set("translation_language", language.ToUTF8().data());
     app_config->save();
 }
 

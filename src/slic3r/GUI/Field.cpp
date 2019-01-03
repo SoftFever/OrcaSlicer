@@ -188,7 +188,7 @@ void Field::get_value_by_opt_type(wxString& str)
             }
         }
     
-        m_value = str.ToStdString();
+        m_value = str.ToUTF8().data();
 		break; }
 	default:
 		break;

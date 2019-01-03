@@ -298,13 +298,13 @@ void ObjectList::update_name_in_model(const wxDataViewItem& item)
     if (obj_idx < 0) return;
 
     if (m_objects_model->GetParent(item) == wxDataViewItem(0)) {
-        (*m_objects)[obj_idx]->name = m_objects_model->GetName(item).ToStdString();
+        (*m_objects)[obj_idx]->name = m_objects_model->GetName(item).ToUTF8().data();
         return;
     }
 
     const int volume_id = m_objects_model->GetVolumeIdByItem(item);
     if (volume_id < 0) return;
-    (*m_objects)[obj_idx]->volumes[volume_id]->name = m_objects_model->GetName(item).ToStdString();
+    (*m_objects)[obj_idx]->volumes[volume_id]->name = m_objects_model->GetName(item).ToUTF8().data();
 }
 
 void ObjectList::init_icons()
@@ -657,7 +657,7 @@ void ObjectList::append_menu_item_add_generic(wxMenuItem* menu, const int type) 
     std::vector<std::string> menu_items = { L("Box"), L("Cylinder"), L("Sphere"), L("Slab") };
     for (auto& item : menu_items) {
         append_menu_item(sub_menu, wxID_ANY, _(item), "",
-            [this, type, item](wxCommandEvent&) { load_generic_subobject(_(item).ToStdString(), type); }, "", menu->GetMenu());
+            [this, type, item](wxCommandEvent&) { load_generic_subobject(_(item).ToUTF8().data(), type); }, "", menu->GetMenu());
     }
 
     menu->SetSubMenu(sub_menu);
@@ -683,10 +683,10 @@ void ObjectList::append_menu_items_add_volume(wxMenu* menu)
         append_menu_item(menu, wxID_ANY, _(L("Add part")), "",
             [this](wxCommandEvent&) { load_subobject(ModelVolume::MODEL_PART); }, *m_bmp_vector[ModelVolume::MODEL_PART]);
         append_menu_item(menu, wxID_ANY, _(L("Add support enforcer")), "",
-            [this](wxCommandEvent&) { load_generic_subobject(_(L("Box")).ToStdString(), ModelVolume::SUPPORT_ENFORCER); }, 
+            [this](wxCommandEvent&) { load_generic_subobject(_(L("Box")).ToUTF8().data(), ModelVolume::SUPPORT_ENFORCER); }, 
             *m_bmp_vector[ModelVolume::SUPPORT_ENFORCER]);
         append_menu_item(menu, wxID_ANY, _(L("Add support blocker")), "",
-            [this](wxCommandEvent&) { load_generic_subobject(_(L("Box")).ToStdString(), ModelVolume::SUPPORT_BLOCKER); }, 
+            [this](wxCommandEvent&) { load_generic_subobject(_(L("Box")).ToUTF8().data(), ModelVolume::SUPPORT_BLOCKER); }, 
             *m_bmp_vector[ModelVolume::SUPPORT_BLOCKER]);
 
         return;
@@ -823,7 +823,7 @@ void ObjectList::load_part( ModelObject* model_object,
     wxArrayString input_files;
     wxGetApp().import_model(parent, input_files);
     for (int i = 0; i < input_files.size(); ++i) {
-        std::string input_file = input_files.Item(i).ToStdString();
+        std::string input_file = input_files.Item(i).ToUTF8().data();
 
         Model model;
         try {

@@ -488,7 +488,7 @@ void MainFrame::quick_slice(const int qs)
 //     });
 
     // keep model around
-    auto model = Slic3r::Model::read_from_file(input_file.ToStdString());
+    auto model = Slic3r::Model::read_from_file(input_file.ToUTF8().data());
 
 //     sprint->apply_config(config);
 //     sprint->set_model(model);
@@ -630,7 +630,7 @@ void MainFrame::export_config()
     if (!file.IsEmpty()) {
         wxGetApp().app_config->update_config_dir(get_dir_name(file));
         m_last_config = file;
-        config.save(file.ToStdString());
+        config.save(file.ToUTF8().data());
     }
 }
 
@@ -649,7 +649,7 @@ void MainFrame::load_config_file(wxString file/* = wxEmptyString*/)
         dlg->Destroy();
     }
     try {
-        wxGetApp().preset_bundle->load_config_file(file.ToStdString()); 
+        wxGetApp().preset_bundle->load_config_file(file.ToUTF8().data()); 
     } catch (const std::exception &ex) {
         show_error(this, ex.what());
         return;
@@ -682,7 +682,7 @@ void MainFrame::export_configbundle()
         // Export the config bundle.
         wxGetApp().app_config->update_config_dir(get_dir_name(file));
         try {
-            wxGetApp().preset_bundle->export_configbundle(file.ToStdString()); 
+            wxGetApp().preset_bundle->export_configbundle(file.ToUTF8().data()); 
         } catch (const std::exception &ex) {
 			show_error(this, ex.what());
         }
@@ -710,7 +710,7 @@ void MainFrame::load_configbundle(wxString file/* = wxEmptyString, const bool re
 
     auto presets_imported = 0;
     try {
-        presets_imported = wxGetApp().preset_bundle->load_configbundle(file.ToStdString());
+        presets_imported = wxGetApp().preset_bundle->load_configbundle(file.ToUTF8().data());
     } catch (const std::exception &ex) {
         show_error(this, ex.what());
         return;

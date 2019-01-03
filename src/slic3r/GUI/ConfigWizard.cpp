@@ -72,8 +72,7 @@ PrinterPicker::PrinterPicker(wxWindow *parent, const VendorProfile &vendor, cons
 	std::vector<wxPanel*> variants_panels;
 
 	for (const auto &model : models) {
-		auto bitmap_file = wxString::Format("printers/%s_%s.png", vendor.id, model.id);
-		wxBitmap bitmap(GUI::from_u8(Slic3r::var(bitmap_file.ToStdString())), wxBITMAP_TYPE_PNG);
+		wxBitmap bitmap(GUI::from_u8(Slic3r::var((boost::format("printers/%1%_%2%.png") % vendor.id % model.id).str())), wxBITMAP_TYPE_PNG);
 
 		auto *title = new wxStaticText(this, wxID_ANY, model.name, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
 		title->SetFont(namefont);

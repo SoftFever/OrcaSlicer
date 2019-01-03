@@ -305,7 +305,7 @@ void BedShapePanel::load_stl()
 	dialog->GetPaths(input_file);
 	dialog->Destroy();
 
-	std::string file_name = input_file[0].ToStdString();
+	std::string file_name = input_file[0].ToUTF8().data();
 
 	Model model;
 	try {
