@@ -355,30 +355,16 @@ bool GLToolbar::is_item_disabled(const std::string& name) const
     return false;
 }
 
-#if ENABLE_REMOVE_TABS_FROM_PLATER
 std::string GLToolbar::update_hover_state(const Vec2d& mouse_pos, GLCanvas3D& parent)
-#else
-void GLToolbar::update_hover_state(const Vec2d& mouse_pos, GLCanvas3D& parent)
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 {
-#if ENABLE_REMOVE_TABS_FROM_PLATER
     if (!m_enabled)
         return "";
-#else
-    if (!m_enabled)
-        return;
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
     switch (m_layout.type)
     {
     default:
-#if ENABLE_REMOVE_TABS_FROM_PLATER
     case Layout::Horizontal: { return update_hover_state_horizontal(mouse_pos, parent); }
     case Layout::Vertical: { return update_hover_state_vertical(mouse_pos, parent); }
-#else
-    case Layout::Horizontal: { update_hover_state_horizontal(mouse_pos, parent); break; }
-    case Layout::Vertical: { update_hover_state_vertical(mouse_pos, parent); break; }
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
     }
 }
 
@@ -512,11 +498,7 @@ float GLToolbar::get_main_size() const
     return size;
 }
 
-#if ENABLE_REMOVE_TABS_FROM_PLATER
 std::string GLToolbar::update_hover_state_horizontal(const Vec2d& mouse_pos, GLCanvas3D& parent)
-#else
-void GLToolbar::update_hover_state_horizontal(const Vec2d& mouse_pos, GLCanvas3D& parent)
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 {
     float zoom = parent.get_camera_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
@@ -606,19 +588,10 @@ void GLToolbar::update_hover_state_horizontal(const Vec2d& mouse_pos, GLCanvas3D
         }
     }
 
-#if ENABLE_REMOVE_TABS_FROM_PLATER
     return tooltip;
-#else
-    if (!tooltip.empty())
-        m_parent.set_tooltip(tooltip);
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 }
 
-#if ENABLE_REMOVE_TABS_FROM_PLATER
 std::string GLToolbar::update_hover_state_vertical(const Vec2d& mouse_pos, GLCanvas3D& parent)
-#else
-void GLToolbar::update_hover_state_vertical(const Vec2d& mouse_pos, GLCanvas3D& parent)
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 {
     float zoom = parent.get_camera_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
@@ -708,11 +681,7 @@ void GLToolbar::update_hover_state_vertical(const Vec2d& mouse_pos, GLCanvas3D& 
         }
     }
 
-#if ENABLE_REMOVE_TABS_FROM_PLATER
     return tooltip;
-#else
-    m_parent.set_tooltip(tooltip);
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 }
 
 int GLToolbar::contains_mouse_horizontal(const Vec2d& mouse_pos, const GLCanvas3D& parent) const

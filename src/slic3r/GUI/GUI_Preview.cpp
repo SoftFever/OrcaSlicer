@@ -27,7 +27,6 @@
 namespace Slic3r {
 namespace GUI {
 
-#if ENABLE_REMOVE_TABS_FROM_PLATER
     View3D::View3D(wxWindow* parent, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)
     : m_canvas_widget(nullptr)
     , m_canvas(nullptr)
@@ -184,13 +183,8 @@ void View3D::render()
     if (m_canvas != nullptr)
         m_canvas->render();
 }
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
-#if ENABLE_REMOVE_TABS_FROM_PLATER
 Preview::Preview(wxWindow* parent, DynamicPrintConfig* config, BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, std::function<void()> schedule_background_process_func)
-#else
-Preview::Preview(wxNotebook* notebook, DynamicPrintConfig* config, BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, std::function<void()> schedule_background_process_func)
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
     : m_canvas_widget(nullptr)
     , m_canvas(nullptr)
     , m_double_slider_sizer(nullptr)
@@ -211,42 +205,20 @@ Preview::Preview(wxNotebook* notebook, DynamicPrintConfig* config, BackgroundSli
     , m_enabled(false)
     , m_schedule_background_process(schedule_background_process_func)
 {
-#if ENABLE_REMOVE_TABS_FROM_PLATER
     if (init(parent, config, process, gcode_preview_data))
     {
         show_hide_ui_elements("none");
         load_print();
     }
-#else
-    if (init(notebook, config, process, gcode_preview_data))
-    {
-        notebook->AddPage(this, _(L("Preview")));
-        show_hide_ui_elements("none");
-        load_print();
-    }
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 }
 
-#if ENABLE_REMOVE_TABS_FROM_PLATER
 bool Preview::init(wxWindow* parent, DynamicPrintConfig* config, BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data)
-#else
-bool Preview::init(wxNotebook* notebook, DynamicPrintConfig* config, BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data)
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 {
-#if ENABLE_REMOVE_TABS_FROM_PLATER
     if ((config == nullptr) || (process == nullptr) || (gcode_preview_data == nullptr))
         return false;
 
     if (!Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize))
         return false;
-#else
-    if ((notebook == nullptr) || (config == nullptr) || (process == nullptr) || (gcode_preview_data == nullptr))
-        return false;
-
-    // creates this panel add append it to the given notebook as a new page
-    if (!Create(notebook, wxID_ANY, wxDefaultPosition, wxDefaultSize))
-        return false;
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
     m_canvas_widget = GLCanvas3DManager::create_wxglcanvas(this);
 	_3DScene::add_canvas(m_canvas_widget);
@@ -361,13 +333,11 @@ Preview::~Preview()
     }
 }
 
-#if ENABLE_REMOVE_TABS_FROM_PLATER
 void Preview::set_view_toolbar(GLToolbar* toolbar)
 {
     if (m_canvas != nullptr)
         m_canvas->set_view_toolbar(toolbar);
 }
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
 void Preview::set_number_extruders(unsigned int number_extruders)
 {

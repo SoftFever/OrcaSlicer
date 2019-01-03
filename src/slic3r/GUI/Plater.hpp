@@ -119,9 +119,8 @@ public:
 
     void update();
     void select_view(const std::string& direction);
-#if ENABLE_REMOVE_TABS_FROM_PLATER
     void select_view_3D(const std::string& name);
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
+
     // Called after the Preferences dialog is closed and the program settings are saved.
     // Update the UI based on the current preferences.
     void update_ui_from_settings();

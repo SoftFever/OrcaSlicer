@@ -21,18 +21,13 @@ class DynamicPrintConfig;
 class Print;
 class BackgroundSlicingProcess;
 class GCodePreviewData;
-#if ENABLE_REMOVE_TABS_FROM_PLATER
 class Model;
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
 namespace GUI {
 
 class GLCanvas3D;
-#if ENABLE_REMOVE_TABS_FROM_PLATER
 class GLToolbar;
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
-#if ENABLE_REMOVE_TABS_FROM_PLATER
 class View3D : public wxPanel
 {
     wxGLCanvas* m_canvas_widget;
@@ -79,7 +74,6 @@ public:
 private:
     bool init(wxWindow* parent, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process);
 };
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
 class Preview : public wxPanel
 {
@@ -111,18 +105,12 @@ class Preview : public wxPanel
     PrusaDoubleSlider* m_slider {nullptr};
 
 public:
-#if ENABLE_REMOVE_TABS_FROM_PLATER
     Preview(wxWindow* parent, DynamicPrintConfig* config, BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, std::function<void()> schedule_background_process = [](){});
-#else
-    Preview(wxNotebook* notebook, DynamicPrintConfig* config, BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, std::function<void()> schedule_background_process = [](){});
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
     virtual ~Preview();
 
     wxGLCanvas* get_wxglcanvas() { return m_canvas_widget; }
 
-#if ENABLE_REMOVE_TABS_FROM_PLATER
     void set_view_toolbar(GLToolbar* toolbar);
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
     void set_number_extruders(unsigned int number_extruders);
     void set_canvas_as_dirty();
@@ -138,11 +126,7 @@ public:
     void refresh_print();
 
 private:
-#if ENABLE_REMOVE_TABS_FROM_PLATER
     bool init(wxWindow* parent, DynamicPrintConfig* config, BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data);
-#else
-    bool init(wxNotebook* notebook, DynamicPrintConfig* config, BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data);
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
     void bind_event_handlers();
     void unbind_event_handlers();

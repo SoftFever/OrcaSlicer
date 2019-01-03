@@ -224,11 +224,7 @@ public:
     bool is_item_pressed(const std::string& name) const;
     bool is_item_disabled(const std::string& name) const;
 
-#if ENABLE_REMOVE_TABS_FROM_PLATER
     std::string update_hover_state(const Vec2d& mouse_pos, GLCanvas3D& parent);
-#else
-    void update_hover_state(const Vec2d& mouse_pos, GLCanvas3D& parent);
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
     // returns the id of the item under the given mouse position or -1 if none
     int contains_mouse(const Vec2d& mouse_pos, const GLCanvas3D& parent) const;
@@ -244,13 +240,8 @@ private:
     float get_height_horizontal() const;
     float get_height_vertical() const;
     float get_main_size() const;
-#if ENABLE_REMOVE_TABS_FROM_PLATER
     std::string update_hover_state_horizontal(const Vec2d& mouse_pos, GLCanvas3D& parent);
     std::string update_hover_state_vertical(const Vec2d& mouse_pos, GLCanvas3D& parent);
-#else
-    void update_hover_state_horizontal(const Vec2d& mouse_pos, GLCanvas3D& parent);
-    void update_hover_state_vertical(const Vec2d& mouse_pos, GLCanvas3D& parent);
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
     int contains_mouse_horizontal(const Vec2d& mouse_pos, const GLCanvas3D& parent) const;
     int contains_mouse_vertical(const Vec2d& mouse_pos, const GLCanvas3D& parent) const;
 

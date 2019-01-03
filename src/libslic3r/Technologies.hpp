@@ -28,8 +28,6 @@
 #define DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI (1 && ENABLE_IMGUI)
 // Modified Sla support gizmo
 #define ENABLE_SLA_SUPPORT_GIZMO_MOD (1 && ENABLE_1_42_0_ALPHA1)
-// Removes the wxNotebook from plater
-#define ENABLE_REMOVE_TABS_FROM_PLATER (1 && ENABLE_1_42_0_ALPHA1)
 // Use wxDataViewRender instead of wxDataViewCustomRenderer
 #define ENABLE_NONCUSTOM_DATA_VIEW_RENDERING (0 && ENABLE_1_42_0_ALPHA1)
 // Renders a small sphere in the center of the bounding box of the current selection when no gizmo is active

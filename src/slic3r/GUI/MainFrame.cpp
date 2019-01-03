@@ -323,19 +323,13 @@ void MainFrame::init_menubar()
     {
         size_t tab_offset = 0;
         if (m_plater) {
-#if ENABLE_REMOVE_TABS_FROM_PLATER
             append_menu_item(windowMenu, wxID_HIGHEST + 1, L("Plater Tab\tCtrl+1"), L("Show the plater"),
                 [this](wxCommandEvent&) { select_tab(0); }, "application_view_tile.png");
-#else
-            append_menu_item(windowMenu, wxID_ANY, L("Select Plater Tab\tCtrl+1"), L("Show the plater"),
-                [this](wxCommandEvent&) { select_tab(0); }, "application_view_tile.png");
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
             tab_offset += 1;
         }
         if (tab_offset > 0) {
             windowMenu->AppendSeparator();
         }
-#if ENABLE_REMOVE_TABS_FROM_PLATER
         append_menu_item(windowMenu, wxID_HIGHEST + 2, L("Print Settings Tab\tCtrl+2"), L("Show the print settings"),
             [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 0); }, "cog.png");
         append_menu_item(windowMenu, wxID_HIGHEST + 3, L("Filament Settings Tab\tCtrl+3"), L("Show the filament settings"),
@@ -365,14 +359,6 @@ void MainFrame::init_menubar()
         wxAcceleratorTable accel(6, entries);
         SetAcceleratorTable(accel);
 #endif // _WIN32
-#else
-        append_menu_item(windowMenu, wxID_ANY, L("Select Print Settings Tab\tCtrl+2"), L("Show the print settings"),
-            [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 0); }, "cog.png");
-        append_menu_item(windowMenu, wxID_ANY, L("Select Filament Settings Tab\tCtrl+3"), L("Show the filament settings"),
-            [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 1); }, "spool.png");
-        append_menu_item(windowMenu, wxID_ANY, L("Select Printer Settings Tab\tCtrl+4"), L("Show the printer settings"),
-            [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 2); }, "printer_empty.png");
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
         windowMenu->AppendSeparator();
         append_menu_item(windowMenu, wxID_ANY, L("Print Host Upload Queue"), L("Display the Print Host Upload Queue window"),

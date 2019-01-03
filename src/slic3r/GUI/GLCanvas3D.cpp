@@ -3635,9 +3635,7 @@ void GLCanvas3D::LegendTexture::render(const GLCanvas3D& canvas) const
     }
 }
 
-#if ENABLE_REMOVE_TABS_FROM_PLATER
 wxDEFINE_EVENT(EVT_GLCANVAS_INIT, SimpleEvent);
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 wxDEFINE_EVENT(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_VIEWPORT_CHANGED, SimpleEvent);
@@ -3662,9 +3660,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     , m_context(nullptr)
     , m_in_render(false)
     , m_toolbar(GLToolbar::Normal)
-#if ENABLE_REMOVE_TABS_FROM_PLATER
     , m_view_toolbar(nullptr)
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
     , m_use_clipping_planes(false)
     , m_sidebar_field("")
     , m_config(nullptr)
@@ -3813,9 +3809,7 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
         return false;
 #endif // ENABLE_SIDEBAR_VISUAL_HINTS
 
-#if ENABLE_REMOVE_TABS_FROM_PLATER
     post_event(SimpleEvent(EVT_GLCANVAS_INIT));
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
     m_initialized = true;
 
@@ -3862,21 +3856,12 @@ void GLCanvas3D::reset_volumes()
     _reset_warning_texture();
 }
 
-#if ENABLE_REMOVE_TABS_FROM_PLATER
 int GLCanvas3D::check_volumes_outside_state() const
 {
     ModelInstance::EPrintVolumeState state;
     m_volumes.check_outside_state(m_config, &state);
     return (int)state;
 }
-#else
-int GLCanvas3D::check_volumes_outside_state(const DynamicPrintConfig* config) const
-{
-    ModelInstance::EPrintVolumeState state;
-    m_volumes.check_outside_state(config, &state);
-    return (int)state;
-}
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
 void GLCanvas3D::set_config(DynamicPrintConfig* config)
 {
@@ -4141,10 +4126,6 @@ void GLCanvas3D::render()
     float theta = m_camera.get_theta();
     bool is_custom_bed = m_bed.is_custom();
 
-#if !ENABLE_REMOVE_TABS_FROM_PLATER
-    set_tooltip("");
-#endif // !ENABLE_REMOVE_TABS_FROM_PLATER
-
 #if ENABLE_IMGUI
     wxGetApp().imgui()->new_frame();
 #endif // ENABLE_IMGUI
@@ -4200,13 +4181,9 @@ void GLCanvas3D::render()
     _render_gizmos_overlay();
     _render_warning_texture();
     _render_legend_texture();
-#if ENABLE_REMOVE_TABS_FROM_PLATER
     _resize_toolbars();
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
     _render_toolbar();
-#if ENABLE_REMOVE_TABS_FROM_PLATER
     _render_view_toolbar();
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
     _render_layer_editing_overlay();
 
 #if ENABLE_IMGUI
@@ -4902,9 +4879,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     m_layers_editing.last_object_id = layer_editing_object_idx;
     bool gizmos_overlay_contains_mouse = m_gizmos.overlay_contains_mouse(*this, m_mouse.position);
     int toolbar_contains_mouse = m_toolbar.contains_mouse(m_mouse.position, *this);
-#if ENABLE_REMOVE_TABS_FROM_PLATER
     int view_toolbar_contains_mouse = (m_view_toolbar != nullptr) ? m_view_toolbar->contains_mouse(m_mouse.position, *this) : -1;
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
     if (evt.Entering())
     {
@@ -5001,13 +4976,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             if (m_gizmos.get_current_type() == Gizmos::SlaSupports)
                 m_gizmos.delete_current_grabber();
         }
-#if ENABLE_REMOVE_TABS_FROM_PLATER
         else if (view_toolbar_contains_mouse != -1)
         {
             if (m_view_toolbar != nullptr)
                 m_view_toolbar->do_action((unsigned int)view_toolbar_contains_mouse, *this);
         }
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
         else if (toolbar_contains_mouse != -1)
         {
             m_toolbar_action_running = true;
@@ -5292,7 +5265,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     else if (evt.Moving())
     {
         m_mouse.position = pos.cast<double>();
-#if ENABLE_REMOVE_TABS_FROM_PLATER
         std::string tooltip = "";
 
         // updates gizmos overlay
@@ -5314,7 +5286,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
 
         set_tooltip(tooltip);
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
         // Only refresh if picking is enabled, in that case the objects may get highlighted if the mouse cursor hovers over.
         if (m_picking_enabled)
@@ -6074,20 +6045,6 @@ void GLCanvas3D::_picking_pass() const
         }
 
         _update_volumes_hover_state();
-
-#if !ENABLE_REMOVE_TABS_FROM_PLATER
-        // updates gizmos overlay
-        if (!m_selection.is_empty())
-        {
-            std::string name = m_gizmos.update_hover_state(*this, pos, m_selection);
-            if (!name.empty())
-                set_tooltip(name);
-        }
-        else
-            m_gizmos.reset_all_states();
-
-        m_toolbar.update_hover_state(pos);
-#endif // !ENABLE_REMOVE_TABS_FROM_PLATER
     }
 }
 
@@ -6346,19 +6303,14 @@ void GLCanvas3D::_render_gizmos_overlay() const
 
 void GLCanvas3D::_render_toolbar() const
 {
-#if !ENABLE_REMOVE_TABS_FROM_PLATER
-    _resize_toolbar();
-#endif // !ENABLE_REMOVE_TABS_FROM_PLATER
     m_toolbar.render(*this);
 }
 
-#if ENABLE_REMOVE_TABS_FROM_PLATER
 void GLCanvas3D::_render_view_toolbar() const
 {
     if (m_view_toolbar != nullptr)
         m_view_toolbar->render(*this);
 }
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 
 #if ENABLE_SHOW_CAMERA_TARGET
 void GLCanvas3D::_render_camera_target() const
@@ -7972,11 +7924,7 @@ bool GLCanvas3D::_is_any_volume_outside() const
     return false;
 }
 
-#if ENABLE_REMOVE_TABS_FROM_PLATER
 void GLCanvas3D::_resize_toolbars() const
-#else
-void GLCanvas3D::_resize_toolbar() const
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 {
     Size cnv_size = get_canvas_size();
     float zoom = get_camera_zoom();
@@ -8023,7 +7971,6 @@ void GLCanvas3D::_resize_toolbar() const
     }
     }
 
-#if ENABLE_REMOVE_TABS_FROM_PLATER
     if (m_view_toolbar != nullptr)
     {
         // places the toolbar on the bottom-left corner of the 3d scene
@@ -8031,7 +7978,6 @@ void GLCanvas3D::_resize_toolbar() const
         float left = -0.5f * (float)cnv_size.get_width() * inv_zoom;
         m_view_toolbar->set_position(top, left);
     }
-#endif // ENABLE_REMOVE_TABS_FROM_PLATER
 }
 
 const Print* GLCanvas3D::fff_print() const
