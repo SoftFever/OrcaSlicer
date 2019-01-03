@@ -1164,6 +1164,22 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
                         section.first << "\" has already been loaded from another Confing Bundle.";
                     continue;
                 }
+            } else if ((flags & LOAD_CFGBNDLE_SYSTEM) == 0) {
+                // This is a user config bundle.
+                const Preset *existing = presets->find_preset(preset_name, false);
+                if (existing != nullptr) {
+                    if (existing->is_system) {
+    					assert(existing->vendor != nullptr);
+                        BOOST_LOG_TRIVIAL(error) << "Error in a user provided Config Bundle \"" << path << "\": The " << presets->name() << " preset \"" << 
+    						existing->name << "\" is a system preset of vendor " << existing->vendor->name << " and it will be ignored.";
+                        continue;
+                    } else {
+                        assert(existing->vendor == nullptr);
+                        BOOST_LOG_TRIVIAL(trace) << "A " << presets->name() << " preset \"" << existing->name << "\" was overwritten with a preset from user Config Bundle \"" << path << "\"";
+                    }
+                } else {
+					BOOST_LOG_TRIVIAL(trace) << "A new " << presets->name() << " preset \"" << preset_name << "\" was imported from user Config Bundle \"" << path << "\"";
+                }
             }
             // Decide a full path to this .ini file.
             auto file_name = boost::algorithm::iends_with(preset_name, ".ini") ? preset_name : preset_name + ".ini";
