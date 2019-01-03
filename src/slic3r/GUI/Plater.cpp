@@ -1503,6 +1503,17 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         statusbar()->set_status_text(_(L("Loaded")));
     }
 
+    // automatic selection of added objects
+    if (!obj_idxs.empty() && (view3D != nullptr))
+    {
+        GLCanvas3D::Selection& selection = view3D->get_canvas3d()->get_selection();
+        selection.clear();
+        for (size_t idx : obj_idxs)
+        {
+            selection.add_object((unsigned int)idx, false);
+        }
+    }
+
     return obj_idxs;
 }
 
