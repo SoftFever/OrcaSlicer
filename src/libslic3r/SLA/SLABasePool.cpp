@@ -458,7 +458,7 @@ void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
                       const PoolConfig& cfg)
 {
 
-    double mergedist = 2*(1.8*cfg.min_wall_thickness_mm /*+ 4*cfg.edge_radius_mm*/)+
+    double mergedist = 2*(1.8*cfg.min_wall_thickness_mm + 4*cfg.edge_radius_mm)+
                        cfg.max_merge_distance_mm;
 
     auto concavehs = concave_hull(ground_layer, mergedist, cfg.throw_on_cancel);
@@ -470,12 +470,16 @@ void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
 
         const double thickness      = cfg.min_wall_thickness_mm;
         const double wingheight     = cfg.min_wall_height_mm;
-        const coord_t s_thickness   = mm(thickness);
-//        const coord_t s_eradius     = mm(cfg.edge_radius_mm);
-        const coord_t s_safety_dist = /*2*s_eradius +*/ coord_t(0.8*s_thickness);
-        // const coord_t wheight = mm(cfg.min_wall_height_mm);
+        const double fullheight     = wingheight + thickness;
         const double tilt = PI/4;
-        coord_t s_wingdist = mm(wingheight / std::tan(tilt));
+        const double wingdist       = wingheight / std::tan(tilt);
+
+        // scaled values
+        const coord_t s_thickness   = mm(thickness);
+        const coord_t s_eradius     = mm(cfg.edge_radius_mm);
+        const coord_t s_safety_dist = 2*s_eradius + coord_t(0.8*s_thickness);
+        // const coord_t wheight    = mm(cfg.min_wall_height_mm);
+        coord_t s_wingdist          = mm(wingdist);
 
         // Here lies the trick that does the smooting only with clipper offset
         // calls. The offset is configured to round edges. Inner edges will
@@ -500,10 +504,47 @@ void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
 
         Contour3D pool;
 
-        double fullheight = wingheight + thickness;
+        ExPolygon ob = outer_base; double wh = 0;
+
+        // now we will calculate the angle or portion of the circle from
+        // pi/2 that will connect perfectly with the bottom plate.
+        // this is a tangent point calculation problem and the equation can
+        // be found for example here:
+        // http://www.ambrsoft.com/TrigoCalc/Circles2/CirclePoint/CirclePointDistance.htm
+        // the y coordinate would be:
+        // y = cy + (r^2*py - r*px*sqrt(px^2 + py^2 - r^2) / (px^2 + py^2)
+        // where px and py are the coordinates of the point outside the circle
+        // cx and cy are the circle center, r is the radius
+        // to get the angle we use arcsin function and subtract 90 degrees then
+        // flip the sign to get the right input to the round_edge function.
+        double r = cfg.edge_radius_mm;
+        double cy = 0;
+        double cx = 0;
+        double px = thickness + wingdist;
+        double py = r - fullheight;
+
+        double pxcx = px - cx;
+        double pycy = py - cy;
+        double b_2 = pxcx*pxcx + pycy*pycy;
+        double r_2 = r*r;
+        double D = std::sqrt(b_2 - r_2);
+        double vy = (r_2*pycy - r*pxcx*D) / b_2;
+        double phi = -(std::asin(vy/r) * 180 / PI - 90);
+
+        auto curvedwalls = round_edges(ob,
+                                       r,
+                                       phi,  // 170 degrees
+                                       0,    // z position of the input plane
+                                       true,
+                                       cfg.throw_on_cancel,
+                                       ob, wh);
+
+        pool.merge(curvedwalls);
+
+
         auto& thrcl = cfg.throw_on_cancel;
 
-        auto pwalls = walls(top_poly, inner_base, 0, -fullheight, thrcl);
+        auto pwalls = walls(ob, inner_base, wh, -fullheight, thrcl);
         pool.merge(pwalls);
 
         auto cavitywalls = walls(inner_base, middle_base, -wingheight, 0, thrcl);
