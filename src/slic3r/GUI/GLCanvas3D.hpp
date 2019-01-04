@@ -201,6 +201,9 @@ class GLCanvas3D
         GeometryBuffer m_gridlines;
         mutable GLTexture m_top_texture;
         mutable GLTexture m_bottom_texture;
+#if ENABLE_PRINT_BED_MODELS
+        mutable GLBed m_model;
+#endif // ENABLE_PRINT_BED_MODELS
 
     public:
         Bed();
@@ -216,14 +219,22 @@ class GLCanvas3D
         bool contains(const Point& point) const;
         Point point_projection(const Point& point) const;
 
+#if ENABLE_PRINT_BED_MODELS
+        void render(float theta, bool useVBOs) const;
+#else
         void render(float theta) const;
+#endif // ENABLE_PRINT_BED_MODELS
 
     private:
         void _calc_bounding_box();
         void _calc_triangles(const ExPolygon& poly);
         void _calc_gridlines(const ExPolygon& poly, const BoundingBox& bed_bbox);
         EType _detect_type() const;
+#if ENABLE_PRINT_BED_MODELS
+        void _render_prusa(const std::string &key, float theta, bool useVBOs) const;
+#else
         void _render_prusa(const std::string &key, float theta) const;
+#endif // ENABLE_PRINT_BED_MODELS
         void _render_custom() const;
         static bool _are_equal(const Pointfs& bed_1, const Pointfs& bed_2);
     };

@@ -386,6 +386,35 @@ Point GLCanvas3D::Bed::point_projection(const Point& point) const
     return m_polygon.point_projection(point);
 }
 
+#if ENABLE_PRINT_BED_MODELS
+void GLCanvas3D::Bed::render(float theta, bool useVBOs) const
+{
+    switch (m_type)
+    {
+    case MK2:
+    {
+        _render_prusa("mk2", theta, useVBOs);
+        break;
+    }
+    case MK3:
+    {
+        _render_prusa("mk3", theta, useVBOs);
+        break;
+    }
+    case SL1:
+    {
+        _render_prusa("sl1", theta, useVBOs);
+        break;
+    }
+    default:
+    case Custom:
+    {
+        _render_custom();
+        break;
+    }
+    }
+}
+#else
 void GLCanvas3D::Bed::render(float theta) const
 {
     switch (m_type)
@@ -413,6 +442,7 @@ void GLCanvas3D::Bed::render(float theta) const
     }
     }
 }
+#endif // ENABLE_PRINT_BED_MODELS
 
 void GLCanvas3D::Bed::_calc_bounding_box()
 {
@@ -504,9 +534,18 @@ GLCanvas3D::Bed::EType GLCanvas3D::Bed::_detect_type() const
     return type;
 }
 
+#if ENABLE_PRINT_BED_MODELS
+void GLCanvas3D::Bed::_render_prusa(const std::string &key, float theta, bool useVBOs) const
+#else
 void GLCanvas3D::Bed::_render_prusa(const std::string &key, float theta) const
+#endif // ENABLE_PRINT_BED_MODELS
 {
-    std::string filename = resources_dir() + "/icons/bed/" + key + "_top.png";
+    std::string tex_path = resources_dir() + "/icons/bed/" + key;
+#if ENABLE_PRINT_BED_MODELS
+    std::string model_path = resources_dir() + "/models/" + key;
+#endif // ENABLE_PRINT_BED_MODELS
+
+    std::string filename = tex_path + "_top.png";
     if ((m_top_texture.get_id() == 0) || (m_top_texture.get_source() != filename))
     {
         if (!m_top_texture.load_from_file(filename, true))
@@ -516,7 +555,7 @@ void GLCanvas3D::Bed::_render_prusa(const std::string &key, float theta) const
         }
     }
 
-    filename = resources_dir() + "/icons/bed/" + key + "_bottom.png";
+    filename = tex_path + "_bottom.png";
     if ((m_bottom_texture.get_id() == 0) || (m_bottom_texture.get_source() != filename))
     {
         if (!m_bottom_texture.load_from_file(filename, true))
@@ -525,6 +564,22 @@ void GLCanvas3D::Bed::_render_prusa(const std::string &key, float theta) const
             return;
         }
     }
+
+#if ENABLE_PRINT_BED_MODELS
+    if (theta <= 90.0f)
+    {
+        filename = model_path + "_bed.stl";
+        if ((m_model.get_filename() != filename) && m_model.init_from_file(filename, useVBOs))
+            m_model.center_around(m_bounding_box.center() - Vec3d(0.0, 0.0, 1.0 + 0.5 * m_model.get_bounding_box().size()(2)));
+
+        if (!m_model.get_filename().empty())
+        {
+            ::glEnable(GL_LIGHTING);
+            m_model.render();
+            ::glDisable(GL_LIGHTING);
+        }
+    }
+#endif // ENABLE_PRINT_BED_MODELS
 
     unsigned int triangles_vcount = m_triangles.get_vertices_count();
     if (triangles_vcount > 0)
@@ -6087,7 +6142,11 @@ void GLCanvas3D::_render_background() const
 
 void GLCanvas3D::_render_bed(float theta) const
 {
+#if ENABLE_PRINT_BED_MODELS
+    m_bed.render(theta, m_use_VBOs);
+#else
     m_bed.render(theta);
+#endif // ENABLE_PRINT_BED_MODELS
 }
 
 void GLCanvas3D::_render_axes() const

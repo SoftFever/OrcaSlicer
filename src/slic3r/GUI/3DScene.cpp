@@ -11,6 +11,9 @@
 #include "libslic3r/Slicing.hpp"
 #include "libslic3r/GCode/Analyzer.hpp"
 #include "slic3r/GUI/PresetBundle.hpp"
+#if ENABLE_PRINT_BED_MODELS
+#include "libslic3r/Format/STL.hpp"
+#endif // ENABLE_PRINT_BED_MODELS
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,6 +22,11 @@
 #include <assert.h>
 
 #include <boost/log/trivial.hpp>
+
+#if ENABLE_PRINT_BED_MODELS
+#include <boost/filesystem/operations.hpp>
+#include <boost/algorithm/string.hpp>
+#endif // ENABLE_PRINT_BED_MODELS
 
 #include <tbb/parallel_for.h>
 #include <tbb/spin_mutex.h>
@@ -249,11 +257,7 @@ void GLVolume::set_render_color(float r, float g, float b, float a)
 
 void GLVolume::set_render_color(const float* rgba, unsigned int size)
 {
-    size = std::min((unsigned int)4, size);
-    for (unsigned int i = 0; i < size; ++i)
-    {
-        render_color[i] = rgba[i];
-    }
+    ::memcpy((void*)render_color, (const void*)rgba, (size_t)(std::min((unsigned int)4, size) * sizeof(float)));
 }
 
 void GLVolume::set_render_color()
@@ -1790,17 +1794,27 @@ GUI::GLCanvas3DManager _3DScene::s_canvas_mgr;
 #if ENABLE_SIDEBAR_VISUAL_HINTS
 GLModel::GLModel()
     : m_useVBOs(false)
+#if ENABLE_PRINT_BED_MODELS
+    , m_filename("")
+#endif // ENABLE_PRINT_BED_MODELS
 {
     m_volume.shader_outside_printer_detection_enabled = false;
 }
 
 GLModel::~GLModel()
 {
+#if ENABLE_PRINT_BED_MODELS
+    reset();
+#else
     m_volume.release_geometry();
+#endif // ENABLE_PRINT_BED_MODELS
 }
 
 void GLModel::set_color(const float* color, unsigned int size)
 {
+#if ENABLE_PRINT_BED_MODELS
+    ::memcpy((void*)m_volume.color, (const void*)color, (size_t)(std::min((unsigned int)4, size) * sizeof(float)));
+#endif // ENABLE_PRINT_BED_MODELS
     m_volume.set_render_color(color, size);
 }
 
@@ -1834,6 +1848,14 @@ void GLModel::set_scale(const Vec3d& scale)
     m_volume.set_volume_scaling_factor(scale);
 }
 
+#if ENABLE_PRINT_BED_MODELS
+void GLModel::reset()
+{
+    m_volume.release_geometry();
+    m_filename = "";
+}
+#endif // ENABLE_PRINT_BED_MODELS
+
 void GLModel::render() const
 {
     if (m_useVBOs)
@@ -1854,9 +1876,7 @@ void GLModel::render_VBOs() const
     GLint current_program_id;
     ::glGetIntegerv(GL_CURRENT_PROGRAM, &current_program_id);
     GLint color_id = (current_program_id > 0) ? glGetUniformLocation(current_program_id, "uniform_color") : -1;
-    GLint print_box_detection_id = (current_program_id > 0) ? glGetUniformLocation(current_program_id, "print_box.volume_detection") : -1;
-
-    m_volume.render_VBOs(color_id, print_box_detection_id, -1);
+    m_volume.render_VBOs(color_id, -1, -1);
 
     ::glBindBuffer(GL_ARRAY_BUFFER, 0);
     ::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -2066,10 +2086,56 @@ bool GLCurvedArrow::on_init(bool useVBOs)
     else
         m_volume.indexed_vertex_array.load_mesh_flat_shading(TriangleMesh(vertices, triangles));
 
+    m_volume.bounding_box = m_volume.indexed_vertex_array.bounding_box();
     m_volume.finalize_geometry(m_useVBOs);
     return true;
 }
 #endif // ENABLE_SIDEBAR_VISUAL_HINTS
+
+#if ENABLE_PRINT_BED_MODELS
+bool GLBed::on_init_from_file(const std::string& filename, bool useVBOs)
+{
+    reset();
+
+    if (!boost::filesystem::exists(filename))
+        return false;
+
+    if (!boost::algorithm::iends_with(filename, ".stl"))
+        return false;
+
+    Model model;
+    try
+    {
+        model = Model::read_from_file(filename);
+    }
+    catch (std::exception &e)
+    {
+        return false;
+    }
+
+    m_filename = filename;
+    m_useVBOs = useVBOs;
+
+    ModelObject* model_object = model.objects.front();
+    model_object->center_around_origin();
+
+    TriangleMesh mesh = model.mesh();
+    mesh.repair();
+
+    if (m_useVBOs)
+        m_volume.indexed_vertex_array.load_mesh_full_shading(mesh);
+    else
+        m_volume.indexed_vertex_array.load_mesh_flat_shading(mesh);
+
+    float color[4] = { 0.235f, 0.235, 0.235f, 1.0f };
+    set_color(color, 4);
+
+    m_volume.bounding_box = m_volume.indexed_vertex_array.bounding_box();
+    m_volume.finalize_geometry(m_useVBOs);
+
+    return true;
+}
+#endif // ENABLE_PRINT_BED_MODELS
 
 std::string _3DScene::get_gl_info(bool format_as_html, bool extensions)
 {
