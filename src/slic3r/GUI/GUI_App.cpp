@@ -461,10 +461,8 @@ bool GUI_App::select_language(  wxArrayString & names,
         m_wxLocale->Init(identifiers[index]);
 		m_wxLocale->AddCatalogLookupPathPrefix(wxString::FromUTF8(localization_dir()));
         m_wxLocale->AddCatalog(/*GetAppName()*/"Slic3rPE");
-        wxSetlocale(LC_NUMERIC, "C");
-#ifdef WIN32
-        ::SetLocaleInfoA(LOCALE_CUSTOM_DEFAULT, LOCALE_SDECIMAL, ".");
-#endif /* WIN32 */
+		//FIXME This is a temporary workaround, the correct solution is to switch to "C" locale during file import / export only.
+		wxSetlocale(LC_NUMERIC, "C");
         Preset::update_suffix_modified();
         return true;
     }
@@ -491,10 +489,8 @@ bool GUI_App::load_language()
             m_wxLocale->Init(identifiers[i]);
 			m_wxLocale->AddCatalogLookupPathPrefix(wxString::FromUTF8(localization_dir()));
             m_wxLocale->AddCatalog(/*GetAppName()*/"Slic3rPE");
+			//FIXME This is a temporary workaround, the correct solution is to switch to "C" locale during file import / export only.
             wxSetlocale(LC_NUMERIC, "C");
-#ifdef WIN32
-			::SetLocaleInfoA(LOCALE_CUSTOM_DEFAULT, LOCALE_SDECIMAL, ".");
-#endif /* WIN32 */
 			Preset::update_suffix_modified();
             return true;
         }
