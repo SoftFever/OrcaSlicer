@@ -438,7 +438,7 @@ void ObjectManipulation::change_scale_value(const Vec3d& scale)
             max_diff = abs_scale_diff(Z);
             max_diff_axis = Z;
         }
-        scaling_factor = Vec3d(scale(max_diff_axis), scale(max_diff_axis), scale(max_diff_axis));
+        scaling_factor = scale(max_diff_axis) * Vec3d::Ones();
     }
 
     scaling_factor *= 0.01;
@@ -464,10 +464,38 @@ void ObjectManipulation::change_size_value(const Vec3d& size)
         ref_size = volume->bounding_box.size();
     }
 
-    change_scale_value(100.0 * Vec3d(size(0) / ref_size(0), size(1) / ref_size(1), size(2) / ref_size(2)));
-
 #if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
+    Vec3d scale = 100.0 * Vec3d(size(0) / ref_size(0), size(1) / ref_size(1), size(2) / ref_size(2));
+    Vec3d scaling_factor = scale;
+
+    if (selection.requires_uniform_scale())
+    {
+        Vec3d abs_scale_diff = (scale - m_cache_scale).cwiseAbs();
+        double max_diff = abs_scale_diff(X);
+        Axis max_diff_axis = X;
+        if (max_diff < abs_scale_diff(Y))
+        {
+            max_diff = abs_scale_diff(Y);
+            max_diff_axis = Y;
+        }
+        if (max_diff < abs_scale_diff(Z))
+        {
+            max_diff = abs_scale_diff(Z);
+            max_diff_axis = Z;
+        }
+        scaling_factor = scale(max_diff_axis) * Vec3d::Ones();
+    }
+
+    scaling_factor *= 0.01;
+
+    auto canvas = wxGetApp().plater()->canvas3D();
+    canvas->get_selection().start_dragging();
+    canvas->get_selection().scale(scaling_factor, false);
+    canvas->do_scale();
+
     m_cache_size = size;
+#else
+    change_scale_value(100.0 * Vec3d(size(0) / ref_size(0), size(1) / ref_size(1), size(2) / ref_size(2)));
 #endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 }
 
