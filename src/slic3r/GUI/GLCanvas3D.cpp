@@ -1894,8 +1894,6 @@ void GLCanvas3D::Selection::erase()
         }
         wxGetApp().obj_list()->delete_from_model_and_list(items);
     }
-    else if (is_single_full_instance())
-        wxGetApp().obj_list()->delete_from_model_and_list(ItemType::itInstance, get_object_idx(), get_instance_idx());
     else if (is_multiple_full_instance())
     {
         std::set<std::pair<int, int>> instances_idxs;
@@ -1915,6 +1913,8 @@ void GLCanvas3D::Selection::erase()
         }
         wxGetApp().obj_list()->delete_from_model_and_list(items);
     }
+    else if (is_single_full_instance())
+        wxGetApp().obj_list()->delete_from_model_and_list(ItemType::itInstance, get_object_idx(), get_instance_idx());
     else if (is_mixed())
     {
         std::set<ItemForDelete> items_set;
