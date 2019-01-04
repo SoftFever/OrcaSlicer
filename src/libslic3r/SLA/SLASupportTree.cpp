@@ -515,7 +515,8 @@ struct Pad {
         double ground_level,
         const PoolConfig& pcfg) :
         cfg(pcfg),
-        zlevel(ground_level + sla::get_pad_elevation(pcfg))
+        zlevel(ground_level +
+               (sla::get_pad_fullheight(pcfg) - sla::get_pad_elevation(pcfg)) )
     {
         ExPolygons basep;
         cfg.throw_on_cancel();
@@ -523,7 +524,8 @@ struct Pad {
         // The 0.1f is the layer height with which the mesh is sampled and then
         // the layers are unified into one vector of polygons.
         base_plate(object_support_mesh, basep,
-                   float(cfg.min_wall_height_mm), 0.1f, pcfg.throw_on_cancel);
+                   float(cfg.min_wall_height_mm + cfg.min_wall_thickness_mm),
+                   0.1f, pcfg.throw_on_cancel);
 
         for(auto& bp : baseplate) basep.emplace_back(bp);
 
@@ -781,7 +783,7 @@ public:
     // WITH THE PAD
     double full_height() const {
         if(merged_mesh().empty() && !pad().empty())
-            return pad().cfg.min_wall_height_mm;
+            return get_pad_fullheight(pad().cfg);
 
         double h = mesh_height();
         if(!pad().empty()) h += sla::get_pad_elevation(pad().cfg);

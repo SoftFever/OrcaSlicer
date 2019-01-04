@@ -630,7 +630,7 @@ void SLAPrint::process()
             sla::PoolConfig pcfg(wt, h, md, er);
 
             ExPolygons bp;
-            double pad_h = sla::get_pad_elevation(pcfg);
+            double pad_h = sla::get_pad_fullheight(pcfg);
             auto&& trmesh = po.transformed_mesh();
 
             // This call can get pretty time consuming
