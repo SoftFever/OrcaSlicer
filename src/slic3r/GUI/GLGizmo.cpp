@@ -1519,13 +1519,14 @@ void GLGizmoFlatten::update_planes()
     }
 
     ch = ch.convex_hull_3d();
-
-    const Vec3d& bb_size = ch.bounding_box().size();
-    double min_bb_face_area = std::min(bb_size(0) * bb_size(1), std::min(bb_size(0) * bb_size(2), bb_size(1) * bb_size(2)));
-
     m_planes.clear();
 
-    // Now we'll go through all the facets and append Points of facets sharing the same normal:
+    // Following constants are used for discarding too small polygons.
+    const float minimal_area = 20.f; // in square mm (world coordinates)
+    const float minimal_side = 1.f; // mm
+
+    // Now we'll go through all the facets and append Points of facets sharing the same normal.
+    // This part is still performed in mesh coordinate system.
     const int num_of_facets = ch.stl.stats.number_of_facets;
     std::vector<int>  facet_queue(num_of_facets, 0);
     std::vector<bool> facet_visited(num_of_facets, false);
@@ -1548,7 +1549,7 @@ void GLGizmoFlatten::update_planes()
         while (facet_queue_cnt > 0) {
             int facet_idx = facet_queue[-- facet_queue_cnt];
             const stl_normal& this_normal = ch.stl.facet_start[facet_idx].normal;
-            if (std::abs(this_normal(0) - (*normal_ptr)(0)) < 0.001 && std::abs(this_normal(1) - (*normal_ptr)(1)) < 0.001 && std::abs(this_normal(2) - (*normal_ptr)(2)) < 0.001) {
+            if (this_normal.isApprox(*normal_ptr)) {
                 stl_vertex* first_vertex = ch.stl.facet_start[facet_idx].vertex;
                 for (int j=0; j<3; ++j)
                     m_planes.back().vertices.emplace_back((double)first_vertex[j](0), (double)first_vertex[j](1), (double)first_vertex[j](2));
@@ -1563,15 +1564,17 @@ void GLGizmoFlatten::update_planes()
         }
         m_planes.back().normal = Vec3d((double)(*normal_ptr)(0), (double)(*normal_ptr)(1), (double)(*normal_ptr)(2));
 
-        // if this is a just a very small triangle, remove it to speed up further calculations (it would be rejected anyway):
+        // Now we'll transform all the points into world coordinates, so that the areas, angles and distances
+        // make real sense.
+        m_planes.back().vertices = transform(m_planes.back().vertices, m_model_object->instances.front()->get_matrix());
+
+        // if this is a just a very small triangle, remove it to speed up further calculations (it would be rejected later anyway):
         if (m_planes.back().vertices.size() == 3 &&
-            ((m_planes.back().vertices[0] - m_planes.back().vertices[1]).norm() < 1.0
-            || (m_planes.back().vertices[0] - m_planes.back().vertices[2]).norm() < 1.0
-            || (m_planes.back().vertices[1] - m_planes.back().vertices[2]).norm() < 1.0))
+            ((m_planes.back().vertices[0] - m_planes.back().vertices[1]).norm() < minimal_side
+            || (m_planes.back().vertices[0] - m_planes.back().vertices[2]).norm() < minimal_side
+            || (m_planes.back().vertices[1] - m_planes.back().vertices[2]).norm() < minimal_side))
             m_planes.pop_back();
     }
-
-    const float minimal_area = 0.01f * (float)min_bb_face_area;
 
     // Now we'll go through all the polygons, transform the points into xy plane to process them:
     for (unsigned int polygon_id=0; polygon_id < m_planes.size(); ++polygon_id) {
@@ -1584,40 +1587,43 @@ void GLGizmoFlatten::update_planes()
         m.matrix().block(0, 0, 3, 3) = q.setFromTwoVectors(normal, Vec3d::UnitZ()).toRotationMatrix();
         polygon = transform(polygon, m);
 
-        polygon = Slic3r::Geometry::convex_hull(polygon); // To remove the inner points
+        // Now to remove the inner points. We'll misuse Geometry::convex_hull for that, but since
+        // it works in fixed point representation, we will rescale the polygon to avoid overflows.
+        // And yes, it is a nasty thing to do. Whoever has time is free to refactor.
+        Vec3d bb_size = BoundingBoxf3(polygon).size();
+        float sf = std::min(1./bb_size(0), 1./bb_size(1));
+        Transform3d tr = Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), Vec3d(sf, sf, 1.f));
+        polygon = transform(polygon, tr);
+        polygon = Slic3r::Geometry::convex_hull(polygon);
+        polygon = transform(polygon, tr.inverse());
 
-        // We will calculate area of the polygons and discard ones that are too small
-        // The limit is more forgiving in case the normal is in the direction of the coordinate axes
-        float area_threshold = (std::abs(normal(0)) > 0.999f || std::abs(normal(1)) > 0.999f || std::abs(normal(2)) > 0.999f) ? minimal_area : 10.0f * minimal_area;
+        // Calculate area of the polygons and discard ones that are too small
         float& area = m_planes[polygon_id].area;
         area = 0.f;
         for (unsigned int i = 0; i < polygon.size(); i++) // Shoelace formula
             area += polygon[i](0)*polygon[i + 1 < polygon.size() ? i + 1 : 0](1) - polygon[i + 1 < polygon.size() ? i + 1 : 0](0)*polygon[i](1);
         area = 0.5f * std::abs(area);
-        if (area < area_threshold) {
-            m_planes.erase(m_planes.begin()+(polygon_id--));
-            continue;
-        }
 
-        // We check the inner angles and discard polygons with angles smaller than the following threshold
-        const double angle_threshold = ::cos(10.0 * (double)PI / 180.0);
         bool discard = false;
+        if (area < minimal_area)
+            discard = true;
+        else {
+            // We also check the inner angles and discard polygons with angles smaller than the following threshold
+            const double angle_threshold = ::cos(10.0 * (double)PI / 180.0);
 
-        for (unsigned int i = 0; i < polygon.size(); ++i)
-        {
-            const Vec3d& prec = polygon[(i == 0) ? polygon.size() - 1 : i - 1];
-            const Vec3d& curr = polygon[i];
-            const Vec3d& next = polygon[(i == polygon.size() - 1) ? 0 : i + 1];
+            for (unsigned int i = 0; i < polygon.size(); ++i) {
+                const Vec3d& prec = polygon[(i == 0) ? polygon.size() - 1 : i - 1];
+                const Vec3d& curr = polygon[i];
+                const Vec3d& next = polygon[(i == polygon.size() - 1) ? 0 : i + 1];
 
-            if ((prec - curr).normalized().dot((next - curr).normalized()) > angle_threshold)
-            {
-                discard = true;
-                break;
+                if ((prec - curr).normalized().dot((next - curr).normalized()) > angle_threshold) {
+                    discard = true;
+                    break;
+                }
             }
         }
 
-        if (discard)
-        {
+        if (discard) {
             m_planes.erase(m_planes.begin() + (polygon_id--));
             continue;
         }
@@ -1667,13 +1673,13 @@ void GLGizmoFlatten::update_planes()
             polygon = points_out; // replace the coarse polygon with the smooth one that we just created
         }
 
-        // Transform back to 3D;
-        for (auto& b : polygon) {
-            b(2) += 0.1f; // raise a bit above the object surface to avoid flickering
-        }
 
-        m = m.inverse();
-        polygon = transform(polygon, m);
+        // Raise a bit above the object surface to avoid flickering:
+        for (auto& b : polygon)
+            b(2) += 0.1f;
+
+        // Transform back to 3D (and also back to mesh coordinates)
+        polygon = transform(polygon, m_model_object->instances.front()->get_matrix().inverse() * m.inverse());
     }
 
     // We'll sort the planes by area and only keep the 254 largest ones (because of the picking pass limitations):
@@ -1682,12 +1688,15 @@ void GLGizmoFlatten::update_planes()
 
     // Planes are finished - let's save what we calculated it from:
     m_volumes_matrices.clear();
-    for (const ModelVolume* vol : m_model_object->volumes)
+    m_volumes_types.clear();
+    for (const ModelVolume* vol : m_model_object->volumes) {
         m_volumes_matrices.push_back(vol->get_matrix());
+        m_volumes_types.push_back(vol->type());
+    }
+    m_first_instance_scale = m_model_object->instances.front()->get_scaling_factor();
 }
 
-// Check if the bounding boxes of each volume's convex hull is the same as before
-// and that scaling and rotation has not changed. In that case we don't have to recalculate it.
+
 bool GLGizmoFlatten::is_plane_update_necessary() const
 {
     if (m_state != On || !m_model_object || m_model_object->instances.empty())
@@ -1696,8 +1705,13 @@ bool GLGizmoFlatten::is_plane_update_necessary() const
     if (m_model_object->volumes.size() != m_volumes_matrices.size())
         return true;
 
+    // We want to recalculate when the scale changes - some planes could (dis)appear.
+    if (! m_model_object->instances.front()->get_scaling_factor().isApprox(m_first_instance_scale))
+        return true;
+
     for (unsigned int i=0; i < m_model_object->volumes.size(); ++i)
-        if (! m_model_object->volumes[i]->get_matrix().isApprox(m_volumes_matrices[i]))
+        if (! m_model_object->volumes[i]->get_matrix().isApprox(m_volumes_matrices[i])
+         || m_model_object->volumes[i]->type() != m_volumes_types[i])
             return true;
 
     return false;
@@ -1723,7 +1737,7 @@ GLGizmoSlaSupports::GLGizmoSlaSupports(GLCanvas3D& parent)
     if (m_quadric != nullptr)
         // using GLU_FILL does not work when the instance's transformation
         // contains mirroring (normals are reverted)
-        ::gluQuadricDrawStyle(m_quadric, GLU_SILHOUETTE);
+        ::gluQuadricDrawStyle(m_quadric, GLU_FILL);
 #endif // ENABLE_SLA_SUPPORT_GIZMO_MOD
 }
 
@@ -1895,8 +1909,8 @@ void GLGizmoSlaSupports::render_grabbers(const GLCanvas3D::Selection& selection,
         ::glPushMatrix();
         ::glLoadIdentity();
         ::glTranslated(grabber_world_position(0), grabber_world_position(1), grabber_world_position(2) + z_shift);
-        ::gluQuadricDrawStyle(m_quadric, GLU_SILHOUETTE);
-        ::gluSphere(m_quadric, 0.75, 64, 36);
+        const float diameter = 0.8f;
+        ::gluSphere(m_quadric, diameter/2.f, 64, 36);
         ::glPopMatrix();
     }
 
@@ -1945,7 +1959,7 @@ void GLGizmoSlaSupports::render_grabbers(bool picking) const
             GLUquadricObj *quadric;
             quadric = ::gluNewQuadric();
             ::gluQuadricDrawStyle(quadric, GLU_FILL );
-            ::gluSphere( quadric , 0.75f, 64 , 32 );
+            ::gluSphere( quadric , 0.4, 64 , 32 );
             ::gluDeleteQuadric(quadric);
             ::glPopMatrix();
             if (!picking)
