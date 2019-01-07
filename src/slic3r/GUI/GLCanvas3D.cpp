@@ -4952,7 +4952,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
 
         m_mouse.set_start_position_2D_as_invalid();
-        m_mouse.set_start_position_3D_as_invalid();
 #endif
     }
     else if (evt.Leaving())
@@ -4964,6 +4963,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     else if (evt.LeftDClick() && (toolbar_contains_mouse != -1))
     {
         m_toolbar_action_running = true;
+        m_mouse.set_start_position_3D_as_invalid();
         m_toolbar.do_action((unsigned int)toolbar_contains_mouse, *this);
     }
     else if (evt.LeftDClick() && (m_gizmos.get_current_type() != Gizmos::Undefined))
@@ -5041,6 +5041,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         else if (toolbar_contains_mouse != -1)
         {
             m_toolbar_action_running = true;
+            m_mouse.set_start_position_3D_as_invalid();
             m_toolbar.do_action((unsigned int)toolbar_contains_mouse, *this);
             m_mouse.left_down = false;
         }
