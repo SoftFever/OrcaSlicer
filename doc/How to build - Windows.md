@@ -7,16 +7,18 @@ CMake installer can be downloaded from [the official website](https://cmake.org/
 
 Building with newer versions of MSVS (2015, 2017) may work too as reported by some of our users.
 
+_Note:_ Thanks to **@supermerill** for testing and inspiration on this guide.
+
 ### Dependencies
 
 On Windows Slic3r is built against statically built libraries.
 We provide a prebuilt package of all the needed dependencies.
 The package comes in a several variants:
 
-  - [64 bit, Release mode only](https://bintray.com/vojtechkral/Slic3r-PE/download_file?file_path=destdir-64.7z) (41 MB, 546 MB unpacked)
-  - [64 bit, Release and Debug mode](https://bintray.com/vojtechkral/Slic3r-PE/download_file?file_path=destdir-64-dev.7z) (88 MB, 1200 MB unpacked)
-  - [32 bit, Release mode only](https://bintray.com/vojtechkral/Slic3r-PE/download_file?file_path=destdir-32.7z) (38 MB, 391 MB unpacked)
-  - [32 bit, Release and Debug mode](https://bintray.com/vojtechkral/Slic3r-PE/download_file?file_path=destdir-32-dev.7z) (24 MB, 487 MB unpacked)
+  - [64 bit, Release mode only](https://bintray.com/vojtechkral/Slic3r-PE/download_file?file_path=destdir-64.7z) (41 MB, 578 MB unpacked)
+  - [64 bit, Release and Debug mode](https://bintray.com/vojtechkral/Slic3r-PE/download_file?file_path=destdir-64-dev.7z) (88 MB, 1.3 GB unpacked)
+  - [32 bit, Release mode only](https://bintray.com/vojtechkral/Slic3r-PE/download_file?file_path=destdir-32.7z) (38 MB, 520 MB unpacked)
+  - [32 bit, Release and Debug mode](https://bintray.com/vojtechkral/Slic3r-PE/download_file?file_path=destdir-32-dev.7z) (74 MB, 1.1 GB unpacked)
 
 When unsure, use the _Release mode only_ variant, the _Release and Debug_ variant is only needed for debugging & developement.
 
@@ -47,7 +49,12 @@ Before building, make sure you're building the right project (use one of those s
 with the right configuration, ie. _Release_ vs. _Debug_. When unsure, choose _Release_.
 Note that you won't be able to build a _Debug_ variant against a _Release_-only dependencies package.
 
-TODO: Install paragraph from @supermerill (?), also credit
+#### Installing using the `INSTALL` project
+
+Slic3r PE can be run from the Visual Studio or from Visual Studio's build directory (`src\Release` or `src\Debug`),
+but for longer-term usage you migth want to install somewhere using the `INSTALL` project.
+By default, this installs into `C:\Program Files\Slic3r`.
+To customize the install path, use the `-DCMAKE_INSTALL_PREFIX=<path of your choice>` when invoking `cmake`.
 
 ### Building from the command line
 
@@ -61,15 +68,17 @@ To build with msbuild, use the same CMake command as in previous paragraph and t
 
     msbuild /P:Configuration=Release ALL_BUILD.vcxproj
 
-To build with Ninja or nmake, replace the `-G` option in the CMake call with `-G Ninja` or `-G "NMake Makefiles"`, respectively.
+To build with Ninja or nmake, replace the `-G` option in the CMake call with `-G Ninja` or `-G "NMake Makefiles"` , respectively.
 Then use either `ninja` or `nmake` to start the build.
+
+To install, use `msbuild /P:Configuration=Release INSTALL.vcxproj` , `ninja install` , or `nmake install` .
 
 ### Building the dependencies package yourself
 
 The dependencies package is built using CMake scripts inside the `deps` subdirectory of Slic3r PE sources.
 (This is intentionally not interconnected with the CMake scripts in the rest of the sources.)
 
-Open the preferred Visual Studio command line and `cd` into the directory with Slic3r sources.
+Open the preferred Visual Studio command line (64 or 32 bit variant) and `cd` into the directory with Slic3r sources.
 Then `cd` into the `deps` directory and use these commands to build:
 
     mkdir build
