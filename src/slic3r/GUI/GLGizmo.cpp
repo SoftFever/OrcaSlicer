@@ -1523,7 +1523,7 @@ void GLGizmoFlatten::update_planes()
     const Transform3d& inst_matrix = m_model_object->instances.front()->get_matrix();
 
     // Following constants are used for discarding too small polygons.
-    const float minimal_area = 20.f; // in square mm (world coordinates)
+    const float minimal_area = 5.f; // in square mm (world coordinates)
     const float minimal_side = 1.f; // mm
 
     // Now we'll go through all the facets and append Points of facets sharing the same normal.
