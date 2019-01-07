@@ -148,7 +148,7 @@ void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt
 			config.set_key_value(opt_key, new ConfigOptionString(boost::any_cast<std::string>(value)));
 			break;
 		case coStrings:{
-			if (opt_key == "compatible_prints" || opt_key == "compatible_printers" || opt_key == "post_process") {
+			if (opt_key == "compatible_prints" || opt_key == "compatible_printers") {
 				config.option<ConfigOptionStrings>(opt_key)->values = 
 					boost::any_cast<std::vector<std::string>>(value);
 			}
