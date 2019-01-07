@@ -234,7 +234,7 @@ void show_error(wxWindow* parent, const wxString& message)
 void show_error_id(int id, const std::string& message)
 {
 	auto *parent = id != 0 ? wxWindow::FindWindowById(id) : nullptr;
-	show_error(parent, wxString::FromUTF8(message.data()));
+	show_error(parent, from_u8(message));
 }
 
 void show_info(wxWindow* parent, const wxString& message, const wxString& title)
@@ -324,7 +324,7 @@ wxString from_path(const boost::filesystem::path &path)
 #ifdef _WIN32
 	return wxString(path.string<std::wstring>());
 #else
-	return wxString::FromUTF8(path.string<std::string>());
+	return from_u8(path.string<std::string>());
 #endif
 }
 
@@ -405,7 +405,7 @@ void desktop_open_datadir_folder()
 
 	const auto path = data_dir();
 #ifdef _WIN32
-		const auto widepath = wxString::FromUTF8(path.data());
+		const wxString widepath = from_u8(path);
 		const wchar_t *argv[] = { L"explorer", widepath.GetData(), nullptr };
 		::wxExecute(const_cast<wchar_t**>(argv), wxEXEC_ASYNC, nullptr);
 #elif __APPLE__

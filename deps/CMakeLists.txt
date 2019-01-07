@@ -33,6 +33,7 @@ endif ()
 
 set(DESTDIR "${CMAKE_CURRENT_BINARY_DIR}/destdir" CACHE PATH "Destination directory")
 option(DEP_DEBUG "Build debug variants (only applicable on Windows)" ON)
+option(DEP_WX_STABLE "Build against wxWidgets stable 3.0 as opposed to default 3.1 (Linux only)" OFF)
 
 message(STATUS "Slic3r deps DESTDIR: ${DESTDIR}")
 message(STATUS "Slic3r deps debug build: ${DEP_DEBUG}")

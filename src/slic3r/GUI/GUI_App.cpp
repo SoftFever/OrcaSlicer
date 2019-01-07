@@ -67,7 +67,7 @@ wxString file_wildcards(FileType file_type, const std::string &custom_extension)
 			out += std::string(";*") + custom_extension;
         }
     }
-	return wxString::FromUTF8(out.c_str());
+    return from_u8(out);
 }
 
 static std::string libslic3r_translate_callback(const char *s) { return wxGetTranslation(wxString(s, wxConvUTF8)).utf8_str().data(); }
@@ -464,7 +464,7 @@ bool GUI_App::select_language(  wxArrayString & names,
     {
         m_wxLocale = new wxLocale;
         m_wxLocale->Init(identifiers[index]);
-		m_wxLocale->AddCatalogLookupPathPrefix(wxString::FromUTF8(localization_dir()));
+		m_wxLocale->AddCatalogLookupPathPrefix(from_u8(localization_dir()));
         m_wxLocale->AddCatalog(/*GetAppName()*/"Slic3rPE");
 		//FIXME This is a temporary workaround, the correct solution is to switch to "C" locale during file import / export only.
 		wxSetlocale(LC_NUMERIC, "C");
@@ -492,7 +492,7 @@ bool GUI_App::load_language()
         {
             m_wxLocale = new wxLocale;
             m_wxLocale->Init(identifiers[i]);
-			m_wxLocale->AddCatalogLookupPathPrefix(wxString::FromUTF8(localization_dir()));
+			m_wxLocale->AddCatalogLookupPathPrefix(from_u8(localization_dir()));
             m_wxLocale->AddCatalog(/*GetAppName()*/"Slic3rPE");
 			//FIXME This is a temporary workaround, the correct solution is to switch to "C" locale during file import / export only.
             wxSetlocale(LC_NUMERIC, "C");
@@ -520,7 +520,7 @@ void GUI_App::get_installed_languages(wxArrayString & names, wxArrayLong & ident
     names.Clear();
     identifiers.Clear();
 
-	wxDir dir(wxString::FromUTF8(localization_dir()));
+	wxDir dir(from_u8(localization_dir()));
     wxString filename;
     const wxLanguageInfo * langinfo;
     wxString name = wxLocale::GetLanguageName(wxLANGUAGE_DEFAULT);
