@@ -809,7 +809,7 @@ void GCode::_do_export(Print &print, FILE *file)
                 for (const ExPolygon &expoly : layer->slices.expolygons)
                     for (const Point &copy : object->copies()) {
                         islands.emplace_back(expoly.contour);
-                        islands.back().translate(- copy);
+                        islands.back().translate(copy);
                     }
         //FIXME Mege the islands in parallel.
         m_avoid_crossing_perimeters.init_external_mp(union_ex(islands));
