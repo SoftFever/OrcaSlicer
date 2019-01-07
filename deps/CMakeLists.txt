@@ -6,6 +6,7 @@
 # All the dependencies are installed in a `destdir` directory in the root of the build directory,
 # in a traditional Unix-style prefix structure. The destdir can be used directly by CMake
 # when building Slic3r - to do this, set the CMAKE_PREFIX_PATH to ${destdir}/usr/local.
+# Warning: On UNIX/Linux, you also need to set -DSLIC3R_STATIC=1 when building Slic3r.
 #
 # For better clarity of console output, it's recommended to _not_ use a parallelized build
 # for the top-level command, ie. use `make -j 1` or `ninja -j 1` to force single-threaded top-level
