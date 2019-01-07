@@ -791,7 +791,7 @@ void GCode::_do_export(Print &print, FILE *file)
         }
     } else {
         for (const std::string &start_gcode : print.config().start_filament_gcode.values)
-            _writeln(file, this->placeholder_parser_process("start_gcode", start_gcode, (unsigned int)(&start_gcode - &print.config().start_filament_gcode.values.front())));
+            _writeln(file, this->placeholder_parser_process("start_filament_gcode", start_gcode, (unsigned int)(&start_gcode - &print.config().start_filament_gcode.values.front())));
     }
     this->_print_first_layer_extruder_temperatures(file, print, start_gcode, initial_extruder_id, true);
     print.throw_if_canceled();

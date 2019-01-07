@@ -1700,8 +1700,10 @@ void GLCanvas3D::Selection::flattening_rotate(const Vec3d& normal)
     }
 
 #if !DISABLE_INSTANCES_SYNCH
+    // we want to synchronize z-rotation as well, otherwise the flattening behaves funny
+    // when applied on one of several identical instances
     if (m_mode == Instance)
-        _synchronize_unselected_instances();
+        _synchronize_unselected_instances(true);
 #endif // !DISABLE_INSTANCES_SYNCH
 
     m_bounding_box_dirty = true;
@@ -1892,8 +1894,6 @@ void GLCanvas3D::Selection::erase()
         }
         wxGetApp().obj_list()->delete_from_model_and_list(items);
     }
-    else if (is_single_full_instance())
-        wxGetApp().obj_list()->delete_from_model_and_list(ItemType::itInstance, get_object_idx(), get_instance_idx());
     else if (is_multiple_full_instance())
     {
         std::set<std::pair<int, int>> instances_idxs;
@@ -1911,9 +1911,10 @@ void GLCanvas3D::Selection::erase()
         {
             items.emplace_back(ItemType::itInstance, i.first, i.second);
         }
-
         wxGetApp().obj_list()->delete_from_model_and_list(items);
     }
+    else if (is_single_full_instance())
+        wxGetApp().obj_list()->delete_from_model_and_list(ItemType::itInstance, get_object_idx(), get_instance_idx());
     else if (is_mixed())
     {
         std::set<ItemForDelete> items_set;
@@ -2573,7 +2574,7 @@ void GLCanvas3D::Selection::_render_sidebar_size_hint(Axis axis, double length) 
 }
 #endif // ENABLE_SIDEBAR_VISUAL_HINTS
 
-void GLCanvas3D::Selection::_synchronize_unselected_instances()
+void GLCanvas3D::Selection::_synchronize_unselected_instances(bool including_z)
 {
     std::set<unsigned int> done;  // prevent processing volumes twice
     done.insert(m_list.begin(), m_list.end());
@@ -2606,7 +2607,7 @@ void GLCanvas3D::Selection::_synchronize_unselected_instances()
             if ((v->object_idx() != object_idx) || (v->instance_idx() == instance_idx))
                 continue;
 
-            v->set_instance_rotation(Vec3d(rotation(0), rotation(1), v->get_instance_rotation()(2)));
+            v->set_instance_rotation(Vec3d(rotation(0), rotation(1), including_z ? rotation(2) : v->get_instance_rotation()(2)));
             v->set_instance_scaling_factor(scaling_factor);
             v->set_instance_mirror(mirror);
 
@@ -4951,7 +4952,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
 
         m_mouse.set_start_position_2D_as_invalid();
-        m_mouse.set_start_position_3D_as_invalid();
 #endif
     }
     else if (evt.Leaving())
@@ -4963,6 +4963,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     else if (evt.LeftDClick() && (toolbar_contains_mouse != -1))
     {
         m_toolbar_action_running = true;
+        m_mouse.set_start_position_3D_as_invalid();
         m_toolbar.do_action((unsigned int)toolbar_contains_mouse, *this);
     }
     else if (evt.LeftDClick() && (m_gizmos.get_current_type() != Gizmos::Undefined))
@@ -5040,6 +5041,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         else if (toolbar_contains_mouse != -1)
         {
             m_toolbar_action_running = true;
+            m_mouse.set_start_position_3D_as_invalid();
             m_toolbar.do_action((unsigned int)toolbar_contains_mouse, *this);
             m_mouse.left_down = false;
         }

@@ -597,7 +597,7 @@ public:
         void _render_sidebar_scale_hint(Axis axis) const;
         void _render_sidebar_size_hint(Axis axis, double length) const;
 #endif // ENABLE_SIDEBAR_VISUAL_HINTS
-        void _synchronize_unselected_instances();
+        void _synchronize_unselected_instances(bool including_z = false);
         void _synchronize_unselected_volumes();
 #if ENABLE_ENSURE_ON_BED_WHILE_SCALING
         void _ensure_on_bed();
