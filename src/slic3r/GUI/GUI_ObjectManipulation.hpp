@@ -15,10 +15,32 @@ namespace GUI {
 class ObjectManipulation : public OG_Settings
 {
 #if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
-    Vec3d m_cache_position;
-    Vec3d m_cache_rotation;
-    Vec3d m_cache_scale;
-    Vec3d m_cache_size;
+    struct Cache
+    {
+        Vec3d position;
+        Vec3d rotation;
+        Vec3d scale;
+        Vec3d size;
+
+        std::string move_label_string;
+        std::string rotate_label_string;
+        std::string scale_label_string;
+
+        int object_idx;
+        int instance_idx;
+
+        Vec3d instance_box_size;
+
+        Cache() : position(Vec3d(DBL_MAX, DBL_MAX, DBL_MAX)) , rotation(Vec3d(DBL_MAX, DBL_MAX, DBL_MAX))
+            , scale(Vec3d(DBL_MAX, DBL_MAX, DBL_MAX)) , size(Vec3d(DBL_MAX, DBL_MAX, DBL_MAX))
+            , move_label_string("") , rotate_label_string("") , scale_label_string("")
+            , object_idx(-1)
+            , instance_idx(-1)
+        {
+        }
+    };
+
+    Cache m_cache;
 #else
     Vec3d       m_cache_position{ 0., 0., 0. };
     Vec3d       m_cache_rotation{ 0., 0., 0. };
