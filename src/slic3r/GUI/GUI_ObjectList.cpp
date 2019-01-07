@@ -635,7 +635,7 @@ void ObjectList::get_settings_choice(const wxString& category_name)
     // Add settings item for object
     const auto item = GetSelection();
     if (item) {
-        const auto settings_item = m_objects_model->GetSettingsItem(item);
+        const auto settings_item = m_objects_model->IsSettingsItem(item) ? item : m_objects_model->GetSettingsItem(item);
         select_item(settings_item ? settings_item :
             m_objects_model->AddSettingsChild(item));
     }
