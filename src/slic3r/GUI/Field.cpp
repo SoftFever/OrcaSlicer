@@ -474,6 +474,7 @@ void Choice::BUILD() {
     if (temp->GetWindowStyle() != wxCB_READONLY) {
         temp->Bind(wxEVT_KILL_FOCUS, ([this](wxEvent& e) {
             e.Skip();
+            if (m_opt.type == coStrings) return;
             double old_val = !m_value.empty() ? boost::any_cast<double>(m_value) : -99999;
             if (is_defined_input_value<wxComboBox>(window, m_opt.type)) {
                 if (fabs(old_val - boost::any_cast<double>(get_value())) <= 0.0001)
@@ -692,7 +693,7 @@ boost::any& Choice::get_value()
 	}
     else if (m_opt.gui_type == "f_enum_open") {
         const int ret_enum = static_cast<wxComboBox*>(window)->GetSelection();
-        if (ret_enum < 0 || m_opt.enum_values.empty())
+        if (ret_enum < 0 || m_opt.enum_values.empty() || m_opt.type == coStrings)
             get_value_by_opt_type(ret_str);
         else 
             m_value = atof(m_opt.enum_values[ret_enum].c_str());
