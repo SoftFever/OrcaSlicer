@@ -2,6 +2,8 @@ project(Slic3r)
 cmake_minimum_required(VERSION 3.2)
 
 include("version.inc")
+include(GNUInstallDirs)
+
 set(SLIC3R_RESOURCES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/resources")
 file(TO_NATIVE_PATH "${SLIC3R_RESOURCES_DIR}" SLIC3R_RESOURCES_DIR_WIN)
 
@@ -22,6 +24,7 @@ endif()
 
 option(SLIC3R_STATIC 			"Compile Slic3r with static libraries (Boost, TBB, glew)" ${SLIC3R_STATIC_INITIAL})
 option(SLIC3R_GUI    			"Compile Slic3r with GUI components (OpenGL, wxWidgets)" 1)
+option(SLIC3R_FHS               "Assume Slic3r is to be installed in a FHS directory structure" 0)
 option(SLIC3R_PROFILE 			"Compile Slic3r with an invasive Shiny profiler" 0)
 option(SLIC3R_MSVC_COMPILE_PARALLEL "Compile on Visual Studio in parallel" 1)
 option(SLIC3R_MSVC_PDB          "Generate PDB files on MSVC in Release mode" 1)
@@ -60,6 +63,8 @@ foreach (DIR ${PREFIX_PATH_CHECK})
         message(WARNING "CMAKE_PREFIX_PATH element doesn't exist: ${DIR}")
     endif ()
 endforeach ()
+
+message(STATUS "SLIC3R_FHS: ${SLIC3R_FHS}")
 
 # Add our own cmake module path.
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules/)
@@ -146,12 +151,14 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STRE
 endif()
 
 # Where all the bundled libraries reside?
-set(LIBDIR ${CMAKE_CURRENT_SOURCE_DIR}/src/)
+set(LIBDIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
+set(LIBDIR_BIN ${CMAKE_CURRENT_BINARY_DIR}/src)
 # For the bundled boost libraries (boost::nowide)
 include_directories(${LIBDIR})
+# For generated header files
+include_directories(${LIBDIR_BIN}/platform)
 # For libslic3r.h
 include_directories(${LIBDIR}/clipper ${LIBDIR}/polypartition)
-#set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 if(WIN32)
     # BOOST_ALL_NO_LIB: Avoid the automatic linking of Boost libraries on Windows. Rather rely on explicit linking.
@@ -215,7 +222,6 @@ endif()
 # The Intel TBB library will use the std::exception_ptr feature of C++11.
 add_definitions(-DTBB_USE_CAPTURED_EXCEPTION=0)
 
-#set(CURL_DEBUG 1)
 find_package(CURL REQUIRED)
 include_directories(${CURL_INCLUDE_DIRS})
 
@@ -280,7 +286,6 @@ include_directories(${GLEW_INCLUDE_DIRS})
 # l10n
 set(L10N_DIR "${SLIC3R_RESOURCES_DIR}/localization")
 add_custom_target(pot
-    # FIXME: file list stale
     COMMAND xgettext --keyword=L --from-code=UTF-8 --debug
         -f "${L10N_DIR}/list.txt"
         -o "${L10N_DIR}/Slic3rPE.pot"
@@ -307,5 +312,12 @@ if(SLIC3R_BUILD_TESTS)
     add_subdirectory(tests)
 endif()
 
-file(GLOB MyVar var/*.png)
-install(FILES ${MyVar} DESTINATION share/slic3r-prusa3d)
+
+# Resources install target, configure fhs.hpp on UNIX
+if (WIN32)
+    install(DIRECTORY "${SLIC3R_RESOURCES_DIR}/" DESTINATION "${CMAKE_INSTALL_PREFIX}/resources")
+else ()
+    set(SLIC3R_FHS_RESOURCES "${CMAKE_INSTALL_FULL_DATAROOTDIR}/slic3r-prusa3d")
+    install(DIRECTORY "${SLIC3R_RESOURCES_DIR}/" DESTINATION "${SLIC3R_FHS_RESOURCES}")
+endif ()
+configure_file(${LIBDIR}/platform/unix/fhs.hpp.in ${LIBDIR_BIN}/platform/unix/fhs.hpp)

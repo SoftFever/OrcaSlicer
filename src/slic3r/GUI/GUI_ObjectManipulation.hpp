@@ -26,16 +26,25 @@ class ObjectManipulation : public OG_Settings
         std::string rotate_label_string;
         std::string scale_label_string;
 
-        int object_idx;
-        int instance_idx;
+        struct Instance
+        {
+            int object_idx;
+            int instance_idx;
+            Vec3d box_size;
 
-        Vec3d instance_box_size;
+            Instance() { reset(); }
+            void reset() { this->object_idx = -1; this->instance_idx = -1; this->box_size = Vec3d::Zero(); }
+            void set(int object_idx, int instance_idx, const Vec3d& box_size) { this->object_idx = object_idx; this->instance_idx = instance_idx; this->box_size = box_size; }
+            bool matches(int object_idx, int instance_idx) const { return (this->object_idx == object_idx) && (this->instance_idx == instance_idx); }
+            bool matches_object(int object_idx) const { return (this->object_idx == object_idx); }
+            bool matches_instance(int instance_idx) const { return (this->instance_idx == instance_idx); }
+        };
+
+        Instance instance;
 
         Cache() : position(Vec3d(DBL_MAX, DBL_MAX, DBL_MAX)) , rotation(Vec3d(DBL_MAX, DBL_MAX, DBL_MAX))
             , scale(Vec3d(DBL_MAX, DBL_MAX, DBL_MAX)) , size(Vec3d(DBL_MAX, DBL_MAX, DBL_MAX))
             , move_label_string("") , rotate_label_string("") , scale_label_string("")
-            , object_idx(-1)
-            , instance_idx(-1)
         {
         }
     };

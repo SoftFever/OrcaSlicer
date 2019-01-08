@@ -121,7 +121,8 @@ ExternalProject_Add(dep_zlib
     URL_HASH SHA256=4ff941449631ace0d4d203e3483be9dbc9da454084111f97ea0a2114e19bf066
     CMAKE_GENERATOR "${DEP_MSVC_GEN}"
     CMAKE_ARGS
-        "-DINSTALL_BIN_DIR=${CMAKE_CURRENT_BINARY_DIR}\\fallout"   # I found no better way of preventing zlib creating & installing DLLs :-/
+        -DSKIP_INSTALL_FILES=ON                                    # Prevent installation of man pages et al.
+        "-DINSTALL_BIN_DIR=${CMAKE_CURRENT_BINARY_DIR}\\fallout"   # I found no better way of preventing zlib from creating & installing DLLs :-/
         -DCMAKE_POSITION_INDEPENDENT_CODE=ON
         "-DCMAKE_INSTALL_PREFIX:PATH=${DESTDIR}\\usr\\local"
     BUILD_COMMAND msbuild /P:Configuration=Release INSTALL.vcxproj
@@ -136,6 +137,19 @@ if (${DEP_DEBUG})
         WORKING_DIRECTORY "${BINARY_DIR}"
     )
 endif ()
+# The following steps are unfortunately needed to remove the _static suffix on libraries
+ExternalProject_Add_Step(dep_zlib fix_static
+    DEPENDEES install
+    COMMAND "${CMAKE_COMMAND}" -E rename zlibstatic.lib zlib.lib
+    WORKING_DIRECTORY "${DESTDIR}\\usr\\local\\lib\\"
+)
+if (${DEP_DEBUG})
+    ExternalProject_Add_Step(dep_zlib fix_static_debug
+        DEPENDEES install
+        COMMAND "${CMAKE_COMMAND}" -E rename zlibstaticd.lib zlibd.lib
+        WORKING_DIRECTORY "${DESTDIR}\\usr\\local\\lib\\"
+    )
+endif ()
 
 
 ExternalProject_Add(dep_libpng
@@ -147,6 +161,7 @@ ExternalProject_Add(dep_libpng
     CMAKE_ARGS
         -DPNG_SHARED=OFF
         -DPNG_TESTS=OFF
+        -DSKIP_INSTALL_FILES=ON                                   # Prevent installation of man pages et al.
         -DCMAKE_POSITION_INDEPENDENT_CODE=ON
         "-DCMAKE_INSTALL_PREFIX:PATH=${DESTDIR}\\usr\\local"
     BUILD_COMMAND msbuild /P:Configuration=Release INSTALL.vcxproj
@@ -159,6 +174,20 @@ if (${DEP_DEBUG})
         DEPENDERS install
         COMMAND msbuild /P:Configuration=Debug INSTALL.vcxproj
         WORKING_DIRECTORY "${BINARY_DIR}"
+    )
+endif ()
+# The following steps are unfortunately needed to remove the _static suffix on libraries
+# (And also overwrite the dynamic .lib)
+ExternalProject_Add_Step(dep_libpng fix_static
+    DEPENDEES install
+    COMMAND "${CMAKE_COMMAND}" -E rename libpng16_static.lib libpng16.lib
+    WORKING_DIRECTORY "${DESTDIR}\\usr\\local\\lib\\"
+)
+if (${DEP_DEBUG})
+    ExternalProject_Add_Step(dep_libpng fix_static_debug
+        DEPENDEES install
+        COMMAND "${CMAKE_COMMAND}" -E rename libpng16_staticd.lib libpng16d.lib
+        WORKING_DIRECTORY "${DESTDIR}\\usr\\local\\lib\\"
     )
 endif ()
 

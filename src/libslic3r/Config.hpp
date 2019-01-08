@@ -218,7 +218,7 @@ public:
 
     const T& get_at(size_t i) const { return const_cast<ConfigOptionVector<T>*>(this)->get_at(i); }
 
-    // Resize this vector by duplicating the last value.
+    // Resize this vector by duplicating the /*last*/first value.
     // If the current vector is empty, the default value is used instead.
     void resize(size_t n, const ConfigOption *opt_default = nullptr) override
     {
@@ -238,7 +238,7 @@ public:
                 this->values.resize(n, static_cast<const ConfigOptionVector<T>*>(opt_default)->values.front());
             } else {
                 // Resize by duplicating the last value.
-                this->values.resize(n, this->values.back());
+                this->values.resize(n, this->values./*back*/front());
             }
         }
     }
