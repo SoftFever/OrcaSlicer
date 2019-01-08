@@ -498,21 +498,23 @@ void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
         // be rounded because we offset twice: ones to get the outer (top) plate
         // and again to get the inner (bottom) plate
         auto outer_base = concaveh;
+        outer_base.holes.clear();
         offset(outer_base, s_safety_dist + s_wingdist + s_thickness);
         auto inner_base = outer_base;
-        auto middle_base = outer_base;
         offset(inner_base, -(s_thickness + s_wingdist));
-        offset(middle_base, -s_thickness);
-        inner_base.holes.clear();   // bottom contour
-        middle_base.holes.clear();  // contour of the cavity-top
-        outer_base.holes.clear();   // bottom contour, also for the cavity
 
         // Punching a hole in the top plate for the cavity
         ExPolygon top_poly;
+        ExPolygon middle_base;
         top_poly.contour = outer_base.contour;
-        top_poly.holes.emplace_back(middle_base.contour);
-        auto& tph = top_poly.holes.back().points;
-        std::reverse(tph.begin(), tph.end());
+
+        if(wingheight > 0) {
+            middle_base = outer_base;
+            offset(middle_base, -s_thickness);
+            top_poly.holes.emplace_back(middle_base.contour);
+            auto& tph = top_poly.holes.back().points;
+            std::reverse(tph.begin(), tph.end());
+        }
 
         Contour3D pool;
 
@@ -549,7 +551,7 @@ void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
         // Generate the smoothed edge geometry
         auto walledges = round_edges(ob,
                                      r,
-                                     phi,  // 170 degrees
+                                     phi,
                                      0,    // z position of the input plane
                                      true,
                                      thrcl,
@@ -561,36 +563,43 @@ void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
         auto pwalls = walls(ob, inner_base, wh, -fullheight, thrcl);
         pool.merge(pwalls);
 
-        // Generate the smoothed edge geometry
-        auto cavityedges = round_edges(middle_base,
-                                       r,
-                                       phi - 90,  // 170 degrees
-                                       0,    // z position of the input plane
-                                       false,
-                                       thrcl,
-                                       ob, wh);
-        pool.merge(cavityedges);
+        if(wingheight > 0) {
+            // Generate the smoothed edge geometry
+            auto cavityedges = round_edges(middle_base,
+                                           r,
+                                           phi - 90, // from tangent lines
+                                           0,
+                                           false,
+                                           thrcl,
+                                           ob, wh);
+            pool.merge(cavityedges);
 
-        // Next is the cavity walls connecting to the top plate's artificially
-        // created hole.
-        auto cavitywalls = walls(inner_base, ob, -wingheight, wh, thrcl);
-        pool.merge(cavitywalls);
+            // Next is the cavity walls connecting to the top plate's
+            // artificially created hole.
+            auto cavitywalls = walls(inner_base, ob, -wingheight, wh, thrcl);
+            pool.merge(cavitywalls);
+        }
 
         // Now we need to triangulate the top and bottom plates as well as the
         // cavity bottom plate which is the same as the bottom plate but it is
         // eleveted by the thickness.
-        Polygons top_triangles, middle_triangles, bottom_triangles;
+        Polygons top_triangles, bottom_triangles;
 
         triangulate(top_poly, top_triangles);
-        triangulate(inner_base, middle_triangles);
         triangulate(inner_base, bottom_triangles);
+
         auto top_plate = convert(top_triangles, 0, false);
-        auto middle_plate = convert(middle_triangles, -mm(wingheight), false);
         auto bottom_plate = convert(bottom_triangles, -mm(fullheight), true);
 
         pool.merge(top_plate);
-        pool.merge(middle_plate);
         pool.merge(bottom_plate);
+
+        if(wingheight > 0) {
+            Polygons middle_triangles;
+            triangulate(inner_base, middle_triangles);
+            auto middle_plate = convert(middle_triangles, -mm(wingheight), false);
+            pool.merge(middle_plate);
+        }
 
         out.merge(mesh(pool));
     }
