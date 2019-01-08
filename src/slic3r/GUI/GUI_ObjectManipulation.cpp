@@ -19,7 +19,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     OG_Settings(parent, true)
 {
     m_og->set_name(_(L("Object Manipulation")));
-    m_og->label_width = 100;
+    m_og->label_width = 125;
     m_og->set_grid_vgap(5);
     
     m_og->m_on_change = [this](const std::string& opt_key, const boost::any& value) {
@@ -150,7 +150,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     m_og->append_line(line);
 
 
-    auto add_og_to_object_settings = [](const std::string& option_name, const std::string& sidetext)
+    auto add_og_to_object_settings = [this](const std::string& option_name, const std::string& sidetext)
     {
         Line line = { _(option_name), "" };
         ConfigOptionDef def;
@@ -162,6 +162,26 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
         {
             def.min = -360;
             def.max = 360;
+        }
+
+        // Add "uniform scaling" button in front of "Scale" option 
+        else if (option_name == "Scale") {
+            line.near_label_widget = [this](wxWindow* parent) {
+                auto btn = new PrusaLockButton(parent, wxID_ANY);
+                btn->Bind(wxEVT_BUTTON, [btn, this](wxCommandEvent &event){
+                    event.Skip();
+                    wxTheApp->CallAfter([btn, this]() { set_uniform_scaling(btn->IsLocked()); });
+                });
+                return btn;
+            };
+        }
+
+        // Add empty bmp (Its size have to be equal to PrusaLockButton) in front of "Size" option to label alignment
+        else if (option_name == "Size") {
+            line.near_label_widget = [this](wxWindow* parent) {
+                return new wxStaticBitmap(parent, wxID_ANY, wxNullBitmap, wxDefaultPosition, 
+                                          wxBitmap(from_u8(var("one_layer_lock_on.png")), wxBITMAP_TYPE_PNG).GetSize());
+            };
         }
 
         const std::string lower_name = boost::algorithm::to_lower_copy(option_name);

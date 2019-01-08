@@ -74,6 +74,7 @@ class ObjectManipulation : public OG_Settings
     Vec3d           m_new_scale;
     Vec3d           m_new_size;
     bool            m_new_enabled;
+    bool            m_uniform_scale {false};
 
 public:
     ObjectManipulation(wxWindow* parent);
@@ -87,6 +88,9 @@ public:
 
 	// Called from the App to update the UI if dirty.
 	void		update_if_dirty();
+
+    void        set_uniform_scaling(const bool uniform_scale) { m_uniform_scale = uniform_scale;}
+    bool        get_uniform_scaling() const { return m_uniform_scale; }
 
 private:
     void reset_settings_value();
