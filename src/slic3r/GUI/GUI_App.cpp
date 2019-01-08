@@ -5,7 +5,6 @@
 
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
-#include <boost/filesystem.hpp>
 
 #include <wx/stdpaths.h>
 #include <wx/imagpng.h>
@@ -15,6 +14,7 @@
 #include <wx/filedlg.h>
 #include <wx/dir.h>
 #include <wx/wupdlock.h>
+#include <wx/filefn.h>
 
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Model.hpp"
@@ -83,6 +83,11 @@ GUI_App::GUI_App()
 
 bool GUI_App::OnInit()
 {
+    // Verify resources path
+    const wxString resources_dir = from_u8(Slic3r::resources_dir());
+    wxCHECK_MSG(wxDirExists(resources_dir), false,
+        wxString::Format("Resources path does not exist or is not a directory: %s", resources_dir));
+
 #if ENABLE_IMGUI
     wxCHECK_MSG(m_imgui->init(), false, "Failed to initialize ImGui");
 #endif // ENABLE_IMGUI

@@ -148,19 +148,21 @@ void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt
 			config.set_key_value(opt_key, new ConfigOptionString(boost::any_cast<std::string>(value)));
 			break;
 		case coStrings:{
-			if (opt_key == "compatible_prints" || opt_key == "compatible_printers" || opt_key == "post_process") {
+			if (opt_key == "compatible_prints" || opt_key == "compatible_printers") {
 				config.option<ConfigOptionStrings>(opt_key)->values = 
 					boost::any_cast<std::vector<std::string>>(value);
 			}
 			else if (config.def()->get(opt_key)->gui_flags.compare("serialized") == 0) {
 				std::string str = boost::any_cast<std::string>(value);
-				if (str.back() == ';') str.pop_back();
-				// Split a string to multiple strings by a semi - colon.This is the old way of storing multi - string values.
-				// Currently used for the post_process config value only.
-				std::vector<std::string> values;
-				boost::split(values, str, boost::is_any_of(";"));
-				if (values.size() == 1 && values[0] == "") 
-					values.resize(0);//break;
+                std::vector<std::string> values {};
+                if (!str.empty()) {
+				    if (str.back() == ';') str.pop_back();
+				    // Split a string to multiple strings by a semi - colon.This is the old way of storing multi - string values.
+				    // Currently used for the post_process config value only.
+				    boost::split(values, str, boost::is_any_of(";"));
+				    if (values.size() == 1 && values[0] == "")
+					    values.resize(0);
+                }
 				config.option<ConfigOptionStrings>(opt_key)->values = values;
 			}
 			else{

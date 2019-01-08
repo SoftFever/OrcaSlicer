@@ -635,7 +635,7 @@ void ObjectList::get_settings_choice(const wxString& category_name)
     // Add settings item for object
     const auto item = GetSelection();
     if (item) {
-        const auto settings_item = m_objects_model->GetSettingsItem(item);
+        const auto settings_item = m_objects_model->IsSettingsItem(item) ? item : m_objects_model->GetSettingsItem(item);
         select_item(settings_item ? settings_item :
             m_objects_model->AddSettingsChild(item));
     }
@@ -849,7 +849,7 @@ void ObjectList::load_part( ModelObject* model_object,
                 new_volume->set_type(static_cast<ModelVolume::Type>(type));
                 new_volume->name = boost::filesystem::path(input_file).filename().string();
 
-                part_names.Add(new_volume->name);
+                part_names.Add(from_u8(new_volume->name));
 
                 // set a default extruder value, since user can't add it manually
                 new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
@@ -903,7 +903,7 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const int 
     m_parts_changed = true;
     parts_changed(obj_idx);
 
-    select_item(m_objects_model->AddVolumeChild(GetSelection(), name, type));
+    select_item(m_objects_model->AddVolumeChild(GetSelection(), from_u8(name), type));
 #ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
     selection_changed();
 #endif //no __WXOSX__ //__WXMSW__
@@ -1031,7 +1031,7 @@ void ObjectList::split()
         parent = item;
 
     for (auto id = 0; id < model_object->volumes.size(); id++) {
-        const auto vol_item = m_objects_model->AddVolumeChild(parent, model_object->volumes[id]->name,
+        const auto vol_item = m_objects_model->AddVolumeChild(parent, from_u8(model_object->volumes[id]->name),
                                             model_object->volumes[id]->is_modifier() ? 
                                                 ModelVolume::PARAMETER_MODIFIER : ModelVolume::MODEL_PART,
                                             model_object->volumes[id]->config.has("extruder") ?
@@ -1188,7 +1188,7 @@ void ObjectList::part_selection_changed()
 void ObjectList::add_object_to_list(size_t obj_idx)
 {
     auto model_object = (*m_objects)[obj_idx];
-    wxString item_name = model_object->name;
+    wxString item_name = from_u8(model_object->name);
     const auto item = m_objects_model->Add(item_name,
                       !model_object->config.has("extruder") ? 0 :
                       model_object->config.option<ConfigOptionInt>("extruder")->value);
@@ -1207,8 +1207,8 @@ void ObjectList::add_object_to_list(size_t obj_idx)
     if (model_object->volumes.size() > 1) {
         for (auto id = 0; id < model_object->volumes.size(); id++) {
             auto vol_item = m_objects_model->AddVolumeChild(item,
-                model_object->volumes[id]->name,
-                model_object->volumes[id]->type()/*ModelVolume::MODEL_PART*/,
+                from_u8(model_object->volumes[id]->name),
+                model_object->volumes[id]->type(),
                 !model_object->volumes[id]->config.has("extruder") ? 0 :
                 model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value,
                 false);

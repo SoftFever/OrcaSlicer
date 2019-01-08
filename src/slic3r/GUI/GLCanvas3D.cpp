@@ -2513,7 +2513,9 @@ void GLCanvas3D::Selection::_render_sidebar_rotation_hints(const std::string& si
 
 void GLCanvas3D::Selection::_render_sidebar_scale_hints(const std::string& sidebar_field) const
 {
-    if (boost::ends_with(sidebar_field, "x") || requires_uniform_scale())
+    bool uniform_scale = requires_uniform_scale() || wxGetApp().obj_manipul()->get_uniform_scaling();
+
+    if (boost::ends_with(sidebar_field, "x") || uniform_scale)
     {
         ::glPushMatrix();
         ::glRotated(-90.0, 0.0, 0.0, 1.0);
@@ -2521,14 +2523,14 @@ void GLCanvas3D::Selection::_render_sidebar_scale_hints(const std::string& sideb
         ::glPopMatrix();
     }
 
-    if (boost::ends_with(sidebar_field, "y") || requires_uniform_scale())
+    if (boost::ends_with(sidebar_field, "y") || uniform_scale)
     {
         ::glPushMatrix();
         _render_sidebar_scale_hint(Y);
         ::glPopMatrix();
     }
 
-    if (boost::ends_with(sidebar_field, "z") || requires_uniform_scale())
+    if (boost::ends_with(sidebar_field, "z") || uniform_scale)
     {
         ::glPushMatrix();
         ::glRotated(90.0, 1.0, 0.0, 0.0);
@@ -2559,7 +2561,7 @@ void GLCanvas3D::Selection::_render_sidebar_rotation_hint(Axis axis) const
 
 void GLCanvas3D::Selection::_render_sidebar_scale_hint(Axis axis) const
 {
-    m_arrow.set_color((requires_uniform_scale() ? UNIFORM_SCALE_COLOR : AXES_COLOR[axis]), 3);
+    m_arrow.set_color(((requires_uniform_scale() || wxGetApp().obj_manipul()->get_uniform_scaling()) ? UNIFORM_SCALE_COLOR : AXES_COLOR[axis]), 3);
 
     ::glTranslated(0.0, 5.0, 0.0);
     m_arrow.render();
@@ -3979,6 +3981,12 @@ BoundingBoxf3 GLCanvas3D::scene_bounding_box() const
 {
     BoundingBoxf3 bb = volumes_bounding_box();
     bb.merge(m_bed.get_bounding_box());
+    if (m_config != nullptr)
+    {
+        double h = m_config->opt_float("max_print_height");
+        bb.min(2) = std::min(bb.min(2), -h);
+        bb.max(2) = std::max(bb.max(2), h);
+    }
     return bb;
 }
 
@@ -4939,8 +4947,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
     if (evt.Entering())
     {
-#if defined(__WXMSW__) || defined(__linux__)
-        // On Windows and Linux needs focus in order to catch key events
+//#if defined(__WXMSW__) || defined(__linux__)
+//        // On Windows and Linux needs focus in order to catch key events
+        // Set focus in order to remove it from sidebar fields
         if (m_canvas != nullptr) {
             // Only set focus, if the top level window of this canvas is active.
 			auto p = dynamic_cast<wxWindow*>(evt.GetEventObject());
@@ -4952,7 +4961,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
 
         m_mouse.set_start_position_2D_as_invalid();
-#endif
+//#endif
     }
     else if (evt.Leaving())
     {

@@ -365,6 +365,9 @@ public:
     std::vector<std::string>    current_different_from_parent_options(const bool deep_compare = false) const
         { return dirty_options(&this->get_edited_preset(), this->get_selected_preset_parent(), deep_compare); }
 
+    // Return a sorted list of system preset names.
+    std::vector<std::string>    system_preset_names() const;
+
     // Update the choice UI from the list of presets.
     // If show_incompatible, all presets are shown, otherwise only the compatible presets are shown.
     // If an incompatible preset is selected, it is shown as well.

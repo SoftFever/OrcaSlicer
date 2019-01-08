@@ -33,6 +33,7 @@ if(PNG_FOUND AND NOT RASTERIZER_FORCE_BUILTIN_LIBPNG)
 else()
     set(ZLIB_LIBRARY "")
     message(WARNING "Using builtin libpng. This can cause crashes on some platforms.")
+    set(SKIP_INSTALL_ALL 1)   # Prevent png+zlib from creating install targets
     add_subdirectory(png/zlib)
     set(ZLIB_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/png/zlib ${CMAKE_CURRENT_BINARY_DIR}/png/zlib)
     include_directories(${ZLIB_INCLUDE_DIR})
@@ -188,3 +189,15 @@ else ()
         VERBATIM
     )
 endif()
+
+# Slic3r binary install target
+if (WIN32)
+    install(TARGETS slic3r RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}")
+    if (MSVC)
+        install(TARGETS slic3r_app_gui RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}")
+        install(TARGETS slic3r_app_console RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}")
+        install(TARGETS slic3r_app_noconsole RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}")
+    endif ()
+else ()
+    install(TARGETS slic3r RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+endif ()

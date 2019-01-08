@@ -15,10 +15,41 @@ namespace GUI {
 class ObjectManipulation : public OG_Settings
 {
 #if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
-    Vec3d m_cache_position;
-    Vec3d m_cache_rotation;
-    Vec3d m_cache_scale;
-    Vec3d m_cache_size;
+    struct Cache
+    {
+        Vec3d position;
+        Vec3d rotation;
+        Vec3d scale;
+        Vec3d size;
+
+        std::string move_label_string;
+        std::string rotate_label_string;
+        std::string scale_label_string;
+
+        struct Instance
+        {
+            int object_idx;
+            int instance_idx;
+            Vec3d box_size;
+
+            Instance() { reset(); }
+            void reset() { this->object_idx = -1; this->instance_idx = -1; this->box_size = Vec3d::Zero(); }
+            void set(int object_idx, int instance_idx, const Vec3d& box_size) { this->object_idx = object_idx; this->instance_idx = instance_idx; this->box_size = box_size; }
+            bool matches(int object_idx, int instance_idx) const { return (this->object_idx == object_idx) && (this->instance_idx == instance_idx); }
+            bool matches_object(int object_idx) const { return (this->object_idx == object_idx); }
+            bool matches_instance(int instance_idx) const { return (this->instance_idx == instance_idx); }
+        };
+
+        Instance instance;
+
+        Cache() : position(Vec3d(DBL_MAX, DBL_MAX, DBL_MAX)) , rotation(Vec3d(DBL_MAX, DBL_MAX, DBL_MAX))
+            , scale(Vec3d(DBL_MAX, DBL_MAX, DBL_MAX)) , size(Vec3d(DBL_MAX, DBL_MAX, DBL_MAX))
+            , move_label_string("") , rotate_label_string("") , scale_label_string("")
+        {
+        }
+    };
+
+    Cache m_cache;
 #else
     Vec3d       m_cache_position{ 0., 0., 0. };
     Vec3d       m_cache_rotation{ 0., 0., 0. };
@@ -43,6 +74,7 @@ class ObjectManipulation : public OG_Settings
     Vec3d           m_new_scale;
     Vec3d           m_new_size;
     bool            m_new_enabled;
+    bool            m_uniform_scale {false};
 
 public:
     ObjectManipulation(wxWindow* parent);
@@ -56,6 +88,9 @@ public:
 
 	// Called from the App to update the UI if dirty.
 	void		update_if_dirty();
+
+    void        set_uniform_scaling(const bool uniform_scale) { m_uniform_scale = uniform_scale;}
+    bool        get_uniform_scaling() const { return m_uniform_scale; }
 
 private:
     void reset_settings_value();

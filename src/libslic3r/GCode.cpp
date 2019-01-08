@@ -204,7 +204,9 @@ std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::T
     if (! start_filament_gcode.empty()) {
         // Process the start_filament_gcode for the active filament only.
         gcodegen.placeholder_parser().set("current_extruder", new_extruder_id);
-        gcode += gcodegen.placeholder_parser_process("start_filament_gcode", start_filament_gcode, new_extruder_id);
+        DynamicConfig config;
+        config.set_key_value("filament_extruder_id", new ConfigOptionInt(new_extruder_id));
+        gcode += gcodegen.placeholder_parser_process("start_filament_gcode", start_filament_gcode, new_extruder_id, &config);
         check_add_eol(gcode);
     }
     // A phony move to the end position at the wipe tower.
@@ -787,11 +789,17 @@ void GCode::_do_export(Print &print, FILE *file)
             // Wipe tower will control the extruder switching, it will call the start_filament_gcode.
         } else {
             // Only initialize the initial extruder.
-            _writeln(file, this->placeholder_parser_process("start_filament_gcode", print.config().start_filament_gcode.values[initial_extruder_id], initial_extruder_id));
+            DynamicConfig config;
+            config.set_key_value("filament_extruder_id", new ConfigOptionInt(int(initial_extruder_id)));
+			_writeln(file, this->placeholder_parser_process("start_filament_gcode", print.config().start_filament_gcode.values[initial_extruder_id], initial_extruder_id, &config));
         }
     } else {
-        for (const std::string &start_gcode : print.config().start_filament_gcode.values)
-            _writeln(file, this->placeholder_parser_process("start_filament_gcode", start_gcode, (unsigned int)(&start_gcode - &print.config().start_filament_gcode.values.front())));
+        DynamicConfig config;
+        for (const std::string &start_gcode : print.config().start_filament_gcode.values) {
+            int extruder_id = (unsigned int)(&start_gcode - &print.config().start_filament_gcode.values.front());
+            config.set_key_value("filament_extruder_id", new ConfigOptionInt(extruder_id));
+            _writeln(file, this->placeholder_parser_process("start_filament_gcode", start_gcode, extruder_id, &config));
+        }
     }
     this->_print_first_layer_extruder_temperatures(file, print, start_gcode, initial_extruder_id, true);
     print.throw_if_canceled();
@@ -809,7 +817,7 @@ void GCode::_do_export(Print &print, FILE *file)
                 for (const ExPolygon &expoly : layer->slices.expolygons)
                     for (const Point &copy : object->copies()) {
                         islands.emplace_back(expoly.contour);
-                        islands.back().translate(- copy);
+                        islands.back().translate(copy);
                     }
         //FIXME Mege the islands in parallel.
         m_avoid_crossing_perimeters.init_external_mp(union_ex(islands));
@@ -990,10 +998,15 @@ void GCode::_do_export(Print &print, FILE *file)
         config.set_key_value("layer_z",   new ConfigOptionFloat(m_writer.get_position()(2) - m_config.z_offset.value));
         if (print.config().single_extruder_multi_material) {
             // Process the end_filament_gcode for the active filament only.
-            _writeln(file, this->placeholder_parser_process("end_filament_gcode", print.config().end_filament_gcode.get_at(m_writer.extruder()->id()), m_writer.extruder()->id(), &config));
+            int extruder_id = m_writer.extruder()->id();
+            config.set_key_value("filament_extruder_id", new ConfigOptionInt(extruder_id));
+            _writeln(file, this->placeholder_parser_process("end_filament_gcode", print.config().end_filament_gcode.get_at(extruder_id), extruder_id, &config));
         } else {
-            for (const std::string &end_gcode : print.config().end_filament_gcode.values)
-                _writeln(file, this->placeholder_parser_process("end_filament_gcode", end_gcode, (unsigned int)(&end_gcode - &print.config().end_filament_gcode.values.front()), &config));
+            for (const std::string &end_gcode : print.config().end_filament_gcode.values) {
+				int extruder_id = (unsigned int)(&end_gcode - &print.config().end_filament_gcode.values.front());
+                config.set_key_value("filament_extruder_id", new ConfigOptionInt(extruder_id));
+                _writeln(file, this->placeholder_parser_process("end_filament_gcode", end_gcode, extruder_id, &config));
+            }
         }
         _writeln(file, this->placeholder_parser_process("end_gcode", print.config().end_gcode, m_writer.extruder()->id(), &config));
     }

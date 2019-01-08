@@ -876,7 +876,8 @@ void PresetBundle::load_config_file_config_bundle(const std::string &path, const
 // The presets starting with '*' are considered non-terminal and they are
 // removed through the flattening process by this function.
 // This function will never fail, but it will produce error messages through boost::log.
-static void flatten_configbundle_hierarchy(boost::property_tree::ptree &tree, const std::string &group_name)
+// system_profiles will not be flattened, and they will be kept inside the "inherits" field
+static void flatten_configbundle_hierarchy(boost::property_tree::ptree &tree, const std::string &group_name, const std::vector<std::string> &system_profiles)
 {
     namespace pt = boost::property_tree;
 
@@ -911,23 +912,38 @@ static void flatten_configbundle_hierarchy(boost::property_tree::ptree &tree, co
     for (const Prst &prst : presets) {
         // Parse the list of comma separated values, possibly enclosed in quotes.
         std::vector<std::string> inherits_names;
+        std::vector<std::string> inherits_system;
         if (Slic3r::unescape_strings_cstyle(prst.node->get<std::string>("inherits", ""), inherits_names)) {
             // Resolve the inheritance by name.
             std::vector<Prst*> &inherits_nodes = const_cast<Prst&>(prst).inherits;
             for (const std::string &node_name : inherits_names) {
-                auto it = presets.find(Prst(node_name, nullptr));
-                if (it == presets.end())
-                    BOOST_LOG_TRIVIAL(error) << "flatten_configbundle_hierarchy: The preset " << prst.name << " inherits an unknown preset \"" << node_name << "\"";
-                else {
-                    inherits_nodes.emplace_back(const_cast<Prst*>(&(*it)));
-                    inherits_nodes.back()->parent_of.emplace_back(const_cast<Prst*>(&prst));
+                auto it_system = std::lower_bound(system_profiles.begin(), system_profiles.end(), node_name);
+                if (it_system != system_profiles.end() && *it_system == node_name) {
+                    // Loading a user config budnle, this preset is derived from a system profile.
+                    inherits_system.emplace_back(node_name);
+                } else {
+                    auto it = presets.find(Prst(node_name, nullptr));
+                    if (it == presets.end())
+                        BOOST_LOG_TRIVIAL(error) << "flatten_configbundle_hierarchy: The preset " << prst.name << " inherits an unknown preset \"" << node_name << "\"";
+                    else {
+                        inherits_nodes.emplace_back(const_cast<Prst*>(&(*it)));
+                        inherits_nodes.back()->parent_of.emplace_back(const_cast<Prst*>(&prst));
+                    }
                 }
             }
         } else {
             BOOST_LOG_TRIVIAL(error) << "flatten_configbundle_hierarchy: The preset " << prst.name << " has an invalid \"inherits\" field";
         }
-        // Remove the "inherits" key, it has no meaning outside the config bundle.
+        // Remove the "inherits" key, it has no meaning outside of the config bundle.
         const_cast<pt::ptree*>(prst.node)->erase("inherits");
+        if (! inherits_system.empty()) {
+            // Loaded a user config bundle, where a profile inherits a system profile.
+			// User profile should be derived from a single system profile only.
+			assert(inherits_system.size() == 1);
+			if (inherits_system.size() > 1)
+				BOOST_LOG_TRIVIAL(error) << "flatten_configbundle_hierarchy: The preset " << prst.name << " inherits from more than single system preset";
+			prst.node->put("inherits", Slic3r::escape_string_cstyle(inherits_system.front()));
+        }
     }
 
     // 2) Create a linear ordering for the directed acyclic graph of preset inheritance.
@@ -983,13 +999,14 @@ static void flatten_configbundle_hierarchy(boost::property_tree::ptree &tree, co
     }
 }
 
-static void flatten_configbundle_hierarchy(boost::property_tree::ptree &tree)
+// preset_bundle is set when loading user config bundles, which must not overwrite the system profiles.
+static void flatten_configbundle_hierarchy(boost::property_tree::ptree &tree, const PresetBundle *preset_bundle)
 {
-    flatten_configbundle_hierarchy(tree, "print");
-    flatten_configbundle_hierarchy(tree, "filament");
-    flatten_configbundle_hierarchy(tree, "sla_print");
-    flatten_configbundle_hierarchy(tree, "sla_material");
-    flatten_configbundle_hierarchy(tree, "printer");
+    flatten_configbundle_hierarchy(tree, "print",           preset_bundle ? preset_bundle->prints.system_preset_names()        : std::vector<std::string>());
+    flatten_configbundle_hierarchy(tree, "filament",        preset_bundle ? preset_bundle->filaments.system_preset_names()     : std::vector<std::string>());
+    flatten_configbundle_hierarchy(tree, "sla_print",       preset_bundle ? preset_bundle->sla_prints.system_preset_names()    : std::vector<std::string>());
+    flatten_configbundle_hierarchy(tree, "sla_material",    preset_bundle ? preset_bundle->sla_materials.system_preset_names() : std::vector<std::string>());
+    flatten_configbundle_hierarchy(tree, "printer",         preset_bundle ? preset_bundle->printers.system_preset_names()      : std::vector<std::string>());
 }
 
 // Load a config bundle file, into presets and store the loaded presets into separate files
@@ -1019,7 +1036,8 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
     }
 
     // 1.5) Flatten the config bundle by applying the inheritance rules. Internal profiles (with names starting with '*') are removed.
-    flatten_configbundle_hierarchy(tree);
+    // If loading a user config bundle, do not flatten with the system profiles, but keep the "inherits" flag intact.
+    flatten_configbundle_hierarchy(tree, ((flags & LOAD_CFGBNDLE_SYSTEM) == 0) ? this : nullptr);
 
     // 2) Parse the property_tree, extract the active preset names and the profiles, save them into local config files.
     // Parse the obsolete preset names, to be deleted when upgrading from the old configuration structure.
