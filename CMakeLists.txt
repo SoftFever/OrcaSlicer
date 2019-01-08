@@ -248,7 +248,7 @@ endif()
 
 # Find eigen3 or use bundled version
 if (NOT SLIC3R_STATIC)
-    find_package(Eigen3)
+    find_package(Eigen3 3)
 endif ()
 if (NOT Eigen3_FOUND)
     set(Eigen3_FOUND 1)
