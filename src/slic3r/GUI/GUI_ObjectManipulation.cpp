@@ -399,6 +399,9 @@ void ObjectManipulation::update_if_dirty()
 
     m_cache.rotation = m_new_rotation;
 
+//    if (wxGetApp().plater()->canvas3D()->get_selection().requires_uniform_scale())
+//        m_uniform_scale = true;
+
     if (m_new_enabled)
         m_og->enable();
     else
@@ -499,7 +502,7 @@ void ObjectManipulation::change_scale_value(const Vec3d& scale)
 {
     Vec3d scaling_factor = scale;
     const GLCanvas3D::Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
-    if (selection.requires_uniform_scale())
+    if (m_uniform_scale || selection.requires_uniform_scale())
     {
 #if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
         Vec3d abs_scale_diff = (scale - m_cache.scale).cwiseAbs();

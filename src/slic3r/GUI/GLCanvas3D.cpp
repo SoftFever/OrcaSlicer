@@ -2513,7 +2513,9 @@ void GLCanvas3D::Selection::_render_sidebar_rotation_hints(const std::string& si
 
 void GLCanvas3D::Selection::_render_sidebar_scale_hints(const std::string& sidebar_field) const
 {
-    if (boost::ends_with(sidebar_field, "x") || requires_uniform_scale())
+    bool uniform_scale = requires_uniform_scale() || wxGetApp().obj_manipul()->get_uniform_scaling();
+
+    if (boost::ends_with(sidebar_field, "x") || uniform_scale)
     {
         ::glPushMatrix();
         ::glRotated(-90.0, 0.0, 0.0, 1.0);
@@ -2521,14 +2523,14 @@ void GLCanvas3D::Selection::_render_sidebar_scale_hints(const std::string& sideb
         ::glPopMatrix();
     }
 
-    if (boost::ends_with(sidebar_field, "y") || requires_uniform_scale())
+    if (boost::ends_with(sidebar_field, "y") || uniform_scale)
     {
         ::glPushMatrix();
         _render_sidebar_scale_hint(Y);
         ::glPopMatrix();
     }
 
-    if (boost::ends_with(sidebar_field, "z") || requires_uniform_scale())
+    if (boost::ends_with(sidebar_field, "z") || uniform_scale)
     {
         ::glPushMatrix();
         ::glRotated(90.0, 1.0, 0.0, 0.0);
@@ -2559,7 +2561,7 @@ void GLCanvas3D::Selection::_render_sidebar_rotation_hint(Axis axis) const
 
 void GLCanvas3D::Selection::_render_sidebar_scale_hint(Axis axis) const
 {
-    m_arrow.set_color((requires_uniform_scale() ? UNIFORM_SCALE_COLOR : AXES_COLOR[axis]), 3);
+    m_arrow.set_color(((requires_uniform_scale() || wxGetApp().obj_manipul()->get_uniform_scaling()) ? UNIFORM_SCALE_COLOR : AXES_COLOR[axis]), 3);
 
     ::glTranslated(0.0, 5.0, 0.0);
     m_arrow.render();
