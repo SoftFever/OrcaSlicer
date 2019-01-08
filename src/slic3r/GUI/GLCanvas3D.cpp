@@ -4945,8 +4945,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
     if (evt.Entering())
     {
-#if defined(__WXMSW__) || defined(__linux__)
-        // On Windows and Linux needs focus in order to catch key events
+//#if defined(__WXMSW__) || defined(__linux__)
+//        // On Windows and Linux needs focus in order to catch key events
+        // Set focus in order to remove it from sidebar fields
         if (m_canvas != nullptr) {
             // Only set focus, if the top level window of this canvas is active.
 			auto p = dynamic_cast<wxWindow*>(evt.GetEventObject());
@@ -4958,7 +4959,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
 
         m_mouse.set_start_position_2D_as_invalid();
-#endif
+//#endif
     }
     else if (evt.Leaving())
     {
