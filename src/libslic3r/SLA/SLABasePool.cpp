@@ -215,68 +215,72 @@ inline Contour3D roofs(const ExPolygon& poly, coord_t z_distance) {
     return lower;
 }
 
-template<class ExP, class D>
 Contour3D round_edges(const ExPolygon& base_plate,
                       double radius_mm,
                       double degrees,
                       double ceilheight_mm,
                       bool dir,
                       ThrowOnCancel throw_on_cancel,
-                      ExP&& last_offset = ExP(), D&& last_height = D())
+                      ExPolygon& last_offset, double& last_height)
 {
     auto ob = base_plate;
     auto ob_prev = ob;
     double wh = ceilheight_mm, wh_prev = wh;
     Contour3D curvedwalls;
 
-    int steps = 15; // int(std::ceil(10*std::pow(radius_mm, 1.0/3)));
+    int steps = 30;
     double stepx = radius_mm / steps;
     coord_t s = dir? 1 : -1;
     degrees = std::fmod(degrees, 180);
 
-    if(degrees >= 90) {
-        for(int i = 1; i <= steps; ++i) {
-            throw_on_cancel();
+    // we use sin for x distance because we interpret the angle starting from
+    // PI/2
+    int tos = degrees < 90?
+               int(radius_mm*std::cos(degrees * PI / 180 - PI/2) / stepx) : steps;
 
+    for(int i = 1; i <= tos; ++i) {
+        throw_on_cancel();
+
+        ob = base_plate;
+
+        double r2 = radius_mm * radius_mm;
+        double xx = i*stepx;
+        double x2 = xx*xx;
+        double stepy = std::sqrt(r2 - x2);
+
+        offset(ob, s*mm(xx));
+        wh = ceilheight_mm - radius_mm + stepy;
+
+        Contour3D pwalls;
+        pwalls = walls(ob, ob_prev, wh, wh_prev, throw_on_cancel);
+
+        curvedwalls.merge(pwalls);
+        ob_prev = ob;
+        wh_prev = wh;
+    }
+
+    if(degrees > 90) {
+        double tox = radius_mm - radius_mm*std::cos(degrees * PI / 180 - PI/2);
+        int tos = int(tox / stepx);
+
+        for(int i = 1; i <= tos; ++i) {
+            throw_on_cancel();
             ob = base_plate;
 
             double r2 = radius_mm * radius_mm;
-            double xx = i*stepx;
+            double xx = radius_mm - i*stepx;
             double x2 = xx*xx;
             double stepy = std::sqrt(r2 - x2);
-
             offset(ob, s*mm(xx));
-            wh = ceilheight_mm - radius_mm + stepy;
+            wh = ceilheight_mm - radius_mm - stepy;
 
             Contour3D pwalls;
-            pwalls = walls(ob, ob_prev, wh, wh_prev, throw_on_cancel);
+            pwalls = walls(ob_prev, ob, wh_prev, wh, throw_on_cancel);
 
             curvedwalls.merge(pwalls);
             ob_prev = ob;
             wh_prev = wh;
         }
-    }
-
-    double tox = radius_mm - radius_mm*std::sin(degrees * PI / 180);
-    int tos = int(tox / stepx);
-
-    for(int i = 1; i <= tos; ++i) {
-        throw_on_cancel();
-        ob = base_plate;
-
-        double r2 = radius_mm * radius_mm;
-        double xx = radius_mm - i*stepx;
-        double x2 = xx*xx;
-        double stepy = std::sqrt(r2 - x2);
-        offset(ob, s*mm(xx));
-        wh = ceilheight_mm - radius_mm - stepy;
-
-        Contour3D pwalls;
-        pwalls = walls(ob_prev, ob, wh_prev, wh, throw_on_cancel);
-
-        curvedwalls.merge(pwalls);
-        ob_prev = ob;
-        wh_prev = wh;
     }
 
     last_offset = std::move(ob);
@@ -457,32 +461,60 @@ void base_plate(const TriangleMesh &mesh, ExPolygons &output, float h,
 void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
                       const PoolConfig& cfg)
 {
-    double mdist = 2*(1.8*cfg.min_wall_thickness_mm + 4*cfg.edge_radius_mm) +
-                   cfg.max_merge_distance_mm;
 
-    auto concavehs = concave_hull(ground_layer, mdist, cfg.throw_on_cancel);
+    double mergedist = 2*(1.8*cfg.min_wall_thickness_mm + 4*cfg.edge_radius_mm)+
+                       cfg.max_merge_distance_mm;
+
+    // Here we get the base polygon from which the pad has to be generated.
+    // We create an artificial concave hull from this polygon and that will
+    // serve as the bottom plate of the pad. We will offset this concave hull
+    // and then offset back the result with clipper with rounding edges ON. This
+    // trick will create a nice rounded pad shape.
+    auto concavehs = concave_hull(ground_layer, mergedist, cfg.throw_on_cancel);
+
+    const double thickness      = cfg.min_wall_thickness_mm;
+    const double wingheight     = cfg.min_wall_height_mm;
+    const double fullheight     = wingheight + thickness;
+    const double tilt = PI/4;
+    const double wingdist       = wingheight / std::tan(tilt);
+
+    // scaled values
+    const coord_t s_thickness   = mm(thickness);
+    const coord_t s_eradius     = mm(cfg.edge_radius_mm);
+    const coord_t s_safety_dist = 2*s_eradius + coord_t(0.8*s_thickness);
+    // const coord_t wheight    = mm(cfg.min_wall_height_mm);
+    coord_t s_wingdist          = mm(wingdist);
+
+    auto& thrcl = cfg.throw_on_cancel;
+
     for(ExPolygon& concaveh : concavehs) {
         if(concaveh.contour.points.empty()) return;
+
+        // Get rif of any holes in the concave hull output.
         concaveh.holes.clear();
 
-        const coord_t WALL_THICKNESS = mm(cfg.min_wall_thickness_mm);
-
-        const coord_t WALL_DISTANCE = mm(2*cfg.edge_radius_mm) +
-                                      coord_t(0.8*WALL_THICKNESS);
-
-        const coord_t HEIGHT = mm(cfg.min_wall_height_mm);
-
+        // Here lies the trick that does the smooting only with clipper offset
+        // calls. The offset is configured to round edges. Inner edges will
+        // be rounded because we offset twice: ones to get the outer (top) plate
+        // and again to get the inner (bottom) plate
         auto outer_base = concaveh;
-        offset(outer_base, WALL_THICKNESS+WALL_DISTANCE);
+        outer_base.holes.clear();
+        offset(outer_base, s_safety_dist + s_wingdist + s_thickness);
         auto inner_base = outer_base;
-        offset(inner_base, -WALL_THICKNESS);
-        inner_base.holes.clear(); outer_base.holes.clear();
+        offset(inner_base, -(s_thickness + s_wingdist));
 
+        // Punching a hole in the top plate for the cavity
         ExPolygon top_poly;
+        ExPolygon middle_base;
         top_poly.contour = outer_base.contour;
-        top_poly.holes.emplace_back(inner_base.contour);
-        auto& tph = top_poly.holes.back().points;
-        std::reverse(tph.begin(), tph.end());
+
+        if(wingheight > 0) {
+            middle_base = outer_base;
+            offset(middle_base, -s_thickness);
+            top_poly.holes.emplace_back(middle_base.contour);
+            auto& tph = top_poly.holes.back().points;
+            std::reverse(tph.begin(), tph.end());
+        }
 
         Contour3D pool;
 
@@ -497,13 +529,15 @@ void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
         // y = cy + (r^2*py - r*px*sqrt(px^2 + py^2 - r^2) / (px^2 + py^2)
         // where px and py are the coordinates of the point outside the circle
         // cx and cy are the circle center, r is the radius
+        // We place the circle center to (0, 0) in the calculation the make
+        // things easier.
         // to get the angle we use arcsin function and subtract 90 degrees then
         // flip the sign to get the right input to the round_edge function.
         double r = cfg.edge_radius_mm;
         double cy = 0;
         double cx = 0;
-        double px = cfg.min_wall_thickness_mm;
-        double py = r - cfg.min_wall_height_mm;
+        double px = thickness + wingdist;
+        double py = r - fullheight;
 
         double pxcx = px - cx;
         double pycy = py - cy;
@@ -513,45 +547,59 @@ void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
         double vy = (r_2*pycy - r*pxcx*D) / b_2;
         double phi = -(std::asin(vy/r) * 180 / PI - 90);
 
-        auto curvedwalls = round_edges(ob,
-                                       r,
-                                       phi,  // 170 degrees
-                                       0,    // z position of the input plane
-                                       true,
-                                       cfg.throw_on_cancel,
-                                       ob, wh);
 
-        pool.merge(curvedwalls);
+        // Generate the smoothed edge geometry
+        auto walledges = round_edges(ob,
+                                     r,
+                                     phi,
+                                     0,    // z position of the input plane
+                                     true,
+                                     thrcl,
+                                     ob, wh);
+        pool.merge(walledges);
 
-        ExPolygon ob_contr = ob;
-        ob_contr.holes.clear();
-
-        auto pwalls = walls(ob_contr, inner_base, wh, -cfg.min_wall_height_mm,
-                            cfg.throw_on_cancel);
+        // Now that we have the rounded edge connencting the top plate with
+        // the outer side walls, we can generate and merge the sidewall geometry
+        auto pwalls = walls(ob, inner_base, wh, -fullheight, thrcl);
         pool.merge(pwalls);
 
+        if(wingheight > 0) {
+            // Generate the smoothed edge geometry
+            auto cavityedges = round_edges(middle_base,
+                                           r,
+                                           phi - 90, // from tangent lines
+                                           0,
+                                           false,
+                                           thrcl,
+                                           ob, wh);
+            pool.merge(cavityedges);
+
+            // Next is the cavity walls connecting to the top plate's
+            // artificially created hole.
+            auto cavitywalls = walls(inner_base, ob, -wingheight, wh, thrcl);
+            pool.merge(cavitywalls);
+        }
+
+        // Now we need to triangulate the top and bottom plates as well as the
+        // cavity bottom plate which is the same as the bottom plate but it is
+        // eleveted by the thickness.
         Polygons top_triangles, bottom_triangles;
+
         triangulate(top_poly, top_triangles);
         triangulate(inner_base, bottom_triangles);
+
         auto top_plate = convert(top_triangles, 0, false);
-        auto bottom_plate = convert(bottom_triangles, -HEIGHT, true);
-
-        ob = inner_base; wh = 0;
-        // rounded edge generation for the inner bed
-        curvedwalls = round_edges(ob,
-                                  cfg.edge_radius_mm,
-                                  90,   // 90 degrees
-                                  0,    // z position of the input plane
-                                  false,
-                                  cfg.throw_on_cancel,
-                                  ob, wh);
-        pool.merge(curvedwalls);
-
-        auto innerbed = inner_bed(ob, cfg.min_wall_height_mm/2 + wh, wh);
+        auto bottom_plate = convert(bottom_triangles, -mm(fullheight), true);
 
         pool.merge(top_plate);
         pool.merge(bottom_plate);
-        pool.merge(innerbed);
+
+        if(wingheight > 0) {
+            Polygons middle_triangles;
+            triangulate(inner_base, middle_triangles);
+            auto middle_plate = convert(middle_triangles, -mm(wingheight), false);
+            pool.merge(middle_plate);
+        }
 
         out.merge(mesh(pool));
     }

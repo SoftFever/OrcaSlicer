@@ -49,7 +49,11 @@ void create_base_pool(const ExPolygons& base_plate,
 /// min_wall_thickness and it should be corrected in the future. This method
 /// will return the correct value for further processing.
 inline double get_pad_elevation(const PoolConfig& cfg) {
-    return cfg.min_wall_height_mm / 2.0;
+    return cfg.min_wall_thickness_mm;
+}
+
+inline double get_pad_fullheight(const PoolConfig& cfg) {
+    return cfg.min_wall_height_mm + cfg.min_wall_thickness_mm;
 }
 
 }
