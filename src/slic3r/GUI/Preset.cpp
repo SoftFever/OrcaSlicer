@@ -1161,6 +1161,21 @@ std::string PresetCollection::name() const
     }
 }
 
+std::vector<std::string> PresetCollection::system_preset_names() const
+{
+    size_t num = 0;
+    for (const Preset &preset : m_presets)
+        if (preset.is_system)
+            ++ num;
+    std::vector<std::string> out;
+    out.reserve(num);
+	for (const Preset &preset : m_presets)
+		if (preset.is_system)
+			out.emplace_back(preset.name);
+    std::sort(out.begin(), out.end());
+    return out;
+}
+
 // Generate a file path from a profile name. Add the ".ini" suffix if it is missing.
 std::string PresetCollection::path_from_name(const std::string &new_name) const
 {
