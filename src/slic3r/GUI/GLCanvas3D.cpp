@@ -3979,6 +3979,12 @@ BoundingBoxf3 GLCanvas3D::scene_bounding_box() const
 {
     BoundingBoxf3 bb = volumes_bounding_box();
     bb.merge(m_bed.get_bounding_box());
+    if (m_config != nullptr)
+    {
+        double h = m_config->opt_float("max_print_height");
+        bb.min(2) = std::min(bb.min(2), -h);
+        bb.max(2) = std::max(bb.max(2), h);
+    }
     return bb;
 }
 
