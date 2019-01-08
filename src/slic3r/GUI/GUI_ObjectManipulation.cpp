@@ -244,15 +244,13 @@ void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& sele
         if ((0 <= obj_idx) && (obj_idx < (int)wxGetApp().model_objects()->size()))
         {
             bool changed_box = false;
-            if ((m_cache.object_idx != obj_idx) || (m_cache.instance_idx != instance_idx))
+            if (!m_cache.instance.matches_object(obj_idx))
             {
-                m_cache.object_idx = obj_idx;
-                m_cache.instance_idx = instance_idx;
-                m_cache.instance_box_size = (*wxGetApp().model_objects())[obj_idx]->raw_mesh().bounding_box().size();
+                m_cache.instance.set(obj_idx, instance_idx, (*wxGetApp().model_objects())[obj_idx]->raw_mesh().bounding_box().size());
                 changed_box = true;
             }
-            if (changed_box || !m_cache.scale.isApprox(100.0 * m_new_scale) || !m_cache.rotation.isApprox(m_new_rotation))
-                m_new_size = volume->get_instance_transformation().get_matrix(true, true) * m_cache.instance_box_size;
+            if (changed_box || !m_cache.instance.matches_instance(instance_idx) || !m_cache.scale.isApprox(100.0 * m_new_scale))
+                m_new_size = volume->get_instance_transformation().get_matrix(true, true) * m_cache.instance.box_size;
         }
         else
             // this should never happen
@@ -270,8 +268,7 @@ void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& sele
     else if (selection.is_single_full_object())
     {
 #if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
-        m_cache.object_idx = -1;
-        m_cache.instance_idx = -1;
+        m_cache.instance.reset();
 #endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 
         const BoundingBoxf3& box = selection.get_bounding_box();
@@ -286,8 +283,7 @@ void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& sele
     else if (selection.is_single_modifier() || selection.is_single_volume())
     {
 #if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
-        m_cache.object_idx = -1;
-        m_cache.instance_idx = -1;
+        m_cache.instance.reset();
 #endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 
         // the selection contains a single volume
@@ -433,8 +429,7 @@ void ObjectManipulation::reset_settings_value()
     m_new_size = Vec3d::Zero();
     m_new_enabled = false;
 #if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
-    m_cache.object_idx = -1;
-    m_cache.instance_idx = -1;
+    m_cache.instance.reset();
 #endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 #if !ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     m_dirty = true;
@@ -514,6 +509,9 @@ void ObjectManipulation::change_scale_value(const Vec3d& scale)
     canvas->do_scale();
 
 #if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
+    if (!m_cache.scale.isApprox(scale))
+        m_cache.instance.instance_idx = -1;
+
     m_cache.scale = scale;
 #endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 }
