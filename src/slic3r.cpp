@@ -96,6 +96,11 @@ int main(int argc, char **argv)
 
     // apply command line options to a more handy CLIConfig
     CLIConfig cli_config;
+#ifdef __APPLE__
+	// Enable the GUI mode by default, to support drag & drop.
+	cli_config.gui.value = true;
+#endif /* __APPLE__ */
+
     cli_config.apply(all_config, true);
     set_data_dir(cli_config.datadir.value);
 
