@@ -633,8 +633,10 @@ void ObjectList::get_settings_choice(const wxString& category_name)
 
 
     // Add settings item for object
-    const auto item = GetSelection();
+    auto item = GetSelection();
     if (item) {
+        if (m_objects_model->GetItemType(item) == itInstance)
+            item = m_objects_model->GetTopParent(item);
         const auto settings_item = m_objects_model->IsSettingsItem(item) ? item : m_objects_model->GetSettingsItem(item);
         select_item(settings_item ? settings_item :
             m_objects_model->AddSettingsChild(item));
@@ -903,7 +905,8 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const int 
     m_parts_changed = true;
     parts_changed(obj_idx);
 
-    select_item(m_objects_model->AddVolumeChild(GetSelection(), from_u8(name), type));
+    const auto object_item = m_objects_model->GetTopParent(GetSelection());
+    select_item(m_objects_model->AddVolumeChild(object_item, from_u8(name), type));
 #ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
     selection_changed();
 #endif //no __WXOSX__ //__WXMSW__
@@ -1156,6 +1159,10 @@ void ObjectList::part_selection_changed()
                 else if (m_objects_model->GetItemType(item) == itInstance) {
                     og_name = _(L("Instance manipulation"));
                     update_and_show_manipulations = true;
+
+                    // fill m_config by object's values
+                    const int obj_idx_ = m_objects_model->GetObjectIdByItem(item);
+                    m_config = &(*m_objects)[obj_idx_]->config;
                 }
             }
 
