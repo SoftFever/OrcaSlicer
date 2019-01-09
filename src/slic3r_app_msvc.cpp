@@ -21,6 +21,8 @@ __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
 
+#include <stdio.h>
+
 class OpenGLVersionCheck
 {
 public:
@@ -44,8 +46,8 @@ public:
 	    if (RegisterClass(&wc)) {
 			HWND hwnd = CreateWindowW(wc.lpszClassName, L"slic3r_opengl_version_check", WS_OVERLAPPEDWINDOW, 0, 0, 640, 480, 0, 0, wc.hInstance, (LPVOID)this);
 			if (hwnd) {
-				this->message_pump_exit = false;
-			    while (GetMessage(&msg, NULL, 0, 0 ) > 0 && ! this->message_pump_exit)
+				message_pump_exit = false;
+			    while (GetMessage(&msg, NULL, 0, 0 ) > 0 && ! message_pump_exit)
 			        DispatchMessage(&msg);
 			}
 		}
@@ -55,13 +57,18 @@ public:
 	void unload_opengl_dll() 
 	{
 		if (this->hOpenGL) {
-			FreeLibrary(this->hOpenGL);
+			BOOL released = FreeLibrary(this->hOpenGL);
+			if (released)
+				printf("System OpenGL library released\n");
+			else
+				printf("System OpenGL library NOT released\n");
 			this->hOpenGL = nullptr;
 		}
 	}
 
 	bool is_version_greater_or_equal_to(unsigned int major, unsigned int minor) const
 	{
+		// printf("is_version_greater_or_equal_to, version: %s\n", version.c_str());
 	    std::vector<std::string> tokens;
 	    boost::split(tokens, version, boost::is_any_of(" "), boost::token_compress_on);
 	    if (tokens.empty())
@@ -76,6 +83,7 @@ public:
 	        gl_major = ::atoi(numbers[0].c_str());
 	    if (numbers.size() > 1)
 	        gl_minor = ::atoi(numbers[1].c_str());
+	    // printf("Major: %d, minor: %d\n", gl_major, gl_minor);
 	    if (gl_major < major)
 	        return false;
 	    else if (gl_major > major)
@@ -85,7 +93,7 @@ public:
 	}
 
 protected:
-	bool message_pump_exit = false;
+	static bool message_pump_exit;
 
 	void check(HWND hWnd)
 	{
@@ -131,17 +139,18 @@ protected:
         };
 
         HDC ourWindowHandleToDeviceContext = ::GetDC(hWnd);
-        // Gdi32.dll
+		// Gdi32.dll
         int letWindowsChooseThisPixelFormat = ::ChoosePixelFormat(ourWindowHandleToDeviceContext, &pfd); 
-        // Gdi32.dll
-        SetPixelFormat(ourWindowHandleToDeviceContext,letWindowsChooseThisPixelFormat, &pfd);
-        // Opengl32.dll
+		// Gdi32.dll
+        SetPixelFormat(ourWindowHandleToDeviceContext, letWindowsChooseThisPixelFormat, &pfd);
+		// Opengl32.dll
         HGLRC glcontext = wglCreateContext(ourWindowHandleToDeviceContext);
         wglMakeCurrent(ourWindowHandleToDeviceContext, glcontext);
         // Opengl32.dll
 	    const char *data = (const char*)glGetString(GL_VERSION);
 	    if (data != nullptr)
 	        this->version = data;
+		// printf("check -version: %s\n", version.c_str());
 		data = (const char*)glGetString(0x8B8C); // GL_SHADING_LANGUAGE_VERSION
     	if (data != nullptr)
         	this->glsl_version = data;
@@ -153,6 +162,7 @@ protected:
         	this->renderer = data;
         // Opengl32.dll
         wglDeleteContext(glcontext);
+		::ReleaseDC(hWnd, ourWindowHandleToDeviceContext);
         this->success = true;
 	}
 
@@ -166,14 +176,18 @@ protected:
 			OpenGLVersionCheck *ogl_data = reinterpret_cast<OpenGLVersionCheck*>(pCreate->lpCreateParams);
 			ogl_data->check(hWnd);
 			DestroyWindow(hWnd);
-			ogl_data->message_pump_exit = true;
 			return 0;
 	    }
+		case WM_NCDESTROY:
+			message_pump_exit = true;
+			return 0;
 	    default:
 	        return DefWindowProc(hWnd, message, wParam, lParam);
 	    }
 	}
 };
+
+bool OpenGLVersionCheck::message_pump_exit = false;
 
 extern "C" {
 	typedef int (__stdcall *Slic3rMainFunc)(int argc, wchar_t **argv);
@@ -189,6 +203,16 @@ int APIENTRY wWinMain(HINSTANCE /* hInstance */, HINSTANCE /* hPrevInstance */, 
 int wmain(int argc, wchar_t **argv)
 {
 #endif
+
+	std::vector<wchar_t*> argv_extended;
+	argv_extended.emplace_back(argv[0]);
+#ifdef SLIC3R_WRAPPER_GUI
+	std::wstring cmd_gui = L"--gui";
+	argv_extended.emplace_back(const_cast<wchar_t*>(cmd_gui.data()));
+#endif
+	for (int i = 1; i < argc; ++i)
+		argv_extended.emplace_back(argv[i]);
+	argv_extended.emplace_back(nullptr);
 
 	OpenGLVersionCheck opengl_version_check;
 	bool load_mesa = ! opengl_version_check.load_opengl_dll() || ! opengl_version_check.is_version_greater_or_equal_to(2, 0);
@@ -213,7 +237,8 @@ int wmain(int argc, wchar_t **argv)
 		HINSTANCE hInstance_OpenGL = LoadLibraryExW(path_to_mesa, nullptr, 0);
 		if (hInstance_OpenGL == nullptr) {
 			printf("MESA OpenGL library was not loaded\n");
-		}
+		} else
+			printf("MESA OpenGL library was loaded sucessfully\n");		
 	}
 
 	wchar_t path_to_slic3r[MAX_PATH + 1] = { 0 };
@@ -239,15 +264,6 @@ int wmain(int argc, wchar_t **argv)
 		printf("could not locate the function slic3r_main in slic3r.dll\n");
 		return -1;
 	}
-
-	std::vector<wchar_t*> argv_extended;
-	argv_extended.emplace_back(argv[0]);
-#ifdef SLIC3R_WRAPPER_GUI
-	std::wstring cmd_gui = L"--gui";
-	argv_extended.emplace_back(const_cast<wchar_t*>(cmd_gui.data()));
-#endif
-	for (int i = 1; i < argc; ++ i)
-		argv_extended.emplace_back(argv[i]);
-	argv_extended.emplace_back(nullptr);
-	return slic3r_main(argc, argv_extended.data());
+	// argc minus the trailing nullptr of the argv
+	return slic3r_main(argv_extended.size() - 1, argv_extended.data());
 }

@@ -116,6 +116,8 @@ public:
     void extract_config_from_project();
 
     void load_files(const std::vector<boost::filesystem::path>& input_files, bool load_model = true, bool load_config = true);
+    // To be called when providing a list of files to the GUI slic3r on command line.
+    void load_files(const std::vector<std::string>& input_files, bool load_model = true, bool load_config = true);
 
     void update();
     void select_view(const std::string& direction);

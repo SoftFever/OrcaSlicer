@@ -10,6 +10,8 @@
 #include <wx/glcanvas.h>
 #include <wx/debug.h>
 
+#include <boost/algorithm/string/predicate.hpp>
+
 #include "libslic3r/Print.hpp"
 #include "libslic3r/Polygon.hpp"
 
@@ -635,28 +637,34 @@ void MainFrame::export_config()
 }
 
 // Load a config file containing a Print, Filament & Printer preset.
-void MainFrame::load_config_file(wxString file/* = wxEmptyString*/)
+void MainFrame::load_config_file()
 {
-    if (file.IsEmpty()) {
-        if (!wxGetApp().check_unsaved_changes())
-            return;
-        auto dlg = new wxFileDialog(this, _(L("Select configuration to load:")),
-            !m_last_config.IsEmpty() ? get_dir_name(m_last_config) : wxGetApp().app_config->get_last_dir(),
-            "config.ini", "INI files (*.ini, *.gcode)|*.ini;*.INI;*.gcode;*.g", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
-        if (dlg->ShowModal() != wxID_OK)
-            return;
-        file = dlg->GetPath();
-        dlg->Destroy();
+    if (!wxGetApp().check_unsaved_changes())
+        return;
+    auto dlg = new wxFileDialog(this, _(L("Select configuration to load:")),
+        !m_last_config.IsEmpty() ? get_dir_name(m_last_config) : wxGetApp().app_config->get_last_dir(),
+        "config.ini", "INI files (*.ini, *.gcode)|*.ini;*.INI;*.gcode;*.g", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+	wxString file;
+	if (dlg->ShowModal() == wxID_OK) 
+		file = dlg->GetPath();
+    dlg->Destroy();
+	if (! file.IsEmpty() && this->load_config_file(file.ToUTF8().data())) {
+        wxGetApp().app_config->update_config_dir(get_dir_name(file));
+        m_last_config = file;
     }
+}
+
+// Load a config file containing a Print, Filament & Printer preset from command line.
+bool MainFrame::load_config_file(const std::string &path)
+{
     try {
-        wxGetApp().preset_bundle->load_config_file(file.ToUTF8().data()); 
+        wxGetApp().preset_bundle->load_config_file(path); 
     } catch (const std::exception &ex) {
         show_error(this, ex.what());
-        return;
+        return false;
     }
-	wxGetApp().load_current_presets();
-    wxGetApp().app_config->update_config_dir(get_dir_name(file));
-    m_last_config = file;
+    wxGetApp().load_current_presets();
+    return true;
 }
 
 void MainFrame::export_configbundle()
@@ -700,11 +708,13 @@ void MainFrame::load_configbundle(wxString file/* = wxEmptyString, const bool re
         auto dlg = new wxFileDialog(this, _(L("Select configuration to load:")),
             !m_last_config.IsEmpty() ? get_dir_name(m_last_config) : wxGetApp().app_config->get_last_dir(),
             "config.ini", file_wildcards(FT_INI), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
-        if (dlg->ShowModal() != wxID_OK)
-            return;
+		if (dlg->ShowModal() != wxID_OK) {
+			dlg->Destroy();
+			return;
+		}
         file = dlg->GetPath();
-        dlg->Destroy();
-    }
+		dlg->Destroy();
+	}
 
     wxGetApp().app_config->update_config_dir(get_dir_name(file));
 
@@ -727,10 +737,37 @@ void MainFrame::load_configbundle(wxString file/* = wxEmptyString, const bool re
 // Also update the platter with the new presets.
 void MainFrame::load_config(const DynamicPrintConfig& config)
 {
-    for (auto tab : wxGetApp().tabs_list)
-        tab->load_config(config);
-    if (m_plater) 
+	PrinterTechnology printer_technology = wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology();
+	const auto       *opt_printer_technology = config.option<ConfigOptionEnum<PrinterTechnology>>("printer_technology");
+	if (opt_printer_technology != nullptr && opt_printer_technology->value != printer_technology) {
+		printer_technology = opt_printer_technology->value;
+		this->plater()->set_printer_technology(printer_technology);
+	}
+#if 0
+	for (auto tab : wxGetApp().tabs_list)
+		if (tab->supports_printer_technology(printer_technology)) {
+			if (tab->name() == "printer")
+				static_cast<TabPrinter*>(tab)->update_pages();
+			tab->load_config(config);
+		}
+    if (m_plater)
         m_plater->on_config_change(config);
+#else
+	// Load the currently selected preset into the GUI, update the preset selection box.
+    //FIXME this is not quite safe for multi-extruder printers,
+    // as the number of extruders is not adjusted for the vector values.
+    // (see PresetBundle::update_multi_material_filament_presets())
+    // Better to call PresetBundle::load_config() instead?
+    for (auto tab : wxGetApp().tabs_list)
+        if (tab->supports_printer_technology(printer_technology)) {
+            // Only apply keys, which are present in the tab's config. Ignore the other keys.
+			for (const std::string &opt_key : tab->get_config()->diff(config))
+				// Ignore print_settings_id, printer_settings_id, filament_settings_id etc.
+				if (! boost::algorithm::ends_with(opt_key, "_settings_id"))
+					tab->get_config()->option(opt_key)->set(config.option(opt_key));
+        }
+	wxGetApp().load_current_presets();
+#endif
 }
 
 void MainFrame::select_tab(size_t tab) const
@@ -806,14 +843,14 @@ void MainFrame::update_ui_from_settings()
         tab->update_ui_from_settings();
 }
 
-std::string MainFrame::get_base_name(const wxString full_name) const 
+std::string MainFrame::get_base_name(const wxString &full_name) const 
 {
-    return boost::filesystem::path(full_name).filename().string();
+    return boost::filesystem::path(full_name.wx_str()).filename().string();
 }
 
-std::string MainFrame::get_dir_name(const wxString full_name) const 
+std::string MainFrame::get_dir_name(const wxString &full_name) const 
 {
-    return boost::filesystem::path(full_name).parent_path().string();
+    return boost::filesystem::path(full_name.wx_str()).parent_path().string();
 }
 
 

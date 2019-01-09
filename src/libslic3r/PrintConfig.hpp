@@ -1164,12 +1164,11 @@ public:
 class DynamicPrintAndCLIConfig : public DynamicPrintConfig
 {
 public:
-    DynamicPrintAndCLIConfig() { this->apply(FullPrintConfig::defaults()); this->apply(CLIConfig()); }
-    DynamicPrintAndCLIConfig(const DynamicPrintAndCLIConfig &other) : DynamicPrintConfig(other) {}
+	DynamicPrintAndCLIConfig() {}
+	DynamicPrintAndCLIConfig(const DynamicPrintAndCLIConfig &other) : DynamicPrintConfig(other) {}
 
     // Overrides ConfigBase::def(). Static configuration definition. Any value stored into this ConfigBase shall have its definition here.
     const ConfigDef*        def() const override { return &s_def; }
-    t_config_option_keys    keys() const override { return s_def.keys(); }
 
     // Verify whether the opt_key has not been obsoleted or renamed.
     // Both opt_key and value may be modified by handle_legacy().

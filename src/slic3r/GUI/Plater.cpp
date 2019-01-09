@@ -2594,6 +2594,16 @@ void Plater::extract_config_from_project()
 
 void Plater::load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config) { p->load_files(input_files, load_model, load_config); }
 
+// To be called when providing a list of files to the GUI slic3r on command line.
+void Plater::load_files(const std::vector<std::string>& input_files, bool load_model, bool load_config)
+{ 
+    std::vector<fs::path> paths;
+    paths.reserve(input_files.size());
+    for (const std::string &path : input_files)
+        paths.emplace_back(path);
+    p->load_files(paths, load_model, load_config);
+}
+
 void Plater::update() { p->update(); }
 
 void Plater::update_ui_from_settings() { p->update_ui_from_settings(); }

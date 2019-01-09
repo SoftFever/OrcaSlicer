@@ -604,23 +604,31 @@ bool DynamicConfig::read_cli(int argc, char** argv, t_config_option_keys* extra)
             value = argv[++ i];
         }
         // Store the option value.
-        const bool existing = this->has(opt_key);
-        if (ConfigOptionBool* opt = this->opt<ConfigOptionBool>(opt_key, true)) {
-            opt->value = !no;
-        } else if (ConfigOptionBools* opt = this->opt<ConfigOptionBools>(opt_key, true)) {
-            if (!existing) opt->values.clear(); // remove the default values
-            opt->values.push_back(!no);
-        } else if (ConfigOptionStrings* opt = this->opt<ConfigOptionStrings>(opt_key, true)) {
-            if (!existing) opt->values.clear(); // remove the default values
-            opt->deserialize(value, true);
-        } else if (ConfigOptionFloats* opt = this->opt<ConfigOptionFloats>(opt_key, true)) {
-            if (!existing) opt->values.clear(); // remove the default values
-            opt->deserialize(value, true);
-        } else if (ConfigOptionPoints* opt = this->opt<ConfigOptionPoints>(opt_key, true)) {
-            if (!existing) opt->values.clear(); // remove the default values
-            opt->deserialize(value, true);
+        const bool               existing   = this->has(opt_key);
+        ConfigOption            *opt_base   = this->option(opt_key, true);
+        ConfigOptionVectorBase  *opt_vector = opt_base->is_vector() ? static_cast<ConfigOptionVectorBase*>(opt_base) : nullptr;
+        if (opt_vector) {
+            // Vector values will be chained. Repeated use of a parameter will append the parameter or parameters
+            // to the end of the value.
+			if (!existing)
+				// remove the default values
+				opt_vector->deserialize("", true);
+            if (opt_base->type() == coBools)
+                static_cast<ConfigOptionBools*>(opt_base)->values.push_back(!no);
+            else
+                // Deserialize any other vector value (ConfigOptionInts, Floats, Percents, Points) the same way
+                // they get deserialized from an .ini file. For ConfigOptionStrings, that means that the C-style unescape
+                // will be applied for values enclosed in quotes, while values non-enclosed in quotes are left to be
+                // unescaped by the calling shell.
+				opt_vector->deserialize(value, true);
+        } else if (opt_base->type() == coBool) {
+            static_cast<ConfigOptionBool*>(opt_base)->value = !no;
+        } else if (opt_base->type() == coString) {
+            // Do not unescape single string values, the unescaping is left to the calling shell.
+            static_cast<ConfigOptionString*>(opt_base)->value = value;
         } else {
-            this->set_deserialize(opt_key, value, true);
+            // Any scalar value of a type different from Bool and String.
+            this->set_deserialize(opt_key, value, false);
         }
     }
     return true;

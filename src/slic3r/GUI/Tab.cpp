@@ -2283,7 +2283,7 @@ void TabPrinter::update_sla()
 // Initialize the UI from the current preset
 void Tab::load_current_preset()
 {
-	auto preset = m_presets->get_edited_preset();
+	const Preset& preset = m_presets->get_edited_preset();
 
 	(preset.is_default || preset.is_system) ? m_btn_delete_preset->Disable() : m_btn_delete_preset->Enable(true);
 
@@ -2302,11 +2302,14 @@ void Tab::load_current_preset()
 
 	m_undo_to_sys_btn->Enable(!preset.is_default);
 
+#if 0
 	// use CallAfter because some field triggers schedule on_change calls using CallAfter,
 	// and we don't want them to be called after this update_dirty() as they would mark the 
 	// preset dirty again
 	// (not sure this is true anymore now that update_dirty is idempotent)
-	wxTheApp->CallAfter([this]{
+	wxTheApp->CallAfter([this]
+#endif
+	{
 		// checking out if this Tab exists till this moment
 		if (!wxGetApp().checked_tab(this))
 			return;
@@ -2354,7 +2357,10 @@ void Tab::load_current_preset()
 		init_options_list();
         update_visibility();
 		update_changed_ui();
-	});
+	}
+#if 0
+	);
+#endif
 }
 
 //Regerenerate content of the page tree.
@@ -2428,7 +2434,6 @@ void Tab::select_preset(std::string preset_name)
 	bool print_tab     = m_presets->type() == Preset::TYPE_PRINT || m_presets->type() == Preset::TYPE_SLA_PRINT;
 	bool printer_tab   = m_presets->type() == Preset::TYPE_PRINTER;
 	bool canceled      = false;
-// 	m_reload_dependent_tabs = {};
 	m_dependent_tabs = {};
 	if (current_dirty && !may_discard_current_dirty_preset()) {
 		canceled = true;

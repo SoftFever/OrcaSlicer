@@ -53,8 +53,8 @@ class MainFrame : public wxFrame
 
     PrintHostQueueDialog *m_printhost_queue_dlg;
 
-    std::string     get_base_name(const wxString full_name) const ;
-    std::string     get_dir_name(const wxString full_name) const ;
+    std::string     get_base_name(const wxString &full_name) const;
+    std::string     get_dir_name(const wxString &full_name) const;
 
     void on_presets_changed(SimpleEvent&);
     void on_value_changed(wxCommandEvent&);
@@ -86,7 +86,10 @@ public:
     void        reslice_now();
     void        repair_stl();
     void        export_config();
-    void        load_config_file(wxString file = wxEmptyString);
+    // Query user for the config file and open it.
+    void        load_config_file();
+    // Open a config file. Return true if loaded.
+    bool        load_config_file(const std::string &path);
     void        export_configbundle();
     void        load_configbundle(wxString file = wxEmptyString);
     void        load_config(const DynamicPrintConfig& config);
