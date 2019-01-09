@@ -7,6 +7,7 @@
 #include "GLCanvas3D.hpp"
 
 class wxStaticText;
+class PrusaLockButton;
 
 namespace Slic3r {
 namespace GUI {
@@ -75,6 +76,7 @@ class ObjectManipulation : public OG_Settings
     Vec3d           m_new_size;
     bool            m_new_enabled;
     bool            m_uniform_scale {false};
+    PrusaLockButton* m_lock_bnt{ nullptr };
 
 public:
     ObjectManipulation(wxWindow* parent);

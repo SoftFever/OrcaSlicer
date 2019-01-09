@@ -172,6 +172,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
                     event.Skip();
                     wxTheApp->CallAfter([btn, this]() { set_uniform_scaling(btn->IsLocked()); });
                 });
+                m_lock_bnt = btn;
                 return btn;
             };
         }
@@ -399,8 +400,11 @@ void ObjectManipulation::update_if_dirty()
 
     m_cache.rotation = m_new_rotation;
 
-//    if (wxGetApp().plater()->canvas3D()->get_selection().requires_uniform_scale())
-//        m_uniform_scale = true;
+    if (wxGetApp().plater()->canvas3D()->get_selection().requires_uniform_scale()) {
+//         m_uniform_scale = true;
+        m_lock_bnt->SetLock(true);
+//         m_lock_bnt->Disable();
+    }
 
     if (m_new_enabled)
         m_og->enable();

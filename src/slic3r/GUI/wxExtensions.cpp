@@ -2216,6 +2216,12 @@ void PrusaLockButton::OnButton(wxCommandEvent& event)
     event.Skip();
 }
 
+void PrusaLockButton::SetLock(bool lock)
+{
+    m_is_pushed = lock;
+    enter_button(true);
+}
+
 void PrusaLockButton::enter_button(const bool enter)
 {
     wxBitmap* icon = m_is_pushed ?
