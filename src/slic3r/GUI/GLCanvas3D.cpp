@@ -2039,11 +2039,17 @@ void GLCanvas3D::Selection::render_sidebar_hints(const std::string& sidebar_fiel
     const Vec3d& center = get_bounding_box().center();
 
     if (is_single_full_instance())
+    {
         ::glTranslated(center(0), center(1), center(2));
+        if (boost::starts_with(sidebar_field, "scale"))
+        {
+            Transform3d orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
+            ::glMultMatrixd(orient_matrix.data());
+        }
+    }
     else if (is_single_volume() || is_single_modifier())
     {
-        const GLVolume* volume = (*m_volumes)[*m_list.begin()];
-        Transform3d orient_matrix = volume->get_instance_transformation().get_matrix(true, false, true, true);
+        Transform3d orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
         const Vec3d& offset = get_bounding_box().center();
 
         ::glTranslated(offset(0), offset(1), offset(2));
@@ -2054,8 +2060,7 @@ void GLCanvas3D::Selection::render_sidebar_hints(const std::string& sidebar_fiel
         ::glTranslated(center(0), center(1), center(2));
         if (requires_local_axes())
         {
-            const GLVolume* volume = (*m_volumes)[*m_list.begin()];
-            Transform3d orient_matrix = volume->get_instance_transformation().get_matrix(true, false, true, true);
+            Transform3d orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
             ::glMultMatrixd(orient_matrix.data());
         }
     }
