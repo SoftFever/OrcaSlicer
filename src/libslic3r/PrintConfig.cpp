@@ -2527,6 +2527,22 @@ void PrintConfigDef::init_sla_params()
     def->min = 0;
     def->default_value = new ConfigOptionFloat(1.0);
 
+    def = this->add("support_pillar_connection_mode", coEnum);
+    def->label = L("Support pillar connection mode");
+    def->tooltip = L("Controls the bridge type between two neigboring pillars."
+                     " Can be zig-zag, cross (double zig-zag) or dynamic which"
+                     " will automatically switch between the first two depending"
+                     " on the distance of the two pillars.");
+    def->cli = "";
+    def->enum_keys_map = &ConfigOptionEnum<SLAPillarConnectionMode>::get_enum_values();
+    def->enum_values.push_back("zigzag");
+    def->enum_values.push_back("cross");
+    def->enum_values.push_back("dynamic");
+    def->enum_labels.push_back(L("Zig-Zag"));
+    def->enum_labels.push_back(L("Cross"));
+    def->enum_labels.push_back(L("Dynamic"));
+    def->default_value = new ConfigOptionEnum<SLAPillarConnectionMode>(slapcmDynamic);
+
     def = this->add("support_pillar_widening_factor", coFloat);
     def->label = L("Pillar widening factor");
     def->category = L("Supports");

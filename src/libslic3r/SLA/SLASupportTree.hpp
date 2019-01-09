@@ -28,6 +28,12 @@ using SlicedSupports = std::vector<SliceLayer>;
 
 namespace sla {
 
+enum class PillarConnectionMode {
+    zigzag,
+    cross,
+    dynamic
+};
+
 struct SupportConfig {
     // Radius in mm of the pointing side of the head.
     double head_front_radius_mm = 0.2;
@@ -45,6 +51,9 @@ struct SupportConfig {
     // beginning with a head will not be higher than head_back_radius but the
     // headless pillars will have half of this value.
     double headless_pillar_radius_mm = 0.4;
+
+    // How to connect pillars
+    PillarConnectionMode pillar_connection_mode = PillarConnectionMode::dynamic;
 
     // TODO: unimplemented at the moment. This coefficient will have an impact
     // when bridges and pillars are merged. The resulting pillar should be a bit

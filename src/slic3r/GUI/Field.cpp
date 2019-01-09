@@ -718,6 +718,8 @@ boost::any& Choice::get_value()
 			m_value = static_cast<PrintHostType>(ret_enum);
 		else if (m_opt_id.compare("display_orientation") == 0)
 			m_value = static_cast<SLADisplayOrientation>(ret_enum);
+        else if (m_opt_id.compare("support_pillar_connection_mode") == 0)
+            m_value = static_cast<SLAPillarConnectionMode>(ret_enum);
 	}
     else if (m_opt.gui_type == "f_enum_open") {
         const int ret_enum = static_cast<wxComboBox*>(window)->GetSelection();
