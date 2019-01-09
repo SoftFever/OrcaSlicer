@@ -2039,11 +2039,17 @@ void GLCanvas3D::Selection::render_sidebar_hints(const std::string& sidebar_fiel
     const Vec3d& center = get_bounding_box().center();
 
     if (is_single_full_instance())
+    {
         ::glTranslated(center(0), center(1), center(2));
+        if (boost::starts_with(sidebar_field, "scale"))
+        {
+            Transform3d orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
+            ::glMultMatrixd(orient_matrix.data());
+        }
+    }
     else if (is_single_volume() || is_single_modifier())
     {
-        const GLVolume* volume = (*m_volumes)[*m_list.begin()];
-        Transform3d orient_matrix = volume->get_instance_transformation().get_matrix(true, false, true, true);
+        Transform3d orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
         const Vec3d& offset = get_bounding_box().center();
 
         ::glTranslated(offset(0), offset(1), offset(2));
@@ -2054,8 +2060,7 @@ void GLCanvas3D::Selection::render_sidebar_hints(const std::string& sidebar_fiel
         ::glTranslated(center(0), center(1), center(2));
         if (requires_local_axes())
         {
-            const GLVolume* volume = (*m_volumes)[*m_list.begin()];
-            Transform3d orient_matrix = volume->get_instance_transformation().get_matrix(true, false, true, true);
+            Transform3d orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
             ::glMultMatrixd(orient_matrix.data());
         }
     }
@@ -2513,7 +2518,9 @@ void GLCanvas3D::Selection::_render_sidebar_rotation_hints(const std::string& si
 
 void GLCanvas3D::Selection::_render_sidebar_scale_hints(const std::string& sidebar_field) const
 {
-    if (boost::ends_with(sidebar_field, "x") || requires_uniform_scale())
+    bool uniform_scale = requires_uniform_scale() || wxGetApp().obj_manipul()->get_uniform_scaling();
+
+    if (boost::ends_with(sidebar_field, "x") || uniform_scale)
     {
         ::glPushMatrix();
         ::glRotated(-90.0, 0.0, 0.0, 1.0);
@@ -2521,14 +2528,14 @@ void GLCanvas3D::Selection::_render_sidebar_scale_hints(const std::string& sideb
         ::glPopMatrix();
     }
 
-    if (boost::ends_with(sidebar_field, "y") || requires_uniform_scale())
+    if (boost::ends_with(sidebar_field, "y") || uniform_scale)
     {
         ::glPushMatrix();
         _render_sidebar_scale_hint(Y);
         ::glPopMatrix();
     }
 
-    if (boost::ends_with(sidebar_field, "z") || requires_uniform_scale())
+    if (boost::ends_with(sidebar_field, "z") || uniform_scale)
     {
         ::glPushMatrix();
         ::glRotated(90.0, 1.0, 0.0, 0.0);
@@ -2559,7 +2566,7 @@ void GLCanvas3D::Selection::_render_sidebar_rotation_hint(Axis axis) const
 
 void GLCanvas3D::Selection::_render_sidebar_scale_hint(Axis axis) const
 {
-    m_arrow.set_color((requires_uniform_scale() ? UNIFORM_SCALE_COLOR : AXES_COLOR[axis]), 3);
+    m_arrow.set_color(((requires_uniform_scale() || wxGetApp().obj_manipul()->get_uniform_scaling()) ? UNIFORM_SCALE_COLOR : AXES_COLOR[axis]), 3);
 
     ::glTranslated(0.0, 5.0, 0.0);
     m_arrow.render();

@@ -851,6 +851,7 @@ public:
     void    OnLeaveBtn(wxMouseEvent& event) { enter_button(false); event.Skip(); }
 
     bool    IsLocked() const { return m_is_pushed; }
+    void    SetLock(bool lock);
 
 protected:
     void    enter_button(const bool enter);

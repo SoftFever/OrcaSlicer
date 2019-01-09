@@ -19,7 +19,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     OG_Settings(parent, true)
 {
     m_og->set_name(_(L("Object Manipulation")));
-    m_og->label_width = 100;
+    m_og->label_width = 125;
     m_og->set_grid_vgap(5);
     
     m_og->m_on_change = [this](const std::string& opt_key, const boost::any& value) {
@@ -150,7 +150,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     m_og->append_line(line);
 
 
-    auto add_og_to_object_settings = [](const std::string& option_name, const std::string& sidetext)
+    auto add_og_to_object_settings = [this](const std::string& option_name, const std::string& sidetext)
     {
         Line line = { _(option_name), "" };
         ConfigOptionDef def;
@@ -162,6 +162,27 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
         {
             def.min = -360;
             def.max = 360;
+        }
+
+        // Add "uniform scaling" button in front of "Scale" option 
+        else if (option_name == "Scale") {
+            line.near_label_widget = [this](wxWindow* parent) {
+                auto btn = new PrusaLockButton(parent, wxID_ANY);
+                btn->Bind(wxEVT_BUTTON, [btn, this](wxCommandEvent &event){
+                    event.Skip();
+                    wxTheApp->CallAfter([btn, this]() { set_uniform_scaling(btn->IsLocked()); });
+                });
+                m_lock_bnt = btn;
+                return btn;
+            };
+        }
+
+        // Add empty bmp (Its size have to be equal to PrusaLockButton) in front of "Size" option to label alignment
+        else if (option_name == "Size") {
+            line.near_label_widget = [this](wxWindow* parent) {
+                return new wxStaticBitmap(parent, wxID_ANY, wxNullBitmap, wxDefaultPosition, 
+                                          wxBitmap(from_u8(var("one_layer_lock_on.png")), wxBITMAP_TYPE_PNG).GetSize());
+            };
         }
 
         const std::string lower_name = boost::algorithm::to_lower_copy(option_name);
@@ -379,6 +400,15 @@ void ObjectManipulation::update_if_dirty()
 
     m_cache.rotation = m_new_rotation;
 
+    if (wxGetApp().plater()->canvas3D()->get_selection().requires_uniform_scale()) {
+        m_lock_bnt->SetLock(true);
+        m_lock_bnt->Disable();
+    }
+    else {
+        m_lock_bnt->SetLock(m_uniform_scale);
+        m_lock_bnt->Enable();
+    }
+
     if (m_new_enabled)
         m_og->enable();
     else
@@ -479,7 +509,7 @@ void ObjectManipulation::change_scale_value(const Vec3d& scale)
 {
     Vec3d scaling_factor = scale;
     const GLCanvas3D::Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
-    if (selection.requires_uniform_scale())
+    if (m_uniform_scale || selection.requires_uniform_scale())
     {
 #if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
         Vec3d abs_scale_diff = (scale - m_cache.scale).cwiseAbs();
@@ -535,7 +565,7 @@ void ObjectManipulation::change_size_value(const Vec3d& size)
     Vec3d scale = 100.0 * Vec3d(size(0) / ref_size(0), size(1) / ref_size(1), size(2) / ref_size(2));
     Vec3d scaling_factor = scale;
 
-    if (selection.requires_uniform_scale())
+    if (m_uniform_scale || selection.requires_uniform_scale())
     {
         Vec3d abs_scale_diff = (scale - m_cache.scale).cwiseAbs();
         double max_diff = abs_scale_diff(X);

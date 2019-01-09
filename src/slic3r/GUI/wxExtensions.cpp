@@ -2201,6 +2201,7 @@ PrusaLockButton::PrusaLockButton(   wxWindow *parent,
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 #endif // __WXMSW__
     SetBitmap(m_bmp_unlock_on);
+    SetBitmapDisabled(m_bmp_lock_on);
 
     //button events
     Bind(wxEVT_BUTTON,          &PrusaLockButton::OnButton, this);
@@ -2214,6 +2215,12 @@ void PrusaLockButton::OnButton(wxCommandEvent& event)
     enter_button(true);
 
     event.Skip();
+}
+
+void PrusaLockButton::SetLock(bool lock)
+{
+    m_is_pushed = lock;
+    enter_button(true);
 }
 
 void PrusaLockButton::enter_button(const bool enter)
