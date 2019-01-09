@@ -3153,6 +3153,7 @@ void TabSLAPrint::build()
 
     optgroup = page->new_optgroup(_(L("Support pillar")));
     optgroup->append_single_option_line("support_pillar_diameter");
+    optgroup->append_single_option_line("support_pillar_connection_mode");
     optgroup->append_single_option_line("support_pillar_widening_factor");
     optgroup->append_single_option_line("support_base_diameter");
     optgroup->append_single_option_line("support_base_height");

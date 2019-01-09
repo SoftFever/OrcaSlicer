@@ -407,6 +407,14 @@ sla::SupportConfig make_support_cfg(const SLAPrintObjectConfig& c) {
     scfg.tilt = c.support_critical_angle.getFloat() * PI / 180.0 ;
     scfg.max_bridge_length_mm = c.support_max_bridge_length.getFloat();
     scfg.headless_pillar_radius_mm = 0.375*c.support_pillar_diameter.getFloat();
+    switch(c.support_pillar_connection_mode.getInt()) {
+    case slapcmZigZag:
+        scfg.pillar_connection_mode = sla::PillarConnectionMode::zigzag; break;
+    case slapcmCross:
+        scfg.pillar_connection_mode = sla::PillarConnectionMode::cross; break;
+    case slapcmDynamic:
+        scfg.pillar_connection_mode = sla::PillarConnectionMode::dynamic; break;
+    }
     scfg.pillar_widening_factor = c.support_pillar_widening_factor.getFloat();
     scfg.base_radius_mm = 0.5*c.support_base_diameter.getFloat();
     scfg.base_height_mm = c.support_base_height.getFloat();
@@ -1058,6 +1066,7 @@ bool SLAPrintObject::invalidate_state_by_config_options(const std::vector<t_conf
             || opt_key == "support_head_penetration"
             || opt_key == "support_head_width"
             || opt_key == "support_pillar_diameter"
+            || opt_key == "support_pillar_connection_mode"
             || opt_key == "support_base_diameter"
             || opt_key == "support_base_height"
             || opt_key == "support_critical_angle"

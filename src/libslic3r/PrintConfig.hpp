@@ -61,6 +61,12 @@ enum SLADisplayOrientation {
     sladoPortrait
 };
 
+enum SLAPillarConnectionMode {
+    slapcmZigZag,
+    slapcmCross,
+    slapcmDynamic
+};
+
 template<> inline const t_config_enum_values& ConfigOptionEnum<PrinterTechnology>::get_enum_values() {
     static t_config_enum_values keys_map;
     if (keys_map.empty()) {
@@ -157,6 +163,16 @@ template<> inline const t_config_enum_values& ConfigOptionEnum<SLADisplayOrienta
     static const t_config_enum_values keys_map = {
         { "landscape", sladoLandscape},
         { "portrait",  sladoPortrait}
+    };
+
+    return keys_map;
+}
+
+template<> inline const t_config_enum_values& ConfigOptionEnum<SLAPillarConnectionMode>::get_enum_values() {
+    static const t_config_enum_values keys_map = {
+        {"zigzag", slapcmZigZag},
+        {"cross", slapcmCross},
+        {"dynamic", slapcmDynamic}
     };
 
     return keys_map;
@@ -949,6 +965,9 @@ public:
     // Radius in mm of the support pillars.
     ConfigOptionFloat support_pillar_diameter /*= 0.8*/;
 
+    // How the pillars are bridged together
+    ConfigOptionEnum<SLAPillarConnectionMode> support_pillar_connection_mode;
+
     // TODO: unimplemented at the moment. This coefficient will have an impact
     // when bridges and pillars are merged. The resulting pillar should be a bit
     // thicker than the ones merging into it. How much thicker? I don't know
@@ -1003,6 +1022,7 @@ protected:
         OPT_PTR(support_head_penetration);
         OPT_PTR(support_head_width);
         OPT_PTR(support_pillar_diameter);
+        OPT_PTR(support_pillar_connection_mode);
         OPT_PTR(support_pillar_widening_factor);
         OPT_PTR(support_base_diameter);
         OPT_PTR(support_base_height);
