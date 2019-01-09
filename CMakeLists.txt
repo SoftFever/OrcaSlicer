@@ -112,14 +112,17 @@ if (APPLE)
 endif ()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    # Workaround for an old CMake, which does not understand CMAKE_CXX_STANDARD.
-    add_compile_options(-std=c++11 -Wall -Wno-reorder)
     find_package(PkgConfig REQUIRED)
+
+    if (CMAKE_VERSION VERSION_LESS "3.1")
+        # Workaround for an old CMake, which does not understand CMAKE_CXX_STANDARD.
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    endif()
 endif()
 
 if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUXX)
     # Adding -fext-numeric-literals to enable GCC extensions on definitions of quad float literals, which are required by Boost.
-    add_compile_options(-fext-numeric-literals)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fext-numeric-literals" )
 
     if (SLIC3R_SYNTAXONLY)
         set(CMAKE_CXX_ARCHIVE_CREATE "true")
@@ -136,8 +139,14 @@ if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUXX)
 endif()
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    add_compile_options(-Wall)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-reorder" )
+
     # On GCC and Clang, no return from a non-void function is a warning only. Here, we make it an error.
     add_compile_options(-Werror=return-type)
+
+    #removes LOTS of extraneous Eigen warnings
+    add_compile_options(-Wno-ignored-attributes)
 
     if (SLIC3R_ASAN)
         add_compile_options(-fsanitize=address -fno-omit-frame-pointer)
@@ -245,7 +254,7 @@ endif()
 
 # Find eigen3 or use bundled version
 if (NOT SLIC3R_STATIC)
-    find_package(Eigen3)
+    find_package(Eigen3 3)
 endif ()
 if (NOT Eigen3_FOUND)
     set(Eigen3_FOUND 1)
