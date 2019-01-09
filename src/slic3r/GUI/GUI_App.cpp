@@ -742,6 +742,17 @@ void GUI_App::load_current_presets()
 		}
 }
 
+#ifdef __APPLE__
+// wxWidgets override to get an event on open files.
+void GUI_App::MacOpenFiles(const wxArrayString &fileNames)
+{
+    std::vector<std::string> files;
+    for (size_t i = 0; i < fileNames.Len(); ++ i)
+        files.emplace_back(fileNames[i].ToUTF8().data());
+    this->plater()->load_files(files, true, true);
+}
+#endif /* __APPLE */
+
 Sidebar& GUI_App::sidebar()
 {
     return plater_->sidebar();
