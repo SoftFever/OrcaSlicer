@@ -747,7 +747,7 @@ void GUI_App::load_current_presets()
 void GUI_App::MacOpenFiles(const wxArrayString &fileNames)
 {
     std::vector<std::string> files;
-    for (size_t i = 0; i < fileNames.Len(); ++ i)
+    for (size_t i = 0; i < fileNames.GetCount(); ++ i)
         files.emplace_back(fileNames[i].ToUTF8().data());
     this->plater()->load_files(files, true, true);
 }
