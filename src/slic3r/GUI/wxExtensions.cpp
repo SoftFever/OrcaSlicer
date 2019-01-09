@@ -2201,6 +2201,7 @@ PrusaLockButton::PrusaLockButton(   wxWindow *parent,
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 #endif // __WXMSW__
     SetBitmap(m_bmp_unlock_on);
+    SetBitmapDisabled(m_bmp_lock_on);
 
     //button events
     Bind(wxEVT_BUTTON,          &PrusaLockButton::OnButton, this);

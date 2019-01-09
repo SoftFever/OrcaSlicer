@@ -401,9 +401,12 @@ void ObjectManipulation::update_if_dirty()
     m_cache.rotation = m_new_rotation;
 
     if (wxGetApp().plater()->canvas3D()->get_selection().requires_uniform_scale()) {
-//         m_uniform_scale = true;
         m_lock_bnt->SetLock(true);
-//         m_lock_bnt->Disable();
+        m_lock_bnt->Disable();
+    }
+    else {
+        m_lock_bnt->SetLock(m_uniform_scale);
+        m_lock_bnt->Enable();
     }
 
     if (m_new_enabled)
@@ -562,7 +565,7 @@ void ObjectManipulation::change_size_value(const Vec3d& size)
     Vec3d scale = 100.0 * Vec3d(size(0) / ref_size(0), size(1) / ref_size(1), size(2) / ref_size(2));
     Vec3d scaling_factor = scale;
 
-    if (selection.requires_uniform_scale())
+    if (m_uniform_scale || selection.requires_uniform_scale())
     {
         Vec3d abs_scale_diff = (scale - m_cache.scale).cwiseAbs();
         double max_diff = abs_scale_diff(X);
