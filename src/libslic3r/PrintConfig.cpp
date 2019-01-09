@@ -3044,7 +3044,7 @@ CLIConfigDef::CLIConfigDef()
     def->tooltip = L("Forces the GUI launch instead of command line slicing "
                      "(if you supply a model file, it will be loaded into the plater)");
     def->cli = "gui";
-    def->default_value = new ConfigOptionBool(true);
+    def->default_value = new ConfigOptionBool(false);
     
     def = this->add("info", coBool);
     def->label = L("Output Model Info");
