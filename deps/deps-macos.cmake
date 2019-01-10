@@ -1,12 +1,23 @@
 
+# This ensures dependencies don't use SDK features which are not available in the version specified by Deployment target
+# That can happen when one uses a recent SDK but specifies an older Deployment target
+set(DEP_WERRORS_SDK "-Werror=partial-availability -Werror=unguarded-availability -Werror=unguarded-availability-new")
+
 set(DEP_CMAKE_OPTS
     "-DCMAKE_POSITION_INDEPENDENT_CODE=ON"
-    "-DCMAKE_OSX_SYSROOT=${DEPS_OSX_SYSROOT}"
-    "-DCMAKE_OSX_DEPLOYMENT_TARGET=${DEPS_OSX_TARGET}"
+    "-DCMAKE_OSX_SYSROOT=${CMAKE_OSX_SYSROOT}"
+    "-DCMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}"
+    "-DCMAKE_CXX_FLAGS=${DEP_WERRORS_SDK}"
+    "-DCMAKE_C_FLAGS=${DEP_WERRORS_SDK}"
 )
 
 include("deps-unix-common.cmake")
 
+
+set(DEP_BOOST_OSX_TARGET "")
+if (CMAKE_OSX_DEPLOYMENT_TARGET)
+    set(DEP_BOOST_OSX_TARGET "-mmacosx-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET}")
+endif ()
 
 ExternalProject_Add(dep_boost
     EXCLUDE_FROM_ALL 1
@@ -23,8 +34,8 @@ ExternalProject_Add(dep_boost
         variant=release
         threading=multi
         boost.locale.icu=off
-        "cflags=-fPIC -mmacosx-version-min=${DEPS_OSX_TARGET}"
-        "cxxflags=-fPIC -mmacosx-version-min=${DEPS_OSX_TARGET}"
+        "cflags=-fPIC ${DEP_BOOST_OSX_TARGET}"
+        "cxxflags=-fPIC ${DEP_BOOST_OSX_TARGET}"
         install
     INSTALL_COMMAND ""   # b2 does that already
 )
@@ -76,18 +87,32 @@ ExternalProject_Add(dep_libcurl
     INSTALL_COMMAND make install "DESTDIR=${DESTDIR}"
 )
 
+ExternalProject_Add(dep_libpng
+    EXCLUDE_FROM_ALL 1
+    URL "https://github.com/glennrp/libpng/archive/v1.6.36.tar.gz"
+    URL_HASH SHA256=5bef5a850a9255365a2dc344671b7e9ef810de491bd479c2506ac3c337e2d84f
+    CMAKE_GENERATOR "${DEP_MSVC_GEN}"
+    CMAKE_ARGS
+        -DPNG_SHARED=OFF
+        -DPNG_TESTS=OFF
+        ${DEP_CMAKE_OPTS}
+    INSTALL_COMMAND make install "DESTDIR=${DESTDIR}"
+    INSTALL_COMMAND ""
+)
+
+
 ExternalProject_Add(dep_wxwidgets
     EXCLUDE_FROM_ALL 1
-    URL "https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.1/wxWidgets-3.1.1.tar.bz2"
-    URL_HASH SHA256=c925dfe17e8f8b09eb7ea9bfdcfcc13696a3e14e92750effd839f5e10726159e
+    URL "https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.2/wxWidgets-3.1.2.tar.bz2"
+    URL_HASH SHA256=4cb8d23d70f9261debf7d6cfeca667fc0a7d2b6565adb8f1c484f9b674f1f27a
     BUILD_IN_SOURCE 1
     PATCH_COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_CURRENT_SOURCE_DIR}/wxwidgets-pngprefix.h" src/png/pngprefix.h
-    CONFIGURE_COMMAND ./configure
+    CONFIGURE_COMMAND env "CXXFLAGS=${DEP_WERRORS_SDK}" "CFLAGS=${DEP_WERRORS_SDK}" ./configure
         "--prefix=${DESTDIR}/usr/local"
         --disable-shared
         --with-osx_cocoa
-    	"--with-macosx-version-min=${DEPS_OSX_TARGET}"
-        "--with-macosx-sdk=${DEPS_OSX_SYSROOT}"
+        --with-macosx-sdk=${CMAKE_OSX_SYSROOT}
+        "--with-macosx-version-min=${DEP_OSX_TARGET}"
         --with-opengl
         --with-regex=builtin
         --with-libpng=builtin

@@ -1,26 +1,7 @@
 
 # Building Slic3r PE on Mac OS
 
-To build Slic3r PE on Mac OS, you will need to install XCode and an appropriate SDK.
-You will also need [CMake](https://cmake.org/) installed (available on Brew) and possibly git.
-
-Currently Slic3r PE is built against the Mac OS X SDK version 10.9.
-Building against older SDKs is unsupported. Building against newer SDKs might work,
-but there may be subtle issues, such as dark mode not working very well on Mojave or other GUI problems.
-
-You can obtain the SDK 10.9 for example [in this repository](https://github.com/phracker/MacOSX-SDKs).
-If you don't already have the 10.9 version as part of your Mac OS installation, please download it
-and place it into a reachable location.
-
-The default location for Mac OS SDKs is:
-
-    /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/
-
-Wherever the 10.9 SDK is, please note down its location, it will be required to build Slic3r.
-
-On my system, for example, the path to the SDK is
-
-    /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk
+To build Slic3r PE on Mac OS, you will need to install XCode, [CMake](https://cmake.org/) (available on Brew) and possibly git.
 
 ### Dependencies
 
@@ -30,10 +11,15 @@ Use the following commands to build the dependencies:
 
     mkdir build
     cd build
-    cmake .. -DDEPS_OSX_SYSROOT=<path to the 10.9 SDK>
+    cmake ..
+    make
 
 This will create a dependencies bundle inside the `build/destdir` directory.
 You can also customize the bundle output path using the `-DDESTDIR=<some path>` option passed to `cmake`.
+
+**Warning**: Once the dependency bundle is installed in a destdir, the destdir cannot be moved elsewhere.
+(This is because wxWidgets hardcode the installation path.)
+
 
 ### Building Slic3r
 
@@ -42,7 +28,7 @@ Go back to top level Slic3r sources directory and use these commands:
 
     mkdir build
     cd build
-    cmake .. -DCMAKE_PREFIX_PATH="$PWD/../deps/build/destdir/usr/local" -DCMAKE_OSX_SYSROOT=<path to the 10.9 SDK>
+    cmake .. -DCMAKE_PREFIX_PATH="$PWD/../deps/build/destdir/usr/local"
 
 The `CMAKE_PREFIX_PATH` is the path to the dependencies bundle but with `/usr/local` appended - if you set a custom path
 using the `DESTDIR` option, you will need to change this accordingly. **Warning:** the `CMAKE_PREFIX_PATH` needs to be an absolute path.
@@ -56,7 +42,22 @@ where `N` is the number of CPU cores, so, for example `make -j4` for a 4-core ma
 
 Alternatively, if you would like to use XCode GUI, modify the `cmake` command to include the `-GXcode` option:
 
-    cmake .. -GXcode -DCMAKE_PREFIX_PATH="$PWD/../deps/build/destdir/usr/local" -DCMAKE_OSX_SYSROOT=<path to the 10.9 SDK>
+    cmake .. -GXcode -DCMAKE_PREFIX_PATH="$PWD/../deps/build/destdir/usr/local"
 
 and then open the `Slic3r.xcodeproj` file.
 This should open up XCode where you can perform build using the GUI or perform other tasks.
+
+### Note on Mac OS X SDKs
+
+By default Slic3r builds against whichever SDK is the default on the current system.
+
+This can be customized. The `CMAKE_OSX_SYSROOT` option sets the path to the SDK directory location
+and the `CMAKE_OSX_DEPLOYMENT_TARGET` option sets the target OS X system version (eg. `10.14` or similar).
+Note you can set just one value and the other will be guessed automatically.
+In case you set both, the two settings need to agree with each other. (Building with a lower deployment target
+is currently unsupported because some of the dependencies don't support this, most notably wxWidgets.)
+
+Please note that the `CMAKE_OSX_DEPLOYMENT_TARGET` and `CMAKE_OSX_SYSROOT` options need to be set the same
+on both the dependencies bundle as well as Slic3r PE itself.
+
+Official Mac Slic3r builds are currently built against SDK 10.9 to ensure compatibility with older Macs.

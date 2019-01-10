@@ -35,16 +35,3 @@ ExternalProject_Add(dep_nlopt
     INSTALL_COMMAND make install "DESTDIR=${DESTDIR}"
     INSTALL_COMMAND ""
 )
-
-ExternalProject_Add(dep_libpng
-    EXCLUDE_FROM_ALL 1
-    URL "http://prdownloads.sourceforge.net/libpng/libpng-1.6.35.tar.xz?download"
-    URL_HASH SHA256=23912ec8c9584917ed9b09c5023465d71709dce089be503c7867fec68a93bcd7
-    CMAKE_GENERATOR "${DEP_MSVC_GEN}"
-    CMAKE_ARGS
-        -DPNG_SHARED=OFF
-        -DPNG_TESTS=OFF
-        ${DEP_CMAKE_OPTS}
-    INSTALL_COMMAND make install "DESTDIR=${DESTDIR}"
-    INSTALL_COMMAND ""
-)

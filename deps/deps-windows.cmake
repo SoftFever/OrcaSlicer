@@ -155,8 +155,8 @@ endif ()
 ExternalProject_Add(dep_libpng
     DEPENDS dep_zlib
     EXCLUDE_FROM_ALL 1
-    URL "http://prdownloads.sourceforge.net/libpng/libpng-1.6.35.tar.xz?download"
-    URL_HASH SHA256=23912ec8c9584917ed9b09c5023465d71709dce089be503c7867fec68a93bcd7
+    URL "https://github.com/glennrp/libpng/archive/v1.6.36.tar.gz"
+    URL_HASH SHA256=5bef5a850a9255365a2dc344671b7e9ef810de491bd479c2506ac3c337e2d84f
     CMAKE_GENERATOR "${DEP_MSVC_GEN}"
     CMAKE_ARGS
         -DPNG_SHARED=OFF
