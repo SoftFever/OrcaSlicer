@@ -1312,16 +1312,18 @@ std::string Print::validate() const
                            "If support is to be printed with the current extruder (support_material_extruder == 0 or support_material_interface_extruder == 0), "
                            "all nozzles have to be of the same diameter.");
                 }
-				if (object->config().support_material_contact_distance == 0) {
-					// Soluble interface
-					if (object->config().support_material_contact_distance == 0 && ! object->config().support_material_synchronize_layers)
-						return L("For the Wipe Tower to work with the soluble supports, the support layers need to be synchronized with the object layers.");
-				} else {
-					// Non-soluble interface
-					if (object->config().support_material_extruder != 0 || object->config().support_material_interface_extruder != 0)
-						return L("The Wipe Tower currently supports the non-soluble supports only if they are printed with the current extruder without triggering a tool change. "
-							     "(both support_material_extruder and support_material_interface_extruder need to be set to 0).");
-				}
+                if (this->has_wipe_tower()) {
+    				if (object->config().support_material_contact_distance == 0) {
+    					// Soluble interface
+    					if (object->config().support_material_contact_distance == 0 && ! object->config().support_material_synchronize_layers)
+    						return L("For the Wipe Tower to work with the soluble supports, the support layers need to be synchronized with the object layers.");
+    				} else {
+    					// Non-soluble interface
+    					if (object->config().support_material_extruder != 0 || object->config().support_material_interface_extruder != 0)
+    						return L("The Wipe Tower currently supports the non-soluble supports only if they are printed with the current extruder without triggering a tool change. "
+    							     "(both support_material_extruder and support_material_interface_extruder need to be set to 0).");
+    				}
+                }
             }
             
             // validate first_layer_height
