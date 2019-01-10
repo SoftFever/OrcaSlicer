@@ -2296,11 +2296,13 @@ void Tab::load_current_preset()
 	(preset.is_default || preset.is_system) ? m_btn_delete_preset->Disable() : m_btn_delete_preset->Enable(true);
 
     update();
-    // For the printer profile, generate the extruder pages.
-    if (preset.printer_technology() == ptFFF)
-        on_preset_loaded();
-    else
-        wxGetApp().sidebar().update_objects_list_extruder_column(1);
+	if (m_name == "printer") {
+		// For the printer profile, generate the extruder pages.
+		if (preset.printer_technology() == ptFFF)
+			on_preset_loaded();
+		else
+			wxGetApp().sidebar().update_objects_list_extruder_column(1);
+	}
     // Reload preset pages with the new configuration values.
     reload_config();
 
@@ -2325,7 +2327,7 @@ void Tab::load_current_preset()
 
         // update show/hide tabs
         if (m_name == "printer") {
-            PrinterTechnology& printer_technology = m_presets->get_edited_preset().printer_technology();
+            const PrinterTechnology printer_technology = m_presets->get_edited_preset().printer_technology();
             if (printer_technology != static_cast<TabPrinter*>(this)->m_printer_technology)
             {
                 for (auto tab : wxGetApp().tabs_list) {

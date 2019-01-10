@@ -81,7 +81,7 @@ PresetBundle::PresetBundle() :
     this->sla_prints.default_preset().inherits();
 
     this->printers.add_default_preset(Preset::sla_printer_options(), static_cast<const SLAMaterialConfig&>(SLAFullPrintConfig::defaults()), "- default SLA -");
-    this->printers.preset(1).printer_technology() = ptSLA;
+    this->printers.preset(1).printer_technology_ref() = ptSLA;
     for (size_t i = 0; i < 2; ++ i) {
 		// The following ugly switch is to avoid printers.preset(0) to return the edited instance, as the 0th default is the current one.
 		Preset &preset = this->printers.default_preset(i);
