@@ -983,7 +983,7 @@ struct Plater::priv
         UPDATE_BACKGROUND_PROCESS_FORCE_EXPORT = 16,
     };
     // returns bit mask of UpdateBackgroundProcessReturnState
-    unsigned int update_background_process();
+    unsigned int update_background_process(bool force_validation = false);
     // Restart background processing thread based on a bitmask of UpdateBackgroundProcessReturnState.
     bool restart_background_process(unsigned int state);
     void update_restart_background_process(bool force_scene_update, bool force_preview_update);
@@ -1178,7 +1178,7 @@ void Plater::priv::update(bool force_full_scene_refresh)
     if (this->printer_technology == ptSLA)
         // Update the SLAPrint from the current Model, so that the reload_scene()
         // pulls the correct data.
-        update_status = this->update_background_process();
+        update_status = this->update_background_process(false);
     this->view3D->reload_scene(false, force_full_scene_refresh);
 	this->preview->reload_print();
     if (this->printer_technology == ptSLA)
@@ -1826,7 +1826,7 @@ void Plater::priv::update_print_volume_state()
 
 // Update background processing thread from the current config and Model.
 // Returns a bitmask of UpdateBackgroundProcessReturnState.
-unsigned int Plater::priv::update_background_process()
+unsigned int Plater::priv::update_background_process(bool force_validation)
 {
     // bitmap of enum UpdateBackgroundProcessReturnState
     unsigned int return_state = 0;
@@ -1866,19 +1866,21 @@ unsigned int Plater::priv::update_background_process()
         }
     }
 
-	if (! this->background_process.empty()) {
+    if ((invalidated != Print::APPLY_STATUS_UNCHANGED || force_validation) && ! this->background_process.empty()) {
+        // The state of the Print changed, and it is non-zero. Let's validate it and give the user feedback on errors.
         std::string err = this->background_process.validate();
         if (err.empty()) {
 			if (invalidated != Print::APPLY_STATUS_UNCHANGED && this->background_processing_enabled())
                 return_state |= UPDATE_BACKGROUND_PROCESS_RESTART;
         } else {
             // The print is not valid.
+            // The error returned from the Print needs to be translated into the local language.
             GUI::show_error(this->q, _(err));
             return_state |= UPDATE_BACKGROUND_PROCESS_INVALID;
         }
     }
 
-	if (invalidated != Print::APPLY_STATUS_UNCHANGED && was_running && ! this->background_process.running() &&
+    if (invalidated != Print::APPLY_STATUS_UNCHANGED && was_running && ! this->background_process.running() &&
         (return_state & UPDATE_BACKGROUND_PROCESS_RESTART) == 0) {
 		// The background processing was killed and it will not be restarted.
 		wxCommandEvent evt(EVT_PROCESS_COMPLETED);
@@ -1923,7 +1925,7 @@ void Plater::priv::export_gcode(fs::path output_path, PrintHostJob upload_job)
     }
 
     // bitmask of UpdateBackgroundProcessReturnState
-    unsigned int state = update_background_process();
+    unsigned int state = update_background_process(true);
     if (state & priv::UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE)
         view3D->reload_scene(false);
 
@@ -1942,7 +1944,7 @@ void Plater::priv::export_gcode(fs::path output_path, PrintHostJob upload_job)
 void Plater::priv::update_restart_background_process(bool force_update_scene, bool force_update_preview)
 {
     // bitmask of UpdateBackgroundProcessReturnState
-    unsigned int state = this->update_background_process();
+    unsigned int state = this->update_background_process(false);
     if (force_update_scene || (state & UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE) != 0)
         view3D->reload_scene(false);
 
@@ -2858,7 +2860,7 @@ void Plater::reslice()
 {
     //FIXME Don't reslice if export of G-code or sending to OctoPrint is running.
     // bitmask of UpdateBackgroundProcessReturnState
-    unsigned int state = this->p->update_background_process();
+    unsigned int state = this->p->update_background_process(true);
     if (state & priv::UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE)
         this->p->view3D->reload_scene(false);
     // Only restarts if the state is valid.

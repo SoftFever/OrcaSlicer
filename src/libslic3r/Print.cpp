@@ -1257,12 +1257,12 @@ std::string Print::validate() const
             if (! equal_layering(slicing_params, slicing_params0))
                 return L("The Wipe Tower is only supported for multiple objects if they are sliced equally.");
 
-            if ( m_config.variable_layer_height ) { // comparing layer height profiles
+            if (m_config.variable_layer_height) { // comparing layer height profiles
                 bool failed = false;
                 // layer_height_profile should be set by Print::apply().
-                if (tallest_object->layer_height_profile.size() >= object->layer_height_profile.size() ) {
+                if (tallest_object->layer_height_profile.size() >= object->layer_height_profile.size()) {
                     int i = 0;
-                    while ( i < object->layer_height_profile.size() && i < tallest_object->layer_height_profile.size()) {
+                    while (i < object->layer_height_profile.size() && i < tallest_object->layer_height_profile.size()) {
                         if (std::abs(tallest_object->layer_height_profile[i] - object->layer_height_profile[i])) {
                             failed = true;
                             break;
@@ -1303,15 +1303,25 @@ std::string Print::validate() const
 #endif
 
         for (PrintObject *object : m_objects) {
-            if ((object->config().support_material_extruder == -1 || object->config().support_material_interface_extruder == -1) &&
-                (object->config().raft_layers > 0 || object->config().support_material.value)) {
-                // The object has some form of support and either support_material_extruder or support_material_interface_extruder
-                // will be printed with the current tool without a forced tool change. Play safe, assert that all object nozzles
-                // are of the same diameter.
-                if (nozzle_diameters.size() > 1)
+            if (object->config().raft_layers > 0 || object->config().support_material.value) {
+                if ((object->config().support_material_extruder == 0 || object->config().support_material_interface_extruder == 0) && nozzle_diameters.size() > 1) {
+                    // The object has some form of support and either support_material_extruder or support_material_interface_extruder
+                    // will be printed with the current tool without a forced tool change. Play safe, assert that all object nozzles
+                    // are of the same diameter.
                     return L("Printing with multiple extruders of differing nozzle diameters. "
                            "If support is to be printed with the current extruder (support_material_extruder == 0 or support_material_interface_extruder == 0), "
                            "all nozzles have to be of the same diameter.");
+                }
+				if (object->config().support_material_contact_distance == 0) {
+					// Soluble interface
+					if (object->config().support_material_contact_distance == 0 && ! object->config().support_material_synchronize_layers)
+						return L("For the Wipe Tower to work with the soluble supports, the support layers need to be synchronized with the object layers.");
+				} else {
+					// Non-soluble interface
+					if (object->config().support_material_extruder != 0 || object->config().support_material_interface_extruder != 0)
+						return L("The Wipe Tower currently supports the non-soluble supports only if they are printed with the current extruder without triggering a tool change. "
+							     "(both support_material_extruder and support_material_interface_extruder need to be set to 0).");
+				}
             }
             
             // validate first_layer_height
