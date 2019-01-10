@@ -2195,7 +2195,6 @@ PrusaLockButton::PrusaLockButton(   wxWindow *parent,
     m_bmp_lock_off = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("one_layer_lock_off.png")), wxBITMAP_TYPE_PNG);
     m_bmp_unlock_on = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("one_layer_unlock_on.png")), wxBITMAP_TYPE_PNG);
     m_bmp_unlock_off = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("one_layer_unlock_off.png")), wxBITMAP_TYPE_PNG);
-    m_lock_icon_dim = m_bmp_lock_on.GetSize().x;
 
 #ifdef __WXMSW__
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
@@ -2232,6 +2231,104 @@ void PrusaLockButton::enter_button(const bool enter)
 
     Refresh();
     Update();
+}
+
+
+
+// ----------------------------------------------------------------------------
+// PrusaModeButton
+// ----------------------------------------------------------------------------
+
+PrusaModeButton::PrusaModeButton(   wxWindow *parent,
+                                    wxWindowID id,
+                                    const wxString& mode/* = wxEmptyString*/,
+                                    const wxBitmap& bmp_on/* = wxNullBitmap*/,
+                                    const wxPoint& pos/* = wxDefaultPosition*/,
+                                    const wxSize& size/* = wxDefaultSize*/) :
+    wxButton(parent, id, mode, pos, size, wxBU_EXACTFIT | wxNO_BORDER),
+    m_bmp_on(bmp_on)
+{
+#ifdef __WXMSW__
+    SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+#endif // __WXMSW__
+    m_bmp_off = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("mode_off_sq.png")), wxBITMAP_TYPE_PNG);
+
+    SetBitmap(m_bmp_on);
+
+    //button events
+    Bind(wxEVT_BUTTON,          &PrusaModeButton::OnButton, this);
+    Bind(wxEVT_ENTER_WINDOW,    &PrusaModeButton::OnEnterBtn, this);
+    Bind(wxEVT_LEAVE_WINDOW,    &PrusaModeButton::OnLeaveBtn, this);
+}
+
+void PrusaModeButton::OnButton(wxCommandEvent& event)
+{
+    m_is_selected = true;
+    focus_button(m_is_selected);
+
+    event.Skip();
+}
+
+void PrusaModeButton::SetState(const bool state)
+{
+    m_is_selected = state;
+    focus_button(m_is_selected);
+}
+
+void PrusaModeButton::focus_button(const bool focus)
+{
+    const wxBitmap& bmp = focus ? m_bmp_on : m_bmp_off;
+    SetBitmap(bmp);
+    const wxFont& new_font = focus ? Slic3r::GUI::wxGetApp().bold_font() : Slic3r::GUI::wxGetApp().small_font();
+    SetFont(new_font);
+
+    Refresh();
+    Update();
+}
+
+
+// ----------------------------------------------------------------------------
+// PrusaModeSizer
+// ----------------------------------------------------------------------------
+
+PrusaModeSizer::PrusaModeSizer(wxWindow *parent) :
+    wxFlexGridSizer(3, 0, 5)
+{
+    SetFlexibleDirection(wxHORIZONTAL);
+
+    const wxBitmap bmp_simple_on    = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("mode_simple_sq.png")),   wxBITMAP_TYPE_PNG);
+    const wxBitmap bmp_advanced_on  = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("mode_middle_sq.png")),  wxBITMAP_TYPE_PNG);
+    const wxBitmap bmp_expert_on    = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("mode_expert_sq.png")),     wxBITMAP_TYPE_PNG);
+    
+    mode_btns.reserve(3);
+
+    mode_btns.push_back(new PrusaModeButton(parent, wxID_ANY, "Simple",     bmp_simple_on));
+    mode_btns.push_back(new PrusaModeButton(parent, wxID_ANY, "Advanced",   bmp_advanced_on));
+    mode_btns.push_back(new PrusaModeButton(parent, wxID_ANY, "Expert",     bmp_expert_on));
+
+    for (auto btn : mode_btns)
+    {
+        btn->Bind(wxEVT_BUTTON, [btn, this](wxCommandEvent &event) {
+            event.Skip();
+            int mode_id = 0;
+            for (auto cur_btn : mode_btns) {
+                if (cur_btn == btn)
+                    break;
+                else
+                    mode_id++;
+            }
+            Slic3r::GUI::wxGetApp().save_mode(mode_id);
+        });
+
+        Add(btn);
+    }
+
+}
+
+void PrusaModeSizer::SetMode(const Slic3r::ConfigOptionMode& mode)
+{
+    for (int m = 0; m < mode_btns.size(); m++)
+        mode_btns[m]->SetState(m == mode);
 }
 
 // ************************************** EXPERIMENTS ***************************************

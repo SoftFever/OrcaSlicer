@@ -168,6 +168,9 @@ void Tab::create_preset_tab()
 	m_modified_label_clr	= wxGetApp().get_label_clr_modified();
 	m_default_text_clr		= wxGetApp().get_label_clr_default();
 
+    // Sizer with buttons for mode changing
+    m_mode_sizer = new PrusaModeSizer(panel);
+
 	m_hsizer = new wxBoxSizer(wxHORIZONTAL);
 	sizer->Add(m_hsizer, 0, wxBOTTOM, 3);
 	m_hsizer->Add(m_presets_choice, 1, wxLEFT | wxRIGHT | wxTOP | wxALIGN_CENTER_VERTICAL, 3);
@@ -182,6 +185,8 @@ void Tab::create_preset_tab()
 	m_hsizer->Add(m_undo_btn, 0, wxALIGN_CENTER_VERTICAL);
 	m_hsizer->AddSpacer(32);
 	m_hsizer->Add(m_question_btn, 0, wxALIGN_CENTER_VERTICAL);
+    m_hsizer->AddStretchSpacer(32);
+    m_hsizer->Add(m_mode_sizer, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
 
 	//Horizontal sizer to hold the tree and the selected page.
 	m_hsizer = new wxBoxSizer(wxHORIZONTAL);
@@ -669,7 +674,7 @@ void Tab::reload_config()
 
 void Tab::update_visibility()
 {
-    const ConfigOptionMode mode = wxGetApp().get_opt_mode();
+    const ConfigOptionMode mode = wxGetApp().get_mode();
     Freeze();
 
 	for (auto page : m_pages)
@@ -685,6 +690,9 @@ void Tab::update_visibility()
     wxTheApp->CallAfter([this]() {
         update_changed_tree_ui();
     });
+
+    // update mode for ModeSizer
+    m_mode_sizer->SetMode(mode);
 }
 
 Field* Tab::get_field(const t_config_option_key& opt_key, int opt_index/* = -1*/) const

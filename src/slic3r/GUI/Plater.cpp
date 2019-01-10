@@ -434,6 +434,7 @@ struct Sidebar::priv
 
     wxScrolledWindow *scrolled;
 
+    PrusaModeSizer  *mode_sizer;
     wxFlexGridSizer *sizer_presets;
     PresetComboBox *combo_print;
     std::vector<PresetComboBox*> combos_filament;
@@ -491,6 +492,9 @@ Sidebar::Sidebar(Plater *parent)
     // Sizer in the scrolled area
     auto *scrolled_sizer = new wxBoxSizer(wxVERTICAL);
     p->scrolled->SetSizer(scrolled_sizer);
+
+    // Sizer with buttons for mode changing
+    p->mode_sizer = new PrusaModeSizer(p->scrolled);
 
     // The preset chooser
     p->sizer_presets = new wxFlexGridSizer(5, 2, 1, 2);
@@ -558,6 +562,7 @@ Sidebar::Sidebar(Plater *parent)
     p->sliced_info = new SlicedInfo(p->scrolled);
 
     // Sizer in the scrolled area
+    scrolled_sizer->Add(p->mode_sizer, 0, wxALIGN_CENTER_HORIZONTAL | wxBOTTOM, 5);
     scrolled_sizer->Add(p->sizer_presets, 0, wxEXPAND | wxLEFT, 2);
     scrolled_sizer->Add(p->sizer_params, 1, wxEXPAND);
     scrolled_sizer->Add(p->object_info, 0, wxEXPAND | wxTOP | wxLEFT, 20);
@@ -673,6 +678,11 @@ void Sidebar::update_presets(Preset::Type preset_type)
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
 }
 
+void Sidebar::update_mode_sizer(const Slic3r::ConfigOptionMode& mode)
+{
+    p->mode_sizer->SetMode(mode);
+}
+
 ObjectManipulation* Sidebar::obj_manipul()
 {
     return p->object_manipulation;
@@ -711,7 +721,7 @@ void Sidebar::update_objects_list_extruder_column(int extruders_count)
 void Sidebar::show_info_sizer()
 {
     if (!p->plater->is_single_full_object_selection() ||
-        m_mode < ConfigMenuModeExpert ||
+        m_mode < comExpert ||
         p->plater->model().objects.empty()) {
         p->object_info->Show(false);
         return;

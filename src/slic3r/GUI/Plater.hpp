@@ -57,7 +57,7 @@ private:
 
 class Sidebar : public wxPanel
 {
-    /*ConfigMenuIDs*/int    m_mode;
+    /*ConfigOptionMode*/int    m_mode;
 public:
     Sidebar(Plater *parent);
     Sidebar(Sidebar &&) = delete;
@@ -69,6 +69,7 @@ public:
     void init_filament_combo(PresetComboBox **combo, const int extr_idx);
     void remove_unused_filament_combos(const int current_extruder_count);
     void update_presets(Slic3r::Preset::Type preset_type);
+    void update_mode_sizer(const Slic3r::ConfigOptionMode& mode);
 
     ObjectManipulation*     obj_manipul();
     ObjectList*             obj_list();
@@ -84,7 +85,7 @@ public:
     void                    show_reslice(bool show);
     void                    show_send(bool show);
     bool                    is_multifilament();
-    void                    set_mode_value(const /*ConfigMenuIDs*/int mode) { m_mode = mode; }
+    void                    set_mode_value(const /*ConfigOptionMode*/int mode) { m_mode = mode; }
 
     std::vector<PresetComboBox*>& combos_filament();
 private:

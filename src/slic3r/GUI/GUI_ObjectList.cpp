@@ -680,7 +680,7 @@ void ObjectList::append_menu_items_add_volume(wxMenu* menu)
             menu->Destroy(settings_id);
     }
 
-    if (wxGetApp().get_view_mode() == ConfigMenuModeSimple)
+    if (wxGetApp().get_mode() == comSimple)
     {
         append_menu_item(menu, wxID_ANY, _(L("Add part")), "",
             [this](wxCommandEvent&) { load_subobject(ModelVolume::MODEL_PART); }, *m_bmp_vector[ModelVolume::MODEL_PART]);
@@ -719,7 +719,7 @@ wxMenuItem* ObjectList::append_menu_item_settings(wxMenu* menu)
     if (settings_id != wxNOT_FOUND)
         menu->Destroy(settings_id);
 
-    if (wxGetApp().get_view_mode() == ConfigMenuModeSimple)
+    if (wxGetApp().get_mode() == comSimple)
         return nullptr;
 
     auto  menu_item = new wxMenuItem(menu, wxID_ANY, _(L("Add settings")));

@@ -224,7 +224,7 @@ void ObjectManipulation::Show(const bool show)
 
     m_og->Show(show);
 
-    if (show && wxGetApp().get_view_mode() != ConfigMenuModeSimple) {
+    if (show && wxGetApp().get_mode() != comSimple) {
         m_og->get_grid_sizer()->Show(size_t(0), false);
         m_og->get_grid_sizer()->Show(size_t(1), false);
     }

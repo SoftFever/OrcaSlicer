@@ -8,6 +8,7 @@
 #include <wx/collpane.h>
 #include <wx/wupdlock.h>
 #include <wx/button.h>
+#include <wx/sizer.h>
 #include <wx/slider.h>
 
 #include <vector>
@@ -863,8 +864,57 @@ private:
     wxBitmap    m_bmp_lock_off;
     wxBitmap    m_bmp_unlock_on;
     wxBitmap    m_bmp_unlock_off;
+};
 
-    int         m_lock_icon_dim;
+
+// ----------------------------------------------------------------------------
+// PrusaModeButton
+// ----------------------------------------------------------------------------
+
+class PrusaModeButton : public wxButton
+{
+public:
+    PrusaModeButton(
+        wxWindow *parent,
+        wxWindowID id,
+        const wxString& mode = wxEmptyString,
+        const wxBitmap& bmp_on = wxNullBitmap,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize);
+    ~PrusaModeButton() {}
+
+    void    OnButton(wxCommandEvent& event);
+    void    OnEnterBtn(wxMouseEvent& event) { focus_button(true); event.Skip(); }
+    void    OnLeaveBtn(wxMouseEvent& event) { focus_button(m_is_selected); event.Skip(); }
+
+    void    SetState(const bool state);
+
+protected:
+    void    focus_button(const bool focus);
+
+private:
+    bool        m_is_selected = false;
+
+    wxBitmap    m_bmp_on;
+    wxBitmap    m_bmp_off;
+};
+
+
+
+// ----------------------------------------------------------------------------
+// PrusaModeSizer
+// ----------------------------------------------------------------------------
+
+class PrusaModeSizer : public wxFlexGridSizer
+{
+public:
+    PrusaModeSizer( wxWindow *parent);
+    ~PrusaModeSizer() {}
+
+    void SetMode(const Slic3r::ConfigOptionMode& mode);
+
+private:
+    std::vector<PrusaModeButton*> mode_btns;
 };
 
 

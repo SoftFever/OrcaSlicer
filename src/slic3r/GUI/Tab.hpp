@@ -31,6 +31,7 @@
 #include "BedShapeDialog.hpp"
 #include "Event.hpp"
 
+class PrusaModeSizer;
 
 namespace Slic3r {
 namespace GUI {
@@ -122,6 +123,8 @@ protected:
 	wxBoxSizer*			m_left_sizer;
 	wxTreeCtrl*			m_treectrl;
 	wxImageList*		m_icons;
+
+    PrusaModeSizer*     m_mode_sizer;
 
    	struct PresetDependencies {
 		Preset::Type type	  = Preset::TYPE_INVALID;
