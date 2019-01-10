@@ -756,6 +756,7 @@ protected:
     void    draw_thumb(wxDC& dc, const wxCoord& pos_coord, const SelectedSlider& selection);
     void    draw_thumbs(wxDC& dc, const wxCoord& lower_pos, const wxCoord& higher_pos);
     void    draw_ticks(wxDC& dc);
+    void    draw_colored_band(wxDC& dc);
     void    draw_one_layer_icon(wxDC& dc);
     void    draw_thumb_item(wxDC& dc, const wxPoint& pos, const SelectedSlider& selection);
     void    draw_info_line_with_icon(wxDC& dc, const wxPoint& pos, SelectedSlider selection);
