@@ -115,6 +115,7 @@ void KBShortcutsDialog::fill_shortcuts()
     main_shortcuts.push_back(Shortcut(ctrl+"5"          ,L("Switch to 3D")));
     main_shortcuts.push_back(Shortcut(ctrl+"6"          ,L("Switch to Preview")));
     main_shortcuts.push_back(Shortcut(ctrl+"P"          ,L("Preferences")));
+    main_shortcuts.push_back(Shortcut(ctrl+"J"          ,L("Print host upload queue")));
     main_shortcuts.push_back(Shortcut("0-6"             ,L("Camera view ")));
     main_shortcuts.push_back(Shortcut("+"               ,L("Add Instance to selected object ")));
     main_shortcuts.push_back(Shortcut("-"               ,L("Remove Instance from selected object")));
