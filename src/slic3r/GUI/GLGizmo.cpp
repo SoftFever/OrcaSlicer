@@ -228,10 +228,10 @@ void GLGizmoBase::stop_dragging()
     on_stop_dragging();
 }
 
-void GLGizmoBase::update(const UpdateData& data)
+void GLGizmoBase::update(const UpdateData& data, const GLCanvas3D::Selection& selection)
 {
     if (m_hover_id != -1)
-        on_update(data);
+        on_update(data, selection);
 }
 
 float GLGizmoBase::picking_color_component(unsigned int id) const
@@ -368,9 +368,9 @@ void GLGizmoRotate::on_start_dragging(const GLCanvas3D::Selection& selection)
     m_snap_fine_out_radius = m_snap_fine_in_radius + m_radius * ScaleLongTooth;
 }
 
-void GLGizmoRotate::on_update(const UpdateData& data)
+void GLGizmoRotate::on_update(const UpdateData& data, const GLCanvas3D::Selection& selection)
 {
-    Vec2d mouse_pos = to_2d(mouse_position_in_local_plane(data.mouse_ray));
+    Vec2d mouse_pos = to_2d(mouse_position_in_local_plane(data.mouse_ray, selection));
 
     Vec2d orig_dir = Vec2d::UnitX();
     Vec2d new_dir = mouse_pos.normalized();
@@ -442,7 +442,7 @@ void GLGizmoRotate::on_render(const GLCanvas3D::Selection& selection) const
     ::glEnable(GL_DEPTH_TEST);
 
     ::glPushMatrix();
-    transform_to_local();
+    transform_to_local(selection);
 
     ::glLineWidth((m_hover_id != -1) ? 2.0f : 1.5f);
     ::glColor3fv((m_hover_id != -1) ? m_drag_color : m_highlight_color);
@@ -473,7 +473,7 @@ void GLGizmoRotate::on_render_for_picking(const GLCanvas3D::Selection& selection
 
     ::glPushMatrix();
 
-    transform_to_local();
+    transform_to_local(selection);
 
     const BoundingBoxf3& box = selection.get_bounding_box();
     render_grabbers_for_picking(box);
@@ -635,9 +635,15 @@ void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool pick
         ::glDisable(GL_LIGHTING);
 }
 
-void GLGizmoRotate::transform_to_local() const
+void GLGizmoRotate::transform_to_local(const GLCanvas3D::Selection& selection) const
 {
     ::glTranslated(m_center(0), m_center(1), m_center(2));
+
+    if (selection.is_single_volume() || selection.is_single_modifier())
+    {
+        Transform3d orient_matrix = selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix(true, false, true, true);
+        ::glMultMatrixd(orient_matrix.data());
+    }
 
     switch (m_axis)
     {
@@ -662,7 +668,7 @@ void GLGizmoRotate::transform_to_local() const
     }
 }
 
-Vec3d GLGizmoRotate::mouse_position_in_local_plane(const Linef3& mouse_ray) const
+Vec3d GLGizmoRotate::mouse_position_in_local_plane(const Linef3& mouse_ray, const GLCanvas3D::Selection& selection) const
 {
     double half_pi = 0.5 * (double)PI;
 
@@ -689,6 +695,9 @@ Vec3d GLGizmoRotate::mouse_position_in_local_plane(const Linef3& mouse_ray) cons
         break;
     }
     }
+
+    if (selection.is_single_volume() || selection.is_single_modifier())
+        m = m * selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix(true, false, true, true).inverse();
 
     m.translate(-m_center);
 
@@ -841,7 +850,7 @@ void GLGizmoScale3D::on_start_dragging(const GLCanvas3D::Selection& selection)
     }
 }
 
-void GLGizmoScale3D::on_update(const UpdateData& data)
+void GLGizmoScale3D::on_update(const UpdateData& data, const GLCanvas3D::Selection& selection)
 {
     if ((m_hover_id == 0) || (m_hover_id == 1))
         do_scale_x(data);
@@ -1209,7 +1218,7 @@ void GLGizmoMove3D::on_stop_dragging()
     m_displacement = Vec3d::Zero();
 }
 
-void GLGizmoMove3D::on_update(const UpdateData& data)
+void GLGizmoMove3D::on_update(const UpdateData& data, const GLCanvas3D::Selection& selection)
 {
     if (m_hover_id == 0)
         m_displacement(0) = calc_projection(data);
@@ -2137,7 +2146,7 @@ void GLGizmoSlaSupports::delete_current_grabber(bool delete_all)
     m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
 }
 
-void GLGizmoSlaSupports::on_update(const UpdateData& data)
+void GLGizmoSlaSupports::on_update(const UpdateData& data, const GLCanvas3D::Selection& selection)
 {
     if (m_hover_id != -1 && data.mouse_pos) {
         Vec3f new_pos;
@@ -2379,7 +2388,7 @@ void GLGizmoCut::on_start_dragging(const GLCanvas3D::Selection& selection)
     m_drag_center(2) = m_cut_z;
 }
 
-void GLGizmoCut::on_update(const UpdateData& data)
+void GLGizmoCut::on_update(const UpdateData& data, const GLCanvas3D::Selection& selection)
 {
     if (m_hover_id != -1) {
         set_cut_z(m_start_z + calc_projection(data.mouse_ray));

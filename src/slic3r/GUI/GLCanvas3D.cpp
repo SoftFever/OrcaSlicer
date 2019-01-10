@@ -2957,14 +2957,14 @@ bool GLCanvas3D::Gizmos::grabber_contains_mouse() const
     return (curr != nullptr) ? (curr->get_hover_id() != -1) : false;
 }
 
-void GLCanvas3D::Gizmos::update(const Linef3& mouse_ray, bool shift_down, const Point* mouse_pos)
+void GLCanvas3D::Gizmos::update(const Linef3& mouse_ray, const Selection& selection, bool shift_down, const Point* mouse_pos)
 {
     if (!m_enabled)
         return;
 
     GLGizmoBase* curr = _get_current();
     if (curr != nullptr)
-        curr->update(GLGizmoBase::UpdateData(mouse_ray, mouse_pos, shift_down));
+        curr->update(GLGizmoBase::UpdateData(mouse_ray, mouse_pos, shift_down), selection);
 }
 
 GLCanvas3D::Gizmos::EType GLCanvas3D::Gizmos::get_current_type() const
@@ -5168,7 +5168,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_canvas->CaptureMouse();
 
         m_mouse.dragging = true;
-        m_gizmos.update(mouse_ray(pos), evt.ShiftDown(), &pos);
+        m_gizmos.update(mouse_ray(pos), m_selection, evt.ShiftDown(), &pos);
 
         switch (m_gizmos.get_current_type())
         {

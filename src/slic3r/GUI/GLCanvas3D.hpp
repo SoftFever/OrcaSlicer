@@ -675,7 +675,7 @@ private:
 
         bool overlay_contains_mouse(const GLCanvas3D& canvas, const Vec2d& mouse_pos) const;
         bool grabber_contains_mouse() const;
-        void update(const Linef3& mouse_ray, bool shift_down, const Point* mouse_pos = nullptr);
+        void update(const Linef3& mouse_ray, const Selection& selection, bool shift_down, const Point* mouse_pos = nullptr);
         Rect get_reset_rect_viewport(const GLCanvas3D& canvas) const;
         EType get_current_type() const;
 
