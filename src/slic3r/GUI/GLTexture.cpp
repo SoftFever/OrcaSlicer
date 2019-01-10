@@ -36,7 +36,7 @@ bool GLTexture::load_from_file(const std::string& filename, bool generate_mipmap
 
     // Load a PNG with an alpha channel.
     wxImage image;
-	if (!image.LoadFile(wxString::FromUTF8(filename), wxBITMAP_TYPE_PNG))
+	if (!image.LoadFile(wxString::FromUTF8(filename.c_str()), wxBITMAP_TYPE_PNG))
     {
         reset();
         return false;

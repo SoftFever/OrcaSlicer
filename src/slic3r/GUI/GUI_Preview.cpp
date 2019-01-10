@@ -685,29 +685,24 @@ void Preview::load_print_as_fff()
     // we require that there's at least one object and the posSlice step
     // is performed on all of them(this ensures that _shifted_copies was
     // populated and we know the number of layers)
-    unsigned int n_layers = 0;
+    bool has_layers = false;
     const Print *print = m_process->fff_print();
-    if (print->is_step_done(posSlice))
-    {
-        std::set<float> zs;
+    if (print->is_step_done(posSlice)) {
         for (const PrintObject* print_object : print->objects())
-        {
-            const LayerPtrs& layers = print_object->layers();
-            const SupportLayerPtrs& support_layers = print_object->support_layers();
-            for (const Layer* layer : layers)
-            {
-                zs.insert(layer->print_z);
+            if (! print_object->layers().empty()) {
+                has_layers = true;
+                break;
             }
-            for (const SupportLayer* layer : support_layers)
-            {
-                zs.insert(layer->print_z);
+    }
+	if (print->is_step_done(posSupportMaterial)) {
+        for (const PrintObject* print_object : print->objects())
+            if (! print_object->support_layers().empty()) {
+                has_layers = true;
+                break;
             }
-        }
-
-        n_layers = (unsigned int)zs.size();
     }
 
-    if (n_layers == 0)
+    if (! has_layers)
     {
         reset_sliders();
         m_canvas->reset_legend_texture();
@@ -761,8 +756,8 @@ void Preview::load_print_as_fff()
             show_hide_ui_elements("full");
 
             // recalculates zs and update sliders accordingly
-            n_layers = (unsigned int)m_canvas->get_current_print_zs(true).size();
-            if (n_layers == 0)
+            has_layers = ! m_canvas->get_current_print_zs(true).empty();
+            if (! has_layers)
             {
                 // all layers filtered out
                 reset_sliders();
@@ -777,7 +772,7 @@ void Preview::load_print_as_fff()
         }
 
 
-        if (n_layers > 0)
+        if (has_layers)
             update_sliders(m_canvas->get_current_print_zs(true));
 
         m_loaded = true;

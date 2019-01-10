@@ -144,6 +144,11 @@ public:
     void            delete_tab_from_list(Tab* tab);
     void            load_current_presets();
 
+#ifdef __APPLE__
+    // wxWidgets override to get an event on open files.
+    void            MacOpenFiles(const wxArrayString &fileNames) override;
+#endif /* __APPLE */
+
     Sidebar&            sidebar();
     ObjectManipulation* obj_manipul();
     ObjectSettings*     obj_settings();

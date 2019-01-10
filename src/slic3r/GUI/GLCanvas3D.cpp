@@ -2041,7 +2041,7 @@ void GLCanvas3D::Selection::render_sidebar_hints(const std::string& sidebar_fiel
     if (is_single_full_instance())
     {
         ::glTranslated(center(0), center(1), center(2));
-        if (boost::starts_with(sidebar_field, "scale"))
+        if (boost::starts_with(sidebar_field, "scale") || boost::starts_with(sidebar_field, "size"))
         {
             Transform3d orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
             ::glMultMatrixd(orient_matrix.data());
@@ -2983,7 +2983,7 @@ bool GLCanvas3D::Gizmos::is_running() const
 
 bool GLCanvas3D::Gizmos::handle_shortcut(int key, const Selection& selection)
 {
-    if (!m_enabled)
+    if (!m_enabled || selection.is_empty())
         return false;
 
     bool handled = false;
@@ -6915,22 +6915,31 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
         }
     } ctxt;
 
-    ctxt.shifted_copies = &print_object.copies();
-
-    // order layers by print_z
-    ctxt.layers.reserve(print_object.layers().size() + print_object.support_layers().size());
-    for (const Layer *layer : print_object.layers())
-        ctxt.layers.push_back(layer);
-    for (const Layer *layer : print_object.support_layers())
-        ctxt.layers.push_back(layer);
-    std::sort(ctxt.layers.begin(), ctxt.layers.end(), [](const Layer *l1, const Layer *l2) { return l1->print_z < l2->print_z; });
-
-    // Maximum size of an allocation block: 32MB / sizeof(float)
     ctxt.has_perimeters = print_object.is_step_done(posPerimeters);
     ctxt.has_infill = print_object.is_step_done(posInfill);
     ctxt.has_support = print_object.is_step_done(posSupportMaterial);
     ctxt.tool_colors = tool_colors.empty() ? nullptr : &tool_colors;
 
+    ctxt.shifted_copies = &print_object.copies();
+
+    // order layers by print_z
+    {
+        size_t nlayers = 0;
+        if (ctxt.has_perimeters || ctxt.has_infill)
+            nlayers = print_object.layers().size();
+        if (ctxt.has_support)
+            nlayers += print_object.support_layers().size();
+        ctxt.layers.reserve(nlayers);
+    }
+    if (ctxt.has_perimeters || ctxt.has_infill)
+        for (const Layer *layer : print_object.layers())
+            ctxt.layers.push_back(layer);
+    if (ctxt.has_support)
+        for (const Layer *layer : print_object.support_layers())
+            ctxt.layers.push_back(layer);
+    std::sort(ctxt.layers.begin(), ctxt.layers.end(), [](const Layer *l1, const Layer *l2) { return l1->print_z < l2->print_z; });
+
+    // Maximum size of an allocation block: 32MB / sizeof(float)
     BOOST_LOG_TRIVIAL(debug) << "Loading print object toolpaths in parallel - start";
 
     //FIXME Improve the heuristics for a grain size.

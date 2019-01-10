@@ -561,6 +561,12 @@ bool DynamicConfig::read_cli(int argc, char** argv, t_config_option_keys* extra)
             extra->push_back(token);
             continue;
         }
+#ifdef __APPLE__
+        if (boost::starts_with(token, "-psn_"))
+            // OSX launcher may add a "process serial number", for example "-psn_0_989382" to the command line.
+            // While it is supposed to be dropped since OSX 10.9, we will rather ignore it.
+            continue;
+#endif /* __APPLE__ */
         // Stop parsing tokens as options when -- is supplied.
         if (token == "--") {
             parse_options = false;

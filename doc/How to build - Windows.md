@@ -7,7 +7,7 @@ CMake installer can be downloaded from [the official website](https://cmake.org/
 
 Building with newer versions of MSVS (2015, 2017) may work too as reported by some of our users.
 
-_Note:_ Thanks to **@supermerill** for testing and inspiration on this guide.
+_Note:_ Thanks to [**@supermerill**](https://github.com/supermerill) for testing and inspiration on this guide.
 
 ### Dependencies
 

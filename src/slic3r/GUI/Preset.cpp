@@ -410,6 +410,7 @@ const std::vector<std::string>& Preset::sla_print_options()
             "support_head_penetration",
             "support_head_width",
             "support_pillar_diameter",
+            "support_pillar_connection_mode",
             "support_pillar_widening_factor",
             "support_base_diameter",
             "support_base_height",

@@ -330,7 +330,7 @@ public:
 	{
 		if (GetChildCount() == 0)
 			return;
-		for (size_t id = GetChildCount() - 1; id >= 0; --id)
+		for (int id = int(GetChildCount()) - 1; id >= 0; --id)
 		{
 			if (m_children.Item(id)->GetChildCount() > 0)
 				m_children[id]->RemoveAllChildren();

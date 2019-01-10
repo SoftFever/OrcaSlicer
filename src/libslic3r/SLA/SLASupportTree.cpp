@@ -1249,8 +1249,13 @@ bool SLASupportTree::generate(const PointSet &points,
             if(chkd >= bridge_distance) {
                 result.add_bridge(sj, ej, pillar.r);
 
+                auto pcm = cfg.pillar_connection_mode;
+
                 // double bridging: (crosses)
-                if(pillar_dist > 2*cfg.base_radius_mm) {
+                if( pcm == PillarConnectionMode::cross ||
+                   (pcm == PillarConnectionMode::dynamic &&
+                    pillar_dist > 2*cfg.base_radius_mm))
+                {
                     // If the columns are close together, no need to
                     // double bridge them
                     Vec3d bsj(ej(X), ej(Y), sj(Z));

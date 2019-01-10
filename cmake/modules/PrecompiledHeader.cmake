@@ -68,11 +68,37 @@ function(export_all_flags _filename)
   set(_compile_definitions "$<TARGET_PROPERTY:${_target},COMPILE_DEFINITIONS>")
   set(_compile_flags "$<TARGET_PROPERTY:${_target},COMPILE_FLAGS>")
   set(_compile_options "$<TARGET_PROPERTY:${_target},COMPILE_OPTIONS>")
+
+  #handle config-specific cxx flags
+  string(TOUPPER ${CMAKE_BUILD_TYPE} _config)
+  set(_build_cxx_flags ${CMAKE_CXX_FLAGS_${_config}})
+
+  #handle fpie option
+  get_target_property(_fpie ${_target} POSITION_INDEPENDENT_CODE)
+  if (_fpie AND CMAKE_POSITION_INDEPENDENT_CODE)
+    list(APPEND _compile_options ${CMAKE_CXX_COMPILE_OPTIONS_PIC})
+  endif()
+
+  #handle compiler standard (GCC only)
+  if(CMAKE_COMPILER_IS_GNUCXX)
+    get_target_property(_cxx_standard ${_target} CXX_STANDARD)
+    if ((NOT "${_cxx_standard}" STREQUAL NOTFOUND) AND (NOT "${_cxx_standard}" STREQUAL ""))
+      get_target_property(_cxx_extensions ${_target} CXX_EXTENSIONS)
+      get_property(_exists TARGET ${_target} PROPERTY CXX_EXTENSIONS SET)
+      if (NOT _exists OR ${_cxx_extensions})
+        list(APPEND _compile_options "-std=gnu++${_cxx_standard}")
+      else()
+        list(APPEND _compile_options "-std=c++${_cxx_standard}")
+      endif()
+    endif()
+  endif()
+
   set(_include_directories "$<$<BOOL:${_include_directories}>:-I$<JOIN:${_include_directories},\n-I>\n>")
   set(_compile_definitions "$<$<BOOL:${_compile_definitions}>:-D$<JOIN:${_compile_definitions},\n-D>\n>")
   set(_compile_flags "$<$<BOOL:${_compile_flags}>:$<JOIN:${_compile_flags},\n>\n>")
   set(_compile_options "$<$<BOOL:${_compile_options}>:$<JOIN:${_compile_options},\n>\n>")
-  file(GENERATE OUTPUT "${_filename}" CONTENT "${_compile_definitions}${_include_directories}${_compile_flags}${_compile_options}\n")
+  set(_cxx_flags "$<$<BOOL:${CMAKE_CXX_FLAGS}>:${CMAKE_CXX_FLAGS}\n>$<$<BOOL:${_build_cxx_flags}>:${_build_cxx_flags}\n>")
+  file(GENERATE OUTPUT "${_filename}" CONTENT "${_compile_definitions}${_include_directories}${_compile_flags}${_compile_options}${_cxx_flags}\n")
 endfunction()
 
 function(add_precompiled_header _target _input)

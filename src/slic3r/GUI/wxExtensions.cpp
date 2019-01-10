@@ -9,8 +9,11 @@
 #include <wx/numformatter.h>
 
 #include "BitmapCache.hpp"
+#include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
+
+using Slic3r::GUI::from_u8;
 
 wxDEFINE_EVENT(wxCUSTOMEVT_TICKSCHANGED, wxEvent);
 wxDEFINE_EVENT(wxCUSTOMEVT_LAST_VOLUME_IS_DELETED, wxCommandEvent);
@@ -37,7 +40,7 @@ wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const
 wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const wxString& description,
     std::function<void(wxCommandEvent& event)> cb, const std::string& icon, wxEvtHandler* event_handler)
 {
-    const wxBitmap& bmp = !icon.empty() ? wxBitmap(wxString::FromUTF8(Slic3r::var(icon)), wxBITMAP_TYPE_PNG) : wxNullBitmap;
+    const wxBitmap& bmp = !icon.empty() ? wxBitmap(from_u8(Slic3r::var(icon)), wxBITMAP_TYPE_PNG) : wxNullBitmap;
     return append_menu_item(menu, id, string, description, cb, bmp, event_handler);
 }
 
@@ -48,7 +51,7 @@ wxMenuItem* append_submenu(wxMenu* menu, wxMenu* sub_menu, int id, const wxStrin
 
     wxMenuItem* item = new wxMenuItem(menu, id, string, description);
     if (!icon.empty())
-        item->SetBitmap(wxBitmap(wxString::FromUTF8(Slic3r::var(icon)), wxBITMAP_TYPE_PNG));
+        item->SetBitmap(wxBitmap(from_u8(Slic3r::var(icon)), wxBITMAP_TYPE_PNG));
 
     item->SetSubMenu(sub_menu);
     menu->Append(item);
