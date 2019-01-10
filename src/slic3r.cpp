@@ -126,7 +126,7 @@ int main(int argc, char **argv)
         print_config.apply(c);
     }
 
-    if ((argc == 1 || cli_config.gui.value) && ! cli_config.no_gui.value && ! cli_config.help.value && cli_config.save.value.empty()) {
+    if ((input_files.empty() || cli_config.gui.value) && ! cli_config.no_gui.value && ! cli_config.help.value && cli_config.save.value.empty()) {
 #if 1
         GUI::GUI_App *gui = new GUI::GUI_App();
         GUI::GUI_App::SetInstance(gui);
