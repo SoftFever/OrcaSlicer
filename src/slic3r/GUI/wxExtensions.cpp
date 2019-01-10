@@ -12,6 +12,7 @@
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
+#include "libslic3r/GCode/PreviewData.hpp"
 
 using Slic3r::GUI::from_u8;
 
@@ -1665,6 +1666,10 @@ void PrusaDoubleSlider::render()
     const wxCoord lower_pos = get_position_from_value(m_lower_value);
     const wxCoord higher_pos = get_position_from_value(m_higher_value);
 
+    // draw colored band on the background of a scroll line 
+    // and only in a case of no-empty m_values
+    draw_colored_band(dc);
+
     // draw line
     draw_scroll_line(dc, lower_pos, higher_pos);
 
@@ -1834,6 +1839,56 @@ void PrusaDoubleSlider::draw_ticks(wxDC& dc)
                             dc.DrawLine(mid - 14, pos - 1, mid - 9, pos - 1);
         is_horizontal() ?   dc.DrawLine(pos, mid+14, pos, mid+9) :
                             dc.DrawLine(mid + 14, pos - 1, mid + 9, pos - 1);
+    }
+}
+
+void PrusaDoubleSlider::draw_colored_band(wxDC& dc)
+{
+    int height, width;
+    get_size(&width, &height);
+
+    wxRect main_band = m_rect_lower_thumb;
+    if (is_horizontal()) {
+        main_band.SetLeft(SLIDER_MARGIN);
+        main_band.SetRight(width - SLIDER_MARGIN + 1);
+    }
+    else {
+        const int cut = 2;
+        main_band.x += cut;
+        main_band.width -= 2*cut;
+        main_band.SetTop(SLIDER_MARGIN);
+        main_band.SetBottom(height - SLIDER_MARGIN + 1);
+    }
+
+    if (m_ticks.empty()) {
+        dc.SetPen(GetParent()->GetBackgroundColour());
+        dc.SetBrush(GetParent()->GetBackgroundColour());
+        dc.DrawRectangle(main_band);
+        return;
+    }
+
+    const std::vector<unsigned char>& clr_bytes = Slic3r::GCodePreviewData::Range::Default_Colors[0].as_bytes();
+    wxColour clr = wxColour(clr_bytes[0], clr_bytes[1], clr_bytes[2], clr_bytes[3]);
+    dc.SetPen(clr);
+    dc.SetBrush(clr);
+    dc.DrawRectangle(main_band);
+
+    int i = 1;
+    for (auto tick : m_ticks)
+    {
+        if (i == Slic3r::GCodePreviewData::Range::Colors_Count)
+            i = 0;
+        const wxCoord pos = get_position_from_value(tick);
+        is_horizontal() ?   main_band.SetLeft(SLIDER_MARGIN + pos) :
+                            main_band.SetBottom(pos-1);
+
+        const std::vector<unsigned char>& clr_b = Slic3r::GCodePreviewData::Range::Default_Colors[i].as_bytes();
+
+        clr = wxColour(clr_b[0], clr_b[1], clr_b[2], clr_b[3]);
+        dc.SetPen(clr);
+        dc.SetBrush(clr);
+        dc.DrawRectangle(main_band);
+        i++;
     }
 }
 
