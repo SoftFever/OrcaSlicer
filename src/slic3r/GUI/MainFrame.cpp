@@ -200,7 +200,7 @@ bool MainFrame::can_export_gcode() const
 bool MainFrame::can_change_view() const
 {
     int page_id = m_tabpanel->GetSelection();
-    return (page_id != wxNOT_FOUND) ? m_tabpanel->GetPageText((size_t)page_id).Lower() == "plater" : false;
+    return page_id != wxNOT_FOUND && dynamic_cast<const Slic3r::GUI::Plater*>(m_tabpanel->GetPage((size_t)page_id)) != nullptr;
 }
 
 bool MainFrame::can_select() const
