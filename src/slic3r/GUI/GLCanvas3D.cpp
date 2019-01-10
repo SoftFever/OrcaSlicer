@@ -2041,7 +2041,7 @@ void GLCanvas3D::Selection::render_sidebar_hints(const std::string& sidebar_fiel
     if (is_single_full_instance())
     {
         ::glTranslated(center(0), center(1), center(2));
-        if (boost::starts_with(sidebar_field, "scale"))
+        if (boost::starts_with(sidebar_field, "scale") || boost::starts_with(sidebar_field, "size"))
         {
             Transform3d orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
             ::glMultMatrixd(orient_matrix.data());
