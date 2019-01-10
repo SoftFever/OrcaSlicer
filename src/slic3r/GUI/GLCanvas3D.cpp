@@ -4675,6 +4675,11 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     m_camera.set_scene_box(scene_bounding_box(), *this);
     m_camera.set_target(m_camera.get_target(), *this);
 
+    // if no object is selected, deactivate active gizmo, if any
+    // otherwise it will be shown after cleaning the scene (while it is active)
+    if (m_selection.is_empty())
+        m_gizmos.reset_all_states();
+
     // and force this canvas to be redrawn.
     m_dirty = true;
 }
