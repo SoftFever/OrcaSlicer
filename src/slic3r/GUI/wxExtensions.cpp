@@ -2328,7 +2328,7 @@ PrusaModeSizer::PrusaModeSizer(wxWindow *parent) :
 
 }
 
-void PrusaModeSizer::SetMode(const Slic3r::ConfigOptionMode& mode)
+void PrusaModeSizer::SetMode(const int mode)
 {
     for (int m = 0; m < mode_btns.size(); m++)
         mode_btns[m]->SetState(m == mode);

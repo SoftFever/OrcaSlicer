@@ -911,7 +911,7 @@ public:
     PrusaModeSizer( wxWindow *parent);
     ~PrusaModeSizer() {}
 
-    void SetMode(const Slic3r::ConfigOptionMode& mode);
+    void SetMode(const /*ConfigOptionMode*/int mode);
 
 private:
     std::vector<PrusaModeButton*> mode_btns;

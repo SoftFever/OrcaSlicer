@@ -562,7 +562,7 @@ Sidebar::Sidebar(Plater *parent)
     p->sliced_info = new SlicedInfo(p->scrolled);
 
     // Sizer in the scrolled area
-    scrolled_sizer->Add(p->mode_sizer, 0, wxALIGN_CENTER_HORIZONTAL | wxBOTTOM, 5);
+    scrolled_sizer->Add(p->mode_sizer, 0, wxALIGN_RIGHT/*CENTER_HORIZONTAL*/ | wxBOTTOM | wxRIGHT, 5);
     scrolled_sizer->Add(p->sizer_presets, 0, wxEXPAND | wxLEFT, 2);
     scrolled_sizer->Add(p->sizer_params, 1, wxEXPAND);
     scrolled_sizer->Add(p->object_info, 0, wxEXPAND | wxTOP | wxLEFT, 20);
