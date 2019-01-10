@@ -2983,7 +2983,7 @@ bool GLCanvas3D::Gizmos::is_running() const
 
 bool GLCanvas3D::Gizmos::handle_shortcut(int key, const Selection& selection)
 {
-    if (!m_enabled)
+    if (!m_enabled || selection.is_empty())
         return false;
 
     bool handled = false;
