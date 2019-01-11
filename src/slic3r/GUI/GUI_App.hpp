@@ -121,12 +121,10 @@ public:
 //                                 wxMessageDialog* message_dialog,
                                 const std::string& err);
 //     void            notify(/*message*/);
+
+    void            persist_window_geometry(wxTopLevelWindow *window);
     void            update_ui_from_settings();
     void            CallAfter(std::function<void()> cb);
-
-    void            window_pos_save(wxTopLevelWindow* window, const std::string &name);
-    void            window_pos_restore(wxTopLevelWindow* window, const std::string &name);
-    void            window_pos_sanitize(wxTopLevelWindow* window);
 
     bool            select_language(wxArrayString & names, wxArrayLong & identifiers);
     bool            load_language();
@@ -172,6 +170,10 @@ public:
 
     PrintHostJobQueue& printhost_job_queue() { return *m_printhost_job_queue.get(); }
 
+private:
+    void            window_pos_save(wxTopLevelWindow* window, const std::string &name);
+    void            window_pos_restore(wxTopLevelWindow* window, const std::string &name);
+    void            window_pos_sanitize(wxTopLevelWindow* window);
 };
 DECLARE_APP(GUI_App)
 

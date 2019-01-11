@@ -348,6 +348,7 @@ bool get_current_screen_size(wxWindow *window, unsigned &width, unsigned &height
 	return true;
 }
 
+// XXX: remove these
 void save_window_size(wxTopLevelWindow *window, const std::string &name)
 {
 	const wxSize size = window->GetSize();
