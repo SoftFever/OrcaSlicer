@@ -17,7 +17,7 @@ where `N` is the number of CPU cores available.
 
 Additional CMake flags may be applicable as explained below.
 
-### Dependenciy resolution
+### Dependency resolution
 
 By default Slic3r looks for dependencies the default way CMake looks for them, ie. in default system locations.
 On Linux this will typically make Slic3r depend on dynamically loaded libraries from the system, however, Slic3r can be told
