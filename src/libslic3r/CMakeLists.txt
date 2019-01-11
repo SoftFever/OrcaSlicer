@@ -171,7 +171,7 @@ add_library(libslic3r STATIC
     SLA/SLASpatIndex.hpp
 )
 
-if (NOT SLIC3R_SYNTAXONLY)
+if (SLIC3R_PCH AND NOT SLIC3R_SYNTAXONLY)
     add_precompiled_header(libslic3r pchheader.hpp FORCEINCLUDE)
 endif ()
 
