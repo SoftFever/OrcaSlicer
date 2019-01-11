@@ -2092,6 +2092,8 @@ void PrusaDoubleSlider::OnMotion(wxMouseEvent& event)
 
 void PrusaDoubleSlider::OnLeftUp(wxMouseEvent& event)
 {
+    if (!HasCapture())
+        return;
     this->ReleaseMouse();
     m_is_left_down = false;
     Refresh();
@@ -2230,6 +2232,8 @@ void PrusaDoubleSlider::OnRightDown(wxMouseEvent& event)
 
 void PrusaDoubleSlider::OnRightUp(wxMouseEvent& event)
 {
+    if (!HasCapture())
+        return;
     this->ReleaseMouse();
     m_is_right_down = m_is_one_layer = false;
 
