@@ -166,7 +166,7 @@ public:
         auto *opt = cfg.option<ConfigOptionEnum<PrinterTechnology>>("printer_technology");
         // The following assert may trigger when importing some legacy profile, 
         // but it is safer to keep it here to capture the cases where the "printer_technology" key is queried, where it should not.
-        assert(opt != nullptr);
+//        assert(opt != nullptr);
         return (opt == nullptr) ? ptFFF : opt->value;
     }
     PrinterTechnology   printer_technology() const { return Preset::printer_technology(this->config); }

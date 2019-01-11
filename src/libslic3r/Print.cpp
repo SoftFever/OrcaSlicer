@@ -1282,16 +1282,20 @@ std::string Print::validate() const
         }
     }
     
-    {
-        // find the smallest nozzle diameter
-        std::vector<unsigned int> extruders = this->extruders();
-        if (extruders.empty())
-            return L("The supplied settings will cause an empty print.");
-        
-        std::vector<double> nozzle_diameters;
-        for (unsigned int extruder_id : extruders)
-            nozzle_diameters.push_back(m_config.nozzle_diameter.get_at(extruder_id));
-        double min_nozzle_diameter = *std::min_element(nozzle_diameters.begin(), nozzle_diameters.end());
+	{
+		// find the smallest nozzle diameter
+		std::vector<unsigned int> extruders = this->extruders();
+		if (extruders.empty())
+			return L("The supplied settings will cause an empty print.");
+
+		// Find the smallest used nozzle diameter and the number of unique nozzle diameters.
+		double min_nozzle_diameter = DBL_MAX;
+		double max_nozzle_diameter = 0;
+		for (unsigned int extruder_id : extruders) {
+			double dmr = m_config.nozzle_diameter.get_at(extruder_id);
+			min_nozzle_diameter = std::min(min_nozzle_diameter, dmr);
+			max_nozzle_diameter = std::max(max_nozzle_diameter, dmr);
+		}
 
 #if 0
         // We currently allow one to assign extruders with a higher index than the number
@@ -1304,7 +1308,7 @@ std::string Print::validate() const
 
         for (PrintObject *object : m_objects) {
             if (object->config().raft_layers > 0 || object->config().support_material.value) {
-                if ((object->config().support_material_extruder == 0 || object->config().support_material_interface_extruder == 0) && nozzle_diameters.size() > 1) {
+				if ((object->config().support_material_extruder == 0 || object->config().support_material_interface_extruder == 0) && max_nozzle_diameter - min_nozzle_diameter > EPSILON) {
                     // The object has some form of support and either support_material_extruder or support_material_interface_extruder
                     // will be printed with the current tool without a forced tool change. Play safe, assert that all object nozzles
                     // are of the same diameter.
