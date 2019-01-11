@@ -13,6 +13,7 @@
 #include "PrintExport.hpp"
 
 #include <algorithm>
+#include <limits>
 #include <unordered_set>
 #include <boost/filesystem/path.hpp>
 #include <boost/log/trivial.hpp>
@@ -1289,7 +1290,7 @@ std::string Print::validate() const
 			return L("The supplied settings will cause an empty print.");
 
 		// Find the smallest used nozzle diameter and the number of unique nozzle diameters.
-		double min_nozzle_diameter = DBL_MAX;
+		double min_nozzle_diameter = std::numeric_limits<double>::max();
 		double max_nozzle_diameter = 0;
 		for (unsigned int extruder_id : extruders) {
 			double dmr = m_config.nozzle_diameter.get_at(extruder_id);
