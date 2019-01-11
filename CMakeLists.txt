@@ -27,6 +27,7 @@ option(SLIC3R_GUI    			"Compile Slic3r with GUI components (OpenGL, wxWidgets)"
 option(SLIC3R_FHS               "Assume Slic3r is to be installed in a FHS directory structure" 0)
 option(SLIC3R_WX_STABLE         "Build against wxWidgets stable (3.0) as oppsed to dev (3.1) on Linux" 0)
 option(SLIC3R_PROFILE 			"Compile Slic3r with an invasive Shiny profiler" 0)
+option(SLIC3R_PCH               "Use precompiled headers" 1)
 option(SLIC3R_MSVC_COMPILE_PARALLEL "Compile on Visual Studio in parallel" 1)
 option(SLIC3R_MSVC_PDB          "Generate PDB files on MSVC in Release mode" 1)
 option(SLIC3R_PERL_XS           "Compile XS Perl module and enable Perl unit and integration tests" 0)
@@ -37,6 +38,15 @@ option(SLIC3R_SYNTAXONLY        "Only perform source code correctness checking, 
 option(SLIC3R_BUILD_SANDBOXES   "Build development sandboxes" OFF)
 option(SLIC3R_BUILD_TESTS       "Build unit tests" OFF)
 
+# Print out the SLIC3R_* cache options
+get_cmake_property(_cache_vars CACHE_VARIABLES)
+list (SORT _cache_vars)
+foreach (_cache_var ${_cache_vars})
+    if("${_cache_var}" MATCHES "^SLIC3R_")
+        message(STATUS "${_cache_var}: ${${_cache_var}}")
+    endif ()
+endforeach()
+
 if (MSVC)
     if (SLIC3R_MSVC_COMPILE_PARALLEL)
 	   add_compile_options(/MP)
@@ -45,7 +55,6 @@ if (MSVC)
     # error C3859: virtual memory range for PCH exceeded; please recompile with a command line option of '-Zm90' or greater
     add_compile_options(-bigobj -Zm316)
 endif ()
-
 
 # Display and check CMAKE_PREFIX_PATH
 message(STATUS "SLIC3R_STATIC: ${SLIC3R_STATIC}")
@@ -64,8 +73,6 @@ foreach (DIR ${PREFIX_PATH_CHECK})
         message(WARNING "CMAKE_PREFIX_PATH element doesn't exist: ${DIR}")
     endif ()
 endforeach ()
-
-message(STATUS "SLIC3R_FHS: ${SLIC3R_FHS}")
 
 # Add our own cmake module path.
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules/)
