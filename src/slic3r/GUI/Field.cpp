@@ -248,6 +248,9 @@ void TextCtrl::BUILD() {
 
     const long style = m_opt.multiline ? wxTE_MULTILINE : wxTE_PROCESS_ENTER/*0*/;
 	auto temp = new wxTextCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size, style);
+#ifdef __WXOSX__
+    temp->OSXDisableAllSmartSubstitutions();
+#endif // __WXOSX__
 
 	temp->SetToolTip(get_tooltip_text(text_value));
 
