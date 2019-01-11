@@ -172,8 +172,8 @@ void Tab::create_preset_tab()
     m_mode_sizer = new PrusaModeSizer(panel);
 
 	m_hsizer = new wxBoxSizer(wxHORIZONTAL);
-	sizer->Add(m_hsizer, 0, wxBOTTOM, 3);
-	m_hsizer->Add(m_presets_choice, 1, wxLEFT | wxRIGHT | wxTOP | wxALIGN_CENTER_VERTICAL, 3);
+	sizer->Add(m_hsizer, 0, wxEXPAND | wxBOTTOM, 3);
+	m_hsizer->Add(m_presets_choice, 0, wxLEFT | wxRIGHT | wxTOP | wxALIGN_CENTER_VERTICAL, 3);
 	m_hsizer->AddSpacer(4);
 	m_hsizer->Add(m_btn_save_preset, 0, wxALIGN_CENTER_VERTICAL);
 	m_hsizer->AddSpacer(4);
@@ -185,8 +185,12 @@ void Tab::create_preset_tab()
 	m_hsizer->Add(m_undo_btn, 0, wxALIGN_CENTER_VERTICAL);
 	m_hsizer->AddSpacer(32);
 	m_hsizer->Add(m_question_btn, 0, wxALIGN_CENTER_VERTICAL);
-    m_hsizer->AddStretchSpacer(32);
-    m_hsizer->Add(m_mode_sizer, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
+    // m_hsizer->AddStretchSpacer(32);
+    // StretchSpacer has a strange behavior under OSX, so 
+    // There is used just additional sizer for m_mode_sizer with right alignment
+    auto mode_sizer = new wxBoxSizer(wxVERTICAL);
+    mode_sizer->Add(m_mode_sizer, 1, wxALIGN_RIGHT);
+    m_hsizer->Add(mode_sizer, 1, wxALIGN_CENTER_VERTICAL | wxRIGHT, wxOSX ? 15 : 5);
 
 	//Horizontal sizer to hold the tree and the selected page.
 	m_hsizer = new wxBoxSizer(wxHORIZONTAL);
@@ -681,18 +685,16 @@ void Tab::update_visibility()
         page->update_visibility(mode);
     update_page_tree_visibility();
 
-    m_hsizer->Layout();
-    Refresh();
+    // update mode for ModeSizer
+    m_mode_sizer->SetMode(mode);
 
+    Layout();
 	Thaw();
 
     // to update tree items color
     wxTheApp->CallAfter([this]() {
         update_changed_tree_ui();
     });
-
-    // update mode for ModeSizer
-    m_mode_sizer->SetMode(mode);
 }
 
 Field* Tab::get_field(const t_config_option_key& opt_key, int opt_index/* = -1*/) const
