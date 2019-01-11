@@ -220,6 +220,10 @@ bool MainFrame::can_delete_all() const
 
 void MainFrame::init_menubar()
 {
+#ifdef __APPLE__
+    wxMenuBar::SetAutoWindowMenu(false);
+#endif
+
     // File menu
     wxMenu* fileMenu = new wxMenu;
     {
