@@ -1477,6 +1477,7 @@ namespace Slic3r {
 
             stl_get_size(&stl);
             volume->mesh.repair();
+            volume->center_geometry();
             volume->calculate_convex_hull();
 
             // apply volume's name and config data
