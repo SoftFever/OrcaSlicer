@@ -55,7 +55,8 @@ public:
     TriangleMeshPtrs split() const;
     void merge(const TriangleMesh &mesh);
     ExPolygons horizontal_projection() const;
-    const float* first_vertex() const;
+    const float* first_vertex() const { return this->stl.facet_start ? &this->stl.facet_start->vertex[0](0) : nullptr; }
+    // 2D convex hull of a 3D mesh projected into the Z=0 plane.
     Polygon convex_hull();
     BoundingBoxf3 bounding_box() const;
     // Returns the bbox of this TriangleMesh transformed by the given transformation
@@ -74,7 +75,7 @@ public:
     // Count disconnected triangle patches.
     size_t number_of_patches() const;
 
-    mutable stl_file stl;
+    stl_file stl;
     bool repaired;
     
 private:
