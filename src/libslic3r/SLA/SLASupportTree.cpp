@@ -223,6 +223,9 @@ struct Head {
     // If there is a pillar connecting to this head, then the id will be set.
     long pillar_id = -1;
 
+    inline void invalidate() { id = -1; }
+    inline bool is_valid() const { return id >= 0; }
+
     Head(double r_big_mm,
          double r_small_mm,
          double length_mm,
@@ -739,8 +742,10 @@ public:
 
         for(auto& head : heads()) {
             if(m_ctl.stopcondition()) break;
-            auto&& m = mesh(head.mesh);
-            meshcache.merge(m);
+            if(head.is_valid()) {
+                auto&& m = mesh(head.mesh);
+                meshcache.merge(m);
+            }
         }
 
         for(auto& stick : pillars()) {
@@ -1533,8 +1538,19 @@ bool SLASupportTree::generate(const PointSet &points,
 
             // In this case there is no room for the base pinhead.
             if(gh < head.fullwidth()) {
-                base_width = gh - 2 * cfg.head_front_radius_mm -
-                        2*cfg.head_back_radius_mm + cfg.head_penetration_mm;
+                double min_l =
+                        2 * cfg.head_front_radius_mm +
+                        2 * cfg.head_back_radius_mm - cfg.head_penetration_mm;
+
+                base_width = gh - min_l;
+            }
+
+            if(base_width < 0) {
+                // There is really no space for even a reduced size head. We
+                // have to replace that with a small half sphere that touches
+                // the model surface. (TODO)
+                head.invalidate();
+                continue;
             }
 
             head.transform();
@@ -1555,6 +1571,7 @@ bool SLASupportTree::generate(const PointSet &points,
                 // This should not happen it is against all assumptions
                 BOOST_LOG_TRIVIAL(warning)
                         << "Ignoring invalid supports connecting to model body";
+                head.invalidate();
                 continue;
             }
 
