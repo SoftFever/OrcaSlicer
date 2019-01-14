@@ -421,7 +421,7 @@ void MainFrame::init_menubar()
         append_menu_item(helpMenu, wxID_ANY, _(L("About Slic3r")), _(L("Show about dialog")),
             [this](wxCommandEvent&) { Slic3r::GUI::about(); });
         helpMenu->AppendSeparator();
-        append_menu_item(helpMenu, wxID_ANY, _(L("Keyboard Shortcuts")) + "\t?", _(L("Show the list of the keyboard shortcuts")),
+        append_menu_item(helpMenu, wxID_ANY, _(L("Keyboard Shortcuts")) + "\t\xA0?", _(L("Show the list of the keyboard shortcuts")),
             [this](wxCommandEvent&) { wxGetApp().keyboard_shortcuts(); });
     }
 
