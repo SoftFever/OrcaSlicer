@@ -49,12 +49,10 @@
 #endif // _technologies_h_
 
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 //====================
-// 1.42.0.alpha3 techs
+// 1.42.0.alpha4 techs
 //====================
-#define ENABLE_1_42_0_ALPHA3 1
+#define ENABLE_1_42_0_ALPHA4 1
 
 // Changed algorithm to extract euler angles from rotation matrix
-#define ENABLE_NEW_EULER_ANGLES (1 && ENABLE_1_42_0_ALPHA3)
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#define ENABLE_NEW_EULER_ANGLES (1 && ENABLE_1_42_0_ALPHA4)
