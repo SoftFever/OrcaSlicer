@@ -539,69 +539,12 @@ struct Pad {
     bool empty() const { return tmesh.facets_count() == 0; }
 };
 
-EigenMesh3D to_eigenmesh(const Contour3D& cntr) {
-    EigenMesh3D emesh;
-
-    auto& V = emesh.V;
-    auto& F = emesh.F;
-
-    V.resize(Eigen::Index(cntr.points.size()), 3);
-    F.resize(Eigen::Index(cntr.indices.size()), 3);
-
-    for (int i = 0; i < V.rows(); ++i) {
-        V.row(i) = cntr.points[size_t(i)];
-        F.row(i) = cntr.indices[size_t(i)];
-    }
-
-    return emesh;
-}
-
 // The minimum distance for two support points to remain valid.
 static const double /*constexpr*/ D_SP   = 0.1;
 
 enum { // For indexing Eigen vectors as v(X), v(Y), v(Z) instead of numbers
   X, Y, Z
 };
-
-EigenMesh3D to_eigenmesh(const TriangleMesh& tmesh) {
-
-    const stl_file& stl = tmesh.stl;
-
-    EigenMesh3D outmesh;
-
-    auto&& bb = tmesh.bounding_box();
-    outmesh.ground_level += bb.min(Z);
-
-    auto& V = outmesh.V;
-    auto& F = outmesh.F;
-
-    V.resize(3*stl.stats.number_of_facets, 3);
-    F.resize(stl.stats.number_of_facets, 3);
-    for (unsigned int i = 0; i < stl.stats.number_of_facets; ++i) {
-        const stl_facet* facet = stl.facet_start+i;
-        V(3*i+0, 0) = double(facet->vertex[0](0));
-        V(3*i+0, 1) = double(facet->vertex[0](1));
-        V(3*i+0, 2) = double(facet->vertex[0](2));
-
-        V(3*i+1, 0) = double(facet->vertex[1](0));
-        V(3*i+1, 1) = double(facet->vertex[1](1));
-        V(3*i+1, 2) = double(facet->vertex[1](2));
-
-        V(3*i+2, 0) = double(facet->vertex[2](0));
-        V(3*i+2, 1) = double(facet->vertex[2](1));
-        V(3*i+2, 2) = double(facet->vertex[2](2));
-
-        F(i, 0) = int(3*i+0);
-        F(i, 1) = int(3*i+1);
-        F(i, 2) = int(3*i+2);
-    }
-
-    return outmesh;
-}
-
-EigenMesh3D to_eigenmesh(const ModelObject& modelobj) {
-    return to_eigenmesh(modelobj.raw_mesh());
-}
 
 PointSet to_point_set(const std::vector<Vec3d> &v)
 {
@@ -617,6 +560,21 @@ Vec3d model_coord(const ModelInstance& object, const Vec3f& mesh_coord) {
 double ray_mesh_intersect(const Vec3d& s,
                           const Vec3d& dir,
                           const EigenMesh3D& m);
+
+double pinhead_mesh_intersect(const Vec3d& jp,
+                              const Vec3d& dir,
+                              double r1,
+                              double r2,
+                              const EigenMesh3D& m);
+
+// Wrapper only
+inline double pinhead_mesh_intersect(const Head& head, const EigenMesh3D& m) {
+    return pinhead_mesh_intersect(head.junction_point(),
+                                  head.dir,
+                                  head.r_pin_mm,
+                                  head.r_back_mm,
+                                  m);
+}
 
 PointSet normals(const PointSet& points, const EigenMesh3D& mesh,
                  double eps = 0.05,  // min distance from edges
@@ -1789,7 +1747,7 @@ SLASupportTree::SLASupportTree(const PointSet &points,
                                const Controller &ctl):
     m_impl(new Impl(ctl))
 {
-    m_impl->ground_level = emesh.ground_level - cfg.object_elevation_mm;
+    m_impl->ground_level = emesh.ground_level() - cfg.object_elevation_mm;
     generate(points, emesh, cfg, ctl);
 }
 

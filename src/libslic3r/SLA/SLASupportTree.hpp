@@ -104,18 +104,40 @@ struct Controller {
 
 /// An index-triangle structure for libIGL functions. Also serves as an
 /// alternative (raw) input format for the SLASupportTree
-struct EigenMesh3D {
-    Eigen::MatrixXd V;
-    Eigen::MatrixXi F;
-    double ground_level = 0;
+class EigenMesh3D {
+    class AABBImpl;
+
+    Eigen::MatrixXd m_V;
+    Eigen::MatrixXi m_F;
+    double m_ground_level = 0;
+
+    std::unique_ptr<AABBImpl> m_aabb;
+public:
+
+    EigenMesh3D();
+    EigenMesh3D(const TriangleMesh&);
+
+    ~EigenMesh3D();
+
+    EigenMesh3D(const EigenMesh3D& other);
+//    EigenMesh3D(EigenMesh3D&&) = default;
+    EigenMesh3D& operator=(const EigenMesh3D&);
+//    EigenMesh3D& operator=(EigenMesh3D&&) = default;
+
+    inline double ground_level() const { return m_ground_level; }
+
+    inline const Eigen::MatrixXd& V() const { return m_V; }
+    inline const Eigen::MatrixXi& F() const { return m_F; }
+
+    double query_ray_hit(const Vec3d &s, const Vec3d &dir) const;
 };
 
 using PointSet = Eigen::MatrixXd;
 
-EigenMesh3D to_eigenmesh(const TriangleMesh& m);
+//EigenMesh3D to_eigenmesh(const TriangleMesh& m);
 
 // needed for find best rotation
-EigenMesh3D to_eigenmesh(const ModelObject& model);
+//EigenMesh3D to_eigenmesh(const ModelObject& model);
 
 // Simple conversion of 'vector of points' to an Eigen matrix
 PointSet    to_point_set(const std::vector<Vec3d>&);

@@ -508,7 +508,7 @@ void SLAPrint::process()
     auto support_points = [this, ilh](SLAPrintObject& po) {
         const ModelObject& mo = *po.m_model_object;
         po.m_supportdata.reset(new SLAPrintObject::SupportData());
-        po.m_supportdata->emesh = sla::to_eigenmesh(po.transformed_mesh());
+        po.m_supportdata->emesh = EigenMesh3D(po.transformed_mesh());
 
         BOOST_LOG_TRIVIAL(debug) << "Support point count "
                                  << mo.sla_support_points.size();

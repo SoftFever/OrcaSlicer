@@ -28,7 +28,7 @@ std::array<double, 3> find_best_rotation(const ModelObject& modelobj,
 
     // We will use only one instance of this converted mesh to examine different
     // rotations
-    EigenMesh3D emesh = to_eigenmesh(modelobj);
+    EigenMesh3D emesh(modelobj.raw_mesh());
 
     // For current iteration number
     unsigned status = 0;
@@ -68,12 +68,12 @@ std::array<double, 3> find_best_rotation(const ModelObject& modelobj,
         // area. The current function is only an example of how to optimize.
 
         // Later we can add more criteria like the number of overhangs, etc...
-        for(int i = 0; i < m.F.rows(); i++) {
-            auto idx = m.F.row(i);
+        for(int i = 0; i < m.F().rows(); i++) {
+            auto idx = m.F().row(i);
 
-            Vec3d p1 = m.V.row(idx(0));
-            Vec3d p2 = m.V.row(idx(1));
-            Vec3d p3 = m.V.row(idx(2));
+            Vec3d p1 = m.V().row(idx(0));
+            Vec3d p2 = m.V().row(idx(1));
+            Vec3d p3 = m.V().row(idx(2));
 
             Eigen::Vector3d U = p2 - p1;
             Eigen::Vector3d V = p3 - p1;
