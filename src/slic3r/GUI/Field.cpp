@@ -436,7 +436,7 @@ void SpinCtrl::BUILD() {
         propagate_value();
 	}), temp->GetId());
 
-    temp->Bind(wxEVT_SPINCTRL, ([this](wxCommandEvent e) {  on_change_field();  }), temp->GetId()); 
+    temp->Bind(wxEVT_SPINCTRL, ([this](wxCommandEvent e) {  propagate_value();  }), temp->GetId()); 
     
     temp->Bind(wxEVT_TEXT_ENTER, ([this](wxCommandEvent e)
     {
@@ -472,7 +472,7 @@ void SpinCtrl::propagate_value()
 {
     if (tmp_value < 0)
         on_kill_focus();
-    else
+    else if (boost::any_cast<int>(m_value) != tmp_value)
         on_change_field();
 }
 
