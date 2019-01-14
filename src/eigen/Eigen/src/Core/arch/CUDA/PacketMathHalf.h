@@ -99,7 +99,8 @@ template<> __device__ EIGEN_STRONG_INLINE Eigen::half pfirst<half2>(const half2&
 
 template<> __device__ EIGEN_STRONG_INLINE half2 pabs<half2>(const half2& a) {
   half2 result;
-  result.x = a.x & 0x7FFF7FFF;
+  unsigned temp = *(reinterpret_cast<const unsigned*>(&(a)));
+  *(reinterpret_cast<unsigned*>(&(result))) = temp & 0x7FFF7FFF;
   return result;
 }
 

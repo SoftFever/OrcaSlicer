@@ -43,6 +43,7 @@ template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
     enum {
       RowsAtCompileTime = internal::traits<Derived>::RowsAtCompileTime,
       ColsAtCompileTime = internal::traits<Derived>::ColsAtCompileTime,
+      InnerStrideAtCompileTime = internal::traits<Derived>::InnerStrideAtCompileTime,
       SizeAtCompileTime = Base::SizeAtCompileTime
     };
 
@@ -187,8 +188,11 @@ template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
     void checkSanity(typename internal::enable_if<(internal::traits<T>::Alignment>0),void*>::type = 0) const
     {
 #if EIGEN_MAX_ALIGN_BYTES>0
+      // innerStride() is not set yet when this function is called, so we optimistically assume the lowest plausible value:
+      const Index minInnerStride = InnerStrideAtCompileTime == Dynamic ? 1 : Index(InnerStrideAtCompileTime);
+      EIGEN_ONLY_USED_FOR_DEBUG(minInnerStride);
       eigen_assert((   ((internal::UIntPtr(m_data) % internal::traits<Derived>::Alignment) == 0)
-                    || (cols() * rows() * innerStride() * sizeof(Scalar)) < internal::traits<Derived>::Alignment ) && "data is not aligned");
+                    || (cols() * rows() * minInnerStride * sizeof(Scalar)) < internal::traits<Derived>::Alignment ) && "data is not aligned");
 #endif
     }
 

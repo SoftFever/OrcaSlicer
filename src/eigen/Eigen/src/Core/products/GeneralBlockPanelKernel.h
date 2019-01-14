@@ -1197,10 +1197,16 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
             EIGEN_ASM_COMMENT("begin gebp micro kernel 2pX4");
             RhsPacket B_0, B1, B2, B3, T0;
 
-   #define EIGEN_GEBGP_ONESTEP(K) \
+          // NOTE: the begin/end asm comments below work around bug 935!
+          // but they are not enough for gcc>=6 without FMA (bug 1637)
+          #if EIGEN_GNUC_AT_LEAST(6,0) && defined(EIGEN_VECTORIZE_SSE)
+            #define EIGEN_GEBP_2PX4_SPILLING_WORKAROUND __asm__  ("" : [a0] "+x,m" (A0),[a1] "+x,m" (A1));
+          #else
+            #define EIGEN_GEBP_2PX4_SPILLING_WORKAROUND
+          #endif
+          #define EIGEN_GEBGP_ONESTEP(K) \
             do {                                                                \
               EIGEN_ASM_COMMENT("begin step of gebp micro kernel 2pX4");        \
-              EIGEN_ASM_COMMENT("Note: these asm comments work around bug 935!"); \
               traits.loadLhs(&blA[(0+2*K)*LhsProgress], A0);                    \
               traits.loadLhs(&blA[(1+2*K)*LhsProgress], A1);                    \
               traits.broadcastRhs(&blB[(0+4*K)*RhsProgress], B_0, B1, B2, B3);  \
@@ -1212,6 +1218,7 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
               traits.madd(A1, B2,  C6, B2);                                     \
               traits.madd(A0, B3,  C3, T0);                                     \
               traits.madd(A1, B3,  C7, B3);                                     \
+              EIGEN_GEBP_2PX4_SPILLING_WORKAROUND                               \
               EIGEN_ASM_COMMENT("end step of gebp micro kernel 2pX4");          \
             } while(false)
             
@@ -1526,10 +1533,10 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
           // The following piece of code wont work for 512 bit registers
           // Moreover, if LhsProgress==8 it assumes that there is a half packet of the same size
           // as nr (which is currently 4) for the return type.
-          typedef typename unpacket_traits<SResPacket>::half SResPacketHalf;
+          const int SResPacketHalfSize = unpacket_traits<typename unpacket_traits<SResPacket>::half>::size;
           if ((SwappedTraits::LhsProgress % 4) == 0 &&
               (SwappedTraits::LhsProgress <= 8) &&
-              (SwappedTraits::LhsProgress!=8 || unpacket_traits<SResPacketHalf>::size==nr))
+              (SwappedTraits::LhsProgress!=8 || SResPacketHalfSize==nr))
           {
             SAccPacket C0, C1, C2, C3;
             straits.initAcc(C0);

@@ -17,8 +17,8 @@ namespace Eigen {
 
 namespace internal 
 {
-  template <typename Scalar>
-  inline bool GetMarketLine (std::stringstream& line, Index& M, Index& N, Index& i, Index& j, Scalar& value)
+  template <typename Scalar,typename IndexType>
+  inline bool GetMarketLine (std::stringstream& line, IndexType& M, IndexType& N, IndexType& i, IndexType& j, Scalar& value)
   {
     line >> i >> j >> value;
     i--;
@@ -30,8 +30,8 @@ namespace internal
     else
       return false;
   }
-  template <typename Scalar>
-  inline bool GetMarketLine (std::stringstream& line, Index& M, Index& N, Index& i, Index& j, std::complex<Scalar>& value)
+  template <typename Scalar,typename IndexType>
+  inline bool GetMarketLine (std::stringstream& line, IndexType& M, IndexType& N, IndexType& i, IndexType& j, std::complex<Scalar>& value)
   {
     Scalar valR, valI;
     line >> i >> j >> valR >> valI;
@@ -134,7 +134,7 @@ template<typename SparseMatrixType>
 bool loadMarket(SparseMatrixType& mat, const std::string& filename)
 {
   typedef typename SparseMatrixType::Scalar Scalar;
-  typedef typename SparseMatrixType::Index Index;
+  typedef typename SparseMatrixType::StorageIndex StorageIndex;
   std::ifstream input(filename.c_str(),std::ios::in);
   if(!input)
     return false;
@@ -144,11 +144,11 @@ bool loadMarket(SparseMatrixType& mat, const std::string& filename)
   
   bool readsizes = false;
 
-  typedef Triplet<Scalar,Index> T;
+  typedef Triplet<Scalar,StorageIndex> T;
   std::vector<T> elements;
   
-  Index M(-1), N(-1), NNZ(-1);
-  Index count = 0;
+  StorageIndex M(-1), N(-1), NNZ(-1);
+  StorageIndex count = 0;
   while(input.getline(buffer, maxBuffersize))
   {
     // skip comments   
@@ -171,7 +171,7 @@ bool loadMarket(SparseMatrixType& mat, const std::string& filename)
     }
     else
     { 
-      Index i(-1), j(-1);
+      StorageIndex i(-1), j(-1);
       Scalar value; 
       if( internal::GetMarketLine(line, M, N, i, j, value) ) 
       {

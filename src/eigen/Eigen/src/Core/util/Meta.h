@@ -109,6 +109,28 @@ template<> struct is_integral<unsigned int>    { enum { value = true }; };
 template<> struct is_integral<signed long>     { enum { value = true }; };
 template<> struct is_integral<unsigned long>   { enum { value = true }; };
 
+#if EIGEN_HAS_CXX11
+using std::make_unsigned;
+#else
+// TODO: Possibly improve this implementation of make_unsigned.
+// It is currently used only by
+// template<typename Scalar> struct random_default_impl<Scalar, false, true>.
+template<typename> struct make_unsigned;
+template<> struct make_unsigned<char>             { typedef unsigned char type; };
+template<> struct make_unsigned<signed char>      { typedef unsigned char type; };
+template<> struct make_unsigned<unsigned char>    { typedef unsigned char type; };
+template<> struct make_unsigned<signed short>     { typedef unsigned short type; };
+template<> struct make_unsigned<unsigned short>   { typedef unsigned short type; };
+template<> struct make_unsigned<signed int>       { typedef unsigned int type; };
+template<> struct make_unsigned<unsigned int>     { typedef unsigned int type; };
+template<> struct make_unsigned<signed long>      { typedef unsigned long type; };
+template<> struct make_unsigned<unsigned long>    { typedef unsigned long type; };
+#if EIGEN_COMP_MSVC
+template<> struct make_unsigned<signed __int64>   { typedef unsigned __int64 type; };
+template<> struct make_unsigned<unsigned __int64> { typedef unsigned __int64 type; };
+#endif
+#endif
+
 template <typename T> struct add_const { typedef const T type; };
 template <typename T> struct add_const<T&> { typedef T& type; };
 

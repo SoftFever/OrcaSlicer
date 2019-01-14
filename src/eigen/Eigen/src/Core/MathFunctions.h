@@ -616,21 +616,28 @@ template<typename Scalar>
 struct random_default_impl<Scalar, false, true>
 {
   static inline Scalar run(const Scalar& x, const Scalar& y)
-  { 
-    typedef typename conditional<NumTraits<Scalar>::IsSigned,std::ptrdiff_t,std::size_t>::type ScalarX;
-    if(y<x)
+  {
+    if (y <= x)
       return x;
-    // the following difference might overflow on a 32 bits system,
-    // but since y>=x the result converted to an unsigned long is still correct.
-    std::size_t range = ScalarX(y)-ScalarX(x);
-    std::size_t offset = 0;
-    // rejection sampling
-    std::size_t divisor = 1;
-    std::size_t multiplier = 1;
-    if(range<RAND_MAX) divisor = (std::size_t(RAND_MAX)+1)/(range+1);
-    else               multiplier = 1 + range/(std::size_t(RAND_MAX)+1);
+    // ScalarU is the unsigned counterpart of Scalar, possibly Scalar itself.
+    typedef typename make_unsigned<Scalar>::type ScalarU;
+    // ScalarX is the widest of ScalarU and unsigned int.
+    // We'll deal only with ScalarX and unsigned int below thus avoiding signed
+    // types and arithmetic and signed overflows (which are undefined behavior).
+    typedef typename conditional<(ScalarU(-1) > unsigned(-1)), ScalarU, unsigned>::type ScalarX;
+    // The following difference doesn't overflow, provided our integer types are two's
+    // complement and have the same number of padding bits in signed and unsigned variants.
+    // This is the case in most modern implementations of C++.
+    ScalarX range = ScalarX(y) - ScalarX(x);
+    ScalarX offset = 0;
+    ScalarX divisor = 1;
+    ScalarX multiplier = 1;
+    const unsigned rand_max = RAND_MAX;
+    if (range <= rand_max) divisor = (rand_max + 1) / (range + 1);
+    else                   multiplier = 1 + range / (rand_max + 1);
+    // Rejection sampling.
     do {
-      offset = (std::size_t(std::rand()) * multiplier) / divisor;
+      offset = (unsigned(std::rand()) * multiplier) / divisor;
     } while (offset > range);
     return Scalar(ScalarX(x) + offset);
   }
@@ -1006,7 +1013,8 @@ inline int log2(int x)
 
 /** \returns the square root of \a x.
   *
-  * It is essentially equivalent to \code using std::sqrt; return sqrt(x); \endcode,
+  * It is essentially equivalent to
+  * \code using std::sqrt; return sqrt(x); \endcode
   * but slightly faster for float/double and some compilers (e.g., gcc), thanks to
   * specializations when SSE is enabled.
   *

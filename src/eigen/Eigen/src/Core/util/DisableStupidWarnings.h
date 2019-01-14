@@ -43,12 +43,20 @@
   #endif
   #pragma clang diagnostic ignored "-Wconstant-logical-operand"
 
-#elif defined __GNUC__ && __GNUC__>=6
+#elif defined __GNUC__
 
-  #ifndef EIGEN_PERMANENTLY_DISABLE_STUPID_WARNINGS
+  #if (!defined(EIGEN_PERMANENTLY_DISABLE_STUPID_WARNINGS)) &&  (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
     #pragma GCC diagnostic push
   #endif
-  #pragma GCC diagnostic ignored "-Wignored-attributes"
+  // g++ warns about local variables shadowing member functions, which is too strict
+  #pragma GCC diagnostic ignored "-Wshadow"
+  #if __GNUC__ == 4 && __GNUC_MINOR__ < 8
+    // Until g++-4.7 there are warnings when comparing unsigned int vs 0, even in templated functions:
+    #pragma GCC diagnostic ignored "-Wtype-limits"
+  #endif
+  #if __GNUC__>=6
+    #pragma GCC diagnostic ignored "-Wignored-attributes"
+  #endif
 
 #endif
 

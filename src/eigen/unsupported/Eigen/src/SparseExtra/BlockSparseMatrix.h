@@ -931,7 +931,7 @@ class BlockSparseMatrix : public SparseMatrixBase<BlockSparseMatrix<_Scalar,_Blo
     }
 
     /**
-      * \returns the starting position of the block <id> in the array of values
+      * \returns the starting position of the block \p id in the array of values
       */
     Index blockPtr(Index id) const
     {

@@ -747,7 +747,15 @@ public:
   pointer allocate(size_type num, const void* /*hint*/ = 0)
   {
     internal::check_size_for_overflow<T>(num);
-    return static_cast<pointer>( internal::aligned_malloc(num * sizeof(T)) );
+    size_type size = num * sizeof(T);
+#if EIGEN_COMP_GNUC_STRICT && EIGEN_GNUC_AT_LEAST(7,0)
+    // workaround gcc bug https://gcc.gnu.org/bugzilla/show_bug.cgi?id=87544
+    // It triggered eigen/Eigen/src/Core/util/Memory.h:189:12: warning: argument 1 value '18446744073709551612' exceeds maximum object size 9223372036854775807
+    if(size>=std::size_t((std::numeric_limits<std::ptrdiff_t>::max)()))
+      return 0;
+    else
+#endif
+      return static_cast<pointer>( internal::aligned_malloc(size) );
   }
 
   void deallocate(pointer p, size_type /*num*/)

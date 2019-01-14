@@ -52,7 +52,7 @@ struct general_matrix_matrix_triangular_product<Index,Scalar,LhsStorageOrder,Con
   static EIGEN_STRONG_INLINE void run(Index size, Index depth,const Scalar* lhs, Index lhsStride, \
                           const Scalar* rhs, Index rhsStride, Scalar* res, Index resStride, Scalar alpha, level3_blocking<Scalar, Scalar>& blocking) \
   { \
-    if ( lhs==rhs && ((UpLo&(Lower|Upper)==UpLo)) ) { \
+    if ( lhs==rhs && ((UpLo&(Lower|Upper))==UpLo) ) { \
       general_matrix_matrix_rankupdate<Index,Scalar,LhsStorageOrder,ConjugateLhs,ColMajor,UpLo> \
       ::run(size,depth,lhs,lhsStride,rhs,rhsStride,res,resStride,alpha,blocking); \
     } else { \
