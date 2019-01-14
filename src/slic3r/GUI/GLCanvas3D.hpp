@@ -347,10 +347,17 @@ class GLCanvas3D
         {
             static const Point Invalid_2D_Point;
             static const Vec3d Invalid_3D_Point;
+#if ENABLE_MOVE_MIN_THRESHOLD
+            static const int MoveThresholdPx;
+#endif // ENABLE_MOVE_MIN_THRESHOLD
 
             Point start_position_2D;
             Vec3d start_position_3D;
             int move_volume_idx;
+#if ENABLE_MOVE_MIN_THRESHOLD
+            bool move_requires_threshold;
+            Point move_start_threshold_position_2D;
+#endif // ENABLE_MOVE_MIN_THRESHOLD
 
         public:
             Drag();
@@ -365,11 +372,21 @@ class GLCanvas3D
 
         Mouse();
 
-        void set_start_position_2D_as_invalid();
-        void set_start_position_3D_as_invalid();
+        void set_start_position_2D_as_invalid() { drag.start_position_2D = Drag::Invalid_2D_Point; }
+        void set_start_position_3D_as_invalid() { drag.start_position_3D = Drag::Invalid_3D_Point; }
+#if ENABLE_MOVE_MIN_THRESHOLD
+        void set_move_start_threshold_position_2D_as_invalid() { drag.move_start_threshold_position_2D = Drag::Invalid_2D_Point; }
+#endif // ENABLE_MOVE_MIN_THRESHOLD
 
-        bool is_start_position_2D_defined() const;
-        bool is_start_position_3D_defined() const;
+        bool is_start_position_2D_defined() const { return (drag.start_position_2D != Drag::Invalid_2D_Point); }
+        bool is_start_position_3D_defined() const { return (drag.start_position_3D != Drag::Invalid_3D_Point); }
+#if ENABLE_MOVE_MIN_THRESHOLD
+        bool is_move_start_threshold_position_2D_defined() const { return (drag.move_start_threshold_position_2D != Drag::Invalid_2D_Point); }
+        bool is_move_threshold_met(const Point& mouse_pos) const {
+            return (std::abs(mouse_pos(0) - drag.move_start_threshold_position_2D(0)) > Drag::MoveThresholdPx)
+                || (std::abs(mouse_pos(1) - drag.move_start_threshold_position_2D(1)) > Drag::MoveThresholdPx);
+        }
+#endif // ENABLE_MOVE_MIN_THRESHOLD
     };
 
 public:

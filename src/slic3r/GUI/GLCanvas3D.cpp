@@ -1122,11 +1122,18 @@ void GLCanvas3D::LayersEditing::_render_profile(const PrintObject& print_object,
 
 const Point GLCanvas3D::Mouse::Drag::Invalid_2D_Point(INT_MAX, INT_MAX);
 const Vec3d GLCanvas3D::Mouse::Drag::Invalid_3D_Point(DBL_MAX, DBL_MAX, DBL_MAX);
+#if ENABLE_MOVE_MIN_THRESHOLD
+const int GLCanvas3D::Mouse::Drag::MoveThresholdPx = 5;
+#endif // ENABLE_MOVE_MIN_THRESHOLD
 
 GLCanvas3D::Mouse::Drag::Drag()
     : start_position_2D(Invalid_2D_Point)
     , start_position_3D(Invalid_3D_Point)
     , move_volume_idx(-1)
+#if ENABLE_MOVE_MIN_THRESHOLD
+    , move_requires_threshold(false)
+    , move_start_threshold_position_2D(Invalid_2D_Point)
+#endif // ENABLE_MOVE_MIN_THRESHOLD
 {
 }
 
@@ -1137,26 +1144,6 @@ GLCanvas3D::Mouse::Mouse()
     , scene_position(DBL_MAX, DBL_MAX, DBL_MAX)
     , ignore_up_event(false)
 {
-}
-
-void GLCanvas3D::Mouse::set_start_position_2D_as_invalid()
-{
-    drag.start_position_2D = Drag::Invalid_2D_Point;
-}
-
-void GLCanvas3D::Mouse::set_start_position_3D_as_invalid()
-{
-    drag.start_position_3D = Drag::Invalid_3D_Point;
-}
-
-bool GLCanvas3D::Mouse::is_start_position_2D_defined() const
-{
-    return (drag.start_position_2D != Drag::Invalid_2D_Point);
-}
-
-bool GLCanvas3D::Mouse::is_start_position_3D_defined() const
-{
-    return (drag.start_position_3D != Drag::Invalid_3D_Point);
 }
 
 GLCanvas3D::Selection::VolumeCache::TransformCache::TransformCache()
@@ -4955,6 +4942,14 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     int toolbar_contains_mouse = m_toolbar.contains_mouse(m_mouse.position, *this);
     int view_toolbar_contains_mouse = (m_view_toolbar != nullptr) ? m_view_toolbar->contains_mouse(m_mouse.position, *this) : -1;
 
+#if ENABLE_MOVE_MIN_THRESHOLD
+    if (m_mouse.drag.move_requires_threshold && m_mouse.is_move_start_threshold_position_2D_defined() && m_mouse.is_move_threshold_met(pos))
+    {
+        m_mouse.drag.move_requires_threshold = false;
+        m_mouse.set_move_start_threshold_position_2D_as_invalid();
+    }
+#endif // ENABLE_MOVE_MIN_THRESHOLD
+
     if (evt.Entering())
     {
 //#if defined(__WXMSW__) || defined(__linux__)
@@ -5087,6 +5082,13 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     {
                         bool add_as_single = !already_selected && !shift_down;
                         m_selection.add(m_hover_volume_id, add_as_single);
+#if ENABLE_MOVE_MIN_THRESHOLD
+                        m_mouse.drag.move_requires_threshold = !already_selected;
+                        if (already_selected)
+                            m_mouse.set_move_start_threshold_position_2D_as_invalid();
+                        else
+                            m_mouse.drag.move_start_threshold_position_2D = pos;
+#endif // ENABLE_MOVE_MIN_THRESHOLD
                     }
 
 #if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
@@ -5153,19 +5155,26 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     }
     else if (evt.Dragging() && evt.LeftIsDown() && !gizmos_overlay_contains_mouse && (m_layers_editing.state == LayersEditing::Unknown) && (m_mouse.drag.move_volume_idx != -1))
     {
-        m_mouse.dragging = true;
+#if ENABLE_MOVE_MIN_THRESHOLD
+        if (!m_mouse.drag.move_requires_threshold)
+        {
+#endif // ENABLE_MOVE_MIN_THRESHOLD
+            m_mouse.dragging = true;
 
-        // Get new position at the same Z of the initial click point.
-        float z0 = 0.0f;
-        float z1 = 1.0f;
-        // we do not want to translate objects if the user just clicked on an object while pressing shift to remove it from the selection and then drag
-        Vec3d cur_pos = m_selection.contains_volume(m_hover_volume_id) ? Linef3(_mouse_to_3d(pos, &z0), _mouse_to_3d(pos, &z1)).intersect_plane(m_mouse.drag.start_position_3D(2)) : m_mouse.drag.start_position_3D;
+            // Get new position at the same Z of the initial click point.
+            float z0 = 0.0f;
+            float z1 = 1.0f;
+            // we do not want to translate objects if the user just clicked on an object while pressing shift to remove it from the selection and then drag
+            Vec3d cur_pos = m_selection.contains_volume(m_hover_volume_id) ? Linef3(_mouse_to_3d(pos, &z0), _mouse_to_3d(pos, &z1)).intersect_plane(m_mouse.drag.start_position_3D(2)) : m_mouse.drag.start_position_3D;
 
-        m_regenerate_volumes = false;
-        m_selection.translate(cur_pos - m_mouse.drag.start_position_3D);
-        wxGetApp().obj_manipul()->update_settings_value(m_selection);
+            m_regenerate_volumes = false;
+            m_selection.translate(cur_pos - m_mouse.drag.start_position_3D);
+            wxGetApp().obj_manipul()->update_settings_value(m_selection);
 
-        m_dirty = true;
+            m_dirty = true;
+#if ENABLE_MOVE_MIN_THRESHOLD
+        }
+#endif // ENABLE_MOVE_MIN_THRESHOLD
     }
     else if (evt.Dragging() && m_gizmos.is_dragging())
     {
@@ -5216,7 +5225,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         else if (evt.LeftIsDown())
         {
             // if dragging over blank area with left button, rotate
+#if ENABLE_MOVE_MIN_THRESHOLD
+            if ((m_hover_volume_id == -1) && m_mouse.is_start_position_3D_defined())
+#else
             if (m_mouse.is_start_position_3D_defined())
+#endif // ENABLE_MOVE_MIN_THRESHOLD
             {
                 const Vec3d& orig = m_mouse.drag.start_position_3D;
                 m_camera.phi += (((float)pos(0) - (float)orig(0)) * TRACKBALLSIZE);

@@ -56,3 +56,5 @@
 
 // Changed algorithm to extract euler angles from rotation matrix
 #define ENABLE_NEW_EULER_ANGLES (1 && ENABLE_1_42_0_ALPHA4)
+// Added minimum threshold for click and drag movements
+#define ENABLE_MOVE_MIN_THRESHOLD (1 && ENABLE_1_42_0_ALPHA4)
