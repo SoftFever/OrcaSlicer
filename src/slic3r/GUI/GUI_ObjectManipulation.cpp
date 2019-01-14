@@ -390,13 +390,13 @@ void ObjectManipulation::update_if_dirty()
     m_cache.size = m_new_size;
 
     if (m_cache.rotation(0) != m_new_rotation(0))
-        m_og->set_value("rotation_x", double_to_string(round_nearest(Geometry::rad2deg(m_new_rotation(0)), 0), 2));
+        m_og->set_value("rotation_x", double_to_string(Geometry::rad2deg(m_new_rotation(0)), 2));
 
     if (m_cache.rotation(1) != m_new_rotation(1))
-        m_og->set_value("rotation_y", double_to_string(round_nearest(Geometry::rad2deg(m_new_rotation(1)), 0), 2));
+        m_og->set_value("rotation_y", double_to_string(Geometry::rad2deg(m_new_rotation(1)), 2));
 
     if (m_cache.rotation(2) != m_new_rotation(2))
-        m_og->set_value("rotation_z", double_to_string(round_nearest(Geometry::rad2deg(m_new_rotation(2)), 0), 2));
+        m_og->set_value("rotation_z", double_to_string(Geometry::rad2deg(m_new_rotation(2)), 2));
 
     m_cache.rotation = m_new_rotation;
 

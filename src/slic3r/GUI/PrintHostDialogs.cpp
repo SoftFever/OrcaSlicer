@@ -93,7 +93,8 @@ PrintHostQueueDialog::PrintHostQueueDialog(wxWindow *parent)
 {
     enum { HEIGHT = 800, WIDTH = 400, SPACING = 5 };
 
-    SetMinSize(wxSize(HEIGHT, WIDTH));
+    SetSize(wxSize(HEIGHT, WIDTH));
+    SetSize(GetMinSize());
 
     auto *topsizer = new wxBoxSizer(wxVERTICAL);
 
