@@ -860,12 +860,12 @@ void TriangleMeshSlicer::_slice_do(size_t facet_idx, std::vector<IntersectionLin
     // find layer extents
     std::vector<float>::const_iterator min_layer, max_layer;
     min_layer = std::lower_bound(z.begin(), z.end(), min_z); // first layer whose slice_z is >= min_z
-    max_layer = std::upper_bound(z.begin() + (min_layer - z.begin()), z.end(), max_z) - 1; // last layer whose slice_z is <= max_z
+    max_layer = std::upper_bound(min_layer, z.end(), max_z); // first layer whose slice_z is > max_z
     #ifdef SLIC3R_TRIANGLEMESH_DEBUG
     printf("layers: min = %d, max = %d\n", (int)(min_layer - z.begin()), (int)(max_layer - z.begin()));
     #endif /* SLIC3R_TRIANGLEMESH_DEBUG */
     
-    for (std::vector<float>::const_iterator it = min_layer; it != max_layer + 1; ++ it) {
+    for (std::vector<float>::const_iterator it = min_layer; it != max_layer; ++ it) {
         std::vector<float>::size_type layer_idx = it - z.begin();
         IntersectionLine il;
         if (this->slice_facet(*it / SCALING_FACTOR, facet, facet_idx, min_z, max_z, &il) == TriangleMeshSlicer::Slicing) {
