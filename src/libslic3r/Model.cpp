@@ -819,14 +819,27 @@ TriangleMesh ModelObject::full_raw_mesh() const
 BoundingBoxf3 ModelObject::raw_bounding_box() const
 {
     BoundingBoxf3 bb;
+#if ENABLE_GENERIC_SUBPARTS_PLACEMENT
+    if (this->instances.empty())
+        throw std::invalid_argument("Can't call raw_bounding_box() with no instances");
+
+    const Transform3d& inst_matrix = this->instances.front()->get_transformation().get_matrix(true);
+#endif // ENABLE_GENERIC_SUBPARTS_PLACEMENT
     for (const ModelVolume *v : this->volumes)
         if (v->is_model_part()) {
+#if !ENABLE_GENERIC_SUBPARTS_PLACEMENT
             if (this->instances.empty())
                 throw std::invalid_argument("Can't call raw_bounding_box() with no instances");
+#endif // !ENABLE_GENERIC_SUBPARTS_PLACEMENT
 
             TriangleMesh vol_mesh(v->mesh);
+#if ENABLE_GENERIC_SUBPARTS_PLACEMENT
+            vol_mesh.transform(inst_matrix * v->get_matrix());
+            bb.merge(vol_mesh.bounding_box());
+#else
             vol_mesh.transform(v->get_matrix());
             bb.merge(this->instances.front()->transform_mesh_bounding_box(vol_mesh, true));
+#endif // ENABLE_GENERIC_SUBPARTS_PLACEMENT
         }
     return bb;
 }
@@ -835,13 +848,21 @@ BoundingBoxf3 ModelObject::raw_bounding_box() const
 BoundingBoxf3 ModelObject::instance_bounding_box(size_t instance_idx, bool dont_translate) const
 {
     BoundingBoxf3 bb;
+#if ENABLE_GENERIC_SUBPARTS_PLACEMENT
+    const Transform3d& inst_matrix = this->instances[instance_idx]->get_transformation().get_matrix(dont_translate);
+#endif // ENABLE_GENERIC_SUBPARTS_PLACEMENT
     for (ModelVolume *v : this->volumes)
     {
         if (v->is_model_part())
         {
             TriangleMesh mesh(v->mesh);
+#if ENABLE_GENERIC_SUBPARTS_PLACEMENT
+            mesh.transform(inst_matrix * v->get_matrix());
+            bb.merge(mesh.bounding_box());
+#else
             mesh.transform(v->get_matrix());
             bb.merge(this->instances[instance_idx]->transform_mesh_bounding_box(mesh, dont_translate));
+#endif // ENABLE_GENERIC_SUBPARTS_PLACEMENT
         }
     }
     return bb;
