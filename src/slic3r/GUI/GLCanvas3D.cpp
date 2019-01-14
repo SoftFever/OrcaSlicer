@@ -4662,10 +4662,18 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     m_camera.set_scene_box(scene_bounding_box(), *this);
     m_camera.set_target(m_camera.get_target(), *this);
 
-    // if no object is selected, deactivate active gizmo, if any
-    // otherwise it will be shown after cleaning the scene (while it is active)
     if (m_selection.is_empty())
+    {
+        // If no object is selected, deactivate the active gizmo, if any
+        // Otherwise it may be shown after cleaning the scene (if it was active while the objects were deleted)
         m_gizmos.reset_all_states();
+
+        // If no object is selected, reset the objects manipulator on the sidebar
+        // to force a reset of its cache
+        auto manip = wxGetApp().obj_manipul();
+        if (manip != nullptr)
+            manip->update_settings_value(m_selection);
+    }
 
     // and force this canvas to be redrawn.
     m_dirty = true;

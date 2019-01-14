@@ -760,7 +760,8 @@ Sidebar& GUI_App::sidebar()
 
 ObjectManipulation* GUI_App::obj_manipul()
 {
-    return sidebar().obj_manipul();
+    // If this method is called before plater_ has been initialized, return nullptr (to avoid a crash)
+    return (plater_ != nullptr) ? sidebar().obj_manipul() : nullptr;
 }
 
 ObjectSettings* GUI_App::obj_settings()

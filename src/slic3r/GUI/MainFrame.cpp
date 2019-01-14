@@ -428,17 +428,25 @@ void MainFrame::init_menubar()
     // menubar
     // assign menubar to frame after appending items, otherwise special items
     // will not be handled correctly
-    {
-        auto menubar = new wxMenuBar();
-        menubar->Append(fileMenu, L("&File"));
-        if (editMenu) menubar->Append(editMenu, L("&Edit"));
-        menubar->Append(windowMenu, L("&Window"));
-        if (viewMenu) menubar->Append(viewMenu, L("&View"));
-        // Add additional menus from C++
-        wxGetApp().add_config_menu(menubar);
-        menubar->Append(helpMenu, L("&Help"));
-        SetMenuBar(menubar);
+    auto menubar = new wxMenuBar();
+    menubar->Append(fileMenu, L("&File"));
+    if (editMenu) menubar->Append(editMenu, L("&Edit"));
+    menubar->Append(windowMenu, L("&Window"));
+    if (viewMenu) menubar->Append(viewMenu, L("&View"));
+    // Add additional menus from C++
+    wxGetApp().add_config_menu(menubar);
+    menubar->Append(helpMenu, L("&Help"));
+    SetMenuBar(menubar);
+
+#ifdef __APPLE__
+    // This fixes a bug (?) on Mac OS where the quit command doesn't emit window close events
+    wxMenu *apple_menu = menubar->OSXGetAppleMenu();
+    if (apple_menu != nullptr) {
+        apple_menu->Bind(wxEVT_MENU, [this](wxCommandEvent &) {
+            Close();
+        }, wxID_EXIT);
     }
+#endif
 }
 
 // To perform the "Quck Slice", "Quick Slice and Save As", "Repeat last Quick Slice" and "Slice to SVG".

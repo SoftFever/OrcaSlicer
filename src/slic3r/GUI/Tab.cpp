@@ -1132,6 +1132,13 @@ void TabPrint::update()
     if (m_preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA)
         return; // ys_FIXME
 
+    //! Temporary workaround for the correct updates of the SpinCtrl (like "perimeters"):
+    // KillFocus() for the wxSpinCtrl use CallAfter function. So,
+    // to except the duplicate call of the update() after dialog->ShowModal(),
+    // let check if this process is already started.
+    if (is_msg_dlg_already_exist)   
+        return;
+
 	Freeze();
 
 	double fill_density = m_config->option<ConfigOptionPercent>("fill_density")->value;
@@ -1147,6 +1154,7 @@ void TabPrint::update()
 			"- no ensure_vertical_shell_thickness\n"
 			"\nShall I adjust those settings in order to enable Spiral Vase?"));
 		auto dialog = new wxMessageDialog(parent(), msg_text, _(L("Spiral Vase")), wxICON_WARNING | wxYES | wxNO);
+        is_msg_dlg_already_exist = true;
 		DynamicPrintConfig new_conf = *m_config;
 		if (dialog->ShowModal() == wxID_YES) {
 			new_conf.set_key_value("perimeters", new ConfigOptionInt(1));
@@ -1162,6 +1170,7 @@ void TabPrint::update()
 		}
 		load_config(new_conf);
 		on_value_change("fill_density", fill_density);
+        is_msg_dlg_already_exist = false;
 	}
 
 	if (m_config->opt_bool("wipe_tower") && m_config->opt_bool("support_material") &&

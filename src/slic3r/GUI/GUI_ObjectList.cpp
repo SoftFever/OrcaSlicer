@@ -895,8 +895,28 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const int 
     auto new_volume = (*m_objects)[obj_idx]->add_volume(mesh);
     new_volume->set_type(static_cast<ModelVolume::Type>(type));
 
+#if !ENABLE_GENERIC_SUBPARTS_PLACEMENT
     new_volume->set_offset(Vec3d(0.0, 0.0, (*m_objects)[obj_idx]->origin_translation(2) - mesh.stl.stats.min(2)));
+#endif // !ENABLE_GENERIC_SUBPARTS_PLACEMENT
     new_volume->center_geometry();
+
+#if ENABLE_GENERIC_SUBPARTS_PLACEMENT
+    const GLCanvas3D::Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
+    int instance_idx = selection.get_instance_idx();
+    if (instance_idx != -1)
+    {
+        const GLVolume* v = selection.get_volume(*selection.get_volume_idxs().begin());
+        const Transform3d& inst_m = v->get_instance_transformation().get_matrix(true);
+        TriangleMesh vol_mesh(mesh);
+        vol_mesh.transform(inst_m);
+        Vec3d vol_shift = -vol_mesh.bounding_box().center();
+        vol_mesh.translate((float)vol_shift(0), (float)vol_shift(1), (float)vol_shift(2));
+        Vec3d world_mesh_bb_size = vol_mesh.bounding_box().size();
+        BoundingBoxf3 inst_bb = (*m_objects)[obj_idx]->instance_bounding_box(instance_idx);
+        Vec3d world_target = Vec3d(inst_bb.max(0), inst_bb.min(1), inst_bb.min(2)) + 0.5 * world_mesh_bb_size;
+        new_volume->set_offset(inst_m.inverse() * (world_target - v->get_instance_offset()));
+    }
+#endif // ENABLE_GENERIC_SUBPARTS_PLACEMENT
 
     new_volume->name = name;
     // set a default extruder value, since user can't add it manually
