@@ -1746,7 +1746,7 @@ SlicedSupports SLASupportTree::slice(float layerh, float init_layerh) const
     const Pad& pad = m_impl->pad();
     if(!pad.empty()) gndlvl -= float(get_pad_elevation(pad.cfg));
 
-    std::vector<float> heights = {gndlvl};
+    std::vector<float> heights;
     heights.reserve(size_t(modelh/layerh) + 1);
 
     for(float h = gndlvl + init_layerh; h < gndlvl + modelh; h += layerh) {

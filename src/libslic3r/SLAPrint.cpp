@@ -732,9 +732,7 @@ void SLAPrint::process()
             po.m_supportdata->level_ids.reserve(sslices.size());
 
             for(int i = 0; i < int(sslices.size()); ++i) {
-                int a = i == 0 ? 0 : 1;
-                int b = i == 0 ? 0 : i - 1;
-                LevelID h = sminZ + a * sih + b * slh;
+                LevelID h = sminZ + sih + i * slh;
                 po.m_supportdata->level_ids.emplace_back(h);
 
                 float fh = float(double(h) * SCALING_FACTOR);
