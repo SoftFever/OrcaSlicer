@@ -751,30 +751,20 @@ void Preview::load_print_as_fff()
     if (IsShown())
     {
         if (gcode_preview_data_valid)
-        {
+            // Load the real G-code preview.
             m_canvas->load_gcode_preview(*m_gcode_preview_data, colors);
-            show_hide_ui_elements("full");
-
-            // recalculates zs and update sliders accordingly
-            has_layers = ! m_canvas->get_current_print_zs(true).empty();
-            if (! has_layers)
-            {
-                // all layers filtered out
-                reset_sliders();
-                m_canvas_widget->Refresh();
-            }
-        } 
         else
-        {
-            // load skirt and brim
+            // Load the initial preview based on slices, not the final G-code.
             m_canvas->load_preview(colors);
-            show_hide_ui_elements("simple");
-        }
-
-
-        if (has_layers)
-            update_sliders(m_canvas->get_current_print_zs(true));
-
+        show_hide_ui_elements(gcode_preview_data_valid ? "full" : "simple");
+        // recalculates zs and update sliders accordingly
+        std::vector<double> zs = m_canvas->get_current_print_zs(true);
+        if (zs.empty()) {
+            // all layers filtered out
+            reset_sliders();
+            m_canvas_widget->Refresh();
+        } else
+            update_sliders(zs);
         m_loaded = true;
     }
 }
