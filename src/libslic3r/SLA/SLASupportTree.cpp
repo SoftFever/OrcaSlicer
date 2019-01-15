@@ -1248,8 +1248,8 @@ bool SLASupportTree::generate(const PointSet &points,
         // there is no need to bridge them together.
         if(pillar_dist > 2*cfg.head_back_radius_mm &&
            bridge_distance < cfg.max_bridge_length_mm)
-            while(sj(Z) > pillar.endpoint(Z) &&
-                  ej(Z) > nextpillar.endpoint(Z))
+            while(sj(Z) > pillar.endpoint(Z) + cfg.base_radius_mm &&
+                  ej(Z) > nextpillar.endpoint(Z) + + cfg.base_radius_mm)
         {
             if(chkd >= bridge_distance) {
                 result.add_bridge(sj, ej, pillar.r);
