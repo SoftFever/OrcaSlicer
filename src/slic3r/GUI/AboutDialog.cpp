@@ -114,7 +114,7 @@ AboutDialog::AboutDialog()
     this->Bind(wxEVT_BUTTON, &AboutDialog::onCloseDialog, this, wxID_CLOSE);
     vsizer->Add(buttons, 0, wxEXPAND | wxRIGHT | wxBOTTOM, 3);
     
-    this->Bind(wxEVT_LEFT_DOWN, &AboutDialog::onCloseDialog, this);
+//     this->Bind(wxEVT_LEFT_DOWN, &AboutDialog::onCloseDialog, this);
     logo->Bind(wxEVT_LEFT_DOWN, &AboutDialog::onCloseDialog, this);
 
 	SetSizer(main_sizer);

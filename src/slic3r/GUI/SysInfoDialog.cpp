@@ -120,7 +120,7 @@ SysInfoDialog::SysInfoDialog()
     this->Bind(wxEVT_BUTTON, &SysInfoDialog::onCloseDialog, this, wxID_OK);
     main_sizer->Add(buttons, 0, wxEXPAND | wxRIGHT | wxBOTTOM, 3);
     
-    this->Bind(wxEVT_LEFT_DOWN, &SysInfoDialog::onCloseDialog, this);
+//     this->Bind(wxEVT_LEFT_DOWN, &SysInfoDialog::onCloseDialog, this);
     logo->Bind(wxEVT_LEFT_DOWN, &SysInfoDialog::onCloseDialog, this);
 
 	SetSizer(main_sizer);
