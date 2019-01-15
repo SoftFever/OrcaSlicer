@@ -146,8 +146,16 @@ EigenMesh3D &EigenMesh3D::operator=(const EigenMesh3D &other)
 
 double EigenMesh3D::query_ray_hit(const Vec3d &s, const Vec3d &dir) const
 {
-    return 0;
+    igl::Hit hit;
+    hit.t = std::numeric_limits<float>::infinity();
+    m_aabb->intersect_ray(m_V, m_F, s, dir, hit);
+
+    return double(hit.t);
 }
+
+/* ****************************************************************************
+ * Misc functions
+ * ****************************************************************************/
 
 bool point_on_edge(const Vec3d& p, const Vec3d& e1, const Vec3d& e2,
                    double eps = 0.05)
@@ -292,30 +300,6 @@ PointSet normals(const PointSet& points, const EigenMesh3D& mesh,
     }
 
     return ret;
-}
-
-double ray_mesh_intersect(const Vec3d& s,
-                          const Vec3d& dir,
-                          const EigenMesh3D& m)
-{
-    igl::Hit hit;
-    hit.t = std::numeric_limits<float>::infinity();
-
-    // Fck: this does not use any kind of spatial index acceleration...
-    igl::ray_mesh_intersect(s, dir, m.V(), m.F(), hit);
-    return double(hit.t);
-}
-
-// An enhanced version of ray_mesh_intersect for the pinheads. This will shoot
-// multiple rays to detect collisions more accurately.
-double pinhead_mesh_intersect(const Vec3d& jp,
-                              const Vec3d& dir,
-                              double r1,
-                              double r2,
-                              const EigenMesh3D& m)
-{
-
-    return 0;
 }
 
 // Clustering a set of points by the given criteria

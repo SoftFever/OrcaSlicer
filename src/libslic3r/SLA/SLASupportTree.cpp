@@ -557,23 +557,21 @@ Vec3d model_coord(const ModelInstance& object, const Vec3f& mesh_coord) {
     return object.transform_vector(mesh_coord.cast<double>());
 }
 
-double ray_mesh_intersect(const Vec3d& s,
-                          const Vec3d& dir,
-                          const EigenMesh3D& m);
-
-double pinhead_mesh_intersect(const Vec3d& jp,
-                              const Vec3d& dir,
-                              double r1,
-                              double r2,
-                              const EigenMesh3D& m);
+inline double ray_mesh_intersect(const Vec3d& s,
+                                 const Vec3d& dir,
+                                 const EigenMesh3D& m)
+{
+    return m.query_ray_hit(s, dir);
+}
 
 // Wrapper only
 inline double pinhead_mesh_intersect(const Head& head, const EigenMesh3D& m) {
-    return pinhead_mesh_intersect(head.junction_point(),
-                                  head.dir,
-                                  head.r_pin_mm,
-                                  head.r_back_mm,
-                                  m);
+//    return pinhead_mesh_intersect(head.junction_point(),
+//                                  head.dir,
+//                                  head.r_pin_mm,
+//                                  head.r_back_mm,
+//                                  m);
+    return 0;
 }
 
 PointSet normals(const PointSet& points, const EigenMesh3D& mesh,
