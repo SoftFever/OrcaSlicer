@@ -1609,7 +1609,7 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation, bool local)
         else if (is_single_volume() || is_single_modifier())
 #if ENABLE_WORLD_ROTATIONS
         {
-            if (requires_local_axes())
+            if (local)
                 (*m_volumes)[i]->set_volume_rotation(rotation);
             else
             {
