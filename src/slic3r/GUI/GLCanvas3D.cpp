@@ -5708,7 +5708,7 @@ void GLCanvas3D::set_camera_zoom(float zoom)
     // Don't allow to zoom too far outside the scene.
     float zoom_min = _get_zoom_to_bounding_box_factor(_max_bounding_box());
     if (zoom_min > 0.0f)
-        zoom = std::max(zoom, zoom_min * 0.8f);
+        zoom = std::max(zoom, zoom_min * 0.7f);
 
     m_camera.zoom = zoom;
     viewport_changed();
