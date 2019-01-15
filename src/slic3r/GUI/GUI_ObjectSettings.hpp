@@ -24,7 +24,7 @@ public:
     virtual void        Hide();
     virtual void        UpdateAndShow(const bool show);
 
-    wxSizer*            get_sizer();
+    virtual wxSizer*    get_sizer();
     ConfigOptionsGroup* get_og() { return m_og.get(); }
 };
 

@@ -206,6 +206,26 @@ std::vector<Point> MultiPoint::_douglas_peucker(const std::vector<Point>& pts, c
                 floater = &pts[floater_idx];
             }
         }
+        assert(result_pts.front() == pts.front());
+        assert(result_pts.back()  == pts.back());
+
+#if 0
+        {
+            static int iRun = 0;
+			BoundingBox bbox(pts);
+			BoundingBox bbox2(result_pts);
+			bbox.merge(bbox2);
+            SVG svg(debug_out_path("douglas_peucker_%d.svg", iRun ++).c_str(), bbox);
+            if (pts.front() == pts.back())
+                svg.draw(Polygon(pts), "black");
+            else
+                svg.draw(Polyline(pts), "black");
+            if (result_pts.front() == result_pts.back())
+                svg.draw(Polygon(result_pts), "green", scale_(0.1));
+            else
+                svg.draw(Polyline(result_pts), "green", scale_(0.1));
+        }
+#endif
     }
     return result_pts;
 }

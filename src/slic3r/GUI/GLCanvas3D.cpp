@@ -1609,13 +1609,12 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation, bool local)
         else if (is_single_volume() || is_single_modifier())
 #if ENABLE_WORLD_ROTATIONS
         {
-            if (requires_local_axes())
+            if (local)
                 (*m_volumes)[i]->set_volume_rotation(rotation);
             else
             {
                 Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), rotation);
-                const Transform3d& inst_m = m_cache.volumes_data[i].get_instance_rotation_matrix();
-                Vec3d new_rotation = Geometry::extract_euler_angles(inst_m.inverse() * m * inst_m * m_cache.volumes_data[i].get_volume_rotation_matrix());
+                Vec3d new_rotation = Geometry::extract_euler_angles(m * m_cache.volumes_data[i].get_volume_rotation_matrix());
                 (*m_volumes)[i]->set_volume_rotation(new_rotation);
             }
         }
@@ -5709,7 +5708,7 @@ void GLCanvas3D::set_camera_zoom(float zoom)
     // Don't allow to zoom too far outside the scene.
     float zoom_min = _get_zoom_to_bounding_box_factor(_max_bounding_box());
     if (zoom_min > 0.0f)
-        zoom = std::max(zoom, zoom_min * 0.8f);
+        zoom = std::max(zoom, zoom_min * 0.7f);
 
     m_camera.zoom = zoom;
     viewport_changed();

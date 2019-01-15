@@ -103,8 +103,7 @@ OozePrevention::_get_temp(GCode &gcodegen)
         : gcodegen.config().temperature.get_at(gcodegen.writer().extruder()->id());
 }
 
-std::string
-Wipe::wipe(GCode &gcodegen, bool toolchange)
+std::string Wipe::wipe(GCode &gcodegen, bool toolchange)
 {
     std::string gcode;
     
@@ -137,19 +136,22 @@ Wipe::wipe(GCode &gcodegen, bool toolchange)
         wipe_path.clip_end(wipe_path.length() - wipe_dist);
     
         // subdivide the retraction in segments
-        for (const Line &line : wipe_path.lines()) {
-            double segment_length = line.length();
-            /*  Reduce retraction length a bit to avoid effective retraction speed to be greater than the configured one
-                due to rounding (TODO: test and/or better math for this)  */
-            double dE = length * (segment_length / wipe_dist) * 0.95;
-            //FIXME one shall not generate the unnecessary G1 Fxxx commands, here wipe_speed is a constant inside this cycle.
-            // Is it here for the cooling markers? Or should it be outside of the cycle?
-            gcode += gcodegen.writer().set_speed(wipe_speed*60, "", gcodegen.enable_cooling_markers() ? ";_WIPE" : "");
-            gcode += gcodegen.writer().extrude_to_xy(
-                gcodegen.point_to_gcode(line.b),
-                -dE,
-                "wipe and retract"
-            );
+        if (! wipe_path.empty()) {
+            for (const Line &line : wipe_path.lines()) {
+                double segment_length = line.length();
+                /*  Reduce retraction length a bit to avoid effective retraction speed to be greater than the configured one
+                    due to rounding (TODO: test and/or better math for this)  */
+                double dE = length * (segment_length / wipe_dist) * 0.95;
+                //FIXME one shall not generate the unnecessary G1 Fxxx commands, here wipe_speed is a constant inside this cycle.
+                // Is it here for the cooling markers? Or should it be outside of the cycle?
+                gcode += gcodegen.writer().set_speed(wipe_speed*60, "", gcodegen.enable_cooling_markers() ? ";_WIPE" : "");
+                gcode += gcodegen.writer().extrude_to_xy(
+                    gcodegen.point_to_gcode(line.b),
+                    -dE,
+                    "wipe and retract"
+                );
+            }
+			gcodegen.set_last_pos(wipe_path.points.back());
         }
         
         // prevent wiping again on same path
@@ -2577,9 +2579,11 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
     
     // use G1 because we rely on paths being straight (G0 may make round paths)
     Lines lines = travel.lines();
-    for (Lines::const_iterator line = lines.begin(); line != lines.end(); ++line)
-	    gcode += m_writer.travel_to_xy(this->point_to_gcode(line->b), comment);
-    
+    if (! lines.empty()) {
+        for (const Line &line : lines)
+    	    gcode += m_writer.travel_to_xy(this->point_to_gcode(line.b), comment);    
+        this->set_last_pos(lines.back().b);
+    }
     return gcode;
 }
 

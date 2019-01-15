@@ -1182,15 +1182,17 @@ Transform3d assemble_transform(const Vec3d& translation, const Vec3d& rotation, 
 Vec3d extract_euler_angles(const Eigen::Matrix<double, 3, 3, Eigen::DontAlign>& rotation_matrix)
 {
 #if ENABLE_NEW_EULER_ANGLES
-    bool x_only = (rotation_matrix(0, 0) == 1.0) && (rotation_matrix(0, 1) == 0.0) && (rotation_matrix(0, 2) == 0.0) && (rotation_matrix(1, 0) == 0.0) && (rotation_matrix(2, 0) == 0.0);
-    bool y_only = (rotation_matrix(0, 1) == 0.0) && (rotation_matrix(1, 0) == 0.0) && (rotation_matrix(1, 1) == 1.0) && (rotation_matrix(1, 2) == 0.0) && (rotation_matrix(2, 1) == 0.0);
-    bool z_only = (rotation_matrix(0, 2) == 0.0) && (rotation_matrix(1, 2) == 0.0) && (rotation_matrix(2, 0) == 0.0) && (rotation_matrix(2, 1) == 0.0) && (rotation_matrix(2, 2) == 1.0);
-//    bool xy_only = (rotation_matrix(0, 1) == 0.0); // Rx * Ry
-    bool yx_only = (rotation_matrix(1, 0) == 0.0); // Ry * Rx
-//    bool xz_only = (rotation_matrix(0, 2) == 0.0); // Rx * Rz
-//    bool zx_only = (rotation_matrix(2, 0) == 0.0); // Rz * Rx
-//    bool yz_only = (rotation_matrix(1, 2) == 0.0); // Ry * Rz
-//    bool zy_only = (rotation_matrix(2, 1) == 0.0); // Rz * Ry
+    auto is_approx = [](double value, double test_value) -> bool { return std::abs(value - test_value) < EPSILON; };
+
+    bool x_only = is_approx(rotation_matrix(0, 0), 1.0) && is_approx(rotation_matrix(0, 1), 0.0) && is_approx(rotation_matrix(0, 2), 0.0) && is_approx(rotation_matrix(1, 0), 0.0) && is_approx(rotation_matrix(2, 0), 0.0);
+    bool y_only = is_approx(rotation_matrix(0, 1), 0.0) && is_approx(rotation_matrix(1, 0), 0.0) && is_approx(rotation_matrix(1, 1), 1.0) && is_approx(rotation_matrix(1, 2), 0.0) && is_approx(rotation_matrix(2, 1), 0.0);
+    bool z_only = is_approx(rotation_matrix(0, 2), 0.0) && is_approx(rotation_matrix(1, 2), 0.0) && is_approx(rotation_matrix(2, 0), 0.0) && is_approx(rotation_matrix(2, 1), 0.0) && is_approx(rotation_matrix(2, 2), 1.0);
+//    bool xy_only = is_approx(rotation_matrix(0, 1), 0.0); // Rx * Ry
+    bool yx_only = is_approx(rotation_matrix(1, 0), 0.0); // Ry * Rx
+//    bool xz_only = is_approx(rotation_matrix(0, 2), 0.0); // Rx * Rz
+//    bool zx_only = is_approx(rotation_matrix(2, 0), 0.0); // Rz * Rx
+//    bool yz_only = is_approx(rotation_matrix(1, 2), 0.0); // Ry * Rz
+//    bool zy_only = is_approx(rotation_matrix(2, 1), 0.0); // Rz * Ry
 
     Vec3d angles = Vec3d::Zero();
     if (x_only || y_only || z_only)

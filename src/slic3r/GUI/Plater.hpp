@@ -76,7 +76,7 @@ public:
     ObjectSettings*         obj_settings();
     wxScrolledWindow*       scrolled_panel();
 
-    ConfigOptionsGroup*     og_freq_chng_params();
+    ConfigOptionsGroup*     og_freq_chng_params(const bool is_fff);
     wxButton*               get_wiping_dialog_button();
     void                    update_objects_list_extruder_column(int extruders_count);
     void                    show_info_sizer();

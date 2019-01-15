@@ -148,8 +148,16 @@ private:
 
     // Which steps have to be performed. Implicitly: all
     std::vector<bool>                       m_stepmask;
+
+    // Individual 2d slice polygons from lower z to higher z levels
     std::vector<ExPolygons>                 m_model_slices;
+
+    // Exact (float) height levels mapped to the slices. Each record contains
+    // the index to the model and the support slice vectors.
     SliceIndex                              m_slice_index;
+
+    // The height levels corrected and scaled up in integer values. This will
+    // be used at rasterization.
     std::vector<LevelID>                    m_level_ids;
 
     // Caching the transformed (m_trafo) raw mesh of the object

@@ -775,6 +775,8 @@ FirmwareDialog::FirmwareDialog(wxWindow *parent) :
 	SetSize(std::max(size.GetWidth(), static_cast<int>(MIN_WIDTH)), std::max(size.GetHeight(), static_cast<int>(MIN_HEIGHT)));
 	Layout();
 
+    SetEscapeId(wxID_CLOSE); // To close the dialog using "Esc" button
+
 	// Bind events
 
 	p->hex_picker->Bind(wxEVT_FILEPICKER_CHANGED, [this](wxFileDirPickerEvent& evt) {
@@ -826,6 +828,7 @@ FirmwareDialog::FirmwareDialog(wxWindow *parent) :
 		if (this->p->avrdude) {
 			evt.Veto();
 		} else {
+            this->EndModal(wxID_CLOSE);
 			evt.Skip();
 		}
 	});

@@ -155,11 +155,11 @@ public:
     void            do_export(Print *print, const char *path, GCodePreviewData *preview_data = nullptr);
 
     // Exported for the helper classes (OozePrevention, Wipe) and for the Perl binding for unit tests.
-    const Vec2d&   origin() const { return m_origin; }
+    const Vec2d&    origin() const { return m_origin; }
     void            set_origin(const Vec2d &pointf);
     void            set_origin(const coordf_t x, const coordf_t y) { this->set_origin(Vec2d(x, y)); }
     const Point&    last_pos() const { return m_last_pos; }
-    Vec2d          point_to_gcode(const Point &point) const;
+    Vec2d           point_to_gcode(const Point &point) const;
     Point           gcode_to_point(const Vec2d &point) const;
     const FullPrintConfig &config() const { return m_config; }
     const Layer*    layer() const { return m_layer; }
@@ -360,6 +360,7 @@ protected:
         size_t                                                  num_objects,
         size_t                                                  num_islands);
 
+    friend class Wipe;
     friend class WipeTowerIntegration;
 };
 
