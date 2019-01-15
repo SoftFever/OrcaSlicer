@@ -497,7 +497,11 @@ void ObjectManipulation::change_rotation_value(const Vec3d& rotation)
     }
 
     canvas->get_selection().start_dragging();
+#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
+    canvas->get_selection().rotate(rad_rotation, selection.is_single_full_instance() || selection.requires_local_axes());
+#else
     canvas->get_selection().rotate(rad_rotation, selection.is_single_full_instance());
+#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     canvas->do_rotate();
 
 #if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
