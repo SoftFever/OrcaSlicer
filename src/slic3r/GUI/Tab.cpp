@@ -751,8 +751,8 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 	wxPostEvent(this, event);
 
 
-    auto og_freq_chng_params = wxGetApp().sidebar().og_freq_chng_params();
-	if (opt_key == "fill_density")
+    ConfigOptionsGroup* og_freq_chng_params = wxGetApp().sidebar().og_freq_chng_params(supports_printer_technology(ptFFF));
+    if (opt_key == "fill_density" || opt_key == "supports_enable" || opt_key == "pad_enable")
 	{
         boost::any val = og_freq_chng_params->get_config_value(*m_config, opt_key);
         og_freq_chng_params->set_value(opt_key, val);
@@ -881,8 +881,20 @@ void Tab::update_preset_description_line()
 
 void Tab::update_frequently_changed_parameters()
 {
-    auto og_freq_chng_params = wxGetApp().sidebar().og_freq_chng_params();
+    auto og_freq_chng_params = wxGetApp().sidebar().og_freq_chng_params(supports_printer_technology(ptFFF));
     if (!og_freq_chng_params) return;
+
+    if (m_type == Preset::TYPE_SLA_PRINT)
+    {
+        for (auto opt_key : { "supports_enable", "pad_enable" })
+        {
+            boost::any val = og_freq_chng_params->get_config_value(*m_config, opt_key);
+            og_freq_chng_params->set_value(opt_key, val);
+        }
+        return;
+    }
+
+    // for m_type == Preset::TYPE_PRINT
     boost::any value = og_freq_chng_params->get_config_value(*m_config, "fill_density");
     og_freq_chng_params->set_value("fill_density", value);
 
@@ -2370,7 +2382,7 @@ void Tab::load_current_preset()
 		}
 		else {
 			on_presets_changed();
-			if (m_name == "print")
+            if (m_type == Preset::TYPE_SLA_PRINT || m_type == Preset::TYPE_PRINT)// if (m_name == "print")
 				update_frequently_changed_parameters();
 		}
 

@@ -286,12 +286,17 @@ class FreqChangedParams : public OG_Settings
 {
     double		    m_brim_width = 0.0;
     wxButton*       m_wiping_dialog_button{ nullptr };
+    wxSizer*        m_sizer {nullptr};
+
+    std::shared_ptr<ConfigOptionsGroup> m_og_sla;
 public:
     FreqChangedParams(wxWindow* parent, const int label_width);
     ~FreqChangedParams() {}
 
     wxButton*       get_wiping_dialog_button() { return m_wiping_dialog_button; }
-    void            Show(const bool show);
+    wxSizer*        get_sizer() override;
+    ConfigOptionsGroup* get_og(const bool is_fff);
+    void            Show(const bool is_fff);
 };
 
 FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
@@ -299,22 +304,13 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
 {
     DynamicPrintConfig*	config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
 
+    // Frequently changed parameters for FFF_technology
     m_og->set_config(config);
     m_og->label_width = label_width;
 
     m_og->m_on_change = [config, this](t_config_option_key opt_key, boost::any value) {
-        TabPrint* tab_print = nullptr;
-        for (size_t i = 0; i < wxGetApp().tab_panel()->GetPageCount(); ++i) {
-            Tab *tab = dynamic_cast<Tab*>(wxGetApp().tab_panel()->GetPage(i));
-            if (!tab)
-                continue;
-            if (tab->name() == "print") {
-                tab_print = static_cast<TabPrint*>(tab);
-                break;
-            }
-        }
-        if (tab_print == nullptr)
-            return;
+        Tab* tab_print = wxGetApp().get_tab(Preset::TYPE_PRINT);
+        if (!tab_print) return;
 
         if (opt_key == "fill_density") {
             value = m_og->get_config_value(*config, opt_key);
@@ -413,17 +409,54 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
         return sizer;
     };
     m_og->append_line(line);
+
+
+    // Frequently changed parameters for SLA_technology
+    m_og_sla = std::make_shared<ConfigOptionsGroup>(parent, "");
+    DynamicPrintConfig*	config_sla = &wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
+    m_og_sla->set_config(config_sla);
+    m_og_sla->label_width = label_width*2;
+
+    m_og_sla->m_on_change = [config_sla, this](t_config_option_key opt_key, boost::any value) {
+        Tab* tab = wxGetApp().get_tab(Preset::TYPE_SLA_PRINT);
+        if (!tab) return;
+
+        tab->set_value(opt_key, value);
+
+        DynamicPrintConfig new_conf = *config_sla;
+        new_conf.set_key_value(opt_key, new ConfigOptionBool(boost::any_cast<bool>(value)));
+        tab->load_config(new_conf);
+        tab->update_dirty();
+    };    
+
+    m_og_sla->append_single_option_line("supports_enable");
+    m_og_sla->append_single_option_line("pad_enable");
+
+    m_sizer = new wxBoxSizer(wxVERTICAL);
+    m_sizer->Add(m_og->sizer, 0, wxEXPAND);
+    m_sizer->Add(m_og_sla->sizer, 0, wxEXPAND | wxTOP, 5);
 }
 
 
-void FreqChangedParams::Show(const bool show)
+wxSizer* FreqChangedParams::get_sizer()
 {
-    bool is_wdb_shown = m_wiping_dialog_button->IsShown();
-    m_og->Show(show);
+    return m_sizer;
+}
+
+void FreqChangedParams::Show(const bool is_fff)
+{
+    const bool is_wdb_shown = m_wiping_dialog_button->IsShown();
+    m_og->Show(is_fff);
+    m_og_sla->Show(!is_fff);
 
     // correct showing of the FreqChangedParams sizer when m_wiping_dialog_button is hidden 
-    if (show && !is_wdb_shown)
+    if (is_fff && !is_wdb_shown)
         m_wiping_dialog_button->Hide();
+}
+
+ConfigOptionsGroup* FreqChangedParams::get_og(const bool is_fff)
+{
+    return is_fff ? m_og.get() : m_og_sla.get();
 }
 
 // Sidebar / private
@@ -703,9 +736,9 @@ wxScrolledWindow* Sidebar::scrolled_panel()
     return p->scrolled;
 }
 
-ConfigOptionsGroup* Sidebar::og_freq_chng_params()
+ConfigOptionsGroup* Sidebar::og_freq_chng_params(const bool is_fff)
 {
-    return p->frequently_changed_parameters->get_og();
+    return p->frequently_changed_parameters->get_og(is_fff);
 }
 
 wxButton* Sidebar::get_wiping_dialog_button()
