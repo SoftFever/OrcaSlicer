@@ -5784,7 +5784,7 @@ bool GLCanvas3D::_init_toolbar()
     GLToolbarItem::Data item;
 
     item.name = "add";
-    item.tooltip = GUI::L_str("Add...");
+    item.tooltip = GUI::L_str("Add... [Ctrl+I]");
     item.sprite_id = 0;
     item.is_toggable = false;
     item.action_event = EVT_GLTOOLBAR_ADD;
@@ -5792,7 +5792,7 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "delete";
-    item.tooltip = GUI::L_str("Delete");
+    item.tooltip = GUI::L_str("Delete [Del]");
     item.sprite_id = 1;
     item.is_toggable = false;
     item.action_event = EVT_GLTOOLBAR_DELETE;
@@ -5800,7 +5800,7 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "deleteall";
-    item.tooltip = GUI::L_str("Delete all");
+    item.tooltip = GUI::L_str("Delete all [Ctrl+Del]");
     item.sprite_id = 2;
     item.is_toggable = false;
     item.action_event = EVT_GLTOOLBAR_DELETE_ALL;
@@ -5808,7 +5808,7 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "arrange";
-    item.tooltip = GUI::L_str("Arrange");
+    item.tooltip = GUI::L_str("Arrange [A]");
     item.sprite_id = 3;
     item.is_toggable = false;
     item.action_event = EVT_GLTOOLBAR_ARRANGE;
@@ -5819,7 +5819,7 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "more";
-    item.tooltip = GUI::L_str("Add instance");
+    item.tooltip = GUI::L_str("Add instance [+]");
     item.sprite_id = 4;
     item.is_toggable = false;
     item.action_event = EVT_GLTOOLBAR_MORE;
@@ -5827,7 +5827,7 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "fewer";
-    item.tooltip = GUI::L_str("Remove instance");
+    item.tooltip = GUI::L_str("Remove instance [-]");
     item.sprite_id = 5;
     item.is_toggable = false;
     item.action_event = EVT_GLTOOLBAR_FEWER;

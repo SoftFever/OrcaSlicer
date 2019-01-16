@@ -748,7 +748,7 @@ bool GLGizmoRotate3D::on_init()
 
 std::string GLGizmoRotate3D::on_get_name() const
 {    
-    return L("Rotate");
+    return L("Rotate [R]");
 }
 
 void GLGizmoRotate3D::on_start_dragging(const GLCanvas3D::Selection& selection)
@@ -838,7 +838,7 @@ bool GLGizmoScale3D::on_init()
 
 std::string GLGizmoScale3D::on_get_name() const
 {
-    return L("Scale");
+    return L("Scale [S]");
 }
 
 void GLGizmoScale3D::on_start_dragging(const GLCanvas3D::Selection& selection)
@@ -1197,7 +1197,7 @@ bool GLGizmoMove3D::on_init()
 
 std::string GLGizmoMove3D::on_get_name() const
 {
-    return L("Move");
+    return L("Move [M]");
 }
 
 void GLGizmoMove3D::on_start_dragging(const GLCanvas3D::Selection& selection)
@@ -1427,7 +1427,7 @@ bool GLGizmoFlatten::on_init()
 
 std::string GLGizmoFlatten::on_get_name() const
 {
-    return L("Place on face");
+    return L("Place on face [F]");
 }
 
 bool GLGizmoFlatten::on_is_activable(const GLCanvas3D::Selection& selection) const
@@ -2240,9 +2240,8 @@ bool GLGizmoSlaSupports::on_is_selectable() const
 }
 
 std::string GLGizmoSlaSupports::on_get_name() const
-
 {
-    return L("SLA Support Points");
+    return L("SLA Support Points [L]");
 }
 
 
@@ -2353,7 +2352,7 @@ bool GLGizmoCut::on_init()
 
 std::string GLGizmoCut::on_get_name() const
 {
-    return L("Cut");
+    return L("Cut [C]");
 }
 
 void GLGizmoCut::on_set_state()
