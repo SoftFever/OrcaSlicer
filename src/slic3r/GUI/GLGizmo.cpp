@@ -748,7 +748,7 @@ bool GLGizmoRotate3D::on_init()
 
 std::string GLGizmoRotate3D::on_get_name() const
 {    
-    return L("Rotate");
+    return L("Rotate [R]");
 }
 
 void GLGizmoRotate3D::on_start_dragging(const GLCanvas3D::Selection& selection)
@@ -838,7 +838,7 @@ bool GLGizmoScale3D::on_init()
 
 std::string GLGizmoScale3D::on_get_name() const
 {
-    return L("Scale");
+    return L("Scale [S]");
 }
 
 void GLGizmoScale3D::on_start_dragging(const GLCanvas3D::Selection& selection)
@@ -1197,7 +1197,7 @@ bool GLGizmoMove3D::on_init()
 
 std::string GLGizmoMove3D::on_get_name() const
 {
-    return L("Move");
+    return L("Move [M]");
 }
 
 void GLGizmoMove3D::on_start_dragging(const GLCanvas3D::Selection& selection)
@@ -1427,7 +1427,7 @@ bool GLGizmoFlatten::on_init()
 
 std::string GLGizmoFlatten::on_get_name() const
 {
-    return L("Place on face");
+    return L("Place on face [F]");
 }
 
 bool GLGizmoFlatten::on_is_activable(const GLCanvas3D::Selection& selection) const
@@ -1559,7 +1559,7 @@ void GLGizmoFlatten::update_planes()
         while (facet_queue_cnt > 0) {
             int facet_idx = facet_queue[-- facet_queue_cnt];
             const stl_normal& this_normal = ch.stl.facet_start[facet_idx].normal;
-            if (this_normal.isApprox(*normal_ptr)) {
+            if (std::abs(this_normal(0) - (*normal_ptr)(0)) < 0.001 && std::abs(this_normal(1) - (*normal_ptr)(1)) < 0.001 && std::abs(this_normal(2) - (*normal_ptr)(2)) < 0.001) {
                 stl_vertex* first_vertex = ch.stl.facet_start[facet_idx].vertex;
                 for (int j=0; j<3; ++j)
                     m_planes.back().vertices.emplace_back((double)first_vertex[j](0), (double)first_vertex[j](1), (double)first_vertex[j](2));
@@ -2240,9 +2240,8 @@ bool GLGizmoSlaSupports::on_is_selectable() const
 }
 
 std::string GLGizmoSlaSupports::on_get_name() const
-
 {
-    return L("SLA Support Points");
+    return L("SLA Support Points [L]");
 }
 
 
@@ -2353,7 +2352,7 @@ bool GLGizmoCut::on_init()
 
 std::string GLGizmoCut::on_get_name() const
 {
-    return L("Cut");
+    return L("Cut [C]");
 }
 
 void GLGizmoCut::on_set_state()

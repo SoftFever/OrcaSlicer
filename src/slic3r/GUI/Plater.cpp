@@ -655,18 +655,24 @@ void Sidebar::update_presets(Preset::Type preset_type)
 	PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
 
     switch (preset_type) {
-    case Preset::TYPE_FILAMENT:
-        if (p->combos_filament.size() == 1) {
+    case Preset::TYPE_FILAMENT: 
+    {
+        const int extruder_cnt = p->plater->printer_technology() != ptFFF ? 1 :
+                                dynamic_cast<ConfigOptionFloats*>(preset_bundle.printers.get_edited_preset().config.option("nozzle_diameter"))->values.size();
+        const int filament_cnt = p->combos_filament.size() > extruder_cnt ? extruder_cnt : p->combos_filament.size();
+
+        if (filament_cnt == 1) {
             // Single filament printer, synchronize the filament presets.
-			const std::string &name = preset_bundle.filaments.get_selected_preset().name;
-			preset_bundle.set_filament_preset(0, name);
+            const std::string &name = preset_bundle.filaments.get_selected_preset().name;
+            preset_bundle.set_filament_preset(0, name);
         }
 
-        for (size_t i = 0; i < p->combos_filament.size(); i++) {
-			preset_bundle.update_platter_filament_ui(i, p->combos_filament[i]);
+        for (size_t i = 0; i < filament_cnt; i++) {
+            preset_bundle.update_platter_filament_ui(i, p->combos_filament[i]);
         }
 
         break;
+    }
 
     case Preset::TYPE_PRINT:
 		preset_bundle.prints.update_platter_ui(p->combo_print);
@@ -1356,14 +1362,14 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             // The model should now be initialized
 
             if (model.looks_like_multipart_object()) {
-                wxMessageDialog dlg(q, _(L(
-                        "This file contains several objects positioned at multiple heights. "
-                        "Instead of considering them as multiple objects, should I consider\n"
-                        "this file as a single object having multiple parts?\n"
-                    )), _(L("Multi-part object detected")), wxICON_WARNING | wxYES | wxNO);
-                if (dlg.ShowModal() == wxID_YES) {
+//                 wxMessageDialog dlg(q, _(L(
+//                         "This file contains several objects positioned at multiple heights. "
+//                         "Instead of considering them as multiple objects, should I consider\n"
+//                         "this file as a single object having multiple parts?\n"
+//                     )), _(L("Multi-part object detected")), wxICON_WARNING | wxYES | wxNO);
+//                 if (dlg.ShowModal() == wxID_YES) {
                     model.convert_multipart_object(nozzle_dmrs->values.size());
-                }
+//                 }
             }
 
             if (type_3mf || type_any_amf) {
@@ -2484,7 +2490,7 @@ void Plater::priv::init_view_toolbar()
     GLToolbarItem::Data item;
 
     item.name = "3D";
-    item.tooltip = GUI::L_str("3D editor view");
+    item.tooltip = GUI::L_str("3D editor view [Ctrl+5]");
     item.sprite_id = 0;
     item.action_event = EVT_GLVIEWTOOLBAR_3D;
     item.is_toggable = false;
@@ -2492,7 +2498,7 @@ void Plater::priv::init_view_toolbar()
         return;
 
     item.name = "Preview";
-    item.tooltip = GUI::L_str("Preview");
+    item.tooltip = GUI::L_str("Preview [Ctrl+6]");
     item.sprite_id = 1;
     item.action_event = EVT_GLVIEWTOOLBAR_PREVIEW;
     item.is_toggable = false;

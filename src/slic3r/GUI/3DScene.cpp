@@ -696,7 +696,6 @@ void GLVolumeCollection::load_object_auxiliary(
     mesh.transform(mesh_trafo_inv);
 	// Convex hull is required for out of print bed detection.
 	TriangleMesh convex_hull = mesh.convex_hull_3d();
-    convex_hull.transform(mesh_trafo_inv);
     for (const std::pair<size_t, size_t> &instance_idx : instances) {
         const ModelInstance            &model_instance = *print_object->model_object()->instances[instance_idx.first];
         const SLAPrintObject::Instance &print_instance = print_object->instances()[instance_idx.second];

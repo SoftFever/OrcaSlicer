@@ -120,8 +120,7 @@ void KBShortcutsDialog::fill_shortcuts()
     main_shortcuts.push_back(Shortcut("+"               ,L("Add Instance to selected object ")));
     main_shortcuts.push_back(Shortcut("-"               ,L("Remove Instance from selected object")));
     main_shortcuts.push_back(Shortcut("?"               ,L("Show keyboard shortcuts list")));
-    main_shortcuts.push_back(Shortcut("PgUp/PgDn"       ,L("Switch between 3D and Preview")));
-    main_shortcuts.push_back(Shortcut("Shift+LeftMouse" ,L("Select multiple object/Move multiple object")));
+    main_shortcuts.push_back(Shortcut("Shift+LeftMouse", L("Select multiple object/Move multiple object")));
 
     m_full_shortcuts.emplace(_(L("Main Shortcuts")),    main_shortcuts);
 

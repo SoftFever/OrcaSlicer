@@ -2800,13 +2800,13 @@ std::string GLCanvas3D::Gizmos::update_hover_state(const GLCanvas3D& canvas, con
 
         float icon_size = (float)it->second->get_textures_size() * OverlayIconsScale;
 
+        bool inside = (OverlayBorder <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= OverlayBorder + icon_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + icon_size);
+        if (inside)
+            name = it->second->get_name();
+
         if (it->second->is_activable(selection) && (it->second->get_state() != GLGizmoBase::On))
-        {
-            bool inside = (OverlayBorder <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= OverlayBorder + icon_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + icon_size);
             it->second->set_state(inside ? GLGizmoBase::Hover : GLGizmoBase::Off);
-            if (inside)
-                name = it->second->get_name();
-        }
+
         top_y += (icon_size + OverlayGapY);
     }
 
@@ -5365,9 +5365,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         std::string tooltip = "";
 
         // updates gizmos overlay
-        if (!m_selection.is_empty())
-            tooltip = m_gizmos.update_hover_state(*this, m_mouse.position, m_selection);
-        else
+        tooltip = m_gizmos.update_hover_state(*this, m_mouse.position, m_selection);
+        if (m_selection.is_empty())
             m_gizmos.reset_all_states();
 
         // updates toolbar overlay
@@ -5452,7 +5451,9 @@ void GLCanvas3D::set_tooltip(const std::string& tooltip) const
         wxToolTip* t = m_canvas->GetToolTip();
         if (t != nullptr)
         {
-            if (t->GetTip() != tooltip)
+            if (tooltip.empty())
+                m_canvas->UnsetToolTip();
+            else
                 t->SetTip(tooltip);
         }
         else
@@ -5783,7 +5784,7 @@ bool GLCanvas3D::_init_toolbar()
     GLToolbarItem::Data item;
 
     item.name = "add";
-    item.tooltip = GUI::L_str("Add...");
+    item.tooltip = GUI::L_str("Add... [Ctrl+I]");
     item.sprite_id = 0;
     item.is_toggable = false;
     item.action_event = EVT_GLTOOLBAR_ADD;
@@ -5791,7 +5792,7 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "delete";
-    item.tooltip = GUI::L_str("Delete");
+    item.tooltip = GUI::L_str("Delete [Del]");
     item.sprite_id = 1;
     item.is_toggable = false;
     item.action_event = EVT_GLTOOLBAR_DELETE;
@@ -5799,7 +5800,7 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "deleteall";
-    item.tooltip = GUI::L_str("Delete all");
+    item.tooltip = GUI::L_str("Delete all [Ctrl+Del]");
     item.sprite_id = 2;
     item.is_toggable = false;
     item.action_event = EVT_GLTOOLBAR_DELETE_ALL;
@@ -5807,7 +5808,7 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "arrange";
-    item.tooltip = GUI::L_str("Arrange");
+    item.tooltip = GUI::L_str("Arrange [A]");
     item.sprite_id = 3;
     item.is_toggable = false;
     item.action_event = EVT_GLTOOLBAR_ARRANGE;
@@ -5818,7 +5819,7 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "more";
-    item.tooltip = GUI::L_str("Add instance");
+    item.tooltip = GUI::L_str("Add instance [+]");
     item.sprite_id = 4;
     item.is_toggable = false;
     item.action_event = EVT_GLTOOLBAR_MORE;
@@ -5826,7 +5827,7 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "fewer";
-    item.tooltip = GUI::L_str("Remove instance");
+    item.tooltip = GUI::L_str("Remove instance [-]");
     item.sprite_id = 5;
     item.is_toggable = false;
     item.action_event = EVT_GLTOOLBAR_FEWER;

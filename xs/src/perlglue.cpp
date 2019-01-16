@@ -16,7 +16,7 @@ REGISTER_CLASS(Flow, "Flow");
 REGISTER_CLASS(CoolingBuffer, "GCode::CoolingBuffer");
 REGISTER_CLASS(GCode, "GCode");
 REGISTER_CLASS(GCodePreviewData, "GCode::PreviewData");
-REGISTER_CLASS(GCodeSender, "GCode::Sender");
+// REGISTER_CLASS(GCodeSender, "GCode::Sender");
 REGISTER_CLASS(Layer, "Layer");
 REGISTER_CLASS(SupportLayer, "Layer::Support");
 REGISTER_CLASS(LayerRegion, "Layer::Region");

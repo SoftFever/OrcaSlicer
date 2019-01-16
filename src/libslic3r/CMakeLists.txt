@@ -88,8 +88,8 @@ add_library(libslic3r STATIC
     GCode.hpp
     GCodeReader.cpp
     GCodeReader.hpp
-    GCodeSender.cpp
-    GCodeSender.hpp
+    # GCodeSender.cpp
+    # GCodeSender.hpp
     GCodeTimeEstimator.cpp
     GCodeTimeEstimator.hpp
     GCodeWriter.cpp
