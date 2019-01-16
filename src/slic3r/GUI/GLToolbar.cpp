@@ -530,6 +530,8 @@ std::string GLToolbar::update_hover_state_horizontal(const Vec2d& mouse_pos, GLC
 
             GLToolbarItem::EState state = item->get_state();
             bool inside = (left <= (float)scaled_mouse_pos(0)) && ((float)scaled_mouse_pos(0) <= right) && (bottom <= (float)scaled_mouse_pos(1)) && ((float)scaled_mouse_pos(1) <= top);
+            if (inside)
+                tooltip = item->get_tooltip();
 
             switch (state)
             {
@@ -545,9 +547,7 @@ std::string GLToolbar::update_hover_state_horizontal(const Vec2d& mouse_pos, GLC
             }
             case GLToolbarItem::Hover:
             {
-                if (inside)
-                    tooltip = item->get_tooltip();
-                else
+                if (!inside)
                 {
                     item->set_state(GLToolbarItem::Normal);
                     parent.set_as_dirty();
@@ -567,9 +567,7 @@ std::string GLToolbar::update_hover_state_horizontal(const Vec2d& mouse_pos, GLC
             }
             case GLToolbarItem::HoverPressed:
             {
-                if (inside)
-                    tooltip = item->get_tooltip();
-                else
+                if (!inside)
                 {
                     item->set_state(GLToolbarItem::Pressed);
                     parent.set_as_dirty();
@@ -623,6 +621,8 @@ std::string GLToolbar::update_hover_state_vertical(const Vec2d& mouse_pos, GLCan
 
             GLToolbarItem::EState state = item->get_state();
             bool inside = (left <= (float)scaled_mouse_pos(0)) && ((float)scaled_mouse_pos(0) <= right) && (bottom <= (float)scaled_mouse_pos(1)) && ((float)scaled_mouse_pos(1) <= top);
+            if (inside)
+                tooltip = item->get_tooltip();
 
             switch (state)
             {
@@ -638,9 +638,7 @@ std::string GLToolbar::update_hover_state_vertical(const Vec2d& mouse_pos, GLCan
             }
             case GLToolbarItem::Hover:
             {
-                if (inside)
-                    tooltip = item->get_tooltip();
-                else
+                if (!inside)
                 {
                     item->set_state(GLToolbarItem::Normal);
                     parent.set_as_dirty();
@@ -660,9 +658,7 @@ std::string GLToolbar::update_hover_state_vertical(const Vec2d& mouse_pos, GLCan
             }
             case GLToolbarItem::HoverPressed:
             {
-                if (inside)
-                    tooltip = item->get_tooltip();
-                else
+                if (!inside)
                 {
                     item->set_state(GLToolbarItem::Pressed);
                     parent.set_as_dirty();
