@@ -578,14 +578,18 @@ inline double ray_mesh_intersect(const Vec3d& s,
 // samples: how many rays will be shot
 // safety distance: This will be added to the radiuses to have a safety distance
 // from the mesh.
-inline double pinhead_mesh_intersect(const Vec3d& s_original,
-                                     const Vec3d& dir,
-                                     double r_pin,
-                                     double r_back,
-                                     double width,
-                                     const EigenMesh3D& m,
-                                     unsigned samples = 8,
-                                     double safety_distance = 0.05) {
+double pinhead_mesh_intersect(const Vec3d& s_original,
+                              const Vec3d& dir,
+                              double r_pin,
+                              double r_back,
+                              double width,
+                              const EigenMesh3D& m,
+                              unsigned samples = 8,
+                              double safety_distance = 0.05)
+{
+    // method based on:
+    // https://math.stackexchange.com/questions/73237/parametric-equation-of-a-circle-in-3d-space
+
 
     // We will shoot multiple rays from the head pinpoint in the direction of
     // the pinhead robe (side) surface. The result will be the smallest hit
@@ -593,7 +597,7 @@ inline double pinhead_mesh_intersect(const Vec3d& s_original,
 
     // Move away slightly from the touching point to avoid raycasting on the
     // inner surface of the mesh.
-    Vec3d s = s_original + 1.1 * r_pin * dir;
+    Vec3d s = s_original + r_pin * dir;
 
     Vec3d v = dir;     // Our direction (axis)
     Vec3d c = s + width * dir;
@@ -638,7 +642,49 @@ inline double pinhead_mesh_intersect(const Vec3d& s_original,
         Vec3d n = (p - ps).normalized();
 
         phi = m.query_ray_hit(ps, n);
+
+        // TODO: this should be an inside check
+        if(phi < r_pin) phi = std::numeric_limits<double>::infinity();
+
         std::cout << "t = " << phi << std::endl;
+    }
+
+    auto mit = std::min_element(phis.begin(), phis.end());
+
+    return *mit;
+}
+
+double bridge_mesh_intersect(const Vec3d& s_original,
+                             const Vec3d& dir,
+                             double r,
+                             const EigenMesh3D& m,
+                             unsigned samples = 8,
+                             double safety_distance = 0.05)
+{
+    // helper vector calculations
+    Vec3d s = s_original + r*dir; Vec3d a(0, 1, 0), b;
+
+    a(Z) = -(dir(X)*a(X) + dir(Y)*a(Y)) / dir(Z);
+    b = a.cross(dir);
+
+    // circle portions
+    std::vector<double> phis(samples);
+    for(size_t i = 0; i < phis.size(); ++i) phis[i] = i*2*PI/phis.size();
+
+    for(double& phi : phis) {
+        double sinphi = std::sin(phi);
+        double cosphi = std::cos(phi);
+
+        // Let's have a safety coefficient for the radiuses.
+        double rcos = (safety_distance + r) * cosphi;
+        double rsin = (safety_distance + r) * sinphi;
+
+        // Point on the circle on the pin sphere
+        Vec3d p (s(X) + rcos * a(X) + rsin * b(X),
+                 s(Y) + rcos * a(Y) + rsin * b(Y),
+                 s(Z) + rcos * a(Z) + rsin * b(Z));
+
+        phi = m.query_ray_hit(p, dir);
     }
 
     auto mit = std::min_element(phis.begin(), phis.end());
@@ -1275,7 +1321,8 @@ bool SLASupportTree::generate(const PointSet &points,
         double zstep = pillar_dist * std::tan(-cfg.tilt);
         ej(Z) = sj(Z) + zstep;
 
-        double chkd = ray_mesh_intersect(sj, dirv(sj, ej), emesh);
+//        double chkd = ray_mesh_intersect(sj, dirv(sj, ej), emesh);
+        double chkd = bridge_mesh_intersect(sj, dirv(sj, ej), pillar.r, emesh);
         double bridge_distance = pillar_dist / std::cos(-cfg.tilt);
 
         // If the pillars are so close that they touch each other,
@@ -1301,9 +1348,15 @@ bool SLASupportTree::generate(const PointSet &points,
                     Vec3d bej(sj(X), sj(Y), ej(Z));
 
                     // need to check collision for the cross stick
-                    double backchkd = ray_mesh_intersect(bsj,
-                                                         dirv(bsj, bej),
-                                                         emesh);
+//                    double backchkd = ray_mesh_intersect(bsj,
+//                                                         dirv(bsj, bej),
+//                                                         emesh);
+
+                    double backchkd = bridge_mesh_intersect(bsj,
+                                                            dirv(bsj, bej),
+                                                            pillar.r,
+                                                            emesh);
+
 
                     if(backchkd >= bridge_distance) {
                         result.add_bridge(bsj, bej, pillar.r);
@@ -1312,7 +1365,8 @@ bool SLASupportTree::generate(const PointSet &points,
             }
             sj.swap(ej);
             ej(Z) = sj(Z) + zstep;
-            chkd = ray_mesh_intersect(sj, dirv(sj, ej), emesh);
+//            chkd = ray_mesh_intersect(sj, dirv(sj, ej), emesh);
+            chkd = bridge_mesh_intersect(sj, dirv(sj, ej), pillar.r, emesh);
         }
     };
 
