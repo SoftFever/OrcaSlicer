@@ -564,14 +564,86 @@ inline double ray_mesh_intersect(const Vec3d& s,
     return m.query_ray_hit(s, dir);
 }
 
-// Wrapper only
-inline double pinhead_mesh_intersect(const Head& head, const EigenMesh3D& m) {
-//    return pinhead_mesh_intersect(head.junction_point(),
-//                                  head.dir,
-//                                  head.r_pin_mm,
-//                                  head.r_back_mm,
-//                                  m);
-    return 0;
+// This function will test if a future pinhead would not collide with the model
+// geometry. It does not take a 'Head' object because those are created after
+// this test.
+// Parameters:
+// s: The touching point on the model surface.
+// dir: This is the direction of the head from the pin to the back
+// r_pin, r_back: the radiuses of the pin and the back sphere
+// width: This is the full width from the pin center to the back center
+// m: The object mesh
+//
+// Optional:
+// samples: how many rays will be shot
+// safety distance: This will be added to the radiuses to have a safety distance
+// from the mesh.
+inline double pinhead_mesh_intersect(const Vec3d& s_original,
+                                     const Vec3d& dir,
+                                     double r_pin,
+                                     double r_back,
+                                     double width,
+                                     const EigenMesh3D& m,
+                                     unsigned samples = 8,
+                                     double safety_distance = 0.05) {
+
+    // We will shoot multiple rays from the head pinpoint in the direction of
+    // the pinhead robe (side) surface. The result will be the smallest hit
+    // distance.
+
+    // Move away slightly from the touching point to avoid raycasting on the
+    // inner surface of the mesh.
+    Vec3d s = s_original + 1.1 * r_pin * dir;
+
+    Vec3d v = dir;     // Our direction (axis)
+    Vec3d c = s + width * dir;
+
+    // Two vectors that will be perpendicular to each other and to the axis.
+    // Values for a(X) and a(Y) are now arbitrary, a(Z) is just a placeholder.
+    Vec3d a(0, 1, 0), b;
+
+    // The portions of the circle (the head-back circle) for which we will shoot
+    // rays.
+    std::vector<double> phis(samples);
+    for(size_t i = 0; i < phis.size(); ++i) phis[i] = i*2*PI/phis.size();
+
+    a(Z) = -(v(X)*a(X) + v(Y)*a(Y)) / v(Z);
+
+    b = a.cross(v);
+
+    // Now a and b vectors are perpendicular to v and to each other. Together
+    // they define the plane where we have to iterate with the given angles
+    // in the 'phis' vector
+
+    for(double& phi : phis) {
+        double sinphi = std::sin(phi);
+        double cosphi = std::cos(phi);
+
+        // Let's have a safety coefficient for the radiuses.
+        double rpscos = (safety_distance + r_pin) * cosphi;
+        double rpssin = (safety_distance + r_pin) * sinphi;
+        double rpbcos = (safety_distance + r_back) * cosphi;
+        double rpbsin = (safety_distance + r_back) * sinphi;
+
+        // Point on the circle on the pin sphere
+        Vec3d ps(s(X) + rpscos * a(X) + rpssin * b(X),
+                 s(Y) + rpscos * a(Y) + rpssin * b(Y),
+                 s(Z) + rpscos * a(Z) + rpssin * b(Z));
+
+        // This is the point on the circle on the back sphere
+        Vec3d p(c(X) + rpbcos * a(X) + rpbsin * b(X),
+                c(Y) + rpbcos * a(Y) + rpbsin * b(Y),
+                c(Z) + rpbcos * a(Z) + rpbsin * b(Z));
+
+        Vec3d n = (p - ps).normalized();
+
+        phi = m.query_ray_hit(ps, n);
+        std::cout << "t = " << phi << std::endl;
+    }
+
+    auto mit = std::min_element(phis.begin(), phis.end());
+
+    return *mit;
 }
 
 PointSet normals(const PointSet& points, const EigenMesh3D& mesh,
@@ -1069,7 +1141,13 @@ bool SLASupportTree::generate(const PointSet &points,
 
                 // We should shoot a ray in the direction of the pinhead and
                 // see if there is enough space for it
-                double t = ray_mesh_intersect(hp + 0.1*nn, nn, mesh);
+                double t = pinhead_mesh_intersect(
+                            hp, // touching point
+                            nn,
+                            cfg.head_front_radius_mm, // approx the radius
+                            cfg.head_back_radius_mm,
+                            w,
+                            mesh);
 
                 if(t > 2*w || std::isinf(t)) {
                     // 2*w because of lower and upper pinhead
