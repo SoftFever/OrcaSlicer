@@ -37,7 +37,7 @@
 #include <ostream>
 #include <iostream>
 #include <sstream>
-#include <libslic3r.h>
+// #include <libslic3r.h>
 
 #ifdef SLIC3RXS
 extern "C" {
@@ -68,12 +68,19 @@ extern "C" {
     #undef fputc
     #undef fwrite
     #undef fclose
+    #undef sleep
+    #undef test
+    #undef accept
+    #undef wait
 
 	// Breaks compilation with Eigen matrices embedded into Slic3r::Point.
 	#undef malloc
 	#undef realloc
 	#undef free
 	#undef select
+
+    // Because of TBB
+    #define _WIN32_WINNT 0x0502
 #endif /* _MSC_VER */
 #undef Zero
 #undef Packet
