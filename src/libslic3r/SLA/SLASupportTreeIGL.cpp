@@ -3,6 +3,9 @@
 #include "SLA/SLABoilerPlate.hpp"
 #include "SLA/SLASpatIndex.hpp"
 
+// Workaround: IGL signed_distance.h will define PI in the igl namespace.
+#undef PI
+
 // HEAVY headers... takes eternity to compile
 
 // for concave hull merging decisions
@@ -12,12 +15,16 @@
 #include <igl/ray_mesh_intersect.h>
 #include <igl/point_mesh_squared_distance.h>
 #include <igl/remove_duplicate_vertices.h>
+#include <igl/signed_distance.h>
 
 #include "SLASpatIndex.hpp"
 #include "ClipperUtils.hpp"
 
 namespace Slic3r {
 namespace sla {
+
+// Bring back PI from the igl namespace
+using igl::PI;
 
 /* **************************************************************************
  * SpatIndex implementation
@@ -86,7 +93,10 @@ size_t SpatIndex::size() const
  * EigenMesh3D implementation
  * ****************************************************************************/
 
-class EigenMesh3D::AABBImpl: public igl::AABB<Eigen::MatrixXd, 3> {};
+class EigenMesh3D::AABBImpl: public igl::AABB<Eigen::MatrixXd, 3> {
+public:
+    igl::WindingNumberAABB<Vec3d, Eigen::MatrixXd, Eigen::MatrixXi> windtree;
+};
 
 EigenMesh3D::EigenMesh3D(): m_aabb(new AABBImpl()) {}
 
@@ -128,6 +138,9 @@ EigenMesh3D::EigenMesh3D(const TriangleMesh& tmesh): m_aabb(new AABBImpl()) {
 
     // Build the AABB accelaration tree
     m_aabb->init(m_V, m_F);
+
+    m_aabb->windtree.set_mesh(m_V, m_F);
+    m_aabb->windtree.init();
 }
 
 EigenMesh3D::~EigenMesh3D() {}
@@ -151,6 +164,16 @@ double EigenMesh3D::query_ray_hit(const Vec3d &s, const Vec3d &dir) const
     m_aabb->intersect_ray(m_V, m_F, s, dir, hit);
 
     return double(hit.t);
+}
+
+std::tuple<double, unsigned, Vec3d>
+EigenMesh3D::signed_distance(const Vec3d &/*p*/) const {
+    // TODO: implement
+    return std::make_tuple(0.0, 0, Vec3d());
+}
+
+bool EigenMesh3D::inside(const Vec3d &p) const {
+    return m_aabb->windtree.inside(p);
 }
 
 /* ****************************************************************************

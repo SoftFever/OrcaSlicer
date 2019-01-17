@@ -639,12 +639,10 @@ double pinhead_mesh_intersect(const Vec3d& s_original,
                 c(Y) + rpbcos * a(Y) + rpbsin * b(Y),
                 c(Z) + rpbcos * a(Z) + rpbsin * b(Z));
 
-        Vec3d n = (p - ps).normalized();
-
-        phi = m.query_ray_hit(ps, n);
-
-        // TODO: this should be an inside check
-        if(phi < r_pin) phi = std::numeric_limits<double>::infinity();
+        if(m.inside(ps) && m.inside(p)) {
+            Vec3d n = (p - ps).normalized();
+            phi = m.query_ray_hit(ps, n);
+        } else phi = std::numeric_limits<double>::infinity();
 
         std::cout << "t = " << phi << std::endl;
     }
@@ -684,7 +682,8 @@ double bridge_mesh_intersect(const Vec3d& s_original,
                  s(Y) + rcos * a(Y) + rsin * b(Y),
                  s(Z) + rcos * a(Z) + rsin * b(Z));
 
-        phi = m.query_ray_hit(p, dir);
+        if(m.inside(p)) phi = m.query_ray_hit(p, dir);
+        else phi = std::numeric_limits<double>::infinity();
     }
 
     auto mit = std::min_element(phis.begin(), phis.end());
@@ -1195,9 +1194,7 @@ bool SLASupportTree::generate(const PointSet &points,
                             w,
                             mesh);
 
-                if(t > 2*w || std::isinf(t)) {
-                    // 2*w because of lower and upper pinhead
-
+                if(t > w || std::isinf(t)) {
                     head_pos.row(pcount) = hp;
 
                     // save the verified and corrected normal
@@ -1269,17 +1266,59 @@ bool SLASupportTree::generate(const PointSet &points,
 
         for(unsigned i = 0; i < head_pos.rows(); i++) {
             tifcl();
-            auto& head = result.heads()[i];
+            auto& head = result.head(i);
 
             Vec3d dir(0, 0, -1);
-            Vec3d startpoint = head.junction_point();
+            bool accept = false;
+            int ri = 1;
+            double t = std::numeric_limits<double>::infinity();
+            double hw = head.width_mm;
 
-            double t = ray_mesh_intersect(startpoint, dir, mesh);
+            while(!accept && head.width_mm > 0) {
+
+                Vec3d startpoint = head.junction_point();
+
+                // Collision detection
+                t = bridge_mesh_intersect(startpoint, dir, head.r_back_mm, mesh);
+
+                // Precise distance measurement
+                double tprec = ray_mesh_intersect(startpoint, dir, mesh);
+
+                if(std::isinf(tprec) && !std::isinf(t)) {
+                    // This is a damned case where the pillar melds into the model
+                    // but its center ray can reach the ground. We can not route
+                    // this to the ground nor to the model surface. We have to
+                    // modify the head or discard this support point.
+                    head.width_mm = hw + (ri % 2? -1 : 1) * ri * head.r_back_mm;
+                } else {
+                    accept = true; t = tprec;
+
+                    auto id = head.id;
+                    // We need to regenerate the head geometry
+                    head = Head(head.r_back_mm,
+                                head.r_pin_mm,
+                                head.width_mm,
+                                head.penetration_mm,
+                                head.dir,
+                                head.tr);
+                    head.id = id;
+                }
+
+                ri++;
+            }
 
             gndheight.emplace_back(t);
 
-            if(std::isinf(t)) gndidx.emplace_back(i);
-            else nogndidx.emplace_back(i);
+            if(accept) {
+                if(std::isinf(t)) gndidx.emplace_back(i);
+                else nogndidx.emplace_back(i);
+            } else {
+                BOOST_LOG_TRIVIAL(warning) << "A support point at "
+                                           << head.tr.transpose()
+                                           << " had to be discarded as there is"
+                                           << " nowhere to route it.";
+                head.invalidate();
+            }
         }
 
         PointSet gnd(gndidx.size(), 3);
@@ -1321,7 +1360,6 @@ bool SLASupportTree::generate(const PointSet &points,
         double zstep = pillar_dist * std::tan(-cfg.tilt);
         ej(Z) = sj(Z) + zstep;
 
-//        double chkd = ray_mesh_intersect(sj, dirv(sj, ej), emesh);
         double chkd = bridge_mesh_intersect(sj, dirv(sj, ej), pillar.r, emesh);
         double bridge_distance = pillar_dist / std::cos(-cfg.tilt);
 
@@ -1348,10 +1386,6 @@ bool SLASupportTree::generate(const PointSet &points,
                     Vec3d bej(sj(X), sj(Y), ej(Z));
 
                     // need to check collision for the cross stick
-//                    double backchkd = ray_mesh_intersect(bsj,
-//                                                         dirv(bsj, bej),
-//                                                         emesh);
-
                     double backchkd = bridge_mesh_intersect(bsj,
                                                             dirv(bsj, bej),
                                                             pillar.r,
@@ -1365,7 +1399,6 @@ bool SLASupportTree::generate(const PointSet &points,
             }
             sj.swap(ej);
             ej(Z) = sj(Z) + zstep;
-//            chkd = ray_mesh_intersect(sj, dirv(sj, ej), emesh);
             chkd = bridge_mesh_intersect(sj, dirv(sj, ej), pillar.r, emesh);
         }
     };
@@ -1444,7 +1477,7 @@ bool SLASupportTree::generate(const PointSet &points,
             // is distributed more effectively on the pillar.
 
             auto search_nearest =
-                    [&cfg, &result, &emesh, maxbridgelen, gndlvl]
+                    [&cfg, &result, &emesh, maxbridgelen, gndlvl, pradius]
                     (SpatIndex& spindex, const Vec3d& jsh)
             {
                 long nearest_id = -1;
@@ -1476,7 +1509,9 @@ bool SLASupportTree::generate(const PointSet &points,
                     double d = distance(jp, jn);
                     if(jn(Z) <= gndlvl || d > max_len) break;
 
-                    double chkd = ray_mesh_intersect(jp, dirv(jp, jn), emesh);
+                    double chkd = bridge_mesh_intersect(jp, dirv(jp, jn),
+                                                        pradius,
+                                                        emesh);
                     if(chkd >= d) nearest_id = ne.second;
 
                     spindex.remove(ne);
@@ -1695,9 +1730,14 @@ bool SLASupportTree::generate(const PointSet &points,
 
             Vec3d dir = {0, 0, -1};
             Vec3d sj = sp + R * n;
-            double dist = ray_mesh_intersect(sj, dir, emesh);
 
+            // This is only for checking
+            double dist = bridge_mesh_intersect(sj, dir, R, emesh);
             if(std::isinf(dist) || std::isnan(dist) || dist < 2*R) continue;
+
+            // This on the other hand will return the exact distance available
+            // measured through the center of the stick.
+            dist = ray_mesh_intersect(sj, dir, emesh);
 
             Vec3d ej = sj + (dist + HWIDTH_MM)* dir;
             result.add_compact_bridge(sp, ej, n, R);

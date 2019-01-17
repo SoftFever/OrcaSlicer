@@ -120,16 +120,21 @@ public:
     ~EigenMesh3D();
 
     EigenMesh3D(const EigenMesh3D& other);
-//    EigenMesh3D(EigenMesh3D&&) = default;
     EigenMesh3D& operator=(const EigenMesh3D&);
-//    EigenMesh3D& operator=(EigenMesh3D&&) = default;
 
     inline double ground_level() const { return m_ground_level; }
 
     inline const Eigen::MatrixXd& V() const { return m_V; }
     inline const Eigen::MatrixXi& F() const { return m_F; }
 
+    // Casting a ray on the mesh, returns the distance where the hit occures.
     double query_ray_hit(const Vec3d &s, const Vec3d &dir) const;
+
+    // The signed distance from a point to the mesh. Outputs the distance,
+    // the index of the triangle and the closest point in mesh coordinate space.
+    std::tuple<double, unsigned, Vec3d> signed_distance(const Vec3d& p) const;
+
+    bool inside(const Vec3d& p) const;
 };
 
 using PointSet = Eigen::MatrixXd;
