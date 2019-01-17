@@ -270,9 +270,9 @@ namespace client
         {
             std::string out;
             switch (type) {
-            case TYPE_BOOL:   out = boost::to_string(data.b); break;
-            case TYPE_INT:    out = boost::to_string(data.i); break;
-            case TYPE_DOUBLE: out = boost::to_string(data.d); break;
+            case TYPE_BOOL:   out = std::to_string(data.b); break;
+            case TYPE_INT:    out = std::to_string(data.i); break;
+            case TYPE_DOUBLE: out = std::to_string(data.d); break;
             case TYPE_STRING: out = *data.s; break;
             default:          break;
             }
