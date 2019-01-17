@@ -164,27 +164,8 @@ bool GUI_App::OnInit()
                        // to correct later layouts
     });
 
-    // This makes CallAfter() work
     Bind(wxEVT_IDLE, [this](wxIdleEvent& event)
     {
-        std::function<void()> cur_cb{ nullptr };
-        // try to get the mutex. If we can't, just skip this idle event and get the next one.
-        if (!callback_register.try_lock()) return;
-        // pop callback
-        if (m_cb.size() != 0) {
-            cur_cb = m_cb.top();
-            m_cb.pop();
-        }
-        // unlock mutex
-        this->callback_register.unlock();
-
-        try { // call the function if it's not nullptr;
-            if (cur_cb != nullptr) cur_cb();
-        }
-        catch (std::exception& e) {
-            std::cerr << "Exception thrown: " << e.what() << std::endl;
-        }
-
         if (app_config->dirty())
             app_config->save();
 
@@ -418,16 +399,6 @@ void GUI_App::import_model(wxWindow *parent, wxArrayString& input_files)
 
     if (dialog.ShowModal() == wxID_OK)
         dialog.GetPaths(input_files);
-}
-
-void GUI_App::CallAfter(std::function<void()> cb)
-{
-    // set mutex
-    callback_register.lock();
-    // push function onto stack
-    m_cb.emplace(cb);
-    // unset mutex
-    callback_register.unlock();
 }
 
 // select language from the list of installed languages
