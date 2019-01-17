@@ -60,3 +60,5 @@
 #define ENABLE_MOVE_MIN_THRESHOLD (1 && ENABLE_1_42_0_ALPHA4)
 // Modified initial default placement of generic subparts
 #define ENABLE_GENERIC_SUBPARTS_PLACEMENT (1 && ENABLE_1_42_0_ALPHA4)
+// Reworked management of bed shape changes
+#define ENABLE_REWORKED_BED_SHAPE_CHANGE (1 && ENABLE_1_42_0_ALPHA4)

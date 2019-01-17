@@ -1125,9 +1125,11 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     this->background_process_timer.SetOwner(this->q, 0);
     this->q->Bind(wxEVT_TIMER, [this](wxTimerEvent &evt) { this->update_restart_background_process(false, false); });
 
+#if !ENABLE_REWORKED_BED_SHAPE_CHANGE
     auto *bed_shape = config->opt<ConfigOptionPoints>("bed_shape");
     view3D->set_bed_shape(bed_shape->values);
     preview->set_bed_shape(bed_shape->values);
+#endif // !ENABLE_REWORKED_BED_SHAPE_CHANGE
 
     update();
 
@@ -2965,7 +2967,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         p->config->set_key_value(opt_key, config.option(opt_key)->clone());
         if (opt_key == "printer_technology")
             this->set_printer_technology(config.opt_enum<PrinterTechnology>(opt_key));
-        else if (opt_key  == "bed_shape") {
+        else if (opt_key == "bed_shape") {
             if (p->view3D) p->view3D->set_bed_shape(p->config->option<ConfigOptionPoints>(opt_key)->values);
             if (p->preview) p->preview->set_bed_shape(p->config->option<ConfigOptionPoints>(opt_key)->values);
             update_scheduled = true;
@@ -2990,12 +2992,14 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             p->preview->set_number_extruders(p->config->option<ConfigOptionStrings>(opt_key)->values.size());
         } else if(opt_key == "max_print_height") {
             update_scheduled = true;
-        } else if(opt_key == "printer_model") {
+        }
+        else if (opt_key == "printer_model") {
             // update to force bed selection(for texturing)
             if (p->view3D) p->view3D->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values);
             if (p->preview) p->preview->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values);
             update_scheduled = true;
-        } else if (opt_key == "host_type" && this->p->printer_technology == ptSLA) {
+        }
+        else if (opt_key == "host_type" && this->p->printer_technology == ptSLA) {
             p->config->option<ConfigOptionEnum<PrintHostType>>(opt_key)->value = htSL1;
         }
     }
