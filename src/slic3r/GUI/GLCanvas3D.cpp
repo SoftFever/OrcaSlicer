@@ -3718,7 +3718,11 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     , m_dirty(true)
     , m_initialized(false)
     , m_use_VBOs(false)
+#if ENABLE_REWORKED_BED_SHAPE_CHANGE
+    , m_requires_zoom_to_bed(false)
+#else
     , m_force_zoom_to_bed_enabled(false)
+#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
     , m_apply_zoom_to_volumes_filter(false)
     , m_hover_volume_id(-1)
     , m_toolbar_action_running(false)
@@ -3937,7 +3941,11 @@ void GLCanvas3D::set_bed_shape(const Pointfs& shape)
     set_bed_axes_length(0.1 * m_bed.get_bounding_box().max_size());
 
     if (new_shape)
+#if ENABLE_REWORKED_BED_SHAPE_CHANGE
+        m_requires_zoom_to_bed = true;
+#else
         zoom_to_bed();
+#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
 
     m_dirty = true;
 }
@@ -4032,10 +4040,12 @@ void GLCanvas3D::enable_toolbar(bool enable)
     m_toolbar.set_enabled(enable);
 }
 
+#if !ENABLE_REWORKED_BED_SHAPE_CHANGE
 void GLCanvas3D::enable_force_zoom_to_bed(bool enable)
 {
     m_force_zoom_to_bed_enabled = enable;
 }
+#endif // !ENABLE_REWORKED_BED_SHAPE_CHANGE
 
 void GLCanvas3D::enable_dynamic_background(bool enable)
 {
@@ -4116,6 +4126,9 @@ void GLCanvas3D::set_viewport_from_scene(const GLCanvas3D& other)
     m_camera.set_scene_box(other.m_camera.get_scene_box(), *this);
     m_camera.set_target(other.m_camera.get_target(), *this);
     m_camera.zoom = other.m_camera.zoom;
+#if ENABLE_REWORKED_BED_SHAPE_CHANGE
+    m_requires_zoom_to_bed = false;
+#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
     m_dirty = true;
 }
 
@@ -4168,8 +4181,18 @@ void GLCanvas3D::render()
 #endif // ENABLE_USE_UNIQUE_GLCONTEXT
         return;
 
+#if ENABLE_REWORKED_BED_SHAPE_CHANGE
+    if (m_requires_zoom_to_bed)
+    {
+        zoom_to_bed();
+        const Size& cnv_size = get_canvas_size();
+        _resize((unsigned int)cnv_size.get_width(), (unsigned int)cnv_size.get_height());
+        m_requires_zoom_to_bed = false;
+    }
+#else
     if (m_force_zoom_to_bed_enabled)
         _force_zoom_to_bed();
+#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
 
     _camera_tranform();
 
@@ -5738,11 +5761,13 @@ bool GLCanvas3D::_is_shown_on_screen() const
     return (m_canvas != nullptr) ? m_canvas->IsShownOnScreen() : false;
 }
 
+#if !ENABLE_REWORKED_BED_SHAPE_CHANGE
 void GLCanvas3D::_force_zoom_to_bed()
 {
     zoom_to_bed();
     m_force_zoom_to_bed_enabled = false;
 }
+#endif //  !ENABLE_REWORKED_BED_SHAPE_CHANGE
 
 bool GLCanvas3D::_init_toolbar()
 {
@@ -5974,7 +5999,11 @@ void GLCanvas3D::_zoom_to_bounding_box(const BoundingBoxf3& bbox)
 
         viewport_changed();
 
+#if ENABLE_REWORKED_BED_SHAPE_CHANGE
+        m_dirty = true;
+#else
         _refresh_if_shown_on_screen();
+#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
     }
 }
 
@@ -6076,11 +6105,15 @@ void GLCanvas3D::_refresh_if_shown_on_screen()
 
         // Because of performance problems on macOS, where PaintEvents are not delivered
         // frequently enough, we call render() here directly when we can.
+#if ENABLE_REWORKED_BED_SHAPE_CHANGE
+        render();
+#else
         // We can't do that when m_force_zoom_to_bed_enabled == true, because then render()
         // ends up calling back here via _force_zoom_to_bed(), causing a stack overflow.
         if (m_canvas != nullptr) {
             m_force_zoom_to_bed_enabled ? m_canvas->Refresh() : render();
         }
+#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
     }
 }
 

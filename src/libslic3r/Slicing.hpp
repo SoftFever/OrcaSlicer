@@ -5,6 +5,7 @@
 
 #include <set>
 #include <vector>
+#include <map>
 
 #include "libslic3r.h"
 namespace Slic3r
