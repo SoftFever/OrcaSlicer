@@ -643,8 +643,6 @@ double pinhead_mesh_intersect(const Vec3d& s_original,
             Vec3d n = (p - ps).normalized();
             phi = m.query_ray_hit(ps, n);
         } else phi = std::numeric_limits<double>::infinity();
-
-        std::cout << "t = " << phi << std::endl;
     }
 
     auto mit = std::min_element(phis.begin(), phis.end());
@@ -1368,7 +1366,7 @@ bool SLASupportTree::generate(const PointSet &points,
         if(pillar_dist > 2*cfg.head_back_radius_mm &&
            bridge_distance < cfg.max_bridge_length_mm)
             while(sj(Z) > pillar.endpoint(Z) + cfg.base_radius_mm &&
-                  ej(Z) > nextpillar.endpoint(Z) + + cfg.base_radius_mm)
+                  ej(Z) > nextpillar.endpoint(Z) + cfg.base_radius_mm)
         {
             if(chkd >= bridge_distance) {
                 result.add_bridge(sj, ej, pillar.r);
@@ -1732,12 +1730,16 @@ bool SLASupportTree::generate(const PointSet &points,
             Vec3d sj = sp + R * n;
 
             // This is only for checking
-            double dist = bridge_mesh_intersect(sj, dir, R, emesh);
-            if(std::isinf(dist) || std::isnan(dist) || dist < 2*R) continue;
+            double idist = bridge_mesh_intersect(sj, dir, R, emesh);
+            double dist = ray_mesh_intersect(sj, dir, emesh);
 
-            // This on the other hand will return the exact distance available
-            // measured through the center of the stick.
-            dist = ray_mesh_intersect(sj, dir, emesh);
+            if(std::isinf(idist) || std::isnan(idist) || idist < 2*R ||
+               std::isinf(dist)  || std::isnan(dist)   || dist < 2*R) {
+                BOOST_LOG_TRIVIAL(warning) << "Can not find route for headless"
+                                           << " support stick at: "
+                                           << sj.transpose();
+                continue;
+            }
 
             Vec3d ej = sj + (dist + HWIDTH_MM)* dir;
             result.add_compact_bridge(sp, ej, n, R);
