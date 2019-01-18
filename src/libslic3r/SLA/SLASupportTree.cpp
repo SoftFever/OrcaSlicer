@@ -707,6 +707,19 @@ ClusteredPoints cluster(
         std::function<bool(const SpatElement&, const SpatElement&)> pred,
         unsigned max_points = 0);
 
+// This class will hold the support tree meshes with some additional bookkeeping
+// as well. Various parts of the support geometry are stored separately and are
+// merged when the caller queries the merged mesh. The merged result is cached
+// for fast subsequent delivery of the merged mesh which can be quite complex.
+// An object of this class will be used as the result type during the support
+// generation algorithm. Parts will be added with the appropriate methods such
+// as add_head or add_pillar which forwards the constructor arguments and fills
+// the IDs of these substructures. The IDs are basically indices into the arrays
+// of the appropriate type (heads, pillars, etc...). One can later query e.g. a
+// pillar for a specific head...
+//
+// The support pad is considered an auxiliary geometry and is not part of the
+// merged mesh. It can be retrieved using a dedicated method (pad())
 class SLASupportTree::Impl {
     std::vector<Head> m_heads;
     std::vector<Pillar> m_pillars;
@@ -1067,16 +1080,22 @@ bool SLASupportTree::generate(const PointSet &points,
     // Indices of those who don't touch the ground
     IndexSet noground_heads;
 
+    // Groups of the 'ground_head' indices that belong into one cluster. These
+    // are candidates to be connected to one pillar.
     ClusteredPoints ground_connectors;
 
+    // A help function to translate ground head index to the actual coordinates.
     auto gnd_head_pt = [&ground_heads, &head_positions] (size_t idx) {
         return Vec3d(head_positions.row(ground_heads[idx]));
     };
 
+    // This algorithm uses the Impl class as its output stream. It will be
+    // filled gradually with support elements (heads, pillars, bridges, ...)
     using Result = SLASupportTree::Impl;
-
     Result& result = *m_impl;
 
+    // Let's define the individual steps of the processing. We can experiment
+    // later with the ordering and the dependencies between them.
     enum Steps {
         BEGIN,
         FILTER,
@@ -1092,14 +1111,15 @@ bool SLASupportTree::generate(const PointSet &points,
         //...
     };
 
-    // Debug:
-    // for(int pn = 0; pn < points.rows(); ++pn) {
-    //     std::cout << "p " << pn << " " << points.row(pn) << std::endl;
-    // }
-
-
+    // t-hrow i-f c-ance-l-ed: It will be called many times so a shorthand will
+    // come in handy.
     auto& tifcl = ctl.cancelfn;
 
+    // Filtering step: here we will discard inappropriate support points and
+    // decide the future of the appropriate ones. We will check if a pinhead
+    // is applicable and adjust its angle at each support point.
+    // We will also merge the support points that are just too close and can be
+    // considered as one.
     auto filterfn = [tifcl] (
             const SupportConfig& cfg,
             const PointSet& points,
@@ -1110,10 +1130,6 @@ bool SLASupportTree::generate(const PointSet &points,
             PointSet& headless_pos,
             PointSet& headless_norm)
     {
-        /* ******************************************************** */
-        /* Filtering step                                           */
-        /* ******************************************************** */
-
         // Get the points that are too close to each other and keep only the
         // first one
         auto aliases =
@@ -1214,7 +1230,8 @@ bool SLASupportTree::generate(const PointSet &points,
         headless_norm.conservativeResize(hlcount, Eigen::NoChange);
     };
 
-    // Function to write the pinheads into the result
+    // Pinhead creation: based on the filtering results, the Head objects will
+    // be constructed (together with their triangle meshes).
     auto pinheadfn = [tifcl] (
             const SupportConfig& cfg,
             PointSet& head_pos,
@@ -1240,8 +1257,13 @@ bool SLASupportTree::generate(const PointSet &points,
         }
     };
 
-    // &filtered_points, &head_positions, &result, &mesh,
-    // &gndidx, &gndheight, &nogndidx, cfg
+    // Further classification of the support points with pinheads. If the
+    // ground is directly reachable through a vertical line parallel to the Z
+    // axis we consider a support point as pillar candidate. If touches the
+    // model geometry, it will be marked as non-ground facing and further steps
+    // will process it. Also, the pillars will be grouped into clusters that can
+    // be interconnected with bridges. Elements of these groups may or may not
+    // be interconnected. Here we only run the clustering algorithm.
     auto classifyfn = [tifcl] (
             const SupportConfig& cfg,
             const EigenMesh3D& mesh,
@@ -1262,6 +1284,9 @@ bool SLASupportTree::generate(const PointSet &points,
         gndidx.reserve(size_t(head_pos.rows()));
         nogndidx.reserve(size_t(head_pos.rows()));
 
+        // First we search decide which heads reach the ground and can be full
+        // pillars and which shall be connected to the model surface (or search
+        // a suitable path around the surface that leads to the ground -- TODO)
         for(unsigned i = 0; i < head_pos.rows(); i++) {
             tifcl();
             auto& head = result.head(i);
@@ -1272,6 +1297,9 @@ bool SLASupportTree::generate(const PointSet &points,
             double t = std::numeric_limits<double>::infinity();
             double hw = head.width_mm;
 
+            // We will try to assign a pillar to all the pinheads. If a pillar
+            // would pierce the model surface, we will try to adjust slightly
+            // the head with so that the pillar can be deployed.
             while(!accept && head.width_mm > 0) {
 
                 Vec3d startpoint = head.junction_point();
@@ -1283,10 +1311,9 @@ bool SLASupportTree::generate(const PointSet &points,
                 double tprec = ray_mesh_intersect(startpoint, dir, mesh);
 
                 if(std::isinf(tprec) && !std::isinf(t)) {
-                    // This is a damned case where the pillar melds into the model
-                    // but its center ray can reach the ground. We can not route
-                    // this to the ground nor to the model surface. We have to
-                    // modify the head or discard this support point.
+                    // This is a damned case where the pillar melds into the
+                    // model but its center ray can reach the ground. We can
+                    // not route this to the ground nor to the model surface.
                     head.width_mm = hw + (ri % 2? -1 : 1) * ri * head.r_back_mm;
                 } else {
                     accept = true; t = tprec;
@@ -1305,12 +1332,23 @@ bool SLASupportTree::generate(const PointSet &points,
                 ri++;
             }
 
+            // Save the distance from a surface in the Z axis downwards. It may
+            // be infinity but that is telling us that it touches the ground.
             gndheight.emplace_back(t);
 
             if(accept) {
                 if(std::isinf(t)) gndidx.emplace_back(i);
                 else nogndidx.emplace_back(i);
             } else {
+                // This is a serious issue. There was no way to deploy a pillar
+                // for the given pinhead. The whole thing has to be discarded
+                // leaving the model potentially unprintable.
+                //
+                // TODO: In the future this has to be solved by searching for
+                // a path in 3D space from this support point to a suitable
+                // pillar position or an existing pillar.
+                // As a workaround we could mark this head as "sidehead only"
+                // let it go trough the nearby pillar search in the next step.
                 BOOST_LOG_TRIVIAL(warning) << "A support point at "
                                            << head.tr.transpose()
                                            << " had to be discarded as there is"
@@ -1319,8 +1357,8 @@ bool SLASupportTree::generate(const PointSet &points,
             }
         }
 
+        // Transform the ground facing point indices top actual coordinates.
         PointSet gnd(gndidx.size(), 3);
-
         for(size_t i = 0; i < gndidx.size(); i++)
             gnd.row(long(i)) = head_pos.row(gndidx[i]);
 
@@ -1340,7 +1378,8 @@ bool SLASupportTree::generate(const PointSet &points,
         }, 3); // max 3 heads to connect to one centroid
     };
 
-    // Helper function for interconnecting two pillars with zig-zag bridges
+    // Helper function for interconnecting two pillars with zig-zag bridges.
+    // This is not an individual step.
     auto interconnect = [&cfg](
             const Pillar& pillar,
             const Pillar& nextpillar,
@@ -1401,6 +1440,11 @@ bool SLASupportTree::generate(const PointSet &points,
         }
     };
 
+    // Step: Routing the ground connected pinheads, and interconnecting them
+    // with additional (angled) bridges. Not all of these pinheads will be
+    // a full pillar (ground connected). Some will connect to a nearby pillar
+    // using a bridge. The max number of such side-heads for a central pillar
+    // is limited to avoid bad weight distribution.
     auto routing_ground_fn = [gnd_head_pt, interconnect, tifcl](
             const SupportConfig& cfg,
             const ClusteredPoints& gnd_clusters,
@@ -1505,7 +1549,7 @@ bool SLASupportTree::generate(const PointSet &points,
                     }
 
                     double d = distance(jp, jn);
-                    if(jn(Z) <= gndlvl || d > max_len) break;
+                    if(jn(Z) <= gndlvl + nearhead.r_back_mm || d > max_len) break;
 
                     double chkd = bridge_mesh_intersect(jp, dirv(jp, jn),
                                                         pradius,
@@ -1644,6 +1688,11 @@ bool SLASupportTree::generate(const PointSet &points,
         }
     };
 
+    // Step: routing the pinheads that are would connect to the model surface
+    // along the Z axis downwards. For now these will actually be connected with
+    // the model surface with a flipped pinhead. In the future here we could use
+    // some smart algorithms to search for a safe path to the ground or to a
+    // nearby pillar that can hold the supported weight.
     auto routing_nongnd_fn = [tifcl](
             const SupportConfig& cfg,
             const std::vector<double>& gndheight,
@@ -1705,6 +1754,9 @@ bool SLASupportTree::generate(const PointSet &points,
         }
     };
 
+    // Step: process the support points where there is not enough space for a
+    // full pinhead. In this case we will use a rounded sphere as a touching
+    // point and use a thinner bridge (let's call it a stick).
     auto process_headless = [tifcl](
             const SupportConfig& cfg,
             const PointSet& headless_pts,
@@ -1746,16 +1798,24 @@ bool SLASupportTree::generate(const PointSet &points,
         }
     };
 
-    using std::ref;
-    using std::cref;
+    // Now that the individual blocks are defined, lets connect the wires. We
+    // will create an array of functions which represents a program. Place the
+    // step methods in the array and bind the right arguments to the methods
+    // This way the data dependencies will be easily traceable between
+    // individual steps.
+    // There will be empty steps as well like the begin step or the done or
+    // abort steps. These are slots for future initialization or cleanup.
+
+    using std::cref;    // Bind inputs with cref (read-only)
+    using std::ref;     // Bind outputs with ref (writable)
     using std::bind;
 
     // Here we can easily track what goes in and what comes out of each step:
     // (see the cref-s as inputs and ref-s as outputs)
     std::array<std::function<void()>, NUM_STEPS> program = {
     [] () {
-        // Begin
-        // clear up the shared data
+        // Begin...
+        // Potentially clear up the shared data (not needed for now)
     },
 
     // Filtering unnecessary support points
@@ -1798,6 +1858,7 @@ bool SLASupportTree::generate(const PointSet &points,
 
     Steps pc = BEGIN, pc_prev = BEGIN;
 
+    // Let's define a simple automaton that will run our program.
     auto progress = [&ctl, &pc, &pc_prev] () {
         static const std::array<std::string, NUM_STEPS> stepstr {
             "Starting",
