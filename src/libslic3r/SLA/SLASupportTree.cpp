@@ -578,7 +578,7 @@ inline double ray_mesh_intersect(const Vec3d& s,
 // samples: how many rays will be shot
 // safety distance: This will be added to the radiuses to have a safety distance
 // from the mesh.
-double pinhead_mesh_intersect(const Vec3d& s_original,
+double pinhead_mesh_intersect(const Vec3d& s,
                               const Vec3d& dir,
                               double r_pin,
                               double r_back,
@@ -597,8 +597,6 @@ double pinhead_mesh_intersect(const Vec3d& s_original,
 
     // Move away slightly from the touching point to avoid raycasting on the
     // inner surface of the mesh.
-    Vec3d s = s_original + r_pin * dir;
-
     Vec3d v = dir;     // Our direction (axis)
     Vec3d c = s + width * dir;
 
@@ -634,15 +632,20 @@ double pinhead_mesh_intersect(const Vec3d& s_original,
                  s(Y) + rpscos * a(Y) + rpssin * b(Y),
                  s(Z) + rpscos * a(Z) + rpssin * b(Z));
 
+        // Point ps is not on mesh but can be inside or outside as well. This
+        // would cause many problems with ray-casting. So we query the closest
+        // point on the mesh to this.
+        auto result = m.signed_distance(ps);
+
         // This is the point on the circle on the back sphere
         Vec3d p(c(X) + rpbcos * a(X) + rpbsin * b(X),
                 c(Y) + rpbcos * a(Y) + rpbsin * b(Y),
                 c(Z) + rpbcos * a(Z) + rpbsin * b(Z));
 
-        if(m.inside(ps) && m.inside(p)) {
-            Vec3d n = (p - ps).normalized();
-            phi = m.query_ray_hit(ps, n);
-        } else phi = std::numeric_limits<double>::infinity();
+        if(!m.inside(p)) {
+            Vec3d n = (p - result.point_on_mesh() + 0.01 * dir).normalized();
+            phi = m.query_ray_hit(result.point_on_mesh(), n);
+        } else phi = 0;
     }
 
     auto mit = std::min_element(phis.begin(), phis.end());
@@ -650,7 +653,7 @@ double pinhead_mesh_intersect(const Vec3d& s_original,
     return *mit;
 }
 
-double bridge_mesh_intersect(const Vec3d& s_original,
+double bridge_mesh_intersect(const Vec3d& s,
                              const Vec3d& dir,
                              double r,
                              const EigenMesh3D& m,
@@ -658,7 +661,7 @@ double bridge_mesh_intersect(const Vec3d& s_original,
                              double safety_distance = 0.05)
 {
     // helper vector calculations
-    Vec3d s = s_original + r*dir; Vec3d a(0, 1, 0), b;
+    Vec3d a(0, 1, 0), b;
 
     a(Z) = -(dir(X)*a(X) + dir(Y)*a(Y)) / dir(Z);
     b = a.cross(dir);
@@ -680,8 +683,9 @@ double bridge_mesh_intersect(const Vec3d& s_original,
                  s(Y) + rcos * a(Y) + rsin * b(Y),
                  s(Z) + rcos * a(Z) + rsin * b(Z));
 
-        if(m.inside(p)) phi = m.query_ray_hit(p, dir);
-        else phi = std::numeric_limits<double>::infinity();
+        auto result = m.signed_distance(p);
+
+        phi = m.query_ray_hit(result.point_on_mesh() + 0.05*dir, dir);
     }
 
     auto mit = std::min_element(phis.begin(), phis.end());
@@ -1189,6 +1193,8 @@ bool SLASupportTree::generate(const PointSet &points,
                 Vec3d nn(std::cos(azimuth) * std::sin(polar),
                          std::sin(azimuth) * std::sin(polar),
                          std::cos(polar));
+
+                nn.normalize();
 
                 // save the head (pinpoint) position
                 Vec3d hp = filt_pts.row(i);

@@ -130,9 +130,26 @@ public:
     // Casting a ray on the mesh, returns the distance where the hit occures.
     double query_ray_hit(const Vec3d &s, const Vec3d &dir) const;
 
+    class si_result {
+        double m_value;
+        int m_fidx;
+        Vec3d m_p;
+        si_result(double val, int i, const Vec3d& c):
+            m_value(val), m_fidx(i), m_p(c) {}
+        friend class EigenMesh3D;
+    public:
+
+        si_result() = delete;
+
+        double value() const { return m_value; }
+        operator double() const { return m_value; }
+        const Vec3d& point_on_mesh() const { return m_p; }
+        int F_idx() const { return m_fidx; }
+    };
+
     // The signed distance from a point to the mesh. Outputs the distance,
     // the index of the triangle and the closest point in mesh coordinate space.
-    std::tuple<double, unsigned, Vec3d> signed_distance(const Vec3d& p) const;
+    si_result signed_distance(const Vec3d& p) const;
 
     bool inside(const Vec3d& p) const;
 };

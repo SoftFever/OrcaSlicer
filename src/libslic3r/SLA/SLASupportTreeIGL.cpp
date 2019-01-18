@@ -166,10 +166,12 @@ double EigenMesh3D::query_ray_hit(const Vec3d &s, const Vec3d &dir) const
     return double(hit.t);
 }
 
-std::tuple<double, unsigned, Vec3d>
-EigenMesh3D::signed_distance(const Vec3d &/*p*/) const {
-    // TODO: implement
-    return std::make_tuple(0.0, 0, Vec3d());
+EigenMesh3D::si_result EigenMesh3D::signed_distance(const Vec3d &p) const {
+    double sign = 0; double sqdst = 0; int i = 0;  Vec3d c;
+    igl::signed_distance_winding_number(*m_aabb, m_V, m_F, m_aabb->windtree,
+                                        p, sign, sqdst, i, c);
+
+    return si_result(sign * std::sqrt(sqdst), i, c);
 }
 
 bool EigenMesh3D::inside(const Vec3d &p) const {
