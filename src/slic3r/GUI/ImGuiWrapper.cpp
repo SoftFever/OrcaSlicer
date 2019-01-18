@@ -12,6 +12,8 @@
 
 #include <GL/glew.h>
 
+#include <imgui/imgui_internal.h>
+
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Utils.hpp"
 #include "GUI.hpp"
@@ -23,6 +25,7 @@ namespace GUI {
 ImGuiWrapper::ImGuiWrapper()
     : m_font_texture(0)
     , m_mouse_buttons(0)
+    , m_disabled(false)
 {
 }
 
@@ -152,6 +155,26 @@ void ImGuiWrapper::text(const wxString &label)
 {
     auto label_utf8 = into_u8(label);
     ImGui::Text(label_utf8.c_str(), NULL);
+}
+
+void ImGuiWrapper::disabled_begin(bool disabled)
+{
+    wxCHECK_RET(!m_disabled, "ImGUI: Unbalanced disabled_begin() call");
+
+    if (disabled) {
+        ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+        ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+        m_disabled = true;
+    }
+}
+
+void ImGuiWrapper::disabled_end()
+{
+    if (m_disabled) {
+        ImGui::PopItemFlag();
+        ImGui::PopStyleVar();
+        m_disabled = false;
+    }
 }
 
 bool ImGuiWrapper::want_mouse() const
