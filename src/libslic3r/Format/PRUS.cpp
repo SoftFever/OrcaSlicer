@@ -282,7 +282,9 @@ static void extract_model_from_archive(
             group_to_model_object[group_id] = model_object;
     } else {
         // This is not the 1st mesh of a group. Add it to the ModelObject.
+//#################################################################################################################################################################################
         volume = model_object->add_volume(std::move(mesh));
+//#################################################################################################################################################################################
         volume->name = name;
     }
     // Set the extruder to the volume.
