@@ -970,6 +970,11 @@ struct Plater::priv
     static const std::regex pattern_3mf;
     static const std::regex pattern_zip_amf;
     static const std::regex pattern_any_amf;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_VOLUMES_CENTERING_FIXES
+    static const std::regex pattern_prusa;
+#endif // ENABLE_VOLUMES_CENTERING_FIXES
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     priv(Plater *q, MainFrame *main_frame);
 
@@ -1079,6 +1084,11 @@ const std::regex Plater::priv::pattern_bundle(".*[.](amf|amf[.]xml|zip[.]amf|3mf
 const std::regex Plater::priv::pattern_3mf(".*3mf", std::regex::icase);
 const std::regex Plater::priv::pattern_zip_amf(".*[.]zip[.]amf", std::regex::icase);
 const std::regex Plater::priv::pattern_any_amf(".*[.](amf|amf[.]xml|zip[.]amf)", std::regex::icase);
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_VOLUMES_CENTERING_FIXES
+const std::regex Plater::priv::pattern_prusa(".*prusa", std::regex::icase);
+#endif // ENABLE_VOLUMES_CENTERING_FIXES
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 Plater::priv::priv(Plater *q, MainFrame *main_frame)
     : q(q)
@@ -1319,6 +1329,11 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         const bool type_3mf = std::regex_match(path.string(), pattern_3mf);
         const bool type_zip_amf = !type_3mf && std::regex_match(path.string(), pattern_zip_amf);
         const bool type_any_amf = !type_3mf && std::regex_match(path.string(), pattern_any_amf);
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_VOLUMES_CENTERING_FIXES
+        const bool type_prusa = std::regex_match(path.string(), pattern_prusa);
+#endif // ENABLE_VOLUMES_CENTERING_FIXES
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
         Slic3r::Model model;
         try {
@@ -1365,7 +1380,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #if ENABLE_VOLUMES_CENTERING_FIXES
-            if (!type_3mf && !type_any_amf) {
+            if (!type_3mf && !type_any_amf && !type_prusa) {
 #endif // ENABLE_VOLUMES_CENTERING_FIXES
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                 if (model.looks_like_multipart_object()) {

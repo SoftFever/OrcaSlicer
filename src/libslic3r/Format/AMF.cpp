@@ -279,9 +279,7 @@ void AMFParserContext::startElement(const char *name, const char **atts)
                 node_type_new = NODE_TYPE_VERTICES;
 			else if (strcmp(name, "volume") == 0) {
 				assert(! m_volume);
-//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
                 m_volume = m_object->add_volume(TriangleMesh());
-//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
                 node_type_new = NODE_TYPE_VOLUME;
 			}
         } else if (m_path[2] == NODE_TYPE_INSTANCE) {

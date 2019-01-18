@@ -164,9 +164,7 @@ ModelObject* Model::add_object(const char *name, const char *path, const Triangl
     this->objects.push_back(new_object);
     new_object->name = name;
     new_object->input_file = path;
-//#################################################################################################################################################################################
     ModelVolume *new_volume = new_object->add_volume(mesh);
-//#################################################################################################################################################################################
     new_volume->name = name;
     new_object->invalidate_bounding_box();
     return new_object;
@@ -178,9 +176,7 @@ ModelObject* Model::add_object(const char *name, const char *path, TriangleMesh 
     this->objects.push_back(new_object);
     new_object->name = name;
     new_object->input_file = path;
-//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     ModelVolume *new_volume = new_object->add_volume(std::move(mesh));
-//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     new_volume->name = name;
     new_object->invalidate_bounding_box();
     return new_object;
@@ -485,39 +481,10 @@ void Model::convert_multipart_object(unsigned int max_extruders)
 
     reset_auto_extruder_id();
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//#if ENABLE_VOLUMES_CENTERING_FIXES
-//    for (const ModelObject* o : this->objects)
-//    {
-//        const ModelInstance* i = o->instances.front();
-//        const Geometry::Transformation& t = i->get_transformation();
-//        for (const ModelVolume* v : o->volumes)
-//        {
-////$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-//            ModelVolume* new_v = object->add_volume(*v);
-////$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-//            if (new_v != nullptr)
-//            {
-//                new_v->name = o->name;
-//                new_v->set_transformation(t * new_v->get_transformation());
-//                new_v->config.set_deserialize("extruder", get_auto_extruder_id_as_string(max_extruders));
-//            }
-//        }
-//    }
-//
-//    for (const ModelInstance* i : this->objects.front()->instances)
-//    {
-//        ModelInstance* inst = object->add_instance(*i);
-//        inst->set_transformation(Geometry::Transformation());
-//    }
-//#else
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     for (const ModelObject* o : this->objects)
         for (const ModelVolume* v : o->volumes)
         {
-//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
             ModelVolume* new_v = object->add_volume(*v);
-//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
             if (new_v != nullptr)
             {
                 new_v->name = o->name;
@@ -527,9 +494,6 @@ void Model::convert_multipart_object(unsigned int max_extruders)
 
     for (const ModelInstance* i : this->objects.front()->instances)
         object->add_instance(*i);
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//#endif // ENABLE_VOLUMES_CENTERING_FIXES
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     
     this->clear_objects();
     this->objects.push_back(object);
@@ -1147,10 +1111,8 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
 
             volume->set_transformation(Geometry::Transformation(instance_matrix * volume_matrix));
 
-//#################################################################################################################################################################################
             if (keep_upper) { upper->add_volume(*volume); }
             if (keep_lower) { lower->add_volume(*volume); }
-//#################################################################################################################################################################################
         }
         else {
             TriangleMesh upper_mesh, lower_mesh;
@@ -1177,17 +1139,13 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
             }
 
             if (keep_upper && upper_mesh.facets_count() > 0) {
-//#################################################################################################################################################################################
                 ModelVolume* vol = upper->add_volume(upper_mesh);
-//#################################################################################################################################################################################
                 vol->name = volume->name;
                 vol->config         = volume->config;
                 vol->set_material(volume->material_id(), *volume->material());
             }
             if (keep_lower && lower_mesh.facets_count() > 0) {
-//#################################################################################################################################################################################
                 ModelVolume* vol = lower->add_volume(lower_mesh);
-//#################################################################################################################################################################################
                 vol->name = volume->name;
                 vol->config         = volume->config;
                 vol->set_material(volume->material_id(), *volume->material());
@@ -1266,10 +1224,14 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
 		new_object->instances.reserve(this->instances.size());
 		for (const ModelInstance *model_instance : this->instances)
 			new_object->add_instance(*model_instance);
-//#################################################################################################################################################################################
         ModelVolume* new_vol = new_object->add_volume(*volume, std::move(*mesh));
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if !ENABLE_VOLUMES_CENTERING_FIXES
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         new_vol->center_geometry();
-//#################################################################################################################################################################################
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#endif // !ENABLE_VOLUMES_CENTERING_FIXES
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
         for (ModelInstance* model_instance : new_object->instances)
         {
@@ -1530,9 +1492,7 @@ size_t ModelVolume::split(unsigned int max_extruders)
             this->object->volumes.insert(this->object->volumes.begin() + (++ivolume), new ModelVolume(object, *this, std::move(*mesh)));
 
         this->object->volumes[ivolume]->set_offset(Vec3d::Zero());
-//#################################################################################################################################################################################
         this->object->volumes[ivolume]->center_geometry();
-//#################################################################################################################################################################################
         this->object->volumes[ivolume]->translate(offset);
         this->object->volumes[ivolume]->name = name + "_" + std::to_string(idx + 1);
         this->object->volumes[ivolume]->config.set_deserialize("extruder", Model::get_auto_extruder_id_as_string(max_extruders));
