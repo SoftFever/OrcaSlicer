@@ -1,5 +1,6 @@
 #include "PostProcessor.hpp"
 
+#include <boost/algorithm/string.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/filesystem.hpp>
 
@@ -133,6 +134,7 @@ static int run_script_win32(const std::string &script, const std::string &gcode)
 #else
     #include <sys/stat.h> //for getting filesystem UID/GID
     #include <unistd.h> //for getting current UID/GID
+    #include <boost/process.hpp>
 #endif
 
 namespace Slic3r {
