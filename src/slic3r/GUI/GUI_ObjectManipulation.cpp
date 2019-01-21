@@ -249,9 +249,9 @@ void ObjectManipulation::UpdateAndShow(const bool show)
 
 void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& selection)
 {
-	m_new_move_label_string   = L("Position:");
-    m_new_rotate_label_string = L("Rotation:");
-    m_new_scale_label_string  = L("Scale factors:");
+	m_new_move_label_string   = L("Position");
+    m_new_rotate_label_string = L("Rotation");
+    m_new_scale_label_string  = L("Scale factors");
     if (selection.is_single_full_instance())
     {
         // all volumes in the selection belongs to the same instance, any of them contains the needed instance data, so we take the first one
@@ -297,8 +297,8 @@ void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& sele
         m_new_rotation = Vec3d::Zero();
         m_new_scale    = Vec3d(1.0, 1.0, 1.0);
         m_new_size     = box.size();
-        m_new_rotate_label_string = L("Rotate:");
-		m_new_scale_label_string  = L("Scale:");
+        m_new_rotate_label_string = L("Rotate");
+		m_new_scale_label_string  = L("Scale");
         m_new_enabled  = true;
     }
     else if (selection.is_single_modifier() || selection.is_single_volume())
@@ -318,9 +318,9 @@ void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& sele
     else if (wxGetApp().obj_list()->multiple_selection())
     {
         reset_settings_value();
-		m_new_move_label_string   = L("Translate:");
-		m_new_rotate_label_string = L("Rotate:");
-		m_new_scale_label_string  = L("Scale:");
+		m_new_move_label_string   = L("Translate");
+		m_new_rotate_label_string = L("Rotate");
+		m_new_scale_label_string  = L("Scale");
         m_new_size = selection.get_bounding_box().size();
         m_new_enabled  = true;
     }
@@ -337,21 +337,21 @@ void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& sele
 void ObjectManipulation::update_if_dirty()
 {
 #if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
-    if (m_cache.move_label_string != _(m_new_move_label_string))
+    if (m_cache.move_label_string != _(m_new_move_label_string)+ ":")
     {
-        m_cache.move_label_string = _(m_new_move_label_string);
+        m_cache.move_label_string = _(m_new_move_label_string)+ ":";
         m_move_Label->SetLabel(m_cache.move_label_string);
     }
 
-    if (m_cache.rotate_label_string != _(m_new_rotate_label_string))
+    if (m_cache.rotate_label_string != _(m_new_rotate_label_string)+ ":")
     {
-        m_cache.rotate_label_string = _(m_new_rotate_label_string);
+        m_cache.rotate_label_string = _(m_new_rotate_label_string)+ ":";
         m_rotate_Label->SetLabel(m_cache.rotate_label_string);
     }
 
-    if (m_cache.scale_label_string != _(m_new_scale_label_string))
+    if (m_cache.scale_label_string != _(m_new_scale_label_string)+ ":")
     {
-        m_cache.scale_label_string = _(m_new_scale_label_string);
+        m_cache.scale_label_string = _(m_new_scale_label_string)+ ":";
         m_scale_Label->SetLabel(m_cache.scale_label_string);
     }
 

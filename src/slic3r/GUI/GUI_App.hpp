@@ -73,11 +73,6 @@ class GUI_App : public wxApp
 {
     bool            app_conf_exists{ false };
 
-    // Lock to guard the callback stack
-    std::mutex      callback_register;
-    // callbacks registered to run during idle event.
-    std::stack<std::function<void()>>    m_cb{};
-
     wxColour        m_color_label_modified;
     wxColour        m_color_label_sys;
     wxColour        m_color_label_default;
@@ -121,12 +116,9 @@ public:
 //                                 wxMessageDialog* message_dialog,
                                 const std::string& err);
 //     void            notify(/*message*/);
-    void            update_ui_from_settings();
-    void            CallAfter(std::function<void()> cb);
 
-    void            window_pos_save(wxTopLevelWindow* window, const std::string &name);
-    void            window_pos_restore(wxTopLevelWindow* window, const std::string &name);
-    void            window_pos_sanitize(wxTopLevelWindow* window);
+    void            persist_window_geometry(wxTopLevelWindow *window);
+    void            update_ui_from_settings();
 
     bool            select_language(wxArrayString & names, wxArrayLong & identifiers);
     bool            load_language();
@@ -172,6 +164,10 @@ public:
 
     PrintHostJobQueue& printhost_job_queue() { return *m_printhost_job_queue.get(); }
 
+private:
+    void            window_pos_save(wxTopLevelWindow* window, const std::string &name);
+    void            window_pos_restore(wxTopLevelWindow* window, const std::string &name);
+    void            window_pos_sanitize(wxTopLevelWindow* window);
 };
 DECLARE_APP(GUI_App)
 

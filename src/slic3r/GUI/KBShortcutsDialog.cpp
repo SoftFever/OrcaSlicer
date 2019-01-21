@@ -101,7 +101,7 @@ void KBShortcutsDialog::fill_shortcuts()
     main_shortcuts.push_back(Shortcut(ctrl+"O"          ,L("Open project STL/OBJ/AMF/3MF with config, delete bed")));
     main_shortcuts.push_back(Shortcut(ctrl+"I"          ,L("Import STL/OBJ/AMF/3MF without config, keep bed")));
     main_shortcuts.push_back(Shortcut(ctrl+"L"          ,L("Load Config from .ini/amf/3mf/gcode")));
-    main_shortcuts.push_back(Shortcut(ctrl+"G"          ,L("Export Gcode")));
+    main_shortcuts.push_back(Shortcut(ctrl+"G"          ,L("Export G-code")));
     main_shortcuts.push_back(Shortcut(ctrl+"S"          ,L("Save project (3MF)")));
     main_shortcuts.push_back(Shortcut(ctrl+alt+"L"      ,L("Load Config from .ini/amf/3mf/gcode and merge")));
     main_shortcuts.push_back(Shortcut(ctrl+"R"          ,L("(Re)slice")));
@@ -110,8 +110,8 @@ void KBShortcutsDialog::fill_shortcuts()
     main_shortcuts.push_back(Shortcut(ctrl+"1"          ,L("Select Plater Tab")));
     main_shortcuts.push_back(Shortcut(ctrl+alt+"U"      ,L("Quick slice and Save as")));
     main_shortcuts.push_back(Shortcut(ctrl+"2"          ,L("Select Print Settings Tab")));
-    main_shortcuts.push_back(Shortcut(ctrl+"3"          ,L("Select Filament Setting Tab")));
-    main_shortcuts.push_back(Shortcut(ctrl+"4"          ,L("Select Printer Setting Tab")));
+    main_shortcuts.push_back(Shortcut(ctrl+"3"          ,L("Select Filament Settings Tab")));
+    main_shortcuts.push_back(Shortcut(ctrl+"4"          ,L("Select Printer Settings Tab")));
     main_shortcuts.push_back(Shortcut(ctrl+"5"          ,L("Switch to 3D")));
     main_shortcuts.push_back(Shortcut(ctrl+"6"          ,L("Switch to Preview")));
     main_shortcuts.push_back(Shortcut(ctrl+"P"          ,L("Preferences")));
@@ -131,7 +131,7 @@ void KBShortcutsDialog::fill_shortcuts()
     plater_shortcuts.push_back(Shortcut("A",        L("Arrange")));
     plater_shortcuts.push_back(Shortcut(ctrl+"A",   L("Select All objects")));
     plater_shortcuts.push_back(Shortcut("Del",      L("Delete selected")));
-    plater_shortcuts.push_back(Shortcut(ctrl+"Del", L("Delete all")));
+    plater_shortcuts.push_back(Shortcut(ctrl+"Del", L("Delete All")));
     plater_shortcuts.push_back(Shortcut("M",        L("Gizmo move")));
     plater_shortcuts.push_back(Shortcut("S",        L("Gizmo scale")));
     plater_shortcuts.push_back(Shortcut("R",        L("Gizmo rotate")));

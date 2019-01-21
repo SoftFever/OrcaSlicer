@@ -143,7 +143,6 @@ bool GUI_App::OnInit()
     init_fonts();
 
     // application frame
-    std::cerr << "Creating main frame..." << std::endl;
     if (wxImage::FindHandler(wxBITMAP_TYPE_PNG) == nullptr)
         wxImage::AddHandler(new wxPNGHandler());
     mainframe = new MainFrame();
@@ -165,27 +164,8 @@ bool GUI_App::OnInit()
                        // to correct later layouts
     });
 
-    // This makes CallAfter() work
     Bind(wxEVT_IDLE, [this](wxIdleEvent& event)
     {
-        std::function<void()> cur_cb{ nullptr };
-        // try to get the mutex. If we can't, just skip this idle event and get the next one.
-        if (!callback_register.try_lock()) return;
-        // pop callback
-        if (m_cb.size() != 0) {
-            cur_cb = m_cb.top();
-            m_cb.pop();
-        }
-        // unlock mutex
-        this->callback_register.unlock();
-
-        try { // call the function if it's not nullptr;
-            if (cur_cb != nullptr) cur_cb();
-        }
-        catch (std::exception& e) {
-            std::cerr << "Exception thrown: " << e.what() << std::endl;
-        }
-
         if (app_config->dirty())
             app_config->save();
 
@@ -370,6 +350,33 @@ void GUI_App::update_ui_from_settings()
     mainframe->update_ui_from_settings();
 }
 
+void GUI_App::persist_window_geometry(wxTopLevelWindow *window)
+{
+    const std::string name = into_u8(window->GetName());
+
+    window->Bind(wxEVT_CLOSE_WINDOW, [=](wxCloseEvent &event) {
+        window_pos_save(window, name);
+        event.Skip();
+    });
+
+    window_pos_restore(window, name);
+#ifdef _WIN32
+    // On windows, the wxEVT_SHOW is not received if the window is created maximized
+    // cf. https://groups.google.com/forum/#!topic/wx-users/c7ntMt6piRI
+    // so we sanitize the position right away
+    window_pos_sanitize(window);
+#else
+    // On other platforms on the other hand it's needed to wait before the window is actually on screen
+    // and some initial round of events is complete otherwise position / display index is not reported correctly.
+    window->Bind(wxEVT_SHOW, [=](wxShowEvent &event) {
+        CallAfter([=]() {
+            window_pos_sanitize(window);
+        });
+        event.Skip();
+    });
+#endif
+}
+
 void GUI_App::load_project(wxWindow *parent, wxString& input_file)
 {
     input_file.Clear();
@@ -392,55 +399,6 @@ void GUI_App::import_model(wxWindow *parent, wxArrayString& input_files)
 
     if (dialog.ShowModal() == wxID_OK)
         dialog.GetPaths(input_files);
-}
-
-void GUI_App::CallAfter(std::function<void()> cb)
-{
-    // set mutex
-    callback_register.lock();
-    // push function onto stack
-    m_cb.emplace(cb);
-    // unset mutex
-    callback_register.unlock();
-}
-
-void GUI_App::window_pos_save(wxTopLevelWindow* window, const std::string &name)
-{
-    if (name.empty()) { return; }
-    const auto config_key = (boost::format("window_%1%") % name).str();
-
-    WindowMetrics metrics = WindowMetrics::from_window(window);
-    app_config->set(config_key, metrics.serialize());
-    app_config->save();
-}
-
-void GUI_App::window_pos_restore(wxTopLevelWindow* window, const std::string &name)
-{
-    if (name.empty()) { return; }
-    const auto config_key = (boost::format("window_%1%") % name).str();
-
-    if (! app_config->has(config_key)) { return; }
-
-    auto metrics = WindowMetrics::deserialize(app_config->get(config_key));
-    if (! metrics) { return; }
-
-    window->SetSize(metrics->get_rect());
-    window->Maximize(metrics->get_maximized());
-}
-
-void GUI_App::window_pos_sanitize(wxTopLevelWindow* window)
-{
-    const auto display_idx = wxDisplay::GetFromWindow(window);
-    if (display_idx == wxNOT_FOUND) { return; }
-
-    const auto display = wxDisplay(display_idx).GetClientArea();
-
-    auto metrics = WindowMetrics::from_window(window);
-
-    metrics.sanitize_for_display(display);
-    if (window->GetScreenRect() != metrics.get_rect()) {
-        window->SetSize(metrics.get_rect());
-    }
 }
 
 // select language from the list of installed languages
@@ -602,15 +560,15 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
     auto local_menu = new wxMenu();
     wxWindowID config_id_base = wxWindow::NewControlId((int)ConfigMenuCnt);
 
-    const auto config_wizard_name = _(ConfigWizard::name().wx_str());
+    const auto config_wizard_name = _(ConfigWizard::name(true).wx_str());
     const auto config_wizard_tooltip = wxString::Format(_(L("Run %s")), config_wizard_name);
     // Cmd+, is standard on OS X - what about other operating systems?
     local_menu->Append(config_id_base + ConfigMenuWizard, config_wizard_name + dots, config_wizard_tooltip);
-    local_menu->Append(config_id_base + ConfigMenuSnapshots, _(L("Configuration Snapshots")) + dots, _(L("Inspect / activate configuration snapshots")));
-    local_menu->Append(config_id_base + ConfigMenuTakeSnapshot, _(L("Take Configuration Snapshot")), _(L("Capture a configuration snapshot")));
+    local_menu->Append(config_id_base + ConfigMenuSnapshots, _(L("&Configuration Snapshots")) + dots, _(L("Inspect / activate configuration snapshots")));
+    local_menu->Append(config_id_base + ConfigMenuTakeSnapshot, _(L("Take Configuration &Snapshot")), _(L("Capture a configuration snapshot")));
     // 	local_menu->Append(config_id_base + ConfigMenuUpdate, 		_(L("Check for updates")), 					_(L("Check for configuration updates")));
     local_menu->AppendSeparator();
-    local_menu->Append(config_id_base + ConfigMenuPreferences, _(L("Preferences")) + dots + "\tCtrl+P", _(L("Application preferences")));
+    local_menu->Append(config_id_base + ConfigMenuPreferences, _(L("&Preferences")) + dots + "\tCtrl+P", _(L("Application preferences")));
     local_menu->AppendSeparator();
     auto mode_menu = new wxMenu();
     mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeSimple, _(L("Simple")), _(L("Simple View Mode")));
@@ -619,9 +577,9 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
     mode_menu->Check(config_id_base + ConfigMenuModeSimple + get_mode(), true);
     local_menu->AppendSubMenu(mode_menu, _(L("Mode")), _(L("Slic3r View Mode")));
     local_menu->AppendSeparator();
-    local_menu->Append(config_id_base + ConfigMenuLanguage, _(L("Change Application Language")));
+    local_menu->Append(config_id_base + ConfigMenuLanguage, _(L("Change Application &Language")));
     local_menu->AppendSeparator();
-    local_menu->Append(config_id_base + ConfigMenuFlashFirmware, _(L("Flash printer firmware")), _(L("Upload a firmware image into an Arduino based printer")));
+    local_menu->Append(config_id_base + ConfigMenuFlashFirmware, _(L("Flash printer &firmware")), _(L("Upload a firmware image into an Arduino based printer")));
     // TODO: for when we're able to flash dictionaries
     // local_menu->Append(config_id_base + FirmwareMenuDict,  _(L("Flash language file")),    _(L("Upload a language dictionary file into a Prusa printer")));
 
@@ -787,6 +745,48 @@ ModelObjectPtrs* GUI_App::model_objects()
 wxNotebook* GUI_App::tab_panel() const
 {
     return mainframe->m_tabpanel;
+}
+
+void GUI_App::window_pos_save(wxTopLevelWindow* window, const std::string &name)
+{
+    if (name.empty()) { return; }
+    const auto config_key = (boost::format("window_%1%") % name).str();
+
+    WindowMetrics metrics = WindowMetrics::from_window(window);
+    app_config->set(config_key, metrics.serialize());
+    app_config->save();
+}
+
+void GUI_App::window_pos_restore(wxTopLevelWindow* window, const std::string &name)
+{
+    if (name.empty()) { return; }
+    const auto config_key = (boost::format("window_%1%") % name).str();
+
+    if (! app_config->has(config_key)) { return; }
+
+    auto metrics = WindowMetrics::deserialize(app_config->get(config_key));
+    if (! metrics) { return; }
+
+    window->SetSize(metrics->get_rect());
+    window->Maximize(metrics->get_maximized());
+}
+
+void GUI_App::window_pos_sanitize(wxTopLevelWindow* window)
+{
+    unsigned display_idx = wxDisplay::GetFromWindow(window);
+    wxRect display;
+    if (display_idx == wxNOT_FOUND) {
+        display = wxDisplay(0u).GetClientArea();
+        window->Move(display.GetTopLeft());
+    } else {
+        display = wxDisplay(display_idx).GetClientArea();
+    }
+
+    auto metrics = WindowMetrics::from_window(window);
+    metrics.sanitize_for_display(display);
+    if (window->GetScreenRect() != metrics.get_rect()) {
+        window->SetSize(metrics.get_rect());
+    }
 }
 
 // static method accepting a wxWindow object as first parameter

@@ -114,7 +114,7 @@ ObjectInfo::ObjectInfo(wxWindow *parent) :
     grid_sizer->AddGrowableCol(3, 1);
 
     auto init_info_label = [parent, grid_sizer](wxStaticText **info_label, wxString text_label) {
-        auto *text = new wxStaticText(parent, wxID_ANY, text_label);
+        auto *text = new wxStaticText(parent, wxID_ANY, text_label+":");
         text->SetFont(wxGetApp().small_font());
         *info_label = new wxStaticText(parent, wxID_ANY, "");
         (*info_label)->SetFont(wxGetApp().small_font());
@@ -122,13 +122,13 @@ ObjectInfo::ObjectInfo(wxWindow *parent) :
         grid_sizer->Add(*info_label, 0);
     };
 
-    init_info_label(&info_size, _(L("Size:")));
-    init_info_label(&info_volume, _(L("Volume:")));
-    init_info_label(&info_facets, _(L("Facets:")));
-    init_info_label(&info_materials, _(L("Materials:")));
+    init_info_label(&info_size, _(L("Size")));
+    init_info_label(&info_volume, _(L("Volume")));
+    init_info_label(&info_facets, _(L("Facets")));
+    init_info_label(&info_materials, _(L("Materials")));
     Add(grid_sizer, 0, wxEXPAND);
 
-    auto *info_manifold_text = new wxStaticText(parent, wxID_ANY, _(L("Manifold:")));
+    auto *info_manifold_text = new wxStaticText(parent, wxID_ANY, _(L("Manifold")));
     info_manifold_text->SetFont(wxGetApp().small_font());
     info_manifold = new wxStaticText(parent, wxID_ANY, "");
     info_manifold->SetFont(wxGetApp().small_font());
@@ -602,7 +602,7 @@ Sidebar::Sidebar(Plater *parent)
     scrolled_sizer->Add(p->sliced_info, 0, wxEXPAND | wxTOP | wxLEFT, 20);
 
     // Buttons underneath the scrolled area
-    p->btn_export_gcode = new wxButton(this, wxID_ANY, _(L("Export G-code…")));
+    p->btn_export_gcode = new wxButton(this, wxID_ANY, _(L("Export G-code")) + dots);
     p->btn_export_gcode->SetFont(wxGetApp().bold_font());
     p->btn_reslice = new wxButton(this, wxID_ANY, _(L("Slice now")));
     p->btn_reslice->SetFont(wxGetApp().bold_font());
@@ -792,7 +792,7 @@ void Sidebar::show_info_sizer()
         wxString tooltip = wxString::Format(_(L("Auto-repaired (%d errors)")), errors);
         p->object_info->info_manifold->SetLabel(tooltip);
         
-        tooltip += wxString::Format(_(L(":\n%d degenerate facets, %d edges fixed, %d facets removed, "
+        tooltip += ":\n" + wxString::Format(_(L("%d degenerate facets, %d edges fixed, %d facets removed, "
                                         "%d facets added, %d facets reversed, %d backwards edges")),
                                         stats.degenerate_facets, stats.edges_fixed, stats.facets_removed,
                                         stats.facets_added, stats.facets_reversed, stats.backwards_edges);
@@ -849,7 +849,7 @@ void Sidebar::show_sliced_info_sizer(const bool show)
         if (ps.estimated_normal_print_time == "N/A" && ps.estimated_silent_print_time == "N/A")
             p->sliced_info->SetTextAndShow(siEstimatedTime, "N/A");
         else {
-            new_label = "Estimated printing time :";
+            new_label = _(L("Estimated printing time")) +" :";
             info_text = "";
             if (ps.estimated_normal_print_time != "N/A") {
                 new_label += wxString::Format("\n    - %s", _(L("normal mode")));
@@ -1306,7 +1306,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         }
     }
 
-    const auto loading = _(L("Loading…"));
+    const auto loading = _(L("Loading")) + dots;
     wxProgressDialog dlg(loading, loading);
     dlg.Pulse();
 
@@ -1367,14 +1367,14 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             // The model should now be initialized
 
             if (model.looks_like_multipart_object()) {
-//                 wxMessageDialog dlg(q, _(L(
-//                         "This file contains several objects positioned at multiple heights. "
-//                         "Instead of considering them as multiple objects, should I consider\n"
-//                         "this file as a single object having multiple parts?\n"
-//                     )), _(L("Multi-part object detected")), wxICON_WARNING | wxYES | wxNO);
-//                 if (dlg.ShowModal() == wxID_YES) {
+                wxMessageDialog dlg(q, _(L(
+                        "This file contains several objects positioned at multiple heights. "
+                        "Instead of considering them as multiple objects, should I consider\n"
+                        "this file as a single object having multiple parts?\n"
+                    )), _(L("Multi-part object detected")), wxICON_WARNING | wxYES | wxNO);
+                if (dlg.ShowModal() == wxID_YES) {
                     model.convert_multipart_object(nozzle_dmrs->values.size());
-//                 }
+                }
             }
 
             if (type_3mf || type_any_amf) {
@@ -2350,14 +2350,14 @@ bool Plater::priv::init_object_menu()
 
 bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/)
 {
-    wxMenuItem* item_delete = append_menu_item(menu, wxID_ANY, _(L("Delete\tDel")), _(L("Remove the selected object")),
+    wxMenuItem* item_delete = append_menu_item(menu, wxID_ANY, _(L("Delete")) + "\tDel", _(L("Remove the selected object")),
         [this](wxCommandEvent&) { q->remove_selected(); }, "brick_delete.png");
     if (!is_part){
-        wxMenuItem* item_increase = append_menu_item(menu, wxID_ANY, _(L("Increase copies\t+")), _(L("Place one more copy of the selected object")),
+        wxMenuItem* item_increase = append_menu_item(menu, wxID_ANY, _(L("Increase copies")) + "\t+", _(L("Place one more copy of the selected object")),
             [this](wxCommandEvent&) { q->increase_instances(); }, "add.png");
-        wxMenuItem* item_decrease = append_menu_item(menu, wxID_ANY, _(L("Decrease copies\t-")), _(L("Remove one copy of the selected object")),
+        wxMenuItem* item_decrease = append_menu_item(menu, wxID_ANY, _(L("Decrease copies")) + "\t-", _(L("Remove one copy of the selected object")),
             [this](wxCommandEvent&) { q->decrease_instances(); }, "delete.png");
-        wxMenuItem* item_set_number_of_copies = append_menu_item(menu, wxID_ANY, _(L("Set number of copies…")), _(L("Change the number of copies of the selected object")),
+        wxMenuItem* item_set_number_of_copies = append_menu_item(menu, wxID_ANY, _(L("Set number of copies")) + dots, _(L("Change the number of copies of the selected object")),
             [this](wxCommandEvent&) { q->set_number_of_copies(); }, "textfield.png");
         if (q != nullptr)
         {
@@ -2370,7 +2370,7 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
         append_menu_item(menu, wxID_ANY, _(L("Reload from Disk")), _(L("Reload the selected file from Disk")),
             [this](wxCommandEvent&) { reload_from_disk(); });
 
-        append_menu_item(menu, wxID_ANY, _(L("Export object as STL…")), _(L("Export this single object as STL file")),
+        append_menu_item(menu, wxID_ANY, _(L("Export object as STL")) + dots, _(L("Export this single object as STL file")),
             [this](wxCommandEvent&) { q->export_stl(true); });
     }
     menu->AppendSeparator();
@@ -2414,7 +2414,7 @@ bool Plater::priv::complit_init_object_menu()
 //     append_menu_item(&object_menu, wxID_ANY, _(L("Reload from Disk")), _(L("Reload the selected file from Disk")),
 //         [this](wxCommandEvent&) { reload_from_disk(); });
 // 
-//     append_menu_item(&object_menu, wxID_ANY, _(L("Export object as STL…")), _(L("Export this single object as STL file")),
+//     append_menu_item(&object_menu, wxID_ANY, _(L("Export object as STL")) + dots, _(L("Export this single object as STL file")),
 //         [this](wxCommandEvent&) { q->export_stl(true); });
 
     // Append "Add..." popupmenu

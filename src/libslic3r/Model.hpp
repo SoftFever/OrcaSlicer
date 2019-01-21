@@ -315,6 +315,9 @@ public:
     // Extruder ID is only valid for FFF. Returns -1 for SLA or if the extruder ID is not applicable (support volumes).
     int                 extruder_id() const;
 
+    void                set_splittable(const int val) { m_is_splittable = val; }
+    int                 is_splittable() const { return m_is_splittable; }
+
     // Split this volume, append the result to the object owning this volume.
     // Return the number of volumes created from this one.
     // This is useful to assign different materials to different volumes of an object.
@@ -386,6 +389,12 @@ private:
     // The convex hull of this model's mesh.
     TriangleMesh             m_convex_hull;
     Geometry::Transformation m_transformation;
+
+    // flag to optimize the checking if the volume is splittable
+    //     -1   ->   is unknown value (before first cheking)
+    //      0   ->   is not splittable
+    //      1   ->   is splittable
+    int                     m_is_splittable {-1};
 
     ModelVolume(ModelObject *object, const TriangleMesh &mesh) : mesh(mesh), m_type(MODEL_PART), object(object)
     {

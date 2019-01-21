@@ -6,6 +6,7 @@
 #include <set>
 #include <vector>
 #include <map>
+#include <cstring>
 
 #include "libslic3r.h"
 namespace Slic3r
@@ -91,6 +92,8 @@ struct SlicingParameters
     coordf_t 	object_print_z_min;
     coordf_t 	object_print_z_max;
 };
+static_assert(std::is_trivially_copyable<SlicingParameters>::value, "SlicingParameters class is not POD (and it should be - see constructor).");
+
 
 // The two slicing parameters lead to the same layering as long as the variable layer thickness is not in action.
 inline bool equal_layering(const SlicingParameters &sp1, const SlicingParameters &sp2)

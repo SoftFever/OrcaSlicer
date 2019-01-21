@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <string>
+#include <ostream>
 
 #include <boost/optional.hpp>
 
@@ -149,8 +150,10 @@ public:
     bool get_maximized() const { return maximized; }
 
     void sanitize_for_display(const wxRect &screen_rect);
-    std::string serialize();
+    std::string serialize() const;
 };
+
+std::ostream& operator<<(std::ostream &os, const WindowMetrics& metrics);
 
 
 }}
