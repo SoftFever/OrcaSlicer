@@ -405,6 +405,7 @@ private:
     std::vector<Transform3d> m_volumes_matrices;
     std::vector<ModelVolume::Type> m_volumes_types;
     Vec3d m_first_instance_scale;
+    Vec3d m_first_instance_mirror;
 
     std::vector<PlaneData> m_planes;
     mutable Vec3d m_starting_center;
