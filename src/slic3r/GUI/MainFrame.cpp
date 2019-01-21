@@ -31,7 +31,7 @@ namespace Slic3r {
 namespace GUI {
 
 MainFrame::MainFrame() :
-wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE),
+wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, "mainframe"),
         m_printhost_queue_dlg(new PrintHostQueueDialog(this))
 {
     // Load the icon either from the exe, or from the ico file.
@@ -80,8 +80,7 @@ wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAUL
             event.Veto();
             return;
         }
-        // save window size
-        wxGetApp().window_pos_save(this, "mainframe");
+
         // Save the slic3r.ini.Usually the ini file is saved from "on idle" callback,
         // but in rare cases it may not have been called yet.
         wxGetApp().app_config->save();
@@ -93,18 +92,9 @@ wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAUL
         event.Skip();
     });
 
-    // NB: Restoring the window position is done in a two-phase manner here,
-    // first the saved position is restored as-is and validation is done after the window is shown
-    // and initial round of events is complete, because on some platforms that is the only way
-    // to get an accurate window position & size.
-    wxGetApp().window_pos_restore(this, "mainframe");
-    Bind(wxEVT_SHOW, [this](wxShowEvent&) {
-        CallAfter([this]() {
-            wxGetApp().window_pos_sanitize(this);
-        });
-    });
+    wxGetApp().persist_window_geometry(this);
 
-    update_ui_from_settings();
+    update_ui_from_settings();    // FIXME (?)
 }
 
 void MainFrame::init_tabpanel()
@@ -447,7 +437,8 @@ void MainFrame::init_menubar()
     SetMenuBar(menubar);
 
 #ifdef __APPLE__
-    // This fixes a bug (?) on Mac OS where the quit command doesn't emit window close events
+    // This fixes a bug on Mac OS where the quit command doesn't emit window close events
+    // wx bug: https://trac.wxwidgets.org/ticket/18328
     wxMenu *apple_menu = menubar->OSXGetAppleMenu();
     if (apple_menu != nullptr) {
         apple_menu->Bind(wxEVT_MENU, [this](wxCommandEvent &) {
