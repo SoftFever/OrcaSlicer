@@ -2769,6 +2769,10 @@ void Plater::cut(size_t obj_idx, size_t instance_idx, coordf_t z, bool keep_uppe
 
     wxCHECK_RET(instance_idx < object->instances.size(), "instance_idx out of bounds");
 
+    if (!keep_upper && !keep_lower) {
+        return;
+    }
+
     const auto new_objects = object->cut(instance_idx, z, keep_upper, keep_lower, rotate_lower);
 
     remove(obj_idx);

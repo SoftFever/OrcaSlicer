@@ -2466,11 +2466,13 @@ void GLGizmoCut::on_render_input_window(float x, float y, const GLCanvas3D::Sele
     m_imgui->checkbox(_(L("Keep lower part")), m_keep_lower);
     m_imgui->checkbox(_(L("Rotate lower part upwards")), m_rotate_lower);
 
+    m_imgui->disabled_begin(!m_keep_upper && !m_keep_lower);
     const bool cut_clicked = m_imgui->button(_(L("Perform cut")));
+    m_imgui->disabled_end();
 
     m_imgui->end();
 
-    if (cut_clicked) {
+    if (cut_clicked && (m_keep_upper || m_keep_lower)) {
         perform_cut(selection);
     }
 }
