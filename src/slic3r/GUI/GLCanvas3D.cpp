@@ -821,7 +821,7 @@ GLCanvas3D::LayersEditing::LayersEditing()
     , m_z_texture_id(0)
     , m_model_object(nullptr)
     , m_object_max_z(0.f)
-    , m_slicing_parameters(new SlicingParameters)
+    , m_slicing_parameters(nullptr)
     , m_layer_height_profile_modified(false)
     , state(Unknown)
     , band_width(2.0f)
@@ -861,13 +861,16 @@ bool GLCanvas3D::LayersEditing::init(const std::string& vertex_shader_filename, 
 
 void GLCanvas3D::LayersEditing::select_object(const Model &model, int object_id)
 {
-    m_model_object   = (object_id >= 0) ? model.objects[object_id] : nullptr;
-    m_object_max_z   = (m_model_object == nullptr) ? 0.f : m_model_object->bounding_box().max.z();
-    if (m_model_object == nullptr || this->last_object_id != object_id) {
+    const ModelObject *model_object_new = (object_id >= 0) ? model.objects[object_id] : nullptr;
+    if (model_object_new == nullptr || this->last_object_id != object_id || m_model_object != model_object_new || m_model_object->id() != model_object_new->id()) {
         m_layer_height_profile.clear();
         m_layer_height_profile_modified = false;
+        delete m_slicing_parameters;
+        m_slicing_parameters = nullptr;
     }
     this->last_object_id = object_id;
+    m_model_object       = model_object_new;
+    m_object_max_z       = (m_model_object == nullptr) ? 0.f : m_model_object->bounding_box().max.z();
 }
 
 bool GLCanvas3D::LayersEditing::is_allowed() const
@@ -1072,49 +1075,24 @@ void GLCanvas3D::LayersEditing::_render_profile(const Rect& bar_rect) const
 {
     //FIXME show some kind of legend.
 
-    // Get a maximum layer height value.
-    //FIXME This is a duplicate code of Slicing.cpp.
-    double layer_height_max = DBL_MAX;
-    const std::vector<double>& nozzle_diameters  = dynamic_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"))->values;
-    const std::vector<double>& layer_heights_min = dynamic_cast<const ConfigOptionFloats*>(m_config->option("min_layer_height"))->values;
-    const std::vector<double>& layer_heights_max = dynamic_cast<const ConfigOptionFloats*>(m_config->option("max_layer_height"))->values;
-    for (unsigned int i = 0; i < (unsigned int)nozzle_diameters.size(); ++i)
-    {
-        double lh_min = (layer_heights_min[i] == 0.0) ? 0.07 : std::max(0.01, layer_heights_min[i]);
-        double lh_max = (layer_heights_max[i] == 0.0) ? (0.75 * nozzle_diameters[i]) : layer_heights_max[i];
-        layer_height_max = std::min(layer_height_max, std::max(lh_min, lh_max));
-    }
-
     // Make the vertical bar a bit wider so the layer height curve does not touch the edge of the bar region.
-    layer_height_max *= 1.12;
-
-    // Get global layer height.
-    double layer_height = dynamic_cast<const ConfigOptionFloat*>(m_config->option("layer_height"))->value;
-    // Override the global layer height with object's layer height if set.
-    const ConfigOption *opt_object_layer_height = m_model_object->config.option("layer_height");
-    if (opt_object_layer_height != nullptr)
-        layer_height = dynamic_cast<const ConfigOptionFloat*>(opt_object_layer_height)->value;
-    float l = bar_rect.get_left();
-    float w = bar_rect.get_right() - l;
-    float b = bar_rect.get_bottom();
-    float t = bar_rect.get_top();
-    float h = t - b;
-    float scale_x = w / (float)layer_height_max;
-    float scale_y = h / m_object_max_z;
-    float x = l + (float)layer_height * scale_x;
+	assert(m_slicing_parameters != nullptr);
+    float scale_x = bar_rect.get_width() / (float)(1.12 * m_slicing_parameters->max_layer_height);
+    float scale_y = bar_rect.get_height() / m_object_max_z;
+    float x = bar_rect.get_left() + (float)m_slicing_parameters->layer_height * scale_x;
 
     // Baseline
     ::glColor3f(0.0f, 0.0f, 0.0f);
     ::glBegin(GL_LINE_STRIP);
-    ::glVertex2f(x, b);
-    ::glVertex2f(x, t);
+    ::glVertex2f(x, bar_rect.get_bottom());
+    ::glVertex2f(x, bar_rect.get_top());
     ::glEnd();
 
     // Curve
     ::glColor3f(0.0f, 0.0f, 1.0f);
     ::glBegin(GL_LINE_STRIP);
     for (unsigned int i = 0; i < m_layer_height_profile.size(); i += 2)
-        ::glVertex2f(l + (float)m_layer_height_profile[i + 1] * scale_x, b + (float)m_layer_height_profile[i] * scale_y);
+        ::glVertex2f(bar_rect.get_left() + (float)m_layer_height_profile[i + 1] * scale_x, bar_rect.get_bottom() + (float)m_layer_height_profile[i] * scale_y);
     ::glEnd();
 }
 
@@ -1188,7 +1166,7 @@ void GLCanvas3D::LayersEditing::render_volumes(const GLCanvas3D& canvas, const G
 
 void GLCanvas3D::LayersEditing::adjust_layer_height_profile()
 {
-    *m_slicing_parameters = PrintObject::slicing_parameters(*m_config, *m_model_object);
+	this->update_slicing_parameters();
 	PrintObject::update_layer_height_profile(*m_model_object, *m_slicing_parameters, m_layer_height_profile);
 	Slic3r::adjust_layer_height_profile(*m_slicing_parameters, m_layer_height_profile, this->last_z, this->strength, this->band_width, this->last_action);
 	m_layer_height_profile_modified = true;
@@ -1197,9 +1175,9 @@ void GLCanvas3D::LayersEditing::adjust_layer_height_profile()
 
 void GLCanvas3D::LayersEditing::generate_layer_height_texture()
 {
-    // Always try to update the layer height profile.
+	this->update_slicing_parameters();
+	// Always try to update the layer height profile.
     bool update = ! m_layers_texture.valid;
-    *m_slicing_parameters = PrintObject::slicing_parameters(*m_config, *m_model_object);
     if (PrintObject::update_layer_height_profile(*m_model_object, *m_slicing_parameters, m_layer_height_profile)) {
         // Initialized to the default value.
         m_layer_height_profile_modified = false;
@@ -1234,6 +1212,14 @@ void GLCanvas3D::LayersEditing::accept_changes(GLCanvas3D& canvas)
         }
     }
     m_layer_height_profile_modified = false;
+}
+
+void GLCanvas3D::LayersEditing::update_slicing_parameters()
+{
+	if (m_slicing_parameters == nullptr) {
+		m_slicing_parameters = new SlicingParameters();
+    	*m_slicing_parameters = PrintObject::slicing_parameters(*m_config, *m_model_object);
+    }
 }
 
 const Point GLCanvas3D::Mouse::Drag::Invalid_2D_Point(INT_MAX, INT_MAX);

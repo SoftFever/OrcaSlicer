@@ -89,6 +89,9 @@ public:
 
     float get_bottom() const;
     void set_bottom(float bottom);
+
+    float get_width() const { return m_right - m_left; }
+    float get_height() const { return m_top - m_bottom; }
 };
 
 wxDECLARE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, SimpleEvent);
@@ -343,7 +346,7 @@ class GLCanvas3D
         ~LayersEditing();
 
         bool init(const std::string& vertex_shader_filename, const std::string& fragment_shader_filename);
-        void set_config(const DynamicPrintConfig* config) { m_config = config; }
+		void set_config(const DynamicPrintConfig* config) { m_config = config; delete m_slicing_parameters; m_slicing_parameters = nullptr; }
         void select_object(const Model &model, int object_id);
 
         bool is_allowed() const;
@@ -375,6 +378,7 @@ class GLCanvas3D
         void _render_reset_texture(const Rect& reset_rect) const;
         void _render_active_object_annotations(const GLCanvas3D& canvas, const Rect& bar_rect) const;
         void _render_profile(const Rect& bar_rect) const;
+        void update_slicing_parameters();
     };
 
     struct Mouse
