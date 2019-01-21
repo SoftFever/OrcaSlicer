@@ -9,6 +9,8 @@
 #define ENABLE_SHOW_CAMERA_TARGET 0
 // Log debug messages to console when changing selection
 #define ENABLE_SELECTION_DEBUG_OUTPUT 0
+// Renders a small sphere in the center of the bounding box of the current selection when no gizmo is active
+#define ENABLE_RENDER_SELECTION_CENTER 0
 
 //====================
 // 1.42.0.alpha1 techs
@@ -24,10 +26,6 @@
 #define ENABLE_SLA_SUPPORT_GIZMO_MOD (1 && ENABLE_1_42_0_ALPHA1)
 // Use wxDataViewRender instead of wxDataViewCustomRenderer
 #define ENABLE_NONCUSTOM_DATA_VIEW_RENDERING (0 && ENABLE_1_42_0_ALPHA1)
-// Renders a small sphere in the center of the bounding box of the current selection when no gizmo is active
-#define ENABLE_RENDER_SELECTION_CENTER (0 && ENABLE_1_42_0_ALPHA1)
-// Separate rendering for opaque and transparent volumes
-#define ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING (1 && ENABLE_1_42_0_ALPHA1)
 
 //====================
 // 1.42.0.alpha2 techs

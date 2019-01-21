@@ -541,9 +541,7 @@ int GLVolumeCollection::load_object_volume(
         color[2] = 1.0f;
     }
     color[3] = model_volume->is_model_part() ? 1.f : 0.5f; */
-#if ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
     color[3] = model_volume->is_model_part() ? 1.f : 0.5f;
-#endif // ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
     this->volumes.emplace_back(new GLVolume(color));
     GLVolume &v = *this->volumes.back();
     v.set_color_from_model_volume(model_volume);
@@ -687,7 +685,6 @@ int GLVolumeCollection::load_wipe_tower_preview(
     return int(this->volumes.size() - 1);
 }
 
-#if ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
 typedef std::pair<GLVolume*, double> GLVolumeWithZ;
 typedef std::vector<GLVolumeWithZ> GLVolumesWithZList;
 static GLVolumesWithZList volumes_to_render(const GLVolumePtrs& volumes, GLVolumeCollection::ERenderType type, std::function<bool(const GLVolume&)> filter_func)
@@ -724,18 +721,13 @@ static GLVolumesWithZList volumes_to_render(const GLVolumePtrs& volumes, GLVolum
 }
 
 void GLVolumeCollection::render_VBOs(GLVolumeCollection::ERenderType type, bool disable_cullface, std::function<bool(const GLVolume&)> filter_func) const
-#else
-void GLVolumeCollection::render_VBOs() const
-#endif // ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
 {
     ::glEnable(GL_BLEND);
     ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     ::glCullFace(GL_BACK);
-#if ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
     if (disable_cullface)
         ::glDisable(GL_CULL_FACE);
-#endif // ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
 
     ::glEnableClientState(GL_VERTEX_ARRAY);
     ::glEnableClientState(GL_NORMAL_ARRAY);
@@ -758,19 +750,11 @@ void GLVolumeCollection::render_VBOs() const
     if (z_range_id != -1)
         ::glUniform2fv(z_range_id, 1, (const GLfloat*)z_range);
 
-#if ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
     GLVolumesWithZList to_render = volumes_to_render(this->volumes, type, filter_func);
     for (GLVolumeWithZ& volume : to_render) {
         volume.first->set_render_color();
         volume.first->render_VBOs(color_id, print_box_detection_id, print_box_worldmatrix_id);
     }
-#else
-    for (GLVolume *volume : this->volumes)
-        if (! filter_func || filter_func(*volume)) {
-            volume->set_render_color();
-            volume->render_VBOs(color_id, print_box_detection_id, print_box_worldmatrix_id);
-        }
-#endif // ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
 
     ::glBindBuffer(GL_ARRAY_BUFFER, 0);
     ::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -778,54 +762,36 @@ void GLVolumeCollection::render_VBOs() const
     ::glDisableClientState(GL_VERTEX_ARRAY);
     ::glDisableClientState(GL_NORMAL_ARRAY);
 
-#if ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
     if (disable_cullface)
         ::glEnable(GL_CULL_FACE);
-#endif // ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
 
     ::glDisable(GL_BLEND);
 }
 
-#if ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
 void GLVolumeCollection::render_legacy(ERenderType type, bool disable_cullface) const
-#else
-void GLVolumeCollection::render_legacy() const
-#endif // ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
 {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glCullFace(GL_BACK);
-#if ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
     if (disable_cullface)
         ::glDisable(GL_CULL_FACE);
-#endif // ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
 
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_NORMAL_ARRAY);
  
-#if ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
 	GLVolumesWithZList to_render = volumes_to_render(this->volumes, type, std::function<bool(const GLVolume&)>());
     for (GLVolumeWithZ& volume : to_render)
     {
         volume.first->set_render_color();
         volume.first->render_legacy();
     }
-#else
-    for (GLVolume *volume : this->volumes)
-    {
-        volume->set_render_color();
-        volume->render_legacy();
-    }
-#endif // ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
 
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
 
-#if ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
     if (disable_cullface)
         ::glEnable(GL_CULL_FACE);
-#endif // ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
 
     glDisable(GL_BLEND);
 }
