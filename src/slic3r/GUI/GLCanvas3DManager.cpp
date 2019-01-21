@@ -113,16 +113,13 @@ std::string GLCanvas3DManager::GLInfo::to_string(bool format_as_html, bool exten
 GLCanvas3DManager::EMultisampleState GLCanvas3DManager::s_multisample = GLCanvas3DManager::MS_Unknown;
 
 GLCanvas3DManager::GLCanvas3DManager()
-#if ENABLE_USE_UNIQUE_GLCONTEXT
     : m_context(nullptr)
-#endif // ENABLE_USE_UNIQUE_GLCONTEXT
     , m_gl_initialized(false)
     , m_use_legacy_opengl(false)
     , m_use_VBOs(false)
 {
 }
 
-#if ENABLE_USE_UNIQUE_GLCONTEXT
 GLCanvas3DManager::~GLCanvas3DManager()
 {
     if (m_context != nullptr)
@@ -131,7 +128,6 @@ GLCanvas3DManager::~GLCanvas3DManager()
         m_context = nullptr;
     }
 }
-#endif // ENABLE_USE_UNIQUE_GLCONTEXT
 
 bool GLCanvas3DManager::add(wxGLCanvas* canvas)
 {
@@ -147,7 +143,6 @@ bool GLCanvas3DManager::add(wxGLCanvas* canvas)
 
     canvas3D->bind_event_handlers();
 
-#if ENABLE_USE_UNIQUE_GLCONTEXT
     if (m_context == nullptr)
     {
         m_context = new wxGLContext(canvas);
@@ -156,7 +151,6 @@ bool GLCanvas3DManager::add(wxGLCanvas* canvas)
     }
 
     canvas3D->set_context(m_context);
-#endif // ENABLE_USE_UNIQUE_GLCONTEXT
 
     m_canvases.insert(CanvasesMap::value_type(canvas, canvas3D));
 

@@ -15,8 +15,6 @@
 //====================
 #define ENABLE_1_42_0_ALPHA1 1
 
-// Uses a unique opengl context
-#define ENABLE_USE_UNIQUE_GLCONTEXT (1 && ENABLE_1_42_0_ALPHA1)
 // Disable synchronization of unselected instances
 #define DISABLE_INSTANCES_SYNCH (0 && ENABLE_1_42_0_ALPHA1)
 // Scene's GUI made using imgui library

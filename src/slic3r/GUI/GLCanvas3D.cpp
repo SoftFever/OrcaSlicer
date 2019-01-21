@@ -3844,12 +3844,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
 #endif // not ENABLE_IMGUI
 {
     if (m_canvas != nullptr)
-    {
-#if !ENABLE_USE_UNIQUE_GLCONTEXT
-        m_context = new wxGLContext(m_canvas);
-#endif // !ENABLE_USE_UNIQUE_GLCONTEXT
         m_timer.SetOwner(m_canvas);
-    }
 
     m_selection.set_volumes(&m_volumes.volumes);
 }
@@ -3857,14 +3852,6 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
 GLCanvas3D::~GLCanvas3D()
 {
     reset_volumes();
-
-#if !ENABLE_USE_UNIQUE_GLCONTEXT
-    if (m_context != nullptr)
-    {
-        delete m_context;
-        m_context = nullptr;
-    }
-#endif // !ENABLE_USE_UNIQUE_GLCONTEXT
 }
 
 void GLCanvas3D::post_event(wxEvent &&event)
@@ -3972,16 +3959,6 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
     return true;
 }
 
-#if !ENABLE_USE_UNIQUE_GLCONTEXT
-bool GLCanvas3D::set_current()
-{
-    if ((m_canvas != nullptr) && (m_context != nullptr))
-        return m_canvas->SetCurrent(*m_context);
-
-    return false;
-}
-#endif // !ENABLE_USE_UNIQUE_GLCONTEXT
-
 void GLCanvas3D::set_as_dirty()
 {
     m_dirty = true;
@@ -3996,12 +3973,6 @@ void GLCanvas3D::reset_volumes()
 {
     if (!m_volumes.empty())
     {
-#if !ENABLE_USE_UNIQUE_GLCONTEXT
-        // ensures this canvas is current
-        if (!set_current())
-            return;
-#endif // !ENABLE_USE_UNIQUE_GLCONTEXT
-
         m_selection.clear();
         m_volumes.release_geometry();
         m_volumes.clear();
@@ -4278,11 +4249,7 @@ void GLCanvas3D::render()
         return;
 
     // ensures this canvas is current and initialized
-#if ENABLE_USE_UNIQUE_GLCONTEXT
     if (!_set_current() || !_3DScene::init(m_canvas))
-#else
-    if (!set_current() || !_3DScene::init(m_canvas))
-#endif // ENABLE_USE_UNIQUE_GLCONTEXT
         return;
 
 #if ENABLE_REWORKED_BED_SHAPE_CHANGE
@@ -4466,11 +4433,6 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 {
     if ((m_canvas == nullptr) || (m_config == nullptr) || (m_model == nullptr))
         return;
-#if !ENABLE_USE_UNIQUE_GLCONTEXT
-    // ensures this canvas is current
-    if (!set_current())
-        return;
-#endif // !ENABLE_USE_UNIQUE_GLCONTEXT
 
     struct ModelVolumeState {
         ModelVolumeState(const GLVolume *volume) : 
@@ -4778,12 +4740,6 @@ void GLCanvas3D::load_gcode_preview(const GCodePreviewData& preview_data, const 
     const Print *print = this->fff_print();
     if ((m_canvas != nullptr) && (print != nullptr))
     {
-#if !ENABLE_USE_UNIQUE_GLCONTEXT
-        // ensures that this canvas is current
-        if (!set_current())
-            return;
-#endif // !ENABLE_USE_UNIQUE_GLCONTEXT
-
         std::vector<float> tool_colors = _parse_colors(str_tool_colors);
 
         if (m_volumes.empty())
@@ -5523,11 +5479,6 @@ Point GLCanvas3D::get_local_mouse_position() const
 
 void GLCanvas3D::reset_legend_texture()
 {
-#if !ENABLE_USE_UNIQUE_GLCONTEXT
-    if (!set_current())
-        return;
-#endif // !ENABLE_USE_UNIQUE_GLCONTEXT
-
     m_legend_texture.reset();
 }
 
@@ -5958,7 +5909,6 @@ bool GLCanvas3D::_init_toolbar()
     return true;
 }
 
-#if ENABLE_USE_UNIQUE_GLCONTEXT
 bool GLCanvas3D::_set_current()
 {
     if ((m_canvas != nullptr) && (m_context != nullptr))
@@ -5966,7 +5916,6 @@ bool GLCanvas3D::_set_current()
 
     return false;
 }
-#endif ENABLE_USE_UNIQUE_GLCONTEXT
 
 void GLCanvas3D::_resize(unsigned int w, unsigned int h)
 {
@@ -5978,11 +5927,7 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
 #endif // ENABLE_IMGUI
 
     // ensures that this canvas is current
-#if ENABLE_USE_UNIQUE_GLCONTEXT
     _set_current();
-#else
-    set_current();
-#endif // ENABLE_USE_UNIQUE_GLCONTEXT
     ::glViewport(0, 0, w, h);
 
     ::glMatrixMode(GL_PROJECTION);
@@ -6862,12 +6807,6 @@ void GLCanvas3D::_stop_timer()
 
 void GLCanvas3D::_load_print_toolpaths()
 {
-#if !ENABLE_USE_UNIQUE_GLCONTEXT
-    // ensures this canvas is current
-    if (!set_current())
-        return;
-#endif // !ENABLE_USE_UNIQUE_GLCONTEXT
-
     const Print *print = this->fff_print();
     if (print == nullptr)
         return;
@@ -8010,31 +7949,16 @@ std::vector<float> GLCanvas3D::_parse_colors(const std::vector<std::string>& col
 
 void GLCanvas3D::_generate_legend_texture(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors)
 {
-#if !ENABLE_USE_UNIQUE_GLCONTEXT
-    if (!set_current())
-        return;
-#endif // !ENABLE_USE_UNIQUE_GLCONTEXT
-
     m_legend_texture.generate(preview_data, tool_colors, *this, m_dynamic_background_enabled && _is_any_volume_outside());
 }
 
 void GLCanvas3D::_generate_warning_texture(const std::string& msg)
 {
-#if !ENABLE_USE_UNIQUE_GLCONTEXT
-    if (!set_current())
-        return;
-#endif // !ENABLE_USE_UNIQUE_GLCONTEXT
-
     m_warning_texture.generate(msg);
 }
 
 void GLCanvas3D::_reset_warning_texture()
 {
-#if !ENABLE_USE_UNIQUE_GLCONTEXT
-    if (!set_current())
-        return;
-#endif // !ENABLE_USE_UNIQUE_GLCONTEXT
-
     m_warning_texture.reset();
 }
 

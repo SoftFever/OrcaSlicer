@@ -894,9 +894,7 @@ public:
     GLCanvas3D(wxGLCanvas* canvas);
     ~GLCanvas3D();
 
-#if ENABLE_USE_UNIQUE_GLCONTEXT
     void set_context(wxGLContext* context) { m_context = context; }
-#endif // ENABLE_USE_UNIQUE_GLCONTEXT
 
     wxGLCanvas* get_wxglcanvas() { return m_canvas; }
 
@@ -904,10 +902,6 @@ public:
 
     bool init(bool useVBOs, bool use_legacy_opengl);
     void post_event(wxEvent &&event);
-
-#if !ENABLE_USE_UNIQUE_GLCONTEXT
-    bool set_current();
-#endif // !ENABLE_USE_UNIQUE_GLCONTEXT
 
     void set_as_dirty();
 
@@ -1047,9 +1041,7 @@ private:
 
     bool _init_toolbar();
 
-#if ENABLE_USE_UNIQUE_GLCONTEXT
     bool _set_current();
-#endif // ENABLE_USE_UNIQUE_GLCONTEXT
     void _resize(unsigned int w, unsigned int h);
 
     BoundingBoxf3 _max_bounding_box() const;
