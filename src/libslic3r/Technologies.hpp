@@ -19,8 +19,6 @@
 #define ENABLE_USE_UNIQUE_GLCONTEXT (1 && ENABLE_1_42_0_ALPHA1)
 // Disable synchronization of unselected instances
 #define DISABLE_INSTANCES_SYNCH (0 && ENABLE_1_42_0_ALPHA1)
-// All rotations made using the rotate gizmo are done with respect to the world reference system
-#define ENABLE_WORLD_ROTATIONS (1 && ENABLE_1_42_0_ALPHA1)
 // Scene's GUI made using imgui library
 #define ENABLE_IMGUI (1 && ENABLE_1_42_0_ALPHA1)
 #define DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI (1 && ENABLE_IMGUI)

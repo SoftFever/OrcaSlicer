@@ -1708,7 +1708,6 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation, bool local)
     for (unsigned int i : m_list)
     {
         if (is_single_full_instance())
-#if ENABLE_WORLD_ROTATIONS
         {
             if (local)
                 (*m_volumes)[i]->set_instance_rotation(rotation);
@@ -1719,11 +1718,7 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation, bool local)
                 (*m_volumes)[i]->set_instance_rotation(new_rotation);
             }
         }
-#else
-            (*m_volumes)[i]->set_instance_rotation(rotation);
-#endif // ENABLE_WORLD_ROTATIONS
         else if (is_single_volume() || is_single_modifier())
-#if ENABLE_WORLD_ROTATIONS
         {
             if (local)
                 (*m_volumes)[i]->set_volume_rotation(rotation);
@@ -1734,9 +1729,6 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation, bool local)
                 (*m_volumes)[i]->set_volume_rotation(new_rotation);
             }
         }
-#else
-            (*m_volumes)[i]->set_volume_rotation(rotation);
-#endif // ENABLE_WORLD_ROTATIONS
         else
         {
             Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), rotation);
@@ -5432,9 +5424,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 break;
             }
             m_gizmos.stop_dragging();
-#if ENABLE_WORLD_ROTATIONS
             _update_gizmos_data();
-#endif // ENABLE_WORLD_ROTATIONS
 
             wxGetApp().obj_manipul()->update_settings_value(m_selection);
             // Let the platter know that the dragging finished, so a delayed refresh
@@ -6764,11 +6754,7 @@ void GLCanvas3D::_update_gizmos_data()
         // all volumes in the selection belongs to the same instance, any of them contains the needed data, so we take the first
         const GLVolume* volume = m_volumes.volumes[*m_selection.get_volume_idxs().begin()];
         m_gizmos.set_scale(volume->get_instance_scaling_factor());
-#if ENABLE_WORLD_ROTATIONS
         m_gizmos.set_rotation(Vec3d::Zero());
-#else
-        m_gizmos.set_rotation(volume->get_instance_rotation());
-#endif // ENABLE_WORLD_ROTATIONS
         ModelObject* model_object = m_model->objects[m_selection.get_object_idx()];
         m_gizmos.set_flattening_data(model_object);
 #if ENABLE_SLA_SUPPORT_GIZMO_MOD
@@ -6781,11 +6767,7 @@ void GLCanvas3D::_update_gizmos_data()
     {
         const GLVolume* volume = m_volumes.volumes[*m_selection.get_volume_idxs().begin()];
         m_gizmos.set_scale(volume->get_volume_scaling_factor());
-#if ENABLE_WORLD_ROTATIONS
         m_gizmos.set_rotation(Vec3d::Zero());
-#else
-        m_gizmos.set_rotation(volume->get_volume_rotation());
-#endif // ENABLE_WORLD_ROTATIONS
         m_gizmos.set_flattening_data(nullptr);
 #if ENABLE_SLA_SUPPORT_GIZMO_MOD
         m_gizmos.set_sla_support_data(nullptr, m_selection);
