@@ -38,6 +38,7 @@ struct FillParams
     // in this case we don't try to make more continuous paths
     bool        complete;
 };
+static_assert(std::is_trivially_copyable<FillParams>::value, "FillParams class is not POD (and it should be - see constructor).");
 
 class Fill
 {
