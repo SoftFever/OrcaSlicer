@@ -6,6 +6,8 @@
 #include <float.h>
 #include <stdint.h>
 
+#include <type_traits>
+
 #include "../libslic3r.h"
 #include "../BoundingBox.hpp"
 #include "../PrintConfig.hpp"
