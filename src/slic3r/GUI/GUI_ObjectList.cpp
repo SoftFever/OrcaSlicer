@@ -1105,10 +1105,14 @@ bool ObjectList::is_splittable()
     if (!get_volume_by_item(item, volume) || !volume)
         return false;
 
+    if (volume->is_splittable() != -1) // if is_splittable value is already known
+        return volume->is_splittable() == 0 ? false : true;
+
     TriangleMeshPtrs meshptrs = volume->mesh.split();
     bool splittable = meshptrs.size() > 1;
     for (TriangleMesh* m : meshptrs) { delete m; }
 
+    volume->set_splittable(splittable ? 1 : 0);
     return splittable;
 }
 
