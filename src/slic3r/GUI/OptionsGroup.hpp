@@ -1,7 +1,7 @@
 #ifndef slic3r_OptionsGroup_hpp_
 #define slic3r_OptionsGroup_hpp_
 
-#include <wx/wx.h>
+//#include <wx/wx.h>
 #include <wx/stattext.h>
 #include <wx/settings.h>
 //#include <wx/window.h>
@@ -11,7 +11,7 @@
 
 #include "libslic3r/Config.hpp"
 #include "libslic3r/PrintConfig.hpp"
-#include "libslic3r/libslic3r.h"
+// #include "libslic3r/libslic3r.h"
 
 #include "Field.hpp"
 #include "GUI_App.hpp"

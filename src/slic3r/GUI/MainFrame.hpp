@@ -62,6 +62,7 @@ class MainFrame : public wxFrame
     bool can_save() const;
     bool can_export_model() const;
     bool can_export_gcode() const;
+    bool can_slice() const;
     bool can_change_view() const;
     bool can_select() const;
     bool can_delete() const;
