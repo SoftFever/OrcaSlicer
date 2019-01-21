@@ -1526,10 +1526,9 @@ void GLGizmoFlatten::update_planes()
         vol_ch.transform(vol->get_matrix());
         ch.merge(vol_ch);
     }
-
     ch = ch.convex_hull_3d();
     m_planes.clear();
-    const Transform3d& inst_matrix = m_model_object->instances.front()->get_matrix();
+    const Transform3d& inst_matrix = m_model_object->instances.front()->get_matrix(true);
 
     // Following constants are used for discarding too small polygons.
     const float minimal_area = 5.f; // in square mm (world coordinates)
@@ -1696,10 +1695,6 @@ void GLGizmoFlatten::update_planes()
 
         // Transform back to 3D (and also back to mesh coordinates)
         polygon = transform(polygon, inst_matrix.inverse() * m.inverse());
-
-        // make sure the points are in correct order:
-        if ( ((inst_matrix.inverse() * m.inverse()) * Vec3d(0., 0., 1.)).dot(normal) > 0.)
-            std::reverse(polygon.begin(),polygon.end());
     }
 
     // We'll sort the planes by area and only keep the 254 largest ones (because of the picking pass limitations):
@@ -1714,6 +1709,7 @@ void GLGizmoFlatten::update_planes()
         m_volumes_types.push_back(vol->type());
     }
     m_first_instance_scale = m_model_object->instances.front()->get_scaling_factor();
+    m_first_instance_mirror = m_model_object->instances.front()->get_mirror();
 }
 
 
@@ -1726,7 +1722,8 @@ bool GLGizmoFlatten::is_plane_update_necessary() const
         return true;
 
     // We want to recalculate when the scale changes - some planes could (dis)appear.
-    if (! m_model_object->instances.front()->get_scaling_factor().isApprox(m_first_instance_scale))
+    if (! m_model_object->instances.front()->get_scaling_factor().isApprox(m_first_instance_scale)
+     || ! m_model_object->instances.front()->get_mirror().isApprox(m_first_instance_mirror))
         return true;
 
     for (unsigned int i=0; i < m_model_object->volumes.size(); ++i)
