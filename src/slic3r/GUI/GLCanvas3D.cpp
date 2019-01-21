@@ -1043,10 +1043,6 @@ void GLCanvas3D::LayersEditing::_render_active_object_annotations(const GLCanvas
 
     ::glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     ::glBindTexture(GL_TEXTURE_2D, m_z_texture_id);
-    ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-    ::glTexImage2D(GL_TEXTURE_2D, 1, GL_RGBA, half_w, half_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-	::glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, m_layers_texture.data.data());
-	::glTexSubImage2D(GL_TEXTURE_2D, 1, 0, 0, half_w, half_h, GL_RGBA, GL_UNSIGNED_BYTE, m_layers_texture.data.data() + m_layers_texture.width * m_layers_texture.height * 4);
 
     // Render the color bar
     float l = bar_rect.get_left();
@@ -1055,6 +1051,7 @@ void GLCanvas3D::LayersEditing::_render_active_object_annotations(const GLCanvas
     float b = bar_rect.get_bottom();
 
     ::glBegin(GL_QUADS);
+    ::glNormal3f(0.0f, 0.0f, 1.0f);
     ::glVertex3f(l, b, 0.0f);
     ::glVertex3f(r, b, 0.0f);
     ::glVertex3f(r, t, m_object_max_z);
