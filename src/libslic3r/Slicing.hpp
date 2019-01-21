@@ -131,7 +131,7 @@ extern std::vector<coordf_t> layer_height_profile_adaptive(
     const ModelVolumePtrs       &volumes);
 
 
-enum LayerHeightEditActionType {
+enum LayerHeightEditActionType : unsigned int {
     LAYER_HEIGHT_EDIT_ACTION_INCREASE = 0,
     LAYER_HEIGHT_EDIT_ACTION_DECREASE = 1,
     LAYER_HEIGHT_EDIT_ACTION_REDUCE   = 2,

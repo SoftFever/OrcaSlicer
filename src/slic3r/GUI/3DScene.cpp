@@ -386,58 +386,6 @@ void GLVolume::render() const
     ::glPopMatrix();
 }
 
-void GLVolume::render_using_layer_height() const
-{
-    if (!is_active)
-        return;
-
-    GLint current_program_id;
-    glGetIntegerv(GL_CURRENT_PROGRAM, &current_program_id);
-
-    if ((layer_height_texture_data.shader_id > 0) && (layer_height_texture_data.shader_id != current_program_id))
-        glUseProgram(layer_height_texture_data.shader_id);
-
-    GLint z_to_texture_row_id = (layer_height_texture_data.shader_id > 0) ? glGetUniformLocation(layer_height_texture_data.shader_id, "z_to_texture_row") : -1;
-    GLint z_texture_row_to_normalized_id = (layer_height_texture_data.shader_id > 0) ? glGetUniformLocation(layer_height_texture_data.shader_id, "z_texture_row_to_normalized") : -1;
-    GLint z_cursor_id = (layer_height_texture_data.shader_id > 0) ? glGetUniformLocation(layer_height_texture_data.shader_id, "z_cursor") : -1;
-    GLint z_cursor_band_width_id = (layer_height_texture_data.shader_id > 0) ? glGetUniformLocation(layer_height_texture_data.shader_id, "z_cursor_band_width") : -1;
-    GLint world_matrix_id = (layer_height_texture_data.shader_id > 0) ? glGetUniformLocation(layer_height_texture_data.shader_id, "volume_world_matrix") : -1;
-
-    if (z_to_texture_row_id  >= 0)
-        glUniform1f(z_to_texture_row_id, (GLfloat)layer_height_texture_z_to_row_id());
-
-    if (z_texture_row_to_normalized_id >= 0)
-        glUniform1f(z_texture_row_to_normalized_id, (GLfloat)(1.0f / layer_height_texture_height()));
-
-    if (z_cursor_id >= 0)
-        glUniform1f(z_cursor_id, (GLfloat)(layer_height_texture_data.print_object->model_object()->bounding_box().max(2) * layer_height_texture_data.z_cursor_relative));
-
-    if (z_cursor_band_width_id >= 0)
-        glUniform1f(z_cursor_band_width_id, (GLfloat)layer_height_texture_data.edit_band_width);
-
-    if (world_matrix_id >= 0)
-        ::glUniformMatrix4fv(world_matrix_id, 1, GL_FALSE, (const GLfloat*)world_matrix().cast<float>().data());
-
-    GLsizei w = (GLsizei)layer_height_texture_width();
-    GLsizei h = (GLsizei)layer_height_texture_height();
-    GLsizei half_w = w / 2;
-    GLsizei half_h = h / 2;
-
-    ::glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glBindTexture(GL_TEXTURE_2D, layer_height_texture_data.texture_id);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-    glTexImage2D(GL_TEXTURE_2D, 1, GL_RGBA, half_w, half_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, layer_height_texture_data_ptr_level0());
-    glTexSubImage2D(GL_TEXTURE_2D, 1, 0, 0, half_w, half_h, GL_RGBA, GL_UNSIGNED_BYTE, layer_height_texture_data_ptr_level1());
-
-    render();
-
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    if ((current_program_id > 0) && (layer_height_texture_data.shader_id != current_program_id))
-        glUseProgram(current_program_id);
-}
-
 void GLVolume::render_VBOs(int color_id, int detection_id, int worldmatrix_id) const
 {
     if (!is_active)
@@ -445,16 +393,6 @@ void GLVolume::render_VBOs(int color_id, int detection_id, int worldmatrix_id) c
 
     if (!indexed_vertex_array.vertices_and_normals_interleaved_VBO_id)
         return;
-
-    if (layer_height_texture_data.can_use())
-    {
-        ::glDisableClientState(GL_VERTEX_ARRAY);
-        ::glDisableClientState(GL_NORMAL_ARRAY);
-        render_using_layer_height();
-        ::glEnableClientState(GL_VERTEX_ARRAY);
-        ::glEnableClientState(GL_NORMAL_ARRAY);
-        return;
-    }
 
     GLsizei n_triangles = GLsizei(std::min(indexed_vertex_array.triangle_indices_size, tverts_range.second - tverts_range.first));
     GLsizei n_quads = GLsizei(std::min(indexed_vertex_array.quad_indices_size, qverts_range.second - qverts_range.first));
@@ -558,44 +496,6 @@ void GLVolume::render_legacy() const
     ::glPopMatrix();
 }
 
-double GLVolume::layer_height_texture_z_to_row_id() const
-{
-    return (this->layer_height_texture.get() == nullptr) ? 0.0 : double(this->layer_height_texture->cells - 1) / (double(this->layer_height_texture->width) * this->layer_height_texture_data.print_object->model_object()->bounding_box().max(2));
-}
-
-void GLVolume::generate_layer_height_texture(const PrintObject *print_object, bool force)
-{
-    LayersTexture *tex = this->layer_height_texture.get();
-    if (tex == nullptr)
-		// No layer_height_texture is assigned to this GLVolume, therefore the layer height texture cannot be filled.
-		return;
-
-	// Always try to update the layer height profile.
-	bool update = print_object->update_layer_height_profile(const_cast<ModelObject*>(print_object->model_object())->layer_height_profile) || force;
-	// Update if the layer height profile was changed, or when the texture is not valid.
-	if (! update && ! tex->data.empty() && tex->cells > 0)
-        // Texture is valid, don't update.
-        return; 
-
-    if (tex->data.empty()) {
-        tex->width  = 1024;
-        tex->height = 1024;
-        tex->levels = 2;
-        tex->data.assign(tex->width * tex->height * 5, 0);
-    }
-
-    SlicingParameters slicing_params = print_object->slicing_parameters();
-    bool level_of_detail_2nd_level = true;
-    tex->cells = Slic3r::generate_layer_height_texture(
-        slicing_params, 
-        Slic3r::generate_object_layers(slicing_params, print_object->model_object()->layer_height_profile), 
-        tex->data.data(), tex->height, tex->width, level_of_detail_2nd_level);
-}
-
-// 512x512 bitmaps are supported everywhere, but that may not be sufficent for super large print volumes.
-#define LAYER_HEIGHT_TEXTURE_WIDTH  1024
-#define LAYER_HEIGHT_TEXTURE_HEIGHT 1024
-
 std::vector<int> GLVolumeCollection::load_object(
     const ModelObject       *model_object,
     int                      obj_idx,
@@ -603,19 +503,15 @@ std::vector<int> GLVolumeCollection::load_object(
     const std::string       &color_by,
     bool                     use_VBOs)
 {
-    // Object will share a single common layer height texture between all printable volumes.
-    std::shared_ptr<LayersTexture> layer_height_texture = std::make_shared<LayersTexture>();
     std::vector<int> volumes_idx;
     for (int volume_idx = 0; volume_idx < int(model_object->volumes.size()); ++ volume_idx)
         for (int instance_idx : instance_idxs)
-			volumes_idx.emplace_back(this->GLVolumeCollection::load_object_volume(model_object, layer_height_texture, obj_idx, volume_idx, instance_idx, color_by, use_VBOs));
+			volumes_idx.emplace_back(this->GLVolumeCollection::load_object_volume(model_object, obj_idx, volume_idx, instance_idx, color_by, use_VBOs));
     return volumes_idx; 
 }
 
 int GLVolumeCollection::load_object_volume(
 	const ModelObject              *model_object,
-    // Layer height texture is shared between all printable volumes of a single ModelObject.
-	std::shared_ptr<LayersTexture> &layer_height_texture,
     int                             obj_idx,
     int                             volume_idx,
     int                             instance_idx,
@@ -666,7 +562,6 @@ int GLVolumeCollection::load_object_volume(
         v.set_convex_hull(&model_volume->get_convex_hull(), false);
         if (extruder_id != -1)
             v.extruder_id = extruder_id;
-        v.layer_height_texture = layer_height_texture;
     }
     v.is_modifier = ! model_volume->is_model_part();
     v.shader_outside_printer_detection_enabled = model_volume->is_model_part();
@@ -795,17 +690,19 @@ int GLVolumeCollection::load_wipe_tower_preview(
 #if ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
 typedef std::pair<GLVolume*, double> GLVolumeWithZ;
 typedef std::vector<GLVolumeWithZ> GLVolumesWithZList;
-GLVolumesWithZList volumes_to_render(const GLVolumePtrs& volumes, GLVolumeCollection::ERenderType type)
+static GLVolumesWithZList volumes_to_render(const GLVolumePtrs& volumes, GLVolumeCollection::ERenderType type, std::function<bool(const GLVolume&)> filter_func)
 {
     GLVolumesWithZList list;
+    list.reserve(volumes.size());
 
     for (GLVolume* volume : volumes)
     {
         bool is_transparent = (volume->render_color[3] < 1.0f);
-        if (((type == GLVolumeCollection::Opaque) && !is_transparent) ||
-            ((type == GLVolumeCollection::Transparent) && is_transparent) ||
-            (type == GLVolumeCollection::All))
-            list.push_back(std::make_pair(volume, 0.0));
+        if ((((type == GLVolumeCollection::Opaque) && !is_transparent) ||
+             ((type == GLVolumeCollection::Transparent) && is_transparent) ||
+             (type == GLVolumeCollection::All)) &&
+            (! filter_func || filter_func(*volume)))
+            list.emplace_back(std::make_pair(volume, 0.0));
     }
 
     if ((type == GLVolumeCollection::Transparent) && (list.size() > 1))
@@ -826,7 +723,7 @@ GLVolumesWithZList volumes_to_render(const GLVolumePtrs& volumes, GLVolumeCollec
     return list;
 }
 
-void GLVolumeCollection::render_VBOs(GLVolumeCollection::ERenderType type, bool disable_cullface) const
+void GLVolumeCollection::render_VBOs(GLVolumeCollection::ERenderType type, bool disable_cullface, std::function<bool(const GLVolume&)> filter_func) const
 #else
 void GLVolumeCollection::render_VBOs() const
 #endif // ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
@@ -862,26 +759,17 @@ void GLVolumeCollection::render_VBOs() const
         ::glUniform2fv(z_range_id, 1, (const GLfloat*)z_range);
 
 #if ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
-    GLVolumesWithZList to_render = volumes_to_render(this->volumes, type);
-    for (GLVolumeWithZ& volume : to_render)
-    {
-        if (volume.first->layer_height_texture_data.can_use())
-            volume.first->generate_layer_height_texture(volume.first->layer_height_texture_data.print_object, false);
-        else
-            volume.first->set_render_color();
-
+    GLVolumesWithZList to_render = volumes_to_render(this->volumes, type, filter_func);
+    for (GLVolumeWithZ& volume : to_render) {
+        volume.first->set_render_color();
         volume.first->render_VBOs(color_id, print_box_detection_id, print_box_worldmatrix_id);
     }
 #else
     for (GLVolume *volume : this->volumes)
-    {
-        if (volume->layer_height_texture_data.can_use())
-            volume->generate_layer_height_texture(volume->layer_height_texture_data.print_object, false);
-        else
+        if (! filter_func || filter_func(*volume)) {
             volume->set_render_color();
-
-        volume->render_VBOs(color_id, print_box_detection_id, print_box_worldmatrix_id);
-    }
+            volume->render_VBOs(color_id, print_box_detection_id, print_box_worldmatrix_id);
+        }
 #endif // ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
 
     ::glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -917,7 +805,7 @@ void GLVolumeCollection::render_legacy() const
     glEnableClientState(GL_NORMAL_ARRAY);
  
 #if ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
-    GLVolumesWithZList to_render = volumes_to_render(this->volumes, type);
+	GLVolumesWithZList to_render = volumes_to_render(this->volumes, type, std::function<bool(const GLVolume&)>());
     for (GLVolumeWithZ& volume : to_render)
     {
         volume.first->set_render_color();
