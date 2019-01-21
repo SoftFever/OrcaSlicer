@@ -72,11 +72,8 @@ static const float DEFAULT_BG_DARK_COLOR[3] = { 0.478f, 0.478f, 0.478f };
 static const float DEFAULT_BG_LIGHT_COLOR[3] = { 0.753f, 0.753f, 0.753f };
 static const float ERROR_BG_DARK_COLOR[3] = { 0.478f, 0.192f, 0.039f };
 static const float ERROR_BG_LIGHT_COLOR[3] = { 0.753f, 0.192f, 0.039f };
-
-#if ENABLE_SIDEBAR_VISUAL_HINTS
 static const float UNIFORM_SCALE_COLOR[3] = { 1.0f, 0.38f, 0.0f };
 static const float AXES_COLOR[3][3] = { { 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f, 1.0f } };
-#endif // ENABLE_SIDEBAR_VISUAL_HINTS
 
 namespace Slic3r {
 namespace GUI {
@@ -1320,7 +1317,6 @@ void GLCanvas3D::Selection::set_volumes(GLVolumePtrs* volumes)
     _update_valid();
 }
 
-#if ENABLE_SIDEBAR_VISUAL_HINTS
 bool GLCanvas3D::Selection::init(bool useVBOs)
 {
     if (!m_arrow.init(useVBOs))
@@ -1334,7 +1330,6 @@ bool GLCanvas3D::Selection::init(bool useVBOs)
     m_curved_arrow.set_scale(5.0 * Vec3d::Ones());
     return true;
 }
-#endif // ENABLE_SIDEBAR_VISUAL_HINTS
 
 void GLCanvas3D::Selection::set_model(Model* model)
 {
@@ -2115,7 +2110,6 @@ void GLCanvas3D::Selection::render_center() const
 }
 #endif // ENABLE_RENDER_SELECTION_CENTER
 
-#if ENABLE_SIDEBAR_VISUAL_HINTS
 void GLCanvas3D::Selection::render_sidebar_hints(const std::string& sidebar_field) const
 {
     if (sidebar_field.empty())
@@ -2170,7 +2164,6 @@ void GLCanvas3D::Selection::render_sidebar_hints(const std::string& sidebar_fiel
 
     ::glDisable(GL_LIGHTING);
 }
-#endif // ENABLE_SIDEBAR_VISUAL_HINTS
 
 bool GLCanvas3D::Selection::requires_local_axes() const
 {
@@ -2575,7 +2568,6 @@ void GLCanvas3D::Selection::_render_bounding_box(const BoundingBoxf3& box, float
     ::glEnd();
 }
 
-#if ENABLE_SIDEBAR_VISUAL_HINTS
 void GLCanvas3D::Selection::_render_sidebar_position_hints(const std::string& sidebar_field) const
 {
     if (boost::ends_with(sidebar_field, "x"))
@@ -2671,7 +2663,6 @@ void GLCanvas3D::Selection::_render_sidebar_scale_hint(Axis axis) const
 void GLCanvas3D::Selection::_render_sidebar_size_hint(Axis axis, double length) const
 {
 }
-#endif // ENABLE_SIDEBAR_VISUAL_HINTS
 
 void GLCanvas3D::Selection::_synchronize_unselected_instances(bool including_z)
 {
@@ -3947,10 +3938,8 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
     if (!_init_toolbar())
         return false;
 
-#if ENABLE_SIDEBAR_VISUAL_HINTS
     if (!m_selection.init(m_use_VBOs))
         return false;
-#endif // ENABLE_SIDEBAR_VISUAL_HINTS
 
     post_event(SimpleEvent(EVT_GLCANVAS_INIT));
 
@@ -4317,9 +4306,7 @@ void GLCanvas3D::render()
     // this position is used later into on_mouse() to drag the objects
     m_mouse.scene_position = _mouse_to_3d(m_mouse.position.cast<int>());
 
-#if ENABLE_SIDEBAR_VISUAL_HINTS
     _render_selection_sidebar_hints();
-#endif // ENABLE_SIDEBAR_VISUAL_HINTS
 
     _render_current_gizmo();
 #if ENABLE_SHOW_CAMERA_TARGET
@@ -6633,7 +6620,6 @@ void GLCanvas3D::_render_sla_slices() const
     }
 }
 
-#if ENABLE_SIDEBAR_VISUAL_HINTS
 void GLCanvas3D::_render_selection_sidebar_hints() const
 {
     if (m_use_VBOs)
@@ -6644,7 +6630,6 @@ void GLCanvas3D::_render_selection_sidebar_hints() const
     if (m_use_VBOs)
         m_shader.stop_using();
 }
-#endif // ENABLE_SIDEBAR_VISUAL_HINTS
 
 void GLCanvas3D::_update_volumes_hover_state() const
 {

@@ -1678,7 +1678,6 @@ void _3DScene::point3_to_verts(const Vec3crd& point, double width, double height
 
 GUI::GLCanvas3DManager _3DScene::s_canvas_mgr;
 
-#if ENABLE_SIDEBAR_VISUAL_HINTS
 GLModel::GLModel()
     : m_useVBOs(false)
 #if ENABLE_PRINT_BED_MODELS
@@ -1977,7 +1976,6 @@ bool GLCurvedArrow::on_init(bool useVBOs)
     m_volume.finalize_geometry(m_useVBOs);
     return true;
 }
-#endif // ENABLE_SIDEBAR_VISUAL_HINTS
 
 #if ENABLE_PRINT_BED_MODELS
 bool GLBed::on_init_from_file(const std::string& filename, bool useVBOs)

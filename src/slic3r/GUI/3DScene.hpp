@@ -485,7 +485,6 @@ private:
     GLVolumeCollection& operator=(const GLVolumeCollection &);
 };
 
-#if ENABLE_SIDEBAR_VISUAL_HINTS
 class GLModel
 {
 protected:
@@ -552,7 +551,6 @@ public:
 protected:
     virtual bool on_init(bool useVBOs);
 };
-#endif // ENABLE_SIDEBAR_VISUAL_HINTS
 
 #if ENABLE_PRINT_BED_MODELS
 class GLBed : public GLModel

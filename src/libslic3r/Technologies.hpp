@@ -26,8 +26,6 @@
 #define ENABLE_NONCUSTOM_DATA_VIEW_RENDERING (0 && ENABLE_1_42_0_ALPHA1)
 // Renders a small sphere in the center of the bounding box of the current selection when no gizmo is active
 #define ENABLE_RENDER_SELECTION_CENTER (0 && ENABLE_1_42_0_ALPHA1)
-// Show visual hints in the 3D scene when sidebar matrix fields have focus
-#define ENABLE_SIDEBAR_VISUAL_HINTS (1 && ENABLE_1_42_0_ALPHA1)
 // Separate rendering for opaque and transparent volumes
 #define ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING (1 && ENABLE_1_42_0_ALPHA1)
 
