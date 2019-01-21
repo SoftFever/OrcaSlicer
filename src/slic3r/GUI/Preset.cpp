@@ -1153,11 +1153,11 @@ std::vector<std::string> PresetCollection::merge_presets(PresetCollection &&othe
 std::string PresetCollection::name() const
 {
     switch (this->type()) {
-    case Preset::TYPE_PRINT:        return "print";
-    case Preset::TYPE_FILAMENT:     return "filament";
-    case Preset::TYPE_SLA_PRINT:    return "SLA print";
-    case Preset::TYPE_SLA_MATERIAL: return "SLA material";    
-    case Preset::TYPE_PRINTER:      return "printer";
+    case Preset::TYPE_PRINT:        return L("print");
+    case Preset::TYPE_FILAMENT:     return L("filament");
+    case Preset::TYPE_SLA_PRINT:    return L("SLA print");
+    case Preset::TYPE_SLA_MATERIAL: return L("SLA material");    
+    case Preset::TYPE_PRINTER:      return L("printer");
     default:                        return "invalid";
     }
 }

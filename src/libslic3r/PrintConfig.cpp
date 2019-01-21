@@ -2487,7 +2487,6 @@ void PrintConfigDef::init_sla_params()
     def->label = L("Generate supports");
     def->category = L("Supports");
     def->tooltip = L("Generate supports for the models");
-    def->sidetext = L("");
     def->cli = "";
     def->default_value = new ConfigOptionBool(true);
 
@@ -2549,7 +2548,6 @@ void PrintConfigDef::init_sla_params()
     def->tooltip = L("Merging bridges or pillars into another pillars can "
                      "increase the radius. Zero means no increase, one means "
                      "full increase.");
-    def->sidetext = L("");
     def->cli = "";
     def->min = 0;
     def->max = 1;
@@ -2631,14 +2629,13 @@ void PrintConfigDef::init_sla_params()
     def->label = L("Use pad");
     def->category = L("Pad");
     def->tooltip = L("Add a pad underneath the supported model");
-    def->sidetext = L("");
     def->cli = "";
     def->default_value = new ConfigOptionBool(true);
 
     def = this->add("pad_wall_thickness", coFloat);
     def->label = L("Pad wall thickness");
     def->category = L("Pad");
-    def->tooltip = L("");
+//     def->tooltip = L("");
     def->sidetext = L("mm");
     def->cli = "";
     def->min = 0;
@@ -2647,7 +2644,7 @@ void PrintConfigDef::init_sla_params()
     def = this->add("pad_wall_height", coFloat);
     def->label = L("Pad wall height");
     def->category = L("Pad");
-    def->tooltip = L("");
+//     def->tooltip = L("");
     def->sidetext = L("mm");
     def->cli = "";
     def->min = 0;
@@ -2656,7 +2653,7 @@ void PrintConfigDef::init_sla_params()
     def = this->add("pad_max_merge_distance", coFloat);
     def->label = L("Max merge distance");
     def->category = L("Pad");
-    def->tooltip = L("");
+//     def->tooltip = L("");
     def->sidetext = L("mm");
     def->cli = "";
     def->min = 0;
@@ -2665,7 +2662,7 @@ void PrintConfigDef::init_sla_params()
     def = this->add("pad_edge_radius", coFloat);
     def->label = L("Pad edge radius");
     def->category = L("Pad");
-    def->tooltip = L("");
+//     def->tooltip = L("");
     def->sidetext = L("mm");
     def->cli = "";
     def->min = 0;

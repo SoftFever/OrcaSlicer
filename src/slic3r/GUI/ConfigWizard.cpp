@@ -89,8 +89,8 @@ PrinterPicker::PrinterPicker(wxWindow *parent, const VendorProfile &vendor, cons
 
 		bool default_variant = true;   // Mark the first variant as default in the GUI
 		for (const auto &variant : model.variants) {
-			const auto label = wxString::Format("%s %s %s %s", variant.name, _(L("mm")), _(L("nozzle")),
-				(default_variant ? _(L("(default)")) : wxString()));
+            const auto label = wxString::Format("%s %s %s %s", variant.name, _(L("mm")), _(L("nozzle")),
+                (default_variant ? "(" + _(L("default")) + ")" : wxString()));
 			default_variant = false;
 			auto *cbox = new Checkbox(variants_panel, label, model_id, variant.name);
 			const size_t idx = cboxes.size();
@@ -803,7 +803,7 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
 // Public
 
 ConfigWizard::ConfigWizard(wxWindow *parent, RunReason reason) :
-	wxDialog(parent, wxID_ANY, name(), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
+	wxDialog(parent, wxID_ANY, _(name().ToStdString()), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
 	p(new priv(this))
 {
 	p->run_reason = reason;
@@ -899,15 +899,17 @@ bool ConfigWizard::run(PresetBundle *preset_bundle, const PresetUpdater *updater
 }
 
 
-const wxString& ConfigWizard::name()
+const wxString& ConfigWizard::name(const bool from_menu/* = false*/)
 {
 	// A different naming convention is used for the Wizard on Windows vs. OSX & GTK.
 #if WIN32
-	static const wxString config_wizard_name = L("Configuration Wizard");
+    static const wxString config_wizard_name = L("Configuration Wizard");
+    static const wxString config_wizard_name_menu = L("Configuration &Wizard");
 #else
-	static const wxString config_wizard_name = L("Configuration Assistant");
+	static const wxString config_wizard_name =  L("Configuration Assistant");
+    static const wxString config_wizard_name_menu = L("Configuration &Assistant");
 #endif
-	return config_wizard_name;
+	return from_menu ? config_wizard_name_menu : config_wizard_name;
 }
 
 }

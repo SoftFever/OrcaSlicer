@@ -34,7 +34,7 @@ public:
 	// Run the Wizard. Return whether it was completed.
 	bool run(PresetBundle *preset_bundle, const PresetUpdater *updater);
 
-	static const wxString& name();
+	static const wxString& name(const bool from_menu = false);
 private:
 	struct priv;
 	std::unique_ptr<priv> p;
