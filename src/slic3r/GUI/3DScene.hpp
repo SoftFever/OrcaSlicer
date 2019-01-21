@@ -9,6 +9,8 @@
 #include "libslic3r/Model.hpp"
 #include "slic3r/GUI/GLCanvas3DManager.hpp"
 
+#include <functional>
+
 namespace Slic3r {
 
 class Print;
@@ -199,50 +201,7 @@ private:
     }
 };
 
-class LayersTexture
-{
-public:
-    LayersTexture() : width(0), height(0), levels(0), cells(0) {}
-
-    // Texture data
-    std::vector<char>   data;
-    // Width of the texture, top level.
-    size_t              width;
-    // Height of the texture, top level.
-    size_t              height;
-    // For how many levels of detail is the data allocated?
-    size_t              levels;
-    // Number of texture cells allocated for the height texture.
-    size_t              cells;
-};
-
 class GLVolume {
-    struct LayerHeightTextureData
-    {
-        // ID of the layer height texture
-        unsigned int texture_id;
-        // ID of the shader used to render with the layer height texture
-        unsigned int shader_id;
-        // The print object to update when generating the layer height texture
-        const PrintObject* print_object;
-
-        float        z_cursor_relative;
-        float        edit_band_width;
-
-        LayerHeightTextureData() { reset(); }
-
-        void reset()
-        {
-            texture_id = 0;
-            shader_id = 0;
-            print_object = nullptr;
-            z_cursor_relative = 0.0f;
-            edit_band_width = 0.0f;
-        }
-
-        bool can_use() const { return (texture_id > 0) && (shader_id > 0) && (print_object != nullptr); }
-    };
-
 public:
     static const float SELECTED_COLOR[4];
     static const float HOVER_COLOR[4];
@@ -406,7 +365,7 @@ public:
     int                 volume_idx() const { return this->composite_id.volume_id; }
     int                 instance_idx() const { return this->composite_id.instance_id; }
 
-    Transform3d world_matrix() const;
+    Transform3d         world_matrix() const;
 
     const BoundingBoxf3& transformed_bounding_box() const;
     const BoundingBoxf3& transformed_convex_hull_bounding_box() const;
@@ -416,49 +375,13 @@ public:
 
     void                set_range(coordf_t low, coordf_t high);
     void                render() const;
-    void                render_using_layer_height() const;
     void                render_VBOs(int color_id, int detection_id, int worldmatrix_id) const;
     void                render_legacy() const;
 
     void                finalize_geometry(bool use_VBOs) { this->indexed_vertex_array.finalize_geometry(use_VBOs); }
     void                release_geometry() { this->indexed_vertex_array.release_geometry(); }
 
-    /************************************************ Layer height texture ****************************************************/
-    std::shared_ptr<LayersTexture>  layer_height_texture;
-    // Data to render this volume using the layer height texture
-    LayerHeightTextureData layer_height_texture_data;
-
-    bool                has_layer_height_texture() const 
-        { return this->layer_height_texture.get() != nullptr; }
-    size_t              layer_height_texture_width() const 
-        { return (this->layer_height_texture.get() == nullptr) ? 0 : this->layer_height_texture->width; }
-    size_t              layer_height_texture_height() const 
-        { return (this->layer_height_texture.get() == nullptr) ? 0 : this->layer_height_texture->height; }
-    size_t              layer_height_texture_cells() const 
-        { return (this->layer_height_texture.get() == nullptr) ? 0 : this->layer_height_texture->cells; }
-    void*               layer_height_texture_data_ptr_level0() const {
-        return (layer_height_texture.get() == nullptr) ? 0 :
-            (void*)layer_height_texture->data.data();
-    }
-    void*               layer_height_texture_data_ptr_level1() const {
-        return (layer_height_texture.get() == nullptr) ? 0 :
-            (void*)(layer_height_texture->data.data() + layer_height_texture->width * layer_height_texture->height * 4);
-    }
-    double              layer_height_texture_z_to_row_id() const;
-    void                generate_layer_height_texture(const PrintObject *print_object, bool force);
-
-    void set_layer_height_texture_data(unsigned int texture_id, unsigned int shader_id, const PrintObject* print_object, float z_cursor_relative, float edit_band_width)
-    {
-        layer_height_texture_data.texture_id = texture_id;
-        layer_height_texture_data.shader_id = shader_id;
-        layer_height_texture_data.print_object = print_object;
-        layer_height_texture_data.z_cursor_relative = z_cursor_relative;
-        layer_height_texture_data.edit_band_width = edit_band_width;
-    }
-
-    void reset_layer_height_texture_data() { layer_height_texture_data.reset(); }
-
-    void set_bounding_boxes_as_dirty() { m_transformed_bounding_box_dirty = true; m_transformed_convex_hull_bounding_box_dirty = true; }
+    void                set_bounding_boxes_as_dirty() { m_transformed_bounding_box_dirty = true; m_transformed_convex_hull_bounding_box_dirty = true; }
 };
 
 typedef std::vector<GLVolume*> GLVolumePtrs;
@@ -498,7 +421,6 @@ public:
 
     int load_object_volume(
         const ModelObject       *model_object,
-        std::shared_ptr<LayersTexture> &layer_height_texture,
         int                      obj_idx,
         int                      volume_idx,
         int                      instance_idx,
@@ -521,7 +443,7 @@ public:
 
     // Render the volumes by OpenGL.
 #if ENABLE_IMPROVED_TRANSPARENT_VOLUMES_RENDERING
-    void render_VBOs(ERenderType type, bool disable_cullface) const;
+	void render_VBOs(ERenderType type, bool disable_cullface, std::function<bool(const GLVolume&)> filter_func = std::function<bool(const GLVolume&)>()) const;
     void render_legacy(ERenderType type, bool disable_cullface) const;
 #else
     void render_VBOs() const;

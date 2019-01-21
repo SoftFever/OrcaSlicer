@@ -570,7 +570,6 @@ ModelObject& ModelObject::assign_copy(const ModelObject &rhs)
     this->sla_support_points          = rhs.sla_support_points;
     this->layer_height_ranges         = rhs.layer_height_ranges;
     this->layer_height_profile        = rhs.layer_height_profile;
-    this->layer_height_profile_valid  = rhs.layer_height_profile_valid;
     this->origin_translation          = rhs.origin_translation;
     m_bounding_box                    = rhs.m_bounding_box;
     m_bounding_box_valid              = rhs.m_bounding_box_valid;
@@ -602,7 +601,6 @@ ModelObject& ModelObject::assign_copy(ModelObject &&rhs)
     this->sla_support_points          = std::move(rhs.sla_support_points);
     this->layer_height_ranges         = std::move(rhs.layer_height_ranges);
     this->layer_height_profile        = std::move(rhs.layer_height_profile);
-    this->layer_height_profile_valid  = std::move(rhs.layer_height_profile_valid);
     this->origin_translation          = std::move(rhs.origin_translation);
     m_bounding_box                    = std::move(rhs.m_bounding_box);
     m_bounding_box_valid              = std::move(rhs.m_bounding_box_valid);

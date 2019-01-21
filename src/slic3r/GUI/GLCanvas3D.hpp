@@ -29,6 +29,8 @@ class GLShader;
 class ExPolygon;
 class BackgroundSlicingProcess;
 class GCodePreviewData;
+struct SlicingParameters;
+enum LayerHeightEditActionType : unsigned int;
 
 namespace GUI {
 
@@ -101,7 +103,6 @@ wxDECLARE_EVENT(EVT_GLCANVAS_INIT, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_VIEWPORT_CHANGED, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_RIGHT_CLICK, Vec2dEvent);
-wxDECLARE_EVENT(EVT_GLCANVAS_MODEL_UPDATE, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_REMOVE_OBJECT, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_ARRANGE, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_QUESTION_MARK, SimpleEvent);
@@ -293,12 +294,42 @@ class GLCanvas3D
         };
 
     private:
-        bool m_use_legacy_opengl;
-        bool m_enabled;
-        Shader m_shader;
-        unsigned int m_z_texture_id;
-        mutable GLTexture m_tooltip_texture;
-        mutable GLTexture m_reset_texture;
+        bool                        m_use_legacy_opengl;
+        bool                        m_enabled;
+        Shader                      m_shader;
+        unsigned int                m_z_texture_id;
+        mutable GLTexture           m_tooltip_texture;
+        mutable GLTexture           m_reset_texture;
+        // Not owned by LayersEditing.
+        const DynamicPrintConfig   *m_config;
+        // ModelObject for the currently selected object (Model::objects[last_object_id]).
+        const ModelObject          *m_model_object;
+        // Maximum z of the currently selected object (Model::objects[last_object_id]).
+        float                       m_object_max_z;
+        // Owned by LayersEditing.
+        SlicingParameters          *m_slicing_parameters;
+        std::vector<coordf_t>       m_layer_height_profile;
+        bool                        m_layer_height_profile_modified;
+
+        class LayersTexture
+        {
+        public:
+            LayersTexture() : width(0), height(0), levels(0), cells(0), valid(false) {}
+
+            // Texture data
+            std::vector<char>   data;
+            // Width of the texture, top level.
+            size_t              width;
+            // Height of the texture, top level.
+            size_t              height;
+            // For how many levels of detail is the data allocated?
+            size_t              levels;
+            // Number of texture cells allocated for the height texture.
+            size_t              cells;
+            // Does it need to be refreshed?
+            bool                valid;
+        };
+        LayersTexture   m_layers_texture;
 
     public:
         EState state;
@@ -306,12 +337,14 @@ class GLCanvas3D
         float strength;
         int last_object_id;
         float last_z;
-        unsigned int last_action;
+        LayerHeightEditActionType last_action;
 
         LayersEditing();
         ~LayersEditing();
 
         bool init(const std::string& vertex_shader_filename, const std::string& fragment_shader_filename);
+        void set_config(const DynamicPrintConfig* config) { m_config = config; }
+        void select_object(const Model &model, int object_id);
 
         bool is_allowed() const;
         void set_use_legacy_opengl(bool use_legacy_opengl);
@@ -319,11 +352,12 @@ class GLCanvas3D
         bool is_enabled() const;
         void set_enabled(bool enabled);
 
-        unsigned int get_z_texture_id() const;
+        void render_overlay(const GLCanvas3D& canvas) const;
+        void render_volumes(const GLCanvas3D& canvas, const GLVolumeCollection& volumes) const;
 
-        void render(const GLCanvas3D& canvas, const PrintObject& print_object, const GLVolume& volume) const;
-
-        int get_shader_program_id() const;
+        void generate_layer_height_texture();
+		void adjust_layer_height_profile();
+		void accept_changes(GLCanvas3D& canvas);
 
         static float get_cursor_z_relative(const GLCanvas3D& canvas);
         static bool bar_rect_contains(const GLCanvas3D& canvas, float x, float y);
@@ -333,12 +367,14 @@ class GLCanvas3D
         static Rect get_bar_rect_viewport(const GLCanvas3D& canvas);
         static Rect get_reset_rect_viewport(const GLCanvas3D& canvas);
 
+        float object_max_z() const { return m_object_max_z; }
+
     private:
         bool _is_initialized() const;
         void _render_tooltip_texture(const GLCanvas3D& canvas, const Rect& bar_rect, const Rect& reset_rect) const;
         void _render_reset_texture(const Rect& reset_rect) const;
-        void _render_active_object_annotations(const GLCanvas3D& canvas, const GLVolume& volume, const PrintObject& print_object, const Rect& bar_rect) const;
-        void _render_profile(const PrintObject& print_object, const Rect& bar_rect) const;
+        void _render_active_object_annotations(const GLCanvas3D& canvas, const Rect& bar_rect) const;
+        void _render_profile(const Rect& bar_rect) const;
     };
 
     struct Mouse
@@ -821,7 +857,7 @@ private:
 
     mutable GLVolumeCollection m_volumes;
     Selection m_selection;
-    DynamicPrintConfig* m_config;
+    const DynamicPrintConfig* m_config;
     Model* m_model;
     BackgroundSlicingProcess *m_process;
 
@@ -881,7 +917,7 @@ public:
     void reset_volumes();
     int check_volumes_outside_state() const;
 
-    void set_config(DynamicPrintConfig* config);
+    void set_config(const DynamicPrintConfig* config);
     void set_process(BackgroundSlicingProcess* process);
     void set_model(Model* model);
 
@@ -1023,7 +1059,6 @@ private:
     void _zoom_to_bounding_box(const BoundingBoxf3& bbox);
     float _get_zoom_to_bounding_box_factor(const BoundingBoxf3& bbox) const;
 
-    void _mark_volumes_for_layer_height() const;
     void _refresh_if_shown_on_screen();
 
     void _camera_tranform() const;
@@ -1038,7 +1073,6 @@ private:
 #endif // ENABLE_RENDER_SELECTION_CENTER
     void _render_warning_texture() const;
     void _render_legend_texture() const;
-    void _render_layer_editing_overlay() const;
     void _render_volumes(bool fake_colors) const;
     void _render_current_gizmo() const;
     void _render_gizmos_overlay() const;
@@ -1055,7 +1089,6 @@ private:
     void _update_volumes_hover_state() const;
     void _update_gizmos_data();
 
-    float _get_layers_editing_cursor_z_relative() const;
     void _perform_layer_editing_action(wxMouseEvent* evt = nullptr);
 
     // Convert the screen space coordinate to an object space coordinate.

@@ -38,8 +38,7 @@ namespace Slic3r {
 PrintObject::PrintObject(Print* print, ModelObject* model_object, bool add_instances) :
     PrintObjectBaseWithState(print, model_object),
     typed_slices(false),
-    size(Vec3crd::Zero()),
-    layer_height_profile_valid(false)
+    size(Vec3crd::Zero())
 {
     // Compute the translation to be applied to our meshes so that we work with smaller coordinates
     {
@@ -106,6 +105,8 @@ void PrintObject::slice()
     if (! this->set_started(posSlice))
         return;
     m_print->set_status(10, "Processing triangulated mesh");
+    this->update_layer_height_profile(*this->model_object(), this->slicing_parameters(), this->layer_height_profile);
+    m_print->throw_if_canceled();
     this->_slice();
     m_print->throw_if_canceled();
     // Fix the model.
@@ -455,7 +456,6 @@ bool PrintObject::invalidate_state_by_config_options(const std::vector<t_config_
             || opt_key == "first_layer_height"
             || opt_key == "raft_layers") {
             steps.emplace_back(posSlice);
-			this->reset_layer_height_profile();
 		}
 		else if (
                opt_key == "clip_multipart_objects"
@@ -542,7 +542,6 @@ bool PrintObject::invalidate_state_by_config_options(const std::vector<t_config_
         } else {
             // for legacy, if we can't handle this option let's invalidate all steps
             this->invalidate_all_steps();
-			this->reset_layer_height_profile();
             invalidated = true;
         }
     }
@@ -1329,53 +1328,105 @@ void PrintObject::bridge_over_infill()
     }
 }
 
+static void clamp_exturder_to_default(ConfigOptionInt &opt, size_t num_extruders)
+{
+    if (opt.value > (int)num_extruders)
+        // assign the default extruder
+        opt.value = 1;
+}
+
+PrintObjectConfig PrintObject::object_config_from_model_object(const PrintObjectConfig &default_object_config, const ModelObject &object, size_t num_extruders)
+{
+    PrintObjectConfig config = default_object_config;
+    normalize_and_apply_config(config, object.config);
+    // Clamp invalid extruders to the default extruder (with index 1).
+    clamp_exturder_to_default(config.support_material_extruder,           num_extruders);
+    clamp_exturder_to_default(config.support_material_interface_extruder, num_extruders);
+    return config;
+}
+
+PrintRegionConfig PrintObject::region_config_from_model_volume(const PrintRegionConfig &default_region_config, const ModelVolume &volume, size_t num_extruders)
+{
+    PrintRegionConfig config = default_region_config;
+    normalize_and_apply_config(config, volume.get_object()->config);
+    normalize_and_apply_config(config, volume.config);
+    if (! volume.material_id().empty())
+        normalize_and_apply_config(config, volume.material()->config);
+    // Clamp invalid extruders to the default extruder (with index 1).
+    clamp_exturder_to_default(config.infill_extruder,       num_extruders);
+    clamp_exturder_to_default(config.perimeter_extruder,    num_extruders);
+    clamp_exturder_to_default(config.solid_infill_extruder, num_extruders);
+    return config;
+}
+
 SlicingParameters PrintObject::slicing_parameters() const
 {
     return SlicingParameters::create_from_config(
         this->print()->config(), m_config, 
-        unscale<double>(this->size(2)), this->print()->object_extruders());
+        unscale<double>(this->size(2)), this->object_extruders());
 }
 
-bool PrintObject::update_layer_height_profile(std::vector<coordf_t> &layer_height_profile) const
+SlicingParameters PrintObject::slicing_parameters(const DynamicPrintConfig &full_config, const ModelObject &model_object)
+{
+    PrintConfig         print_config;
+    PrintObjectConfig   object_config;
+    PrintRegionConfig   default_region_config;
+    print_config .apply(full_config, true);
+    object_config.apply(full_config, true);
+    default_region_config.apply(full_config, true);
+    size_t              num_extruders = print_config.nozzle_diameter.size();
+    object_config = object_config_from_model_object(object_config, model_object, num_extruders);
+
+    std::vector<unsigned int> object_extruders;
+    for (const ModelVolume *model_volume : model_object.volumes)
+        if (model_volume->is_model_part())
+            PrintRegion::collect_object_printing_extruders(
+                print_config,
+                region_config_from_model_volume(default_region_config, *model_volume, num_extruders),
+                object_extruders);
+    sort_remove_duplicates(object_extruders);
+
+    return SlicingParameters::create_from_config(print_config, object_config, model_object.bounding_box().max.z(), object_extruders);
+}
+
+// returns 0-based indices of extruders used to print the object (without brim, support and other helper extrusions)
+std::vector<unsigned int> PrintObject::object_extruders() const
+{
+    std::vector<unsigned int> extruders;
+    extruders.reserve(this->region_volumes.size() * 3);    
+    for (size_t idx_region = 0; idx_region < this->region_volumes.size(); ++ idx_region)
+        if (! this->region_volumes[idx_region].empty())
+            m_print->get_region(idx_region)->collect_object_printing_extruders(extruders);
+    sort_remove_duplicates(extruders);
+    return extruders;
+}
+
+bool PrintObject::update_layer_height_profile(const ModelObject &model_object, const SlicingParameters &slicing_parameters, std::vector<coordf_t> &layer_height_profile)
 {
     bool updated = false;
 
-    // If the layer height profile is not set, try to use the one stored at the ModelObject.
     if (layer_height_profile.empty()) {
-        layer_height_profile = this->model_object()->layer_height_profile;
+        layer_height_profile = model_object.layer_height_profile;
         updated = true;
     }
 
     // Verify the layer_height_profile.
-    SlicingParameters slicing_params = this->slicing_parameters();
     if (! layer_height_profile.empty() && 
             // Must not be of even length.
             ((layer_height_profile.size() & 1) != 0 || 
             // Last entry must be at the top of the object.
-             std::abs(layer_height_profile[layer_height_profile.size() - 2] - slicing_params.object_print_z_height()) > 1e-3))
+             std::abs(layer_height_profile[layer_height_profile.size() - 2] - slicing_parameters.object_print_z_height()) > 1e-3))
         layer_height_profile.clear();
 
     if (layer_height_profile.empty()) {
         if (0)
 //        if (this->layer_height_profile.empty())
-			layer_height_profile = layer_height_profile_adaptive(slicing_params, this->model_object()->layer_height_ranges, this->model_object()->volumes);
+            layer_height_profile = layer_height_profile_adaptive(slicing_parameters, model_object.layer_height_ranges, model_object.volumes);
         else
-			layer_height_profile = layer_height_profile_from_ranges(slicing_params, this->model_object()->layer_height_ranges);
+            layer_height_profile = layer_height_profile_from_ranges(slicing_parameters, model_object.layer_height_ranges);
         updated = true;
     }
     return updated;
-}
-
-// This must be called from the main thread as it modifies the layer_height_profile.
-bool PrintObject::update_layer_height_profile()
-{
-    // If the layer height profile has been marked as invalid for some reason (modified at the UI level 
-    // or invalidated due to the slicing parameters), clear it now.
-    if (! this->layer_height_profile_valid) { 
-        this->layer_height_profile.clear();
-        this->layer_height_profile_valid = true;
-    }
-    return this->update_layer_height_profile(this->layer_height_profile);
 }
 
 // 1) Decides Z positions of the layers,
@@ -2196,24 +2247,6 @@ void PrintObject::_generate_support_material()
 {
     PrintObjectSupportMaterial support_material(this, PrintObject::slicing_parameters());
     support_material.generate(*this);
-}
-
-void PrintObject::reset_layer_height_profile()
-{
-    // Reset the layer_heigth_profile.
-    this->layer_height_profile.clear();
-	this->layer_height_profile_valid = false;
-    // Reset the source layer_height_profile if it exists at the ModelObject.
-    this->model_object()->layer_height_profile.clear();
-    this->model_object()->layer_height_profile_valid = false;
-}
-
-void PrintObject::adjust_layer_height_profile(coordf_t z, coordf_t layer_thickness_delta, coordf_t band_width, int action)
-{
-    update_layer_height_profile(m_model_object->layer_height_profile);
-    Slic3r::adjust_layer_height_profile(slicing_parameters(), m_model_object->layer_height_profile, z, layer_thickness_delta, band_width, LayerHeightEditActionType(action));
-    m_model_object->layer_height_profile_valid = true;
-    layer_height_profile_valid = false;
 }
 
 } // namespace Slic3r

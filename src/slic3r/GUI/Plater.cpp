@@ -1098,7 +1098,10 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         "brim_width", "variable_layer_height", "serial_port", "serial_speed", "host_type", "print_host",
         "printhost_apikey", "printhost_cafile", "nozzle_diameter", "single_extruder_multi_material",
         "wipe_tower", "wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_rotation_angle",
-        "extruder_colour", "filament_colour", "max_print_height", "printer_model", "printer_technology"
+        "extruder_colour", "filament_colour", "max_print_height", "printer_model", "printer_technology",
+        // The following three layer height config values are passed here for View3D::m_canvas to receive
+        // layer height updates for the layer height.
+        "min_layer_height", "max_layer_height", "layer_height", "first_layer_height"
         }))
     , sidebar(new Sidebar(q))
     , delayed_scene_refresh(false)
@@ -1167,7 +1170,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     view3D_canvas->Bind(EVT_GLCANVAS_OBJECT_SELECT, &priv::on_object_select, this);
     view3D_canvas->Bind(EVT_GLCANVAS_VIEWPORT_CHANGED, &priv::on_viewport_changed, this);
     view3D_canvas->Bind(EVT_GLCANVAS_RIGHT_CLICK, &priv::on_right_click, this);
-    view3D_canvas->Bind(EVT_GLCANVAS_MODEL_UPDATE, [this](SimpleEvent&) { this->schedule_background_process(); });
     view3D_canvas->Bind(EVT_GLCANVAS_REMOVE_OBJECT, [q](SimpleEvent&) { q->remove_selected(); });
     view3D_canvas->Bind(EVT_GLCANVAS_ARRANGE, [this](SimpleEvent&) { arrange(); });
     view3D_canvas->Bind(EVT_GLCANVAS_QUESTION_MARK, [this](SimpleEvent&) { wxGetApp().keyboard_shortcuts(); });
@@ -2072,7 +2074,7 @@ void Plater::priv::reload_from_disk()
             }
         }
 
-        // XXX: Restore more: layer_height_ranges, layer_height_profile, layer_height_profile_valid (?)
+        // XXX: Restore more: layer_height_ranges, layer_height_profile (?)
     }
 
     remove(obj_orig_idx);
@@ -2103,7 +2105,7 @@ void Plater::priv::fix_through_netfabb(const int obj_idx)
                 o->volumes[i]->config.apply(model_object->volumes[i]->config);
             }
         }
-        // FIXME restore volumes and their configs, layer_height_ranges, layer_height_profile, layer_height_profile_valid,
+        // FIXME restore volumes and their configs, layer_height_ranges, layer_height_profile
     }
     
     remove(obj_idx);

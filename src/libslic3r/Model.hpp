@@ -170,12 +170,8 @@ public:
     // Variation of a layer thickness for spans of Z coordinates.
     t_layer_height_ranges   layer_height_ranges;
     // Profile of increasing z to a layer height, to be linearly interpolated when calculating the layers.
-    // The pairs of <z, layer_height> are packed into a 1D array to simplify handling by the Perl XS.
+    // The pairs of <z, layer_height> are packed into a 1D array.
     std::vector<coordf_t>   layer_height_profile;
-    // layer_height_profile is initialized when the layer editing mode is entered.
-    // Only if the user really modified the layer height, layer_height_profile_valid is set
-    // and used subsequently by the PrintObject.
-    bool                    layer_height_profile_valid;
 
     // This vector holds position of selected support points for SLA. The data are
     // saved in mesh coordinates to allow using them for several instances.
@@ -267,7 +263,7 @@ protected:
     void        set_model(Model *model) { m_model = model; }
 
 private:
-    ModelObject(Model *model) : layer_height_profile_valid(false), m_model(model), origin_translation(Vec3d::Zero()), m_bounding_box_valid(false) {}
+    ModelObject(Model *model) : m_model(model), origin_translation(Vec3d::Zero()), m_bounding_box_valid(false) {}
     ~ModelObject();
 
     /* To be able to return an object from own copy / clone methods. Hopefully the compiler will do the "Copy elision" */
