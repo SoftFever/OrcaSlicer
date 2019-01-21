@@ -70,8 +70,14 @@ wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAUL
     sizer->SetSizeHints(this);
     SetSizer(sizer);
     Fit();
+#ifdef __APPLE__
+    // Using SetMinSize() on Mac messes up the window position in some cases
+    // cf. https://groups.google.com/forum/#!topic/wx-users/yUKPBBfXWO0
+    SetSize(wxSize(760, 490));
+#else
     SetMinSize(wxSize(760, 490));
     SetSize(GetMinSize());
+#endif
     Layout();
 
     // declare events
