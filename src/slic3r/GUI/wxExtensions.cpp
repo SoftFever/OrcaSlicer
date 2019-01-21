@@ -288,7 +288,7 @@ bool PrusaCollapsiblePaneMSW::Create(wxWindow *parent, wxWindowID id, const wxSt
 {
 	if (!wxControl::Create(parent, id, pos, size, style, val, name))
 		return false;
-	m_pStaticLine = NULL;
+	// m_pStaticLine = NULL;
 	m_strLabel = label;
 
 	// sizer containing the expand button and possibly a static line

@@ -748,7 +748,7 @@ bool GLGizmoRotate3D::on_init()
 
 std::string GLGizmoRotate3D::on_get_name() const
 {    
-    return L("Rotate");
+    return L("Rotate [R]");
 }
 
 void GLGizmoRotate3D::on_start_dragging(const GLCanvas3D::Selection& selection)
@@ -838,7 +838,7 @@ bool GLGizmoScale3D::on_init()
 
 std::string GLGizmoScale3D::on_get_name() const
 {
-    return L("Scale");
+    return L("Scale [S]");
 }
 
 void GLGizmoScale3D::on_start_dragging(const GLCanvas3D::Selection& selection)
@@ -1197,7 +1197,7 @@ bool GLGizmoMove3D::on_init()
 
 std::string GLGizmoMove3D::on_get_name() const
 {
-    return L("Move");
+    return L("Move [M]");
 }
 
 void GLGizmoMove3D::on_start_dragging(const GLCanvas3D::Selection& selection)
@@ -1427,7 +1427,7 @@ bool GLGizmoFlatten::on_init()
 
 std::string GLGizmoFlatten::on_get_name() const
 {
-    return L("Place on face");
+    return L("Place on face [F]");
 }
 
 bool GLGizmoFlatten::on_is_activable(const GLCanvas3D::Selection& selection) const
@@ -1526,10 +1526,9 @@ void GLGizmoFlatten::update_planes()
         vol_ch.transform(vol->get_matrix());
         ch.merge(vol_ch);
     }
-
     ch = ch.convex_hull_3d();
     m_planes.clear();
-    const Transform3d& inst_matrix = m_model_object->instances.front()->get_matrix();
+    const Transform3d& inst_matrix = m_model_object->instances.front()->get_matrix(true);
 
     // Following constants are used for discarding too small polygons.
     const float minimal_area = 5.f; // in square mm (world coordinates)
@@ -1559,7 +1558,7 @@ void GLGizmoFlatten::update_planes()
         while (facet_queue_cnt > 0) {
             int facet_idx = facet_queue[-- facet_queue_cnt];
             const stl_normal& this_normal = ch.stl.facet_start[facet_idx].normal;
-            if (this_normal.isApprox(*normal_ptr)) {
+            if (std::abs(this_normal(0) - (*normal_ptr)(0)) < 0.001 && std::abs(this_normal(1) - (*normal_ptr)(1)) < 0.001 && std::abs(this_normal(2) - (*normal_ptr)(2)) < 0.001) {
                 stl_vertex* first_vertex = ch.stl.facet_start[facet_idx].vertex;
                 for (int j=0; j<3; ++j)
                     m_planes.back().vertices.emplace_back((double)first_vertex[j](0), (double)first_vertex[j](1), (double)first_vertex[j](2));
@@ -1696,10 +1695,6 @@ void GLGizmoFlatten::update_planes()
 
         // Transform back to 3D (and also back to mesh coordinates)
         polygon = transform(polygon, inst_matrix.inverse() * m.inverse());
-
-        // make sure the points are in correct order:
-        if ( ((inst_matrix.inverse() * m.inverse()) * Vec3d(0., 0., 1.)).dot(normal) > 0.)
-            std::reverse(polygon.begin(),polygon.end());
     }
 
     // We'll sort the planes by area and only keep the 254 largest ones (because of the picking pass limitations):
@@ -1714,6 +1709,7 @@ void GLGizmoFlatten::update_planes()
         m_volumes_types.push_back(vol->type());
     }
     m_first_instance_scale = m_model_object->instances.front()->get_scaling_factor();
+    m_first_instance_mirror = m_model_object->instances.front()->get_mirror();
 }
 
 
@@ -1726,7 +1722,8 @@ bool GLGizmoFlatten::is_plane_update_necessary() const
         return true;
 
     // We want to recalculate when the scale changes - some planes could (dis)appear.
-    if (! m_model_object->instances.front()->get_scaling_factor().isApprox(m_first_instance_scale))
+    if (! m_model_object->instances.front()->get_scaling_factor().isApprox(m_first_instance_scale)
+     || ! m_model_object->instances.front()->get_mirror().isApprox(m_first_instance_mirror))
         return true;
 
     for (unsigned int i=0; i < m_model_object->volumes.size(); ++i)
@@ -2240,9 +2237,8 @@ bool GLGizmoSlaSupports::on_is_selectable() const
 }
 
 std::string GLGizmoSlaSupports::on_get_name() const
-
 {
-    return L("SLA Support Points");
+    return L("SLA Support Points [L]");
 }
 
 
@@ -2353,7 +2349,7 @@ bool GLGizmoCut::on_init()
 
 std::string GLGizmoCut::on_get_name() const
 {
-    return L("Cut");
+    return L("Cut [C]");
 }
 
 void GLGizmoCut::on_set_state()
@@ -2467,11 +2463,13 @@ void GLGizmoCut::on_render_input_window(float x, float y, const GLCanvas3D::Sele
     m_imgui->checkbox(_(L("Keep lower part")), m_keep_lower);
     m_imgui->checkbox(_(L("Rotate lower part upwards")), m_rotate_lower);
 
+    m_imgui->disabled_begin(!m_keep_upper && !m_keep_lower);
     const bool cut_clicked = m_imgui->button(_(L("Perform cut")));
+    m_imgui->disabled_end();
 
     m_imgui->end();
 
-    if (cut_clicked) {
+    if (cut_clicked && (m_keep_upper || m_keep_lower)) {
         perform_cut(selection);
     }
 }

@@ -1088,7 +1088,10 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         "brim_width", "variable_layer_height", "serial_port", "serial_speed", "host_type", "print_host",
         "printhost_apikey", "printhost_cafile", "nozzle_diameter", "single_extruder_multi_material",
         "wipe_tower", "wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_rotation_angle",
-        "extruder_colour", "filament_colour", "max_print_height", "printer_model", "printer_technology"
+        "extruder_colour", "filament_colour", "max_print_height", "printer_model", "printer_technology",
+        // The following three layer height config values are passed here for View3D::m_canvas to receive
+        // layer height updates for the layer height.
+        "min_layer_height", "max_layer_height", "layer_height", "first_layer_height"
         }))
     , sidebar(new Sidebar(q))
     , delayed_scene_refresh(false)
@@ -1125,9 +1128,11 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     this->background_process_timer.SetOwner(this->q, 0);
     this->q->Bind(wxEVT_TIMER, [this](wxTimerEvent &evt) { this->update_restart_background_process(false, false); });
 
+#if !ENABLE_REWORKED_BED_SHAPE_CHANGE
     auto *bed_shape = config->opt<ConfigOptionPoints>("bed_shape");
     view3D->set_bed_shape(bed_shape->values);
     preview->set_bed_shape(bed_shape->values);
+#endif // !ENABLE_REWORKED_BED_SHAPE_CHANGE
 
     update();
 
@@ -1155,7 +1160,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     view3D_canvas->Bind(EVT_GLCANVAS_OBJECT_SELECT, &priv::on_object_select, this);
     view3D_canvas->Bind(EVT_GLCANVAS_VIEWPORT_CHANGED, &priv::on_viewport_changed, this);
     view3D_canvas->Bind(EVT_GLCANVAS_RIGHT_CLICK, &priv::on_right_click, this);
-    view3D_canvas->Bind(EVT_GLCANVAS_MODEL_UPDATE, [this](SimpleEvent&) { this->schedule_background_process(); });
     view3D_canvas->Bind(EVT_GLCANVAS_REMOVE_OBJECT, [q](SimpleEvent&) { q->remove_selected(); });
     view3D_canvas->Bind(EVT_GLCANVAS_ARRANGE, [this](SimpleEvent&) { arrange(); });
     view3D_canvas->Bind(EVT_GLCANVAS_QUESTION_MARK, [this](SimpleEvent&) { wxGetApp().keyboard_shortcuts(); });
@@ -2033,7 +2037,7 @@ void Plater::priv::reload_from_disk()
             }
         }
 
-        // XXX: Restore more: layer_height_ranges, layer_height_profile, layer_height_profile_valid (?)
+        // XXX: Restore more: layer_height_ranges, layer_height_profile (?)
     }
 
     remove(obj_orig_idx);
@@ -2064,7 +2068,7 @@ void Plater::priv::fix_through_netfabb(const int obj_idx)
                 o->volumes[i]->config.apply(model_object->volumes[i]->config);
             }
         }
-        // FIXME restore volumes and their configs, layer_height_ranges, layer_height_profile, layer_height_profile_valid,
+        // FIXME restore volumes and their configs, layer_height_ranges, layer_height_profile
     }
     
     remove(obj_idx);
@@ -2490,7 +2494,7 @@ void Plater::priv::init_view_toolbar()
     GLToolbarItem::Data item;
 
     item.name = "3D";
-    item.tooltip = GUI::L_str("3D editor view");
+    item.tooltip = GUI::L_str("3D editor view [Ctrl+5]");
     item.sprite_id = 0;
     item.action_event = EVT_GLVIEWTOOLBAR_3D;
     item.is_toggable = false;
@@ -2498,7 +2502,7 @@ void Plater::priv::init_view_toolbar()
         return;
 
     item.name = "Preview";
-    item.tooltip = GUI::L_str("Preview");
+    item.tooltip = GUI::L_str("Preview [Ctrl+6]");
     item.sprite_id = 1;
     item.action_event = EVT_GLVIEWTOOLBAR_PREVIEW;
     item.is_toggable = false;
@@ -2765,6 +2769,10 @@ void Plater::cut(size_t obj_idx, size_t instance_idx, coordf_t z, bool keep_uppe
 
     wxCHECK_RET(instance_idx < object->instances.size(), "instance_idx out of bounds");
 
+    if (!keep_upper && !keep_lower) {
+        return;
+    }
+
     const auto new_objects = object->cut(instance_idx, z, keep_upper, keep_lower, rotate_lower);
 
     remove(obj_idx);
@@ -2965,7 +2973,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         p->config->set_key_value(opt_key, config.option(opt_key)->clone());
         if (opt_key == "printer_technology")
             this->set_printer_technology(config.opt_enum<PrinterTechnology>(opt_key));
-        else if (opt_key  == "bed_shape") {
+        else if (opt_key == "bed_shape") {
             if (p->view3D) p->view3D->set_bed_shape(p->config->option<ConfigOptionPoints>(opt_key)->values);
             if (p->preview) p->preview->set_bed_shape(p->config->option<ConfigOptionPoints>(opt_key)->values);
             update_scheduled = true;
@@ -2990,12 +2998,14 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             p->preview->set_number_extruders(p->config->option<ConfigOptionStrings>(opt_key)->values.size());
         } else if(opt_key == "max_print_height") {
             update_scheduled = true;
-        } else if(opt_key == "printer_model") {
+        }
+        else if (opt_key == "printer_model") {
             // update to force bed selection(for texturing)
             if (p->view3D) p->view3D->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values);
             if (p->preview) p->preview->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values);
             update_scheduled = true;
-        } else if (opt_key == "host_type" && this->p->printer_technology == ptSLA) {
+        }
+        else if (opt_key == "host_type" && this->p->printer_technology == ptSLA) {
             p->config->option<ConfigOptionEnum<PrintHostType>>(opt_key)->value = htSL1;
         }
     }

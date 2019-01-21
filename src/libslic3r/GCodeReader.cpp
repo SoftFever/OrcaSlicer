@@ -3,6 +3,7 @@
 #include <boost/algorithm/string/split.hpp>
 #include <fstream>
 #include <iostream>
+#include <iomanip>
 
 #include <Shiny/Shiny.h>
 

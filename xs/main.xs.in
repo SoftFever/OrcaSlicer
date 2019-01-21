@@ -2,7 +2,7 @@
 #include <cstdlib>
 #include <ostream>
 #include <sstream>
-#include <libslic3r/GCodeSender.hpp>
+// #include <libslic3r/GCodeSender.hpp>
 
 #ifdef __cplusplus
 extern "C" {

@@ -15,8 +15,8 @@ endif ()
 
 ExternalProject_Add(dep_boost
     EXCLUDE_FROM_ALL 1
-    URL "https://dl.bintray.com/boostorg/release/1.63.0/source/boost_1_63_0.tar.gz"
-    URL_HASH SHA256=fe34a4e119798e10b8cc9e565b3b0284e9fd3977ec8a1b19586ad1dec397088b
+    URL "https://dl.bintray.com/boostorg/release/1.66.0/source/boost_1_66_0.tar.gz"
+    URL_HASH SHA256=bd0df411efd9a585e5a2212275f8762079fed8842264954675a4fddc46cfcf60
     BUILD_IN_SOURCE 1
     CONFIGURE_COMMAND bootstrap.bat
     BUILD_COMMAND b2.exe

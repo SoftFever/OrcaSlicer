@@ -287,18 +287,8 @@ std::vector<unsigned int> Print::object_extruders() const
 {
     std::vector<unsigned int> extruders;
     extruders.reserve(m_regions.size() * 3);
-    
-    for (const PrintRegion *region : m_regions) {
-        // these checks reflect the same logic used in the GUI for enabling/disabling
-        // extruder selection fields
-        if (region->config().perimeters.value > 0 || m_config.brim_width.value > 0)
-            extruders.emplace_back(region->config().perimeter_extruder - 1);
-        if (region->config().fill_density.value > 0)
-            extruders.emplace_back(region->config().infill_extruder - 1);
-        if (region->config().top_solid_layers.value > 0 || region->config().bottom_solid_layers.value > 0)
-            extruders.emplace_back(region->config().solid_infill_extruder - 1);
-    }
-    
+    for (const PrintRegion *region : m_regions)
+        region->collect_object_printing_extruders(extruders);
     sort_remove_duplicates(extruders);
     return extruders;
 }
@@ -366,37 +356,6 @@ double Print::max_allowed_layer_height() const
     return nozzle_diameter_max;
 }
 
-static void clamp_exturder_to_default(ConfigOptionInt &opt, size_t num_extruders)
-{
-    if (opt.value > (int)num_extruders)
-        // assign the default extruder
-        opt.value = 1;
-}
-
-static PrintObjectConfig object_config_from_model(const PrintObjectConfig &default_object_config, const ModelObject &object, size_t num_extruders)
-{
-    PrintObjectConfig config = default_object_config;
-    normalize_and_apply_config(config, object.config);
-    // Clamp invalid extruders to the default extruder (with index 1).
-    clamp_exturder_to_default(config.support_material_extruder,           num_extruders);
-    clamp_exturder_to_default(config.support_material_interface_extruder, num_extruders);
-    return config;
-}
-
-static PrintRegionConfig region_config_from_model_volume(const PrintRegionConfig &default_region_config, const ModelVolume &volume, size_t num_extruders)
-{
-    PrintRegionConfig config = default_region_config;
-    normalize_and_apply_config(config, volume.get_object()->config);
-    normalize_and_apply_config(config, volume.config);
-    if (! volume.material_id().empty())
-        normalize_and_apply_config(config, volume.material()->config);
-    // Clamp invalid extruders to the default extruder (with index 1).
-    clamp_exturder_to_default(config.infill_extruder,       num_extruders);
-    clamp_exturder_to_default(config.perimeter_extruder,    num_extruders);
-    clamp_exturder_to_default(config.solid_infill_extruder, num_extruders);
-    return config;
-}
-
 // Caller is responsible for supplying models whose objects don't collide
 // and have explicit instance positions.
 void Print::add_model_object(ModelObject* model_object, int idx)
@@ -433,7 +392,7 @@ void Print::add_model_object(ModelObject* model_object, int idx)
         if (! volume->is_model_part() && ! volume->is_modifier())
             continue;
         // Get the config applied to this volume.
-        PrintRegionConfig config = region_config_from_model_volume(m_default_region_config, *volume, 99999);
+        PrintRegionConfig config = PrintObject::region_config_from_model_volume(m_default_region_config, *volume, 99999);
         // Find an existing print region with the same config.
         size_t region_id = size_t(-1);
         for (size_t i = 0; i < m_regions.size(); ++ i)
@@ -514,12 +473,12 @@ bool Print::apply_config(DynamicPrintConfig config)
                             // If the new config for this volume differs from the other
                             // volume configs currently associated to this region, it means
                             // the region subdivision does not make sense anymore.
-                            if (! this_region_config.equals(region_config_from_model_volume(m_default_region_config, volume, 99999))) {
+                            if (! this_region_config.equals(PrintObject::region_config_from_model_volume(m_default_region_config, volume, 99999))) {
                                 rearrange_regions = true;
                                 goto exit_for_rearrange_regions;
                             }
                         } else {
-                            this_region_config = region_config_from_model_volume(m_default_region_config, volume, 99999);
+                            this_region_config = PrintObject::region_config_from_model_volume(m_default_region_config, volume, 99999);
                             this_region_config_set = true;
                         }
                         for (const PrintRegionConfig &cfg : other_region_configs) {
@@ -563,10 +522,6 @@ exit_for_rearrange_regions:
         invalidated = true;
     }
 
-    // Always make sure that the layer_height_profiles are set, as they should not be modified from the worker threads.
-    for (PrintObject *object : m_objects)
-        object->update_layer_height_profile();
-    
     return invalidated;
 }
 
@@ -888,8 +843,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
         if (model_parts_differ || modifiers_differ || 
             model_object.origin_translation         != model_object_new.origin_translation   ||
             model_object.layer_height_ranges        != model_object_new.layer_height_ranges  || 
-            model_object.layer_height_profile       != model_object_new.layer_height_profile ||
-            model_object.layer_height_profile_valid != model_object_new.layer_height_profile_valid) {
+            model_object.layer_height_profile       != model_object_new.layer_height_profile) {
             // The very first step (the slicing step) is invalidated. One may freely remove all associated PrintObjects.
             auto range = print_object_status.equal_range(PrintObjectStatus(model_object.id()));
             for (auto it = range.first; it != range.second; ++ it) {
@@ -915,7 +869,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
 			if (object_config_changed)
                 model_object.config = model_object_new.config;
             if (! object_diff.empty() || object_config_changed) {
-                PrintObjectConfig new_config = object_config_from_model(m_default_object_config, model_object, num_extruders);
+                PrintObjectConfig new_config = PrintObject::object_config_from_model_object(m_default_object_config, model_object, num_extruders);
                 auto range = print_object_status.equal_range(PrintObjectStatus(model_object.id()));
                 for (auto it = range.first; it != range.second; ++ it) {
                     t_config_option_keys diff = it->print_object->config().diff(new_config);
@@ -957,7 +911,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
                         old.emplace_back(&(*it));
             }
             // Generate a list of trafos and XY offsets for instances of a ModelObject
-            PrintObjectConfig config = object_config_from_model(m_default_object_config, *model_object, num_extruders);
+            PrintObjectConfig config = PrintObject::object_config_from_model_object(m_default_object_config, *model_object, num_extruders);
             std::vector<PrintInstances> new_print_instances = print_objects_from_model_object(*model_object);
             if (old.empty()) {
                 // Simple case, just generate new instances.
@@ -1048,11 +1002,11 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
                         // If the new config for this volume differs from the other
                         // volume configs currently associated to this region, it means
                         // the region subdivision does not make sense anymore.
-                        if (! this_region_config.equals(region_config_from_model_volume(m_default_region_config, volume, num_extruders)))
+                        if (! this_region_config.equals(PrintObject::region_config_from_model_volume(m_default_region_config, volume, num_extruders)))
                             // Regions were split. Reset this print_object.
                             goto print_object_end;
                     } else {
-                        this_region_config = region_config_from_model_volume(m_default_region_config, volume, num_extruders);
+                        this_region_config = PrintObject::region_config_from_model_volume(m_default_region_config, volume, num_extruders);
 						for (size_t i = 0; i < region_id; ++i) {
 							const PrintRegion &region_other = *m_regions[i];
 							if (region_other.m_refcnt != 0 && region_other.config().equals(this_region_config))
@@ -1103,7 +1057,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
                 int region_id = -1;
                 if (&print_object == &print_object0) {
                     // Get the config applied to this volume.
-                    PrintRegionConfig config = region_config_from_model_volume(m_default_region_config, *volume, num_extruders);
+                    PrintRegionConfig config = PrintObject::region_config_from_model_volume(m_default_region_config, *volume, num_extruders);
                     // Find an existing print region with the same config.
 					int idx_empty_slot = -1;
 					for (int i = 0; i < (int)m_regions.size(); ++ i) {
@@ -1138,13 +1092,6 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
             }
         }
     }
-
-    // Always make sure that the layer_height_profiles are set, as they should not be modified from the worker threads.
-    for (PrintObject *object : m_objects)
-        if (! object->layer_height_profile_valid)
-            // No need to call the next line as the step should already be invalidated above.
-            // update_apply_status(object->invalidate_step(posSlice));
-            object->update_layer_height_profile();
 
     //FIXME there may be a race condition with the G-code export running at the background thread.
     this->update_object_placeholders();

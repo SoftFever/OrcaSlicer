@@ -4,6 +4,8 @@
 #include "libslic3r_version.h"
 
 // this needs to be included early for MSVC (listing it in Build.PL is not enough)
+#include <memory>
+#include <algorithm>
 #include <ostream>
 #include <iostream>
 #include <math.h>
@@ -13,7 +15,7 @@
 #include <stdint.h>
 #include <stdarg.h>
 #include <vector>
-#include <boost/thread.hpp>
+#include <cassert>
 
 #include "Technologies.hpp"
 

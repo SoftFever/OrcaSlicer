@@ -100,9 +100,9 @@
 %typemap{MotionPlanner*};
 %typemap{Ref<MotionPlanner>}{simple};
 %typemap{Clone<MotionPlanner>}{simple};
-%typemap{GCodeSender*};
-%typemap{Ref<GCodeSender>}{simple};
-%typemap{Clone<GCodeSender>}{simple};
+// %typemap{GCodeSender*};
+// %typemap{Ref<GCodeSender>}{simple};
+// %typemap{Clone<GCodeSender>}{simple};
 %typemap{BridgeDetector*};
 %typemap{Ref<BridgeDetector>}{simple};
 %typemap{Clone<BridgeDetector>}{simple};

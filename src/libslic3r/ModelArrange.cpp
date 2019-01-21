@@ -15,6 +15,7 @@ namespace arr {
 
 using namespace libnest2d;
 
+// Only for debugging. Prints the model object vertices on stdout.
 std::string toString(const Model& model, bool holes = true) {
     std::stringstream  ss;
 
@@ -78,6 +79,7 @@ std::string toString(const Model& model, bool holes = true) {
     return ss.str();
 }
 
+// Debugging: Save model to svg file.
 void toSVG(SVG& svg, const Model& model) {
     for(auto objptr : model.objects) {
         if(!objptr) continue;
@@ -121,6 +123,10 @@ Box boundingBox(const Box& pilebb, const Box& ibb ) {
     return Box(minc, maxc);
 }
 
+// This is "the" object function which is evaluated many times for each vertex
+// (decimated with the accuracy parameter) of each object. Therefore it is
+// upmost crucial for this function to be as efficient as it possibly can be but
+// at the same time, it has to provide reasonable results.
 std::tuple<double /*score*/, Box /*farthest point from bin center*/>
 objfunc(const PointImpl& bincenter,
         const shapelike::Shapes<PolygonImpl>& merged_pile,
@@ -253,6 +259,8 @@ objfunc(const PointImpl& bincenter,
     return std::make_tuple(score, fullbb);
 }
 
+// Fill in the placer algorithm configuration with values carefully chosen for
+// Slic3r.
 template<class PConf>
 void fillConfig(PConf& pcfg) {
 
@@ -274,13 +282,19 @@ void fillConfig(PConf& pcfg) {
     pcfg.parallel = true;
 }
 
+// Type trait for an arranger class for different bin types (box, circle,
+// polygon, etc...)
 template<class TBin>
 class AutoArranger {};
 
+
+// A class encapsulating the libnest2d Nester class and extending it with other
+// management and spatial index structures for acceleration.
 template<class TBin>
 class _ArrBase {
 protected:
 
+    // Useful type shortcuts...
     using Placer = TPacker<TBin>;
     using Selector = FirstFitSelection;
     using Packer = Nester<Placer, Selector>;
@@ -289,15 +303,15 @@ protected:
     using Pile = sl::Shapes<PolygonImpl>;
 
     Packer m_pck;
-    PConfig m_pconf; // Placement configuration
+    PConfig m_pconf;            // Placement configuration
     double m_bin_area;
-    SpatIndex m_rtree;
-    SpatIndex m_smallsrtree;
-    double m_norm;
-    Pile m_merged_pile;
-    Box m_pilebb;
-    ItemGroup m_remaining;
-    ItemGroup m_items;
+    SpatIndex m_rtree;          // spatial index for the normal (bigger) objects
+    SpatIndex m_smallsrtree;    // spatial index for only the smaller items
+    double m_norm;              // A coefficient to scale distances
+    Pile m_merged_pile;         // The already merged pile (vector of items)
+    Box m_pilebb;               // The bounding box of the merged pile.
+    ItemGroup m_remaining;      // Remaining items (m_items at the beginning)
+    ItemGroup m_items;          // The items to be packed
 public:
 
     _ArrBase(const TBin& bin, Distance dist,
@@ -308,6 +322,8 @@ public:
     {
         fillConfig(m_pconf);
 
+        // Set up a callback that is called just before arranging starts
+        // This functionality is provided by the Nester class (m_pack).
         m_pconf.before_packing =
         [this](const Pile& merged_pile,            // merged pile
                const ItemGroup& items,             // packed items
@@ -344,8 +360,8 @@ public:
     }
 };
 
-template<>
-class AutoArranger<Box>: public _ArrBase<Box> {
+// Arranger specialization for a Box shaped bin.
+template<> class AutoArranger<Box>: public _ArrBase<Box> {
 public:
 
     AutoArranger(const Box& bin, Distance dist,
@@ -354,6 +370,9 @@ public:
         _ArrBase<Box>(bin, dist, progressind, stopcond)
     {
 
+        // Here we set up the actual object function that calls the common
+        // object function for all bin shapes than does an additional inside
+        // check for the arranged pile.
         m_pconf.object_function = [this, bin] (const Item &item) {
 
             auto result = objfunc(bin.center(),
@@ -387,8 +406,8 @@ inline lnCircle to_lnCircle(const Circle& circ) {
     return lnCircle({circ.center()(0), circ.center()(1)}, circ.radius());
 }
 
-template<>
-class AutoArranger<lnCircle>: public _ArrBase<lnCircle> {
+// Arranger specialization for circle shaped bin.
+template<> class AutoArranger<lnCircle>: public _ArrBase<lnCircle> {
 public:
 
     AutoArranger(const lnCircle& bin, Distance dist,
@@ -396,6 +415,7 @@ public:
                  std::function<bool(void)> stopcond):
         _ArrBase<lnCircle>(bin, dist, progressind, stopcond) {
 
+        // As with the box, only the inside check is different.
         m_pconf.object_function = [this, &bin] (const Item &item) {
 
             auto result = objfunc(bin.center(),
@@ -431,8 +451,9 @@ public:
     }
 };
 
-template<>
-class AutoArranger<PolygonImpl>: public _ArrBase<PolygonImpl> {
+// Arranger specialization for a generalized polygon.
+// Warning: this is unfinished business. It may or may not work.
+template<> class AutoArranger<PolygonImpl>: public _ArrBase<PolygonImpl> {
 public:
     AutoArranger(const PolygonImpl& bin, Distance dist,
                  std::function<void(unsigned)> progressind,
@@ -461,8 +482,10 @@ public:
     }
 };
 
-template<> // Specialization with no bin
-class AutoArranger<bool>: public _ArrBase<Box> {
+// Specialization with no bin. In this case the arranger should just arrange
+// all objects into a minimum sized pile but it is not limited by a bin. A
+// consequence is that only one pile should be created.
+template<> class AutoArranger<bool>: public _ArrBase<Box> {
 public:
 
     AutoArranger(Distance dist, std::function<void(unsigned)> progressind,
@@ -490,14 +513,15 @@ public:
 
 // A container which stores a pointer to the 3D object and its projected
 // 2D shape from top view.
-using ShapeData2D =
-    std::vector<std::pair<Slic3r::ModelInstance*, Item>>;
+using ShapeData2D = std::vector<std::pair<Slic3r::ModelInstance*, Item>>;
 
 ShapeData2D projectModelFromTop(const Slic3r::Model &model) {
     ShapeData2D ret;
 
-    auto s = std::accumulate(model.objects.begin(), model.objects.end(), size_t(0),
-                    [](size_t s, ModelObject* o){
+    // Count all the items on the bin (all the object's instances)
+    auto s = std::accumulate(model.objects.begin(), model.objects.end(),
+                             size_t(0), [](size_t s, ModelObject* o)
+    {
         return s + o->instances.size();
     });
 
@@ -517,7 +541,8 @@ ShapeData2D projectModelFromTop(const Slic3r::Model &model) {
             rmesh.rotate_x(float(finst->get_rotation()(X)));
             rmesh.rotate_y(float(finst->get_rotation()(Y)));
 
-            // TODO export the exact 2D projection
+            // TODO export the exact 2D projection. Cannot do it as libnest2d
+            // does not support concave shapes (yet).
             auto p = rmesh.convex_hull();
 
             p.make_clockwise();
@@ -549,6 +574,8 @@ ShapeData2D projectModelFromTop(const Slic3r::Model &model) {
     return ret;
 }
 
+// Apply the calculated translations and rotations (currently disabled) to the
+// Model object instances.
 void applyResult(
         IndexedPackGroup::value_type& group,
         Coord batch_offset,
@@ -576,6 +603,7 @@ void applyResult(
     }
 }
 
+// Get the type of bed geometry from a simple vector of points.
 BedShapeHint bedShape(const Polyline &bed) {
     BedShapeHint ret;
 
@@ -654,11 +682,15 @@ BedShapeHint bedShape(const Polyline &bed) {
     return ret;
 }
 
-bool arrange(Model &model,
-             coord_t min_obj_distance,
-             const Polyline &bed,
-             BedShapeHint bedhint,
-             bool first_bin_only,
+// The final client function to arrange the Model. A progress indicator and
+// a stop predicate can be also be passed to control the process.
+bool arrange(Model &model,              // The model with the geometries
+             coord_t min_obj_distance,  // Has to be in scaled (clipper) measure
+             const Polyline &bed,       // The bed geometry.
+             BedShapeHint bedhint,      // Hint about the bed geometry type.
+             bool first_bin_only,       // What to do is not all items fit.
+
+             // Controlling callbacks.
              std::function<void (unsigned)> progressind,
              std::function<bool ()> stopcondition)
 {

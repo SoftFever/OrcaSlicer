@@ -1,4 +1,4 @@
-#include "libslic3r/GCodeSender.hpp"
+// #include "libslic3r/GCodeSender.hpp"
 #include "Tab.hpp"
 #include "PresetBundle.hpp"
 #include "PresetHints.hpp"
@@ -245,9 +245,6 @@ void Tab::create_preset_tab()
 	// Initialize the DynamicPrintConfig by default keys/values.
 	build();
 	rebuild_page_tree();
-// 	update();
-    // Load the currently selected preset into the GUI, update the preset selection box.
-    load_current_preset();
 }
 
 void Tab::load_initial_data()

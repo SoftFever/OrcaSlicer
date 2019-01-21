@@ -61,4 +61,20 @@ coordf_t PrintRegion::bridging_height_avg(const PrintConfig &print_config) const
     return this->nozzle_dmr_avg(print_config) * sqrt(m_config.bridge_flow_ratio.value);
 }
 
+void PrintRegion::collect_object_printing_extruders(const PrintConfig &print_config, const PrintRegionConfig &region_config, std::vector<unsigned int> &object_extruders)
+{
+    // These checks reflect the same logic used in the GUI for enabling/disabling extruder selection fields.
+    if (region_config.perimeters.value > 0 || print_config.brim_width.value > 0)
+        object_extruders.emplace_back(region_config.perimeter_extruder - 1);
+    if (region_config.fill_density.value > 0)
+        object_extruders.emplace_back(region_config.infill_extruder - 1);
+    if (region_config.top_solid_layers.value > 0 || region_config.bottom_solid_layers.value > 0)
+        object_extruders.emplace_back(region_config.solid_infill_extruder - 1);
+}
+
+void PrintRegion::collect_object_printing_extruders(std::vector<unsigned int> &object_extruders) const
+{
+    collect_object_printing_extruders(print()->config(), this->config(), object_extruders);
+}
+
 }
