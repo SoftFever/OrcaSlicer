@@ -21,8 +21,8 @@ class ImGuiWrapper
 
     FontsMap m_fonts;
     unsigned m_font_texture;
-
     unsigned m_mouse_buttons;
+    bool m_disabled;
 
 public:
     ImGuiWrapper();
@@ -49,6 +49,9 @@ public:
     bool input_vec3(const std::string &label, const Vec3d &value, float width, const std::string &format = "%.3f");
     bool checkbox(const wxString &label, bool &value);
     void text(const wxString &label);
+
+    void disabled_begin(bool disabled);
+    void disabled_end();
 
     bool want_mouse() const;
     bool want_keyboard() const;
