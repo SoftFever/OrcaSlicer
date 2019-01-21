@@ -652,9 +652,7 @@ public:
 #endif // ENABLE_SIDEBAR_VISUAL_HINTS
         void _synchronize_unselected_instances(bool including_z = false);
         void _synchronize_unselected_volumes();
-#if ENABLE_ENSURE_ON_BED_WHILE_SCALING
         void _ensure_on_bed();
-#endif // ENABLE_ENSURE_ON_BED_WHILE_SCALING
     };
 
     class ClippingPlane

@@ -1857,9 +1857,7 @@ void GLCanvas3D::Selection::scale(const Vec3d& scale, bool local)
         _synchronize_unselected_volumes();
 #endif // !DISABLE_INSTANCES_SYNCH
 
-#if ENABLE_ENSURE_ON_BED_WHILE_SCALING
     _ensure_on_bed();
-#endif // ENABLE_ENSURE_ON_BED_WHILE_SCALING
 
     m_bounding_box_dirty = true;
 }
@@ -2758,7 +2756,6 @@ void GLCanvas3D::Selection::_synchronize_unselected_volumes()
     }
 }
 
-#if ENABLE_ENSURE_ON_BED_WHILE_SCALING
 void GLCanvas3D::Selection::_ensure_on_bed()
 {
     typedef std::map<std::pair<int, int>, double> InstancesToZMap;
@@ -2786,7 +2783,6 @@ void GLCanvas3D::Selection::_ensure_on_bed()
             volume->set_instance_offset(Z, volume->get_instance_offset(Z) - it->second);
     }
 }
-#endif // ENABLE_ENSURE_ON_BED_WHILE_SCALING
 
 const float GLCanvas3D::Gizmos::OverlayIconsScale = 1.0f;
 const float GLCanvas3D::Gizmos::OverlayBorder = 5.0f;
