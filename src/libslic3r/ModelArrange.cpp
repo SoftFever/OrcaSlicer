@@ -861,7 +861,36 @@ void find_new_position(const Model &model,
         // Create the arranger for the box shaped bed
         AutoArranger<Box> arrange(binbb, min_obj_distance);
         std::cout << "preload size: " << preshapes.front().size() << std::endl;
+
         if(!preshapes.front().empty()) arrange.preload(preshapes);
+
+        auto shptrit = shapes_ptr.begin();
+        for(auto shit = shapes.begin(); shit != shapes.end(); ++shit, ++shptrit)
+        {
+            // Try to place items to the center
+            Item& itm = *shit;
+            auto ibb = itm.boundingBox();
+            auto d = ibb.center() - binbb.center();
+            itm.translate(d);
+            if(!arrange.is_colliding(itm)) {
+                arrange.preload({{itm}});
+
+                auto offset = itm.translation();
+                Radians rot = itm.rotation();
+                ModelInstance *minst = *shptrit;
+                Vec3d foffset(offset.X*SCALING_FACTOR,
+                              offset.Y*SCALING_FACTOR,
+                              minst->get_offset()(Z));
+
+                // write the transformation data into the model instance
+                minst->set_rotation(Z, rot);
+                minst->set_offset(foffset);
+
+                shit = shapes.erase(shit);
+                shptrit = shapes_ptr.erase(shptrit);
+                break;
+            }
+        }
 
         // Arrange and return the items with their respective indices within the
         // input sequence.
