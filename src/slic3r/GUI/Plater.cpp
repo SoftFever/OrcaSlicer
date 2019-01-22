@@ -1095,9 +1095,10 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         "printhost_apikey", "printhost_cafile", "nozzle_diameter", "single_extruder_multi_material",
         "wipe_tower", "wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_rotation_angle",
         "extruder_colour", "filament_colour", "max_print_height", "printer_model", "printer_technology",
-        // The following three layer height config values are passed here for View3D::m_canvas to receive
-        // layer height updates for the layer height.
-        "min_layer_height", "max_layer_height", "layer_height", "first_layer_height"
+        // These values are necessary to construct SlicingParameters by the Canvas3D variable layer height editor.
+        "layer_height", "first_layer_height", "min_layer_height", "max_layer_height",
+        "brim_width", "perimeters", "perimeter_extruder", "fill_density", "infill_extruder", "top_solid_layers", "bottom_solid_layers", "solid_infill_extruder",
+        "support_material", "support_material_extruder", "support_material_interface_extruder", "support_material_contact_distance", "raft_layers"
         }))
     , sidebar(new Sidebar(q))
     , delayed_scene_refresh(false)
@@ -1875,6 +1876,8 @@ void Plater::priv::schedule_background_process()
 {
     // Trigger the timer event after 0.5s
     this->background_process_timer.Start(500, wxTIMER_ONE_SHOT);
+    // Notify the Canvas3D that something has changed, so it may invalidate some of the layer editing stuff.
+    this->view3D->get_canvas3d()->set_config(this->config);
 }
 
 void Plater::priv::update_print_volume_state()
