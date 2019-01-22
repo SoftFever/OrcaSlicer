@@ -234,7 +234,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
 // 			wxString str_label = _(option.label);
 //!			To correct translation by context have to use wxGETTEXT_IN_CONTEXT macro from wxWidget 3.1.1
 			wxString str_label = (option.label == "Top" || option.label == "Bottom") ?
-								wxGETTEXT_IN_CONTEXT("Layers", wxString(option.label)) :
+								_CTX(option.label, "Layers") :
 								_(option.label);
 			label = new wxStaticText(parent(), wxID_ANY, str_label + ":", wxDefaultPosition, wxDefaultSize);
 			label->SetFont(label_font);
