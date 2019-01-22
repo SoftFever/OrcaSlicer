@@ -12,6 +12,7 @@ class PlacerBoilerplate {
     mutable bool farea_valid_ = false;
     mutable double farea_ = 0.0;
 public:
+    using ShapeType = RawShape;
     using Item = _Item<RawShape>;
     using Vertex = TPoint<RawShape>;
     using Segment = _Segment<Vertex>;
@@ -19,7 +20,7 @@ public:
     using Coord = TCoord<Vertex>;
     using Unit = Coord;
     using Config = Cfg;
-    using ItemGroup = _ItemGroup<Item>;
+    using ItemGroup = _ItemGroup<RawShape>;
     using DefaultIter = typename ItemGroup::const_iterator;
 
     class PackResult {
@@ -67,6 +68,12 @@ public:
             farea_valid_ = false;
         }
         return r;
+    }
+
+    template<class Range = ConstItemRange<DefaultIter>>
+    void preload(const Range& packeditems = Range()) {
+        items_.insert(items_.end(), packeditems.from, packeditems.to);
+        farea_valid_ = false;
     }
 
     void accept(PackResult& r) {
@@ -117,6 +124,7 @@ using Base::bin_;                 \
 using Base::items_;               \
 using Base::config_;              \
 public:                           \
+using typename Base::ShapeType;   \
 using typename Base::Item;        \
 using typename Base::ItemGroup;   \
 using typename Base::BinType;     \

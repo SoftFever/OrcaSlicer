@@ -490,9 +490,32 @@ _Item<RawShape>::isInside(const _Circle<TPoint<RawShape>>& circ) const {
     return sl::isInside<RawShape>(transformedShape(), circ);
 }
 
+template<class RawShape> using _ItemRef = std::reference_wrapper<_Item<RawShape>>;
+template<class RawShape> using _ItemGroup = std::vector<_ItemRef<RawShape>>;
 
-template<class I> using _ItemRef = std::reference_wrapper<I>;
-template<class I> using _ItemGroup = std::vector<_ItemRef<I>>;
+/**
+ * \brief A list of packed item vectors. Each vector represents a bin.
+ */
+template<class RawShape>
+using _PackGroup = std::vector<std::vector<_ItemRef<RawShape>>>;
+
+/**
+ * \brief A list of packed (index, item) pair vectors. Each vector represents a
+ * bin.
+ *
+ * The index is points to the position of the item in the original input
+ * sequence. This way the caller can use the items as a transformation data
+ * carrier and transform the original objects manually.
+ */
+template<class RawShape>
+using _IndexedPackGroup = std::vector<
+                               std::vector<
+                                   std::pair<
+                                       unsigned,
+                                       _ItemRef<RawShape>
+                                   >
+                               >
+                          >;
 
 template<class Iterator>
 struct ConstItemRange {
@@ -524,8 +547,10 @@ class PlacementStrategyLike {
     PlacementStrategy impl_;
 public:
 
+    using RawShape = typename PlacementStrategy::ShapeType;
+
     /// The item type that the placer works with.
-    using Item = typename PlacementStrategy::Item;
+    using Item = _Item<RawShape>;
 
     /// The placer's config type. Should be a simple struct but can be anything.
     using Config = typename PlacementStrategy::Config;
@@ -544,8 +569,7 @@ public:
      */
     using PackResult = typename PlacementStrategy::PackResult;
 
-    using ItemRef = _ItemRef<Item>;
-    using ItemGroup = _ItemGroup<Item>;
+    using ItemGroup = _ItemGroup<RawShape>;
     using DefaultIterator = typename ItemGroup::const_iterator;
 
     /**
@@ -619,6 +643,16 @@ public:
         return impl_.pack(item, remaining);
     }
 
+    /**
+     * This method makes possible to "preload" some items into the placer. It
+     * will not move these items but will consider them as already packed.
+     */
+    template<class Range = ConstItemRange<DefaultIterator>>
+    inline void preload(const Range& packeditems = Range())
+    {
+        impl_.preload(packeditems);
+    }
+
     /// Unpack the last element (remove it from the list of packed items).
     inline void unpackLast() { impl_.unpackLast(); }
 
@@ -649,11 +683,11 @@ template<class SelectionStrategy>
 class SelectionStrategyLike {
     SelectionStrategy impl_;
 public:
-    using Item = typename SelectionStrategy::Item;
+    using RawShape = typename SelectionStrategy::ShapeType;
+    using Item = _Item<RawShape>;
+    using PackGroup = _PackGroup<RawShape>;
     using Config = typename SelectionStrategy::Config;
 
-    using ItemRef = std::reference_wrapper<Item>;
-    using ItemGroup = std::vector<ItemRef>;
 
     /**
      * @brief Provide a different configuration for the selection strategy.
@@ -704,58 +738,27 @@ public:
     }
 
     /**
-     * \brief Get the number of bins opened by the selection algorithm.
-     *
-     * Initially it is zero and after the call to packItems it will return
-     * the number of bins opened by the packing procedure.
-     *
-     * \return The number of bins opened.
-     */
-    inline size_t binCount() const { return impl_.binCount(); }
-
-    /**
      * @brief Get the items for a particular bin.
      * @param binIndex The index of the requested bin.
      * @return Returns a list of all items packed into the requested bin.
      */
-    inline ItemGroup itemsForBin(size_t binIndex) {
-        return impl_.itemsForBin(binIndex);
+    inline const PackGroup& getResult() const {
+        return impl_.getResult();
     }
 
-    /// Same as itemsForBin but for a const context.
-    inline const ItemGroup itemsForBin(size_t binIndex) const {
-        return impl_.itemsForBin(binIndex);
-    }
+    /**
+     * @brief Loading a group of already packed bins. It is best to use a result
+     * from a previous packing. The algorithm will consider this input as if the
+     * objects are already packed and not move them. If any of these items are
+     * outside the bin, it is up to the placer algorithm what will happen.
+     * Packing additional items can fail for the bottom-left and nfp placers.
+     * @param pckgrp A packgroup which is a vector of item vectors. Each item
+     * vector corresponds to a packed bin.
+     */
+    inline void preload(const PackGroup& pckgrp) { impl_.preload(pckgrp); }
+
+    void clear() { impl_.clear(); }
 };
-
-
-/**
- * \brief A list of packed item vectors. Each vector represents a bin.
- */
-template<class RawShape>
-using _PackGroup = std::vector<
-                        std::vector<
-                            std::reference_wrapper<_Item<RawShape>>
-                        >
-                   >;
-
-/**
- * \brief A list of packed (index, item) pair vectors. Each vector represents a
- * bin.
- *
- * The index is points to the position of the item in the original input
- * sequence. This way the caller can use the items as a transformation data
- * carrier and transform the original objects manually.
- */
-template<class RawShape>
-using _IndexedPackGroup = std::vector<
-                               std::vector<
-                                   std::pair<
-                                       unsigned,
-                                       std::reference_wrapper<_Item<RawShape>>
-                                   >
-                               >
-                          >;
 
 /**
  * The Arranger is the front-end class for the libnest2d library. It takes the
@@ -868,17 +871,29 @@ public:
     }
 
     /// Set a predicate to tell when to abort nesting.
-    inline Nester& stopCondition(StopCondition fn) {
+    inline Nester& stopCondition(StopCondition fn)
+    {
         selector_.stopCondition(fn); return *this;
     }
 
-    inline PackGroup lastResult() {
-        PackGroup ret;
-        for(size_t i = 0; i < selector_.binCount(); i++) {
-            auto items = selector_.itemsForBin(i);
-            ret.push_back(items);
+    inline const PackGroup& lastResult() const
+    {
+        return selector_.getResult();
+    }
+
+    inline void preload(const PackGroup& pgrp)
+    {
+        selector_.preload(pgrp);
+    }
+
+    inline void preload(const IndexedPackGroup& ipgrp)
+    {
+        PackGroup pgrp; pgrp.reserve(ipgrp.size());
+        for(auto& ig : ipgrp) {
+            pgrp.emplace_back(); pgrp.back().reserve(ig.size());
+            for(auto& r : ig) pgrp.back().emplace_back(r.second);
         }
-        return ret;
+        preload(pgrp);
     }
 
 private:
@@ -892,7 +907,7 @@ private:
              // have to exist for the lifetime of this call.
              class T = enable_if_t< std::is_convertible<IT, TPItem>::value, IT>
              >
-    inline PackGroup _execute(TIterator from, TIterator to, bool = false)
+    inline const PackGroup& _execute(TIterator from, TIterator to, bool = false)
     {
         __execute(from, to);
         return lastResult();
@@ -902,7 +917,7 @@ private:
              class IT = remove_cvref_t<typename TIterator::value_type>,
              class T = enable_if_t<!std::is_convertible<IT, TPItem>::value, IT>
              >
-    inline PackGroup _execute(TIterator from, TIterator to, int = false)
+    inline const PackGroup& _execute(TIterator from, TIterator to, int = false)
     {
         item_cache_ = {from, to};
 
@@ -946,10 +961,12 @@ private:
                                                    TSel& selector)
     {
         IndexedPackGroup pg;
-        pg.reserve(selector.binCount());
+        pg.reserve(selector.getResult().size());
 
-        for(size_t i = 0; i < selector.binCount(); i++) {
-            auto items = selector.itemsForBin(i);
+        const PackGroup& pckgrp = selector.getResult();
+
+        for(size_t i = 0; i < pckgrp.size(); i++) {
+            auto items = pckgrp[i];
             pg.push_back({});
             pg[i].reserve(items.size());
 

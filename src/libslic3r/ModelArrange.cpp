@@ -358,6 +358,28 @@ public:
         m_rtree.clear();
         return m_pck.executeIndexed(std::forward<Args>(args)...);
     }
+
+    inline void preload(const PackGroup& pg) {
+        m_pconf.alignment = PConfig::Alignment::DONT_ALIGN;
+        m_pconf.object_function = nullptr; // drop the special objectfunction
+        m_pck.preload(pg);
+
+        // Build the rtree for queries to work
+        for(const ItemGroup& grp : pg)
+        for(unsigned idx = 0; idx < grp.size(); ++idx) {
+            Item& itm = grp[idx];
+            m_rtree.insert({itm.boundingBox(), idx});
+        }
+
+        m_pck.configure(m_pconf);
+    }
+
+    bool is_colliding(const Item& item) {
+        std::vector<SpatElement> result;
+        m_rtree.query(bgi::intersects(item.boundingBox()),
+                      std::back_inserter(result));
+        return result.empty();
+    }
 };
 
 // Arranger specialization for a Box shaped bin.
@@ -365,8 +387,8 @@ template<> class AutoArranger<Box>: public _ArrBase<Box> {
 public:
 
     AutoArranger(const Box& bin, Distance dist,
-                 std::function<void(unsigned)> progressind,
-                 std::function<bool(void)> stopcond):
+                 std::function<void(unsigned)> progressind = [](unsigned){},
+                 std::function<bool(void)> stopcond = [](){return false;}):
         _ArrBase<Box>(bin, dist, progressind, stopcond)
     {
 
@@ -791,5 +813,114 @@ bool arrange(Model &model,              // The model with the geometries
     return ret && result.size() == 1;
 }
 
+void find_new_position(const Model &model,
+                       ModelInstancePtrs toadd,
+                       coord_t min_obj_distance,
+                       const Polyline &bed)
+{
+    // Get the 2D projected shapes with their 3D model instance pointers
+    auto shapemap = arr::projectModelFromTop(model);
+
+    // Copy the references for the shapes only as the arranger expects a
+    // sequence of objects convertible to Item or ClipperPolygon
+    PackGroup preshapes; preshapes.emplace_back();
+    ItemGroup shapes;
+    preshapes.front().reserve(shapemap.size());
+
+    std::vector<ModelInstance*> shapes_ptr; shapes_ptr.reserve(toadd.size());
+    IndexedPackGroup result;
+
+    // If there is no hint about the shape, we will try to guess
+    BedShapeHint bedhint = bedShape(bed);
+
+    BoundingBox bbb(bed);
+
+    auto binbb = Box({
+                         static_cast<libnest2d::Coord>(bbb.min(0)),
+                         static_cast<libnest2d::Coord>(bbb.min(1))
+                     },
+                     {
+                         static_cast<libnest2d::Coord>(bbb.max(0)),
+                         static_cast<libnest2d::Coord>(bbb.max(1))
+                     });
+
+    for(auto it = shapemap.begin(); it != shapemap.end(); ++it) {
+        if(std::find(toadd.begin(), toadd.end(), it->first) == toadd.end() &&
+           it->second.isInside(binbb)) { // just ignore items which are outside
+            preshapes.front().emplace_back(std::ref(it->second));
+        }
+        else {
+            shapes_ptr.emplace_back(it->first);
+            shapes.emplace_back(std::ref(it->second));
+        }
+    }
+
+    switch(bedhint.type) {
+    case BedShapeType::BOX: {
+
+        // Create the arranger for the box shaped bed
+        AutoArranger<Box> arrange(binbb, min_obj_distance);
+        std::cout << "preload size: " << preshapes.front().size() << std::endl;
+        if(!preshapes.front().empty()) arrange.preload(preshapes);
+
+        // Arrange and return the items with their respective indices within the
+        // input sequence.
+        result = arrange(shapes.begin(), shapes.end());
+        break;
+    }
+    case BedShapeType::CIRCLE: {
+
+//        auto c = bedhint.shape.circ;
+//        auto cc = to_lnCircle(c);
+
+//        AutoArranger<lnCircle> arrange(cc, min_obj_distance, progressind, cfn);
+//        result = arrange(shapes.begin(), shapes.end());
+        break;
+    }
+    case BedShapeType::IRREGULAR:
+    case BedShapeType::WHO_KNOWS: {
+
+//        using P = libnest2d::PolygonImpl;
+
+//        auto ctour = Slic3rMultiPoint_to_ClipperPath(bed);
+//        P irrbed = sl::create<PolygonImpl>(std::move(ctour));
+
+//        AutoArranger<P> arrange(irrbed, min_obj_distance, progressind, cfn);
+
+//        // Arrange and return the items with their respective indices within the
+//        // input sequence.
+//        result = arrange(shapes.begin(), shapes.end());
+        break;
+    }
+    };
+
+    // Now we go through the result which will contain the fixed and the moving
+    // polygons as well. We will have to search for our item.
+
+    const auto STRIDE_PADDING = 1.2;
+    Coord stride = Coord(STRIDE_PADDING*binbb.width()*SCALING_FACTOR);
+    Coord batch_offset = 0;
+
+    for(auto& group : result) {
+        for(auto& r : group) if(r.first < shapes.size()) {
+            Item& resultitem = r.second;
+            unsigned idx = r.first;
+            auto offset = resultitem.translation();
+            Radians rot = resultitem.rotation();
+            ModelInstance *minst = shapes_ptr[idx];
+            Vec3d foffset(offset.X*SCALING_FACTOR + batch_offset,
+                          offset.Y*SCALING_FACTOR,
+                          minst->get_offset()(Z));
+
+            // write the transformation data into the model instance
+            minst->set_rotation(Z, rot);
+            minst->set_offset(foffset);
+        }
+        batch_offset += stride;
+    }
 }
+
+}
+
+
 }
