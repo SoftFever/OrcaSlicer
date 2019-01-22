@@ -1063,6 +1063,7 @@ private:
     bool can_delete_object() const;
     bool can_increase_instances() const;
     bool can_decrease_instances() const;
+    bool can_set_instance_to_object() const;
     bool can_split_to_objects() const;
     bool can_split_to_volumes() const;
     bool can_split() const;
@@ -2359,11 +2360,17 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
             [this](wxCommandEvent&) { q->decrease_instances(); }, "delete.png");
         wxMenuItem* item_set_number_of_copies = append_menu_item(menu, wxID_ANY, _(L("Set number of copies")) + dots, _(L("Change the number of copies of the selected object")),
             [this](wxCommandEvent&) { q->set_number_of_copies(); }, "textfield.png");
+
+        menu->AppendSeparator();
+        wxMenuItem* item_instance_to_object = append_menu_item(menu, wxID_ANY, _(L("Set as a Separated Object")) + dots, _(L("Set an Instance as a Separate Object")),
+            [this](wxCommandEvent&) { q->instance_to_separated_object(); }, "");
+
         if (q != nullptr)
         {
             q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_increase_instances()); }, item_increase->GetId());
             q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_decrease_instances()); }, item_decrease->GetId());
             q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_increase_instances()); }, item_set_number_of_copies->GetId());
+            q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_set_instance_to_object()); }, item_instance_to_object->GetId());
         }
         menu->AppendSeparator();
 
@@ -2426,9 +2433,9 @@ bool Plater::priv::complit_init_object_menu()
     // ui updates needs to be binded to the parent panel
     if (q != nullptr)
     {
-        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split/*_to_objects() || can_split_to_volumes*/()); }, item_split->GetId());
-        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split/*_to_objects*/()); }, item_split_objects->GetId());
-        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split/*_to_volumes*/()); }, item_split_volumes->GetId());
+        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split()); }, item_split->GetId());
+        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split()); }, item_split_objects->GetId());
+        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split()); }, item_split_volumes->GetId());
     }
     return true;
 }
@@ -2447,7 +2454,7 @@ bool Plater::priv::complit_init_sla_object_menu()
     // ui updates needs to be binded to the parent panel
     if (q != nullptr)
     {
-        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split/*_to_objects*/()); }, item_split->GetId());
+        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split()); }, item_split->GetId());
     }
 
     return true;
@@ -2466,7 +2473,7 @@ bool Plater::priv::complit_init_part_menu()
     // ui updates needs to be binded to the parent panel
     if (q != nullptr)
     {
-        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split/*_to_volumes*/()); },  item_split->GetId());
+        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split()); },  item_split->GetId());
     }
 
     return true;
@@ -2532,6 +2539,12 @@ bool Plater::priv::can_increase_instances() const
 {
     int obj_idx = get_selected_object_idx();
     return (0 <= obj_idx) && (obj_idx < (int)model.objects.size());
+}
+
+bool Plater::priv::can_set_instance_to_object() const
+{
+    const int obj_idx = get_selected_object_idx();
+    return (0 <= obj_idx) && (obj_idx < (int)model.objects.size()) && (model.objects[obj_idx]->instances.size() > 1);
 }
 
 bool Plater::priv::can_decrease_instances() const
@@ -2758,6 +2771,16 @@ void Plater::set_number_of_copies(/*size_t num*/)
         increase_instances(diff);
     else if (diff < 0)
         decrease_instances(-diff);
+}
+
+void Plater::instance_to_separated_object()
+{
+    const int obj_idx = p->get_selected_object_idx();
+    const int inst_idx = p->get_selection().get_instance_idx();
+    if (obj_idx == -1 || inst_idx == -1)
+        return;
+
+    sidebar().obj_list()->instance_to_separated_object(obj_idx, inst_idx);
 }
 
 bool Plater::is_selection_empty() const

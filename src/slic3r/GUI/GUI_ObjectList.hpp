@@ -56,22 +56,27 @@ class ObjectList : public wxDataViewCtrl
 
     struct dragged_item_data
     {
-        void init(const int obj_idx, const int vol_idx) {
+        void init(const int obj_idx, const int subobj_idx, const ItemType type) {
             m_obj_idx = obj_idx;
-            m_vol_idx = vol_idx;            
+            m_subobj_idx = subobj_idx;
+            m_type = type;
         }
 
         void clear() {
             m_obj_idx = -1;
-            m_vol_idx = -1;            
+            m_subobj_idx = -1;
+            m_type = itUndef;
         }
 
         int obj_idx() const  { return m_obj_idx; }
-        int vol_idx() const  { return m_vol_idx; }
+        int sub_obj_idx() const  { return m_subobj_idx; }
+        ItemType type() const { return m_type; }
 
     private:
         int m_obj_idx = -1;
-        int m_vol_idx = -1;
+        int m_subobj_idx = -1;
+        ItemType m_type = itUndef;
+
     } m_dragged_data;
 
     wxBoxSizer          *m_sizer {nullptr};
@@ -222,6 +227,8 @@ public:
     bool has_multi_part_objects();
     void update_settings_items();
 
+    void instance_to_separated_object(const int obj_idx, const int inst_idx);
+
 private:
     void OnChar(wxKeyEvent& event);
     void OnContextMenu(wxDataViewEvent &event);
@@ -229,6 +236,7 @@ private:
     void OnBeginDrag(wxDataViewEvent &event);
     void OnDropPossible(wxDataViewEvent &event);
     void OnDrop(wxDataViewEvent &event);
+    bool can_drop(const wxDataViewItem& item) const ;
 
     void ItemValueChanged(wxDataViewEvent &event);
     void OnEditingDone(wxDataViewEvent &event);
