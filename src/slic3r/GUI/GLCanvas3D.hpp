@@ -360,7 +360,7 @@ class GLCanvas3D
 
 		void adjust_layer_height_profile();
 		void accept_changes(GLCanvas3D& canvas);
-        void reset_layer_height_profile();
+        void reset_layer_height_profile(GLCanvas3D& canvas);
 
         static float get_cursor_z_relative(const GLCanvas3D& canvas);
         static bool bar_rect_contains(const GLCanvas3D& canvas, float x, float y);

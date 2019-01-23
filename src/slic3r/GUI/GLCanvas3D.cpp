@@ -588,7 +588,7 @@ void GLCanvas3D::Bed::_render_prusa(const std::string &key, float theta) const
     {
         filename = model_path + "_bed.stl";
         if ((m_model.get_filename() != filename) && m_model.init_from_file(filename, useVBOs))
-            m_model.center_around(m_bounding_box.center() - Vec3d(0.0, 0.0, 1.0 + 0.5 * m_model.get_bounding_box().size()(2)));
+            m_model.center_around(m_bounding_box.center() - Vec3d(0.0, 0.0, 0.1 + 0.5 * m_model.get_bounding_box().size()(2)));
 
         if (!m_model.get_filename().empty())
         {
@@ -1197,11 +1197,12 @@ void GLCanvas3D::LayersEditing::adjust_layer_height_profile()
     m_layers_texture.valid = false;
 }
 
-void GLCanvas3D::LayersEditing::reset_layer_height_profile()
+void GLCanvas3D::LayersEditing::reset_layer_height_profile(GLCanvas3D& canvas)
 {
 	const_cast<ModelObject*>(m_model_object)->layer_height_profile.clear();
     m_layer_height_profile.clear();
     m_layers_texture.valid = false;
+    canvas.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
 }
 
 void GLCanvas3D::LayersEditing::generate_layer_height_texture()
@@ -5061,7 +5062,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             if (evt.LeftDown())
             {
                 // A volume is selected and the mouse is inside the reset button. Reset the ModelObject's layer height profile.
-				m_layers_editing.reset_layer_height_profile();
+				m_layers_editing.reset_layer_height_profile(*this);
                 // Index 2 means no editing, just wait for mouse up event.
                 m_layers_editing.state = LayersEditing::Completed;
 

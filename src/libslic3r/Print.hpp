@@ -83,10 +83,6 @@ public:
     // vector of (vectors of volume ids), indexed by region_id
     std::vector<std::vector<int>> region_volumes;
 
-    // Profile of increasing z to a layer height, to be linearly interpolated when calculating the layers.
-    // The pairs of <z, layer_height> are packed into a 1D array.
-    std::vector<coordf_t>   layer_height_profile;
-    
     // this is set to true when LayerRegion->slices is split in top/internal/bottom
     // so that next call to make_perimeters() performs a union() before computing loops
     bool                    typed_slices;
@@ -175,7 +171,7 @@ private:
     void infill();
     void generate_support_material();
 
-    void _slice();
+    void _slice(const std::vector<coordf_t> &layer_height_profile);
     std::string _fix_slicing_errors();
     void _simplify_slices(double distance);
     void _make_perimeters();

@@ -99,6 +99,8 @@ TriangleMesh& TriangleMesh::operator=(const TriangleMesh &other)
     return *this;
 }
 
+// #define SLIC3R_TRACE_REPAIR
+
 void TriangleMesh::repair()
 {
     if (this->repaired) return;
@@ -109,7 +111,9 @@ void TriangleMesh::repair()
     BOOST_LOG_TRIVIAL(debug) << "TriangleMesh::repair() started";
     
     // checking exact
+#ifdef SLIC3R_TRACE_REPAIR
 	BOOST_LOG_TRIVIAL(trace) << "\tstl_check_faces_exact";
+#endif /* SLIC3R_TRACE_REPAIR */
 	stl_check_facets_exact(&stl);
     stl.stats.facets_w_1_bad_edge = (stl.stats.connected_facets_2_edge - stl.stats.connected_facets_3_edge);
     stl.stats.facets_w_2_bad_edge = (stl.stats.connected_facets_1_edge - stl.stats.connected_facets_2_edge);
@@ -124,7 +128,9 @@ void TriangleMesh::repair()
         for (int i = 0; i < iterations; i++) {
             if (stl.stats.connected_facets_3_edge < stl.stats.number_of_facets) {
                 //printf("Checking nearby. Tolerance= %f Iteration=%d of %d...", tolerance, i + 1, iterations);
+#ifdef SLIC3R_TRACE_REPAIR
 				BOOST_LOG_TRIVIAL(trace) << "\tstl_check_faces_nearby";
+#endif /* SLIC3R_TRACE_REPAIR */
 				stl_check_facets_nearby(&stl, tolerance);
                 //printf("  Fixed %d edges.\n", stl.stats.edges_fixed - last_edges_fixed);
                 //last_edges_fixed = stl.stats.edges_fixed;
@@ -137,7 +143,9 @@ void TriangleMesh::repair()
     
     // remove_unconnected
     if (stl.stats.connected_facets_3_edge <  stl.stats.number_of_facets) {
+#ifdef SLIC3R_TRACE_REPAIR
         BOOST_LOG_TRIVIAL(trace) << "\tstl_remove_unconnected_facets";
+#endif /* SLIC3R_TRACE_REPAIR */
         stl_remove_unconnected_facets(&stl);
     }
     
@@ -146,26 +154,36 @@ void TriangleMesh::repair()
     // Don't fill holes, the current algorithm does more harm than good on complex holes.
     // Rather let the slicing algorithm close gaps in 2D slices.
     if (stl.stats.connected_facets_3_edge < stl.stats.number_of_facets) {
+#ifdef SLIC3R_TRACE_REPAIR
         BOOST_LOG_TRIVIAL(trace) << "\tstl_fill_holes";
+#endif /* SLIC3R_TRACE_REPAIR */
         stl_fill_holes(&stl);
         stl_clear_error(&stl);
     }
 #endif
 
     // normal_directions
+#ifdef SLIC3R_TRACE_REPAIR
     BOOST_LOG_TRIVIAL(trace) << "\tstl_fix_normal_directions";
+#endif /* SLIC3R_TRACE_REPAIR */
     stl_fix_normal_directions(&stl);
 
     // normal_values
+#ifdef SLIC3R_TRACE_REPAIR
     BOOST_LOG_TRIVIAL(trace) << "\tstl_fix_normal_values";
+#endif /* SLIC3R_TRACE_REPAIR */
     stl_fix_normal_values(&stl);
     
     // always calculate the volume and reverse all normals if volume is negative
+#ifdef SLIC3R_TRACE_REPAIR
     BOOST_LOG_TRIVIAL(trace) << "\tstl_calculate_volume";
+#endif /* SLIC3R_TRACE_REPAIR */
     stl_calculate_volume(&stl);
     
     // neighbors
+#ifdef SLIC3R_TRACE_REPAIR
     BOOST_LOG_TRIVIAL(trace) << "\tstl_verify_neighbors";
+#endif /* SLIC3R_TRACE_REPAIR */
     stl_verify_neighbors(&stl);
 
     this->repaired = true;
