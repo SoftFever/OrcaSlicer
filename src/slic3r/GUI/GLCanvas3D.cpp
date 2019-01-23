@@ -856,6 +856,14 @@ bool GLCanvas3D::LayersEditing::init(const std::string& vertex_shader_filename, 
     return true;
 }
 
+void GLCanvas3D::LayersEditing::set_config(const DynamicPrintConfig* config)
+{ 
+    m_config = config;
+    delete m_slicing_parameters;
+    m_slicing_parameters = nullptr;
+    m_layers_texture.valid = false;
+}
+
 void GLCanvas3D::LayersEditing::select_object(const Model &model, int object_id)
 {
     const ModelObject *model_object_new = (object_id >= 0) ? model.objects[object_id] : nullptr;
@@ -864,6 +872,7 @@ void GLCanvas3D::LayersEditing::select_object(const Model &model, int object_id)
         m_layer_height_profile_modified = false;
         delete m_slicing_parameters;
         m_slicing_parameters = nullptr;
+        m_layers_texture.valid = false;
     }
     this->last_object_id = object_id;
     m_model_object       = model_object_new;
@@ -1164,6 +1173,13 @@ void GLCanvas3D::LayersEditing::adjust_layer_height_profile()
 	PrintObject::update_layer_height_profile(*m_model_object, *m_slicing_parameters, m_layer_height_profile);
 	Slic3r::adjust_layer_height_profile(*m_slicing_parameters, m_layer_height_profile, this->last_z, this->strength, this->band_width, this->last_action);
 	m_layer_height_profile_modified = true;
+    m_layers_texture.valid = false;
+}
+
+void GLCanvas3D::LayersEditing::reset_layer_height_profile()
+{
+	const_cast<ModelObject*>(m_model_object)->layer_height_profile.clear();
+    m_layer_height_profile.clear();
     m_layers_texture.valid = false;
 }
 
@@ -5024,7 +5040,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             if (evt.LeftDown())
             {
                 // A volume is selected and the mouse is inside the reset button. Reset the ModelObject's layer height profile.
-				m_model->objects[layer_editing_object_idx]->layer_height_profile.clear();
+				m_layers_editing.reset_layer_height_profile();
                 // Index 2 means no editing, just wait for mouse up event.
                 m_layers_editing.state = LayersEditing::Completed;
 

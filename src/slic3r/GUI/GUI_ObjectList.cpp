@@ -97,7 +97,7 @@ void ObjectList::create_objects_ctrl()
     // temporary workaround for the correct behavior of the Scrolled sidebar panel:
     // 1. set a height of the list to some big value 
     // 2. change it to the normal min value (200) after first whole App updating/layouting
-    SetMinSize(wxSize(-1, 1500));   // #ys_FIXME 
+    SetMinSize(wxSize(-1, 3000));   // #ys_FIXME 
 
     m_sizer = new wxBoxSizer(wxVERTICAL);
     m_sizer->Add(this, 1, wxGROW | wxLEFT, 20);
@@ -445,13 +445,21 @@ void ObjectList::OnBeginDrag(wxDataViewEvent &event)
 
     // only allow drags for item, not containers
     if (multiple_selection() || GetSelection()!=item || 
-        m_objects_model->GetParent(item) == wxDataViewItem(0) ||
-        m_objects_model->GetItemType(item) != itVolume ) {
+        m_objects_model->GetParent(item) == wxDataViewItem(0)) {
+        event.Veto();
+        return;
+    }
+   
+    const ItemType& type = m_objects_model->GetItemType(item);
+    if (!(type & (itVolume | itInstance))) {
         event.Veto();
         return;
     }
 
-    m_dragged_data.init(m_objects_model->GetObjectIdByItem(item), m_objects_model->GetVolumeIdByItem(item));
+    m_dragged_data.init(m_objects_model->GetObjectIdByItem(item), 
+                        type&itVolume ? m_objects_model->GetVolumeIdByItem(item) :
+                                        m_objects_model->GetInstanceIdByItem(item), 
+                        type);
 
     /* Under MSW or OSX, DnD moves an item to the place of another selected item
     * But under GTK, DnD moves an item between another two items.
@@ -470,31 +478,41 @@ void ObjectList::OnBeginDrag(wxDataViewEvent &event)
     event.SetDragFlags(wxDrag_DefaultMove); // allows both copy and move;
 }
 
+bool ObjectList::can_drop(const wxDataViewItem& item) const 
+{
+    return  m_dragged_data.type() == itInstance && !item.IsOk()     ||
+            m_dragged_data.type() == itVolume && item.IsOk() &&
+            m_objects_model->GetItemType(item) == itVolume &&
+            m_dragged_data.obj_idx() == m_objects_model->GetObjectIdByItem(item);
+}
+
 void ObjectList::OnDropPossible(wxDataViewEvent &event)
 {
-    wxDataViewItem item(event.GetItem());
+    const wxDataViewItem& item = event.GetItem();
 
-    // only allow drags for item or background, not containers
-    if (!item.IsOk() ||
-        m_objects_model->GetParent(item) == wxDataViewItem(0) || 
-        m_objects_model->GetItemType(item) != itVolume ||
-        m_dragged_data.obj_idx() != m_objects_model->GetObjectIdByItem(item))
+    if (!can_drop(item))
         event.Veto();
 }
 
 void ObjectList::OnDrop(wxDataViewEvent &event)
 {
-    wxDataViewItem item(event.GetItem());
+    const wxDataViewItem& item = event.GetItem();
 
-    if (!item.IsOk() || m_objects_model->GetParent(item) == wxDataViewItem(0) ||
-                        m_objects_model->GetItemType(item) != itVolume ||
-                        m_dragged_data.obj_idx() != m_objects_model->GetObjectIdByItem(item)) {
+    if (!can_drop(item))
+    {
         event.Veto();
         m_dragged_data.clear();
         return;
     }
 
-    const int from_volume_id = m_dragged_data.vol_idx();
+    if (m_dragged_data.type() == itInstance)
+    {
+        instance_to_separated_object(m_dragged_data.obj_idx(), m_dragged_data.sub_obj_idx());
+        m_dragged_data.clear();
+        return;
+    }
+
+    const int from_volume_id = m_dragged_data.sub_obj_idx();
     int to_volume_id = m_objects_model->GetVolumeIdByItem(item);
 
 // It looks like a fixed in current version of the wxWidgets
@@ -506,7 +524,7 @@ void ObjectList::OnDrop(wxDataViewEvent &event)
 //     if (to_volume_id > from_volume_id) to_volume_id--;
 // #endif // __WXGTK__
 
-    auto& volumes = (*m_objects)[/*m_selected_object_id*/m_dragged_data.obj_idx()]->volumes;
+    auto& volumes = (*m_objects)[m_dragged_data.obj_idx()]->volumes;
     auto delta = to_volume_id < from_volume_id ? -1 : 1;
     int cnt = 0;
     for (int id = from_volume_id; cnt < abs(from_volume_id - to_volume_id); id += delta, cnt++)
@@ -516,7 +534,7 @@ void ObjectList::OnDrop(wxDataViewEvent &event)
                                                     m_objects_model->GetParent(item)));
 
     m_parts_changed = true;
-    parts_changed(/*m_selected_object_id*/m_dragged_data.obj_idx());
+    parts_changed(m_dragged_data.obj_idx());
 
     m_dragged_data.clear();
 }
@@ -1731,6 +1749,25 @@ void ObjectList::update_settings_items()
         select_item(settings_item ? settings_item : m_objects_model->AddSettingsChild(item));
     }
     UnselectAll();
+}
+
+void ObjectList::instance_to_separated_object(const int obj_idx, const int inst_idx)
+{
+    // create new object from selected instance  
+    ModelObject* model_object = (*m_objects)[obj_idx]->get_model()->add_object(*(*m_objects)[obj_idx]);
+    for (int i = model_object->instances.size() - 1; i >= 0; i--)
+    {
+        if (i == inst_idx)
+            continue;
+        model_object->delete_instance(i);
+    }
+
+    // Add new object to the object_list
+    add_object_to_list(m_objects->size() - 1);
+
+    // delete selected instance from the object
+    del_subobject_from_object(obj_idx, inst_idx, itInstance);
+    delete_instance_from_list(obj_idx, inst_idx);
 }
 
 void ObjectList::ItemValueChanged(wxDataViewEvent &event)

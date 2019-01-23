@@ -346,7 +346,7 @@ class GLCanvas3D
         ~LayersEditing();
 
         bool init(const std::string& vertex_shader_filename, const std::string& fragment_shader_filename);
-		void set_config(const DynamicPrintConfig* config) { m_config = config; delete m_slicing_parameters; m_slicing_parameters = nullptr; }
+		void set_config(const DynamicPrintConfig* config);
         void select_object(const Model &model, int object_id);
 
         bool is_allowed() const;
@@ -358,9 +358,9 @@ class GLCanvas3D
         void render_overlay(const GLCanvas3D& canvas) const;
         void render_volumes(const GLCanvas3D& canvas, const GLVolumeCollection& volumes) const;
 
-        void generate_layer_height_texture();
 		void adjust_layer_height_profile();
 		void accept_changes(GLCanvas3D& canvas);
+        void reset_layer_height_profile();
 
         static float get_cursor_z_relative(const GLCanvas3D& canvas);
         static bool bar_rect_contains(const GLCanvas3D& canvas, float x, float y);
@@ -374,6 +374,7 @@ class GLCanvas3D
 
     private:
         bool _is_initialized() const;
+        void generate_layer_height_texture();
         void _render_tooltip_texture(const GLCanvas3D& canvas, const Rect& bar_rect, const Rect& reset_rect) const;
         void _render_reset_texture(const Rect& reset_rect) const;
         void _render_active_object_annotations(const GLCanvas3D& canvas, const Rect& bar_rect) const;
