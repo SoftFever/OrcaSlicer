@@ -406,7 +406,7 @@ void PrusaObjectDataViewModelNode::set_object_action_icon() {
 	m_action_icon = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("add_object.png")), wxBITMAP_TYPE_PNG);
 }
 void  PrusaObjectDataViewModelNode::set_part_action_icon() {
-	m_action_icon = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("cog.png")), wxBITMAP_TYPE_PNG);
+	m_action_icon = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var(m_type == itVolume ? "cog.png" : "brick_go.png")), wxBITMAP_TYPE_PNG);
 }
 
 Slic3r::GUI::BitmapCache *m_bitmap_cache = nullptr;

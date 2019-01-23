@@ -64,8 +64,6 @@ PrintObject::PrintObject(Print* print, ModelObject* model_object, bool add_insta
         }
         this->set_copies(copies);
     }
-
-    this->layer_height_profile = model_object->layer_height_profile;
 }
 
 PrintBase::ApplyStatus PrintObject::set_copies(const Points &points)
@@ -105,9 +103,10 @@ void PrintObject::slice()
     if (! this->set_started(posSlice))
         return;
     m_print->set_status(10, "Processing triangulated mesh");
-    this->update_layer_height_profile(*this->model_object(), this->slicing_parameters(), this->layer_height_profile);
+    std::vector<coordf_t> layer_height_profile;
+    this->update_layer_height_profile(*this->model_object(), this->slicing_parameters(), layer_height_profile);
     m_print->throw_if_canceled();
-    this->_slice();
+    this->_slice(layer_height_profile);
     m_print->throw_if_canceled();
     // Fix the model.
     //FIXME is this the right place to do? It is done repeateadly at the UI and now here at the backend.
@@ -1438,7 +1437,7 @@ bool PrintObject::update_layer_height_profile(const ModelObject &model_object, c
 // Resulting expolygons of layer regions are marked as Internal.
 //
 // this should be idempotent
-void PrintObject::_slice()
+void PrintObject::_slice(const std::vector<coordf_t> &layer_height_profile)
 {
     BOOST_LOG_TRIVIAL(info) << "Slicing objects..." << log_memory_info();
 
@@ -1457,7 +1456,7 @@ void PrintObject::_slice()
     {
         this->clear_layers();
         // Object layers (pairs of bottom/top Z coordinate), without the raft.
-        std::vector<coordf_t> object_layers = generate_object_layers(slicing_params, this->layer_height_profile);
+        std::vector<coordf_t> object_layers = generate_object_layers(slicing_params, layer_height_profile);
         // Reserve object layers for the raft. Last layer of the raft is the contact layer.
         int id = int(slicing_params.raft_layers());
         slice_zs.reserve(object_layers.size());

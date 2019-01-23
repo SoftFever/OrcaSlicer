@@ -45,7 +45,7 @@
 // Improves navigation between sidebar fields
 #define ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION (1 && ENABLE_1_42_0_ALPHA2)
 // Adds print bed models to 3D scene
-#define ENABLE_PRINT_BED_MODELS (0 && ENABLE_1_42_0_ALPHA2)
+#define ENABLE_PRINT_BED_MODELS (1 && ENABLE_1_42_0_ALPHA2)
 #endif // _technologies_h_
 
 
@@ -62,3 +62,5 @@
 #define ENABLE_GENERIC_SUBPARTS_PLACEMENT (1 && ENABLE_1_42_0_ALPHA4)
 // Reworked management of bed shape changes
 #define ENABLE_REWORKED_BED_SHAPE_CHANGE (1 && ENABLE_1_42_0_ALPHA4)
+// Use anisotropic filtering on bed plate texture
+#define ENABLE_ANISOTROPIC_FILTER_ON_BED_TEXTURES (1 && ENABLE_1_42_0_ALPHA4)

@@ -56,22 +56,38 @@ class ObjectList : public wxDataViewCtrl
 
     struct dragged_item_data
     {
-        void init(const int obj_idx, const int vol_idx) {
+        void init(const int obj_idx, const int subobj_idx, const ItemType type) {
             m_obj_idx = obj_idx;
-            m_vol_idx = vol_idx;            
+            m_type = type;
+            if (m_type&itVolume)
+                m_vol_idx = subobj_idx;
+            else
+                m_inst_idxs.insert(subobj_idx);
+        }
+
+        void init(const int obj_idx, const ItemType type) {
+            m_obj_idx = obj_idx;
+            m_type = type;
         }
 
         void clear() {
             m_obj_idx = -1;
-            m_vol_idx = -1;            
+            m_vol_idx = -1;
+            m_inst_idxs.clear();
+            m_type = itUndef;
         }
 
         int obj_idx() const  { return m_obj_idx; }
-        int vol_idx() const  { return m_vol_idx; }
+        int sub_obj_idx() const  { return m_vol_idx; }
+        ItemType type() const { return m_type; }
+        std::set<int>& inst_idxs() { return m_inst_idxs; }
 
     private:
         int m_obj_idx = -1;
         int m_vol_idx = -1;
+        std::set<int> m_inst_idxs{};
+        ItemType m_type = itUndef;
+
     } m_dragged_data;
 
     wxBoxSizer          *m_sizer {nullptr};
@@ -91,9 +107,11 @@ class ObjectList : public wxDataViewCtrl
     wxMenu      m_menu_object;
     wxMenu      m_menu_part;
     wxMenu      m_menu_sla_object;
+    wxMenu      m_menu_instance;
     wxMenuItem* m_menu_item_split { nullptr };
     wxMenuItem* m_menu_item_split_part { nullptr };
     wxMenuItem* m_menu_item_settings { nullptr };
+    wxMenuItem* m_menu_item_split_instances { nullptr };
 
     std::vector<wxBitmap*> m_bmp_vector;
 
@@ -148,9 +166,11 @@ public:
     wxMenuItem*         append_menu_item_split(wxMenu* menu);
     wxMenuItem*         append_menu_item_settings(wxMenu* menu);
     wxMenuItem*         append_menu_item_change_type(wxMenu* menu);
+    wxMenuItem*         append_menu_item_instance_to_object(wxMenu* menu);
     void                create_object_popupmenu(wxMenu *menu);
     void                create_sla_object_popupmenu(wxMenu*menu);
     void                create_part_popupmenu(wxMenu*menu);
+    void                create_instance_popupmenu(wxMenu*menu);
     wxMenu*             create_settings_popupmenu(wxMenu *parent_menu);
 
     void                update_opt_keys(t_config_option_keys& t_optopt_keys);
@@ -166,6 +186,8 @@ public:
     void                split();
     bool                get_volume_by_item(const wxDataViewItem& item, ModelVolume*& volume);
     bool                is_splittable();
+    bool                selected_instances_of_same_object();
+    bool                can_split_instances();
 
     wxPoint             get_mouse_position_in_control();
     wxBoxSizer*         get_sizer() {return  m_sizer;}
@@ -222,6 +244,9 @@ public:
     bool has_multi_part_objects();
     void update_settings_items();
 
+    void instances_to_separated_object(const int obj_idx, const std::set<int>& inst_idx);
+    void split_instances();
+
 private:
     void OnChar(wxKeyEvent& event);
     void OnContextMenu(wxDataViewEvent &event);
@@ -229,6 +254,7 @@ private:
     void OnBeginDrag(wxDataViewEvent &event);
     void OnDropPossible(wxDataViewEvent &event);
     void OnDrop(wxDataViewEvent &event);
+    bool can_drop(const wxDataViewItem& item) const ;
 
     void ItemValueChanged(wxDataViewEvent &event);
     void OnEditingDone(wxDataViewEvent &event);

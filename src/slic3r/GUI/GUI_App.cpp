@@ -194,6 +194,8 @@ bool GUI_App::OnInit()
             preset_updater->slic3r_update_notify();
         }
         preset_updater->sync(preset_bundle);
+
+        load_current_presets();
     });
 
 

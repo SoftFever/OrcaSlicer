@@ -545,6 +545,11 @@ void GLCanvas3D::Bed::_render_prusa(const std::string &key, float theta) const
     std::string model_path = resources_dir() + "/models/" + key;
 #endif // ENABLE_PRINT_BED_MODELS
 
+#if ENABLE_ANISOTROPIC_FILTER_ON_BED_TEXTURES
+    GLfloat max_anisotropy = 0.0f;
+    ::glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_anisotropy);
+#endif // ENABLE_ANISOTROPIC_FILTER_ON_BED_TEXTURES
+
     std::string filename = tex_path + "_top.png";
     if ((m_top_texture.get_id() == 0) || (m_top_texture.get_source() != filename))
     {
@@ -553,6 +558,14 @@ void GLCanvas3D::Bed::_render_prusa(const std::string &key, float theta) const
             _render_custom();
             return;
         }
+#if ENABLE_ANISOTROPIC_FILTER_ON_BED_TEXTURES
+        if (max_anisotropy > 0.0f)
+        {
+            ::glBindTexture(GL_TEXTURE_2D, m_top_texture.get_id());
+            ::glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, max_anisotropy);
+            ::glBindTexture(GL_TEXTURE_2D, 0);
+        }
+#endif // ENABLE_ANISOTROPIC_FILTER_ON_BED_TEXTURES
     }
 
     filename = tex_path + "_bottom.png";
@@ -563,6 +576,14 @@ void GLCanvas3D::Bed::_render_prusa(const std::string &key, float theta) const
             _render_custom();
             return;
         }
+#if ENABLE_ANISOTROPIC_FILTER_ON_BED_TEXTURES
+        if (max_anisotropy > 0.0f)
+        {
+            ::glBindTexture(GL_TEXTURE_2D, m_bottom_texture.get_id());
+            ::glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, max_anisotropy);
+            ::glBindTexture(GL_TEXTURE_2D, 0);
+        }
+#endif // ENABLE_ANISOTROPIC_FILTER_ON_BED_TEXTURES
     }
 
 #if ENABLE_PRINT_BED_MODELS
@@ -570,7 +591,7 @@ void GLCanvas3D::Bed::_render_prusa(const std::string &key, float theta) const
     {
         filename = model_path + "_bed.stl";
         if ((m_model.get_filename() != filename) && m_model.init_from_file(filename, useVBOs))
-            m_model.center_around(m_bounding_box.center() - Vec3d(0.0, 0.0, 1.0 + 0.5 * m_model.get_bounding_box().size()(2)));
+            m_model.center_around(m_bounding_box.center() - Vec3d(0.0, 0.0, 0.1 + 0.5 * m_model.get_bounding_box().size()(2)));
 
         if (!m_model.get_filename().empty())
         {
@@ -1179,11 +1200,12 @@ void GLCanvas3D::LayersEditing::adjust_layer_height_profile()
     m_layers_texture.valid = false;
 }
 
-void GLCanvas3D::LayersEditing::reset_layer_height_profile()
+void GLCanvas3D::LayersEditing::reset_layer_height_profile(GLCanvas3D& canvas)
 {
 	const_cast<ModelObject*>(m_model_object)->layer_height_profile.clear();
     m_layer_height_profile.clear();
     m_layers_texture.valid = false;
+    canvas.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
 }
 
 void GLCanvas3D::LayersEditing::generate_layer_height_texture()
@@ -5117,7 +5139,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             if (evt.LeftDown())
             {
                 // A volume is selected and the mouse is inside the reset button. Reset the ModelObject's layer height profile.
-				m_layers_editing.reset_layer_height_profile();
+				m_layers_editing.reset_layer_height_profile(*this);
                 // Index 2 means no editing, just wait for mouse up event.
                 m_layers_editing.state = LayersEditing::Completed;
 
@@ -5251,7 +5273,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                         if (m_volumes.volumes[m_hover_volume_id]->hover && !m_volumes.volumes[m_hover_volume_id]->is_wipe_tower)
                         {
                             // forces the selection of the volume
-                            m_selection.add(m_hover_volume_id);
+                            if (!m_selection.is_multiple_full_instance())
+                                m_selection.add(m_hover_volume_id);
                             m_gizmos.update_on_off_state(m_selection);
                             post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
                             _update_gizmos_data();
@@ -5822,6 +5845,7 @@ void GLCanvas3D::set_camera_zoom(float zoom)
 void GLCanvas3D::update_gizmos_on_off_state()
 {
     set_as_dirty();
+    _update_gizmos_data();
     m_gizmos.update_on_off_state(get_selection());
 }
 
