@@ -1399,8 +1399,6 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             if (one_by_one) {
                 auto loaded_idxs = load_model_objects(model.objects);
                 obj_idxs.insert(obj_idxs.end(), loaded_idxs.begin(), loaded_idxs.end());
-
-                std::cout << "New model objects added..." << std::endl;
             } else {
                 // This must be an .stl or .obj file, which may contain a maximum of one volume.
                 for (const ModelObject* model_object : model.objects) {
@@ -1450,7 +1448,6 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
     const BoundingBoxf bed_shape = bed_shape_bb();
     const Vec3d bed_size = Slic3r::to_3d(bed_shape.size().cast<double>(), 1.0) - 2.0 * Vec3d::Ones();
 
-//    bool need_arrange = false;
     bool scaled_down = false;
     std::vector<size_t> obj_idxs;
     unsigned int obj_count = model.objects.size();
@@ -1462,16 +1459,8 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
         obj_idxs.push_back(obj_count++);
 
         if (model_object->instances.empty()) {
-            // if object has no defined position(s) we need to rearrange everything after loading
-//            need_arrange = true;
-
             object->center_around_origin();
             new_instances.emplace_back(object->add_instance());
-
-//            // add a default instance and center object around origin
-//            object->center_around_origin();  // also aligns object to Z = 0
-//            ModelInstance* instance = object->add_instance();
-//            instance->set_offset(Slic3r::to_3d(bed_shape.center().cast<double>(), -object->origin_translation(2)));
         }
 
         const Vec3d size = object->bounding_box().size();
@@ -1498,7 +1487,7 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
         // print.add_model_object(object);
     }
 
-    // FIXME distance should be a config value
+    // FIXME distance should be a config value /////////////////////////////////
     auto min_obj_distance = static_cast<coord_t>(6/SCALING_FACTOR);
     const auto *bed_shape_opt = config->opt<ConfigOptionPoints>("bed_shape");
     assert(bed_shape_opt);
@@ -1506,8 +1495,8 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
     Polyline bed; bed.points.reserve(bedpoints.size());
     for(auto& v : bedpoints) bed.append(Point::new_scale(v(0), v(1)));
 
-    arr::find_new_position(model, new_instances,
-                           min_obj_distance, bed);
+    arr::find_new_position(model, new_instances, min_obj_distance, bed);
+    // /////////////////////////////////////////////////////////////////////////
 
     if (scaled_down) {
         GUI::show_info(q,

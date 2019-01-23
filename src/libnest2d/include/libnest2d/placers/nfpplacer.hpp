@@ -911,12 +911,13 @@ private:
                 if(config_.object_function) _objfunc = config_.object_function;
                 else {
 
-                    // Inside check has to be strict if no alignment was enabled.
+                    // Inside check has to be strict if no alignment was enabled
                     std::function<double(const Box&)> ins_check;
                     if(config_.alignment == Config::Alignment::DONT_ALIGN)
                         ins_check = [&binbb, norm](const Box& fullbb) {
                             double ret = 0;
-                            if(sl::isInside<RawShape>(fullbb, binbb)) ret += norm;
+                            if(sl::isInside<RawShape>(fullbb, binbb))
+                                ret += norm*norm;
                             return ret;
                         };
                     else
