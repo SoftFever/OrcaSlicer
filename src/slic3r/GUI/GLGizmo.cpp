@@ -1511,7 +1511,7 @@ void GLGizmoFlatten::set_flattening_data(const ModelObject* model_object)
     bool object_changed = m_model_object != model_object;
     m_model_object = model_object;
 
-    if (object_changed && is_plane_update_necessary())
+    if (object_changed || is_plane_update_necessary())
         update_planes();
 }
 
