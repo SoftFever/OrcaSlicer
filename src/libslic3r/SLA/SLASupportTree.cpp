@@ -738,36 +738,35 @@ public:
     const TriangleMesh& merged_mesh() const {
         if(meshcache_valid) return meshcache;
 
-        meshcache = TriangleMesh();
+        Contour3D merged;
 
         for(auto& head : heads()) {
             if(m_ctl.stopcondition()) break;
-            if(head.is_valid()) {
-                auto&& m = mesh(head.mesh);
-                meshcache.merge(m);
-            }
+            if(head.is_valid())
+                merged.merge(head.mesh);
         }
 
         for(auto& stick : pillars()) {
             if(m_ctl.stopcondition()) break;
-            meshcache.merge(mesh(stick.mesh));
-            meshcache.merge(mesh(stick.base));
+            merged.merge(stick.mesh);
+            merged.merge(stick.base);
         }
 
         for(auto& j : junctions()) {
             if(m_ctl.stopcondition()) break;
-            meshcache.merge(mesh(j.mesh));
+            merged.merge(j.mesh);
         }
 
         for(auto& cb : compact_bridges()) {
             if(m_ctl.stopcondition()) break;
-            meshcache.merge(mesh(cb.mesh));
+            merged.merge(cb.mesh);
         }
 
         for(auto& bs : bridges()) {
             if(m_ctl.stopcondition()) break;
-            meshcache.merge(mesh(bs.mesh));
+            merged.merge(bs.mesh);
         }
+
 
         if(m_ctl.stopcondition()) {
             // In case of failure we have to return an empty mesh
@@ -775,8 +774,10 @@ public:
             return meshcache;
         }
 
+        meshcache = mesh(merged);
+
         // TODO: Is this necessary?
-        meshcache.repair();
+        //meshcache.repair();
 
         BoundingBoxf3&& bb = meshcache.bounding_box();
         model_height = bb.max(Z) - bb.min(Z);
