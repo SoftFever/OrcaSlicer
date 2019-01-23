@@ -647,8 +647,7 @@ public:
      * This method makes possible to "preload" some items into the placer. It
      * will not move these items but will consider them as already packed.
      */
-    template<class Range = ConstItemRange<DefaultIterator>>
-    inline void preload(const Range& packeditems = Range())
+    inline void preload(const ItemGroup& packeditems)
     {
         impl_.preload(packeditems);
     }

@@ -60,8 +60,7 @@ public:
     }
 
     template<class Range = ConstItemRange<DefaultIter>>
-    bool pack(Item& item,
-              const Range& rem = Range()) {
+    bool pack(Item& item, const Range& rem = Range()) {
         auto&& r = static_cast<Subclass*>(this)->trypack(item, rem);
         if(r) {
             items_.push_back(*(r.item_ptr_));
@@ -70,9 +69,8 @@ public:
         return r;
     }
 
-    template<class Range = ConstItemRange<DefaultIter>>
-    void preload(const Range& packeditems = Range()) {
-        items_.insert(items_.end(), packeditems.from, packeditems.to);
+    void preload(const ItemGroup& packeditems) {
+        items_.insert(items_.end(), packeditems.begin(), packeditems.end());
         farea_valid_ = false;
     }
 
