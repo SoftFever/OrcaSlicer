@@ -482,12 +482,12 @@ public:
 
 template<class RawShape>
 inline bool _Item<RawShape>::isInside(const _Box<TPoint<RawShape>>& box) const {
-    return sl::isInside<RawShape>(boundingBox(), box);
+    return sl::isInside(boundingBox(), box);
 }
 
 template<class RawShape> inline bool
 _Item<RawShape>::isInside(const _Circle<TPoint<RawShape>>& circ) const {
-    return sl::isInside<RawShape>(transformedShape(), circ);
+    return sl::isInside(transformedShape(), circ);
 }
 
 template<class RawShape> using _ItemRef = std::reference_wrapper<_Item<RawShape>>;

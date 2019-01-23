@@ -916,8 +916,8 @@ private:
                     if(config_.alignment == Config::Alignment::DONT_ALIGN)
                         ins_check = [&binbb, norm](const Box& fullbb) {
                             double ret = 0;
-                            if(sl::isInside<RawShape>(fullbb, binbb))
-                                ret += norm*norm;
+                            if(!sl::isInside(fullbb, binbb))
+                                ret += norm;
                             return ret;
                         };
                     else
@@ -958,9 +958,10 @@ private:
                             ecache[opt.nfpidx].coords(opt.hidx, opt.relpos);
                 };
 
-                auto boundaryCheck =
-                    [&merged_pile, &getNfpPoint, &item, &bin, &iv, &startpos]
-                    (const Optimum& o)
+                auto alignment = config_.alignment;
+
+                auto boundaryCheck = [alignment, &merged_pile, &getNfpPoint,
+                        &item, &bin, &iv, &startpos] (const Optimum& o)
                 {
                     auto v = getNfpPoint(o);
                     auto d = v - iv;
@@ -971,7 +972,12 @@ private:
                     auto chull = sl::convexHull(merged_pile);
                     merged_pile.pop_back();
 
-                    return overfit(chull, bin);
+                    double miss = 0;
+                    if(alignment == Config::Alignment::DONT_ALIGN)
+                       miss = sl::isInside(chull, bin) ? -1.0 : 1.0;
+                    else miss = overfit(chull, bin);
+
+                    return miss;
                 };
 
                 Optimum optimum(0, 0);

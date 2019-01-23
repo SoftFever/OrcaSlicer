@@ -113,6 +113,7 @@ template<> struct CountourType<PolygonImpl> {
 
 template<> struct ShapeTag<PolygonImpl> { using Type = PolygonTag; };
 template<> struct ShapeTag<PathImpl> { using Type = PathTag; };
+template<> struct ShapeTag<PointImpl> { using Type = PointTag; };
 
 template<> struct ShapeTag<TMultiShape<PolygonImpl>> {
     using Type = MultiPolygonTag;
