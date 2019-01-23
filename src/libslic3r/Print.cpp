@@ -1125,7 +1125,7 @@ std::string Print::validate() const
         // Check horizontal clearance.
         {
             Polygons convex_hulls_other;
-            for (PrintObject *object : m_objects) {
+            for (const PrintObject *object : m_objects) {
                 // Get convex hull of all meshes assigned to this print object.
                 Polygon convex_hull;
                 {
@@ -1186,46 +1186,63 @@ std::string Print::validate() const
             return L("The Wipe Tower is currently only supported for the Marlin, RepRap/Sprinter and Repetier G-code flavors.");
         if (! m_config.use_relative_e_distances)
             return L("The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1).");
-        SlicingParameters slicing_params0 = m_objects.front()->slicing_parameters();
 
-        const PrintObject* tallest_object = m_objects.front(); // let's find the tallest object
-        for (const auto* object : m_objects)
-            if (*(object->layer_height_profile.end()-2) > *(tallest_object->layer_height_profile.end()-2) )
-                    tallest_object = object;
-
-        for (PrintObject *object : m_objects) {
-            SlicingParameters slicing_params = object->slicing_parameters();
-            if (std::abs(slicing_params.first_print_layer_height - slicing_params0.first_print_layer_height) > EPSILON ||
-                std::abs(slicing_params.layer_height             - slicing_params0.layer_height            ) > EPSILON)
-                return L("The Wipe Tower is only supported for multiple objects if they have equal layer heigths");
-            if (slicing_params.raft_layers() != slicing_params0.raft_layers())
-                return L("The Wipe Tower is only supported for multiple objects if they are printed over an equal number of raft layers");
-            if (object->config().support_material_contact_distance != m_objects.front()->config().support_material_contact_distance)
-                return L("The Wipe Tower is only supported for multiple objects if they are printed with the same support_material_contact_distance");
-            if (! equal_layering(slicing_params, slicing_params0))
-                return L("The Wipe Tower is only supported for multiple objects if they are sliced equally.");
-
-            if (m_config.variable_layer_height) { // comparing layer height profiles
-                bool failed = false;
-                // layer_height_profile should be set by Print::apply().
-                if (tallest_object->layer_height_profile.size() >= object->layer_height_profile.size()) {
-                    int i = 0;
-                    while (i < object->layer_height_profile.size() && i < tallest_object->layer_height_profile.size()) {
-                        if (std::abs(tallest_object->layer_height_profile[i] - object->layer_height_profile[i])) {
-                            failed = true;
-                            break;
-                        }
-                        ++i;
-                        if (i == object->layer_height_profile.size()-2) // this element contains this objects max z
-                            if (tallest_object->layer_height_profile[i] > object->layer_height_profile[i]) // the difference does not matter in this case
-                                ++i;
-                    }
+        if (m_objects.size() > 1) {
+            bool                                has_custom_layering = false;
+            std::vector<std::vector<coordf_t>>  layer_height_profiles;
+            for (const PrintObject *object : m_objects) {
+                has_custom_layering = ! object->model_object()->layer_height_ranges.empty() || ! object->model_object()->layer_height_profile.empty();
+                if (has_custom_layering) {
+                    layer_height_profiles.assign(m_objects.size(), std::vector<coordf_t>());
+                    break;
                 }
-                else
-                    failed = true;
+            }
+            SlicingParameters slicing_params0    = m_objects.front()->slicing_parameters();
+            size_t            tallest_object_idx = 0;
+            if (has_custom_layering)
+                PrintObject::update_layer_height_profile(*m_objects.front()->model_object(), slicing_params0, layer_height_profiles.front());
+            for (size_t i = 1; i < m_objects.size(); ++ i) {
+                const PrintObject      *object         = m_objects[i];
+                const SlicingParameters slicing_params = object->slicing_parameters();
+                if (std::abs(slicing_params.first_print_layer_height - slicing_params0.first_print_layer_height) > EPSILON ||
+                    std::abs(slicing_params.layer_height             - slicing_params0.layer_height            ) > EPSILON)
+                    return L("The Wipe Tower is only supported for multiple objects if they have equal layer heigths");
+                if (slicing_params.raft_layers() != slicing_params0.raft_layers())
+                    return L("The Wipe Tower is only supported for multiple objects if they are printed over an equal number of raft layers");
+                if (object->config().support_material_contact_distance != m_objects.front()->config().support_material_contact_distance)
+                    return L("The Wipe Tower is only supported for multiple objects if they are printed with the same support_material_contact_distance");
+                if (! equal_layering(slicing_params, slicing_params0))
+                    return L("The Wipe Tower is only supported for multiple objects if they are sliced equally.");
+                if (has_custom_layering) {
+                    PrintObject::update_layer_height_profile(*object->model_object(), slicing_params, layer_height_profiles[i]);
+                    if (*(layer_height_profiles[i].end()-2) > *(layer_height_profiles[tallest_object_idx].end()-2))
+                        tallest_object_idx = i;
+                }
+            }
 
-                if (failed)
-                    return L("The Wipe tower is only supported if all objects have the same layer height profile");
+            if (has_custom_layering) {
+                const std::vector<coordf_t> &layer_height_profile_tallest = layer_height_profiles[tallest_object_idx];
+                for (size_t idx_object = 0; idx_object < m_objects.size(); ++ idx_object) {
+                    const PrintObject           *object               = m_objects[idx_object];
+                    const std::vector<coordf_t> &layer_height_profile = layer_height_profiles[idx_object];
+                    bool                         failed               = false;
+                    if (layer_height_profile_tallest.size() >= layer_height_profile.size()) {
+                        int i = 0;
+                        while (i < layer_height_profile.size() && i < layer_height_profile_tallest.size()) {
+                            if (std::abs(layer_height_profile_tallest[i] - layer_height_profile[i])) {
+                                failed = true;
+                                break;
+                            }
+                            ++ i;
+                            if (i == layer_height_profile.size() - 2) // this element contains this objects max z
+                                if (layer_height_profile_tallest[i] > layer_height_profile[i]) // the difference does not matter in this case
+                                    ++ i;
+                        }
+                    } else
+                        failed = true;
+                    if (failed)
+                        return L("The Wipe tower is only supported if all objects have the same layer height profile");
+                }
             }
         }
     }
