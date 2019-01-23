@@ -591,7 +591,7 @@ void GLCanvas3D::Bed::_render_prusa(const std::string &key, float theta) const
     {
         filename = model_path + "_bed.stl";
         if ((m_model.get_filename() != filename) && m_model.init_from_file(filename, useVBOs))
-            m_model.center_around(m_bounding_box.center() - Vec3d(0.0, 0.0, 1.0 + 0.5 * m_model.get_bounding_box().size()(2)));
+            m_model.center_around(m_bounding_box.center() - Vec3d(0.0, 0.0, 0.1 + 0.5 * m_model.get_bounding_box().size()(2)));
 
         if (!m_model.get_filename().empty())
         {
