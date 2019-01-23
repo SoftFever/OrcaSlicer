@@ -375,10 +375,11 @@ public:
     }
 
     bool is_colliding(const Item& item) {
+        if(m_rtree.empty()) return false;
         std::vector<SpatElement> result;
         m_rtree.query(bgi::intersects(item.boundingBox()),
                       std::back_inserter(result));
-        return result.empty();
+        return !result.empty();
     }
 };
 
@@ -870,7 +871,7 @@ void find_new_position(const Model &model,
             // Try to place items to the center
             Item& itm = *shit;
             auto ibb = itm.boundingBox();
-            auto d = ibb.center() - binbb.center();
+            auto d = binbb.center() - ibb.center();
             itm.translate(d);
             if(!arrange.is_colliding(itm)) {
                 arrange.preload({{itm}});
