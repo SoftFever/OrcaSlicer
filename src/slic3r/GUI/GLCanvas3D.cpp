@@ -5273,7 +5273,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                         if (m_volumes.volumes[m_hover_volume_id]->hover && !m_volumes.volumes[m_hover_volume_id]->is_wipe_tower)
                         {
                             // forces the selection of the volume
-                            m_selection.add(m_hover_volume_id);
+                            if (!m_selection.is_multiple_full_instance())
+                                m_selection.add(m_hover_volume_id);
                             m_gizmos.update_on_off_state(m_selection);
                             post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
                             _update_gizmos_data();

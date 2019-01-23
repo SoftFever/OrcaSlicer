@@ -275,6 +275,7 @@ public:
         else if (type == itInstance) {
             m_idx = parent->GetChildCount();
             m_name = wxString::Format("Instance_%d", m_idx+1);
+            set_part_action_icon();
         }
 	}
 

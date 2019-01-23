@@ -51,6 +51,7 @@ ObjectList::ObjectList(wxWindow* parent) :
     create_object_popupmenu(&m_menu_object);
     create_part_popupmenu(&m_menu_part);
     create_sla_object_popupmenu(&m_menu_sla_object);
+    create_instance_popupmenu(&m_menu_instance);
 
     // describe control behavior 
     Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [this](wxEvent& event) {
@@ -400,15 +401,28 @@ void ObjectList::OnContextMenu(wxDataViewEvent&)
 
 void ObjectList::show_context_menu()
 {
+    if (multiple_selection() && selected_instances_of_same_object())
+    {
+        wxGetApp().plater()->PopupMenu(&m_menu_instance);
+
+        wxGetApp().plater()->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) {
+            evt.Enable(can_split_instances()); }, m_menu_item_split_instances->GetId());
+        return;
+    }
+
     const auto item = GetSelection();
     if (item)
     {
-        if (!(m_objects_model->GetItemType(item) & (itObject | itVolume)))
+        const ItemType type = m_objects_model->GetItemType(item);
+        if (!(type & (itObject | itVolume | itInstance)))
             return;
-        wxMenu* menu = m_objects_model->GetParent(item) != wxDataViewItem(0) ? &m_menu_part :
+
+        wxMenu* menu = type & itInstance ? &m_menu_instance :
+                       m_objects_model->GetParent(item) != wxDataViewItem(0) ? &m_menu_part :
                        wxGetApp().plater()->printer_technology() == ptFFF ? &m_menu_object : &m_menu_sla_object;
 
-        append_menu_item_settings(menu);
+        if (!(type & itInstance))
+            append_menu_item_settings(menu);
 
         wxGetApp().plater()->PopupMenu(menu);
 
@@ -443,9 +457,11 @@ void ObjectList::OnBeginDrag(wxDataViewEvent &event)
 {
     const wxDataViewItem item(event.GetItem());
 
-    // only allow drags for item, not containers
-    if (multiple_selection() || GetSelection()!=item || 
-        m_objects_model->GetParent(item) == wxDataViewItem(0)) {
+    const bool mult_sel = multiple_selection();
+
+    if (mult_sel && !selected_instances_of_same_object() ||
+        !mult_sel && (GetSelection() != item ||
+        m_objects_model->GetParent(item) == wxDataViewItem(0) ) ) {
         event.Veto();
         return;
     }
@@ -456,7 +472,17 @@ void ObjectList::OnBeginDrag(wxDataViewEvent &event)
         return;
     }
 
-    m_dragged_data.init(m_objects_model->GetObjectIdByItem(item), 
+    if (mult_sel)
+    {
+        m_dragged_data.init(m_objects_model->GetObjectIdByItem(item),type);
+        std::set<int>& sub_obj_idxs = m_dragged_data.inst_idxs();
+        wxDataViewItemArray sels;
+        GetSelections(sels);
+        for (auto sel : sels )
+            sub_obj_idxs.insert(m_objects_model->GetInstanceIdByItem(sel));
+    }
+    else 
+        m_dragged_data.init(m_objects_model->GetObjectIdByItem(item), 
                         type&itVolume ? m_objects_model->GetVolumeIdByItem(item) :
                                         m_objects_model->GetInstanceIdByItem(item), 
                         type);
@@ -507,7 +533,7 @@ void ObjectList::OnDrop(wxDataViewEvent &event)
 
     if (m_dragged_data.type() == itInstance)
     {
-        instance_to_separated_object(m_dragged_data.obj_idx(), m_dragged_data.sub_obj_idx());
+        instances_to_separated_object(m_dragged_data.obj_idx(), m_dragged_data.inst_idxs());
         m_dragged_data.clear();
         return;
     }
@@ -759,6 +785,12 @@ wxMenuItem* ObjectList::append_menu_item_change_type(wxMenu* menu)
 
 }
 
+wxMenuItem* ObjectList::append_menu_item_instance_to_object(wxMenu* menu)
+{
+    return append_menu_item(menu, wxID_ANY, _(L("Set as a Separated Object")), "",
+        [this](wxCommandEvent&) { split_instances(); }, "", menu);
+}
+
 void ObjectList::create_object_popupmenu(wxMenu *menu)
 {
     append_menu_items_add_volume(menu);
@@ -785,6 +817,11 @@ void ObjectList::create_part_popupmenu(wxMenu *menu)
 
     // Append settings popupmenu
     menu->AppendSeparator();
+}
+
+void ObjectList::create_instance_popupmenu(wxMenu*menu)
+{
+    m_menu_item_split_instances = append_menu_item_instance_to_object(menu);
 }
 
 wxMenu* ObjectList::create_settings_popupmenu(wxMenu *parent_menu)
@@ -1134,6 +1171,27 @@ bool ObjectList::is_splittable()
     return splittable;
 }
 
+bool ObjectList::selected_instances_of_same_object()
+{
+    wxDataViewItemArray sels;
+    GetSelections(sels);
+
+    const int obj_idx = m_objects_model->GetObjectIdByItem(sels.front());
+
+    for (auto item : sels) {
+        if (! (m_objects_model->GetItemType(item) & itInstance) ||
+            obj_idx != m_objects_model->GetObjectIdByItem(item))
+            return false;
+    }
+    return true;
+}
+
+bool ObjectList::can_split_instances()
+{
+    const GLCanvas3D::Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
+    return selection.is_multiple_full_instance() || selection.is_single_full_instance();
+}
+
 void ObjectList::part_settings_changed()
 {
     m_part_settings_changed = true;
@@ -1437,7 +1495,7 @@ bool ObjectList::multiple_selection() const
 
 void ObjectList::update_selections()
 {
-    auto& selection = wxGetApp().plater()->canvas3D()->get_selection();
+    const GLCanvas3D::Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
     wxDataViewItemArray sels;
 
     // We doesn't update selection if SettingsItem for the current object/part is selected
@@ -1523,7 +1581,7 @@ void ObjectList::update_selections()
 
 void ObjectList::update_selections_on_canvas()
 {
-    auto& selection = wxGetApp().plater()->canvas3D()->get_selection();
+    GLCanvas3D::Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
 
     const int sel_cnt = GetSelectedItemsCount();
     if (sel_cnt == 0) {
@@ -1747,23 +1805,41 @@ void ObjectList::update_settings_items()
     UnselectAll();
 }
 
-void ObjectList::instance_to_separated_object(const int obj_idx, const int inst_idx)
+void ObjectList::instances_to_separated_object(const int obj_idx, const std::set<int>& inst_idxs)
 {
     // create new object from selected instance  
     ModelObject* model_object = (*m_objects)[obj_idx]->get_model()->add_object(*(*m_objects)[obj_idx]);
-    for (int i = model_object->instances.size() - 1; i >= 0; i--)
+    for (int inst_idx = model_object->instances.size() - 1; inst_idx >= 0; inst_idx--)
     {
-        if (i == inst_idx)
+        if (find(inst_idxs.begin(), inst_idxs.end(), inst_idx) != inst_idxs.end())
             continue;
-        model_object->delete_instance(i);
+        model_object->delete_instance(inst_idx);
     }
 
     // Add new object to the object_list
     add_object_to_list(m_objects->size() - 1);
 
-    // delete selected instance from the object
-    del_subobject_from_object(obj_idx, inst_idx, itInstance);
-    delete_instance_from_list(obj_idx, inst_idx);
+    for (std::set<int>::const_reverse_iterator it = inst_idxs.rbegin(); it != inst_idxs.rend(); ++it)
+    {
+        // delete selected instance from the object
+        del_subobject_from_object(obj_idx, *it, itInstance);
+        delete_instance_from_list(obj_idx, *it);
+    }
+}
+
+void ObjectList::split_instances()
+{
+    const GLCanvas3D::Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
+    const int obj_idx = selection.get_object_idx();
+    if (obj_idx == -1)
+        return;
+
+    const int inst_idx = selection.get_instance_idx();
+    const std::set<int> inst_idxs = inst_idx < 0 ?
+                                    selection.get_instance_idxs() :
+                                    std::set<int>{ inst_idx };
+
+    instances_to_separated_object(obj_idx, inst_idxs);
 }
 
 void ObjectList::ItemValueChanged(wxDataViewEvent &event)
