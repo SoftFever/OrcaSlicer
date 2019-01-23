@@ -1182,59 +1182,42 @@ Transform3d assemble_transform(const Vec3d& translation, const Vec3d& rotation, 
 Vec3d extract_euler_angles(const Eigen::Matrix<double, 3, 3, Eigen::DontAlign>& rotation_matrix)
 {
 #if ENABLE_NEW_EULER_ANGLES
+    // see: http://www.gregslabaugh.net/publications/euler.pdf
     auto is_approx = [](double value, double test_value) -> bool { return std::abs(value - test_value) < EPSILON; };
 
-    bool x_only = is_approx(rotation_matrix(0, 0), 1.0) && is_approx(rotation_matrix(0, 1), 0.0) && is_approx(rotation_matrix(0, 2), 0.0) && is_approx(rotation_matrix(1, 0), 0.0) && is_approx(rotation_matrix(2, 0), 0.0);
-    bool y_only = is_approx(rotation_matrix(0, 1), 0.0) && is_approx(rotation_matrix(1, 0), 0.0) && is_approx(rotation_matrix(1, 1), 1.0) && is_approx(rotation_matrix(1, 2), 0.0) && is_approx(rotation_matrix(2, 1), 0.0);
-    bool z_only = is_approx(rotation_matrix(0, 2), 0.0) && is_approx(rotation_matrix(1, 2), 0.0) && is_approx(rotation_matrix(2, 0), 0.0) && is_approx(rotation_matrix(2, 1), 0.0) && is_approx(rotation_matrix(2, 2), 1.0);
-//    bool xy_only = is_approx(rotation_matrix(0, 1), 0.0); // Rx * Ry
-    bool yx_only = is_approx(rotation_matrix(1, 0), 0.0); // Ry * Rx
-//    bool xz_only = is_approx(rotation_matrix(0, 2), 0.0); // Rx * Rz
-//    bool zx_only = is_approx(rotation_matrix(2, 0), 0.0); // Rz * Rx
-//    bool yz_only = is_approx(rotation_matrix(1, 2), 0.0); // Ry * Rz
-//    bool zy_only = is_approx(rotation_matrix(2, 1), 0.0); // Rz * Ry
-
-    Vec3d angles = Vec3d::Zero();
-    if (x_only || y_only || z_only)
+    Vec3d angles1 = Vec3d::Zero();
+    Vec3d angles2 = Vec3d::Zero();
+    if (is_approx(std::abs(rotation_matrix(2, 0)), 1.0))
     {
-        angles = rotation_matrix.eulerAngles(0, 1, 2);
-        if (x_only && (std::abs(angles(1)) == (double)PI) && (std::abs(angles(2)) == (double)PI))
+        angles1(2) = 0.0;
+        if (rotation_matrix(2, 0) > 0.0) // == +1.0
         {
-            angles(0) -= (double)PI;
-            angles(1) = 0.0;
-            angles(2) = 0.0;
+            angles1(1) = -0.5 * (double)PI;
+            angles1(0) = -angles1(2) + ::atan2(-rotation_matrix(0, 1), -rotation_matrix(0, 2));
         }
+        else // == -1.0
+        {
+            angles1(1) = 0.5 * (double)PI;
+            angles1(0) = angles1(2) + ::atan2(rotation_matrix(0, 1), rotation_matrix(0, 2));
+        }
+        angles2 = angles1;
     }
     else
     {
-        double cy_abs = ::sqrt(sqr(rotation_matrix(0, 0)) + sqr(rotation_matrix(1, 0)));
-        angles(0) = ::atan2(rotation_matrix(2, 1), rotation_matrix(2, 2));
-        angles(1) = ::atan2(-rotation_matrix(2, 0), cy_abs);
-        angles(2) = ::atan2(rotation_matrix(1, 0), rotation_matrix(0, 0));
-        if (yx_only && (angles(2) == (double)PI))
-        {
-            angles(0) -= (double)PI;
-            angles(1) = (double)PI - angles(1);
-            angles(2) = 0.0;
-        }
+        angles1(1) = -::asin(rotation_matrix(2, 0));
+        double inv_cos1 = 1.0 / ::cos(angles1(1));
+        angles1(0) = ::atan2(rotation_matrix(2, 1) * inv_cos1, rotation_matrix(2, 2) * inv_cos1);
+        angles1(2) = ::atan2(rotation_matrix(1, 0) * inv_cos1, rotation_matrix(0, 0) * inv_cos1);
+
+        angles2(1) = (double)PI - angles1(1);
+        double inv_cos2 = 1.0 / ::cos(angles2(1));
+        angles2(0) = ::atan2(rotation_matrix(2, 1) * inv_cos2, rotation_matrix(2, 2) * inv_cos2);
+        angles2(2) = ::atan2(rotation_matrix(1, 0) * inv_cos2, rotation_matrix(0, 0) * inv_cos2);
     }
 
-//    // debug check
-//    Geometry::Transformation t;
-//    t.set_rotation(angles);
-//    if (!t.get_matrix().matrix().block(0, 0, 3, 3).isApprox(rotation_matrix))
-//    {
-//        std::cout << "something went wrong in extracting euler angles from matrix" << std::endl;
-//
-////        Eigen::Matrix<double, 3, 3, Eigen::DontAlign> m = t.get_matrix().matrix().block(0, 0, 3, 3);
-////        for (int r = 0; r < 3; ++r)
-////        {
-////            for (int c = 0; c < 3; ++c)
-////            {
-////                std::cout << r << ", " << c << ": " << m(r, c) << " - " << rotation_matrix(r, c) << std::endl;
-////            }
-////        }
-//    }
+    // The following euristic seems to work fine, but there may be use cases were it does not
+    // We'll need to modify it if/when we'll meet such use cases
+    Vec3d angles = (angles1.cwiseAbs().minCoeff() <= angles2.cwiseAbs().minCoeff()) ? angles1 : angles2;
 #else
     auto y_only = [](const Eigen::Matrix<double, 3, 3, Eigen::DontAlign>& matrix) -> bool {
         return (matrix(0, 1) == 0.0) && (matrix(1, 0) == 0.0) && (matrix(1, 1) == 1.0) && (matrix(1, 2) == 0.0) && (matrix(2, 1) == 0.0);
