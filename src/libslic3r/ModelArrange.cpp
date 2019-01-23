@@ -434,8 +434,8 @@ template<> class AutoArranger<lnCircle>: public _ArrBase<lnCircle> {
 public:
 
     AutoArranger(const lnCircle& bin, Distance dist,
-                 std::function<void(unsigned)> progressind,
-                 std::function<bool(void)> stopcond):
+                 std::function<void(unsigned)> progressind = [](unsigned){},
+                 std::function<bool(void)> stopcond = [](){return false;}):
         _ArrBase<lnCircle>(bin, dist, progressind, stopcond) {
 
         // As with the box, only the inside check is different.
@@ -479,8 +479,8 @@ public:
 template<> class AutoArranger<PolygonImpl>: public _ArrBase<PolygonImpl> {
 public:
     AutoArranger(const PolygonImpl& bin, Distance dist,
-                 std::function<void(unsigned)> progressind,
-                 std::function<bool(void)> stopcond):
+                 std::function<void(unsigned)> progressind = [](unsigned){},
+                 std::function<bool(void)> stopcond = [](){return false;}):
         _ArrBase<PolygonImpl>(bin, dist, progressind, stopcond)
     {
         m_pconf.object_function = [this, &bin] (const Item &item) {
@@ -846,9 +846,9 @@ void find_new_position(const Model &model,
                      });
 
     for(auto it = shapemap.begin(); it != shapemap.end(); ++it) {
-        if(std::find(toadd.begin(), toadd.end(), it->first) == toadd.end() &&
-           it->second.isInside(binbb)) { // just ignore items which are outside
-            preshapes.front().emplace_back(std::ref(it->second));
+        if(std::find(toadd.begin(), toadd.end(), it->first) == toadd.end()) {
+           if(it->second.isInside(binbb)) // just ignore items which are outside
+               preshapes.front().emplace_back(std::ref(it->second));
         }
         else {
             shapes_ptr.emplace_back(it->first);
@@ -856,15 +856,12 @@ void find_new_position(const Model &model,
         }
     }
 
-    switch(bedhint.type) {
-    case BedShapeType::BOX: {
-
-        // Create the arranger for the box shaped bed
-        AutoArranger<Box> arrange(binbb, min_obj_distance);
-        std::cout << "preload size: " << preshapes.front().size() << std::endl;
-
-        if(!preshapes.front().empty()) arrange.preload(preshapes);
-
+    auto try_first_to_center = [&shapes, &shapes_ptr, &binbb]
+            (std::function<bool(const Item&)> is_colliding,
+             std::function<void(Item&)> preload)
+    {
+        // Try to put the first item to the center, as the arranger will not
+        // do this for us.
         auto shptrit = shapes_ptr.begin();
         for(auto shit = shapes.begin(); shit != shapes.end(); ++shit, ++shptrit)
         {
@@ -873,8 +870,8 @@ void find_new_position(const Model &model,
             auto ibb = itm.boundingBox();
             auto d = binbb.center() - ibb.center();
             itm.translate(d);
-            if(!arrange.is_colliding(itm)) {
-                arrange.preload({{itm}});
+            if(!is_colliding(itm)) {
+                preload(itm);
 
                 auto offset = itm.translation();
                 Radians rot = itm.rotation();
@@ -892,6 +889,21 @@ void find_new_position(const Model &model,
                 break;
             }
         }
+    };
+
+    switch(bedhint.type) {
+    case BedShapeType::BOX: {
+
+        // Create the arranger for the box shaped bed
+        AutoArranger<Box> arrange(binbb, min_obj_distance);
+
+        if(!preshapes.front().empty()) { // If there is something on the plate
+            arrange.preload(preshapes);
+            try_first_to_center(
+                [&arrange](const Item& itm) {return arrange.is_colliding(itm);},
+                [&arrange](Item& itm) { arrange.preload({{itm}}); }
+            );
+        }
 
         // Arrange and return the items with their respective indices within the
         // input sequence.
@@ -900,26 +912,45 @@ void find_new_position(const Model &model,
     }
     case BedShapeType::CIRCLE: {
 
-//        auto c = bedhint.shape.circ;
-//        auto cc = to_lnCircle(c);
+        auto c = bedhint.shape.circ;
+        auto cc = to_lnCircle(c);
 
-//        AutoArranger<lnCircle> arrange(cc, min_obj_distance, progressind, cfn);
-//        result = arrange(shapes.begin(), shapes.end());
+        // Create the arranger for the box shaped bed
+        AutoArranger<lnCircle> arrange(cc, min_obj_distance);
+
+        if(!preshapes.front().empty()) { // If there is something on the plate
+            arrange.preload(preshapes);
+            try_first_to_center(
+                [&arrange](const Item& itm) {return arrange.is_colliding(itm);},
+                [&arrange](Item& itm) { arrange.preload({{itm}}); }
+            );
+        }
+
+        // Arrange and return the items with their respective indices within the
+        // input sequence.
+        result = arrange(shapes.begin(), shapes.end());
         break;
     }
     case BedShapeType::IRREGULAR:
     case BedShapeType::WHO_KNOWS: {
+        using P = libnest2d::PolygonImpl;
 
-//        using P = libnest2d::PolygonImpl;
+        auto ctour = Slic3rMultiPoint_to_ClipperPath(bed);
+        P irrbed = sl::create<PolygonImpl>(std::move(ctour));
 
-//        auto ctour = Slic3rMultiPoint_to_ClipperPath(bed);
-//        P irrbed = sl::create<PolygonImpl>(std::move(ctour));
+        AutoArranger<P> arrange(irrbed, min_obj_distance);
 
-//        AutoArranger<P> arrange(irrbed, min_obj_distance, progressind, cfn);
+        if(!preshapes.front().empty()) { // If there is something on the plate
+            arrange.preload(preshapes);
+            try_first_to_center(
+                [&arrange](const Item& itm) {return arrange.is_colliding(itm);},
+                [&arrange](Item& itm) { arrange.preload({{itm}}); }
+            );
+        }
 
-//        // Arrange and return the items with their respective indices within the
-//        // input sequence.
-//        result = arrange(shapes.begin(), shapes.end());
+        // Arrange and return the items with their respective indices within the
+        // input sequence.
+        result = arrange(shapes.begin(), shapes.end());
         break;
     }
     };
