@@ -5822,6 +5822,7 @@ void GLCanvas3D::set_camera_zoom(float zoom)
 void GLCanvas3D::update_gizmos_on_off_state()
 {
     set_as_dirty();
+    _update_gizmos_data();
     m_gizmos.update_on_off_state(get_selection());
 }
 
