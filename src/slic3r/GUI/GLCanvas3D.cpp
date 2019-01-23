@@ -545,6 +545,11 @@ void GLCanvas3D::Bed::_render_prusa(const std::string &key, float theta) const
     std::string model_path = resources_dir() + "/models/" + key;
 #endif // ENABLE_PRINT_BED_MODELS
 
+#if ENABLE_ANISOTROPIC_FILTER_ON_BED_TEXTURES
+    GLfloat max_anisotropy = 0.0f;
+    ::glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_anisotropy);
+#endif // ENABLE_ANISOTROPIC_FILTER_ON_BED_TEXTURES
+
     std::string filename = tex_path + "_top.png";
     if ((m_top_texture.get_id() == 0) || (m_top_texture.get_source() != filename))
     {
@@ -553,6 +558,14 @@ void GLCanvas3D::Bed::_render_prusa(const std::string &key, float theta) const
             _render_custom();
             return;
         }
+#if ENABLE_ANISOTROPIC_FILTER_ON_BED_TEXTURES
+        if (max_anisotropy > 0.0f)
+        {
+            ::glBindTexture(GL_TEXTURE_2D, m_top_texture.get_id());
+            ::glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, max_anisotropy);
+            ::glBindTexture(GL_TEXTURE_2D, 0);
+        }
+#endif // ENABLE_ANISOTROPIC_FILTER_ON_BED_TEXTURES
     }
 
     filename = tex_path + "_bottom.png";
@@ -563,6 +576,14 @@ void GLCanvas3D::Bed::_render_prusa(const std::string &key, float theta) const
             _render_custom();
             return;
         }
+#if ENABLE_ANISOTROPIC_FILTER_ON_BED_TEXTURES
+        if (max_anisotropy > 0.0f)
+        {
+            ::glBindTexture(GL_TEXTURE_2D, m_bottom_texture.get_id());
+            ::glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, max_anisotropy);
+            ::glBindTexture(GL_TEXTURE_2D, 0);
+        }
+#endif // ENABLE_ANISOTROPIC_FILTER_ON_BED_TEXTURES
     }
 
 #if ENABLE_PRINT_BED_MODELS
@@ -5823,6 +5844,7 @@ void GLCanvas3D::set_camera_zoom(float zoom)
 void GLCanvas3D::update_gizmos_on_off_state()
 {
     set_as_dirty();
+    _update_gizmos_data();
     m_gizmos.update_on_off_state(get_selection());
 }
 
