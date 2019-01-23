@@ -130,4 +130,291 @@ std::pair<float, Point> Fill::_infill_direction(const Surface *surface) const
     return std::pair<float, Point>(out_angle, out_shift);
 }
 
+
+
+
+/// cut poly between poly.point[idx_1] & poly.point[idx_1+1]
+/// add p1+-width to one part and p2+-width to the other one.
+/// add the "new" polyline to polylines (to part cut from poly)
+/// p1 & p2 have to be between poly.point[idx_1] & poly.point[idx_1+1]
+/// if idx_1 is ==0 or == size-1, then we don't need to create a new polyline.
+void cut_polyline(Polyline &poly, Polylines &polylines, size_t idx_1, Point p1, Point p2) {
+    //reorder points
+    if (p1.distance_to_square(poly.points[idx_1]) > p2.distance_to_square(poly.points[idx_1])) {
+        Point temp = p2;
+        p2 = p1;
+        p1 = temp;
+    }
+    if (idx_1 == 0) {
+        poly.points.insert(poly.points.begin(), p2);
+    } else if (idx_1 == poly.points.size() - 1) {
+        poly.points.push_back(p1);
+    } else {
+        // create new polyline
+        Polyline new_poly;
+        //put points in new_poly
+        new_poly.points.push_back(p2);
+        new_poly.points.insert(new_poly.points.end(), poly.points.begin() + idx_1 + 1, poly.points.end());
+        //erase&put points in poly
+        poly.points.erase(poly.points.begin() + idx_1 + 1, poly.points.end());
+        poly.points.push_back(p1);
+        polylines.emplace_back(new_poly);
+    }
+}
+
+/// the poly is like a polygon but with first_point != last_point (already removed)
+void cut_polygon(Polyline &poly, size_t idx_1, Point p1, Point p2) {
+    //reorder points
+    if (p1.distance_to_square(poly.points[idx_1]) > p2.distance_to_square(poly.points[idx_1])) {
+        Point temp = p2;
+        p2 = p1;
+        p1 = temp;
+    }
+    //check if we need to rotate before cutting
+    if (idx_1 != poly.size() - 1) {
+        //put points in new_poly 
+        poly.points.insert(poly.points.end(), poly.points.begin(), poly.points.begin() + idx_1 + 1);
+        poly.points.erase(poly.points.begin(), poly.points.begin() + idx_1 + 1);
+    }
+    //put points in poly
+    poly.points.push_back(p1);
+    poly.points.insert(poly.points.begin(), p2);
+}
+
+/// check if the polyline from pts_to_check may be at 'width' distance of a point in polylines_blocker
+/// it use equally_spaced_points with width/2 precision, so don't worry with pts_to_check number of points.
+/// it use the given polylines_blocker points, be sure to put enough of them to be reliable.
+/// complexity : N(pts_to_check.equally_spaced_points(width / 2)) x N(polylines_blocker.points)
+bool collision(const Points &pts_to_check, const Polylines &polylines_blocker, const coordf_t width) {
+    //check if it's not too close to a polyline
+    coordf_t min_dist = width * width * 0.9 - SCALED_EPSILON;
+    Polyline better_polylines(pts_to_check);
+    Points better_pts = better_polylines.equally_spaced_points(width / 2);
+    for (const Point &p : better_pts) {
+        for (const Polyline &poly2 : polylines_blocker) {
+            for (const Point &p2 : poly2.points) {
+                if (p.distance_to_square(p2) < min_dist) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+/// Try to find a path inside polylines that allow to go from p1 to p2.
+/// width if the width of the extrusion
+/// polylines_blockers are the array of polylines to check if the path isn't blocked by something.
+/// complexity: N(polylines.points) + a collision check after that if we finded a path: N(2(p2-p1)/width) x N(polylines_blocker.points)
+Points getFrontier(Polylines &polylines, const Point& p1, const Point& p2, const coord_t width, const Polylines &polylines_blockers) {
+    for (size_t idx_poly = 0; idx_poly < polylines.size(); ++idx_poly) {
+        Polyline &poly = polylines[idx_poly];
+        if (poly.size() <= 1) continue;
+
+        //loop?
+        if (poly.first_point() == poly.last_point()) {
+            //polygon : try to find a line for p1 & p2.
+            size_t idx_11, idx_12, idx_21, idx_22;
+            idx_11 = poly.closest_point_index(p1);
+            idx_12 = idx_11;
+            if (Line(poly.points[idx_11], poly.points[(idx_11 + 1) % (poly.points.size() - 1)]).distance_to(p1) < SCALED_EPSILON) {
+                idx_12 = (idx_11 + 1) % (poly.points.size() - 1);
+            } else if (Line(poly.points[(idx_11 > 0) ? (idx_11 - 1) : (poly.points.size() - 2)], poly.points[idx_11]).distance_to(p1) < SCALED_EPSILON) {
+                idx_11 = (idx_11 > 0) ? (idx_11 - 1) : (poly.points.size() - 2);
+            } else {
+                continue;
+            }
+            idx_21 = poly.closest_point_index(p2);
+            idx_22 = idx_21;
+            if (Line(poly.points[idx_21], poly.points[(idx_21 + 1) % (poly.points.size() - 1)]).distance_to(p2) < SCALED_EPSILON) {
+                idx_22 = (idx_21 + 1) % (poly.points.size() - 1);
+            } else if (Line(poly.points[(idx_21 > 0) ? (idx_21 - 1) : (poly.points.size() - 2)], poly.points[idx_21]).distance_to(p2) < SCALED_EPSILON) {
+                idx_21 = (idx_21 > 0) ? (idx_21 - 1) : (poly.points.size() - 2);
+            } else {
+                continue;
+            }
+
+
+            //edge case: on the same line
+            if (idx_11 == idx_21 && idx_12 == idx_22) {
+                if (collision(Points() = { p1, p2 }, polylines_blockers, width)) return Points();
+                //break loop
+                poly.points.erase(poly.points.end() - 1);
+                cut_polygon(poly, idx_11, p1, p2);
+                return Points() = { Line(p1, p2).midpoint() };
+            }
+
+            //compute distance & array for the ++ path
+            Points ret_1_to_2;
+            double dist_1_to_2 = p1.distance_to(poly.points[idx_12]);
+            ret_1_to_2.push_back(poly.points[idx_12]);
+            size_t max = idx_12 <= idx_21 ? idx_21 : poly.points.size() - 2;
+            for (size_t i = idx_12 + 1; i < max; i++) {
+                dist_1_to_2 += poly.points[i - 1].distance_to(poly.points[i]);
+                ret_1_to_2.push_back(poly.points[i]);
+            }
+            if (idx_12 > idx_21) {
+                dist_1_to_2 += poly.points.back().distance_to(poly.points.front());
+                ret_1_to_2.push_back(poly.points[0]);
+                for (size_t i = 1; i <= idx_21; i++) {
+                    dist_1_to_2 += poly.points[i - 1].distance_to(poly.points[i]);
+                    ret_1_to_2.push_back(poly.points[i]);
+                }
+            }
+            dist_1_to_2 += p2.distance_to(poly.points[idx_21]);
+
+            //compute distance & array for the -- path
+            Points ret_2_to_1;
+            double dist_2_to_1 = p1.distance_to(poly.points[idx_11]);
+            ret_2_to_1.push_back(poly.points[idx_11]);
+            size_t min = idx_22 <= idx_11 ? idx_22 : 0;
+            for (size_t i = idx_11; i > min; i--) {
+                dist_2_to_1 += poly.points[i - 1].distance_to(poly.points[i]);
+                ret_2_to_1.push_back(poly.points[i - 1]);
+            }
+            if (idx_22 > idx_11) {
+                dist_2_to_1 += poly.points.back().distance_to(poly.points.front());
+                ret_2_to_1.push_back(poly.points[poly.points.size() - 1]);
+                for (size_t i = poly.points.size() - 2; i > idx_22; i--) {
+                    dist_2_to_1 += poly.points[i - 1].distance_to(poly.points[i]);
+                    ret_2_to_1.push_back(poly.points[i - 1]);
+                }
+            }
+            dist_2_to_1 += p2.distance_to(poly.points[idx_22]);
+
+            //choose between the two direction (keep the short one)
+            if (dist_1_to_2 < dist_2_to_1) {
+                if (collision(ret_1_to_2, polylines_blockers, width)) return Points();
+                //break loop
+                poly.points.erase(poly.points.end() - 1);
+                //remove points
+                if (idx_12 <= idx_21) {
+                    poly.points.erase(poly.points.begin() + idx_12, poly.points.begin() + idx_21 + 1);
+                    cut_polygon(poly, idx_11, p1, p2);
+                } else {
+                    poly.points.erase(poly.points.begin() + idx_12, poly.points.end());
+                    poly.points.erase(poly.points.begin(), poly.points.begin() + idx_21);
+                    cut_polygon(poly, poly.points.size() - 1, p1, p2);
+                }
+                return ret_1_to_2;
+            } else {
+                if (collision(ret_2_to_1, polylines_blockers, width)) return Points();
+                //break loop
+                poly.points.erase(poly.points.end() - 1);
+                //remove points
+                if (idx_22 <= idx_11) {
+                    poly.points.erase(poly.points.begin() + idx_22, poly.points.begin() + idx_11 + 1);
+                    cut_polygon(poly, idx_21, p1, p2);
+                } else {
+                    poly.points.erase(poly.points.begin() + idx_22, poly.points.end());
+                    poly.points.erase(poly.points.begin(), poly.points.begin() + idx_11);
+                    cut_polygon(poly, poly.points.size() - 1, p1, p2);
+                }
+                return ret_2_to_1;
+            }
+        } else {
+            //polyline : try to find a line for p1 & p2.
+            size_t idx_1, idx_2;
+            idx_1 = poly.closest_point_index(p1);
+            if (idx_1 < poly.points.size() - 1 && Line(poly.points[idx_1], poly.points[idx_1 + 1]).distance_to(p1) < SCALED_EPSILON) {
+            } else if (idx_1 > 0 && Line(poly.points[idx_1 - 1], poly.points[idx_1]).distance_to(p1) < SCALED_EPSILON) {
+                idx_1 = idx_1 - 1;
+            } else {
+                continue;
+            }
+            idx_2 = poly.closest_point_index(p2);
+            if (idx_2 < poly.points.size() - 1 && Line(poly.points[idx_2], poly.points[idx_2 + 1]).distance_to(p2) < SCALED_EPSILON) {
+            } else if (idx_2 > 0 && Line(poly.points[idx_2 - 1], poly.points[idx_2]).distance_to(p2) < SCALED_EPSILON) {
+                idx_2 = idx_2 - 1;
+            } else {
+                continue;
+            }
+
+            //edge case: on the same line
+            if (idx_1 == idx_2) {
+                if (collision(Points() = { p1, p2 }, polylines_blockers, width)) return Points();
+                cut_polyline(poly, polylines, idx_1, p1, p2);
+                return Points() = { Line(p1, p2).midpoint() };
+            }
+
+            //create ret array
+            size_t first_idx = idx_1;
+            size_t last_idx = idx_2 + 1;
+            if (idx_1 > idx_2) {
+                first_idx = idx_2;
+                last_idx = idx_1 + 1;
+            }
+            Points p_ret;
+            p_ret.insert(p_ret.end(), poly.points.begin() + first_idx + 1, poly.points.begin() + last_idx);
+            if (collision(p_ret, polylines_blockers, width)) return Points();
+            //cut polyline
+            poly.points.erase(poly.points.begin() + first_idx + 1, poly.points.begin() + last_idx);
+            cut_polyline(poly, polylines, first_idx, p1, p2);
+            //order the returned array to be p1->p2
+            if (idx_1 > idx_2) {
+                std::reverse(p_ret.begin(), p_ret.end());
+            }
+            return p_ret;
+        }
+
+    }
+
+    return Points();
+}
+
+/// Connect the infill_ordered polylines, in this order, from the back point to the next front point.
+/// It uses only the boundary polygons to do so, and can't pass two times at the same place.
+/// It avoid passing over the infill_ordered's polylines (preventing local over-extrusion).
+/// return the connected polylines in polylines_out. Can output polygons (stored as polylines with first_point = last_point).
+/// complexity: worst: N(infill_ordered.points) x N(boundary.points)
+///             typical: N(infill_ordered) x ( N(boundary.points) + N(infill_ordered.points) )
+void Fill::connect_infill(const Polylines &infill_ordered, const ExPolygon &boundary, Polylines &polylines_out) {
+
+    //TODO: fallback to the quick & dirty old algorithm when n(points) is too high.
+    Polylines polylines_frontier = to_polylines(((Polygons)boundary));
+
+    Polylines polylines_blocker;
+    coord_t clip_size = scale_(this->spacing) * 2;
+    for (const Polyline &polyline : infill_ordered) {
+        if (polyline.length() > 1.8 * clip_size) {
+            polylines_blocker.push_back(polyline);
+            polylines_blocker.back().clip_end(clip_size);
+            polylines_blocker.back().clip_start(clip_size);
+        }
+    }
+
+
+    Polylines polylines_connected;
+    bool first = true;
+    for (const Polyline &polyline : infill_ordered) {
+        if (!first) {
+            // Try to connect the lines.
+            Points &pts_end = polylines_connected.back().points;
+            const Point &first_point = polyline.points.front();
+            const Point &last_point = pts_end.back();
+
+            Points pts = getFrontier(polylines_frontier, last_point, first_point, scale_(this->spacing), polylines_blocker);
+            if (!pts.empty()) {
+                pts_end.insert(pts_end.end(), pts.begin(), pts.end());
+                pts_end.insert(pts_end.end(), polyline.points.begin(), polyline.points.end());
+                continue;
+            }
+        }
+        // The lines cannot be connected.
+        polylines_connected.emplace_back(std::move(polyline));
+
+        first = false;
+    }
+
+    //try to create some loops if possible
+    for (Polyline &polyline : polylines_connected) {
+        Points pts = getFrontier(polylines_frontier, polyline.last_point(), polyline.first_point(), scale_(this->spacing), polylines_blocker);
+        if (!pts.empty()) {
+            polyline.points.insert(polyline.points.end(), pts.begin(), pts.end());
+            polyline.points.insert(polyline.points.begin(), polyline.points.back());
+        }
+        polylines_out.emplace_back(polyline);
+    }
+}
+
 } // namespace Slic3r

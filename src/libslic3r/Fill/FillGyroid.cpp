@@ -109,16 +109,20 @@ static Polylines make_gyroid_waves(double gridZ, double density_adjusted, double
         std::swap(width,height);
     }
 
-    std::vector<Vec2d> one_period = make_one_period(width, scaleFactor, z_cos, z_sin, vertical, flip); // creates one period of the waves, so it doesn't have to be recalculated all the time
+    std::vector<Vec2d> one_period_odd = make_one_period(width, scaleFactor, z_cos, z_sin, vertical, flip); // creates one period of the waves, so it doesn't have to be recalculated all the time
+    flip = !flip;                                                                   // even polylines are a bit shifted
+    std::vector<Vec2d> one_period_even = make_one_period(width, scaleFactor, z_cos, z_sin, vertical, flip);
     Polylines result;
 
-    for (double y0 = lower_bound; y0 < upper_bound+EPSILON; y0 += 2*M_PI)           // creates odd polylines
-            result.emplace_back(make_wave(one_period, width, height, y0, scaleFactor, z_cos, z_sin, vertical));
-
-    flip = !flip;                                                                   // even polylines are a bit shifted
-    one_period = make_one_period(width, scaleFactor, z_cos, z_sin, vertical, flip); // updates the one period sample
-    for (double y0 = lower_bound + M_PI; y0 < upper_bound+EPSILON; y0 += 2*M_PI)    // creates even polylines
-            result.emplace_back(make_wave(one_period, width, height, y0, scaleFactor, z_cos, z_sin, vertical));
+    for (double y0 = lower_bound; y0 < upper_bound + EPSILON; y0 += M_PI) {
+        // creates odd polylines
+        result.emplace_back(make_wave(one_period_odd, width, height, y0, scaleFactor, z_cos, z_sin, vertical));
+        // creates even polylines
+        y0 += M_PI;
+        if (y0 < upper_bound + EPSILON) {
+            result.emplace_back(make_wave(one_period_even, width, height, y0, scaleFactor, z_cos, z_sin, vertical));
+        }
+    }
 
     return result;
 }
@@ -141,7 +145,7 @@ void FillGyroid::_fill_surface_single(
     bb.merge(_align_to_grid(bb.min, Point(2.*M_PI*distance, 2.*M_PI*distance)));
 
     // generate pattern
-    Polylines   polylines = make_gyroid_waves(
+    Polylines polylines_square = make_gyroid_waves(
         scale_(this->z),
         density_adjusted,
         this->spacing,
@@ -149,46 +153,51 @@ void FillGyroid::_fill_surface_single(
         ceil(bb.size()(1) / distance) + 1.);
     
     // move pattern in place
-    for (Polyline &polyline : polylines)
+    for (Polyline &polyline : polylines_square)
         polyline.translate(bb.min(0), bb.min(1));
 
-    // clip pattern to boundaries
-    polylines = intersection_pl(polylines, (Polygons)expolygon);
-
-    // connect lines
-    if (! params.dont_connect && ! polylines.empty()) { // prevent calling leftmost_point() on empty collections
-        ExPolygon expolygon_off;
-        {
-            ExPolygons expolygons_off = offset_ex(expolygon, (float)SCALED_EPSILON);
-            if (! expolygons_off.empty()) {
-                // When expanding a polygon, the number of islands could only shrink. Therefore the offset_ex shall generate exactly one expanded island for one input island.
-                assert(expolygons_off.size() == 1);
-                std::swap(expolygon_off, expolygons_off.front());
-            }
-        }
-        Polylines chained = PolylineCollection::chained_path_from(
-            std::move(polylines), 
-            PolylineCollection::leftmost_point(polylines), false); // reverse allowed
-        bool first = true;
-        for (Polyline &polyline : chained) {
-            if (! first) {
-                // Try to connect the lines.
-                Points &pts_end = polylines_out.back().points;
-                const Point &first_point = polyline.points.front();
-                const Point &last_point = pts_end.back();
-                // TODO: we should also check that both points are on a fill_boundary to avoid 
-                // connecting paths on the boundaries of internal regions
-                // TODO: avoid crossing current infill path
-                if ((last_point - first_point).cast<double>().norm() <= 5 * distance && 
-                    expolygon_off.contains(Line(last_point, first_point))) {
-                    // Append the polyline.
-                    pts_end.insert(pts_end.end(), polyline.points.begin(), polyline.points.end());
-                    continue;
+    // clip pattern to boundaries, keeping the polyline order & ordering the fragment to be able to join them easily
+    //Polylines polylines = intersection_pl(polylines_square, (Polygons)expolygon);
+    Polylines polylines_chained;
+    for (size_t idx_polyline = 0; idx_polyline < polylines_square.size(); ++idx_polyline) {
+        Polyline &poly_to_cut = polylines_square[idx_polyline];
+        Polylines polylines_to_sort = intersection_pl(Polylines() = { poly_to_cut }, (Polygons)expolygon);
+        for (Polyline &polyline : polylines_to_sort) {
+            //TODO: replace by closest_index_point()
+            if (idx_polyline % 2 == 0) {
+                if (poly_to_cut.points.front().distance_to_square(polyline.points.front()) > poly_to_cut.points.front().distance_to_square(polyline.points.back())) {
+                    polyline.reverse();
+                }
+            } else {
+                if (poly_to_cut.points.back().distance_to_square(polyline.points.front()) > poly_to_cut.points.back().distance_to_square(polyline.points.back())) {
+                    polyline.reverse();
                 }
             }
-            // The lines cannot be connected.
-            polylines_out.emplace_back(std::move(polyline));
-            first = false;
+        }
+        if (polylines_to_sort.size() > 1) {
+            Point nearest = poly_to_cut.points.front();
+            if (idx_polyline % 2 != 0) {
+                nearest = poly_to_cut.points.back();
+            }
+            //Bubble sort
+            for (size_t idx_sort = polylines_to_sort.size() - 1; idx_sort > 0; idx_sort--) {
+                for (size_t idx_bubble = 0; idx_bubble < idx_sort; idx_bubble++) {
+                    if (polylines_to_sort[idx_bubble + 1].points.front().distance_to_square(nearest) < polylines_to_sort[idx_bubble].points.front().distance_to_square(nearest)) {
+                        iter_swap(polylines_to_sort.begin() + idx_bubble, polylines_to_sort.begin() + idx_bubble + 1);
+                    }
+                }
+            }
+        }
+        polylines_chained.insert(polylines_chained.end(), polylines_to_sort.begin(), polylines_to_sort.end());
+    }
+
+    if (!polylines_chained.empty()) {
+
+        // connect lines
+        if (params.dont_connect) {
+            polylines_out.insert(polylines_out.end(), polylines_chained.begin(), polylines_chained.end());
+        } else {
+            this->connect_infill(polylines_chained, expolygon, polylines_out);
         }
     }
 }

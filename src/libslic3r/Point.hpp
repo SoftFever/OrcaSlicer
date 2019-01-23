@@ -124,6 +124,13 @@ public:
     double ccw_angle(const Point &p1, const Point &p2) const;
     Point  projection_onto(const MultiPoint &poly) const;
     Point  projection_onto(const Line &line) const;
+
+    double distance_to(const Point &point) const { return (point - *this).cast<double>().norm(); }
+    double distance_to_square(const Point &point) const {
+        double dx = (point.x() - this->x());
+        double dy = (point.y() - this->y());
+        return dx*dx + dy*dy;
+    }
 };
 
 namespace int128 {
