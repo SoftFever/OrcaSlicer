@@ -1585,15 +1585,17 @@ void GLGizmoFlatten::update_planes()
             m_planes.pop_back();
     }
 
+    // Let's prepare transformation of the normal vector from mesh to instance coordinates.
+    Geometry::Transformation t(inst_matrix);
+    Vec3d scaling = t.get_scaling_factor();
+    t.set_scaling_factor(Vec3d(1./scaling(0), 1./scaling(1), 1./scaling(2)));
+
     // Now we'll go through all the polygons, transform the points into xy plane to process them:
     for (unsigned int polygon_id=0; polygon_id < m_planes.size(); ++polygon_id) {
         Pointf3s& polygon = m_planes[polygon_id].vertices;
         const Vec3d& normal = m_planes[polygon_id].normal;
 
-        // let's transform the normal accodring to the instance matrix:
-        Geometry::Transformation t(inst_matrix);
-        Vec3d scaling = t.get_scaling_factor();
-        t.set_scaling_factor(Vec3d(1./(scaling(0)*scaling(0)), 1./(scaling(0)*scaling(0)), 1./(scaling(0)*scaling(0))));
+        // transform the normal according to the instance matrix:
         Vec3d normal_transformed = t.get_matrix() * normal;
 
         // We are going to rotate about z and y to flatten the plane
