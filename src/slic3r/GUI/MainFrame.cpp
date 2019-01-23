@@ -155,7 +155,6 @@ void MainFrame::create_preset_tabs()
     add_created_tab(new TabSLAPrint(m_tabpanel));
     add_created_tab(new TabSLAMaterial(m_tabpanel));
     add_created_tab(new TabPrinter(m_tabpanel));
-    GUI::wxGetApp().load_current_presets();
 }
 
 void MainFrame::add_created_tab(Tab* panel)
