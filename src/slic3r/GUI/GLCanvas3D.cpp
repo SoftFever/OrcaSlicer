@@ -2408,7 +2408,7 @@ void GLCanvas3D::Selection::_update_type()
 void GLCanvas3D::Selection::_set_caches()
 {
     m_cache.volumes_data.clear();
-    for (unsigned int i : m_list)
+    for (unsigned int i = 0; i < (unsigned int)m_volumes->size(); ++i)
     {
         const GLVolume* v = (*m_volumes)[i];
         m_cache.volumes_data.emplace(i, VolumeCache(v->get_volume_transformation(), v->get_instance_transformation()));
@@ -2699,7 +2699,7 @@ void GLCanvas3D::Selection::_synchronize_unselected_instances(bool including_z)
             if ((v->object_idx() != object_idx) || (v->instance_idx() == instance_idx))
                 continue;
 
-            v->set_instance_rotation(Vec3d(rotation(0), rotation(1), including_z ? rotation(2) : v->get_instance_rotation()(2)));
+            v->set_instance_rotation(Vec3d(rotation(0), rotation(1), including_z ? rotation(2) : m_cache.volumes_data[j].get_instance_rotation()(2) + rotation(2)));
             v->set_instance_scaling_factor(scaling_factor);
             v->set_instance_mirror(mirror);
 
