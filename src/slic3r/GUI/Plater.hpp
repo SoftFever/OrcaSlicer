@@ -136,7 +136,6 @@ public:
     void increase_instances(size_t num = 1);
     void decrease_instances(size_t num = 1);
     void set_number_of_copies(/*size_t num*/);
-    void instance_to_separated_object();
     bool is_selection_empty() const;
 
     void cut(size_t obj_idx, size_t instance_idx, coordf_t z, bool keep_upper = true, bool keep_lower = true, bool rotate_lower = false);

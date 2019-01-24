@@ -2381,8 +2381,7 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
             [this](wxCommandEvent&) { q->set_number_of_copies(); }, "textfield.png");
 
         menu->AppendSeparator();
-        wxMenuItem* item_instance_to_object = append_menu_item(menu, wxID_ANY, _(L("Set as a Separated Object")) + dots, _(L("Set an Instance as a Separate Object")),
-            [this](wxCommandEvent&) { q->instance_to_separated_object(); }, "");
+        wxMenuItem* item_instance_to_object = sidebar->obj_list()->append_menu_item_instance_to_object(menu);
 
         if (q != nullptr)
         {
@@ -2790,16 +2789,6 @@ void Plater::set_number_of_copies(/*size_t num*/)
         increase_instances(diff);
     else if (diff < 0)
         decrease_instances(-diff);
-}
-
-void Plater::instance_to_separated_object()
-{
-    const int obj_idx = p->get_selected_object_idx();
-    const int inst_idx = p->get_selection().get_instance_idx();
-    if (obj_idx == -1 || inst_idx == -1)
-        return;
-
-    sidebar().obj_list()->instance_to_separated_object(obj_idx, inst_idx);
 }
 
 bool Plater::is_selection_empty() const

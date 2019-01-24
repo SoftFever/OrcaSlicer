@@ -510,14 +510,13 @@ GLCanvas3D::Bed::EType GLCanvas3D::Bed::_detect_type() const
 				{
 					if ((curr->vendor != nullptr) && (curr->vendor->name == "Prusa Research"))
 					{
-						if (boost::contains(curr->name, "MK2"))
-						{
-							type = MK2;
-							break;
-						}
-						else if (boost::contains(curr->name, "MK3"))
+						if (boost::contains(curr->name, "MK3") || boost::contains(curr->name, "MK2.5"))
 						{
 							type = MK3;
+							break;
+						} else if (boost::contains(curr->name, "MK2"))
+						{
+							type = MK2;
 							break;
 						}
 					}
@@ -587,8 +586,14 @@ void GLCanvas3D::Bed::_render_prusa(const std::string &key, float theta) const
     if (theta <= 90.0f)
     {
         filename = model_path + "_bed.stl";
-        if ((m_model.get_filename() != filename) && m_model.init_from_file(filename, useVBOs))
-            m_model.center_around(m_bounding_box.center() - Vec3d(0.0, 0.0, 0.1 + 0.5 * m_model.get_bounding_box().size()(2)));
+        if ((m_model.get_filename() != filename) && m_model.init_from_file(filename, useVBOs)) {
+            Vec3d offset = m_bounding_box.center() - Vec3d(0.0, 0.0, 0.1 + 0.5 * m_model.get_bounding_box().size()(2));
+            if (key == "mk2")
+                offset.y() += 15. / 2.;
+            else if (key == "mk3")
+                offset += Vec3d(0., (19. - 8.) / 2., 2.);
+            m_model.center_around(offset);
+        }
 
         if (!m_model.get_filename().empty())
         {
@@ -5196,7 +5201,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                         if (m_volumes.volumes[m_hover_volume_id]->hover && !m_volumes.volumes[m_hover_volume_id]->is_wipe_tower)
                         {
                             // forces the selection of the volume
-                            m_selection.add(m_hover_volume_id);
+                            if (!m_selection.is_multiple_full_instance())
+                                m_selection.add(m_hover_volume_id);
                             m_gizmos.update_on_off_state(m_selection);
                             post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
                             _update_gizmos_data();
