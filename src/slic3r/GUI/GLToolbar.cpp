@@ -500,18 +500,19 @@ float GLToolbar::get_main_size() const
 
 std::string GLToolbar::update_hover_state_horizontal(const Vec2d& mouse_pos, GLCanvas3D& parent)
 {
-    // Note: m_layout.icons_scale is not applied here because mouse_pos is already in scaled coordinates
+    // NB: mouse_pos is already scaled appropriately
 
     float zoom = parent.get_camera_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+    float factor = m_layout.icons_scale * inv_zoom;
 
     Size cnv_size = parent.get_canvas_size();
     Vec2d scaled_mouse_pos((mouse_pos(0) - 0.5 * (double)cnv_size.get_width()) * inv_zoom, (0.5 * (double)cnv_size.get_height() - mouse_pos(1)) * inv_zoom);
 
-    float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * m_layout.icons_scale * inv_zoom;
-    float scaled_separator_size = m_layout.separator_size * inv_zoom;
-    float scaled_gap_size = m_layout.gap_size * inv_zoom;
-    float scaled_border = m_layout.border * inv_zoom;
+    float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * factor;
+    float scaled_separator_size = m_layout.separator_size * factor;
+    float scaled_gap_size = m_layout.gap_size * factor;
+    float scaled_border = m_layout.border * factor;
 
     float separator_stride = scaled_separator_size + scaled_gap_size;
     float icon_stride = scaled_icons_size + scaled_gap_size;
@@ -593,18 +594,19 @@ std::string GLToolbar::update_hover_state_horizontal(const Vec2d& mouse_pos, GLC
 
 std::string GLToolbar::update_hover_state_vertical(const Vec2d& mouse_pos, GLCanvas3D& parent)
 {
-    // Note: m_layout.icons_scale is not applied here because mouse_pos is already in scaled coordinates
+    // NB: mouse_pos is already scaled appropriately
 
     float zoom = parent.get_camera_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+    float factor = m_layout.icons_scale * inv_zoom;
 
     Size cnv_size = parent.get_canvas_size();
     Vec2d scaled_mouse_pos((mouse_pos(0) - 0.5 * (double)cnv_size.get_width()) * inv_zoom, (0.5 * (double)cnv_size.get_height() - mouse_pos(1)) * inv_zoom);
 
-    float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * m_layout.icons_scale * inv_zoom;
-    float scaled_separator_size = m_layout.separator_size * inv_zoom;
-    float scaled_gap_size = m_layout.gap_size * inv_zoom;
-    float scaled_border = m_layout.border * inv_zoom;
+    float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * factor;
+    float scaled_separator_size = m_layout.separator_size * factor;
+    float scaled_gap_size = m_layout.gap_size * factor;
+    float scaled_border = m_layout.border * factor;
 
     float separator_stride = scaled_separator_size + scaled_gap_size;
     float icon_stride = scaled_icons_size + scaled_gap_size;
@@ -686,16 +688,19 @@ std::string GLToolbar::update_hover_state_vertical(const Vec2d& mouse_pos, GLCan
 
 int GLToolbar::contains_mouse_horizontal(const Vec2d& mouse_pos, const GLCanvas3D& parent) const
 {
+    // NB: mouse_pos is already scaled appropriately
+
     float zoom = parent.get_camera_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+    float factor = m_layout.icons_scale * inv_zoom;
 
     Size cnv_size = parent.get_canvas_size();
     Vec2d scaled_mouse_pos((mouse_pos(0) - 0.5 * (double)cnv_size.get_width()) * inv_zoom, (0.5 * (double)cnv_size.get_height() - mouse_pos(1)) * inv_zoom);
 
-    float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * m_layout.icons_scale * inv_zoom;
-    float scaled_separator_size = m_layout.separator_size * inv_zoom;
-    float scaled_gap_size = m_layout.gap_size * inv_zoom;
-    float scaled_border = m_layout.border * inv_zoom;
+    float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * factor;
+    float scaled_separator_size = m_layout.separator_size * factor;
+    float scaled_gap_size = m_layout.gap_size * factor;
+    float scaled_border = m_layout.border * factor;
 
     float separator_stride = scaled_separator_size + scaled_gap_size;
     float icon_stride = scaled_icons_size + scaled_gap_size;
@@ -728,16 +733,19 @@ int GLToolbar::contains_mouse_horizontal(const Vec2d& mouse_pos, const GLCanvas3
 
 int GLToolbar::contains_mouse_vertical(const Vec2d& mouse_pos, const GLCanvas3D& parent) const
 {
+    // NB: mouse_pos is already scaled appropriately
+
     float zoom = parent.get_camera_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+    float factor = m_layout.icons_scale * inv_zoom;
 
     Size cnv_size = parent.get_canvas_size();
     Vec2d scaled_mouse_pos((mouse_pos(0) - 0.5 * (double)cnv_size.get_width()) * inv_zoom, (0.5 * (double)cnv_size.get_height() - mouse_pos(1)) * inv_zoom);
 
-    float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * m_layout.icons_scale * inv_zoom;
-    float scaled_separator_size = m_layout.separator_size * inv_zoom;
-    float scaled_gap_size = m_layout.gap_size * inv_zoom;
-    float scaled_border = m_layout.border * inv_zoom;
+    float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * factor;
+    float scaled_separator_size = m_layout.separator_size * factor;
+    float scaled_gap_size = m_layout.gap_size * factor;
+    float scaled_border = m_layout.border * factor;
 
     float separator_stride = scaled_separator_size + scaled_gap_size;
     float icon_stride = scaled_icons_size + scaled_gap_size;
