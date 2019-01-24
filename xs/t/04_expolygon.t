@@ -5,7 +5,7 @@ use warnings;
 
 use List::Util qw(first sum);
 use Slic3r::XS;
-use Test::More tests => 32;
+use Test::More tests => 31;
 
 use constant PI => 4 * atan2(1, 1);
 
