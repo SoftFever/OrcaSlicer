@@ -30,6 +30,10 @@ PrintHostSendDialog::PrintHostSendDialog(const fs::path &path)
     , txt_filename(new wxTextCtrl(this, wxID_ANY, path.filename().wstring()))
     , box_print(new wxCheckBox(this, wxID_ANY, _(L("Start printing after upload"))))
 {
+#ifdef __APPLE__
+    txt_filename->OSXDisableAllSmartSubstitutions();
+#endif
+
     auto *label_dir_hint = new wxStaticText(this, wxID_ANY, _(L("Use forward slashes ( / ) as a directory separator if needed.")));
     label_dir_hint->Wrap(CONTENT_WIDTH);
 
