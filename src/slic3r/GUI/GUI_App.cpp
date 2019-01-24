@@ -147,27 +147,26 @@ bool GUI_App::OnInit()
         wxImage::AddHandler(new wxPNGHandler());
     mainframe = new MainFrame();
     sidebar().obj_list()->init_objects(); // propagate model objects to object list
-//     update_mode(); // do that later
+//     update_mode(); // !!! do that later
     SetTopWindow(mainframe);
 
     m_printhost_job_queue.reset(new PrintHostJobQueue(mainframe->printhost_queue_dlg()));
-
-    CallAfter([this]() {
-        // temporary workaround for the correct behavior of the Scrolled sidebar panel 
-        auto& panel = sidebar();
-        if (panel.obj_list()->GetMinHeight() > 200) {
-            wxWindowUpdateLocker noUpdates_sidebar(&panel);
-            panel.obj_list()->SetMinSize(wxSize(-1, 200));
-//          panel.Layout();
-        }
-        update_mode(); // update view mode after fix of the object_list size 
-                       // to correct later layouts
-    });
 
     Bind(wxEVT_IDLE, [this](wxIdleEvent& event)
     {
         if (app_config->dirty())
             app_config->save();
+
+        // ! Temporary workaround for the correct behavior of the Scrolled sidebar panel 
+        // Do this "manipulations" only once ( after (re)create of the application )
+        if (sidebar().obj_list()->GetMinHeight() > 200) 
+        {
+            wxWindowUpdateLocker noUpdates_sidebar(&sidebar());
+            sidebar().obj_list()->SetMinSize(wxSize(-1, 200));
+
+            // !!! to correct later layouts
+            update_mode(); // update view mode after fix of the object_list size
+        }
 
         if (this->plater() != nullptr)
             this->obj_manipul()->update_if_dirty();
@@ -273,10 +272,12 @@ void GUI_App::recreate_GUI()
 {
     std::cerr << "recreate_GUI" << std::endl;
 
+    clear_tabs_list();
+
     MainFrame* topwindow = dynamic_cast<MainFrame*>(GetTopWindow());
     mainframe = new MainFrame();
     sidebar().obj_list()->init_objects(); // propagate model objects to object list
-//     update_mode(); // do that later
+
     if (topwindow) {
         SetTopWindow(mainframe);
         topwindow->Destroy();
@@ -284,18 +285,8 @@ void GUI_App::recreate_GUI()
 
     m_printhost_job_queue.reset(new PrintHostJobQueue(mainframe->printhost_queue_dlg()));
 
-    CallAfter([this]() {
-        // temporary workaround for the correct behavior of the Scrolled sidebar panel
-        auto& panel = sidebar();
-        if (panel.obj_list()->GetMinHeight() > 200) {
-            wxWindowUpdateLocker noUpdates_sidebar(&panel);
-            panel.obj_list()->SetMinSize(wxSize(-1, 200));
-//             panel.Layout();
-        }
-        update_mode(); // update view mode after fix of the object_list size 
-        			   // to correct later layouts
-    });
- 
+    load_current_presets();
+
     mainframe->Show(true);
 
     // On OSX the UI was not initialized correctly if the wizard was called
@@ -680,13 +671,6 @@ bool GUI_App::checked_tab(Tab* tab)
     return ret;
 }
 
-void GUI_App::delete_tab_from_list(Tab* tab)
-{
-    std::vector<Tab *>::iterator itr = find(tabs_list.begin(), tabs_list.end(), tab);
-    if (itr != tabs_list.end())
-        tabs_list.erase(itr);
-}
-
 // Update UI / Tabs to reflect changes in the currently loaded presets
 void GUI_App::load_current_presets()
 {
@@ -698,6 +682,15 @@ void GUI_App::load_current_presets()
 				static_cast<TabPrinter*>(tab)->update_pages();
 			tab->load_current_preset();
 		}
+}
+
+void GUI_App::clear_tabs_list()
+{  
+    for (auto tab : tabs_list) {
+        tab->Destroy();
+        tab = nullptr;
+    }
+    tabs_list.clear();
 }
 
 #ifdef __APPLE__

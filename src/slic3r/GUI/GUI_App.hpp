@@ -133,8 +133,8 @@ public:
     void            add_config_menu(wxMenuBar *menu);
     bool            check_unsaved_changes();
     bool            checked_tab(Tab* tab);
-    void            delete_tab_from_list(Tab* tab);
     void            load_current_presets();
+    void            clear_tabs_list();
 
 #ifdef __APPLE__
     // wxWidgets override to get an event on open files.

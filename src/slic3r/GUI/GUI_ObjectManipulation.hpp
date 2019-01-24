@@ -73,7 +73,7 @@ class ObjectManipulation : public OG_Settings
     Vec3d           m_new_scale;
     Vec3d           m_new_size;
     bool            m_new_enabled;
-    bool            m_uniform_scale {false};
+    bool            m_uniform_scale {true};
     PrusaLockButton* m_lock_bnt{ nullptr };
 
 public:

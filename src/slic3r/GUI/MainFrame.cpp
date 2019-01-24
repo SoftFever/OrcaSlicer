@@ -121,6 +121,11 @@ void MainFrame::init_tabpanel()
         }
     });
 
+    if (wxGetApp().plater_) {
+        // before creating a new plater let's delete old one
+        wxGetApp().plater_->Destroy();
+        wxGetApp().plater_ = nullptr;
+    }
     m_plater = new Slic3r::GUI::Plater(m_tabpanel, this);
     wxGetApp().plater_ = m_plater;
     m_tabpanel->AddPage(m_plater, _(L("Plater")));

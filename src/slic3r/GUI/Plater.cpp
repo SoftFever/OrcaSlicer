@@ -1612,7 +1612,14 @@ void Plater::priv::selection_changed()
     view3D->enable_toolbar_item("fewer", can_decrease_instances());
     view3D->enable_toolbar_item("splitobjects", can_split/*_to_objects*/());
     view3D->enable_toolbar_item("splitvolumes", can_split/*_to_volumes*/());
-    view3D->enable_toolbar_item("layersediting", layers_height_allowed());
+
+    // if the selection is not valid to allow for layer editing, we need to turn off the tool if it is running
+    bool enable_layer_editing = layers_height_allowed();
+    if (!enable_layer_editing && view3D->is_layers_editing_enabled())
+        on_action_layersediting(SimpleEvent(EVT_GLTOOLBAR_LAYERSEDITING));
+
+    view3D->enable_toolbar_item("layersediting", enable_layer_editing);
+
     // forces a frame render to update the view (to avoid a missed update if, for example, the context menu appears)
     view3D->render();
 }
@@ -2294,6 +2301,9 @@ void Plater::priv::on_action_split_volumes(SimpleEvent&)
 
 void Plater::priv::on_action_layersediting(SimpleEvent&)
 {
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    std::cout << "on_action_layersediting" << std::endl;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     bool enable = !view3D->is_layers_editing_enabled();
     view3D->enable_layers_editing(enable);
     if (enable && !view3D->is_layers_editing_enabled())
