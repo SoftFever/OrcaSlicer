@@ -2,7 +2,9 @@
 #define slic3r_GLCanvas3D_hpp_
 
 #include <stddef.h>
+#include <memory>
 
+#include "libslic3r/Technologies.hpp"
 #include "3DScene.hpp"
 #include "GLToolbar.hpp"
 #include "Event.hpp"
@@ -20,6 +22,9 @@ class wxTimerEvent;
 class wxPaintEvent;
 class wxGLCanvas;
 
+// Support for Retina OpenGL on Mac OS
+#define ENABLE_RETINA_GL __APPLE__
+
 class GLUquadric;
 typedef class GLUquadric GLUquadricObj;
 
@@ -35,6 +40,10 @@ enum LayerHeightEditActionType : unsigned int;
 namespace GUI {
 
 class GLGizmoBase;
+
+#if ENABLE_RETINA_GL
+class RetinaHelper;
+#endif
 
 class GeometryBuffer
 {
@@ -55,16 +64,20 @@ class Size
 {
     int m_width;
     int m_height;
+    float m_scale_factor;
 
 public:
     Size();
-    Size(int width, int height);
+    Size(int width, int height, float scale_factor = 1.0);
 
     int get_width() const;
     void set_width(int width);
 
     int get_height() const;
     void set_height(int height);
+
+    int get_scale_factor() const;
+    void set_scale_factor(int height);
 };
 
 class Rect
@@ -297,6 +310,9 @@ class GLCanvas3D
         };
 
     private:
+        static const float THICKNESS_BAR_WIDTH;
+        static const float THICKNESS_RESET_BUTTON_HEIGHT;
+
         bool                        m_use_legacy_opengl;
         bool                        m_enabled;
         Shader                      m_shader;
@@ -380,6 +396,9 @@ class GLCanvas3D
         void _render_active_object_annotations(const GLCanvas3D& canvas, const Rect& bar_rect) const;
         void _render_profile(const Rect& bar_rect) const;
         void update_slicing_parameters();
+
+        static float thickness_bar_width(const GLCanvas3D &canvas);
+        static float reset_button_height(const GLCanvas3D &canvas);
     };
 
     struct Mouse
@@ -690,10 +709,6 @@ public:
 private:
     class Gizmos
     {
-        static const float OverlayIconsScale;
-        static const float OverlayBorder;
-        static const float OverlayGapY;
-
     public:
         enum EType : unsigned char
         {
@@ -714,6 +729,10 @@ private:
         BackgroundTexture m_background_texture;
         EType m_current;
 
+        float m_overlay_icons_scale;
+        float m_overlay_border;
+        float m_overlay_gap_y;
+
     public:
         Gizmos();
         ~Gizmos();
@@ -722,6 +741,8 @@ private:
 
         bool is_enabled() const;
         void set_enabled(bool enable);
+
+        void set_overlay_scale(float scale);
 
         std::string update_hover_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos, const Selection& selection);
         void update_on_off_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos, const Selection& selection);
@@ -812,7 +833,7 @@ private:
     public:
         WarningTexture();
 
-        bool generate(const std::string& msg);
+        bool generate(const std::string& msg, const GLCanvas3D& canvas);
 
         void render(const GLCanvas3D& canvas) const;
     };
@@ -842,6 +863,9 @@ private:
 
     wxGLCanvas* m_canvas;
     wxGLContext* m_context;
+#if ENABLE_RETINA_GL
+    std::unique_ptr<RetinaHelper> m_retina_helper;
+#endif
     bool m_in_render;
     LegendTexture m_legend_texture;
     WarningTexture m_warning_texture;
