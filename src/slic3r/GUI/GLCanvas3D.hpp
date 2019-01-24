@@ -1070,6 +1070,8 @@ public:
 
     void handle_sidebar_focus_event(const std::string& opt_key, bool focus_on);
 
+    void update_ui_from_settings();
+
 private:
     bool _is_shown_on_screen() const;
 #if !ENABLE_REWORKED_BED_SHAPE_CHANGE

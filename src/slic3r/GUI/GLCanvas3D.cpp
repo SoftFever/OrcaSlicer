@@ -3952,11 +3952,6 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
 
 #if ENABLE_RETINA_GL
         m_retina_helper.reset(new RetinaHelper(canvas));
-
-        const bool use_retina = wxGetApp().app_config->get("use_retina_opengl") == "1";
-        BOOST_LOG_TRIVIAL(debug) << "GLCanvas3D: Use Retina OpenGL: " << use_retina;
-        m_retina_helper->set_use_retina(use_retina);
-        BOOST_LOG_TRIVIAL(debug) << "GLCanvas3D: Scaling factor: " << m_retina_helper->get_scale_factor();
 #endif
     }
 
@@ -5945,6 +5940,26 @@ void GLCanvas3D::handle_sidebar_focus_event(const std::string& opt_key, bool foc
         m_gizmos.reset_all_states();
         m_dirty = true;
     }
+}
+
+void GLCanvas3D::update_ui_from_settings()
+{
+#if ENABLE_RETINA_GL
+    const float orig_scaling = m_retina_helper->get_scale_factor();
+
+    const bool use_retina = wxGetApp().app_config->get("use_retina_opengl") == "1";
+    BOOST_LOG_TRIVIAL(debug) << "GLCanvas3D: Use Retina OpenGL: " << use_retina;
+    m_retina_helper->set_use_retina(use_retina);
+    const float new_scaling = m_retina_helper->get_scale_factor();
+
+    if (new_scaling != orig_scaling) {
+        BOOST_LOG_TRIVIAL(debug) << "GLCanvas3D: Scaling factor: " << new_scaling;
+
+        m_camera.zoom /= orig_scaling;
+        m_camera.zoom *= new_scaling;
+        _refresh_if_shown_on_screen();
+    }
+#endif
 }
 
 bool GLCanvas3D::_is_shown_on_screen() const

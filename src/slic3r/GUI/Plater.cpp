@@ -1266,6 +1266,11 @@ void Plater::priv::update_ui_from_settings()
     //     $self->{buttons_sizer}->Show($self->{btn_reslice}, ! wxTheApp->{app_config}->get("background_processing"));
     //     $self->{buttons_sizer}->Layout;
     // }
+
+#if ENABLE_RETINA_GL
+    view3D->get_canvas3d()->update_ui_from_settings();
+    preview->get_canvas3d()->update_ui_from_settings();
+#endif
 }
 
 ProgressStatusBar* Plater::priv::statusbar()

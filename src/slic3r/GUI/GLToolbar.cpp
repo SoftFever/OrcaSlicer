@@ -468,12 +468,12 @@ float GLToolbar::get_width_horizontal() const
 
 float GLToolbar::get_width_vertical() const
 {
-    return 2.0f * m_layout.border + m_icons_texture.metadata.icon_size * m_layout.icons_scale;
+    return 2.0f * m_layout.border * m_layout.icons_scale + m_icons_texture.metadata.icon_size * m_layout.icons_scale;
 }
 
 float GLToolbar::get_height_horizontal() const
 {
-    return 2.0f * m_layout.border + m_icons_texture.metadata.icon_size * m_layout.icons_scale;
+    return 2.0f * m_layout.border * m_layout.icons_scale + m_icons_texture.metadata.icon_size * m_layout.icons_scale;
 }
 
 float GLToolbar::get_height_vertical() const
@@ -483,23 +483,25 @@ float GLToolbar::get_height_vertical() const
 
 float GLToolbar::get_main_size() const
 {
-    float size = 2.0f * m_layout.border;
+    float size = 2.0f * m_layout.border * m_layout.icons_scale;
     for (unsigned int i = 0; i < (unsigned int)m_items.size(); ++i)
     {
         if (m_items[i]->is_separator())
-            size += m_layout.separator_size;
+            size += m_layout.separator_size * m_layout.icons_scale;
         else
             size += (float)m_icons_texture.metadata.icon_size * m_layout.icons_scale;
     }
 
     if (m_items.size() > 1)
-        size += ((float)m_items.size() - 1.0f) * m_layout.gap_size;
+        size += ((float)m_items.size() - 1.0f) * m_layout.gap_size * m_layout.icons_scale;
 
     return size;
 }
 
 std::string GLToolbar::update_hover_state_horizontal(const Vec2d& mouse_pos, GLCanvas3D& parent)
 {
+    // Note: m_layout.icons_scale is not applied here because mouse_pos is already in scaled coordinates
+
     float zoom = parent.get_camera_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
@@ -591,6 +593,8 @@ std::string GLToolbar::update_hover_state_horizontal(const Vec2d& mouse_pos, GLC
 
 std::string GLToolbar::update_hover_state_vertical(const Vec2d& mouse_pos, GLCanvas3D& parent)
 {
+    // Note: m_layout.icons_scale is not applied here because mouse_pos is already in scaled coordinates
+
     float zoom = parent.get_camera_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
@@ -774,11 +778,12 @@ void GLToolbar::render_horizontal(const GLCanvas3D& parent) const
 
     float zoom = parent.get_camera_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+    float factor = inv_zoom * m_layout.icons_scale;
 
-    float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * m_layout.icons_scale * inv_zoom;
-    float scaled_separator_size = m_layout.separator_size * inv_zoom;
-    float scaled_gap_size = m_layout.gap_size * inv_zoom;
-    float scaled_border = m_layout.border * inv_zoom;
+    float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * factor;
+    float scaled_separator_size = m_layout.separator_size * factor;
+    float scaled_gap_size = m_layout.gap_size * factor;
+    float scaled_border = m_layout.border * factor;
     float scaled_width = get_width() * inv_zoom;
     float scaled_height = get_height() * inv_zoom;
 
@@ -899,11 +904,12 @@ void GLToolbar::render_vertical(const GLCanvas3D& parent) const
 
     float zoom = parent.get_camera_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+    float factor = inv_zoom * m_layout.icons_scale;
 
-    float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * m_layout.icons_scale * inv_zoom;
-    float scaled_separator_size = m_layout.separator_size * inv_zoom;
-    float scaled_gap_size = m_layout.gap_size * inv_zoom;
-    float scaled_border = m_layout.border * inv_zoom;
+    float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * m_layout.icons_scale * factor;
+    float scaled_separator_size = m_layout.separator_size * factor;
+    float scaled_gap_size = m_layout.gap_size * factor;
+    float scaled_border = m_layout.border * factor;
     float scaled_width = get_width() * inv_zoom;
     float scaled_height = get_height() * inv_zoom;
 

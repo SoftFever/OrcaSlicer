@@ -205,6 +205,8 @@ void ImGuiWrapper::init_default_font(float scaling)
 {
     static const float font_size = 18.0f;
 
+    destroy_fonts_texture();
+
     ImGuiIO& io = ImGui::GetIO();
     io.Fonts->Clear();
     ImFont* font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/NotoSans-Regular.ttf").c_str(), font_size * scaling);

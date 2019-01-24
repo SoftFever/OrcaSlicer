@@ -122,8 +122,7 @@ void PreferencesDialog::build()
 void PreferencesDialog::accept()
 {
 	if (m_values.find("no_defaults")       != m_values.end() ||
-		m_values.find("use_legacy_opengl") != m_values.end() ||
-		m_values.find("use_retina_opengl") != m_values.end()) {
+		m_values.find("use_legacy_opengl") != m_values.end()) {
 		warning_catcher(this, _(L("You need to restart Slic3r to make the changes effective.")));
 	}
 
