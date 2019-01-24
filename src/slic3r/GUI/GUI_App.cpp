@@ -147,27 +147,26 @@ bool GUI_App::OnInit()
         wxImage::AddHandler(new wxPNGHandler());
     mainframe = new MainFrame();
     sidebar().obj_list()->init_objects(); // propagate model objects to object list
-//     update_mode(); // do that later
+//     update_mode(); // !!! do that later
     SetTopWindow(mainframe);
 
     m_printhost_job_queue.reset(new PrintHostJobQueue(mainframe->printhost_queue_dlg()));
-
-    CallAfter([this]() {
-        // temporary workaround for the correct behavior of the Scrolled sidebar panel 
-        auto& panel = sidebar();
-        if (panel.obj_list()->GetMinHeight() > 200) {
-            wxWindowUpdateLocker noUpdates_sidebar(&panel);
-            panel.obj_list()->SetMinSize(wxSize(-1, 200));
-//          panel.Layout();
-        }
-        update_mode(); // update view mode after fix of the object_list size 
-                       // to correct later layouts
-    });
 
     Bind(wxEVT_IDLE, [this](wxIdleEvent& event)
     {
         if (app_config->dirty())
             app_config->save();
+
+        // ! Temporary workaround for the correct behavior of the Scrolled sidebar panel 
+        // Do this "manipulations" only once ( after (re)create of the application )
+        if (sidebar().obj_list()->GetMinHeight() > 200) 
+        {
+            wxWindowUpdateLocker noUpdates_sidebar(&sidebar());
+            sidebar().obj_list()->SetMinSize(wxSize(-1, 200));
+
+            // !!! to correct later layouts
+            update_mode(); // update view mode after fix of the object_list size
+        }
 
 #if !ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
         if (this->plater() != nullptr)
@@ -278,7 +277,7 @@ void GUI_App::recreate_GUI()
     MainFrame* topwindow = dynamic_cast<MainFrame*>(GetTopWindow());
     mainframe = new MainFrame();
     sidebar().obj_list()->init_objects(); // propagate model objects to object list
-//     update_mode(); // do that later
+
     if (topwindow) {
         SetTopWindow(mainframe);
         topwindow->Destroy();
@@ -286,18 +285,6 @@ void GUI_App::recreate_GUI()
 
     m_printhost_job_queue.reset(new PrintHostJobQueue(mainframe->printhost_queue_dlg()));
 
-    CallAfter([this]() {
-        // temporary workaround for the correct behavior of the Scrolled sidebar panel
-        auto& panel = sidebar();
-        if (panel.obj_list()->GetMinHeight() > 200) {
-            wxWindowUpdateLocker noUpdates_sidebar(&panel);
-            panel.obj_list()->SetMinSize(wxSize(-1, 200));
-//             panel.Layout();
-        }
-        update_mode(); // update view mode after fix of the object_list size 
-        			   // to correct later layouts
-    });
- 
     mainframe->Show(true);
 
     // On OSX the UI was not initialized correctly if the wizard was called
