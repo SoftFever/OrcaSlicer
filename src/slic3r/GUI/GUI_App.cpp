@@ -168,10 +168,8 @@ bool GUI_App::OnInit()
             update_mode(); // update view mode after fix of the object_list size
         }
 
-#if !ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
         if (this->plater() != nullptr)
             this->obj_manipul()->update_if_dirty();
-#endif // !ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     });
 
     // On OS X the UI tends to freeze in weird ways if modal dialogs(config wizard, update notifications, ...)
