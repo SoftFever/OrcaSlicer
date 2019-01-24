@@ -222,6 +222,8 @@ class GLCanvas3D
         mutable GLBed m_model;
 #endif // ENABLE_PRINT_BED_MODELS
 
+        mutable float m_scale_factor;
+
     public:
         Bed();
 
@@ -237,9 +239,9 @@ class GLCanvas3D
         Point point_projection(const Point& point) const;
 
 #if ENABLE_PRINT_BED_MODELS
-        void render(float theta, bool useVBOs) const;
+        void render(float theta, bool useVBOs, float scale_factor) const;
 #else
-        void render(float theta) const;
+        void render(float theta, float scale_factor) const;
 #endif // ENABLE_PRINT_BED_MODELS
 
     private:
@@ -557,6 +559,8 @@ public:
         mutable GLCurvedArrow m_curved_arrow;
 #endif // ENABLE_SIDEBAR_VISUAL_HINTS
 
+        mutable float m_scale_factor;
+
     public:
         Selection();
 #if ENABLE_RENDER_SELECTION_CENTER
@@ -640,7 +644,7 @@ public:
 
         void erase();
 
-        void render() const;
+        void render(float scale_factor = 1.0) const;
 #if ENABLE_RENDER_SELECTION_CENTER
         void render_center() const;
 #endif // ENABLE_RENDER_SELECTION_CENTER

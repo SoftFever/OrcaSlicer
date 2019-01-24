@@ -341,6 +341,7 @@ void GLCanvas3D::Camera::set_scene_box(const BoundingBoxf3& box, GLCanvas3D& can
 
 GLCanvas3D::Bed::Bed()
     : m_type(Custom)
+    , m_scale_factor(1.0f)
 {
 }
 
@@ -403,8 +404,10 @@ Point GLCanvas3D::Bed::point_projection(const Point& point) const
 }
 
 #if ENABLE_PRINT_BED_MODELS
-void GLCanvas3D::Bed::render(float theta, bool useVBOs) const
+void GLCanvas3D::Bed::render(float theta, bool useVBOs, float scale_factor) const
 {
+    m_scale_factor = scale_factor;
+
     switch (m_type)
     {
     case MK2:
@@ -431,8 +434,10 @@ void GLCanvas3D::Bed::render(float theta, bool useVBOs) const
     }
 }
 #else
-void GLCanvas3D::Bed::render(float theta) const
+void GLCanvas3D::Bed::render(float theta, float scale_factor) const
 {
+    m_scale_factor = scale_factor;
+
     switch (m_type)
     {
     case MK2:
@@ -686,7 +691,7 @@ void GLCanvas3D::Bed::_render_custom() const
 
         // we need depth test for grid, otherwise it would disappear when looking the object from below
         ::glEnable(GL_DEPTH_TEST);
-        ::glLineWidth(3.0f);
+        ::glLineWidth(3.0f * m_scale_factor);
         ::glColor4f(0.2f, 0.2f, 0.2f, 0.4f);
         ::glVertexPointer(3, GL_FLOAT, 0, (GLvoid*)m_gridlines.get_vertices());
         ::glDrawArrays(GL_LINES, 0, (GLsizei)gridlines_vcount);
@@ -1368,6 +1373,7 @@ GLCanvas3D::Selection::Selection()
     , m_valid(false)
     , m_bounding_box_dirty(true)
     , m_curved_arrow(16)
+    , m_scale_factor(1.0f)
 {
 #if ENABLE_RENDER_SELECTION_CENTER
     m_quadric = ::gluNewQuadric();
@@ -2166,10 +2172,12 @@ void GLCanvas3D::Selection::erase()
     }
 }
 
-void GLCanvas3D::Selection::render() const
+void GLCanvas3D::Selection::render(float scale_factor) const
 {
     if (!m_valid || is_empty())
         return;
+
+    m_scale_factor = scale_factor;
 
     // render cumulative bounding box of selected volumes
     _render_selected_volumes();
@@ -2617,7 +2625,7 @@ void GLCanvas3D::Selection::_render_bounding_box(const BoundingBoxf3& box, float
     ::glEnable(GL_DEPTH_TEST);
 
     ::glColor3fv(color);
-    ::glLineWidth(2.0f);
+    ::glLineWidth(2.0f * m_scale_factor);
 
     ::glBegin(GL_LINES);
 
@@ -5355,7 +5363,13 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                             wxGetApp().obj_manipul()->update_settings_value(m_selection);
                             // forces a frame render to update the view before the context menu is shown
                             render();
-                            post_event(Vec2dEvent(EVT_GLCANVAS_RIGHT_CLICK, pos.cast<double>()));
+
+                            Vec2d logical_pos = pos.cast<double>();
+#if ENABLE_RETINA_GL
+                            const float factor = m_retina_helper->get_scale_factor();
+                            logical_pos = logical_pos.cwiseQuotient(Vec2d(factor, factor));
+#endif
+                            post_event(Vec2dEvent(EVT_GLCANVAS_RIGHT_CLICK, logical_pos));
                         }
                     }
                 }
@@ -6404,10 +6418,15 @@ void GLCanvas3D::_render_background() const
 
 void GLCanvas3D::_render_bed(float theta) const
 {
+    float scale_factor = 1.0;
+#if ENABLE_RETINA_GL
+    scale_factor = m_retina_helper->get_scale_factor();
+#endif
+
 #if ENABLE_PRINT_BED_MODELS
-    m_bed.render(theta, m_use_VBOs);
+    m_bed.render(theta, m_use_VBOs, scale_factor);
 #else
-    m_bed.render(theta);
+    m_bed.render(theta, scale_factor);
 #endif // ENABLE_PRINT_BED_MODELS
 }
 
@@ -6514,8 +6533,13 @@ void GLCanvas3D::_render_objects() const
 
 void GLCanvas3D::_render_selection() const
 {
+    float scale_factor = 1.0;
+#if ENABLE_RETINA_GL
+    scale_factor = m_retina_helper->get_scale_factor();
+#endif
+
     if (!m_gizmos.is_running())
-        m_selection.render();
+        m_selection.render(scale_factor);
 }
 
 #if ENABLE_RENDER_SELECTION_CENTER

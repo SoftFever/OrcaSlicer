@@ -96,6 +96,7 @@ void ImGuiWrapper::render()
 void ImGuiWrapper::set_next_window_pos(float x, float y, int flag)
 {
     ImGui::SetNextWindowPos(ImVec2(x, y), (ImGuiCond)flag);
+    ImGui::SetNextWindowSize(ImVec2(0.0, 0.0));
 }
 
 void ImGuiWrapper::set_next_window_bg_alpha(float alpha)
