@@ -1182,19 +1182,27 @@ Transform3d assemble_transform(const Vec3d& translation, const Vec3d& rotation, 
 Vec3d extract_euler_angles(const Eigen::Matrix<double, 3, 3, Eigen::DontAlign>& rotation_matrix)
 {
 #if ENABLE_NEW_EULER_ANGLES
-    // see: http://www.gregslabaugh.net/publications/euler.pdf
+    // reference: http://www.gregslabaugh.net/publications/euler.pdf
     auto is_approx = [](double value, double test_value) -> bool { return std::abs(value - test_value) < EPSILON; };
 
     Vec3d angles1 = Vec3d::Zero();
     Vec3d angles2 = Vec3d::Zero();
     if (is_approx(std::abs(rotation_matrix(2, 0)), 1.0))
     {
-        // the handling of singular cases deviates from the cited paper
-        // the following code works better when rotating an object with the gizmo after having
-        // changed its orientation using the place on bed gizmo
         angles1(0) = 0.0;
-        angles1(1) = 0.5 * (double)PI;
-        angles1(2) = angles1(0) + ::atan2(rotation_matrix(0, 1), rotation_matrix(0, 2));
+        if (rotation_matrix(2, 0) > 0.0) // == +1.0
+        {
+            angles1(1) = 0.5 * (double)PI;
+            angles1(2) = angles1(0) + ::atan2(rotation_matrix(0, 1), rotation_matrix(0, 2));
+
+        }
+        else // == -1.0
+        {
+            angles1(1) = 0.5 * (double)PI;
+            angles1(2) = -angles1(0) - ::atan2(rotation_matrix(0, 1), rotation_matrix(0, 2));
+
+        }
+
         angles2 = angles1;
     }
     else

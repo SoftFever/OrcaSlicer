@@ -2726,7 +2726,20 @@ void GLCanvas3D::Selection::_synchronize_unselected_instances(bool including_z)
             if ((v->object_idx() != object_idx) || (v->instance_idx() == instance_idx))
                 continue;
 
-            v->set_instance_rotation(Vec3d(rotation(0), rotation(1), including_z ? rotation(2) : m_cache.volumes_data[j].get_instance_rotation()(2) + rotation(2)));
+            auto is_approx = [](double value, double test_value) -> bool { return std::abs(value - test_value) < EPSILON; };
+
+            double z;
+            if (including_z)
+                // rotation comes from place on face -> force given z
+                z = rotation(2);
+            else if (is_approx(rotation(0), m_cache.volumes_data[j].get_instance_rotation()(0)) && is_approx(rotation(1), m_cache.volumes_data[j].get_instance_rotation()(1)))
+                // z only rotation -> keep instance z
+                z = v->get_instance_rotation()(2);
+            else
+                // generic rotation -> update instance z
+                z = m_cache.volumes_data[j].get_instance_rotation()(2) + rotation(2);
+
+            v->set_instance_rotation(Vec3d(rotation(0), rotation(1), z));
             v->set_instance_scaling_factor(scaling_factor);
             v->set_instance_mirror(mirror);
 
