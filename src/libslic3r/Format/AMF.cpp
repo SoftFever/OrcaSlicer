@@ -918,12 +918,14 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
             auto &stl = volume->mesh.stl;
             if (stl.v_shared == nullptr)
                 stl_generate_shared_vertices(&stl);
-            for (size_t i = 0; i < stl.stats.shared_vertices; ++ i) {
+            const Transform3d& matrix = volume->get_matrix();
+            for (size_t i = 0; i < stl.stats.shared_vertices; ++i) {
                 stream << "         <vertex>\n";
                 stream << "           <coordinates>\n";
-                stream << "             <x>" << stl.v_shared[i](0) << "</x>\n";
-                stream << "             <y>" << stl.v_shared[i](1) << "</y>\n";
-                stream << "             <z>" << stl.v_shared[i](2) << "</z>\n";
+                Vec3d v = matrix * stl.v_shared[i].cast<double>();
+                stream << "             <x>" << v(0) << "</x>\n";
+                stream << "             <y>" << v(1) << "</y>\n";
+                stream << "             <z>" << v(2) << "</z>\n";
                 stream << "           </coordinates>\n";
                 stream << "         </vertex>\n";
             }

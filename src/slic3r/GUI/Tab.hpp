@@ -213,9 +213,7 @@ public:
 
 public:
 	Tab(wxNotebook* parent, const wxString& title, const char* name); 
-	~Tab() {
-		wxGetApp().delete_tab_from_list(this);
-	}
+	~Tab() {}
 
 	wxWindow*	parent() const { return m_parent; }
 	wxString	title()	 const { return m_title; }
