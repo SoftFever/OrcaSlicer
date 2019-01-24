@@ -327,15 +327,14 @@ void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& sele
     else
         reset_settings_value();
 
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
-    update_if_dirty();
-#else
     m_dirty = true;
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 }
 
 void ObjectManipulation::update_if_dirty()
 {
+    if (!m_dirty)
+        return;
+
 #if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     if (m_cache.move_label_string != _(m_new_move_label_string)+ ":")
     {
@@ -414,9 +413,6 @@ void ObjectManipulation::update_if_dirty()
     else
         m_og->disable();
 #else
-    if (! m_dirty)
-        return;
-
     m_move_Label->SetLabel(_(m_new_move_label_string));
     m_rotate_Label->SetLabel(_(m_new_rotate_label_string));
     m_scale_Label->SetLabel(_(m_new_scale_label_string));
@@ -446,9 +442,9 @@ void ObjectManipulation::update_if_dirty()
         m_og->enable();
     else
         m_og->disable();
+#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 
     m_dirty = false;
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 }
 
 void ObjectManipulation::reset_settings_value()
@@ -461,9 +457,7 @@ void ObjectManipulation::reset_settings_value()
 #if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     m_cache.instance.reset();
 #endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
-#if !ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     m_dirty = true;
-#endif // !ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 }
 
 void ObjectManipulation::change_position_value(const Vec3d& position)
