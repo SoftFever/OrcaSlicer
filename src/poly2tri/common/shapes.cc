@@ -1,6 +1,6 @@
 /*
- * Poly2Tri Copyright (c) 2009-2010, Poly2Tri Contributors
- * http://code.google.com/p/poly2tri/
+ * Poly2Tri Copyright (c) 2009-2018, Poly2Tri Contributors
+ * https://github.com/jhasse/poly2tri
  *
  * All rights reserved.
  *
@@ -29,9 +29,15 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "shapes.h"
+
+#include <cassert>
 #include <iostream>
 
 namespace p2t {
+
+std::ostream& operator<<(std::ostream& out, const Point& point) {
+  return out << point.x << "," << point.y;
+}
 
 Triangle::Triangle(Point& a, Point& b, Point& c)
 {
@@ -150,7 +156,7 @@ void Triangle::Legalize(Point& opoint, Point& npoint)
   }
 }
 
-int Triangle::Index(const Point* p) const
+int Triangle::Index(const Point* p)
 {
   if (p == points_[0]) {
     return 0;
@@ -163,7 +169,7 @@ int Triangle::Index(const Point* p) const
   return -1;
 }
 
-int Triangle::EdgeIndex(const Point* p1, const Point* p2) const
+int Triangle::EdgeIndex(const Point* p1, const Point* p2)
 {
   if (points_[0] == p1) {
     if (points_[1] == p2) {
@@ -259,7 +265,7 @@ Triangle* Triangle::NeighborCCW(const Point& point)
   return neighbors_[1];
 }
 
-bool Triangle::GetConstrainedEdgeCCW(const Point& p) const
+bool Triangle::GetConstrainedEdgeCCW(const Point& p)
 {
   if (&p == points_[0]) {
     return constrained_edge[2];
@@ -269,7 +275,7 @@ bool Triangle::GetConstrainedEdgeCCW(const Point& p) const
   return constrained_edge[1];
 }
 
-bool Triangle::GetConstrainedEdgeCW(const Point& p) const
+bool Triangle::GetConstrainedEdgeCW(const Point& p)
 {
   if (&p == points_[0]) {
     return constrained_edge[1];
@@ -301,7 +307,7 @@ void Triangle::SetConstrainedEdgeCW(const Point& p, bool ce)
   }
 }
 
-bool Triangle::GetDelunayEdgeCCW(const Point& p) const
+bool Triangle::GetDelunayEdgeCCW(const Point& p)
 {
   if (&p == points_[0]) {
     return delaunay_edge[2];
@@ -311,7 +317,7 @@ bool Triangle::GetDelunayEdgeCCW(const Point& p) const
   return delaunay_edge[1];
 }
 
-bool Triangle::GetDelunayEdgeCW(const Point& p) const
+bool Triangle::GetDelunayEdgeCW(const Point& p)
 {
   if (&p == points_[0]) {
     return delaunay_edge[1];
@@ -356,10 +362,7 @@ Triangle& Triangle::NeighborAcross(const Point& opoint)
 
 void Triangle::DebugPrint()
 {
-  using namespace std;
-  cout << points_[0]->x << "," << points_[0]->y << " ";
-  cout << points_[1]->x << "," << points_[1]->y << " ";
-  cout << points_[2]->x << "," << points_[2]->y << endl;
+  std::cout << *points_[0] << " " << *points_[1] << " " << *points_[2] << std::endl;
 }
 
 }
