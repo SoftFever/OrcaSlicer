@@ -162,6 +162,9 @@ public:
     void                key_event(wxKeyEvent& event);
 
     void                get_settings_choice(const wxString& category_name);
+    void                get_freq_settings_choice(const wxString& bundle_name);
+    void                update_settings_item();
+
     void                append_menu_item_add_generic(wxMenuItem* menu, const int type);
     void                append_menu_items_add_volume(wxMenu* menu);
     wxMenuItem*         append_menu_item_split(wxMenu* menu);

@@ -21,6 +21,25 @@ namespace GUI
 
 wxDEFINE_EVENT(EVT_OBJ_LIST_OBJECT_SELECT, SimpleEvent);
 
+typedef std::map<std::string, std::vector<std::string>> FreqSettingsBundle;
+    
+// pt_FFF
+FreqSettingsBundle FREQ_SETTINGS_BUNDLE_FFF =
+{
+    { L("Layers and Perimeters"), { "layer_height" , "perimeters", "top_solid_layers", "bottom_solid_layers" } },
+    { L("Infill")               , { "fill_density", "fill_pattern" } },
+    { L("Support material")     , { "support_material", "support_material_auto", "support_material_threshold", 
+                                    "support_material_pattern", "support_material_buildplate_only",
+                                    "support_material_spacing" } },
+    { L("Extruders")            , { "wipe_into_infill", "wipe_into_objects" } }
+};
+
+// pt_SLA
+FreqSettingsBundle FREQ_SETTINGS_BUNDLE_SLA =
+{
+    { L("Pad and Support")      , { "supports_enable", "pad_enable" } }
+};
+
 ObjectList::ObjectList(wxWindow* parent) :
     wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxDV_MULTIPLE),
     m_parent(parent)
@@ -591,6 +610,19 @@ std::vector<std::string> get_options(const bool is_part)
 {
     return get_options(is_part, wxGetApp().plater()->printer_technology() == ptSLA);
 }
+    
+const std::vector<std::string>& get_options_for_bundle(const wxString& bundle_name)
+{
+    const FreqSettingsBundle& bundle = wxGetApp().plater()->printer_technology() == ptSLA ? 
+                                       FREQ_SETTINGS_BUNDLE_SLA : FREQ_SETTINGS_BUNDLE_FFF;
+
+    for (auto& it : bundle)
+    {
+        if (bundle_name == _(it.first))
+            return it.second;
+    }
+    return std::vector<std::string> {};
+}
 
 //				  category ->		vector 			 ( option	;  label )
 typedef std::map< std::string, std::vector< std::pair<std::string, std::string> > > settings_menu_hierarchy;
@@ -677,6 +709,27 @@ void ObjectList::get_settings_choice(const wxString& category_name)
 
 
     // Add settings item for object
+    update_settings_item();
+}
+
+void ObjectList::get_freq_settings_choice(const wxString& bundle_name)
+{
+    const std::vector<std::string>& options = get_options_for_bundle(bundle_name);
+
+    auto opt_keys = m_config->keys();
+
+    for (auto& opt_key : options)
+    {
+        if ( find(opt_keys.begin(), opt_keys.end(), opt_key) == opt_keys.end() )
+            m_config->set_key_value(opt_key, m_default_config->option(opt_key)->clone());
+    }
+
+    // Add settings item for object
+    update_settings_item();
+}
+
+void ObjectList::update_settings_item()
+{
     auto item = GetSelection();
     if (item) {
         if (m_objects_model->GetItemType(item) == itInstance)
@@ -688,7 +741,7 @@ void ObjectList::get_settings_choice(const wxString& category_name)
     else {
         auto panel = wxGetApp().sidebar().scrolled_panel();
         panel->Freeze();
-        wxGetApp().obj_settings()->UpdateAndShow(true);//obj_manipul()->update_settings_list();
+        wxGetApp().obj_settings()->UpdateAndShow(true);
         panel->Thaw();
     }
 }
@@ -765,10 +818,24 @@ wxMenuItem* ObjectList::append_menu_item_split(wxMenu* menu)
 wxMenuItem* ObjectList::append_menu_item_settings(wxMenu* menu_) 
 {
     PrusaMenu* menu = dynamic_cast<PrusaMenu*>(menu_);
-    // Update (delete old & create new)  settings popupmenu
-    const auto settings_id = menu->FindItem(_("Add settings"));
+    // Delete old items from settings popupmenu
+    auto settings_id = menu->FindItem(_("Add settings"));
     if (settings_id != wxNOT_FOUND)
         menu->Destroy(settings_id);
+
+    for (auto& it : FREQ_SETTINGS_BUNDLE_FFF)
+    {
+        settings_id = menu->FindItem(_(it.first));
+        if (settings_id != wxNOT_FOUND)
+            menu->Destroy(settings_id);
+    }
+    for (auto& it : FREQ_SETTINGS_BUNDLE_SLA)
+    {
+        settings_id = menu->FindItem(_(it.first));
+        if (settings_id != wxNOT_FOUND)
+            menu->Destroy(settings_id);
+    }
+
     menu->DestroySeparators(); // delete old separators
 
     const auto sel_vol = get_selected_model_volume();
@@ -778,6 +845,8 @@ wxMenuItem* ObjectList::append_menu_item_settings(wxMenu* menu_)
     const ConfigOptionMode mode = wxGetApp().get_mode();
     if (mode == comSimple)
         return nullptr;
+
+    // Create new items for settings popupmenu
 
     menu->m_separator_frst = menu->AppendSeparator();
 
@@ -866,9 +935,22 @@ wxMenu* ObjectList::create_settings_popupmenu(wxMenu *parent_menu)
     return menu;
 }
 
-void ObjectList::create_freq_settings_popupmenu(wxMenu *parent_menu)
+void ObjectList::create_freq_settings_popupmenu(wxMenu *menu)
 {
+    const FreqSettingsBundle& bundle = wxGetApp().plater()->printer_technology() == ptFFF ?
+                                     FREQ_SETTINGS_BUNDLE_FFF : FREQ_SETTINGS_BUNDLE_SLA;
 
+    auto extruders_cnt = wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA ? 1 :
+                         wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+
+    for (auto& it : bundle) {
+        if (it.first.empty() || it.first == "Extruders" && extruders_cnt == 1) 
+            continue;
+
+        append_menu_item(menu, wxID_ANY, _(it.first), "",
+                        [menu, this](wxCommandEvent& event) { get_freq_settings_choice(menu->GetLabel(event.GetId())); }, 
+                        CATEGORY_ICON.find(it.first) == CATEGORY_ICON.end() ? wxNullBitmap : CATEGORY_ICON.at(it.first), menu); 
+    }
 }
 
 void ObjectList::update_opt_keys(t_config_option_keys& opt_keys)
