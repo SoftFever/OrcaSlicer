@@ -934,13 +934,11 @@ struct Plater::priv
     MainFrame *main_frame;
 
     // Object popup menu
-    wxMenu object_menu;
+    PrusaMenu object_menu;
     // Part popup menu
-    wxMenu part_menu;
+    PrusaMenu part_menu;
     // SLA-Object popup menu
-    wxMenu sla_object_menu;
-
-    wxMenuItem* separator_volumes_settings{ nullptr };
+    PrusaMenu sla_object_menu;
 
     // Data
     Slic3r::DynamicPrintConfig *config;        // FIXME: leak?
@@ -2472,8 +2470,6 @@ bool Plater::priv::complit_init_sla_object_menu()
     append_menu_item(&sla_object_menu, wxID_ANY, _(L("Optimize orientation")), _(L("Optimize the rotation of the object for better print results.")),
         [this](wxCommandEvent&) { sla_optimize_rotation(); });
 
-    sla_object_menu.AppendSeparator();
-
     // ui updates needs to be binded to the parent panel
     if (q != nullptr)
     {
@@ -2492,8 +2488,6 @@ bool Plater::priv::complit_init_part_menu()
 
     auto obj_list = sidebar->obj_list();
     obj_list->append_menu_item_change_type(&part_menu);
-
-    part_menu.AppendSeparator();
 
     // ui updates needs to be binded to the parent panel
     if (q != nullptr)
@@ -2621,7 +2615,7 @@ bool Plater::priv::can_mirror() const
 
 void Plater::priv::update_object_menu()
 {
-    sidebar->obj_list()->append_menu_items_add_volume(&object_menu, &separator_volumes_settings);
+    sidebar->obj_list()->append_menu_items_add_volume(&object_menu);
 }
 
 // Plater / Public

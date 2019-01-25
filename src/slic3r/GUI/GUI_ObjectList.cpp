@@ -711,7 +711,7 @@ void ObjectList::append_menu_item_add_generic(wxMenuItem* menu, const int type) 
     menu->SetSubMenu(sub_menu);
 }
 
-void ObjectList::append_menu_items_add_volume(wxMenu* menu, wxMenuItem* *item_separator)
+void ObjectList::append_menu_items_add_volume(wxMenu* menu)
 {
     // Note: id accords to type of the sub-object, so sequence of the menu items is important
     std::vector<std::string> menu_object_types_items = {L("Add part"),              // ~ModelVolume::MODEL_PART
@@ -725,8 +725,6 @@ void ObjectList::append_menu_items_add_volume(wxMenu* menu, wxMenuItem* *item_se
         if (settings_id != wxNOT_FOUND)
             menu->Destroy(settings_id);
     }
-    if (*item_separator)
-        menu->Destroy(*item_separator);
 
     const ConfigOptionMode mode = wxGetApp().get_mode();
 
@@ -743,8 +741,6 @@ void ObjectList::append_menu_items_add_volume(wxMenu* menu, wxMenuItem* *item_se
             [this](wxCommandEvent&) { load_generic_subobject(_(L("Box")).ToUTF8().data(), ModelVolume::SUPPORT_BLOCKER); },
             *m_bmp_vector[ModelVolume::SUPPORT_BLOCKER]);
 
-        *item_separator = nullptr;
-
         return;
     }
     
@@ -758,8 +754,6 @@ void ObjectList::append_menu_items_add_volume(wxMenu* menu, wxMenuItem* *item_se
 
         menu->Append(menu_item);
     }
-
-    *item_separator = menu->AppendSeparator();
 }
 
 wxMenuItem* ObjectList::append_menu_item_split(wxMenu* menu) 
@@ -768,23 +762,41 @@ wxMenuItem* ObjectList::append_menu_item_split(wxMenu* menu)
         [this](wxCommandEvent&) { split(); }, m_bmp_split, menu);
 }
 
-wxMenuItem* ObjectList::append_menu_item_settings(wxMenu* menu) 
+wxMenuItem* ObjectList::append_menu_item_settings(wxMenu* menu_) 
 {
+    PrusaMenu* menu = dynamic_cast<PrusaMenu*>(menu_);
     // Update (delete old & create new)  settings popupmenu
     const auto settings_id = menu->FindItem(_("Add settings"));
     if (settings_id != wxNOT_FOUND)
         menu->Destroy(settings_id);
-
-    if (wxGetApp().get_mode() == comSimple)
-        return nullptr;
-
-    auto  menu_item = new wxMenuItem(menu, wxID_ANY, _(L("Add settings")));
-    menu_item->SetBitmap(m_bmp_cog);
+    menu->DestroySeparators(); // delete old separators
 
     const auto sel_vol = get_selected_model_volume();
     if (sel_vol && sel_vol->type() >= ModelVolume::SUPPORT_ENFORCER)
-        menu_item->Enable(false);
-    else
+        return nullptr;
+
+    const ConfigOptionMode mode = wxGetApp().get_mode();
+    if (mode == comSimple)
+        return nullptr;
+
+    menu->m_separator_frst = menu->AppendSeparator();
+
+    // Add frequently settings
+    create_freq_settings_popupmenu(menu);
+
+    if (mode == comAdvanced)
+        return nullptr;
+
+    menu->m_separator_scnd = menu->AppendSeparator();
+
+    // Add full settings list
+    auto  menu_item = new wxMenuItem(menu, wxID_ANY, _(L("Add settings")));
+    menu_item->SetBitmap(m_bmp_cog);
+
+//     const auto sel_vol = get_selected_model_volume();
+//     if (sel_vol && sel_vol->type() >= ModelVolume::SUPPORT_ENFORCER)
+//         menu_item->Enable(false);
+//     else
         menu_item->SetSubMenu(create_settings_popupmenu(menu));
 
     return menu->Append(menu_item);
@@ -828,8 +840,8 @@ void ObjectList::create_part_popupmenu(wxMenu *menu)
     menu->AppendSeparator();
     append_menu_item_change_type(menu);
 
-    // Append settings popupmenu
-    menu->AppendSeparator();
+    // rest of a object_sla_menu will be added later in:
+    // - append_menu_item_settings() -> for "Add (settings)"
 }
 
 void ObjectList::create_instance_popupmenu(wxMenu*menu)
@@ -852,6 +864,11 @@ wxMenu* ObjectList::create_settings_popupmenu(wxMenu *parent_menu)
     }
 
     return menu;
+}
+
+void ObjectList::create_freq_settings_popupmenu(wxMenu *parent_menu)
+{
+
 }
 
 void ObjectList::update_opt_keys(t_config_option_keys& opt_keys)
@@ -1824,7 +1841,7 @@ void ObjectList::update_settings_items()
 
 void ObjectList::update_object_menu()
 {
-    append_menu_items_add_volume(&m_menu_object, &m_mi_volumes_settings_separator);
+    append_menu_items_add_volume(&m_menu_object);
 }
 
 void ObjectList::instances_to_separated_object(const int obj_idx, const std::set<int>& inst_idxs)

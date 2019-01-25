@@ -14,6 +14,7 @@
 class wxBoxSizer;
 class wxMenuItem;
 class PrusaObjectDataViewModel;
+class PrusaMenu;
 
 namespace Slic3r {
 class ConfigOptionsGroup;
@@ -104,15 +105,14 @@ class ObjectList : public wxDataViewCtrl
     wxBitmap	m_bmp_cog;
     wxBitmap	m_bmp_split;
 
-    wxMenu      m_menu_object;
-    wxMenu      m_menu_part;
-    wxMenu      m_menu_sla_object;
-    wxMenu      m_menu_instance;
+    PrusaMenu   m_menu_object;
+    PrusaMenu   m_menu_part;
+    PrusaMenu   m_menu_sla_object;
+    PrusaMenu   m_menu_instance;
     wxMenuItem* m_menu_item_split { nullptr };
     wxMenuItem* m_menu_item_split_part { nullptr };
     wxMenuItem* m_menu_item_settings { nullptr };
     wxMenuItem* m_menu_item_split_instances { nullptr };
-    wxMenuItem* m_mi_volumes_settings_separator { nullptr };
 
     std::vector<wxBitmap*> m_bmp_vector;
 
@@ -163,7 +163,7 @@ public:
 
     void                get_settings_choice(const wxString& category_name);
     void                append_menu_item_add_generic(wxMenuItem* menu, const int type);
-    void                append_menu_items_add_volume(wxMenu* menu, wxMenuItem* *item_separator);
+    void                append_menu_items_add_volume(wxMenu* menu);
     wxMenuItem*         append_menu_item_split(wxMenu* menu);
     wxMenuItem*         append_menu_item_settings(wxMenu* menu);
     wxMenuItem*         append_menu_item_change_type(wxMenu* menu);
@@ -173,6 +173,7 @@ public:
     void                create_part_popupmenu(wxMenu*menu);
     void                create_instance_popupmenu(wxMenu*menu);
     wxMenu*             create_settings_popupmenu(wxMenu *parent_menu);
+    void                create_freq_settings_popupmenu(wxMenu *parent_menu);
 
     void                update_opt_keys(t_config_option_keys& t_optopt_keys);
 

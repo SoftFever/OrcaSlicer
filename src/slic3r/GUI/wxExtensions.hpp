@@ -920,6 +920,29 @@ private:
 };
 
 
+
+// ----------------------------------------------------------------------------
+// PrusaMenu
+// ----------------------------------------------------------------------------
+
+class PrusaMenu : public wxMenu
+{
+public:
+    PrusaMenu(const wxString& title, long style = 0)
+        : wxMenu(title, style) {}
+
+    PrusaMenu(long style = 0)
+        : wxMenu(style) {}
+
+    ~PrusaMenu() {}
+
+    void DestroySeparators();
+
+    wxMenuItem* m_separator_frst { nullptr };    // use like separator before settings item
+    wxMenuItem* m_separator_scnd { nullptr };   // use like separator between settings items
+};
+
+
 // ******************************* EXPERIMENTS **********************************************
 // ******************************************************************************************
 
