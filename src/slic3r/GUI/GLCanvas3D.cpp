@@ -6449,11 +6449,18 @@ public:
 		}
 		GLUtesselator *tess = gluNewTess(); // create a tessellator
 		// register callback functions
-		gluTessCallback(tess, GLU_TESS_BEGIN,   (void(__stdcall*)(void))tessBeginCB);
-		gluTessCallback(tess, GLU_TESS_END,     (void(__stdcall*)(void))tessEndCB);
-		gluTessCallback(tess, GLU_TESS_ERROR,   (void(__stdcall*)(void))tessErrorCB);
-		gluTessCallback(tess, GLU_TESS_VERTEX,  (void(__stdcall*)())tessVertexCB);
-        gluTessCallback(tess, GLU_TESS_COMBINE, (void (__stdcall*)(void))tessCombineCB);
+#ifndef _GLUfuncptr
+	#ifdef _MSC_VER
+		typedef void (__stdcall *_GLUfuncptr)(void);
+	#else /* _MSC_VER */
+		typedef void (GLAPIENTRYP _GLUfuncptr)(void);
+	#endif /* _MSC_VER */
+#endif /* _GLUfuncptr */
+		gluTessCallback(tess, GLU_TESS_BEGIN,   (_GLUfuncptr)tessBeginCB);
+		gluTessCallback(tess, GLU_TESS_END,     (_GLUfuncptr)tessEndCB);
+		gluTessCallback(tess, GLU_TESS_ERROR,   (_GLUfuncptr)tessErrorCB);
+		gluTessCallback(tess, GLU_TESS_VERTEX,  (_GLUfuncptr)tessVertexCB);
+        gluTessCallback(tess, GLU_TESS_COMBINE, (_GLUfuncptr)tessCombineCB);
 		gluTessBeginPolygon(tess, 0); // with NULL data
 		gluTessBeginContour(tess);
 		for (const Point &pt : expoly.contour.points) {
@@ -6523,7 +6530,7 @@ private:
 			} else if (primitive_type == GL_TRIANGLE_FAN) {
 				memcpy(pt1, ptr, sizeof(GLdouble) * 3);
 			} else {
-				assert(which == GL_TRIANGLES);
+				assert(primitive_type == GL_TRIANGLES);
 				assert(num_points == 3);
 				num_points = 0;
 			}
