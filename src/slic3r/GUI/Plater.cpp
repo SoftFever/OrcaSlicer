@@ -940,6 +940,8 @@ struct Plater::priv
     // SLA-Object popup menu
     wxMenu sla_object_menu;
 
+    wxMenuItem* separator_volumes_settings{ nullptr };
+
     // Data
     Slic3r::DynamicPrintConfig *config;        // FIXME: leak?
     Slic3r::Print               fff_print;
@@ -2331,7 +2333,7 @@ void Plater::priv::on_right_click(Vec2dEvent& evt)
         return;
 
     wxMenu* menu = printer_technology == ptSLA ? &sla_object_menu :
-                   get_selection().is_single_full_instance/*object*/() ? // show "Object menu" for each FullInstance instead of FullObject
+                   get_selection().is_single_full_instance() ? // show "Object menu" for each FullInstance instead of FullObject
                    &object_menu : &part_menu;
 
     sidebar->obj_list()->append_menu_item_settings(menu);
@@ -2444,18 +2446,9 @@ bool Plater::priv::complit_init_object_menu()
         [this](wxCommandEvent&) { split_volume(); }, "shape_ungroup_p.png", &object_menu);
 
     wxMenuItem* item_split = append_submenu(&object_menu, split_menu, wxID_ANY, _(L("Split")), _(L("Split the selected object")), "shape_ungroup.png");
-
-//     append_menu_item(&object_menu, wxID_ANY, _(L("Reload from Disk")), _(L("Reload the selected file from Disk")),
-//         [this](wxCommandEvent&) { reload_from_disk(); });
-// 
-//     append_menu_item(&object_menu, wxID_ANY, _(L("Export object as STL")) + dots, _(L("Export this single object as STL file")),
-//         [this](wxCommandEvent&) { q->export_stl(true); });
-
-    // Append "Add..." popupmenu
     object_menu.AppendSeparator();
-    sidebar->obj_list()->append_menu_items_add_volume(&object_menu);
 
-//     object_menu.AppendSeparator();
+    // "Add (volumes)" popupmenu will be added later in append_menu_items_add_volume()
 
     // ui updates needs to be binded to the parent panel
     if (q != nullptr)
@@ -2472,11 +2465,13 @@ bool Plater::priv::complit_init_sla_object_menu()
     wxMenuItem* item_split = append_menu_item(&sla_object_menu, wxID_ANY, _(L("Split")), _(L("Split the selected object into individual objects")),
         [this](wxCommandEvent&) { split_object(); }, "shape_ungroup_o.png");
 
+    sla_object_menu.AppendSeparator();
+
     // Add the automatic rotation sub-menu
     append_menu_item(&sla_object_menu, wxID_ANY, _(L("Optimize orientation")), _(L("Optimize the rotation of the object for better print results.")),
         [this](wxCommandEvent&) { sla_optimize_rotation(); });
 
-//     sla_object_menu.AppendSeparator();
+    sla_object_menu.AppendSeparator();
 
     // ui updates needs to be binded to the parent panel
     if (q != nullptr)
@@ -2492,10 +2487,12 @@ bool Plater::priv::complit_init_part_menu()
     wxMenuItem* item_split = append_menu_item(&part_menu, wxID_ANY, _(L("Split")), _(L("Split the selected object into individual sub-parts")),
         [this](wxCommandEvent&) { split_volume(); }, "shape_ungroup_p.png");
 
+    part_menu.AppendSeparator();
+
     auto obj_list = sidebar->obj_list();
     obj_list->append_menu_item_change_type(&part_menu);
 
-//     part_menu.AppendSeparator();
+    part_menu.AppendSeparator();
 
     // ui updates needs to be binded to the parent panel
     if (q != nullptr)
@@ -2597,8 +2594,6 @@ bool Plater::priv::can_split_to_volumes() const
 
 bool Plater::priv::can_split() const
 {
-    if (printer_technology == ptSLA)
-        return false;
     return sidebar->obj_list()->is_splittable();
 }
 
@@ -2625,7 +2620,7 @@ bool Plater::priv::can_mirror() const
 
 void Plater::priv::update_object_menu()
 {
-    sidebar->obj_list()->append_menu_items_add_volume(&object_menu);
+    sidebar->obj_list()->append_menu_items_add_volume(&object_menu, &separator_volumes_settings);
 }
 
 // Plater / Public

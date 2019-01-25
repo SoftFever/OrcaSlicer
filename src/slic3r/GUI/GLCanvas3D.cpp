@@ -297,9 +297,16 @@ std::string GLCanvas3D::Camera::get_type_as_string() const
     };
 }
 
-void GLCanvas3D::Camera::set_theta(float theta)
+void GLCanvas3D::Camera::set_theta(float theta, bool apply_limit)
 {
-    m_theta = clamp(0.0f, GIMBALL_LOCK_THETA_MAX, theta);
+    if (apply_limit)
+        m_theta = clamp(0.0f, GIMBALL_LOCK_THETA_MAX, theta);
+    else
+    {
+        m_theta = fmod(theta, 360.0f);
+        if (m_theta < 0.0f)
+            m_theta += 360.0f;
+    }
 }
 
 void GLCanvas3D::Camera::set_target(const Vec3d& target, GLCanvas3D& canvas)
@@ -4215,7 +4222,7 @@ void GLCanvas3D::select_view(const std::string& direction)
     if (dir_vec != nullptr)
     {
         m_camera.phi = dir_vec[0];
-        m_camera.set_theta(dir_vec[1]);
+        m_camera.set_theta(dir_vec[1], false);
 
         viewport_changed();
         
@@ -4227,7 +4234,7 @@ void GLCanvas3D::select_view(const std::string& direction)
 void GLCanvas3D::set_viewport_from_scene(const GLCanvas3D& other)
 {
     m_camera.phi = other.m_camera.phi;
-    m_camera.set_theta(other.m_camera.get_theta());
+    m_camera.set_theta(other.m_camera.get_theta(), false);
     m_camera.set_scene_box(other.m_camera.get_scene_box(), *this);
     m_camera.set_target(other.m_camera.get_target(), *this);
     m_camera.zoom = other.m_camera.zoom;
@@ -4303,6 +4310,10 @@ void GLCanvas3D::render()
     ::glLightfv(GL_LIGHT0, GL_POSITION, position_top);
 
     float theta = m_camera.get_theta();
+    if (theta > 180.f)
+        // absolute value of the rotation
+        theta = 360.f - theta;
+
     bool is_custom_bed = m_bed.is_custom();
 
 #if ENABLE_IMGUI
@@ -5308,7 +5319,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             {
                 const Vec3d& orig = m_mouse.drag.start_position_3D;
                 m_camera.phi += (((float)pos(0) - (float)orig(0)) * TRACKBALLSIZE);
-                m_camera.set_theta(m_camera.get_theta() - ((float)pos(1) - (float)orig(1)) * TRACKBALLSIZE);
+                m_camera.set_theta(m_camera.get_theta() - ((float)pos(1) - (float)orig(1)) * TRACKBALLSIZE, wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA);
 
                 viewport_changed();
 
@@ -6453,7 +6464,11 @@ public:
 	#ifdef _MSC_VER
 		typedef void (__stdcall *_GLUfuncptr)(void);
 	#else /* _MSC_VER */
-		typedef void (GLAPIENTRYP _GLUfuncptr)(void);
+        #ifdef GLAPIENTRYP
+            typedef void (GLAPIENTRYP _GLUfuncptr)(void);
+        #else /* GLAPIENTRYP */
+            typedef void (*_GLUfuncptr)(void);
+        #endif
 	#endif /* _MSC_VER */
 #endif /* _GLUfuncptr */
 		gluTessCallback(tess, GLU_TESS_BEGIN,   (_GLUfuncptr)tessBeginCB);

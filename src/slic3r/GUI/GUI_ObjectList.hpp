@@ -112,6 +112,7 @@ class ObjectList : public wxDataViewCtrl
     wxMenuItem* m_menu_item_split_part { nullptr };
     wxMenuItem* m_menu_item_settings { nullptr };
     wxMenuItem* m_menu_item_split_instances { nullptr };
+    wxMenuItem* m_mi_volumes_settings_separator { nullptr };
 
     std::vector<wxBitmap*> m_bmp_vector;
 
@@ -162,7 +163,7 @@ public:
 
     void                get_settings_choice(const wxString& category_name);
     void                append_menu_item_add_generic(wxMenuItem* menu, const int type);
-    void                append_menu_items_add_volume(wxMenu* menu);
+    void                append_menu_items_add_volume(wxMenu* menu, wxMenuItem* *item_separator);
     wxMenuItem*         append_menu_item_split(wxMenu* menu);
     wxMenuItem*         append_menu_item_settings(wxMenu* menu);
     wxMenuItem*         append_menu_item_change_type(wxMenu* menu);
@@ -243,6 +244,7 @@ public:
     void last_volume_is_deleted(const int obj_idx);
     bool has_multi_part_objects();
     void update_settings_items();
+    void update_object_menu();
 
     void instances_to_separated_object(const int obj_idx, const std::set<int>& inst_idx);
     void split_instances();
