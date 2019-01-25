@@ -10,6 +10,7 @@
 #include <wx/button.h>
 #include <wx/sizer.h>
 #include <wx/slider.h>
+#include <wx/menu.h>
 
 #include <vector>
 #include <set>
