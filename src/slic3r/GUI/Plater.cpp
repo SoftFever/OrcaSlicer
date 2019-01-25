@@ -1596,8 +1596,10 @@ void Plater::priv::selection_changed()
 
     // if the selection is not valid to allow for layer editing, we need to turn off the tool if it is running
     bool enable_layer_editing = layers_height_allowed();
-    if (!enable_layer_editing && view3D->is_layers_editing_enabled())
-        on_action_layersediting(SimpleEvent(EVT_GLTOOLBAR_LAYERSEDITING));
+    if (!enable_layer_editing && view3D->is_layers_editing_enabled()) {
+        SimpleEvent evt(EVT_GLTOOLBAR_LAYERSEDITING);
+        on_action_layersediting(evt);
+    }
 
     view3D->enable_toolbar_item("layersediting", enable_layer_editing);
 
