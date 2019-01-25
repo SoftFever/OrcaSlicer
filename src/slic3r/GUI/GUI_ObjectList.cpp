@@ -696,9 +696,11 @@ void ObjectList::get_settings_choice(const wxString& category_name)
 void ObjectList::append_menu_item_add_generic(wxMenuItem* menu, const int type) {
     auto sub_menu = new wxMenu;
 
+    if (wxGetApp().get_mode() == comExpert) {
     append_menu_item(sub_menu, wxID_ANY, _(L("Load")) + " " + dots, "",
         [this, type](wxCommandEvent&) { load_subobject(type); }, "", menu->GetMenu());
     sub_menu->AppendSeparator();
+    }
 
     std::vector<std::string> menu_items = { L("Box"), L("Cylinder"), L("Sphere"), L("Slab") };
     for (auto& item : menu_items) {
@@ -709,7 +711,7 @@ void ObjectList::append_menu_item_add_generic(wxMenuItem* menu, const int type) 
     menu->SetSubMenu(sub_menu);
 }
 
-void ObjectList::append_menu_items_add_volume(wxMenu* menu)
+void ObjectList::append_menu_items_add_volume(wxMenu* menu, wxMenuItem* *item_separator)
 {
     // Note: id accords to type of the sub-object, so sequence of the menu items is important
     std::vector<std::string> menu_object_types_items = {L("Add part"),              // ~ModelVolume::MODEL_PART
@@ -723,22 +725,30 @@ void ObjectList::append_menu_items_add_volume(wxMenu* menu)
         if (settings_id != wxNOT_FOUND)
             menu->Destroy(settings_id);
     }
+    if (*item_separator)
+        menu->Destroy(*item_separator);
 
-    if (wxGetApp().get_mode() == comSimple)
+    const ConfigOptionMode mode = wxGetApp().get_mode();
+
+    if (mode < comExpert)
     {
         append_menu_item(menu, wxID_ANY, _(L("Add part")), "",
             [this](wxCommandEvent&) { load_subobject(ModelVolume::MODEL_PART); }, *m_bmp_vector[ModelVolume::MODEL_PART]);
+    }
+    if (mode == comSimple) {
         append_menu_item(menu, wxID_ANY, _(L("Add support enforcer")), "",
-            [this](wxCommandEvent&) { load_generic_subobject(_(L("Box")).ToUTF8().data(), ModelVolume::SUPPORT_ENFORCER); }, 
+            [this](wxCommandEvent&) { load_generic_subobject(_(L("Box")).ToUTF8().data(), ModelVolume::SUPPORT_ENFORCER); },
             *m_bmp_vector[ModelVolume::SUPPORT_ENFORCER]);
         append_menu_item(menu, wxID_ANY, _(L("Add support blocker")), "",
-            [this](wxCommandEvent&) { load_generic_subobject(_(L("Box")).ToUTF8().data(), ModelVolume::SUPPORT_BLOCKER); }, 
+            [this](wxCommandEvent&) { load_generic_subobject(_(L("Box")).ToUTF8().data(), ModelVolume::SUPPORT_BLOCKER); },
             *m_bmp_vector[ModelVolume::SUPPORT_BLOCKER]);
+
+        *item_separator = nullptr;
 
         return;
     }
-
-    for (int type = 0; type < menu_object_types_items.size(); type++) 
+    
+    for (int type = mode == comExpert ? 0 : 1 ; type < menu_object_types_items.size(); type++)
     {
         auto& item = menu_object_types_items[type];
 
@@ -748,6 +758,8 @@ void ObjectList::append_menu_items_add_volume(wxMenu* menu)
 
         menu->Append(menu_item);
     }
+
+    *item_separator = menu->AppendSeparator();
 }
 
 wxMenuItem* ObjectList::append_menu_item_split(wxMenu* menu) 
@@ -793,18 +805,19 @@ wxMenuItem* ObjectList::append_menu_item_instance_to_object(wxMenu* menu)
 
 void ObjectList::create_object_popupmenu(wxMenu *menu)
 {
-    append_menu_items_add_volume(menu);
-
     // Split object to parts
-    menu->AppendSeparator();
     m_menu_item_split = append_menu_item_split(menu);
-
-    // Settings
     menu->AppendSeparator();
+
+    // rest of a object_menu will be added later in:
+    // - append_menu_items_add_volume() -> for "Add (volumes)"
+    // - append_menu_item_settings() -> for "Add (settings)"
 }
 
 void ObjectList::create_sla_object_popupmenu(wxMenu *menu)
 {
+    // rest of a object_sla_menu will be added later in:
+    // - append_menu_item_settings() -> for "Add (settings)"
 }
 
 void ObjectList::create_part_popupmenu(wxMenu *menu)
@@ -1803,6 +1816,11 @@ void ObjectList::update_settings_items()
         select_item(settings_item ? settings_item : m_objects_model->AddSettingsChild(item));
     }
     UnselectAll();
+}
+
+void ObjectList::update_object_menu()
+{
+    append_menu_items_add_volume(&m_menu_object, &m_mi_volumes_settings_separator);
 }
 
 void ObjectList::instances_to_separated_object(const int obj_idx, const std::set<int>& inst_idxs)

@@ -159,7 +159,7 @@ bool GUI_App::OnInit()
 
         // ! Temporary workaround for the correct behavior of the Scrolled sidebar panel 
         // Do this "manipulations" only once ( after (re)create of the application )
-        if (sidebar().obj_list()->GetMinHeight() > 200) 
+        if (plater_ && sidebar().obj_list()->GetMinHeight() > 200) 
         {
             wxWindowUpdateLocker noUpdates_sidebar(&sidebar());
             sidebar().obj_list()->SetMinSize(wxSize(-1, 200));
@@ -273,6 +273,11 @@ void GUI_App::recreate_GUI()
     std::cerr << "recreate_GUI" << std::endl;
 
     clear_tabs_list();
+    if (plater_) {
+        // before creating a new plater let's delete old one
+        plater_->Destroy();
+        plater_ = nullptr;
+    }
 
     MainFrame* topwindow = dynamic_cast<MainFrame*>(GetTopWindow());
     mainframe = new MainFrame();
@@ -531,10 +536,11 @@ void GUI_App::update_mode()
 
     const ConfigOptionMode mode = wxGetApp().get_mode();
 
-    obj_list()->get_sizer()->Show(mode == comExpert);
+    obj_list()->get_sizer()->Show(mode > comSimple);
     sidebar().set_mode_value(mode);
 //    sidebar().show_buttons(mode == comExpert);
     obj_list()->update_selections();
+    obj_list()->update_object_menu();
 
     sidebar().update_mode_sizer(mode);
 
