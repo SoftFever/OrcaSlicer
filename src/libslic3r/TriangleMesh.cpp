@@ -41,7 +41,7 @@
 
 namespace Slic3r {
 
-TriangleMesh::TriangleMesh(const Pointf3s &points, const std::vector<Vec3crd>& facets )
+TriangleMesh::TriangleMesh(const Pointf3s &points, const std::vector<Vec3crd>& facets)
     : repaired(false)
 {
     stl_initialize(&this->stl);

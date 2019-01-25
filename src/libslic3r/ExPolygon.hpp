@@ -6,6 +6,9 @@
 #include "Polyline.hpp"
 #include <vector>
 
+// polygon class of the polypartition library
+class TPPLPoly;
+
 namespace Slic3r {
 
 class ExPolygon;
@@ -55,12 +58,13 @@ public:
     void simplify(double tolerance, ExPolygons* expolygons) const;
     void medial_axis(double max_width, double min_width, ThickPolylines* polylines) const;
     void medial_axis(double max_width, double min_width, Polylines* polylines) const;
-    void get_trapezoids(Polygons* polygons) const;
-    void get_trapezoids(Polygons* polygons, double angle) const;
+//    void get_trapezoids(Polygons* polygons) const;
+//    void get_trapezoids(Polygons* polygons, double angle) const;
     void get_trapezoids2(Polygons* polygons) const;
     void get_trapezoids2(Polygons* polygons, double angle) const;
     void triangulate(Polygons* polygons) const;
-    void triangulate_pp(Polygons* polygons) const;
+    // Triangulate into triples of points.
+    void triangulate_pp(Points *triangles) const;
     void triangulate_p2t(Polygons* polygons) const;
     Lines lines() const;
 };
@@ -296,6 +300,10 @@ extern BoundingBox get_extents_rotated(const ExPolygons &polygons, double angle)
 extern std::vector<BoundingBox> get_extents_vector(const ExPolygons &polygons);
 
 extern bool        remove_sticks(ExPolygon &poly);
+
+extern std::list<TPPLPoly> expoly_to_polypartition_input(const ExPolygons &expp);
+extern std::list<TPPLPoly> expoly_to_polypartition_input(const ExPolygon &ex);
+extern std::vector<Point> polypartition_output_to_triangles(const std::list<TPPLPoly> &output);
 
 } // namespace Slic3r
 

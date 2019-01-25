@@ -245,8 +245,6 @@ void show_info(wxWindow* parent, const wxString& message, const wxString& title)
 
 void warning_catcher(wxWindow* parent, const wxString& message)
 {
-	if (message == "GLUquadricObjPtr | " + _(L("Attempt to free unreferenced scalar")) )
-		return;
 	wxMessageDialog msg(parent, message, _(L("Warning")), wxOK | wxICON_WARNING);
 	msg.ShowModal();
 }

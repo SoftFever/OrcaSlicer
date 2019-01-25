@@ -780,7 +780,7 @@ private:
         struct Triangles
         {
             Pointf3s object;
-            Pointf3s suppports;
+            Pointf3s supports;
         };
         typedef std::map<unsigned int, Triangles> ObjectIdToTrianglesMap;
         double z;
