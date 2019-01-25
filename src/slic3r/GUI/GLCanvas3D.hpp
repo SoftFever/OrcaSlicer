@@ -175,7 +175,7 @@ class GLCanvas3D
         std::string get_type_as_string() const;
 
         float get_theta() const { return m_theta; }
-        void set_theta(float theta);
+        void set_theta(float theta, bool apply_limit);
 
         const Vec3d& get_target() const { return m_target; }
         void set_target(const Vec3d& target, GLCanvas3D& canvas);
