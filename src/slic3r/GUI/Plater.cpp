@@ -1502,10 +1502,11 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
             object->center_around_origin();
             scaled_down = true;
         } else if (max_ratio > 5) {
-            const Vec3d inverse = ratio.cwiseInverse();
-            for (ModelInstance *instance : model_object->instances) {
+            const Vec3d inverse = 1.0 / max_ratio * Vec3d::Ones();
+            for (ModelInstance *instance : object->instances) {
                 instance->set_scaling_factor(inverse);
             }
+            scaled_down = true;
         }
 
         object->ensure_on_bed();
