@@ -6558,7 +6558,11 @@ public:
 	#ifdef _MSC_VER
 		typedef void (__stdcall *_GLUfuncptr)(void);
 	#else /* _MSC_VER */
-		typedef void (GLAPIENTRYP _GLUfuncptr)(void);
+        #ifdef GLAPIENTRYP
+            typedef void (GLAPIENTRYP _GLUfuncptr)(void);
+        #else /* GLAPIENTRYP */
+            typedef void (*_GLUfuncptr)(void);
+        #endif
 	#endif /* _MSC_VER */
 #endif /* _GLUfuncptr */
 		gluTessCallback(tess, GLU_TESS_BEGIN,   (_GLUfuncptr)tessBeginCB);
