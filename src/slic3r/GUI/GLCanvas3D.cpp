@@ -5379,8 +5379,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 m_selection.clear();
                 m_selection.set_mode(Selection::Instance);
                 wxGetApp().obj_manipul()->update_settings_value(m_selection);
-                post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
+                m_gizmos.reset_all_states();
                 _update_gizmos_data();
+                post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
             }
             m_mouse.ignore_up_event = false;
         }
