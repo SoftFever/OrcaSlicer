@@ -1731,55 +1731,64 @@ void GLCanvas3D::Selection::translate(const Vec3d& displacement, bool local)
 
 void GLCanvas3D::Selection::rotate(const Vec3d& rotation, bool local)
 {
-    if (!m_valid)
+	int rot_axis_max;
+	if (!m_valid || rotation.cwiseAbs().maxCoeff(&rot_axis_max) < EPSILON)
         return;
+
+	// For generic rotation, we want to rotate the first volume in selection, and then to synchronize the other volumes with it.
+	std::vector<int> object_instance_first(m_model->objects.size(), -1);
+	auto rotate_instance = [this, &rotation, &object_instance_first, rot_axis_max, local](GLVolume &volume, int i) {
+        int first_volume_idx = object_instance_first[volume.object_idx()];
+        if (rot_axis_max != 2 && first_volume_idx != -1) {
+            // Generic rotation, but no rotation around the Z axis.
+            // Always do a local rotation (do not consider the selection to be a rigid body).
+            assert(rotation.z() == 0);
+            const GLVolume &first_volume = *(*m_volumes)[first_volume_idx];
+            const Vec3d    &rotation     = first_volume.get_instance_rotation();
+            double z_diff = m_cache.volumes_data[i].get_instance_rotation()(2) - m_cache.volumes_data[first_volume_idx].get_instance_rotation()(2);
+            volume.set_instance_rotation(Vec3d(rotation(0), rotation(1), rotation(2) + z_diff));
+        } else {
+            // extracts rotations from the composed transformation
+            Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), rotation);
+            Vec3d new_rotation = Geometry::extract_euler_angles(m * m_cache.volumes_data[i].get_instance_rotation_matrix());
+            if (!local)
+                volume.set_instance_offset(m_cache.dragging_center + m * (m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center));
+            volume.set_instance_rotation(new_rotation);
+            object_instance_first[volume.object_idx()] = i;
+        }
+    };
 
     for (unsigned int i : m_list)
     {
+        GLVolume &volume = *(*m_volumes)[i];
         if (is_single_full_instance())
-        {
-            if (local)
-                (*m_volumes)[i]->set_instance_rotation(rotation);
-            else
-            {
-                Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), rotation);
-                Vec3d new_rotation = Geometry::extract_euler_angles(m * m_cache.volumes_data[i].get_instance_rotation_matrix());
-                (*m_volumes)[i]->set_instance_rotation(new_rotation);
-            }
-        }
+            rotate_instance(volume, i);
         else if (is_single_volume() || is_single_modifier())
         {
             if (local)
-                (*m_volumes)[i]->set_volume_rotation(rotation);
+                volume.set_volume_rotation(rotation);
             else
             {
                 Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), rotation);
                 Vec3d new_rotation = Geometry::extract_euler_angles(m * m_cache.volumes_data[i].get_volume_rotation_matrix());
-                (*m_volumes)[i]->set_volume_rotation(new_rotation);
+                volume.set_volume_rotation(new_rotation);
             }
         }
         else
         {
-            Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), rotation);
             if (m_mode == Instance)
-            {
-                // extracts rotations from the composed transformation
-                Vec3d new_rotation = Geometry::extract_euler_angles(m * m_cache.volumes_data[i].get_instance_rotation_matrix());
-                if (!local)
-                    (*m_volumes)[i]->set_instance_offset(m_cache.dragging_center + m * (m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center));
-
-                (*m_volumes)[i]->set_instance_rotation(new_rotation);
-            }
+                rotate_instance(volume, i);
             else if (m_mode == Volume)
             {
                 // extracts rotations from the composed transformation
+                Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), rotation);
                 Vec3d new_rotation = Geometry::extract_euler_angles(m * m_cache.volumes_data[i].get_volume_rotation_matrix());
                 if (!local)
                 {
                     Vec3d offset = m * (m_cache.volumes_data[i].get_volume_position() + m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center);
-                    (*m_volumes)[i]->set_volume_offset(m_cache.dragging_center - m_cache.volumes_data[i].get_instance_position() + offset);
+                    volume.set_volume_offset(m_cache.dragging_center - m_cache.volumes_data[i].get_instance_position() + offset);
                 }
-                (*m_volumes)[i]->set_volume_rotation(new_rotation);
+                volume.set_volume_rotation(new_rotation);
             }
         }
     }
@@ -2699,6 +2708,40 @@ void GLCanvas3D::Selection::_render_sidebar_size_hint(Axis axis, double length) 
 {
 }
 
+#ifdef _DEBUG
+static bool is_rotation_xy_synchronized(const Vec3d &rotation1, const Vec3d &rotation2)
+{
+	// The XYZ Euler angles are not unique. Rather then comparing the XY components of the two rotations,
+    // transform the up vector to one instance and back, which should lead to the same up vector.
+	Transform3d m1 = Geometry::assemble_transform(Vec3d::Zero(), rotation1);
+	Transform3d m2 = Geometry::assemble_transform(Vec3d::Zero(), rotation2);
+    Vec3d       up0(0., 0., 1.);
+	Vec3d       up = m1.rotation() * m2.rotation().inverse() * up0;
+	return (up - up0).cwiseAbs().maxCoeff() < EPSILON;
+}
+static void verify_instances_rotation_synchronized(const Model &model, const GLVolumePtrs &volumes)
+{
+    for (size_t idx_object = 0; idx_object < model.objects.size(); ++ idx_object) {
+        int idx_volume_first = -1;
+        for (int i = 0; i < (int)volumes.size(); ++ i) {
+			if (volumes[i]->object_idx() == idx_object) {
+                idx_volume_first = i;
+                break;
+            }
+        }
+        assert(idx_volume_first != -1); // object without instances?
+        if (idx_volume_first == -1)
+            continue;
+        const Vec3d &rotation0 = volumes[idx_volume_first]->get_instance_rotation();
+        for (int i = idx_volume_first + 1; i < (int)volumes.size(); ++ i)
+			if (volumes[i]->object_idx() == idx_object) {
+                const Vec3d &rotation = volumes[i]->get_instance_rotation();
+				assert(is_rotation_xy_synchronized(rotation, rotation0));
+            }
+    }
+}
+#endif /* _DEBUG */
+
 void GLCanvas3D::Selection::_synchronize_unselected_instances(bool including_z)
 {
     std::set<unsigned int> done;  // prevent processing volumes twice
@@ -2738,12 +2781,16 @@ void GLCanvas3D::Selection::_synchronize_unselected_instances(bool including_z)
             if (including_z)
                 // rotation comes from place on face -> force given z
                 z = rotation(2);
-            else if (is_approx(rotation(0), m_cache.volumes_data[j].get_instance_rotation()(0)) && is_approx(rotation(1), m_cache.volumes_data[j].get_instance_rotation()(1)))
-                // z only rotation -> keep instance z
-                z = v->get_instance_rotation()(2);
-            else
-                // generic rotation -> update instance z
-                z = m_cache.volumes_data[j].get_instance_rotation()(2) + rotation(2);
+			else if (is_approx(rotation(0), m_cache.volumes_data[j].get_instance_rotation()(0)) && is_approx(rotation(1), m_cache.volumes_data[j].get_instance_rotation()(1))) {
+				// z only rotation -> keep instance z
+				z = v->get_instance_rotation()(2);
+				// The X,Y rotations should be synchronized from start to end of the rotation.
+				assert(is_rotation_xy_synchronized(m_cache.volumes_data[i].get_instance_rotation(), m_cache.volumes_data[j].get_instance_rotation()));
+				assert(is_rotation_xy_synchronized(rotation, v->get_instance_rotation()));
+			} else {
+				// generic rotation -> update instance z with the delta of the rotation.
+				z = rotation(2) + m_cache.volumes_data[j].get_instance_rotation()(2) - m_cache.volumes_data[i].get_instance_rotation()(2);
+			}
 
             v->set_instance_rotation(Vec3d(rotation(0), rotation(1), z));
             v->set_instance_scaling_factor(scaling_factor);
@@ -2752,6 +2799,10 @@ void GLCanvas3D::Selection::_synchronize_unselected_instances(bool including_z)
             done.insert(j);
         }
     }
+
+#ifdef _DEBUG
+    verify_instances_rotation_synchronized(*m_model, *m_volumes);
+#endif /* _DEBUG */
 }
 
 void GLCanvas3D::Selection::_synchronize_unselected_volumes()
