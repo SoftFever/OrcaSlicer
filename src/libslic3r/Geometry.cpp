@@ -1194,15 +1194,12 @@ Vec3d extract_euler_angles(const Eigen::Matrix<double, 3, 3, Eigen::DontAlign>& 
         {
             angles1(1) = 0.5 * (double)PI;
             angles1(2) = angles1(0) + ::atan2(rotation_matrix(0, 1), rotation_matrix(0, 2));
-
         }
         else // == -1.0
         {
             angles1(1) = 0.5 * (double)PI;
             angles1(2) = -angles1(0) - ::atan2(rotation_matrix(0, 1), rotation_matrix(0, 2));
-
         }
-
         angles2 = angles1;
     }
     else
@@ -1218,9 +1215,14 @@ Vec3d extract_euler_angles(const Eigen::Matrix<double, 3, 3, Eigen::DontAlign>& 
         angles2(2) = ::atan2(rotation_matrix(1, 0) * inv_cos2, rotation_matrix(0, 0) * inv_cos2);
     }
 
-    // The following euristic seems to work fine, but there may be use cases were it does not
-    // We'll need to modify it if/when we'll meet such use cases
-    Vec3d angles = (angles1.cwiseAbs().minCoeff() <= angles2.cwiseAbs().minCoeff()) ? angles1 : angles2;
+    // The following euristic is the best found up to now (in the sense that it works fine with the greatest number of edge use-cases)
+    // but there are other use-cases were it does not
+    // We need to imrove it
+    double min_1 = angles1.cwiseAbs().minCoeff();
+    double min_2 = angles2.cwiseAbs().minCoeff();
+    bool use_1 = (min_1 < min_2) || (is_approx(min_1, min_2) && (angles1.norm() <= angles2.norm()));
+
+    Vec3d angles = use_1 ? angles1 : angles2;
 #else
     auto y_only = [](const Eigen::Matrix<double, 3, 3, Eigen::DontAlign>& matrix) -> bool {
         return (matrix(0, 1) == 0.0) && (matrix(1, 0) == 0.0) && (matrix(1, 1) == 1.0) && (matrix(1, 2) == 0.0) && (matrix(2, 1) == 0.0);
