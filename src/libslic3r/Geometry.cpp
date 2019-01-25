@@ -1217,7 +1217,7 @@ Vec3d extract_euler_angles(const Eigen::Matrix<double, 3, 3, Eigen::DontAlign>& 
 
     // The following euristic is the best found up to now (in the sense that it works fine with the greatest number of edge use-cases)
     // but there are other use-cases were it does not
-    // We need to imrove it
+    // We need to improve it
     double min_1 = angles1.cwiseAbs().minCoeff();
     double min_2 = angles2.cwiseAbs().minCoeff();
     bool use_1 = (min_1 < min_2) || (is_approx(min_1, min_2) && (angles1.norm() <= angles2.norm()));

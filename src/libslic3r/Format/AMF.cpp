@@ -528,6 +528,7 @@ void AMFParserContext::endElement(const char * /* name */)
         }
         stl_get_size(&stl);
         m_volume->mesh.repair();
+        m_volume->center_geometry();
         m_volume->calculate_convex_hull();
         m_volume_facets.clear();
         m_volume = nullptr;
