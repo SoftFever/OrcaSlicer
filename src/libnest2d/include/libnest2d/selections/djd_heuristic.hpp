@@ -33,7 +33,7 @@ class _DJDHeuristic: public SelectionBoilerplate<RawShape> {
 
 public:
     using typename Base::Item;
-    using typename Base::ItemRef;
+    using ItemRef = std::reference_wrapper<Item>;
 
     /**
      * @brief The Config for DJD heuristic.
@@ -126,6 +126,8 @@ public:
 
         store_.clear();
         store_.reserve(last-first);
+
+        // TODO: support preloading
         packed_bins_.clear();
 
         std::copy(first, last, std::back_inserter(store_));

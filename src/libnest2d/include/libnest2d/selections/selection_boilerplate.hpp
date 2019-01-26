@@ -9,26 +9,22 @@ namespace libnest2d { namespace selections {
 template<class RawShape>
 class SelectionBoilerplate {
 public:
+    using ShapeType = RawShape;
     using Item = _Item<RawShape>;
-    using ItemRef = std::reference_wrapper<Item>;
-    using ItemGroup = std::vector<ItemRef>;
-    using PackGroup = std::vector<ItemGroup>;
+    using ItemGroup = _ItemGroup<RawShape>;
+    using PackGroup = _PackGroup<RawShape>;
 
-    size_t binCount() const { return packed_bins_.size(); }
-
-    ItemGroup itemsForBin(size_t binIndex) {
-        assert(binIndex < packed_bins_.size());
-        return packed_bins_[binIndex];
-    }
-
-    inline const ItemGroup itemsForBin(size_t binIndex) const {
-        assert(binIndex < packed_bins_.size());
-        return packed_bins_[binIndex];
+    inline const PackGroup& getResult() const {
+        return packed_bins_;
     }
 
     inline void progressIndicator(ProgressFunction fn) { progress_ = fn; }
 
     inline void stopCondition(StopCondition cond) { stopcond_ = cond; }
+
+    inline void preload(const PackGroup& pckgrp) { packed_bins_ = pckgrp; }
+
+    inline void clear() { packed_bins_.clear(); }
 
 protected:
 
