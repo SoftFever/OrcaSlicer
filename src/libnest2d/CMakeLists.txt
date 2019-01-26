@@ -70,10 +70,12 @@ if(TBB_FOUND)
     # The Intel TBB library will use the std::exception_ptr feature of C++11.
     target_compile_definitions(libnest2d INTERFACE -DTBB_USE_CAPTURED_EXCEPTION=0)
 
-    find_package(Threads REQUIRED)
-    target_link_libraries(libnest2d INTERFACE ${TBB_LIBRARIES} ${CMAKE_DL_LIBS}
-        Threads::Threads
-        )
+    target_link_libraries(libnest2d INTERFACE tbb)
+    # The following breaks compilation on Visual Studio in Debug mode.
+    #find_package(Threads REQUIRED)
+    #target_link_libraries(libnest2d INTERFACE ${TBB_LIBRARIES} ${CMAKE_DL_LIBS}
+    #    Threads::Threads
+    #    )
 else()
    find_package(OpenMP QUIET)
 
