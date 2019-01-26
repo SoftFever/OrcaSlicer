@@ -2105,7 +2105,7 @@ void Plater::priv::fix_through_netfabb(const int obj_idx)
         o->clear_instances();
         for (auto instance: model_object->instances)
             o->add_instance(*instance);
-        // o->invalidate_bounding_box();
+        o->invalidate_bounding_box();
         
         if (o->volumes.size() == model_object->volumes.size()) {
             for (int i = 0; i < o->volumes.size(); i++) {

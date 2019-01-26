@@ -573,6 +573,8 @@ ModelObject& ModelObject::assign_copy(const ModelObject &rhs)
     this->origin_translation          = rhs.origin_translation;
     m_bounding_box                    = rhs.m_bounding_box;
     m_bounding_box_valid              = rhs.m_bounding_box_valid;
+    m_raw_mesh_bounding_box           = rhs.m_raw_mesh_bounding_box;
+    m_raw_mesh_bounding_box_valid     = rhs.m_raw_mesh_bounding_box_valid;
 
     this->clear_volumes();
     this->volumes.reserve(rhs.volumes.size());
@@ -604,6 +606,8 @@ ModelObject& ModelObject::assign_copy(ModelObject &&rhs)
     this->origin_translation          = std::move(rhs.origin_translation);
     m_bounding_box                    = std::move(rhs.m_bounding_box);
     m_bounding_box_valid              = std::move(rhs.m_bounding_box_valid);
+    m_raw_mesh_bounding_box           = rhs.m_raw_mesh_bounding_box;
+    m_raw_mesh_bounding_box_valid     = rhs.m_raw_mesh_bounding_box_valid;
 
     this->clear_volumes();
 	this->volumes = std::move(rhs.volumes);
@@ -783,19 +787,11 @@ void ModelObject::clear_instances()
 const BoundingBoxf3& ModelObject::bounding_box() const
 {
     if (! m_bounding_box_valid) {
-        BoundingBoxf3 raw_bbox;
-        for (const ModelVolume *v : this->volumes)
-            if (v->is_model_part())
-            {
-                TriangleMesh m = v->mesh;
-                m.transform(v->get_matrix());
-                raw_bbox.merge(m.bounding_box());
-            }
-        BoundingBoxf3 bb;
-        for (const ModelInstance *i : this->instances)
-            bb.merge(i->transform_bounding_box(raw_bbox));
-        m_bounding_box = bb;
         m_bounding_box_valid = true;
+        BoundingBoxf3 raw_bbox = this->raw_mesh_bounding_box();
+        m_bounding_box.reset();
+        for (const ModelInstance *i : this->instances)
+            m_bounding_box.merge(i->transform_bounding_box(raw_bbox));
     }
     return m_bounding_box;
 }
@@ -840,6 +836,26 @@ TriangleMesh ModelObject::full_raw_mesh() const
         mesh.merge(vol_mesh);
     }
     return mesh;
+}
+
+BoundingBoxf3 ModelObject::raw_mesh_bounding_box() const
+{
+    if (! m_raw_mesh_bounding_box_valid) {
+        m_raw_mesh_bounding_box_valid = true;
+        m_raw_mesh_bounding_box.reset();
+        for (const ModelVolume *v : this->volumes)
+            if (v->is_model_part())
+                m_raw_mesh_bounding_box.merge(v->mesh.transformed_bounding_box(v->get_matrix()));
+    }
+    return m_raw_mesh_bounding_box;
+}
+
+BoundingBoxf3 ModelObject::full_raw_mesh_bounding_box() const
+{
+	BoundingBoxf3 bb;
+	for (const ModelVolume *v : this->volumes)
+		bb.merge(v->mesh.transformed_bounding_box(v->get_matrix()));
+	return bb;
 }
 
 // A transformed snug bounding box around the non-modifier object volumes, without the translation applied.
@@ -895,20 +911,6 @@ BoundingBoxf3 ModelObject::instance_bounding_box(size_t instance_idx, bool dont_
     }
     return bb;
 }
-
-#if ENABLE_VOLUMES_CENTERING_FIXES
-BoundingBoxf3 ModelObject::full_raw_mesh_bounding_box() const
-{
-    BoundingBoxf3 bb;
-    for (const ModelVolume *v : this->volumes)
-    {
-        TriangleMesh vol_mesh(v->mesh);
-        vol_mesh.transform(v->get_matrix());
-        bb.merge(vol_mesh.bounding_box());
-    }
-    return bb;
-}
-#endif // ENABLE_VOLUMES_CENTERING_FIXES
 
 void ModelObject::center_around_origin()
 {

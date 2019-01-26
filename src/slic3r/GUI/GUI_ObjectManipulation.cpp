@@ -267,7 +267,7 @@ void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& sele
             bool changed_box = false;
             if (!m_cache.instance.matches_object(obj_idx))
             {
-                m_cache.instance.set(obj_idx, instance_idx, (*wxGetApp().model_objects())[obj_idx]->raw_mesh().bounding_box().size());
+                m_cache.instance.set(obj_idx, instance_idx, (*wxGetApp().model_objects())[obj_idx]->raw_mesh_bounding_box().size());
                 changed_box = true;
             }
             if (changed_box || !m_cache.instance.matches_instance(instance_idx) || !m_cache.scale.isApprox(100.0 * m_new_scale))
@@ -278,7 +278,7 @@ void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& sele
             m_new_size = Vec3d::Zero();
 #else
         if ((0 <= obj_idx) && (obj_idx < (int)wxGetApp().model_objects()->size()))
-            m_new_size = volume->get_instance_transformation().get_matrix(true, true) * (*wxGetApp().model_objects())[obj_idx]->raw_mesh().bounding_box().size();
+            m_new_size = volume->get_instance_transformation().get_matrix(true, true) * (*wxGetApp().model_objects())[obj_idx]->raw_mesh_bounding_box().size();
         else
             // this should never happen
             m_new_size = Vec3d::Zero();

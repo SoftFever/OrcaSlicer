@@ -408,6 +408,7 @@ private:
     Vec3d m_first_instance_mirror;
 
     std::vector<PlaneData> m_planes;
+    bool m_planes_valid = false;
     mutable Vec3d m_starting_center;
     const ModelObject* m_model_object = nullptr;
     std::vector<const Transform3d*> instances_matrices;
