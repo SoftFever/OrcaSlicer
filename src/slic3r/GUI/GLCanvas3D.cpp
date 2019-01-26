@@ -9,6 +9,7 @@
 #include "libslic3r/GCode/PreviewData.hpp"
 #include "libslic3r/Geometry.hpp"
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/Technologies.hpp"
 #include "slic3r/GUI/3DScene.hpp"
 #include "slic3r/GUI/BackgroundSlicingProcess.hpp"
 #include "slic3r/GUI/GLShader.hpp"
@@ -19,6 +20,10 @@
 #include "GUI_ObjectList.hpp"
 #include "GUI_ObjectManipulation.hpp"
 #include "I18N.hpp"
+
+#if ENABLE_RETINA_GL
+#include "slic3r/Utils/RetinaHelper.hpp"
+#endif
 
 #include <GL/glew.h>
 
@@ -45,6 +50,7 @@
 #include <iostream>
 #include <float.h>
 #include <algorithm>
+#include <cmath>
 
 static const float TRACKBALLSIZE = 0.8f;
 static const float GIMBALL_LOCK_THETA_MAX = 180.0f;
@@ -59,8 +65,6 @@ static const float VIEW_BOTTOM[2] = { 0.0f, 180.0f };
 static const float VIEW_FRONT[2] = { 0.0f, 90.0f };
 static const float VIEW_REAR[2] = { 180.0f, 90.0f };
 
-static const float VARIABLE_LAYER_THICKNESS_BAR_WIDTH = 70.0f;
-static const float VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT = 22.0f;
 static const float GIZMO_RESET_BUTTON_HEIGHT = 22.0f;
 static const float GIZMO_RESET_BUTTON_WIDTH = 70.f;
 
@@ -191,9 +195,10 @@ Size::Size()
 {
 }
 
-Size::Size(int width, int height)
+Size::Size(int width, int height, float scale_factor)
     : m_width(width)
     , m_height(height)
+    , m_scale_factor(scale_factor)
 {
 }
 
@@ -215,6 +220,16 @@ int Size::get_height() const
 void Size::set_height(int height)
 {
     m_height = height;
+}
+
+int Size::get_scale_factor() const
+{
+    return m_scale_factor;
+}
+
+void Size::set_scale_factor(int scale_factor)
+{
+    m_scale_factor = scale_factor;
 }
 
 Rect::Rect()
@@ -330,6 +345,7 @@ void GLCanvas3D::Camera::set_scene_box(const BoundingBoxf3& box, GLCanvas3D& can
 
 GLCanvas3D::Bed::Bed()
     : m_type(Custom)
+    , m_scale_factor(1.0f)
 {
 }
 
@@ -392,8 +408,10 @@ Point GLCanvas3D::Bed::point_projection(const Point& point) const
 }
 
 #if ENABLE_PRINT_BED_MODELS
-void GLCanvas3D::Bed::render(float theta, bool useVBOs) const
+void GLCanvas3D::Bed::render(float theta, bool useVBOs, float scale_factor) const
 {
+    m_scale_factor = scale_factor;
+
     switch (m_type)
     {
     case MK2:
@@ -420,8 +438,10 @@ void GLCanvas3D::Bed::render(float theta, bool useVBOs) const
     }
 }
 #else
-void GLCanvas3D::Bed::render(float theta) const
+void GLCanvas3D::Bed::render(float theta, float scale_factor) const
 {
+    m_scale_factor = scale_factor;
+
     switch (m_type)
     {
     case MK2:
@@ -675,7 +695,7 @@ void GLCanvas3D::Bed::_render_custom() const
 
         // we need depth test for grid, otherwise it would disappear when looking the object from below
         ::glEnable(GL_DEPTH_TEST);
-        ::glLineWidth(3.0f);
+        ::glLineWidth(3.0f * m_scale_factor);
         ::glColor4f(0.2f, 0.2f, 0.2f, 0.4f);
         ::glVertexPointer(3, GL_FLOAT, 0, (GLvoid*)m_gridlines.get_vertices());
         ::glDrawArrays(GL_LINES, 0, (GLsizei)gridlines_vcount);
@@ -873,6 +893,9 @@ GLCanvas3D::LayersEditing::~LayersEditing()
     delete m_slicing_parameters;
 }
 
+const float GLCanvas3D::LayersEditing::THICKNESS_BAR_WIDTH = 70.0f;
+const float GLCanvas3D::LayersEditing::THICKNESS_RESET_BUTTON_HEIGHT = 22.0f;
+
 bool GLCanvas3D::LayersEditing::init(const std::string& vertex_shader_filename, const std::string& fragment_shader_filename)
 {
     if (!m_shader.init(vertex_shader_filename, fragment_shader_filename))
@@ -993,7 +1016,7 @@ Rect GLCanvas3D::LayersEditing::get_bar_rect_screen(const GLCanvas3D& canvas)
     float w = (float)cnv_size.get_width();
     float h = (float)cnv_size.get_height();
 
-    return Rect(w - VARIABLE_LAYER_THICKNESS_BAR_WIDTH, 0.0f, w, h - VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT);
+    return Rect(w - thickness_bar_width(canvas), 0.0f, w, h - reset_button_height(canvas));
 }
 
 Rect GLCanvas3D::LayersEditing::get_reset_rect_screen(const GLCanvas3D& canvas)
@@ -1002,7 +1025,7 @@ Rect GLCanvas3D::LayersEditing::get_reset_rect_screen(const GLCanvas3D& canvas)
     float w = (float)cnv_size.get_width();
     float h = (float)cnv_size.get_height();
 
-    return Rect(w - VARIABLE_LAYER_THICKNESS_BAR_WIDTH, h - VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT, w, h);
+    return Rect(w - thickness_bar_width(canvas), h - reset_button_height(canvas), w, h);
 }
 
 Rect GLCanvas3D::LayersEditing::get_bar_rect_viewport(const GLCanvas3D& canvas)
@@ -1014,7 +1037,7 @@ Rect GLCanvas3D::LayersEditing::get_bar_rect_viewport(const GLCanvas3D& canvas)
     float zoom = canvas.get_camera_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
-    return Rect((half_w - VARIABLE_LAYER_THICKNESS_BAR_WIDTH) * inv_zoom, half_h * inv_zoom, half_w * inv_zoom, (-half_h + VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT) * inv_zoom);
+    return Rect((half_w - thickness_bar_width(canvas)) * inv_zoom, half_h * inv_zoom, half_w * inv_zoom, (-half_h + reset_button_height(canvas)) * inv_zoom);
 }
 
 Rect GLCanvas3D::LayersEditing::get_reset_rect_viewport(const GLCanvas3D& canvas)
@@ -1026,7 +1049,7 @@ Rect GLCanvas3D::LayersEditing::get_reset_rect_viewport(const GLCanvas3D& canvas
     float zoom = canvas.get_camera_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
-    return Rect((half_w - VARIABLE_LAYER_THICKNESS_BAR_WIDTH) * inv_zoom, (-half_h + VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT) * inv_zoom, half_w * inv_zoom, -half_h * inv_zoom);
+    return Rect((half_w - thickness_bar_width(canvas)) * inv_zoom, (-half_h + reset_button_height(canvas)) * inv_zoom, half_w * inv_zoom, -half_h * inv_zoom);
 }
 
 
@@ -1037,12 +1060,23 @@ bool GLCanvas3D::LayersEditing::_is_initialized() const
 
 void GLCanvas3D::LayersEditing::_render_tooltip_texture(const GLCanvas3D& canvas, const Rect& bar_rect, const Rect& reset_rect) const
 {
+    // TODO: do this with ImGui
+
     if (m_tooltip_texture.get_id() == 0)
     {
         std::string filename = resources_dir() + "/icons/variable_layer_height_tooltip.png";
         if (!m_tooltip_texture.load_from_file(filename, false))
             return;
     }
+
+#if ENABLE_RETINA_GL
+    const float scale = canvas.get_canvas_size().get_scale_factor();
+    const float width = (float)m_tooltip_texture.get_width() * scale;
+    const float height = (float)m_tooltip_texture.get_height() * scale;
+#else
+    const float width = (float)m_tooltip_texture.get_width();
+    const float height = (float)m_tooltip_texture.get_height();
+#endif
 
     float zoom = canvas.get_camera_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
@@ -1051,9 +1085,9 @@ void GLCanvas3D::LayersEditing::_render_tooltip_texture(const GLCanvas3D& canvas
     float bar_left = bar_rect.get_left();
     float reset_bottom = reset_rect.get_bottom();
 
-    float l = bar_left - (float)m_tooltip_texture.get_width() * inv_zoom - gap;
+    float l = bar_left - width * inv_zoom - gap;
     float r = bar_left - gap;
-    float t = reset_bottom + (float)m_tooltip_texture.get_height() * inv_zoom + gap;
+    float t = reset_bottom + height * inv_zoom + gap;
     float b = reset_bottom + gap;
 
     GLTexture::render_texture(m_tooltip_texture.get_id(), l, r, b, t);
@@ -1081,11 +1115,6 @@ void GLCanvas3D::LayersEditing::_render_active_object_annotations(const GLCanvas
     m_shader.set_uniform("z_cursor_band_width", band_width);
     // The shader requires the original model coordinates when rendering to the texture, so we pass it the unit matrix
     m_shader.set_uniform("volume_world_matrix", UNIT_MATRIX);
-
-	GLsizei w = (GLsizei)m_layers_texture.width;
-	GLsizei h = (GLsizei)m_layers_texture.height;
-    GLsizei half_w = w / 2;
-    GLsizei half_h = h / 2;
 
     ::glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     ::glBindTexture(GL_TEXTURE_2D, m_z_texture_id);
@@ -1267,6 +1296,25 @@ void GLCanvas3D::LayersEditing::update_slicing_parameters()
     }
 }
 
+float GLCanvas3D::LayersEditing::thickness_bar_width(const GLCanvas3D &canvas)
+{
+#if ENABLE_RETINA_GL
+    return canvas.get_canvas_size().get_scale_factor() * THICKNESS_BAR_WIDTH;
+#else
+    return THICKNESS_BAR_WIDTH;
+#endif
+}
+
+float GLCanvas3D::LayersEditing::reset_button_height(const GLCanvas3D &canvas)
+{
+#if ENABLE_RETINA_GL
+    return canvas.get_canvas_size().get_scale_factor() * THICKNESS_RESET_BUTTON_HEIGHT;
+#else
+    return THICKNESS_RESET_BUTTON_HEIGHT;
+#endif
+}
+
+
 const Point GLCanvas3D::Mouse::Drag::Invalid_2D_Point(INT_MAX, INT_MAX);
 const Vec3d GLCanvas3D::Mouse::Drag::Invalid_3D_Point(DBL_MAX, DBL_MAX, DBL_MAX);
 #if ENABLE_MOVE_MIN_THRESHOLD
@@ -1329,6 +1377,7 @@ GLCanvas3D::Selection::Selection()
     , m_valid(false)
     , m_bounding_box_dirty(true)
     , m_curved_arrow(16)
+    , m_scale_factor(1.0f)
 {
 #if ENABLE_RENDER_SELECTION_CENTER
     m_quadric = ::gluNewQuadric();
@@ -2115,10 +2164,12 @@ void GLCanvas3D::Selection::erase()
     }
 }
 
-void GLCanvas3D::Selection::render() const
+void GLCanvas3D::Selection::render(float scale_factor) const
 {
     if (!m_valid || is_empty())
         return;
+
+    m_scale_factor = scale_factor;
 
     // render cumulative bounding box of selected volumes
     _render_selected_volumes();
@@ -2564,7 +2615,7 @@ void GLCanvas3D::Selection::_render_bounding_box(const BoundingBoxf3& box, float
     ::glEnable(GL_DEPTH_TEST);
 
     ::glColor3fv(color);
-    ::glLineWidth(2.0f);
+    ::glLineWidth(2.0f * m_scale_factor);
 
     ::glBegin(GL_LINES);
 
@@ -2815,14 +2866,11 @@ void GLCanvas3D::Selection::_ensure_on_bed()
     }
 }
 
-const float GLCanvas3D::Gizmos::OverlayIconsScale = 1.0f;
-const float GLCanvas3D::Gizmos::OverlayBorder = 5.0f;
-const float GLCanvas3D::Gizmos::OverlayGapY = 5.0f * OverlayIconsScale;
-
 GLCanvas3D::Gizmos::Gizmos()
     : m_enabled(false)
     , m_current(Undefined)
 {
+    set_overlay_scale(1.0);
 }
 
 GLCanvas3D::Gizmos::~Gizmos()
@@ -2926,6 +2974,13 @@ void GLCanvas3D::Gizmos::set_enabled(bool enable)
     m_enabled = enable;
 }
 
+void GLCanvas3D::Gizmos::set_overlay_scale(float scale)
+{
+    m_overlay_icons_scale = scale;
+    m_overlay_border = 5.0f * scale;
+    m_overlay_gap_y = 5.0f * scale;
+}
+
 std::string GLCanvas3D::Gizmos::update_hover_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos, const GLCanvas3D::Selection& selection)
 {
     std::string name = "";
@@ -2935,22 +2990,22 @@ std::string GLCanvas3D::Gizmos::update_hover_state(const GLCanvas3D& canvas, con
 
     float cnv_h = (float)canvas.get_canvas_size().get_height();
     float height = _get_total_overlay_height();
-    float top_y = 0.5f * (cnv_h - height) + OverlayBorder;
+    float top_y = 0.5f * (cnv_h - height) + m_overlay_border;
     for (GizmosMap::iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
         if ((it->second == nullptr) || !it->second->is_selectable())
             continue;
 
-        float icon_size = (float)it->second->get_textures_size() * OverlayIconsScale;
+        float icon_size = (float)it->second->get_textures_size() * m_overlay_icons_scale;
 
-        bool inside = (OverlayBorder <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= OverlayBorder + icon_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + icon_size);
+        bool inside = (m_overlay_border <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= m_overlay_border + icon_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + icon_size);
         if (inside)
             name = it->second->get_name();
 
         if (it->second->is_activable(selection) && (it->second->get_state() != GLGizmoBase::On))
             it->second->set_state(inside ? GLGizmoBase::Hover : GLGizmoBase::Off);
 
-        top_y += (icon_size + OverlayGapY);
+        top_y += (icon_size + m_overlay_gap_y);
     }
 
     return name;
@@ -2963,15 +3018,15 @@ void GLCanvas3D::Gizmos::update_on_off_state(const GLCanvas3D& canvas, const Vec
 
     float cnv_h = (float)canvas.get_canvas_size().get_height();
     float height = _get_total_overlay_height();
-    float top_y = 0.5f * (cnv_h - height) + OverlayBorder;
+    float top_y = 0.5f * (cnv_h - height) + m_overlay_border;
     for (GizmosMap::iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
         if ((it->second == nullptr) || !it->second->is_selectable())
             continue;
 
-        float icon_size = (float)it->second->get_textures_size() * OverlayIconsScale;
+        float icon_size = (float)it->second->get_textures_size() * m_overlay_icons_scale;
 
-        bool inside = (OverlayBorder <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= OverlayBorder + icon_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + icon_size);
+        bool inside = (m_overlay_border <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= m_overlay_border + icon_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + icon_size);
         if (it->second->is_activable(selection) && inside)
         {
             if ((it->second->get_state() == GLGizmoBase::On))
@@ -2988,7 +3043,7 @@ void GLCanvas3D::Gizmos::update_on_off_state(const GLCanvas3D& canvas, const Vec
         else
             it->second->set_state(GLGizmoBase::Off);
 
-        top_y += (icon_size + OverlayGapY);
+        top_y += (icon_size + m_overlay_gap_y);
     }
 
     GizmosMap::iterator it = m_gizmos.find(m_current);
@@ -3060,18 +3115,18 @@ bool GLCanvas3D::Gizmos::overlay_contains_mouse(const GLCanvas3D& canvas, const 
 
     float cnv_h = (float)canvas.get_canvas_size().get_height();
     float height = _get_total_overlay_height();
-    float top_y = 0.5f * (cnv_h - height) + OverlayBorder;
+    float top_y = 0.5f * (cnv_h - height) + m_overlay_border;
     for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
         if ((it->second == nullptr) || !it->second->is_selectable())
             continue;
 
-        float icon_size = (float)it->second->get_textures_size() * OverlayIconsScale;
+        float icon_size = (float)it->second->get_textures_size() * m_overlay_icons_scale;
 
-        if ((OverlayBorder <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= OverlayBorder + icon_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + icon_size))
+        if ((m_overlay_border <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= m_overlay_border + icon_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + icon_size))
             return true;
 
-        top_y += (icon_size + OverlayGapY);
+        top_y += (icon_size + m_overlay_gap_y);
     }
 
     return false;
@@ -3344,7 +3399,7 @@ void GLCanvas3D::Gizmos::_render_overlay(const GLCanvas3D& canvas, const GLCanva
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
     float height = _get_total_overlay_height();
-    float scaled_border = OverlayBorder * inv_zoom;
+    float scaled_border = m_overlay_border * inv_zoom;
 
     float top_x = (-0.5f * cnv_w) * inv_zoom;
     float top_y = (0.5f * height) * inv_zoom;
@@ -3389,7 +3444,7 @@ void GLCanvas3D::Gizmos::_render_overlay(const GLCanvas3D& canvas, const GLCanva
         bg_uv_left = bg_uv_i_left;
         bg_i_left = bg_left;
 
-        if ((OverlayBorder > 0) && (bg_uv_top != bg_uv_i_top))
+        if ((m_overlay_border > 0) && (bg_uv_top != bg_uv_i_top))
         {
             if (bg_uv_left != bg_uv_i_left)
                 GLTexture::render_sub_texture(bg_tex_id, bg_left, bg_i_left, bg_i_top, bg_top, { { bg_uv_left, bg_uv_i_top }, { bg_uv_i_left, bg_uv_i_top }, { bg_uv_i_left, bg_uv_top }, { bg_uv_left, bg_uv_top } });
@@ -3400,15 +3455,15 @@ void GLCanvas3D::Gizmos::_render_overlay(const GLCanvas3D& canvas, const GLCanva
                 GLTexture::render_sub_texture(bg_tex_id, bg_i_right, bg_right, bg_i_top, bg_top, { { bg_uv_i_right, bg_uv_i_top }, { bg_uv_right, bg_uv_i_top }, { bg_uv_right, bg_uv_top }, { bg_uv_i_right, bg_uv_top } });
         }
 
-        if ((OverlayBorder > 0) && (bg_uv_left != bg_uv_i_left))
+        if ((m_overlay_border > 0) && (bg_uv_left != bg_uv_i_left))
             GLTexture::render_sub_texture(bg_tex_id, bg_left, bg_i_left, bg_i_bottom, bg_i_top, { { bg_uv_left, bg_uv_i_bottom }, { bg_uv_i_left, bg_uv_i_bottom }, { bg_uv_i_left, bg_uv_i_top }, { bg_uv_left, bg_uv_i_top } });
 
         GLTexture::render_sub_texture(bg_tex_id, bg_i_left, bg_i_right, bg_i_bottom, bg_i_top, { { bg_uv_i_left, bg_uv_i_bottom }, { bg_uv_i_right, bg_uv_i_bottom }, { bg_uv_i_right, bg_uv_i_top }, { bg_uv_i_left, bg_uv_i_top } });
 
-        if ((OverlayBorder > 0) && (bg_uv_right != bg_uv_i_right))
+        if ((m_overlay_border > 0) && (bg_uv_right != bg_uv_i_right))
             GLTexture::render_sub_texture(bg_tex_id, bg_i_right, bg_right, bg_i_bottom, bg_i_top, { { bg_uv_i_right, bg_uv_i_bottom }, { bg_uv_right, bg_uv_i_bottom }, { bg_uv_right, bg_uv_i_top }, { bg_uv_i_right, bg_uv_i_top } });
 
-        if ((OverlayBorder > 0) && (bg_uv_bottom != bg_uv_i_bottom))
+        if ((m_overlay_border > 0) && (bg_uv_bottom != bg_uv_i_bottom))
         {
             if (bg_uv_left != bg_uv_i_left)
                 GLTexture::render_sub_texture(bg_tex_id, bg_left, bg_i_left, bg_bottom, bg_i_bottom, { { bg_uv_left, bg_uv_bottom }, { bg_uv_i_left, bg_uv_bottom }, { bg_uv_i_left, bg_uv_i_bottom }, { bg_uv_left, bg_uv_i_bottom } });
@@ -3420,19 +3475,19 @@ void GLCanvas3D::Gizmos::_render_overlay(const GLCanvas3D& canvas, const GLCanva
         }
     }
 
-    top_x += OverlayBorder * inv_zoom;
-    top_y -= OverlayBorder * inv_zoom;
-    float scaled_gap_y = OverlayGapY * inv_zoom;
+    top_x += m_overlay_border * inv_zoom;
+    top_y -= m_overlay_border * inv_zoom;
+    float scaled_gap_y = m_overlay_gap_y * inv_zoom;
     for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
         if ((it->second == nullptr) || !it->second->is_selectable())
             continue;
 
-        float icon_size = (float)it->second->get_textures_size() * OverlayIconsScale * inv_zoom;
+        float icon_size = (float)it->second->get_textures_size() * m_overlay_icons_scale * inv_zoom;
         GLTexture::render_texture(it->second->get_texture_id(), top_x, top_x + icon_size, top_y - icon_size, top_y);
 #if ENABLE_IMGUI
         if (it->second->get_state() == GLGizmoBase::On)
-            it->second->render_input_window(2.0f * OverlayBorder + icon_size * zoom, 0.5f * cnv_h - top_y * zoom, selection);
+            it->second->render_input_window(2.0f * m_overlay_border + icon_size * zoom, 0.5f * cnv_h - top_y * zoom, selection);
 #endif // ENABLE_IMGUI
         top_y -= (icon_size + scaled_gap_y);
     }
@@ -3447,17 +3502,17 @@ void GLCanvas3D::Gizmos::_render_current_gizmo(const GLCanvas3D::Selection& sele
 
 float GLCanvas3D::Gizmos::_get_total_overlay_height() const
 {
-    float height = 2.0f * OverlayBorder;
+    float height = 2.0f * m_overlay_border;
 
     for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
         if ((it->second == nullptr) || !it->second->is_selectable())
             continue;
 
-        height += (float)it->second->get_textures_size() * OverlayIconsScale + OverlayGapY;
+        height += (float)it->second->get_textures_size() * m_overlay_icons_scale + m_overlay_gap_y;
     }
 
-    return height - OverlayGapY;
+    return height - m_overlay_gap_y;
 }
 
 float GLCanvas3D::Gizmos::_get_total_overlay_width() const
@@ -3468,10 +3523,10 @@ float GLCanvas3D::Gizmos::_get_total_overlay_width() const
         if ((it->second == nullptr) || !it->second->is_selectable())
             continue;
 
-        max_icon_width = std::max(max_icon_width, (float)it->second->get_textures_size() * OverlayIconsScale);
+        max_icon_width = std::max(max_icon_width, (float)it->second->get_textures_size() * m_overlay_icons_scale);
     }
 
-    return max_icon_width + 2.0f * OverlayBorder;
+    return max_icon_width + 2.0f * m_overlay_border;
 }
 
 GLGizmoBase* GLCanvas3D::Gizmos::_get_current() const
@@ -3490,7 +3545,7 @@ GLCanvas3D::WarningTexture::WarningTexture()
 {
 }
 
-bool GLCanvas3D::WarningTexture::generate(const std::string& msg)
+bool GLCanvas3D::WarningTexture::generate(const std::string& msg, const GLCanvas3D& canvas)
 {
     reset();
 
@@ -3499,7 +3554,8 @@ bool GLCanvas3D::WarningTexture::generate(const std::string& msg)
 
     wxMemoryDC memDC;
     // select default font
-    wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+    const float scale = canvas.get_canvas_size().get_scale_factor();
+    wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Scale(scale);
     font.MakeLarger();
     font.MakeBold();
     memDC.SetFont(font);
@@ -3647,9 +3703,18 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
     wxMemoryDC memDC;
     wxMemoryDC mask_memDC;
 
+    // calculate scaling
+    const float scale = canvas.get_canvas_size().get_scale_factor();
+    const int scaled_square = std::floor((float)Px_Square * scale);
+    const int scaled_title_offset = Px_Title_Offset * scale;
+    const int scaled_text_offset = Px_Text_Offset * scale;
+    const int scaled_square_contour = Px_Square_Contour * scale;
+    const int scaled_border = Px_Border * scale;
+
     // select default font
-    memDC.SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
-    mask_memDC.SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
+    const wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Scale(scale);
+    memDC.SetFont(font);
+    mask_memDC.SetFont(font);
 
     // calculates texture size
     wxCoord w, h;
@@ -3666,10 +3731,10 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
         max_text_height = std::max(max_text_height, (int)h);
     }
 
-    m_original_width = std::max(2 * Px_Border + title_width, 2 * (Px_Border + Px_Square_Contour) + Px_Square + Px_Text_Offset + max_text_width);
-    m_original_height = 2 * (Px_Border + Px_Square_Contour) + title_height + Px_Title_Offset + items_count * Px_Square;
+    m_original_width = std::max(2 * scaled_border + title_width, 2 * (scaled_border + scaled_square_contour) + scaled_square + scaled_text_offset + max_text_width);
+    m_original_height = 2 * (scaled_border + scaled_square_contour) + title_height + scaled_title_offset + items_count * scaled_square;
     if (items_count > 1)
-        m_original_height += (items_count - 1) * Px_Square_Contour;
+        m_original_height += (items_count - 1) * scaled_square_contour;
 
     int pow_of_two_size = (int)next_highest_power_of_2(std::max<uint32_t>(m_original_width, m_original_height));
 
@@ -3693,8 +3758,8 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
     memDC.SetTextForeground(use_error_colors ? *wxWHITE : *wxBLACK);
     mask_memDC.SetTextForeground(*wxWHITE);
 
-    int title_x = Px_Border;
-    int title_y = Px_Border;
+    int title_x = scaled_border;
+    int title_y = scaled_border;
     memDC.DrawText(title, title_x, title_y);
     mask_memDC.DrawText(title, title_x, title_y);
 
@@ -3702,12 +3767,12 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
     mask_memDC.SetBrush(wxBrush(*wxWHITE));
 
     // draw icons contours as background
-    int squares_contour_x = Px_Border;
-    int squares_contour_y = Px_Border + title_height + Px_Title_Offset;
-    int squares_contour_width = Px_Square + 2 * Px_Square_Contour;
-    int squares_contour_height = items_count * Px_Square + 2 * Px_Square_Contour;
+    int squares_contour_x = scaled_border;
+    int squares_contour_y = scaled_border + title_height + scaled_title_offset;
+    int squares_contour_width = scaled_square + 2 * scaled_square_contour;
+    int squares_contour_height = items_count * scaled_square + 2 * scaled_square_contour;
     if (items_count > 1)
-        squares_contour_height += (items_count - 1) * Px_Square_Contour;
+        squares_contour_height += (items_count - 1) * scaled_square_contour;
 
     wxColour color(Squares_Border_Color[0], Squares_Border_Color[1], Squares_Border_Color[2]);
     wxPen pen(color);
@@ -3718,15 +3783,15 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
     mask_memDC.DrawRectangle(wxRect(squares_contour_x, squares_contour_y, squares_contour_width, squares_contour_height));
 
     // draw items (colored icon + text)
-    int icon_x = squares_contour_x + Px_Square_Contour;
+    int icon_x = squares_contour_x + scaled_square_contour;
     int icon_x_inner = icon_x + 1;
-    int icon_y = squares_contour_y + Px_Square_Contour;
-    int icon_y_step = Px_Square + Px_Square_Contour;
+    int icon_y = squares_contour_y + scaled_square_contour;
+    int icon_y_step = scaled_square + scaled_square_contour;
 
-    int text_x = icon_x + Px_Square + Px_Text_Offset;
-    int text_y_offset = (Px_Square - max_text_height) / 2;
+    int text_x = icon_x + scaled_square + scaled_text_offset;
+    int text_y_offset = (scaled_square - max_text_height) / 2;
 
-    int px_inner_square = Px_Square - 2;
+    int px_inner_square = scaled_square - 2;
 
     for (const GCodePreviewData::LegendItem& item : items)
     {
@@ -3740,7 +3805,7 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
         brush.SetColour(color);
         memDC.SetPen(pen);
         memDC.SetBrush(brush);
-        memDC.DrawRectangle(wxRect(icon_x, icon_y, Px_Square, Px_Square));
+        memDC.DrawRectangle(wxRect(icon_x, icon_y, scaled_square, scaled_square));
 
         // draw icon interior
         color.Set(item_color_bytes[0], item_color_bytes[1], item_color_bytes[2], item_color_bytes[3]);
@@ -3849,6 +3914,9 @@ wxDEFINE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, SimpleEvent);
 GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     : m_canvas(canvas)
     , m_context(nullptr)
+#if ENABLE_RETINA_GL
+    , m_retina_helper(nullptr)
+#endif
     , m_in_render(false)
     , m_toolbar(GLToolbar::Normal)
     , m_view_toolbar(nullptr)
@@ -3882,8 +3950,12 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     , m_external_gizmo_widgets_parent(nullptr)
 #endif // not ENABLE_IMGUI
 {
-    if (m_canvas != nullptr)
+    if (m_canvas != nullptr) {
         m_timer.SetOwner(m_canvas);
+#if ENABLE_RETINA_GL
+        m_retina_helper.reset(new RetinaHelper(canvas));
+#endif
+    }
 
     m_selection.set_volumes(&m_volumes.volumes);
 }
@@ -5010,6 +5082,12 @@ void GLCanvas3D::on_timer(wxTimerEvent& evt)
 
 void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 {
+#if ENABLE_RETINA_GL
+    const float scale = m_retina_helper->get_scale_factor();
+    evt.SetX(evt.GetX() * scale);
+    evt.SetY(evt.GetY() * scale);
+#endif
+
 #if ENABLE_IMGUI
     auto imgui = wxGetApp().imgui();
     if (imgui->update_mouse_data(evt)) {
@@ -5232,7 +5310,13 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                             wxGetApp().obj_manipul()->update_settings_value(m_selection);
                             // forces a frame render to update the view before the context menu is shown
                             render();
-                            post_event(Vec2dEvent(EVT_GLCANVAS_RIGHT_CLICK, pos.cast<double>()));
+
+                            Vec2d logical_pos = pos.cast<double>();
+#if ENABLE_RETINA_GL
+                            const float factor = m_retina_helper->get_scale_factor();
+                            logical_pos = logical_pos.cwiseQuotient(Vec2d(factor, factor));
+#endif
+                            post_event(Vec2dEvent(EVT_GLCANVAS_RIGHT_CLICK, logical_pos));
                         }
                     }
                 }
@@ -5498,7 +5582,15 @@ Size GLCanvas3D::get_canvas_size() const
     if (m_canvas != nullptr)
         m_canvas->GetSize(&w, &h);
 
-    return Size(w, h);
+#if ENABLE_RETINA_GL
+    const float factor = m_retina_helper->get_scale_factor();
+    w *= factor;
+    h *= factor;
+#else
+    const float factor = 1.0;
+#endif
+
+    return Size(w, h, factor);
 }
 
 Point GLCanvas3D::get_local_mouse_position() const
@@ -5805,6 +5897,26 @@ void GLCanvas3D::handle_sidebar_focus_event(const std::string& opt_key, bool foc
     }
 }
 
+void GLCanvas3D::update_ui_from_settings()
+{
+#if ENABLE_RETINA_GL
+    const float orig_scaling = m_retina_helper->get_scale_factor();
+
+    const bool use_retina = wxGetApp().app_config->get("use_retina_opengl") == "1";
+    BOOST_LOG_TRIVIAL(debug) << "GLCanvas3D: Use Retina OpenGL: " << use_retina;
+    m_retina_helper->set_use_retina(use_retina);
+    const float new_scaling = m_retina_helper->get_scale_factor();
+
+    if (new_scaling != orig_scaling) {
+        BOOST_LOG_TRIVIAL(debug) << "GLCanvas3D: Scaling factor: " << new_scaling;
+
+        m_camera.zoom /= orig_scaling;
+        m_camera.zoom *= new_scaling;
+        _refresh_if_shown_on_screen();
+    }
+#endif
+}
+
 bool GLCanvas3D::_is_shown_on_screen() const
 {
     return (m_canvas != nullptr) ? m_canvas->IsShownOnScreen() : false;
@@ -5958,6 +6070,9 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
 
 #if ENABLE_IMGUI
     wxGetApp().imgui()->set_display_size((float)w, (float)h);
+#if ENABLE_RETINA_GL
+    wxGetApp().imgui()->set_style_scaling(m_retina_helper->get_scale_factor());
+#endif // ENABLE_RETINA_GL
 #endif // ENABLE_IMGUI
 
     // ensures that this canvas is current
@@ -6238,10 +6353,15 @@ void GLCanvas3D::_render_background() const
 
 void GLCanvas3D::_render_bed(float theta) const
 {
+    float scale_factor = 1.0;
+#if ENABLE_RETINA_GL
+    scale_factor = m_retina_helper->get_scale_factor();
+#endif
+
 #if ENABLE_PRINT_BED_MODELS
-    m_bed.render(theta, m_use_VBOs);
+    m_bed.render(theta, m_use_VBOs, scale_factor);
 #else
-    m_bed.render(theta);
+    m_bed.render(theta, scale_factor);
 #endif // ENABLE_PRINT_BED_MODELS
 }
 
@@ -6320,8 +6440,13 @@ void GLCanvas3D::_render_objects() const
 
 void GLCanvas3D::_render_selection() const
 {
+    float scale_factor = 1.0;
+#if ENABLE_RETINA_GL
+    scale_factor = m_retina_helper->get_scale_factor();
+#endif
+
     if (!m_gizmos.is_running())
-        m_selection.render();
+        m_selection.render(scale_factor);
 }
 
 #if ENABLE_RENDER_SELECTION_CENTER
@@ -6404,18 +6529,28 @@ void GLCanvas3D::_render_current_gizmo() const
 
 void GLCanvas3D::_render_gizmos_overlay() const
 {
+#if ENABLE_RETINA_GL
+    m_gizmos.set_overlay_scale(m_retina_helper->get_scale_factor());
+#endif
     m_gizmos.render_overlay(*this, m_selection);
 }
 
 void GLCanvas3D::_render_toolbar() const
 {
+#if ENABLE_RETINA_GL
+    m_toolbar.set_icons_scale(m_retina_helper->get_scale_factor());
+#endif
     m_toolbar.render(*this);
 }
 
 void GLCanvas3D::_render_view_toolbar() const
 {
-    if (m_view_toolbar != nullptr)
+    if (m_view_toolbar != nullptr) {
+#if ENABLE_RETINA_GL
+        m_view_toolbar->set_icons_scale(m_retina_helper->get_scale_factor());
+#endif
         m_view_toolbar->render(*this);
+    }
 }
 
 #if ENABLE_SHOW_CAMERA_TARGET
@@ -8116,7 +8251,7 @@ void GLCanvas3D::_generate_legend_texture(const GCodePreviewData& preview_data, 
 
 void GLCanvas3D::_generate_warning_texture(const std::string& msg)
 {
-    m_warning_texture.generate(msg);
+    m_warning_texture.generate(msg, *this);
 }
 
 void GLCanvas3D::_reset_warning_texture()
@@ -8140,6 +8275,10 @@ void GLCanvas3D::_resize_toolbars() const
     Size cnv_size = get_canvas_size();
     float zoom = get_camera_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+
+#if ENABLE_RETINA_GL
+    m_toolbar.set_icons_scale(m_retina_helper->get_scale_factor());
+#endif
 
     GLToolbar::Layout::EOrientation orientation = m_toolbar.get_layout_orientation();
 
@@ -8184,6 +8323,10 @@ void GLCanvas3D::_resize_toolbars() const
 
     if (m_view_toolbar != nullptr)
     {
+#if ENABLE_RETINA_GL
+        m_view_toolbar->set_icons_scale(m_retina_helper->get_scale_factor());
+#endif
+
         // places the toolbar on the bottom-left corner of the 3d scene
         float top = (-0.5f * (float)cnv_size.get_height() + m_view_toolbar->get_height()) * inv_zoom;
         float left = -0.5f * (float)cnv_size.get_width() * inv_zoom;
