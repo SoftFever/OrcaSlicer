@@ -4310,9 +4310,6 @@ void GLCanvas3D::set_viewport_from_scene(const GLCanvas3D& other)
     m_camera.set_scene_box(other.m_camera.get_scene_box(), *this);
     m_camera.set_target(other.m_camera.get_target(), *this);
     m_camera.zoom = other.m_camera.zoom;
-#if ENABLE_REWORKED_BED_SHAPE_CHANGE
-    m_requires_zoom_to_bed = false;
-#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
     m_dirty = true;
 }
 
