@@ -1,13 +1,3 @@
-#if 1
-#pragma optimize("", off)
-// Enable debugging and assert in this file.
-#define DEBUG
-#define _DEBUG
-#undef NDEBUG
-#endif
-
-#include <assert.h>
-
 #include "slic3r/GUI/GLGizmo.hpp"
 #include "GLCanvas3D.hpp"
 
@@ -4607,7 +4597,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         }
         if (printer_technology == ptSLA) {
             const SLAPrint *sla_print = this->sla_print();
-		#if 0 // #ifdef _DEBUG
+		#ifdef _DEBUG
             // Verify that the SLAPrint object is synchronized with m_model.
             check_model_ids_equal(*m_model, sla_print->model());
         #endif /* _DEBUG */
