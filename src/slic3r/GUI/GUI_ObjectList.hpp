@@ -25,6 +25,11 @@ class ModelVolume;
 // FIXME: broken build on mac os because of this is missing:
 typedef std::vector<std::string>    t_config_option_keys;
 
+typedef std::map<std::string, std::vector<std::string>> FreqSettingsBundle;
+
+//				  category ->		vector 			 ( option	;  label )
+typedef std::map< std::string, std::vector< std::pair<std::string, std::string> > > settings_menu_hierarchy;
+
 namespace GUI {
 
 wxDECLARE_EVENT(EVT_OBJ_LIST_OBJECT_SELECT, SimpleEvent);
@@ -128,6 +133,11 @@ class ObjectList : public wxDataViewCtrl
     bool        m_part_settings_changed = false;
 
     int         m_selected_row = 0;
+
+#if 0
+    FreqSettingsBundle m_freq_settings_fff;
+    FreqSettingsBundle m_freq_settings_sla;
+#endif
 
 public:
     ObjectList(wxWindow* parent);
@@ -264,6 +274,10 @@ private:
 
     void ItemValueChanged(wxDataViewEvent &event);
     void OnEditingDone(wxDataViewEvent &event);
+
+    std::vector<std::string>        get_options(const bool is_part);
+    const std::vector<std::string>& get_options_for_bundle(const wxString& bundle_name);
+    void                            get_options_menu(settings_menu_hierarchy& settings_menu, const bool is_part);
 };
 
 
