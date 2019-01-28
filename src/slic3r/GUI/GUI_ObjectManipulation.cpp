@@ -39,19 +39,13 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
             change_rotation_value(new_value);
         else if (param == "scale")
 #if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
-        {
             change_scale_value(new_value);
-            update_settings_value(wxGetApp().plater()->canvas3D()->get_selection());
-        }
 #else
             change_scale_value(new_value);
 #endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
         else if (param == "size")
 #if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
-        {
             change_size_value(new_value);
-            update_settings_value(wxGetApp().plater()->canvas3D()->get_selection());
-        }
 #else
             change_size_value(new_value);
 #endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
@@ -548,18 +542,16 @@ void ObjectManipulation::change_size_value(const Vec3d& size)
 {
     const GLCanvas3D::Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
 
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     Vec3d ref_size = m_cache.size;
-#else
-    Vec3d ref_size = m_cache_size;
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
-    if (selection.is_single_full_instance())
+#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
+    if (selection.is_single_volume() || selection.is_single_modifier())
     {
         const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
         ref_size = volume->bounding_box.size();
     }
+    else if (selection.is_single_full_instance())
+        ref_size = m_cache.instance.box_size;
 
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     Vec3d scale = 100.0 * Vec3d(size(0) / ref_size(0), size(1) / ref_size(1), size(2) / ref_size(2));
     Vec3d scaling_factor = scale;
 
@@ -590,6 +582,12 @@ void ObjectManipulation::change_size_value(const Vec3d& size)
 
     m_cache.size = size;
 #else
+    if (selection.is_single_full_instance())
+    {
+        const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
+        ref_size = volume->bounding_box.size();
+    }
+
     change_scale_value(100.0 * Vec3d(size(0) / ref_size(0), size(1) / ref_size(1), size(2) / ref_size(2)));
 #endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 }
