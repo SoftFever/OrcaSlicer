@@ -626,7 +626,8 @@ const std::vector<std::string>& ObjectList::get_options_for_bundle(const wxStrin
     }
 #endif
 
-    return std::vector<std::string> {};
+	static std::vector<std::string> empty;
+	return empty;
 }
 
 void ObjectList::get_options_menu(settings_menu_hierarchy& settings_menu, const bool is_part)
@@ -1370,15 +1371,12 @@ bool ObjectList::is_splittable()
     if (!get_volume_by_item(item, volume) || !volume)
         return false;
 
-    if (volume->is_splittable() != -1) // if is_splittable value is already known
-        return volume->is_splittable() == 0 ? false : true;
-
-    TriangleMeshPtrs meshptrs = volume->mesh.split();
-    bool splittable = meshptrs.size() > 1;
-    for (TriangleMesh* m : meshptrs) { delete m; }
-
-    volume->set_splittable(splittable ? 1 : 0);
-    return splittable;
+	int splittable = volume->is_splittable();
+	if (splittable == -1) {
+		splittable = (int)volume->mesh.has_multiple_patches();
+		volume->set_splittable(splittable);
+	}
+    return splittable != 0;
 }
 
 bool ObjectList::selected_instances_of_same_object()

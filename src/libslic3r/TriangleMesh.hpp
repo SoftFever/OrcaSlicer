@@ -60,7 +60,7 @@ public:
     Polygon convex_hull();
     BoundingBoxf3 bounding_box() const;
     // Returns the bbox of this TriangleMesh transformed by the given transformation
-    BoundingBoxf3 transformed_bounding_box(const Transform3d& t) const;
+    BoundingBoxf3 transformed_bounding_box(const Transform3d &trafo) const;
     // Returns the convex hull of this TriangleMesh
     TriangleMesh convex_hull_3d() const;
     void reset_repair_stats();

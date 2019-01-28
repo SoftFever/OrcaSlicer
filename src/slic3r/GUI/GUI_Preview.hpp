@@ -109,6 +109,7 @@ public:
     virtual ~Preview();
 
     wxGLCanvas* get_wxglcanvas() { return m_canvas_widget; }
+    GLCanvas3D* get_canvas3d() { return m_canvas; }
 
     void set_view_toolbar(GLToolbar* toolbar);
 

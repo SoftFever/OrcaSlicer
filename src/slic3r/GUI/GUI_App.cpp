@@ -270,16 +270,11 @@ void GUI_App::set_label_clr_sys(const wxColour& clr) {
 
 void GUI_App::recreate_GUI()
 {
-    std::cerr << "recreate_GUI" << std::endl;
+    // to make sure nobody accesses data from the soon-to-be-destroyed widgets:
+    tabs_list.clear();
+    plater_ = nullptr;
 
-    clear_tabs_list();
-    if (plater_) {
-        // before creating a new plater let's delete old one
-        plater_->Destroy();
-        plater_ = nullptr;
-    }
-
-    MainFrame* topwindow = dynamic_cast<MainFrame*>(GetTopWindow());
+    MainFrame* topwindow = mainframe;
     mainframe = new MainFrame();
     sidebar().obj_list()->init_objects(); // propagate model objects to object list
 
@@ -689,15 +684,6 @@ void GUI_App::load_current_presets()
 				static_cast<TabPrinter*>(tab)->update_pages();
 			tab->load_current_preset();
 		}
-}
-
-void GUI_App::clear_tabs_list()
-{  
-    for (auto tab : tabs_list) {
-        tab->Destroy();
-        tab = nullptr;
-    }
-    tabs_list.clear();
 }
 
 #ifdef __APPLE__

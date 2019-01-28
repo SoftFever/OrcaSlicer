@@ -2,7 +2,9 @@
 #define slic3r_GLCanvas3D_hpp_
 
 #include <stddef.h>
+#include <memory>
 
+#include "libslic3r/Technologies.hpp"
 #include "3DScene.hpp"
 #include "GLToolbar.hpp"
 #include "Event.hpp"
@@ -20,6 +22,9 @@ class wxTimerEvent;
 class wxPaintEvent;
 class wxGLCanvas;
 
+// Support for Retina OpenGL on Mac OS
+#define ENABLE_RETINA_GL __APPLE__
+
 class GLUquadric;
 typedef class GLUquadric GLUquadricObj;
 
@@ -35,6 +40,10 @@ enum LayerHeightEditActionType : unsigned int;
 namespace GUI {
 
 class GLGizmoBase;
+
+#if ENABLE_RETINA_GL
+class RetinaHelper;
+#endif
 
 class GeometryBuffer
 {
@@ -55,16 +64,20 @@ class Size
 {
     int m_width;
     int m_height;
+    float m_scale_factor;
 
 public:
     Size();
-    Size(int width, int height);
+    Size(int width, int height, float scale_factor = 1.0);
 
     int get_width() const;
     void set_width(int width);
 
     int get_height() const;
     void set_height(int height);
+
+    int get_scale_factor() const;
+    void set_scale_factor(int height);
 };
 
 class Rect
@@ -209,6 +222,8 @@ class GLCanvas3D
         mutable GLBed m_model;
 #endif // ENABLE_PRINT_BED_MODELS
 
+        mutable float m_scale_factor;
+
     public:
         Bed();
 
@@ -224,9 +239,9 @@ class GLCanvas3D
         Point point_projection(const Point& point) const;
 
 #if ENABLE_PRINT_BED_MODELS
-        void render(float theta, bool useVBOs) const;
+        void render(float theta, bool useVBOs, float scale_factor) const;
 #else
-        void render(float theta) const;
+        void render(float theta, float scale_factor) const;
 #endif // ENABLE_PRINT_BED_MODELS
 
     private:
@@ -297,6 +312,9 @@ class GLCanvas3D
         };
 
     private:
+        static const float THICKNESS_BAR_WIDTH;
+        static const float THICKNESS_RESET_BUTTON_HEIGHT;
+
         bool                        m_use_legacy_opengl;
         bool                        m_enabled;
         Shader                      m_shader;
@@ -380,6 +398,9 @@ class GLCanvas3D
         void _render_active_object_annotations(const GLCanvas3D& canvas, const Rect& bar_rect) const;
         void _render_profile(const Rect& bar_rect) const;
         void update_slicing_parameters();
+
+        static float thickness_bar_width(const GLCanvas3D &canvas);
+        static float reset_button_height(const GLCanvas3D &canvas);
     };
 
     struct Mouse
@@ -536,6 +557,8 @@ public:
         mutable GLArrow m_arrow;
         mutable GLCurvedArrow m_curved_arrow;
 
+        mutable float m_scale_factor;
+
     public:
         Selection();
 #if ENABLE_RENDER_SELECTION_CENTER
@@ -617,7 +640,7 @@ public:
 
         void erase();
 
-        void render() const;
+        void render(float scale_factor = 1.0) const;
 #if ENABLE_RENDER_SELECTION_CENTER
         void render_center() const;
 #endif // ENABLE_RENDER_SELECTION_CENTER
@@ -647,7 +670,15 @@ public:
         void _render_sidebar_rotation_hint(Axis axis) const;
         void _render_sidebar_scale_hint(Axis axis) const;
         void _render_sidebar_size_hint(Axis axis, double length) const;
-        void _synchronize_unselected_instances(bool including_z = false);
+		enum SyncRotationType {
+			// Do not synchronize rotation. Either not rotating at all, or rotating by world Z axis.
+			SYNC_ROTATION_NONE = 0,
+			// Synchronize fully. Used from "place on bed" feature.
+			SYNC_ROTATION_FULL = 1,
+			// Synchronize after rotation by an axis not parallel with Z.
+			SYNC_ROTATION_GENERAL = 2,
+		};
+        void _synchronize_unselected_instances(SyncRotationType sync_rotation_type);
         void _synchronize_unselected_volumes();
         void _ensure_on_bed();
     };
@@ -680,10 +711,6 @@ public:
 private:
     class Gizmos
     {
-        static const float OverlayIconsScale;
-        static const float OverlayBorder;
-        static const float OverlayGapY;
-
     public:
         enum EType : unsigned char
         {
@@ -704,6 +731,10 @@ private:
         BackgroundTexture m_background_texture;
         EType m_current;
 
+        float m_overlay_icons_scale;
+        float m_overlay_border;
+        float m_overlay_gap_y;
+
     public:
         Gizmos();
         ~Gizmos();
@@ -712,6 +743,8 @@ private:
 
         bool is_enabled() const;
         void set_enabled(bool enable);
+
+        void set_overlay_scale(float scale);
 
         std::string update_hover_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos, const Selection& selection);
         void update_on_off_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos, const Selection& selection);
@@ -802,7 +835,7 @@ private:
     public:
         WarningTexture();
 
-        bool generate(const std::string& msg);
+        bool generate(const std::string& msg, const GLCanvas3D& canvas);
 
         void render(const GLCanvas3D& canvas) const;
     };
@@ -832,6 +865,9 @@ private:
 
     wxGLCanvas* m_canvas;
     wxGLContext* m_context;
+#if ENABLE_RETINA_GL
+    std::unique_ptr<RetinaHelper> m_retina_helper;
+#endif
     bool m_in_render;
     LegendTexture m_legend_texture;
     WarningTexture m_warning_texture;
@@ -1029,6 +1065,8 @@ public:
     void viewport_changed();
 
     void handle_sidebar_focus_event(const std::string& opt_key, bool focus_on);
+
+    void update_ui_from_settings();
 
 private:
     bool _is_shown_on_screen() const;

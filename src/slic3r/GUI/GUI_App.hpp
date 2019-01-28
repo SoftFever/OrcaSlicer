@@ -134,7 +134,6 @@ public:
     bool            check_unsaved_changes();
     bool            checked_tab(Tab* tab);
     void            load_current_presets();
-    void            clear_tabs_list();
 
 #ifdef __APPLE__
     // wxWidgets override to get an event on open files.

@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.6)
 
 include(PrecompiledHeader)
 
-add_library(libslic3r_gui STATIC
+set(SLIC3R_GUI_SOURCES
     pchheader.cpp
     pchheader.hpp
     GUI/AboutDialog.cpp
@@ -126,6 +126,12 @@ add_library(libslic3r_gui STATIC
     Utils/HexFile.cpp
     Utils/HexFile.hpp
 )
+
+if (APPLE)
+    list(APPEND SLIC3R_GUI_SOURCES Utils/RetinaHelperImpl.mm)
+endif ()
+
+add_library(libslic3r_gui STATIC ${SLIC3R_GUI_SOURCES})
 
 target_link_libraries(libslic3r_gui libslic3r avrdude imgui)
 if (SLIC3R_PCH AND NOT SLIC3R_SYNTAXONLY)
