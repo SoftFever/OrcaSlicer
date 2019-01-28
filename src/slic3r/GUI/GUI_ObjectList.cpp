@@ -21,8 +21,6 @@ namespace GUI
 
 wxDEFINE_EVENT(EVT_OBJ_LIST_OBJECT_SELECT, SimpleEvent);
 
-typedef std::map<std::string, std::vector<std::string>> FreqSettingsBundle;
-    
 // pt_FFF
 FreqSettingsBundle FREQ_SETTINGS_BUNDLE_FFF =
 {
@@ -587,9 +585,9 @@ void ObjectList::OnDrop(wxDataViewEvent &event)
 
 // Context Menu
 
-std::vector<std::string> get_options(const bool is_part, const bool is_sla)
+std::vector<std::string> ObjectList::get_options(const bool is_part)
 {
-    if (is_sla) {
+    if (wxGetApp().plater()->printer_technology() == ptSLA) {
         SLAPrintObjectConfig full_sla_config;
         auto options = full_sla_config.keys();
         options.erase(find(options.begin(), options.end(), "layer_height"));
@@ -605,13 +603,8 @@ std::vector<std::string> get_options(const bool is_part, const bool is_sla)
     }
     return options;
 }
-
-std::vector<std::string> get_options(const bool is_part)
-{
-    return get_options(is_part, wxGetApp().plater()->printer_technology() == ptSLA);
-}
     
-const std::vector<std::string>& get_options_for_bundle(const wxString& bundle_name)
+const std::vector<std::string>& ObjectList::get_options_for_bundle(const wxString& bundle_name)
 {
     const FreqSettingsBundle& bundle = wxGetApp().plater()->printer_technology() == ptSLA ? 
                                        FREQ_SETTINGS_BUNDLE_SLA : FREQ_SETTINGS_BUNDLE_FFF;
@@ -621,15 +614,25 @@ const std::vector<std::string>& get_options_for_bundle(const wxString& bundle_na
         if (bundle_name == _(it.first))
             return it.second;
     }
+#if 0
+    // if "Quick menu" is selected
+    FreqSettingsBundle& bundle_quick = wxGetApp().plater()->printer_technology() == ptSLA ?
+                                       m_freq_settings_sla: m_freq_settings_fff;
+
+    for (auto& it : bundle_quick)
+    {
+        if ( bundle_name == wxString::Format(_(L("Quick Add Settings (%s)")), _(it.first)) )
+            return it.second;
+    }
+#endif
+
 	static std::vector<std::string> empty;
 	return empty;
 }
 
-//				  category ->		vector 			 ( option	;  label )
-typedef std::map< std::string, std::vector< std::pair<std::string, std::string> > > settings_menu_hierarchy;
-void get_options_menu(settings_menu_hierarchy& settings_menu, const bool is_part, const bool is_sla)
+void ObjectList::get_options_menu(settings_menu_hierarchy& settings_menu, const bool is_part)
 {
-    auto options = get_options(is_part, is_sla);
+    auto options = get_options(is_part);
 
     auto extruders_cnt = wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA ? 1 :
         wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
@@ -652,11 +655,6 @@ void get_options_menu(settings_menu_hierarchy& settings_menu, const bool is_part
         if (cat_opt_label.size() == 1)
             settings_menu[category] = cat_opt_label;
     }
-}
-
-void get_options_menu(settings_menu_hierarchy& settings_menu, const bool is_part)
-{
-    get_options_menu(settings_menu, is_part, wxGetApp().plater()->printer_technology() == ptSLA);
 }
 
 void ObjectList::get_settings_choice(const wxString& category_name)
@@ -692,9 +690,58 @@ void ObjectList::get_settings_choice(const wxString& category_name)
     if (wxGetSelectedChoices(selections, _(L("Select showing settings")), category_name, names) == -1)
         return;
 
+    const int selection_cnt = selections.size();
+#if 0
+    if (selection_cnt > 0) 
+    {
+        // Add selected items to the "Quick menu"
+        FreqSettingsBundle& freq_settings = wxGetApp().plater()->printer_technology() == ptSLA ?
+                                            m_freq_settings_sla : m_freq_settings_fff;
+        bool changed_existing = false;
+
+        std::vector<std::string> tmp_freq_cat = {};
+        
+        for (auto& cat : freq_settings)
+        {
+            if (_(cat.first) == category_name)
+            {
+                std::vector<std::string>& freq_settings_category = cat.second;
+                freq_settings_category.clear();
+                freq_settings_category.reserve(selection_cnt);
+                for (auto sel : selections)
+                    freq_settings_category.push_back((*settings_list)[sel].first);
+
+                changed_existing = true;
+                break;
+            }
+        }
+
+        if (!changed_existing)
+        {
+            // Create new "Quick menu" item
+            for (auto& cat : settings_menu)
+            {
+                if (_(cat.first) == category_name)
+                {
+                    freq_settings[cat.first] = std::vector<std::string> {};
+
+                    std::vector<std::string>& freq_settings_category = freq_settings.find(cat.first)->second;
+                    freq_settings_category.reserve(selection_cnt);
+                    for (auto sel : selections)
+                        freq_settings_category.push_back((*settings_list)[sel].first);
+                    break;
+                }
+            }
+        }
+    }
+#endif
+
     std::vector <std::string> selected_options;
+    selected_options.reserve(selection_cnt);
     for (auto sel : selections)
         selected_options.push_back((*settings_list)[sel].first);
+
+    const DynamicPrintConfig& from_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
 
     for (auto& setting : (*settings_list))
     {
@@ -704,8 +751,17 @@ void ObjectList::get_settings_choice(const wxString& category_name)
             m_config->erase(opt_key);
 
         if (find(opt_keys.begin(), opt_keys.end(), opt_key) == opt_keys.end() &&
-            find(selected_options.begin(), selected_options.end(), opt_key) != selected_options.end())
-            m_config->set_key_value(opt_key, m_default_config->option(opt_key)->clone());
+            find(selected_options.begin(), selected_options.end(), opt_key) != selected_options.end()) {
+            const ConfigOption* option = from_config.option(opt_key);
+            if (!option) {
+                // if current option doesn't exist in prints.get_edited_preset(),
+                // get it from m_default_config
+                if (m_default_config) delete m_default_config;
+                m_default_config = DynamicPrintConfig::new_from_defaults_keys(get_options(false));
+                option = m_default_config->option(opt_key);
+            }
+            m_config->set_key_value(opt_key, option->clone());
+        }
     }
 
 
@@ -719,10 +775,20 @@ void ObjectList::get_freq_settings_choice(const wxString& bundle_name)
 
     auto opt_keys = m_config->keys();
 
+    const DynamicPrintConfig& from_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
     for (auto& opt_key : options)
     {
-        if ( find(opt_keys.begin(), opt_keys.end(), opt_key) == opt_keys.end() )
-            m_config->set_key_value(opt_key, m_default_config->option(opt_key)->clone());
+        if (find(opt_keys.begin(), opt_keys.end(), opt_key) == opt_keys.end()) {
+            const ConfigOption* option = from_config.option(opt_key);
+            if (!option) {
+                // if current option doesn't exist in prints.get_edited_preset(),
+                // get it from m_default_config
+                if (m_default_config) delete m_default_config;
+                m_default_config = DynamicPrintConfig::new_from_defaults_keys(get_options(false));
+                option = m_default_config->option(opt_key);
+            }
+            m_config->set_key_value(opt_key, option->clone());
+        }
     }
 
     // Add settings item for object
@@ -836,7 +902,20 @@ wxMenuItem* ObjectList::append_menu_item_settings(wxMenu* menu_)
         if (settings_id != wxNOT_FOUND)
             menu->Destroy(settings_id);
     }
-
+#if 0
+    for (auto& it : m_freq_settings_fff)
+    {
+        settings_id = menu->FindItem(wxString::Format(_(L("Quick Add Settings (%s)")), _(it.first)));
+        if (settings_id != wxNOT_FOUND)
+            menu->Destroy(settings_id);
+    }
+    for (auto& it : m_freq_settings_sla)
+    {
+        settings_id = menu->FindItem(wxString::Format(_(L("Quick Add Settings (%s)")), _(it.first)));
+        if (settings_id != wxNOT_FOUND)
+            menu->Destroy(settings_id);
+    }
+#endif
     menu->DestroySeparators(); // delete old separators
 
     const auto sel_vol = get_selected_model_volume();
@@ -938,6 +1017,7 @@ wxMenu* ObjectList::create_settings_popupmenu(wxMenu *parent_menu)
 
 void ObjectList::create_freq_settings_popupmenu(wxMenu *menu)
 {
+    // Add default settings bundles
     const FreqSettingsBundle& bundle = wxGetApp().plater()->printer_technology() == ptFFF ?
                                      FREQ_SETTINGS_BUNDLE_FFF : FREQ_SETTINGS_BUNDLE_SLA;
 
@@ -952,6 +1032,20 @@ void ObjectList::create_freq_settings_popupmenu(wxMenu *menu)
                         [menu, this](wxCommandEvent& event) { get_freq_settings_choice(menu->GetLabel(event.GetId())); }, 
                         CATEGORY_ICON.find(it.first) == CATEGORY_ICON.end() ? wxNullBitmap : CATEGORY_ICON.at(it.first), menu); 
     }
+#if 0
+    // Add "Quick" settings bundles
+    const FreqSettingsBundle& bundle_quick = wxGetApp().plater()->printer_technology() == ptFFF ?
+                                             m_freq_settings_fff : m_freq_settings_sla;
+
+    for (auto& it : bundle_quick) {
+        if (it.first.empty() || it.first == "Extruders" && extruders_cnt == 1) 
+            continue;
+
+        append_menu_item(menu, wxID_ANY, wxString::Format(_(L("Quick Add Settings (%s)")), _(it.first)), "",
+                        [menu, this](wxCommandEvent& event) { get_freq_settings_choice(menu->GetLabel(event.GetId())); }, 
+                        CATEGORY_ICON.find(it.first) == CATEGORY_ICON.end() ? wxNullBitmap : CATEGORY_ICON.at(it.first), menu); 
+    }
+#endif
 }
 
 void ObjectList::update_opt_keys(t_config_option_keys& opt_keys)
@@ -1379,9 +1473,6 @@ void ObjectList::part_selection_changed()
                     m_config = &(*m_objects)[obj_idx_]->config;
                 }
             }
-
-            if (m_default_config) delete m_default_config;
-            m_default_config = DynamicPrintConfig::new_from_defaults_keys(get_options(is_part));
         }
     }
 

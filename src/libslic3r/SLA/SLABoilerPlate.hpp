@@ -5,8 +5,8 @@
 #include <functional>
 #include <numeric>
 
-#include "ExPolygon.hpp"
-#include "TriangleMesh.hpp"
+#include <libslic3r/ExPolygon.hpp>
+#include <libslic3r/TriangleMesh.hpp>
 
 namespace Slic3r {
 namespace sla {
@@ -53,13 +53,24 @@ struct Contour3D {
 
     void merge(const Contour3D& ctr) {
         auto s3 = coord_t(points.size());
-        auto s = coord_t(indices.size());
+        auto s = indices.size();
 
         points.insert(points.end(), ctr.points.begin(), ctr.points.end());
         indices.insert(indices.end(), ctr.indices.begin(), ctr.indices.end());
 
         for(size_t n = s; n < indices.size(); n++) {
             auto& idx = indices[n]; x(idx) += s3; y(idx) += s3; z(idx) += s3;
+        }
+    }
+
+    // Write the index triangle structure to OBJ file for debugging purposes.
+    void to_obj(std::ostream& stream) {
+        for(auto& p : points) {
+            stream << "v " << p.transpose() << "\n";
+        }
+
+        for(auto& f : indices) {
+            stream << "f " << (f + Vec3i(1, 1, 1)).transpose() << "\n";
         }
     }
 };
