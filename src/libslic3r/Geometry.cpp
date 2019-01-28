@@ -1188,16 +1188,16 @@ Vec3d extract_euler_angles(const Eigen::Matrix<double, 3, 3, Eigen::DontAlign>& 
     Vec3d angles2 = Vec3d::Zero();
     if (is_approx(std::abs(rotation_matrix(2, 0)), 1.0))
     {
-        angles1(0) = 0.0;
-        if (rotation_matrix(2, 0) > 0.0) // == +1.0
+        angles1(2) = 0.0;
+        if (rotation_matrix(2, 0) < 0.0) // == -1.0
         {
             angles1(1) = 0.5 * (double)PI;
-            angles1(2) = angles1(0) + ::atan2(rotation_matrix(0, 1), rotation_matrix(0, 2));
+            angles1(0) = angles1(2) + ::atan2(rotation_matrix(0, 1), rotation_matrix(0, 2));
         }
-        else // == -1.0
+        else // == 1.0
         {
-            angles1(1) = 0.5 * (double)PI;
-            angles1(2) = -angles1(0) - ::atan2(rotation_matrix(0, 1), rotation_matrix(0, 2));
+            angles1(1) = - 0.5 * (double)PI;
+            angles1(0) = - angles1(2) + ::atan2(- rotation_matrix(0, 1), - rotation_matrix(0, 2));
         }
         angles2 = angles1;
     }
