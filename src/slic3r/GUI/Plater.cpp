@@ -1468,24 +1468,40 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     return obj_idxs;
 }
 
+// #define AUTOPLACEMENT_ON_LOAD
+
 std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &model_objects)
 {
     const BoundingBoxf bed_shape = bed_shape_bb();
     const Vec3d bed_size = Slic3r::to_3d(bed_shape.size().cast<double>(), 1.0) - 2.0 * Vec3d::Ones();
 
+#ifndef AUTOPLACEMENT_ON_LOAD
+    bool need_arrange = false;
+#endif /* AUTOPLACEMENT_ON_LOAD */
     bool scaled_down = false;
     std::vector<size_t> obj_idxs;
     unsigned int obj_count = model.objects.size();
 
+#ifdef AUTOPLACEMENT_ON_LOAD
     ModelInstancePtrs new_instances;
+#endif /* AUTOPLACEMENT_ON_LOAD */
     for (ModelObject *model_object : model_objects) {
         auto *object = model.add_object(*model_object);
         std::string object_name = object->name.empty() ? fs::path(object->input_file).filename().string() : object->name;
         obj_idxs.push_back(obj_count++);
 
         if (model_object->instances.empty()) {
+#ifdef AUTOPLACEMENT_ON_LOAD
             object->center_around_origin();
             new_instances.emplace_back(object->add_instance());
+#else /* AUTOPLACEMENT_ON_LOAD */
+            // if object has no defined position(s) we need to rearrange everything after loading               object->center_around_origin();
+            need_arrange = true;                
+             // add a default instance and center object around origin  
+            object->center_around_origin();  // also aligns object to Z = 0 
+            ModelInstance* instance = object->add_instance();   
+            instance->set_offset(Slic3r::to_3d(bed_shape.center().cast<double>(), -object->origin_translation(2)));
+#endif /* AUTOPLACEMENT_ON_LOAD */
         }
 
         const Vec3d size = object->bounding_box().size();
@@ -1513,6 +1529,7 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
         // print.add_model_object(object);
     }
 
+#ifdef AUTOPLACEMENT_ON_LOAD
     // FIXME distance should be a config value /////////////////////////////////
     auto min_obj_distance = static_cast<coord_t>(6/SCALING_FACTOR);
     const auto *bed_shape_opt = config->opt<ConfigOptionPoints>("bed_shape");
@@ -1522,7 +1539,7 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
     for(auto& v : bedpoints) bed.append(Point::new_scale(v(0), v(1)));
 
     arr::find_new_position(model, new_instances, min_obj_distance, bed);
-    // /////////////////////////////////////////////////////////////////////////
+#endif /* AUTOPLACEMENT_ON_LOAD */
 
     if (scaled_down) {
         GUI::show_info(q,
