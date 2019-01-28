@@ -1804,9 +1804,11 @@ static double rotation_diff_z(const Vec3d &rot_xyz_from, const Vec3d &rot_xyz_to
 
 void GLCanvas3D::Selection::rotate(const Vec3d& rotation, bool local)
 {
-	int rot_axis_max;
-	if (!m_valid || rotation.cwiseAbs().maxCoeff(&rot_axis_max) < EPSILON)
+    if (!m_valid)
         return;
+
+    int rot_axis_max;
+    rotation.cwiseAbs().maxCoeff(&rot_axis_max);
 
 	// For generic rotation, we want to rotate the first volume in selection, and then to synchronize the other volumes with it.
 	std::vector<int> object_instance_first(m_model->objects.size(), -1);
