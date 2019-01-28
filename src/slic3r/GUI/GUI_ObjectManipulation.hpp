@@ -15,7 +15,6 @@ namespace GUI {
 
 class ObjectManipulation : public OG_Settings
 {
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     struct Cache
     {
         Vec3d position;
@@ -59,12 +58,6 @@ class ObjectManipulation : public OG_Settings
     };
 
     Cache m_cache;
-#else
-    Vec3d       m_cache_position{ 0., 0., 0. };
-    Vec3d       m_cache_rotation{ 0., 0., 0. };
-    Vec3d       m_cache_scale{ 100., 100., 100. };
-    Vec3d       m_cache_size{ 0., 0., 0. };
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 
     wxStaticText*   m_move_Label = nullptr;
     wxStaticText*   m_scale_Label = nullptr;
@@ -100,9 +93,7 @@ public:
     void        set_uniform_scaling(const bool uniform_scale) { m_uniform_scale = uniform_scale;}
     bool        get_uniform_scaling() const { return m_uniform_scale; }
 
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     void reset_cache() { m_cache.reset(); }
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 
 private:
     void reset_settings_value();

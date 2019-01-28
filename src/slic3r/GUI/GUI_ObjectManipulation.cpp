@@ -23,13 +23,11 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     m_og->set_grid_vgap(5);
     
     m_og->m_on_change = [this](const std::string& opt_key, const boost::any& value) {
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
         // needed to hide the visual hints in 3D scene
         wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event(opt_key, false);
 
         if (!m_cache.is_valid())
             return;
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 
         std::vector<std::string> axes{ "_x", "_y", "_z" };
 
@@ -49,23 +47,15 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
             change_scale_value(new_value);
         else if (param == "size")
             change_size_value(new_value);
-
-#if !ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
-        wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event(opt_key, false);
-#endif // !ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     };
 
     m_og->m_fill_empty_value = [this](const std::string& opt_key)
     {
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
         // needed to hide the visual hints in 3D scene
         wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event(opt_key, false);
 
         if (!m_cache.is_valid())
             return;
-#else
-        this->update_if_dirty();
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 
         std::string param;
         std::copy(opt_key.begin(), opt_key.end() - 2, std::back_inserter(param)); 
@@ -98,16 +88,10 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
         }
 
         m_og->set_value(opt_key, double_to_string(value));
-#if !ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
-        wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event(opt_key, false);
-#endif // !ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     };
 
     m_og->m_set_focus = [this](const std::string& opt_key)
     {
-#if !ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
-        this->update_if_dirty();
-#endif // !ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
         // needed to show the visual hints in 3D scene
         wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event(opt_key, true);
     };
@@ -228,9 +212,6 @@ void ObjectManipulation::UpdateAndShow(const bool show)
 {
     if (show) {
         update_settings_value(wxGetApp().plater()->canvas3D()->get_selection());
-#if !ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
-        update_if_dirty();
-#endif // !ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     }
 
     OG_Settings::UpdateAndShow(show);
@@ -249,7 +230,6 @@ void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& sele
         m_new_rotation = volume->get_instance_rotation();
         m_new_scale    = volume->get_instance_scaling_factor();
         int obj_idx = volume->object_idx();
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
         int instance_idx = volume->instance_idx();
         if ((0 <= obj_idx) && (obj_idx < (int)wxGetApp().model_objects()->size()))
         {
@@ -265,21 +245,12 @@ void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& sele
         else
             // this should never happen
             m_new_size = Vec3d::Zero();
-#else
-        if ((0 <= obj_idx) && (obj_idx < (int)wxGetApp().model_objects()->size()))
-            m_new_size = volume->get_instance_transformation().get_matrix(true, true) * (*wxGetApp().model_objects())[obj_idx]->raw_mesh_bounding_box().size();
-        else
-            // this should never happen
-            m_new_size = Vec3d::Zero();
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 
         m_new_enabled  = true;
     }
     else if (selection.is_single_full_object())
     {
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
         m_cache.instance.reset();
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 
         const BoundingBoxf3& box = selection.get_bounding_box();
         m_new_position = box.center();
@@ -292,9 +263,7 @@ void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& sele
     }
     else if (selection.is_single_modifier() || selection.is_single_volume())
     {
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
         m_cache.instance.reset();
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 
         // the selection contains a single volume
         const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
@@ -324,7 +293,6 @@ void ObjectManipulation::update_if_dirty()
     if (!m_dirty)
         return;
 
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     if (m_cache.move_label_string != _(m_new_move_label_string)+ ":")
     {
         m_cache.move_label_string = _(m_new_move_label_string)+ ":";
@@ -401,37 +369,6 @@ void ObjectManipulation::update_if_dirty()
         m_og->enable();
     else
         m_og->disable();
-#else
-    m_move_Label->SetLabel(_(m_new_move_label_string));
-    m_rotate_Label->SetLabel(_(m_new_rotate_label_string));
-    m_scale_Label->SetLabel(_(m_new_scale_label_string));
-
-    m_og->set_value("position_x", double_to_string(m_new_position(0), 2));
-    m_og->set_value("position_y", double_to_string(m_new_position(1), 2));
-    m_og->set_value("position_z", double_to_string(m_new_position(2), 2));
-    m_cache_position = m_new_position;
-
-    auto scale = m_new_scale * 100.0;
-    m_og->set_value("scale_x", double_to_string(scale(0), 2));
-    m_og->set_value("scale_y", double_to_string(scale(1), 2));
-    m_og->set_value("scale_z", double_to_string(scale(2), 2));
-    m_cache_scale = scale;
-
-    m_og->set_value("size_x", double_to_string(m_new_size(0), 2));
-    m_og->set_value("size_y", double_to_string(m_new_size(1), 2));
-    m_og->set_value("size_z", double_to_string(m_new_size(2), 2));
-    m_cache_size = m_new_size;
-
-    m_og->set_value("rotation_x", double_to_string(round_nearest(Geometry::rad2deg(m_new_rotation(0)), 0), 2));
-    m_og->set_value("rotation_y", double_to_string(round_nearest(Geometry::rad2deg(m_new_rotation(1)), 0), 2));
-    m_og->set_value("rotation_z", double_to_string(round_nearest(Geometry::rad2deg(m_new_rotation(2)), 0), 2));
-    m_cache_rotation = m_new_rotation;
-
-    if (m_new_enabled)
-        m_og->enable();
-    else
-        m_og->disable();
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 
     m_dirty = false;
 }
@@ -443,9 +380,7 @@ void ObjectManipulation::reset_settings_value()
     m_new_scale = Vec3d::Ones();
     m_new_size = Vec3d::Zero();
     m_new_enabled = false;
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     m_cache.instance.reset();
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     m_dirty = true;
 }
 
@@ -472,16 +407,10 @@ void ObjectManipulation::change_rotation_value(const Vec3d& rotation)
     }
 
     canvas->get_selection().start_dragging();
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     canvas->get_selection().rotate(rad_rotation, selection.is_single_full_instance() || selection.requires_local_axes());
-#else
-    canvas->get_selection().rotate(rad_rotation, selection.is_single_full_instance());
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     canvas->do_rotate();
 
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     m_cache.rotation = rotation;
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 }
 
 void ObjectManipulation::change_scale_value(const Vec3d& scale)
@@ -513,12 +442,10 @@ void ObjectManipulation::change_scale_value(const Vec3d& scale)
     canvas->get_selection().scale(scaling_factor, false);
     canvas->do_scale();
 
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     if (!m_cache.scale.isApprox(scale))
         m_cache.instance.instance_idx = -1;
 
     m_cache.scale = scale;
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 }
 
 void ObjectManipulation::change_size_value(const Vec3d& size)
@@ -526,7 +453,6 @@ void ObjectManipulation::change_size_value(const Vec3d& size)
     const GLCanvas3D::Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
 
     Vec3d ref_size = m_cache.size;
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     if (selection.is_single_volume() || selection.is_single_modifier())
     {
         const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
@@ -564,15 +490,6 @@ void ObjectManipulation::change_size_value(const Vec3d& size)
     canvas->do_scale();
 
     m_cache.size = size;
-#else
-    if (selection.is_single_full_instance())
-    {
-        const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
-        ref_size = volume->bounding_box.size();
-    }
-
-    change_scale_value(100.0 * Vec3d(size(0) / ref_size(0), size(1) / ref_size(1), size(2) / ref_size(2)));
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 }
 
 } //namespace GUI
