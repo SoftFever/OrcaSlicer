@@ -1,3 +1,13 @@
+#if 1
+#pragma optimize("", off)
+// Enable debugging and assert in this file.
+#define DEBUG
+#define _DEBUG
+#undef NDEBUG
+#endif
+
+#include <assert.h>
+
 #include "slic3r/GUI/GLGizmo.hpp"
 #include "GLCanvas3D.hpp"
 
@@ -1721,12 +1731,36 @@ void GLCanvas3D::Selection::translate(const Vec3d& displacement, bool local)
 
 #if !DISABLE_INSTANCES_SYNCH
     if (m_mode == Instance)
-        _synchronize_unselected_instances();
+        _synchronize_unselected_instances(SYNC_ROTATION_NONE);
     else if (m_mode == Volume)
         _synchronize_unselected_volumes();
 #endif // !DISABLE_INSTANCES_SYNCH
 
     m_bounding_box_dirty = true;
+}
+
+static Eigen::Quaterniond rotation_xyz_diff(const Vec3d &rot_xyz_from, const Vec3d &rot_xyz_to)
+{
+    return
+        // From the current coordinate system to world.
+        Eigen::AngleAxisd(rot_xyz_to(2), Vec3d::UnitZ()) * Eigen::AngleAxisd(rot_xyz_to(1), Vec3d::UnitY()) * Eigen::AngleAxisd(rot_xyz_to(0), Vec3d::UnitX()) *
+        // From world to the initial coordinate system.
+        Eigen::AngleAxisd(-rot_xyz_from(0), Vec3d::UnitX()) * Eigen::AngleAxisd(-rot_xyz_from(1), Vec3d::UnitY()) * Eigen::AngleAxisd(-rot_xyz_from(2), Vec3d::UnitZ());
+}
+
+// This should only be called if it is known, that the two rotations only differ in rotation around the Z axis.
+static double rotation_diff_z(const Vec3d &rot_xyz_from, const Vec3d &rot_xyz_to)
+{
+    Eigen::AngleAxisd angle_axis(rotation_xyz_diff(rot_xyz_from, rot_xyz_to));
+    Vec3d  axis  = angle_axis.axis();
+    double angle = angle_axis.angle();
+#ifdef _DEBUG
+	if (std::abs(angle) > 1e-8) {
+		assert(std::abs(axis.x()) < 1e-8);
+		assert(std::abs(axis.y()) < 1e-8);
+	}
+#endif /* _DEBUG */
+	return (axis.z() < 0) ? -angle : angle;
 }
 
 void GLCanvas3D::Selection::rotate(const Vec3d& rotation, bool local)
@@ -1745,13 +1779,14 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation, bool local)
             assert(rotation.z() == 0);
             const GLVolume &first_volume = *(*m_volumes)[first_volume_idx];
             const Vec3d    &rotation     = first_volume.get_instance_rotation();
-            double z_diff = m_cache.volumes_data[i].get_instance_rotation()(2) - m_cache.volumes_data[first_volume_idx].get_instance_rotation()(2);
+            double z_diff = rotation_diff_z(m_cache.volumes_data[first_volume_idx].get_instance_rotation(), m_cache.volumes_data[i].get_instance_rotation());
             volume.set_instance_rotation(Vec3d(rotation(0), rotation(1), rotation(2) + z_diff));
         } else {
             // extracts rotations from the composed transformation
             Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), rotation);
             Vec3d new_rotation = Geometry::extract_euler_angles(m * m_cache.volumes_data[i].get_instance_rotation_matrix());
-            if (!local)
+            if (rot_axis_max == 2 && !local)
+                // Only allow rotation of multiple instances as a single rigid body when rotating around the Z axis.
                 volume.set_instance_offset(m_cache.dragging_center + m * (m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center));
             volume.set_instance_rotation(new_rotation);
             object_instance_first[volume.object_idx()] = i;
@@ -1795,7 +1830,7 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation, bool local)
 
 #if !DISABLE_INSTANCES_SYNCH
     if (m_mode == Instance)
-        _synchronize_unselected_instances();
+        _synchronize_unselected_instances((rot_axis_max == 2) ? SYNC_ROTATION_NONE : SYNC_ROTATION_GENERAL);
     else if (m_mode == Volume)
         _synchronize_unselected_volumes();
 #endif // !DISABLE_INSTANCES_SYNCH
@@ -1838,7 +1873,7 @@ void GLCanvas3D::Selection::flattening_rotate(const Vec3d& normal)
     // we want to synchronize z-rotation as well, otherwise the flattening behaves funny
     // when applied on one of several identical instances
     if (m_mode == Instance)
-        _synchronize_unselected_instances(true);
+        _synchronize_unselected_instances(SYNC_ROTATION_FULL);
 #endif // !DISABLE_INSTANCES_SYNCH
 
     m_bounding_box_dirty = true;
@@ -1885,7 +1920,7 @@ void GLCanvas3D::Selection::scale(const Vec3d& scale, bool local)
 
 #if !DISABLE_INSTANCES_SYNCH
     if (m_mode == Instance)
-        _synchronize_unselected_instances();
+        _synchronize_unselected_instances(SYNC_ROTATION_NONE);
     else if (m_mode == Volume)
         _synchronize_unselected_volumes();
 #endif // !DISABLE_INSTANCES_SYNCH
@@ -1912,7 +1947,7 @@ void GLCanvas3D::Selection::mirror(Axis axis)
 
 #if !DISABLE_INSTANCES_SYNCH
     if (m_mode == Instance)
-        _synchronize_unselected_instances();
+        _synchronize_unselected_instances(SYNC_ROTATION_NONE);
     else if (m_mode == Volume)
         _synchronize_unselected_volumes();
 #endif // !DISABLE_INSTANCES_SYNCH
@@ -2709,15 +2744,17 @@ void GLCanvas3D::Selection::_render_sidebar_size_hint(Axis axis, double length) 
 }
 
 #ifdef _DEBUG
-static bool is_rotation_xy_synchronized(const Vec3d &rotation1, const Vec3d &rotation2)
+static bool is_rotation_xy_synchronized(const Vec3d &rot_xyz_from, const Vec3d &rot_xyz_to)
 {
-	// The XYZ Euler angles are not unique. Rather then comparing the XY components of the two rotations,
-    // transform the up vector to one instance and back, which should lead to the same up vector.
-	Transform3d m1 = Geometry::assemble_transform(Vec3d::Zero(), rotation1);
-	Transform3d m2 = Geometry::assemble_transform(Vec3d::Zero(), rotation2);
-    Vec3d       up0(0., 0., 1.);
-	Vec3d       up = m1.rotation() * m2.rotation().inverse() * up0;
-	return (up - up0).cwiseAbs().maxCoeff() < EPSILON;
+	Eigen::AngleAxisd angle_axis(rotation_xyz_diff(rot_xyz_from, rot_xyz_to));
+	Vec3d  axis = angle_axis.axis();
+	double angle = angle_axis.angle();
+	if (std::abs(angle) < 1e-8)
+		return true;
+	assert(std::abs(axis.x()) < 1e-8);
+	assert(std::abs(axis.y()) < 1e-8);
+	assert(std::abs(std::abs(axis.z()) - 1.) < 1e-8);
+	return std::abs(axis.x()) < 1e-8 && std::abs(axis.y()) < 1e-8 && std::abs(std::abs(axis.z()) - 1.) < 1e-8;
 }
 static void verify_instances_rotation_synchronized(const Model &model, const GLVolumePtrs &volumes)
 {
@@ -2742,7 +2779,7 @@ static void verify_instances_rotation_synchronized(const Model &model, const GLV
 }
 #endif /* _DEBUG */
 
-void GLCanvas3D::Selection::_synchronize_unselected_instances(bool including_z)
+void GLCanvas3D::Selection::_synchronize_unselected_instances(SyncRotationType sync_rotation_type)
 {
     std::set<unsigned int> done;  // prevent processing volumes twice
     done.insert(m_list.begin(), m_list.end());
@@ -2758,7 +2795,7 @@ void GLCanvas3D::Selection::_synchronize_unselected_instances(bool including_z)
             continue;
 
         int instance_idx = volume->instance_idx();
-        const Vec3d& rotation = volume->get_instance_rotation();
+		const Vec3d& rotation = volume->get_instance_rotation();
         const Vec3d& scaling_factor = volume->get_instance_scaling_factor();
         const Vec3d& mirror = volume->get_instance_mirror();
 
@@ -2775,24 +2812,24 @@ void GLCanvas3D::Selection::_synchronize_unselected_instances(bool including_z)
             if ((v->object_idx() != object_idx) || (v->instance_idx() == instance_idx))
                 continue;
 
-            auto is_approx = [](double value, double test_value) -> bool { return std::abs(value - test_value) < EPSILON; };
-
-            double z;
-            if (including_z)
-                // rotation comes from place on face -> force given z
-                z = rotation(2);
-			else if (is_approx(rotation(0), m_cache.volumes_data[j].get_instance_rotation()(0)) && is_approx(rotation(1), m_cache.volumes_data[j].get_instance_rotation()(1))) {
+            assert(is_rotation_xy_synchronized(m_cache.volumes_data[i].get_instance_rotation(), m_cache.volumes_data[j].get_instance_rotation()));
+            switch (sync_rotation_type) {
+			case SYNC_ROTATION_NONE:
 				// z only rotation -> keep instance z
-				z = v->get_instance_rotation()(2);
 				// The X,Y rotations should be synchronized from start to end of the rotation.
-				assert(is_rotation_xy_synchronized(m_cache.volumes_data[i].get_instance_rotation(), m_cache.volumes_data[j].get_instance_rotation()));
 				assert(is_rotation_xy_synchronized(rotation, v->get_instance_rotation()));
-			} else {
+				break;
+			case SYNC_ROTATION_FULL:
+                // rotation comes from place on face -> force given z
+                v->set_instance_rotation(Vec3d(rotation(0), rotation(1), rotation(2)));
+                break;
+            case SYNC_ROTATION_GENERAL:
 				// generic rotation -> update instance z with the delta of the rotation.
-				z = rotation(2) + m_cache.volumes_data[j].get_instance_rotation()(2) - m_cache.volumes_data[i].get_instance_rotation()(2);
+                double z_diff = rotation_diff_z(m_cache.volumes_data[i].get_instance_rotation(), m_cache.volumes_data[j].get_instance_rotation());
+				v->set_instance_rotation(Vec3d(rotation(0), rotation(1), rotation(2) + z_diff));
+                break;
 			}
 
-            v->set_instance_rotation(Vec3d(rotation(0), rotation(1), z));
             v->set_instance_scaling_factor(scaling_factor);
             v->set_instance_mirror(mirror);
 
@@ -4570,7 +4607,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         }
         if (printer_technology == ptSLA) {
             const SLAPrint *sla_print = this->sla_print();
-        #ifdef _DEBUG
+		#if 0 // #ifdef _DEBUG
             // Verify that the SLAPrint object is synchronized with m_model.
             check_model_ids_equal(*m_model, sla_print->model());
         #endif /* _DEBUG */
