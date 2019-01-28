@@ -207,8 +207,7 @@ static bool sort_pointfs(const Vec3d& a, const Vec3d& b)
 }
 
 // This implementation is based on Andrew's monotone chain 2D convex hull algorithm
-Polygon
-convex_hull(Points points)
+Polygon convex_hull(Points points)
 {
     assert(points.size() >= 3);
     // sort input points

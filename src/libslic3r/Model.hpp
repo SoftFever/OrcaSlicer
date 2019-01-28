@@ -223,6 +223,12 @@ public:
 	BoundingBoxf3 raw_mesh_bounding_box() const;
 	// A snug bounding box of non-transformed (non-rotated, non-scaled, non-translated) sum of all object volumes.
     BoundingBoxf3 full_raw_mesh_bounding_box() const;
+
+    // Calculate 2D convex hull of of a projection of the transformed printable volumes into the XY plane.
+    // This method is cheap in that it does not make any unnecessary copy of the volume meshes.
+    // This method is used by the auto arrange function.
+    Polygon       convex_hull_2d(const Transform3d &trafo_instance);
+
     void center_around_origin();
     void ensure_on_bed();
     void translate_instances(const Vec3d& vector);

@@ -553,24 +553,47 @@ ShapeData2D projectModelFromTop(const Slic3r::Model &model) {
     for(ModelObject* objptr : model.objects) {
         if(objptr) {
 
-            TriangleMesh rmesh = objptr->raw_mesh();
-
-            ModelInstance * finst = objptr->instances.front();
-
-            // Object instances should carry the same scaling and
-            // x, y rotation that is why we use the first instance.
-            // The next line will apply only the full mirroring and scaling
-            rmesh.transform(finst->get_matrix(true, true, false, false));
-            rmesh.rotate_x(float(finst->get_rotation()(X)));
-            rmesh.rotate_y(float(finst->get_rotation()(Y)));
-
             // TODO export the exact 2D projection. Cannot do it as libnest2d
             // does not support concave shapes (yet).
-            auto p = rmesh.convex_hull();
+            ClipperLib::Path clpath;
+//WIP Vojtech's optimization of the calculation of the convex hull is not working correctly yet.
+#if 1
+            {
+                TriangleMesh rmesh = objptr->raw_mesh();
 
-            p.make_clockwise();
-            p.append(p.first_point());
-            auto clpath = Slic3rMultiPoint_to_ClipperPath(p);
+                ModelInstance * finst = objptr->instances.front();
+
+                // Object instances should carry the same scaling and
+                // x, y rotation that is why we use the first instance.
+                // The next line will apply only the full mirroring and scaling
+                rmesh.transform(finst->get_matrix(true, true, false, false));
+                rmesh.rotate_x(float(finst->get_rotation()(X)));
+                rmesh.rotate_y(float(finst->get_rotation()(Y)));
+
+                 // TODO export the exact 2D projection. Cannot do it as libnest2d
+                 // does not support concave shapes (yet).
+                auto p = rmesh.convex_hull();
+
+                p.make_clockwise();
+                p.append(p.first_point());
+                clpath = Slic3rMultiPoint_to_ClipperPath(p);
+            }
+#else
+            // Object instances should carry the same scaling and
+            // x, y rotation that is why we use the first instance.
+            {
+                ModelInstance *finst = objptr->instances.front();
+                Vec3d rotation = finst->get_rotation();
+                rotation.z() = 0.;
+                Transform3d trafo_instance = Geometry::assemble_transform(Vec3d::Zero(), rotation, finst->get_scaling_factor(), finst->get_mirror());
+                Polygon p = objptr->convex_hull_2d(trafo_instance);
+				assert(! p.points.empty());
+				p.reverse();
+				assert(! p.is_counter_clockwise());
+                p.append(p.first_point());
+                clpath = Slic3rMultiPoint_to_ClipperPath(p);
+            }
+#endif
 
             for(ModelInstance* objinst : objptr->instances) {
                 if(objinst) {
