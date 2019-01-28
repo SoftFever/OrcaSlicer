@@ -43,11 +43,19 @@ class ObjectManipulation : public OG_Settings
 
         Instance instance;
 
-        Cache() : position(Vec3d(DBL_MAX, DBL_MAX, DBL_MAX)) , rotation(Vec3d(DBL_MAX, DBL_MAX, DBL_MAX))
-            , scale(Vec3d(DBL_MAX, DBL_MAX, DBL_MAX)) , size(Vec3d(DBL_MAX, DBL_MAX, DBL_MAX))
-            , move_label_string("") , rotate_label_string("") , scale_label_string("")
+        Cache() { reset(); }
+        void reset()
         {
+            position = Vec3d(DBL_MAX, DBL_MAX, DBL_MAX);
+            rotation = Vec3d(DBL_MAX, DBL_MAX, DBL_MAX);
+            scale = Vec3d(DBL_MAX, DBL_MAX, DBL_MAX);
+            size = Vec3d(DBL_MAX, DBL_MAX, DBL_MAX);
+            move_label_string = "";
+            rotate_label_string = "";
+            scale_label_string = "";
+            instance.reset();
         }
+        bool is_valid() const { return position != Vec3d(DBL_MAX, DBL_MAX, DBL_MAX); }
     };
 
     Cache m_cache;
@@ -91,6 +99,10 @@ public:
 
     void        set_uniform_scaling(const bool uniform_scale) { m_uniform_scale = uniform_scale;}
     bool        get_uniform_scaling() const { return m_uniform_scale; }
+
+#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
+    void reset_cache() { m_cache.reset(); }
+#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 
 private:
     void reset_settings_value();

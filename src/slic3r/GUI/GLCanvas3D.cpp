@@ -1617,6 +1617,11 @@ void GLCanvas3D::Selection::clear()
 
     _update_type();
     m_bounding_box_dirty = true;
+
+#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
+    // resets the cache in the sidebar
+    wxGetApp().obj_manipul()->reset_cache();
+#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 }
 
 // Update the selection based on the map from old indices to new indices after m_volumes changed.

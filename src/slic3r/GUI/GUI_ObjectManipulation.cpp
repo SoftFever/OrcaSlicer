@@ -23,6 +23,14 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     m_og->set_grid_vgap(5);
     
     m_og->m_on_change = [this](const std::string& opt_key, const boost::any& value) {
+#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
+        // needed to hide the visual hints in 3D scene
+        wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event(opt_key, false);
+
+        if (!m_cache.is_valid())
+            return;
+#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
+
         std::vector<std::string> axes{ "_x", "_y", "_z" };
 
         std::string param; 
@@ -38,26 +46,26 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
         else if (param == "rotation")
             change_rotation_value(new_value);
         else if (param == "scale")
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
             change_scale_value(new_value);
-#else
-            change_scale_value(new_value);
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
         else if (param == "size")
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
             change_size_value(new_value);
-#else
-            change_size_value(new_value);
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 
+#if !ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
         wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event(opt_key, false);
+#endif // !ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     };
 
     m_og->m_fill_empty_value = [this](const std::string& opt_key)
     {
-#if !ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
+#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
+        // needed to hide the visual hints in 3D scene
+        wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event(opt_key, false);
+
+        if (!m_cache.is_valid())
+            return;
+#else
         this->update_if_dirty();
-#endif // !ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
+#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 
         std::string param;
         std::copy(opt_key.begin(), opt_key.end() - 2, std::back_inserter(param)); 
@@ -68,45 +76,31 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
             int axis = opt_key.back() == 'x' ? 0 :
                        opt_key.back() == 'y' ? 1 : 2;
 
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
             value = m_cache.position(axis);
-#else
-            value = m_cache_position(axis);
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
         }
         else if (param == "rotation") {
             int axis = opt_key.back() == 'x' ? 0 :
                 opt_key.back() == 'y' ? 1 : 2;
 
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
             value = m_cache.rotation(axis);
-#else
-            value = m_cache_rotation(axis);
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
         }
         else if (param == "scale") {
             int axis = opt_key.back() == 'x' ? 0 :
                 opt_key.back() == 'y' ? 1 : 2;
 
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
             value = m_cache.scale(axis);
-#else
-            value = m_cache_scale(axis);
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
         }
         else if (param == "size") {
             int axis = opt_key.back() == 'x' ? 0 :
                 opt_key.back() == 'y' ? 1 : 2;
 
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
             value = m_cache.size(axis);
-#else
-            value = m_cache_size(axis);
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
         }
 
         m_og->set_value(opt_key, double_to_string(value));
+#if !ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
         wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event(opt_key, false);
+#endif // !ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     };
 
     m_og->m_set_focus = [this](const std::string& opt_key)
@@ -114,6 +108,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
 #if !ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
         this->update_if_dirty();
 #endif // !ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
+        // needed to show the visual hints in 3D scene
         wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event(opt_key, true);
     };
 
@@ -459,18 +454,10 @@ void ObjectManipulation::change_position_value(const Vec3d& position)
     auto canvas = wxGetApp().plater()->canvas3D();
     GLCanvas3D::Selection& selection = canvas->get_selection();
     selection.start_dragging();
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     selection.translate(position - m_cache.position, selection.requires_local_axes());
-#else
-    selection.translate(position - m_cache_position, selection.requires_local_axes());
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     canvas->do_move();
 
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     m_cache.position = position;
-#else
-    m_cache_position = position;
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 }
 
 void ObjectManipulation::change_rotation_value(const Vec3d& rotation)
@@ -503,11 +490,7 @@ void ObjectManipulation::change_scale_value(const Vec3d& scale)
     const GLCanvas3D::Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
     if (m_uniform_scale || selection.requires_uniform_scale())
     {
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
         Vec3d abs_scale_diff = (scale - m_cache.scale).cwiseAbs();
-#else
-        Vec3d abs_scale_diff = (scale - m_cache_scale).cwiseAbs();
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
         double max_diff = abs_scale_diff(X);
         Axis max_diff_axis = X;
         if (max_diff < abs_scale_diff(Y))
