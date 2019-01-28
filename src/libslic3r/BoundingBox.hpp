@@ -32,6 +32,7 @@ public:
         }
         this->defined = (this->min(0) < this->max(0)) && (this->min(1) < this->max(1));
     }
+    void reset() { this->defined = false; this->min = PointClass::Zero(); this->max = PointClass::Zero(); }
     void merge(const PointClass &point);
     void merge(const std::vector<PointClass> &points);
     void merge(const BoundingBoxBase<PointClass> &bb);

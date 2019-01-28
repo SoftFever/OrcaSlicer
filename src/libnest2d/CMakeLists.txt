@@ -71,6 +71,11 @@ if(TBB_FOUND)
     target_compile_definitions(libnest2d INTERFACE -DTBB_USE_CAPTURED_EXCEPTION=0)
 
     target_link_libraries(libnest2d INTERFACE tbb)
+    # The following breaks compilation on Visual Studio in Debug mode.
+    #find_package(Threads REQUIRED)
+    #target_link_libraries(libnest2d INTERFACE ${TBB_LIBRARIES} ${CMAKE_DL_LIBS}
+    #    Threads::Threads
+    #    )
 else()
    find_package(OpenMP QUIET)
 
@@ -88,7 +93,7 @@ endif()
 add_subdirectory(${SRC_DIR}/libnest2d/backends/${LIBNEST2D_GEOMETRIES})
 add_subdirectory(${SRC_DIR}/libnest2d/optimizers/${LIBNEST2D_OPTIMIZER})
 
-#target_sources(libnest2d INTERFACE ${LIBNEST2D_SRCFILES})
+target_sources(libnest2d INTERFACE ${LIBNEST2D_SRCFILES})
 target_include_directories(libnest2d INTERFACE ${SRC_DIR})
 
 if(NOT LIBNEST2D_HEADER_ONLY)

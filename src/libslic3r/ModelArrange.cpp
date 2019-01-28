@@ -358,6 +358,29 @@ public:
         m_rtree.clear();
         return m_pck.executeIndexed(std::forward<Args>(args)...);
     }
+
+    inline void preload(const PackGroup& pg) {
+        m_pconf.alignment = PConfig::Alignment::DONT_ALIGN;
+        m_pconf.object_function = nullptr; // drop the special objectfunction
+        m_pck.preload(pg);
+
+        // Build the rtree for queries to work
+        for(const ItemGroup& grp : pg)
+        for(unsigned idx = 0; idx < grp.size(); ++idx) {
+            Item& itm = grp[idx];
+            m_rtree.insert({itm.boundingBox(), idx});
+        }
+
+        m_pck.configure(m_pconf);
+    }
+
+    bool is_colliding(const Item& item) {
+        if(m_rtree.empty()) return false;
+        std::vector<SpatElement> result;
+        m_rtree.query(bgi::intersects(item.boundingBox()),
+                      std::back_inserter(result));
+        return !result.empty();
+    }
 };
 
 // Arranger specialization for a Box shaped bin.
@@ -365,8 +388,8 @@ template<> class AutoArranger<Box>: public _ArrBase<Box> {
 public:
 
     AutoArranger(const Box& bin, Distance dist,
-                 std::function<void(unsigned)> progressind,
-                 std::function<bool(void)> stopcond):
+                 std::function<void(unsigned)> progressind = [](unsigned){},
+                 std::function<bool(void)> stopcond = [](){return false;}):
         _ArrBase<Box>(bin, dist, progressind, stopcond)
     {
 
@@ -411,8 +434,8 @@ template<> class AutoArranger<lnCircle>: public _ArrBase<lnCircle> {
 public:
 
     AutoArranger(const lnCircle& bin, Distance dist,
-                 std::function<void(unsigned)> progressind,
-                 std::function<bool(void)> stopcond):
+                 std::function<void(unsigned)> progressind = [](unsigned){},
+                 std::function<bool(void)> stopcond = [](){return false;}):
         _ArrBase<lnCircle>(bin, dist, progressind, stopcond) {
 
         // As with the box, only the inside check is different.
@@ -456,8 +479,8 @@ public:
 template<> class AutoArranger<PolygonImpl>: public _ArrBase<PolygonImpl> {
 public:
     AutoArranger(const PolygonImpl& bin, Distance dist,
-                 std::function<void(unsigned)> progressind,
-                 std::function<bool(void)> stopcond):
+                 std::function<void(unsigned)> progressind = [](unsigned){},
+                 std::function<bool(void)> stopcond = [](){return false;}):
         _ArrBase<PolygonImpl>(bin, dist, progressind, stopcond)
     {
         m_pconf.object_function = [this, &bin] (const Item &item) {
@@ -791,5 +814,174 @@ bool arrange(Model &model,              // The model with the geometries
     return ret && result.size() == 1;
 }
 
+void find_new_position(const Model &model,
+                       ModelInstancePtrs toadd,
+                       coord_t min_obj_distance,
+                       const Polyline &bed)
+{
+    // Get the 2D projected shapes with their 3D model instance pointers
+    auto shapemap = arr::projectModelFromTop(model);
+
+    // Copy the references for the shapes only as the arranger expects a
+    // sequence of objects convertible to Item or ClipperPolygon
+    PackGroup preshapes; preshapes.emplace_back();
+    ItemGroup shapes;
+    preshapes.front().reserve(shapemap.size());
+
+    std::vector<ModelInstance*> shapes_ptr; shapes_ptr.reserve(toadd.size());
+    IndexedPackGroup result;
+
+    // If there is no hint about the shape, we will try to guess
+    BedShapeHint bedhint = bedShape(bed);
+
+    BoundingBox bbb(bed);
+
+    auto binbb = Box({
+                         static_cast<libnest2d::Coord>(bbb.min(0)),
+                         static_cast<libnest2d::Coord>(bbb.min(1))
+                     },
+                     {
+                         static_cast<libnest2d::Coord>(bbb.max(0)),
+                         static_cast<libnest2d::Coord>(bbb.max(1))
+                     });
+
+    for(auto it = shapemap.begin(); it != shapemap.end(); ++it) {
+        if(std::find(toadd.begin(), toadd.end(), it->first) == toadd.end()) {
+           if(it->second.isInside(binbb)) // just ignore items which are outside
+               preshapes.front().emplace_back(std::ref(it->second));
+        }
+        else {
+            shapes_ptr.emplace_back(it->first);
+            shapes.emplace_back(std::ref(it->second));
+        }
+    }
+
+    auto try_first_to_center = [&shapes, &shapes_ptr, &binbb]
+            (std::function<bool(const Item&)> is_colliding,
+             std::function<void(Item&)> preload)
+    {
+        // Try to put the first item to the center, as the arranger will not
+        // do this for us.
+        auto shptrit = shapes_ptr.begin();
+        for(auto shit = shapes.begin(); shit != shapes.end(); ++shit, ++shptrit)
+        {
+            // Try to place items to the center
+            Item& itm = *shit;
+            auto ibb = itm.boundingBox();
+            auto d = binbb.center() - ibb.center();
+            itm.translate(d);
+            if(!is_colliding(itm)) {
+                preload(itm);
+
+                auto offset = itm.translation();
+                Radians rot = itm.rotation();
+                ModelInstance *minst = *shptrit;
+                Vec3d foffset(offset.X*SCALING_FACTOR,
+                              offset.Y*SCALING_FACTOR,
+                              minst->get_offset()(Z));
+
+                // write the transformation data into the model instance
+                minst->set_rotation(Z, rot);
+                minst->set_offset(foffset);
+
+                shit = shapes.erase(shit);
+                shptrit = shapes_ptr.erase(shptrit);
+                break;
+            }
+        }
+    };
+
+    switch(bedhint.type) {
+    case BedShapeType::BOX: {
+
+        // Create the arranger for the box shaped bed
+        AutoArranger<Box> arrange(binbb, min_obj_distance);
+
+        if(!preshapes.front().empty()) { // If there is something on the plate
+            arrange.preload(preshapes);
+            try_first_to_center(
+                [&arrange](const Item& itm) {return arrange.is_colliding(itm);},
+                [&arrange](Item& itm) { arrange.preload({{itm}}); }
+            );
+        }
+
+        // Arrange and return the items with their respective indices within the
+        // input sequence.
+        result = arrange(shapes.begin(), shapes.end());
+        break;
+    }
+    case BedShapeType::CIRCLE: {
+
+        auto c = bedhint.shape.circ;
+        auto cc = to_lnCircle(c);
+
+        // Create the arranger for the box shaped bed
+        AutoArranger<lnCircle> arrange(cc, min_obj_distance);
+
+        if(!preshapes.front().empty()) { // If there is something on the plate
+            arrange.preload(preshapes);
+            try_first_to_center(
+                [&arrange](const Item& itm) {return arrange.is_colliding(itm);},
+                [&arrange](Item& itm) { arrange.preload({{itm}}); }
+            );
+        }
+
+        // Arrange and return the items with their respective indices within the
+        // input sequence.
+        result = arrange(shapes.begin(), shapes.end());
+        break;
+    }
+    case BedShapeType::IRREGULAR:
+    case BedShapeType::WHO_KNOWS: {
+        using P = libnest2d::PolygonImpl;
+
+        auto ctour = Slic3rMultiPoint_to_ClipperPath(bed);
+        P irrbed = sl::create<PolygonImpl>(std::move(ctour));
+
+        AutoArranger<P> arrange(irrbed, min_obj_distance);
+
+        if(!preshapes.front().empty()) { // If there is something on the plate
+            arrange.preload(preshapes);
+            try_first_to_center(
+                [&arrange](const Item& itm) {return arrange.is_colliding(itm);},
+                [&arrange](Item& itm) { arrange.preload({{itm}}); }
+            );
+        }
+
+        // Arrange and return the items with their respective indices within the
+        // input sequence.
+        result = arrange(shapes.begin(), shapes.end());
+        break;
+    }
+    };
+
+    // Now we go through the result which will contain the fixed and the moving
+    // polygons as well. We will have to search for our item.
+
+    const auto STRIDE_PADDING = 1.2;
+    Coord stride = Coord(STRIDE_PADDING*binbb.width()*SCALING_FACTOR);
+    Coord batch_offset = 0;
+
+    for(auto& group : result) {
+        for(auto& r : group) if(r.first < shapes.size()) {
+            Item& resultitem = r.second;
+            unsigned idx = r.first;
+            auto offset = resultitem.translation();
+            Radians rot = resultitem.rotation();
+            ModelInstance *minst = shapes_ptr[idx];
+            Vec3d foffset(offset.X*SCALING_FACTOR + batch_offset,
+                          offset.Y*SCALING_FACTOR,
+                          minst->get_offset()(Z));
+
+            // write the transformation data into the model instance
+            minst->set_rotation(Z, rot);
+            minst->set_offset(foffset);
+        }
+        batch_offset += stride;
+    }
 }
+
+}
+
+
 }

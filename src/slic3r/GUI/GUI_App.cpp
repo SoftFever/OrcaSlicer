@@ -539,6 +539,7 @@ void GUI_App::update_mode()
     obj_list()->get_sizer()->Show(mode > comSimple);
     sidebar().set_mode_value(mode);
 //    sidebar().show_buttons(mode == comExpert);
+    obj_list()->unselect_objects();
     obj_list()->update_selections();
     obj_list()->update_object_menu();
 

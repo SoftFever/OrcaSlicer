@@ -34,6 +34,10 @@ public:
         store_.clear();
         auto total = last-first;
         store_.reserve(total);
+
+        // TODO: support preloading
+        packed_bins_.clear();
+
         packed_bins_.emplace_back();
 
         auto makeProgress = [this, &total](

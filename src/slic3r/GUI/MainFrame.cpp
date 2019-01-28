@@ -94,6 +94,16 @@ wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAUL
 //             m_plater->print = undef;
         _3DScene::remove_all_canvases();
 //         Slic3r::GUI::deregister_on_request_update_callback();
+
+        // destroy and set to null tabs and a platter 
+        // to avoid any manipulations with them from App->wxEVT_IDLE after of the mainframe closing 
+        wxGetApp().clear_tabs_list();
+        if (wxGetApp().plater_) {
+            // before creating a new plater let's delete old one
+            wxGetApp().plater_->Destroy();
+            wxGetApp().plater_ = nullptr;
+        }
+
         // propagate event
         event.Skip();
     });

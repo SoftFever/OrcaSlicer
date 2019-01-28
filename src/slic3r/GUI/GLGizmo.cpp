@@ -1428,6 +1428,7 @@ void GLGizmoFlatten::on_start_dragging(const GLCanvas3D::Selection& selection)
 {
     if (m_hover_id != -1)
     {
+        assert(m_planes_valid);
         m_normal = m_planes[m_hover_id].normal;
         m_starting_center = selection.get_bounding_box().center();
     }
@@ -1446,6 +1447,8 @@ void GLGizmoFlatten::on_render(const GLCanvas3D::Selection& selection) const
         ::glPushMatrix();
         ::glMultMatrixd(m.data());
         ::glTranslatef(0.f, 0.f, selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z());
+        if (this->is_plane_update_necessary())
+			const_cast<GLGizmoFlatten*>(this)->update_planes();
         for (int i = 0; i < (int)m_planes.size(); ++i)
         {
             if (i == m_hover_id)
@@ -1478,6 +1481,8 @@ void GLGizmoFlatten::on_render_for_picking(const GLCanvas3D::Selection& selectio
         ::glPushMatrix();
         ::glMultMatrixd(m.data());
         ::glTranslatef(0.f, 0.f, selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z());
+        if (this->is_plane_update_necessary())
+			const_cast<GLGizmoFlatten*>(this)->update_planes();
         for (int i = 0; i < (int)m_planes.size(); ++i)
         {
             ::glColor3f(1.0f, 1.0f, picking_color_component(i));
@@ -1497,11 +1502,11 @@ void GLGizmoFlatten::on_render_for_picking(const GLCanvas3D::Selection& selectio
 void GLGizmoFlatten::set_flattening_data(const ModelObject* model_object)
 {
     m_starting_center = Vec3d::Zero();
-    bool object_changed = m_model_object != model_object;
+    if (m_model_object != model_object) {
+        m_planes.clear();
+        m_planes_valid = false;
+    }
     m_model_object = model_object;
-
-    if (model_object && (object_changed || is_plane_update_necessary()))
-        update_planes();
 }
 
 void GLGizmoFlatten::update_planes()
@@ -1701,6 +1706,8 @@ void GLGizmoFlatten::update_planes()
     }
     m_first_instance_scale = m_model_object->instances.front()->get_scaling_factor();
     m_first_instance_mirror = m_model_object->instances.front()->get_mirror();
+
+    m_planes_valid = true;
 }
 
 
@@ -1709,7 +1716,7 @@ bool GLGizmoFlatten::is_plane_update_necessary() const
     if (m_state != On || !m_model_object || m_model_object->instances.empty())
         return false;
 
-    if (m_model_object->volumes.size() != m_volumes_matrices.size())
+    if (! m_planes_valid || m_model_object->volumes.size() != m_volumes_matrices.size())
         return true;
 
     // We want to recalculate when the scale changes - some planes could (dis)appear.

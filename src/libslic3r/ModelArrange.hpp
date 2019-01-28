@@ -73,7 +73,13 @@ bool arrange(Model &model, coord_t min_obj_distance,
              std::function<void(unsigned)> progressind,
              std::function<bool(void)> stopcondition);
 
-}
+/// This will find a suitable position for a new object instance and leave the
+/// old items untouched.
+void find_new_position(const Model& model,
+                       ModelInstancePtrs instances_to_add,
+                       coord_t min_obj_distance,
+                       const Slic3r::Polyline& bed);
 
-}
+}   // arr
+}   // Slic3r
 #endif // MODELARRANGE_HPP

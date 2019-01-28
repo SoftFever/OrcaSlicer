@@ -75,7 +75,7 @@ void PrintConfigDef::init_fff_params()
                    "This is mostly useful with Bowden extruders which suffer from oozing. "
                    "This feature slows down both the print and the G-code generation.");
     def->cli = "avoid-crossing-perimeters!";
-    def->mode = comAdvanced;
+    def->mode = comExpert;
     def->default_value = new ConfigOptionBool(false);
 
     def = this->add("bed_temperature", coInts);
@@ -172,6 +172,7 @@ void PrintConfigDef::init_fff_params()
     def->cli = "bridge-speed=f";
     def->aliases = { "bridge_feed_rate" };
     def->min = 0;
+    def->mode = comAdvanced;
     def->default_value = new ConfigOptionFloat(60);
 
     def = this->add("brim_width", coFloat);
@@ -326,7 +327,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->cli = "elefant-foot-compensation=f";
     def->min = 0;
-    def->mode = comExpert;
+    def->mode = comAdvanced;
     def->default_value = new ConfigOptionFloat(0);
 
     def = this->add("end_gcode", coString);
@@ -403,6 +404,7 @@ void PrintConfigDef::init_fff_params()
     def->cli = "external-perimeter-speed=s";
     def->ratio_over = "perimeter_speed";
     def->min = 0;
+    def->mode = comAdvanced;
     def->default_value = new ConfigOptionFloatOrPercent(50, true);
 
     def = this->add("external_perimeters_first", coBool);
@@ -421,7 +423,7 @@ void PrintConfigDef::init_fff_params()
                    "Slic3r keeps adding perimeters, until more than 70% of the loop immediately above "
                    "is supported.");
     def->cli = "extra-perimeters!";
-    def->mode = comAdvanced;
+    def->mode = comExpert;
     def->default_value = new ConfigOptionBool(true);
 
     def = this->add("extruder", coInt);
@@ -706,12 +708,14 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("EDGE");
     def->enum_values.push_back("NGEN");
     def->enum_values.push_back("PVA");
+    def->mode = comAdvanced;
     def->default_value = new ConfigOptionStrings { "PLA" };
 
     def = this->add("filament_soluble", coBools);
     def->label = L("Soluble material");
     def->tooltip = L("Soluble material is most likely used for a soluble support.");
     def->cli = "filament-soluble!";
+    def->mode = comAdvanced;
     def->default_value = new ConfigOptionBools { false };
 
     def = this->add("filament_cost", coFloats);
@@ -884,6 +888,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s");
     def->cli = "gap-fill-speed=f";
     def->min = 0;
+    def->mode = comAdvanced;
     def->default_value = new ConfigOptionFloat(20);
 
     def = this->add("gcode_comments", coBool);
@@ -1014,6 +1019,7 @@ void PrintConfigDef::init_fff_params()
     def->cli = "infill-speed=f";
     def->aliases = { "print_feed_rate", "infill_feed_rate" };
     def->min = 0;
+    def->mode = comAdvanced;
     def->default_value = new ConfigOptionFloat(80);
 
     def = this->add("inherits", coString);
@@ -1419,6 +1425,7 @@ void PrintConfigDef::init_fff_params()
     def->cli = "perimeter-speed=f";
     def->aliases = { "perimeter_feed_rate" };
     def->min = 0;
+    def->mode = comAdvanced;
     def->default_value = new ConfigOptionFloat(60);
 
     def = this->add("perimeters", coInt);
@@ -1627,7 +1634,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Nearest"));
     def->enum_labels.push_back(L("Aligned"));
     def->enum_labels.push_back(L("Rear")); 
-    def->mode = comAdvanced;
+    def->mode = comSimple;
     def->default_value = new ConfigOptionEnum<SeamPosition>(spAligned);
 
 #if 0
@@ -1673,6 +1680,7 @@ void PrintConfigDef::init_fff_params()
     def->max = 300000;
     def->enum_values.push_back("115200");
     def->enum_values.push_back("250000");
+    def->mode = comAdvanced;
     def->default_value = new ConfigOptionInt(250000);
 
     def = this->add("skirt_distance", coFloat);
@@ -1726,6 +1734,7 @@ void PrintConfigDef::init_fff_params()
     def->cli = "small-perimeter-speed=s";
     def->ratio_over = "perimeter_speed";
     def->min = 0;
+    def->mode = comAdvanced;
     def->default_value = new ConfigOptionFloatOrPercent(15, false);
 
     def = this->add("solid_infill_below_area", coFloat);
@@ -1782,6 +1791,7 @@ void PrintConfigDef::init_fff_params()
     def->ratio_over = "infill_speed";
     def->aliases = { "solid_infill_feed_rate" };
     def->min = 0;
+    def->mode = comAdvanced;
     def->default_value = new ConfigOptionFloatOrPercent(20, false);
 
     def = this->add("solid_layers", coInt);
@@ -1873,7 +1883,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("If checked, supports will be generated automatically based on the overhang threshold value."\
                      " If unchecked, supports will be generated inside the \"Support Enforcer\" volumes only.");
     def->cli = "support-material-auto!";
-    def->mode = comAdvanced;
+    def->mode = comSimple;
     def->default_value = new ConfigOptionBool(true);
 
     def = this->add("support_material_xy_spacing", coFloatOrPercent);
@@ -1905,7 +1915,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Support material");
     def->tooltip = L("Only create support if it lies on a build plate. Don't create support on a print.");
     def->cli = "support-material-buildplate-only!";
-    def->mode = comAdvanced;
+    def->mode = comSimple;
     def->default_value = new ConfigOptionBool(false);
 
     def = this->add("support_material_contact_distance", coFloat);
@@ -2007,6 +2017,7 @@ void PrintConfigDef::init_fff_params()
     def->cli = "support-material-interface-speed=s";
     def->ratio_over = "support_material_speed";
     def->min = 0;
+    def->mode = comAdvanced;
     def->default_value = new ConfigOptionFloatOrPercent(100, true);
 
     def = this->add("support_material_pattern", coEnum);
@@ -2041,6 +2052,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s");
     def->cli = "support-material-speed=f";
     def->min = 0;
+    def->mode = comAdvanced;
     def->default_value = new ConfigOptionFloat(60);
 
     def = this->add("support_material_synchronize_layers", coBool);
@@ -2143,6 +2155,7 @@ void PrintConfigDef::init_fff_params()
     def->cli = "top-solid-infill-speed=s";
     def->ratio_over = "solid_infill_speed";
     def->min = 0;
+    def->mode = comAdvanced;
     def->default_value = new ConfigOptionFloatOrPercent(15, false);
 
     def = this->add("top_solid_layers", coInt);

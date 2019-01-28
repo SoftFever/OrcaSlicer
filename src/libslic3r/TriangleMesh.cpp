@@ -525,67 +525,22 @@ BoundingBoxf3 TriangleMesh::bounding_box() const
     return bb;
 }
 
-BoundingBoxf3 TriangleMesh::transformed_bounding_box(const Transform3d& t) const
+BoundingBoxf3 TriangleMesh::transformed_bounding_box(const Transform3d &trafo) const
 {
-    bool has_shared = (stl.v_shared != nullptr);
-    if (!has_shared)
-        stl_generate_shared_vertices(const_cast<stl_file*>(&stl));
-
-    unsigned int vertices_count = (stl.stats.shared_vertices > 0) ? (unsigned int)stl.stats.shared_vertices : 3 * (unsigned int)stl.stats.number_of_facets;
-
-    if (vertices_count == 0)
-        return BoundingBoxf3();
-
-    Eigen::MatrixXd src_vertices(3, vertices_count);
-
-    if (stl.stats.shared_vertices > 0)
-    {
-		assert(stl.v_shared != nullptr);
-        stl_vertex* vertex_ptr = stl.v_shared;
-        for (int i = 0; i < stl.stats.shared_vertices; ++i)
-        {
-            src_vertices(0, i) = (double)(*vertex_ptr)(0);
-            src_vertices(1, i) = (double)(*vertex_ptr)(1);
-            src_vertices(2, i) = (double)(*vertex_ptr)(2);
-            vertex_ptr += 1;
+    BoundingBoxf3 bbox;
+    if (stl.v_shared == nullptr) {
+        // Using the STL faces.
+        for (int i = 0; i < this->facets_count(); ++ i) {
+            const stl_facet &facet = this->stl.facet_start[i];
+            for (size_t j = 0; j < 3; ++ j)
+                bbox.merge(trafo * facet.vertex[j].cast<double>());
         }
+    } else {
+        // Using the shared vertices should be a bit quicker than using the STL faces.
+        for (int i = 0; i < stl.stats.shared_vertices; ++ i)            
+            bbox.merge(trafo * this->stl.v_shared[i].cast<double>());
     }
-    else
-    {
-        stl_facet* facet_ptr = stl.facet_start;
-        unsigned int v_id = 0;
-        while (facet_ptr < stl.facet_start + stl.stats.number_of_facets)
-        {
-            for (int i = 0; i < 3; ++i)
-            {
-                src_vertices(0, v_id) = (double)facet_ptr->vertex[i](0);
-                src_vertices(1, v_id) = (double)facet_ptr->vertex[i](1);
-                src_vertices(2, v_id) = (double)facet_ptr->vertex[i](2);
-                ++v_id;
-            }
-            facet_ptr += 1;
-        }
-    }
-
-    if (!has_shared && (stl.stats.shared_vertices > 0))
-		stl_invalidate_shared_vertices(const_cast<stl_file*>(&stl));
-
-    Eigen::MatrixXd dst_vertices(3, vertices_count);
-    dst_vertices = t * src_vertices.colwise().homogeneous();
-
-    Vec3d v_min(dst_vertices(0, 0), dst_vertices(1, 0), dst_vertices(2, 0));
-    Vec3d v_max = v_min;
-
-    for (int i = 1; i < vertices_count; ++i)
-    {
-        for (int j = 0; j < 3; ++j)
-        {
-            v_min(j) = std::min(v_min(j), dst_vertices(j, i));
-            v_max(j) = std::max(v_max(j), dst_vertices(j, i));
-        }
-    }
-
-    return BoundingBoxf3(v_min, v_max);
+    return bbox;
 }
 
 TriangleMesh TriangleMesh::convex_hull_3d() const
@@ -2010,4 +1965,5 @@ TriangleMesh make_sphere(double rho, double fa) {
     TriangleMesh mesh(vertices, facets);
     return mesh;
 }
+
 }

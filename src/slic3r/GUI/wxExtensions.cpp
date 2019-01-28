@@ -2393,6 +2393,25 @@ void PrusaModeSizer::SetMode(const int mode)
         mode_btns[m]->SetState(m == mode);
 }
 
+
+// ----------------------------------------------------------------------------
+// PrusaMenu
+// ----------------------------------------------------------------------------
+
+void PrusaMenu::DestroySeparators()
+{
+    if (m_separator_frst) {
+        Destroy(m_separator_frst);
+        m_separator_frst = nullptr;
+    }
+
+    if (m_separator_scnd) {
+        Destroy(m_separator_scnd);
+        m_separator_scnd = nullptr;
+    }
+}
+
+
 // ************************************** EXPERIMENTS ***************************************
 
 // *****************************************************************************
