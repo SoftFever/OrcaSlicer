@@ -237,7 +237,7 @@ public:
     void set_rotation(const Vec3d& rotation);
     void set_rotation(Axis axis, double rotation);
 
-    Vec3d get_scaling_factor() const { return m_scaling_factor; }
+    const Vec3d& get_scaling_factor() const { return m_scaling_factor; }
     double get_scaling_factor(Axis axis) const { return m_scaling_factor(axis); }
 
     void set_scaling_factor(const Vec3d& scaling_factor);
@@ -250,6 +250,10 @@ public:
     void set_mirror(Axis axis, double mirror);
 
     void set_from_transform(const Transform3d& transform);
+
+#if ENABLE_VOLUMES_CENTERING_FIXES
+    void reset();
+#endif // ENABLE_VOLUMES_CENTERING_FIXES
 
     const Transform3d& get_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const;
 

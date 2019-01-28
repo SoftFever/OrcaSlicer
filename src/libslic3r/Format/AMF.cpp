@@ -279,8 +279,8 @@ void AMFParserContext::startElement(const char *name, const char **atts)
                 node_type_new = NODE_TYPE_VERTICES;
 			else if (strcmp(name, "volume") == 0) {
 				assert(! m_volume);
-				m_volume = m_object->add_volume(TriangleMesh());
-				node_type_new = NODE_TYPE_VOLUME;
+                m_volume = m_object->add_volume(TriangleMesh());
+                node_type_new = NODE_TYPE_VOLUME;
 			}
         } else if (m_path[2] == NODE_TYPE_INSTANCE) {
             assert(m_instance);
@@ -528,6 +528,7 @@ void AMFParserContext::endElement(const char * /* name */)
         }
         stl_get_size(&stl);
         m_volume->mesh.repair();
+        m_volume->center_geometry();
         m_volume->calculate_convex_hull();
         m_volume_facets.clear();
         m_volume = nullptr;
@@ -578,7 +579,6 @@ void AMFParserContext::endElement(const char * /* name */)
 						break;
 					p = end + 1;
                 }
-                m_object->layer_height_profile_valid = true;
             }
             else if (m_path.size() == 3 && m_path[1] == NODE_TYPE_OBJECT && m_object && strcmp(opt_key, "sla_support_points") == 0) {
                 // Parse object's layer height profile, a semicolon separated list of floats.
@@ -642,13 +642,17 @@ void AMFParserContext::endDocument()
             continue;
         }
         for (const Instance &instance : object.second.instances)
+#if ENABLE_VOLUMES_CENTERING_FIXES
+        {
+#else
             if (instance.deltax_set && instance.deltay_set) {
+#endif // ENABLE_VOLUMES_CENTERING_FIXES
                 ModelInstance *mi = m_model.objects[object.second.idx]->add_instance();
                 mi->set_offset(Vec3d(instance.deltax_set ? (double)instance.deltax : 0.0, instance.deltay_set ? (double)instance.deltay : 0.0, instance.deltaz_set ? (double)instance.deltaz : 0.0));
                 mi->set_rotation(Vec3d(instance.rx_set ? (double)instance.rx : 0.0, instance.ry_set ? (double)instance.ry : 0.0, instance.rz_set ? (double)instance.rz : 0.0));
                 mi->set_scaling_factor(Vec3d(instance.scalex_set ? (double)instance.scalex : 1.0, instance.scaley_set ? (double)instance.scaley : 1.0, instance.scalez_set ? (double)instance.scalez : 1.0));
                 mi->set_mirror(Vec3d(instance.mirrorx_set ? (double)instance.mirrorx : 1.0, instance.mirrory_set ? (double)instance.mirrory : 1.0, instance.mirrorz_set ? (double)instance.mirrorz : 1.0));
-            }
+        }
     }
 }
 
@@ -885,7 +889,7 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
             stream << "    <metadata type=\"slic3r." << key << "\">" << object->config.serialize(key) << "</metadata>\n";
         if (!object->name.empty())
             stream << "    <metadata type=\"name\">" << xml_escape(object->name) << "</metadata>\n";
-        std::vector<double> layer_height_profile = object->layer_height_profile_valid ? object->layer_height_profile : std::vector<double>();
+        const std::vector<double> &layer_height_profile = object->layer_height_profile;
         if (layer_height_profile.size() >= 4 && (layer_height_profile.size() % 2) == 0) {
             // Store the layer height profile as a single semicolon separated list.
             stream << "    <metadata type=\"slic3r.layer_height_profile\">";
@@ -919,12 +923,14 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
             auto &stl = volume->mesh.stl;
             if (stl.v_shared == nullptr)
                 stl_generate_shared_vertices(&stl);
-            for (size_t i = 0; i < stl.stats.shared_vertices; ++ i) {
+            const Transform3d& matrix = volume->get_matrix();
+            for (size_t i = 0; i < stl.stats.shared_vertices; ++i) {
                 stream << "         <vertex>\n";
                 stream << "           <coordinates>\n";
-                stream << "             <x>" << stl.v_shared[i](0) << "</x>\n";
-                stream << "             <y>" << stl.v_shared[i](1) << "</y>\n";
-                stream << "             <z>" << stl.v_shared[i](2) << "</z>\n";
+                Vec3d v = matrix * stl.v_shared[i].cast<double>();
+                stream << "             <x>" << v(0) << "</x>\n";
+                stream << "             <y>" << v(1) << "</y>\n";
+                stream << "             <z>" << v(2) << "</z>\n";
                 stream << "           </coordinates>\n";
                 stream << "         </vertex>\n";
             }

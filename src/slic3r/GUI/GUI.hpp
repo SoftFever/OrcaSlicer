@@ -70,11 +70,6 @@ boost::filesystem::path	into_path(const wxString &str);
 // Returns the dimensions of the screen on which the main frame is displayed
 bool get_current_screen_size(wxWindow *window, unsigned &width, unsigned &height);
 
-// Save window size and maximized status into AppConfig
-void save_window_size(wxTopLevelWindow *window, const std::string &name);
-// Restore the above
-void restore_window_size(wxTopLevelWindow *window, const std::string &name);
-
 // Display an About dialog
 extern void about();
 // Ask the destop to open the datadir using the default file explorer.

@@ -310,16 +310,15 @@ ExPolygon::medial_axis(double max_width, double min_width, Polylines* polylines)
     polylines->insert(polylines->end(), tp.begin(), tp.end());
 }
 
-void
-ExPolygon::get_trapezoids(Polygons* polygons) const
+/*
+void ExPolygon::get_trapezoids(Polygons* polygons) const
 {
     ExPolygons expp;
     expp.push_back(*this);
     boost::polygon::get_trapezoids(*polygons, expp);
 }
 
-void
-ExPolygon::get_trapezoids(Polygons* polygons, double angle) const
+void ExPolygon::get_trapezoids(Polygons* polygons, double angle) const
 {
     ExPolygon clone = *this;
     clone.rotate(PI/2 - angle, Point(0,0));
@@ -327,12 +326,12 @@ ExPolygon::get_trapezoids(Polygons* polygons, double angle) const
     for (Polygons::iterator polygon = polygons->begin(); polygon != polygons->end(); ++polygon)
         polygon->rotate(-(PI/2 - angle), Point(0,0));
 }
+*/
 
 // This algorithm may return more trapezoids than necessary
 // (i.e. it may break a single trapezoid in several because
 // other parts of the object have x coordinates in the middle)
-void
-ExPolygon::get_trapezoids2(Polygons* polygons) const
+void ExPolygon::get_trapezoids2(Polygons* polygons) const
 {
     // get all points of this ExPolygon
     Points pp = *this;
@@ -370,8 +369,7 @@ ExPolygon::get_trapezoids2(Polygons* polygons) const
     }
 }
 
-void
-ExPolygon::get_trapezoids2(Polygons* polygons, double angle) const
+void ExPolygon::get_trapezoids2(Polygons* polygons, double angle) const
 {
     ExPolygon clone = *this;
     clone.rotate(PI/2 - angle, Point(0,0));
@@ -382,8 +380,7 @@ ExPolygon::get_trapezoids2(Polygons* polygons, double angle) const
 
 // While this triangulates successfully, it's NOT a constrained triangulation
 // as it will create more vertices on the boundaries than the ones supplied.
-void
-ExPolygon::triangulate(Polygons* polygons) const
+void ExPolygon::triangulate(Polygons* polygons) const
 {
     // first make trapezoids
     Polygons trapezoids;
@@ -394,8 +391,8 @@ ExPolygon::triangulate(Polygons* polygons) const
         polygon->triangulate_convex(polygons);
 }
 
-void
-ExPolygon::triangulate_pp(Polygons* polygons) const
+/*
+void ExPolygon::triangulate_pp(Polygons* polygons) const
 {
     // convert polygons
     std::list<TPPLPoly> input;
@@ -452,9 +449,113 @@ ExPolygon::triangulate_pp(Polygons* polygons) const
         polygons->push_back(p);
     }
 }
+*/
 
-void
-ExPolygon::triangulate_p2t(Polygons* polygons) const
+std::list<TPPLPoly> expoly_to_polypartition_input(const ExPolygon &ex)
+{
+	std::list<TPPLPoly> input;
+	// contour
+	{
+		input.emplace_back();
+		TPPLPoly &p = input.back();
+		p.Init(int(ex.contour.points.size()));
+		for (const Point &point : ex.contour.points) {
+			size_t i = &point - &ex.contour.points.front();
+			p[i].x = point(0);
+			p[i].y = point(1);
+		}
+		p.SetHole(false);
+	}
+	// holes
+	for (const Polygon &hole : ex.holes) {
+		input.emplace_back();
+		TPPLPoly &p = input.back();
+		p.Init(hole.points.size());
+		for (const Point &point : hole.points) {
+			size_t i = &point - &hole.points.front();
+			p[i].x = point(0);
+			p[i].y = point(1);
+		}
+		p.SetHole(true);
+	}
+	return input;
+}
+
+std::list<TPPLPoly> expoly_to_polypartition_input(const ExPolygons &expps)
+{
+    std::list<TPPLPoly> input;
+	for (const ExPolygon &ex : expps) {
+        // contour
+        {
+            input.emplace_back();
+            TPPLPoly &p = input.back();
+            p.Init(int(ex.contour.points.size()));
+            for (const Point &point : ex.contour.points) {
+                size_t i = &point - &ex.contour.points.front();
+                p[i].x = point(0);
+                p[i].y = point(1);
+            }
+            p.SetHole(false);
+        }
+        // holes
+        for (const Polygon &hole : ex.holes) {
+            input.emplace_back();
+            TPPLPoly &p = input.back();
+            p.Init(hole.points.size());
+            for (const Point &point : hole.points) {
+                size_t i = &point - &hole.points.front();
+                p[i].x = point(0);
+                p[i].y = point(1);
+            }
+            p.SetHole(true);
+        }
+    }
+    return input;
+}
+
+std::vector<Point> polypartition_output_to_triangles(const std::list<TPPLPoly> &output)
+{
+    size_t num_triangles = 0;
+    for (const TPPLPoly &poly : output)
+        if (poly.GetNumPoints() >= 3)
+            num_triangles += (size_t)poly.GetNumPoints() - 2;
+    std::vector<Point> triangles;
+    triangles.reserve(triangles.size() + num_triangles * 3);
+    for (const TPPLPoly &poly : output) {
+        long num_points = poly.GetNumPoints();
+        if (num_points >= 3) {
+            const TPPLPoint *pt0 = &poly[0];
+            const TPPLPoint *pt1 = nullptr;
+            const TPPLPoint *pt2 = &poly[1];
+            for (long i = 2; i < num_points; ++ i) {
+                pt1 = pt2;
+                pt2 = &poly[i];
+                triangles.emplace_back(coord_t(pt0->x), coord_t(pt0->y));
+                triangles.emplace_back(coord_t(pt1->x), coord_t(pt1->y));
+                triangles.emplace_back(coord_t(pt2->x), coord_t(pt2->y));
+            }
+        }
+    }
+    return triangles;
+}
+
+void ExPolygon::triangulate_pp(Points *triangles) const
+{
+    ExPolygons expp = union_ex(simplify_polygons(to_polygons(*this), true));
+    std::list<TPPLPoly> input = expoly_to_polypartition_input(expp);
+    // perform triangulation
+    std::list<TPPLPoly> output;
+    int res = TPPLPartition().Triangulate_MONO(&input, &output);
+// int TPPLPartition::Triangulate_EC(TPPLPolyList *inpolys, TPPLPolyList *triangles) {
+    if (res != 1)
+        throw std::runtime_error("Triangulation failed");
+    *triangles = polypartition_output_to_triangles(output);
+}
+
+// Uses the Poly2tri library maintained by Jan Niklas Hasse @jhasse // https://github.com/jhasse/poly2tri
+// See https://github.com/jhasse/poly2tri/blob/master/README.md for the limitations of the library!
+// No duplicate points are allowed, no very close points, holes must not touch outer contour etc.
+void ExPolygon::triangulate_p2t(Polygons* polygons) const
 {
     ExPolygons expp = simplify_polygons_ex(*this, true);
     
@@ -478,16 +579,21 @@ ExPolygon::triangulate_p2t(Polygons* polygons) const
         }
         
         // perform triangulation
-        cdt.Triangulate();
-        std::vector<p2t::Triangle*> triangles = cdt.GetTriangles();
-        
-        for (std::vector<p2t::Triangle*>::const_iterator triangle = triangles.begin(); triangle != triangles.end(); ++triangle) {
-            Polygon p;
-            for (int i = 0; i <= 2; ++i) {
-                p2t::Point* point = (*triangle)->GetPoint(i);
-                p.points.push_back(Point(point->x, point->y));
+        try {
+            cdt.Triangulate();
+            std::vector<p2t::Triangle*> triangles = cdt.GetTriangles();
+            
+            for (std::vector<p2t::Triangle*>::const_iterator triangle = triangles.begin(); triangle != triangles.end(); ++triangle) {
+                Polygon p;
+                for (int i = 0; i <= 2; ++i) {
+                    p2t::Point* point = (*triangle)->GetPoint(i);
+                    p.points.push_back(Point(point->x, point->y));
+                }
+                polygons->push_back(p);
             }
-            polygons->push_back(p);
+        } catch (const std::runtime_error & /* err */) {
+            assert(false);
+            // just ignore, don't triangulate
         }
 
         for (p2t::Point *ptr : ContourPoints)
@@ -495,8 +601,7 @@ ExPolygon::triangulate_p2t(Polygons* polygons) const
     }
 }
 
-Lines
-ExPolygon::lines() const
+Lines ExPolygon::lines() const
 {
     Lines lines = this->contour.lines();
     for (Polygons::const_iterator h = this->holes.begin(); h != this->holes.end(); ++h) {

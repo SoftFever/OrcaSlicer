@@ -14,6 +14,7 @@
 class wxBoxSizer;
 class wxMenuItem;
 class PrusaObjectDataViewModel;
+class PrusaMenu;
 
 namespace Slic3r {
 class ConfigOptionsGroup;
@@ -23,6 +24,11 @@ class ModelVolume;
 
 // FIXME: broken build on mac os because of this is missing:
 typedef std::vector<std::string>    t_config_option_keys;
+
+typedef std::map<std::string, std::vector<std::string>> FreqSettingsBundle;
+
+//				  category ->		vector 			 ( option	;  label )
+typedef std::map< std::string, std::vector< std::pair<std::string, std::string> > > settings_menu_hierarchy;
 
 namespace GUI {
 
@@ -56,22 +62,38 @@ class ObjectList : public wxDataViewCtrl
 
     struct dragged_item_data
     {
-        void init(const int obj_idx, const int vol_idx) {
+        void init(const int obj_idx, const int subobj_idx, const ItemType type) {
             m_obj_idx = obj_idx;
-            m_vol_idx = vol_idx;            
+            m_type = type;
+            if (m_type&itVolume)
+                m_vol_idx = subobj_idx;
+            else
+                m_inst_idxs.insert(subobj_idx);
+        }
+
+        void init(const int obj_idx, const ItemType type) {
+            m_obj_idx = obj_idx;
+            m_type = type;
         }
 
         void clear() {
             m_obj_idx = -1;
-            m_vol_idx = -1;            
+            m_vol_idx = -1;
+            m_inst_idxs.clear();
+            m_type = itUndef;
         }
 
         int obj_idx() const  { return m_obj_idx; }
-        int vol_idx() const  { return m_vol_idx; }
+        int sub_obj_idx() const  { return m_vol_idx; }
+        ItemType type() const { return m_type; }
+        std::set<int>& inst_idxs() { return m_inst_idxs; }
 
     private:
         int m_obj_idx = -1;
         int m_vol_idx = -1;
+        std::set<int> m_inst_idxs{};
+        ItemType m_type = itUndef;
+
     } m_dragged_data;
 
     wxBoxSizer          *m_sizer {nullptr};
@@ -88,12 +110,14 @@ class ObjectList : public wxDataViewCtrl
     wxBitmap	m_bmp_cog;
     wxBitmap	m_bmp_split;
 
-    wxMenu      m_menu_object;
-    wxMenu      m_menu_part;
-    wxMenu      m_menu_sla_object;
+    PrusaMenu   m_menu_object;
+    PrusaMenu   m_menu_part;
+    PrusaMenu   m_menu_sla_object;
+    PrusaMenu   m_menu_instance;
     wxMenuItem* m_menu_item_split { nullptr };
     wxMenuItem* m_menu_item_split_part { nullptr };
     wxMenuItem* m_menu_item_settings { nullptr };
+    wxMenuItem* m_menu_item_split_instances { nullptr };
 
     std::vector<wxBitmap*> m_bmp_vector;
 
@@ -109,6 +133,11 @@ class ObjectList : public wxDataViewCtrl
     bool        m_part_settings_changed = false;
 
     int         m_selected_row = 0;
+
+#if 0
+    FreqSettingsBundle m_freq_settings_fff;
+    FreqSettingsBundle m_freq_settings_sla;
+#endif
 
 public:
     ObjectList(wxWindow* parent);
@@ -143,15 +172,21 @@ public:
     void                key_event(wxKeyEvent& event);
 
     void                get_settings_choice(const wxString& category_name);
+    void                get_freq_settings_choice(const wxString& bundle_name);
+    void                update_settings_item();
+
     void                append_menu_item_add_generic(wxMenuItem* menu, const int type);
     void                append_menu_items_add_volume(wxMenu* menu);
     wxMenuItem*         append_menu_item_split(wxMenu* menu);
     wxMenuItem*         append_menu_item_settings(wxMenu* menu);
     wxMenuItem*         append_menu_item_change_type(wxMenu* menu);
+    wxMenuItem*         append_menu_item_instance_to_object(wxMenu* menu);
     void                create_object_popupmenu(wxMenu *menu);
     void                create_sla_object_popupmenu(wxMenu*menu);
     void                create_part_popupmenu(wxMenu*menu);
+    void                create_instance_popupmenu(wxMenu*menu);
     wxMenu*             create_settings_popupmenu(wxMenu *parent_menu);
+    void                create_freq_settings_popupmenu(wxMenu *parent_menu);
 
     void                update_opt_keys(t_config_option_keys& t_optopt_keys);
 
@@ -166,6 +201,8 @@ public:
     void                split();
     bool                get_volume_by_item(const wxDataViewItem& item, ModelVolume*& volume);
     bool                is_splittable();
+    bool                selected_instances_of_same_object();
+    bool                can_split_instances();
 
     wxPoint             get_mouse_position_in_control();
     wxBoxSizer*         get_sizer() {return  m_sizer;}
@@ -221,6 +258,10 @@ public:
     void last_volume_is_deleted(const int obj_idx);
     bool has_multi_part_objects();
     void update_settings_items();
+    void update_object_menu();
+
+    void instances_to_separated_object(const int obj_idx, const std::set<int>& inst_idx);
+    void split_instances();
 
 private:
     void OnChar(wxKeyEvent& event);
@@ -229,9 +270,14 @@ private:
     void OnBeginDrag(wxDataViewEvent &event);
     void OnDropPossible(wxDataViewEvent &event);
     void OnDrop(wxDataViewEvent &event);
+    bool can_drop(const wxDataViewItem& item) const ;
 
     void ItemValueChanged(wxDataViewEvent &event);
     void OnEditingDone(wxDataViewEvent &event);
+
+    std::vector<std::string>        get_options(const bool is_part);
+    const std::vector<std::string>& get_options_for_bundle(const wxString& bundle_name);
+    void                            get_options_menu(settings_menu_hierarchy& settings_menu, const bool is_part);
 };
 
 

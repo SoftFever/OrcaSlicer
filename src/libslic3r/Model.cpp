@@ -570,10 +570,11 @@ ModelObject& ModelObject::assign_copy(const ModelObject &rhs)
     this->sla_support_points          = rhs.sla_support_points;
     this->layer_height_ranges         = rhs.layer_height_ranges;
     this->layer_height_profile        = rhs.layer_height_profile;
-    this->layer_height_profile_valid  = rhs.layer_height_profile_valid;
     this->origin_translation          = rhs.origin_translation;
     m_bounding_box                    = rhs.m_bounding_box;
     m_bounding_box_valid              = rhs.m_bounding_box_valid;
+    m_raw_mesh_bounding_box           = rhs.m_raw_mesh_bounding_box;
+    m_raw_mesh_bounding_box_valid     = rhs.m_raw_mesh_bounding_box_valid;
 
     this->clear_volumes();
     this->volumes.reserve(rhs.volumes.size());
@@ -602,10 +603,11 @@ ModelObject& ModelObject::assign_copy(ModelObject &&rhs)
     this->sla_support_points          = std::move(rhs.sla_support_points);
     this->layer_height_ranges         = std::move(rhs.layer_height_ranges);
     this->layer_height_profile        = std::move(rhs.layer_height_profile);
-    this->layer_height_profile_valid  = std::move(rhs.layer_height_profile_valid);
     this->origin_translation          = std::move(rhs.origin_translation);
     m_bounding_box                    = std::move(rhs.m_bounding_box);
     m_bounding_box_valid              = std::move(rhs.m_bounding_box_valid);
+    m_raw_mesh_bounding_box           = rhs.m_raw_mesh_bounding_box;
+    m_raw_mesh_bounding_box_valid     = rhs.m_raw_mesh_bounding_box_valid;
 
     this->clear_volumes();
 	this->volumes = std::move(rhs.volumes);
@@ -641,6 +643,9 @@ ModelVolume* ModelObject::add_volume(const TriangleMesh &mesh)
 {
     ModelVolume* v = new ModelVolume(this, mesh);
     this->volumes.push_back(v);
+#if ENABLE_VOLUMES_CENTERING_FIXES
+    v->center_geometry();
+#endif // ENABLE_VOLUMES_CENTERING_FIXES
     this->invalidate_bounding_box();
     return v;
 }
@@ -649,6 +654,9 @@ ModelVolume* ModelObject::add_volume(TriangleMesh &&mesh)
 {
     ModelVolume* v = new ModelVolume(this, std::move(mesh));
     this->volumes.push_back(v);
+#if ENABLE_VOLUMES_CENTERING_FIXES
+    v->center_geometry();
+#endif // ENABLE_VOLUMES_CENTERING_FIXES
     this->invalidate_bounding_box();
     return v;
 }
@@ -657,6 +665,9 @@ ModelVolume* ModelObject::add_volume(const ModelVolume &other)
 {
     ModelVolume* v = new ModelVolume(this, other);
     this->volumes.push_back(v);
+#if ENABLE_VOLUMES_CENTERING_FIXES
+    v->center_geometry();
+#endif // ENABLE_VOLUMES_CENTERING_FIXES
     this->invalidate_bounding_box();
     return v;
 }
@@ -665,6 +676,9 @@ ModelVolume* ModelObject::add_volume(const ModelVolume &other, TriangleMesh &&me
 {
     ModelVolume* v = new ModelVolume(this, other, std::move(mesh));
     this->volumes.push_back(v);
+#if ENABLE_VOLUMES_CENTERING_FIXES
+    v->center_geometry();
+#endif // ENABLE_VOLUMES_CENTERING_FIXES
     this->invalidate_bounding_box();
     return v;
 }
@@ -675,6 +689,23 @@ void ModelObject::delete_volume(size_t idx)
     delete *i;
     this->volumes.erase(i);
 
+#if ENABLE_VOLUMES_CENTERING_FIXES
+    if (this->volumes.size() == 1)
+    {
+        // only one volume left
+        // we need to collapse the volume transform into the instances transforms because now when selecting this volume
+        // it will be seen as a single full instance ans so its volume transform may be ignored
+        ModelVolume* v = this->volumes.front();
+        Transform3d v_t = v->get_transformation().get_matrix();
+        for (ModelInstance* inst : this->instances)
+        {
+            inst->set_transformation(Geometry::Transformation(inst->get_transformation().get_matrix() * v_t));
+        }
+        Geometry::Transformation t;
+        v->set_transformation(t);
+        v->set_new_unique_id();
+    }
+#else
     if (this->volumes.size() == 1)
     {
         // only one volume left
@@ -691,6 +722,7 @@ void ModelObject::delete_volume(size_t idx)
         v->set_offset(Vec3d::Zero());
         v->set_new_unique_id();
     }
+#endif // ENABLE_VOLUMES_CENTERING_FIXES
 
     this->invalidate_bounding_box();
 }
@@ -755,19 +787,11 @@ void ModelObject::clear_instances()
 const BoundingBoxf3& ModelObject::bounding_box() const
 {
     if (! m_bounding_box_valid) {
-        BoundingBoxf3 raw_bbox;
-        for (const ModelVolume *v : this->volumes)
-            if (v->is_model_part())
-            {
-                TriangleMesh m = v->mesh;
-                m.transform(v->get_matrix());
-                raw_bbox.merge(m.bounding_box());
-            }
-        BoundingBoxf3 bb;
-        for (const ModelInstance *i : this->instances)
-            bb.merge(i->transform_bounding_box(raw_bbox));
-        m_bounding_box = bb;
         m_bounding_box_valid = true;
+        BoundingBoxf3 raw_bbox = this->raw_mesh_bounding_box();
+        m_bounding_box.reset();
+        for (const ModelInstance *i : this->instances)
+            m_bounding_box.merge(i->transform_bounding_box(raw_bbox));
     }
     return m_bounding_box;
 }
@@ -812,6 +836,26 @@ TriangleMesh ModelObject::full_raw_mesh() const
         mesh.merge(vol_mesh);
     }
     return mesh;
+}
+
+BoundingBoxf3 ModelObject::raw_mesh_bounding_box() const
+{
+    if (! m_raw_mesh_bounding_box_valid) {
+        m_raw_mesh_bounding_box_valid = true;
+        m_raw_mesh_bounding_box.reset();
+        for (const ModelVolume *v : this->volumes)
+            if (v->is_model_part())
+                m_raw_mesh_bounding_box.merge(v->mesh.transformed_bounding_box(v->get_matrix()));
+    }
+    return m_raw_mesh_bounding_box;
+}
+
+BoundingBoxf3 ModelObject::full_raw_mesh_bounding_box() const
+{
+	BoundingBoxf3 bb;
+	for (const ModelVolume *v : this->volumes)
+		bb.merge(v->mesh.transformed_bounding_box(v->get_matrix()));
+	return bb;
 }
 
 // A transformed snug bounding box around the non-modifier object volumes, without the translation applied.
@@ -868,15 +912,73 @@ BoundingBoxf3 ModelObject::instance_bounding_box(size_t instance_idx, bool dont_
     return bb;
 }
 
+// Calculate 2D convex hull of of a projection of the transformed printable volumes into the XY plane.
+// This method is cheap in that it does not make any unnecessary copy of the volume meshes.
+// This method is used by the auto arrange function.
+Polygon ModelObject::convex_hull_2d(const Transform3d &trafo_instance)
+{
+    Points pts;
+    for (const ModelVolume *v : this->volumes)
+        if (v->is_model_part()) {
+            const stl_file &stl = v->mesh.stl;
+            Transform3d trafo = trafo_instance * v->get_matrix();
+            if (stl.v_shared == nullptr) {
+                // Using the STL faces.
+                for (unsigned int i = 0; i < stl.stats.number_of_facets; ++ i) {
+                    const stl_facet &facet = stl.facet_start[i];
+                    for (size_t j = 0; j < 3; ++ j) {
+                        Vec3d p = trafo * facet.vertex[j].cast<double>();
+                        pts.emplace_back(coord_t(scale_(p.x())), coord_t(scale_(p.y())));
+                    }
+                }
+            } else {
+                // Using the shared vertices should be a bit quicker than using the STL faces.
+                for (int i = 0; i < stl.stats.shared_vertices; ++ i) {           
+                    Vec3d p = trafo * stl.v_shared[i].cast<double>();
+                    pts.emplace_back(coord_t(scale_(p.x())), coord_t(scale_(p.y())));
+                }
+            }
+        }
+	std::sort(pts.begin(), pts.end(), [](const Point& a, const Point& b) { return a(0) < b(0) || (a(0) == b(0) && a(1) < b(1)); });
+	pts.erase(std::unique(pts.begin(), pts.end(), [](const Point& a, const Point& b) { return a(0) == b(0) && a(1) == b(1); }), pts.end());
+
+    Polygon hull;
+    int n = (int)pts.size();
+    if (n >= 3) {
+        int k = 0;
+        hull.points.resize(2 * n);
+        // Build lower hull
+        for (int i = 0; i < n; ++ i) {
+            while (k >= 2 && pts[i].ccw(hull[k-2], hull[k-1]) <= 0)
+                -- k;
+            hull[k ++] = pts[i];
+        }
+        // Build upper hull
+        for (int i = n-2, t = k+1; i >= 0; i--) {
+            while (k >= t && pts[i].ccw(hull[k-2], hull[k-1]) <= 0)
+                -- k;
+            hull[k ++] = pts[i];
+        }
+        hull.points.resize(k);
+        assert(hull.points.front() == hull.points.back());
+        hull.points.pop_back();
+    }
+    return hull;
+}
+
 void ModelObject::center_around_origin()
 {
     // calculate the displacements needed to 
     // center this object around the origin
+#if ENABLE_VOLUMES_CENTERING_FIXES
+    BoundingBoxf3 bb = full_raw_mesh_bounding_box();
+#else
 	BoundingBoxf3 bb;
 	for (ModelVolume *v : this->volumes)
         if (v->is_model_part())
-			bb.merge(v->mesh.bounding_box());
-    
+            bb.merge(v->mesh.bounding_box());
+#endif // ENABLE_VOLUMES_CENTERING_FIXES
+
     // Shift is the vector from the center of the bounding box to the origin
     Vec3d shift = -bb.center();
 
@@ -1042,7 +1144,8 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
 
             if (keep_upper) { upper->add_volume(*volume); }
             if (keep_lower) { lower->add_volume(*volume); }
-        } else {
+        }
+        else {
             TriangleMesh upper_mesh, lower_mesh;
 
             // Transform the mesh by the combined transformation matrix
@@ -1050,7 +1153,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
 
             // Perform cut
             TriangleMeshSlicer tms(&volume->mesh);
-            tms.cut(z, &upper_mesh, &lower_mesh);
+            tms.cut(float(z), &upper_mesh, &lower_mesh);
 
             // Reset volume transformation except for offset
             const Vec3d offset = volume->get_offset();
@@ -1067,14 +1170,14 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
             }
 
             if (keep_upper && upper_mesh.facets_count() > 0) {
-                ModelVolume* vol    = upper->add_volume(upper_mesh);
-                vol->name           = volume->name;
+                ModelVolume* vol = upper->add_volume(upper_mesh);
+                vol->name = volume->name;
                 vol->config         = volume->config;
                 vol->set_material(volume->material_id(), *volume->material());
             }
             if (keep_lower && lower_mesh.facets_count() > 0) {
-                ModelVolume* vol    = lower->add_volume(lower_mesh);
-                vol->name           = volume->name;
+                ModelVolume* vol = lower->add_volume(lower_mesh);
+                vol->name = volume->name;
                 vol->config         = volume->config;
                 vol->set_material(volume->material_id(), *volume->material());
 
@@ -1153,7 +1256,9 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
 		for (const ModelInstance *model_instance : this->instances)
 			new_object->add_instance(*model_instance);
         ModelVolume* new_vol = new_object->add_volume(*volume, std::move(*mesh));
+#if !ENABLE_VOLUMES_CENTERING_FIXES
         new_vol->center_geometry();
+#endif // !ENABLE_VOLUMES_CENTERING_FIXES
 
         for (ModelInstance* model_instance : new_object->instances)
         {
@@ -1321,10 +1426,20 @@ int ModelVolume::extruder_id() const
 
 void ModelVolume::center_geometry()
 {
+#if ENABLE_VOLUMES_CENTERING_FIXES
+    Vec3d shift = mesh.bounding_box().center();
+    if (!shift.isApprox(Vec3d::Zero()))
+    {
+        mesh.translate(-(float)shift(0), -(float)shift(1), -(float)shift(2));
+        m_convex_hull.translate(-(float)shift(0), -(float)shift(1), -(float)shift(2));
+        translate(shift);
+    }
+#else
     Vec3d shift = -mesh.bounding_box().center();
     mesh.translate((float)shift(0), (float)shift(1), (float)shift(2));
     m_convex_hull.translate((float)shift(0), (float)shift(1), (float)shift(2));
     translate(-shift);
+#endif // ENABLE_VOLUMES_CENTERING_FIXES
 }
 
 void ModelVolume::calculate_convex_hull()

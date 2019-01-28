@@ -409,9 +409,6 @@ void GLGizmoRotate::on_render(const GLCanvas3D::Selection& selection) const
         return;
 
     const BoundingBoxf3& box = selection.get_bounding_box();
-#if !ENABLE_WORLD_ROTATIONS
-    bool single_selection = selection.is_single_full_instance() || selection.is_single_modifier() || selection.is_single_volume();
-#endif // !ENABLE_WORLD_ROTATIONS
 
     std::string axis;
     switch (m_axis)
@@ -421,13 +418,9 @@ void GLGizmoRotate::on_render(const GLCanvas3D::Selection& selection) const
     case Z: { axis = "Z"; break; }
     }
 
-#if ENABLE_WORLD_ROTATIONS
     if (!m_dragging && (m_hover_id == 0))
         set_tooltip(axis);
     else if (m_dragging)
-#else
-    if ((single_selection && (m_hover_id == 0)) || m_dragging)
-#endif // ENABLE_WORLD_ROTATIONS
         set_tooltip(axis + ": " + format((float)Geometry::rad2deg(m_angle), 4) + "\u00B0");
     else
     {
@@ -571,11 +564,7 @@ void GLGizmoRotate::render_angle() const
 
 void GLGizmoRotate::render_grabber(const BoundingBoxf3& box) const
 {
-#if ENABLE_WORLD_ROTATIONS
     double grabber_radius = (double)m_radius * (1.0 + (double)GrabberOffset);
-#else
-    double grabber_radius = (double)m_radius * (1.0 + (double)GrabberOffset) + 2.0 * (double)m_axis * (double)m_grabbers[0].get_half_size((float)box.max_size());
-#endif // ENABLE_WORLD_ROTATIONS
     m_grabbers[0].center = Vec3d(::cos(m_angle) * grabber_radius, ::sin(m_angle) * grabber_radius, 0.0);
     m_grabbers[0].angles(2) = m_angle;
 
@@ -1439,6 +1428,7 @@ void GLGizmoFlatten::on_start_dragging(const GLCanvas3D::Selection& selection)
 {
     if (m_hover_id != -1)
     {
+        assert(m_planes_valid);
         m_normal = m_planes[m_hover_id].normal;
         m_starting_center = selection.get_bounding_box().center();
     }
@@ -1457,6 +1447,8 @@ void GLGizmoFlatten::on_render(const GLCanvas3D::Selection& selection) const
         ::glPushMatrix();
         ::glMultMatrixd(m.data());
         ::glTranslatef(0.f, 0.f, selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z());
+        if (this->is_plane_update_necessary())
+			const_cast<GLGizmoFlatten*>(this)->update_planes();
         for (int i = 0; i < (int)m_planes.size(); ++i)
         {
             if (i == m_hover_id)
@@ -1489,6 +1481,8 @@ void GLGizmoFlatten::on_render_for_picking(const GLCanvas3D::Selection& selectio
         ::glPushMatrix();
         ::glMultMatrixd(m.data());
         ::glTranslatef(0.f, 0.f, selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z());
+        if (this->is_plane_update_necessary())
+			const_cast<GLGizmoFlatten*>(this)->update_planes();
         for (int i = 0; i < (int)m_planes.size(); ++i)
         {
             ::glColor3f(1.0f, 1.0f, picking_color_component(i));
@@ -1508,11 +1502,11 @@ void GLGizmoFlatten::on_render_for_picking(const GLCanvas3D::Selection& selectio
 void GLGizmoFlatten::set_flattening_data(const ModelObject* model_object)
 {
     m_starting_center = Vec3d::Zero();
-    bool object_changed = m_model_object != model_object;
+    if (m_model_object != model_object) {
+        m_planes.clear();
+        m_planes_valid = false;
+    }
     m_model_object = model_object;
-
-    if (object_changed && is_plane_update_necessary())
-        update_planes();
 }
 
 void GLGizmoFlatten::update_planes()
@@ -1526,10 +1520,9 @@ void GLGizmoFlatten::update_planes()
         vol_ch.transform(vol->get_matrix());
         ch.merge(vol_ch);
     }
-
     ch = ch.convex_hull_3d();
     m_planes.clear();
-    const Transform3d& inst_matrix = m_model_object->instances.front()->get_matrix();
+    const Transform3d& inst_matrix = m_model_object->instances.front()->get_matrix(true);
 
     // Following constants are used for discarding too small polygons.
     const float minimal_area = 5.f; // in square mm (world coordinates)
@@ -1586,15 +1579,17 @@ void GLGizmoFlatten::update_planes()
             m_planes.pop_back();
     }
 
+    // Let's prepare transformation of the normal vector from mesh to instance coordinates.
+    Geometry::Transformation t(inst_matrix);
+    Vec3d scaling = t.get_scaling_factor();
+    t.set_scaling_factor(Vec3d(1./scaling(0), 1./scaling(1), 1./scaling(2)));
+
     // Now we'll go through all the polygons, transform the points into xy plane to process them:
     for (unsigned int polygon_id=0; polygon_id < m_planes.size(); ++polygon_id) {
         Pointf3s& polygon = m_planes[polygon_id].vertices;
         const Vec3d& normal = m_planes[polygon_id].normal;
 
-        // let's transform the normal accodring to the instance matrix:
-        Geometry::Transformation t(inst_matrix);
-        Vec3d scaling = t.get_scaling_factor();
-        t.set_scaling_factor(Vec3d(1./(scaling(0)*scaling(0)), 1./(scaling(0)*scaling(0)), 1./(scaling(0)*scaling(0))));
+        // transform the normal according to the instance matrix:
         Vec3d normal_transformed = t.get_matrix() * normal;
 
         // We are going to rotate about z and y to flatten the plane
@@ -1696,10 +1691,6 @@ void GLGizmoFlatten::update_planes()
 
         // Transform back to 3D (and also back to mesh coordinates)
         polygon = transform(polygon, inst_matrix.inverse() * m.inverse());
-
-        // make sure the points are in correct order:
-        if ( ((inst_matrix.inverse() * m.inverse()) * Vec3d(0., 0., 1.)).dot(normal) > 0.)
-            std::reverse(polygon.begin(),polygon.end());
     }
 
     // We'll sort the planes by area and only keep the 254 largest ones (because of the picking pass limitations):
@@ -1714,6 +1705,9 @@ void GLGizmoFlatten::update_planes()
         m_volumes_types.push_back(vol->type());
     }
     m_first_instance_scale = m_model_object->instances.front()->get_scaling_factor();
+    m_first_instance_mirror = m_model_object->instances.front()->get_mirror();
+
+    m_planes_valid = true;
 }
 
 
@@ -1722,11 +1716,12 @@ bool GLGizmoFlatten::is_plane_update_necessary() const
     if (m_state != On || !m_model_object || m_model_object->instances.empty())
         return false;
 
-    if (m_model_object->volumes.size() != m_volumes_matrices.size())
+    if (! m_planes_valid || m_model_object->volumes.size() != m_volumes_matrices.size())
         return true;
 
     // We want to recalculate when the scale changes - some planes could (dis)appear.
-    if (! m_model_object->instances.front()->get_scaling_factor().isApprox(m_first_instance_scale))
+    if (! m_model_object->instances.front()->get_scaling_factor().isApprox(m_first_instance_scale)
+     || ! m_model_object->instances.front()->get_mirror().isApprox(m_first_instance_mirror))
         return true;
 
     for (unsigned int i=0; i < m_model_object->volumes.size(); ++i)
@@ -2466,11 +2461,13 @@ void GLGizmoCut::on_render_input_window(float x, float y, const GLCanvas3D::Sele
     m_imgui->checkbox(_(L("Keep lower part")), m_keep_lower);
     m_imgui->checkbox(_(L("Rotate lower part upwards")), m_rotate_lower);
 
+    m_imgui->disabled_begin(!m_keep_upper && !m_keep_lower);
     const bool cut_clicked = m_imgui->button(_(L("Perform cut")));
+    m_imgui->disabled_end();
 
     m_imgui->end();
 
-    if (cut_clicked) {
+    if (cut_clicked && (m_keep_upper || m_keep_lower)) {
         perform_cut(selection);
     }
 }

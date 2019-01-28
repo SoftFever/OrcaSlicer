@@ -356,13 +356,15 @@ inline double area(const PolygonImpl& shape, const PolygonTag&)
 #endif
 
 template<>
-inline bool isInside(const PointImpl& point, const PolygonImpl& shape)
+inline bool isInside(const PointImpl& point, const PolygonImpl& shape,
+                     const PointTag&, const PolygonTag&)
 {
     return boost::geometry::within(point, shape);
 }
 
 template<>
-inline bool isInside(const PolygonImpl& sh1, const PolygonImpl& sh2)
+inline bool isInside(const PolygonImpl& sh1, const PolygonImpl& sh2,
+                     const PolygonTag&, const PolygonTag&)
 {
     return boost::geometry::within(sh1, sh2);
 }

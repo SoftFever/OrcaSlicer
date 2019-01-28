@@ -2,7 +2,9 @@
 #define slic3r_GLCanvas3D_hpp_
 
 #include <stddef.h>
+#include <memory>
 
+#include "libslic3r/Technologies.hpp"
 #include "3DScene.hpp"
 #include "GLToolbar.hpp"
 #include "Event.hpp"
@@ -20,6 +22,9 @@ class wxTimerEvent;
 class wxPaintEvent;
 class wxGLCanvas;
 
+// Support for Retina OpenGL on Mac OS
+#define ENABLE_RETINA_GL __APPLE__
+
 class GLUquadric;
 typedef class GLUquadric GLUquadricObj;
 
@@ -29,10 +34,16 @@ class GLShader;
 class ExPolygon;
 class BackgroundSlicingProcess;
 class GCodePreviewData;
+struct SlicingParameters;
+enum LayerHeightEditActionType : unsigned int;
 
 namespace GUI {
 
 class GLGizmoBase;
+
+#if ENABLE_RETINA_GL
+class RetinaHelper;
+#endif
 
 class GeometryBuffer
 {
@@ -53,16 +64,20 @@ class Size
 {
     int m_width;
     int m_height;
+    float m_scale_factor;
 
 public:
     Size();
-    Size(int width, int height);
+    Size(int width, int height, float scale_factor = 1.0);
 
     int get_width() const;
     void set_width(int width);
 
     int get_height() const;
     void set_height(int height);
+
+    int get_scale_factor() const;
+    void set_scale_factor(int height);
 };
 
 class Rect
@@ -87,6 +102,9 @@ public:
 
     float get_bottom() const;
     void set_bottom(float bottom);
+
+    float get_width() const { return m_right - m_left; }
+    float get_height() const { return m_top - m_bottom; }
 };
 
 wxDECLARE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, SimpleEvent);
@@ -101,7 +119,6 @@ wxDECLARE_EVENT(EVT_GLCANVAS_INIT, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_VIEWPORT_CHANGED, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_RIGHT_CLICK, Vec2dEvent);
-wxDECLARE_EVENT(EVT_GLCANVAS_MODEL_UPDATE, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_REMOVE_OBJECT, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_ARRANGE, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_QUESTION_MARK, SimpleEvent);
@@ -171,7 +188,7 @@ class GLCanvas3D
         std::string get_type_as_string() const;
 
         float get_theta() const { return m_theta; }
-        void set_theta(float theta);
+        void set_theta(float theta, bool apply_limit);
 
         const Vec3d& get_target() const { return m_target; }
         void set_target(const Vec3d& target, GLCanvas3D& canvas);
@@ -205,6 +222,8 @@ class GLCanvas3D
         mutable GLBed m_model;
 #endif // ENABLE_PRINT_BED_MODELS
 
+        mutable float m_scale_factor;
+
     public:
         Bed();
 
@@ -220,9 +239,9 @@ class GLCanvas3D
         Point point_projection(const Point& point) const;
 
 #if ENABLE_PRINT_BED_MODELS
-        void render(float theta, bool useVBOs) const;
+        void render(float theta, bool useVBOs, float scale_factor) const;
 #else
-        void render(float theta) const;
+        void render(float theta, float scale_factor) const;
 #endif // ENABLE_PRINT_BED_MODELS
 
     private:
@@ -293,12 +312,45 @@ class GLCanvas3D
         };
 
     private:
-        bool m_use_legacy_opengl;
-        bool m_enabled;
-        Shader m_shader;
-        unsigned int m_z_texture_id;
-        mutable GLTexture m_tooltip_texture;
-        mutable GLTexture m_reset_texture;
+        static const float THICKNESS_BAR_WIDTH;
+        static const float THICKNESS_RESET_BUTTON_HEIGHT;
+
+        bool                        m_use_legacy_opengl;
+        bool                        m_enabled;
+        Shader                      m_shader;
+        unsigned int                m_z_texture_id;
+        mutable GLTexture           m_tooltip_texture;
+        mutable GLTexture           m_reset_texture;
+        // Not owned by LayersEditing.
+        const DynamicPrintConfig   *m_config;
+        // ModelObject for the currently selected object (Model::objects[last_object_id]).
+        const ModelObject          *m_model_object;
+        // Maximum z of the currently selected object (Model::objects[last_object_id]).
+        float                       m_object_max_z;
+        // Owned by LayersEditing.
+        SlicingParameters          *m_slicing_parameters;
+        std::vector<coordf_t>       m_layer_height_profile;
+        bool                        m_layer_height_profile_modified;
+
+        class LayersTexture
+        {
+        public:
+            LayersTexture() : width(0), height(0), levels(0), cells(0), valid(false) {}
+
+            // Texture data
+            std::vector<char>   data;
+            // Width of the texture, top level.
+            size_t              width;
+            // Height of the texture, top level.
+            size_t              height;
+            // For how many levels of detail is the data allocated?
+            size_t              levels;
+            // Number of texture cells allocated for the height texture.
+            size_t              cells;
+            // Does it need to be refreshed?
+            bool                valid;
+        };
+        LayersTexture   m_layers_texture;
 
     public:
         EState state;
@@ -306,12 +358,14 @@ class GLCanvas3D
         float strength;
         int last_object_id;
         float last_z;
-        unsigned int last_action;
+        LayerHeightEditActionType last_action;
 
         LayersEditing();
         ~LayersEditing();
 
         bool init(const std::string& vertex_shader_filename, const std::string& fragment_shader_filename);
+		void set_config(const DynamicPrintConfig* config);
+        void select_object(const Model &model, int object_id);
 
         bool is_allowed() const;
         void set_use_legacy_opengl(bool use_legacy_opengl);
@@ -319,11 +373,12 @@ class GLCanvas3D
         bool is_enabled() const;
         void set_enabled(bool enabled);
 
-        unsigned int get_z_texture_id() const;
+        void render_overlay(const GLCanvas3D& canvas) const;
+        void render_volumes(const GLCanvas3D& canvas, const GLVolumeCollection& volumes) const;
 
-        void render(const GLCanvas3D& canvas, const PrintObject& print_object, const GLVolume& volume) const;
-
-        int get_shader_program_id() const;
+		void adjust_layer_height_profile();
+		void accept_changes(GLCanvas3D& canvas);
+        void reset_layer_height_profile(GLCanvas3D& canvas);
 
         static float get_cursor_z_relative(const GLCanvas3D& canvas);
         static bool bar_rect_contains(const GLCanvas3D& canvas, float x, float y);
@@ -333,12 +388,19 @@ class GLCanvas3D
         static Rect get_bar_rect_viewport(const GLCanvas3D& canvas);
         static Rect get_reset_rect_viewport(const GLCanvas3D& canvas);
 
+        float object_max_z() const { return m_object_max_z; }
+
     private:
         bool _is_initialized() const;
+        void generate_layer_height_texture();
         void _render_tooltip_texture(const GLCanvas3D& canvas, const Rect& bar_rect, const Rect& reset_rect) const;
         void _render_reset_texture(const Rect& reset_rect) const;
-        void _render_active_object_annotations(const GLCanvas3D& canvas, const GLVolume& volume, const PrintObject& print_object, const Rect& bar_rect) const;
-        void _render_profile(const PrintObject& print_object, const Rect& bar_rect) const;
+        void _render_active_object_annotations(const GLCanvas3D& canvas, const Rect& bar_rect) const;
+        void _render_profile(const Rect& bar_rect) const;
+        void update_slicing_parameters();
+
+        static float thickness_bar_width(const GLCanvas3D &canvas);
+        static float reset_button_height(const GLCanvas3D &canvas);
     };
 
     struct Mouse
@@ -492,10 +554,10 @@ public:
 #if ENABLE_RENDER_SELECTION_CENTER
         GLUquadricObj* m_quadric;
 #endif // ENABLE_RENDER_SELECTION_CENTER
-#if ENABLE_SIDEBAR_VISUAL_HINTS
         mutable GLArrow m_arrow;
         mutable GLCurvedArrow m_curved_arrow;
-#endif // ENABLE_SIDEBAR_VISUAL_HINTS
+
+        mutable float m_scale_factor;
 
     public:
         Selection();
@@ -504,9 +566,7 @@ public:
 #endif // ENABLE_RENDER_SELECTION_CENTER
 
         void set_volumes(GLVolumePtrs* volumes);
-#if ENABLE_SIDEBAR_VISUAL_HINTS
         bool init(bool useVBOs);
-#endif // ENABLE_SIDEBAR_VISUAL_HINTS
 
         Model* get_model() const { return m_model; }
         void set_model(Model* model);
@@ -580,13 +640,11 @@ public:
 
         void erase();
 
-        void render() const;
+        void render(float scale_factor = 1.0) const;
 #if ENABLE_RENDER_SELECTION_CENTER
         void render_center() const;
 #endif // ENABLE_RENDER_SELECTION_CENTER
-#if ENABLE_SIDEBAR_VISUAL_HINTS
         void render_sidebar_hints(const std::string& sidebar_field) const;
-#endif // ENABLE_SIDEBAR_VISUAL_HINTS
 
         bool requires_local_axes() const;
 
@@ -604,7 +662,6 @@ public:
         void _render_selected_volumes() const;
         void _render_synchronized_volumes() const;
         void _render_bounding_box(const BoundingBoxf3& box, float* color) const;
-#if ENABLE_SIDEBAR_VISUAL_HINTS
         void _render_sidebar_position_hints(const std::string& sidebar_field) const;
         void _render_sidebar_rotation_hints(const std::string& sidebar_field) const;
         void _render_sidebar_scale_hints(const std::string& sidebar_field) const;
@@ -613,12 +670,17 @@ public:
         void _render_sidebar_rotation_hint(Axis axis) const;
         void _render_sidebar_scale_hint(Axis axis) const;
         void _render_sidebar_size_hint(Axis axis, double length) const;
-#endif // ENABLE_SIDEBAR_VISUAL_HINTS
-        void _synchronize_unselected_instances(bool including_z = false);
+		enum SyncRotationType {
+			// Do not synchronize rotation. Either not rotating at all, or rotating by world Z axis.
+			SYNC_ROTATION_NONE = 0,
+			// Synchronize fully. Used from "place on bed" feature.
+			SYNC_ROTATION_FULL = 1,
+			// Synchronize after rotation by an axis not parallel with Z.
+			SYNC_ROTATION_GENERAL = 2,
+		};
+        void _synchronize_unselected_instances(SyncRotationType sync_rotation_type);
         void _synchronize_unselected_volumes();
-#if ENABLE_ENSURE_ON_BED_WHILE_SCALING
         void _ensure_on_bed();
-#endif // ENABLE_ENSURE_ON_BED_WHILE_SCALING
     };
 
     class ClippingPlane
@@ -649,10 +711,6 @@ public:
 private:
     class Gizmos
     {
-        static const float OverlayIconsScale;
-        static const float OverlayBorder;
-        static const float OverlayGapY;
-
     public:
         enum EType : unsigned char
         {
@@ -673,6 +731,10 @@ private:
         BackgroundTexture m_background_texture;
         EType m_current;
 
+        float m_overlay_icons_scale;
+        float m_overlay_border;
+        float m_overlay_gap_y;
+
     public:
         Gizmos();
         ~Gizmos();
@@ -681,6 +743,8 @@ private:
 
         bool is_enabled() const;
         void set_enabled(bool enable);
+
+        void set_overlay_scale(float scale);
 
         std::string update_hover_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos, const Selection& selection);
         void update_on_off_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos, const Selection& selection);
@@ -749,7 +813,7 @@ private:
         struct Triangles
         {
             Pointf3s object;
-            Pointf3s suppports;
+            Pointf3s supports;
         };
         typedef std::map<unsigned int, Triangles> ObjectIdToTrianglesMap;
         double z;
@@ -771,7 +835,7 @@ private:
     public:
         WarningTexture();
 
-        bool generate(const std::string& msg);
+        bool generate(const std::string& msg, const GLCanvas3D& canvas);
 
         void render(const GLCanvas3D& canvas) const;
     };
@@ -801,6 +865,9 @@ private:
 
     wxGLCanvas* m_canvas;
     wxGLContext* m_context;
+#if ENABLE_RETINA_GL
+    std::unique_ptr<RetinaHelper> m_retina_helper;
+#endif
     bool m_in_render;
     LegendTexture m_legend_texture;
     WarningTexture m_warning_texture;
@@ -821,7 +888,7 @@ private:
 
     mutable GLVolumeCollection m_volumes;
     Selection m_selection;
-    DynamicPrintConfig* m_config;
+    const DynamicPrintConfig* m_config;
     Model* m_model;
     BackgroundSlicingProcess *m_process;
 
@@ -860,9 +927,7 @@ public:
     GLCanvas3D(wxGLCanvas* canvas);
     ~GLCanvas3D();
 
-#if ENABLE_USE_UNIQUE_GLCONTEXT
     void set_context(wxGLContext* context) { m_context = context; }
-#endif // ENABLE_USE_UNIQUE_GLCONTEXT
 
     wxGLCanvas* get_wxglcanvas() { return m_canvas; }
 
@@ -871,17 +936,13 @@ public:
     bool init(bool useVBOs, bool use_legacy_opengl);
     void post_event(wxEvent &&event);
 
-#if !ENABLE_USE_UNIQUE_GLCONTEXT
-    bool set_current();
-#endif // !ENABLE_USE_UNIQUE_GLCONTEXT
-
     void set_as_dirty();
 
     unsigned int get_volumes_count() const;
     void reset_volumes();
     int check_volumes_outside_state() const;
 
-    void set_config(DynamicPrintConfig* config);
+    void set_config(const DynamicPrintConfig* config);
     void set_process(BackgroundSlicingProcess* process);
     void set_model(Model* model);
 
@@ -1005,6 +1066,8 @@ public:
 
     void handle_sidebar_focus_event(const std::string& opt_key, bool focus_on);
 
+    void update_ui_from_settings();
+
 private:
     bool _is_shown_on_screen() const;
 #if !ENABLE_REWORKED_BED_SHAPE_CHANGE
@@ -1013,9 +1076,7 @@ private:
 
     bool _init_toolbar();
 
-#if ENABLE_USE_UNIQUE_GLCONTEXT
     bool _set_current();
-#endif // ENABLE_USE_UNIQUE_GLCONTEXT
     void _resize(unsigned int w, unsigned int h);
 
     BoundingBoxf3 _max_bounding_box() const;
@@ -1023,7 +1084,6 @@ private:
     void _zoom_to_bounding_box(const BoundingBoxf3& bbox);
     float _get_zoom_to_bounding_box_factor(const BoundingBoxf3& bbox) const;
 
-    void _mark_volumes_for_layer_height() const;
     void _refresh_if_shown_on_screen();
 
     void _camera_tranform() const;
@@ -1038,7 +1098,6 @@ private:
 #endif // ENABLE_RENDER_SELECTION_CENTER
     void _render_warning_texture() const;
     void _render_legend_texture() const;
-    void _render_layer_editing_overlay() const;
     void _render_volumes(bool fake_colors) const;
     void _render_current_gizmo() const;
     void _render_gizmos_overlay() const;
@@ -1048,14 +1107,11 @@ private:
     void _render_camera_target() const;
 #endif // ENABLE_SHOW_CAMERA_TARGET
     void _render_sla_slices() const;
-#if ENABLE_SIDEBAR_VISUAL_HINTS
     void _render_selection_sidebar_hints() const;
-#endif // ENABLE_SIDEBAR_VISUAL_HINTS
 
     void _update_volumes_hover_state() const;
     void _update_gizmos_data();
 
-    float _get_layers_editing_cursor_z_relative() const;
     void _perform_layer_editing_action(wxMouseEvent* evt = nullptr);
 
     // Convert the screen space coordinate to an object space coordinate.

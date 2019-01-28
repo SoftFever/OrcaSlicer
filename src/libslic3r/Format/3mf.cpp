@@ -582,10 +582,7 @@ namespace Slic3r {
 
             IdToLayerHeightsProfileMap::iterator obj_layer_heights_profile = m_layer_heights_profiles.find(object.first);
             if (obj_layer_heights_profile != m_layer_heights_profiles.end())
-            {
                 object.second->layer_height_profile = obj_layer_heights_profile->second;
-                object.second->layer_height_profile_valid = true;
-            }
 
             IdToSlaSupportPointsMap::iterator obj_sla_support_points = m_sla_support_points.find(object.first);
             if (obj_sla_support_points != m_sla_support_points.end() && !obj_sla_support_points->second.empty())
@@ -1926,7 +1923,7 @@ namespace Slic3r {
         for (const ModelObject* object : model.objects)
         {
             ++count;
-            std::vector<double> layer_height_profile = object->layer_height_profile_valid ? object->layer_height_profile : std::vector<double>();
+            const std::vector<double> &layer_height_profile = object->layer_height_profile;
             if ((layer_height_profile.size() >= 4) && ((layer_height_profile.size() % 2) == 0))
             {
                 sprintf(buffer, "object_id=%d|", count);

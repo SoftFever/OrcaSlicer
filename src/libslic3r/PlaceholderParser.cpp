@@ -270,9 +270,22 @@ namespace client
         {
             std::string out;
             switch (type) {
-            case TYPE_BOOL:   out = boost::lexical_cast<std::string>(data.b); break;
-            case TYPE_INT:    out = boost::lexical_cast<std::string>(data.i); break;
-            case TYPE_DOUBLE: out = boost::lexical_cast<std::string>(data.d); break;
+			case TYPE_BOOL:   out = data.b ? "true" : "false"; break;
+            case TYPE_INT:    out = std::to_string(data.i); break;
+            case TYPE_DOUBLE: 
+#if 0
+                // The default converter produces trailing zeros after the decimal point.
+				out = std::to_string(data.d);
+#else
+                // ostringstream default converter produces no trailing zeros after the decimal point.
+                // It seems to be doing what the old boost::to_string() did.
+				{
+					std::ostringstream ss;
+					ss << data.d;
+					out = ss.str();
+				}
+#endif
+				break;
             case TYPE_STRING: out = *data.s; break;
             default:          break;
             }

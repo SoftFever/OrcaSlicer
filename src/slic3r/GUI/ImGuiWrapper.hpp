@@ -21,8 +21,9 @@ class ImGuiWrapper
 
     FontsMap m_fonts;
     unsigned m_font_texture;
-
+    float m_style_scaling;
     unsigned m_mouse_buttons;
+    bool m_disabled;
 
 public:
     ImGuiWrapper();
@@ -32,6 +33,7 @@ public:
     void read_glsl_version();
 
     void set_display_size(float w, float h);
+    void set_style_scaling(float scaling);
     bool update_mouse_data(wxMouseEvent &evt);
 
     void new_frame();
@@ -50,11 +52,15 @@ public:
     bool checkbox(const wxString &label, bool &value);
     void text(const wxString &label);
 
+    void disabled_begin(bool disabled);
+    void disabled_end();
+
     bool want_mouse() const;
     bool want_keyboard() const;
     bool want_text_input() const;
     bool want_any_input() const;
 private:
+    void init_default_font(float scaling);
     void create_device_objects();
     void create_fonts_texture();
     void render_draw_data(ImDrawData *draw_data);

@@ -245,9 +245,6 @@ void Tab::create_preset_tab()
 	// Initialize the DynamicPrintConfig by default keys/values.
 	build();
 	rebuild_page_tree();
-// 	update();
-    // Load the currently selected preset into the GUI, update the preset selection box.
-    load_current_preset();
 }
 
 void Tab::load_initial_data()
@@ -2012,7 +2009,7 @@ PageShp TabPrinter::build_kinematics_page()
 
 	if (m_use_silent_mode)	{
 		// Legend for OptionsGroups
-		auto optgroup = page->new_optgroup(_(L("")));
+		auto optgroup = page->new_optgroup("");
 		optgroup->set_show_modified_btns_val(false);
 		optgroup->label_width = 230;
 		auto line = Line{ "", "" };
@@ -2562,19 +2559,20 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
 	std::string   type_name  = presets->name();
 	wxString      tab        = "          ";
 	wxString      name       = old_preset.is_default ?
-		_(L("Default ")) + type_name + _(L(" preset")) :
-		(type_name + _(L(" preset\n")) + tab + old_preset.name);
+		wxString::Format(_(L("Default preset (%s)")), _(type_name)) :                       //_(L("Default ")) + type_name + _(L(" preset")) :                
+		wxString::Format(_(L("Preset (%s)")), _(type_name)) + "\n" + tab + old_preset.name; //type_name + _(L(" preset\n")) + tab + old_preset.name;
+
 	// Collect descriptions of the dirty options.
 	wxString changes;
 	for (const std::string &opt_key : presets->current_dirty_options()) {
 		const ConfigOptionDef &opt = m_config->def()->options.at(opt_key);
-		std::string name = "";
+		/*std::string*/wxString name = "";
 		if (! opt.category.empty())
-			name += opt.category + " > ";
+			name += _(opt.category) + " > ";
 		name += !opt.full_label.empty() ?
-				opt.full_label : 
-				opt.label;
-		changes += tab + from_u8(name) + "\n";
+				_(opt.full_label) : 
+				_(opt.label);
+		changes += tab + /*from_u8*/(name) + "\n";
 	}
 	// Show a confirmation dialog with the list of dirty options.
 	wxString message = name + "\n\n";
@@ -2588,7 +2586,7 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
 		message += _(L("and it has the following unsaved changes:"));
 	}
 	auto confirm = new wxMessageDialog(parent(),
-		message + "\n" + changes + _(L("\n\nDiscard changes and continue anyway?")),
+		message + "\n" + changes + "\n\n" + _(L("Discard changes and continue anyway?")),
 		_(L("Unsaved Changes")), wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
 	return confirm->ShowModal() == wxID_YES;
 }
@@ -2600,8 +2598,8 @@ bool Tab::may_switch_to_SLA_preset()
     if (wxGetApp().obj_list()->has_multi_part_objects())
     {
         show_info( parent(), 
-                    _(L("It's impossible to print multi-part object(s) with SLA technology.")) + 
-                    _(L("\n\nPlease check your object list before preset changing.")),
+                    _(L("It's impossible to print multi-part object(s) with SLA technology.")) + "\n\n" +
+                    _(L("Please check your object list before preset changing.")),
                     _(L("Attention!")) );
         return false;
     }

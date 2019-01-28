@@ -62,10 +62,8 @@ class ObjectManipulation : public OG_Settings
     wxStaticText*   m_scale_Label = nullptr;
     wxStaticText*   m_rotate_Label = nullptr;
 
-#if !ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     // Needs to be updated from OnIdle?
     bool            m_dirty = false;
-#endif // !ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     // Cached labels for the delayed update, not localized!
     std::string     m_new_move_label_string;
 	std::string     m_new_rotate_label_string;
@@ -75,7 +73,7 @@ class ObjectManipulation : public OG_Settings
     Vec3d           m_new_scale;
     Vec3d           m_new_size;
     bool            m_new_enabled;
-    bool            m_uniform_scale {false};
+    bool            m_uniform_scale {true};
     PrusaLockButton* m_lock_bnt{ nullptr };
 
 public:

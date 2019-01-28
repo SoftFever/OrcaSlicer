@@ -36,10 +36,18 @@ public:
 
         store_.clear();
         store_.reserve(last-first);
-        packed_bins_.clear();
 
         std::vector<Placer> placers;
         placers.reserve(last-first);
+
+        // If the packed_items array is not empty we have to create as many
+        // placers as there are elements in packed bins and preload each item
+        // into the appropriate placer
+        for(ItemGroup& ig : packed_bins_) {
+            placers.emplace_back(bin);
+            placers.back().configure(pconfig);
+            placers.back().preload(ig);
+        }
 
         std::copy(first, last, std::back_inserter(store_));
 

@@ -41,7 +41,7 @@
 
 namespace Slic3r {
 
-TriangleMesh::TriangleMesh(const Pointf3s &points, const std::vector<Vec3crd>& facets )
+TriangleMesh::TriangleMesh(const Pointf3s &points, const std::vector<Vec3crd>& facets)
     : repaired(false)
 {
     stl_initialize(&this->stl);
@@ -99,6 +99,8 @@ TriangleMesh& TriangleMesh::operator=(const TriangleMesh &other)
     return *this;
 }
 
+// #define SLIC3R_TRACE_REPAIR
+
 void TriangleMesh::repair()
 {
     if (this->repaired) return;
@@ -109,7 +111,9 @@ void TriangleMesh::repair()
     BOOST_LOG_TRIVIAL(debug) << "TriangleMesh::repair() started";
     
     // checking exact
+#ifdef SLIC3R_TRACE_REPAIR
 	BOOST_LOG_TRIVIAL(trace) << "\tstl_check_faces_exact";
+#endif /* SLIC3R_TRACE_REPAIR */
 	stl_check_facets_exact(&stl);
     stl.stats.facets_w_1_bad_edge = (stl.stats.connected_facets_2_edge - stl.stats.connected_facets_3_edge);
     stl.stats.facets_w_2_bad_edge = (stl.stats.connected_facets_1_edge - stl.stats.connected_facets_2_edge);
@@ -124,7 +128,9 @@ void TriangleMesh::repair()
         for (int i = 0; i < iterations; i++) {
             if (stl.stats.connected_facets_3_edge < stl.stats.number_of_facets) {
                 //printf("Checking nearby. Tolerance= %f Iteration=%d of %d...", tolerance, i + 1, iterations);
+#ifdef SLIC3R_TRACE_REPAIR
 				BOOST_LOG_TRIVIAL(trace) << "\tstl_check_faces_nearby";
+#endif /* SLIC3R_TRACE_REPAIR */
 				stl_check_facets_nearby(&stl, tolerance);
                 //printf("  Fixed %d edges.\n", stl.stats.edges_fixed - last_edges_fixed);
                 //last_edges_fixed = stl.stats.edges_fixed;
@@ -137,7 +143,9 @@ void TriangleMesh::repair()
     
     // remove_unconnected
     if (stl.stats.connected_facets_3_edge <  stl.stats.number_of_facets) {
+#ifdef SLIC3R_TRACE_REPAIR
         BOOST_LOG_TRIVIAL(trace) << "\tstl_remove_unconnected_facets";
+#endif /* SLIC3R_TRACE_REPAIR */
         stl_remove_unconnected_facets(&stl);
     }
     
@@ -146,26 +154,36 @@ void TriangleMesh::repair()
     // Don't fill holes, the current algorithm does more harm than good on complex holes.
     // Rather let the slicing algorithm close gaps in 2D slices.
     if (stl.stats.connected_facets_3_edge < stl.stats.number_of_facets) {
+#ifdef SLIC3R_TRACE_REPAIR
         BOOST_LOG_TRIVIAL(trace) << "\tstl_fill_holes";
+#endif /* SLIC3R_TRACE_REPAIR */
         stl_fill_holes(&stl);
         stl_clear_error(&stl);
     }
 #endif
 
     // normal_directions
+#ifdef SLIC3R_TRACE_REPAIR
     BOOST_LOG_TRIVIAL(trace) << "\tstl_fix_normal_directions";
+#endif /* SLIC3R_TRACE_REPAIR */
     stl_fix_normal_directions(&stl);
 
     // normal_values
+#ifdef SLIC3R_TRACE_REPAIR
     BOOST_LOG_TRIVIAL(trace) << "\tstl_fix_normal_values";
+#endif /* SLIC3R_TRACE_REPAIR */
     stl_fix_normal_values(&stl);
     
     // always calculate the volume and reverse all normals if volume is negative
+#ifdef SLIC3R_TRACE_REPAIR
     BOOST_LOG_TRIVIAL(trace) << "\tstl_calculate_volume";
+#endif /* SLIC3R_TRACE_REPAIR */
     stl_calculate_volume(&stl);
     
     // neighbors
+#ifdef SLIC3R_TRACE_REPAIR
     BOOST_LOG_TRIVIAL(trace) << "\tstl_verify_neighbors";
+#endif /* SLIC3R_TRACE_REPAIR */
     stl_verify_neighbors(&stl);
 
     this->repaired = true;
@@ -507,67 +525,22 @@ BoundingBoxf3 TriangleMesh::bounding_box() const
     return bb;
 }
 
-BoundingBoxf3 TriangleMesh::transformed_bounding_box(const Transform3d& t) const
+BoundingBoxf3 TriangleMesh::transformed_bounding_box(const Transform3d &trafo) const
 {
-    bool has_shared = (stl.v_shared != nullptr);
-    if (!has_shared)
-        stl_generate_shared_vertices(const_cast<stl_file*>(&stl));
-
-    unsigned int vertices_count = (stl.stats.shared_vertices > 0) ? (unsigned int)stl.stats.shared_vertices : 3 * (unsigned int)stl.stats.number_of_facets;
-
-    if (vertices_count == 0)
-        return BoundingBoxf3();
-
-    Eigen::MatrixXd src_vertices(3, vertices_count);
-
-    if (stl.stats.shared_vertices > 0)
-    {
-		assert(stl.v_shared != nullptr);
-        stl_vertex* vertex_ptr = stl.v_shared;
-        for (int i = 0; i < stl.stats.shared_vertices; ++i)
-        {
-            src_vertices(0, i) = (double)(*vertex_ptr)(0);
-            src_vertices(1, i) = (double)(*vertex_ptr)(1);
-            src_vertices(2, i) = (double)(*vertex_ptr)(2);
-            vertex_ptr += 1;
+    BoundingBoxf3 bbox;
+    if (stl.v_shared == nullptr) {
+        // Using the STL faces.
+        for (int i = 0; i < this->facets_count(); ++ i) {
+            const stl_facet &facet = this->stl.facet_start[i];
+            for (size_t j = 0; j < 3; ++ j)
+                bbox.merge(trafo * facet.vertex[j].cast<double>());
         }
+    } else {
+        // Using the shared vertices should be a bit quicker than using the STL faces.
+        for (int i = 0; i < stl.stats.shared_vertices; ++ i)            
+            bbox.merge(trafo * this->stl.v_shared[i].cast<double>());
     }
-    else
-    {
-        stl_facet* facet_ptr = stl.facet_start;
-        unsigned int v_id = 0;
-        while (facet_ptr < stl.facet_start + stl.stats.number_of_facets)
-        {
-            for (int i = 0; i < 3; ++i)
-            {
-                src_vertices(0, v_id) = (double)facet_ptr->vertex[i](0);
-                src_vertices(1, v_id) = (double)facet_ptr->vertex[i](1);
-                src_vertices(2, v_id) = (double)facet_ptr->vertex[i](2);
-                ++v_id;
-            }
-            facet_ptr += 1;
-        }
-    }
-
-    if (!has_shared && (stl.stats.shared_vertices > 0))
-		stl_invalidate_shared_vertices(const_cast<stl_file*>(&stl));
-
-    Eigen::MatrixXd dst_vertices(3, vertices_count);
-    dst_vertices = t * src_vertices.colwise().homogeneous();
-
-    Vec3d v_min(dst_vertices(0, 0), dst_vertices(1, 0), dst_vertices(2, 0));
-    Vec3d v_max = v_min;
-
-    for (int i = 1; i < vertices_count; ++i)
-    {
-        for (int j = 0; j < 3; ++j)
-        {
-            v_min(j) = std::min(v_min(j), dst_vertices(j, i));
-            v_max(j) = std::max(v_max(j), dst_vertices(j, i));
-        }
-    }
-
-    return BoundingBoxf3(v_min, v_max);
+    return bbox;
 }
 
 TriangleMesh TriangleMesh::convex_hull_3d() const
@@ -1992,4 +1965,5 @@ TriangleMesh make_sphere(double rho, double fa) {
     TriangleMesh mesh(vertices, facets);
     return mesh;
 }
+
 }

@@ -10,6 +10,7 @@
 #include <wx/button.h>
 #include <wx/sizer.h>
 #include <wx/slider.h>
+#include <wx/menu.h>
 
 #include <vector>
 #include <set>
@@ -275,6 +276,7 @@ public:
         else if (type == itInstance) {
             m_idx = parent->GetChildCount();
             m_name = wxString::Format("Instance_%d", m_idx+1);
+            set_part_action_icon();
         }
 	}
 
@@ -916,6 +918,29 @@ public:
 
 private:
     std::vector<PrusaModeButton*> mode_btns;
+};
+
+
+
+// ----------------------------------------------------------------------------
+// PrusaMenu
+// ----------------------------------------------------------------------------
+
+class PrusaMenu : public wxMenu
+{
+public:
+    PrusaMenu(const wxString& title, long style = 0)
+        : wxMenu(title, style) {}
+
+    PrusaMenu(long style = 0)
+        : wxMenu(style) {}
+
+    ~PrusaMenu() {}
+
+    void DestroySeparators();
+
+    wxMenuItem* m_separator_frst { nullptr };    // use like separator before settings item
+    wxMenuItem* m_separator_scnd { nullptr };   // use like separator between settings items
 };
 
 

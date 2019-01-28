@@ -114,7 +114,7 @@ ObjectInfo::ObjectInfo(wxWindow *parent) :
     grid_sizer->AddGrowableCol(3, 1);
 
     auto init_info_label = [parent, grid_sizer](wxStaticText **info_label, wxString text_label) {
-        auto *text = new wxStaticText(parent, wxID_ANY, text_label);
+        auto *text = new wxStaticText(parent, wxID_ANY, text_label+":");
         text->SetFont(wxGetApp().small_font());
         *info_label = new wxStaticText(parent, wxID_ANY, "");
         (*info_label)->SetFont(wxGetApp().small_font());
@@ -122,13 +122,13 @@ ObjectInfo::ObjectInfo(wxWindow *parent) :
         grid_sizer->Add(*info_label, 0);
     };
 
-    init_info_label(&info_size, _(L("Size:")));
-    init_info_label(&info_volume, _(L("Volume:")));
-    init_info_label(&info_facets, _(L("Facets:")));
-    init_info_label(&info_materials, _(L("Materials:")));
+    init_info_label(&info_size, _(L("Size")));
+    init_info_label(&info_volume, _(L("Volume")));
+    init_info_label(&info_facets, _(L("Facets")));
+    init_info_label(&info_materials, _(L("Materials")));
     Add(grid_sizer, 0, wxEXPAND);
 
-    auto *info_manifold_text = new wxStaticText(parent, wxID_ANY, _(L("Manifold:")));
+    auto *info_manifold_text = new wxStaticText(parent, wxID_ANY, _(L("Manifold")));
     info_manifold_text->SetFont(wxGetApp().small_font());
     info_manifold = new wxStaticText(parent, wxID_ANY, "");
     info_manifold->SetFont(wxGetApp().small_font());
@@ -602,7 +602,7 @@ Sidebar::Sidebar(Plater *parent)
     scrolled_sizer->Add(p->sliced_info, 0, wxEXPAND | wxTOP | wxLEFT, 20);
 
     // Buttons underneath the scrolled area
-    p->btn_export_gcode = new wxButton(this, wxID_ANY, _(L("Export G-code…")));
+    p->btn_export_gcode = new wxButton(this, wxID_ANY, _(L("Export G-code")) + dots);
     p->btn_export_gcode->SetFont(wxGetApp().bold_font());
     p->btn_reslice = new wxButton(this, wxID_ANY, _(L("Slice now")));
     p->btn_reslice->SetFont(wxGetApp().bold_font());
@@ -792,7 +792,7 @@ void Sidebar::show_info_sizer()
         wxString tooltip = wxString::Format(_(L("Auto-repaired (%d errors)")), errors);
         p->object_info->info_manifold->SetLabel(tooltip);
         
-        tooltip += wxString::Format(_(L(":\n%d degenerate facets, %d edges fixed, %d facets removed, "
+        tooltip += ":\n" + wxString::Format(_(L("%d degenerate facets, %d edges fixed, %d facets removed, "
                                         "%d facets added, %d facets reversed, %d backwards edges")),
                                         stats.degenerate_facets, stats.edges_fixed, stats.facets_removed,
                                         stats.facets_added, stats.facets_reversed, stats.backwards_edges);
@@ -849,7 +849,7 @@ void Sidebar::show_sliced_info_sizer(const bool show)
         if (ps.estimated_normal_print_time == "N/A" && ps.estimated_silent_print_time == "N/A")
             p->sliced_info->SetTextAndShow(siEstimatedTime, "N/A");
         else {
-            new_label = "Estimated printing time :";
+            new_label = _(L("Estimated printing time")) +" :";
             info_text = "";
             if (ps.estimated_normal_print_time != "N/A") {
                 new_label += wxString::Format("\n    - %s", _(L("normal mode")));
@@ -934,11 +934,11 @@ struct Plater::priv
     MainFrame *main_frame;
 
     // Object popup menu
-    wxMenu object_menu;
+    PrusaMenu object_menu;
     // Part popup menu
-    wxMenu part_menu;
+    PrusaMenu part_menu;
     // SLA-Object popup menu
-    wxMenu sla_object_menu;
+    PrusaMenu sla_object_menu;
 
     // Data
     Slic3r::DynamicPrintConfig *config;        // FIXME: leak?
@@ -970,6 +970,9 @@ struct Plater::priv
     static const std::regex pattern_3mf;
     static const std::regex pattern_zip_amf;
     static const std::regex pattern_any_amf;
+#if ENABLE_VOLUMES_CENTERING_FIXES
+    static const std::regex pattern_prusa;
+#endif // ENABLE_VOLUMES_CENTERING_FIXES
 
     priv(Plater *q, MainFrame *main_frame);
 
@@ -1063,6 +1066,7 @@ private:
     bool can_delete_object() const;
     bool can_increase_instances() const;
     bool can_decrease_instances() const;
+    bool can_set_instance_to_object() const;
     bool can_split_to_objects() const;
     bool can_split_to_volumes() const;
     bool can_split() const;
@@ -1079,6 +1083,9 @@ const std::regex Plater::priv::pattern_bundle(".*[.](amf|amf[.]xml|zip[.]amf|3mf
 const std::regex Plater::priv::pattern_3mf(".*3mf", std::regex::icase);
 const std::regex Plater::priv::pattern_zip_amf(".*[.]zip[.]amf", std::regex::icase);
 const std::regex Plater::priv::pattern_any_amf(".*[.](amf|amf[.]xml|zip[.]amf)", std::regex::icase);
+#if ENABLE_VOLUMES_CENTERING_FIXES
+const std::regex Plater::priv::pattern_prusa(".*prusa", std::regex::icase);
+#endif // ENABLE_VOLUMES_CENTERING_FIXES
 
 Plater::priv::priv(Plater *q, MainFrame *main_frame)
     : q(q)
@@ -1088,7 +1095,11 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         "brim_width", "variable_layer_height", "serial_port", "serial_speed", "host_type", "print_host",
         "printhost_apikey", "printhost_cafile", "nozzle_diameter", "single_extruder_multi_material",
         "wipe_tower", "wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_rotation_angle",
-        "extruder_colour", "filament_colour", "max_print_height", "printer_model", "printer_technology"
+        "extruder_colour", "filament_colour", "max_print_height", "printer_model", "printer_technology",
+        // These values are necessary to construct SlicingParameters by the Canvas3D variable layer height editor.
+        "layer_height", "first_layer_height", "min_layer_height", "max_layer_height",
+        "brim_width", "perimeters", "perimeter_extruder", "fill_density", "infill_extruder", "top_solid_layers", "bottom_solid_layers", "solid_infill_extruder",
+        "support_material", "support_material_extruder", "support_material_interface_extruder", "support_material_contact_distance", "raft_layers"
         }))
     , sidebar(new Sidebar(q))
     , delayed_scene_refresh(false)
@@ -1157,7 +1168,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     view3D_canvas->Bind(EVT_GLCANVAS_OBJECT_SELECT, &priv::on_object_select, this);
     view3D_canvas->Bind(EVT_GLCANVAS_VIEWPORT_CHANGED, &priv::on_viewport_changed, this);
     view3D_canvas->Bind(EVT_GLCANVAS_RIGHT_CLICK, &priv::on_right_click, this);
-    view3D_canvas->Bind(EVT_GLCANVAS_MODEL_UPDATE, [this](SimpleEvent&) { this->schedule_background_process(); });
     view3D_canvas->Bind(EVT_GLCANVAS_REMOVE_OBJECT, [q](SimpleEvent&) { q->remove_selected(); });
     view3D_canvas->Bind(EVT_GLCANVAS_ARRANGE, [this](SimpleEvent&) { arrange(); });
     view3D_canvas->Bind(EVT_GLCANVAS_QUESTION_MARK, [this](SimpleEvent&) { wxGetApp().keyboard_shortcuts(); });
@@ -1262,6 +1272,11 @@ void Plater::priv::update_ui_from_settings()
     //     $self->{buttons_sizer}->Show($self->{btn_reslice}, ! wxTheApp->{app_config}->get("background_processing"));
     //     $self->{buttons_sizer}->Layout;
     // }
+
+#if ENABLE_RETINA_GL
+    view3D->get_canvas3d()->update_ui_from_settings();
+    preview->get_canvas3d()->update_ui_from_settings();
+#endif
 }
 
 ProgressStatusBar* Plater::priv::statusbar()
@@ -1303,7 +1318,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         }
     }
 
-    const auto loading = _(L("Loading…"));
+    const auto loading = _(L("Loading")) + dots;
     wxProgressDialog dlg(loading, loading);
     dlg.Pulse();
 
@@ -1319,6 +1334,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         const bool type_3mf = std::regex_match(path.string(), pattern_3mf);
         const bool type_zip_amf = !type_3mf && std::regex_match(path.string(), pattern_zip_amf);
         const bool type_any_amf = !type_3mf && std::regex_match(path.string(), pattern_any_amf);
+#if ENABLE_VOLUMES_CENTERING_FIXES
+        const bool type_prusa = std::regex_match(path.string(), pattern_prusa);
+#endif // ENABLE_VOLUMES_CENTERING_FIXES
 
         Slic3r::Model model;
         try {
@@ -1363,23 +1381,33 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         {
             // The model should now be initialized
 
-            if (model.looks_like_multipart_object()) {
-//                 wxMessageDialog dlg(q, _(L(
-//                         "This file contains several objects positioned at multiple heights. "
-//                         "Instead of considering them as multiple objects, should I consider\n"
-//                         "this file as a single object having multiple parts?\n"
-//                     )), _(L("Multi-part object detected")), wxICON_WARNING | wxYES | wxNO);
-//                 if (dlg.ShowModal() == wxID_YES) {
-                    model.convert_multipart_object(nozzle_dmrs->values.size());
-//                 }
+#if ENABLE_VOLUMES_CENTERING_FIXES
+            if (!type_3mf && !type_any_amf && !type_prusa) {
+#endif // ENABLE_VOLUMES_CENTERING_FIXES
+                if (model.looks_like_multipart_object()) {
+                    wxMessageDialog dlg(q, _(L(
+                        "This file contains several objects positioned at multiple heights. "
+                        "Instead of considering them as multiple objects, should I consider\n"
+                        "this file as a single object having multiple parts?\n"
+                        )), _(L("Multi-part object detected")), wxICON_WARNING | wxYES | wxNO);
+                    if (dlg.ShowModal() == wxID_YES) {
+                        model.convert_multipart_object(nozzle_dmrs->values.size());
+                    }
+                }
+#if ENABLE_VOLUMES_CENTERING_FIXES
             }
+#endif // ENABLE_VOLUMES_CENTERING_FIXES
 
+#if !ENABLE_VOLUMES_CENTERING_FIXES
             if (type_3mf || type_any_amf) {
+#endif // !ENABLE_VOLUMES_CENTERING_FIXES
                 for (ModelObject* model_object : model.objects) {
                     model_object->center_around_origin();
                     model_object->ensure_on_bed();
                 }
+#if !ENABLE_VOLUMES_CENTERING_FIXES
             }
+#endif // !ENABLE_VOLUMES_CENTERING_FIXES
 
             // check multi-part object adding for the SLA-printing
             if (printer_technology == ptSLA)
@@ -1440,29 +1468,40 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     return obj_idxs;
 }
 
+// #define AUTOPLACEMENT_ON_LOAD
+
 std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &model_objects)
 {
     const BoundingBoxf bed_shape = bed_shape_bb();
     const Vec3d bed_size = Slic3r::to_3d(bed_shape.size().cast<double>(), 1.0) - 2.0 * Vec3d::Ones();
 
+#ifndef AUTOPLACEMENT_ON_LOAD
     bool need_arrange = false;
+#endif /* AUTOPLACEMENT_ON_LOAD */
     bool scaled_down = false;
     std::vector<size_t> obj_idxs;
     unsigned int obj_count = model.objects.size();
 
+#ifdef AUTOPLACEMENT_ON_LOAD
+    ModelInstancePtrs new_instances;
+#endif /* AUTOPLACEMENT_ON_LOAD */
     for (ModelObject *model_object : model_objects) {
         auto *object = model.add_object(*model_object);
         std::string object_name = object->name.empty() ? fs::path(object->input_file).filename().string() : object->name;
         obj_idxs.push_back(obj_count++);
 
         if (model_object->instances.empty()) {
-            // if object has no defined position(s) we need to rearrange everything after loading
-            need_arrange = true;
-
-            // add a default instance and center object around origin
-            object->center_around_origin();  // also aligns object to Z = 0
-            ModelInstance* instance = object->add_instance();
+#ifdef AUTOPLACEMENT_ON_LOAD
+            object->center_around_origin();
+            new_instances.emplace_back(object->add_instance());
+#else /* AUTOPLACEMENT_ON_LOAD */
+            // if object has no defined position(s) we need to rearrange everything after loading               object->center_around_origin();
+            need_arrange = true;                
+             // add a default instance and center object around origin  
+            object->center_around_origin();  // also aligns object to Z = 0 
+            ModelInstance* instance = object->add_instance();   
             instance->set_offset(Slic3r::to_3d(bed_shape.center().cast<double>(), -object->origin_translation(2)));
+#endif /* AUTOPLACEMENT_ON_LOAD */
         }
 
         const Vec3d size = object->bounding_box().size();
@@ -1477,10 +1516,11 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
             object->center_around_origin();
             scaled_down = true;
         } else if (max_ratio > 5) {
-            const Vec3d inverse = ratio.cwiseInverse();
-            for (ModelInstance *instance : model_object->instances) {
+            const Vec3d inverse = 1.0 / max_ratio * Vec3d::Ones();
+            for (ModelInstance *instance : object->instances) {
                 instance->set_scaling_factor(inverse);
             }
+            scaled_down = true;
         }
 
         object->ensure_on_bed();
@@ -1488,6 +1528,18 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
         // print.auto_assign_extruders(object);
         // print.add_model_object(object);
     }
+
+#ifdef AUTOPLACEMENT_ON_LOAD
+    // FIXME distance should be a config value /////////////////////////////////
+    auto min_obj_distance = static_cast<coord_t>(6/SCALING_FACTOR);
+    const auto *bed_shape_opt = config->opt<ConfigOptionPoints>("bed_shape");
+    assert(bed_shape_opt);
+    auto& bedpoints = bed_shape_opt->values;
+    Polyline bed; bed.points.reserve(bedpoints.size());
+    for(auto& v : bedpoints) bed.append(Point::new_scale(v(0), v(1)));
+
+    arr::find_new_position(model, new_instances, min_obj_distance, bed);
+#endif /* AUTOPLACEMENT_ON_LOAD */
 
     if (scaled_down) {
         GUI::show_info(q,
@@ -1589,7 +1641,16 @@ void Plater::priv::selection_changed()
     view3D->enable_toolbar_item("fewer", can_decrease_instances());
     view3D->enable_toolbar_item("splitobjects", can_split/*_to_objects*/());
     view3D->enable_toolbar_item("splitvolumes", can_split/*_to_volumes*/());
-    view3D->enable_toolbar_item("layersediting", layers_height_allowed());
+
+    // if the selection is not valid to allow for layer editing, we need to turn off the tool if it is running
+    bool enable_layer_editing = layers_height_allowed();
+    if (!enable_layer_editing && view3D->is_layers_editing_enabled()) {
+        SimpleEvent evt(EVT_GLTOOLBAR_LAYERSEDITING);
+        on_action_layersediting(evt);
+    }
+
+    view3D->enable_toolbar_item("layersediting", enable_layer_editing);
+
     // forces a frame render to update the view (to avoid a missed update if, for example, the context menu appears)
     view3D->render();
 }
@@ -1854,6 +1915,8 @@ void Plater::priv::schedule_background_process()
 {
     // Trigger the timer event after 0.5s
     this->background_process_timer.Start(500, wxTIMER_ONE_SHOT);
+    // Notify the Canvas3D that something has changed, so it may invalidate some of the layer editing stuff.
+    this->view3D->get_canvas3d()->set_config(this->config);
 }
 
 void Plater::priv::update_print_volume_state()
@@ -2035,7 +2098,7 @@ void Plater::priv::reload_from_disk()
             }
         }
 
-        // XXX: Restore more: layer_height_ranges, layer_height_profile, layer_height_profile_valid (?)
+        // XXX: Restore more: layer_height_ranges, layer_height_profile (?)
     }
 
     remove(obj_orig_idx);
@@ -2059,14 +2122,14 @@ void Plater::priv::fix_through_netfabb(const int obj_idx)
         o->clear_instances();
         for (auto instance: model_object->instances)
             o->add_instance(*instance);
-        // o->invalidate_bounding_box();
+        o->invalidate_bounding_box();
         
         if (o->volumes.size() == model_object->volumes.size()) {
             for (int i = 0; i < o->volumes.size(); i++) {
                 o->volumes[i]->config.apply(model_object->volumes[i]->config);
             }
         }
-        // FIXME restore volumes and their configs, layer_height_ranges, layer_height_profile, layer_height_profile_valid,
+        // FIXME restore volumes and their configs, layer_height_ranges, layer_height_profile
     }
     
     remove(obj_idx);
@@ -2297,7 +2360,7 @@ void Plater::priv::on_right_click(Vec2dEvent& evt)
         return;
 
     wxMenu* menu = printer_technology == ptSLA ? &sla_object_menu :
-                   get_selection().is_single_full_instance/*object*/() ? // show "Object menu" for each FullInstance instead of FullObject
+                   get_selection().is_single_full_instance() ? // show "Object menu" for each FullInstance instead of FullObject
                    &object_menu : &part_menu;
 
     sidebar->obj_list()->append_menu_item_settings(menu);
@@ -2345,27 +2408,32 @@ bool Plater::priv::init_object_menu()
 
 bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/)
 {
-    wxMenuItem* item_delete = append_menu_item(menu, wxID_ANY, _(L("Delete\tDel")), _(L("Remove the selected object")),
+    wxMenuItem* item_delete = append_menu_item(menu, wxID_ANY, _(L("Delete")) + "\tDel", _(L("Remove the selected object")),
         [this](wxCommandEvent&) { q->remove_selected(); }, "brick_delete.png");
     if (!is_part){
-        wxMenuItem* item_increase = append_menu_item(menu, wxID_ANY, _(L("Increase copies\t+")), _(L("Place one more copy of the selected object")),
+        wxMenuItem* item_increase = append_menu_item(menu, wxID_ANY, _(L("Increase copies")) + "\t+", _(L("Place one more copy of the selected object")),
             [this](wxCommandEvent&) { q->increase_instances(); }, "add.png");
-        wxMenuItem* item_decrease = append_menu_item(menu, wxID_ANY, _(L("Decrease copies\t-")), _(L("Remove one copy of the selected object")),
+        wxMenuItem* item_decrease = append_menu_item(menu, wxID_ANY, _(L("Decrease copies")) + "\t-", _(L("Remove one copy of the selected object")),
             [this](wxCommandEvent&) { q->decrease_instances(); }, "delete.png");
-        wxMenuItem* item_set_number_of_copies = append_menu_item(menu, wxID_ANY, _(L("Set number of copies…")), _(L("Change the number of copies of the selected object")),
+        wxMenuItem* item_set_number_of_copies = append_menu_item(menu, wxID_ANY, _(L("Set number of copies")) + dots, _(L("Change the number of copies of the selected object")),
             [this](wxCommandEvent&) { q->set_number_of_copies(); }, "textfield.png");
+
+        menu->AppendSeparator();
+        wxMenuItem* item_instance_to_object = sidebar->obj_list()->append_menu_item_instance_to_object(menu);
+
         if (q != nullptr)
         {
             q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_increase_instances()); }, item_increase->GetId());
             q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_decrease_instances()); }, item_decrease->GetId());
             q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_increase_instances()); }, item_set_number_of_copies->GetId());
+            q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_set_instance_to_object()); }, item_instance_to_object->GetId());
         }
         menu->AppendSeparator();
 
         append_menu_item(menu, wxID_ANY, _(L("Reload from Disk")), _(L("Reload the selected file from Disk")),
             [this](wxCommandEvent&) { reload_from_disk(); });
 
-        append_menu_item(menu, wxID_ANY, _(L("Export object as STL…")), _(L("Export this single object as STL file")),
+        append_menu_item(menu, wxID_ANY, _(L("Export object as STL")) + dots, _(L("Export this single object as STL file")),
             [this](wxCommandEvent&) { q->export_stl(true); });
     }
     menu->AppendSeparator();
@@ -2405,25 +2473,16 @@ bool Plater::priv::complit_init_object_menu()
         [this](wxCommandEvent&) { split_volume(); }, "shape_ungroup_p.png", &object_menu);
 
     wxMenuItem* item_split = append_submenu(&object_menu, split_menu, wxID_ANY, _(L("Split")), _(L("Split the selected object")), "shape_ungroup.png");
-
-//     append_menu_item(&object_menu, wxID_ANY, _(L("Reload from Disk")), _(L("Reload the selected file from Disk")),
-//         [this](wxCommandEvent&) { reload_from_disk(); });
-// 
-//     append_menu_item(&object_menu, wxID_ANY, _(L("Export object as STL…")), _(L("Export this single object as STL file")),
-//         [this](wxCommandEvent&) { q->export_stl(true); });
-
-    // Append "Add..." popupmenu
     object_menu.AppendSeparator();
-    sidebar->obj_list()->append_menu_items_add_volume(&object_menu);
 
-//     object_menu.AppendSeparator();
+    // "Add (volumes)" popupmenu will be added later in append_menu_items_add_volume()
 
     // ui updates needs to be binded to the parent panel
     if (q != nullptr)
     {
-        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split/*_to_objects() || can_split_to_volumes*/()); }, item_split->GetId());
-        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split/*_to_objects*/()); }, item_split_objects->GetId());
-        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split/*_to_volumes*/()); }, item_split_volumes->GetId());
+        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split()); }, item_split->GetId());
+        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split()); }, item_split_objects->GetId());
+        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split()); }, item_split_volumes->GetId());
     }
     return true;
 }
@@ -2433,16 +2492,16 @@ bool Plater::priv::complit_init_sla_object_menu()
     wxMenuItem* item_split = append_menu_item(&sla_object_menu, wxID_ANY, _(L("Split")), _(L("Split the selected object into individual objects")),
         [this](wxCommandEvent&) { split_object(); }, "shape_ungroup_o.png");
 
+    sla_object_menu.AppendSeparator();
+
     // Add the automatic rotation sub-menu
     append_menu_item(&sla_object_menu, wxID_ANY, _(L("Optimize orientation")), _(L("Optimize the rotation of the object for better print results.")),
         [this](wxCommandEvent&) { sla_optimize_rotation(); });
 
-//     sla_object_menu.AppendSeparator();
-
     // ui updates needs to be binded to the parent panel
     if (q != nullptr)
     {
-        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split/*_to_objects*/()); }, item_split->GetId());
+        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split()); }, item_split->GetId());
     }
 
     return true;
@@ -2453,15 +2512,15 @@ bool Plater::priv::complit_init_part_menu()
     wxMenuItem* item_split = append_menu_item(&part_menu, wxID_ANY, _(L("Split")), _(L("Split the selected object into individual sub-parts")),
         [this](wxCommandEvent&) { split_volume(); }, "shape_ungroup_p.png");
 
+    part_menu.AppendSeparator();
+
     auto obj_list = sidebar->obj_list();
     obj_list->append_menu_item_change_type(&part_menu);
-
-//     part_menu.AppendSeparator();
 
     // ui updates needs to be binded to the parent panel
     if (q != nullptr)
     {
-        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split/*_to_volumes*/()); },  item_split->GetId());
+        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split()); },  item_split->GetId());
     }
 
     return true;
@@ -2529,6 +2588,12 @@ bool Plater::priv::can_increase_instances() const
     return (0 <= obj_idx) && (obj_idx < (int)model.objects.size());
 }
 
+bool Plater::priv::can_set_instance_to_object() const
+{
+    const int obj_idx = get_selected_object_idx();
+    return (0 <= obj_idx) && (obj_idx < (int)model.objects.size()) && (model.objects[obj_idx]->instances.size() > 1);
+}
+
 bool Plater::priv::can_decrease_instances() const
 {
     int obj_idx = get_selected_object_idx();
@@ -2552,8 +2617,6 @@ bool Plater::priv::can_split_to_volumes() const
 
 bool Plater::priv::can_split() const
 {
-    if (printer_technology == ptSLA)
-        return false;
     return sidebar->obj_list()->is_splittable();
 }
 
@@ -2766,6 +2829,10 @@ void Plater::cut(size_t obj_idx, size_t instance_idx, coordf_t z, bool keep_uppe
     auto *object = p->model.objects[obj_idx];
 
     wxCHECK_RET(instance_idx < object->instances.size(), "instance_idx out of bounds");
+
+    if (!keep_upper && !keep_lower) {
+        return;
+    }
 
     const auto new_objects = object->cut(instance_idx, z, keep_upper, keep_lower, rotate_lower);
 

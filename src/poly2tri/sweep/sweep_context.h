@@ -1,6 +1,6 @@
 /*
- * Poly2Tri Copyright (c) 2009-2010, Poly2Tri Contributors
- * http://code.google.com/p/poly2tri/
+ * Poly2Tri Copyright (c) 2009-2018, Poly2Tri Contributors
+ * https://github.com/jhasse/poly2tri
  *
  * All rights reserved.
  *
@@ -70,7 +70,7 @@ Node& LocateNode(const Point& point);
 
 void RemoveNode(Node* node);
 
-void CreateAdvancingFront(const std::vector<Node*>& nodes);
+void CreateAdvancingFront();
 
 /// Try to map a node to all sides of this triangle that don't have a neighbor
 void MapTriangleToNodes(Triangle& t);

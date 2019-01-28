@@ -6,9 +6,12 @@
 #include <float.h>
 #include <stdint.h>
 
+#include <type_traits>
+
 #include "../libslic3r.h"
 #include "../BoundingBox.hpp"
 #include "../PrintConfig.hpp"
+#include "../Utils.hpp"
 
 namespace Slic3r {
 
@@ -38,6 +41,7 @@ struct FillParams
     // in this case we don't try to make more continuous paths
     bool        complete;
 };
+static_assert(IsTriviallyCopyable<FillParams>::value, "FillParams class is not POD (and it should be - see constructor).");
 
 class Fill
 {

@@ -120,19 +120,28 @@ boost::optional<WindowMetrics> WindowMetrics::deserialize(const std::string &str
 void WindowMetrics::sanitize_for_display(const wxRect &screen_rect)
 {
     rect = rect.Intersect(screen_rect);
+
+    // Prevent the window from going too far towards the right and/or bottom edge
+    // It's hardcoded here that the threshold is 80% of the screen size
+    rect.x = std::min(rect.x, screen_rect.x + 4*screen_rect.width/5);
+    rect.y = std::min(rect.y, screen_rect.y + 4*screen_rect.height/5);
 }
 
-std::string WindowMetrics::serialize()
+std::string WindowMetrics::serialize() const
 {
     return (boost::format("%1%; %2%; %3%; %4%; %5%")
-        % rect.GetX()
-        % rect.GetY()
-        % rect.GetWidth()
-        % rect.GetHeight()
+        % rect.x
+        % rect.y
+        % rect.width
+        % rect.height
         % static_cast<int>(maximized)
     ).str();
 }
 
+std::ostream& operator<<(std::ostream &os, const WindowMetrics& metrics)
+{
+    return os << '(' << metrics.serialize() << ')';
+}
 
 
 }

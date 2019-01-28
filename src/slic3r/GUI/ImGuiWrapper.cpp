@@ -2,6 +2,8 @@
 
 #include <cstdio>
 #include <vector>
+#include <cmath>
+#include <stdexcept>
 
 #include <boost/format.hpp>
 #include <boost/log/trivial.hpp>
@@ -11,6 +13,8 @@
 #include <wx/debug.h>
 
 #include <GL/glew.h>
+
+#include <imgui/imgui_internal.h>
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Utils.hpp"
@@ -22,7 +26,9 @@ namespace GUI {
 
 ImGuiWrapper::ImGuiWrapper()
     : m_font_texture(0)
+    , m_style_scaling(1.0)
     , m_mouse_buttons(0)
+    , m_disabled(false)
 {
 }
 
@@ -36,18 +42,9 @@ bool ImGuiWrapper::init()
 {
     ImGui::CreateContext();
 
-    ImGuiIO& io = ImGui::GetIO();
-    ImFont* font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/NotoSans-Regular.ttf").c_str(), 18.0f);
-    if (font == nullptr) {
-        font = io.Fonts->AddFontDefault();
-        if (font == nullptr)
-            return false;
-    }
-    else {
-        m_fonts.insert(FontsMap::value_type("Noto Sans Regular 18", font));
-    }
+    init_default_font(m_style_scaling);
 
-    io.IniFilename = nullptr;
+    ImGui::GetIO().IniFilename = nullptr;
 
     return true;
 }
@@ -57,6 +54,15 @@ void ImGuiWrapper::set_display_size(float w, float h)
     ImGuiIO& io = ImGui::GetIO();
     io.DisplaySize = ImVec2(w, h);
     io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
+}
+
+void ImGuiWrapper::set_style_scaling(float scaling)
+{
+    if (!std::isnan(scaling) && !std::isinf(scaling) && scaling != m_style_scaling) {
+        ImGui::GetStyle().ScaleAllSizes(scaling / m_style_scaling);
+        init_default_font(scaling);
+        m_style_scaling = scaling;
+    }
 }
 
 bool ImGuiWrapper::update_mouse_data(wxMouseEvent& evt)
@@ -90,6 +96,7 @@ void ImGuiWrapper::render()
 void ImGuiWrapper::set_next_window_pos(float x, float y, int flag)
 {
     ImGui::SetNextWindowPos(ImVec2(x, y), (ImGuiCond)flag);
+    ImGui::SetNextWindowSize(ImVec2(0.0, 0.0));
 }
 
 void ImGuiWrapper::set_next_window_bg_alpha(float alpha)
@@ -154,6 +161,26 @@ void ImGuiWrapper::text(const wxString &label)
     ImGui::Text(label_utf8.c_str(), NULL);
 }
 
+void ImGuiWrapper::disabled_begin(bool disabled)
+{
+    wxCHECK_RET(!m_disabled, "ImGUI: Unbalanced disabled_begin() call");
+
+    if (disabled) {
+        ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+        ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+        m_disabled = true;
+    }
+}
+
+void ImGuiWrapper::disabled_end()
+{
+    if (m_disabled) {
+        ImGui::PopItemFlag();
+        ImGui::PopStyleVar();
+        m_disabled = false;
+    }
+}
+
 bool ImGuiWrapper::want_mouse() const
 {
     return ImGui::GetIO().WantCaptureMouse;
@@ -173,6 +200,23 @@ bool ImGuiWrapper::want_any_input() const
 {
     const auto io = ImGui::GetIO();
     return io.WantCaptureMouse || io.WantCaptureKeyboard || io.WantTextInput;
+}
+
+void ImGuiWrapper::init_default_font(float scaling)
+{
+    static const float font_size = 18.0f;
+
+    destroy_fonts_texture();
+
+    ImGuiIO& io = ImGui::GetIO();
+    io.Fonts->Clear();
+    ImFont* font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/NotoSans-Regular.ttf").c_str(), font_size * scaling);
+    if (font == nullptr) {
+        font = io.Fonts->AddFontDefault();
+        if (font == nullptr) {
+            throw std::runtime_error("ImGui: Could not load deafult font");
+        }
+    }
 }
 
 void ImGuiWrapper::create_device_objects()

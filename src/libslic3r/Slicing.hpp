@@ -3,11 +3,14 @@
 #ifndef slic3r_Slicing_hpp_
 #define slic3r_Slicing_hpp_
 
-#include <set>
-#include <vector>
+#include <cstring>
 #include <map>
+#include <set>
+#include <type_traits>
+#include <vector>
 
 #include "libslic3r.h"
+#include "Utils.hpp"
 namespace Slic3r
 {
 
@@ -91,6 +94,8 @@ struct SlicingParameters
     coordf_t 	object_print_z_min;
     coordf_t 	object_print_z_max;
 };
+static_assert(IsTriviallyCopyable<SlicingParameters>::value, "SlicingParameters class is not POD (and it should be - see constructor).");
+
 
 // The two slicing parameters lead to the same layering as long as the variable layer thickness is not in action.
 inline bool equal_layering(const SlicingParameters &sp1, const SlicingParameters &sp2)
@@ -131,7 +136,7 @@ extern std::vector<coordf_t> layer_height_profile_adaptive(
     const ModelVolumePtrs       &volumes);
 
 
-enum LayerHeightEditActionType {
+enum LayerHeightEditActionType : unsigned int {
     LAYER_HEIGHT_EDIT_ACTION_INCREASE = 0,
     LAYER_HEIGHT_EDIT_ACTION_DECREASE = 1,
     LAYER_HEIGHT_EDIT_ACTION_REDUCE   = 2,

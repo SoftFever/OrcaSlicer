@@ -1,6 +1,6 @@
 /*
- * Poly2Tri Copyright (c) 2009-2010, Poly2Tri Contributors
- * http://code.google.com/p/poly2tri/
+ * Poly2Tri Copyright (c) 2009-2018, Poly2Tri Contributors
+ * https://github.com/jhasse/poly2tri
  *
  * All rights reserved.
  *
@@ -33,10 +33,10 @@
 #ifndef SHAPES_H
 #define SHAPES_H
 
-#include <vector>
-#include <cstddef>
-#include <assert.h>
 #include <cmath>
+#include <cstddef>
+#include <stdexcept>
+#include <vector>
 
 namespace p2t {
 
@@ -119,6 +119,8 @@ struct Point {
 
 };
 
+std::ostream& operator<<(std::ostream&, const Point&);
+
 // Represents a simple polygon's edge
 struct Edge {
 
@@ -130,13 +132,13 @@ struct Edge {
     if (p1.y > p2.y) {
       q = &p1;
       p = &p2;
-    } else if (p1.y == p2.y) {
+    } else if (std::abs(p1.y - p2.y) < 1e-10) {
       if (p1.x > p2.x) {
         q = &p1;
         p = &p2;
-      } else if (p1.x == p2.x) {
+      } else if (std::abs(p1.x - p2.x) < 1e-10) {
         // Repeat points
-        assert(false);
+        throw std::runtime_error("Edge::Edge: p1 == p2");
       }
     }
 
@@ -171,23 +173,23 @@ void MarkConstrainedEdge(int index);
 void MarkConstrainedEdge(Edge& edge);
 void MarkConstrainedEdge(Point* p, Point* q);
 
-int Index(const Point* p) const;
-int EdgeIndex(const Point* p1, const Point* p2) const;
+int Index(const Point* p);
+int EdgeIndex(const Point* p1, const Point* p2);
 
 Triangle* NeighborCW(const Point& point);
 Triangle* NeighborCCW(const Point& point);
-bool GetConstrainedEdgeCCW(const Point& p) const;
-bool GetConstrainedEdgeCW(const Point& p) const;
+bool GetConstrainedEdgeCCW(const Point& p);
+bool GetConstrainedEdgeCW(const Point& p);
 void SetConstrainedEdgeCCW(const Point& p, bool ce);
 void SetConstrainedEdgeCW(const Point& p, bool ce);
-bool GetDelunayEdgeCCW(const Point& p) const;
-bool GetDelunayEdgeCW(const Point& p) const;
+bool GetDelunayEdgeCCW(const Point& p);
+bool GetDelunayEdgeCW(const Point& p);
 void SetDelunayEdgeCCW(const Point& p, bool e);
 void SetDelunayEdgeCW(const Point& p, bool e);
 
-bool Contains(const Point* p) const;
-bool Contains(const Edge& e) const;
-bool Contains(const Point* p, const Point* q) const;
+bool Contains(const Point* p);
+bool Contains(const Edge& e);
+bool Contains(const Point* p, const Point* q);
 void Legalize(Point& point);
 void Legalize(Point& opoint, Point& npoint);
 /**
@@ -198,7 +200,7 @@ void ClearNeighbor(const Triangle *triangle);
 void ClearNeighbors();
 void ClearDelunayEdges();
 
-inline bool IsInterior() const;
+inline bool IsInterior();
 inline void IsInterior(bool b);
 
 Triangle& NeighborAcross(const Point& opoint);
@@ -293,22 +295,22 @@ inline Triangle* Triangle::GetNeighbor(int index)
   return neighbors_[index];
 }
 
-inline bool Triangle::Contains(const Point* p) const
+inline bool Triangle::Contains(const Point* p)
 {
   return p == points_[0] || p == points_[1] || p == points_[2];
 }
 
-inline bool Triangle::Contains(const Edge& e) const
+inline bool Triangle::Contains(const Edge& e)
 {
   return Contains(e.p) && Contains(e.q);
 }
 
-inline bool Triangle::Contains(const Point* p, const Point* q) const
+inline bool Triangle::Contains(const Point* p, const Point* q)
 {
   return Contains(p) && Contains(q);
 }
 
-inline bool Triangle::IsInterior() const
+inline bool Triangle::IsInterior()
 {
   return interior_;
 }

@@ -45,6 +45,10 @@ public:
     // Average diameter of nozzles participating on extruding this region.
     coordf_t                    bridging_height_avg(const PrintConfig &print_config) const;
 
+    // Collect extruder indices used to print this region's object.
+	void                        collect_object_printing_extruders(std::vector<unsigned int> &object_extruders) const;
+	static void                 collect_object_printing_extruders(const PrintConfig &print_config, const PrintRegionConfig &region_config, std::vector<unsigned int> &object_extruders);
+
 // Methods modifying the PrintRegion's state:
 public:
     Print*                      print() { return m_print; }
@@ -79,16 +83,6 @@ public:
     // vector of (vectors of volume ids), indexed by region_id
     std::vector<std::vector<int>> region_volumes;
 
-    // Profile of increasing z to a layer height, to be linearly interpolated when calculating the layers.
-    // The pairs of <z, layer_height> are packed into a 1D array to simplify handling by the Perl XS.
-    // layer_height_profile must not be set by the background thread.
-    std::vector<coordf_t>   layer_height_profile;
-    // There is a layer_height_profile at both PrintObject and ModelObject. The layer_height_profile at the ModelObject
-    // is used for interactive editing and for loading / storing into a project file (AMF file as of today).
-    // This flag indicates that the layer_height_profile at the UI has been updated, therefore the backend needs to get it.
-    // This flag is necessary as we cannot safely clear the layer_height_profile if the background calculation is running.
-    bool                    layer_height_profile_valid;
-    
     // this is set to true when LayerRegion->slices is split in top/internal/bottom
     // so that next call to make_perimeters() performs a union() before computing loops
     bool                    typed_slices;
@@ -129,23 +123,19 @@ public:
     SupportLayerPtrs::const_iterator insert_support_layer(SupportLayerPtrs::const_iterator pos, int id, coordf_t height, coordf_t print_z, coordf_t slice_z);
     void delete_support_layer(int idx);
     
-    // To be used over the layer_height_profile of both the PrintObject and ModelObject
-    // to initialize the height profile with the height ranges.
-    bool update_layer_height_profile(std::vector<coordf_t> &layer_height_profile) const;
-
-    // Process layer_height_ranges, the raft layers and first layer thickness into layer_height_profile.
-    // The layer_height_profile may be later modified interactively by the user to refine layers at sloping surfaces.
-    bool update_layer_height_profile();
-
-    void reset_layer_height_profile();
-
-    void adjust_layer_height_profile(coordf_t z, coordf_t layer_thickness_delta, coordf_t band_width, int action);
+    // Initialize the layer_height_profile from the model_object's layer_height_profile, from model_object's layer height table, or from slicing parameters.
+    // Returns true, if the layer_height_profile was changed.
+    static bool update_layer_height_profile(const ModelObject &model_object, const SlicingParameters &slicing_parameters, std::vector<coordf_t> &layer_height_profile);
 
     // Collect the slicing parameters, to be used by variable layer thickness algorithm,
     // by the interactive layer height editor and by the printing process itself.
     // The slicing parameters are dependent on various configuration values
     // (layer height, first layer height, raft settings, print nozzle diameter etc).
-    SlicingParameters slicing_parameters() const;
+    SlicingParameters           slicing_parameters() const;
+    static SlicingParameters    slicing_parameters(const DynamicPrintConfig &full_config, const ModelObject &model_object);
+
+    // returns 0-based indices of extruders used to print the object (without brim, support and other helper extrusions)
+    std::vector<unsigned int>   object_extruders() const;
 
     // Called when slicing to SVG (see Print.pm sub export_svg), and used by perimeters.t
     void slice();
@@ -172,13 +162,16 @@ protected:
     // Invalidate steps based on a set of parameters changed.
     bool                    invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
 
+    static PrintObjectConfig object_config_from_model_object(const PrintObjectConfig &default_object_config, const ModelObject &object, size_t num_extruders);
+    static PrintRegionConfig region_config_from_model_volume(const PrintRegionConfig &default_region_config, const ModelVolume &volume, size_t num_extruders);
+
 private:
     void make_perimeters();
     void prepare_infill();
     void infill();
     void generate_support_material();
 
-    void _slice();
+    void _slice(const std::vector<coordf_t> &layer_height_profile);
     std::string _fix_slicing_errors();
     void _simplify_slices(double distance);
     void _make_perimeters();

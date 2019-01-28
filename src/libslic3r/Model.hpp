@@ -170,12 +170,8 @@ public:
     // Variation of a layer thickness for spans of Z coordinates.
     t_layer_height_ranges   layer_height_ranges;
     // Profile of increasing z to a layer height, to be linearly interpolated when calculating the layers.
-    // The pairs of <z, layer_height> are packed into a 1D array to simplify handling by the Perl XS.
+    // The pairs of <z, layer_height> are packed into a 1D array.
     std::vector<coordf_t>   layer_height_profile;
-    // layer_height_profile is initialized when the layer editing mode is entered.
-    // Only if the user really modified the layer height, layer_height_profile_valid is set
-    // and used subsequently by the PrintObject.
-    bool                    layer_height_profile_valid;
 
     // This vector holds position of selected support points for SLA. The data are
     // saved in mesh coordinates to allow using them for several instances.
@@ -209,7 +205,7 @@ public:
     // This bounding box is approximate and not snug.
     // This bounding box is being cached.
     const BoundingBoxf3& bounding_box() const;
-    void invalidate_bounding_box() { m_bounding_box_valid = false; }
+    void invalidate_bounding_box() { m_bounding_box_valid = false; m_raw_mesh_bounding_box_valid = false; }
 
     // A mesh containing all transformed instances of this object.
     TriangleMesh mesh() const;
@@ -223,6 +219,16 @@ public:
     BoundingBoxf3 raw_bounding_box() const;
     // A snug bounding box around the transformed non-modifier object volumes.
     BoundingBoxf3 instance_bounding_box(size_t instance_idx, bool dont_translate = false) const;
+	// A snug bounding box of non-transformed (non-rotated, non-scaled, non-translated) sum of non-modifier object volumes.
+	BoundingBoxf3 raw_mesh_bounding_box() const;
+	// A snug bounding box of non-transformed (non-rotated, non-scaled, non-translated) sum of all object volumes.
+    BoundingBoxf3 full_raw_mesh_bounding_box() const;
+
+    // Calculate 2D convex hull of of a projection of the transformed printable volumes into the XY plane.
+    // This method is cheap in that it does not make any unnecessary copy of the volume meshes.
+    // This method is used by the auto arrange function.
+    Polygon       convex_hull_2d(const Transform3d &trafo_instance);
+
     void center_around_origin();
     void ensure_on_bed();
     void translate_instances(const Vec3d& vector);
@@ -261,7 +267,8 @@ protected:
     void        set_model(Model *model) { m_model = model; }
 
 private:
-    ModelObject(Model *model) : layer_height_profile_valid(false), m_model(model), origin_translation(Vec3d::Zero()), m_bounding_box_valid(false) {}
+    ModelObject(Model *model) : m_model(model), origin_translation(Vec3d::Zero()), 
+        m_bounding_box_valid(false), m_raw_mesh_bounding_box_valid(false) {}
     ~ModelObject();
 
     /* To be able to return an object from own copy / clone methods. Hopefully the compiler will do the "Copy elision" */
@@ -280,6 +287,8 @@ private:
     // Bounding box, cached.
     mutable BoundingBoxf3 m_bounding_box;
     mutable bool          m_bounding_box_valid;
+    mutable BoundingBoxf3 m_raw_mesh_bounding_box;
+    mutable bool          m_raw_mesh_bounding_box_valid;    
 };
 
 // An object STL, or a modifier volume, over which a different set of parameters shall be applied.
@@ -318,6 +327,9 @@ public:
     // Extract the current extruder ID based on this ModelVolume's config and the parent ModelObject's config.
     // Extruder ID is only valid for FFF. Returns -1 for SLA or if the extruder ID is not applicable (support volumes).
     int                 extruder_id() const;
+
+    void                set_splittable(const int val) { m_is_splittable = val; }
+    int                 is_splittable() const { return m_is_splittable; }
 
     // Split this volume, append the result to the object owning this volume.
     // Return the number of volumes created from this one.
@@ -391,6 +403,12 @@ private:
     TriangleMesh             m_convex_hull;
     Geometry::Transformation m_transformation;
 
+    // flag to optimize the checking if the volume is splittable
+    //     -1   ->   is unknown value (before first cheking)
+    //      0   ->   is not splittable
+    //      1   ->   is splittable
+    int                     m_is_splittable {-1};
+
     ModelVolume(ModelObject *object, const TriangleMesh &mesh) : mesh(mesh), m_type(MODEL_PART), object(object)
     {
         if (mesh.stl.stats.number_of_facets > 1)
@@ -455,7 +473,7 @@ public:
     void set_rotation(const Vec3d& rotation) { m_transformation.set_rotation(rotation); }
     void set_rotation(Axis axis, double rotation) { m_transformation.set_rotation(axis, rotation); }
 
-    Vec3d get_scaling_factor() const { return m_transformation.get_scaling_factor(); }
+    const Vec3d& get_scaling_factor() const { return m_transformation.get_scaling_factor(); }
     double get_scaling_factor(Axis axis) const { return m_transformation.get_scaling_factor(axis); }
 
     void set_scaling_factor(const Vec3d& scaling_factor) { m_transformation.set_scaling_factor(scaling_factor); }

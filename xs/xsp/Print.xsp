@@ -49,8 +49,6 @@ _constant()
     Ref<StaticPrintConfig> config()
         %code%{ RETVAL = &THIS->config(); %};
     Points copies();
-    std::vector<double> layer_height_profile()
-        %code%{ RETVAL = THIS->layer_height_profile; %};
     Clone<BoundingBox> bounding_box();
     
     Points _shifted_copies()
