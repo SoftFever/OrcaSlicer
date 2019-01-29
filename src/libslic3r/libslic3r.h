@@ -16,6 +16,7 @@
 #include <stdarg.h>
 #include <vector>
 #include <cassert>
+#include <cmath>
 
 #include "Technologies.hpp"
 
