@@ -1908,7 +1908,7 @@ DynamicConfig PrintStatistics::config() const
     config.set_key_value("print_time",                new ConfigOptionString(normal_print_time));
     config.set_key_value("normal_print_time",         new ConfigOptionString(normal_print_time));
     config.set_key_value("silent_print_time",         new ConfigOptionString(silent_print_time));
-    config.set_key_value("used_filament",             new ConfigOptionFloat (this->total_used_filament));
+    config.set_key_value("used_filament",             new ConfigOptionFloat (this->total_used_filament / 1000.));
     config.set_key_value("extruded_volume",           new ConfigOptionFloat (this->total_extruded_volume));
     config.set_key_value("total_cost",                new ConfigOptionFloat (this->total_cost));
     config.set_key_value("total_weight",              new ConfigOptionFloat (this->total_weight));
@@ -1924,7 +1924,7 @@ DynamicConfig PrintStatistics::placeholders()
         "print_time", "normal_print_time", "silent_print_time", 
         "used_filament", "extruded_volume", "total_cost", "total_weight", 
         "total_wipe_tower_cost", "total_wipe_tower_filament"})
-        config.set_key_value(key, new ConfigOptionString(std::string("{") + key + "}"));    
+        config.set_key_value(key, new ConfigOptionString(std::string("{") + key + "}"));
     return config;
 }
 
