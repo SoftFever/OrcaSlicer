@@ -114,13 +114,11 @@ class EigenMesh3D {
     std::unique_ptr<AABBImpl> m_aabb;
 public:
 
-    EigenMesh3D();
     EigenMesh3D(const TriangleMesh&);
-
-    ~EigenMesh3D();
-
     EigenMesh3D(const EigenMesh3D& other);
     EigenMesh3D& operator=(const EigenMesh3D&);
+
+    ~EigenMesh3D();
 
     inline double ground_level() const { return m_ground_level; }
 

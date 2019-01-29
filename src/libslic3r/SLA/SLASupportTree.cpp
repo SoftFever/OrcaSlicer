@@ -510,7 +510,6 @@ struct CompactBridge {
 
 // A wrapper struct around the base pool (pad)
 struct Pad {
-//    Contour3D mesh;
     TriangleMesh tmesh;
     PoolConfig cfg;
     double zlevel = 0;
@@ -588,7 +587,7 @@ double pinhead_mesh_intersect(const Vec3d& s,
                               double r_back,
                               double width,
                               const EigenMesh3D& m,
-                              unsigned samples = 8,
+                              unsigned samples = 4,
                               double safety_distance = 0.05)
 {
     // method based on:
@@ -603,6 +602,7 @@ double pinhead_mesh_intersect(const Vec3d& s,
     // inner surface of the mesh.
     Vec3d v = dir;     // Our direction (axis)
     Vec3d c = s + width * dir;
+    const double& sd = safety_distance;
 
     // Two vectors that will be perpendicular to each other and to the axis.
     // Values for a(X) and a(Y) are now arbitrary, a(Z) is just a placeholder.
@@ -626,10 +626,10 @@ double pinhead_mesh_intersect(const Vec3d& s,
         double cosphi = std::cos(phi);
 
         // Let's have a safety coefficient for the radiuses.
-        double rpscos = (safety_distance + r_pin) * cosphi;
-        double rpssin = (safety_distance + r_pin) * sinphi;
-        double rpbcos = (safety_distance + r_back) * cosphi;
-        double rpbsin = (safety_distance + r_back) * sinphi;
+        double rpscos = (sd + r_pin) * cosphi;
+        double rpssin = (sd + r_pin) * sinphi;
+        double rpbcos = (sd + r_back) * cosphi;
+        double rpbsin = (sd + r_back) * sinphi;
 
         // Point on the circle on the pin sphere
         Vec3d ps(s(X) + rpscos * a(X) + rpssin * b(X),
@@ -639,17 +639,15 @@ double pinhead_mesh_intersect(const Vec3d& s,
         // Point ps is not on mesh but can be inside or outside as well. This
         // would cause many problems with ray-casting. So we query the closest
         // point on the mesh to this.
-        auto result = m.signed_distance(ps);
+        auto psq = m.signed_distance(ps);
 
         // This is the point on the circle on the back sphere
         Vec3d p(c(X) + rpbcos * a(X) + rpbsin * b(X),
                 c(Y) + rpbcos * a(Y) + rpbsin * b(Y),
                 c(Z) + rpbcos * a(Z) + rpbsin * b(Z));
 
-        if(!m.inside(p)) {
-            Vec3d n = (p - result.point_on_mesh() + 0.01 * dir).normalized();
-            phi = m.query_ray_hit(result.point_on_mesh(), n);
-        } else phi = 0;
+        Vec3d n = (p - psq.point_on_mesh()).normalized();
+        phi = m.query_ray_hit(psq.point_on_mesh() + sd*n, n);
     }
 
     auto mit = std::min_element(phis.begin(), phis.end());
@@ -661,11 +659,12 @@ double bridge_mesh_intersect(const Vec3d& s,
                              const Vec3d& dir,
                              double r,
                              const EigenMesh3D& m,
-                             unsigned samples = 8,
+                             unsigned samples = 4,
                              double safety_distance = 0.05)
 {
     // helper vector calculations
     Vec3d a(0, 1, 0), b;
+    const double& sd = safety_distance;
 
     a(Z) = -(dir(X)*a(X) + dir(Y)*a(Y)) / dir(Z);
     b = a.cross(dir);
@@ -679,8 +678,8 @@ double bridge_mesh_intersect(const Vec3d& s,
         double cosphi = std::cos(phi);
 
         // Let's have a safety coefficient for the radiuses.
-        double rcos = (safety_distance + r) * cosphi;
-        double rsin = (safety_distance + r) * sinphi;
+        double rcos = (sd + r) * cosphi;
+        double rsin = (sd + r) * sinphi;
 
         // Point on the circle on the pin sphere
         Vec3d p (s(X) + rcos * a(X) + rsin * b(X),
@@ -689,7 +688,9 @@ double bridge_mesh_intersect(const Vec3d& s,
 
         auto result = m.signed_distance(p);
 
-        phi = m.query_ray_hit(result.point_on_mesh() + 0.05*dir, dir);
+        Vec3d sp = result.value() < 0 ? result.point_on_mesh() : p;
+
+        phi = m.query_ray_hit(sp + sd*dir, dir);
     }
 
     auto mit = std::min_element(phis.begin(), phis.end());
@@ -1560,6 +1561,8 @@ bool SLASupportTree::generate(const PointSet &points,
                     }
 
                     double d = distance(jp, jn);
+
+                    if(jn(Z) <= gndlvl + 2*cfg.head_width_mm || d > max_len)
                         break;
 
                     double chkd = bridge_mesh_intersect(jp, dirv(jp, jn),
@@ -1784,16 +1787,15 @@ bool SLASupportTree::generate(const PointSet &points,
         // We will sink the pins into the model surface for a distance of 1/3 of
         // the pin radius
         for(int i = 0; i < headless_pts.rows(); i++) { tifcl();
-            Vec3d sp = headless_pts.row(i);
-
-            Vec3d n = headless_norm.row(i);
-            sp = sp - n * HWIDTH_MM;
+            Vec3d sph = headless_pts.row(i);    // Exact support position
+            Vec3d n = headless_norm.row(i);     // mesh outward normal
+            Vec3d sp = sph - n * HWIDTH_MM;     // stick head start point
 
             Vec3d dir = {0, 0, -1};
-            Vec3d sj = sp + R * n;
+            Vec3d sj = sp + R * n;              // stick start point
 
             // This is only for checking
-            double idist = bridge_mesh_intersect(sj, dir, R, emesh);
+            double idist = bridge_mesh_intersect(sph, dir, R, emesh);
             double dist = ray_mesh_intersect(sj, dir, emesh);
 
             if(std::isinf(idist) || std::isnan(idist) || idist < 2*R ||

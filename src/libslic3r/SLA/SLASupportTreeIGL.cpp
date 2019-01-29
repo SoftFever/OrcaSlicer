@@ -98,8 +98,6 @@ public:
     igl::WindingNumberAABB<Vec3d, Eigen::MatrixXd, Eigen::MatrixXi> windtree;
 };
 
-EigenMesh3D::EigenMesh3D(): m_aabb(new AABBImpl()) {}
-
 EigenMesh3D::EigenMesh3D(const TriangleMesh& tmesh): m_aabb(new AABBImpl()) {
     static const double dEPS = 1e-6;
 
@@ -138,9 +136,7 @@ EigenMesh3D::EigenMesh3D(const TriangleMesh& tmesh): m_aabb(new AABBImpl()) {
 
     // Build the AABB accelaration tree
     m_aabb->init(m_V, m_F);
-
     m_aabb->windtree.set_mesh(m_V, m_F);
-    m_aabb->windtree.init();
 }
 
 EigenMesh3D::~EigenMesh3D() {}
@@ -206,15 +202,6 @@ PointSet normals(const PointSet& points, const EigenMesh3D& mesh,
     Eigen::VectorXd dists;
     Eigen::VectorXi I;
     PointSet C;
-
-    // We need to remove duplicate vertices and have a true index triangle
-    // structure
-    /*
-    EigenMesh3D  mesh;
-    Eigen::VectorXi SVI, SVJ;
-    static const double dEPS = 1e-6;
-    igl::remove_duplicate_vertices(emesh.V, emesh.F, dEPS,
-                                   mesh.V, SVI, SVJ, mesh.F);*/
 
     igl::point_mesh_squared_distance( points, mesh.V(), mesh.F(), dists, I, C);
 
