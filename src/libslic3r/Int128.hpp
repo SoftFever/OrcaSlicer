@@ -53,6 +53,11 @@
 	#define HAS_INTRINSIC_128_TYPE
 #endif
 
+#if defined(_MSC_VER) && defined(_WIN64)
+	#include <intrin.h>
+	#pragma intrinsic(_mul128)
+#endif
+
 //------------------------------------------------------------------------------
 // Int128 class (enables safe math on signed 64bit integers)
 // eg Int128 val1((int64_t)9223372036854775807); //ie 2^63 -1
