@@ -3250,6 +3250,7 @@ bool GLCanvas3D::Gizmos::handle_shortcut(int key, const Selection& selection)
     if (!m_enabled || selection.is_empty())
         return false;
 
+    EType old_current = m_current;
     bool handled = false;
     for (GizmosMap::iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
@@ -3273,7 +3274,12 @@ bool GLCanvas3D::Gizmos::handle_shortcut(int key, const Selection& selection)
                 handled = true;
             }
         }
-        else
+    }
+
+    if (handled && (old_current != Undefined) && (old_current != m_current))
+    {
+        GizmosMap::const_iterator it = m_gizmos.find(old_current);
+        if (it != m_gizmos.end())
             it->second->set_state(GLGizmoBase::Off);
     }
 

@@ -1589,11 +1589,11 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 		auto sizer = new wxBoxSizer(wxHORIZONTAL);
 		sizer->Add(btn);
 
-		btn->Bind(wxEVT_BUTTON, [this, parent, optgroup](wxCommandEvent e) {
+		btn->Bind(wxEVT_BUTTON, [this, parent, optgroup](wxCommandEvent &e) {
 			BonjourDialog dialog(parent);
 			if (dialog.show_and_lookup()) {
 				optgroup->set_value("print_host", std::move(dialog.get_selected()), true);
-				// FIXME: emit killfocus on the edit widget
+				optgroup->get_field("print_host")->field_changed();
 			}
 		});
 
@@ -1607,7 +1607,7 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 		auto sizer = new wxBoxSizer(wxHORIZONTAL);
 		sizer->Add(btn);
 
-		btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent e) {
+		btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
 			std::unique_ptr<PrintHost> host(PrintHost::get_print_host(m_config));
 			if (! host) {
 				const auto text = wxString::Format("%s",
@@ -1648,6 +1648,7 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 				wxFileDialog openFileDialog(this, _(L("Open CA certificate file")), "", "", filemasks, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 				if (openFileDialog.ShowModal() != wxID_CANCEL) {
 					optgroup->set_value("printhost_cafile", std::move(openFileDialog.GetPath()), true);
+					optgroup->get_field("printhost_cafile")->field_changed();
 				}
 			});
 
