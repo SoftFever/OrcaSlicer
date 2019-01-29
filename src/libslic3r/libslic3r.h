@@ -164,6 +164,12 @@ static inline T lerp(const T& a, const T& b, Number t)
     return (Number(1) - t) * a + t * b;
 }
 
+template <typename Number>
+static inline bool is_approx(Number value, Number test_value)
+{
+    return std::abs(double(value) - double(test_value)) < double(EPSILON);
+};
+
 } // namespace Slic3r
 
 #endif

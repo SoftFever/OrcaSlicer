@@ -1820,7 +1820,7 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation, bool local)
         if (rot_axis_max != 2 && first_volume_idx != -1) {
             // Generic rotation, but no rotation around the Z axis.
             // Always do a local rotation (do not consider the selection to be a rigid body).
-            assert(rotation.z() == 0);
+            assert(is_approx(rotation.z(), 0.0));
             const GLVolume &first_volume = *(*m_volumes)[first_volume_idx];
             const Vec3d    &rotation     = first_volume.get_instance_rotation();
             double z_diff = rotation_diff_z(m_cache.volumes_data[first_volume_idx].get_instance_rotation(), m_cache.volumes_data[i].get_instance_rotation());
@@ -1845,7 +1845,7 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation, bool local)
         else if (is_single_volume() || is_single_modifier())
         {
             if (local)
-                volume.set_volume_rotation(rotation);
+                volume.set_volume_rotation(volume.get_volume_rotation() + rotation);
             else
             {
                 Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), rotation);
@@ -2262,7 +2262,7 @@ void GLCanvas3D::Selection::render_sidebar_hints(const std::string& sidebar_fiel
     }
     else if (is_single_volume() || is_single_modifier())
     {
-        Transform3d orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
+        Transform3d orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true) * (*m_volumes)[*m_list.begin()]->get_volume_transformation().get_matrix(true, false, true, true);
         ::glTranslated(center(0), center(1), center(2));
         ::glMultMatrixd(orient_matrix.data());
     }

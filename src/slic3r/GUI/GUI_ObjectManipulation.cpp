@@ -345,16 +345,22 @@ void ObjectManipulation::update_if_dirty()
 
     m_cache.size = m_new_size;
 
+    Vec3d deg_rotation;
+    for (size_t i = 0; i < 3; ++i)
+    {
+        deg_rotation(i) = Geometry::rad2deg(m_new_rotation(i));
+    }
+
     if (m_cache.rotation(0) != m_new_rotation(0))
-        m_og->set_value("rotation_x", double_to_string(Geometry::rad2deg(m_new_rotation(0)), 2));
+        m_og->set_value("rotation_x", double_to_string(deg_rotation(0), 2));
 
     if (m_cache.rotation(1) != m_new_rotation(1))
-        m_og->set_value("rotation_y", double_to_string(Geometry::rad2deg(m_new_rotation(1)), 2));
+        m_og->set_value("rotation_y", double_to_string(deg_rotation(1), 2));
 
     if (m_cache.rotation(2) != m_new_rotation(2))
-        m_og->set_value("rotation_z", double_to_string(Geometry::rad2deg(m_new_rotation(2)), 2));
+        m_og->set_value("rotation_z", double_to_string(deg_rotation(2), 2));
 
-    m_cache.rotation = m_new_rotation;
+    m_cache.rotation = deg_rotation;
 
     if (wxGetApp().plater()->canvas3D()->get_selection().requires_uniform_scale()) {
         m_lock_bnt->SetLock(true);
@@ -400,10 +406,12 @@ void ObjectManipulation::change_rotation_value(const Vec3d& rotation)
     GLCanvas3D* canvas = wxGetApp().plater()->canvas3D();
     const GLCanvas3D::Selection& selection = canvas->get_selection();
 
+    Vec3d delta_rotation = rotation - m_cache.rotation;
+
     Vec3d rad_rotation;
     for (size_t i = 0; i < 3; ++i)
     {
-        rad_rotation(i) = Geometry::deg2rad(rotation(i));
+        rad_rotation(i) = Geometry::deg2rad(delta_rotation(i));
     }
 
     canvas->get_selection().start_dragging();
