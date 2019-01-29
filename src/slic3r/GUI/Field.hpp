@@ -115,7 +115,7 @@ public:
     /// subclasses should overload with a specific version
     /// Postcondition: Method does not fire the on_change event.
     virtual void		set_value(const boost::any& value, bool change_event) = 0;
-    
+
     /// Gets a boost::any representing this control.
     /// subclasses should overload with a specific version
     virtual boost::any&	get_value() = 0;
@@ -127,6 +127,8 @@ public:
     inline void			toggle(bool en) { en ? enable() : disable(); }
 
 	virtual wxString	get_tooltip_text(const wxString& default_string);
+
+    void				field_changed() { on_change_field(); }
 
     // set icon to "UndoToSystemValue" button according to an inheritance of preset
 //	void				set_nonsys_btn_icon(const wxBitmap& icon);
