@@ -489,6 +489,9 @@ void Model::convert_multipart_object(unsigned int max_extruders)
             {
                 new_v->name = o->name;
                 new_v->config.set_deserialize("extruder", get_auto_extruder_id_as_string(max_extruders));
+#if ENABLE_VOLUMES_CENTERING_FIXES
+                new_v->translate(-o->origin_translation);
+#endif // ENABLE_VOLUMES_CENTERING_FIXES
             }
         }
 
