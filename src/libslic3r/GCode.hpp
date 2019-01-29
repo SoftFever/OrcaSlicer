@@ -11,7 +11,6 @@
 #include "Print.hpp"
 #include "PrintConfig.hpp"
 #include "GCode/CoolingBuffer.hpp"
-#include "GCode/PressureEqualizer.hpp"
 #include "GCode/SpiralVase.hpp"
 #include "GCode/ToolOrdering.hpp"
 #include "GCode/WipeTower.hpp"
@@ -21,6 +20,10 @@
 
 #include <memory>
 #include <string>
+
+#ifdef HAS_PRESSURE_EQUALIZER
+#include "GCode/PressureEqualizer.hpp"
+#endif /* HAS_PRESSURE_EQUALIZER */
 
 namespace Slic3r {
 
@@ -306,7 +309,9 @@ protected:
 
     std::unique_ptr<CoolingBuffer>      m_cooling_buffer;
     std::unique_ptr<SpiralVase>         m_spiral_vase;
+#ifdef HAS_PRESSURE_EQUALIZER
     std::unique_ptr<PressureEqualizer>  m_pressure_equalizer;
+#endif /* HAS_PRESSURE_EQUALIZER */
     std::unique_ptr<WipeTowerIntegration> m_wipe_tower;
 
     // Heights at which the skirt has already been extruded.

@@ -1028,8 +1028,10 @@ void TabPrint::build()
 		optgroup = page->new_optgroup(_(L("Autospeed (advanced)")));
 		optgroup->append_single_option_line("max_print_speed");
 		optgroup->append_single_option_line("max_volumetric_speed");
+#ifdef HAS_PRESSURE_EQUALIZER
 		optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_positive");
 		optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_negative");
+#endif /* HAS_PRESSURE_EQUALIZER */
 
 	page = add_options_page(_(L("Multiple Extruders")), "funnel.png");
 		optgroup = page->new_optgroup(_(L("Extruders")));

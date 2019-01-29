@@ -1208,6 +1208,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comExpert;
     def->default_value = new ConfigOptionFloat(0);
 
+#ifdef HAS_PRESSURE_EQUALIZER
     def = this->add("max_volumetric_extrusion_rate_slope_positive", coFloat);
     def->label = L("Max volumetric slope positive");
     def->tooltip = L("This experimental setting is used to limit the speed of change in extrusion rate. "
@@ -1231,6 +1232,7 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->mode = comExpert;
     def->default_value = new ConfigOptionFloat(0);
+#endif /* HAS_PRESSURE_EQUALIZER */
 
     def = this->add("min_fan_speed", coInts);
     def->label = L("Min");
@@ -2740,6 +2742,9 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "start_perimeters_at_concave_points", "start_perimeters_at_non_overhang", "randomize_start", 
         "seal_position", "vibration_limit", "bed_size", 
         "print_center", "g0", "threads", "pressure_advance", "wipe_tower_per_color_wipe"
+#ifndef HAS_PRESSURE_EQUALIZER
+        , "max_volumetric_extrusion_rate_slope_positive", "max_volumetric_extrusion_rate_slope_negative"
+#endif /* HAS_PRESSURE_EQUALIZER */
     };
 
     if (ignore.find(opt_key) != ignore.end()) {
