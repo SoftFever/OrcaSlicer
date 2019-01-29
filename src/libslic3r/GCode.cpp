@@ -860,7 +860,7 @@ void GCode::_do_export(Print &print, FILE *file)
     if (! (has_wipe_tower && print.config().single_extruder_multi_material_priming)) {
         // Set initial extruder only after custom start G-code.
         // Ugly hack: Do not set the initial extruder if the extruder is primed using the MMU priming towers at the edge of the print bed.
-        _write(file, this->set_extruder(initial_extruder_id));
+        _write(file, this->set_extruder(initial_extruder_id, 0.));
     }
 
     // Do all objects for each layer.
@@ -1533,15 +1533,13 @@ void GCode::process_layer(
         }
     } // for objects
 
-
-
     // Extrude the skirt, brim, support, perimeters, infill ordered by the extruders.
     std::vector<std::unique_ptr<EdgeGrid::Grid>> lower_layer_edge_grids(layers.size());
     for (unsigned int extruder_id : layer_tools.extruders)
     {
         gcode += (layer_tools.has_wipe_tower && m_wipe_tower) ?
             m_wipe_tower->tool_change(*this, extruder_id, extruder_id == layer_tools.extruders.back()) :
-            this->set_extruder(extruder_id);
+            this->set_extruder(extruder_id, print_z);
 
         // let analyzer tag generator aware of a role type change
         if (m_enable_analyzer && layer_tools.has_wipe_tower && m_wipe_tower)
@@ -2643,7 +2641,7 @@ std::string GCode::retract(bool toolchange)
     return gcode;
 }
 
-std::string GCode::set_extruder(unsigned int extruder_id)
+std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
 {
     if (!m_writer.need_toolchange(extruder_id))
         return "";
@@ -2677,6 +2675,8 @@ std::string GCode::set_extruder(unsigned int extruder_id)
         DynamicConfig config;
         config.set_key_value("previous_extruder", new ConfigOptionInt((int)m_writer.extruder()->id()));
         config.set_key_value("next_extruder",     new ConfigOptionInt((int)extruder_id));
+        config.set_key_value("layer_num",         new ConfigOptionInt(m_layer_index));
+        config.set_key_value("layer_z",           new ConfigOptionFloat(print_z));
         gcode += placeholder_parser_process("toolchange_gcode", m_config.toolchange_gcode.value, extruder_id, &config);
         check_add_eol(gcode);
     }
