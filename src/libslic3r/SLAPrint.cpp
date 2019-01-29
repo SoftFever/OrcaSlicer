@@ -440,10 +440,6 @@ std::vector<float> SLAPrint::calculate_heights(const BoundingBoxf3& bb3d,
     auto flh = float(layer_height);
     auto gnd = float(bb3d.min(Z));
 
-    // The first layer (the one before the initial height) is added only
-    // if there is no pad and no elevation value
-    if(minZ >= gnd) heights.emplace_back(minZ);
-
     for(float h = minZ + initial_layer_height; h < maxZ; h += flh)
         if(h >= gnd) heights.emplace_back(h);
 
@@ -509,6 +505,9 @@ void SLAPrint::process()
         const ModelObject& mo = *po.m_model_object;
         po.m_supportdata.reset(new SLAPrintObject::SupportData());
         po.m_supportdata->emesh = sla::to_eigenmesh(po.transformed_mesh());
+
+        // If supports are disabled, we can skip the model scan.
+        if(!po.m_config.supports_enable.getBool()) return;
 
         BOOST_LOG_TRIVIAL(debug) << "Support point count "
                                  << mo.sla_support_points.size();
@@ -693,7 +692,6 @@ void SLAPrint::process()
         // model_slice method. Only difference is that here it works with
         // scaled coordinates
         po.m_level_ids.clear();
-        if(sminZ >= smodelgnd) po.m_level_ids.emplace_back(sminZ);
         for(LevelID h = sminZ + sih; h < smaxZ; h += slh)
             if(h >= smodelgnd) po.m_level_ids.emplace_back(h);
 

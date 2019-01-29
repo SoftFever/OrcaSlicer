@@ -1391,7 +1391,8 @@ bool SLASupportTree::generate(const PointSet &points,
                     }
 
                     double d = distance(jp, jn);
-                    if(jn(Z) <= gndlvl || d > max_len) break;
+                    if(jn(Z) <= (gndlvl + 2*cfg.head_width_mm) || d > max_len)
+                        break;
 
                     double chkd = ray_mesh_intersect(jp, dirv(jp, jn), emesh);
                     if(chkd >= d) nearest_id = ne.second;
