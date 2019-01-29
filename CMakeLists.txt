@@ -85,6 +85,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
+if(NOT WIN32)
+    # Add DEBUG flags for the debug builds in a way the Visual Studio adds these flags.
+    add_compile_options("$<$<CONFIG:DEBUG>:-DDEBUG>")
+    add_compile_options("$<$<CONFIG:DEBUG>:-D_DEBUG>")
+endif()
+
 # To be able to link libslic3r with the Perl XS module.
 # Once we get rid of Perl and libslic3r is linked statically, we can get rid of -fPIC
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
