@@ -236,11 +236,11 @@ void MainFrame::init_menubar()
     // File menu
     wxMenu* fileMenu = new wxMenu;
     {
-        wxMenuItem* item_open = append_menu_item(fileMenu, wxID_ANY, _(L("&Open")) + dots + "\tCtrl+O", _(L("Open a project file")),
+        wxMenuItem* item_open = append_menu_item(fileMenu, wxID_ANY, _(L("&Open Project")) + dots + "\tCtrl+O", _(L("Open a project file")),
             [this](wxCommandEvent&) { if (m_plater) m_plater->load_project(); }, "brick_add.png");
-        wxMenuItem* item_save = append_menu_item(fileMenu, wxID_ANY, _(L("&Save")) + "\tCtrl+S", _(L("Save current project file")),
+        wxMenuItem* item_save = append_menu_item(fileMenu, wxID_ANY, _(L("&Save Project")) + "\tCtrl+S", _(L("Save current project file")),
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_3mf(into_path(m_plater->get_project_filename())); }, "disk.png");
-        wxMenuItem* item_save_as = append_menu_item(fileMenu, wxID_ANY, _(L("Save &as")) + dots + "\tCtrl+Alt+S", _(L("Save current project file as")),
+        wxMenuItem* item_save_as = append_menu_item(fileMenu, wxID_ANY, _(L("Save Project &as")) + dots + "\tCtrl+Alt+S", _(L("Save current project file as")),
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_3mf(); }, "disk.png");
 
         fileMenu->AppendSeparator();
