@@ -437,12 +437,10 @@ void BackgroundSlicingProcess::prepare_upload()
 
 	if (m_print == m_fff_print) {
 		m_print->set_status(95, "Running post-processing scripts");
-		run_post_process_scripts(source_path.string(), m_fff_print->config());
-
 		if (copy_file(m_temp_output_path, source_path.string()) != 0) {
 			throw std::runtime_error("Copying of the temporary G-code to the output G-code failed");
 		}
-
+		run_post_process_scripts(source_path.string(), m_fff_print->config());
 		m_upload_job.upload_data.upload_path = m_fff_print->print_statistics().finalize_output_path(m_upload_job.upload_data.upload_path.string());
 	} else {
 		m_sla_print->export_raster<SLAZipFmt>(source_path.string());
