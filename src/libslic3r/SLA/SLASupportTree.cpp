@@ -13,6 +13,7 @@
 #include <libslic3r/Model.hpp>
 
 #include <boost/log/trivial.hpp>
+#include <tbb/parallel_for.h>
 
 /**
  * Terminology:
@@ -588,7 +589,7 @@ double pinhead_mesh_intersect(const Vec3d& s,
                               double width,
                               const EigenMesh3D& m,
                               unsigned samples = 4,
-                              double safety_distance = 0.05)
+                              double safety_distance = 0.001)
 {
     // method based on:
     // https://math.stackexchange.com/questions/73237/parametric-equation-of-a-circle-in-3d-space
@@ -621,7 +622,10 @@ double pinhead_mesh_intersect(const Vec3d& s,
     // they define the plane where we have to iterate with the given angles
     // in the 'phis' vector
 
-    for(double& phi : phis) {
+    tbb::parallel_for(size_t(0), phis.size(),
+                      [&phis, &m, sd, r_pin, r_back, s, a, b, c](size_t i)
+    {
+        double& phi = phis[i];
         double sinphi = std::sin(phi);
         double cosphi = std::cos(phi);
 
@@ -648,7 +652,7 @@ double pinhead_mesh_intersect(const Vec3d& s,
 
         Vec3d n = (p - psq.point_on_mesh()).normalized();
         phi = m.query_ray_hit(psq.point_on_mesh() + sd*n, n);
-    }
+    });
 
     auto mit = std::min_element(phis.begin(), phis.end());
 
@@ -660,7 +664,7 @@ double bridge_mesh_intersect(const Vec3d& s,
                              double r,
                              const EigenMesh3D& m,
                              unsigned samples = 4,
-                             double safety_distance = 0.05)
+                             double safety_distance = 0.001)
 {
     // helper vector calculations
     Vec3d a(0, 1, 0), b;
@@ -673,7 +677,10 @@ double bridge_mesh_intersect(const Vec3d& s,
     std::vector<double> phis(samples);
     for(size_t i = 0; i < phis.size(); ++i) phis[i] = i*2*PI/phis.size();
 
-    for(double& phi : phis) {
+    tbb::parallel_for(size_t(0), phis.size(),
+                      [&phis, &m, a, b, sd, dir, r, s](size_t i)
+    {
+        double& phi = phis[i];
         double sinphi = std::sin(phi);
         double cosphi = std::cos(phi);
 
@@ -691,7 +698,7 @@ double bridge_mesh_intersect(const Vec3d& s,
         Vec3d sp = result.value() < 0 ? result.point_on_mesh() : p;
 
         phi = m.query_ray_hit(sp + sd*dir, dir);
-    }
+    });
 
     auto mit = std::min_element(phis.begin(), phis.end());
 
