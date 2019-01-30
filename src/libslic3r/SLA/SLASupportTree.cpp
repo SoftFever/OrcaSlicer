@@ -607,10 +607,18 @@ EigenMesh3D to_eigenmesh(const ModelObject& modelobj) {
     return to_eigenmesh(modelobj.raw_mesh());
 }
 
-PointSet to_point_set(const std::vector<Vec3d> &v)
+PointSet to_point_set(const std::vector<SupportPoint> &v)
 {
-    PointSet ret(v.size(), 3);
-    { long i = 0; for(const Vec3d& p : v) ret.row(i++) = p; }
+    PointSet ret(v.size(), 5);
+    long i = 0;
+    for(const SupportPoint& support_point : v) {
+        ret.row(i)(0) = support_point.pos(0);
+        ret.row(i)(1) = support_point.pos(1);
+        ret.row(i)(2) = support_point.pos(2);
+        ret.row(i)(3) = support_point.head_front_radius;
+        ret.row(i)(4) = (float)support_point.is_new_island;
+        ++i;
+    }
     return ret;
 }
 

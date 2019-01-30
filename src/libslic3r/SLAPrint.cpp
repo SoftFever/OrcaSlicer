@@ -541,7 +541,7 @@ void SLAPrint::process()
                                           [this]() { throw_if_canceled(); });
 
             // Now let's extract the result.
-            const std::vector<Vec3d>& points = auto_supports.output();
+            const std::vector<sla::SupportPoint>& points = auto_supports.output();
             this->throw_if_canceled();
             po.m_supportdata->support_points = sla::to_point_set(points);
 
@@ -1236,15 +1236,19 @@ const TriangleMesh &SLAPrintObject::transformed_mesh() const {
     return m_transformed_rmesh.get();
 }
 
-std::vector<Vec3d> SLAPrintObject::transformed_support_points() const
+std::vector<sla::SupportPoint> SLAPrintObject::transformed_support_points() const
 {
     assert(m_model_object != nullptr);
-    auto& spts = m_model_object->sla_support_points;
+    std::vector<sla::SupportPoint>& spts = m_model_object->sla_support_points;
 
     // this could be cached as well
-    std::vector<Vec3d> ret; ret.reserve(spts.size());
+    std::vector<sla::SupportPoint> ret;
+    ret.reserve(spts.size());
 
-    for(auto& sp : spts) ret.emplace_back( trafo() * Vec3d(sp.cast<double>()));
+    for(sla::SupportPoint& sp : spts) {
+        Vec3d transformed_pos = trafo() * Vec3d(sp.pos(0), sp.pos(1), sp.pos(2));
+        ret.emplace_back(transformed_pos(0), transformed_pos(1), transformed_pos(2), sp.head_front_radius, sp.is_new_island);
+    }
 
     return ret;
 }
