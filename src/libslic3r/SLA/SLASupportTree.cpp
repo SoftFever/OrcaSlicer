@@ -565,7 +565,7 @@ inline double ray_mesh_intersect(const Vec3d& s,
                                  const Vec3d& dir,
                                  const EigenMesh3D& m)
 {
-    return m.query_ray_hit(s, dir);
+    return m.query_ray_hit(s, dir).distance();
 }
 
 // This function will test if a future pinhead would not collide with the model
@@ -588,7 +588,7 @@ double pinhead_mesh_intersect(const Vec3d& s,
                               double r_back,
                               double width,
                               const EigenMesh3D& m,
-                              unsigned samples = 4,
+                              unsigned samples = 8,
                               double safety_distance = 0.001)
 {
     // method based on:
@@ -643,15 +643,26 @@ double pinhead_mesh_intersect(const Vec3d& s,
         // Point ps is not on mesh but can be inside or outside as well. This
         // would cause many problems with ray-casting. So we query the closest
         // point on the mesh to this.
-        auto psq = m.signed_distance(ps);
+//        auto psq = m.signed_distance(ps);
 
         // This is the point on the circle on the back sphere
         Vec3d p(c(X) + rpbcos * a(X) + rpbsin * b(X),
                 c(Y) + rpbcos * a(Y) + rpbsin * b(Y),
                 c(Z) + rpbcos * a(Z) + rpbsin * b(Z));
 
-        Vec3d n = (p - psq.point_on_mesh()).normalized();
-        phi = m.query_ray_hit(psq.point_on_mesh() + sd*n, n);
+//        Vec3d n = (p - psq.point_on_mesh()).normalized();
+//        phi = m.query_ray_hit(psq.point_on_mesh() + sd*n, n);
+
+        Vec3d n = (p - ps).normalized();
+        auto hr = m.query_ray_hit(ps + sd*n, n);
+
+        if(hr.is_inside()) { // the hit is inside the model
+            if(hr.distance() > 2*r_pin) phi = 0;
+            else {
+                auto hr2 = m.query_ray_hit(ps + (hr.distance() + 2*sd)*n, n);
+                phi = hr2.distance();
+            }
+        } else phi = hr.distance();
     });
 
     auto mit = std::min_element(phis.begin(), phis.end());
@@ -659,10 +670,14 @@ double pinhead_mesh_intersect(const Vec3d& s,
     return *mit;
 }
 
+// Checking bridge (pillar and stick as well) intersection with the model. If
+// the function is used for headless sticks, the ins_check parameter have to be
+// true as the beginning of the stick might be inside the model geometry.
 double bridge_mesh_intersect(const Vec3d& s,
                              const Vec3d& dir,
                              double r,
                              const EigenMesh3D& m,
+                             bool ins_check = false,
                              unsigned samples = 4,
                              double safety_distance = 0.001)
 {
@@ -678,7 +693,7 @@ double bridge_mesh_intersect(const Vec3d& s,
     for(size_t i = 0; i < phis.size(); ++i) phis[i] = i*2*PI/phis.size();
 
     tbb::parallel_for(size_t(0), phis.size(),
-                      [&phis, &m, a, b, sd, dir, r, s](size_t i)
+                      [&phis, &m, a, b, sd, dir, r, s, ins_check](size_t i)
     {
         double& phi = phis[i];
         double sinphi = std::sin(phi);
@@ -693,11 +708,13 @@ double bridge_mesh_intersect(const Vec3d& s,
                  s(Y) + rcos * a(Y) + rsin * b(Y),
                  s(Z) + rcos * a(Z) + rsin * b(Z));
 
-        auto result = m.signed_distance(p);
+        Vec3d sp;
+        if(ins_check) {
+            auto result = m.signed_distance(p);
+            sp = result.value() < 0 ? result.point_on_mesh() : p;
+        } else sp = p;
 
-        Vec3d sp = result.value() < 0 ? result.point_on_mesh() : p;
-
-        phi = m.query_ray_hit(sp + sd*dir, dir);
+        phi = m.query_ray_hit(sp + sd*dir, dir).distance();
     });
 
     auto mit = std::min_element(phis.begin(), phis.end());
@@ -1538,12 +1555,12 @@ bool SLASupportTree::generate(const PointSet &points,
             // is distributed more effectively on the pillar.
 
             auto search_nearest =
-                    [&cfg, &result, &emesh, maxbridgelen, gndlvl, pradius]
+                    [&tifcl, &cfg, &result, &emesh, maxbridgelen, gndlvl, pradius]
                     (SpatIndex& spindex, const Vec3d& jsh)
             {
                 long nearest_id = -1;
                 const double max_len = maxbridgelen / 2;
-                while(nearest_id < 0 && !spindex.empty()) {
+                while(nearest_id < 0 && !spindex.empty()) { tifcl();
                     // loop until a suitable head is not found
                     // if there is a pillar closer than the cluster center
                     // (this may happen as the clustering is not perfect)
@@ -1660,7 +1677,7 @@ bool SLASupportTree::generate(const PointSet &points,
             if(!ring.empty()) {
                 // inner ring is now in 'newring' and outer ring is in 'ring'
                 SpatIndex innerring;
-                for(unsigned i : newring) {
+                for(unsigned i : newring) { tifcl();
                     const Pillar& pill = result.head_pillar(gndidx[i]);
                     assert(pill.id >= 0);
                     innerring.insert(pill.endpoint, unsigned(pill.id));
@@ -1669,7 +1686,7 @@ bool SLASupportTree::generate(const PointSet &points,
                 // For all pillars in the outer ring find the closest in the
                 // inner ring and connect them. This will create the spider web
                 // fashioned connections between pillars
-                for(unsigned i : ring) {
+                for(unsigned i : ring) { tifcl();
                     const Pillar& outerpill = result.head_pillar(gndidx[i]);
                     auto res = innerring.nearest(outerpill.endpoint, 1);
                     if(res.empty()) continue;
@@ -1695,6 +1712,7 @@ bool SLASupportTree::generate(const PointSet &points,
                 next != ring.end();
                 ++it, ++next)
             {
+                tifcl();
                 const Pillar& pillar = result.head_pillar(gndidx[*it]);
                 const Pillar& nextpillar = result.head_pillar(gndidx[*next]);
                 interconnect(pillar, nextpillar, emesh, result);
@@ -1802,7 +1820,7 @@ bool SLASupportTree::generate(const PointSet &points,
             Vec3d sj = sp + R * n;              // stick start point
 
             // This is only for checking
-            double idist = bridge_mesh_intersect(sph, dir, R, emesh);
+            double idist = bridge_mesh_intersect(sph, dir, R, emesh, true);
             double dist = ray_mesh_intersect(sj, dir, emesh);
 
             if(std::isinf(idist) || std::isnan(idist) || idist < 2*R ||

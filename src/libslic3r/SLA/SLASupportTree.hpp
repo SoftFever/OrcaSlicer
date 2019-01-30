@@ -125,8 +125,38 @@ public:
     inline const Eigen::MatrixXd& V() const { return m_V; }
     inline const Eigen::MatrixXi& F() const { return m_F; }
 
+    // Result of a raycast
+    class hit_result {
+        double m_t = std::numeric_limits<double>::infinity();
+        int m_face_id = -1;
+        const EigenMesh3D& m_mesh;
+        Vec3d m_dir;
+        inline hit_result(const EigenMesh3D& em): m_mesh(em) {}
+        friend class EigenMesh3D;
+    public:
+
+        inline double distance() const { return m_t; }
+
+        inline int face() const { return m_face_id; }
+
+        inline Vec3d normal() const {
+            if(m_face_id < 0) return {};
+            auto trindex    = m_mesh.m_F.row(m_face_id);
+            const Vec3d& p1 = m_mesh.V().row(trindex(0));
+            const Vec3d& p2 = m_mesh.V().row(trindex(1));
+            const Vec3d& p3 = m_mesh.V().row(trindex(2));
+            Eigen::Vector3d U = p2 - p1;
+            Eigen::Vector3d V = p3 - p1;
+            return U.cross(V).normalized();
+        }
+
+        inline bool is_inside() {
+            return m_face_id >= 0 && normal().dot(m_dir) > 0;
+        }
+    };
+
     // Casting a ray on the mesh, returns the distance where the hit occures.
-    double query_ray_hit(const Vec3d &s, const Vec3d &dir) const;
+    hit_result query_ray_hit(const Vec3d &s, const Vec3d &dir) const;
 
     class si_result {
         double m_value;

@@ -153,13 +153,19 @@ EigenMesh3D &EigenMesh3D::operator=(const EigenMesh3D &other)
     m_aabb.reset(new AABBImpl(*other.m_aabb)); return *this;
 }
 
-double EigenMesh3D::query_ray_hit(const Vec3d &s, const Vec3d &dir) const
+EigenMesh3D::hit_result
+EigenMesh3D::query_ray_hit(const Vec3d &s, const Vec3d &dir) const
 {
     igl::Hit hit;
     hit.t = std::numeric_limits<float>::infinity();
     m_aabb->intersect_ray(m_V, m_F, s, dir, hit);
 
-    return double(hit.t);
+    hit_result ret(*this);
+    ret.m_t = double(hit.t);
+    ret.m_dir = dir;
+    if(!std::isinf(hit.t) && !std::isnan(hit.t)) ret.m_face_id = hit.id;
+
+    return ret;
 }
 
 EigenMesh3D::si_result EigenMesh3D::signed_distance(const Vec3d &p) const {
