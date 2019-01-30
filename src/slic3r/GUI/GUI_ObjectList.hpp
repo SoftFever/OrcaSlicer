@@ -179,7 +179,8 @@ public:
     wxMenuItem*         append_menu_item_settings(wxMenu* menu);
     wxMenuItem*         append_menu_item_change_type(wxMenu* menu);
     wxMenuItem*         append_menu_item_instance_to_object(wxMenu* menu);
-    wxMenuItem*         append_menu_item_rename(wxMenu* menu);
+    void                append_menu_item_rename(wxMenu* menu);
+    void                append_menu_item_fix_through_netfabb(wxMenu* menu);
     void                create_object_popupmenu(wxMenu *menu);
     void                create_sla_object_popupmenu(wxMenu*menu);
     void                create_part_popupmenu(wxMenu*menu);
@@ -262,7 +263,7 @@ public:
     void instances_to_separated_object(const int obj_idx, const std::set<int>& inst_idx);
     void split_instances();
     void rename_item();
-
+    void fix_through_netfabb() const;
 private:
     void OnChar(wxKeyEvent& event);
     void OnContextMenu(wxDataViewEvent &event);
