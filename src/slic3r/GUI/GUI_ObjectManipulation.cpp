@@ -26,6 +26,10 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
         // needed to hide the visual hints in 3D scene
         wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event(opt_key, false);
 
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        std::cout << "KILL_FOCUS" << std::endl;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
         if (!m_cache.is_valid())
             return;
 
