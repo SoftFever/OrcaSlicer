@@ -1031,7 +1031,7 @@ struct Plater::priv
     void update_restart_background_process(bool force_scene_update, bool force_preview_update);
     void export_gcode(fs::path output_path, PrintHostJob upload_job);
     void reload_from_disk();
-    void fix_through_netfabb(const int obj_idx);
+    void fix_through_netfabb(const int obj_idx, const int vol_idx = -1);
 
     void set_current_panel(wxPanel* panel);
 
@@ -2106,7 +2106,7 @@ void Plater::priv::reload_from_disk()
     remove(obj_orig_idx);
 }
 
-void Plater::priv::fix_through_netfabb(const int obj_idx)
+void Plater::priv::fix_through_netfabb(const int obj_idx, const int vol_idx/* = -1*/)
 {
     if (obj_idx < 0)
         return;
@@ -2439,6 +2439,8 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
             [this](wxCommandEvent&) { q->export_stl(true); });
     }
     menu->AppendSeparator();
+
+    sidebar->obj_list()->append_menu_item_fix_through_netfabb(menu);
 
     wxMenu* mirror_menu = new wxMenu();
     if (mirror_menu == nullptr)
@@ -3150,7 +3152,7 @@ void Plater::changed_object(int obj_idx)
     this->p->schedule_background_process();
 }
 
-void Plater::fix_through_netfabb(const int obj_idx) { p->fix_through_netfabb(obj_idx); }
+void Plater::fix_through_netfabb(const int obj_idx, const int vol_idx/* = -1*/) { p->fix_through_netfabb(obj_idx, vol_idx); }
 
 void Plater::update_object_menu() { p->update_object_menu(); }
 

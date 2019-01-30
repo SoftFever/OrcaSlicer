@@ -952,10 +952,20 @@ wxMenuItem* ObjectList::append_menu_item_instance_to_object(wxMenu* menu)
         [this](wxCommandEvent&) { split_instances(); }, "", menu);
 }
 
-wxMenuItem* ObjectList::append_menu_item_rename(wxMenu* menu)
+void ObjectList::append_menu_item_rename(wxMenu* menu)
 {
-    return append_menu_item(menu, wxID_ANY, _(L("Rename")), "",
+    append_menu_item(menu, wxID_ANY, _(L("Rename")), "",
         [this](wxCommandEvent&) { rename_item(); }, "", menu);
+    menu->AppendSeparator();
+}
+
+void ObjectList::append_menu_item_fix_through_netfabb(wxMenu* menu)
+{
+    if (!is_windows10())
+        return;
+    append_menu_item(menu, wxID_ANY, _(L("Fix through the Netfabb")), "",
+        [this](wxCommandEvent&) { fix_through_netfabb(); }, "", menu);
+    menu->AppendSeparator();
 }
 
 void ObjectList::create_object_popupmenu(wxMenu *menu)
@@ -963,6 +973,8 @@ void ObjectList::create_object_popupmenu(wxMenu *menu)
 #ifdef __WXOSX__  
     append_menu_item_rename(menu);
 #endif // __WXOSX__
+
+    append_menu_item_fix_through_netfabb(menu);
 
     // Split object to parts
     m_menu_item_split = append_menu_item_split(menu);
@@ -981,6 +993,8 @@ void ObjectList::create_sla_object_popupmenu(wxMenu *menu)
 #ifdef __WXOSX__  
     append_menu_item_rename(menu);
 #endif // __WXOSX__
+    
+    append_menu_item_fix_through_netfabb(menu);
     // rest of a object_sla_menu will be added later in:
     // - append_menu_item_settings() -> for "Add (settings)"
 }
@@ -990,6 +1004,8 @@ void ObjectList::create_part_popupmenu(wxMenu *menu)
 #ifdef __WXOSX__  
     append_menu_item_rename(menu);
 #endif // __WXOSX__
+
+    append_menu_item_fix_through_netfabb(menu);
 
     m_menu_item_split_part = append_menu_item_split(menu);
 
@@ -2109,6 +2125,21 @@ void ObjectList::rename_item()
     m_objects_model->ItemChanged(item);
 
     update_name_in_model(item);
+}
+
+void ObjectList::fix_through_netfabb() const 
+{
+    const wxDataViewItem item = GetSelection();
+    if (!item)
+        return;
+    
+    ItemType type = m_objects_model->GetItemType(item);
+    
+    if (type & itObject)
+        wxGetApp().plater()->fix_through_netfabb(m_objects_model->GetIdByItem(item));
+    else if (type & itVolume) 
+        wxGetApp().plater()->fix_through_netfabb(m_objects_model->GetIdByItem(m_objects_model->GetTopParent(item)),
+                                                 m_objects_model->GetVolumeIdByItem(item));    
 }
 
 void ObjectList::ItemValueChanged(wxDataViewEvent &event)
