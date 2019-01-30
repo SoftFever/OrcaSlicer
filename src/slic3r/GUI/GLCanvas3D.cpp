@@ -1793,12 +1793,12 @@ static double rotation_diff_z(const Vec3d &rot_xyz_from, const Vec3d &rot_xyz_to
     Eigen::AngleAxisd angle_axis(rotation_xyz_diff(rot_xyz_from, rot_xyz_to));
     Vec3d  axis  = angle_axis.axis();
     double angle = angle_axis.angle();
-#ifdef _DEBUG
+#ifndef NDEBUG
 	if (std::abs(angle) > 1e-8) {
 		assert(std::abs(axis.x()) < 1e-8);
 		assert(std::abs(axis.y()) < 1e-8);
 	}
-#endif /* _DEBUG */
+#endif /* NDEBUG */
 	return (axis.z() < 0) ? -angle : angle;
 }
 
@@ -2786,7 +2786,7 @@ void GLCanvas3D::Selection::_render_sidebar_size_hint(Axis axis, double length) 
 {
 }
 
-#ifdef _DEBUG
+#ifndef NDEBUG
 static bool is_rotation_xy_synchronized(const Vec3d &rot_xyz_from, const Vec3d &rot_xyz_to)
 {
 	Eigen::AngleAxisd angle_axis(rotation_xyz_diff(rot_xyz_from, rot_xyz_to));
@@ -2820,7 +2820,7 @@ static void verify_instances_rotation_synchronized(const Model &model, const GLV
             }
     }
 }
-#endif /* _DEBUG */
+#endif /* NDEBUG */
 
 void GLCanvas3D::Selection::_synchronize_unselected_instances(SyncRotationType sync_rotation_type)
 {
@@ -2880,9 +2880,9 @@ void GLCanvas3D::Selection::_synchronize_unselected_instances(SyncRotationType s
         }
     }
 
-#ifdef _DEBUG
+#ifndef NDEBUG
     verify_instances_rotation_synchronized(*m_model, *m_volumes);
-#endif /* _DEBUG */
+#endif /* NDEBUG */
 }
 
 void GLCanvas3D::Selection::_synchronize_unselected_volumes()
@@ -4681,10 +4681,10 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         }
         if (printer_technology == ptSLA) {
             const SLAPrint *sla_print = this->sla_print();
-		#ifdef _DEBUG
+		#ifndef NDEBUG
             // Verify that the SLAPrint object is synchronized with m_model.
             check_model_ids_equal(*m_model, sla_print->model());
-        #endif /* _DEBUG */
+        #endif /* NDEBUG */
             sla_support_state.reserve(sla_print->objects().size());
             for (const SLAPrintObject *print_object : sla_print->objects()) {
                 SLASupportState state;
