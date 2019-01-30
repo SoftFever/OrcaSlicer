@@ -987,6 +987,9 @@ void ObjectList::create_object_popupmenu(wxMenu *menu)
 
 void ObjectList::create_sla_object_popupmenu(wxMenu *menu)
 {
+#ifdef __WXOSX__  
+    append_menu_item_rename(menu);
+#endif // __WXOSX__
     // rest of a object_sla_menu will be added later in:
     // - append_menu_item_settings() -> for "Add (settings)"
 }
@@ -2080,6 +2083,9 @@ void ObjectList::rename_item()
 
     const wxString new_name = wxGetTextFromUser(_(L("Enter new name"))+":", _(L("Renaming")), 
                                                 m_objects_model->GetName(item), this);
+
+    if (new_name.IsEmpty())
+        return;
 
     bool is_unusable_symbol = false;
     std::string chosen_name = Slic3r::normalize_utf8_nfc(new_name.ToUTF8());
