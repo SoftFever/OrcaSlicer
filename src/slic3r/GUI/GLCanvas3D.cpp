@@ -1796,12 +1796,12 @@ static double rotation_diff_z(const Vec3d &rot_xyz_from, const Vec3d &rot_xyz_to
     Eigen::AngleAxisd angle_axis(rotation_xyz_diff(rot_xyz_from, rot_xyz_to));
     Vec3d  axis  = angle_axis.axis();
     double angle = angle_axis.angle();
-#ifdef _DEBUG
+#ifndef NDEBUG
 	if (std::abs(angle) > 1e-8) {
 		assert(std::abs(axis.x()) < 1e-8);
 		assert(std::abs(axis.y()) < 1e-8);
 	}
-#endif /* _DEBUG */
+#endif /* NDEBUG */
 	return (axis.z() < 0) ? -angle : angle;
 }
 
@@ -2789,7 +2789,7 @@ void GLCanvas3D::Selection::_render_sidebar_size_hint(Axis axis, double length) 
 {
 }
 
-#ifdef _DEBUG
+#ifndef NDEBUG
 static bool is_rotation_xy_synchronized(const Vec3d &rot_xyz_from, const Vec3d &rot_xyz_to)
 {
 	Eigen::AngleAxisd angle_axis(rotation_xyz_diff(rot_xyz_from, rot_xyz_to));
@@ -2823,7 +2823,7 @@ static void verify_instances_rotation_synchronized(const Model &model, const GLV
             }
     }
 }
-#endif /* _DEBUG */
+#endif /* NDEBUG */
 
 void GLCanvas3D::Selection::_synchronize_unselected_instances(SyncRotationType sync_rotation_type)
 {
@@ -2883,9 +2883,9 @@ void GLCanvas3D::Selection::_synchronize_unselected_instances(SyncRotationType s
         }
     }
 
-#ifdef _DEBUG
+#ifndef NDEBUG
     verify_instances_rotation_synchronized(*m_model, *m_volumes);
-#endif /* _DEBUG */
+#endif /* NDEBUG */
 }
 
 void GLCanvas3D::Selection::_synchronize_unselected_volumes()
@@ -3756,7 +3756,7 @@ void GLCanvas3D::LegendTexture::fill_color_print_legend_values(const GCodePrevie
 {
     if (preview_data.extrusion.view_type == GCodePreviewData::Extrusion::ColorPrint) 
     {
-        const auto& config = wxGetApp().preset_bundle->full_config();
+        auto& config = wxGetApp().preset_bundle->project_config;
         const std::vector<double>& color_print_values = config.option<ConfigOptionFloats>("colorprint_heights")->values;
         const int values_cnt = color_print_values.size();
         if (values_cnt > 0) {
@@ -4682,10 +4682,10 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         }
         if (printer_technology == ptSLA) {
             const SLAPrint *sla_print = this->sla_print();
-		#ifdef _DEBUG
+		#ifndef NDEBUG
             // Verify that the SLAPrint object is synchronized with m_model.
             check_model_ids_equal(*m_model, sla_print->model());
-        #endif /* _DEBUG */
+        #endif /* NDEBUG */
             sla_support_state.reserve(sla_print->objects().size());
             for (const SLAPrintObject *print_object : sla_print->objects()) {
                 SLASupportState state;
@@ -7264,7 +7264,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
         bool                         color_by_color_print() const { return color_print_values!=nullptr; }
         const float*                 color_print_by_layer_idx(const size_t layer_idx) const
         {
-            auto it = std::lower_bound(color_print_values->begin(), color_print_values->end(), layers[layer_idx]->print_z - EPSILON);
+            auto it = std::lower_bound(color_print_values->begin(), color_print_values->end(), layers[layer_idx]->print_z + EPSILON);
             return color_tool((it - color_print_values->begin()) % number_tools());
         }
     } ctxt;

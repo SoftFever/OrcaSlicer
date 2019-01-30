@@ -740,7 +740,7 @@ void Preview::load_print_as_fff()
         if (! gcode_preview_data_valid) {
             //FIXME accessing full_config() is pretty expensive.
             // Only initialize color_print_values for the initial preview, not for the full preview where the color_print_values is extracted from the G-code.
-            const auto& config = wxGetApp().preset_bundle->full_config();
+            const auto& config = wxGetApp().preset_bundle->project_config;
             color_print_values = config.option<ConfigOptionFloats>("colorprint_heights")->values;
         }
     }

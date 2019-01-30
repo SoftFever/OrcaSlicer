@@ -97,9 +97,6 @@ class ObjectList : public wxDataViewCtrl
     } m_dragged_data;
 
     wxBoxSizer          *m_sizer {nullptr};
-
-    DynamicPrintConfig  *m_default_config {nullptr};
-
     wxWindow            *m_parent {nullptr};
 
     wxBitmap	m_bmp_modifiermesh;
