@@ -12,7 +12,6 @@
 
 #include <wx/sizer.h>
 #include <wx/stattext.h>
-#include <wx/notebook.h>
 #include <wx/button.h>
 #include <wx/bmpcbox.h>
 #include <wx/statbox.h>

@@ -6,6 +6,7 @@
 #include <vector>
 #include <set>
 #include <unordered_map>
+#include <functional>
 #include <boost/filesystem.hpp>
 
 #include <wx/sizer.h>
@@ -13,6 +14,7 @@
 #include <wx/button.h>
 #include <wx/choice.h>
 #include <wx/spinctrl.h>
+#include <wx/textctrl.h>
 
 #include "libslic3r/PrintConfig.hpp"
 #include "slic3r/Utils/PresetUpdater.hpp"
@@ -26,211 +28,270 @@ namespace Slic3r {
 namespace GUI {
 
 enum {
-	WRAP_WIDTH = 500,
-	MODEL_MIN_WRAP = 150,
+    WRAP_WIDTH = 500,
+    MODEL_MIN_WRAP = 150,
 
-	DIALOG_MARGIN = 15,
-	INDEX_MARGIN = 40,
-	BTN_SPACING = 10,
-	INDENT_SPACING = 30,
-	VERTICAL_SPACING = 10,
+    DIALOG_MARGIN = 15,
+    INDEX_MARGIN = 40,
+    BTN_SPACING = 10,
+    INDENT_SPACING = 30,
+    VERTICAL_SPACING = 10,
+
+    MAX_COLS = 4,
+    ROW_SPACING = 75,
 };
+
+typedef std::function<bool(const VendorProfile::PrinterModel&)> ModelFilter;
 
 struct PrinterPicker: wxPanel
 {
-	struct Checkbox : wxCheckBox
-	{
-		Checkbox(wxWindow *parent, const wxString &label, const std::string &model, const std::string &variant) :
-			wxCheckBox(parent, wxID_ANY, label),
-			model(model),
-			variant(variant)
-		{}
+    struct Checkbox : wxCheckBox
+    {
+        Checkbox(wxWindow *parent, const wxString &label, const std::string &model, const std::string &variant) :
+            wxCheckBox(parent, wxID_ANY, label),
+            model(model),
+            variant(variant)
+        {}
 
-		std::string model;
-		std::string variant;
-	};
+        std::string model;
+        std::string variant;
+    };
 
-	const std::string vendor_id;
-	std::vector<Checkbox*> cboxes;
-	unsigned variants_checked;
+    const std::string vendor_id;
+    std::vector<Checkbox*> cboxes;
+    std::vector<Checkbox*> cboxes_alt;
 
-	PrinterPicker(wxWindow *parent, const VendorProfile &vendor, const AppConfig &appconfig_vendors);
+    PrinterPicker(wxWindow *parent, const VendorProfile &vendor, wxString title, size_t max_cols, const AppConfig &appconfig_vendors, const ModelFilter &filter);
+    PrinterPicker(wxWindow *parent, const VendorProfile &vendor, wxString title, size_t max_cols, const AppConfig &appconfig_vendors);
 
-	void select_all(bool select);
-	void select_one(size_t i, bool select);
-	void on_checkbox(const Checkbox *cbox, bool checked);
+    void select_all(bool select);
+    void select_one(size_t i, bool select);
+    void on_checkbox(const Checkbox *cbox, bool checked);
 };
 
 struct ConfigWizardPage: wxPanel
 {
-	ConfigWizard *parent;
-	const wxString shortname;
-	wxBoxSizer *content;
+    ConfigWizard *parent;
+    const wxString shortname;
+    wxBoxSizer *content;
+    const unsigned indent;
 
-	ConfigWizardPage(ConfigWizard *parent, wxString title, wxString shortname);
+    ConfigWizardPage(ConfigWizard *parent, wxString title, wxString shortname, unsigned indent = 0);
+    virtual ~ConfigWizardPage();
 
-	virtual ~ConfigWizardPage();
+    template<class T>
+    void append(T *thing, int proportion = 0, int flag = wxEXPAND|wxTOP|wxBOTTOM, int border = 10)
+    {
+        content->Add(thing, proportion, flag, border);
+    }
 
-	ConfigWizardPage* page_prev() const { return p_prev; }
-	ConfigWizardPage* page_next() const { return p_next; }
-	ConfigWizardPage* chain(ConfigWizardPage *page);
+    void append_text(wxString text);
+    void append_spacer(int space);
 
-	template<class T>
-	void append(T *thing, int proportion = 0, int flag = wxEXPAND|wxTOP|wxBOTTOM, int border = 10)
-	{
-		content->Add(thing, proportion, flag, border);
-	}
+    ConfigWizard::priv *wizard_p() const { return parent->p.get(); }
 
-	void append_text(wxString text);
-	void append_spacer(int space);
-
-	ConfigWizard::priv *wizard_p() const { return parent->p.get(); }
-
-	virtual bool Show(bool show = true);
-	virtual bool Hide() { return Show(false); }
-	virtual wxPanel* extra_buttons() { return nullptr; }
-	virtual void on_page_set() {}
-	virtual void apply_custom_config(DynamicPrintConfig &config) {}
-
-	void enable_next(bool enable);
-private:
-	ConfigWizardPage *p_prev;
-	ConfigWizardPage *p_next;
+    virtual bool Show(bool show = true);
+    virtual bool Hide() { return Show(false); }
+    virtual wxPanel* extra_buttons() { return nullptr; }    // XXX
+    virtual void apply_custom_config(DynamicPrintConfig &config) {}
 };
 
 struct PageWelcome: ConfigWizardPage
 {
-	PrinterPicker *printer_picker;
-	wxPanel *others_buttons;
-	wxCheckBox *cbox_reset;
+    wxCheckBox *cbox_reset;
 
-	PageWelcome(ConfigWizard *parent, bool check_first_variant);
+    PageWelcome(ConfigWizard *parent);
 
-	virtual wxPanel* extra_buttons() { return others_buttons; }
-	virtual void on_page_set();
+    bool reset_user_profile() const { return cbox_reset != nullptr ? cbox_reset->GetValue() : false; }
+};
 
-	bool reset_user_profile() const { return cbox_reset != nullptr ? cbox_reset->GetValue() : false; }
-	void on_variant_checked();
+struct PagePrinters: ConfigWizardPage
+{
+    enum Technology {
+        // Bitflag equivalent of PrinterTechnology
+        T_FFF = 0x1,
+        T_SLA = 0x2,
+        T_Any = ~0,
+    };
+
+    std::vector<PrinterPicker *> printer_pickers;
+
+    PagePrinters(ConfigWizard *parent, wxString title, wxString shortname, const VendorProfile &vendor, unsigned indent, Technology technology);
+
+    void select_all(bool select);
+};
+
+struct PageCustom: ConfigWizardPage
+{
+    PageCustom(ConfigWizard *parent);
+
+    bool custom_wanted() const { return cb_custom->GetValue(); }
+    std::string profile_name() const { return into_u8(tc_profile_name->GetValue()); }
+
+private:
+    wxCheckBox *cb_custom;
+    wxTextCtrl *tc_profile_name;
+
 };
 
 struct PageUpdate: ConfigWizardPage
 {
-	bool version_check;
-	bool preset_update;
+    bool version_check;
+    bool preset_update;
 
-	PageUpdate(ConfigWizard *parent);
+    PageUpdate(ConfigWizard *parent);
 };
 
 struct PageVendors: ConfigWizardPage
 {
-	std::vector<PrinterPicker*> pickers;
+    std::vector<PrinterPicker*> pickers;
 
-	PageVendors(ConfigWizard *parent);
+    PageVendors(ConfigWizard *parent);
 
-	virtual void on_page_set();
-
-	void on_vendor_pick(size_t i);
-	void on_variant_checked();
+    void on_vendor_pick(size_t i);
 };
 
 struct PageFirmware: ConfigWizardPage
 {
-	const ConfigOptionDef &gcode_opt;
-	wxChoice *gcode_picker;
+    const ConfigOptionDef &gcode_opt;
+    wxChoice *gcode_picker;
 
-	PageFirmware(ConfigWizard *parent);
-	virtual void apply_custom_config(DynamicPrintConfig &config);
+    PageFirmware(ConfigWizard *parent);
+    virtual void apply_custom_config(DynamicPrintConfig &config);
 };
 
 struct PageBedShape: ConfigWizardPage
 {
-	BedShapePanel *shape_panel;
+    BedShapePanel *shape_panel;
 
-	PageBedShape(ConfigWizard *parent);
-	virtual void apply_custom_config(DynamicPrintConfig &config);
+    PageBedShape(ConfigWizard *parent);
+    virtual void apply_custom_config(DynamicPrintConfig &config);
 };
 
 struct PageDiameters: ConfigWizardPage
 {
-	wxSpinCtrlDouble *spin_nozzle;
-	wxSpinCtrlDouble *spin_filam;
+    wxSpinCtrlDouble *spin_nozzle;
+    wxSpinCtrlDouble *spin_filam;
 
-	PageDiameters(ConfigWizard *parent);
-	virtual void apply_custom_config(DynamicPrintConfig &config);
+    PageDiameters(ConfigWizard *parent);
+    virtual void apply_custom_config(DynamicPrintConfig &config);
 };
 
 struct PageTemperatures: ConfigWizardPage
 {
-	wxSpinCtrlDouble *spin_extr;
-	wxSpinCtrlDouble *spin_bed;
+    wxSpinCtrlDouble *spin_extr;
+    wxSpinCtrlDouble *spin_bed;
 
-	PageTemperatures(ConfigWizard *parent);
-	virtual void apply_custom_config(DynamicPrintConfig &config);
+    PageTemperatures(ConfigWizard *parent);
+    virtual void apply_custom_config(DynamicPrintConfig &config);
 };
 
 
 class ConfigWizardIndex: public wxPanel
 {
 public:
-	ConfigWizardIndex(wxWindow *parent);
+    ConfigWizardIndex(wxWindow *parent);
 
-	void load_items(ConfigWizardPage *firstpage);
-	void set_active(ConfigWizardPage *page);
+    void add_page(ConfigWizardPage *page);
+    void add_label(wxString label, unsigned indent = 0);
+
+    size_t active_item() const { return item_active; }
+    ConfigWizardPage* active_page() const;
+    bool active_is_last() const { return item_active < items.size() && item_active == last_page; }
+
+    void go_prev();
+    void go_next();
+    void go_to(size_t i);
+    void go_to(ConfigWizardPage *page);
+
+    void clear();
+
+    // XXX
+    // void load_items(ConfigWizardPage *firstpage);
+    // void set_active(ConfigWizardPage *page);
 private:
-	const wxBitmap bg;
-	const wxBitmap bullet_black;
-	const wxBitmap bullet_blue;
-	const wxBitmap bullet_white;
-	int text_height;
+    // enum {
+    //  // Units in em
+    //  MARGIN = 1,
+    //  SPACING = 1,
+    // };
 
-	std::vector<wxString> items;
-	std::vector<wxString>::const_iterator item_active;
+    struct Item
+    {
+        wxString label;
+        unsigned indent;
+        ConfigWizardPage *page;     // nullptr page => label-only item
 
-	void on_paint(wxPaintEvent &evt);
+        // bool operator==(const wxString &label) const { return this->label == label; }
+        bool operator==(ConfigWizardPage *page) const { return this->page == page; }
+    };
+
+    int em;
+    int em_h;
+
+    const wxBitmap bg;
+    const wxBitmap bullet_black;
+    const wxBitmap bullet_blue;
+    const wxBitmap bullet_white;
+
+    std::vector<Item> items;
+    // std::vector<Item>::const_iterator item_active;
+    size_t item_active;
+    ssize_t item_hover;
+    size_t last_page;
+
+    int item_height() const { return std::max(bullet_black.GetSize().GetHeight(), em) + em; }
+
+    void on_paint(wxPaintEvent &evt);
+    void on_mouse_move(wxMouseEvent &evt);
 };
+
+wxDEFINE_EVENT(EVT_INDEX_PAGE, wxCommandEvent);
 
 struct ConfigWizard::priv
 {
-	ConfigWizard *q;
-	ConfigWizard::RunReason run_reason;
-	AppConfig appconfig_vendors;
-	std::unordered_map<std::string, VendorProfile> vendors;
-	std::unordered_map<std::string, std::string> vendors_rsrc;
-	std::unique_ptr<DynamicPrintConfig> custom_config;
+    ConfigWizard *q;
+    ConfigWizard::RunReason run_reason;
+    AppConfig appconfig_vendors;
+    std::unordered_map<std::string, VendorProfile> vendors;
+    std::unordered_map<std::string, std::string> vendors_rsrc;
+    std::unique_ptr<DynamicPrintConfig> custom_config;
 
-	wxScrolledWindow *hscroll = nullptr;
-	wxBoxSizer *hscroll_sizer = nullptr;
-	wxBoxSizer *btnsizer = nullptr;
-	ConfigWizardPage *page_current = nullptr;
-	ConfigWizardIndex *index = nullptr;
-	wxButton *btn_prev = nullptr;
-	wxButton *btn_next = nullptr;
-	wxButton *btn_finish = nullptr;
-	wxButton *btn_cancel = nullptr;
+    wxScrolledWindow *hscroll = nullptr;
+    wxBoxSizer *hscroll_sizer = nullptr;
+    wxBoxSizer *btnsizer = nullptr;
+    ConfigWizardPage *page_current = nullptr;
+    ConfigWizardIndex *index = nullptr;
+    wxButton *btn_prev = nullptr;
+    wxButton *btn_next = nullptr;
+    wxButton *btn_finish = nullptr;
+    wxButton *btn_cancel = nullptr;
 
-	PageWelcome      *page_welcome = nullptr;
-	PageUpdate       *page_update = nullptr;
-	PageVendors      *page_vendors = nullptr;
-	PageFirmware     *page_firmware = nullptr;
-	PageBedShape     *page_bed = nullptr;
-	PageDiameters    *page_diams = nullptr;
-	PageTemperatures *page_temps = nullptr;
+    PageWelcome      *page_welcome = nullptr;
+    PagePrinters     *page_fff = nullptr;
+    PagePrinters     *page_msla = nullptr;
+    PageCustom       *page_custom = nullptr;
+    PageUpdate       *page_update = nullptr;
+    PageVendors      *page_vendors = nullptr;   // XXX: ?
 
-	priv(ConfigWizard *q) : q(q) {}
+    // Custom setup pages
+    PageFirmware     *page_firmware = nullptr;
+    PageBedShape     *page_bed = nullptr;
+    PageDiameters    *page_diams = nullptr;
+    PageTemperatures *page_temps = nullptr;
 
-	void load_vendors();
-	void add_page(ConfigWizardPage *page);
-	void index_refresh();
-	void set_page(ConfigWizardPage *page);
-	void layout_fit();
-	void go_prev() { if (page_current != nullptr) { set_page(page_current->page_prev()); } }
-	void go_next() { if (page_current != nullptr) { set_page(page_current->page_next()); } }
-	void enable_next(bool enable);
+    priv(ConfigWizard *q) : q(q) {}
 
-	void on_other_vendors();
-	void on_custom_setup();
+    void load_pages(bool custom_setup);
 
-	void apply_config(AppConfig *app_config, PresetBundle *preset_bundle, const PresetUpdater *updater);
+    bool check_first_variant() const;
+    void load_vendors();
+    void add_page(ConfigWizardPage *page);
+    void enable_next(bool enable);
+
+    void on_custom_setup(bool custom_wanted);
+
+    void apply_config(AppConfig *app_config, PresetBundle *preset_bundle, const PresetUpdater *updater);
 };
 
 
