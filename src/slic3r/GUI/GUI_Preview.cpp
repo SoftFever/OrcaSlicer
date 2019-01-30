@@ -558,6 +558,7 @@ void Preview::create_double_slider()
                     m_gcode_preview_data->extrusion.view_type = (GCodePreviewData::Extrusion::EViewType)type;
                 m_preferred_color_mode = "feature";
             }
+            reload_print();
         });
 }
 
@@ -728,10 +729,22 @@ void Preview::load_print_as_fff()
         m_preferred_color_mode = "tool_or_feature";
     }
 
+    bool gcode_preview_data_valid = print->is_step_done(psGCodeExport) && ! m_gcode_preview_data->empty();
     // Collect colors per extruder.
     std::vector<std::string> colors;
-    bool gcode_preview_data_valid = print->is_step_done(psGCodeExport) && ! m_gcode_preview_data->empty();
-    if (gcode_preview_data_valid || (m_gcode_preview_data->extrusion.view_type == GCodePreviewData::Extrusion::Tool))
+    std::vector<double> color_print_values = {};
+    // set color print values, if it si selected "ColorPrint" view type
+    if (m_gcode_preview_data->extrusion.view_type == GCodePreviewData::Extrusion::ColorPrint)
+    {
+        colors = GCodePreviewData::ColorPrintColors();
+        if (! gcode_preview_data_valid) {
+            //FIXME accessing full_config() is pretty expensive.
+            // Only initialize color_print_values for the initial preview, not for the full preview where the color_print_values is extracted from the G-code.
+            const auto& config = wxGetApp().preset_bundle->full_config();
+            color_print_values = config.option<ConfigOptionFloats>("colorprint_heights")->values;
+        }
+    }
+    else if (gcode_preview_data_valid || (m_gcode_preview_data->extrusion.view_type == GCodePreviewData::Extrusion::Tool) )
     {
         const ConfigOptionStrings* extruders_opt = dynamic_cast<const ConfigOptionStrings*>(m_config->option("extruder_colour"));
         const ConfigOptionStrings* filamemts_opt = dynamic_cast<const ConfigOptionStrings*>(m_config->option("filament_colour"));
@@ -748,8 +761,9 @@ void Preview::load_print_as_fff()
                     color = "#FFFFFF";
             }
 
-            colors.push_back(color);
+            colors.emplace_back(color);
         }
+        color_print_values.clear();
     }
 
     if (IsShown())
@@ -759,7 +773,7 @@ void Preview::load_print_as_fff()
             m_canvas->load_gcode_preview(*m_gcode_preview_data, colors);
         else
             // Load the initial preview based on slices, not the final G-code.
-            m_canvas->load_preview(colors);
+            m_canvas->load_preview(colors, color_print_values);
         show_hide_ui_elements(gcode_preview_data_valid ? "full" : "simple");
         // recalculates zs and update sliders accordingly
         std::vector<double> zs = m_canvas->get_current_print_zs(true);

@@ -22,6 +22,7 @@
 #include "AppConfig.hpp"
 #include "PrintHostDialogs.hpp"
 #include "wxExtensions.hpp"
+#include "GUI_ObjectList.hpp"
 #include "I18N.hpp"
 
 #include <fstream>
@@ -131,6 +132,8 @@ void MainFrame::init_tabpanel()
     m_plater = new Slic3r::GUI::Plater(m_tabpanel, this);
     wxGetApp().plater_ = m_plater;
     m_tabpanel->AddPage(m_plater, _(L("Plater")));
+
+    wxGetApp().obj_list()->create_popup_menus();
 
     // The following event is emited by Tab implementation on config value change.
     Bind(EVT_TAB_VALUE_CHANGED, &MainFrame::on_value_changed, this);

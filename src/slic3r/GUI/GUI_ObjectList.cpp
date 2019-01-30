@@ -64,12 +64,6 @@ ObjectList::ObjectList(wxWindow* parent) :
 
     init_icons();
 
-    // create popup menus for object and part
-    create_object_popupmenu(&m_menu_object);
-    create_part_popupmenu(&m_menu_part);
-    create_sla_object_popupmenu(&m_menu_sla_object);
-    create_instance_popupmenu(&m_menu_instance);
-
     // describe control behavior 
     Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [this](wxEvent& event) {
         selection_changed();
@@ -139,6 +133,15 @@ void ObjectList::create_objects_ctrl()
     // column 2 of the view control:
     AppendBitmapColumn(" ", 2, wxDATAVIEW_CELL_INERT, 25,
         wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
+}
+
+void ObjectList::create_popup_menus()
+{
+    // create popup menus for object and part
+    create_object_popupmenu(&m_menu_object);
+    create_part_popupmenu(&m_menu_part);
+    create_sla_object_popupmenu(&m_menu_sla_object);
+    create_instance_popupmenu(&m_menu_instance);
 }
 
 void ObjectList::set_tooltip_for_item(const wxPoint& pt)
@@ -310,7 +313,7 @@ void ObjectList::update_extruder_in_config(const wxDataViewItem& item)
     wxGetApp().plater()->update();
 }
 
-void ObjectList::update_name_in_model(const wxDataViewItem& item)
+void ObjectList::update_name_in_model(const wxDataViewItem& item) const 
 {
     const int obj_idx = m_objects_model->GetObjectIdByItem(item);
     if (obj_idx < 0) return;
@@ -421,9 +424,6 @@ void ObjectList::show_context_menu()
     if (multiple_selection() && selected_instances_of_same_object())
     {
         wxGetApp().plater()->PopupMenu(&m_menu_instance);
-
-        wxGetApp().plater()->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) {
-            evt.Enable(can_split_instances()); }, m_menu_item_split_instances->GetId());
         return;
     }
 
@@ -442,12 +442,6 @@ void ObjectList::show_context_menu()
             append_menu_item_settings(menu);
 
         wxGetApp().plater()->PopupMenu(menu);
-
-        wxGetApp().plater()->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) {
-            evt.Enable(is_splittable()); }, m_menu_item_split->GetId());
-
-        wxGetApp().plater()->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) {
-            evt.Enable(is_splittable()); }, m_menu_item_split_part->GetId());
     }
 }
 
@@ -964,8 +958,18 @@ wxMenuItem* ObjectList::append_menu_item_instance_to_object(wxMenu* menu)
         [this](wxCommandEvent&) { split_instances(); }, "", menu);
 }
 
+wxMenuItem* ObjectList::append_menu_item_rename(wxMenu* menu)
+{
+    return append_menu_item(menu, wxID_ANY, _(L("Rename")), "",
+        [this](wxCommandEvent&) { rename_item(); }, "", menu);
+}
+
 void ObjectList::create_object_popupmenu(wxMenu *menu)
 {
+#ifdef __WXOSX__  
+    append_menu_item_rename(menu);
+#endif // __WXOSX__
+
     // Split object to parts
     m_menu_item_split = append_menu_item_split(menu);
     menu->AppendSeparator();
@@ -973,6 +977,9 @@ void ObjectList::create_object_popupmenu(wxMenu *menu)
     // rest of a object_menu will be added later in:
     // - append_menu_items_add_volume() -> for "Add (volumes)"
     // - append_menu_item_settings() -> for "Add (settings)"
+
+    wxGetApp().plater()->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) {
+        evt.Enable(is_splittable()); }, m_menu_item_split->GetId());
 }
 
 void ObjectList::create_sla_object_popupmenu(wxMenu *menu)
@@ -983,6 +990,10 @@ void ObjectList::create_sla_object_popupmenu(wxMenu *menu)
 
 void ObjectList::create_part_popupmenu(wxMenu *menu)
 {
+#ifdef __WXOSX__  
+    append_menu_item_rename(menu);
+#endif // __WXOSX__
+
     m_menu_item_split_part = append_menu_item_split(menu);
 
     // Append change part type
@@ -991,11 +1002,17 @@ void ObjectList::create_part_popupmenu(wxMenu *menu)
 
     // rest of a object_sla_menu will be added later in:
     // - append_menu_item_settings() -> for "Add (settings)"
+
+    wxGetApp().plater()->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) {
+            evt.Enable(is_splittable()); }, m_menu_item_split_part->GetId());
 }
 
 void ObjectList::create_instance_popupmenu(wxMenu*menu)
 {
     m_menu_item_split_instances = append_menu_item_instance_to_object(menu);
+
+    wxGetApp().plater()->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) {
+        evt.Enable(can_split_instances()); }, m_menu_item_split_instances->GetId());
 }
 
 wxMenu* ObjectList::create_settings_popupmenu(wxMenu *parent_menu)
@@ -2050,6 +2067,48 @@ void ObjectList::split_instances()
                                     std::set<int>{ inst_idx };
 
     instances_to_separated_object(obj_idx, inst_idxs);
+}
+
+void ObjectList::rename_item()
+{
+    const wxDataViewItem item = GetSelection();
+    if (!item || !(m_objects_model->GetItemType(item) & (itVolume | itObject)))
+        return ;
+
+    const wxString new_name = wxGetTextFromUser(_(L("Enter new name"))+":", _(L("Renaming")), 
+                                                m_objects_model->GetName(item), this);
+
+    bool is_unusable_symbol = false;
+    std::string chosen_name = Slic3r::normalize_utf8_nfc(new_name.ToUTF8());
+    const char* unusable_symbols = "<>:/\\|?*\"";
+    for (size_t i = 0; i < std::strlen(unusable_symbols); i++) {
+        if (chosen_name.find_first_of(unusable_symbols[i]) != std::string::npos) {
+            is_unusable_symbol = true;
+        }
+    }
+
+    if (is_unusable_symbol) {
+        show_error(this, _(L("The supplied name is not valid;")) + "\n" +
+            _(L("the following characters are not allowed:")) + " <>:/\\|?*\"");
+        return;
+    }
+
+    // The icon can't be edited so get its old value and reuse it.
+    wxVariant valueOld;
+    m_objects_model->GetValue(valueOld, item, 0);
+
+    PrusaDataViewBitmapText bmpText;
+    bmpText << valueOld;
+
+    // But replace the text with the value entered by user.
+    bmpText.SetText(new_name);
+
+    wxVariant value;    
+    value << bmpText;
+    m_objects_model->SetValue(value, item, 0);
+    m_objects_model->ItemChanged(item);
+
+    update_name_in_model(item);
 }
 
 void ObjectList::ItemValueChanged(wxDataViewEvent &event)
