@@ -153,6 +153,7 @@ public:
 
 
     void                create_objects_ctrl();
+    void                create_popup_menus();
     wxDataViewColumn*   create_objects_list_extruder_column(int extruders_count);
     void                update_objects_list_extruder_column(int extruders_count);
     // show/hide "Extruder" column for Objects List
