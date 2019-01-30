@@ -7288,31 +7288,15 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
         const float*                 color_tool(size_t tool) const { return tool_colors->data() + tool * 4; }
         int                          volume_idx(int extruder, int feature) const
         {
-            return this->color_by_tool() ? std::min<int>(this->number_tools() - 1, std::max<int>(extruder - 1, 0)) : feature;
+            return this->color_by_color_print() ? 0 : this->color_by_tool() ? std::min<int>(this->number_tools() - 1, std::max<int>(extruder - 1, 0)) : feature;
         }
 
         // For coloring by a color_print(M600), return a parsed color.
         bool                         color_by_color_print() const { return color_print_values!=nullptr; }
         const float*                 color_print_by_layer_idx(const size_t layer_idx) const
         {
-            double z = layers[layer_idx]->print_z;
-            size_t layer = 0;
-            const size_t clr_change_cnt = color_print_values->size();
-            for (size_t i = 0; i < clr_change_cnt; i++)
-            {
-                if (z < (*color_print_values)[i]-EPSILON) {
-                    layer = i;
-                    break;
-                }
-                if (layer == 0 && i == clr_change_cnt - 1)
-                    layer = clr_change_cnt;
-            }
-
-            const size_t clr_cnt = number_tools();
-            while (layer >= clr_cnt)
-                layer -= clr_cnt;
-
-            return color_tool(layer);
+            auto it = std::lower_bound(color_print_values->begin(), color_print_values->end(), layers[layer_idx]->print_z - EPSILON);
+            return color_tool((it - color_print_values->begin()) % number_tools());
         }
     } ctxt;
 

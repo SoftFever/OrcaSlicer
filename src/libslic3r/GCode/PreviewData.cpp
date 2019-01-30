@@ -479,16 +479,13 @@ GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::
         }
     case Extrusion::ColorPrint:
         {
-            const size_t color_cnt = tool_colors.size()/4;
+            const int color_cnt = (int)tool_colors.size()/4;
 
-            const auto color_print_cnt = cp_values.size();
-            for (size_t i = color_print_cnt; i >= 0 ; --i)
+            const auto color_print_cnt = (int)cp_values.size();
+            for (int i = color_print_cnt; i >= 0 ; --i)
             {
-                size_t val = i;
-                while (val >= color_cnt)
-                    val -= color_cnt;
                 GCodePreviewData::Color color;
-                ::memcpy((void*)color.rgba, (const void*)(tool_colors.data() + val * 4), 4 * sizeof(float));
+                ::memcpy((void*)color.rgba, (const void*)(tool_colors.data() + (i % color_cnt) * 4), 4 * sizeof(float));
                 
                 if (color_print_cnt == 0) {
                     items.emplace_back(Slic3r::I18N::translate(L("Default print color")), color);

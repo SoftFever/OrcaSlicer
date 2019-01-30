@@ -737,9 +737,12 @@ void Preview::load_print_as_fff()
     if (m_gcode_preview_data->extrusion.view_type == GCodePreviewData::Extrusion::ColorPrint)
     {
         colors = GCodePreviewData::ColorPrintColors();
-            
-        const auto& config = wxGetApp().preset_bundle->full_config();
-        color_print_values = config.option<ConfigOptionFloats>("colorprint_heights")->values;
+        if (! gcode_preview_data_valid) {
+            //FIXME accessing full_config() is pretty expensive.
+            // Only initialize color_print_values for the initial preview, not for the full preview where the color_print_values is extracted from the G-code.
+            const auto& config = wxGetApp().preset_bundle->full_config();
+            color_print_values = config.option<ConfigOptionFloats>("colorprint_heights")->values;
+        }
     }
     else if (gcode_preview_data_valid || (m_gcode_preview_data->extrusion.view_type == GCodePreviewData::Extrusion::Tool) )
     {
@@ -758,10 +761,9 @@ void Preview::load_print_as_fff()
                     color = "#FFFFFF";
             }
 
-            colors.push_back(color);
+            colors.emplace_back(color);
         }
-        if (!color_print_values.empty())
-            color_print_values.clear();
+        color_print_values.clear();
     }
 
     if (IsShown())
