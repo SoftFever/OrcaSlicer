@@ -4627,6 +4627,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     if ((m_canvas == nullptr) || (m_config == nullptr) || (m_model == nullptr))
         return;
 
+    _set_current();
+
     struct ModelVolumeState {
         ModelVolumeState(const GLVolume *volume) : 
 			model_volume(nullptr), geometry_id(volume->geometry_id), volume_idx(-1) {}
@@ -4933,6 +4935,8 @@ void GLCanvas3D::load_gcode_preview(const GCodePreviewData& preview_data, const 
     const Print *print = this->fff_print();
     if ((m_canvas != nullptr) && (print != nullptr))
     {
+        _set_current();
+
         std::vector<float> tool_colors = _parse_colors(str_tool_colors);
 
         if (m_volumes.empty())
@@ -4970,6 +4974,7 @@ void GLCanvas3D::load_sla_preview()
     const SLAPrint* print = this->sla_print();
     if ((m_canvas != nullptr) && (print != nullptr))
     {
+        _set_current();
         _load_shells_sla();
     }
 }
@@ -4979,6 +4984,8 @@ void GLCanvas3D::load_preview(const std::vector<std::string>& str_tool_colors, c
     const Print *print = this->fff_print();
     if (print == nullptr)
         return;
+
+    _set_current();
 
     _load_print_toolpaths();
     _load_wipe_tower_toolpaths(str_tool_colors);
@@ -5650,7 +5657,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
 void GLCanvas3D::on_paint(wxPaintEvent& evt)
 {
-    render();
+    m_dirty = true;
 }
 
 void GLCanvas3D::on_key_down(wxKeyEvent& evt)
