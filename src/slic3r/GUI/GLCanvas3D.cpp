@@ -5657,7 +5657,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
 void GLCanvas3D::on_paint(wxPaintEvent& evt)
 {
-    m_dirty = true;
+    if (m_initialized)
+        m_dirty = true;
+    else
+        // Call render directly, so it gets initialized immediately, not from On Idle handler.
+        this->render();
 }
 
 void GLCanvas3D::on_key_down(wxKeyEvent& evt)
