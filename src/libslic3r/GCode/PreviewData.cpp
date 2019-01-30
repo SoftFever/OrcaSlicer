@@ -479,14 +479,17 @@ GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::
         }
     case Extrusion::ColorPrint:
         {
-            const auto color_print_cnt = cp_values.size();
-            for (int i = color_print_cnt; i >= 0 ; --i)
-            {
-                int val = i;
-                while (val >= GCodePreviewData::Range::Colors_Count)
-                    val -= GCodePreviewData::Range::Colors_Count;
-                GCodePreviewData::Color color = Range::Default_Colors[val];
+            const size_t color_cnt = tool_colors.size()/4;
 
+            const auto color_print_cnt = cp_values.size();
+            for (size_t i = color_print_cnt; i >= 0 ; --i)
+            {
+                size_t val = i;
+                while (val >= color_cnt)
+                    val -= color_cnt;
+                GCodePreviewData::Color color;
+                ::memcpy((void*)color.rgba, (const void*)(tool_colors.data() + val * 4), 4 * sizeof(float));
+                
                 if (color_print_cnt == 0) {
                     items.emplace_back(Slic3r::I18N::translate(L("Default print color")), color);
                     break;
@@ -519,6 +522,12 @@ size_t GCodePreviewData::memory_used() const
         this->retraction.memory_used() + 
         this->unretraction.memory_used() + 
         sizeof(shell) + sizeof(ranges);
+}
+
+const std::vector<std::string>& GCodePreviewData::ColorPrintColors()
+{
+    static std::vector<std::string> color_print = {"#C0392B", "#E67E22", "#F1C40F", "#27AE60", "#1ABC9C", "#2980B9", "#9B59B6"};
+    return color_print;
 }
 
 GCodePreviewData::Color operator + (const GCodePreviewData::Color& c1, const GCodePreviewData::Color& c2)

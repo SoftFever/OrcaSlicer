@@ -216,6 +216,8 @@ public:
 
     // Return an estimate of the memory consumed by the time estimator.
     size_t memory_used() const;
+
+    static const std::vector<std::string>& ColorPrintColors();
 };
 
 GCodePreviewData::Color operator + (const GCodePreviewData::Color& c1, const GCodePreviewData::Color& c2);

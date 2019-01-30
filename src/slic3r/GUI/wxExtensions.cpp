@@ -1668,7 +1668,7 @@ void PrusaDoubleSlider::render()
 
     // draw colored band on the background of a scroll line 
     // and only in a case of no-empty m_values
-    draw_colored_band(dc);
+//     draw_colored_band(dc);
 
     // draw line
     draw_scroll_line(dc, lower_pos, higher_pos);
