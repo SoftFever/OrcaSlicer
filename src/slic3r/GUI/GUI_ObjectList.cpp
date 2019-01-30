@@ -100,8 +100,6 @@ ObjectList::ObjectList(wxWindow* parent) :
 
 ObjectList::~ObjectList()
 {
-    if (m_default_config) 
-        delete m_default_config;
 }
 
 void ObjectList::create_objects_ctrl()
@@ -749,10 +747,8 @@ void ObjectList::get_settings_choice(const wxString& category_name)
             const ConfigOption* option = from_config.option(opt_key);
             if (!option) {
                 // if current option doesn't exist in prints.get_edited_preset(),
-                // get it from m_default_config
-                if (m_default_config) delete m_default_config;
-                m_default_config = DynamicPrintConfig::new_from_defaults_keys(get_options(false));
-                option = m_default_config->option(opt_key);
+                // get it from default config values
+                option = DynamicPrintConfig::new_from_defaults_keys({ opt_key })->option(opt_key);
             }
             m_config->set_key_value(opt_key, option->clone());
         }
@@ -776,10 +772,8 @@ void ObjectList::get_freq_settings_choice(const wxString& bundle_name)
             const ConfigOption* option = from_config.option(opt_key);
             if (!option) {
                 // if current option doesn't exist in prints.get_edited_preset(),
-                // get it from m_default_config
-                if (m_default_config) delete m_default_config;
-                m_default_config = DynamicPrintConfig::new_from_defaults_keys(get_options(false));
-                option = m_default_config->option(opt_key);
+                // get it from default config values
+                option = DynamicPrintConfig::new_from_defaults_keys({ opt_key })->option(opt_key);
             }
             m_config->set_key_value(opt_key, option->clone());
         }

@@ -3753,7 +3753,7 @@ void GLCanvas3D::LegendTexture::fill_color_print_legend_values(const GCodePrevie
 {
     if (preview_data.extrusion.view_type == GCodePreviewData::Extrusion::ColorPrint) 
     {
-        const auto& config = wxGetApp().preset_bundle->full_config();
+        auto& config = wxGetApp().preset_bundle->project_config;
         const std::vector<double>& color_print_values = config.option<ConfigOptionFloats>("colorprint_heights")->values;
         const int values_cnt = color_print_values.size();
         if (values_cnt > 0) {
@@ -7295,7 +7295,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
         bool                         color_by_color_print() const { return color_print_values!=nullptr; }
         const float*                 color_print_by_layer_idx(const size_t layer_idx) const
         {
-            auto it = std::lower_bound(color_print_values->begin(), color_print_values->end(), layers[layer_idx]->print_z - EPSILON);
+            auto it = std::lower_bound(color_print_values->begin(), color_print_values->end(), layers[layer_idx]->print_z + EPSILON);
             return color_tool((it - color_print_values->begin()) % number_tools());
         }
     } ctxt;
