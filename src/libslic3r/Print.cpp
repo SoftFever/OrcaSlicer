@@ -135,8 +135,10 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
         "min_print_speed",
         "max_print_speed",
         "max_volumetric_speed",
+#ifdef HAS_PRESSURE_EQUALIZER
         "max_volumetric_extrusion_rate_slope_positive",
         "max_volumetric_extrusion_rate_slope_negative",
+#endif /* HAS_PRESSURE_EQUALIZER */
         "notes",
         "only_retract_when_crossing_perimeters",
         "output_filename_format",

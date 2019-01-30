@@ -71,8 +71,8 @@ add_library(libslic3r STATIC
     GCode/CoolingBuffer.hpp
     GCode/PostProcessor.cpp
     GCode/PostProcessor.hpp    
-    GCode/PressureEqualizer.cpp
-    GCode/PressureEqualizer.hpp
+#    GCode/PressureEqualizer.cpp
+#    GCode/PressureEqualizer.hpp
     GCode/PreviewData.cpp
     GCode/PreviewData.hpp
     GCode/PrintExtents.cpp
