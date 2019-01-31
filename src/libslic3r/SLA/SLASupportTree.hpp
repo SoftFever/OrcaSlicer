@@ -78,7 +78,7 @@ struct SupportConfig {
     double object_elevation_mm = 10;
 
     // The max Z angle for a normal at which it will get completely ignored.
-    double normal_cutoff_angle = 110.0 * M_PI / 180.0;
+    double normal_cutoff_angle = 150.0 * M_PI / 180.0;
 
 };
 

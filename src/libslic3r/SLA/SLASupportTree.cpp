@@ -659,6 +659,7 @@ double pinhead_mesh_intersect(const Vec3d& s,
         if(hr.is_inside()) { // the hit is inside the model
             if(hr.distance() > 2*r_pin) phi = 0;
             else {
+                // re-cast the ray from the outside of the object
                 auto hr2 = m.query_ray_hit(ps + (hr.distance() + 2*sd)*n, n);
                 phi = hr2.distance();
             }
@@ -708,13 +709,16 @@ double bridge_mesh_intersect(const Vec3d& s,
                  s(Y) + rcos * a(Y) + rsin * b(Y),
                  s(Z) + rcos * a(Z) + rsin * b(Z));
 
-        Vec3d sp;
-        if(ins_check) {
-            auto result = m.signed_distance(p);
-            sp = result.value() < 0 ? result.point_on_mesh() : p;
-        } else sp = p;
+        auto hr = m.query_ray_hit(p + sd*dir, dir);
 
-        phi = m.query_ray_hit(sp + sd*dir, dir).distance();
+        if(ins_check && hr.is_inside()) {
+            if(hr.distance() > 2*r) phi = 0;
+            else {
+                // re-cast the ray from the outside of the object
+                auto hr2 = m.query_ray_hit(p + (hr.distance() + 2*sd)*dir, dir);
+                phi = hr2.distance();
+            }
+        } else phi = hr.distance();
     });
 
     auto mit = std::min_element(phis.begin(), phis.end());
