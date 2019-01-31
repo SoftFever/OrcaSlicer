@@ -552,7 +552,7 @@ std::string Model::propose_export_file_name() const
     for (const ModelObject *model_object : this->objects)
         for (ModelInstance *model_instance : model_object->instances)
             if (model_instance->is_printable())
-                return model_object->input_file;
+                return model_object->name.empty() ? model_object->input_file : model_object->name;
     return std::string();
 }
 
@@ -1686,7 +1686,7 @@ bool model_volume_list_changed(const ModelObject &model_object_old, const ModelO
     return false;
 }
 
-#ifdef _DEBUG
+#ifndef NDEBUG
 // Verify whether the IDs of Model / ModelObject / ModelVolume / ModelInstance / ModelMaterial are valid and unique.
 void check_model_ids_validity(const Model &model)
 {
@@ -1732,6 +1732,6 @@ void check_model_ids_equal(const Model &model1, const Model &model2)
         }
     }
 }
-#endif /* _DEBUG */
+#endif /* NDEBUG */
 
 }

@@ -147,7 +147,7 @@ public:
     void export_3mf(const boost::filesystem::path& output_path = boost::filesystem::path());
     void reslice();
     void changed_object(int obj_idx);
-    void fix_through_netfabb(const int obj_idx);
+    void fix_through_netfabb(const int obj_idx, const int vol_idx = -1);
     void send_gcode();
 
     void on_extruders_change(int extruders_count);

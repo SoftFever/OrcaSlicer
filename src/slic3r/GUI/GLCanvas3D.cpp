@@ -4174,6 +4174,8 @@ unsigned int GLCanvas3D::get_volumes_count() const
 
 void GLCanvas3D::reset_volumes()
 {
+    _set_current();
+
     if (!m_volumes.empty())
     {
         m_selection.clear();
@@ -4413,6 +4415,16 @@ void GLCanvas3D::update_volumes_colors_by_extruder()
         m_volumes.update_colors_by_extruder(m_config);
 }
 
+#if ENABLE_MODE_AWARE_TOOLBAR_ITEMS
+void GLCanvas3D::update_toolbar_items_visibility()
+{
+    ConfigOptionMode mode = wxGetApp().get_mode();
+    m_toolbar.set_item_visible("more", mode != comSimple);
+    m_toolbar.set_item_visible("fewer", mode != comSimple);
+    m_dirty = true;
+}
+#endif // ENABLE_MODE_AWARE_TOOLBAR_ITEMS
+
 // Returns a Rect object denoting size and position of the Reset button used by a gizmo.
 // Returns in either screen or viewport coords.
 #if !ENABLE_IMGUI
@@ -4627,6 +4639,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 {
     if ((m_canvas == nullptr) || (m_config == nullptr) || (m_model == nullptr))
         return;
+
+    _set_current();
 
     struct ModelVolumeState {
         ModelVolumeState(const GLVolume *volume) : 
@@ -4934,6 +4948,8 @@ void GLCanvas3D::load_gcode_preview(const GCodePreviewData& preview_data, const 
     const Print *print = this->fff_print();
     if ((m_canvas != nullptr) && (print != nullptr))
     {
+        _set_current();
+
         std::vector<float> tool_colors = _parse_colors(str_tool_colors);
 
         if (m_volumes.empty())
@@ -4971,6 +4987,7 @@ void GLCanvas3D::load_sla_preview()
     const SLAPrint* print = this->sla_print();
     if ((m_canvas != nullptr) && (print != nullptr))
     {
+        _set_current();
         _load_shells_sla();
     }
 }
@@ -4980,6 +4997,8 @@ void GLCanvas3D::load_preview(const std::vector<std::string>& str_tool_colors, c
     const Print *print = this->fff_print();
     if (print == nullptr)
         return;
+
+    _set_current();
 
     _load_print_toolpaths();
     _load_wipe_tower_toolpaths(str_tool_colors);
@@ -5197,6 +5216,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #endif // ENABLE_IMGUI
 
     Point pos(evt.GetX(), evt.GetY());
+
+    if (m_picking_enabled)
+        _set_current();
 
     int selected_object_idx = m_selection.get_object_idx();
     int layer_editing_object_idx = is_layers_editing_enabled() ? selected_object_idx : -1;
@@ -5642,7 +5664,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
 void GLCanvas3D::on_paint(wxPaintEvent& evt)
 {
-    render();
+    if (m_initialized)
+        m_dirty = true;
+    else
+        // Call render directly, so it gets initialized immediately, not from On Idle handler.
+        this->render();
 }
 
 void GLCanvas3D::on_key_down(wxKeyEvent& evt)
@@ -5693,6 +5719,7 @@ Point GLCanvas3D::get_local_mouse_position() const
 
 void GLCanvas3D::reset_legend_texture()
 {
+    _set_current();
     m_legend_texture.reset();
 }
 
@@ -6120,6 +6147,10 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     enable_toolbar_item("add", true);
+
+#if ENABLE_MODE_AWARE_TOOLBAR_ITEMS
+    update_toolbar_items_visibility();
+#endif // ENABLE_MODE_AWARE_TOOLBAR_ITEMS
 
     return true;
 }
@@ -8292,6 +8323,8 @@ void GLCanvas3D::_update_toolpath_volumes_outside_state()
 
 void GLCanvas3D::_show_warning_texture_if_needed()
 {
+    _set_current();
+
     if (_is_any_volume_outside())
     {
         enable_warning_texture(true);
