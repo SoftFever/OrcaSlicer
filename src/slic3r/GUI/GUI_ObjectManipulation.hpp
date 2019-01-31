@@ -77,6 +77,11 @@ class ObjectManipulation : public OG_Settings
     bool            m_uniform_scale {true};
     PrusaLockButton* m_lock_bnt{ nullptr };
 
+#ifndef __APPLE__
+    // Currently focused option name (empty if none)
+    std::string     m_focused_option;
+#endif // __APPLE__
+
 public:
     ObjectManipulation(wxWindow* parent);
     ~ObjectManipulation() {}
@@ -94,6 +99,12 @@ public:
     bool        get_uniform_scaling() const { return m_uniform_scale; }
 
     void reset_cache() { m_cache.reset(); }
+#ifndef __APPLE__
+    // On Windows and Linux, emulates a kill focus event on the currently focused option (if any)
+    // Used only in ObjectList wxEVT_DATAVIEW_SELECTION_CHANGED handler which is called before the regular kill focus event
+    // bound to this class when changing selection in the objects list
+    void emulate_kill_focus();
+#endif // __APPLE__
 
 private:
     void reset_settings_value();
@@ -108,6 +119,9 @@ private:
     void    change_rotation_value(const Vec3d& rotation);
     void    change_scale_value(const Vec3d& scale);
     void    change_size_value(const Vec3d& size);
+
+    void on_change(const t_config_option_key& opt_key, const boost::any& value);
+    void on_fill_empty_value(const std::string& opt_key);
 };
 
 }}

@@ -17,85 +17,23 @@ namespace GUI
 
 ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     OG_Settings(parent, true)
+#ifndef __APPLE__
+    , m_focused_option("")
+#endif // __APPLE__
 {
     m_og->set_name(_(L("Object Manipulation")));
     m_og->label_width = 125;
     m_og->set_grid_vgap(5);
     
-    m_og->m_on_change = [this](const std::string& opt_key, const boost::any& value) {
-        // needed to hide the visual hints in 3D scene
-        wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event(opt_key, false);
-
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        std::cout << "KILL_FOCUS" << std::endl;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
-        if (!m_cache.is_valid())
-            return;
-
-        std::vector<std::string> axes{ "_x", "_y", "_z" };
-
-        std::string param; 
-        std::copy(opt_key.begin(), opt_key.end() - 2, std::back_inserter(param));
-
-        size_t i = 0;
-        Vec3d new_value;
-        for (auto axis : axes)
-            new_value(i++) = boost::any_cast<double>(m_og->get_value(param+axis));
-
-        if (param == "position")
-            change_position_value(new_value);
-        else if (param == "rotation")
-            change_rotation_value(new_value);
-        else if (param == "scale")
-            change_scale_value(new_value);
-        else if (param == "size")
-            change_size_value(new_value);
-    };
-
-    m_og->m_fill_empty_value = [this](const std::string& opt_key)
-    {
-        // needed to hide the visual hints in 3D scene
-        wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event(opt_key, false);
-
-        if (!m_cache.is_valid())
-            return;
-
-        std::string param;
-        std::copy(opt_key.begin(), opt_key.end() - 2, std::back_inserter(param)); 
-
-        double value = 0.0;
-
-        if (param == "position") {
-            int axis = opt_key.back() == 'x' ? 0 :
-                       opt_key.back() == 'y' ? 1 : 2;
-
-            value = m_cache.position(axis);
-        }
-        else if (param == "rotation") {
-            int axis = opt_key.back() == 'x' ? 0 :
-                opt_key.back() == 'y' ? 1 : 2;
-
-            value = m_cache.rotation(axis);
-        }
-        else if (param == "scale") {
-            int axis = opt_key.back() == 'x' ? 0 :
-                opt_key.back() == 'y' ? 1 : 2;
-
-            value = m_cache.scale(axis);
-        }
-        else if (param == "size") {
-            int axis = opt_key.back() == 'x' ? 0 :
-                opt_key.back() == 'y' ? 1 : 2;
-
-            value = m_cache.size(axis);
-        }
-
-        m_og->set_value(opt_key, double_to_string(value));
-    };
+    m_og->m_on_change = std::bind(&ObjectManipulation::on_change, this, std::placeholders::_1, std::placeholders::_2);
+    m_og->m_fill_empty_value = std::bind(&ObjectManipulation::on_fill_empty_value, this, std::placeholders::_1);
 
     m_og->m_set_focus = [this](const std::string& opt_key)
     {
+#ifndef __APPLE__
+        m_focused_option = opt_key;
+#endif // __APPLE__
+
         // needed to show the visual hints in 3D scene
         wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event(opt_key, true);
     };
@@ -383,6 +321,23 @@ void ObjectManipulation::update_if_dirty()
     m_dirty = false;
 }
 
+#ifndef __APPLE__
+void ObjectManipulation::emulate_kill_focus()
+{
+    if (m_focused_option.empty())
+        return;
+
+    // we need to use a copy because the value of m_focused_option is modified inside on_change() and on_fill_empty_value()
+    std::string option = m_focused_option;
+
+    // see TextCtrl::propagate_value()
+    if (static_cast<wxTextCtrl*>(m_og->get_fieldc(option, 0)->getWindow())->GetValue().empty())
+        on_fill_empty_value(option);
+    else
+        on_change(option, 0);
+}
+#endif // __APPLE__
+
 void ObjectManipulation::reset_settings_value()
 {
     m_new_position = Vec3d::Zero();
@@ -502,6 +457,81 @@ void ObjectManipulation::change_size_value(const Vec3d& size)
     canvas->do_scale();
 
     m_cache.size = size;
+}
+
+void ObjectManipulation::on_change(const t_config_option_key& opt_key, const boost::any& value)
+{
+    // needed to hide the visual hints in 3D scene
+    wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event(opt_key, false);
+#ifndef __APPLE__
+    m_focused_option = "";
+#endif // __APPLE__
+
+    if (!m_cache.is_valid())
+        return;
+
+    std::vector<std::string> axes{ "_x", "_y", "_z" };
+
+    std::string param;
+    std::copy(opt_key.begin(), opt_key.end() - 2, std::back_inserter(param));
+
+    size_t i = 0;
+    Vec3d new_value;
+    for (auto axis : axes)
+        new_value(i++) = boost::any_cast<double>(m_og->get_value(param + axis));
+
+    if (param == "position")
+        change_position_value(new_value);
+    else if (param == "rotation")
+        change_rotation_value(new_value);
+    else if (param == "scale")
+        change_scale_value(new_value);
+    else if (param == "size")
+        change_size_value(new_value);
+}
+
+void ObjectManipulation::on_fill_empty_value(const std::string& opt_key)
+{
+    // needed to hide the visual hints in 3D scene
+    wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event(opt_key, false);
+#ifndef __APPLE__
+    m_focused_option = "";
+#endif // __APPLE__
+
+    if (!m_cache.is_valid())
+        return;
+
+    std::string param;
+    std::copy(opt_key.begin(), opt_key.end() - 2, std::back_inserter(param));
+
+    double value = 0.0;
+
+    if (param == "position") {
+        int axis = opt_key.back() == 'x' ? 0 :
+            opt_key.back() == 'y' ? 1 : 2;
+
+        value = m_cache.position(axis);
+    }
+    else if (param == "rotation") {
+        int axis = opt_key.back() == 'x' ? 0 :
+            opt_key.back() == 'y' ? 1 : 2;
+
+        value = m_cache.rotation(axis);
+    }
+    else if (param == "scale") {
+        int axis = opt_key.back() == 'x' ? 0 :
+            opt_key.back() == 'y' ? 1 : 2;
+
+        value = m_cache.scale(axis);
+    }
+    else if (param == "size") {
+        int axis = opt_key.back() == 'x' ? 0 :
+            opt_key.back() == 'y' ? 1 : 2;
+
+        value = m_cache.size(axis);
+    }
+
+    m_og->set_value(opt_key, double_to_string(value));
 }
 
 } //namespace GUI
