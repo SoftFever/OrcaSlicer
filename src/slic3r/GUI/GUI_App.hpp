@@ -80,6 +80,8 @@ class GUI_App : public wxApp
     wxFont		    m_small_font;
     wxFont		    m_bold_font;
 
+    size_t          m_width_unit;
+
     wxLocale*	    m_wxLocale{ nullptr };
 
 #if ENABLE_IMGUI
@@ -106,6 +108,8 @@ public:
 
     const wxFont&   small_font()            { return m_small_font; }
     const wxFont&   bold_font()             { return m_bold_font; }
+    size_t          width_unit() const      { return m_width_unit; }
+    void            set_width_unit(const size_t width_unit) { m_width_unit = width_unit; }
 
     void            recreate_GUI();
     void            system_info();

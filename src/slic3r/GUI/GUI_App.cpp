@@ -246,6 +246,7 @@ void GUI_App::init_fonts()
 {
     m_small_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
     m_bold_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold();
+
 #ifdef __WXMAC__
     m_small_font.SetPointSize(11);
     m_bold_font.SetPointSize(13);
