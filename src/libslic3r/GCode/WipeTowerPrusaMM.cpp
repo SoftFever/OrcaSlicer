@@ -381,22 +381,7 @@ public:
 	Writer& comment_material(WipeTowerPrusaMM::material_type material)
 	{
 		m_gcode += "; material : ";
-		switch (material)
-		{
-		case WipeTowerPrusaMM::PVA:
-			m_gcode += "#8 (PVA)";
-			break;
-		case WipeTowerPrusaMM::SCAFF:
-			m_gcode += "#5 (Scaffold)";
-			break;
-		case WipeTowerPrusaMM::FLEX:
-			m_gcode += "#4 (Flex)";
-			break;
-		default:
-			m_gcode += "DEFAULT (PLA)";
-			break;
-		}
-		m_gcode += "\n";
+		m_gcode += WipeTowerPrusaMM::to_string(material) + "\n";
 		return *this;
 	};
 
@@ -485,6 +470,23 @@ WipeTowerPrusaMM::material_type WipeTowerPrusaMM::parse_material(const char *nam
 	if (strcasecmp(name, "PVA") == 0)
 		return PVA;
 	return INVALID;
+}
+
+std::string WipeTowerPrusaMM::to_string(material_type material)
+{
+	switch (material) {
+	case PLA:		return "PLA";
+	case ABS:		return "ABS";
+	case PET:		return "PET";
+	case HIPS:		return "HIPS";
+	case FLEX:		return "FLEX";
+	case SCAFF:		return "SCAFF";
+	case EDGE:		return "EDGE";
+	case NGEN:		return "NGEN";
+	case PVA:		return "PVA";
+	case INVALID: 	
+	default: 		return "INVALID";
+	}
 }
 
 // Returns gcode to prime the nozzles at the front edge of the print bed.

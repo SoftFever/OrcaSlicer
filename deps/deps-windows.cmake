@@ -1,8 +1,21 @@
 
-if (${DEPS_BITS} EQUAL 32)
-    set(DEP_MSVC_GEN "Visual Studio 12")
+if (MSVC_VERSION EQUAL 1800)
+    set(DEP_VS_VER "12")
+    set(DEP_BOOST_TOOLSET "msvc-12.0")
+elseif (MSVC_VERSION EQUAL 1900)
+    set(DEP_VS_VER "14")
+    set(DEP_BOOST_TOOLSET "msvc-14.0")
+elseif (MSVC_VERSION GREATER 1900)
+    set(DEP_VS_VER "15")
+    set(DEP_BOOST_TOOLSET "msvc-14.1")
 else ()
-    set(DEP_MSVC_GEN "Visual Studio 12 Win64")
+    message(FATAL_ERROR "Unsupported MSVC version")
+endif ()
+
+if (${DEPS_BITS} EQUAL 32)
+    set(DEP_MSVC_GEN "Visual Studio ${DEP_VS_VER}")
+else ()
+    set(DEP_MSVC_GEN "Visual Studio ${DEP_VS_VER} Win64")
 endif ()
 
 
@@ -29,7 +42,7 @@ ExternalProject_Add(dep_boost
         --with-regex
         "--prefix=${DESTDIR}/usr/local"
         "address-model=${DEPS_BITS}"
-        toolset=msvc-12.0
+        "toolset=${DEP_BOOST_TOOLSET}"
         link=static
         variant=release
         threading=multi
@@ -204,7 +217,7 @@ ExternalProject_Add(dep_libcurl
     URL_HASH SHA256=cc245bf9a1a42a45df491501d97d5593392a03f7b4f07b952793518d97666115
     BUILD_IN_SOURCE 1
     CONFIGURE_COMMAND ""
-    BUILD_COMMAND cd winbuild && nmake /f Makefile.vc mode=static VC=12 GEN_PDB=yes DEBUG=no "MACHINE=${DEP_LIBCURL_TARGET}"
+    BUILD_COMMAND cd winbuild && nmake /f Makefile.vc mode=static "VC=${DEP_VS_VER}" GEN_PDB=yes DEBUG=no "MACHINE=${DEP_LIBCURL_TARGET}"
     INSTALL_COMMAND cd builds\\libcurl-*-release-*-winssl
         && "${CMAKE_COMMAND}" -E copy_directory include "${DESTDIR}\\usr\\local\\include"
         && "${CMAKE_COMMAND}" -E copy_directory lib "${DESTDIR}\\usr\\local\\lib"
@@ -214,7 +227,7 @@ if (${DEP_DEBUG})
     ExternalProject_Add_Step(dep_libcurl build_debug
         DEPENDEES build
         DEPENDERS install
-        COMMAND cd winbuild && nmake /f Makefile.vc mode=static VC=12 GEN_PDB=yes DEBUG=yes "MACHINE=${DEP_LIBCURL_TARGET}"
+        COMMAND cd winbuild && nmake /f Makefile.vc mode=static "VC=${DEP_VS_VER}" GEN_PDB=yes DEBUG=yes "MACHINE=${DEP_LIBCURL_TARGET}"
         WORKING_DIRECTORY "${SOURCE_DIR}"
     )
     ExternalProject_Add_Step(dep_libcurl install_debug

@@ -64,12 +64,6 @@ ObjectList::ObjectList(wxWindow* parent) :
 
     init_icons();
 
-    // create popup menus for object and part
-    create_object_popupmenu(&m_menu_object);
-    create_part_popupmenu(&m_menu_part);
-    create_sla_object_popupmenu(&m_menu_sla_object);
-    create_instance_popupmenu(&m_menu_instance);
-
     // describe control behavior 
     Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [this](wxEvent& event) {
         selection_changed();
@@ -106,8 +100,6 @@ ObjectList::ObjectList(wxWindow* parent) :
 
 ObjectList::~ObjectList()
 {
-    if (m_default_config) 
-        delete m_default_config;
 }
 
 void ObjectList::create_objects_ctrl()
@@ -139,6 +131,15 @@ void ObjectList::create_objects_ctrl()
     // column 2 of the view control:
     AppendBitmapColumn(" ", 2, wxDATAVIEW_CELL_INERT, 25,
         wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
+}
+
+void ObjectList::create_popup_menus()
+{
+    // create popup menus for object and part
+    create_object_popupmenu(&m_menu_object);
+    create_part_popupmenu(&m_menu_part);
+    create_sla_object_popupmenu(&m_menu_sla_object);
+    create_instance_popupmenu(&m_menu_instance);
 }
 
 void ObjectList::set_tooltip_for_item(const wxPoint& pt)
@@ -310,7 +311,7 @@ void ObjectList::update_extruder_in_config(const wxDataViewItem& item)
     wxGetApp().plater()->update();
 }
 
-void ObjectList::update_name_in_model(const wxDataViewItem& item)
+void ObjectList::update_name_in_model(const wxDataViewItem& item) const 
 {
     const int obj_idx = m_objects_model->GetObjectIdByItem(item);
     if (obj_idx < 0) return;
@@ -421,9 +422,6 @@ void ObjectList::show_context_menu()
     if (multiple_selection() && selected_instances_of_same_object())
     {
         wxGetApp().plater()->PopupMenu(&m_menu_instance);
-
-        wxGetApp().plater()->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) {
-            evt.Enable(can_split_instances()); }, m_menu_item_split_instances->GetId());
         return;
     }
 
@@ -442,12 +440,6 @@ void ObjectList::show_context_menu()
             append_menu_item_settings(menu);
 
         wxGetApp().plater()->PopupMenu(menu);
-
-        wxGetApp().plater()->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) {
-            evt.Enable(is_splittable()); }, m_menu_item_split->GetId());
-
-        wxGetApp().plater()->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) {
-            evt.Enable(is_splittable()); }, m_menu_item_split_part->GetId());
     }
 }
 
@@ -755,10 +747,8 @@ void ObjectList::get_settings_choice(const wxString& category_name)
             const ConfigOption* option = from_config.option(opt_key);
             if (!option) {
                 // if current option doesn't exist in prints.get_edited_preset(),
-                // get it from m_default_config
-                if (m_default_config) delete m_default_config;
-                m_default_config = DynamicPrintConfig::new_from_defaults_keys(get_options(false));
-                option = m_default_config->option(opt_key);
+                // get it from default config values
+                option = DynamicPrintConfig::new_from_defaults_keys({ opt_key })->option(opt_key);
             }
             m_config->set_key_value(opt_key, option->clone());
         }
@@ -782,10 +772,8 @@ void ObjectList::get_freq_settings_choice(const wxString& bundle_name)
             const ConfigOption* option = from_config.option(opt_key);
             if (!option) {
                 // if current option doesn't exist in prints.get_edited_preset(),
-                // get it from m_default_config
-                if (m_default_config) delete m_default_config;
-                m_default_config = DynamicPrintConfig::new_from_defaults_keys(get_options(false));
-                option = m_default_config->option(opt_key);
+                // get it from default config values
+                option = DynamicPrintConfig::new_from_defaults_keys({ opt_key })->option(opt_key);
             }
             m_config->set_key_value(opt_key, option->clone());
         }
@@ -964,8 +952,30 @@ wxMenuItem* ObjectList::append_menu_item_instance_to_object(wxMenu* menu)
         [this](wxCommandEvent&) { split_instances(); }, "", menu);
 }
 
+void ObjectList::append_menu_item_rename(wxMenu* menu)
+{
+    append_menu_item(menu, wxID_ANY, _(L("Rename")), "",
+        [this](wxCommandEvent&) { rename_item(); }, "", menu);
+    menu->AppendSeparator();
+}
+
+void ObjectList::append_menu_item_fix_through_netfabb(wxMenu* menu)
+{
+    if (!is_windows10())
+        return;
+    append_menu_item(menu, wxID_ANY, _(L("Fix through the Netfabb")), "",
+        [this](wxCommandEvent&) { fix_through_netfabb(); }, "", menu);
+    menu->AppendSeparator();
+}
+
 void ObjectList::create_object_popupmenu(wxMenu *menu)
 {
+#ifdef __WXOSX__  
+    append_menu_item_rename(menu);
+#endif // __WXOSX__
+
+    append_menu_item_fix_through_netfabb(menu);
+
     // Split object to parts
     m_menu_item_split = append_menu_item_split(menu);
     menu->AppendSeparator();
@@ -973,16 +983,30 @@ void ObjectList::create_object_popupmenu(wxMenu *menu)
     // rest of a object_menu will be added later in:
     // - append_menu_items_add_volume() -> for "Add (volumes)"
     // - append_menu_item_settings() -> for "Add (settings)"
+
+    wxGetApp().plater()->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) {
+        evt.Enable(is_splittable()); }, m_menu_item_split->GetId());
 }
 
 void ObjectList::create_sla_object_popupmenu(wxMenu *menu)
 {
+#ifdef __WXOSX__  
+    append_menu_item_rename(menu);
+#endif // __WXOSX__
+    
+    append_menu_item_fix_through_netfabb(menu);
     // rest of a object_sla_menu will be added later in:
     // - append_menu_item_settings() -> for "Add (settings)"
 }
 
 void ObjectList::create_part_popupmenu(wxMenu *menu)
 {
+#ifdef __WXOSX__  
+    append_menu_item_rename(menu);
+#endif // __WXOSX__
+
+    append_menu_item_fix_through_netfabb(menu);
+
     m_menu_item_split_part = append_menu_item_split(menu);
 
     // Append change part type
@@ -991,11 +1015,17 @@ void ObjectList::create_part_popupmenu(wxMenu *menu)
 
     // rest of a object_sla_menu will be added later in:
     // - append_menu_item_settings() -> for "Add (settings)"
+
+    wxGetApp().plater()->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) {
+            evt.Enable(is_splittable()); }, m_menu_item_split_part->GetId());
 }
 
 void ObjectList::create_instance_popupmenu(wxMenu*menu)
 {
     m_menu_item_split_instances = append_menu_item_instance_to_object(menu);
+
+    wxGetApp().plater()->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) {
+        evt.Enable(can_split_instances()); }, m_menu_item_split_instances->GetId());
 }
 
 wxMenu* ObjectList::create_settings_popupmenu(wxMenu *parent_menu)
@@ -2050,6 +2080,66 @@ void ObjectList::split_instances()
                                     std::set<int>{ inst_idx };
 
     instances_to_separated_object(obj_idx, inst_idxs);
+}
+
+void ObjectList::rename_item()
+{
+    const wxDataViewItem item = GetSelection();
+    if (!item || !(m_objects_model->GetItemType(item) & (itVolume | itObject)))
+        return ;
+
+    const wxString new_name = wxGetTextFromUser(_(L("Enter new name"))+":", _(L("Renaming")), 
+                                                m_objects_model->GetName(item), this);
+
+    if (new_name.IsEmpty())
+        return;
+
+    bool is_unusable_symbol = false;
+    std::string chosen_name = Slic3r::normalize_utf8_nfc(new_name.ToUTF8());
+    const char* unusable_symbols = "<>:/\\|?*\"";
+    for (size_t i = 0; i < std::strlen(unusable_symbols); i++) {
+        if (chosen_name.find_first_of(unusable_symbols[i]) != std::string::npos) {
+            is_unusable_symbol = true;
+        }
+    }
+
+    if (is_unusable_symbol) {
+        show_error(this, _(L("The supplied name is not valid;")) + "\n" +
+            _(L("the following characters are not allowed:")) + " <>:/\\|?*\"");
+        return;
+    }
+
+    // The icon can't be edited so get its old value and reuse it.
+    wxVariant valueOld;
+    m_objects_model->GetValue(valueOld, item, 0);
+
+    PrusaDataViewBitmapText bmpText;
+    bmpText << valueOld;
+
+    // But replace the text with the value entered by user.
+    bmpText.SetText(new_name);
+
+    wxVariant value;    
+    value << bmpText;
+    m_objects_model->SetValue(value, item, 0);
+    m_objects_model->ItemChanged(item);
+
+    update_name_in_model(item);
+}
+
+void ObjectList::fix_through_netfabb() const 
+{
+    const wxDataViewItem item = GetSelection();
+    if (!item)
+        return;
+    
+    ItemType type = m_objects_model->GetItemType(item);
+    
+    if (type & itObject)
+        wxGetApp().plater()->fix_through_netfabb(m_objects_model->GetIdByItem(item));
+    else if (type & itVolume) 
+        wxGetApp().plater()->fix_through_netfabb(m_objects_model->GetIdByItem(m_objects_model->GetTopParent(item)),
+                                                 m_objects_model->GetVolumeIdByItem(item));    
 }
 
 void ObjectList::ItemValueChanged(wxDataViewEvent &event)

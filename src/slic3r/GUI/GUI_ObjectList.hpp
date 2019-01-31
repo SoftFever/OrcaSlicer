@@ -97,9 +97,6 @@ class ObjectList : public wxDataViewCtrl
     } m_dragged_data;
 
     wxBoxSizer          *m_sizer {nullptr};
-
-    DynamicPrintConfig  *m_default_config {nullptr};
-
     wxWindow            *m_parent {nullptr};
 
     wxBitmap	m_bmp_modifiermesh;
@@ -153,6 +150,7 @@ public:
 
 
     void                create_objects_ctrl();
+    void                create_popup_menus();
     wxDataViewColumn*   create_objects_list_extruder_column(int extruders_count);
     void                update_objects_list_extruder_column(int extruders_count);
     // show/hide "Extruder" column for Objects List
@@ -160,7 +158,7 @@ public:
     // update extruder in current config
     void                update_extruder_in_config(const wxDataViewItem& item);
     // update changed name in the object model
-    void                update_name_in_model(const wxDataViewItem& item);
+    void                update_name_in_model(const wxDataViewItem& item) const;
     void                update_extruder_values_for_items(const int max_extruder);
 
     void                init_icons();
@@ -181,6 +179,8 @@ public:
     wxMenuItem*         append_menu_item_settings(wxMenu* menu);
     wxMenuItem*         append_menu_item_change_type(wxMenu* menu);
     wxMenuItem*         append_menu_item_instance_to_object(wxMenu* menu);
+    void                append_menu_item_rename(wxMenu* menu);
+    void                append_menu_item_fix_through_netfabb(wxMenu* menu);
     void                create_object_popupmenu(wxMenu *menu);
     void                create_sla_object_popupmenu(wxMenu*menu);
     void                create_part_popupmenu(wxMenu*menu);
@@ -262,7 +262,8 @@ public:
 
     void instances_to_separated_object(const int obj_idx, const std::set<int>& inst_idx);
     void split_instances();
-
+    void rename_item();
+    void fix_through_netfabb() const;
 private:
     void OnChar(wxKeyEvent& event);
     void OnContextMenu(wxDataViewEvent &event);

@@ -11,7 +11,6 @@
 #include "Print.hpp"
 #include "PrintConfig.hpp"
 #include "GCode/CoolingBuffer.hpp"
-#include "GCode/PressureEqualizer.hpp"
 #include "GCode/SpiralVase.hpp"
 #include "GCode/ToolOrdering.hpp"
 #include "GCode/WipeTower.hpp"
@@ -21,6 +20,10 @@
 
 #include <memory>
 #include <string>
+
+#ifdef HAS_PRESSURE_EQUALIZER
+#include "GCode/PressureEqualizer.hpp"
+#endif /* HAS_PRESSURE_EQUALIZER */
 
 namespace Slic3r {
 
@@ -257,12 +260,12 @@ protected:
     bool            needs_retraction(const Polyline &travel, ExtrusionRole role = erNone);
     std::string     retract(bool toolchange = false);
     std::string     unretract() { return m_writer.unlift() + m_writer.unretract(); }
-    std::string     set_extruder(unsigned int extruder_id);
+    std::string     set_extruder(unsigned int extruder_id, double print_z);
 
     /* Origin of print coordinates expressed in unscaled G-code coordinates.
        This affects the input arguments supplied to the extrude*() and travel_to()
        methods. */
-    Vec2d                              m_origin;
+    Vec2d                               m_origin;
     FullPrintConfig                     m_config;
     GCodeWriter                         m_writer;
     PlaceholderParser                   m_placeholder_parser;
@@ -306,7 +309,9 @@ protected:
 
     std::unique_ptr<CoolingBuffer>      m_cooling_buffer;
     std::unique_ptr<SpiralVase>         m_spiral_vase;
+#ifdef HAS_PRESSURE_EQUALIZER
     std::unique_ptr<PressureEqualizer>  m_pressure_equalizer;
+#endif /* HAS_PRESSURE_EQUALIZER */
     std::unique_ptr<WipeTowerIntegration> m_wipe_tower;
 
     // Heights at which the skirt has already been extruded.

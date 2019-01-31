@@ -38,6 +38,7 @@ public:
 
 	// Parse material name into material_type.
 	static material_type parse_material(const char *name);
+	static std::string   to_string(material_type material);
 
 	// x			-- x coordinates of wipe tower in mm ( left bottom corner )
 	// y			-- y coordinates of wipe tower in mm ( left bottom corner )

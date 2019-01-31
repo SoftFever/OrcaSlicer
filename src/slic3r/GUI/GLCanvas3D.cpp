@@ -1793,12 +1793,12 @@ static double rotation_diff_z(const Vec3d &rot_xyz_from, const Vec3d &rot_xyz_to
     Eigen::AngleAxisd angle_axis(rotation_xyz_diff(rot_xyz_from, rot_xyz_to));
     Vec3d  axis  = angle_axis.axis();
     double angle = angle_axis.angle();
-#ifdef _DEBUG
+#ifndef NDEBUG
 	if (std::abs(angle) > 1e-8) {
 		assert(std::abs(axis.x()) < 1e-8);
 		assert(std::abs(axis.y()) < 1e-8);
 	}
-#endif /* _DEBUG */
+#endif /* NDEBUG */
 	return (axis.z() < 0) ? -angle : angle;
 }
 
@@ -2786,7 +2786,7 @@ void GLCanvas3D::Selection::_render_sidebar_size_hint(Axis axis, double length) 
 {
 }
 
-#ifdef _DEBUG
+#ifndef NDEBUG
 static bool is_rotation_xy_synchronized(const Vec3d &rot_xyz_from, const Vec3d &rot_xyz_to)
 {
 	Eigen::AngleAxisd angle_axis(rotation_xyz_diff(rot_xyz_from, rot_xyz_to));
@@ -2820,7 +2820,7 @@ static void verify_instances_rotation_synchronized(const Model &model, const GLV
             }
     }
 }
-#endif /* _DEBUG */
+#endif /* NDEBUG */
 
 void GLCanvas3D::Selection::_synchronize_unselected_instances(SyncRotationType sync_rotation_type)
 {
@@ -2880,9 +2880,9 @@ void GLCanvas3D::Selection::_synchronize_unselected_instances(SyncRotationType s
         }
     }
 
-#ifdef _DEBUG
+#ifndef NDEBUG
     verify_instances_rotation_synchronized(*m_model, *m_volumes);
-#endif /* _DEBUG */
+#endif /* NDEBUG */
 }
 
 void GLCanvas3D::Selection::_synchronize_unselected_volumes()
@@ -3250,6 +3250,7 @@ bool GLCanvas3D::Gizmos::handle_shortcut(int key, const Selection& selection)
     if (!m_enabled || selection.is_empty())
         return false;
 
+    EType old_current = m_current;
     bool handled = false;
     for (GizmosMap::iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
@@ -3273,7 +3274,12 @@ bool GLCanvas3D::Gizmos::handle_shortcut(int key, const Selection& selection)
                 handled = true;
             }
         }
-        else
+    }
+
+    if (handled && (old_current != Undefined) && (old_current != m_current))
+    {
+        GizmosMap::const_iterator it = m_gizmos.find(old_current);
+        if (it != m_gizmos.end())
             it->second->set_state(GLGizmoBase::Off);
     }
 
@@ -3742,17 +3748,12 @@ GLCanvas3D::LegendTexture::LegendTexture()
 {
 }
 
-bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors, const GLCanvas3D& canvas, bool use_error_colors)
+void GLCanvas3D::LegendTexture::fill_color_print_legend_values(const GCodePreviewData& preview_data, const GLCanvas3D& canvas, 
+                                                               std::vector<std::pair<double, double>>& cp_legend_values)
 {
-    reset();
-
-    // collects items to render
-    auto title = _(preview_data.get_legend_title());
-
-    std::vector<std::pair<double, double>> cp_legend_values;
     if (preview_data.extrusion.view_type == GCodePreviewData::Extrusion::ColorPrint) 
     {
-        const auto& config = wxGetApp().preset_bundle->full_config();
+        auto& config = wxGetApp().preset_bundle->project_config;
         const std::vector<double>& color_print_values = config.option<ConfigOptionFloats>("colorprint_heights")->values;
         const int values_cnt = color_print_values.size();
         if (values_cnt > 0) {
@@ -3773,7 +3774,19 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
             }
         }
     }
-    const GCodePreviewData::LegendItemsList& items = preview_data.get_legend_items(tool_colors, /*color_print_values*/cp_legend_values);
+}
+
+bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors, const GLCanvas3D& canvas, bool use_error_colors)
+{
+    reset();
+
+    // collects items to render
+    auto title = _(preview_data.get_legend_title());
+
+    std::vector<std::pair<double, double>> cp_legend_values;
+    fill_color_print_legend_values(preview_data, canvas, cp_legend_values);
+
+    const GCodePreviewData::LegendItemsList& items = preview_data.get_legend_items(tool_colors, cp_legend_values);
 
     unsigned int items_count = (unsigned int)items.size();
     if (items_count == 0)
@@ -4160,6 +4173,8 @@ unsigned int GLCanvas3D::get_volumes_count() const
 
 void GLCanvas3D::reset_volumes()
 {
+    _set_current();
+
     if (!m_volumes.empty())
     {
         m_selection.clear();
@@ -4614,6 +4629,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     if ((m_canvas == nullptr) || (m_config == nullptr) || (m_model == nullptr))
         return;
 
+    _set_current();
+
     struct ModelVolumeState {
         ModelVolumeState(const GLVolume *volume) : 
 			model_volume(nullptr), geometry_id(volume->geometry_id), volume_idx(-1) {}
@@ -4668,10 +4685,10 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         }
         if (printer_technology == ptSLA) {
             const SLAPrint *sla_print = this->sla_print();
-		#ifdef _DEBUG
+		#ifndef NDEBUG
             // Verify that the SLAPrint object is synchronized with m_model.
             check_model_ids_equal(*m_model, sla_print->model());
-        #endif /* _DEBUG */
+        #endif /* NDEBUG */
             sla_support_state.reserve(sla_print->objects().size());
             for (const SLAPrintObject *print_object : sla_print->objects()) {
                 SLASupportState state;
@@ -4920,6 +4937,8 @@ void GLCanvas3D::load_gcode_preview(const GCodePreviewData& preview_data, const 
     const Print *print = this->fff_print();
     if ((m_canvas != nullptr) && (print != nullptr))
     {
+        _set_current();
+
         std::vector<float> tool_colors = _parse_colors(str_tool_colors);
 
         if (m_volumes.empty())
@@ -4957,22 +4976,25 @@ void GLCanvas3D::load_sla_preview()
     const SLAPrint* print = this->sla_print();
     if ((m_canvas != nullptr) && (print != nullptr))
     {
+        _set_current();
         _load_shells_sla();
     }
 }
 
-void GLCanvas3D::load_preview(const std::vector<std::string>& str_tool_colors)
+void GLCanvas3D::load_preview(const std::vector<std::string>& str_tool_colors, const std::vector<double>& color_print_values)
 {
     const Print *print = this->fff_print();
     if (print == nullptr)
         return;
+
+    _set_current();
 
     _load_print_toolpaths();
     _load_wipe_tower_toolpaths(str_tool_colors);
     for (const PrintObject* object : print->objects())
     {
         if (object != nullptr)
-            _load_print_object_toolpaths(*object, str_tool_colors);
+            _load_print_object_toolpaths(*object, str_tool_colors, color_print_values);
     }
 
     for (GLVolume* volume : m_volumes.volumes)
@@ -4982,7 +5004,14 @@ void GLCanvas3D::load_preview(const std::vector<std::string>& str_tool_colors)
 
     _update_toolpath_volumes_outside_state();
     _show_warning_texture_if_needed();
-    reset_legend_texture();
+    if (color_print_values.empty())
+        reset_legend_texture();
+    else {
+        auto preview_data = GCodePreviewData();
+        preview_data.extrusion.view_type = GCodePreviewData::Extrusion::ColorPrint;
+        const std::vector<float> tool_colors = _parse_colors(str_tool_colors);
+        _generate_legend_texture(preview_data, tool_colors);
+    }
 }
 
 void GLCanvas3D::bind_event_handlers()
@@ -5630,7 +5659,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
 void GLCanvas3D::on_paint(wxPaintEvent& evt)
 {
-    render();
+    if (m_initialized)
+        m_dirty = true;
+    else
+        // Call render directly, so it gets initialized immediately, not from On Idle handler.
+        this->render();
 }
 
 void GLCanvas3D::on_key_down(wxKeyEvent& evt)
@@ -5681,6 +5714,7 @@ Point GLCanvas3D::get_local_mouse_position() const
 
 void GLCanvas3D::reset_legend_texture()
 {
+    _set_current();
     m_legend_texture.reset();
 }
 
@@ -5950,6 +5984,9 @@ void GLCanvas3D::set_camera_zoom(float zoom)
     float zoom_min = _get_zoom_to_bounding_box_factor(_max_bounding_box());
     if (zoom_min > 0.0f)
         zoom = std::max(zoom, zoom_min * 0.7f);
+
+    // Don't allow to zoom too close to the scene.
+    zoom = std::min(zoom, 100.0f);
 
     m_camera.zoom = zoom;
     viewport_changed();
@@ -7235,7 +7272,7 @@ void GLCanvas3D::_load_print_toolpaths()
     volume.indexed_vertex_array.finalize_geometry(m_use_VBOs && m_initialized);
 }
 
-void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, const std::vector<std::string>& str_tool_colors)
+void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, const std::vector<std::string>& str_tool_colors, const std::vector<double>& color_print_values)
 {
     std::vector<float> tool_colors = _parse_colors(str_tool_colors);
 
@@ -7247,6 +7284,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
         bool                         has_infill;
         bool                         has_support;
         const std::vector<float>*    tool_colors;
+        const std::vector<double>*   color_print_values;
 
         // Number of vertices (each vertex is 6x4=24 bytes long)
         static const size_t          alloc_size_max() { return 131072; } // 3.15MB
@@ -7264,7 +7302,15 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
         const float*                 color_tool(size_t tool) const { return tool_colors->data() + tool * 4; }
         int                          volume_idx(int extruder, int feature) const
         {
-            return this->color_by_tool() ? std::min<int>(this->number_tools() - 1, std::max<int>(extruder - 1, 0)) : feature;
+            return this->color_by_color_print() ? 0 : this->color_by_tool() ? std::min<int>(this->number_tools() - 1, std::max<int>(extruder - 1, 0)) : feature;
+        }
+
+        // For coloring by a color_print(M600), return a parsed color.
+        bool                         color_by_color_print() const { return color_print_values!=nullptr; }
+        const float*                 color_print_by_layer_idx(const size_t layer_idx) const
+        {
+            auto it = std::lower_bound(color_print_values->begin(), color_print_values->end(), layers[layer_idx]->print_z + EPSILON);
+            return color_tool((it - color_print_values->begin()) % number_tools());
         }
     } ctxt;
 
@@ -7272,6 +7318,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
     ctxt.has_infill = print_object.is_step_done(posInfill);
     ctxt.has_support = print_object.is_step_done(posSupportMaterial);
     ctxt.tool_colors = tool_colors.empty() ? nullptr : &tool_colors;
+    ctxt.color_print_values = color_print_values.empty() ? nullptr : &color_print_values;
 
     ctxt.shifted_copies = &print_object.copies();
 
@@ -7296,7 +7343,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
     BOOST_LOG_TRIVIAL(debug) << "Loading print object toolpaths in parallel - start";
 
     //FIXME Improve the heuristics for a grain size.
-    size_t          grain_size = std::max(ctxt.layers.size() / 16, size_t(1));
+    size_t          grain_size = ctxt.color_by_color_print() ? size_t(1) : std::max(ctxt.layers.size() / 16, size_t(1));
     tbb::spin_mutex new_volume_mutex;
     auto            new_volume = [this, &new_volume_mutex](const float *color) -> GLVolume* {
         auto *volume = new GLVolume(color);
@@ -7311,7 +7358,9 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
         tbb::blocked_range<size_t>(0, ctxt.layers.size(), grain_size),
         [&ctxt, &new_volume](const tbb::blocked_range<size_t>& range) {
         GLVolumePtrs vols;
-        if (ctxt.color_by_tool()) {
+        if (ctxt.color_by_color_print())
+            vols.emplace_back(new_volume(ctxt.color_print_by_layer_idx(range.begin())));
+        else if (ctxt.color_by_tool()) {
             for (size_t i = 0; i < ctxt.number_tools(); ++i)
                 vols.emplace_back(new_volume(ctxt.color_tool(i)));
         }
@@ -7629,11 +7678,15 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
             }
             case GCodePreviewData::Extrusion::ColorPrint:
             {
+                const size_t color_cnt = tool_colors.size() / 4;
+
                 int val = int(value);
-                while (val >= GCodePreviewData::Range::Colors_Count)
-                    val -= GCodePreviewData::Range::Colors_Count;
+                while (val >= color_cnt)
+                    val -= color_cnt;
                     
-                GCodePreviewData::Color color = GCodePreviewData::Range::Default_Colors[val];
+                GCodePreviewData::Color color;
+                ::memcpy((void*)color.rgba, (const void*)(tool_colors.data() + val * 4), 4 * sizeof(float));
+
                 return color;
             }
             default:
@@ -8284,6 +8337,8 @@ void GLCanvas3D::_update_toolpath_volumes_outside_state()
 
 void GLCanvas3D::_show_warning_texture_if_needed()
 {
+    _set_current();
+
     if (_is_any_volume_outside())
     {
         enable_warning_texture(true);

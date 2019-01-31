@@ -1,5 +1,5 @@
 ### Version
-_Version of Slic3r used goes here_
+_Version of Slic3r Prusa Edition used goes here_
 
 _Use `About->About Slic3r` for release versions_
 
@@ -7,6 +7,10 @@ _For -dev versions, use `git describe --tag` or get the hash value for the versi
 
 ### Operating system type + version
 _What OS are you using, and state any version #s_
+_In case of 3D rendering issues, please attach the content of menu Help -> System Info dialog_
+
+### 3D printer brand / version + firmware version (if known)
+_What 3D printer brand / version are you printing on, is it a stock model or did you modify the printer, what firmware is running on your printer, version of the firmware #s_
 
 ### Behavior
 * _Describe the problem_
@@ -18,5 +22,5 @@ _What OS are you using, and state any version #s_
 
 _Is this a new feature request?_
 
-#### STL/Config (.ZIP) where problem occurs
-_Upload a zipped copy of an STL and your config (`File -> Export Config`)_
+#### Project File (.3MF) where problem occurs
+_Upload a Slic3r PE Project File (.3MF) (`Plater -> Export plate as 3MF` for Slic3r PE 1.41.2 and older, `File -> Save` / `Save Project` for Slic3r PE 1.42.0-alpha and newer)_

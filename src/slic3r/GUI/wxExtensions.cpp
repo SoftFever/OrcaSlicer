@@ -1867,8 +1867,10 @@ void PrusaDoubleSlider::draw_colored_band(wxDC& dc)
         return;
     }
 
-    const std::vector<unsigned char>& clr_bytes = Slic3r::GCodePreviewData::Range::Default_Colors[0].as_bytes();
-    wxColour clr = wxColour(clr_bytes[0], clr_bytes[1], clr_bytes[2], clr_bytes[3]);
+    const std::vector<std::string>& colors = Slic3r::GCodePreviewData::ColorPrintColors();
+    const size_t colors_cnt = colors.size();
+
+    wxColour clr(colors[0]);
     dc.SetPen(clr);
     dc.SetBrush(clr);
     dc.DrawRectangle(main_band);
@@ -1876,15 +1878,13 @@ void PrusaDoubleSlider::draw_colored_band(wxDC& dc)
     int i = 1;
     for (auto tick : m_ticks)
     {
-        if (i == Slic3r::GCodePreviewData::Range::Colors_Count)
+        if (i == colors_cnt)
             i = 0;
         const wxCoord pos = get_position_from_value(tick);
         is_horizontal() ?   main_band.SetLeft(SLIDER_MARGIN + pos) :
                             main_band.SetBottom(pos-1);
 
-        const std::vector<unsigned char>& clr_b = Slic3r::GCodePreviewData::Range::Default_Colors[i].as_bytes();
-
-        clr = wxColour(clr_b[0], clr_b[1], clr_b[2], clr_b[3]);
+        clr = wxColour(colors[i]);
         dc.SetPen(clr);
         dc.SetBrush(clr);
         dc.DrawRectangle(main_band);

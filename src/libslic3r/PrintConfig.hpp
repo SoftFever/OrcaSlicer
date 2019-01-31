@@ -20,6 +20,8 @@
 #include "libslic3r.h"
 #include "Config.hpp"
 
+// #define HAS_PRESSURE_EQUALIZER
+
 namespace Slic3r {
 
 enum PrinterTechnology
@@ -620,8 +622,10 @@ public:
     ConfigOptionString              layer_gcode;
     ConfigOptionFloat               max_print_speed;
     ConfigOptionFloat               max_volumetric_speed;
+#ifdef HAS_PRESSURE_EQUALIZER
     ConfigOptionFloat               max_volumetric_extrusion_rate_slope_positive;
     ConfigOptionFloat               max_volumetric_extrusion_rate_slope_negative;
+#endif
     ConfigOptionPercents            retract_before_wipe;
     ConfigOptionFloats              retract_length;
     ConfigOptionFloats              retract_length_toolchange;
@@ -689,8 +693,10 @@ protected:
         OPT_PTR(layer_gcode);
         OPT_PTR(max_print_speed);
         OPT_PTR(max_volumetric_speed);
+#ifdef HAS_PRESSURE_EQUALIZER
         OPT_PTR(max_volumetric_extrusion_rate_slope_positive);
         OPT_PTR(max_volumetric_extrusion_rate_slope_negative);
+#endif /* HAS_PRESSURE_EQUALIZER */
         OPT_PTR(retract_before_wipe);
         OPT_PTR(retract_length);
         OPT_PTR(retract_length_toolchange);

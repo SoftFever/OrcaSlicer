@@ -143,9 +143,11 @@ void Field::get_value_by_opt_type(wxString& str)
 			break;
 		}
 		double val;
+		// Replace the first occurence of comma in decimal number.
+		str.Replace(",", ".", false);
 		if(!str.ToCDouble(&val))
 		{
-			show_error(m_parent, _(L("Input value contains incorrect symbol(s).\nUse, please, only digits")));
+			show_error(m_parent, _(L("Invalid numeric input.")));
 			set_value(double_to_string(val), true);
 		}
 		if (m_opt.min > val || val > m_opt.max)
@@ -163,10 +165,12 @@ void Field::get_value_by_opt_type(wxString& str)
         if (m_opt.type == coFloatOrPercent && !str.IsEmpty() &&  str.Last() != '%')
         {
             double val;
+			// Replace the first occurence of comma in decimal number.
+			str.Replace(",", ".", false);
             if (!str.ToCDouble(&val))
             {
-                show_error(m_parent, _(L("Input value contains incorrect symbol(s).\nUse, please, only digits")));
-                set_value(double_to_string(val), true);                
+                show_error(m_parent, _(L("Invalid numeric input.")));
+                set_value(double_to_string(val), true);
             }
             else if (m_opt.sidetext.rfind("mm/s") != std::string::npos && val > m_opt.max ||
                      m_opt.sidetext.rfind("mm ") != std::string::npos && val > 1)
@@ -334,6 +338,7 @@ void TextCtrl::propagate_value()
 boost::any& TextCtrl::get_value()
 {
 	wxString ret_str = static_cast<wxTextCtrl*>(window)->GetValue();
+	// modifies ret_string!
 	get_value_by_opt_type(ret_str);
 
 	return m_value;
@@ -727,11 +732,13 @@ boost::any& Choice::get_value()
     else if (m_opt.gui_type == "f_enum_open") {
         const int ret_enum = static_cast<wxComboBox*>(window)->GetSelection();
         if (ret_enum < 0 || m_opt.enum_values.empty() || m_opt.type == coStrings)
+			// modifies ret_string!
             get_value_by_opt_type(ret_str);
         else 
             m_value = atof(m_opt.enum_values[ret_enum].c_str());
     }
 	else	
+		// modifies ret_string!
         get_value_by_opt_type(ret_str);
 
 	return m_value;

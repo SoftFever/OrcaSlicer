@@ -323,7 +323,10 @@ const std::vector<std::string>& Preset::print_options()
         "seam_position", "external_perimeters_first", "fill_density", "fill_pattern", "external_fill_pattern", 
         "infill_every_layers", "infill_only_where_needed", "solid_infill_every_layers", "fill_angle", "bridge_angle", 
         "solid_infill_below_area", "only_retract_when_crossing_perimeters", "infill_first", "max_print_speed", 
-        "max_volumetric_speed", "max_volumetric_extrusion_rate_slope_positive", "max_volumetric_extrusion_rate_slope_negative", 
+        "max_volumetric_speed", 
+#ifdef HAS_PRESSURE_EQUALIZER
+        "max_volumetric_extrusion_rate_slope_positive", "max_volumetric_extrusion_rate_slope_negative", 
+#endif /* HAS_PRESSURE_EQUALIZER */
         "perimeter_speed", "small_perimeter_speed", "external_perimeter_speed", "infill_speed", "solid_infill_speed", 
         "top_solid_infill_speed", "support_material_speed", "support_material_xy_spacing", "support_material_interface_speed",
         "bridge_speed", "gap_fill_speed", "travel_speed", "first_layer_speed", "perimeter_acceleration", "infill_acceleration", 
@@ -531,6 +534,9 @@ void PresetCollection::load_presets(const std::string &dir_path, const std::stri
 	boost::filesystem::path dir = boost::filesystem::canonical(boost::filesystem::path(dir_path) / subdir).make_preferred();
 	m_dir_path = dir.string();
     std::string errors_cummulative;
+	// Store the loaded presets into a new vector, otherwise the binary search for already existing presets would be broken.
+	// (see the "Preset already present, not loading" message).
+	std::deque<Preset> presets_loaded;
 	for (auto &dir_entry : boost::filesystem::directory_iterator(dir))
         if (boost::filesystem::is_regular_file(dir_entry.status()) && boost::algorithm::iends_with(dir_entry.path().filename().string(), ".ini") &&
             // Ignore system and hidden files, which may be created by the DropBox synchronisation process.
@@ -568,12 +574,13 @@ void PresetCollection::load_presets(const std::string &dir_path, const std::stri
                 } catch (const std::runtime_error &err) {
 					throw std::runtime_error(std::string("Failed loading the preset file: ") + preset.file + "\n\tReason: " + err.what());
                 }
-                m_presets.emplace_back(preset);
+				presets_loaded.emplace_back(preset);
             } catch (const std::runtime_error &err) {
                 errors_cummulative += err.what();
                 errors_cummulative += "\n";
 			}
         }
+	m_presets.insert(m_presets.end(), std::make_move_iterator(presets_loaded.begin()), std::make_move_iterator(presets_loaded.end()));
     std::sort(m_presets.begin() + m_num_default_presets, m_presets.end());
     this->select_preset(first_visible_idx());
     if (! errors_cummulative.empty())

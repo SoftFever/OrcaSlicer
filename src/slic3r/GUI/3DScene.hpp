@@ -11,6 +11,19 @@
 
 #include <functional>
 
+#ifndef NDEBUG
+#define HAS_GLSAFE
+#endif
+
+#ifdef HAS_GLSAFE
+extern void glAssertRecentCallImpl();
+inline void glAssertRecentCall() { glAssertRecentCallImpl(); }
+#define glsafe(cmd) do { cmd; glAssertRecentCallImpl(); } while (false)
+#else
+inline void glAssertRecentCall() { }
+#define glsafe(cmd) cmd
+#endif
+
 namespace Slic3r {
 
 class Print;
