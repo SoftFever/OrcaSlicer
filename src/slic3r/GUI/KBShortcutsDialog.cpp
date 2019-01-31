@@ -44,7 +44,8 @@ KBShortcutsDialog::KBShortcutsDialog()
 
     for (auto& sc : m_full_shortcuts)
     {
-        auto sizer = sc.first == _(L("Main Shortcuts")) ? l_sizer : r_sizer;
+//         auto sizer = sc.first == _(L("Main Shortcuts")) ? l_sizer : r_sizer;
+        auto sizer = sc.second.second == 0 ? l_sizer : r_sizer;
         wxBoxSizer* hsizer = new wxBoxSizer(wxHORIZONTAL);
         sizer->Add(hsizer, 0, wxEXPAND | wxTOP | wxBOTTOM, 10);
 
@@ -61,7 +62,7 @@ KBShortcutsDialog::KBShortcutsDialog()
         auto grid_sizer = new wxFlexGridSizer(2, 5, 15);
         sizer->Add(grid_sizer, 0, wxEXPAND | wxLEFT| wxRIGHT, 15);
 
-        for (auto pair : sc.second)
+        for (auto pair : sc.second.first)
         {
             auto shortcut = new wxStaticText(panel, wxID_ANY, _(pair.first));
             shortcut->SetFont(bold_font);
@@ -95,6 +96,8 @@ void KBShortcutsDialog::fill_shortcuts()
     const std::string alt = "Alt+";
 #endif // __WXOSX__
 
+    m_full_shortcuts.reserve(4);
+
     Shortcuts main_shortcuts;
     main_shortcuts.reserve(25);
 
@@ -122,7 +125,7 @@ void KBShortcutsDialog::fill_shortcuts()
     main_shortcuts.push_back(Shortcut("?"               ,L("Show keyboard shortcuts list")));
     main_shortcuts.push_back(Shortcut("Shift+LeftMouse", L("Select multiple object/Move multiple object")));
 
-    m_full_shortcuts.emplace(_(L("Main Shortcuts")),    main_shortcuts);
+    m_full_shortcuts.push_back(std::make_pair( _(L("Main Shortcuts")), std::make_pair(main_shortcuts, 0) ));
 
 
     Shortcuts plater_shortcuts;
@@ -138,6 +141,8 @@ void KBShortcutsDialog::fill_shortcuts()
     plater_shortcuts.push_back(Shortcut("C",        L("Gizmo cut")));
     plater_shortcuts.push_back(Shortcut("F",        L("Gizmo Place face on bed")));
     plater_shortcuts.push_back(Shortcut("L",        L("Gizmo SLA support points")));
+    plater_shortcuts.push_back(Shortcut("Shift+",   L("Press to snap by 5% in Gizmo scale\nor by 1mm in Gizmo move")));
+    plater_shortcuts.push_back(Shortcut(alt,        L("Press to scale or rotate selected objects\naround their own center")));
     plater_shortcuts.push_back(Shortcut("B",        L("Zoom to Bed")));
     plater_shortcuts.push_back(Shortcut("Z",        L("Zoom to all objects in scene, if none selected")));
     plater_shortcuts.push_back(Shortcut("Z",        L("Zoom to selected object")));
@@ -145,16 +150,40 @@ void KBShortcutsDialog::fill_shortcuts()
     plater_shortcuts.push_back(Shortcut("O",        L("Zoom out")));
     plater_shortcuts.push_back(Shortcut("ESC",      L("Unselect gizmo, keep object selection")));
 
-    m_full_shortcuts.emplace(_(L("Plater Shortcuts")),  plater_shortcuts);
+    m_full_shortcuts.push_back(std::make_pair(_(L("Plater Shortcuts")), std::make_pair(plater_shortcuts, 1)));
+
+
+//     Shortcuts gizmo_shortcuts;
+//     gizmo_shortcuts.reserve(2);
+// 
+//     gizmo_shortcuts.push_back(Shortcut("Shift+",    L("Press to snap by 5% in Gizmo Scale\n or by 1mm in Gizmo Move")));
+//     gizmo_shortcuts.push_back(Shortcut(alt,         L("Press to scale or rotate selected objects around their own center")));
+// 
+//     m_full_shortcuts.push_back(std::make_pair(_(L("Gizmo Shortcuts")), std::make_pair(gizmo_shortcuts, 1)));
 
 
     Shortcuts preview_shortcuts;
-    preview_shortcuts.reserve(2);
+    preview_shortcuts.reserve(4);
 
     preview_shortcuts.push_back(Shortcut(L("Arrow Up"),     L("Upper Layer")));
     preview_shortcuts.push_back(Shortcut(L("Arrow Down"),   L("Lower Layer")));
+    preview_shortcuts.push_back(Shortcut("U",               L("Upper Layer")));
+    preview_shortcuts.push_back(Shortcut("D",               L("Lower Layer")));
 
-    m_full_shortcuts.emplace(_(L("Preview Shortcuts")), preview_shortcuts);
+    m_full_shortcuts.push_back(std::make_pair( _(L("Preview Shortcuts")), std::make_pair(preview_shortcuts, 0) ));
+
+
+    Shortcuts layers_slider_shortcuts;
+    layers_slider_shortcuts.reserve(6);
+
+    layers_slider_shortcuts.push_back(Shortcut(L("Arrow Up"),   L("Move current slider thump Up")));
+    layers_slider_shortcuts.push_back(Shortcut(L("Arrow Down"), L("Move current slider thump Down")));
+    layers_slider_shortcuts.push_back(Shortcut(L("Arrow Left"), L("Set upper thumb to current slider thumb")));
+    layers_slider_shortcuts.push_back(Shortcut(L("Arrow Right"),L("Set lower thumb to current slider thumb")));
+    layers_slider_shortcuts.push_back(Shortcut("+",             L("Add color change marker for current layer")));
+    layers_slider_shortcuts.push_back(Shortcut("-",             L("Delete color change marker for current layer")));
+
+    m_full_shortcuts.push_back(std::make_pair( _(L("Layers Slider Shortcuts")), std::make_pair(layers_slider_shortcuts, 1) ));
 }
 
 void KBShortcutsDialog::onCloseDialog(wxEvent &)
