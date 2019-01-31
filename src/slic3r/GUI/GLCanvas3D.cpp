@@ -4286,6 +4286,13 @@ bool GLCanvas3D::is_reload_delayed() const
 void GLCanvas3D::enable_layers_editing(bool enable)
 {
     m_layers_editing.set_enabled(enable);
+    const Selection::IndicesList& idxs = m_selection.get_volume_idxs();
+    for (unsigned int idx : idxs)
+    {
+        GLVolume* v = m_volumes.volumes[idx];
+        if (v->is_modifier)
+            v->force_transparent = enable;
+    }
 }
 
 void GLCanvas3D::enable_warning_texture(bool enable)
