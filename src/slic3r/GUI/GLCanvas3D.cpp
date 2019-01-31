@@ -4173,6 +4173,8 @@ unsigned int GLCanvas3D::get_volumes_count() const
 
 void GLCanvas3D::reset_volumes()
 {
+    _set_current();
+
     if (!m_volumes.empty())
     {
         m_selection.clear();
@@ -5712,6 +5714,7 @@ Point GLCanvas3D::get_local_mouse_position() const
 
 void GLCanvas3D::reset_legend_texture()
 {
+    _set_current();
     m_legend_texture.reset();
 }
 
@@ -8334,6 +8337,8 @@ void GLCanvas3D::_update_toolpath_volumes_outside_state()
 
 void GLCanvas3D::_show_warning_texture_if_needed()
 {
+    _set_current();
+
     if (_is_any_volume_outside())
     {
         enable_warning_texture(true);
