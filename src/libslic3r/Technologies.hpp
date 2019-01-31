@@ -56,3 +56,12 @@
 #define ENABLE_ANISOTROPIC_FILTER_ON_BED_TEXTURES (1 && ENABLE_1_42_0_ALPHA4)
 // Bunch of fixes related to volumes centering
 #define ENABLE_VOLUMES_CENTERING_FIXES (1 && ENABLE_1_42_0_ALPHA4)
+
+
+//====================
+// 1.42.0.alpha5 techs
+//====================
+#define ENABLE_1_42_0_ALPHA5 1
+
+// Toolbar items hidden/shown in dependence of the user mode
+#define ENABLE_MODE_AWARE_TOOLBAR_ITEMS (1 && ENABLE_1_42_0_ALPHA5)

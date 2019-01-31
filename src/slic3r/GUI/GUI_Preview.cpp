@@ -139,6 +139,14 @@ void View3D::mirror_selection(Axis axis)
         m_canvas->mirror_selection(axis);
 }
 
+#if ENABLE_MODE_AWARE_TOOLBAR_ITEMS
+void View3D::update_toolbar_items_visibility()
+{
+    if (m_canvas != nullptr)
+        m_canvas->update_toolbar_items_visibility();
+}
+#endif // ENABLE_MODE_AWARE_TOOLBAR_ITEMS
+
 void View3D::enable_toolbar_item(const std::string& name, bool enable)
 {
     if (m_canvas != nullptr)
