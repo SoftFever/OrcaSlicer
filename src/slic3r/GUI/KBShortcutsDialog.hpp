@@ -11,11 +11,11 @@ class KBShortcutsDialog : public wxDialog
 {
     typedef std::pair<std::string, std::string> Shortcut;
     typedef std::vector< Shortcut >             Shortcuts;
-    typedef std::map<wxString, Shortcuts>       ShortcutsMap;
+    typedef std::vector< std::pair<wxString, std::pair<Shortcuts, int>> >   ShortcutsVec;
 
     wxString text_info {wxEmptyString};
 
-    ShortcutsMap m_full_shortcuts;
+    ShortcutsVec m_full_shortcuts;
 
 public:
     KBShortcutsDialog();

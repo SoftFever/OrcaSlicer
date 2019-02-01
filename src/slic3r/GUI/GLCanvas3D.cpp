@@ -4286,6 +4286,13 @@ bool GLCanvas3D::is_reload_delayed() const
 void GLCanvas3D::enable_layers_editing(bool enable)
 {
     m_layers_editing.set_enabled(enable);
+    const Selection::IndicesList& idxs = m_selection.get_volume_idxs();
+    for (unsigned int idx : idxs)
+    {
+        GLVolume* v = m_volumes.volumes[idx];
+        if (v->is_modifier)
+            v->force_transparent = enable;
+    }
 }
 
 void GLCanvas3D::enable_warning_texture(bool enable)
@@ -4413,6 +4420,16 @@ void GLCanvas3D::update_volumes_colors_by_extruder()
     if (m_config != nullptr)
         m_volumes.update_colors_by_extruder(m_config);
 }
+
+#if ENABLE_MODE_AWARE_TOOLBAR_ITEMS
+void GLCanvas3D::update_toolbar_items_visibility()
+{
+    ConfigOptionMode mode = wxGetApp().get_mode();
+    m_toolbar.set_item_visible("more", mode != comSimple);
+    m_toolbar.set_item_visible("fewer", mode != comSimple);
+    m_dirty = true;
+}
+#endif // ENABLE_MODE_AWARE_TOOLBAR_ITEMS
 
 // Returns a Rect object denoting size and position of the Reset button used by a gizmo.
 // Returns in either screen or viewport coords.
@@ -5205,6 +5222,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #endif // ENABLE_IMGUI
 
     Point pos(evt.GetX(), evt.GetY());
+
+    if (m_picking_enabled)
+        _set_current();
 
     int selected_object_idx = m_selection.get_object_idx();
     int layer_editing_object_idx = is_layers_editing_enabled() ? selected_object_idx : -1;
@@ -6165,6 +6185,10 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     enable_toolbar_item("add", true);
+
+#if ENABLE_MODE_AWARE_TOOLBAR_ITEMS
+    update_toolbar_items_visibility();
+#endif // ENABLE_MODE_AWARE_TOOLBAR_ITEMS
 
     return true;
 }

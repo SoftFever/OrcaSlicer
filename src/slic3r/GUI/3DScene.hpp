@@ -295,6 +295,8 @@ public:
     bool                is_wipe_tower;
     // Wheter or not this volume has been generated from an extrusion path
     bool                is_extrusion_path;
+    // Wheter or not to always render this volume using its own alpha 
+    bool                force_transparent;
 
     // Interleaved triangles & normals with indexed triangles & quads.
     GLIndexedVertexArray        indexed_vertex_array;

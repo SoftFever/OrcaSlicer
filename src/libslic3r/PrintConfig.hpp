@@ -619,6 +619,7 @@ public:
     ConfigOptionStrings             filament_ramming_parameters;
     ConfigOptionBool                gcode_comments;
     ConfigOptionEnum<GCodeFlavor>   gcode_flavor;
+    ConfigOptionBool                gcode_label_objects;
     ConfigOptionString              layer_gcode;
     ConfigOptionFloat               max_print_speed;
     ConfigOptionFloat               max_volumetric_speed;
@@ -690,6 +691,7 @@ protected:
         OPT_PTR(filament_ramming_parameters);
         OPT_PTR(gcode_comments);
         OPT_PTR(gcode_flavor);
+        OPT_PTR(gcode_label_objects);
         OPT_PTR(layer_gcode);
         OPT_PTR(max_print_speed);
         OPT_PTR(max_volumetric_speed);
@@ -730,7 +732,7 @@ protected:
 class PrintConfig : public MachineEnvelopeConfig, public GCodeConfig
 {
     STATIC_PRINT_CONFIG_CACHE_DERIVED(PrintConfig)
-    PrintConfig() : GCodeConfig(0) { initialize_cache(); *this = s_cache_PrintConfig.defaults(); }
+	PrintConfig() : MachineEnvelopeConfig(0), GCodeConfig(0) { initialize_cache(); *this = s_cache_PrintConfig.defaults(); }
 public:
     double                          min_object_distance() const;
     static double                   min_object_distance(const ConfigBase *config);
@@ -808,7 +810,7 @@ public:
     ConfigOptionFloat               exp_time_first;
 
 protected:
-    PrintConfig(int) : GCodeConfig(1) {}
+	PrintConfig(int) : MachineEnvelopeConfig(1), GCodeConfig(1) {}
     void initialize(StaticCacheBase &cache, const char *base_ptr)
     {
         this->MachineEnvelopeConfig::initialize(cache, base_ptr);

@@ -8,7 +8,6 @@
 #include "GLTexture.hpp"
 #include "Event.hpp"
 
-
 class wxEvtHandler;
 
 namespace Slic3r {
@@ -56,6 +55,9 @@ public:
         unsigned int sprite_id;
         bool is_toggable;
         wxEventType action_event;
+#if ENABLE_MODE_AWARE_TOOLBAR_ITEMS
+        bool visible;
+#endif // ENABLE_MODE_AWARE_TOOLBAR_ITEMS
 
         Data();
     };
@@ -68,21 +70,25 @@ private:
 public:
     GLToolbarItem(EType type, const Data& data);
 
-    EState get_state() const;
-    void set_state(EState state);
+    EState get_state() const { return m_state; }
+    void set_state(EState state) { m_state = state; }
 
-    const std::string& get_name() const;
-    const std::string& get_tooltip() const;
+    const std::string& get_name() const { return m_data.name; }
+    const std::string& get_tooltip() const { return m_data.tooltip; }
 
     void do_action(wxEvtHandler *target);
 
-    bool is_enabled() const;
-    bool is_disabled() const;
-    bool is_hovered() const;
-    bool is_pressed() const;
+    bool is_enabled() const { return m_state != Disabled; }
+    bool is_disabled() const { return m_state == Disabled; }
+    bool is_hovered() const { return (m_state == Hover) || (m_state == HoverPressed); }
+    bool is_pressed() const { return (m_state == Pressed) || (m_state == HoverPressed); }
 
-    bool is_toggable() const;
-    bool is_separator() const;
+    bool is_toggable() const { return m_data.is_toggable; }
+#if ENABLE_MODE_AWARE_TOOLBAR_ITEMS
+    bool is_visible() const { return m_data.visible; }
+    void set_visible(bool visible) { m_data.visible = visible; }
+#endif // ENABLE_MODE_AWARE_TOOLBAR_ITEMS
+    bool is_separator() const { return m_type == Separator; }
 
     void render(unsigned int tex_id, float left, float right, float bottom, float top, unsigned int texture_size, unsigned int border_size, unsigned int icon_size, unsigned int gap_size) const;
 
@@ -223,6 +229,10 @@ public:
 
     bool is_item_pressed(const std::string& name) const;
     bool is_item_disabled(const std::string& name) const;
+#if ENABLE_MODE_AWARE_TOOLBAR_ITEMS
+    bool is_item_visible(const std::string& name) const;
+    void set_item_visible(const std::string& name, bool visible);
+#endif // ENABLE_MODE_AWARE_TOOLBAR_ITEMS
 
     std::string update_hover_state(const Vec2d& mouse_pos, GLCanvas3D& parent);
 

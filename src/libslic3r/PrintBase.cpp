@@ -67,20 +67,9 @@ std::string PrintBase::output_filename(const std::string &format, const std::str
 std::string PrintBase::output_filepath(const std::string &path) const
 {
     // if we were supplied no path, generate an automatic one based on our first object's input file
-    if (path.empty()) {
+    if (path.empty())
         // get the first input file name
-        std::string input_file;
-		for (const ModelObject *model_object : m_model.objects) {
-			for (ModelInstance *model_instance : model_object->instances)
-				if (model_instance->is_printable()) {
-					input_file = model_object->input_file;
-					break;
-				}
-            if (! input_file.empty())
-                break;
-        }
-        return (boost::filesystem::path(input_file).parent_path() / this->output_filename()).make_preferred().string();
-    }
+        return (boost::filesystem::path(m_model.propose_export_file_name()).parent_path() / this->output_filename()).make_preferred().string();
     
     // if we were supplied a directory, use it and append our automatically generated filename
     boost::filesystem::path p(path);

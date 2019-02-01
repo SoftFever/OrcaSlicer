@@ -1622,6 +1622,8 @@ void GCode::process_layer(
 
                 unsigned int copy_id = 0;
                 for (const Point &copy : copies) {
+                    if (this->config().gcode_label_objects)
+                        gcode += std::string("; printing object ") + print_object->model_object()->name + " id:" + std::to_string(layer_id) + " copy " + std::to_string(copy_id) + "\n";
                     // When starting a new object, use the external motion planner for the first travel move.
                     std::pair<const PrintObject*, Point> this_object_copy(print_object, copy);
                     if (m_last_obj_copy != this_object_copy)
@@ -1646,7 +1648,9 @@ void GCode::process_layer(
                             gcode += this->extrude_infill(print,by_region_specific);
                         }
                     }
-                    ++copy_id;
+                    if (this->config().gcode_label_objects)
+						gcode += std::string("; stop printing object ") + print_object->model_object()->name + " id:" + std::to_string(layer_id) + " copy " + std::to_string(copy_id) + "\n";
+                    ++ copy_id;
                 }
             }
         }
