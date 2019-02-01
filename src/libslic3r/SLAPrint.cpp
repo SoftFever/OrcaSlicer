@@ -29,6 +29,8 @@ public:
     SupportTreePtr   support_tree_ptr;   // the supports
     SlicedSupports   support_slices;     // sliced supports
     std::vector<LevelID>    level_ids;
+
+    inline SupportData(const TriangleMesh& trmesh): emesh(trmesh) {}
 };
 
 namespace {
@@ -503,8 +505,8 @@ void SLAPrint::process()
     // support points. Then we sprinkle the rest of the mesh.
     auto support_points = [this, ilh](SLAPrintObject& po) {
         const ModelObject& mo = *po.m_model_object;
-        po.m_supportdata.reset(new SLAPrintObject::SupportData());
-        po.m_supportdata->emesh = sla::to_eigenmesh(po.transformed_mesh());
+        po.m_supportdata.reset(
+                    new SLAPrintObject::SupportData(po.transformed_mesh()) );
 
         // If supports are disabled, we can skip the model scan.
         if(!po.m_config.supports_enable.getBool()) return;
