@@ -43,7 +43,7 @@ public:
         }
         bool cmd_is(const char *cmd_test) const {
             const char *cmd = GCodeReader::skip_whitespaces(m_raw.c_str());
-            int len = strlen(cmd_test); 
+            size_t len = strlen(cmd_test); 
             return strncmp(cmd, cmd_test, len) == 0 && GCodeReader::is_end_of_word(cmd[len]);
         }
         bool extruding(const GCodeReader &reader)  const { return this->cmd_is("G1") && this->dist_E(reader) > 0; }
