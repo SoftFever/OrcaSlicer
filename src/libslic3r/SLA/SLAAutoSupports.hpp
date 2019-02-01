@@ -3,7 +3,7 @@
 
 #include <libslic3r/Point.hpp>
 #include <libslic3r/TriangleMesh.hpp>
-#include <libslic3r/SLA/SLASupportTree.hpp>
+#include <libslic3r/SLA/SLACommon.hpp>
 
 // #define SLA_AUTOSUPPORTS_DEBUG
 

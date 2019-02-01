@@ -52,20 +52,7 @@ SLAAutoSupports::SLAAutoSupports(const TriangleMesh& mesh, const sla::EigenMesh3
                                    const Config& config, std::function<void(void)> throw_on_cancel)
 : m_config(config), m_V(emesh.V), m_F(emesh.F), m_throw_on_cancel(throw_on_cancel)
 {
-    // Find all separate islands that will need support. The coord_t number denotes height
-    // of a point just below the mesh (so that we can later project the point precisely
-    // on the mesh by raycasting (done by igl) and not risking we will place the point inside).
-    /*std::vector<std::pair<ExPolygon, coord_t>> islands = */
     process(slices, heights);
-
-    // Uniformly cover each of the islands with support points.
-    /*for (const auto& island : islands) {
-        std::vector<Vec3d> points = uniformly_cover(island);
-        m_throw_on_cancel();
-        project_upward_onto_mesh(points);
-        m_output.insert(m_output.end(), points.begin(), points.end());
-        m_throw_on_cancel();
-    }*/
     project_onto_mesh(m_output);
 }
 
@@ -104,10 +91,14 @@ void SLAAutoSupports::process(const std::vector<ExPolygons>& slices, const std::
         const ExPolygons& expolys_top = slices[i];
 
         const float height = (i>2 ? heights[i-3] : heights[0]-(heights[1]-heights[0]));
+        const float layer_height = (i!=0 ? heights[i]-heights[i-1] : heights[0]);
         
         const float safe_angle = 5.f * (M_PI/180.f); // smaller number - less supports
-        const float offset =  scale_((i!=0 ? heights[i]-heights[i-1] : heights[0]) / std::tan(safe_angle));
-        const float pixel_area = 0.047f * 0.047f; // FIXME: calculate actual pixel area from printer config
+        const float offset =  scale_(layer_height / std::tan(safe_angle));
+
+        // FIXME: calculate actual pixel area from printer config:
+        //const float pixel_area = pow(wxGetApp().preset_bundle->project_config.option<ConfigOptionFloat>("display_width") / wxGetApp().preset_bundle->project_config.option<ConfigOptionInt>("display_pixels_x"), 2.f); //
+        const float pixel_area = pow(0.047f, 2.f);
 
         // Check all ExPolygons on this slice and check whether they are new or belonging to something below.
         for (const ExPolygon& polygon : expolys_top) {
@@ -119,12 +110,11 @@ void SLAAutoSupports::process(const std::vector<ExPolygons>& slices, const std::
                 const ExPolygon* bottom = s.polygon;
                 if (polygon.overlaps(*bottom) || bottom->overlaps(polygon)) {
                     m_structures_new.back().structures_below.push_back(&s);
+
                     coord_t centroids_dist = (bottom->contour.centroid() - polygon.contour.centroid()).norm();
-                    if (centroids_dist != 0) {
-                        float mult = std::min(1.f, 1.f - std::min(1.f, 500.f * (float)(centroids_dist * centroids_dist) / (float)bottom->area()));
-                        s.supports_force *= mult;
-                    }
-                    //s.supports_force *= std::min(1.f, ((float)polygon.area()/(float)bottom->area()));
+                    float mult = std::min(1.f, 1.f - std::min(1.f, (1600.f * layer_height) * (float)(centroids_dist * centroids_dist) / (float)bottom->area()));
+                    s.supports_force *= mult;
+                    s.supports_force *= std::min(1.f, 20.f * ((float)bottom->area() / (float)polygon.area()));
                 }
             }
         }
@@ -176,7 +166,7 @@ void SLAAutoSupports::process(const std::vector<ExPolygons>& slices, const std::
             }
 
             e = diff_ex(ExPolygons{*s.polygon}, e);
-            s.supports_force /= std::max(1., (e_area / (s.polygon->area()*SCALING_FACTOR*SCALING_FACTOR)));
+            s.supports_force /= std::max(1., (layer_height / 0.3f) * (e_area / (s.polygon->area()*SCALING_FACTOR*SCALING_FACTOR)));
                 
                 
                 

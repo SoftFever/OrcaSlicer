@@ -910,6 +910,7 @@ private:
     bool m_multisample_allowed;
     bool m_regenerate_volumes;
     bool m_moving;
+    bool m_render_sla_auxiliaries;
 
     std::string m_color_by;
 
@@ -939,6 +940,9 @@ public:
     unsigned int get_volumes_count() const;
     void reset_volumes();
     int check_volumes_outside_state() const;
+
+    void toggle_sla_auxiliaries_visibility(bool visible);
+    void toggle_model_objects_visibility(bool visible, const ModelObject* mo = nullptr);
 
     void set_config(const DynamicPrintConfig* config);
     void set_process(BackgroundSlicingProcess* process);

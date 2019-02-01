@@ -485,13 +485,10 @@ private:
     bool m_lock_unique_islands = false;
     bool m_editing_mode = false;
     float m_new_point_head_diameter = 0.4f;
+    std::vector<sla::SupportPoint> m_editing_mode_cache;
 
 protected:
-    void on_set_state() override {
-        if (m_state == On && is_mesh_update_necessary()) {
-            update_mesh();
-        }
-    }
+    void on_set_state() override;
 
 #if ENABLE_IMGUI
     virtual void on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection) override;

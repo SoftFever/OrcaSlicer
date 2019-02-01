@@ -7,7 +7,7 @@
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Geometry.hpp"
 #include "libslic3r/Utils.hpp"
-#include "libslic3r/SLA/SLASupportTree.hpp"
+#include "libslic3r/SLA/SLACommon.hpp"
 #include "libslic3r/SLAPrint.hpp"
 
 #include <cstdio>
@@ -1792,13 +1792,17 @@ void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const G
             for (const SLAPrintObject* po : m_parent.sla_print()->objects()) {
                 if (po->model_object()->id() == model_object->id()) {
                     const Eigen::MatrixXd& points = po->get_support_points();
-                    for (unsigned int i=0; i<points.rows();++i) {
-                        Vec3f pos(po->trafo().inverse().cast<float>() * Vec3f(points(i,0), points(i,1), points(i,2)));
-                        model_object->sla_support_points.emplace_back(pos(0), pos(1), pos(2), points(i, 3), points(i, 4));
-                    }
+                    for (unsigned int i=0; i<points.rows();++i)
+                        model_object->sla_support_points.emplace_back(po->trafo().inverse().cast<float>() * Vec3f(points(i,0), points(i,1), points(i,2)),
+                                                                      points(i, 3), points(i, 4));
                     break;
                 }
             }
+        }
+        m_editing_mode_cache = m_model_object->sla_support_points; // make a copy of ModelObject's support points
+        if (m_state == On) {
+            m_parent.toggle_model_objects_visibility(false);
+            m_parent.toggle_model_objects_visibility(true, m_model_object);
         }
     }
 }
@@ -1809,7 +1813,7 @@ void GLGizmoSlaSupports::on_render(const GLCanvas3D::Selection& selection) const
     ::glEnable(GL_DEPTH_TEST);
 
     for (unsigned int i=0; i<m_grabbers.size(); ++i) {
-        bool supports_new_island = m_lock_unique_islands && m_model_object && m_model_object->sla_support_points[i].is_new_island;
+        bool supports_new_island = m_lock_unique_islands && m_editing_mode_cache[i].is_new_island;
         Grabber& g = m_grabbers[i];
         if (m_editing_mode) {
             g.color[0] = supports_new_island ? 0.f : 1.f;
@@ -1888,7 +1892,7 @@ void GLGizmoSlaSupports::render_grabbers(const GLCanvas3D::Selection& selection,
         ::glPushMatrix();
         ::glLoadIdentity();
         ::glTranslated(grabber_world_position(0), grabber_world_position(1), grabber_world_position(2) + z_shift);
-        ::gluSphere(m_quadric, m_model_object->sla_support_points[i].head_front_radius, 64, 36);
+        ::gluSphere(m_quadric, m_editing_mode_cache[i].head_front_radius, 64, 36);
         ::glPopMatrix();
     }
 
@@ -1938,7 +1942,7 @@ void GLGizmoSlaSupports::update_mesh()
     // we'll now reload Grabbers (selection might have changed):
     m_grabbers.clear();
 
-    for (const sla::SupportPoint& point : m_model_object->sla_support_points) {
+    for (const sla::SupportPoint& point : m_editing_mode_cache) {
         m_grabbers.push_back(Grabber());
         m_grabbers.back().center = point.pos.cast<double>();
     }
@@ -2009,7 +2013,7 @@ void GLGizmoSlaSupports::clicked_on_object(const Vec2d& mouse_position)
     m_grabbers.push_back(Grabber());
     m_grabbers.back().center = new_pos.cast<double>();
     
-    m_model_object->sla_support_points.emplace_back(new_pos, m_new_point_head_diameter, false);
+    m_editing_mode_cache.emplace_back(new_pos, m_new_point_head_diameter, false);
 
     // This should trigger the support generation
     // wxGetApp().plater()->reslice();
@@ -2024,16 +2028,16 @@ void GLGizmoSlaSupports::delete_current_grabber(bool delete_all)
 
     if (delete_all) {
         m_grabbers.clear();
-        m_model_object->sla_support_points.clear();
+        m_editing_mode_cache.clear();
 
         // This should trigger the support generation
         // wxGetApp().plater()->reslice();
     }
     else
         if (m_hover_id != -1) {
-            if (!m_model_object->sla_support_points[m_hover_id].is_new_island || !m_lock_unique_islands) {
+            if (!m_editing_mode_cache[m_hover_id].is_new_island || !m_lock_unique_islands) {
                 m_grabbers.erase(m_grabbers.begin() + m_hover_id);
-                m_model_object->sla_support_points.erase(m_model_object->sla_support_points.begin() + m_hover_id);
+                m_editing_mode_cache.erase(m_editing_mode_cache.begin() + m_hover_id);
                 m_hover_id = -1;
 
                 // This should trigger the support generation
@@ -2045,15 +2049,15 @@ void GLGizmoSlaSupports::delete_current_grabber(bool delete_all)
 
 void GLGizmoSlaSupports::on_update(const UpdateData& data, const GLCanvas3D::Selection& selection)
 {
-    if (m_editing_mode && m_hover_id != -1 && data.mouse_pos && (!m_model_object->sla_support_points[m_hover_id].is_new_island || !m_lock_unique_islands)) {
+    if (m_editing_mode && m_hover_id != -1 && data.mouse_pos && (!m_editing_mode_cache[m_hover_id].is_new_island || !m_lock_unique_islands)) {
         Vec3f new_pos;
         try {
             new_pos = unproject_on_mesh(Vec2d((*data.mouse_pos)(0), (*data.mouse_pos)(1)));
         }
         catch (...) { return; }
         m_grabbers[m_hover_id].center = new_pos.cast<double>();
-        m_model_object->sla_support_points[m_hover_id].pos = new_pos;
-        m_model_object->sla_support_points[m_hover_id].is_new_island = false;
+        m_editing_mode_cache[m_hover_id].pos = new_pos;
+        m_editing_mode_cache[m_hover_id].is_new_island = false;
         // Do not update immediately, wait until the mouse is released.
         // m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
     }
@@ -2102,24 +2106,32 @@ RENDER_AGAIN:
     m_imgui->begin(on_get_name(), ImGuiWindowFlags_NoMove |/* ImGuiWindowFlags_NoResize | */ImGuiWindowFlags_NoCollapse);
 
     ImGui::PushItemWidth(100.0f);
-    
-    bool force_refresh = m_editing_mode;
+
+    /*bool force_refresh = m_editing_mode;
     if (m_imgui->radio_button(_(L("Automatic")), !m_editing_mode))
         m_editing_mode = false;
     ImGui::SameLine();
     if (m_imgui->radio_button(_(L("Manual")), m_editing_mode))
         m_editing_mode = true;
     force_refresh = force_refresh != m_editing_mode;
-    m_imgui->text("");
-    
-        
+
+    if (force_refresh) { // mode has just changed!
+        if (m_editing_mode)
+            m_editing_mode_cache = m_model_object->sla_support_points;
+        else
+            m_model_object->sla_support_points = m_editing_mode_cache;
+    }
+    */
+
+    bool force_refresh = false;
+    bool remove_all_points = false;
+    bool old_editing_state = m_editing_mode;
 
     if (m_editing_mode) {
         m_imgui->text(_(L("Left mouse click - add point")));
         m_imgui->text(_(L("Right mouse click - remove point")));
-        m_imgui->text(" ");
-        
-      
+        m_imgui->text(" ");  // vertical gap
+
         std::vector<wxString> options = {"0.2", "0.4", "0.6", "0.8", "1.0"};
         std::stringstream ss;
         ss << std::setprecision(1) << m_new_point_head_diameter;
@@ -2130,30 +2142,77 @@ RENDER_AGAIN:
 
         bool changed = m_lock_unique_islands;
         m_imgui->checkbox(_(L("Lock supports under new islands")), m_lock_unique_islands);
-        force_refresh |= changed != m_lock_unique_islands;                
+        force_refresh |= changed != m_lock_unique_islands;
+
+        remove_all_points = m_imgui->button(_(L("Remove all points")) + (m_model_object == nullptr ? "" : " (" + std::to_string(m_editing_mode_cache.size())+")"));
+
+        m_imgui->text(" "); // vertical gap
+
+        bool apply_changes = m_imgui->button(_(L("Apply changes")));
+        if (apply_changes) {
+            m_model_object->sla_support_points = m_editing_mode_cache;
+            m_editing_mode = false;
+            force_refresh = true;
+            m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
+        }
+        ImGui::SameLine();
+        bool discard_changes = m_imgui->button(_(L("Cancel")));
+        if (discard_changes) {
+            m_editing_mode_cache = m_model_object->sla_support_points;
+            m_editing_mode = false;
+
+            m_grabbers.clear();
+            for (const sla::SupportPoint& point : m_editing_mode_cache) {
+                m_grabbers.push_back(Grabber());
+                m_grabbers.back().center = point.pos.cast<double>();
+            }
+
+            force_refresh = true;
+        }
     }
     else {
+        //m_imgui->text("Some settings could");
+        //m_imgui->text("be exposed here...");
+        m_imgui->text("");
+        m_imgui->text("");
+
+        m_imgui->text("");
+
         bool generate =m_imgui->button(_(L("Auto-generate points")));
         force_refresh |= generate;
-        if (generate)
+        if (generate) {
+            m_model_object->sla_support_points.clear();
+            m_grabbers.clear();
+            m_editing_mode_cache.clear();
             wxGetApp().plater()->reslice();
-    }
-    
-    bool remove_all_clicked = m_imgui->button(_(L("Remove all points")) + (m_model_object == nullptr ? "" : " (" + std::to_string(m_model_object->sla_support_points.size())+")"));
-
-    m_imgui->end();
-
-    if (remove_all_clicked) {
-        delete_current_grabber(true);
-        if (first_run) {
-            first_run = false;
-            goto RENDER_AGAIN;
+        }
+        ImGui::SameLine();
+        bool editing_clicked = m_imgui->button("Editing");
+        if (editing_clicked) {
+            m_editing_mode_cache = m_model_object->sla_support_points;
+            m_editing_mode = true;
         }
     }
 
-    if (remove_all_clicked || force_refresh) {
+    m_imgui->end();
+
+    if (m_editing_mode != old_editing_state) { // user just toggled between editing/non-editing mode
+        m_parent.toggle_sla_auxiliaries_visibility(!m_editing_mode);
+        force_refresh = true;
+    }
+
+
+    if (remove_all_points) {
+        force_refresh = true;
+        delete_current_grabber(true);
+        /*if (first_run) {
+            first_run = false;
+            goto RENDER_AGAIN;
+        }*/
+    }
+
+    if (force_refresh) {
         m_parent.reload_scene(true);
-        m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
     }
 }
 #endif // ENABLE_IMGUI
@@ -2172,6 +2231,20 @@ bool GLGizmoSlaSupports::on_is_selectable() const
 std::string GLGizmoSlaSupports::on_get_name() const
 {
     return L("SLA Support Points [L]");
+}
+
+void GLGizmoSlaSupports::on_set_state()
+{
+    if (m_state == On) {
+        if (is_mesh_update_necessary())
+            update_mesh();
+
+        m_parent.toggle_model_objects_visibility(false);
+        if (m_model_object)
+            m_parent.toggle_model_objects_visibility(true, m_model_object);
+    }
+    if (m_state == Off)
+        m_parent.toggle_model_objects_visibility(true);
 }
 
 

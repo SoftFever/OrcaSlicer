@@ -12,7 +12,7 @@
 #include <utility>
 #include <vector>
 #include "Geometry.hpp"
-#include <libslic3r/SLA/SLASupportTree.hpp>
+#include <libslic3r/SLA/SLACommon.hpp>
 
 namespace Slic3r {
 

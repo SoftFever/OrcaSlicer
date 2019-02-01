@@ -776,10 +776,19 @@ namespace Slic3r {
             std::vector<std::string> objects;
             boost::split(objects, buffer, boost::is_any_of("\n"), boost::token_compress_off);
 
+            // Info on format versioning - see 3mf.hpp
+            int version = 0;
+            if (!objects.empty() && objects[0].find("support_points_format_version=") != std::string::npos) {
+                objects[0].erase(objects[0].begin(), objects[0].begin() + 30); // removes the string
+                version = std::stoi(objects[0]);
+                objects.erase(objects.begin()); // pop the header
+            }
+
             for (const std::string& object : objects)
             {
                 std::vector<std::string> object_data;
                 boost::split(object_data, object, boost::is_any_of("|"), boost::token_compress_off);
+
                 if (object_data.size() != 2)
                 {
                     add_error("Error while reading object data");
@@ -813,12 +822,22 @@ namespace Slic3r {
 
                 std::vector<sla::SupportPoint> sla_support_points;
 
-                for (unsigned int i=0; i<object_data_points.size(); i+=5)
+                if (version == 0) {
+                    for (unsigned int i=0; i<object_data_points.size(); i+=3)
+                    sla_support_points.emplace_back(std::atof(object_data_points[i+0].c_str()),
+                                                    std::atof(object_data_points[i+1].c_str()),
+                                                    std::atof(object_data_points[i+2].c_str()),
+                                                    0.4f,
+                                                    false);
+                }
+                if (version == 1) {
+                    for (unsigned int i=0; i<object_data_points.size(); i+=5)
                     sla_support_points.emplace_back(std::atof(object_data_points[i+0].c_str()),
                                                     std::atof(object_data_points[i+1].c_str()),
                                                     std::atof(object_data_points[i+2].c_str()),
                                                     std::atof(object_data_points[i+3].c_str()),
                                                     std::atof(object_data_points[i+4].c_str()));
+                }
 
                 if (!sla_support_points.empty())
                     m_sla_support_points.insert(IdToSlaSupportPointsMap::value_type(object_id, sla_support_points));
@@ -1983,6 +2002,9 @@ namespace Slic3r {
 
         if (!out.empty())
         {
+            // Adds version header at the beginning:
+            out = std::string("support_points_format_version=") + std::to_string(support_points_format_version) + std::string("\n") + out;
+
             if (!mz_zip_writer_add_mem(&archive, SLA_SUPPORT_POINTS_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION))
             {
                 add_error("Unable to add sla support points file to archive");
