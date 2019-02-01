@@ -1617,6 +1617,9 @@ void GLCanvas3D::Selection::clear()
 
     _update_type();
     m_bounding_box_dirty = true;
+
+    // resets the cache in the sidebar
+    wxGetApp().obj_manipul()->reset_cache();
 }
 
 // Update the selection based on the map from old indices to new indices after m_volumes changed.
@@ -1817,7 +1820,7 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation, bool local)
         if (rot_axis_max != 2 && first_volume_idx != -1) {
             // Generic rotation, but no rotation around the Z axis.
             // Always do a local rotation (do not consider the selection to be a rigid body).
-            assert(rotation.z() == 0);
+            assert(is_approx(rotation.z(), 0.0));
             const GLVolume &first_volume = *(*m_volumes)[first_volume_idx];
             const Vec3d    &rotation     = first_volume.get_instance_rotation();
             double z_diff = rotation_diff_z(m_cache.volumes_data[first_volume_idx].get_instance_rotation(), m_cache.volumes_data[i].get_instance_rotation());
@@ -1842,7 +1845,7 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation, bool local)
         else if (is_single_volume() || is_single_modifier())
         {
             if (local)
-                volume.set_volume_rotation(rotation);
+                volume.set_volume_rotation(volume.get_volume_rotation() + rotation);
             else
             {
                 Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), rotation);
@@ -2259,7 +2262,7 @@ void GLCanvas3D::Selection::render_sidebar_hints(const std::string& sidebar_fiel
     }
     else if (is_single_volume() || is_single_modifier())
     {
-        Transform3d orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
+        Transform3d orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true) * (*m_volumes)[*m_list.begin()]->get_volume_transformation().get_matrix(true, false, true, true);
         ::glTranslated(center(0), center(1), center(2));
         ::glMultMatrixd(orient_matrix.data());
     }
@@ -3995,10 +3998,8 @@ wxDEFINE_EVENT(EVT_GLCANVAS_ARRANGE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_QUESTION_MARK, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_INCREASE_INSTANCES, Event<int>);
 wxDEFINE_EVENT(EVT_GLCANVAS_INSTANCE_MOVED, SimpleEvent);
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 wxDEFINE_EVENT(EVT_GLCANVAS_INSTANCE_ROTATED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_INSTANCE_SCALED, SimpleEvent);
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 wxDEFINE_EVENT(EVT_GLCANVAS_WIPETOWER_MOVED, Vec3dEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, Event<bool>);
 wxDEFINE_EVENT(EVT_GLCANVAS_UPDATE_GEOMETRY, Vec3dsEvent<2>);
@@ -5361,9 +5362,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     bool already_selected = m_selection.contains_volume(m_hover_volume_id);
                     bool shift_down = evt.ShiftDown();
 
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
                     Selection::IndicesList curr_idxs = m_selection.get_volume_idxs();
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 
                     if (already_selected && shift_down)
                         m_selection.remove(m_hover_volume_id);
@@ -5380,21 +5379,14 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #endif // ENABLE_MOVE_MIN_THRESHOLD
                     }
 
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
                     if (curr_idxs != m_selection.get_volume_idxs())
                     {
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 
                         m_gizmos.update_on_off_state(m_selection);
                         _update_gizmos_data();
-#if !ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
-                        wxGetApp().obj_manipul()->update_settings_value(m_selection);
-#endif // !ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
                         post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
                         m_dirty = true;
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
                     }
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
                 }
             }
 
@@ -5789,7 +5781,6 @@ void GLCanvas3D::do_move()
             ModelObject* model_object = m_model->objects[object_idx];
             if (model_object != nullptr)
             {
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
                 if (selection_mode == Selection::Instance)
                     model_object->instances[instance_idx]->set_offset(v->get_instance_offset());
                 else if (selection_mode == Selection::Volume)
@@ -5797,20 +5788,6 @@ void GLCanvas3D::do_move()
 
                 object_moved = true;
                 model_object->invalidate_bounding_box();
-#else
-                if (selection_mode == Selection::Instance)
-                {
-                    model_object->instances[instance_idx]->set_offset(v->get_instance_offset());
-                    object_moved = true;
-                }
-                else if (selection_mode == Selection::Volume)
-                {
-                    model_object->volumes[volume_idx]->set_offset(v->get_volume_offset());
-                    object_moved = true;
-                }
-                if (object_moved)
-                    model_object->invalidate_bounding_box();
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
             }
         }
         else if (object_idx == 1000)
@@ -5881,12 +5858,8 @@ void GLCanvas3D::do_rotate()
         m->translate_instance(i.second, shift);
     }
 
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     if (!done.empty())
         post_event(SimpleEvent(EVT_GLCANVAS_INSTANCE_ROTATED));
-#else
-    post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 }
 
 void GLCanvas3D::do_scale()
@@ -5937,12 +5910,8 @@ void GLCanvas3D::do_scale()
         m->translate_instance(i.second, shift);
     }
 
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     if (!done.empty())
         post_event(SimpleEvent(EVT_GLCANVAS_INSTANCE_ROTATED));
-#else
-    post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 }
 
 void GLCanvas3D::do_flatten()

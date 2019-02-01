@@ -32,8 +32,6 @@
 //====================
 #define ENABLE_1_42_0_ALPHA2 1
 
-// Improves navigation between sidebar fields
-#define ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION (1 && ENABLE_1_42_0_ALPHA2)
 // Adds print bed models to 3D scene
 #define ENABLE_PRINT_BED_MODELS (1 && ENABLE_1_42_0_ALPHA2)
 #endif // _technologies_h_
