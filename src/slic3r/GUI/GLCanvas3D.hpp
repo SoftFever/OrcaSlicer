@@ -1043,7 +1043,6 @@ public:
     void on_timer(wxTimerEvent& evt);
     void on_mouse(wxMouseEvent& evt);
     void on_paint(wxPaintEvent& evt);
-    void on_key_down(wxKeyEvent& evt);
 
     Size get_canvas_size() const;
     Point get_local_mouse_position() const;

@@ -5056,7 +5056,6 @@ void GLCanvas3D::bind_event_handlers()
         m_canvas->Bind(wxEVT_MIDDLE_DCLICK, &GLCanvas3D::on_mouse, this);
         m_canvas->Bind(wxEVT_RIGHT_DCLICK, &GLCanvas3D::on_mouse, this);
         m_canvas->Bind(wxEVT_PAINT, &GLCanvas3D::on_paint, this);
-        m_canvas->Bind(wxEVT_KEY_DOWN, &GLCanvas3D::on_key_down, this);
     }
 }
 
@@ -5070,7 +5069,7 @@ void GLCanvas3D::unbind_event_handlers()
         m_canvas->Unbind(wxEVT_MOUSEWHEEL, &GLCanvas3D::on_mouse_wheel, this);
         m_canvas->Unbind(wxEVT_TIMER, &GLCanvas3D::on_timer, this);
         m_canvas->Unbind(wxEVT_LEFT_DOWN, &GLCanvas3D::on_mouse, this);
-        m_canvas->Unbind(wxEVT_LEFT_UP, &GLCanvas3D::on_mouse, this);
+		m_canvas->Unbind(wxEVT_LEFT_UP, &GLCanvas3D::on_mouse, this);
         m_canvas->Unbind(wxEVT_MIDDLE_DOWN, &GLCanvas3D::on_mouse, this);
         m_canvas->Unbind(wxEVT_MIDDLE_UP, &GLCanvas3D::on_mouse, this);
         m_canvas->Unbind(wxEVT_RIGHT_DOWN, &GLCanvas3D::on_mouse, this);
@@ -5082,7 +5081,6 @@ void GLCanvas3D::unbind_event_handlers()
         m_canvas->Unbind(wxEVT_MIDDLE_DCLICK, &GLCanvas3D::on_mouse, this);
         m_canvas->Unbind(wxEVT_RIGHT_DCLICK, &GLCanvas3D::on_mouse, this);
         m_canvas->Unbind(wxEVT_PAINT, &GLCanvas3D::on_paint, this);
-        m_canvas->Unbind(wxEVT_KEY_DOWN, &GLCanvas3D::on_key_down, this);
     }
 }
 
@@ -5667,24 +5665,6 @@ void GLCanvas3D::on_paint(wxPaintEvent& evt)
     else
         // Call render directly, so it gets initialized immediately, not from On Idle handler.
         this->render();
-}
-
-void GLCanvas3D::on_key_down(wxKeyEvent& evt)
-{
-    if (evt.HasModifiers())
-        evt.Skip();
-    else
-    {
-        int key = evt.GetKeyCode();
-#ifdef __WXOSX__
-        if (key == WXK_BACK)
-#else
-        if (key == WXK_DELETE)
-#endif // __WXOSX__
-            post_event(SimpleEvent(EVT_GLCANVAS_REMOVE_OBJECT));
-        else
-            evt.Skip();
-    }
 }
 
 Size GLCanvas3D::get_canvas_size() const
