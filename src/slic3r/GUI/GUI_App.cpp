@@ -561,7 +561,13 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
     local_menu->Append(config_id_base + ConfigMenuTakeSnapshot, _(L("Take Configuration &Snapshot")), _(L("Capture a configuration snapshot")));
     // 	local_menu->Append(config_id_base + ConfigMenuUpdate, 		_(L("Check for updates")), 					_(L("Check for configuration updates")));
     local_menu->AppendSeparator();
-    local_menu->Append(config_id_base + ConfigMenuPreferences, _(L("&Preferences")) + dots + "\tCtrl+P", _(L("Application preferences")));
+    local_menu->Append(config_id_base + ConfigMenuPreferences, _(L("&Preferences")) + dots + 
+#ifdef __APPLE__
+        "\tCtrl+,",
+#else
+        "\tCtrl+P",
+#endif
+        _(L("Application preferences")));
     local_menu->AppendSeparator();
     auto mode_menu = new wxMenu();
     mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeSimple, _(L("Simple")), _(L("Simple View Mode")));
