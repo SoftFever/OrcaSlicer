@@ -5101,7 +5101,11 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 {
     // see include/wx/defs.h enum wxKeyCode
     int keyCode = evt.GetKeyCode();
-    if (evt.GetModifiers() == wxMOD_CONTROL) {
+    int ctrlMask = wxMOD_CONTROL;
+#ifdef __APPLE__
+    ctrlMask |= wxMOD_RAW_CONTROL;
+#endif /* __APPLE__ */
+    if ((evt.GetModifiers() & ctrlMask) != 0) {
         switch (keyCode) {
         case WXK_CONTROL_A: post_event(SimpleEvent(EVT_GLCANVAS_SELECT_ALL)); break;
 #ifdef __APPLE__
