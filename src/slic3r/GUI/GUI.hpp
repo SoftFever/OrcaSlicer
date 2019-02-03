@@ -27,7 +27,11 @@ void enable_screensaver();
 bool debugged();
 void break_to_debugger();
 
-AppConfig*		get_app_config();
+// Platform specific Ctrl+/Alt+ (Windows, Linux) vs. ⌘/⌥ (OSX) prefixes 
+extern const std::string& shortkey_ctrl_prefix();
+extern const std::string& shortkey_alt_prefix();
+
+extern AppConfig* get_app_config();
 
 extern void add_menus(wxMenuBar *menu, int event_preferences_changed, int event_language_change);
 

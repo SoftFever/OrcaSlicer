@@ -6073,7 +6073,7 @@ bool GLCanvas3D::_init_toolbar()
     GLToolbarItem::Data item;
 
     item.name = "add";
-    item.tooltip = GUI::L_str("Add... [Ctrl+I]");
+    item.tooltip = GUI::L_str("Add...") + " [" + GUI::shortkey_ctrl_prefix() + "I]";
     item.sprite_id = 0;
     item.is_toggable = false;
     item.action_event = EVT_GLTOOLBAR_ADD;
@@ -6081,7 +6081,7 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "delete";
-    item.tooltip = GUI::L_str("Delete [Del]");
+    item.tooltip = GUI::L_str("Delete") + " [Del]";
     item.sprite_id = 1;
     item.is_toggable = false;
     item.action_event = EVT_GLTOOLBAR_DELETE;
@@ -6089,7 +6089,7 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "deleteall";
-    item.tooltip = GUI::L_str("Delete all [Ctrl+Del]");
+    item.tooltip = GUI::L_str("Delete all") + " [" + GUI::shortkey_ctrl_prefix() + "Del]";
     item.sprite_id = 2;
     item.is_toggable = false;
     item.action_event = EVT_GLTOOLBAR_DELETE_ALL;

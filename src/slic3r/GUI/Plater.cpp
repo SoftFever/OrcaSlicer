@@ -2555,7 +2555,7 @@ void Plater::priv::init_view_toolbar()
     GLToolbarItem::Data item;
 
     item.name = "3D";
-    item.tooltip = GUI::L_str("3D editor view [Ctrl+5]");
+    item.tooltip = GUI::L_str("3D editor view") + " [" + GUI::shortkey_ctrl_prefix() + "5]";
     item.sprite_id = 0;
     item.action_event = EVT_GLVIEWTOOLBAR_3D;
     item.is_toggable = false;
@@ -2563,7 +2563,7 @@ void Plater::priv::init_view_toolbar()
         return;
 
     item.name = "Preview";
-    item.tooltip = GUI::L_str("Preview [Ctrl+6]");
+    item.tooltip = GUI::L_str("Preview") + " [" + GUI::shortkey_ctrl_prefix() + "6]";
     item.sprite_id = 1;
     item.action_event = EVT_GLVIEWTOOLBAR_PREVIEW;
     item.is_toggable = false;
