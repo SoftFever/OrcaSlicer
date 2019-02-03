@@ -547,13 +547,26 @@ void Model::reset_auto_extruder_id()
     s_auto_extruder_id = 1;
 }
 
-std::string Model::propose_export_file_name() const
+// Propose a filename including path derived from the ModelObject's input path.
+// If object's name is filled in, use the object name, otherwise use the input name.
+std::string Model::propose_export_file_name_and_path() const
 {
     std::string input_file;
     for (const ModelObject *model_object : this->objects)
         for (ModelInstance *model_instance : model_object->instances)
             if (model_instance->is_printable()) {
-                input_file = model_object->name.empty() ? model_object->input_file : model_object->name;
+                input_file = model_object->input_file;
+                if (! model_object->name.empty()) {
+                    if (input_file.empty())
+                        // model_object->input_file was empty, just use model_object->name
+                        input_file = model_object->name;
+                    else {
+                        // Replace file name in input_file with model_object->name, but keep the path and file extension.
+						input_file = (boost::filesystem::path(model_object->name).parent_path().empty()) ?
+							(boost::filesystem::path(input_file).parent_path() / model_object->name).make_preferred().string() :
+							model_object->name;
+					}
+                }
                 if (! input_file.empty())
                     goto end;
                 // Other instances will produce the same name, skip them.

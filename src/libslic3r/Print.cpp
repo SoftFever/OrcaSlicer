@@ -421,8 +421,6 @@ void Print::add_model_object(ModelObject* model_object, int idx)
         src_normalized.normalize();
         object->config_apply(src_normalized, true);
     }
-    
-    this->update_object_placeholders();
 }
 
 bool Print::apply_config(DynamicPrintConfig config)
@@ -1095,9 +1093,6 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
             }
         }
     }
-
-    //FIXME there may be a race condition with the G-code export running at the background thread.
-    this->update_object_placeholders();
 
 #ifdef _DEBUG
     check_model_ids_equal(m_model, model);
@@ -1855,6 +1850,9 @@ int Print::get_extruder(const ExtrusionEntityCollection& fill, const PrintRegion
                                     std::max<int>(region.config().perimeter_extruder.value - 1, 0);
 }
 
+// Generate a recommended G-code output file name based on the format template, default extension, and template parameters
+// (timestamps, object placeholders derived from the model, current placeholder prameters and print statistics.
+// Use the final print statistics if available, or just keep the print statistics placeholders if not available yet (before G-code is finalized).
 std::string Print::output_filename() const 
 { 
     // Set the placeholders for the data know first after the G-code export is finished.

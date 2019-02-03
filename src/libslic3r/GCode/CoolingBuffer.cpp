@@ -252,8 +252,10 @@ float new_feedrate_to_reach_time_stretch(
 			for (size_t i = 0; i < (*it)->n_lines_adjustable; ++i) {
 				const CoolingLine &line = (*it)->lines[i];
                 if (line.feedrate > min_feedrate && line.feedrate < new_feedrate)
-                    // Some of the line segments taken into account in the calculation of nomin / denom are now slower than new_feedrate.
-                    // Re-run the calculation with a new min_feedrate limit.
+                    // Some of the line segments taken into account in the calculation of nomin / denom are now slower than new_feedrate, 
+                    // which makes the new_feedrate lower than it should be.
+                    // Re-run the calculation with a new min_feedrate limit, so that the segments with current feedrate lower than new_feedrate
+                    // are not taken into account.
                     goto not_finished_yet;
             }
         goto finished;
