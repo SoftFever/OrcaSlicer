@@ -4428,6 +4428,7 @@ void GLCanvas3D::update_toolbar_items_visibility()
     ConfigOptionMode mode = wxGetApp().get_mode();
     m_toolbar.set_item_visible("more", mode != comSimple);
     m_toolbar.set_item_visible("fewer", mode != comSimple);
+    m_toolbar.set_item_visible("splitvolumes", mode != comSimple);
     m_dirty = true;
 }
 #endif // ENABLE_MODE_AWARE_TOOLBAR_ITEMS
