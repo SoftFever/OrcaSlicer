@@ -635,35 +635,32 @@ void ConfigWizard::priv::load_vendors()
 	const auto rsrc_vendor_dir = fs::path(resources_dir()) / "profiles";
 
 	// Load vendors from the "vendors" directory in datadir
-	for (fs::directory_iterator it(vendor_dir); it != fs::directory_iterator(); ++it) {
-		if (it->path().extension() == ".ini") {
+    for (auto &dir_entry : boost::filesystem::directory_iterator(vendor_dir))
+		if (Slic3r::is_ini_file(dir_entry)) {
 			try {
-				auto vp = VendorProfile::from_ini(it->path());
+				auto vp = VendorProfile::from_ini(dir_entry.path());
 				vendors[vp.id] = std::move(vp);
 			}
 			catch (const std::exception& e) {
-				BOOST_LOG_TRIVIAL(error) << boost::format("Error loading vendor bundle %1%: %2%") % it->path() % e.what();
+				BOOST_LOG_TRIVIAL(error) << boost::format("Error loading vendor bundle %1%: %2%") % dir_entry.path() % e.what();
 			}
-
 		}
-	}
 
 	// Additionally load up vendors from the application resources directory, but only those not seen in the datadir
-	for (fs::directory_iterator it(rsrc_vendor_dir); it != fs::directory_iterator(); ++it) {
-		if (it->path().extension() == ".ini") {
-			const auto id = it->path().stem().string();
+    for (auto &dir_entry : boost::filesystem::directory_iterator(rsrc_vendor_dir))
+		if (Slic3r::is_ini_file(dir_entry)) {
+			const auto id = dir_entry.path().stem().string();
 			if (vendors.find(id) == vendors.end()) {
 				try {
-					auto vp = VendorProfile::from_ini(it->path());
-					vendors_rsrc[vp.id] = it->path().filename().string();
+					auto vp = VendorProfile::from_ini(dir_entry.path());
+					vendors_rsrc[vp.id] = dir_entry.path().filename().string();
 					vendors[vp.id] = std::move(vp);
 				}
 				catch (const std::exception& e) {
-					BOOST_LOG_TRIVIAL(error) << boost::format("Error loading vendor bundle %1%: %2%") % it->path() % e.what();
+					BOOST_LOG_TRIVIAL(error) << boost::format("Error loading vendor bundle %1%: %2%") % dir_entry.path() % e.what();
 				}
 			}
 		}
-	}
 
 	// Load up the set of vendors / models / variants the user has had enabled up till now
 	const AppConfig *app_config = GUI::get_app_config();
@@ -672,14 +669,15 @@ void ConfigWizard::priv::load_vendors()
 	} else {
 		// In case of legacy datadir, try to guess the preference based on the printer preset files that are present
 		const auto printer_dir = fs::path(Slic3r::data_dir()) / "printer";
-		for (fs::directory_iterator it(printer_dir); it != fs::directory_iterator(); ++it) {
-			auto needle = legacy_preset_map.find(it->path().filename().string());
-			if (needle == legacy_preset_map.end()) { continue; }
+	    for (auto &dir_entry : boost::filesystem::directory_iterator(printer_dir))
+	    	if (Slic3r::is_ini_file(dir_entry)) {
+				auto needle = legacy_preset_map.find(dir_entry.path().filename().string());
+				if (needle == legacy_preset_map.end()) { continue; }
 
-			const auto &model = needle->second.first;
-			const auto &variant = needle->second.second;
-			appconfig_vendors.set_variant("PrusaResearch", model, variant, true);
-		}
+				const auto &model = needle->second.first;
+				const auto &variant = needle->second.second;
+				appconfig_vendors.set_variant("PrusaResearch", model, variant, true);
+			}
 	}
 }
 

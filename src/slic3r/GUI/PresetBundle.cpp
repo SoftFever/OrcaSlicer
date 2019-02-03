@@ -243,7 +243,7 @@ std::string PresetBundle::load_system_presets()
     std::string errors_cummulative;
     bool        first = true;
     for (auto &dir_entry : boost::filesystem::directory_iterator(dir))
-        if (boost::filesystem::is_regular_file(dir_entry.status()) && boost::algorithm::iends_with(dir_entry.path().filename().string(), ".ini")) {
+        if (Slic3r::is_ini_file(dir_entry)) {
             std::string name = dir_entry.path().filename().string();
             // Remove the .ini suffix.
             name.erase(name.size() - 4);
