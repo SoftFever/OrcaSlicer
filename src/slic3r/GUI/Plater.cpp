@@ -1171,6 +1171,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     view3D_canvas->Bind(EVT_GLCANVAS_RIGHT_CLICK, &priv::on_right_click, this);
     view3D_canvas->Bind(EVT_GLCANVAS_REMOVE_OBJECT, [q](SimpleEvent&) { q->remove_selected(); });
     view3D_canvas->Bind(EVT_GLCANVAS_ARRANGE, [this](SimpleEvent&) { arrange(); });
+    view3D_canvas->Bind(EVT_GLCANVAS_SELECT_ALL, [this](SimpleEvent&) { this->q->select_all(); });
     view3D_canvas->Bind(EVT_GLCANVAS_QUESTION_MARK, [this](SimpleEvent&) { wxGetApp().keyboard_shortcuts(); });
     view3D_canvas->Bind(EVT_GLCANVAS_INCREASE_INSTANCES, [this](Event<int> &evt) 
         { if (evt.data == 1) this->q->increase_instances(); else if (this->can_decrease_instances()) this->q->decrease_instances(); });
@@ -1735,6 +1736,8 @@ void Plater::priv::arrange()
 
     // Guard the arrange process
     arranging.store(true);
+
+    wxBusyCursor wait;
 
     // Disable the arrange button (to prevent reentrancies, we will call wxYied)
     view3D->enable_toolbar_item("arrange", can_arrange());

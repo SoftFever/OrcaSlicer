@@ -324,12 +324,14 @@ void MainFrame::init_menubar()
     if (m_plater != nullptr)
     {
         editMenu = new wxMenu();
-        wxMenuItem* item_select_all = append_menu_item(editMenu, wxID_ANY, _(L("&Select all")) + "\tCtrl+A", _(L("Selects all objects")),
+        // \xA0 is a non-breaking space. It is entered here to spoil the automatic accelerators,
+        // as the simple numeric accelerators spoil all numeric data entry.
+        wxMenuItem* item_select_all = append_menu_item(editMenu, wxID_ANY, _(L("&Select all")) + "\t\xA0" + "Ctrl+\xA0" + "A", _(L("Selects all objects")),
             [this](wxCommandEvent&) { m_plater->select_all(); }, "");
         editMenu->AppendSeparator();
-        wxMenuItem* item_delete_sel = append_menu_item(editMenu, wxID_ANY, _(L("&Delete selected")) + "\tDel", _(L("Deletes the current selection")),
+        wxMenuItem* item_delete_sel = append_menu_item(editMenu, wxID_ANY, _(L("&Delete selected")) + "\t\xA0" + "Del", _(L("Deletes the current selection")),
             [this](wxCommandEvent&) { m_plater->remove_selected(); }, "");
-        wxMenuItem* item_delete_all = append_menu_item(editMenu, wxID_ANY, _(L("Delete &all")) + "\tCtrl+Del", _(L("Deletes all objects")),
+        wxMenuItem* item_delete_all = append_menu_item(editMenu, wxID_ANY, _(L("Delete &all")) + "\t\xA0" + "Ctrl+\xA0" + "Del", _(L("Deletes all objects")),
             [this](wxCommandEvent&) { m_plater->reset(); }, "");
 
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_select()); }, item_select_all->GetId());
@@ -388,7 +390,7 @@ void MainFrame::init_menubar()
     wxMenu* viewMenu = nullptr;
     if (m_plater) {
         viewMenu = new wxMenu();
-        // \xA0 is a non-breaing space. It is entered here to spoil the automatic accelerators,
+        // \xA0 is a non-breaking space. It is entered here to spoil the automatic accelerators,
         // as the simple numeric accelerators spoil all numeric data entry.
         // The camera control accelerators are captured by GLCanvas3D::on_char().
         wxMenuItem* item_iso = append_menu_item(viewMenu, wxID_ANY, _(L("&Iso")) + "\t\xA0" + "0", _(L("Iso View")), [this](wxCommandEvent&) { select_view("iso"); });

@@ -3995,6 +3995,7 @@ wxDEFINE_EVENT(EVT_GLCANVAS_VIEWPORT_CHANGED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_RIGHT_CLICK, Vec2dEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_REMOVE_OBJECT, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ARRANGE, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_SELECT_ALL, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_QUESTION_MARK, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_INCREASE_INSTANCES, Event<int>);
 wxDEFINE_EVENT(EVT_GLCANVAS_INSTANCE_MOVED, SimpleEvent);
@@ -5100,71 +5101,60 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
 
 void GLCanvas3D::on_char(wxKeyEvent& evt)
 {
-    if (evt.HasModifiers())
+    // see include/wx/defs.h enum wxKeyCode
+    int keyCode = evt.GetKeyCode();
+    if (evt.GetModifiers() == wxMOD_CONTROL) {
+        switch (keyCode) {
+        case WXK_CONTROL_A: post_event(SimpleEvent(EVT_GLCANVAS_SELECT_ALL)); break;
+#ifdef __APPLE__
+        case WXK_BACK: // the low cost Apple solutions are not equipped with a Delete key, use Backspace instead.
+#endif /* __APPLE__ */
+        case WXK_DELETE:    post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE_ALL)); break;
+        default:            evt.Skip();
+        }
+    } else if (evt.HasModifiers()) {
         evt.Skip();
-    else
-    {
-        int keyCode = evt.GetKeyCode();
-        switch (keyCode - 48)
+    } else {
+        switch (keyCode)
         {
-        // numerical input
-        case 0: { select_view("iso"); break; }
-        case 1: { select_view("top"); break; }
-        case 2: { select_view("bottom"); break; }
-        case 3: { select_view("front"); break; }
-        case 4: { select_view("rear"); break; }
-        case 5: { select_view("left"); break; }
-        case 6: { select_view("right"); break; }
+        // key ESC
+        case WXK_ESCAPE: { m_gizmos.reset_all_states(); m_dirty = true;  break; }
+#ifdef __APPLE__
+        case WXK_BACK: // the low cost Apple solutions are not equipped with a Delete key, use Backspace instead.
+#endif /* __APPLE__ */
+        case WXK_DELETE: post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE)); break;
+        case '0': { select_view("iso"); break; }
+        case '1': { select_view("top"); break; }
+        case '2': { select_view("bottom"); break; }
+        case '3': { select_view("front"); break; }
+        case '4': { select_view("rear"); break; }
+        case '5': { select_view("left"); break; }
+        case '6': { select_view("right"); break; }
+        case '+': { post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, +1)); break; }
+        case '-': { post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, -1)); break; }
+        case '?': { post_event(SimpleEvent(EVT_GLCANVAS_QUESTION_MARK)); break; }
+        case 'A':
+        case 'a': { post_event(SimpleEvent(EVT_GLCANVAS_ARRANGE)); break; }
+        case 'B':
+        case 'b': { zoom_to_bed(); break; }
+        case 'I':
+        case 'i': { set_camera_zoom(1.0f); break; }
+        case 'O':
+        case 'o': { set_camera_zoom(-1.0f); break; }
+        case 'Z':
+        case 'z': { m_selection.is_empty() ? zoom_to_volumes() : zoom_to_selection(); break; }
         default:
+        {
+            if (m_gizmos.handle_shortcut(keyCode, m_selection))
             {
-                // text input
-                switch (keyCode)
-                {
-                // key ESC
-                case 27: { m_gizmos.reset_all_states(); m_dirty = true;  break; }
-                // key +
-                case 43: { post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, +1)); break; }
-                // key -
-                case 45: { post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, -1)); break; }
-                // key ?
-                case 63: { post_event(SimpleEvent(EVT_GLCANVAS_QUESTION_MARK)); break; }
-                // key A/a
-                case 65:
-                case 97: { post_event(SimpleEvent(EVT_GLCANVAS_ARRANGE)); break; }
-                // key B/b
-                case 66:
-                case 98: { zoom_to_bed(); break; }
-                // key I/i
-                case 73:
-                case 105: { set_camera_zoom(1.0f); break; }
-                // key O/o
-                case 79:
-                case 111: { set_camera_zoom(-1.0f); break; }
-                // key Z/z
-                case 90:
-                case 122:
-                {
-                    if (m_selection.is_empty())
-                        zoom_to_volumes();
-                    else
-                        zoom_to_selection();
-
-                    break;
-                }
-                default:
-                {
-                    if (m_gizmos.handle_shortcut(keyCode, m_selection))
-                    {
-                        _update_gizmos_data();
-                        m_dirty = true;
-                    }
-                    else
-                        evt.Skip();
-
-                    break;
-                }
-                }
+                _update_gizmos_data();
+                m_dirty = true;
             }
+            else
+                evt.Skip();
+
+            break;
+        }
         }
     }
 }
