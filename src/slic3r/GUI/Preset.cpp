@@ -1156,6 +1156,18 @@ std::string PresetCollection::name() const
     }
 }
 
+std::string PresetCollection::section_name() const
+{
+    switch (this->type()) {
+    case Preset::TYPE_PRINT:        return "print";
+    case Preset::TYPE_FILAMENT:     return "filament";
+    case Preset::TYPE_SLA_PRINT:    return "sla_print";
+    case Preset::TYPE_SLA_MATERIAL: return "sla_material";
+    case Preset::TYPE_PRINTER:      return "printer";
+    default:                        return "invalid";
+    }
+}
+
 std::vector<std::string> PresetCollection::system_preset_names() const
 {
     size_t num = 0;
