@@ -2113,31 +2113,10 @@ void Plater::priv::fix_through_netfabb(const int obj_idx, const int vol_idx/* = 
 {
     if (obj_idx < 0)
         return;
-
-    const auto model_object = model.objects[obj_idx];
-    Model model_fixed;// = new Model();
-    fix_model_by_win10_sdk_gui(*model_object, this->fff_print, model_fixed);
-
-    auto new_obj_idxs = load_model_objects(model_fixed.objects);
-    if (new_obj_idxs.empty())
-        return;
-    
-    for(auto new_obj_idx : new_obj_idxs) {
-        auto o = model.objects[new_obj_idx];
-        o->clear_instances();
-        for (auto instance: model_object->instances)
-            o->add_instance(*instance);
-        o->invalidate_bounding_box();
-        
-        if (o->volumes.size() == model_object->volumes.size()) {
-            for (int i = 0; i < o->volumes.size(); i++) {
-                o->volumes[i]->config.apply(model_object->volumes[i]->config);
-            }
-        }
-        // FIXME restore volumes and their configs, layer_height_ranges, layer_height_profile
-    }
-    
-    remove(obj_idx);
+    fix_model_by_win10_sdk_gui(*model.objects[obj_idx], vol_idx);
+    this->object_list_changed();
+    this->update();
+    this->schedule_background_process();
 }
 
 void Plater::priv::set_current_panel(wxPanel* panel)

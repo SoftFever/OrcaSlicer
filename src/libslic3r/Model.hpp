@@ -385,6 +385,8 @@ public:
 
     const Transform3d& get_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const { return m_transformation.get_matrix(dont_translate, dont_rotate, dont_scale, dont_mirror); }
 
+    using ModelBase::set_new_unique_id;
+
 protected:
 	friend class Print;
     friend class SLAPrint;
