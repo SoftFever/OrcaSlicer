@@ -726,6 +726,12 @@ void GCode::_do_export(Print &print, FILE *file)
             _writeln(file, GCodeTimeEstimator::Silent_First_M73_Output_Placeholder_Tag);
     }
 
+	//Hold total number of print toolchanges
+    int          m_total_toolchanges = 1;
+    m_total_toolchanges = print.wipe_tower_data().number_of_toolchanges;
+    //Check for negative toolchanges (probably single extruder mode) and set to 1.
+    m_total_toolchanges = (print.wipe_tower_data().number_of_toolchanges < 0) ? 1 : print.wipe_tower_data().number_of_toolchanges;
+
     // Prepare the helper object for replacing placeholders in custom G-code and output filename.
     m_placeholder_parser = print.placeholder_parser();
     m_placeholder_parser.update_timestamp();
@@ -788,6 +794,7 @@ void GCode::_do_export(Print &print, FILE *file)
     // For the start / end G-code to do the priming and final filament pull in case there is no wipe tower provided.
     m_placeholder_parser.set("has_wipe_tower", has_wipe_tower);
     m_placeholder_parser.set("has_single_extruder_multi_material_priming", has_wipe_tower && print.config().single_extruder_multi_material_priming);
+    m_placeholder_parser.set("total_toolchanges", m_total_toolchanges);
     std::string start_gcode = this->placeholder_parser_process("start_gcode", print.config().start_gcode.value, initial_extruder_id);
     // Set bed temperature if the start G-code does not contain any bed temp control G-codes.
     this->_print_first_layer_bed_temperature(file, print, start_gcode, initial_extruder_id, true);
@@ -1057,6 +1064,7 @@ void GCode::_do_export(Print &print, FILE *file)
     print.m_print_statistics.clear();
     print.m_print_statistics.estimated_normal_print_time = m_normal_time_estimator.get_time_dhms();
     print.m_print_statistics.estimated_silent_print_time = m_silent_time_estimator_enabled ? m_silent_time_estimator.get_time_dhms() : "N/A";
+    print.m_print_statistics.total_toolchanges = m_total_toolchanges;
     std::vector<Extruder> extruders = m_writer.extruders();
     if (! extruders.empty()) {
         std::pair<std::string, unsigned int> out_filament_used_mm ("; filament used [mm] = ", 0);
