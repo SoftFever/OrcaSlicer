@@ -55,8 +55,7 @@ private:
 
 
     std::function<void(void)> m_throw_on_cancel;
-    const Eigen::MatrixXd& m_V;
-    const Eigen::MatrixXi& m_F;
+    const sla::EigenMesh3D& m_emesh;
 };
 
 

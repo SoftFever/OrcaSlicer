@@ -44,43 +44,43 @@ float SLAAutoSupports::distance_limit(float angle) const
     return 1./(2.4*get_required_density(angle));
 }*/
 
-
-
-
 SLAAutoSupports::SLAAutoSupports(const TriangleMesh& mesh, const sla::EigenMesh3D& emesh, const std::vector<ExPolygons>& slices, const std::vector<float>& heights,
                                    const Config& config, std::function<void(void)> throw_on_cancel)
-: m_config(config), m_V(emesh.V()), m_F(emesh.F()), m_throw_on_cancel(throw_on_cancel)
+: m_config(config), m_emesh(emesh), m_throw_on_cancel(throw_on_cancel)
 {
     process(slices, heights);
     project_onto_mesh(m_output);
 }
-
-
 
 void SLAAutoSupports::project_onto_mesh(std::vector<sla::SupportPoint>& points) const
 {
     // The function  makes sure that all the points are really exactly placed on the mesh.
     igl::Hit hit_up{0, 0, 0.f, 0.f, 0.f};
     igl::Hit hit_down{0, 0, 0.f, 0.f, 0.f};
-    
+
     for (sla::SupportPoint& support_point : points) {
         Vec3f& p = support_point.pos;
         // Project the point upward and downward and choose the closer intersection with the mesh.
-        bool up   = igl::ray_mesh_intersect(p.cast<float>(), Vec3f(0., 0., 1.), m_V, m_F, hit_up);
-        bool down = igl::ray_mesh_intersect(p.cast<float>(), Vec3f(0., 0., -1.), m_V, m_F, hit_down);
+        //bool up   = igl::ray_mesh_intersect(p.cast<float>(), Vec3f(0., 0., 1.), m_V, m_F, hit_up);
+        //bool down = igl::ray_mesh_intersect(p.cast<float>(), Vec3f(0., 0., -1.), m_V, m_F, hit_down);
+
+        sla::EigenMesh3D::hit_result hit_up   = m_emesh.query_ray_hit(p.cast<double>(), Vec3d(0., 0., 1.));
+        sla::EigenMesh3D::hit_result hit_down = m_emesh.query_ray_hit(p.cast<double>(), Vec3d(0., 0., -1.));
+
+        bool up   = hit_up.face() != -1;
+        bool down = hit_down.face() != -1;
 
         if (!up && !down)
             continue;
 
-        igl::Hit& hit = (!down || (hit_up.t < hit_down.t)) ? hit_up : hit_down;
-        int fid = hit.id;
-        Vec3f bc(1-hit.u-hit.v, hit.u, hit.v);
-        p = (bc(0) * m_V.row(m_F(fid, 0)) + bc(1) * m_V.row(m_F(fid, 1)) + bc(2)*m_V.row(m_F(fid, 2))).cast<float>();
+        sla::EigenMesh3D::hit_result& hit = (!down || (hit_up.distance() < hit_down.distance())) ? hit_up : hit_down;
+        //int fid = hit.face();
+        //Vec3f bc(1-hit.u-hit.v, hit.u, hit.v);
+        //p = (bc(0) * m_V.row(m_F(fid, 0)) + bc(1) * m_V.row(m_F(fid, 1)) + bc(2)*m_V.row(m_F(fid, 2))).cast<float>();
+
+        p = p + (hit.distance() * hit.direction()).cast<float>();
     }
 }
-
-
-
 
 void SLAAutoSupports::process(const std::vector<ExPolygons>& slices, const std::vector<float>& heights)
 {
