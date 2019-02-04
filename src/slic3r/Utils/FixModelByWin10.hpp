@@ -12,12 +12,12 @@ class Print;
 #ifdef HAS_WIN10SDK
 
 extern bool is_windows10();
-extern void fix_model_by_win10_sdk_gui(const ModelObject &model_object, const Print &print, Model &result);
+extern void fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx);
 
 #else /* HAS_WIN10SDK */
 
 inline bool is_windows10() { return false; }
-inline void fix_model_by_win10_sdk_gui(const ModelObject &, const Print &, Model &) {}
+inline void fix_model_by_win10_sdk_gui(ModelObject &, int) {}
 
 #endif /* HAS_WIN10SDK */
 

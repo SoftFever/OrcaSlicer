@@ -75,6 +75,30 @@ void break_to_debugger()
     #endif /* _WIN32 */
 }
 
+const std::string& shortkey_ctrl_prefix()
+{
+	static const std::string str = 
+#ifdef __APPLE__
+		"⌘"
+#else
+		"Ctrl+"
+#endif
+		;
+	return str;
+}
+
+const std::string& shortkey_alt_prefix()
+{
+	static const std::string str = 
+#ifdef __APPLE__
+		"⌥"
+#else
+		"Alt+"
+#endif
+		;
+	return str;
+}
+
 bool config_wizard_startup(bool app_config_exists)
 {
     if (!app_config_exists || wxGetApp().preset_bundle->printers.size() <= 1) {

@@ -216,7 +216,7 @@ void fix_model_by_win10_sdk(const std::string &path_src, const std::string &path
 
 	HRESULT hr = (*s_RoInitialize)(RO_INIT_MULTITHREADED);
 	{
-		on_progress(L("Exporting the source model"), 20);
+		on_progress(L("Exporting source model"), 20);
 
 		Microsoft::WRL::ComPtr<ABI::Windows::Storage::Streams::IRandomAccessStream>       fileStream;
 		hr = winrt_open_file_stream(boost::nowide::widen(path_src), ABI::Windows::Storage::FileAccessMode::FileAccessMode_Read, fileStream.GetAddressOf(), throw_on_cancel);
@@ -239,7 +239,7 @@ void fix_model_by_win10_sdk(const std::string &path_src, const std::string &path
 		unsigned num_meshes = 0;
 		hr = meshes->get_Size(&num_meshes);
 		
-		on_progress(L("Repairing the model by the Netfabb service"), 40);
+		on_progress(L("Repairing model by the Netfabb service"), 40);
 		
 		Microsoft::WRL::ComPtr<ABI::Windows::Foundation::IAsyncAction>					  repairAsync;
 		hr = model->RepairAsync(repairAsync.GetAddressOf());
@@ -248,7 +248,7 @@ void fix_model_by_win10_sdk(const std::string &path_src, const std::string &path
 			throw std::runtime_error(L("Mesh repair failed."));
 		repairAsync->GetResults();
 
-		on_progress(L("Loading the repaired model"), 60);
+		on_progress(L("Loading repaired model"), 60);
 
 		// Verify the number of meshes returned after the repair action.
 		meshes.Reset();
@@ -316,7 +316,7 @@ public:
    const char* what() const throw() { return "Model repair has been canceled"; }
 };
 
-void fix_model_by_win10_sdk_gui(const ModelObject &model_object, const Print &print, Model &result)
+void fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx)
 {
 	std::mutex 						mutex;
 	std::condition_variable			condition;
@@ -329,6 +329,12 @@ void fix_model_by_win10_sdk_gui(const ModelObject &model_object, const Print &pr
 	std::atomic<bool>				canceled = false;
 	std::atomic<bool>				finished = false;
 
+	std::vector<ModelVolume*> volumes;
+	if (volume_idx == -1)
+		volumes = model_object.volumes;
+	else
+		volumes.emplace_back(model_object.volumes[volume_idx]);
+
 	// Open a progress dialog.
 	wxProgressDialog progress_dialog(
 		_(L("Model fixing")),
@@ -336,43 +342,64 @@ void fix_model_by_win10_sdk_gui(const ModelObject &model_object, const Print &pr
 		100, nullptr, wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT);
 	// Executing the calculation in a background thread, so that the COM context could be created with its own threading model.
 	// (It seems like wxWidgets initialize the COM contex as single threaded and we need a multi-threaded context).
-	bool success  = false;
-	auto on_progress = [&mutex, &condition, &progress](const char *msg, unsigned prcnt) {
+	bool   success = false;
+	size_t ivolume = 0;
+	auto on_progress = [&mutex, &condition, &ivolume, &volumes, &progress](const char *msg, unsigned prcnt) {
         std::lock_guard<std::mutex> lk(mutex);
 		progress.message = msg;
-		progress.percent = prcnt;
+		progress.percent = (int)floor((float(prcnt) + float(ivolume) * 100.f) / float(volumes.size()));
 		progress.updated = true;
 	    condition.notify_all();
 	};
-	auto worker_thread = boost::thread([&model_object, &print, &result, on_progress, &success, &canceled, &finished]() {
+	auto worker_thread = boost::thread([&model_object, &volumes, &ivolume, on_progress, &success, &canceled, &finished]() {
 		try {
-			on_progress(L("Exporting the source model"), 0);
-			boost::filesystem::path path_src = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path();
-			path_src += ".3mf";
-			Model model;
-            DynamicPrintConfig config;
-			model.add_object(model_object);
-			if (! Slic3r::store_3mf(path_src.string().c_str(), &model, &config)) {
+			std::vector<TriangleMesh> meshes_repaired;
+			meshes_repaired.reserve(volumes.size());
+			for (; ivolume < volumes.size(); ++ ivolume) {
+				on_progress(L("Exporting source model"), 0);
+				boost::filesystem::path path_src = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path();
+				path_src += ".3mf";
+				Model model;
+				ModelObject *model_object = model.add_object();
+				model_object->add_volume(*volumes[ivolume]);
+				model_object->add_instance();
+				if (! Slic3r::store_3mf(path_src.string().c_str(), &model, nullptr)) {
+					boost::filesystem::remove(path_src);
+					throw std::runtime_error(L("Export of a temporary 3mf file failed"));
+				}
+				model.clear_objects();
+				model.clear_materials();
+				boost::filesystem::path path_dst = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path();
+				path_dst += ".3mf";
+				fix_model_by_win10_sdk(path_src.string().c_str(), path_dst.string(), on_progress, 
+					[&canceled]() { if (canceled) throw RepairCanceledException(); });
 				boost::filesystem::remove(path_src);
-				throw std::runtime_error(L("Export of a temporary 3mf file failed"));
+	            // PresetBundle bundle;
+				on_progress(L("Loading repaired model"), 80);
+				DynamicPrintConfig config;
+				bool loaded = Slic3r::load_3mf(path_dst.string().c_str(), &config, &model);
+			    boost::filesystem::remove(path_dst);
+				if (! loaded)
+	 				throw std::runtime_error(L("Import of the repaired 3mf file failed"));
+	 			if (model.objects.size() == 0)
+	 				throw std::runtime_error(L("Repaired 3MF file does not contain any object"));
+	 			if (model.objects.size() > 1)
+	 				throw std::runtime_error(L("Repaired 3MF file contains more than one object"));
+	 			if (model.objects.front()->volumes.size() == 0)
+	 				throw std::runtime_error(L("Repaired 3MF file does not contain any volume"));
+				if (model.objects.front()->volumes.size() > 1)
+	 				throw std::runtime_error(L("Repaired 3MF file contains more than one volume"));
+	 			meshes_repaired.emplace_back(std::move(model.objects.front()->volumes.front()->mesh));
 			}
-			model.clear_objects(); 
-			model.clear_materials();
-			boost::filesystem::path path_dst = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path();
-			path_dst += ".3mf";
-			fix_model_by_win10_sdk(path_src.string().c_str(), path_dst.string(), on_progress, 
-				[&canceled]() { if (canceled) throw RepairCanceledException(); });
-			boost::filesystem::remove(path_src);
-            // PresetBundle bundle;
-			on_progress(L("Loading the repaired model"), 80);
-            bool loaded = Slic3r::load_3mf(path_dst.string().c_str(), &config, &result);
-            result.objects[0]->name = boost::filesystem::path(model_object.name).filename().stem().string() + "_fixed";
-		    boost::filesystem::remove(path_dst);
-			if (! loaded)
- 				throw std::runtime_error(L("Import of the repaired 3mf file failed"));
+			for (size_t i = 0; i < volumes.size(); ++ i) {
+				volumes[i]->mesh = std::move(meshes_repaired[i]);
+				volumes[i]->set_new_unique_id();
+			}
+			model_object.invalidate_bounding_box();
+			-- ivolume;
+			on_progress(L("Model repair finished"), 100);
 			success  = true;
 			finished = true;
-			on_progress(L("Model repair finished"), 100);
 		} catch (RepairCanceledException & /* ex */) {
 			canceled = true;
 			finished = true;

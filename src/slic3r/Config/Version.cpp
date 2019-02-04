@@ -297,7 +297,7 @@ std::vector<Index> Index::load_db()
     std::vector<Index> index_db;
     std::string errors_cummulative;
 	for (auto &dir_entry : boost::filesystem::directory_iterator(cache_dir))
-        if (boost::filesystem::is_regular_file(dir_entry.status()) && boost::algorithm::iends_with(dir_entry.path().filename().string(), ".idx")) {
+        if (Slic3r::is_idx_file(dir_entry)) {
         	Index idx;
             try {
             	idx.load(dir_entry.path());

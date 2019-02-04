@@ -140,8 +140,7 @@ public:
 
     void cut(size_t obj_idx, size_t instance_idx, coordf_t z, bool keep_upper = true, bool keep_lower = true, bool rotate_lower = false);
 
-    // Note: empty path means "use the default"
-    void export_gcode(boost::filesystem::path output_path = boost::filesystem::path());
+    void export_gcode();
     void export_stl(bool selection_only = false);
     void export_amf();
     void export_3mf(const boost::filesystem::path& output_path = boost::filesystem::path());
