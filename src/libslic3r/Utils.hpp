@@ -8,6 +8,8 @@
 
 #include "libslic3r.h"
 
+namespace boost { namespace filesystem { class directory_entry; }}
+
 namespace Slic3r {
 
 extern void set_logging_level(unsigned int level);
@@ -60,6 +62,12 @@ extern int rename_file(const std::string &from, const std::string &to);
 
 // Copy a file, adjust the access attributes, so that the target is writable.
 extern int copy_file(const std::string &from, const std::string &to);
+
+// Ignore system and hidden files, which may be created by the DropBox synchronisation process.
+// https://github.com/prusa3d/Slic3r/issues/1298
+extern bool is_plain_file(const boost::filesystem::directory_entry &path);
+extern bool is_ini_file(const boost::filesystem::directory_entry &path);
+extern bool is_idx_file(const boost::filesystem::directory_entry &path);
 
 // File path / name / extension splitting utilities, working with UTF-8,
 // to be published to Perl.

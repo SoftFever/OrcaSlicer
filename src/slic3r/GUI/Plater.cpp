@@ -896,7 +896,7 @@ std::vector<PresetComboBox*>& Sidebar::combos_filament()
 class PlaterDropTarget : public wxFileDropTarget
 {
 public:
-    PlaterDropTarget(Plater *plater) : plater(plater) {}
+	PlaterDropTarget(Plater *plater) : plater(plater) { this->SetDefaultAction(wxDragCopy); }
 
     virtual bool OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &filenames);
 
@@ -1028,7 +1028,8 @@ struct Plater::priv
     unsigned int update_background_process(bool force_validation = false);
     // Restart background processing thread based on a bitmask of UpdateBackgroundProcessReturnState.
     bool restart_background_process(unsigned int state);
-    void update_restart_background_process(bool force_scene_update, bool force_preview_update);
+	// returns bit mask of UpdateBackgroundProcessReturnState
+	unsigned int update_restart_background_process(bool force_scene_update, bool force_preview_update);
     void export_gcode(fs::path output_path, PrintHostJob upload_job);
     void reload_from_disk();
     void fix_through_netfabb(const int obj_idx, const int vol_idx = -1);
@@ -1170,15 +1171,14 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     view3D_canvas->Bind(EVT_GLCANVAS_RIGHT_CLICK, &priv::on_right_click, this);
     view3D_canvas->Bind(EVT_GLCANVAS_REMOVE_OBJECT, [q](SimpleEvent&) { q->remove_selected(); });
     view3D_canvas->Bind(EVT_GLCANVAS_ARRANGE, [this](SimpleEvent&) { arrange(); });
+    view3D_canvas->Bind(EVT_GLCANVAS_SELECT_ALL, [this](SimpleEvent&) { this->q->select_all(); });
     view3D_canvas->Bind(EVT_GLCANVAS_QUESTION_MARK, [this](SimpleEvent&) { wxGetApp().keyboard_shortcuts(); });
     view3D_canvas->Bind(EVT_GLCANVAS_INCREASE_INSTANCES, [this](Event<int> &evt) 
         { if (evt.data == 1) this->q->increase_instances(); else if (this->can_decrease_instances()) this->q->decrease_instances(); });
     view3D_canvas->Bind(EVT_GLCANVAS_INSTANCE_MOVED, [this](SimpleEvent&) { update(); });
     view3D_canvas->Bind(EVT_GLCANVAS_WIPETOWER_MOVED, &priv::on_wipetower_moved, this);
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     view3D_canvas->Bind(EVT_GLCANVAS_INSTANCE_ROTATED, [this](SimpleEvent&) { update(); });
     view3D_canvas->Bind(EVT_GLCANVAS_INSTANCE_SCALED, [this](SimpleEvent&) { update(); });
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     view3D_canvas->Bind(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, [this](Event<bool> &evt) { this->sidebar->enable_buttons(evt.data); });
     view3D_canvas->Bind(EVT_GLCANVAS_UPDATE_GEOMETRY, &priv::on_update_geometry, this);
     view3D_canvas->Bind(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, &priv::on_3dcanvas_mouse_dragging_finished, this);
@@ -1577,7 +1577,7 @@ std::unique_ptr<CheckboxFileDialog> Plater::priv::get_export_file(GUI::FileType 
     // Update printbility state of each of the ModelInstances.
     this->update_print_volume_state();
     // Find the file name of the first printable object.
-	fs::path output_file = this->model.propose_export_file_name();
+	fs::path output_file = this->model.propose_export_file_name_and_path();
 
     switch (file_type) {
         case FT_STL: output_file.replace_extension("stl"); break;
@@ -1736,6 +1736,8 @@ void Plater::priv::arrange()
 
     // Guard the arrange process
     arranging.store(true);
+
+    wxBusyCursor wait;
 
     // Disable the arrange button (to prevent reentrancies, we will call wxYied)
     view3D->enable_toolbar_item("arrange", can_arrange());
@@ -2047,7 +2049,7 @@ void Plater::priv::export_gcode(fs::path output_path, PrintHostJob upload_job)
     this->restart_background_process(priv::UPDATE_BACKGROUND_PROCESS_FORCE_EXPORT);
 }
 
-void Plater::priv::update_restart_background_process(bool force_update_scene, bool force_update_preview)
+unsigned int Plater::priv::update_restart_background_process(bool force_update_scene, bool force_update_preview)
 {
     // bitmask of UpdateBackgroundProcessReturnState
     unsigned int state = this->update_background_process(false);
@@ -2057,6 +2059,7 @@ void Plater::priv::update_restart_background_process(bool force_update_scene, bo
     if (force_update_preview)
         this->preview->reload_print();
     this->restart_background_process(state);
+	return state;
 }
 
 void Plater::priv::update_fff_scene()
@@ -2110,31 +2113,10 @@ void Plater::priv::fix_through_netfabb(const int obj_idx, const int vol_idx/* = 
 {
     if (obj_idx < 0)
         return;
-
-    const auto model_object = model.objects[obj_idx];
-    Model model_fixed;// = new Model();
-    fix_model_by_win10_sdk_gui(*model_object, this->fff_print, model_fixed);
-
-    auto new_obj_idxs = load_model_objects(model_fixed.objects);
-    if (new_obj_idxs.empty())
-        return;
-    
-    for(auto new_obj_idx : new_obj_idxs) {
-        auto o = model.objects[new_obj_idx];
-        o->clear_instances();
-        for (auto instance: model_object->instances)
-            o->add_instance(*instance);
-        o->invalidate_bounding_box();
-        
-        if (o->volumes.size() == model_object->volumes.size()) {
-            for (int i = 0; i < o->volumes.size(); i++) {
-                o->volumes[i]->config.apply(model_object->volumes[i]->config);
-            }
-        }
-        // FIXME restore volumes and their configs, layer_height_ranges, layer_height_profile
-    }
-    
-    remove(obj_idx);
+    fix_model_by_win10_sdk_gui(*model.objects[obj_idx], vol_idx);
+    this->object_list_changed();
+    this->update();
+    this->schedule_background_process();
 }
 
 void Plater::priv::set_current_panel(wxPanel* panel)
@@ -2555,7 +2537,7 @@ void Plater::priv::init_view_toolbar()
     GLToolbarItem::Data item;
 
     item.name = "3D";
-    item.tooltip = GUI::L_str("3D editor view [Ctrl+5]");
+    item.tooltip = GUI::L_str("3D editor view") + " [" + GUI::shortkey_ctrl_prefix() + "5]";
     item.sprite_id = 0;
     item.action_event = EVT_GLVIEWTOOLBAR_3D;
     item.is_toggable = false;
@@ -2563,7 +2545,7 @@ void Plater::priv::init_view_toolbar()
         return;
 
     item.name = "Preview";
-    item.tooltip = GUI::L_str("Preview [Ctrl+6]");
+    item.tooltip = GUI::L_str("Preview") + " [" + GUI::shortkey_ctrl_prefix() + "6]";
     item.sprite_id = 1;
     item.action_event = EVT_GLVIEWTOOLBAR_PREVIEW;
     item.is_toggable = false;
@@ -2848,51 +2830,43 @@ void Plater::cut(size_t obj_idx, size_t instance_idx, coordf_t z, bool keep_uppe
     p->load_model_objects(new_objects);
 }
 
-void Plater::export_gcode(fs::path output_path)
+void Plater::export_gcode()
 {
     if (p->model.objects.empty())
         return;
 
-    // select output file
-    if (output_path.empty()) {
-        // XXX: take output path from CLI opts? Ancient Slic3r versions used to do that...
-
-        // If possible, remove accents from accented latin characters.
-        // This function is useful for generating file names to be processed by legacy firmwares.
-        fs::path default_output_file;
-        try {
-            default_output_file = this->p->background_process.current_print()->output_filepath(output_path.string());
-        } catch (const std::exception &ex) {
-            show_error(this, ex.what());
-            return;
-        }
-        default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string()));
-        auto start_dir = wxGetApp().app_config->get_last_output_dir(default_output_file.parent_path().string());
-
-        wxFileDialog dlg(this, (printer_technology() == ptFFF) ? _(L("Save G-code file as:")) : _(L("Save Zip file as:")),
-            start_dir,
-            from_path(default_output_file.filename()),
-            GUI::file_wildcards((printer_technology() == ptFFF) ? FT_GCODE : FT_PNGZIP, default_output_file.extension().string()),
-            wxFD_SAVE | wxFD_OVERWRITE_PROMPT
-        );
-
-        if (dlg.ShowModal() == wxID_OK) {
-            fs::path path = into_path(dlg.GetPath());
-            wxGetApp().app_config->update_last_output_dir(path.parent_path().string());
-            output_path = std::move(path);
-        }
-    } else {
-        try {
-            output_path = this->p->background_process.current_print()->output_filepath(output_path.string());
-        } catch (const std::exception &ex) {
-            show_error(this, ex.what());
-            return;
-        }
+    // If possible, remove accents from accented latin characters.
+    // This function is useful for generating file names to be processed by legacy firmwares.
+    fs::path default_output_file;
+    try {
+		// Update the background processing, so that the placeholder parser will get the correct values for the ouput file template.
+		// Also if there is something wrong with the current configuration, a pop-up dialog will be shown and the export will not be performed.
+		unsigned int state = this->p->update_restart_background_process(false, false);
+		if (state & priv::UPDATE_BACKGROUND_PROCESS_INVALID)
+			return;
+		default_output_file = this->p->background_process.current_print()->output_filepath("");
+    } catch (const std::exception &ex) {
+        show_error(this, ex.what());
+        return;
     }
+    default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string()));
+    auto start_dir = wxGetApp().app_config->get_last_output_dir(default_output_file.parent_path().string());
 
-    if (! output_path.empty()) {
+    wxFileDialog dlg(this, (printer_technology() == ptFFF) ? _(L("Save G-code file as:")) : _(L("Save Zip file as:")),
+        start_dir,
+        from_path(default_output_file.filename()),
+        GUI::file_wildcards((printer_technology() == ptFFF) ? FT_GCODE : FT_PNGZIP, default_output_file.extension().string()),
+        wxFD_SAVE | wxFD_OVERWRITE_PROMPT
+    );
+
+    fs::path output_path;
+    if (dlg.ShowModal() == wxID_OK) {
+        fs::path path = into_path(dlg.GetPath());
+        wxGetApp().app_config->update_last_output_dir(path.parent_path().string());
+        output_path = std::move(path);
+    }
+    if (! output_path.empty())
         p->export_gcode(std::move(output_path), PrintHostJob());
-    }
 }
 
 void Plater::export_stl(bool selection_only)
@@ -2993,7 +2967,12 @@ void Plater::send_gcode()
     // Obtain default output path
     fs::path default_output_file;
     try {
-        default_output_file = this->p->background_process.current_print()->output_filepath("");
+		// Update the background processing, so that the placeholder parser will get the correct values for the ouput file template.
+		// Also if there is something wrong with the current configuration, a pop-up dialog will be shown and the export will not be performed.
+		unsigned int state = this->p->update_restart_background_process(false, false);
+		if (state & priv::UPDATE_BACKGROUND_PROCESS_INVALID)
+			return;
+		default_output_file = this->p->background_process.current_print()->output_filepath("");
     } catch (const std::exception &ex) {
         show_error(this, ex.what());
         return;

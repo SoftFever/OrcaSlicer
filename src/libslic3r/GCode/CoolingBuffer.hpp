@@ -9,7 +9,7 @@ namespace Slic3r {
 
 class GCode;
 class Layer;
-class PerExtruderAdjustments;
+struct PerExtruderAdjustments;
 
 // A standalone G-code filter, to control cooling of the print.
 // The G-code is processed per layer. Once a layer is collected, fan start / stop commands are edited

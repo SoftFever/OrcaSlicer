@@ -88,13 +88,8 @@ KBShortcutsDialog::KBShortcutsDialog()
 
 void KBShortcutsDialog::fill_shortcuts()
 {
-#ifdef __WXOSX__
-    const std::string ctrl = "⌘";
-    const std::string alt = "⌥";
-#else
-    const std::string ctrl = "Ctrl+";
-    const std::string alt = "Alt+";
-#endif // __WXOSX__
+    const std::string &ctrl = GUI::shortkey_ctrl_prefix();
+    const std::string &alt  = GUI::shortkey_alt_prefix();
 
     m_full_shortcuts.reserve(4);
 

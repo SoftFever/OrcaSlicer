@@ -3,6 +3,9 @@
 #include "SLA/SLABoilerPlate.hpp"
 #include "SLA/SLASpatIndex.hpp"
 
+// Workaround: IGL signed_distance.h will define PI in the igl namespace.
+#undef PI
+
 // HEAVY headers... takes eternity to compile
 
 // for concave hull merging decisions
@@ -12,12 +15,20 @@
 #include <igl/ray_mesh_intersect.h>
 #include <igl/point_mesh_squared_distance.h>
 #include <igl/remove_duplicate_vertices.h>
+#include <igl/signed_distance.h>
 
 #include "SLASpatIndex.hpp"
 #include "ClipperUtils.hpp"
 
 namespace Slic3r {
 namespace sla {
+
+// Bring back PI from the igl namespace
+using igl::PI;
+
+/* **************************************************************************
+ * SpatIndex implementation
+ * ************************************************************************** */
 
 class SpatIndex::Impl {
 public:
@@ -78,6 +89,101 @@ size_t SpatIndex::size() const
     return m_impl->m_store.size();
 }
 
+/* ****************************************************************************
+ * EigenMesh3D implementation
+ * ****************************************************************************/
+
+class EigenMesh3D::AABBImpl: public igl::AABB<Eigen::MatrixXd, 3> {
+public:
+    igl::WindingNumberAABB<Vec3d, Eigen::MatrixXd, Eigen::MatrixXi> windtree;
+};
+
+EigenMesh3D::EigenMesh3D(const TriangleMesh& tmesh): m_aabb(new AABBImpl()) {
+    static const double dEPS = 1e-6;
+
+    const stl_file& stl = tmesh.stl;
+
+    auto&& bb = tmesh.bounding_box();
+    m_ground_level += bb.min(Z);
+
+    Eigen::MatrixXd V;
+    Eigen::MatrixXi F;
+
+    V.resize(3*stl.stats.number_of_facets, 3);
+    F.resize(stl.stats.number_of_facets, 3);
+    for (unsigned int i = 0; i < stl.stats.number_of_facets; ++i) {
+        const stl_facet* facet = stl.facet_start+i;
+        V(3*i+0, 0) = double(facet->vertex[0](0));
+        V(3*i+0, 1) = double(facet->vertex[0](1));
+        V(3*i+0, 2) = double(facet->vertex[0](2));
+
+        V(3*i+1, 0) = double(facet->vertex[1](0));
+        V(3*i+1, 1) = double(facet->vertex[1](1));
+        V(3*i+1, 2) = double(facet->vertex[1](2));
+
+        V(3*i+2, 0) = double(facet->vertex[2](0));
+        V(3*i+2, 1) = double(facet->vertex[2](1));
+        V(3*i+2, 2) = double(facet->vertex[2](2));
+
+        F(i, 0) = int(3*i+0);
+        F(i, 1) = int(3*i+1);
+        F(i, 2) = int(3*i+2);
+    }
+
+    // We will convert this to a proper 3d mesh with no duplicate points.
+    Eigen::VectorXi SVI, SVJ;
+    igl::remove_duplicate_vertices(V, F, dEPS, m_V, SVI, SVJ, m_F);
+
+    // Build the AABB accelaration tree
+    m_aabb->init(m_V, m_F);
+    m_aabb->windtree.set_mesh(m_V, m_F);
+}
+
+EigenMesh3D::~EigenMesh3D() {}
+
+EigenMesh3D::EigenMesh3D(const EigenMesh3D &other):
+    m_V(other.m_V), m_F(other.m_F), m_ground_level(other.m_ground_level),
+    m_aabb( new AABBImpl(*other.m_aabb) ) {}
+
+EigenMesh3D &EigenMesh3D::operator=(const EigenMesh3D &other)
+{
+    m_V = other.m_V;
+    m_F = other.m_F;
+    m_ground_level = other.m_ground_level;
+    m_aabb.reset(new AABBImpl(*other.m_aabb)); return *this;
+}
+
+EigenMesh3D::hit_result
+EigenMesh3D::query_ray_hit(const Vec3d &s, const Vec3d &dir) const
+{
+    igl::Hit hit;
+    hit.t = std::numeric_limits<float>::infinity();
+    m_aabb->intersect_ray(m_V, m_F, s, dir, hit);
+
+    hit_result ret(*this);
+    ret.m_t = double(hit.t);
+    ret.m_dir = dir;
+    if(!std::isinf(hit.t) && !std::isnan(hit.t)) ret.m_face_id = hit.id;
+
+    return ret;
+}
+
+EigenMesh3D::si_result EigenMesh3D::signed_distance(const Vec3d &p) const {
+    double sign = 0; double sqdst = 0; int i = 0;  Vec3d c;
+    igl::signed_distance_winding_number(*m_aabb, m_V, m_F, m_aabb->windtree,
+                                        p, sign, sqdst, i, c);
+
+    return si_result(sign * std::sqrt(sqdst), i, c);
+}
+
+bool EigenMesh3D::inside(const Vec3d &p) const {
+    return m_aabb->windtree.inside(p);
+}
+
+/* ****************************************************************************
+ * Misc functions
+ * ****************************************************************************/
+
 bool point_on_edge(const Vec3d& p, const Vec3d& e1, const Vec3d& e2,
                    double eps = 0.05)
 {
@@ -93,35 +199,27 @@ template<class Vec> double distance(const Vec& pp1, const Vec& pp2) {
     return std::sqrt(p.transpose() * p);
 }
 
-PointSet normals(const PointSet& points, const EigenMesh3D& emesh,
+PointSet normals(const PointSet& points, const EigenMesh3D& mesh,
                  double eps,
                  std::function<void()> throw_on_cancel) {
-    if(points.rows() == 0 || emesh.V.rows() == 0 || emesh.F.rows() == 0)
+    if(points.rows() == 0 || mesh.V().rows() == 0 || mesh.F().rows() == 0)
         return {};
 
     Eigen::VectorXd dists;
     Eigen::VectorXi I;
     PointSet C;
 
-    // We need to remove duplicate vertices and have a true index triangle
-    // structure
-    EigenMesh3D  mesh;
-    Eigen::VectorXi SVI, SVJ;
-    static const double dEPS = 1e-6;
-    igl::remove_duplicate_vertices(emesh.V, emesh.F, dEPS,
-                                   mesh.V, SVI, SVJ, mesh.F);
-
-    igl::point_mesh_squared_distance( points, mesh.V, mesh.F, dists, I, C);
+    igl::point_mesh_squared_distance( points, mesh.V(), mesh.F(), dists, I, C);
 
     PointSet ret(I.rows(), 3);
     for(int i = 0; i < I.rows(); i++) {
         throw_on_cancel();
         auto idx = I(i);
-        auto trindex = mesh.F.row(idx);
+        auto trindex = mesh.F().row(idx);
 
-        const Vec3d& p1 = mesh.V.row(trindex(0));
-        const Vec3d& p2 = mesh.V.row(trindex(1));
-        const Vec3d& p3 = mesh.V.row(trindex(2));
+        const Vec3d& p1 = mesh.V().row(trindex(0));
+        const Vec3d& p2 = mesh.V().row(trindex(1));
+        const Vec3d& p3 = mesh.V().row(trindex(2));
 
         // We should check if the point lies on an edge of the hosting triangle.
         // If it does than all the other triangles using the same two points
@@ -159,18 +257,18 @@ PointSet normals(const PointSet& points, const EigenMesh3D& emesh,
         // vector for the neigboring triangles including the detected one.
         std::vector<Vec3i> neigh;
         if(ic >= 0) { // The point is right on a vertex of the triangle
-            for(int n = 0; n < mesh.F.rows(); ++n) {
+            for(int n = 0; n < mesh.F().rows(); ++n) {
                 throw_on_cancel();
-                Vec3i ni = mesh.F.row(n);
+                Vec3i ni = mesh.F().row(n);
                 if((ni(X) == ic || ni(Y) == ic || ni(Z) == ic))
                     neigh.emplace_back(ni);
             }
         }
         else if(ia >= 0 && ib >= 0) { // the point is on and edge
             // now get all the neigboring triangles
-            for(int n = 0; n < mesh.F.rows(); ++n) {
+            for(int n = 0; n < mesh.F().rows(); ++n) {
                 throw_on_cancel();
-                Vec3i ni = mesh.F.row(n);
+                Vec3i ni = mesh.F().row(n);
                 if((ni(X) == ia || ni(Y) == ia || ni(Z) == ia) &&
                    (ni(X) == ib || ni(Y) == ib || ni(Z) == ib))
                     neigh.emplace_back(ni);
@@ -180,9 +278,9 @@ PointSet normals(const PointSet& points, const EigenMesh3D& emesh,
         // Calculate the normals for the neighboring triangles
         std::vector<Vec3d> neighnorms; neighnorms.reserve(neigh.size());
         for(const Vec3i& tri : neigh) {
-            const Vec3d& pt1 = mesh.V.row(tri(0));
-            const Vec3d& pt2 = mesh.V.row(tri(1));
-            const Vec3d& pt3 = mesh.V.row(tri(2));
+            const Vec3d& pt1 = mesh.V().row(tri(0));
+            const Vec3d& pt2 = mesh.V().row(tri(1));
+            const Vec3d& pt3 = mesh.V().row(tri(2));
             Eigen::Vector3d U = pt2 - pt1;
             Eigen::Vector3d V = pt3 - pt1;
             neighnorms.emplace_back(U.cross(V).normalized());
@@ -220,16 +318,6 @@ PointSet normals(const PointSet& points, const EigenMesh3D& emesh,
     }
 
     return ret;
-}
-
-double ray_mesh_intersect(const Vec3d& s,
-                          const Vec3d& dir,
-                          const EigenMesh3D& m)
-{
-    igl::Hit hit;
-    hit.t = std::numeric_limits<float>::infinity();
-    igl::ray_mesh_intersect(s, dir, m.V, m.F, hit);
-    return double(hit.t);
 }
 
 // Clustering a set of points by the given criteria
@@ -308,54 +396,6 @@ ClusteredPoints cluster(
 
     return result;
 }
-
-using Segments = std::vector<std::pair<Vec2d, Vec2d>>;
-
-Segments model_boundary(const EigenMesh3D& emesh, double offs)
-{
-    Segments ret;
-    Polygons pp;
-    pp.reserve(size_t(emesh.F.rows()));
-
-    for (int i = 0; i < emesh.F.rows(); i++) {
-        auto trindex = emesh.F.row(i);
-        auto& p1 = emesh.V.row(trindex(0));
-        auto& p2 = emesh.V.row(trindex(1));
-        auto& p3 = emesh.V.row(trindex(2));
-
-        Polygon p;
-        p.points.resize(3);
-        p.points[0] = Point::new_scale(p1(X), p1(Y));
-        p.points[1] = Point::new_scale(p2(X), p2(Y));
-        p.points[2] = Point::new_scale(p3(X), p3(Y));
-        p.make_counter_clockwise();
-        pp.emplace_back(p);
-    }
-
-    ExPolygons merged = union_ex(Slic3r::offset(pp, float(scale_(offs))), true);
-
-    for(auto& expoly : merged) {
-        auto lines = expoly.lines();
-        for(Line& l : lines) {
-            Vec2d a(l.a(X) * SCALING_FACTOR, l.a(Y) * SCALING_FACTOR);
-            Vec2d b(l.b(X) * SCALING_FACTOR, l.b(Y) * SCALING_FACTOR);
-            ret.emplace_back(std::make_pair(a, b));
-        }
-    }
-
-    return ret;
-}
-
-//struct SegmentIndex {
-
-//};
-
-//using SegmentIndexEl = std::pair<Segment, unsigned>;
-
-//SegmentIndexEl
-
-
-
 
 }
 }

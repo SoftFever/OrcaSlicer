@@ -1097,6 +1097,7 @@ void TabPrint::build()
 
 		optgroup = page->new_optgroup(_(L("Output file")));
 		optgroup->append_single_option_line("gcode_comments");
+		optgroup->append_single_option_line("gcode_label_objects");
 		option = optgroup->get_option("output_filename_format");
 		option.opt.full_width = true;
 		optgroup->append_single_option_line(option);

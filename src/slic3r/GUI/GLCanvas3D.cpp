@@ -1617,6 +1617,9 @@ void GLCanvas3D::Selection::clear()
 
     _update_type();
     m_bounding_box_dirty = true;
+
+    // resets the cache in the sidebar
+    wxGetApp().obj_manipul()->reset_cache();
 }
 
 // Update the selection based on the map from old indices to new indices after m_volumes changed.
@@ -1817,7 +1820,7 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation, bool local)
         if (rot_axis_max != 2 && first_volume_idx != -1) {
             // Generic rotation, but no rotation around the Z axis.
             // Always do a local rotation (do not consider the selection to be a rigid body).
-            assert(rotation.z() == 0);
+            assert(is_approx(rotation.z(), 0.0));
             const GLVolume &first_volume = *(*m_volumes)[first_volume_idx];
             const Vec3d    &rotation     = first_volume.get_instance_rotation();
             double z_diff = rotation_diff_z(m_cache.volumes_data[first_volume_idx].get_instance_rotation(), m_cache.volumes_data[i].get_instance_rotation());
@@ -1842,7 +1845,7 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation, bool local)
         else if (is_single_volume() || is_single_modifier())
         {
             if (local)
-                volume.set_volume_rotation(rotation);
+                volume.set_volume_rotation(volume.get_volume_rotation() + rotation);
             else
             {
                 Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), rotation);
@@ -2259,7 +2262,7 @@ void GLCanvas3D::Selection::render_sidebar_hints(const std::string& sidebar_fiel
     }
     else if (is_single_volume() || is_single_modifier())
     {
-        Transform3d orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
+        Transform3d orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true) * (*m_volumes)[*m_list.begin()]->get_volume_transformation().get_matrix(true, false, true, true);
         ::glTranslated(center(0), center(1), center(2));
         ::glMultMatrixd(orient_matrix.data());
     }
@@ -3992,13 +3995,12 @@ wxDEFINE_EVENT(EVT_GLCANVAS_VIEWPORT_CHANGED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_RIGHT_CLICK, Vec2dEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_REMOVE_OBJECT, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ARRANGE, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_SELECT_ALL, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_QUESTION_MARK, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_INCREASE_INSTANCES, Event<int>);
 wxDEFINE_EVENT(EVT_GLCANVAS_INSTANCE_MOVED, SimpleEvent);
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 wxDEFINE_EVENT(EVT_GLCANVAS_INSTANCE_ROTATED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_INSTANCE_SCALED, SimpleEvent);
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 wxDEFINE_EVENT(EVT_GLCANVAS_WIPETOWER_MOVED, Vec3dEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, Event<bool>);
 wxDEFINE_EVENT(EVT_GLCANVAS_UPDATE_GEOMETRY, Vec3dsEvent<2>);
@@ -4286,6 +4288,13 @@ bool GLCanvas3D::is_reload_delayed() const
 void GLCanvas3D::enable_layers_editing(bool enable)
 {
     m_layers_editing.set_enabled(enable);
+    const Selection::IndicesList& idxs = m_selection.get_volume_idxs();
+    for (unsigned int idx : idxs)
+    {
+        GLVolume* v = m_volumes.volumes[idx];
+        if (v->is_modifier)
+            v->force_transparent = enable;
+    }
 }
 
 void GLCanvas3D::enable_warning_texture(bool enable)
@@ -4420,6 +4429,7 @@ void GLCanvas3D::update_toolbar_items_visibility()
     ConfigOptionMode mode = wxGetApp().get_mode();
     m_toolbar.set_item_visible("more", mode != comSimple);
     m_toolbar.set_item_visible("fewer", mode != comSimple);
+    m_toolbar.set_item_visible("splitvolumes", mode != comSimple);
     m_dirty = true;
 }
 #endif // ENABLE_MODE_AWARE_TOOLBAR_ITEMS
@@ -5046,7 +5056,6 @@ void GLCanvas3D::bind_event_handlers()
         m_canvas->Bind(wxEVT_MIDDLE_DCLICK, &GLCanvas3D::on_mouse, this);
         m_canvas->Bind(wxEVT_RIGHT_DCLICK, &GLCanvas3D::on_mouse, this);
         m_canvas->Bind(wxEVT_PAINT, &GLCanvas3D::on_paint, this);
-        m_canvas->Bind(wxEVT_KEY_DOWN, &GLCanvas3D::on_key_down, this);
     }
 }
 
@@ -5060,7 +5069,7 @@ void GLCanvas3D::unbind_event_handlers()
         m_canvas->Unbind(wxEVT_MOUSEWHEEL, &GLCanvas3D::on_mouse_wheel, this);
         m_canvas->Unbind(wxEVT_TIMER, &GLCanvas3D::on_timer, this);
         m_canvas->Unbind(wxEVT_LEFT_DOWN, &GLCanvas3D::on_mouse, this);
-        m_canvas->Unbind(wxEVT_LEFT_UP, &GLCanvas3D::on_mouse, this);
+		m_canvas->Unbind(wxEVT_LEFT_UP, &GLCanvas3D::on_mouse, this);
         m_canvas->Unbind(wxEVT_MIDDLE_DOWN, &GLCanvas3D::on_mouse, this);
         m_canvas->Unbind(wxEVT_MIDDLE_UP, &GLCanvas3D::on_mouse, this);
         m_canvas->Unbind(wxEVT_RIGHT_DOWN, &GLCanvas3D::on_mouse, this);
@@ -5072,7 +5081,6 @@ void GLCanvas3D::unbind_event_handlers()
         m_canvas->Unbind(wxEVT_MIDDLE_DCLICK, &GLCanvas3D::on_mouse, this);
         m_canvas->Unbind(wxEVT_RIGHT_DCLICK, &GLCanvas3D::on_mouse, this);
         m_canvas->Unbind(wxEVT_PAINT, &GLCanvas3D::on_paint, this);
-        m_canvas->Unbind(wxEVT_KEY_DOWN, &GLCanvas3D::on_key_down, this);
     }
 }
 
@@ -5091,71 +5099,67 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
 
 void GLCanvas3D::on_char(wxKeyEvent& evt)
 {
-    if (evt.HasModifiers())
+    // see include/wx/defs.h enum wxKeyCode
+    int keyCode = evt.GetKeyCode();
+    int ctrlMask = wxMOD_CONTROL;
+//#ifdef __APPLE__
+//    ctrlMask |= wxMOD_RAW_CONTROL;
+//#endif /* __APPLE__ */
+    if ((evt.GetModifiers() & ctrlMask) != 0) {
+        switch (keyCode) {
+#ifndef __APPLE__
+        // Even though Control+A is captured by the accelerator on OSX/wxWidgets in Slic3r, it works in text edit lines.
+        case WXK_CONTROL_A: post_event(SimpleEvent(EVT_GLCANVAS_SELECT_ALL)); break;
+#endif /* __APPLE__ */
+#ifdef __APPLE__
+        case WXK_BACK: // the low cost Apple solutions are not equipped with a Delete key, use Backspace instead.
+#endif /* __APPLE__ */
+        case WXK_DELETE:    post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE_ALL)); break;
+        default:            evt.Skip();
+        }
+    } else if (evt.HasModifiers()) {
         evt.Skip();
-    else
-    {
-        int keyCode = evt.GetKeyCode();
-        switch (keyCode - 48)
+    } else {
+        switch (keyCode)
         {
-        // numerical input
-        case 0: { select_view("iso"); break; }
-        case 1: { select_view("top"); break; }
-        case 2: { select_view("bottom"); break; }
-        case 3: { select_view("front"); break; }
-        case 4: { select_view("rear"); break; }
-        case 5: { select_view("left"); break; }
-        case 6: { select_view("right"); break; }
+        // key ESC
+        case WXK_ESCAPE: { m_gizmos.reset_all_states(); m_dirty = true;  break; }
+#ifdef __APPLE__
+        case WXK_BACK: // the low cost Apple solutions are not equipped with a Delete key, use Backspace instead.
+#endif /* __APPLE__ */
+        case WXK_DELETE: post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE)); break;
+        case '0': { select_view("iso"); break; }
+        case '1': { select_view("top"); break; }
+        case '2': { select_view("bottom"); break; }
+        case '3': { select_view("front"); break; }
+        case '4': { select_view("rear"); break; }
+        case '5': { select_view("left"); break; }
+        case '6': { select_view("right"); break; }
+        case '+': { post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, +1)); break; }
+        case '-': { post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, -1)); break; }
+        case '?': { post_event(SimpleEvent(EVT_GLCANVAS_QUESTION_MARK)); break; }
+        case 'A':
+        case 'a': { post_event(SimpleEvent(EVT_GLCANVAS_ARRANGE)); break; }
+        case 'B':
+        case 'b': { zoom_to_bed(); break; }
+        case 'I':
+        case 'i': { set_camera_zoom(1.0f); break; }
+        case 'O':
+        case 'o': { set_camera_zoom(-1.0f); break; }
+        case 'Z':
+        case 'z': { m_selection.is_empty() ? zoom_to_volumes() : zoom_to_selection(); break; }
         default:
+        {
+            if (m_gizmos.handle_shortcut(keyCode, m_selection))
             {
-                // text input
-                switch (keyCode)
-                {
-                // key ESC
-                case 27: { m_gizmos.reset_all_states(); m_dirty = true;  break; }
-                // key +
-                case 43: { post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, +1)); break; }
-                // key -
-                case 45: { post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, -1)); break; }
-                // key ?
-                case 63: { post_event(SimpleEvent(EVT_GLCANVAS_QUESTION_MARK)); break; }
-                // key A/a
-                case 65:
-                case 97: { post_event(SimpleEvent(EVT_GLCANVAS_ARRANGE)); break; }
-                // key B/b
-                case 66:
-                case 98: { zoom_to_bed(); break; }
-                // key I/i
-                case 73:
-                case 105: { set_camera_zoom(1.0f); break; }
-                // key O/o
-                case 79:
-                case 111: { set_camera_zoom(-1.0f); break; }
-                // key Z/z
-                case 90:
-                case 122:
-                {
-                    if (m_selection.is_empty())
-                        zoom_to_volumes();
-                    else
-                        zoom_to_selection();
-
-                    break;
-                }
-                default:
-                {
-                    if (m_gizmos.handle_shortcut(keyCode, m_selection))
-                    {
-                        _update_gizmos_data();
-                        m_dirty = true;
-                    }
-                    else
-                        evt.Skip();
-
-                    break;
-                }
-                }
+                _update_gizmos_data();
+                m_dirty = true;
             }
+            else
+                evt.Skip();
+
+            break;
+        }
         }
     }
 }
@@ -5354,9 +5358,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     bool already_selected = m_selection.contains_volume(m_hover_volume_id);
                     bool shift_down = evt.ShiftDown();
 
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
                     Selection::IndicesList curr_idxs = m_selection.get_volume_idxs();
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 
                     if (already_selected && shift_down)
                         m_selection.remove(m_hover_volume_id);
@@ -5373,21 +5375,14 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #endif // ENABLE_MOVE_MIN_THRESHOLD
                     }
 
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
                     if (curr_idxs != m_selection.get_volume_idxs())
                     {
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 
                         m_gizmos.update_on_off_state(m_selection);
                         _update_gizmos_data();
-#if !ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
-                        wxGetApp().obj_manipul()->update_settings_value(m_selection);
-#endif // !ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
                         post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
                         m_dirty = true;
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
                     }
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
                 }
             }
 
@@ -5679,24 +5674,6 @@ void GLCanvas3D::on_paint(wxPaintEvent& evt)
         this->render();
 }
 
-void GLCanvas3D::on_key_down(wxKeyEvent& evt)
-{
-    if (evt.HasModifiers())
-        evt.Skip();
-    else
-    {
-        int key = evt.GetKeyCode();
-#ifdef __WXOSX__
-        if (key == WXK_BACK)
-#else
-        if (key == WXK_DELETE)
-#endif // __WXOSX__
-            post_event(SimpleEvent(EVT_GLCANVAS_REMOVE_OBJECT));
-        else
-            evt.Skip();
-    }
-}
-
 Size GLCanvas3D::get_canvas_size() const
 {
     int w = 0;
@@ -5782,7 +5759,6 @@ void GLCanvas3D::do_move()
             ModelObject* model_object = m_model->objects[object_idx];
             if (model_object != nullptr)
             {
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
                 if (selection_mode == Selection::Instance)
                     model_object->instances[instance_idx]->set_offset(v->get_instance_offset());
                 else if (selection_mode == Selection::Volume)
@@ -5790,20 +5766,6 @@ void GLCanvas3D::do_move()
 
                 object_moved = true;
                 model_object->invalidate_bounding_box();
-#else
-                if (selection_mode == Selection::Instance)
-                {
-                    model_object->instances[instance_idx]->set_offset(v->get_instance_offset());
-                    object_moved = true;
-                }
-                else if (selection_mode == Selection::Volume)
-                {
-                    model_object->volumes[volume_idx]->set_offset(v->get_volume_offset());
-                    object_moved = true;
-                }
-                if (object_moved)
-                    model_object->invalidate_bounding_box();
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
             }
         }
         else if (object_idx == 1000)
@@ -5874,12 +5836,8 @@ void GLCanvas3D::do_rotate()
         m->translate_instance(i.second, shift);
     }
 
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     if (!done.empty())
         post_event(SimpleEvent(EVT_GLCANVAS_INSTANCE_ROTATED));
-#else
-    post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 }
 
 void GLCanvas3D::do_scale()
@@ -5930,12 +5888,8 @@ void GLCanvas3D::do_scale()
         m->translate_instance(i.second, shift);
     }
 
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     if (!done.empty())
         post_event(SimpleEvent(EVT_GLCANVAS_INSTANCE_ROTATED));
-#else
-    post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 }
 
 void GLCanvas3D::do_flatten()
@@ -6097,7 +6051,7 @@ bool GLCanvas3D::_init_toolbar()
     GLToolbarItem::Data item;
 
     item.name = "add";
-    item.tooltip = GUI::L_str("Add... [Ctrl+I]");
+    item.tooltip = GUI::L_str("Add...") + " [" + GUI::shortkey_ctrl_prefix() + "I]";
     item.sprite_id = 0;
     item.is_toggable = false;
     item.action_event = EVT_GLTOOLBAR_ADD;
@@ -6105,7 +6059,7 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "delete";
-    item.tooltip = GUI::L_str("Delete [Del]");
+    item.tooltip = GUI::L_str("Delete") + " [Del]";
     item.sprite_id = 1;
     item.is_toggable = false;
     item.action_event = EVT_GLTOOLBAR_DELETE;
@@ -6113,7 +6067,7 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "deleteall";
-    item.tooltip = GUI::L_str("Delete all [Ctrl+Del]");
+    item.tooltip = GUI::L_str("Delete all") + " [" + GUI::shortkey_ctrl_prefix() + "Del]";
     item.sprite_id = 2;
     item.is_toggable = false;
     item.action_event = EVT_GLTOOLBAR_DELETE_ALL;

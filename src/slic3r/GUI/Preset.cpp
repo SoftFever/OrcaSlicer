@@ -336,7 +336,7 @@ const std::vector<std::string>& Preset::print_options()
         "support_material_synchronize_layers", "support_material_angle", "support_material_interface_layers", 
         "support_material_interface_spacing", "support_material_interface_contact_loops", "support_material_contact_distance", 
         "support_material_buildplate_only", "dont_support_bridges", "notes", "complete_objects", "extruder_clearance_radius", 
-        "extruder_clearance_height", "gcode_comments", "output_filename_format", "post_process", "perimeter_extruder", 
+        "extruder_clearance_height", "gcode_comments", "gcode_label_objects", "output_filename_format", "post_process", "perimeter_extruder", 
         "infill_extruder", "solid_infill_extruder", "support_material_extruder", "support_material_interface_extruder", 
         "ooze_prevention", "standby_temperature_delta", "interface_shells", "extrusion_width", "first_layer_extrusion_width", 
         "perimeter_extrusion_width", "external_perimeter_extrusion_width", "infill_extrusion_width", "solid_infill_extrusion_width", 
@@ -517,16 +517,6 @@ void PresetCollection::add_default_preset(const std::vector<std::string> &keys, 
     ++ m_num_default_presets;
 }
 
-bool is_file_plain(const std::string &path)
-{
-#ifdef _MSC_VER
-    DWORD attributes = GetFileAttributesW(boost::nowide::widen(path).c_str());
-    return (attributes & (FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_SYSTEM)) == 0;
-#else
-    return true;
-#endif
-}
-
 // Load all presets found in dir_path.
 // Throws an exception on error.
 void PresetCollection::load_presets(const std::string &dir_path, const std::string &subdir)
@@ -538,10 +528,7 @@ void PresetCollection::load_presets(const std::string &dir_path, const std::stri
 	// (see the "Preset already present, not loading" message).
 	std::deque<Preset> presets_loaded;
 	for (auto &dir_entry : boost::filesystem::directory_iterator(dir))
-        if (boost::filesystem::is_regular_file(dir_entry.status()) && boost::algorithm::iends_with(dir_entry.path().filename().string(), ".ini") &&
-            // Ignore system and hidden files, which may be created by the DropBox synchronisation process.
-            // https://github.com/prusa3d/Slic3r/issues/1298
-            is_file_plain(dir_entry.path().string())) {
+        if (Slic3r::is_ini_file(dir_entry)) {
             std::string name = dir_entry.path().filename().string();
             // Remove the .ini suffix.
             name.erase(name.size() - 4);
@@ -1163,8 +1150,20 @@ std::string PresetCollection::name() const
     case Preset::TYPE_PRINT:        return L("print");
     case Preset::TYPE_FILAMENT:     return L("filament");
     case Preset::TYPE_SLA_PRINT:    return L("SLA print");
-    case Preset::TYPE_SLA_MATERIAL: return L("SLA material");    
+    case Preset::TYPE_SLA_MATERIAL: return L("SLA material");
     case Preset::TYPE_PRINTER:      return L("printer");
+    default:                        return "invalid";
+    }
+}
+
+std::string PresetCollection::section_name() const
+{
+    switch (this->type()) {
+    case Preset::TYPE_PRINT:        return "print";
+    case Preset::TYPE_FILAMENT:     return "filament";
+    case Preset::TYPE_SLA_PRINT:    return "sla_print";
+    case Preset::TYPE_SLA_MATERIAL: return "sla_material";
+    case Preset::TYPE_PRINTER:      return "printer";
     default:                        return "invalid";
     }
 }

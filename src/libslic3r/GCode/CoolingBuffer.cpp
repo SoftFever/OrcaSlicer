@@ -83,7 +83,7 @@ struct CoolingLine
 struct PerExtruderAdjustments 
 {
     // Calculate the total elapsed time per this extruder, adjusted for the slowdown.
-    float elapsed_time_total() {
+    float elapsed_time_total() const {
         float time_total = 0.f;
         for (const CoolingLine &line : lines)
             time_total += line.time;
@@ -91,7 +91,7 @@ struct PerExtruderAdjustments
     }
     // Calculate the total elapsed time when slowing down 
     // to the minimum extrusion feed rate defined for the current material.
-    float maximum_time_after_slowdown(bool slowdown_external_perimeters) {
+    float maximum_time_after_slowdown(bool slowdown_external_perimeters) const {
         float time_total = 0.f;
         for (const CoolingLine &line : lines)
             if (line.adjustable(slowdown_external_perimeters)) {
@@ -104,7 +104,7 @@ struct PerExtruderAdjustments
         return time_total;
     }
     // Calculate the adjustable part of the total time.
-    float adjustable_time(bool slowdown_external_perimeters) {
+    float adjustable_time(bool slowdown_external_perimeters) const {
         float time_total = 0.f;
         for (const CoolingLine &line : lines)
             if (line.adjustable(slowdown_external_perimeters))
@@ -112,7 +112,7 @@ struct PerExtruderAdjustments
         return time_total;
     }
     // Calculate the non-adjustable part of the total time.
-    float non_adjustable_time(bool slowdown_external_perimeters) {
+    float non_adjustable_time(bool slowdown_external_perimeters) const {
         float time_total = 0.f;
         for (const CoolingLine &line : lines)
             if (! line.adjustable(slowdown_external_perimeters))
@@ -169,7 +169,7 @@ struct PerExtruderAdjustments
     // Calculate the maximum time stretch when slowing down to min_feedrate.
     // Slowdown to min_feedrate shall be allowed for this extruder's material.
     // Used by non-proportional slow down.
-    float time_stretch_when_slowing_down_to_feedrate(float min_feedrate) {
+    float time_stretch_when_slowing_down_to_feedrate(float min_feedrate) const {
         float time_stretch = 0.f;
         assert(this->min_print_speed < min_feedrate + EPSILON);
         for (size_t i = 0; i < n_lines_adjustable; ++ i) {
@@ -221,6 +221,63 @@ struct PerExtruderAdjustments
     size_t                      idx_line_end        = 0;
 };
 
+// Calculate a new feedrate when slowing down by time_stretch for segments faster than min_feedrate.
+// Used by non-proportional slow down.
+float new_feedrate_to_reach_time_stretch(
+    std::vector<PerExtruderAdjustments*>::const_iterator it_begin, std::vector<PerExtruderAdjustments*>::const_iterator it_end, 
+    float min_feedrate, float time_stretch, size_t max_iter = 20)
+{
+	float new_feedrate = min_feedrate;
+    for (size_t iter = 0; iter < max_iter; ++ iter) {
+        float nomin = 0;
+        float denom = time_stretch;
+        for (auto it = it_begin; it != it_end; ++ it) {
+			assert((*it)->min_print_speed < min_feedrate + EPSILON);
+			for (size_t i = 0; i < (*it)->n_lines_adjustable; ++i) {
+				const CoolingLine &line = (*it)->lines[i];
+                if (line.feedrate > min_feedrate) {
+                    nomin += line.time * line.feedrate;
+                    denom += line.time;
+                }
+            }
+        }
+        assert(denom > 0);
+        if (denom < 0)
+            return min_feedrate;
+        new_feedrate = nomin / denom;
+        assert(new_feedrate > min_feedrate - EPSILON);
+        if (new_feedrate < min_feedrate + EPSILON)
+            goto finished;
+        for (auto it = it_begin; it != it_end; ++ it)
+			for (size_t i = 0; i < (*it)->n_lines_adjustable; ++i) {
+				const CoolingLine &line = (*it)->lines[i];
+                if (line.feedrate > min_feedrate && line.feedrate < new_feedrate)
+                    // Some of the line segments taken into account in the calculation of nomin / denom are now slower than new_feedrate, 
+                    // which makes the new_feedrate lower than it should be.
+                    // Re-run the calculation with a new min_feedrate limit, so that the segments with current feedrate lower than new_feedrate
+                    // are not taken into account.
+                    goto not_finished_yet;
+            }
+        goto finished;
+not_finished_yet:
+        min_feedrate = new_feedrate;
+    }
+    // Failed to find the new feedrate for the time_stretch.
+
+finished:
+    // Test whether the time_stretch was achieved.
+#ifndef NDEBUG
+    {
+        float time_stretch_final = 0.f;
+        for (auto it = it_begin; it != it_end; ++ it)
+            time_stretch_final += (*it)->time_stretch_when_slowing_down_to_feedrate(new_feedrate);
+        assert(std::abs(time_stretch - time_stretch_final) < EPSILON);
+    }
+#endif /* NDEBUG */
+
+	return new_feedrate;
+}
+
 std::string CoolingBuffer::process_layer(const std::string &gcode, size_t layer_id)
 {
     std::vector<PerExtruderAdjustments> per_extruder_adjustments = this->parse_layer_gcode(gcode, m_current_pos);
@@ -241,12 +298,12 @@ std::vector<PerExtruderAdjustments> CoolingBuffer::parse_layer_gcode(const std::
     std::vector<PerExtruderAdjustments> per_extruder_adjustments(extruders.size());
     std::vector<size_t>                 map_extruder_to_per_extruder_adjustment(num_extruders, 0);
     for (size_t i = 0; i < extruders.size(); ++ i) {
-		PerExtruderAdjustments &adj			= per_extruder_adjustments[i];
-		unsigned int			extruder_id = extruders[i].id();
-		adj.extruder_id				  = extruder_id;
-		adj.cooling_slow_down_enabled = config.cooling.get_at(extruder_id);
-		adj.slowdown_below_layer_time = config.slowdown_below_layer_time.get_at(extruder_id);
-		adj.min_print_speed			  = config.min_print_speed.get_at(extruder_id);
+        PerExtruderAdjustments &adj         = per_extruder_adjustments[i];
+        unsigned int            extruder_id = extruders[i].id();
+        adj.extruder_id               = extruder_id;
+        adj.cooling_slow_down_enabled = config.cooling.get_at(extruder_id);
+        adj.slowdown_below_layer_time = config.slowdown_below_layer_time.get_at(extruder_id);
+        adj.min_print_speed           = config.min_print_speed.get_at(extruder_id);
         map_extruder_to_per_extruder_adjustment[extruder_id] = i;
     }
 
@@ -452,14 +509,14 @@ static inline void extruder_range_slow_down_non_proportional(
     std::vector<PerExtruderAdjustments*> by_min_print_speed(it_begin, it_end);
     // Find the next highest adjustable feedrate among the extruders.
     float feedrate = 0;
-	for (PerExtruderAdjustments *adj : by_min_print_speed) {
-		adj->idx_line_begin = 0;
-		adj->idx_line_end   = 0;
-		assert(adj->idx_line_begin < adj->n_lines_adjustable);
-		if (adj->lines[adj->idx_line_begin].feedrate > feedrate)
-			feedrate = adj->lines[adj->idx_line_begin].feedrate;
-	}
-	assert(feedrate > 0.f);
+    for (PerExtruderAdjustments *adj : by_min_print_speed) {
+        adj->idx_line_begin = 0;
+        adj->idx_line_end   = 0;
+        assert(adj->idx_line_begin < adj->n_lines_adjustable);
+        if (adj->lines[adj->idx_line_begin].feedrate > feedrate)
+            feedrate = adj->lines[adj->idx_line_begin].feedrate;
+    }
+    assert(feedrate > 0.f);
     // Sort by min_print_speed, maximum speed first.
     std::sort(by_min_print_speed.begin(), by_min_print_speed.end(), 
         [](const PerExtruderAdjustments *p1, const PerExtruderAdjustments *p2){ return p1->min_print_speed > p2->min_print_speed; });
@@ -496,7 +553,7 @@ static inline void extruder_range_slow_down_non_proportional(
                 for (auto it = adj; it != by_min_print_speed.end(); ++ it)
                     time_stretch_max += (*it)->time_stretch_when_slowing_down_to_feedrate(feedrate_limit);
                 if (time_stretch_max >= time_stretch) {
-                    feedrate_limit = feedrate - (feedrate - feedrate_limit) * time_stretch / time_stretch_max;
+                    feedrate_limit = new_feedrate_to_reach_time_stretch(adj, by_min_print_speed.end(), feedrate_limit, time_stretch, 20);
                     done = true;
                 } else
                     time_stretch -= time_stretch_max;

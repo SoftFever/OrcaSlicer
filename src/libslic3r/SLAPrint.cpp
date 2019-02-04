@@ -29,6 +29,8 @@ public:
     SupportTreePtr   support_tree_ptr;   // the supports
     SlicedSupports   support_slices;     // sliced supports
     std::vector<LevelID>    level_ids;
+
+    inline SupportData(const TriangleMesh& trmesh): emesh(trmesh) {}
 };
 
 namespace {
@@ -385,8 +387,6 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
             update_apply_status(false);
     }
 
-    this->update_object_placeholders();
-
 #ifdef _DEBUG
     check_model_ids_equal(m_model, model);
 #endif /* _DEBUG */
@@ -503,8 +503,8 @@ void SLAPrint::process()
     // support points. Then we sprinkle the rest of the mesh.
     auto support_points = [this, ilh](SLAPrintObject& po) {
         const ModelObject& mo = *po.m_model_object;
-        po.m_supportdata.reset(new SLAPrintObject::SupportData());
-        po.m_supportdata->emesh = sla::to_eigenmesh(po.transformed_mesh());
+        po.m_supportdata.reset(
+                    new SLAPrintObject::SupportData(po.transformed_mesh()) );
 
         // If supports are disabled, we can skip the model scan.
         if(!po.m_config.supports_enable.getBool()) return;

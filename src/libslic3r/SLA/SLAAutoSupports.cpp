@@ -15,7 +15,7 @@ namespace Slic3r {
 
 SLAAutoSupports::SLAAutoSupports(const TriangleMesh& mesh, const sla::EigenMesh3D& emesh, const std::vector<ExPolygons>& slices, const std::vector<float>& heights, 
     const Config& config, std::function<void(void)> throw_on_cancel)
-: m_config(config), m_V(emesh.V), m_F(emesh.F), m_throw_on_cancel(throw_on_cancel)
+: m_config(config), m_V(emesh.V()), m_F(emesh.F()), m_throw_on_cancel(throw_on_cancel)
 {
     // FIXME: It might be safer to get rid of the rand() calls altogether, because it is probably
     // not always thread-safe and can be slow if it is.

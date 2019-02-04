@@ -252,6 +252,7 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     , is_modifier(false)
     , is_wipe_tower(false)
     , is_extrusion_path(false)
+    , force_transparent(false)
     , tverts_range(0, size_t(-1))
     , qverts_range(0, size_t(-1))
 {
@@ -293,6 +294,9 @@ void GLVolume::set_render_color()
         set_render_color(OUTSIDE_COLOR, 4);
     else
         set_render_color(color, 4);
+
+    if (force_transparent)
+        render_color[3] = color[3];
 }
 
 void GLVolume::set_color_from_model_volume(const ModelVolume *model_volume)
