@@ -1799,7 +1799,8 @@ void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const G
                 }
             }
         }
-        m_editing_mode_cache = m_model_object->sla_support_points; // make a copy of ModelObject's support points
+        if (m_old_model_object != m_model_object)
+            m_editing_mode_cache = m_model_object->sla_support_points; // make a copy of ModelObject's support points
         if (m_state == On) {
             m_parent.toggle_model_objects_visibility(false);
             m_parent.toggle_model_objects_visibility(true, m_model_object);
@@ -1812,21 +1813,7 @@ void GLGizmoSlaSupports::on_render(const GLCanvas3D::Selection& selection) const
     ::glEnable(GL_BLEND);
     ::glEnable(GL_DEPTH_TEST);
 
-    for (unsigned int i=0; i<m_grabbers.size(); ++i) {
-        bool supports_new_island = m_lock_unique_islands && m_editing_mode_cache[i].is_new_island;
-        Grabber& g = m_grabbers[i];
-        if (m_editing_mode) {
-            g.color[0] = supports_new_island ? 0.f : 1.f;
-            g.color[1] = 0.f;
-            g.color[2] = supports_new_island ? 1.f : 0.f;
-        }
-        else {
-            for (unsigned char i=0; i<3; ++i) g.color[i] = 0.5f;
-        }
-            
-    }
-
-    render_grabbers(selection, false);
+    render_points(selection, false);
 
 #if !ENABLE_IMGUI
     render_tooltip_texture();
@@ -1838,15 +1825,11 @@ void GLGizmoSlaSupports::on_render(const GLCanvas3D::Selection& selection) const
 void GLGizmoSlaSupports::on_render_for_picking(const GLCanvas3D::Selection& selection) const
 {
     ::glEnable(GL_DEPTH_TEST);
-    for (unsigned int i=0; i<m_grabbers.size(); ++i) {
-        m_grabbers[i].color[0] = 1.0f;
-        m_grabbers[i].color[1] = 1.0f;
-        m_grabbers[i].color[2] = picking_color_component(i);
-    }
-    render_grabbers(selection, true);
+
+    render_points(selection, true);
 }
 
-void GLGizmoSlaSupports::render_grabbers(const GLCanvas3D::Selection& selection, bool picking) const
+void GLGizmoSlaSupports::render_points(const GLCanvas3D::Selection& selection, bool picking) const
 {
     if (m_quadric == nullptr)
         return;
@@ -1867,26 +1850,42 @@ void GLGizmoSlaSupports::render_grabbers(const GLCanvas3D::Selection& selection,
         ::glEnable(GL_LIGHTING);
 
     float render_color[3];
-    for (int i = 0; i < (int)m_grabbers.size(); ++i)
+    for (int i = 0; i < (int)m_editing_mode_cache.size(); ++i)
     {
+        const Vec3f& point_pos = m_editing_mode_cache[i].pos;
         // first precalculate the grabber position in world coordinates, so that the grabber
         // is not scaled with the object (as it would be if rendered with current gl matrix).
-        Eigen::Matrix<GLfloat, 4, 4> glmatrix;
+        Eigen::Matrix<GLfloat, 4, 4, Eigen::DontAlign> glmatrix;
         glGetFloatv (GL_MODELVIEW_MATRIX, glmatrix.data());
-        Eigen::Matrix<float, 4, 1> grabber_pos;
+        Eigen::Matrix<float, 4, 1, Eigen::DontAlign> point_pos_4d;
         for (int j=0; j<3; ++j)
-            grabber_pos(j) = m_grabbers[i].center(j);
-        grabber_pos[3] = 1.f;
-        Eigen::Matrix<float, 4, 1> grabber_world_position = glmatrix * grabber_pos;
+            point_pos_4d(j) = point_pos(j);
+        point_pos_4d[3] = 1.f;
+        Eigen::Matrix<float, 4, 1, Eigen::DontAlign> grabber_world_position = glmatrix * point_pos_4d;
 
-        if (!picking && (m_hover_id == i))
+        if (!picking && (m_hover_id == i)) // point is in hover state
         {
-            render_color[0] = 1.0f - m_grabbers[i].color[0];
-            render_color[1] = 1.0f - m_grabbers[i].color[1];
-            render_color[2] = 1.0f - m_grabbers[i].color[2];
+            render_color[0] = 0.f;
+            render_color[1] = 1.0f;
+            render_color[2] = 1.0f;
         }
-        else
-            ::memcpy((void*)render_color, (const void*)m_grabbers[i].color, 3 * sizeof(float));
+        else {
+            if (picking) {
+                render_color[0] = 1.0f;
+                render_color[1] = 1.0f;
+                render_color[2] = picking_color_component(i);
+            }
+            else { // normal rendering
+                bool supports_new_island = m_lock_unique_islands && m_editing_mode_cache[i].is_new_island;
+                if (m_editing_mode) {
+                    render_color[0] = supports_new_island ? 0.f : 1.f;
+                    render_color[1] = 0.f;
+                    render_color[2] = supports_new_island ? 1.f : 0.f;
+                }
+                else
+                    for (unsigned char i=0; i<3; ++i) render_color[i] = 0.5f;
+            }
+        }
 
         ::glColor3fv(render_color);
         ::glPushMatrix();
@@ -1939,14 +1938,8 @@ void GLGizmoSlaSupports::update_mesh()
     m_AABB = igl::AABB<Eigen::MatrixXf,3>();
     m_AABB.init(m_V, m_F);
 
-    // we'll now reload Grabbers (selection might have changed):
-    m_grabbers.clear();
+    // we'll now reload support points (selection might have changed):
     m_editing_mode_cache = m_model_object->sla_support_points;
-
-    for (const sla::SupportPoint& point : m_editing_mode_cache) {
-        m_grabbers.push_back(Grabber());
-        m_grabbers.back().center = point.pos.cast<double>();
-    }
 }
 
 Vec3f GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos)
@@ -2007,13 +2000,10 @@ void GLGizmoSlaSupports::clicked_on_object(const Vec2d& mouse_position)
 
     Vec3f new_pos;
     try {
-        new_pos = unproject_on_mesh(mouse_position); // this can throw - we don't want to create a new grabber in that case
+        new_pos = unproject_on_mesh(mouse_position); // this can throw - we don't want to create a new point in that case
     }
     catch (...) { return; }
 
-    m_grabbers.push_back(Grabber());
-    m_grabbers.back().center = new_pos.cast<double>();
-    
     m_editing_mode_cache.emplace_back(new_pos, m_new_point_head_diameter, false);
 
     // This should trigger the support generation
@@ -2022,13 +2012,12 @@ void GLGizmoSlaSupports::clicked_on_object(const Vec2d& mouse_position)
     m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
 }
 
-void GLGizmoSlaSupports::delete_current_grabber(bool delete_all)
+void GLGizmoSlaSupports::delete_current_point(bool delete_all)
 {
     if (!m_editing_mode && !delete_all)
         return;
 
     if (delete_all) {
-        m_grabbers.clear();
         m_editing_mode_cache.clear();
 
         // This should trigger the support generation
@@ -2037,7 +2026,6 @@ void GLGizmoSlaSupports::delete_current_grabber(bool delete_all)
     else
         if (m_hover_id != -1) {
             if (!m_editing_mode_cache[m_hover_id].is_new_island || !m_lock_unique_islands) {
-                m_grabbers.erase(m_grabbers.begin() + m_hover_id);
                 m_editing_mode_cache.erase(m_editing_mode_cache.begin() + m_hover_id);
                 m_hover_id = -1;
 
@@ -2056,7 +2044,6 @@ void GLGizmoSlaSupports::on_update(const UpdateData& data, const GLCanvas3D::Sel
             new_pos = unproject_on_mesh(Vec2d((*data.mouse_pos)(0), (*data.mouse_pos)(1)));
         }
         catch (...) { return; }
-        m_grabbers[m_hover_id].center = new_pos.cast<double>();
         m_editing_mode_cache[m_hover_id].pos = new_pos;
         m_editing_mode_cache[m_hover_id].is_new_island = false;
         // Do not update immediately, wait until the mouse is released.
@@ -2161,13 +2148,6 @@ RENDER_AGAIN:
         if (discard_changes) {
             m_editing_mode_cache = m_model_object->sla_support_points;
             m_editing_mode = false;
-
-            m_grabbers.clear();
-            for (const sla::SupportPoint& point : m_editing_mode_cache) {
-                m_grabbers.push_back(Grabber());
-                m_grabbers.back().center = point.pos.cast<double>();
-            }
-
             force_refresh = true;
         }
     }
@@ -2183,7 +2163,6 @@ RENDER_AGAIN:
         force_refresh |= generate;
         if (generate) {
             m_model_object->sla_support_points.clear();
-            m_grabbers.clear();
             m_editing_mode_cache.clear();
             wxGetApp().plater()->reslice();
         }
@@ -2206,7 +2185,7 @@ RENDER_AGAIN:
     if (remove_all_points) {
         force_refresh = false;
         m_parent.reload_scene(true);
-        delete_current_grabber(true);
+        delete_current_point(true);
         if (first_run) {
             first_run = false;
             goto RENDER_AGAIN;

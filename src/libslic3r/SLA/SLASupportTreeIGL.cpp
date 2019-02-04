@@ -163,7 +163,6 @@ EigenMesh3D::query_ray_hit(const Vec3d &s, const Vec3d &dir) const
     hit_result ret(*this);
     ret.m_t = double(hit.t);
     ret.m_dir = dir;
-    ret.m_source = s;
     if(!std::isinf(hit.t) && !std::isnan(hit.t)) ret.m_face_id = hit.id;
 
     return ret;

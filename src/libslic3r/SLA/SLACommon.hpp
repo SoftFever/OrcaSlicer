@@ -71,7 +71,6 @@ public:
         int m_face_id = -1;
         const EigenMesh3D& m_mesh;
         Vec3d m_dir;
-        Vec3d m_source;
         inline hit_result(const EigenMesh3D& em): m_mesh(em) {}
         friend class EigenMesh3D;
     public:

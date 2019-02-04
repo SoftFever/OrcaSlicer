@@ -464,7 +464,7 @@ public:
     virtual ~GLGizmoSlaSupports();
     void set_sla_support_data(ModelObject* model_object, const GLCanvas3D::Selection& selection);
     void clicked_on_object(const Vec2d& mouse_position);
-    void delete_current_grabber(bool delete_all);
+    void delete_current_point(bool delete_all);
 
 private:
     bool on_init();
@@ -472,7 +472,7 @@ private:
     virtual void on_render(const GLCanvas3D::Selection& selection) const;
     virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const;
 
-    void render_grabbers(const GLCanvas3D::Selection& selection, bool picking = false) const;
+    void render_points(const GLCanvas3D::Selection& selection, bool picking = false) const;
     bool is_mesh_update_necessary() const;
     void update_mesh();
 

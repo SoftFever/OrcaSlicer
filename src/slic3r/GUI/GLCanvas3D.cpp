@@ -3411,7 +3411,7 @@ void GLCanvas3D::Gizmos::delete_current_grabber(bool delete_all)
 
     GizmosMap::const_iterator it = m_gizmos.find(SlaSupports);
     if (it != m_gizmos.end())
-        reinterpret_cast<GLGizmoSlaSupports*>(it->second)->delete_current_grabber(delete_all);
+        reinterpret_cast<GLGizmoSlaSupports*>(it->second)->delete_current_point(delete_all);
 }
 
 void GLCanvas3D::Gizmos::render_current_gizmo(const GLCanvas3D::Selection& selection) const
