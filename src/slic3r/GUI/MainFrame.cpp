@@ -326,7 +326,7 @@ void MainFrame::init_menubar()
     wxString sep_space = "\xA0";
 #else
     wxString sep = " - ";
-    wxStrubg sep_space = "";
+    wxString sep_space = "";
 #endif
 
     // Edit menu
