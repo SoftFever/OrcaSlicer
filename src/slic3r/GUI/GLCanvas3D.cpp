@@ -4221,13 +4221,8 @@ void GLCanvas3D::set_bed_shape(const Pointfs& shape)
     bool new_shape = m_bed.set_shape(shape);
 
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//    // Set the origin and size for painting of the coordinate system axes.
-//    m_axes.origin = Vec3d(0.0, 0.0, (double)GROUND_Z);
-//    set_bed_axes_length(0.1 * m_bed.get_bounding_box().max_size());
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
+#if ENABLE_REWORKED_BED_SHAPE_CHANGE
     if (new_shape)
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     {
         Bed::EType type = m_bed.get_type();
 
@@ -4255,25 +4250,27 @@ void GLCanvas3D::set_bed_shape(const Pointfs& shape)
             break;
         }
         }
-        std::cout << " \"" << dynamic_cast<const ConfigOptionString*>(m_config->option("printer_model"))->value << "\"" << std::endl;
+        std::cout << std::endl;
 
         // Set the origin and size for painting of the coordinate system axes.
         m_axes.origin = Vec3d(0.0, 0.0, (double)GROUND_Z);
         set_bed_axes_length(0.1 * m_bed.get_bounding_box().max_size());
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#if ENABLE_REWORKED_BED_SHAPE_CHANGE
         m_requires_zoom_to_bed = true;
-#else
-        zoom_to_bed();
-#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
         m_dirty = true;
-}
+    }
+#else
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    // Set the origin and size for painting of the coordinate system axes.
+    m_axes.origin = Vec3d(0.0, 0.0, (double)GROUND_Z);
+    set_bed_axes_length(0.1 * m_bed.get_bounding_box().max_size());
 
+    if (new_shape)
+        zoom_to_bed();
+
+    m_dirty = true;
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//    m_dirty = true;
+#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 }
 
