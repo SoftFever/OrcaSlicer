@@ -111,8 +111,11 @@ void SLAAutoSupports::process(const std::vector<ExPolygons>& slices, const std::
                     m_structures_new.back().structures_below.push_back(&s);
 
                     coord_t centroids_dist = (bottom->contour.centroid() - polygon.contour.centroid()).norm();
-                    float mult = std::min(1.f, 1.f - std::min(1.f, (1600.f * layer_height) * (float)(centroids_dist * centroids_dist) / (float)bottom->area()));
-                    s.supports_force *= mult;
+
+                    // Penalization resulting from centroid offset:
+                    s.supports_force *= std::min(1.f, 1.f - std::min(1.f, (1600.f * layer_height) * (float)(centroids_dist * centroids_dist) / (float)bottom->area()));
+
+                    // Penalization resulting from increasing polygon area:
                     s.supports_force *= std::min(1.f, 20.f * ((float)bottom->area() / (float)polygon.area()));
                 }
             }
@@ -165,10 +168,10 @@ void SLAAutoSupports::process(const std::vector<ExPolygons>& slices, const std::
             }
 
             e = diff_ex(ExPolygons{*s.polygon}, e);
+
+            // Penalization resulting from large diff from the last layer:
             s.supports_force /= std::max(1., (layer_height / 0.3f) * (e_area / (s.polygon->area()*SCALING_FACTOR*SCALING_FACTOR)));
-                
-                
-                
+
             if ( (s.polygon->area() * pow(SCALING_FACTOR, 2)) * m_config.tear_pressure > s.supports_force) {
                 ExPolygons::iterator largest_it = std::max_element(e.begin(), e.end(), [](const ExPolygon& a, const ExPolygon& b) { return a.area() < b.area(); });
                 if (!e.empty())
@@ -215,7 +218,7 @@ void SLAAutoSupports::uniformly_cover(const ExPolygon& island, Structure& struct
 
     std::vector<Vec3d> island_new_points;
     const BoundingBox& bb = get_extents(island);
-    const int refused_limit = 30;
+    const int refused_limit = 30 * ((float)bb.size()(0)*bb.size()(1) / (float)island.area());
     int refused_points = 0;
     while (refused_points < refused_limit) {
         Point out;

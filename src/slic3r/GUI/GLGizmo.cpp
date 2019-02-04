@@ -1941,6 +1941,7 @@ void GLGizmoSlaSupports::update_mesh()
 
     // we'll now reload Grabbers (selection might have changed):
     m_grabbers.clear();
+    m_editing_mode_cache = m_model_object->sla_support_points;
 
     for (const sla::SupportPoint& point : m_editing_mode_cache) {
         m_grabbers.push_back(Grabber());
@@ -2044,7 +2045,7 @@ void GLGizmoSlaSupports::delete_current_grabber(bool delete_all)
                 // wxGetApp().plater()->reslice();
             }
         }
-    m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
+    //m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
 }
 
 void GLGizmoSlaSupports::on_update(const UpdateData& data, const GLCanvas3D::Selection& selection)
@@ -2203,17 +2204,17 @@ RENDER_AGAIN:
 
 
     if (remove_all_points) {
-        force_refresh = true;
+        force_refresh = false;
+        m_parent.reload_scene(true);
         delete_current_grabber(true);
-        /*if (first_run) {
+        if (first_run) {
             first_run = false;
             goto RENDER_AGAIN;
-        }*/
+        }
     }
 
-    if (force_refresh) {
+    if (force_refresh)
         m_parent.reload_scene(true);
-    }
 }
 #endif // ENABLE_IMGUI
 
