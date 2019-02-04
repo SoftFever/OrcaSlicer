@@ -562,7 +562,7 @@ Sidebar::Sidebar(Plater *parent)
     // calculate width of the preset labels 
     p->sizer_presets->Layout();
     const wxArrayInt& ar = p->sizer_presets->GetColWidths();
-    int label_width = ar.IsEmpty() ? 7.7*wxGetApp().em_unit() : ar.front()-4;
+    int label_width = ar.IsEmpty() ? int(7.7*wxGetApp().em_unit()+0.5) : ar.front()-4;
 
     p->sizer_params = new wxBoxSizer(wxVERTICAL);
 

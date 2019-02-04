@@ -82,7 +82,7 @@ class OptionsGroup {
 public:
     const bool		staticbox {true};
     const wxString	title {wxString("")};
-    size_t			label_width {200};
+    size_t			label_width = 15 * wxGetApp().em_unit();// {200};
     wxSizer*		sizer {nullptr};
     column_t		extra_column {nullptr};
     t_change		m_on_change { nullptr };

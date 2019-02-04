@@ -49,11 +49,13 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     def.default_value = new ConfigOptionString{ " " };
     m_og->append_single_option_line(Option(def, "object_name"));
 
+    const int field_width = int(3.8 * wxGetApp().em_unit()+0.5)/*50*/;
+
     // Legend for object modification
     auto line = Line{ "", "" };
     def.label = "";
     def.type = coString;
-    def.width = 3.8 * wxGetApp().em_unit()/*50*/;
+    def.width = field_width/*50*/;
 
     std::vector<std::string> axes{ "x", "y", "z" };
     for (const auto axis : axes) {
@@ -65,13 +67,13 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     m_og->append_line(line);
 
 
-    auto add_og_to_object_settings = [this](const std::string& option_name, const std::string& sidetext)
+    auto add_og_to_object_settings = [this, field_width](const std::string& option_name, const std::string& sidetext)
     {
         Line line = { _(option_name), "" };
         ConfigOptionDef def;
         def.type = coFloat;
         def.default_value = new ConfigOptionFloat(0.0);
-        def.width = 3.8 * wxGetApp().em_unit()/*50*/;
+        def.width = field_width/*50*/;
 
         if (option_name == "Rotation")
         {

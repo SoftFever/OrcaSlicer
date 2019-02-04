@@ -124,7 +124,7 @@ ConfigOptionsGroupShp BedShapePanel::init_shape_options_page(wxString title)
 	ConfigOptionsGroupShp optgroup;
 	optgroup = std::make_shared<ConfigOptionsGroup>(panel, _(L("Settings")));
 
-	optgroup->label_width = 100;
+    optgroup->label_width = int(7.7*wxGetApp().em_unit() + 0.5);//100;
 	optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
 		update_shape();
 	};

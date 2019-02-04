@@ -56,6 +56,8 @@ Tab::Tab(wxNotebook* parent, const wxString& title, const char* name) :
 	m_compatible_prints.dialog_label 	= _(L("Select the print profiles this profile is compatible with."));
 
 	wxGetApp().tabs_list.push_back(this);
+
+    m_em_unit = wxGetApp().em_unit();
 }
 
 void Tab::set_type()
@@ -96,7 +98,7 @@ void Tab::create_preset_tab()
 #endif //__WXOSX__
 
 	// preset chooser
-    m_presets_choice = new wxBitmapComboBox(panel, wxID_ANY, "", wxDefaultPosition, wxSize(20 * wxGetApp().em_unit(), -1), 0, 0, wxCB_READONLY);
+    m_presets_choice = new wxBitmapComboBox(panel, wxID_ANY, "", wxDefaultPosition, wxSize(20 * m_em_unit, -1), 0, 0, wxCB_READONLY);
 
 	auto color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 
@@ -201,7 +203,7 @@ void Tab::create_preset_tab()
 	m_hsizer->Add(m_left_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, 3);
 
 	// tree
-    m_treectrl = new wxTreeCtrl(panel, wxID_ANY, wxDefaultPosition, wxSize(15 * wxGetApp().em_unit(), -1),
+    m_treectrl = new wxTreeCtrl(panel, wxID_ANY, wxDefaultPosition, wxSize(15 * m_em_unit, -1),
 		wxTR_NO_BUTTONS | wxTR_HIDE_ROOT | wxTR_SINGLE | wxTR_NO_LINES | wxBORDER_SUNKEN | wxWANTS_CHARS);
 	m_left_sizer->Add(m_treectrl, 1, wxEXPAND);
 	m_icons = new wxImageList(16, 16, true, 1);
@@ -1105,14 +1107,14 @@ void TabPrint::build()
 		optgroup = page->new_optgroup(_(L("Post-processing scripts")), 0);	
 		option = optgroup->get_option("post_process");
 		option.opt.full_width = true;
-        option.opt.height = 4 * wxGetApp().em_unit();//50;
+        option.opt.height = 4 * m_em_unit;//50;
 		optgroup->append_single_option_line(option);
 
 	page = add_options_page(_(L("Notes")), "note.png");
 		optgroup = page->new_optgroup(_(L("Notes")), 0);						
 		option = optgroup->get_option("notes");
 		option.opt.full_width = true;
-        option.opt.height = 19 * wxGetApp().em_unit();//250;
+        option.opt.height = 19 * m_em_unit;//250;
 		optgroup->append_single_option_line(option);
 
 	page = add_options_page(_(L("Dependencies")), "wrench.png");
@@ -1468,18 +1470,20 @@ void TabFilament::build()
 		};
 		optgroup->append_line(line);
 
+        const int gcode_field_height = int(11.5 * m_em_unit + 0.5); // 150
+        const int notes_field_height = 19 * m_em_unit; // 250
 
         page = add_options_page(_(L("Custom G-code")), "cog.png");
 		optgroup = page->new_optgroup(_(L("Start G-code")), 0);
 		Option option = optgroup->get_option("start_filament_gcode");
 		option.opt.full_width = true;
-        option.opt.height = 11.5 * wxGetApp().em_unit();// 150;
+        option.opt.height = gcode_field_height;// 150;
 		optgroup->append_single_option_line(option);
 
 		optgroup = page->new_optgroup(_(L("End G-code")), 0);
 		option = optgroup->get_option("end_filament_gcode");
 		option.opt.full_width = true;
-		option.opt.height = 11.5 * wxGetApp().em_unit();// 150;
+		option.opt.height = gcode_field_height;// 150;
 		optgroup->append_single_option_line(option);
 
 	page = add_options_page(_(L("Notes")), "note.png");
@@ -1487,7 +1491,7 @@ void TabFilament::build()
 		optgroup->label_width = 0;
 		option = optgroup->get_option("filament_notes");
 		option.opt.full_width = true;
-		option.opt.height = 19 * wxGetApp().em_unit();// 250;
+		option.opt.height = notes_field_height;// 250;
 		optgroup->append_single_option_line(option);
 
 	page = add_options_page(_(L("Dependencies")), "wrench.png");
@@ -1846,48 +1850,50 @@ void TabPrinter::build_fff()
 		optgroup->append_single_option_line("use_volumetric_e");
 		optgroup->append_single_option_line("variable_layer_height");
 
+    const int gcode_field_height = int(11.5 * m_em_unit + 0.5); // 150
+    const int notes_field_height = 19 * m_em_unit; // 250
 	page = add_options_page(_(L("Custom G-code")), "cog.png");
 		optgroup = page->new_optgroup(_(L("Start G-code")), 0);
 		option = optgroup->get_option("start_gcode");
 		option.opt.full_width = true;
-        option.opt.height = 11.5 * wxGetApp().em_unit();//150;
+        option.opt.height = gcode_field_height;//150;
 		optgroup->append_single_option_line(option);
 
 		optgroup = page->new_optgroup(_(L("End G-code")), 0);
 		option = optgroup->get_option("end_gcode");
 		option.opt.full_width = true;
-		option.opt.height = 11.5 * wxGetApp().em_unit();//150;
+        option.opt.height = gcode_field_height;//150;
 		optgroup->append_single_option_line(option);
 
 		optgroup = page->new_optgroup(_(L("Before layer change G-code")), 0);
 		option = optgroup->get_option("before_layer_gcode");
 		option.opt.full_width = true;
-		option.opt.height = 11.5 * wxGetApp().em_unit();//150;
+        option.opt.height = gcode_field_height;//150;
 		optgroup->append_single_option_line(option);
 
 		optgroup = page->new_optgroup(_(L("After layer change G-code")), 0);
 		option = optgroup->get_option("layer_gcode");
 		option.opt.full_width = true;
-		option.opt.height = 11.5 * wxGetApp().em_unit();//150;
+        option.opt.height = gcode_field_height;//150;
 		optgroup->append_single_option_line(option);
 
 		optgroup = page->new_optgroup(_(L("Tool change G-code")), 0);
 		option = optgroup->get_option("toolchange_gcode");
 		option.opt.full_width = true;
-		option.opt.height = 11.5 * wxGetApp().em_unit();//150;
+        option.opt.height = gcode_field_height;//150;
 		optgroup->append_single_option_line(option);
 
 		optgroup = page->new_optgroup(_(L("Between objects G-code (for sequential printing)")), 0);
 		option = optgroup->get_option("between_objects_gcode");
 		option.opt.full_width = true;
-		option.opt.height = 11.5 * wxGetApp().em_unit();//150;
+        option.opt.height = gcode_field_height;//150;
 		optgroup->append_single_option_line(option);
 	
 	page = add_options_page(_(L("Notes")), "note.png");
 		optgroup = page->new_optgroup(_(L("Notes")), 0);
 		option = optgroup->get_option("printer_notes");
 		option.opt.full_width = true;
-		option.opt.height = 19 * wxGetApp().em_unit();//250;
+        option.opt.height = notes_field_height;//250;
 		optgroup->append_single_option_line(option);
 
 	page = add_options_page(_(L("Dependencies")), "wrench.png");
@@ -1964,11 +1970,13 @@ void TabPrinter::build_sla()
     optgroup = page->new_optgroup(_(L("Print Host upload")));
     build_printhost(optgroup.get());
 
+    const int notes_field_height = 19 * m_em_unit; // 250
+
     page = add_options_page(_(L("Notes")), "note.png");
     optgroup = page->new_optgroup(_(L("Notes")), 0);
     option = optgroup->get_option("printer_notes");
     option.opt.full_width = true;
-    option.opt.height = 19*wxGetApp().em_unit();//250;
+    option.opt.height = notes_field_height;//250;
     optgroup->append_single_option_line(option);
 
     page = add_options_page(_(L("Dependencies")), "wrench.png");
@@ -2017,7 +2025,7 @@ PageShp TabPrinter::build_kinematics_page()
 		// Legend for OptionsGroups
 		auto optgroup = page->new_optgroup("");
 		optgroup->set_show_modified_btns_val(false);
-        optgroup->label_width = 18 * wxGetApp().em_unit();// 230;
+        optgroup->label_width = 18 * m_em_unit;// 230;
 		auto line = Line{ "", "" };
 
 		ConfigOptionDef def;
@@ -3103,7 +3111,7 @@ void TabSLAMaterial::build()
     optgroup->append_single_option_line("initial_exposure_time");
 
     optgroup = page->new_optgroup(_(L("Corrections")));
-    optgroup->label_width = 14.5 * wxGetApp().em_unit();//190;
+    optgroup->label_width = int(14.5 * m_em_unit+0.5);//190;
     std::vector<std::string> corrections = { "material_correction_printing", "material_correction_curing" };
     std::vector<std::string> axes{ "X", "Y", "Z" };
     for (auto& opt_key : corrections) {
@@ -3124,7 +3132,7 @@ void TabSLAMaterial::build()
     optgroup->label_width = 0;
     Option option = optgroup->get_option("material_notes");
     option.opt.full_width = true;
-    option.opt.height = 19 * wxGetApp().em_unit();//250;
+    option.opt.height = 19 * m_em_unit;//250;
     optgroup->append_single_option_line(option);
 
     page = add_options_page(_(L("Dependencies")), "wrench.png");
