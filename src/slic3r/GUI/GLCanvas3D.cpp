@@ -4206,6 +4206,9 @@ unsigned int GLCanvas3D::get_volumes_count() const
 
 void GLCanvas3D::reset_volumes()
 {
+    if (!m_initialized)
+        return;
+
     _set_current();
 
     if (!m_volumes.empty())
@@ -4254,6 +4257,7 @@ void GLCanvas3D::set_bed_shape(const Pointfs& shape)
         // Set the origin and size for painting of the coordinate system axes.
         m_axes.origin = Vec3d(0.0, 0.0, (double)GROUND_Z);
         set_bed_axes_length(0.1 * m_bed.get_bounding_box().max_size());
+        m_camera.set_scene_box(scene_bounding_box(), *this);
         m_requires_zoom_to_bed = true;
 
         m_dirty = true;
@@ -4688,7 +4692,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     if ((m_canvas == nullptr) || (m_config == nullptr) || (m_model == nullptr))
         return;
 
-    _set_current();
+    if (m_initialized)
+        _set_current();
 
     struct ModelVolumeState {
         ModelVolumeState(const GLVolume *volume) : 
@@ -5748,8 +5753,11 @@ Point GLCanvas3D::get_local_mouse_position() const
 
 void GLCanvas3D::reset_legend_texture()
 {
-    _set_current();
-    m_legend_texture.reset();
+    if (m_legend_texture.get_id() != 0)
+    {
+        _set_current();
+        m_legend_texture.reset();
+    }
 }
 
 void GLCanvas3D::set_tooltip(const std::string& tooltip) const
