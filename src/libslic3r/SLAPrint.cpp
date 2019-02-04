@@ -387,8 +387,6 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
             update_apply_status(false);
     }
 
-    this->update_object_placeholders();
-
 #ifdef _DEBUG
     check_model_ids_equal(m_model, model);
 #endif /* _DEBUG */

@@ -230,7 +230,10 @@ public:
     void            reset(bool delete_files);
 
     Preset::Type    type() const { return m_type; }
+    // Name, to be used on the screen and in error messages. Not localized.
     std::string     name() const;
+    // Name, to be used as a section name in config bundle, and as a folder name for presets.
+    std::string     section_name() const;
     const std::deque<Preset>& operator()() const { return m_presets; }
 
     // Add default preset at the start of the collection, increment the m_default_preset counter.

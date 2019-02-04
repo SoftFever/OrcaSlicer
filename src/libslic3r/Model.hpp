@@ -387,6 +387,8 @@ public:
 
     const Transform3d& get_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const { return m_transformation.get_matrix(dont_translate, dont_rotate, dont_scale, dont_mirror); }
 
+    using ModelBase::set_new_unique_id;
+
 protected:
 	friend class Print;
     friend class SLAPrint;
@@ -609,8 +611,8 @@ public:
     static std::string get_auto_extruder_id_as_string(unsigned int max_extruders);
     static void reset_auto_extruder_id();
 
-    // Propose an output file name based on the first printable object's name.
-    std::string         propose_export_file_name() const;
+    // Propose an output file name & path based on the first printable object's name and source input file's path.
+    std::string         propose_export_file_name_and_path() const;
 
 private:
     MODELBASE_DERIVED_PRIVATE_COPY_MOVE(Model)
