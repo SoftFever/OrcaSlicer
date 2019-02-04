@@ -5112,9 +5112,11 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case WXK_CONTROL_A: post_event(SimpleEvent(EVT_GLCANVAS_SELECT_ALL)); break;
 #ifdef __APPLE__
         case WXK_BACK: // the low cost Apple solutions are not equipped with a Delete key, use Backspace instead.
+#else /* __APPLE__ */
+        case WXK_DELETE:
 #endif /* __APPLE__ */
-        case WXK_DELETE:    post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE_ALL)); break;
-        default:            evt.Skip();
+                            post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE_ALL)); break;
+		default:            evt.Skip();
         }
     } else if (evt.HasModifiers()) {
         evt.Skip();
@@ -5125,9 +5127,11 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case WXK_ESCAPE: { m_gizmos.reset_all_states(); m_dirty = true;  break; }
 #ifdef __APPLE__
         case WXK_BACK: // the low cost Apple solutions are not equipped with a Delete key, use Backspace instead.
+#else /* __APPLE__ */
+		case WXK_DELETE:
 #endif /* __APPLE__ */
-        case WXK_DELETE: post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE)); break;
-        case '0': { select_view("iso"); break; }
+                  post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE)); break;
+		case '0': { select_view("iso"); break; }
         case '1': { select_view("top"); break; }
         case '2': { select_view("bottom"); break; }
         case '3': { select_view("front"); break; }
