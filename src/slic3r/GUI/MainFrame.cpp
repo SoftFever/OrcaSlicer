@@ -319,29 +319,27 @@ void MainFrame::init_menubar()
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable((m_plater != nullptr) && can_slice()); }, m_menu_item_reslice_now->GetId());
     }
 
+#ifdef _MSC_VER
+    // \xA0 is a non-breaking space. It is entered here to spoil the automatic accelerators,
+    // as the simple numeric accelerators spoil all numeric data entry.
+    wxString sep = "\t\xA0";
+    wxString sep_space = "\xA0";
+#else
+    wxString sep = " - ";
+    wxString sep_space = "";
+#endif
+
     // Edit menu
     wxMenu* editMenu = nullptr;
     if (m_plater != nullptr)
     {
         editMenu = new wxMenu();
-        // \xA0 is a non-breaking space. It is entered here to spoil the automatic accelerators,
-        // as the simple numeric accelerators spoil all numeric data entry.
-        wxMenuItem* item_select_all = append_menu_item(editMenu, wxID_ANY, _(L("&Select all")) +
-#ifdef _MSC_VER
-            "\t\xA0" + "Ctrl+\xA0" + "A"
-#else
-#ifdef __APPLE__
-            "\tCtrl+A"
-#else
-            " - Ctrl+A"
-#endif
-#endif
-            , _(L("Selects all objects")),
+        wxMenuItem* item_select_all = append_menu_item(editMenu, wxID_ANY, _(L("&Select all")) + sep + "Ctrl+" + sep_space + "A", _(L("Selects all objects")),
             [this](wxCommandEvent&) { m_plater->select_all(); }, "");
         editMenu->AppendSeparator();
-        wxMenuItem* item_delete_sel = append_menu_item(editMenu, wxID_ANY, _(L("&Delete selected")) + "\tDel", _(L("Deletes the current selection")),
+        wxMenuItem* item_delete_sel = append_menu_item(editMenu, wxID_ANY, _(L("&Delete selected")) + sep + "Del", _(L("Deletes the current selection")),
             [this](wxCommandEvent&) { m_plater->remove_selected(); }, "");
-        wxMenuItem* item_delete_all = append_menu_item(editMenu, wxID_ANY, _(L("Delete &all")) + "\tCtrl+Del", _(L("Deletes all objects")),
+        wxMenuItem* item_delete_all = append_menu_item(editMenu, wxID_ANY, _(L("Delete &all")) + sep + "Ctrl+" + sep_space + "Del", _(L("Deletes all objects")),
             [this](wxCommandEvent&) { m_plater->reset(); }, "");
 
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_select()); }, item_select_all->GetId());
@@ -398,12 +396,6 @@ void MainFrame::init_menubar()
 
     // View menu
     wxMenu* viewMenu = nullptr;
-    wxString sep =
-#ifdef _MSC_VER
-        "\t";
-#else
-        " - ";
-#endif
     if (m_plater) {
         viewMenu = new wxMenu();
         // The camera control accelerators are captured by GLCanvas3D::on_char().
