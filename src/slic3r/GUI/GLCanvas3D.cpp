@@ -1102,12 +1102,11 @@ void GLCanvas3D::LayersEditing::_render_tooltip_texture(const GLCanvas3D& canvas
 
 #if ENABLE_RETINA_GL
     const float scale = canvas.get_canvas_size().get_scale_factor();
+#else
+    const float scale = canvas.get_wxglcanvas()->GetContentScaleFactor();
+#endif
     const float width = (float)m_tooltip_texture.get_width() * scale;
     const float height = (float)m_tooltip_texture.get_height() * scale;
-#else
-    const float width = (float)m_tooltip_texture.get_width();
-    const float height = (float)m_tooltip_texture.get_height();
-#endif
 
     float zoom = canvas.get_camera_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
@@ -1329,20 +1328,24 @@ void GLCanvas3D::LayersEditing::update_slicing_parameters()
 
 float GLCanvas3D::LayersEditing::thickness_bar_width(const GLCanvas3D &canvas)
 {
+    return
 #if ENABLE_RETINA_GL
-    return canvas.get_canvas_size().get_scale_factor() * THICKNESS_BAR_WIDTH;
+        canvas.get_canvas_size().get_scale_factor()
 #else
-    return THICKNESS_BAR_WIDTH;
+        canvas.get_wxglcanvas()->GetContentScaleFactor()
 #endif
+         * THICKNESS_BAR_WIDTH;
 }
 
 float GLCanvas3D::LayersEditing::reset_button_height(const GLCanvas3D &canvas)
 {
+    return
 #if ENABLE_RETINA_GL
-    return canvas.get_canvas_size().get_scale_factor() * THICKNESS_RESET_BUTTON_HEIGHT;
+        canvas.get_canvas_size().get_scale_factor()
 #else
-    return THICKNESS_RESET_BUTTON_HEIGHT;
+        canvas.get_wxglcanvas()->GetContentScaleFactor()
 #endif
+         * THICKNESS_RESET_BUTTON_HEIGHT;
 }
 
 
@@ -6209,7 +6212,9 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
     wxGetApp().imgui()->set_display_size((float)w, (float)h);
 #if ENABLE_RETINA_GL
     wxGetApp().imgui()->set_style_scaling(m_retina_helper->get_scale_factor());
-#endif // ENABLE_RETINA_GL
+#else
+    wxGetApp().imgui()->set_style_scaling(m_canvas->GetContentScaleFactor());
+#endif
 #endif // ENABLE_IMGUI
 
     // ensures that this canvas is current
@@ -6668,7 +6673,10 @@ void GLCanvas3D::_render_gizmos_overlay() const
 {
 #if ENABLE_RETINA_GL
     m_gizmos.set_overlay_scale(m_retina_helper->get_scale_factor());
-#endif
+#else
+    m_gizmos.set_overlay_scale(m_canvas->GetContentScaleFactor());
+#endif /* __WXMSW__ */
+
     m_gizmos.render_overlay(*this, m_selection);
 }
 
@@ -6676,7 +6684,10 @@ void GLCanvas3D::_render_toolbar() const
 {
 #if ENABLE_RETINA_GL
     m_toolbar.set_icons_scale(m_retina_helper->get_scale_factor());
-#endif
+#else
+    m_toolbar.set_icons_scale(m_canvas->GetContentScaleFactor());
+#endif /* __WXMSW__ */
+
     m_toolbar.render(*this);
 }
 
@@ -6685,7 +6696,9 @@ void GLCanvas3D::_render_view_toolbar() const
     if (m_view_toolbar != nullptr) {
 #if ENABLE_RETINA_GL
         m_view_toolbar->set_icons_scale(m_retina_helper->get_scale_factor());
-#endif
+#else
+        m_view_toolbar->set_icons_scale(m_canvas->GetContentScaleFactor());
+#endif /* __WXMSW__ */
         m_view_toolbar->render(*this);
     }
 }
@@ -8433,7 +8446,9 @@ void GLCanvas3D::_resize_toolbars() const
 
 #if ENABLE_RETINA_GL
     m_toolbar.set_icons_scale(m_retina_helper->get_scale_factor());
-#endif
+#else
+    m_toolbar.set_icons_scale(m_canvas->GetContentScaleFactor());
+#endif /* __WXMSW__ */
 
     GLToolbar::Layout::EOrientation orientation = m_toolbar.get_layout_orientation();
 
@@ -8480,7 +8495,9 @@ void GLCanvas3D::_resize_toolbars() const
     {
 #if ENABLE_RETINA_GL
         m_view_toolbar->set_icons_scale(m_retina_helper->get_scale_factor());
-#endif
+#else
+        m_view_toolbar->set_icons_scale(m_canvas->GetContentScaleFactor());
+#endif /* __WXMSW__ */
 
         // places the toolbar on the bottom-left corner of the 3d scene
         float top = (-0.5f * (float)cnv_size.get_height() + m_view_toolbar->get_height()) * inv_zoom;

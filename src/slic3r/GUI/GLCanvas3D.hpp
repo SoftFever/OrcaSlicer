@@ -941,6 +941,7 @@ public:
     void set_context(wxGLContext* context) { m_context = context; }
 
     wxGLCanvas* get_wxglcanvas() { return m_canvas; }
+	const wxGLCanvas* get_wxglcanvas() const { return m_canvas; }
 
     void set_view_toolbar(GLToolbar* toolbar) { m_view_toolbar = toolbar; }
 
