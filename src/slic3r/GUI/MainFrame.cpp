@@ -55,9 +55,8 @@ wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAUL
 
 
     // initialize default width_unit according to the width of the one symbol ("x") of the current system font
-    const wxString x_str = "x";
-    const wxSize size = GetTextExtent(x_str);
-    wxGetApp().set_width_unit(size.x);
+    const wxSize size = GetTextExtent("m");
+    wxGetApp().set_em_unit(size.x);
 
     // initialize tabpanel and menubar
     init_tabpanel();

@@ -96,7 +96,7 @@ void Tab::create_preset_tab()
 #endif //__WXOSX__
 
 	// preset chooser
-    m_presets_choice = new wxBitmapComboBox(panel, wxID_ANY, "", wxDefaultPosition, wxSize(40 * wxGetApp().width_unit()/*270*/, -1), 0, 0, wxCB_READONLY);
+    m_presets_choice = new wxBitmapComboBox(panel, wxID_ANY, "", wxDefaultPosition, wxSize(20 * wxGetApp().em_unit(), -1), 0, 0, wxCB_READONLY);
 
 	auto color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 
@@ -201,7 +201,7 @@ void Tab::create_preset_tab()
 	m_hsizer->Add(m_left_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, 3);
 
 	// tree
-    m_treectrl = new wxTreeCtrl(panel, wxID_ANY, wxDefaultPosition, wxSize(30 * wxGetApp().width_unit()/*185*/, -1),
+    m_treectrl = new wxTreeCtrl(panel, wxID_ANY, wxDefaultPosition, wxSize(15 * wxGetApp().em_unit(), -1),
 		wxTR_NO_BUTTONS | wxTR_HIDE_ROOT | wxTR_SINGLE | wxTR_NO_LINES | wxBORDER_SUNKEN | wxWANTS_CHARS);
 	m_left_sizer->Add(m_treectrl, 1, wxEXPAND);
 	m_icons = new wxImageList(16, 16, true, 1);
@@ -497,6 +497,8 @@ void TabSLAMaterial::init_options_list()
 
 void Tab::get_sys_and_mod_flags(const std::string& opt_key, bool& sys_page, bool& modified_page)
 {
+    if (m_options_list.empty())
+        return;
 	auto opt = m_options_list.find(opt_key);
 	if (sys_page) sys_page = (opt->second & osSystemValue) != 0;
 	modified_page |= (opt->second & osInitValue) == 0;
@@ -689,9 +691,9 @@ void Tab::update_visibility()
 	Thaw();
 
     // to update tree items color
-    wxTheApp->CallAfter([this]() {
+//    wxTheApp->CallAfter([this]() {
         update_changed_tree_ui();
-    });
+//     });
 }
 
 Field* Tab::get_field(const t_config_option_key& opt_key, int opt_index/* = -1*/) const
@@ -1102,14 +1104,14 @@ void TabPrint::build()
 		optgroup = page->new_optgroup(_(L("Post-processing scripts")), 0);	
 		option = optgroup->get_option("post_process");
 		option.opt.full_width = true;
-		option.opt.height = 50;
+        option.opt.height = 4 * wxGetApp().em_unit();//50;
 		optgroup->append_single_option_line(option);
 
 	page = add_options_page(_(L("Notes")), "note.png");
 		optgroup = page->new_optgroup(_(L("Notes")), 0);						
 		option = optgroup->get_option("notes");
 		option.opt.full_width = true;
-		option.opt.height = 250;
+        option.opt.height = 19 * wxGetApp().em_unit();//250;
 		optgroup->append_single_option_line(option);
 
 	page = add_options_page(_(L("Dependencies")), "wrench.png");
@@ -1470,13 +1472,13 @@ void TabFilament::build()
 		optgroup = page->new_optgroup(_(L("Start G-code")), 0);
 		Option option = optgroup->get_option("start_filament_gcode");
 		option.opt.full_width = true;
-		option.opt.height = 150;
+        option.opt.height = 11.5 * wxGetApp().em_unit();// 150;
 		optgroup->append_single_option_line(option);
 
 		optgroup = page->new_optgroup(_(L("End G-code")), 0);
 		option = optgroup->get_option("end_filament_gcode");
 		option.opt.full_width = true;
-		option.opt.height = 150;
+		option.opt.height = 11.5 * wxGetApp().em_unit();// 150;
 		optgroup->append_single_option_line(option);
 
 	page = add_options_page(_(L("Notes")), "note.png");
@@ -1484,7 +1486,7 @@ void TabFilament::build()
 		optgroup->label_width = 0;
 		option = optgroup->get_option("filament_notes");
 		option.opt.full_width = true;
-		option.opt.height = 250;
+		option.opt.height = 19 * wxGetApp().em_unit();// 250;
 		optgroup->append_single_option_line(option);
 
 	page = add_options_page(_(L("Dependencies")), "wrench.png");
@@ -1847,44 +1849,44 @@ void TabPrinter::build_fff()
 		optgroup = page->new_optgroup(_(L("Start G-code")), 0);
 		option = optgroup->get_option("start_gcode");
 		option.opt.full_width = true;
-		option.opt.height = 150;
+        option.opt.height = 11.5 * wxGetApp().em_unit();//150;
 		optgroup->append_single_option_line(option);
 
 		optgroup = page->new_optgroup(_(L("End G-code")), 0);
 		option = optgroup->get_option("end_gcode");
 		option.opt.full_width = true;
-		option.opt.height = 150;
+		option.opt.height = 11.5 * wxGetApp().em_unit();//150;
 		optgroup->append_single_option_line(option);
 
 		optgroup = page->new_optgroup(_(L("Before layer change G-code")), 0);
 		option = optgroup->get_option("before_layer_gcode");
 		option.opt.full_width = true;
-		option.opt.height = 150;
+		option.opt.height = 11.5 * wxGetApp().em_unit();//150;
 		optgroup->append_single_option_line(option);
 
 		optgroup = page->new_optgroup(_(L("After layer change G-code")), 0);
 		option = optgroup->get_option("layer_gcode");
 		option.opt.full_width = true;
-		option.opt.height = 150;
+		option.opt.height = 11.5 * wxGetApp().em_unit();//150;
 		optgroup->append_single_option_line(option);
 
 		optgroup = page->new_optgroup(_(L("Tool change G-code")), 0);
 		option = optgroup->get_option("toolchange_gcode");
 		option.opt.full_width = true;
-		option.opt.height = 150;
+		option.opt.height = 11.5 * wxGetApp().em_unit();//150;
 		optgroup->append_single_option_line(option);
 
 		optgroup = page->new_optgroup(_(L("Between objects G-code (for sequential printing)")), 0);
 		option = optgroup->get_option("between_objects_gcode");
 		option.opt.full_width = true;
-		option.opt.height = 150;
+		option.opt.height = 11.5 * wxGetApp().em_unit();//150;
 		optgroup->append_single_option_line(option);
 	
 	page = add_options_page(_(L("Notes")), "note.png");
 		optgroup = page->new_optgroup(_(L("Notes")), 0);
 		option = optgroup->get_option("printer_notes");
 		option.opt.full_width = true;
-		option.opt.height = 250;
+		option.opt.height = 19 * wxGetApp().em_unit();//250;
 		optgroup->append_single_option_line(option);
 
 	page = add_options_page(_(L("Dependencies")), "wrench.png");
@@ -1965,7 +1967,7 @@ void TabPrinter::build_sla()
     optgroup = page->new_optgroup(_(L("Notes")), 0);
     option = optgroup->get_option("printer_notes");
     option.opt.full_width = true;
-    option.opt.height = 250;
+    option.opt.height = 19*wxGetApp().em_unit();//250;
     optgroup->append_single_option_line(option);
 
     page = add_options_page(_(L("Dependencies")), "wrench.png");
@@ -2014,7 +2016,7 @@ PageShp TabPrinter::build_kinematics_page()
 		// Legend for OptionsGroups
 		auto optgroup = page->new_optgroup("");
 		optgroup->set_show_modified_btns_val(false);
-		optgroup->label_width = 230;
+        optgroup->label_width = 18 * wxGetApp().em_unit();// 230;
 		auto line = Line{ "", "" };
 
 		ConfigOptionDef def;
@@ -3100,7 +3102,7 @@ void TabSLAMaterial::build()
     optgroup->append_single_option_line("initial_exposure_time");
 
     optgroup = page->new_optgroup(_(L("Corrections")));
-    optgroup->label_width = 190;
+    optgroup->label_width = 14.5 * wxGetApp().em_unit();//190;
     std::vector<std::string> corrections = { "material_correction_printing", "material_correction_curing" };
     std::vector<std::string> axes{ "X", "Y", "Z" };
     for (auto& opt_key : corrections) {
@@ -3121,7 +3123,7 @@ void TabSLAMaterial::build()
     optgroup->label_width = 0;
     Option option = optgroup->get_option("material_notes");
     option.opt.full_width = true;
-    option.opt.height = 250;
+    option.opt.height = 19 * wxGetApp().em_unit();//250;
     optgroup->append_single_option_line(option);
 
     page = add_options_page(_(L("Dependencies")), "wrench.png");

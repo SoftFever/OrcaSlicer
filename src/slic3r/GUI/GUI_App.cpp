@@ -162,7 +162,7 @@ bool GUI_App::OnInit()
         if (plater_ && sidebar().obj_list()->GetMinHeight() > 200) 
         {
             wxWindowUpdateLocker noUpdates_sidebar(&sidebar());
-            sidebar().obj_list()->SetMinSize(wxSize(-1, 200));
+            sidebar().obj_list()->SetMinSize(wxSize(-1, 15 * wxGetApp().em_unit()));
 
             // !!! to correct later layouts
             update_mode(); // update view mode after fix of the object_list size

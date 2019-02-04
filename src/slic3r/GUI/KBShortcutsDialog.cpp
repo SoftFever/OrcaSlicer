@@ -54,7 +54,7 @@ KBShortcutsDialog::KBShortcutsDialog()
         hsizer->Add(logo, 0, wxEXPAND | wxLEFT | wxRIGHT, 15);
 
         // head
-        wxStaticText* head = new wxStaticText(panel, wxID_ANY, sc.first, wxDefaultPosition, wxSize(200,-1));
+        wxStaticText* head = new wxStaticText(panel, wxID_ANY, sc.first, wxDefaultPosition, wxSize(15 * wxGetApp().em_unit(), -1));
         head->SetFont(head_font);
         hsizer->Add(head, 0, wxALIGN_CENTER_VERTICAL);
 

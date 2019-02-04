@@ -80,7 +80,8 @@ class GUI_App : public wxApp
     wxFont		    m_small_font;
     wxFont		    m_bold_font;
 
-    size_t          m_width_unit;
+    size_t          m_em_unit; // "m" string width in pixels. 
+                               // Used like a coefficient for a size setting of controls
 
     wxLocale*	    m_wxLocale{ nullptr };
 
@@ -108,8 +109,8 @@ public:
 
     const wxFont&   small_font()            { return m_small_font; }
     const wxFont&   bold_font()             { return m_bold_font; }
-    size_t          width_unit() const      { return m_width_unit; }
-    void            set_width_unit(const size_t width_unit) { m_width_unit = width_unit; }
+    size_t          em_unit() const         { return m_em_unit; }
+    void            set_em_unit(const size_t em_unit)    { m_em_unit = em_unit; }
 
     void            recreate_GUI();
     void            system_info();

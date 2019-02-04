@@ -19,7 +19,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     OG_Settings(parent, true)
 {
     m_og->set_name(_(L("Object Manipulation")));
-    m_og->label_width = 125;
+    m_og->label_width = 9 * wxGetApp().em_unit();//125;
     m_og->set_grid_vgap(5);
     
     m_og->m_on_change = [this](const std::string& opt_key, const boost::any& value) {
@@ -132,7 +132,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     auto line = Line{ "", "" };
     def.label = "";
     def.type = coString;
-    def.width = 50;
+    def.width = 3.8 * wxGetApp().em_unit()/*50*/;
 
     std::vector<std::string> axes{ "x", "y", "z" };
     for (const auto axis : axes) {
@@ -150,7 +150,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
         ConfigOptionDef def;
         def.type = coFloat;
         def.default_value = new ConfigOptionFloat(0.0);
-        def.width = 50;
+        def.width = 3.8 * wxGetApp().em_unit()/*50*/;
 
         if (option_name == "Rotation")
         {

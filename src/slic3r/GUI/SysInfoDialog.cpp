@@ -5,6 +5,7 @@
 
 #include <wx/clipbrd.h>
 #include <wx/platinfo.h>
+#include "GUI_App.hpp"
 
 namespace Slic3r { 
 namespace GUI {
@@ -42,7 +43,7 @@ SysInfoDialog::SysInfoDialog()
 	wxColour bgr_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 	SetBackgroundColour(bgr_clr);
     wxBoxSizer* hsizer = new wxBoxSizer(wxHORIZONTAL);
-    hsizer->SetMinSize(wxSize(600, -1));
+    hsizer->SetMinSize(wxSize(45 * wxGetApp().em_unit(), -1));
 
 	auto main_sizer = new wxBoxSizer(wxVERTICAL);
 	main_sizer->Add(hsizer, 0, wxEXPAND | wxALL, 10);
@@ -95,7 +96,7 @@ SysInfoDialog::SysInfoDialog()
     // opengl_info
     wxHtmlWindow* opengl_info_html = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_AUTO);
     {
-        opengl_info_html->SetMinSize(wxSize(-1, 200));
+        opengl_info_html->SetMinSize(wxSize(-1, 15 * wxGetApp().em_unit()));
         opengl_info_html->SetFonts(font.GetFaceName(), font.GetFaceName(), size);
         opengl_info_html->SetBorders(10);
         const auto text = wxString::Format(

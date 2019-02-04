@@ -44,7 +44,7 @@ void BedShapePanel::build_panel(ConfigOptionPoints* default_pt)
 	auto sbsizer = new wxStaticBoxSizer(box, wxVERTICAL);
 
 	// shape options
-	m_shape_options_book = new wxChoicebook(this, wxID_ANY, wxDefaultPosition, wxSize(300, -1), wxCHB_TOP);
+    m_shape_options_book = new wxChoicebook(this, wxID_ANY, wxDefaultPosition, wxSize(23 * wxGetApp().em_unit(), -1), wxCHB_TOP);
 	sbsizer->Add(m_shape_options_book);
 
 	auto optgroup = init_shape_options_page(_(L("Rectangular")));

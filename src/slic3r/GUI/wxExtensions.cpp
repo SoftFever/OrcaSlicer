@@ -1480,7 +1480,7 @@ wxSize PrusaDoubleSlider::DoGetBestSize() const
     const wxSize size = wxControl::DoGetBestSize();
     if (size.x > 1 && size.y > 1)
         return size;
-    const int new_size = is_horizontal() ? 80 : 120;
+    const int new_size = is_horizontal() ? 6 * Slic3r::GUI::wxGetApp().em_unit() : 10 * Slic3r::GUI::wxGetApp().em_unit();
     return wxSize(new_size, new_size);
 }
 

@@ -213,7 +213,7 @@ void SlicedInfo::SetTextAndShow(SlisedInfoIdx idx, const wxString& text, const w
 }
 
 PresetComboBox::PresetComboBox(wxWindow *parent, Preset::Type preset_type) :
-wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(30 * wxGetApp().width_unit()/*200*/, -1), 0, nullptr, wxCB_READONLY),
+wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(15 * wxGetApp().em_unit(), -1), 0, nullptr, wxCB_READONLY),
     preset_type(preset_type),
     last_selected(wxNOT_FOUND)
 {
@@ -519,7 +519,7 @@ void Sidebar::priv::show_preset_comboboxes()
 Sidebar::Sidebar(Plater *parent)
     : wxPanel(parent), p(new priv(parent))
 {
-    p->scrolled = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxSize(60 * wxGetApp().width_unit()/*400*/, -1));
+    p->scrolled = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxSize(30 * wxGetApp().em_unit(), -1));
     p->scrolled->SetScrollbars(0, 20, 1, 2);
 
     // Sizer in the scrolled area
@@ -562,7 +562,7 @@ Sidebar::Sidebar(Plater *parent)
     // calculate width of the preset labels 
     p->sizer_presets->Layout();
     const wxArrayInt& ar = p->sizer_presets->GetColWidths();
-    int label_width = ar.IsEmpty() ? 100 : ar.front()-4;
+    int label_width = ar.IsEmpty() ? 7.7*wxGetApp().em_unit() : ar.front()-4;
 
     p->sizer_params = new wxBoxSizer(wxVERTICAL);
 
