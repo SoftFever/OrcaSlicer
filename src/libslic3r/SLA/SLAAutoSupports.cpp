@@ -13,8 +13,7 @@
 
 namespace Slic3r {
 
-/*
-float SLAAutoSupports::approximate_geodesic_distance(const Vec3d& p1, const Vec3d& p2, Vec3d& n1, Vec3d& n2)
+/*float SLAAutoSupports::approximate_geodesic_distance(const Vec3d& p1, const Vec3d& p2, Vec3d& n1, Vec3d& n2)
 {
     n1.normalize();
     n2.normalize();
@@ -50,7 +49,7 @@ float SLAAutoSupports::distance_limit(float angle) const
 
 SLAAutoSupports::SLAAutoSupports(const TriangleMesh& mesh, const sla::EigenMesh3D& emesh, const std::vector<ExPolygons>& slices, const std::vector<float>& heights,
                                    const Config& config, std::function<void(void)> throw_on_cancel)
-: m_config(config), m_V(emesh.V), m_F(emesh.F), m_throw_on_cancel(throw_on_cancel)
+: m_config(config), m_V(emesh.V()), m_F(emesh.F()), m_throw_on_cancel(throw_on_cancel)
 {
     process(slices, heights);
     project_onto_mesh(m_output);

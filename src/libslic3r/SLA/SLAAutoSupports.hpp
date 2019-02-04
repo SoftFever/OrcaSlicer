@@ -30,7 +30,7 @@ private:
 #ifdef SLA_AUTOSUPPORTS_DEBUG
     void output_expolygons(const ExPolygons& expolys, std::string filename) const;
     void output_structures() const;
-#endif /* SLA_AUTOSUPPORTS_DEBUG */
+#endif // SLA_AUTOSUPPORTS_DEBUG
 
     SLAAutoSupports::Config m_config;
 
