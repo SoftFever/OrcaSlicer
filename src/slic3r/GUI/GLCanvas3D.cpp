@@ -5102,12 +5102,15 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
     // see include/wx/defs.h enum wxKeyCode
     int keyCode = evt.GetKeyCode();
     int ctrlMask = wxMOD_CONTROL;
-#ifdef __APPLE__
-    ctrlMask |= wxMOD_RAW_CONTROL;
-#endif /* __APPLE__ */
+//#ifdef __APPLE__
+//    ctrlMask |= wxMOD_RAW_CONTROL;
+//#endif /* __APPLE__ */
     if ((evt.GetModifiers() & ctrlMask) != 0) {
         switch (keyCode) {
+#ifndef __APPLE__
+        // Even though Control+A is captured by the accelerator on OSX/wxWidgets in Slic3r, it works in text edit lines.
         case WXK_CONTROL_A: post_event(SimpleEvent(EVT_GLCANVAS_SELECT_ALL)); break;
+#endif /* __APPLE__ */
 #ifdef __APPLE__
         case WXK_BACK: // the low cost Apple solutions are not equipped with a Delete key, use Backspace instead.
 #endif /* __APPLE__ */
