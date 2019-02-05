@@ -1114,6 +1114,7 @@ void GCode::_do_export(Print &print, FILE *file)
     }
     _write_format(file, "; total filament used [g] = %.1lf\n", print.m_print_statistics.total_weight);
     _write_format(file, "; total filament cost = %.1lf\n", print.m_print_statistics.total_cost);
+    _write_format(file, "; total toolchanges = %i\n", print.m_print_statistics.total_toolchanges);
     _write_format(file, "; estimated printing time (normal mode) = %s\n", m_normal_time_estimator.get_time_dhms().c_str());
     if (m_silent_time_estimator_enabled)
         _write_format(file, "; estimated printing time (silent mode) = %s\n", m_silent_time_estimator.get_time_dhms().c_str());
