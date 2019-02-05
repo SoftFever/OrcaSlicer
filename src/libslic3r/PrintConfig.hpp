@@ -976,6 +976,9 @@ public:
     // How the pillars are bridged together
     ConfigOptionEnum<SLAPillarConnectionMode> support_pillar_connection_mode;
 
+    // Generate only ground facing supports
+    ConfigOptionBool support_buildplate_only;
+
     // TODO: unimplemented at the moment. This coefficient will have an impact
     // when bridges and pillars are merged. The resulting pillar should be a bit
     // thicker than the ones merging into it. How much thicker? I don't know
@@ -1031,6 +1034,7 @@ protected:
         OPT_PTR(support_head_width);
         OPT_PTR(support_pillar_diameter);
         OPT_PTR(support_pillar_connection_mode);
+        OPT_PTR(support_buildplate_only);
         OPT_PTR(support_pillar_widening_factor);
         OPT_PTR(support_base_diameter);
         OPT_PTR(support_base_height);
