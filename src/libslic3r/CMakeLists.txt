@@ -154,6 +154,8 @@ add_library(libslic3r STATIC
     SVG.cpp
     SVG.hpp
     Technologies.hpp
+    Tesselate.cpp
+    Tesselate.hpp
     TriangleMesh.cpp
     TriangleMesh.hpp
     utils.cpp
