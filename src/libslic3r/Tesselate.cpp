@@ -24,6 +24,7 @@ public:
     {
         m_z = z_;
         m_flipped = flipped_;
+        m_output_triangles.clear();
         std::vector<GLdouble> coords;
         {
             size_t num_coords = expoly.contour.points.size();
@@ -51,7 +52,6 @@ public:
             gluTessEndContour(m_tesselator);
         }
         gluTessEndPolygon(m_tesselator);
-        m_output_triangles.clear();
         m_intersection_points.clear();
         return std::move(m_output_triangles);
     }
@@ -60,6 +60,7 @@ public:
     {
         m_z = z_;
         m_flipped = flipped_;
+        m_output_triangles.clear();
         std::vector<GLdouble> coords;
         {
             size_t num_coords = 0;
@@ -94,7 +95,6 @@ public:
             }
             gluTessEndPolygon(m_tesselator);
         }
-        m_output_triangles.clear();
         m_intersection_points.clear();
         return std::move(m_output_triangles);
     }
