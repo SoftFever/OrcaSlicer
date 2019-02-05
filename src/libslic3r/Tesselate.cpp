@@ -8,12 +8,22 @@ namespace Slic3r {
 
 class GluTessWrapper {
 public:
+    GluTessWrapper() : m_tesselator(gluNewTess()) {
+        // register callback functions
+        gluTessCallback(m_tesselator, GLU_TESS_BEGIN_DATA,   (_GLUfuncptr)tessBeginCB);
+        gluTessCallback(m_tesselator, GLU_TESS_END_DATA,     (_GLUfuncptr)tessEndCB);
+        gluTessCallback(m_tesselator, GLU_TESS_ERROR_DATA,   (_GLUfuncptr)tessErrorCB);
+        gluTessCallback(m_tesselator, GLU_TESS_VERTEX_DATA,  (_GLUfuncptr)tessVertexCB);
+        gluTessCallback(m_tesselator, GLU_TESS_COMBINE_DATA, (_GLUfuncptr)tessCombineCB);        
+    }
+    ~GluTessWrapper() {
+        gluDeleteTess(m_tesselator);
+    }
+
     Pointf3s tesselate(const ExPolygon &expoly, double z_, bool flipped_)
     {
-        z = z_;
-        flipped = flipped_;
-        triangles.clear();
-        intersection_points.clear();
+        m_z = z_;
+        m_flipped = flipped_;
         std::vector<GLdouble> coords;
         {
             size_t num_coords = expoly.contour.points.size();
@@ -21,54 +31,35 @@ public:
                 num_coords += poly.points.size();
             coords.reserve(num_coords * 3);
         }
-        GLUtesselator *tess = gluNewTess(); // create a tessellator
-        // register callback functions
-#ifndef _GLUfuncptr
-    #ifdef _MSC_VER
-        typedef void (__stdcall *_GLUfuncptr)(void);
-    #else /* _MSC_VER */
-        #ifdef GLAPIENTRYP
-            typedef void (GLAPIENTRYP _GLUfuncptr)(void);
-        #else /* GLAPIENTRYP */
-            typedef void (*_GLUfuncptr)(void);
-        #endif
-    #endif /* _MSC_VER */
-#endif /* _GLUfuncptr */
-        gluTessCallback(tess, GLU_TESS_BEGIN_DATA,   (_GLUfuncptr)tessBeginCB);
-        gluTessCallback(tess, GLU_TESS_END_DATA,     (_GLUfuncptr)tessEndCB);
-        gluTessCallback(tess, GLU_TESS_ERROR_DATA,   (_GLUfuncptr)tessErrorCB);
-        gluTessCallback(tess, GLU_TESS_VERTEX_DATA,  (_GLUfuncptr)tessVertexCB);
-        gluTessCallback(tess, GLU_TESS_COMBINE_DATA, (_GLUfuncptr)tessCombineCB);
-        gluTessBeginPolygon(tess, (void*)this);
-        gluTessBeginContour(tess);
+        gluTessBeginPolygon(m_tesselator, (void*)this);
+        gluTessBeginContour(m_tesselator);
         for (const Point &pt : expoly.contour.points) {
             coords.emplace_back(unscale<double>(pt[0]));
             coords.emplace_back(unscale<double>(pt[1]));
             coords.emplace_back(0.);
-            gluTessVertex(tess, &coords[coords.size() - 3], &coords[coords.size() - 3]);
+            gluTessVertex(m_tesselator, &coords[coords.size() - 3], &coords[coords.size() - 3]);
         }
-        gluTessEndContour(tess);
+        gluTessEndContour(m_tesselator);
         for (const Polygon &poly : expoly.holes) {
-            gluTessBeginContour(tess);
+            gluTessBeginContour(m_tesselator);
             for (const Point &pt : poly.points) {
                 coords.emplace_back(unscale<double>(pt[0]));
                 coords.emplace_back(unscale<double>(pt[1]));
                 coords.emplace_back(0.);
-                gluTessVertex(tess, &coords[coords.size() - 3], &coords[coords.size() - 3]);
+                gluTessVertex(m_tesselator, &coords[coords.size() - 3], &coords[coords.size() - 3]);
             }
-            gluTessEndContour(tess);
+            gluTessEndContour(m_tesselator);
         }
-        gluTessEndPolygon(tess);
-        gluDeleteTess(tess);
-        return std::move(triangles);
+        gluTessEndPolygon(m_tesselator);
+        m_output_triangles.clear();
+        m_intersection_points.clear();
+        return std::move(m_output_triangles);
     }
 
     Pointf3s tesselate(const ExPolygons &expolygons, double z_, bool flipped_)
     {
-        z = z_;
-        flipped = flipped_;
-        triangles.clear();
-        intersection_points.clear();
+        m_z = z_;
+        m_flipped = flipped_;
         std::vector<GLdouble> coords;
         {
             size_t num_coords = 0;
@@ -80,49 +71,32 @@ public:
             }
             coords.assign(num_coords * 3, 0);
         }
-        GLUtesselator *tess = gluNewTess(); // create a tessellator
-        // register callback functions
-#ifndef _GLUfuncptr
-    #ifdef _MSC_VER
-        typedef void (__stdcall *_GLUfuncptr)(void);
-    #else /* _MSC_VER */
-        #ifdef GLAPIENTRYP
-            typedef void (GLAPIENTRYP _GLUfuncptr)(void);
-        #else /* GLAPIENTRYP */
-            typedef void (*_GLUfuncptr)(void);
-        #endif
-    #endif /* _MSC_VER */
-#endif /* _GLUfuncptr */
-        gluTessCallback(tess, GLU_TESS_BEGIN_DATA,   (_GLUfuncptr)tessBeginCB);
-        gluTessCallback(tess, GLU_TESS_END_DATA,     (_GLUfuncptr)tessEndCB);
-        gluTessCallback(tess, GLU_TESS_ERROR_DATA,   (_GLUfuncptr)tessErrorCB);
-        gluTessCallback(tess, GLU_TESS_VERTEX_DATA,  (_GLUfuncptr)tessVertexCB);
-        gluTessCallback(tess, GLU_TESS_COMBINE_DATA, (_GLUfuncptr)tessCombineCB);
         for (const ExPolygon &expoly : expolygons) {
-            gluTessBeginPolygon(tess, (void*)this);
-            gluTessBeginContour(tess);
+            gluTessBeginPolygon(m_tesselator, (void*)this);
+            gluTessBeginContour(m_tesselator);
             size_t idx = 0;
             for (const Point &pt : expoly.contour.points) {
                 coords[idx ++] = unscale<double>(pt[0]);
                 coords[idx ++] = unscale<double>(pt[1]);
                 coords[idx ++] = 0.;
-                gluTessVertex(tess, &coords[idx - 3], &coords[idx - 3]);
+                gluTessVertex(m_tesselator, &coords[idx - 3], &coords[idx - 3]);
             }
-            gluTessEndContour(tess);
+            gluTessEndContour(m_tesselator);
             for (const Polygon &poly : expoly.holes) {
-                gluTessBeginContour(tess);
+                gluTessBeginContour(m_tesselator);
                 for (const Point &pt : poly.points) {
                     coords[idx ++] = unscale<double>(pt[0]);
                     coords[idx ++] = unscale<double>(pt[1]);
                     coords[idx ++] = 0.;
-                    gluTessVertex(tess, &coords[idx - 3], &coords[idx - 3]);
+                    gluTessVertex(m_tesselator, &coords[idx - 3], &coords[idx - 3]);
                 }
-                gluTessEndContour(tess);
+                gluTessEndContour(m_tesselator);
             }
-            gluTessEndPolygon(tess);
+            gluTessEndPolygon(m_tesselator);
         }
-        gluDeleteTess(tess);
-        return std::move(triangles);
+        m_output_triangles.clear();
+        m_intersection_points.clear();
+        return std::move(m_output_triangles);
     }
 
 private:
@@ -136,15 +110,13 @@ private:
     void tessBegin(GLenum which)
     {
         assert(which == GL_TRIANGLES || which == GL_TRIANGLE_FAN || which == GL_TRIANGLE_STRIP);
-        if (!(which == GL_TRIANGLES || which == GL_TRIANGLE_FAN || which == GL_TRIANGLE_STRIP))
-            printf("Co je to za haluz!?\n");
-        primitive_type = which;
-        num_points = 0;
+        m_primitive_type = which;
+        m_num_points = 0;
     }
 
     void tessEnd()
     {
-        num_points = 0;
+        m_num_points = 0;
     }
 
     void tessVertex(const GLvoid *data)
@@ -152,42 +124,42 @@ private:
         if (data == nullptr)
             return;
         const GLdouble *ptr = (const GLdouble*)data;
-        ++ num_points;
-        if (num_points == 1) {
-            memcpy(pt0, ptr, sizeof(GLdouble) * 3);
-        } else if (num_points == 2) {
-            memcpy(pt1, ptr, sizeof(GLdouble) * 3);
+        ++ m_num_points;
+        if (m_num_points == 1) {
+            memcpy(m_pt0, ptr, sizeof(GLdouble) * 3);
+        } else if (m_num_points == 2) {
+            memcpy(m_pt1, ptr, sizeof(GLdouble) * 3);
         } else {
-            bool flip = flipped;
-            if (primitive_type == GL_TRIANGLE_STRIP && num_points == 4) {
+            bool flip = m_flipped;
+            if (m_primitive_type == GL_TRIANGLE_STRIP && m_num_points == 4) {
                 flip = !flip;
-                num_points = 2;
+                m_num_points = 2;
             }
-            triangles.emplace_back(pt0[0], pt0[1], z);
+            m_output_triangles.emplace_back(m_pt0[0], m_pt0[1], m_z);
             if (flip) {
-                triangles.emplace_back(ptr[0], ptr[1], z);
-                triangles.emplace_back(pt1[0], pt1[1], z);
+                m_output_triangles.emplace_back(ptr[0],   ptr[1],   m_z);
+                m_output_triangles.emplace_back(m_pt1[0], m_pt1[1], m_z);
             } else {
-                triangles.emplace_back(pt1[0], pt1[1], z);
-                triangles.emplace_back(ptr[0], ptr[1], z);
+                m_output_triangles.emplace_back(m_pt1[0], m_pt1[1], m_z);
+                m_output_triangles.emplace_back(ptr[0],   ptr[1],   m_z);
             }
-            if (primitive_type == GL_TRIANGLE_STRIP) {
-                memcpy(pt0, pt1, sizeof(GLdouble) * 3);
-                memcpy(pt1, ptr, sizeof(GLdouble) * 3);
-            } else if (primitive_type == GL_TRIANGLE_FAN) {
-                memcpy(pt1, ptr, sizeof(GLdouble) * 3);
+            if (m_primitive_type == GL_TRIANGLE_STRIP) {
+                memcpy(m_pt0, m_pt1, sizeof(GLdouble) * 3);
+                memcpy(m_pt1, ptr,   sizeof(GLdouble) * 3);
+            } else if (m_primitive_type == GL_TRIANGLE_FAN) {
+                memcpy(m_pt1, ptr,   sizeof(GLdouble) * 3);
             } else {
-                assert(primitive_type == GL_TRIANGLES);
-                assert(num_points == 3);
-                num_points = 0;
+                assert(m_primitive_type == GL_TRIANGLES);
+                assert(m_num_points == 3);
+                m_num_points = 0;
             }
         }
     }
 
     void tessCombine(const GLdouble newVertex[3], const GLdouble *neighborVertex[4], const GLfloat neighborWeight[4], GLdouble **outData)
     {
-        intersection_points.emplace_back(newVertex[0], newVertex[1], newVertex[2]);
-        *outData = intersection_points.back().data();
+        m_intersection_points.emplace_back(newVertex[0], newVertex[1], m_z);
+        *outData = m_intersection_points.back().data();
     }
 
     static void tessError(GLenum errorCode)
@@ -197,14 +169,24 @@ private:
 //        printf("Error: %s\n", (const char*)errorStr);
     }
 
-    GLenum   primitive_type;
-    GLdouble pt0[3];
-    GLdouble pt1[3];
-    int      num_points;
-    Pointf3s triangles;
-    std::deque<Vec3d> intersection_points;
-    double   z;
-    bool     flipped;
+    // Instance owned over the life time of this wrapper.
+    GLUtesselator  *m_tesselator;
+
+    // Currently processed primitive type.
+    GLenum          m_primitive_type;
+    // Two last vertices received for m_primitive_type. Used for processing triangle strips, fans etc.
+    GLdouble        m_pt0[3];
+    GLdouble        m_pt1[3];
+    // Number of points processed over m_primitive_type.
+    int             m_num_points;
+    // Triangles generated by the tesselator.
+    Pointf3s        m_output_triangles;
+    // Intersection points generated by tessCombine callback. There should be none if the input contour is not self intersecting.
+    std::deque<Vec3d> m_intersection_points;
+    // Fixed third coordinate.
+    double          m_z;
+    // Output triangles shall be flipped (normal points down).
+    bool            m_flipped;
 };
 
 Pointf3s triangulate_expolygons_3df(const ExPolygon &poly, coordf_t z, bool flip)
