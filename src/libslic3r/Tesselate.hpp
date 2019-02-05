@@ -3,6 +3,8 @@
 
 #include <vector>
 
+#include "Point.hpp"
+
 namespace Slic3r {
 
 class ExPolygon;
