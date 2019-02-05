@@ -159,7 +159,7 @@ bool GUI_App::OnInit()
 
         // ! Temporary workaround for the correct behavior of the Scrolled sidebar panel 
         // Do this "manipulations" only once ( after (re)create of the application )
-        if (plater_ && sidebar().obj_list()->GetMinHeight() > 200) 
+        if (plater_ && sidebar().obj_list()->GetMinHeight() > 15 * wxGetApp().em_unit())
         {
             wxWindowUpdateLocker noUpdates_sidebar(&sidebar());
             sidebar().obj_list()->SetMinSize(wxSize(-1, 15 * wxGetApp().em_unit()));
