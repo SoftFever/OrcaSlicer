@@ -187,6 +187,7 @@ target_link_libraries(libslic3r
     ${EXPAT_LIBRARIES}
     ${GLEW_LIBRARIES}
     ${PNG_LIBRARIES}
+    glu-libtess
     polypartition
     poly2tri
     qhull
