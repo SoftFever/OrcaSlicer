@@ -3017,13 +3017,20 @@ void Plater::on_extruders_change(int num_extruders)
 void Plater::on_config_change(const DynamicPrintConfig &config)
 {
     bool update_scheduled = false;
+#if ENABLE_REWORKED_BED_SHAPE_CHANGE
+    bool bed_shape_changed = false;
+#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
     for (auto opt_key : p->config->diff(config)) {
         p->config->set_key_value(opt_key, config.option(opt_key)->clone());
         if (opt_key == "printer_technology")
             this->set_printer_technology(config.opt_enum<PrinterTechnology>(opt_key));
         else if (opt_key == "bed_shape") {
+#if ENABLE_REWORKED_BED_SHAPE_CHANGE
+            bed_shape_changed = true;
+#else
             if (p->view3D) p->view3D->set_bed_shape(p->config->option<ConfigOptionPoints>(opt_key)->values);
             if (p->preview) p->preview->set_bed_shape(p->config->option<ConfigOptionPoints>(opt_key)->values);
+#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
             update_scheduled = true;
         } 
         else if (boost::starts_with(opt_key, "wipe_tower") ||
@@ -3049,8 +3056,12 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         }
         else if (opt_key == "printer_model") {
             // update to force bed selection(for texturing)
+#if ENABLE_REWORKED_BED_SHAPE_CHANGE
+            bed_shape_changed = true;
+#else
             if (p->view3D) p->view3D->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values);
             if (p->preview) p->preview->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values);
+#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
             update_scheduled = true;
         }
         else if (opt_key == "host_type" && this->p->printer_technology == ptSLA) {
@@ -3062,6 +3073,14 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         const auto prin_host_opt = p->config->option<ConfigOptionString>("print_host");
         p->sidebar->show_send(prin_host_opt != nullptr && !prin_host_opt->value.empty());
     }
+
+#if ENABLE_REWORKED_BED_SHAPE_CHANGE
+    if (bed_shape_changed)
+    {
+        if (p->view3D) p->view3D->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values);
+        if (p->preview) p->preview->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values);
+    }
+#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
 
     if (update_scheduled) 
         update();

@@ -169,7 +169,7 @@ template <typename Number>
 static inline bool is_approx(Number value, Number test_value)
 {
     return std::fabs(double(value) - double(test_value)) < double(EPSILON);
-};
+}
 
 } // namespace Slic3r
 

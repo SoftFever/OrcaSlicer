@@ -366,7 +366,11 @@ const Pointfs& GLCanvas3D::Bed::get_shape() const
 
 bool GLCanvas3D::Bed::set_shape(const Pointfs& shape)
 {
+#if ENABLE_REWORKED_BED_SHAPE_CHANGE
+    EType new_type = _detect_type(shape);
+#else
     EType new_type = _detect_type();
+#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
     if (m_shape == shape && m_type == new_type)
         // No change, no need to update the UI.
         return false;
@@ -516,7 +520,11 @@ void GLCanvas3D::Bed::_calc_gridlines(const ExPolygon& poly, const BoundingBox& 
         printf("Unable to create bed grid lines\n");
 }
 
+#if ENABLE_REWORKED_BED_SHAPE_CHANGE
+GLCanvas3D::Bed::EType GLCanvas3D::Bed::_detect_type(const Pointfs& shape) const
+#else
 GLCanvas3D::Bed::EType GLCanvas3D::Bed::_detect_type() const
+#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
 {
     EType type = Custom;
 
@@ -528,7 +536,27 @@ GLCanvas3D::Bed::EType GLCanvas3D::Bed::_detect_type() const
         {
 			if (curr->config.has("bed_shape"))
 			{
-				if (boost::contains(curr->name, "SL1"))
+#if ENABLE_REWORKED_BED_SHAPE_CHANGE
+                if ((curr->vendor != nullptr) && (curr->vendor->name == "Prusa Research") && (shape == dynamic_cast<const ConfigOptionPoints*>(curr->config.option("bed_shape"))->values))
+                {
+                    if (boost::contains(curr->name, "SL1"))
+                    {
+                        type = SL1;
+                        break;
+                    }
+                    else if (boost::contains(curr->name, "MK3") || boost::contains(curr->name, "MK2.5"))
+                    {
+                        type = MK3;
+                        break;
+                    }
+                    else if (boost::contains(curr->name, "MK2"))
+                    {
+                        type = MK2;
+                        break;
+                    }
+                }
+#else
+                if (boost::contains(curr->name, "SL1"))
 				{
 					//FIXME add a condition on the size of the print bed?
 					type = SL1;
@@ -549,7 +577,8 @@ GLCanvas3D::Bed::EType GLCanvas3D::Bed::_detect_type() const
 						}
 					}
 				}
-			}
+#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
+            }
 
             curr = bundle->printers.get_preset_parent(*curr);
         }
@@ -707,6 +736,7 @@ void GLCanvas3D::Bed::_render_custom() const
     }
 }
 
+#if !ENABLE_REWORKED_BED_SHAPE_CHANGE
 bool GLCanvas3D::Bed::_are_equal(const Pointfs& bed_1, const Pointfs& bed_2)
 {
     if (bed_1.size() != bed_2.size())
@@ -720,6 +750,7 @@ bool GLCanvas3D::Bed::_are_equal(const Pointfs& bed_1, const Pointfs& bed_2)
 
     return true;
 }
+#endif // !ENABLE_REWORKED_BED_SHAPE_CHANGE
 
 const double GLCanvas3D::Axes::Radius = 0.5;
 const double GLCanvas3D::Axes::ArrowBaseRadius = 2.5 * GLCanvas3D::Axes::Radius;
@@ -1071,12 +1102,11 @@ void GLCanvas3D::LayersEditing::_render_tooltip_texture(const GLCanvas3D& canvas
 
 #if ENABLE_RETINA_GL
     const float scale = canvas.get_canvas_size().get_scale_factor();
+#else
+    const float scale = canvas.get_wxglcanvas()->GetContentScaleFactor();
+#endif
     const float width = (float)m_tooltip_texture.get_width() * scale;
     const float height = (float)m_tooltip_texture.get_height() * scale;
-#else
-    const float width = (float)m_tooltip_texture.get_width();
-    const float height = (float)m_tooltip_texture.get_height();
-#endif
 
     float zoom = canvas.get_camera_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
@@ -1298,20 +1328,24 @@ void GLCanvas3D::LayersEditing::update_slicing_parameters()
 
 float GLCanvas3D::LayersEditing::thickness_bar_width(const GLCanvas3D &canvas)
 {
+    return
 #if ENABLE_RETINA_GL
-    return canvas.get_canvas_size().get_scale_factor() * THICKNESS_BAR_WIDTH;
+        canvas.get_canvas_size().get_scale_factor()
 #else
-    return THICKNESS_BAR_WIDTH;
+        canvas.get_wxglcanvas()->GetContentScaleFactor()
 #endif
+         * THICKNESS_BAR_WIDTH;
 }
 
 float GLCanvas3D::LayersEditing::reset_button_height(const GLCanvas3D &canvas)
 {
+    return
 #if ENABLE_RETINA_GL
-    return canvas.get_canvas_size().get_scale_factor() * THICKNESS_RESET_BUTTON_HEIGHT;
+        canvas.get_canvas_size().get_scale_factor()
 #else
-    return THICKNESS_RESET_BUTTON_HEIGHT;
+        canvas.get_wxglcanvas()->GetContentScaleFactor()
 #endif
+         * THICKNESS_RESET_BUTTON_HEIGHT;
 }
 
 
@@ -4175,6 +4209,9 @@ unsigned int GLCanvas3D::get_volumes_count() const
 
 void GLCanvas3D::reset_volumes()
 {
+    if (!m_initialized)
+        return;
+
     _set_current();
 
     if (!m_volumes.empty())
@@ -4217,18 +4254,27 @@ void GLCanvas3D::set_bed_shape(const Pointfs& shape)
 {
     bool new_shape = m_bed.set_shape(shape);
 
+#if ENABLE_REWORKED_BED_SHAPE_CHANGE
+    if (new_shape)
+    {
+        // Set the origin and size for painting of the coordinate system axes.
+        m_axes.origin = Vec3d(0.0, 0.0, (double)GROUND_Z);
+        set_bed_axes_length(0.1 * m_bed.get_bounding_box().max_size());
+        m_camera.set_scene_box(scene_bounding_box(), *this);
+        m_requires_zoom_to_bed = true;
+
+        m_dirty = true;
+    }
+#else
     // Set the origin and size for painting of the coordinate system axes.
     m_axes.origin = Vec3d(0.0, 0.0, (double)GROUND_Z);
     set_bed_axes_length(0.1 * m_bed.get_bounding_box().max_size());
 
     if (new_shape)
-#if ENABLE_REWORKED_BED_SHAPE_CHANGE
-        m_requires_zoom_to_bed = true;
-#else
         zoom_to_bed();
-#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
 
     m_dirty = true;
+#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
 }
 
 void GLCanvas3D::set_bed_axes_length(double length)
@@ -4474,6 +4520,13 @@ void GLCanvas3D::render()
         return;
 
 #if ENABLE_REWORKED_BED_SHAPE_CHANGE
+    if (m_bed.get_shape().empty())
+    {
+        // this happens at startup when no data is still saved under <>\AppData\Roaming\Slic3rPE
+        if (m_config != nullptr)
+            set_bed_shape(m_config->opt<ConfigOptionPoints>("bed_shape")->values);
+    }
+
     if (m_requires_zoom_to_bed)
     {
         zoom_to_bed();
@@ -4649,7 +4702,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     if ((m_canvas == nullptr) || (m_config == nullptr) || (m_model == nullptr))
         return;
 
-    _set_current();
+    if (m_initialized)
+        _set_current();
 
     struct ModelVolumeState {
         ModelVolumeState(const GLVolume *volume) : 
@@ -4779,7 +4833,9 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     if (m_reload_delayed)
         return;
 
+#if !ENABLE_REWORKED_BED_SHAPE_CHANGE
     set_bed_shape(dynamic_cast<const ConfigOptionPoints*>(m_config->option("bed_shape"))->values);
+#endif // !ENABLE_REWORKED_BED_SHAPE_CHANGE
 
     if (m_regenerate_volumes)
     {
@@ -5107,15 +5163,16 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 //#endif /* __APPLE__ */
     if ((evt.GetModifiers() & ctrlMask) != 0) {
         switch (keyCode) {
-#ifndef __APPLE__
-        // Even though Control+A is captured by the accelerator on OSX/wxWidgets in Slic3r, it works in text edit lines.
+        case 'a':
+        case 'A':
         case WXK_CONTROL_A: post_event(SimpleEvent(EVT_GLCANVAS_SELECT_ALL)); break;
-#endif /* __APPLE__ */
 #ifdef __APPLE__
         case WXK_BACK: // the low cost Apple solutions are not equipped with a Delete key, use Backspace instead.
+#else /* __APPLE__ */
+        case WXK_DELETE:
 #endif /* __APPLE__ */
-        case WXK_DELETE:    post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE_ALL)); break;
-        default:            evt.Skip();
+                            post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE_ALL)); break;
+		default:            evt.Skip();
         }
     } else if (evt.HasModifiers()) {
         evt.Skip();
@@ -5126,9 +5183,11 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case WXK_ESCAPE: { m_gizmos.reset_all_states(); m_dirty = true;  break; }
 #ifdef __APPLE__
         case WXK_BACK: // the low cost Apple solutions are not equipped with a Delete key, use Backspace instead.
+#else /* __APPLE__ */
+		case WXK_DELETE:
 #endif /* __APPLE__ */
-        case WXK_DELETE: post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE)); break;
-        case '0': { select_view("iso"); break; }
+                  post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE)); break;
+		case '0': { select_view("iso"); break; }
         case '1': { select_view("top"); break; }
         case '2': { select_view("bottom"); break; }
         case '3': { select_view("front"); break; }
@@ -5704,8 +5763,11 @@ Point GLCanvas3D::get_local_mouse_position() const
 
 void GLCanvas3D::reset_legend_texture()
 {
-    _set_current();
-    m_legend_texture.reset();
+    if (m_legend_texture.get_id() != 0)
+    {
+        _set_current();
+        m_legend_texture.reset();
+    }
 }
 
 void GLCanvas3D::set_tooltip(const std::string& tooltip) const
@@ -6157,7 +6219,9 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
     wxGetApp().imgui()->set_display_size((float)w, (float)h);
 #if ENABLE_RETINA_GL
     wxGetApp().imgui()->set_style_scaling(m_retina_helper->get_scale_factor());
-#endif // ENABLE_RETINA_GL
+#else
+    wxGetApp().imgui()->set_style_scaling(m_canvas->GetContentScaleFactor());
+#endif
 #endif // ENABLE_IMGUI
 
     // ensures that this canvas is current
@@ -6616,7 +6680,10 @@ void GLCanvas3D::_render_gizmos_overlay() const
 {
 #if ENABLE_RETINA_GL
     m_gizmos.set_overlay_scale(m_retina_helper->get_scale_factor());
-#endif
+#else
+    m_gizmos.set_overlay_scale(m_canvas->GetContentScaleFactor());
+#endif /* __WXMSW__ */
+
     m_gizmos.render_overlay(*this, m_selection);
 }
 
@@ -6624,7 +6691,10 @@ void GLCanvas3D::_render_toolbar() const
 {
 #if ENABLE_RETINA_GL
     m_toolbar.set_icons_scale(m_retina_helper->get_scale_factor());
-#endif
+#else
+    m_toolbar.set_icons_scale(m_canvas->GetContentScaleFactor());
+#endif /* __WXMSW__ */
+
     m_toolbar.render(*this);
 }
 
@@ -6633,7 +6703,9 @@ void GLCanvas3D::_render_view_toolbar() const
     if (m_view_toolbar != nullptr) {
 #if ENABLE_RETINA_GL
         m_view_toolbar->set_icons_scale(m_retina_helper->get_scale_factor());
-#endif
+#else
+        m_view_toolbar->set_icons_scale(m_canvas->GetContentScaleFactor());
+#endif /* __WXMSW__ */
         m_view_toolbar->render(*this);
     }
 }
@@ -8381,7 +8453,9 @@ void GLCanvas3D::_resize_toolbars() const
 
 #if ENABLE_RETINA_GL
     m_toolbar.set_icons_scale(m_retina_helper->get_scale_factor());
-#endif
+#else
+    m_toolbar.set_icons_scale(m_canvas->GetContentScaleFactor());
+#endif /* __WXMSW__ */
 
     GLToolbar::Layout::EOrientation orientation = m_toolbar.get_layout_orientation();
 
@@ -8428,7 +8502,9 @@ void GLCanvas3D::_resize_toolbars() const
     {
 #if ENABLE_RETINA_GL
         m_view_toolbar->set_icons_scale(m_retina_helper->get_scale_factor());
-#endif
+#else
+        m_view_toolbar->set_icons_scale(m_canvas->GetContentScaleFactor());
+#endif /* __WXMSW__ */
 
         // places the toolbar on the bottom-left corner of the 3d scene
         float top = (-0.5f * (float)cnv_size.get_height() + m_view_toolbar->get_height()) * inv_zoom;
