@@ -600,7 +600,8 @@ void GLCanvas3D::Bed::_render_prusa(const std::string &key, float theta) const
 
 #if ENABLE_ANISOTROPIC_FILTER_ON_BED_TEXTURES
     GLfloat max_anisotropy = 0.0f;
-    ::glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_anisotropy);
+    if (glewIsSupported("GL_EXT_texture_filter_anisotropic"))
+        ::glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_anisotropy);
 #endif // ENABLE_ANISOTROPIC_FILTER_ON_BED_TEXTURES
 
     std::string filename = tex_path + "_top.png";

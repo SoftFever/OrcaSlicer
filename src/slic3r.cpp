@@ -131,6 +131,9 @@ int main(int argc, char **argv)
         GUI::GUI_App *gui = new GUI::GUI_App();
         GUI::GUI_App::SetInstance(gui);
         gui->CallAfter([gui, &input_files, &cli_config, &extra_config, &print_config] {
+            if (! gui->initialized()) {
+                return;
+            }
 #if 0
             // Load the cummulative config over the currently active profiles.
             //FIXME if multiple configs are loaded, only the last one will have an effect.
