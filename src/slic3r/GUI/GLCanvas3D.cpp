@@ -4520,6 +4520,13 @@ void GLCanvas3D::render()
         return;
 
 #if ENABLE_REWORKED_BED_SHAPE_CHANGE
+    if (m_bed.get_shape().empty())
+    {
+        // this happens at startup when no data is still saved under <>\AppData\Roaming\Slic3rPE
+        if (m_config != nullptr)
+            set_bed_shape(m_config->opt<ConfigOptionPoints>("bed_shape")->values);
+    }
+
     if (m_requires_zoom_to_bed)
     {
         zoom_to_bed();
