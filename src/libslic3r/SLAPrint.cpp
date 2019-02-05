@@ -363,7 +363,11 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
             const_cast<PrintObjectStatus&>(*it_print_object_status).status = PrintObjectStatus::Reused;
         } else {
             auto print_object = new SLAPrintObject(this, &model_object);
+
+            // FIXME: this invalidates the transformed mesh in SLAPrintObject
+            // which is expensive to calculate (especially the raw_mesh() call)
             print_object->set_trafo(sla_trafo(model_object));
+
             print_object->set_instances(new_instances);
             print_object->config_apply(config, true);
             print_objects_new.emplace_back(print_object);
@@ -621,8 +625,8 @@ void SLAPrint::process()
         // repeated)
 
         if(!po.m_supportdata || !po.m_supportdata->support_tree_ptr) {
-            BOOST_LOG_TRIVIAL(warning) << "Uninitialized support data at "
-                                       << "pad creation.";
+            BOOST_LOG_TRIVIAL(error) << "Uninitialized support data at "
+                                     << "pad creation.";
             return;
         }
 
@@ -644,9 +648,11 @@ void SLAPrint::process()
             // This call can get pretty time consuming
             auto thrfn = [this](){ throw_if_canceled(); };
 
-            if(elevation < pad_h)
+            if(elevation < pad_h) {
+                // we have to count with the model geometry for the base plate
                 sla::base_plate(trmesh, bp, float(pad_h), float(lh),
                                             thrfn);
+            }
 
             pcfg.throw_on_cancel = thrfn;
             po.m_supportdata->support_tree_ptr->add_pad(bp, pcfg);
@@ -940,7 +946,7 @@ void SLAPrint::process()
     };
 
     // this would disable the rasterization step
-//    m_stepmask[slapsRasterize] = false;
+    // m_stepmask[slapsRasterize] = false;
 
     double pstd = (100 - max_objstatus) / 100.0;
     st = max_objstatus;
