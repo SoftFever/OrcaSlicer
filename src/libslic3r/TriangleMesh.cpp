@@ -1,6 +1,7 @@
 #include "TriangleMesh.hpp"
 #include "ClipperUtils.hpp"
 #include "Geometry.hpp"
+#include "Tesselate.hpp"
 #include "qhull/src/libqhullcpp/Qhull.h"
 #include "qhull/src/libqhullcpp/QhullFacetList.h"
 #include "qhull/src/libqhullcpp/QhullVertexSet.h"
@@ -1686,6 +1687,7 @@ void TriangleMeshSlicer::cut(float z, TriangleMesh* upper, TriangleMesh* lower) 
 {
     IntersectionLines upper_lines, lower_lines;
     
+    BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::cut - slicing object";
     float scaled_z = scale_(z);
     for (int facet_idx = 0; facet_idx < this->mesh->stl.stats.number_of_facets; ++ facet_idx) {
         stl_facet* facet = &this->mesh->stl.facet_start[facet_idx];
@@ -1775,57 +1777,35 @@ void TriangleMeshSlicer::cut(float z, TriangleMesh* upper, TriangleMesh* lower) 
         }
     }
     
-    // triangulate holes of upper mesh
     if (upper != NULL) {
-        // compute shape of section
+        BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::cut - triangulating upper part";
         ExPolygons section;
         this->make_expolygons_simple(upper_lines, &section);
-        
-        // triangulate section
-        Polygons triangles;
-        for (ExPolygons::const_iterator expolygon = section.begin(); expolygon != section.end(); ++expolygon)
-            expolygon->triangulate_p2t(&triangles);
-        
-        // convert triangles to facets and append them to mesh
-        for (Polygons::const_iterator polygon = triangles.begin(); polygon != triangles.end(); ++polygon) {
-            Polygon p = *polygon;
-            p.reverse();
-            stl_facet facet;
-            facet.normal = stl_normal(0, 0, -1.f);
-            for (size_t i = 0; i <= 2; ++i) {
-                facet.vertex[i](0) = unscale<float>(p.points[i](0));
-                facet.vertex[i](1) = unscale<float>(p.points[i](1));
-                facet.vertex[i](2) = z;
-            }
+        Pointf3s triangles = triangulate_expolygons_3df(section, z, true);
+        stl_facet facet;
+        facet.normal = stl_normal(0, 0, -1.f);
+        for (size_t i = 0; i < triangles.size(); ) {
+            for (size_t j = 0; j < 3; ++ j)
+                facet.vertex[j] = triangles[i ++].cast<float>();
             stl_add_facet(&upper->stl, &facet);
         }
     }
     
-    // triangulate holes of lower mesh
     if (lower != NULL) {
-        // compute shape of section
+        BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::cut - triangulating lower part";
         ExPolygons section;
         this->make_expolygons_simple(lower_lines, &section);
-        
-        // triangulate section
-        Polygons triangles;
-        for (ExPolygons::const_iterator expolygon = section.begin(); expolygon != section.end(); ++expolygon)
-            expolygon->triangulate_p2t(&triangles);
-        
-        // convert triangles to facets and append them to mesh
-        for (Polygons::const_iterator polygon = triangles.begin(); polygon != triangles.end(); ++polygon) {
-            stl_facet facet;
-            facet.normal = stl_normal(0, 0, 1.f);
-            for (size_t i = 0; i <= 2; ++i) {
-                facet.vertex[i](0) = unscale<float>(polygon->points[i](0));
-                facet.vertex[i](1) = unscale<float>(polygon->points[i](1));
-                facet.vertex[i](2) = z;
-            }
+        Pointf3s triangles = triangulate_expolygons_3df(section, z, false);
+        stl_facet facet;
+        facet.normal = stl_normal(0, 0, -1.f);
+        for (size_t i = 0; i < triangles.size(); ) {
+            for (size_t j = 0; j < 3; ++ j)
+                facet.vertex[j] = triangles[i ++].cast<float>();
             stl_add_facet(&lower->stl, &facet);
         }
     }
     
-    // Update the bounding box / sphere of the new meshes.
+    BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::cut - updating object sizes";
     stl_get_size(&upper->stl);
     stl_get_size(&lower->stl);
 }
