@@ -28,7 +28,7 @@ struct SupportPoint {
     pos(position), head_front_radius(head_radius), is_new_island(new_island) {}
 
     SupportPoint(Eigen::Matrix<float, 5, 1, Eigen::DontAlign> data) :
-    pos(data(0), data(1), data(2)), head_front_radius(data(3)), is_new_island(data(4)) {}
+    pos(data(0), data(1), data(2)), head_front_radius(data(3)), is_new_island(data(4) != 0.f) {}
 
     bool operator==(const SupportPoint& sp) const { return (pos==sp.pos) && head_front_radius==sp.head_front_radius && is_new_island==sp.is_new_island; }
 };
