@@ -595,11 +595,21 @@ void GLCanvas3D::Bed::_render_prusa(const std::string &key, float theta) const
 #endif // ENABLE_PRINT_BED_MODELS
 {
     std::string tex_path = resources_dir() + "/icons/bed/" + key;
+
+    // use higher resolution images if graphic card allows
+    GLint max_tex_size;
+    ::glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_tex_size);
+    if (max_tex_size >= 8192)
+        tex_path += "_8192";
+    else if (max_tex_size >= 4096)
+        tex_path += "_4096";
+
 #if ENABLE_PRINT_BED_MODELS
     std::string model_path = resources_dir() + "/models/" + key;
 #endif // ENABLE_PRINT_BED_MODELS
 
 #if ENABLE_ANISOTROPIC_FILTER_ON_BED_TEXTURES
+    // use anisotropic filter if graphic card allows
     GLfloat max_anisotropy = 0.0f;
     if (glewIsSupported("GL_EXT_texture_filter_anisotropic"))
         ::glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_anisotropy);
