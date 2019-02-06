@@ -567,7 +567,10 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
     mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeSimple, _(L("Simple")), _(L("Simple View Mode")));
     mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeAdvanced, _(L("Advanced")), _(L("Advanced View Mode")));
     mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeExpert, _(L("Expert")), _(L("Expert View Mode")));
-    mode_menu->Check(config_id_base + ConfigMenuModeSimple + get_mode(), true);
+    Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Check(get_mode() == comSimple); }, config_id_base + ConfigMenuModeSimple);
+    Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Check(get_mode() == comAdvanced); }, config_id_base + ConfigMenuModeAdvanced);
+    Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Check(get_mode() == comExpert); }, config_id_base + ConfigMenuModeExpert);
+
     local_menu->AppendSubMenu(mode_menu, _(L("Mode")), _(L("Slic3r View Mode")));
     local_menu->AppendSeparator();
     local_menu->Append(config_id_base + ConfigMenuLanguage, _(L("Change Application &Language")));
