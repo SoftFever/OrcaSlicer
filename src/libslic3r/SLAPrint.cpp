@@ -552,6 +552,9 @@ void SLAPrint::process()
 
             BOOST_LOG_TRIVIAL(debug) << "Automatic support points: "
                                      << po.m_supportdata->support_points.rows();
+
+            // Using RELOAD_SLA_SUPPORT_POINTS to tell the Plater to pass the update status to GLGizmoSlaSupports
+            report_status(*this, -1, L("Generating support points"), SlicingStatus::RELOAD_SLA_SUPPORT_POINTS);
         }
         else {
             // There are some points on the front-end, no calculation will be done.
