@@ -129,13 +129,13 @@ void ObjectList::create_objects_ctrl()
     // column 0(Icon+Text) of the view control: 
     // And Icon can be consisting of several bitmaps
     AppendColumn(new wxDataViewColumn(_(L("Name")), new PrusaBitmapTextRenderer(),
-        0, 200, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
+        0, 20*wxGetApp().em_unit()/*200*/, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
 
     // column 1 of the view control:
     AppendColumn(create_objects_list_extruder_column(4));
 
     // column 2 of the view control:
-    AppendBitmapColumn(" ", 2, wxDATAVIEW_CELL_INERT, 25,
+    AppendBitmapColumn(" ", 2, wxDATAVIEW_CELL_INERT, int(2.5 * wxGetApp().em_unit())/*25*/,
         wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
 }
 
@@ -218,7 +218,8 @@ wxDataViewColumn* ObjectList::create_objects_list_extruder_column(int extruders_
         choices.Add(wxString::Format("%d", i));
     wxDataViewChoiceRenderer *c =
         new wxDataViewChoiceRenderer(choices, wxDATAVIEW_CELL_EDITABLE, wxALIGN_CENTER_HORIZONTAL);
-    wxDataViewColumn* column = new wxDataViewColumn(_(L("Extruder")), c, 1, 80, wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
+    wxDataViewColumn* column = new wxDataViewColumn(_(L("Extruder")), c, 1, 
+                               8*wxGetApp().em_unit()/*80*/, wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
     return column;
 }
 
