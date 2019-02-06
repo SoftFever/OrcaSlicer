@@ -37,7 +37,7 @@ private:
             {}
         const ExPolygon* polygon = nullptr;
         const BoundingBox bbox;
-        const Vec2f centroid = Vec3f::Zero();
+        const Vec2f centroid = Vec2f::Zero();
         const float area = 0.f;
         std::vector<const Structure*> structures_below;
         float height = 0;
