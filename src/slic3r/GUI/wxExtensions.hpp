@@ -23,6 +23,8 @@ wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const
 
 wxMenuItem* append_submenu(wxMenu* menu, wxMenu* sub_menu, int id, const wxString& string, const wxString& description, const std::string& icon = "");
 
+wxBitmap create_scaled_bitmap(const std::string& bmp_name);
+
 class wxCheckListBoxComboPopup : public wxCheckListBox, public wxComboPopup
 {
     static const unsigned int DefaultWidth;

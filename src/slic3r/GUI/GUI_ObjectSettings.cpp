@@ -75,7 +75,8 @@ void ObjectSettings::update_settings_list()
 		{
 			auto opt_key = (line.get_options())[0].opt_id;  //we assume that we have one option per line
 
-			auto btn = new wxBitmapButton(parent, wxID_ANY, wxBitmap(from_u8(var("colorchange_delete_on.png")), wxBITMAP_TYPE_PNG),
+// 			auto btn = new wxBitmapButton(parent, wxID_ANY, wxBitmap(from_u8(var("colorchange_delete_on.png")), wxBITMAP_TYPE_PNG),
+			auto btn = new wxBitmapButton(parent, wxID_ANY, create_scaled_bitmap("colorchange_delete_on.png"),
 				wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
 #ifdef __WXMSW__
             btn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
