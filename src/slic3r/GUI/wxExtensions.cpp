@@ -1454,7 +1454,7 @@ PrusaDoubleSlider::PrusaDoubleSlider(wxWindow *parent,
     Bind(wxEVT_RIGHT_UP,    &PrusaDoubleSlider::OnRightUp,  this);
 
     // control's view variables
-    SLIDER_MARGIN     = 4 + (style == wxSL_HORIZONTAL ? m_bmp_thumb_higher.GetWidth() : m_bmp_thumb_higher.GetHeight());
+    SLIDER_MARGIN     = 4 + Slic3r::GUI::wxGetApp().em_unit();//(style == wxSL_HORIZONTAL ? m_bmp_thumb_higher.GetWidth() : m_bmp_thumb_higher.GetHeight());
 
     DARK_ORANGE_PEN   = wxPen(wxColour(253, 84, 2));
     ORANGE_PEN        = wxPen(wxColour(253, 126, 66));
@@ -1480,7 +1480,7 @@ wxSize PrusaDoubleSlider::DoGetBestSize() const
     const wxSize size = wxControl::DoGetBestSize();
     if (size.x > 1 && size.y > 1)
         return size;
-    const int new_size = is_horizontal() ? 6 * Slic3r::GUI::wxGetApp().em_unit() : 10 * Slic3r::GUI::wxGetApp().em_unit();
+    const int new_size = is_horizontal() ? 6 * Slic3r::GUI::wxGetApp().em_unit() : 8 * Slic3r::GUI::wxGetApp().em_unit();
     return wxSize(new_size, new_size);
 }
 

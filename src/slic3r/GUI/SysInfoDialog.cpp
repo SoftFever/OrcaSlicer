@@ -46,7 +46,7 @@ SysInfoDialog::SysInfoDialog()
     hsizer->SetMinSize(wxSize(50 * wxGetApp().em_unit(), -1));
 
 	auto main_sizer = new wxBoxSizer(wxVERTICAL);
-	main_sizer->Add(hsizer, 0, wxEXPAND | wxALL, 10);
+	main_sizer->Add(hsizer, 1, wxEXPAND | wxALL, 10);
 
     // logo
 	wxBitmap logo_bmp = wxBitmap(from_u8(Slic3r::var("Slic3r_192px.png")), wxBITMAP_TYPE_PNG);
@@ -93,8 +93,6 @@ SysInfoDialog::SysInfoDialog()
         vsizer->Add(html, 1, wxEXPAND | wxBOTTOM, wxGetApp().em_unit());
     }
 
-//    hsizer->Add(vsizer, 1, wxEXPAND | wxLEFT, 20);
-//    main_sizer->Add(hsizer, 1, wxEXPAND | wxALL, 10);
     // opengl_info
     wxHtmlWindow* opengl_info_html = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_AUTO);
     {
