@@ -141,8 +141,8 @@ bool GeometryBuffer::set_from_triangles(const Polygons& triangles, float z, bool
             float inv_size_y = -1.0f / size_y;
             for (unsigned int i = 0; i < m_tex_coords.size(); i += 2)
             {
-                m_tex_coords[i] *= inv_size_x;
-                m_tex_coords[i + 1] *= inv_size_y;
+                m_tex_coords[i] = (m_tex_coords[i] - min_x) * inv_size_x;
+                m_tex_coords[i + 1] = (m_tex_coords[i + 1] - min_y) * inv_size_y;
             }
         }
     }
