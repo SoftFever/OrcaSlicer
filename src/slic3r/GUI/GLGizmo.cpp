@@ -2225,8 +2225,10 @@ void GLGizmoSlaSupports::on_set_state()
         if (m_model_object)
             m_parent.toggle_model_objects_visibility(true, m_model_object, m_active_instance);
     }
-    if (m_state == Off)
+    if (m_state == Off) {
         m_parent.toggle_model_objects_visibility(true);
+        m_editing_mode = false;
+    }
 }
 
 

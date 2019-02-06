@@ -4241,8 +4241,8 @@ void GLCanvas3D::toggle_sla_auxiliaries_visibility(bool visible)
 void GLCanvas3D::toggle_model_objects_visibility(bool visible, const ModelObject* mo, int instance_idx)
 {
     for (GLVolume* vol : m_volumes.volumes) {
-        if (mo == nullptr
-        |  (m_model->objects[vol->composite_id.object_id] == mo && vol->composite_id.instance_id == instance_idx))
+        if ((mo == nullptr || m_model->objects[vol->composite_id.object_id] == mo)
+        && (instance_idx == -1 || vol->composite_id.instance_id == instance_idx))
             vol->is_active = visible;
     }
     if (visible && !mo)
@@ -4814,7 +4814,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 if (it != model_volume_state.end() && it->geometry_id == key.geometry_id)
 					mvs = &(*it);
             }
-            if (mvs == nullptr || force_full_scene_refresh || (volume->composite_id.volume_id < 0 && !m_render_sla_auxiliaries)) {
+            if (mvs == nullptr || force_full_scene_refresh) {
                 // This GLVolume will be released.
                 if (volume->is_wipe_tower) {
                     // There is only one wipe tower.
@@ -4925,7 +4925,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 size_t volumes_count = m_volumes.volumes.size();
 
                 for (size_t istep = 0; istep < sla_steps.size(); ++istep)
-                    if (!instances[istep].empty() && m_render_sla_auxiliaries)
+                    if (!instances[istep].empty())
                         m_volumes.load_object_auxiliary(print_object, object_idx, instances[istep], sla_steps[istep], state.step[istep].timestamp, m_use_VBOs && m_initialized);
             }
 
@@ -6581,7 +6581,9 @@ void GLCanvas3D::_render_objects() const
             m_layers_editing.render_volumes(*this, this->m_volumes);
         } else {
             // do not cull backfaces to show broken geometry, if any
-            m_volumes.render_VBOs(GLVolumeCollection::Opaque, m_picking_enabled);
+            m_volumes.render_VBOs(GLVolumeCollection::Opaque, m_picking_enabled, [this](const GLVolume& volume) {
+                return (m_render_sla_auxiliaries || volume.composite_id.volume_id >= 0);
+            });
         }
         m_volumes.render_VBOs(GLVolumeCollection::Transparent, false);
         m_shader.stop_using();
@@ -6597,7 +6599,9 @@ void GLCanvas3D::_render_objects() const
         }
 
         // do not cull backfaces to show broken geometry, if any
-        m_volumes.render_legacy(GLVolumeCollection::Opaque, m_picking_enabled);
+        m_volumes.render_legacy(GLVolumeCollection::Opaque, m_picking_enabled, [this](const GLVolume& volume) {
+                return (m_render_sla_auxiliaries || volume.composite_id.volume_id >= 0);
+            });
         m_volumes.render_legacy(GLVolumeCollection::Transparent, false);
 
         if (m_use_clipping_planes)
@@ -6664,9 +6668,6 @@ void GLCanvas3D::_render_volumes(bool fake_colors) const
     unsigned int volume_id = 0;
     for (GLVolume* vol : m_volumes.volumes)
     {
-        if (vol->composite_id.volume_id < 0 && !m_render_sla_auxiliaries)
-            continue;
-
         if (fake_colors)
         {
             // Object picking mode. Render the object with a color encoding the object index.
@@ -6681,7 +6682,7 @@ void GLCanvas3D::_render_volumes(bool fake_colors) const
             ::glColor4fv(vol->render_color);
         }
 
-        if (!fake_colors || !vol->disabled)
+        if ((!fake_colors || !vol->disabled) && (vol->composite_id.volume_id >= 0 || m_render_sla_auxiliaries))
             vol->render();
 
         ++volume_id;
