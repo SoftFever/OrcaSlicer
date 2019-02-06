@@ -44,7 +44,8 @@ void BedShapePanel::build_panel(ConfigOptionPoints* default_pt)
 	auto sbsizer = new wxStaticBoxSizer(box, wxVERTICAL);
 
 	// shape options
-    m_shape_options_book = new wxChoicebook(this, wxID_ANY, wxDefaultPosition, FromDIP(wxSize(300, -1))/*wxSize(23 * wxGetApp().em_unit(), -1)*/, wxCHB_TOP);
+    m_shape_options_book = new wxChoicebook(this, wxID_ANY, wxDefaultPosition, 
+                           wxSize(25*wxGetApp().em_unit(), -1), wxCHB_TOP);
 	sbsizer->Add(m_shape_options_book);
 
 	auto optgroup = init_shape_options_page(_(L("Rectangular")));
@@ -124,7 +125,7 @@ ConfigOptionsGroupShp BedShapePanel::init_shape_options_page(wxString title)
 	ConfigOptionsGroupShp optgroup;
 	optgroup = std::make_shared<ConfigOptionsGroup>(panel, _(L("Settings")));
 
-    optgroup->label_width = int(7.7*wxGetApp().em_unit() + 0.5);//100;
+    optgroup->label_width = 10*wxGetApp().em_unit();//100;
 	optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
 		update_shape();
 	};

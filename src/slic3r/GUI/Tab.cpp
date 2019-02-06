@@ -98,7 +98,7 @@ void Tab::create_preset_tab()
 #endif //__WXOSX__
 
 	// preset chooser
-    m_presets_choice = new wxBitmapComboBox(panel, wxID_ANY, "", wxDefaultPosition, wxSize(20 * m_em_unit, -1), 0, 0, wxCB_READONLY);
+    m_presets_choice = new wxBitmapComboBox(panel, wxID_ANY, "", wxDefaultPosition, wxSize(25 * m_em_unit, -1), 0, 0, wxCB_READONLY);
 
 	auto color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 
@@ -1107,14 +1107,14 @@ void TabPrint::build()
 		optgroup = page->new_optgroup(_(L("Post-processing scripts")), 0);	
 		option = optgroup->get_option("post_process");
 		option.opt.full_width = true;
-        option.opt.height = 4 * m_em_unit;//50;
+        option.opt.height = 5 * m_em_unit;//50;
 		optgroup->append_single_option_line(option);
 
 	page = add_options_page(_(L("Notes")), "note.png");
 		optgroup = page->new_optgroup(_(L("Notes")), 0);						
 		option = optgroup->get_option("notes");
 		option.opt.full_width = true;
-        option.opt.height = 19 * m_em_unit;//250;
+        option.opt.height = 25 * m_em_unit;//250;
 		optgroup->append_single_option_line(option);
 
 	page = add_options_page(_(L("Dependencies")), "wrench.png");
@@ -1470,8 +1470,8 @@ void TabFilament::build()
 		};
 		optgroup->append_line(line);
 
-        const int gcode_field_height = int(11.5 * m_em_unit + 0.5); // 150
-        const int notes_field_height = 19 * m_em_unit; // 250
+        const int gcode_field_height = 15 * m_em_unit; // 150
+        const int notes_field_height = 25 * m_em_unit; // 250
 
         page = add_options_page(_(L("Custom G-code")), "cog.png");
 		optgroup = page->new_optgroup(_(L("Start G-code")), 0);
@@ -1850,8 +1850,8 @@ void TabPrinter::build_fff()
 		optgroup->append_single_option_line("use_volumetric_e");
 		optgroup->append_single_option_line("variable_layer_height");
 
-    const int gcode_field_height = int(11.5 * m_em_unit + 0.5); // 150
-    const int notes_field_height = 19 * m_em_unit; // 250
+    const int gcode_field_height = 15 * m_em_unit; // 150
+    const int notes_field_height = 25 * m_em_unit; // 250
 	page = add_options_page(_(L("Custom G-code")), "cog.png");
 		optgroup = page->new_optgroup(_(L("Start G-code")), 0);
 		option = optgroup->get_option("start_gcode");
@@ -1970,7 +1970,7 @@ void TabPrinter::build_sla()
     optgroup = page->new_optgroup(_(L("Print Host upload")));
     build_printhost(optgroup.get());
 
-    const int notes_field_height = 19 * m_em_unit; // 250
+    const int notes_field_height = 25 * m_em_unit; // 250
 
     page = add_options_page(_(L("Notes")), "note.png");
     optgroup = page->new_optgroup(_(L("Notes")), 0);
@@ -2025,7 +2025,7 @@ PageShp TabPrinter::build_kinematics_page()
 		// Legend for OptionsGroups
 		auto optgroup = page->new_optgroup("");
 		optgroup->set_show_modified_btns_val(false);
-        optgroup->label_width = 18 * m_em_unit;// 230;
+        optgroup->label_width = 23 * m_em_unit;// 230;
 		auto line = Line{ "", "" };
 
 		ConfigOptionDef def;
@@ -3111,7 +3111,7 @@ void TabSLAMaterial::build()
     optgroup->append_single_option_line("initial_exposure_time");
 
     optgroup = page->new_optgroup(_(L("Corrections")));
-    optgroup->label_width = int(14.5 * m_em_unit+0.5);//190;
+    optgroup->label_width = 19 * m_em_unit;//190;
     std::vector<std::string> corrections = { "material_correction_printing", "material_correction_curing" };
     std::vector<std::string> axes{ "X", "Y", "Z" };
     for (auto& opt_key : corrections) {
@@ -3132,7 +3132,7 @@ void TabSLAMaterial::build()
     optgroup->label_width = 0;
     Option option = optgroup->get_option("material_notes");
     option.opt.full_width = true;
-    option.opt.height = 19 * m_em_unit;//250;
+    option.opt.height = 25 * m_em_unit;//250;
     optgroup->append_single_option_line(option);
 
     page = add_options_page(_(L("Dependencies")), "wrench.png");

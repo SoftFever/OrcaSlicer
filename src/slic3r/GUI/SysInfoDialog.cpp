@@ -43,15 +43,15 @@ SysInfoDialog::SysInfoDialog()
 	wxColour bgr_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 	SetBackgroundColour(bgr_clr);
     wxBoxSizer* hsizer = new wxBoxSizer(wxHORIZONTAL);
-    hsizer->SetMinSize(wxSize(45 * wxGetApp().em_unit(), -1));
+    hsizer->SetMinSize(wxSize(50 * wxGetApp().em_unit(), -1));
 
 	auto main_sizer = new wxBoxSizer(wxVERTICAL);
 	main_sizer->Add(hsizer, 0, wxEXPAND | wxALL, 10);
 
     // logo
 	wxBitmap logo_bmp = wxBitmap(from_u8(Slic3r::var("Slic3r_192px.png")), wxBITMAP_TYPE_PNG);
-    auto *logo = new wxStaticBitmap(this, wxID_ANY, std::move(logo_bmp), wxDefaultPosition, FromDIP(logo_bmp.GetSize()));
-	hsizer->Add(logo, 0, wxEXPAND | wxTOP | wxBOTTOM, 15);
+    auto *logo = new wxStaticBitmap(this, wxID_ANY, std::move(logo_bmp));
+	hsizer->Add(logo, 0, wxALIGN_CENTER_VERTICAL);
     
     wxBoxSizer* vsizer = new wxBoxSizer(wxVERTICAL);
     hsizer->Add(vsizer, 1, wxEXPAND|wxLEFT, 20);
@@ -64,7 +64,7 @@ SysInfoDialog::SysInfoDialog()
         title_font.SetFamily(wxFONTFAMILY_ROMAN);
         title_font.SetPointSize(22);
         title->SetFont(title_font);
-        vsizer->Add(title, 0, wxALIGN_LEFT | wxTOP, 50);
+        vsizer->Add(title, 0, wxEXPAND | wxALIGN_LEFT | wxTOP, wxGetApp().em_unit()/*50*/);
     }
 
     // main_info_text
@@ -90,13 +90,15 @@ SysInfoDialog::SysInfoDialog()
             "</html>", bgr_clr_str, text_clr_str, text_clr_str,
             get_main_info(true));
         html->SetPage(text);
-        vsizer->Add(html, 1, wxEXPAND);
+        vsizer->Add(html, 1, wxEXPAND | wxBOTTOM, wxGetApp().em_unit());
     }
 
+//    hsizer->Add(vsizer, 1, wxEXPAND | wxLEFT, 20);
+//    main_sizer->Add(hsizer, 1, wxEXPAND | wxALL, 10);
     // opengl_info
     wxHtmlWindow* opengl_info_html = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_AUTO);
     {
-        opengl_info_html->SetMinSize(wxSize(-1, 15 * wxGetApp().em_unit()));
+        opengl_info_html->SetMinSize(wxSize(-1, 16 * wxGetApp().em_unit()));
         opengl_info_html->SetFonts(font.GetFaceName(), font.GetFaceName(), size);
         opengl_info_html->SetBorders(10);
         const auto text = wxString::Format(

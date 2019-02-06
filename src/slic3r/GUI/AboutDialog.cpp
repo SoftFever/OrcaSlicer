@@ -2,6 +2,7 @@
 #include "I18N.hpp"
 
 #include "libslic3r/Utils.hpp"
+#include "GUI_App.hpp"
 
 namespace Slic3r { 
 namespace GUI {
@@ -41,15 +42,15 @@ AboutDialog::AboutDialog()
 
     // logo
 	wxBitmap logo_bmp = wxBitmap(from_u8(Slic3r::var("Slic3r_192px.png")), wxBITMAP_TYPE_PNG);
-    auto *logo = new wxStaticBitmap(this, wxID_ANY, std::move(logo_bmp), wxDefaultPosition, FromDIP(logo_bmp.GetSize()));
-	hsizer->Add(logo, 1, wxEXPAND | wxTOP | wxBOTTOM, 35);
+    auto *logo = new wxStaticBitmap(this, wxID_ANY, std::move(logo_bmp));
+	hsizer->Add(logo, 1, wxALIGN_CENTER_VERTICAL);
     
     wxBoxSizer* vsizer = new wxBoxSizer(wxVERTICAL);
-#ifdef __WXMSW__
-	int proportion = 2;
-#else
+// #ifdef __WXMSW__
+// 	int proportion = 2;
+// #else
 	int proportion = 3;
-#endif
+// #endif
     hsizer->Add(vsizer, proportion, wxEXPAND|wxLEFT, 20);
 
     // title
@@ -80,6 +81,7 @@ AboutDialog::AboutDialog()
     // text
     wxHtmlWindow* html = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_AUTO/*NEVER*/);
     {
+        html->SetMinSize(wxSize(-1, 16 * wxGetApp().em_unit()));
         wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
         const auto text_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
 		auto text_clr_str = wxString::Format(wxT("#%02X%02X%02X"), text_clr.Red(), text_clr.Green(), text_clr.Blue());

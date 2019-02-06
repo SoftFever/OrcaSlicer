@@ -22,7 +22,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
 #endif // __APPLE__
 {
     m_og->set_name(_(L("Object Manipulation")));
-    m_og->label_width = 9 * wxGetApp().em_unit();//125;
+    m_og->label_width = 12 * wxGetApp().em_unit();//125;
     m_og->set_grid_vgap(5);
     
     m_og->m_on_change = std::bind(&ObjectManipulation::on_change, this, std::placeholders::_1, std::placeholders::_2);
@@ -49,7 +49,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     def.default_value = new ConfigOptionString{ " " };
     m_og->append_single_option_line(Option(def, "object_name"));
 
-    const int field_width = int(3.8 * wxGetApp().em_unit()+0.5)/*50*/;
+    const int field_width = 5 * wxGetApp().em_unit()/*50*/;
 
     // Legend for object modification
     auto line = Line{ "", "" };
