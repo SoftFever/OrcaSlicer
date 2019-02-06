@@ -80,8 +80,8 @@ class GUI_App : public wxApp
     wxFont		    m_small_font;
     wxFont		    m_bold_font;
 
-    size_t          m_em_unit; // "m" string width in pixels. 
-                               // Used like a coefficient for a size setting of controls
+    size_t          m_em_unit; // width of a "m"-symbol in pixels for current system font 
+                               // Note: for 100% Scale m_em_unit = 10 -> it's a good enough coefficient for a size setting of controls
 
     wxLocale*	    m_wxLocale{ nullptr };
 
