@@ -5231,6 +5231,12 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
     if (evt.MiddleIsDown())
         return;
 
+#if ENABLE_RETINA_GL
+    const float scale = m_retina_helper->get_scale_factor();
+    evt.SetX(evt.GetX() * scale);
+    evt.SetY(evt.GetY() * scale);
+#endif
+
     // Performs layers editing updates, if enabled
     if (is_layers_editing_enabled())
     {
