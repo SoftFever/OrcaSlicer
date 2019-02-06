@@ -5332,14 +5332,21 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         // Set focus in order to remove it from sidebar fields
         if (m_canvas != nullptr) {
             // Only set focus, if the top level window of this canvas is active.
-			auto p = dynamic_cast<wxWindow*>(evt.GetEventObject());
+            auto p = dynamic_cast<wxWindow*>(evt.GetEventObject());
             while (p->GetParent())
                 p = p->GetParent();
             auto *top_level_wnd = dynamic_cast<wxTopLevelWindow*>(p);
             if (top_level_wnd && top_level_wnd->IsActive())
+            {
                 m_canvas->SetFocus();
-        }
 
+                // forces a frame render to ensure that m_hover_volume_id is updated even when the user right clicks while
+                // the context menu is shown, ensuring it to disappear if the mouse is outside any volume and to
+                // change the volume hover state if any is under the mouse 
+                m_mouse.position = pos.cast<double>();
+                render();
+            }
+        }
         m_mouse.set_start_position_2D_as_invalid();
 //#endif
     }
@@ -5493,10 +5500,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 }
                 else if (evt.RightDown())
                 {
-                    // forces a frame render to ensure that m_hover_volume_id is updated even when the user right clicks while
-                    // the context menu is already shown, ensuring it to disappear if the mouse is outside any volume
-                    m_mouse.position = Vec2d((double)pos(0), (double)pos(1));
-                    render();
+                    m_mouse.position = pos.cast<double>();
+//                    // forces a frame render to ensure that m_hover_volume_id is updated even when the user right clicks while
+//                    // the context menu is already shown, ensuring it to disappear if the mouse is outside any volume
+//                    render();
                     if (m_hover_volume_id != -1)
                     {
                         // if right clicking on volume, propagate event through callback (shows context menu)
@@ -5509,9 +5516,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                             post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
                             _update_gizmos_data();
                             wxGetApp().obj_manipul()->update_settings_value(m_selection);
-                            // forces a frame render to update the view before the context menu is shown
-                            render();
-
+//                            // forces a frame render to update the view before the context menu is shown
+//                            render();
+                            
                             Vec2d logical_pos = pos.cast<double>();
 #if ENABLE_RETINA_GL
                             const float factor = m_retina_helper->get_scale_factor();
