@@ -1907,6 +1907,17 @@ bool SLASupportTree::generate(const PointSet &points,
     }
     };
 
+    if(cfg.ground_facing_only) { // Delete the non-gnd steps if necessary
+        program[ROUTING_NONGROUND] = []() {
+            BOOST_LOG_TRIVIAL(info) << "Skipping non-ground facing supports as "
+                                       "requested.";
+        };
+        program[HEADLESS]  = [](){
+            BOOST_LOG_TRIVIAL(info) << "Skipping headless stick generation as "
+                                       "requested";
+        };
+    }
+
     Steps pc = BEGIN, pc_prev = BEGIN;
 
     // Let's define a simple automaton that will run our program.

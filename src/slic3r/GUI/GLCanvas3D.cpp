@@ -10,6 +10,7 @@
 #include "libslic3r/Geometry.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Technologies.hpp"
+#include "libslic3r/Tesselate.hpp"
 #include "slic3r/GUI/3DScene.hpp"
 #include "slic3r/GUI/BackgroundSlicingProcess.hpp"
 #include "slic3r/GUI/GLShader.hpp"
@@ -600,7 +601,8 @@ void GLCanvas3D::Bed::_render_prusa(const std::string &key, float theta) const
 
 #if ENABLE_ANISOTROPIC_FILTER_ON_BED_TEXTURES
     GLfloat max_anisotropy = 0.0f;
-    ::glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_anisotropy);
+    if (glewIsSupported("GL_EXT_texture_filter_anisotropic"))
+        ::glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_anisotropy);
 #endif // ENABLE_ANISOTROPIC_FILTER_ON_BED_TEXTURES
 
     std::string filename = tex_path + "_top.png";
@@ -1102,12 +1104,11 @@ void GLCanvas3D::LayersEditing::_render_tooltip_texture(const GLCanvas3D& canvas
 
 #if ENABLE_RETINA_GL
     const float scale = canvas.get_canvas_size().get_scale_factor();
+#else
+    const float scale = canvas.get_wxglcanvas()->GetContentScaleFactor();
+#endif
     const float width = (float)m_tooltip_texture.get_width() * scale;
     const float height = (float)m_tooltip_texture.get_height() * scale;
-#else
-    const float width = (float)m_tooltip_texture.get_width();
-    const float height = (float)m_tooltip_texture.get_height();
-#endif
 
     float zoom = canvas.get_camera_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
@@ -1329,20 +1330,24 @@ void GLCanvas3D::LayersEditing::update_slicing_parameters()
 
 float GLCanvas3D::LayersEditing::thickness_bar_width(const GLCanvas3D &canvas)
 {
+    return
 #if ENABLE_RETINA_GL
-    return canvas.get_canvas_size().get_scale_factor() * THICKNESS_BAR_WIDTH;
+        canvas.get_canvas_size().get_scale_factor()
 #else
-    return THICKNESS_BAR_WIDTH;
+        canvas.get_wxglcanvas()->GetContentScaleFactor()
 #endif
+         * THICKNESS_BAR_WIDTH;
 }
 
 float GLCanvas3D::LayersEditing::reset_button_height(const GLCanvas3D &canvas)
 {
+    return
 #if ENABLE_RETINA_GL
-    return canvas.get_canvas_size().get_scale_factor() * THICKNESS_RESET_BUTTON_HEIGHT;
+        canvas.get_canvas_size().get_scale_factor()
 #else
-    return THICKNESS_RESET_BUTTON_HEIGHT;
+        canvas.get_wxglcanvas()->GetContentScaleFactor()
 #endif
+         * THICKNESS_RESET_BUTTON_HEIGHT;
 }
 
 
@@ -4199,6 +4204,9 @@ unsigned int GLCanvas3D::get_volumes_count() const
 
 void GLCanvas3D::reset_volumes()
 {
+    if (!m_initialized)
+        return;
+
     _set_current();
 
     if (!m_volumes.empty())
@@ -4268,6 +4276,7 @@ void GLCanvas3D::set_bed_shape(const Pointfs& shape)
         // Set the origin and size for painting of the coordinate system axes.
         m_axes.origin = Vec3d(0.0, 0.0, (double)GROUND_Z);
         set_bed_axes_length(0.1 * m_bed.get_bounding_box().max_size());
+        m_camera.set_scene_box(scene_bounding_box(), *this);
         m_requires_zoom_to_bed = true;
 
         m_dirty = true;
@@ -4527,6 +4536,13 @@ void GLCanvas3D::render()
         return;
 
 #if ENABLE_REWORKED_BED_SHAPE_CHANGE
+    if (m_bed.get_shape().empty())
+    {
+        // this happens at startup when no data is still saved under <>\AppData\Roaming\Slic3rPE
+        if (m_config != nullptr)
+            set_bed_shape(m_config->opt<ConfigOptionPoints>("bed_shape")->values);
+    }
+
     if (m_requires_zoom_to_bed)
     {
         zoom_to_bed();
@@ -4702,7 +4718,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     if ((m_canvas == nullptr) || (m_config == nullptr) || (m_model == nullptr))
         return;
 
-    _set_current();
+    if (m_initialized)
+        _set_current();
 
     struct ModelVolumeState {
         ModelVolumeState(const GLVolume *volume) : 
@@ -5227,6 +5244,12 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
     // Ignore the wheel events if the middle button is pressed.
     if (evt.MiddleIsDown())
         return;
+
+#if ENABLE_RETINA_GL
+    const float scale = m_retina_helper->get_scale_factor();
+    evt.SetX(evt.GetX() * scale);
+    evt.SetY(evt.GetY() * scale);
+#endif
 
     // Performs layers editing updates, if enabled
     if (is_layers_editing_enabled())
@@ -5762,8 +5785,11 @@ Point GLCanvas3D::get_local_mouse_position() const
 
 void GLCanvas3D::reset_legend_texture()
 {
-    _set_current();
-    m_legend_texture.reset();
+    if (m_legend_texture.get_id() != 0)
+    {
+        _set_current();
+        m_legend_texture.reset();
+    }
 }
 
 void GLCanvas3D::set_tooltip(const std::string& tooltip) const
@@ -6215,7 +6241,9 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
     wxGetApp().imgui()->set_display_size((float)w, (float)h);
 #if ENABLE_RETINA_GL
     wxGetApp().imgui()->set_style_scaling(m_retina_helper->get_scale_factor());
-#endif // ENABLE_RETINA_GL
+#else
+    wxGetApp().imgui()->set_style_scaling(m_canvas->GetContentScaleFactor());
+#endif
 #endif // ENABLE_IMGUI
 
     // ensures that this canvas is current
@@ -6677,7 +6705,10 @@ void GLCanvas3D::_render_gizmos_overlay() const
 {
 #if ENABLE_RETINA_GL
     m_gizmos.set_overlay_scale(m_retina_helper->get_scale_factor());
-#endif
+#else
+    m_gizmos.set_overlay_scale(m_canvas->GetContentScaleFactor());
+#endif /* __WXMSW__ */
+
     m_gizmos.render_overlay(*this, m_selection);
 }
 
@@ -6685,7 +6716,10 @@ void GLCanvas3D::_render_toolbar() const
 {
 #if ENABLE_RETINA_GL
     m_toolbar.set_icons_scale(m_retina_helper->get_scale_factor());
-#endif
+#else
+    m_toolbar.set_icons_scale(m_canvas->GetContentScaleFactor());
+#endif /* __WXMSW__ */
+
     m_toolbar.render(*this);
 }
 
@@ -6694,7 +6728,9 @@ void GLCanvas3D::_render_view_toolbar() const
     if (m_view_toolbar != nullptr) {
 #if ENABLE_RETINA_GL
         m_view_toolbar->set_icons_scale(m_retina_helper->get_scale_factor());
-#endif
+#else
+        m_view_toolbar->set_icons_scale(m_canvas->GetContentScaleFactor());
+#endif /* __WXMSW__ */
         m_view_toolbar->render(*this);
     }
 }
@@ -6724,230 +6760,6 @@ void GLCanvas3D::_render_camera_target() const
     ::glEnd();
 }
 #endif // ENABLE_SHOW_CAMERA_TARGET
-
-class TessWrapper {
-public:
-	static Pointf3s tesselate(const ExPolygon &expoly, double z_, bool flipped_)
-	{
-		z = z_;
-		flipped = flipped_;
-		triangles.clear();
-		intersection_points.clear();
-		std::vector<GLdouble> coords;
-		{
-			size_t num_coords = expoly.contour.points.size();
-			for (const Polygon &poly : expoly.holes)
-				num_coords += poly.points.size();
-			coords.reserve(num_coords * 3);
-		}
-		GLUtesselator *tess = gluNewTess(); // create a tessellator
-		// register callback functions
-#ifndef _GLUfuncptr
-	#ifdef _MSC_VER
-		typedef void (__stdcall *_GLUfuncptr)(void);
-	#else /* _MSC_VER */
-        #ifdef GLAPIENTRYP
-            typedef void (GLAPIENTRYP _GLUfuncptr)(void);
-        #else /* GLAPIENTRYP */
-            typedef void (*_GLUfuncptr)(void);
-        #endif
-	#endif /* _MSC_VER */
-#endif /* _GLUfuncptr */
-		gluTessCallback(tess, GLU_TESS_BEGIN,   (_GLUfuncptr)tessBeginCB);
-		gluTessCallback(tess, GLU_TESS_END,     (_GLUfuncptr)tessEndCB);
-		gluTessCallback(tess, GLU_TESS_ERROR,   (_GLUfuncptr)tessErrorCB);
-		gluTessCallback(tess, GLU_TESS_VERTEX,  (_GLUfuncptr)tessVertexCB);
-        gluTessCallback(tess, GLU_TESS_COMBINE, (_GLUfuncptr)tessCombineCB);
-		gluTessBeginPolygon(tess, 0); // with NULL data
-		gluTessBeginContour(tess);
-		for (const Point &pt : expoly.contour.points) {
-			coords.emplace_back(unscale<double>(pt[0]));
-			coords.emplace_back(unscale<double>(pt[1]));
-			coords.emplace_back(0.);
-			gluTessVertex(tess, &coords[coords.size() - 3], &coords[coords.size() - 3]);
-		}
-		gluTessEndContour(tess);
-		for (const Polygon &poly : expoly.holes) {
-			gluTessBeginContour(tess);
-			for (const Point &pt : poly.points) {
-				coords.emplace_back(unscale<double>(pt[0]));
-				coords.emplace_back(unscale<double>(pt[1]));
-				coords.emplace_back(0.);
-				gluTessVertex(tess, &coords[coords.size() - 3], &coords[coords.size() - 3]);
-			}
-			gluTessEndContour(tess);
-		}
-		gluTessEndPolygon(tess);
-		gluDeleteTess(tess);
-		return std::move(triangles);
-	}
-
-private:
-	static void tessBeginCB(GLenum which)
-	{
-		assert(which == GL_TRIANGLES || which == GL_TRIANGLE_FAN || which == GL_TRIANGLE_STRIP);
-		if (!(which == GL_TRIANGLES || which == GL_TRIANGLE_FAN || which == GL_TRIANGLE_STRIP))
-			printf("Co je to za haluz!?\n");
-		primitive_type = which;
-		num_points = 0;
-	}
-
-	static void tessEndCB()
-	{
-		num_points = 0;
-	}
-
-	static void tessVertexCB(const GLvoid *data)
-	{
-		if (data == nullptr)
-			return;
-		const GLdouble *ptr = (const GLdouble*)data;
-		++ num_points;
-		if (num_points == 1) {
-			memcpy(pt0, ptr, sizeof(GLdouble) * 3);
-		} else if (num_points == 2) {
-			memcpy(pt1, ptr, sizeof(GLdouble) * 3);
-		} else {
-			bool flip = flipped;
-			if (primitive_type == GL_TRIANGLE_STRIP && num_points == 4) {
-				flip = !flip;
-				num_points = 2;
-			}
-			triangles.emplace_back(pt0[0], pt0[1], z);
-			if (flip) {
-				triangles.emplace_back(ptr[0], ptr[1], z);
-				triangles.emplace_back(pt1[0], pt1[1], z);
-			} else {
-				triangles.emplace_back(pt1[0], pt1[1], z);
-				triangles.emplace_back(ptr[0], ptr[1], z);
-			}
-			if (primitive_type == GL_TRIANGLE_STRIP) {
-				memcpy(pt0, pt1, sizeof(GLdouble) * 3);
-				memcpy(pt1, ptr, sizeof(GLdouble) * 3);
-			} else if (primitive_type == GL_TRIANGLE_FAN) {
-				memcpy(pt1, ptr, sizeof(GLdouble) * 3);
-			} else {
-				assert(primitive_type == GL_TRIANGLES);
-				assert(num_points == 3);
-				num_points = 0;
-			}
-		}
-	}
-
-    static void tessCombineCB(const GLdouble newVertex[3], const GLdouble *neighborVertex[4], const GLfloat neighborWeight[4], GLdouble **outData)
-    {
-        intersection_points.emplace_back(newVertex[0], newVertex[1], newVertex[2]);
-        *outData = intersection_points.back().data();
-    }
-
-	static void tessErrorCB(GLenum errorCode)
-	{
-		const GLubyte *errorStr;
-		errorStr = gluErrorString(errorCode);
-		printf("Error: %s\n", (const char*)errorStr);
-	}
-
-	static GLenum   primitive_type;
-	static GLdouble pt0[3];
-	static GLdouble pt1[3];
-	static int      num_points;
-	static Pointf3s triangles;
-    static std::deque<Vec3d> intersection_points;
-	static double   z;
-	static bool     flipped;
-};
-
-GLenum   TessWrapper::primitive_type;
-GLdouble TessWrapper::pt0[3];
-GLdouble TessWrapper::pt1[3];
-int      TessWrapper::num_points;
-Pointf3s TessWrapper::triangles;
-std::deque<Vec3d> TessWrapper::intersection_points;
-double   TessWrapper::z;
-bool     TessWrapper::flipped;
-
-static Pointf3s triangulate_expolygons(const ExPolygons &polys, coordf_t z, bool flip)
-{
-	Pointf3s triangles;
-#if 0
-	for (const ExPolygon& poly : polys) {
-		Polygons poly_triangles;
-		// poly.triangulate() is based on a trapezoidal decomposition implemented in an extremely expensive way by clipping the whole input contour with a polygon!
-		poly.triangulate(&poly_triangles);
-		// poly.triangulate_p2t() is based on the poly2tri library, which is not quite stable, it often ends up in a nice stack overflow!
-		//        poly.triangulate_p2t(&poly_triangles);
-		for (const Polygon &t : poly_triangles)
-			if (flip) {
-				triangles.emplace_back(to_3d(unscale(t.points[2]), z));
-				triangles.emplace_back(to_3d(unscale(t.points[1]), z));
-				triangles.emplace_back(to_3d(unscale(t.points[0]), z));
-			} else {
-				triangles.emplace_back(to_3d(unscale(t.points[0]), z));
-				triangles.emplace_back(to_3d(unscale(t.points[1]), z));
-				triangles.emplace_back(to_3d(unscale(t.points[2]), z));
-			}
-	}
-#else
-
-//	for (const ExPolygon &poly : union_ex(simplify_polygons(to_polygons(polys), true))) {
-    for (const ExPolygon &poly : polys) {
-		append(triangles, TessWrapper::tesselate(poly, z, flip));
-		continue;
-
-		std::list<TPPLPoly> input = expoly_to_polypartition_input(poly);
-		std::list<TPPLPoly> output;
-	//	int res = TPPLPartition().Triangulate_MONO(&input, &output);
-		int res = TPPLPartition().Triangulate_EC(&input, &output);
-		if (res == 1) {
-			// Triangulation succeeded. Convert to triangles.
-			size_t num_triangles = 0;
-			for (const TPPLPoly &poly : output)
-				if (poly.GetNumPoints() >= 3)
-					num_triangles += (size_t)poly.GetNumPoints() - 2;
-			triangles.reserve(triangles.size() + num_triangles * 3);
-			for (const TPPLPoly &poly : output) {
-				long num_points = poly.GetNumPoints();
-				if (num_points >= 3) {
-					const TPPLPoint *pt0 = &poly[0];
-					const TPPLPoint *pt1 = nullptr;
-					const TPPLPoint *pt2 = &poly[1];
-					for (long i = 2; i < num_points; ++i) {
-						pt1 = pt2;
-						pt2 = &poly[i];
-						if (flip) {
-							triangles.emplace_back(unscale<double>(pt2->x), unscale<double>(pt2->y), z);
-							triangles.emplace_back(unscale<double>(pt1->x), unscale<double>(pt1->y), z);
-							triangles.emplace_back(unscale<double>(pt0->x), unscale<double>(pt0->y), z);
-						} else {
-							triangles.emplace_back(unscale<double>(pt0->x), unscale<double>(pt0->y), z);
-							triangles.emplace_back(unscale<double>(pt1->x), unscale<double>(pt1->y), z);
-							triangles.emplace_back(unscale<double>(pt2->x), unscale<double>(pt2->y), z);
-						}
-					}
-				}
-			}
-		} else {
-			// Triangulation by polypartition failed. Use the expensive slow implementation.
-			Polygons poly_triangles;
-			// poly.triangulate() is based on a trapezoidal decomposition implemented in an extremely expensive way by clipping the whole input contour with a polygon!
-			poly.triangulate(&poly_triangles);
-			// poly.triangulate_p2t() is based on the poly2tri library, which is not quite stable, it often ends up in a nice stack overflow!
-			//        poly.triangulate_p2t(&poly_triangles);
-			for (const Polygon &t : poly_triangles)
-				if (flip) {
-					triangles.emplace_back(to_3d(unscale(t.points[2]), z));
-					triangles.emplace_back(to_3d(unscale(t.points[1]), z));
-					triangles.emplace_back(to_3d(unscale(t.points[0]), z));
-				} else {
-					triangles.emplace_back(to_3d(unscale(t.points[0]), z));
-					triangles.emplace_back(to_3d(unscale(t.points[1]), z));
-					triangles.emplace_back(to_3d(unscale(t.points[2]), z));
-				}
-		}
-	}
-#endif
-	return triangles;
-}
 
 void GLCanvas3D::_render_sla_slices() const
 {
@@ -7019,20 +6831,20 @@ void GLCanvas3D::_render_sla_slices() const
             {
                 // calculate model bottom cap
                 if (bottom_obj_triangles.empty() && (it_min_z->second.model_slices_idx < model_slices.size()))
-                    bottom_obj_triangles = triangulate_expolygons(model_slices[it_min_z->second.model_slices_idx], min_z, true);
+                    bottom_obj_triangles = triangulate_expolygons_3df(model_slices[it_min_z->second.model_slices_idx], min_z, true);
                 // calculate support bottom cap
                 if (bottom_sup_triangles.empty() && (it_min_z->second.support_slices_idx < support_slices.size()))
-                    bottom_sup_triangles = triangulate_expolygons(support_slices[it_min_z->second.support_slices_idx], min_z, true);
+                    bottom_sup_triangles = triangulate_expolygons_3df(support_slices[it_min_z->second.support_slices_idx], min_z, true);
             }
 
             if (it_max_z != index.end())
             {
                 // calculate model top cap
                 if (top_obj_triangles.empty() && (it_max_z->second.model_slices_idx < model_slices.size()))
-                    top_obj_triangles = triangulate_expolygons(model_slices[it_max_z->second.model_slices_idx], max_z, false);
+                    top_obj_triangles = triangulate_expolygons_3df(model_slices[it_max_z->second.model_slices_idx], max_z, false);
                 // calculate support top cap
                 if (top_sup_triangles.empty() && (it_max_z->second.support_slices_idx < support_slices.size()))
-					top_sup_triangles = triangulate_expolygons(support_slices[it_max_z->second.support_slices_idx], max_z, false);
+					top_sup_triangles = triangulate_expolygons_3df(support_slices[it_max_z->second.support_slices_idx], max_z, false);
             }
         }
 
@@ -8430,7 +8242,9 @@ void GLCanvas3D::_resize_toolbars() const
 
 #if ENABLE_RETINA_GL
     m_toolbar.set_icons_scale(m_retina_helper->get_scale_factor());
-#endif
+#else
+    m_toolbar.set_icons_scale(m_canvas->GetContentScaleFactor());
+#endif /* __WXMSW__ */
 
     GLToolbar::Layout::EOrientation orientation = m_toolbar.get_layout_orientation();
 
@@ -8477,7 +8291,9 @@ void GLCanvas3D::_resize_toolbars() const
     {
 #if ENABLE_RETINA_GL
         m_view_toolbar->set_icons_scale(m_retina_helper->get_scale_factor());
-#endif
+#else
+        m_view_toolbar->set_icons_scale(m_canvas->GetContentScaleFactor());
+#endif /* __WXMSW__ */
 
         // places the toolbar on the bottom-left corner of the 3d scene
         float top = (-0.5f * (float)cnv_size.get_height() + m_view_toolbar->get_height()) * inv_zoom;

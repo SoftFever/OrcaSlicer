@@ -1347,6 +1347,8 @@ void ObjectList::split()
         return;
     }
 
+    wxBusyCursor wait;
+
     auto model_object = (*m_objects)[obj_idx];
 
     auto parent = m_objects_model->GetTopParent(item);

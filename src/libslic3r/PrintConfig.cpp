@@ -2566,6 +2566,14 @@ void PrintConfigDef::init_sla_params()
     def->enum_labels.push_back(L("Dynamic"));
     def->default_value = new ConfigOptionEnum<SLAPillarConnectionMode>(slapcmDynamic);
 
+    def = this->add("support_buildplate_only", coBool);
+    def->label = L("Support on build plate only");
+    def->category = L("Supports");
+    def->tooltip = L("Only create support if it lies on a build plate. Don't create support on a print.");
+    def->cli = "support-buildplate-only!";
+    def->mode = comSimple;
+    def->default_value = new ConfigOptionBool(false);
+
     def = this->add("support_pillar_widening_factor", coFloat);
     def->label = L("Pillar widening factor");
     def->category = L("Supports");
