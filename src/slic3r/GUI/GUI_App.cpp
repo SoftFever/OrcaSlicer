@@ -197,7 +197,7 @@ bool GUI_App::OnInit()
 
 
     mainframe->Show(true);
-    return true;
+    return m_initialized = true;
 }
 
 unsigned GUI_App::get_colour_approx_luma(const wxColour &colour)

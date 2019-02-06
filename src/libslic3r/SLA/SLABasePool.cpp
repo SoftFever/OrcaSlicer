@@ -427,6 +427,7 @@ ExPolygons concave_hull(const ExPolygons& polys, double max_dist_mm = 50,
         return r;
     });
 
+    // This is unavoidable...
     punion = unify(punion);
 
     return punion;
@@ -448,10 +449,17 @@ void base_plate(const TriangleMesh &mesh, ExPolygons &output, float h,
     slicer.slice(heights, &out, thrfn);
 
     size_t count = 0; for(auto& o : out) count += o.size();
+
+    // Now we have to unify all slice layers which can be an expensive operation
+    // so we will try to simplify the polygons
     ExPolygons tmp; tmp.reserve(count);
-    for(auto& o : out) for(auto& e : o) tmp.emplace_back(std::move(e));
+    for(ExPolygons& o : out) for(ExPolygon& e : o) {
+        auto&& exss = e.simplify(0.1/SCALING_FACTOR);
+        for(ExPolygon& ep : exss) tmp.emplace_back(std::move(ep));
+    }
 
     ExPolygons utmp = unify(tmp);
+
     for(auto& o : utmp) {
         auto&& smp = o.simplify(0.1/SCALING_FACTOR);
         output.insert(output.end(), smp.begin(), smp.end());
