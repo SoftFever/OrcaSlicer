@@ -2231,6 +2231,7 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
     }
     if (evt.status.flags & PrintBase::SlicingStatus::RELOAD_SLA_SUPPORT_POINTS) {
         // Update SLA gizmo
+        q->canvas3D()->reload_scene(true);
     }
 }
 

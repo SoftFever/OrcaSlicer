@@ -4238,10 +4238,11 @@ void GLCanvas3D::toggle_sla_auxiliaries_visibility(bool visible)
     m_render_sla_auxiliaries = visible;
 }
 
-void GLCanvas3D::toggle_model_objects_visibility(bool visible, const ModelObject* mo)
+void GLCanvas3D::toggle_model_objects_visibility(bool visible, const ModelObject* mo, int instance_idx)
 {
     for (GLVolume* vol : m_volumes.volumes) {
-        if (mo == nullptr ||  m_model->objects[vol->composite_id.object_id] == mo)
+        if (mo == nullptr
+        |  (m_model->objects[vol->composite_id.object_id] == mo && vol->composite_id.instance_id == instance_idx))
             vol->is_active = visible;
     }
     if (visible && !mo)

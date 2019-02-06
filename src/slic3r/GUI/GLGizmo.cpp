@@ -1782,28 +1782,30 @@ void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const G
     if (selection.is_empty())
         m_old_instance_id = -1;
 
+    m_active_instance = selection.get_instance_idx();
+
     if ((model_object != nullptr) && selection.is_from_single_instance())
     {
         if (is_mesh_update_necessary())
             update_mesh();
 
         // If there are no points, let's ask the backend if it calculated some.
-        if (model_object->sla_support_points.empty() && m_parent.sla_print()->is_step_done(slaposSupportPoints)) {
+        if (m_editing_mode_cache.empty() && m_parent.sla_print()->is_step_done(slaposSupportPoints)) {
             for (const SLAPrintObject* po : m_parent.sla_print()->objects()) {
                 if (po->model_object()->id() == model_object->id()) {
                     const Eigen::MatrixXd& points = po->get_support_points();
                     for (unsigned int i=0; i<points.rows();++i)
-                        model_object->sla_support_points.emplace_back(po->trafo().inverse().cast<float>() * Vec3f(points(i,0), points(i,1), points(i,2)),
+                        m_editing_mode_cache.emplace_back(po->trafo().inverse().cast<float>() * Vec3f(points(i,0), points(i,1), points(i,2)),
                                                                       points(i, 3), points(i, 4));
                     break;
                 }
             }
         }
-        if (m_old_model_object != m_model_object)
-            m_editing_mode_cache = m_model_object->sla_support_points; // make a copy of ModelObject's support points
+        if (m_model_object != m_old_model_object)
+            m_editing_mode = false;
         if (m_state == On) {
             m_parent.toggle_model_objects_visibility(false);
-            m_parent.toggle_model_objects_visibility(true, m_model_object);
+            m_parent.toggle_model_objects_visibility(true, m_model_object, m_active_instance);
         }
     }
 }
@@ -2221,7 +2223,7 @@ void GLGizmoSlaSupports::on_set_state()
 
         m_parent.toggle_model_objects_visibility(false);
         if (m_model_object)
-            m_parent.toggle_model_objects_visibility(true, m_model_object);
+            m_parent.toggle_model_objects_visibility(true, m_model_object, m_active_instance);
     }
     if (m_state == Off)
         m_parent.toggle_model_objects_visibility(true);

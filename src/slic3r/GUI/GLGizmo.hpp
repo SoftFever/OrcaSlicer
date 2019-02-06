@@ -442,6 +442,7 @@ class GLGizmoSlaSupports : public GLGizmoBase
 private:
     ModelObject* m_model_object = nullptr;
     ModelObject* m_old_model_object = nullptr;
+    int m_active_instance = -1;
     int m_old_instance_id = -1;
     Vec3f unproject_on_mesh(const Vec2d& mouse_pos);
 

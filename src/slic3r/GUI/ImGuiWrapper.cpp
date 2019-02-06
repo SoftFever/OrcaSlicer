@@ -170,17 +170,17 @@ void ImGuiWrapper::text(const wxString &label)
 
 void ImGuiWrapper::combo(const wxString& label, const std::vector<wxString>& options, wxString& selection)
 {
-    const char* selection_u8 = into_u8(selection).c_str();
+    std::string selection_u8 = into_u8(selection);
 
     // this is to force the label to the left of the widget:
     text(label);
     ImGui::SameLine();
     
-    if (ImGui::BeginCombo("", selection_u8)) {
+    if (ImGui::BeginCombo("", selection_u8.c_str())) {
         for (const wxString& option : options) {
-            const char* option_u8 = into_u8(option).c_str();
-            bool is_selected = (selection_u8 == nullptr) ? false : strcmp(option_u8, selection_u8) == 0;
-            if (ImGui::Selectable(option_u8, is_selected))
+            std::string option_u8 = into_u8(option);
+            bool is_selected = (selection_u8.empty()) ? false : (option_u8 == selection_u8);
+            if (ImGui::Selectable(option_u8.c_str(), is_selected))
                 selection = option_u8;
         }
         ImGui::EndCombo();

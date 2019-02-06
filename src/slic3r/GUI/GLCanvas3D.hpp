@@ -952,7 +952,7 @@ public:
     int check_volumes_outside_state() const;
 
     void toggle_sla_auxiliaries_visibility(bool visible);
-    void toggle_model_objects_visibility(bool visible, const ModelObject* mo = nullptr);
+    void toggle_model_objects_visibility(bool visible, const ModelObject* mo = nullptr, int instance_idx = -1);
 
     void set_config(const DynamicPrintConfig* config);
     void set_process(BackgroundSlicingProcess* process);
