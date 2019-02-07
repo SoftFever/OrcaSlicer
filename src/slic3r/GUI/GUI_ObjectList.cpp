@@ -116,7 +116,7 @@ void ObjectList::create_objects_ctrl()
     SetMinSize(wxSize(-1, 3000));   // #ys_FIXME 
 
     m_sizer = new wxBoxSizer(wxVERTICAL);
-    m_sizer->Add(this, 1, wxGROW | wxLEFT, 20);
+    m_sizer->Add(this, 1, wxGROW);
 
     m_objects_model = new PrusaObjectDataViewModel;
     AssociateModel(m_objects_model);

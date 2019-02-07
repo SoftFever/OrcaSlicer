@@ -2375,8 +2375,8 @@ void PrusaModeButton::SetState(const bool state)
 
 void PrusaModeButton::focus_button(const bool focus)
 {
-    const wxBitmap& bmp = focus ? m_bmp_on : m_bmp_off;
-    SetBitmap(bmp);
+//     const wxBitmap& bmp = focus ? m_bmp_on : m_bmp_off;
+//     SetBitmap(bmp);
     const wxFont& new_font = focus ? Slic3r::GUI::wxGetApp().bold_font() : Slic3r::GUI::wxGetApp().small_font();
     SetFont(new_font);
 
@@ -2390,7 +2390,7 @@ void PrusaModeButton::focus_button(const bool focus)
 // ----------------------------------------------------------------------------
 
 PrusaModeSizer::PrusaModeSizer(wxWindow *parent) :
-    wxFlexGridSizer(3, 0, 5)
+    wxFlexGridSizer(3, 0, 2* Slic3r::GUI::wxGetApp().em_unit()/*5*/)
 {
     SetFlexibleDirection(wxHORIZONTAL);
 
