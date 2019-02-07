@@ -27,7 +27,7 @@ public:
     using TPixel = TPixelRenderer::color_type;
     using TRawBuffer = agg::rendering_buffer;
 
-    using TBuffer = std::vector<TPixelRenderer::pixel_type>;
+    using TBuffer = std::vector<TPixelRenderer::value_type>;
 
     using TRendererAA = agg::renderer_scanline_aa_solid<TRawRenderer>;
 
@@ -35,6 +35,11 @@ public:
     static const TPixel ColorBlack;
 
     using Origin = Raster::Origin;
+
+	enum
+	{
+		num_components = 1,
+	};
 
 private:
     Raster::Resolution m_resolution;
@@ -58,7 +63,7 @@ public:
         m_buf(res.pixels()),
         m_rbuf(reinterpret_cast<TPixelRenderer::value_type*>(m_buf.data()),
               res.width_px, res.height_px,
-              int(res.width_px*TPixelRenderer::num_components)),
+              int(res.width_px*num_components)),
         m_pixfmt(m_rbuf),
         m_raw_renderer(m_pixfmt),
         m_renderer(m_raw_renderer),

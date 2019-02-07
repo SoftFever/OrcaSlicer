@@ -121,6 +121,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/Bonjour.hpp
     Utils/PresetUpdater.cpp
     Utils/PresetUpdater.hpp
+    Utils/SVGImport.cpp
+    Utils/SVGImport.hpp
     Utils/Time.cpp
     Utils/Time.hpp
     Utils/HexFile.cpp
@@ -133,7 +135,10 @@ endif ()
 
 add_library(libslic3r_gui STATIC ${SLIC3R_GUI_SOURCES})
 
-target_link_libraries(libslic3r_gui libslic3r avrdude imgui)
+target_compile_definitions(libslic3r_gui PUBLIC -DUSE_TBB ${PNG_DEFINITIONS})
+target_include_directories(libslic3r_gui PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${PNG_INCLUDE_DIRS})
+target_link_libraries(libslic3r_gui libslic3r avrdude imgui ${PNG_LIBRARIES} agg_svg)
+
 if (SLIC3R_PCH AND NOT SLIC3R_SYNTAXONLY)
     add_precompiled_header(libslic3r_gui pchheader.hpp FORCEINCLUDE)
 endif ()

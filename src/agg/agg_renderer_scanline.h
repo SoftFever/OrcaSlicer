@@ -1,23 +1,30 @@
 //----------------------------------------------------------------------------
-// Anti-Grain Geometry - Version 2.4
-// Copyright (C) 2002-2005 Maxim Shemanarev (http://www.antigrain.com)
-//
-// Permission to copy, use, modify, sell and distribute this software 
-// is granted provided this copyright notice appears in all copies. 
-// This software is provided "as is" without express or implied
-// warranty, and with no claim as to its suitability for any purpose.
-//
-//----------------------------------------------------------------------------
+// Anti-Grain Geometry (AGG) - Version 2.5
+// A high quality rendering engine for C++
+// Copyright (C) 2002-2006 Maxim Shemanarev
 // Contact: mcseem@antigrain.com
 //          mcseemagg@yahoo.com
-//          http://www.antigrain.com
+//          http://antigrain.com
+// 
+// AGG is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+// 
+// AGG is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with AGG; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, 
+// MA 02110-1301, USA.
 //----------------------------------------------------------------------------
 
 #ifndef AGG_RENDERER_SCANLINE_INCLUDED
 #define AGG_RENDERER_SCANLINE_INCLUDED
 
-#include <limits>
-#include <cstdlib>
 #include "agg_basics.h"
 #include "agg_renderer_base.h"
 
@@ -67,7 +74,7 @@ namespace agg
             // "rgba8" is needed. Otherwise it will be implicitly 
             // converted in the loop many times.
             //----------------------
-            typename BaseRenderer::color_type ren_color = color;
+            typename BaseRenderer::color_type ren_color(color);
 
             sl.reset(ras.min_x(), ras.max_x());
             while(ras.sweep_scanline(sl))
@@ -747,7 +754,7 @@ namespace agg
                                0, 
                                sl_len * sizeof(cover_type));
 
-                        int sl_y = std::numeric_limits<int>::max();
+                        int sl_y = 0x7FFFFFFF;
                         unsigned i;
                         for(i = 0; i < num_styles; i++)
                         {

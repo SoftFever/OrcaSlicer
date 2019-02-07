@@ -1,22 +1,31 @@
 //----------------------------------------------------------------------------
-// Anti-Grain Geometry - Version 2.4
-// Copyright (C) 2002-2005 Maxim Shemanarev (http://www.antigrain.com)
-//
-// Permission to copy, use, modify, sell and distribute this software 
-// is granted provided this copyright notice appears in all copies. 
-// This software is provided "as is" without express or implied
-// warranty, and with no claim as to its suitability for any purpose.
-//
+// Anti-Grain Geometry (AGG) - Version 2.5
+// A high quality rendering engine for C++
+// Copyright (C) 2002-2006 Maxim Shemanarev
+// Contact: mcseem@antigrain.com
+//          mcseemagg@yahoo.com
+//          http://antigrain.com
+// 
+// AGG is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+// 
+// AGG is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with AGG; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, 
+// MA 02110-1301, USA.
 //----------------------------------------------------------------------------
 //
 // The author gratefully acknowleges the support of David Turner, 
 // Robert Wilhelm, and Werner Lemberg - the authors of the FreeType 
 // libray - in producing this work. See http://www.freetype.org for details.
 //
-//----------------------------------------------------------------------------
-// Contact: mcseem@antigrain.com
-//          mcseemagg@yahoo.com
-//          http://www.antigrain.com
 //----------------------------------------------------------------------------
 //
 // Adaptation for 32-bit screen coordinates has been sponsored by 
@@ -26,12 +35,12 @@
 // PostScript and PDF technology for software developers.
 // 
 //----------------------------------------------------------------------------
+
 #ifndef AGG_RASTERIZER_CELLS_AA_INCLUDED
 #define AGG_RASTERIZER_CELLS_AA_INCLUDED
 
 #include <string.h>
-#include <cstdlib>
-#include <limits>
+#include <math.h>
 #include "agg_math.h"
 #include "agg_array.h"
 
@@ -151,10 +160,10 @@ namespace agg
         m_curr_cell_ptr(0),
         m_sorted_cells(),
         m_sorted_y(),
-        m_min_x(std::numeric_limits<int>::max()),
-        m_min_y(std::numeric_limits<int>::max()),
-        m_max_x(std::numeric_limits<int>::min()),
-        m_max_y(std::numeric_limits<int>::min()),
+        m_min_x(0x7FFFFFFF),
+        m_min_y(0x7FFFFFFF),
+        m_max_x(-0x7FFFFFFF),
+        m_max_y(-0x7FFFFFFF),
         m_sorted(false)
     {
         m_style_cell.initial();
@@ -170,10 +179,10 @@ namespace agg
         m_curr_cell.initial();
         m_style_cell.initial();
         m_sorted = false;
-        m_min_x = std::numeric_limits<int>::max();
-        m_min_y = std::numeric_limits<int>::max();
-        m_max_x = std::numeric_limits<int>::min();
-        m_max_y = std::numeric_limits<int>::min();
+        m_min_x =  0x7FFFFFFF;
+        m_min_y =  0x7FFFFFFF;
+        m_max_x = -0x7FFFFFFF;
+        m_max_y = -0x7FFFFFFF;
     }
 
     //------------------------------------------------------------------------
@@ -218,8 +227,7 @@ namespace agg
         int fx1 = x1 & poly_subpixel_mask;
         int fx2 = x2 & poly_subpixel_mask;
 
-        int delta, p, first;
-        long long dx;
+        int delta, p, first, dx;
         int incr, lift, mod, rem;
 
         //trivial case. Happens often
@@ -244,7 +252,7 @@ namespace agg
         first = poly_subpixel_scale;
         incr  = 1;
 
-        dx = (long long)x2 - (long long)x1;
+        dx = x2 - x1;
 
         if(dx < 0)
         {
@@ -254,13 +262,13 @@ namespace agg
             dx    = -dx;
         }
 
-        delta = (int)(p / dx);
-        mod   = (int)(p % dx);
+        delta = p / dx;
+        mod   = p % dx;
 
         if(mod < 0)
         {
             delta--;
-            mod += static_cast<int>(dx);
+            mod += dx;
         }
 
         m_curr_cell.cover += delta;
@@ -273,16 +281,16 @@ namespace agg
         if(ex1 != ex2)
         {
             p     = poly_subpixel_scale * (y2 - y1 + delta);
-            lift  = (int)(p / dx);
-            rem   = (int)(p % dx);
+            lift  = p / dx;
+            rem   = p % dx;
 
             if (rem < 0)
             {
                 lift--;
-                rem += static_cast<int>(dx);
+                rem += dx;
             }
 
-            mod -= static_cast<int>(dx);
+            mod -= dx;
 
             while (ex1 != ex2)
             {
@@ -290,7 +298,7 @@ namespace agg
                 mod  += rem;
                 if(mod >= 0)
                 {
-                    mod -= static_cast<int>(dx);
+                    mod -= dx;
                     delta++;
                 }
 
@@ -319,17 +327,17 @@ namespace agg
     {
         enum dx_limit_e { dx_limit = 16384 << poly_subpixel_shift };
 
-        long long dx = (long long)x2 - (long long)x1;
+        int dx = x2 - x1;
 
         if(dx >= dx_limit || dx <= -dx_limit)
         {
-            int cx = (int)(((long long)x1 + (long long)x2) >> 1);
-            int cy = (int)(((long long)y1 + (long long)y2) >> 1);
+            int cx = (x1 + x2) >> 1;
+            int cy = (y1 + y2) >> 1;
             line(x1, y1, cx, cy);
             line(cx, cy, x2, y2);
         }
 
-        long long dy = (long long)y2 - (long long)y1;
+        int dy = y2 - y1;
         int ex1 = x1 >> poly_subpixel_shift;
         int ex2 = x2 >> poly_subpixel_shift;
         int ey1 = y1 >> poly_subpixel_shift;
@@ -338,8 +346,7 @@ namespace agg
         int fy2 = y2 & poly_subpixel_mask;
 
         int x_from, x_to;
-        int rem, mod, lift, delta, first, incr;
-        long long p;
+        int p, rem, mod, lift, delta, first, incr;
 
         if(ex1 < m_min_x) m_min_x = ex1;
         if(ex1 > m_max_x) m_max_x = ex1;
@@ -416,13 +423,13 @@ namespace agg
             dy    = -dy;
         }
 
-        delta = (int)(p / dy);
-        mod   = (int)(p % dy);
+        delta = p / dy;
+        mod   = p % dy;
 
         if(mod < 0)
         {
             delta--;
-            mod += static_cast<int>(dy);
+            mod += dy;
         }
 
         x_from = x1 + delta;
@@ -434,15 +441,15 @@ namespace agg
         if(ey1 != ey2)
         {
             p     = poly_subpixel_scale * dx;
-            lift  = (int)(p / dy);
-            rem   = (int)(p % dy);
+            lift  = p / dy;
+            rem   = p % dy;
 
             if(rem < 0)
             {
                 lift--;
-                rem += static_cast<int>(dy);
+                rem += dy;
             }
-            mod -= static_cast<int>(dy);
+            mod -= dy;
 
             while(ey1 != ey2)
             {
@@ -450,7 +457,7 @@ namespace agg
                 mod  += rem;
                 if (mod >= 0)
                 {
-                    mod -= static_cast<int>(dy);
+                    mod -= dy;
                     delta++;
                 }
 
@@ -628,8 +635,8 @@ namespace agg
         if(m_sorted) return; //Perform sort only the first time.
 
         add_curr_cell();
-        m_curr_cell.x     = std::numeric_limits<int>::max();
-        m_curr_cell.y     = std::numeric_limits<int>::max();
+        m_curr_cell.x     = 0x7FFFFFFF;
+        m_curr_cell.y     = 0x7FFFFFFF;
         m_curr_cell.cover = 0;
         m_curr_cell.area  = 0;
 
@@ -657,18 +664,25 @@ namespace agg
         // Create the Y-histogram (count the numbers of cells for each Y)
         cell_type** block_ptr = m_cells;
         cell_type*  cell_ptr;
-        unsigned nb = m_num_cells;
+        unsigned nb = m_num_cells >> cell_block_shift;
         unsigned i;
-        while(nb)
+        while(nb--)
         {
             cell_ptr = *block_ptr++;
-            i = (nb > cell_block_size) ? unsigned(cell_block_size) : nb;
-            nb -= i;
+            i = cell_block_size;
             while(i--) 
             {
                 m_sorted_y[cell_ptr->y - m_min_y].start++;
                 ++cell_ptr;
             }
+        }
+
+        cell_ptr = *block_ptr++;
+        i = m_num_cells & cell_block_mask;
+        while(i--) 
+        {
+            m_sorted_y[cell_ptr->y - m_min_y].start++;
+            ++cell_ptr;
         }
 
         // Convert the Y-histogram into the array of starting indexes
@@ -682,13 +696,12 @@ namespace agg
 
         // Fill the cell pointer array sorted by Y
         block_ptr = m_cells;
-        nb = m_num_cells;
-        while(nb)
+        nb = m_num_cells >> cell_block_shift;
+        while(nb--)
         {
             cell_ptr = *block_ptr++;
-            i = (nb > cell_block_size) ? unsigned(cell_block_size) : nb;
-            nb -= i;
-            while(i--)
+            i = cell_block_size;
+            while(i--) 
             {
                 sorted_y& curr_y = m_sorted_y[cell_ptr->y - m_min_y];
                 m_sorted_cells[curr_y.start + curr_y.num] = cell_ptr;
@@ -697,6 +710,16 @@ namespace agg
             }
         }
         
+        cell_ptr = *block_ptr++;
+        i = m_num_cells & cell_block_mask;
+        while(i--) 
+        {
+            sorted_y& curr_y = m_sorted_y[cell_ptr->y - m_min_y];
+            m_sorted_cells[curr_y.start + curr_y.num] = cell_ptr;
+            ++curr_y.num;
+            ++cell_ptr;
+        }
+
         // Finally arrange the X-arrays
         for(i = 0; i < m_sorted_y.size(); i++)
         {

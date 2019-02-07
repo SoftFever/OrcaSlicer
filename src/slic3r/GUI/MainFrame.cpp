@@ -27,6 +27,7 @@
 
 #include <fstream>
 #include "GUI_App.hpp"
+#include "Utils/SVGImport.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -35,6 +36,9 @@ MainFrame::MainFrame() :
 wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, "mainframe"),
         m_printhost_queue_dlg(new PrintHostQueueDialog(this))
 {
+
+    Slic3r::Utils::vojtikuv_pokus();
+
     // Load the icon either from the exe, or from the ico file.
 #if _WIN32
     {

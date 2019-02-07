@@ -1,22 +1,31 @@
 //----------------------------------------------------------------------------
-// Anti-Grain Geometry - Version 2.4
-// Copyright (C) 2002-2005 Maxim Shemanarev (http://www.antigrain.com)
-//
-// Permission to copy, use, modify, sell and distribute this software 
-// is granted provided this copyright notice appears in all copies. 
-// This software is provided "as is" without express or implied
-// warranty, and with no claim as to its suitability for any purpose.
-//
+// Anti-Grain Geometry (AGG) - Version 2.5
+// A high quality rendering engine for C++
+// Copyright (C) 2002-2006 Maxim Shemanarev
+// Contact: mcseem@antigrain.com
+//          mcseemagg@yahoo.com
+//          http://antigrain.com
+// 
+// AGG is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+// 
+// AGG is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with AGG; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, 
+// MA 02110-1301, USA.
 //----------------------------------------------------------------------------
 //
 // The author gratefully acknowleges the support of David Turner, 
 // Robert Wilhelm, and Werner Lemberg - the authors of the FreeType 
 // libray - in producing this work. See http://www.freetype.org for details.
 //
-//----------------------------------------------------------------------------
-// Contact: mcseem@antigrain.com
-//          mcseemagg@yahoo.com
-//          http://www.antigrain.com
 //----------------------------------------------------------------------------
 //
 // Adaptation for 32-bit screen coordinates has been sponsored by 
@@ -26,17 +35,47 @@
 // PostScript and PDF technology for software developers.
 // 
 //----------------------------------------------------------------------------
+
 #ifndef AGG_RASTERIZER_SCANLINE_AA_INCLUDED
 #define AGG_RASTERIZER_SCANLINE_AA_INCLUDED
 
 #include "agg_rasterizer_cells_aa.h"
 #include "agg_rasterizer_sl_clip.h"
-#include "agg_rasterizer_scanline_aa_nogamma.h"
 #include "agg_gamma_functions.h"
 
 
 namespace agg
 {
+
+
+    //-----------------------------------------------------------------cell_aa
+    // A pixel cell. There're no constructors defined and it was done 
+    // intentionally in order to avoid extra overhead when allocating an 
+    // array of cells.
+    struct cell_aa
+    {
+        int x;
+        int y;
+        int cover;
+        int area;
+
+        void initial()
+        {
+            x = 0x7FFFFFFF;
+            y = 0x7FFFFFFF;
+            cover = 0;
+            area  = 0;
+        }
+
+        void style(const cell_aa&) {}
+
+        int not_equal(int ex, int ey, const cell_aa&) const
+        {
+            return (ex - x) | (ey - y);
+        }
+    };
+
+
     //==================================================rasterizer_scanline_aa
     // Polygon rasterizer that is used to render filled polygons with 
     // high-quality Anti-Aliasing. Internally, by default, the class uses 
