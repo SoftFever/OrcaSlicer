@@ -145,19 +145,24 @@ void Field::get_value_by_opt_type(wxString& str)
 		double val;
 		// Replace the first occurence of comma in decimal number.
 		str.Replace(",", ".", false);
-		if(!str.ToCDouble(&val))
-		{
-			show_error(m_parent, _(L("Invalid numeric input.")));
-			set_value(double_to_string(val), true);
-		}
-		if (m_opt.min > val || val > m_opt.max)
-		{
-			show_error(m_parent, _(L("Input value is out of range")));
-			if (m_opt.min > val) val = m_opt.min;
-			if (val > m_opt.max) val = m_opt.max;
-			set_value(double_to_string(val), true);
-		}
-		m_value = val;
+        if (str == ".")
+            val = 0.0;
+        else
+        {
+            if (!str.ToCDouble(&val))
+            {
+                show_error(m_parent, _(L("Invalid numeric input.")));
+                set_value(double_to_string(val), true);
+            }
+            if (m_opt.min > val || val > m_opt.max)
+            {
+                show_error(m_parent, _(L("Input value is out of range")));
+                if (m_opt.min > val) val = m_opt.min;
+                if (val > m_opt.max) val = m_opt.max;
+                set_value(double_to_string(val), true);
+            }
+        }
+        m_value = val;
 		break; }
 	case coString:
 	case coStrings:

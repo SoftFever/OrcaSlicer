@@ -1333,6 +1333,8 @@ void Transformation::set_rotation(const Vec3d& rotation)
 void Transformation::set_rotation(Axis axis, double rotation)
 {
     rotation = angle_to_0_2PI(rotation);
+    if (is_approx(std::abs(rotation), 2.0 * (double)PI))
+        rotation = 0.0;
 
     if (m_rotation(axis) != rotation)
     {

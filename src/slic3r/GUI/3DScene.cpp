@@ -2003,7 +2003,7 @@ bool GLBed::on_init_from_file(const std::string& filename, bool useVBOs)
     else
         m_volume.indexed_vertex_array.load_mesh_flat_shading(mesh);
 
-    float color[4] = { 0.235f, 0.235f, 0.235f, 1.0f };
+    float color[4] = { 0.235f, 0.235f, 0.235f, 0.5f };
     set_color(color, 4);
 
     m_volume.bounding_box = m_volume.indexed_vertex_array.bounding_box();
