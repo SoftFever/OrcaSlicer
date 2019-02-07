@@ -90,9 +90,6 @@ struct ConfigWizardPage: wxPanel
 
     ConfigWizard::priv *wizard_p() const { return parent->p.get(); }
 
-    virtual bool Show(bool show = true);
-    virtual bool Hide() { return Show(false); }
-    virtual wxPanel* extra_buttons() { return nullptr; }    // XXX
     virtual void apply_custom_config(DynamicPrintConfig &config) {}
 };
 
@@ -129,8 +126,11 @@ struct PageCustom: ConfigWizardPage
     std::string profile_name() const { return into_u8(tc_profile_name->GetValue()); }
 
 private:
+    static const char* default_profile_name;
+
     wxCheckBox *cb_custom;
     wxTextCtrl *tc_profile_name;
+    wxString profile_name_prev;
 
 };
 

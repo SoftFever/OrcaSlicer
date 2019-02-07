@@ -26,6 +26,22 @@ wxTopLevelWindow* find_toplevel_parent(wxWindow *window)
     return nullptr;
 }
 
+void on_window_geometry(wxTopLevelWindow *tlw, std::function<void()> callback)
+{
+    tlw->Bind(wxEVT_CREATE, [=](wxWindowCreateEvent &event) {
+#ifdef __linux__
+        // On Linux, the geometry is only available after wxEVT_CREATE + CallAfter
+        // cf. https://groups.google.com/forum/?pli=1#!topic/wx-users/fERSXdpVwAI
+        tlw->CallAfter([=]() {
+#endif
+            callback();
+#ifdef __linux__
+        });
+#endif
+        event.Skip();
+    });
+}
+
 
 CheckboxFileDialog::ExtraPanel::ExtraPanel(wxWindow *parent)
     : wxPanel(parent, wxID_ANY)

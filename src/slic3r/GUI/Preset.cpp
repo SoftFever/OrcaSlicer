@@ -130,13 +130,15 @@ VendorProfile VendorProfile::from_ini(const ptree &tree, const boost::filesystem
             model.id = section.first.substr(printer_model_key.size());
             model.name = section.second.get<std::string>("name", model.id);
 
-            auto technology_field = section.second.get<std::string>("technology", "FFF");
+            const char *technology_fallback = boost::algorithm::starts_with(model.id, "SL") ? "SLA" : "FFF";
+
+            auto technology_field = section.second.get<std::string>("technology", technology_fallback);
             if (! ConfigOptionEnum<PrinterTechnology>::from_string(technology_field, model.technology)) {
                 BOOST_LOG_TRIVIAL(error) << boost::format("Vendor bundle: `%1%`: Invalid printer technology field: `%2%`") % id % technology_field;
                 model.technology = ptFFF;
             }
 
-            model.family = section.second.get<std::string>("family", model.id);
+            model.family = section.second.get<std::string>("family", std::string());
 #if 0
 			// Remove SLA printers from the initial alpha.
 			if (model.technology == ptSLA)
@@ -167,7 +169,7 @@ std::vector<std::string> VendorProfile::families() const
     unsigned num_familiies = 0;
 
     for (auto &model : models) {
-        if (!model.family.empty() && std::find(res.begin(), res.end(), model.family) == res.end()) {
+        if (std::find(res.begin(), res.end(), model.family) == res.end()) {
             res.push_back(model.family);
             num_familiies++;
         }

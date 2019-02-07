@@ -22,6 +22,7 @@
 #include "libslic3r/Utils.hpp"
 #include "PresetBundle.hpp"
 #include "GUI.hpp"
+#include "GUI_Utils.hpp"
 #include "slic3r/Utils/PresetUpdater.hpp"
 
 
@@ -152,9 +153,11 @@ PrinterPicker::PrinterPicker(wxWindow *parent, const VendorProfile &vendor, wxSt
     }
 
     auto *title_sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto *title_widget = new wxStaticText(this, wxID_ANY, title);
-    title_widget->SetFont(font_title);
-    title_sizer->Add(title_widget);
+    if (! title.IsEmpty()) {
+        auto *title_widget = new wxStaticText(this, wxID_ANY, title);
+        title_widget->SetFont(font_title);
+        title_sizer->Add(title_widget);
+    }
     title_sizer->AddStretchSpacer();
 
     if (titles.size() > 1) {
@@ -170,17 +173,6 @@ PrinterPicker::PrinterPicker(wxWindow *parent, const VendorProfile &vendor, wxSt
 
     sizer->Add(title_sizer, 0, wxEXPAND | wxBOTTOM, BTN_SPACING);
     sizer->Add(printer_grid);
-
-    // auto *all_none_sizer = new wxBoxSizer(wxHORIZONTAL);
-    // auto *sel_all = new wxButton(this, wxID_ANY, _(L("Select all")));
-    // auto *sel_none = new wxButton(this, wxID_ANY, _(L("Select none")));
-    // sel_all->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &event) { this->select_all(true); });
-    // sel_none->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &event) { this->select_all(false); });
-    // all_none_sizer->AddStretchSpacer();
-    // all_none_sizer->Add(sel_all);
-    // all_none_sizer->Add(sel_none);
-    // sizer->AddStretchSpacer();
-    // sizer->Add(all_none_sizer, 0, wxEXPAND);
 
     SetSizer(sizer);
 }
@@ -268,12 +260,6 @@ void ConfigWizardPage::append_spacer(int space)
     content->AddSpacer(space);
 }
 
-bool ConfigWizardPage::Show(bool show)
-{
-    if (extra_buttons() != nullptr) { extra_buttons()->Show(show); }
-    return wxPanel::Show(show);
-}
-
 
 // Wizard pages
 
@@ -347,12 +333,24 @@ void PagePrinters::select_all(bool select)
 }
 
 
+const char *PageCustom::default_profile_name = "My Settings";
+
 PageCustom::PageCustom(ConfigWizard *parent)
     : ConfigWizardPage(parent, _(L("Custom Printer Setup")), _(L("Custom Printer")))
 {
     cb_custom = new wxCheckBox(this, wxID_ANY, _(L("Define a custom printer profile")));
-    tc_profile_name = new wxTextCtrl(this, wxID_ANY, "My Settings");
+    tc_profile_name = new wxTextCtrl(this, wxID_ANY, default_profile_name);
     auto *label = new wxStaticText(this, wxID_ANY, _(L("Custom profile name:")));
+
+    tc_profile_name->Bind(wxEVT_KILL_FOCUS, [this](wxFocusEvent &evt) {
+        if (tc_profile_name->GetValue().IsEmpty()) {
+            if (profile_name_prev.IsEmpty()) { tc_profile_name->SetValue(default_profile_name); }
+            else { tc_profile_name->SetValue(profile_name_prev); }
+        } else {
+            profile_name_prev = tc_profile_name->GetValue();
+        }
+        evt.Skip();
+    });
 
     cb_custom->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent &event) {
         wizard_p()->on_custom_setup(custom_wanted());
@@ -1022,24 +1020,40 @@ ConfigWizard::ConfigWizard(wxWindow *parent, RunReason reason)
     p->hscroll->SetScrollRate(30, 30);
 
     // XXX: set size right away on windows, create util function
-    Bind(wxEVT_CREATE, [this](wxWindowCreateEvent &event) {
-        CallAfter([this]() {
-            // Clamp the Wizard size based on screen dimensions
-            // Note: Using EVT_SHOW + CallAfter because any sooner than this
-            // on some Linux boxes wxDisplay::GetFromWindow() returns 0 no matter what.
+    // Bind(wxEVT_CREATE, [this](wxWindowCreateEvent &event) {
+    //     CallAfter([this]() {
+    //         // Clamp the Wizard size based on screen dimensions
+    //         // Note: Using EVT_SHOW + CallAfter because any sooner than this
+    //         // on some Linux boxes wxDisplay::GetFromWindow() returns 0 no matter what.
 
-            const auto idx = wxDisplay::GetFromWindow(this);
-            wxDisplay display(idx != wxNOT_FOUND ? idx : 0u);
+    //         const auto idx = wxDisplay::GetFromWindow(this);
+    //         wxDisplay display(idx != wxNOT_FOUND ? idx : 0u);
 
-            const auto disp_rect = display.GetClientArea();
-            wxRect window_rect(
-                disp_rect.x + disp_rect.width / 20,
-                disp_rect.y + disp_rect.height / 20,
-                9*disp_rect.width / 10,
-                9*disp_rect.height / 10);
+    //         const auto disp_rect = display.GetClientArea();
+    //         wxRect window_rect(
+    //             disp_rect.x + disp_rect.width / 20,
+    //             disp_rect.y + disp_rect.height / 20,
+    //             9*disp_rect.width / 10,
+    //             9*disp_rect.height / 10);
 
-            SetSize(window_rect);
-        });
+    //         SetSize(window_rect);
+    //     });
+    // });
+
+    on_window_geometry(this, [this]() {
+        // Clamp the Wizard size based on screen dimensions
+
+        const auto idx = wxDisplay::GetFromWindow(this);
+        wxDisplay display(idx != wxNOT_FOUND ? idx : 0u);
+
+        const auto disp_rect = display.GetClientArea();
+        wxRect window_rect(
+            disp_rect.x + disp_rect.width / 20,
+            disp_rect.y + disp_rect.height / 20,
+            9*disp_rect.width / 10,
+            9*disp_rect.height / 10);
+
+        SetSize(window_rect);
     });
 
     p->btn_prev->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &) { this->p->index->go_prev(); });
