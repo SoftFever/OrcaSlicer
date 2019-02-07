@@ -872,8 +872,8 @@ void StaticText::BUILD()
 	if (m_opt.height >= 0) size.SetHeight(m_opt.height);
 	if (m_opt.width >= 0) size.SetWidth(m_opt.width);
 
-	wxString legend(static_cast<const ConfigOptionString*>(m_opt.default_value)->value);
-	auto temp = new wxStaticText(m_parent, wxID_ANY, legend, wxDefaultPosition, size);
+    const wxString legend(static_cast<const ConfigOptionString*>(m_opt.default_value)->value);
+    auto temp = new wxStaticText(m_parent, wxID_ANY, legend, wxDefaultPosition, size, wxST_ELLIPSIZE_MIDDLE);
     temp->SetFont(wxGetApp().bold_font());
 
 	// 	// recast as a wxWindow to fit the calling convention

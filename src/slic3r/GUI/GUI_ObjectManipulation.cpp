@@ -42,10 +42,9 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
 
     // Objects(sub-objects) name
     def.label = L("Name");
-    // 	def.type = coString;
     def.gui_type = "legend";
     def.tooltip = L("Object name");
-    def.full_width = true;
+    def.width = 200;
     def.default_value = new ConfigOptionString{ " " };
     m_og->append_single_option_line(Option(def, "object_name"));
 
