@@ -1,27 +1,21 @@
 //----------------------------------------------------------------------------
-// Anti-Grain Geometry (AGG) - Version 2.5
-// A high quality rendering engine for C++
-// Copyright (C) 2002-2006 Maxim Shemanarev
+// Anti-Grain Geometry - Version 2.4
+// Copyright (C) 2002-2005 Maxim Shemanarev (http://www.antigrain.com)
+//
+// Permission to copy, use, modify, sell and distribute this software 
+// is granted provided this copyright notice appears in all copies. 
+// This software is provided "as is" without express or implied
+// warranty, and with no claim as to its suitability for any purpose.
+//
+//----------------------------------------------------------------------------
 // Contact: mcseem@antigrain.com
 //          mcseemagg@yahoo.com
-//          http://antigrain.com
-// 
-// AGG is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-// 
-// AGG is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with AGG; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, 
-// MA 02110-1301, USA.
+//          http://www.antigrain.com
 //----------------------------------------------------------------------------
-
+//
+// class conv_transform
+//
+//----------------------------------------------------------------------------
 #ifndef AGG_CONV_TRANSFORM_INCLUDED
 #define AGG_CONV_TRANSFORM_INCLUDED
 
@@ -35,7 +29,7 @@ namespace agg
     template<class VertexSource, class Transformer=trans_affine> class conv_transform
     {
     public:
-        conv_transform(VertexSource& source, const Transformer& tr) :
+        conv_transform(VertexSource& source, Transformer& tr) :
             m_source(&source), m_trans(&tr) {}
         void attach(VertexSource& source) { m_source = &source; }
 
@@ -54,7 +48,7 @@ namespace agg
             return cmd;
         }
 
-        void transformer(const Transformer& tr)
+        void transformer(Transformer& tr)
         {
             m_trans = &tr;
         }
@@ -65,7 +59,7 @@ namespace agg
             operator = (const conv_transform<VertexSource>&);
 
         VertexSource*      m_source;
-        const Transformer* m_trans;
+        Transformer* m_trans;
     };
 
 

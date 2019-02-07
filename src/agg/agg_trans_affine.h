@@ -1,27 +1,21 @@
 //----------------------------------------------------------------------------
-// Anti-Grain Geometry (AGG) - Version 2.5
-// A high quality rendering engine for C++
-// Copyright (C) 2002-2006 Maxim Shemanarev
+// Anti-Grain Geometry - Version 2.4
+// Copyright (C) 2002-2005 Maxim Shemanarev (http://www.antigrain.com)
+//
+// Permission to copy, use, modify, sell and distribute this software 
+// is granted provided this copyright notice appears in all copies. 
+// This software is provided "as is" without express or implied
+// warranty, and with no claim as to its suitability for any purpose.
+//
+//----------------------------------------------------------------------------
 // Contact: mcseem@antigrain.com
 //          mcseemagg@yahoo.com
-//          http://antigrain.com
-// 
-// AGG is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-// 
-// AGG is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with AGG; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, 
-// MA 02110-1301, USA.
+//          http://www.antigrain.com
 //----------------------------------------------------------------------------
-
+//
+// Affine transformation classes.
+//
+//----------------------------------------------------------------------------
 #ifndef AGG_TRANS_AFFINE_INCLUDED
 #define AGG_TRANS_AFFINE_INCLUDED
 
@@ -217,14 +211,14 @@ namespace agg
 
         // Multiply the matrix by another one and return
         // the result in a separete matrix.
-        trans_affine operator * (const trans_affine& m)
+        trans_affine operator * (const trans_affine& m) const
         {
             return trans_affine(*this).multiply(m);
         }
 
         // Multiply the matrix by inverse of another one 
         // and return the result in a separete matrix.
-        trans_affine operator / (const trans_affine& m)
+        trans_affine operator / (const trans_affine& m) const
         {
             return trans_affine(*this).multiply_inv(m);
         }
@@ -298,7 +292,7 @@ namespace agg
     //------------------------------------------------------------------------
     inline void trans_affine::transform(double* x, double* y) const
     {
-        register double tmp = *x;
+        double tmp = *x;
         *x = tmp * sx  + *y * shx + tx;
         *y = tmp * shy + *y * sy  + ty;
     }
@@ -306,7 +300,7 @@ namespace agg
     //------------------------------------------------------------------------
     inline void trans_affine::transform_2x2(double* x, double* y) const
     {
-        register double tmp = *x;
+        double tmp = *x;
         *x = tmp * sx  + *y * shx;
         *y = tmp * shy + *y * sy;
     }
@@ -314,9 +308,9 @@ namespace agg
     //------------------------------------------------------------------------
     inline void trans_affine::inverse_transform(double* x, double* y) const
     {
-        register double d = determinant_reciprocal();
-        register double a = (*x - tx) * d;
-        register double b = (*y - ty) * d;
+        double d = determinant_reciprocal();
+        double a = (*x - tx) * d;
+        double b = (*y - ty) * d;
         *x = a * sy - b * shx;
         *y = b * sx - a * shy;
     }

@@ -1,7 +1,6 @@
 project(Slic3r-native)
 
 add_subdirectory(admesh)
-add_subdirectory(agg_svg)
 add_subdirectory(avrdude)
 # boost/nowide
 add_subdirectory(boost)

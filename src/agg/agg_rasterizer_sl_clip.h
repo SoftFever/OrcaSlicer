@@ -1,27 +1,17 @@
 //----------------------------------------------------------------------------
-// Anti-Grain Geometry (AGG) - Version 2.5
-// A high quality rendering engine for C++
-// Copyright (C) 2002-2006 Maxim Shemanarev
+// Anti-Grain Geometry - Version 2.4
+// Copyright (C) 2002-2005 Maxim Shemanarev (http://www.antigrain.com)
+//
+// Permission to copy, use, modify, sell and distribute this software 
+// is granted provided this copyright notice appears in all copies. 
+// This software is provided "as is" without express or implied
+// warranty, and with no claim as to its suitability for any purpose.
+//
+//----------------------------------------------------------------------------
 // Contact: mcseem@antigrain.com
 //          mcseemagg@yahoo.com
-//          http://antigrain.com
-// 
-// AGG is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-// 
-// AGG is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with AGG; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, 
-// MA 02110-1301, USA.
+//          http://www.antigrain.com
 //----------------------------------------------------------------------------
-
 #ifndef AGG_RASTERIZER_SL_CLIP_INCLUDED
 #define AGG_RASTERIZER_SL_CLIP_INCLUDED
 
@@ -327,7 +317,7 @@ namespace agg
         rasterizer_sl_no_clip() : m_x1(0), m_y1(0) {}
 
         void reset_clipping() {}
-        void clip_box(coord_type x1, coord_type y1, coord_type x2, coord_type y2) {}
+        void clip_box(coord_type, coord_type, coord_type, coord_type) {}
         void move_to(coord_type x1, coord_type y1) { m_x1 = x1; m_y1 = y1; }
 
         template<class Rasterizer>

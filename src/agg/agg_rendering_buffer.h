@@ -1,25 +1,20 @@
 //----------------------------------------------------------------------------
-// Anti-Grain Geometry (AGG) - Version 2.5
-// A high quality rendering engine for C++
-// Copyright (C) 2002-2006 Maxim Shemanarev
+// Anti-Grain Geometry - Version 2.4
+// Copyright (C) 2002-2005 Maxim Shemanarev (http://www.antigrain.com)
+//
+// Permission to copy, use, modify, sell and distribute this software 
+// is granted provided this copyright notice appears in all copies. 
+// This software is provided "as is" without express or implied
+// warranty, and with no claim as to its suitability for any purpose.
+//
+//----------------------------------------------------------------------------
 // Contact: mcseem@antigrain.com
 //          mcseemagg@yahoo.com
-//          http://antigrain.com
-// 
-// AGG is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-// 
-// AGG is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with AGG; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, 
-// MA 02110-1301, USA.
+//          http://www.antigrain.com
+//----------------------------------------------------------------------------
+//
+// class rendering_buffer
+//
 //----------------------------------------------------------------------------
 
 #ifndef AGG_RENDERING_BUFFER_INCLUDED
@@ -61,14 +56,14 @@ namespace agg
         //--------------------------------------------------------------------
         void attach(T* buf, unsigned width, unsigned height, int stride)
         {
-			m_buf = m_start = buf;
-			m_width = width;
-			m_height = height;
-			m_stride = stride;
-			if(stride < 0) 
+            m_buf = m_start = buf;
+            m_width = width;
+            m_height = height;
+            m_stride = stride;
+            if(stride < 0) 
             { 
-				m_start = m_buf - int(height - 1) * stride;
-			}
+                m_start = m_buf - int(height - 1) * stride;
+            }
         }
 
         //--------------------------------------------------------------------
@@ -83,13 +78,13 @@ namespace agg
         }
 
         //--------------------------------------------------------------------
-		AGG_INLINE       T* row_ptr(int, int y, unsigned) 
+        AGG_INLINE       T* row_ptr(int, int y, unsigned) 
         { 
             return m_start + y * m_stride; 
         }
-		AGG_INLINE       T* row_ptr(int y)       { return m_start + y * m_stride; }
-		AGG_INLINE const T* row_ptr(int y) const { return m_start + y * m_stride; }
-		AGG_INLINE row_data row    (int y) const 
+        AGG_INLINE       T* row_ptr(int y)       { return m_start + y * m_stride; }
+        AGG_INLINE const T* row_ptr(int y) const { return m_start + y * m_stride; }
+        AGG_INLINE row_data row    (int y) const 
         { 
             return row_data(0, m_width-1, row_ptr(y)); 
         }

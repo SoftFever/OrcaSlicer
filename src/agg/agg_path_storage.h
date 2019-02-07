@@ -1,25 +1,16 @@
 //----------------------------------------------------------------------------
-// Anti-Grain Geometry (AGG) - Version 2.5
-// A high quality rendering engine for C++
-// Copyright (C) 2002-2006 Maxim Shemanarev
+// Anti-Grain Geometry - Version 2.4
+// Copyright (C) 2002-2005 Maxim Shemanarev (http://www.antigrain.com)
+//
+// Permission to copy, use, modify, sell and distribute this software 
+// is granted provided this copyright notice appears in all copies. 
+// This software is provided "as is" without express or implied
+// warranty, and with no claim as to its suitability for any purpose.
+//
+//----------------------------------------------------------------------------
 // Contact: mcseem@antigrain.com
 //          mcseemagg@yahoo.com
-//          http://antigrain.com
-// 
-// AGG is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-// 
-// AGG is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with AGG; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, 
-// MA 02110-1301, USA.
+//          http://www.antigrain.com
 //----------------------------------------------------------------------------
 
 #ifndef AGG_PATH_STORAGE_INCLUDED
@@ -499,14 +490,14 @@ namespace agg
             m_stop(false)
         {}
 
-        poly_container_reverse_adaptor(const Container& data, bool closed) :
+        poly_container_reverse_adaptor(Container& data, bool closed) :
             m_container(&data), 
             m_index(-1),
             m_closed(closed),
             m_stop(false)
         {}
 
-        void init(const Container& data, bool closed)
+        void init(Container& data, bool closed)
         {
             m_container = &data;
             m_index = m_container->size() - 1;
@@ -540,7 +531,7 @@ namespace agg
         }
 
     private:
-        const Container* m_container;
+        Container* m_container;
         int  m_index;
         bool m_closed;
         bool m_stop;
@@ -843,6 +834,43 @@ namespace agg
             }
         }
 
+
+        //--------------------------------------------------------------------
+        // If the end points of a path are very, very close then make them
+        // exactly equal so that the stroke converter is not confused.
+        //--------------------------------------------------------------------
+        unsigned align_path(unsigned idx = 0)
+        {
+            if (idx >= total_vertices() || !is_move_to(command(idx))) 
+            {
+                return total_vertices();
+            }
+
+            double start_x, start_y;
+            for (; idx < total_vertices() && is_move_to(command(idx)); ++idx)
+            {
+                vertex(idx, &start_x, &start_y);
+            }
+            while (idx < total_vertices() && is_drawing(command(idx)))
+                ++idx;
+
+            double x, y;
+            if (is_drawing(vertex(idx - 1, &x, &y)) &&
+                is_equal_eps(x, start_x, 1e-8) &&
+                is_equal_eps(y, start_y, 1e-8))
+            {
+                modify_vertex(idx - 1, start_x, start_y);
+            }
+
+            while (idx < total_vertices() && !is_move_to(command(idx)))
+                ++idx;
+            return idx;
+        }
+
+        void align_all_paths()
+        {
+            for (unsigned i = 0; i < total_vertices(); i = align_path(i));
+        }
 
 
     private:
