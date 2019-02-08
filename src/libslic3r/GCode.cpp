@@ -781,6 +781,8 @@ void GCode::_do_export(Print &print, FILE *file)
     m_placeholder_parser.set("initial_tool", initial_extruder_id);
     m_placeholder_parser.set("initial_extruder", initial_extruder_id);
     m_placeholder_parser.set("current_extruder", initial_extruder_id);
+    //Set variable for total layer count so it can be used in custom gcode.
+    m_placeholder_parser.set("total_layer_count", m_layer_count);
     // Useful for sequential prints.
     m_placeholder_parser.set("current_object_idx", 0);
     // For the start / end G-code to do the priming and final filament pull in case there is no wipe tower provided.
