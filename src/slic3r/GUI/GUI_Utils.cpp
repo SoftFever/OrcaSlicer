@@ -28,18 +28,24 @@ wxTopLevelWindow* find_toplevel_parent(wxWindow *window)
 
 void on_window_geometry(wxTopLevelWindow *tlw, std::function<void()> callback)
 {
-    tlw->Bind(wxEVT_CREATE, [=](wxWindowCreateEvent &event) {
-#ifdef __linux__
-        // On Linux, the geometry is only available after wxEVT_CREATE + CallAfter
+#ifdef _WIN32
+    // On windows, the wxEVT_SHOW is not received if the window is created maximized
+    // cf. https://groups.google.com/forum/#!topic/wx-users/c7ntMt6piRI
+    // OTOH the geometry is available very soon, so we can call the callback right away
+    callback();
+#elif defined __linux__
+    tlw->Bind(wxEVT_SHOW, [=](wxShowEvent &evt) {
+        // On Linux, the geometry is only available after wxEVT_SHOW + CallAfter
         // cf. https://groups.google.com/forum/?pli=1#!topic/wx-users/fERSXdpVwAI
-        tlw->CallAfter([=]() {
-#endif
-            callback();
-#ifdef __linux__
-        });
-#endif
-        event.Skip();
+        tlw->CallAfter([=]() { callback(); });
+        evt.Skip();
     });
+#elif defined __APPLE__
+    tlw->Bind(wxEVT_SHOW, [=](wxShowEvent &evt) {
+        callback();
+        evt.Skip();
+    });
+#endif
 }
 
 
