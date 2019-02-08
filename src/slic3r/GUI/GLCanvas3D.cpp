@@ -6833,20 +6833,20 @@ void GLCanvas3D::_render_sla_slices() const
             {
                 // calculate model bottom cap
                 if (bottom_obj_triangles.empty() && (it_min_z->second.model_slices_idx < model_slices.size()))
-                    bottom_obj_triangles = triangulate_expolygons_3df(model_slices[it_min_z->second.model_slices_idx], min_z, true);
+                    bottom_obj_triangles = triangulate_expolygons_3d(model_slices[it_min_z->second.model_slices_idx], min_z, true);
                 // calculate support bottom cap
                 if (bottom_sup_triangles.empty() && (it_min_z->second.support_slices_idx < support_slices.size()))
-                    bottom_sup_triangles = triangulate_expolygons_3df(support_slices[it_min_z->second.support_slices_idx], min_z, true);
+                    bottom_sup_triangles = triangulate_expolygons_3d(support_slices[it_min_z->second.support_slices_idx], min_z, true);
             }
 
             if (it_max_z != index.end())
             {
                 // calculate model top cap
                 if (top_obj_triangles.empty() && (it_max_z->second.model_slices_idx < model_slices.size()))
-                    top_obj_triangles = triangulate_expolygons_3df(model_slices[it_max_z->second.model_slices_idx], max_z, false);
+                    top_obj_triangles = triangulate_expolygons_3d(model_slices[it_max_z->second.model_slices_idx], max_z, false);
                 // calculate support top cap
                 if (top_sup_triangles.empty() && (it_max_z->second.support_slices_idx < support_slices.size()))
-					top_sup_triangles = triangulate_expolygons_3df(support_slices[it_max_z->second.support_slices_idx], max_z, false);
+					top_sup_triangles = triangulate_expolygons_3d(support_slices[it_max_z->second.support_slices_idx], max_z, false);
             }
         }
 

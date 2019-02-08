@@ -1781,7 +1781,7 @@ void TriangleMeshSlicer::cut(float z, TriangleMesh* upper, TriangleMesh* lower) 
         BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::cut - triangulating upper part";
         ExPolygons section;
         this->make_expolygons_simple(upper_lines, &section);
-        Pointf3s triangles = triangulate_expolygons_3df(section, z, true);
+        Pointf3s triangles = triangulate_expolygons_3d(section, z, true);
         stl_facet facet;
         facet.normal = stl_normal(0, 0, -1.f);
         for (size_t i = 0; i < triangles.size(); ) {
@@ -1795,7 +1795,7 @@ void TriangleMeshSlicer::cut(float z, TriangleMesh* upper, TriangleMesh* lower) 
         BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::cut - triangulating lower part";
         ExPolygons section;
         this->make_expolygons_simple(lower_lines, &section);
-        Pointf3s triangles = triangulate_expolygons_3df(section, z, false);
+        Pointf3s triangles = triangulate_expolygons_3d(section, z, false);
         stl_facet facet;
         facet.normal = stl_normal(0, 0, -1.f);
         for (size_t i = 0; i < triangles.size(); ) {
