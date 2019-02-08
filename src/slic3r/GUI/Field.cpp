@@ -464,7 +464,7 @@ void SpinCtrl::BUILD() {
 // 		# As a workaround, we get the new value from $event->GetString and store
 // 		# here temporarily so that we can return it from $self->get_value
 		std::string value = e.GetString().utf8_str().data();
-		if (is_matched(value, "^\\d+$"))
+        if (is_matched(value, "^\\-?\\d+$"))
 			tmp_value = std::stoi(value);
         else tmp_value = -9999;
 #ifdef __WXOSX__
@@ -480,7 +480,7 @@ void SpinCtrl::BUILD() {
 
 void SpinCtrl::propagate_value()
 {
-    if (tmp_value < 0)
+    if (tmp_value == -9999)
         on_kill_focus();
     else if (boost::any_cast<int>(m_value) != tmp_value)
         on_change_field();
