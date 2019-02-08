@@ -599,6 +599,10 @@ void GLCanvas3D::Bed::_render_prusa(const std::string &key, float theta) const
     // use higher resolution images if graphic card allows
     GLint max_tex_size;
     ::glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_tex_size);
+
+    // temporary set to lowest resolution
+    max_tex_size = 2048;
+
     if (max_tex_size >= 8192)
         tex_path += "_8192";
     else if (max_tex_size >= 4096)
