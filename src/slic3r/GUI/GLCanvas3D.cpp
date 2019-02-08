@@ -5810,7 +5810,7 @@ void GLCanvas3D::set_tooltip(const std::string& tooltip) const
             else
                 t->SetTip(tooltip);
         }
-        else
+        else if (!tooltip.empty()) // Avoid "empty" tooltips => unset of the empty tooltip leads to application crash under OSX
             m_canvas->SetToolTip(tooltip);
     }
 }
