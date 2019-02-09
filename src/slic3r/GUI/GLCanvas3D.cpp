@@ -3430,14 +3430,14 @@ void GLCanvas3D::Gizmos::set_sla_support_data(ModelObject* model_object, const G
         reinterpret_cast<GLGizmoSlaSupports*>(it->second)->set_sla_support_data(model_object, selection);
 }
 
-void GLCanvas3D::Gizmos::clicked_on_object(const Vec2d& mouse_position)
+void GLCanvas3D::Gizmos::mouse_event(int action, const Vec2d& mouse_position, bool shift_down)
 {
     if (!m_enabled)
         return;
 
     GizmosMap::const_iterator it = m_gizmos.find(SlaSupports);
     if (it != m_gizmos.end())
-        reinterpret_cast<GLGizmoSlaSupports*>(it->second)->clicked_on_object(mouse_position);
+        reinterpret_cast<GLGizmoSlaSupports*>(it->second)->mouse_event(action, mouse_position, shift_down);
 }
 
 void GLCanvas3D::Gizmos::delete_current_grabber(bool delete_all)
@@ -5396,6 +5396,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             _update_gizmos_data();
             m_dirty = true;
         }
+        else if (evt.LeftDown() && m_gizmos.get_current_type() == Gizmos::SlaSupports && evt.ShiftDown()) // inform the gizmo about the event (rectangular selection init)
+        {
+            m_gizmos.mouse_event(1, Vec2d(pos(0), pos(1)), evt.ShiftDown());
+        }
         else if (evt.LeftDown() && !m_selection.is_empty() && m_gizmos.grabber_contains_mouse())
         {
             _update_gizmos_data();
@@ -5579,6 +5583,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
         m_dirty = true;
     }
+    else if (evt.Dragging() && m_gizmos.get_current_type() == Gizmos::SlaSupports && evt.ShiftDown())
+    {
+        m_gizmos.mouse_event(3, Vec2d(pos(0), pos(1)), evt.ShiftDown());
+    }
     else if (evt.Dragging() && !gizmos_overlay_contains_mouse)
     {
         m_mouse.dragging = true;
@@ -5643,12 +5651,12 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // of the scene with the background processing data should be performed.
             post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
         }
-        else if (evt.LeftUp() && m_gizmos.get_current_type() == Gizmos::SlaSupports && m_hover_volume_id != -1)
+        else if (evt.LeftUp() && m_gizmos.get_current_type() == Gizmos::SlaSupports/* && m_hover_volume_id != -1*/)
         {
             int id = m_selection.get_object_idx();
 
             if ((id != -1) && (m_model != nullptr)) {
-                m_gizmos.clicked_on_object(Vec2d(pos(0), pos(1)));
+                m_gizmos.mouse_event(2, Vec2d(pos(0), pos(1)), evt.ShiftDown());
             }
         }
         else if (evt.LeftUp() && !m_mouse.dragging && (m_hover_volume_id == -1) && !gizmos_overlay_contains_mouse && !m_gizmos.is_dragging() && !is_layers_editing_enabled())

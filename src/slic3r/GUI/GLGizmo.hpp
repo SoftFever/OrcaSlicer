@@ -464,7 +464,7 @@ public:
     explicit GLGizmoSlaSupports(GLCanvas3D& parent);
     virtual ~GLGizmoSlaSupports();
     void set_sla_support_data(ModelObject* model_object, const GLCanvas3D::Selection& selection);
-    void clicked_on_object(const Vec2d& mouse_position);
+    void mouse_event(int action, const Vec2d& mouse_position, bool shift_down);
     void delete_current_point(bool delete_all);
 
 private:
@@ -473,6 +473,7 @@ private:
     virtual void on_render(const GLCanvas3D::Selection& selection) const;
     virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const;
 
+    void render_selection_rectangle() const;
     void render_points(const GLCanvas3D::Selection& selection, bool picking = false) const;
     bool is_mesh_update_necessary() const;
     void update_mesh();
@@ -487,6 +488,12 @@ private:
     bool m_editing_mode = false;
     float m_new_point_head_diameter = 0.4f;
     std::vector<sla::SupportPoint> m_editing_mode_cache;
+
+    bool m_selection_rectangle_active = false;
+    Vec2d m_selection_rectangle_start_corner;
+    Vec2d m_selection_rectangle_end_corner;
+    int m_canvas_width;
+    int m_canvas_height;
 
 protected:
     void on_set_state() override;

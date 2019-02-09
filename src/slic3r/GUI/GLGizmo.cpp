@@ -1816,13 +1816,49 @@ void GLGizmoSlaSupports::on_render(const GLCanvas3D::Selection& selection) const
     ::glEnable(GL_DEPTH_TEST);
 
     render_points(selection, false);
+    render_selection_rectangle();
 
 #if !ENABLE_IMGUI
     render_tooltip_texture();
 #endif // not ENABLE_IMGUI
+
     ::glDisable(GL_BLEND);
 }
 
+void GLGizmoSlaSupports::render_selection_rectangle() const
+{
+    if (!m_selection_rectangle_active)
+        return;
+
+    ::glLineWidth(1.5f);
+    float render_color[3] = {1.f, 0.f, 0.f};
+    ::glColor3fv(render_color);
+
+    ::glPushAttrib(GL_TRANSFORM_BIT);   // remember current MatrixMode
+
+    ::glMatrixMode(GL_MODELVIEW);       // cache modelview matrix and set to identity
+    ::glPushMatrix();
+    ::glLoadIdentity();
+
+    ::glMatrixMode(GL_PROJECTION);      // cache projection matrix and set to identity
+    ::glPushMatrix();
+    ::glLoadIdentity();
+
+    ::glOrtho(0.f, m_canvas_width, m_canvas_height, 0.f, -1.f, 1.f); // set projection matrix so that world coords = window coords
+
+    // render the selection  rectangle (window coordinates):
+    ::glBegin(GL_LINE_LOOP);
+    ::glVertex3f((GLfloat)m_selection_rectangle_start_corner(0), (GLfloat)m_selection_rectangle_start_corner(1), (GLfloat)0.5f);
+    ::glVertex3f((GLfloat)m_selection_rectangle_end_corner(0), (GLfloat)m_selection_rectangle_start_corner(1), (GLfloat)0.5f);
+    ::glVertex3f((GLfloat)m_selection_rectangle_end_corner(0), (GLfloat)m_selection_rectangle_end_corner(1), (GLfloat)0.5f);
+    ::glVertex3f((GLfloat)m_selection_rectangle_start_corner(0), (GLfloat)m_selection_rectangle_end_corner(1), (GLfloat)0.5f);
+    ::glEnd();
+
+    ::glPopMatrix();                // restore former projection matrix
+    ::glMatrixMode(GL_MODELVIEW);
+    ::glPopMatrix();                // restore former modelview matrix
+    ::glPopAttrib();                // restore former MatrixMode
+}
 
 void GLGizmoSlaSupports::on_render_for_picking(const GLCanvas3D::Selection& selection) const
 {
@@ -1984,34 +2020,82 @@ Vec3f GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos)
     return bc(0) * m_V.row(m_F(fid, 0)) + bc(1) * m_V.row(m_F(fid, 1)) + bc(2)*m_V.row(m_F(fid, 2));
 }
 
-void GLGizmoSlaSupports::clicked_on_object(const Vec2d& mouse_position)
+void GLGizmoSlaSupports::mouse_event(int action, const Vec2d& mouse_position, bool shift_down)
 {
     if (!m_editing_mode)
         return;
 
-    int instance_id = m_parent.get_selection().get_instance_idx();
-    if (m_old_instance_id != instance_id)
-    {
-        bool something_selected = (m_old_instance_id != -1);
-        m_old_instance_id = instance_id;
-        if (something_selected)
+    // left down - show the selection rectangle:
+    if (action == 1 && shift_down) {
+        m_selection_rectangle_active = true;
+        m_selection_rectangle_start_corner = mouse_position;
+        m_selection_rectangle_end_corner = mouse_position;
+        m_canvas_width = m_parent.get_canvas_size().get_width();
+        m_canvas_height = m_parent.get_canvas_size().get_height();
+    }
+
+    // dragging the selection rectangle:
+    if (action == 3 && m_selection_rectangle_active) {
+        m_selection_rectangle_end_corner = mouse_position;
+        m_parent.render();
+    }
+
+    // mouse up without selection rectangle - place point on the mesh:
+    if (action == 2 && !m_selection_rectangle_active) {
+        int instance_id = m_parent.get_selection().get_instance_idx();
+        if (m_old_instance_id != instance_id)
+        {
+            bool something_selected = (m_old_instance_id != -1);
+            m_old_instance_id = instance_id;
+            if (something_selected)
+                return;
+        }
+        if (instance_id == -1)
             return;
+
+        Vec3f new_pos;
+        try {
+            new_pos = unproject_on_mesh(mouse_position); // this can throw - we don't want to create a new point in that case
+        }
+        catch (...) { return; }
+
+        m_editing_mode_cache.emplace_back(new_pos, m_new_point_head_diameter, false);
     }
-    if (instance_id == -1)
-        return;
 
-    Vec3f new_pos;
-    try {
-        new_pos = unproject_on_mesh(mouse_position); // this can throw - we don't want to create a new point in that case
+    // left up with selection rectangle - select points inside the rectangle:
+    if (action == 2 && m_selection_rectangle_active) {
+        const Transform3d& instance_matrix = m_model_object->instances[m_active_instance]->get_transformation().get_matrix();
+        GLint viewport[4];
+        ::glGetIntegerv(GL_VIEWPORT, viewport);
+        GLdouble modelview_matrix[16];
+        ::glGetDoublev(GL_MODELVIEW_MATRIX, modelview_matrix);
+        GLdouble projection_matrix[16];
+        ::glGetDoublev(GL_PROJECTION_MATRIX, projection_matrix);
+
+        const GLCanvas3D::Selection& selection = m_parent.get_selection();
+        const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
+        double z_offset = volume->get_sla_shift_z();
+
+        // bounding box created from the rectangle corners - will take care of order of the corners
+        BoundingBox rectangle(Points{Point(m_selection_rectangle_start_corner.cast<int>()), Point(m_selection_rectangle_end_corner.cast<int>())});
+
+        for (sla::SupportPoint& support_point : m_editing_mode_cache) {
+            Vec3f pos = instance_matrix.cast<float>() * support_point.pos;
+            pos(2) += z_offset;
+            GLdouble out_x, out_y, out_z;
+            ::gluProject((GLdouble)pos(0), (GLdouble)pos(1), (GLdouble)pos(2), modelview_matrix, projection_matrix, viewport, &out_x, &out_y, &out_z);
+            out_y = m_canvas_height - out_y;
+
+            /*GLfloat depth_comp;
+            ::glReadPixels( out_x, out_y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth_comp);
+            if (depth_comp > out_z + EPSILON) // the point is obscured by something else
+                continue;*/
+
+            if (rectangle.contains(Point(out_x, out_y)))
+                support_point.head_front_radius = 1.f;
+        }
+        m_selection_rectangle_active = false;
     }
-    catch (...) { return; }
-
-    m_editing_mode_cache.emplace_back(new_pos, m_new_point_head_diameter, false);
-
-    // This should trigger the support generation
-    // wxGetApp().plater()->reslice();
-
-    m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
 }
 
 void GLGizmoSlaSupports::delete_current_point(bool delete_all)

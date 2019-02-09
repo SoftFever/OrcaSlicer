@@ -789,7 +789,7 @@ private:
         void set_flattening_data(const ModelObject* model_object);
 
         void set_sla_support_data(ModelObject* model_object, const GLCanvas3D::Selection& selection);
-        void clicked_on_object(const Vec2d& mouse_position);
+        void mouse_event(int action, const Vec2d& mouse_position, bool shift_down);
         void delete_current_grabber(bool delete_all = false);
 
         void render_current_gizmo(const Selection& selection) const;
