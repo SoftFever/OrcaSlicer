@@ -290,7 +290,9 @@ Points getFrontier(Polylines &polylines, const Point& p1, const Point& p2, const
                 //remove points
                 if (idx_12 <= idx_21) {
                     poly.points.erase(poly.points.begin() + idx_12, poly.points.begin() + idx_21 + 1);
-                    cut_polygon(poly, idx_11, p1, p2);
+                    if (idx_12 != 0) {
+                        cut_polygon(poly, idx_11, p1, p2);
+                    } //else : already cut at the good place
                 } else {
                     poly.points.erase(poly.points.begin() + idx_12, poly.points.end());
                     poly.points.erase(poly.points.begin(), poly.points.begin() + idx_21);
@@ -304,7 +306,9 @@ Points getFrontier(Polylines &polylines, const Point& p1, const Point& p2, const
                 //remove points
                 if (idx_22 <= idx_11) {
                     poly.points.erase(poly.points.begin() + idx_22, poly.points.begin() + idx_11 + 1);
-                    cut_polygon(poly, idx_21, p1, p2);
+                    if (idx_22 != 0) {
+                        cut_polygon(poly, idx_21, p1, p2);
+                    } //else : already cut at the good place
                 } else {
                     poly.points.erase(poly.points.begin() + idx_22, poly.points.end());
                     poly.points.erase(poly.points.begin(), poly.points.begin() + idx_11);
