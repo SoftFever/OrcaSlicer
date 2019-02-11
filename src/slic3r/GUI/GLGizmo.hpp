@@ -437,6 +437,9 @@ protected:
     }
 };
 
+
+
+#define SLAGIZMO_IMGUI_MODAL 1
 class GLGizmoSlaSupports : public GLGizmoBase
 {
 private:
@@ -493,7 +496,9 @@ private:
     Vec2d m_selection_rectangle_start_corner;
     Vec2d m_selection_rectangle_end_corner;
     bool m_ignore_up_event = false;
+#if SLAGIZMO_IMGUI_MODAL
     bool m_show_modal = false;
+#endif
     int m_canvas_width;
     int m_canvas_height;
 

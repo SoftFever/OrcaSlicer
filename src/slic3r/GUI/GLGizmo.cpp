@@ -2274,18 +2274,32 @@ RENDER_AGAIN:
 
         m_imgui->text("");
 
-        bool generate =m_imgui->button(_(L("Auto-generate points")));
+        bool generate = m_imgui->button(_(L("Auto-generate points")));
 
         if (generate) {
+#if SLAGIZMO_IMGUI_MODAL
             ImGui::OpenPopup(_(L("Warning")));
             m_show_modal = true;
             force_refresh = true;
+#else
+            wxMessageDialog dlg(GUI::wxGetApp().plater(), _(L(
+                        "Autogeneration will erase all currently assigned points.\n\n"
+                        "Are you sure you want to do it?\n"
+                        )), _(L("Warning")), wxICON_WARNING | wxYES | wxNO);
+                    if (dlg.ShowModal() == wxID_YES) {
+                        m_model_object->sla_support_points.clear();
+                        m_editing_mode_cache.clear();
+                        wxGetApp().plater()->reslice();
+                    }
+#endif
         }
-
+#if SLAGIZMO_IMGUI_MODAL
         if (m_show_modal) {
             if (ImGui::BeginPopupModal(_(L("Warning")), &m_show_modal/*, ImGuiWindowFlags_NoDecoration*/))
             {
-                m_imgui->text(_(L("This will erase all your manual changes.")));
+                m_imgui->text(_(L("Autogeneration will erase all currently assigned points.")));
+                m_imgui->text("");
+                m_imgui->text(_(L("Are you sure you want to do it?")));
 
                 if (m_imgui->button(_(L("Continue"))))
                 {
@@ -2307,7 +2321,7 @@ RENDER_AGAIN:
             if (!m_show_modal)
                 force_refresh = true;
         }
-
+#endif
         ImGui::SameLine();
         bool editing_clicked = m_imgui->button("Editing");
         if (editing_clicked) {
@@ -2370,10 +2384,12 @@ void GLGizmoSlaSupports::on_set_state()
     if (m_state == Off) {
         m_parent.toggle_model_objects_visibility(true);
         m_editing_mode = false;
+#if SLAGIZMO_IMGUI_MODAL
         if (m_show_modal) {
             m_show_modal = false;
             on_render_input_window(0,0,m_parent.get_selection()); // this is necessary to allow ImGui to terminate the modal dialog correctly
         }
+#endif
     }
 }
 
