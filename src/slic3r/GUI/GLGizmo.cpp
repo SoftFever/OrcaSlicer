@@ -1847,12 +1847,17 @@ void GLGizmoSlaSupports::render_selection_rectangle() const
     ::glOrtho(0.f, m_canvas_width, m_canvas_height, 0.f, -1.f, 1.f); // set projection matrix so that world coords = window coords
 
     // render the selection  rectangle (window coordinates):
+    ::glPushAttrib(GL_ENABLE_BIT);
+    ::glLineStipple(4, 0xAAAA);
+    ::glEnable(GL_LINE_STIPPLE);
+
     ::glBegin(GL_LINE_LOOP);
     ::glVertex3f((GLfloat)m_selection_rectangle_start_corner(0), (GLfloat)m_selection_rectangle_start_corner(1), (GLfloat)0.5f);
     ::glVertex3f((GLfloat)m_selection_rectangle_end_corner(0), (GLfloat)m_selection_rectangle_start_corner(1), (GLfloat)0.5f);
     ::glVertex3f((GLfloat)m_selection_rectangle_end_corner(0), (GLfloat)m_selection_rectangle_end_corner(1), (GLfloat)0.5f);
     ::glVertex3f((GLfloat)m_selection_rectangle_start_corner(0), (GLfloat)m_selection_rectangle_end_corner(1), (GLfloat)0.5f);
     ::glEnd();
+    ::glPopAttrib();
 
     ::glPopMatrix();                // restore former projection matrix
     ::glMatrixMode(GL_MODELVIEW);
@@ -2035,10 +2040,8 @@ void GLGizmoSlaSupports::mouse_event(int action, const Vec2d& mouse_position, bo
     }
 
     // dragging the selection rectangle:
-    if (action == 3 && m_selection_rectangle_active) {
+    if (action == 3 && m_selection_rectangle_active)
         m_selection_rectangle_end_corner = mouse_position;
-        m_parent.render();
-    }
 
     // mouse up without selection rectangle - place point on the mesh:
     if (action == 2 && !m_selection_rectangle_active) {
@@ -2095,6 +2098,15 @@ void GLGizmoSlaSupports::mouse_event(int action, const Vec2d& mouse_position, bo
                 support_point.head_front_radius = 1.f;
         }
         m_selection_rectangle_active = false;
+    }
+
+    if (action == 4) {
+        // shift has been released
+    }
+
+    if (action == 5) {
+        // ctrl+A : select all
+        std::cout << "select all..." << std::endl;
     }
 }
 

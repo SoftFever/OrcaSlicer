@@ -789,7 +789,7 @@ private:
         void set_flattening_data(const ModelObject* model_object);
 
         void set_sla_support_data(ModelObject* model_object, const GLCanvas3D::Selection& selection);
-        void mouse_event(int action, const Vec2d& mouse_position, bool shift_down);
+        void mouse_event(int action, const Vec2d& mouse_position = Vec2d::Zero(), bool shift_down = false);
         void delete_current_grabber(bool delete_all = false);
 
         void render_current_gizmo(const Selection& selection) const;
@@ -1050,6 +1050,7 @@ public:
     void on_size(wxSizeEvent& evt);
     void on_idle(wxIdleEvent& evt);
     void on_char(wxKeyEvent& evt);
+    void on_key_up(wxKeyEvent& evt);
     void on_mouse_wheel(wxMouseEvent& evt);
     void on_timer(wxTimerEvent& evt);
     void on_mouse(wxMouseEvent& evt);

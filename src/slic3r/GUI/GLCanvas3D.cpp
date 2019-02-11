@@ -5114,6 +5114,7 @@ void GLCanvas3D::bind_event_handlers()
         m_canvas->Bind(wxEVT_SIZE, &GLCanvas3D::on_size, this);
         m_canvas->Bind(wxEVT_IDLE, &GLCanvas3D::on_idle, this);
         m_canvas->Bind(wxEVT_CHAR, &GLCanvas3D::on_char, this);
+        m_canvas->Bind(wxEVT_KEY_UP, &GLCanvas3D::on_key_up, this);
         m_canvas->Bind(wxEVT_MOUSEWHEEL, &GLCanvas3D::on_mouse_wheel, this);
         m_canvas->Bind(wxEVT_TIMER, &GLCanvas3D::on_timer, this);
         m_canvas->Bind(wxEVT_LEFT_DOWN, &GLCanvas3D::on_mouse, this);
@@ -5139,6 +5140,7 @@ void GLCanvas3D::unbind_event_handlers()
         m_canvas->Unbind(wxEVT_SIZE, &GLCanvas3D::on_size, this);
         m_canvas->Unbind(wxEVT_IDLE, &GLCanvas3D::on_idle, this);
         m_canvas->Unbind(wxEVT_CHAR, &GLCanvas3D::on_char, this);
+        m_canvas->Unbind(wxEVT_KEY_UP, &GLCanvas3D::on_key_up, this);
         m_canvas->Unbind(wxEVT_MOUSEWHEEL, &GLCanvas3D::on_mouse_wheel, this);
         m_canvas->Unbind(wxEVT_TIMER, &GLCanvas3D::on_timer, this);
         m_canvas->Unbind(wxEVT_LEFT_DOWN, &GLCanvas3D::on_mouse, this);
@@ -5182,7 +5184,12 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         switch (keyCode) {
         case 'a':
         case 'A':
-        case WXK_CONTROL_A: post_event(SimpleEvent(EVT_GLCANVAS_SELECT_ALL)); break;
+        case WXK_CONTROL_A:
+            if (m_gizmos.get_current_type() == Gizmos::SlaSupports) // Sla gizmo selects all support points
+                m_gizmos.mouse_event(5);
+            else
+                post_event(SimpleEvent(EVT_GLCANVAS_SELECT_ALL));
+        break;
 #ifdef __APPLE__
         case WXK_BACK: // the low cost Apple solutions are not equipped with a Delete key, use Backspace instead.
 #else /* __APPLE__ */
@@ -5237,6 +5244,18 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
             break;
         }
         }
+    }
+}
+
+void GLCanvas3D::on_key_up(wxKeyEvent& evt)
+{
+    // see include/wx/defs.h enum wxKeyCode
+    int keyCode = evt.GetKeyCode();
+
+    // shift has been just released - SLA gizmo might want to close rectangular selection:
+    if (m_gizmos.get_current_type() == Gizmos::SlaSupports && keyCode == WXK_SHIFT) {
+        m_gizmos.mouse_event(2);
+        m_dirty = true;
     }
 }
 
@@ -5586,6 +5605,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     else if (evt.Dragging() && m_gizmos.get_current_type() == Gizmos::SlaSupports && evt.ShiftDown())
     {
         m_gizmos.mouse_event(3, Vec2d(pos(0), pos(1)), evt.ShiftDown());
+        m_dirty = true;
     }
     else if (evt.Dragging() && !gizmos_overlay_contains_mouse)
     {
