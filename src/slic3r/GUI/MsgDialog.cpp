@@ -13,13 +13,16 @@
 #include "GUI.hpp"
 #include "I18N.hpp"
 #include "ConfigWizard.hpp"
+#include "wxExtensions.hpp"
+#include "GUI_App.hpp"
 
 namespace Slic3r {
 namespace GUI {
 
 
 MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &headline, wxWindowID button_id) :
-	MsgDialog(parent, title, headline, wxBitmap(from_u8(Slic3r::var("Slic3r_192px.png")), wxBITMAP_TYPE_PNG), button_id)
+// 	MsgDialog(parent, title, headline, wxBitmap(from_u8(Slic3r::var("Slic3r_192px.png")), wxBITMAP_TYPE_PNG), button_id)
+	MsgDialog(parent, title, headline, create_scaled_bitmap("Slic3r_192px.png"), button_id)
 {}
 
 MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &headline, wxBitmap bitmap, wxWindowID button_id) :
@@ -35,7 +38,7 @@ MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &he
 
 	auto *headtext = new wxStaticText(this, wxID_ANY, headline);
 	headtext->SetFont(boldfont);
-	headtext->Wrap(CONTENT_WIDTH);
+    headtext->Wrap(CONTENT_WIDTH*wxGetApp().em_unit());
 	rightsizer->Add(headtext);
 	rightsizer->AddSpacer(VERT_SPACING);
 
@@ -64,7 +67,8 @@ MsgDialog::~MsgDialog() {}
 
 ErrorDialog::ErrorDialog(wxWindow *parent, const wxString &msg)
 	: MsgDialog(parent, _(L("Slic3r error")), _(L("Slic3r has encountered an error")),
-		wxBitmap(from_u8(Slic3r::var("Slic3r_192px_grayscale.png")), wxBITMAP_TYPE_PNG),
+// 		wxBitmap(from_u8(Slic3r::var("Slic3r_192px_grayscale.png")), wxBITMAP_TYPE_PNG),
+        create_scaled_bitmap("Slic3r_192px_grayscale.png"),
 		wxID_NONE)
 	, msg(msg)
 {
@@ -73,10 +77,10 @@ ErrorDialog::ErrorDialog(wxWindow *parent, const wxString &msg)
 	panel->SetSizer(p_sizer);
 
 	auto *text = new wxStaticText(panel, wxID_ANY, msg);
-	text->Wrap(CONTENT_WIDTH);
+	text->Wrap(CONTENT_WIDTH*wxGetApp().em_unit());
 	p_sizer->Add(text, 1, wxEXPAND);
 
-	panel->SetMinSize(wxSize(CONTENT_WIDTH, 0));
+    panel->SetMinSize(wxSize(CONTENT_WIDTH*wxGetApp().em_unit(), 0));
 	panel->SetScrollRate(0, 5);
 
 	content_sizer->Add(panel, 1, wxEXPAND);
@@ -95,7 +99,7 @@ ErrorDialog::ErrorDialog(wxWindow *parent, const wxString &msg)
 	btn_sizer->Add(btn_copy, 0, wxRIGHT, HORIZ_SPACING);
 	btn_sizer->Add(btn_ok);
 
-	SetMaxSize(wxSize(-1, CONTENT_MAX_HEIGHT));
+    SetMaxSize(wxSize(-1, CONTENT_MAX_HEIGHT*wxGetApp().em_unit()));
 	Fit();
 }
 

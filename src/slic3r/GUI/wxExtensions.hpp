@@ -884,8 +884,8 @@ public:
         wxWindowID id,
         const wxString& mode = wxEmptyString,
         const wxBitmap& bmp_on = wxNullBitmap,
-        const wxPoint& pos = wxDefaultPosition,
-        const wxSize& size = wxDefaultSize);
+        const wxSize& size = wxDefaultSize,
+        const wxPoint& pos = wxDefaultPosition);
     ~PrusaModeButton() {}
 
     void    OnButton(wxCommandEvent& event);

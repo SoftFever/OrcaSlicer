@@ -97,8 +97,9 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
         // Add empty bmp (Its size have to be equal to PrusaLockButton) in front of "Size" option to label alignment
         else if (option_name == "Size") {
             line.near_label_widget = [this](wxWindow* parent) {
-                return new wxStaticBitmap(parent, wxID_ANY, wxNullBitmap, wxDefaultPosition, 
-                                          wxBitmap(from_u8(var("one_layer_lock_on.png")), wxBITMAP_TYPE_PNG).GetSize());
+                return new wxStaticBitmap(parent, wxID_ANY, wxNullBitmap, wxDefaultPosition,
+//                                           wxBitmap(from_u8(var("one_layer_lock_on.png")), wxBITMAP_TYPE_PNG).GetSize());
+                                          create_scaled_bitmap("one_layer_lock_on.png").GetSize());
             };
         }
 

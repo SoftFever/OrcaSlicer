@@ -13,6 +13,7 @@
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
 #include "libslic3r/GCode/PreviewData.hpp"
+#include "I18N.hpp"
 
 using Slic3r::GUI::from_u8;
 
@@ -2340,9 +2341,9 @@ PrusaModeButton::PrusaModeButton(   wxWindow *parent,
                                     wxWindowID id,
                                     const wxString& mode/* = wxEmptyString*/,
                                     const wxBitmap& bmp_on/* = wxNullBitmap*/,
-                                    const wxPoint& pos/* = wxDefaultPosition*/,
-                                    const wxSize& size/* = wxDefaultSize*/) :
-    wxButton(parent, id, mode, pos, size, wxBU_EXACTFIT | wxNO_BORDER),
+                                    const wxSize& size/* = wxDefaultSize*/,
+                                    const wxPoint& pos/* = wxDefaultPosition*/) :
+    wxButton(parent, id, mode, pos, size, /*wxBU_EXACTFIT | */wxNO_BORDER),
     m_bmp_on(bmp_on)
 {
 #ifdef __WXMSW__
@@ -2394,20 +2395,19 @@ PrusaModeSizer::PrusaModeSizer(wxWindow *parent) :
 {
     SetFlexibleDirection(wxHORIZONTAL);
 
-//     const wxBitmap bmp_simple_on    = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("mode_simple_sq.png")),   wxBITMAP_TYPE_PNG);
-//     const wxBitmap bmp_advanced_on  = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("mode_middle_sq.png")),  wxBITMAP_TYPE_PNG);
-//     const wxBitmap bmp_expert_on    = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("mode_expert_sq.png")),     wxBITMAP_TYPE_PNG);
+    std::vector<std::pair<wxString, wxBitmap>> buttons = {
+        {_(L("Simple")),    create_scaled_bitmap("mode_simple_sq.png")},
+        {_(L("Advanced")),  create_scaled_bitmap("mode_middle_sq.png")},
+        {_(L("Expert")),    create_scaled_bitmap("mode_expert_sq.png")}
+    };
 
-    const wxBitmap bmp_simple_on    = create_scaled_bitmap("mode_simple_sq.png");
-    const wxBitmap bmp_advanced_on  = create_scaled_bitmap("mode_middle_sq.png");
-    const wxBitmap bmp_expert_on    = create_scaled_bitmap("mode_expert_sq.png");
-
-    
     mode_btns.reserve(3);
-
-    mode_btns.push_back(new PrusaModeButton(parent, wxID_ANY, "Simple",     bmp_simple_on));
-    mode_btns.push_back(new PrusaModeButton(parent, wxID_ANY, "Advanced",   bmp_advanced_on));
-    mode_btns.push_back(new PrusaModeButton(parent, wxID_ANY, "Expert",     bmp_expert_on));
+    for (const auto& button : buttons) {
+        int x, y;
+        parent->GetTextExtent(button.first, &x, &y, nullptr, nullptr, &Slic3r::GUI::wxGetApp().bold_font());
+        const wxSize size = wxSize(x + button.second.GetWidth() + Slic3r::GUI::wxGetApp().em_unit(), y);
+        mode_btns.push_back(new PrusaModeButton(parent, wxID_ANY, button.first, button.second, size));
+    }
 
     for (auto btn : mode_btns)
     {

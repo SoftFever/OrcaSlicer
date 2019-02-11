@@ -15,7 +15,7 @@ void PreferencesDialog::build()
 {
 	auto app_config = get_app_config();
 	m_optgroup = std::make_shared<ConfigOptionsGroup>(this, _(L("General")));
-	m_optgroup->label_width = 400;
+    m_optgroup->label_width = 40 * wxGetApp().em_unit(); //400;
 	m_optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value){
 		m_values[opt_key] = boost::any_cast<bool>(value) ? "1" : "0";
 	};

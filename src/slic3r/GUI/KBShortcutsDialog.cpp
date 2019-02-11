@@ -4,6 +4,7 @@
 #include "GUI.hpp"
 #include <wx/scrolwin.h>
 #include "GUI_App.hpp"
+#include "wxExtensions.hpp"
 
 namespace Slic3r { 
 namespace GUI {
@@ -16,7 +17,8 @@ KBShortcutsDialog::KBShortcutsDialog()
 	auto main_sizer = new wxBoxSizer(wxVERTICAL);
 
     // logo
-	wxBitmap logo_bmp = wxBitmap(from_u8(Slic3r::var("Slic3r_32px.png")), wxBITMAP_TYPE_PNG);
+// 	wxBitmap logo_bmp = wxBitmap(from_u8(Slic3r::var("Slic3r_32px.png")), wxBITMAP_TYPE_PNG);
+	const wxBitmap logo_bmp = create_scaled_bitmap("Slic3r_32px.png");
 
     // fonts
     wxFont head_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold();

@@ -3,6 +3,7 @@
 
 #include "libslic3r/Utils.hpp"
 #include "GUI_App.hpp"
+#include "wxExtensions.hpp"
 
 namespace Slic3r { 
 namespace GUI {
@@ -41,17 +42,13 @@ AboutDialog::AboutDialog()
 	main_sizer->Add(hsizer, 0, wxEXPAND | wxALL, 20);
 
     // logo
-	wxBitmap logo_bmp = wxBitmap(from_u8(Slic3r::var("Slic3r_192px.png")), wxBITMAP_TYPE_PNG);
-    auto *logo = new wxStaticBitmap(this, wxID_ANY, std::move(logo_bmp));
+// 	wxBitmap logo_bmp = wxBitmap(from_u8(Slic3r::var("Slic3r_192px.png")), wxBITMAP_TYPE_PNG);
+//     auto *logo = new wxStaticBitmap(this, wxID_ANY, std::move(logo_bmp));
+	auto *logo = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("Slic3r_192px.png"));
 	hsizer->Add(logo, 1, wxALIGN_CENTER_VERTICAL);
     
-    wxBoxSizer* vsizer = new wxBoxSizer(wxVERTICAL);
-// #ifdef __WXMSW__
-// 	int proportion = 2;
-// #else
-	int proportion = 3;
-// #endif
-    hsizer->Add(vsizer, proportion, wxEXPAND|wxLEFT, 20);
+    wxBoxSizer* vsizer = new wxBoxSizer(wxVERTICAL); 	
+    hsizer->Add(vsizer, 2, wxEXPAND|wxLEFT, 20);
 
     // title
     {
