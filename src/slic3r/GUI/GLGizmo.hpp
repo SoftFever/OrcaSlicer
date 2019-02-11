@@ -464,8 +464,8 @@ public:
     explicit GLGizmoSlaSupports(GLCanvas3D& parent);
     virtual ~GLGizmoSlaSupports();
     void set_sla_support_data(ModelObject* model_object, const GLCanvas3D::Selection& selection);
-    void mouse_event(int action, const Vec2d& mouse_position, bool shift_down);
-    void delete_current_point(bool delete_all);
+    bool mouse_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down);
+    void delete_selected_points();
 
 private:
     bool on_init();
@@ -487,16 +487,19 @@ private:
     bool m_lock_unique_islands = false;
     bool m_editing_mode = false;
     float m_new_point_head_diameter = 0.4f;
-    std::vector<sla::SupportPoint> m_editing_mode_cache;
+    std::vector<std::pair<sla::SupportPoint, bool>> m_editing_mode_cache; // a support point and whether it is currently selected
 
     bool m_selection_rectangle_active = false;
     Vec2d m_selection_rectangle_start_corner;
     Vec2d m_selection_rectangle_end_corner;
+    bool m_ignore_up_event = false;
+    bool m_show_modal = false;
     int m_canvas_width;
     int m_canvas_height;
 
 protected:
     void on_set_state() override;
+    void on_start_dragging(const GLCanvas3D::Selection& selection) override;
 
 #if ENABLE_IMGUI
     virtual void on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection) override;

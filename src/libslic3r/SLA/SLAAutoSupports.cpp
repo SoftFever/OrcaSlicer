@@ -253,7 +253,7 @@ void SLAAutoSupports::uniformly_cover(const ExPolygon& island, Structure& struct
     }
 
     for (const Vec3d& p : island_new_points) {
-        m_output.emplace_back(float(p(0)), float(p(1)), structure.height, 0.4f, is_new_island);
+        m_output.emplace_back(float(p(0)), float(p(1)), structure.height, 0.2f, is_new_island);
         structure.supports_force += m_config.support_force;
     }
 }

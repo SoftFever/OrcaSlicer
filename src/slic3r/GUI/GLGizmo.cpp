@@ -1795,8 +1795,9 @@ void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const G
                 if (po->model_object()->id() == model_object->id()) {
                     const Eigen::MatrixXd& points = po->get_support_points();
                     for (unsigned int i=0; i<points.rows();++i)
-                        m_editing_mode_cache.emplace_back(po->trafo().inverse().cast<float>() * Vec3f(points(i,0), points(i,1), points(i,2)),
-                                                                      points(i, 3), points(i, 4));
+                        m_editing_mode_cache.push_back(std::make_pair(sla::SupportPoint(po->trafo().inverse().cast<float>() * Vec3f(points(i,0), points(i,1), points(i,2)),
+                                                                                        points(i, 3), points(i, 4)),
+                                                                      false));
                     break;
                 }
             }
@@ -1895,7 +1896,8 @@ void GLGizmoSlaSupports::render_points(const GLCanvas3D::Selection& selection, b
     float render_color[3];
     for (int i = 0; i < (int)m_editing_mode_cache.size(); ++i)
     {
-        const Vec3f& point_pos = m_editing_mode_cache[i].pos;
+        const Vec3f& point_pos = m_editing_mode_cache[i].first.pos;
+        const bool point_selected = m_editing_mode_cache[i].second;
         // first precalculate the grabber position in world coordinates, so that the grabber
         // is not scaled with the object (as it would be if rendered with current gl matrix).
         Eigen::Matrix<GLfloat, 4, 4, Eigen::DontAlign> glmatrix;
@@ -1919,11 +1921,11 @@ void GLGizmoSlaSupports::render_points(const GLCanvas3D::Selection& selection, b
                 render_color[2] = picking_color_component(i);
             }
             else { // normal rendering
-                bool supports_new_island = m_lock_unique_islands && m_editing_mode_cache[i].is_new_island;
+                bool supports_new_island = m_lock_unique_islands && m_editing_mode_cache[i].first.is_new_island;
                 if (m_editing_mode) {
-                    render_color[0] = supports_new_island ? 0.f : 1.f;
-                    render_color[1] = 0.f;
-                    render_color[2] = supports_new_island ? 1.f : 0.f;
+                    render_color[0] = point_selected ? 0.f : (supports_new_island ? 0.f : 1.f);
+                    render_color[1] = point_selected ? 1.f : 0.f;
+                    render_color[2] = point_selected ? 0.f : (supports_new_island ? 1.f : 0.f);
                 }
                 else
                     for (unsigned char i=0; i<3; ++i) render_color[i] = 0.5f;
@@ -1934,7 +1936,7 @@ void GLGizmoSlaSupports::render_points(const GLCanvas3D::Selection& selection, b
         ::glPushMatrix();
         ::glLoadIdentity();
         ::glTranslated(grabber_world_position(0), grabber_world_position(1), grabber_world_position(2) + z_shift);
-        ::gluSphere(m_quadric, m_editing_mode_cache[i].head_front_radius, 64, 36);
+        ::gluSphere(m_quadric, m_editing_mode_cache[i].first.head_front_radius, 64, 36);
         ::glPopMatrix();
     }
 
@@ -1982,7 +1984,9 @@ void GLGizmoSlaSupports::update_mesh()
     m_AABB.init(m_V, m_F);
 
     // we'll now reload support points (selection might have changed):
-    m_editing_mode_cache = m_model_object->sla_support_points;
+    m_editing_mode_cache.clear();
+    for (const sla::SupportPoint& point : m_model_object->sla_support_points)
+        m_editing_mode_cache.push_back(std::make_pair(point, false));
 }
 
 Vec3f GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos)
@@ -2025,48 +2029,74 @@ Vec3f GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos)
     return bc(0) * m_V.row(m_F(fid, 0)) + bc(1) * m_V.row(m_F(fid, 1)) + bc(2)*m_V.row(m_F(fid, 2));
 }
 
-void GLGizmoSlaSupports::mouse_event(int action, const Vec2d& mouse_position, bool shift_down)
+// Following function is called from GLCanvas3D to inform the gizmo about a mouse/keyboard event.
+// The gizmo has an opportunity to react - if it does, it should return true so that the Canvas3D is
+// aware that the event was reacted to and stops trying to make different sense of it. If the gizmo
+// concludes that the event was not intended for it, it should return false.
+bool GLGizmoSlaSupports::mouse_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down)
 {
     if (!m_editing_mode)
-        return;
+        return false;
 
     // left down - show the selection rectangle:
-    if (action == 1 && shift_down) {
-        m_selection_rectangle_active = true;
-        m_selection_rectangle_start_corner = mouse_position;
-        m_selection_rectangle_end_corner = mouse_position;
-        m_canvas_width = m_parent.get_canvas_size().get_width();
-        m_canvas_height = m_parent.get_canvas_size().get_height();
+    if (action == SLAGizmoEventType::LeftDown && shift_down) {
+        if (m_hover_id == -1) {
+            m_selection_rectangle_active = true;
+            m_selection_rectangle_start_corner = mouse_position;
+            m_selection_rectangle_end_corner = mouse_position;
+            m_canvas_width = m_parent.get_canvas_size().get_width();
+            m_canvas_height = m_parent.get_canvas_size().get_height();
+        }
+        else
+            m_editing_mode_cache[m_hover_id].second = true;
+
+        return true;
     }
 
     // dragging the selection rectangle:
-    if (action == 3 && m_selection_rectangle_active)
+    if (action == SLAGizmoEventType::Dragging && m_selection_rectangle_active) {
         m_selection_rectangle_end_corner = mouse_position;
+        return true;
+    }
 
     // mouse up without selection rectangle - place point on the mesh:
-    if (action == 2 && !m_selection_rectangle_active) {
+    if (action == SLAGizmoEventType::LeftUp && !m_selection_rectangle_active && !shift_down) {
+        if (m_ignore_up_event) {
+            m_ignore_up_event = false;
+            return false;
+        }
+
         int instance_id = m_parent.get_selection().get_instance_idx();
         if (m_old_instance_id != instance_id)
         {
             bool something_selected = (m_old_instance_id != -1);
             m_old_instance_id = instance_id;
             if (something_selected)
-                return;
+                return false;
         }
         if (instance_id == -1)
-            return;
+            return false;
+
+        // Regardless of whether the user clicked the object or not, we will unselect all points:
+        for (unsigned int i=0; i<m_editing_mode_cache.size(); ++i)
+                    m_editing_mode_cache[i].second = false;
 
         Vec3f new_pos;
         try {
             new_pos = unproject_on_mesh(mouse_position); // this can throw - we don't want to create a new point in that case
+            m_editing_mode_cache.emplace_back(std::make_pair(sla::SupportPoint(new_pos, m_new_point_head_diameter/2.f, false), true));
         }
-        catch (...) { return; }
-
-        m_editing_mode_cache.emplace_back(new_pos, m_new_point_head_diameter, false);
+        catch (...) {       // not clicked on object
+            return false;   // GLCanvas3D might want to deselect the gizmo
+        }
+        return true;
     }
 
     // left up with selection rectangle - select points inside the rectangle:
-    if (action == 2 && m_selection_rectangle_active) {
+    if ((action == SLAGizmoEventType::LeftUp || action == SLAGizmoEventType::ShiftUp)
+      && m_selection_rectangle_active) {
+        if (action == SLAGizmoEventType::ShiftUp)
+            m_ignore_up_event = true;
         const Transform3d& instance_matrix = m_model_object->instances[m_active_instance]->get_transformation().get_matrix();
         GLint viewport[4];
         ::glGetIntegerv(GL_VIEWPORT, viewport);
@@ -2082,68 +2112,61 @@ void GLGizmoSlaSupports::mouse_event(int action, const Vec2d& mouse_position, bo
         // bounding box created from the rectangle corners - will take care of order of the corners
         BoundingBox rectangle(Points{Point(m_selection_rectangle_start_corner.cast<int>()), Point(m_selection_rectangle_end_corner.cast<int>())});
 
-        for (sla::SupportPoint& support_point : m_editing_mode_cache) {
+        for (std::pair<sla::SupportPoint, bool>& point_and_selection : m_editing_mode_cache) {
+            const sla::SupportPoint& support_point = point_and_selection.first;
             Vec3f pos = instance_matrix.cast<float>() * support_point.pos;
             pos(2) += z_offset;
             GLdouble out_x, out_y, out_z;
             ::gluProject((GLdouble)pos(0), (GLdouble)pos(1), (GLdouble)pos(2), modelview_matrix, projection_matrix, viewport, &out_x, &out_y, &out_z);
             out_y = m_canvas_height - out_y;
 
-            /*GLfloat depth_comp;
-            ::glReadPixels( out_x, out_y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth_comp);
-            if (depth_comp > out_z + EPSILON) // the point is obscured by something else
-                continue;*/
-
             if (rectangle.contains(Point(out_x, out_y)))
-                support_point.head_front_radius = 1.f;
+                point_and_selection.second = true;
         }
         m_selection_rectangle_active = false;
+        return true;
     }
 
-    if (action == 4) {
-        // shift has been released
+    if (action == SLAGizmoEventType::Delete) {
+        // delete key pressed
+        delete_selected_points();
+        return true;
     }
 
-    if (action == 5) {
-        // ctrl+A : select all
-        std::cout << "select all..." << std::endl;
+    if (action == SLAGizmoEventType::SelectAll) {
+        for (auto& point_and_selection : m_editing_mode_cache)
+            point_and_selection.second = true;
+            return true;
     }
+
+    return false;
 }
 
-void GLGizmoSlaSupports::delete_current_point(bool delete_all)
+void GLGizmoSlaSupports::delete_selected_points()
 {
-    if (!m_editing_mode && !delete_all)
+    if (!m_editing_mode)
         return;
 
-    if (delete_all) {
-        m_editing_mode_cache.clear();
-
-        // This should trigger the support generation
-        // wxGetApp().plater()->reslice();
+    for (unsigned int idx=0; idx<m_editing_mode_cache.size(); ++idx) {
+        if (m_editing_mode_cache[idx].second && (!m_editing_mode_cache[idx].first.is_new_island || !m_lock_unique_islands))
+            m_editing_mode_cache.erase(m_editing_mode_cache.begin() + (idx--));
+            // This should trigger the support generation
+            // wxGetApp().plater()->reslice();
     }
-    else
-        if (m_hover_id != -1) {
-            if (!m_editing_mode_cache[m_hover_id].is_new_island || !m_lock_unique_islands) {
-                m_editing_mode_cache.erase(m_editing_mode_cache.begin() + m_hover_id);
-                m_hover_id = -1;
 
-                // This should trigger the support generation
-                // wxGetApp().plater()->reslice();
-            }
-        }
     //m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
 }
 
 void GLGizmoSlaSupports::on_update(const UpdateData& data, const GLCanvas3D::Selection& selection)
 {
-    if (m_editing_mode && m_hover_id != -1 && data.mouse_pos && (!m_editing_mode_cache[m_hover_id].is_new_island || !m_lock_unique_islands)) {
+    if (m_editing_mode && m_hover_id != -1 && data.mouse_pos && (!m_editing_mode_cache[m_hover_id].first.is_new_island || !m_lock_unique_islands)) {
         Vec3f new_pos;
         try {
             new_pos = unproject_on_mesh(Vec2d((*data.mouse_pos)(0), (*data.mouse_pos)(1)));
         }
         catch (...) { return; }
-        m_editing_mode_cache[m_hover_id].pos = new_pos;
-        m_editing_mode_cache[m_hover_id].is_new_island = false;
+        m_editing_mode_cache[m_hover_id].first.pos = new_pos;
+        m_editing_mode_cache[m_hover_id].first.is_new_island = false;
         // Do not update immediately, wait until the mouse is released.
         // m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
     }
@@ -2193,29 +2216,13 @@ RENDER_AGAIN:
 
     ImGui::PushItemWidth(100.0f);
 
-    /*bool force_refresh = m_editing_mode;
-    if (m_imgui->radio_button(_(L("Automatic")), !m_editing_mode))
-        m_editing_mode = false;
-    ImGui::SameLine();
-    if (m_imgui->radio_button(_(L("Manual")), m_editing_mode))
-        m_editing_mode = true;
-    force_refresh = force_refresh != m_editing_mode;
-
-    if (force_refresh) { // mode has just changed!
-        if (m_editing_mode)
-            m_editing_mode_cache = m_model_object->sla_support_points;
-        else
-            m_model_object->sla_support_points = m_editing_mode_cache;
-    }
-    */
-
     bool force_refresh = false;
-    bool remove_all_points = false;
+    bool remove_selected = false;
     bool old_editing_state = m_editing_mode;
 
     if (m_editing_mode) {
         m_imgui->text(_(L("Left mouse click - add point")));
-        m_imgui->text(_(L("Right mouse click - remove point")));
+        m_imgui->text(_(L("Shift + Left (+ drag) - select point(s)")));
         m_imgui->text(" ");  // vertical gap
 
         std::vector<wxString> options = {"0.2", "0.4", "0.6", "0.8", "1.0"};
@@ -2223,28 +2230,38 @@ RENDER_AGAIN:
         ss << std::setprecision(1) << m_new_point_head_diameter;
         wxString str = ss.str();
         m_imgui->combo(_(L("Head diameter")), options, str);
-        force_refresh |= std::abs(atof(str) - m_new_point_head_diameter) > 0.001;
-        m_new_point_head_diameter = atof(str);
+        float current_number = atof(str);
+        if (std::abs(current_number - m_new_point_head_diameter) > 0.001) {
+            force_refresh = true;
+            m_new_point_head_diameter = current_number;
+            for (auto& point_and_selection : m_editing_mode_cache)
+                if (point_and_selection.second)
+                    point_and_selection.first.head_front_radius = current_number / 2.f;
+        }
 
         bool changed = m_lock_unique_islands;
         m_imgui->checkbox(_(L("Lock supports under new islands")), m_lock_unique_islands);
         force_refresh |= changed != m_lock_unique_islands;
 
-        remove_all_points = m_imgui->button(_(L("Remove all points")) + (m_model_object == nullptr ? "" : " (" + std::to_string(m_editing_mode_cache.size())+")"));
+        remove_selected = m_imgui->button(_(L("Remove selected points")));
 
         m_imgui->text(" "); // vertical gap
 
         bool apply_changes = m_imgui->button(_(L("Apply changes")));
         if (apply_changes) {
-            m_model_object->sla_support_points = m_editing_mode_cache;
+            m_model_object->sla_support_points.clear();
+            for (const std::pair<sla::SupportPoint, bool>& point_and_selection : m_editing_mode_cache)
+                m_model_object->sla_support_points.push_back(point_and_selection.first);
             m_editing_mode = false;
             force_refresh = true;
             m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
         }
         ImGui::SameLine();
-        bool discard_changes = m_imgui->button(_(L("Cancel")));
+        bool discard_changes = m_imgui->button(_(L("Discard changes")));
         if (discard_changes) {
-            m_editing_mode_cache = m_model_object->sla_support_points;
+            m_editing_mode_cache.clear();
+            for (const sla::SupportPoint& point : m_model_object->sla_support_points)
+                m_editing_mode_cache.push_back(std::make_pair(point, false));
             m_editing_mode = false;
             force_refresh = true;
         }
@@ -2258,16 +2275,45 @@ RENDER_AGAIN:
         m_imgui->text("");
 
         bool generate =m_imgui->button(_(L("Auto-generate points")));
-        force_refresh |= generate;
+
         if (generate) {
-            m_model_object->sla_support_points.clear();
-            m_editing_mode_cache.clear();
-            wxGetApp().plater()->reslice();
+            ImGui::OpenPopup(_(L("Warning")));
+            m_show_modal = true;
+            force_refresh = true;
         }
+
+        if (m_show_modal) {
+            if (ImGui::BeginPopupModal(_(L("Warning")), &m_show_modal/*, ImGuiWindowFlags_NoDecoration*/))
+            {
+                m_imgui->text(_(L("This will erase all your manual changes.")));
+
+                if (m_imgui->button(_(L("Continue"))))
+                {
+                    ImGui::CloseCurrentPopup();
+                    m_show_modal = false;
+
+                    m_model_object->sla_support_points.clear();
+                    m_editing_mode_cache.clear();
+                    wxGetApp().plater()->reslice();
+                }
+                ImGui::SameLine();
+                if (m_imgui->button(_(L("Cancel")))) {
+                    ImGui::CloseCurrentPopup();
+                    m_show_modal = false;
+                }
+            ImGui::EndPopup();
+            }
+
+            if (!m_show_modal)
+                force_refresh = true;
+        }
+
         ImGui::SameLine();
         bool editing_clicked = m_imgui->button("Editing");
         if (editing_clicked) {
-            m_editing_mode_cache = m_model_object->sla_support_points;
+            m_editing_mode_cache.clear();
+            for (const sla::SupportPoint& point : m_model_object->sla_support_points)
+                m_editing_mode_cache.push_back(std::make_pair(point, false));
             m_editing_mode = true;
         }
     }
@@ -2280,10 +2326,10 @@ RENDER_AGAIN:
     }
 
 
-    if (remove_all_points) {
+    if (remove_selected) {
         force_refresh = false;
         m_parent.reload_scene(true);
-        delete_current_point(true);
+        delete_selected_points();
         if (first_run) {
             first_run = false;
             goto RENDER_AGAIN;
@@ -2324,7 +2370,18 @@ void GLGizmoSlaSupports::on_set_state()
     if (m_state == Off) {
         m_parent.toggle_model_objects_visibility(true);
         m_editing_mode = false;
+        if (m_show_modal) {
+            m_show_modal = false;
+            on_render_input_window(0,0,m_parent.get_selection()); // this is necessary to allow ImGui to terminate the modal dialog correctly
+        }
     }
+}
+
+void GLGizmoSlaSupports::on_start_dragging(const GLCanvas3D::Selection& selection)
+{
+    if (m_hover_id != -1)
+        for (unsigned int i=0;i<m_editing_mode_cache.size();++i)
+            m_editing_mode_cache[i].second = ((int)i == m_hover_id);
 }
 
 

@@ -3430,24 +3430,18 @@ void GLCanvas3D::Gizmos::set_sla_support_data(ModelObject* model_object, const G
         reinterpret_cast<GLGizmoSlaSupports*>(it->second)->set_sla_support_data(model_object, selection);
 }
 
-void GLCanvas3D::Gizmos::mouse_event(int action, const Vec2d& mouse_position, bool shift_down)
+
+// Returns true if the gizmo used the event to do something, false otherwise.
+bool GLCanvas3D::Gizmos::mouse_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down)
 {
     if (!m_enabled)
-        return;
+        return false;
 
     GizmosMap::const_iterator it = m_gizmos.find(SlaSupports);
     if (it != m_gizmos.end())
-        reinterpret_cast<GLGizmoSlaSupports*>(it->second)->mouse_event(action, mouse_position, shift_down);
-}
+        return reinterpret_cast<GLGizmoSlaSupports*>(it->second)->mouse_event(action, mouse_position, shift_down);
 
-void GLCanvas3D::Gizmos::delete_current_grabber(bool delete_all)
-{
-    if (!m_enabled)
-        return;
-
-    GizmosMap::const_iterator it = m_gizmos.find(SlaSupports);
-    if (it != m_gizmos.end())
-        reinterpret_cast<GLGizmoSlaSupports*>(it->second)->delete_current_point(delete_all);
+    return false;
 }
 
 void GLCanvas3D::Gizmos::render_current_gizmo(const GLCanvas3D::Selection& selection) const
@@ -5185,8 +5179,8 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case 'a':
         case 'A':
         case WXK_CONTROL_A:
-            if (m_gizmos.get_current_type() == Gizmos::SlaSupports) // Sla gizmo selects all support points
-                m_gizmos.mouse_event(5);
+            if (m_gizmos.get_current_type() == Gizmos::SlaSupports && m_gizmos.mouse_event(SLAGizmoEventType::SelectAll)) // Sla gizmo selects all support points
+                m_dirty = true;
             else
                 post_event(SimpleEvent(EVT_GLCANVAS_SELECT_ALL));
         break;
@@ -5210,7 +5204,12 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 #else /* __APPLE__ */
 		case WXK_DELETE:
 #endif /* __APPLE__ */
-                  post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE)); break;
+                  if (m_gizmos.get_current_type() == Gizmos::SlaSupports && m_gizmos.mouse_event(SLAGizmoEventType::Delete))
+                      m_dirty = true;
+                  else
+                      post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE));
+                  break;
+
 		case '0': { select_view("iso"); break; }
         case '1': { select_view("top"); break; }
         case '2': { select_view("bottom"); break; }
@@ -5252,11 +5251,9 @@ void GLCanvas3D::on_key_up(wxKeyEvent& evt)
     // see include/wx/defs.h enum wxKeyCode
     int keyCode = evt.GetKeyCode();
 
-    // shift has been just released - SLA gizmo might want to close rectangular selection:
-    if (m_gizmos.get_current_type() == Gizmos::SlaSupports && keyCode == WXK_SHIFT) {
-        m_gizmos.mouse_event(2);
+    // shift has been just released - SLA gizmo might want to close rectangular selection.
+    if (m_gizmos.get_current_type() == Gizmos::SlaSupports && keyCode == WXK_SHIFT && m_gizmos.mouse_event(SLAGizmoEventType::ShiftUp))
         m_dirty = true;
-    }
 }
 
 void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
@@ -5399,25 +5396,15 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 m_dirty = true;
             }
         }
-#if !ENABLE_IMGUI
-        else if ((m_gizmos.get_current_type() == Gizmos::SlaSupports) && gizmo_reset_rect_contains(*this, pos(0), pos(1)))
-        {
-            if (evt.LeftDown())
-            {
-                m_gizmos.delete_current_grabber(true);
-                m_dirty = true;
-            }
-        }
-#endif // not ENABLE_IMGUI
         else if (!m_selection.is_empty() && gizmos_overlay_contains_mouse)
         {
             m_gizmos.update_on_off_state(*this, m_mouse.position, m_selection);
             _update_gizmos_data();
             m_dirty = true;
         }
-        else if (evt.LeftDown() && m_gizmos.get_current_type() == Gizmos::SlaSupports && evt.ShiftDown()) // inform the gizmo about the event (rectangular selection init)
+        else if (evt.LeftDown() && m_gizmos.get_current_type() == Gizmos::SlaSupports && evt.ShiftDown() && m_gizmos.mouse_event(SLAGizmoEventType::LeftDown, Vec2d(pos(0), pos(1)), evt.ShiftDown()))
         {
-            m_gizmos.mouse_event(1, Vec2d(pos(0), pos(1)), evt.ShiftDown());
+            // the gizmo got the event and took some action, there is no need to do anything more
         }
         else if (evt.LeftDown() && !m_selection.is_empty() && m_gizmos.grabber_contains_mouse())
         {
@@ -5434,10 +5421,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
             m_dirty = true;
         }
-        else if ((selected_object_idx != -1) && m_gizmos.grabber_contains_mouse() && evt.RightDown()) {
+        /*else if ((selected_object_idx != -1) && m_gizmos.grabber_contains_mouse() && evt.RightDown()) {
             if (m_gizmos.get_current_type() == Gizmos::SlaSupports)
                 m_gizmos.delete_current_grabber();
-        }
+        }*/
         else if (view_toolbar_contains_mouse != -1)
         {
             if (m_view_toolbar != nullptr)
@@ -5542,7 +5529,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }
         }
     }
-    else if (evt.Dragging() && evt.LeftIsDown() && !gizmos_overlay_contains_mouse && (m_layers_editing.state == LayersEditing::Unknown) && (m_mouse.drag.move_volume_idx != -1))
+    else if (evt.Dragging() && evt.LeftIsDown() && !gizmos_overlay_contains_mouse && (m_layers_editing.state == LayersEditing::Unknown)
+          && (m_mouse.drag.move_volume_idx != -1) && m_gizmos.get_current_type() != Gizmos::SlaSupports /* don't allow dragging objects with the Sla gizmo on */)
     {
 #if ENABLE_MOVE_MIN_THRESHOLD
         if (!m_mouse.drag.move_requires_threshold)
@@ -5602,9 +5590,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
         m_dirty = true;
     }
-    else if (evt.Dragging() && m_gizmos.get_current_type() == Gizmos::SlaSupports && evt.ShiftDown())
+    else if (evt.Dragging() && m_gizmos.get_current_type() == Gizmos::SlaSupports && evt.ShiftDown() && m_gizmos.mouse_event(SLAGizmoEventType::Dragging, Vec2d(pos(0), pos(1)), evt.ShiftDown()))
     {
-        m_gizmos.mouse_event(3, Vec2d(pos(0), pos(1)), evt.ShiftDown());
+        // the gizmo got the event and took some action, no need to do anything more here
         m_dirty = true;
     }
     else if (evt.Dragging() && !gizmos_overlay_contains_mouse)
@@ -5662,6 +5650,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             _stop_timer();
             m_layers_editing.accept_changes(*this);
         }
+        else if (evt.LeftUp() && m_gizmos.get_current_type() == Gizmos::SlaSupports && !m_gizmos.is_dragging()
+              && !m_mouse.dragging && m_gizmos.mouse_event(SLAGizmoEventType::LeftUp, Vec2d(pos(0), pos(1)), evt.ShiftDown()))
+        {
+            // the gizmo got the event and took some action, no need to do anything more
+        }
         else if ((m_mouse.drag.move_volume_idx != -1) && m_mouse.dragging)
         {
             m_regenerate_volumes = false;
@@ -5671,16 +5664,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // of the scene with the background processing data should be performed.
             post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
         }
-        else if (evt.LeftUp() && m_gizmos.get_current_type() == Gizmos::SlaSupports/* && m_hover_volume_id != -1*/)
+        else if (evt.LeftUp() && !m_mouse.dragging && (m_hover_volume_id == -1) && !gizmos_overlay_contains_mouse && !m_gizmos.is_dragging()
+              && !is_layers_editing_enabled() && m_gizmos.get_current_type() != Gizmos::SlaSupports)
         {
-            int id = m_selection.get_object_idx();
+            // SLA gizmo cannot be deselected by clicking in canvas area to avoid inadvertent unselection and losing manual changes
 
-            if ((id != -1) && (m_model != nullptr)) {
-                m_gizmos.mouse_event(2, Vec2d(pos(0), pos(1)), evt.ShiftDown());
-            }
-        }
-        else if (evt.LeftUp() && !m_mouse.dragging && (m_hover_volume_id == -1) && !gizmos_overlay_contains_mouse && !m_gizmos.is_dragging() && !is_layers_editing_enabled())
-        {
             // deselect and propagate event through callback
             if (!evt.ShiftDown() && m_picking_enabled && !m_toolbar_action_running && !m_mouse.ignore_up_event)
             {
@@ -5713,10 +5701,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 do_rotate();
                 break;
             }
-            case Gizmos::SlaSupports:
-                // End of mouse dragging, update the SLAPrint/SLAPrintObjects with the new support points.
-                post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
-                break;
             default:
                 break;
             }
