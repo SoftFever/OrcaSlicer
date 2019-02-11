@@ -543,7 +543,7 @@ Sidebar::Sidebar(Plater *parent)
     p->scrolled->SetSizer(scrolled_sizer);
 
     // Sizer with buttons for mode changing
-    p->mode_sizer = new PrusaModeSizer(p->scrolled);
+    p->mode_sizer = new PrusaModeSizer(p->scrolled, 2 * wxGetApp().em_unit());
 
     // The preset chooser
     p->sizer_presets = new wxFlexGridSizer(10, 1, 1, 2);
@@ -633,7 +633,7 @@ Sidebar::Sidebar(Plater *parent)
     btns_sizer->Add(p->btn_export_gcode, 0, wxEXPAND | wxTOP, margin_5);
 
     auto *sizer = new wxBoxSizer(wxVERTICAL);
-    sizer->Add(p->scrolled, 1, wxEXPAND | wxTOP, margin_5);
+    sizer->Add(p->scrolled, 1, wxEXPAND);
     sizer->Add(btns_sizer, 0, wxEXPAND | wxLEFT, margin_5);
     SetSizer(sizer);
 

@@ -913,7 +913,7 @@ private:
 class PrusaModeSizer : public wxFlexGridSizer
 {
 public:
-    PrusaModeSizer( wxWindow *parent);
+    PrusaModeSizer( wxWindow *parent, int hgap = 10);
     ~PrusaModeSizer() {}
 
     void SetMode(const /*ConfigOptionMode*/int mode);

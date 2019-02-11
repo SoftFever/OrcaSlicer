@@ -2390,8 +2390,8 @@ void PrusaModeButton::focus_button(const bool focus)
 // PrusaModeSizer
 // ----------------------------------------------------------------------------
 
-PrusaModeSizer::PrusaModeSizer(wxWindow *parent) :
-    wxFlexGridSizer(3, 0, 2* Slic3r::GUI::wxGetApp().em_unit()/*5*/)
+PrusaModeSizer::PrusaModeSizer(wxWindow *parent, int hgap/* = 10*/) :
+    wxFlexGridSizer(3, 0, hgap)
 {
     SetFlexibleDirection(wxHORIZONTAL);
 
@@ -2405,7 +2405,8 @@ PrusaModeSizer::PrusaModeSizer(wxWindow *parent) :
     for (const auto& button : buttons) {
         int x, y;
         parent->GetTextExtent(button.first, &x, &y, nullptr, nullptr, &Slic3r::GUI::wxGetApp().bold_font());
-        const wxSize size = wxSize(x + button.second.GetWidth() + Slic3r::GUI::wxGetApp().em_unit(), y);
+        const wxSize size = wxSize(x + button.second.GetWidth() + Slic3r::GUI::wxGetApp().em_unit(), 
+                                   y + Slic3r::GUI::wxGetApp().em_unit());
         mode_btns.push_back(new PrusaModeButton(parent, wxID_ANY, button.first, button.second, size));
     }
 
