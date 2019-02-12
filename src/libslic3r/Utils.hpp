@@ -206,6 +206,69 @@ public:
     void reset() { closure = Closure(); }
 };
 
+// Shorten the dhms time by removing the seconds, rounding the dhm to full minutes
+// and removing spaces.
+static std::string short_time(const std::string &time)
+{
+    // Parse the dhms time format.
+    int days = 0;
+    int hours = 0;
+    int minutes = 0;
+    int seconds = 0;
+    if (time.find('d') != std::string::npos)
+        ::sscanf(time.c_str(), "%dd %dh %dm %ds", &days, &hours, &minutes, &seconds);
+    else if (time.find('h') != std::string::npos)
+        ::sscanf(time.c_str(), "%dh %dm %ds", &hours, &minutes, &seconds);
+    else if (time.find('m') != std::string::npos)
+        ::sscanf(time.c_str(), "%dm %ds", &minutes, &seconds);
+    else if (time.find('s') != std::string::npos)
+        ::sscanf(time.c_str(), "%ds", &seconds);
+    // Round to full minutes.
+    if (days + hours + minutes > 0 && seconds >= 30) {
+        if (++minutes == 60) {
+            minutes = 0;
+            if (++hours == 24) {
+                hours = 0;
+                ++days;
+            }
+        }
+    }
+    // Format the dhm time.
+    char buffer[64];
+    if (days > 0)
+        ::sprintf(buffer, "%dd%dh%dm", days, hours, minutes);
+    else if (hours > 0)
+        ::sprintf(buffer, "%dh%dm", hours, minutes);
+    else if (minutes > 0)
+        ::sprintf(buffer, "%dm", minutes);
+    else
+        ::sprintf(buffer, "%ds", seconds);
+    return buffer;
+}
+
+// Returns the given time is seconds in format DDd HHh MMm SSs
+static std::string get_time_dhms(float time_in_secs)
+{
+    int days = (int)(time_in_secs / 86400.0f);
+    time_in_secs -= (float)days * 86400.0f;
+    int hours = (int)(time_in_secs / 3600.0f);
+    time_in_secs -= (float)hours * 3600.0f;
+    int minutes = (int)(time_in_secs / 60.0f);
+    time_in_secs -= (float)minutes * 60.0f;
+
+    char buffer[64];
+    if (days > 0)
+        ::sprintf(buffer, "%dd %dh %dm %ds", days, hours, minutes, (int)time_in_secs);
+    else if (hours > 0)
+        ::sprintf(buffer, "%dh %dm %ds", hours, minutes, (int)time_in_secs);
+    else if (minutes > 0)
+        ::sprintf(buffer, "%dm %ds", minutes, (int)time_in_secs);
+    else
+        ::sprintf(buffer, "%ds", (int)time_in_secs);
+
+    return buffer;
+}
+
 } // namespace Slic3r
 
 #if WIN32

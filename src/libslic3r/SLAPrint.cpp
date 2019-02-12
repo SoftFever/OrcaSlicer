@@ -966,6 +966,9 @@ void SLAPrint::process()
         st += unsigned(PRINT_STEP_LEVELS[currentstep] * pstd);
     }
 
+    // Fill statistics
+    fill_statistics();
+
     // If everything vent well
     report_status(*this, 100, L("Slicing done"));
 }
@@ -1025,6 +1028,46 @@ bool SLAPrint::invalidate_state_by_config_options(const std::vector<t_config_opt
         for (SLAPrintObject *object : m_objects)
             invalidated |= object->invalidate_step(ostep);
     return invalidated;
+}
+
+void SLAPrint::fill_statistics()
+{
+    int max_layers_cnt = 0;
+    for (SLAPrintObject * po : m_objects) {
+        if (max_layers_cnt < po->get_slice_index().size())
+            max_layers_cnt = po->get_slice_index().size();
+    }
+    if (max_layers_cnt == 0)
+        return;
+
+    float init_exp_time = m_material_config.initial_exposure_time.getFloat();//35;
+    float exp_time = m_material_config.exposure_time.getFloat();//8;
+
+    // TODO : fade_layers_cnt should be filled in the future
+    // This variable will be a part of the print(material) preset
+    const int fade_layers_cnt = 10; // [3;20]
+
+    // TODO : tilt_delay_before_time & tilt_delay_after_time should be filled in the future
+    // These values are received from the printer after a printing start
+    const float tilt_delay_before_time = 0.0;
+    const float tilt_delay_after_time = 0.0;
+    if (tilt_delay_before_time + tilt_delay_after_time > 0.0)
+    {
+        init_exp_time += tilt_delay_before_time + tilt_delay_after_time;
+        exp_time += tilt_delay_before_time + tilt_delay_after_time;
+    }
+
+    float estim_time = init_exp_time * 3 + exp_time * (max_layers_cnt - 3 - fade_layers_cnt);
+
+    const float delta_time = (init_exp_time - exp_time) / (fade_layers_cnt+1);
+    double fade_layer_time = init_exp_time;
+    while (fade_layer_time > exp_time)
+    {
+        fade_layer_time -= delta_time;
+        estim_time += fade_layer_time;
+    }
+
+    m_print_statistics.estimated_print_time = get_time_dhms(estim_time);
 }
 
 // Returns true if an object step is done on all objects and there's at least one object.
@@ -1255,6 +1298,43 @@ std::vector<Vec3d> SLAPrintObject::transformed_support_points() const
     for(auto& sp : spts) ret.emplace_back( trafo() * Vec3d(sp.cast<double>()));
 
     return ret;
+}
+
+DynamicConfig SLAPrintStatistics::config() const
+{
+    DynamicConfig config;
+    const std::string print_time = Slic3r::short_time(this->estimated_print_time);
+    config.set_key_value("print_time", new ConfigOptionString(print_time));
+    config.set_key_value("used_material", new ConfigOptionFloat(this->total_used_material/* / 1000.*/));
+    config.set_key_value("total_cost", new ConfigOptionFloat(this->total_cost));
+    config.set_key_value("total_weight", new ConfigOptionFloat(this->total_weight));
+    return config;
+}
+
+DynamicConfig SLAPrintStatistics::placeholders()
+{
+    DynamicConfig config;
+    for (const std::string &key : {
+        "print_time", "used_material", "total_cost", "total_weight" })
+        config.set_key_value(key, new ConfigOptionString(std::string("{") + key + "}"));
+        return config;
+}
+
+std::string SLAPrintStatistics::finalize_output_path(const std::string &path_in) const
+{
+    std::string final_path;
+    try {
+        boost::filesystem::path path(path_in);
+        DynamicConfig cfg = this->config();
+        PlaceholderParser pp;
+        std::string new_stem = pp.process(path.stem().string(), 0, &cfg);
+        final_path = (path.parent_path() / (new_stem + path.extension().string())).string();
+    }
+    catch (const std::exception &ex) {
+        BOOST_LOG_TRIVIAL(error) << "Failed to apply the print statistics to the export file name: " << ex.what();
+        final_path = path_in;
+    }
+    return final_path;
 }
 
 } // namespace Slic3r

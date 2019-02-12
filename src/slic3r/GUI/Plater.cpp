@@ -153,6 +153,7 @@ enum SlisedInfoIdx
     siFilament_m,
     siFilament_mm3,
     siFilament_g,
+    siMateril_unit,
     siCost,
     siEstimatedTime,
     siWTNumbetOfToolchanges,
@@ -193,6 +194,7 @@ SlicedInfo::SlicedInfo(wxWindow *parent) :
     init_info_label(_(L("Used Filament (m)")));
     init_info_label(_(L("Used Filament (mm³)")));
     init_info_label(_(L("Used Filament (g)")));
+    init_info_label(_(L("Used Material (unit)")));
     init_info_label(_(L("Cost")));
     init_info_label(_(L("Estimated printing time")));
     init_info_label(_(L("Number of tool changes")));
@@ -817,6 +819,21 @@ void Sidebar::show_sliced_info_sizer(const bool show)
 
     p->sliced_info->Show(show);
     if (show) {
+        if (p->plater->printer_technology() == ptSLA)
+        {
+            const SLAPrintStatistics& ps = p->plater->sla_print().print_statistics();
+            p->sliced_info->SetTextAndShow(siMateril_unit, wxString::Format("%.2f", ps.total_used_material));
+            p->sliced_info->SetTextAndShow(siCost, wxString::Format("%.2f", ps.total_cost));
+            p->sliced_info->SetTextAndShow(siEstimatedTime, ps.estimated_print_time, _(L("Estimated printing time")) + " :");
+
+            // Hide non-SLA sliced info parameters
+            p->sliced_info->SetTextAndShow(siFilament_m, "N/A");
+            p->sliced_info->SetTextAndShow(siFilament_mm3, "N/A");
+            p->sliced_info->SetTextAndShow(siFilament_g, "N/A");
+            p->sliced_info->SetTextAndShow(siWTNumbetOfToolchanges, "N/A");
+        }
+        else
+        { 
         const PrintStatistics& ps = p->plater->fff_print().print_statistics();
         const bool is_wipe_tower = ps.total_wipe_tower_filament > 0;
 
@@ -864,6 +881,10 @@ void Sidebar::show_sliced_info_sizer(const bool show)
 
         // if there is a wipe tower, insert number of toolchanges info into the array:
         p->sliced_info->SetTextAndShow(siWTNumbetOfToolchanges, is_wipe_tower ? wxString::Format("%.d", p->plater->fff_print().wipe_tower_data().number_of_toolchanges) : "N/A");
+
+        // Hide non-FFF sliced info parameters
+        p->sliced_info->SetTextAndShow(siMateril_unit, "N/A");
+        }    
     }
 
     Layout();

@@ -171,6 +171,29 @@ using PrintObjects = std::vector<SLAPrintObject*>;
 
 class TriangleMesh;
 
+struct SLAPrintStatistics
+{
+    SLAPrintStatistics() { clear(); }
+    std::string                     estimated_print_time;
+    double                          total_used_material;
+    double                          total_cost;
+    double                          total_weight;
+
+    // Config with the filled in print statistics.
+    DynamicConfig           config() const;
+    // Config with the statistics keys populated with placeholder strings.
+    static DynamicConfig    placeholders();
+    // Replace the print statistics placeholders in the path.
+    std::string             finalize_output_path(const std::string &path_in) const;
+
+    void clear() {
+        estimated_print_time.clear();
+        total_used_material = 0.;
+        total_cost = 0.;
+        total_weight = 0.;
+    }
+};
+
 /**
  * @brief This class is the high level FSM for the SLA printing process.
  *
@@ -208,12 +231,16 @@ public:
 	std::string         output_filename() const override 
         { return this->PrintBase::output_filename(m_print_config.output_filename_format.value, "zip"); }
 
+    const SLAPrintStatistics&      print_statistics() const { return m_print_statistics; }
+
 private:
     using SLAPrinter = FilePrinter<FilePrinterFormat::SLA_PNGZIP>;
     using SLAPrinterPtr = std::unique_ptr<SLAPrinter>;
 
     // Invalidate steps based on a set of parameters changed.
     bool invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
+
+    void fill_statistics();
 
     SLAPrintConfig                  m_print_config;
     SLAPrinterConfig                m_printer_config;
@@ -245,6 +272,9 @@ private:
 
     // The printer itself
     SLAPrinterPtr                           m_printer;
+
+    // Estimated print time, material consumed.
+    SLAPrintStatistics                      m_print_statistics;
 
 	friend SLAPrintObject;
 };

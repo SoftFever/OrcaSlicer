@@ -1863,7 +1863,7 @@ std::string Print::output_filename() const
     DynamicConfig config = this->finished() ? this->print_statistics().config() : this->print_statistics().placeholders();
     return this->PrintBase::output_filename(m_config.output_filename_format.value, "gcode", &config);
 }
-
+/*
 // Shorten the dhms time by removing the seconds, rounding the dhm to full minutes
 // and removing spaces.
 static std::string short_time(const std::string &time)
@@ -1903,7 +1903,7 @@ static std::string short_time(const std::string &time)
         ::sprintf(buffer, "%ds", seconds);
     return buffer;
 }
-
+*/
 DynamicConfig PrintStatistics::config() const
 {
     DynamicConfig config;
