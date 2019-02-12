@@ -64,7 +64,7 @@ struct PrinterPicker: wxPanel
     PrinterPicker(wxWindow *parent, const VendorProfile &vendor, wxString title, size_t max_cols, const AppConfig &appconfig_vendors, const ModelFilter &filter);
     PrinterPicker(wxWindow *parent, const VendorProfile &vendor, wxString title, size_t max_cols, const AppConfig &appconfig_vendors);
 
-    void select_all(bool select);
+    void select_all(bool select, bool alternates = false);
     void select_one(size_t i, bool select);
     void on_checkbox(const Checkbox *cbox, bool checked);
 
@@ -119,7 +119,7 @@ struct PagePrinters: ConfigWizardPage
 
     PagePrinters(ConfigWizard *parent, wxString title, wxString shortname, const VendorProfile &vendor, unsigned indent, Technology technology);
 
-    void select_all(bool select);
+    void select_all(bool select, bool alternates = false);
     int get_width() const;
 };
 
