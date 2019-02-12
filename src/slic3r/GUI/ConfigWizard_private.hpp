@@ -67,6 +67,10 @@ struct PrinterPicker: wxPanel
     void select_all(bool select);
     void select_one(size_t i, bool select);
     void on_checkbox(const Checkbox *cbox, bool checked);
+
+    int get_width() const { return width; }
+private:
+    int width;
 };
 
 struct ConfigWizardPage: wxPanel
@@ -116,6 +120,7 @@ struct PagePrinters: ConfigWizardPage
     PagePrinters(ConfigWizard *parent, wxString title, wxString shortname, const VendorProfile &vendor, unsigned indent, Technology technology);
 
     void select_all(bool select);
+    int get_width() const;
 };
 
 struct PageCustom: ConfigWizardPage
@@ -206,23 +211,13 @@ public:
 
     void clear();
 
-    // XXX
-    // void load_items(ConfigWizardPage *firstpage);
-    // void set_active(ConfigWizardPage *page);
 private:
-    // enum {
-    //  // Units in em
-    //  MARGIN = 1,
-    //  SPACING = 1,
-    // };
-
     struct Item
     {
         wxString label;
         unsigned indent;
         ConfigWizardPage *page;     // nullptr page => label-only item
 
-        // bool operator==(const wxString &label) const { return this->label == label; }
         bool operator==(ConfigWizardPage *page) const { return this->page == page; }
     };
 
@@ -235,7 +230,6 @@ private:
     const wxBitmap bullet_white;
 
     std::vector<Item> items;
-    // std::vector<Item>::const_iterator item_active;
     size_t item_active;
     ssize_t item_hover;
     size_t last_page;

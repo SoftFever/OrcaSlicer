@@ -1,6 +1,7 @@
 #include "ConfigWizard_private.hpp"
 
 #include <algorithm>
+#include <numeric>
 #include <utility>
 #include <unordered_map>
 #include <boost/format.hpp>
@@ -58,6 +59,7 @@ wxDEFINE_EVENT(EVT_PRINTER_PICK, PrinterPickerEvent);
 PrinterPicker::PrinterPicker(wxWindow *parent, const VendorProfile &vendor, wxString title, size_t max_cols, const AppConfig &appconfig_vendors, const ModelFilter &filter)
     : wxPanel(parent)
     , vendor_id(vendor.id)
+    , width(0)
 {
     const auto &models = vendor.models;
 
@@ -73,6 +75,9 @@ PrinterPicker::PrinterPicker(wxWindow *parent, const VendorProfile &vendor, wxSt
     std::vector<wxStaticBitmap*> bitmaps;
     std::vector<wxPanel*> variants_panels;
 
+    int max_row_width = 0;
+    int current_row_width = 0;
+
     for (const auto &model : models) {
         if (! filter(model)) { continue; }
 
@@ -80,7 +85,15 @@ PrinterPicker::PrinterPicker(wxWindow *parent, const VendorProfile &vendor, wxSt
 
         auto *title = new wxStaticText(this, wxID_ANY, model.name, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
         title->SetFont(font_name);
-        title->Wrap(std::max((int)MODEL_MIN_WRAP, bitmap.GetWidth()));
+        const int wrap_width = std::max((int)MODEL_MIN_WRAP, bitmap.GetWidth());
+        title->Wrap(wrap_width);
+
+        current_row_width += wrap_width;
+        if (titles.size() % max_cols == max_cols - 1) {
+            max_row_width = std::max(max_row_width, current_row_width);
+            current_row_width = 0;
+        }
+
         titles.push_back(title);
 
         auto *bitmap_widget = new wxStaticBitmap(this, wxID_ANY, bitmap);
@@ -119,6 +132,8 @@ PrinterPicker::PrinterPicker(wxWindow *parent, const VendorProfile &vendor, wxSt
 
         variants_panels.push_back(variants_panel);
     }
+
+    width = std::max(max_row_width, current_row_width);
 
     const size_t cols = std::min(max_cols, titles.size());
 
@@ -330,6 +345,12 @@ void PagePrinters::select_all(bool select)
     for (auto picker : printer_pickers) {
         picker->select_all(select);
     }
+}
+
+int PagePrinters::get_width() const
+{
+    return std::accumulate(printer_pickers.begin(), printer_pickers.end(), 0,
+        [](int acc, const PrinterPicker *picker) { return std::max(acc, picker->get_width()); });
 }
 
 
@@ -1019,27 +1040,6 @@ ConfigWizard::ConfigWizard(wxWindow *parent, RunReason reason)
     // We can now enable scrolling on hscroll
     p->hscroll->SetScrollRate(30, 30);
 
-    // XXX: set size right away on windows, create util function
-    // Bind(wxEVT_CREATE, [this](wxWindowCreateEvent &event) {
-    //     CallAfter([this]() {
-    //         // Clamp the Wizard size based on screen dimensions
-    //         // Note: Using EVT_SHOW + CallAfter because any sooner than this
-    //         // on some Linux boxes wxDisplay::GetFromWindow() returns 0 no matter what.
-
-    //         const auto idx = wxDisplay::GetFromWindow(this);
-    //         wxDisplay display(idx != wxNOT_FOUND ? idx : 0u);
-
-    //         const auto disp_rect = display.GetClientArea();
-    //         wxRect window_rect(
-    //             disp_rect.x + disp_rect.width / 20,
-    //             disp_rect.y + disp_rect.height / 20,
-    //             9*disp_rect.width / 10,
-    //             9*disp_rect.height / 10);
-
-    //         SetSize(window_rect);
-    //     });
-    // });
-
     on_window_geometry(this, [this]() {
         // Clamp the Wizard size based on screen dimensions
 
@@ -1052,6 +1052,12 @@ ConfigWizard::ConfigWizard(wxWindow *parent, RunReason reason)
             disp_rect.y + disp_rect.height / 20,
             9*disp_rect.width / 10,
             9*disp_rect.height / 10);
+
+        const int width_hint = p->index->GetSize().GetWidth() + p->page_fff->get_width() + 300;    // XXX: magic constant, I found no better solution
+        if (width_hint < window_rect.width) {
+            window_rect.x += (window_rect.width - width_hint) / 2;
+            window_rect.width = width_hint;
+        }
 
         SetSize(window_rect);
     });
