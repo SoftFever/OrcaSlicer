@@ -822,8 +822,19 @@ void Sidebar::show_sliced_info_sizer(const bool show)
         if (p->plater->printer_technology() == ptSLA)
         {
             const SLAPrintStatistics& ps = p->plater->sla_print().print_statistics();
-            p->sliced_info->SetTextAndShow(siMateril_unit, wxString::Format("%.2f", ps.total_used_material));
-            p->sliced_info->SetTextAndShow(siCost, wxString::Format("%.2f", ps.total_cost));
+            wxString new_label = _(L("Used Material (mm³)")) + " :";
+            const bool is_supports = ps.support_used_material > 0.0;
+            if (is_supports)
+                new_label += wxString::Format("\n    - %s\n    - %s", _(L("object(s)")), _(L("supports and pad")));
+
+            wxString info_text = is_supports ?
+                wxString::Format("%.2f \n%.2f \n%.2f", ps.objects_used_material + ps.support_used_material/* / 1000*/,
+                                                       ps.objects_used_material/* / 1000*/,
+                                                       ps.support_used_material/* / 1000*/) :
+                wxString::Format("%.2f", ps.objects_used_material + ps.support_used_material/* / 1000*/);
+            p->sliced_info->SetTextAndShow(siMateril_unit, info_text, new_label);
+
+            p->sliced_info->SetTextAndShow(siCost, "N/A"/*wxString::Format("%.2f", ps.total_cost)*/);
             p->sliced_info->SetTextAndShow(siEstimatedTime, ps.estimated_print_time, _(L("Estimated printing time")) + " :");
 
             // Hide non-SLA sliced info parameters

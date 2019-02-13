@@ -175,7 +175,8 @@ struct SLAPrintStatistics
 {
     SLAPrintStatistics() { clear(); }
     std::string                     estimated_print_time;
-    double                          total_used_material;
+    double                          objects_used_material;
+    double                          support_used_material;
     double                          total_cost;
     double                          total_weight;
 
@@ -188,7 +189,8 @@ struct SLAPrintStatistics
 
     void clear() {
         estimated_print_time.clear();
-        total_used_material = 0.;
+        objects_used_material = 0.;
+        support_used_material = 0.;
         total_cost = 0.;
         total_weight = 0.;
     }

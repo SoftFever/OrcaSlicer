@@ -1033,16 +1033,52 @@ bool SLAPrint::invalidate_state_by_config_options(const std::vector<t_config_opt
 
 void SLAPrint::fill_statistics()
 {
+    float supports_volume = 0.0;
+    float models_volume = 0.0;
+
+    int max_layers_cnt = 0;
+
+    const float init_layer_height = m_material_config.initial_layer_height.getFloat();
+    const float layer_height = m_default_object_config.layer_height.getFloat();
+
+    // Used material
+    for (SLAPrintObject * po : m_objects) {
+        // Calculate full volume of the supports (+pad) 
+        for (const ExPolygons& polygons : po->get_support_slices())
+            for (const ExPolygon& polygon : polygons)
+                supports_volume += polygon.area() *layer_height;
+
+        // Calculate full volume of the object 
+        for (const ExPolygons& polygons : po->get_model_slices())
+            for (const ExPolygon& polygon : polygons)
+                models_volume += polygon.area() *layer_height;
+
+        const SLAPrintObject::SliceIndex& slice_index = po->get_slice_index();
+
+        // If init_layer_height isn't equivalent to the layer_height,
+        // let correct volume of the first(initial) layer
+        if (init_layer_height != layer_height) 
+        {
+            const auto index = slice_index.begin();
+            if (index->second.support_slices_idx != SLAPrintObject::SliceRecord::NONE)
+                for (const ExPolygon& polygon : po->get_support_slices().front())
+                    supports_volume += polygon.area() *(init_layer_height - layer_height);
+            if (index->second.model_slices_idx != SLAPrintObject::SliceRecord::NONE)
+                for (const ExPolygon& polygon : po->get_model_slices().front())
+                    models_volume += polygon.area() *(init_layer_height - layer_height);
+        }
+
+        if (max_layers_cnt < slice_index.size())
+            max_layers_cnt = slice_index.size();
+    }
+
+    m_print_statistics.support_used_material = supports_volume * SCALING_FACTOR * SCALING_FACTOR;
+    m_print_statistics.objects_used_material = models_volume  * SCALING_FACTOR * SCALING_FACTOR;
+
     // Estimated printing time
     // A layers count o the highest object 
-    int max_layers_cnt = 0;
-    for (SLAPrintObject * po : m_objects) {
-        if (max_layers_cnt < po->get_slice_index().size())
-            max_layers_cnt = po->get_slice_index().size();
-    }
     if (max_layers_cnt == 0)
-        return;
-
+        m_print_statistics.estimated_print_time = "N/A";
     float init_exp_time = m_material_config.initial_exposure_time.getFloat();//35;
     float exp_time = m_material_config.exposure_time.getFloat();//8;
 
@@ -1308,7 +1344,8 @@ DynamicConfig SLAPrintStatistics::config() const
     DynamicConfig config;
     const std::string print_time = Slic3r::short_time(this->estimated_print_time);
     config.set_key_value("print_time", new ConfigOptionString(print_time));
-    config.set_key_value("used_material", new ConfigOptionFloat(this->total_used_material/* / 1000.*/));
+    config.set_key_value("objects_used_material", new ConfigOptionFloat(this->objects_used_material));
+    config.set_key_value("support_used_material", new ConfigOptionFloat(this->support_used_material));
     config.set_key_value("total_cost", new ConfigOptionFloat(this->total_cost));
     config.set_key_value("total_weight", new ConfigOptionFloat(this->total_weight));
     return config;
@@ -1318,7 +1355,8 @@ DynamicConfig SLAPrintStatistics::placeholders()
 {
     DynamicConfig config;
     for (const std::string &key : {
-        "print_time", "used_material", "total_cost", "total_weight" })
+        "print_time", "total_cost", "total_weight",
+        "objects_used_material", "support_used_material" })
         config.set_key_value(key, new ConfigOptionString(std::string("{") + key + "}"));
         return config;
 }
