@@ -14,6 +14,12 @@
 
 namespace Slic3r {
 
+enum ePrintStatistics
+{
+    psObjectsUsedMaterial = 0,
+    psSupportUsedMaterial
+};
+
 enum class FilePrinterFormat {
     SLA_PNGZIP,
     SVG
@@ -118,6 +124,9 @@ template<> class FilePrinter<FilePrinterFormat::SLA_PNGZIP>
     double m_layer_height = .0;
     Raster::Origin m_o = Raster::Origin::TOP_LEFT;
 
+    double m_objects_used_material = 0.0;
+    double m_support_used_material = 0.0;
+
     std::string createIniContent(const std::string& projectname) {
         double layer_height = m_layer_height;
 
@@ -128,6 +137,9 @@ template<> class FilePrinter<FilePrinterFormat::SLA_PNGZIP>
         auto expt_first_str = to_string(m_exp_time_first_s);
         auto stepnum_str = to_string(static_cast<unsigned>(800*layer_height));
         auto layerh_str = to_string(layer_height);
+
+        const std::string objects_used_material = to_string(m_objects_used_material);
+        const std::string support_used_material = to_string(m_support_used_material);
 
         return string(
         "action = print\n"
@@ -143,7 +155,9 @@ template<> class FilePrinter<FilePrinterFormat::SLA_PNGZIP>
         "layerHeight = " + layerh_str + "\n"
         "noteInfo = "
         "expTime="+expt_str+"+resinType=generic+layerHeight="
-                  +layerh_str+"+printer=DWARF3\n";
+                  +layerh_str+"+printer=DWARF3\n"
+        "objUsedMaterial=" + objects_used_material + "\n"
+        "supUsedMaterial=" + support_used_material + "\n";
     }
 
 public:
@@ -276,6 +290,12 @@ public:
 
         out.close();
         m_layers_rst[i].first.reset();
+    }
+
+    void set_statistics(const std::vector<double> statistics)
+    {
+        m_objects_used_material = statistics[psObjectsUsedMaterial];
+        m_support_used_material = statistics[psSupportUsedMaterial];
     }
 };
 

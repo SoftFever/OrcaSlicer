@@ -969,6 +969,10 @@ void SLAPrint::process()
 
     // Fill statistics
     fill_statistics();
+    // Set statistics values to the printer
+    SLAPrinter& printer = *m_printer;
+    printer.set_statistics({m_print_statistics.objects_used_material,
+                            m_print_statistics.support_used_material});
 
     // If everything vent well
     report_status(*this, 100, L("Slicing done"));
