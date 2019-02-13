@@ -15,9 +15,9 @@ const std::string USAGE_STR = {
 namespace Slic3r { namespace sla {
 
 Contour3D convert(const Polygons& triangles, coord_t z, bool dir);
-Contour3D walls(const ExPolygon& floor_plate, const ExPolygon& ceiling,
+Contour3D walls(const Polygon& floor_plate, const Polygon& ceiling,
                 double floor_z_mm, double ceiling_z_mm,
-                ThrowOnCancel thr, double offset_difference_mm = 0.0);
+                double offset_difference_mm, ThrowOnCancel thr);
 
 void offset(ExPolygon& sh, coord_t distance);
 
@@ -64,7 +64,7 @@ int main(const int argc, const char *argv[]) {
     mesh.merge(bottom_plate_mesh);
     mesh.merge(top_plate_mesh);
 
-    sla::Contour3D w = sla::walls(bottom_plate, top_plate, 0, 3, [](){}, 2.0);
+    sla::Contour3D w = sla::walls(bottom_plate.contour, top_plate.contour, 0, 3, 2.0, [](){});
 
     mesh.merge(w);
 //    sla::create_base_pool(ground_slice, basepool);
