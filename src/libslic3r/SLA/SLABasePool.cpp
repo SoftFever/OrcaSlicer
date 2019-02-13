@@ -5,7 +5,10 @@
 #include "SLABoostAdapter.hpp"
 #include "ClipperUtils.hpp"
 
-//#include "SVG.hpp"
+
+#include <fstream>
+
+#include "SVG.hpp"
 //#include "benchmark.h"
 
 namespace Slic3r { namespace sla {
@@ -30,55 +33,465 @@ Contour3D convert(const Polygons& triangles, coord_t z, bool dir) {
     return {points, indices};
 }
 
+
+//    // step 1: find the leftmost bottom vertex of each plate.
+
+////    auto vcmp = [](const Point& v1, const Point& v2) {
+////        if(v1.y() == v2.y()) return v1.x() < v2.x();
+////        return v1.y() < v2.y();
+////    };
+
+//    // lb stands for Leftmost Bottom
+//    //auto iit = inner.points.begin(); //std::min_element(inner.points.begin(), inner.points.end(), vcmp);
+//    //auto oit = outer.points.begin();//std::min_element(outer.points.begin(), outer.points.end(), vcmp);
+
+//    // step 2: find the centroid of the inner polygon
+//    auto bb = inner.bounding_box();
+//    Point center = bb.center();
+
+//    const double Pi_2 = 2*PI;
+
+//    // This will return the angle of a segment (p1, p2) to the X axis
+//    // from 0 to 2*PI
+//    auto anglefn = [Pi_2, center](const Point& p) {
+//        coord_t dx = p.x() - center.x(), dy = p.y() - center.y();
+//        double a = std::atan2(dy, dx);
+//        auto s   = std::signbit(a);
+//        if(s) a += Pi_2;
+//        return a;
+//    };
+
+//    ret.points.reserve(inner.points.size() + outer.points.size());
+//    for(auto& p : inner.points)
+//        ret.points.emplace_back(unscale(p.x(), p.y(), mm(ceiling_z_mm)));
+
+//    for(auto& p : outer.points)
+//        ret.points.emplace_back(unscale(p.x(), p.y(), mm(floor_z_mm)));
+
+//    std::vector<std::pair<long, double>> anglediagram;
+//    anglediagram.reserve(inner.size() + outer.size());
+
+//    for(size_t i = 0; i < inner.size(); ++i)
+//        anglediagram.emplace_back(
+//                    std::make_pair(long(i), anglefn(inner.points[i]) )
+//        );
+
+//    const auto offs = long(inner.points.size());
+
+//    for(size_t i = 0; i < outer.size(); ++i)
+//        anglediagram.emplace_back(
+//                    std::make_pair(offs + long(i), anglefn(outer.points[i]) )
+//        );
+
+//    std::sort(anglediagram.begin(), anglediagram.end(),
+//              [](const std::pair<long, double>& v1,
+//                 const std::pair<long, double>& v2)
+//    {
+//        return v1.second < v2.second;
+//    });
+
+
+//    for(size_t i = 0; i < anglediagram.size() - 3; ++i) {
+//        long t1 = anglediagram[i].first;
+//        long t2 = anglediagram[i + 1].first;
+
+//        if(t1 >= offs && t2 >= offs) {
+//            // search for an inner vertex
+//            size_t jd = i;
+//            size_t ju = i + 1;
+//            while(anglediagram[jd].first >= offs) {
+//                if(jd == 0) jd = anglediagram.size() - 1;
+//                else --jd;
+//            }
+//            while(anglediagram[ju].first >= offs) {
+//                if(ju >= anglediagram.size() - 1) ju = 0;
+//                else ++ju;
+
+//                if(ju > anglediagram.size()) {
+//                    std::cout << "mi eeez????" << std::endl;
+//                }
+//            }
+
+//            assert(jd != i || ju != i + 1);
+
+//            long t3 = -1;
+
+//            if(ju > anglediagram.size() || jd > anglediagram.size()) {
+//                std::cout << "baj van" << std::endl;
+//            }
+
+//            if(jd == i) t3 = anglediagram[ju].first;
+//            else if(ju == i + 1) t3 = anglediagram[jd].first;
+//            else {
+
+//                double ad = anglediagram[jd].second;
+//                double au = anglediagram[ju].second;
+
+//                double dd = std::abs(ad - anglediagram[i].second);
+//                if(dd > PI) dd = Pi_2 - dd;
+
+//                double du = std::abs(au - anglediagram[i + 1].second);
+//                if(du > PI) du = Pi_2 - du;
+
+//                t3 = dd < du ? anglediagram[jd].first: anglediagram[ju].first;
+//            }
+
+//            ret.indices.emplace_back(t1, t3, t2);
+//        }
+//    }
+
+// This function will return a triangulation of a sheet connecting an upper
+// and a lower plate given as input polygons. It will not triangulate the plates
+// themselves only the robe.
 Contour3D walls(const ExPolygon& floor_plate, const ExPolygon& ceiling,
                 double floor_z_mm, double ceiling_z_mm,
-                ThrowOnCancel thr)
+                ThrowOnCancel thr, double offset_difference_mm = 0)
 {
-    using std::transform; using std::back_inserter;
-
-    ExPolygon poly;
-    poly.contour.points = floor_plate.contour.points;
-    poly.holes.emplace_back(ceiling.contour);
-    auto& h = poly.holes.front();
-    std::reverse(h.points.begin(), h.points.end());
-    Polygons tri = triangulate(poly);
-
     Contour3D ret;
-    ret.points.reserve(tri.size() * 3);
 
-    double fz = floor_z_mm;
-    double cz = ceiling_z_mm;
-    auto& rp = ret.points;
-    auto& rpi = ret.indices;
-    ret.indices.reserve(tri.size() * 3);
+    const Polygon& inner = ceiling.contour;
+    const Polygon& outer = floor_plate.contour;
 
-    coord_t idx = 0;
+    if(inner.points.size() < 3 || outer.size() < 3) return ret;
 
-    auto hlines = h.lines();
-    auto is_upper = [&hlines](const Point& p) {
-        return std::any_of(hlines.begin(), hlines.end(),
-                               [&p](const Line& l) {
-            return l.distance_to(p) < mm(1e-6);
-        });
+    const auto offs = long(inner.points.size());
+
+    ret.points.reserve(inner.points.size() + outer.points.size());
+    for(auto& p : inner.points)
+        ret.points.emplace_back(unscale(p.x(), p.y(), mm(ceiling_z_mm)));
+
+    for(auto& p : outer.points)
+        ret.points.emplace_back(unscale(p.x(), p.y(), mm(floor_z_mm)));
+
+    auto iit = inner.points.begin();
+    auto oit = outer.points.begin();
+
+    // We need to find the closest point on outer polygon to the first point on
+    // the inner polygon. These will be our starting points.
+    double distmin = std::numeric_limits<double>::max();
+
+    for(auto ot = outer.points.begin(); ot != outer.points.end(); ++ot) {
+        Vec2d p = (*ot - *iit).cast<double>();
+        double d = p.transpose() * p;
+        if(d < distmin) { oit = ot; distmin = d; }
+    }
+
+    auto inext = std::next(iit);
+    auto onext = std::next(oit);
+    if(onext == outer.points.end()) onext = outer.points.begin();
+
+    auto iidx = iit - inner.points.begin();
+    auto inextidx = inext - inner.points.begin();
+    auto oidx = offs + oit - outer.points.begin();
+    auto onextidx = offs + onext - outer.points.begin();
+
+    auto nextinp = [&iit, &inext, &inner, &iidx, &inextidx] () {
+        ++iit; ++inext;
+        if(inext == inner.points.end()) inext = inner.points.begin();
+        if(iit   == inner.points.end()) iit   = inner.points.begin();
+        inextidx = inext - inner.points.begin();
+        iidx     = iit   - inner.points.begin();
     };
 
-    std::for_each(tri.begin(), tri.end(),
-                  [&rp, &rpi, thr, &idx, is_upper, fz, cz](const Polygon& pp)
+    auto nextoutp = [&oit, &onext, &outer, &onextidx, &oidx, offs] () {
+        ++oit; ++onext;
+        if(onext == outer.points.end()) onext = outer.points.begin();
+        if(oit   == outer.points.end()) oit   = outer.points.begin();
+        onextidx = offs + onext - outer.points.begin();
+        oidx     = offs + oit   - outer.points.begin();
+    };
+
+    bool isinsider = true;
+    bool idirty = false, odirty = false;
+    double obtusity = 0;
+    double prev_obtusity = 0;
+
+    auto distfn = [](const Vec2d& p1, const Vec2d& p2) {
+        auto p = p1 - p2;
+        return p.transpose() * p;
+    };
+
+    double cd = ceiling_z_mm - floor_z_mm;
+    double slope = offset_difference_mm / std::sqrt(std::pow(offset_difference_mm, 2) + std::pow(cd, 2));
+
+    auto obtusityfn = [distfn](const Vec2d& p1, const Vec2d& p2, const Vec2d& p3)
     {
-        thr(); // may throw if cancellation was requested
+        double a = distfn(p1, p2);
+        double b = distfn(p2, p3);
+        double c = distfn(p1, p3);
+        double aa = std::sqrt(a);
+        double bb = std::sqrt(b);
+        double cc = std::sqrt(c);
 
-        for(auto& p : pp.points)
-            if(is_upper(p))
-                rp.emplace_back(unscale(x(p), y(p), mm(cz)));
-            else rp.emplace_back(unscale(x(p), y(p), mm(fz)));
+//        std::array<double, 3> sides = {aa, bb, cc};
+//        std::sort(sides.begin(), sides.end());
+//        double thinness = -1 + 2 * std::pow(sides.front() / sides.back(), 2);
 
-        coord_t a = idx++, b = idx++, c = idx++;
-        if(fz > cz) rpi.emplace_back(c, b, a);
-        else rpi.emplace_back(a, b, c);
-    });
+//        assert(thinness <= 1.0 && thinness >= -1.0);
+
+        std::array<double, 3> coses;
+        coses[0] = (a + b - c) / (2*aa*bb);
+        coses[1] = (a + c - b) / (2*aa*cc);
+        coses[2] = (c + b - a) / (2*cc*bb);
+
+        bool isobt = a + b < c || b + c < a || c + a < b;
+        double minval = *std::min_element(coses.begin(), coses.end());
+
+        assert(isobt && minval <= 0 || !isobt && minval >= 0);
+
+        return minval;
+//        return 0.5 * (minval + thinness);
+    };
+
+#ifndef NDEBUG
+    Polygons top_plate_triangles, bottom_plate_triangles;
+    ceiling.triangulate_p2t(&top_plate_triangles);
+    floor_plate.triangulate_p2t(&bottom_plate_triangles);
+
+    auto top_plate_mesh = sla::convert(top_plate_triangles, coord_t(3.0/SCALING_FACTOR), false);
+    auto bottom_plate_mesh = sla::convert(bottom_plate_triangles, 0, true);
+    Contour3D dmesh;
+    dmesh.merge(top_plate_mesh);
+    dmesh.merge(bottom_plate_mesh);
+#endif
+
+    double idist = 0, odist = 0;
+    double ilen = inner.length(), olen = outer.length();
+    double doffs = offset_difference_mm;
+
+    auto iend = iit; auto oend = oit;
+    do {
+#ifndef NDEBUG
+        std::fstream fout("dout.obj", std::fstream::out);
+        Contour3D dmeshout = dmesh;
+#endif
+        prev_obtusity = obtusity;
+        double distfactor = idist/ilen - odist/olen;
+
+        if(isinsider) {
+            Vec3d p1(iit->x()*SCALING_FACTOR, iit->y()*SCALING_FACTOR, ceiling_z_mm);
+            Vec3d p2(oit->x()*SCALING_FACTOR, oit->y()*SCALING_FACTOR, floor_z_mm);
+            Vec3d p3(inext->x()*SCALING_FACTOR, inext->y()*SCALING_FACTOR, ceiling_z_mm);
+
+            if(idirty && iit == iend) { isinsider = false; continue; }
+
+            double t1 = doffs / std::sqrt((p1 - p2).transpose() * (p1 - p2));
+            t1 = slope - t1;
+            double t2 = doffs / std::sqrt((p3 - p2).transpose() * (p3 - p2));
+            t2 = slope - t2;
+            double t = std::max(std::abs(t1), std::abs(t2));
+
+            obtusity = t;
+//            obtusity = obtusityfn(p1, p2, p3);
+//            obtusity = 0.9 * obtusity - 0.1 * distfactor;
+
+            if(obtusity > prev_obtusity) {
+                isinsider = false;
+            } else {
+                ret.indices.emplace_back(iidx, oidx, inextidx);
+                nextinp();
+                Vec2d tmp = (*iit - *inext).cast<double>();
+                idist += std::sqrt(tmp.transpose() * tmp);
+                idirty = true;
+            }
+        } else {
+            Vec3d p1(oit->x()*SCALING_FACTOR, oit->y()*SCALING_FACTOR, floor_z_mm);
+            Vec3d p2(onext->x()*SCALING_FACTOR, onext->y()*SCALING_FACTOR, floor_z_mm);
+            Vec3d p3(iit->x()*SCALING_FACTOR, iit->y()*SCALING_FACTOR, ceiling_z_mm);
+
+            if(odirty && oit == oend) { isinsider = true; continue; }
+
+            double t1 = slope - doffs / std::sqrt((p3 - p1).transpose() * (p3 - p1));
+            double t2 = slope - doffs / std::sqrt((p3 - p2).transpose() * (p3 - p2));
+            double t = std::max(std::abs(t1), std::abs(t2));
+
+            obtusity = t;
+
+//            obtusity = obtusityfn(p1, p2, p3);
+//            obtusity = 0.9 * obtusity + 0.1 * distfactor;
+
+            if(obtusity > prev_obtusity) {
+                isinsider = true;
+            } else {
+                ret.indices.emplace_back(oidx, onextidx, iidx);
+                nextoutp();
+                Vec2d tmp = (*oit - *onext).cast<double>();
+                odist += std::sqrt(tmp.transpose() * tmp);
+                odirty = true;
+            }
+        }
+
+#ifndef NDEBUG
+        dmeshout.merge(ret);
+        dmeshout.to_obj(fout);
+        fout.close();
+        std::cout << "triangle written" << std::endl;
+#endif
+
+    } while(!idirty || !odirty || iit != iend || oit != oend);
 
     return ret;
+
+//        using std::transform; using std::back_inserter;
+
+//        ExPolygon poly;
+//        poly.contour.points = floor_plate.contour.points;
+//        poly.holes.emplace_back(ceiling.contour);
+//        auto& h = poly.holes.front();
+//        std::reverse(h.points.begin(), h.points.end());
+//        Polygons tri = triangulate(poly);
+
+//        Contour3D ret;
+//        ret.points.reserve(tri.size() * 3);
+
+//        double fz = floor_z_mm;
+//        double cz = ceiling_z_mm;
+//        auto& rp = ret.points;
+//        auto& rpi = ret.indices;
+//        ret.indices.reserve(tri.size() * 3);
+
+//        coord_t idx = 0;
+
+//        auto hlines = h.lines();
+//        auto is_upper = [&hlines](const Point& p) {
+//            return std::any_of(hlines.begin(), hlines.end(),
+//                                   [&p](const Line& l) {
+//                return l.distance_to(p) < mm(1e-6);
+//            });
+//        };
+
+//        for(const Polygon& pp : tri) {
+//            thr(); // may throw if cancellation was requested
+
+//            for(auto& p : pp.points)
+//                if(is_upper(p))
+//                    rp.emplace_back(unscale(x(p), y(p), mm(cz)));
+//                else rp.emplace_back(unscale(x(p), y(p), mm(fz)));
+
+//            coord_t a = idx++, b = idx++, c = idx++;
+//            if(fz > cz) rpi.emplace_back(c, b, a);
+//            else rpi.emplace_back(a, b, c);
+//        }
+
+//        return ret;
 }
+
+
+//    const auto offs = long(inner.points.size());
+
+//    auto inext = std::next(iit);
+//    auto onext = std::next(oit);
+
+//    auto nextinp = [&iit, &inext, &inner] () {
+//        ++iit; ++inext;
+//        if(inext == inner.points.end()) inext = inner.points.begin();
+//        if(iit   == inner.points.end()) iit   = inner.points.begin();
+//    };
+
+//    auto nextoutp = [&oit, &onext, &outer] () {
+//        ++oit; ++onext;
+//        if(onext == outer.points.end()) onext = outer.points.begin();
+//        if(oit   == outer.points.end()) oit   = outer.points.begin();
+//    };
+
+//    double aonext = anglefn(*onext);
+//    size_t n = 0;
+//    while(n < inner.size()) {
+//        double a1 = anglefn(*iit);
+//        double a2 = anglefn(*inext);
+//        if(inext < iit) a2 += Pi_2;
+
+//        double amin = std::min(a1, a2);
+//        double amax = std::max(a1, a2);
+
+//        // We have to dial the outer vertex pair to the range of the inner
+//        // pair
+//        size_t i = 0;
+//        while((aonext <= amin || aonext > amax) && i < outer.size())
+//        { // search for the first outer vertex that is suitable
+//            nextoutp();
+//            aonext = anglefn(*onext);
+//            if(inext < iit) aonext += Pi_2;
+//            ++i;
+//        }
+
+//        // If we arrived at the end of the outer ring, and the inner is not
+//        // completed, we will rotate the outer.
+//        if(i == outer.size()) {
+//            nextinp(); ++n;
+//            continue;
+//        }
+
+//        auto iidx = iit - inner.points.begin();
+//        auto inextidx = inext - inner.points.begin();
+//        auto oidx = offs + oit - outer.points.begin();
+//        auto onextidx = offs + onext - outer.points.begin();
+
+//        ret.indices.emplace_back(onextidx, iidx, oidx);
+//        ret.indices.emplace_back(onextidx, inextidx, iidx);
+
+//        while(true)
+//        {
+//            nextoutp();
+
+//            onextidx = offs + onext - outer.points.begin();
+//            oidx = offs + oit - outer.points.begin();
+
+//            aonext = anglefn(*onext);
+
+//            if(aonext > amin && aonext <= amax) {
+//                ret.indices.emplace_back(onextidx, inextidx, oidx);
+//            } else break;
+//        }
+
+//        nextinp(); ++n;
+//    }
+
+
+
+
+//    using std::transform; using std::back_inserter;
+
+//    ExPolygon poly;
+//    poly.contour.points = floor_plate.contour.points;
+//    poly.holes.emplace_back(ceiling.contour);
+//    auto& h = poly.holes.front();
+//    std::reverse(h.points.begin(), h.points.end());
+//    Polygons tri = triangulate(poly);
+
+//    Contour3D ret;
+//    ret.points.reserve(tri.size() * 3);
+
+//    double fz = floor_z_mm;
+//    double cz = ceiling_z_mm;
+//    auto& rp = ret.points;
+//    auto& rpi = ret.indices;
+//    ret.indices.reserve(tri.size() * 3);
+
+//    coord_t idx = 0;
+
+//    auto hlines = h.lines();
+//    auto is_upper = [&hlines](const Point& p) {
+//        return std::any_of(hlines.begin(), hlines.end(),
+//                               [&p](const Line& l) {
+//            return l.distance_to(p) < mm(1e-6);
+//        });
+//    };
+
+//    for(const Polygon& pp : tri) {
+//        thr(); // may throw if cancellation was requested
+
+//        for(auto& p : pp.points)
+//            if(is_upper(p))
+//                rp.emplace_back(unscale(x(p), y(p), mm(cz)));
+//            else rp.emplace_back(unscale(x(p), y(p), mm(fz)));
+
+//        coord_t a = idx++, b = idx++, c = idx++;
+//        if(fz > cz) rpi.emplace_back(c, b, a);
+//        else rpi.emplace_back(a, b, c);
+//    }
+
+//    return ret;
 
 /// Offsetting with clipper and smoothing the edges into a curvature.
 void offset(ExPolygon& sh, coord_t distance) {
