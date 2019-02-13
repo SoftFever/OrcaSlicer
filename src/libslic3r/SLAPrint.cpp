@@ -8,6 +8,7 @@
 #include <numeric>
 
 #include <tbb/parallel_for.h>
+#include <boost/filesystem/path.hpp>
 #include <boost/log/trivial.hpp>
 
 //#include <tbb/spin_mutex.h>//#include "tbb/mutex.h"
@@ -1032,6 +1033,8 @@ bool SLAPrint::invalidate_state_by_config_options(const std::vector<t_config_opt
 
 void SLAPrint::fill_statistics()
 {
+    // Estimated printing time
+    // A layers count o the highest object 
     int max_layers_cnt = 0;
     for (SLAPrintObject * po : m_objects) {
         if (max_layers_cnt < po->get_slice_index().size())
