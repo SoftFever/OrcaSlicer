@@ -4,6 +4,7 @@
 #include "boost/log/trivial.hpp"
 #include "SLABoostAdapter.hpp"
 #include "ClipperUtils.hpp"
+#include "Tesselate.hpp"
 
 // For debugging:
 //#include <fstream>
@@ -11,26 +12,6 @@
 //#include "SVG.hpp"
 
 namespace Slic3r { namespace sla {
-
-/// Convert the triangulation output to an intermediate mesh.
-Contour3D convert(const Polygons& triangles, coord_t z, bool dir) {
-
-    Pointf3s points;
-    points.reserve(3*triangles.size());
-    Indices indices;
-    indices.reserve(points.size());
-
-    for(auto& tr : triangles) {
-        auto c = coord_t(points.size()), b = c++, a = c++;
-        if(dir) indices.emplace_back(a, b, c);
-        else indices.emplace_back(c, b, a);
-        for(auto& p : tr.points) {
-            points.emplace_back(unscale(x(p), y(p), z));
-        }
-    }
-
-    return {points, indices};
-}
 
 /// This function will return a triangulation of a sheet connecting an upper
 /// and a lower plate given as input polygons. It will not triangulate the
@@ -324,12 +305,11 @@ ExPolygons unify(const ExPolygons& shapes) {
 /// Only a debug function to generate top and bottom plates from a 2D shape.
 /// It is not used in the algorithm directly.
 inline Contour3D roofs(const ExPolygon& poly, coord_t z_distance) {
-    Polygons triangles = triangulate(poly);
-
-    auto lower = convert(triangles, 0, false);
-    auto upper = convert(triangles, z_distance, true);
-    lower.merge(upper);
-    return lower;
+    auto lower = triangulate_expolygons_3df(poly);
+    auto upper = triangulate_expolygons_3df(poly, z_distance*SCALING_FACTOR, true);
+    Contour3D ret;
+    ret.merge(lower); ret.merge(upper);
+    return ret;
 }
 
 Contour3D round_edges(const ExPolygon& base_plate,
@@ -411,15 +391,18 @@ Contour3D round_edges(const ExPolygon& base_plate,
 
 /// Generating the concave part of the 3D pool with the bottom plate and the
 /// side walls.
-Contour3D inner_bed(const ExPolygon& poly, double depth_mm,
-                           double begin_h_mm = 0) {
-
-    Polygons triangles = triangulate(poly);
+Contour3D inner_bed(const ExPolygon& poly,
+                    double depth_mm,
+                    double begin_h_mm = 0)
+{
+    Contour3D bottom;
+    Pointf3s triangles = triangulate_expolygons_3df(poly,
+                                                    -depth_mm + begin_h_mm);
+    bottom.merge(triangles);
 
     coord_t depth = mm(depth_mm);
     coord_t begin_h = mm(begin_h_mm);
 
-    auto bottom = convert(triangles, -depth + begin_h, false);
     auto lines = poly.lines();
 
     // Generate outer walls
@@ -716,22 +699,27 @@ void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
         // Now we need to triangulate the top and bottom plates as well as the
         // cavity bottom plate which is the same as the bottom plate but it is
         // elevated by the thickness.
-        Polygons top_triangles, bottom_triangles;
+//        Polygons top_triangles, bottom_triangles;
 
-        triangulate(top_poly, top_triangles);
-        triangulate(inner_base, bottom_triangles);
+//        triangulate(top_poly, top_triangles);
+//        triangulate(inner_base, bottom_triangles);
 
-        auto top_plate = convert(top_triangles, 0, false);
-        auto bottom_plate = convert(bottom_triangles, -mm(fullheight), true);
+//        auto top_plate = convert(top_triangles, 0, false);
+//        auto bottom_plate = convert(bottom_triangles, -mm(fullheight), true);
+
+        Pointf3s top_plate = triangulate_expolygons_3df(top_poly);
+        Pointf3s bottom_plate = triangulate_expolygons_3df(inner_base, -fullheight, true);
 
         pool.merge(top_plate);
         pool.merge(bottom_plate);
 
         if(wingheight > 0) {
-            Polygons middle_triangles;
-            triangulate(inner_base, middle_triangles);
-            auto middle_plate = convert(middle_triangles, -mm(wingheight), false);
-            pool.merge(middle_plate);
+//            Polygons middle_triangles;
+
+//            triangulate(inner_base, middle_triangles);
+//            auto middle_plate = convert(middle_triangles, -mm(wingheight), false);
+            Pointf3s middle_triangles = triangulate_expolygons_3df(inner_base, -wingheight);
+            pool.merge(middle_triangles);
         }
     }
 
