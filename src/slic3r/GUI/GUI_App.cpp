@@ -3,8 +3,10 @@
 #include "GUI_ObjectManipulation.hpp"
 #include "I18N.hpp"
 
+#include <exception>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/log/trivial.hpp>
 
 #include <wx/stdpaths.h>
 #include <wx/imagpng.h>
@@ -181,7 +183,6 @@ bool GUI_App::OnInit()
                 mainframe->Close();
         } catch (const std::exception &ex) {
             show_error(nullptr, ex.what());
-            mainframe->Close();
         }
     });
 
@@ -679,6 +680,23 @@ void GUI_App::load_current_presets()
 				static_cast<TabPrinter*>(tab)->update_pages();
 			tab->load_current_preset();
 		}
+}
+
+bool GUI_App::OnExceptionInMainLoop()
+{
+    try {
+        throw;
+    } catch (const std::exception &ex) {
+        const std::string error = (boost::format("Uncaught exception: %1%") % ex.what()).str();
+        BOOST_LOG_TRIVIAL(error) << error;
+        show_error(nullptr, from_u8(error));
+    } catch (...) {
+        const char *error = "Uncaught exception: Unknown error";
+        BOOST_LOG_TRIVIAL(error) << error;
+        show_error(nullptr, from_u8(error));
+    }
+
+    return false;
 }
 
 #ifdef __APPLE__
