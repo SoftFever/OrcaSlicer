@@ -5,8 +5,10 @@
 #include "SLABoostAdapter.hpp"
 #include "ClipperUtils.hpp"
 
+// For debugging:
+//#include <fstream>
+//#include <libnest2d/tools/benchmark.h>
 //#include "SVG.hpp"
-//#include "benchmark.h"
 
 namespace Slic3r { namespace sla {
 
@@ -120,17 +122,18 @@ Contour3D walls(const Polygon& lower, const Polygon& upper,
     // previous.
     double current_fit = 0, prev_fit = 0;
 
-    // Simple distance calculation.
+    // Simple squared distance calculation.
     auto distfn = [](const Vec3d& p1, const Vec3d& p2) {
-        auto p = p1 - p2; return std::sqrt(p.transpose() * p);
+        auto p = p1 - p2; return p.transpose() * p;
     };
 
-    // Calculate the reference fitness value. It will be the sine of the angle
-    // from the upper to the lower plate according to the triangle noted by the
-    // Z difference and the offset difference.
-    const double required_fit = offset_difference_mm /
-            std::sqrt( std::pow(offset_difference_mm, 2) +
-                       std::pow(upper_z_mm - lower_z_mm, 2));
+    // Every triangle of the wall has two edges connecting the upper plate with
+    // the lower plate. From the length of these two edges and the zdiff we
+    // can calculate the momentary squared offset distance at a particular
+    // position on the wall. The average of the differences from the reference
+    // (squared) offset distance will give us the driving fitness value.
+    const double offsdiff2 = std::pow(offset_difference_mm, 2);
+    const double zdiff2 = std::pow(upper_z_mm - lower_z_mm, 2);
 
     // Mark the current vertex iterator positions. If the iterators return to
     // the same position, the loop can be terminated.
@@ -155,10 +158,10 @@ Contour3D walls(const Polygon& lower, const Polygon& upper,
                 Vec3d p2(op.x(), op.y(), lower_z_mm);
                 Vec3d p3(inextp.x(), inextp.y(), upper_z_mm);
 
-                // Calculate fitness: the worst of the two connecting edges
-                double a = required_fit - offset_difference_mm / distfn(p1, p2);
-                double b = required_fit - offset_difference_mm / distfn(p3, p2);
-                current_fit = std::max(std::abs(a), std::abs(b));
+                // Calculate fitness: the average of the two connecting edges
+                double a = offsdiff2 - (distfn(p1, p2) - zdiff2);
+                double b = offsdiff2 - (distfn(p3, p2) - zdiff2);
+                current_fit = (std::abs(a) + std::abs(b)) / 2;
 
                 if(current_fit > prev_fit) { // fit is worse than previously
                     proceed = Proceed::LOWER;
@@ -186,9 +189,9 @@ Contour3D walls(const Polygon& lower, const Polygon& upper,
                 Vec3d p2(onextp.x(), onextp.y(), lower_z_mm);
                 Vec3d p3(ip.x(), ip.y(), upper_z_mm);
 
-                double a = required_fit - offset_difference_mm / distfn(p3, p1);
-                double b = required_fit - offset_difference_mm / distfn(p3, p2);
-                current_fit = std::max(std::abs(a), std::abs(b));
+                double a = offsdiff2 - (distfn(p3, p1) - zdiff2);
+                double b = offsdiff2 - (distfn(p3, p2) - zdiff2);
+                current_fit = (std::abs(a) + std::abs(b)) / 2;
 
                 if(current_fit > prev_fit) {
                     proceed = Proceed::UPPER;
@@ -604,6 +607,9 @@ void base_plate(const TriangleMesh &mesh, ExPolygons &output, float h,
 void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
                       const PoolConfig& cfg)
 {
+    // for debugging:
+    // Benchmark bench;
+    // bench.start();
 
     double mergedist = 2*(1.8*cfg.min_wall_thickness_mm + 4*cfg.edge_radius_mm)+
                        cfg.max_merge_distance_mm;
@@ -629,6 +635,8 @@ void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
     coord_t s_wingdist          = mm(wingdist);
 
     auto& thrcl = cfg.throw_on_cancel;
+
+    Contour3D pool;
 
     for(ExPolygon& concaveh : concavehs) {
         if(concaveh.contour.points.empty()) return;
@@ -658,8 +666,6 @@ void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
             auto& tph = top_poly.holes.back().points;
             std::reverse(tph.begin(), tph.end());
         }
-
-        Contour3D pool;
 
         ExPolygon ob = outer_base; double wh = 0;
 
@@ -745,9 +751,15 @@ void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
             auto middle_plate = convert(middle_triangles, -mm(wingheight), false);
             pool.merge(middle_plate);
         }
-
-        out.merge(mesh(pool));
     }
+
+    // For debugging:
+    // bench.stop();
+    // std::cout << "Pad creation time: " << bench.getElapsedSec() << std::endl;
+    // std::fstream fout("pad_debug.obj", std::fstream::out);
+    // if(fout.good()) pool.to_obj(fout);
+
+    out.merge(mesh(pool));
 }
 
 }
