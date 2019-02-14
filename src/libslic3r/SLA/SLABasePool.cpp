@@ -66,47 +66,44 @@ Contour3D walls(const Polygon& lower, const Polygon& upper,
     // height and the offset difference.
 
     // Offset in the index array for the ceiling
-    const auto offs = long(upper.points.size());
+    const auto offs = upper.points.size();
 
     // Shorthand for the vertex arrays
     auto& upoints = upper.points, &lpoints = lower.points;
+    auto& rpts = ret.points; auto& rfaces = ret.indices;
 
     // If the Z levels are flipped, or the offset difference is negative, we
     // will interpret that as the triangles normals should be inverted.
     bool inverted = upper_z_mm < lower_z_mm || offset_difference_mm < 0;
 
     // Copy the points into the mesh, convert them from 2D to 3D
-    ret.points.reserve(upoints.size() + lpoints.size());
-    for(auto& p : upoints)
-        ret.points.emplace_back(unscale(p.x(), p.y(), mm(upper_z_mm)));
-    for(auto& p : lpoints)
-        ret.points.emplace_back(unscale(p.x(), p.y(), mm(lower_z_mm)));
+    rpts.reserve(upoints.size() + lpoints.size());
+    rfaces.reserve(2*upoints.size() + 2*lpoints.size());
+    auto s_uz = mm(upper_z_mm), s_lz = mm(lower_z_mm);
+    for(auto& p : upoints) rpts.emplace_back(unscale(p.x(), p.y(), s_uz));
+    for(auto& p : lpoints) rpts.emplace_back(unscale(p.x(), p.y(), s_lz));
 
-    // Create cyclic iterators for the vertices in both polygons.
-    auto uit = upoints.begin();
-    auto lit = lpoints.begin();
+    // Create pointing indices into vertex arrays. u-upper, l-lower
+    size_t uidx = 0, lidx = offs, unextidx = 1, lnextidx = offs + 1;
+
+    // Simple squared distance calculation.
+    auto distfn = [](const Vec3d& p1, const Vec3d& p2) {
+        auto p = p1 - p2; return p.transpose() * p;
+    };
 
     // We need to find the closest point on lower polygon to the first point on
     // the upper polygon. These will be our starting points.
     double distmin = std::numeric_limits<double>::max();
-    for(auto lt = lpoints.begin(); lt != lpoints.end(); ++lt) {
+    for(size_t l = lidx; l < rpts.size(); ++l) {
         thr();
-        Vec2d p = (*lt - *uit).cast<double>();
-        double d = p.transpose() * p;
-        if(d < distmin) { lit = lt; distmin = d; }
+        double d = distfn(rpts[l], rpts[uidx]);
+        if(d < distmin) { lidx = l; distmin = d; }
     }
 
     // Iterators to the polygon vertices which are always ahead of uit and lit
     // in cyclic mode.
-    auto unextit = std::next(uit);
-    auto lnextit = std::next(lit);
-    if(lnextit == lower.points.end()) lnextit = lower.points.begin();
-
-    // Get the integer vertex indices from the iterators.
-    auto uidx = uit - upper.points.begin();
-    auto unextidx = unextit - upper.points.begin();
-    auto lidx = offs + lit - lower.points.begin();
-    auto lnextidx = offs + lnextit - lower.points.begin();
+    lnextidx = lidx + 1;
+    if(lnextidx == rpts.size()) lnextidx = offs;
 
     // This will be the flip switch to toggle between upper and lower triangle
     // creation mode
@@ -122,11 +119,6 @@ Contour3D walls(const Polygon& lower, const Polygon& upper,
     // previous.
     double current_fit = 0, prev_fit = 0;
 
-    // Simple squared distance calculation.
-    auto distfn = [](const Vec3d& p1, const Vec3d& p2) {
-        auto p = p1 - p2; return p.transpose() * p;
-    };
-
     // Every triangle of the wall has two edges connecting the upper plate with
     // the lower plate. From the length of these two edges and the zdiff we
     // can calculate the momentary squared offset distance at a particular
@@ -137,44 +129,35 @@ Contour3D walls(const Polygon& lower, const Polygon& upper,
 
     // Mark the current vertex iterator positions. If the iterators return to
     // the same position, the loop can be terminated.
-    auto uend = uit; auto lend = lit;
+    size_t uendidx = uidx, lendidx = lidx;
 
-    do {
-        thr();
+    do { thr();  // check throw if canceled
 
         prev_fit = current_fit;
 
-        // Get the actual 2D vertices from the upper and lower polygon.
-        Vec2d ip = unscale(uit->x(), uit->y());
-        Vec2d inextp = unscale(unextit->x(), unextit->y());
-        Vec2d op = unscale(lit->x(), lit->y());
-        Vec2d onextp = unscale(lnextit->x(), lnextit->y());
-
         switch(proceed) {   // proceed depending on the current state
         case Proceed::UPPER:
-            if(!ustarted || uit != uend) { // if there are vertices remaining
+            if(!ustarted || uidx != uendidx) { // there are vertices remaining
                 // Get the 3D vertices in order
-                Vec3d p1(ip.x(), ip.y(), upper_z_mm);
-                Vec3d p2(op.x(), op.y(), lower_z_mm);
-                Vec3d p3(inextp.x(), inextp.y(), upper_z_mm);
+                const Vec3d& p_up1 = rpts[size_t(uidx)];
+                const Vec3d& p_low = rpts[size_t(lidx)];
+                const Vec3d& p_up2 = rpts[size_t(unextidx)];
 
                 // Calculate fitness: the average of the two connecting edges
-                double a = offsdiff2 - (distfn(p1, p2) - zdiff2);
-                double b = offsdiff2 - (distfn(p3, p2) - zdiff2);
+                double a = offsdiff2 - (distfn(p_up1, p_low) - zdiff2);
+                double b = offsdiff2 - (distfn(p_up2, p_low) - zdiff2);
                 current_fit = (std::abs(a) + std::abs(b)) / 2;
 
                 if(current_fit > prev_fit) { // fit is worse than previously
                     proceed = Proceed::LOWER;
                 } else {    // good to go, create the triangle
-                    inverted? ret.indices.emplace_back(unextidx, lidx, uidx) :
-                              ret.indices.emplace_back(uidx, lidx, unextidx) ;
+                    inverted? rfaces.emplace_back(unextidx, lidx, uidx) :
+                              rfaces.emplace_back(uidx, lidx, unextidx) ;
 
                     // Increment the iterators, rotate if necessary
-                    ++uit; ++unextit;
-                    if(unextit == upoints.end()) unextit = upoints.begin();
-                    if(uit   == upoints.end()) uit   = upoints.begin();
-                    unextidx = unextit - upoints.begin();
-                    uidx     = uit   - upoints.begin();
+                    ++uidx; ++unextidx;
+                    if(unextidx == offs) unextidx = 0;
+                    if(uidx == offs) uidx = 0;
 
                     ustarted = true;    // mark the movement of the iterators
                     // so that the comparison to uend can be made correctly
@@ -184,26 +167,24 @@ Contour3D walls(const Polygon& lower, const Polygon& upper,
             break;
         case Proceed::LOWER:
             // Mode with lower segment, upper vertex. Same structure:
-            if(!lstarted || lit != lend) {
-                Vec3d p1(op.x(), op.y(), lower_z_mm);
-                Vec3d p2(onextp.x(), onextp.y(), lower_z_mm);
-                Vec3d p3(ip.x(), ip.y(), upper_z_mm);
+            if(!lstarted || lidx != lendidx) {
+                const Vec3d& p_low1 = rpts[size_t(lidx)];
+                const Vec3d& p_low2 = rpts[size_t(lnextidx)];
+                const Vec3d& p_up   = rpts[size_t(uidx)];
 
-                double a = offsdiff2 - (distfn(p3, p1) - zdiff2);
-                double b = offsdiff2 - (distfn(p3, p2) - zdiff2);
+                double a = offsdiff2 - (distfn(p_up, p_low1) - zdiff2);
+                double b = offsdiff2 - (distfn(p_up, p_low2) - zdiff2);
                 current_fit = (std::abs(a) + std::abs(b)) / 2;
 
                 if(current_fit > prev_fit) {
                     proceed = Proceed::UPPER;
                 } else {
-                    inverted? ret.indices.emplace_back(uidx, lnextidx, lidx) :
-                              ret.indices.emplace_back(lidx, lnextidx, uidx);
+                    inverted? rfaces.emplace_back(uidx, lnextidx, lidx) :
+                              rfaces.emplace_back(lidx, lnextidx, uidx);
 
-                    ++lit; ++lnextit;
-                    if(lnextit == lpoints.end()) lnextit = lpoints.begin();
-                    if(lit   == lpoints.end()) lit   = lpoints.begin();
-                    lnextidx = offs + lnextit - lpoints.begin();
-                    lidx     = offs + lit   - lpoints.begin();
+                    ++lidx; ++lnextidx;
+                    if(lnextidx == rpts.size()) lnextidx = offs;
+                    if(lidx == rpts.size()) lidx = offs;
 
                     lstarted = true;
                 }
@@ -211,7 +192,7 @@ Contour3D walls(const Polygon& lower, const Polygon& upper,
 
             break;
         } // end of switch
-    } while(!ustarted || !lstarted || uit != uend || lit != lend);
+    } while(!ustarted || !lstarted || uidx != uendidx || lidx != lendidx);
 
     return ret;
 }
@@ -356,7 +337,7 @@ Contour3D round_edges(const ExPolygon& base_plate,
                       double degrees,
                       double ceilheight_mm,
                       bool dir,
-                      ThrowOnCancel throw_on_cancel,
+                      ThrowOnCancel thr,
                       ExPolygon& last_offset, double& last_height)
 {
     auto ob = base_plate;
@@ -375,7 +356,7 @@ Contour3D round_edges(const ExPolygon& base_plate,
             int(radius_mm*std::cos(degrees * PI / 180 - PI/2) / stepx) : steps;
 
     for(int i = 1; i <= tos; ++i) {
-        throw_on_cancel();
+        thr();
 
         ob = base_plate;
 
@@ -389,7 +370,7 @@ Contour3D round_edges(const ExPolygon& base_plate,
 
         Contour3D pwalls;
         double prev_x = xx - (i - 1) * stepx;
-        pwalls = walls(ob.contour, ob_prev.contour, wh, wh_prev, s*prev_x, throw_on_cancel);
+        pwalls = walls(ob.contour, ob_prev.contour, wh, wh_prev, s*prev_x, thr);
 
         curvedwalls.merge(pwalls);
         ob_prev = ob;
@@ -401,7 +382,7 @@ Contour3D round_edges(const ExPolygon& base_plate,
         int tos = int(tox / stepx);
 
         for(int i = 1; i <= tos; ++i) {
-            throw_on_cancel();
+            thr();
             ob = base_plate;
 
             double r2 = radius_mm * radius_mm;
@@ -413,7 +394,8 @@ Contour3D round_edges(const ExPolygon& base_plate,
 
             Contour3D pwalls;
             double prev_x = xx - radius_mm + (i - 1)*stepx;
-            pwalls = walls(ob_prev.contour, ob.contour, wh_prev, wh, s*prev_x, throw_on_cancel);
+            pwalls =
+                walls(ob_prev.contour, ob.contour, wh_prev, wh, s*prev_x, thr);
 
             curvedwalls.merge(pwalls);
             ob_prev = ob;
