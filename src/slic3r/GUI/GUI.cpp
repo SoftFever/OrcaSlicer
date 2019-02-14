@@ -355,21 +355,6 @@ boost::filesystem::path into_path(const wxString &str)
 	return boost::filesystem::path(str.wx_str());
 }
 
-bool get_current_screen_size(wxWindow *window, unsigned &width, unsigned &height)
-{
-	const auto idx = wxDisplay::GetFromWindow(window);
-	if (idx == wxNOT_FOUND) {
-		return false;
-	}
-
-	wxDisplay display(idx);
-	const auto disp_size = display.GetClientArea();
-	width = disp_size.GetWidth();
-	height = disp_size.GetHeight();
-
-	return true;
-}
-
 void about()
 {
     AboutDialog dlg;

@@ -71,9 +71,6 @@ wxString	from_path(const boost::filesystem::path &path);
 // boost path from wxString
 boost::filesystem::path	into_path(const wxString &str);
 
-// Returns the dimensions of the screen on which the main frame is displayed
-bool get_current_screen_size(wxWindow *window, unsigned &width, unsigned &height);
-
 // Display an About dialog
 extern void about();
 // Ask the destop to open the datadir using the default file explorer.

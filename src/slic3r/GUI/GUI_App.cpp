@@ -351,21 +351,10 @@ void GUI_App::persist_window_geometry(wxTopLevelWindow *window)
     });
 
     window_pos_restore(window, name);
-#ifdef _WIN32
-    // On windows, the wxEVT_SHOW is not received if the window is created maximized
-    // cf. https://groups.google.com/forum/#!topic/wx-users/c7ntMt6piRI
-    // so we sanitize the position right away
-    window_pos_sanitize(window);
-#else
-    // On other platforms on the other hand it's needed to wait before the window is actually on screen
-    // and some initial round of events is complete otherwise position / display index is not reported correctly.
-    window->Bind(wxEVT_SHOW, [=](wxShowEvent &event) {
-        CallAfter([=]() {
-            window_pos_sanitize(window);
-        });
-        event.Skip();
+
+    on_window_geometry(window, [=]() {
+        window_pos_sanitize(window);
     });
-#endif
 }
 
 void GUI_App::load_project(wxWindow *parent, wxString& input_file)

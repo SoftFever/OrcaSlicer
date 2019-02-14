@@ -1137,6 +1137,9 @@ std::string Print::validate() const
                 // Apply the same transformations we apply to the actual meshes when slicing them.
                 object->model_object()->instances.front()->transform_polygon(&convex_hull);
                 // Grow convex hull with the clearance margin.
+                // FIXME: Arrangement has different parameters for offsetting (jtMiter, limit 2)
+                // which causes that the warning will be showed after arrangement with the
+                // appropriate object distance. Even if I set this to jtMiter the warning still shows up.
                 convex_hull = offset(convex_hull, scale_(m_config.extruder_clearance_radius.value)/2, jtRound, scale_(0.1)).front();
                 // Now we check that no instance of convex_hull intersects any of the previously checked object instances.
                 for (const Point &copy : object->m_copies) {

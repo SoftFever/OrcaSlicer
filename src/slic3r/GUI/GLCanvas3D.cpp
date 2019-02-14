@@ -141,8 +141,8 @@ bool GeometryBuffer::set_from_triangles(const Polygons& triangles, float z, bool
             float inv_size_y = -1.0f / size_y;
             for (unsigned int i = 0; i < m_tex_coords.size(); i += 2)
             {
-                m_tex_coords[i] *= inv_size_x;
-                m_tex_coords[i + 1] *= inv_size_y;
+                m_tex_coords[i] = (m_tex_coords[i] - min_x) * inv_size_x;
+                m_tex_coords[i + 1] = (m_tex_coords[i + 1] - min_y) * inv_size_y;
             }
         }
     }
@@ -595,11 +595,25 @@ void GLCanvas3D::Bed::_render_prusa(const std::string &key, float theta) const
 #endif // ENABLE_PRINT_BED_MODELS
 {
     std::string tex_path = resources_dir() + "/icons/bed/" + key;
+
+    // use higher resolution images if graphic card allows
+    GLint max_tex_size;
+    ::glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_tex_size);
+
+    // temporary set to lowest resolution
+    max_tex_size = 2048;
+
+    if (max_tex_size >= 8192)
+        tex_path += "_8192";
+    else if (max_tex_size >= 4096)
+        tex_path += "_4096";
+
 #if ENABLE_PRINT_BED_MODELS
     std::string model_path = resources_dir() + "/models/" + key;
 #endif // ENABLE_PRINT_BED_MODELS
 
 #if ENABLE_ANISOTROPIC_FILTER_ON_BED_TEXTURES
+    // use anisotropic filter if graphic card allows
     GLfloat max_anisotropy = 0.0f;
     if (glewIsSupported("GL_EXT_texture_filter_anisotropic"))
         ::glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_anisotropy);
@@ -646,11 +660,17 @@ void GLCanvas3D::Bed::_render_prusa(const std::string &key, float theta) const
     {
         filename = model_path + "_bed.stl";
         if ((m_model.get_filename() != filename) && m_model.init_from_file(filename, useVBOs)) {
-            Vec3d offset = m_bounding_box.center() - Vec3d(0.0, 0.0, 0.1 + 0.5 * m_model.get_bounding_box().size()(2));
+            Vec3d offset = m_bounding_box.center() - Vec3d(0.0, 0.0, 0.5 * m_model.get_bounding_box().size()(2));
             if (key == "mk2")
-                offset.y() += 15. / 2.;
+                // hardcoded value to match the stl model
+                offset += Vec3d(0.0, 7.5, -0.03);
             else if (key == "mk3")
-                offset += Vec3d(0., (19. - 8.) / 2., 2.);
+                // hardcoded value to match the stl model
+                offset += Vec3d(0.0, 5.5, 2.43);
+            else if (key == "sl1")
+                // hardcoded value to match the stl model
+                offset += Vec3d(0.0, 0.0, -0.03);
+
             m_model.center_around(offset);
         }
 
@@ -5790,7 +5810,7 @@ void GLCanvas3D::set_tooltip(const std::string& tooltip) const
             else
                 t->SetTip(tooltip);
         }
-        else
+        else if (!tooltip.empty()) // Avoid "empty" tooltips => unset of the empty tooltip leads to application crash under OSX
             m_canvas->SetToolTip(tooltip);
     }
 }

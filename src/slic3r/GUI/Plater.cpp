@@ -12,7 +12,6 @@
 
 #include <wx/sizer.h>
 #include <wx/stattext.h>
-#include <wx/notebook.h>
 #include <wx/button.h>
 #include <wx/bmpcbox.h>
 #include <wx/statbox.h>
@@ -1092,7 +1091,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     : q(q)
     , main_frame(main_frame)
     , config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({
-        "bed_shape", "complete_objects", "extruder_clearance_radius", "skirts", "skirt_distance",
+        "bed_shape", "complete_objects", "duplicate_distance", "extruder_clearance_radius", "skirts", "skirt_distance",
         "brim_width", "variable_layer_height", "serial_port", "serial_speed", "host_type", "print_host",
         "printhost_apikey", "printhost_cafile", "nozzle_diameter", "single_extruder_multi_material",
         "wipe_tower", "wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_rotation_angle",
@@ -1774,8 +1773,11 @@ void Plater::priv::arrange()
     // FIXME: I don't know how to obtain the minimum distance, it depends
     // on printer technology. I guess the following should work but it crashes.
     double dist = 6; //PrintConfig::min_object_distance(config);
+    if(printer_technology == ptFFF) {
+        dist = PrintConfig::min_object_distance(config);
+    }
 
-    auto min_obj_distance = static_cast<coord_t>(dist/SCALING_FACTOR);
+    auto min_obj_distance = coord_t(dist/SCALING_FACTOR);
 
     const auto *bed_shape_opt = config->opt<ConfigOptionPoints>("bed_shape");
 
