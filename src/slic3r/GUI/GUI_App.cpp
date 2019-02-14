@@ -127,6 +127,10 @@ bool GUI_App::OnInit()
     app_config->save();
 
     preset_updater = new PresetUpdater();
+    Bind(EVT_SLIC3R_VERSION_ONLINE, [this](const wxCommandEvent &evt) {
+        app_config->set("version_online", into_u8(evt.GetString()));
+        app_config->save();
+    });
 
     load_language();
 

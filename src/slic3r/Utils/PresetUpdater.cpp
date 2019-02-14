@@ -103,6 +103,8 @@ static Semver get_slic3r_version()
 	return *res;
 }
 
+wxDEFINE_EVENT(EVT_SLIC3R_VERSION_ONLINE, wxCommandEvent);
+
 
 struct PresetUpdater::priv
 {
@@ -225,13 +227,9 @@ void PresetUpdater::priv::sync_version() const
 			boost::trim(body);
 			BOOST_LOG_TRIVIAL(info) << boost::format("Got Slic3rPE online version: `%1%`. Sending to GUI thread...") % body;
 
-			// FIXME: race condition
-
-// 			wxCommandEvent* evt = new wxCommandEvent(version_online_event);
-// 			evt->SetString(body);
-// 			GUI::get_app()->QueueEvent(evt);
-	        GUI::wxGetApp().app_config->set("version_online", body);
-	        GUI::wxGetApp().app_config->save();
+			wxCommandEvent* evt = new wxCommandEvent(EVT_SLIC3R_VERSION_ONLINE);
+			evt->SetString(GUI::from_u8(body));
+			GUI::wxGetApp().QueueEvent(evt);
 		})
 		.perform_sync();
 }

@@ -37,6 +37,8 @@ private:
 	std::unique_ptr<priv> p;
 };
 
+wxDECLARE_EVENT(EVT_SLIC3R_VERSION_ONLINE, wxCommandEvent);
+
 
 }
 #endif
