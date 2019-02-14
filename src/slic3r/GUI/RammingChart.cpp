@@ -20,7 +20,7 @@ void Chart::draw() {
     dc.DrawRectangle(m_rect);
     
     if (visible_area.m_width < 0.499) {
-        dc.DrawText(_(L("NO RAMMING AT ALL")),wxPoint(m_rect.GetLeft()+m_rect.GetWidth()/2-50,m_rect.GetBottom()-m_rect.GetHeight()/2));
+        dc.DrawText(_(L("NO RAMMING AT ALL")),wxPoint(m_rect.GetLeft()+m_rect.GetWidth()/2-legend_side,m_rect.GetBottom()-m_rect.GetHeight()/2));
         return;
     }
     
@@ -55,9 +55,9 @@ void Chart::draw() {
     for (float math_x=int(visible_area.m_x*10)/10 ; math_x < (visible_area.m_x+visible_area.m_width) ; math_x+=0.1f) {
         int x = math_to_screen(wxPoint2DDouble(math_x,visible_area.m_y)).x;
         int y = m_rect.GetBottom();
-        if (x-last_mark < 50) continue;
+        if (x-last_mark < legend_side) continue;
         dc.DrawLine(x,y+3,x,y-3);
-        dc.DrawText(wxString().Format(wxT("%.1f"), math_x),wxPoint(x-10,y+7));
+        dc.DrawText(wxString().Format(wxT("%.1f"), math_x),wxPoint(x-scale_unit,y+0.5*scale_unit));
         last_mark = x;
     }
     
@@ -66,9 +66,9 @@ void Chart::draw() {
     for (int math_y=visible_area.m_y ; math_y < (visible_area.m_y+visible_area.m_height) ; math_y+=1) {
         int y = math_to_screen(wxPoint2DDouble(visible_area.m_x,math_y)).y;
         int x = m_rect.GetLeft();
-        if (last_mark-y < 50) continue;    
+        if (last_mark-y < legend_side) continue;    
         dc.DrawLine(x-3,y,x+3,y);
-        dc.DrawText(wxString()<<math_y,wxPoint(x-25,y-2/*7*/));
+        dc.DrawText(wxString()<<math_y,wxPoint(x-2*scale_unit,y-0.5*scale_unit));
         last_mark = y;
     }
     
@@ -77,7 +77,7 @@ void Chart::draw() {
     int text_width = 0;
     int text_height = 0;
     dc.GetTextExtent(label,&text_width,&text_height);
-    dc.DrawText(label,wxPoint(0.5*(m_rect.GetRight()+m_rect.GetLeft())-text_width/2.f, m_rect.GetBottom()+25));
+    dc.DrawText(label,wxPoint(0.5*(m_rect.GetRight()+m_rect.GetLeft())-text_width/2.f, m_rect.GetBottom()+0.5*legend_side));
     label = _(L("Volumetric speed")) + " (" + _(L("mm")) + wxString("³/", wxConvUTF8) + _(L("s")) + ")";
     dc.GetTextExtent(label,&text_width,&text_height);
     dc.DrawRotatedText(label,wxPoint(0,0.5*(m_rect.GetBottom()+m_rect.GetTop())+text_width/2.f),90);
