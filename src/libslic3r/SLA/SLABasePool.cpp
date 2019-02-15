@@ -17,7 +17,9 @@ namespace Slic3r { namespace sla {
 /// and a lower plate given as input polygons. It will not triangulate the
 /// plates themselves only the sheet. The caller has to specify the lower and
 /// upper z levels in world coordinates as well as the offset difference
-/// between the sheets.
+/// between the sheets. If the lower_z_mm is higher than upper_z_mm or the
+/// offset difference is negative, the resulting triangle orientation will be
+/// reversed.
 ///
 /// IMPORTANT: This is not a universal triangulation algorithm. It assumes
 /// that the lower and upper polygons are offsetted versions of the same
@@ -60,9 +62,9 @@ Contour3D walls(const Polygon& lower, const Polygon& upper,
     // Copy the points into the mesh, convert them from 2D to 3D
     rpts.reserve(upoints.size() + lpoints.size());
     rfaces.reserve(2*upoints.size() + 2*lpoints.size());
-    auto s_uz = mm(upper_z_mm), s_lz = mm(lower_z_mm);
-    for(auto& p : upoints) rpts.emplace_back(unscale(p.x(), p.y(), s_uz));
-    for(auto& p : lpoints) rpts.emplace_back(unscale(p.x(), p.y(), s_lz));
+    const double sf = SCALING_FACTOR;
+    for(auto& p : upoints) rpts.emplace_back(p.x()*sf, p.y()*sf, upper_z_mm);
+    for(auto& p : lpoints) rpts.emplace_back(p.x()*sf, p.y()*sf, lower_z_mm);
 
     // Create pointing indices into vertex arrays. u-upper, l-lower
     size_t uidx = 0, lidx = offs, unextidx = 1, lnextidx = offs + 1;
@@ -81,8 +83,7 @@ Contour3D walls(const Polygon& lower, const Polygon& upper,
         if(d < distmin) { lidx = l; distmin = d; }
     }
 
-    // Iterators to the polygon vertices which are always ahead of uit and lit
-    // in cyclic mode.
+    // Set up lnextidx to be ahead of lidx in cyclic mode
     lnextidx = lidx + 1;
     if(lnextidx == rpts.size()) lnextidx = offs;
 
@@ -141,7 +142,7 @@ Contour3D walls(const Polygon& lower, const Polygon& upper,
                     if(uidx == offs) uidx = 0;
 
                     ustarted = true;    // mark the movement of the iterators
-                    // so that the comparison to uend can be made correctly
+                    // so that the comparison to uendidx can be made correctly
                 }
             } else proceed = Proceed::LOWER;
 
@@ -312,6 +313,18 @@ inline Contour3D roofs(const ExPolygon& poly, coord_t z_distance) {
     return ret;
 }
 
+/// This method will create a rounded edge around a flat polygon in 3d space.
+/// 'base_plate' parameter is the target plate.
+/// 'radius' is the radius of the edges.
+/// 'degrees' is tells how much of a circle should be created as the rounding.
+///     It should be in degrees, not radians.
+/// 'ceilheight_mm' is the Z coordinate of the flat polygon in 3D space.
+/// 'dir' Is the direction of the round edges: inward or outward
+/// 'thr' Throws if a cancel signal was received
+/// 'last_offset' An auxiliary output variable to save the last offsetted
+///     version of 'base_plate'
+/// 'last_height' An auxiliary output to save the last z coordinate of the
+/// offsetted base_plate. In other words, where the rounded edges end.
 Contour3D round_edges(const ExPolygon& base_plate,
                       double radius_mm,
                       double degrees,
@@ -589,15 +602,14 @@ void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
     const double thickness      = cfg.min_wall_thickness_mm;
     const double wingheight     = cfg.min_wall_height_mm;
     const double fullheight     = wingheight + thickness;
-    const double tilt = PI/4;
+    const double tilt           = PI/4;
     const double wingdist       = wingheight / std::tan(tilt);
 
     // scaled values
     const coord_t s_thickness   = mm(thickness);
     const coord_t s_eradius     = mm(cfg.edge_radius_mm);
     const coord_t s_safety_dist = 2*s_eradius + coord_t(0.8*s_thickness);
-    // const coord_t wheight    = mm(cfg.min_wall_height_mm);
-    coord_t s_wingdist          = mm(wingdist);
+    const coord_t s_wingdist    = mm(wingdist);
 
     auto& thrcl = cfg.throw_on_cancel;
 
@@ -606,7 +618,7 @@ void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
     for(ExPolygon& concaveh : concavehs) {
         if(concaveh.contour.points.empty()) return;
 
-        // Get rif of any holes in the concave hull output.
+        // Get rid of any holes in the concave hull output.
         concaveh.holes.clear();
 
         // Here lies the trick that does the smooting only with clipper offset
@@ -663,64 +675,44 @@ void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
 
 
         // Generate the smoothed edge geometry
-        auto walledges = round_edges(ob,
-                                     r,
-                                     phi,
-                                     0,    // z position of the input plane
-                                     true,
-                                     thrcl,
-                                     ob, wh);
-        pool.merge(walledges);
+        pool.merge(round_edges(ob,
+                               r,
+                               phi,
+                               0,    // z position of the input plane
+                               true,
+                               thrcl,
+                               ob, wh));
 
         // Now that we have the rounded edge connencting the top plate with
         // the outer side walls, we can generate and merge the sidewall geometry
-        auto pwalls = walls(ob.contour, inner_base.contour, wh, -fullheight,
-                            (s_thickness + s_wingdist) * SCALING_FACTOR, thrcl);
-        pool.merge(pwalls);
+        pool.merge(walls(ob.contour, inner_base.contour, wh, -fullheight,
+                         (s_thickness + s_wingdist) * SCALING_FACTOR, thrcl));
 
         if(wingheight > 0) {
             // Generate the smoothed edge geometry
-            auto cavityedges = round_edges(middle_base,
-                                           r,
-                                           phi - 90, // from tangent lines
-                                           0,  // z position of the input plane
-                                           false,
-                                           thrcl,
-                                           ob, wh);
-            pool.merge(cavityedges);
+            pool.merge(round_edges(middle_base,
+                                   r,
+                                   phi - 90, // from tangent lines
+                                   0,  // z position of the input plane
+                                   false,
+                                   thrcl,
+                                   ob, wh));
 
             // Next is the cavity walls connecting to the top plate's
             // artificially created hole.
-            auto cavitywalls = walls(inner_base.contour, ob.contour, -wingheight,
-                                     wh, -s_safety_dist * SCALING_FACTOR, thrcl);
-            pool.merge(cavitywalls);
+            pool.merge(walls(inner_base.contour, ob.contour, -wingheight,
+                             wh, -s_safety_dist * SCALING_FACTOR, thrcl));
         }
 
         // Now we need to triangulate the top and bottom plates as well as the
         // cavity bottom plate which is the same as the bottom plate but it is
         // elevated by the thickness.
-//        Polygons top_triangles, bottom_triangles;
+        pool.merge(triangulate_expolygons_3df(top_poly));
+        pool.merge(triangulate_expolygons_3df(inner_base, -fullheight, true));
 
-//        triangulate(top_poly, top_triangles);
-//        triangulate(inner_base, bottom_triangles);
+        if(wingheight > 0)
+            pool.merge(triangulate_expolygons_3df(inner_base, -wingheight));
 
-//        auto top_plate = convert(top_triangles, 0, false);
-//        auto bottom_plate = convert(bottom_triangles, -mm(fullheight), true);
-
-        Pointf3s top_plate = triangulate_expolygons_3df(top_poly);
-        Pointf3s bottom_plate = triangulate_expolygons_3df(inner_base, -fullheight, true);
-
-        pool.merge(top_plate);
-        pool.merge(bottom_plate);
-
-        if(wingheight > 0) {
-//            Polygons middle_triangles;
-
-//            triangulate(inner_base, middle_triangles);
-//            auto middle_plate = convert(middle_triangles, -mm(wingheight), false);
-            Pointf3s middle_triangles = triangulate_expolygons_3df(inner_base, -wingheight);
-            pool.merge(middle_triangles);
-        }
     }
 
     // For debugging:
