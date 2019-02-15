@@ -199,7 +199,7 @@ void SLAAutoSupports::process(const std::vector<ExPolygons>& slices, const std::
                 float centroids_dist = (bottom->centroid - top.centroid).norm();
                 // Penalization resulting from centroid offset:
 //                  bottom.supports_force *= std::min(1.f, 1.f - std::min(1.f, (1600.f * layer_height) * centroids_dist * centroids_dist / bottom.area));
-                bottom->supports_force *= std::min(1.f, 1.f - std::min(1.f, 80.f * centroids_dist * centroids_dist / bottom->area));
+                bottom->supports_force *= std::min(1.f, 1.f - std::min(1.f, 0.1f * centroids_dist * centroids_dist / bottom->area));
                 // Penalization resulting from increasing polygon area:
                 bottom->supports_force *= std::min(1.f, 20.f * bottom->area / top.area);
             }

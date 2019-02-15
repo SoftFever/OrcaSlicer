@@ -1874,68 +1874,58 @@ void GLGizmoSlaSupports::on_render_for_picking(const GLCanvas3D::Selection& sele
 
 void GLGizmoSlaSupports::render_points(const GLCanvas3D::Selection& selection, bool picking) const
 {
-    if (m_quadric == nullptr)
+    if (m_quadric == nullptr || !selection.is_from_single_instance())
         return;
-
-    if (!selection.is_from_single_instance())
-        return;
-
-    const GLVolume* v = selection.get_volume(*selection.get_volume_idxs().begin());
-    double z_shift = v->get_sla_shift_z();
-
-    ::glPushMatrix();
-    ::glTranslated(0.0, 0.0, z_shift);
-
-    const Transform3d& m = selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix();
-    ::glMultMatrixd(m.data());
 
     if (!picking)
         ::glEnable(GL_LIGHTING);
 
+    const GLVolume* vol = selection.get_volume(*selection.get_volume_idxs().begin());
+    double z_shift = vol->get_sla_shift_z();
+    const Transform3d& instance_scaling_matrix_inverse = vol->get_instance_transformation().get_matrix(true, true, false, true).inverse();
+    const Transform3d& instance_matrix = vol->get_instance_transformation().get_matrix();
+
+    ::glPushMatrix();
+    ::glTranslated(0.0, 0.0, z_shift);
+    ::glMultMatrixd(instance_matrix.data());
+
     float render_color[3];
     for (int i = 0; i < (int)m_editing_mode_cache.size(); ++i)
     {
-        const Vec3f& point_pos = m_editing_mode_cache[i].first.pos;
-        const bool point_selected = m_editing_mode_cache[i].second;
-        // first precalculate the grabber position in world coordinates, so that the grabber
-        // is not scaled with the object (as it would be if rendered with current gl matrix).
-        Eigen::Matrix<GLfloat, 4, 4, Eigen::DontAlign> glmatrix;
-        glGetFloatv (GL_MODELVIEW_MATRIX, glmatrix.data());
-        Eigen::Matrix<float, 4, 1, Eigen::DontAlign> point_pos_4d;
-        for (int j=0; j<3; ++j)
-            point_pos_4d(j) = point_pos(j);
-        point_pos_4d[3] = 1.f;
-        Eigen::Matrix<float, 4, 1, Eigen::DontAlign> grabber_world_position = glmatrix * point_pos_4d;
+        const sla::SupportPoint& support_point = m_editing_mode_cache[i].first;
+        const bool& point_selected = m_editing_mode_cache[i].second;
 
-        if (!picking && (m_hover_id == i)) // point is in hover state
-        {
-            render_color[0] = 0.f;
+        // First decide about the color of the point.
+        if (picking) {
+            render_color[0] = 1.0f;
             render_color[1] = 1.0f;
-            render_color[2] = 1.0f;
+            render_color[2] = picking_color_component(i);
         }
         else {
-            if (picking) {
-                render_color[0] = 1.0f;
+            if ((m_hover_id == i && m_editing_mode)) { // ignore hover state unless editing mode is active
+                render_color[0] = 0.f;
                 render_color[1] = 1.0f;
-                render_color[2] = picking_color_component(i);
+                render_color[2] = 1.0f;
             }
-            else { // normal rendering
+            else { // neigher hover nor picking
                 bool supports_new_island = m_lock_unique_islands && m_editing_mode_cache[i].first.is_new_island;
                 if (m_editing_mode) {
-                    render_color[0] = point_selected ? 0.f : (supports_new_island ? 0.f : 1.f);
-                    render_color[1] = point_selected ? 1.f : 0.f;
-                    render_color[2] = point_selected ? 0.f : (supports_new_island ? 1.f : 0.f);
+                    render_color[0] = point_selected ? 1.0f : (supports_new_island ? 0.3f : 0.7f);
+                    render_color[1] = point_selected ? 0.3f : (supports_new_island ? 0.3f : 0.7f);
+                    render_color[2] = point_selected ? 0.3f : (supports_new_island ? 1.0f : 0.7f);
                 }
                 else
                     for (unsigned char i=0; i<3; ++i) render_color[i] = 0.5f;
             }
         }
-
         ::glColor3fv(render_color);
+
+        // Now render the sphere. Inverse matrix of the instance scaling is applied so that the
+        // sphere does not scale with the object.
         ::glPushMatrix();
-        ::glLoadIdentity();
-        ::glTranslated(grabber_world_position(0), grabber_world_position(1), grabber_world_position(2) + z_shift);
-        ::gluSphere(m_quadric, m_editing_mode_cache[i].first.head_front_radius, 64, 36);
+        ::glTranslated(support_point.pos(0), support_point.pos(1), support_point.pos(2));
+        ::glMultMatrixd(instance_scaling_matrix_inverse.data());
+        ::gluSphere(m_quadric, m_editing_mode_cache[i].first.head_front_radius * RenderPointScale, 64, 36);
         ::glPopMatrix();
     }
 
@@ -2078,7 +2068,7 @@ bool GLGizmoSlaSupports::mouse_event(SLAGizmoEventType action, const Vec2d& mous
 
         // Regardless of whether the user clicked the object or not, we will unselect all points:
         for (unsigned int i=0; i<m_editing_mode_cache.size(); ++i)
-                    m_editing_mode_cache[i].second = false;
+            m_editing_mode_cache[i].second = false;
 
         Vec3f new_pos;
         try {
@@ -2115,9 +2105,9 @@ bool GLGizmoSlaSupports::mouse_event(SLAGizmoEventType action, const Vec2d& mous
             const sla::SupportPoint& support_point = point_and_selection.first;
             Vec3f pos = instance_matrix.cast<float>() * support_point.pos;
             pos(2) += z_offset;
-            GLdouble out_x, out_y, out_z;
-            ::gluProject((GLdouble)pos(0), (GLdouble)pos(1), (GLdouble)pos(2), modelview_matrix, projection_matrix, viewport, &out_x, &out_y, &out_z);
-            out_y = m_canvas_height - out_y;
+              GLdouble out_x, out_y, out_z;
+             ::gluProject((GLdouble)pos(0), (GLdouble)pos(1), (GLdouble)pos(2), modelview_matrix, projection_matrix, viewport, &out_x, &out_y, &out_z);
+             out_y = m_canvas_height - out_y;
 
             if (rectangle.contains(Point(out_x, out_y)))
                 point_and_selection.second = true;
@@ -2382,7 +2372,12 @@ void GLGizmoSlaSupports::on_set_state()
     }
     if (m_state == Off) {
         m_parent.toggle_model_objects_visibility(true);
+        m_editing_mode_cache.clear();
+        if (m_model_object)
+            for (const sla::SupportPoint& point : m_model_object->sla_support_points)
+                m_editing_mode_cache.push_back(std::make_pair(point, false));
         m_editing_mode = false;
+
 #if SLAGIZMO_IMGUI_MODAL
         if (m_show_modal) {
             m_show_modal = false;

@@ -4598,9 +4598,9 @@ void GLCanvas3D::render()
     // this position is used later into on_mouse() to drag the objects
     m_mouse.scene_position = _mouse_to_3d(m_mouse.position.cast<int>());
 
+    _render_current_gizmo();
     _render_selection_sidebar_hints();
 
-    _render_current_gizmo();
 #if ENABLE_SHOW_CAMERA_TARGET
     _render_camera_target();
 #endif // ENABLE_SHOW_CAMERA_TARGET

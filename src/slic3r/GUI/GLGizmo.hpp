@@ -439,7 +439,7 @@ protected:
 
 
 
-#define SLAGIZMO_IMGUI_MODAL 1
+#define SLAGIZMO_IMGUI_MODAL 0
 class GLGizmoSlaSupports : public GLGizmoBase
 {
 private:
@@ -448,6 +448,8 @@ private:
     int m_active_instance = -1;
     int m_old_instance_id = -1;
     Vec3f unproject_on_mesh(const Vec2d& mouse_pos);
+
+    const float RenderPointScale = 1.f;
 
     GLUquadricObj* m_quadric;
     Eigen::MatrixXf m_V; // vertices
