@@ -42,22 +42,27 @@ namespace Slic3r {
 
 static boost::log::trivial::severity_level logSeverity = boost::log::trivial::error;
 
-void set_logging_level(unsigned int level)
+static boost::log::trivial::severity_level level_to_boost(unsigned level)
 {
     switch (level) {
     // Report fatal errors only.
-    case 0: logSeverity = boost::log::trivial::fatal; break;
+    case 0: return boost::log::trivial::fatal;
     // Report fatal errors and errors.
-    case 1: logSeverity = boost::log::trivial::error; break;
+    case 1: return boost::log::trivial::error;
     // Report fatal errors, errors and warnings.
-    case 2: logSeverity = boost::log::trivial::warning; break;
+    case 2: return boost::log::trivial::warning;
     // Report all errors, warnings and infos.
-    case 3: logSeverity = boost::log::trivial::info; break;
+    case 3: return boost::log::trivial::info;
     // Report all errors, warnings, infos and debugging.
-    case 4: logSeverity = boost::log::trivial::debug; break;
+    case 4: return boost::log::trivial::debug;
     // Report everyting including fine level tracing information.
-    default: logSeverity = boost::log::trivial::trace; break;
+    default: return boost::log::trivial::trace;
     }
+}
+
+void set_logging_level(unsigned int level)
+{
+    logSeverity = level_to_boost(level);
 
     boost::log::core::get()->set_filter
     (
@@ -73,6 +78,7 @@ unsigned get_logging_level()
     case boost::log::trivial::warning : return 2;
     case boost::log::trivial::info : return 3;
     case boost::log::trivial::debug : return 4;
+    case boost::log::trivial::trace : return 5;
     default: return 1;
     }
 }
@@ -88,21 +94,7 @@ static struct RunOnInit {
 
 void trace(unsigned int level, const char *message)
 {
-    boost::log::trivial::severity_level severity = boost::log::trivial::trace;
-    switch (level) {
-    // Report fatal errors only.
-    case 0: severity = boost::log::trivial::fatal; break;
-    // Report fatal errors and errors.
-    case 1: severity = boost::log::trivial::error; break;
-    // Report fatal errors, errors and warnings.
-    case 2: severity = boost::log::trivial::warning; break;
-    // Report all errors, warnings and infos.
-    case 3: severity = boost::log::trivial::info; break;
-    // Report all errors, warnings, infos and debugging.
-    case 4: severity = boost::log::trivial::debug; break;
-    // Report everyting including fine level tracing information.
-    default: severity = boost::log::trivial::trace; break;
-    }
+    boost::log::trivial::severity_level severity = level_to_boost(level);
 
     BOOST_LOG_STREAM_WITH_PARAMS(::boost::log::trivial::logger::get(),\
         (::boost::log::keywords::severity = severity)) << message;
