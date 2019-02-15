@@ -12,6 +12,7 @@
 #include <libslic3r/ClipperUtils.hpp>
 #include <libslic3r/Model.hpp>
 
+#include <libnest2d/optimizers/nlopt/simplex.hpp>
 #include <boost/log/trivial.hpp>
 #include <tbb/parallel_for.h>
 
@@ -588,7 +589,7 @@ double pinhead_mesh_intersect(const Vec3d& s,
                               double r_back,
                               double width,
                               const EigenMesh3D& m,
-                              unsigned samples = 8,
+                              unsigned samples = 16,
                               double safety_distance = 0.001)
 {
     // method based on:
@@ -614,9 +615,17 @@ double pinhead_mesh_intersect(const Vec3d& s,
     std::vector<double> phis(samples);
     for(size_t i = 0; i < phis.size(); ++i) phis[i] = i*2*PI/phis.size();
 
-    a(Z) = -(v(X)*a(X) + v(Y)*a(Y)) / v(Z);
-
-    b = a.cross(v);
+    // We have to address the case when the direction vector v (same as dir)
+    // is coincident with one of the world axes. In this case two of its
+    // components will be completely zero and one is 1.0. Our method becomes
+    // dangerous here due to division with zero. Instead, vector a can be a
+    // rotated version of v
+    auto chk1 = [] (double val) { return std::abs(std::abs(val) - 1) < 1e-20; };
+    if(chk1(v(X)) || chk1(v(Y)) || chk1(v(Z))) a = {v(Z), v(X), v(Y)};
+    else {
+        a(Z) = -(v(Y)*a(Y)) / v(Z); a.normalize();
+        b = a.cross(v);
+    }
 
     // Now a and b vectors are perpendicular to v and to each other. Together
     // they define the plane where we have to iterate with the given angles
@@ -686,8 +695,13 @@ double bridge_mesh_intersect(const Vec3d& s,
     Vec3d a(0, 1, 0), b;
     const double& sd = safety_distance;
 
-    a(Z) = -(dir(X)*a(X) + dir(Y)*a(Y)) / dir(Z);
-    b = a.cross(dir);
+    auto chk1 = [] (double val) { return std::abs(std::abs(val) - 1) < 1e-20; };
+    if(chk1(dir(X)) || chk1(dir(Y)) || chk1(dir(Z)))
+        a = {dir(Z), dir(X), dir(Y)};
+    else {
+        a(Z) = -(dir(Y)*a(Y)) / dir(Z); a.normalize();
+        b = a.cross(dir);
+    }
 
     // circle portions
     std::vector<double> phis(samples);
@@ -1149,16 +1163,16 @@ bool SLASupportTree::generate(const PointSet &points,
         //...
     };
 
-    // t-hrow i-f c-ance-l-ed: It will be called many times so a shorthand will
+    // throw if canceled: It will be called many times so a shorthand will
     // come in handy.
-    auto& tifcl = ctl.cancelfn;
+    auto& thr = ctl.cancelfn;
 
     // Filtering step: here we will discard inappropriate support points and
     // decide the future of the appropriate ones. We will check if a pinhead
     // is applicable and adjust its angle at each support point.
     // We will also merge the support points that are just too close and can be
     // considered as one.
-    auto filterfn = [tifcl] (
+    auto filterfn = [thr] (
             const SupportConfig& cfg,
             const PointSet& points,
             const EigenMesh3D& mesh,
@@ -1172,9 +1186,9 @@ bool SLASupportTree::generate(const PointSet &points,
         // first one
         auto aliases =
                 cluster(points,
-                        [tifcl](const SpatElement& p, const SpatElement& se)
+                        [thr](const SpatElement& p, const SpatElement& se)
         {
-            tifcl();
+            thr();
             return distance(p.first, se.first) < D_SP;
         }, 2);
 
@@ -1185,10 +1199,10 @@ bool SLASupportTree::generate(const PointSet &points,
             filt_pts.row(count++) = points.row(a.front());
         }
 
-        tifcl();
+        thr();
 
         // calculate the normals to the triangles belonging to filtered points
-        auto nmls = sla::normals(filt_pts, mesh, cfg.head_front_radius_mm, tifcl);
+        auto nmls = sla::normals(filt_pts, mesh, cfg.head_front_radius_mm, thr);
 
         head_norm.resize(count, 3);
         head_pos.resize(count, 3);
@@ -1200,9 +1214,15 @@ bool SLASupportTree::generate(const PointSet &points,
         // not be enough space for the pinhead. Filtering is applied for
         // these reasons.
 
+        using libnest2d::opt::bound;
+        using libnest2d::opt::initvals;
+        using libnest2d::opt::SimplexOptimizer;
+        using libnest2d::opt::StopCriteria;
+        static const unsigned MAX_TRIES = 100;
+
         int pcount = 0, hlcount = 0;
         for(int i = 0; i < count; i++) {
-            tifcl();
+            thr();
             auto n = nmls.row(i);
 
             // for all normals we generate the spherical coordinates and
@@ -1223,32 +1243,67 @@ bool SLASupportTree::generate(const PointSet &points,
                 // We saturate the polar angle to 3pi/4
                 polar = std::max(polar, 3*PI / 4);
 
-                // Reassemble the now corrected normal
-                Vec3d nn(std::cos(azimuth) * std::sin(polar),
-                         std::sin(azimuth) * std::sin(polar),
-                         std::cos(polar));
-
-                nn.normalize();
-
                 // save the head (pinpoint) position
                 Vec3d hp = filt_pts.row(i);
 
-                // the full width of the head
                 double w = cfg.head_width_mm +
                            cfg.head_back_radius_mm +
                            2*cfg.head_front_radius_mm;
 
-                // We should shoot a ray in the direction of the pinhead and
-                // see if there is enough space for it
-                double t = pinhead_mesh_intersect(
-                            hp, // touching point
-                            nn,
-                            cfg.head_front_radius_mm, // approx the radius
-                            cfg.head_back_radius_mm,
-                            w,
-                            mesh);
+                // Reassemble the now corrected normal
+                auto nn = Vec3d(std::cos(azimuth) * std::sin(polar),
+                                std::sin(azimuth) * std::sin(polar),
+                                std::cos(polar)).normalized();
 
-                if(t > w || std::isinf(t)) {
+                // check available distance
+                double t = pinhead_mesh_intersect(
+                                  hp, // touching point
+                                  nn, // normal
+                                  cfg.head_front_radius_mm,
+                                  cfg.head_back_radius_mm,
+                                  w,
+                                  mesh);
+
+                if(t <= w) {
+                    // Let's try to optimize this angle, there might be a viable
+                    // normal that doesn't collide with the model geometry and
+                    // its very close to the default.
+
+                    StopCriteria stc;
+                    stc.max_iterations = MAX_TRIES;
+                    stc.relative_score_difference = 1e-3;
+                    stc.stop_score = w; // space greater than w is enough
+                    SimplexOptimizer solver(stc);
+
+                    auto oresult = solver.optimize_max(
+                                [&mesh, &cfg, w, hp](double plr, double azm)
+                    {
+                        auto n = Vec3d(std::cos(azm) * std::sin(plr),
+                                       std::sin(azm) * std::sin(plr),
+                                       std::cos(plr)).normalized();
+
+                        double score = pinhead_mesh_intersect(
+                                          hp, n,
+                                          cfg.head_front_radius_mm,
+                                          cfg.head_back_radius_mm,
+                                          w,
+                                          mesh);
+                        return score;
+                    },
+                    initvals(polar, azimuth),  // let's start with what we have
+                    bound(3*PI/4, PI),  // Must not exceed the tilt limit
+                    bound(-PI, PI)      // azimuth can be a full range search
+                    );
+
+                    t = oresult.score;
+                    polar = std::get<0>(oresult.optimum);
+                    azimuth = std::get<1>(oresult.optimum);
+                    nn = Vec3d(std::cos(azimuth) * std::sin(polar),
+                               std::sin(azimuth) * std::sin(polar),
+                               std::cos(polar)).normalized();
+                }
+
+                if(t > w) {
                     head_pos.row(pcount) = hp;
 
                     // save the verified and corrected normal
@@ -1256,6 +1311,7 @@ bool SLASupportTree::generate(const PointSet &points,
 
                     ++pcount;
                 } else if( polar >= 3*PI/4 ) {
+
                     // Headless supports do not tilt like the headed ones so
                     // the normal should point almost to the ground.
                     headless_norm.row(hlcount) = nn;
@@ -1272,7 +1328,7 @@ bool SLASupportTree::generate(const PointSet &points,
 
     // Pinhead creation: based on the filtering results, the Head objects will
     // be constructed (together with their triangle meshes).
-    auto pinheadfn = [tifcl] (
+    auto pinheadfn = [thr] (
             const SupportConfig& cfg,
             PointSet& head_pos,
             PointSet& nmls,
@@ -1285,7 +1341,7 @@ bool SLASupportTree::generate(const PointSet &points,
         /* ******************************************************** */
 
         for (int i = 0; i < head_pos.rows(); ++i) {
-            tifcl();
+            thr();
             result.add_head(
                         cfg.head_back_radius_mm,
                         cfg.head_front_radius_mm,
@@ -1304,7 +1360,7 @@ bool SLASupportTree::generate(const PointSet &points,
     // will process it. Also, the pillars will be grouped into clusters that can
     // be interconnected with bridges. Elements of these groups may or may not
     // be interconnected. Here we only run the clustering algorithm.
-    auto classifyfn = [tifcl] (
+    auto classifyfn = [thr] (
             const SupportConfig& cfg,
             const EigenMesh3D& mesh,
             PointSet& head_pos,
@@ -1313,7 +1369,8 @@ bool SLASupportTree::generate(const PointSet &points,
             std::vector<double>& gndheight,
             ClusteredPoints& ground_clusters,
             Result& result
-            ) {
+            )
+    {
 
         /* ******************************************************** */
         /* Classification                                           */
@@ -1328,7 +1385,7 @@ bool SLASupportTree::generate(const PointSet &points,
         // pillars and which shall be connected to the model surface (or search
         // a suitable path around the surface that leads to the ground -- TODO)
         for(unsigned i = 0; i < head_pos.rows(); i++) {
-            tifcl();
+            thr();
             auto& head = result.head(i);
 
             Vec3d dir(0, 0, -1);
@@ -1336,6 +1393,35 @@ bool SLASupportTree::generate(const PointSet &points,
             int ri = 1;
             double t = std::numeric_limits<double>::infinity();
             double hw = head.width_mm;
+
+
+            {
+//                using libnest2d::opt::Method;
+//                using libnest2d::opt::bound;
+//                using libnest2d::opt::Optimizer;
+//                using libnest2d::opt::TOptimizer;
+//                using libnest2d::opt::StopCriteria;
+
+//                auto stopcond = [] () { return false; };
+//                static const unsigned max_tries = 100;
+
+//                auto objfunc =
+//                        [&head](double polar, double azimuth, double width)
+//                {
+//                    Vec3d nn(std::cos(azimuth) * std::sin(polar),
+//                             std::sin(azimuth) * std::sin(polar),
+//                             std::cos(polar));
+
+
+//                };
+
+//                StopCriteria stc;
+//                stc.max_iterations = max_tries;
+//                stc.relative_score_difference = 1e-3;
+//                stc.stop_condition = stopcond;
+//                TOptimizer<Method::L_SIMPLEX> solver(stc);
+            }
+
 
             // We will try to assign a pillar to all the pinheads. If a pillar
             // would pierce the model surface, we will try to adjust slightly
@@ -1356,6 +1442,13 @@ bool SLASupportTree::generate(const PointSet &points,
                     // not route this to the ground nor to the model surface.
                     head.width_mm = hw + (ri % 2? -1 : 1) * ri * head.r_back_mm;
                 } else {
+                    if(!std::isinf(t) && !std::isinf(tprec) &&
+                       std::abs(tprec - t) > hw)
+                    {
+                        // In this case the head would scratch the model body
+                        BOOST_LOG_TRIVIAL(warning) << "Head scratch detected.";
+                    }
+
                     accept = true; t = tprec;
 
                     auto id = head.id;
@@ -1410,9 +1503,9 @@ bool SLASupportTree::generate(const PointSet &points,
         ground_clusters =
                 cluster(
                     gnd,
-                    [d_base, tifcl](const SpatElement& p, const SpatElement& s)
+                    [d_base, thr](const SpatElement& p, const SpatElement& s)
         {
-            tifcl();
+            thr();
             return distance(Vec2d(p.first(X), p.first(Y)),
                             Vec2d(s.first(X), s.first(Y))) < d_base;
         }, 3); // max 3 heads to connect to one centroid
@@ -1485,7 +1578,7 @@ bool SLASupportTree::generate(const PointSet &points,
     // a full pillar (ground connected). Some will connect to a nearby pillar
     // using a bridge. The max number of such side-heads for a central pillar
     // is limited to avoid bad weight distribution.
-    auto routing_ground_fn = [gnd_head_pt, interconnect, tifcl](
+    auto routing_ground_fn = [gnd_head_pt, interconnect, thr](
             const SupportConfig& cfg,
             const ClusteredPoints& gnd_clusters,
             const IndexSet& gndidx,
@@ -1501,7 +1594,7 @@ bool SLASupportTree::generate(const PointSet &points,
         cl_centroids.reserve(gnd_clusters.size());
 
         SpatIndex pheadindex; // spatial index for the junctions
-        for(auto& cl : gnd_clusters) { tifcl();
+        for(auto& cl : gnd_clusters) { thr();
             // place all the centroid head positions into the index. We will
             // query for alternative pillar positions. If a sidehead cannot
             // connect to the cluster centroid, we have to search for another
@@ -1512,9 +1605,9 @@ bool SLASupportTree::generate(const PointSet &points,
 
             // get the current cluster centroid
             long lcid = cluster_centroid(cl, gnd_head_pt,
-                [tifcl](const Vec3d& p1, const Vec3d& p2)
+                [thr](const Vec3d& p1, const Vec3d& p2)
             {
-                tifcl();
+                thr();
                 return distance(Vec2d(p1(X), p1(Y)), Vec2d(p2(X), p2(Y)));
             });
 
@@ -1535,7 +1628,7 @@ bool SLASupportTree::generate(const PointSet &points,
         // sidepoints with the cluster centroid (which is a ground pillar)
         // or a nearby pillar if the centroid is unreachable.
         size_t ci = 0;
-        for(auto cl : gnd_clusters) { tifcl();
+        for(auto cl : gnd_clusters) { thr();
 
             auto cidx = cl_centroids[ci];
             cl_centroids[ci++] = cl[cidx];
@@ -1559,12 +1652,12 @@ bool SLASupportTree::generate(const PointSet &points,
             // is distributed more effectively on the pillar.
 
             auto search_nearest =
-                    [&tifcl, &cfg, &result, &emesh, maxbridgelen, gndlvl, pradius]
+                    [&thr, &cfg, &result, &emesh, maxbridgelen, gndlvl, pradius]
                     (SpatIndex& spindex, const Vec3d& jsh)
             {
                 long nearest_id = -1;
                 const double max_len = maxbridgelen / 2;
-                while(nearest_id < 0 && !spindex.empty()) { tifcl();
+                while(nearest_id < 0 && !spindex.empty()) { thr();
                     // loop until a suitable head is not found
                     // if there is a pillar closer than the cluster center
                     // (this may happen as the clustering is not perfect)
@@ -1603,7 +1696,7 @@ bool SLASupportTree::generate(const PointSet &points,
                 return nearest_id;
             };
 
-            for(auto c : cl) { tifcl();
+            for(auto c : cl) { thr();
                 auto& sidehead = result.head(gndidx[c]);
                 sidehead.transform();
 
@@ -1669,7 +1762,7 @@ bool SLASupportTree::generate(const PointSet &points,
         ClusterEl ring;
 
         while(!rem.empty()) { // loop until all the points belong to some ring
-            tifcl();
+            thr();
             std::sort(rem.begin(), rem.end());
 
             auto newring = pts_convex_hull(rem,
@@ -1681,7 +1774,7 @@ bool SLASupportTree::generate(const PointSet &points,
             if(!ring.empty()) {
                 // inner ring is now in 'newring' and outer ring is in 'ring'
                 SpatIndex innerring;
-                for(unsigned i : newring) { tifcl();
+                for(unsigned i : newring) { thr();
                     const Pillar& pill = result.head_pillar(gndidx[i]);
                     assert(pill.id >= 0);
                     innerring.insert(pill.endpoint, unsigned(pill.id));
@@ -1690,7 +1783,7 @@ bool SLASupportTree::generate(const PointSet &points,
                 // For all pillars in the outer ring find the closest in the
                 // inner ring and connect them. This will create the spider web
                 // fashioned connections between pillars
-                for(unsigned i : ring) { tifcl();
+                for(unsigned i : ring) { thr();
                     const Pillar& outerpill = result.head_pillar(gndidx[i]);
                     auto res = innerring.nearest(outerpill.endpoint, 1);
                     if(res.empty()) continue;
@@ -1716,7 +1809,7 @@ bool SLASupportTree::generate(const PointSet &points,
                 next != ring.end();
                 ++it, ++next)
             {
-                tifcl();
+                thr();
                 const Pillar& pillar = result.head_pillar(gndidx[*it]);
                 const Pillar& nextpillar = result.head_pillar(gndidx[*next]);
                 interconnect(pillar, nextpillar, emesh, result);
@@ -1736,14 +1829,14 @@ bool SLASupportTree::generate(const PointSet &points,
     // the model surface with a flipped pinhead. In the future here we could use
     // some smart algorithms to search for a safe path to the ground or to a
     // nearby pillar that can hold the supported weight.
-    auto routing_nongnd_fn = [tifcl](
+    auto routing_nongnd_fn = [thr](
             const SupportConfig& cfg,
             const std::vector<double>& gndheight,
             const IndexSet& nogndidx,
             Result& result)
     {
         // TODO: connect these to the ground pillars if possible
-        for(auto idx : nogndidx) { tifcl();
+        for(auto idx : nogndidx) { thr();
             double gh = gndheight[idx];
             double base_width = cfg.head_width_mm;
 
@@ -1800,7 +1893,7 @@ bool SLASupportTree::generate(const PointSet &points,
     // Step: process the support points where there is not enough space for a
     // full pinhead. In this case we will use a rounded sphere as a touching
     // point and use a thinner bridge (let's call it a stick).
-    auto process_headless = [tifcl](
+    auto process_headless = [thr](
             const SupportConfig& cfg,
             const PointSet& headless_pts,
             const PointSet& headless_norm,
@@ -1815,7 +1908,7 @@ bool SLASupportTree::generate(const PointSet &points,
 
         // We will sink the pins into the model surface for a distance of 1/3 of
         // the pin radius
-        for(int i = 0; i < headless_pts.rows(); i++) { tifcl();
+        for(int i = 0; i < headless_pts.rows(); i++) { thr();
             Vec3d sph = headless_pts.row(i);    // Exact support position
             Vec3d n = headless_norm.row(i);     // mesh outward normal
             Vec3d sp = sph - n * HWIDTH_MM;     // stick head start point
