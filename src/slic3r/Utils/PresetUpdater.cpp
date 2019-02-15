@@ -180,12 +180,11 @@ bool PresetUpdater::priv::get_file(const std::string &url, const fs::path &targe
 // Remove leftover paritally downloaded files, if any.
 void PresetUpdater::priv::prune_tmps() const
 {
-	for (fs::directory_iterator it(cache_path); it != fs::directory_iterator(); ++it) {
-		if (it->path().extension() == TMP_EXTENSION) {
-			BOOST_LOG_TRIVIAL(debug) << "Cache prune: " << it->path().string();
-			fs::remove(it->path());
+    for (auto &dir_entry : boost::filesystem::directory_iterator(cache_path))
+		if (is_plain_file(dir_entry) && dir_entry.path().extension() == TMP_EXTENSION) {
+			BOOST_LOG_TRIVIAL(debug) << "Cache prune: " << dir_entry.path().string();
+			fs::remove(dir_entry.path());
 		}
-	}
 }
 
 // Get Slic3rPE version available online, save in AppConfig.
@@ -299,9 +298,9 @@ void PresetUpdater::priv::check_install_indices() const
 {
 	BOOST_LOG_TRIVIAL(info) << "Checking if indices need to be installed from resources...";
 
-	for (fs::directory_iterator it(rsrc_path); it != fs::directory_iterator(); ++it) {
-		const auto &path = it->path();
-		if (path.extension() == ".idx") {
+    for (auto &dir_entry : boost::filesystem::directory_iterator(rsrc_path))
+		if (is_idx_file(dir_entry)) {
+			const auto &path = dir_entry.path();
 			const auto path_in_cache = cache_path / path.filename();
 
 			if (! fs::exists(path_in_cache)) {
@@ -318,7 +317,6 @@ void PresetUpdater::priv::check_install_indices() const
 				}
 			}
 		}
-	}
 }
 
 // Generates a list of bundle updates that are to be performed

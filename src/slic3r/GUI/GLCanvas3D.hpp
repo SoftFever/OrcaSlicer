@@ -121,14 +121,13 @@ wxDECLARE_EVENT(EVT_GLCANVAS_VIEWPORT_CHANGED, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_RIGHT_CLICK, Vec2dEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_REMOVE_OBJECT, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_ARRANGE, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLCANVAS_SELECT_ALL, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_QUESTION_MARK, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_INCREASE_INSTANCES, Event<int>); // data: +1 => increase, -1 => decrease
 wxDECLARE_EVENT(EVT_GLCANVAS_INSTANCE_MOVED, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_WIPETOWER_MOVED, Vec3dEvent);
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 wxDECLARE_EVENT(EVT_GLCANVAS_INSTANCE_ROTATED, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_INSTANCE_SCALED, SimpleEvent);
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 wxDECLARE_EVENT(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, Event<bool>);
 wxDECLARE_EVENT(EVT_GLCANVAS_UPDATE_GEOMETRY, Vec3dsEvent<2>);
 wxDECLARE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, SimpleEvent);
@@ -227,6 +226,10 @@ class GLCanvas3D
     public:
         Bed();
 
+#if ENABLE_REWORKED_BED_SHAPE_CHANGE
+        EType get_type() const { return m_type; }
+#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
+
         bool is_prusa() const;
         bool is_custom() const;
 
@@ -248,14 +251,20 @@ class GLCanvas3D
         void _calc_bounding_box();
         void _calc_triangles(const ExPolygon& poly);
         void _calc_gridlines(const ExPolygon& poly, const BoundingBox& bed_bbox);
+#if ENABLE_REWORKED_BED_SHAPE_CHANGE
+        EType _detect_type(const Pointfs& shape) const;
+#else
         EType _detect_type() const;
+#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
 #if ENABLE_PRINT_BED_MODELS
         void _render_prusa(const std::string &key, float theta, bool useVBOs) const;
 #else
         void _render_prusa(const std::string &key, float theta) const;
 #endif // ENABLE_PRINT_BED_MODELS
         void _render_custom() const;
+#if !ENABLE_REWORKED_BED_SHAPE_CHANGE
         static bool _are_equal(const Pointfs& bed_1, const Pointfs& bed_2);
+#endif // !ENABLE_REWORKED_BED_SHAPE_CHANGE
     };
 
     struct Axes
@@ -932,6 +941,7 @@ public:
     void set_context(wxGLContext* context) { m_context = context; }
 
     wxGLCanvas* get_wxglcanvas() { return m_canvas; }
+	const wxGLCanvas* get_wxglcanvas() const { return m_canvas; }
 
     void set_view_toolbar(GLToolbar* toolbar) { m_view_toolbar = toolbar; }
 
@@ -1044,7 +1054,6 @@ public:
     void on_timer(wxTimerEvent& evt);
     void on_mouse(wxMouseEvent& evt);
     void on_paint(wxPaintEvent& evt);
-    void on_key_down(wxKeyEvent& evt);
 
     Size get_canvas_size() const;
     Point get_local_mouse_position() const;

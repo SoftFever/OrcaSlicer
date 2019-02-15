@@ -66,6 +66,12 @@ ObjectList::ObjectList(wxWindow* parent) :
 
     // describe control behavior 
     Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [this](wxEvent& event) {
+#ifndef __APPLE__
+        // On Windows and Linux, forces a kill focus emulation on the object manipulator fields because this event handler is called
+        // before the kill focus event handler on the object manipulator when changing selection in the list, invalidating the object
+        // manipulator cache with the following call to selection_changed()
+        wxGetApp().obj_manipul()->emulate_kill_focus();
+#endif // __APPLE__
         selection_changed();
 #ifndef __WXMSW__
         set_tooltip_for_item(get_mouse_position_in_control());
@@ -1340,6 +1346,8 @@ void ObjectList::split()
         wxMessageBox(_(L("The selected object couldn't be split because it contains only one part.")));
         return;
     }
+
+    wxBusyCursor wait;
 
     auto model_object = (*m_objects)[obj_idx];
 

@@ -243,7 +243,7 @@ std::string PresetBundle::load_system_presets()
     std::string errors_cummulative;
     bool        first = true;
     for (auto &dir_entry : boost::filesystem::directory_iterator(dir))
-        if (boost::filesystem::is_regular_file(dir_entry.status()) && boost::algorithm::iends_with(dir_entry.path().filename().string(), ".ini")) {
+        if (Slic3r::is_ini_file(dir_entry)) {
             std::string name = dir_entry.path().filename().string();
             // Remove the .ini suffix.
             name.erase(name.size() - 4);
@@ -1208,7 +1208,7 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
 #else
                 // Store the print/filament/printer presets at the same location as the upstream Slic3r.
 #endif
-                / presets->name() / file_name).make_preferred();
+                / presets->section_name() / file_name).make_preferred();
             // Load the preset into the list of presets, save it to disk.
             Preset &loaded = presets->load_preset(file_path.string(), preset_name, std::move(config), false);
             if (flags & LOAD_CFGBNDLE_SAVE)
@@ -1365,7 +1365,7 @@ void PresetBundle::export_configbundle(const std::string &path, bool export_syst
             if (preset.is_default || preset.is_external || (preset.is_system && ! export_system_settings))
                 // Only export the common presets, not external files or the default preset.
                 continue;
-            c << std::endl << "[" << presets->name() << ":" << preset.name << "]" << std::endl;
+            c << std::endl << "[" << presets->section_name() << ":" << preset.name << "]" << std::endl;
             for (const std::string &opt_key : preset.config.keys())
                 c << opt_key << " = " << preset.config.serialize(opt_key) << std::endl;
         }

@@ -15,7 +15,7 @@ namespace Slic3r
 size_t PrintStateBase::g_last_timestamp = 0;
 
 // Update "scale", "input_filename", "input_filename_base" placeholders from the current m_objects.
-void PrintBase::update_object_placeholders()
+void PrintBase::update_object_placeholders(DynamicConfig &config) const
 {
     // get the first input file name
     std::string input_file;
@@ -33,27 +33,29 @@ void PrintBase::update_object_placeholders()
 				"% y:" + boost::lexical_cast<std::string>(printable->get_scaling_factor(Y) * 100) +
 				"% z:" + boost::lexical_cast<std::string>(printable->get_scaling_factor(Z) * 100) + "%");
 	        if (input_file.empty())
-	            input_file = model_object->input_file;
+	            input_file = model_object->name.empty() ? model_object->input_file : model_object->name;
 	    }
     }
     
-    PlaceholderParser &pp = m_placeholder_parser;
-    pp.set("scale", v_scale);
+    config.set_key_value("year", new ConfigOptionStrings(v_scale));
     if (! input_file.empty()) {
         // get basename with and without suffix
         const std::string input_basename = boost::filesystem::path(input_file).filename().string();
-        pp.set("input_filename", input_basename);
+        config.set_key_value("input_filename", new ConfigOptionString(input_basename));
         const std::string input_basename_base = input_basename.substr(0, input_basename.find_last_of("."));
-        pp.set("input_filename_base", input_basename_base);
+        config.set_key_value("input_filename_base", new ConfigOptionString(input_basename_base));
     }
 }
 
+// Generate an output file name based on the format template, default extension, and template parameters
+// (timestamps, object placeholders derived from the model, current placeholder prameters, print statistics - config_override)
 std::string PrintBase::output_filename(const std::string &format, const std::string &default_ext, const DynamicConfig *config_override) const
 {
     DynamicConfig cfg;
     if (config_override != nullptr)
     	cfg = *config_override;
     PlaceholderParser::update_timestamp(cfg);
+    this->update_object_placeholders(cfg);
     try {
         boost::filesystem::path filename = this->placeholder_parser().process(format, 0, &cfg);
         if (filename.extension().empty())
@@ -69,7 +71,7 @@ std::string PrintBase::output_filepath(const std::string &path) const
     // if we were supplied no path, generate an automatic one based on our first object's input file
     if (path.empty())
         // get the first input file name
-        return (boost::filesystem::path(m_model.propose_export_file_name()).parent_path() / this->output_filename()).make_preferred().string();
+        return (boost::filesystem::path(m_model.propose_export_file_name_and_path()).parent_path() / this->output_filename()).make_preferred().string();
     
     // if we were supplied a directory, use it and append our automatically generated filename
     boost::filesystem::path p(path);

@@ -319,17 +319,33 @@ void MainFrame::init_menubar()
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable((m_plater != nullptr) && can_slice()); }, m_menu_item_reslice_now->GetId());
     }
 
+#ifdef _MSC_VER
+    // \xA0 is a non-breaking space. It is entered here to spoil the automatic accelerators,
+    // as the simple numeric accelerators spoil all numeric data entry.
+    wxString sep = "\t\xA0";
+    wxString sep_space = "\xA0";
+#else
+    wxString sep = " - ";
+    wxString sep_space = "";
+#endif
+
     // Edit menu
     wxMenu* editMenu = nullptr;
     if (m_plater != nullptr)
     {
         editMenu = new wxMenu();
-        wxMenuItem* item_select_all = append_menu_item(editMenu, wxID_ANY, _(L("&Select all")) + "\tCtrl+A", _(L("Selects all objects")),
+    #ifdef __APPLE__
+        // Backspace sign
+        wxString hotkey_delete = "\u232b";
+    #else
+        wxString hotkey_delete = "Del";
+    #endif
+        wxMenuItem* item_select_all = append_menu_item(editMenu, wxID_ANY, _(L("&Select all")) + sep + GUI::shortkey_ctrl_prefix() + sep_space + "A", _(L("Selects all objects")),
             [this](wxCommandEvent&) { m_plater->select_all(); }, "");
         editMenu->AppendSeparator();
-        wxMenuItem* item_delete_sel = append_menu_item(editMenu, wxID_ANY, _(L("&Delete selected")) + "\tDel", _(L("Deletes the current selection")),
+        wxMenuItem* item_delete_sel = append_menu_item(editMenu, wxID_ANY, _(L("&Delete selected")) + sep + hotkey_delete, _(L("Deletes the current selection")),
             [this](wxCommandEvent&) { m_plater->remove_selected(); }, "");
-        wxMenuItem* item_delete_all = append_menu_item(editMenu, wxID_ANY, _(L("Delete &all")) + "\tCtrl+Del", _(L("Deletes all objects")),
+        wxMenuItem* item_delete_all = append_menu_item(editMenu, wxID_ANY, _(L("Delete &all")) + sep + GUI::shortkey_ctrl_prefix() + sep_space + hotkey_delete, _(L("Deletes all objects")),
             [this](wxCommandEvent&) { m_plater->reset(); }, "");
 
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_select()); }, item_select_all->GetId());
@@ -388,17 +404,15 @@ void MainFrame::init_menubar()
     wxMenu* viewMenu = nullptr;
     if (m_plater) {
         viewMenu = new wxMenu();
-        // \xA0 is a non-breaing space. It is entered here to spoil the automatic accelerators,
-        // as the simple numeric accelerators spoil all numeric data entry.
         // The camera control accelerators are captured by GLCanvas3D::on_char().
-        wxMenuItem* item_iso = append_menu_item(viewMenu, wxID_ANY, _(L("&Iso")) + "\t\xA0" + "0", _(L("Iso View")), [this](wxCommandEvent&) { select_view("iso"); });
+		wxMenuItem* item_iso = append_menu_item(viewMenu, wxID_ANY, _(L("Iso")) + sep + "&0", _(L("Iso View")), [this](wxCommandEvent&) { select_view("iso"); });
         viewMenu->AppendSeparator();
-        wxMenuItem* item_top = append_menu_item(viewMenu, wxID_ANY, _(L("&Top")) + "\t\xA0" + "1", _(L("Top View")), [this](wxCommandEvent&) { select_view("top"); });
-        wxMenuItem* item_bottom = append_menu_item(viewMenu, wxID_ANY, _(L("&Bottom")) + "\t\xA0" + "2", _(L("Bottom View")), [this](wxCommandEvent&) { select_view("bottom"); });
-        wxMenuItem* item_front = append_menu_item(viewMenu, wxID_ANY, _(L("&Front")) + "\t\xA0" + "3", _(L("Front View")), [this](wxCommandEvent&) { select_view("front"); });
-        wxMenuItem* item_rear = append_menu_item(viewMenu, wxID_ANY, _(L("R&ear")) + "\t\xA0" + "4", _(L("Rear View")), [this](wxCommandEvent&) { select_view("rear"); });
-        wxMenuItem* item_left = append_menu_item(viewMenu, wxID_ANY, _(L("&Left")) + "\t\xA0" + "5", _(L("Left View")), [this](wxCommandEvent&) { select_view("left"); });
-        wxMenuItem* item_right = append_menu_item(viewMenu, wxID_ANY, _(L("&Right")) + "\t\xA0" + "6", _(L("Right View")), [this](wxCommandEvent&) { select_view("right"); });
+		wxMenuItem* item_top = append_menu_item(viewMenu, wxID_ANY, _(L("Top")) + sep + "&1", _(L("Top View")), [this](wxCommandEvent&) { select_view("top"); });
+		wxMenuItem* item_bottom = append_menu_item(viewMenu, wxID_ANY, _(L("Bottom")) + sep + "&2", _(L("Bottom View")), [this](wxCommandEvent&) { select_view("bottom"); });
+		wxMenuItem* item_front = append_menu_item(viewMenu, wxID_ANY, _(L("Front")) + sep + "&3", _(L("Front View")), [this](wxCommandEvent&) { select_view("front"); });
+		wxMenuItem* item_rear = append_menu_item(viewMenu, wxID_ANY, _(L("Rear")) + sep + "&4", _(L("Rear View")), [this](wxCommandEvent&) { select_view("rear"); });
+		wxMenuItem* item_left = append_menu_item(viewMenu, wxID_ANY, _(L("Left")) + sep + "&5", _(L("Left View")), [this](wxCommandEvent&) { select_view("left"); });
+		wxMenuItem* item_right = append_menu_item(viewMenu, wxID_ANY, _(L("Right")) + sep + "&6", _(L("Right View")), [this](wxCommandEvent&) { select_view("right"); });
 
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_change_view()); }, item_iso->GetId());
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_change_view()); }, item_top->GetId());
@@ -434,7 +448,7 @@ void MainFrame::init_menubar()
         append_menu_item(helpMenu, wxID_ANY, _(L("&About Slic3r")), _(L("Show about dialog")),
             [this](wxCommandEvent&) { Slic3r::GUI::about(); });
         helpMenu->AppendSeparator();
-        append_menu_item(helpMenu, wxID_ANY, _(L("&Keyboard Shortcuts")) + "\t\xA0?", _(L("Show the list of the keyboard shortcuts")),
+        append_menu_item(helpMenu, wxID_ANY, _(L("Keyboard Shortcuts")) + sep + "&?", _(L("Show the list of the keyboard shortcuts")),
             [this](wxCommandEvent&) { wxGetApp().keyboard_shortcuts(); });
     }
 

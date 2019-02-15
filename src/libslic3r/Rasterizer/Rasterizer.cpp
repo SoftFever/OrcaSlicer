@@ -200,6 +200,8 @@ void Raster::save(std::ostream& stream, Compression comp)
             wr.write_row(ptr);
         }
 
+        wr.write_end_info();
+
         break;
     }
     case Compression::RAW: {

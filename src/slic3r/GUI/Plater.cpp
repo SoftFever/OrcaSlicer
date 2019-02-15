@@ -12,7 +12,6 @@
 
 #include <wx/sizer.h>
 #include <wx/stattext.h>
-#include <wx/notebook.h>
 #include <wx/button.h>
 #include <wx/bmpcbox.h>
 #include <wx/statbox.h>
@@ -1028,7 +1027,8 @@ struct Plater::priv
     unsigned int update_background_process(bool force_validation = false);
     // Restart background processing thread based on a bitmask of UpdateBackgroundProcessReturnState.
     bool restart_background_process(unsigned int state);
-    void update_restart_background_process(bool force_scene_update, bool force_preview_update);
+	// returns bit mask of UpdateBackgroundProcessReturnState
+	unsigned int update_restart_background_process(bool force_scene_update, bool force_preview_update);
     void export_gcode(fs::path output_path, PrintHostJob upload_job);
     void reload_from_disk();
     void fix_through_netfabb(const int obj_idx, const int vol_idx = -1);
@@ -1091,7 +1091,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     : q(q)
     , main_frame(main_frame)
     , config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({
-        "bed_shape", "complete_objects", "extruder_clearance_radius", "skirts", "skirt_distance",
+        "bed_shape", "complete_objects", "duplicate_distance", "extruder_clearance_radius", "skirts", "skirt_distance",
         "brim_width", "variable_layer_height", "serial_port", "serial_speed", "host_type", "print_host",
         "printhost_apikey", "printhost_cafile", "nozzle_diameter", "single_extruder_multi_material",
         "wipe_tower", "wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_rotation_angle",
@@ -1170,15 +1170,14 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     view3D_canvas->Bind(EVT_GLCANVAS_RIGHT_CLICK, &priv::on_right_click, this);
     view3D_canvas->Bind(EVT_GLCANVAS_REMOVE_OBJECT, [q](SimpleEvent&) { q->remove_selected(); });
     view3D_canvas->Bind(EVT_GLCANVAS_ARRANGE, [this](SimpleEvent&) { arrange(); });
+    view3D_canvas->Bind(EVT_GLCANVAS_SELECT_ALL, [this](SimpleEvent&) { this->q->select_all(); });
     view3D_canvas->Bind(EVT_GLCANVAS_QUESTION_MARK, [this](SimpleEvent&) { wxGetApp().keyboard_shortcuts(); });
     view3D_canvas->Bind(EVT_GLCANVAS_INCREASE_INSTANCES, [this](Event<int> &evt) 
         { if (evt.data == 1) this->q->increase_instances(); else if (this->can_decrease_instances()) this->q->decrease_instances(); });
     view3D_canvas->Bind(EVT_GLCANVAS_INSTANCE_MOVED, [this](SimpleEvent&) { update(); });
     view3D_canvas->Bind(EVT_GLCANVAS_WIPETOWER_MOVED, &priv::on_wipetower_moved, this);
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     view3D_canvas->Bind(EVT_GLCANVAS_INSTANCE_ROTATED, [this](SimpleEvent&) { update(); });
     view3D_canvas->Bind(EVT_GLCANVAS_INSTANCE_SCALED, [this](SimpleEvent&) { update(); });
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     view3D_canvas->Bind(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, [this](Event<bool> &evt) { this->sidebar->enable_buttons(evt.data); });
     view3D_canvas->Bind(EVT_GLCANVAS_UPDATE_GEOMETRY, &priv::on_update_geometry, this);
     view3D_canvas->Bind(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, &priv::on_3dcanvas_mouse_dragging_finished, this);
@@ -1577,7 +1576,7 @@ std::unique_ptr<CheckboxFileDialog> Plater::priv::get_export_file(GUI::FileType 
     // Update printbility state of each of the ModelInstances.
     this->update_print_volume_state();
     // Find the file name of the first printable object.
-	fs::path output_file = this->model.propose_export_file_name();
+	fs::path output_file = this->model.propose_export_file_name_and_path();
 
     switch (file_type) {
         case FT_STL: output_file.replace_extension("stl"); break;
@@ -1737,6 +1736,8 @@ void Plater::priv::arrange()
     // Guard the arrange process
     arranging.store(true);
 
+    wxBusyCursor wait;
+
     // Disable the arrange button (to prevent reentrancies, we will call wxYied)
     view3D->enable_toolbar_item("arrange", can_arrange());
 
@@ -1772,8 +1773,11 @@ void Plater::priv::arrange()
     // FIXME: I don't know how to obtain the minimum distance, it depends
     // on printer technology. I guess the following should work but it crashes.
     double dist = 6; //PrintConfig::min_object_distance(config);
+    if(printer_technology == ptFFF) {
+        dist = PrintConfig::min_object_distance(config);
+    }
 
-    auto min_obj_distance = static_cast<coord_t>(dist/SCALING_FACTOR);
+    auto min_obj_distance = coord_t(dist/SCALING_FACTOR);
 
     const auto *bed_shape_opt = config->opt<ConfigOptionPoints>("bed_shape");
 
@@ -1884,6 +1888,7 @@ void Plater::priv::split_object()
         return;
     }
 
+    wxBusyCursor wait;
     ModelObjectPtrs new_objects;
     current_model_object->split(&new_objects);
     if (new_objects.size() == 1)
@@ -2047,7 +2052,7 @@ void Plater::priv::export_gcode(fs::path output_path, PrintHostJob upload_job)
     this->restart_background_process(priv::UPDATE_BACKGROUND_PROCESS_FORCE_EXPORT);
 }
 
-void Plater::priv::update_restart_background_process(bool force_update_scene, bool force_update_preview)
+unsigned int Plater::priv::update_restart_background_process(bool force_update_scene, bool force_update_preview)
 {
     // bitmask of UpdateBackgroundProcessReturnState
     unsigned int state = this->update_background_process(false);
@@ -2057,6 +2062,7 @@ void Plater::priv::update_restart_background_process(bool force_update_scene, bo
     if (force_update_preview)
         this->preview->reload_print();
     this->restart_background_process(state);
+	return state;
 }
 
 void Plater::priv::update_fff_scene()
@@ -2110,31 +2116,10 @@ void Plater::priv::fix_through_netfabb(const int obj_idx, const int vol_idx/* = 
 {
     if (obj_idx < 0)
         return;
-
-    const auto model_object = model.objects[obj_idx];
-    Model model_fixed;// = new Model();
-    fix_model_by_win10_sdk_gui(*model_object, this->fff_print, model_fixed);
-
-    auto new_obj_idxs = load_model_objects(model_fixed.objects);
-    if (new_obj_idxs.empty())
-        return;
-    
-    for(auto new_obj_idx : new_obj_idxs) {
-        auto o = model.objects[new_obj_idx];
-        o->clear_instances();
-        for (auto instance: model_object->instances)
-            o->add_instance(*instance);
-        o->invalidate_bounding_box();
-        
-        if (o->volumes.size() == model_object->volumes.size()) {
-            for (int i = 0; i < o->volumes.size(); i++) {
-                o->volumes[i]->config.apply(model_object->volumes[i]->config);
-            }
-        }
-        // FIXME restore volumes and their configs, layer_height_ranges, layer_height_profile
-    }
-    
-    remove(obj_idx);
+    fix_model_by_win10_sdk_gui(*model.objects[obj_idx], vol_idx);
+    this->object_list_changed();
+    this->update();
+    this->schedule_background_process();
 }
 
 void Plater::priv::set_current_panel(wxPanel* panel)
@@ -2555,7 +2540,7 @@ void Plater::priv::init_view_toolbar()
     GLToolbarItem::Data item;
 
     item.name = "3D";
-    item.tooltip = GUI::L_str("3D editor view [Ctrl+5]");
+    item.tooltip = GUI::L_str("3D editor view") + " [" + GUI::shortkey_ctrl_prefix() + "5]";
     item.sprite_id = 0;
     item.action_event = EVT_GLVIEWTOOLBAR_3D;
     item.is_toggable = false;
@@ -2563,7 +2548,7 @@ void Plater::priv::init_view_toolbar()
         return;
 
     item.name = "Preview";
-    item.tooltip = GUI::L_str("Preview [Ctrl+6]");
+    item.tooltip = GUI::L_str("Preview") + " [" + GUI::shortkey_ctrl_prefix() + "6]";
     item.sprite_id = 1;
     item.action_event = EVT_GLVIEWTOOLBAR_PREVIEW;
     item.is_toggable = false;
@@ -2842,57 +2827,50 @@ void Plater::cut(size_t obj_idx, size_t instance_idx, coordf_t z, bool keep_uppe
         return;
     }
 
+    wxBusyCursor wait;
     const auto new_objects = object->cut(instance_idx, z, keep_upper, keep_lower, rotate_lower);
 
     remove(obj_idx);
     p->load_model_objects(new_objects);
 }
 
-void Plater::export_gcode(fs::path output_path)
+void Plater::export_gcode()
 {
     if (p->model.objects.empty())
         return;
 
-    // select output file
-    if (output_path.empty()) {
-        // XXX: take output path from CLI opts? Ancient Slic3r versions used to do that...
-
-        // If possible, remove accents from accented latin characters.
-        // This function is useful for generating file names to be processed by legacy firmwares.
-        fs::path default_output_file;
-        try {
-            default_output_file = this->p->background_process.current_print()->output_filepath(output_path.string());
-        } catch (const std::exception &ex) {
-            show_error(this, ex.what());
-            return;
-        }
-        default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string()));
-        auto start_dir = wxGetApp().app_config->get_last_output_dir(default_output_file.parent_path().string());
-
-        wxFileDialog dlg(this, (printer_technology() == ptFFF) ? _(L("Save G-code file as:")) : _(L("Save Zip file as:")),
-            start_dir,
-            from_path(default_output_file.filename()),
-            GUI::file_wildcards((printer_technology() == ptFFF) ? FT_GCODE : FT_PNGZIP, default_output_file.extension().string()),
-            wxFD_SAVE | wxFD_OVERWRITE_PROMPT
-        );
-
-        if (dlg.ShowModal() == wxID_OK) {
-            fs::path path = into_path(dlg.GetPath());
-            wxGetApp().app_config->update_last_output_dir(path.parent_path().string());
-            output_path = std::move(path);
-        }
-    } else {
-        try {
-            output_path = this->p->background_process.current_print()->output_filepath(output_path.string());
-        } catch (const std::exception &ex) {
-            show_error(this, ex.what());
-            return;
-        }
+    // If possible, remove accents from accented latin characters.
+    // This function is useful for generating file names to be processed by legacy firmwares.
+    fs::path default_output_file;
+    try {
+		// Update the background processing, so that the placeholder parser will get the correct values for the ouput file template.
+		// Also if there is something wrong with the current configuration, a pop-up dialog will be shown and the export will not be performed.
+		unsigned int state = this->p->update_restart_background_process(false, false);
+		if (state & priv::UPDATE_BACKGROUND_PROCESS_INVALID)
+			return;
+		default_output_file = this->p->background_process.current_print()->output_filepath("");
+    } catch (const std::exception &ex) {
+        show_error(this, ex.what());
+        return;
     }
+    default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string()));
+    auto start_dir = wxGetApp().app_config->get_last_output_dir(default_output_file.parent_path().string());
 
-    if (! output_path.empty()) {
+    wxFileDialog dlg(this, (printer_technology() == ptFFF) ? _(L("Save G-code file as:")) : _(L("Save Zip file as:")),
+        start_dir,
+        from_path(default_output_file.filename()),
+        GUI::file_wildcards((printer_technology() == ptFFF) ? FT_GCODE : FT_PNGZIP, default_output_file.extension().string()),
+        wxFD_SAVE | wxFD_OVERWRITE_PROMPT
+    );
+
+    fs::path output_path;
+    if (dlg.ShowModal() == wxID_OK) {
+        fs::path path = into_path(dlg.GetPath());
+        wxGetApp().app_config->update_last_output_dir(path.parent_path().string());
+        output_path = std::move(path);
+    }
+    if (! output_path.empty())
         p->export_gcode(std::move(output_path), PrintHostJob());
-    }
 }
 
 void Plater::export_stl(bool selection_only)
@@ -2933,6 +2911,7 @@ void Plater::export_amf()
     const std::string path_u8 = into_u8(path);
 
 	DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config_secure();
+    wxBusyCursor wait;
 	if (Slic3r::store_amf(path_u8.c_str(), &p->model, dialog->get_checkbox_value() ? &cfg : nullptr)) {
         // Success
         p->statusbar()->set_status_text(wxString::Format(_(L("AMF file exported to %s")), path));
@@ -2963,6 +2942,7 @@ void Plater::export_3mf(const boost::filesystem::path& output_path)
 
 	DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config_secure();
     const std::string path_u8 = into_u8(path);
+    wxBusyCursor wait;
     if (Slic3r::store_3mf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr)) {
         // Success
         p->statusbar()->set_status_text(wxString::Format(_(L("3MF file exported to %s")), path));
@@ -2993,7 +2973,12 @@ void Plater::send_gcode()
     // Obtain default output path
     fs::path default_output_file;
     try {
-        default_output_file = this->p->background_process.current_print()->output_filepath("");
+		// Update the background processing, so that the placeholder parser will get the correct values for the ouput file template.
+		// Also if there is something wrong with the current configuration, a pop-up dialog will be shown and the export will not be performed.
+		unsigned int state = this->p->update_restart_background_process(false, false);
+		if (state & priv::UPDATE_BACKGROUND_PROCESS_INVALID)
+			return;
+		default_output_file = this->p->background_process.current_print()->output_filepath("");
     } catch (const std::exception &ex) {
         show_error(this, ex.what());
         return;
@@ -3038,13 +3023,20 @@ void Plater::on_extruders_change(int num_extruders)
 void Plater::on_config_change(const DynamicPrintConfig &config)
 {
     bool update_scheduled = false;
+#if ENABLE_REWORKED_BED_SHAPE_CHANGE
+    bool bed_shape_changed = false;
+#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
     for (auto opt_key : p->config->diff(config)) {
         p->config->set_key_value(opt_key, config.option(opt_key)->clone());
         if (opt_key == "printer_technology")
             this->set_printer_technology(config.opt_enum<PrinterTechnology>(opt_key));
         else if (opt_key == "bed_shape") {
+#if ENABLE_REWORKED_BED_SHAPE_CHANGE
+            bed_shape_changed = true;
+#else
             if (p->view3D) p->view3D->set_bed_shape(p->config->option<ConfigOptionPoints>(opt_key)->values);
             if (p->preview) p->preview->set_bed_shape(p->config->option<ConfigOptionPoints>(opt_key)->values);
+#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
             update_scheduled = true;
         } 
         else if (boost::starts_with(opt_key, "wipe_tower") ||
@@ -3070,8 +3062,12 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         }
         else if (opt_key == "printer_model") {
             // update to force bed selection(for texturing)
+#if ENABLE_REWORKED_BED_SHAPE_CHANGE
+            bed_shape_changed = true;
+#else
             if (p->view3D) p->view3D->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values);
             if (p->preview) p->preview->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values);
+#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
             update_scheduled = true;
         }
         else if (opt_key == "host_type" && this->p->printer_technology == ptSLA) {
@@ -3083,6 +3079,14 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         const auto prin_host_opt = p->config->option<ConfigOptionString>("print_host");
         p->sidebar->show_send(prin_host_opt != nullptr && !prin_host_opt->value.empty());
     }
+
+#if ENABLE_REWORKED_BED_SHAPE_CHANGE
+    if (bed_shape_changed)
+    {
+        if (p->view3D) p->view3D->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values);
+        if (p->preview) p->preview->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values);
+    }
+#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
 
     if (update_scheduled) 
         update();

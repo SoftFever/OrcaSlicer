@@ -54,13 +54,16 @@ public:
         std::string                 id;
         std::string                 name;
         PrinterTechnology           technology;
+        std::string                 family;
         std::vector<PrinterVariant> variants;
+
         PrinterVariant*       variant(const std::string &name) {
             for (auto &v : this->variants)
                 if (v.name == name)
                     return &v;
             return nullptr;
         }
+
         const PrinterVariant* variant(const std::string &name) const { return const_cast<PrinterModel*>(this)->variant(name); }
     };
     std::vector<PrinterModel>          models;
@@ -72,6 +75,7 @@ public:
     static VendorProfile from_ini(const boost::property_tree::ptree &tree, const boost::filesystem::path &path, bool load_all=true);
 
     size_t      num_variants() const { size_t n = 0; for (auto &model : models) n += model.variants.size(); return n; }
+    std::vector<std::string> families() const;
 
     bool        operator< (const VendorProfile &rhs) const { return this->id <  rhs.id; }
     bool        operator==(const VendorProfile &rhs) const { return this->id == rhs.id; }
@@ -230,7 +234,10 @@ public:
     void            reset(bool delete_files);
 
     Preset::Type    type() const { return m_type; }
+    // Name, to be used on the screen and in error messages. Not localized.
     std::string     name() const;
+    // Name, to be used as a section name in config bundle, and as a folder name for presets.
+    std::string     section_name() const;
     const std::deque<Preset>& operator()() const { return m_presets; }
 
     // Add default preset at the start of the collection, increment the m_default_preset counter.

@@ -12,6 +12,7 @@
 // Renders a small sphere in the center of the bounding box of the current selection when no gizmo is active
 #define ENABLE_RENDER_SELECTION_CENTER 0
 
+
 //====================
 // 1.42.0.alpha1 techs
 //====================
@@ -27,16 +28,14 @@
 // Use wxDataViewRender instead of wxDataViewCustomRenderer
 #define ENABLE_NONCUSTOM_DATA_VIEW_RENDERING (0 && ENABLE_1_42_0_ALPHA1)
 
+
 //====================
 // 1.42.0.alpha2 techs
 //====================
 #define ENABLE_1_42_0_ALPHA2 1
 
-// Improves navigation between sidebar fields
-#define ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION (1 && ENABLE_1_42_0_ALPHA2)
 // Adds print bed models to 3D scene
 #define ENABLE_PRINT_BED_MODELS (1 && ENABLE_1_42_0_ALPHA2)
-#endif // _technologies_h_
 
 
 //====================
@@ -65,3 +64,5 @@
 
 // Toolbar items hidden/shown in dependence of the user mode
 #define ENABLE_MODE_AWARE_TOOLBAR_ITEMS (1 && ENABLE_1_42_0_ALPHA5)
+
+#endif // _technologies_h_

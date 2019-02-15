@@ -10,6 +10,7 @@
 #include "libslic3r/Geometry.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Technologies.hpp"
+#include "libslic3r/Tesselate.hpp"
 #include "slic3r/GUI/3DScene.hpp"
 #include "slic3r/GUI/BackgroundSlicingProcess.hpp"
 #include "slic3r/GUI/GLShader.hpp"
@@ -140,8 +141,8 @@ bool GeometryBuffer::set_from_triangles(const Polygons& triangles, float z, bool
             float inv_size_y = -1.0f / size_y;
             for (unsigned int i = 0; i < m_tex_coords.size(); i += 2)
             {
-                m_tex_coords[i] *= inv_size_x;
-                m_tex_coords[i + 1] *= inv_size_y;
+                m_tex_coords[i] = (m_tex_coords[i] - min_x) * inv_size_x;
+                m_tex_coords[i + 1] = (m_tex_coords[i + 1] - min_y) * inv_size_y;
             }
         }
     }
@@ -366,7 +367,11 @@ const Pointfs& GLCanvas3D::Bed::get_shape() const
 
 bool GLCanvas3D::Bed::set_shape(const Pointfs& shape)
 {
+#if ENABLE_REWORKED_BED_SHAPE_CHANGE
+    EType new_type = _detect_type(shape);
+#else
     EType new_type = _detect_type();
+#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
     if (m_shape == shape && m_type == new_type)
         // No change, no need to update the UI.
         return false;
@@ -516,7 +521,11 @@ void GLCanvas3D::Bed::_calc_gridlines(const ExPolygon& poly, const BoundingBox& 
         printf("Unable to create bed grid lines\n");
 }
 
+#if ENABLE_REWORKED_BED_SHAPE_CHANGE
+GLCanvas3D::Bed::EType GLCanvas3D::Bed::_detect_type(const Pointfs& shape) const
+#else
 GLCanvas3D::Bed::EType GLCanvas3D::Bed::_detect_type() const
+#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
 {
     EType type = Custom;
 
@@ -528,7 +537,27 @@ GLCanvas3D::Bed::EType GLCanvas3D::Bed::_detect_type() const
         {
 			if (curr->config.has("bed_shape"))
 			{
-				if (boost::contains(curr->name, "SL1"))
+#if ENABLE_REWORKED_BED_SHAPE_CHANGE
+                if ((curr->vendor != nullptr) && (curr->vendor->name == "Prusa Research") && (shape == dynamic_cast<const ConfigOptionPoints*>(curr->config.option("bed_shape"))->values))
+                {
+                    if (boost::contains(curr->name, "SL1"))
+                    {
+                        type = SL1;
+                        break;
+                    }
+                    else if (boost::contains(curr->name, "MK3") || boost::contains(curr->name, "MK2.5"))
+                    {
+                        type = MK3;
+                        break;
+                    }
+                    else if (boost::contains(curr->name, "MK2"))
+                    {
+                        type = MK2;
+                        break;
+                    }
+                }
+#else
+                if (boost::contains(curr->name, "SL1"))
 				{
 					//FIXME add a condition on the size of the print bed?
 					type = SL1;
@@ -549,7 +578,8 @@ GLCanvas3D::Bed::EType GLCanvas3D::Bed::_detect_type() const
 						}
 					}
 				}
-			}
+#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
+            }
 
             curr = bundle->printers.get_preset_parent(*curr);
         }
@@ -565,13 +595,28 @@ void GLCanvas3D::Bed::_render_prusa(const std::string &key, float theta) const
 #endif // ENABLE_PRINT_BED_MODELS
 {
     std::string tex_path = resources_dir() + "/icons/bed/" + key;
+
+    // use higher resolution images if graphic card allows
+    GLint max_tex_size;
+    ::glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_tex_size);
+
+    // temporary set to lowest resolution
+    max_tex_size = 2048;
+
+    if (max_tex_size >= 8192)
+        tex_path += "_8192";
+    else if (max_tex_size >= 4096)
+        tex_path += "_4096";
+
 #if ENABLE_PRINT_BED_MODELS
     std::string model_path = resources_dir() + "/models/" + key;
 #endif // ENABLE_PRINT_BED_MODELS
 
 #if ENABLE_ANISOTROPIC_FILTER_ON_BED_TEXTURES
+    // use anisotropic filter if graphic card allows
     GLfloat max_anisotropy = 0.0f;
-    ::glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_anisotropy);
+    if (glewIsSupported("GL_EXT_texture_filter_anisotropic"))
+        ::glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_anisotropy);
 #endif // ENABLE_ANISOTROPIC_FILTER_ON_BED_TEXTURES
 
     std::string filename = tex_path + "_top.png";
@@ -615,11 +660,17 @@ void GLCanvas3D::Bed::_render_prusa(const std::string &key, float theta) const
     {
         filename = model_path + "_bed.stl";
         if ((m_model.get_filename() != filename) && m_model.init_from_file(filename, useVBOs)) {
-            Vec3d offset = m_bounding_box.center() - Vec3d(0.0, 0.0, 0.1 + 0.5 * m_model.get_bounding_box().size()(2));
+            Vec3d offset = m_bounding_box.center() - Vec3d(0.0, 0.0, 0.5 * m_model.get_bounding_box().size()(2));
             if (key == "mk2")
-                offset.y() += 15. / 2.;
+                // hardcoded value to match the stl model
+                offset += Vec3d(0.0, 7.5, -0.03);
             else if (key == "mk3")
-                offset += Vec3d(0., (19. - 8.) / 2., 2.);
+                // hardcoded value to match the stl model
+                offset += Vec3d(0.0, 5.5, 2.43);
+            else if (key == "sl1")
+                // hardcoded value to match the stl model
+                offset += Vec3d(0.0, 0.0, -0.03);
+
             m_model.center_around(offset);
         }
 
@@ -707,6 +758,7 @@ void GLCanvas3D::Bed::_render_custom() const
     }
 }
 
+#if !ENABLE_REWORKED_BED_SHAPE_CHANGE
 bool GLCanvas3D::Bed::_are_equal(const Pointfs& bed_1, const Pointfs& bed_2)
 {
     if (bed_1.size() != bed_2.size())
@@ -720,6 +772,7 @@ bool GLCanvas3D::Bed::_are_equal(const Pointfs& bed_1, const Pointfs& bed_2)
 
     return true;
 }
+#endif // !ENABLE_REWORKED_BED_SHAPE_CHANGE
 
 const double GLCanvas3D::Axes::Radius = 0.5;
 const double GLCanvas3D::Axes::ArrowBaseRadius = 2.5 * GLCanvas3D::Axes::Radius;
@@ -1071,12 +1124,11 @@ void GLCanvas3D::LayersEditing::_render_tooltip_texture(const GLCanvas3D& canvas
 
 #if ENABLE_RETINA_GL
     const float scale = canvas.get_canvas_size().get_scale_factor();
+#else
+    const float scale = canvas.get_wxglcanvas()->GetContentScaleFactor();
+#endif
     const float width = (float)m_tooltip_texture.get_width() * scale;
     const float height = (float)m_tooltip_texture.get_height() * scale;
-#else
-    const float width = (float)m_tooltip_texture.get_width();
-    const float height = (float)m_tooltip_texture.get_height();
-#endif
 
     float zoom = canvas.get_camera_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
@@ -1298,20 +1350,24 @@ void GLCanvas3D::LayersEditing::update_slicing_parameters()
 
 float GLCanvas3D::LayersEditing::thickness_bar_width(const GLCanvas3D &canvas)
 {
+    return
 #if ENABLE_RETINA_GL
-    return canvas.get_canvas_size().get_scale_factor() * THICKNESS_BAR_WIDTH;
+        canvas.get_canvas_size().get_scale_factor()
 #else
-    return THICKNESS_BAR_WIDTH;
+        canvas.get_wxglcanvas()->GetContentScaleFactor()
 #endif
+         * THICKNESS_BAR_WIDTH;
 }
 
 float GLCanvas3D::LayersEditing::reset_button_height(const GLCanvas3D &canvas)
 {
+    return
 #if ENABLE_RETINA_GL
-    return canvas.get_canvas_size().get_scale_factor() * THICKNESS_RESET_BUTTON_HEIGHT;
+        canvas.get_canvas_size().get_scale_factor()
 #else
-    return THICKNESS_RESET_BUTTON_HEIGHT;
+        canvas.get_wxglcanvas()->GetContentScaleFactor()
 #endif
+         * THICKNESS_RESET_BUTTON_HEIGHT;
 }
 
 
@@ -1617,6 +1673,9 @@ void GLCanvas3D::Selection::clear()
 
     _update_type();
     m_bounding_box_dirty = true;
+
+    // resets the cache in the sidebar
+    wxGetApp().obj_manipul()->reset_cache();
 }
 
 // Update the selection based on the map from old indices to new indices after m_volumes changed.
@@ -1817,7 +1876,7 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation, bool local)
         if (rot_axis_max != 2 && first_volume_idx != -1) {
             // Generic rotation, but no rotation around the Z axis.
             // Always do a local rotation (do not consider the selection to be a rigid body).
-            assert(rotation.z() == 0);
+            assert(is_approx(rotation.z(), 0.0));
             const GLVolume &first_volume = *(*m_volumes)[first_volume_idx];
             const Vec3d    &rotation     = first_volume.get_instance_rotation();
             double z_diff = rotation_diff_z(m_cache.volumes_data[first_volume_idx].get_instance_rotation(), m_cache.volumes_data[i].get_instance_rotation());
@@ -1842,7 +1901,7 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation, bool local)
         else if (is_single_volume() || is_single_modifier())
         {
             if (local)
-                volume.set_volume_rotation(rotation);
+                volume.set_volume_rotation(volume.get_volume_rotation() + rotation);
             else
             {
                 Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), rotation);
@@ -2259,7 +2318,7 @@ void GLCanvas3D::Selection::render_sidebar_hints(const std::string& sidebar_fiel
     }
     else if (is_single_volume() || is_single_modifier())
     {
-        Transform3d orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
+        Transform3d orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true) * (*m_volumes)[*m_list.begin()]->get_volume_transformation().get_matrix(true, false, true, true);
         ::glTranslated(center(0), center(1), center(2));
         ::glMultMatrixd(orient_matrix.data());
     }
@@ -3992,13 +4051,12 @@ wxDEFINE_EVENT(EVT_GLCANVAS_VIEWPORT_CHANGED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_RIGHT_CLICK, Vec2dEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_REMOVE_OBJECT, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ARRANGE, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_SELECT_ALL, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_QUESTION_MARK, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_INCREASE_INSTANCES, Event<int>);
 wxDEFINE_EVENT(EVT_GLCANVAS_INSTANCE_MOVED, SimpleEvent);
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 wxDEFINE_EVENT(EVT_GLCANVAS_INSTANCE_ROTATED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_INSTANCE_SCALED, SimpleEvent);
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 wxDEFINE_EVENT(EVT_GLCANVAS_WIPETOWER_MOVED, Vec3dEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, Event<bool>);
 wxDEFINE_EVENT(EVT_GLCANVAS_UPDATE_GEOMETRY, Vec3dsEvent<2>);
@@ -4173,6 +4231,9 @@ unsigned int GLCanvas3D::get_volumes_count() const
 
 void GLCanvas3D::reset_volumes()
 {
+    if (!m_initialized)
+        return;
+
     _set_current();
 
     if (!m_volumes.empty())
@@ -4215,18 +4276,27 @@ void GLCanvas3D::set_bed_shape(const Pointfs& shape)
 {
     bool new_shape = m_bed.set_shape(shape);
 
+#if ENABLE_REWORKED_BED_SHAPE_CHANGE
+    if (new_shape)
+    {
+        // Set the origin and size for painting of the coordinate system axes.
+        m_axes.origin = Vec3d(0.0, 0.0, (double)GROUND_Z);
+        set_bed_axes_length(0.1 * m_bed.get_bounding_box().max_size());
+        m_camera.set_scene_box(scene_bounding_box(), *this);
+        m_requires_zoom_to_bed = true;
+
+        m_dirty = true;
+    }
+#else
     // Set the origin and size for painting of the coordinate system axes.
     m_axes.origin = Vec3d(0.0, 0.0, (double)GROUND_Z);
     set_bed_axes_length(0.1 * m_bed.get_bounding_box().max_size());
 
     if (new_shape)
-#if ENABLE_REWORKED_BED_SHAPE_CHANGE
-        m_requires_zoom_to_bed = true;
-#else
         zoom_to_bed();
-#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
 
     m_dirty = true;
+#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
 }
 
 void GLCanvas3D::set_bed_axes_length(double length)
@@ -4427,6 +4497,7 @@ void GLCanvas3D::update_toolbar_items_visibility()
     ConfigOptionMode mode = wxGetApp().get_mode();
     m_toolbar.set_item_visible("more", mode != comSimple);
     m_toolbar.set_item_visible("fewer", mode != comSimple);
+    m_toolbar.set_item_visible("splitvolumes", mode != comSimple);
     m_dirty = true;
 }
 #endif // ENABLE_MODE_AWARE_TOOLBAR_ITEMS
@@ -4471,6 +4542,13 @@ void GLCanvas3D::render()
         return;
 
 #if ENABLE_REWORKED_BED_SHAPE_CHANGE
+    if (m_bed.get_shape().empty())
+    {
+        // this happens at startup when no data is still saved under <>\AppData\Roaming\Slic3rPE
+        if (m_config != nullptr)
+            set_bed_shape(m_config->opt<ConfigOptionPoints>("bed_shape")->values);
+    }
+
     if (m_requires_zoom_to_bed)
     {
         zoom_to_bed();
@@ -4646,7 +4724,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     if ((m_canvas == nullptr) || (m_config == nullptr) || (m_model == nullptr))
         return;
 
-    _set_current();
+    if (m_initialized)
+        _set_current();
 
     struct ModelVolumeState {
         ModelVolumeState(const GLVolume *volume) : 
@@ -4776,7 +4855,9 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     if (m_reload_delayed)
         return;
 
+#if !ENABLE_REWORKED_BED_SHAPE_CHANGE
     set_bed_shape(dynamic_cast<const ConfigOptionPoints*>(m_config->option("bed_shape"))->values);
+#endif // !ENABLE_REWORKED_BED_SHAPE_CHANGE
 
     if (m_regenerate_volumes)
     {
@@ -5053,7 +5134,6 @@ void GLCanvas3D::bind_event_handlers()
         m_canvas->Bind(wxEVT_MIDDLE_DCLICK, &GLCanvas3D::on_mouse, this);
         m_canvas->Bind(wxEVT_RIGHT_DCLICK, &GLCanvas3D::on_mouse, this);
         m_canvas->Bind(wxEVT_PAINT, &GLCanvas3D::on_paint, this);
-        m_canvas->Bind(wxEVT_KEY_DOWN, &GLCanvas3D::on_key_down, this);
     }
 }
 
@@ -5067,7 +5147,7 @@ void GLCanvas3D::unbind_event_handlers()
         m_canvas->Unbind(wxEVT_MOUSEWHEEL, &GLCanvas3D::on_mouse_wheel, this);
         m_canvas->Unbind(wxEVT_TIMER, &GLCanvas3D::on_timer, this);
         m_canvas->Unbind(wxEVT_LEFT_DOWN, &GLCanvas3D::on_mouse, this);
-        m_canvas->Unbind(wxEVT_LEFT_UP, &GLCanvas3D::on_mouse, this);
+		m_canvas->Unbind(wxEVT_LEFT_UP, &GLCanvas3D::on_mouse, this);
         m_canvas->Unbind(wxEVT_MIDDLE_DOWN, &GLCanvas3D::on_mouse, this);
         m_canvas->Unbind(wxEVT_MIDDLE_UP, &GLCanvas3D::on_mouse, this);
         m_canvas->Unbind(wxEVT_RIGHT_DOWN, &GLCanvas3D::on_mouse, this);
@@ -5079,7 +5159,6 @@ void GLCanvas3D::unbind_event_handlers()
         m_canvas->Unbind(wxEVT_MIDDLE_DCLICK, &GLCanvas3D::on_mouse, this);
         m_canvas->Unbind(wxEVT_RIGHT_DCLICK, &GLCanvas3D::on_mouse, this);
         m_canvas->Unbind(wxEVT_PAINT, &GLCanvas3D::on_paint, this);
-        m_canvas->Unbind(wxEVT_KEY_DOWN, &GLCanvas3D::on_key_down, this);
     }
 }
 
@@ -5098,71 +5177,70 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
 
 void GLCanvas3D::on_char(wxKeyEvent& evt)
 {
-    if (evt.HasModifiers())
+    // see include/wx/defs.h enum wxKeyCode
+    int keyCode = evt.GetKeyCode();
+    int ctrlMask = wxMOD_CONTROL;
+//#ifdef __APPLE__
+//    ctrlMask |= wxMOD_RAW_CONTROL;
+//#endif /* __APPLE__ */
+    if ((evt.GetModifiers() & ctrlMask) != 0) {
+        switch (keyCode) {
+        case 'a':
+        case 'A':
+        case WXK_CONTROL_A: post_event(SimpleEvent(EVT_GLCANVAS_SELECT_ALL)); break;
+#ifdef __APPLE__
+        case WXK_BACK: // the low cost Apple solutions are not equipped with a Delete key, use Backspace instead.
+#else /* __APPLE__ */
+        case WXK_DELETE:
+#endif /* __APPLE__ */
+                            post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE_ALL)); break;
+		default:            evt.Skip();
+        }
+    } else if (evt.HasModifiers()) {
         evt.Skip();
-    else
-    {
-        int keyCode = evt.GetKeyCode();
-        switch (keyCode - 48)
+    } else {
+        switch (keyCode)
         {
-        // numerical input
-        case 0: { select_view("iso"); break; }
-        case 1: { select_view("top"); break; }
-        case 2: { select_view("bottom"); break; }
-        case 3: { select_view("front"); break; }
-        case 4: { select_view("rear"); break; }
-        case 5: { select_view("left"); break; }
-        case 6: { select_view("right"); break; }
+        // key ESC
+        case WXK_ESCAPE: { m_gizmos.reset_all_states(); m_dirty = true;  break; }
+#ifdef __APPLE__
+        case WXK_BACK: // the low cost Apple solutions are not equipped with a Delete key, use Backspace instead.
+#else /* __APPLE__ */
+		case WXK_DELETE:
+#endif /* __APPLE__ */
+                  post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE)); break;
+		case '0': { select_view("iso"); break; }
+        case '1': { select_view("top"); break; }
+        case '2': { select_view("bottom"); break; }
+        case '3': { select_view("front"); break; }
+        case '4': { select_view("rear"); break; }
+        case '5': { select_view("left"); break; }
+        case '6': { select_view("right"); break; }
+        case '+': { post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, +1)); break; }
+        case '-': { post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, -1)); break; }
+        case '?': { post_event(SimpleEvent(EVT_GLCANVAS_QUESTION_MARK)); break; }
+        case 'A':
+        case 'a': { post_event(SimpleEvent(EVT_GLCANVAS_ARRANGE)); break; }
+        case 'B':
+        case 'b': { zoom_to_bed(); break; }
+        case 'I':
+        case 'i': { set_camera_zoom(1.0f); break; }
+        case 'O':
+        case 'o': { set_camera_zoom(-1.0f); break; }
+        case 'Z':
+        case 'z': { m_selection.is_empty() ? zoom_to_volumes() : zoom_to_selection(); break; }
         default:
+        {
+            if (m_gizmos.handle_shortcut(keyCode, m_selection))
             {
-                // text input
-                switch (keyCode)
-                {
-                // key ESC
-                case 27: { m_gizmos.reset_all_states(); m_dirty = true;  break; }
-                // key +
-                case 43: { post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, +1)); break; }
-                // key -
-                case 45: { post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, -1)); break; }
-                // key ?
-                case 63: { post_event(SimpleEvent(EVT_GLCANVAS_QUESTION_MARK)); break; }
-                // key A/a
-                case 65:
-                case 97: { post_event(SimpleEvent(EVT_GLCANVAS_ARRANGE)); break; }
-                // key B/b
-                case 66:
-                case 98: { zoom_to_bed(); break; }
-                // key I/i
-                case 73:
-                case 105: { set_camera_zoom(1.0f); break; }
-                // key O/o
-                case 79:
-                case 111: { set_camera_zoom(-1.0f); break; }
-                // key Z/z
-                case 90:
-                case 122:
-                {
-                    if (m_selection.is_empty())
-                        zoom_to_volumes();
-                    else
-                        zoom_to_selection();
-
-                    break;
-                }
-                default:
-                {
-                    if (m_gizmos.handle_shortcut(keyCode, m_selection))
-                    {
-                        _update_gizmos_data();
-                        m_dirty = true;
-                    }
-                    else
-                        evt.Skip();
-
-                    break;
-                }
-                }
+                _update_gizmos_data();
+                m_dirty = true;
             }
+            else
+                evt.Skip();
+
+            break;
+        }
         }
     }
 }
@@ -5172,6 +5250,12 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
     // Ignore the wheel events if the middle button is pressed.
     if (evt.MiddleIsDown())
         return;
+
+#if ENABLE_RETINA_GL
+    const float scale = m_retina_helper->get_scale_factor();
+    evt.SetX(evt.GetX() * scale);
+    evt.SetY(evt.GetY() * scale);
+#endif
 
     // Performs layers editing updates, if enabled
     if (is_layers_editing_enabled())
@@ -5361,9 +5445,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     bool already_selected = m_selection.contains_volume(m_hover_volume_id);
                     bool shift_down = evt.ShiftDown();
 
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
                     Selection::IndicesList curr_idxs = m_selection.get_volume_idxs();
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 
                     if (already_selected && shift_down)
                         m_selection.remove(m_hover_volume_id);
@@ -5380,21 +5462,14 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #endif // ENABLE_MOVE_MIN_THRESHOLD
                     }
 
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
                     if (curr_idxs != m_selection.get_volume_idxs())
                     {
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 
                         m_gizmos.update_on_off_state(m_selection);
                         _update_gizmos_data();
-#if !ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
-                        wxGetApp().obj_manipul()->update_settings_value(m_selection);
-#endif // !ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
                         post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
                         m_dirty = true;
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
                     }
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
                 }
             }
 
@@ -5686,24 +5761,6 @@ void GLCanvas3D::on_paint(wxPaintEvent& evt)
         this->render();
 }
 
-void GLCanvas3D::on_key_down(wxKeyEvent& evt)
-{
-    if (evt.HasModifiers())
-        evt.Skip();
-    else
-    {
-        int key = evt.GetKeyCode();
-#ifdef __WXOSX__
-        if (key == WXK_BACK)
-#else
-        if (key == WXK_DELETE)
-#endif // __WXOSX__
-            post_event(SimpleEvent(EVT_GLCANVAS_REMOVE_OBJECT));
-        else
-            evt.Skip();
-    }
-}
-
 Size GLCanvas3D::get_canvas_size() const
 {
     int w = 0;
@@ -5734,8 +5791,11 @@ Point GLCanvas3D::get_local_mouse_position() const
 
 void GLCanvas3D::reset_legend_texture()
 {
-    _set_current();
-    m_legend_texture.reset();
+    if (m_legend_texture.get_id() != 0)
+    {
+        _set_current();
+        m_legend_texture.reset();
+    }
 }
 
 void GLCanvas3D::set_tooltip(const std::string& tooltip) const
@@ -5750,7 +5810,7 @@ void GLCanvas3D::set_tooltip(const std::string& tooltip) const
             else
                 t->SetTip(tooltip);
         }
-        else
+        else if (!tooltip.empty()) // Avoid "empty" tooltips => unset of the empty tooltip leads to application crash under OSX
             m_canvas->SetToolTip(tooltip);
     }
 }
@@ -5789,7 +5849,6 @@ void GLCanvas3D::do_move()
             ModelObject* model_object = m_model->objects[object_idx];
             if (model_object != nullptr)
             {
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
                 if (selection_mode == Selection::Instance)
                     model_object->instances[instance_idx]->set_offset(v->get_instance_offset());
                 else if (selection_mode == Selection::Volume)
@@ -5797,20 +5856,6 @@ void GLCanvas3D::do_move()
 
                 object_moved = true;
                 model_object->invalidate_bounding_box();
-#else
-                if (selection_mode == Selection::Instance)
-                {
-                    model_object->instances[instance_idx]->set_offset(v->get_instance_offset());
-                    object_moved = true;
-                }
-                else if (selection_mode == Selection::Volume)
-                {
-                    model_object->volumes[volume_idx]->set_offset(v->get_volume_offset());
-                    object_moved = true;
-                }
-                if (object_moved)
-                    model_object->invalidate_bounding_box();
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
             }
         }
         else if (object_idx == 1000)
@@ -5881,12 +5926,8 @@ void GLCanvas3D::do_rotate()
         m->translate_instance(i.second, shift);
     }
 
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     if (!done.empty())
         post_event(SimpleEvent(EVT_GLCANVAS_INSTANCE_ROTATED));
-#else
-    post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 }
 
 void GLCanvas3D::do_scale()
@@ -5937,12 +5978,8 @@ void GLCanvas3D::do_scale()
         m->translate_instance(i.second, shift);
     }
 
-#if ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
     if (!done.empty())
         post_event(SimpleEvent(EVT_GLCANVAS_INSTANCE_ROTATED));
-#else
-    post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
-#endif // ENABLE_IMPROVED_SIDEBAR_OBJECTS_MANIPULATION
 }
 
 void GLCanvas3D::do_flatten()
@@ -6104,7 +6141,7 @@ bool GLCanvas3D::_init_toolbar()
     GLToolbarItem::Data item;
 
     item.name = "add";
-    item.tooltip = GUI::L_str("Add... [Ctrl+I]");
+    item.tooltip = GUI::L_str("Add...") + " [" + GUI::shortkey_ctrl_prefix() + "I]";
     item.sprite_id = 0;
     item.is_toggable = false;
     item.action_event = EVT_GLTOOLBAR_ADD;
@@ -6112,7 +6149,7 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "delete";
-    item.tooltip = GUI::L_str("Delete [Del]");
+    item.tooltip = GUI::L_str("Delete") + " [Del]";
     item.sprite_id = 1;
     item.is_toggable = false;
     item.action_event = EVT_GLTOOLBAR_DELETE;
@@ -6120,7 +6157,7 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "deleteall";
-    item.tooltip = GUI::L_str("Delete all [Ctrl+Del]");
+    item.tooltip = GUI::L_str("Delete all") + " [" + GUI::shortkey_ctrl_prefix() + "Del]";
     item.sprite_id = 2;
     item.is_toggable = false;
     item.action_event = EVT_GLTOOLBAR_DELETE_ALL;
@@ -6210,7 +6247,9 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
     wxGetApp().imgui()->set_display_size((float)w, (float)h);
 #if ENABLE_RETINA_GL
     wxGetApp().imgui()->set_style_scaling(m_retina_helper->get_scale_factor());
-#endif // ENABLE_RETINA_GL
+#else
+    wxGetApp().imgui()->set_style_scaling(m_canvas->GetContentScaleFactor());
+#endif
 #endif // ENABLE_IMGUI
 
     // ensures that this canvas is current
@@ -6669,7 +6708,10 @@ void GLCanvas3D::_render_gizmos_overlay() const
 {
 #if ENABLE_RETINA_GL
     m_gizmos.set_overlay_scale(m_retina_helper->get_scale_factor());
-#endif
+#else
+    m_gizmos.set_overlay_scale(m_canvas->GetContentScaleFactor());
+#endif /* __WXMSW__ */
+
     m_gizmos.render_overlay(*this, m_selection);
 }
 
@@ -6677,7 +6719,10 @@ void GLCanvas3D::_render_toolbar() const
 {
 #if ENABLE_RETINA_GL
     m_toolbar.set_icons_scale(m_retina_helper->get_scale_factor());
-#endif
+#else
+    m_toolbar.set_icons_scale(m_canvas->GetContentScaleFactor());
+#endif /* __WXMSW__ */
+
     m_toolbar.render(*this);
 }
 
@@ -6686,7 +6731,9 @@ void GLCanvas3D::_render_view_toolbar() const
     if (m_view_toolbar != nullptr) {
 #if ENABLE_RETINA_GL
         m_view_toolbar->set_icons_scale(m_retina_helper->get_scale_factor());
-#endif
+#else
+        m_view_toolbar->set_icons_scale(m_canvas->GetContentScaleFactor());
+#endif /* __WXMSW__ */
         m_view_toolbar->render(*this);
     }
 }
@@ -6716,230 +6763,6 @@ void GLCanvas3D::_render_camera_target() const
     ::glEnd();
 }
 #endif // ENABLE_SHOW_CAMERA_TARGET
-
-class TessWrapper {
-public:
-	static Pointf3s tesselate(const ExPolygon &expoly, double z_, bool flipped_)
-	{
-		z = z_;
-		flipped = flipped_;
-		triangles.clear();
-		intersection_points.clear();
-		std::vector<GLdouble> coords;
-		{
-			size_t num_coords = expoly.contour.points.size();
-			for (const Polygon &poly : expoly.holes)
-				num_coords += poly.points.size();
-			coords.reserve(num_coords * 3);
-		}
-		GLUtesselator *tess = gluNewTess(); // create a tessellator
-		// register callback functions
-#ifndef _GLUfuncptr
-	#ifdef _MSC_VER
-		typedef void (__stdcall *_GLUfuncptr)(void);
-	#else /* _MSC_VER */
-        #ifdef GLAPIENTRYP
-            typedef void (GLAPIENTRYP _GLUfuncptr)(void);
-        #else /* GLAPIENTRYP */
-            typedef void (*_GLUfuncptr)(void);
-        #endif
-	#endif /* _MSC_VER */
-#endif /* _GLUfuncptr */
-		gluTessCallback(tess, GLU_TESS_BEGIN,   (_GLUfuncptr)tessBeginCB);
-		gluTessCallback(tess, GLU_TESS_END,     (_GLUfuncptr)tessEndCB);
-		gluTessCallback(tess, GLU_TESS_ERROR,   (_GLUfuncptr)tessErrorCB);
-		gluTessCallback(tess, GLU_TESS_VERTEX,  (_GLUfuncptr)tessVertexCB);
-        gluTessCallback(tess, GLU_TESS_COMBINE, (_GLUfuncptr)tessCombineCB);
-		gluTessBeginPolygon(tess, 0); // with NULL data
-		gluTessBeginContour(tess);
-		for (const Point &pt : expoly.contour.points) {
-			coords.emplace_back(unscale<double>(pt[0]));
-			coords.emplace_back(unscale<double>(pt[1]));
-			coords.emplace_back(0.);
-			gluTessVertex(tess, &coords[coords.size() - 3], &coords[coords.size() - 3]);
-		}
-		gluTessEndContour(tess);
-		for (const Polygon &poly : expoly.holes) {
-			gluTessBeginContour(tess);
-			for (const Point &pt : poly.points) {
-				coords.emplace_back(unscale<double>(pt[0]));
-				coords.emplace_back(unscale<double>(pt[1]));
-				coords.emplace_back(0.);
-				gluTessVertex(tess, &coords[coords.size() - 3], &coords[coords.size() - 3]);
-			}
-			gluTessEndContour(tess);
-		}
-		gluTessEndPolygon(tess);
-		gluDeleteTess(tess);
-		return std::move(triangles);
-	}
-
-private:
-	static void tessBeginCB(GLenum which)
-	{
-		assert(which == GL_TRIANGLES || which == GL_TRIANGLE_FAN || which == GL_TRIANGLE_STRIP);
-		if (!(which == GL_TRIANGLES || which == GL_TRIANGLE_FAN || which == GL_TRIANGLE_STRIP))
-			printf("Co je to za haluz!?\n");
-		primitive_type = which;
-		num_points = 0;
-	}
-
-	static void tessEndCB()
-	{
-		num_points = 0;
-	}
-
-	static void tessVertexCB(const GLvoid *data)
-	{
-		if (data == nullptr)
-			return;
-		const GLdouble *ptr = (const GLdouble*)data;
-		++ num_points;
-		if (num_points == 1) {
-			memcpy(pt0, ptr, sizeof(GLdouble) * 3);
-		} else if (num_points == 2) {
-			memcpy(pt1, ptr, sizeof(GLdouble) * 3);
-		} else {
-			bool flip = flipped;
-			if (primitive_type == GL_TRIANGLE_STRIP && num_points == 4) {
-				flip = !flip;
-				num_points = 2;
-			}
-			triangles.emplace_back(pt0[0], pt0[1], z);
-			if (flip) {
-				triangles.emplace_back(ptr[0], ptr[1], z);
-				triangles.emplace_back(pt1[0], pt1[1], z);
-			} else {
-				triangles.emplace_back(pt1[0], pt1[1], z);
-				triangles.emplace_back(ptr[0], ptr[1], z);
-			}
-			if (primitive_type == GL_TRIANGLE_STRIP) {
-				memcpy(pt0, pt1, sizeof(GLdouble) * 3);
-				memcpy(pt1, ptr, sizeof(GLdouble) * 3);
-			} else if (primitive_type == GL_TRIANGLE_FAN) {
-				memcpy(pt1, ptr, sizeof(GLdouble) * 3);
-			} else {
-				assert(primitive_type == GL_TRIANGLES);
-				assert(num_points == 3);
-				num_points = 0;
-			}
-		}
-	}
-
-    static void tessCombineCB(const GLdouble newVertex[3], const GLdouble *neighborVertex[4], const GLfloat neighborWeight[4], GLdouble **outData)
-    {
-        intersection_points.emplace_back(newVertex[0], newVertex[1], newVertex[2]);
-        *outData = intersection_points.back().data();
-    }
-
-	static void tessErrorCB(GLenum errorCode)
-	{
-		const GLubyte *errorStr;
-		errorStr = gluErrorString(errorCode);
-		printf("Error: %s\n", (const char*)errorStr);
-	}
-
-	static GLenum   primitive_type;
-	static GLdouble pt0[3];
-	static GLdouble pt1[3];
-	static int      num_points;
-	static Pointf3s triangles;
-    static std::deque<Vec3d> intersection_points;
-	static double   z;
-	static bool     flipped;
-};
-
-GLenum   TessWrapper::primitive_type;
-GLdouble TessWrapper::pt0[3];
-GLdouble TessWrapper::pt1[3];
-int      TessWrapper::num_points;
-Pointf3s TessWrapper::triangles;
-std::deque<Vec3d> TessWrapper::intersection_points;
-double   TessWrapper::z;
-bool     TessWrapper::flipped;
-
-static Pointf3s triangulate_expolygons(const ExPolygons &polys, coordf_t z, bool flip)
-{
-	Pointf3s triangles;
-#if 0
-	for (const ExPolygon& poly : polys) {
-		Polygons poly_triangles;
-		// poly.triangulate() is based on a trapezoidal decomposition implemented in an extremely expensive way by clipping the whole input contour with a polygon!
-		poly.triangulate(&poly_triangles);
-		// poly.triangulate_p2t() is based on the poly2tri library, which is not quite stable, it often ends up in a nice stack overflow!
-		//        poly.triangulate_p2t(&poly_triangles);
-		for (const Polygon &t : poly_triangles)
-			if (flip) {
-				triangles.emplace_back(to_3d(unscale(t.points[2]), z));
-				triangles.emplace_back(to_3d(unscale(t.points[1]), z));
-				triangles.emplace_back(to_3d(unscale(t.points[0]), z));
-			} else {
-				triangles.emplace_back(to_3d(unscale(t.points[0]), z));
-				triangles.emplace_back(to_3d(unscale(t.points[1]), z));
-				triangles.emplace_back(to_3d(unscale(t.points[2]), z));
-			}
-	}
-#else
-
-//	for (const ExPolygon &poly : union_ex(simplify_polygons(to_polygons(polys), true))) {
-    for (const ExPolygon &poly : polys) {
-		append(triangles, TessWrapper::tesselate(poly, z, flip));
-		continue;
-
-		std::list<TPPLPoly> input = expoly_to_polypartition_input(poly);
-		std::list<TPPLPoly> output;
-	//	int res = TPPLPartition().Triangulate_MONO(&input, &output);
-		int res = TPPLPartition().Triangulate_EC(&input, &output);
-		if (res == 1) {
-			// Triangulation succeeded. Convert to triangles.
-			size_t num_triangles = 0;
-			for (const TPPLPoly &poly : output)
-				if (poly.GetNumPoints() >= 3)
-					num_triangles += (size_t)poly.GetNumPoints() - 2;
-			triangles.reserve(triangles.size() + num_triangles * 3);
-			for (const TPPLPoly &poly : output) {
-				long num_points = poly.GetNumPoints();
-				if (num_points >= 3) {
-					const TPPLPoint *pt0 = &poly[0];
-					const TPPLPoint *pt1 = nullptr;
-					const TPPLPoint *pt2 = &poly[1];
-					for (long i = 2; i < num_points; ++i) {
-						pt1 = pt2;
-						pt2 = &poly[i];
-						if (flip) {
-							triangles.emplace_back(unscale<double>(pt2->x), unscale<double>(pt2->y), z);
-							triangles.emplace_back(unscale<double>(pt1->x), unscale<double>(pt1->y), z);
-							triangles.emplace_back(unscale<double>(pt0->x), unscale<double>(pt0->y), z);
-						} else {
-							triangles.emplace_back(unscale<double>(pt0->x), unscale<double>(pt0->y), z);
-							triangles.emplace_back(unscale<double>(pt1->x), unscale<double>(pt1->y), z);
-							triangles.emplace_back(unscale<double>(pt2->x), unscale<double>(pt2->y), z);
-						}
-					}
-				}
-			}
-		} else {
-			// Triangulation by polypartition failed. Use the expensive slow implementation.
-			Polygons poly_triangles;
-			// poly.triangulate() is based on a trapezoidal decomposition implemented in an extremely expensive way by clipping the whole input contour with a polygon!
-			poly.triangulate(&poly_triangles);
-			// poly.triangulate_p2t() is based on the poly2tri library, which is not quite stable, it often ends up in a nice stack overflow!
-			//        poly.triangulate_p2t(&poly_triangles);
-			for (const Polygon &t : poly_triangles)
-				if (flip) {
-					triangles.emplace_back(to_3d(unscale(t.points[2]), z));
-					triangles.emplace_back(to_3d(unscale(t.points[1]), z));
-					triangles.emplace_back(to_3d(unscale(t.points[0]), z));
-				} else {
-					triangles.emplace_back(to_3d(unscale(t.points[0]), z));
-					triangles.emplace_back(to_3d(unscale(t.points[1]), z));
-					triangles.emplace_back(to_3d(unscale(t.points[2]), z));
-				}
-		}
-	}
-#endif
-	return triangles;
-}
 
 void GLCanvas3D::_render_sla_slices() const
 {
@@ -7011,20 +6834,20 @@ void GLCanvas3D::_render_sla_slices() const
             {
                 // calculate model bottom cap
                 if (bottom_obj_triangles.empty() && (it_min_z->second.model_slices_idx < model_slices.size()))
-                    bottom_obj_triangles = triangulate_expolygons(model_slices[it_min_z->second.model_slices_idx], min_z, true);
+                    bottom_obj_triangles = triangulate_expolygons_3df(model_slices[it_min_z->second.model_slices_idx], min_z, true);
                 // calculate support bottom cap
                 if (bottom_sup_triangles.empty() && (it_min_z->second.support_slices_idx < support_slices.size()))
-                    bottom_sup_triangles = triangulate_expolygons(support_slices[it_min_z->second.support_slices_idx], min_z, true);
+                    bottom_sup_triangles = triangulate_expolygons_3df(support_slices[it_min_z->second.support_slices_idx], min_z, true);
             }
 
             if (it_max_z != index.end())
             {
                 // calculate model top cap
                 if (top_obj_triangles.empty() && (it_max_z->second.model_slices_idx < model_slices.size()))
-                    top_obj_triangles = triangulate_expolygons(model_slices[it_max_z->second.model_slices_idx], max_z, false);
+                    top_obj_triangles = triangulate_expolygons_3df(model_slices[it_max_z->second.model_slices_idx], max_z, false);
                 // calculate support top cap
                 if (top_sup_triangles.empty() && (it_max_z->second.support_slices_idx < support_slices.size()))
-					top_sup_triangles = triangulate_expolygons(support_slices[it_max_z->second.support_slices_idx], max_z, false);
+					top_sup_triangles = triangulate_expolygons_3df(support_slices[it_max_z->second.support_slices_idx], max_z, false);
             }
         }
 
@@ -8434,7 +8257,9 @@ void GLCanvas3D::_resize_toolbars() const
 
 #if ENABLE_RETINA_GL
     m_toolbar.set_icons_scale(m_retina_helper->get_scale_factor());
-#endif
+#else
+    m_toolbar.set_icons_scale(m_canvas->GetContentScaleFactor());
+#endif /* __WXMSW__ */
 
     GLToolbar::Layout::EOrientation orientation = m_toolbar.get_layout_orientation();
 
@@ -8481,7 +8306,9 @@ void GLCanvas3D::_resize_toolbars() const
     {
 #if ENABLE_RETINA_GL
         m_view_toolbar->set_icons_scale(m_retina_helper->get_scale_factor());
-#endif
+#else
+        m_view_toolbar->set_icons_scale(m_canvas->GetContentScaleFactor());
+#endif /* __WXMSW__ */
 
         // places the toolbar on the bottom-left corner of the 3d scene
         float top = (-0.5f * (float)cnv_size.get_height() + m_view_toolbar->get_height()) * inv_zoom;

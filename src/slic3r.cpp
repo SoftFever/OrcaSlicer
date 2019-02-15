@@ -131,6 +131,9 @@ int main(int argc, char **argv)
         GUI::GUI_App *gui = new GUI::GUI_App();
         GUI::GUI_App::SetInstance(gui);
         gui->CallAfter([gui, &input_files, &cli_config, &extra_config, &print_config] {
+            if (! gui->initialized()) {
+                return;
+            }
 #if 0
             // Load the cummulative config over the currently active profiles.
             //FIXME if multiple configs are loaded, only the last one will have an effect.
@@ -252,10 +255,6 @@ int main(int argc, char **argv)
                 model.arrange_objects(fff_print.config().min_object_distance());
                 model.center_instances_around_point(cli_config.print_center);
             }
-            if (outfile.empty()) {
-                outfile = model.propose_export_file_name();
-                outfile += (printer_technology == ptFFF) ? ".gcode" : ".zip";
-            }
             if (printer_technology == ptFFF) {
                 for (auto* mo : model.objects)
                     fff_print.auto_assign_extruders(mo);
@@ -265,6 +264,7 @@ int main(int argc, char **argv)
             std::string err = print->validate();
             if (err.empty()) {
                 if (printer_technology == ptFFF) {
+                    // The outfile is processed by a PlaceholderParser.
                     fff_print.export_gcode(outfile, nullptr);
                 } else {
                     assert(printer_technology == ptSLA);

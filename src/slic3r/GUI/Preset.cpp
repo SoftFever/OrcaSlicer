@@ -11,8 +11,10 @@
     #include <Windows.h>
 #endif /* _MSC_VER */
 
+#include <algorithm>
 #include <fstream>
 #include <stdexcept>
+#include <unordered_map>
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
@@ -83,6 +85,16 @@ VendorProfile VendorProfile::from_ini(const boost::filesystem::path &path, bool 
     return VendorProfile::from_ini(tree, path, load_all);
 }
 
+static const std::unordered_map<std::string, std::string> pre_family_model_map {{
+    { "MK3",        "MK3" },
+    { "MK3MMU2",    "MK3" },
+    { "MK2.5",      "MK2.5" },
+    { "MK2.5MMU2",  "MK2.5" },
+    { "MK2S",       "MK2" },
+    { "MK2SMM",     "MK2" },
+    { "SL1",        "SL1" },
+}};
+
 VendorProfile VendorProfile::from_ini(const ptree &tree, const boost::filesystem::path &path, bool load_all)
 {
     static const std::string printer_model_key = "printer_model:";
@@ -128,10 +140,20 @@ VendorProfile VendorProfile::from_ini(const ptree &tree, const boost::filesystem
             VendorProfile::PrinterModel model;
             model.id = section.first.substr(printer_model_key.size());
             model.name = section.second.get<std::string>("name", model.id);
-            auto technology_field = section.second.get<std::string>("technology", "FFF");
+
+            const char *technology_fallback = boost::algorithm::starts_with(model.id, "SL") ? "SLA" : "FFF";
+
+            auto technology_field = section.second.get<std::string>("technology", technology_fallback);
             if (! ConfigOptionEnum<PrinterTechnology>::from_string(technology_field, model.technology)) {
                 BOOST_LOG_TRIVIAL(error) << boost::format("Vendor bundle: `%1%`: Invalid printer technology field: `%2%`") % id % technology_field;
                 model.technology = ptFFF;
+            }
+
+            model.family = section.second.get<std::string>("family", std::string());
+            if (model.family.empty() && res.name == "Prusa Research") {
+                // If no family is specified, it can be inferred for known printers
+                const auto from_pre_map = pre_family_model_map.find(model.id);
+                if (from_pre_map != pre_family_model_map.end()) { model.family = from_pre_map->second; }
             }
 #if 0
 			// Remove SLA printers from the initial alpha.
@@ -157,6 +179,20 @@ VendorProfile VendorProfile::from_ini(const ptree &tree, const boost::filesystem
     return res;
 }
 
+std::vector<std::string> VendorProfile::families() const
+{
+    std::vector<std::string> res;
+    unsigned num_familiies = 0;
+
+    for (auto &model : models) {
+        if (std::find(res.begin(), res.end(), model.family) == res.end()) {
+            res.push_back(model.family);
+            num_familiies++;
+        }
+    }
+
+    return res;
+}
 
 // Suffix to be added to a modified preset name in the combo box.
 static std::string g_suffix_modified = " (modified)";
@@ -414,6 +450,7 @@ const std::vector<std::string>& Preset::sla_print_options()
             "support_head_width",
             "support_pillar_diameter",
             "support_pillar_connection_mode",
+            "support_buildplate_only",
             "support_pillar_widening_factor",
             "support_base_diameter",
             "support_base_height",
@@ -517,16 +554,6 @@ void PresetCollection::add_default_preset(const std::vector<std::string> &keys, 
     ++ m_num_default_presets;
 }
 
-bool is_file_plain(const std::string &path)
-{
-#ifdef _MSC_VER
-    DWORD attributes = GetFileAttributesW(boost::nowide::widen(path).c_str());
-    return (attributes & (FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_SYSTEM)) == 0;
-#else
-    return true;
-#endif
-}
-
 // Load all presets found in dir_path.
 // Throws an exception on error.
 void PresetCollection::load_presets(const std::string &dir_path, const std::string &subdir)
@@ -538,10 +565,7 @@ void PresetCollection::load_presets(const std::string &dir_path, const std::stri
 	// (see the "Preset already present, not loading" message).
 	std::deque<Preset> presets_loaded;
 	for (auto &dir_entry : boost::filesystem::directory_iterator(dir))
-        if (boost::filesystem::is_regular_file(dir_entry.status()) && boost::algorithm::iends_with(dir_entry.path().filename().string(), ".ini") &&
-            // Ignore system and hidden files, which may be created by the DropBox synchronisation process.
-            // https://github.com/prusa3d/Slic3r/issues/1298
-            is_file_plain(dir_entry.path().string())) {
+        if (Slic3r::is_ini_file(dir_entry)) {
             std::string name = dir_entry.path().filename().string();
             // Remove the .ini suffix.
             name.erase(name.size() - 4);
@@ -1165,6 +1189,18 @@ std::string PresetCollection::name() const
     case Preset::TYPE_SLA_PRINT:    return L("SLA print");
     case Preset::TYPE_SLA_MATERIAL: return L("SLA material");
     case Preset::TYPE_PRINTER:      return L("printer");
+    default:                        return "invalid";
+    }
+}
+
+std::string PresetCollection::section_name() const
+{
+    switch (this->type()) {
+    case Preset::TYPE_PRINT:        return "print";
+    case Preset::TYPE_FILAMENT:     return "filament";
+    case Preset::TYPE_SLA_PRINT:    return "sla_print";
+    case Preset::TYPE_SLA_MATERIAL: return "sla_material";
+    case Preset::TYPE_PRINTER:      return "printer";
     default:                        return "invalid";
     }
 }

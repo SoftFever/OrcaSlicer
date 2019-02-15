@@ -363,7 +363,11 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
             const_cast<PrintObjectStatus&>(*it_print_object_status).status = PrintObjectStatus::Reused;
         } else {
             auto print_object = new SLAPrintObject(this, &model_object);
+
+            // FIXME: this invalidates the transformed mesh in SLAPrintObject
+            // which is expensive to calculate (especially the raw_mesh() call)
             print_object->set_trafo(sla_trafo(model_object));
+
             print_object->set_instances(new_instances);
             print_object->config_apply(config, true);
             print_objects_new.emplace_back(print_object);
@@ -386,8 +390,6 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
         if (new_objects)
             update_apply_status(false);
     }
-
-    this->update_object_placeholders();
 
 #ifdef _DEBUG
     check_model_ids_equal(m_model, model);
@@ -417,6 +419,7 @@ sla::SupportConfig make_support_cfg(const SLAPrintObjectConfig& c) {
     case slapcmDynamic:
         scfg.pillar_connection_mode = sla::PillarConnectionMode::dynamic; break;
     }
+    scfg.ground_facing_only = c.support_buildplate_only.getBool();
     scfg.pillar_widening_factor = c.support_pillar_widening_factor.getFloat();
     scfg.base_radius_mm = 0.5*c.support_base_diameter.getFloat();
     scfg.base_height_mm = c.support_base_height.getFloat();
@@ -622,8 +625,8 @@ void SLAPrint::process()
         // repeated)
 
         if(!po.m_supportdata || !po.m_supportdata->support_tree_ptr) {
-            BOOST_LOG_TRIVIAL(warning) << "Uninitialized support data at "
-                                       << "pad creation.";
+            BOOST_LOG_TRIVIAL(error) << "Uninitialized support data at "
+                                     << "pad creation.";
             return;
         }
 
@@ -645,9 +648,11 @@ void SLAPrint::process()
             // This call can get pretty time consuming
             auto thrfn = [this](){ throw_if_canceled(); };
 
-            if(elevation < pad_h)
+            if(elevation < pad_h) {
+                // we have to count with the model geometry for the base plate
                 sla::base_plate(trmesh, bp, float(pad_h), float(lh),
                                             thrfn);
+            }
 
             pcfg.throw_on_cancel = thrfn;
             po.m_supportdata->support_tree_ptr->add_pad(bp, pcfg);
@@ -941,7 +946,7 @@ void SLAPrint::process()
     };
 
     // this would disable the rasterization step
-//    m_stepmask[slapsRasterize] = false;
+    // m_stepmask[slapsRasterize] = false;
 
     double pstd = (100 - max_objstatus) / 100.0;
     st = max_objstatus;
@@ -1065,6 +1070,7 @@ bool SLAPrintObject::invalidate_state_by_config_options(const std::vector<t_conf
             || opt_key == "support_head_width"
             || opt_key == "support_pillar_diameter"
             || opt_key == "support_pillar_connection_mode"
+            || opt_key == "support_buildplate_only"
             || opt_key == "support_base_diameter"
             || opt_key == "support_base_height"
             || opt_key == "support_critical_angle"

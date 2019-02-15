@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include <ostream>
+#include <functional>
 
 #include <boost/optional.hpp>
 
@@ -23,6 +24,8 @@ namespace GUI {
 
 
 wxTopLevelWindow* find_toplevel_parent(wxWindow *window);
+
+void on_window_geometry(wxTopLevelWindow *tlw, std::function<void()> callback);
 
 
 class EventGuard

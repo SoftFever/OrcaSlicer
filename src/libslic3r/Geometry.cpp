@@ -1182,8 +1182,6 @@ Vec3d extract_euler_angles(const Eigen::Matrix<double, 3, 3, Eigen::DontAlign>& 
 {
 #if ENABLE_NEW_EULER_ANGLES
     // reference: http://www.gregslabaugh.net/publications/euler.pdf
-    auto is_approx = [](double value, double test_value) -> bool { return std::abs(value - test_value) < EPSILON; };
-
     Vec3d angles1 = Vec3d::Zero();
     Vec3d angles2 = Vec3d::Zero();
     if (is_approx(std::abs(rotation_matrix(2, 0)), 1.0))
@@ -1335,6 +1333,8 @@ void Transformation::set_rotation(const Vec3d& rotation)
 void Transformation::set_rotation(Axis axis, double rotation)
 {
     rotation = angle_to_0_2PI(rotation);
+    if (is_approx(std::abs(rotation), 2.0 * (double)PI))
+        rotation = 0.0;
 
     if (m_rotation(axis) != rotation)
     {

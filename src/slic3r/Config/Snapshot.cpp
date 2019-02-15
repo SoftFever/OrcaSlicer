@@ -249,10 +249,10 @@ bool Snapshot::equal_to_active(const AppConfig &app_config) const
         boost::filesystem::path path2 = snapshot_dir / subdir;
         std::vector<std::string> files1, files2;
         for (auto &dir_entry : boost::filesystem::directory_iterator(path1))
-            if (boost::filesystem::is_regular_file(dir_entry.status()) && boost::algorithm::iends_with(dir_entry.path().filename().string(), ".ini"))
+            if (Slic3r::is_ini_file(dir_entry))
                 files1.emplace_back(dir_entry.path().filename().string());
         for (auto &dir_entry : boost::filesystem::directory_iterator(path2))
-            if (boost::filesystem::is_regular_file(dir_entry.status()) && boost::algorithm::iends_with(dir_entry.path().filename().string(), ".ini"))
+            if (Slic3r::is_ini_file(dir_entry))
                 files2.emplace_back(dir_entry.path().filename().string());
         std::sort(files1.begin(), files1.end());
         std::sort(files2.begin(), files2.end());
@@ -343,7 +343,7 @@ static void copy_config_dir_single_level(const boost::filesystem::path &path_src
         throw std::runtime_error(std::string("Slic3r was unable to create a directory at ") + path_dst.string());
 
 	for (auto &dir_entry : boost::filesystem::directory_iterator(path_src))
-        if (boost::filesystem::is_regular_file(dir_entry.status()) && boost::algorithm::iends_with(dir_entry.path().filename().string(), ".ini"))
+        if (Slic3r::is_ini_file(dir_entry))
 		    boost::filesystem::copy_file(dir_entry.path(), path_dst / dir_entry.path().filename(), boost::filesystem::copy_option::overwrite_if_exists);
 }
 
