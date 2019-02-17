@@ -1796,7 +1796,7 @@ void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const G
                     const std::vector<sla::SupportPoint>& points = po->get_support_points();
                     auto mat = po->trafo().inverse().cast<float>();
                     for (unsigned int i=0; i<points.size();++i)
-						m_editing_mode_cache.emplace_back(mat * points[i].pos, points[i].head_front_radius, points[i].is_new_island);
+						m_editing_mode_cache.emplace_back(sla::SupportPoint(mat * points[i].pos, points[i].head_front_radius, points[i].is_new_island), false);
                     break;
                 }
             }
