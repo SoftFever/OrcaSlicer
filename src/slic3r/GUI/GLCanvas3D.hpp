@@ -132,6 +132,17 @@ wxDECLARE_EVENT(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, Event<bool>);
 wxDECLARE_EVENT(EVT_GLCANVAS_UPDATE_GEOMETRY, Vec3dsEvent<2>);
 wxDECLARE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, SimpleEvent);
 
+// this describes events being passed from GLCanvas3D to SlaSupport gizmo
+enum class SLAGizmoEventType {
+    LeftDown = 1,
+    LeftUp,
+    Dragging,
+    Delete,
+    SelectAll,
+    ShiftUp
+};
+
+
 class GLCanvas3D
 {
     struct GCodePreviewVolumeIndex
@@ -789,7 +800,7 @@ private:
         void set_flattening_data(const ModelObject* model_object);
 
         void set_sla_support_data(ModelObject* model_object, const GLCanvas3D::Selection& selection);
-        void clicked_on_object(const Vec2d& mouse_position);
+        bool mouse_event(SLAGizmoEventType action, const Vec2d& mouse_position = Vec2d::Zero(), bool shift_down = false);
         void delete_current_grabber(bool delete_all = false);
 
         void render_current_gizmo(const Selection& selection) const;
@@ -1050,6 +1061,7 @@ public:
     void on_size(wxSizeEvent& evt);
     void on_idle(wxIdleEvent& evt);
     void on_char(wxKeyEvent& evt);
+    void on_key_up(wxKeyEvent& evt);
     void on_mouse_wheel(wxMouseEvent& evt);
     void on_timer(wxTimerEvent& evt);
     void on_mouse(wxMouseEvent& evt);

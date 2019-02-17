@@ -395,7 +395,7 @@ void SLAAutoSupports::uniformly_cover(const ExPolygon& island, Structure& struct
 
     assert(! poisson_samples.empty());
     for (const Vec2f &pt : poisson_samples) {
-        m_output.emplace_back(float(pt(0)), float(pt(1)), structure.height, 0.4f, is_new_island);
+        m_output.emplace_back(float(pt(0)), float(pt(1)), structure.height, 0.2f, is_new_island);
         structure.supports_force += m_config.support_force;
     }
 }
