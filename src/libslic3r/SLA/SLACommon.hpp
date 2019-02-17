@@ -3,6 +3,7 @@
 
 #include <Eigen/Geometry>
 
+// #define SLIC3R_SLA_NEEDS_WINDTREE
 
 namespace Slic3r {
     
@@ -11,6 +12,7 @@ typedef Eigen::Matrix<float, 3, 1, Eigen::DontAlign> Vec3f;
 typedef Eigen::Matrix<double, 3, 1, Eigen::DontAlign> Vec3d;
 
 class TriangleMesh;
+
 namespace sla {
     
 struct SupportPoint {
@@ -115,11 +117,13 @@ public:
         int F_idx() const { return m_fidx; }
     };
 
+#ifdef SLIC3R_SLA_NEEDS_WINDTREE
     // The signed distance from a point to the mesh. Outputs the distance,
     // the index of the triangle and the closest point in mesh coordinate space.
     si_result signed_distance(const Vec3d& p) const;
 
     bool inside(const Vec3d& p) const;
+#endif /* SLIC3R_SLA_NEEDS_WINDTREE */
 };
 
 

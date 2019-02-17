@@ -1793,10 +1793,10 @@ void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const G
         if (m_editing_mode_cache.empty() && m_parent.sla_print()->is_step_done(slaposSupportPoints)) {
             for (const SLAPrintObject* po : m_parent.sla_print()->objects()) {
                 if (po->model_object()->id() == model_object->id()) {
-                    const Eigen::MatrixXd& points = po->get_support_points();
-                    for (unsigned int i=0; i<points.rows();++i)
-                        m_editing_mode_cache.emplace_back(po->trafo().inverse().cast<float>() * Vec3f(points(i,0), points(i,1), points(i,2)),
-                                                                      points(i, 3), points(i, 4));
+                    const std::vector<sla::SupportPoint>& points = po->get_support_points();
+                    auto mat = po->trafo().inverse().cast<float>();
+                    for (unsigned int i=0; i<points.size();++i)
+						m_editing_mode_cache.emplace_back(mat * points[i].pos, points[i].head_front_radius, points[i].is_new_island);
                     break;
                 }
             }

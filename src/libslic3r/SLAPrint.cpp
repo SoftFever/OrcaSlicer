@@ -25,7 +25,7 @@ using SupportTreePtr = std::unique_ptr<sla::SLASupportTree>;
 class SLAPrintObject::SupportData {
 public:
     sla::EigenMesh3D emesh;              // index-triangle representation
-    sla::PointSet    support_points;     // all the support points (manual/auto)
+    std::vector<sla::SupportPoint> support_points;     // all the support points (manual/auto)
     SupportTreePtr   support_tree_ptr;   // the supports
     SlicedSupports   support_slices;     // sliced supports
     std::vector<LevelID>    level_ids;
@@ -548,18 +548,17 @@ void SLAPrint::process()
             // Now let's extract the result.
             const std::vector<sla::SupportPoint>& points = auto_supports.output();
             this->throw_if_canceled();
-            po.m_supportdata->support_points = sla::to_point_set(points);
+            po.m_supportdata->support_points = points;
 
             BOOST_LOG_TRIVIAL(debug) << "Automatic support points: "
-                                     << po.m_supportdata->support_points.rows();
+                                     << po.m_supportdata->support_points.size();
 
             // Using RELOAD_SLA_SUPPORT_POINTS to tell the Plater to pass the update status to GLGizmoSlaSupports
             report_status(*this, -1, L("Generating support points"), SlicingStatus::RELOAD_SLA_SUPPORT_POINTS);
         }
         else {
             // There are some points on the front-end, no calculation will be done.
-            po.m_supportdata->support_points =
-                    sla::to_point_set(po.transformed_support_points());
+            po.m_supportdata->support_points = po.transformed_support_points();
         }
     };
 
@@ -597,7 +596,7 @@ void SLAPrint::process()
             ctl.cancelfn = [this]() { throw_if_canceled(); };
 
             po.m_supportdata->support_tree_ptr.reset(
-                        new SLASupportTree(po.m_supportdata->support_points,
+                        new SLASupportTree(sla::to_point_set(po.m_supportdata->support_points),
                                            po.m_supportdata->emesh, scfg, ctl));
 
             // Create the unified mesh
@@ -608,7 +607,7 @@ void SLAPrint::process()
             po.m_supportdata->support_tree_ptr->merged_mesh();
 
             BOOST_LOG_TRIVIAL(debug) << "Processed support point count "
-                                     << po.m_supportdata->support_points.rows();
+                                     << po.m_supportdata->support_points.size();
 
             // Check the mesh for later troubleshooting.
             if(po.support_mesh().empty())
@@ -1168,7 +1167,7 @@ const std::vector<ExPolygons> EMPTY_SLICES;
 const TriangleMesh EMPTY_MESH;
 }
 
-const Eigen::MatrixXd& SLAPrintObject::get_support_points() const
+const std::vector<sla::SupportPoint>& SLAPrintObject::get_support_points() const
 {
     return m_supportdata->support_points;
 }

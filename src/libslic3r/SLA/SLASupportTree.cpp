@@ -552,14 +552,12 @@ enum { // For indexing Eigen vectors as v(X), v(Y), v(Z) instead of numbers
 
 PointSet to_point_set(const std::vector<SupportPoint> &v)
 {
-    PointSet ret(v.size(), 5);
+    PointSet ret(v.size(), 3);
     long i = 0;
     for(const SupportPoint& support_point : v) {
         ret.row(i)(0) = support_point.pos(0);
         ret.row(i)(1) = support_point.pos(1);
         ret.row(i)(2) = support_point.pos(2);
-        ret.row(i)(3) = support_point.head_front_radius;
-        ret.row(i)(4) = (float)support_point.is_new_island;
         ++i;
     }
     return ret;
