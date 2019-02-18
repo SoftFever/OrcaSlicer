@@ -1005,7 +1005,10 @@ bool SLAPrint::invalidate_state_by_config_options(const std::vector<t_config_opt
         "bed_shape",
         "max_print_height",
         "printer_technology",
-        "output_filename_format"
+        "output_filename_format",
+        "fast_tilt_time", 
+        "slow_tilt_time", 
+        "area_fill"
     };
 
     std::vector<SLAPrintStep> steps;
@@ -1043,18 +1046,14 @@ void SLAPrint::fill_statistics()
     const double init_layer_height  = m_material_config.initial_layer_height.getFloat();
     const double layer_height       = m_default_object_config.layer_height.getFloat();
 
-    // TODO : slow_fast_limit, fast_tilt, slow_tilt should be filled in the future
-    // These variables will be a part of the printer preset
-    const double slow_fast_limit    = 0.5; // if printing area is more than 50% of the bed area, then use a slow tilt
-    const double fast_tilt          = 5.0;
-    const double slow_tilt          = 8.0;
+    const double area_fill          = m_printer_config.area_fill.getFloat()*0.01;// 0.5 (50%);
+    const double fast_tilt          = m_printer_config.fast_tilt_time.getFloat();// 5.0;
+    const double slow_tilt          = m_printer_config.slow_tilt_time.getFloat();// 8.0;
 
     const double init_exp_time      = m_material_config.initial_exposure_time.getFloat();
     const double exp_time           = m_material_config.exposure_time.getFloat();
 
-    // TODO : fade_layers_cnt should be filled in the future
-    // This variable will be a part of the print preset
-    const int fade_layers_cnt       = 10; // [3;20]
+    const int fade_layers_cnt       = m_default_object_config.faded_layers.getInt();// 10 // [3;20]
 
     const double width              = m_printer_config.display_width.getFloat() / SCALING_FACTOR;
     const double height             = m_printer_config.display_height.getFloat() / SCALING_FACTOR;
@@ -1116,7 +1115,7 @@ void SLAPrint::fill_statistics()
 
         // Calculation of the slow and fast layers to the future controlling those values on FW
 
-        const bool is_fast_layer = (layer_model_area + layer_support_area) <= display_area*slow_fast_limit;
+        const bool is_fast_layer = (layer_model_area + layer_support_area) <= display_area*area_fill;
         const double tilt_time = is_fast_layer ? fast_tilt : slow_tilt;
         if (is_fast_layer)
             fast_layers++;

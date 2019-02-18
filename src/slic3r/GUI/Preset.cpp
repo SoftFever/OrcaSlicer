@@ -408,6 +408,7 @@ const std::vector<std::string>& Preset::sla_print_options()
     if (s_opts.empty()) {
         s_opts = {
             "layer_height",
+            "faded_layers",
             "supports_enable",
             "support_head_front_diameter",
             "support_head_penetration",
@@ -465,6 +466,7 @@ const std::vector<std::string>& Preset::sla_printer_options()
             "bed_shape", "max_print_height",
             "display_width", "display_height", "display_pixels_x", "display_pixels_y",
             "display_orientation",
+            "fast_tilt_time", "slow_tilt_time", "area_fill",
             "printer_correction",
             "print_host", "printhost_apikey", "printhost_cafile",
             "printer_notes",
