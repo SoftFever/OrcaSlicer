@@ -1385,7 +1385,7 @@ bool SLASupportTree::generate(const PointSet &points,
         gndidx.reserve(size_t(head_pos.rows()));
         nogndidx.reserve(size_t(head_pos.rows()));
 
-        // First we search decide which heads reach the ground and can be full
+        // First we decide which heads reach the ground and can be full
         // pillars and which shall be connected to the model surface (or search
         // a suitable path around the surface that leads to the ground -- TODO)
         for(unsigned i = 0; i < head_pos.rows(); i++) {
@@ -1429,7 +1429,7 @@ bool SLASupportTree::generate(const PointSet &points,
 
             // We will try to assign a pillar to all the pinheads. If a pillar
             // would pierce the model surface, we will try to adjust slightly
-            // the head with so that the pillar can be deployed.
+            // the head width so that the pillar can be deployed.
             while(!accept && head.width_mm > 0) {
 
                 Vec3d startpoint = head.junction_point();
@@ -1441,7 +1441,7 @@ bool SLASupportTree::generate(const PointSet &points,
                 double tprec = ray_mesh_intersect(startpoint, dir, mesh);
 
                 if(std::isinf(tprec) && !std::isinf(t)) {
-                    // This is a damned case where the pillar melds into the
+                    // This is a damned case where the pillar melts into the
                     // model but its center ray can reach the ground. We can
                     // not route this to the ground nor to the model surface.
                     head.width_mm = hw + (ri % 2? -1 : 1) * ri * head.r_back_mm;
@@ -1828,7 +1828,7 @@ bool SLASupportTree::generate(const PointSet &points,
         }
     };
 
-    // Step: routing the pinheads that are would connect to the model surface
+    // Step: routing the pinheads that would connect to the model surface
     // along the Z axis downwards. For now these will actually be connected with
     // the model surface with a flipped pinhead. In the future here we could use
     // some smart algorithms to search for a safe path to the ground or to a
