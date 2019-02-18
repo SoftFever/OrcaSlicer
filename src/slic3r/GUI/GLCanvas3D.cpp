@@ -5480,11 +5480,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 }
             }
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-            if (evt.RightDown())
-                std::cout << "Right-click event detected" << std::endl;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
             // propagate event through callback
             if (m_hover_volume_id != -1)
             {
@@ -5527,11 +5522,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #if ENABLE_RETINA_GL
                             const float factor = m_retina_helper->get_scale_factor();
                             logical_pos = logical_pos.cwiseQuotient(Vec2d(factor, factor));
-#endif
-
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-                            std::cout << "Right-click event processed" << std::endl;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#endif // ENABLE_RETINA_GL
                             post_event(Vec2dEvent(EVT_GLCANVAS_RIGHT_CLICK, logical_pos));
                         }
                     }
@@ -6158,7 +6149,6 @@ bool GLCanvas3D::_init_toolbar()
     item.name = "add";
     item.tooltip = GUI::L_str("Add...") + " [" + GUI::shortkey_ctrl_prefix() + "I]";
     item.sprite_id = 0;
-    item.is_toggable = false;
     item.action_event = EVT_GLTOOLBAR_ADD;
     if (!m_toolbar.add_item(item))
         return false;
@@ -6166,7 +6156,6 @@ bool GLCanvas3D::_init_toolbar()
     item.name = "delete";
     item.tooltip = GUI::L_str("Delete") + " [Del]";
     item.sprite_id = 1;
-    item.is_toggable = false;
     item.action_event = EVT_GLTOOLBAR_DELETE;
     if (!m_toolbar.add_item(item))
         return false;
@@ -6174,7 +6163,6 @@ bool GLCanvas3D::_init_toolbar()
     item.name = "deleteall";
     item.tooltip = GUI::L_str("Delete all") + " [" + GUI::shortkey_ctrl_prefix() + "Del]";
     item.sprite_id = 2;
-    item.is_toggable = false;
     item.action_event = EVT_GLTOOLBAR_DELETE_ALL;
     if (!m_toolbar.add_item(item))
         return false;
@@ -6182,7 +6170,6 @@ bool GLCanvas3D::_init_toolbar()
     item.name = "arrange";
     item.tooltip = GUI::L_str("Arrange [A]");
     item.sprite_id = 3;
-    item.is_toggable = false;
     item.action_event = EVT_GLTOOLBAR_ARRANGE;
     if (!m_toolbar.add_item(item))
         return false;
@@ -6193,7 +6180,6 @@ bool GLCanvas3D::_init_toolbar()
     item.name = "more";
     item.tooltip = GUI::L_str("Add instance [+]");
     item.sprite_id = 4;
-    item.is_toggable = false;
     item.action_event = EVT_GLTOOLBAR_MORE;
     if (!m_toolbar.add_item(item))
         return false;
@@ -6201,7 +6187,6 @@ bool GLCanvas3D::_init_toolbar()
     item.name = "fewer";
     item.tooltip = GUI::L_str("Remove instance [-]");
     item.sprite_id = 5;
-    item.is_toggable = false;
     item.action_event = EVT_GLTOOLBAR_FEWER;
     if (!m_toolbar.add_item(item))
         return false;
@@ -6212,7 +6197,6 @@ bool GLCanvas3D::_init_toolbar()
     item.name = "splitobjects";
     item.tooltip = GUI::L_str("Split to objects");
     item.sprite_id = 6;
-    item.is_toggable = false;
     item.action_event = EVT_GLTOOLBAR_SPLIT_OBJECTS;
     if (!m_toolbar.add_item(item))
         return false;
@@ -6220,7 +6204,6 @@ bool GLCanvas3D::_init_toolbar()
     item.name = "splitvolumes";
     item.tooltip = GUI::L_str("Split to parts");
     item.sprite_id = 8;
-    item.is_toggable = false;
     item.action_event = EVT_GLTOOLBAR_SPLIT_VOLUMES;
     if (!m_toolbar.add_item(item))
         return false;
