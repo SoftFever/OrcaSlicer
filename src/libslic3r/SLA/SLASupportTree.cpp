@@ -618,10 +618,13 @@ double pinhead_mesh_intersect(const Vec3d& s,
     // We have to address the case when the direction vector v (same as dir)
     // is coincident with one of the world axes. In this case two of its
     // components will be completely zero and one is 1.0. Our method becomes
-    // dangerous here due to division with zero. Instead, vector a can be a
-    // rotated version of v
+    // dangerous here due to division with zero. Instead, vector 'a' can be an
+    // element-wise rotated version of 'v'
     auto chk1 = [] (double val) { return std::abs(std::abs(val) - 1) < 1e-20; };
-    if(chk1(v(X)) || chk1(v(Y)) || chk1(v(Z))) a = {v(Z), v(X), v(Y)};
+    if(chk1(v(X)) || chk1(v(Y)) || chk1(v(Z))) {
+        a = {v(Z), v(X), v(Y)};
+        b = {v(Y), v(Z), v(X)};
+    }
     else {
         a(Z) = -(v(Y)*a(Y)) / v(Z); a.normalize();
         b = a.cross(v);
@@ -650,17 +653,13 @@ double pinhead_mesh_intersect(const Vec3d& s,
                  s(Z) + rpscos * a(Z) + rpssin * b(Z));
 
         // Point ps is not on mesh but can be inside or outside as well. This
-        // would cause many problems with ray-casting. So we query the closest
-        // point on the mesh to this.
-//        auto psq = m.signed_distance(ps);
+        // would cause many problems with ray-casting. To detect the position we
+        // will use the ray-casting result (which has an is_inside predicate).
 
         // This is the point on the circle on the back sphere
         Vec3d p(c(X) + rpbcos * a(X) + rpbsin * b(X),
                 c(Y) + rpbcos * a(Y) + rpbsin * b(Y),
                 c(Z) + rpbcos * a(Z) + rpbsin * b(Z));
-
-//        Vec3d n = (p - psq.point_on_mesh()).normalized();
-//        phi = m.query_ray_hit(psq.point_on_mesh() + sd*n, n);
 
         Vec3d n = (p - ps).normalized();
         auto hr = m.query_ray_hit(ps + sd*n, n);
@@ -695,9 +694,14 @@ double bridge_mesh_intersect(const Vec3d& s,
     Vec3d a(0, 1, 0), b;
     const double& sd = safety_distance;
 
+    // INFO: for explanation of the method used here, see the previous method's
+    // comments.
+
     auto chk1 = [] (double val) { return std::abs(std::abs(val) - 1) < 1e-20; };
-    if(chk1(dir(X)) || chk1(dir(Y)) || chk1(dir(Z)))
+    if(chk1(dir(X)) || chk1(dir(Y)) || chk1(dir(Z))) {
         a = {dir(Z), dir(X), dir(Y)};
+        b = {dir(Y), dir(Z), dir(X)};
+    }
     else {
         a(Z) = -(dir(Y)*a(Y)) / dir(Z); a.normalize();
         b = a.cross(dir);
