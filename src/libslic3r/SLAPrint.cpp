@@ -1056,8 +1056,8 @@ void SLAPrint::fill_statistics()
     // This variable will be a part of the print preset
     const int fade_layers_cnt       = 10; // [3;20]
 
-    const double width  = m_printer_config.display_width.getFloat() / SCALING_FACTOR;
-    const double height = m_printer_config.display_width.getFloat() / SCALING_FACTOR;
+    const double width              = m_printer_config.display_width.getFloat() / SCALING_FACTOR;
+    const double height             = m_printer_config.display_height.getFloat() / SCALING_FACTOR;
     const double display_area       = width*height;
 
     double supports_volume = 0.0;

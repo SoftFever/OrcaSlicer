@@ -831,7 +831,7 @@ void Sidebar::show_sliced_info_sizer(const bool show)
                 wxString::Format("%.2f \n%.2f \n%.2f", (ps.objects_used_material + ps.support_used_material) / 1000,
                                                        ps.objects_used_material / 1000,
                                                        ps.support_used_material / 1000) :
-                wxString::Format("%.2f", ps.objects_used_material + ps.support_used_material / 1000);
+                wxString::Format("%.2f", (ps.objects_used_material + ps.support_used_material) / 1000);
             p->sliced_info->SetTextAndShow(siMateril_unit, info_text, new_label);
 
             p->sliced_info->SetTextAndShow(siCost, "N/A"/*wxString::Format("%.2f", ps.total_cost)*/);
