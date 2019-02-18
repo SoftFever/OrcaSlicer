@@ -5501,9 +5501,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 else if (evt.RightDown())
                 {
                     m_mouse.position = pos.cast<double>();
-//                    // forces a frame render to ensure that m_hover_volume_id is updated even when the user right clicks while
-//                    // the context menu is already shown, ensuring it to disappear if the mouse is outside any volume
-//                    render();
+                    // forces a frame render to ensure that m_hover_volume_id is updated even when the user right clicks while
+                    // the context menu is already shown
+                    render();
                     if (m_hover_volume_id != -1)
                     {
                         // if right clicking on volume, propagate event through callback (shows context menu)
