@@ -358,6 +358,9 @@ void ImGuiWrapper::init_input()
     io.KeyMap[ImGuiKey_Y] = 'Y';
     io.KeyMap[ImGuiKey_Z] = 'Z';
 
+    // Don't let imgui special-case Mac, wxWidgets already do that
+    io.ConfigMacOSXBehaviors = false;
+
     // Setup clipboard interaction callbacks
     io.SetClipboardTextFn = clipboard_set;
     io.GetClipboardTextFn = clipboard_get;
