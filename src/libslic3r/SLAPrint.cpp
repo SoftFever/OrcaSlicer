@@ -971,8 +971,11 @@ void SLAPrint::process()
     fill_statistics();
     // Set statistics values to the printer
     SLAPrinter& printer = *m_printer;
-    printer.set_statistics({m_print_statistics.objects_used_material,
-                            m_print_statistics.support_used_material});
+    printer.set_statistics({(m_print_statistics.objects_used_material + m_print_statistics.support_used_material)/1000,
+                            10.0,
+                            double(m_print_statistics.slow_layers_count),
+                            double(m_print_statistics.fast_layers_count)
+                            });
 
     // If everything vent well
     report_status(*this, 100, L("Slicing done"));
@@ -1037,80 +1040,119 @@ bool SLAPrint::invalidate_state_by_config_options(const std::vector<t_config_opt
 
 void SLAPrint::fill_statistics()
 {
-    float supports_volume = 0.0;
-    float models_volume = 0.0;
+    const double init_layer_height  = m_material_config.initial_layer_height.getFloat();
+    const double layer_height       = m_default_object_config.layer_height.getFloat();
 
-    int max_layers_cnt = 0;
+    // TODO : slow_fast_limit, fast_tilt, slow_tilt should be filled in the future
+    // These variables will be a part of the printer preset
+    const double slow_fast_limit    = 0.5; // if printing area is more than 50% of the bed area, then use a slow tilt
+    const double fast_tilt          = 5.0;
+    const double slow_tilt          = 8.0;
 
-    const float init_layer_height = m_material_config.initial_layer_height.getFloat();
-    const float layer_height = m_default_object_config.layer_height.getFloat();
+    const double init_exp_time      = m_material_config.initial_exposure_time.getFloat();
+    const double exp_time           = m_material_config.exposure_time.getFloat();
 
-    // Used material
+    // TODO : fade_layers_cnt should be filled in the future
+    // This variable will be a part of the print preset
+    const int fade_layers_cnt       = 10; // [3;20]
+
+    const double width  = m_printer_config.display_width.getFloat() / SCALING_FACTOR;
+    const double height = m_printer_config.display_width.getFloat() / SCALING_FACTOR;
+    const double display_area       = width*height;
+
+    double supports_volume = 0.0;
+    double models_volume = 0.0;
+
+    double estim_time = 0.0;
+
+    size_t slow_layers = 0;
+    size_t fast_layers = 0;
+
+    // find highest object
+    size_t max_layers_cnt = 0;
+    size_t highest_obj_idx = 0;
     for (SLAPrintObject * po : m_objects) {
-        // Calculate full volume of the supports (+pad) 
-        for (const ExPolygons& polygons : po->get_support_slices())
-            for (const ExPolygon& polygon : polygons)
-                supports_volume += polygon.area() *layer_height;
-
-        // Calculate full volume of the object 
-        for (const ExPolygons& polygons : po->get_model_slices())
-            for (const ExPolygon& polygon : polygons)
-                models_volume += polygon.area() *layer_height;
-
         const SLAPrintObject::SliceIndex& slice_index = po->get_slice_index();
-
-        // If init_layer_height isn't equivalent to the layer_height,
-        // let correct volume of the first(initial) layer
-        if (init_layer_height != layer_height) 
-        {
-            const auto index = slice_index.begin();
-            if (index->second.support_slices_idx != SLAPrintObject::SliceRecord::NONE)
-                for (const ExPolygon& polygon : po->get_support_slices().front())
-                    supports_volume += polygon.area() *(init_layer_height - layer_height);
-            if (index->second.model_slices_idx != SLAPrintObject::SliceRecord::NONE)
-                for (const ExPolygon& polygon : po->get_model_slices().front())
-                    models_volume += polygon.area() *(init_layer_height - layer_height);
-        }
-
-        if (max_layers_cnt < slice_index.size())
+        if (max_layers_cnt < slice_index.size()) {
             max_layers_cnt = slice_index.size();
+            highest_obj_idx = std::find(m_objects.begin(), m_objects.end(), po) - m_objects.begin();
+        }
     }
 
-    m_print_statistics.support_used_material = supports_volume * SCALING_FACTOR * SCALING_FACTOR;
+    const SLAPrintObject * highest_obj = m_objects[highest_obj_idx];
+    const SLAPrintObject::SliceIndex& highest_obj_slice_index = highest_obj->get_slice_index();
+
+    const double delta_fade_time = (init_exp_time - exp_time) / (fade_layers_cnt + 1);
+    double fade_layer_time = init_exp_time;
+
+    int sliced_layer_cnt = 0;
+    for (const auto& layer : highest_obj_slice_index)
+    {
+        const double l_height = (layer.first == highest_obj_slice_index.begin()->first &&
+                                init_layer_height != layer_height) ? 
+                                init_layer_height : layer_height;
+
+        // Calculation of the consumed material 
+
+        double layer_model_area = 0;
+        double layer_support_area = 0;
+        for (SLAPrintObject * po : m_objects)
+        {
+            const auto index = po->get_slice_index();
+            if (index.find(layer.first) == index.end())
+                continue;
+                        
+            if (index.at(layer.first).model_slices_idx != SLAPrintObject::SliceRecord::NONE) {
+                for (const ExPolygon& polygon : po->get_model_slices().at(index.at(layer.first).model_slices_idx))
+                    layer_model_area += polygon.area();
+            }
+            /*else */if (index.at(layer.first).support_slices_idx != SLAPrintObject::SliceRecord::NONE) {
+                for (const ExPolygon& polygon : po->get_support_slices().front())
+                    layer_support_area += polygon.area();
+            }
+        }
+        models_volume += layer_model_area * l_height;
+        supports_volume += layer_support_area * l_height;
+
+        // Calculation of the slow and fast layers to the future controlling those values on FW
+
+        const bool is_fast_layer = (layer_model_area + layer_support_area) <= display_area*slow_fast_limit;
+        const double tilt_time = is_fast_layer ? fast_tilt : slow_tilt;
+        if (is_fast_layer)
+            fast_layers++;
+        else
+            slow_layers++;
+
+
+        // Calculation of the printing time
+
+        if (sliced_layer_cnt < 3)
+            estim_time += init_exp_time;
+        else if (fade_layer_time > exp_time)
+        {
+            fade_layer_time -= delta_fade_time;
+            estim_time += fade_layer_time;
+        }
+        else
+            estim_time += exp_time;
+
+        estim_time += tilt_time;
+
+        sliced_layer_cnt++;
+    }
+
+    m_print_statistics.support_used_material = supports_volume * SCALING_FACTOR * SCALING_FACTOR; 
     m_print_statistics.objects_used_material = models_volume  * SCALING_FACTOR * SCALING_FACTOR;
 
     // Estimated printing time
     // A layers count o the highest object 
     if (max_layers_cnt == 0)
         m_print_statistics.estimated_print_time = "N/A";
-    float init_exp_time = m_material_config.initial_exposure_time.getFloat();//35;
-    float exp_time = m_material_config.exposure_time.getFloat();//8;
+    else
+        m_print_statistics.estimated_print_time = get_time_dhms(float(estim_time));
 
-    // TODO : fade_layers_cnt should be filled in the future
-    // This variable will be a part of the print(material) preset
-    const int fade_layers_cnt = 10; // [3;20]
-
-    // TODO : tilt_delay_before_time & tilt_delay_after_time should be filled in the future
-    // These values are received from the printer after a printing start
-    const float tilt_delay_before_time = 0.0;
-    const float tilt_delay_after_time = 0.0;
-    if (tilt_delay_before_time + tilt_delay_after_time > 0.0)
-    {
-        init_exp_time += tilt_delay_before_time + tilt_delay_after_time;
-        exp_time += tilt_delay_before_time + tilt_delay_after_time;
-    }
-
-    float estim_time = init_exp_time * 3 + exp_time * (max_layers_cnt - 3 - fade_layers_cnt);
-
-    const float delta_time = (init_exp_time - exp_time) / (fade_layers_cnt+1);
-    double fade_layer_time = init_exp_time;
-    while (fade_layer_time > exp_time)
-    {
-        fade_layer_time -= delta_time;
-        estim_time += fade_layer_time;
-    }
-
-    m_print_statistics.estimated_print_time = get_time_dhms(estim_time);
+    m_print_statistics.fast_layers_count = fast_layers;
+    m_print_statistics.slow_layers_count = slow_layers;
 }
 
 // Returns true if an object step is done on all objects and there's at least one object.

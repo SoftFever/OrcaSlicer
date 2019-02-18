@@ -822,16 +822,16 @@ void Sidebar::show_sliced_info_sizer(const bool show)
         if (p->plater->printer_technology() == ptSLA)
         {
             const SLAPrintStatistics& ps = p->plater->sla_print().print_statistics();
-            wxString new_label = _(L("Used Material (mm³)")) + " :";
+            wxString new_label = _(L("Used Material (ml)")) + " :";
             const bool is_supports = ps.support_used_material > 0.0;
             if (is_supports)
                 new_label += wxString::Format("\n    - %s\n    - %s", _(L("object(s)")), _(L("supports and pad")));
 
             wxString info_text = is_supports ?
-                wxString::Format("%.2f \n%.2f \n%.2f", ps.objects_used_material + ps.support_used_material/* / 1000*/,
-                                                       ps.objects_used_material/* / 1000*/,
-                                                       ps.support_used_material/* / 1000*/) :
-                wxString::Format("%.2f", ps.objects_used_material + ps.support_used_material/* / 1000*/);
+                wxString::Format("%.2f \n%.2f \n%.2f", (ps.objects_used_material + ps.support_used_material) / 1000,
+                                                       ps.objects_used_material / 1000,
+                                                       ps.support_used_material / 1000) :
+                wxString::Format("%.2f", ps.objects_used_material + ps.support_used_material / 1000);
             p->sliced_info->SetTextAndShow(siMateril_unit, info_text, new_label);
 
             p->sliced_info->SetTextAndShow(siCost, "N/A"/*wxString::Format("%.2f", ps.total_cost)*/);

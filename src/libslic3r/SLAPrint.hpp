@@ -177,6 +177,8 @@ struct SLAPrintStatistics
     std::string                     estimated_print_time;
     double                          objects_used_material;
     double                          support_used_material;
+    size_t                          slow_layers_count;
+    size_t                          fast_layers_count;
     double                          total_cost;
     double                          total_weight;
 
@@ -191,6 +193,8 @@ struct SLAPrintStatistics
         estimated_print_time.clear();
         objects_used_material = 0.;
         support_used_material = 0.;
+        slow_layers_count = 0;
+        fast_layers_count = 0;
         total_cost = 0.;
         total_weight = 0.;
     }
