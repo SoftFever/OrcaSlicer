@@ -13,9 +13,7 @@
 #include <boost/log/trivial.hpp>
 
 #include <wx/app.h>
-#include <wx/event.h>
 #include <wx/msgdlg.h>
-#include <wx/event.h>
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Utils.hpp"

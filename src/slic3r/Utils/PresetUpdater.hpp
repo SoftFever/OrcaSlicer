@@ -4,6 +4,8 @@
 #include <memory>
 #include <vector>
 
+#include <wx/event.h>
+
 namespace Slic3r {
 
 
