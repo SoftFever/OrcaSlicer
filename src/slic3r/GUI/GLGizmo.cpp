@@ -2101,6 +2101,13 @@ bool GLGizmoSlaSupports::mouse_event(SLAGizmoEventType action, const Vec2d& mous
         // bounding box created from the rectangle corners - will take care of order of the corners
         BoundingBox rectangle(Points{Point(m_selection_rectangle_start_corner.cast<int>()), Point(m_selection_rectangle_end_corner.cast<int>())});
 
+        const Transform3d& instance_matrix_no_translation = volume->get_instance_transformation().get_matrix(true);
+        // we'll recover current look direction from the modelview matrix (in world coords)...
+        Vec3f direction_to_camera(modelview_matrix[2], modelview_matrix[6], modelview_matrix[10]);
+        // ...and transform it to model coords.
+        direction_to_camera = instance_matrix_no_translation.inverse().cast<float>() * direction_to_camera.eval();
+
+        // Iterate over all points, check if they're in the rectangle and if so, check that they are not obscured by the mesh:
         for (std::pair<sla::SupportPoint, bool>& point_and_selection : m_editing_mode_cache) {
             const sla::SupportPoint& support_point = point_and_selection.first;
             Vec3f pos = instance_matrix.cast<float>() * support_point.pos;
@@ -2109,8 +2116,19 @@ bool GLGizmoSlaSupports::mouse_event(SLAGizmoEventType action, const Vec2d& mous
              ::gluProject((GLdouble)pos(0), (GLdouble)pos(1), (GLdouble)pos(2), modelview_matrix, projection_matrix, viewport, &out_x, &out_y, &out_z);
              out_y = m_canvas_height - out_y;
 
-            if (rectangle.contains(Point(out_x, out_y)))
-                point_and_selection.second = true;
+            if (rectangle.contains(Point(out_x, out_y))) {
+                bool is_obscured = false;
+                // Cast a ray in the direction of the camera and look for intersection with the mesh:
+                std::vector<igl::Hit> hits;
+                if (m_AABB.intersect_ray(m_V, m_F, support_point.pos, direction_to_camera, hits))
+                    // FIXME: the intersection could in theory be behind the camera, but as of now we only have camera direction.
+                    // Also, the threshold is in mesh coordinates, not in actual dimensions.
+                    if (hits.size() > 1 || hits.front().t > 0.001f)
+                        is_obscured = true;
+
+                if (!is_obscured)
+                    point_and_selection.second = true;
+            }
         }
         m_selection_rectangle_active = false;
         return true;
