@@ -5480,8 +5480,12 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 }
             }
 
-            // propagate event through callback
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            if (evt.RightDown())
+                std::cout << "Right-click event detected" << std::endl;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
+            // propagate event through callback
             if (m_hover_volume_id != -1)
             {
                 if (evt.LeftDown() && m_moving_enabled && (m_mouse.drag.move_volume_idx == -1))
@@ -5524,6 +5528,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                             const float factor = m_retina_helper->get_scale_factor();
                             logical_pos = logical_pos.cwiseQuotient(Vec2d(factor, factor));
 #endif
+
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                            std::cout << "Right-click event processed" << std::endl;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                             post_event(Vec2dEvent(EVT_GLCANVAS_RIGHT_CLICK, logical_pos));
                         }
                     }
