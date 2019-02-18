@@ -96,7 +96,7 @@ public:
 
     struct PointGrid3D {
         struct GridHash {
-            std::size_t operator()(const Vec3i &cell_id) {
+            std::size_t operator()(const Vec3i &cell_id) const {
                 return std::hash<int>()(cell_id.x()) ^ std::hash<int>()(cell_id.y() * 593) ^ std::hash<int>()(cell_id.z() * 7919);
             }
         };

@@ -307,7 +307,7 @@ std::vector<Vec2f> sample_expolygon_with_boundary(const ExPolygon &expoly, float
 template<typename REFUSE_FUNCTION>
 static inline std::vector<Vec2f> poisson_disk_from_samples(const std::vector<Vec2f> &raw_samples, float radius, REFUSE_FUNCTION refuse_function)
 {
-    Vec2f corner_min(FLT_MAX, FLT_MAX);
+    Vec2f corner_min(std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
     for (const Vec2f &pt : raw_samples) {
         corner_min.x() = std::min(corner_min.x(), pt.x());
         corner_min.y() = std::min(corner_min.y(), pt.y());
@@ -342,7 +342,7 @@ static inline std::vector<Vec2f> poisson_disk_from_samples(const std::vector<Vec
     };
 
     struct CellIDHash {
-        std::size_t operator()(const Vec2i &cell_id) {
+        std::size_t operator()(const Vec2i &cell_id) const {
             return std::hash<int>()(cell_id.x()) ^ std::hash<int>()(cell_id.y() * 593);
         }
     };
@@ -351,9 +351,9 @@ static inline std::vector<Vec2f> poisson_disk_from_samples(const std::vector<Vec
     // (We could just store the samples in hash_data.  This implementation is an artifact of the reference paper, which
     // is optimizing for GPU acceleration that we haven't implemented currently.)
     typedef std::unordered_map<Vec2i, PoissonDiskGridEntry, CellIDHash> Cells;
-    std::unordered_map<Vec2i, PoissonDiskGridEntry, CellIDHash> cells;
+    Cells cells;
     {
-        Cells::iterator last_cell_id_it;
+        typename Cells::iterator last_cell_id_it;
         Vec2i           last_cell_id(-1, -1);
         for (int i = 0; i < raw_samples_sorted.size(); ++ i) {
             const RawSample &sample = raw_samples_sorted[i];
@@ -413,7 +413,7 @@ static inline std::vector<Vec2f> poisson_disk_from_samples(const std::vector<Vec
 
     // Copy the results to the output.
     std::vector<Vec2f> out;
-    for (const auto it : cells)
+    for (const auto& it : cells)
         for (int i = 0; i < it.second.num_poisson_samples; ++ i)
             out.emplace_back(it.second.poisson_samples[i]);
     return out;
