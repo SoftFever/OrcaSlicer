@@ -498,6 +498,7 @@ private:
     Vec2d m_selection_rectangle_start_corner;
     Vec2d m_selection_rectangle_end_corner;
     bool m_ignore_up_event = false;
+    bool m_combo_box_open = false;
 #if SLAGIZMO_IMGUI_MODAL
     bool m_show_modal = false;
 #endif

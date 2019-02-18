@@ -168,7 +168,7 @@ void ImGuiWrapper::text(const wxString &label)
 }
 
 
-void ImGuiWrapper::combo(const wxString& label, const std::vector<wxString>& options, wxString& selection)
+bool ImGuiWrapper::combo(const wxString& label, const std::vector<wxString>& options, wxString& selection)
 {
     std::string selection_u8 = into_u8(selection);
 
@@ -184,7 +184,9 @@ void ImGuiWrapper::combo(const wxString& label, const std::vector<wxString>& opt
                 selection = option_u8;
         }
         ImGui::EndCombo();
+        return true;
     }
+    return false;
 }
 
 void ImGuiWrapper::disabled_begin(bool disabled)

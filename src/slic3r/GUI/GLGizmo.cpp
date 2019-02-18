@@ -2236,7 +2236,11 @@ RENDER_AGAIN:
         std::stringstream ss;
         ss << std::setprecision(1) << m_new_point_head_diameter;
         wxString str = ss.str();
-        m_imgui->combo(_(L("Head diameter")), options, str);
+
+        bool old_combo_state = m_combo_box_open;
+        m_combo_box_open = m_imgui->combo(_(L("Head diameter")), options, str);
+        force_refresh |= (old_combo_state != m_combo_box_open);
+
         float current_number = atof(str);
         if (std::abs(current_number - m_new_point_head_diameter) > 0.001) {
             force_refresh = true;
