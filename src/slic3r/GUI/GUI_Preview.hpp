@@ -27,6 +27,9 @@ namespace GUI {
 
 class GLCanvas3D;
 class GLToolbar;
+#if ENABLE_UNIQUE_BED
+class Bed3D;
+#endif // ENABLE_UNIQUE_BED
 
 class View3D : public wxPanel
 {
@@ -48,10 +51,17 @@ public:
     wxGLCanvas* get_wxglcanvas() { return m_canvas_widget; }
     GLCanvas3D* get_canvas3d() { return m_canvas; }
 
+#if ENABLE_UNIQUE_BED
+    void set_bed(Bed3D* bed);
+#endif // ENABLE_UNIQUE_BED
     void set_view_toolbar(GLToolbar* toolbar);
 
     void set_as_dirty();
+#if ENABLE_UNIQUE_BED
+    void bed_shape_changed();
+#else
     void set_bed_shape(const Pointfs& shape);
+#endif // ENABLE_UNIQUE_BED
 
     void select_view(const std::string& direction);
     void select_all();
@@ -114,12 +124,19 @@ public:
     wxGLCanvas* get_wxglcanvas() { return m_canvas_widget; }
     GLCanvas3D* get_canvas3d() { return m_canvas; }
 
+#if ENABLE_UNIQUE_BED
+    void set_bed(Bed3D* bed);
+#endif // ENABLE_UNIQUE_BED
     void set_view_toolbar(GLToolbar* toolbar);
 
     void set_number_extruders(unsigned int number_extruders);
     void set_canvas_as_dirty();
     void set_enabled(bool enabled);
+#if ENABLE_UNIQUE_BED
+    void bed_shape_changed();
+#else
     void set_bed_shape(const Pointfs& shape);
+#endif // ENABLE_UNIQUE_BED
     void select_view(const std::string& direction);
     void set_viewport_from_scene(GLCanvas3D* canvas);
     void set_viewport_into_scene(GLCanvas3D* canvas);

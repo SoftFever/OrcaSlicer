@@ -49,6 +49,9 @@
 #include "GLCanvas3D.hpp"
 #include "GLToolbar.hpp"
 #include "GUI_Preview.hpp"
+#if ENABLE_UNIQUE_BED
+#include "3DBed.hpp"
+#endif // ENABLE_UNIQUE_BED
 #include "Tab.hpp"
 #include "PresetBundle.hpp"
 #include "BackgroundSlicingProcess.hpp"
@@ -952,6 +955,9 @@ struct Plater::priv
     wxPanel* current_panel;
     std::vector<wxPanel*> panels;
     Sidebar *sidebar;
+#if ENABLE_UNIQUE_BED
+    Bed3D bed;
+#endif // ENABLE_UNIQUE_BED
     View3D* view3D;
     GLToolbar view_toolbar;
     Preview *preview;
@@ -1055,6 +1061,14 @@ struct Plater::priv
 
     void update_object_menu();
 
+#if ENABLE_UNIQUE_BED
+    // Set the bed shape to a single closed 2D polygon(array of two element arrays),
+    // triangulate the bed and store the triangles into m_bed.m_triangles,
+    // fills the m_bed.m_grid_lines and sets m_bed.m_origin.
+    // Sets m_bed.m_polygon to limit the object placement.
+    void set_bed_shape(const Pointfs& shape);
+#endif // ENABLE_UNIQUE_BED
+
 private:
     bool init_object_menu();
     bool init_common_menu(wxMenu* menu, const bool is_part = false);
@@ -1130,6 +1144,11 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     view3D->Bind(wxEVT_NAVIGATION_KEY, [this](wxNavigationKeyEvent &evt) { if (evt.IsFromTab()) this->select_next_view_3D(); });
     preview->Bind(wxEVT_NAVIGATION_KEY, [this](wxNavigationKeyEvent &evt) { if (evt.IsFromTab()) this->select_next_view_3D(); });
 
+#if ENABLE_UNIQUE_BED
+    view3D->set_bed(&bed);
+    preview->set_bed(&bed);
+#endif // ENABLE_UNIQUE_BED
+
     panels.push_back(view3D);
     panels.push_back(preview);
 
@@ -1186,10 +1205,16 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     view3D_canvas->Bind(EVT_GLTOOLBAR_SPLIT_VOLUMES, &priv::on_action_split_volumes, this);
     view3D_canvas->Bind(EVT_GLTOOLBAR_LAYERSEDITING, &priv::on_action_layersediting, this);
     view3D_canvas->Bind(EVT_GLCANVAS_INIT, [this](SimpleEvent&) { init_view_toolbar(); });
+#if ENABLE_UNIQUE_BED
+    view3D_canvas->Bind(EVT_GLCANVAS_UPDATE_BED_SHAPE, [this](SimpleEvent&) { set_bed_shape(config->option<ConfigOptionPoints>("bed_shape")->values); });
+#endif // ENABLE_UNIQUE_BED
 
     // Preview events:
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_VIEWPORT_CHANGED, &priv::on_viewport_changed, this);
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_QUESTION_MARK, [this](SimpleEvent&) { wxGetApp().keyboard_shortcuts(); });
+#if ENABLE_UNIQUE_BED
+    preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_UPDATE_BED_SHAPE, [this](SimpleEvent&) { set_bed_shape(config->option<ConfigOptionPoints>("bed_shape")->values); });
+#endif // ENABLE_UNIQUE_BED
 
     view3D_canvas->Bind(EVT_GLCANVAS_INIT, [this](SimpleEvent&) { init_view_toolbar(); });
 
@@ -2624,6 +2649,18 @@ bool Plater::priv::can_mirror() const
     return get_selection().is_from_single_instance();
 }
 
+#if ENABLE_UNIQUE_BED
+void Plater::priv::set_bed_shape(const Pointfs& shape)
+{
+    bool new_shape = bed.set_shape(shape);
+    if (new_shape)
+    {
+        if (view3D) view3D->bed_shape_changed();
+        if (preview) preview->bed_shape_changed();
+    }
+}
+#endif // ENABLE_UNIQUE_BED
+
 void Plater::priv::update_object_menu()
 {
     sidebar->obj_list()->append_menu_items_add_volume(&object_menu);
@@ -3064,8 +3101,12 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
 
     if (bed_shape_changed)
     {
+#if ENABLE_UNIQUE_BED
+        p->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values);
+#else
         if (p->view3D) p->view3D->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values);
         if (p->preview) p->preview->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values);
+#endif // ENABLE_UNIQUE_BED
     }
 
     if (update_scheduled) 

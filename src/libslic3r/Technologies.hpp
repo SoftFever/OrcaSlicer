@@ -54,4 +54,13 @@
 // Toolbar items hidden/shown in dependence of the user mode
 #define ENABLE_MODE_AWARE_TOOLBAR_ITEMS (1 && ENABLE_1_42_0_ALPHA5)
 
+
+//====================
+// 1.42.0.alpha7 techs
+//====================
+#define ENABLE_1_42_0_ALPHA7 1
+
+// Moves bed from GLCanva3d to Plater to have a unique instance of it
+#define ENABLE_UNIQUE_BED (1 && ENABLE_1_42_0_ALPHA7)
+
 #endif // _technologies_h_

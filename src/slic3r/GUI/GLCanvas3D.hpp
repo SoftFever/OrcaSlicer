@@ -8,6 +8,9 @@
 #include "3DScene.hpp"
 #include "GLToolbar.hpp"
 #include "Event.hpp"
+#if ENABLE_UNIQUE_BED
+#include "3DBed.hpp"
+#endif // ENABLE_UNIQUE_BED
 
 #include <float.h>
 
@@ -25,8 +28,10 @@ class wxGLCanvas;
 // Support for Retina OpenGL on Mac OS
 #define ENABLE_RETINA_GL __APPLE__
 
+#if !ENABLE_UNIQUE_BED
 class GLUquadric;
 typedef class GLUquadric GLUquadricObj;
+#endif // !ENABLE_UNIQUE_BED
 
 namespace Slic3r {
 
@@ -45,6 +50,7 @@ class GLGizmoBase;
 class RetinaHelper;
 #endif
 
+#if !ENABLE_UNIQUE_BED
 class GeometryBuffer
 {
     std::vector<float> m_vertices;
@@ -59,6 +65,7 @@ public:
 
     unsigned int get_vertices_count() const;
 };
+#endif // !ENABLE_UNIQUE_BED
 
 class Size
 {
@@ -131,6 +138,9 @@ wxDECLARE_EVENT(EVT_GLCANVAS_INSTANCE_SCALED, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, Event<bool>);
 wxDECLARE_EVENT(EVT_GLCANVAS_UPDATE_GEOMETRY, Vec3dsEvent<2>);
 wxDECLARE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, SimpleEvent);
+#if ENABLE_UNIQUE_BED
+wxDECLARE_EVENT(EVT_GLCANVAS_UPDATE_BED_SHAPE, SimpleEvent);
+#endif // ENABLE_UNIQUE_BED
 
 class GLCanvas3D
 {
@@ -196,6 +206,7 @@ class GLCanvas3D
         void set_scene_box(const BoundingBoxf3& box, GLCanvas3D& canvas);
     };
 
+#if !ENABLE_UNIQUE_BED
     class Bed
     {
     public:
@@ -265,6 +276,7 @@ class GLCanvas3D
     private:
         void render_axis(double length) const;
     };
+#endif // !ENABLE_UNIQUE_BED
 
     class Shader
     {
@@ -865,8 +877,12 @@ private:
     WarningTexture m_warning_texture;
     wxTimer m_timer;
     Camera m_camera;
+#if ENABLE_UNIQUE_BED
+    Bed3D* m_bed;
+#else
     Bed m_bed;
     Axes m_axes;
+#endif // ENABLE_UNIQUE_BED
     LayersEditing m_layers_editing;
     Shader m_shader;
     Mouse m_mouse;
@@ -920,6 +936,10 @@ public:
     wxGLCanvas* get_wxglcanvas() { return m_canvas; }
 	const wxGLCanvas* get_wxglcanvas() const { return m_canvas; }
 
+#if ENABLE_UNIQUE_BED
+    void set_bed(Bed3D* bed) { m_bed = bed; }
+#endif // ENABLE_UNIQUE_BED
+
     void set_view_toolbar(GLToolbar* toolbar) { m_view_toolbar = toolbar; }
 
     bool init(bool useVBOs, bool use_legacy_opengl);
@@ -938,12 +958,16 @@ public:
     const Selection& get_selection() const { return m_selection; }
     Selection& get_selection() { return m_selection; }
 
+#if ENABLE_UNIQUE_BED
+    void bed_shape_changed();
+#else
     // Set the bed shape to a single closed 2D polygon(array of two element arrays),
     // triangulate the bed and store the triangles into m_bed.m_triangles,
     // fills the m_bed.m_grid_lines and sets m_bed.m_origin.
     // Sets m_bed.m_polygon to limit the object placement.
     void set_bed_shape(const Pointfs& shape);
     void set_bed_axes_length(double length);
+#endif // ENABLE_UNIQUE_BED
 
     void set_clipping_plane(unsigned int id, const ClippingPlane& plane)
     {
