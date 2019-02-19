@@ -3158,6 +3158,7 @@ void GLCanvas3D::Gizmos::update_on_off_state(const GLCanvas3D& canvas, const Vec
     float cnv_h = (float)canvas.get_canvas_size().get_height();
     float height = _get_total_overlay_height();
     float top_y = 0.5f * (cnv_h - height) + m_overlay_border;
+
     for (GizmosMap::iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
         if ((it->second == nullptr) || !it->second->is_selectable())
@@ -5448,10 +5449,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
             m_dirty = true;
         }
-        /*else if ((selected_object_idx != -1) && m_gizmos.grabber_contains_mouse() && evt.RightDown()) {
-            if (m_gizmos.get_current_type() == Gizmos::SlaSupports)
-                m_gizmos.delete_current_grabber();
-        }*/
+        else if ((selected_object_idx != -1) && evt.RightDown() && m_gizmos.get_current_type() == Gizmos::SlaSupports && m_gizmos.mouse_event(SLAGizmoEventType::RightDown))
+        {
+            // event was taken care of by the SlaSupports gizmo
+        }
         else if (view_toolbar_contains_mouse != -1)
         {
             if (m_view_toolbar != nullptr)

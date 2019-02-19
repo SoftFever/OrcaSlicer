@@ -136,6 +136,7 @@ wxDECLARE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, SimpleEvent);
 enum class SLAGizmoEventType {
     LeftDown = 1,
     LeftUp,
+    RightDown,
     Dragging,
     Delete,
     SelectAll,

@@ -499,11 +499,25 @@ private:
     Vec2d m_selection_rectangle_end_corner;
     bool m_ignore_up_event = false;
     bool m_combo_box_open = false;
+    bool m_unsaved_changes = false;
+    EState m_old_state = Off; // to be able to see that the gizmo has just been closed (see on_set_state)
 #if SLAGIZMO_IMGUI_MODAL
     bool m_show_modal = false;
 #endif
     int m_canvas_width;
     int m_canvas_height;
+
+    // Methods that do the model_object and editing cache synchronization,
+    // editing mode selection, etc:
+    enum {
+        AllPoints = -2,
+        NoPoints,
+    };
+    void select_point(int i);
+    void editing_mode_apply_changes();
+    void editing_mode_discard_changes();
+    void editing_mode_reload_cache();
+    void get_data_from_backend();
 
 protected:
     void on_set_state() override;
