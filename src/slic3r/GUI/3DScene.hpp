@@ -498,20 +498,16 @@ class GLModel
 protected:
     GLVolume m_volume;
     bool m_useVBOs;
-#if ENABLE_PRINT_BED_MODELS
     std::string m_filename;
-#endif // ENABLE_PRINT_BED_MODELS
 
 public:
     GLModel();
     virtual ~GLModel();
 
     bool init(bool useVBOs) { return on_init(useVBOs); }
-#if ENABLE_PRINT_BED_MODELS
     bool init_from_file(const std::string& filename, bool useVBOs) { return on_init_from_file(filename, useVBOs); }
 
     void center_around(const Vec3d& center) { m_volume.set_volume_offset(center - m_volume.bounding_box.center()); }
-#endif // ENABLE_PRINT_BED_MODELS
     void set_color(const float* color, unsigned int size);
 
     const Vec3d& get_offset() const;
@@ -521,22 +517,16 @@ public:
     const Vec3d& get_scale() const;
     void set_scale(const Vec3d& scale);
 
-#if ENABLE_PRINT_BED_MODELS
     const std::string& get_filename() const { return m_filename; }
     const BoundingBoxf3& get_bounding_box() const { return m_volume.bounding_box; }
 
     void reset();
-#endif // ENABLE_PRINT_BED_MODELS
 
     void render() const; 
 
 protected:
-#if ENABLE_PRINT_BED_MODELS
     virtual bool on_init(bool useVBOs) { return false; }
     virtual bool on_init_from_file(const std::string& filename, bool useVBOs) { return false; }
-#else
-    virtual bool on_init(bool useVBOs) = 0;
-#endif // ENABLE_PRINT_BED_MODELS
 
 private:
     void render_VBOs() const;
@@ -560,13 +550,11 @@ protected:
     virtual bool on_init(bool useVBOs);
 };
 
-#if ENABLE_PRINT_BED_MODELS
 class GLBed : public GLModel
 {
 protected:
     virtual bool on_init_from_file(const std::string& filename, bool useVBOs);
 };
-#endif // ENABLE_PRINT_BED_MODELS
 
 class _3DScene
 {

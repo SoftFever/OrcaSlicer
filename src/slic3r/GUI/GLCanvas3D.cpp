@@ -412,7 +412,6 @@ Point GLCanvas3D::Bed::point_projection(const Point& point) const
     return m_polygon.point_projection(point);
 }
 
-#if ENABLE_PRINT_BED_MODELS
 void GLCanvas3D::Bed::render(float theta, bool useVBOs, float scale_factor) const
 {
     m_scale_factor = scale_factor;
@@ -442,37 +441,6 @@ void GLCanvas3D::Bed::render(float theta, bool useVBOs, float scale_factor) cons
     }
     }
 }
-#else
-void GLCanvas3D::Bed::render(float theta, float scale_factor) const
-{
-    m_scale_factor = scale_factor;
-
-    switch (m_type)
-    {
-    case MK2:
-    {
-        _render_prusa("mk2", theta);
-        break;
-    }
-    case MK3:
-    {
-        _render_prusa("mk3", theta);
-        break;
-    }
-    case SL1:
-    {
-        _render_prusa("sl1", theta);
-        break;
-    }
-    default:
-    case Custom:
-    {
-        _render_custom();
-        break;
-    }
-    }
-}
-#endif // ENABLE_PRINT_BED_MODELS
 
 void GLCanvas3D::Bed::_calc_bounding_box()
 {
@@ -588,11 +556,7 @@ GLCanvas3D::Bed::EType GLCanvas3D::Bed::_detect_type() const
     return type;
 }
 
-#if ENABLE_PRINT_BED_MODELS
 void GLCanvas3D::Bed::_render_prusa(const std::string &key, float theta, bool useVBOs) const
-#else
-void GLCanvas3D::Bed::_render_prusa(const std::string &key, float theta) const
-#endif // ENABLE_PRINT_BED_MODELS
 {
     std::string tex_path = resources_dir() + "/icons/bed/" + key;
 
@@ -608,9 +572,7 @@ void GLCanvas3D::Bed::_render_prusa(const std::string &key, float theta) const
     else if (max_tex_size >= 4096)
         tex_path += "_4096";
 
-#if ENABLE_PRINT_BED_MODELS
     std::string model_path = resources_dir() + "/models/" + key;
-#endif // ENABLE_PRINT_BED_MODELS
 
 #if ENABLE_ANISOTROPIC_FILTER_ON_BED_TEXTURES
     // use anisotropic filter if graphic card allows
@@ -655,7 +617,6 @@ void GLCanvas3D::Bed::_render_prusa(const std::string &key, float theta) const
 #endif // ENABLE_ANISOTROPIC_FILTER_ON_BED_TEXTURES
     }
 
-#if ENABLE_PRINT_BED_MODELS
     if (theta <= 90.0f)
     {
         filename = model_path + "_bed.stl";
@@ -681,7 +642,6 @@ void GLCanvas3D::Bed::_render_prusa(const std::string &key, float theta) const
             ::glDisable(GL_LIGHTING);
         }
     }
-#endif // ENABLE_PRINT_BED_MODELS
 
     unsigned int triangles_vcount = m_triangles.get_vertices_count();
     if (triangles_vcount > 0)
@@ -6533,11 +6493,7 @@ void GLCanvas3D::_render_bed(float theta) const
     scale_factor = m_retina_helper->get_scale_factor();
 #endif
 
-#if ENABLE_PRINT_BED_MODELS
     m_bed.render(theta, m_use_VBOs, scale_factor);
-#else
-    m_bed.render(theta, scale_factor);
-#endif // ENABLE_PRINT_BED_MODELS
 }
 
 void GLCanvas3D::_render_axes() const

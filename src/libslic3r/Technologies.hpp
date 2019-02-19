@@ -30,15 +30,6 @@
 
 
 //====================
-// 1.42.0.alpha2 techs
-//====================
-#define ENABLE_1_42_0_ALPHA2 1
-
-// Adds print bed models to 3D scene
-#define ENABLE_PRINT_BED_MODELS (1 && ENABLE_1_42_0_ALPHA2)
-
-
-//====================
 // 1.42.0.alpha4 techs
 //====================
 #define ENABLE_1_42_0_ALPHA4 1

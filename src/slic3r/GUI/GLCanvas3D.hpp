@@ -217,9 +217,7 @@ class GLCanvas3D
         GeometryBuffer m_gridlines;
         mutable GLTexture m_top_texture;
         mutable GLTexture m_bottom_texture;
-#if ENABLE_PRINT_BED_MODELS
         mutable GLBed m_model;
-#endif // ENABLE_PRINT_BED_MODELS
 
         mutable float m_scale_factor;
 
@@ -241,11 +239,7 @@ class GLCanvas3D
         bool contains(const Point& point) const;
         Point point_projection(const Point& point) const;
 
-#if ENABLE_PRINT_BED_MODELS
         void render(float theta, bool useVBOs, float scale_factor) const;
-#else
-        void render(float theta, float scale_factor) const;
-#endif // ENABLE_PRINT_BED_MODELS
 
     private:
         void _calc_bounding_box();
@@ -256,11 +250,7 @@ class GLCanvas3D
 #else
         EType _detect_type() const;
 #endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
-#if ENABLE_PRINT_BED_MODELS
         void _render_prusa(const std::string &key, float theta, bool useVBOs) const;
-#else
-        void _render_prusa(const std::string &key, float theta) const;
-#endif // ENABLE_PRINT_BED_MODELS
         void _render_custom() const;
 #if !ENABLE_REWORKED_BED_SHAPE_CHANGE
         static bool _are_equal(const Pointfs& bed_1, const Pointfs& bed_2);
