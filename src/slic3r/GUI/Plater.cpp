@@ -99,6 +99,11 @@ public:
     wxStaticText *info_facets;
     wxStaticText *info_materials;
     wxStaticText *info_manifold;
+
+    wxStaticText *label_volume;
+    wxStaticText *label_materials;
+    std::vector<wxStaticText *> sla_hided_items;
+
     bool        showing_manifold_warning_icon;
     void        show_sizer(bool show);
 };
@@ -120,15 +125,16 @@ ObjectInfo::ObjectInfo(wxWindow *parent) :
         (*info_label)->SetFont(wxGetApp().small_font());
         grid_sizer->Add(text, 0);
         grid_sizer->Add(*info_label, 0);
+        return text;
     };
 
     init_info_label(&info_size, _(L("Size")));
-    init_info_label(&info_volume, _(L("Volume")));
+    label_volume = init_info_label(&info_volume, _(L("Volume")));
     init_info_label(&info_facets, _(L("Facets")));
-    init_info_label(&info_materials, _(L("Materials")));
+    label_materials = init_info_label(&info_materials, _(L("Materials")));
     Add(grid_sizer, 0, wxEXPAND);
 
-    auto *info_manifold_text = new wxStaticText(parent, wxID_ANY, _(L("Manifold")));
+    auto *info_manifold_text = new wxStaticText(parent, wxID_ANY, _(L("Manifold")) + ":");
     info_manifold_text->SetFont(wxGetApp().small_font());
     info_manifold = new wxStaticText(parent, wxID_ANY, "");
     info_manifold->SetFont(wxGetApp().small_font());
@@ -139,6 +145,8 @@ ObjectInfo::ObjectInfo(wxWindow *parent) :
     sizer_manifold->Add(manifold_warning_icon, 0, wxLEFT, 2);
     sizer_manifold->Add(info_manifold, 0, wxLEFT, 2);
     Add(sizer_manifold, 0, wxEXPAND | wxTOP, 4);
+
+    sla_hided_items = { label_volume, info_volume, label_materials, info_materials };
 }
 
 void ObjectInfo::show_sizer(bool show)
@@ -811,6 +819,11 @@ void Sidebar::show_info_sizer()
     }
 
     p->object_info->show_sizer(true);
+
+    if (p->plater->printer_technology() == ptSLA) {
+        for (auto item: p->object_info->sla_hided_items)
+            item->Show(false);
+    }
 }
 
 void Sidebar::show_sliced_info_sizer(const bool show) 

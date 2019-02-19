@@ -1100,13 +1100,34 @@ void SLAPrint::fill_statistics()
             const auto index = po->get_slice_index();
             if (index.find(layer.first) == index.end())
                 continue;
-                        
-            if (index.at(layer.first).model_slices_idx != SLAPrintObject::SliceRecord::NONE) {
-                for (const ExPolygon& polygon : po->get_model_slices().at(index.at(layer.first).model_slices_idx))
+
+            const SLAPrintObject::SliceRecord& record = index.at(layer.first);
+
+            if (record.model_slices_idx     != SLAPrintObject::SliceRecord::NONE && 
+                record.support_slices_idx   != SLAPrintObject::SliceRecord::NONE)
+            {
+                double model_area = 0;
+                for (const ExPolygon& polygon : po->get_model_slices().at(record.model_slices_idx))
+                    model_area += polygon.area();
+
+                layer_model_area += model_area;
+
+                Polygons polygons = to_polygons(po->get_model_slices().at(record.model_slices_idx));
+                append(polygons, to_polygons(po->get_support_slices().at(record.support_slices_idx)));
+                polygons = union_(polygons);
+                double poligons_area = 0;
+                for (const Polygon& polygon : polygons)
+                    poligons_area += polygon.area();
+
+                if (poligons_area > model_area)
+                    layer_support_area += (poligons_area-model_area);
+            }
+            else if (record.model_slices_idx != SLAPrintObject::SliceRecord::NONE) {
+                for (const ExPolygon& polygon : po->get_model_slices().at(record.model_slices_idx))
                     layer_model_area += polygon.area();
             }
-            /*else */if (index.at(layer.first).support_slices_idx != SLAPrintObject::SliceRecord::NONE) {
-                for (const ExPolygon& polygon : po->get_support_slices().front())
+            else if (record.support_slices_idx != SLAPrintObject::SliceRecord::NONE) {
+                for (const ExPolygon& polygon : po->get_support_slices().at(record.support_slices_idx))
                     layer_support_area += polygon.area();
             }
         }
