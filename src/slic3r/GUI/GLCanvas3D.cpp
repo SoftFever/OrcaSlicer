@@ -367,11 +367,7 @@ const Pointfs& GLCanvas3D::Bed::get_shape() const
 
 bool GLCanvas3D::Bed::set_shape(const Pointfs& shape)
 {
-#if ENABLE_REWORKED_BED_SHAPE_CHANGE
     EType new_type = _detect_type(shape);
-#else
-    EType new_type = _detect_type();
-#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
     if (m_shape == shape && m_type == new_type)
         // No change, no need to update the UI.
         return false;
@@ -489,11 +485,7 @@ void GLCanvas3D::Bed::_calc_gridlines(const ExPolygon& poly, const BoundingBox& 
         printf("Unable to create bed grid lines\n");
 }
 
-#if ENABLE_REWORKED_BED_SHAPE_CHANGE
 GLCanvas3D::Bed::EType GLCanvas3D::Bed::_detect_type(const Pointfs& shape) const
-#else
-GLCanvas3D::Bed::EType GLCanvas3D::Bed::_detect_type() const
-#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
 {
     EType type = Custom;
 
@@ -505,7 +497,6 @@ GLCanvas3D::Bed::EType GLCanvas3D::Bed::_detect_type() const
         {
 			if (curr->config.has("bed_shape"))
 			{
-#if ENABLE_REWORKED_BED_SHAPE_CHANGE
                 if ((curr->vendor != nullptr) && (curr->vendor->name == "Prusa Research") && (shape == dynamic_cast<const ConfigOptionPoints*>(curr->config.option("bed_shape"))->values))
                 {
                     if (boost::contains(curr->name, "SL1"))
@@ -524,29 +515,6 @@ GLCanvas3D::Bed::EType GLCanvas3D::Bed::_detect_type() const
                         break;
                     }
                 }
-#else
-                if (boost::contains(curr->name, "SL1"))
-				{
-					//FIXME add a condition on the size of the print bed?
-					type = SL1;
-					break;
-				}
-				else if (_are_equal(m_shape, dynamic_cast<const ConfigOptionPoints*>(curr->config.option("bed_shape"))->values))
-				{
-					if ((curr->vendor != nullptr) && (curr->vendor->name == "Prusa Research"))
-					{
-						if (boost::contains(curr->name, "MK3") || boost::contains(curr->name, "MK2.5"))
-						{
-							type = MK3;
-							break;
-						} else if (boost::contains(curr->name, "MK2"))
-						{
-							type = MK2;
-							break;
-						}
-					}
-				}
-#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
             }
 
             curr = bundle->printers.get_preset_parent(*curr);
@@ -717,22 +685,6 @@ void GLCanvas3D::Bed::_render_custom() const
         ::glDisable(GL_LIGHTING);
     }
 }
-
-#if !ENABLE_REWORKED_BED_SHAPE_CHANGE
-bool GLCanvas3D::Bed::_are_equal(const Pointfs& bed_1, const Pointfs& bed_2)
-{
-    if (bed_1.size() != bed_2.size())
-        return false;
-
-    for (unsigned int i = 0; i < (unsigned int)bed_1.size(); ++i)
-    {
-        if (bed_1[i] != bed_2[i])
-            return false;
-    }
-
-    return true;
-}
-#endif // !ENABLE_REWORKED_BED_SHAPE_CHANGE
 
 const double GLCanvas3D::Axes::Radius = 0.5;
 const double GLCanvas3D::Axes::ArrowBaseRadius = 2.5 * GLCanvas3D::Axes::Radius;
@@ -4039,11 +3991,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     , m_dirty(true)
     , m_initialized(false)
     , m_use_VBOs(false)
-#if ENABLE_REWORKED_BED_SHAPE_CHANGE
     , m_requires_zoom_to_bed(false)
-#else
-    , m_force_zoom_to_bed_enabled(false)
-#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
     , m_apply_zoom_to_volumes_filter(false)
     , m_hover_volume_id(-1)
     , m_toolbar_action_running(false)
@@ -4236,7 +4184,6 @@ void GLCanvas3D::set_bed_shape(const Pointfs& shape)
 {
     bool new_shape = m_bed.set_shape(shape);
 
-#if ENABLE_REWORKED_BED_SHAPE_CHANGE
     if (new_shape)
     {
         // Set the origin and size for painting of the coordinate system axes.
@@ -4247,16 +4194,6 @@ void GLCanvas3D::set_bed_shape(const Pointfs& shape)
 
         m_dirty = true;
     }
-#else
-    // Set the origin and size for painting of the coordinate system axes.
-    m_axes.origin = Vec3d(0.0, 0.0, (double)GROUND_Z);
-    set_bed_axes_length(0.1 * m_bed.get_bounding_box().max_size());
-
-    if (new_shape)
-        zoom_to_bed();
-
-    m_dirty = true;
-#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
 }
 
 void GLCanvas3D::set_bed_axes_length(double length)
@@ -4355,13 +4292,6 @@ void GLCanvas3D::enable_toolbar(bool enable)
 {
     m_toolbar.set_enabled(enable);
 }
-
-#if !ENABLE_REWORKED_BED_SHAPE_CHANGE
-void GLCanvas3D::enable_force_zoom_to_bed(bool enable)
-{
-    m_force_zoom_to_bed_enabled = enable;
-}
-#endif // !ENABLE_REWORKED_BED_SHAPE_CHANGE
 
 void GLCanvas3D::enable_dynamic_background(bool enable)
 {
@@ -4501,7 +4431,6 @@ void GLCanvas3D::render()
     if (!_set_current() || !_3DScene::init(m_canvas))
         return;
 
-#if ENABLE_REWORKED_BED_SHAPE_CHANGE
     if (m_bed.get_shape().empty())
     {
         // this happens at startup when no data is still saved under <>\AppData\Roaming\Slic3rPE
@@ -4516,10 +4445,6 @@ void GLCanvas3D::render()
         _resize((unsigned int)cnv_size.get_width(), (unsigned int)cnv_size.get_height());
         m_requires_zoom_to_bed = false;
     }
-#else
-    if (m_force_zoom_to_bed_enabled)
-        _force_zoom_to_bed();
-#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
 
     _camera_tranform();
 
@@ -4814,10 +4739,6 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
     if (m_reload_delayed)
         return;
-
-#if !ENABLE_REWORKED_BED_SHAPE_CHANGE
-    set_bed_shape(dynamic_cast<const ConfigOptionPoints*>(m_config->option("bed_shape"))->values);
-#endif // !ENABLE_REWORKED_BED_SHAPE_CHANGE
 
     if (m_regenerate_volumes)
     {
@@ -6059,14 +5980,6 @@ bool GLCanvas3D::_is_shown_on_screen() const
     return (m_canvas != nullptr) ? m_canvas->IsShownOnScreen() : false;
 }
 
-#if !ENABLE_REWORKED_BED_SHAPE_CHANGE
-void GLCanvas3D::_force_zoom_to_bed()
-{
-    zoom_to_bed();
-    m_force_zoom_to_bed_enabled = false;
-}
-#endif //  !ENABLE_REWORKED_BED_SHAPE_CHANGE
-
 bool GLCanvas3D::_init_toolbar()
 {
     if (!m_toolbar.is_enabled())
@@ -6292,11 +6205,7 @@ void GLCanvas3D::_zoom_to_bounding_box(const BoundingBoxf3& bbox)
 
         viewport_changed();
 
-#if ENABLE_REWORKED_BED_SHAPE_CHANGE
         m_dirty = true;
-#else
-        _refresh_if_shown_on_screen();
-#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
     }
 }
 
@@ -6376,15 +6285,7 @@ void GLCanvas3D::_refresh_if_shown_on_screen()
 
         // Because of performance problems on macOS, where PaintEvents are not delivered
         // frequently enough, we call render() here directly when we can.
-#if ENABLE_REWORKED_BED_SHAPE_CHANGE
         render();
-#else
-        // We can't do that when m_force_zoom_to_bed_enabled == true, because then render()
-        // ends up calling back here via _force_zoom_to_bed(), causing a stack overflow.
-        if (m_canvas != nullptr) {
-            m_force_zoom_to_bed_enabled ? m_canvas->Refresh() : render();
-        }
-#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
     }
 }
 

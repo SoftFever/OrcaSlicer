@@ -69,9 +69,6 @@ bool View3D::init(wxWindow* parent, Model* model, DynamicPrintConfig* config, Ba
     m_canvas->set_config(config);
     m_canvas->enable_gizmos(true);
     m_canvas->enable_toolbar(true);
-#if !ENABLE_REWORKED_BED_SHAPE_CHANGE
-    m_canvas->enable_force_zoom_to_bed(true);
-#endif // !ENABLE_REWORKED_BED_SHAPE_CHANGE
 
 #if !ENABLE_IMGUI
     m_gizmo_widget = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
@@ -107,12 +104,7 @@ void View3D::set_as_dirty()
 void View3D::set_bed_shape(const Pointfs& shape)
 {
     if (m_canvas != nullptr)
-    {
         m_canvas->set_bed_shape(shape);
-#if !ENABLE_REWORKED_BED_SHAPE_CHANGE
-        m_canvas->zoom_to_bed();
-#endif // !ENABLE_REWORKED_BED_SHAPE_CHANGE
-    }
 }
 
 void View3D::select_view(const std::string& direction)

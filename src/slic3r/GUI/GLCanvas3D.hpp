@@ -224,9 +224,7 @@ class GLCanvas3D
     public:
         Bed();
 
-#if ENABLE_REWORKED_BED_SHAPE_CHANGE
         EType get_type() const { return m_type; }
-#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
 
         bool is_prusa() const;
         bool is_custom() const;
@@ -245,16 +243,9 @@ class GLCanvas3D
         void _calc_bounding_box();
         void _calc_triangles(const ExPolygon& poly);
         void _calc_gridlines(const ExPolygon& poly, const BoundingBox& bed_bbox);
-#if ENABLE_REWORKED_BED_SHAPE_CHANGE
         EType _detect_type(const Pointfs& shape) const;
-#else
-        EType _detect_type() const;
-#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
         void _render_prusa(const std::string &key, float theta, bool useVBOs) const;
         void _render_custom() const;
-#if !ENABLE_REWORKED_BED_SHAPE_CHANGE
-        static bool _are_equal(const Pointfs& bed_1, const Pointfs& bed_2);
-#endif // !ENABLE_REWORKED_BED_SHAPE_CHANGE
     };
 
     struct Axes
@@ -897,11 +888,7 @@ private:
     bool m_dirty;
     bool m_initialized;
     bool m_use_VBOs;
-#if ENABLE_REWORKED_BED_SHAPE_CHANGE
     bool m_requires_zoom_to_bed;
-#else
-    bool m_force_zoom_to_bed_enabled;
-#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
     bool m_apply_zoom_to_volumes_filter;
     mutable int m_hover_volume_id;
     bool m_toolbar_action_running;
@@ -987,9 +974,6 @@ public:
     void enable_moving(bool enable);
     void enable_gizmos(bool enable);
     void enable_toolbar(bool enable);
-#if !ENABLE_REWORKED_BED_SHAPE_CHANGE
-    void enable_force_zoom_to_bed(bool enable);
-#endif // !ENABLE_REWORKED_BED_SHAPE_CHANGE
     void enable_dynamic_background(bool enable);
     void allow_multisample(bool allow);
 
@@ -1074,9 +1058,6 @@ public:
 
 private:
     bool _is_shown_on_screen() const;
-#if !ENABLE_REWORKED_BED_SHAPE_CHANGE
-    void _force_zoom_to_bed();
-#endif // !ENABLE_REWORKED_BED_SHAPE_CHANGE
 
     bool _init_toolbar();
 
