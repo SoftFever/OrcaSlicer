@@ -412,6 +412,7 @@ bool GUI_App::select_language(  wxArrayString & names,
 		//FIXME This is a temporary workaround, the correct solution is to switch to "C" locale during file import / export only.
 		wxSetlocale(LC_NUMERIC, "C");
         Preset::update_suffix_modified();
+		m_imgui->set_language(m_wxLocale->GetCanonicalName().ToUTF8().data());
         return true;
     }
     return false;
@@ -440,6 +441,7 @@ bool GUI_App::load_language()
 			//FIXME This is a temporary workaround, the correct solution is to switch to "C" locale during file import / export only.
             wxSetlocale(LC_NUMERIC, "C");
 			Preset::update_suffix_modified();
+			m_imgui->set_language(m_wxLocale->GetCanonicalName().ToUTF8().data());
             return true;
         }
     }

@@ -25,7 +25,8 @@ namespace GUI {
 
 
 ImGuiWrapper::ImGuiWrapper()
-    : m_font_texture(0)
+    : m_glyph_ranges(nullptr)
+    , m_font_texture(0)
     , m_style_scaling(1.0)
     , m_mouse_buttons(0)
     , m_disabled(false)
@@ -47,6 +48,35 @@ bool ImGuiWrapper::init()
     ImGui::GetIO().IniFilename = nullptr;
 
     return true;
+}
+
+void ImGuiWrapper::set_language(const std::string &language)
+{
+    const ImWchar *ranges = nullptr;
+    size_t idx = language.find('_');
+    std::string lang = (idx == std::string::npos) ? language : language.substr(0, idx);
+    static const ImWchar ranges_latin2[] =
+    {
+        0x0020, 0x00FF, // Basic Latin + Latin Supplement
+        0x0100, 0x017F, // Latin Extended-A
+        0,
+    };
+    if (lang == "cs" || lang == "pl") {
+        ranges = ranges_latin2;
+    } else if (lang == "ru" || lang == "uk") {
+        ranges = ImGui::GetIO().Fonts->GetGlyphRangesCyrillic();
+    } else if (lang == "jp") {
+        ranges = ImGui::GetIO().Fonts->GetGlyphRangesJapanese();
+    } else if (lang == "kr") {
+        ranges = ImGui::GetIO().Fonts->GetGlyphRangesKorean();
+    } else if (lang == "zh") {
+        ranges = ImGui::GetIO().Fonts->GetGlyphRangesChineseSimplifiedCommon();
+    }
+
+    if (ranges != m_glyph_ranges) {
+        m_glyph_ranges = ranges;
+        init_default_font(m_style_scaling);
+    }
 }
 
 void ImGuiWrapper::set_display_size(float w, float h)
@@ -210,7 +240,7 @@ void ImGuiWrapper::init_default_font(float scaling)
 
     ImGuiIO& io = ImGui::GetIO();
     io.Fonts->Clear();
-    ImFont* font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/NotoSans-Regular.ttf").c_str(), font_size * scaling);
+    ImFont* font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/NotoSans-Regular.ttf").c_str(), font_size * scaling, nullptr, m_glyph_ranges);
     if (font == nullptr) {
         font = io.Fonts->AddFontDefault();
         if (font == nullptr) {
