@@ -13,7 +13,6 @@
 #include <boost/log/trivial.hpp>
 
 #include <wx/app.h>
-#include <wx/event.h>
 #include <wx/msgdlg.h>
 
 #include "libslic3r/libslic3r.h"
@@ -90,9 +89,25 @@ struct Updates
 	std::vector<Update> updates;
 };
 
+static Semver get_slic3r_version()
+{
+	auto res = Semver::parse(SLIC3R_VERSION);
+
+	if (! res) {
+		const char *error = "Could not parse Slic3r version string: " SLIC3R_VERSION;
+		BOOST_LOG_TRIVIAL(error) << error;
+		throw std::runtime_error(error);
+	}
+
+	return *res;
+}
+
+wxDEFINE_EVENT(EVT_SLIC3R_VERSION_ONLINE, wxCommandEvent);
+
 
 struct PresetUpdater::priv
 {
+	const Semver ver_slic3r;
 	std::vector<Index> index_db;
 
 	bool enabled_version_check;
@@ -122,12 +137,13 @@ struct PresetUpdater::priv
 	static void copy_file(const fs::path &from, const fs::path &to);
 };
 
-PresetUpdater::priv::priv() :
-	had_config_update(false),
-	cache_path(fs::path(Slic3r::data_dir()) / "cache"),
-	rsrc_path(fs::path(resources_dir()) / "profiles"),
-	vendor_path(fs::path(Slic3r::data_dir()) / "vendor"),
-	cancel(false)
+PresetUpdater::priv::priv()
+	: ver_slic3r(get_slic3r_version())
+	, had_config_update(false)
+	, cache_path(fs::path(Slic3r::data_dir()) / "cache")
+	, rsrc_path(fs::path(resources_dir()) / "profiles")
+	, vendor_path(fs::path(Slic3r::data_dir()) / "vendor")
+	, cancel(false)
 {
 	set_download_prefs(GUI::wxGetApp().app_config);
 	check_install_indices();
@@ -209,11 +225,10 @@ void PresetUpdater::priv::sync_version() const
 		.on_complete([&](std::string body, unsigned /* http_status */) {
 			boost::trim(body);
 			BOOST_LOG_TRIVIAL(info) << boost::format("Got Slic3rPE online version: `%1%`. Sending to GUI thread...") % body;
-// 			wxCommandEvent* evt = new wxCommandEvent(version_online_event);
-// 			evt->SetString(body);
-// 			GUI::get_app()->QueueEvent(evt);
-	        GUI::wxGetApp().app_config->set("version_online", body);
-	        GUI::wxGetApp().app_config->save();
+
+			wxCommandEvent* evt = new wxCommandEvent(EVT_SLIC3R_VERSION_ONLINE);
+			evt->SetString(GUI::from_u8(body));
+			GUI::wxGetApp().QueueEvent(evt);
 		})
 		.perform_sync();
 }
@@ -260,7 +275,7 @@ void PresetUpdater::priv::sync_config(const std::set<VendorProfile> vendors)
 				continue;
 			}
 			if (new_index.version() < index.version()) {
-				BOOST_LOG_TRIVIAL(error) << boost::format("The downloaded index %1% for vendor %2% is older than the active one. Ignoring the downloaded index.") % idx_path_temp % vendor.name;
+				BOOST_LOG_TRIVIAL(warning) << boost::format("The downloaded index %1% for vendor %2% is older than the active one. Ignoring the downloaded index.") % idx_path_temp % vendor.name;
 				continue;
 			}
 			Slic3r::rename_file(idx_path_temp, idx_path);
@@ -275,6 +290,7 @@ void PresetUpdater::priv::sync_config(const std::set<VendorProfile> vendors)
 			BOOST_LOG_TRIVIAL(error) << boost::format("No recommended version for vendor: %1%, invalid index?") % vendor.name;
 			continue;
 		}
+
 		const auto recommended = recommended_it->config_version;
 
 		BOOST_LOG_TRIVIAL(debug) << boost::format("Got index for vendor: %1%: current version: %2%, recommended version: %3%")
@@ -341,7 +357,8 @@ Updates PresetUpdater::priv::get_config_updates() const
 		if (ver_current == idx.end()) {
 			auto message = (boost::format("Preset bundle `%1%` version not found in index: %2%") % idx.vendor() % vp.config_version.to_string()).str();
 			BOOST_LOG_TRIVIAL(error) << message;
-			throw std::runtime_error(message);
+			GUI::show_error(nullptr, GUI::from_u8(message));
+			continue;
 		}
 
 		// Getting a recommended version from the latest index, wich may have been downloaded
@@ -528,18 +545,14 @@ void PresetUpdater::slic3r_update_notify()
 	}
 
 	auto* app_config = GUI::wxGetApp().app_config;
-	const auto ver_slic3r = Semver::parse(SLIC3R_VERSION);
 	const auto ver_online_str = app_config->get("version_online");
 	const auto ver_online = Semver::parse(ver_online_str);
 	const auto ver_online_seen = Semver::parse(app_config->get("version_online_seen"));
-	if (! ver_slic3r) {
-		throw std::runtime_error("Could not parse Slic3r version string: " SLIC3R_VERSION);
-	}
 
 	if (ver_online) {
 		// Only display the notification if the version available online is newer AND if we haven't seen it before
-		if (*ver_online > *ver_slic3r && (! ver_online_seen || *ver_online_seen < *ver_online)) {
-			GUI::MsgUpdateSlic3r notification(*ver_slic3r, *ver_online);
+		if (*ver_online > p->ver_slic3r && (! ver_online_seen || *ver_online_seen < *ver_online)) {
+			GUI::MsgUpdateSlic3r notification(p->ver_slic3r, *ver_online);
 			notification.ShowModal();
 			if (notification.disable_version_check()) {
 				app_config->set("version_check", "0");

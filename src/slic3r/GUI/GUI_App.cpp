@@ -3,8 +3,10 @@
 #include "GUI_ObjectManipulation.hpp"
 #include "I18N.hpp"
 
+#include <exception>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/log/trivial.hpp>
 
 #include <wx/stdpaths.h>
 #include <wx/imagpng.h>
@@ -125,6 +127,10 @@ bool GUI_App::OnInit()
     app_config->save();
 
     preset_updater = new PresetUpdater();
+    Bind(EVT_SLIC3R_VERSION_ONLINE, [this](const wxCommandEvent &evt) {
+        app_config->set("version_online", into_u8(evt.GetString()));
+        app_config->save();
+    });
 
     load_language();
 
@@ -181,7 +187,6 @@ bool GUI_App::OnInit()
                 mainframe->Close();
         } catch (const std::exception &ex) {
             show_error(nullptr, ex.what());
-            mainframe->Close();
         }
     });
 
@@ -351,21 +356,10 @@ void GUI_App::persist_window_geometry(wxTopLevelWindow *window)
     });
 
     window_pos_restore(window, name);
-#ifdef _WIN32
-    // On windows, the wxEVT_SHOW is not received if the window is created maximized
-    // cf. https://groups.google.com/forum/#!topic/wx-users/c7ntMt6piRI
-    // so we sanitize the position right away
-    window_pos_sanitize(window);
-#else
-    // On other platforms on the other hand it's needed to wait before the window is actually on screen
-    // and some initial round of events is complete otherwise position / display index is not reported correctly.
-    window->Bind(wxEVT_SHOW, [=](wxShowEvent &event) {
-        CallAfter([=]() {
-            window_pos_sanitize(window);
-        });
-        event.Skip();
+
+    on_window_geometry(window, [=]() {
+        window_pos_sanitize(window);
     });
-#endif
 }
 
 void GUI_App::load_project(wxWindow *parent, wxString& input_file)
@@ -573,7 +567,10 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
     mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeSimple, _(L("Simple")), _(L("Simple View Mode")));
     mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeAdvanced, _(L("Advanced")), _(L("Advanced View Mode")));
     mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeExpert, _(L("Expert")), _(L("Expert View Mode")));
-    mode_menu->Check(config_id_base + ConfigMenuModeSimple + get_mode(), true);
+    Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Check(get_mode() == comSimple); }, config_id_base + ConfigMenuModeSimple);
+    Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Check(get_mode() == comAdvanced); }, config_id_base + ConfigMenuModeAdvanced);
+    Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Check(get_mode() == comExpert); }, config_id_base + ConfigMenuModeExpert);
+
     local_menu->AppendSubMenu(mode_menu, _(L("Mode")), _(L("Slic3r View Mode")));
     local_menu->AppendSeparator();
     local_menu->Append(config_id_base + ConfigMenuLanguage, _(L("Change Application &Language")));
@@ -690,6 +687,23 @@ void GUI_App::load_current_presets()
 				static_cast<TabPrinter*>(tab)->update_pages();
 			tab->load_current_preset();
 		}
+}
+
+bool GUI_App::OnExceptionInMainLoop()
+{
+    try {
+        throw;
+    } catch (const std::exception &ex) {
+        const std::string error = (boost::format("Uncaught exception: %1%") % ex.what()).str();
+        BOOST_LOG_TRIVIAL(error) << error;
+        show_error(nullptr, from_u8(error));
+    } catch (...) {
+        const char *error = "Uncaught exception: Unknown error";
+        BOOST_LOG_TRIVIAL(error) << error;
+        show_error(nullptr, from_u8(error));
+    }
+
+    return false;
 }
 
 #ifdef __APPLE__

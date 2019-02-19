@@ -42,10 +42,9 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
 
     // Objects(sub-objects) name
     def.label = L("Name");
-    // 	def.type = coString;
     def.gui_type = "legend";
     def.tooltip = L("Object name");
-    def.full_width = true;
+    def.width = 200;
     def.default_value = new ConfigOptionString{ " " };
     m_og->append_single_option_line(Option(def, "object_name"));
 
@@ -73,14 +72,8 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
         def.default_value = new ConfigOptionFloat(0.0);
         def.width = 50;
 
-        if (option_name == "Rotation")
-        {
-            def.min = -360;
-            def.max = 360;
-        }
-
         // Add "uniform scaling" button in front of "Scale" option 
-        else if (option_name == "Scale") {
+        if (option_name == "Scale") {
             line.near_label_widget = [this](wxWindow* parent) {
                 auto btn = new PrusaLockButton(parent, wxID_ANY);
                 btn->Bind(wxEVT_BUTTON, [btn, this](wxCommandEvent &event){
@@ -293,13 +286,13 @@ void ObjectManipulation::update_if_dirty()
         deg_rotation(i) = Geometry::rad2deg(m_new_rotation(i));
     }
 
-    if (m_cache.rotation(0) != m_new_rotation(0))
+    if ((m_cache.rotation(0) != m_new_rotation(0)) || (m_new_rotation(0) == 0.0))
         m_og->set_value("rotation_x", double_to_string(deg_rotation(0), 2));
 
-    if (m_cache.rotation(1) != m_new_rotation(1))
+    if ((m_cache.rotation(1) != m_new_rotation(1)) || (m_new_rotation(1) == 0.0))
         m_og->set_value("rotation_y", double_to_string(deg_rotation(1), 2));
 
-    if (m_cache.rotation(2) != m_new_rotation(2))
+    if ((m_cache.rotation(2) != m_new_rotation(2)) || (m_new_rotation(2) == 0.0))
         m_og->set_value("rotation_z", double_to_string(deg_rotation(2), 2));
 
     m_cache.rotation = deg_rotation;

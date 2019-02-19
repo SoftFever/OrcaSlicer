@@ -145,19 +145,24 @@ void Field::get_value_by_opt_type(wxString& str)
 		double val;
 		// Replace the first occurence of comma in decimal number.
 		str.Replace(",", ".", false);
-		if(!str.ToCDouble(&val))
-		{
-			show_error(m_parent, _(L("Invalid numeric input.")));
-			set_value(double_to_string(val), true);
-		}
-		if (m_opt.min > val || val > m_opt.max)
-		{
-			show_error(m_parent, _(L("Input value is out of range")));
-			if (m_opt.min > val) val = m_opt.min;
-			if (val > m_opt.max) val = m_opt.max;
-			set_value(double_to_string(val), true);
-		}
-		m_value = val;
+        if (str == ".")
+            val = 0.0;
+        else
+        {
+            if (!str.ToCDouble(&val))
+            {
+                show_error(m_parent, _(L("Invalid numeric input.")));
+                set_value(double_to_string(val), true);
+            }
+            if (m_opt.min > val || val > m_opt.max)
+            {
+                show_error(m_parent, _(L("Input value is out of range")));
+                if (m_opt.min > val) val = m_opt.min;
+                if (val > m_opt.max) val = m_opt.max;
+                set_value(double_to_string(val), true);
+            }
+        }
+        m_value = val;
 		break; }
 	case coString:
 	case coStrings:
@@ -459,7 +464,7 @@ void SpinCtrl::BUILD() {
 // 		# As a workaround, we get the new value from $event->GetString and store
 // 		# here temporarily so that we can return it from $self->get_value
 		std::string value = e.GetString().utf8_str().data();
-		if (is_matched(value, "^\\d+$"))
+        if (is_matched(value, "^\\-?\\d+$"))
 			tmp_value = std::stoi(value);
         else tmp_value = -9999;
 #ifdef __WXOSX__
@@ -475,7 +480,7 @@ void SpinCtrl::BUILD() {
 
 void SpinCtrl::propagate_value()
 {
-    if (tmp_value < 0)
+    if (tmp_value == -9999)
         on_kill_focus();
     else if (boost::any_cast<int>(m_value) != tmp_value)
         on_change_field();
@@ -867,8 +872,8 @@ void StaticText::BUILD()
 	if (m_opt.height >= 0) size.SetHeight(m_opt.height);
 	if (m_opt.width >= 0) size.SetWidth(m_opt.width);
 
-	wxString legend(static_cast<const ConfigOptionString*>(m_opt.default_value)->value);
-	auto temp = new wxStaticText(m_parent, wxID_ANY, legend, wxDefaultPosition, size);
+    const wxString legend(static_cast<const ConfigOptionString*>(m_opt.default_value)->value);
+    auto temp = new wxStaticText(m_parent, wxID_ANY, legend, wxDefaultPosition, size, wxST_ELLIPSIZE_MIDDLE);
     temp->SetFont(wxGetApp().bold_font());
 
 	// 	// recast as a wxWindow to fit the calling convention
