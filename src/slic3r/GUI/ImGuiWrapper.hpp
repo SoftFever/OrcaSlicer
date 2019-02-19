@@ -73,6 +73,7 @@ private:
     void create_device_objects();
     void create_fonts_texture();
     void init_input();
+    void init_style();
     void render_draw_data(ImDrawData *draw_data);
     void destroy_device_objects();
     void destroy_fonts_texture();

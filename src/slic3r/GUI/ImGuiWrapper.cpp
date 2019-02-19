@@ -47,6 +47,7 @@ bool ImGuiWrapper::init()
 
     init_default_font(m_style_scaling);
     init_input();
+    init_style();
 
     ImGui::GetIO().IniFilename = nullptr;
 
@@ -380,6 +381,46 @@ void ImGuiWrapper::init_input()
     io.SetClipboardTextFn = clipboard_set;
     io.GetClipboardTextFn = clipboard_get;
     io.ClipboardUserData = this;
+}
+
+void ImGuiWrapper::init_style()
+{
+    ImGuiStyle &style = ImGui::GetStyle();
+
+    auto set_color = [&](ImGuiCol_ col, unsigned hex_color) {
+        style.Colors[col] = ImVec4(
+            ((hex_color >> 24) & 0xff) / 255.0f,
+            ((hex_color >> 16) & 0xff) / 255.0f,
+            ((hex_color >> 8) & 0xff) / 255.0f,
+            (hex_color & 0xff) / 255.0f);
+    };
+
+    static const unsigned COL_GREY_DARK = 0x444444ff;
+    static const unsigned COL_GREY_LIGHT = 0x666666ff;
+    static const unsigned COL_ORANGE_DARK = 0xba5418ff;
+    static const unsigned COL_ORANGE_LIGHT = 0xff6f22ff;
+
+    // Generics
+    set_color(ImGuiCol_TitleBgActive, COL_ORANGE_DARK);
+    set_color(ImGuiCol_FrameBg, COL_GREY_DARK);
+    set_color(ImGuiCol_FrameBgHovered, COL_GREY_LIGHT);
+    set_color(ImGuiCol_FrameBgActive, COL_GREY_LIGHT);
+
+    // Text selection
+    set_color(ImGuiCol_TextSelectedBg, COL_ORANGE_DARK);
+
+    // Buttons
+    set_color(ImGuiCol_Button, COL_ORANGE_DARK);
+    set_color(ImGuiCol_ButtonHovered, COL_ORANGE_LIGHT);
+    set_color(ImGuiCol_ButtonActive, COL_ORANGE_LIGHT);
+
+    // Checkbox
+    set_color(ImGuiCol_CheckMark, COL_ORANGE_LIGHT);
+
+    // ComboBox items
+    set_color(ImGuiCol_Header, COL_ORANGE_DARK);
+    set_color(ImGuiCol_HeaderHovered, COL_ORANGE_LIGHT);
+    set_color(ImGuiCol_HeaderActive, COL_ORANGE_LIGHT);
 }
 
 void ImGuiWrapper::render_draw_data(ImDrawData *draw_data)
