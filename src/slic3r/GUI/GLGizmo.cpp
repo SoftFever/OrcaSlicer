@@ -1919,6 +1919,8 @@ void GLGizmoSlaSupports::render_points(const GLCanvas3D::Selection& selection, b
             }
         }
         ::glColor3fv(render_color);
+        float render_color_emissive[4] = { 0.5 * render_color[0], 0.5 * render_color[1], 0.5 * render_color[2], 1.f};
+        ::glMaterialfv(GL_FRONT, GL_EMISSION, render_color_emissive);
 
         // Now render the sphere. Inverse matrix of the instance scaling is applied so that the
         // sphere does not scale with the object.
@@ -1927,6 +1929,12 @@ void GLGizmoSlaSupports::render_points(const GLCanvas3D::Selection& selection, b
         ::glMultMatrixd(instance_scaling_matrix_inverse.data());
         ::gluSphere(m_quadric, m_editing_mode_cache[i].first.head_front_radius * RenderPointScale, 64, 36);
         ::glPopMatrix();
+    }
+
+    {
+        // Reset emissive component to zero (the default value)
+        float render_color_emissive[4] = { 0.f, 0.f, 0.f, 1.f };
+        ::glMaterialfv(GL_FRONT, GL_EMISSION, render_color_emissive);
     }
 
     if (!picking)

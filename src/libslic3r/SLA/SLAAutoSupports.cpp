@@ -193,49 +193,54 @@ void SLAAutoSupports::process(const std::vector<ExPolygons>& slices, const std::
     point_grid.cell_size = Vec3f(10.f, 10.f, 10.f);
 
     for (unsigned int layer_id = 0; layer_id < layers.size(); ++ layer_id) {
-        SLAAutoSupports::MyLayer &layer_top = layers[layer_id];
-        for (Structure &top : layer_top.islands)
+        SLAAutoSupports::MyLayer *layer_top     = &layers[layer_id];
+        SLAAutoSupports::MyLayer *layer_bottom  = (layer_id > 0) ? &layers[layer_id - 1] : nullptr;
+        std::vector<float>        support_force_bottom;
+        if (layer_bottom != nullptr) {
+            support_force_bottom.assign(layer_bottom->islands.size(), 0.f);
+            for (size_t i = 0; i < layer_bottom->islands.size(); ++ i)
+                support_force_bottom[i] = layer_bottom->islands[i].supports_force_total();
+        }
+        for (Structure &top : layer_top->islands)
 			for (Structure *bottom : top.islands_below) {
                 float centroids_dist = (bottom->centroid - top.centroid).norm();
                 // Penalization resulting from centroid offset:
 //                  bottom.supports_force *= std::min(1.f, 1.f - std::min(1.f, (1600.f * layer_height) * centroids_dist * centroids_dist / bottom.area));
-                bottom->supports_force *= std::min(1.f, 1.f - std::min(1.f, 0.1f * centroids_dist * centroids_dist / bottom->area));
+                float &support_force = support_force_bottom[bottom - layer_bottom->islands.data()];
+//FIXME this condition does not reflect a bifurcation into a one large island and one tiny island well, it incorrectly resets the support force to zero.
+// One should rather work with the overlap area vs overhang area.                
+//                support_force *= std::min(1.f, 1.f - std::min(1.f, 0.1f * centroids_dist * centroids_dist / bottom->area));
                 // Penalization resulting from increasing polygon area:
-                bottom->supports_force *= std::min(1.f, 20.f * bottom->area / top.area);
+                support_force *= std::min(1.f, 20.f * bottom->area / top.area);
             }
         // Let's assign proper support force to each of them:
         if (layer_id > 0) {
-            for (Structure &below : layers[layer_id - 1].islands) {
+            for (Structure &below : layer_bottom->islands) {
+                float below_support_force = support_force_bottom[&below - layer_bottom->islands.data()];
                 float above_area = 0.f;
                 for (Structure *above : below.islands_above)
 					above_area += above->area;
                 for (Structure *above : below.islands_above)
-                    above->supports_force += below.supports_force * above->area / above_area;
+                    above->supports_force_inherited += below_support_force * above->area / above_area;
             }
         }
         // Now iterate over all polygons and append new points if needed.
-        for (Structure &s : layer_top.islands) {
+        for (Structure &s : layer_top->islands) {
+            // Penalization resulting from large diff from the last layer:
+//            s.supports_force_inherited /= std::max(1.f, (layer_height / 0.3f) * e_area / s.area);
+            s.supports_force_inherited /= std::max(1.f, 0.17f * (s.overhangs_area) / s.area);
+
+            float force_deficit = s.support_force_deficit(m_config.tear_pressure);
             if (s.islands_below.empty()) // completely new island - needs support no doubt
-                uniformly_cover(*s.polygon, s, point_grid, true);
-            else
+                uniformly_cover({ *s.polygon }, s, point_grid, true);
+            else if (! s.dangling_areas.empty()) {
                 // Let's see if there's anything that overlaps enough to need supports:
                 // What we now have in polygons needs support, regardless of what the forces are, so we can add them.
-                for (const ExPolygon& p : s.dangling_areas)
-                    //FIXME is it an island point or not? Vojtech thinks it is.
-                    uniformly_cover(p, s, point_grid);
-        }
-
-        // We should also check if current support is enough given the polygon area.
-		for (Structure& s : layer_top.islands) {
-            // Penalization resulting from large diff from the last layer:
-//            s.supports_force /= std::max(1.f, (layer_height / 0.3f) * e_area / s.area);
-            s.supports_force /= std::max(1.f, 0.17f * (s.overhangs_area) / s.area);
-            if (s.area * m_config.tear_pressure > s.supports_force) {
-                //FIXME Don't calculate area inside the compare function!
-                //FIXME Cover until the force deficit is covered. Cover multiple areas, sort by decreasing area.
-                if (! s.overhangs.empty())
-                    //FIXME add the support force deficit as a parameter, only cover until the defficiency is covered.
-                    uniformly_cover(s.overhangs.front(), s, point_grid);
+                //FIXME is it an island point or not? Vojtech thinks it is.
+                uniformly_cover(s.dangling_areas, s, point_grid);
+            } else if (! s.overhangs.empty()) {
+                //FIXME add the support force deficit as a parameter, only cover until the defficiency is covered.
+                uniformly_cover(s.overhangs, s, point_grid);
             }
         }
 
@@ -301,6 +306,14 @@ std::vector<Vec2f> sample_expolygon_with_boundary(const ExPolygon &expoly, float
         for (size_t i = 0; i < pts.size(); ++ i)
             out.emplace_back(unscale<float>(pts[i].x()), unscale<float>(pts[i].y()));
     }
+    return out;
+}
+
+std::vector<Vec2f> sample_expolygon_with_boundary(const ExPolygons &expolys, float samples_per_mm2, float samples_per_mm_boundary, std::mt19937 &rng)
+{
+    std::vector<Vec2f> out;
+    for (const ExPolygon &expoly : expolys)
+        append(out, sample_expolygon_with_boundary(expoly, samples_per_mm2, samples_per_mm_boundary, rng));
     return out;
 }
 
@@ -419,32 +432,51 @@ static inline std::vector<Vec2f> poisson_disk_from_samples(const std::vector<Vec
     return out;
 }
 
-void SLAAutoSupports::uniformly_cover(const ExPolygon& island, Structure& structure, PointGrid3D &grid3d, bool is_new_island, bool just_one)
+void SLAAutoSupports::uniformly_cover(const ExPolygons& islands, Structure& structure, PointGrid3D &grid3d, bool is_new_island, bool just_one)
 {
     //int num_of_points = std::max(1, (int)((island.area()*pow(SCALING_FACTOR, 2) * m_config.tear_pressure)/m_config.support_force));
 
+    const float support_force_deficit = structure.support_force_deficit(m_config.tear_pressure);
+    if (support_force_deficit < 0)
+        return;
+
+    // Number of newly added points.
+    const size_t poisson_samples_target = size_t(ceil(support_force_deficit / m_config.support_force));
+
     const float density_horizontal = m_config.tear_pressure / m_config.support_force;
     //FIXME why?
-    const float poisson_radius     = 1.f / (5.f * density_horizontal);
+    float poisson_radius		= 1.f / (5.f * density_horizontal);
 //    const float poisson_radius     = 1.f / (15.f * density_horizontal);
-    const float samples_per_mm2    = 30.f / (float(M_PI) * poisson_radius * poisson_radius);
+    const float samples_per_mm2 = 30.f / (float(M_PI) * poisson_radius * poisson_radius);
     // Minimum distance between samples, in 3D space.
-    const float min_spacing        = poisson_radius / 3.f;
+//    float min_spacing			= poisson_radius / 3.f;
+    float min_spacing			= poisson_radius;
 
     //FIXME share the random generator. The random generator may be not so cheap to initialize, also we don't want the random generator to be restarted for each polygon.
     std::random_device  rd;
     std::mt19937        rng(rd());
-	std::vector<Vec2f>  raw_samples = sample_expolygon_with_boundary(island, samples_per_mm2, 5.f / poisson_radius, rng);
-    std::vector<Vec2f>  poisson_samples = poisson_disk_from_samples(raw_samples, poisson_radius, 
-        [&structure, &grid3d, min_spacing](const Vec2f &pos) {
-            return grid3d.collides_with(pos, &structure, min_spacing);
-        });
+	std::vector<Vec2f>  raw_samples = sample_expolygon_with_boundary(islands, samples_per_mm2, 5.f / poisson_radius, rng);
+    std::vector<Vec2f>  poisson_samples;
+    for (size_t iter = 0; iter < 4; ++ iter) {
+        poisson_samples = poisson_disk_from_samples(raw_samples, poisson_radius, 
+            [&structure, &grid3d, min_spacing](const Vec2f &pos) {
+                return grid3d.collides_with(pos, &structure, min_spacing);
+            });
+        if (poisson_samples.size() >= poisson_samples_target)
+            break;
+        float coeff = 0.5f;
+        if (poisson_samples.size() * 2 > poisson_samples_target)
+            coeff = float(poisson_samples.size()) / float(poisson_samples_target);
+        poisson_radius *= coeff;
+        min_spacing *= coeff;
+    }
 
 #ifdef SLA_AUTOSUPPORTS_DEBUG
 	{
 		static int irun = 0;
 		Slic3r::SVG svg(debug_out_path("SLA_supports-uniformly_cover-%d.svg", irun ++), get_extents(island));
-		svg.draw(island);
+        for (const ExPolygon &island : islands)
+            svg.draw(island);
 		for (const Vec2f &pt : raw_samples)
 			svg.draw(Point(scale_(pt.x()), scale_(pt.y())), "red");
 		for (const Vec2f &pt : poisson_samples)
@@ -453,9 +485,13 @@ void SLAAutoSupports::uniformly_cover(const ExPolygon& island, Structure& struct
 #endif /* NDEBUG */
 
 //    assert(! poisson_samples.empty());
+    if (poisson_samples_target < poisson_samples.size()) {
+		std::shuffle(poisson_samples.begin(), poisson_samples.end(), rng);
+        poisson_samples.erase(poisson_samples.begin() + poisson_samples_target, poisson_samples.end());
+    }
     for (const Vec2f &pt : poisson_samples) {
         m_output.emplace_back(float(pt(0)), float(pt(1)), structure.height, 0.2f, is_new_island);
-        structure.supports_force += m_config.support_force;
+        structure.supports_force_this_layer += m_config.support_force;
         grid3d.insert(pt, &structure);
     }
 }

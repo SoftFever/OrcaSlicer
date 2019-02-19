@@ -18,8 +18,9 @@ public:
             float density_at_45;
             float minimal_z;
             ///////////////
-            float support_force = 30.f; // a force one point can support       (arbitrary force unit)
-            float tear_pressure = 1.f; // pressure that the display exerts    (the force unit per mm2)
+//            float support_force = 30.f; // a force one point can support       (arbitrary force unit)
+            float support_force = 10.f; // a force one point can support       (arbitrary force unit)
+			float tear_pressure = 1.f; // pressure that the display exerts    (the force unit per mm2)
         };
 
     SLAAutoSupports(const TriangleMesh& mesh, const sla::EigenMesh3D& emesh, const std::vector<ExPolygons>& slices,
@@ -43,13 +44,22 @@ public:
         float height = 0;
         // How well is this ExPolygon held to the print base?
         // Positive number, the higher the better.
-        float supports_force = 0.f;
+        float supports_force_this_layer     = 0.f;
+        float supports_force_inherited      = 0.f;
+        float supports_force_total() const { return this->supports_force_this_layer + this->supports_force_inherited; }
 #ifdef SLA_AUTOSUPPORTS_DEBUG
         std::chrono::milliseconds unique_id;
 #endif /* SLA_AUTOSUPPORTS_DEBUG */
 
+#ifdef NDEBUG
+		// In release mode, use the optimized container.
         boost::container::small_vector<Structure*, 4>   islands_above;
         boost::container::small_vector<Structure*, 4>   islands_below;
+#else
+		// In debug mode, use the standard vector, which is well handled by debugger visualizer.
+		std::vector<Structure*>							islands_above;
+		std::vector<Structure*>							islands_below;
+#endif
         ExPolygons                                      dangling_areas;
         ExPolygons                                      overhangs;
         float                                           overhangs_area;
@@ -80,6 +90,8 @@ public:
                 out.emplace_back(*below->polygon);
             return out;
         }
+        // Positive deficit of the supports. If negative, this area is well supported. If positive, more supports need to be added.
+        float support_force_deficit(const float tear_pressure) const { return this->area * tear_pressure - this->supports_force_total(); }
     };
 
     struct MyLayer {
@@ -155,7 +167,7 @@ private:
     float m_supports_force_total = 0.f;
 
     void process(const std::vector<ExPolygons>& slices, const std::vector<float>& heights);
-    void uniformly_cover(const ExPolygon& island, Structure& structure, PointGrid3D &grid3d, bool is_new_island = false, bool just_one = false);
+    void uniformly_cover(const ExPolygons& islands, Structure& structure, PointGrid3D &grid3d, bool is_new_island = false, bool just_one = false);
     void project_onto_mesh(std::vector<sla::SupportPoint>& points) const;
 
 #ifdef SLA_AUTOSUPPORTS_DEBUG
