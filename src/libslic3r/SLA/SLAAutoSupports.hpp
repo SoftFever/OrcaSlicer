@@ -14,13 +14,11 @@ namespace Slic3r {
 class SLAAutoSupports {
 public:
     struct Config {
-            float density_at_horizontal;
-            float density_at_45;
-            float minimal_z;
+            float density_relative;
+            float minimal_distance;
             ///////////////
-//            float support_force = 30.f; // a force one point can support       (arbitrary force unit)
-            float support_force = 10.f; // a force one point can support       (arbitrary force unit)
-			float tear_pressure = 1.f; // pressure that the display exerts    (the force unit per mm2)
+            inline float support_force() const { return 10.f / density_relative; } // a force one point can support       (arbitrary force unit)
+            inline float tear_pressure() const { return 1.f; }  // pressure that the display exerts    (the force unit per mm2)
         };
 
     SLAAutoSupports(const TriangleMesh& mesh, const sla::EigenMesh3D& emesh, const std::vector<ExPolygons>& slices,

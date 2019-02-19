@@ -492,6 +492,8 @@ private:
     bool m_lock_unique_islands = false;
     bool m_editing_mode = false;
     float m_new_point_head_diameter = 0.4f;
+    double m_minimal_point_distance = 20.;
+    double m_density = 100.;
     std::vector<std::pair<sla::SupportPoint, bool>> m_editing_mode_cache; // a support point and whether it is currently selected
 
     bool m_selection_rectangle_active = false;

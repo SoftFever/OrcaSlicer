@@ -2287,12 +2287,13 @@ RENDER_AGAIN:
         }
     }
     else {
-        //m_imgui->text("Some settings could");
-        //m_imgui->text("be exposed here...");
-        m_imgui->text("");
-        m_imgui->text("");
-
-        m_imgui->text("");
+       /* ImGui::PushItemWidth(50.0f);
+        m_imgui->text(_(L("Minimal points distance: ")));
+        ImGui::SameLine();
+        bool value_changed = ImGui::InputDouble("mm", &m_minimal_point_distance, 0.0f, 0.0f, "%.2f");
+        m_imgui->text(_(L("Support points density: ")));
+        ImGui::SameLine();
+        value_changed |= ImGui::InputDouble("%", &m_density, 0.0f, 0.0f, "%.f");*/
 
         bool generate = m_imgui->button(_(L("Auto-generate points")));
 
@@ -2342,8 +2343,9 @@ RENDER_AGAIN:
                 force_refresh = true;
         }
 #endif
-        ImGui::SameLine();
-        bool editing_clicked = m_imgui->button("Editing");
+        m_imgui->text("");
+        m_imgui->text("");
+        bool editing_clicked = m_imgui->button(_(L("Manual editing")));
         if (editing_clicked) {
             editing_mode_reload_cache();
             m_editing_mode = true;
@@ -2463,9 +2465,13 @@ void GLGizmoSlaSupports::editing_mode_discard_changes()
 
 void GLGizmoSlaSupports::editing_mode_apply_changes()
 {
-    m_model_object->sla_support_points.clear();
-    for (const std::pair<sla::SupportPoint, bool>& point_and_selection : m_editing_mode_cache)
-        m_model_object->sla_support_points.push_back(point_and_selection.first);
+    // If there are no changes, don't touch the front-end. The data in the cache could have been
+    // taken from the backend and copying them to ModelObject would needlessly invalidate them.
+    if (m_unsaved_changes) {
+        m_model_object->sla_support_points.clear();
+        for (const std::pair<sla::SupportPoint, bool>& point_and_selection : m_editing_mode_cache)
+            m_model_object->sla_support_points.push_back(point_and_selection.first);
+    }
     m_editing_mode = false;
     m_unsaved_changes = false;
 }

@@ -230,7 +230,7 @@ void SLAAutoSupports::process(const std::vector<ExPolygons>& slices, const std::
 //            s.supports_force_inherited /= std::max(1.f, (layer_height / 0.3f) * e_area / s.area);
             s.supports_force_inherited /= std::max(1.f, 0.17f * (s.overhangs_area) / s.area);
 
-            float force_deficit = s.support_force_deficit(m_config.tear_pressure);
+            float force_deficit = s.support_force_deficit(m_config.tear_pressure());
             if (s.islands_below.empty()) // completely new island - needs support no doubt
                 uniformly_cover({ *s.polygon }, s, point_grid, true);
             else if (! s.dangling_areas.empty()) {
@@ -436,16 +436,16 @@ void SLAAutoSupports::uniformly_cover(const ExPolygons& islands, Structure& stru
 {
     //int num_of_points = std::max(1, (int)((island.area()*pow(SCALING_FACTOR, 2) * m_config.tear_pressure)/m_config.support_force));
 
-    const float support_force_deficit = structure.support_force_deficit(m_config.tear_pressure);
+    const float support_force_deficit = structure.support_force_deficit(m_config.tear_pressure());
     if (support_force_deficit < 0)
         return;
 
     // Number of newly added points.
-    const size_t poisson_samples_target = size_t(ceil(support_force_deficit / m_config.support_force));
+    const size_t poisson_samples_target = size_t(ceil(support_force_deficit / m_config.support_force()));
 
-    const float density_horizontal = m_config.tear_pressure / m_config.support_force;
+    const float density_horizontal = m_config.tear_pressure() / m_config.support_force();
     //FIXME why?
-    float poisson_radius		= 1.f / (5.f * density_horizontal);
+    float poisson_radius		= std::max(m_config.minimal_distance, 1.f / (5.f * density_horizontal));
 //    const float poisson_radius     = 1.f / (15.f * density_horizontal);
     const float samples_per_mm2 = 30.f / (float(M_PI) * poisson_radius * poisson_radius);
     // Minimum distance between samples, in 3D space.
@@ -462,13 +462,13 @@ void SLAAutoSupports::uniformly_cover(const ExPolygons& islands, Structure& stru
             [&structure, &grid3d, min_spacing](const Vec2f &pos) {
                 return grid3d.collides_with(pos, &structure, min_spacing);
             });
-        if (poisson_samples.size() >= poisson_samples_target)
+        if (poisson_samples.size() >= poisson_samples_target || m_config.minimal_distance > poisson_radius-EPSILON)
             break;
         float coeff = 0.5f;
         if (poisson_samples.size() * 2 > poisson_samples_target)
             coeff = float(poisson_samples.size()) / float(poisson_samples_target);
-        poisson_radius *= coeff;
-        min_spacing *= coeff;
+        poisson_radius = std::max(m_config.minimal_distance, poisson_radius * coeff);
+        min_spacing    = std::max(m_config.minimal_distance, min_spacing * coeff);
     }
 
 #ifdef SLA_AUTOSUPPORTS_DEBUG
@@ -491,7 +491,7 @@ void SLAAutoSupports::uniformly_cover(const ExPolygons& islands, Structure& stru
     }
     for (const Vec2f &pt : poisson_samples) {
         m_output.emplace_back(float(pt(0)), float(pt(1)), structure.height, 0.2f, is_new_island);
-        structure.supports_force_this_layer += m_config.support_force;
+        structure.supports_force_this_layer += m_config.support_force();
         grid3d.insert(pt, &structure);
     }
 }
