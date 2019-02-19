@@ -2250,12 +2250,14 @@ RENDER_AGAIN:
         force_refresh |= (old_combo_state != m_combo_box_open);
 
         float current_number = atof(str);
-        if (std::abs(current_number - m_new_point_head_diameter) > 0.001) {
-            force_refresh = true;
-            m_new_point_head_diameter = current_number;
+        if (old_combo_state && !m_combo_box_open) // closing the combo must always change the sizes (even if the selection did not change)
             for (auto& point_and_selection : m_editing_mode_cache)
                 if (point_and_selection.second)
                     point_and_selection.first.head_front_radius = current_number / 2.f;
+
+        if (std::abs(current_number - m_new_point_head_diameter) > 0.001) {
+            force_refresh = true;
+            m_new_point_head_diameter = current_number;
         }
 
         bool changed = m_lock_unique_islands;
@@ -2376,8 +2378,17 @@ RENDER_AGAIN:
 
 bool GLGizmoSlaSupports::on_is_activable(const GLCanvas3D::Selection& selection) const
 {
-    return (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA)
-        && selection.is_from_single_instance();
+    if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA
+        || !selection.is_from_single_instance())
+            return false;
+
+    // Check that none of the selected volumes is outside.
+    const GLCanvas3D::Selection::IndicesList& list = selection.get_volume_idxs();
+    for (const auto& idx : list)
+        if (selection.get_volume(idx)->is_outside)
+            return false;
+
+    return true;
 }
 
 bool GLGizmoSlaSupports::on_is_selectable() const
