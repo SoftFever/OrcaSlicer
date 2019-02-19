@@ -156,6 +156,8 @@ public:
 
     void on_extruders_change(int extruders_count);
     void on_config_change(const DynamicPrintConfig &config);
+    // On activating the parent window.
+    void on_activate();
 
     void update_object_menu();
 

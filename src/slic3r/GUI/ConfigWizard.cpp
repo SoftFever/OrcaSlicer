@@ -65,9 +65,9 @@ PrinterPicker::PrinterPicker(wxWindow *parent, const VendorProfile &vendor, wxSt
 
     auto *sizer = new wxBoxSizer(wxVERTICAL);
 
-    const auto font_title = GetFont().MakeBold().Scaled(1.3);
+    const auto font_title = GetFont().MakeBold().Scaled(1.3f);
     const auto font_name = GetFont().MakeBold();
-    const auto font_alt_nozzle = GetFont().Scaled(0.9);
+    const auto font_alt_nozzle = GetFont().Scaled(0.9f);
 
     // wxGrid appends widgets by rows, but we need to construct them in columns.
     // These vectors are used to hold the elements so that they can be appended in the right order.
@@ -789,7 +789,7 @@ void ConfigWizardIndex::on_mouse_move(wxMouseEvent &evt)
 
     const ssize_t item_hover_new = pos.y / item_height();
 
-    if (item_hover_new < items.size() && item_hover_new != item_hover) {
+	if (item_hover_new < ssize_t(items.size()) && item_hover_new != item_hover) {
         item_hover = item_hover_new;
         Refresh();
     }
