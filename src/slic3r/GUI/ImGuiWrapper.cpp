@@ -31,6 +31,7 @@ ImGuiWrapper::ImGuiWrapper()
     , m_style_scaling(1.0)
     , m_mouse_buttons(0)
     , m_disabled(false)
+    , m_new_frame_open(false)
 {
 }
 
@@ -106,9 +107,10 @@ bool ImGuiWrapper::update_mouse_data(wxMouseEvent& evt)
     io.MouseDown[2] = evt.MiddleDown();
 
     unsigned buttons = (evt.LeftDown() ? 1 : 0) | (evt.RightDown() ? 2 : 0) | (evt.MiddleDown() ? 4 : 0);
-    bool res = buttons != m_mouse_buttons;
     m_mouse_buttons = buttons;
-    return res;
+
+    new_frame();
+    return want_mouse();
 }
 
 bool ImGuiWrapper::update_key_data(wxKeyEvent &evt)
@@ -117,7 +119,10 @@ bool ImGuiWrapper::update_key_data(wxKeyEvent &evt)
 
     if (evt.GetEventType() == wxEVT_CHAR) {
         // Char event
-        io.AddInputCharacter(evt.GetUnicodeKey());
+        const auto key = evt.GetUnicodeKey();
+        if (key != 0) {
+            io.AddInputCharacter(key);
+        }
     } else {
         // Key up/down event
         int key = evt.GetKeyCode();
@@ -130,21 +135,31 @@ bool ImGuiWrapper::update_key_data(wxKeyEvent &evt)
         io.KeySuper = evt.MetaDown();
     }
 
+    // XXX: Unfortunatelly this seems broken due to some interference with wxWidgets,
+    // we have to return true always (perform re-render).
+    // new_frame();
+    // return want_keyboard() || want_text_input();
     return true;
 }
 
 void ImGuiWrapper::new_frame()
 {
+    if (m_new_frame_open) {
+        return;
+    }
+
     if (m_font_texture == 0)
         create_device_objects();
 
     ImGui::NewFrame();
+    m_new_frame_open = true;
 }
 
 void ImGuiWrapper::render()
 {
     ImGui::Render();
     render_draw_data(ImGui::GetDrawData());
+    m_new_frame_open = false;
 }
 
 void ImGuiWrapper::set_next_window_pos(float x, float y, int flag)
@@ -492,8 +507,8 @@ const char* ImGuiWrapper::clipboard_get(void* user_data)
             wxTheClipboard->GetData(data);
 
             if (data.GetTextLength() > 0) {
-                self->clipboard_text = into_u8(data.GetText());
-                res = self->clipboard_text.c_str();
+                self->m_clipboard_text = into_u8(data.GetText());
+                res = self->m_clipboard_text.c_str();
             }
         }
 

@@ -5230,10 +5230,8 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 #if ENABLE_IMGUI
     auto imgui = wxGetApp().imgui();
     if (imgui->update_key_data(evt)) {
+        return;
         render();
-        if (imgui->want_any_input()) {
-            return;
-        }
     }
 #endif // ENABLE_IMGUI
 
@@ -5385,9 +5383,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     auto imgui = wxGetApp().imgui();
     if (imgui->update_mouse_data(evt)) {
         render();
-        if (imgui->want_any_input()) {
-            return;
-        }
+        return;
     }
 #endif // ENABLE_IMGUI
 

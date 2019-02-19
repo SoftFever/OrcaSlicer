@@ -26,6 +26,8 @@ class ImGuiWrapper
     float m_style_scaling;
     unsigned m_mouse_buttons;
     bool m_disabled;
+    bool m_new_frame_open;
+    std::string m_clipboard_text;
 
 public:
     ImGuiWrapper();
@@ -67,8 +69,6 @@ public:
     bool want_any_input() const;
 
 private:
-    std::string clipboard_text;
-
     void init_default_font(float scaling);
     void create_device_objects();
     void create_fonts_texture();
