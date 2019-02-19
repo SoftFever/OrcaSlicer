@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-01-17 13:39+0100\n"
-"PO-Revision-Date: 2019-01-21 11:25+0100\n"
+"PO-Revision-Date: 2019-02-19 14:42+0100\n"
 "Last-Translator: Oleksandra Iushchenko <yusanka@gmail.com>\n"
 "Language-Team: \n"
 "Language: uk\n"
@@ -624,48 +624,48 @@ msgstr ""
 
 #: src/slic3r/GUI/GLGizmo.cpp:2207
 msgid "Left mouse click - add point"
-msgstr ""
+msgstr "Ліва кнопка миші - додати точку"
 
 #: src/slic3r/GUI/GLGizmo.cpp:2208
 msgid "Right mouse click - remove point"
-msgstr ""
+msgstr "Права кнопка миші - видалити точку"
 
 #: src/slic3r/GUI/GLGizmo.cpp:2211
 msgid "Generate points automatically"
-msgstr ""
+msgstr "Генерувати точки автоматично"
 
 #: src/slic3r/GUI/GLGizmo.cpp:2212
 msgid "Remove all points"
-msgstr ""
+msgstr "Видалити всі точки"
 
 #: src/slic3r/GUI/GLGizmo.cpp:2245
 msgid "SLA Support Points"
-msgstr ""
+msgstr "Точки SLA підтримки"
 
 #: src/slic3r/GUI/GLGizmo.cpp:2268 src/slic3r/GUI/GLGizmo.cpp:2468
 msgid "Rotate lower part upwards"
-msgstr ""
+msgstr "Повернути нижню частину вгору"
 
 #: src/slic3r/GUI/GLGizmo.cpp:2269 src/slic3r/GUI/GLGizmo.cpp:2470
 msgid "Perform cut"
-msgstr ""
+msgstr "Виконати розріз"
 
 #: src/slic3r/GUI/GLGizmo.cpp:2276
 msgid "Cut object:"
-msgstr ""
+msgstr "Розрізати об'єкт:"
 
 #: src/slic3r/GUI/GLGizmo.cpp:2356 src/slic3r/GUI/GLGizmo.cpp:2461
 #: src/libslic3r/PrintConfig.cpp:3016
 msgid "Cut"
-msgstr ""
+msgstr "Розрізати"
 
 #: src/slic3r/GUI/GLGizmo.cpp:2466
 msgid "Keep upper part"
-msgstr ""
+msgstr "Залишити верхню частину"
 
 #: src/slic3r/GUI/GLGizmo.cpp:2467
 msgid "Keep lower part"
-msgstr ""
+msgstr "Залишити нижню частину"
 
 #: src/slic3r/GUI/GUI.cpp:242
 msgid "Notice"
@@ -5636,7 +5636,7 @@ msgstr ""
 
 #: src/libslic3r/PrintConfig.cpp:3017
 msgid "Cut model at the given Z."
-msgstr ""
+msgstr "Розрізати модель за заданим Z."
 
 #: src/libslic3r/PrintConfig.cpp:3022
 msgid "Dont arrange"
