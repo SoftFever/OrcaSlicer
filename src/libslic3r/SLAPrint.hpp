@@ -2,7 +2,7 @@
 #define slic3r_SLAPrint_hpp_
 
 #include <mutex>
-
+#include "ClipperUtils.hpp"
 #include "PrintBase.hpp"
 #include "PrintExport.hpp"
 #include "Point.hpp"
