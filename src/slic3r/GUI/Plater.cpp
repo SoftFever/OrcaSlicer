@@ -3131,15 +3131,17 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
 
 void Plater::on_activate()
 {
+#ifdef __linux__
     wxWindow *focus_window = wxWindow::FindFocus();
-    if (focus_window == nullptr) {
-		// Activating the main frame, and no window has keyboard focus.
-		// Set the keyboard focus to the visible Canvas3D.
-        if (this->p->view3D->IsShown())
-			this->p->view3D->get_wxglcanvas()->SetFocus();
-		else if (this->p->preview->IsShown())
-			this->p->preview->get_wxglcanvas()->SetFocus();
-    }
+    // Activating the main frame, and no window has keyboard focus.
+    // Set the keyboard focus to the visible Canvas3D.
+    if (this->p->view3D->IsShown() && (!focus_window || focus_window == this->p->view3D->get_wxglcanvas()))
+        this->p->view3D->get_wxglcanvas()->SetFocus();
+
+    else if (this->p->preview->IsShown() && (!focus_window || focus_window == this->p->view3D->get_wxglcanvas()))
+        this->p->preview->get_wxglcanvas()->SetFocus();
+#endif
+
     if (! this->p->delayed_error_message.empty()) {
 		std::string msg = std::move(this->p->delayed_error_message);
 		this->p->delayed_error_message.clear();
