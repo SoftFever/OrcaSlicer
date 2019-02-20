@@ -75,7 +75,8 @@ void ObjectSettings::update_settings_list()
 		{
 			auto opt_key = (line.get_options())[0].opt_id;  //we assume that we have one option per line
 
-			auto btn = new wxBitmapButton(parent, wxID_ANY, wxBitmap(from_u8(var("colorchange_delete_on.png")), wxBITMAP_TYPE_PNG),
+// 			auto btn = new wxBitmapButton(parent, wxID_ANY, wxBitmap(from_u8(var("colorchange_delete_on.png")), wxBITMAP_TYPE_PNG),
+			auto btn = new wxBitmapButton(parent, wxID_ANY, create_scaled_bitmap("colorchange_delete_on.png"),
 				wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
 #ifdef __WXMSW__
             btn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
@@ -98,7 +99,7 @@ void ObjectSettings::update_settings_list()
         std::vector<std::string> categories;
         if (!(opt_keys.size() == 1 && opt_keys[0] == "extruder"))// return;
         {
-            auto extruders_cnt = wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA ? 1 :
+            const int extruders_cnt = wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA ? 1 :
                 wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
 
             for (auto& opt_key : opt_keys) {
@@ -119,8 +120,8 @@ void ObjectSettings::update_settings_list()
                     continue;
 
                 auto optgroup = std::make_shared<ConfigOptionsGroup>(m_parent, cat.first, config, false, extra_column);
-                optgroup->label_width = 150;
-                optgroup->sidetext_width = 70;
+                optgroup->label_width = 15 * wxGetApp().em_unit();//150;
+                optgroup->sidetext_width = 7 * wxGetApp().em_unit();//70;
 
                 optgroup->m_on_change = [](const t_config_option_key& opt_id, const boost::any& value) {
                                         wxGetApp().obj_list()->part_settings_changed(); };
@@ -130,7 +131,7 @@ void ObjectSettings::update_settings_list()
                     if (opt == "extruder")
                         continue;
                     Option option = optgroup->get_option(opt);
-                    option.opt.width = 70;
+                    option.opt.width = 7 * wxGetApp().em_unit();//70;
                     optgroup->append_single_option_line(option);
                 }
                 optgroup->reload_config();

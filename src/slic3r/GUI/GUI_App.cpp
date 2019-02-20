@@ -165,10 +165,10 @@ bool GUI_App::OnInit()
 
         // ! Temporary workaround for the correct behavior of the Scrolled sidebar panel 
         // Do this "manipulations" only once ( after (re)create of the application )
-        if (plater_ && sidebar().obj_list()->GetMinHeight() > 200) 
+        if (plater_ && sidebar().obj_list()->GetMinHeight() > 15 * wxGetApp().em_unit())
         {
             wxWindowUpdateLocker noUpdates_sidebar(&sidebar());
-            sidebar().obj_list()->SetMinSize(wxSize(-1, 200));
+            sidebar().obj_list()->SetMinSize(wxSize(-1, 15 * wxGetApp().em_unit()));
 
             // !!! to correct later layouts
             update_mode(); // update view mode after fix of the object_list size
@@ -251,6 +251,7 @@ void GUI_App::init_fonts()
 {
     m_small_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
     m_bold_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold();
+
 #ifdef __WXMAC__
     m_small_font.SetPointSize(11);
     m_bold_font.SetPointSize(13);

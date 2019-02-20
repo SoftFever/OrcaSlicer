@@ -13,11 +13,12 @@ wxDECLARE_EVENT(EVT_WIPE_TOWER_CHART_CHANGED, wxCommandEvent);
 class Chart : public wxWindow {
         
 public:
-    Chart(wxWindow* parent, wxRect rect,const std::vector<std::pair<float,float>>& initial_buttons,int ramming_speed_size, float sampling) :
-        wxWindow(parent,wxID_ANY,rect.GetTopLeft(),rect.GetSize())
+    Chart(wxWindow* parent, wxRect rect,const std::vector<std::pair<float,float>>& initial_buttons,int ramming_speed_size, float sampling, int scale_unit=10) :
+        wxWindow(parent,wxID_ANY,rect.GetTopLeft(),rect.GetSize()),
+        scale_unit(scale_unit), legend_side(5*scale_unit)
     {
         SetBackgroundStyle(wxBG_STYLE_PAINT);
-        m_rect = wxRect(wxPoint(50,0),rect.GetSize()-wxSize(50,50));
+        m_rect = wxRect(wxPoint(legend_side,0),rect.GetSize()-wxSize(legend_side,legend_side));
         visible_area = wxRect2DDouble(0.0, 0.0, sampling*ramming_speed_size, 20.);
         m_buttons.clear();
         if (initial_buttons.size()>0)
@@ -49,12 +50,16 @@ public:
     DECLARE_EVENT_TABLE()
     
 
+
         
 private:
     static const bool fixed_x = true;
     static const bool splines = true;
     static const bool manual_points_manipulation = false;
     static const int side = 10; // side of draggable button
+
+    const int scale_unit;
+    int legend_side;
 
     class ButtonToDrag {
     public:

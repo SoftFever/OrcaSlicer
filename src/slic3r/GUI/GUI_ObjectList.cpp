@@ -45,18 +45,18 @@ ObjectList::ObjectList(wxWindow* parent) :
     // Fill CATEGORY_ICON
     {
         // ptFFF
-		CATEGORY_ICON[L("Layers and Perimeters")]	= wxBitmap(from_u8(var("layers.png")), wxBITMAP_TYPE_PNG);
-		CATEGORY_ICON[L("Infill")]					= wxBitmap(from_u8(var("infill.png")), wxBITMAP_TYPE_PNG);
-		CATEGORY_ICON[L("Support material")]		= wxBitmap(from_u8(var("building.png")), wxBITMAP_TYPE_PNG);
-		CATEGORY_ICON[L("Speed")]					= wxBitmap(from_u8(var("time.png")), wxBITMAP_TYPE_PNG);
-		CATEGORY_ICON[L("Extruders")]				= wxBitmap(from_u8(var("funnel.png")), wxBITMAP_TYPE_PNG);
-		CATEGORY_ICON[L("Extrusion Width")]			= wxBitmap(from_u8(var("funnel.png")), wxBITMAP_TYPE_PNG);
-// 		CATEGORY_ICON[L("Skirt and brim")]			= wxBitmap(from_u8(var("box.png")), wxBITMAP_TYPE_PNG);
-// 		CATEGORY_ICON[L("Speed > Acceleration")]	= wxBitmap(from_u8(var("time.png")), wxBITMAP_TYPE_PNG);
-		CATEGORY_ICON[L("Advanced")]				= wxBitmap(from_u8(var("wand.png")), wxBITMAP_TYPE_PNG);
+		CATEGORY_ICON[L("Layers and Perimeters")]	= create_scaled_bitmap("layers.png"); // wxBitmap(from_u8(var("layers.png")), wxBITMAP_TYPE_PNG);
+		CATEGORY_ICON[L("Infill")]					= create_scaled_bitmap("infill.png"); // wxBitmap(from_u8(var("infill.png")), wxBITMAP_TYPE_PNG);
+		CATEGORY_ICON[L("Support material")]		= create_scaled_bitmap("building.png"); // wxBitmap(from_u8(var("building.png")), wxBITMAP_TYPE_PNG);
+		CATEGORY_ICON[L("Speed")]					= create_scaled_bitmap("time.png"); // wxBitmap(from_u8(var("time.png")), wxBITMAP_TYPE_PNG);
+		CATEGORY_ICON[L("Extruders")]				= create_scaled_bitmap("funnel.png"); // wxBitmap(from_u8(var("funnel.png")), wxBITMAP_TYPE_PNG);
+		CATEGORY_ICON[L("Extrusion Width")]			= create_scaled_bitmap("funnel.png"); // wxBitmap(from_u8(var("funnel.png")), wxBITMAP_TYPE_PNG);
+// 		CATEGORY_ICON[L("Skirt and brim")]			= create_scaled_bitmap("box.png"); // wxBitmap(from_u8(var("box.png")), wxBITMAP_TYPE_PNG);
+// 		CATEGORY_ICON[L("Speed > Acceleration")]	= create_scaled_bitmap("time.png"); // wxBitmap(from_u8(var("time.png")), wxBITMAP_TYPE_PNG);
+		CATEGORY_ICON[L("Advanced")]				= create_scaled_bitmap("wand.png"); // wxBitmap(from_u8(var("wand.png")), wxBITMAP_TYPE_PNG);
 		// ptSLA
-		CATEGORY_ICON[L("Supports")]				= wxBitmap(from_u8(var("building.png")), wxBITMAP_TYPE_PNG);
-		CATEGORY_ICON[L("Pad")]				        = wxBitmap(from_u8(var("brick.png")), wxBITMAP_TYPE_PNG);
+		CATEGORY_ICON[L("Supports")]				= create_scaled_bitmap("building.png"); // wxBitmap(from_u8(var("building.png")), wxBITMAP_TYPE_PNG);
+		CATEGORY_ICON[L("Pad")]				        = create_scaled_bitmap("brick.png"); // wxBitmap(from_u8(var("brick.png")), wxBITMAP_TYPE_PNG);
     }
 
     // create control
@@ -116,7 +116,7 @@ void ObjectList::create_objects_ctrl()
     SetMinSize(wxSize(-1, 3000));   // #ys_FIXME 
 
     m_sizer = new wxBoxSizer(wxVERTICAL);
-    m_sizer->Add(this, 1, wxGROW | wxLEFT, 20);
+    m_sizer->Add(this, 1, wxGROW);
 
     m_objects_model = new PrusaObjectDataViewModel;
     AssociateModel(m_objects_model);
@@ -129,13 +129,13 @@ void ObjectList::create_objects_ctrl()
     // column 0(Icon+Text) of the view control: 
     // And Icon can be consisting of several bitmaps
     AppendColumn(new wxDataViewColumn(_(L("Name")), new PrusaBitmapTextRenderer(),
-        0, 200, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
+        0, 20*wxGetApp().em_unit()/*200*/, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
 
     // column 1 of the view control:
     AppendColumn(create_objects_list_extruder_column(4));
 
     // column 2 of the view control:
-    AppendBitmapColumn(" ", 2, wxDATAVIEW_CELL_INERT, 25,
+    AppendBitmapColumn(" ", 2, wxDATAVIEW_CELL_INERT, int(2.5 * wxGetApp().em_unit())/*25*/,
         wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
 }
 
@@ -218,7 +218,8 @@ wxDataViewColumn* ObjectList::create_objects_list_extruder_column(int extruders_
         choices.Add(wxString::Format("%d", i));
     wxDataViewChoiceRenderer *c =
         new wxDataViewChoiceRenderer(choices, wxDATAVIEW_CELL_EDITABLE, wxALIGN_CENTER_HORIZONTAL);
-    wxDataViewColumn* column = new wxDataViewColumn(_(L("Extruder")), c, 1, 80, wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
+    wxDataViewColumn* column = new wxDataViewColumn(_(L("Extruder")), c, 1, 
+                               8*wxGetApp().em_unit()/*80*/, wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
     return column;
 }
 
@@ -334,11 +335,18 @@ void ObjectList::update_name_in_model(const wxDataViewItem& item) const
 
 void ObjectList::init_icons()
 {
-    m_bmp_modifiermesh      = wxBitmap(from_u8(var("lambda.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("plugin.png")), wxBITMAP_TYPE_PNG);
-    m_bmp_solidmesh         = wxBitmap(from_u8(var("object.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("package.png")), wxBITMAP_TYPE_PNG);
+//     m_bmp_modifiermesh      = wxBitmap(from_u8(var("lambda.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("plugin.png")), wxBITMAP_TYPE_PNG);
+//     m_bmp_solidmesh         = wxBitmap(from_u8(var("object.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("package.png")), wxBITMAP_TYPE_PNG);
 
-    m_bmp_support_enforcer  = wxBitmap(from_u8(var("support_enforcer_.png")), wxBITMAP_TYPE_PNG);
-    m_bmp_support_blocker   = wxBitmap(from_u8(var("support_blocker_.png")), wxBITMAP_TYPE_PNG);
+//     m_bmp_support_enforcer  = wxBitmap(from_u8(var("support_enforcer_.png")), wxBITMAP_TYPE_PNG);
+//     m_bmp_support_blocker   = wxBitmap(from_u8(var("support_blocker_.png")), wxBITMAP_TYPE_PNG);
+
+
+    m_bmp_modifiermesh     = create_scaled_bitmap("lambda.png");
+    m_bmp_solidmesh        = create_scaled_bitmap("object.png");
+    m_bmp_support_enforcer = create_scaled_bitmap("support_enforcer_.png");
+    m_bmp_support_blocker  = create_scaled_bitmap("support_blocker_.png");
+
 
     m_bmp_vector.reserve(4); // bitmaps for different types of parts 
     m_bmp_vector.push_back(&m_bmp_solidmesh);         // Add part
@@ -348,13 +356,16 @@ void ObjectList::init_icons()
     m_objects_model->SetVolumeBitmaps(m_bmp_vector);
 
     // init icon for manifold warning
-    m_bmp_manifold_warning  = wxBitmap(from_u8(var("exclamation_mark_.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("error.png")), wxBITMAP_TYPE_PNG);
+//     m_bmp_manifold_warning  = wxBitmap(from_u8(var("exclamation_mark_.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("error.png")), wxBITMAP_TYPE_PNG);
+    m_bmp_manifold_warning  = create_scaled_bitmap("exclamation_mark_.png");
 
     // init bitmap for "Split to sub-objects" context menu
-    m_bmp_split             = wxBitmap(from_u8(var("split.png")), wxBITMAP_TYPE_PNG);
+//     m_bmp_split             = wxBitmap(from_u8(var("split.png")), wxBITMAP_TYPE_PNG);
+    m_bmp_split             = create_scaled_bitmap("split.png");
 
     // init bitmap for "Add Settings" context menu
-    m_bmp_cog               = wxBitmap(from_u8(var("cog.png")), wxBITMAP_TYPE_PNG);
+//     m_bmp_cog               = wxBitmap(from_u8(var("cog.png")), wxBITMAP_TYPE_PNG);
+    m_bmp_cog               = create_scaled_bitmap("cog.png");
 }
 
 

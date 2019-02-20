@@ -32,8 +32,8 @@ struct MsgDialog : wxDialog
 
 protected:
 	enum {
-		CONTENT_WIDTH = 500,
-		CONTENT_MAX_HEIGHT = 600,
+		CONTENT_WIDTH = 50,//500,
+		CONTENT_MAX_HEIGHT = 60,//600,
 		BORDER = 30,
 		VERT_SPACING = 15,
 		HORIZ_SPACING = 5,
