@@ -2232,7 +2232,7 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
         }
     }
     if (evt.status.flags & PrintBase::SlicingStatus::RELOAD_SLA_SUPPORT_POINTS) {
-        // Update SLA gizmo
+        // Update SLA gizmo  (reload_scene calls update_gizmos_data)
         q->canvas3D()->reload_scene(true);
     }
 }

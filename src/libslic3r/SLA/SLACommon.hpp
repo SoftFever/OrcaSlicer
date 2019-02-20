@@ -33,6 +33,7 @@ struct SupportPoint {
     pos(data(0), data(1), data(2)), head_front_radius(data(3)), is_new_island(data(4) != 0.f) {}
 
     bool operator==(const SupportPoint& sp) const { return (pos==sp.pos) && head_front_radius==sp.head_front_radius && is_new_island==sp.is_new_island; }
+    bool operator!=(const SupportPoint& sp) const { return !(sp == (*this)); }
 };
 
 

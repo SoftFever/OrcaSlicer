@@ -2630,28 +2630,19 @@ void PrintConfigDef::init_sla_params()
     def->min = 0;
     def->default_value = new ConfigOptionFloat(5.0);
 
-    def = this->add("support_density_at_horizontal", coInt);
-    def->label = L("Density on horizontal surfaces");
+    def = this->add("support_points_density_relative", coInt);
+    def->label = L("Support points density");
     def->category = L("Supports");
-    def->tooltip = L("How many support points (approximately) should be placed on horizontal surface.");
-    def->sidetext = L("points per square dm");
+    def->tooltip = L("This is a relative measure of support points density.");
+    def->sidetext = L("%");
     def->cli = "";
     def->min = 0;
-    def->default_value = new ConfigOptionInt(500);
+    def->default_value = new ConfigOptionInt(100);
 
-    def = this->add("support_density_at_45", coInt);
-    def->label = L("Density on surfaces at 45 degrees");
+    def = this->add("support_points_minimal_distance", coFloat);
+    def->label = L("Minimal distance of the support points");
     def->category = L("Supports");
-    def->tooltip = L("How many support points (approximately) should be placed on surface sloping at 45 degrees.");
-    def->sidetext = L("points per square dm");
-    def->cli = "";
-    def->min = 0;
-    def->default_value = new ConfigOptionInt(250);
-
-    def = this->add("support_minimal_z", coFloat);
-    def->label = L("Minimal support point height");
-    def->category = L("Supports");
-    def->tooltip = L("No support points will be placed lower than this value from the bottom.");
+    def->tooltip = L("No support points will be placed closer than this threshold.");
     def->sidetext = L("mm");
     def->cli = "";
     def->min = 0;

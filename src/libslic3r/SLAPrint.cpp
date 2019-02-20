@@ -532,9 +532,8 @@ void SLAPrint::process()
             this->throw_if_canceled();
             SLAAutoSupports::Config config;
             const SLAPrintObjectConfig& cfg = po.config();
-            config.minimal_z = float(cfg.support_minimal_z);
-            config.density_at_45 = cfg.support_density_at_45 / 10000.f;
-            config.density_at_horizontal = cfg.support_density_at_horizontal / 10000.f;
+            config.density_relative = (float)cfg.support_points_density_relative / 100.f; // the config value is in percents
+            config.minimal_distance = cfg.support_points_minimal_distance;
 
             // Construction of this object does the calculation.
             this->throw_if_canceled();
@@ -1064,7 +1063,10 @@ bool SLAPrintObject::invalidate_state_by_config_options(const std::vector<t_conf
     for (const t_config_option_key &opt_key : opt_keys) {
 		if (opt_key == "layer_height") {
 			steps.emplace_back(slaposObjectSlice);
-        } else if (opt_key == "supports_enable") {
+        } else if (
+               opt_key == "supports_enable"
+            || opt_key == "support_points_density_relative"
+            || opt_key == "support_points_minimal_distance") {
             steps.emplace_back(slaposSupportPoints);
 		} else if (
                opt_key == "support_head_front_diameter"
