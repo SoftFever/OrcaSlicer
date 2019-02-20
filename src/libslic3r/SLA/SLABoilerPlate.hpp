@@ -60,7 +60,7 @@ struct Contour3D {
         points.insert(points.end(), triangles.begin(), triangles.end());
         indices.reserve(indices.size() + points.size() / 3);
 
-        for(size_t i = offs; i < points.size(); i += 3)
+        for(int i = (int)offs; i < (int)points.size(); i += 3)
             indices.emplace_back(i, i + 1, i + 2);
     }
 

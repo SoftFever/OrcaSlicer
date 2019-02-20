@@ -306,8 +306,8 @@ ExPolygons unify(const ExPolygons& shapes) {
 /// Only a debug function to generate top and bottom plates from a 2D shape.
 /// It is not used in the algorithm directly.
 inline Contour3D roofs(const ExPolygon& poly, coord_t z_distance) {
-    auto lower = triangulate_expolygons_3df(poly);
-    auto upper = triangulate_expolygons_3df(poly, z_distance*SCALING_FACTOR, true);
+    auto lower = triangulate_expolygon_3d(poly);
+    auto upper = triangulate_expolygon_3d(poly, z_distance*SCALING_FACTOR, true);
     Contour3D ret;
     ret.merge(lower); ret.merge(upper);
     return ret;
@@ -409,8 +409,7 @@ Contour3D inner_bed(const ExPolygon& poly,
                     double begin_h_mm = 0)
 {
     Contour3D bottom;
-    Pointf3s triangles = triangulate_expolygons_3df(poly,
-                                                    -depth_mm + begin_h_mm);
+    Pointf3s triangles = triangulate_expolygon_3d(poly, -depth_mm + begin_h_mm);
     bottom.merge(triangles);
 
     coord_t depth = mm(depth_mm);
@@ -597,7 +596,7 @@ void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
     // serve as the bottom plate of the pad. We will offset this concave hull
     // and then offset back the result with clipper with rounding edges ON. This
     // trick will create a nice rounded pad shape.
-    auto concavehs = concave_hull(ground_layer, mergedist, cfg.throw_on_cancel);
+    ExPolygons concavehs = concave_hull(ground_layer, mergedist, cfg.throw_on_cancel);
 
     const double thickness      = cfg.min_wall_thickness_mm;
     const double wingheight     = cfg.min_wall_height_mm;
@@ -707,11 +706,11 @@ void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
         // Now we need to triangulate the top and bottom plates as well as the
         // cavity bottom plate which is the same as the bottom plate but it is
         // elevated by the thickness.
-        pool.merge(triangulate_expolygons_3df(top_poly));
-        pool.merge(triangulate_expolygons_3df(inner_base, -fullheight, true));
+        pool.merge(triangulate_expolygon_3d(top_poly));
+        pool.merge(triangulate_expolygon_3d(inner_base, -fullheight, true));
 
         if(wingheight > 0)
-            pool.merge(triangulate_expolygons_3df(inner_base, -wingheight));
+            pool.merge(triangulate_expolygon_3d(inner_base, -wingheight));
 
     }
 
