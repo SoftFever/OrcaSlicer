@@ -3677,7 +3677,40 @@ GLCanvas3D::WarningTexture::WarningTexture()
 {
 }
 
-bool GLCanvas3D::WarningTexture::generate(const std::string& msg, const GLCanvas3D& canvas)
+void GLCanvas3D::WarningTexture::activate(WarningTexture::Warning warning, bool state, const GLCanvas3D& canvas)
+{
+    auto it = std::find(m_warnings.begin(), m_warnings.end(), warning);
+
+    if (state) {
+        if (it != m_warnings.end()) // this warning is already set to be shown
+            return;
+
+        m_warnings.push_back(warning);
+        std::sort(m_warnings.begin(), m_warnings.end());
+    }
+    else {
+        if (it == m_warnings.end()) // deactivating something that is not active is an easy task
+            return;
+
+        m_warnings.erase(it);
+        if (m_warnings.empty()) { // nothing remains to be shown
+            reset();
+            return;
+        }
+    }
+
+    // Look at the end of our vector and generate proper texture.
+    std::string text;
+    switch (m_warnings.back()) {
+        case ObjectOutside      : text = L("Detected object outside print volume"); break;
+        case ToolpathOutside    : text = L("Detected toolpath outside print volume"); break;
+        case SomethingNotShown  : text = L("Some objects are not visible when editing supports"); break;
+    }
+
+    _generate(text, canvas); // GUI::GLTexture::reset() is called at the beginning of generate(...)
+}
+
+bool GLCanvas3D::WarningTexture::_generate(const std::string& msg, const GLCanvas3D& canvas)
 {
     reset();
 
@@ -3750,6 +3783,9 @@ bool GLCanvas3D::WarningTexture::generate(const std::string& msg, const GLCanvas
 
 void GLCanvas3D::WarningTexture::render(const GLCanvas3D& canvas) const
 {
+    if (m_warnings.empty())
+        return;
+
     if ((m_id > 0) && (m_original_width > 0) && (m_original_height > 0) && (m_width > 0) && (m_height > 0))
     {
         ::glDisable(GL_DEPTH_TEST);
@@ -4074,7 +4110,6 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     , m_apply_zoom_to_volumes_filter(false)
     , m_hover_volume_id(-1)
     , m_toolbar_action_running(false)
-    , m_warning_texture_enabled(false)
     , m_legend_texture_enabled(false)
     , m_picking_enabled(false)
     , m_moving_enabled(false)
@@ -4232,8 +4267,7 @@ void GLCanvas3D::reset_volumes()
         m_dirty = true;
     }
 
-    enable_warning_texture(false);
-    _reset_warning_texture();
+    _set_warning_texture(WarningTexture::ObjectOutside, false);
 }
 
 int GLCanvas3D::check_volumes_outside_state() const
@@ -4262,6 +4296,12 @@ void GLCanvas3D::toggle_model_objects_visibility(bool visible, const ModelObject
     }
     if (visible && !mo)
         toggle_sla_auxiliaries_visibility(true);
+
+    if (!mo && !visible && !m_model->objects.empty() && (m_model->objects.size() > 1 || m_model->objects.front()->instances.size() > 1))
+        _set_warning_texture(WarningTexture::SomethingNotShown, true);
+
+    if (!mo && visible)
+        _set_warning_texture(WarningTexture::SomethingNotShown, false);
 }
 
 
@@ -4373,11 +4413,6 @@ void GLCanvas3D::enable_layers_editing(bool enable)
         if (v->is_modifier)
             v->force_transparent = enable;
     }
-}
-
-void GLCanvas3D::enable_warning_texture(bool enable)
-{
-    m_warning_texture_enabled = enable;
 }
 
 void GLCanvas3D::enable_legend_texture(bool enable)
@@ -4998,22 +5033,19 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
         if (!contained)
         {
-            enable_warning_texture(true);
-            _generate_warning_texture(L("Detected object outside print volume"));
+            _set_warning_texture(WarningTexture::ObjectOutside, true);
             post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, state == ModelInstance::PVS_Fully_Outside));
         }
         else
         {
-            enable_warning_texture(false);
             m_volumes.reset_outside_state();
-            _reset_warning_texture();
+            _set_warning_texture(WarningTexture::ObjectOutside, false);
             post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, !m_model->objects.empty()));
         }
     }
     else
     {
-        enable_warning_texture(false);
-        _reset_warning_texture();
+        _set_warning_texture(WarningTexture::ObjectOutside, false);
         post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, false));
     }
 
@@ -6667,9 +6699,6 @@ void GLCanvas3D::_render_selection_center() const
 
 void GLCanvas3D::_render_warning_texture() const
 {
-    if (!m_warning_texture_enabled)
-        return;
-
     m_warning_texture.render(*this);
 }
 
@@ -8204,17 +8233,7 @@ void GLCanvas3D::_update_toolpath_volumes_outside_state()
 void GLCanvas3D::_show_warning_texture_if_needed()
 {
     _set_current();
-
-    if (_is_any_volume_outside())
-    {
-        enable_warning_texture(true);
-        _generate_warning_texture(L("Detected toolpath outside print volume"));
-    }
-    else
-    {
-        enable_warning_texture(false);
-        _reset_warning_texture();
-    }
+    _set_warning_texture(WarningTexture::ToolpathOutside, _is_any_volume_outside());
 }
 
 std::vector<float> GLCanvas3D::_parse_colors(const std::vector<std::string>& colors)
@@ -8247,14 +8266,9 @@ void GLCanvas3D::_generate_legend_texture(const GCodePreviewData& preview_data, 
     m_legend_texture.generate(preview_data, tool_colors, *this, m_dynamic_background_enabled && _is_any_volume_outside());
 }
 
-void GLCanvas3D::_generate_warning_texture(const std::string& msg)
+void GLCanvas3D::_set_warning_texture(WarningTexture::Warning warning, bool state)
 {
-    m_warning_texture.generate(msg, *this);
-}
-
-void GLCanvas3D::_reset_warning_texture()
-{
-    m_warning_texture.reset();
+    m_warning_texture.activate(warning, state, *this);
 }
 
 bool GLCanvas3D::_is_any_volume_outside() const
