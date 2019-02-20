@@ -1,6 +1,7 @@
 #ifndef SLAAUTOSUPPORTS_HPP_
 #define SLAAUTOSUPPORTS_HPP_
 
+#include <libslic3r/ClipperUtils.hpp>
 #include <libslic3r/Point.hpp>
 #include <libslic3r/TriangleMesh.hpp>
 #include <libslic3r/SLA/SLACommon.hpp>
