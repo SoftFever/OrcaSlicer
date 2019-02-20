@@ -146,11 +146,13 @@ static std::vector<SLAAutoSupports::MyLayer> make_layers(
             const float between_layers_offset =  float(scale_(layer_height / std::tan(safe_angle)));
 			//FIXME This has a quadratic time complexity, it will be excessively slow for many tiny islands.
 			for (SLAAutoSupports::Structure &top : layer_above.islands) {
-				for (SLAAutoSupports::Structure &bottom : layer_below.islands)
-					if (top.overlaps(bottom)) {
-						top.islands_below.emplace_back(&bottom);
-                        bottom.islands_above.emplace_back(&top);
+				for (SLAAutoSupports::Structure &bottom : layer_below.islands) {
+                    float overlap_area = top.overlap_area(bottom);
+                    if (overlap_area > 0) {
+						top.islands_below.emplace_back(&bottom, overlap_area);
+                        bottom.islands_above.emplace_back(&top, overlap_area);
                     }
+                }
                 if (! top.islands_below.empty()) {
                     Polygons top_polygons    = to_polygons(*top.polygon);
 					Polygons bottom_polygons = top.polygons_below();
@@ -202,26 +204,27 @@ void SLAAutoSupports::process(const std::vector<ExPolygons>& slices, const std::
                 support_force_bottom[i] = layer_bottom->islands[i].supports_force_total();
         }
         for (Structure &top : layer_top->islands)
-			for (Structure *bottom : top.islands_below) {
-                float centroids_dist = (bottom->centroid - top.centroid).norm();
+			for (Structure::Link &bottom_link : top.islands_below) {
+                Structure &bottom = *bottom_link.island;
+                float centroids_dist = (bottom.centroid - top.centroid).norm();
                 // Penalization resulting from centroid offset:
 //                  bottom.supports_force *= std::min(1.f, 1.f - std::min(1.f, (1600.f * layer_height) * centroids_dist * centroids_dist / bottom.area));
-                float &support_force = support_force_bottom[bottom - layer_bottom->islands.data()];
+                float &support_force = support_force_bottom[&bottom - layer_bottom->islands.data()];
 //FIXME this condition does not reflect a bifurcation into a one large island and one tiny island well, it incorrectly resets the support force to zero.
 // One should rather work with the overlap area vs overhang area.                
-//                support_force *= std::min(1.f, 1.f - std::min(1.f, 0.1f * centroids_dist * centroids_dist / bottom->area));
+//                support_force *= std::min(1.f, 1.f - std::min(1.f, 0.1f * centroids_dist * centroids_dist / bottom.area));
                 // Penalization resulting from increasing polygon area:
-                support_force *= std::min(1.f, 20.f * bottom->area / top.area);
+                support_force *= std::min(1.f, 20.f * bottom.area / top.area);
             }
         // Let's assign proper support force to each of them:
         if (layer_id > 0) {
             for (Structure &below : layer_bottom->islands) {
                 float below_support_force = support_force_bottom[&below - layer_bottom->islands.data()];
-                float above_area = 0.f;
-                for (Structure *above : below.islands_above)
-					above_area += above->area;
-                for (Structure *above : below.islands_above)
-                    above->supports_force_inherited += below_support_force * above->area / above_area;
+                float above_overlap_area = 0.f;
+				for (Structure::Link &above_link : below.islands_above)
+					above_overlap_area += above_link.overlap_area;
+				for (Structure::Link &above_link : below.islands_above)
+					above_link.island->supports_force_inherited += below_support_force * above_link.overlap_area / above_overlap_area;
             }
         }
         // Now iterate over all polygons and append new points if needed.
@@ -231,9 +234,9 @@ void SLAAutoSupports::process(const std::vector<ExPolygons>& slices, const std::
             s.supports_force_inherited /= std::max(1.f, 0.17f * (s.overhangs_area) / s.area);
 
             float force_deficit = s.support_force_deficit(m_config.tear_pressure);
-            if (s.islands_below.empty()) // completely new island - needs support no doubt
+            if (s.islands_below.empty()) { // completely new island - needs support no doubt
                 uniformly_cover({ *s.polygon }, s, point_grid, true);
-            else if (! s.dangling_areas.empty()) {
+            } else if (! s.dangling_areas.empty()) {
                 // Let's see if there's anything that overlaps enough to need supports:
                 // What we now have in polygons needs support, regardless of what the forces are, so we can add them.
                 //FIXME is it an island point or not? Vojtech thinks it is.
@@ -474,7 +477,7 @@ void SLAAutoSupports::uniformly_cover(const ExPolygons& islands, Structure& stru
 #ifdef SLA_AUTOSUPPORTS_DEBUG
 	{
 		static int irun = 0;
-		Slic3r::SVG svg(debug_out_path("SLA_supports-uniformly_cover-%d.svg", irun ++), get_extents(island));
+		Slic3r::SVG svg(debug_out_path("SLA_supports-uniformly_cover-%d.svg", irun ++), get_extents(islands));
         for (const ExPolygon &island : islands)
             svg.draw(island);
 		for (const Vec2f &pt : raw_samples)

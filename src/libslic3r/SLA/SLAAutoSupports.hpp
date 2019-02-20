@@ -51,43 +51,60 @@ public:
         std::chrono::milliseconds unique_id;
 #endif /* SLA_AUTOSUPPORTS_DEBUG */
 
+        struct Link {
+			Link(Structure *island, float overlap_area) : island(island), overlap_area(overlap_area) {}
+            Structure   *island;
+            float        overlap_area;
+        };
+
 #ifdef NDEBUG
 		// In release mode, use the optimized container.
-        boost::container::small_vector<Structure*, 4>   islands_above;
-        boost::container::small_vector<Structure*, 4>   islands_below;
+        boost::container::small_vector<Link, 4> islands_above;
+        boost::container::small_vector<Link, 4> islands_below;
 #else
 		// In debug mode, use the standard vector, which is well handled by debugger visualizer.
-		std::vector<Structure*>							islands_above;
-		std::vector<Structure*>							islands_below;
+		std::vector<Link>					 	islands_above;
+		std::vector<Link>						islands_below;
 #endif
-        ExPolygons                                      dangling_areas;
-        ExPolygons                                      overhangs;
-        float                                           overhangs_area;
+        ExPolygons                              dangling_areas;
+        ExPolygons                              overhangs;
+        float                                   overhangs_area;
 
-        bool overlaps(const Structure &rhs) const { return this->bbox.overlap(rhs.bbox) && (this->polygon->overlaps(*rhs.polygon) || rhs.polygon->overlaps(*this->polygon)); }
+        bool overlaps(const Structure &rhs) const { 
+            return this->bbox.overlap(rhs.bbox) && (this->polygon->overlaps(*rhs.polygon) || rhs.polygon->overlaps(*this->polygon)); 
+        }
+        float overlap_area(const Structure &rhs) const { 
+            double out = 0.;
+            if (this->bbox.overlap(rhs.bbox)) {
+                 Polygons polys = intersection(to_polygons(*this->polygon), to_polygons(*rhs.polygon), false);
+                 for (const Polygon &poly : polys)
+                    out += poly.area();
+            }
+            return float(out);
+        }
         float area_below() const { 
             float area = 0.f; 
-            for (const Structure *below : this->islands_below) 
-                area += below->area; 
+            for (const Link &below : this->islands_below) 
+                area += below.island->area; 
             return area;
         }
         Polygons polygons_below() const { 
             size_t cnt = 0;
-            for (const Structure *below : this->islands_below)
-                cnt += 1 + below->polygon->holes.size();
+			for (const Link &below : this->islands_below)
+                cnt += 1 + below.island->polygon->holes.size();
             Polygons out;
             out.reserve(cnt);
-            for (const Structure *below : this->islands_below) {
-                out.emplace_back(below->polygon->contour);
-                append(out, below->polygon->holes);
+			for (const Link &below : this->islands_below) {
+                out.emplace_back(below.island->polygon->contour);
+				append(out, below.island->polygon->holes);
             }
             return out;
         }
         ExPolygons expolygons_below() const { 
             ExPolygons out;
             out.reserve(this->islands_below.size());
-            for (const Structure *below : this->islands_below)
-                out.emplace_back(*below->polygon);
+            for (const Link &below : this->islands_below)
+                out.emplace_back(*below.island->polygon);
             return out;
         }
         // Positive deficit of the supports. If negative, this area is well supported. If positive, more supports need to be added.
