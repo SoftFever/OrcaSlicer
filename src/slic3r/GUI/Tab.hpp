@@ -203,6 +203,8 @@ protected:
 
     void                set_type();
 
+    std::set<std::string>       m_dirty_options = {};
+
 public:
 	PresetBundle*		m_preset_bundle;
 	bool				m_show_btn_incompatible_presets = false;
@@ -281,6 +283,7 @@ protected:
 	void			update_frequently_changed_parameters();
 	void			fill_icon_descriptions();
 	void			set_tooltips_text();
+    bool            update_completed() const { return m_dirty_options.empty(); }
 };
 
 class TabPrint : public Tab
