@@ -354,14 +354,18 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
         std::vector<SLAPrintObject::Instance> new_instances = sla_instances(model_object);
         if (it_print_object_status != print_object_status.end() && it_print_object_status->status != PrintObjectStatus::Deleted) {
             // The SLAPrintObject is already there.
-            if (new_instances != it_print_object_status->print_object->instances()) {
-                // Instances changed.
-                it_print_object_status->print_object->set_instances(new_instances);
-                update_apply_status(this->invalidate_step(slapsRasterize));
-            }
-            print_objects_new.emplace_back(it_print_object_status->print_object);
-            const_cast<PrintObjectStatus&>(*it_print_object_status).status = PrintObjectStatus::Reused;
-        } else {
+			if (new_instances.empty()) {
+				const_cast<PrintObjectStatus&>(*it_print_object_status).status = PrintObjectStatus::Deleted;
+			} else {
+				if (new_instances != it_print_object_status->print_object->instances()) {
+					// Instances changed.
+					it_print_object_status->print_object->set_instances(new_instances);
+					update_apply_status(this->invalidate_step(slapsRasterize));
+				}
+				print_objects_new.emplace_back(it_print_object_status->print_object);
+				const_cast<PrintObjectStatus&>(*it_print_object_status).status = PrintObjectStatus::Reused;
+			}
+		} else if (! new_instances.empty()) {
             auto print_object = new SLAPrintObject(this, &model_object);
 
             // FIXME: this invalidates the transformed mesh in SLAPrintObject
@@ -532,8 +536,8 @@ void SLAPrint::process()
             this->throw_if_canceled();
             SLAAutoSupports::Config config;
             const SLAPrintObjectConfig& cfg = po.config();
-            config.density_relative = (float)cfg.support_points_density_relative / 100.f; // the config value is in percents
-            config.minimal_distance = cfg.support_points_minimal_distance;
+            config.density_relative = float(cfg.support_points_density_relative / 100.f); // the config value is in percents
+            config.minimal_distance = float(cfg.support_points_minimal_distance);
 
             // Construction of this object does the calculation.
             this->throw_if_canceled();
@@ -916,7 +920,7 @@ void SLAPrint::process()
 
             BOOST_LOG_TRIVIAL(info) << "Slicing object " << po->model_object()->name;
 
-            for(int s = step_ranges[idx_range]; s < step_ranges[idx_range + 1]; ++s) {
+            for (int s = (int)step_ranges[idx_range]; s < (int)step_ranges[idx_range + 1]; ++s) {
                 auto currentstep = (SLAPrintObjectStep)s;
 
                 // Cancellation checking. Each step will check for cancellation
