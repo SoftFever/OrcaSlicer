@@ -89,13 +89,11 @@ bool View3D::init(wxWindow* parent, Model* model, DynamicPrintConfig* config, Ba
     return true;
 }
 
-#if ENABLE_UNIQUE_BED
 void View3D::set_bed(Bed3D* bed)
 {
     if (m_canvas != nullptr)
         m_canvas->set_bed(bed);
 }
-#endif // ENABLE_UNIQUE_BED
 
 void View3D::set_view_toolbar(GLToolbar* toolbar)
 {
@@ -109,19 +107,11 @@ void View3D::set_as_dirty()
         m_canvas->set_as_dirty();
 }
 
-#if ENABLE_UNIQUE_BED
 void View3D::bed_shape_changed()
 {
     if (m_canvas != nullptr)
         m_canvas->bed_shape_changed();
 }
-#else
-void View3D::set_bed_shape(const Pointfs& shape)
-{
-    if (m_canvas != nullptr)
-        m_canvas->set_bed_shape(shape);
-}
-#endif // ENABLE_UNIQUE_BED
 
 void View3D::select_view(const std::string& direction)
 {
@@ -353,13 +343,11 @@ Preview::~Preview()
     }
 }
 
-#if ENABLE_UNIQUE_BED
 void Preview::set_bed(Bed3D* bed)
 {
     if (m_canvas != nullptr)
         m_canvas->set_bed(bed);
 }
-#endif // ENABLE_UNIQUE_BED
 
 void Preview::set_view_toolbar(GLToolbar* toolbar)
 {
@@ -392,18 +380,11 @@ void Preview::set_enabled(bool enabled)
     m_enabled = enabled;
 }
 
-#if ENABLE_UNIQUE_BED
 void Preview::bed_shape_changed()
 {
     if (m_canvas != nullptr)
         m_canvas->bed_shape_changed();
 }
-#else
-vvoid Preview::set_bed_shape(const Pointfs& shape)
-{
-    m_canvas->set_bed_shape(shape);
-}
-#endif // ENABLE_UNIQUE_BED
 
 void Preview::select_view(const std::string& direction)
 {

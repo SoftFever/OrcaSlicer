@@ -8,9 +8,7 @@
 #include "3DScene.hpp"
 #include "GLToolbar.hpp"
 #include "Event.hpp"
-#if ENABLE_UNIQUE_BED
 #include "3DBed.hpp"
-#endif // ENABLE_UNIQUE_BED
 
 #include <float.h>
 
@@ -28,11 +26,6 @@ class wxGLCanvas;
 // Support for Retina OpenGL on Mac OS
 #define ENABLE_RETINA_GL __APPLE__
 
-#if !ENABLE_UNIQUE_BED
-class GLUquadric;
-typedef class GLUquadric GLUquadricObj;
-#endif // !ENABLE_UNIQUE_BED
-
 namespace Slic3r {
 
 class GLShader;
@@ -49,23 +42,6 @@ class GLGizmoBase;
 #if ENABLE_RETINA_GL
 class RetinaHelper;
 #endif
-
-#if !ENABLE_UNIQUE_BED
-class GeometryBuffer
-{
-    std::vector<float> m_vertices;
-    std::vector<float> m_tex_coords;
-
-public:
-    bool set_from_triangles(const Polygons& triangles, float z, bool generate_tex_coords);
-    bool set_from_lines(const Lines& lines, float z);
-
-    const float* get_vertices() const;
-    const float* get_tex_coords() const;
-
-    unsigned int get_vertices_count() const;
-};
-#endif // !ENABLE_UNIQUE_BED
 
 class Size
 {
@@ -138,9 +114,7 @@ wxDECLARE_EVENT(EVT_GLCANVAS_INSTANCE_SCALED, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, Event<bool>);
 wxDECLARE_EVENT(EVT_GLCANVAS_UPDATE_GEOMETRY, Vec3dsEvent<2>);
 wxDECLARE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, SimpleEvent);
-#if ENABLE_UNIQUE_BED
 wxDECLARE_EVENT(EVT_GLCANVAS_UPDATE_BED_SHAPE, SimpleEvent);
-#endif // ENABLE_UNIQUE_BED
 
 // this describes events being passed from GLCanvas3D to SlaSupport gizmo
 enum class SLAGizmoEventType {
@@ -217,78 +191,6 @@ class GLCanvas3D
         const BoundingBoxf3& get_scene_box() const { return m_scene_box; }
         void set_scene_box(const BoundingBoxf3& box, GLCanvas3D& canvas);
     };
-
-#if !ENABLE_UNIQUE_BED
-    class Bed
-    {
-    public:
-        enum EType : unsigned char
-        {
-            MK2,
-            MK3,
-            SL1,
-            Custom,
-            Num_Types
-        };
-
-    private:
-        EType m_type;
-        Pointfs m_shape;
-        BoundingBoxf3 m_bounding_box;
-        Polygon m_polygon;
-        GeometryBuffer m_triangles;
-        GeometryBuffer m_gridlines;
-        mutable GLTexture m_top_texture;
-        mutable GLTexture m_bottom_texture;
-        mutable GLBed m_model;
-
-        mutable float m_scale_factor;
-
-    public:
-        Bed();
-
-        EType get_type() const { return m_type; }
-
-        bool is_prusa() const;
-        bool is_custom() const;
-
-        const Pointfs& get_shape() const;
-        // Return true if the bed shape changed, so the calee will update the UI.
-        bool set_shape(const Pointfs& shape);
-
-        const BoundingBoxf3& get_bounding_box() const;
-        bool contains(const Point& point) const;
-        Point point_projection(const Point& point) const;
-
-        void render(float theta, bool useVBOs, float scale_factor) const;
-
-    private:
-        void _calc_bounding_box();
-        void _calc_triangles(const ExPolygon& poly);
-        void _calc_gridlines(const ExPolygon& poly, const BoundingBox& bed_bbox);
-        EType _detect_type(const Pointfs& shape) const;
-        void _render_prusa(const std::string &key, float theta, bool useVBOs) const;
-        void _render_custom() const;
-    };
-
-    struct Axes
-    {
-        static const double Radius;
-        static const double ArrowBaseRadius;
-        static const double ArrowLength;
-        Vec3d origin;
-        Vec3d length;
-        GLUquadricObj* m_quadric;
-
-        Axes();
-        ~Axes();
-
-        void render() const;
-
-    private:
-        void render_axis(double length) const;
-    };
-#endif // !ENABLE_UNIQUE_BED
 
     class Shader
     {
@@ -885,12 +787,7 @@ private:
     WarningTexture m_warning_texture;
     wxTimer m_timer;
     Camera m_camera;
-#if ENABLE_UNIQUE_BED
     Bed3D* m_bed;
-#else
-    Bed m_bed;
-    Axes m_axes;
-#endif // ENABLE_UNIQUE_BED
     LayersEditing m_layers_editing;
     Shader m_shader;
     Mouse m_mouse;
@@ -945,9 +842,7 @@ public:
     wxGLCanvas* get_wxglcanvas() { return m_canvas; }
 	const wxGLCanvas* get_wxglcanvas() const { return m_canvas; }
 
-#if ENABLE_UNIQUE_BED
     void set_bed(Bed3D* bed) { m_bed = bed; }
-#endif // ENABLE_UNIQUE_BED
 
     void set_view_toolbar(GLToolbar* toolbar) { m_view_toolbar = toolbar; }
 
@@ -970,16 +865,7 @@ public:
     const Selection& get_selection() const { return m_selection; }
     Selection& get_selection() { return m_selection; }
 
-#if ENABLE_UNIQUE_BED
     void bed_shape_changed();
-#else
-    // Set the bed shape to a single closed 2D polygon(array of two element arrays),
-    // triangulate the bed and store the triangles into m_bed.m_triangles,
-    // fills the m_bed.m_grid_lines and sets m_bed.m_origin.
-    // Sets m_bed.m_polygon to limit the object placement.
-    void set_bed_shape(const Pointfs& shape);
-    void set_bed_axes_length(double length);
-#endif // ENABLE_UNIQUE_BED
 
     void set_clipping_plane(unsigned int id, const ClippingPlane& plane)
     {

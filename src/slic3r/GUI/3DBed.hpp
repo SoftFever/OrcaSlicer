@@ -10,7 +10,6 @@ typedef class GLUquadric GLUquadricObj;
 namespace Slic3r {
 namespace GUI {
 
-#if ENABLE_UNIQUE_BED
 class GeometryBuffer
 {
     std::vector<float> m_vertices;
@@ -97,7 +96,6 @@ private:
     void render_prusa(const std::string &key, float theta, bool useVBOs) const;
     void render_custom() const;
 };
-#endif // ENABLE_UNIQUE_BED
 
 } // GUI
 } // Slic3r

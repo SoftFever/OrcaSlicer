@@ -10,10 +10,8 @@
 
 #include "Preset.hpp"
 
-#if ENABLE_UNIQUE_BED
 #include "3DScene.hpp"
 #include "GLTexture.hpp"
-#endif // ENABLE_UNIQUE_BED
 
 class wxButton;
 class wxBoxSizer;
