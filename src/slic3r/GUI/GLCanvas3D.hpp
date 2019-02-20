@@ -192,6 +192,7 @@ class GLCanvas3D
         void set_scene_box(const BoundingBoxf3& box, GLCanvas3D& canvas);
     };
 
+#if !ENABLE_TEXTURES_FROM_SVG
     class Shader
     {
         GLShader* m_shader;
@@ -215,6 +216,7 @@ class GLCanvas3D
     private:
         void _reset();
     };
+#endif // !ENABLE_TEXTURES_FROM_SVG
 
     class LayersEditing
     {

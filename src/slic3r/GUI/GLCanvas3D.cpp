@@ -238,6 +238,7 @@ void GLCanvas3D::Camera::set_scene_box(const BoundingBoxf3& box, GLCanvas3D& can
     }
 }
 
+#if !ENABLE_TEXTURES_FROM_SVG
 GLCanvas3D::Shader::Shader()
     : m_shader(nullptr)
 {
@@ -316,6 +317,7 @@ void GLCanvas3D::Shader::_reset()
         m_shader = nullptr;
     }
 }
+#endif // !ENABLE_TEXTURES_FROM_SVG
 
 GLCanvas3D::LayersEditing::LayersEditing()
     : m_use_legacy_opengl(false)
