@@ -499,18 +499,6 @@ void SLAAutoSupports::uniformly_cover(const ExPolygons& islands, Structure& stru
     }
 }
 
-float SLAAutoSupports::Structure::overlap_area(const Structure &rhs) const
-{
-    double out = 0.;
-    if (this->bbox.overlap(rhs.bbox)) {
-         Polygons polys = intersection(to_polygons(*this->polygon), to_polygons(*rhs.polygon), false);
-         for (const Polygon &poly : polys)
-            out += poly.area();
-    }
-
-    return float(out);
-}
-
 #ifdef SLA_AUTOSUPPORTS_DEBUG
 void SLAAutoSupports::output_structures(const std::vector<Structure>& structures)
 {
