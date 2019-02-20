@@ -323,7 +323,7 @@ namespace Slic3r {
         typedef std::map<int, ObjectMetadata> IdToMetadataMap;
         typedef std::map<int, Geometry> IdToGeometryMap;
         typedef std::map<int, std::vector<coordf_t>> IdToLayerHeightsProfileMap;
-        typedef std::map<int, std::vector<Vec3f>> IdToSlaSupportPointsMap;
+        typedef std::map<int, std::vector<sla::SupportPoint>> IdToSlaSupportPointsMap;
 
         // Version of the 3mf file
         unsigned int m_version;
@@ -776,10 +776,19 @@ namespace Slic3r {
             std::vector<std::string> objects;
             boost::split(objects, buffer, boost::is_any_of("\n"), boost::token_compress_off);
 
+            // Info on format versioning - see 3mf.hpp
+            int version = 0;
+            if (!objects.empty() && objects[0].find("support_points_format_version=") != std::string::npos) {
+                objects[0].erase(objects[0].begin(), objects[0].begin() + 30); // removes the string
+                version = std::stoi(objects[0]);
+                objects.erase(objects.begin()); // pop the header
+            }
+
             for (const std::string& object : objects)
             {
                 std::vector<std::string> object_data;
                 boost::split(object_data, object, boost::is_any_of("|"), boost::token_compress_off);
+
                 if (object_data.size() != 2)
                 {
                     add_error("Error while reading object data");
@@ -811,10 +820,24 @@ namespace Slic3r {
                 std::vector<std::string> object_data_points;
                 boost::split(object_data_points, object_data[1], boost::is_any_of(" "), boost::token_compress_off);
 
-                std::vector<Vec3f> sla_support_points;
+                std::vector<sla::SupportPoint> sla_support_points;
 
-                for (unsigned int i=0; i<object_data_points.size(); i+=3)
-                    sla_support_points.push_back(Vec3d(std::atof(object_data_points[i+0].c_str()), std::atof(object_data_points[i+1].c_str()), std::atof(object_data_points[i+2].c_str())).cast<float>());
+                if (version == 0) {
+                    for (unsigned int i=0; i<object_data_points.size(); i+=3)
+                    sla_support_points.emplace_back(std::atof(object_data_points[i+0].c_str()),
+                                                    std::atof(object_data_points[i+1].c_str()),
+                                                    std::atof(object_data_points[i+2].c_str()),
+                                                    0.4f,
+                                                    false);
+                }
+                if (version == 1) {
+                    for (unsigned int i=0; i<object_data_points.size(); i+=5)
+                    sla_support_points.emplace_back(std::atof(object_data_points[i+0].c_str()),
+                                                    std::atof(object_data_points[i+1].c_str()),
+                                                    std::atof(object_data_points[i+2].c_str()),
+                                                    std::atof(object_data_points[i+3].c_str()),
+                                                    std::atof(object_data_points[i+4].c_str()));
+                }
 
                 if (!sla_support_points.empty())
                     m_sla_support_points.insert(IdToSlaSupportPointsMap::value_type(object_id, sla_support_points));
@@ -1961,7 +1984,7 @@ namespace Slic3r {
         for (const ModelObject* object : model.objects)
         {
             ++count;
-            const std::vector<Vec3f>& sla_support_points = object->sla_support_points;
+            const std::vector<sla::SupportPoint>& sla_support_points = object->sla_support_points;
             if (!sla_support_points.empty())
             {
                 sprintf(buffer, "object_id=%d|", count);
@@ -1970,7 +1993,7 @@ namespace Slic3r {
                 // Store the layer height profile as a single space separated list.
                 for (size_t i = 0; i < sla_support_points.size(); ++i)
                 {
-                    sprintf(buffer, (i==0 ? "%f %f %f" : " %f %f %f"),  sla_support_points[i](0), sla_support_points[i](1), sla_support_points[i](2));
+                    sprintf(buffer, (i==0 ? "%f %f %f %f %f" : " %f %f %f %f %f"),  sla_support_points[i].pos(0), sla_support_points[i].pos(1), sla_support_points[i].pos(2), sla_support_points[i].head_front_radius, (float)sla_support_points[i].is_new_island);
                     out += buffer;
                 }
                 out += "\n";
@@ -1979,6 +2002,9 @@ namespace Slic3r {
 
         if (!out.empty())
         {
+            // Adds version header at the beginning:
+            out = std::string("support_points_format_version=") + std::to_string(support_points_format_version) + std::string("\n") + out;
+
             if (!mz_zip_writer_add_mem(&archive, SLA_SUPPORT_POINTS_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION))
             {
                 add_error("Unable to add sla support points file to archive");

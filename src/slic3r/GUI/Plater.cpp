@@ -12,7 +12,6 @@
 
 #include <wx/sizer.h>
 #include <wx/stattext.h>
-#include <wx/notebook.h>
 #include <wx/button.h>
 #include <wx/bmpcbox.h>
 #include <wx/statbox.h>
@@ -1008,6 +1007,7 @@ struct Plater::priv
     std::atomic<bool>           arranging;
     std::atomic<bool>           rotoptimizing;
     bool                        delayed_scene_refresh;
+    std::string                 delayed_error_message;
 
     wxTimer                     background_process_timer;
 
@@ -1993,6 +1993,8 @@ unsigned int Plater::priv::update_background_process(bool force_validation)
     this->background_process_timer.Stop();
     // Update the "out of print bed" state of ModelInstances.
     this->update_print_volume_state();
+    // The delayed error message is no more valid.
+    this->delayed_error_message.clear();
     // Apply new config to the possibly running background task.
     bool               was_running = this->background_process.running();
     Print::ApplyStatus invalidated = this->background_process.apply(this->q->model(), wxGetApp().preset_bundle->full_config());
@@ -2031,8 +2033,18 @@ unsigned int Plater::priv::update_background_process(bool force_validation)
                 return_state |= UPDATE_BACKGROUND_PROCESS_RESTART;
         } else {
             // The print is not valid.
-            // The error returned from the Print needs to be translated into the local language.
-            GUI::show_error(this->q, _(err));
+            // Only show the error message immediately, if the top level parent of this window is active.
+            auto p = dynamic_cast<wxWindow*>(this->q);
+            while (p->GetParent())
+                p = p->GetParent();
+            auto *top_level_wnd = dynamic_cast<wxTopLevelWindow*>(p);
+            if (top_level_wnd && top_level_wnd->IsActive()) {
+                // The error returned from the Print needs to be translated into the local language.
+                GUI::show_error(this->q, _(err));
+            } else {
+                // Show the error message once the main window gets activated.
+                this->delayed_error_message = _(err);
+            }
             return_state |= UPDATE_BACKGROUND_PROCESS_INVALID;
         }
     }
@@ -2276,6 +2288,10 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
                 this->update_sla_scene();
             break;
         }
+    }
+    if (evt.status.flags & PrintBase::SlicingStatus::RELOAD_SLA_SUPPORT_POINTS) {
+        // Update SLA gizmo  (reload_scene calls update_gizmos_data)
+        q->canvas3D()->reload_scene(true);
     }
 }
 
@@ -3139,6 +3155,26 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
 
     if (p->main_frame->is_loaded())
         this->p->schedule_background_process();
+}
+
+void Plater::on_activate()
+{
+#ifdef __linux__
+    wxWindow *focus_window = wxWindow::FindFocus();
+    // Activating the main frame, and no window has keyboard focus.
+    // Set the keyboard focus to the visible Canvas3D.
+    if (this->p->view3D->IsShown() && (!focus_window || focus_window == this->p->view3D->get_wxglcanvas()))
+        this->p->view3D->get_wxglcanvas()->SetFocus();
+
+    else if (this->p->preview->IsShown() && (!focus_window || focus_window == this->p->view3D->get_wxglcanvas()))
+        this->p->preview->get_wxglcanvas()->SetFocus();
+#endif
+
+    if (! this->p->delayed_error_message.empty()) {
+		std::string msg = std::move(this->p->delayed_error_message);
+		this->p->delayed_error_message.clear();
+        GUI::show_error(this, msg);
+	}
 }
 
 const wxString& Plater::get_project_filename() const

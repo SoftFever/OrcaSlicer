@@ -105,6 +105,12 @@ wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAUL
         event.Skip();
     });
 
+    Bind(wxEVT_ACTIVATE, [this](wxActivateEvent& event) {
+        if (m_plater != nullptr && event.GetActive())
+            m_plater->on_activate();
+        event.Skip();
+    });
+
     wxGetApp().persist_window_geometry(this);
 
     update_ui_from_settings();    // FIXME (?)

@@ -137,6 +137,8 @@ public:
     bool            checked_tab(Tab* tab);
     void            load_current_presets();
 
+    virtual bool OnExceptionInMainLoop();
+
 #ifdef __APPLE__
     // wxWidgets override to get an event on open files.
     void            MacOpenFiles(const wxArrayString &fileNames) override;

@@ -20,6 +20,7 @@ class ImGuiWrapper
     typedef std::map<std::string, ImFont*> FontsMap;
 
     FontsMap m_fonts;
+    const ImWchar *m_glyph_ranges;
     unsigned m_font_texture;
     float m_style_scaling;
     unsigned m_mouse_buttons;
@@ -32,6 +33,7 @@ public:
     bool init();
     void read_glsl_version();
 
+    void set_language(const std::string &language);
     void set_display_size(float w, float h);
     void set_style_scaling(float scaling);
     bool update_mouse_data(wxMouseEvent &evt);
@@ -47,10 +49,12 @@ public:
     void end();
 
     bool button(const wxString &label);
+    bool radio_button(const wxString &label, bool active);
     bool input_double(const std::string &label, const double &value, const std::string &format = "%.3f");
     bool input_vec3(const std::string &label, const Vec3d &value, float width, const std::string &format = "%.3f");
     bool checkbox(const wxString &label, bool &value);
     void text(const wxString &label);
+    bool combo(const wxString& label, const std::vector<wxString>& options, wxString& current_selection);
 
     void disabled_begin(bool disabled);
     void disabled_end();
@@ -59,6 +63,7 @@ public:
     bool want_keyboard() const;
     bool want_text_input() const;
     bool want_any_input() const;
+
 private:
     void init_default_font(float scaling);
     void create_device_objects();

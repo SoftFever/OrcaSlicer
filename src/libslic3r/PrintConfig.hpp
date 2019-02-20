@@ -1005,9 +1005,8 @@ public:
     ConfigOptionFloat support_object_elevation /*= 5.0*/;
 
     /////// Following options influence automatic support points placement:
-    ConfigOptionInt support_density_at_horizontal;
-    ConfigOptionInt support_density_at_45;
-    ConfigOptionFloat support_minimal_z;
+    ConfigOptionInt support_points_density_relative;
+    ConfigOptionFloat support_points_minimal_distance;
 
     // Now for the base pool (pad) /////////////////////////////////////////////
 
@@ -1044,9 +1043,8 @@ protected:
         OPT_PTR(support_base_height);
         OPT_PTR(support_critical_angle);
         OPT_PTR(support_max_bridge_length);
-        OPT_PTR(support_density_at_horizontal);
-        OPT_PTR(support_density_at_45);
-        OPT_PTR(support_minimal_z);
+        OPT_PTR(support_points_density_relative);
+        OPT_PTR(support_points_minimal_distance);
         OPT_PTR(support_object_elevation);
         OPT_PTR(pad_enable);
         OPT_PTR(pad_wall_thickness);

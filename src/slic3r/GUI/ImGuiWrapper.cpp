@@ -25,7 +25,8 @@ namespace GUI {
 
 
 ImGuiWrapper::ImGuiWrapper()
-    : m_font_texture(0)
+    : m_glyph_ranges(nullptr)
+    , m_font_texture(0)
     , m_style_scaling(1.0)
     , m_mouse_buttons(0)
     , m_disabled(false)
@@ -47,6 +48,35 @@ bool ImGuiWrapper::init()
     ImGui::GetIO().IniFilename = nullptr;
 
     return true;
+}
+
+void ImGuiWrapper::set_language(const std::string &language)
+{
+    const ImWchar *ranges = nullptr;
+    size_t idx = language.find('_');
+    std::string lang = (idx == std::string::npos) ? language : language.substr(0, idx);
+    static const ImWchar ranges_latin2[] =
+    {
+        0x0020, 0x00FF, // Basic Latin + Latin Supplement
+        0x0100, 0x017F, // Latin Extended-A
+        0,
+    };
+    if (lang == "cs" || lang == "pl") {
+        ranges = ranges_latin2;
+    } else if (lang == "ru" || lang == "uk") {
+        ranges = ImGui::GetIO().Fonts->GetGlyphRangesCyrillic();
+    } else if (lang == "jp") {
+        ranges = ImGui::GetIO().Fonts->GetGlyphRangesJapanese();
+    } else if (lang == "kr") {
+        ranges = ImGui::GetIO().Fonts->GetGlyphRangesKorean();
+    } else if (lang == "zh") {
+        ranges = ImGui::GetIO().Fonts->GetGlyphRangesChineseSimplifiedCommon();
+    }
+
+    if (ranges != m_glyph_ranges) {
+        m_glyph_ranges = ranges;
+        init_default_font(m_style_scaling);
+    }
 }
 
 void ImGuiWrapper::set_display_size(float w, float h)
@@ -125,6 +155,12 @@ bool ImGuiWrapper::button(const wxString &label)
     return ImGui::Button(label_utf8.c_str());
 }
 
+bool ImGuiWrapper::radio_button(const wxString &label, bool active)
+{
+    auto label_utf8 = into_u8(label);
+    return ImGui::RadioButton(label_utf8.c_str(), active);
+}
+
 bool ImGuiWrapper::input_double(const std::string &label, const double &value, const std::string &format)
 {
     return ImGui::InputDouble(label.c_str(), const_cast<double*>(&value), 0.0f, 0.0f, format.c_str());
@@ -159,6 +195,28 @@ void ImGuiWrapper::text(const wxString &label)
 {
     auto label_utf8 = into_u8(label);
     ImGui::Text(label_utf8.c_str(), NULL);
+}
+
+
+bool ImGuiWrapper::combo(const wxString& label, const std::vector<wxString>& options, wxString& selection)
+{
+    std::string selection_u8 = into_u8(selection);
+
+    // this is to force the label to the left of the widget:
+    text(label);
+    ImGui::SameLine();
+    
+    if (ImGui::BeginCombo("", selection_u8.c_str())) {
+        for (const wxString& option : options) {
+            std::string option_u8 = into_u8(option);
+            bool is_selected = (selection_u8.empty()) ? false : (option_u8 == selection_u8);
+            if (ImGui::Selectable(option_u8.c_str(), is_selected))
+                selection = option_u8;
+        }
+        ImGui::EndCombo();
+        return true;
+    }
+    return false;
 }
 
 void ImGuiWrapper::disabled_begin(bool disabled)
@@ -210,7 +268,7 @@ void ImGuiWrapper::init_default_font(float scaling)
 
     ImGuiIO& io = ImGui::GetIO();
     io.Fonts->Clear();
-    ImFont* font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/NotoSans-Regular.ttf").c_str(), font_size * scaling);
+    ImFont* font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/NotoSans-Regular.ttf").c_str(), font_size * scaling, nullptr, m_glyph_ranges);
     if (font == nullptr) {
         font = io.Fonts->AddFontDefault();
         if (font == nullptr) {
