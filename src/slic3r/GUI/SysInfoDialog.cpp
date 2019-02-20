@@ -3,6 +3,8 @@
 #include "3DScene.hpp"
 #include "GUI.hpp"
 
+#include <string>
+
 #include <wx/clipbrd.h>
 #include <wx/platinfo.h>
 

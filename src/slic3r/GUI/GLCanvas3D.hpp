@@ -132,6 +132,18 @@ wxDECLARE_EVENT(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, Event<bool>);
 wxDECLARE_EVENT(EVT_GLCANVAS_UPDATE_GEOMETRY, Vec3dsEvent<2>);
 wxDECLARE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, SimpleEvent);
 
+// this describes events being passed from GLCanvas3D to SlaSupport gizmo
+enum class SLAGizmoEventType {
+    LeftDown = 1,
+    LeftUp,
+    RightDown,
+    Dragging,
+    Delete,
+    SelectAll,
+    ShiftUp
+};
+
+
 class GLCanvas3D
 {
     struct GCodePreviewVolumeIndex
@@ -788,12 +800,8 @@ private:
 
         void set_flattening_data(const ModelObject* model_object);
 
-#if ENABLE_SLA_SUPPORT_GIZMO_MOD
         void set_sla_support_data(ModelObject* model_object, const GLCanvas3D::Selection& selection);
-#else
-        void set_model_object_ptr(ModelObject* model_object);
-#endif // ENABLE_SLA_SUPPORT_GIZMO_MOD
-        void clicked_on_object(const Vec2d& mouse_position);
+        bool mouse_event(SLAGizmoEventType action, const Vec2d& mouse_position = Vec2d::Zero(), bool shift_down = false);
         void delete_current_grabber(bool delete_all = false);
 
         void render_current_gizmo(const Selection& selection) const;
@@ -923,6 +931,7 @@ private:
     bool m_multisample_allowed;
     bool m_regenerate_volumes;
     bool m_moving;
+    bool m_render_sla_auxiliaries;
 
     std::string m_color_by;
 
@@ -953,6 +962,9 @@ public:
     unsigned int get_volumes_count() const;
     void reset_volumes();
     int check_volumes_outside_state() const;
+
+    void toggle_sla_auxiliaries_visibility(bool visible);
+    void toggle_model_objects_visibility(bool visible, const ModelObject* mo = nullptr, int instance_idx = -1);
 
     void set_config(const DynamicPrintConfig* config);
     void set_process(BackgroundSlicingProcess* process);
@@ -1050,6 +1062,7 @@ public:
     void on_size(wxSizeEvent& evt);
     void on_idle(wxIdleEvent& evt);
     void on_char(wxKeyEvent& evt);
+    void on_key_up(wxKeyEvent& evt);
     void on_mouse_wheel(wxMouseEvent& evt);
     void on_timer(wxTimerEvent& evt);
     void on_mouse(wxMouseEvent& evt);

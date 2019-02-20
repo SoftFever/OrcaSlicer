@@ -244,8 +244,9 @@ public:
         // Bitmap of flags.
         enum FlagBits {
             DEFAULT,
-            NO_RELOAD_SCENE = 0,
-            RELOAD_SCENE = 1,
+            NO_RELOAD_SCENE                 = 0,
+            RELOAD_SCENE                    = 1 << 1,
+            RELOAD_SLA_SUPPORT_POINTS       = 1 << 2,
         };
         // Bitmap of FlagBits
         unsigned int    flags;

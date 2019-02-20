@@ -49,10 +49,12 @@ public:
     void end();
 
     bool button(const wxString &label);
+    bool radio_button(const wxString &label, bool active);
     bool input_double(const std::string &label, const double &value, const std::string &format = "%.3f");
     bool input_vec3(const std::string &label, const Vec3d &value, float width, const std::string &format = "%.3f");
     bool checkbox(const wxString &label, bool &value);
     void text(const wxString &label);
+    bool combo(const wxString& label, const std::vector<wxString>& options, wxString& current_selection);
 
     void disabled_begin(bool disabled);
     void disabled_end();

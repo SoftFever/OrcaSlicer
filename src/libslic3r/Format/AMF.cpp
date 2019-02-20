@@ -583,7 +583,7 @@ void AMFParserContext::endElement(const char * /* name */)
             else if (m_path.size() == 3 && m_path[1] == NODE_TYPE_OBJECT && m_object && strcmp(opt_key, "sla_support_points") == 0) {
                 // Parse object's layer height profile, a semicolon separated list of floats.
                 unsigned char coord_idx = 0;
-                Vec3f point(Vec3f::Zero());
+                Eigen::Matrix<float, 5, 1, Eigen::DontAlign> point(Eigen::Matrix<float, 5, 1, Eigen::DontAlign>::Zero());
                 char *p = const_cast<char*>(m_value[1].c_str());
                 for (;;) {
                     char *end = strchr(p, ';');
@@ -591,8 +591,8 @@ void AMFParserContext::endElement(const char * /* name */)
 	                    *end = 0;
 
                     point(coord_idx) = atof(p);
-                    if (++coord_idx == 3) {
-                        m_object->sla_support_points.push_back(point);
+                    if (++coord_idx == 5) {
+                        m_object->sla_support_points.push_back(sla::SupportPoint(point));
                         coord_idx = 0;
                     }
 					if (end == nullptr)
@@ -900,14 +900,14 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
         }
         //FIXME Store the layer height ranges (ModelObject::layer_height_ranges)
 
-        const std::vector<Vec3f>& sla_support_points = object->sla_support_points;
+        const std::vector<sla::SupportPoint>& sla_support_points = object->sla_support_points;
         if (!sla_support_points.empty()) {
             // Store the SLA supports as a single semicolon separated list.
             stream << "    <metadata type=\"slic3r.sla_support_points\">";
             for (size_t i = 0; i < sla_support_points.size(); ++i) {
                 if (i != 0)
                     stream << ";";
-                stream << sla_support_points[i](0) << ";" << sla_support_points[i](1) << ";" << sla_support_points[i](2);
+                stream << sla_support_points[i].pos(0) << ";" << sla_support_points[i].pos(1) << ";" << sla_support_points[i].pos(2) << ";" << sla_support_points[i].head_front_radius << ";" << sla_support_points[i].is_new_island;
             }
             stream << "\n    </metadata>\n";
         }

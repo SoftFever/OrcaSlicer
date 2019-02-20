@@ -70,7 +70,7 @@ public:
     // This will return the transformed mesh which is cached
     const TriangleMesh&     transformed_mesh() const;
 
-    std::vector<Vec3d>      transformed_support_points() const;
+    std::vector<sla::SupportPoint>      transformed_support_points() const;
 
     // Get the needed Z elevation for the model geometry if supports should be
     // displayed. This Z offset should also be applied to the support
@@ -91,7 +91,7 @@ public:
     const std::vector<ExPolygons>& get_support_slices() const;
 
     // This method returns the support points of this SLAPrintObject.
-    const Eigen::MatrixXd& get_support_points() const;
+    const std::vector<sla::SupportPoint>& get_support_points() const;
 
     // An index record referencing the slices
     // (get_model_slices(), get_support_slices()) where the keys are the height
