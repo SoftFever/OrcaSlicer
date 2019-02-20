@@ -2073,8 +2073,8 @@ bool GLGizmoSlaSupports::mouse_event(SLAGizmoEventType action, const Vec2d& mous
             m_editing_mode_cache.emplace_back(std::make_pair(sla::SupportPoint(new_pos, m_new_point_head_diameter/2.f, false), true));
             m_unsaved_changes = true;
         }
-        catch (...) {       // not clicked on object
-            return false;   // GLCanvas3D might want to deselect the gizmo
+        catch (...) {      // not clicked on object
+            return true;   // prevents deselection of the gizmo by GLCanvas3D
         }
         return true;
     }
