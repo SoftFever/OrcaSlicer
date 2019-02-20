@@ -472,7 +472,7 @@ void SLAPrint::process()
     const size_t objcount = m_objects.size();
 
     const unsigned min_objstatus = 0;   // where the per object operations start
-    const unsigned max_objstatus = 80;  // where the per object operations end
+    const unsigned max_objstatus = PRINT_STEP_LEVELS[slapsRasterize];  // where the per object operations end
 
     // the coefficient that multiplies the per object status values which
     // are set up for <0, 100>. They need to be scaled into the whole process
@@ -588,6 +588,8 @@ void SLAPrint::process()
 
             ctl.statuscb = [this, init, d](unsigned st, const std::string& msg)
             {
+                //FIXME this status line scaling does not seem to be correct.
+                // How does it account for an increasing object index?
                 report_status(*this, int(init + st*d), msg);
             };
 
@@ -884,16 +886,6 @@ void SLAPrint::process()
     using slaposFn = std::function<void(SLAPrintObject&)>;
     using slapsFn  = std::function<void(void)>;
 
-    // This is the actual order of steps done on each PrintObject
-    std::array<SLAPrintObjectStep, slaposCount> objectsteps = {
-        slaposObjectSlice,      // SupportPoints will need this step
-        slaposSupportPoints,
-        slaposSupportTree,
-        slaposBasePool,
-        slaposSliceSupports,
-        slaposIndexSlices
-    };
-
     std::array<slaposFn, slaposCount> pobj_program =
     {
         slice_model,
@@ -917,28 +909,32 @@ void SLAPrint::process()
 
     // TODO: this loop could run in parallel but should not exhaust all the CPU
     // power available
-    for(SLAPrintObject * po : m_objects) {
+    // Calculate the support structures first before slicing the supports, so that the preview will get displayed ASAP for all objects.
+    std::vector<SLAPrintObjectStep> step_ranges = { slaposObjectSlice, slaposSliceSupports, slaposCount };
+    for (size_t idx_range = 0; idx_range + 1 < step_ranges.size(); ++ idx_range) {
+        for(SLAPrintObject * po : m_objects) {
 
-        BOOST_LOG_TRIVIAL(info) << "Slicing object " << po->model_object()->name;
+            BOOST_LOG_TRIVIAL(info) << "Slicing object " << po->model_object()->name;
 
-        for(size_t s = 0; s < objectsteps.size(); ++s) {
-            auto currentstep = objectsteps[s];
+            for(int s = step_ranges[idx_range]; s < step_ranges[idx_range + 1]; ++s) {
+                auto currentstep = (SLAPrintObjectStep)s;
 
-            // Cancellation checking. Each step will check for cancellation
-            // on its own and return earlier gracefully. Just after it returns
-            // execution gets to this point and throws the canceled signal.
-            throw_if_canceled();
-
-            st += unsigned(incr * ostepd);
-
-            if(po->m_stepmask[currentstep] && po->set_started(currentstep)) {
-                report_status(*this, int(st), OBJ_STEP_LABELS[currentstep]);
-                pobj_program[currentstep](*po);
+                // Cancellation checking. Each step will check for cancellation
+                // on its own and return earlier gracefully. Just after it returns
+                // execution gets to this point and throws the canceled signal.
                 throw_if_canceled();
-                po->set_done(currentstep);
-            }
 
-            incr = OBJ_STEP_LEVELS[currentstep];
+                st += unsigned(incr * ostepd);
+
+                if(po->m_stepmask[currentstep] && po->set_started(currentstep)) {
+                    report_status(*this, int(st), OBJ_STEP_LABELS[currentstep]);
+                    pobj_program[currentstep](*po);
+                    throw_if_canceled();
+                    po->set_done(currentstep);
+                }
+
+                incr = OBJ_STEP_LEVELS[currentstep];
+            }
         }
     }
 
