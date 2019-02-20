@@ -20,7 +20,7 @@ public:
         gluDeleteTess(m_tesselator);
     }
 
-    Pointf3s tesselate(const ExPolygon &expoly, double z_, bool flipped_)
+    std::vector<Vec3d> tesselate3d(const ExPolygon &expoly, double z_, bool flipped_)
     {
         m_z = z_;
         m_flipped = flipped_;
@@ -56,7 +56,7 @@ public:
         return std::move(m_output_triangles);
     }
 
-    Pointf3s tesselate(const ExPolygons &expolygons, double z_, bool flipped_)
+    std::vector<Vec3d> tesselate3d(const ExPolygons &expolygons, double z_, bool flipped_)
     {
         m_z = z_;
         m_flipped = flipped_;
@@ -189,16 +189,60 @@ private:
     bool            m_flipped;
 };
 
-Pointf3s triangulate_expolygons_3df(const ExPolygon &poly, coordf_t z, bool flip)
+std::vector<Vec3d> triangulate_expolygon_3d(const ExPolygon &poly, coordf_t z, bool flip)
 {
     GluTessWrapper tess;
-    return tess.tesselate(poly, z, flip);
+    return tess.tesselate3d(poly, z, flip);
 }
 
-Pointf3s triangulate_expolygons_3df(const ExPolygons &polys, coordf_t z, bool flip)
+std::vector<Vec3d> triangulate_expolygons_3d(const ExPolygons &polys, coordf_t z, bool flip)
 {
 	GluTessWrapper tess;
-    return tess.tesselate(polys, z, flip);
+    return tess.tesselate3d(polys, z, flip);
+}
+
+std::vector<Vec2d> triangulate_expolygon_2d(const ExPolygon &poly, bool flip)
+{
+    GluTessWrapper tess;
+    std::vector<Vec3d> triangles = tess.tesselate3d(poly, 0, flip);
+    std::vector<Vec2d> out;
+    out.reserve(triangles.size());
+    for (const Vec3d &pt : triangles)
+        out.emplace_back(pt.x(), pt.y());
+    return out;
+}
+
+std::vector<Vec2d> triangulate_expolygons_2d(const ExPolygons &polys, bool flip)
+{
+    GluTessWrapper tess;
+    std::vector<Vec3d> triangles = tess.tesselate3d(polys, 0, flip);
+    std::vector<Vec2d> out;
+    out.reserve(triangles.size());
+    for (const Vec3d &pt : triangles)
+        out.emplace_back(pt.x(), pt.y());
+    return out;
+}
+
+std::vector<Vec2f> triangulate_expolygon_2f(const ExPolygon &poly, bool flip)
+{
+    GluTessWrapper tess;
+    std::vector<Vec3d> triangles = tess.tesselate3d(poly, 0, flip);
+    std::vector<Vec2f> out;
+    out.reserve(triangles.size());
+    for (const Vec3d &pt : triangles)
+        out.emplace_back(float(pt.x()), float(pt.y()));
+    return out;
+}
+
+std::vector<Vec2f> triangulate_expolygons_2f(const ExPolygons &polys, bool flip)
+{
+    GluTessWrapper tess;
+    std::vector<Vec3d> triangles = tess.tesselate3d(polys, 0, flip);
+    std::vector<Vec2f> out;
+    out.reserve(triangles.size());
+    for (const Vec3d &pt : triangles)
+        out.emplace_back(float(pt.x()), float(pt.y()));
+    return out;
 }
 
 } // namespace Slic3r

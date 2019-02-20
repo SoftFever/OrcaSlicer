@@ -3,6 +3,23 @@
 
 namespace Slic3r {
 
+    /* The format for saving the SLA points was changing in the past. This enum holds the latest version that is being currently used.
+     * Examples of the Slic3r_PE_sla_support_points.txt for historically used versions:
+
+     *  version 0 : object_id=1|-12.055421 -2.658771 10.000000
+                    object_id=2|-14.051745 -3.570338 5.000000
+        // no header and x,y,z positions of the points)
+
+     * version 1 :  ThreeMF_support_points_version=1
+                    object_id=1|-12.055421 -2.658771 10.000000 0.4 0.0
+                    object_id=2|-14.051745 -3.570338 5.000000 0.6 1.0
+        // introduced header with version number; x,y,z,head_size,is_new_island)
+    */
+
+    enum {
+        support_points_format_version = 1
+    };
+
     class Model;
     class DynamicPrintConfig;
 

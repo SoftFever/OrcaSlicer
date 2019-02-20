@@ -95,7 +95,9 @@ size_t SpatIndex::size() const
 
 class EigenMesh3D::AABBImpl: public igl::AABB<Eigen::MatrixXd, 3> {
 public:
+#ifdef SLIC3R_SLA_NEEDS_WINDTREE
     igl::WindingNumberAABB<Vec3d, Eigen::MatrixXd, Eigen::MatrixXi> windtree;
+#endif /* SLIC3R_SLA_NEEDS_WINDTREE */
 };
 
 EigenMesh3D::EigenMesh3D(const TriangleMesh& tmesh): m_aabb(new AABBImpl()) {
@@ -136,7 +138,9 @@ EigenMesh3D::EigenMesh3D(const TriangleMesh& tmesh): m_aabb(new AABBImpl()) {
 
     // Build the AABB accelaration tree
     m_aabb->init(m_V, m_F);
+#ifdef SLIC3R_SLA_NEEDS_WINDTREE
     m_aabb->windtree.set_mesh(m_V, m_F);
+#endif /* SLIC3R_SLA_NEEDS_WINDTREE */
 }
 
 EigenMesh3D::~EigenMesh3D() {}
@@ -168,6 +172,7 @@ EigenMesh3D::query_ray_hit(const Vec3d &s, const Vec3d &dir) const
     return ret;
 }
 
+#ifdef SLIC3R_SLA_NEEDS_WINDTREE
 EigenMesh3D::si_result EigenMesh3D::signed_distance(const Vec3d &p) const {
     double sign = 0; double sqdst = 0; int i = 0;  Vec3d c;
     igl::signed_distance_winding_number(*m_aabb, m_V, m_F, m_aabb->windtree,
@@ -179,6 +184,7 @@ EigenMesh3D::si_result EigenMesh3D::signed_distance(const Vec3d &p) const {
 bool EigenMesh3D::inside(const Vec3d &p) const {
     return m_aabb->windtree.inside(p);
 }
+#endif /* SLIC3R_SLA_NEEDS_WINDTREE */
 
 /* ****************************************************************************
  * Misc functions

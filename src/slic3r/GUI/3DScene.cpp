@@ -789,7 +789,7 @@ void GLVolumeCollection::render_VBOs(GLVolumeCollection::ERenderType type, bool 
     glsafe(::glDisable(GL_BLEND));
 }
 
-void GLVolumeCollection::render_legacy(ERenderType type, bool disable_cullface) const
+void GLVolumeCollection::render_legacy(ERenderType type, bool disable_cullface, std::function<bool(const GLVolume&)> filter_func) const
 {
     glsafe(glEnable(GL_BLEND));
     glsafe(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
@@ -801,7 +801,7 @@ void GLVolumeCollection::render_legacy(ERenderType type, bool disable_cullface) 
     glsafe(glEnableClientState(GL_VERTEX_ARRAY));
     glsafe(glEnableClientState(GL_NORMAL_ARRAY));
  
-	GLVolumesWithZList to_render = volumes_to_render(this->volumes, type, std::function<bool(const GLVolume&)>());
+	GLVolumesWithZList to_render = volumes_to_render(this->volumes, type, filter_func);
     for (GLVolumeWithZ& volume : to_render)
     {
         volume.first->set_render_color();

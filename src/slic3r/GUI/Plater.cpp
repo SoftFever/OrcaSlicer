@@ -2263,6 +2263,10 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
             break;
         }
     }
+    if (evt.status.flags & PrintBase::SlicingStatus::RELOAD_SLA_SUPPORT_POINTS) {
+        // Update SLA gizmo  (reload_scene calls update_gizmos_data)
+        q->canvas3D()->reload_scene(true);
+    }
 }
 
 void Plater::priv::on_slicing_completed(wxCommandEvent &)

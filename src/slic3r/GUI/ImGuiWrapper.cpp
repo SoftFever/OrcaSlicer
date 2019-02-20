@@ -155,6 +155,12 @@ bool ImGuiWrapper::button(const wxString &label)
     return ImGui::Button(label_utf8.c_str());
 }
 
+bool ImGuiWrapper::radio_button(const wxString &label, bool active)
+{
+    auto label_utf8 = into_u8(label);
+    return ImGui::RadioButton(label_utf8.c_str(), active);
+}
+
 bool ImGuiWrapper::input_double(const std::string &label, const double &value, const std::string &format)
 {
     return ImGui::InputDouble(label.c_str(), const_cast<double*>(&value), 0.0f, 0.0f, format.c_str());
@@ -189,6 +195,28 @@ void ImGuiWrapper::text(const wxString &label)
 {
     auto label_utf8 = into_u8(label);
     ImGui::Text(label_utf8.c_str(), NULL);
+}
+
+
+bool ImGuiWrapper::combo(const wxString& label, const std::vector<wxString>& options, wxString& selection)
+{
+    std::string selection_u8 = into_u8(selection);
+
+    // this is to force the label to the left of the widget:
+    text(label);
+    ImGui::SameLine();
+    
+    if (ImGui::BeginCombo("", selection_u8.c_str())) {
+        for (const wxString& option : options) {
+            std::string option_u8 = into_u8(option);
+            bool is_selected = (selection_u8.empty()) ? false : (option_u8 == selection_u8);
+            if (ImGui::Selectable(option_u8.c_str(), is_selected))
+                selection = option_u8;
+        }
+        ImGui::EndCombo();
+        return true;
+    }
+    return false;
 }
 
 void ImGuiWrapper::disabled_begin(bool disabled)
