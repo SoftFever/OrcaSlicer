@@ -5231,8 +5231,8 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 #if ENABLE_IMGUI
     auto imgui = wxGetApp().imgui();
     if (imgui->update_key_data(evt)) {
-        return;
         render();
+        return;
     }
 #endif // ENABLE_IMGUI
 

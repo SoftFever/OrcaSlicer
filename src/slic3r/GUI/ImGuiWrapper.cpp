@@ -124,6 +124,9 @@ bool ImGuiWrapper::update_key_data(wxKeyEvent &evt)
         if (key != 0) {
             io.AddInputCharacter(key);
         }
+
+        new_frame();
+        return want_keyboard() || want_text_input();
     } else {
         // Key up/down event
         int key = evt.GetKeyCode();
@@ -134,13 +137,13 @@ bool ImGuiWrapper::update_key_data(wxKeyEvent &evt)
         io.KeyCtrl = evt.ControlDown();
         io.KeyAlt = evt.AltDown();
         io.KeySuper = evt.MetaDown();
-    }
 
-    // XXX: Unfortunatelly this seems broken due to some interference with wxWidgets,
-    // we have to return true always (perform re-render).
-    // new_frame();
-    // return want_keyboard() || want_text_input();
-    return true;
+        // XXX: Unfortunatelly this seems broken due to some interference with wxWidgets,
+        // we have to return true always (perform re-render).
+        // new_frame();
+        // return want_keyboard() || want_text_input();
+        return true;
+    }
 }
 
 void ImGuiWrapper::new_frame()
