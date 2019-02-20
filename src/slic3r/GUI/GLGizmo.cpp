@@ -1445,8 +1445,8 @@ void GLGizmoFlatten::on_render(const GLCanvas3D::Selection& selection) const
     {
         const Transform3d& m = selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix();
         ::glPushMatrix();
-        ::glMultMatrixd(m.data());
         ::glTranslatef(0.f, 0.f, selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z());
+        ::glMultMatrixd(m.data());
         if (this->is_plane_update_necessary())
 			const_cast<GLGizmoFlatten*>(this)->update_planes();
         for (int i = 0; i < (int)m_planes.size(); ++i)
@@ -1479,8 +1479,8 @@ void GLGizmoFlatten::on_render_for_picking(const GLCanvas3D::Selection& selectio
     {
         const Transform3d& m = selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix();
         ::glPushMatrix();
-        ::glMultMatrixd(m.data());
         ::glTranslatef(0.f, 0.f, selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z());
+        ::glMultMatrixd(m.data());
         if (this->is_plane_update_necessary())
 			const_cast<GLGizmoFlatten*>(this)->update_planes();
         for (int i = 0; i < (int)m_planes.size(); ++i)
