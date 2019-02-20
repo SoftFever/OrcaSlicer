@@ -1059,6 +1059,24 @@ void SLAPrint::fill_statistics()
     const double height             = m_printer_config.display_height.getFloat() / SCALING_FACTOR;
     const double display_area       = width*height;
 
+    // get polygons for all instances in the object
+    auto get_all_polygons = [](const ExPolygons& input_polygons, const std::vector<SLAPrintObject::Instance>& instances) {
+        ExPolygons polygons;
+        const size_t inst_cnt = instances.size();
+
+        polygons.reserve(input_polygons.size()*inst_cnt);
+        for (const ExPolygon& polygon : input_polygons) {
+            for (size_t i = 0; i < inst_cnt; ++i)
+            {
+                ExPolygon tmp = polygon;
+                tmp.rotate(Geometry::rad2deg(instances[i].rotation));
+                tmp.translate(instances[i].shift.x(), instances[i].shift.y());
+                polygons.push_back(tmp);
+            }
+        }
+        return polygons;
+    };
+
     double supports_volume = 0.0;
     double models_volume = 0.0;
 
@@ -1093,46 +1111,58 @@ void SLAPrint::fill_statistics()
 
         // Calculation of the consumed material 
 
-        double layer_model_area = 0;
-        double layer_support_area = 0;
+        Polygons model_polygons;
+        Polygons supports_polygons;
+
         for (SLAPrintObject * po : m_objects)
         {
-            const auto index = po->get_slice_index();
-            if (index.find(layer.first) == index.end())
-                continue;
-
-            const SLAPrintObject::SliceRecord& record = index.at(layer.first);
-
-            if (record.model_slices_idx     != SLAPrintObject::SliceRecord::NONE && 
-                record.support_slices_idx   != SLAPrintObject::SliceRecord::NONE)
-            {
-                double model_area = 0;
-                for (const ExPolygon& polygon : po->get_model_slices().at(record.model_slices_idx))
-                    model_area += polygon.area();
-
-                layer_model_area += model_area;
-
-                Polygons polygons = to_polygons(po->get_model_slices().at(record.model_slices_idx));
-                append(polygons, to_polygons(po->get_support_slices().at(record.support_slices_idx)));
-                polygons = union_(polygons);
-                double poligons_area = 0;
-                for (const Polygon& polygon : polygons)
-                    poligons_area += polygon.area();
-
-                if (poligons_area > model_area)
-                    layer_support_area += (poligons_area-model_area);
+            const SLAPrintObject::SliceIndex& index = po->get_slice_index();
+            auto key = layer.first;
+            if (index.find(layer.first) == index.end()) {
+                const SLAPrintObject::SliceIndex::const_iterator it_key = std::find_if(index.begin(), index.end(), 
+                    [key](const SLAPrintObject::SliceIndex::value_type& id) -> bool { return std::abs(key - id.first) < EPSILON; });
+                if (it_key == index.end())
+                    continue;
+                key = it_key->first;
             }
-            else if (record.model_slices_idx != SLAPrintObject::SliceRecord::NONE) {
-                for (const ExPolygon& polygon : po->get_model_slices().at(record.model_slices_idx))
-                    layer_model_area += polygon.area();
+
+            const SLAPrintObject::SliceRecord& record = index.at(key);
+
+            if (record.model_slices_idx != SLAPrintObject::SliceRecord::NONE) {
+                const ExPolygons& expolygons = po->get_model_slices().at(record.model_slices_idx);
+                const ExPolygons model_expolygons = get_all_polygons(expolygons, po->instances());
+
+                append(model_polygons, to_polygons(model_expolygons));
             }
-            else if (record.support_slices_idx != SLAPrintObject::SliceRecord::NONE) {
-                for (const ExPolygon& polygon : po->get_support_slices().at(record.support_slices_idx))
-                    layer_support_area += polygon.area();
+            
+            if (record.support_slices_idx != SLAPrintObject::SliceRecord::NONE) {
+                const ExPolygons& expolygons = po->get_support_slices().at(record.support_slices_idx);
+                const ExPolygons support_expolygons = get_all_polygons(expolygons, po->instances());
+
+                append(supports_polygons, to_polygons(support_expolygons));
             }
         }
-        models_volume += layer_model_area * l_height;
-        supports_volume += layer_support_area * l_height;
+        
+        model_polygons = union_(model_polygons);
+        double layer_model_area = 0;
+        for (const Polygon& polygon : model_polygons)
+            layer_model_area += polygon.area();
+
+        if (layer_model_area != 0)
+            models_volume += layer_model_area * l_height;
+
+        if (!supports_polygons.empty() && !model_polygons.empty())
+            append(supports_polygons, model_polygons);
+        supports_polygons = union_(supports_polygons);
+        double layer_support_area = 0;
+        for (const Polygon& polygon : supports_polygons)
+            layer_support_area += polygon.area();
+
+        if (layer_support_area != 0) {
+            layer_support_area -= layer_model_area;
+            supports_volume += layer_support_area * l_height;
+        }
+
 
         // Calculation of the slow and fast layers to the future controlling those values on FW
 
