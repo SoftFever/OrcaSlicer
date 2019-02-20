@@ -233,7 +233,7 @@ wxGLCanvas* GLCanvas3DManager::create_wxglcanvas(wxWindow *parent)
         attribList[4] = 0;
     }
 
-    return new wxGLCanvas(parent, wxID_ANY, attribList);
+    return new wxGLCanvas(parent, wxID_ANY, attribList, wxDefaultPosition, wxDefaultSize, wxWANTS_CHARS);
 }
 
 GLCanvas3DManager::CanvasesMap::iterator GLCanvas3DManager::_get_canvas(wxGLCanvas* canvas)

@@ -10,6 +10,7 @@
 
 #include <wx/string.h>
 #include <wx/event.h>
+#include <wx/clipbrd.h>
 #include <wx/debug.h>
 
 #include <GL/glew.h>
@@ -30,6 +31,7 @@ ImGuiWrapper::ImGuiWrapper()
     , m_style_scaling(1.0)
     , m_mouse_buttons(0)
     , m_disabled(false)
+    , m_new_frame_open(false)
 {
 }
 
@@ -44,6 +46,8 @@ bool ImGuiWrapper::init()
     ImGui::CreateContext();
 
     init_default_font(m_style_scaling);
+    init_input();
+    init_style();
 
     ImGui::GetIO().IniFilename = nullptr;
 
@@ -104,23 +108,59 @@ bool ImGuiWrapper::update_mouse_data(wxMouseEvent& evt)
     io.MouseDown[2] = evt.MiddleDown();
 
     unsigned buttons = (evt.LeftDown() ? 1 : 0) | (evt.RightDown() ? 2 : 0) | (evt.MiddleDown() ? 4 : 0);
-    bool res = buttons != m_mouse_buttons;
     m_mouse_buttons = buttons;
-    return res;
+
+    new_frame();
+    return want_mouse();
+}
+
+bool ImGuiWrapper::update_key_data(wxKeyEvent &evt)
+{
+    ImGuiIO& io = ImGui::GetIO();
+
+    if (evt.GetEventType() == wxEVT_CHAR) {
+        // Char event
+        const auto key = evt.GetUnicodeKey();
+        if (key != 0) {
+            io.AddInputCharacter(key);
+        }
+    } else {
+        // Key up/down event
+        int key = evt.GetKeyCode();
+        wxCHECK_MSG(key >= 0 && key < IM_ARRAYSIZE(io.KeysDown), false, "Received invalid key code");
+
+        io.KeysDown[key] = evt.GetEventType() == wxEVT_KEY_DOWN;
+        io.KeyShift = evt.ShiftDown();
+        io.KeyCtrl = evt.ControlDown();
+        io.KeyAlt = evt.AltDown();
+        io.KeySuper = evt.MetaDown();
+    }
+
+    // XXX: Unfortunatelly this seems broken due to some interference with wxWidgets,
+    // we have to return true always (perform re-render).
+    // new_frame();
+    // return want_keyboard() || want_text_input();
+    return true;
 }
 
 void ImGuiWrapper::new_frame()
 {
+    if (m_new_frame_open) {
+        return;
+    }
+
     if (m_font_texture == 0)
         create_device_objects();
 
     ImGui::NewFrame();
+    m_new_frame_open = true;
 }
 
 void ImGuiWrapper::render()
 {
     ImGui::Render();
     render_draw_data(ImGui::GetDrawData());
+    m_new_frame_open = false;
 }
 
 void ImGuiWrapper::set_next_window_pos(float x, float y, int flag)
@@ -307,6 +347,82 @@ void ImGuiWrapper::create_fonts_texture()
     glBindTexture(GL_TEXTURE_2D, last_texture);
 }
 
+void ImGuiWrapper::init_input()
+{
+    ImGuiIO& io = ImGui::GetIO();
+
+    // Keyboard mapping. ImGui will use those indices to peek into the io.KeysDown[] array.
+    io.KeyMap[ImGuiKey_Tab] = WXK_TAB;
+    io.KeyMap[ImGuiKey_LeftArrow] = WXK_LEFT;
+    io.KeyMap[ImGuiKey_RightArrow] = WXK_RIGHT;
+    io.KeyMap[ImGuiKey_UpArrow] = WXK_UP;
+    io.KeyMap[ImGuiKey_DownArrow] = WXK_DOWN;
+    io.KeyMap[ImGuiKey_PageUp] = WXK_PAGEUP;
+    io.KeyMap[ImGuiKey_PageDown] = WXK_PAGEDOWN;
+    io.KeyMap[ImGuiKey_Home] = WXK_HOME;
+    io.KeyMap[ImGuiKey_End] = WXK_END;
+    io.KeyMap[ImGuiKey_Insert] = WXK_INSERT;
+    io.KeyMap[ImGuiKey_Delete] = WXK_DELETE;
+    io.KeyMap[ImGuiKey_Backspace] = WXK_BACK;
+    io.KeyMap[ImGuiKey_Space] = WXK_SPACE;
+    io.KeyMap[ImGuiKey_Enter] = WXK_RETURN;
+    io.KeyMap[ImGuiKey_Escape] = WXK_ESCAPE;
+    io.KeyMap[ImGuiKey_A] = 'A';
+    io.KeyMap[ImGuiKey_C] = 'C';
+    io.KeyMap[ImGuiKey_V] = 'V';
+    io.KeyMap[ImGuiKey_X] = 'X';
+    io.KeyMap[ImGuiKey_Y] = 'Y';
+    io.KeyMap[ImGuiKey_Z] = 'Z';
+
+    // Don't let imgui special-case Mac, wxWidgets already do that
+    io.ConfigMacOSXBehaviors = false;
+
+    // Setup clipboard interaction callbacks
+    io.SetClipboardTextFn = clipboard_set;
+    io.GetClipboardTextFn = clipboard_get;
+    io.ClipboardUserData = this;
+}
+
+void ImGuiWrapper::init_style()
+{
+    ImGuiStyle &style = ImGui::GetStyle();
+
+    auto set_color = [&](ImGuiCol_ col, unsigned hex_color) {
+        style.Colors[col] = ImVec4(
+            ((hex_color >> 24) & 0xff) / 255.0f,
+            ((hex_color >> 16) & 0xff) / 255.0f,
+            ((hex_color >> 8) & 0xff) / 255.0f,
+            (hex_color & 0xff) / 255.0f);
+    };
+
+    static const unsigned COL_GREY_DARK = 0x444444ff;
+    static const unsigned COL_GREY_LIGHT = 0x666666ff;
+    static const unsigned COL_ORANGE_DARK = 0xba5418ff;
+    static const unsigned COL_ORANGE_LIGHT = 0xff6f22ff;
+
+    // Generics
+    set_color(ImGuiCol_TitleBgActive, COL_ORANGE_DARK);
+    set_color(ImGuiCol_FrameBg, COL_GREY_DARK);
+    set_color(ImGuiCol_FrameBgHovered, COL_GREY_LIGHT);
+    set_color(ImGuiCol_FrameBgActive, COL_GREY_LIGHT);
+
+    // Text selection
+    set_color(ImGuiCol_TextSelectedBg, COL_ORANGE_DARK);
+
+    // Buttons
+    set_color(ImGuiCol_Button, COL_ORANGE_DARK);
+    set_color(ImGuiCol_ButtonHovered, COL_ORANGE_LIGHT);
+    set_color(ImGuiCol_ButtonActive, COL_ORANGE_LIGHT);
+
+    // Checkbox
+    set_color(ImGuiCol_CheckMark, COL_ORANGE_LIGHT);
+
+    // ComboBox items
+    set_color(ImGuiCol_Header, COL_ORANGE_DARK);
+    set_color(ImGuiCol_HeaderHovered, COL_ORANGE_LIGHT);
+    set_color(ImGuiCol_HeaderActive, COL_ORANGE_LIGHT);
+}
+
 void ImGuiWrapper::render_draw_data(ImDrawData *draw_data)
 {
     // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
@@ -417,6 +533,37 @@ void ImGuiWrapper::destroy_fonts_texture()
         io.Fonts->TexID = 0;
         glDeleteTextures(1, &m_font_texture);
         m_font_texture = 0;
+    }
+}
+
+const char* ImGuiWrapper::clipboard_get(void* user_data)
+{
+    ImGuiWrapper *self = reinterpret_cast<ImGuiWrapper*>(user_data);
+
+    const char* res = "";
+
+    if (wxTheClipboard->Open()) {
+        if (wxTheClipboard->IsSupported(wxDF_TEXT)) {
+            wxTextDataObject data;
+            wxTheClipboard->GetData(data);
+
+            if (data.GetTextLength() > 0) {
+                self->m_clipboard_text = into_u8(data.GetText());
+                res = self->m_clipboard_text.c_str();
+            }
+        }
+
+        wxTheClipboard->Close();
+    }
+
+    return res;
+}
+
+void ImGuiWrapper::clipboard_set(void* /* user_data */, const char* text)
+{
+    if (wxTheClipboard->Open()) {
+        wxTheClipboard->SetData(new wxTextDataObject(wxString::FromUTF8(text)));   // object owned by the clipboard
+        wxTheClipboard->Close();
     }
 }
 
