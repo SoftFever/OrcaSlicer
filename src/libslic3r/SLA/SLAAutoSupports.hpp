@@ -71,15 +71,7 @@ public:
         bool overlaps(const Structure &rhs) const { 
             return this->bbox.overlap(rhs.bbox) && (this->polygon->overlaps(*rhs.polygon) || rhs.polygon->overlaps(*this->polygon)); 
         }
-        float overlap_area(const Structure &rhs) const { 
-            double out = 0.;
-            if (this->bbox.overlap(rhs.bbox)) {
-                 Polygons polys = intersection(to_polygons(*this->polygon), to_polygons(*rhs.polygon), false);
-                 for (const Polygon &poly : polys)
-                    out += poly.area();
-            }
-            return float(out);
-        }
+        float overlap_area(const Structure &rhs) const;
         float area_below() const { 
             float area = 0.f; 
             for (const Link &below : this->islands_below) 
