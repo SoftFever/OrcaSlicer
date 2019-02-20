@@ -738,18 +738,32 @@ private:
 
     class WarningTexture : public GUI::GLTexture
     {
+    public:
+        WarningTexture();
+
+        enum Warning {
+            ObjectOutside,
+            ToolpathOutside,
+            SomethingNotShown
+        };
+
+        // Sets a warning of the given type to be active/inactive. If several warnings are active simultaneously,
+        // only the last one is shown (decided by the order in the enum above).
+        void activate(WarningTexture::Warning warning, bool state, const GLCanvas3D& canvas);
+        void render(const GLCanvas3D& canvas) const;
+
+    private:
         static const unsigned char Background_Color[3];
         static const unsigned char Opacity;
 
         int m_original_width;
         int m_original_height;
 
-    public:
-        WarningTexture();
+        // Information about which warnings are currently active.
+        std::vector<Warning> m_warnings;
 
-        bool generate(const std::string& msg, const GLCanvas3D& canvas);
-
-        void render(const GLCanvas3D& canvas) const;
+        // Generates the texture with given text.
+        bool _generate(const std::string& msg, const GLCanvas3D& canvas);
     };
 
     class LegendTexture : public GUI::GLTexture
@@ -890,7 +904,6 @@ public:
     bool is_reload_delayed() const;
 
     void enable_layers_editing(bool enable);
-    void enable_warning_texture(bool enable);
     void enable_legend_texture(bool enable);
     void enable_picking(bool enable);
     void enable_moving(bool enable);
@@ -1070,8 +1083,7 @@ private:
     void _generate_legend_texture(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
 
     // generates a warning texture containing the given message
-    void _generate_warning_texture(const std::string& msg);
-    void _reset_warning_texture();
+    void _set_warning_texture(WarningTexture::Warning warning, bool state);
 
     bool _is_any_volume_outside() const;
 
