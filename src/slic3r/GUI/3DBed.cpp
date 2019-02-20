@@ -367,12 +367,10 @@ void Bed3D::render_prusa(const std::string &key, float theta, bool useVBOs) cons
 
     std::string model_path = resources_dir() + "/models/" + key;
 
-#if ENABLE_ANISOTROPIC_FILTER_ON_BED_TEXTURES
     // use anisotropic filter if graphic card allows
     GLfloat max_anisotropy = 0.0f;
     if (glewIsSupported("GL_EXT_texture_filter_anisotropic"))
         ::glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_anisotropy);
-#endif // ENABLE_ANISOTROPIC_FILTER_ON_BED_TEXTURES
 
     std::string filename = tex_path + "_top.png";
     if ((m_top_texture.get_id() == 0) || (m_top_texture.get_source() != filename))
@@ -382,14 +380,13 @@ void Bed3D::render_prusa(const std::string &key, float theta, bool useVBOs) cons
             render_custom();
             return;
         }
-#if ENABLE_ANISOTROPIC_FILTER_ON_BED_TEXTURES
+
         if (max_anisotropy > 0.0f)
         {
             glsafe(::glBindTexture(GL_TEXTURE_2D, m_top_texture.get_id()));
             glsafe(::glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, max_anisotropy));
             glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
         }
-#endif // ENABLE_ANISOTROPIC_FILTER_ON_BED_TEXTURES
     }
 
     filename = tex_path + "_bottom.png";
@@ -400,14 +397,13 @@ void Bed3D::render_prusa(const std::string &key, float theta, bool useVBOs) cons
             render_custom();
             return;
         }
-#if ENABLE_ANISOTROPIC_FILTER_ON_BED_TEXTURES
+
         if (max_anisotropy > 0.0f)
         {
             glsafe(::glBindTexture(GL_TEXTURE_2D, m_bottom_texture.get_id()));
             glsafe(::glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, max_anisotropy));
             glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
         }
-#endif // ENABLE_ANISOTROPIC_FILTER_ON_BED_TEXTURES
     }
 
     if (theta <= 90.0f)
