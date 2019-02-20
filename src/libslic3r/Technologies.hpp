@@ -23,8 +23,6 @@
 // Scene's GUI made using imgui library
 #define ENABLE_IMGUI (1 && ENABLE_1_42_0_ALPHA1)
 #define DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI (1 && ENABLE_IMGUI)
-// Modified Sla support gizmo
-#define ENABLE_SLA_SUPPORT_GIZMO_MOD (1 && ENABLE_1_42_0_ALPHA1)
 // Use wxDataViewRender instead of wxDataViewCustomRenderer
 #define ENABLE_NONCUSTOM_DATA_VIEW_RENDERING (0 && ENABLE_1_42_0_ALPHA1)
 

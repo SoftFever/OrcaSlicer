@@ -437,31 +437,26 @@ protected:
     }
 };
 
+
+
+#define SLAGIZMO_IMGUI_MODAL 0
 class GLGizmoSlaSupports : public GLGizmoBase
 {
 private:
     ModelObject* m_model_object = nullptr;
-#if ENABLE_SLA_SUPPORT_GIZMO_MOD
     ModelObject* m_old_model_object = nullptr;
+    int m_active_instance = -1;
     int m_old_instance_id = -1;
-#else
-    Transform3d m_instance_matrix;
-#endif // ENABLE_SLA_SUPPORT_GIZMO_MOD
     Vec3f unproject_on_mesh(const Vec2d& mouse_pos);
 
-#if ENABLE_SLA_SUPPORT_GIZMO_MOD
-    GLUquadricObj* m_quadric;
-#endif // ENABLE_SLA_SUPPORT_GIZMO_MOD
+    const float RenderPointScale = 1.f;
 
+    GLUquadricObj* m_quadric;
     Eigen::MatrixXf m_V; // vertices
     Eigen::MatrixXi m_F; // facets indices
     igl::AABB<Eigen::MatrixXf,3> m_AABB;
 
     struct SourceDataSummary {
-#if !ENABLE_SLA_SUPPORT_GIZMO_MOD
-        BoundingBoxf3 bounding_box;
-        Transform3d matrix;
-#endif // !ENABLE_SLA_SUPPORT_GIZMO_MOD
         Vec3d mesh_first_point;
     };
 
@@ -472,14 +467,10 @@ private:
 
 public:
     explicit GLGizmoSlaSupports(GLCanvas3D& parent);
-#if ENABLE_SLA_SUPPORT_GIZMO_MOD
     virtual ~GLGizmoSlaSupports();
     void set_sla_support_data(ModelObject* model_object, const GLCanvas3D::Selection& selection);
-#else
-    void set_model_object_ptr(ModelObject* model_object);
-#endif // ENABLE_SLA_SUPPORT_GIZMO_MOD
-    void clicked_on_object(const Vec2d& mouse_position);
-    void delete_current_grabber(bool delete_all);
+    bool mouse_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down);
+    void delete_selected_points();
 
 private:
     bool on_init();
@@ -487,11 +478,8 @@ private:
     virtual void on_render(const GLCanvas3D::Selection& selection) const;
     virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const;
 
-#if ENABLE_SLA_SUPPORT_GIZMO_MOD
-    void render_grabbers(const GLCanvas3D::Selection& selection, bool picking = false) const;
-#else
-    void render_grabbers(bool picking = false) const;
-#endif // ENABLE_SLA_SUPPORT_GIZMO_MOD
+    void render_selection_rectangle() const;
+    void render_points(const GLCanvas3D::Selection& selection, bool picking = false) const;
     bool is_mesh_update_necessary() const;
     void update_mesh();
 
@@ -501,12 +489,41 @@ private:
     mutable GLTexture m_reset_texture;
 #endif // not ENABLE_IMGUI
 
+    bool m_lock_unique_islands = false;
+    bool m_editing_mode = false;
+    float m_new_point_head_diameter = 0.4f;
+    double m_minimal_point_distance = 20.;
+    double m_density = 100.;
+    std::vector<std::pair<sla::SupportPoint, bool>> m_editing_mode_cache; // a support point and whether it is currently selected
+
+    bool m_selection_rectangle_active = false;
+    Vec2d m_selection_rectangle_start_corner;
+    Vec2d m_selection_rectangle_end_corner;
+    bool m_ignore_up_event = false;
+    bool m_combo_box_open = false;
+    bool m_unsaved_changes = false;
+    EState m_old_state = Off; // to be able to see that the gizmo has just been closed (see on_set_state)
+#if SLAGIZMO_IMGUI_MODAL
+    bool m_show_modal = false;
+#endif
+    int m_canvas_width;
+    int m_canvas_height;
+
+    // Methods that do the model_object and editing cache synchronization,
+    // editing mode selection, etc:
+    enum {
+        AllPoints = -2,
+        NoPoints,
+    };
+    void select_point(int i);
+    void editing_mode_apply_changes();
+    void editing_mode_discard_changes();
+    void editing_mode_reload_cache();
+    void get_data_from_backend();
+
 protected:
-    void on_set_state() override {
-        if (m_state == On && is_mesh_update_necessary()) {
-            update_mesh();
-        }
-    }
+    void on_set_state() override;
+    void on_start_dragging(const GLCanvas3D::Selection& selection) override;
 
 #if ENABLE_IMGUI
     virtual void on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection) override;

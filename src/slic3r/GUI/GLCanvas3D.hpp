@@ -132,6 +132,18 @@ wxDECLARE_EVENT(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, Event<bool>);
 wxDECLARE_EVENT(EVT_GLCANVAS_UPDATE_GEOMETRY, Vec3dsEvent<2>);
 wxDECLARE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, SimpleEvent);
 
+// this describes events being passed from GLCanvas3D to SlaSupport gizmo
+enum class SLAGizmoEventType {
+    LeftDown = 1,
+    LeftUp,
+    RightDown,
+    Dragging,
+    Delete,
+    SelectAll,
+    ShiftUp
+};
+
+
 class GLCanvas3D
 {
     struct GCodePreviewVolumeIndex
@@ -788,12 +800,8 @@ private:
 
         void set_flattening_data(const ModelObject* model_object);
 
-#if ENABLE_SLA_SUPPORT_GIZMO_MOD
         void set_sla_support_data(ModelObject* model_object, const GLCanvas3D::Selection& selection);
-#else
-        void set_model_object_ptr(ModelObject* model_object);
-#endif // ENABLE_SLA_SUPPORT_GIZMO_MOD
-        void clicked_on_object(const Vec2d& mouse_position);
+        bool mouse_event(SLAGizmoEventType action, const Vec2d& mouse_position = Vec2d::Zero(), bool shift_down = false);
         void delete_current_grabber(bool delete_all = false);
 
         void render_current_gizmo(const Selection& selection) const;
@@ -835,18 +843,32 @@ private:
 
     class WarningTexture : public GUI::GLTexture
     {
+    public:
+        WarningTexture();
+
+        enum Warning {
+            ObjectOutside,
+            ToolpathOutside,
+            SomethingNotShown
+        };
+
+        // Sets a warning of the given type to be active/inactive. If several warnings are active simultaneously,
+        // only the last one is shown (decided by the order in the enum above).
+        void activate(WarningTexture::Warning warning, bool state, const GLCanvas3D& canvas);
+        void render(const GLCanvas3D& canvas) const;
+
+    private:
         static const unsigned char Background_Color[3];
         static const unsigned char Opacity;
 
         int m_original_width;
         int m_original_height;
 
-    public:
-        WarningTexture();
+        // Information about which warnings are currently active.
+        std::vector<Warning> m_warnings;
 
-        bool generate(const std::string& msg, const GLCanvas3D& canvas);
-
-        void render(const GLCanvas3D& canvas) const;
+        // Generates the texture with given text.
+        bool _generate(const std::string& msg, const GLCanvas3D& canvas);
     };
 
     class LegendTexture : public GUI::GLTexture
@@ -923,6 +945,7 @@ private:
     bool m_multisample_allowed;
     bool m_regenerate_volumes;
     bool m_moving;
+    bool m_render_sla_auxiliaries;
 
     std::string m_color_by;
 
@@ -953,6 +976,9 @@ public:
     unsigned int get_volumes_count() const;
     void reset_volumes();
     int check_volumes_outside_state() const;
+
+    void toggle_sla_auxiliaries_visibility(bool visible);
+    void toggle_model_objects_visibility(bool visible, const ModelObject* mo = nullptr, int instance_idx = -1);
 
     void set_config(const DynamicPrintConfig* config);
     void set_process(BackgroundSlicingProcess* process);
@@ -991,7 +1017,6 @@ public:
     bool is_reload_delayed() const;
 
     void enable_layers_editing(bool enable);
-    void enable_warning_texture(bool enable);
     void enable_legend_texture(bool enable);
     void enable_picking(bool enable);
     void enable_moving(bool enable);
@@ -1050,6 +1075,7 @@ public:
     void on_size(wxSizeEvent& evt);
     void on_idle(wxIdleEvent& evt);
     void on_char(wxKeyEvent& evt);
+    void on_key_up(wxKeyEvent& evt);
     void on_mouse_wheel(wxMouseEvent& evt);
     void on_timer(wxTimerEvent& evt);
     void on_mouse(wxMouseEvent& evt);
@@ -1176,8 +1202,7 @@ private:
     void _generate_legend_texture(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
 
     // generates a warning texture containing the given message
-    void _generate_warning_texture(const std::string& msg);
-    void _reset_warning_texture();
+    void _set_warning_texture(WarningTexture::Warning warning, bool state);
 
     bool _is_any_volume_outside() const;
 

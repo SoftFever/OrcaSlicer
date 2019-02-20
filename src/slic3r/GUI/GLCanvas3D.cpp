@@ -3158,6 +3158,7 @@ void GLCanvas3D::Gizmos::update_on_off_state(const GLCanvas3D& canvas, const Vec
     float cnv_h = (float)canvas.get_canvas_size().get_height();
     float height = _get_total_overlay_height();
     float top_y = 0.5f * (cnv_h - height) + m_overlay_border;
+
     for (GizmosMap::iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
         if ((it->second == nullptr) || !it->second->is_selectable())
@@ -3440,42 +3441,28 @@ void GLCanvas3D::Gizmos::set_flattening_data(const ModelObject* model_object)
         reinterpret_cast<GLGizmoFlatten*>(it->second)->set_flattening_data(model_object);
 }
 
-#if ENABLE_SLA_SUPPORT_GIZMO_MOD
 void GLCanvas3D::Gizmos::set_sla_support_data(ModelObject* model_object, const GLCanvas3D::Selection& selection)
-#else
-void GLCanvas3D::Gizmos::set_model_object_ptr(ModelObject* model_object)
-#endif // ENABLE_SLA_SUPPORT_GIZMO_MOD
 {
     if (!m_enabled)
         return;
 
     GizmosMap::const_iterator it = m_gizmos.find(SlaSupports);
     if (it != m_gizmos.end())
-#if ENABLE_SLA_SUPPORT_GIZMO_MOD
         reinterpret_cast<GLGizmoSlaSupports*>(it->second)->set_sla_support_data(model_object, selection);
-#else
-        reinterpret_cast<GLGizmoSlaSupports*>(it->second)->set_model_object_ptr(model_object);
-#endif // ENABLE_SLA_SUPPORT_GIZMO_MOD
 }
 
-void GLCanvas3D::Gizmos::clicked_on_object(const Vec2d& mouse_position)
+
+// Returns true if the gizmo used the event to do something, false otherwise.
+bool GLCanvas3D::Gizmos::mouse_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down)
 {
     if (!m_enabled)
-        return;
+        return false;
 
     GizmosMap::const_iterator it = m_gizmos.find(SlaSupports);
     if (it != m_gizmos.end())
-        reinterpret_cast<GLGizmoSlaSupports*>(it->second)->clicked_on_object(mouse_position);
-}
+        return reinterpret_cast<GLGizmoSlaSupports*>(it->second)->mouse_event(action, mouse_position, shift_down);
 
-void GLCanvas3D::Gizmos::delete_current_grabber(bool delete_all)
-{
-    if (!m_enabled)
-        return;
-
-    GizmosMap::const_iterator it = m_gizmos.find(SlaSupports);
-    if (it != m_gizmos.end())
-        reinterpret_cast<GLGizmoSlaSupports*>(it->second)->delete_current_grabber(delete_all);
+    return false;
 }
 
 void GLCanvas3D::Gizmos::render_current_gizmo(const GLCanvas3D::Selection& selection) const
@@ -3690,7 +3677,40 @@ GLCanvas3D::WarningTexture::WarningTexture()
 {
 }
 
-bool GLCanvas3D::WarningTexture::generate(const std::string& msg, const GLCanvas3D& canvas)
+void GLCanvas3D::WarningTexture::activate(WarningTexture::Warning warning, bool state, const GLCanvas3D& canvas)
+{
+    auto it = std::find(m_warnings.begin(), m_warnings.end(), warning);
+
+    if (state) {
+        if (it != m_warnings.end()) // this warning is already set to be shown
+            return;
+
+        m_warnings.push_back(warning);
+        std::sort(m_warnings.begin(), m_warnings.end());
+    }
+    else {
+        if (it == m_warnings.end()) // deactivating something that is not active is an easy task
+            return;
+
+        m_warnings.erase(it);
+        if (m_warnings.empty()) { // nothing remains to be shown
+            reset();
+            return;
+        }
+    }
+
+    // Look at the end of our vector and generate proper texture.
+    std::string text;
+    switch (m_warnings.back()) {
+        case ObjectOutside      : text = L("Detected object outside print volume"); break;
+        case ToolpathOutside    : text = L("Detected toolpath outside print volume"); break;
+        case SomethingNotShown  : text = L("Some objects are not visible when editing supports"); break;
+    }
+
+    _generate(text, canvas); // GUI::GLTexture::reset() is called at the beginning of generate(...)
+}
+
+bool GLCanvas3D::WarningTexture::_generate(const std::string& msg, const GLCanvas3D& canvas)
 {
     reset();
 
@@ -3763,6 +3783,9 @@ bool GLCanvas3D::WarningTexture::generate(const std::string& msg, const GLCanvas
 
 void GLCanvas3D::WarningTexture::render(const GLCanvas3D& canvas) const
 {
+    if (m_warnings.empty())
+        return;
+
     if ((m_id > 0) && (m_original_width > 0) && (m_original_height > 0) && (m_width > 0) && (m_height > 0))
     {
         ::glDisable(GL_DEPTH_TEST);
@@ -4087,7 +4110,6 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     , m_apply_zoom_to_volumes_filter(false)
     , m_hover_volume_id(-1)
     , m_toolbar_action_running(false)
-    , m_warning_texture_enabled(false)
     , m_legend_texture_enabled(false)
     , m_picking_enabled(false)
     , m_moving_enabled(false)
@@ -4097,6 +4119,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     , m_moving(false)
     , m_color_by("volume")
     , m_reload_delayed(false)
+    , m_render_sla_auxiliaries(true)
 #if !ENABLE_IMGUI
     , m_external_gizmo_widgets_parent(nullptr)
 #endif // not ENABLE_IMGUI
@@ -4244,8 +4267,7 @@ void GLCanvas3D::reset_volumes()
         m_dirty = true;
     }
 
-    enable_warning_texture(false);
-    _reset_warning_texture();
+    _set_warning_texture(WarningTexture::ObjectOutside, false);
 }
 
 int GLCanvas3D::check_volumes_outside_state() const
@@ -4254,6 +4276,34 @@ int GLCanvas3D::check_volumes_outside_state() const
     m_volumes.check_outside_state(m_config, &state);
     return (int)state;
 }
+
+void GLCanvas3D::toggle_sla_auxiliaries_visibility(bool visible)
+{
+    for (GLVolume* vol : m_volumes.volumes) {
+        if (vol->composite_id.volume_id < 0)
+             vol->is_active = visible;
+    }
+
+    m_render_sla_auxiliaries = visible;
+}
+
+void GLCanvas3D::toggle_model_objects_visibility(bool visible, const ModelObject* mo, int instance_idx)
+{
+    for (GLVolume* vol : m_volumes.volumes) {
+        if ((mo == nullptr || m_model->objects[vol->composite_id.object_id] == mo)
+        && (instance_idx == -1 || vol->composite_id.instance_id == instance_idx))
+            vol->is_active = visible;
+    }
+    if (visible && !mo)
+        toggle_sla_auxiliaries_visibility(true);
+
+    if (!mo && !visible && !m_model->objects.empty() && (m_model->objects.size() > 1 || m_model->objects.front()->instances.size() > 1))
+        _set_warning_texture(WarningTexture::SomethingNotShown, true);
+
+    if (!mo && visible)
+        _set_warning_texture(WarningTexture::SomethingNotShown, false);
+}
+
 
 void GLCanvas3D::set_config(const DynamicPrintConfig* config)
 {
@@ -4363,11 +4413,6 @@ void GLCanvas3D::enable_layers_editing(bool enable)
         if (v->is_modifier)
             v->force_transparent = enable;
     }
-}
-
-void GLCanvas3D::enable_warning_texture(bool enable)
-{
-    m_warning_texture_enabled = enable;
 }
 
 void GLCanvas3D::enable_legend_texture(bool enable)
@@ -4609,9 +4654,9 @@ void GLCanvas3D::render()
     // this position is used later into on_mouse() to drag the objects
     m_mouse.scene_position = _mouse_to_3d(m_mouse.position.cast<int>());
 
+    _render_current_gizmo();
     _render_selection_sidebar_hints();
 
-    _render_current_gizmo();
 #if ENABLE_SHOW_CAMERA_TARGET
     _render_camera_target();
 #endif // ENABLE_SHOW_CAMERA_TARGET
@@ -4988,22 +5033,19 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
         if (!contained)
         {
-            enable_warning_texture(true);
-            _generate_warning_texture(L("Detected object outside print volume"));
+            _set_warning_texture(WarningTexture::ObjectOutside, true);
             post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, state == ModelInstance::PVS_Fully_Outside));
         }
         else
         {
-            enable_warning_texture(false);
             m_volumes.reset_outside_state();
-            _reset_warning_texture();
+            _set_warning_texture(WarningTexture::ObjectOutside, false);
             post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, !m_model->objects.empty()));
         }
     }
     else
     {
-        enable_warning_texture(false);
-        _reset_warning_texture();
+        _set_warning_texture(WarningTexture::ObjectOutside, false);
         post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, false));
     }
 
@@ -5119,6 +5161,7 @@ void GLCanvas3D::bind_event_handlers()
         m_canvas->Bind(wxEVT_SIZE, &GLCanvas3D::on_size, this);
         m_canvas->Bind(wxEVT_IDLE, &GLCanvas3D::on_idle, this);
         m_canvas->Bind(wxEVT_CHAR, &GLCanvas3D::on_char, this);
+        m_canvas->Bind(wxEVT_KEY_UP, &GLCanvas3D::on_key_up, this);
         m_canvas->Bind(wxEVT_MOUSEWHEEL, &GLCanvas3D::on_mouse_wheel, this);
         m_canvas->Bind(wxEVT_TIMER, &GLCanvas3D::on_timer, this);
         m_canvas->Bind(wxEVT_LEFT_DOWN, &GLCanvas3D::on_mouse, this);
@@ -5144,6 +5187,7 @@ void GLCanvas3D::unbind_event_handlers()
         m_canvas->Unbind(wxEVT_SIZE, &GLCanvas3D::on_size, this);
         m_canvas->Unbind(wxEVT_IDLE, &GLCanvas3D::on_idle, this);
         m_canvas->Unbind(wxEVT_CHAR, &GLCanvas3D::on_char, this);
+        m_canvas->Unbind(wxEVT_KEY_UP, &GLCanvas3D::on_key_up, this);
         m_canvas->Unbind(wxEVT_MOUSEWHEEL, &GLCanvas3D::on_mouse_wheel, this);
         m_canvas->Unbind(wxEVT_TIMER, &GLCanvas3D::on_timer, this);
         m_canvas->Unbind(wxEVT_LEFT_DOWN, &GLCanvas3D::on_mouse, this);
@@ -5187,7 +5231,12 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         switch (keyCode) {
         case 'a':
         case 'A':
-        case WXK_CONTROL_A: post_event(SimpleEvent(EVT_GLCANVAS_SELECT_ALL)); break;
+        case WXK_CONTROL_A:
+            if (m_gizmos.get_current_type() == Gizmos::SlaSupports && m_gizmos.mouse_event(SLAGizmoEventType::SelectAll)) // Sla gizmo selects all support points
+                m_dirty = true;
+            else
+                post_event(SimpleEvent(EVT_GLCANVAS_SELECT_ALL));
+        break;
 #ifdef __APPLE__
         case WXK_BACK: // the low cost Apple solutions are not equipped with a Delete key, use Backspace instead.
 #else /* __APPLE__ */
@@ -5208,7 +5257,12 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 #else /* __APPLE__ */
 		case WXK_DELETE:
 #endif /* __APPLE__ */
-                  post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE)); break;
+                  if (m_gizmos.get_current_type() == Gizmos::SlaSupports && m_gizmos.mouse_event(SLAGizmoEventType::Delete))
+                      m_dirty = true;
+                  else
+                      post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE));
+                  break;
+
 		case '0': { select_view("iso"); break; }
         case '1': { select_view("top"); break; }
         case '2': { select_view("bottom"); break; }
@@ -5243,6 +5297,16 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         }
         }
     }
+}
+
+void GLCanvas3D::on_key_up(wxKeyEvent& evt)
+{
+    // see include/wx/defs.h enum wxKeyCode
+    int keyCode = evt.GetKeyCode();
+
+    // shift has been just released - SLA gizmo might want to close rectangular selection.
+    if (m_gizmos.get_current_type() == Gizmos::SlaSupports && keyCode == WXK_SHIFT && m_gizmos.mouse_event(SLAGizmoEventType::ShiftUp))
+        m_dirty = true;
 }
 
 void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
@@ -5392,21 +5456,15 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 m_dirty = true;
             }
         }
-#if !ENABLE_IMGUI
-        else if ((m_gizmos.get_current_type() == Gizmos::SlaSupports) && gizmo_reset_rect_contains(*this, pos(0), pos(1)))
-        {
-            if (evt.LeftDown())
-            {
-                m_gizmos.delete_current_grabber(true);
-                m_dirty = true;
-            }
-        }
-#endif // not ENABLE_IMGUI
         else if (!m_selection.is_empty() && gizmos_overlay_contains_mouse)
         {
             m_gizmos.update_on_off_state(*this, m_mouse.position, m_selection);
             _update_gizmos_data();
             m_dirty = true;
+        }
+        else if (evt.LeftDown() && m_gizmos.get_current_type() == Gizmos::SlaSupports && evt.ShiftDown() && m_gizmos.mouse_event(SLAGizmoEventType::LeftDown, Vec2d(pos(0), pos(1)), evt.ShiftDown()))
+        {
+            // the gizmo got the event and took some action, there is no need to do anything more
         }
         else if (evt.LeftDown() && !m_selection.is_empty() && m_gizmos.grabber_contains_mouse())
         {
@@ -5423,9 +5481,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
             m_dirty = true;
         }
-        else if ((selected_object_idx != -1) && m_gizmos.grabber_contains_mouse() && evt.RightDown()) {
-            if (m_gizmos.get_current_type() == Gizmos::SlaSupports)
-                m_gizmos.delete_current_grabber();
+        else if ((selected_object_idx != -1) && evt.RightDown() && m_gizmos.get_current_type() == Gizmos::SlaSupports && m_gizmos.mouse_event(SLAGizmoEventType::RightDown))
+        {
+            // event was taken care of by the SlaSupports gizmo
         }
         else if (view_toolbar_contains_mouse != -1)
         {
@@ -5530,7 +5588,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }
         }
     }
-    else if (evt.Dragging() && evt.LeftIsDown() && !gizmos_overlay_contains_mouse && (m_layers_editing.state == LayersEditing::Unknown) && (m_mouse.drag.move_volume_idx != -1))
+    else if (evt.Dragging() && evt.LeftIsDown() && !gizmos_overlay_contains_mouse && (m_layers_editing.state == LayersEditing::Unknown)
+          && (m_mouse.drag.move_volume_idx != -1) && m_gizmos.get_current_type() != Gizmos::SlaSupports /* don't allow dragging objects with the Sla gizmo on */)
     {
 #if ENABLE_MOVE_MIN_THRESHOLD
         if (!m_mouse.drag.move_requires_threshold)
@@ -5590,6 +5649,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
         m_dirty = true;
     }
+    else if (evt.Dragging() && m_gizmos.get_current_type() == Gizmos::SlaSupports && evt.ShiftDown() && m_gizmos.mouse_event(SLAGizmoEventType::Dragging, Vec2d(pos(0), pos(1)), evt.ShiftDown()))
+    {
+        // the gizmo got the event and took some action, no need to do anything more here
+        m_dirty = true;
+    }
     else if (evt.Dragging() && !gizmos_overlay_contains_mouse)
     {
         m_mouse.dragging = true;
@@ -5645,6 +5709,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             _stop_timer();
             m_layers_editing.accept_changes(*this);
         }
+        else if (evt.LeftUp() && m_gizmos.get_current_type() == Gizmos::SlaSupports && !m_gizmos.is_dragging()
+              && !m_mouse.dragging && m_gizmos.mouse_event(SLAGizmoEventType::LeftUp, Vec2d(pos(0), pos(1)), evt.ShiftDown()))
+        {
+            // the gizmo got the event and took some action, no need to do anything more
+        }
         else if ((m_mouse.drag.move_volume_idx != -1) && m_mouse.dragging)
         {
             m_regenerate_volumes = false;
@@ -5654,16 +5723,12 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // of the scene with the background processing data should be performed.
             post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
         }
-        else if (evt.LeftUp() && m_gizmos.get_current_type() == Gizmos::SlaSupports && m_hover_volume_id != -1)
+        else if (evt.LeftUp() && !m_mouse.dragging && (m_hover_volume_id == -1) && !gizmos_overlay_contains_mouse && !m_gizmos.is_dragging()
+              && !is_layers_editing_enabled() && (m_gizmos.get_current_type() != Gizmos::SlaSupports || !m_gizmos.mouse_event(SLAGizmoEventType::LeftUp, Vec2d(pos(0), pos(1)), evt.ShiftDown())))
         {
-            int id = m_selection.get_object_idx();
+            // SLA gizmo cannot be deselected by clicking in canvas area to avoid inadvertent unselection and losing manual changes
+            // that's why the mouse_event function was called so that the gizmo can refuse the deselection in manual editing mode
 
-            if ((id != -1) && (m_model != nullptr)) {
-                m_gizmos.clicked_on_object(Vec2d(pos(0), pos(1)));
-            }
-        }
-        else if (evt.LeftUp() && !m_mouse.dragging && (m_hover_volume_id == -1) && !gizmos_overlay_contains_mouse && !m_gizmos.is_dragging() && !is_layers_editing_enabled())
-        {
             // deselect and propagate event through callback
             if (!evt.ShiftDown() && m_picking_enabled && !m_toolbar_action_running && !m_mouse.ignore_up_event)
             {
@@ -5696,10 +5761,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 do_rotate();
                 break;
             }
-            case Gizmos::SlaSupports:
-                // End of mouse dragging, update the SLAPrint/SLAPrintObjects with the new support points.
-                post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
-                break;
             default:
                 break;
             }
@@ -6584,7 +6645,9 @@ void GLCanvas3D::_render_objects() const
             m_layers_editing.render_volumes(*this, this->m_volumes);
         } else {
             // do not cull backfaces to show broken geometry, if any
-            m_volumes.render_VBOs(GLVolumeCollection::Opaque, m_picking_enabled);
+            m_volumes.render_VBOs(GLVolumeCollection::Opaque, m_picking_enabled, [this](const GLVolume& volume) {
+                return (m_render_sla_auxiliaries || volume.composite_id.volume_id >= 0);
+            });
         }
         m_volumes.render_VBOs(GLVolumeCollection::Transparent, false);
         m_shader.stop_using();
@@ -6600,7 +6663,9 @@ void GLCanvas3D::_render_objects() const
         }
 
         // do not cull backfaces to show broken geometry, if any
-        m_volumes.render_legacy(GLVolumeCollection::Opaque, m_picking_enabled);
+        m_volumes.render_legacy(GLVolumeCollection::Opaque, m_picking_enabled, [this](const GLVolume& volume) {
+                return (m_render_sla_auxiliaries || volume.composite_id.volume_id >= 0);
+            });
         m_volumes.render_legacy(GLVolumeCollection::Transparent, false);
 
         if (m_use_clipping_planes)
@@ -6634,9 +6699,6 @@ void GLCanvas3D::_render_selection_center() const
 
 void GLCanvas3D::_render_warning_texture() const
 {
-    if (!m_warning_texture_enabled)
-        return;
-
     m_warning_texture.render(*this);
 }
 
@@ -6681,7 +6743,7 @@ void GLCanvas3D::_render_volumes(bool fake_colors) const
             ::glColor4fv(vol->render_color);
         }
 
-        if (!fake_colors || !vol->disabled)
+        if ((!fake_colors || !vol->disabled) && (vol->composite_id.volume_id >= 0 || m_render_sla_auxiliaries))
             vol->render();
 
         ++volume_id;
@@ -6832,20 +6894,20 @@ void GLCanvas3D::_render_sla_slices() const
             {
                 // calculate model bottom cap
                 if (bottom_obj_triangles.empty() && (it_min_z->second.model_slices_idx < model_slices.size()))
-                    bottom_obj_triangles = triangulate_expolygons_3df(model_slices[it_min_z->second.model_slices_idx], min_z, true);
+                    bottom_obj_triangles = triangulate_expolygons_3d(model_slices[it_min_z->second.model_slices_idx], min_z, true);
                 // calculate support bottom cap
                 if (bottom_sup_triangles.empty() && (it_min_z->second.support_slices_idx < support_slices.size()))
-                    bottom_sup_triangles = triangulate_expolygons_3df(support_slices[it_min_z->second.support_slices_idx], min_z, true);
+                    bottom_sup_triangles = triangulate_expolygons_3d(support_slices[it_min_z->second.support_slices_idx], min_z, true);
             }
 
             if (it_max_z != index.end())
             {
                 // calculate model top cap
                 if (top_obj_triangles.empty() && (it_max_z->second.model_slices_idx < model_slices.size()))
-                    top_obj_triangles = triangulate_expolygons_3df(model_slices[it_max_z->second.model_slices_idx], max_z, false);
+                    top_obj_triangles = triangulate_expolygons_3d(model_slices[it_max_z->second.model_slices_idx], max_z, false);
                 // calculate support top cap
                 if (top_sup_triangles.empty() && (it_max_z->second.support_slices_idx < support_slices.size()))
-					top_sup_triangles = triangulate_expolygons_3df(support_slices[it_max_z->second.support_slices_idx], max_z, false);
+					top_sup_triangles = triangulate_expolygons_3d(support_slices[it_max_z->second.support_slices_idx], max_z, false);
             }
         }
 
@@ -6958,11 +7020,7 @@ void GLCanvas3D::_update_gizmos_data()
         m_gizmos.set_rotation(Vec3d::Zero());
         ModelObject* model_object = m_model->objects[m_selection.get_object_idx()];
         m_gizmos.set_flattening_data(model_object);
-#if ENABLE_SLA_SUPPORT_GIZMO_MOD
         m_gizmos.set_sla_support_data(model_object, m_selection);
-#else
-        m_gizmos.set_model_object_ptr(model_object);
-#endif // ENABLE_SLA_SUPPORT_GIZMO_MOD
     }
     else if (m_selection.is_single_volume() || m_selection.is_single_modifier())
     {
@@ -6970,22 +7028,14 @@ void GLCanvas3D::_update_gizmos_data()
         m_gizmos.set_scale(volume->get_volume_scaling_factor());
         m_gizmos.set_rotation(Vec3d::Zero());
         m_gizmos.set_flattening_data(nullptr);
-#if ENABLE_SLA_SUPPORT_GIZMO_MOD
         m_gizmos.set_sla_support_data(nullptr, m_selection);
-#else
-        m_gizmos.set_model_object_ptr(nullptr);
-#endif // ENABLE_SLA_SUPPORT_GIZMO_MOD
     }
     else
     {
         m_gizmos.set_scale(Vec3d::Ones());
         m_gizmos.set_rotation(Vec3d::Zero());
         m_gizmos.set_flattening_data(m_selection.is_from_single_object() ? m_model->objects[m_selection.get_object_idx()] : nullptr);
-#if ENABLE_SLA_SUPPORT_GIZMO_MOD
         m_gizmos.set_sla_support_data(nullptr, m_selection);
-#else
-        m_gizmos.set_model_object_ptr(nullptr);
-#endif // ENABLE_SLA_SUPPORT_GIZMO_MOD
     }
 }
 
@@ -8183,17 +8233,7 @@ void GLCanvas3D::_update_toolpath_volumes_outside_state()
 void GLCanvas3D::_show_warning_texture_if_needed()
 {
     _set_current();
-
-    if (_is_any_volume_outside())
-    {
-        enable_warning_texture(true);
-        _generate_warning_texture(L("Detected toolpath outside print volume"));
-    }
-    else
-    {
-        enable_warning_texture(false);
-        _reset_warning_texture();
-    }
+    _set_warning_texture(WarningTexture::ToolpathOutside, _is_any_volume_outside());
 }
 
 std::vector<float> GLCanvas3D::_parse_colors(const std::vector<std::string>& colors)
@@ -8226,14 +8266,9 @@ void GLCanvas3D::_generate_legend_texture(const GCodePreviewData& preview_data, 
     m_legend_texture.generate(preview_data, tool_colors, *this, m_dynamic_background_enabled && _is_any_volume_outside());
 }
 
-void GLCanvas3D::_generate_warning_texture(const std::string& msg)
+void GLCanvas3D::_set_warning_texture(WarningTexture::Warning warning, bool state)
 {
-    m_warning_texture.generate(msg, *this);
-}
-
-void GLCanvas3D::_reset_warning_texture()
-{
-    m_warning_texture.reset();
+    m_warning_texture.activate(warning, state, *this);
 }
 
 bool GLCanvas3D::_is_any_volume_outside() const
