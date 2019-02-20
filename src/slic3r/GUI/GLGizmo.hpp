@@ -502,6 +502,7 @@ private:
     bool m_ignore_up_event = false;
     bool m_combo_box_open = false;
     bool m_unsaved_changes = false;
+    bool m_selection_empty = true;
     EState m_old_state = Off; // to be able to see that the gizmo has just been closed (see on_set_state)
 #if SLAGIZMO_IMGUI_MODAL
     bool m_show_modal = false;
