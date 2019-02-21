@@ -51,7 +51,7 @@ const std::array<std::string, slaposCount> OBJ_STEP_LABELS =
     L("Slicing model"),                 // slaposObjectSlice,
     L("Generating support points"),      // slaposSupportPoints,
     L("Generating support tree"),       // slaposSupportTree,
-    L("Generating base pool"),          // slaposBasePool,
+    L("Generating pad"),                // slaposBasePool,
     L("Slicing supports"),              // slaposSliceSupports,
     L("Slicing supports")               // slaposIndexSlices,
 };
@@ -400,6 +400,80 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
 #endif /* _DEBUG */
 
     return static_cast<ApplyStatus>(apply_status);
+}
+
+// After calling the apply() function, set_task() may be called to limit the task to be processed by process().
+void SLAPrint::set_task(const TaskParams &params)
+{
+	// Grab the lock for the Print / PrintObject milestones.
+	tbb::mutex::scoped_lock lock(this->state_mutex());
+
+	int n_object_steps = int(params.to_object_step) + 1;
+	if (n_object_steps == 0)
+		n_object_steps = (int)slaposCount;
+
+	if (params.single_model_object.valid()) {
+		SLAPrintObject *print_object = nullptr;
+		size_t          idx_print_object = 0;
+		for (; idx_print_object < m_objects.size(); ++idx_print_object)
+			if (m_objects[idx_print_object]->model_object()->id() == params.single_model_object) {
+				print_object = m_objects[idx_print_object];
+				break;
+			}
+		assert(print_object != nullptr);
+		bool shall_cancel = false;
+		for (int istep = 0; istep < n_object_steps; ++istep)
+			if (! print_object->m_stepmask[istep]) {
+				shall_cancel = true;
+				break;
+			}
+		bool running = false;
+		if (!shall_cancel) {
+			for (int istep = 0; istep < n_object_steps; ++ istep)
+				if (print_object->is_step_started_unguarded(SLAPrintObjectStep(istep))) {
+					running = true;
+					break;
+				}
+		}
+		if (!running)
+			this->cancel_callback();
+
+		// Now the background process is either stopped, or it is inside one of the print object steps to be calculated anyway.
+		if (params.single_model_instance_only) {
+			// Suppress all the steps of other instances.
+			for (SLAPrintObject *po : m_objects)
+				for (int istep = 0; istep < (int)slaposCount; ++istep)
+					po->m_stepmask[istep] = false;
+		}
+		else if (!running) {
+			// Swap the print objects, so that the selected print_object is first in the row.
+			// At this point the background processing must be stopped, so it is safe to shuffle print objects.
+			if (idx_print_object != 0)
+				std::swap(m_objects.front(), m_objects[idx_print_object]);
+		}
+		for (int istep = 0; istep < n_object_steps; ++ istep)
+			print_object->m_stepmask[istep] = true;
+		for (int istep = n_object_steps; istep < (int)slaposCount; ++istep)
+			print_object->m_stepmask[istep] = false;
+	}
+
+    if (params.to_object_step != -1 || params.to_print_step != -1) {
+        // Limit the print steps.
+		size_t istep = (params.to_object_step != -1) ? 0 : size_t(params.to_print_step) + 1;
+		for (; istep < m_stepmask.size(); ++ istep)
+			m_stepmask[istep] = false;
+    }
+}
+
+// Clean up after process() finished, either with success, error or if canceled.
+// The adjustments on the SLAPrint / SLAPrintObject data due to set_task() are to be reverted here.
+void SLAPrint::finalize()
+{
+    for (SLAPrintObject *po : m_objects)
+        for (int istep = 0; istep < (int)slaposCount; ++ istep)
+			po->m_stepmask[istep] = true;
+    for (int istep = 0; istep < (int)slapsCount; ++ istep)
+        m_stepmask[istep] = true;
 }
 
 namespace {
@@ -1035,7 +1109,7 @@ bool SLAPrint::is_step_done(SLAPrintObjectStep step) const
         return false;
     tbb::mutex::scoped_lock lock(this->state_mutex());
     for (const SLAPrintObject *object : m_objects)
-        if (! object->m_state.is_done_unguarded(step))
+        if (! object->is_step_done_unguarded(step))
             return false;
     return true;
 }

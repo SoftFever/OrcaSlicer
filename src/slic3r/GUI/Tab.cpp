@@ -669,6 +669,7 @@ void Tab::load_config(const DynamicPrintConfig& config)
 	bool modified = 0;
 	for(auto opt_key : m_config->diff(config)) {
 		m_config->set_key_value(opt_key, config.option(opt_key)->clone());
+        m_dirty_options.emplace(opt_key);
 		modified = 1;
 	}
 	if (modified) {
@@ -751,17 +752,7 @@ void Tab::load_key_value(const std::string& opt_key, const boost::any& value, bo
 
 void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 {
-	wxCommandEvent event(EVT_TAB_VALUE_CHANGED);
-	event.SetEventObject(this);
-	event.SetString(opt_key);
-	if (opt_key == "extruders_count")
-	{
-		int val = boost::any_cast<size_t>(value);
-		event.SetInt(val);
-	}
-
-	wxPostEvent(this, event);
-
+    m_dirty_options.erase(opt_key);
 
     ConfigOptionsGroup* og_freq_chng_params = wxGetApp().sidebar().og_freq_chng_params(supports_printer_technology(ptFFF));
     if (opt_key == "fill_density" || opt_key == "supports_enable" || opt_key == "pad_enable")
@@ -788,6 +779,21 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         update_wiping_button_visibility();
 
 	update();
+
+    // Post event to the Plater after updating of the all dirty options
+    // It helps to avoid needless schedule_background_processing
+    if (update_completed()) {
+        wxCommandEvent event(EVT_TAB_VALUE_CHANGED);
+        event.SetEventObject(this);
+        event.SetString(opt_key);
+        if (opt_key == "extruders_count")
+        {
+            const int val = boost::any_cast<size_t>(value);
+            event.SetInt(val);
+        }
+
+        wxPostEvent(this, event);
+    }
 }
 
 // Show/hide the 'purging volumes' button
@@ -1163,8 +1169,8 @@ void TabPrint::update()
     // KillFocus() for the wxSpinCtrl use CallAfter function. So,
     // to except the duplicate call of the update() after dialog->ShowModal(),
     // let check if this process is already started.
-    if (is_msg_dlg_already_exist)   
-        return;
+//     if (is_msg_dlg_already_exist)    // ! It looks like a fixed problem after start to using of a m_dirty_options
+//         return;                      // ! TODO Let delete this part of code after a common aplication testing
 
 	Freeze();
 
@@ -1181,7 +1187,7 @@ void TabPrint::update()
 			"- no ensure_vertical_shell_thickness\n"
 			"\nShall I adjust those settings in order to enable Spiral Vase?"));
 		auto dialog = new wxMessageDialog(parent(), msg_text, _(L("Spiral Vase")), wxICON_WARNING | wxYES | wxNO);
-        is_msg_dlg_already_exist = true;
+//         is_msg_dlg_already_exist = true;
 		DynamicPrintConfig new_conf = *m_config;
 		if (dialog->ShowModal() == wxID_YES) {
 			new_conf.set_key_value("perimeters", new ConfigOptionInt(1));
@@ -1197,7 +1203,7 @@ void TabPrint::update()
 		}
 		load_config(new_conf);
 		on_value_change("fill_density", fill_density);
-        is_msg_dlg_already_exist = false;
+//         is_msg_dlg_already_exist = false;
 	}
 
 	if (m_config->opt_bool("wipe_tower") && m_config->opt_bool("support_material") &&
