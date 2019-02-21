@@ -402,13 +402,14 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
     return static_cast<ApplyStatus>(apply_status);
 }
 
+// After calling the apply() function, set_task() may be called to limit the task to be processed by process().
 void SLAPrint::set_task(const TaskParams &params)
 {
 	// Grab the lock for the Print / PrintObject milestones.
 	tbb::mutex::scoped_lock lock(this->state_mutex());
 
-	int n_object_steps = params.to_object_step + 1;
-	if (n_object_steps = 0)
+	int n_object_steps = int(params.to_object_step) + 1;
+	if (n_object_steps == 0)
 		n_object_steps = (int)slaposCount;
 
 	if (params.single_model_object.valid()) {
@@ -442,7 +443,7 @@ void SLAPrint::set_task(const TaskParams &params)
 			// Suppress all the steps of other instances.
 			for (SLAPrintObject *po : m_objects)
 				for (int istep = 0; istep < (int)slaposCount; ++istep)
-					print_object->m_stepmask[istep] = false;
+					po->m_stepmask[istep] = false;
 		}
 		else if (!running) {
 			// Swap the print objects, so that the selected print_object is first in the row.
@@ -452,9 +453,27 @@ void SLAPrint::set_task(const TaskParams &params)
 		}
 		for (int istep = 0; istep < n_object_steps; ++ istep)
 			print_object->m_stepmask[istep] = true;
-		for (int istep = 0; istep < (int)slaposCount; ++ istep)
+		for (int istep = n_object_steps; istep < (int)slaposCount; ++istep)
 			print_object->m_stepmask[istep] = false;
 	}
+
+    if (params.to_object_step != -1 || params.to_print_step != -1) {
+        // Limit the print steps.
+		size_t istep = (params.to_object_step != -1) ? 0 : size_t(params.to_print_step) + 1;
+		for (; istep < m_stepmask.size(); ++ istep)
+			m_stepmask[istep] = false;
+    }
+}
+
+// Clean up after process() finished, either with success, error or if canceled.
+// The adjustments on the SLAPrint / SLAPrintObject data due to set_task() are to be reverted here.
+void SLAPrint::finalize()
+{
+    for (SLAPrintObject *po : m_objects)
+        for (int istep = 0; istep < (int)slaposCount; ++ istep)
+			po->m_stepmask[istep] = true;
+    for (int istep = 0; istep < (int)slapsCount; ++ istep)
+        m_stepmask[istep] = true;
 }
 
 namespace {

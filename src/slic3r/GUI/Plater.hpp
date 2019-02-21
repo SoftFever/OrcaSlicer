@@ -19,6 +19,7 @@ class wxString;
 namespace Slic3r {
 
 class Model;
+class ModelObject;
 class Print;
 class SLAPrint;
 
@@ -145,6 +146,7 @@ public:
     void export_amf();
     void export_3mf(const boost::filesystem::path& output_path = boost::filesystem::path());
     void reslice();
+    void reslice_SLA_supports(const ModelObject &object);
     void changed_object(int obj_idx);
     void fix_through_netfabb(const int obj_idx, const int vol_idx = -1);
     void send_gcode();

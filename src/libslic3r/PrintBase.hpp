@@ -254,8 +254,13 @@ public:
         // If non-negative, stop processing at the successive print step.
         int                     to_print_step;
     };
-
+    // After calling the apply() function, call set_task() to limit the task to be processed by process().
+    virtual void            set_task(const TaskParams &params) {}
+    // Perform the calculation. This is the only method that is to be called at a worker thread.
     virtual void            process() = 0;
+    // Clean up after process() finished, either with success, error or if canceled.
+    // The adjustments on the Print / PrintObject data due to set_task() are to be reverted here.
+    virtual void            finalize() {}
 
     struct SlicingStatus {
 		SlicingStatus(int percent, const std::string &text, unsigned int flags = 0) : percent(percent), text(text), flags(flags) {}

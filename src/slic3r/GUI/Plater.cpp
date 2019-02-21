@@ -2032,6 +2032,13 @@ unsigned int Plater::priv::update_background_process(bool force_validation)
 		wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, evt.Clone());
 	}
 
+    //FIXME update "Slice Now / Schedule background process"
+    //background_process.is_export_scheduled() - byl zavolan "Export G-code", background processing ma jmeno export souboru
+    //background_process.is_upload_scheduled() - byl zavolan "Send to OctoPrint", jeste nebylo doslajsovano (pak se preda upload fronte a background process zapomene)
+    //background_process.empty() - prazdna plocha
+    // pokud (invalidated != Print::APPLY_STATUS_UNCHANGED) a ! background_process.empty() -> je neco ke slajsovani (povol tlacitko)
+    // pokud (return_state & UPDATE_BACKGROUND_PROCESS_INVALID) != 0 -> doslo k chybe (gray out "Slice now")
+
     return return_state;
 }
 
@@ -2996,6 +3003,32 @@ void Plater::reslice()
     if (state & priv::UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE)
         this->p->view3D->reload_scene(false);
     // Only restarts if the state is valid.
+    this->p->restart_background_process(state | priv::UPDATE_BACKGROUND_PROCESS_FORCE_RESTART);
+}
+
+void Plater::reslice_SLA_supports(const ModelObject &object)
+{
+    //FIXME Don't reslice if export of G-code or sending to OctoPrint is running.
+    // bitmask of UpdateBackgroundProcessReturnState
+    unsigned int state = this->p->update_background_process(true);
+    if (state & priv::UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE)
+        this->p->view3D->reload_scene(false);
+
+	if (this->p->background_process.empty() || (state & priv::UPDATE_BACKGROUND_PROCESS_INVALID))
+        // Nothing to do on empty input or invalid configuration.
+        return;
+
+    // Limit calculation to the single object only.
+    PrintBase::TaskParams task;
+    task.single_model_object = object.id();
+    // If the background processing is not enabled, calculate supports just for the single instance.
+    // Otherwise calculate everything, but start with the provided object.
+	if (!this->p->background_processing_enabled()) {
+		task.single_model_instance_only = true;
+		task.to_object_step = slaposBasePool;
+	}
+    this->p->background_process.set_task(task);
+    // and let the background processing start.
     this->p->restart_background_process(state | priv::UPDATE_BACKGROUND_PROCESS_FORCE_RESTART);
 }
 

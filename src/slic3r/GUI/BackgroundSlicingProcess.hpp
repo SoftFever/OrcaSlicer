@@ -78,6 +78,9 @@ public:
 	// Apply config over the print. Returns false, if the new config values caused any of the already
 	// processed steps to be invalidated, therefore the task will need to be restarted.
 	Print::ApplyStatus apply(const Model &model, const DynamicPrintConfig &config);
+	// After calling the apply() function, set_task() may be called to limit the task to be processed by process().
+	// This is useful for calculating SLA supports for a single object only.
+	void 		set_task(const PrintBase::TaskParams &params);
 	// After calling apply, the empty() call will report whether there is anything to slice.
 	bool 		empty() const;
 	// Validate the print. Returns an empty string if valid, returns an error message if invalid.
@@ -94,6 +97,7 @@ public:
 	void reset_export();
 	// Once the G-code export is scheduled, the apply() methods will do nothing.
 	bool is_export_scheduled() const { return ! m_export_path.empty(); }
+	bool is_upload_scheduled() const { return ! m_upload_job.empty(); }
 
 	enum State {
 		// m_thread  is not running yet, or it did not reach the STATE_IDLE yet (it does not wait on the condition yet).
