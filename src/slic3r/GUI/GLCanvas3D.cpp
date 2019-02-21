@@ -3279,7 +3279,8 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
     wxMemoryDC mask_memDC;
 
     // calculate scaling
-    const float scale = canvas.get_canvas_size().get_scale_factor();
+//     const float scale = canvas.get_canvas_size().get_scale_factor();
+    const float scale = wxGetApp().em_unit()*0.1; // get scale from em_unit() value, because of get_scale_factor() return 1 
     const int scaled_square = std::floor((float)Px_Square * scale);
     const int scaled_title_offset = Px_Title_Offset * scale;
     const int scaled_text_offset = Px_Text_Offset * scale;
@@ -3287,7 +3288,7 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
     const int scaled_border = Px_Border * scale;
 
     // select default font
-    const wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Scale(scale);
+    const wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT)/*.Scale(scale)*/; // font is no need to scale now
     memDC.SetFont(font);
     mask_memDC.SetFont(font);
 
@@ -4521,7 +4522,8 @@ void GLCanvas3D::bind_event_handlers()
         m_canvas->Bind(wxEVT_SIZE, &GLCanvas3D::on_size, this);
         m_canvas->Bind(wxEVT_IDLE, &GLCanvas3D::on_idle, this);
         m_canvas->Bind(wxEVT_CHAR, &GLCanvas3D::on_char, this);
-        m_canvas->Bind(wxEVT_KEY_UP, &GLCanvas3D::on_key_up, this);
+        m_canvas->Bind(wxEVT_KEY_DOWN, &GLCanvas3D::on_key, this);
+        m_canvas->Bind(wxEVT_KEY_UP, &GLCanvas3D::on_key, this);
         m_canvas->Bind(wxEVT_MOUSEWHEEL, &GLCanvas3D::on_mouse_wheel, this);
         m_canvas->Bind(wxEVT_TIMER, &GLCanvas3D::on_timer, this);
         m_canvas->Bind(wxEVT_LEFT_DOWN, &GLCanvas3D::on_mouse, this);
@@ -4547,7 +4549,8 @@ void GLCanvas3D::unbind_event_handlers()
         m_canvas->Unbind(wxEVT_SIZE, &GLCanvas3D::on_size, this);
         m_canvas->Unbind(wxEVT_IDLE, &GLCanvas3D::on_idle, this);
         m_canvas->Unbind(wxEVT_CHAR, &GLCanvas3D::on_char, this);
-        m_canvas->Unbind(wxEVT_KEY_UP, &GLCanvas3D::on_key_up, this);
+        m_canvas->Unbind(wxEVT_KEY_DOWN, &GLCanvas3D::on_key, this);
+        m_canvas->Unbind(wxEVT_KEY_UP, &GLCanvas3D::on_key, this);
         m_canvas->Unbind(wxEVT_MOUSEWHEEL, &GLCanvas3D::on_mouse_wheel, this);
         m_canvas->Unbind(wxEVT_TIMER, &GLCanvas3D::on_timer, this);
         m_canvas->Unbind(wxEVT_LEFT_DOWN, &GLCanvas3D::on_mouse, this);
@@ -4584,6 +4587,15 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
     // see include/wx/defs.h enum wxKeyCode
     int keyCode = evt.GetKeyCode();
     int ctrlMask = wxMOD_CONTROL;
+
+#if ENABLE_IMGUI
+    auto imgui = wxGetApp().imgui();
+    if (imgui->update_key_data(evt)) {
+        render();
+        return;
+    }
+#endif // ENABLE_IMGUI
+
 //#ifdef __APPLE__
 //    ctrlMask |= wxMOD_RAW_CONTROL;
 //#endif /* __APPLE__ */
@@ -4659,14 +4671,23 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
     }
 }
 
-void GLCanvas3D::on_key_up(wxKeyEvent& evt)
+void GLCanvas3D::on_key(wxKeyEvent& evt)
 {
-    // see include/wx/defs.h enum wxKeyCode
-    int keyCode = evt.GetKeyCode();
+#if ENABLE_IMGUI
+    auto imgui = wxGetApp().imgui();
+    if (imgui->update_key_data(evt)) {
+        render();
+    } else
+#endif // ENABLE_IMGUI
+    if (evt.GetEventType() == wxEVT_KEY_UP) {
+        const int keyCode = evt.GetKeyCode();
+    
+        // shift has been just released - SLA gizmo might want to close rectangular selection.
+        if (m_gizmos.get_current_type() == Gizmos::SlaSupports && keyCode == WXK_SHIFT && m_gizmos.mouse_event(SLAGizmoEventType::ShiftUp))
+            m_dirty = true;
+    }
 
-    // shift has been just released - SLA gizmo might want to close rectangular selection.
-    if (m_gizmos.get_current_type() == Gizmos::SlaSupports && keyCode == WXK_SHIFT && m_gizmos.mouse_event(SLAGizmoEventType::ShiftUp))
-        m_dirty = true;
+    evt.Skip();   // Needed to have EVT_CHAR generated as well
 }
 
 void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
@@ -4723,9 +4744,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     auto imgui = wxGetApp().imgui();
     if (imgui->update_mouse_data(evt)) {
         render();
-        if (imgui->want_any_input()) {
-            return;
-        }
+        return;
     }
 #endif // ENABLE_IMGUI
 

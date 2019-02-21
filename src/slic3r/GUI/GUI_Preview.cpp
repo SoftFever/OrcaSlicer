@@ -257,7 +257,7 @@ bool Preview::init(wxWindow* parent, DynamicPrintConfig* config, BackgroundSlici
     m_label_show_features = new wxStaticText(this, wxID_ANY, _(L("Show")));
 
     m_combochecklist_features = new wxComboCtrl();
-    m_combochecklist_features->Create(this, wxID_ANY, _(L("Feature types")), wxDefaultPosition, wxSize(200, -1), wxCB_READONLY);
+    m_combochecklist_features->Create(this, wxID_ANY, _(L("Feature types")), wxDefaultPosition, wxSize(15 * wxGetApp().em_unit(), -1), wxCB_READONLY);
     std::string feature_text = GUI::into_u8(_(L("Feature types")));
     std::string feature_items = GUI::into_u8(
         _(L("Perimeter")) + "|" +

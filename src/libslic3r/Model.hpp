@@ -49,6 +49,8 @@ struct ModelID
 	bool operator<=(const ModelID &rhs) const { return this->id <= rhs.id; }
 	bool operator>=(const ModelID &rhs) const { return this->id >= rhs.id; }
 
+    bool valid() const { return id != 0; }
+
 	size_t	id;
 };
 

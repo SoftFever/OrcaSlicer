@@ -10,6 +10,7 @@
 
 class wxString;
 class wxMouseEvent;
+class wxKeyEvent;
 
 
 namespace Slic3r {
@@ -25,6 +26,8 @@ class ImGuiWrapper
     float m_style_scaling;
     unsigned m_mouse_buttons;
     bool m_disabled;
+    bool m_new_frame_open;
+    std::string m_clipboard_text;
 
 public:
     ImGuiWrapper();
@@ -37,6 +40,7 @@ public:
     void set_display_size(float w, float h);
     void set_style_scaling(float scaling);
     bool update_mouse_data(wxMouseEvent &evt);
+    bool update_key_data(wxKeyEvent &evt);
 
     void new_frame();
     void render();
@@ -68,9 +72,14 @@ private:
     void init_default_font(float scaling);
     void create_device_objects();
     void create_fonts_texture();
+    void init_input();
+    void init_style();
     void render_draw_data(ImDrawData *draw_data);
     void destroy_device_objects();
     void destroy_fonts_texture();
+
+    static const char* clipboard_get(void* user_data);
+    static void clipboard_set(void* user_data, const char* text);
 };
 
 

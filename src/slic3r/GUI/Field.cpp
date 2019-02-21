@@ -785,14 +785,9 @@ boost::any& ColourPicker::get_value()
 
 void PointCtrl::BUILD()
 {
-	auto size = wxSize(wxDefaultSize);
-	if (m_opt.height >= 0) size.SetHeight(m_opt.height);
-	if (m_opt.width >= 0) size.SetWidth(m_opt.width);
-
 	auto temp = new wxBoxSizer(wxHORIZONTAL);
-	// 	$self->wxSizer($sizer);
-	// 
-	wxSize field_size(40, -1);
+
+    const wxSize field_size(4 * wxGetApp().em_unit(), -1);
 
 	auto default_pt = static_cast<const ConfigOptionPoints*>(m_opt.default_value)->values.at(0);
 	double val = default_pt(0);

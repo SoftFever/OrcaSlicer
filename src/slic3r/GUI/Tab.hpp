@@ -203,6 +203,8 @@ protected:
 
     void                set_type();
 
+    int                 m_em_unit;
+
 public:
 	PresetBundle*		m_preset_bundle;
 	bool				m_show_btn_incompatible_presets = false;

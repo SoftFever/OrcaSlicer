@@ -53,6 +53,11 @@ wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAUL
 		SLIC3R_VERSION +
 		_(L(" - Remember to check for updates at http://github.com/prusa3d/slic3r/releases")));
 
+
+    // initialize default width_unit according to the width of the one symbol ("x") of the current system font
+    const wxSize size = GetTextExtent("m");
+    wxGetApp().set_em_unit(size.x-1);
+
     // initialize tabpanel and menubar
     init_tabpanel();
     init_menubar();

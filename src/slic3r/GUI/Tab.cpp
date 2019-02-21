@@ -56,6 +56,8 @@ Tab::Tab(wxNotebook* parent, const wxString& title, const char* name) :
 	m_compatible_prints.dialog_label 	= _(L("Select the print profiles this profile is compatible with."));
 
 	wxGetApp().tabs_list.push_back(this);
+
+    m_em_unit = wxGetApp().em_unit();
 }
 
 void Tab::set_type()
@@ -96,22 +98,26 @@ void Tab::create_preset_tab()
 #endif //__WXOSX__
 
 	// preset chooser
-	m_presets_choice = new wxBitmapComboBox(panel, wxID_ANY, "", wxDefaultPosition, wxSize(270, -1), 0, 0,wxCB_READONLY);
+    m_presets_choice = new wxBitmapComboBox(panel, wxID_ANY, "", wxDefaultPosition, wxSize(25 * m_em_unit, -1), 0, 0, wxCB_READONLY);
 
 	auto color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 
 	//buttons
 	wxBitmap bmpMenu;
-	bmpMenu = wxBitmap(from_u8(Slic3r::var("disk.png")), wxBITMAP_TYPE_PNG);
+// 	bmpMenu = wxBitmap(from_u8(Slic3r::var("disk.png")), wxBITMAP_TYPE_PNG);
+    bmpMenu = create_scaled_bitmap("disk.png");
 	m_btn_save_preset = new wxBitmapButton(panel, wxID_ANY, bmpMenu, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
 	if (wxMSW) m_btn_save_preset->SetBackgroundColour(color);
-	bmpMenu = wxBitmap(from_u8(Slic3r::var("delete.png")), wxBITMAP_TYPE_PNG);
+// 	bmpMenu = wxBitmap(from_u8(Slic3r::var("delete.png")), wxBITMAP_TYPE_PNG);
+    bmpMenu = create_scaled_bitmap("delete.png");
 	m_btn_delete_preset = new wxBitmapButton(panel, wxID_ANY, bmpMenu, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
 	if (wxMSW) m_btn_delete_preset->SetBackgroundColour(color);
 
 	m_show_incompatible_presets = false;
-	m_bmp_show_incompatible_presets.LoadFile(from_u8(Slic3r::var("flag-red-icon.png")), wxBITMAP_TYPE_PNG);
-	m_bmp_hide_incompatible_presets.LoadFile(from_u8(Slic3r::var("flag-green-icon.png")), wxBITMAP_TYPE_PNG);
+// 	m_bmp_show_incompatible_presets.LoadFile(from_u8(Slic3r::var("flag-red-icon.png")), wxBITMAP_TYPE_PNG);
+// 	m_bmp_hide_incompatible_presets.LoadFile(from_u8(Slic3r::var("flag-green-icon.png")), wxBITMAP_TYPE_PNG);
+	m_bmp_show_incompatible_presets = create_scaled_bitmap("flag-red-icon.png");
+	m_bmp_hide_incompatible_presets = create_scaled_bitmap("flag-green-icon.png");
 	m_btn_hide_incompatible_presets = new wxBitmapButton(panel, wxID_ANY, m_bmp_hide_incompatible_presets, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
 	if (wxMSW) m_btn_hide_incompatible_presets->SetBackgroundColour(color);
 
@@ -134,13 +140,18 @@ void Tab::create_preset_tab()
 	// Determine the theme color of OS (dark or light)
     auto luma = wxGetApp().get_colour_approx_luma(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 	// Bitmaps to be shown on the "Revert to system" aka "Lock to system" button next to each input field.
-	m_bmp_value_lock  	  .LoadFile(from_u8(var("sys_lock.png")),     wxBITMAP_TYPE_PNG);
-	m_bmp_value_unlock    .LoadFile(from_u8(var(luma >= 128 ? "sys_unlock.png" : "sys_unlock_grey.png")), wxBITMAP_TYPE_PNG);
+// 	m_bmp_value_lock  	  .LoadFile(from_u8(var("sys_lock.png")),     wxBITMAP_TYPE_PNG);
+// 	m_bmp_value_unlock    .LoadFile(from_u8(var(luma >= 128 ? "sys_unlock.png" : "sys_unlock_grey.png")), wxBITMAP_TYPE_PNG);
+	m_bmp_value_lock  	   = create_scaled_bitmap("sys_lock.png");
+	m_bmp_value_unlock     = create_scaled_bitmap(luma >= 128 ? "sys_unlock.png" : "sys_unlock_grey.png");
 	m_bmp_non_system = &m_bmp_white_bullet;
 	// Bitmaps to be shown on the "Undo user changes" button next to each input field.
-	m_bmp_value_revert    .LoadFile(from_u8(var(luma >= 128 ? "action_undo.png" : "action_undo_grey.png")), wxBITMAP_TYPE_PNG);
-	m_bmp_white_bullet    .LoadFile(from_u8(var("bullet_white.png")), wxBITMAP_TYPE_PNG);
-	m_bmp_question        .LoadFile(from_u8(var("question_mark_01.png")), wxBITMAP_TYPE_PNG);
+// 	m_bmp_value_revert    .LoadFile(from_u8(var(luma >= 128 ? "action_undo.png" : "action_undo_grey.png")), wxBITMAP_TYPE_PNG);
+// 	m_bmp_white_bullet    .LoadFile(from_u8(var("bullet_white.png")), wxBITMAP_TYPE_PNG);
+// 	m_bmp_question        .LoadFile(from_u8(var("question_mark_01.png")), wxBITMAP_TYPE_PNG);
+	m_bmp_value_revert    = create_scaled_bitmap(luma >= 128 ? "action_undo.png" : "action_undo_grey.png");
+	m_bmp_white_bullet    = create_scaled_bitmap("bullet_white.png");
+	m_bmp_question        = create_scaled_bitmap("question_mark_01.png");
 
 	fill_icon_descriptions();
 	set_tooltips_text();
@@ -171,19 +182,20 @@ void Tab::create_preset_tab()
     // Sizer with buttons for mode changing
     m_mode_sizer = new PrusaModeSizer(panel);
 
+    const float scale_factor = wxGetApp().em_unit()*0.1;// GetContentScaleFactor();
 	m_hsizer = new wxBoxSizer(wxHORIZONTAL);
 	sizer->Add(m_hsizer, 0, wxEXPAND | wxBOTTOM, 3);
 	m_hsizer->Add(m_presets_choice, 0, wxLEFT | wxRIGHT | wxTOP | wxALIGN_CENTER_VERTICAL, 3);
-	m_hsizer->AddSpacer(4);
+	m_hsizer->AddSpacer(int(4*scale_factor));
 	m_hsizer->Add(m_btn_save_preset, 0, wxALIGN_CENTER_VERTICAL);
-	m_hsizer->AddSpacer(4);
+    m_hsizer->AddSpacer(int(4 * scale_factor));
 	m_hsizer->Add(m_btn_delete_preset, 0, wxALIGN_CENTER_VERTICAL);
-	m_hsizer->AddSpacer(16);
+    m_hsizer->AddSpacer(int(16 * scale_factor));
 	m_hsizer->Add(m_btn_hide_incompatible_presets, 0, wxALIGN_CENTER_VERTICAL);
-	m_hsizer->AddSpacer(64);
+    m_hsizer->AddSpacer(int(64 * scale_factor));
 	m_hsizer->Add(m_undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL);
 	m_hsizer->Add(m_undo_btn, 0, wxALIGN_CENTER_VERTICAL);
-	m_hsizer->AddSpacer(32);
+    m_hsizer->AddSpacer(int(32 * scale_factor));
 	m_hsizer->Add(m_question_btn, 0, wxALIGN_CENTER_VERTICAL);
     // m_hsizer->AddStretchSpacer(32);
     // StretchSpacer has a strange behavior under OSX, so 
@@ -201,10 +213,10 @@ void Tab::create_preset_tab()
 	m_hsizer->Add(m_left_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, 3);
 
 	// tree
-	m_treectrl = new wxTreeCtrl(panel, wxID_ANY, wxDefaultPosition, wxSize(185, -1), 
+    m_treectrl = new wxTreeCtrl(panel, wxID_ANY, wxDefaultPosition, wxSize(20 * m_em_unit, -1),
 		wxTR_NO_BUTTONS | wxTR_HIDE_ROOT | wxTR_SINGLE | wxTR_NO_LINES | wxBORDER_SUNKEN | wxWANTS_CHARS);
 	m_left_sizer->Add(m_treectrl, 1, wxEXPAND);
-	m_icons = new wxImageList(16, 16, true, 1);
+    m_icons = new wxImageList(int(16 * scale_factor), int(16 * scale_factor), true, 1);
 	// Index of the last icon inserted into $self->{icons}.
 	m_icon_count = -1;
 	m_treectrl->AssignImageList(m_icons);
@@ -263,8 +275,9 @@ Slic3r::GUI::PageShp Tab::add_options_page(const wxString& title, const std::str
 		icon_idx = (m_icon_index.find(icon) == m_icon_index.end()) ? -1 : m_icon_index.at(icon);
 		if (icon_idx == -1) {
 			// Add a new icon to the icon list.
-            wxIcon img_icon(from_u8(Slic3r::var(icon)), wxBITMAP_TYPE_PNG);
-            m_icons->Add(img_icon);
+//             wxIcon img_icon(from_u8(Slic3r::var(icon)), wxBITMAP_TYPE_PNG);
+//             m_icons->Add(img_icon);
+            m_icons->Add(create_scaled_bitmap(icon));
             icon_idx = ++m_icon_count;
 			m_icon_index[icon] = icon_idx;
 		}
@@ -497,7 +510,7 @@ void TabSLAMaterial::init_options_list()
 
 void Tab::get_sys_and_mod_flags(const std::string& opt_key, bool& sys_page, bool& modified_page)
 {
-    auto opt = m_options_list.find(opt_key);
+	auto opt = m_options_list.find(opt_key);
 	if (sys_page) sys_page = (opt->second & osSystemValue) != 0;
 	modified_page |= (opt->second & osInitValue) == 0;
 }
@@ -1105,14 +1118,14 @@ void TabPrint::build()
 		optgroup = page->new_optgroup(_(L("Post-processing scripts")), 0);	
 		option = optgroup->get_option("post_process");
 		option.opt.full_width = true;
-		option.opt.height = 50;
+        option.opt.height = 5 * m_em_unit;//50;
 		optgroup->append_single_option_line(option);
 
 	page = add_options_page(_(L("Notes")), "note.png");
 		optgroup = page->new_optgroup(_(L("Notes")), 0);						
 		option = optgroup->get_option("notes");
 		option.opt.full_width = true;
-		option.opt.height = 250;
+        option.opt.height = 25 * m_em_unit;//250;
 		optgroup->append_single_option_line(option);
 
 	page = add_options_page(_(L("Dependencies")), "wrench.png");
@@ -1468,18 +1481,20 @@ void TabFilament::build()
 		};
 		optgroup->append_line(line);
 
+        const int gcode_field_height = 15 * m_em_unit; // 150
+        const int notes_field_height = 25 * m_em_unit; // 250
 
         page = add_options_page(_(L("Custom G-code")), "cog.png");
 		optgroup = page->new_optgroup(_(L("Start G-code")), 0);
 		Option option = optgroup->get_option("start_filament_gcode");
 		option.opt.full_width = true;
-		option.opt.height = 150;
+        option.opt.height = gcode_field_height;// 150;
 		optgroup->append_single_option_line(option);
 
 		optgroup = page->new_optgroup(_(L("End G-code")), 0);
 		option = optgroup->get_option("end_filament_gcode");
 		option.opt.full_width = true;
-		option.opt.height = 150;
+		option.opt.height = gcode_field_height;// 150;
 		optgroup->append_single_option_line(option);
 
 	page = add_options_page(_(L("Notes")), "note.png");
@@ -1487,7 +1502,7 @@ void TabFilament::build()
 		optgroup->label_width = 0;
 		option = optgroup->get_option("filament_notes");
 		option.opt.full_width = true;
-		option.opt.height = 250;
+		option.opt.height = notes_field_height;// 250;
 		optgroup->append_single_option_line(option);
 
 	page = add_options_page(_(L("Dependencies")), "wrench.png");
@@ -1588,7 +1603,8 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 		// TODO: SLA Bonjour
 
 		auto btn = m_printhost_browse_btn = new wxButton(parent, wxID_ANY, _(L(" Browse "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
-		btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("zoom.png")), wxBITMAP_TYPE_PNG));
+// 		btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("zoom.png")), wxBITMAP_TYPE_PNG));
+        btn->SetBitmap(create_scaled_bitmap("zoom.png"));
 		auto sizer = new wxBoxSizer(wxHORIZONTAL);
 		sizer->Add(btn);
 
@@ -1606,7 +1622,8 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 	auto print_host_test = [this](wxWindow* parent) {
 		auto btn = m_print_host_test_btn = new wxButton(parent, wxID_ANY, _(L("Test")), 
 			wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
-		btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("wrench.png")), wxBITMAP_TYPE_PNG));
+// 		btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("wrench.png")), wxBITMAP_TYPE_PNG));
+        btn->SetBitmap(create_scaled_bitmap("wrench.png"));
 		auto sizer = new wxBoxSizer(wxHORIZONTAL);
 		sizer->Add(btn);
 
@@ -1642,7 +1659,8 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 
 		auto printhost_cafile_browse = [this, optgroup] (wxWindow* parent) {
 			auto btn = new wxButton(parent, wxID_ANY, _(L(" Browse "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
-			btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("zoom.png")), wxBITMAP_TYPE_PNG));
+// 			btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("zoom.png")), wxBITMAP_TYPE_PNG));
+			btn->SetBitmap(create_scaled_bitmap("zoom.png"));
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(btn);
 
@@ -1719,7 +1737,8 @@ void TabPrinter::build_fff()
 		line.widget = [this](wxWindow* parent) {
 			auto btn = new wxButton(parent, wxID_ANY, _(L(" Set "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
             btn->SetFont(wxGetApp().small_font());
-			btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("printer_empty.png")), wxBITMAP_TYPE_PNG));
+// 			btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("printer_empty.png")), wxBITMAP_TYPE_PNG));
+            btn->SetBitmap(create_scaled_bitmap("printer_empty.png"));
 
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(btn);
@@ -1846,48 +1865,50 @@ void TabPrinter::build_fff()
 		optgroup->append_single_option_line("use_volumetric_e");
 		optgroup->append_single_option_line("variable_layer_height");
 
+    const int gcode_field_height = 15 * m_em_unit; // 150
+    const int notes_field_height = 25 * m_em_unit; // 250
 	page = add_options_page(_(L("Custom G-code")), "cog.png");
 		optgroup = page->new_optgroup(_(L("Start G-code")), 0);
 		option = optgroup->get_option("start_gcode");
 		option.opt.full_width = true;
-		option.opt.height = 150;
+        option.opt.height = gcode_field_height;//150;
 		optgroup->append_single_option_line(option);
 
 		optgroup = page->new_optgroup(_(L("End G-code")), 0);
 		option = optgroup->get_option("end_gcode");
 		option.opt.full_width = true;
-		option.opt.height = 150;
+        option.opt.height = gcode_field_height;//150;
 		optgroup->append_single_option_line(option);
 
 		optgroup = page->new_optgroup(_(L("Before layer change G-code")), 0);
 		option = optgroup->get_option("before_layer_gcode");
 		option.opt.full_width = true;
-		option.opt.height = 150;
+        option.opt.height = gcode_field_height;//150;
 		optgroup->append_single_option_line(option);
 
 		optgroup = page->new_optgroup(_(L("After layer change G-code")), 0);
 		option = optgroup->get_option("layer_gcode");
 		option.opt.full_width = true;
-		option.opt.height = 150;
+        option.opt.height = gcode_field_height;//150;
 		optgroup->append_single_option_line(option);
 
 		optgroup = page->new_optgroup(_(L("Tool change G-code")), 0);
 		option = optgroup->get_option("toolchange_gcode");
 		option.opt.full_width = true;
-		option.opt.height = 150;
+        option.opt.height = gcode_field_height;//150;
 		optgroup->append_single_option_line(option);
 
 		optgroup = page->new_optgroup(_(L("Between objects G-code (for sequential printing)")), 0);
 		option = optgroup->get_option("between_objects_gcode");
 		option.opt.full_width = true;
-		option.opt.height = 150;
+        option.opt.height = gcode_field_height;//150;
 		optgroup->append_single_option_line(option);
 	
 	page = add_options_page(_(L("Notes")), "note.png");
 		optgroup = page->new_optgroup(_(L("Notes")), 0);
 		option = optgroup->get_option("printer_notes");
 		option.opt.full_width = true;
-		option.opt.height = 250;
+        option.opt.height = notes_field_height;//250;
 		optgroup->append_single_option_line(option);
 
 	page = add_options_page(_(L("Dependencies")), "wrench.png");
@@ -1918,7 +1939,8 @@ void TabPrinter::build_sla()
     line.widget = [this](wxWindow* parent) {
         auto btn = new wxButton(parent, wxID_ANY, _(L(" Set ")) + dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
         //			btn->SetFont(Slic3r::GUI::small_font);
-        btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("printer_empty.png")), wxBITMAP_TYPE_PNG));
+//         btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("printer_empty.png")), wxBITMAP_TYPE_PNG));
+        btn->SetBitmap(create_scaled_bitmap("printer_empty.png"));
 
         auto sizer = new wxBoxSizer(wxHORIZONTAL);
         sizer->Add(btn);
@@ -1964,11 +1986,13 @@ void TabPrinter::build_sla()
     optgroup = page->new_optgroup(_(L("Print Host upload")));
     build_printhost(optgroup.get());
 
+    const int notes_field_height = 25 * m_em_unit; // 250
+
     page = add_options_page(_(L("Notes")), "note.png");
     optgroup = page->new_optgroup(_(L("Notes")), 0);
     option = optgroup->get_option("printer_notes");
     option.opt.full_width = true;
-    option.opt.height = 250;
+    option.opt.height = notes_field_height;//250;
     optgroup->append_single_option_line(option);
 
     page = add_options_page(_(L("Dependencies")), "wrench.png");
@@ -2017,7 +2041,7 @@ PageShp TabPrinter::build_kinematics_page()
 		// Legend for OptionsGroups
 		auto optgroup = page->new_optgroup("");
 		optgroup->set_show_modified_btns_val(false);
-		optgroup->label_width = 230;
+        optgroup->label_width = 23 * m_em_unit;// 230;
 		auto line = Line{ "", "" };
 
 		ConfigOptionDef def;
@@ -2794,7 +2818,8 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
 	deps.checkbox = new wxCheckBox(parent, wxID_ANY, _(L("All")));
 	deps.btn = new wxButton(parent, wxID_ANY, _(L(" Set "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
 
-	deps.btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("printer_empty.png")), wxBITMAP_TYPE_PNG));
+// 	deps.btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("printer_empty.png")), wxBITMAP_TYPE_PNG));
+    deps.btn->SetBitmap(create_scaled_bitmap("printer_empty.png"));
 
 	auto sizer = new wxBoxSizer(wxHORIZONTAL);
 	sizer->Add((deps.checkbox), 0, wxALIGN_CENTER_VERTICAL);
@@ -2985,7 +3010,8 @@ ConfigOptionsGroupShp Page::new_optgroup(const wxString& title, int noncommon_la
             bmp_name = mode == comExpert   ? "mode_expert_.png" :
                        mode == comAdvanced ? "mode_middle_.png" : "mode_simple_.png";
         }                               
-        auto bmp = new wxStaticBitmap(parent, wxID_ANY, bmp_name.empty() ? wxNullBitmap : wxBitmap(from_u8(var(bmp_name)), wxBITMAP_TYPE_PNG));
+//         auto bmp = new wxStaticBitmap(parent, wxID_ANY, bmp_name.empty() ? wxNullBitmap : wxBitmap(from_u8(var(bmp_name)), wxBITMAP_TYPE_PNG));
+        auto bmp = new wxStaticBitmap(parent, wxID_ANY, bmp_name.empty() ? wxNullBitmap : create_scaled_bitmap(bmp_name));
         return bmp;
     };
 
@@ -3103,7 +3129,7 @@ void TabSLAMaterial::build()
     optgroup->append_single_option_line("initial_exposure_time");
 
     optgroup = page->new_optgroup(_(L("Corrections")));
-    optgroup->label_width = 190;
+    optgroup->label_width = 19 * m_em_unit;//190;
     std::vector<std::string> corrections = { "material_correction_printing", "material_correction_curing" };
     std::vector<std::string> axes{ "X", "Y", "Z" };
     for (auto& opt_key : corrections) {
@@ -3124,7 +3150,7 @@ void TabSLAMaterial::build()
     optgroup->label_width = 0;
     Option option = optgroup->get_option("material_notes");
     option.opt.full_width = true;
-    option.opt.height = 250;
+    option.opt.height = 25 * m_em_unit;//250;
     optgroup->append_single_option_line(option);
 
     page = add_options_page(_(L("Dependencies")), "wrench.png");

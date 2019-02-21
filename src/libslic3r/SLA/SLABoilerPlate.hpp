@@ -36,14 +36,6 @@ inline coord_t x(const Vec3crd& p) { return p(0); }
 inline coord_t y(const Vec3crd& p) { return p(1); }
 inline coord_t z(const Vec3crd& p) { return p(2); }
 
-inline void triangulate(const ExPolygon& expoly, Polygons& triangles) {
-    expoly.triangulate_p2t(&triangles);
-}
-
-inline Polygons triangulate(const ExPolygon& expoly) {
-    Polygons tri; triangulate(expoly, tri); return tri;
-}
-
 using Indices = std::vector<Vec3crd>;
 
 /// Intermediate struct for a 3D mesh
@@ -63,6 +55,15 @@ struct Contour3D {
         }
     }
 
+    void merge(const Pointf3s& triangles) {
+        const size_t offs = points.size();
+        points.insert(points.end(), triangles.begin(), triangles.end());
+        indices.reserve(indices.size() + points.size() / 3);
+
+        for(int i = (int)offs; i < (int)points.size(); i += 3)
+            indices.emplace_back(i, i + 1, i + 2);
+    }
+
     // Write the index triangle structure to OBJ file for debugging purposes.
     void to_obj(std::ostream& stream) {
         for(auto& p : points) {
@@ -75,12 +76,8 @@ struct Contour3D {
     }
 };
 
-//using PointSet = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::DontAlign>; //Eigen::MatrixXd;
 using ClusterEl = std::vector<unsigned>;
 using ClusteredPoints = std::vector<ClusterEl>;
-
-/// Convert the triangulation output to an intermediate mesh.
-Contour3D convert(const Polygons& triangles, coord_t z, bool dir);
 
 /// Mesh from an existing contour.
 inline TriangleMesh mesh(const Contour3D& ctour) {
