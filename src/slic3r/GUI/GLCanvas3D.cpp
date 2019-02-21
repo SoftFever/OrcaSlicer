@@ -3879,8 +3879,8 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
     wxMemoryDC mask_memDC;
 
     // calculate scaling
-//     const float scale = canvas.get_canvas_size().get_scale_factor();
-    const float scale = wxGetApp().em_unit()*0.1; // get scale from em_unit() value, because of get_scale_factor() return 1 
+    const float scale_gl = canvas.get_canvas_size().get_scale_factor();
+    const float scale = scale_gl * wxGetApp().em_unit()*0.1; // get scale from em_unit() value, because of get_scale_factor() return 1 
     const int scaled_square = std::floor((float)Px_Square * scale);
     const int scaled_title_offset = Px_Title_Offset * scale;
     const int scaled_text_offset = Px_Text_Offset * scale;
@@ -3888,7 +3888,7 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
     const int scaled_border = Px_Border * scale;
 
     // select default font
-    const wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT)/*.Scale(scale)*/; // font is no need to scale now
+    const wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Scale(scale_gl);
     memDC.SetFont(font);
     mask_memDC.SetFont(font);
 
