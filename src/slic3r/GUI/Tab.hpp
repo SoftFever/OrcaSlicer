@@ -204,6 +204,7 @@ protected:
     void                set_type();
 
     int                 m_em_unit;
+    std::set<std::string>       m_dirty_options = {};
 
 public:
 	PresetBundle*		m_preset_bundle;
@@ -283,6 +284,7 @@ protected:
 	void			update_frequently_changed_parameters();
 	void			fill_icon_descriptions();
 	void			set_tooltips_text();
+    bool            update_completed() const { return m_dirty_options.empty(); }
 };
 
 class TabPrint : public Tab
