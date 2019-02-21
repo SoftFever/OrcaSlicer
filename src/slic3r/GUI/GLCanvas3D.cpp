@@ -4085,6 +4085,7 @@ wxDEFINE_EVENT(EVT_GLCANVAS_WIPETOWER_MOVED, Vec3dEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, Event<bool>);
 wxDEFINE_EVENT(EVT_GLCANVAS_UPDATE_GEOMETRY, Vec3dsEvent<2>);
 wxDEFINE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_TAB, SimpleEvent);
 
 GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     : m_canvas(canvas)
@@ -5321,10 +5322,15 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
 #endif // ENABLE_IMGUI
     if (evt.GetEventType() == wxEVT_KEY_UP) {
         const int keyCode = evt.GetKeyCode();
-    
-        // shift has been just released - SLA gizmo might want to close rectangular selection.
-        if (m_gizmos.get_current_type() == Gizmos::SlaSupports && keyCode == WXK_SHIFT && m_gizmos.mouse_event(SLAGizmoEventType::ShiftUp))
+
+        if (keyCode == WXK_TAB) {
+            // Enable switching between 3D and Preview with Tab
+            // m_canvas->HandleAsNavigationKey(evt);   // XXX: Doesn't work in some cases / on Linux
+            post_event(SimpleEvent(EVT_GLCANVAS_TAB));
+        } else if (m_gizmos.get_current_type() == Gizmos::SlaSupports && keyCode == WXK_SHIFT && m_gizmos.mouse_event(SLAGizmoEventType::ShiftUp)) {
+            // shift has been just released - SLA gizmo might want to close rectangular selection.
             m_dirty = true;
+        }
     }
 
     evt.Skip();   // Needed to have EVT_CHAR generated as well
