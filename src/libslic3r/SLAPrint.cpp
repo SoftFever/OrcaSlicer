@@ -182,7 +182,7 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
     if (model.id() != m_model.id()) {
         // Kill everything, initialize from scratch.
         // Stop background processing.
-        this->call_cancell_callback();
+        this->call_cancel_callback();
         update_apply_status(this->invalidate_all_steps());
         for (SLAPrintObject *object : m_objects) {
             model_object_status.emplace(object->model_object()->id(), ModelObjectStatus::Deleted);
@@ -211,7 +211,7 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
         } else {
             // Reorder the objects, add new objects.
             // First stop background processing before shuffling or deleting the PrintObjects in the object list.
-            this->call_cancell_callback();
+            this->call_cancel_callback();
             update_apply_status(this->invalidate_step(slapsRasterize));
             // Second create a new list of objects.
             std::vector<ModelObject*> model_objects_old(std::move(m_model.objects));
@@ -380,7 +380,7 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
     }
 
     if (m_objects != print_objects_new) {
-        this->call_cancell_callback();
+        this->call_cancel_callback();
         update_apply_status(this->invalidate_all_steps());
         m_objects = print_objects_new;
         // Delete the PrintObjects marked as Unknown or Deleted.
@@ -436,7 +436,7 @@ void SLAPrint::set_task(const TaskParams &params)
 				}
 		}
 		if (!running)
-			this->cancel_callback();
+			this->call_cancel_callback();
 
 		// Now the background process is either stopped, or it is inside one of the print object steps to be calculated anyway.
 		if (params.single_model_instance_only) {

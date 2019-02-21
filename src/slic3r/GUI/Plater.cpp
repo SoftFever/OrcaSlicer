@@ -2036,8 +2036,9 @@ unsigned int Plater::priv::update_background_process(bool force_validation)
     //background_process.is_export_scheduled() - byl zavolan "Export G-code", background processing ma jmeno export souboru
     //background_process.is_upload_scheduled() - byl zavolan "Send to OctoPrint", jeste nebylo doslajsovano (pak se preda upload fronte a background process zapomene)
     //background_process.empty() - prazdna plocha
-    // pokud (invalidated != Print::APPLY_STATUS_UNCHANGED) a ! background_process.empty() -> je neco ke slajsovani (povol tlacitko)
-    // pokud (return_state & UPDATE_BACKGROUND_PROCESS_INVALID) != 0 -> doslo k chybe (gray out "Slice now")
+    // pokud (return_state & UPDATE_BACKGROUND_PROCESS_INVALID) != 0 -> doslo k chybe (gray out "Slice now") mozna "Invalid data"???
+    // jinak background_process.running() -> Zobraz "Slicing ..."
+    // jinak pokud ! background_process.empty() && ! background_process.finished() -> je neco ke slajsovani (povol tlacitko) "Slice Now"
 
     return return_state;
 }

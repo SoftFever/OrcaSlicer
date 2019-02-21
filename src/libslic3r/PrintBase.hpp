@@ -326,7 +326,7 @@ protected:
 
     tbb::mutex&            state_mutex() const { return m_state_mutex; }
     std::function<void()>  cancel_callback() { return m_cancel_callback; }
-	void				   call_cancell_callback() { m_cancel_callback(); }
+	void				   call_cancel_callback() { m_cancel_callback(); }
 
     // If the background processing stop was requested, throw CanceledException.
     // To be called by the worker thread and its sub-threads (mostly launched on the TBB thread pool) regularly.
