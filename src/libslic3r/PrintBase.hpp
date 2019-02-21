@@ -62,12 +62,20 @@ public:
         return state;
     }
 
+    bool is_started(StepType step, tbb::mutex &mtx) const {
+        return this->state_with_timestamp(step, mtx).state == STARTED;
+    }
+
     bool is_done(StepType step, tbb::mutex &mtx) const {
         return this->state_with_timestamp(step, mtx).state == DONE;
     }
 
     StateWithTimeStamp state_with_timestamp_unguarded(StepType step) const { 
         return m_state[step];
+    }
+
+    bool is_started_unguarded(StepType step) const {
+        return this->state_with_timestamp_unguarded(step).state == STARTED;
     }
 
     bool is_done_unguarded(StepType step) const {
@@ -235,6 +243,18 @@ public:
     virtual ApplyStatus     apply(const Model &model, const DynamicPrintConfig &config) = 0;
     const Model&            model() const { return m_model; }
 
+    struct TaskParams {
+		TaskParams() : single_model_object(0), single_model_instance_only(false), to_object_step(-1), to_print_step(-1) {}
+        // If non-empty, limit the processing to this ModelObject.
+        ModelID                 single_model_object;
+		// If set, only process single_model_object. Otherwise process everything, but single_model_object first.
+		bool					single_model_instance_only;
+        // If non-negative, stop processing at the successive object step.
+        int                     to_object_step;
+        // If non-negative, stop processing at the successive print step.
+        int                     to_print_step;
+    };
+
     virtual void            process() = 0;
 
     struct SlicingStatus {
@@ -350,6 +370,9 @@ protected:
     bool            invalidate_all_steps() 
         { return m_state.invalidate_all(this->cancel_callback()); }
 
+	bool            is_step_started_unguarded(PrintStepEnum step) const { return m_state.is_started_unguarded(step); }
+	bool            is_step_done_unguarded(PrintStepEnum step) const { return m_state.is_done_unguarded(step); }
+
 private:
     PrintState<PrintStepEnum, COUNT> m_state;
 };
@@ -382,6 +405,9 @@ protected:
         { return m_state.invalidate_multiple(il.begin(), il.end(), PrintObjectBase::cancel_callback(m_print)); }
     bool            invalidate_all_steps() 
         { return m_state.invalidate_all(PrintObjectBase::cancel_callback(m_print)); }
+
+    bool            is_step_started_unguarded(PrintObjectStepEnum step) const { return m_state.is_started_unguarded(step); }
+    bool            is_step_done_unguarded(PrintObjectStepEnum step) const { return m_state.is_done_unguarded(step); }
 
 protected:
     // If the background processing stop was requested, throw CanceledException.

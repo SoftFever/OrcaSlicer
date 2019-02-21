@@ -280,7 +280,7 @@ bool Print::is_step_done(PrintObjectStep step) const
         return false;
 	tbb::mutex::scoped_lock lock(this->state_mutex());
     for (const PrintObject *object : m_objects)
-        if (! object->m_state.is_done_unguarded(step))
+        if (! object->is_step_done_unguarded(step))
             return false;
     return true;
 }
@@ -549,10 +549,14 @@ void Print::model_volume_list_update_supports(ModelObject &model_object_dst, con
             assert(! it->second); // not consumed yet
             it->second = true;
             ModelVolume *model_volume_dst = const_cast<ModelVolume*>(it->first);
-            assert(model_volume_dst->type() == model_volume_src->type());
+			// For support modifiers, the type may have been switched from blocker to enforcer and vice versa.
+			assert((model_volume_dst->is_support_modifier() && model_volume_src->is_support_modifier()) || model_volume_dst->type() == model_volume_src->type());
             model_object_dst.volumes.emplace_back(model_volume_dst);
-			if (model_volume_dst->is_support_modifier())
-                model_volume_dst->set_transformation(model_volume_src->get_transformation());
+			if (model_volume_dst->is_support_modifier()) {
+				// For support modifiers, the type may have been switched from blocker to enforcer and vice versa.
+				model_volume_dst->set_type(model_volume_src->type());
+				model_volume_dst->set_transformation(model_volume_src->get_transformation());
+			}
             assert(model_volume_dst->get_matrix().isApprox(model_volume_src->get_matrix()));
         } else {
             // The volume was not found in the old list. Create a new copy.

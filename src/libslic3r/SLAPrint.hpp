@@ -139,15 +139,16 @@ protected:
     // Invalidate steps based on a set of parameters changed.
     bool                    invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
 
+    // Which steps have to be performed. Implicitly: all
+    // to be accessible from SLAPrint
+    std::vector<bool>                       m_stepmask;
+
 private:
     // Object specific configuration, pulled from the configuration layer.
     SLAPrintObjectConfig                    m_config;
     // Translation in Z + Rotation by Y and Z + Scaling / Mirroring.
     Transform3d                             m_trafo = Transform3d::Identity();
     std::vector<Instance> 					m_instances;
-
-    // Which steps have to be performed. Implicitly: all
-    std::vector<bool>                       m_stepmask;
 
     // Individual 2d slice polygons from lower z to higher z levels
     std::vector<ExPolygons>                 m_model_slices;
@@ -194,6 +195,7 @@ public:
     void                clear() override;
     bool                empty() const override { return m_objects.empty(); }
     ApplyStatus         apply(const Model &model, const DynamicPrintConfig &config) override;
+    void                set_task(const TaskParams &params);
     void                process() override;
     // Returns true if an object step is done on all objects and there's at least one object.    
     bool                is_step_done(SLAPrintObjectStep step) const;
