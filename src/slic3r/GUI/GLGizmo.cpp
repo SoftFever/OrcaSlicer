@@ -1790,7 +1790,7 @@ void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const G
             update_mesh();
 
         // If there are no points, let's ask the backend if it calculated some.
-        if (m_editing_mode_cache.empty() && m_parent.sla_print()->is_step_done(slaposSupportPoints))
+        if (m_editing_mode_cache.empty())
             get_data_from_backend();
 
         if (m_model_object != m_old_model_object)
@@ -2169,7 +2169,7 @@ void GLGizmoSlaSupports::delete_selected_points()
             m_unsaved_changes = true;
         }
             // This should trigger the support generation
-            // wxGetApp().plater()->reslice();
+            // wxGetApp().plater()->reslice_SLA_supports(*m_model_object);
     }
 
     select_point(NoPoints);
@@ -2283,7 +2283,9 @@ RENDER_AGAIN:
         if (apply_changes) {
             editing_mode_apply_changes();
             force_refresh = true;
-            m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
+            // Recalculate support structures once the editing mode is left.
+            // m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
+            wxGetApp().plater()->reslice_SLA_supports(*m_model_object);
         }
         ImGui::SameLine();
         bool discard_changes = m_imgui->button(_(L("Discard changes")));
@@ -2316,7 +2318,7 @@ RENDER_AGAIN:
             if (m_model_object->sla_support_points.empty() || dlg.ShowModal() == wxID_YES) {
                 m_model_object->sla_support_points.clear();
                 m_editing_mode_cache.clear();
-                wxGetApp().plater()->reslice();
+                wxGetApp().plater()->reslice_SLA_supports(*m_model_object);
             }
 #endif
         }
@@ -2335,7 +2337,7 @@ RENDER_AGAIN:
 
                     m_model_object->sla_support_points.clear();
                     m_editing_mode_cache.clear();
-                    wxGetApp().plater()->reslice();
+                    wxGetApp().plater()->reslice_SLA_supports(*m_model_object);
                 }
                 ImGui::SameLine();
                 if (m_imgui->button(_(L("Cancel")))) {
@@ -2496,7 +2498,7 @@ void GLGizmoSlaSupports::editing_mode_reload_cache()
 void GLGizmoSlaSupports::get_data_from_backend()
 {
     for (const SLAPrintObject* po : m_parent.sla_print()->objects()) {
-        if (po->model_object()->id() == m_model_object->id()) {
+        if (po->model_object()->id() == m_model_object->id() && po->is_step_done(slaposSupportPoints)) {
             const std::vector<sla::SupportPoint>& points = po->get_support_points();
             auto mat = po->trafo().inverse().cast<float>();
             for (unsigned int i=0; i<points.size();++i)
