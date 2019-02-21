@@ -1445,8 +1445,8 @@ void GLGizmoFlatten::on_render(const GLCanvas3D::Selection& selection) const
     {
         const Transform3d& m = selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix();
         ::glPushMatrix();
-        ::glMultMatrixd(m.data());
         ::glTranslatef(0.f, 0.f, selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z());
+        ::glMultMatrixd(m.data());
         if (this->is_plane_update_necessary())
 			const_cast<GLGizmoFlatten*>(this)->update_planes();
         for (int i = 0; i < (int)m_planes.size(); ++i)
@@ -1479,8 +1479,8 @@ void GLGizmoFlatten::on_render_for_picking(const GLCanvas3D::Selection& selectio
     {
         const Transform3d& m = selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix();
         ::glPushMatrix();
-        ::glMultMatrixd(m.data());
         ::glTranslatef(0.f, 0.f, selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z());
+        ::glMultMatrixd(m.data());
         if (this->is_plane_update_necessary())
 			const_cast<GLGizmoFlatten*>(this)->update_planes();
         for (int i = 0; i < (int)m_planes.size(); ++i)
@@ -2064,18 +2064,21 @@ bool GLGizmoSlaSupports::mouse_event(SLAGizmoEventType action, const Vec2d& mous
         if (instance_id == -1)
             return false;
 
-        // Regardless of whether the user clicked the object or not, we will unselect all points:
-        select_point(NoPoints);
+        // If there is some selection, don't add new point and deselect everything instead.
+        if (m_selection_empty) {
+            Vec3f new_pos;
+            try {
+                new_pos = unproject_on_mesh(mouse_position); // this can throw - we don't want to create a new point in that case
+                m_editing_mode_cache.emplace_back(std::make_pair(sla::SupportPoint(new_pos, m_new_point_head_diameter/2.f, false), false));
+                m_unsaved_changes = true;
+            }
+            catch (...) {      // not clicked on object
+                return true;   // prevents deselection of the gizmo by GLCanvas3D
+            }
+        }
+        else
+            select_point(NoPoints);
 
-        Vec3f new_pos;
-        try {
-            new_pos = unproject_on_mesh(mouse_position); // this can throw - we don't want to create a new point in that case
-            m_editing_mode_cache.emplace_back(std::make_pair(sla::SupportPoint(new_pos, m_new_point_head_diameter/2.f, false), true));
-            m_unsaved_changes = true;
-        }
-        catch (...) {      // not clicked on object
-            return true;   // prevents deselection of the gizmo by GLCanvas3D
-        }
         return true;
     }
 
@@ -2106,9 +2109,8 @@ bool GLGizmoSlaSupports::mouse_event(SLAGizmoEventType action, const Vec2d& mous
         direction_to_camera = instance_matrix_no_translation.inverse().cast<float>() * direction_to_camera.eval();
 
         // Iterate over all points, check if they're in the rectangle and if so, check that they are not obscured by the mesh:
-        for (std::pair<sla::SupportPoint, bool>& point_and_selection : m_editing_mode_cache) {
-            const sla::SupportPoint& support_point = point_and_selection.first;
-            Vec3f pos = instance_matrix.cast<float>() * support_point.pos;
+        for (unsigned int i=0; i<m_editing_mode_cache.size(); ++i) {
+            Vec3f pos = instance_matrix.cast<float>() * m_editing_mode_cache[i].first.pos;
             pos(2) += z_offset;
               GLdouble out_x, out_y, out_z;
              ::gluProject((GLdouble)pos(0), (GLdouble)pos(1), (GLdouble)pos(2), modelview_matrix, projection_matrix, viewport, &out_x, &out_y, &out_z);
@@ -2118,14 +2120,14 @@ bool GLGizmoSlaSupports::mouse_event(SLAGizmoEventType action, const Vec2d& mous
                 bool is_obscured = false;
                 // Cast a ray in the direction of the camera and look for intersection with the mesh:
                 std::vector<igl::Hit> hits;
-                if (m_AABB.intersect_ray(m_V, m_F, support_point.pos, direction_to_camera, hits))
+                if (m_AABB.intersect_ray(m_V, m_F, m_editing_mode_cache[i].first.pos, direction_to_camera, hits))
                     // FIXME: the intersection could in theory be behind the camera, but as of now we only have camera direction.
                     // Also, the threshold is in mesh coordinates, not in actual dimensions.
                     if (hits.size() > 1 || hits.front().t > 0.001f)
                         is_obscured = true;
 
                 if (!is_obscured)
-                    point_and_selection.second = true;
+                    select_point(i);
             }
         }
         m_selection_rectangle_active = false;
@@ -2169,6 +2171,8 @@ void GLGizmoSlaSupports::delete_selected_points()
             // This should trigger the support generation
             // wxGetApp().plater()->reslice();
     }
+
+    select_point(NoPoints);
 
     //m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
 }
@@ -2269,7 +2273,9 @@ RENDER_AGAIN:
         m_imgui->checkbox(_(L("Lock supports under new islands")), m_lock_unique_islands);
         force_refresh |= changed != m_lock_unique_islands;
 
+        m_imgui->disabled_begin(m_selection_empty);
         remove_selected = m_imgui->button(_(L("Remove selected points")));
+        m_imgui->disabled_end();
 
         m_imgui->text(" "); // vertical gap
 
@@ -2448,10 +2454,13 @@ void GLGizmoSlaSupports::select_point(int i)
 {
     if (i == AllPoints || i == NoPoints) {
         for (auto& point_and_selection : m_editing_mode_cache)
-            point_and_selection.second = ( i == AllPoints ? true : false);
+            point_and_selection.second = ( i == AllPoints );
+        m_selection_empty = (i == NoPoints);
     }
-    else
+    else {
         m_editing_mode_cache[i].second = true;
+        m_selection_empty = false;
+    }
 }
 
 void GLGizmoSlaSupports::editing_mode_discard_changes()

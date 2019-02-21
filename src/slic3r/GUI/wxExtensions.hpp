@@ -23,6 +23,8 @@ wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const
 
 wxMenuItem* append_submenu(wxMenu* menu, wxMenu* sub_menu, int id, const wxString& string, const wxString& description, const std::string& icon = "");
 
+wxBitmap create_scaled_bitmap(const std::string& bmp_name);
+
 class wxCheckListBoxComboPopup : public wxCheckListBox, public wxComboPopup
 {
     static const unsigned int DefaultWidth;
@@ -882,8 +884,8 @@ public:
         wxWindowID id,
         const wxString& mode = wxEmptyString,
         const wxBitmap& bmp_on = wxNullBitmap,
-        const wxPoint& pos = wxDefaultPosition,
-        const wxSize& size = wxDefaultSize);
+        const wxSize& size = wxDefaultSize,
+        const wxPoint& pos = wxDefaultPosition);
     ~PrusaModeButton() {}
 
     void    OnButton(wxCommandEvent& event);
@@ -911,7 +913,7 @@ private:
 class PrusaModeSizer : public wxFlexGridSizer
 {
 public:
-    PrusaModeSizer( wxWindow *parent);
+    PrusaModeSizer( wxWindow *parent, int hgap = 10);
     ~PrusaModeSizer() {}
 
     void SetMode(const /*ConfigOptionMode*/int mode);

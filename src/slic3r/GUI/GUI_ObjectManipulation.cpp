@@ -22,7 +22,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
 #endif // __APPLE__
 {
     m_og->set_name(_(L("Object Manipulation")));
-    m_og->label_width = 125;
+    m_og->label_width = 12 * wxGetApp().em_unit();//125;
     m_og->set_grid_vgap(5);
     
     m_og->m_on_change = std::bind(&ObjectManipulation::on_change, this, std::placeholders::_1, std::placeholders::_2);
@@ -48,11 +48,13 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     def.default_value = new ConfigOptionString{ " " };
     m_og->append_single_option_line(Option(def, "object_name"));
 
+    const int field_width = 5 * wxGetApp().em_unit()/*50*/;
+
     // Legend for object modification
     auto line = Line{ "", "" };
     def.label = "";
     def.type = coString;
-    def.width = 50;
+    def.width = field_width/*50*/;
 
     std::vector<std::string> axes{ "x", "y", "z" };
     for (const auto axis : axes) {
@@ -64,13 +66,13 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     m_og->append_line(line);
 
 
-    auto add_og_to_object_settings = [this](const std::string& option_name, const std::string& sidetext)
+    auto add_og_to_object_settings = [this, field_width](const std::string& option_name, const std::string& sidetext)
     {
         Line line = { _(option_name), "" };
         ConfigOptionDef def;
         def.type = coFloat;
         def.default_value = new ConfigOptionFloat(0.0);
-        def.width = 50;
+        def.width = field_width/*50*/;
 
         // Add "uniform scaling" button in front of "Scale" option 
         if (option_name == "Scale") {
@@ -88,8 +90,9 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
         // Add empty bmp (Its size have to be equal to PrusaLockButton) in front of "Size" option to label alignment
         else if (option_name == "Size") {
             line.near_label_widget = [this](wxWindow* parent) {
-                return new wxStaticBitmap(parent, wxID_ANY, wxNullBitmap, wxDefaultPosition, 
-                                          wxBitmap(from_u8(var("one_layer_lock_on.png")), wxBITMAP_TYPE_PNG).GetSize());
+                return new wxStaticBitmap(parent, wxID_ANY, wxNullBitmap, wxDefaultPosition,
+//                                           wxBitmap(from_u8(var("one_layer_lock_on.png")), wxBITMAP_TYPE_PNG).GetSize());
+                                          create_scaled_bitmap("one_layer_lock_on.png").GetSize());
             };
         }
 

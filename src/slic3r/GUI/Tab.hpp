@@ -203,6 +203,7 @@ protected:
 
     void                set_type();
 
+    int                 m_em_unit;
     std::set<std::string>       m_dirty_options = {};
 
 public:

@@ -212,7 +212,7 @@ void SlicedInfo::SetTextAndShow(SlisedInfoIdx idx, const wxString& text, const w
 }
 
 PresetComboBox::PresetComboBox(wxWindow *parent, Preset::Type preset_type) :
-    wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(200,-1), 0, nullptr, wxCB_READONLY),
+wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(15 * wxGetApp().em_unit(), -1), 0, nullptr, wxCB_READONLY),
     preset_type(preset_type),
     last_selected(wxNOT_FOUND)
 {
@@ -305,7 +305,7 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
 
     // Frequently changed parameters for FFF_technology
     m_og->set_config(config);
-    m_og->label_width = label_width;
+    m_og->label_width = label_width == 0 ? 1 : label_width;
 
     m_og->m_on_change = [config, this](t_config_option_key opt_key, boost::any value) {
         Tab* tab_print = wxGetApp().get_tab(Preset::TYPE_PRINT);
@@ -350,29 +350,35 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
         tab_print->update_dirty();
     };
 
-    Option option = m_og->get_option("fill_density");
-    option.opt.sidetext = "";
-    option.opt.full_width = true;
-    m_og->append_single_option_line(option);
+    
+    Line line = Line { "", "" };
 
     ConfigOptionDef def;
-
-    def.label = L("Support");
+    def.label = L("Supports");
     def.type = coStrings;
     def.gui_type = "select_open";
     def.tooltip = L("Select what kind of support do you need");
     def.enum_labels.push_back(L("None"));
     def.enum_labels.push_back(L("Support on build plate only"));
     def.enum_labels.push_back(L("Everywhere"));
-    std::string selection = !config->opt_bool("support_material") ?
-        "None" :
-        config->opt_bool("support_material_buildplate_only") ?
-        "Support on build plate only" :
-        "Everywhere";
+    const std::string selection = !config->opt_bool("support_material") ?
+                                  "None" : config->opt_bool("support_material_buildplate_only") ?
+                                  "Support on build plate only" :
+                                  "Everywhere";
     def.default_value = new ConfigOptionStrings{ selection };
-    option = Option(def, "support");
+    Option option = Option(def, "support");
     option.opt.full_width = true;
-    m_og->append_single_option_line(option);
+    line.append_option(option);
+    m_og->append_line(line);
+
+    
+    line = Line { "", "" };
+
+    option = m_og->get_option("fill_density");
+    option.opt.label = L("Infill");
+    option.opt.width = 7 * wxGetApp().em_unit();
+    option.opt.sidetext = "     ";
+    line.append_option(option);
 
     m_brim_width = config->opt_float("brim_width");
     def.label = L("Brim");
@@ -381,11 +387,10 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
     def.gui_type = "";
     def.default_value = new ConfigOptionBool{ m_brim_width > 0.0 ? true : false };
     option = Option(def, "brim");
-    m_og->append_single_option_line(option);
+    option.opt.sidetext = "     ";
+    line.append_option(option);
 
-
-    Line line = { "", "" };
-    line.widget = [config, this](wxWindow* parent) {
+    auto wiping_dialog_btn = [config, this](wxWindow* parent) {
         m_wiping_dialog_button = new wxButton(parent, wxID_ANY, _(L("Purging volumes")) + dots, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
         auto sizer = new wxBoxSizer(wxHORIZONTAL);
         sizer->Add(m_wiping_dialog_button);
@@ -402,19 +407,20 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
                 std::vector<float> extruders = dlg.get_extruders();
                 (config.option<ConfigOptionFloats>("wiping_volumes_matrix"))->values = std::vector<double>(matrix.begin(), matrix.end());
                 (config.option<ConfigOptionFloats>("wiping_volumes_extruders"))->values = std::vector<double>(extruders.begin(), extruders.end());
-				wxPostEvent(parent, SimpleEvent(EVT_SCHEDULE_BACKGROUND_PROCESS, parent));
+                wxPostEvent(parent, SimpleEvent(EVT_SCHEDULE_BACKGROUND_PROCESS, parent));
             }
         }));
         return sizer;
     };
-    m_og->append_line(line);
+    line.append_widget(wiping_dialog_btn);
 
+    m_og->append_line(line);
 
     // Frequently changed parameters for SLA_technology
     m_og_sla = std::make_shared<ConfigOptionsGroup>(parent, "");
     DynamicPrintConfig*	config_sla = &wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
     m_og_sla->set_config(config_sla);
-    m_og_sla->label_width = label_width*2;
+    m_og_sla->label_width = label_width == 0 ? 1 : label_width;
 
     m_og_sla->m_on_change = [config_sla, this](t_config_option_key opt_key, boost::any value) {
         Tab* tab = wxGetApp().get_tab(Preset::TYPE_SLA_PRINT);
@@ -428,12 +434,22 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
         tab->update_dirty();
     };    
 
-    m_og_sla->append_single_option_line("supports_enable");
-    m_og_sla->append_single_option_line("pad_enable");
+
+    line = Line{ "", "" };
+
+    option = m_og_sla->get_option("supports_enable");
+    option.opt.sidetext = "     ";
+    line.append_option(option);
+
+    option = m_og_sla->get_option("pad_enable");
+    option.opt.sidetext = "     ";
+    line.append_option(option);
+
+    m_og_sla->append_line(line);
 
     m_sizer = new wxBoxSizer(wxVERTICAL);
     m_sizer->Add(m_og->sizer, 0, wxEXPAND);
-    m_sizer->Add(m_og_sla->sizer, 0, wxEXPAND | wxTOP, 5);
+    m_sizer->Add(m_og_sla->sizer, 0, wxEXPAND);
 }
 
 
@@ -518,7 +534,7 @@ void Sidebar::priv::show_preset_comboboxes()
 Sidebar::Sidebar(Plater *parent)
     : wxPanel(parent), p(new priv(parent))
 {
-    p->scrolled = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxSize(400, -1));
+    p->scrolled = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxSize(40 * wxGetApp().em_unit(), -1));
     p->scrolled->SetScrollbars(0, 20, 1, 2);
 
     // Sizer in the scrolled area
@@ -526,26 +542,26 @@ Sidebar::Sidebar(Plater *parent)
     p->scrolled->SetSizer(scrolled_sizer);
 
     // Sizer with buttons for mode changing
-    p->mode_sizer = new PrusaModeSizer(p->scrolled);
+    p->mode_sizer = new PrusaModeSizer(p->scrolled, 2 * wxGetApp().em_unit());
 
     // The preset chooser
-    p->sizer_presets = new wxFlexGridSizer(5, 2, 1, 2);
-    p->sizer_presets->AddGrowableCol(1, 1);
+    p->sizer_presets = new wxFlexGridSizer(10, 1, 1, 2);
+    p->sizer_presets->AddGrowableCol(0, 1);
     p->sizer_presets->SetFlexibleDirection(wxBOTH);
     p->sizer_filaments = new wxBoxSizer(wxVERTICAL);
 
     auto init_combo = [this](PresetComboBox **combo, wxString label, Preset::Type preset_type, bool filament) {
-        auto *text = new wxStaticText(p->scrolled, wxID_ANY, label);
+        auto *text = new wxStaticText(p->scrolled, wxID_ANY, label+" :");
         text->SetFont(wxGetApp().small_font());
         *combo = new PresetComboBox(p->scrolled, preset_type);
 
         auto *sizer_presets = this->p->sizer_presets;
         auto *sizer_filaments = this->p->sizer_filaments;
-        sizer_presets->Add(text, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxRIGHT, 4);
+        sizer_presets->Add(text, 0, wxALIGN_LEFT | wxEXPAND | wxRIGHT, 4);
         if (! filament) {
-            sizer_presets->Add(*combo, 1, wxALIGN_CENTER_VERTICAL | wxEXPAND | wxBOTTOM, 1);
+            sizer_presets->Add(*combo, 0, wxEXPAND | wxBOTTOM, 1);
         } else {
-            sizer_filaments->Add(*combo, 1, wxEXPAND | wxBOTTOM, 1);
+            sizer_filaments->Add(*combo, 0, wxEXPAND | wxBOTTOM, 1);
             (*combo)->set_extruder_idx(0);
             sizer_presets->Add(sizer_filaments, 1, wxEXPAND);
         }
@@ -559,29 +575,32 @@ Sidebar::Sidebar(Plater *parent)
     init_combo(&p->combo_printer,       _(L("Printer")),        Preset::TYPE_PRINTER,       false);
 
     // calculate width of the preset labels 
-    p->sizer_presets->Layout();
-    const wxArrayInt& ar = p->sizer_presets->GetColWidths();
-    int label_width = ar.IsEmpty() ? 100 : ar.front()-4;
+//     p->sizer_presets->Layout();
+//     const wxArrayInt& ar = p->sizer_presets->GetColWidths();
+//     const int label_width = ar.IsEmpty() ? 10*wxGetApp().em_unit() : ar.front()-4;
+
+    const int margin_5  = int(0.5*wxGetApp().em_unit());// 5;
+    const int margin_10 = int(1.5*wxGetApp().em_unit());// 15;
 
     p->sizer_params = new wxBoxSizer(wxVERTICAL);
 
     // Frequently changed parameters
-    p->frequently_changed_parameters = new FreqChangedParams(p->scrolled, label_width);
-    p->sizer_params->Add(p->frequently_changed_parameters->get_sizer(), 0, wxEXPAND | wxBOTTOM | wxLEFT, 2);
+    p->frequently_changed_parameters = new FreqChangedParams(p->scrolled, 0/*label_width*/);
+    p->sizer_params->Add(p->frequently_changed_parameters->get_sizer(), 0, wxEXPAND | wxTOP | wxBOTTOM, margin_10);
     
     // Object List
     p->object_list = new ObjectList(p->scrolled);
-    p->sizer_params->Add(p->object_list->get_sizer(), 1, wxEXPAND | wxTOP, 20);
+    p->sizer_params->Add(p->object_list->get_sizer(), 1, wxEXPAND);
  
     // Object Manipulations
     p->object_manipulation = new ObjectManipulation(p->scrolled);
     p->object_manipulation->Hide();
-    p->sizer_params->Add(p->object_manipulation->get_sizer(), 0, wxEXPAND | wxLEFT | wxTOP, 20);
+    p->sizer_params->Add(p->object_manipulation->get_sizer(), 0, wxEXPAND | wxTOP, margin_5);
 
     // Frequently Object Settings
     p->object_settings = new ObjectSettings(p->scrolled);
     p->object_settings->Hide();
-    p->sizer_params->Add(p->object_settings->get_sizer(), 0, wxEXPAND | wxLEFT | wxTOP, 20);
+    p->sizer_params->Add(p->object_settings->get_sizer(), 0, wxEXPAND | wxTOP, margin_5);
 
     wxBitmap arrow_up(GUI::from_u8(Slic3r::var("brick_go.png")), wxBITMAP_TYPE_PNG);
     p->btn_send_gcode = new wxButton(this, wxID_ANY, _(L("Send to printer")));
@@ -594,11 +613,11 @@ Sidebar::Sidebar(Plater *parent)
     p->sliced_info = new SlicedInfo(p->scrolled);
 
     // Sizer in the scrolled area
-    scrolled_sizer->Add(p->mode_sizer, 0, wxALIGN_RIGHT/*CENTER_HORIZONTAL*/ | wxBOTTOM | wxRIGHT, 5);
-    scrolled_sizer->Add(p->sizer_presets, 0, wxEXPAND | wxLEFT, 2);
-    scrolled_sizer->Add(p->sizer_params, 1, wxEXPAND);
-    scrolled_sizer->Add(p->object_info, 0, wxEXPAND | wxTOP | wxLEFT, 20);
-    scrolled_sizer->Add(p->sliced_info, 0, wxEXPAND | wxTOP | wxLEFT, 20);
+    scrolled_sizer->Add(p->mode_sizer, 0, wxALIGN_CENTER_HORIZONTAL/*RIGHT | wxBOTTOM | wxRIGHT, 5*/);
+    scrolled_sizer->Add(p->sizer_presets, 0, wxEXPAND | wxLEFT, margin_5);
+    scrolled_sizer->Add(p->sizer_params, 1, wxEXPAND | wxLEFT, margin_5);
+    scrolled_sizer->Add(p->object_info, 0, wxEXPAND | wxTOP | wxLEFT, margin_5);
+    scrolled_sizer->Add(p->sliced_info, 0, wxEXPAND | wxTOP | wxLEFT, margin_5);
 
     // Buttons underneath the scrolled area
     p->btn_export_gcode = new wxButton(this, wxID_ANY, _(L("Export G-code")) + dots);
@@ -608,13 +627,13 @@ Sidebar::Sidebar(Plater *parent)
     enable_buttons(false);
 
     auto *btns_sizer = new wxBoxSizer(wxVERTICAL);
-    btns_sizer->Add(p->btn_reslice, 0, wxEXPAND | wxTOP, 5);
-    btns_sizer->Add(p->btn_send_gcode, 0, wxEXPAND | wxTOP, 5);
-    btns_sizer->Add(p->btn_export_gcode, 0, wxEXPAND | wxTOP, 5);
+    btns_sizer->Add(p->btn_reslice, 0, wxEXPAND | wxTOP, margin_5);
+    btns_sizer->Add(p->btn_send_gcode, 0, wxEXPAND | wxTOP, margin_5);
+    btns_sizer->Add(p->btn_export_gcode, 0, wxEXPAND | wxTOP, margin_5);
 
     auto *sizer = new wxBoxSizer(wxVERTICAL);
-    sizer->Add(p->scrolled, 1, wxEXPAND | wxTOP, 5);
-    sizer->Add(btns_sizer, 0, wxEXPAND | wxLEFT, 20);
+    sizer->Add(p->scrolled, 1, wxEXPAND);
+    sizer->Add(btns_sizer, 0, wxEXPAND | wxLEFT, margin_5);
     SetSizer(sizer);
 
     // Events
