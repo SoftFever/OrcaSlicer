@@ -38,7 +38,7 @@ PrintHostSendDialog::PrintHostSendDialog(const fs::path &path)
 #endif
 
     auto *label_dir_hint = new wxStaticText(this, wxID_ANY, _(L("Use forward slashes ( / ) as a directory separator if needed.")));
-    label_dir_hint->Wrap(CONTENT_WIDTH);
+    label_dir_hint->Wrap(CONTENT_WIDTH * wxGetApp().em_unit());
 
     content_sizer->Add(txt_filename, 0, wxEXPAND);
     content_sizer->Add(label_dir_hint);
@@ -135,10 +135,11 @@ PrintHostQueueDialog::PrintHostQueueDialog(wxWindow *parent)
     , on_error_evt(this, EVT_PRINTHOST_ERROR, &PrintHostQueueDialog::on_error, this)
     , on_cancel_evt(this, EVT_PRINTHOST_CANCEL, &PrintHostQueueDialog::on_cancel, this)
 {
-    enum { HEIGHT = 800, WIDTH = 400, SPACING = 5 };
+    enum { HEIGHT = 60, WIDTH = 30, SPACING = 5 };
 
-    SetSize(wxSize(HEIGHT, WIDTH));
-    SetSize(GetMinSize());
+    const auto em = GetTextExtent("m").x;
+
+    SetSize(wxSize(HEIGHT * em, WIDTH * em));
 
     auto *topsizer = new wxBoxSizer(wxVERTICAL);
 
