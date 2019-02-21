@@ -946,6 +946,7 @@ private:
     bool m_multisample_allowed;
     bool m_regenerate_volumes;
     bool m_moving;
+    bool m_tab_down;
     bool m_render_sla_auxiliaries;
 
     std::string m_color_by;

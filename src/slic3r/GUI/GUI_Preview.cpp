@@ -52,7 +52,7 @@ View3D::~View3D()
 
 bool View3D::init(wxWindow* parent, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)
 {
-    if (!Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize))
+    if (!Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 /* disable wxTAB_TRAVERSAL */))
         return false;
 
     m_canvas_widget = GLCanvas3DManager::create_wxglcanvas(this);
