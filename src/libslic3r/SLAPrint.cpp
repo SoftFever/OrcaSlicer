@@ -2,6 +2,7 @@
 #include "SLA/SLASupportTree.hpp"
 #include "SLA/SLABasePool.hpp"
 #include "SLA/SLAAutoSupports.hpp"
+#include "ClipperUtils.hpp"
 #include "MTUtils.hpp"
 
 #include <unordered_set>
@@ -475,6 +476,15 @@ void SLAPrint::finalize()
 			po->m_stepmask[istep] = true;
     for (int istep = 0; istep < (int)slapsCount; ++ istep)
         m_stepmask[istep] = true;
+}
+
+// Generate a recommended output file name based on the format template, default extension, and template parameters
+// (timestamps, object placeholders derived from the model, current placeholder prameters and print statistics.
+// Use the final print statistics if available, or just keep the print statistics placeholders if not available yet (before the output is finalized).
+std::string SLAPrint::output_filename() const
+{ 
+    DynamicConfig config = this->finished() ? this->print_statistics().config() : this->print_statistics().placeholders();
+    return this->PrintBase::output_filename(m_print_config.output_filename_format.value, "zip", &config);
 }
 
 namespace {
@@ -960,6 +970,15 @@ void SLAPrint::process()
 
         // Print all the layers in parallel
         tbb::parallel_for<unsigned, decltype(lvlfn)>(0, lvlcnt, lvlfn);
+
+        // Fill statistics
+        this->fill_statistics();
+        // Set statistics values to the printer
+        m_printer->set_statistics({(m_print_statistics.objects_used_material + m_print_statistics.support_used_material)/1000,
+                                10.0,
+                                double(m_print_statistics.slow_layers_count),
+                                double(m_print_statistics.fast_layers_count)
+                                });
     };
 
     using slaposFn = std::function<void(SLAPrintObject&)>;
@@ -1042,16 +1061,6 @@ void SLAPrint::process()
         st += unsigned(PRINT_STEP_LEVELS[currentstep] * pstd);
     }
 
-    // Fill statistics
-    fill_statistics();
-    // Set statistics values to the printer
-    SLAPrinter& printer = *m_printer;
-    printer.set_statistics({(m_print_statistics.objects_used_material + m_print_statistics.support_used_material)/1000,
-                            10.0,
-                            double(m_print_statistics.slow_layers_count),
-                            double(m_print_statistics.fast_layers_count)
-                            });
-
     // If everything vent well
     report_status(*this, 100, L("Slicing done"));
 }
@@ -1128,7 +1137,7 @@ void SLAPrint::fill_statistics()
     const double init_exp_time      = m_material_config.initial_exposure_time.getFloat();
     const double exp_time           = m_material_config.exposure_time.getFloat();
 
-    const int fade_layers_cnt       = m_default_object_config.faded_layers.getInt();// 10 // [3;20]
+    const int    fade_layers_cnt    = m_default_object_config.faded_layers.getInt();// 10 // [3;20]
 
     const double width              = m_printer_config.display_width.getFloat() / SCALING_FACTOR;
     const double height             = m_printer_config.display_height.getFloat() / SCALING_FACTOR;
@@ -1136,17 +1145,21 @@ void SLAPrint::fill_statistics()
 
     // get polygons for all instances in the object
     auto get_all_polygons = [](const ExPolygons& input_polygons, const std::vector<SLAPrintObject::Instance>& instances) {
-        ExPolygons polygons;
         const size_t inst_cnt = instances.size();
 
-        polygons.reserve(input_polygons.size()*inst_cnt);
+        size_t polygon_cnt = 0;
+        for (const ExPolygon& polygon : input_polygons)
+			polygon_cnt += polygon.holes.size() + 1;
+
+        Polygons polygons;
+        polygons.reserve(polygon_cnt * inst_cnt);
         for (const ExPolygon& polygon : input_polygons) {
             for (size_t i = 0; i < inst_cnt; ++i)
             {
                 ExPolygon tmp = polygon;
                 tmp.rotate(Geometry::rad2deg(instances[i].rotation));
                 tmp.translate(instances[i].shift.x(), instances[i].shift.y());
-                polygons.push_back(tmp);
+                polygons_append(polygons, to_polygons(std::move(tmp)));
             }
         }
         return polygons;
@@ -1161,13 +1174,21 @@ void SLAPrint::fill_statistics()
     size_t fast_layers = 0;
 
     // find highest object
-    size_t max_layers_cnt = 0;
+    // Which is a better bet? To compare by max_z or by number of layers in the index?
+    double max_z = 0.;
+	size_t max_layers_cnt = 0;
     size_t highest_obj_idx = 0;
-    for (SLAPrintObject * po : m_objects) {
+	for (SLAPrintObject *&po : m_objects) {
         const SLAPrintObject::SliceIndex& slice_index = po->get_slice_index();
-        if (max_layers_cnt < slice_index.size()) {
-            max_layers_cnt = slice_index.size();
-            highest_obj_idx = std::find(m_objects.begin(), m_objects.end(), po) - m_objects.begin();
+        if (! slice_index.empty()) {
+            double z = (-- slice_index.end())->first;
+            size_t cnt = slice_index.size();
+            //if (z > max_z) {
+            if (cnt > max_layers_cnt) {
+                max_layers_cnt = cnt;
+                max_z = z;
+                highest_obj_idx = &po - &m_objects.front();
+            }
         }
     }
 
@@ -1180,9 +1201,7 @@ void SLAPrint::fill_statistics()
     int sliced_layer_cnt = 0;
     for (const auto& layer : highest_obj_slice_index)
     {
-        const double l_height = (layer.first == highest_obj_slice_index.begin()->first &&
-                                init_layer_height != layer_height) ? 
-                                init_layer_height : layer_height;
+        const double l_height = (layer.first == highest_obj_slice_index.begin()->first) ? init_layer_height : layer_height;
 
         // Calculation of the consumed material 
 
@@ -1191,31 +1210,21 @@ void SLAPrint::fill_statistics()
 
         for (SLAPrintObject * po : m_objects)
         {
-            const SLAPrintObject::SliceIndex& index = po->get_slice_index();
-            auto key = layer.first;
-            if (index.find(layer.first) == index.end()) {
-                const SLAPrintObject::SliceIndex::const_iterator it_key = std::find_if(index.begin(), index.end(), 
-                    [key](const SLAPrintObject::SliceIndex::value_type& id) -> bool { return std::abs(key - id.first) < EPSILON; });
-                if (it_key == index.end())
+            const SLAPrintObject::SliceRecord *record = nullptr;
+            {
+                const SLAPrintObject::SliceIndex& index = po->get_slice_index();
+                auto key = layer.first;
+				const SLAPrintObject::SliceIndex::const_iterator it_key = index.lower_bound(key - float(EPSILON));
+                if (it_key == index.end() || it_key->first > key + EPSILON)
                     continue;
-                key = it_key->first;
+                record = &it_key->second;
             }
 
-            const SLAPrintObject::SliceRecord& record = index.at(key);
-
-            if (record.model_slices_idx != SLAPrintObject::SliceRecord::NONE) {
-                const ExPolygons& expolygons = po->get_model_slices().at(record.model_slices_idx);
-                const ExPolygons model_expolygons = get_all_polygons(expolygons, po->instances());
-
-                append(model_polygons, to_polygons(model_expolygons));
-            }
+            if (record->model_slices_idx != SLAPrintObject::SliceRecord::NONE)
+                append(model_polygons, get_all_polygons(po->get_model_slices()[record->model_slices_idx], po->instances()));
             
-            if (record.support_slices_idx != SLAPrintObject::SliceRecord::NONE) {
-                const ExPolygons& expolygons = po->get_support_slices().at(record.support_slices_idx);
-                const ExPolygons support_expolygons = get_all_polygons(expolygons, po->instances());
-
-                append(supports_polygons, to_polygons(support_expolygons));
-            }
+            if (record->support_slices_idx != SLAPrintObject::SliceRecord::NONE)
+                append(supports_polygons, get_all_polygons(po->get_support_slices()[record->support_slices_idx], po->instances()));
         }
         
         model_polygons = union_(model_polygons);
@@ -1227,17 +1236,13 @@ void SLAPrint::fill_statistics()
             models_volume += layer_model_area * l_height;
 
         if (!supports_polygons.empty() && !model_polygons.empty())
-            append(supports_polygons, model_polygons);
-        supports_polygons = union_(supports_polygons);
+            supports_polygons = diff(supports_polygons, model_polygons);
         double layer_support_area = 0;
         for (const Polygon& polygon : supports_polygons)
             layer_support_area += polygon.area();
 
-        if (layer_support_area != 0) {
-            layer_support_area -= layer_model_area;
+        if (layer_support_area != 0)
             supports_volume += layer_support_area * l_height;
-        }
-
 
         // Calculation of the slow and fast layers to the future controlling those values on FW
 

@@ -14,6 +14,7 @@
 
 namespace Slic3r {
 
+// Used for addressing parameters of FilePrinter::set_statistics()
 enum ePrintStatistics
 {
     psUsedMaterial = 0,

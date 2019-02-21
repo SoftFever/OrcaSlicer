@@ -2,7 +2,6 @@
 #define slic3r_SLAPrint_hpp_
 
 #include <mutex>
-#include "ClipperUtils.hpp"
 #include "PrintBase.hpp"
 #include "PrintExport.hpp"
 #include "Point.hpp"
@@ -237,8 +236,7 @@ public:
     }
     const PrintObjects& objects() const { return m_objects; }
 
-	std::string         output_filename() const override 
-        { return this->PrintBase::output_filename(m_print_config.output_filename_format.value, "zip"); }
+	std::string         output_filename() const override;
 
     const SLAPrintStatistics&      print_statistics() const { return m_print_statistics; }
 
