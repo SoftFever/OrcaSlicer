@@ -8,6 +8,7 @@
 #include <numeric>
 
 #include <tbb/parallel_for.h>
+#include <boost/filesystem/path.hpp>
 #include <boost/log/trivial.hpp>
 
 //#include <tbb/spin_mutex.h>//#include "tbb/mutex.h"
@@ -1041,6 +1042,16 @@ void SLAPrint::process()
         st += unsigned(PRINT_STEP_LEVELS[currentstep] * pstd);
     }
 
+    // Fill statistics
+    fill_statistics();
+    // Set statistics values to the printer
+    SLAPrinter& printer = *m_printer;
+    printer.set_statistics({(m_print_statistics.objects_used_material + m_print_statistics.support_used_material)/1000,
+                            10.0,
+                            double(m_print_statistics.slow_layers_count),
+                            double(m_print_statistics.fast_layers_count)
+                            });
+
     // If everything vent well
     report_status(*this, 100, L("Slicing done"));
 }
@@ -1069,7 +1080,10 @@ bool SLAPrint::invalidate_state_by_config_options(const std::vector<t_config_opt
         "bed_shape",
         "max_print_height",
         "printer_technology",
-        "output_filename_format"
+        "output_filename_format",
+        "fast_tilt_time", 
+        "slow_tilt_time", 
+        "area_fill"
     };
 
     std::vector<SLAPrintStep> steps;
@@ -1100,6 +1114,170 @@ bool SLAPrint::invalidate_state_by_config_options(const std::vector<t_config_opt
         for (SLAPrintObject *object : m_objects)
             invalidated |= object->invalidate_step(ostep);
     return invalidated;
+}
+
+void SLAPrint::fill_statistics()
+{
+    const double init_layer_height  = m_material_config.initial_layer_height.getFloat();
+    const double layer_height       = m_default_object_config.layer_height.getFloat();
+
+    const double area_fill          = m_printer_config.area_fill.getFloat()*0.01;// 0.5 (50%);
+    const double fast_tilt          = m_printer_config.fast_tilt_time.getFloat();// 5.0;
+    const double slow_tilt          = m_printer_config.slow_tilt_time.getFloat();// 8.0;
+
+    const double init_exp_time      = m_material_config.initial_exposure_time.getFloat();
+    const double exp_time           = m_material_config.exposure_time.getFloat();
+
+    const int fade_layers_cnt       = m_default_object_config.faded_layers.getInt();// 10 // [3;20]
+
+    const double width              = m_printer_config.display_width.getFloat() / SCALING_FACTOR;
+    const double height             = m_printer_config.display_height.getFloat() / SCALING_FACTOR;
+    const double display_area       = width*height;
+
+    // get polygons for all instances in the object
+    auto get_all_polygons = [](const ExPolygons& input_polygons, const std::vector<SLAPrintObject::Instance>& instances) {
+        ExPolygons polygons;
+        const size_t inst_cnt = instances.size();
+
+        polygons.reserve(input_polygons.size()*inst_cnt);
+        for (const ExPolygon& polygon : input_polygons) {
+            for (size_t i = 0; i < inst_cnt; ++i)
+            {
+                ExPolygon tmp = polygon;
+                tmp.rotate(Geometry::rad2deg(instances[i].rotation));
+                tmp.translate(instances[i].shift.x(), instances[i].shift.y());
+                polygons.push_back(tmp);
+            }
+        }
+        return polygons;
+    };
+
+    double supports_volume = 0.0;
+    double models_volume = 0.0;
+
+    double estim_time = 0.0;
+
+    size_t slow_layers = 0;
+    size_t fast_layers = 0;
+
+    // find highest object
+    size_t max_layers_cnt = 0;
+    size_t highest_obj_idx = 0;
+    for (SLAPrintObject * po : m_objects) {
+        const SLAPrintObject::SliceIndex& slice_index = po->get_slice_index();
+        if (max_layers_cnt < slice_index.size()) {
+            max_layers_cnt = slice_index.size();
+            highest_obj_idx = std::find(m_objects.begin(), m_objects.end(), po) - m_objects.begin();
+        }
+    }
+
+    const SLAPrintObject * highest_obj = m_objects[highest_obj_idx];
+    const SLAPrintObject::SliceIndex& highest_obj_slice_index = highest_obj->get_slice_index();
+
+    const double delta_fade_time = (init_exp_time - exp_time) / (fade_layers_cnt + 1);
+    double fade_layer_time = init_exp_time;
+
+    int sliced_layer_cnt = 0;
+    for (const auto& layer : highest_obj_slice_index)
+    {
+        const double l_height = (layer.first == highest_obj_slice_index.begin()->first &&
+                                init_layer_height != layer_height) ? 
+                                init_layer_height : layer_height;
+
+        // Calculation of the consumed material 
+
+        Polygons model_polygons;
+        Polygons supports_polygons;
+
+        for (SLAPrintObject * po : m_objects)
+        {
+            const SLAPrintObject::SliceIndex& index = po->get_slice_index();
+            auto key = layer.first;
+            if (index.find(layer.first) == index.end()) {
+                const SLAPrintObject::SliceIndex::const_iterator it_key = std::find_if(index.begin(), index.end(), 
+                    [key](const SLAPrintObject::SliceIndex::value_type& id) -> bool { return std::abs(key - id.first) < EPSILON; });
+                if (it_key == index.end())
+                    continue;
+                key = it_key->first;
+            }
+
+            const SLAPrintObject::SliceRecord& record = index.at(key);
+
+            if (record.model_slices_idx != SLAPrintObject::SliceRecord::NONE) {
+                const ExPolygons& expolygons = po->get_model_slices().at(record.model_slices_idx);
+                const ExPolygons model_expolygons = get_all_polygons(expolygons, po->instances());
+
+                append(model_polygons, to_polygons(model_expolygons));
+            }
+            
+            if (record.support_slices_idx != SLAPrintObject::SliceRecord::NONE) {
+                const ExPolygons& expolygons = po->get_support_slices().at(record.support_slices_idx);
+                const ExPolygons support_expolygons = get_all_polygons(expolygons, po->instances());
+
+                append(supports_polygons, to_polygons(support_expolygons));
+            }
+        }
+        
+        model_polygons = union_(model_polygons);
+        double layer_model_area = 0;
+        for (const Polygon& polygon : model_polygons)
+            layer_model_area += polygon.area();
+
+        if (layer_model_area != 0)
+            models_volume += layer_model_area * l_height;
+
+        if (!supports_polygons.empty() && !model_polygons.empty())
+            append(supports_polygons, model_polygons);
+        supports_polygons = union_(supports_polygons);
+        double layer_support_area = 0;
+        for (const Polygon& polygon : supports_polygons)
+            layer_support_area += polygon.area();
+
+        if (layer_support_area != 0) {
+            layer_support_area -= layer_model_area;
+            supports_volume += layer_support_area * l_height;
+        }
+
+
+        // Calculation of the slow and fast layers to the future controlling those values on FW
+
+        const bool is_fast_layer = (layer_model_area + layer_support_area) <= display_area*area_fill;
+        const double tilt_time = is_fast_layer ? fast_tilt : slow_tilt;
+        if (is_fast_layer)
+            fast_layers++;
+        else
+            slow_layers++;
+
+
+        // Calculation of the printing time
+
+        if (sliced_layer_cnt < 3)
+            estim_time += init_exp_time;
+        else if (fade_layer_time > exp_time)
+        {
+            fade_layer_time -= delta_fade_time;
+            estim_time += fade_layer_time;
+        }
+        else
+            estim_time += exp_time;
+
+        estim_time += tilt_time;
+
+        sliced_layer_cnt++;
+    }
+
+    m_print_statistics.support_used_material = supports_volume * SCALING_FACTOR * SCALING_FACTOR; 
+    m_print_statistics.objects_used_material = models_volume  * SCALING_FACTOR * SCALING_FACTOR;
+
+    // Estimated printing time
+    // A layers count o the highest object 
+    if (max_layers_cnt == 0)
+        m_print_statistics.estimated_print_time = "N/A";
+    else
+        m_print_statistics.estimated_print_time = get_time_dhms(float(estim_time));
+
+    m_print_statistics.fast_layers_count = fast_layers;
+    m_print_statistics.slow_layers_count = slow_layers;
 }
 
 // Returns true if an object step is done on all objects and there's at least one object.
@@ -1337,6 +1515,45 @@ std::vector<sla::SupportPoint> SLAPrintObject::transformed_support_points() cons
     }
 
     return ret;
+}
+
+DynamicConfig SLAPrintStatistics::config() const
+{
+    DynamicConfig config;
+    const std::string print_time = Slic3r::short_time(this->estimated_print_time);
+    config.set_key_value("print_time", new ConfigOptionString(print_time));
+    config.set_key_value("objects_used_material", new ConfigOptionFloat(this->objects_used_material));
+    config.set_key_value("support_used_material", new ConfigOptionFloat(this->support_used_material));
+    config.set_key_value("total_cost", new ConfigOptionFloat(this->total_cost));
+    config.set_key_value("total_weight", new ConfigOptionFloat(this->total_weight));
+    return config;
+}
+
+DynamicConfig SLAPrintStatistics::placeholders()
+{
+    DynamicConfig config;
+    for (const std::string &key : {
+        "print_time", "total_cost", "total_weight",
+        "objects_used_material", "support_used_material" })
+        config.set_key_value(key, new ConfigOptionString(std::string("{") + key + "}"));
+        return config;
+}
+
+std::string SLAPrintStatistics::finalize_output_path(const std::string &path_in) const
+{
+    std::string final_path;
+    try {
+        boost::filesystem::path path(path_in);
+        DynamicConfig cfg = this->config();
+        PlaceholderParser pp;
+        std::string new_stem = pp.process(path.stem().string(), 0, &cfg);
+        final_path = (path.parent_path() / (new_stem + path.extension().string())).string();
+    }
+    catch (const std::exception &ex) {
+        BOOST_LOG_TRIVIAL(error) << "Failed to apply the print statistics to the export file name: " << ex.what();
+        final_path = path_in;
+    }
+    return final_path;
 }
 
 } // namespace Slic3r

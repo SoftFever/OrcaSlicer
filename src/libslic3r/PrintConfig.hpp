@@ -958,6 +958,9 @@ class SLAPrintObjectConfig : public StaticPrintConfig
 public:
     ConfigOptionFloat layer_height;
 
+    //Number of the layers needed for the exposure time fade [3;20]
+    ConfigOptionInt  faded_layers /*= 10*/;
+
     // Enabling or disabling support creation
     ConfigOptionBool  supports_enable;
 
@@ -1027,6 +1030,7 @@ protected:
     void initialize(StaticCacheBase &cache, const char *base_ptr)
     {
         OPT_PTR(layer_height);
+        OPT_PTR(faded_layers);
         OPT_PTR(supports_enable);
         OPT_PTR(support_head_front_diameter);
         OPT_PTR(support_head_penetration);
@@ -1083,6 +1087,9 @@ public:
     ConfigOptionInt                         display_pixels_y;
     ConfigOptionEnum<SLADisplayOrientation> display_orientation;
     ConfigOptionFloats                      printer_correction;
+    ConfigOptionFloat                       fast_tilt_time;
+    ConfigOptionFloat                       slow_tilt_time;
+    ConfigOptionFloat                       area_fill;
 protected:
     void initialize(StaticCacheBase &cache, const char *base_ptr)
     {
@@ -1095,6 +1102,9 @@ protected:
         OPT_PTR(display_pixels_y);
         OPT_PTR(display_orientation);
         OPT_PTR(printer_correction);
+        OPT_PTR(fast_tilt_time);
+        OPT_PTR(slow_tilt_time);
+        OPT_PTR(area_fill);
     }
 };
 
