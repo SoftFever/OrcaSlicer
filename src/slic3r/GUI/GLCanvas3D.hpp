@@ -131,6 +131,7 @@ wxDECLARE_EVENT(EVT_GLCANVAS_INSTANCE_SCALED, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, Event<bool>);
 wxDECLARE_EVENT(EVT_GLCANVAS_UPDATE_GEOMETRY, Vec3dsEvent<2>);
 wxDECLARE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLCANVAS_TAB, SimpleEvent);
 
 // this describes events being passed from GLCanvas3D to SlaSupport gizmo
 enum class SLAGizmoEventType {
