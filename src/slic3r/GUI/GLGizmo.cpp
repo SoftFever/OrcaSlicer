@@ -1514,7 +1514,7 @@ void GLGizmoFlatten::update_planes()
     TriangleMesh ch;
     for (const ModelVolume* vol : m_model_object->volumes)
     {
-        if (vol->type() != ModelVolume::Type::MODEL_PART)
+        if (vol->type() != ModelVolumeType::MODEL_PART)
             continue;
         TriangleMesh vol_ch = vol->get_convex_hull();
         vol_ch.transform(vol->get_matrix());

@@ -403,7 +403,7 @@ private:
 
     // This holds information to decide whether recalculation is necessary:
     std::vector<Transform3d> m_volumes_matrices;
-    std::vector<ModelVolume::Type> m_volumes_types;
+    std::vector<ModelVolumeType> m_volumes_types;
     Vec3d m_first_instance_scale;
     Vec3d m_first_instance_mirror;
 

@@ -295,6 +295,15 @@ private:
     mutable bool          m_raw_mesh_bounding_box_valid;    
 };
 
+// Declared outside of ModelVolume, so it could be forward declared.
+enum class ModelVolumeType : int {
+    INVALID = -1,
+    MODEL_PART = 0,
+    PARAMETER_MODIFIER,
+    SUPPORT_ENFORCER,
+    SUPPORT_BLOCKER,
+};
+
 // An object STL, or a modifier volume, over which a different set of parameters shall be applied.
 // ModelVolume instances are owned by a ModelObject.
 class ModelVolume : public ModelBase
@@ -307,23 +316,15 @@ public:
     // overriding the global Slic3r settings and the ModelObject settings.
     DynamicPrintConfig  config;
 
-    enum Type {
-        MODEL_TYPE_INVALID = -1,
-        MODEL_PART = 0,
-        PARAMETER_MODIFIER,
-        SUPPORT_ENFORCER,
-        SUPPORT_BLOCKER,
-    };
-
     // A parent object owning this modifier volume.
     ModelObject*        get_object() const { return this->object; };
-    Type                type() const { return m_type; }
-    void                set_type(const Type t) { m_type = t; }
-    bool                is_model_part()         const { return m_type == MODEL_PART; }
-    bool                is_modifier()           const { return m_type == PARAMETER_MODIFIER; }
-    bool                is_support_enforcer()   const { return m_type == SUPPORT_ENFORCER; }
-    bool                is_support_blocker()    const { return m_type == SUPPORT_BLOCKER; }
-    bool                is_support_modifier()   const { return m_type == SUPPORT_BLOCKER || m_type == SUPPORT_ENFORCER; }
+    ModelVolumeType     type() const { return m_type; }
+    void                set_type(const ModelVolumeType t) { m_type = t; }
+	bool                is_model_part()         const { return m_type == ModelVolumeType::MODEL_PART; }
+	bool                is_modifier()           const { return m_type == ModelVolumeType::PARAMETER_MODIFIER; }
+	bool                is_support_enforcer()   const { return m_type == ModelVolumeType::SUPPORT_ENFORCER; }
+	bool                is_support_blocker()    const { return m_type == ModelVolumeType::SUPPORT_BLOCKER; }
+	bool                is_support_modifier()   const { return m_type == ModelVolumeType::SUPPORT_BLOCKER || m_type == ModelVolumeType::SUPPORT_ENFORCER; }
     t_model_material_id material_id() const { return m_material_id; }
     void                set_material_id(t_model_material_id material_id);
     ModelMaterial*      material() const;
@@ -357,8 +358,8 @@ public:
     const TriangleMesh& get_convex_hull() const;
 
     // Helpers for loading / storing into AMF / 3MF files.
-    static Type         type_from_string(const std::string &s);
-    static std::string  type_to_string(const Type t);
+    static ModelVolumeType type_from_string(const std::string &s);
+    static std::string  type_to_string(const ModelVolumeType t);
 
     const Geometry::Transformation& get_transformation() const { return m_transformation; }
     void set_transformation(const Geometry::Transformation& transformation) { m_transformation = transformation; }
@@ -403,7 +404,7 @@ private:
     // Parent object owning this ModelVolume.
     ModelObject*            object;
     // Is it an object to be printed, or a modifier volume?
-    Type                    m_type;
+    ModelVolumeType         m_type;
     t_model_material_id     m_material_id;
     // The convex hull of this model's mesh.
     TriangleMesh             m_convex_hull;
@@ -415,13 +416,13 @@ private:
     //      1   ->   is splittable
     int                     m_is_splittable {-1};
 
-    ModelVolume(ModelObject *object, const TriangleMesh &mesh) : mesh(mesh), m_type(MODEL_PART), object(object)
+	ModelVolume(ModelObject *object, const TriangleMesh &mesh) : mesh(mesh), m_type(ModelVolumeType::MODEL_PART), object(object)
     {
         if (mesh.stl.stats.number_of_facets > 1)
             calculate_convex_hull();
     }
     ModelVolume(ModelObject *object, TriangleMesh &&mesh, TriangleMesh &&convex_hull) :
-        mesh(std::move(mesh)), m_convex_hull(std::move(convex_hull)), m_type(MODEL_PART), object(object) {}
+		mesh(std::move(mesh)), m_convex_hull(std::move(convex_hull)), m_type(ModelVolumeType::MODEL_PART), object(object) {}
 
     // Copying an existing volume, therefore this volume will get a copy of the ID assigned.
     ModelVolume(ModelObject *object, const ModelVolume &other) :
@@ -633,7 +634,7 @@ extern bool model_object_list_extended(const Model &model_old, const Model &mode
 
 // Test whether the new ModelObject contains a different set of volumes (or sorted in a different order)
 // than the old ModelObject.
-extern bool model_volume_list_changed(const ModelObject &model_object_old, const ModelObject &model_object_new, const ModelVolume::Type type);
+extern bool model_volume_list_changed(const ModelObject &model_object_old, const ModelObject &model_object_new, const ModelVolumeType type);
 
 #ifndef NDEBUG
 // Verify whether the IDs of Model / ModelObject / ModelVolume / ModelInstance / ModelMaterial are valid and unique.

@@ -571,7 +571,7 @@ void Print::model_volume_list_update_supports(ModelObject &model_object_dst, con
             delete mv_with_status.first;
 }
 
-static inline void model_volume_list_copy_configs(ModelObject &model_object_dst, const ModelObject &model_object_src, const ModelVolume::Type type)
+static inline void model_volume_list_copy_configs(ModelObject &model_object_dst, const ModelObject &model_object_src, const ModelVolumeType type)
 {
     size_t i_src, i_dst;
     for (i_src = 0, i_dst = 0; i_src < model_object_src.volumes.size() && i_dst < model_object_dst.volumes.size();) {
@@ -841,10 +841,10 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
         assert(it_status->status == ModelObjectStatus::Old || it_status->status == ModelObjectStatus::Moved);
         const ModelObject &model_object_new = *model.objects[idx_model_object];
         // Check whether a model part volume was added or removed, their transformations or order changed.
-        bool model_parts_differ         = model_volume_list_changed(model_object, model_object_new, ModelVolume::MODEL_PART);
-        bool modifiers_differ           = model_volume_list_changed(model_object, model_object_new, ModelVolume::PARAMETER_MODIFIER);
-        bool support_blockers_differ    = model_volume_list_changed(model_object, model_object_new, ModelVolume::SUPPORT_BLOCKER);
-        bool support_enforcers_differ   = model_volume_list_changed(model_object, model_object_new, ModelVolume::SUPPORT_ENFORCER);
+        bool model_parts_differ         = model_volume_list_changed(model_object, model_object_new, ModelVolumeType::MODEL_PART);
+        bool modifiers_differ           = model_volume_list_changed(model_object, model_object_new, ModelVolumeType::PARAMETER_MODIFIER);
+        bool support_blockers_differ    = model_volume_list_changed(model_object, model_object_new, ModelVolumeType::SUPPORT_BLOCKER);
+        bool support_enforcers_differ   = model_volume_list_changed(model_object, model_object_new, ModelVolumeType::SUPPORT_ENFORCER);
         if (model_parts_differ || modifiers_differ || 
             model_object.origin_translation         != model_object_new.origin_translation   ||
             model_object.layer_height_ranges        != model_object_new.layer_height_ranges  || 
@@ -886,8 +886,8 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
             }
             // Synchronize (just copy) the remaining data of ModelVolumes (name, config).
             //FIXME What to do with m_material_id?
-            model_volume_list_copy_configs(model_object /* dst */, model_object_new /* src */, ModelVolume::MODEL_PART);
-            model_volume_list_copy_configs(model_object /* dst */, model_object_new /* src */, ModelVolume::PARAMETER_MODIFIER);
+			model_volume_list_copy_configs(model_object /* dst */, model_object_new /* src */, ModelVolumeType::MODEL_PART);
+			model_volume_list_copy_configs(model_object /* dst */, model_object_new /* src */, ModelVolumeType::PARAMETER_MODIFIER);
             // Copy the ModelObject name, input_file and instances. The instances will compared against PrintObject instances in the next step.
             model_object.name       = model_object_new.name;
             model_object.input_file = model_object_new.input_file;

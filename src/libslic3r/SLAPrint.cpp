@@ -310,7 +310,7 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
         if (it_print_object_status != print_object_status.end() && it_print_object_status->id != model_object.id())
             it_print_object_status = print_object_status.end();
         // Check whether a model part volume was added or removed, their transformations or order changed.
-        bool model_parts_differ = model_volume_list_changed(model_object, model_object_new, ModelVolume::MODEL_PART);
+        bool model_parts_differ = model_volume_list_changed(model_object, model_object_new, ModelVolumeType::MODEL_PART);
         bool sla_trafo_differs  = model_object.instances.empty() != model_object_new.instances.empty() ||
             (! model_object.instances.empty() && ! sla_trafo(model_object).isApprox(sla_trafo(model_object_new)));
         if (model_parts_differ || sla_trafo_differs) {
