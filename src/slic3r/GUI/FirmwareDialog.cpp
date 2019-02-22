@@ -446,7 +446,7 @@ void FirmwareDialog::priv::prepare_common()
 		"-U", (boost::format("flash:w:0:%1%:i") % hex_file.path.string()).str(),
 	}};
 
-	BOOST_LOG_TRIVIAL(info) << "Invoking avrdude, arguments: "
+	BOOST_LOG_TRIVIAL(info) << "Preparing arguments avrdude: "
 		<< std::accumulate(std::next(args.begin()), args.end(), args[0], [](std::string a, const std::string &b) {
 			return a + ' ' + b;
 		});
@@ -492,7 +492,7 @@ void FirmwareDialog::priv::prepare_mk3()
 		"-U", (boost::format("flash:w:1:%1%:i") % hex_file.path.string()).str(),
 	}};
 
-	BOOST_LOG_TRIVIAL(info) << "Invoking avrdude for external flash flashing, arguments: "
+	BOOST_LOG_TRIVIAL(info) << "Preparing avrdude arguments for external flash flashing: "
 		<< std::accumulate(std::next(args.begin()), args.end(), args[0], [](std::string a, const std::string &b) {
 			return a + ' ' + b;
 		});
@@ -522,7 +522,7 @@ void FirmwareDialog::priv::prepare_mm_control()
 		"-U", (boost::format("flash:w:0:%1%:i") % hex_file.path.string()).str(),
 	}};
 
-	BOOST_LOG_TRIVIAL(info) << "Invoking avrdude, arguments: "
+	BOOST_LOG_TRIVIAL(info) << "Preparing avrdude arguments: "
 		<< std::accumulate(std::next(args.begin()), args.end(), args[0], [](std::string a, const std::string &b) {
 			return a + ' ' + b;
 		});
