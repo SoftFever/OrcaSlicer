@@ -669,7 +669,6 @@ void Tab::load_config(const DynamicPrintConfig& config)
 	bool modified = 0;
 	for(auto opt_key : m_config->diff(config)) {
 		m_config->set_key_value(opt_key, config.option(opt_key)->clone());
-        m_dirty_options.emplace(opt_key);
 		modified = 1;
 	}
 	if (modified) {
@@ -752,8 +751,6 @@ void Tab::load_key_value(const std::string& opt_key, const boost::any& value, bo
 
 void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 {
-    m_dirty_options.erase(opt_key);
-
     ConfigOptionsGroup* og_freq_chng_params = wxGetApp().sidebar().og_freq_chng_params(supports_printer_technology(ptFFF));
     if (opt_key == "fill_density" || opt_key == "supports_enable" || opt_key == "pad_enable")
 	{
@@ -778,22 +775,29 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     if (opt_key == "wipe_tower" || opt_key == "single_extruder_multi_material" || opt_key == "extruders_count" )
         update_wiping_button_visibility();
 
+    if (opt_key == "extruders_count")
+        wxGetApp().plater()->on_extruders_change(boost::any_cast<size_t>(value));
+
 	update();
 
+    // #ys_FIXME_to_delete
     // Post event to the Plater after updating of the all dirty options
     // It helps to avoid needless schedule_background_processing
-    if (update_completed()) {
-        wxCommandEvent event(EVT_TAB_VALUE_CHANGED);
-        event.SetEventObject(this);
-        event.SetString(opt_key);
-        if (opt_key == "extruders_count")
-        {
-            const int val = boost::any_cast<size_t>(value);
-            event.SetInt(val);
-        }
-
-        wxPostEvent(this, event);
-    }
+//     if (update_completed()) 
+//     if (m_update_stack.empty())
+//     {
+// //         wxCommandEvent event(EVT_TAB_VALUE_CHANGED);
+// //         event.SetEventObject(this);
+// //         event.SetString(opt_key);
+// //         if (opt_key == "extruders_count")
+// //         {
+// //             const int val = boost::any_cast<size_t>(value);
+// //             event.SetInt(val);
+// //         }
+// // 
+// //         wxPostEvent(this, event);
+//         wxGetApp().mainframe->on_value_changed(m_config);
+//     }
 }
 
 // Show/hide the 'purging volumes' button
@@ -827,9 +831,14 @@ void Tab::on_presets_changed()
         wxGetApp().get_tab(t)->load_current_preset();
     }
 
-	wxCommandEvent event(EVT_TAB_PRESETS_CHANGED);
-	event.SetEventObject(this);
-	wxPostEvent(this, event);
+    // #ys_FIXME_to_delete
+// 	wxCommandEvent event(EVT_TAB_PRESETS_CHANGED);
+// 	event.SetEventObject(this);
+// 	wxPostEvent(this, event);
+
+    // Instead of PostEvent (EVT_TAB_PRESETS_CHANGED) just call update_presets
+    wxGetApp().plater()->sidebar().update_presets(m_type);
+
 	update_preset_description_line();
 }
 
@@ -1165,6 +1174,7 @@ void TabPrint::update()
     if (m_preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA)
         return; // ys_FIXME
 
+    // #ys_FIXME_to_delete
     //! Temporary workaround for the correct updates of the SpinCtrl (like "perimeters"):
     // KillFocus() for the wxSpinCtrl use CallAfter function. So,
     // to except the duplicate call of the update() after dialog->ShowModal(),
@@ -1172,6 +1182,7 @@ void TabPrint::update()
 //     if (is_msg_dlg_already_exist)    // ! It looks like a fixed problem after start to using of a m_dirty_options
 //         return;                      // ! TODO Let delete this part of code after a common aplication testing
 
+    m_update_cnt++;
 	Freeze();
 
 	double fill_density = m_config->option<ConfigOptionPercent>("fill_density")->value;
@@ -1384,6 +1395,10 @@ void TabPrint::update()
 		from_u8(PresetHints::recommended_thin_wall_thickness(*m_preset_bundle)));
 
 	Thaw();
+    m_update_cnt--;
+
+    if (m_update_cnt==0)
+        wxGetApp().mainframe->on_config_changed(m_config);
 }
 
 void TabPrint::OnActivate()
@@ -1553,6 +1568,7 @@ void TabFilament::update()
     if (m_preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA)
         return; // ys_FIXME
 
+    m_update_cnt++;
 	Freeze();
 	wxString text = from_u8(PresetHints::cooling_description(m_presets->get_edited_preset()));
 	m_cooling_description_line->SetText(text);
@@ -1567,7 +1583,11 @@ void TabFilament::update()
 
 	for (auto el : { "min_fan_speed", "disable_fan_first_layers" })
 		get_field(el)->toggle(fan_always_on);
-	Thaw();
+    Thaw();
+    m_update_cnt--;
+
+    if (m_update_cnt == 0)
+        wxGetApp().mainframe->on_config_changed(m_config);
 }
 
 void TabFilament::OnActivate()
@@ -2234,7 +2254,12 @@ void TabPrinter::update_pages()
 
 void TabPrinter::update()
 {
+    m_update_cnt++;
     m_presets->get_edited_preset().printer_technology() == ptFFF ? update_fff() : update_sla();
+    m_update_cnt--;
+
+    if (m_update_cnt == 0)
+        wxGetApp().mainframe->on_config_changed(m_config);
 }
 
 void TabPrinter::update_fff()
@@ -3199,6 +3224,14 @@ void TabSLAMaterial::update()
 {
     if (m_preset_bundle->printers.get_selected_preset().printer_technology() == ptFFF)
         return; // #ys_FIXME
+    
+// #ys_FIXME
+//     m_update_cnt++;
+//     ! something to update
+//     m_update_cnt--;
+// 
+//     if (m_update_cnt == 0)
+        wxGetApp().mainframe->on_config_changed(m_config);
 }
 
 void TabSLAPrint::build()
@@ -3282,6 +3315,14 @@ void TabSLAPrint::update()
 {
     if (m_preset_bundle->printers.get_selected_preset().printer_technology() == ptFFF)
         return; // #ys_FIXME
+
+// #ys_FIXME
+//     m_update_cnt++;
+//     ! something to update
+//     m_update_cnt--;
+// 
+//     if (m_update_cnt == 0)
+    wxGetApp().mainframe->on_config_changed(m_config);
 }
 
 } // GUI

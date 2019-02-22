@@ -510,7 +510,7 @@ struct Sidebar::priv
 
 void Sidebar::priv::show_preset_comboboxes()
 {
-    const bool showSLA = plater->printer_technology() == ptSLA;
+    const bool showSLA = wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA;
 
     wxWindowUpdateLocker noUpdates_scrolled(scrolled->GetParent());
     
@@ -671,11 +671,12 @@ void Sidebar::remove_unused_filament_combos(const int current_extruder_count)
 void Sidebar::update_presets(Preset::Type preset_type)
 {
 	PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
+    const auto print_tech = preset_bundle.printers.get_edited_preset().printer_technology();
 
     switch (preset_type) {
     case Preset::TYPE_FILAMENT: 
     {
-        const int extruder_cnt = p->plater->printer_technology() != ptFFF ? 1 :
+        const int extruder_cnt = print_tech != ptFFF ? 1 :
                                 dynamic_cast<ConfigOptionFloats*>(preset_bundle.printers.get_edited_preset().config.option("nozzle_diameter"))->values.size();
         const int filament_cnt = p->combos_filament.size() > extruder_cnt ? extruder_cnt : p->combos_filament.size();
 
@@ -707,7 +708,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
 	case Preset::TYPE_PRINTER:
 	{
 		// Update the print choosers to only contain the compatible presets, update the dirty flags.
-		if (p->plater->printer_technology() == ptFFF)
+        if (print_tech == ptFFF)
 			preset_bundle.prints.update_platter_ui(p->combo_print);
         else {
             preset_bundle.sla_prints.update_platter_ui(p->combo_sla_print);
@@ -720,7 +721,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
             p->combo_printer->check_selection();
 		// Update the filament choosers to only contain the compatible presets, update the color preview,
 		// update the dirty flags.
-		if (p->plater->printer_technology() == ptFFF) {
+        if (print_tech == ptFFF) {
             for (size_t i = 0; i < p->combos_filament.size(); ++ i)
                 preset_bundle.update_platter_filament_ui(i, p->combos_filament[i]);
 		}
