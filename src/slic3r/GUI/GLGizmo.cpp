@@ -2211,11 +2211,12 @@ bool GLGizmoSlaSupports::mouse_event(SLAGizmoEventType action, const Vec2d& mous
         // we'll recover current look direction from the modelview matrix (in world coords)...
         Vec3f direction_to_camera(modelview_matrix[2], modelview_matrix[6], modelview_matrix[10]);
         // ...and transform it to model coords.
-        direction_to_camera = instance_matrix_no_translation.inverse().cast<float>() * direction_to_camera.eval();
+        direction_to_camera = (instance_matrix_no_translation.inverse().cast<float>() * direction_to_camera).normalized().eval();
 
         // Iterate over all points, check if they're in the rectangle and if so, check that they are not obscured by the mesh:
         for (unsigned int i=0; i<m_editing_mode_cache.size(); ++i) {
-            Vec3f pos = instance_matrix.cast<float>() * m_editing_mode_cache[i].first.pos;
+			const sla::SupportPoint &support_point = m_editing_mode_cache[i].first;
+            Vec3f pos = instance_matrix.cast<float>() * support_point.pos;
             pos(2) += z_offset;
               GLdouble out_x, out_y, out_z;
              ::gluProject((GLdouble)pos(0), (GLdouble)pos(1), (GLdouble)pos(2), modelview_matrix, projection_matrix, viewport, &out_x, &out_y, &out_z);
@@ -2225,7 +2226,8 @@ bool GLGizmoSlaSupports::mouse_event(SLAGizmoEventType action, const Vec2d& mous
                 bool is_obscured = false;
                 // Cast a ray in the direction of the camera and look for intersection with the mesh:
                 std::vector<igl::Hit> hits;
-                if (m_AABB.intersect_ray(m_V, m_F, m_editing_mode_cache[i].first.pos, direction_to_camera, hits))
+                // Offset the start of the ray to the front of the ball + EPSILON to account for numerical inaccuracies.
+                if (m_AABB.intersect_ray(m_V, m_F, support_point.pos + direction_to_camera * (support_point.head_front_radius + EPSILON), direction_to_camera, hits))
                     // FIXME: the intersection could in theory be behind the camera, but as of now we only have camera direction.
                     // Also, the threshold is in mesh coordinates, not in actual dimensions.
                     if (hits.size() > 1 || hits.front().t > 0.001f)

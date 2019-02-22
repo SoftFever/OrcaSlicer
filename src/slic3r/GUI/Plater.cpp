@@ -2995,6 +2995,8 @@ void Plater::export_stl(bool selection_only)
     const wxString path = dialog->GetPath();
     const std::string path_u8 = into_u8(path);
 
+    wxBusyCursor wait;
+
     TriangleMesh mesh;
     if (selection_only) {
         const auto &selection = p->get_selection();
