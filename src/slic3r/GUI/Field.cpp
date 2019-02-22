@@ -638,7 +638,7 @@ void Choice::set_value(const boost::any& value, bool change_event)
 	}
 	case coEnum: {
 		int val = boost::any_cast<int>(value);
-		if (m_opt_id.compare("external_fill_pattern") == 0)
+		if (m_opt_id == "top_fill_pattern" || m_opt_id == "bottom_fill_pattern")
 		{
 			if (!m_opt.enum_values.empty()) {
 				std::string key;
@@ -707,7 +707,7 @@ boost::any& Choice::get_value()
 	if (m_opt.type == coEnum)
 	{
 		int ret_enum = static_cast<wxComboBox*>(window)->GetSelection(); 
-		if (m_opt_id.compare("external_fill_pattern") == 0)
+		if (m_opt_id == "top_fill_pattern" || m_opt_id == "bottom_fill_pattern")
 		{
 			if (!m_opt.enum_values.empty()) {
 				std::string key = m_opt.enum_values[ret_enum];

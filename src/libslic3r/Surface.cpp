@@ -43,6 +43,12 @@ Surface::is_internal() const
 }
 
 bool
+Surface::is_top() const
+{
+    return this->surface_type == stTop;
+}
+
+bool
 Surface::is_bottom() const
 {
     return this->surface_type == stBottom

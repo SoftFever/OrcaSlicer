@@ -971,7 +971,8 @@ void TabPrint::build()
 		optgroup = page->new_optgroup(_(L("Infill")));
 		optgroup->append_single_option_line("fill_density");
 		optgroup->append_single_option_line("fill_pattern");
-		optgroup->append_single_option_line("external_fill_pattern");
+		optgroup->append_single_option_line("top_fill_pattern");
+		optgroup->append_single_option_line("bottom_fill_pattern");
 
 		optgroup = page->new_optgroup(_(L("Reducing printing time")));
 		optgroup->append_single_option_line("infill_every_layers");
@@ -1280,7 +1281,7 @@ void TabPrint::update()
 			}
 		}
 		if (!str_fill_pattern.empty()) {
-			const std::vector<std::string> &external_fill_pattern = m_config->def()->get("external_fill_pattern")->enum_values;
+			const std::vector<std::string> &external_fill_pattern = m_config->def()->get("top_fill_pattern")->enum_values;
 			bool correct_100p_fill = false;
 			for (const std::string &fill : external_fill_pattern)
 			{
@@ -1321,7 +1322,7 @@ void TabPrint::update()
 
 	bool have_solid_infill = m_config->opt_int("top_solid_layers") > 0 || m_config->opt_int("bottom_solid_layers") > 0;
 	// solid_infill_extruder uses the same logic as in Print::extruders()
-	for (auto el : {"external_fill_pattern", "infill_first", "solid_infill_extruder",
+	for (auto el : {"top_fill_pattern", "bottom_fill_pattern", "infill_first", "solid_infill_extruder",
 					"solid_infill_extrusion_width", "solid_infill_speed" })
 		get_field(el)->toggle(have_solid_infill);
 
