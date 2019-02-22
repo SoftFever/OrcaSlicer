@@ -588,6 +588,13 @@ void FirmwareDialog::priv::perform_upload()
 
 			auto evt = new wxCommandEvent(EVT_AVRDUDE, q->GetId());
 			auto wxmsg = wxString::FromUTF8(msg);
+#ifdef WIN32
+			// The string might be in local encoding
+			if (wxmsg.IsEmpty() && *msg != '\0') {
+				wxmsg = wxString(msg);
+			}
+#endif
+
 			evt->SetExtraLong(AE_MESSAGE);
 			evt->SetString(std::move(wxmsg));
 			wxQueueEvent(q, evt);
