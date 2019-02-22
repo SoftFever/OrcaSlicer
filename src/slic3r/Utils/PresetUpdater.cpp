@@ -353,14 +353,6 @@ Updates PresetUpdater::priv::get_config_updates() const
 		// Perform a basic load and check the version
 		const auto vp = VendorProfile::from_ini(bundle_path, false);
 
-		const auto ver_current = idx.find(vp.config_version);
-		if (ver_current == idx.end()) {
-			auto message = (boost::format("Preset bundle `%1%` version not found in index: %2%") % idx.vendor() % vp.config_version.to_string()).str();
-			BOOST_LOG_TRIVIAL(error) << message;
-			GUI::show_error(nullptr, GUI::from_u8(message));
-			continue;
-		}
-
 		// Getting a recommended version from the latest index, wich may have been downloaded
 		// from the internet, or installed / updated from the installation resources.
 		const auto recommended = idx.recommended();
@@ -368,15 +360,24 @@ Updates PresetUpdater::priv::get_config_updates() const
 			BOOST_LOG_TRIVIAL(error) << boost::format("No recommended version for vendor: %1%, invalid index?") % idx.vendor();
 		}
 
-		BOOST_LOG_TRIVIAL(debug) << boost::format("Vendor: %1%, version installed: %2%, version cached: %3%")
+		const auto ver_current = idx.find(vp.config_version);
+		const bool ver_current_found = ver_current != idx.end();
+		if (! ver_current_found) {
+			auto message = (boost::format("Preset bundle `%1%` version not found in index: %2%") % idx.vendor() % vp.config_version.to_string()).str();
+			BOOST_LOG_TRIVIAL(error) << message;
+			GUI::show_error(nullptr, GUI::from_u8(message));
+		}
+
+		BOOST_LOG_TRIVIAL(debug) << boost::format("Vendor: %1%, version installed: %2%%3%, version cached: %4%")
 			% vp.name
-			% ver_current->config_version.to_string()
+			% vp.config_version.to_string()
+			% (ver_current_found ? "" : " (not found in index!)")
 			% recommended->config_version.to_string();
 
-		if (! ver_current->is_current_slic3r_supported()) {
+		if (ver_current_found && !ver_current->is_current_slic3r_supported()) {
 			BOOST_LOG_TRIVIAL(warning) << "Current Slic3r incompatible with installed bundle: " << bundle_path.string();
 			updates.incompats.emplace_back(std::move(bundle_path), *ver_current);
-		} else if (recommended->config_version > ver_current->config_version) {
+		} else if (recommended->config_version > vp.config_version) {
 			// Config bundle update situation
 
 			// Check if the update is already present in a snapshot
