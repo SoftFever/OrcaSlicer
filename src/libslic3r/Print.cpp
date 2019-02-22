@@ -1506,7 +1506,8 @@ void Print::export_gcode(const std::string &path_template, GCodePreviewData *pre
     // The following call may die if the output_filename_format template substitution fails.
     std::string path = this->output_filepath(path_template);
     std::string message = "Exporting G-code";
-    if (! path.empty()) {
+    if (! path.empty() && preview_data == nullptr) {
+        // Only show the path if preview_data is not set -> running from command line.
         message += " to ";
         message += path;
     }
