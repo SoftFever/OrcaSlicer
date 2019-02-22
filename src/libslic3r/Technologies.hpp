@@ -63,4 +63,14 @@
 // Toolbar items hidden/shown in dependence of the user mode
 #define ENABLE_MODE_AWARE_TOOLBAR_ITEMS (1 && ENABLE_1_42_0_ALPHA5)
 
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//====================
+// 1.42.0.alpha7 techs
+//====================
+#define ENABLE_1_42_0_ALPHA7 1
+
+// Toolbars, Gizmos and other GUI icons imported from svg files
+#define ENABLE_SVG_ICONS (1 && ENABLE_1_42_0_ALPHA7)
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
 #endif // _technologies_h_

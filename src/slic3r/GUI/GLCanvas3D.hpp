@@ -749,6 +749,11 @@ private:
         bool m_enabled;
         typedef std::map<EType, GLGizmoBase*> GizmosMap;
         GizmosMap m_gizmos;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#if ENABLE_SVG_ICONS
+        ItemsIconsTexture m_icons_texture;
+#endif // ENABLE_SVG_ICONS
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         BackgroundTexture m_background_texture;
         EType m_current;
 
