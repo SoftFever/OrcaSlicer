@@ -830,6 +830,9 @@ void Tab::on_presets_changed()
         // refresh the print or filament/sla_material tab page.
         wxGetApp().get_tab(t)->load_current_preset();
     }
+    // clear m_dependent_tabs after first update from select_preset()
+    // to avoid needless preset loading from update() function
+    m_dependent_tabs.clear();
 
     // #ys_FIXME_to_delete
 // 	wxCommandEvent event(EVT_TAB_PRESETS_CHANGED);
