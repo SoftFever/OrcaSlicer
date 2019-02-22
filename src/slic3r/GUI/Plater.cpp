@@ -49,6 +49,7 @@
 #include "GLCanvas3D.hpp"
 #include "GLToolbar.hpp"
 #include "GUI_Preview.hpp"
+#include "3DBed.hpp"
 #include "Tab.hpp"
 #include "PresetBundle.hpp"
 #include "BackgroundSlicingProcess.hpp"
@@ -1016,6 +1017,7 @@ struct Plater::priv
     wxPanel* current_panel;
     std::vector<wxPanel*> panels;
     Sidebar *sidebar;
+    Bed3D bed;
     View3D* view3D;
     GLToolbar view_toolbar;
     Preview *preview;
@@ -1120,6 +1122,12 @@ struct Plater::priv
 
     void update_object_menu();
 
+    // Set the bed shape to a single closed 2D polygon(array of two element arrays),
+    // triangulate the bed and store the triangles into m_bed.m_triangles,
+    // fills the m_bed.m_grid_lines and sets m_bed.m_origin.
+    // Sets m_bed.m_polygon to limit the object placement.
+    void set_bed_shape(const Pointfs& shape);
+
 private:
     bool init_object_menu();
     bool init_common_menu(wxMenu* menu, const bool is_part = false);
@@ -1192,17 +1200,14 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     view3D = new View3D(q, &model, config, &background_process);
     preview = new Preview(q, config, &background_process, &gcode_preview_data, [this](){ schedule_background_process(); });
 
+    view3D->set_bed(&bed);
+    preview->set_bed(&bed);
+
     panels.push_back(view3D);
     panels.push_back(preview);
 
     this->background_process_timer.SetOwner(this->q, 0);
     this->q->Bind(wxEVT_TIMER, [this](wxTimerEvent &evt) { this->update_restart_background_process(false, false); });
-
-#if !ENABLE_REWORKED_BED_SHAPE_CHANGE
-    auto *bed_shape = config->opt<ConfigOptionPoints>("bed_shape");
-    view3D->set_bed_shape(bed_shape->values);
-    preview->set_bed_shape(bed_shape->values);
-#endif // !ENABLE_REWORKED_BED_SHAPE_CHANGE
 
     update();
 
@@ -1255,10 +1260,12 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     view3D_canvas->Bind(EVT_GLTOOLBAR_SPLIT_VOLUMES, &priv::on_action_split_volumes, this);
     view3D_canvas->Bind(EVT_GLTOOLBAR_LAYERSEDITING, &priv::on_action_layersediting, this);
     view3D_canvas->Bind(EVT_GLCANVAS_INIT, [this](SimpleEvent&) { init_view_toolbar(); });
+    view3D_canvas->Bind(EVT_GLCANVAS_UPDATE_BED_SHAPE, [this](SimpleEvent&) { set_bed_shape(config->option<ConfigOptionPoints>("bed_shape")->values); });
 
     // Preview events:
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_VIEWPORT_CHANGED, &priv::on_viewport_changed, this);
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_QUESTION_MARK, [this](SimpleEvent&) { wxGetApp().keyboard_shortcuts(); });
+    preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_UPDATE_BED_SHAPE, [this](SimpleEvent&) { set_bed_shape(config->option<ConfigOptionPoints>("bed_shape")->values); });
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_TAB, [this](SimpleEvent&) { select_next_view_3D(); });
 
     view3D_canvas->Bind(EVT_GLCANVAS_INIT, [this](SimpleEvent&) { init_view_toolbar(); });
@@ -2718,6 +2725,16 @@ bool Plater::priv::can_mirror() const
     return get_selection().is_from_single_instance();
 }
 
+void Plater::priv::set_bed_shape(const Pointfs& shape)
+{
+    bool new_shape = bed.set_shape(shape);
+    if (new_shape)
+    {
+        if (view3D) view3D->bed_shape_changed();
+        if (preview) preview->bed_shape_changed();
+    }
+}
+
 void Plater::priv::update_object_menu()
 {
     sidebar->obj_list()->append_menu_items_add_volume(&object_menu);
@@ -3139,20 +3156,13 @@ void Plater::on_extruders_change(int num_extruders)
 void Plater::on_config_change(const DynamicPrintConfig &config)
 {
     bool update_scheduled = false;
-#if ENABLE_REWORKED_BED_SHAPE_CHANGE
     bool bed_shape_changed = false;
-#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
     for (auto opt_key : p->config->diff(config)) {
         p->config->set_key_value(opt_key, config.option(opt_key)->clone());
         if (opt_key == "printer_technology")
             this->set_printer_technology(config.opt_enum<PrinterTechnology>(opt_key));
         else if (opt_key == "bed_shape") {
-#if ENABLE_REWORKED_BED_SHAPE_CHANGE
             bed_shape_changed = true;
-#else
-            if (p->view3D) p->view3D->set_bed_shape(p->config->option<ConfigOptionPoints>(opt_key)->values);
-            if (p->preview) p->preview->set_bed_shape(p->config->option<ConfigOptionPoints>(opt_key)->values);
-#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
             update_scheduled = true;
         } 
         else if (boost::starts_with(opt_key, "wipe_tower") ||
@@ -3178,12 +3188,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         }
         else if (opt_key == "printer_model") {
             // update to force bed selection(for texturing)
-#if ENABLE_REWORKED_BED_SHAPE_CHANGE
             bed_shape_changed = true;
-#else
-            if (p->view3D) p->view3D->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values);
-            if (p->preview) p->preview->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values);
-#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
             update_scheduled = true;
         }
         else if (opt_key == "host_type" && this->p->printer_technology == ptSLA) {
@@ -3196,13 +3201,8 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         p->sidebar->show_send(prin_host_opt != nullptr && !prin_host_opt->value.empty());
     }
 
-#if ENABLE_REWORKED_BED_SHAPE_CHANGE
     if (bed_shape_changed)
-    {
-        if (p->view3D) p->view3D->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values);
-        if (p->preview) p->preview->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values);
-    }
-#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
+        p->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values);
 
     if (update_scheduled) 
         update();

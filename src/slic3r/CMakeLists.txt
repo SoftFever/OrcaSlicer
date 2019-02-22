@@ -74,6 +74,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/BedShapeDialog.hpp
     GUI/2DBed.cpp
     GUI/2DBed.hpp
+    GUI/3DBed.cpp
+    GUI/3DBed.hpp
     GUI/wxExtensions.cpp
     GUI/wxExtensions.hpp
     GUI/WipeTowerDialog.cpp

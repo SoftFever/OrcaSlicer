@@ -69,9 +69,6 @@ bool View3D::init(wxWindow* parent, Model* model, DynamicPrintConfig* config, Ba
     m_canvas->set_config(config);
     m_canvas->enable_gizmos(true);
     m_canvas->enable_toolbar(true);
-#if !ENABLE_REWORKED_BED_SHAPE_CHANGE
-    m_canvas->enable_force_zoom_to_bed(true);
-#endif // !ENABLE_REWORKED_BED_SHAPE_CHANGE
 
 #if !ENABLE_IMGUI
     m_gizmo_widget = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
@@ -92,6 +89,12 @@ bool View3D::init(wxWindow* parent, Model* model, DynamicPrintConfig* config, Ba
     return true;
 }
 
+void View3D::set_bed(Bed3D* bed)
+{
+    if (m_canvas != nullptr)
+        m_canvas->set_bed(bed);
+}
+
 void View3D::set_view_toolbar(GLToolbar* toolbar)
 {
     if (m_canvas != nullptr)
@@ -104,15 +107,10 @@ void View3D::set_as_dirty()
         m_canvas->set_as_dirty();
 }
 
-void View3D::set_bed_shape(const Pointfs& shape)
+void View3D::bed_shape_changed()
 {
     if (m_canvas != nullptr)
-    {
-        m_canvas->set_bed_shape(shape);
-#if !ENABLE_REWORKED_BED_SHAPE_CHANGE
-        m_canvas->zoom_to_bed();
-#endif // !ENABLE_REWORKED_BED_SHAPE_CHANGE
-    }
+        m_canvas->bed_shape_changed();
 }
 
 void View3D::select_view(const std::string& direction)
@@ -345,6 +343,12 @@ Preview::~Preview()
     }
 }
 
+void Preview::set_bed(Bed3D* bed)
+{
+    if (m_canvas != nullptr)
+        m_canvas->set_bed(bed);
+}
+
 void Preview::set_view_toolbar(GLToolbar* toolbar)
 {
     if (m_canvas != nullptr)
@@ -376,9 +380,10 @@ void Preview::set_enabled(bool enabled)
     m_enabled = enabled;
 }
 
-void Preview::set_bed_shape(const Pointfs& shape)
+void Preview::bed_shape_changed()
 {
-    m_canvas->set_bed_shape(shape);
+    if (m_canvas != nullptr)
+        m_canvas->bed_shape_changed();
 }
 
 void Preview::select_view(const std::string& direction)

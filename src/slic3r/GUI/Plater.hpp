@@ -10,6 +10,9 @@
 
 #include "Preset.hpp"
 
+#include "3DScene.hpp"
+#include "GLTexture.hpp"
+
 class wxButton;
 class wxBoxSizer;
 class wxGLCanvas;

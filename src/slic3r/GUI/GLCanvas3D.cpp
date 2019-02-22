@@ -84,112 +84,6 @@ static const float AXES_COLOR[3][3] = { { 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f
 namespace Slic3r {
 namespace GUI {
 
-bool GeometryBuffer::set_from_triangles(const Polygons& triangles, float z, bool generate_tex_coords)
-{
-    m_vertices.clear();
-    m_tex_coords.clear();
-
-    unsigned int v_size = 9 * (unsigned int)triangles.size();
-    unsigned int t_size = 6 * (unsigned int)triangles.size();
-    if (v_size == 0)
-        return false;
-
-    m_vertices = std::vector<float>(v_size, 0.0f);
-    if (generate_tex_coords)
-        m_tex_coords = std::vector<float>(t_size, 0.0f);
-
-    float min_x = unscale<float>(triangles[0].points[0](0));
-    float min_y = unscale<float>(triangles[0].points[0](1));
-    float max_x = min_x;
-    float max_y = min_y;
-
-    unsigned int v_coord = 0;
-    unsigned int t_coord = 0;
-    for (const Polygon& t : triangles)
-    {
-        for (unsigned int v = 0; v < 3; ++v)
-        {
-            const Point& p = t.points[v];
-            float x = unscale<float>(p(0));
-            float y = unscale<float>(p(1));
-
-            m_vertices[v_coord++] = x;
-            m_vertices[v_coord++] = y;
-            m_vertices[v_coord++] = z;
-
-            if (generate_tex_coords)
-            {
-                m_tex_coords[t_coord++] = x;
-                m_tex_coords[t_coord++] = y;
-
-                min_x = std::min(min_x, x);
-                max_x = std::max(max_x, x);
-                min_y = std::min(min_y, y);
-                max_y = std::max(max_y, y);
-            }
-        }
-    }
-
-    if (generate_tex_coords)
-    {
-        float size_x = max_x - min_x;
-        float size_y = max_y - min_y;
-
-        if ((size_x != 0.0f) && (size_y != 0.0f))
-        {
-            float inv_size_x = 1.0f / size_x;
-            float inv_size_y = -1.0f / size_y;
-            for (unsigned int i = 0; i < m_tex_coords.size(); i += 2)
-            {
-                m_tex_coords[i] = (m_tex_coords[i] - min_x) * inv_size_x;
-                m_tex_coords[i + 1] = (m_tex_coords[i + 1] - min_y) * inv_size_y;
-            }
-        }
-    }
-
-    return true;
-}
-
-bool GeometryBuffer::set_from_lines(const Lines& lines, float z)
-{
-    m_vertices.clear();
-    m_tex_coords.clear();
-
-    unsigned int size = 6 * (unsigned int)lines.size();
-    if (size == 0)
-        return false;
-
-    m_vertices = std::vector<float>(size, 0.0f);
-
-    unsigned int coord = 0;
-    for (const Line& l : lines)
-    {
-        m_vertices[coord++] = unscale<float>(l.a(0));
-        m_vertices[coord++] = unscale<float>(l.a(1));
-        m_vertices[coord++] = z;
-        m_vertices[coord++] = unscale<float>(l.b(0));
-        m_vertices[coord++] = unscale<float>(l.b(1));
-        m_vertices[coord++] = z;
-    }
-
-    return true;
-}
-
-const float* GeometryBuffer::get_vertices() const
-{
-    return m_vertices.data();
-}
-
-const float* GeometryBuffer::get_tex_coords() const
-{
-    return m_tex_coords.data();
-}
-
-unsigned int GeometryBuffer::get_vertices_count() const
-{
-    return (unsigned int)m_vertices.size() / 3;
-}
-
 Size::Size()
     : m_width(0)
     , m_height(0)
@@ -344,502 +238,7 @@ void GLCanvas3D::Camera::set_scene_box(const BoundingBoxf3& box, GLCanvas3D& can
     }
 }
 
-GLCanvas3D::Bed::Bed()
-    : m_type(Custom)
-    , m_scale_factor(1.0f)
-{
-}
-
-bool GLCanvas3D::Bed::is_prusa() const
-{
-    return (m_type == MK2) || (m_type == MK3) || (m_type == SL1);
-}
-
-bool GLCanvas3D::Bed::is_custom() const
-{
-    return m_type == Custom;
-}
-
-const Pointfs& GLCanvas3D::Bed::get_shape() const
-{
-    return m_shape;
-}
-
-bool GLCanvas3D::Bed::set_shape(const Pointfs& shape)
-{
-#if ENABLE_REWORKED_BED_SHAPE_CHANGE
-    EType new_type = _detect_type(shape);
-#else
-    EType new_type = _detect_type();
-#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
-    if (m_shape == shape && m_type == new_type)
-        // No change, no need to update the UI.
-        return false;
-
-    m_shape = shape;
-    m_type = new_type;
-
-    _calc_bounding_box();
-
-    ExPolygon poly;
-    for (const Vec2d& p : m_shape)
-    {
-        poly.contour.append(Point(scale_(p(0)), scale_(p(1))));
-    }
-
-    _calc_triangles(poly);
-
-    const BoundingBox& bed_bbox = poly.contour.bounding_box();
-    _calc_gridlines(poly, bed_bbox);
-
-    m_polygon = offset_ex(poly.contour, (float)bed_bbox.radius() * 1.7f, jtRound, scale_(0.5))[0].contour;
-    // Let the calee to update the UI.
-    return true;
-}
-
-const BoundingBoxf3& GLCanvas3D::Bed::get_bounding_box() const
-{
-    return m_bounding_box;
-}
-
-bool GLCanvas3D::Bed::contains(const Point& point) const
-{
-    return m_polygon.contains(point);
-}
-
-Point GLCanvas3D::Bed::point_projection(const Point& point) const
-{
-    return m_polygon.point_projection(point);
-}
-
-#if ENABLE_PRINT_BED_MODELS
-void GLCanvas3D::Bed::render(float theta, bool useVBOs, float scale_factor) const
-{
-    m_scale_factor = scale_factor;
-
-    switch (m_type)
-    {
-    case MK2:
-    {
-        _render_prusa("mk2", theta, useVBOs);
-        break;
-    }
-    case MK3:
-    {
-        _render_prusa("mk3", theta, useVBOs);
-        break;
-    }
-    case SL1:
-    {
-        _render_prusa("sl1", theta, useVBOs);
-        break;
-    }
-    default:
-    case Custom:
-    {
-        _render_custom();
-        break;
-    }
-    }
-}
-#else
-void GLCanvas3D::Bed::render(float theta, float scale_factor) const
-{
-    m_scale_factor = scale_factor;
-
-    switch (m_type)
-    {
-    case MK2:
-    {
-        _render_prusa("mk2", theta);
-        break;
-    }
-    case MK3:
-    {
-        _render_prusa("mk3", theta);
-        break;
-    }
-    case SL1:
-    {
-        _render_prusa("sl1", theta);
-        break;
-    }
-    default:
-    case Custom:
-    {
-        _render_custom();
-        break;
-    }
-    }
-}
-#endif // ENABLE_PRINT_BED_MODELS
-
-void GLCanvas3D::Bed::_calc_bounding_box()
-{
-    m_bounding_box = BoundingBoxf3();
-    for (const Vec2d& p : m_shape)
-    {
-        m_bounding_box.merge(Vec3d(p(0), p(1), 0.0));
-    }
-}
-
-void GLCanvas3D::Bed::_calc_triangles(const ExPolygon& poly)
-{
-    Polygons triangles;
-    poly.triangulate(&triangles);
-
-    if (!m_triangles.set_from_triangles(triangles, GROUND_Z, m_type != Custom))
-        printf("Unable to create bed triangles\n");
-}
-
-void GLCanvas3D::Bed::_calc_gridlines(const ExPolygon& poly, const BoundingBox& bed_bbox)
-{
-    Polylines axes_lines;
-    for (coord_t x = bed_bbox.min(0); x <= bed_bbox.max(0); x += scale_(10.0))
-    {
-        Polyline line;
-        line.append(Point(x, bed_bbox.min(1)));
-        line.append(Point(x, bed_bbox.max(1)));
-        axes_lines.push_back(line);
-    }
-    for (coord_t y = bed_bbox.min(1); y <= bed_bbox.max(1); y += scale_(10.0))
-    {
-        Polyline line;
-        line.append(Point(bed_bbox.min(0), y));
-        line.append(Point(bed_bbox.max(0), y));
-        axes_lines.push_back(line);
-    }
-
-    // clip with a slightly grown expolygon because our lines lay on the contours and may get erroneously clipped
-    Lines gridlines = to_lines(intersection_pl(axes_lines, offset(poly, (float)SCALED_EPSILON)));
-
-    // append bed contours
-    Lines contour_lines = to_lines(poly);
-    std::copy(contour_lines.begin(), contour_lines.end(), std::back_inserter(gridlines));
-
-    if (!m_gridlines.set_from_lines(gridlines, GROUND_Z))
-        printf("Unable to create bed grid lines\n");
-}
-
-#if ENABLE_REWORKED_BED_SHAPE_CHANGE
-GLCanvas3D::Bed::EType GLCanvas3D::Bed::_detect_type(const Pointfs& shape) const
-#else
-GLCanvas3D::Bed::EType GLCanvas3D::Bed::_detect_type() const
-#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
-{
-    EType type = Custom;
-
-    auto bundle = wxGetApp().preset_bundle;
-    if (bundle != nullptr)
-    {
-        const Preset* curr = &bundle->printers.get_selected_preset();
-        while (curr != nullptr)
-        {
-			if (curr->config.has("bed_shape"))
-			{
-#if ENABLE_REWORKED_BED_SHAPE_CHANGE
-                if ((curr->vendor != nullptr) && (curr->vendor->name == "Prusa Research") && (shape == dynamic_cast<const ConfigOptionPoints*>(curr->config.option("bed_shape"))->values))
-                {
-                    if (boost::contains(curr->name, "SL1"))
-                    {
-                        type = SL1;
-                        break;
-                    }
-                    else if (boost::contains(curr->name, "MK3") || boost::contains(curr->name, "MK2.5"))
-                    {
-                        type = MK3;
-                        break;
-                    }
-                    else if (boost::contains(curr->name, "MK2"))
-                    {
-                        type = MK2;
-                        break;
-                    }
-                }
-#else
-                if (boost::contains(curr->name, "SL1"))
-				{
-					//FIXME add a condition on the size of the print bed?
-					type = SL1;
-					break;
-				}
-				else if (_are_equal(m_shape, dynamic_cast<const ConfigOptionPoints*>(curr->config.option("bed_shape"))->values))
-				{
-					if ((curr->vendor != nullptr) && (curr->vendor->name == "Prusa Research"))
-					{
-						if (boost::contains(curr->name, "MK3") || boost::contains(curr->name, "MK2.5"))
-						{
-							type = MK3;
-							break;
-						} else if (boost::contains(curr->name, "MK2"))
-						{
-							type = MK2;
-							break;
-						}
-					}
-				}
-#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
-            }
-
-            curr = bundle->printers.get_preset_parent(*curr);
-        }
-    }
-
-    return type;
-}
-
-#if ENABLE_PRINT_BED_MODELS
-void GLCanvas3D::Bed::_render_prusa(const std::string &key, float theta, bool useVBOs) const
-#else
-void GLCanvas3D::Bed::_render_prusa(const std::string &key, float theta) const
-#endif // ENABLE_PRINT_BED_MODELS
-{
-    std::string tex_path = resources_dir() + "/icons/bed/" + key;
-
-    // use higher resolution images if graphic card allows
-    GLint max_tex_size;
-    ::glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_tex_size);
-
-    // temporary set to lowest resolution
-    max_tex_size = 2048;
-
-    if (max_tex_size >= 8192)
-        tex_path += "_8192";
-    else if (max_tex_size >= 4096)
-        tex_path += "_4096";
-
-#if ENABLE_PRINT_BED_MODELS
-    std::string model_path = resources_dir() + "/models/" + key;
-#endif // ENABLE_PRINT_BED_MODELS
-
-#if ENABLE_ANISOTROPIC_FILTER_ON_BED_TEXTURES
-    // use anisotropic filter if graphic card allows
-    GLfloat max_anisotropy = 0.0f;
-    if (glewIsSupported("GL_EXT_texture_filter_anisotropic"))
-        ::glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_anisotropy);
-#endif // ENABLE_ANISOTROPIC_FILTER_ON_BED_TEXTURES
-
-    std::string filename = tex_path + "_top.png";
-    if ((m_top_texture.get_id() == 0) || (m_top_texture.get_source() != filename))
-    {
-        if (!m_top_texture.load_from_file(filename, true))
-        {
-            _render_custom();
-            return;
-        }
-#if ENABLE_ANISOTROPIC_FILTER_ON_BED_TEXTURES
-        if (max_anisotropy > 0.0f)
-        {
-            ::glBindTexture(GL_TEXTURE_2D, m_top_texture.get_id());
-            ::glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, max_anisotropy);
-            ::glBindTexture(GL_TEXTURE_2D, 0);
-        }
-#endif // ENABLE_ANISOTROPIC_FILTER_ON_BED_TEXTURES
-    }
-
-    filename = tex_path + "_bottom.png";
-    if ((m_bottom_texture.get_id() == 0) || (m_bottom_texture.get_source() != filename))
-    {
-        if (!m_bottom_texture.load_from_file(filename, true))
-        {
-            _render_custom();
-            return;
-        }
-#if ENABLE_ANISOTROPIC_FILTER_ON_BED_TEXTURES
-        if (max_anisotropy > 0.0f)
-        {
-            ::glBindTexture(GL_TEXTURE_2D, m_bottom_texture.get_id());
-            ::glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, max_anisotropy);
-            ::glBindTexture(GL_TEXTURE_2D, 0);
-        }
-#endif // ENABLE_ANISOTROPIC_FILTER_ON_BED_TEXTURES
-    }
-
-#if ENABLE_PRINT_BED_MODELS
-    if (theta <= 90.0f)
-    {
-        filename = model_path + "_bed.stl";
-        if ((m_model.get_filename() != filename) && m_model.init_from_file(filename, useVBOs)) {
-            Vec3d offset = m_bounding_box.center() - Vec3d(0.0, 0.0, 0.5 * m_model.get_bounding_box().size()(2));
-            if (key == "mk2")
-                // hardcoded value to match the stl model
-                offset += Vec3d(0.0, 7.5, -0.03);
-            else if (key == "mk3")
-                // hardcoded value to match the stl model
-                offset += Vec3d(0.0, 5.5, 2.43);
-            else if (key == "sl1")
-                // hardcoded value to match the stl model
-                offset += Vec3d(0.0, 0.0, -0.03);
-
-            m_model.center_around(offset);
-        }
-
-        if (!m_model.get_filename().empty())
-        {
-            ::glEnable(GL_LIGHTING);
-            m_model.render();
-            ::glDisable(GL_LIGHTING);
-        }
-    }
-#endif // ENABLE_PRINT_BED_MODELS
-
-    unsigned int triangles_vcount = m_triangles.get_vertices_count();
-    if (triangles_vcount > 0)
-    {
-        ::glEnable(GL_DEPTH_TEST);
-        ::glDepthMask(GL_FALSE);
-
-        ::glEnable(GL_BLEND);
-        ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        ::glEnable(GL_TEXTURE_2D);
-        ::glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-
-        ::glEnableClientState(GL_VERTEX_ARRAY);
-        ::glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-
-        if (theta > 90.0f)
-            ::glFrontFace(GL_CW);
-
-        ::glBindTexture(GL_TEXTURE_2D, (theta <= 90.0f) ? (GLuint)m_top_texture.get_id() : (GLuint)m_bottom_texture.get_id());
-        ::glVertexPointer(3, GL_FLOAT, 0, (GLvoid*)m_triangles.get_vertices());
-        ::glTexCoordPointer(2, GL_FLOAT, 0, (GLvoid*)m_triangles.get_tex_coords());
-        ::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)triangles_vcount);
-
-        if (theta > 90.0f)
-            ::glFrontFace(GL_CCW);
-
-        ::glBindTexture(GL_TEXTURE_2D, 0);
-        ::glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-        ::glDisableClientState(GL_VERTEX_ARRAY);
-
-        ::glDisable(GL_TEXTURE_2D);
-
-        ::glDisable(GL_BLEND);
-        ::glDepthMask(GL_TRUE);
-    }
-}
-
-void GLCanvas3D::Bed::_render_custom() const
-{
-    m_top_texture.reset();
-    m_bottom_texture.reset();
-
-    unsigned int triangles_vcount = m_triangles.get_vertices_count();
-    if (triangles_vcount > 0)
-    {
-        ::glEnable(GL_LIGHTING);
-        ::glDisable(GL_DEPTH_TEST);
-
-        ::glEnable(GL_BLEND);
-        ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        ::glEnableClientState(GL_VERTEX_ARRAY);
-
-        ::glColor4f(0.35f, 0.35f, 0.35f, 0.4f);
-        ::glNormal3d(0.0f, 0.0f, 1.0f);
-        ::glVertexPointer(3, GL_FLOAT, 0, (GLvoid*)m_triangles.get_vertices());
-        ::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)triangles_vcount);
-
-        // draw grid
-        unsigned int gridlines_vcount = m_gridlines.get_vertices_count();
-
-        // we need depth test for grid, otherwise it would disappear when looking the object from below
-        ::glEnable(GL_DEPTH_TEST);
-        ::glLineWidth(3.0f * m_scale_factor);
-        ::glColor4f(0.2f, 0.2f, 0.2f, 0.4f);
-        ::glVertexPointer(3, GL_FLOAT, 0, (GLvoid*)m_gridlines.get_vertices());
-        ::glDrawArrays(GL_LINES, 0, (GLsizei)gridlines_vcount);
-
-        ::glDisableClientState(GL_VERTEX_ARRAY);
-
-        ::glDisable(GL_BLEND);
-        ::glDisable(GL_LIGHTING);
-    }
-}
-
-#if !ENABLE_REWORKED_BED_SHAPE_CHANGE
-bool GLCanvas3D::Bed::_are_equal(const Pointfs& bed_1, const Pointfs& bed_2)
-{
-    if (bed_1.size() != bed_2.size())
-        return false;
-
-    for (unsigned int i = 0; i < (unsigned int)bed_1.size(); ++i)
-    {
-        if (bed_1[i] != bed_2[i])
-            return false;
-    }
-
-    return true;
-}
-#endif // !ENABLE_REWORKED_BED_SHAPE_CHANGE
-
-const double GLCanvas3D::Axes::Radius = 0.5;
-const double GLCanvas3D::Axes::ArrowBaseRadius = 2.5 * GLCanvas3D::Axes::Radius;
-const double GLCanvas3D::Axes::ArrowLength = 5.0;
-
-GLCanvas3D::Axes::Axes()
-    : origin(Vec3d::Zero())
-    , length(Vec3d::Zero())
-{
-    m_quadric = ::gluNewQuadric();
-    if (m_quadric != nullptr)
-        ::gluQuadricDrawStyle(m_quadric, GLU_FILL);
-}
-
-GLCanvas3D::Axes::~Axes()
-{
-    if (m_quadric != nullptr)
-        ::gluDeleteQuadric(m_quadric);
-}
-
-void GLCanvas3D::Axes::render() const
-{
-    if (m_quadric == nullptr)
-        return;
-
-    ::glEnable(GL_DEPTH_TEST);
-    ::glEnable(GL_LIGHTING);
-
-    // x axis
-    ::glColor3f(1.0f, 0.0f, 0.0f);
-    ::glPushMatrix();
-    ::glTranslated(origin(0), origin(1), origin(2));
-    ::glRotated(90.0, 0.0, 1.0, 0.0);
-    render_axis(length(0));
-    ::glPopMatrix();
-
-    // y axis
-    ::glColor3f(0.0f, 1.0f, 0.0f);
-    ::glPushMatrix();
-    ::glTranslated(origin(0), origin(1), origin(2));
-    ::glRotated(-90.0, 1.0, 0.0, 0.0);
-    render_axis(length(1));
-    ::glPopMatrix();
-
-    // z axis
-    ::glColor3f(0.0f, 0.0f, 1.0f);
-    ::glPushMatrix();
-    ::glTranslated(origin(0), origin(1), origin(2));
-    render_axis(length(2));
-    ::glPopMatrix();
-
-    ::glDisable(GL_LIGHTING);
-}
-
-void GLCanvas3D::Axes::render_axis(double length) const
-{
-    ::gluQuadricOrientation(m_quadric, GLU_OUTSIDE);
-    ::gluCylinder(m_quadric, Radius, Radius, length, 32, 1);
-    ::gluQuadricOrientation(m_quadric, GLU_INSIDE);
-    ::gluDisk(m_quadric, 0.0, Radius, 32, 1);
-    ::glTranslated(0.0, 0.0, length);
-    ::gluQuadricOrientation(m_quadric, GLU_OUTSIDE);
-    ::gluCylinder(m_quadric, ArrowBaseRadius, 0.0, ArrowLength, 32, 1);
-    ::gluQuadricOrientation(m_quadric, GLU_INSIDE);
-    ::gluDisk(m_quadric, 0.0, ArrowBaseRadius, 32, 1);
-}
-
+#if !ENABLE_TEXTURES_FROM_SVG
 GLCanvas3D::Shader::Shader()
     : m_shader(nullptr)
 {
@@ -918,6 +317,7 @@ void GLCanvas3D::Shader::_reset()
         m_shader = nullptr;
     }
 }
+#endif // !ENABLE_TEXTURES_FROM_SVG
 
 GLCanvas3D::LayersEditing::LayersEditing()
     : m_use_legacy_opengl(false)
@@ -4085,6 +3485,7 @@ wxDEFINE_EVENT(EVT_GLCANVAS_WIPETOWER_MOVED, Vec3dEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, Event<bool>);
 wxDEFINE_EVENT(EVT_GLCANVAS_UPDATE_GEOMETRY, Vec3dsEvent<2>);
 wxDEFINE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_UPDATE_BED_SHAPE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_TAB, SimpleEvent);
 
 GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
@@ -4094,6 +3495,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     , m_retina_helper(nullptr)
 #endif
     , m_in_render(false)
+    , m_bed(nullptr)
     , m_toolbar(GLToolbar::Normal)
     , m_view_toolbar(nullptr)
     , m_use_clipping_planes(false)
@@ -4104,11 +3506,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     , m_dirty(true)
     , m_initialized(false)
     , m_use_VBOs(false)
-#if ENABLE_REWORKED_BED_SHAPE_CHANGE
     , m_requires_zoom_to_bed(false)
-#else
-    , m_force_zoom_to_bed_enabled(false)
-#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
     , m_apply_zoom_to_volumes_filter(false)
     , m_hover_volume_id(-1)
     , m_toolbar_action_running(false)
@@ -4325,36 +3723,12 @@ void GLCanvas3D::set_model(Model* model)
     m_selection.set_model(m_model);
 }
 
-void GLCanvas3D::set_bed_shape(const Pointfs& shape)
+void GLCanvas3D::bed_shape_changed()
 {
-    bool new_shape = m_bed.set_shape(shape);
-
-#if ENABLE_REWORKED_BED_SHAPE_CHANGE
-    if (new_shape)
-    {
-        // Set the origin and size for painting of the coordinate system axes.
-        m_axes.origin = Vec3d(0.0, 0.0, (double)GROUND_Z);
-        set_bed_axes_length(0.1 * m_bed.get_bounding_box().max_size());
-        m_camera.set_scene_box(scene_bounding_box(), *this);
-        m_requires_zoom_to_bed = true;
-
-        m_dirty = true;
-    }
-#else
-    // Set the origin and size for painting of the coordinate system axes.
-    m_axes.origin = Vec3d(0.0, 0.0, (double)GROUND_Z);
-    set_bed_axes_length(0.1 * m_bed.get_bounding_box().max_size());
-
-    if (new_shape)
-        zoom_to_bed();
+    m_camera.set_scene_box(scene_bounding_box(), *this);
+    m_requires_zoom_to_bed = true;
 
     m_dirty = true;
-#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
-}
-
-void GLCanvas3D::set_bed_axes_length(double length)
-{
-    m_axes.length = length * Vec3d::Ones();
 }
 
 void GLCanvas3D::set_color_by(const std::string& value)
@@ -4381,7 +3755,9 @@ BoundingBoxf3 GLCanvas3D::volumes_bounding_box() const
 BoundingBoxf3 GLCanvas3D::scene_bounding_box() const
 {
     BoundingBoxf3 bb = volumes_bounding_box();
-    bb.merge(m_bed.get_bounding_box());
+    if (m_bed != nullptr)
+        bb.merge(m_bed->get_bounding_box());
+
     if (m_config != nullptr)
     {
         double h = m_config->opt_float("max_print_height");
@@ -4444,13 +3820,6 @@ void GLCanvas3D::enable_toolbar(bool enable)
     m_toolbar.set_enabled(enable);
 }
 
-#if !ENABLE_REWORKED_BED_SHAPE_CHANGE
-void GLCanvas3D::enable_force_zoom_to_bed(bool enable)
-{
-    m_force_zoom_to_bed_enabled = enable;
-}
-#endif // !ENABLE_REWORKED_BED_SHAPE_CHANGE
-
 void GLCanvas3D::enable_dynamic_background(bool enable)
 {
     m_dynamic_background_enabled = enable;
@@ -4476,7 +3845,8 @@ bool GLCanvas3D::is_toolbar_item_pressed(const std::string& name) const
 
 void GLCanvas3D::zoom_to_bed()
 {
-    _zoom_to_bounding_box(m_bed.get_bounding_box());
+    if (m_bed != nullptr)
+        _zoom_to_bounding_box(m_bed->get_bounding_box());
 }
 
 void GLCanvas3D::zoom_to_volumes()
@@ -4589,12 +3959,10 @@ void GLCanvas3D::render()
     if (!_set_current() || !_3DScene::init(m_canvas))
         return;
 
-#if ENABLE_REWORKED_BED_SHAPE_CHANGE
-    if (m_bed.get_shape().empty())
+    if ((m_bed != nullptr) && m_bed->get_shape().empty())
     {
         // this happens at startup when no data is still saved under <>\AppData\Roaming\Slic3rPE
-        if (m_config != nullptr)
-            set_bed_shape(m_config->opt<ConfigOptionPoints>("bed_shape")->values);
+        post_event(SimpleEvent(EVT_GLCANVAS_UPDATE_BED_SHAPE));
     }
 
     if (m_requires_zoom_to_bed)
@@ -4604,10 +3972,6 @@ void GLCanvas3D::render()
         _resize((unsigned int)cnv_size.get_width(), (unsigned int)cnv_size.get_height());
         m_requires_zoom_to_bed = false;
     }
-#else
-    if (m_force_zoom_to_bed_enabled)
-        _force_zoom_to_bed();
-#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
 
     _camera_tranform();
 
@@ -4621,7 +3985,7 @@ void GLCanvas3D::render()
         // absolute value of the rotation
         theta = 360.f - theta;
 
-    bool is_custom_bed = m_bed.is_custom();
+    bool is_custom_bed = (m_bed == nullptr) || m_bed->is_custom();
 
 #if ENABLE_IMGUI
     wxGetApp().imgui()->new_frame();
@@ -4902,10 +4266,6 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
     if (m_reload_delayed)
         return;
-
-#if !ENABLE_REWORKED_BED_SHAPE_CHANGE
-    set_bed_shape(dynamic_cast<const ConfigOptionPoints*>(m_config->option("bed_shape"))->values);
-#endif // !ENABLE_REWORKED_BED_SHAPE_CHANGE
 
     if (m_regenerate_volumes)
     {
@@ -6194,14 +5554,6 @@ bool GLCanvas3D::_is_shown_on_screen() const
     return (m_canvas != nullptr) ? m_canvas->IsShownOnScreen() : false;
 }
 
-#if !ENABLE_REWORKED_BED_SHAPE_CHANGE
-void GLCanvas3D::_force_zoom_to_bed()
-{
-    zoom_to_bed();
-    m_force_zoom_to_bed_enabled = false;
-}
-#endif //  !ENABLE_REWORKED_BED_SHAPE_CHANGE
-
 bool GLCanvas3D::_init_toolbar()
 {
     if (!m_toolbar.is_enabled())
@@ -6410,8 +5762,9 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
 
 BoundingBoxf3 GLCanvas3D::_max_bounding_box() const
 {
-    BoundingBoxf3 bb = m_bed.get_bounding_box();
-    bb.merge(volumes_bounding_box());
+    BoundingBoxf3 bb = volumes_bounding_box();
+    if (m_bed != nullptr)
+        bb.merge(m_bed->get_bounding_box());
     return bb;
 }
 
@@ -6427,11 +5780,7 @@ void GLCanvas3D::_zoom_to_bounding_box(const BoundingBoxf3& bbox)
 
         viewport_changed();
 
-#if ENABLE_REWORKED_BED_SHAPE_CHANGE
         m_dirty = true;
-#else
-        _refresh_if_shown_on_screen();
-#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
     }
 }
 
@@ -6511,15 +5860,7 @@ void GLCanvas3D::_refresh_if_shown_on_screen()
 
         // Because of performance problems on macOS, where PaintEvents are not delivered
         // frequently enough, we call render() here directly when we can.
-#if ENABLE_REWORKED_BED_SHAPE_CHANGE
         render();
-#else
-        // We can't do that when m_force_zoom_to_bed_enabled == true, because then render()
-        // ends up calling back here via _force_zoom_to_bed(), causing a stack overflow.
-        if (m_canvas != nullptr) {
-            m_force_zoom_to_bed_enabled ? m_canvas->Refresh() : render();
-        }
-#endif // ENABLE_REWORKED_BED_SHAPE_CHANGE
     }
 }
 
@@ -6628,16 +5969,14 @@ void GLCanvas3D::_render_bed(float theta) const
     scale_factor = m_retina_helper->get_scale_factor();
 #endif
 
-#if ENABLE_PRINT_BED_MODELS
-    m_bed.render(theta, m_use_VBOs, scale_factor);
-#else
-    m_bed.render(theta, scale_factor);
-#endif // ENABLE_PRINT_BED_MODELS
+    if (m_bed != nullptr)
+        m_bed->render(theta, m_use_VBOs, scale_factor);
 }
 
 void GLCanvas3D::_render_axes() const
 {
-    m_axes.render();
+    if (m_bed != nullptr)
+        m_bed->render_axes();
 }
 
 void GLCanvas3D::_render_objects() const
@@ -6655,9 +5994,9 @@ void GLCanvas3D::_render_objects() const
             // Update the layer editing selection to the first object selected, update the current object maximum Z.
             const_cast<LayersEditing&>(m_layers_editing).select_object(*m_model, this->is_layers_editing_enabled() ? m_selection.get_object_idx() : -1);
 
-            if (m_config != nullptr)
+            if ((m_config != nullptr) && (m_bed != nullptr))
             {
-                const BoundingBoxf3& bed_bb = m_bed.get_bounding_box();
+                const BoundingBoxf3& bed_bb = m_bed->get_bounding_box();
                 m_volumes.set_print_box((float)bed_bb.min(0), (float)bed_bb.min(1), 0.0f, (float)bed_bb.max(0), (float)bed_bb.max(1), (float)m_config->opt_float("max_print_height"));
                 m_volumes.check_outside_state(m_config, nullptr);
             }
