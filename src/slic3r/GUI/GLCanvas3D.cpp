@@ -5088,11 +5088,42 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #endif // ENABLE_MOVE_MIN_THRESHOLD
             m_mouse.dragging = true;
 
-            // Get new position at the same Z of the initial click point.
-            float z0 = 0.0f;
-            float z1 = 1.0f;
+            Vec3d cur_pos = m_mouse.drag.start_position_3D;
             // we do not want to translate objects if the user just clicked on an object while pressing shift to remove it from the selection and then drag
-            Vec3d cur_pos = m_selection.contains_volume(m_hover_volume_id) ? Linef3(_mouse_to_3d(pos, &z0), _mouse_to_3d(pos, &z1)).intersect_plane(m_mouse.drag.start_position_3D(2)) : m_mouse.drag.start_position_3D;
+            if (m_selection.contains_volume(m_hover_volume_id))
+            {
+                if (m_camera.get_theta() == 90.0f)
+                {
+                    // side view -> move selected volumes orthogonally to camera view direction
+                    Linef3 ray = mouse_ray(pos);
+                    Vec3d dir = ray.unit_vector();
+                    // finds the intersection of the mouse ray with the plane parallel to the camera viewport and passing throught the starting position
+                    // use ray-plane intersection see i.e. https://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection algebric form
+                    // in our case plane normal and ray direction are the same (orthogonal view)
+                    // when moving to perspective camera the negative z unit axis of the camera needs to be transformed in world space and used as plane normal
+                    Vec3d inters = ray.a + (m_mouse.drag.start_position_3D - ray.a).dot(dir) / dir.squaredNorm() * dir;
+                    // vector from the starting position to the found intersection
+                    Vec3d inters_vec = inters - m_mouse.drag.start_position_3D;
+
+                    // get the view matrix back from opengl
+                    GLfloat matrix[16];
+                    ::glGetFloatv(GL_MODELVIEW_MATRIX, matrix);
+                    Vec3d camera_right((double)matrix[0], (double)matrix[4], (double)matrix[8]);
+
+                    // finds projection of the vector along the camera right axis
+                    double projection = inters_vec.dot(camera_right);
+
+                    cur_pos = m_mouse.drag.start_position_3D + projection * camera_right;
+                }
+                else
+                {
+                    // Generic view
+                    // Get new position at the same Z of the initial click point.
+                    float z0 = 0.0f;
+                    float z1 = 1.0f;
+                    cur_pos = Linef3(_mouse_to_3d(pos, &z0), _mouse_to_3d(pos, &z1)).intersect_plane(m_mouse.drag.start_position_3D(2));
+                }
+            }
 
             m_regenerate_volumes = false;
             m_selection.translate(cur_pos - m_mouse.drag.start_position_3D);
