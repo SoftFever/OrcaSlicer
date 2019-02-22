@@ -147,11 +147,11 @@ void MainFrame::init_tabpanel()
     wxGetApp().obj_list()->create_popup_menus();
 
     // The following event is emited by Tab implementation on config value change.
-    Bind(EVT_TAB_VALUE_CHANGED, &MainFrame::on_value_changed, this);
+    Bind(EVT_TAB_VALUE_CHANGED, &MainFrame::on_value_changed, this); // #ys_FIXME_to_delete
 
     // The following event is emited by Tab on preset selection,
     // or when the preset's "modified" status changes.
-    Bind(EVT_TAB_PRESETS_CHANGED, &MainFrame::on_presets_changed, this);
+    Bind(EVT_TAB_PRESETS_CHANGED, &MainFrame::on_presets_changed, this); // #ys_FIXME_to_delete
 
     create_preset_tabs();
 
@@ -833,6 +833,7 @@ void MainFrame::select_view(const std::string& direction)
          m_plater->select_view(direction);
 }
 
+// #ys_FIXME_to_delete
 void MainFrame::on_presets_changed(SimpleEvent &event)
 {
     auto *tab = dynamic_cast<Tab*>(event.GetEventObject());
@@ -857,6 +858,7 @@ void MainFrame::on_presets_changed(SimpleEvent &event)
     }
 }
 
+// #ys_FIXME_to_delete
 void MainFrame::on_value_changed(wxCommandEvent& event)
 {
     auto *tab = dynamic_cast<Tab*>(event.GetEventObject());
@@ -872,6 +874,20 @@ void MainFrame::on_value_changed(wxCommandEvent& event)
             m_plater->on_extruders_change(value);
         }
     }
+    // Don't save while loading for the first time.
+    if (m_loaded) {
+        AppConfig &cfg = *wxGetApp().app_config;
+        if (cfg.get("autosave") == "1")
+            cfg.save();
+    }
+}
+
+void MainFrame::on_config_changed(DynamicPrintConfig* config) const
+{
+    if (m_plater) {
+        m_plater->on_config_change(*config); // propagate config change events to the plater
+    }
+
     // Don't save while loading for the first time.
     if (m_loaded) {
         AppConfig &cfg = *wxGetApp().app_config;
