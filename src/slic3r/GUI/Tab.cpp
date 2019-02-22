@@ -1977,6 +1977,13 @@ void TabPrinter::build_sla()
     optgroup->append_line(line);
     optgroup->append_single_option_line("display_orientation");
 
+    optgroup = page->new_optgroup(_(L("Tilt")));
+    line = { _(L("Tilt time")), "" };
+    line.append_option(optgroup->get_option("fast_tilt_time"));
+    line.append_option(optgroup->get_option("slow_tilt_time"));
+    optgroup->append_line(line);
+    optgroup->append_single_option_line("area_fill");
+
     optgroup = page->new_optgroup(_(L("Corrections")));
     line = Line{ m_config->def()->get("printer_correction")->full_label, "" };
     std::vector<std::string> axes{ "X", "Y", "Z" };
@@ -3210,6 +3217,7 @@ void TabSLAPrint::build()
 
     auto optgroup = page->new_optgroup(_(L("Layers")));
     optgroup->append_single_option_line("layer_height");
+    optgroup->append_single_option_line("faded_layers");
 
     page = add_options_page(_(L("Supports")), "building.png");
     optgroup = page->new_optgroup(_(L("Supports")));

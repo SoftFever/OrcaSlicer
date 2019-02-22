@@ -14,6 +14,17 @@
 
 namespace Slic3r {
 
+// Used for addressing parameters of FilePrinter::set_statistics()
+enum ePrintStatistics
+{
+    psUsedMaterial = 0,
+    psNumFade,
+    psNumSlow,
+    psNumFast,
+
+    psCnt
+};
+
 enum class FilePrinterFormat {
     SLA_PNGZIP,
     SVG
@@ -118,32 +129,45 @@ template<> class FilePrinter<FilePrinterFormat::SLA_PNGZIP>
     double m_layer_height = .0;
     Raster::Origin m_o = Raster::Origin::TOP_LEFT;
 
+    double m_used_material = 0.0;
+    int    m_cnt_fade_layers = 0;
+    int    m_cnt_slow_layers = 0;
+    int    m_cnt_fast_layers = 0;
+
     std::string createIniContent(const std::string& projectname) {
-        double layer_height = m_layer_height;
+//         double layer_height = m_layer_height;
 
         using std::string;
         using std::to_string;
 
         auto expt_str = to_string(m_exp_time_s);
         auto expt_first_str = to_string(m_exp_time_first_s);
-        auto stepnum_str = to_string(static_cast<unsigned>(800*layer_height));
-        auto layerh_str = to_string(layer_height);
+//         auto stepnum_str = to_string(static_cast<unsigned>(800*layer_height));
+        auto layerh_str = to_string(m_layer_height);
+
+        const std::string cnt_fade_layers = to_string(m_cnt_fade_layers);
+        const std::string cnt_slow_layers = to_string(m_cnt_slow_layers);
+        const std::string cnt_fast_layers = to_string(m_cnt_fast_layers);
+        const std::string used_material   = to_string(m_used_material);
 
         return string(
         "action = print\n"
         "jobDir = ") + projectname + "\n" +
         "expTime = " + expt_str + "\n"
         "expTimeFirst = " + expt_first_str + "\n"
-        "stepNum = " + stepnum_str + "\n"
-        "wifiOn = 1\n"
-        "tiltSlow = 60\n"
-        "tiltFast = 15\n"
-        "numFade = 10\n"
-        "startdelay = 0\n"
+//         "stepNum = " + stepnum_str + "\n"
+//         "wifiOn = 1\n"
+//         "tiltSlow = 60\n"
+//         "tiltFast = 15\n"
+        "numFade = " + cnt_fade_layers + "\n"
+//         "startdelay = 0\n"
         "layerHeight = " + layerh_str + "\n"
         "noteInfo = "
-        "expTime="+expt_str+"+resinType=generic+layerHeight="
-                  +layerh_str+"+printer=DWARF3\n";
+        "expTime = "+expt_str+" + resinType = generic+layerHeight = "
+                  +layerh_str+" + printer = DWARF3\n"
+        "usedMaterial = " + used_material + "\n"
+        "numSlow = " + cnt_slow_layers + "\n"
+        "numFast = " + cnt_fast_layers + "\n";
     }
 
 public:
@@ -276,6 +300,17 @@ public:
 
         out.close();
         m_layers_rst[i].first.reset();
+    }
+
+    void set_statistics(const std::vector<double> statistics)
+    {
+        if (statistics.size() != psCnt)
+            return;
+
+        m_used_material   = statistics[psUsedMaterial];
+        m_cnt_fade_layers = int(statistics[psNumFade]);
+        m_cnt_slow_layers = int(statistics[psNumSlow]);
+        m_cnt_fast_layers = int(statistics[psNumFast]);
     }
 };
 

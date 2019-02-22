@@ -3279,8 +3279,8 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
     wxMemoryDC mask_memDC;
 
     // calculate scaling
-//     const float scale = canvas.get_canvas_size().get_scale_factor();
-    const float scale = wxGetApp().em_unit()*0.1; // get scale from em_unit() value, because of get_scale_factor() return 1 
+    const float scale_gl = canvas.get_canvas_size().get_scale_factor();
+    const float scale = scale_gl * wxGetApp().em_unit()*0.1; // get scale from em_unit() value, because of get_scale_factor() return 1 
     const int scaled_square = std::floor((float)Px_Square * scale);
     const int scaled_title_offset = Px_Title_Offset * scale;
     const int scaled_text_offset = Px_Text_Offset * scale;
@@ -3288,7 +3288,7 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
     const int scaled_border = Px_Border * scale;
 
     // select default font
-    const wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT)/*.Scale(scale)*/; // font is no need to scale now
+    const wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Scale(scale_gl);
     memDC.SetFont(font);
     mask_memDC.SetFont(font);
 
@@ -3486,6 +3486,7 @@ wxDEFINE_EVENT(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, Event<bool>);
 wxDEFINE_EVENT(EVT_GLCANVAS_UPDATE_GEOMETRY, Vec3dsEvent<2>);
 wxDEFINE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_UPDATE_BED_SHAPE, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_TAB, SimpleEvent);
 
 GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     : m_canvas(canvas)
@@ -3516,6 +3517,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     , m_multisample_allowed(false)
     , m_regenerate_volumes(true)
     , m_moving(false)
+    , m_tab_down(false)
     , m_color_by("volume")
     , m_reload_delayed(false)
     , m_render_sla_auxiliaries(true)
@@ -4673,6 +4675,8 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 
 void GLCanvas3D::on_key(wxKeyEvent& evt)
 {
+    const int keyCode = evt.GetKeyCode();
+
 #if ENABLE_IMGUI
     auto imgui = wxGetApp().imgui();
     if (imgui->update_key_data(evt)) {
@@ -4680,14 +4684,25 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
     } else
 #endif // ENABLE_IMGUI
     if (evt.GetEventType() == wxEVT_KEY_UP) {
-        const int keyCode = evt.GetKeyCode();
-    
-        // shift has been just released - SLA gizmo might want to close rectangular selection.
-        if (m_gizmos.get_current_type() == Gizmos::SlaSupports && keyCode == WXK_SHIFT && m_gizmos.mouse_event(SLAGizmoEventType::ShiftUp))
+        if (m_tab_down && keyCode == WXK_TAB && !evt.HasAnyModifiers()) {
+            // Enable switching between 3D and Preview with Tab
+            // m_canvas->HandleAsNavigationKey(evt);   // XXX: Doesn't work in some cases / on Linux
+            post_event(SimpleEvent(EVT_GLCANVAS_TAB));
+        } else if (m_gizmos.get_current_type() == Gizmos::SlaSupports && keyCode == WXK_SHIFT && m_gizmos.mouse_event(SLAGizmoEventType::ShiftUp)) {
+            // shift has been just released - SLA gizmo might want to close rectangular selection.
             m_dirty = true;
+        }
+    } else if (evt.GetEventType() == wxEVT_KEY_DOWN) {
+        m_tab_down = keyCode == WXK_TAB && !evt.HasAnyModifiers();
     }
 
-    evt.Skip();   // Needed to have EVT_CHAR generated as well
+    if (keyCode != WXK_TAB
+        && keyCode != WXK_LEFT
+        && keyCode != WXK_UP
+        && keyCode != WXK_RIGHT
+        && keyCode != WXK_DOWN) {
+        evt.Skip();   // Needed to have EVT_CHAR generated as well
+    }
 }
 
 void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)

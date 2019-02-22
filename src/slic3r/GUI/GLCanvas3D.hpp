@@ -115,6 +115,7 @@ wxDECLARE_EVENT(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, Event<bool>);
 wxDECLARE_EVENT(EVT_GLCANVAS_UPDATE_GEOMETRY, Vec3dsEvent<2>);
 wxDECLARE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_UPDATE_BED_SHAPE, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLCANVAS_TAB, SimpleEvent);
 
 // this describes events being passed from GLCanvas3D to SlaSupport gizmo
 enum class SLAGizmoEventType {
@@ -837,6 +838,7 @@ private:
     bool m_multisample_allowed;
     bool m_regenerate_volumes;
     bool m_moving;
+    bool m_tab_down;
     bool m_render_sla_auxiliaries;
 
     std::string m_color_by;

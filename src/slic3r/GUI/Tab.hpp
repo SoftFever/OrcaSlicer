@@ -204,7 +204,7 @@ protected:
     void                set_type();
 
     int                 m_em_unit;
-    std::set<std::string>       m_dirty_options = {};
+    std::set<std::string>       m_dirty_options;
 
 public:
 	PresetBundle*		m_preset_bundle;
