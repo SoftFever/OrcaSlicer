@@ -12,6 +12,7 @@
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Utils.hpp"
 #include "GUI.hpp"
+#include "GUI_App.hpp"
 #include "I18N.hpp"
 #include "ConfigWizard.hpp"
 
@@ -34,7 +35,8 @@ MsgUpdateSlic3r::MsgUpdateSlic3r(const Semver &ver_current, const Semver &ver_on
 
 	auto *text = new wxStaticText(this, wxID_ANY, _(L("To download, follow the link below.")));
 	const auto link_width = link->GetSize().GetWidth();
-	text->Wrap(CONTENT_WIDTH > link_width ? CONTENT_WIDTH : link_width);
+	const int content_width = CONTENT_WIDTH * wxGetApp().em_unit();
+	text->Wrap(content_width > link_width ? content_width : link_width);
 	content_sizer->Add(text);
 	content_sizer->AddSpacer(VERT_SPACING);
 
@@ -75,7 +77,7 @@ MsgUpdateConfig::MsgUpdateConfig(const std::unordered_map<std::string, std::stri
 		"should there be a problem with the new version.\n\n"
 		"Updated configuration bundles:"
 	)));
-	text->Wrap(CONTENT_WIDTH);
+	text->Wrap(CONTENT_WIDTH * wxGetApp().em_unit());
 	content_sizer->Add(text);
 	content_sizer->AddSpacer(VERT_SPACING);
 
@@ -115,16 +117,16 @@ MsgDataIncompatible::MsgDataIncompatible(const std::unordered_map<std::string, w
 		"You may either exit Slic3r and try again with a newer version, or you may re-run the initial configuration. "
 		"Doing so will create a backup snapshot of the existing configuration before installing files compatible with this Slic3r.\n"
 	)));
-	text->Wrap(CONTENT_WIDTH);
+	text->Wrap(CONTENT_WIDTH * wxGetApp().em_unit());
 	content_sizer->Add(text);
 
 	auto *text2 = new wxStaticText(this, wxID_ANY, wxString::Format(_(L("This Slic3r PE version: %s")), SLIC3R_VERSION));
-	text2->Wrap(CONTENT_WIDTH);
+	text2->Wrap(CONTENT_WIDTH * wxGetApp().em_unit());
 	content_sizer->Add(text2);
 	content_sizer->AddSpacer(VERT_SPACING);
 
 	auto *text3 = new wxStaticText(this, wxID_ANY, _(L("Incompatible bundles:")));
-	text3->Wrap(CONTENT_WIDTH);
+	text3->Wrap(CONTENT_WIDTH * wxGetApp().em_unit());
 	content_sizer->Add(text3);
 	content_sizer->AddSpacer(VERT_SPACING);
 
@@ -175,7 +177,7 @@ MsgDataLegacy::MsgDataLegacy() :
 		)),
 		ConfigWizard::name()
 	));
-	text->Wrap(CONTENT_WIDTH);
+	text->Wrap(CONTENT_WIDTH * wxGetApp().em_unit());
 	content_sizer->Add(text);
 	content_sizer->AddSpacer(VERT_SPACING);
 

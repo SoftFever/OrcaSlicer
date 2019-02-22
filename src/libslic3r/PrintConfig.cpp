@@ -2435,6 +2435,32 @@ void PrintConfigDef::init_sla_params()
     def->enum_labels.push_back(L("Portrait"));
     def->default_value = new ConfigOptionEnum<SLADisplayOrientation>(sladoPortrait);
 
+    def = this->add("fast_tilt_time", coFloat);
+    def->label = L("Fast");
+    def->full_label = L("Fast tilt");
+    def->tooltip = L("Time of the fast tilt");
+    def->sidetext = L("s");
+    def->min = 0;
+    def->mode = comExpert;
+    def->default_value = new ConfigOptionFloat(5.);
+
+    def = this->add("slow_tilt_time", coFloat);
+    def->label = L("Slow");
+    def->full_label = L("Slow tilt");
+    def->tooltip = L("Time of the slow tilt");
+    def->sidetext = L("s");
+    def->min = 0;
+    def->mode = comExpert;
+    def->default_value = new ConfigOptionFloat(8.);
+
+    def = this->add("area_fill", coFloat);
+    def->label = L("Area fill");
+    def->tooltip = L("The percentage of the bed area. \nIf the print area exceeds the specified value, \nthen a slow tilt will be used, otherwise - a fast tilt");
+    def->sidetext = L("%");
+    def->min = 0;
+    def->mode = comExpert;
+    def->default_value = new ConfigOptionFloat(50.);
+
     def = this->add("printer_correction", coFloats);
     def->full_label = L("Printer scaling correction");
     def->tooltip  = L("Printer scaling correction");
@@ -2449,6 +2475,14 @@ void PrintConfigDef::init_sla_params()
     def->cli = "initial-layer-height=f";
     def->min = 0;
     def->default_value = new ConfigOptionFloat(0.3);
+
+    def = this->add("faded_layers", coInt);
+    def->label = L("Faded layers");
+    def->tooltip = L("Number of the layers needed for the exposure time fade from initial exposure time to the exposure time");
+    def->min = 3;
+    def->max = 20;
+    def->mode = comExpert;
+    def->default_value = new ConfigOptionInt(10);
 
     def = this->add("exposure_time", coFloat);
     def->label = L("Exposure time");

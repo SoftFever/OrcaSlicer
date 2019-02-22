@@ -138,11 +138,8 @@ bool ImGuiWrapper::update_key_data(wxKeyEvent &evt)
         io.KeyAlt = evt.AltDown();
         io.KeySuper = evt.MetaDown();
 
-        // XXX: Unfortunatelly this seems broken due to some interference with wxWidgets,
-        // we have to return true always (perform re-render).
-        // new_frame();
-        // return want_keyboard() || want_text_input();
-        return true;
+        new_frame();
+        return want_keyboard() || want_text_input();
     }
 }
 

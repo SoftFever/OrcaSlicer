@@ -28,15 +28,6 @@
 
 
 //====================
-// 1.42.0.alpha2 techs
-//====================
-#define ENABLE_1_42_0_ALPHA2 1
-
-// Adds print bed models to 3D scene
-#define ENABLE_PRINT_BED_MODELS (1 && ENABLE_1_42_0_ALPHA2)
-
-
-//====================
 // 1.42.0.alpha4 techs
 //====================
 #define ENABLE_1_42_0_ALPHA4 1
@@ -47,10 +38,6 @@
 #define ENABLE_MOVE_MIN_THRESHOLD (1 && ENABLE_1_42_0_ALPHA4)
 // Modified initial default placement of generic subparts
 #define ENABLE_GENERIC_SUBPARTS_PLACEMENT (1 && ENABLE_1_42_0_ALPHA4)
-// Reworked management of bed shape changes
-#define ENABLE_REWORKED_BED_SHAPE_CHANGE (1 && ENABLE_1_42_0_ALPHA4)
-// Use anisotropic filtering on bed plate texture
-#define ENABLE_ANISOTROPIC_FILTER_ON_BED_TEXTURES (1 && ENABLE_1_42_0_ALPHA4)
 // Bunch of fixes related to volumes centering
 #define ENABLE_VOLUMES_CENTERING_FIXES (1 && ENABLE_1_42_0_ALPHA4)
 
@@ -63,12 +50,14 @@
 // Toolbar items hidden/shown in dependence of the user mode
 #define ENABLE_MODE_AWARE_TOOLBAR_ITEMS (1 && ENABLE_1_42_0_ALPHA5)
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 //====================
 // 1.42.0.alpha7 techs
 //====================
 #define ENABLE_1_42_0_ALPHA7 1
 
+// Printbed textures generated from svg files
+#define ENABLE_TEXTURES_FROM_SVG (1 && ENABLE_1_42_0_ALPHA7)
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 // Toolbars, Gizmos and other GUI icons imported from svg files
 #define ENABLE_SVG_ICONS (1 && ENABLE_1_42_0_ALPHA7)
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
