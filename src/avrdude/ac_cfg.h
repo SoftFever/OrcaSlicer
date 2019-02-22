@@ -169,22 +169,22 @@
 #define LT_OBJDIR ".libs/"
 
 /* Name of package */
-#define PACKAGE "avrdude"
+#define PACKAGE "avrdude-slic3r"
 
 /* Define to the address where bug reports for this package should be sent. */
-#define PACKAGE_BUGREPORT "avrdude-dev@nongnu.org"
+#define PACKAGE_BUGREPORT "https://github.com/prusa3d/Slic3r/issues"
 
 /* Define to the full name of this package. */
-#define PACKAGE_NAME "avrdude"
+#define PACKAGE_NAME "avrdude-slic3r"
 
 /* Define to the full name and version of this package. */
 #define PACKAGE_STRING "avrdude 6.3-20160220"
 
 /* Define to the one symbol short name of this package. */
-#define PACKAGE_TARNAME "avrdude"
+#define PACKAGE_TARNAME "avrdude-slic3r"
 
 /* Define to the home page for this package. */
-#define PACKAGE_URL ""
+#define PACKAGE_URL "https://github.com/prusa3d/Slic3r"
 
 /* Define to the version of this package. */
 #define PACKAGE_VERSION "6.3-20160220"

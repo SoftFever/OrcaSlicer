@@ -1082,6 +1082,7 @@ int avrdude_main(int argc, char * argv [], const char *sys_config)
   if (rc < 0) {
     exitrc = 1;
     pgm->ppidata = 0; /* clear all bits at exit */
+    avrdude_message(MSG_INFO, "%s: Could not open port: %s\n", progname, port);
     goto main_exit;
   }
   is_open = 1;
