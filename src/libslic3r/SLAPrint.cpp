@@ -975,7 +975,7 @@ void SLAPrint::process()
         this->fill_statistics();
         // Set statistics values to the printer
         m_printer->set_statistics({(m_print_statistics.objects_used_material + m_print_statistics.support_used_material)/1000,
-                                10.0,
+                                double(m_default_object_config.faded_layers.getInt()),
                                 double(m_print_statistics.slow_layers_count),
                                 double(m_print_statistics.fast_layers_count)
                                 });
@@ -1318,7 +1318,8 @@ bool SLAPrintObject::invalidate_state_by_config_options(const std::vector<t_conf
     std::vector<SLAPrintObjectStep> steps;
     bool invalidated = false;
     for (const t_config_option_key &opt_key : opt_keys) {
-		if (opt_key == "layer_height") {
+		if (   opt_key == "layer_height"
+            || opt_key == "faded_layers") {
 			steps.emplace_back(slaposObjectSlice);
         } else if (
                opt_key == "supports_enable"
