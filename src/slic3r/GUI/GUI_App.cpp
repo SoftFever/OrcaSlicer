@@ -161,7 +161,7 @@ bool GUI_App::OnInit()
 
     Bind(wxEVT_IDLE, [this](wxIdleEvent& event)
     {
-        if (app_config->dirty())
+        if (app_config->dirty() && app_config->get("autosave") == "1")
             app_config->save();
 
         // ! Temporary workaround for the correct behavior of the Scrolled sidebar panel 

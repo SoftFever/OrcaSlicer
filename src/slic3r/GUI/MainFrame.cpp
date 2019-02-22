@@ -874,26 +874,12 @@ void MainFrame::on_value_changed(wxCommandEvent& event)
             m_plater->on_extruders_change(value);
         }
     }
-    // Don't save while loading for the first time.
-    if (m_loaded) {
-        AppConfig &cfg = *wxGetApp().app_config;
-        if (cfg.get("autosave") == "1")
-            cfg.save();
-    }
 }
 
 void MainFrame::on_config_changed(DynamicPrintConfig* config) const
 {
-    if (m_plater) {
+    if (m_plater)
         m_plater->on_config_change(*config); // propagate config change events to the plater
-    }
-
-    // Don't save while loading for the first time.
-    if (m_loaded) {
-        AppConfig &cfg = *wxGetApp().app_config;
-        if (cfg.get("autosave") == "1")
-            cfg.save();
-    }
 }
 
 // Called after the Preferences dialog is closed and the program settings are saved.
