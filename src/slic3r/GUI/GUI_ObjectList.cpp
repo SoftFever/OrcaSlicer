@@ -1178,7 +1178,7 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
     const auto obj_idx = get_selected_obj_idx();
     if (obj_idx < 0) return;
 
-    const std::string name = _(L("Generic")) + "-" + _(type_name);
+    const wxString name = _(L("Generic")) + "-" + _(type_name);
     TriangleMesh mesh;
 
     auto& bed_shape = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionPoints>("bed_shape")->values;
@@ -1230,7 +1230,7 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
     }
 #endif // ENABLE_GENERIC_SUBPARTS_PLACEMENT
 
-    new_volume->name = name;
+    new_volume->name = into_u8(name);
     // set a default extruder value, since user can't add it manually
     new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
 
@@ -1238,7 +1238,7 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
     parts_changed(obj_idx);
 
     const auto object_item = m_objects_model->GetTopParent(GetSelection());
-    select_item(m_objects_model->AddVolumeChild(object_item, from_u8(name), type));
+    select_item(m_objects_model->AddVolumeChild(object_item, name, type));
 #ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
     selection_changed();
 #endif //no __WXOSX__ //__WXMSW__
