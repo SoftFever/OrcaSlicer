@@ -75,6 +75,7 @@ private:
     void init_input();
     void init_style();
     void render_draw_data(ImDrawData *draw_data);
+    bool display_initialized() const;
     void destroy_device_objects();
     void destroy_fonts_texture();
 
