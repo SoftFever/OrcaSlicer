@@ -405,8 +405,8 @@ void ImGuiWrapper::init_style()
 
     static const unsigned COL_GREY_DARK = 0x444444ff;
     static const unsigned COL_GREY_LIGHT = 0x666666ff;
-    static const unsigned COL_ORANGE_DARK = 0xba5418ff;
-    static const unsigned COL_ORANGE_LIGHT = 0xff6f22ff;
+    static const unsigned COL_ORANGE_DARK = 0xc16737ff;
+    static const unsigned COL_ORANGE_LIGHT = 0xff7d38ff;
 
     // Generics
     set_color(ImGuiCol_TitleBgActive, COL_ORANGE_DARK);
