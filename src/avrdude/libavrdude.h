@@ -820,6 +820,8 @@ extern "C" {
 
 char * fmtstr(FILEFMT format);
 
+FILE *fopen_utf8(const char *filename, const char *mode);
+
 int fileio(int op, char * filename, FILEFMT format,
            struct avrpart * p, char * memtype, int size, unsigned section);
 

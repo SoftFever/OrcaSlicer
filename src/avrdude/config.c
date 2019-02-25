@@ -325,7 +325,7 @@ int read_config(const char * file)
   FILE * f;
   int r;
 
-  f = fopen(file, "r");
+  f = fopen_utf8(file, "r");
   if (f == NULL) {
     avrdude_message(MSG_INFO, "%s: can't open config file \"%s\": %s\n",
             progname, file, strerror(errno));
