@@ -631,8 +631,13 @@ void Choice::set_value(const boost::any& value, bool change_event)
 				break;
 			++idx;
 		}
-		idx == m_opt.enum_values.size() ?
-			dynamic_cast<wxComboBox*>(window)->SetValue(text_value) :
+        if (idx == m_opt.enum_values.size()) {
+            // For editable Combobox under OSX is needed to set selection to -1 explicitly,
+            // otherwise selection doesn't be changed
+            dynamic_cast<wxComboBox*>(window)->SetSelection(-1);
+            dynamic_cast<wxComboBox*>(window)->SetValue(text_value);
+        }
+        else
 			dynamic_cast<wxComboBox*>(window)->SetSelection(idx);
 		break;
 	}
