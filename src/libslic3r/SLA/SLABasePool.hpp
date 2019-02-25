@@ -28,17 +28,17 @@ struct PoolConfig {
     double min_wall_height_mm = 5;
     double max_merge_distance_mm = 50;
     double edge_radius_mm = 1;
-    double wall_tilt = std::atan(1.0);          // Universal constant for Pi/4
+    double wall_slope = std::atan(1.0);          // Universal constant for Pi/4
 
     ThrowOnCancel throw_on_cancel = [](){};
 
     inline PoolConfig() {}
-    inline PoolConfig(double wt, double wh, double md, double er, double tilt):
+    inline PoolConfig(double wt, double wh, double md, double er, double slope):
         min_wall_thickness_mm(wt),
         min_wall_height_mm(wh),
         max_merge_distance_mm(md),
         edge_radius_mm(er),
-        wall_tilt(tilt) {}
+        wall_slope(slope) {}
 };
 
 /// Calculate the pool for the mesh for SLA printing

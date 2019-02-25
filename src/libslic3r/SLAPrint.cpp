@@ -753,7 +753,7 @@ void SLAPrint::process()
             double md = po.m_config.pad_max_merge_distance.getFloat();
             // Radius is disabled for now...
             double er = 0; // po.m_config.pad_edge_radius.getFloat();
-            double tilt = po.m_config.pad_wall_tilt.getFloat()  * PI / 180.0;
+            double tilt = po.m_config.pad_wall_slope.getFloat()  * PI / 180.0;
             double lh = po.m_config.layer_height.getFloat();
             double elevation = po.m_config.support_object_elevation.getFloat();
             if(!po.m_config.supports_enable.getBool()) elevation = 0;
@@ -1369,7 +1369,7 @@ bool SLAPrintObject::invalidate_state_by_config_options(const std::vector<t_conf
             || opt_key == "pad_wall_thickness"
             || opt_key == "pad_wall_height"
             || opt_key == "pad_max_merge_distance"
-            || opt_key == "pad_wall_tilt"
+            || opt_key == "pad_wall_slope"
             || opt_key == "pad_edge_radius") {
             steps.emplace_back(slaposBasePool);
         } else {
