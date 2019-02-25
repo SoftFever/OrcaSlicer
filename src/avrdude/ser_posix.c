@@ -44,7 +44,7 @@
 #include "avrdude.h"
 #include "libavrdude.h"
 
-long serial_recv_timeout = 5000; /* ms */
+long serial_recv_timeout = 4000;  /* ms */
 #define MAX_ZERO_READS 512
 
 struct baud_mapping {
@@ -149,6 +149,68 @@ static int ser_setspeed(union filedescriptor *fd, long baud)
 
   return 0;
 }
+
+
+// Timeout read & write variants
+// Additionally to the regular -1 on I/O error, they return -2 on timeout
+ssize_t read_timeout(int fd, void *buf, size_t count, long timeout)
+{
+  struct timeval tm, tm2;
+  fd_set rfds;
+  int nfds;
+
+  tm.tv_sec  = timeout / 1000L;
+  tm.tv_usec = (timeout % 1000L) * 1000;
+
+  while (1) {
+    FD_ZERO(&rfds);
+    FD_SET(fd, &rfds);
+    tm2 = tm;
+    nfds = select(fd + 1, &rfds, NULL, NULL, &tm2);
+
+    if (nfds == 0) {
+      return -2;
+    } else if (nfds == -1) {
+      if (errno == EINTR || errno == EAGAIN) {
+        continue;
+      } else {
+        return -1;
+      }
+    } else {
+      return read(fd, buf, count);
+    }
+  }
+}
+
+ssize_t write_timeout(int fd, const void *buf, size_t count, long timeout)
+{
+  struct timeval tm, tm2;
+  fd_set wfds;
+  int nfds;
+
+  tm.tv_sec  = timeout / 1000L;
+  tm.tv_usec = (timeout % 1000L) * 1000;
+
+  while (1) {
+    FD_ZERO(&wfds);
+    FD_SET(fd, &wfds);
+    tm2 = tm;
+    nfds = select(fd + 1, NULL, &wfds, NULL, &tm2);
+
+    if (nfds == 0) {
+      return -2;
+    } else if (nfds == -1) {
+      if (errno == EINTR || errno == EAGAIN) {
+        continue;
+      } else {
+        return -1;
+      }
+    } else {
+      return write(fd, buf, count);
+    }
+  }
+}
+
 
 /*
  * Given a port description of the form <host>:<port>, open a TCP
@@ -314,6 +376,7 @@ static int ser_send(union filedescriptor *fd, const unsigned char * buf, size_t 
   int rc;
   const unsigned char * p = buf;
   size_t len = buflen;
+  unsigned zero_writes = 0;
 
   if (!len)
     return 0;
@@ -341,14 +404,25 @@ static int ser_send(union filedescriptor *fd, const unsigned char * buf, size_t 
 
   while (len) {
     RETURN_IF_CANCEL();
-    rc = write(fd->ifd, p, (len > 1024) ? 1024 : len);
-    if (rc < 0) {
-      avrdude_message(MSG_INFO, "%s: ser_send(): write error: %s\n",
-              progname, strerror(errno));
+    rc = write_timeout(fd->ifd, p, (len > 1024) ? 1024 : len, serial_recv_timeout);
+    if (rc == -2) {
+      avrdude_message(MSG_NOTICE2, "%s: ser_send(): programmer is not responding\n", progname);
       return -1;
+    } else if (rc == -1) {
+      avrdude_message(MSG_INFO, "%s: ser_send(): write error: %s\n", progname, strerror(errno));
+      return -1;
+    } else if (rc == 0) {
+      zero_writes++;
+      if (zero_writes > MAX_ZERO_READS) {
+        avrdude_message(MSG_NOTICE2, "%s: ser_send(): programmer is not responding (too many zero writes)\n",
+                progname);
+        return -1;
+      }
+    } else {
+      zero_writes = 0;
+      p += rc;
+      len -= rc;
     }
-    p += rc;
-    len -= rc;
   }
 
   return 0;
@@ -357,51 +431,21 @@ static int ser_send(union filedescriptor *fd, const unsigned char * buf, size_t 
 
 static int ser_recv(union filedescriptor *fd, unsigned char * buf, size_t buflen)
 {
-  struct timeval timeout, to2;
-  fd_set rfds;
-  int nfds;
   int rc;
   unsigned char * p = buf;
   size_t len = 0;
   unsigned zero_reads = 0;
 
-  timeout.tv_sec  = serial_recv_timeout / 1000L;
-  timeout.tv_usec = (serial_recv_timeout % 1000L) * 1000;
-  to2 = timeout;
-
   while (len < buflen) {
-  reselect:
     RETURN_IF_CANCEL();
-    FD_ZERO(&rfds);
-    FD_SET(fd->ifd, &rfds);
 
-    nfds = select(fd->ifd + 1, &rfds, NULL, NULL, &to2);
-    // FIXME: The timeout has different behaviour on Linux vs other Unices
-    // On Linux, the timeout is modified by subtracting the time spent,
-    // on OS X (for example), it is not modified.
-    // POSIX recommends re-initializing it before selecting.
-    if (nfds == 0) {
-      avrdude_message(MSG_NOTICE2, "%s: ser_recv(): programmer is not responding\n",
-                        progname);
+    rc = read_timeout(fd->ifd, p, (buflen - len > 1024) ? 1024 : buflen - len, serial_recv_timeout);
+
+    if (rc == -2) {
+      avrdude_message(MSG_NOTICE2, "%s: ser_recv(): programmer is not responding\n", progname);
       return -1;
-    }
-    else if (nfds == -1) {
-      if (errno == EINTR || errno == EAGAIN) {
-	avrdude_message(MSG_INFO, "%s: ser_recv(): programmer is not responding,reselecting\n",
-                        progname);
-        goto reselect;
-      }
-      else {
-        avrdude_message(MSG_INFO, "%s: ser_recv(): select(): %s\n",
-                progname, strerror(errno));
-        return -1;
-      }
-    }
-
-    rc = read(fd->ifd, p, (buflen - len > 1024) ? 1024 : buflen - len);
-    if (rc < 0) {
-      avrdude_message(MSG_INFO, "%s: ser_recv(): read error: %s\n",
-              progname, strerror(errno));
+    } else if (rc == -1) {
+      avrdude_message(MSG_INFO, "%s: ser_recv(): read error: %s\n", progname, strerror(errno));
       return -1;
     } else if (rc == 0) {
       zero_reads++;
@@ -445,49 +489,26 @@ static int ser_recv(union filedescriptor *fd, unsigned char * buf, size_t buflen
 
 static int ser_drain(union filedescriptor *fd, int display)
 {
-  struct timeval timeout;
-  fd_set rfds;
-  int nfds;
   int rc;
   unsigned char buf;
   unsigned zero_reads = 0;
-
-  timeout.tv_sec = 0;
-  timeout.tv_usec = 250000;
 
   if (display) {
     avrdude_message(MSG_INFO, "drain>");
   }
 
   while (1) {
-    FD_ZERO(&rfds);
-    FD_SET(fd->ifd, &rfds);
-
-  reselect:
     RETURN_IF_CANCEL();
-    nfds = select(fd->ifd + 1, &rfds, NULL, NULL, &timeout);
-    if (nfds == 0) {
+
+    rc = read_timeout(fd->ifd, &buf, 1, 250);   // Note: timeout needs to be kept low to not timeout in programmers
+    if (rc == -2) {
       if (display) {
         avrdude_message(MSG_INFO, "<drain\n");
       }
-      
-      break;
-    }
-    else if (nfds == -1) {
-      if (errno == EINTR) {
-        goto reselect;
-      }
-      else {
-        avrdude_message(MSG_INFO, "%s: ser_drain(): select(): %s\n",
-                progname, strerror(errno));
-        return -1;
-      }
-    }
 
-    rc = read(fd->ifd, &buf, 1);
-    if (rc < 0) {
-      avrdude_message(MSG_INFO, "%s: ser_drain(): read error: %s\n",
-              progname, strerror(errno));
+      break;
+    } else if (rc == -1) {
+      avrdude_message(MSG_INFO, "%s: ser_drain(): read error: %s\n", progname, strerror(errno));
       return -1;
     } else if (rc == 0) {
       zero_reads++;

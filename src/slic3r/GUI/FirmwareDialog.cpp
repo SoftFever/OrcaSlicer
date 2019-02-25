@@ -722,7 +722,7 @@ FirmwareDialog::FirmwareDialog(wxWindow *parent) :
 	panel->SetSizer(vsizer);
 
 	auto *label_hex_picker = new wxStaticText(panel, wxID_ANY, _(L("Firmware image:")));
-	p->hex_picker = new wxFilePickerCtrl(panel, wxID_ANY, wxEmptyString, wxFileSelectorPromptStr, 
+	p->hex_picker = new wxFilePickerCtrl(panel, wxID_ANY, wxEmptyString, wxFileSelectorPromptStr,
 		"Hex files (*.hex)|*.hex|All files|*.*");
 
 	auto *label_port_picker = new wxStaticText(panel, wxID_ANY, _(L("Serial port:")));
