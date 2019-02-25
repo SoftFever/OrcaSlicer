@@ -4625,7 +4625,19 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         switch (keyCode)
         {
         // key ESC
-        case WXK_ESCAPE: { m_gizmos.reset_all_states(); m_dirty = true;  break; }
+        case WXK_ESCAPE: {
+            if (m_gizmos.get_current_type() != Gizmos::SlaSupports || !m_gizmos.mouse_event(SLAGizmoEventType::DiscardChanges))
+                m_gizmos.reset_all_states();
+            m_dirty = true;
+            break;
+        }
+
+        case WXK_RETURN: {
+            if (m_gizmos.get_current_type() == Gizmos::SlaSupports && m_gizmos.mouse_event(SLAGizmoEventType::ApplyChanges))
+                m_dirty = true;
+            break;
+        }
+
 #ifdef __APPLE__
         case WXK_BACK: // the low cost Apple solutions are not equipped with a Delete key, use Backspace instead.
 #else /* __APPLE__ */
@@ -4648,11 +4660,25 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case '-': { post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, -1)); break; }
         case '?': { post_event(SimpleEvent(EVT_GLCANVAS_QUESTION_MARK)); break; }
         case 'A':
-        case 'a': { post_event(SimpleEvent(EVT_GLCANVAS_ARRANGE)); break; }
+        case 'a': {
+            if (m_gizmos.get_current_type() == Gizmos::SlaSupports) {
+                if (m_gizmos.mouse_event(SLAGizmoEventType::AutomaticGeneration))
+                    m_dirty = true;
+            }
+            else
+                post_event(SimpleEvent(EVT_GLCANVAS_ARRANGE));
+            break;
+        }
         case 'B':
         case 'b': { zoom_to_bed(); break; }
         case 'I':
         case 'i': { set_camera_zoom(1.0f); break; }
+        case 'M':
+        case 'm': {
+            if (m_gizmos.get_current_type() == Gizmos::SlaSupports && m_gizmos.mouse_event(SLAGizmoEventType::ManualEditing))
+                m_dirty = true;
+            break;
+        }
         case 'O':
         case 'o': { set_camera_zoom(-1.0f); break; }
         case 'Z':
