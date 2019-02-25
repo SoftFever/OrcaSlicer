@@ -205,9 +205,11 @@ template<class Vec> double distance(const Vec& pp1, const Vec& pp2) {
     return std::sqrt(p.transpose() * p);
 }
 
-PointSet normals(const PointSet& points, const EigenMesh3D& mesh,
+PointSet normals(const PointSet& points,
+                 const EigenMesh3D& mesh,
                  double eps,
-                 std::function<void()> throw_on_cancel) {
+                 std::function<void()> throw_on_cancel)
+{
     if(points.rows() == 0 || mesh.V().rows() == 0 || mesh.F().rows() == 0)
         return {};
 
@@ -228,7 +230,7 @@ PointSet normals(const PointSet& points, const EigenMesh3D& mesh,
         const Vec3d& p3 = mesh.V().row(trindex(2));
 
         // We should check if the point lies on an edge of the hosting triangle.
-        // If it does than all the other triangles using the same two points
+        // If it does then all the other triangles using the same two points
         // have to be searched and the final normal should be some kind of
         // aggregation of the participating triangle normals. We should also
         // consider the cases where the support point lies right on a vertex
