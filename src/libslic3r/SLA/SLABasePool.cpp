@@ -601,8 +601,8 @@ void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
     const double thickness      = cfg.min_wall_thickness_mm;
     const double wingheight     = cfg.min_wall_height_mm;
     const double fullheight     = wingheight + thickness;
-    const double tilt           = cfg.wall_tilt;
-    const double wingdist       = wingheight / std::tan(tilt);
+    const double slope           = cfg.wall_slope;
+    const double wingdist       = wingheight / std::tan(slope);
 
     // scaled values
     const coord_t s_thickness   = mm(thickness);

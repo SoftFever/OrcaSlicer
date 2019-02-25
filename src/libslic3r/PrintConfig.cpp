@@ -2731,14 +2731,14 @@ void PrintConfigDef::init_sla_params()
     def->min = 0;
     def->default_value = new ConfigOptionFloat(1.0);
 
-    def = this->add("pad_wall_tilt", coFloat);
-    def->label = L("Pad wall tilt");
+    def = this->add("pad_wall_slope", coFloat);
+    def->label = L("Pad wall slope");
     def->category = L("Pad");
-    def->tooltip = L("The tilt of the pad wall relative to the bed plane. "
+    def->tooltip = L("The slope of the pad wall relative to the bed plane. "
                      "90 degrees means straight walls.");
     def->sidetext = L("degrees");
     def->cli = "";
-    def->min = 0.1;  // What should be the minimum?
+    def->min = 45;
     def->max = 90;
     def->default_value = new ConfigOptionFloat(45.0);
 }
