@@ -362,12 +362,11 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->default_value = new ConfigOptionBool(false);
 
-    def = this->add("external_fill_pattern", coEnum);
-    def->label = L("Top/bottom fill pattern");
+    auto def_top_fill_pattern = def = this->add("top_fill_pattern", coEnum);
+    def->label = L("Top fill pattern");
     def->category = L("Infill");
-    def->tooltip = L("Fill pattern for top/bottom infill. This only affects the external visible layer, "
-                   "and not its adjacent solid shells.");
-    def->cli = "external-fill-pattern|solid-fill-pattern=s";
+    def->tooltip = L("Fill pattern for top infill. This only affects the top visible layer, and not its adjacent solid shells.");
+    def->cli = "top-fill-pattern|external-fill-pattern|solid-fill-pattern=s";
     def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
     def->enum_values.push_back("rectilinear");
     def->enum_values.push_back("concentric");
@@ -379,8 +378,15 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Hilbert Curve"));
     def->enum_labels.push_back(L("Archimedean Chords"));
     def->enum_labels.push_back(L("Octagram Spiral"));
-    // solid_fill_pattern is an obsolete equivalent to external_fill_pattern.
-    def->aliases = { "solid_fill_pattern" };
+    // solid_fill_pattern is an obsolete equivalent to top_fill_pattern/bottom_fill_pattern.
+    def->aliases = { "solid_fill_pattern", "external_fill_pattern" };
+    def->default_value = new ConfigOptionEnum<InfillPattern>(ipRectilinear);
+
+    def = this->add("bottom_fill_pattern", coEnum);
+    *def = *def_top_fill_pattern;
+    def->label = L("Bottom Pattern");
+    def->tooltip = L("Fill pattern for bottom infill. This only affects the bottom external visible layer, and not its adjacent solid shells.");
+    def->cli = "bottom-fill-pattern|external-fill-pattern|solid-fill-pattern=s";
     def->default_value = new ConfigOptionEnum<InfillPattern>(ipRectilinear);
 
     def = this->add("external_perimeter_extrusion_width", coFloatOrPercent);
@@ -2435,6 +2441,32 @@ void PrintConfigDef::init_sla_params()
     def->enum_labels.push_back(L("Portrait"));
     def->default_value = new ConfigOptionEnum<SLADisplayOrientation>(sladoPortrait);
 
+    def = this->add("fast_tilt_time", coFloat);
+    def->label = L("Fast");
+    def->full_label = L("Fast tilt");
+    def->tooltip = L("Time of the fast tilt");
+    def->sidetext = L("s");
+    def->min = 0;
+    def->mode = comExpert;
+    def->default_value = new ConfigOptionFloat(5.);
+
+    def = this->add("slow_tilt_time", coFloat);
+    def->label = L("Slow");
+    def->full_label = L("Slow tilt");
+    def->tooltip = L("Time of the slow tilt");
+    def->sidetext = L("s");
+    def->min = 0;
+    def->mode = comExpert;
+    def->default_value = new ConfigOptionFloat(8.);
+
+    def = this->add("area_fill", coFloat);
+    def->label = L("Area fill");
+    def->tooltip = L("The percentage of the bed area. \nIf the print area exceeds the specified value, \nthen a slow tilt will be used, otherwise - a fast tilt");
+    def->sidetext = L("%");
+    def->min = 0;
+    def->mode = comExpert;
+    def->default_value = new ConfigOptionFloat(50.);
+
     def = this->add("printer_correction", coFloats);
     def->full_label = L("Printer scaling correction");
     def->tooltip  = L("Printer scaling correction");
@@ -2449,6 +2481,14 @@ void PrintConfigDef::init_sla_params()
     def->cli = "initial-layer-height=f";
     def->min = 0;
     def->default_value = new ConfigOptionFloat(0.3);
+
+    def = this->add("faded_layers", coInt);
+    def->label = L("Faded layers");
+    def->tooltip = L("Number of the layers needed for the exposure time fade from initial exposure time to the exposure time");
+    def->min = 3;
+    def->max = 20;
+    def->mode = comExpert;
+    def->default_value = new ConfigOptionInt(10);
 
     def = this->add("exposure_time", coFloat);
     def->label = L("Exposure time");
@@ -2630,28 +2670,19 @@ void PrintConfigDef::init_sla_params()
     def->min = 0;
     def->default_value = new ConfigOptionFloat(5.0);
 
-    def = this->add("support_density_at_horizontal", coInt);
-    def->label = L("Density on horizontal surfaces");
+    def = this->add("support_points_density_relative", coInt);
+    def->label = L("Support points density");
     def->category = L("Supports");
-    def->tooltip = L("How many support points (approximately) should be placed on horizontal surface.");
-    def->sidetext = L("points per square dm");
+    def->tooltip = L("This is a relative measure of support points density.");
+    def->sidetext = L("%");
     def->cli = "";
     def->min = 0;
-    def->default_value = new ConfigOptionInt(500);
+    def->default_value = new ConfigOptionInt(100);
 
-    def = this->add("support_density_at_45", coInt);
-    def->label = L("Density on surfaces at 45 degrees");
+    def = this->add("support_points_minimal_distance", coFloat);
+    def->label = L("Minimal distance of the support points");
     def->category = L("Supports");
-    def->tooltip = L("How many support points (approximately) should be placed on surface sloping at 45 degrees.");
-    def->sidetext = L("points per square dm");
-    def->cli = "";
-    def->min = 0;
-    def->default_value = new ConfigOptionInt(250);
-
-    def = this->add("support_minimal_z", coFloat);
-    def->label = L("Minimal support point height");
-    def->category = L("Supports");
-    def->tooltip = L("No support points will be placed lower than this value from the bottom.");
+    def->tooltip = L("No support points will be placed closer than this threshold.");
     def->sidetext = L("mm");
     def->cli = "";
     def->min = 0;
@@ -2699,6 +2730,17 @@ void PrintConfigDef::init_sla_params()
     def->cli = "";
     def->min = 0;
     def->default_value = new ConfigOptionFloat(1.0);
+
+    def = this->add("pad_wall_tilt", coFloat);
+    def->label = L("Pad wall tilt");
+    def->category = L("Pad");
+    def->tooltip = L("The tilt of the pad wall relative to the bed plane. "
+                     "90 degrees means straight walls.");
+    def->sidetext = L("degrees");
+    def->cli = "";
+    def->min = 0.1;  // What should be the minimum?
+    def->max = 90;
+    def->default_value = new ConfigOptionFloat(45.0);
 }
 
 void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &value)
@@ -2914,13 +2956,17 @@ std::string FullPrintConfig::validate()
     if (! print_config_def.get("fill_pattern")->has_enum_value(this->fill_pattern.serialize()))
         return "Invalid value for --fill-pattern";
     
-    // --external-fill-pattern
-    if (! print_config_def.get("external_fill_pattern")->has_enum_value(this->external_fill_pattern.serialize()))
-        return "Invalid value for --external-fill-pattern";
+    // --top-fill-pattern
+    if (! print_config_def.get("top_fill_pattern")->has_enum_value(this->top_fill_pattern.serialize()))
+        return "Invalid value for --top-fill-pattern";
+
+    // --bottom-fill-pattern
+    if (! print_config_def.get("bottom_fill_pattern")->has_enum_value(this->bottom_fill_pattern.serialize()))
+        return "Invalid value for --bottom-fill-pattern";
 
     // --fill-density
     if (fabs(this->fill_density.value - 100.) < EPSILON &&
-        ! print_config_def.get("external_fill_pattern")->has_enum_value(this->fill_pattern.serialize()))
+        ! print_config_def.get("top_fill_pattern")->has_enum_value(this->fill_pattern.serialize()))
         return "The selected fill pattern is not supposed to work at 100% density";
     
     // --infill-every-layers

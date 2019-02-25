@@ -37,20 +37,28 @@ namespace GUI {
         GLTexture();
         virtual ~GLTexture();
 
-        bool load_from_file(const std::string& filename, bool generate_mipmaps);
+        bool load_from_file(const std::string& filename, bool use_mipmaps);
+#if ENABLE_TEXTURES_FROM_SVG
+        bool load_from_svg_file(const std::string& filename, bool use_mipmaps, unsigned int max_size_px);
+#endif // ENABLE_TEXTURES_FROM_SVG
         void reset();
 
-        unsigned int get_id() const;
-        int get_width() const;
-        int get_height() const;
+        unsigned int get_id() const { return m_id; }
+        int get_width() const { return m_width; }
+        int get_height() const { return m_height; }
 
-        const std::string& get_source() const;
+        const std::string& get_source() const { return m_source; }
 
         static void render_texture(unsigned int tex_id, float left, float right, float bottom, float top);
         static void render_sub_texture(unsigned int tex_id, float left, float right, float bottom, float top, const Quad_UVs& uvs);
 
     protected:
-        unsigned int _generate_mipmaps(wxImage& image);
+        unsigned int generate_mipmaps(wxImage& image);
+#if ENABLE_TEXTURES_FROM_SVG
+    private:
+        bool load_from_png(const std::string& filename, bool use_mipmaps);
+        bool load_from_svg(const std::string& filename, bool use_mipmaps, unsigned int max_size_px);
+#endif // ENABLE_TEXTURES_FROM_SVG
     };
 
 } // namespace GUI

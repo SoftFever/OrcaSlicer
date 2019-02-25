@@ -280,7 +280,7 @@ bool Print::is_step_done(PrintObjectStep step) const
         return false;
 	tbb::mutex::scoped_lock lock(this->state_mutex());
     for (const PrintObject *object : m_objects)
-        if (! object->m_state.is_done_unguarded(step))
+        if (! object->is_step_done_unguarded(step))
             return false;
     return true;
 }
@@ -549,10 +549,14 @@ void Print::model_volume_list_update_supports(ModelObject &model_object_dst, con
             assert(! it->second); // not consumed yet
             it->second = true;
             ModelVolume *model_volume_dst = const_cast<ModelVolume*>(it->first);
-            assert(model_volume_dst->type() == model_volume_src->type());
+			// For support modifiers, the type may have been switched from blocker to enforcer and vice versa.
+			assert((model_volume_dst->is_support_modifier() && model_volume_src->is_support_modifier()) || model_volume_dst->type() == model_volume_src->type());
             model_object_dst.volumes.emplace_back(model_volume_dst);
-			if (model_volume_dst->is_support_modifier())
-                model_volume_dst->set_transformation(model_volume_src->get_transformation());
+			if (model_volume_dst->is_support_modifier()) {
+				// For support modifiers, the type may have been switched from blocker to enforcer and vice versa.
+				model_volume_dst->set_type(model_volume_src->type());
+				model_volume_dst->set_transformation(model_volume_src->get_transformation());
+			}
             assert(model_volume_dst->get_matrix().isApprox(model_volume_src->get_matrix()));
         } else {
             // The volume was not found in the old list. Create a new copy.
@@ -567,7 +571,7 @@ void Print::model_volume_list_update_supports(ModelObject &model_object_dst, con
             delete mv_with_status.first;
 }
 
-static inline void model_volume_list_copy_configs(ModelObject &model_object_dst, const ModelObject &model_object_src, const ModelVolume::Type type)
+static inline void model_volume_list_copy_configs(ModelObject &model_object_dst, const ModelObject &model_object_src, const ModelVolumeType type)
 {
     size_t i_src, i_dst;
     for (i_src = 0, i_dst = 0; i_src < model_object_src.volumes.size() && i_dst < model_object_dst.volumes.size();) {
@@ -713,7 +717,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
     if (model.id() != m_model.id()) {
         // Kill everything, initialize from scratch.
         // Stop background processing.
-        this->call_cancell_callback();
+        this->call_cancel_callback();
         update_apply_status(this->invalidate_all_steps());
         for (PrintObject *object : m_objects) {
             model_object_status.emplace(object->model_object()->id(), ModelObjectStatus::Deleted);
@@ -745,7 +749,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
         } else {
             // Reorder the objects, add new objects.
             // First stop background processing before shuffling or deleting the PrintObjects in the object list.
-            this->call_cancell_callback();
+            this->call_cancel_callback();
             update_apply_status(this->invalidate_step(psGCodeExport));
             // Second create a new list of objects.
             std::vector<ModelObject*> model_objects_old(std::move(m_model.objects));
@@ -837,10 +841,10 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
         assert(it_status->status == ModelObjectStatus::Old || it_status->status == ModelObjectStatus::Moved);
         const ModelObject &model_object_new = *model.objects[idx_model_object];
         // Check whether a model part volume was added or removed, their transformations or order changed.
-        bool model_parts_differ         = model_volume_list_changed(model_object, model_object_new, ModelVolume::MODEL_PART);
-        bool modifiers_differ           = model_volume_list_changed(model_object, model_object_new, ModelVolume::PARAMETER_MODIFIER);
-        bool support_blockers_differ    = model_volume_list_changed(model_object, model_object_new, ModelVolume::SUPPORT_BLOCKER);
-        bool support_enforcers_differ   = model_volume_list_changed(model_object, model_object_new, ModelVolume::SUPPORT_ENFORCER);
+        bool model_parts_differ         = model_volume_list_changed(model_object, model_object_new, ModelVolumeType::MODEL_PART);
+        bool modifiers_differ           = model_volume_list_changed(model_object, model_object_new, ModelVolumeType::PARAMETER_MODIFIER);
+        bool support_blockers_differ    = model_volume_list_changed(model_object, model_object_new, ModelVolumeType::SUPPORT_BLOCKER);
+        bool support_enforcers_differ   = model_volume_list_changed(model_object, model_object_new, ModelVolumeType::SUPPORT_ENFORCER);
         if (model_parts_differ || modifiers_differ || 
             model_object.origin_translation         != model_object_new.origin_translation   ||
             model_object.layer_height_ranges        != model_object_new.layer_height_ranges  || 
@@ -855,7 +859,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
             model_object.assign_copy(model_object_new);
         } else if (support_blockers_differ || support_enforcers_differ) {
             // First stop background processing before shuffling or deleting the ModelVolumes in the ModelObject's list.
-            this->call_cancell_callback();
+            this->call_cancel_callback();
             update_apply_status(false);
             // Invalidate just the supports step.
             auto range = print_object_status.equal_range(PrintObjectStatus(model_object.id()));
@@ -882,8 +886,8 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
             }
             // Synchronize (just copy) the remaining data of ModelVolumes (name, config).
             //FIXME What to do with m_material_id?
-            model_volume_list_copy_configs(model_object /* dst */, model_object_new /* src */, ModelVolume::MODEL_PART);
-            model_volume_list_copy_configs(model_object /* dst */, model_object_new /* src */, ModelVolume::PARAMETER_MODIFIER);
+			model_volume_list_copy_configs(model_object /* dst */, model_object_new /* src */, ModelVolumeType::MODEL_PART);
+			model_volume_list_copy_configs(model_object /* dst */, model_object_new /* src */, ModelVolumeType::PARAMETER_MODIFIER);
             // Copy the ModelObject name, input_file and instances. The instances will compared against PrintObject instances in the next step.
             model_object.name       = model_object_new.name;
             model_object.input_file = model_object_new.input_file;
@@ -956,7 +960,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
             }
         }
         if (m_objects != print_objects_new) {
-            this->call_cancell_callback();
+            this->call_cancel_callback();
 			update_apply_status(this->invalidate_all_steps());
             m_objects = print_objects_new;
             // Delete the PrintObjects marked as Unknown or Deleted.
@@ -1502,7 +1506,8 @@ void Print::export_gcode(const std::string &path_template, GCodePreviewData *pre
     // The following call may die if the output_filename_format template substitution fails.
     std::string path = this->output_filepath(path_template);
     std::string message = "Exporting G-code";
-    if (! path.empty()) {
+    if (! path.empty() && preview_data == nullptr) {
+        // Only show the path if preview_data is not set -> running from command line.
         message += " to ";
         message += path;
     }
@@ -1863,7 +1868,7 @@ std::string Print::output_filename() const
     DynamicConfig config = this->finished() ? this->print_statistics().config() : this->print_statistics().placeholders();
     return this->PrintBase::output_filename(m_config.output_filename_format.value, "gcode", &config);
 }
-
+/*
 // Shorten the dhms time by removing the seconds, rounding the dhm to full minutes
 // and removing spaces.
 static std::string short_time(const std::string &time)
@@ -1903,7 +1908,7 @@ static std::string short_time(const std::string &time)
         ::sprintf(buffer, "%ds", seconds);
     return buffer;
 }
-
+*/
 DynamicConfig PrintStatistics::config() const
 {
     DynamicConfig config;

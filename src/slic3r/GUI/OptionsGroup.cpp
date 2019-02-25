@@ -113,7 +113,6 @@ void OptionsGroup::add_undo_buttuns_to_sizer(wxSizer* sizer, const t_field& fiel
 }
 
 void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = nullptr*/) {
-//!    if (line.sizer != nullptr || (line.widget != nullptr && line.full_width > 0)) {
 	if ( (line.sizer != nullptr || line.widget != nullptr) && line.full_width) {
 		if (line.sizer != nullptr) {
             sizer->Add(line.sizer, 0, wxEXPAND | wxALL, wxOSX ? 0 : 15);
@@ -135,6 +134,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
 
 	// if we have a single option with no label, no sidetext just add it directly to sizer
 	if (option_set.size() == 1 && label_width == 0 && option_set.front().opt.full_width &&
+        option_set.front().opt.label.empty() &&
 		option_set.front().opt.sidetext.size() == 0 && option_set.front().side_widget == nullptr && 
 		line.get_extra_widgets().size() == 0) {
 		wxSizer* tmp_sizer;
@@ -179,12 +179,12 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
 		// Text is properly aligned only when Ellipsize is checked.
 		label_style |= staticbox ? 0 : wxST_ELLIPSIZE_END;
 #endif /* __WXGTK__ */
-		label = new wxStaticText(parent(), wxID_ANY, line.label + (line.label.IsEmpty() ? "" : ":"), 
+		label = new wxStaticText(parent(), wxID_ANY, line.label + (line.label.IsEmpty() ? "" : ": "), 
 							wxDefaultPosition, wxSize(label_width, -1), label_style);
         label->SetFont(label_font);
         label->Wrap(label_width); // avoid a Linux/GTK bug
         if (!line.near_label_widget)
-		    grid_sizer->Add(label, 0, (staticbox ? 0 : wxALIGN_RIGHT | wxRIGHT) | wxALIGN_CENTER_VERTICAL, 5);
+            grid_sizer->Add(label, 0, (staticbox ? 0 : wxALIGN_RIGHT | wxRIGHT) | wxALIGN_CENTER_VERTICAL, line.label.IsEmpty() ? 0 : 5);
         else {
             // If we're here, we have some widget near the label
             // so we need a horizontal sizer to arrange these things
@@ -213,6 +213,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
 	grid_sizer->Add(sizer, 0, wxEXPAND | (staticbox ? wxALL : wxBOTTOM | wxTOP | wxLEFT), staticbox ? 0 : 1);
 	// If we have a single option with no sidetext just add it directly to the grid sizer
 	if (option_set.size() == 1 && option_set.front().opt.sidetext.size() == 0 &&
+        option_set.front().opt.label.empty() &&
 		option_set.front().side_widget == nullptr && line.get_extra_widgets().size() == 0) {
 		const auto& option = option_set.front();
 		const auto& field = build_field(option, label);
@@ -236,7 +237,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
 			wxString str_label = (option.label == "Top" || option.label == "Bottom") ?
 								_CTX(option.label, "Layers") :
 								_(option.label);
-			label = new wxStaticText(parent(), wxID_ANY, str_label + ":", wxDefaultPosition, wxDefaultSize);
+			label = new wxStaticText(parent(), wxID_ANY, str_label + ": ", wxDefaultPosition, wxDefaultSize);
 			label->SetFont(label_font);
 			sizer_tmp->Add(label, 0, /*wxALIGN_RIGHT |*/ wxALIGN_CENTER_VERTICAL, 0);
 		}
@@ -245,6 +246,16 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
 		const Option& opt_ref = opt;
 		auto& field = build_field(opt_ref, label);
 		add_undo_buttuns_to_sizer(sizer_tmp, field);
+        if (option_set.size() == 1 && option_set.front().opt.full_width)
+        {
+            const auto v_sizer = new wxBoxSizer(wxVERTICAL);
+            sizer_tmp->Add(v_sizer, 1, wxEXPAND);
+            is_sizer_field(field) ?
+                v_sizer->Add(field->getSizer(), 0, wxEXPAND) :
+                v_sizer->Add(field->getWindow(), 0, wxEXPAND);
+            return;
+        }
+
 		is_sizer_field(field) ? 
 			sizer_tmp->Add(field->getSizer(), 0, wxALIGN_CENTER_VERTICAL, 0) :
 			sizer_tmp->Add(field->getWindow(), 0, wxALIGN_CENTER_VERTICAL, 0);
@@ -269,7 +280,17 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
 	    }
 	}
 	// add extra sizers if any
-	for (auto extra_widget : line.get_extra_widgets()) {
+	for (auto extra_widget : line.get_extra_widgets()) 
+    {
+        if (line.get_extra_widgets().size() == 1 && !staticbox)
+        {
+            // extra widget for non-staticbox option group (like for the frequently used parameters on the sidebar) should be wxALIGN_RIGHT
+            const auto v_sizer = new wxBoxSizer(wxVERTICAL);
+            sizer->Add(v_sizer, 1, wxEXPAND);
+            v_sizer->Add(extra_widget(parent()), 0, wxALIGN_RIGHT);
+            return;
+        }
+
 		sizer->Add(extra_widget(parent())/*!.target<wxWindow>()*/, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 4);		//! requires verification
 	}
 }
@@ -538,8 +559,9 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
 		ret = config.opt_int(opt_key, idx);
 		break;
 	case coEnum:{
-		if (opt_key.compare("external_fill_pattern") == 0 ||
-			opt_key.compare("fill_pattern") == 0 ) {
+		if (opt_key == "top_fill_pattern" ||
+			opt_key == "bottom_fill_pattern" ||
+			opt_key == "fill_pattern" ) {
 			ret = static_cast<int>(config.option<ConfigOptionEnum<InfillPattern>>(opt_key)->value);
 		}
 		else if (opt_key.compare("gcode_flavor") == 0 ) {
@@ -593,7 +615,7 @@ Field* ConfigOptionsGroup::get_fieldc(const t_config_option_key& opt_key, int op
 void ogStaticText::SetText(const wxString& value, bool wrap/* = true*/)
 {
 	SetLabel(value);
-	if (wrap) Wrap(400);
+    if (wrap) Wrap(40 * wxGetApp().em_unit());
 	GetParent()->Layout();
 }
 

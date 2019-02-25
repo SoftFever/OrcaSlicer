@@ -96,6 +96,8 @@ public:
     void        load_config(const DynamicPrintConfig& config);
     void        select_tab(size_t tab) const;
     void        select_view(const std::string& direction);
+    // Propagate changed configuration from the Tab to the Platter and save changes to the AppConfig
+    void        on_config_changed(DynamicPrintConfig* cfg) const ;
 
     PrintHostQueueDialog* printhost_queue_dlg() { return m_printhost_queue_dlg; }
 

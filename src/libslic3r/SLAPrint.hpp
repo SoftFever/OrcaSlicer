@@ -2,7 +2,6 @@
 #define slic3r_SLAPrint_hpp_
 
 #include <mutex>
-
 #include "PrintBase.hpp"
 #include "PrintExport.hpp"
 #include "Point.hpp"
@@ -70,7 +69,7 @@ public:
     // This will return the transformed mesh which is cached
     const TriangleMesh&     transformed_mesh() const;
 
-    std::vector<Vec3d>      transformed_support_points() const;
+    std::vector<sla::SupportPoint>      transformed_support_points() const;
 
     // Get the needed Z elevation for the model geometry if supports should be
     // displayed. This Z offset should also be applied to the support
@@ -91,7 +90,7 @@ public:
     const std::vector<ExPolygons>& get_support_slices() const;
 
     // This method returns the support points of this SLAPrintObject.
-    const Eigen::MatrixXd& get_support_points() const;
+    const std::vector<sla::SupportPoint>& get_support_points() const;
 
     // An index record referencing the slices
     // (get_model_slices(), get_support_slices()) where the keys are the height
@@ -139,15 +138,16 @@ protected:
     // Invalidate steps based on a set of parameters changed.
     bool                    invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
 
+    // Which steps have to be performed. Implicitly: all
+    // to be accessible from SLAPrint
+    std::vector<bool>                       m_stepmask;
+
 private:
     // Object specific configuration, pulled from the configuration layer.
     SLAPrintObjectConfig                    m_config;
     // Translation in Z + Rotation by Y and Z + Scaling / Mirroring.
     Transform3d                             m_trafo = Transform3d::Identity();
     std::vector<Instance> 					m_instances;
-
-    // Which steps have to be performed. Implicitly: all
-    std::vector<bool>                       m_stepmask;
 
     // Individual 2d slice polygons from lower z to higher z levels
     std::vector<ExPolygons>                 m_model_slices;
@@ -170,6 +170,35 @@ private:
 using PrintObjects = std::vector<SLAPrintObject*>;
 
 class TriangleMesh;
+
+struct SLAPrintStatistics
+{
+    SLAPrintStatistics() { clear(); }
+    std::string                     estimated_print_time;
+    double                          objects_used_material;
+    double                          support_used_material;
+    size_t                          slow_layers_count;
+    size_t                          fast_layers_count;
+    double                          total_cost;
+    double                          total_weight;
+
+    // Config with the filled in print statistics.
+    DynamicConfig           config() const;
+    // Config with the statistics keys populated with placeholder strings.
+    static DynamicConfig    placeholders();
+    // Replace the print statistics placeholders in the path.
+    std::string             finalize_output_path(const std::string &path_in) const;
+
+    void clear() {
+        estimated_print_time.clear();
+        objects_used_material = 0.;
+        support_used_material = 0.;
+        slow_layers_count = 0;
+        fast_layers_count = 0;
+        total_cost = 0.;
+        total_weight = 0.;
+    }
+};
 
 /**
  * @brief This class is the high level FSM for the SLA printing process.
@@ -194,7 +223,9 @@ public:
     void                clear() override;
     bool                empty() const override { return m_objects.empty(); }
     ApplyStatus         apply(const Model &model, const DynamicPrintConfig &config) override;
+    void                set_task(const TaskParams &params) override;
     void                process() override;
+    void                finalize() override;
     // Returns true if an object step is done on all objects and there's at least one object.    
     bool                is_step_done(SLAPrintObjectStep step) const;
     // Returns true if the last step was finished with success.
@@ -205,8 +236,9 @@ public:
     }
     const PrintObjects& objects() const { return m_objects; }
 
-	std::string         output_filename() const override 
-        { return this->PrintBase::output_filename(m_print_config.output_filename_format.value, "zip"); }
+	std::string         output_filename() const override;
+
+    const SLAPrintStatistics&      print_statistics() const { return m_print_statistics; }
 
 private:
     using SLAPrinter = FilePrinter<FilePrinterFormat::SLA_PNGZIP>;
@@ -214,6 +246,8 @@ private:
 
     // Invalidate steps based on a set of parameters changed.
     bool invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
+
+    void fill_statistics();
 
     SLAPrintConfig                  m_print_config;
     SLAPrinterConfig                m_printer_config;
@@ -245,6 +279,9 @@ private:
 
     // The printer itself
     SLAPrinterPtr                           m_printer;
+
+    // Estimated print time, material consumed.
+    SLAPrintStatistics                      m_print_statistics;
 
 	friend SLAPrintObject;
 };

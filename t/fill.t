@@ -166,7 +166,8 @@ for my $pattern (qw(rectilinear honeycomb hilbertcurve concentric)) {
     my $config = Slic3r::Config::new_from_defaults;
     $config->set('nozzle_diameter', [0.4,0.4,0.4,0.4]);
     $config->set('fill_pattern', $pattern);
-    $config->set('external_fill_pattern', $pattern);
+    $config->set('top_fill_pattern', $pattern);
+    $config->set('bottom_fill_pattern', $pattern);
     $config->set('perimeters', 1);
     $config->set('skirts', 0);
     $config->set('fill_density', 20);

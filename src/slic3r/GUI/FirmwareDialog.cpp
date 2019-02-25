@@ -13,6 +13,7 @@
 #include "libslic3r/Utils.hpp"
 #include "avrdude/avrdude-slic3r.hpp"
 #include "GUI.hpp"
+#include "GUI_App.hpp"
 #include "I18N.hpp"
 #include "MsgDialog.hpp"
 #include "../Utils/HexFile.hpp"
@@ -36,7 +37,6 @@
 #include <wx/collpane.h>
 #include <wx/msgdlg.h>
 #include <wx/filefn.h>
-#include "GUI_App.hpp"
 
 
 namespace fs = boost::filesystem;
@@ -446,7 +446,7 @@ void FirmwareDialog::priv::prepare_common()
 		"-U", (boost::format("flash:w:0:%1%:i") % hex_file.path.string()).str(),
 	}};
 
-	BOOST_LOG_TRIVIAL(info) << "Invoking avrdude, arguments: "
+	BOOST_LOG_TRIVIAL(info) << "Preparing arguments avrdude: "
 		<< std::accumulate(std::next(args.begin()), args.end(), args[0], [](std::string a, const std::string &b) {
 			return a + ' ' + b;
 		});
@@ -492,7 +492,7 @@ void FirmwareDialog::priv::prepare_mk3()
 		"-U", (boost::format("flash:w:1:%1%:i") % hex_file.path.string()).str(),
 	}};
 
-	BOOST_LOG_TRIVIAL(info) << "Invoking avrdude for external flash flashing, arguments: "
+	BOOST_LOG_TRIVIAL(info) << "Preparing avrdude arguments for external flash flashing: "
 		<< std::accumulate(std::next(args.begin()), args.end(), args[0], [](std::string a, const std::string &b) {
 			return a + ' ' + b;
 		});
@@ -522,7 +522,7 @@ void FirmwareDialog::priv::prepare_mm_control()
 		"-U", (boost::format("flash:w:0:%1%:i") % hex_file.path.string()).str(),
 	}};
 
-	BOOST_LOG_TRIVIAL(info) << "Invoking avrdude, arguments: "
+	BOOST_LOG_TRIVIAL(info) << "Preparing avrdude arguments: "
 		<< std::accumulate(std::next(args.begin()), args.end(), args[0], [](std::string a, const std::string &b) {
 			return a + ' ' + b;
 		});
@@ -588,6 +588,13 @@ void FirmwareDialog::priv::perform_upload()
 
 			auto evt = new wxCommandEvent(EVT_AVRDUDE, q->GetId());
 			auto wxmsg = wxString::FromUTF8(msg);
+#ifdef WIN32
+			// The string might be in local encoding
+			if (wxmsg.IsEmpty() && *msg != '\0') {
+				wxmsg = wxString(msg);
+			}
+#endif
+
 			evt->SetExtraLong(AE_MESSAGE);
 			evt->SetString(std::move(wxmsg));
 			wxQueueEvent(q, evt);
@@ -693,10 +700,15 @@ FirmwareDialog::FirmwareDialog(wxWindow *parent) :
 	enum {
 		DIALOG_MARGIN = 15,
 		SPACING = 10,
-		MIN_WIDTH = 600,
-		MIN_HEIGHT = 200,
-		MIN_HEIGHT_EXPANDED = 500,
+		MIN_WIDTH = 50,
+		MIN_HEIGHT = 18,
+		MIN_HEIGHT_EXPANDED = 40,
 	};
+
+	const int em = GUI::wxGetApp().em_unit();
+	int min_width = MIN_WIDTH * em;
+	int min_height = MIN_HEIGHT * em;
+	int min_height_expanded = MIN_HEIGHT_EXPANDED * em;
 
 	wxFont status_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 	status_font.MakeBold();
@@ -769,10 +781,10 @@ FirmwareDialog::FirmwareDialog(wxWindow *parent) :
 
 	auto *topsizer = new wxBoxSizer(wxVERTICAL);
 	topsizer->Add(panel, 1, wxEXPAND | wxALL, DIALOG_MARGIN);
-	SetMinSize(wxSize(MIN_WIDTH, MIN_HEIGHT));
+	SetMinSize(wxSize(min_width, min_height));
 	SetSizerAndFit(topsizer);
 	const auto size = GetSize();
-	SetSize(std::max(size.GetWidth(), static_cast<int>(MIN_WIDTH)), std::max(size.GetHeight(), static_cast<int>(MIN_HEIGHT)));
+	SetSize(std::max(size.GetWidth(), static_cast<int>(min_width)), std::max(size.GetHeight(), static_cast<int>(min_height)));
 	Layout();
 
     SetEscapeId(wxID_CLOSE); // To close the dialog using "Esc" button
@@ -786,13 +798,13 @@ FirmwareDialog::FirmwareDialog(wxWindow *parent) :
 		}
 	});
 
-	p->spoiler->Bind(wxEVT_COLLAPSIBLEPANE_CHANGED, [this](wxCollapsiblePaneEvent &evt) {
+	p->spoiler->Bind(wxEVT_COLLAPSIBLEPANE_CHANGED, [=](wxCollapsiblePaneEvent &evt) {
 		if (evt.GetCollapsed()) {
-			this->SetMinSize(wxSize(MIN_WIDTH, MIN_HEIGHT));
+			this->SetMinSize(wxSize(min_width, min_height));
 			const auto new_height = this->GetSize().GetHeight() - this->p->txt_stdout->GetSize().GetHeight();
 			this->SetSize(this->GetSize().GetWidth(), new_height);
 		} else {
-			this->SetMinSize(wxSize(MIN_WIDTH, MIN_HEIGHT_EXPANDED));
+			this->SetMinSize(wxSize(min_width, min_height_expanded));
 		}
 
 		this->Layout();

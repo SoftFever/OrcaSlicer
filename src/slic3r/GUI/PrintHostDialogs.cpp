@@ -15,6 +15,7 @@
 
 #include "GUI.hpp"
 #include "GUI_App.hpp"
+#include "AppConfig.hpp"
 #include "MsgDialog.hpp"
 #include "I18N.hpp"
 #include "../Utils/PrintHost.hpp"
@@ -24,10 +25,12 @@ namespace fs = boost::filesystem;
 namespace Slic3r {
 namespace GUI {
 
+static const char *CONFIG_KEY_PATH  = "printhost_path";
+static const char *CONFIG_KEY_PRINT = "printhost_print";
 
 PrintHostSendDialog::PrintHostSendDialog(const fs::path &path)
     : MsgDialog(nullptr, _(L("Send G-Code to printer host")), _(L("Upload to Printer Host with the following filename:")), wxID_NONE)
-    , txt_filename(new wxTextCtrl(this, wxID_ANY, path.filename().wstring()))
+    , txt_filename(new wxTextCtrl(this, wxID_ANY))
     , box_print(new wxCheckBox(this, wxID_ANY, _(L("Start printing after upload"))))
 {
 #ifdef __APPLE__
@@ -35,7 +38,7 @@ PrintHostSendDialog::PrintHostSendDialog(const fs::path &path)
 #endif
 
     auto *label_dir_hint = new wxStaticText(this, wxID_ANY, _(L("Use forward slashes ( / ) as a directory separator if needed.")));
-    label_dir_hint->Wrap(CONTENT_WIDTH);
+    label_dir_hint->Wrap(CONTENT_WIDTH * wxGetApp().em_unit());
 
     content_sizer->Add(txt_filename, 0, wxEXPAND);
     content_sizer->Add(label_dir_hint);
@@ -44,11 +47,30 @@ PrintHostSendDialog::PrintHostSendDialog(const fs::path &path)
 
     btn_sizer->Add(CreateStdDialogButtonSizer(wxOK | wxCANCEL));
 
-    txt_filename->SetFocus();
+    const AppConfig *app_config = wxGetApp().app_config;
+    box_print->SetValue(app_config->get("recent", CONFIG_KEY_PRINT) == "1");
+
+    wxString recent_path = from_u8(app_config->get("recent", CONFIG_KEY_PATH));
+    if (recent_path.Length() > 0 && recent_path[recent_path.Length() - 1] != '/') {
+        recent_path += '/';
+    }
+    const auto recent_path_len = recent_path.Length();
+    recent_path += path.filename().wstring();
     wxString stem(path.stem().wstring());
-    txt_filename->SetSelection(0, stem.Length());
+    const auto stem_len = stem.Length();
+
+    txt_filename->SetValue(recent_path);
+    txt_filename->SetFocus();
 
     Fit();
+
+    Bind(wxEVT_SHOW, [=](const wxShowEvent &) {
+        // Another similar case where the function only works with EVT_SHOW + CallAfter,
+        // this time on Mac.
+        CallAfter([=]() {
+            txt_filename->SetSelection(recent_path_len, recent_path_len + stem_len);
+        });
+    });
 }
 
 fs::path PrintHostSendDialog::filename() const
@@ -59,6 +81,24 @@ fs::path PrintHostSendDialog::filename() const
 bool PrintHostSendDialog::start_print() const
 {
     return box_print->GetValue();
+}
+
+void PrintHostSendDialog::EndModal(int ret)
+{
+    if (ret == wxID_OK) {
+        // Persist path and print settings
+        wxString path = txt_filename->GetValue();
+        int last_slash = path.Find('/', true);
+        if (last_slash != wxNOT_FOUND) {
+            path = path.SubString(0, last_slash);
+            wxGetApp().app_config->set("recent", CONFIG_KEY_PATH, into_u8(path));
+        }
+
+        bool print = box_print->GetValue();
+        GUI::get_app_config()->set("recent", CONFIG_KEY_PRINT, print ? "1" : "0");
+    }
+
+    MsgDialog::EndModal(ret);
 }
 
 
@@ -95,10 +135,11 @@ PrintHostQueueDialog::PrintHostQueueDialog(wxWindow *parent)
     , on_error_evt(this, EVT_PRINTHOST_ERROR, &PrintHostQueueDialog::on_error, this)
     , on_cancel_evt(this, EVT_PRINTHOST_CANCEL, &PrintHostQueueDialog::on_cancel, this)
 {
-    enum { HEIGHT = 800, WIDTH = 400, SPACING = 5 };
+    enum { HEIGHT = 60, WIDTH = 30, SPACING = 5 };
 
-    SetSize(wxSize(HEIGHT, WIDTH));
-    SetSize(GetMinSize());
+    const auto em = GetTextExtent("m").x;
+
+    SetSize(wxSize(HEIGHT * em, WIDTH * em));
 
     auto *topsizer = new wxBoxSizer(wxVERTICAL);
 

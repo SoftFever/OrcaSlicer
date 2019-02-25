@@ -196,6 +196,7 @@ void BackgroundSlicingProcess::thread_proc()
 		} catch (...) {
 			error = "Unknown C++ exception.";
 		}
+		m_print->finalize();
 		lck.lock();
 		m_state = m_print->canceled() ? STATE_CANCELED : STATE_FINISHED;
 		if (m_print->cancel_status() != Print::CANCELED_INTERNAL) {
@@ -360,6 +361,12 @@ Print::ApplyStatus BackgroundSlicingProcess::apply(const Model &model, const Dyn
 		m_gcode_preview_data->reset();
 	}
 	return invalidated;
+}
+
+void BackgroundSlicingProcess::set_task(const PrintBase::TaskParams &params)
+{
+	assert(m_print != nullptr);
+	m_print->set_task(params);
 }
 
 // Set the output path of the G-code.

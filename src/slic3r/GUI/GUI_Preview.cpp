@@ -52,7 +52,7 @@ View3D::~View3D()
 
 bool View3D::init(wxWindow* parent, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)
 {
-    if (!Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize))
+    if (!Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 /* disable wxTAB_TRAVERSAL */))
         return false;
 
     m_canvas_widget = GLCanvas3DManager::create_wxglcanvas(this);
@@ -69,9 +69,6 @@ bool View3D::init(wxWindow* parent, Model* model, DynamicPrintConfig* config, Ba
     m_canvas->set_config(config);
     m_canvas->enable_gizmos(true);
     m_canvas->enable_toolbar(true);
-#if !ENABLE_REWORKED_BED_SHAPE_CHANGE
-    m_canvas->enable_force_zoom_to_bed(true);
-#endif // !ENABLE_REWORKED_BED_SHAPE_CHANGE
 
 #if !ENABLE_IMGUI
     m_gizmo_widget = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
@@ -92,6 +89,12 @@ bool View3D::init(wxWindow* parent, Model* model, DynamicPrintConfig* config, Ba
     return true;
 }
 
+void View3D::set_bed(Bed3D* bed)
+{
+    if (m_canvas != nullptr)
+        m_canvas->set_bed(bed);
+}
+
 void View3D::set_view_toolbar(GLToolbar* toolbar)
 {
     if (m_canvas != nullptr)
@@ -104,15 +107,10 @@ void View3D::set_as_dirty()
         m_canvas->set_as_dirty();
 }
 
-void View3D::set_bed_shape(const Pointfs& shape)
+void View3D::bed_shape_changed()
 {
     if (m_canvas != nullptr)
-    {
-        m_canvas->set_bed_shape(shape);
-#if !ENABLE_REWORKED_BED_SHAPE_CHANGE
-        m_canvas->zoom_to_bed();
-#endif // !ENABLE_REWORKED_BED_SHAPE_CHANGE
-    }
+        m_canvas->bed_shape_changed();
 }
 
 void View3D::select_view(const std::string& direction)
@@ -229,7 +227,7 @@ bool Preview::init(wxWindow* parent, DynamicPrintConfig* config, BackgroundSlici
     if ((config == nullptr) || (process == nullptr) || (gcode_preview_data == nullptr))
         return false;
 
-    if (!Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize))
+    if (!Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 /* disable wxTAB_TRAVERSAL */))
         return false;
 
     m_canvas_widget = GLCanvas3DManager::create_wxglcanvas(this);
@@ -259,7 +257,7 @@ bool Preview::init(wxWindow* parent, DynamicPrintConfig* config, BackgroundSlici
     m_label_show_features = new wxStaticText(this, wxID_ANY, _(L("Show")));
 
     m_combochecklist_features = new wxComboCtrl();
-    m_combochecklist_features->Create(this, wxID_ANY, _(L("Feature types")), wxDefaultPosition, wxSize(200, -1), wxCB_READONLY);
+    m_combochecklist_features->Create(this, wxID_ANY, _(L("Feature types")), wxDefaultPosition, wxSize(15 * wxGetApp().em_unit(), -1), wxCB_READONLY);
     std::string feature_text = GUI::into_u8(_(L("Feature types")));
     std::string feature_items = GUI::into_u8(
         _(L("Perimeter")) + "|" +
@@ -345,6 +343,12 @@ Preview::~Preview()
     }
 }
 
+void Preview::set_bed(Bed3D* bed)
+{
+    if (m_canvas != nullptr)
+        m_canvas->set_bed(bed);
+}
+
 void Preview::set_view_toolbar(GLToolbar* toolbar)
 {
     if (m_canvas != nullptr)
@@ -376,9 +380,10 @@ void Preview::set_enabled(bool enabled)
     m_enabled = enabled;
 }
 
-void Preview::set_bed_shape(const Pointfs& shape)
+void Preview::bed_shape_changed()
 {
-    m_canvas->set_bed_shape(shape);
+    if (m_canvas != nullptr)
+        m_canvas->bed_shape_changed();
 }
 
 void Preview::select_view(const std::string& direction)

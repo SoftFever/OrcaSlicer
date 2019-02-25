@@ -11,9 +11,7 @@
 #include "libslic3r/Slicing.hpp"
 #include "libslic3r/GCode/Analyzer.hpp"
 #include "slic3r/GUI/PresetBundle.hpp"
-#if ENABLE_PRINT_BED_MODELS
 #include "libslic3r/Format/STL.hpp"
-#endif // ENABLE_PRINT_BED_MODELS
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,10 +21,8 @@
 
 #include <boost/log/trivial.hpp>
 
-#if ENABLE_PRINT_BED_MODELS
 #include <boost/filesystem/operations.hpp>
 #include <boost/algorithm/string.hpp>
-#endif // ENABLE_PRINT_BED_MODELS
 
 #include <tbb/parallel_for.h>
 #include <tbb/spin_mutex.h>
@@ -793,7 +789,7 @@ void GLVolumeCollection::render_VBOs(GLVolumeCollection::ERenderType type, bool 
     glsafe(::glDisable(GL_BLEND));
 }
 
-void GLVolumeCollection::render_legacy(ERenderType type, bool disable_cullface) const
+void GLVolumeCollection::render_legacy(ERenderType type, bool disable_cullface, std::function<bool(const GLVolume&)> filter_func) const
 {
     glsafe(glEnable(GL_BLEND));
     glsafe(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
@@ -805,7 +801,7 @@ void GLVolumeCollection::render_legacy(ERenderType type, bool disable_cullface) 
     glsafe(glEnableClientState(GL_VERTEX_ARRAY));
     glsafe(glEnableClientState(GL_NORMAL_ARRAY));
  
-	GLVolumesWithZList to_render = volumes_to_render(this->volumes, type, std::function<bool(const GLVolume&)>());
+	GLVolumesWithZList to_render = volumes_to_render(this->volumes, type, filter_func);
     for (GLVolumeWithZ& volume : to_render)
     {
         volume.first->set_render_color();
@@ -1671,27 +1667,19 @@ GUI::GLCanvas3DManager _3DScene::s_canvas_mgr;
 
 GLModel::GLModel()
     : m_useVBOs(false)
-#if ENABLE_PRINT_BED_MODELS
     , m_filename("")
-#endif // ENABLE_PRINT_BED_MODELS
 {
     m_volume.shader_outside_printer_detection_enabled = false;
 }
 
 GLModel::~GLModel()
 {
-#if ENABLE_PRINT_BED_MODELS
     reset();
-#else
-    m_volume.release_geometry();
-#endif // ENABLE_PRINT_BED_MODELS
 }
 
 void GLModel::set_color(const float* color, unsigned int size)
 {
-#if ENABLE_PRINT_BED_MODELS
     ::memcpy((void*)m_volume.color, (const void*)color, (size_t)(std::min((unsigned int)4, size) * sizeof(float)));
-#endif // ENABLE_PRINT_BED_MODELS
     m_volume.set_render_color(color, size);
 }
 
@@ -1725,13 +1713,11 @@ void GLModel::set_scale(const Vec3d& scale)
     m_volume.set_volume_scaling_factor(scale);
 }
 
-#if ENABLE_PRINT_BED_MODELS
 void GLModel::reset()
 {
     m_volume.release_geometry();
     m_filename = "";
 }
-#endif // ENABLE_PRINT_BED_MODELS
 
 void GLModel::render() const
 {
@@ -1968,7 +1954,6 @@ bool GLCurvedArrow::on_init(bool useVBOs)
     return true;
 }
 
-#if ENABLE_PRINT_BED_MODELS
 bool GLBed::on_init_from_file(const std::string& filename, bool useVBOs)
 {
     reset();
@@ -2011,7 +1996,6 @@ bool GLBed::on_init_from_file(const std::string& filename, bool useVBOs)
 
     return true;
 }
-#endif // ENABLE_PRINT_BED_MODELS
 
 std::string _3DScene::get_gl_info(bool format_as_html, bool extensions)
 {

@@ -96,12 +96,19 @@ void AvrDude::priv::unset_handlers()
 
 
 int AvrDude::priv::run_one(const std::vector<std::string> &args) {
-	std::vector<char*> c_args {{ const_cast<char*>(PACKAGE_NAME) }};
+	std::vector<char*> c_args {{ const_cast<char*>(PACKAGE) }};
+	std::string command_line { PACKAGE };
+
 	for (const auto &arg : args) {
 		c_args.push_back(const_cast<char*>(arg.data()));
+		command_line.push_back(' ');
+		command_line.append(arg);
 	}
+	command_line.push_back('\n');
 
 	HandlerGuard guard(*this);
+
+	message_fn(command_line.c_str(), command_line.size());
 
 	const auto res = ::avrdude_main(static_cast<int>(c_args.size()), c_args.data(), sys_config.c_str());
 

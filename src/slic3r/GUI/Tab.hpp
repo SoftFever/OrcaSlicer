@@ -203,6 +203,8 @@ protected:
 
     void                set_type();
 
+    int                 m_em_unit;
+
 public:
 	PresetBundle*		m_preset_bundle;
 	bool				m_show_btn_incompatible_presets = false;
@@ -210,6 +212,11 @@ public:
 	DynamicPrintConfig*	m_config;
 	ogStaticText*		m_parent_preset_description_line;
 	wxStaticText*		m_colored_Label = nullptr;
+    // Counter for the updating (because of an update() function can have a recursive behavior):
+    // 1. increase value from the very beginning of an update() function
+    // 2. decrease value at the end of an update() function
+    // 3. propagate changed configuration to the Platter when (m_update_cnt == 0) only
+    int                 m_update_cnt = 0;
 
 public:
 	Tab(wxNotebook* parent, const wxString& title, const char* name); 

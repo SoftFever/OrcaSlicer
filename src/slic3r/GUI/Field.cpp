@@ -631,14 +631,19 @@ void Choice::set_value(const boost::any& value, bool change_event)
 				break;
 			++idx;
 		}
-		idx == m_opt.enum_values.size() ?
-			dynamic_cast<wxComboBox*>(window)->SetValue(text_value) :
+        if (idx == m_opt.enum_values.size()) {
+            // For editable Combobox under OSX is needed to set selection to -1 explicitly,
+            // otherwise selection doesn't be changed
+            dynamic_cast<wxComboBox*>(window)->SetSelection(-1);
+            dynamic_cast<wxComboBox*>(window)->SetValue(text_value);
+        }
+        else
 			dynamic_cast<wxComboBox*>(window)->SetSelection(idx);
 		break;
 	}
 	case coEnum: {
 		int val = boost::any_cast<int>(value);
-		if (m_opt_id.compare("external_fill_pattern") == 0)
+		if (m_opt_id == "top_fill_pattern" || m_opt_id == "bottom_fill_pattern")
 		{
 			if (!m_opt.enum_values.empty()) {
 				std::string key;
@@ -707,7 +712,7 @@ boost::any& Choice::get_value()
 	if (m_opt.type == coEnum)
 	{
 		int ret_enum = static_cast<wxComboBox*>(window)->GetSelection(); 
-		if (m_opt_id.compare("external_fill_pattern") == 0)
+		if (m_opt_id == "top_fill_pattern" || m_opt_id == "bottom_fill_pattern")
 		{
 			if (!m_opt.enum_values.empty()) {
 				std::string key = m_opt.enum_values[ret_enum];
@@ -785,14 +790,9 @@ boost::any& ColourPicker::get_value()
 
 void PointCtrl::BUILD()
 {
-	auto size = wxSize(wxDefaultSize);
-	if (m_opt.height >= 0) size.SetHeight(m_opt.height);
-	if (m_opt.width >= 0) size.SetWidth(m_opt.width);
-
 	auto temp = new wxBoxSizer(wxHORIZONTAL);
-	// 	$self->wxSizer($sizer);
-	// 
-	wxSize field_size(40, -1);
+
+    const wxSize field_size(4 * wxGetApp().em_unit(), -1);
 
 	auto default_pt = static_cast<const ConfigOptionPoints*>(m_opt.default_value)->values.at(0);
 	double val = default_pt(0);

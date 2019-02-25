@@ -7,19 +7,25 @@
 #include <wx/statbmp.h>
 #include <wx/scrolwin.h>
 #include <wx/clipbrd.h>
+#include <wx/html/htmlwin.h>
+
+#include <boost/algorithm/string/replace.hpp>
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Utils.hpp"
 #include "GUI.hpp"
 #include "I18N.hpp"
 #include "ConfigWizard.hpp"
+#include "wxExtensions.hpp"
+#include "GUI_App.hpp"
 
 namespace Slic3r {
 namespace GUI {
 
 
 MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &headline, wxWindowID button_id) :
-	MsgDialog(parent, title, headline, wxBitmap(from_u8(Slic3r::var("Slic3r_192px.png")), wxBITMAP_TYPE_PNG), button_id)
+// 	MsgDialog(parent, title, headline, wxBitmap(from_u8(Slic3r::var("Slic3r_192px.png")), wxBITMAP_TYPE_PNG), button_id)
+	MsgDialog(parent, title, headline, create_scaled_bitmap("Slic3r_192px.png"), button_id)
 {}
 
 MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &headline, wxBitmap bitmap, wxWindowID button_id) :
@@ -35,7 +41,7 @@ MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &he
 
 	auto *headtext = new wxStaticText(this, wxID_ANY, headline);
 	headtext->SetFont(boldfont);
-	headtext->Wrap(CONTENT_WIDTH);
+    headtext->Wrap(CONTENT_WIDTH*wxGetApp().em_unit());
 	rightsizer->Add(headtext);
 	rightsizer->AddSpacer(VERT_SPACING);
 
@@ -47,7 +53,7 @@ MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &he
 		btn_sizer->Add(button);
 	}
 
-	rightsizer->Add(btn_sizer, 0, wxALIGN_CENTRE_HORIZONTAL);
+	rightsizer->Add(btn_sizer, 0, wxALIGN_RIGHT);
 
 	auto *logo = new wxStaticBitmap(this, wxID_ANY, std::move(bitmap));
 
@@ -64,38 +70,36 @@ MsgDialog::~MsgDialog() {}
 
 ErrorDialog::ErrorDialog(wxWindow *parent, const wxString &msg)
 	: MsgDialog(parent, _(L("Slic3r error")), _(L("Slic3r has encountered an error")),
-		wxBitmap(from_u8(Slic3r::var("Slic3r_192px_grayscale.png")), wxBITMAP_TYPE_PNG),
+// 		wxBitmap(from_u8(Slic3r::var("Slic3r_192px_grayscale.png")), wxBITMAP_TYPE_PNG),
+        create_scaled_bitmap("Slic3r_192px_grayscale.png"),
 		wxID_NONE)
 	, msg(msg)
 {
-	auto *panel = new wxScrolledWindow(this);
-	auto *p_sizer = new wxBoxSizer(wxVERTICAL);
-	panel->SetSizer(p_sizer);
-
-	auto *text = new wxStaticText(panel, wxID_ANY, msg);
-	text->Wrap(CONTENT_WIDTH);
-	p_sizer->Add(text, 1, wxEXPAND);
-
-	panel->SetMinSize(wxSize(CONTENT_WIDTH, 0));
-	panel->SetScrollRate(0, 5);
-
-	content_sizer->Add(panel, 1, wxEXPAND);
-
-	auto *btn_copy = new wxButton(this, wxID_ANY, _(L("Copy to clipboard")));
-	btn_copy->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
-		if (wxTheClipboard->Open()) {
-			wxTheClipboard->SetData(new wxTextDataObject(this->msg));   // Note: the clipboard takes ownership of the pointer
-			wxTheClipboard->Close();
-		}
-	});
+    // Text shown as HTML, so that mouse selection and Ctrl-V to copy will work.
+    wxHtmlWindow* html = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_AUTO);
+    {
+        html->SetMinSize(wxSize(40 * wxGetApp().em_unit(), -1));
+        wxFont 	  	font 			= wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+		wxColour  	text_clr  		= wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
+		wxColour  	bgr_clr 		= wxSystemSettings::GetColour(wxSYS_COLOUR_FRAMEBK); // wxSYS_COLOUR_WINDOW
+		auto      	text_clr_str 	= wxString::Format(wxT("#%02X%02X%02X"), text_clr.Red(), text_clr.Green(), text_clr.Blue());
+		auto      	bgr_clr_str 	= wxString::Format(wxT("#%02X%02X%02X"), bgr_clr.Red(), bgr_clr.Green(), bgr_clr.Blue());
+		const int 	font_size       = font.GetPointSize()-1;
+        int 		size[] 			= {font_size, font_size, font_size, font_size, font_size, font_size, font_size};
+        html->SetFonts(font.GetFaceName(), font.GetFaceName(), size);
+        html->SetBorders(2);
+		std::string msg_escaped = xml_escape(msg.ToUTF8().data());
+		boost::replace_all(msg_escaped, "\r\n", "<br>");
+        boost::replace_all(msg_escaped, "\n", "<br>");
+		html->SetPage("<html><body bgcolor=\"" + bgr_clr_str + "\"><font color=\"" + text_clr_str + "\">" + wxString::FromUTF8(msg_escaped.data()) + "</font></body></html>");
+		content_sizer->Add(html, 1, wxEXPAND);
+    }
 
 	auto *btn_ok = new wxButton(this, wxID_OK);
 	btn_ok->SetFocus();
+	btn_sizer->Add(btn_ok, 0, wxRIGHT, HORIZ_SPACING);
 
-	btn_sizer->Add(btn_copy, 0, wxRIGHT, HORIZ_SPACING);
-	btn_sizer->Add(btn_ok);
-
-	SetMaxSize(wxSize(-1, CONTENT_MAX_HEIGHT));
+    SetMaxSize(wxSize(-1, CONTENT_MAX_HEIGHT*wxGetApp().em_unit()));
 	Fit();
 }
 

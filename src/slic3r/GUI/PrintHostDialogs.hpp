@@ -33,6 +33,7 @@ public:
     boost::filesystem::path filename() const;
     bool start_print() const;
 
+    virtual void EndModal(int ret) override;
 private:
     wxTextCtrl *txt_filename;
     wxCheckBox *box_print;

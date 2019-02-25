@@ -3,8 +3,10 @@
 #include "GUI_ObjectManipulation.hpp"
 #include "I18N.hpp"
 
+#include <exception>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/log/trivial.hpp>
 
 #include <wx/stdpaths.h>
 #include <wx/imagpng.h>
@@ -76,6 +78,7 @@ IMPLEMENT_APP(GUI_App)
 
 GUI_App::GUI_App()
     : wxApp()
+    , m_em_unit(10)
 #if ENABLE_IMGUI
     , m_imgui(new ImGuiWrapper())
 #endif // ENABLE_IMGUI
@@ -125,6 +128,10 @@ bool GUI_App::OnInit()
     app_config->save();
 
     preset_updater = new PresetUpdater();
+    Bind(EVT_SLIC3R_VERSION_ONLINE, [this](const wxCommandEvent &evt) {
+        app_config->set("version_online", into_u8(evt.GetString()));
+        app_config->save();
+    });
 
     load_language();
 
@@ -154,15 +161,15 @@ bool GUI_App::OnInit()
 
     Bind(wxEVT_IDLE, [this](wxIdleEvent& event)
     {
-        if (app_config->dirty())
+        if (app_config->dirty() && app_config->get("autosave") == "1")
             app_config->save();
 
         // ! Temporary workaround for the correct behavior of the Scrolled sidebar panel 
         // Do this "manipulations" only once ( after (re)create of the application )
-        if (plater_ && sidebar().obj_list()->GetMinHeight() > 200) 
+        if (plater_ && sidebar().obj_list()->GetMinHeight() > 15 * wxGetApp().em_unit())
         {
             wxWindowUpdateLocker noUpdates_sidebar(&sidebar());
-            sidebar().obj_list()->SetMinSize(wxSize(-1, 200));
+            sidebar().obj_list()->SetMinSize(wxSize(-1, 15 * wxGetApp().em_unit()));
 
             // !!! to correct later layouts
             update_mode(); // update view mode after fix of the object_list size
@@ -181,7 +188,6 @@ bool GUI_App::OnInit()
                 mainframe->Close();
         } catch (const std::exception &ex) {
             show_error(nullptr, ex.what());
-            mainframe->Close();
         }
     });
 
@@ -246,6 +252,7 @@ void GUI_App::init_fonts()
 {
     m_small_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
     m_bold_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold();
+
 #ifdef __WXMAC__
     m_small_font.SetPointSize(11);
     m_bold_font.SetPointSize(13);
@@ -407,6 +414,7 @@ bool GUI_App::select_language(  wxArrayString & names,
 		//FIXME This is a temporary workaround, the correct solution is to switch to "C" locale during file import / export only.
 		wxSetlocale(LC_NUMERIC, "C");
         Preset::update_suffix_modified();
+		m_imgui->set_language(m_wxLocale->GetCanonicalName().ToUTF8().data());
         return true;
     }
     return false;
@@ -435,6 +443,7 @@ bool GUI_App::load_language()
 			//FIXME This is a temporary workaround, the correct solution is to switch to "C" locale during file import / export only.
             wxSetlocale(LC_NUMERIC, "C");
 			Preset::update_suffix_modified();
+			m_imgui->set_language(m_wxLocale->GetCanonicalName().ToUTF8().data());
             return true;
         }
     }
@@ -562,7 +571,10 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
     mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeSimple, _(L("Simple")), _(L("Simple View Mode")));
     mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeAdvanced, _(L("Advanced")), _(L("Advanced View Mode")));
     mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeExpert, _(L("Expert")), _(L("Expert View Mode")));
-    mode_menu->Check(config_id_base + ConfigMenuModeSimple + get_mode(), true);
+    Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Check(get_mode() == comSimple); }, config_id_base + ConfigMenuModeSimple);
+    Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Check(get_mode() == comAdvanced); }, config_id_base + ConfigMenuModeAdvanced);
+    Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Check(get_mode() == comExpert); }, config_id_base + ConfigMenuModeExpert);
+
     local_menu->AppendSubMenu(mode_menu, _(L("Mode")), _(L("Slic3r View Mode")));
     local_menu->AppendSeparator();
     local_menu->Append(config_id_base + ConfigMenuLanguage, _(L("Change Application &Language")));
@@ -679,6 +691,23 @@ void GUI_App::load_current_presets()
 				static_cast<TabPrinter*>(tab)->update_pages();
 			tab->load_current_preset();
 		}
+}
+
+bool GUI_App::OnExceptionInMainLoop()
+{
+    try {
+        throw;
+    } catch (const std::exception &ex) {
+        const std::string error = (boost::format("Uncaught exception: %1%") % ex.what()).str();
+        BOOST_LOG_TRIVIAL(error) << error;
+        show_error(nullptr, from_u8(error));
+    } catch (...) {
+        const char *error = "Uncaught exception: Unknown error";
+        BOOST_LOG_TRIVIAL(error) << error;
+        show_error(nullptr, from_u8(error));
+    }
+
+    return false;
 }
 
 #ifdef __APPLE__

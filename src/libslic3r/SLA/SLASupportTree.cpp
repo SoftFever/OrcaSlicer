@@ -551,10 +551,16 @@ enum { // For indexing Eigen vectors as v(X), v(Y), v(Z) instead of numbers
   X, Y, Z
 };
 
-PointSet to_point_set(const std::vector<Vec3d> &v)
+PointSet to_point_set(const std::vector<SupportPoint> &v)
 {
     PointSet ret(v.size(), 3);
-    { long i = 0; for(const Vec3d& p : v) ret.row(i++) = p; }
+    long i = 0;
+    for(const SupportPoint& support_point : v) {
+        ret.row(i)(0) = support_point.pos(0);
+        ret.row(i)(1) = support_point.pos(1);
+        ret.row(i)(2) = support_point.pos(2);
+        ++i;
+    }
     return ret;
 }
 
@@ -678,6 +684,7 @@ double pinhead_mesh_intersect(const Vec3d& s,
 
     return *mit;
 }
+
 
 // Checking bridge (pillar and stick as well) intersection with the model. If
 // the function is used for headless sticks, the ins_check parameter have to be

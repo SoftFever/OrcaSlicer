@@ -81,6 +81,9 @@ class GUI_App : public wxApp
     wxFont		    m_small_font;
     wxFont		    m_bold_font;
 
+    size_t          m_em_unit; // width of a "m"-symbol in pixels for current system font 
+                               // Note: for 100% Scale m_em_unit = 10 -> it's a good enough coefficient for a size setting of controls
+
     wxLocale*	    m_wxLocale{ nullptr };
 
 #if ENABLE_IMGUI
@@ -108,6 +111,8 @@ public:
 
     const wxFont&   small_font()            { return m_small_font; }
     const wxFont&   bold_font()             { return m_bold_font; }
+    size_t          em_unit() const         { return m_em_unit; }
+    void            set_em_unit(const size_t em_unit)    { m_em_unit = em_unit; }
 
     void            recreate_GUI();
     void            system_info();
@@ -136,6 +141,8 @@ public:
     bool            check_unsaved_changes();
     bool            checked_tab(Tab* tab);
     void            load_current_presets();
+
+    virtual bool OnExceptionInMainLoop();
 
 #ifdef __APPLE__
     // wxWidgets override to get an event on open files.
