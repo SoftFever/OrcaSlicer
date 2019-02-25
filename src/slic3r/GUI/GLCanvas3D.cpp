@@ -4773,6 +4773,54 @@ void GLCanvas3D::on_timer(wxTimerEvent& evt)
         _perform_layer_editing_action();
 }
 
+#ifndef NDEBUG
+// #define SLIC3R_DEBUG_MOUSE_EVENTS
+#endif
+
+#ifdef SLIC3R_DEBUG_MOUSE_EVENTS
+std::string format_mouse_event_debug_message(const wxMouseEvent &evt)
+{
+	static int idx = 0;
+	char buf[2048];
+	std::string out;
+	sprintf(buf, "Mouse Event %d - ", idx ++);
+	out = buf;
+
+	if (evt.Entering())
+		out += "Entering ";
+	if (evt.Leaving())
+		out += "Leaving ";
+	if (evt.Dragging())
+		out += "Dragging ";
+	if (evt.Moving())
+		out += "Moving ";
+	if (evt.Magnify())
+		out += "Magnify ";
+	if (evt.LeftDown())
+		out += "LeftDown ";
+	if (evt.LeftUp())
+		out += "LeftUp ";
+	if (evt.LeftDClick())
+		out += "LeftDClick ";
+	if (evt.MiddleDown())
+		out += "MiddleDown ";
+	if (evt.MiddleUp())
+		out += "MiddleUp ";
+	if (evt.MiddleDClick())
+		out += "MiddleDClick ";
+	if (evt.RightDown())
+		out += "RightDown ";
+	if (evt.RightUp())
+		out += "RightUp ";
+	if (evt.RightDClick())
+		out += "RightDClick ";
+
+	sprintf(buf, "(%d, %d)", evt.GetX(), evt.GetY());
+	out += buf;
+	return out;
+}
+#endif /* SLIC3R_DEBUG_MOUSE_EVENTS */
+
 void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 {
 #if ENABLE_RETINA_GL
@@ -4788,15 +4836,27 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     if (imgui->update_mouse_data(evt)) {
         m_mouse.position = evt.Leaving() ? Vec2d(-1.0, -1.0) : pos.cast<double>();
         render();
-        return;
+#ifdef SLIC3R_DEBUG_MOUSE_EVENTS
+		printf((format_mouse_event_debug_message(evt) + " - Consumed by ImGUI\n").c_str());
+#endif /* SLIC3R_DEBUG_MOUSE_EVENTS */
+		return;
     }
 #endif // ENABLE_IMGUI
 
+	bool on_enter_workaround = false;
     if (! evt.Entering() && ! evt.Leaving() && m_mouse.position.x() == -1.0) {
         // Workaround for SPE-832: There seems to be a mouse event sent to the window before evt.Entering()
         m_mouse.position = pos.cast<double>();
         render();
-    }
+#ifdef SLIC3R_DEBUG_MOUSE_EVENTS
+		printf((format_mouse_event_debug_message(evt) + " - OnEnter workaround\n").c_str());
+#endif /* SLIC3R_DEBUG_MOUSE_EVENTS */
+		on_enter_workaround = true;
+    } else {
+#ifdef SLIC3R_DEBUG_MOUSE_EVENTS
+		printf((format_mouse_event_debug_message(evt) + " - other\n").c_str());
+#endif /* SLIC3R_DEBUG_MOUSE_EVENTS */
+	}
 
     if (m_picking_enabled)
         _set_current();
@@ -5244,6 +5304,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     }
     else
         evt.Skip();
+
+	if (on_enter_workaround)
+		m_mouse.position = Vec2d(-1., -1.);
 }
 
 void GLCanvas3D::on_paint(wxPaintEvent& evt)
