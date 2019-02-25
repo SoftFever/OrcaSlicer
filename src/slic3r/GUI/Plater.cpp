@@ -2451,8 +2451,15 @@ void Plater::priv::on_right_click(Vec2dEvent& evt)
 
     sidebar->obj_list()->append_menu_item_settings(menu);
 
-    if (q != nullptr)
+    if (q != nullptr) {
+#ifdef __linux__
+        // For some reason on Linux the menu isn't displayed if position is specified
+        // (even though the position is sane).
+        q->PopupMenu(menu);
+#else
         q->PopupMenu(menu, (int)evt.data.x(), (int)evt.data.y());
+#endif
+    }
 }
 
 void Plater::priv::on_wipetower_moved(Vec3dEvent &evt)
