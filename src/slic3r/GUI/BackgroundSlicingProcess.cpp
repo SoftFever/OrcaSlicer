@@ -150,7 +150,7 @@ void BackgroundSlicingProcess::process_sla()
     if (this->set_step_started(bspsGCodeFinalize)) {
         if (! m_export_path.empty()) {
             m_sla_print->export_raster<SLAZipFmt>(m_export_path);
-            m_print->set_status(100, "Zip file exported to " + m_export_path);
+            m_print->set_status(100, "Masked SLA file exported to " + m_export_path);
         } else if (! m_upload_job.empty()) {
             prepare_upload();
         } else {

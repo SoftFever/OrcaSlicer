@@ -508,7 +508,7 @@ void SLAPrint::finalize()
 std::string SLAPrint::output_filename() const
 { 
     DynamicConfig config = this->finished() ? this->print_statistics().config() : this->print_statistics().placeholders();
-    return this->PrintBase::output_filename(m_print_config.output_filename_format.value, "zip", &config);
+    return this->PrintBase::output_filename(m_print_config.output_filename_format.value, "sl1", &config);
 }
 
 namespace {
