@@ -604,7 +604,7 @@ void AMFParserContext::endElement(const char * /* name */)
                 if (strcmp(opt_key, "modifier") == 0) {
                     // Is this volume a modifier volume?
                     // "modifier" flag comes first in the XML file, so it may be later overwritten by the "type" flag.
-                    m_volume->set_type((atoi(m_value[1].c_str()) == 1) ? ModelVolume::PARAMETER_MODIFIER : ModelVolume::MODEL_PART);
+					m_volume->set_type((atoi(m_value[1].c_str()) == 1) ? ModelVolumeType::PARAMETER_MODIFIER : ModelVolumeType::MODEL_PART);
                 } else if (strcmp(opt_key, "volume_type") == 0) {
                     m_volume->set_type(ModelVolume::type_from_string(m_value[1]));
                 }

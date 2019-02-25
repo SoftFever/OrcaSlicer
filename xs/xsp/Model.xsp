@@ -258,17 +258,17 @@ ModelMaterial::attributes()
     bool modifier()
         %code%{ RETVAL = THIS->is_modifier(); %};
     void set_modifier(bool modifier)
-        %code%{ THIS->set_type(modifier ? ModelVolume::PARAMETER_MODIFIER : ModelVolume::MODEL_PART); %};
+        %code%{ THIS->set_type(modifier ? ModelVolumeType::PARAMETER_MODIFIER : ModelVolumeType::MODEL_PART); %};
     bool model_part()
         %code%{ RETVAL = THIS->is_model_part(); %};
     bool support_enforcer()
         %code%{ RETVAL = THIS->is_support_enforcer(); %};
     void set_support_enforcer()
-        %code%{ THIS->set_type(ModelVolume::SUPPORT_ENFORCER); %};
+        %code%{ THIS->set_type(ModelVolumeType::SUPPORT_ENFORCER); %};
     bool support_blocker()
         %code%{ RETVAL = THIS->is_support_blocker(); %};
     void set_support_blocker()
-        %code%{ THIS->set_type(ModelVolume::SUPPORT_BLOCKER); %};
+        %code%{ THIS->set_type(ModelVolumeType::SUPPORT_BLOCKER); %};
 
     size_t split(unsigned int max_extruders);
 };

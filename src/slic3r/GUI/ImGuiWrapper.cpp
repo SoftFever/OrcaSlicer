@@ -101,6 +101,10 @@ void ImGuiWrapper::set_style_scaling(float scaling)
 
 bool ImGuiWrapper::update_mouse_data(wxMouseEvent& evt)
 {
+    if (! display_initialized()) {
+        return false;
+    }
+
     ImGuiIO& io = ImGui::GetIO();
     io.MousePos = ImVec2((float)evt.GetX(), (float)evt.GetY());
     io.MouseDown[0] = evt.LeftDown();
@@ -116,6 +120,10 @@ bool ImGuiWrapper::update_mouse_data(wxMouseEvent& evt)
 
 bool ImGuiWrapper::update_key_data(wxKeyEvent &evt)
 {
+    if (! display_initialized()) {
+        return false;
+    }
+
     ImGuiIO& io = ImGui::GetIO();
 
     if (evt.GetEventType() == wxEVT_CHAR) {
@@ -519,6 +527,12 @@ void ImGuiWrapper::render_draw_data(ImDrawData *draw_data)
     glPolygonMode(GL_FRONT, (GLenum)last_polygon_mode[0]); glPolygonMode(GL_BACK, (GLenum)last_polygon_mode[1]);
     glViewport(last_viewport[0], last_viewport[1], (GLsizei)last_viewport[2], (GLsizei)last_viewport[3]);
     glScissor(last_scissor_box[0], last_scissor_box[1], (GLsizei)last_scissor_box[2], (GLsizei)last_scissor_box[3]);
+}
+
+bool ImGuiWrapper::display_initialized() const
+{
+    const ImGuiIO& io = ImGui::GetIO();
+    return io.DisplaySize.x >= 0.0f && io.DisplaySize.y >= 0.0f;
 }
 
 void ImGuiWrapper::destroy_device_objects()

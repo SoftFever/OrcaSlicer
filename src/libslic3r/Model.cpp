@@ -1480,32 +1480,32 @@ const TriangleMesh& ModelVolume::get_convex_hull() const
     return m_convex_hull;
 }
 
-ModelVolume::Type ModelVolume::type_from_string(const std::string &s)
+ModelVolumeType ModelVolume::type_from_string(const std::string &s)
 {
     // Legacy support
     if (s == "1")
-        return PARAMETER_MODIFIER;
+		return ModelVolumeType::PARAMETER_MODIFIER;
     // New type (supporting the support enforcers & blockers)
     if (s == "ModelPart")
-        return MODEL_PART;
+		return ModelVolumeType::MODEL_PART;
     if (s == "ParameterModifier")
-        return PARAMETER_MODIFIER;
+		return ModelVolumeType::PARAMETER_MODIFIER;
     if (s == "SupportEnforcer")
-        return SUPPORT_ENFORCER;
+		return ModelVolumeType::SUPPORT_ENFORCER;
     if (s == "SupportBlocker")
-        return SUPPORT_BLOCKER;
+		return ModelVolumeType::SUPPORT_BLOCKER;
     assert(s == "0");
     // Default value if invalud type string received.
-    return MODEL_PART;
+	return ModelVolumeType::MODEL_PART;
 }
 
-std::string ModelVolume::type_to_string(const Type t)
+std::string ModelVolume::type_to_string(const ModelVolumeType t)
 {
     switch (t) {
-    case MODEL_PART:         return "ModelPart";
-    case PARAMETER_MODIFIER: return "ParameterModifier";
-    case SUPPORT_ENFORCER:   return "SupportEnforcer";
-    case SUPPORT_BLOCKER:    return "SupportBlocker";
+	case ModelVolumeType::MODEL_PART:         return "ModelPart";
+	case ModelVolumeType::PARAMETER_MODIFIER: return "ParameterModifier";
+	case ModelVolumeType::SUPPORT_ENFORCER:   return "SupportEnforcer";
+	case ModelVolumeType::SUPPORT_BLOCKER:    return "SupportBlocker";
     default:
         assert(false);
         return "ModelPart";
@@ -1671,7 +1671,7 @@ bool model_object_list_extended(const Model &model_old, const Model &model_new)
     return true;
 }
 
-bool model_volume_list_changed(const ModelObject &model_object_old, const ModelObject &model_object_new, const ModelVolume::Type type)
+bool model_volume_list_changed(const ModelObject &model_object_old, const ModelObject &model_object_new, const ModelVolumeType type)
 {
     bool modifiers_differ = false;
     size_t i_old, i_new;

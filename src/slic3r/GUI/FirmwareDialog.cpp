@@ -446,7 +446,7 @@ void FirmwareDialog::priv::prepare_common()
 		"-U", (boost::format("flash:w:0:%1%:i") % hex_file.path.string()).str(),
 	}};
 
-	BOOST_LOG_TRIVIAL(info) << "Invoking avrdude, arguments: "
+	BOOST_LOG_TRIVIAL(info) << "Preparing arguments avrdude: "
 		<< std::accumulate(std::next(args.begin()), args.end(), args[0], [](std::string a, const std::string &b) {
 			return a + ' ' + b;
 		});
@@ -492,7 +492,7 @@ void FirmwareDialog::priv::prepare_mk3()
 		"-U", (boost::format("flash:w:1:%1%:i") % hex_file.path.string()).str(),
 	}};
 
-	BOOST_LOG_TRIVIAL(info) << "Invoking avrdude for external flash flashing, arguments: "
+	BOOST_LOG_TRIVIAL(info) << "Preparing avrdude arguments for external flash flashing: "
 		<< std::accumulate(std::next(args.begin()), args.end(), args[0], [](std::string a, const std::string &b) {
 			return a + ' ' + b;
 		});
@@ -522,7 +522,7 @@ void FirmwareDialog::priv::prepare_mm_control()
 		"-U", (boost::format("flash:w:0:%1%:i") % hex_file.path.string()).str(),
 	}};
 
-	BOOST_LOG_TRIVIAL(info) << "Invoking avrdude, arguments: "
+	BOOST_LOG_TRIVIAL(info) << "Preparing avrdude arguments: "
 		<< std::accumulate(std::next(args.begin()), args.end(), args[0], [](std::string a, const std::string &b) {
 			return a + ' ' + b;
 		});
@@ -588,6 +588,13 @@ void FirmwareDialog::priv::perform_upload()
 
 			auto evt = new wxCommandEvent(EVT_AVRDUDE, q->GetId());
 			auto wxmsg = wxString::FromUTF8(msg);
+#ifdef WIN32
+			// The string might be in local encoding
+			if (wxmsg.IsEmpty() && *msg != '\0') {
+				wxmsg = wxString(msg);
+			}
+#endif
+
 			evt->SetExtraLong(AE_MESSAGE);
 			evt->SetString(std::move(wxmsg));
 			wxQueueEvent(q, evt);

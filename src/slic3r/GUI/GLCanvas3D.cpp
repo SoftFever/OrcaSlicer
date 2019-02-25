@@ -4777,15 +4777,22 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     evt.SetY(evt.GetY() * scale);
 #endif
 
+	Point pos(evt.GetX(), evt.GetY());
+
 #if ENABLE_IMGUI
-    auto imgui = wxGetApp().imgui();
+    ImGuiWrapper *imgui = wxGetApp().imgui();
     if (imgui->update_mouse_data(evt)) {
+        m_mouse.position = evt.Leaving() ? Vec2d(-1.0, -1.0) : pos.cast<double>();
         render();
         return;
     }
 #endif // ENABLE_IMGUI
 
-    Point pos(evt.GetX(), evt.GetY());
+    if (! evt.Entering() && ! evt.Leaving() && m_mouse.position.x() == -1.0) {
+        // Workaround for SPE-832: There seems to be a mouse event sent to the window before evt.Entering()
+        m_mouse.position = pos.cast<double>();
+        render();
+    }
 
     if (m_picking_enabled)
         _set_current();

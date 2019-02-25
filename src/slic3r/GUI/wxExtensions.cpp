@@ -492,7 +492,7 @@ wxDataViewItem PrusaObjectDataViewModel::Add(const wxString &name, const int ext
 
 wxDataViewItem PrusaObjectDataViewModel::AddVolumeChild(const wxDataViewItem &parent_item,
 													const wxString &name,
-                                                    const int volume_type,
+                                                    const Slic3r::ModelVolumeType volume_type,
                                                     const int extruder/* = 0*/,
                                                     const bool create_frst_child/* = true*/)
 {
@@ -518,7 +518,7 @@ wxDataViewItem PrusaObjectDataViewModel::AddVolumeChild(const wxDataViewItem &pa
         if (insert_position > 0) insert_position++;
 	}
 
-    const auto node = new PrusaObjectDataViewModelNode(root, name, *m_volume_bmps[volume_type], extruder_str, root->m_volumes_cnt);
+    const auto node = new PrusaObjectDataViewModelNode(root, name, *m_volume_bmps[int(volume_type)], extruder_str, root->m_volumes_cnt);
     insert_position < 0 ? root->Append(node) : root->Insert(node, insert_position);
 	// notify control
 	const wxDataViewItem child((void*)node);
@@ -1280,13 +1280,13 @@ void PrusaObjectDataViewModel::UpdateSettingsDigest(const wxDataViewItem &item,
     ItemChanged(item);
 }
 
-void PrusaObjectDataViewModel::SetVolumeType(const wxDataViewItem &item, const int type)
+void PrusaObjectDataViewModel::SetVolumeType(const wxDataViewItem &item, const Slic3r::ModelVolumeType type)
 {
     if (!item.IsOk() || GetItemType(item) != itVolume) 
         return;
 
     PrusaObjectDataViewModelNode *node = (PrusaObjectDataViewModelNode*)item.GetID();
-    node->SetBitmap(*m_volume_bmps[type]);
+    node->SetBitmap(*m_volume_bmps[int(type)]);
     ItemChanged(item);
 }
 

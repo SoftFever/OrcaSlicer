@@ -69,7 +69,9 @@ void make_fill(LayerRegion &layerm, ExtrusionEntityCollection &out)
                 if (surface.is_solid() && (!surface.is_bridge() || layerm.layer()->id() == 0)) {
                     group_attrib[i].is_solid = true;
                     group_attrib[i].flow_width = (surface.surface_type == stTop) ? top_solid_infill_flow.width : solid_infill_flow.width;
-                    group_attrib[i].pattern = surface.is_external() ? layerm.region()->config().external_fill_pattern.value : ipRectilinear;
+                    group_attrib[i].pattern = surface.is_external() ? 
+						(surface.is_top() ? layerm.region()->config().top_fill_pattern.value : layerm.region()->config().bottom_fill_pattern.value) :
+                        ipRectilinear;
                 }
             }
             // Loop through solid groups, find compatible groups and append them to this one.
@@ -161,7 +163,7 @@ void make_fill(LayerRegion &layerm, ExtrusionEntityCollection &out)
         if (surface.is_solid()) {
             density = 100.;
             fill_pattern = (surface.is_external() && ! is_bridge) ? 
-                layerm.region()->config().external_fill_pattern.value :
+				(surface.is_top() ? layerm.region()->config().top_fill_pattern.value : layerm.region()->config().bottom_fill_pattern.value) :
                 ipRectilinear;
         } else if (density <= 0)
             continue;

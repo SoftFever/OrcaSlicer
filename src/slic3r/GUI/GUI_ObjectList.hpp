@@ -21,6 +21,7 @@ class ConfigOptionsGroup;
 class DynamicPrintConfig;
 class ModelObject;
 class ModelVolume;
+enum class ModelVolumeType : int;
 
 // FIXME: broken build on mac os because of this is missing:
 typedef std::vector<std::string>    t_config_option_keys;
@@ -173,7 +174,7 @@ public:
     void                get_freq_settings_choice(const wxString& bundle_name);
     void                update_settings_item();
 
-    void                append_menu_item_add_generic(wxMenuItem* menu, const int type);
+    void                append_menu_item_add_generic(wxMenuItem* menu, const ModelVolumeType type);
     void                append_menu_items_add_volume(wxMenu* menu);
     wxMenuItem*         append_menu_item_split(wxMenu* menu);
     wxMenuItem*         append_menu_item_settings(wxMenu* menu);
@@ -190,9 +191,9 @@ public:
 
     void                update_opt_keys(t_config_option_keys& t_optopt_keys);
 
-    void                load_subobject(int type);
-    void                load_part(ModelObject* model_object, wxArrayString& part_names, int type);
-    void                load_generic_subobject(const std::string& type_name, const int type);
+    void                load_subobject(ModelVolumeType type);
+    void                load_part(ModelObject* model_object, wxArrayString& part_names, ModelVolumeType type);
+	void                load_generic_subobject(const std::string& type_name, const ModelVolumeType type);
     void                del_object(const int obj_idx);
     void                del_subobject_item(wxDataViewItem& item);
     void                del_settings_from_config();

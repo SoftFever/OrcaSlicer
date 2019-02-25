@@ -356,7 +356,7 @@ const std::vector<std::string>& Preset::print_options()
     static std::vector<std::string> s_opts {
         "layer_height", "first_layer_height", "perimeters", "spiral_vase", "top_solid_layers", "bottom_solid_layers", 
         "extra_perimeters", "ensure_vertical_shell_thickness", "avoid_crossing_perimeters", "thin_walls", "overhangs", 
-        "seam_position", "external_perimeters_first", "fill_density", "fill_pattern", "external_fill_pattern", 
+        "seam_position", "external_perimeters_first", "fill_density", "fill_pattern", "top_fill_pattern", "bottom_fill_pattern",
         "infill_every_layers", "infill_only_where_needed", "solid_infill_every_layers", "fill_angle", "bridge_angle", 
         "solid_infill_below_area", "only_retract_when_crossing_perimeters", "infill_first", "max_print_speed", 
         "max_volumetric_speed", 
