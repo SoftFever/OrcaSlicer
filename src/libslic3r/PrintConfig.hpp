@@ -1028,6 +1028,9 @@ public:
     // The smoothing radius of the pad edges
     ConfigOptionFloat pad_edge_radius /*= 1*/;
 
+    // The tilt of the pad wall...
+    ConfigOptionFloat pad_wall_tilt;
+
 protected:
     void initialize(StaticCacheBase &cache, const char *base_ptr)
     {
@@ -1053,6 +1056,7 @@ protected:
         OPT_PTR(pad_wall_height);
         OPT_PTR(pad_max_merge_distance);
         OPT_PTR(pad_edge_radius);
+        OPT_PTR(pad_wall_tilt);
     }
 };
 

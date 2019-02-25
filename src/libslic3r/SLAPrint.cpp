@@ -751,11 +751,13 @@ void SLAPrint::process()
             double wt = po.m_config.pad_wall_thickness.getFloat();
             double h =  po.m_config.pad_wall_height.getFloat();
             double md = po.m_config.pad_max_merge_distance.getFloat();
-            double er = po.m_config.pad_edge_radius.getFloat();
+            // Radius is disabled for now...
+            double er = 0; // po.m_config.pad_edge_radius.getFloat();
+            double tilt = po.m_config.pad_wall_tilt.getFloat()  * PI / 180.0;
             double lh = po.m_config.layer_height.getFloat();
             double elevation = po.m_config.support_object_elevation.getFloat();
             if(!po.m_config.supports_enable.getBool()) elevation = 0;
-            sla::PoolConfig pcfg(wt, h, md, er);
+            sla::PoolConfig pcfg(wt, h, md, er, tilt);
 
             ExPolygons bp;
             double pad_h = sla::get_pad_fullheight(pcfg);
@@ -766,8 +768,7 @@ void SLAPrint::process()
 
             if(elevation < pad_h) {
                 // we have to count with the model geometry for the base plate
-                sla::base_plate(trmesh, bp, float(pad_h), float(lh),
-                                            thrfn);
+                sla::base_plate(trmesh, bp, float(pad_h), float(lh), thrfn);
             }
 
             pcfg.throw_on_cancel = thrfn;
@@ -1368,6 +1369,7 @@ bool SLAPrintObject::invalidate_state_by_config_options(const std::vector<t_conf
             || opt_key == "pad_wall_thickness"
             || opt_key == "pad_wall_height"
             || opt_key == "pad_max_merge_distance"
+            || opt_key == "pad_wall_tilt"
             || opt_key == "pad_edge_radius") {
             steps.emplace_back(slaposBasePool);
         } else {
