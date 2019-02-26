@@ -17,6 +17,8 @@
 #include <igl/remove_duplicate_vertices.h>
 #include <igl/signed_distance.h>
 
+#include <tbb/parallel_for.h>
+
 #include "SLASpatIndex.hpp"
 #include "ClipperUtils.hpp"
 
@@ -186,6 +188,15 @@ bool EigenMesh3D::inside(const Vec3d &p) const {
 }
 #endif /* SLIC3R_SLA_NEEDS_WINDTREE */
 
+double EigenMesh3D::squared_distance(const Vec3d &p, int& i, Vec3d& c) const {
+    double sqdst = 0;
+    Eigen::Matrix<double, 1, 3> pp = p;
+    Eigen::Matrix<double, 1, 3> cc;
+    sqdst = m_aabb->squared_distance(m_V, m_F, pp, i, cc);
+    c = cc;
+    return sqdst;
+}
+
 /* ****************************************************************************
  * Misc functions
  * ****************************************************************************/
@@ -208,21 +219,40 @@ template<class Vec> double distance(const Vec& pp1, const Vec& pp2) {
 PointSet normals(const PointSet& points,
                  const EigenMesh3D& mesh,
                  double eps,
-                 std::function<void()> throw_on_cancel)
+                 std::function<void()> throw_on_cancel,
+                 const std::vector<unsigned>& pt_indices = {})
 {
     if(points.rows() == 0 || mesh.V().rows() == 0 || mesh.F().rows() == 0)
         return {};
 
-    Eigen::VectorXd dists;
-    Eigen::VectorXi I;
-    PointSet C;
+    std::vector<unsigned> range = pt_indices;
+    if(range.empty()) {
+        range.resize(size_t(points.rows()), 0);
+        std::iota(range.begin(), range.end(), 0);
+    }
 
-    igl::point_mesh_squared_distance( points, mesh.V(), mesh.F(), dists, I, C);
+    std::vector<double> dists(range.size());
+    std::vector<int> I(range.size());
+    PointSet        C(Eigen::Index(range.size()), 3);
 
-    PointSet ret(I.rows(), 3);
-    for(int i = 0; i < I.rows(); i++) {
+    tbb::parallel_for(size_t(0), range.size(),
+                      [&range, &mesh, &points, &dists, &I, &C](size_t idx)
+    {
+        auto eidx = Eigen::Index(range[idx]);
+        int i = 0;
+        Vec3d c;
+        dists[idx] = mesh.squared_distance(points.row(eidx), i, c);
+        C.row(eidx) = c;
+        I[range[idx]] = i;
+    });
+
+//     igl::point_mesh_squared_distance( points, mesh.V(), mesh.F(), dists, I, C);
+
+
+    PointSet ret(I.size(), 3);
+    for(unsigned i = 0; i < I.size(); i++) {
         throw_on_cancel();
-        auto idx = I(i);
+        auto idx = I[i];
         auto trindex = mesh.F().row(idx);
 
         const Vec3d& p1 = mesh.V().row(trindex(0));
@@ -332,7 +362,7 @@ PointSet normals(const PointSet& points,
 ClusteredPoints cluster(
         const sla::PointSet& points,
         std::function<bool(const SpatElement&, const SpatElement&)> pred,
-        unsigned max_points = 0)
+        unsigned max_points = 0, const std::vector<unsigned>& indices = {})
 {
 
     namespace bgi = boost::geometry::index;
@@ -342,8 +372,12 @@ ClusteredPoints cluster(
     Index3D sindex;
 
     // Build the index
-    for(unsigned idx = 0; idx < points.rows(); idx++)
-        sindex.insert( std::make_pair(points.row(idx), idx));
+    if(indices.empty())
+        for(unsigned idx = 0; idx < points.rows(); idx++)
+            sindex.insert( std::make_pair(points.row(idx), idx));
+    else
+        for(unsigned idx : indices)
+            sindex.insert( std::make_pair(points.row(idx), idx));
 
     using Elems = std::vector<SpatElement>;
 

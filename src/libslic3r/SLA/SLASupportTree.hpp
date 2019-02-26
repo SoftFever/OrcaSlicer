@@ -74,7 +74,7 @@ struct SupportConfig {
     double base_height_mm = 1.0;
 
     // The default angle for connecting support sticks and junctions.
-    double tilt = M_PI/4;
+    double head_slope = M_PI/4;
 
     // The max length of a bridge in mm
     double max_bridge_length_mm = 15.0;
@@ -116,17 +116,10 @@ using PointSet = Eigen::MatrixXd;
 //EigenMesh3D to_eigenmesh(const ModelObject& model);
 
 // Simple conversion of 'vector of points' to an Eigen matrix
-PointSet    to_point_set(const std::vector<sla::SupportPoint>&);
+//PointSet    to_point_set(const std::vector<sla::SupportPoint>&);
 
 
 /* ************************************************************************** */
-
-/// Just a wrapper to the runtime error to be recognizable in try blocks
-class SLASupportsStoppedException: public std::runtime_error {
-public:
-    using std::runtime_error::runtime_error;
-    SLASupportsStoppedException();
-};
 
 /// The class containing mesh data for the generated supports.
 class SLASupportTree {
@@ -141,7 +134,12 @@ class SLASupportTree {
                                  const Controller&);
 
     /// Generate the 3D supports for a model intended for SLA print.
-    bool generate(const PointSet& pts,
+    bool generate(const std::vector<SupportPoint>& pts,
+                  const EigenMesh3D& mesh,
+                  const SupportConfig& cfg = {},
+                  const Controller& ctl = {});
+
+    bool _generate(const std::vector<SupportPoint>& pts,
                   const EigenMesh3D& mesh,
                   const SupportConfig& cfg = {},
                   const Controller& ctl = {});
@@ -149,7 +147,7 @@ public:
 
     SLASupportTree();
 
-    SLASupportTree(const PointSet& pts,
+    SLASupportTree(const std::vector<SupportPoint>& pts,
                    const EigenMesh3D& em,
                    const SupportConfig& cfg = {},
                    const Controller& ctl = {});

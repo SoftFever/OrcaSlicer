@@ -2,6 +2,7 @@
 #define SLACOMMON_HPP
 
 #include <Eigen/Geometry>
+#include <memory>
 
 // #define SLIC3R_SLA_NEEDS_WINDTREE
 
@@ -35,7 +36,6 @@ struct SupportPoint {
     bool operator==(const SupportPoint& sp) const { return (pos==sp.pos) && head_front_radius==sp.head_front_radius && is_new_island==sp.is_new_island; }
     bool operator!=(const SupportPoint& sp) const { return !(sp == (*this)); }
 };
-
 
 /// An index-triangle structure for libIGL functions. Also serves as an
 /// alternative (raw) input format for the SLASupportTree
@@ -125,6 +125,8 @@ public:
 
     bool inside(const Vec3d& p) const;
 #endif /* SLIC3R_SLA_NEEDS_WINDTREE */
+
+    double squared_distance(const Vec3d& p, int& i, Vec3d& c) const;
 };
 
 
