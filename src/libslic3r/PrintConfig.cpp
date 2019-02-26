@@ -2730,6 +2730,17 @@ void PrintConfigDef::init_sla_params()
     def->cli = "";
     def->min = 0;
     def->default_value = new ConfigOptionFloat(1.0);
+
+    def = this->add("pad_wall_slope", coFloat);
+    def->label = L("Pad wall slope");
+    def->category = L("Pad");
+    def->tooltip = L("The slope of the pad wall relative to the bed plane. "
+                     "90 degrees means straight walls.");
+    def->sidetext = L("degrees");
+    def->cli = "";
+    def->min = 45;
+    def->max = 90;
+    def->default_value = new ConfigOptionFloat(45.0);
 }
 
 void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &value)

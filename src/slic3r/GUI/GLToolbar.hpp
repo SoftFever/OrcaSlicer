@@ -51,6 +51,9 @@ public:
     struct Data
     {
         std::string name;
+#if ENABLE_SVG_ICONS
+        std::string svg_file;
+#endif // ENABLE_SVG_ICONS
         std::string tooltip;
         unsigned int sprite_id;
         bool is_toggable;
@@ -74,6 +77,9 @@ public:
     void set_state(EState state) { m_state = state; }
 
     const std::string& get_name() const { return m_data.name; }
+#if ENABLE_SVG_ICONS
+    const std::string& get_svg_file() const { return m_data.svg_file; }
+#endif // ENABLE_SVG_ICONS
     const std::string& get_tooltip() const { return m_data.tooltip; }
 
     void do_action(wxEvtHandler *target);
@@ -96,6 +102,7 @@ private:
     GLTexture::Quad_UVs get_uvs(unsigned int texture_size, unsigned int icon_size) const;
 };
 
+#if !ENABLE_SVG_ICONS
 // items icon textures are assumed to be square and all with the same size in pixels, no internal check is done
 // icons are layed-out into the texture starting from the top-left corner in the same order as enum GLToolbarItem::EState
 // from left to right
@@ -114,6 +121,7 @@ struct ItemsIconsTexture
     GLTexture texture;
     Metadata metadata;
 };
+#endif // !ENABLE_SVG_ICONS
 
 struct BackgroundTexture
 {
@@ -140,6 +148,10 @@ struct BackgroundTexture
 class GLToolbar
 {
 public:
+#if ENABLE_SVG_ICONS
+    static const float Default_Icons_Size;
+#endif // ENABLE_SVG_ICONS
+
     enum EType : unsigned char
     {
         Normal,
@@ -173,7 +185,12 @@ public:
         float border;
         float separator_size;
         float gap_size;
+#if ENABLE_SVG_ICONS
+        float icons_size;
+        float scale;
+#else
         float icons_scale;
+#endif // ENABLE_SVG_ICONS
 
         float width;
         float height;
@@ -187,7 +204,12 @@ private:
 
     EType m_type;
     bool m_enabled;
+#if ENABLE_SVG_ICONS
+    mutable GLTexture m_icons_texture;
+    mutable bool m_icons_texture_dirty;
+#else
     ItemsIconsTexture m_icons_texture;
+#endif // ENABLE_SVG_ICONS
     BackgroundTexture m_background_texture;
     mutable Layout m_layout;
 
@@ -197,7 +219,11 @@ public:
     explicit GLToolbar(EType type);
     ~GLToolbar();
 
+#if ENABLE_SVG_ICONS
+    bool init(const BackgroundTexture::Metadata& background_texture);
+#else
     bool init(const ItemsIconsTexture::Metadata& icons_texture, const BackgroundTexture::Metadata& background_texture);
+#endif // ENABLE_SVG_ICONS
 
     Layout::EType get_layout_type() const;
     void set_layout_type(Layout::EType type);
@@ -208,7 +234,12 @@ public:
     void set_border(float border);
     void set_separator_size(float size);
     void set_gap_size(float size);
+#if ENABLE_SVG_ICONS
+    void set_icons_size(float size);
+    void set_scale(float scale);
+#else
     void set_icons_scale(float scale);
+#endif // ENABLE_SVG_ICONS
 
     bool is_enabled() const;
     void set_enabled(bool enable);
@@ -253,6 +284,10 @@ private:
 
     void render_horizontal(const GLCanvas3D& parent) const;
     void render_vertical(const GLCanvas3D& parent) const;
+
+#if ENABLE_SVG_ICONS
+    bool generate_icons_texture() const;
+#endif // ENABLE_SVG_ICONS
 };
 
 } // namespace GUI

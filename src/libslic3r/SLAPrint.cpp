@@ -415,49 +415,73 @@ void SLAPrint::set_task(const TaskParams &params)
 		n_object_steps = (int)slaposCount;
 
 	if (params.single_model_object.valid()) {
+        // Find the print object to be processed with priority.
 		SLAPrintObject *print_object = nullptr;
 		size_t          idx_print_object = 0;
-		for (; idx_print_object < m_objects.size(); ++idx_print_object)
+		for (; idx_print_object < m_objects.size(); ++ idx_print_object)
 			if (m_objects[idx_print_object]->model_object()->id() == params.single_model_object) {
 				print_object = m_objects[idx_print_object];
 				break;
 			}
 		assert(print_object != nullptr);
-		bool shall_cancel = false;
-		for (int istep = 0; istep < n_object_steps; ++istep)
-			if (! print_object->m_stepmask[istep]) {
-				shall_cancel = true;
+        // Find out whether the priority print object is being currently processed.
+        bool running = false;
+		for (int istep = 0; istep < n_object_steps; ++ istep) {
+			if (! print_object->m_stepmask[istep])
+                // Step was skipped, cancel.
+				break;
+			if (print_object->is_step_started_unguarded(SLAPrintObjectStep(istep))) {
+                // No step was skipped, and a wanted step is being processed. Don't cancel.
+				running = true;
 				break;
 			}
-		bool running = false;
-		if (!shall_cancel) {
-			for (int istep = 0; istep < n_object_steps; ++ istep)
-				if (print_object->is_step_started_unguarded(SLAPrintObjectStep(istep))) {
-					running = true;
-					break;
-				}
 		}
-		if (!running)
+		if (! running)
 			this->call_cancel_callback();
 
 		// Now the background process is either stopped, or it is inside one of the print object steps to be calculated anyway.
 		if (params.single_model_instance_only) {
 			// Suppress all the steps of other instances.
 			for (SLAPrintObject *po : m_objects)
-				for (int istep = 0; istep < (int)slaposCount; ++istep)
+				for (int istep = 0; istep < (int)slaposCount; ++ istep)
 					po->m_stepmask[istep] = false;
-		}
-		else if (!running) {
+		} else if (! running) {
 			// Swap the print objects, so that the selected print_object is first in the row.
 			// At this point the background processing must be stopped, so it is safe to shuffle print objects.
 			if (idx_print_object != 0)
 				std::swap(m_objects.front(), m_objects[idx_print_object]);
 		}
+        // and set the steps for the current object.
 		for (int istep = 0; istep < n_object_steps; ++ istep)
 			print_object->m_stepmask[istep] = true;
-		for (int istep = n_object_steps; istep < (int)slaposCount; ++istep)
+		for (int istep = n_object_steps; istep < (int)slaposCount; ++ istep)
 			print_object->m_stepmask[istep] = false;
-	}
+	} else {
+        // Slicing all objects.
+        bool running = false;
+        for (SLAPrintObject *print_object : m_objects)
+            for (int istep = 0; istep < n_object_steps; ++ istep) {
+                if (! print_object->m_stepmask[istep]) {
+                    // Step may have been skipped. Restart.
+                    goto loop_end;
+                }
+                if (print_object->is_step_started_unguarded(SLAPrintObjectStep(istep))) {
+                    // This step is running, and the state cannot be changed due to the this->state_mutex() being locked.
+                    // It is safe to manipulate m_stepmask of other SLAPrintObjects and SLAPrint now.
+                    running = true;
+                    goto loop_end;
+                }
+            }
+    loop_end:
+        if (! running)
+            this->call_cancel_callback();
+        for (SLAPrintObject *po : m_objects) {
+            for (int istep = 0; istep < n_object_steps; ++ istep)
+                po->m_stepmask[istep] = true;
+            for (int istep = n_object_steps; istep < (int)slaposCount; ++ istep)
+                po->m_stepmask[istep] = false;
+        }
+    }
 
     if (params.to_object_step != -1 || params.to_print_step != -1) {
         // Limit the print steps.
@@ -484,7 +508,7 @@ void SLAPrint::finalize()
 std::string SLAPrint::output_filename() const
 { 
     DynamicConfig config = this->finished() ? this->print_statistics().config() : this->print_statistics().placeholders();
-    return this->PrintBase::output_filename(m_print_config.output_filename_format.value, "zip", &config);
+    return this->PrintBase::output_filename(m_print_config.output_filename_format.value, "sl1", &config);
 }
 
 namespace {
@@ -727,11 +751,13 @@ void SLAPrint::process()
             double wt = po.m_config.pad_wall_thickness.getFloat();
             double h =  po.m_config.pad_wall_height.getFloat();
             double md = po.m_config.pad_max_merge_distance.getFloat();
-            double er = po.m_config.pad_edge_radius.getFloat();
+            // Radius is disabled for now...
+            double er = 0; // po.m_config.pad_edge_radius.getFloat();
+            double tilt = po.m_config.pad_wall_slope.getFloat()  * PI / 180.0;
             double lh = po.m_config.layer_height.getFloat();
             double elevation = po.m_config.support_object_elevation.getFloat();
             if(!po.m_config.supports_enable.getBool()) elevation = 0;
-            sla::PoolConfig pcfg(wt, h, md, er);
+            sla::PoolConfig pcfg(wt, h, md, er, tilt);
 
             ExPolygons bp;
             double pad_h = sla::get_pad_fullheight(pcfg);
@@ -742,8 +768,7 @@ void SLAPrint::process()
 
             if(elevation < pad_h) {
                 // we have to count with the model geometry for the base plate
-                sla::base_plate(trmesh, bp, float(pad_h), float(lh),
-                                            thrfn);
+                sla::base_plate(trmesh, bp, float(pad_h), float(lh), thrfn);
             }
 
             pcfg.throw_on_cancel = thrfn;
@@ -1344,6 +1369,7 @@ bool SLAPrintObject::invalidate_state_by_config_options(const std::vector<t_conf
             || opt_key == "pad_wall_thickness"
             || opt_key == "pad_wall_height"
             || opt_key == "pad_max_merge_distance"
+            || opt_key == "pad_wall_slope"
             || opt_key == "pad_edge_radius") {
             steps.emplace_back(slaposBasePool);
         } else {

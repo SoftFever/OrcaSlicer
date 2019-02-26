@@ -601,8 +601,8 @@ void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
     const double thickness      = cfg.min_wall_thickness_mm;
     const double wingheight     = cfg.min_wall_height_mm;
     const double fullheight     = wingheight + thickness;
-    const double tilt           = PI/4;
-    const double wingdist       = wingheight / std::tan(tilt);
+    const double slope           = cfg.wall_slope;
+    const double wingdist       = wingheight / std::tan(slope);
 
     // scaled values
     const coord_t s_thickness   = mm(thickness);
@@ -627,15 +627,22 @@ void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
         auto outer_base = concaveh;
         outer_base.holes.clear();
         offset(outer_base, s_safety_dist + s_wingdist + s_thickness);
-        auto inner_base = outer_base;
-        offset(inner_base, -(s_thickness + s_wingdist));
+
+
+        ExPolygon bottom_poly = outer_base;
+        bottom_poly.holes.clear();
+        if(s_wingdist > 0) offset(bottom_poly, -s_wingdist);
 
         // Punching a hole in the top plate for the cavity
         ExPolygon top_poly;
         ExPolygon middle_base;
+        ExPolygon inner_base;
         top_poly.contour = outer_base.contour;
 
         if(wingheight > 0) {
+            inner_base = outer_base;
+            offset(inner_base, -(s_thickness + s_wingdist + s_eradius));
+
             middle_base = outer_base;
             offset(middle_base, -s_thickness);
             top_poly.holes.emplace_back(middle_base.contour);
@@ -682,10 +689,10 @@ void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
                                thrcl,
                                ob, wh));
 
-        // Now that we have the rounded edge connencting the top plate with
+        // Now that we have the rounded edge connecting the top plate with
         // the outer side walls, we can generate and merge the sidewall geometry
-        pool.merge(walls(ob.contour, inner_base.contour, wh, -fullheight,
-                         (s_thickness + s_wingdist) * SCALING_FACTOR, thrcl));
+        pool.merge(walls(ob.contour, bottom_poly.contour, wh, -fullheight,
+                         wingdist, thrcl));
 
         if(wingheight > 0) {
             // Generate the smoothed edge geometry
@@ -700,14 +707,14 @@ void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
             // Next is the cavity walls connecting to the top plate's
             // artificially created hole.
             pool.merge(walls(inner_base.contour, ob.contour, -wingheight,
-                             wh, -s_safety_dist * SCALING_FACTOR, thrcl));
+                             wh, -wingdist, thrcl));
         }
 
         // Now we need to triangulate the top and bottom plates as well as the
         // cavity bottom plate which is the same as the bottom plate but it is
         // elevated by the thickness.
         pool.merge(triangulate_expolygon_3d(top_poly));
-        pool.merge(triangulate_expolygon_3d(inner_base, -fullheight, true));
+        pool.merge(triangulate_expolygon_3d(bottom_poly, -fullheight, true));
 
         if(wingheight > 0)
             pool.merge(triangulate_expolygon_3d(inner_base, -wingheight));

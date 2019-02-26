@@ -2142,6 +2142,8 @@ void Plater::priv::export_gcode(fs::path output_path, PrintHostJob upload_job)
         background_process.schedule_upload(std::move(upload_job));
     }
 
+    // If the SLA processing of just a single object's supports is running, restart slicing for the whole object.
+    this->background_process.set_task(PrintBase::TaskParams());
     this->restart_background_process(priv::UPDATE_BACKGROUND_PROCESS_FORCE_EXPORT);
 }
 
@@ -2449,8 +2451,15 @@ void Plater::priv::on_right_click(Vec2dEvent& evt)
 
     sidebar->obj_list()->append_menu_item_settings(menu);
 
-    if (q != nullptr)
+    if (q != nullptr) {
+#ifdef __linux__
+        // For some reason on Linux the menu isn't displayed if position is specified
+        // (even though the position is sane).
+        q->PopupMenu(menu);
+#else
         q->PopupMenu(menu, (int)evt.data.x(), (int)evt.data.y());
+#endif
+    }
 }
 
 void Plater::priv::on_wipetower_moved(Vec3dEvent &evt)
@@ -2614,9 +2623,11 @@ bool Plater::priv::complit_init_part_menu()
 
 void Plater::priv::init_view_toolbar()
 {
+#if !ENABLE_SVG_ICONS
     ItemsIconsTexture::Metadata icons_data;
     icons_data.filename = "view_toolbar.png";
     icons_data.icon_size = 64;
+#endif // !ENABLE_SVG_ICONS
 
     BackgroundTexture::Metadata background_data;
     background_data.filename = "toolbar_background.png";
@@ -2625,7 +2636,11 @@ void Plater::priv::init_view_toolbar()
     background_data.right = 16;
     background_data.bottom = 16;
 
+#if ENABLE_SVG_ICONS
+    if (!view_toolbar.init(background_data))
+#else
     if (!view_toolbar.init(icons_data, background_data))
+#endif // ENABLE_SVG_ICONS
         return;
 
     view_toolbar.set_layout_orientation(GLToolbar::Layout::Bottom);
@@ -2635,6 +2650,9 @@ void Plater::priv::init_view_toolbar()
     GLToolbarItem::Data item;
 
     item.name = "3D";
+#if ENABLE_SVG_ICONS
+    item.svg_file = "add.svg";
+#endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("3D editor view") + " [" + GUI::shortkey_ctrl_prefix() + "5]";
     item.sprite_id = 0;
     item.action_event = EVT_GLVIEWTOOLBAR_3D;
@@ -2643,6 +2661,9 @@ void Plater::priv::init_view_toolbar()
         return;
 
     item.name = "Preview";
+#if ENABLE_SVG_ICONS
+    item.svg_file = "remove.svg";
+#endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Preview") + " [" + GUI::shortkey_ctrl_prefix() + "6]";
     item.sprite_id = 1;
     item.action_event = EVT_GLVIEWTOOLBAR_PREVIEW;
@@ -3066,6 +3087,8 @@ void Plater::reslice()
     unsigned int state = this->p->update_background_process(true);
     if (state & priv::UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE)
         this->p->view3D->reload_scene(false);
+    // If the SLA processing of just a single object's supports is running, restart slicing for the whole object.
+    this->p->background_process.set_task(PrintBase::TaskParams());
     // Only restarts if the state is valid.
     this->p->restart_background_process(state | priv::UPDATE_BACKGROUND_PROCESS_FORCE_RESTART);
 }

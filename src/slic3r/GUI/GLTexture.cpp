@@ -120,13 +120,13 @@ bool GLTexture::load_from_file(const std::string& filename, bool use_mipmaps)
     {
         // we manually generate mipmaps because glGenerateMipmap() function is not reliable on all graphics cards
         unsigned int levels_count = generate_mipmaps(image);
-        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1 + levels_count);
+        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, levels_count);
         ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     }
     else
     {
         ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
+        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
     }
     ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -136,6 +136,106 @@ bool GLTexture::load_from_file(const std::string& filename, bool use_mipmaps)
     return true;
 }
 #endif // ENABLE_TEXTURES_FROM_SVG
+
+#if ENABLE_SVG_ICONS
+bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::string>& filenames, unsigned int num_states, unsigned int sprite_size_px)
+{
+    static int pass = 0;
+    ++pass;
+
+    reset();
+
+    if (filenames.empty() || (num_states == 0) || (sprite_size_px == 0))
+        return false;
+
+    m_width = (int)sprite_size_px * std::max((int)(num_states), (int)(filenames.size()));
+    m_height = m_width;
+    int n_pixels = m_width * m_height;
+
+    if (n_pixels <= 0)
+    {
+        reset();
+        return false;
+    }
+
+    std::vector<unsigned char> data(n_pixels * 4, 0);
+    std::vector<unsigned char> sprite_data(sprite_size_px * sprite_size_px * 4, 0);
+
+    NSVGrasterizer* rast = nsvgCreateRasterizer();
+    if (rast == nullptr)
+    {
+        reset();
+        return false;
+    }
+
+    int sprite_id = -1;
+    for (const std::string& filename : filenames)
+    {
+        ++sprite_id;
+
+        if (!boost::filesystem::exists(filename))
+            continue;
+
+        if (!boost::algorithm::iends_with(filename, ".svg"))
+            continue;
+
+        NSVGimage* image = nsvgParseFromFile(filename.c_str(), "px", 96.0f);
+        if (image == nullptr)
+            continue;
+
+        float scale = (float)sprite_size_px / std::max(image->width, image->height);
+
+        nsvgRasterize(rast, image, 0, 0, scale, sprite_data.data(), sprite_size_px, sprite_size_px, sprite_size_px * 4);
+
+        int sprite_offset_px = sprite_id * sprite_size_px * m_width;
+        for (unsigned int i = 0; i < num_states; ++i)
+        {
+            int state_offset_px = sprite_offset_px + i * sprite_size_px;
+            for (int j = 0; j < sprite_size_px; ++j)
+            {
+                int data_offset = (state_offset_px + j * m_width) * 4;
+                ::memcpy((void*)&data.data()[data_offset], (const void*)&sprite_data.data()[j * sprite_size_px * 4], sprite_size_px * 4);
+            }
+        }
+
+        nsvgDelete(image);
+    }
+
+    nsvgDeleteRasterizer(rast);
+
+    // sends data to gpu
+    ::glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    ::glGenTextures(1, &m_id);
+    ::glBindTexture(GL_TEXTURE_2D, m_id);
+    ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data());
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    ::glBindTexture(GL_TEXTURE_2D, 0);
+
+
+    m_source = filenames.front();
+
+    wxImage output(m_width, m_height);
+    output.InitAlpha();
+
+    for (int h = 0; h < m_height; ++h)
+    {
+        for (int w = 0; w < m_width; ++w)
+        {
+            int px = h * m_width + w;
+            int px_byte = px * 4;
+            output.SetRGB(w, h, data.data()[px_byte + 0], data.data()[px_byte + 1], data.data()[px_byte + 2]);
+            output.SetAlpha(w, h, data.data()[px_byte + 3]);
+        }
+    }
+
+    output.SaveFile("C:/prusa/slic3r/svg_icons/temp/test_" + std::to_string(pass) + ".png", wxBITMAP_TYPE_PNG);
+
+    return true;
+}
+#endif // ENABLE_SVG_ICONS
 
 void GLTexture::reset()
 {
@@ -265,13 +365,13 @@ bool GLTexture::load_from_png(const std::string& filename, bool use_mipmaps)
     {
         // we manually generate mipmaps because glGenerateMipmap() function is not reliable on all graphics cards
         unsigned int levels_count = generate_mipmaps(image);
-        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1 + levels_count);
+        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, levels_count);
         ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     }
     else
     {
         ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
+        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
     }
     ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -340,13 +440,13 @@ bool GLTexture::load_from_svg(const std::string& filename, bool use_mipmaps, uns
             ::glTexImage2D(GL_TEXTURE_2D, level, GL_RGBA, (GLsizei)lod_w, (GLsizei)lod_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data());
         }
 
-        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1 + level);
+        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, level);
         ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     }
     else
     {
         ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
+        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
     }
     ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 

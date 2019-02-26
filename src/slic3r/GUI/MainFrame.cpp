@@ -557,9 +557,6 @@ void MainFrame::quick_slice(const int qs)
     } 
     else if (qs & qsSaveAs) {
         // The following line may die if the output_filename_format template substitution fails.
-//         output_file = sprint->output_filepath;
-//         if (export_svg)
-//         output_file = ~s / \.[gG][cC][oO][dD][eE]$ / .svg /;
         auto dlg = new wxFileDialog(this, _(L("Save ")) + (qs & qsExportSVG ? _(L("SVG")) : _(L("G-code"))) + _(L(" file as:")),
             wxGetApp().app_config->get_last_output_dir(get_dir_name(output_file)), get_base_name(input_file), 
             qs & qsExportSVG ? file_wildcards(FT_SVG) : file_wildcards(FT_GCODE),
@@ -575,11 +572,9 @@ void MainFrame::quick_slice(const int qs)
         wxGetApp().app_config->update_last_output_dir(get_dir_name(output_file));
     } 
     else if (qs & qsExportPNG) {
-//         output_file = sprint->output_filepath;
-//         output_file = ~s / \.[gG][cC][oO][dD][eE]$ / .zip / ;
         auto dlg = new wxFileDialog(this, _(L("Save zip file as:")),
             wxGetApp().app_config->get_last_output_dir(get_dir_name(output_file)),
-            get_base_name(output_file), "*.zip", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+            get_base_name(output_file), "*.sl1", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if (dlg->ShowModal() != wxID_OK) {
             dlg->Destroy();
             return;

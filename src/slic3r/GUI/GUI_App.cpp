@@ -56,7 +56,7 @@ wxString file_wildcards(FileType file_type, const std::string &custom_extension)
 
         /* FT_INI */   "INI files (*.ini)|*.ini;*.INI",
         /* FT_SVG */   "SVG files (*.svg)|*.svg;*.SVG",
-        /* FT_PNGZIP */"Zipped PNG files (*.dwz)|*.dwz;*.DWZ",    // This is lame, but that's what we use for SLA
+        /* FT_PNGZIP */"Masked SLA files (*.sl1)|*.sl1;*.SL1",
     };
 
 	std::string out = defaults[file_type];

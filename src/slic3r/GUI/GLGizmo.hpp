@@ -87,6 +87,9 @@ protected:
     int m_group_id;
     EState m_state;
     int m_shortcut_key;
+#if ENABLE_SVG_ICONS
+    std::string m_svg_file;
+#endif // ENABLE_SVG_ICONS
     unsigned int m_sprite_id;
     int m_hover_id;
     bool m_dragging;
@@ -99,7 +102,11 @@ protected:
 #endif // ENABLE_IMGUI
 
 public:
+#if ENABLE_SVG_ICONS
+    GLGizmoBase(GLCanvas3D& parent, const std::string& svg_file, unsigned int sprite_id);
+#else
     GLGizmoBase(GLCanvas3D& parent, unsigned int sprite_id);
+#endif // ENABLE_SVG_ICONS
     virtual ~GLGizmoBase() {}
 
     bool init() { return on_init(); }
@@ -114,6 +121,10 @@ public:
 
     int get_shortcut_key() const { return m_shortcut_key; }
     void set_shortcut_key(int key) { m_shortcut_key = key; }
+
+#if ENABLE_SVG_ICONS
+    const std::string& get_svg_file() const { return m_svg_file; }
+#endif // ENABLE_SVG_ICONS
 
     bool is_activable(const GLCanvas3D::Selection& selection) const { return on_is_activable(selection); }
     bool is_selectable() const { return on_is_selectable(); }
@@ -242,7 +253,11 @@ class GLGizmoRotate3D : public GLGizmoBase
     std::vector<GLGizmoRotate> m_gizmos;
 
 public:
+#if ENABLE_SVG_ICONS
+    GLGizmoRotate3D(GLCanvas3D& parent, const std::string& svg_file, unsigned int sprite_id);
+#else
     GLGizmoRotate3D(GLCanvas3D& parent, unsigned int sprite_id);
+#endif // ENABLE_SVG_ICONS
 
     Vec3d get_rotation() const { return Vec3d(m_gizmos[X].get_angle(), m_gizmos[Y].get_angle(), m_gizmos[Z].get_angle()); }
     void set_rotation(const Vec3d& rotation) { m_gizmos[X].set_angle(rotation(0)); m_gizmos[Y].set_angle(rotation(1)); m_gizmos[Z].set_angle(rotation(2)); }
@@ -313,7 +328,11 @@ class GLGizmoScale3D : public GLGizmoBase
     BoundingBoxf3 m_starting_box;
 
 public:
-   GLGizmoScale3D(GLCanvas3D& parent, unsigned int sprite_id);
+#if ENABLE_SVG_ICONS
+    GLGizmoScale3D(GLCanvas3D& parent, const std::string& svg_file, unsigned int sprite_id);
+#else
+    GLGizmoScale3D(GLCanvas3D& parent, unsigned int sprite_id);
+#endif // ENABLE_SVG_ICONS
 
     double get_snap_step(double step) const { return m_snap_step; }
     void set_snap_step(double step) { m_snap_step = step; }
@@ -360,7 +379,11 @@ class GLGizmoMove3D : public GLGizmoBase
     GLUquadricObj* m_quadric;
 
 public:
+#if ENABLE_SVG_ICONS
+    GLGizmoMove3D(GLCanvas3D& parent, const std::string& svg_file, unsigned int sprite_id);
+#else
     GLGizmoMove3D(GLCanvas3D& parent, unsigned int sprite_id);
+#endif // ENABLE_SVG_ICONS
     virtual ~GLGizmoMove3D();
 
     double get_snap_step(double step) const { return m_snap_step; }
@@ -415,7 +438,11 @@ private:
     bool is_plane_update_necessary() const;
 
 public:
+#if ENABLE_SVG_ICONS
+    GLGizmoFlatten(GLCanvas3D& parent, const std::string& svg_file, unsigned int sprite_id);
+#else
     GLGizmoFlatten(GLCanvas3D& parent, unsigned int sprite_id);
+#endif // ENABLE_SVG_ICONS
 
     void set_flattening_data(const ModelObject* model_object);
     Vec3d get_flattening_normal() const;
@@ -436,6 +463,7 @@ protected:
 };
 
 #define SLAGIZMO_IMGUI_MODAL 0
+
 class GLGizmoSlaSupports : public GLGizmoBase
 {
 private:
@@ -453,7 +481,7 @@ private:
     igl::AABB<Eigen::MatrixXf,3> m_AABB;
 
     struct SourceDataSummary {
-        Vec3d mesh_first_point;
+        Geometry::Transformation transformation;
     };
 
     // This holds information to decide whether recalculation is necessary:
@@ -462,7 +490,11 @@ private:
     mutable Vec3d m_starting_center;
 
 public:
+#if ENABLE_SVG_ICONS
+    GLGizmoSlaSupports(GLCanvas3D& parent, const std::string& svg_file, unsigned int sprite_id);
+#else
     GLGizmoSlaSupports(GLCanvas3D& parent, unsigned int sprite_id);
+#endif // ENABLE_SVG_ICONS
     virtual ~GLGizmoSlaSupports();
     void set_sla_support_data(ModelObject* model_object, const GLCanvas3D::Selection& selection);
     bool mouse_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down);
@@ -487,6 +519,7 @@ private:
 
     bool m_lock_unique_islands = false;
     bool m_editing_mode = false;
+    bool m_old_editing_state = false;
     float m_new_point_head_diameter = 0.4f;
     double m_minimal_point_distance = 20.;
     double m_density = 100.;
@@ -500,9 +533,6 @@ private:
     bool m_unsaved_changes = false;
     bool m_selection_empty = true;
     EState m_old_state = Off; // to be able to see that the gizmo has just been closed (see on_set_state)
-#if SLAGIZMO_IMGUI_MODAL
-    bool m_show_modal = false;
-#endif
     int m_canvas_width;
     int m_canvas_height;
 
@@ -517,6 +547,8 @@ private:
     void editing_mode_discard_changes();
     void editing_mode_reload_cache();
     void get_data_from_backend();
+    void auto_generate();
+    void switch_to_editing_mode();
 
 protected:
     void on_set_state() override;
@@ -555,7 +587,11 @@ class GLGizmoCut : public GLGizmoBase
 #endif // not ENABLE_IMGUI
 
 public:
+#if ENABLE_SVG_ICONS
+    GLGizmoCut(GLCanvas3D& parent, const std::string& svg_file, unsigned int sprite_id);
+#else
     GLGizmoCut(GLCanvas3D& parent, unsigned int sprite_id);
+#endif // ENABLE_SVG_ICONS
 
 #if !ENABLE_IMGUI
     virtual void create_external_gizmo_widgets(wxWindow *parent);

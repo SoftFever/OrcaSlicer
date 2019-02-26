@@ -3288,7 +3288,9 @@ void TabSLAPrint::build()
     optgroup->append_single_option_line("pad_wall_thickness");
     optgroup->append_single_option_line("pad_wall_height");
     optgroup->append_single_option_line("pad_max_merge_distance");
-    optgroup->append_single_option_line("pad_edge_radius");
+    // TODO: Disabling this parameter for the beta release
+//    optgroup->append_single_option_line("pad_edge_radius");
+    optgroup->append_single_option_line("pad_wall_slope");
 
 	page = add_options_page(_(L("Output options")), "page_white_go.png");
 	optgroup = page->new_optgroup(_(L("Output file")));

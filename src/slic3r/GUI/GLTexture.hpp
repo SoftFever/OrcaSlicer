@@ -41,6 +41,9 @@ namespace GUI {
 #if ENABLE_TEXTURES_FROM_SVG
         bool load_from_svg_file(const std::string& filename, bool use_mipmaps, unsigned int max_size_px);
 #endif // ENABLE_TEXTURES_FROM_SVG
+#if ENABLE_SVG_ICONS
+        bool load_from_svg_files_as_sprites_array(const std::vector<std::string>& filenames, unsigned int num_states, unsigned int sprite_size_px);
+#endif // ENABLE_SVG_ICONS
         void reset();
 
         unsigned int get_id() const { return m_id; }

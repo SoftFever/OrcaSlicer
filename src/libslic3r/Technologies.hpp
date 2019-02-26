@@ -57,9 +57,7 @@
 
 // Printbed textures generated from svg files
 #define ENABLE_TEXTURES_FROM_SVG (1 && ENABLE_1_42_0_ALPHA7)
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-// Toolbars, Gizmos and other GUI icons imported from svg files
-#define ENABLE_SVG_ICONS (1 && ENABLE_1_42_0_ALPHA7)
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+// Toolbars and Gizmos use icons imported from svg files
+#define ENABLE_SVG_ICONS (1 && ENABLE_TEXTURES_FROM_SVG)
 
 #endif // _technologies_h_

@@ -465,6 +465,7 @@ const std::vector<std::string>& Preset::sla_print_options()
             "pad_wall_height",
             "pad_max_merge_distance",
             "pad_edge_radius",
+            "pad_wall_slope",
             "output_filename_format", 
             "default_sla_print_profile",
             "compatible_printers",
