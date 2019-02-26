@@ -3276,7 +3276,12 @@ bool GLCanvas3D::Gizmos::generate_icons_texture() const
         }
     }
 
-    bool res = m_icons_texture.load_from_svg_files_as_sprites_array(filenames, GLGizmoBase::Num_States, (unsigned int)(m_overlay_icons_size * m_overlay_scale));
+    std::vector<std::pair<int, bool>> states;
+    states.push_back(std::make_pair(1, false));
+    states.push_back(std::make_pair(0, false));
+    states.push_back(std::make_pair(0, true));
+
+    bool res = m_icons_texture.load_from_svg_files_as_sprites_array(filenames, states, (unsigned int)(m_overlay_icons_size * m_overlay_scale));
     if (res)
         m_icons_texture_dirty = false;
 
@@ -3713,7 +3718,11 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
 #endif
     , m_in_render(false)
     , m_bed(nullptr)
+#if ENABLE_SVG_ICONS
+    , m_toolbar(GLToolbar::Normal, "Top")
+#else
     , m_toolbar(GLToolbar::Normal)
+#endif // ENABLE_SVG_ICONS
     , m_view_toolbar(nullptr)
     , m_use_clipping_planes(false)
     , m_sidebar_field("")
@@ -5988,7 +5997,7 @@ bool GLCanvas3D::_init_toolbar()
     item.icon_filename = "split_parts.svg";
 #endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Split to parts");
-    item.sprite_id = 8;
+    item.sprite_id = 7;
     item.action_event = EVT_GLTOOLBAR_SPLIT_VOLUMES;
     if (!m_toolbar.add_item(item))
         return false;
@@ -6001,7 +6010,7 @@ bool GLCanvas3D::_init_toolbar()
     item.icon_filename = "layers.svg";
 #endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Layers editing");
-    item.sprite_id = 7;
+    item.sprite_id = 8;
     item.is_toggable = true;
     item.action_event = EVT_GLTOOLBAR_LAYERSEDITING;
     if (!m_toolbar.add_item(item))

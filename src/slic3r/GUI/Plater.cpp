@@ -1178,7 +1178,11 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     , sidebar(new Sidebar(q))
     , delayed_scene_refresh(false)
     , project_filename(wxEmptyString)
+#if ENABLE_SVG_ICONS
+    , view_toolbar(GLToolbar::Radio, "View")
+#else
     , view_toolbar(GLToolbar::Radio)
+#endif // ENABLE_SVG_ICONS
 {
     arranging.store(false);
     rotoptimizing.store(false);

@@ -124,8 +124,15 @@ GLToolbar::Layout::Layout()
 {
 }
 
+#if ENABLE_SVG_ICONS
+GLToolbar::GLToolbar(GLToolbar::EType type, const std::string& name)
+#else
 GLToolbar::GLToolbar(GLToolbar::EType type)
+#endif // ENABLE_SVG_ICONS
     : m_type(type)
+#if ENABLE_SVG_ICONS
+    , m_name(name)
+#endif // ENABLE_SVG_ICONS
     , m_enabled(false)
 #if ENABLE_SVG_ICONS
     , m_icons_texture_dirty(true)
@@ -1231,7 +1238,25 @@ bool GLToolbar::generate_icons_texture() const
             filenames.push_back(path + icon_filename);
     }
 
-    bool res = m_icons_texture.load_from_svg_files_as_sprites_array(filenames, GLToolbarItem::Num_States, (unsigned int)(m_layout.icons_size * m_layout.scale));
+    std::vector<std::pair<int, bool>> states;
+    if (m_name == "Top")
+    {
+        states.push_back(std::make_pair(1, false));
+        states.push_back(std::make_pair(0, false));
+        states.push_back(std::make_pair(2, false));
+        states.push_back(std::make_pair(0, false));
+        states.push_back(std::make_pair(0, false));
+    }
+    else if (m_name == "View")
+    {
+        states.push_back(std::make_pair(1, false));
+        states.push_back(std::make_pair(1, true));
+        states.push_back(std::make_pair(1, false));
+        states.push_back(std::make_pair(0, false));
+        states.push_back(std::make_pair(1, true));
+    }
+
+    bool res = m_icons_texture.load_from_svg_files_as_sprites_array(filenames, states, (unsigned int)(m_layout.icons_size * m_layout.scale));
     if (res)
         m_icons_texture_dirty = false;
 

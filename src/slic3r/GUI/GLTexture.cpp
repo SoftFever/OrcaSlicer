@@ -138,19 +138,19 @@ bool GLTexture::load_from_file(const std::string& filename, bool use_mipmaps)
 #endif // ENABLE_TEXTURES_FROM_SVG
 
 #if ENABLE_SVG_ICONS
-bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::string>& filenames, unsigned int num_states, unsigned int sprite_size_px)
+bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::string>& filenames, const std::vector<std::pair<int, bool>>& states, unsigned int sprite_size_px)
 {
-    static int pass = 0;
-    ++pass;
-
     reset();
 
-    if (filenames.empty() || (num_states == 0) || (sprite_size_px == 0))
+    if (filenames.empty() || states.empty() || (sprite_size_px == 0))
         return false;
 
-    m_width = (int)(sprite_size_px * num_states);
+    m_width = (int)(sprite_size_px * states.size());
     m_height = (int)(sprite_size_px * filenames.size());
     int n_pixels = m_width * m_height;
+    int sprite_n_pixels = sprite_size_px * sprite_size_px;
+    int sprite_bytes = sprite_n_pixels * 4;
+    int sprite_stride = sprite_size_px * 4;
 
     if (n_pixels <= 0)
     {
@@ -159,7 +159,10 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
     }
 
     std::vector<unsigned char> data(n_pixels * 4, 0);
-    std::vector<unsigned char> sprite_data(sprite_size_px * sprite_size_px * 4, 0);
+    std::vector<unsigned char> sprite_data(sprite_bytes, 0);
+    std::vector<unsigned char> sprite_white_only_data(sprite_bytes, 0);
+    std::vector<unsigned char> sprite_gray_only_data(sprite_bytes, 0);
+    std::vector<unsigned char> output_data(sprite_bytes, 0);
 
     NSVGrasterizer* rast = nsvgCreateRasterizer();
     if (rast == nullptr)
@@ -185,16 +188,58 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
 
         float scale = (float)sprite_size_px / std::max(image->width, image->height);
 
-        nsvgRasterize(rast, image, 0, 0, scale, sprite_data.data(), sprite_size_px, sprite_size_px, sprite_size_px * 4);
+        nsvgRasterize(rast, image, 0, 0, scale, sprite_data.data(), sprite_size_px, sprite_size_px, sprite_stride);
+
+        // makes white only copy of the sprite
+        ::memcpy((void*)sprite_white_only_data.data(), (const void*)sprite_data.data(), sprite_bytes);
+        for (int i = 0; i < sprite_n_pixels; ++i)
+        {
+            if (sprite_white_only_data.data()[i * 4] != 0)
+                ::memset((void*)&sprite_white_only_data.data()[i * 4], 255, 3);
+        }
+
+        // makes gray only copy of the sprite
+        ::memcpy((void*)sprite_gray_only_data.data(), (const void*)sprite_data.data(), sprite_bytes);
+        for (int i = 0; i < sprite_n_pixels; ++i)
+        {
+            if (sprite_gray_only_data.data()[i * 4] != 0)
+                ::memset((void*)&sprite_gray_only_data.data()[i * 4], 128, 3);
+        }
 
         int sprite_offset_px = sprite_id * sprite_size_px * m_width;
-        for (unsigned int i = 0; i < num_states; ++i)
+        int state_id = -1;
+        for (const std::pair<int, bool>& state : states)
         {
-            int state_offset_px = sprite_offset_px + i * sprite_size_px;
+            ++state_id;
+
+            // select the sprite variant
+            std::vector<unsigned char>* src = nullptr;
+            switch (state.first)
+            {
+            case 1: { src = &sprite_white_only_data; break; }
+            case 2: { src = &sprite_gray_only_data; break; }
+            default: { src = &sprite_data; break; }
+            }
+
+            ::memcpy((void*)output_data.data(), (const void*)src->data(), sprite_bytes);
+            // applies background, if needed
+            if (state.second)
+            {
+                for (int i = 0; i < sprite_n_pixels; ++i)
+                {
+                    float alpha = (float)output_data.data()[i * 4 + 3] / 255.0f;
+                    output_data.data()[i * 4 + 0] = (unsigned char)(0 * (1.0f - alpha) + output_data.data()[i * 4 + 0] * alpha);
+                    output_data.data()[i * 4 + 1] = (unsigned char)(0 * (1.0f - alpha) + output_data.data()[i * 4 + 1] * alpha);
+                    output_data.data()[i * 4 + 2] = (unsigned char)(0 * (1.0f - alpha) + output_data.data()[i * 4 + 2] * alpha);
+                    output_data.data()[i * 4 + 3] = (unsigned char)(128 * (1.0f - alpha) + output_data.data()[i * 4 + 3] * alpha);
+                }
+            }
+
+            int state_offset_px = sprite_offset_px + state_id * sprite_size_px;
             for (int j = 0; j < sprite_size_px; ++j)
             {
                 int data_offset = (state_offset_px + j * m_width) * 4;
-                ::memcpy((void*)&data.data()[data_offset], (const void*)&sprite_data.data()[j * sprite_size_px * 4], sprite_size_px * 4);
+                ::memcpy((void*)&data.data()[data_offset], (const void*)&output_data.data()[j * sprite_stride], sprite_stride);
             }
         }
 
@@ -216,6 +261,11 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
 
 
     m_source = filenames.front();
+    
+#if 0
+    // debug output
+    static int pass = 0;
+    ++pass;
 
     wxImage output(m_width, m_height);
     output.InitAlpha();
@@ -232,6 +282,7 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
     }
 
     output.SaveFile("C:/prusa/slic3r/svg_icons/temp/test_" + std::to_string(pass) + ".png", wxBITMAP_TYPE_PNG);
+#endif // 0
 
     return true;
 }

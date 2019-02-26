@@ -42,7 +42,15 @@ namespace GUI {
         bool load_from_svg_file(const std::string& filename, bool use_mipmaps, unsigned int max_size_px);
 #endif // ENABLE_TEXTURES_FROM_SVG
 #if ENABLE_SVG_ICONS
-        bool load_from_svg_files_as_sprites_array(const std::vector<std::string>& filenames, unsigned int num_states, unsigned int sprite_size_px);
+        // meanings of states: (std::pair<int, bool>)
+        // first field (int):
+        // 0 -> no changes
+        // 1 -> use white only color variant
+        // 2 -> use gray only color variant
+        // second field (bool):
+        // false -> no changes
+        // true -> add background color
+        bool load_from_svg_files_as_sprites_array(const std::vector<std::string>& filenames, const std::vector<std::pair<int, bool>>& states, unsigned int sprite_size_px);
 #endif // ENABLE_SVG_ICONS
         void reset();
 

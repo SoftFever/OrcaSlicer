@@ -203,6 +203,9 @@ private:
     typedef std::vector<GLToolbarItem*> ItemsList;
 
     EType m_type;
+#if ENABLE_SVG_ICONS
+    std::string m_name;
+#endif // ENABLE_SVG_ICONS
     bool m_enabled;
 #if ENABLE_SVG_ICONS
     mutable GLTexture m_icons_texture;
@@ -216,7 +219,11 @@ private:
     ItemsList m_items;
 
 public:
+#if ENABLE_SVG_ICONS
+    GLToolbar(EType type, const std::string& name);
+#else
     explicit GLToolbar(EType type);
+#endif // ENABLE_SVG_ICONS
     ~GLToolbar();
 
 #if ENABLE_SVG_ICONS
