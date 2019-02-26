@@ -906,6 +906,8 @@ private:
 
     wxBitmap    m_bmp_on;
     wxBitmap    m_bmp_off;
+    wxString    m_tt_selected;
+    wxString    m_tt_focused;
 };
 
 
