@@ -6,19 +6,15 @@
 #include <wx/image.h>
 
 #include <boost/filesystem.hpp>
-#if ENABLE_TEXTURES_FROM_SVG
 #include <boost/algorithm/string/predicate.hpp>
-#endif // ENABLE_TEXTURES_FROM_SVG
 
 #include <vector>
 #include <algorithm>
 
-#if ENABLE_TEXTURES_FROM_SVG
 #define NANOSVG_IMPLEMENTATION
 #include "nanosvg/nanosvg.h"
 #define NANOSVGRAST_IMPLEMENTATION
 #include "nanosvg/nanosvgrast.h"
-#endif // ENABLE_TEXTURES_FROM_SVG
 
 namespace Slic3r {
 namespace GUI {
@@ -38,7 +34,6 @@ GLTexture::~GLTexture()
     reset();
 }
 
-#if ENABLE_TEXTURES_FROM_SVG
 bool GLTexture::load_from_file(const std::string& filename, bool use_mipmaps)
 {
     reset();
@@ -64,80 +59,7 @@ bool GLTexture::load_from_svg_file(const std::string& filename, bool use_mipmaps
     else
         return false;
 }
-#else
-bool GLTexture::load_from_file(const std::string& filename, bool use_mipmaps)
-{
-    reset();
 
-    if (!boost::filesystem::exists(filename))
-        return false;
-
-    // Load a PNG with an alpha channel.
-    wxImage image;
-	if (!image.LoadFile(wxString::FromUTF8(filename.c_str()), wxBITMAP_TYPE_PNG))
-    {
-        reset();
-        return false;
-    }
-
-    m_width = image.GetWidth();
-    m_height = image.GetHeight();
-    int n_pixels = m_width * m_height;
-
-    if (n_pixels <= 0)
-    {
-        reset();
-        return false;
-    }
-
-    // Get RGB & alpha raw data from wxImage, pack them into an array.
-    unsigned char* img_rgb = image.GetData();
-    if (img_rgb == nullptr)
-    {
-        reset();
-        return false;
-    }
-
-    unsigned char* img_alpha = image.GetAlpha();
-
-    std::vector<unsigned char> data(n_pixels * 4, 0);
-    for (int i = 0; i < n_pixels; ++i)
-    {
-        int data_id = i * 4;
-        int img_id = i * 3;
-        data[data_id + 0] = img_rgb[img_id + 0];
-        data[data_id + 1] = img_rgb[img_id + 1];
-        data[data_id + 2] = img_rgb[img_id + 2];
-        data[data_id + 3] = (img_alpha != nullptr) ? img_alpha[i] : 255;
-    }
-
-    // sends data to gpu
-    ::glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    ::glGenTextures(1, &m_id);
-    ::glBindTexture(GL_TEXTURE_2D, m_id);
-    ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data());
-    if (use_mipmaps)
-    {
-        // we manually generate mipmaps because glGenerateMipmap() function is not reliable on all graphics cards
-        unsigned int levels_count = generate_mipmaps(image);
-        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, levels_count);
-        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    }
-    else
-    {
-        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-    }
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    ::glBindTexture(GL_TEXTURE_2D, 0);
-
-    m_source = filename;
-    return true;
-}
-#endif // ENABLE_TEXTURES_FROM_SVG
-
-#if ENABLE_SVG_ICONS
 bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::string>& filenames, const std::vector<std::pair<int, bool>>& states, unsigned int sprite_size_px)
 {
     reset();
@@ -286,7 +208,6 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
 
     return true;
 }
-#endif // ENABLE_SVG_ICONS
 
 void GLTexture::reset()
 {
@@ -365,7 +286,6 @@ unsigned int GLTexture::generate_mipmaps(wxImage& image)
     return (unsigned int)level;
 }
 
-#if ENABLE_TEXTURES_FROM_SVG
 bool GLTexture::load_from_png(const std::string& filename, bool use_mipmaps)
 {
     // Load a PNG with an alpha channel.
@@ -510,7 +430,6 @@ bool GLTexture::load_from_svg(const std::string& filename, bool use_mipmaps, uns
 
     return true;
 }
-#endif // ENABLE_TEXTURES_FROM_SVG
 
 } // namespace GUI
 } // namespace Slic3r
