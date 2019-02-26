@@ -92,7 +92,6 @@ add_dependencies(avrdude gen_conf_h)
 
 add_executable(avrdude-slic3r main-standalone.c)
 target_link_libraries(avrdude-slic3r avrdude)
-set_target_properties(avrdude-slic3r PROPERTIES EXCLUDE_FROM_ALL TRUE)
 
 if (WIN32)
     target_compile_definitions(avrdude PRIVATE WIN32NATIVE=1)
