@@ -219,7 +219,7 @@ template<class Vec> double distance(const Vec& pp1, const Vec& pp2) {
 PointSet normals(const PointSet& points,
                  const EigenMesh3D& mesh,
                  double eps,
-                 std::function<void()> throw_on_cancel,
+                 std::function<void()> thr, // throw on cancel
                  const std::vector<unsigned>& pt_indices = {})
 {
     if(points.rows() == 0 || mesh.V().rows() == 0 || mesh.F().rows() == 0)
@@ -231,29 +231,19 @@ PointSet normals(const PointSet& points,
         std::iota(range.begin(), range.end(), 0);
     }
 
-    std::vector<double> dists(range.size());
-    std::vector<int> I(range.size());
-    PointSet        C(Eigen::Index(range.size()), 3);
+    PointSet            ret(range.size(), 3);
 
     tbb::parallel_for(size_t(0), range.size(),
-                      [&range, &mesh, &points, &dists, &I, &C](size_t idx)
+                      [&ret, &range, &mesh, &points, thr, eps](size_t ridx)
     {
-        auto eidx = Eigen::Index(range[idx]);
-        int i = 0;
-        Vec3d c;
-        dists[idx] = mesh.squared_distance(points.row(eidx), i, c);
-        C.row(eidx) = c;
-        I[range[idx]] = i;
-    });
+        thr();
+        auto eidx = Eigen::Index(range[ridx]);
+        int faceid = 0;
+        Vec3d p;
 
-//     igl::point_mesh_squared_distance( points, mesh.V(), mesh.F(), dists, I, C);
+        mesh.squared_distance(points.row(eidx), faceid, p);
 
-
-    PointSet ret(I.size(), 3);
-    for(unsigned i = 0; i < I.size(); i++) {
-        throw_on_cancel();
-        auto idx = I[i];
-        auto trindex = mesh.F().row(idx);
+        auto trindex = mesh.F().row(faceid);
 
         const Vec3d& p1 = mesh.V().row(trindex(0));
         const Vec3d& p2 = mesh.V().row(trindex(1));
@@ -266,8 +256,6 @@ PointSet normals(const PointSet& points,
         // consider the cases where the support point lies right on a vertex
         // of its triangle. The procedure is the same, get the neighbor
         // triangles and calculate an average normal.
-
-        const Vec3d& p = C.row(i);
 
         // mark the vertex indices of the edge. ia and ib marks and edge ic
         // will mark a single vertex.
@@ -296,7 +284,7 @@ PointSet normals(const PointSet& points,
         std::vector<Vec3i> neigh;
         if(ic >= 0) { // The point is right on a vertex of the triangle
             for(int n = 0; n < mesh.F().rows(); ++n) {
-                throw_on_cancel();
+                thr();
                 Vec3i ni = mesh.F().row(n);
                 if((ni(X) == ic || ni(Y) == ic || ni(Z) == ic))
                     neigh.emplace_back(ni);
@@ -305,7 +293,7 @@ PointSet normals(const PointSet& points,
         else if(ia >= 0 && ib >= 0) { // the point is on and edge
             // now get all the neigboring triangles
             for(int n = 0; n < mesh.F().rows(); ++n) {
-                throw_on_cancel();
+                thr();
                 Vec3i ni = mesh.F().row(n);
                 if((ni(X) == ia || ni(Y) == ia || ni(Z) == ia) &&
                    (ni(X) == ib || ni(Y) == ib || ni(Z) == ib))
@@ -346,14 +334,14 @@ PointSet normals(const PointSet& points,
             Vec3d sumnorm(0, 0, 0);
             sumnorm = std::accumulate(neighnorms.begin(), lend, sumnorm);
             sumnorm.normalize();
-            ret.row(i) = sumnorm;
+            ret.row(long(ridx)) = sumnorm;
         }
         else { // point lies safely within its triangle
             Eigen::Vector3d U = p2 - p1;
             Eigen::Vector3d V = p3 - p1;
-            ret.row(i) = U.cross(V).normalized();
+            ret.row(long(ridx)) = U.cross(V).normalized();
         }
-    }
+    });
 
     return ret;
 }

@@ -1150,7 +1150,6 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
     using PtIndices = std::vector<unsigned>;
     const size_t pcount = size_t(points.rows());
 
-    PtIndices filtered_indices;        // all valid support points
     PtIndices head_indices;            // support points with pinhead
     PtIndices headless_indices;        // headless support points
     PtIndices onmodel_head_indices;    // supp. pts. connecting to model
@@ -1201,7 +1200,6 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
                            const PointSet& points,
                            const EigenMesh3D& mesh,
                            PointSet&  support_normals,
-                           PtIndices& filtered_indices,
                            PtIndices& head_indices,
                            PtIndices& headless_indices)
     {
@@ -1213,14 +1211,13 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
             thr(); return distance(p.first, se.first) < D_SP;
         }, 2);
 
-
-        filtered_indices.resize(aliases.size());
+        PtIndices filtered_indices;
+        filtered_indices.reserve(aliases.size());
         head_indices.reserve(aliases.size());
         headless_indices.reserve(aliases.size());
-        unsigned count = 0;
         for(auto& a : aliases) {
             // Here we keep only the front point of the cluster.
-            filtered_indices[count++] = a.front();
+            filtered_indices.emplace_back(a.front());
         }
 
         // calculate the normals to the triangles for filtered points
@@ -1238,7 +1235,9 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
         using libnest2d::opt::StopCriteria;
         static const unsigned MAX_TRIES = 100;
 
-        for(unsigned i = 0; i < count; i++) {
+        for(unsigned i = 0, fidx = filtered_indices[0];
+            i < filtered_indices.size(); ++i, fidx = filtered_indices[i])
+        {
             thr();
             auto n = nmls.row(i);
 
@@ -1261,7 +1260,7 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
                 polar = std::max(polar, 3*PI / 4);
 
                 // save the head (pinpoint) position
-                Vec3d hp = points.row(filtered_indices[i]);
+                Vec3d hp = points.row(i);
 
                 double w = cfg.head_width_mm +
                            cfg.head_back_radius_mm +
@@ -1322,15 +1321,15 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
                 }
 
                 // save the verified and corrected normal
-                support_normals.row(filtered_indices[i]) = nn;
+                support_normals.row(fidx) = nn;
 
                 if(t > w) {
                     // mark the point for needing a head.
-                    head_indices.emplace_back(filtered_indices[i]);
+                    head_indices.emplace_back(fidx);
                 } else if( polar >= 3*PI/4 ) {
                     // Headless supports do not tilt like the headed ones so
                     // the normal should point almost to the ground.
-                    headless_indices.emplace_back(filtered_indices[i]);
+                    headless_indices.emplace_back(fidx);
                 }
             }
         }
@@ -1937,8 +1936,7 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
              // inputs:
              cref(cfg), cref(points), cref(mesh),
              // outputs:
-             ref(support_normals), ref(filtered_indices), ref(head_indices),
-             ref(headless_indices)),
+             ref(support_normals), ref(head_indices), ref(headless_indices)),
 
         bind(pinheads_fn,
              // inputs:
