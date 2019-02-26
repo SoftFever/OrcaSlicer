@@ -122,7 +122,6 @@ struct FirmwareDialog::priv
 	// This is a shared pointer holding the background AvrDude task
 	// also serves as a status indication (it is set _iff_ the background task is running, otherwise it is reset).
 	AvrDude::Ptr avrdude;
-	std::string avrdude_config;
 	unsigned progress_tasks_done;
 	unsigned progress_tasks_bar;
 	bool user_cancelled;
@@ -134,7 +133,6 @@ struct FirmwareDialog::priv
 		btn_flash_label_flashing(_(L("Cancel"))),
 		label_status_flashing(_(L("Flashing in progress. Please do not disconnect the printer!"))),
 		timer_pulse(q),
-		avrdude_config((fs::path(::Slic3r::resources_dir()) / "avrdude" / "avrdude.conf").string()),
 		progress_tasks_done(0),
 		progress_tasks_bar(0),
 		user_cancelled(false),
@@ -553,7 +551,7 @@ void FirmwareDialog::priv::perform_upload()
 	flashing_start(hex_file.device == HexFile::DEV_MK3 ? 2 : 1);
 
 	// Init the avrdude object
-	AvrDude avrdude(avrdude_config);
+	AvrDude avrdude;
 
 	// It is ok here to use the q-pointer to the FirmwareDialog
 	// because the dialog ensures it doesn't exit before the background thread is done.

@@ -22,8 +22,7 @@ public:
 	typedef std::function<void(const char * /* task */, unsigned /* progress */)> ProgressFn;
 	typedef std::function<void()> CompleteFn;
 
-	// Main c-tor, sys_config is the location of avrdude's main configuration file
-	AvrDude(std::string sys_config);
+	AvrDude();
 	AvrDude(AvrDude &&);
 	AvrDude(const AvrDude &) = delete;
 	AvrDude &operator=(AvrDude &&) = delete;

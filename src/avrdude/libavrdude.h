@@ -941,6 +941,7 @@ int init_config(void);
 void cleanup_config(void);
 
 int read_config(const char * file);
+int read_config_builtin();
 
 #ifdef __cplusplus
 }

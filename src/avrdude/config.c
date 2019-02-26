@@ -32,6 +32,8 @@
 
 #include "config_gram.h"
 
+#include "avrdude-slic3r.conf.h"    // Embedded config file
+
 char default_programmer[MAX_STR_CONST];
 char default_parallel[PATH_MAX];
 char default_serial[PATH_MAX];
@@ -344,6 +346,36 @@ int read_config(const char * file)
 #endif
 
   fclose(f);
+
+  return r;
+}
+
+typedef struct yy_buffer_state *YY_BUFFER_STATE;
+extern YY_BUFFER_STATE yy_scan_bytes(char *base, size_t size);
+extern void yy_delete_buffer(YY_BUFFER_STATE b);
+
+int read_config_builtin()
+{
+  int r;
+
+  lineno = 1;
+  infile = "(builtin)";
+
+  // Note: Can't use yy_scan_buffer, it's buggy (?), leads to fread from a null FILE*
+  // and so unfortunatelly we have to use the copying variant here
+  YY_BUFFER_STATE buffer = yy_scan_bytes(avrdude_slic3r_conf, avrdude_slic3r_conf_size);
+  if (buffer == NULL) {
+    avrdude_message(MSG_INFO, "%s: read_config_builtin: Failed to initialize parsing buffer\n", progname);
+    return -1;
+  }
+
+  r = yyparse();
+  yy_delete_buffer(buffer);
+
+#ifdef HAVE_YYLEX_DESTROY
+  /* reset lexer and free any allocated memory */
+  yylex_destroy();
+#endif
 
   return r;
 }

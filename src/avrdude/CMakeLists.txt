@@ -72,12 +72,25 @@ if (MSVC)
         windows/getopt.c
     )
 endif()
-add_library(avrdude STATIC ${AVRDUDE_SOURCES})
 
-set(STANDALONE_SOURCES
-    main-standalone.c
+add_executable(avrdude-conf-gen conf-generate.cpp)
+
+# Config file embedding
+add_custom_command(
+    DEPENDS avrdude-conf-gen ${CMAKE_CURRENT_SOURCE_DIR}/avrdude-slic3r.conf
+    OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/avrdude-slic3r.conf.h
+    COMMAND $<TARGET_FILE:avrdude-conf-gen> avrdude-slic3r.conf avrdude_slic3r_conf > avrdude-slic3r.conf.h
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
-add_executable(avrdude-slic3r ${STANDALONE_SOURCES})
+
+add_custom_target(gen_conf_h
+   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/avrdude-slic3r.conf.h
+)
+
+add_library(avrdude STATIC ${AVRDUDE_SOURCES})
+add_dependencies(avrdude gen_conf_h)
+
+add_executable(avrdude-slic3r main-standalone.c)
 target_link_libraries(avrdude-slic3r avrdude)
 set_target_properties(avrdude-slic3r PROPERTIES EXCLUDE_FROM_ALL TRUE)
 
