@@ -52,7 +52,7 @@ public:
     {
         std::string name;
 #if ENABLE_SVG_ICONS
-        std::string svg_file;
+        std::string icon_filename;
 #endif // ENABLE_SVG_ICONS
         std::string tooltip;
         unsigned int sprite_id;
@@ -78,7 +78,7 @@ public:
 
     const std::string& get_name() const { return m_data.name; }
 #if ENABLE_SVG_ICONS
-    const std::string& get_svg_file() const { return m_data.svg_file; }
+    const std::string& get_icon_filename() const { return m_data.icon_filename; }
 #endif // ENABLE_SVG_ICONS
     const std::string& get_tooltip() const { return m_data.tooltip; }
 
@@ -96,10 +96,10 @@ public:
 #endif // ENABLE_MODE_AWARE_TOOLBAR_ITEMS
     bool is_separator() const { return m_type == Separator; }
 
-    void render(unsigned int tex_id, float left, float right, float bottom, float top, unsigned int texture_size, unsigned int icon_size) const;
+    void render(unsigned int tex_id, float left, float right, float bottom, float top, unsigned int tex_width, unsigned int tex_height, unsigned int icon_size) const;
 
 private:
-    GLTexture::Quad_UVs get_uvs(unsigned int texture_size, unsigned int icon_size) const;
+    GLTexture::Quad_UVs get_uvs(unsigned int tex_width, unsigned int tex_height, unsigned int icon_size) const;
 };
 
 #if !ENABLE_SVG_ICONS

@@ -158,7 +158,7 @@ void GLGizmoBase::Grabber::render_face(float half_size) const
 }
 
 #if ENABLE_SVG_ICONS
-GLGizmoBase::GLGizmoBase(GLCanvas3D& parent, const std::string& svg_file, unsigned int sprite_id)
+GLGizmoBase::GLGizmoBase(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
 #else
 GLGizmoBase::GLGizmoBase(GLCanvas3D& parent, unsigned int sprite_id)
 #endif // ENABLE_SVG_ICONS
@@ -167,7 +167,7 @@ GLGizmoBase::GLGizmoBase(GLCanvas3D& parent, unsigned int sprite_id)
     , m_state(Off)
     , m_shortcut_key(0)
 #if ENABLE_SVG_ICONS
-    , m_svg_file(svg_file)
+    , m_icon_filename(icon_filename)
 #endif // ENABLE_SVG_ICONS
     , m_sprite_id(sprite_id)
     , m_hover_id(-1)
@@ -334,7 +334,7 @@ GLGizmoRotate::GLGizmoRotate(GLCanvas3D& parent, GLGizmoRotate::Axis axis)
 
 GLGizmoRotate::GLGizmoRotate(const GLGizmoRotate& other)
 #if ENABLE_SVG_ICONS
-    : GLGizmoBase(other.m_parent, other.m_svg_file, other.m_sprite_id)
+    : GLGizmoBase(other.m_parent, other.m_icon_filename, other.m_sprite_id)
 #else
     : GLGizmoBase(other.m_parent, other.m_sprite_id)
 #endif // ENABLE_SVG_ICONS
@@ -710,8 +710,8 @@ Vec3d GLGizmoRotate::mouse_position_in_local_plane(const Linef3& mouse_ray, cons
 }
 
 #if ENABLE_SVG_ICONS
-GLGizmoRotate3D::GLGizmoRotate3D(GLCanvas3D& parent, const std::string& svg_file, unsigned int sprite_id)
-    : GLGizmoBase(parent, svg_file, sprite_id)
+GLGizmoRotate3D::GLGizmoRotate3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
+    : GLGizmoBase(parent, icon_filename, sprite_id)
 #else
 GLGizmoRotate3D::GLGizmoRotate3D(GLCanvas3D& parent, unsigned int sprite_id)
     : GLGizmoBase(parent, sprite_id)
@@ -795,8 +795,8 @@ void GLGizmoRotate3D::on_render_input_window(float x, float y, const GLCanvas3D:
 const float GLGizmoScale3D::Offset = 5.0f;
 
 #if ENABLE_SVG_ICONS
-GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent, const std::string& svg_file, unsigned int sprite_id)
-    : GLGizmoBase(parent, svg_file, sprite_id)
+GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
+    : GLGizmoBase(parent, icon_filename, sprite_id)
 #else
 GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent, unsigned int sprite_id)
     : GLGizmoBase(parent, sprite_id)
@@ -1146,8 +1146,8 @@ double GLGizmoScale3D::calc_ratio(const UpdateData& data) const
 const double GLGizmoMove3D::Offset = 10.0;
 
 #if ENABLE_SVG_ICONS
-GLGizmoMove3D::GLGizmoMove3D(GLCanvas3D& parent, const std::string& svg_file, unsigned int sprite_id)
-    : GLGizmoBase(parent, svg_file, sprite_id)
+GLGizmoMove3D::GLGizmoMove3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
+    : GLGizmoBase(parent, icon_filename, sprite_id)
 #else
 GLGizmoMove3D::GLGizmoMove3D(GLCanvas3D& parent, unsigned int sprite_id)
     : GLGizmoBase(parent, sprite_id)
@@ -1388,8 +1388,8 @@ void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box
 }
 
 #if ENABLE_SVG_ICONS
-GLGizmoFlatten::GLGizmoFlatten(GLCanvas3D& parent, const std::string& svg_file, unsigned int sprite_id)
-    : GLGizmoBase(parent, svg_file, sprite_id)
+GLGizmoFlatten::GLGizmoFlatten(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
+    : GLGizmoBase(parent, icon_filename, sprite_id)
 #else
 GLGizmoFlatten::GLGizmoFlatten(GLCanvas3D& parent, unsigned int sprite_id)
     : GLGizmoBase(parent, sprite_id)
@@ -1732,8 +1732,8 @@ Vec3d GLGizmoFlatten::get_flattening_normal() const
 }
 
 #if ENABLE_SVG_ICONS
-GLGizmoSlaSupports::GLGizmoSlaSupports(GLCanvas3D& parent, const std::string& svg_file, unsigned int sprite_id)
-    : GLGizmoBase(parent, svg_file, sprite_id)
+GLGizmoSlaSupports::GLGizmoSlaSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
+    : GLGizmoBase(parent, icon_filename, sprite_id)
 #else
 GLGizmoSlaSupports::GLGizmoSlaSupports(GLCanvas3D& parent, unsigned int sprite_id)
     : GLGizmoBase(parent, sprite_id)
@@ -2550,8 +2550,8 @@ const double GLGizmoCut::Margin = 20.0;
 const std::array<float, 3> GLGizmoCut::GrabberColor = { 1.0, 0.5, 0.0 };
 
 #if ENABLE_SVG_ICONS
-GLGizmoCut::GLGizmoCut(GLCanvas3D& parent, const std::string& svg_file, unsigned int sprite_id)
-    : GLGizmoBase(parent, svg_file, sprite_id)
+GLGizmoCut::GLGizmoCut(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
+    : GLGizmoBase(parent, icon_filename, sprite_id)
 #else
 GLGizmoCut::GLGizmoCut(GLCanvas3D& parent, unsigned int sprite_id)
     : GLGizmoBase(parent, sprite_id)

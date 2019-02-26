@@ -3146,7 +3146,10 @@ void GLCanvas3D::Gizmos::do_render_overlay(const GLCanvas3D& canvas, const GLCan
     float scaled_icons_size = m_overlay_icons_size * m_overlay_scale * inv_zoom;
     float scaled_stride_y = scaled_icons_size + scaled_gap_y;
     unsigned int icons_texture_id = m_icons_texture.get_id();
-    unsigned int texture_size = m_icons_texture.get_width();
+    unsigned int tex_width = m_icons_texture.get_width();
+    unsigned int tex_height = m_icons_texture.get_height();
+    float inv_tex_width = (tex_width != 0) ? 1.0f / (float)tex_width : 0.0f;
+    float inv_tex_height = (tex_height != 0) ? 1.0f / (float)tex_height : 0.0f;
 #else
     top_x += m_overlay_border * inv_zoom;
     top_y -= m_overlay_border * inv_zoom;
@@ -3155,11 +3158,11 @@ void GLCanvas3D::Gizmos::do_render_overlay(const GLCanvas3D& canvas, const GLCan
     float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * m_overlay_icons_scale * inv_zoom;
     unsigned int icons_texture_id = m_icons_texture.texture.get_id();
     unsigned int texture_size = m_icons_texture.texture.get_width();
-#endif // ENABLE_SVG_ICONS
     float inv_texture_size = (texture_size != 0) ? 1.0f / (float)texture_size : 0.0f;
+#endif // ENABLE_SVG_ICONS
 
 #if ENABLE_SVG_ICONS
-    if ((icons_texture_id == 0) || (texture_size <= 0))
+    if ((icons_texture_id == 0) || (tex_width <= 0) || (tex_height <= 0))
         return;
 #endif // ENABLE_SVG_ICONS
 
@@ -3172,14 +3175,19 @@ void GLCanvas3D::Gizmos::do_render_overlay(const GLCanvas3D& canvas, const GLCan
         GLGizmoBase::EState state = it->second->get_state();
 
 #if ENABLE_SVG_ICONS
-        float uv_icon_size = m_overlay_icons_size * inv_texture_size;
+        float u_icon_size = m_overlay_icons_size * inv_tex_width;
+        float v_icon_size = m_overlay_icons_size * inv_tex_height;
+        float top = sprite_id * v_icon_size;
+        float left = state * u_icon_size;
+        float bottom = top + v_icon_size;
+        float right = left + u_icon_size;
 #else
         float uv_icon_size = (float)m_icons_texture.metadata.icon_size * inv_texture_size;
-#endif // ENABLE_SVG_ICONS
         float top = sprite_id * uv_icon_size;
         float left = state * uv_icon_size;
         float bottom = top + uv_icon_size;
         float right = left + uv_icon_size;
+#endif // ENABLE_SVG_ICONS
 
         GLTexture::render_sub_texture(icons_texture_id, top_x, top_x + scaled_icons_size, top_y - scaled_icons_size, top_y, { { left, bottom }, { right, bottom }, { right, top }, { left, top } });
 #if ENABLE_IMGUI
@@ -3262,9 +3270,9 @@ bool GLCanvas3D::Gizmos::generate_icons_texture() const
     {
         if (it->second != nullptr)
         {
-            const std::string& svg_file = it->second->get_svg_file();
-            if (!svg_file.empty())
-                filenames.push_back(path + svg_file);
+            const std::string& icon_filename = it->second->get_icon_filename();
+            if (!icon_filename.empty())
+                filenames.push_back(path + icon_filename);
         }
     }
 
@@ -5901,7 +5909,7 @@ bool GLCanvas3D::_init_toolbar()
 
     item.name = "add";
 #if ENABLE_SVG_ICONS
-    item.svg_file = "add.svg";
+    item.icon_filename = "add.svg";
 #endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Add...") + " [" + GUI::shortkey_ctrl_prefix() + "I]";
     item.sprite_id = 0;
@@ -5911,7 +5919,7 @@ bool GLCanvas3D::_init_toolbar()
 
     item.name = "delete";
 #if ENABLE_SVG_ICONS
-    item.svg_file = "remove.svg";
+    item.icon_filename = "remove.svg";
 #endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Delete") + " [Del]";
     item.sprite_id = 1;
@@ -5921,7 +5929,7 @@ bool GLCanvas3D::_init_toolbar()
 
     item.name = "deleteall";
 #if ENABLE_SVG_ICONS
-    item.svg_file = "delete_all.svg";
+    item.icon_filename = "delete_all.svg";
 #endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Delete all") + " [" + GUI::shortkey_ctrl_prefix() + "Del]";
     item.sprite_id = 2;
@@ -5931,7 +5939,7 @@ bool GLCanvas3D::_init_toolbar()
 
     item.name = "arrange";
 #if ENABLE_SVG_ICONS
-    item.svg_file = "arrange.svg";
+    item.icon_filename = "arrange.svg";
 #endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Arrange [A]");
     item.sprite_id = 3;
@@ -5944,7 +5952,7 @@ bool GLCanvas3D::_init_toolbar()
 
     item.name = "more";
 #if ENABLE_SVG_ICONS
-    item.svg_file = "instance_add.svg";
+    item.icon_filename = "instance_add.svg";
 #endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Add instance [+]");
     item.sprite_id = 4;
@@ -5954,7 +5962,7 @@ bool GLCanvas3D::_init_toolbar()
 
     item.name = "fewer";
 #if ENABLE_SVG_ICONS
-    item.svg_file = "instance_remove.svg";
+    item.icon_filename = "instance_remove.svg";
 #endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Remove instance [-]");
     item.sprite_id = 5;
@@ -5967,7 +5975,7 @@ bool GLCanvas3D::_init_toolbar()
 
     item.name = "splitobjects";
 #if ENABLE_SVG_ICONS
-    item.svg_file = "split_objects.svg";
+    item.icon_filename = "split_objects.svg";
 #endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Split to objects");
     item.sprite_id = 6;
@@ -5977,7 +5985,7 @@ bool GLCanvas3D::_init_toolbar()
 
     item.name = "splitvolumes";
 #if ENABLE_SVG_ICONS
-    item.svg_file = "split_parts.svg";
+    item.icon_filename = "split_parts.svg";
 #endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Split to parts");
     item.sprite_id = 8;
@@ -5990,7 +5998,7 @@ bool GLCanvas3D::_init_toolbar()
 
     item.name = "layersediting";
 #if ENABLE_SVG_ICONS
-    item.svg_file = "layers.svg";
+    item.icon_filename = "layers.svg";
 #endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Layers editing");
     item.sprite_id = 7;

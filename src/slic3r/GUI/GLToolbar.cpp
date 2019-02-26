@@ -33,7 +33,7 @@ wxDEFINE_EVENT(EVT_GLVIEWTOOLBAR_PREVIEW, SimpleEvent);
 GLToolbarItem::Data::Data()
     : name("")
 #if ENABLE_SVG_ICONS
-    , svg_file("")
+    , icon_filename("")
 #endif // ENABLE_SVG_ICONS
     , tooltip("")
     , sprite_id(-1)
@@ -56,22 +56,24 @@ void GLToolbarItem::do_action(wxEvtHandler *target)
     wxPostEvent(target, SimpleEvent(m_data.action_event));
 }
 
-void GLToolbarItem::render(unsigned int tex_id, float left, float right, float bottom, float top, unsigned int texture_size, unsigned int icon_size) const
+void GLToolbarItem::render(unsigned int tex_id, float left, float right, float bottom, float top, unsigned int tex_width, unsigned int tex_height, unsigned int icon_size) const
 {
-    GLTexture::render_sub_texture(tex_id, left, right, bottom, top, get_uvs(texture_size, icon_size));
+    GLTexture::render_sub_texture(tex_id, left, right, bottom, top, get_uvs(tex_width, tex_height, icon_size));
 }
 
-GLTexture::Quad_UVs GLToolbarItem::get_uvs(unsigned int texture_size, unsigned int icon_size) const
+GLTexture::Quad_UVs GLToolbarItem::get_uvs(unsigned int tex_width, unsigned int tex_height, unsigned int icon_size) const
 {
     GLTexture::Quad_UVs uvs;
 
-    float inv_texture_size = (texture_size != 0) ? 1.0f / (float)texture_size : 0.0f;
+    float inv_tex_width = (tex_width != 0) ? 1.0f / (float)tex_width : 0.0f;
+    float inv_tex_height = (tex_height != 0) ? 1.0f / (float)tex_height : 0.0f;
 
-    float scaled_icon_size = (float)icon_size * inv_texture_size;
-    float left = (float)m_state * scaled_icon_size;
-    float right = left + scaled_icon_size;
-    float top = (float)m_data.sprite_id * scaled_icon_size;
-    float bottom = top + scaled_icon_size;
+    float scaled_icon_width = (float)icon_size * inv_tex_width;
+    float scaled_icon_height = (float)icon_size * inv_tex_height;
+    float left = (float)m_state * scaled_icon_width;
+    float right = left + scaled_icon_width;
+    float top = (float)m_data.sprite_id * scaled_icon_height;
+    float bottom = top + scaled_icon_height;
 
     uvs.left_top = { left, top };
     uvs.left_bottom = { left, bottom };
@@ -907,7 +909,8 @@ void GLToolbar::render_horizontal(const GLCanvas3D& parent) const
 {
 #if ENABLE_SVG_ICONS
     unsigned int tex_id = m_icons_texture.get_id();
-    int tex_size = m_icons_texture.get_width();
+    int tex_width = m_icons_texture.get_width();
+    int tex_height = m_icons_texture.get_height();
 #else
     unsigned int tex_id = m_icons_texture.texture.get_id();
     int tex_size = m_icons_texture.texture.get_width();
@@ -1032,7 +1035,7 @@ void GLToolbar::render_horizontal(const GLCanvas3D& parent) const
     top -= scaled_border;
 
 #if ENABLE_SVG_ICONS
-    if ((tex_id == 0) || (tex_size <= 0))
+    if ((tex_id == 0) || (tex_width <= 0) || (tex_height <= 0))
         return;
 #endif // ENABLE_SVG_ICONS
 
@@ -1049,7 +1052,7 @@ void GLToolbar::render_horizontal(const GLCanvas3D& parent) const
         else
         {
 #if ENABLE_SVG_ICONS
-            item->render(tex_id, left, left + scaled_icons_size, top - scaled_icons_size, top, (unsigned int)tex_size, (unsigned int)m_layout.icons_size);
+            item->render(tex_id, left, left + scaled_icons_size, top - scaled_icons_size, top, (unsigned int)tex_width, (unsigned int)tex_height, (unsigned int)(m_layout.icons_size * m_layout.scale));
 #else
             item->render(tex_id, left, left + scaled_icons_size, top - scaled_icons_size, top, (unsigned int)tex_size, m_icons_texture.metadata.icon_size);
 #endif // ENABLE_SVG_ICONS
@@ -1062,14 +1065,17 @@ void GLToolbar::render_vertical(const GLCanvas3D& parent) const
 {
 #if ENABLE_SVG_ICONS
     unsigned int tex_id = m_icons_texture.get_id();
-    int tex_size = m_icons_texture.get_width();
+    int tex_width = m_icons_texture.get_width();
+    int tex_height = m_icons_texture.get_height();
 #else
     unsigned int tex_id = m_icons_texture.texture.get_id();
     int tex_size = m_icons_texture.texture.get_width();
 #endif // ENABLE_SVG_ICONS
 
+#if !ENABLE_SVG_ICONS
     if ((tex_id == 0) || (tex_size <= 0))
         return;
+#endif // !ENABLE_SVG_ICONS
 
     float zoom = parent.get_camera_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
@@ -1184,6 +1190,11 @@ void GLToolbar::render_vertical(const GLCanvas3D& parent) const
     left += scaled_border;
     top -= scaled_border;
 
+#if ENABLE_SVG_ICONS
+    if ((tex_id == 0) || (tex_width <= 0) || (tex_height <= 0))
+        return;
+#endif // ENABLE_SVG_ICONS
+
     // renders icons
     for (const GLToolbarItem* item : m_items)
     {
@@ -1197,7 +1208,7 @@ void GLToolbar::render_vertical(const GLCanvas3D& parent) const
         else
         {
 #if ENABLE_SVG_ICONS
-            item->render(tex_id, left, left + scaled_icons_size, top - scaled_icons_size, top, (unsigned int)tex_size, (unsigned int)(m_layout.icons_size * m_layout.scale));
+            item->render(tex_id, left, left + scaled_icons_size, top - scaled_icons_size, top, (unsigned int)tex_width, (unsigned int)tex_height, (unsigned int)(m_layout.icons_size * m_layout.scale));
 #else
             item->render(tex_id, left, left + scaled_icons_size, top - scaled_icons_size, top, (unsigned int)tex_size, m_icons_texture.metadata.icon_size);
 #endif // ENABLE_SVG_ICONS
@@ -1213,9 +1224,9 @@ bool GLToolbar::generate_icons_texture() const
     std::vector<std::string> filenames;
     for (GLToolbarItem* item : m_items)
     {
-        const std::string& svg_file = item->get_svg_file();
-        if (!svg_file.empty())
-            filenames.push_back(path + svg_file);
+        const std::string& icon_filename = item->get_icon_filename();
+        if (!icon_filename.empty())
+            filenames.push_back(path + icon_filename);
     }
 
     bool res = m_icons_texture.load_from_svg_files_as_sprites_array(filenames, GLToolbarItem::Num_States, (unsigned int)(m_layout.icons_size * m_layout.scale));

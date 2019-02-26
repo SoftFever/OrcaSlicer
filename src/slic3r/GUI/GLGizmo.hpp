@@ -88,7 +88,7 @@ protected:
     EState m_state;
     int m_shortcut_key;
 #if ENABLE_SVG_ICONS
-    std::string m_svg_file;
+    std::string m_icon_filename;
 #endif // ENABLE_SVG_ICONS
     unsigned int m_sprite_id;
     int m_hover_id;
@@ -103,7 +103,7 @@ protected:
 
 public:
 #if ENABLE_SVG_ICONS
-    GLGizmoBase(GLCanvas3D& parent, const std::string& svg_file, unsigned int sprite_id);
+    GLGizmoBase(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
 #else
     GLGizmoBase(GLCanvas3D& parent, unsigned int sprite_id);
 #endif // ENABLE_SVG_ICONS
@@ -123,7 +123,7 @@ public:
     void set_shortcut_key(int key) { m_shortcut_key = key; }
 
 #if ENABLE_SVG_ICONS
-    const std::string& get_svg_file() const { return m_svg_file; }
+    const std::string& get_icon_filename() const { return m_icon_filename; }
 #endif // ENABLE_SVG_ICONS
 
     bool is_activable(const GLCanvas3D::Selection& selection) const { return on_is_activable(selection); }
@@ -254,7 +254,7 @@ class GLGizmoRotate3D : public GLGizmoBase
 
 public:
 #if ENABLE_SVG_ICONS
-    GLGizmoRotate3D(GLCanvas3D& parent, const std::string& svg_file, unsigned int sprite_id);
+    GLGizmoRotate3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
 #else
     GLGizmoRotate3D(GLCanvas3D& parent, unsigned int sprite_id);
 #endif // ENABLE_SVG_ICONS
@@ -329,7 +329,7 @@ class GLGizmoScale3D : public GLGizmoBase
 
 public:
 #if ENABLE_SVG_ICONS
-    GLGizmoScale3D(GLCanvas3D& parent, const std::string& svg_file, unsigned int sprite_id);
+    GLGizmoScale3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
 #else
     GLGizmoScale3D(GLCanvas3D& parent, unsigned int sprite_id);
 #endif // ENABLE_SVG_ICONS
@@ -380,7 +380,7 @@ class GLGizmoMove3D : public GLGizmoBase
 
 public:
 #if ENABLE_SVG_ICONS
-    GLGizmoMove3D(GLCanvas3D& parent, const std::string& svg_file, unsigned int sprite_id);
+    GLGizmoMove3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
 #else
     GLGizmoMove3D(GLCanvas3D& parent, unsigned int sprite_id);
 #endif // ENABLE_SVG_ICONS
@@ -439,7 +439,7 @@ private:
 
 public:
 #if ENABLE_SVG_ICONS
-    GLGizmoFlatten(GLCanvas3D& parent, const std::string& svg_file, unsigned int sprite_id);
+    GLGizmoFlatten(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
 #else
     GLGizmoFlatten(GLCanvas3D& parent, unsigned int sprite_id);
 #endif // ENABLE_SVG_ICONS
@@ -491,7 +491,7 @@ private:
 
 public:
 #if ENABLE_SVG_ICONS
-    GLGizmoSlaSupports(GLCanvas3D& parent, const std::string& svg_file, unsigned int sprite_id);
+    GLGizmoSlaSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
 #else
     GLGizmoSlaSupports(GLCanvas3D& parent, unsigned int sprite_id);
 #endif // ENABLE_SVG_ICONS
@@ -588,7 +588,7 @@ class GLGizmoCut : public GLGizmoBase
 
 public:
 #if ENABLE_SVG_ICONS
-    GLGizmoCut(GLCanvas3D& parent, const std::string& svg_file, unsigned int sprite_id);
+    GLGizmoCut(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
 #else
     GLGizmoCut(GLCanvas3D& parent, unsigned int sprite_id);
 #endif // ENABLE_SVG_ICONS

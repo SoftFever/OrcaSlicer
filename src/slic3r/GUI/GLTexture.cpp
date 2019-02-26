@@ -148,8 +148,8 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
     if (filenames.empty() || (num_states == 0) || (sprite_size_px == 0))
         return false;
 
-    m_width = (int)sprite_size_px * std::max((int)(num_states), (int)(filenames.size()));
-    m_height = m_width;
+    m_width = (int)(sprite_size_px * num_states);
+    m_height = (int)(sprite_size_px * filenames.size());
     int n_pixels = m_width * m_height;
 
     if (n_pixels <= 0)
