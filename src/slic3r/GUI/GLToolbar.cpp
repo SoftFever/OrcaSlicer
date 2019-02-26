@@ -913,11 +913,12 @@ void GLToolbar::render_horizontal(const GLCanvas3D& parent) const
     int tex_height = m_icons_texture.get_height();
 #else
     unsigned int tex_id = m_icons_texture.texture.get_id();
-    int tex_size = m_icons_texture.texture.get_width();
+    int tex_width = m_icons_texture.texture.get_width();
+    int tex_height = m_icons_texture.texture.get_height();
 #endif // ENABLE_SVG_ICONS
 
 #if !ENABLE_SVG_ICONS
-    if ((tex_id == 0) || (tex_size <= 0))
+    if ((tex_id == 0) || (tex_width <= 0) || (tex_height <= 0))
         return;
 #endif // !ENABLE_SVG_ICONS
 
@@ -1054,7 +1055,7 @@ void GLToolbar::render_horizontal(const GLCanvas3D& parent) const
 #if ENABLE_SVG_ICONS
             item->render(tex_id, left, left + scaled_icons_size, top - scaled_icons_size, top, (unsigned int)tex_width, (unsigned int)tex_height, (unsigned int)(m_layout.icons_size * m_layout.scale));
 #else
-            item->render(tex_id, left, left + scaled_icons_size, top - scaled_icons_size, top, (unsigned int)tex_size, m_icons_texture.metadata.icon_size);
+            item->render(tex_id, left, left + scaled_icons_size, top - scaled_icons_size, top, (unsigned int)tex_width, (unsigned int)tex_height, m_icons_texture.metadata.icon_size);
 #endif // ENABLE_SVG_ICONS
             left += icon_stride;
         }
@@ -1069,11 +1070,12 @@ void GLToolbar::render_vertical(const GLCanvas3D& parent) const
     int tex_height = m_icons_texture.get_height();
 #else
     unsigned int tex_id = m_icons_texture.texture.get_id();
-    int tex_size = m_icons_texture.texture.get_width();
+    int tex_width = m_icons_texture.texture.get_width();
+    int tex_height = m_icons_texture.texture.get_height();
 #endif // ENABLE_SVG_ICONS
 
 #if !ENABLE_SVG_ICONS
-    if ((tex_id == 0) || (tex_size <= 0))
+    if ((tex_id == 0) || (tex_width <= 0) || (tex_height <= 0))
         return;
 #endif // !ENABLE_SVG_ICONS
 
@@ -1210,7 +1212,7 @@ void GLToolbar::render_vertical(const GLCanvas3D& parent) const
 #if ENABLE_SVG_ICONS
             item->render(tex_id, left, left + scaled_icons_size, top - scaled_icons_size, top, (unsigned int)tex_width, (unsigned int)tex_height, (unsigned int)(m_layout.icons_size * m_layout.scale));
 #else
-            item->render(tex_id, left, left + scaled_icons_size, top - scaled_icons_size, top, (unsigned int)tex_size, m_icons_texture.metadata.icon_size);
+            item->render(tex_id, left, left + scaled_icons_size, top - scaled_icons_size, top, (unsigned int)tex_width, (unsigned int)tex_height, m_icons_texture.metadata.icon_size);
 #endif // ENABLE_SVG_ICONS
             top -= icon_stride;
         }
