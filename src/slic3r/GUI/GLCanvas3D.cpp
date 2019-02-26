@@ -4843,6 +4843,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     }
 #endif // ENABLE_IMGUI
 
+#ifdef __WXMSW__
 	bool on_enter_workaround = false;
     if (! evt.Entering() && ! evt.Leaving() && m_mouse.position.x() == -1.0) {
         // Workaround for SPE-832: There seems to be a mouse event sent to the window before evt.Entering()
@@ -4852,7 +4853,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 		printf((format_mouse_event_debug_message(evt) + " - OnEnter workaround\n").c_str());
 #endif /* SLIC3R_DEBUG_MOUSE_EVENTS */
 		on_enter_workaround = true;
-    } else {
+    } else 
+#endif /* __WXMSW__ */
+    {
 #ifdef SLIC3R_DEBUG_MOUSE_EVENTS
 		printf((format_mouse_event_debug_message(evt) + " - other\n").c_str());
 #endif /* SLIC3R_DEBUG_MOUSE_EVENTS */
@@ -4876,6 +4879,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     }
 #endif // ENABLE_MOVE_MIN_THRESHOLD
 
+    if (evt.ButtonDown() && wxWindow::FindFocus() != this->m_canvas)
+        // Grab keyboard focus on any mouse click event.
+        m_canvas->SetFocus();
+
     if (evt.Entering())
     {
 //#if defined(__WXMSW__) || defined(__linux__)
@@ -4888,15 +4895,12 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 p = p->GetParent();
             auto *top_level_wnd = dynamic_cast<wxTopLevelWindow*>(p);
             if (top_level_wnd && top_level_wnd->IsActive())
-            {
                 m_canvas->SetFocus();
-
-                // forces a frame render to ensure that m_hover_volume_id is updated even when the user right clicks while
-                // the context menu is shown, ensuring it to disappear if the mouse is outside any volume and to
-                // change the volume hover state if any is under the mouse 
-                m_mouse.position = pos.cast<double>();
-                render();
-            }
+            // forces a frame render to ensure that m_hover_volume_id is updated even when the user right clicks while
+            // the context menu is shown, ensuring it to disappear if the mouse is outside any volume and to
+            // change the volume hover state if any is under the mouse 
+            m_mouse.position = pos.cast<double>();
+            render();
         }
         m_mouse.set_start_position_2D_as_invalid();
 //#endif
@@ -5305,8 +5309,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     else
         evt.Skip();
 
+#ifdef __WXMSW__
 	if (on_enter_workaround)
 		m_mouse.position = Vec2d(-1., -1.);
+#endif /* __WXMSW__ */
 }
 
 void GLCanvas3D::on_paint(wxPaintEvent& evt)
