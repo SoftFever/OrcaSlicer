@@ -637,12 +637,25 @@ void Preview::update_double_slider(const std::vector<double>& layers_z, bool for
 
     const auto& config = wxGetApp().preset_bundle->project_config;
     const std::vector<double> &ticks_from_config = (config.option<ConfigOptionFloats>("colorprint_heights"))->values;
+
+    // Switch to the "Feature type" from the very beginning of a new object slicing after deleting of the old one
+    if (ticks_from_config.empty())
+    {
+        const int& type = m_choice_view_type->FindString(_(L("Feature type")));
+        if (m_choice_view_type->GetSelection() != type) {
+            m_choice_view_type->SetSelection(type);
+            if (0 <= type && type < int(GCodePreviewData::Extrusion::Num_View_Types))
+                m_gcode_preview_data->extrusion.view_type = GCodePreviewData::Extrusion::EViewType(type);
+            m_preferred_color_mode = "feature";
+            reload_print();
+        }
+    }
     m_slider->SetTicksValues(ticks_from_config);
 
     bool color_print_enable = (wxGetApp().plater()->printer_technology() == ptFFF);
     if (color_print_enable) {
-        const auto& config = wxGetApp().preset_bundle->full_config();
-        if (config.opt<ConfigOptionFloats>("nozzle_diameter")->values.size() > 1) 
+        const auto& cfg = wxGetApp().preset_bundle->full_config();
+        if (cfg.opt<ConfigOptionFloats>("nozzle_diameter")->values.size() > 1) 
             color_print_enable = false;
     }
     m_slider->EnableTickManipulation(color_print_enable);

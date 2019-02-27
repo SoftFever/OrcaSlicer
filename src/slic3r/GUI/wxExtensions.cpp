@@ -1432,9 +1432,11 @@ PrusaDoubleSlider::PrusaDoubleSlider(wxWindow *parent,
     m_min_value(minValue), m_max_value(maxValue),
     m_style(style == wxSL_HORIZONTAL || style == wxSL_VERTICAL ? style: wxSL_HORIZONTAL)
 {
-#ifndef __WXOSX__ // SetDoubleBuffered exists on Win and Linux/GTK, but is missing on OSX
-    SetDoubleBuffered(true);
+#ifdef __WXOSX__ 
+    is_osx = true;
 #endif //__WXOSX__
+    if (!is_osx)
+        SetDoubleBuffered(true);// SetDoubleBuffered exists on Win and Linux/GTK, but is missing on OSX
 
     m_bmp_thumb_higher = wxBitmap(create_scaled_bitmap(style == wxSL_HORIZONTAL ? "right_half_circle.png"   : "up_half_circle.png"));
     m_bmp_thumb_lower  = wxBitmap(create_scaled_bitmap(style == wxSL_HORIZONTAL ? "left_half_circle.png"    : "down_half_circle.png"));
@@ -1480,6 +1482,10 @@ PrusaDoubleSlider::PrusaDoubleSlider(wxWindow *parent,
 
     line_pens = { &DARK_GREY_PEN, &GREY_PEN, &LIGHT_GREY_PEN };
     segm_pens = { &DARK_ORANGE_PEN, &ORANGE_PEN, &LIGHT_ORANGE_PEN };
+
+    wxPaintDC dc(this);
+    const wxFont& font = dc.GetFont();
+    m_font = is_osx ? font.Smaller().Smaller() : font.Smaller();
 }
 
 int PrusaDoubleSlider::GetActiveValue() const
@@ -1494,7 +1500,9 @@ wxSize PrusaDoubleSlider::DoGetBestSize() const
     const wxSize size = wxControl::DoGetBestSize();
     if (size.x > 1 && size.y > 1)
         return size;
-    const int new_size = is_horizontal() ? 6 * Slic3r::GUI::wxGetApp().em_unit() : 8 * Slic3r::GUI::wxGetApp().em_unit();
+    const int new_size = is_horizontal() ? 
+                         (is_osx ? 8 : 6) * Slic3r::GUI::wxGetApp().em_unit() :
+                         (is_osx ? 10 : 8) * Slic3r::GUI::wxGetApp().em_unit();
     return wxSize(new_size, new_size);
 }
 
@@ -1558,7 +1566,7 @@ void PrusaDoubleSlider::draw_scroll_line(wxDC& dc, const int lower_pos, const in
     wxCoord line_end_y = is_horizontal() ? height*0.5 - 1 : height - SLIDER_MARGIN + 1;
 
     wxCoord segm_beg_x = is_horizontal() ? lower_pos : width*0.5 - 1;
-    wxCoord segm_beg_y = is_horizontal() ? height*0.5 - 1 : lower_pos-1;
+    wxCoord segm_beg_y = is_horizontal() ? height*0.5 - 1 : lower_pos/*-1*/;
     wxCoord segm_end_x = is_horizontal() ? higher_pos : width*0.5 - 1;
     wxCoord segm_end_y = is_horizontal() ? height*0.5 - 1 : higher_pos-1;
 
@@ -1619,8 +1627,11 @@ std::vector<double> PrusaDoubleSlider::GetTicksValues() const
     std::vector<double> values;
 
     if (!m_values.empty())
-        for (auto tick : m_ticks)
+        for (auto tick : m_ticks) {
+            if (tick > m_values.size())
+                break;
             values.push_back(m_values[tick].second);
+        }
 
     return values;
 }
@@ -1673,9 +1684,7 @@ void PrusaDoubleSlider::render()
     draw_focus_rect();
 
     wxPaintDC dc(this);
-    wxFont font = dc.GetFont();
-    const wxFont smaller_font = font.Smaller();
-    dc.SetFont(smaller_font);
+    dc.SetFont(m_font);
 
     const wxCoord lower_pos = get_position_from_value(m_lower_value);
     const wxCoord higher_pos = get_position_from_value(m_higher_value);
@@ -1727,8 +1736,8 @@ void PrusaDoubleSlider::draw_info_line_with_icon(wxDC& dc, const wxPoint& pos, c
     if (m_selection == selection) {
         //draw info line
         dc.SetPen(DARK_ORANGE_PEN);
-        const wxPoint pt_beg = is_horizontal() ? wxPoint(pos.x, pos.y - m_thumb_size.y) : wxPoint(pos.x - m_thumb_size.x, pos.y - 1);
-        const wxPoint pt_end = is_horizontal() ? wxPoint(pos.x, pos.y + m_thumb_size.y) : wxPoint(pos.x + m_thumb_size.x, pos.y - 1);
+        const wxPoint pt_beg = is_horizontal() ? wxPoint(pos.x, pos.y - m_thumb_size.y) : wxPoint(pos.x - m_thumb_size.x, pos.y/* - 1*/);
+        const wxPoint pt_end = is_horizontal() ? wxPoint(pos.x, pos.y + m_thumb_size.y) : wxPoint(pos.x + m_thumb_size.x, pos.y/* - 1*/);
         dc.DrawLine(pt_beg, pt_end);
 
         //draw action icon
@@ -1779,7 +1788,7 @@ void PrusaDoubleSlider::draw_thumb_item(wxDC& dc, const wxPoint& pos, const Sele
         }
         else {
             x_draw = pos.x - int(0.5*m_thumb_size.x);
-            y_draw = pos.y;
+            y_draw = pos.y+1;
         }
     }
     else{
@@ -1850,9 +1859,9 @@ void PrusaDoubleSlider::draw_ticks(wxDC& dc)
         const wxCoord pos = get_position_from_value(tick);
 
         is_horizontal() ?   dc.DrawLine(pos, mid-14, pos, mid-9) :
-                            dc.DrawLine(mid - 14, pos - 1, mid - 9, pos - 1);
+                            dc.DrawLine(mid - 14, pos/* - 1*/, mid - 9, pos/* - 1*/);
         is_horizontal() ?   dc.DrawLine(pos, mid+14, pos, mid+9) :
-                            dc.DrawLine(mid + 14, pos - 1, mid + 9, pos - 1);
+                            dc.DrawLine(mid + 14, pos/* - 1*/, mid + 9, pos/* - 1*/);
     }
 }
 
