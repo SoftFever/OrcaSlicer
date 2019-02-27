@@ -1483,8 +1483,7 @@ PrusaDoubleSlider::PrusaDoubleSlider(wxWindow *parent,
     line_pens = { &DARK_GREY_PEN, &GREY_PEN, &LIGHT_GREY_PEN };
     segm_pens = { &DARK_ORANGE_PEN, &ORANGE_PEN, &LIGHT_ORANGE_PEN };
 
-    wxPaintDC dc(this);
-    const wxFont& font = dc.GetFont();
+    const wxFont& font = GetFont();
     m_font = is_osx ? font.Smaller().Smaller() : font.Smaller();
 }
 
