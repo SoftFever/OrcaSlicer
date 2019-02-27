@@ -144,6 +144,8 @@ static std::vector<SLAAutoSupports::MyLayer> make_layers(
             const float layer_height = (layer_id!=0 ? heights[layer_id]-heights[layer_id-1] : heights[0]);
             const float safe_angle = 5.f * (float(M_PI)/180.f); // smaller number - less supports
             const float between_layers_offset =  float(scale_(layer_height / std::tan(safe_angle)));
+            const float slope_angle = 75.f * (float(M_PI)/180.f); // smaller number - less supports
+            const float slope_offset = float(scale_(layer_height / std::tan(slope_angle)));
 			//FIXME This has a quadratic time complexity, it will be excessively slow for many tiny islands.
 			for (SLAAutoSupports::Structure &top : layer_above.islands) {
 				for (SLAAutoSupports::Structure &bottom : layer_below.islands) {
@@ -173,6 +175,7 @@ static std::vector<SLAAutoSupports::MyLayer> make_layers(
                             overhangs_sorted.emplace_back(std::move(*p.first));
 						top.overhangs = std::move(overhangs_sorted);
                         top.overhangs_area *= float(SCALING_FACTOR * SCALING_FACTOR);
+                        top.overhangs_slopes = diff_ex(top_polygons, offset(bottom_polygons, slope_offset));
                         top.dangling_areas = diff_ex(top_polygons, offset(bottom_polygons, between_layers_offset));
                     }
                 }
@@ -241,9 +244,9 @@ void SLAAutoSupports::process(const std::vector<ExPolygons>& slices, const std::
                 // What we now have in polygons needs support, regardless of what the forces are, so we can add them.
                 //FIXME is it an island point or not? Vojtech thinks it is.
                 uniformly_cover(s.dangling_areas, s, point_grid);
-            } else if (! s.overhangs.empty()) {
+            } else if (! s.overhangs_slopes.empty()) {
                 //FIXME add the support force deficit as a parameter, only cover until the defficiency is covered.
-                uniformly_cover(s.overhangs, s, point_grid);
+                uniformly_cover(s.overhangs_slopes, s, point_grid);
             }
         }
 

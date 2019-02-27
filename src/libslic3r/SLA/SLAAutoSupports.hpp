@@ -65,8 +65,12 @@ public:
 		std::vector<Link>					 	islands_above;
 		std::vector<Link>						islands_below;
 #endif
+        // Overhangs, that are dangling considerably.
         ExPolygons                              dangling_areas;
+        // Complete overhands.
         ExPolygons                              overhangs;
+        // Overhangs, where the surface must slope.
+        ExPolygons                              overhangs_slopes;
         float                                   overhangs_area;
 
         bool overlaps(const Structure &rhs) const { 
