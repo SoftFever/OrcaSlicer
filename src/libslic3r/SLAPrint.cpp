@@ -521,9 +521,8 @@ sla::SupportConfig make_support_cfg(const SLAPrintObjectConfig& c) {
     scfg.head_penetration_mm = c.support_head_penetration.getFloat();
     scfg.head_width_mm = c.support_head_width.getFloat();
     scfg.object_elevation_mm = c.support_object_elevation.getFloat();
-    scfg.head_slope = c.support_critical_angle.getFloat() * PI / 180.0 ;
+    scfg.bridge_slope = c.support_critical_angle.getFloat() * PI / 180.0 ;
     scfg.max_bridge_length_mm = c.support_max_bridge_length.getFloat();
-    scfg.headless_pillar_radius_mm = 0.375*c.support_pillar_diameter.getFloat();
     switch(c.support_pillar_connection_mode.getInt()) {
     case slapcmZigZag:
         scfg.pillar_connection_mode = sla::PillarConnectionMode::zigzag; break;

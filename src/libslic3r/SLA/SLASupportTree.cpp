@@ -551,206 +551,6 @@ enum { // For indexing Eigen vectors as v(X), v(Y), v(Z) instead of numbers
   X, Y, Z
 };
 
-//PointSet to_point_set(const std::vector<SupportPoint> &v)
-//{
-//    PointSet ret(v.size(), 3);
-//    long i = 0;
-//    for(const SupportPoint& support_point : v) {
-//        ret.row(i)(X) = double(support_point.pos(X));
-//        ret.row(i)(Y) = double(support_point.pos(Y));
-//        ret.row(i)(Z) = double(support_point.pos(Z));
-//        ++i;
-//    }
-//    return ret;
-//}
-
-Vec3d model_coord(const ModelInstance& object, const Vec3f& mesh_coord) {
-    return object.transform_vector(mesh_coord.cast<double>());
-}
-
-inline double ray_mesh_intersect(const Vec3d& s,
-                                 const Vec3d& dir,
-                                 const EigenMesh3D& m)
-{
-    return m.query_ray_hit(s, dir).distance();
-}
-
-// This function will test if a future pinhead would not collide with the model
-// geometry. It does not take a 'Head' object because those are created after
-// this test.
-// Parameters:
-// s: The touching point on the model surface.
-// dir: This is the direction of the head from the pin to the back
-// r_pin, r_back: the radiuses of the pin and the back sphere
-// width: This is the full width from the pin center to the back center
-// m: The object mesh
-//
-// Optional:
-// samples: how many rays will be shot
-// safety distance: This will be added to the radiuses to have a safety distance
-// from the mesh.
-double pinhead_mesh_intersect(const Vec3d& s,
-                              const Vec3d& dir,
-                              double r_pin,
-                              double r_back,
-                              double width,
-                              const EigenMesh3D& m,
-                              unsigned samples = 16,
-                              double safety_distance = 0.001)
-{
-    // method based on:
-    // https://math.stackexchange.com/questions/73237/parametric-equation-of-a-circle-in-3d-space
-
-
-    // We will shoot multiple rays from the head pinpoint in the direction of
-    // the pinhead robe (side) surface. The result will be the smallest hit
-    // distance.
-
-    // Move away slightly from the touching point to avoid raycasting on the
-    // inner surface of the mesh.
-    Vec3d v = dir;     // Our direction (axis)
-    Vec3d c = s + width * dir;
-    const double& sd = safety_distance;
-
-    // Two vectors that will be perpendicular to each other and to the axis.
-    // Values for a(X) and a(Y) are now arbitrary, a(Z) is just a placeholder.
-    Vec3d a(0, 1, 0), b;
-
-    // The portions of the circle (the head-back circle) for which we will shoot
-    // rays.
-    std::vector<double> phis(samples);
-    for(size_t i = 0; i < phis.size(); ++i) phis[i] = i*2*PI/phis.size();
-
-    // We have to address the case when the direction vector v (same as dir)
-    // is coincident with one of the world axes. In this case two of its
-    // components will be completely zero and one is 1.0. Our method becomes
-    // dangerous here due to division with zero. Instead, vector 'a' can be an
-    // element-wise rotated version of 'v'
-    auto chk1 = [] (double val) { return std::abs(std::abs(val) - 1) < 1e-20; };
-    if(chk1(v(X)) || chk1(v(Y)) || chk1(v(Z))) {
-        a = {v(Z), v(X), v(Y)};
-        b = {v(Y), v(Z), v(X)};
-    }
-    else {
-        a(Z) = -(v(Y)*a(Y)) / v(Z); a.normalize();
-        b = a.cross(v);
-    }
-
-    // Now a and b vectors are perpendicular to v and to each other. Together
-    // they define the plane where we have to iterate with the given angles
-    // in the 'phis' vector
-
-    tbb::parallel_for(size_t(0), phis.size(),
-                      [&phis, &m, sd, r_pin, r_back, s, a, b, c](size_t i)
-    {
-        double& phi = phis[i];
-        double sinphi = std::sin(phi);
-        double cosphi = std::cos(phi);
-
-        // Let's have a safety coefficient for the radiuses.
-        double rpscos = (sd + r_pin) * cosphi;
-        double rpssin = (sd + r_pin) * sinphi;
-        double rpbcos = (sd + r_back) * cosphi;
-        double rpbsin = (sd + r_back) * sinphi;
-
-        // Point on the circle on the pin sphere
-        Vec3d ps(s(X) + rpscos * a(X) + rpssin * b(X),
-                 s(Y) + rpscos * a(Y) + rpssin * b(Y),
-                 s(Z) + rpscos * a(Z) + rpssin * b(Z));
-
-        // Point ps is not on mesh but can be inside or outside as well. This
-        // would cause many problems with ray-casting. To detect the position we
-        // will use the ray-casting result (which has an is_inside predicate).
-
-        // This is the point on the circle on the back sphere
-        Vec3d p(c(X) + rpbcos * a(X) + rpbsin * b(X),
-                c(Y) + rpbcos * a(Y) + rpbsin * b(Y),
-                c(Z) + rpbcos * a(Z) + rpbsin * b(Z));
-
-        Vec3d n = (p - ps).normalized();
-        auto hr = m.query_ray_hit(ps + sd*n, n);
-
-        if(hr.is_inside()) { // the hit is inside the model
-            if(hr.distance() > 2*r_pin) phi = 0;
-            else {
-                // re-cast the ray from the outside of the object
-                auto hr2 = m.query_ray_hit(ps + (hr.distance() + 2*sd)*n, n);
-                phi = hr2.distance();
-            }
-        } else phi = hr.distance();
-    });
-
-    auto mit = std::min_element(phis.begin(), phis.end());
-
-    return *mit;
-}
-
-
-// Checking bridge (pillar and stick as well) intersection with the model. If
-// the function is used for headless sticks, the ins_check parameter have to be
-// true as the beginning of the stick might be inside the model geometry.
-double bridge_mesh_intersect(const Vec3d& s,
-                             const Vec3d& dir,
-                             double r,
-                             const EigenMesh3D& m,
-                             bool ins_check = false,
-                             unsigned samples = 4,
-                             double safety_distance = 0.001)
-{
-    // helper vector calculations
-    Vec3d a(0, 1, 0), b;
-    const double& sd = safety_distance;
-
-    // INFO: for explanation of the method used here, see the previous method's
-    // comments.
-
-    auto chk1 = [] (double val) { return std::abs(std::abs(val) - 1) < 1e-20; };
-    if(chk1(dir(X)) || chk1(dir(Y)) || chk1(dir(Z))) {
-        a = {dir(Z), dir(X), dir(Y)};
-        b = {dir(Y), dir(Z), dir(X)};
-    }
-    else {
-        a(Z) = -(dir(Y)*a(Y)) / dir(Z); a.normalize();
-        b = a.cross(dir);
-    }
-
-    // circle portions
-    std::vector<double> phis(samples);
-    for(size_t i = 0; i < phis.size(); ++i) phis[i] = i*2*PI/phis.size();
-
-    tbb::parallel_for(size_t(0), phis.size(),
-                      [&phis, &m, a, b, sd, dir, r, s, ins_check](size_t i)
-    {
-        double& phi = phis[i];
-        double sinphi = std::sin(phi);
-        double cosphi = std::cos(phi);
-
-        // Let's have a safety coefficient for the radiuses.
-        double rcos = (sd + r) * cosphi;
-        double rsin = (sd + r) * sinphi;
-
-        // Point on the circle on the pin sphere
-        Vec3d p (s(X) + rcos * a(X) + rsin * b(X),
-                 s(Y) + rcos * a(Y) + rsin * b(Y),
-                 s(Z) + rcos * a(Z) + rsin * b(Z));
-
-        auto hr = m.query_ray_hit(p + sd*dir, dir);
-
-        if(ins_check && hr.is_inside()) {
-            if(hr.distance() > 2*r) phi = 0;
-            else {
-                // re-cast the ray from the outside of the object
-                auto hr2 = m.query_ray_hit(p + (hr.distance() + 2*sd)*dir, dir);
-                phi = hr2.distance();
-            }
-        } else phi = hr.distance();
-    });
-
-    auto mit = std::min_element(phis.begin(), phis.end());
-
-    return *mit;
-}
-
 // Calculate the normals for the selected points (from 'points' set) on the
 // mesh. This will call squared distance for each point.
 PointSet normals(const PointSet& points,
@@ -1129,100 +929,343 @@ Vec3d dirv(const Vec3d& startp, const Vec3d& endp) {
     return (endp - startp).normalized();
 }
 
-bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
-                              const EigenMesh3D& mesh,
-                              const SupportConfig &cfg,
-                              const Controller &ctl)
-{
-    // Prepare the support points in Eigen/IGL format as well, we will use it
-    // mostly in this form.
-    Eigen::MatrixXd points(support_points.size(), 3); long i = 0;
-    for(const SupportPoint& sp : support_points) {
-        points.row(i)(X) = double(sp.pos(X));
-        points.row(i)(Y) = double(sp.pos(Y));
-        points.row(i)(Z) = double(sp.pos(Z));
-        ++i;
-    }
-
-    // If there are no input points there is no point in doing anything
-    if(points.rows() == 0) return false;
+class SLASupportTree::Algorithm {
+    const SupportConfig& m_cfg;
+    const EigenMesh3D& m_mesh;
+    const std::vector<SupportPoint>& m_support_pts;
 
     using PtIndices = std::vector<unsigned>;
-    const size_t pcount = size_t(points.rows());
 
-    PtIndices head_indices;            // support points with pinhead
-    PtIndices headless_indices;        // headless support points
-    PtIndices onmodel_head_indices;    // supp. pts. connecting to model
+    PtIndices m_iheads;            // support points with pinhead
+    PtIndices m_iheadless;         // headless support points
+    PtIndices m_iheads_onmodel;    // supp. pts. connecting to model
 
-    PointSet  support_normals(pcount, 3);  // support point normals
+    // normals for support points from model faces.
+    PointSet  m_support_nmls;
 
     // Captures the height of the processed support points from the ground
     // or the model surface
-    std::vector<double> pt_heights(size_t(points.rows()), 0.0);
+    std::vector<double> m_ptheights;
 
-    // Clusters of points which can reach the ground directly
-    std::vector<PtIndices> pillar_clusters;
+    // Clusters of points which can reach the ground directly and can be
+    // bridged to one central pillar
+    std::vector<PtIndices> m_pillar_clusters;
 
     // This algorithm uses the Impl class as its output stream. It will be
     // filled gradually with support elements (heads, pillars, bridges, ...)
     using Result = SLASupportTree::Impl;
-    Result& result = *m_impl;
 
-    // Let's define the individual steps of the processing. We can experiment
-    // later with the ordering and the dependencies between them.
-    enum Steps {
-        BEGIN,
-        FILTER,
-        PINHEADS,
-        CLASSIFY,
-        ROUTING_GROUND,
-        ROUTING_NONGROUND,
-        HEADLESS,
-        DONE,
-        HALT,
-        ABORT,
-        NUM_STEPS
-        //...
-    };
+    Result& m_result;
+
+    // support points in Eigen/IGL format
+    PointSet m_points;
 
     // throw if canceled: It will be called many times so a shorthand will
     // come in handy.
-    ThrowOnCancel thr = ctl.cancelfn;
+    ThrowOnCancel m_thr;
 
-    // Each step has a processing block in a form of a function.
+    inline double ray_mesh_intersect(const Vec3d& s,
+                                     const Vec3d& dir)
+    {
+        return m_mesh.query_ray_hit(s, dir).distance();
+    }
+
+    // This function will test if a future pinhead would not collide with the
+    // model geometry. It does not take a 'Head' object because those are
+    // created after this test. Parameters: s: The touching point on the model
+    // surface. dir: This is the direction of the head from the pin to the back
+    // r_pin, r_back: the radiuses of the pin and the back sphere width: This
+    // is the full width from the pin center to the back center m: The object
+    // mesh
+    //
+    // Optional:
+    // samples: how many rays will be shot
+    // safety distance: This will be added to the radiuses to have a safety
+    // distance from the mesh.
+    double pinhead_mesh_intersect(const Vec3d& s,
+                                  const Vec3d& dir,
+                                  double r_pin,
+                                  double r_back,
+                                  double width,
+                                  unsigned samples = 8)
+    {
+        // method based on:
+        // https://math.stackexchange.com/questions/73237/parametric-equation-of-a-circle-in-3d-space
+
+        // We will shoot multiple rays from the head pinpoint in the direction
+        // of the pinhead robe (side) surface. The result will be the smallest
+        // hit distance.
+
+        // Move away slightly from the touching point to avoid raycasting on the
+        // inner surface of the mesh.
+        Vec3d v = dir;     // Our direction (axis)
+        Vec3d c = s + width * dir;
+        const double& sd = m_cfg.safety_distance_mm;
+
+        // Two vectors that will be perpendicular to each other and to the
+        // axis. Values for a(X) and a(Y) are now arbitrary, a(Z) is just a
+        // placeholder.
+        Vec3d a(0, 1, 0), b;
+
+        // The portions of the circle (the head-back circle) for which we will
+        // shoot rays.
+        std::vector<double> phis(samples);
+        for(size_t i = 0; i < phis.size(); ++i) phis[i] = i*2*PI/phis.size();
+
+        // We have to address the case when the direction vector v (same as
+        // dir) is coincident with one of the world axes. In this case two of
+        // its components will be completely zero and one is 1.0. Our method
+        // becomes dangerous here due to division with zero. Instead, vector
+        // 'a' can be an element-wise rotated version of 'v'
+        auto chk1 = [] (double val) {
+            return std::abs(std::abs(val) - 1) < 1e-20;
+        };
+
+        if(chk1(v(X)) || chk1(v(Y)) || chk1(v(Z))) {
+            a = {v(Z), v(X), v(Y)};
+            b = {v(Y), v(Z), v(X)};
+        }
+        else {
+            a(Z) = -(v(Y)*a(Y)) / v(Z); a.normalize();
+            b = a.cross(v);
+        }
+
+        // Now a and b vectors are perpendicular to v and to each other.
+        // Together they define the plane where we have to iterate with the
+        // given angles in the 'phis' vector
+        auto& m = m_mesh;
+
+        tbb::parallel_for(size_t(0), phis.size(),
+                          [&phis, &m, sd, r_pin, r_back, s, a, b, c](size_t i)
+        {
+            double& phi = phis[i];
+            double sinphi = std::sin(phi);
+            double cosphi = std::cos(phi);
+
+            // Let's have a safety coefficient for the radiuses.
+            double rpscos = (sd + r_pin) * cosphi;
+            double rpssin = (sd + r_pin) * sinphi;
+            double rpbcos = (sd + r_back) * cosphi;
+            double rpbsin = (sd + r_back) * sinphi;
+
+            // Point on the circle on the pin sphere
+            Vec3d ps(s(X) + rpscos * a(X) + rpssin * b(X),
+                     s(Y) + rpscos * a(Y) + rpssin * b(Y),
+                     s(Z) + rpscos * a(Z) + rpssin * b(Z));
+
+            // Point ps is not on mesh but can be inside or outside as well.
+            // This would cause many problems with ray-casting. To detect the
+            // position we will use the ray-casting result (which has an
+            // is_inside predicate).
+
+            // This is the point on the circle on the back sphere
+            Vec3d p(c(X) + rpbcos * a(X) + rpbsin * b(X),
+                    c(Y) + rpbcos * a(Y) + rpbsin * b(Y),
+                    c(Z) + rpbcos * a(Z) + rpbsin * b(Z));
+
+            Vec3d n = (p - ps).normalized();
+            auto q = m.query_ray_hit(ps + sd*n, n);
+
+            if(q.is_inside()) { // the hit is inside the model
+                if(q.distance() > 2*r_pin) phi = 0;
+                else {
+                    // re-cast the ray from the outside of the object
+                    auto q2 = m.query_ray_hit(ps + (q.distance() + 2*sd)*n, n);
+                    phi = q2.distance();
+                }
+            } else phi = q.distance();
+        });
+
+        auto mit = std::min_element(phis.begin(), phis.end());
+
+        return *mit;
+    }
+
+    // Checking bridge (pillar and stick as well) intersection with the model.
+    // If the function is used for headless sticks, the ins_check parameter
+    // have to be true as the beginning of the stick might be inside the model
+    // geometry.
+    double bridge_mesh_intersect(const Vec3d& s,
+                                 const Vec3d& dir,
+                                 double r,
+                                 bool ins_check = false,
+                                 unsigned samples = 4)
+    {
+        // helper vector calculations
+        Vec3d a(0, 1, 0), b;
+        const double& sd = m_cfg.safety_distance_mm;
+
+        // INFO: for explanation of the method used here, see the previous
+        // method's comments.
+
+        auto chk1 = [] (double val) {
+            return std::abs(std::abs(val) - 1) < 1e-20;
+        };
+
+        if(chk1(dir(X)) || chk1(dir(Y)) || chk1(dir(Z))) {
+            a = {dir(Z), dir(X), dir(Y)};
+            b = {dir(Y), dir(Z), dir(X)};
+        }
+        else {
+            a(Z) = -(dir(Y)*a(Y)) / dir(Z); a.normalize();
+            b = a.cross(dir);
+        }
+
+        // circle portions
+        std::vector<double> phis(samples);
+        for(size_t i = 0; i < phis.size(); ++i) phis[i] = i*2*PI/phis.size();
+
+        auto& m = m_mesh;
+
+        tbb::parallel_for(size_t(0), phis.size(),
+                          [&m, &phis, a, b, sd, dir, r, s, ins_check](size_t i)
+        {
+            double& phi = phis[i];
+            double sinphi = std::sin(phi);
+            double cosphi = std::cos(phi);
+
+            // Let's have a safety coefficient for the radiuses.
+            double rcos = (sd + r) * cosphi;
+            double rsin = (sd + r) * sinphi;
+
+            // Point on the circle on the pin sphere
+            Vec3d p (s(X) + rcos * a(X) + rsin * b(X),
+                     s(Y) + rcos * a(Y) + rsin * b(Y),
+                     s(Z) + rcos * a(Z) + rsin * b(Z));
+
+            auto hr = m.query_ray_hit(p + sd*dir, dir);
+
+            if(ins_check && hr.is_inside()) {
+                if(hr.distance() > 2*r) phi = 0;
+                else {
+                    // re-cast the ray from the outside of the object
+                    auto hr2 =
+                           m.query_ray_hit(p + (hr.distance() + 2*sd)*dir, dir);
+
+                    phi = hr2.distance();
+                }
+            } else phi = hr.distance();
+        });
+
+        auto mit = std::min_element(phis.begin(), phis.end());
+
+        return *mit;
+    }
+
+    // Helper function for interconnecting two pillars with zig-zag bridges.
+    // This is not an individual step.
+    void interconnect(const Pillar& pillar, const Pillar& nextpillar)
+    {
+        const Head& phead = m_result.pillar_head(pillar.id);
+        const Head& nextphead = m_result.pillar_head(nextpillar.id);
+
+        Vec3d sj = phead.junction_point();
+        sj(Z) = std::min(sj(Z), nextphead.junction_point()(Z));
+        Vec3d ej = nextpillar.endpoint;
+        double pillar_dist = distance(Vec2d{sj(X), sj(Y)},
+                                      Vec2d{ej(X), ej(Y)});
+        double zstep = pillar_dist * std::tan(-m_cfg.bridge_slope);
+        ej(Z) = sj(Z) + zstep;
+
+        double chkd = bridge_mesh_intersect(sj, dirv(sj, ej), pillar.r);
+
+        double bridge_distance = pillar_dist / std::cos(-m_cfg.bridge_slope);
+
+        // If the pillars are so close that they touch each other,
+        // there is no need to bridge them together.
+        if(pillar_dist > 2*m_cfg.head_back_radius_mm &&
+           bridge_distance < m_cfg.max_bridge_length_mm)
+            while(sj(Z) > pillar.endpoint(Z) + m_cfg.base_radius_mm &&
+                  ej(Z) > nextpillar.endpoint(Z) + m_cfg.base_radius_mm)
+        {
+            if(chkd >= bridge_distance) {
+                m_result.add_bridge(sj, ej, pillar.r);
+
+                auto pcm = m_cfg.pillar_connection_mode;
+
+                // double bridging: (crosses)
+                if( pcm == PillarConnectionMode::cross ||
+                   (pcm == PillarConnectionMode::dynamic &&
+                    pillar_dist > 2*m_cfg.base_radius_mm))
+                {
+                    // If the columns are close together, no need to
+                    // double bridge them
+                    Vec3d bsj(ej(X), ej(Y), sj(Z));
+                    Vec3d bej(sj(X), sj(Y), ej(Z));
+
+                    // need to check collision for the cross stick
+                    double backchkd = bridge_mesh_intersect(
+                                bsj, dirv(bsj, bej), pillar.r);
+
+
+                    if(backchkd >= bridge_distance) {
+                        m_result.add_bridge(bsj, bej, pillar.r);
+                    }
+                }
+            }
+            sj.swap(ej);
+            ej(Z) = sj(Z) + zstep;
+            chkd = bridge_mesh_intersect(sj, dirv(sj, ej), pillar.r);
+        }
+    }
+
+public:
+
+    Algorithm(const SupportConfig& config,
+              const EigenMesh3D& emesh,
+              const std::vector<SupportPoint>& support_pts,
+              Result& result,
+              ThrowOnCancel thr) :
+        m_cfg(config),
+        m_mesh(emesh),
+        m_support_pts(support_pts),
+        m_support_nmls(support_pts.size(), 3),
+        m_ptheights(support_pts.size(), 0.0),
+        m_result(result),
+        m_points(support_pts.size(), 3),
+        m_thr(thr)
+    {
+        // Prepare the support points in Eigen/IGL format as well, we will use
+        // it mostly in this form.
+
+        long i = 0;
+        for(const SupportPoint& sp : m_support_pts) {
+            m_points.row(i)(X) = double(sp.pos(X));
+            m_points.row(i)(Y) = double(sp.pos(Y));
+            m_points.row(i)(Z) = double(sp.pos(Z));
+            ++i;
+        }
+    }
+
+
+    // Now let's define the individual steps of the support generation algorithm
 
     // Filtering step: here we will discard inappropriate support points
     // and decide the future of the appropriate ones. We will check if a
     // pinhead is applicable and adjust its angle at each support point. We
     // will also merge the support points that are just too close and can
     // be considered as one.
-    auto filter_fn = [thr](const SupportConfig& cfg,
-                           const PointSet& points,
-                           const EigenMesh3D& mesh,
-                           PointSet&  support_normals,
-                           PtIndices& head_indices,
-                           PtIndices& headless_indices)
-    {
+    void filter() {
         // Get the points that are too close to each other and keep only the
         // first one
-        auto aliases = cluster(points,
-                         [thr](const SpatElement& p, const SpatElement& se)
-        {
-            thr(); return distance(p.first, se.first) < D_SP;
+        auto aliases = cluster(m_points,
+                         [this](const SpatElement& p, const SpatElement& se) {
+            m_thr();
+            return distance(p.first, se.first) < D_SP;
         }, 2);
 
         PtIndices filtered_indices;
         filtered_indices.reserve(aliases.size());
-        head_indices.reserve(aliases.size());
-        headless_indices.reserve(aliases.size());
+        m_iheads.reserve(aliases.size());
+        m_iheadless.reserve(aliases.size());
         for(auto& a : aliases) {
             // Here we keep only the front point of the cluster.
             filtered_indices.emplace_back(a.front());
         }
 
         // calculate the normals to the triangles for filtered points
-        auto nmls = sla::normals(points, mesh, cfg.head_front_radius_mm,
-                                 thr, filtered_indices);
+        auto nmls = sla::normals(m_points, m_mesh, m_cfg.head_front_radius_mm,
+                                 m_thr, filtered_indices);
 
         // Not all of the support points have to be a valid position for
         // support creation. The angle may be inappropriate or there may
@@ -1238,7 +1281,7 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
         for(unsigned i = 0, fidx = filtered_indices[0];
             i < filtered_indices.size(); ++i, fidx = filtered_indices[i])
         {
-            thr();
+            m_thr();
             auto n = nmls.row(i);
 
             // for all normals we generate the spherical coordinates and
@@ -1254,17 +1297,19 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
             double azimuth = std::atan2(n(1), n(0));
 
             // skip if the tilt is not sane
-            if(polar >= PI - cfg.normal_cutoff_angle) {
+            if(polar >= PI - m_cfg.normal_cutoff_angle) {
 
                 // We saturate the polar angle to 3pi/4
                 polar = std::max(polar, 3*PI / 4);
 
                 // save the head (pinpoint) position
-                Vec3d hp = points.row(i);
+                Vec3d hp = m_points.row(i);
 
-                double w = cfg.head_width_mm +
-                           cfg.head_back_radius_mm +
-                           2*cfg.head_front_radius_mm;
+                double w = m_cfg.head_width_mm +
+                           m_cfg.head_back_radius_mm +
+                           2*m_cfg.head_front_radius_mm;
+
+                double pin_r = double(m_support_pts[fidx].head_front_radius);
 
                 // Reassemble the now corrected normal
                 auto nn = Vec3d(std::cos(azimuth) * std::sin(polar),
@@ -1275,10 +1320,9 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
                 double t = pinhead_mesh_intersect(
                                   hp, // touching point
                                   nn, // normal
-                                  cfg.head_front_radius_mm,
-                                  cfg.head_back_radius_mm,
-                                  w,
-                                  mesh);
+                                  pin_r,
+                                  m_cfg.head_back_radius_mm,
+                                  w);
 
                 if(t <= w) {
 
@@ -1293,18 +1337,15 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
                     SimplexOptimizer solver(stc);
 
                     auto oresult = solver.optimize_max(
-                                [&mesh, &cfg, w, hp](double plr, double azm)
+                        [this, pin_r, w, hp](double plr, double azm)
                     {
                         auto n = Vec3d(std::cos(azm) * std::sin(plr),
                                        std::sin(azm) * std::sin(plr),
                                        std::cos(plr)).normalized();
 
-                        double score = pinhead_mesh_intersect(
-                                          hp, n,
-                                          cfg.head_front_radius_mm,
-                                          cfg.head_back_radius_mm,
-                                          w,
-                                          mesh);
+                        double score = pinhead_mesh_intersect( hp, n, pin_r,
+                                          m_cfg.head_back_radius_mm,
+                                          w);
                         return score;
                     },
                     initvals(polar, azimuth), // start with what we have
@@ -1321,46 +1362,39 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
                 }
 
                 // save the verified and corrected normal
-                support_normals.row(fidx) = nn;
+                m_support_nmls.row(fidx) = nn;
 
                 if(t > w) {
                     // mark the point for needing a head.
-                    head_indices.emplace_back(fidx);
+                    m_iheads.emplace_back(fidx);
                 } else if( polar >= 3*PI/4 ) {
                     // Headless supports do not tilt like the headed ones so
                     // the normal should point almost to the ground.
-                    headless_indices.emplace_back(fidx);
+                    m_iheadless.emplace_back(fidx);
                 }
             }
         }
 
-        thr();
-    };
+        m_thr();
+    }
 
     // Pinhead creation: based on the filtering results, the Head objects
     // will be constructed (together with their triangle meshes).
-    auto pinheads_fn = [thr](const SupportConfig& cfg,
-                             const std::vector<SupportPoint> support_points,
-                             const PointSet& support_normals,
-                             const PtIndices& head_indices,
-                             Result& result)
+    void add_pinheads()
     {
-        /* ******************************************************** */
-        /* Generating Pinheads                                      */
-        /* ******************************************************** */
-
-        for (unsigned i : head_indices) {
-            thr();
-            result.add_head(i,
-                        cfg.head_back_radius_mm,
-                        support_points[i].head_front_radius,
-                        cfg.head_width_mm,
-                        cfg.head_penetration_mm,
-                        support_normals.row(i),         // dir
-                        support_points[i].pos.cast<double>() // displacement
+        for (unsigned i : m_iheads) {
+            m_thr();
+            m_result.add_head(
+                        i,
+                        m_cfg.head_back_radius_mm,
+                        m_support_pts[i].head_front_radius,
+                        m_cfg.head_width_mm,
+                        m_cfg.head_penetration_mm,
+                        m_support_nmls.row(i),         // dir
+                        m_support_pts[i].pos.cast<double>() // displacement
                         );
         }
-    };
+    }
 
     // Further classification of the support points with pinheads. If the
     // ground is directly reachable through a vertical line parallel to the
@@ -1370,148 +1404,75 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
     // into clusters that can be interconnected with bridges. Elements of
     // these groups may or may not be interconnected. Here we only run the
     // clustering algorithm.
-    auto classify_fn = [thr](const SupportConfig& cfg,
-                             const PointSet& points,
-                             const EigenMesh3D& mesh,
-                             const PtIndices& head_indices,
-                             PtIndices& onmodel_head_indices,
-                             std::vector<double>& pt_heights,
-                             std::vector<PtIndices>& pillar_clusters,
-                             Result& result)
+    void classify()
     {
-        /* ******************************************************** */
-        /* Classification                                           */
-        /* ******************************************************** */
-
         // We should first get the heads that reach the ground directly
-        pt_heights.reserve(head_indices.size());
+        m_ptheights.reserve(m_iheads.size());
         PtIndices ground_head_indices;
-        ground_head_indices.reserve(head_indices.size());
-        onmodel_head_indices.reserve(head_indices.size());
+        ground_head_indices.reserve(m_iheads.size());
+        m_iheads_onmodel.reserve(m_iheads.size());
 
         // First we decide which heads reach the ground and can be full
         // pillars and which shall be connected to the model surface (or
         // search a suitable path around the surface that leads to the
         // ground -- TODO)
-        for(unsigned i : head_indices) {
-            thr();
+        for(unsigned i : m_iheads) {
+            m_thr();
 
-            auto& head = result.head(i);
+            auto& head = m_result.head(i);
             Vec3d n(0, 0, -1);
             double r = head.r_back_mm;
             Vec3d headjp = head.junction_point();
 
             // collision check
-            double t = bridge_mesh_intersect(headjp, n, r, mesh);
+            double t = bridge_mesh_intersect(headjp, n, r);
 
             // Precise distance measurement
-            double tprec = ray_mesh_intersect(headjp, n, mesh);
+            double tprec = ray_mesh_intersect(headjp, n);
 
             // Save the distance from a surface in the Z axis downwards. It
             // may be infinity but that is telling us that it touches the
             // ground.
-            pt_heights.emplace_back(tprec);
+            m_ptheights.emplace_back(tprec);
 
             if(std::isinf(t)) ground_head_indices.emplace_back(i);
-            else onmodel_head_indices.emplace_back(i);
+            else m_iheads_onmodel.emplace_back(i);
         }
 
         // We want to search for clusters of points that are far enough
         // from each other in the XY plane to not cross their pillar bases
         // These clusters of support points will join in one pillar,
         // possibly in their centroid support point.
-        auto d_base = 2*cfg.base_radius_mm;
-        pillar_clusters = cluster(points,
+        auto d_base = 2*m_cfg.base_radius_mm;
+        auto& thr = m_thr;
+        m_pillar_clusters = cluster(m_points,
                 [thr, d_base](const SpatElement& p, const SpatElement& s)
         {
             thr();
             return distance(Vec2d(p.first(X), p.first(Y)),
                             Vec2d(s.first(X), s.first(Y))) < d_base;
         }, 3, ground_head_indices); // max 3 heads to connect to one pillar
-    };
-
-    // Helper function for interconnecting two pillars with zig-zag bridges.
-    // This is not an individual step.
-    auto interconnect = [&cfg](const Pillar& pillar,
-                               const Pillar& nextpillar,
-                               const EigenMesh3D& m,
-                               Result& result)
-    {
-        const Head& phead = result.pillar_head(pillar.id);
-        const Head& nextphead = result.pillar_head(nextpillar.id);
-
-        Vec3d sj = phead.junction_point();
-        sj(Z) = std::min(sj(Z), nextphead.junction_point()(Z));
-        Vec3d ej = nextpillar.endpoint;
-        double pillar_dist = distance(Vec2d{sj(X), sj(Y)},
-                                      Vec2d{ej(X), ej(Y)});
-        double zstep = pillar_dist * std::tan(-cfg.head_slope);
-        ej(Z) = sj(Z) + zstep;
-
-        double chkd = bridge_mesh_intersect(sj, dirv(sj, ej), pillar.r, m);
-        double bridge_distance = pillar_dist / std::cos(-cfg.head_slope);
-
-        // If the pillars are so close that they touch each other,
-        // there is no need to bridge them together.
-        if(pillar_dist > 2*cfg.head_back_radius_mm &&
-           bridge_distance < cfg.max_bridge_length_mm)
-            while(sj(Z) > pillar.endpoint(Z) + cfg.base_radius_mm &&
-                  ej(Z) > nextpillar.endpoint(Z) + cfg.base_radius_mm)
-        {
-            if(chkd >= bridge_distance) {
-                result.add_bridge(sj, ej, pillar.r);
-
-                auto pcm = cfg.pillar_connection_mode;
-
-                // double bridging: (crosses)
-                if( pcm == PillarConnectionMode::cross ||
-                   (pcm == PillarConnectionMode::dynamic &&
-                    pillar_dist > 2*cfg.base_radius_mm))
-                {
-                    // If the columns are close together, no need to
-                    // double bridge them
-                    Vec3d bsj(ej(X), ej(Y), sj(Z));
-                    Vec3d bej(sj(X), sj(Y), ej(Z));
-
-                    // need to check collision for the cross stick
-                    double backchkd = bridge_mesh_intersect(bsj,
-                                                            dirv(bsj, bej),
-                                                            pillar.r, m);
-
-
-                    if(backchkd >= bridge_distance) {
-                        result.add_bridge(bsj, bej, pillar.r);
-                    }
-                }
-            }
-            sj.swap(ej);
-            ej(Z) = sj(Z) + zstep;
-            chkd = bridge_mesh_intersect(sj, dirv(sj, ej), pillar.r, m);
-        }
-    };
+    }
 
     // Step: Routing the ground connected pinheads, and interconnecting
     // them with additional (angled) bridges. Not all of these pinheads
     // will be a full pillar (ground connected). Some will connect to a
     // nearby pillar using a bridge. The max number of such side-heads for
     // a central pillar is limited to avoid bad weight distribution.
-    auto routing_ground_fn =
-            [thr, interconnect](const SupportConfig& cfg,
-                                const PointSet& points,
-                                const std::vector<PtIndices>& pillar_clusters,
-                                const EigenMesh3D& emesh,
-                                Result& result)
+    void routing_to_ground()
     {
-        const double hbr = cfg.head_back_radius_mm;
-        const double pradius = cfg.head_back_radius_mm;
-        const double maxbridgelen = cfg.max_bridge_length_mm;
-        const double gndlvl = result.ground_level;
+        const double hbr = m_cfg.head_back_radius_mm;
+        const double pradius = m_cfg.head_back_radius_mm;
+        const double maxbridgelen = m_cfg.max_bridge_length_mm;
+        const double gndlvl = m_result.ground_level;
+
+
 
         ClusterEl cl_centroids;
-        cl_centroids.reserve(pillar_clusters.size());
+        cl_centroids.reserve(m_pillar_clusters.size());
 
         SpatIndex pheadindex; // spatial index for the junctions
-        for(auto& cl : pillar_clusters) { thr();
+        for(auto& cl : m_pillar_clusters) { m_thr();
             // place all the centroid head positions into the index. We
             // will query for alternative pillar positions. If a sidehead
             // cannot connect to the cluster centroid, we have to search
@@ -1523,6 +1484,7 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
             if(cl.empty()) continue;
 
             // get the current cluster centroid
+            auto& thr = m_thr; const auto& points = m_points;
             long lcid = cluster_centroid(cl,
                 [&points](size_t idx) { return points.row(long(idx)); },
                 [thr](const Vec3d& p1, const Vec3d& p2)
@@ -1538,7 +1500,7 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
 
 
             unsigned hid = cl[cid]; // Head ID
-            Head& h = result.head(hid);
+            Head& h = m_result.head(hid);
             h.transform();
             Vec3d p = h.junction_point(); p(Z) = gndlvl;
             pheadindex.insert(p, hid);
@@ -1548,20 +1510,20 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
         // sidepoints with the cluster centroid (which is a ground pillar)
         // or a nearby pillar if the centroid is unreachable.
         size_t ci = 0;
-        for(auto cl : pillar_clusters) { thr();
+        for(auto cl : m_pillar_clusters) { m_thr();
 
             auto cidx = cl_centroids[ci];
             cl_centroids[ci++] = cl[cidx];
 
-            auto& head = result.head(cl[cidx]);
+            auto& head = m_result.head(cl[cidx]);
 
             Vec3d startpoint = head.junction_point();
             auto endpoint = startpoint; endpoint(Z) = gndlvl;
 
             // Create the central pillar of the cluster with its base on the
             // ground
-            result.add_pillar(unsigned(head.id), endpoint, pradius)
-                  .add_base(cfg.base_height_mm, cfg.base_radius_mm);
+            m_result.add_pillar(unsigned(head.id), endpoint, pradius)
+                    .add_base(m_cfg.base_height_mm, m_cfg.base_radius_mm);
 
             // Process side point in current cluster
             cl.erase(cl.begin() + cidx); // delete the centroid
@@ -1570,12 +1532,12 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
             // central position where the pillar can be placed. this way
             // the weight is distributed more effectively on the pillar.
             auto search_nearest =
-                [thr, &cfg, &result, &emesh, maxbridgelen, gndlvl, pradius]
+                [this, maxbridgelen, gndlvl, pradius]
                 (SpatIndex& spindex, const Vec3d& jsh)
             {
                 long nearest_id = -1;
                 const double max_len = maxbridgelen / 2;
-                while(nearest_id < 0 && !spindex.empty()) { thr();
+                while(nearest_id < 0 && !spindex.empty()) { m_thr();
                     // loop until a suitable head is not found
                     // if there is a pillar closer than the cluster center
                     // (this may happen as the clustering is not perfect)
@@ -1583,7 +1545,7 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
 
                     Vec3d qp(jsh(X), jsh(Y), gndlvl);
                     auto ne = spindex.nearest(qp, 1).front();
-                    const Head& nearhead = result.head(ne.second);
+                    const Head& nearhead = m_result.head(ne.second);
 
                     Vec3d jh = nearhead.junction_point();
                     Vec3d jp = jsh;
@@ -1591,7 +1553,7 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
 
                     // Bridge endpoint on the main pillar
                     Vec3d jn(jh(X), jh(Y), jp(Z) +
-                             dist2d * std::tan(-cfg.head_slope));
+                             dist2d * std::tan(-m_cfg.bridge_slope));
 
                     if(jn(Z) > jh(Z)) {
                         // If the sidepoint cannot connect to the pillar
@@ -1602,12 +1564,12 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
 
                     double d = distance(jp, jn);
 
-                    if(jn(Z) <= gndlvl + 2*cfg.head_width_mm || d > max_len)
+                    if(jn(Z) <= gndlvl + 2*m_cfg.head_width_mm || d > max_len)
                         break;
 
                     double chkd = bridge_mesh_intersect(jp, dirv(jp, jn),
-                                                        pradius,
-                                                        emesh);
+                                                        pradius);
+
                     if(chkd >= d) nearest_id = ne.second;
 
                     spindex.remove(ne);
@@ -1615,8 +1577,8 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
                 return nearest_id;
             };
 
-            for(auto c : cl) { thr();
-                auto& sidehead = result.head(c);
+            for(auto c : cl) { m_thr();
+                auto& sidehead = m_result.head(c);
                 sidehead.transform();
 
                 Vec3d jsh = sidehead.junction_point();
@@ -1628,8 +1590,8 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
                 if(nearest_id < 0) {
                     // Could not find a pillar, create one
                     Vec3d jp = jsh; jp(Z) = gndlvl;
-                    result.add_pillar(unsigned(sidehead.id), jp, pradius).
-                        add_base(cfg.base_height_mm, cfg.base_radius_mm);
+                    m_result.add_pillar(unsigned(sidehead.id), jp, pradius).
+                        add_base(m_cfg.base_height_mm, m_cfg.base_radius_mm);
 
                     // connects to ground, eligible for bridging
                     cl_centroids.emplace_back(c);
@@ -1637,14 +1599,14 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
                     // Creating the bridge to the nearest pillar
 
                     auto nearest_uid = unsigned(nearest_id);
-                    const Head& nearhead = result.head(nearest_uid);
+                    const Head& nearhead = m_result.head(nearest_uid);
                     Vec3d jp = jsh;
                     Vec3d jh = nearhead.junction_point();
 
                     double d = distance(Vec2d{jp(X), jp(Y)},
                                         Vec2d{jh(X), jh(Y)});
                     Vec3d jn(jh(X), jh(Y), jp(Z) +
-                             d * std::tan(-cfg.head_slope));
+                             d * std::tan(-m_cfg.bridge_slope));
 
                     if(jn(Z) > jh(Z)) {
                         double hdiff = jn(Z) - jh(Z);
@@ -1652,14 +1614,14 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
                         jn(Z) -= hdiff;
 
                         // pillar without base, doesn't connect to ground.
-                        result.add_pillar(nearest_uid, jp, pradius);
+                        m_result.add_pillar(nearest_uid, jp, pradius);
                     }
 
-                    if(jp(Z) < jsh(Z)) result.add_junction(jp, hbr);
-                    if(jn(Z) >= jh(Z)) result.add_junction(jn, hbr);
+                    if(jp(Z) < jsh(Z)) m_result.add_junction(jp, hbr);
+                    if(jn(Z) >= jh(Z)) m_result.add_junction(jn, hbr);
 
-                    result.add_bridge(jp, jn,
-                                sidehead.request_pillar_radius(pradius));
+                    m_result.add_bridge(jp, jn,
+                                    sidehead.request_pillar_radius(pradius));
                 }
             }
         }
@@ -1684,9 +1646,10 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
         ClusterEl ring;
 
         while(!rem.empty()) { // loop until all the points belong to some ring
-            thr();
+            m_thr();
             std::sort(rem.begin(), rem.end());
 
+            auto& points = m_points;
             auto newring = pts_convex_hull(rem,
                                            [&points](unsigned i) {
                 auto&& p = points.row(i);
@@ -1696,8 +1659,8 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
             if(!ring.empty()) {
                 // inner ring is now in 'newring' and outer ring is in 'ring'
                 SpatIndex innerring;
-                for(unsigned i : newring) { thr();
-                    const Pillar& pill = result.head_pillar(i);
+                for(unsigned i : newring) { m_thr();
+                    const Pillar& pill = m_result.head_pillar(i);
                     assert(pill.id >= 0);
                     innerring.insert(pill.endpoint, unsigned(pill.id));
                 }
@@ -1705,14 +1668,14 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
                 // For all pillars in the outer ring find the closest in the
                 // inner ring and connect them. This will create the spider web
                 // fashioned connections between pillars
-                for(unsigned i : ring) { thr();
-                    const Pillar& outerpill = result.head_pillar(i);
+                for(unsigned i : ring) { m_thr();
+                    const Pillar& outerpill = m_result.head_pillar(i);
                     auto res = innerring.nearest(outerpill.endpoint, 1);
                     if(res.empty()) continue;
 
                     auto ne = res.front();
-                    const Pillar& innerpill = result.pillars()[ne.second];
-                    interconnect(outerpill, innerpill, emesh, result);
+                    const Pillar& innerpill = m_result.pillars()[ne.second];
+                    interconnect(outerpill, innerpill);
                 }
             }
 
@@ -1731,10 +1694,10 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
                 next != ring.end();
                 ++it, ++next)
             {
-                thr();
-                const Pillar& pillar = result.head_pillar(*it);
-                const Pillar& nextpillar = result.head_pillar(*next);
-                interconnect(pillar, nextpillar, emesh, result);
+                m_thr();
+                const Pillar& pillar = m_result.head_pillar(*it);
+                const Pillar& nextpillar = m_result.head_pillar(*next);
+                interconnect(pillar, nextpillar);
             }
 
             auto sring = ring; ClusterEl tmp;
@@ -1744,27 +1707,21 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
                                 std::back_inserter(tmp));
             rem.swap(tmp);
         }
-
-    };
+    }
 
     // Step: routing the pinheads that would connect to the model surface
     // along the Z axis downwards. For now these will actually be connected with
     // the model surface with a flipped pinhead. In the future here we could use
     // some smart algorithms to search for a safe path to the ground or to a
     // nearby pillar that can hold the supported weight.
-    auto routing_nongnd_fn = [thr](
-            const SupportConfig& cfg,
-            const std::vector<double>& pt_heights,
-            const PtIndices& nonground_head_indices,
-            const EigenMesh3D& mesh,
-            Result& result)
+    void routing_to_model()
     {
         // TODO: connect these to the ground pillars if possible
-        for(auto idx : nonground_head_indices) { thr();
-            double gh = pt_heights[idx];
-            double base_width = cfg.head_width_mm;
+        for(auto idx : m_iheads_onmodel) { m_thr();
+            double gh = m_ptheights[idx];
+            double base_width = m_cfg.head_width_mm;
 
-            auto& head = result.head(idx);
+            auto& head = m_result.head(idx);
 
             if(std::isinf(gh)) { // in this case the the pillar geometry
                 head.invalidate(); continue;
@@ -1822,8 +1779,9 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
             // In this case there is no room for the base pinhead.
             if(gh < head.fullwidth()) {
                 double min_l =
-                        2 * cfg.head_front_radius_mm +
-                        2 * cfg.head_back_radius_mm - cfg.head_penetration_mm;
+                        2 * m_cfg.head_front_radius_mm +
+                        2 * m_cfg.head_back_radius_mm -
+                        m_cfg.head_penetration_mm;
 
                 base_width = gh - min_l;
             }
@@ -1840,10 +1798,10 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
 
             Vec3d headend = head.junction_point();
 
-            Head base_head(cfg.head_back_radius_mm,
-                 cfg.head_front_radius_mm,
+            Head base_head(m_cfg.head_back_radius_mm,
+                 m_cfg.head_front_radius_mm,
                  base_width,
-                 cfg.head_penetration_mm,
+                 m_cfg.head_penetration_mm,
                  {0.0, 0.0, 1.0},
                  {headend(X), headend(Y), headend(Z) - gh});
 
@@ -1860,44 +1818,39 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
 
             double hl = base_head.fullwidth() - head.r_back_mm;
 
-            result.add_pillar(idx,
+            m_result.add_pillar(idx,
                 Vec3d{headend(X), headend(Y), headend(Z) - gh + hl},
-                cfg.head_back_radius_mm
+                m_cfg.head_back_radius_mm
             ).base = base_head.mesh;
         }
-    };
+    }
 
     // Step: process the support points where there is not enough space for a
     // full pinhead. In this case we will use a rounded sphere as a touching
     // point and use a thinner bridge (let's call it a stick).
-    auto process_headless_fn = [thr](
-            const std::vector<SupportPoint>& support_points,
-            const PointSet& support_normals,
-            const PtIndices& headless_indices,
-            const EigenMesh3D& emesh,
-            Result& result)
+    void routing_headless ()
     {
         // For now we will just generate smaller headless sticks with a sharp
         // ending point that connects to the mesh surface.
 
-
         // We will sink the pins into the model surface for a distance of 1/3 of
         // the pin radius
-        for(unsigned i : headless_indices) { thr();
+        for(unsigned i : m_iheadless) { m_thr();
 
-            const auto R = double(support_points[i].head_front_radius);
+            const auto R = double(m_support_pts[i].head_front_radius);
             const double HWIDTH_MM = R/3;
 
-            Vec3d sph = support_points[i].pos.cast<double>();    // Exact support position
-            Vec3d n = support_normals.row(i);   // mesh outward normal
+            // Exact support position
+            Vec3d sph = m_support_pts[i].pos.cast<double>();
+            Vec3d n = m_support_nmls.row(i);   // mesh outward normal
             Vec3d sp = sph - n * HWIDTH_MM;     // stick head start point
 
             Vec3d dir = {0, 0, -1};
             Vec3d sj = sp + R * n;              // stick start point
 
             // This is only for checking
-            double idist = bridge_mesh_intersect(sph, dir, R, emesh, true);
-            double dist = ray_mesh_intersect(sj, dir, emesh);
+            double idist = bridge_mesh_intersect(sph, dir, R, true);
+            double dist = ray_mesh_intersect(sj, dir);
 
             if(std::isinf(idist) || std::isnan(idist) || idist < 2*R ||
                std::isinf(dist)  || std::isnan(dist)   || dist < 2*R) {
@@ -1908,68 +1861,53 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
             }
 
             Vec3d ej = sj + (dist + HWIDTH_MM)* dir;
-            result.add_compact_bridge(sp, ej, n, R);
+            m_result.add_compact_bridge(sp, ej, n, R);
         }
+    }
+};
+
+bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
+                              const EigenMesh3D& mesh,
+                              const SupportConfig &cfg,
+                              const Controller &ctl)
+{
+    Algorithm alg(cfg, mesh, support_points, *m_impl, ctl.cancelfn);
+
+    // Let's define the individual steps of the processing. We can experiment
+    // later with the ordering and the dependencies between them.
+    enum Steps {
+        BEGIN,
+        FILTER,
+        PINHEADS,
+        CLASSIFY,
+        ROUTING_GROUND,
+        ROUTING_NONGROUND,
+        HEADLESS,
+        DONE,
+        HALT,
+        ABORT,
+        NUM_STEPS
+        //...
     };
 
-    // Now that the individual blocks are defined, lets connect the wires. We
-    // will create an array of functions which represents a program. Place the
-    // step methods in the array and bind the right arguments to the methods
-    // This way the data dependencies will be easily traceable between
-    // individual steps.
-    // There will be empty steps as well like the begin step or the done or
-    // abort steps. These are slots for future initialization or cleanup.
-
-    using std::cref;    // Bind inputs with cref (read-only)
-    using std::ref;     // Bind outputs with ref (writable)
-    using std::bind;
-
-    // Here we can easily track what goes in and what comes out of each step:
-    // (see the cref-s as inputs and ref-s as outputs)
+    // Collect the algorithm steps into a nice sequence
     std::array<std::function<void()>, NUM_STEPS> program = {
         [] () {
             // Begin...
             // Potentially clear up the shared data (not needed for now)
         },
 
-        bind(filter_fn,
-             // inputs:
-             cref(cfg), cref(points), cref(mesh),
-             // outputs:
-             ref(support_normals), ref(head_indices), ref(headless_indices)),
+        std::bind(&Algorithm::filter, &alg),
 
-        bind(pinheads_fn,
-             // inputs:
-             cref(cfg), cref(support_points), cref(support_normals),
-             cref(head_indices),
-             // outputs:
-             ref(result)),
+        std::bind(&Algorithm::add_pinheads, &alg),
 
-        bind(classify_fn,
-             // inputs:
-             cref(cfg), cref(points), cref(mesh), cref(head_indices),
-             // outputs:
-             ref(onmodel_head_indices), ref(pt_heights), ref(pillar_clusters),
-             ref(result)),
+        std::bind(&Algorithm::classify, &alg),
 
-        bind(routing_ground_fn,
-             // inputs:
-             cref(cfg), cref(points), cref(pillar_clusters), cref(mesh),
-             // outputs:
-             ref(result)),
+        std::bind(&Algorithm::routing_to_ground, &alg),
 
-        bind(routing_nongnd_fn,
-             // inputs:
-             cref(cfg), cref(pt_heights), cref(onmodel_head_indices), cref(mesh),
-             // outputs:
-             ref(result)),
+        std::bind(&Algorithm::routing_to_model, &alg),
 
-        bind(process_headless_fn,
-             // inputs:
-             cref(support_points), cref(support_normals),
-             cref(headless_indices), cref(mesh),
-             // outputs:
-             ref(result)),
+        std::bind(&Algorithm::routing_headless, &alg),
 
         [] () {
             // Done
@@ -1984,18 +1922,18 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
         }
     };
 
-    if(cfg.ground_facing_only) { // Delete the non-gnd steps if necessary
+    Steps pc = BEGIN, pc_prev = BEGIN;
+
+    if(cfg.ground_facing_only) {
         program[ROUTING_NONGROUND] = []() {
-            BOOST_LOG_TRIVIAL(info) << "Skipping non-ground facing supports as "
-                                       "requested.";
+            BOOST_LOG_TRIVIAL(info)
+                    << "Skipping model-facing supports as requested.";
         };
-        program[HEADLESS]  = [](){
-            BOOST_LOG_TRIVIAL(info) << "Skipping headless stick generation as "
-                                       "requested";
+        program[HEADLESS] = []() {
+            BOOST_LOG_TRIVIAL(info) << "Skipping headless stick generation as"
+                                       " requested.";
         };
     }
-
-    Steps pc = BEGIN, pc_prev = BEGIN;
 
     // Let's define a simple automaton that will run our program.
     auto progress = [&ctl, &pc, &pc_prev] () {

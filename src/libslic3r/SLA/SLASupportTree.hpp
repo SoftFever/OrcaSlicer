@@ -50,11 +50,6 @@ struct SupportConfig {
     // Width in mm from the back sphere center to the front sphere center.
     double head_width_mm = 1.0;
 
-    // Radius in mm of the support pillars. The actual radius of the pillars
-    // beginning with a head will not be higher than head_back_radius but the
-    // headless pillars will have half of this value.
-    double headless_pillar_radius_mm = 0.4;
-
     // How to connect pillars
     PillarConnectionMode pillar_connection_mode = PillarConnectionMode::dynamic;
 
@@ -74,7 +69,7 @@ struct SupportConfig {
     double base_height_mm = 1.0;
 
     // The default angle for connecting support sticks and junctions.
-    double head_slope = M_PI/4;
+    double bridge_slope = M_PI/4;
 
     // The max length of a bridge in mm
     double max_bridge_length_mm = 15.0;
@@ -86,6 +81,8 @@ struct SupportConfig {
     // The max Z angle for a normal at which it will get completely ignored.
     double normal_cutoff_angle = 150.0 * M_PI / 180.0;
 
+    // The shortest distance of any support structure from the model surface
+    double safety_distance_mm = 0.001;
 };
 
 struct PoolConfig;
@@ -123,7 +120,7 @@ using PointSet = Eigen::MatrixXd;
 
 /// The class containing mesh data for the generated supports.
 class SLASupportTree {
-    class Impl;
+    class Impl;     // persistent support data
     std::unique_ptr<Impl> m_impl;
 
     Impl& get() { return *m_impl; }
@@ -133,16 +130,20 @@ class SLASupportTree {
                                  const SupportConfig&,
                                  const Controller&);
 
-    /// Generate the 3D supports for a model intended for SLA print.
+    // The generation algorithm is quite long and will be captured in a separate
+    // class with private data, helper methods, etc... This data is only needed
+    // during the calculation whereas the Impl class contains the persistent
+    // data, mostly the meshes.
+    class Algorithm;
+
+    // Generate the 3D supports for a model intended for SLA print. This
+    // will instantiate the Algorithm class and call its appropriate methods
+    // with status indication.
     bool generate(const std::vector<SupportPoint>& pts,
                   const EigenMesh3D& mesh,
                   const SupportConfig& cfg = {},
                   const Controller& ctl = {});
 
-    bool _generate(const std::vector<SupportPoint>& pts,
-                  const EigenMesh3D& mesh,
-                  const SupportConfig& cfg = {},
-                  const Controller& ctl = {});
 public:
 
     SLASupportTree();
