@@ -4901,16 +4901,17 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case 'b': { zoom_to_bed(); break; }
         case 'I':
         case 'i': { set_camera_zoom(1.0f); break; }
-        case 'M':
-        case 'm': {
-            if (m_gizmos.get_current_type() == Gizmos::SlaSupports && m_gizmos.mouse_event(SLAGizmoEventType::ManualEditing))
-                m_dirty = true;
-            break;
-        }
         case 'O':
         case 'o': { set_camera_zoom(-1.0f); break; }
         case 'Z':
         case 'z': { m_selection.is_empty() ? zoom_to_volumes() : zoom_to_selection(); break; }
+        case 'M':
+        case 'm': {
+            if (m_gizmos.get_current_type() == Gizmos::SlaSupports && m_gizmos.mouse_event(SLAGizmoEventType::ManualEditing)) {
+                m_dirty = true;
+                break;
+            }
+        } // intentional fallthrough
         default:
         {
             if (m_gizmos.handle_shortcut(keyCode, m_selection))

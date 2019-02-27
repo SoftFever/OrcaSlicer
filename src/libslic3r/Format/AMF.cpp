@@ -1,3 +1,4 @@
+#include <limits>
 #include <string.h>
 #include <map>
 #include <string>
@@ -856,6 +857,11 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
         return false;
 
     std::stringstream stream;
+    // https://en.cppreference.com/w/cpp/types/numeric_limits/max_digits10
+    // Conversion of a floating-point value to text and back is exact as long as at least max_digits10 were used (9 for float, 17 for double).
+    // It is guaranteed to produce the same floating-point value, even though the intermediate text representation is not exact.
+    // The default value of std::stream precision is 6 digits only!
+    stream << std::defaultfloat << std::setprecision(std::numeric_limits<float>::max_digits10);
     stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
     stream << "<amf unit=\"millimeter\">\n";
     stream << "<metadata type=\"cad\">Slic3r " << SLIC3R_VERSION << "</metadata>\n";
@@ -927,7 +933,7 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
             for (size_t i = 0; i < stl.stats.shared_vertices; ++i) {
                 stream << "         <vertex>\n";
                 stream << "           <coordinates>\n";
-                Vec3d v = matrix * stl.v_shared[i].cast<double>();
+                Vec3f v = (matrix * stl.v_shared[i].cast<double>()).cast<float>();
                 stream << "             <x>" << v(0) << "</x>\n";
                 stream << "             <y>" << v(1) << "</y>\n";
                 stream << "             <z>" << v(2) << "</z>\n";
