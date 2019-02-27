@@ -1755,7 +1755,7 @@ namespace Slic3r {
         // Conversion of a floating-point value to text and back is exact as long as at least max_digits10 were used (9 for float, 17 for double).
         // It is guaranteed to produce the same floating-point value, even though the intermediate text representation is not exact.
         // The default value of std::stream precision is 6 digits only!
-		stream << std::defaultfloat << std::setprecision(std::numeric_limits<float>::max_digits10);
+		stream << std::setprecision(std::numeric_limits<float>::max_digits10);
         stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
         stream << "<" << MODEL_TAG << " unit=\"millimeter\" xml:lang=\"en-US\" xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\" xmlns:slic3rpe=\"http://schemas.slic3r.org/3mf/2017/06\">\n";
         stream << " <" << METADATA_TAG << " name=\"" << SLIC3RPE_3MF_VERSION << "\">" << VERSION_3MF << "</" << METADATA_TAG << ">\n";

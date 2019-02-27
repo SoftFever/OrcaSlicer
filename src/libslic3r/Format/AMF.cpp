@@ -861,7 +861,7 @@ bool store_amf(const char *path, Model *model, const DynamicPrintConfig *config)
     // Conversion of a floating-point value to text and back is exact as long as at least max_digits10 were used (9 for float, 17 for double).
     // It is guaranteed to produce the same floating-point value, even though the intermediate text representation is not exact.
     // The default value of std::stream precision is 6 digits only!
-    stream << std::defaultfloat << std::setprecision(std::numeric_limits<float>::max_digits10);
+    stream << std::setprecision(std::numeric_limits<float>::max_digits10);
     stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
     stream << "<amf unit=\"millimeter\">\n";
     stream << "<metadata type=\"cad\">Slic3r " << SLIC3R_VERSION << "</metadata>\n";
