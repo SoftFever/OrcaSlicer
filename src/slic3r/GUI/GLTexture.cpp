@@ -16,6 +16,8 @@
 #define NANOSVGRAST_IMPLEMENTATION
 #include "nanosvg/nanosvgrast.h"
 
+#include "libslic3r/utils.hpp"
+
 namespace Slic3r {
 namespace GUI {
 
@@ -116,16 +118,18 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
         ::memcpy((void*)sprite_white_only_data.data(), (const void*)sprite_data.data(), sprite_bytes);
         for (int i = 0; i < sprite_n_pixels; ++i)
         {
-            if (sprite_white_only_data.data()[i * 4] != 0)
-                ::memset((void*)&sprite_white_only_data.data()[i * 4], 255, 3);
+            int offset = i * 4;
+            if (sprite_white_only_data.data()[offset] != 0)
+                ::memset((void*)&sprite_white_only_data.data()[offset], 255, 3);
         }
 
         // makes gray only copy of the sprite
         ::memcpy((void*)sprite_gray_only_data.data(), (const void*)sprite_data.data(), sprite_bytes);
         for (int i = 0; i < sprite_n_pixels; ++i)
         {
-            if (sprite_gray_only_data.data()[i * 4] != 0)
-                ::memset((void*)&sprite_gray_only_data.data()[i * 4], 128, 3);
+            int offset = i * 4;
+            if (sprite_gray_only_data.data()[offset] != 0)
+                ::memset((void*)&sprite_gray_only_data.data()[offset], 128, 3);
         }
 
         int sprite_offset_px = sprite_id * sprite_size_px * m_width;
@@ -149,19 +153,19 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
             {
                 for (int i = 0; i < sprite_n_pixels; ++i)
                 {
-                    float alpha = (float)output_data.data()[i * 4 + 3] / 255.0f;
-                    output_data.data()[i * 4 + 0] = (unsigned char)(0 * (1.0f - alpha) + output_data.data()[i * 4 + 0] * alpha);
-                    output_data.data()[i * 4 + 1] = (unsigned char)(0 * (1.0f - alpha) + output_data.data()[i * 4 + 1] * alpha);
-                    output_data.data()[i * 4 + 2] = (unsigned char)(0 * (1.0f - alpha) + output_data.data()[i * 4 + 2] * alpha);
-                    output_data.data()[i * 4 + 3] = (unsigned char)(128 * (1.0f - alpha) + output_data.data()[i * 4 + 3] * alpha);
+                    int offset = i * 4;
+                    float alpha = (float)output_data.data()[offset + 3] / 255.0f;
+                    output_data.data()[offset + 0] = (unsigned char)(output_data.data()[offset + 0] * alpha);
+                    output_data.data()[offset + 1] = (unsigned char)(output_data.data()[offset + 1] * alpha);
+                    output_data.data()[offset + 2] = (unsigned char)(output_data.data()[offset + 2] * alpha);
+                    output_data.data()[offset + 3] = (unsigned char)(128 * (1.0f - alpha) + output_data.data()[offset + 3] * alpha);
                 }
             }
 
             int state_offset_px = sprite_offset_px + state_id * sprite_size_px;
             for (int j = 0; j < sprite_size_px; ++j)
             {
-                int data_offset = (state_offset_px + j * m_width) * 4;
-                ::memcpy((void*)&data.data()[data_offset], (const void*)&output_data.data()[j * sprite_stride], sprite_stride);
+                ::memcpy((void*)&data.data()[(state_offset_px + j * m_width) * 4], (const void*)&output_data.data()[j * sprite_stride], sprite_stride);
             }
         }
 
@@ -181,7 +185,6 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
 
     ::glBindTexture(GL_TEXTURE_2D, 0);
 
-
     m_source = filenames.front();
     
 #if 0
@@ -194,16 +197,17 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
 
     for (int h = 0; h < m_height; ++h)
     {
+        int px_h = h * m_width;
         for (int w = 0; w < m_width; ++w)
         {
-            int px = h * m_width + w;
-            int px_byte = px * 4;
-            output.SetRGB(w, h, data.data()[px_byte + 0], data.data()[px_byte + 1], data.data()[px_byte + 2]);
-            output.SetAlpha(w, h, data.data()[px_byte + 3]);
+            int offset = (px_h + w) * 4;
+            output.SetRGB(w, h, data.data()[offset + 0], data.data()[offset + 1], data.data()[offset + 2]);
+            output.SetAlpha(w, h, data.data()[offset + 3]);
         }
     }
 
-    output.SaveFile("C:/prusa/slic3r/svg_icons/temp/test_" + std::to_string(pass) + ".png", wxBITMAP_TYPE_PNG);
+    std::string out_filename = resources_dir() + "/icons/test_" + std::to_string(pass) + ".png";
+    output.SaveFile(out_filename, wxBITMAP_TYPE_PNG);
 #endif // 0
 
     return true;

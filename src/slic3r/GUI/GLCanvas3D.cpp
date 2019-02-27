@@ -3175,8 +3175,8 @@ void GLCanvas3D::Gizmos::do_render_overlay(const GLCanvas3D& canvas, const GLCan
         GLGizmoBase::EState state = it->second->get_state();
 
 #if ENABLE_SVG_ICONS
-        float u_icon_size = m_overlay_icons_size * inv_tex_width;
-        float v_icon_size = m_overlay_icons_size * inv_tex_height;
+        float u_icon_size = m_overlay_icons_size * m_overlay_scale * inv_tex_width;
+        float v_icon_size = m_overlay_icons_size * m_overlay_scale * inv_tex_height;
         float top = sprite_id * v_icon_size;
         float left = state * u_icon_size;
         float bottom = top + v_icon_size;
