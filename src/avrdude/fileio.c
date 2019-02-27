@@ -40,6 +40,9 @@
 #include "avrdude.h"
 #include "libavrdude.h"
 
+#if defined(WIN32NATIVE)
+#include "windows/utf8.h"
+#endif
 
 #define IHEX_MAXDATA 256
 
@@ -110,7 +113,7 @@ FILE *fopen_utf8(const char *filename, const char *mode)
   static wchar_t mode_buffer[MAX_MODE_LEN];
 
   if (MultiByteToWideChar(CP_UTF8, 0, filename, -1, fname_buffer, PATH_MAX) == 0) { return NULL; }
-  if (MultiByteToWideChar(CP_ACP, 0, mode, -1, mode_buffer, MAX_MODE_LEN) == 0) { return NULL; }
+  if (MultiByteToWideChar(CP_UTF8, 0, mode, -1, mode_buffer, MAX_MODE_LEN) == 0) { return NULL; }
 
   return _wfopen(fname_buffer, mode_buffer);
 #else

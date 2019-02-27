@@ -812,7 +812,6 @@ int avrdude_main(int argc, char * argv [])
 
   // rc = read_config(sys_config);
   rc = read_config_builtin();
-  avrdude_message(MSG_NOTICE, "\n\nread_config_builtin: %d\n\n", rc);
   if (rc) {
     // avrdude_message(MSG_INFO, "%s: error reading system wide configuration file \"%s\"\n",
     //                 progname, sys_config);

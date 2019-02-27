@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_definitions(-D_BSD_SOURCE -D_DEFAULT_SOURCE)   # To enable various useful macros and functions on Unices
 remove_definitions(-D_UNICODE -DUNICODE)
@@ -68,6 +70,7 @@ set(AVRDUDE_SOURCES
 )
 if (MSVC)
     set(AVRDUDE_SOURCES ${AVRDUDE_SOURCES}
+        windows/utf8.c
         windows/unistd.cpp
         windows/getopt.c
     )
@@ -90,7 +93,7 @@ add_custom_target(gen_conf_h
 add_library(avrdude STATIC ${AVRDUDE_SOURCES})
 add_dependencies(avrdude gen_conf_h)
 
-add_executable(avrdude-slic3r main-standalone.c)
+add_executable(avrdude-slic3r main-standalone.cpp)
 target_link_libraries(avrdude-slic3r avrdude)
 
 if (WIN32)
