@@ -192,8 +192,10 @@ static int wiring_open(PROGRAMMER * pgm, char * port)
   /* drain any extraneous input */
   stk500v2_drain(pgm, 0);
 
-  if (stk500v2_getsync(pgm) < 0)
+  if (stk500v2_getsync(pgm) < 0) {
+    serial_close(&pgm->fd);
     return -1;
+  }
 
   return 0;
 }
