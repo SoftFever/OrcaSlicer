@@ -791,6 +791,8 @@ protected:
     double      get_double_value(const SelectedSlider& selection);
 
 private:
+    bool        is_osx { false };
+    wxFont      m_font;
     int         m_min_value;
     int         m_max_value;
     int         m_lower_value;
