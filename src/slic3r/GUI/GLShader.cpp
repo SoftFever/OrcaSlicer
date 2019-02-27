@@ -225,6 +225,17 @@ bool GLShader::set_uniform(const char* name, const float* matrix) const
     return false;
 }
 
+bool GLShader::set_uniform(const char* name, int value) const
+{
+    int id = get_uniform_location(name);
+    if (id >= 0)
+    {
+        ::glUniform1i(id, value);
+        return true;
+    }
+    return false;
+}
+
 /*
 # Set shader vector
 sub SetVector
@@ -321,7 +332,7 @@ void Shader::set_uniform(const std::string& name, const float* matrix) const
 void Shader::set_uniform(const std::string& name, bool value) const
 {
     if (m_shader != nullptr)
-        m_shader->set_uniform(name.c_str(), value);
+        m_shader->set_uniform(name.c_str(), value ? 1 : 0);
 }
 
 unsigned int Shader::get_shader_program_id() const

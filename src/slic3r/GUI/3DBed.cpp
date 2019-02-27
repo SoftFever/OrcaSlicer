@@ -516,9 +516,9 @@ void Bed3D::render_prusa(const std::string &key, bool bottom) const
 
         if (max_anisotropy > 0.0f)
         {
-            ::glBindTexture(GL_TEXTURE_2D, m_texture.get_id());
-            ::glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, max_anisotropy);
-            ::glBindTexture(GL_TEXTURE_2D, 0);
+            glsafe(::glBindTexture(GL_TEXTURE_2D, m_texture.get_id()));
+            glsafe(::glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, max_anisotropy));
+            glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
         }
     }
 
@@ -542,9 +542,9 @@ void Bed3D::render_prusa(const std::string &key, bool bottom) const
 
         if (!m_model.get_filename().empty())
         {
-            ::glEnable(GL_LIGHTING);
+            glsafe(::glEnable(GL_LIGHTING));
             m_model.render();
-            ::glDisable(GL_LIGHTING);
+            glsafe(::glDisable(GL_LIGHTING));
         }
     }
 
@@ -553,41 +553,40 @@ void Bed3D::render_prusa(const std::string &key, bool bottom) const
     {
         if (m_vbo_id == 0)
         {
-            ::glGenBuffers(1, &m_vbo_id);
-            ::glBindBuffer(GL_ARRAY_BUFFER, m_vbo_id);
-            ::glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)m_triangles.get_vertices_data_size(), (const GLvoid*)m_triangles.get_vertices_data(), GL_STATIC_DRAW);
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//            ::glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, m_triangles.get_vertex_data_size(), (GLvoid*)m_triangles.get_position_offset());
-//            ::glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, m_triangles.get_vertex_data_size(), (GLvoid*)m_triangles.get_tex_coords_offset());
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-            ::glBindBuffer(GL_ARRAY_BUFFER, 0);
+            unsigned int stride = m_triangles.get_vertex_data_size();
+            glsafe(::glGenBuffers(1, &m_vbo_id));
+            glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_vbo_id));
+            glsafe(::glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)m_triangles.get_vertices_data_size(), (const GLvoid*)m_triangles.get_vertices_data(), GL_STATIC_DRAW));
+            glsafe(::glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (GLvoid*)m_triangles.get_position_offset()));
+            glsafe(::glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, (GLvoid*)m_triangles.get_tex_coords_offset()));
+            glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
         }
 
-        ::glEnable(GL_DEPTH_TEST);
-        ::glDepthMask(GL_FALSE);
+        glsafe(::glEnable(GL_DEPTH_TEST));
+        glsafe(::glDepthMask(GL_FALSE));
 
-        ::glEnable(GL_BLEND);
-        ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glsafe(::glEnable(GL_BLEND));
+        glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-        ::glEnable(GL_TEXTURE_2D);
-        ::glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-
-        if (bottom)
-            ::glFrontFace(GL_CW);
-
-        render_prusa_shader(triangles_vcount, bottom);
+//        glsafe(::glEnable(GL_TEXTURE_2D));
+//        glsafe(::glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE));
 
         if (bottom)
-            ::glFrontFace(GL_CCW);
+            glsafe(::glFrontFace(GL_CW));
 
-        ::glDisable(GL_TEXTURE_2D);
+        render_prusa_shader(bottom);
 
-        ::glDisable(GL_BLEND);
-        ::glDepthMask(GL_TRUE);
+        if (bottom)
+            glsafe(::glFrontFace(GL_CCW));
+
+//        glsafe(::glDisable(GL_TEXTURE_2D));
+
+        glsafe(::glDisable(GL_BLEND));
+        glsafe(::glDepthMask(GL_TRUE));
     }
 }
 
-void Bed3D::render_prusa_shader(unsigned int vertices_count, bool transparent) const
+void Bed3D::render_prusa_shader(bool transparent) const
 {
     if (m_shader.get_shader_program_id() == 0)
         m_shader.init("printbed.vs", "printbed.fs");
@@ -597,19 +596,15 @@ void Bed3D::render_prusa_shader(unsigned int vertices_count, bool transparent) c
         m_shader.start_using();
         m_shader.set_uniform("transparent_background", transparent);
 
-        ::glBindTexture(GL_TEXTURE_2D, (GLuint)m_texture.get_id());
-        ::glBindBuffer(GL_ARRAY_BUFFER, m_vbo_id);
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        ::glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, m_triangles.get_vertex_data_size(), (GLvoid*)m_triangles.get_position_offset());
-        ::glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, m_triangles.get_vertex_data_size(), (GLvoid*)m_triangles.get_tex_coords_offset());
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        ::glEnableVertexAttribArray(0);
-        ::glEnableVertexAttribArray(1);
-        ::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)vertices_count);
-        ::glDisableVertexAttribArray(1);
-        ::glDisableVertexAttribArray(0);
-        ::glBindBuffer(GL_ARRAY_BUFFER, 0);
-        ::glBindTexture(GL_TEXTURE_2D, 0);
+        glsafe(::glBindTexture(GL_TEXTURE_2D, (GLuint)m_texture.get_id()));
+        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_vbo_id));
+        glsafe(::glEnableVertexAttribArray(0));
+        glsafe(::glEnableVertexAttribArray(1));
+        glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)m_triangles.get_vertices_count()));
+        glsafe(::glDisableVertexAttribArray(1));
+        glsafe(::glDisableVertexAttribArray(0));
+        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+        glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
 
         m_shader.stop_using();
     }
@@ -760,7 +755,7 @@ void Bed3D::render_custom() const
         glsafe(::glColor4f(0.35f, 0.35f, 0.35f, 0.4f));
         glsafe(::glNormal3d(0.0f, 0.0f, 1.0f));
 #if ENABLE_TEXTURES_FROM_SVG
-        ::glVertexPointer(3, GL_FLOAT, m_triangles.get_vertex_data_size(), (GLvoid*)m_triangles.get_vertices_data());
+        glsafe(::glVertexPointer(3, GL_FLOAT, m_triangles.get_vertex_data_size(), (GLvoid*)m_triangles.get_vertices_data()));
 #else
         glsafe(::glVertexPointer(3, GL_FLOAT, 0, (GLvoid*)m_triangles.get_vertices()));
 #endif // ENABLE_TEXTURES_FROM_SVG
@@ -774,7 +769,7 @@ void Bed3D::render_custom() const
         glsafe(::glLineWidth(3.0f * m_scale_factor));
         glsafe(::glColor4f(0.2f, 0.2f, 0.2f, 0.4f));
 #if ENABLE_TEXTURES_FROM_SVG
-        ::glVertexPointer(3, GL_FLOAT, m_triangles.get_vertex_data_size(), (GLvoid*)m_gridlines.get_vertices_data());
+        glsafe(::glVertexPointer(3, GL_FLOAT, m_triangles.get_vertex_data_size(), (GLvoid*)m_gridlines.get_vertices_data()));
 #else
         glsafe(::glVertexPointer(3, GL_FLOAT, 0, (GLvoid*)m_gridlines.get_vertices()));
 #endif // ENABLE_TEXTURES_FROM_SVG
@@ -792,7 +787,7 @@ void Bed3D::reset()
 {
     if (m_vbo_id > 0)
     {
-        ::glDeleteBuffers(1, &m_vbo_id);
+        glsafe(::glDeleteBuffers(1, &m_vbo_id));
         m_vbo_id = 0;
     }
 }

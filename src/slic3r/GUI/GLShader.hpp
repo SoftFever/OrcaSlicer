@@ -26,6 +26,7 @@ public:
 
     bool set_uniform(const char *name, float value) const;
     bool set_uniform(const char* name, const float* matrix) const;
+    bool set_uniform(const char* name, int value) const;
 
     void enable() const;
     void disable() const;

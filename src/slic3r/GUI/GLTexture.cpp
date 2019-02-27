@@ -359,27 +359,6 @@ bool GLTexture::load_from_svg(const std::string& filename, bool use_mipmaps, uns
     nsvgDeleteRasterizer(rast);
     nsvgDelete(image);
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#if 1
-    // debug output
-    wxImage output(m_width, m_height);
-    output.InitAlpha();
-
-    for (int h = 0; h < m_height; ++h)
-    {
-        int px_h = h * m_width;
-        for (int w = 0; w < m_width; ++w)
-        {
-            int offset = (px_h + w) * 4;
-            output.SetRGB(w, h, data.data()[offset + 0], data.data()[offset + 1], data.data()[offset + 2]);
-            output.SetAlpha(w, h, data.data()[offset + 3]);
-        }
-    }
-
-    output.SaveFile(resources_dir() + "/icons/test_svg_import.png", wxBITMAP_TYPE_PNG);
-#endif // 0
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
     return true;
 }
 #endif // ENABLE_TEXTURES_FROM_SVG
