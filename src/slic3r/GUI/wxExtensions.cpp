@@ -1640,6 +1640,8 @@ void PrusaDoubleSlider::SetTicksValues(const std::vector<double>& heights)
     if (m_values.empty())
         return;
 
+    const bool was_empty = m_ticks.empty();
+
     m_ticks.clear();
     unsigned int i = 0;
     for (auto h : heights) {
@@ -1649,7 +1651,10 @@ void PrusaDoubleSlider::SetTicksValues(const std::vector<double>& heights)
             return;
         m_ticks.insert(i-1);
     }
-
+    
+    if (!was_empty && m_ticks.empty())
+        // Switch to the "Feature type"/"Tool" from the very beginning of a new object slicing after deleting of the old one
+        wxPostEvent(this->GetParent(), wxCommandEvent(wxCUSTOMEVT_TICKSCHANGED));
 }
 
 void PrusaDoubleSlider::get_lower_and_higher_position(int& lower_pos, int& higher_pos)
