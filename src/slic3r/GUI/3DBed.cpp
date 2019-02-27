@@ -556,8 +556,10 @@ void Bed3D::render_prusa(const std::string &key, bool bottom) const
             ::glGenBuffers(1, &m_vbo_id);
             ::glBindBuffer(GL_ARRAY_BUFFER, m_vbo_id);
             ::glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)m_triangles.get_vertices_data_size(), (const GLvoid*)m_triangles.get_vertices_data(), GL_STATIC_DRAW);
-            ::glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, m_triangles.get_vertex_data_size(), (GLvoid*)m_triangles.get_position_offset());
-            ::glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, m_triangles.get_vertex_data_size(), (GLvoid*)m_triangles.get_tex_coords_offset());
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//            ::glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, m_triangles.get_vertex_data_size(), (GLvoid*)m_triangles.get_position_offset());
+//            ::glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, m_triangles.get_vertex_data_size(), (GLvoid*)m_triangles.get_tex_coords_offset());
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             ::glBindBuffer(GL_ARRAY_BUFFER, 0);
         }
 
@@ -597,6 +599,10 @@ void Bed3D::render_prusa_shader(unsigned int vertices_count, bool transparent) c
 
         ::glBindTexture(GL_TEXTURE_2D, (GLuint)m_texture.get_id());
         ::glBindBuffer(GL_ARRAY_BUFFER, m_vbo_id);
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        ::glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, m_triangles.get_vertex_data_size(), (GLvoid*)m_triangles.get_position_offset());
+        ::glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, m_triangles.get_vertex_data_size(), (GLvoid*)m_triangles.get_tex_coords_offset());
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         ::glEnableVertexAttribArray(0);
         ::glEnableVertexAttribArray(1);
         ::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)vertices_count);
