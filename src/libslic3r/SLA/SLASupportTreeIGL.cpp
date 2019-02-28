@@ -169,6 +169,7 @@ EigenMesh3D::query_ray_hit(const Vec3d &s, const Vec3d &dir) const
     hit_result ret(*this);
     ret.m_t = double(hit.t);
     ret.m_dir = dir;
+    ret.m_source = s;
     if(!std::isinf(hit.t) && !std::isnan(hit.t)) ret.m_face_id = hit.id;
 
     return ret;
@@ -348,9 +349,9 @@ PointSet normals(const PointSet& points,
 
 // Clustering a set of points by the given criteria
 ClusteredPoints cluster(
-        const sla::PointSet& points,
+        const sla::PointSet& points, const std::vector<unsigned>& indices,
         std::function<bool(const SpatElement&, const SpatElement&)> pred,
-        unsigned max_points = 0, const std::vector<unsigned>& indices = {})
+        unsigned max_points = 0)
 {
 
     namespace bgi = boost::geometry::index;
@@ -360,12 +361,8 @@ ClusteredPoints cluster(
     Index3D sindex;
 
     // Build the index
-    if(indices.empty())
-        for(unsigned idx = 0; idx < points.rows(); idx++)
-            sindex.insert( std::make_pair(points.row(idx), idx));
-    else
-        for(unsigned idx : indices)
-            sindex.insert( std::make_pair(points.row(idx), idx));
+    for(unsigned idx : indices)
+        sindex.insert( std::make_pair(points.row(idx), idx));
 
     using Elems = std::vector<SpatElement>;
 

@@ -70,24 +70,32 @@ public:
 
     // Result of a raycast
     class hit_result {
-        double m_t = std::numeric_limits<double>::infinity();
+        double m_t = std::nan("");
         int m_face_id = -1;
-        const EigenMesh3D& m_mesh;
+        std::reference_wrapper<const EigenMesh3D> m_mesh;
         Vec3d m_dir;
-        inline hit_result(const EigenMesh3D& em): m_mesh(em) {}
+        Vec3d m_source;
         friend class EigenMesh3D;
     public:
 
+        // A valid object of this class can only be obtained from
+        // EigenMesh3D::query_ray_hit method.
+        explicit inline hit_result(const EigenMesh3D& em): m_mesh(em) {}
+
         inline double distance() const { return m_t; }
         inline const Vec3d& direction() const { return m_dir; }
+        inline Vec3d position() const { return m_source + m_dir * m_t; }
         inline int face() const { return m_face_id; }
+
+        // Hit_result can decay into a double as the hit distance.
+        inline operator double() const { return distance(); }
 
         inline Vec3d normal() const {
             if(m_face_id < 0) return {};
-            auto trindex    = m_mesh.m_F.row(m_face_id);
-            const Vec3d& p1 = m_mesh.V().row(trindex(0));
-            const Vec3d& p2 = m_mesh.V().row(trindex(1));
-            const Vec3d& p3 = m_mesh.V().row(trindex(2));
+            auto trindex    = m_mesh.get().m_F.row(m_face_id);
+            const Vec3d& p1 = m_mesh.get().V().row(trindex(0));
+            const Vec3d& p2 = m_mesh.get().V().row(trindex(1));
+            const Vec3d& p3 = m_mesh.get().V().row(trindex(2));
             Eigen::Vector3d U = p2 - p1;
             Eigen::Vector3d V = p3 - p1;
             return U.cross(V).normalized();
