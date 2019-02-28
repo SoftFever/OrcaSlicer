@@ -553,12 +553,16 @@ void Bed3D::render_prusa(const std::string &key, bool bottom) const
     {
         if (m_vbo_id == 0)
         {
-            unsigned int stride = m_triangles.get_vertex_data_size();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//            unsigned int stride = m_triangles.get_vertex_data_size();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             glsafe(::glGenBuffers(1, &m_vbo_id));
             glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_vbo_id));
             glsafe(::glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)m_triangles.get_vertices_data_size(), (const GLvoid*)m_triangles.get_vertices_data(), GL_STATIC_DRAW));
-            glsafe(::glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (GLvoid*)m_triangles.get_position_offset()));
-            glsafe(::glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, (GLvoid*)m_triangles.get_tex_coords_offset()));
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//            glsafe(::glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (GLvoid*)m_triangles.get_position_offset()));
+//            glsafe(::glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, (GLvoid*)m_triangles.get_tex_coords_offset()));
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
         }
 
@@ -596,13 +600,48 @@ void Bed3D::render_prusa_shader(bool transparent) const
         m_shader.start_using();
         m_shader.set_uniform("transparent_background", transparent);
 
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        unsigned int stride = m_triangles.get_vertex_data_size();
+
+        GLint position_id = m_shader.get_attrib_location("v_position");
+        GLint tex_coords_id = m_shader.get_attrib_location("v_tex_coords");
+
+        std::cout << "position_id: " << position_id << std::endl;
+        std::cout << "tex_coords_id: " << tex_coords_id << std::endl;
+
+//        if (tex_coords_id != -1)
+//            glsafe(::glBindAttribLocation(m_shader.get_shader_program_id(), tex_coords_id, "v_tex_coords"));
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
         glsafe(::glBindTexture(GL_TEXTURE_2D, (GLuint)m_texture.get_id()));
         glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_vbo_id));
-        glsafe(::glEnableVertexAttribArray(0));
-        glsafe(::glEnableVertexAttribArray(1));
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        if (position_id != -1)
+        {
+            glsafe(::glEnableVertexAttribArray(position_id));
+            glsafe(::glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, stride, (GLvoid*)m_triangles.get_position_offset()));
+        }
+        if (tex_coords_id != -1)
+        {
+            glsafe(::glEnableVertexAttribArray(tex_coords_id));
+            glsafe(::glVertexAttribPointer(tex_coords_id, 2, GL_FLOAT, GL_FALSE, stride, (GLvoid*)m_triangles.get_tex_coords_offset()));
+        }
+
+//        glsafe(::glEnableVertexAttribArray(0));
+//        glsafe(::glEnableVertexAttribArray(1));
+//        glsafe(::glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (GLvoid*)m_triangles.get_position_offset()));
+//        glsafe(::glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, (GLvoid*)m_triangles.get_tex_coords_offset()));
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)m_triangles.get_vertices_count()));
-        glsafe(::glDisableVertexAttribArray(1));
-        glsafe(::glDisableVertexAttribArray(0));
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        if (tex_coords_id != -1)
+            glsafe(::glDisableVertexAttribArray(tex_coords_id));
+        if (position_id != -1)
+            glsafe(::glDisableVertexAttribArray(position_id));
+
+//        glsafe(::glDisableVertexAttribArray(1));
+//        glsafe(::glDisableVertexAttribArray(0));
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
         glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
 

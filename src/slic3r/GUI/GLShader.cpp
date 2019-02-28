@@ -317,6 +317,18 @@ void Shader::stop_using() const
         m_shader->disable();
 }
 
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+int Shader::get_attrib_location(const std::string& name) const
+{
+    return (m_shader != nullptr) ? m_shader->get_attrib_location(name.c_str()) : -1;
+}
+
+int Shader::get_uniform_location(const std::string& name) const
+{
+    return (m_shader != nullptr) ? m_shader->get_uniform_location(name.c_str()) : -1;
+}
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
 void Shader::set_uniform(const std::string& name, float value) const
 {
     if (m_shader != nullptr)
