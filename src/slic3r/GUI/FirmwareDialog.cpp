@@ -768,7 +768,7 @@ FirmwareDialog::FirmwareDialog(wxWindow *parent) :
 	// Experience says it needs to be 1, otherwise things won't get sized properly.
 	vsizer->Add(p->spoiler, 1, wxEXPAND | wxBOTTOM, SPACING);
 
-	p->btn_close = new wxButton(panel, wxID_CLOSE);
+	p->btn_close = new wxButton(panel, wxID_CLOSE, _(L("Close")));   // Note: The label needs to be present, otherwise we get accelerator bugs on Mac
 	p->btn_flash = new wxButton(panel, wxID_ANY, p->btn_flash_label_ready);
 	p->btn_flash->Disable();
 	auto *bsizer = new wxBoxSizer(wxHORIZONTAL);
