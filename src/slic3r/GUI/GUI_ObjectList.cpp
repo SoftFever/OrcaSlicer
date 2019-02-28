@@ -1173,10 +1173,161 @@ void ObjectList::load_part( ModelObject* model_object,
 
 }
 
+// Find volume transformation, so that the chained (instance_trafo * volume_trafo) will be as close to identity
+// as possible in least squares norm in regard to the 8 corners of bbox.
+// Bounding box is expected to be centered around zero in all axes.
+Geometry::Transformation volume_to_bed_transformation(const Geometry::Transformation &instance_transformation, const BoundingBoxf3 &bbox)
+{
+    Geometry::Transformation out;
+
+    if (instance_transformation.is_scaling_uniform()) {
+        // No need to run the non-linear least squares fitting for uniform scaling.
+        // Just set the inverse.
+		out.set_from_transform(instance_transformation.get_matrix(true).inverse());
+    }
+    else
+    {
+		Eigen::Matrix3d instance_rotation_trafo =
+			(Eigen::AngleAxisd(instance_transformation.get_rotation().z(), Vec3d::UnitZ()) *
+			 Eigen::AngleAxisd(instance_transformation.get_rotation().y(), Vec3d::UnitY()) *
+			 Eigen::AngleAxisd(instance_transformation.get_rotation().x(), Vec3d::UnitX())).toRotationMatrix();
+		Eigen::Matrix3d instance_rotation_trafo_inv =
+			(Eigen::AngleAxisd(- instance_transformation.get_rotation().x(), Vec3d::UnitX()) *
+			 Eigen::AngleAxisd(- instance_transformation.get_rotation().y(), Vec3d::UnitY()) *
+			 Eigen::AngleAxisd(- instance_transformation.get_rotation().z(), Vec3d::UnitZ())).toRotationMatrix();
+		Vec3d euler_angles_inv = Geometry::extract_euler_angles(instance_rotation_trafo_inv);
+
+		Eigen::Matrix3d instance_trafo = instance_rotation_trafo *
+			Eigen::Scaling(instance_transformation.get_scaling_factor().cwiseProduct(instance_transformation.get_mirror()));
+
+		// 8 corners of the bounding box.
+		auto pts = Eigen::MatrixXd(8, 3);
+		pts(0, 0) = bbox.min.x(); pts(0, 1) = bbox.min.y(); pts(0, 2) = bbox.min.z();
+		pts(1, 0) = bbox.min.x(); pts(1, 1) = bbox.min.y(); pts(1, 2) = bbox.max.z();
+		pts(2, 0) = bbox.min.x(); pts(2, 1) = bbox.max.y(); pts(2, 2) = bbox.min.z();
+		pts(3, 0) = bbox.min.x(); pts(3, 1) = bbox.max.y(); pts(3, 2) = bbox.max.z();
+		pts(4, 0) = bbox.max.x(); pts(4, 1) = bbox.min.y(); pts(4, 2) = bbox.min.z();
+		pts(5, 0) = bbox.max.x(); pts(5, 1) = bbox.min.y(); pts(5, 2) = bbox.max.z();
+		pts(6, 0) = bbox.max.x(); pts(6, 1) = bbox.max.y(); pts(6, 2) = bbox.min.z();
+		pts(7, 0) = bbox.max.x(); pts(7, 1) = bbox.max.y(); pts(7, 2) = bbox.max.z();
+
+		// Current parameters: 3x scale, 3x rotation
+		auto beta = Eigen::MatrixXd(3 + 3, 1);
+		beta << 1., 1., 1., euler_angles_inv(0), euler_angles_inv(1), euler_angles_inv(2);
+
+		{
+			// Trafo from world to the coordinate system of the modifier mesh, with the inverse rotation applied to the modifier.
+			Eigen::Matrix3d A_scaling = instance_trafo * instance_rotation_trafo_inv;
+			// Corners of the bounding box transformed into the modifier mesh coordinate space, with inverse rotation applied to the modifier.
+			auto qs = pts * A_scaling.inverse().transpose();
+			// Fill in scaling based on least squares fitting of the bounding box corners.
+			for (int i = 0; i < 3; ++i)
+				beta(i) = pts.col(i).dot(qs.col(i)) / pts.col(i).dot(pts.col(i));
+		}
+
+        // Jacobian
+        // rows: 8 corners of a cube times 3 dimensions,
+        // cols: 3x scale, 3x rotation
+        auto J = Eigen::MatrixXd(8 * 3, 3 + 3);
+
+        // Until convergence:
+        Eigen::Matrix3d s, dsx, dsy, dsz;
+    	Eigen::Matrix3d rx, drx, ry, dry, rz, drz;
+        s.setIdentity();
+        rx.setIdentity(); ry.setIdentity(); rz.setIdentity();
+        dsx.setZero(); dsy.setZero(); dsz.setZero();
+        drx.setZero(); dry.setZero(); drz.setZero();
+        dsx(0, 0) = 1.; dsy(1, 1) = 1.; dsz(2, 2) = 1.;
+
+        // Solve the non-linear Least Squares problem by Levenberg–Marquardt algorithm (modified Gauss–Newton iteration)
+    	const double eps = 1.e-7;
+		auto   beta_best = beta;
+		double beta_best_error = 1e10;
+        for (size_t iter = 0; iter < 200; ++ iter) {
+            // Current rotation & scaling transformation.
+            auto trafo = instance_trafo *
+                         Eigen::AngleAxisd(beta(5), Vec3d::UnitZ()) *
+                         Eigen::AngleAxisd(beta(4), Vec3d::UnitY()) *
+                         Eigen::AngleAxisd(beta(3), Vec3d::UnitX()) *
+                         Eigen::Scaling(Vec3d(beta(0), beta(1), beta(2)));
+            // Current error after rotation & scaling.
+			auto dy = (pts - pts * trafo.transpose()).eval();
+			double err = 0;
+			for (int i = 0; i < 8; ++i)
+				err += dy.row(i).norm();
+			if (err < beta_best_error) {
+				beta_best = beta;
+				beta_best_error = err;
+			}
+            // Fill in the Jacobian at current beta.
+            double cos_rx = cos(beta(3));
+            double sin_rx = sin(beta(3));
+            double cos_ry = cos(beta(4));
+            double sin_ry = sin(beta(4));
+            double cos_rz = cos(beta(5));
+            double sin_rz = sin(beta(5));
+            rx  <<  1.,          0.,     0.,     0.,  cos_rx, -sin_rx,      0., sin_rx,  cos_rx;
+            drx <<  0.,          0.,     0.,     0., -sin_rx, -cos_rx,      0., cos_rx, -sin_rx;
+            ry  <<  cos_ry,      0., sin_ry,     0.,      1.,      0., -sin_ry,     0.,  cos_ry;
+            dry << -sin_ry,      0., cos_ry,     0.,      0.,      0., -cos_ry,     0., -sin_ry;
+            rz  <<  cos_rz, -sin_rz,     0., sin_rz,  cos_rz,      0.,      0.,     0.,      1.;
+            drz << -sin_rz, -cos_rz,     0., cos_rz, -sin_rz,      0.,      0.,     0.,      0.;
+            s(0, 0) = beta(0);
+            s(1, 1) = beta(1);
+            s(2, 2) = beta(2);
+            auto rot = (instance_trafo * rz * ry * rx).eval();
+    		auto jrx = pts * (instance_trafo * rz * ry * drx * s).transpose();
+    		auto jry = pts * (instance_trafo * rz * dry * rx * s).transpose();
+    		auto jrz = pts * (instance_trafo * drz * ry * rx * s).transpose();
+            for (int r = 0; r < 8; ++ r) {
+                for (int i = 0; i < 3; ++ i) {
+					J(r * 3 + i, 0) = rot(i, 0) * pts(r, 0);
+					J(r * 3 + i, 1) = rot(i, 1) * pts(r, 1);
+					J(r * 3 + i, 2) = rot(i, 2) * pts(r, 2);
+                    J(r * 3 + i, 3) = jrx(r, i);
+                    J(r * 3 + i, 4) = jry(r, i);
+                    J(r * 3 + i, 5) = jrz(r, i);
+                }
+            }
+            // Solving the normal equations for delta beta.
+			auto rhs = (J.transpose() * Eigen::Map<Eigen::VectorXd>(dy.data(), dy.size())).eval();
+			double lambda = 1.; //  0.01;
+			auto A   = (J.transpose() * J + Eigen::Matrix<double, 6, 6>::Identity() * lambda).eval();
+			auto L   = A.ldlt();
+			auto delta_beta = L.solve(rhs).eval();
+            // Check for convergence.
+            auto delta_beta_max = delta_beta.cwiseAbs().maxCoeff();
+			if (delta_beta_max < eps)
+                break;
+            beta = beta + delta_beta;
+        }
+
+		out.set_rotation(Vec3d(beta_best(3), beta_best(4), beta_best(5)));
+		out.set_scaling_factor(Vec3d(std::abs(beta_best(0)), std::abs(beta_best(1)), std::abs(beta_best(2))));
+		out.set_mirror(Vec3d(beta_best(0) > 0 ? 1. : -1, beta_best(1) > 0 ? 1. : -1, beta_best(2) > 0 ? 1. : -1));
+    }
+
+    return out;
+}
+
 void ObjectList::load_generic_subobject(const std::string& type_name, const ModelVolumeType type)
 {
     const auto obj_idx = get_selected_obj_idx();
-    if (obj_idx < 0) return;
+    if (obj_idx < 0) 
+        return;
+
+    const GLCanvas3D::Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
+    assert(obj_idx == selection.get_object_idx());
+    // Selected instance index in ModelObject. Only valid if there is only one instance selected in the selection.
+    int instance_idx = selection.get_instance_idx();
+    assert(instance_idx != -1);
+    if (instance_idx == -1)
+        return;
+
+    // Selected object
+    ModelObject  &model_object = *(*m_objects)[obj_idx];
+    // Bounding box of the selected instance in world coordinate system including the translation, without modifiers.
+    BoundingBoxf3 instance_bb = model_object.instance_bounding_box(instance_idx);
 
     const wxString name = _(L("Generic")) + "-" + _(type_name);
     TriangleMesh mesh;
@@ -1185,48 +1336,48 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
     const auto& sz = BoundingBoxf(bed_shape).size();
     const auto side = 0.1 * std::max(sz(0), sz(1));
 
-    if (type_name == "Box") {
+    if (type_name == "Box")
+        // Sitting on the print bed, left front front corner at (0, 0).
         mesh = make_cube(side, side, side);
-        // box sets the base coordinate at 0, 0, move to center of plate
-        mesh.translate(-side * 0.5, -side * 0.5, 0);
-    }
     else if (type_name == "Cylinder")
-        mesh = make_cylinder(0.5*side, side);
+        // Centered around 0, sitting on the print bed.
+        // The cylinder has the same volume as the box above.
+        mesh = make_cylinder(0.564 * side, side);
     else if (type_name == "Sphere")
-        mesh = make_sphere(0.5*side, PI/18);
-    else if (type_name == "Slab") {
-        const auto& size = (*m_objects)[obj_idx]->bounding_box().size();
-        mesh = make_cube(size(0)*1.5, size(1)*1.5, size(2)*0.5);
-        // box sets the base coordinate at 0, 0, move to center of plate and move it up to initial_z
-        mesh.translate(-size(0)*1.5 / 2.0, -size(1)*1.5 / 2.0, 0);
-    }
+        // Centered around 0, half the sphere below the print bed, half above.
+        // The sphere has the same volume as the box above.
+        mesh = make_sphere(0.62 * side, PI / 18);
+    else if (type_name == "Slab")
+        // Sitting on the print bed, left front front corner at (0, 0).
+        mesh = make_cube(instance_bb.size().x()*1.5, instance_bb.size().y()*1.5, instance_bb.size().z()*0.5);
     mesh.repair();
     
-    auto new_volume = (*m_objects)[obj_idx]->add_volume(mesh);
+	// Mesh will be centered when loading.
+    ModelVolume *new_volume = model_object.add_volume(std::move(mesh));
     new_volume->set_type(type);
 
 #if !ENABLE_GENERIC_SUBPARTS_PLACEMENT
-    new_volume->set_offset(Vec3d(0.0, 0.0, (*m_objects)[obj_idx]->origin_translation(2) - mesh.stl.stats.min(2)));
+    new_volume->set_offset(Vec3d(0.0, 0.0, model_object.origin_translation(2) - mesh.stl.stats.min(2)));
 #endif // !ENABLE_GENERIC_SUBPARTS_PLACEMENT
 #if !ENABLE_VOLUMES_CENTERING_FIXES
     new_volume->center_geometry();
 #endif // !ENABLE_VOLUMES_CENTERING_FIXES
 
 #if ENABLE_GENERIC_SUBPARTS_PLACEMENT
-    const GLCanvas3D::Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
-    int instance_idx = selection.get_instance_idx();
     if (instance_idx != -1)
     {
+        // First (any) GLVolume of the selected instance. They all share the same instance matrix.
         const GLVolume* v = selection.get_volume(*selection.get_volume_idxs().begin());
-        const Transform3d& inst_m = v->get_instance_transformation().get_matrix(true);
-        TriangleMesh vol_mesh(mesh);
-        vol_mesh.transform(inst_m);
-        Vec3d vol_shift = -vol_mesh.bounding_box().center();
-        vol_mesh.translate((float)vol_shift(0), (float)vol_shift(1), (float)vol_shift(2));
-        Vec3d world_mesh_bb_size = vol_mesh.bounding_box().size();
-        BoundingBoxf3 inst_bb = (*m_objects)[obj_idx]->instance_bounding_box(instance_idx);
-        Vec3d world_target = Vec3d(inst_bb.max(0), inst_bb.min(1), inst_bb.min(2)) + 0.5 * world_mesh_bb_size;
-        new_volume->set_offset(inst_m.inverse() * (world_target - v->get_instance_offset()));
+        // Transform the new modifier to be aligned with the print bed.
+		const BoundingBoxf3 mesh_bb = new_volume->mesh.bounding_box();
+		new_volume->set_transformation(volume_to_bed_transformation(v->get_instance_transformation(), mesh_bb));
+        // Set the modifier position.
+        auto offset = (type_name == "Slab") ?
+            // Slab: Lift to print bed
+			Vec3d(0., 0., 0.5 * mesh_bb.size().z() + instance_bb.min.z() - v->get_instance_offset().z()) :
+            // Translate the new modifier to be pickable: move to the left front corner of the instance's bounding box, lift to print bed.
+            Vec3d(instance_bb.max(0), instance_bb.min(1), instance_bb.min(2)) + 0.5 * mesh_bb.size() - v->get_instance_offset();
+        new_volume->set_offset(v->get_instance_transformation().get_matrix(true).inverse() * offset);
     }
 #endif // ENABLE_GENERIC_SUBPARTS_PLACEMENT
 
