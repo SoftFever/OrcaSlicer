@@ -38,9 +38,7 @@ GLToolbarItem::Data::Data()
     , tooltip("")
     , sprite_id(-1)
     , is_toggable(false)
-#if ENABLE_MODE_AWARE_TOOLBAR_ITEMS
     , visible(true)
-#endif // ENABLE_MODE_AWARE_TOOLBAR_ITEMS
 {
 }
 
@@ -362,7 +360,6 @@ bool GLToolbar::is_item_disabled(const std::string& name) const
     return false;
 }
 
-#if ENABLE_MODE_AWARE_TOOLBAR_ITEMS
 bool GLToolbar::is_item_visible(const std::string& name) const
 {
     for (GLToolbarItem* item : m_items)
@@ -400,7 +397,6 @@ void GLToolbar::set_item_visible(const std::string& name, bool visible)
     }
 
 }
-#endif // ENABLE_MODE_AWARE_TOOLBAR_ITEMS
 
 std::string GLToolbar::update_hover_state(const Vec2d& mouse_pos, GLCanvas3D& parent)
 {
@@ -547,10 +543,8 @@ float GLToolbar::get_main_size() const
     float size = 2.0f * m_layout.border;
     for (unsigned int i = 0; i < (unsigned int)m_items.size(); ++i)
     {
-#if ENABLE_MODE_AWARE_TOOLBAR_ITEMS
         if (!m_items[i]->is_visible())
             continue;
-#endif // ENABLE_MODE_AWARE_TOOLBAR_ITEMS
 
         if (m_items[i]->is_separator())
             size += m_layout.separator_size;
@@ -566,10 +560,8 @@ float GLToolbar::get_main_size() const
     float size = 2.0f * m_layout.border * m_layout.icons_scale;
     for (unsigned int i = 0; i < (unsigned int)m_items.size(); ++i)
     {
-#if ENABLE_MODE_AWARE_TOOLBAR_ITEMS
         if (!m_items[i]->is_visible())
             continue;
-#endif // ENABLE_MODE_AWARE_TOOLBAR_ITEMS
 
         if (m_items[i]->is_separator())
             size += m_layout.separator_size * m_layout.icons_scale;
@@ -618,10 +610,8 @@ std::string GLToolbar::update_hover_state_horizontal(const Vec2d& mouse_pos, GLC
         
     for (GLToolbarItem* item : m_items)
     {
-#if ENABLE_MODE_AWARE_TOOLBAR_ITEMS
         if (!item->is_visible())
             continue;
-#endif // ENABLE_MODE_AWARE_TOOLBAR_ITEMS
 
         if (item->is_separator())
             left += separator_stride;
@@ -724,10 +714,8 @@ std::string GLToolbar::update_hover_state_vertical(const Vec2d& mouse_pos, GLCan
 
     for (GLToolbarItem* item : m_items)
     {
-#if ENABLE_MODE_AWARE_TOOLBAR_ITEMS
         if (!item->is_visible())
             continue;
-#endif // ENABLE_MODE_AWARE_TOOLBAR_ITEMS
 
         if (item->is_separator())
             top -= separator_stride;
@@ -832,10 +820,8 @@ int GLToolbar::contains_mouse_horizontal(const Vec2d& mouse_pos, const GLCanvas3
     {
         ++id;
         
-#if ENABLE_MODE_AWARE_TOOLBAR_ITEMS
         if (!item->is_visible())
             continue;
-#endif // ENABLE_MODE_AWARE_TOOLBAR_ITEMS
 
         if (item->is_separator())
             left += separator_stride;
@@ -890,10 +876,8 @@ int GLToolbar::contains_mouse_vertical(const Vec2d& mouse_pos, const GLCanvas3D&
     {
         ++id;
 
-#if ENABLE_MODE_AWARE_TOOLBAR_ITEMS
         if (!item->is_visible())
             continue;
-#endif // ENABLE_MODE_AWARE_TOOLBAR_ITEMS
 
         if (item->is_separator())
             top -= separator_stride;
@@ -1050,10 +1034,8 @@ void GLToolbar::render_horizontal(const GLCanvas3D& parent) const
     // renders icons
     for (const GLToolbarItem* item : m_items)
     {
-#if ENABLE_MODE_AWARE_TOOLBAR_ITEMS
         if (!item->is_visible())
             continue;
-#endif // ENABLE_MODE_AWARE_TOOLBAR_ITEMS
 
         if (item->is_separator())
             left += separator_stride;
@@ -1207,10 +1189,8 @@ void GLToolbar::render_vertical(const GLCanvas3D& parent) const
     // renders icons
     for (const GLToolbarItem* item : m_items)
     {
-#if ENABLE_MODE_AWARE_TOOLBAR_ITEMS
         if (!item->is_visible())
             continue;
-#endif // ENABLE_MODE_AWARE_TOOLBAR_ITEMS
 
         if (item->is_separator())
             top -= separator_stride;

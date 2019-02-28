@@ -60,9 +60,7 @@ public:
     void delete_selected();
     void mirror_selection(Axis axis);
 
-#if ENABLE_MODE_AWARE_TOOLBAR_ITEMS
     void update_toolbar_items_visibility();
-#endif // ENABLE_MODE_AWARE_TOOLBAR_ITEMS
     void enable_toolbar_item(const std::string& name, bool enable);
     int check_volumes_outside_state() const;
 

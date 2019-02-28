@@ -2763,10 +2763,8 @@ void Plater::priv::set_bed_shape(const Pointfs& shape)
 void Plater::priv::update_object_menu()
 {
     sidebar->obj_list()->append_menu_items_add_volume(&object_menu);
-#if ENABLE_MODE_AWARE_TOOLBAR_ITEMS
     if (view3D != nullptr)
         view3D->update_toolbar_items_visibility();
-#endif // ENABLE_MODE_AWARE_TOOLBAR_ITEMS
 }
 
 // Plater / Public

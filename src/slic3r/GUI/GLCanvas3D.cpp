@@ -4135,7 +4135,6 @@ void GLCanvas3D::update_volumes_colors_by_extruder()
         m_volumes.update_colors_by_extruder(m_config);
 }
 
-#if ENABLE_MODE_AWARE_TOOLBAR_ITEMS
 void GLCanvas3D::update_toolbar_items_visibility()
 {
     ConfigOptionMode mode = wxGetApp().get_mode();
@@ -4144,7 +4143,6 @@ void GLCanvas3D::update_toolbar_items_visibility()
     m_toolbar.set_item_visible("splitvolumes", mode != comSimple);
     m_dirty = true;
 }
-#endif // ENABLE_MODE_AWARE_TOOLBAR_ITEMS
 
 // Returns a Rect object denoting size and position of the Reset button used by a gizmo.
 // Returns in either screen or viewport coords.
@@ -6056,9 +6054,7 @@ bool GLCanvas3D::_init_toolbar()
 
     enable_toolbar_item("add", true);
 
-#if ENABLE_MODE_AWARE_TOOLBAR_ITEMS
     update_toolbar_items_visibility();
-#endif // ENABLE_MODE_AWARE_TOOLBAR_ITEMS
 
     return true;
 }

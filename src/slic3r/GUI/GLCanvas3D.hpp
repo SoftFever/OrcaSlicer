@@ -953,9 +953,7 @@ public:
 
     void update_volumes_colors_by_extruder();
 
-#if ENABLE_MODE_AWARE_TOOLBAR_ITEMS
     void update_toolbar_items_visibility();
-#endif // ENABLE_MODE_AWARE_TOOLBAR_ITEMS
 
 #if !ENABLE_IMGUI
     Rect get_gizmo_reset_rect(const GLCanvas3D& canvas, bool viewport) const;

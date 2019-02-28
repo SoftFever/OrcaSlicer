@@ -58,9 +58,7 @@ public:
         unsigned int sprite_id;
         bool is_toggable;
         wxEventType action_event;
-#if ENABLE_MODE_AWARE_TOOLBAR_ITEMS
         bool visible;
-#endif // ENABLE_MODE_AWARE_TOOLBAR_ITEMS
 
         Data();
     };
@@ -90,10 +88,8 @@ public:
     bool is_pressed() const { return (m_state == Pressed) || (m_state == HoverPressed); }
 
     bool is_toggable() const { return m_data.is_toggable; }
-#if ENABLE_MODE_AWARE_TOOLBAR_ITEMS
     bool is_visible() const { return m_data.visible; }
     void set_visible(bool visible) { m_data.visible = visible; }
-#endif // ENABLE_MODE_AWARE_TOOLBAR_ITEMS
     bool is_separator() const { return m_type == Separator; }
 
     void render(unsigned int tex_id, float left, float right, float bottom, float top, unsigned int tex_width, unsigned int tex_height, unsigned int icon_size) const;
@@ -263,10 +259,8 @@ public:
 
     bool is_item_pressed(const std::string& name) const;
     bool is_item_disabled(const std::string& name) const;
-#if ENABLE_MODE_AWARE_TOOLBAR_ITEMS
     bool is_item_visible(const std::string& name) const;
     void set_item_visible(const std::string& name, bool visible);
-#endif // ENABLE_MODE_AWARE_TOOLBAR_ITEMS
 
     std::string update_hover_state(const Vec2d& mouse_pos, GLCanvas3D& parent);
 
