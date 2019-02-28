@@ -129,7 +129,11 @@ public:
     void set_drop_target(wxDropTarget* target);
 
     void load_print();
+#if ENABLE_NO_GCODE_TOOLPATHS_REGENERATION
+    void reload_print(bool force = false, bool keep_volumes = false);
+#else
     void reload_print(bool force = false);
+#endif // ENABLE_NO_GCODE_TOOLPATHS_REGENERATION
     void refresh_print();
 
 private:

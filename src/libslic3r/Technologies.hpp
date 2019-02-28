@@ -58,5 +58,7 @@
 
 // Printbed textures generated from svg files
 #define ENABLE_TEXTURES_FROM_SVG (1 && ENABLE_1_42_0_ALPHA7)
+// Do not regenerate GLVolumes for gcode preview if not needed
+#define ENABLE_NO_GCODE_TOOLPATHS_REGENERATION (1 && ENABLE_1_42_0_ALPHA7)
 
 #endif // _technologies_h_
