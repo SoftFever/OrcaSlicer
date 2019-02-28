@@ -18,6 +18,8 @@
 
 #include "libslic3r/Utils.hpp"
 
+#include "libslic3r/Utils.hpp"
+
 namespace Slic3r {
 namespace GUI {
 
