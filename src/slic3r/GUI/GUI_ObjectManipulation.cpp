@@ -365,7 +365,8 @@ void ObjectManipulation::change_rotation_value(const Vec3d& rotation)
 	if (selection.is_single_full_instance() || selection.requires_local_axes())
 		transformation_type.set_independent();
 	if (selection.is_single_full_instance()) {
-		transformation_type.set_absolute();
+        //FIXME GLCanvas3D::Selection::rotate() does not process absoulte rotations correctly: It does not recognize the axis index, which was changed.
+		// transformation_type.set_absolute();
 		transformation_type.set_local();
 	}
 

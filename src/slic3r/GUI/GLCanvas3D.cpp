@@ -1271,6 +1271,7 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation, GLCanvas3D::Transforma
     assert(! transformation_type.world() || transformation_type.relative());
 
     int rot_axis_max;
+    //FIXME this does not work for absolute rotations (transformation_type.absolute() is true)
     rotation.cwiseAbs().maxCoeff(&rot_axis_max);
 
 	// For generic rotation, we want to rotate the first volume in selection, and then to synchronize the other volumes with it.
