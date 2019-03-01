@@ -180,6 +180,9 @@ public:
     // saved in mesh coordinates to allow using them for several instances.
     // The format is (x, y, z, point_size, supports_island)
     std::vector<sla::SupportPoint>      sla_support_points;
+    // To keep track of where the points came from (used for synchronization between
+    // the SLA gizmo and the backend).
+    sla::PointsStatus sla_points_status = sla::PointsStatus::None;
 
     /* This vector accumulates the total translation applied to the object by the
         center_around_origin() method. Callers might want to apply the same translation

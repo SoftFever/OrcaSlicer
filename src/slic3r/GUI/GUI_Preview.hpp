@@ -129,7 +129,7 @@ public:
     void set_drop_target(wxDropTarget* target);
 
     void load_print();
-    void reload_print(bool force = false);
+    void reload_print(bool force = false, bool keep_volumes = false);
     void refresh_print();
 
 private:

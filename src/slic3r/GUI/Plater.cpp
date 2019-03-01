@@ -2037,6 +2037,9 @@ void Plater::priv::schedule_background_process()
     this->background_process_timer.Start(500, wxTIMER_ONE_SHOT);
     // Notify the Canvas3D that something has changed, so it may invalidate some of the layer editing stuff.
     this->view3D->get_canvas3d()->set_config(this->config);
+    // Reset gcode preview
+    this->preview->get_canvas3d()->reset_volumes();
+    this->preview->get_canvas3d()->reset_legend_texture();
 }
 
 void Plater::priv::update_print_volume_state()
@@ -2326,7 +2329,8 @@ void Plater::priv::set_current_panel(wxPanel* panel)
     else if (current_panel == preview)
     {
         this->q->reslice();        
-        preview->reload_print();
+        // keeps current gcode preview, if any
+        preview->reload_print(false, true);
         preview->set_canvas_as_dirty();
         view_toolbar.select_item("Preview");
     }
@@ -3071,7 +3075,7 @@ void Plater::export_gcode()
     default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string()));
     auto start_dir = wxGetApp().app_config->get_last_output_dir(default_output_file.parent_path().string());
 
-    wxFileDialog dlg(this, (printer_technology() == ptFFF) ? _(L("Save G-code file as:")) : _(L("Save Zip file as:")),
+    wxFileDialog dlg(this, (printer_technology() == ptFFF) ? _(L("Save G-code file as:")) : _(L("Save SL1 file as:")),
         start_dir,
         from_path(default_output_file.filename()),
         GUI::file_wildcards((printer_technology() == ptFFF) ? FT_GCODE : FT_PNGZIP, default_output_file.extension().string()),

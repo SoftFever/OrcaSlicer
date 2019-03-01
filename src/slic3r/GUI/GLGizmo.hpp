@@ -489,19 +489,19 @@ private:
 #endif // not ENABLE_IMGUI
 
     bool m_lock_unique_islands = false;
-    bool m_editing_mode = false;
-    bool m_old_editing_state = false;
-    float m_new_point_head_diameter = 0.4f;
-    double m_minimal_point_distance = 20.;
-    double m_density = 100.;
+    bool m_editing_mode = false;            // Is editing mode active?
+    bool m_old_editing_state = false;       // To keep track of whether the user toggled between the modes (needed for imgui refreshes).
+    float m_new_point_head_diameter = 0.4f; // Size of a new point.
+    float m_minimal_point_distance = 20.f;
+    float m_density = 100.f;
     std::vector<std::pair<sla::SupportPoint, bool>> m_editing_mode_cache; // a support point and whether it is currently selected
 
     bool m_selection_rectangle_active = false;
     Vec2d m_selection_rectangle_start_corner;
     Vec2d m_selection_rectangle_end_corner;
     bool m_ignore_up_event = false;
-    bool m_combo_box_open = false;
-    bool m_unsaved_changes = false;
+    bool m_combo_box_open = false;  // To ensure proper rendering of the imgui combobox.
+    bool m_unsaved_changes = false; // Are there unsaved changes in manual mode?
     bool m_selection_empty = true;
     EState m_old_state = Off; // to be able to see that the gizmo has just been closed (see on_set_state)
     int m_canvas_width;

@@ -20,6 +20,8 @@
 #include "nanosvg/nanosvgrast.h"
 #endif // ENABLE_TEXTURES_FROM_SVG
 
+#include "libslic3r/Utils.hpp"
+
 namespace Slic3r {
 namespace GUI {
 
