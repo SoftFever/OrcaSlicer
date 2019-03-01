@@ -525,20 +525,7 @@ void GUI_App::save_mode(const /*ConfigOptionMode*/int mode)
 // Update view mode according to selected menu
 void GUI_App::update_mode()
 {
-    wxWindowUpdateLocker noUpdates(&sidebar());
-
-    const ConfigOptionMode mode = wxGetApp().get_mode();
-
-    obj_list()->get_sizer()->Show(mode > comSimple);
-    sidebar().set_mode_value(mode);
-//    sidebar().show_buttons(mode == comExpert);
-    obj_list()->unselect_objects();
-    obj_list()->update_selections();
-    obj_list()->update_object_menu();
-
-    sidebar().update_mode_sizer(mode);
-
-    sidebar().Layout();
+    sidebar().update_mode();
 
     for (auto tab : tabs_list)
         tab->update_visibility();

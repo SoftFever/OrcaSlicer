@@ -655,7 +655,13 @@ Sidebar::Sidebar(Plater *parent)
 
     // Events
     p->btn_export_gcode->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->export_gcode(); });
-    p->btn_reslice->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->reslice(); });
+    p->btn_reslice->Bind(wxEVT_BUTTON, [this](wxCommandEvent&)
+    {
+        const bool export_gcode_after_slicing = wxGetKeyState(WXK_SHIFT);
+        p->plater->reslice();
+        if (export_gcode_after_slicing)
+            p->plater->export_gcode();
+    });
     p->btn_send_gcode->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->send_gcode(); });
 }
 
@@ -753,9 +759,15 @@ void Sidebar::update_presets(Preset::Type preset_type)
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
 }
 
-void Sidebar::update_mode_sizer(const Slic3r::ConfigOptionMode& mode)
+void Sidebar::update_mode_sizer() const
 {
-    p->mode_sizer->SetMode(mode);
+    p->mode_sizer->SetMode(m_mode);
+}
+
+void Sidebar::update_reslice_btn_tooltip() const
+{
+    const wxString tooltip = m_mode == comSimple ? wxEmptyString : _(L("Hold Shift to Slice & Export G-code"));
+    p->btn_reslice->SetToolTip(tooltip);
 }
 
 ObjectManipulation* Sidebar::obj_manipul()
@@ -957,6 +969,24 @@ bool Sidebar::is_multifilament()
     return p->combos_filament.size() > 1;
 }
 
+
+void Sidebar::update_mode()
+{
+    m_mode = wxGetApp().get_mode();
+
+    update_reslice_btn_tooltip();
+    update_mode_sizer();
+
+    wxWindowUpdateLocker noUpdates(this);
+
+    p->object_list->get_sizer()->Show(m_mode > comSimple);
+
+    p->object_list->unselect_objects();
+    p->object_list->update_selections();
+    p->object_list->update_object_menu();
+    
+    Layout();
+}
 
 std::vector<PresetComboBox*>& Sidebar::combos_filament()
 {
