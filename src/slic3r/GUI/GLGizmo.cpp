@@ -25,6 +25,8 @@
 #include "GUI.hpp"
 #include "GUI_Utils.hpp"
 #include "GUI_App.hpp"
+#include "GUI_ObjectSettings.hpp"
+#include "GUI_ObjectList.hpp"
 #include "I18N.hpp"
 #include "PresetBundle.hpp"
 
@@ -1937,7 +1939,7 @@ void GLGizmoSlaSupports::render_points(const GLCanvas3D::Selection& selection, b
 
 bool GLGizmoSlaSupports::is_mesh_update_necessary() const
 {
-    return (m_state == On) && (m_model_object != nullptr) && (m_model_object != m_old_model_object) && !m_model_object->instances.empty();
+    return (m_state == On) && (m_model_object != m_old_model_object) && (m_model_object != nullptr) && !m_model_object->instances.empty();
 
     //if (m_state != On || !m_model_object || m_model_object->instances.empty() || ! m_instance_matrix.isApprox(m_source_data.matrix))
     //    return false;
@@ -2243,6 +2245,35 @@ void GLGizmoSlaSupports::render_tooltip_texture() const {
 #endif // not ENABLE_IMGUI
 
 
+std::vector<ConfigOption*> GLGizmoSlaSupports::get_config_options(const std::vector<std::string>& keys) const
+{
+    std::vector<ConfigOption*> out;
+
+    if (!m_model_object)
+        return out;
+
+    DynamicPrintConfig& object_cfg = m_model_object->config;
+    DynamicPrintConfig& print_cfg = wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
+    std::unique_ptr<DynamicPrintConfig> default_cfg = nullptr;
+
+    for (const std::string& key : keys) {
+        if (object_cfg.has(key))
+            out.push_back(object_cfg.option(key));
+        else
+            if (print_cfg.has(key))
+                out.push_back(print_cfg.option(key));
+            else { // we must get it from defaults
+                if (default_cfg == nullptr)
+                    default_cfg.reset(DynamicPrintConfig::new_from_defaults_keys(keys));
+                out.push_back(default_cfg->option(key));
+            }
+    }
+
+    return out;
+}
+
+
+
 #if ENABLE_IMGUI
 void GLGizmoSlaSupports::on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection)
 {
@@ -2257,6 +2288,7 @@ RENDER_AGAIN:
 
     bool force_refresh = false;
     bool remove_selected = false;
+    bool remove_all = false;
 
     if (m_editing_mode) {
         m_imgui->text(_(L("Left mouse click - add point")));
@@ -2270,7 +2302,8 @@ RENDER_AGAIN:
         wxString str = ss.str();
 
         bool old_combo_state = m_combo_box_open;
-        m_combo_box_open = m_imgui->combo(_(L("Head diameter")), options, str);
+        // The combo is commented out for now, until the feature is supported by backend.
+        // m_combo_box_open = m_imgui->combo(_(L("Head diameter")), options, str);
         force_refresh |= (old_combo_state != m_combo_box_open);
 
         float current_number = atof(str);
@@ -2294,6 +2327,10 @@ RENDER_AGAIN:
         remove_selected = m_imgui->button(_(L("Remove selected points")));
         m_imgui->disabled_end();
 
+        m_imgui->disabled_begin(m_editing_mode_cache.empty());
+        remove_all = m_imgui->button(_(L("Remove all points")));
+        m_imgui->disabled_end();
+
         m_imgui->text(" "); // vertical gap
 
         if (m_imgui->button(_(L("Apply changes")))) {
@@ -2308,13 +2345,29 @@ RENDER_AGAIN:
         }
     }
     else { // not in editing mode:
-        /*ImGui::PushItemWidth(100.0f);
+        ImGui::PushItemWidth(100.0f);
         m_imgui->text(_(L("Minimal points distance: ")));
         ImGui::SameLine();
-        bool value_changed = ImGui::SliderFloat("", &m_minimal_point_distance, 0.f, 20.f, "%.f mm");
+
+        std::vector<ConfigOption*> opts = get_config_options({"support_points_density_relative", "support_points_minimal_distance"});
+        float density = static_cast<ConfigOptionInt*>(opts[0])->value;
+        float minimal_point_distance = static_cast<ConfigOptionFloat*>(opts[1])->value;
+
+        bool value_changed = ImGui::SliderFloat("", &minimal_point_distance, 0.f, 20.f, "%.f mm");
+        if (value_changed)
+            m_model_object->config.opt<ConfigOptionFloat>("support_points_minimal_distance", true)->value = minimal_point_distance;
+
         m_imgui->text(_(L("Support points density: ")));
         ImGui::SameLine();
-        value_changed |= ImGui::SliderFloat(" ", &m_density, 0.f, 200.f, "%.f %%");*/
+        if (ImGui::SliderFloat(" ", &density, 0.f, 200.f, "%.f %%")) {
+            value_changed = true;
+            m_model_object->config.opt<ConfigOptionInt>("support_points_density_relative", true)->value = (int)density;
+        }
+
+        if (value_changed) { // Update side panel
+            wxGetApp().obj_settings()->UpdateAndShow(true);
+            wxGetApp().obj_list()->update_settings_items();
+        }
 
         bool generate = m_imgui->button(_(L("Auto-generate points [A]")));
 
@@ -2324,6 +2377,12 @@ RENDER_AGAIN:
         m_imgui->text("");
         if (m_imgui->button(_(L("Manual editing [M]"))))
             switch_to_editing_mode();
+
+        m_imgui->disabled_begin(m_editing_mode_cache.empty());
+        remove_all = m_imgui->button(_(L("Remove all points")));
+        m_imgui->disabled_end();
+
+        m_imgui->text("");
 
         m_imgui->text(m_model_object->sla_points_status == sla::PointsStatus::None ? "No points  (will be autogenerated)" :
                      (m_model_object->sla_points_status == sla::PointsStatus::AutoGenerated ? "Autogenerated points (no modifications)" :
@@ -2339,9 +2398,11 @@ RENDER_AGAIN:
     }
     m_old_editing_state = m_editing_mode;
 
-    if (remove_selected) {
+    if (remove_selected || remove_all) {
         force_refresh = false;
         m_parent.reload_scene(true);
+        if (remove_all)
+            select_point(AllPoints);
         delete_selected_points();
         if (first_run) {
             first_run = false;
@@ -2390,19 +2451,22 @@ void GLGizmoSlaSupports::on_set_state()
             m_parent.toggle_model_objects_visibility(true, m_model_object, m_active_instance);
     }
     if (m_state == Off) {
-        if (m_old_state != Off && m_model_object) { // the gizmo was just turned Off
+        if (m_old_state != Off) { // the gizmo was just turned Off
 
-            if (m_unsaved_changes) {
-                wxMessageDialog dlg(GUI::wxGetApp().plater(), _(L("Do you want to save your manually edited support points ?\n")),
-                                    _(L("Save changes?")), wxICON_QUESTION | wxYES | wxNO);
-                if (dlg.ShowModal() == wxID_YES)
-                    editing_mode_apply_changes();
-                else
-                    editing_mode_discard_changes();
+            if (m_model_object) {
+                if (m_unsaved_changes) {
+                    wxMessageDialog dlg(GUI::wxGetApp().plater(), _(L("Do you want to save your manually edited support points ?\n")),
+                                        _(L("Save changes?")), wxICON_QUESTION | wxYES | wxNO);
+                    if (dlg.ShowModal() == wxID_YES)
+                        editing_mode_apply_changes();
+                    else
+                        editing_mode_discard_changes();
+                }
             }
 
             m_parent.toggle_model_objects_visibility(true);
             m_editing_mode = false; // so it is not active next time the gizmo opens
+            m_editing_mode_cache.clear();
         }
     }
     m_old_state = m_state;

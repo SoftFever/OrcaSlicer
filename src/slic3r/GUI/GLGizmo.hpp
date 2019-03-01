@@ -507,6 +507,8 @@ private:
     int m_canvas_width;
     int m_canvas_height;
 
+    std::vector<ConfigOption*> get_config_options(const std::vector<std::string>& keys) const;
+
     // Methods that do the model_object and editing cache synchronization,
     // editing mode selection, etc:
     enum {
