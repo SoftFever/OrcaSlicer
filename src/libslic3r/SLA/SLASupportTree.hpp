@@ -82,7 +82,7 @@ struct SupportConfig {
     double normal_cutoff_angle = 150.0 * M_PI / 180.0;
 
     // The shortest distance of any support structure from the model surface
-    double safety_distance_mm = 0.001;
+    double safety_distance_mm = 0.1;
 };
 
 struct PoolConfig;

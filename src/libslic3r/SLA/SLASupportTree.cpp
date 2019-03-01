@@ -1011,20 +1011,20 @@ class SLASupportTree::Algorithm {
     // surface. dir: This is the direction of the head from the pin to the back
     // r_pin, r_back: the radiuses of the pin and the back sphere width: This
     // is the full width from the pin center to the back center m: The object
-    // mesh
-    //
-    // Optional:
-    // samples: how many rays will be shot
-    // safety distance: This will be added to the radiuses to have a safety
-    // distance from the mesh.
+    // mesh.
+    // The return value is the hit result from the ray casting. If the starting
+    // point was inside the model, an "invalid" hit_result will be returned
+    // with a zero distance value instead of a NAN. This way the result can
+    // be used safely for comparison with other distances.
     EigenMesh3D::hit_result pinhead_mesh_intersect(
             const Vec3d& s,
             const Vec3d& dir,
             double r_pin,
             double r_back,
-            double width,
-            unsigned samples = 8)
+            double width)
     {
+        static const size_t SAMPLES = 8;
+
         // method based on:
         // https://math.stackexchange.com/questions/73237/parametric-equation-of-a-circle-in-3d-space
 
@@ -1045,14 +1045,14 @@ class SLASupportTree::Algorithm {
 
         // The portions of the circle (the head-back circle) for which we will
         // shoot rays.
-        std::vector<double> phis(samples);
+        std::array<double, SAMPLES> phis;
         for(size_t i = 0; i < phis.size(); ++i) phis[i] = i*2*PI/phis.size();
 
         auto& m = m_mesh;
         using HitResult = EigenMesh3D::hit_result;
 
         // Hit results
-        std::vector<HitResult> hits(samples, HitResult(m));
+        std::array<HitResult, SAMPLES> hits;
 
         // We have to address the case when the direction vector v (same as
         // dir) is coincident with one of the world axes. In this case two of
@@ -1109,21 +1109,27 @@ class SLASupportTree::Algorithm {
             auto q = m.query_ray_hit(ps + sd*n, n);
 
             if(q.is_inside()) { // the hit is inside the model
-                if(q.distance() > 2*r_pin) phi = 0;
+                if(q.distance() > 2*r_pin)  {
+                    // If we are inside the model and the hit distance is bigger
+                    // than our pin circle diameter, it probably indicates that
+                    // the support point was already inside the model, or there
+                    // is really no space around the point. We will assign a
+                    // zero hit distance to these cases which will enforce the
+                    // function return value to be an invalid ray with zero hit
+                    // distance. (see min_element at the end)
+                    hits[i] = HitResult(0.0);
+                }
                 else {
-                    // re-cast the ray from the outside of the object
+                    // re-cast the ray from the outside of the object.
+                    // The starting point has an offset of 2*safety_distance
+                    // because the original ray has also had an offset
                     auto q2 = m.query_ray_hit(ps + (q.distance() + 2*sd)*n, n);
                     hits[i] = q2;
                 }
             } else hits[i] = q;
         });
 
-        auto mit = std::min_element(hits.begin(), hits.end(),
-                                    [](const HitResult& hr1,
-                                    const HitResult& hr2)
-        {
-            return hr1.distance() < hr2.distance();
-        });
+        auto mit = std::min_element(hits.begin(), hits.end());
 
         return *mit;
     }
@@ -1132,13 +1138,18 @@ class SLASupportTree::Algorithm {
     // If the function is used for headless sticks, the ins_check parameter
     // have to be true as the beginning of the stick might be inside the model
     // geometry.
+    // The return value is the hit result from the ray casting. If the starting
+    // point was inside the model, an "invalid" hit_result will be returned
+    // with a zero distance value instead of a NAN. This way the result can
+    // be used safely for comparison with other distances.
     EigenMesh3D::hit_result bridge_mesh_intersect(
             const Vec3d& s,
             const Vec3d& dir,
             double r,
-            bool ins_check = false,
-            unsigned samples = 4)
+            bool ins_check = false)
     {
+        static const size_t SAMPLES = 8;
+
         // helper vector calculations
         Vec3d a(0, 1, 0), b;
         const double& sd = m_cfg.safety_distance_mm;
@@ -1160,14 +1171,14 @@ class SLASupportTree::Algorithm {
         }
 
         // circle portions
-        std::vector<double> phis(samples);
+        std::array<double, SAMPLES> phis;
         for(size_t i = 0; i < phis.size(); ++i) phis[i] = i*2*PI/phis.size();
 
         auto& m = m_mesh;
         using HitResult = EigenMesh3D::hit_result;
 
         // Hit results
-        std::vector<HitResult> hits(samples, HitResult(m));
+        std::array<HitResult, SAMPLES> hits;
 
         tbb::parallel_for(size_t(0), phis.size(),
                           [&m, &phis, a, b, sd, dir, r, s, ins_check, &hits]
@@ -1189,7 +1200,7 @@ class SLASupportTree::Algorithm {
             auto hr = m.query_ray_hit(p + sd*dir, dir);
 
             if(ins_check && hr.is_inside()) {
-                if(hr.distance() > 2*r) phi = 0;
+                if(hr.distance() > 2*r) hits[i] = HitResult(0.0);
                 else {
                     // re-cast the ray from the outside of the object
                     auto hr2 =
@@ -1200,12 +1211,7 @@ class SLASupportTree::Algorithm {
             } else hits[i] = hr;
         });
 
-        auto mit = std::min_element(hits.begin(), hits.end(),
-                                    [](const HitResult& hr1,
-                                       const HitResult& hr2)
-        {
-            return hr1.distance() < hr2.distance();
-        });
+        auto mit = std::min_element(hits.begin(), hits.end());
 
         return *mit;
     }
@@ -1442,7 +1448,7 @@ public:
                 polar = std::max(polar, 3*PI / 4);
 
                 // save the head (pinpoint) position
-                Vec3d hp = m_points.row(i);
+                Vec3d hp = m_points.row(fidx);
 
                 double w = m_cfg.head_width_mm +
                            m_cfg.head_back_radius_mm +
@@ -1492,12 +1498,14 @@ public:
                     bound(-PI, PI)      // azimuth can be a full search
                     );
 
-                    t = oresult.score;
-                    polar = std::get<0>(oresult.optimum);
-                    azimuth = std::get<1>(oresult.optimum);
-                    nn = Vec3d(std::cos(azimuth) * std::sin(polar),
-                               std::sin(azimuth) * std::sin(polar),
-                               std::cos(polar)).normalized();
+                    if(oresult.score > w) {
+                        polar = std::get<0>(oresult.optimum);
+                        azimuth = std::get<1>(oresult.optimum);
+                        nn = Vec3d(std::cos(azimuth) * std::sin(polar),
+                                   std::sin(azimuth) * std::sin(polar),
+                                   std::cos(polar)).normalized();
+                        t = oresult.score;
+                    }
                 }
 
                 // save the verified and corrected normal
@@ -1829,6 +1837,8 @@ public:
             double d = 0, tdown = 0;
             Vec3d dirdown(0.0, 0.0, -1.0);
 
+            t = std::min(t, m_cfg.max_bridge_length_mm);
+
             while(d < t && !std::isinf(tdown = bridge_mesh_intersect(
                                            hjp + d*head.dir,
                                            dirdown, head.r_back_mm))) {
@@ -1881,11 +1891,15 @@ public:
             );
 
             d = 0; t = oresult.score;
+
+
             polar = std::get<0>(oresult.optimum);
             azimuth = std::get<1>(oresult.optimum);
             Vec3d bridgedir = Vec3d(std::cos(azimuth) * std::sin(polar),
                               std::sin(azimuth) * std::sin(polar),
                               std::cos(polar)).normalized();
+
+            t = std::min(t, m_cfg.max_bridge_length_mm);
 
             while(d < t && !std::isinf(tdown = bridge_mesh_intersect(
                                            hjp + d*bridgedir,
