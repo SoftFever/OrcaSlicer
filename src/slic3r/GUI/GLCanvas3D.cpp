@@ -896,8 +896,7 @@ void GLCanvas3D::Selection::add(unsigned int volume_idx, bool as_single_selectio
     if (needs_reset)
         clear();
 
-    if (volume->is_modifier)
-        m_mode = Volume;
+    m_mode = volume->is_modifier ? Volume : Instance;
 
     switch (m_mode)
     {
