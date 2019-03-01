@@ -625,7 +625,7 @@ void SLAPrint::process()
                                                        ilh, float(lh));
 
         auto& layers = po.m_model_slices; layers.clear();
-        slicer.slice(heights, &layers, [this](){ throw_if_canceled(); });
+		slicer.slice(heights, float(po.config().slice_closing_radius.value), &layers, [this](){ throw_if_canceled(); });
     };
 
     // In this step we check the slices, identify island and cover them with
@@ -1358,7 +1358,8 @@ bool SLAPrintObject::invalidate_state_by_config_options(const std::vector<t_conf
     bool invalidated = false;
     for (const t_config_option_key &opt_key : opt_keys) {
 		if (   opt_key == "layer_height"
-            || opt_key == "faded_layers") {
+            || opt_key == "faded_layers"
+            || opt_key == "slice_closing_radius") {
 			steps.emplace_back(slaposObjectSlice);
         } else if (
                opt_key == "supports_enable"

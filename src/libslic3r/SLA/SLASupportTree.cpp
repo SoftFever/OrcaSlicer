@@ -2105,7 +2105,7 @@ SlicedSupports SLASupportTree::slice(float layerh, float init_layerh) const
     fullmesh.merge(get_pad());
     TriangleMeshSlicer slicer(&fullmesh);
     SlicedSupports ret;
-    slicer.slice(heights, &ret, get().ctl().cancelfn);
+    slicer.slice(heights, 0.f, &ret, get().ctl().cancelfn);
 
     return ret;
 }

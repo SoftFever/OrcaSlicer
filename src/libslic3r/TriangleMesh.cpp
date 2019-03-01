@@ -852,7 +852,7 @@ void TriangleMeshSlicer::_slice_do(size_t facet_idx, std::vector<IntersectionLin
     }
 }
 
-void TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<ExPolygons>* layers, throw_on_cancel_callback_type throw_on_cancel) const
+void TriangleMeshSlicer::slice(const std::vector<float> &z, const float closing_radius, std::vector<ExPolygons>* layers, throw_on_cancel_callback_type throw_on_cancel) const
 {
     std::vector<Polygons> layers_p;
     this->slice(z, &layers_p, throw_on_cancel);
@@ -861,13 +861,13 @@ void TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<ExPolygo
 	layers->resize(z.size());
 	tbb::parallel_for(
 		tbb::blocked_range<size_t>(0, z.size()),
-		[&layers_p, layers, throw_on_cancel, this](const tbb::blocked_range<size_t>& range) {
+		[&layers_p, closing_radius, layers, throw_on_cancel, this](const tbb::blocked_range<size_t>& range) {
     		for (size_t layer_id = range.begin(); layer_id < range.end(); ++ layer_id) {
 #ifdef SLIC3R_TRIANGLEMESH_DEBUG
                 printf("Layer " PRINTF_ZU " (slice_z = %.2f):\n", layer_id, z[layer_id]);
 #endif
                 throw_on_cancel();
-    			this->make_expolygons(layers_p[layer_id], &(*layers)[layer_id]);
+    			this->make_expolygons(layers_p[layer_id], closing_radius, &(*layers)[layer_id]);
     		}
     	});
 	BOOST_LOG_TRIVIAL(debug) << "TriangleMeshSlicer::make_expolygons in parallel - end";
@@ -1600,7 +1600,7 @@ void TriangleMeshSlicer::make_expolygons_simple(std::vector<IntersectionLine> &l
 #endif
 }
 
-void TriangleMeshSlicer::make_expolygons(const Polygons &loops, ExPolygons* slices) const
+void TriangleMeshSlicer::make_expolygons(const Polygons &loops, const float closing_radius, ExPolygons* slices) const
 {
     /*
         Input loops are not suitable for evenodd nor nonzero fill types, as we might get
@@ -1655,7 +1655,7 @@ void TriangleMeshSlicer::make_expolygons(const Polygons &loops, ExPolygons* slic
     // 0.0499 comes from https://github.com/slic3r/Slic3r/issues/959
 //    double safety_offset = scale_(0.0499);
     // 0.0001 is set to satisfy GH #520, #1029, #1364
-    double safety_offset = scale_(0.0001);
+    double safety_offset = scale_(closing_radius);
 
     /* The following line is commented out because it can generate wrong polygons,
        see for example issue #661 */
@@ -1670,17 +1670,17 @@ void TriangleMeshSlicer::make_expolygons(const Polygons &loops, ExPolygons* slic
     #endif
     
     // append to the supplied collection
-    /* Fix for issue #661 { */
-    expolygons_append(*slices, offset2_ex(union_(loops, false), +safety_offset, -safety_offset));
-    //expolygons_append(*slices, ex_slices);
-    /* } */
+    if (safety_offset > 0)
+        expolygons_append(*slices, offset2_ex(union_(loops, false), +safety_offset, -safety_offset));
+    else
+        expolygons_append(*slices, union_ex(loops, false));
 }
 
-void TriangleMeshSlicer::make_expolygons(std::vector<IntersectionLine> &lines, ExPolygons* slices) const
+void TriangleMeshSlicer::make_expolygons(std::vector<IntersectionLine> &lines, const float closing_radius, ExPolygons* slices) const
 {
     Polygons pp;
     this->make_loops(lines, &pp);
-    this->make_expolygons(pp, slices);
+    this->make_expolygons(pp, closing_radius, slices);
 }
 
 void TriangleMeshSlicer::cut(float z, TriangleMesh* upper, TriangleMesh* lower) const

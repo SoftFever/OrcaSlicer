@@ -165,7 +165,7 @@ public:
 	TriangleMeshSlicer(TriangleMesh* mesh) { this->init(mesh, [](){}); }
     void init(TriangleMesh *mesh, throw_on_cancel_callback_type throw_on_cancel);
     void slice(const std::vector<float> &z, std::vector<Polygons>* layers, throw_on_cancel_callback_type throw_on_cancel) const;
-    void slice(const std::vector<float> &z, std::vector<ExPolygons>* layers, throw_on_cancel_callback_type throw_on_cancel) const;
+    void slice(const std::vector<float> &z, const float closing_radius, std::vector<ExPolygons>* layers, throw_on_cancel_callback_type throw_on_cancel) const;
     enum FacetSliceType {
         NoSlice = 0,
         Slicing = 1,
@@ -184,9 +184,9 @@ private:
 
     void _slice_do(size_t facet_idx, std::vector<IntersectionLines>* lines, boost::mutex* lines_mutex, const std::vector<float> &z) const;
     void make_loops(std::vector<IntersectionLine> &lines, Polygons* loops) const;
-    void make_expolygons(const Polygons &loops, ExPolygons* slices) const;
+    void make_expolygons(const Polygons &loops, const float closing_radius, ExPolygons* slices) const;
     void make_expolygons_simple(std::vector<IntersectionLine> &lines, ExPolygons* slices) const;
-    void make_expolygons(std::vector<IntersectionLine> &lines, ExPolygons* slices) const;
+    void make_expolygons(std::vector<IntersectionLine> &lines, const float closing_radius, ExPolygons* slices) const;
 };
 
 TriangleMesh make_cube(double x, double y, double z);

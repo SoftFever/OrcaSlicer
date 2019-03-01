@@ -561,7 +561,7 @@ void base_plate(const TriangleMesh &mesh, ExPolygons &output, float h,
         heights.emplace_back(hi);
 
     std::vector<ExPolygons> out; out.reserve(size_t(std::ceil(h/layerh)));
-    slicer.slice(heights, &out, thrfn);
+    slicer.slice(heights, 0.f, &out, thrfn);
 
     size_t count = 0; for(auto& o : out) count += o.size();
 
