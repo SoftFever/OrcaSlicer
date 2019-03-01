@@ -4916,6 +4916,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     {
         // to remove hover on objects when the mouse goes out of this canvas
         m_mouse.position = Vec2d(-1.0, -1.0);
+        // ensure m_mouse.left_down is reset (it may happen when switching canvas)
+        m_mouse.left_down = false;
         m_dirty = true;
     }
     else if (evt.LeftDClick() && (toolbar_contains_mouse != -1))
@@ -4983,12 +4985,12 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         {
             // event was taken care of by the SlaSupports gizmo
         }
-        else if (view_toolbar_contains_mouse != -1)
+        else if (evt.LeftDown() && (view_toolbar_contains_mouse != -1))
         {
             if (m_view_toolbar != nullptr)
                 m_view_toolbar->do_action((unsigned int)view_toolbar_contains_mouse, *this);
         }
-        else if (toolbar_contains_mouse != -1)
+        else if (evt.LeftDown() && (toolbar_contains_mouse != -1))
         {
             m_toolbar_action_running = true;
             m_mouse.set_start_position_3D_as_invalid();
@@ -5186,7 +5188,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         // the gizmo got the event and took some action, no need to do anything more here
         m_dirty = true;
     }
-    else if (evt.Dragging() && !gizmos_overlay_contains_mouse)
+    // do not process dragging if the mouse is into any of the HUD elements
+    else if (evt.Dragging() && !gizmos_overlay_contains_mouse && (toolbar_contains_mouse == -1) && (view_toolbar_contains_mouse == -1))
     {
         m_mouse.dragging = true;
 
@@ -5195,7 +5198,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             if (m_layers_editing.state == LayersEditing::Editing)
                 _perform_layer_editing_action(&evt);
         }
-        else if (evt.LeftIsDown())
+        // do not process the dragging if the left mouse was set down in another canvas
+        else if (m_mouse.left_down && evt.LeftIsDown())
         {
             // if dragging over blank area with left button, rotate
 #if ENABLE_MOVE_MIN_THRESHOLD
