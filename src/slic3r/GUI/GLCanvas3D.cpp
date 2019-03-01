@@ -3067,7 +3067,7 @@ GLGizmoBase* GLCanvas3D::Gizmos::_get_current() const
     return (it != m_gizmos.end()) ? it->second : nullptr;
 }
 
-const unsigned char GLCanvas3D::WarningTexture::Background_Color[3] = { 9, 91, 134 };
+const unsigned char GLCanvas3D::WarningTexture::Background_Color[3] = { 120, 120, 120 };//{ 9, 91, 134 };
 const unsigned char GLCanvas3D::WarningTexture::Opacity = 255;
 
 GLCanvas3D::WarningTexture::WarningTexture()
@@ -3101,16 +3101,23 @@ void GLCanvas3D::WarningTexture::activate(WarningTexture::Warning warning, bool 
 
     // Look at the end of our vector and generate proper texture.
     std::string text;
+    bool red_colored = false;
     switch (m_warnings.back()) {
         case ObjectOutside      : text = L("Detected object outside print volume"); break;
         case ToolpathOutside    : text = L("Detected toolpath outside print volume"); break;
         case SomethingNotShown  : text = L("Some objects are not visible when editing supports"); break;
+        case ObjectClashed: {
+            text = L("Detected object outside print volume\n"
+                     "Resolve a clash to continue slicing/export process correctly"); 
+            red_colored = true;
+            break;
+        }
     }
 
-    _generate(text, canvas); // GUI::GLTexture::reset() is called at the beginning of generate(...)
+    _generate(text, canvas, red_colored); // GUI::GLTexture::reset() is called at the beginning of generate(...)
 }
 
-bool GLCanvas3D::WarningTexture::_generate(const std::string& msg, const GLCanvas3D& canvas)
+bool GLCanvas3D::WarningTexture::_generate(const std::string& msg, const GLCanvas3D& canvas, const bool red_colored/* = false*/)
 {
     reset();
 
@@ -3127,7 +3134,8 @@ bool GLCanvas3D::WarningTexture::_generate(const std::string& msg, const GLCanva
 
     // calculates texture size
     wxCoord w, h;
-    memDC.GetTextExtent(msg, &w, &h);
+//     memDC.GetTextExtent(msg, &w, &h);
+    memDC.GetMultiLineTextExtent(msg, &w, &h);
 
     int pow_of_two_size = next_highest_power_of_2(std::max<unsigned int>(w, h));
 
@@ -3144,8 +3152,9 @@ bool GLCanvas3D::WarningTexture::_generate(const std::string& msg, const GLCanva
     memDC.Clear();
 
     // draw message
-    memDC.SetTextForeground(*wxWHITE);
-    memDC.DrawText(msg, 0, 0);
+    memDC.SetTextForeground(red_colored ? wxColour(255,72,65/*204,204*/) : *wxWHITE);
+//     memDC.DrawText(msg, 0, 0);
+    memDC.DrawLabel(msg, wxRect(0,0, m_original_width, m_original_height), wxALIGN_CENTER);
 
     memDC.SelectObject(wxNullBitmap);
 
@@ -4392,23 +4401,33 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     if (!m_volumes.empty())
     {
         ModelInstance::EPrintVolumeState state;
-        bool contained = m_volumes.check_outside_state(m_config, &state);
 
-        if (!contained)
-        {
-            _set_warning_texture(WarningTexture::ObjectOutside, true);
-            post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, state == ModelInstance::PVS_Fully_Outside));
-        }
-        else
-        {
-            m_volumes.reset_outside_state();
-            _set_warning_texture(WarningTexture::ObjectOutside, false);
-            post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, !m_model->objects.empty()));
-        }
+        const bool contained_min_one = m_volumes.check_outside_state(m_config, &state);
+
+        _set_warning_texture(WarningTexture::ObjectClashed, state == ModelInstance::PVS_Partly_Outside);
+        _set_warning_texture(WarningTexture::ObjectOutside, state == ModelInstance::PVS_Fully_Outside);
+
+        post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, 
+                               contained_min_one && !m_model->objects.empty() && state != ModelInstance::PVS_Partly_Outside));
+
+// #ys_FIXME_delete_after_testing
+//         bool contained = m_volumes.check_outside_state(m_config, &state);
+//         if (!contained)
+//         {
+//             _set_warning_texture(WarningTexture::ObjectOutside, true);
+//             post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, state == ModelInstance::PVS_Fully_Outside));
+//         }
+//         else
+//         {
+//             m_volumes.reset_outside_state();
+//             _set_warning_texture(WarningTexture::ObjectOutside, false);
+//             post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, !m_model->objects.empty()));
+//         }
     }
     else
     {
         _set_warning_texture(WarningTexture::ObjectOutside, false);
+        _set_warning_texture(WarningTexture::ObjectClashed, false);
         post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, false));
     }
 

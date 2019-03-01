@@ -834,6 +834,8 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
     ModelInstance::EPrintVolumeState state = ModelInstance::PVS_Inside;
     bool all_contained = true;
 
+    bool contained_min_one = false;
+
     for (GLVolume* volume : this->volumes)
     {
         if ((volume == nullptr) || volume->is_modifier || (volume->is_wipe_tower && !volume->shader_outside_printer_detection_enabled) || ((volume->composite_id.volume_id < 0) && !volume->shader_outside_printer_detection_enabled))
@@ -842,6 +844,9 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
         const BoundingBoxf3& bb = volume->transformed_convex_hull_bounding_box();
         bool contained = print_volume.contains(bb);
         all_contained &= contained;
+
+        if (contained)
+            contained_min_one = true;
 
         volume->is_outside = !contained;
 
@@ -855,7 +860,7 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
     if (out_state != nullptr)
         *out_state = state;
 
-    return all_contained;
+    return /*all_contained*/ contained_min_one; // #ys_FIXME_delete_after_testing
 }
 
 void GLVolumeCollection::reset_outside_state()

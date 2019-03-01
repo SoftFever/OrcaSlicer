@@ -751,7 +751,8 @@ private:
         enum Warning {
             ObjectOutside,
             ToolpathOutside,
-            SomethingNotShown
+            SomethingNotShown,
+            ObjectClashed
         };
 
         // Sets a warning of the given type to be active/inactive. If several warnings are active simultaneously,
@@ -770,7 +771,7 @@ private:
         std::vector<Warning> m_warnings;
 
         // Generates the texture with given text.
-        bool _generate(const std::string& msg, const GLCanvas3D& canvas);
+        bool _generate(const std::string& msg, const GLCanvas3D& canvas, const bool red_colored = false);
     };
 
     class LegendTexture : public GUI::GLTexture
