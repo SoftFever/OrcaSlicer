@@ -157,8 +157,6 @@ template<> class FilePrinter<FilePrinterFormat::SLA_PNGZIP>
         "expTimeFirst = " + expt_first_str + "\n"
         "numFade = " + cnt_fade_layers + "\n"
         "layerHeight = " + layerh_str + "\n"
-        "expTime = "+expt_str+" + resinType = generic+layerHeight = "
-                  +layerh_str+" + printer = DWARF3\n"
         "usedMaterial = " + used_material + "\n"
         "numSlow = " + cnt_slow_layers + "\n"
         "numFast = " + cnt_fast_layers + "\n";
