@@ -1218,7 +1218,7 @@ class SLASupportTree::Algorithm {
 
     // Helper function for interconnecting two pillars with zig-zag bridges.
     // This is not an individual step.
-    void interconnect(const Pillar& pillar, const Pillar& nextpillar)
+    bool interconnect(const Pillar& pillar, const Pillar& nextpillar)
     {
         const Head& phead = m_result.pillar_head(pillar.id);
         const Head& nextphead = m_result.pillar_head(nextpillar.id);
@@ -1234,43 +1234,48 @@ class SLASupportTree::Algorithm {
         double chkd = bridge_mesh_intersect(sj, dirv(sj, ej), pillar.r);
 
         double bridge_distance = pillar_dist / std::cos(-m_cfg.bridge_slope);
+        bool was_connected = false;
 
         // If the pillars are so close that they touch each other,
         // there is no need to bridge them together.
         if(pillar_dist > 2*m_cfg.head_back_radius_mm &&
-           bridge_distance < m_cfg.max_bridge_length_mm)
+           bridge_distance < m_cfg.max_bridge_length_mm) {
             while(sj(Z) > pillar.endpoint(Z) + m_cfg.base_radius_mm &&
                   ej(Z) > nextpillar.endpoint(Z) + m_cfg.base_radius_mm)
-        {
-            if(chkd >= bridge_distance) {
-                m_result.add_bridge(sj, ej, pillar.r);
+            {
+                if(chkd >= bridge_distance) {
+                    m_result.add_bridge(sj, ej, pillar.r);
+                    was_connected = true;
 
-                auto pcm = m_cfg.pillar_connection_mode;
+                    auto pcm = m_cfg.pillar_connection_mode;
 
-                // double bridging: (crosses)
-                if( pcm == PillarConnectionMode::cross ||
-                   (pcm == PillarConnectionMode::dynamic &&
-                    pillar_dist > 2*m_cfg.base_radius_mm))
-                {
-                    // If the columns are close together, no need to
-                    // double bridge them
-                    Vec3d bsj(ej(X), ej(Y), sj(Z));
-                    Vec3d bej(sj(X), sj(Y), ej(Z));
+                    // double bridging: (crosses)
+                    if( pcm == PillarConnectionMode::cross ||
+                       (pcm == PillarConnectionMode::dynamic &&
+                        pillar_dist > 2*m_cfg.base_radius_mm))
+                    {
+                        // If the columns are close together, no need to
+                        // double bridge them
+                        Vec3d bsj(ej(X), ej(Y), sj(Z));
+                        Vec3d bej(sj(X), sj(Y), ej(Z));
 
-                    // need to check collision for the cross stick
-                    double backchkd = bridge_mesh_intersect(
-                                bsj, dirv(bsj, bej), pillar.r);
+                        // need to check collision for the cross stick
+                        double backchkd = bridge_mesh_intersect(
+                                    bsj, dirv(bsj, bej), pillar.r);
 
 
-                    if(backchkd >= bridge_distance) {
-                        m_result.add_bridge(bsj, bej, pillar.r);
+                        if(backchkd >= bridge_distance) {
+                            m_result.add_bridge(bsj, bej, pillar.r);
+                        }
                     }
                 }
+                sj.swap(ej);
+                ej(Z) = sj(Z) + zstep;
+                chkd = bridge_mesh_intersect(sj, dirv(sj, ej), pillar.r);
             }
-            sj.swap(ej);
-            ej(Z) = sj(Z) + zstep;
-            chkd = bridge_mesh_intersect(sj, dirv(sj, ej), pillar.r);
         }
+
+        return was_connected;
     }
 
     long search_nearest(const Vec3d& querypoint)
@@ -1737,12 +1742,14 @@ public:
                 // fashioned connections between pillars
                 for(unsigned i : ring) { m_thr();
                     const Pillar& outerpill = m_result.head_pillar(i);
-                    auto res = innerring.nearest(outerpill.endpoint, 1);
-                    if(res.empty()) continue;
 
-                    auto ne = res.front();
-                    const Pillar& innerpill = m_result.pillars()[ne.second];
-                    interconnect(outerpill, innerpill);
+                    auto res = innerring.nearest(outerpill.endpoint,
+                                                 unsigned(innerring.size()));
+
+                    for(auto& ne : res) {
+                        const Pillar& innerpill = m_result.pillars()[ne.second];
+                        if(interconnect(outerpill, innerpill)) break;
+                    }
                 }
             }
 
