@@ -2178,13 +2178,10 @@ bool GLGizmoSlaSupports::mouse_event(SLAGizmoEventType action, const Vec2d& mous
     return false;
 }
 
-void GLGizmoSlaSupports::delete_selected_points()
+void GLGizmoSlaSupports::delete_selected_points(bool force)
 {
-    if (!m_editing_mode)
-        return;
-
     for (unsigned int idx=0; idx<m_editing_mode_cache.size(); ++idx) {
-        if (m_editing_mode_cache[idx].second && (!m_editing_mode_cache[idx].first.is_new_island || !m_lock_unique_islands)) {
+        if (m_editing_mode_cache[idx].second && (!m_editing_mode_cache[idx].first.is_new_island || !m_lock_unique_islands || force)) {
             m_editing_mode_cache.erase(m_editing_mode_cache.begin() + (idx--));
             m_unsaved_changes = true;
         }
@@ -2403,7 +2400,9 @@ RENDER_AGAIN:
         m_parent.reload_scene(true);
         if (remove_all)
             select_point(AllPoints);
-        delete_selected_points();
+        delete_selected_points(remove_all);
+        if (remove_all && !m_editing_mode)
+            editing_mode_apply_changes();
         if (first_run) {
             first_run = false;
             goto RENDER_AGAIN;

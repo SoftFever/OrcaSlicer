@@ -469,7 +469,7 @@ public:
     virtual ~GLGizmoSlaSupports();
     void set_sla_support_data(ModelObject* model_object, const GLCanvas3D::Selection& selection);
     bool mouse_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down);
-    void delete_selected_points();
+    void delete_selected_points(bool force = false);
 
 private:
     bool on_init();
