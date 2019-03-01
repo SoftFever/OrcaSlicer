@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_definitions(-D_BSD_SOURCE -D_DEFAULT_SOURCE)   # To enable various useful macros and functions on Unices
 remove_definitions(-D_UNICODE -DUNICODE)
@@ -68,18 +70,31 @@ set(AVRDUDE_SOURCES
 )
 if (MSVC)
     set(AVRDUDE_SOURCES ${AVRDUDE_SOURCES}
+        windows/utf8.c
         windows/unistd.cpp
         windows/getopt.c
     )
 endif()
-add_library(avrdude STATIC ${AVRDUDE_SOURCES})
 
-set(STANDALONE_SOURCES
-    main-standalone.c
+add_executable(avrdude-conf-gen conf-generate.cpp)
+
+# Config file embedding
+add_custom_command(
+    DEPENDS avrdude-conf-gen ${CMAKE_CURRENT_SOURCE_DIR}/avrdude-slic3r.conf
+    OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/avrdude-slic3r.conf.h
+    COMMAND $<TARGET_FILE:avrdude-conf-gen> avrdude-slic3r.conf avrdude_slic3r_conf > avrdude-slic3r.conf.h
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
-add_executable(avrdude-slic3r ${STANDALONE_SOURCES})
+
+add_custom_target(gen_conf_h
+   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/avrdude-slic3r.conf.h
+)
+
+add_library(avrdude STATIC ${AVRDUDE_SOURCES})
+add_dependencies(avrdude gen_conf_h)
+
+add_executable(avrdude-slic3r main-standalone.cpp)
 target_link_libraries(avrdude-slic3r avrdude)
-set_target_properties(avrdude-slic3r PROPERTIES EXCLUDE_FROM_ALL TRUE)
 
 if (WIN32)
     target_compile_definitions(avrdude PRIVATE WIN32NATIVE=1)

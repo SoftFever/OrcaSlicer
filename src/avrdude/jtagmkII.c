@@ -1527,8 +1527,10 @@ static int jtagmkII_open(PROGRAMMER * pgm, char * port)
    */
   jtagmkII_drain(pgm, 0);
 
-  if (jtagmkII_getsync(pgm, EMULATOR_MODE_JTAG) < 0)
+  if (jtagmkII_getsync(pgm, EMULATOR_MODE_JTAG) < 0) {
+    serial_close(&pgm->fd);
     return -1;
+  }
 
   return 0;
 }
@@ -1579,8 +1581,10 @@ static int jtagmkII_open_dw(PROGRAMMER * pgm, char * port)
    */
   jtagmkII_drain(pgm, 0);
 
-  if (jtagmkII_getsync(pgm, EMULATOR_MODE_DEBUGWIRE) < 0)
+  if (jtagmkII_getsync(pgm, EMULATOR_MODE_DEBUGWIRE) < 0) {
+    serial_close(&pgm->fd);
     return -1;
+  }
 
   return 0;
 }
@@ -1631,8 +1635,10 @@ static int jtagmkII_open_pdi(PROGRAMMER * pgm, char * port)
    */
   jtagmkII_drain(pgm, 0);
 
-  if (jtagmkII_getsync(pgm, EMULATOR_MODE_PDI) < 0)
+  if (jtagmkII_getsync(pgm, EMULATOR_MODE_PDI) < 0) {
+    serial_close(&pgm->fd);
     return -1;
+  }
 
   return 0;
 }
@@ -1684,8 +1690,10 @@ static int jtagmkII_dragon_open(PROGRAMMER * pgm, char * port)
    */
   jtagmkII_drain(pgm, 0);
 
-  if (jtagmkII_getsync(pgm, EMULATOR_MODE_JTAG) < 0)
+  if (jtagmkII_getsync(pgm, EMULATOR_MODE_JTAG) < 0) {
+    serial_close(&pgm->fd);
     return -1;
+  }
 
   return 0;
 }
@@ -1737,8 +1745,10 @@ static int jtagmkII_dragon_open_dw(PROGRAMMER * pgm, char * port)
    */
   jtagmkII_drain(pgm, 0);
 
-  if (jtagmkII_getsync(pgm, EMULATOR_MODE_DEBUGWIRE) < 0)
+  if (jtagmkII_getsync(pgm, EMULATOR_MODE_DEBUGWIRE) < 0) {
+    serial_close(&pgm->fd);
     return -1;
+  }
 
   return 0;
 }
@@ -1790,8 +1800,10 @@ static int jtagmkII_dragon_open_pdi(PROGRAMMER * pgm, char * port)
    */
   jtagmkII_drain(pgm, 0);
 
-  if (jtagmkII_getsync(pgm, EMULATOR_MODE_PDI) < 0)
+  if (jtagmkII_getsync(pgm, EMULATOR_MODE_PDI) < 0) {
+    serial_close(&pgm->fd);
     return -1;
+  }
 
   return 0;
 }
@@ -3369,6 +3381,8 @@ static int jtagmkII_open32(PROGRAMMER * pgm, char * port)
 
   status = jtagmkII_getsync(pgm, -1);
   if(status < 0) return -1;
+
+  // FIXME: Error handling is bad here: memory leak in resp (?) and port not closed
 
   // AVR32 "special"
   buf[0] = CMND_SET_PARAMETER;

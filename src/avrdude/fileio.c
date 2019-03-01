@@ -40,6 +40,9 @@
 #include "avrdude.h"
 #include "libavrdude.h"
 
+#if defined(WIN32NATIVE)
+#include "windows/utf8.h"
+#endif
 
 #define IHEX_MAXDATA 256
 
@@ -102,21 +105,25 @@ static int fmt_autodetect(char * fname, unsigned section);
 
 
 
-static FILE *fopen_and_seek(const char *filename, const char *mode, unsigned section)
+FILE *fopen_utf8(const char *filename, const char *mode)
 {
-  FILE *file;
   // On Windows we need to convert the filename to UTF-16
 #if defined(WIN32NATIVE)
   static wchar_t fname_buffer[PATH_MAX];
   static wchar_t mode_buffer[MAX_MODE_LEN];
 
   if (MultiByteToWideChar(CP_UTF8, 0, filename, -1, fname_buffer, PATH_MAX) == 0) { return NULL; }
-  if (MultiByteToWideChar(CP_ACP, 0, mode, -1, mode_buffer, MAX_MODE_LEN) == 0) { return NULL; }
+  if (MultiByteToWideChar(CP_UTF8, 0, mode, -1, mode_buffer, MAX_MODE_LEN) == 0) { return NULL; }
 
-  file = _wfopen(fname_buffer, mode_buffer);
+  return _wfopen(fname_buffer, mode_buffer);
 #else
-  file = fopen(filename, mode);
+  return fopen(filename, mode);
 #endif
+}
+
+static FILE *fopen_and_seek(const char *filename, const char *mode, unsigned section)
+{
+  FILE *file = fopen_utf8(filename, mode);
 
   if (file == NULL) {
     return NULL;

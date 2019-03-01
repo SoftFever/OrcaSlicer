@@ -55,7 +55,7 @@ void avrdude_cancel();
 #define MSG_TRACE   (4) /* displayed with -vvvv, show trace commuication */
 #define MSG_TRACE2  (5) /* displayed with -vvvvv */
 
-int avrdude_main(int argc, char * argv [], const char *sys_config);
+int avrdude_main(int argc, char * argv []);
 
 #if defined(WIN32NATIVE)
 

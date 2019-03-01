@@ -42,7 +42,6 @@ static void avrdude_oom_handler(const char *context, void *user_p)
 
 struct AvrDude::priv
 {
-	std::string sys_config;
 	std::deque<std::vector<std::string>> args;
 	bool cancelled = false;
 	int exit_code = 0;
@@ -53,8 +52,6 @@ struct AvrDude::priv
 	CompleteFn complete_fn;
 
 	std::thread avrdude_thread;
-
-	priv(std::string &&sys_config) : sys_config(sys_config) {}
 
 	void set_handlers();
 	void unset_handlers();
@@ -110,7 +107,7 @@ int AvrDude::priv::run_one(const std::vector<std::string> &args) {
 
 	message_fn(command_line.c_str(), command_line.size());
 
-	const auto res = ::avrdude_main(static_cast<int>(c_args.size()), c_args.data(), sys_config.c_str());
+	const auto res = ::avrdude_main(static_cast<int>(c_args.size()), c_args.data());
 
 	return res;
 }
@@ -130,7 +127,7 @@ int AvrDude::priv::run() {
 
 // Public
 
-AvrDude::AvrDude(std::string sys_config) : p(new priv(std::move(sys_config))) {}
+AvrDude::AvrDude() : p(new priv()) {}
 
 AvrDude::AvrDude(AvrDude &&other) : p(std::move(other.p)) {}
 

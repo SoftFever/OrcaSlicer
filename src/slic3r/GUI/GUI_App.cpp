@@ -177,33 +177,40 @@ bool GUI_App::OnInit()
 
         if (this->plater() != nullptr)
             this->obj_manipul()->update_if_dirty();
-    });
 
-    // On OS X the UI tends to freeze in weird ways if modal dialogs(config wizard, update notifications, ...)
-    // are shown before or in the same event callback with the main frame creation.
-    // Therefore we schedule them for later using CallAfter.
-    CallAfter([this]() {
-        try {
-            if (!preset_updater->config_update())
-                mainframe->Close();
-        } catch (const std::exception &ex) {
-            show_error(nullptr, ex.what());
+        // Preset updating & Configwizard are done after the above initializations,
+        // and after MainFrame is created & shown.
+        // The extra CallAfter() is needed because of Mac, where this is the only way
+        // to popup a modal dialog on start without screwing combo boxes.
+        // This is ugly but I honestly found not better way to do it.
+        // Neither wxShowEvent nor wxWindowCreateEvent work reliably.
+        static bool once = true;
+        if (once) {
+            once = false;
+
+            try {
+                if (!preset_updater->config_update()) {
+                    mainframe->Close();
+                }
+            } catch (const std::exception &ex) {
+                show_error(nullptr, ex.what());
+            }
+
+            CallAfter([this] {
+                if (!config_wizard_startup(app_conf_exists)) {
+                    // Only notify if there was not wizard so as not to bother too much ...
+                    preset_updater->slic3r_update_notify();
+                }
+                preset_updater->sync(preset_bundle);
+            });
+
+            load_current_presets();
         }
     });
-
-    CallAfter([this]() {
-        if (!config_wizard_startup(app_conf_exists)) {
-            // Only notify if there was not wizard so as not to bother too much ...
-            preset_updater->slic3r_update_notify();
-        }
-        preset_updater->sync(preset_bundle);
-
-        load_current_presets();
-    });
-
 
     mainframe->Show(true);
-    return m_initialized = true;
+    m_initialized = true;
+    return true;
 }
 
 unsigned GUI_App::get_colour_approx_luma(const wxColour &colour)

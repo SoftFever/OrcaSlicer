@@ -158,8 +158,10 @@ static int arduino_open(PROGRAMMER * pgm, char * port)
     return -1;
   }
 
-  if (stk500_getsync(pgm) < 0)
+  if (stk500_getsync(pgm) < 0) {
+    serial_close(&pgm->fd);
     return -1;
+  }
 
   return 0;
 }

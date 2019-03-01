@@ -469,7 +469,7 @@ public:
     virtual ~GLGizmoSlaSupports();
     void set_sla_support_data(ModelObject* model_object, const GLCanvas3D::Selection& selection);
     bool mouse_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down);
-    void delete_selected_points();
+    void delete_selected_points(bool force = false);
 
 private:
     bool on_init();
@@ -506,6 +506,8 @@ private:
     EState m_old_state = Off; // to be able to see that the gizmo has just been closed (see on_set_state)
     int m_canvas_width;
     int m_canvas_height;
+
+    std::vector<ConfigOption*> get_config_options(const std::vector<std::string>& keys) const;
 
     // Methods that do the model_object and editing cache synchronization,
     // editing mode selection, etc:

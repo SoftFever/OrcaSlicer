@@ -157,7 +157,7 @@ PrintHostQueueDialog::PrintHostQueueDialog(wxWindow *parent)
     btn_cancel->Disable();
     btn_error = new wxButton(this, wxID_ANY, _(L("Show error message")));
     btn_error->Disable();
-    auto *btn_close = new wxButton(this, wxID_CANCEL, _(L("Close")));
+    auto *btn_close = new wxButton(this, wxID_CANCEL, _(L("Close")));  // Note: The label needs to be present, otherwise we get accelerator bugs on Mac
     btnsizer->Add(btn_cancel, 0, wxRIGHT, SPACING);
     btnsizer->Add(btn_error, 0);
     btnsizer->AddStretchSpacer();

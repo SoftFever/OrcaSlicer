@@ -418,11 +418,14 @@ void Preview::load_print()
         load_print_as_sla();
 }
 
-void Preview::reload_print(bool force)
+void Preview::reload_print(bool force, bool keep_volumes)
 {
-    m_canvas->reset_volumes();
-    m_canvas->reset_legend_texture();
-    m_loaded = false;
+    if (!keep_volumes)
+    {
+        m_canvas->reset_volumes();
+        m_canvas->reset_legend_texture();
+        m_loaded = false;
+    }
 
     if (!IsShown() && !force)
         return;
