@@ -418,22 +418,14 @@ void Preview::load_print()
         load_print_as_sla();
 }
 
-#if ENABLE_NO_GCODE_TOOLPATHS_REGENERATION
 void Preview::reload_print(bool force, bool keep_volumes)
-#else
-void Preview::reload_print(bool force)
-#endif // ENABLE_NO_GCODE_TOOLPATHS_REGENERATION
 {
-#if ENABLE_NO_GCODE_TOOLPATHS_REGENERATION
     if (!keep_volumes)
     {
-#endif // ENABLE_NO_GCODE_TOOLPATHS_REGENERATION
         m_canvas->reset_volumes();
         m_canvas->reset_legend_texture();
         m_loaded = false;
-#if ENABLE_NO_GCODE_TOOLPATHS_REGENERATION
     }
-#endif // ENABLE_NO_GCODE_TOOLPATHS_REGENERATION
 
     if (!IsShown() && !force)
         return;
