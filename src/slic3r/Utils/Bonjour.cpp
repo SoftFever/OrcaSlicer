@@ -5,7 +5,6 @@
 #include <array>
 #include <vector>
 #include <string>
-#include <random>
 #include <thread>
 #include <boost/optional.hpp>
 #include <boost/system/error_code.hpp>
@@ -32,6 +31,9 @@ namespace Slic3r {
 // While decoding the decoder will bail the moment it encounters anything fishy.
 // At least that's the idea. To help prove this is actually the case,
 // the implementations has been tested with AFL.
+
+
+// Relevant RFC: https://www.ietf.org/rfc/rfc6762.txt
 
 
 struct DnsName: public std::string
@@ -387,7 +389,7 @@ struct DnsMessage
 
 	DnsSDMap sdmap;
 
-	static optional<DnsMessage> decode(const std::vector<char> &buffer, optional<uint16_t> id_wanted = boost::none)
+	static optional<DnsMessage> decode(const std::vector<char> &buffer)
 	{
 		const auto size = buffer.size();
 		if (size < DnsHeader::SIZE + DnsQuestion::MIN_SIZE || size > MAX_SIZE) {
@@ -396,10 +398,6 @@ struct DnsMessage
 
 		DnsMessage res;
 		res.header = DnsHeader::decode(buffer);
-
-		if (id_wanted && *id_wanted != res.header.id) {
-			return boost::none;
-		}
 
 		if (res.header.qdcount > 1 || res.header.ancount > MAX_ANS) {
 			return boost::none;
@@ -472,16 +470,12 @@ struct BonjourRequest
 	static const asio::ip::address_v4 MCAST_IP4;
 	static const uint16_t MCAST_PORT;
 
-	uint16_t id;
 	std::vector<char> data;
 
 	static optional<BonjourRequest> make(const std::string &service, const std::string &protocol);
 
 private:
-	BonjourRequest(uint16_t id, std::vector<char> &&data) :
-		id(id),
-		data(std::move(data))
-	{}
+	BonjourRequest(std::vector<char> &&data) : data(std::move(data)) {}
 };
 
 const asio::ip::address_v4 BonjourRequest::MCAST_IP4{0xe00000fb};
@@ -493,22 +487,15 @@ optional<BonjourRequest> BonjourRequest::make(const std::string &service, const 
 		return boost::none;
 	}
 
-	std::random_device dev;
-	std::uniform_int_distribution<uint16_t> dist;
-	uint16_t id = dist(dev);
-	uint16_t id_big = endian::native_to_big(id);
-	const char *id_char = reinterpret_cast<char*>(&id_big);
-
 	std::vector<char> data;
 	data.reserve(service.size() + 18);
 
-	// Add the transaction ID
-	data.push_back(id_char[0]);
-	data.push_back(id_char[1]);
-
 	// Add metadata
 	static const unsigned char rq_meta[] = {
-		0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+		0x00, 0x00, // Query ID (zero for mDNS)
+		0x00, 0x00, // Flags
+		0x00, 0x01, // One query
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00   // Zero Answer, Authority, and Additional RRs
 	};
 	std::copy(rq_meta, rq_meta + sizeof(rq_meta), std::back_inserter(data));
 
@@ -522,11 +509,14 @@ optional<BonjourRequest> BonjourRequest::make(const std::string &service, const 
 
 	// Add the rest of PTR record
 	static const unsigned char ptr_tail[] = {
-		0x05, 0x6c, 0x6f, 0x63, 0x61, 0x6c, 0x00, 0x00, 0x0c, 0x00, 0xff,
+		0x05, // length of "label"
+		0x6c, 0x6f, 0x63, 0x61, 0x6c, 0x00, // "label" string and terminator
+		0x00, 0x0c, // Type PTR
+		0x00, 0xff, // Class ANY
 	};
 	std::copy(ptr_tail, ptr_tail + sizeof(ptr_tail), std::back_inserter(data));
 
-	return BonjourRequest(id, std::move(data));
+	return BonjourRequest(std::move(data));
 }
 
 
@@ -539,7 +529,6 @@ struct Bonjour::priv
 	const std::string service_dn;
 	unsigned timeout;
 	unsigned retries;
-	uint16_t rq_id;
 
 	std::vector<char> buffer;
 	std::thread io_thread;
@@ -558,8 +547,7 @@ Bonjour::priv::priv(std::string service, std::string protocol) :
 	protocol(std::move(protocol)),
 	service_dn((boost::format("_%1%._%2%.local") % this->service % this->protocol).str()),
 	timeout(10),
-	retries(1),
-	rq_id(0)
+	retries(1)
 {
 	buffer.resize(DnsMessage::MAX_SIZE);
 }
@@ -585,7 +573,7 @@ void Bonjour::priv::udp_receive(udp::endpoint from, size_t bytes)
 	}
 
 	buffer.resize(bytes);
-	const auto dns_msg = DnsMessage::decode(buffer, rq_id);
+	const auto dns_msg = DnsMessage::decode(buffer);
 	if (dns_msg) {
 		asio::ip::address ip = from.address();
 		if (dns_msg->rr_a) { ip = dns_msg->rr_a->ip; }
@@ -629,7 +617,6 @@ void Bonjour::priv::lookup_perform()
 	}
 
 	auto self = this;
-	rq_id = brq->id;
 
 	try {
 		boost::asio::io_service io_service;
