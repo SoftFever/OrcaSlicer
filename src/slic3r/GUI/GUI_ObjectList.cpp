@@ -1180,25 +1180,29 @@ Geometry::Transformation volume_to_bed_transformation(const Geometry::Transforma
 {
     Geometry::Transformation out;
 
+	// Is the angle close to a multiple of 90 degrees?
+	auto ninety_degrees = [](double a) { 
+		a = fmod(std::abs(a), 0.5 * PI);
+		if (a > 0.25 * PI)
+			a = 0.5 * PI - a;
+		return a < 0.001;
+	};
     if (instance_transformation.is_scaling_uniform()) {
         // No need to run the non-linear least squares fitting for uniform scaling.
         // Just set the inverse.
 		out.set_from_transform(instance_transformation.get_matrix(true).inverse());
     }
-    else
-    {
+	else if (ninety_degrees(instance_transformation.get_rotation().x()) && ninety_degrees(instance_transformation.get_rotation().y()) && ninety_degrees(instance_transformation.get_rotation().z()))
+	{
+		// Anisotropic scaling, rotation by multiples of ninety degrees.
 		Eigen::Matrix3d instance_rotation_trafo =
 			(Eigen::AngleAxisd(instance_transformation.get_rotation().z(), Vec3d::UnitZ()) *
 			 Eigen::AngleAxisd(instance_transformation.get_rotation().y(), Vec3d::UnitY()) *
 			 Eigen::AngleAxisd(instance_transformation.get_rotation().x(), Vec3d::UnitX())).toRotationMatrix();
-		Eigen::Matrix3d instance_rotation_trafo_inv =
-			(Eigen::AngleAxisd(- instance_transformation.get_rotation().x(), Vec3d::UnitX()) *
-			 Eigen::AngleAxisd(- instance_transformation.get_rotation().y(), Vec3d::UnitY()) *
-			 Eigen::AngleAxisd(- instance_transformation.get_rotation().z(), Vec3d::UnitZ())).toRotationMatrix();
-		Vec3d euler_angles_inv = Geometry::extract_euler_angles(instance_rotation_trafo_inv);
-
-		Eigen::Matrix3d instance_trafo = instance_rotation_trafo *
-			Eigen::Scaling(instance_transformation.get_scaling_factor().cwiseProduct(instance_transformation.get_mirror()));
+		Eigen::Matrix3d volume_rotation_trafo =
+			(Eigen::AngleAxisd(-instance_transformation.get_rotation().x(), Vec3d::UnitX()) *
+			 Eigen::AngleAxisd(-instance_transformation.get_rotation().y(), Vec3d::UnitY()) *
+			 Eigen::AngleAxisd(-instance_transformation.get_rotation().z(), Vec3d::UnitZ())).toRotationMatrix();
 
 		// 8 corners of the bounding box.
 		auto pts = Eigen::MatrixXd(8, 3);
@@ -1211,101 +1215,27 @@ Geometry::Transformation volume_to_bed_transformation(const Geometry::Transforma
 		pts(6, 0) = bbox.max.x(); pts(6, 1) = bbox.max.y(); pts(6, 2) = bbox.min.z();
 		pts(7, 0) = bbox.max.x(); pts(7, 1) = bbox.max.y(); pts(7, 2) = bbox.max.z();
 
-		// Current parameters: 3x scale, 3x rotation
-		auto beta = Eigen::MatrixXd(3 + 3, 1);
-		beta << 1., 1., 1., euler_angles_inv(0), euler_angles_inv(1), euler_angles_inv(2);
+		// Corners of the bounding box transformed into the modifier mesh coordinate space, with inverse rotation applied to the modifier.
+		auto qs = pts * 
+			(instance_rotation_trafo *
+			 Eigen::Scaling(instance_transformation.get_scaling_factor().cwiseProduct(instance_transformation.get_mirror())) * 
+			 volume_rotation_trafo).inverse().transpose();
+		// Fill in scaling based on least squares fitting of the bounding box corners.
+		Vec3d scale;
+		for (int i = 0; i < 3; ++ i)
+			scale(i) = pts.col(i).dot(qs.col(i)) / pts.col(i).dot(pts.col(i));
 
-		{
-			// Trafo from world to the coordinate system of the modifier mesh, with the inverse rotation applied to the modifier.
-			Eigen::Matrix3d A_scaling = instance_trafo * instance_rotation_trafo_inv;
-			// Corners of the bounding box transformed into the modifier mesh coordinate space, with inverse rotation applied to the modifier.
-			auto qs = pts * A_scaling.inverse().transpose();
-			// Fill in scaling based on least squares fitting of the bounding box corners.
-			for (int i = 0; i < 3; ++i)
-				beta(i) = pts.col(i).dot(qs.col(i)) / pts.col(i).dot(pts.col(i));
-		}
-
-        // Jacobian
-        // rows: 8 corners of a cube times 3 dimensions,
-        // cols: 3x scale, 3x rotation
-        auto J = Eigen::MatrixXd(8 * 3, 3 + 3);
-
-        // Until convergence:
-        Eigen::Matrix3d s, dsx, dsy, dsz;
-    	Eigen::Matrix3d rx, drx, ry, dry, rz, drz;
-        s.setIdentity();
-        rx.setIdentity(); ry.setIdentity(); rz.setIdentity();
-        dsx.setZero(); dsy.setZero(); dsz.setZero();
-        drx.setZero(); dry.setZero(); drz.setZero();
-        dsx(0, 0) = 1.; dsy(1, 1) = 1.; dsz(2, 2) = 1.;
-
-        // Solve the non-linear Least Squares problem by Levenberg–Marquardt algorithm (modified Gauss–Newton iteration)
-    	const double eps = 1.e-7;
-		auto   beta_best = beta;
-		double beta_best_error = 1e10;
-        for (size_t iter = 0; iter < 200; ++ iter) {
-            // Current rotation & scaling transformation.
-            auto trafo = instance_trafo *
-                         Eigen::AngleAxisd(beta(5), Vec3d::UnitZ()) *
-                         Eigen::AngleAxisd(beta(4), Vec3d::UnitY()) *
-                         Eigen::AngleAxisd(beta(3), Vec3d::UnitX()) *
-                         Eigen::Scaling(Vec3d(beta(0), beta(1), beta(2)));
-            // Current error after rotation & scaling.
-			auto dy = (pts - pts * trafo.transpose()).eval();
-			double err = 0;
-			for (int i = 0; i < 8; ++i)
-				err += dy.row(i).norm();
-			if (err < beta_best_error) {
-				beta_best = beta;
-				beta_best_error = err;
-			}
-            // Fill in the Jacobian at current beta.
-            double cos_rx = cos(beta(3));
-            double sin_rx = sin(beta(3));
-            double cos_ry = cos(beta(4));
-            double sin_ry = sin(beta(4));
-            double cos_rz = cos(beta(5));
-            double sin_rz = sin(beta(5));
-            rx  <<  1.,          0.,     0.,     0.,  cos_rx, -sin_rx,      0., sin_rx,  cos_rx;
-            drx <<  0.,          0.,     0.,     0., -sin_rx, -cos_rx,      0., cos_rx, -sin_rx;
-            ry  <<  cos_ry,      0., sin_ry,     0.,      1.,      0., -sin_ry,     0.,  cos_ry;
-            dry << -sin_ry,      0., cos_ry,     0.,      0.,      0., -cos_ry,     0., -sin_ry;
-            rz  <<  cos_rz, -sin_rz,     0., sin_rz,  cos_rz,      0.,      0.,     0.,      1.;
-            drz << -sin_rz, -cos_rz,     0., cos_rz, -sin_rz,      0.,      0.,     0.,      0.;
-            s(0, 0) = beta(0);
-            s(1, 1) = beta(1);
-            s(2, 2) = beta(2);
-            auto rot = (instance_trafo * rz * ry * rx).eval();
-    		auto jrx = pts * (instance_trafo * rz * ry * drx * s).transpose();
-    		auto jry = pts * (instance_trafo * rz * dry * rx * s).transpose();
-    		auto jrz = pts * (instance_trafo * drz * ry * rx * s).transpose();
-            for (int r = 0; r < 8; ++ r) {
-                for (int i = 0; i < 3; ++ i) {
-					J(r * 3 + i, 0) = rot(i, 0) * pts(r, 0);
-					J(r * 3 + i, 1) = rot(i, 1) * pts(r, 1);
-					J(r * 3 + i, 2) = rot(i, 2) * pts(r, 2);
-                    J(r * 3 + i, 3) = jrx(r, i);
-                    J(r * 3 + i, 4) = jry(r, i);
-                    J(r * 3 + i, 5) = jrz(r, i);
-                }
-            }
-            // Solving the normal equations for delta beta.
-			auto rhs = (J.transpose() * Eigen::Map<Eigen::VectorXd>(dy.data(), dy.size())).eval();
-			double lambda = 1.; //  0.01;
-			auto A   = (J.transpose() * J + Eigen::Matrix<double, 6, 6>::Identity() * lambda).eval();
-			auto L   = A.ldlt();
-			auto delta_beta = L.solve(rhs).eval();
-            // Check for convergence.
-            auto delta_beta_max = delta_beta.cwiseAbs().maxCoeff();
-			if (delta_beta_max < eps)
-                break;
-            beta = beta + delta_beta;
-        }
-
-		out.set_rotation(Vec3d(beta_best(3), beta_best(4), beta_best(5)));
-		out.set_scaling_factor(Vec3d(std::abs(beta_best(0)), std::abs(beta_best(1)), std::abs(beta_best(2))));
-		out.set_mirror(Vec3d(beta_best(0) > 0 ? 1. : -1, beta_best(1) > 0 ? 1. : -1, beta_best(2) > 0 ? 1. : -1));
+		out.set_rotation(Geometry::extract_euler_angles(volume_rotation_trafo));
+		out.set_scaling_factor(Vec3d(std::abs(scale(0)), std::abs(scale(1)), std::abs(scale(2))));
+		out.set_mirror(Vec3d(scale(0) > 0 ? 1. : -1, scale(1) > 0 ? 1. : -1, scale(2) > 0 ? 1. : -1));
     }
+	else
+	{
+		// General anisotropic scaling, general rotation.
+		// Keep the modifier mesh in the instance coordinate system, so the modifier mesh will not be aligned with the world.
+		// Scale it to get the required size.
+		out.set_scaling_factor(instance_transformation.get_scaling_factor().cwiseInverse());
+	}
 
     return out;
 }
