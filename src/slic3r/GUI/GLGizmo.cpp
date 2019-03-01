@@ -2274,6 +2274,9 @@ std::vector<ConfigOption*> GLGizmoSlaSupports::get_config_options(const std::vec
 #if ENABLE_IMGUI
 void GLGizmoSlaSupports::on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection)
 {
+    if (!m_model_object)
+        return;
+
     bool first_run = true; // This is a hack to redraw the button when all points are removed,
                            // so it is not delayed until the background process finishes.
 RENDER_AGAIN:
@@ -2570,7 +2573,7 @@ void GLGizmoSlaSupports::auto_generate()
                 "Are you sure you want to do it?\n"
                 )), _(L("Warning")), wxICON_WARNING | wxYES | wxNO);
 
-    if (m_model_object->sla_points_status != sla::PointsStatus::UserModified || dlg.ShowModal() == wxID_YES) {
+    if (m_model_object->sla_points_status != sla::PointsStatus::UserModified || m_editing_mode_cache.empty() || dlg.ShowModal() == wxID_YES) {
         m_model_object->sla_support_points.clear();
         m_model_object->sla_points_status = sla::PointsStatus::Generating;
         m_editing_mode_cache.clear();
