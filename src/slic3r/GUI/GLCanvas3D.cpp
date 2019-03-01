@@ -1261,17 +1261,21 @@ static double rotation_diff_z(const Vec3d &rot_xyz_from, const Vec3d &rot_xyz_to
 	return (axis.z() < 0) ? -angle : angle;
 }
 
-void GLCanvas3D::Selection::rotate(const Vec3d& rotation, bool local)
+// Rotate an object around one of the axes. Only one rotation component is expected to be changing.
+void GLCanvas3D::Selection::rotate(const Vec3d& rotation, GLCanvas3D::TransformationType transformation_type)
 {
     if (!m_valid)
         return;
+
+    // Only relative rotation values are allowed in the world coordinate system.
+    assert(! transformation_type.world() || transformation_type.relative());
 
     int rot_axis_max;
     rotation.cwiseAbs().maxCoeff(&rot_axis_max);
 
 	// For generic rotation, we want to rotate the first volume in selection, and then to synchronize the other volumes with it.
 	std::vector<int> object_instance_first(m_model->objects.size(), -1);
-	auto rotate_instance = [this, &rotation, &object_instance_first, rot_axis_max, local](GLVolume &volume, int i) {
+	auto rotate_instance = [this, &rotation, &object_instance_first, rot_axis_max, transformation_type](GLVolume &volume, int i) {
         int first_volume_idx = object_instance_first[volume.object_idx()];
         if (rot_axis_max != 2 && first_volume_idx != -1) {
             // Generic rotation, but no rotation around the Z axis.
@@ -1283,11 +1287,14 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation, bool local)
             volume.set_instance_rotation(Vec3d(rotation(0), rotation(1), rotation(2) + z_diff));
         } else {
             // extracts rotations from the composed transformation
-            Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), rotation);
-            Vec3d new_rotation = Geometry::extract_euler_angles(m * m_cache.volumes_data[i].get_instance_rotation_matrix());
-            if (rot_axis_max == 2 && !local)
+			Vec3d new_rotation = transformation_type.world() ?
+				Geometry::extract_euler_angles(Geometry::assemble_transform(Vec3d::Zero(), rotation) * m_cache.volumes_data[i].get_instance_rotation_matrix()) :
+				transformation_type.absolute() ? rotation : rotation + m_cache.volumes_data[i].get_instance_rotation();
+            if (rot_axis_max == 2 && transformation_type.joint()) {
                 // Only allow rotation of multiple instances as a single rigid body when rotating around the Z axis.
-                volume.set_instance_offset(m_cache.dragging_center + m * (m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center));
+                double z_diff = rotation_diff_z(new_rotation, m_cache.volumes_data[i].get_instance_rotation());
+                volume.set_instance_offset(m_cache.dragging_center + Eigen::AngleAxisd(z_diff, Vec3d::UnitZ()) * (m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center));
+            }
             volume.set_instance_rotation(new_rotation);
             object_instance_first[volume.object_idx()] = i;
         }
@@ -1300,7 +1307,7 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation, bool local)
             rotate_instance(volume, i);
         else if (is_single_volume() || is_single_modifier())
         {
-            if (local)
+            if (transformation_type.independent())
                 volume.set_volume_rotation(volume.get_volume_rotation() + rotation);
             else
             {
@@ -1318,7 +1325,7 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation, bool local)
                 // extracts rotations from the composed transformation
                 Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), rotation);
                 Vec3d new_rotation = Geometry::extract_euler_angles(m * m_cache.volumes_data[i].get_volume_rotation_matrix());
-                if (!local)
+                if (transformation_type.joint())
                 {
                     Vec3d offset = m * (m_cache.volumes_data[i].get_volume_position() + m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center);
                     volume.set_volume_offset(m_cache.dragging_center - m_cache.volumes_data[i].get_instance_position() + offset);
@@ -5162,7 +5169,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         case Gizmos::Rotate:
         {
             // Apply new temporary rotations
-            m_selection.rotate(m_gizmos.get_rotation(), evt.AltDown());
+			TransformationType transformation_type(TransformationType::World_Relative_Joint);
+			if (evt.AltDown())
+				transformation_type.set_independent();
+			m_selection.rotate(m_gizmos.get_rotation(), transformation_type);
             wxGetApp().obj_manipul()->update_settings_value(m_selection);
             break;
         }
