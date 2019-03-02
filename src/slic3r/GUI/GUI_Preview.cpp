@@ -649,7 +649,7 @@ void Preview::update_double_slider(const std::vector<double>& layers_z, bool for
 
     bool color_print_enable = (wxGetApp().plater()->printer_technology() == ptFFF);
     if (color_print_enable) {
-        const auto& cfg = wxGetApp().preset_bundle->full_config();
+        const DynamicPrintConfig& cfg = wxGetApp().preset_bundle->printers.get_edited_preset().config;
         if (cfg.opt<ConfigOptionFloats>("nozzle_diameter")->values.size() > 1) 
             color_print_enable = false;
     }
