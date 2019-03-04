@@ -59,6 +59,17 @@ void PrintConfigDef::init_common_params()
     def->cli = "max-print-height=f";
     def->mode = comAdvanced;
     def->default_value = new ConfigOptionFloat(200.0);
+
+    def = this->add("slice_closing_radius", coFloat);
+    def->label = L("Slice gap closing radius");
+    def->category = L("Advanced");
+    def->tooltip = L("Cracks smaller than 2x gap closing radius are being filled during the triangle mesh slicing. "
+                     "The gap closing operation may reduce the final print resolution, therefore it is advisable to keep the value reasonably low.");
+    def->sidetext = L("mm");
+    def->cli = "slice-closing-radius=f";
+    def->min = 0;
+	def->mode = comAdvanced;
+	def->default_value = new ConfigOptionFloat(0.049);
 }
 
 void PrintConfigDef::init_fff_params()

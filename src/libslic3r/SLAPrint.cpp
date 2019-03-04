@@ -337,7 +337,7 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
                     }
                 }
             }
-            if (model_object.sla_support_points != model_object_new.sla_support_points) {
+            /*if (model_object.sla_support_points != model_object_new.sla_support_points) {
                 model_object.sla_support_points = model_object_new.sla_support_points;
                 if (it_print_object_status != print_object_status.end())
                     update_apply_status(it_print_object_status->print_object->invalidate_step(slaposSupportPoints));
@@ -351,6 +351,18 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
                     if (it_print_object_status != print_object_status.end())
                         update_apply_status(it_print_object_status->print_object->invalidate_step(slaposSupportPoints));
                 model_object.sla_points_status = model_object_new.sla_points_status;
+            }*/
+
+            bool old_user_modified = model_object.sla_points_status == sla::PointsStatus::UserModified;
+            bool new_user_modified = model_object_new.sla_points_status == sla::PointsStatus::UserModified;
+            if ((old_user_modified && ! new_user_modified) || // switching to automatic supports from manual supports
+                (! old_user_modified && new_user_modified) || // switching to manual supports from automatic supports
+                (new_user_modified && model_object.sla_support_points != model_object_new.sla_support_points)) {
+                if (it_print_object_status != print_object_status.end())
+                    update_apply_status(it_print_object_status->print_object->invalidate_step(slaposSupportPoints));
+
+                model_object.sla_points_status = model_object_new.sla_points_status;
+                model_object.sla_support_points = model_object_new.sla_support_points;
             }
 
             // Copy the ModelObject name, input_file and instances. The instances will compared against PrintObject instances in the next step.
@@ -625,7 +637,7 @@ void SLAPrint::process()
                                                        ilh, float(lh));
 
         auto& layers = po.m_model_slices; layers.clear();
-        slicer.slice(heights, &layers, [this](){ throw_if_canceled(); });
+		slicer.slice(heights, float(po.config().slice_closing_radius.value), &layers, [this](){ throw_if_canceled(); });
     };
 
     // In this step we check the slices, identify island and cover them with
@@ -1358,7 +1370,8 @@ bool SLAPrintObject::invalidate_state_by_config_options(const std::vector<t_conf
     bool invalidated = false;
     for (const t_config_option_key &opt_key : opt_keys) {
 		if (   opt_key == "layer_height"
-            || opt_key == "faded_layers") {
+            || opt_key == "faded_layers"
+            || opt_key == "slice_closing_radius") {
 			steps.emplace_back(slaposObjectSlice);
         } else if (
                opt_key == "supports_enable"

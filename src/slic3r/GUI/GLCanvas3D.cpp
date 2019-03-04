@@ -896,8 +896,7 @@ void GLCanvas3D::Selection::add(unsigned int volume_idx, bool as_single_selectio
     if (needs_reset)
         clear();
 
-    if (volume->is_modifier)
-        m_mode = Volume;
+    m_mode = volume->is_modifier ? Volume : Instance;
 
     switch (m_mode)
     {
@@ -1261,17 +1260,22 @@ static double rotation_diff_z(const Vec3d &rot_xyz_from, const Vec3d &rot_xyz_to
 	return (axis.z() < 0) ? -angle : angle;
 }
 
-void GLCanvas3D::Selection::rotate(const Vec3d& rotation, bool local)
+// Rotate an object around one of the axes. Only one rotation component is expected to be changing.
+void GLCanvas3D::Selection::rotate(const Vec3d& rotation, GLCanvas3D::TransformationType transformation_type)
 {
     if (!m_valid)
         return;
 
+    // Only relative rotation values are allowed in the world coordinate system.
+    assert(! transformation_type.world() || transformation_type.relative());
+
     int rot_axis_max;
+    //FIXME this does not work for absolute rotations (transformation_type.absolute() is true)
     rotation.cwiseAbs().maxCoeff(&rot_axis_max);
 
 	// For generic rotation, we want to rotate the first volume in selection, and then to synchronize the other volumes with it.
 	std::vector<int> object_instance_first(m_model->objects.size(), -1);
-	auto rotate_instance = [this, &rotation, &object_instance_first, rot_axis_max, local](GLVolume &volume, int i) {
+	auto rotate_instance = [this, &rotation, &object_instance_first, rot_axis_max, transformation_type](GLVolume &volume, int i) {
         int first_volume_idx = object_instance_first[volume.object_idx()];
         if (rot_axis_max != 2 && first_volume_idx != -1) {
             // Generic rotation, but no rotation around the Z axis.
@@ -1283,11 +1287,14 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation, bool local)
             volume.set_instance_rotation(Vec3d(rotation(0), rotation(1), rotation(2) + z_diff));
         } else {
             // extracts rotations from the composed transformation
-            Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), rotation);
-            Vec3d new_rotation = Geometry::extract_euler_angles(m * m_cache.volumes_data[i].get_instance_rotation_matrix());
-            if (rot_axis_max == 2 && !local)
+			Vec3d new_rotation = transformation_type.world() ?
+				Geometry::extract_euler_angles(Geometry::assemble_transform(Vec3d::Zero(), rotation) * m_cache.volumes_data[i].get_instance_rotation_matrix()) :
+				transformation_type.absolute() ? rotation : rotation + m_cache.volumes_data[i].get_instance_rotation();
+            if (rot_axis_max == 2 && transformation_type.joint()) {
                 // Only allow rotation of multiple instances as a single rigid body when rotating around the Z axis.
-                volume.set_instance_offset(m_cache.dragging_center + m * (m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center));
+                double z_diff = rotation_diff_z(new_rotation, m_cache.volumes_data[i].get_instance_rotation());
+                volume.set_instance_offset(m_cache.dragging_center + Eigen::AngleAxisd(z_diff, Vec3d::UnitZ()) * (m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center));
+            }
             volume.set_instance_rotation(new_rotation);
             object_instance_first[volume.object_idx()] = i;
         }
@@ -1300,7 +1307,7 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation, bool local)
             rotate_instance(volume, i);
         else if (is_single_volume() || is_single_modifier())
         {
-            if (local)
+            if (transformation_type.independent())
                 volume.set_volume_rotation(volume.get_volume_rotation() + rotation);
             else
             {
@@ -1318,7 +1325,7 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation, bool local)
                 // extracts rotations from the composed transformation
                 Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), rotation);
                 Vec3d new_rotation = Geometry::extract_euler_angles(m * m_cache.volumes_data[i].get_volume_rotation_matrix());
-                if (!local)
+                if (transformation_type.joint())
                 {
                     Vec3d offset = m * (m_cache.volumes_data[i].get_volume_position() + m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center);
                     volume.set_volume_offset(m_cache.dragging_center - m_cache.volumes_data[i].get_instance_position() + offset);
@@ -5136,6 +5143,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     {
         // to remove hover on objects when the mouse goes out of this canvas
         m_mouse.position = Vec2d(-1.0, -1.0);
+        // ensure m_mouse.left_down is reset (it may happen when switching canvas)
+        m_mouse.left_down = false;
         m_dirty = true;
     }
     else if (evt.LeftDClick() && (toolbar_contains_mouse != -1))
@@ -5203,12 +5212,12 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         {
             // event was taken care of by the SlaSupports gizmo
         }
-        else if (view_toolbar_contains_mouse != -1)
+        else if (evt.LeftDown() && (view_toolbar_contains_mouse != -1))
         {
             if (m_view_toolbar != nullptr)
                 m_view_toolbar->do_action((unsigned int)view_toolbar_contains_mouse, *this);
         }
-        else if (toolbar_contains_mouse != -1)
+        else if (evt.LeftDown() && (toolbar_contains_mouse != -1))
         {
             m_toolbar_action_running = true;
             m_mouse.set_start_position_3D_as_invalid();
@@ -5388,7 +5397,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         case Gizmos::Rotate:
         {
             // Apply new temporary rotations
-            m_selection.rotate(m_gizmos.get_rotation(), evt.AltDown());
+			TransformationType transformation_type(TransformationType::World_Relative_Joint);
+			if (evt.AltDown())
+				transformation_type.set_independent();
+			m_selection.rotate(m_gizmos.get_rotation(), transformation_type);
             wxGetApp().obj_manipul()->update_settings_value(m_selection);
             break;
         }
@@ -5403,7 +5415,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         // the gizmo got the event and took some action, no need to do anything more here
         m_dirty = true;
     }
-    else if (evt.Dragging() && !gizmos_overlay_contains_mouse)
+    // do not process dragging if the mouse is into any of the HUD elements
+    else if (evt.Dragging() && !gizmos_overlay_contains_mouse && (toolbar_contains_mouse == -1) && (view_toolbar_contains_mouse == -1))
     {
         m_mouse.dragging = true;
 
@@ -5412,7 +5425,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             if (m_layers_editing.state == LayersEditing::Editing)
                 _perform_layer_editing_action(&evt);
         }
-        else if (evt.LeftIsDown())
+        // do not process the dragging if the left mouse was set down in another canvas
+        else if (m_mouse.left_down && evt.LeftIsDown())
         {
             // if dragging over blank area with left button, rotate
 #if ENABLE_MOVE_MIN_THRESHOLD

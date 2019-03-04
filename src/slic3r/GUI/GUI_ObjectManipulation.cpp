@@ -361,16 +361,21 @@ void ObjectManipulation::change_rotation_value(const Vec3d& rotation)
     GLCanvas3D* canvas = wxGetApp().plater()->canvas3D();
     const GLCanvas3D::Selection& selection = canvas->get_selection();
 
-    Vec3d delta_rotation = rotation - m_cache.rotation;
+	GLCanvas3D::TransformationType transformation_type(GLCanvas3D::TransformationType::World_Relative_Joint);
+	if (selection.is_single_full_instance() || selection.requires_local_axes())
+		transformation_type.set_independent();
+	if (selection.is_single_full_instance()) {
+        //FIXME GLCanvas3D::Selection::rotate() does not process absoulte rotations correctly: It does not recognize the axis index, which was changed.
+		// transformation_type.set_absolute();
+		transformation_type.set_local();
+	}
 
     Vec3d rad_rotation;
     for (size_t i = 0; i < 3; ++i)
-    {
-        rad_rotation(i) = Geometry::deg2rad(delta_rotation(i));
-    }
+		rad_rotation(i) = Geometry::deg2rad((transformation_type.absolute()) ? rotation(i) : rotation(i) - m_cache.rotation(i));
 
     canvas->get_selection().start_dragging();
-    canvas->get_selection().rotate(rad_rotation, selection.is_single_full_instance() || selection.requires_local_axes());
+	canvas->get_selection().rotate(rad_rotation, transformation_type);
     canvas->do_rotate();
 
     m_cache.rotation = rotation;

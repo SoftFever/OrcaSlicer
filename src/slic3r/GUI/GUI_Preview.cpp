@@ -416,11 +416,14 @@ void Preview::load_print()
         load_print_as_sla();
 }
 
-void Preview::reload_print(bool force)
+void Preview::reload_print(bool force, bool keep_volumes)
 {
-    m_canvas->reset_volumes();
-    m_canvas->reset_legend_texture();
-    m_loaded = false;
+    if (!keep_volumes)
+    {
+        m_canvas->reset_volumes();
+        m_canvas->reset_legend_texture();
+        m_loaded = false;
+    }
 
     if (!IsShown() && !force)
         return;
@@ -644,7 +647,7 @@ void Preview::update_double_slider(const std::vector<double>& layers_z, bool for
 
     bool color_print_enable = (wxGetApp().plater()->printer_technology() == ptFFF);
     if (color_print_enable) {
-        const auto& cfg = wxGetApp().preset_bundle->full_config();
+        const DynamicPrintConfig& cfg = wxGetApp().preset_bundle->printers.get_edited_preset().config;
         if (cfg.opt<ConfigOptionFloats>("nozzle_diameter")->values.size() > 1) 
             color_print_enable = false;
     }

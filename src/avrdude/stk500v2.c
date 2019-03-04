@@ -1695,8 +1695,10 @@ static int stk500v2_open(PROGRAMMER * pgm, char * port)
   stk500v2_drain(pgm, 0);
 
   if (pgm->bitclock != 0.0) {
-    if (pgm->set_sck_period(pgm, pgm->bitclock) != 0)
+    if (pgm->set_sck_period(pgm, pgm->bitclock) != 0) {
+      serial_close(&pgm->fd);
       return -1;
+    }
   }
 
   return 0;
@@ -1753,8 +1755,10 @@ static int stk600_open(PROGRAMMER * pgm, char * port)
   stk500v2_drain(pgm, 0);
 
   if (pgm->bitclock != 0.0) {
-    if (pgm->set_sck_period(pgm, pgm->bitclock) != 0)
+    if (pgm->set_sck_period(pgm, pgm->bitclock) != 0) {
+      serial_close(&pgm->fd);
       return -1;
+    }
   }
 
   return 0;
