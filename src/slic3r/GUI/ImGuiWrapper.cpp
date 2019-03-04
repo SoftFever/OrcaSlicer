@@ -239,10 +239,19 @@ bool ImGuiWrapper::checkbox(const wxString &label, bool &value)
     return ImGui::Checkbox(label_utf8.c_str(), &value);
 }
 
+void ImGuiWrapper::text(const char *label)
+{
+    ImGui::Text(label, NULL);
+}
+
+void ImGuiWrapper::text(const std::string &label)
+{
+    this->text(label.c_str());
+}
+
 void ImGuiWrapper::text(const wxString &label)
 {
-    auto label_utf8 = into_u8(label);
-    ImGui::Text(label_utf8.c_str(), NULL);
+    this->text(into_u8(label).c_str());
 }
 
 
@@ -260,6 +269,24 @@ bool ImGuiWrapper::combo(const wxString& label, const std::vector<wxString>& opt
             bool is_selected = (selection_u8.empty()) ? false : (option_u8 == selection_u8);
             if (ImGui::Selectable(option_u8.c_str(), is_selected))
                 selection = option_u8;
+        }
+        ImGui::EndCombo();
+        return true;
+    }
+    return false;
+}
+
+bool ImGuiWrapper::combo(const wxString& label, const std::vector<std::string>& options, std::string& selection)
+{
+    // this is to force the label to the left of the widget:
+    text(label);
+    ImGui::SameLine();
+    
+    if (ImGui::BeginCombo("", selection.c_str())) {
+        for (const std::string& option : options) {
+            bool is_selected = (selection.empty()) ? false : (option == selection);
+            if (ImGui::Selectable(option.c_str(), is_selected))
+                selection = option;
         }
         ImGui::EndCombo();
         return true;
