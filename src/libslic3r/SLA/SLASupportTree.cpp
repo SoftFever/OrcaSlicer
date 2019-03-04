@@ -594,6 +594,10 @@ inline ClusteredPoints cluster(
     return cluster(points, indices, pred, max_points);
 }
 
+ClusteredPoints cluster_nearest2d(
+        const PointSet& points, const std::vector<unsigned>& indices,
+        double dist,
+        unsigned max_points = 0);
 
 // This class will hold the support tree meshes with some additional bookkeeping
 // as well. Various parts of the support geometry are stored separately and are
@@ -817,6 +821,9 @@ long cluster_centroid(const ClusterEl& clust,
     // permutations of the bitmask (combinations of two points). Get the
     // distance for the two points and add the distance to the averages.
     // The point with the smallest average than wins.
+
+    // The complexity should be O(n^2) but we will mostly apply this function
+    // for small clusters only (cca 3 elements)
 
     std::vector<bool> sel(clust.size(), false);   // create full zero bitmask
     std::fill(sel.end() - 2, sel.end(), true);    // insert the two ones
@@ -1217,68 +1224,109 @@ class SLASupportTree::Algorithm {
     }
 
     // Helper function for interconnecting two pillars with zig-zag bridges.
-    // This is not an individual step.
     bool interconnect(const Pillar& pillar, const Pillar& nextpillar)
     {
+        // Get the starting heads corresponding to the given pillars
         const Head& phead = m_result.pillar_head(pillar.id);
         const Head& nextphead = m_result.pillar_head(nextpillar.id);
 
-        Vec3d sj = phead.junction_point();
-        sj(Z) = std::min(sj(Z), nextphead.junction_point()(Z));
-        Vec3d ej = nextpillar.endpoint;
-        double pillar_dist = distance(Vec2d{sj(X), sj(Y)},
-                                      Vec2d{ej(X), ej(Y)});
-        double zstep = pillar_dist * std::tan(-m_cfg.bridge_slope);
-        ej(Z) = sj(Z) + zstep;
-
-        double chkd = bridge_mesh_intersect(sj, dirv(sj, ej), pillar.r);
-
-        double bridge_distance = pillar_dist / std::cos(-m_cfg.bridge_slope);
+        // We need to get the starting point of the zig-zag pattern. We have to
+        // be aware that the two head junctions are at different heights. We
+        // may start from the lowest junction and call it a day but this
+        // strategy would leave unconnected a lot of pillar duos where the
+        // shorter pillar is too short to start a new bridge but the taller
+        // pillar could still be bridged with the shorter one.
         bool was_connected = false;
 
-        // If the pillars are so close that they touch each other,
-        // there is no need to bridge them together.
-        if(pillar_dist > 2*m_cfg.head_back_radius_mm &&
-           bridge_distance < m_cfg.max_bridge_length_mm) {
-            while(sj(Z) > pillar.endpoint(Z) + m_cfg.base_radius_mm &&
-                  ej(Z) > nextpillar.endpoint(Z) + m_cfg.base_radius_mm)
+        Vec3d supper = phead.junction_point();
+        Vec3d slower = nextphead.junction_point();
+        Vec3d eupper = pillar.endpoint;
+        Vec3d elower = nextpillar.endpoint;
+
+        double zmin = m_result.ground_level + m_cfg.base_height_mm;
+        eupper(Z) = std::max(eupper(Z), zmin);
+        elower(Z) = std::max(elower(Z), zmin);
+
+        // The usable length of both pillars should be positive
+        if(slower(Z) - elower(Z) < 0) return false;
+        if(supper(Z) - eupper(Z) < 0) return false;
+
+        double pillar_dist = distance(Vec2d{slower(X), slower(Y)},
+                                      Vec2d{supper(X), supper(Y)});
+        double bridge_distance = pillar_dist / std::cos(-m_cfg.bridge_slope);
+        double zstep = pillar_dist * std::tan(-m_cfg.bridge_slope);
+
+        if(pillar_dist < 2*m_cfg.head_back_radius_mm) return false;
+        if(bridge_distance > m_cfg.max_bridge_length_mm) return false;
+
+        if(supper(Z) < slower(Z)) supper.swap(slower);
+        if(eupper(Z) < elower(Z)) eupper.swap(elower);
+
+        double startz = 0, endz = 0;
+
+        startz = slower(Z) - zstep < supper(Z) ? slower(Z) - zstep : slower(Z);
+        endz = eupper(Z) + zstep > elower(Z) ? eupper(Z) + zstep : eupper(Z);
+
+        if(slower(Z) - eupper(Z) < std::abs(zstep)) { // no space for even one cross
+
+            // Get max available space
+            startz = std::min(supper(Z), slower(Z) - zstep);
+            endz = std::max(eupper(Z) + zstep, elower(Z));
+
+            // Align to center
+            double available_dist = (startz - endz);
+            double rounds = std::floor(available_dist / std::abs(zstep));
+            startz -= 0.5 * (available_dist - rounds * std::abs(zstep));;
+        }
+
+        auto pcm = m_cfg.pillar_connection_mode;
+        bool docrosses =
+                pcm == PillarConnectionMode::cross ||
+                (pcm == PillarConnectionMode::dynamic &&
+                 pillar_dist > 2*m_cfg.base_radius_mm);
+
+        // 'sj' means starting junction, 'ej' is the end junction of a bridge.
+        // They will be swapped in every iteration thus the zig-zag pattern.
+        // According to a config parameter, a second bridge may be added which
+        // results in a cross connection between the pillars.
+        Vec3d sj = supper, ej = slower; sj(Z) = startz; ej(Z) = sj(Z) + zstep;
+
+        while(ej(Z) >= endz) {
+            if(bridge_mesh_intersect(sj,
+                                     dirv(sj, ej),
+                                     pillar.r) >= bridge_distance)
             {
-                if(chkd >= bridge_distance) {
-                    m_result.add_bridge(sj, ej, pillar.r);
-                    was_connected = true;
-
-                    auto pcm = m_cfg.pillar_connection_mode;
-
-                    // double bridging: (crosses)
-                    if( pcm == PillarConnectionMode::cross ||
-                       (pcm == PillarConnectionMode::dynamic &&
-                        pillar_dist > 2*m_cfg.base_radius_mm))
-                    {
-                        // If the columns are close together, no need to
-                        // double bridge them
-                        Vec3d bsj(ej(X), ej(Y), sj(Z));
-                        Vec3d bej(sj(X), sj(Y), ej(Z));
-
-                        // need to check collision for the cross stick
-                        double backchkd = bridge_mesh_intersect(
-                                    bsj, dirv(bsj, bej), pillar.r);
-
-
-                        if(backchkd >= bridge_distance) {
-                            m_result.add_bridge(bsj, bej, pillar.r);
-                        }
-                    }
-                }
-                sj.swap(ej);
-                ej(Z) = sj(Z) + zstep;
-                chkd = bridge_mesh_intersect(sj, dirv(sj, ej), pillar.r);
+                m_result.add_bridge(sj, ej, pillar.r);
+                was_connected = true;
             }
+
+            // double bridging: (crosses)
+            if(docrosses) {
+                Vec3d sjback(ej(X), ej(Y), sj(Z));
+                Vec3d ejback(sj(X), sj(Y), ej(Z));
+                if(sjback(Z) <= slower(Z) && ejback(Z) >= eupper(Z) &&
+                   bridge_mesh_intersect(sjback,
+                                         dirv(sjback, ejback),
+                                         pillar.r) >= bridge_distance)
+                {
+                    // need to check collision for the cross stick
+                    m_result.add_bridge(sjback, ejback, pillar.r);
+                    was_connected = true;
+                }
+            }
+
+            sj.swap(ej);
+            ej(Z) = sj(Z) + zstep;
         }
 
         return was_connected;
     }
 
-    long search_nearest(const Vec3d& querypoint)
+    // Search for the nearest pillar to the given query point which is not
+    // further than max_dist. The result is the pillar ID or -1 if nothing was
+    // found. The pillar search is carried out using the m_pillar_index
+    // structure.
+    long search_nearest(const Vec3d& querypoint, double max_dist)
     {
         SpatIndex spindex = m_pillar_index;
 
@@ -1318,7 +1366,7 @@ class SLASupportTree::Algorithm {
             // WARNING: previously, max_bridge_length was divided by two.
             // I don't remember if this was intentional or by accident. There
             // is no logical reason why it shouldn't be used directly.
-            if(bridge_ep(Z) <= minz || d > m_cfg.max_bridge_length_mm) break;
+            if(bridge_ep(Z) <= minz || d > max_dist) break;
 
             double chkd = bridge_mesh_intersect(querypoint,
                                                 dirv(querypoint, bridge_ep),
@@ -1329,6 +1377,10 @@ class SLASupportTree::Algorithm {
             spindex.remove(ne);
         }
         return nearest_id;
+    }
+
+    inline long search_nearest(const Vec3d& qp) {
+        return search_nearest(qp, m_cfg.max_bridge_length_mm);
     }
 
     void connect_to_nearhead(const Head& head, const Head& nearhead) {
@@ -1579,7 +1631,10 @@ public:
             auto hit = bridge_mesh_intersect(headjp, n, r);
 
             if(std::isinf(hit)) ground_head_indices.emplace_back(i);
-            else m_iheads_onmodel.emplace_back(std::make_pair(i, hit));
+            else {
+                if(m_cfg.ground_facing_only) head.invalidate();
+                m_iheads_onmodel.emplace_back(std::make_pair(i, hit));
+            }
         }
 
         // We want to search for clusters of points that are far enough
@@ -1675,7 +1730,8 @@ public:
                 sidehead.transform();
 
                 Vec3d sidehead_jp = sidehead.junction_point();
-                long nearest_id = search_nearest(sidehead_jp);
+                long nearest_id = search_nearest(sidehead_jp,
+                                                 m_cfg.max_bridge_length_mm/2);
 
                 // at this point we either have our pillar index or we have
                 // to connect the sidehead to the ground
@@ -1714,59 +1770,15 @@ public:
         // points spatially and create the bridge stick from one endpoint to
         // another.
 
-        ClusterEl rem = cl_centroids;
-        ClusterEl ring;
+        double d = std::cos(m_cfg.bridge_slope) * m_cfg.max_bridge_length_mm;
+        auto pclusters = cluster_nearest2d(m_points, cl_centroids, d, 3);
 
-        while(!rem.empty()) { // loop until all the points belong to some ring
-            m_thr();
-            std::sort(rem.begin(), rem.end());
-
-            auto& points = m_points;
-            auto newring = pts_convex_hull(rem,
-                                           [&points](unsigned i) {
-                auto&& p = points.row(i);
-                return Vec2d(p(X), p(Y)); // project to 2D in along Z axis
-            });
-
-            if(!ring.empty()) {
-                // inner ring is now in 'newring' and outer ring is in 'ring'
-                SpatIndex innerring;
-                for(unsigned i : newring) { m_thr();
-                    const Pillar& pill = m_result.head_pillar(i);
-                    assert(pill.id >= 0);
-                    innerring.insert(pill.endpoint, unsigned(pill.id));
-                }
-
-                // For all pillars in the outer ring find the closest in the
-                // inner ring and connect them. This will create the spider web
-                // fashioned connections between pillars
-                for(unsigned i : ring) { m_thr();
-                    const Pillar& outerpill = m_result.head_pillar(i);
-
-                    auto res = innerring.nearest(outerpill.endpoint,
-                                                 unsigned(innerring.size()));
-
-                    for(auto& ne : res) {
-                        const Pillar& innerpill = m_result.pillars()[ne.second];
-                        if(interconnect(outerpill, innerpill)) break;
-                    }
-                }
-            }
-
-            // no need for newring anymore in the current iteration
-            ring.swap(newring);
-
-            /*std::cout << "ring: \n";
-            for(auto ri : ring) {
-                std::cout << ri << " " << " X = " << gnd_head_pt(ri)(X)
-                          << " Y = " << gnd_head_pt(ri)(Y) << std::endl;
-            }
-            std::cout << std::endl;*/
-
+        for(auto& ring : pclusters) {
             // now the ring has to be connected with bridge sticks
-            for(auto it = ring.begin(), next = std::next(it);
-                next != ring.end();
-                ++it, ++next)
+            if(ring.size() > 1)
+                for(auto it = ring.begin(), next = std::next(it);
+                    next != ring.end();
+                    ++it, ++next)
             {
                 m_thr();
                 const Pillar& pillar = m_result.head_pillar(*it);
@@ -1774,13 +1786,81 @@ public:
                 interconnect(pillar, nextpillar);
             }
 
-            auto sring = ring; ClusterEl tmp;
-            std::sort(sring.begin(), sring.end());
-            std::set_difference(rem.begin(), rem.end(),
-                                sring.begin(), sring.end(),
-                                std::back_inserter(tmp));
-            rem.swap(tmp);
+            if(ring.size() > 2) {
+                const Pillar& firstpillar = m_result.head_pillar(ring.front());
+                const Pillar& lastpillar = m_result.head_pillar(ring.back());
+                interconnect(firstpillar, lastpillar);
+            }
+
         }
+
+//        ClusterEl rem = cl_centroids;
+//        ClusterEl ring;
+
+//        while(!rem.empty()) { // loop until all the points belong to some ring
+//            m_thr();
+//            std::sort(rem.begin(), rem.end());
+
+//            auto& points = m_points;
+//            auto newring = pts_convex_hull(rem,
+//                                           [&points](unsigned i) {
+//                auto&& p = points.row(i);
+//                return Vec2d(p(X), p(Y)); // project to 2D in along Z axis
+//            });
+
+//            if(!ring.empty()) {
+//                // inner ring is now in 'newring' and outer ring is in 'ring'
+//                SpatIndex innerring;
+//                for(unsigned i : newring) { m_thr();
+//                    const Pillar& pill = m_result.head_pillar(i);
+//                    assert(pill.id >= 0);
+//                    innerring.insert(pill.endpoint, unsigned(pill.id));
+//                }
+
+//                // For all pillars in the outer ring find the closest in the
+//                // inner ring and connect them. This will create the spider web
+//                // fashioned connections between pillars
+//                for(unsigned i : ring) { m_thr();
+//                    const Pillar& outerpill = m_result.head_pillar(i);
+
+//                    auto res = innerring.nearest(outerpill.endpoint,
+//                                                 unsigned(innerring.size()));
+
+//                    for(auto& ne : res) {
+//                        const Pillar& innerpill = m_result.pillars()[ne.second];
+//                        if(interconnect(outerpill, innerpill)) break;
+//                    }
+//                }
+//            }
+
+//            // no need for newring anymore in the current iteration
+//            ring.swap(newring);
+
+//            /*std::cout << "ring: \n";
+//            for(auto ri : ring) {
+//                std::cout << ri << " " << " X = " << gnd_head_pt(ri)(X)
+//                          << " Y = " << gnd_head_pt(ri)(Y) << std::endl;
+//            }
+//            std::cout << std::endl;*/
+
+//            // now the ring has to be connected with bridge sticks
+//            for(auto it = ring.begin(), next = std::next(it);
+//                next != ring.end();
+//                ++it, ++next)
+//            {
+//                m_thr();
+//                const Pillar& pillar = m_result.head_pillar(*it);
+//                const Pillar& nextpillar = m_result.head_pillar(*next);
+//                interconnect(pillar, nextpillar);
+//            }
+
+//            auto sring = ring; ClusterEl tmp;
+//            std::sort(sring.begin(), sring.end());
+//            std::set_difference(rem.begin(), rem.end(),
+//                                sring.begin(), sring.end(),
+//                                std::back_inserter(tmp));
+//            rem.swap(tmp);
+//        }
     }
 
     // Step: routing the pinheads that would connect to the model surface
