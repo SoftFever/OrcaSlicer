@@ -8,6 +8,7 @@
 
 #include <wx/string.h>
 
+#include "libslic3r/PrintConfig.hpp"
 #include "Http.hpp"
 
 
@@ -38,9 +39,10 @@ public:
     virtual bool upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn error_fn) const = 0;
     virtual bool has_auto_discovery() const = 0;
     virtual bool can_test() const = 0;
+    virtual bool can_start_print() const = 0;
     virtual std::string get_host() const = 0;
 
-    static PrintHost* get_print_host(DynamicPrintConfig *config);
+    static PrintHost* get_print_host(DynamicPrintConfig *config, Slic3r::PrinterTechnology pt_fallback = ptFFF);
 
 protected:
     virtual wxString format_error(const std::string &body, const std::string &error, unsigned status) const;

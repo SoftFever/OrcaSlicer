@@ -29,7 +29,7 @@ namespace GUI {
 class PrintHostSendDialog : public GUI::MsgDialog
 {
 public:
-    PrintHostSendDialog(const boost::filesystem::path &path);
+    PrintHostSendDialog(const boost::filesystem::path &path, bool can_start_print);
     boost::filesystem::path filename() const;
     bool start_print() const;
 

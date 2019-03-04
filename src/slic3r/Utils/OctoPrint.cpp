@@ -144,6 +144,11 @@ bool OctoPrint::can_test() const
     return true;
 }
 
+bool OctoPrint::can_start_print() const
+{
+    return true;
+}
+
 bool OctoPrint::validate_version_text(const boost::optional<std::string> &version_text) const
 {
     return version_text ? boost::starts_with(*version_text, "OctoPrint") : true;
@@ -184,6 +189,11 @@ wxString SLAHost::get_test_ok_msg () const
 wxString SLAHost::get_test_failed_msg (wxString &msg) const
 {
     return wxString::Format("%s: %s", _(L("Could not connect to Prusa SLA")), msg);
+}
+
+bool SLAHost::can_start_print() const
+{
+    return false;
 }
 
 bool SLAHost::validate_version_text(const boost::optional<std::string> &version_text) const

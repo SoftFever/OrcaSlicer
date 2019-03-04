@@ -28,14 +28,15 @@ namespace GUI {
 static const char *CONFIG_KEY_PATH  = "printhost_path";
 static const char *CONFIG_KEY_PRINT = "printhost_print";
 
-PrintHostSendDialog::PrintHostSendDialog(const fs::path &path)
+PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, bool can_start_print)
     : MsgDialog(nullptr, _(L("Send G-Code to printer host")), _(L("Upload to Printer Host with the following filename:")), wxID_NONE)
     , txt_filename(new wxTextCtrl(this, wxID_ANY))
-    , box_print(new wxCheckBox(this, wxID_ANY, _(L("Start printing after upload"))))
+    , box_print(can_start_print ? new wxCheckBox(this, wxID_ANY, _(L("Start printing after upload"))) : nullptr)
 {
 #ifdef __APPLE__
     txt_filename->OSXDisableAllSmartSubstitutions();
 #endif
+    const AppConfig *app_config = wxGetApp().app_config;
 
     auto *label_dir_hint = new wxStaticText(this, wxID_ANY, _(L("Use forward slashes ( / ) as a directory separator if needed.")));
     label_dir_hint->Wrap(CONTENT_WIDTH * wxGetApp().em_unit());
@@ -43,12 +44,13 @@ PrintHostSendDialog::PrintHostSendDialog(const fs::path &path)
     content_sizer->Add(txt_filename, 0, wxEXPAND);
     content_sizer->Add(label_dir_hint);
     content_sizer->AddSpacer(VERT_SPACING);
-    content_sizer->Add(box_print, 0, wxBOTTOM, 2*VERT_SPACING);
+    if (box_print != nullptr) {
+        content_sizer->Add(box_print, 0, wxBOTTOM, 2*VERT_SPACING);
+        box_print->SetValue(app_config->get("recent", CONFIG_KEY_PRINT) == "1");
+    }
 
     btn_sizer->Add(CreateStdDialogButtonSizer(wxOK | wxCANCEL));
 
-    const AppConfig *app_config = wxGetApp().app_config;
-    box_print->SetValue(app_config->get("recent", CONFIG_KEY_PRINT) == "1");
 
     wxString recent_path = from_u8(app_config->get("recent", CONFIG_KEY_PATH));
     if (recent_path.Length() > 0 && recent_path[recent_path.Length() - 1] != '/') {
@@ -80,7 +82,7 @@ fs::path PrintHostSendDialog::filename() const
 
 bool PrintHostSendDialog::start_print() const
 {
-    return box_print->GetValue();
+    return box_print != nullptr ? box_print->GetValue() : false;
 }
 
 void PrintHostSendDialog::EndModal(int ret)
@@ -94,8 +96,7 @@ void PrintHostSendDialog::EndModal(int ret)
             wxGetApp().app_config->set("recent", CONFIG_KEY_PATH, into_u8(path));
         }
 
-        bool print = box_print->GetValue();
-        GUI::get_app_config()->set("recent", CONFIG_KEY_PRINT, print ? "1" : "0");
+        GUI::get_app_config()->set("recent", CONFIG_KEY_PRINT, start_print() ? "1" : "0");
     }
 
     MsgDialog::EndModal(ret);

@@ -119,6 +119,11 @@ bool Duet::can_test() const
 	return true;
 }
 
+bool Duet::can_start_print() const
+{
+	return true;
+}
+
 bool Duet::connect(wxString &msg) const
 {
 	bool res = false;
