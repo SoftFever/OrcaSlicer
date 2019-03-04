@@ -2370,8 +2370,10 @@ RENDER_AGAIN:
         }
 
         if (value_changed) { // Update side panel
-            wxGetApp().obj_settings()->UpdateAndShow(true);
-            wxGetApp().obj_list()->update_settings_items();
+            wxTheApp->CallAfter([]() {
+                wxGetApp().obj_settings()->UpdateAndShow(true);
+                wxGetApp().obj_list()->update_settings_items();
+            });
         }
 
         bool generate = m_imgui->button(_(L("Auto-generate points [A]")));
@@ -2405,7 +2407,7 @@ RENDER_AGAIN:
 
     if (remove_selected || remove_all) {
         force_refresh = false;
-        m_parent.reload_scene(true);
+        m_parent.set_as_dirty();
         if (remove_all)
             select_point(AllPoints);
         delete_selected_points(remove_all);
@@ -2418,7 +2420,7 @@ RENDER_AGAIN:
     }
 
     if (force_refresh)
-        m_parent.reload_scene(true);
+        m_parent.set_as_dirty();
 }
 #endif // ENABLE_IMGUI
 

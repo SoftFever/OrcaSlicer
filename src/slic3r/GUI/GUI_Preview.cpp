@@ -191,7 +191,8 @@ void View3D::reload_scene(bool refresh_immediately, bool force_full_scene_refres
 void View3D::render()
 {
     if (m_canvas != nullptr)
-        m_canvas->render();
+        //m_canvas->render();
+        m_canvas->set_as_dirty();
 }
 
 Preview::Preview(wxWindow* parent, DynamicPrintConfig* config, BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, std::function<void()> schedule_background_process_func)

@@ -127,6 +127,10 @@ class ObjectList : public wxDataViewCtrl
     bool        m_prevent_update_extruder_in_config = false; // We use this flag to avoid updating of the extruder value in config 
                                                              // during updating of the extruder count.
 
+    bool        m_prevent_canvas_selection_update = false; // This flag prevents changing selection on the canvas. See function
+                                                           // update_settings_items - updating canvas selection is undesirable,
+                                                           // because it would turn off the gizmos (mainly a problem for the SLA gizmo)
+
     bool        m_parts_changed = false;
     bool        m_part_settings_changed = false;
 
