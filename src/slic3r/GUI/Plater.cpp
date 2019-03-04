@@ -1997,9 +1997,6 @@ void Plater::priv::schedule_background_process()
     this->background_process_timer.Start(500, wxTIMER_ONE_SHOT);
     // Notify the Canvas3D that something has changed, so it may invalidate some of the layer editing stuff.
     this->view3D->get_canvas3d()->set_config(this->config);
-    // Reset gcode preview
-    this->preview->get_canvas3d()->reset_volumes();
-    this->preview->get_canvas3d()->reset_legend_texture();
 }
 
 void Plater::priv::update_print_volume_state()

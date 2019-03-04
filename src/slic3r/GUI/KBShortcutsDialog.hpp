@@ -3,6 +3,7 @@
 
 #include <wx/wx.h>
 #include <map>
+#include <vector>
 
 namespace Slic3r { 
 namespace GUI {
