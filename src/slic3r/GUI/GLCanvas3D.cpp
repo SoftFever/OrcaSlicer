@@ -805,6 +805,7 @@ GLCanvas3D::Selection::VolumeCache::TransformCache::TransformCache()
     , rotation_matrix(Transform3d::Identity())
     , scale_matrix(Transform3d::Identity())
     , mirror_matrix(Transform3d::Identity())
+    , full_matrix(Transform3d::Identity())
 {
 }
 
@@ -813,6 +814,7 @@ GLCanvas3D::Selection::VolumeCache::TransformCache::TransformCache(const Geometr
     , rotation(transform.get_rotation())
     , scaling_factor(transform.get_scaling_factor())
     , mirror(transform.get_mirror())
+    , full_matrix(transform.get_matrix())
 {
     rotation_matrix = Geometry::assemble_transform(Vec3d::Zero(), rotation);
     scale_matrix = Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), scaling_factor);
@@ -1331,8 +1333,9 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation, GLCanvas3D::Transforma
                 Vec3d new_rotation = Geometry::extract_euler_angles(m * m_cache.volumes_data[i].get_volume_rotation_matrix());
                 if (transformation_type.joint())
                 {
-                    Vec3d offset = m * (m_cache.volumes_data[i].get_volume_position() + m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center);
-                    volume.set_volume_offset(m_cache.dragging_center - m_cache.volumes_data[i].get_instance_position() + offset);
+                    Vec3d local_pivot = m_cache.volumes_data[i].get_instance_full_matrix().inverse() * m_cache.dragging_center;
+                    Vec3d offset = m * (m_cache.volumes_data[i].get_volume_position() - local_pivot);
+                    volume.set_volume_offset(local_pivot + offset);
                 }
                 volume.set_volume_rotation(new_rotation);
             }

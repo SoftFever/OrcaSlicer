@@ -646,7 +646,7 @@ void GLGizmoRotate::transform_to_local(const GLCanvas3D::Selection& selection) c
 {
     ::glTranslated(m_center(0), m_center(1), m_center(2));
 
-    if (selection.is_single_volume() || selection.is_single_modifier())
+    if (selection.is_single_volume() || selection.is_single_modifier() || selection.requires_local_axes())
     {
         Transform3d orient_matrix = selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix(true, false, true, true);
         ::glMultMatrixd(orient_matrix.data());
@@ -703,7 +703,7 @@ Vec3d GLGizmoRotate::mouse_position_in_local_plane(const Linef3& mouse_ray, cons
     }
     }
 
-    if (selection.is_single_volume() || selection.is_single_modifier())
+    if (selection.is_single_volume() || selection.is_single_modifier() || selection.requires_local_axes())
         m = m * selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix(true, false, true, true).inverse();
 
     m.translate(-m_center);
