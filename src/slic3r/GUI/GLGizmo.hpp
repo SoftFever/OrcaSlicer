@@ -144,7 +144,7 @@ public:
 #endif // not ENABLE_IMGUI
 
 #if ENABLE_IMGUI
-    void render_input_window(float x, float y, const GLCanvas3D::Selection& selection) { on_render_input_window(x, y, selection); }
+    void render_input_window(float x, float y, float bottom_limit, const GLCanvas3D::Selection& selection) { on_render_input_window(x, y, bottom_limit, selection); }
 #endif // ENABLE_IMGUI
 
 protected:
@@ -163,7 +163,7 @@ protected:
     virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const = 0;
 
 #if ENABLE_IMGUI
-    virtual void on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection) {}
+    virtual void on_render_input_window(float x, float y, float bottom_limit, const GLCanvas3D::Selection& selection) {}
 #endif // ENABLE_IMGUI
 
     float picking_color_component(unsigned int id) const;
@@ -296,7 +296,7 @@ protected:
     }
 
 #if ENABLE_IMGUI
-    virtual void on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection);
+    virtual void on_render_input_window(float x, float y, float bottom_limit, const GLCanvas3D::Selection& selection);
 #endif // ENABLE_IMGUI
 };
 
@@ -333,7 +333,7 @@ protected:
     virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const;
 
 #if ENABLE_IMGUI
-    virtual void on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection);
+    virtual void on_render_input_window(float x, float y, float bottom_limit, const GLCanvas3D::Selection& selection);
 #endif // ENABLE_IMGUI
 
 private:
@@ -380,7 +380,7 @@ protected:
     virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const;
 
 #if ENABLE_IMGUI
-    virtual void on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection);
+    virtual void on_render_input_window(float x, float y, float bottom_limit, const GLCanvas3D::Selection& selection);
 #endif // ENABLE_IMGUI
 
 private:
@@ -528,7 +528,7 @@ protected:
     void on_start_dragging(const GLCanvas3D::Selection& selection) override;
 
 #if ENABLE_IMGUI
-    virtual void on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection) override;
+    virtual void on_render_input_window(float x, float y, float bottom_limit, const GLCanvas3D::Selection& selection) override;
 #endif // ENABLE_IMGUI
 
     virtual std::string on_get_name() const;
@@ -579,7 +579,7 @@ protected:
     virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const;
 
 #if ENABLE_IMGUI
-    virtual void on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection);
+    virtual void on_render_input_window(float x, float y, float bottom_limit, const GLCanvas3D::Selection& selection);
 #endif // ENABLE_IMGUI
 private:
     void update_max_z(const GLCanvas3D::Selection& selection) const;

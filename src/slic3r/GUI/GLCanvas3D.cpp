@@ -3029,8 +3029,10 @@ void GLCanvas3D::Gizmos::_render_overlay(const GLCanvas3D& canvas, const GLCanva
         float icon_size = (float)it->second->get_textures_size() * m_overlay_icons_scale * inv_zoom;
         GLTexture::render_texture(it->second->get_texture_id(), top_x, top_x + icon_size, top_y - icon_size, top_y);
 #if ENABLE_IMGUI
-        if (it->second->get_state() == GLGizmoBase::On)
-            it->second->render_input_window(2.0f * m_overlay_border + icon_size * zoom, 0.5f * cnv_h - top_y * zoom, selection);
+        if (it->second->get_state() == GLGizmoBase::On) {
+            float toolbar_top = (float)cnv_h - canvas.m_view_toolbar->get_height();
+            it->second->render_input_window(2.0f * m_overlay_border + icon_size * zoom, 0.5f * cnv_h - top_y * zoom, toolbar_top, selection);
+        }
 #endif // ENABLE_IMGUI
         top_y -= (icon_size + scaled_gap_y);
     }
