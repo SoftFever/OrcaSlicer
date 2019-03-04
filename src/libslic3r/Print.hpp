@@ -93,7 +93,7 @@ public:
     const LayerPtrs&        layers() const          { return m_layers; }
     const SupportLayerPtrs& support_layers() const  { return m_support_layers; }
     const Transform3d&      trafo() const           { return m_trafo; }
-    const Points&           copies() const { return m_copies; }
+    const Points&           copies() const          { return m_copies; }
 
     // since the object is aligned to origin, bounding box coincides with size
     BoundingBox bounding_box() const { return BoundingBox(Point(0,0), to_2d(this->size)); }
@@ -161,6 +161,7 @@ protected:
     bool                    invalidate_all_steps();
     // Invalidate steps based on a set of parameters changed.
     bool                    invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
+    SlicingParameters       slicing_parameters_internal() const;
 
     static PrintObjectConfig object_config_from_model_object(const PrintObjectConfig &default_object_config, const ModelObject &object, size_t num_extruders);
     static PrintRegionConfig region_config_from_model_volume(const PrintRegionConfig &default_region_config, const ModelVolume &volume, size_t num_extruders);
@@ -195,6 +196,7 @@ private:
     // for external callers)
     Point                                   m_copies_shift;
 
+    SlicingParameters                       m_slicing_params;
     LayerPtrs                               m_layers;
     SupportLayerPtrs                        m_support_layers;
 

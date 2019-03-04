@@ -104,7 +104,8 @@ void PrintObject::slice()
         return;
     m_print->set_status(10, "Processing triangulated mesh");
     std::vector<coordf_t> layer_height_profile;
-    this->update_layer_height_profile(*this->model_object(), this->slicing_parameters(), layer_height_profile);
+    m_slicing_params = this->slicing_parameters_internal();
+    this->update_layer_height_profile(*this->model_object(), m_slicing_params, layer_height_profile);
     m_print->throw_if_canceled();
     this->_slice(layer_height_profile);
     m_print->throw_if_canceled();
@@ -1360,11 +1361,16 @@ PrintRegionConfig PrintObject::region_config_from_model_volume(const PrintRegion
     return config;
 }
 
-SlicingParameters PrintObject::slicing_parameters() const
+SlicingParameters PrintObject::slicing_parameters_internal() const
 {
     return SlicingParameters::create_from_config(
         this->print()->config(), m_config, 
         unscale<double>(this->size(2)), this->object_extruders());
+}
+
+SlicingParameters PrintObject::slicing_parameters() const
+{
+    return this->is_step_done(posSlice) ? m_slicing_params : this->slicing_parameters_internal();
 }
 
 SlicingParameters PrintObject::slicing_parameters(const DynamicPrintConfig &full_config, const ModelObject &model_object)
@@ -1451,23 +1457,21 @@ void PrintObject::_slice(const std::vector<coordf_t> &layer_height_profile)
     tbb_init = new tbb::task_scheduler_init(1);
 #endif
 
-    SlicingParameters slicing_params = this->slicing_parameters();
-
     // 1) Initialize layers and their slice heights.
     std::vector<float> slice_zs;
     {
         this->clear_layers();
         // Object layers (pairs of bottom/top Z coordinate), without the raft.
-        std::vector<coordf_t> object_layers = generate_object_layers(slicing_params, layer_height_profile);
+        std::vector<coordf_t> object_layers = generate_object_layers(m_slicing_params, layer_height_profile);
         // Reserve object layers for the raft. Last layer of the raft is the contact layer.
-        int id = int(slicing_params.raft_layers());
+        int id = int(m_slicing_params.raft_layers());
         slice_zs.reserve(object_layers.size());
         Layer *prev = nullptr;
         for (size_t i_layer = 0; i_layer < object_layers.size(); i_layer += 2) {
             coordf_t lo = object_layers[i_layer];
             coordf_t hi = object_layers[i_layer + 1];
             coordf_t slice_z = 0.5 * (lo + hi);
-            Layer *layer = this->add_layer(id ++, hi - lo, hi + slicing_params.object_print_z_min, slice_z);
+            Layer *layer = this->add_layer(id ++, hi - lo, hi + m_slicing_params.object_print_z_min, slice_z);
             slice_zs.push_back(float(slice_z));
             if (prev != nullptr) {
                 prev->upper_layer = layer;
@@ -2246,7 +2250,7 @@ void PrintObject::combine_infill()
 
 void PrintObject::_generate_support_material()
 {
-    PrintObjectSupportMaterial support_material(this, PrintObject::slicing_parameters());
+    PrintObjectSupportMaterial support_material(this, m_slicing_params);
     support_material.generate(*this);
 }
 
