@@ -2656,7 +2656,7 @@ void Plater::priv::init_view_toolbar()
 
     item.name = "3D";
 #if ENABLE_SVG_ICONS
-    item.icon_filename = "add.svg";
+    item.icon_filename = "editor.svg";
 #endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("3D editor view") + " [" + GUI::shortkey_ctrl_prefix() + "5]";
     item.sprite_id = 0;
@@ -2667,7 +2667,7 @@ void Plater::priv::init_view_toolbar()
 
     item.name = "Preview";
 #if ENABLE_SVG_ICONS
-    item.icon_filename = "remove.svg";
+    item.icon_filename = "preview.svg";
 #endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Preview") + " [" + GUI::shortkey_ctrl_prefix() + "6]";
     item.sprite_id = 1;

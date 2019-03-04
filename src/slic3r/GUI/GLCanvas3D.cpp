@@ -2476,7 +2476,7 @@ bool GLCanvas3D::Gizmos::init(GLCanvas3D& parent)
     }
 
 #if ENABLE_SVG_ICONS
-    GLGizmoBase* gizmo = new GLGizmoMove3D(parent, "add.svg", 0);
+    GLGizmoBase* gizmo = new GLGizmoMove3D(parent, "move.svg", 0);
 #else
     GLGizmoBase* gizmo = new GLGizmoMove3D(parent, 0);
 #endif // ENABLE_SVG_ICONS
@@ -2489,7 +2489,7 @@ bool GLCanvas3D::Gizmos::init(GLCanvas3D& parent)
     m_gizmos.insert(GizmosMap::value_type(Move, gizmo));
 
 #if ENABLE_SVG_ICONS
-    gizmo = new GLGizmoScale3D(parent, "remove.svg", 1);
+    gizmo = new GLGizmoScale3D(parent, "scale.svg", 1);
 #else
     gizmo = new GLGizmoScale3D(parent, 1);
 #endif // ENABLE_SVG_ICONS
@@ -2502,7 +2502,7 @@ bool GLCanvas3D::Gizmos::init(GLCanvas3D& parent)
     m_gizmos.insert(GizmosMap::value_type(Scale, gizmo));
 
 #if ENABLE_SVG_ICONS
-    gizmo = new GLGizmoRotate3D(parent, "delete_all.svg", 2);
+    gizmo = new GLGizmoRotate3D(parent, "rotate.svg", 2);
 #else
     gizmo = new GLGizmoRotate3D(parent, 2);
 #endif // ENABLE_SVG_ICONS
@@ -2521,7 +2521,7 @@ bool GLCanvas3D::Gizmos::init(GLCanvas3D& parent)
     m_gizmos.insert(GizmosMap::value_type(Rotate, gizmo));
 
 #if ENABLE_SVG_ICONS
-    gizmo = new GLGizmoFlatten(parent, "arrange.svg", 3);
+    gizmo = new GLGizmoFlatten(parent, "place.svg", 3);
 #else
     gizmo = new GLGizmoFlatten(parent, 3);
 #endif // ENABLE_SVG_ICONS
@@ -2536,7 +2536,7 @@ bool GLCanvas3D::Gizmos::init(GLCanvas3D& parent)
     m_gizmos.insert(GizmosMap::value_type(Flatten, gizmo));
 
 #if ENABLE_SVG_ICONS
-    gizmo = new GLGizmoCut(parent, "instance_add.svg", 4);
+    gizmo = new GLGizmoCut(parent, "cut.svg", 4);
 #else
     gizmo = new GLGizmoCut(parent, 4);
 #endif // ENABLE_SVG_ICONS
@@ -2551,7 +2551,7 @@ bool GLCanvas3D::Gizmos::init(GLCanvas3D& parent)
     m_gizmos.insert(GizmosMap::value_type(Cut, gizmo));
 
 #if ENABLE_SVG_ICONS
-    gizmo = new GLGizmoSlaSupports(parent, "instance_remove.svg", 5);
+    gizmo = new GLGizmoSlaSupports(parent, "sla_supports.svg", 5);
 #else
     gizmo = new GLGizmoSlaSupports(parent, 5);
 #endif // ENABLE_SVG_ICONS
