@@ -2596,7 +2596,7 @@ void Tab::select_preset(std::string preset_name)
                     // The preset will be switched to a different, compatible preset, or the '-- default --'.
                     if (pu.technology == new_printer_technology)
                         m_dependent_tabs.emplace_back(pu.tab_type);
-                    if (pu.old_preset_dirty)
+                    if (pu.old_preset_dirty && !pu.new_preset_compatible)
                         pu.presets->discard_current_changes();
                 }
             }
