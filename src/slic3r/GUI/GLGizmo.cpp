@@ -2286,17 +2286,20 @@ RENDER_AGAIN:
         m_imgui->text(_(L("Shift + Left (+ drag) - select point(s)")));
         m_imgui->text(" ");  // vertical gap
 
-        std::vector<wxString> options = {"0.2", "0.4", "0.6", "0.8", "1.0"};
-        std::stringstream ss;
-        ss << std::setprecision(1) << m_new_point_head_diameter;
-        wxString str = ss.str();
+        static const std::vector<float> options = {0.2f, 0.4f, 0.6f, 0.8f, 1.0f};
+        static const std::vector<std::string> options_str = {"0.2", "0.4", "0.6", "0.8", "1.0"};
+        int selection = -1;
+        for (size_t i = 0; i < options.size(); i++) {
+            if (options[i] == m_new_point_head_diameter) { selection = (int)i; }
+        }
 
         bool old_combo_state = m_combo_box_open;
         // The combo is commented out for now, until the feature is supported by backend.
-        // m_combo_box_open = m_imgui->combo(_(L("Head diameter")), options, str);
+        // m_combo_box_open = m_imgui->combo(_(L("Head diameter")), options_str, selection);
         force_refresh |= (old_combo_state != m_combo_box_open);
 
-        float current_number = atof(str);
+        // float current_number = atof(str);
+        const float current_number = selection < options.size() ? options[selection] : m_new_point_head_diameter;
         if (old_combo_state && !m_combo_box_open) // closing the combo must always change the sizes (even if the selection did not change)
             for (auto& point_and_selection : m_editing_mode_cache)
                 if (point_and_selection.second) {
