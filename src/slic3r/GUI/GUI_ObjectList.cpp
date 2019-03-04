@@ -376,7 +376,8 @@ void ObjectList::selection_changed()
     fix_multiselection_conflicts();
 
     // update object selection on Plater
-    update_selections_on_canvas();
+    if (!m_prevent_canvas_selection_update)
+        update_selections_on_canvas();
 
     // to update the toolbar and info sizer
     if (!GetSelection() || m_objects_model->GetItemType(GetSelection()) == itObject) {
@@ -2129,6 +2130,10 @@ bool ObjectList::has_multi_part_objects()
 
 void ObjectList::update_settings_items()
 {
+    m_prevent_canvas_selection_update = true;
+    wxDataViewItemArray sel;
+    GetSelections(sel); // stash selection
+
     wxDataViewItemArray items;
     m_objects_model->GetChildren(wxDataViewItem(0), items);
 
@@ -2136,7 +2141,9 @@ void ObjectList::update_settings_items()
         const wxDataViewItem& settings_item = m_objects_model->GetSettingsItem(item);
         select_item(settings_item ? settings_item : m_objects_model->AddSettingsChild(item));
     }
-    UnselectAll();
+    // restore selection:
+    SetSelections(sel);
+    m_prevent_canvas_selection_update = false;
 }
 
 void ObjectList::update_object_menu()
