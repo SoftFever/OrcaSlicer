@@ -284,6 +284,8 @@ private:
     std::vector<std::string>        get_options(const bool is_part);
     const std::vector<std::string>& get_options_for_bundle(const wxString& bundle_name);
     void                            get_options_menu(settings_menu_hierarchy& settings_menu, const bool is_part);
+
+    PrinterTechnology printer_technology() const ;
 };
 
 
