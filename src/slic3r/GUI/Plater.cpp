@@ -1178,7 +1178,11 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     , sidebar(new Sidebar(q))
     , delayed_scene_refresh(false)
     , project_filename(wxEmptyString)
+#if ENABLE_SVG_ICONS
+    , view_toolbar(GLToolbar::Radio, "View")
+#else
     , view_toolbar(GLToolbar::Radio)
+#endif // ENABLE_SVG_ICONS
 {
     arranging.store(false);
     rotoptimizing.store(false);
@@ -2624,11 +2628,11 @@ bool Plater::priv::complit_init_part_menu()
 
 void Plater::priv::init_view_toolbar()
 {
+#if !ENABLE_SVG_ICONS
     ItemsIconsTexture::Metadata icons_data;
     icons_data.filename = "view_toolbar.png";
     icons_data.icon_size = 64;
-    icons_data.icon_border_size = 0;
-    icons_data.icon_gap_size = 0;
+#endif // !ENABLE_SVG_ICONS
 
     BackgroundTexture::Metadata background_data;
     background_data.filename = "toolbar_background.png";
@@ -2637,7 +2641,11 @@ void Plater::priv::init_view_toolbar()
     background_data.right = 16;
     background_data.bottom = 16;
 
+#if ENABLE_SVG_ICONS
+    if (!view_toolbar.init(background_data))
+#else
     if (!view_toolbar.init(icons_data, background_data))
+#endif // ENABLE_SVG_ICONS
         return;
 
     view_toolbar.set_layout_orientation(GLToolbar::Layout::Bottom);
@@ -2647,6 +2655,9 @@ void Plater::priv::init_view_toolbar()
     GLToolbarItem::Data item;
 
     item.name = "3D";
+#if ENABLE_SVG_ICONS
+    item.icon_filename = "editor.svg";
+#endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("3D editor view") + " [" + GUI::shortkey_ctrl_prefix() + "5]";
     item.sprite_id = 0;
     item.action_event = EVT_GLVIEWTOOLBAR_3D;
@@ -2655,6 +2666,9 @@ void Plater::priv::init_view_toolbar()
         return;
 
     item.name = "Preview";
+#if ENABLE_SVG_ICONS
+    item.icon_filename = "preview.svg";
+#endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Preview") + " [" + GUI::shortkey_ctrl_prefix() + "6]";
     item.sprite_id = 1;
     item.action_event = EVT_GLVIEWTOOLBAR_PREVIEW;
@@ -2750,10 +2764,8 @@ void Plater::priv::set_bed_shape(const Pointfs& shape)
 void Plater::priv::update_object_menu()
 {
     sidebar->obj_list()->append_menu_items_add_volume(&object_menu);
-#if ENABLE_MODE_AWARE_TOOLBAR_ITEMS
     if (view3D != nullptr)
         view3D->update_toolbar_items_visibility();
-#endif // ENABLE_MODE_AWARE_TOOLBAR_ITEMS
 }
 
 // Plater / Public

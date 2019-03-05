@@ -2416,85 +2416,49 @@ void GLCanvas3D::Selection::_ensure_on_bed()
     }
 }
 
+#if ENABLE_SVG_ICONS
+const float GLCanvas3D::Gizmos::Default_Icons_Size = 64;
+#endif // ENABLE_SVG_ICONS
+
 GLCanvas3D::Gizmos::Gizmos()
     : m_enabled(false)
+#if ENABLE_SVG_ICONS
+    , m_icons_texture_dirty(true)
+#endif // ENABLE_SVG_ICONS
     , m_current(Undefined)
+#if ENABLE_SVG_ICONS
+    , m_overlay_icons_size(Default_Icons_Size)
+    , m_overlay_scale(1.0f)
+    , m_overlay_border(5.0f)
+    , m_overlay_gap_y(5.0f)
+{
+}
+#else
 {
     set_overlay_scale(1.0);
 }
+#endif // ENABLE_SVG_ICONS
 
 GLCanvas3D::Gizmos::~Gizmos()
 {
-    _reset();
+    reset();
 }
 
 bool GLCanvas3D::Gizmos::init(GLCanvas3D& parent)
 {
-    GLGizmoBase* gizmo = new GLGizmoMove3D(parent);
-    if (gizmo == nullptr)
-        return false;
+#if !ENABLE_SVG_ICONS
+    m_icons_texture.metadata.filename = "gizmos.png";
+    m_icons_texture.metadata.icon_size = 64;
 
-    if (!gizmo->init())
-        return false;
-
-    m_gizmos.insert(GizmosMap::value_type(Move, gizmo));
-
-    gizmo = new GLGizmoScale3D(parent);
-    if (gizmo == nullptr)
-        return false;
-
-    if (!gizmo->init())
-        return false;
-
-    m_gizmos.insert(GizmosMap::value_type(Scale, gizmo));
-
-    gizmo = new GLGizmoRotate3D(parent);
-    if (gizmo == nullptr)
+    if (!m_icons_texture.metadata.filename.empty())
     {
-        _reset();
-        return false;
+        if (!m_icons_texture.texture.load_from_file(resources_dir() + "/icons/" + m_icons_texture.metadata.filename, false))
+        {
+            reset();
+            return false;
+        }
     }
-
-    if (!gizmo->init())
-    {
-        _reset();
-        return false;
-    }
-
-    m_gizmos.insert(GizmosMap::value_type(Rotate, gizmo));
-
-    gizmo = new GLGizmoFlatten(parent);
-    if (gizmo == nullptr)
-        return false;
-
-    if (!gizmo->init()) {
-        _reset();
-        return false;
-    }
-
-    m_gizmos.insert(GizmosMap::value_type(Flatten, gizmo));
-
-    gizmo = new GLGizmoCut(parent);
-    if (gizmo == nullptr)
-        return false;
-
-    if (!gizmo->init()) {
-        _reset();
-        return false;
-    }
-
-    m_gizmos.insert(GizmosMap::value_type(Cut, gizmo));
-
-    gizmo = new GLGizmoSlaSupports(parent);
-    if (gizmo == nullptr)
-        return false;
-
-    if (!gizmo->init()) {
-        _reset();
-        return false;
-    }
-
-    m_gizmos.insert(GizmosMap::value_type(SlaSupports, gizmo));
+#endif // !ENABLE_SVG_ICONS
 
     m_background_texture.metadata.filename = "toolbar_background.png";
     m_background_texture.metadata.left = 16;
@@ -2506,10 +2470,100 @@ bool GLCanvas3D::Gizmos::init(GLCanvas3D& parent)
     {
         if (!m_background_texture.texture.load_from_file(resources_dir() + "/icons/" + m_background_texture.metadata.filename, false))
         {
-            _reset();
+            reset();
             return false;
         }
     }
+
+#if ENABLE_SVG_ICONS
+    GLGizmoBase* gizmo = new GLGizmoMove3D(parent, "move.svg", 0);
+#else
+    GLGizmoBase* gizmo = new GLGizmoMove3D(parent, 0);
+#endif // ENABLE_SVG_ICONS
+    if (gizmo == nullptr)
+        return false;
+
+    if (!gizmo->init())
+        return false;
+
+    m_gizmos.insert(GizmosMap::value_type(Move, gizmo));
+
+#if ENABLE_SVG_ICONS
+    gizmo = new GLGizmoScale3D(parent, "scale.svg", 1);
+#else
+    gizmo = new GLGizmoScale3D(parent, 1);
+#endif // ENABLE_SVG_ICONS
+    if (gizmo == nullptr)
+        return false;
+
+    if (!gizmo->init())
+        return false;
+
+    m_gizmos.insert(GizmosMap::value_type(Scale, gizmo));
+
+#if ENABLE_SVG_ICONS
+    gizmo = new GLGizmoRotate3D(parent, "rotate.svg", 2);
+#else
+    gizmo = new GLGizmoRotate3D(parent, 2);
+#endif // ENABLE_SVG_ICONS
+    if (gizmo == nullptr)
+    {
+        reset();
+        return false;
+    }
+
+    if (!gizmo->init())
+    {
+        reset();
+        return false;
+    }
+
+    m_gizmos.insert(GizmosMap::value_type(Rotate, gizmo));
+
+#if ENABLE_SVG_ICONS
+    gizmo = new GLGizmoFlatten(parent, "place.svg", 3);
+#else
+    gizmo = new GLGizmoFlatten(parent, 3);
+#endif // ENABLE_SVG_ICONS
+    if (gizmo == nullptr)
+        return false;
+
+    if (!gizmo->init()) {
+        reset();
+        return false;
+    }
+
+    m_gizmos.insert(GizmosMap::value_type(Flatten, gizmo));
+
+#if ENABLE_SVG_ICONS
+    gizmo = new GLGizmoCut(parent, "cut.svg", 4);
+#else
+    gizmo = new GLGizmoCut(parent, 4);
+#endif // ENABLE_SVG_ICONS
+    if (gizmo == nullptr)
+        return false;
+
+    if (!gizmo->init()) {
+        reset();
+        return false;
+    }
+
+    m_gizmos.insert(GizmosMap::value_type(Cut, gizmo));
+
+#if ENABLE_SVG_ICONS
+    gizmo = new GLGizmoSlaSupports(parent, "sla_supports.svg", 5);
+#else
+    gizmo = new GLGizmoSlaSupports(parent, 5);
+#endif // ENABLE_SVG_ICONS
+    if (gizmo == nullptr)
+        return false;
+
+    if (!gizmo->init()) {
+        reset();
+        return false;
+    }
+
+    m_gizmos.insert(GizmosMap::value_type(SlaSupports, gizmo));
 
     return true;
 }
@@ -2524,11 +2578,30 @@ void GLCanvas3D::Gizmos::set_enabled(bool enable)
     m_enabled = enable;
 }
 
+#if ENABLE_SVG_ICONS
+void GLCanvas3D::Gizmos::set_overlay_icon_size(float size)
+{
+    if (m_overlay_icons_size != size)
+    {
+        m_overlay_icons_size = size;
+        m_icons_texture_dirty = true;
+    }
+}
+#endif // ENABLE_SVG_ICONS
+
 void GLCanvas3D::Gizmos::set_overlay_scale(float scale)
 {
+#if ENABLE_SVG_ICONS
+    if (m_overlay_scale != scale)
+    {
+        m_overlay_scale = scale;
+        m_icons_texture_dirty = true;
+    }
+#else
     m_overlay_icons_scale = scale;
     m_overlay_border = 5.0f * scale;
     m_overlay_gap_y = 5.0f * scale;
+#endif // ENABLE_SVG_ICONS
 }
 
 std::string GLCanvas3D::Gizmos::update_hover_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos, const GLCanvas3D::Selection& selection)
@@ -2539,23 +2612,39 @@ std::string GLCanvas3D::Gizmos::update_hover_state(const GLCanvas3D& canvas, con
         return name;
 
     float cnv_h = (float)canvas.get_canvas_size().get_height();
-    float height = _get_total_overlay_height();
+    float height = get_total_overlay_height();
+#if ENABLE_SVG_ICONS
+    float scaled_icons_size = m_overlay_icons_size * m_overlay_scale;
+    float scaled_border = m_overlay_border * m_overlay_scale;
+    float scaled_gap_y = m_overlay_gap_y * m_overlay_scale;
+    float scaled_stride_y = scaled_icons_size + scaled_gap_y;
+    float top_y = 0.5f * (cnv_h - height) + scaled_border;
+#else
     float top_y = 0.5f * (cnv_h - height) + m_overlay_border;
+    float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * m_overlay_icons_scale;
+#endif // ENABLE_SVG_ICONS
+
     for (GizmosMap::iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
         if ((it->second == nullptr) || !it->second->is_selectable())
             continue;
 
-        float icon_size = (float)it->second->get_textures_size() * m_overlay_icons_scale;
-
-        bool inside = (m_overlay_border <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= m_overlay_border + icon_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + icon_size);
+#if ENABLE_SVG_ICONS
+        bool inside = (scaled_border <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= scaled_border + scaled_icons_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + scaled_icons_size);
+#else
+        bool inside = (m_overlay_border <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= m_overlay_border + scaled_icons_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + scaled_icons_size);
+#endif // ENABLE_SVG_ICONS
         if (inside)
             name = it->second->get_name();
 
         if (it->second->is_activable(selection) && (it->second->get_state() != GLGizmoBase::On))
             it->second->set_state(inside ? GLGizmoBase::Hover : GLGizmoBase::Off);
 
-        top_y += (icon_size + m_overlay_gap_y);
+#if ENABLE_SVG_ICONS
+        top_y += scaled_stride_y;
+#else
+        top_y += (scaled_icons_size + m_overlay_gap_y);
+#endif // ENABLE_SVG_ICONS
     }
 
     return name;
@@ -2567,17 +2656,29 @@ void GLCanvas3D::Gizmos::update_on_off_state(const GLCanvas3D& canvas, const Vec
         return;
 
     float cnv_h = (float)canvas.get_canvas_size().get_height();
-    float height = _get_total_overlay_height();
+    float height = get_total_overlay_height();
+
+#if ENABLE_SVG_ICONS
+    float scaled_icons_size = m_overlay_icons_size * m_overlay_scale;
+    float scaled_border = m_overlay_border * m_overlay_scale;
+    float scaled_gap_y = m_overlay_gap_y * m_overlay_scale;
+    float scaled_stride_y = scaled_icons_size + scaled_gap_y;
+    float top_y = 0.5f * (cnv_h - height) + scaled_border;
+#else
     float top_y = 0.5f * (cnv_h - height) + m_overlay_border;
+    float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * m_overlay_icons_scale;
+#endif // ENABLE_SVG_ICONS
 
     for (GizmosMap::iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
         if ((it->second == nullptr) || !it->second->is_selectable())
             continue;
 
-        float icon_size = (float)it->second->get_textures_size() * m_overlay_icons_scale;
-
-        bool inside = (m_overlay_border <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= m_overlay_border + icon_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + icon_size);
+#if ENABLE_SVG_ICONS
+        bool inside = (scaled_border <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= scaled_border + scaled_icons_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + scaled_icons_size);
+#else
+        bool inside = (m_overlay_border <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= m_overlay_border + scaled_icons_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + scaled_icons_size);
+#endif // ENABLE_SVG_ICONS
         if (it->second->is_activable(selection) && inside)
         {
             if ((it->second->get_state() == GLGizmoBase::On))
@@ -2594,7 +2695,11 @@ void GLCanvas3D::Gizmos::update_on_off_state(const GLCanvas3D& canvas, const Vec
         else
             it->second->set_state(GLGizmoBase::Off);
 
-        top_y += (icon_size + m_overlay_gap_y);
+#if ENABLE_SVG_ICONS
+        top_y += scaled_stride_y;
+#else
+        top_y += (scaled_icons_size + m_overlay_gap_y);
+#endif // ENABLE_SVG_ICONS
     }
 
     GizmosMap::iterator it = m_gizmos.find(m_current);
@@ -2665,19 +2770,36 @@ bool GLCanvas3D::Gizmos::overlay_contains_mouse(const GLCanvas3D& canvas, const 
         return false;
 
     float cnv_h = (float)canvas.get_canvas_size().get_height();
-    float height = _get_total_overlay_height();
+    float height = get_total_overlay_height();
+
+#if ENABLE_SVG_ICONS
+    float scaled_icons_size = m_overlay_icons_size * m_overlay_scale;
+    float scaled_border = m_overlay_border * m_overlay_scale;
+    float scaled_gap_y = m_overlay_gap_y * m_overlay_scale;
+    float scaled_stride_y = scaled_icons_size + scaled_gap_y;
+    float top_y = 0.5f * (cnv_h - height) + scaled_border;
+#else
     float top_y = 0.5f * (cnv_h - height) + m_overlay_border;
+    float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * m_overlay_icons_scale;
+#endif // ENABLE_SVG_ICONS
+
     for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
         if ((it->second == nullptr) || !it->second->is_selectable())
             continue;
 
-        float icon_size = (float)it->second->get_textures_size() * m_overlay_icons_scale;
-
-        if ((m_overlay_border <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= m_overlay_border + icon_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + icon_size))
+#if ENABLE_SVG_ICONS
+        if ((scaled_border <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= scaled_border + scaled_icons_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + scaled_icons_size))
+#else
+        if ((m_overlay_border <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= m_overlay_border + scaled_icons_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + scaled_icons_size))
+#endif // ENABLE_SVG_ICONS
             return true;
 
-        top_y += (icon_size + m_overlay_gap_y);
+#if ENABLE_SVG_ICONS
+        top_y += scaled_stride_y;
+#else
+        top_y += (scaled_icons_size + m_overlay_gap_y);
+#endif // ENABLE_SVG_ICONS
     }
 
     return false;
@@ -2688,7 +2810,7 @@ bool GLCanvas3D::Gizmos::grabber_contains_mouse() const
     if (!m_enabled)
         return false;
 
-    GLGizmoBase* curr = _get_current();
+    GLGizmoBase* curr = get_current();
     return (curr != nullptr) ? (curr->get_hover_id() != -1) : false;
 }
 
@@ -2697,7 +2819,7 @@ void GLCanvas3D::Gizmos::update(const Linef3& mouse_ray, const Selection& select
     if (!m_enabled)
         return;
 
-    GLGizmoBase* curr = _get_current();
+    GLGizmoBase* curr = get_current();
     if (curr != nullptr)
         curr->update(GLGizmoBase::UpdateData(mouse_ray, mouse_pos, shift_down), selection);
 }
@@ -2712,7 +2834,7 @@ bool GLCanvas3D::Gizmos::is_running() const
     if (!m_enabled)
         return false;
 
-    GLGizmoBase* curr = _get_current();
+    GLGizmoBase* curr = get_current();
     return (curr != nullptr) ? (curr->get_state() == GLGizmoBase::On) : false;
 }
 
@@ -2762,7 +2884,7 @@ bool GLCanvas3D::Gizmos::is_dragging() const
     if (!m_enabled)
         return false;
 
-    GLGizmoBase* curr = _get_current();
+    GLGizmoBase* curr = get_current();
     return (curr != nullptr) ? curr->is_dragging() : false;
 }
 
@@ -2771,7 +2893,7 @@ void GLCanvas3D::Gizmos::start_dragging(const GLCanvas3D::Selection& selection)
     if (!m_enabled)
         return;
 
-    GLGizmoBase* curr = _get_current();
+    GLGizmoBase* curr = get_current();
     if (curr != nullptr)
         curr->start_dragging(selection);
 }
@@ -2781,7 +2903,7 @@ void GLCanvas3D::Gizmos::stop_dragging()
     if (!m_enabled)
         return;
 
-    GLGizmoBase* curr = _get_current();
+    GLGizmoBase* curr = get_current();
     if (curr != nullptr)
         curr->stop_dragging();
 }
@@ -2881,7 +3003,7 @@ void GLCanvas3D::Gizmos::render_current_gizmo(const GLCanvas3D::Selection& selec
     if (!m_enabled)
         return;
 
-    _render_current_gizmo(selection);
+    do_render_current_gizmo(selection);
 }
 
 void GLCanvas3D::Gizmos::render_current_gizmo_for_picking_pass(const GLCanvas3D::Selection& selection) const
@@ -2889,7 +3011,7 @@ void GLCanvas3D::Gizmos::render_current_gizmo_for_picking_pass(const GLCanvas3D:
     if (!m_enabled)
         return;
 
-    GLGizmoBase* curr = _get_current();
+    GLGizmoBase* curr = get_current();
     if (curr != nullptr)
         curr->render_for_picking(selection);
 }
@@ -2899,12 +3021,17 @@ void GLCanvas3D::Gizmos::render_overlay(const GLCanvas3D& canvas, const GLCanvas
     if (!m_enabled)
         return;
 
+#if ENABLE_SVG_ICONS
+    if (m_icons_texture_dirty)
+        generate_icons_texture();
+#endif // ENABLE_SVG_ICONS
+
     ::glDisable(GL_DEPTH_TEST);
 
     ::glPushMatrix();
     ::glLoadIdentity();
 
-    _render_overlay(canvas, selection);
+    do_render_overlay(canvas, selection);
 
     ::glPopMatrix();
 }
@@ -2918,7 +3045,7 @@ void GLCanvas3D::Gizmos::create_external_gizmo_widgets(wxWindow *parent)
 }
 #endif // not ENABLE_IMGUI
 
-void GLCanvas3D::Gizmos::_reset()
+void GLCanvas3D::Gizmos::reset()
 {
     for (GizmosMap::value_type& gizmo : m_gizmos)
     {
@@ -2929,7 +3056,7 @@ void GLCanvas3D::Gizmos::_reset()
     m_gizmos.clear();
 }
 
-void GLCanvas3D::Gizmos::_render_overlay(const GLCanvas3D& canvas, const GLCanvas3D::Selection& selection) const
+void GLCanvas3D::Gizmos::do_render_overlay(const GLCanvas3D& canvas, const GLCanvas3D::Selection& selection) const
 {
     if (m_gizmos.empty())
         return;
@@ -2941,15 +3068,19 @@ void GLCanvas3D::Gizmos::_render_overlay(const GLCanvas3D& canvas, const GLCanva
     float zoom = canvas.get_camera_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
-    float height = _get_total_overlay_height();
+    float height = get_total_overlay_height();
+#if ENABLE_SVG_ICONS
+    float scaled_border = m_overlay_border * m_overlay_scale * inv_zoom;
+#else
     float scaled_border = m_overlay_border * inv_zoom;
+#endif // ENABLE_SVG_ICONS
 
     float top_x = (-0.5f * cnv_w) * inv_zoom;
     float top_y = (0.5f * height) * inv_zoom;
 
     float left = top_x;
     float top = top_y;
-    float right = left + _get_total_overlay_width() * inv_zoom;
+    float right = left + get_total_overlay_width() * inv_zoom;
     float bottom = top - height * inv_zoom;
 
     // renders background
@@ -3018,67 +3149,158 @@ void GLCanvas3D::Gizmos::_render_overlay(const GLCanvas3D& canvas, const GLCanva
         }
     }
 
+#if ENABLE_SVG_ICONS
+    top_x += scaled_border;
+    top_y -= scaled_border;
+    float scaled_gap_y = m_overlay_gap_y * m_overlay_scale * inv_zoom;
+
+    float scaled_icons_size = m_overlay_icons_size * m_overlay_scale * inv_zoom;
+    float scaled_stride_y = scaled_icons_size + scaled_gap_y;
+    unsigned int icons_texture_id = m_icons_texture.get_id();
+    unsigned int tex_width = m_icons_texture.get_width();
+    unsigned int tex_height = m_icons_texture.get_height();
+    float inv_tex_width = (tex_width != 0) ? 1.0f / (float)tex_width : 0.0f;
+    float inv_tex_height = (tex_height != 0) ? 1.0f / (float)tex_height : 0.0f;
+#else
     top_x += m_overlay_border * inv_zoom;
     top_y -= m_overlay_border * inv_zoom;
     float scaled_gap_y = m_overlay_gap_y * inv_zoom;
+
+    float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * m_overlay_icons_scale * inv_zoom;
+    unsigned int icons_texture_id = m_icons_texture.texture.get_id();
+    unsigned int texture_size = m_icons_texture.texture.get_width();
+    float inv_texture_size = (texture_size != 0) ? 1.0f / (float)texture_size : 0.0f;
+#endif // ENABLE_SVG_ICONS
+
+#if ENABLE_SVG_ICONS
+    if ((icons_texture_id == 0) || (tex_width <= 0) || (tex_height <= 0))
+        return;
+#endif // ENABLE_SVG_ICONS
+
     for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
         if ((it->second == nullptr) || !it->second->is_selectable())
             continue;
 
-        float icon_size = (float)it->second->get_textures_size() * m_overlay_icons_scale * inv_zoom;
-        GLTexture::render_texture(it->second->get_texture_id(), top_x, top_x + icon_size, top_y - icon_size, top_y);
+        unsigned int sprite_id = it->second->get_sprite_id();
+        GLGizmoBase::EState state = it->second->get_state();
+
+#if ENABLE_SVG_ICONS
+        float u_icon_size = m_overlay_icons_size * m_overlay_scale * inv_tex_width;
+        float v_icon_size = m_overlay_icons_size * m_overlay_scale * inv_tex_height;
+        float top = sprite_id * v_icon_size;
+        float left = state * u_icon_size;
+        float bottom = top + v_icon_size;
+        float right = left + u_icon_size;
+#else
+        float uv_icon_size = (float)m_icons_texture.metadata.icon_size * inv_texture_size;
+        float top = sprite_id * uv_icon_size;
+        float left = state * uv_icon_size;
+        float bottom = top + uv_icon_size;
+        float right = left + uv_icon_size;
+#endif // ENABLE_SVG_ICONS
+
+        GLTexture::render_sub_texture(icons_texture_id, top_x, top_x + scaled_icons_size, top_y - scaled_icons_size, top_y, { { left, bottom }, { right, bottom }, { right, top }, { left, top } });
 #if ENABLE_IMGUI
         if (it->second->get_state() == GLGizmoBase::On) {
             float toolbar_top = (float)cnv_h - canvas.m_view_toolbar->get_height();
+#if ENABLE_SVG_ICONS
+            it->second->render_input_window(2.0f * scaled_border + scaled_icons_size * zoom, 0.5f * cnv_h - top_y * zoom, toolbar_top, selection);
+#else
             it->second->render_input_window(2.0f * m_overlay_border + icon_size * zoom, 0.5f * cnv_h - top_y * zoom, toolbar_top, selection);
+#endif // ENABLE_SVG_ICONS
         }
 #endif // ENABLE_IMGUI
-        top_y -= (icon_size + scaled_gap_y);
+#if ENABLE_SVG_ICONS
+        top_y -= scaled_stride_y;
+#else
+        top_y -= (scaled_icons_size + scaled_gap_y);
+#endif // ENABLE_SVG_ICONS
     }
 }
 
-void GLCanvas3D::Gizmos::_render_current_gizmo(const GLCanvas3D::Selection& selection) const
+void GLCanvas3D::Gizmos::do_render_current_gizmo(const GLCanvas3D::Selection& selection) const
 {
-    GLGizmoBase* curr = _get_current();
+    GLGizmoBase* curr = get_current();
     if (curr != nullptr)
         curr->render(selection);
 }
 
-float GLCanvas3D::Gizmos::_get_total_overlay_height() const
+float GLCanvas3D::Gizmos::get_total_overlay_height() const
 {
+#if ENABLE_SVG_ICONS
+    float scaled_icons_size = m_overlay_icons_size * m_overlay_scale;
+    float scaled_border = m_overlay_border * m_overlay_scale;
+    float scaled_gap_y = m_overlay_gap_y * m_overlay_scale;
+    float scaled_stride_y = scaled_icons_size + scaled_gap_y;
+    float height = 2.0f * scaled_border;
+#else
     float height = 2.0f * m_overlay_border;
 
+    float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * m_overlay_icons_scale;
+#endif // ENABLE_SVG_ICONS
+
     for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
         if ((it->second == nullptr) || !it->second->is_selectable())
             continue;
 
-        height += (float)it->second->get_textures_size() * m_overlay_icons_scale + m_overlay_gap_y;
+#if ENABLE_SVG_ICONS
+        height += scaled_stride_y;
+#else
+        height += (scaled_icons_size + m_overlay_gap_y);
+#endif // ENABLE_SVG_ICONS
     }
 
+#if ENABLE_SVG_ICONS
+    return height - scaled_gap_y;
+#else
     return height - m_overlay_gap_y;
+#endif // ENABLE_SVG_ICONS
 }
 
-float GLCanvas3D::Gizmos::_get_total_overlay_width() const
+float GLCanvas3D::Gizmos::get_total_overlay_width() const
 {
-    float max_icon_width = 0.0f;
-    for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
-    {
-        if ((it->second == nullptr) || !it->second->is_selectable())
-            continue;
-
-        max_icon_width = std::max(max_icon_width, (float)it->second->get_textures_size() * m_overlay_icons_scale);
-    }
-
-    return max_icon_width + 2.0f * m_overlay_border;
+#if ENABLE_SVG_ICONS
+    return (2.0f * m_overlay_border + m_overlay_icons_size) * m_overlay_scale;
+#else
+    return (float)m_icons_texture.metadata.icon_size * m_overlay_icons_scale + 2.0f * m_overlay_border;
+#endif // ENABLE_SVG_ICONS
 }
 
-GLGizmoBase* GLCanvas3D::Gizmos::_get_current() const
+GLGizmoBase* GLCanvas3D::Gizmos::get_current() const
 {
     GizmosMap::const_iterator it = m_gizmos.find(m_current);
     return (it != m_gizmos.end()) ? it->second : nullptr;
 }
+
+#if ENABLE_SVG_ICONS
+bool GLCanvas3D::Gizmos::generate_icons_texture() const
+{
+    std::string path = resources_dir() + "/icons/";
+    std::vector<std::string> filenames;
+    for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
+    {
+        if (it->second != nullptr)
+        {
+            const std::string& icon_filename = it->second->get_icon_filename();
+            if (!icon_filename.empty())
+                filenames.push_back(path + icon_filename);
+        }
+    }
+
+    std::vector<std::pair<int, bool>> states;
+    states.push_back(std::make_pair(1, false));
+    states.push_back(std::make_pair(0, false));
+    states.push_back(std::make_pair(0, true));
+
+    bool res = m_icons_texture.load_from_svg_files_as_sprites_array(filenames, states, (unsigned int)(m_overlay_icons_size * m_overlay_scale));
+    if (res)
+        m_icons_texture_dirty = false;
+
+    return res;
+}
+#endif // ENABLE_SVG_ICONS
 
 const unsigned char GLCanvas3D::WarningTexture::Background_Color[3] = { 9, 91, 134 };
 const unsigned char GLCanvas3D::WarningTexture::Opacity = 255;
@@ -3188,7 +3410,7 @@ bool GLCanvas3D::WarningTexture::_generate(const std::string& msg, const GLCanva
     ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data());
     ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
     ::glBindTexture(GL_TEXTURE_2D, 0);
 
     return true;
@@ -3441,7 +3663,7 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
     ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data());
     ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
     ::glBindTexture(GL_TEXTURE_2D, 0);
 
     return true;
@@ -3509,7 +3731,11 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
 #endif
     , m_in_render(false)
     , m_bed(nullptr)
+#if ENABLE_SVG_ICONS
+    , m_toolbar(GLToolbar::Normal, "Top")
+#else
     , m_toolbar(GLToolbar::Normal)
+#endif // ENABLE_SVG_ICONS
     , m_view_toolbar(nullptr)
     , m_use_clipping_planes(false)
     , m_sidebar_field("")
@@ -3922,7 +4148,6 @@ void GLCanvas3D::update_volumes_colors_by_extruder()
         m_volumes.update_colors_by_extruder(m_config);
 }
 
-#if ENABLE_MODE_AWARE_TOOLBAR_ITEMS
 void GLCanvas3D::update_toolbar_items_visibility()
 {
     ConfigOptionMode mode = wxGetApp().get_mode();
@@ -3931,7 +4156,6 @@ void GLCanvas3D::update_toolbar_items_visibility()
     m_toolbar.set_item_visible("splitvolumes", mode != comSimple);
     m_dirty = true;
 }
-#endif // ENABLE_MODE_AWARE_TOOLBAR_ITEMS
 
 // Returns a Rect object denoting size and position of the Reset button used by a gizmo.
 // Returns in either screen or viewport coords.
@@ -4045,7 +4269,9 @@ void GLCanvas3D::render()
     _render_gizmos_overlay();
     _render_warning_texture();
     _render_legend_texture();
+#if !ENABLE_SVG_ICONS
     _resize_toolbars();
+#endif // !ENABLE_SVG_ICONS
     _render_toolbar();
     _render_view_toolbar();
     if (m_layers_editing.last_object_id >= 0)
@@ -5713,16 +5939,11 @@ bool GLCanvas3D::_init_toolbar()
     if (!m_toolbar.is_enabled())
         return true;
 
+#if !ENABLE_SVG_ICONS
     ItemsIconsTexture::Metadata icons_data;
     icons_data.filename = "toolbar.png";
-    icons_data.icon_size = 36;
-    icons_data.icon_border_size = 1;
-    icons_data.icon_gap_size = 1;
-
-//    icons_data.filename = "toolbar141.png";
-//    icons_data.icon_size = 52;
-//    icons_data.icon_border_size = 0;
-//    icons_data.icon_gap_size = 0;
+    icons_data.icon_size = 37;
+#endif // !ENABLE_SVG_ICONS
 
     BackgroundTexture::Metadata background_data;
     background_data.filename = "toolbar_background.png";
@@ -5731,7 +5952,11 @@ bool GLCanvas3D::_init_toolbar()
     background_data.right = 16;
     background_data.bottom = 16;
 
+#if ENABLE_SVG_ICONS
+    if (!m_toolbar.init(background_data))
+#else
     if (!m_toolbar.init(icons_data, background_data))
+#endif // ENABLE_SVG_ICONS
     {
         // unable to init the toolbar texture, disable it
         m_toolbar.set_enabled(false);
@@ -5748,6 +5973,9 @@ bool GLCanvas3D::_init_toolbar()
     GLToolbarItem::Data item;
 
     item.name = "add";
+#if ENABLE_SVG_ICONS
+    item.icon_filename = "add.svg";
+#endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Add...") + " [" + GUI::shortkey_ctrl_prefix() + "I]";
     item.sprite_id = 0;
     item.action_event = EVT_GLTOOLBAR_ADD;
@@ -5755,6 +5983,9 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "delete";
+#if ENABLE_SVG_ICONS
+    item.icon_filename = "remove.svg";
+#endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Delete") + " [Del]";
     item.sprite_id = 1;
     item.action_event = EVT_GLTOOLBAR_DELETE;
@@ -5762,6 +5993,9 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "deleteall";
+#if ENABLE_SVG_ICONS
+    item.icon_filename = "delete_all.svg";
+#endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Delete all") + " [" + GUI::shortkey_ctrl_prefix() + "Del]";
     item.sprite_id = 2;
     item.action_event = EVT_GLTOOLBAR_DELETE_ALL;
@@ -5769,6 +6003,9 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "arrange";
+#if ENABLE_SVG_ICONS
+    item.icon_filename = "arrange.svg";
+#endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Arrange [A]");
     item.sprite_id = 3;
     item.action_event = EVT_GLTOOLBAR_ARRANGE;
@@ -5779,6 +6016,9 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "more";
+#if ENABLE_SVG_ICONS
+    item.icon_filename = "instance_add.svg";
+#endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Add instance [+]");
     item.sprite_id = 4;
     item.action_event = EVT_GLTOOLBAR_MORE;
@@ -5786,6 +6026,9 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "fewer";
+#if ENABLE_SVG_ICONS
+    item.icon_filename = "instance_remove.svg";
+#endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Remove instance [-]");
     item.sprite_id = 5;
     item.action_event = EVT_GLTOOLBAR_FEWER;
@@ -5796,6 +6039,9 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "splitobjects";
+#if ENABLE_SVG_ICONS
+    item.icon_filename = "split_objects.svg";
+#endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Split to objects");
     item.sprite_id = 6;
     item.action_event = EVT_GLTOOLBAR_SPLIT_OBJECTS;
@@ -5803,8 +6049,11 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "splitvolumes";
+#if ENABLE_SVG_ICONS
+    item.icon_filename = "split_parts.svg";
+#endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Split to parts");
-    item.sprite_id = 8;
+    item.sprite_id = 7;
     item.action_event = EVT_GLTOOLBAR_SPLIT_VOLUMES;
     if (!m_toolbar.add_item(item))
         return false;
@@ -5813,8 +6062,11 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "layersediting";
+#if ENABLE_SVG_ICONS
+    item.icon_filename = "layers.svg";
+#endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Layers editing");
-    item.sprite_id = 7;
+    item.sprite_id = 8;
     item.is_toggable = true;
     item.action_event = EVT_GLTOOLBAR_LAYERSEDITING;
     if (!m_toolbar.add_item(item))
@@ -5822,9 +6074,7 @@ bool GLCanvas3D::_init_toolbar()
 
     enable_toolbar_item("add", true);
 
-#if ENABLE_MODE_AWARE_TOOLBAR_ITEMS
     update_toolbar_items_visibility();
-#endif // ENABLE_MODE_AWARE_TOOLBAR_ITEMS
 
     return true;
 }
@@ -6304,11 +6554,63 @@ void GLCanvas3D::_render_gizmos_overlay() const
 
 void GLCanvas3D::_render_toolbar() const
 {
+#if ENABLE_SVG_ICONS
+#if ENABLE_RETINA_GL
+    m_toolbar.set_scale(m_retina_helper->get_scale_factor());
+#else
+    m_toolbar.set_scale(m_canvas->GetContentScaleFactor());
+#endif // ENABLE_RETINA_GL
+
+    Size cnv_size = get_canvas_size();
+    float zoom = get_camera_zoom();
+    float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+
+    GLToolbar::Layout::EOrientation orientation = m_toolbar.get_layout_orientation();
+
+    float top = 0.0f;
+    float left = 0.0f;
+    switch (m_toolbar.get_layout_type())
+    {
+    default:
+    case GLToolbar::Layout::Horizontal:
+    {
+        // centers the toolbar on the top edge of the 3d scene
+        if (orientation == GLToolbar::Layout::Top)
+        {
+            top = 0.5f * (float)cnv_size.get_height() * inv_zoom;
+            left = -0.5f * m_toolbar.get_width() * inv_zoom;
+        }
+        else
+        {
+            top = (-0.5f * (float)cnv_size.get_height() + m_view_toolbar->get_height()) * inv_zoom;
+            left = -0.5f * m_toolbar.get_width() * inv_zoom;
+        }
+        break;
+    }
+    case GLToolbar::Layout::Vertical:
+    {
+        // centers the toolbar on the right edge of the 3d scene
+        if (orientation == GLToolbar::Layout::Left)
+        {
+            top = 0.5f * m_toolbar.get_height() * inv_zoom;
+            left = (-0.5f * (float)cnv_size.get_width()) * inv_zoom;
+        }
+        else
+        {
+            top = 0.5f * m_toolbar.get_height() * inv_zoom;
+            left = (0.5f * (float)cnv_size.get_width() - m_toolbar.get_width()) * inv_zoom;
+        }
+        break;
+    }
+    }
+    m_toolbar.set_position(top, left);
+#else
 #if ENABLE_RETINA_GL
     m_toolbar.set_icons_scale(m_retina_helper->get_scale_factor());
 #else
     m_toolbar.set_icons_scale(m_canvas->GetContentScaleFactor());
 #endif /* __WXMSW__ */
+#endif // ENABLE_SVG_ICONS
 
     m_toolbar.render(*this);
 }
@@ -6316,11 +6618,28 @@ void GLCanvas3D::_render_toolbar() const
 void GLCanvas3D::_render_view_toolbar() const
 {
     if (m_view_toolbar != nullptr) {
+#if ENABLE_SVG_ICONS
+#if ENABLE_RETINA_GL
+        m_view_toolbar->set_scale(m_retina_helper->get_scale_factor());
+#else
+        m_view_toolbar->set_scale(m_canvas->GetContentScaleFactor());
+#endif // ENABLE_RETINA_GL
+
+        Size cnv_size = get_canvas_size();
+        float zoom = get_camera_zoom();
+        float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+
+        // places the toolbar on the bottom-left corner of the 3d scene
+        float top = (-0.5f * (float)cnv_size.get_height() + m_view_toolbar->get_height()) * inv_zoom;
+        float left = -0.5f * (float)cnv_size.get_width() * inv_zoom;
+        m_view_toolbar->set_position(top, left);
+#else
 #if ENABLE_RETINA_GL
         m_view_toolbar->set_icons_scale(m_retina_helper->get_scale_factor());
 #else
         m_view_toolbar->set_icons_scale(m_canvas->GetContentScaleFactor());
 #endif /* __WXMSW__ */
+#endif // ENABLE_SVG_ICONS
         m_view_toolbar->render(*this);
     }
 }
@@ -7809,6 +8128,7 @@ bool GLCanvas3D::_is_any_volume_outside() const
     return false;
 }
 
+#if !ENABLE_SVG_ICONS
 void GLCanvas3D::_resize_toolbars() const
 {
     Size cnv_size = get_canvas_size();
@@ -7876,6 +8196,7 @@ void GLCanvas3D::_resize_toolbars() const
         m_view_toolbar->set_position(top, left);
     }
 }
+#endif // !ENABLE_SVG_ICONS
 
 const Print* GLCanvas3D::fff_print() const
 {

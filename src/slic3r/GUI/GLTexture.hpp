@@ -38,9 +38,16 @@ namespace GUI {
         virtual ~GLTexture();
 
         bool load_from_file(const std::string& filename, bool use_mipmaps);
-#if ENABLE_TEXTURES_FROM_SVG
         bool load_from_svg_file(const std::string& filename, bool use_mipmaps, unsigned int max_size_px);
-#endif // ENABLE_TEXTURES_FROM_SVG
+        // meanings of states: (std::pair<int, bool>)
+        // first field (int):
+        // 0 -> no changes
+        // 1 -> use white only color variant
+        // 2 -> use gray only color variant
+        // second field (bool):
+        // false -> no changes
+        // true -> add background color
+        bool load_from_svg_files_as_sprites_array(const std::vector<std::string>& filenames, const std::vector<std::pair<int, bool>>& states, unsigned int sprite_size_px);
         void reset();
 
         unsigned int get_id() const { return m_id; }
@@ -54,11 +61,9 @@ namespace GUI {
 
     protected:
         unsigned int generate_mipmaps(wxImage& image);
-#if ENABLE_TEXTURES_FROM_SVG
     private:
         bool load_from_png(const std::string& filename, bool use_mipmaps);
         bool load_from_svg(const std::string& filename, bool use_mipmaps, unsigned int max_size_px);
-#endif // ENABLE_TEXTURES_FROM_SVG
     };
 
 } // namespace GUI

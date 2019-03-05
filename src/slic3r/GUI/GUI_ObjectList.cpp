@@ -259,7 +259,7 @@ void ObjectList::update_extruder_values_for_items(const int max_extruder)
 void ObjectList::update_objects_list_extruder_column(int extruders_count)
 {
     if (!this) return; // #ys_FIXME
-    if (wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA)
+    if (printer_technology() == ptSLA)
         extruders_count = 1;
 
     wxDataViewChoiceRenderer* ch_render = dynamic_cast<wxDataViewChoiceRenderer*>(GetColumn(1)->GetRenderer());
@@ -452,7 +452,7 @@ void ObjectList::show_context_menu()
 
         wxMenu* menu = type & itInstance ? &m_menu_instance :
                        m_objects_model->GetParent(item) != wxDataViewItem(0) ? &m_menu_part :
-                       wxGetApp().plater()->printer_technology() == ptFFF ? &m_menu_object : &m_menu_sla_object;
+                       printer_technology() == ptFFF ? &m_menu_object : &m_menu_sla_object;
 
         if (!(type & itInstance))
             append_menu_item_settings(menu);
@@ -597,7 +597,7 @@ void ObjectList::OnDrop(wxDataViewEvent &event)
 
 std::vector<std::string> ObjectList::get_options(const bool is_part)
 {
-    if (wxGetApp().plater()->printer_technology() == ptSLA) {
+    if (printer_technology() == ptSLA) {
         SLAPrintObjectConfig full_sla_config;
         auto options = full_sla_config.keys();
         options.erase(find(options.begin(), options.end(), "layer_height"));
@@ -616,7 +616,7 @@ std::vector<std::string> ObjectList::get_options(const bool is_part)
     
 const std::vector<std::string>& ObjectList::get_options_for_bundle(const wxString& bundle_name)
 {
-    const FreqSettingsBundle& bundle = wxGetApp().plater()->printer_technology() == ptSLA ? 
+    const FreqSettingsBundle& bundle = printer_technology() == ptSLA ? 
                                        FREQ_SETTINGS_BUNDLE_SLA : FREQ_SETTINGS_BUNDLE_FFF;
 
     for (auto& it : bundle)
@@ -626,7 +626,7 @@ const std::vector<std::string>& ObjectList::get_options_for_bundle(const wxStrin
     }
 #if 0
     // if "Quick menu" is selected
-    FreqSettingsBundle& bundle_quick = wxGetApp().plater()->printer_technology() == ptSLA ?
+    FreqSettingsBundle& bundle_quick = printer_technology() == ptSLA ?
                                        m_freq_settings_sla: m_freq_settings_fff;
 
     for (auto& it : bundle_quick)
@@ -644,7 +644,7 @@ void ObjectList::get_options_menu(settings_menu_hierarchy& settings_menu, const 
 {
     auto options = get_options(is_part);
 
-    auto extruders_cnt = wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA ? 1 :
+    auto extruders_cnt = printer_technology() == ptSLA ? 1 :
         wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
 
     DynamicPrintConfig config;
@@ -665,6 +665,11 @@ void ObjectList::get_options_menu(settings_menu_hierarchy& settings_menu, const 
         if (cat_opt_label.size() == 1)
             settings_menu[category] = cat_opt_label;
     }
+}
+
+Slic3r::PrinterTechnology ObjectList::printer_technology() const 
+{
+    return wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology();
 }
 
 void ObjectList::get_settings_choice(const wxString& category_name)
@@ -705,7 +710,7 @@ void ObjectList::get_settings_choice(const wxString& category_name)
     if (selection_cnt > 0) 
     {
         // Add selected items to the "Quick menu"
-        FreqSettingsBundle& freq_settings = wxGetApp().plater()->printer_technology() == ptSLA ?
+        FreqSettingsBundle& freq_settings = printer_technology() == ptSLA ?
                                             m_freq_settings_sla : m_freq_settings_fff;
         bool changed_existing = false;
 
@@ -751,7 +756,9 @@ void ObjectList::get_settings_choice(const wxString& category_name)
     for (auto sel : selections)
         selected_options.push_back((*settings_list)[sel].first);
 
-    const DynamicPrintConfig& from_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    const DynamicPrintConfig& from_config = printer_technology() == ptFFF ? 
+                                            wxGetApp().preset_bundle->prints.get_edited_preset().config : 
+                                            wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
 
     for (auto& setting : (*settings_list))
     {
@@ -1065,10 +1072,10 @@ wxMenu* ObjectList::create_settings_popupmenu(wxMenu *parent_menu)
 void ObjectList::create_freq_settings_popupmenu(wxMenu *menu)
 {
     // Add default settings bundles
-    const FreqSettingsBundle& bundle = wxGetApp().plater()->printer_technology() == ptFFF ?
+    const FreqSettingsBundle& bundle = printer_technology() == ptFFF ?
                                      FREQ_SETTINGS_BUNDLE_FFF : FREQ_SETTINGS_BUNDLE_SLA;
 
-    auto extruders_cnt = wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA ? 1 :
+    auto extruders_cnt = printer_technology() == ptSLA ? 1 :
                          wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
 
     for (auto& it : bundle) {
@@ -1081,7 +1088,7 @@ void ObjectList::create_freq_settings_popupmenu(wxMenu *menu)
     }
 #if 0
     // Add "Quick" settings bundles
-    const FreqSettingsBundle& bundle_quick = wxGetApp().plater()->printer_technology() == ptFFF ?
+    const FreqSettingsBundle& bundle_quick = printer_technology() == ptFFF ?
                                              m_freq_settings_fff : m_freq_settings_sla;
 
     for (auto& it : bundle_quick) {

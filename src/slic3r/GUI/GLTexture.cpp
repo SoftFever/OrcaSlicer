@@ -6,19 +6,17 @@
 #include <wx/image.h>
 
 #include <boost/filesystem.hpp>
-#if ENABLE_TEXTURES_FROM_SVG
 #include <boost/algorithm/string/predicate.hpp>
-#endif // ENABLE_TEXTURES_FROM_SVG
 
 #include <vector>
 #include <algorithm>
 
-#if ENABLE_TEXTURES_FROM_SVG
 #define NANOSVG_IMPLEMENTATION
 #include "nanosvg/nanosvg.h"
 #define NANOSVGRAST_IMPLEMENTATION
 #include "nanosvg/nanosvgrast.h"
-#endif // ENABLE_TEXTURES_FROM_SVG
+
+#include "libslic3r/Utils.hpp"
 
 #include "libslic3r/Utils.hpp"
 
@@ -40,7 +38,6 @@ GLTexture::~GLTexture()
     reset();
 }
 
-#if ENABLE_TEXTURES_FROM_SVG
 bool GLTexture::load_from_file(const std::string& filename, bool use_mipmaps)
 {
     reset();
@@ -66,25 +63,20 @@ bool GLTexture::load_from_svg_file(const std::string& filename, bool use_mipmaps
     else
         return false;
 }
-#else
-bool GLTexture::load_from_file(const std::string& filename, bool use_mipmaps)
+
+bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::string>& filenames, const std::vector<std::pair<int, bool>>& states, unsigned int sprite_size_px)
 {
     reset();
 
-    if (!boost::filesystem::exists(filename))
+    if (filenames.empty() || states.empty() || (sprite_size_px == 0))
         return false;
 
-    // Load a PNG with an alpha channel.
-    wxImage image;
-	if (!image.LoadFile(wxString::FromUTF8(filename.c_str()), wxBITMAP_TYPE_PNG))
-    {
-        reset();
-        return false;
-    }
-
-    m_width = image.GetWidth();
-    m_height = image.GetHeight();
+    m_width = (int)(sprite_size_px * states.size());
+    m_height = (int)(sprite_size_px * filenames.size());
     int n_pixels = m_width * m_height;
+    int sprite_n_pixels = sprite_size_px * sprite_size_px;
+    int sprite_bytes = sprite_n_pixels * 4;
+    int sprite_stride = sprite_size_px * 4;
 
     if (n_pixels <= 0)
     {
@@ -92,52 +84,136 @@ bool GLTexture::load_from_file(const std::string& filename, bool use_mipmaps)
         return false;
     }
 
-    // Get RGB & alpha raw data from wxImage, pack them into an array.
-    unsigned char* img_rgb = image.GetData();
-    if (img_rgb == nullptr)
+    std::vector<unsigned char> data(n_pixels * 4, 0);
+    std::vector<unsigned char> sprite_data(sprite_bytes, 0);
+    std::vector<unsigned char> sprite_white_only_data(sprite_bytes, 0);
+    std::vector<unsigned char> sprite_gray_only_data(sprite_bytes, 0);
+    std::vector<unsigned char> output_data(sprite_bytes, 0);
+
+    NSVGrasterizer* rast = nsvgCreateRasterizer();
+    if (rast == nullptr)
     {
         reset();
         return false;
     }
 
-    unsigned char* img_alpha = image.GetAlpha();
-
-    std::vector<unsigned char> data(n_pixels * 4, 0);
-    for (int i = 0; i < n_pixels; ++i)
+    int sprite_id = -1;
+    for (const std::string& filename : filenames)
     {
-        int data_id = i * 4;
-        int img_id = i * 3;
-        data[data_id + 0] = img_rgb[img_id + 0];
-        data[data_id + 1] = img_rgb[img_id + 1];
-        data[data_id + 2] = img_rgb[img_id + 2];
-        data[data_id + 3] = (img_alpha != nullptr) ? img_alpha[i] : 255;
+        ++sprite_id;
+
+        if (!boost::filesystem::exists(filename))
+            continue;
+
+        if (!boost::algorithm::iends_with(filename, ".svg"))
+            continue;
+
+        NSVGimage* image = nsvgParseFromFile(filename.c_str(), "px", 96.0f);
+        if (image == nullptr)
+            continue;
+
+        float scale = (float)sprite_size_px / std::max(image->width, image->height);
+
+        nsvgRasterize(rast, image, 0, 0, scale, sprite_data.data(), sprite_size_px, sprite_size_px, sprite_stride);
+
+        // makes white only copy of the sprite
+        ::memcpy((void*)sprite_white_only_data.data(), (const void*)sprite_data.data(), sprite_bytes);
+        for (int i = 0; i < sprite_n_pixels; ++i)
+        {
+            int offset = i * 4;
+            if (sprite_white_only_data.data()[offset] != 0)
+                ::memset((void*)&sprite_white_only_data.data()[offset], 255, 3);
+        }
+
+        // makes gray only copy of the sprite
+        ::memcpy((void*)sprite_gray_only_data.data(), (const void*)sprite_data.data(), sprite_bytes);
+        for (int i = 0; i < sprite_n_pixels; ++i)
+        {
+            int offset = i * 4;
+            if (sprite_gray_only_data.data()[offset] != 0)
+                ::memset((void*)&sprite_gray_only_data.data()[offset], 128, 3);
+        }
+
+        int sprite_offset_px = sprite_id * sprite_size_px * m_width;
+        int state_id = -1;
+        for (const std::pair<int, bool>& state : states)
+        {
+            ++state_id;
+
+            // select the sprite variant
+            std::vector<unsigned char>* src = nullptr;
+            switch (state.first)
+            {
+            case 1: { src = &sprite_white_only_data; break; }
+            case 2: { src = &sprite_gray_only_data; break; }
+            default: { src = &sprite_data; break; }
+            }
+
+            ::memcpy((void*)output_data.data(), (const void*)src->data(), sprite_bytes);
+            // applies background, if needed
+            if (state.second)
+            {
+                for (int i = 0; i < sprite_n_pixels; ++i)
+                {
+                    int offset = i * 4;
+                    float alpha = (float)output_data.data()[offset + 3] / 255.0f;
+                    output_data.data()[offset + 0] = (unsigned char)(output_data.data()[offset + 0] * alpha);
+                    output_data.data()[offset + 1] = (unsigned char)(output_data.data()[offset + 1] * alpha);
+                    output_data.data()[offset + 2] = (unsigned char)(output_data.data()[offset + 2] * alpha);
+                    output_data.data()[offset + 3] = (unsigned char)(128 * (1.0f - alpha) + output_data.data()[offset + 3] * alpha);
+                }
+            }
+
+            int state_offset_px = sprite_offset_px + state_id * sprite_size_px;
+            for (int j = 0; j < sprite_size_px; ++j)
+            {
+                ::memcpy((void*)&data.data()[(state_offset_px + j * m_width) * 4], (const void*)&output_data.data()[j * sprite_stride], sprite_stride);
+            }
+        }
+
+        nsvgDelete(image);
     }
+
+    nsvgDeleteRasterizer(rast);
 
     // sends data to gpu
     ::glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     ::glGenTextures(1, &m_id);
     ::glBindTexture(GL_TEXTURE_2D, m_id);
     ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data());
-    if (use_mipmaps)
-    {
-        // we manually generate mipmaps because glGenerateMipmap() function is not reliable on all graphics cards
-        unsigned int levels_count = generate_mipmaps(image);
-        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1 + levels_count);
-        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    }
-    else
-    {
-        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
-    }
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
     ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     ::glBindTexture(GL_TEXTURE_2D, 0);
 
-    m_source = filename;
+    m_source = filenames.front();
+    
+#if 0
+    // debug output
+    static int pass = 0;
+    ++pass;
+
+    wxImage output(m_width, m_height);
+    output.InitAlpha();
+
+    for (int h = 0; h < m_height; ++h)
+    {
+        int px_h = h * m_width;
+        for (int w = 0; w < m_width; ++w)
+        {
+            int offset = (px_h + w) * 4;
+            output.SetRGB(w, h, data.data()[offset + 0], data.data()[offset + 1], data.data()[offset + 2]);
+            output.SetAlpha(w, h, data.data()[offset + 3]);
+        }
+    }
+
+    std::string out_filename = resources_dir() + "/icons/test_" + std::to_string(pass) + ".png";
+    output.SaveFile(out_filename, wxBITMAP_TYPE_PNG);
+#endif // 0
+
     return true;
 }
-#endif // ENABLE_TEXTURES_FROM_SVG
 
 void GLTexture::reset()
 {
@@ -216,7 +292,6 @@ unsigned int GLTexture::generate_mipmaps(wxImage& image)
     return (unsigned int)level;
 }
 
-#if ENABLE_TEXTURES_FROM_SVG
 bool GLTexture::load_from_png(const std::string& filename, bool use_mipmaps)
 {
     // Load a PNG with an alpha channel.
@@ -267,13 +342,13 @@ bool GLTexture::load_from_png(const std::string& filename, bool use_mipmaps)
     {
         // we manually generate mipmaps because glGenerateMipmap() function is not reliable on all graphics cards
         unsigned int levels_count = generate_mipmaps(image);
-        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1 + levels_count);
+        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, levels_count);
         ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     }
     else
     {
         ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
+        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
     }
     ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -342,13 +417,13 @@ bool GLTexture::load_from_svg(const std::string& filename, bool use_mipmaps, uns
             ::glTexImage2D(GL_TEXTURE_2D, level, GL_RGBA, (GLsizei)lod_w, (GLsizei)lod_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data());
         }
 
-        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1 + level);
+        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, level);
         ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     }
     else
     {
         ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
+        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
     }
     ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -361,7 +436,6 @@ bool GLTexture::load_from_svg(const std::string& filename, bool use_mipmaps, uns
 
     return true;
 }
-#endif // ENABLE_TEXTURES_FROM_SVG
 
 } // namespace GUI
 } // namespace Slic3r
