@@ -868,7 +868,7 @@ private:
         void fill_color_print_legend_values(const GCodePreviewData& preview_data, const GLCanvas3D& canvas,
                                      std::vector<std::pair<double, double>>& cp_legend_values);
 
-        bool generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors, const GLCanvas3D& canvas, bool use_error_colors);
+        bool generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors, const GLCanvas3D& canvas);
 
         void render(const GLCanvas3D& canvas) const;
     };
