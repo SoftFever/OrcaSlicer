@@ -38,6 +38,11 @@ FreqSettingsBundle FREQ_SETTINGS_BUNDLE_SLA =
     { L("Pad and Support")      , { "supports_enable", "pad_enable" } }
 };
 
+static PrinterTechnology printer_technology()
+{
+    return wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology();
+}
+
 ObjectList::ObjectList(wxWindow* parent) :
     wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxDV_MULTIPLE),
     m_parent(parent)
@@ -665,11 +670,6 @@ void ObjectList::get_options_menu(settings_menu_hierarchy& settings_menu, const 
         if (cat_opt_label.size() == 1)
             settings_menu[category] = cat_opt_label;
     }
-}
-
-Slic3r::PrinterTechnology ObjectList::printer_technology() const 
-{
-    return wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology();
 }
 
 void ObjectList::get_settings_choice(const wxString& category_name)

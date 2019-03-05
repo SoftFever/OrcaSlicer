@@ -30,6 +30,8 @@
 
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Print.hpp"
+#include "Tab.hpp"
+#include "GUI_ObjectList.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -123,6 +125,9 @@ void config_wizard(int reason)
     if (! wxGetApp().check_unsaved_changes())
     	return;
 
+    // save selected preset before config wizard running
+    const auto printer_preset_name = wxGetApp().preset_bundle->printers.get_edited_preset().name;
+
 	try {
 		ConfigWizard wizard(nullptr, static_cast<ConfigWizard::RunReason>(reason));
         wizard.run(wxGetApp().preset_bundle, wxGetApp().preset_updater);
@@ -131,8 +136,21 @@ void config_wizard(int reason)
 		show_error(nullptr, e.what());
 	}
 
-	// Load the currently selected preset into the GUI, update the preset selection box.
-	wxGetApp().load_current_presets();
+    // select old(before config wizard running) preset
+	wxGetApp().get_tab(Preset::TYPE_PRINTER)->select_preset(printer_preset_name); 
+    // If old preset if invisible now, then first visible preset will be selected
+    // So, let control the case if multi-part object is on the scene and first visible preset is SLA
+    if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA &&
+        wxGetApp().obj_list()->has_multi_part_objects())
+    {
+        show_info(nullptr,
+            _(L("It's impossible to print multi-part object(s) with SLA technology.")) + "\n\n" +
+            _(L("Please check and fixe your object list.")),
+            _(L("Attention!")));
+    }
+       
+    // Load the currently selected preset into the GUI, update the preset selection box.
+    // 	wxGetApp().load_current_presets(); // #ys_FIXME_to_delete presets are loaded now in select_preset function
 }
 
 // opt_index = 0, by the reason of zero-index in ConfigOptionVector by default (in case only one element)
