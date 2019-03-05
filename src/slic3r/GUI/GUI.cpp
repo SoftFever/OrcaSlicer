@@ -145,7 +145,7 @@ void config_wizard(int reason)
     {
         show_info(nullptr,
             _(L("It's impossible to print multi-part object(s) with SLA technology.")) + "\n\n" +
-            _(L("Please check and fixe your object list.")),
+            _(L("Please check and fix your object list.")),
             _(L("Attention!")));
     }
        

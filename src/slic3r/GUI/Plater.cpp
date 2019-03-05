@@ -1714,8 +1714,8 @@ void Plater::priv::selection_changed()
     view3D->enable_toolbar_item("delete", can_delete_object());
     view3D->enable_toolbar_item("more", can_increase_instances());
     view3D->enable_toolbar_item("fewer", can_decrease_instances());
-    view3D->enable_toolbar_item("splitobjects", can_split/*_to_objects*/());
-    view3D->enable_toolbar_item("splitvolumes", can_split/*_to_volumes*/());
+    view3D->enable_toolbar_item("splitobjects", can_split());
+    view3D->enable_toolbar_item("splitvolumes", printer_technology == ptFFF && can_split());
 
     // if the selection is not valid to allow for layer editing, we need to turn off the tool if it is running
     bool enable_layer_editing = layers_height_allowed();
