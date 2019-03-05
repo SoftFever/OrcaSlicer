@@ -3493,7 +3493,7 @@ void GLCanvas3D::LegendTexture::fill_color_print_legend_values(const GCodePrevie
     }
 }
 
-bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors, const GLCanvas3D& canvas, bool use_error_colors)
+bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors, const GLCanvas3D& canvas)
 {
     reset();
 
@@ -3559,14 +3559,14 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
     memDC.SelectObject(bitmap);
     mask_memDC.SelectObject(mask);
 
-    memDC.SetBackground(wxBrush(use_error_colors ? *wxWHITE : *wxBLACK));
+    memDC.SetBackground(wxBrush(*wxBLACK));
     mask_memDC.SetBackground(wxBrush(*wxBLACK));
 
     memDC.Clear();
     mask_memDC.Clear();
 
     // draw title
-    memDC.SetTextForeground(use_error_colors ? *wxWHITE : *wxBLACK);
+    memDC.SetTextForeground(*wxWHITE);
     mask_memDC.SetTextForeground(*wxWHITE);
 
     int title_x = scaled_border;
@@ -3649,10 +3649,11 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
         unsigned char* px_ptr = data.data() + 4 * hh;
         for (int w = 0; w < m_width; ++w)
         {
+            unsigned char alpha = (mask_image.GetRed(w, h) + mask_image.GetGreen(w, h) + mask_image.GetBlue(w, h)) / 3;
             *px_ptr++ = image.GetRed(w, h);
             *px_ptr++ = image.GetGreen(w, h);
             *px_ptr++ = image.GetBlue(w, h);
-            *px_ptr++ = (mask_image.GetRed(w, h) + mask_image.GetGreen(w, h) + mask_image.GetBlue(w, h)) / 3;
+            *px_ptr++ = (alpha == 0) ? 128 : 255;
         }
     }
 
@@ -8109,7 +8110,7 @@ std::vector<float> GLCanvas3D::_parse_colors(const std::vector<std::string>& col
 
 void GLCanvas3D::_generate_legend_texture(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors)
 {
-    m_legend_texture.generate(preview_data, tool_colors, *this, m_dynamic_background_enabled && _is_any_volume_outside());
+    m_legend_texture.generate(preview_data, tool_colors, *this);
 }
 
 void GLCanvas3D::_set_warning_texture(WarningTexture::Warning warning, bool state)
