@@ -65,6 +65,7 @@ void Layer::make_slices()
         this->slices.expolygons.push_back(std::move(slices[i]));
 }
 
+// Merge typed slices into untyped slices. This method is used to revert the effects of detect_surfaces_type() called for posPrepareInfill.
 void Layer::merge_slices()
 {
     if (m_regions.size() == 1) {
@@ -76,6 +77,24 @@ void Layer::merge_slices()
             // without safety offset, artifacts are generated (GH #2494)
             layerm->slices.set(union_ex(to_polygons(std::move(layerm->slices.surfaces)), true), stInternal);
     }
+}
+
+ExPolygons Layer::merged(float offset_scaled) const
+{
+	assert(offset_scaled >= 0.f);
+    // If no offset is set, apply EPSILON offset before union, and revert it afterwards.
+	float offset_scaled2 = 0;
+	if (offset_scaled == 0.f) {
+		offset_scaled  = float(  EPSILON);
+		offset_scaled2 = float(- EPSILON);
+    }
+    Polygons polygons;
+    for (LayerRegion *layerm : m_regions)
+		append(polygons, offset(to_expolygons(layerm->slices.surfaces), offset_scaled));
+    ExPolygons out = union_ex(polygons);
+	if (offset_scaled2 != 0.f)
+		out = offset_ex(out, offset_scaled2);
+    return out;
 }
 
 // Here the perimeters are created cummulatively for all layer regions sharing the same parameters influencing the perimeters.
