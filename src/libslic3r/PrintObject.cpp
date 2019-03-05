@@ -104,7 +104,6 @@ void PrintObject::slice()
         return;
     m_print->set_status(10, "Processing triangulated mesh");
     std::vector<coordf_t> layer_height_profile;
-    m_slicing_params = this->slicing_parameters_internal();
     this->update_layer_height_profile(*this->model_object(), m_slicing_params, layer_height_profile);
     m_print->throw_if_canceled();
     this->_slice(layer_height_profile);
@@ -569,8 +568,11 @@ bool PrintObject::invalidate_step(PrintObjectStep step)
     } else if (step == posSlice) {
 		invalidated |= this->invalidate_steps({ posPerimeters, posPrepareInfill, posInfill, posSupportMaterial });
 		invalidated |= m_print->invalidate_steps({ psSkirt, psBrim });
-    } else if (step == posSupportMaterial)
+        this->m_slicing_params.valid = false;
+    } else if (step == posSupportMaterial) {
         invalidated |= m_print->invalidate_steps({ psSkirt, psBrim });
+        this->m_slicing_params.valid = false;
+    }
 
     // Wipe tower depends on the ordering of extruders, which in turn depends on everything.
     // It also decides about what the wipe_into_infill / wipe_into_object features will do,
@@ -1361,16 +1363,11 @@ PrintRegionConfig PrintObject::region_config_from_model_volume(const PrintRegion
     return config;
 }
 
-SlicingParameters PrintObject::slicing_parameters_internal() const
+void PrintObject::update_slicing_parameters()
 {
-    return SlicingParameters::create_from_config(
-        this->print()->config(), m_config, 
-        unscale<double>(this->size(2)), this->object_extruders());
-}
-
-SlicingParameters PrintObject::slicing_parameters() const
-{
-    return this->is_step_done(posSlice) ? m_slicing_params : this->slicing_parameters_internal();
+    if (! m_slicing_params.valid)
+        m_slicing_params = SlicingParameters::create_from_config(
+            this->print()->config(), m_config, unscale<double>(this->size(2)), this->object_extruders());
 }
 
 SlicingParameters PrintObject::slicing_parameters(const DynamicPrintConfig &full_config, const ModelObject &model_object)
