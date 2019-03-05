@@ -104,12 +104,19 @@ private:
     State m_state;
     GCodeReader m_parser;
     TypeToMovesMap m_moves_map;
+#if ENABLE_ANALYZER_EXTRUDER_OFFSET
+    std::vector<Vec2d> m_extruder_offsets;
+#endif // ENABLE_ANALYZER_EXTRUDER_OFFSET
 
     // The output of process_layer()
     std::string m_process_output;
 
 public:
     GCodeAnalyzer();
+
+#if ENABLE_ANALYZER_EXTRUDER_OFFSET
+    void set_extruder_offsets(const std::vector<Vec2d>& extruder_offsets);
+#endif // ENABLE_ANALYZER_EXTRUDER_OFFSET
 
     // Reinitialize the analyzer
     void reset();
