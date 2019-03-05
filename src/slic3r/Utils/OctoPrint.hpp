@@ -20,6 +20,8 @@ public:
     OctoPrint(DynamicPrintConfig *config);
     virtual ~OctoPrint();
 
+    virtual const char* get_name() const;
+
     virtual bool test(wxString &curl_msg) const;
     virtual wxString get_test_ok_msg () const;
     virtual wxString get_test_failed_msg (wxString &msg) const;
@@ -42,11 +44,13 @@ private:
 };
 
 
-class SLAHost: public OctoPrint
+class SL1Host: public OctoPrint
 {
 public:
-    SLAHost(DynamicPrintConfig *config) : OctoPrint(config) {}
-    virtual ~SLAHost();
+    SL1Host(DynamicPrintConfig *config) : OctoPrint(config) {}
+    virtual ~SL1Host();
+
+    virtual const char* get_name() const;
 
     virtual wxString get_test_ok_msg () const;
     virtual wxString get_test_failed_msg (wxString &msg) const;

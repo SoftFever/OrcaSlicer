@@ -29,25 +29,29 @@ OctoPrint::OctoPrint(DynamicPrintConfig *config) :
 
 OctoPrint::~OctoPrint() {}
 
+const char* OctoPrint::get_name() const { return "OctoPrint"; }
+
 bool OctoPrint::test(wxString &msg) const
 {
     // Since the request is performed synchronously here,
     // it is ok to refer to `msg` from within the closure
 
+    const char *name = get_name();
+
     bool res = true;
     auto url = make_url("api/version");
 
-    BOOST_LOG_TRIVIAL(info) << boost::format("Octoprint: Get version at: %1%") % url;
+    BOOST_LOG_TRIVIAL(info) << boost::format("%1%: Get version at: %2%") % name % url;
 
     auto http = Http::get(std::move(url));
     set_auth(http);
     http.on_error([&](std::string body, std::string error, unsigned status) {
-            BOOST_LOG_TRIVIAL(error) << boost::format("Octoprint: Error getting version: %1%, HTTP %2%, body: `%3%`") % error % status % body;
+            BOOST_LOG_TRIVIAL(error) << boost::format("%1%: Error getting version: %2%, HTTP %3%, body: `%4%`") % name % error % status % body;
             res = false;
             msg = format_error(body, error, status);
         })
         .on_complete([&, this](std::string body, unsigned) {
-            BOOST_LOG_TRIVIAL(debug) << boost::format("Octoprint: Got version: %1%") % body;
+            BOOST_LOG_TRIVIAL(debug) << boost::format("%1%: Got version: %2%") % name % body;
 
             try {
                 std::stringstream ss(body);
@@ -88,6 +92,8 @@ wxString OctoPrint::get_test_failed_msg (wxString &msg) const
 
 bool OctoPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn error_fn) const
 {
+    const char *name = get_name();
+
     const auto upload_filename = upload_data.upload_path.filename();
     const auto upload_parent_path = upload_data.upload_path.parent_path();
 
@@ -101,7 +107,8 @@ bool OctoPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, Erro
 
     auto url = make_url("api/files/local");
 
-    BOOST_LOG_TRIVIAL(info) << boost::format("Octoprint: Uploading file %1% at %2%, filename: %3%, path: %4%, print: %5%")
+    BOOST_LOG_TRIVIAL(info) << boost::format("%1%: Uploading file %2% at %3%, filename: %4%, path: %5%, print: %6%")
+        % name
         % upload_data.source_path
         % url
         % upload_filename.string()
@@ -114,10 +121,10 @@ bool OctoPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, Erro
         .form_add("path", upload_parent_path.string())      // XXX: slashes on windows ???
         .form_add_file("file", upload_data.source_path.string(), upload_filename.string())
         .on_complete([&](std::string body, unsigned status) {
-            BOOST_LOG_TRIVIAL(debug) << boost::format("Octoprint: File uploaded: HTTP %1%: %2%") % status % body;
+            BOOST_LOG_TRIVIAL(debug) << boost::format("%1%: File uploaded: HTTP %2%: %3%") % name % status % body;
         })
         .on_error([&](std::string body, std::string error, unsigned status) {
-            BOOST_LOG_TRIVIAL(error) << boost::format("Octoprint: Error uploading file: %1%, HTTP %2%, body: `%3%`") % error % status % body;
+            BOOST_LOG_TRIVIAL(error) << boost::format("%1%: Error uploading file: %2%, HTTP %3%, body: `%4%`") % name % error % status % body;
             error_fn(format_error(body, error, status));
             res = false;
         })
@@ -177,26 +184,28 @@ std::string OctoPrint::make_url(const std::string &path) const
 }
 
 
-// SLAHost
+// SL1Host
 
-SLAHost::~SLAHost() {}
+SL1Host::~SL1Host() {}
 
-wxString SLAHost::get_test_ok_msg () const
+const char* SL1Host::get_name() const { return "SL1Host"; }
+
+wxString SL1Host::get_test_ok_msg () const
 {
     return _(L("Connection to Prusa SLA works correctly."));
 }
 
-wxString SLAHost::get_test_failed_msg (wxString &msg) const
+wxString SL1Host::get_test_failed_msg (wxString &msg) const
 {
     return wxString::Format("%s: %s", _(L("Could not connect to Prusa SLA")), msg);
 }
 
-bool SLAHost::can_start_print() const
+bool SL1Host::can_start_print() const
 {
     return false;
 }
 
-bool SLAHost::validate_version_text(const boost::optional<std::string> &version_text) const
+bool SL1Host::validate_version_text(const boost::optional<std::string> &version_text) const
 {
     return version_text ? boost::starts_with(*version_text, "Prusa SLA") : false;
 }

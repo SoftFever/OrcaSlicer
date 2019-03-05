@@ -1626,8 +1626,6 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 	// Only offer the host type selection for FFF, for SLA it's always the SL1 printer (at the moment)
 	if (! sla) {
 		optgroup->append_single_option_line("host_type");
-	} else {
-		m_config->option<ConfigOptionEnum<PrintHostType>>("host_type", true)->value = htSL1;
 	}
 
 	auto printhost_browse = [this, optgroup] (wxWindow* parent) {

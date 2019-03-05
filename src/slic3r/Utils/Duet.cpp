@@ -34,6 +34,8 @@ Duet::Duet(DynamicPrintConfig *config) :
 
 Duet::~Duet() {}
 
+const char* Duet::get_name() const { return "Duet"; }
+
 bool Duet::test(wxString &msg) const
 {
 	bool connected = connect(msg);

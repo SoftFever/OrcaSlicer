@@ -8,7 +8,6 @@
 
 #include <wx/string.h>
 
-#include "libslic3r/PrintConfig.hpp"
 #include "Http.hpp"
 
 
@@ -33,6 +32,8 @@ public:
     typedef Http::ProgressFn ProgressFn;
     typedef std::function<void(wxString /* error */)> ErrorFn;
 
+    virtual const char* get_name() const = 0;
+
     virtual bool test(wxString &curl_msg) const = 0;
     virtual wxString get_test_ok_msg () const = 0;
     virtual wxString get_test_failed_msg (wxString &msg) const = 0;
@@ -42,7 +43,7 @@ public:
     virtual bool can_start_print() const = 0;
     virtual std::string get_host() const = 0;
 
-    static PrintHost* get_print_host(DynamicPrintConfig *config, Slic3r::PrinterTechnology pt_fallback = ptFFF);
+    static PrintHost* get_print_host(DynamicPrintConfig *config);
 
 protected:
     virtual wxString format_error(const std::string &body, const std::string &error, unsigned status) const;

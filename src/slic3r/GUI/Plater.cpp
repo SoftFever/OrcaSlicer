@@ -3217,9 +3217,6 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             bed_shape_changed = true;
             update_scheduled = true;
         }
-        else if (opt_key == "host_type" && this->p->printer_technology == ptSLA) {
-            p->config->option<ConfigOptionEnum<PrintHostType>>(opt_key)->value = htSL1;
-        }
     }
 
     {

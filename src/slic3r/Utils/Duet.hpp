@@ -19,6 +19,8 @@ public:
 	Duet(DynamicPrintConfig *config);
 	virtual ~Duet();
 
+	virtual const char* get_name() const;
+
 	virtual bool test(wxString &curl_msg) const;
 	virtual wxString get_test_ok_msg () const;
 	virtual wxString get_test_failed_msg (wxString &msg) const;

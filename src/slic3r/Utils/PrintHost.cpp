@@ -25,16 +25,28 @@ namespace Slic3r {
 
 PrintHost::~PrintHost() {}
 
-PrintHost* PrintHost::get_print_host(DynamicPrintConfig *config, Slic3r::PrinterTechnology pt_fallback)
+PrintHost* PrintHost::get_print_host(DynamicPrintConfig *config)
 {
-    const auto opt = config->option<ConfigOptionEnum<PrintHostType>>("host_type");
-    const auto host_type = opt != nullptr ? opt->value : (pt_fallback == ptFFF ? htOctoPrint : htSL1);
+    PrinterTechnology tech = ptFFF;
 
-    switch (host_type) {
-        case htOctoPrint: return new OctoPrint(config);
-        case htDuet:      return new Duet(config);
-        case htSL1:       return new SLAHost(config);
-        default:          return nullptr;
+    {
+        const auto opt = config->option<ConfigOptionEnum<PrinterTechnology>>("printer_technology");
+        if (opt != nullptr) {
+            tech = opt->value;
+        }
+    }
+
+    if (tech == ptFFF) {
+        const auto opt = config->option<ConfigOptionEnum<PrintHostType>>("host_type");
+        const auto host_type = opt != nullptr ? opt->value : htOctoPrint;
+
+        switch (host_type) {
+            case htOctoPrint: return new OctoPrint(config);
+            case htDuet:      return new Duet(config);
+            default:          return nullptr;
+        }
+    } else {
+        return new SL1Host(config);
     }
 }
 
