@@ -83,6 +83,10 @@ struct SupportConfig {
 
     // The shortest distance of any support structure from the model surface
     double safety_distance_mm = 0.1;
+
+    double max_solo_pillar_height_mm = 5.0;
+
+    double max_dual_pillar_height_mm = 35.0;
 };
 
 struct PoolConfig;

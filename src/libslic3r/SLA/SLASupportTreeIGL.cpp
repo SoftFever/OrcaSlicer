@@ -91,6 +91,11 @@ size_t SpatIndex::size() const
     return m_impl->m_store.size();
 }
 
+void SpatIndex::foreach(std::function<void (const SpatElement &)> fn)
+{
+    for(auto& el : m_impl->m_store) fn(el);
+}
+
 /* ****************************************************************************
  * EigenMesh3D implementation
  * ****************************************************************************/
@@ -346,35 +351,11 @@ PointSet normals(const PointSet& points,
 
     return ret;
 }
+namespace bgi = boost::geometry::index;
+using Index3D = bgi::rtree< SpatElement, bgi::rstar<16, 4> /* ? */ >;
 
-//template<class Vec> double distance(const Vec& p) {
-//    return std::sqrt(p.transpose() * p);
-//}
-
-//template<class Vec> double distance(const Vec& pp1, const Vec& pp2) {
-//    auto p = pp2 - pp1;
-//    return distance(p);
-//}
-
-// Clustering a set of points by the given criteria
-ClusteredPoints cluster_nearest2d(
-        const sla::PointSet& points, const std::vector<unsigned>& indices,
-        double dist,
-        unsigned max_points = 0)
+ClusteredPoints cluster(Index3D& sindex, double dist, unsigned max_points)
 {
-
-    namespace bgi = boost::geometry::index;
-    using Index3D = bgi::rtree< SpatElement, bgi::rstar<16, 4> /* ? */ >;
-
-    // A spatial index for querying the nearest points
-    Index3D sindex;
-
-    // Build the index
-    for(unsigned idx : indices) {
-        Vec3d p = points.row(idx); p(Z) = 0;
-        sindex.insert( std::make_pair(points.row(idx), idx));
-    }
-
     using Elems = std::vector<SpatElement>;
 
     // Recursive function for visiting all the points in a given distance to
@@ -438,79 +419,30 @@ ClusteredPoints cluster_nearest2d(
 
 // Clustering a set of points by the given criteria
 ClusteredPoints cluster(
-        const sla::PointSet& points, const std::vector<unsigned>& indices,
-        std::function<bool(const SpatElement&, const SpatElement&)> pred,
-        unsigned max_points = 0)
+        const std::vector<unsigned>& indices,
+        std::function<Vec3d(unsigned)> pointfn,
+        double dist,
+        unsigned max_points)
 {
-
-    namespace bgi = boost::geometry::index;
-    using Index3D = bgi::rtree< SpatElement, bgi::rstar<16, 4> /* ? */ >;
-
     // A spatial index for querying the nearest points
     Index3D sindex;
 
     // Build the index
-    for(unsigned idx : indices)
-        sindex.insert( std::make_pair(points.row(idx), idx));
+    for(auto idx : indices) sindex.insert( std::make_pair(pointfn(idx), idx));
 
-    using Elems = std::vector<SpatElement>;
+    return cluster(sindex, dist, max_points);
+}
 
-    // Recursive function for visiting all the points in a given distance to
-    // each other
-    std::function<void(Elems&, Elems&)> group =
-    [&sindex, &group, pred, max_points](Elems& pts, Elems& cluster)
-    {
-        for(auto& p : pts) {
-            std::vector<SpatElement> tmp;
+ClusteredPoints cluster(const PointSet& pts, double dist, unsigned max_points)
+{
+    // A spatial index for querying the nearest points
+    Index3D sindex;
 
-            sindex.query(
-                bgi::satisfies([p, pred](const SpatElement& se) {
-                    return pred(p, se);
-                }),
-                std::back_inserter(tmp)
-            );
+    // Build the index
+    for(Eigen::Index i = 0; i < pts.rows(); i++)
+        sindex.insert(std::make_pair(Vec3d(pts.row(i)), unsigned(i)));
 
-            auto cmp = [](const SpatElement& e1, const SpatElement& e2){
-                return e1.second < e2.second;
-            };
-
-            std::sort(tmp.begin(), tmp.end(), cmp);
-
-            Elems newpts;
-            std::set_difference(tmp.begin(), tmp.end(),
-                                cluster.begin(), cluster.end(),
-                                std::back_inserter(newpts), cmp);
-
-            int c = max_points && newpts.size() + cluster.size() > max_points?
-                        int(max_points - cluster.size()) : int(newpts.size());
-
-            cluster.insert(cluster.end(), newpts.begin(), newpts.begin() + c);
-            std::sort(cluster.begin(), cluster.end(), cmp);
-
-            if(!newpts.empty() && (!max_points || cluster.size() < max_points))
-                group(newpts, cluster);
-        }
-    };
-
-    std::vector<Elems> clusters;
-    for(auto it = sindex.begin(); it != sindex.end();) {
-        Elems cluster = {};
-        Elems pts = {*it};
-        group(pts, cluster);
-
-        for(auto& c : cluster) sindex.remove(c);
-        it = sindex.begin();
-
-        clusters.emplace_back(cluster);
-    }
-
-    ClusteredPoints result;
-    for(auto& cluster : clusters) {
-        result.emplace_back();
-        for(auto c : cluster) result.back().emplace_back(c.second);
-    }
-
-    return result;
+    return cluster(sindex, dist, max_points);
 }
 
 }
