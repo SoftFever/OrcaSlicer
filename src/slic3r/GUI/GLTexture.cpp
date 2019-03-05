@@ -165,7 +165,7 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
             }
 
             int state_offset_px = sprite_offset_px + state_id * sprite_size_px;
-            for (int j = 0; j < sprite_size_px; ++j)
+            for (int j = 0; j < (int)sprite_size_px; ++j)
             {
                 ::memcpy((void*)&data.data()[(state_offset_px + j * m_width) * 4], (const void*)&output_data.data()[j * sprite_stride], sprite_stride);
             }

@@ -5137,11 +5137,13 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             auto *top_level_wnd = dynamic_cast<wxTopLevelWindow*>(p);
             if (top_level_wnd && top_level_wnd->IsActive())
                 m_canvas->SetFocus();
-            // forces a frame render to ensure that m_hover_volume_id is updated even when the user right clicks while
+            m_mouse.position = pos.cast<double>();
+            // 1) forces a frame render to ensure that m_hover_volume_id is updated even when the user right clicks while
             // the context menu is shown, ensuring it to disappear if the mouse is outside any volume and to
             // change the volume hover state if any is under the mouse 
-            m_mouse.position = pos.cast<double>();
-            render();
+            // 2) when switching between 3d view and preview the size of the canvas changes if the side panels are visible,
+            // so forces a resize to avoid multiple renders with different sizes (seen as flickering)
+            _refresh_if_shown_on_screen();
         }
         m_mouse.set_start_position_2D_as_invalid();
 //#endif

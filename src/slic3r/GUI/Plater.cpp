@@ -1014,8 +1014,8 @@ struct Plater::priv
     Slic3r::GCodePreviewData    gcode_preview_data;
 
     // GUI elements
-    wxSizer* panel_sizer;
-    wxPanel* current_panel;
+    wxSizer* panel_sizer{ nullptr };
+    wxPanel* current_panel{ nullptr };
     std::vector<wxPanel*> panels;
     Sidebar *sidebar;
     Bed3D bed;
