@@ -688,6 +688,10 @@ private:
     class Gizmos
     {
     public:
+#if ENABLE_SVG_ICONS
+        static const float Default_Icons_Size;
+#endif // ENABLE_SVG_ICONS
+
         enum EType : unsigned char
         {
             Undefined,
@@ -704,10 +708,21 @@ private:
         bool m_enabled;
         typedef std::map<EType, GLGizmoBase*> GizmosMap;
         GizmosMap m_gizmos;
+#if ENABLE_SVG_ICONS
+        mutable GLTexture m_icons_texture;
+        mutable bool m_icons_texture_dirty;
+#else
+        ItemsIconsTexture m_icons_texture;
+#endif // ENABLE_SVG_ICONS
         BackgroundTexture m_background_texture;
         EType m_current;
 
+#if ENABLE_SVG_ICONS
+        float m_overlay_icons_size;
+        float m_overlay_scale;
+#else
         float m_overlay_icons_scale;
+#endif // ENABLE_SVG_ICONS
         float m_overlay_border;
         float m_overlay_gap_y;
 
@@ -720,6 +735,9 @@ private:
         bool is_enabled() const;
         void set_enabled(bool enable);
 
+#if ENABLE_SVG_ICONS
+        void set_overlay_icon_size(float size);
+#endif // ENABLE_SVG_ICONS
         void set_overlay_scale(float scale);
 
         std::string update_hover_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos, const Selection& selection);
@@ -769,15 +787,19 @@ private:
 #endif // not ENABLE_IMGUI
 
     private:
-        void _reset();
+        void reset();
 
-        void _render_overlay(const GLCanvas3D& canvas, const Selection& selection) const;
-        void _render_current_gizmo(const Selection& selection) const;
+        void do_render_overlay(const GLCanvas3D& canvas, const Selection& selection) const;
+        void do_render_current_gizmo(const Selection& selection) const;
 
-        float _get_total_overlay_height() const;
-        float _get_total_overlay_width() const;
+        float get_total_overlay_height() const;
+        float get_total_overlay_width() const;
 
-        GLGizmoBase* _get_current() const;
+        GLGizmoBase* get_current() const;
+
+#if ENABLE_SVG_ICONS
+        bool generate_icons_texture() const;
+#endif // ENABLE_SVG_ICONS
     };
 
     struct SlaCap
@@ -984,9 +1006,7 @@ public:
 
     void update_volumes_colors_by_extruder();
 
-#if ENABLE_MODE_AWARE_TOOLBAR_ITEMS
     void update_toolbar_items_visibility();
-#endif // ENABLE_MODE_AWARE_TOOLBAR_ITEMS
 
 #if !ENABLE_IMGUI
     Rect get_gizmo_reset_rect(const GLCanvas3D& canvas, bool viewport) const;
@@ -1148,7 +1168,9 @@ private:
 
     bool _is_any_volume_outside() const;
 
+#if !ENABLE_SVG_ICONS
     void _resize_toolbars() const;
+#endif // !ENABLE_SVG_ICONS
 
     static std::vector<float> _parse_colors(const std::vector<std::string>& colors);
 

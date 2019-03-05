@@ -159,11 +159,19 @@ void GLGizmoBase::Grabber::render_face(float half_size) const
     ::glEnd();
 }
 
-GLGizmoBase::GLGizmoBase(GLCanvas3D& parent)
+#if ENABLE_SVG_ICONS
+GLGizmoBase::GLGizmoBase(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
+#else
+GLGizmoBase::GLGizmoBase(GLCanvas3D& parent, unsigned int sprite_id)
+#endif // ENABLE_SVG_ICONS
     : m_parent(parent)
     , m_group_id(-1)
     , m_state(Off)
     , m_shortcut_key(0)
+#if ENABLE_SVG_ICONS
+    , m_icon_filename(icon_filename)
+#endif // ENABLE_SVG_ICONS
+    , m_sprite_id(sprite_id)
     , m_hover_id(-1)
     , m_dragging(false)
 #if ENABLE_IMGUI
@@ -306,7 +314,11 @@ const unsigned int GLGizmoRotate::SnapRegionsCount = 8;
 const float GLGizmoRotate::GrabberOffset = 0.15f; // in percent of radius
 
 GLGizmoRotate::GLGizmoRotate(GLCanvas3D& parent, GLGizmoRotate::Axis axis)
-    : GLGizmoBase(parent)
+#if ENABLE_SVG_ICONS
+    : GLGizmoBase(parent, "", -1)
+#else
+    : GLGizmoBase(parent, -1)
+#endif // ENABLE_SVG_ICONS
     , m_axis(axis)
     , m_angle(0.0)
     , m_quadric(nullptr)
@@ -323,7 +335,11 @@ GLGizmoRotate::GLGizmoRotate(GLCanvas3D& parent, GLGizmoRotate::Axis axis)
 }
 
 GLGizmoRotate::GLGizmoRotate(const GLGizmoRotate& other)
-    : GLGizmoBase(other.m_parent)
+#if ENABLE_SVG_ICONS
+    : GLGizmoBase(other.m_parent, other.m_icon_filename, other.m_sprite_id)
+#else
+    : GLGizmoBase(other.m_parent, other.m_sprite_id)
+#endif // ENABLE_SVG_ICONS
     , m_axis(other.m_axis)
     , m_angle(other.m_angle)
     , m_quadric(nullptr)
@@ -695,8 +711,13 @@ Vec3d GLGizmoRotate::mouse_position_in_local_plane(const Linef3& mouse_ray, cons
     return transform(mouse_ray, m).intersect_plane(0.0);
 }
 
-GLGizmoRotate3D::GLGizmoRotate3D(GLCanvas3D& parent)
-    : GLGizmoBase(parent)
+#if ENABLE_SVG_ICONS
+GLGizmoRotate3D::GLGizmoRotate3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
+    : GLGizmoBase(parent, icon_filename, sprite_id)
+#else
+GLGizmoRotate3D::GLGizmoRotate3D(GLCanvas3D& parent, unsigned int sprite_id)
+    : GLGizmoBase(parent, sprite_id)
+#endif // ENABLE_SVG_ICONS
 {
     m_gizmos.emplace_back(parent, GLGizmoRotate::X);
     m_gizmos.emplace_back(parent, GLGizmoRotate::Y);
@@ -720,17 +741,6 @@ bool GLGizmoRotate3D::on_init()
     {
         m_gizmos[i].set_highlight_color(AXES_COLOR[i]);
     }
-
-    std::string path = resources_dir() + "/icons/overlay/";
-
-    if (!m_textures[Off].load_from_file(path + "rotate_off.png", false))
-        return false;
-
-    if (!m_textures[Hover].load_from_file(path + "rotate_hover.png", false))
-        return false;
-
-    if (!m_textures[On].load_from_file(path + "rotate_on.png", false))
-        return false;
 
     m_shortcut_key = WXK_CONTROL_R;
 
@@ -786,8 +796,13 @@ void GLGizmoRotate3D::on_render_input_window(float x, float y, float bottom_limi
 
 const float GLGizmoScale3D::Offset = 5.0f;
 
-GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent)
-    : GLGizmoBase(parent)
+#if ENABLE_SVG_ICONS
+GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
+    : GLGizmoBase(parent, icon_filename, sprite_id)
+#else
+GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent, unsigned int sprite_id)
+    : GLGizmoBase(parent, sprite_id)
+#endif // ENABLE_SVG_ICONS
     , m_scale(Vec3d::Ones())
     , m_snap_step(0.05)
     , m_starting_scale(Vec3d::Ones())
@@ -796,17 +811,6 @@ GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent)
 
 bool GLGizmoScale3D::on_init()
 {
-    std::string path = resources_dir() + "/icons/overlay/";
-
-    if (!m_textures[Off].load_from_file(path + "scale_off.png", false))
-        return false;
-
-    if (!m_textures[Hover].load_from_file(path + "scale_hover.png", false))
-        return false;
-
-    if (!m_textures[On].load_from_file(path + "scale_on.png", false))
-        return false;
-
     for (int i = 0; i < 10; ++i)
     {
         m_grabbers.push_back(Grabber());
@@ -1143,8 +1147,13 @@ double GLGizmoScale3D::calc_ratio(const UpdateData& data) const
 
 const double GLGizmoMove3D::Offset = 10.0;
 
-GLGizmoMove3D::GLGizmoMove3D(GLCanvas3D& parent)
-    : GLGizmoBase(parent)
+#if ENABLE_SVG_ICONS
+GLGizmoMove3D::GLGizmoMove3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
+    : GLGizmoBase(parent, icon_filename, sprite_id)
+#else
+GLGizmoMove3D::GLGizmoMove3D(GLCanvas3D& parent, unsigned int sprite_id)
+    : GLGizmoBase(parent, sprite_id)
+#endif // ENABLE_SVG_ICONS
     , m_displacement(Vec3d::Zero())
     , m_snap_step(1.0)
     , m_starting_drag_position(Vec3d::Zero())
@@ -1165,17 +1174,6 @@ GLGizmoMove3D::~GLGizmoMove3D()
 
 bool GLGizmoMove3D::on_init()
 {
-    std::string path = resources_dir() + "/icons/overlay/";
-
-    if (!m_textures[Off].load_from_file(path + "move_off.png", false))
-        return false;
-
-    if (!m_textures[Hover].load_from_file(path + "move_hover.png", false))
-        return false;
-
-    if (!m_textures[On].load_from_file(path + "move_on.png", false))
-        return false;
-
     for (int i = 0; i < 3; ++i)
     {
         m_grabbers.push_back(Grabber());
@@ -1391,8 +1389,13 @@ void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box
         ::glDisable(GL_LIGHTING);
 }
 
-GLGizmoFlatten::GLGizmoFlatten(GLCanvas3D& parent)
-    : GLGizmoBase(parent)
+#if ENABLE_SVG_ICONS
+GLGizmoFlatten::GLGizmoFlatten(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
+    : GLGizmoBase(parent, icon_filename, sprite_id)
+#else
+GLGizmoFlatten::GLGizmoFlatten(GLCanvas3D& parent, unsigned int sprite_id)
+    : GLGizmoBase(parent, sprite_id)
+#endif // ENABLE_SVG_ICONS
     , m_normal(Vec3d::Zero())
     , m_starting_center(Vec3d::Zero())
 {
@@ -1400,19 +1403,7 @@ GLGizmoFlatten::GLGizmoFlatten(GLCanvas3D& parent)
 
 bool GLGizmoFlatten::on_init()
 {
-    std::string path = resources_dir() + "/icons/overlay/";
-
-    if (!m_textures[Off].load_from_file(path + "layflat_off.png", false))
-        return false;
-
-    if (!m_textures[Hover].load_from_file(path + "layflat_hover.png", false))
-        return false;
-
-    if (!m_textures[On].load_from_file(path + "layflat_on.png", false))
-        return false;
-
     m_shortcut_key = WXK_CONTROL_F;
-
     return true;
 }
 
@@ -1742,8 +1733,14 @@ Vec3d GLGizmoFlatten::get_flattening_normal() const
     return out;
 }
 
-GLGizmoSlaSupports::GLGizmoSlaSupports(GLCanvas3D& parent)
-    : GLGizmoBase(parent), m_starting_center(Vec3d::Zero()), m_quadric(nullptr)
+#if ENABLE_SVG_ICONS
+GLGizmoSlaSupports::GLGizmoSlaSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
+    : GLGizmoBase(parent, icon_filename, sprite_id)
+#else
+GLGizmoSlaSupports::GLGizmoSlaSupports(GLCanvas3D& parent, unsigned int sprite_id)
+    : GLGizmoBase(parent, sprite_id)
+#endif // ENABLE_SVG_ICONS
+    , m_starting_center(Vec3d::Zero()), m_quadric(nullptr)
 {
     m_quadric = ::gluNewQuadric();
     if (m_quadric != nullptr)
@@ -1760,19 +1757,7 @@ GLGizmoSlaSupports::~GLGizmoSlaSupports()
 
 bool GLGizmoSlaSupports::on_init()
 {
-    std::string path = resources_dir() + "/icons/overlay/";
-
-    if (!m_textures[Off].load_from_file(path + "sla_support_points_off.png", false))
-        return false;
-
-    if (!m_textures[Hover].load_from_file(path + "sla_support_points_hover.png", false))
-        return false;
-
-    if (!m_textures[On].load_from_file(path + "sla_support_points_on.png", false))
-        return false;
-
     m_shortcut_key = WXK_CONTROL_L;
-
     return true;
 }
 
@@ -2651,8 +2636,13 @@ const double GLGizmoCut::Offset = 10.0;
 const double GLGizmoCut::Margin = 20.0;
 const std::array<float, 3> GLGizmoCut::GrabberColor = { 1.0, 0.5, 0.0 };
 
-GLGizmoCut::GLGizmoCut(GLCanvas3D& parent)
-    : GLGizmoBase(parent)
+#if ENABLE_SVG_ICONS
+GLGizmoCut::GLGizmoCut(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
+    : GLGizmoBase(parent, icon_filename, sprite_id)
+#else
+GLGizmoCut::GLGizmoCut(GLCanvas3D& parent, unsigned int sprite_id)
+    : GLGizmoBase(parent, sprite_id)
+#endif // ENABLE_SVG_ICONS
     , m_cut_z(0.0)
     , m_max_z(0.0)
 #if !ENABLE_IMGUI
@@ -2685,26 +2675,8 @@ void GLGizmoCut::create_external_gizmo_widgets(wxWindow *parent)
 
 bool GLGizmoCut::on_init()
 {
-    // TODO: icon
-
-    std::string path = resources_dir() + "/icons/overlay/";
-
-    if (!m_textures[Off].load_from_file(path + "cut_off.png", false)) {
-        return false;
-    }
-
-    if (!m_textures[Hover].load_from_file(path + "cut_hover.png", false)) {
-        return false;
-    }
-
-    if (!m_textures[On].load_from_file(path + "cut_on.png", false)) {
-        return false;
-    }
-
     m_grabbers.emplace_back();
-
     m_shortcut_key = WXK_CONTROL_C;
-
     return true;
 }
 
