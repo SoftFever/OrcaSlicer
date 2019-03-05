@@ -354,26 +354,18 @@ PointSet normals(const PointSet& points,
 namespace bgi = boost::geometry::index;
 using Index3D = bgi::rtree< SpatElement, bgi::rstar<16, 4> /* ? */ >;
 
-ClusteredPoints cluster(Index3D& sindex, double dist, unsigned max_points)
+ClusteredPoints cluster(Index3D& sindex, unsigned max_points,
+                        std::function<std::vector<SpatElement>(const Index3D&, const SpatElement&)> qfn)
 {
     using Elems = std::vector<SpatElement>;
 
     // Recursive function for visiting all the points in a given distance to
     // each other
     std::function<void(Elems&, Elems&)> group =
-    [&sindex, &group, max_points, dist](Elems& pts, Elems& cluster)
+    [&sindex, &group, max_points, qfn](Elems& pts, Elems& cluster)
     {
         for(auto& p : pts) {
-            std::vector<SpatElement> tmp;
-
-            sindex.query(
-                bgi::nearest(p.first, max_points),
-                std::back_inserter(tmp)
-            );
-
-            for(auto it = tmp.begin(); it < tmp.end(); ++it)
-                if(distance(p.first, it->first) > dist) it = tmp.erase(it);
-
+            std::vector<SpatElement> tmp = qfn(sindex, p);
             auto cmp = [](const SpatElement& e1, const SpatElement& e2){
                 return e1.second < e2.second;
             };
@@ -417,6 +409,25 @@ ClusteredPoints cluster(Index3D& sindex, double dist, unsigned max_points)
     return result;
 }
 
+namespace {
+std::vector<SpatElement> distance_queryfn(const Index3D& sindex,
+                                          const SpatElement& p,
+                                          double dist,
+                                          unsigned max_points)
+{
+    std::vector<SpatElement> tmp; tmp.reserve(max_points);
+    sindex.query(
+        bgi::nearest(p.first, max_points),
+        std::back_inserter(tmp)
+    );
+
+    for(auto it = tmp.begin(); it < tmp.end(); ++it)
+        if(distance(p.first, it->first) > dist) it = tmp.erase(it);
+
+    return tmp;
+}
+}
+
 // Clustering a set of points by the given criteria
 ClusteredPoints cluster(
         const std::vector<unsigned>& indices,
@@ -430,7 +441,35 @@ ClusteredPoints cluster(
     // Build the index
     for(auto idx : indices) sindex.insert( std::make_pair(pointfn(idx), idx));
 
-    return cluster(sindex, dist, max_points);
+    return cluster(sindex, max_points,
+                   [dist, max_points](const Index3D& sidx, const SpatElement& p)
+    {
+        return distance_queryfn(sidx, p, dist, max_points);
+    });
+}
+
+// Clustering a set of points by the given criteria
+ClusteredPoints cluster(
+        const std::vector<unsigned>& indices,
+        std::function<Vec3d(unsigned)> pointfn,
+        std::function<bool(const SpatElement&, const SpatElement&)> predicate,
+        unsigned max_points)
+{
+    // A spatial index for querying the nearest points
+    Index3D sindex;
+
+    // Build the index
+    for(auto idx : indices) sindex.insert( std::make_pair(pointfn(idx), idx));
+
+    return cluster(sindex, max_points,
+        [max_points, predicate](const Index3D& sidx, const SpatElement& p)
+    {
+        std::vector<SpatElement> tmp; tmp.reserve(max_points);
+        sidx.query(bgi::satisfies([p, predicate](const SpatElement& e){
+            return predicate(p, e);
+        }), std::back_inserter(tmp));
+        return tmp;
+    });
 }
 
 ClusteredPoints cluster(const PointSet& pts, double dist, unsigned max_points)
@@ -442,7 +481,11 @@ ClusteredPoints cluster(const PointSet& pts, double dist, unsigned max_points)
     for(Eigen::Index i = 0; i < pts.rows(); i++)
         sindex.insert(std::make_pair(Vec3d(pts.row(i)), unsigned(i)));
 
-    return cluster(sindex, dist, max_points);
+    return cluster(sindex, max_points,
+                   [dist, max_points](const Index3D& sidx, const SpatElement& p)
+    {
+        return distance_queryfn(sidx, p, dist, max_points);
+    });
 }
 
 }

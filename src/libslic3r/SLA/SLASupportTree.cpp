@@ -415,8 +415,8 @@ struct Pillar {
         return {endpoint(X), endpoint(Y), endpoint(Z) + height};
     }
 
-    void add_base(double height = 3, double radius = 2) {
-        if(height <= 0) return;
+    Pillar& add_base(double height = 3, double radius = 2) {
+        if(height <= 0) return *this;
 
         assert(steps >= 0);
         auto last = int(steps - 1);
@@ -459,7 +459,7 @@ struct Pillar {
         indices.emplace_back(last, offs + last, offs);
         indices.emplace_back(hcenter, last, 0);
         indices.emplace_back(offs, offs + last, lcenter);
-
+        return *this;
     }
 
     bool has_base() const { return !base.points.empty(); }
@@ -1472,17 +1472,56 @@ class SLASupportTree::Algorithm {
                 if(ncount == neighbors) break;
             }
 
+            unsigned needpillars = 0;
             if(ncount < 1 && pillar.height > H1) {
-                // No neighbors could be found and the pillar is too long.
+                // No neighbors could not be found and the pillar is too long.
                 BOOST_LOG_TRIVIAL(warning) << "Pillar is too long and has no "
                                               "neighbors. Head ID: "
                                            << pillar.start_junction_id;
+
+//                double D = 2*m_cfg.base_radius_mm;
+//                Vec3d jp = pillar.startpoint();
+//                double h = D / std::cos(m_cfg.bridge_slope);
+//                bool found = false;
+//                double phi = 0;
+
+//                // Search for a suitable angle for the two pillars
+//                while(!found && phi < 2*PI) {
+
+//                }
+                needpillars = 1;
             } else if(ncount < 2 && pillar.height > H2) {
                 // Not enough neighbors to support this pillar
                 BOOST_LOG_TRIVIAL(warning) << "Pillar is too long and has too "
                                               "few neighbors. Head ID: "
                                            << pillar.start_junction_id;
+                needpillars = 2 - ncount;
             }
+
+            // WIP:
+            // note: sideheads ARE tested to reach the ground!
+
+
+//            if(needpillars > 0) {
+//                if(pillar.starts_from_head) {
+//                    // search for a sidehead for this head. We will route that
+//                    // to the ground.
+//                    const Head& head = m_result.head(unsigned(pillar.start_junction_id));
+//                    for(auto cl : m_pillar_clusters) {
+//                        auto it = std::find(cl.begin(), cl.end(), head.id);
+//                        if(it != cl.end()) {
+//                            cl.erase(it);
+//                            for(size_t j = 0; j < cl.size() && j < needpillars; j++) {
+//                                unsigned hid = cl[j];
+
+//                                m_result.add_pillar(hid, endpoint, )
+//                                        .add_base(m_cfg.base_height_mm, m_cfg.base_radius_mm);
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+
         });
     }
 
