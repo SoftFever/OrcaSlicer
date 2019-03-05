@@ -766,7 +766,7 @@ void Sidebar::update_mode_sizer() const
 
 void Sidebar::update_reslice_btn_tooltip() const
 {
-    const wxString tooltip = m_mode == comSimple ? wxEmptyString : _(L("Hold Shift to Slice & Export G-code"));
+    const wxString tooltip = m_mode == comSimple ? wxString("") : _(L("Hold Shift to Slice & Export G-code"));
     p->btn_reslice->SetToolTip(tooltip);
 }
 
