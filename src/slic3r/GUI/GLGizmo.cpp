@@ -2267,7 +2267,8 @@ void GLGizmoSlaSupports::on_render_input_window(float x, float y, float bottom_l
 RENDER_AGAIN:
     m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
 
-    static const ImVec2 window_size(285.f, 260.f);
+    const float scaling = m_imgui->get_style_scaling();
+    const ImVec2 window_size(285.f * scaling, 260.f * scaling);
     ImGui::SetNextWindowPos(ImVec2(x, y - std::max(0.f, y+window_size.y-bottom_limit) ));
     ImGui::SetNextWindowSize(ImVec2(window_size));
 

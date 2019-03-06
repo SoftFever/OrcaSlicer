@@ -42,6 +42,8 @@ public:
     bool update_mouse_data(wxMouseEvent &evt);
     bool update_key_data(wxKeyEvent &evt);
 
+    float get_style_scaling() const { return m_style_scaling; }
+
     void new_frame();
     void render();
 
