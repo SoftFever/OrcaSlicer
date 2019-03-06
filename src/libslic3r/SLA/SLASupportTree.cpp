@@ -854,122 +854,6 @@ long cluster_centroid(const ClusterEl& clust,
     return long(minit - avgs.begin());
 }
 
-/**
- * This function will calculate the convex hull of the input point set and
- * return the indices of those points belonging to the chull in the right
- * (counter clockwise) order. The input is also the set of indices and a
- * functor to get the actual point form the index.
- *
- * I've adapted this algorithm from here:
- * https://www.geeksforgeeks.org/convex-hull-set-1-jarviss-algorithm-or-wrapping/
- * and modified it so that it starts with the leftmost lower vertex. Also added
- * support for floating point coordinates.
- *
- * This function is a modded version of the standard convex hull. If the points
- * are all collinear with each other, it will return their indices in spatially
- * subsequent order (the order they appear on the screen).
- */
-ClusterEl pts_convex_hull(const ClusterEl& inpts,
-                          std::function<Vec2d(unsigned)> pfn)
-{
-    using Point = Vec2d;
-    using std::vector;
-
-    static const double ERR = 1e-3;
-
-    auto orientation = [](const Point& p, const Point& q, const Point& r)
-    {
-        double val = (q(Y) - p(Y)) * (r(X) - q(X)) -
-                     (q(X) - p(X)) * (r(Y) - q(Y));
-
-        if (std::abs(val) < ERR) return 0;  // collinear
-        return (val > ERR)? 1: 2; // clock or counterclockwise
-    };
-
-    size_t n = inpts.size();
-
-    if (n < 3) return inpts;
-
-    // Initialize Result
-    ClusterEl hull;
-    vector<Point> points; points.reserve(n);
-    for(auto i : inpts) {
-        points.emplace_back(pfn(i));
-    }
-
-    // Check if the triplet of points is collinear. The standard convex hull
-    // algorithms are not capable of handling such input properly.
-    bool collinear = true;
-    for(auto one = points.begin(), two = std::next(one), three = std::next(two);
-        three != points.end() && collinear;
-        ++one, ++two, ++three)
-    {
-        // check if the points are collinear
-        if(orientation(*one, *two, *three) != 0) collinear = false;
-    }
-
-    // Find the leftmost (bottom) point
-    size_t l = 0;
-    for (size_t i = 1; i < n; i++) {
-        if(std::abs(points[i](X) - points[l](X)) < ERR) {
-            if(points[i](Y) < points[l](Y)) l = i;
-        }
-        else if (points[i](X) < points[l](X)) l = i;
-    }
-
-    if(collinear) {
-        // fill the output with the spatially ordered set of points.
-
-        // find the direction
-        hull = inpts;
-        auto& lp = points[l];
-        std::sort(hull.begin(), hull.end(),
-                  [&lp, points](unsigned i1, unsigned i2) {
-            // compare the distance from the leftmost point
-            return distance(lp, points[i1]) < distance(lp, points[i2]);
-        });
-
-        return hull;
-    }
-
-    // TODO: this algorithm is O(m*n) and O(n^2) in the worst case so it needs
-    // to be replaced with a graham scan or something O(nlogn)
-
-    // Start from leftmost point, keep moving counterclockwise
-    // until reach the start point again.  This loop runs O(h)
-    // times where h is number of points in result or output.
-    size_t p = l;
-    do
-    {
-        // Add current point to result
-        hull.push_back(inpts[p]);
-
-        // Search for a point 'q' such that orientation(p, x,
-        // q) is counterclockwise for all points 'x'. The idea
-        // is to keep track of last visited most counterclock-
-        // wise point in q. If any point 'i' is more counterclock-
-        // wise than q, then update q.
-        size_t q = (p + 1) % n;
-        for (size_t i = 0; i < n; i++)
-        {
-           // If i is more counterclockwise than current q, then
-           // update q
-           if (orientation(points[p], points[i], points[q]) == 2) q = i;
-        }
-
-        // Now q is the most counterclockwise with respect to p
-        // Set p as q for next iteration, so that q is added to
-        // result 'hull'
-        p = q;
-
-    } while (p != l);  // While we don't come to first point
-
-    auto first = hull.front();
-    hull.emplace_back(first);
-
-    return hull;
-}
-
 inline Vec3d dirv(const Vec3d& startp, const Vec3d& endp) {
     return (endp - startp).normalized();
 }
@@ -1230,10 +1114,6 @@ class SLASupportTree::Algorithm {
     // Helper function for interconnecting two pillars with zig-zag bridges.
     bool interconnect(const Pillar& pillar, const Pillar& nextpillar)
     {
-        // Get the starting heads corresponding to the given pillars
-        const Head& phead = m_result.pillar_head(pillar.id);
-        const Head& nextphead = m_result.pillar_head(nextpillar.id);
-
         // We need to get the starting point of the zig-zag pattern. We have to
         // be aware that the two head junctions are at different heights. We
         // may start from the lowest junction and call it a day but this
@@ -1242,8 +1122,8 @@ class SLASupportTree::Algorithm {
         // pillar could still be bridged with the shorter one.
         bool was_connected = false;
 
-        Vec3d supper = phead.junction_point();
-        Vec3d slower = nextphead.junction_point();
+        Vec3d supper = pillar.startpoint();
+        Vec3d slower = nextpillar.startpoint();
         Vec3d eupper = pillar.endpt;
         Vec3d elower = nextpillar.endpt;
 
@@ -1328,35 +1208,6 @@ class SLASupportTree::Algorithm {
 
     // For connecting a head to a nearby pillar.
     bool connect_to_nearpillar(const Head& head, const Pillar& nearpillar) {
-//        Vec3d hjp = head.junction_point();
-//        Vec3d headjp = hjp;
-//        Vec3d nearheadjp = nearhead.junction_point();
-//        double r = m_cfg.head_back_radius_mm;
-
-//        double d = distance(Vec2d{headjp(X), headjp(Y)},
-//                            Vec2d{nearheadjp(X), nearheadjp(Y)});
-
-//        // Touching point on the nearby pillar
-//        Vec3d touchjp(nearheadjp(X), nearheadjp(Y), headjp(Z) +
-//                 d * std::tan(-m_cfg.bridge_slope));
-
-//        // If the touching point is too high, we can add a partial pillar from
-//        // under the higher head to reach the nearby pillar with a bridge
-//        if(touchjp(Z) > nearheadjp(Z)) {
-//            double hdiff = touchjp(Z) - nearheadjp(Z);
-//            headjp(Z) -= hdiff;
-//            touchjp(Z) -= hdiff;
-
-//            // create a pillar without base,
-//            // it doesn't connect to ground just to an existing shorter pillar
-//            m_result.add_pillar(unsigned(nearhead.id), headjp, r);
-//        }
-
-//        if(headjp(Z) < hjp(Z)) m_result.add_junction(headjp, r);
-//        if(touchjp(Z) >= nearheadjp(Z)) m_result.add_junction(touchjp, r);
-
-//        m_result.add_bridge(headjp, touchjp, r);
-
         Vec3d headjp = head.junction_point();
         Vec3d nearjp_u = nearpillar.startpoint();
         Vec3d nearjp_l = nearpillar.endpoint();
@@ -1382,14 +1233,14 @@ class SLASupportTree::Algorithm {
             double Zdown = headjp(Z) + d2d * std::tan(-max_slope);
             Vec3d touchjp = bridgeend; touchjp(Z) = Zdown;
             double D = distance(headjp, touchjp);
-            double zdiff = Zdown - nearjp_u(Z);
+            zdiff = Zdown - nearjp_u(Z);
 
             if(zdiff > 0) {
                 Zdown -= zdiff;
                 bridgestart(Z) -= zdiff;
                 touchjp(Z) = Zdown;
 
-                double t = bridge_mesh_intersect(bridgestart, {0,0,-1}, r);
+                double t = bridge_mesh_intersect(headjp, {0,0,-1}, r);
 
                 // We can't insert a pillar under the source head to connect
                 // with the nearby pillar's starting junction
@@ -1446,8 +1297,8 @@ class SLASupportTree::Algorithm {
 
             assert(nearest_id >= 0);
             if(nearest_id >= 0) {
-                auto nearheadid = unsigned(nearest_id);
-                const Pillar& nearpillar = m_result.head_pillar(nearheadid);
+                auto nearpillarID = unsigned(nearest_id);
+                const Pillar& nearpillar = m_result.pillars()[nearpillarID];
                 if(!connect_to_nearpillar(head, nearpillar)) {
                     nearest_id = -1;    // continue searching
                     spindex.remove(ne); // without the current pillar
@@ -1462,7 +1313,7 @@ class SLASupportTree::Algorithm {
     // at least one neighbor to connect with. Height exceeding H2 require two
     // neighbors. A connection only counts if the height ratio is bigger
     // than 20%
-    void connect_pillars_nearest(unsigned neighbors = 3,
+    void connect_pillars_nearest(unsigned neighbors = 1,
                                  double H1 = 4.0,   // min 1 neighbor required
                                  double H2 = 35.0,  // min 2 neighbor required
                                  double min_height_ratio = 0.2)
@@ -1493,7 +1344,7 @@ class SLASupportTree::Algorithm {
                 return distance(e1.first, qp) < distance(e2.first, qp);
             });
 
-            const Pillar& pillar = m_result.head_pillar(el.second);
+            const Pillar& pillar = m_result.pillars()[el.second];
             unsigned ncount = 0;
             for(auto& re : qres) {
                 if(re.second == el.second) continue;
@@ -1501,7 +1352,7 @@ class SLASupportTree::Algorithm {
                 auto hashval = m_pillar_index.size() * el.second + re.second;
                 if(pairs.find(hashval) != pairs.end()) continue;
 
-                const Pillar& neighborpillar = m_result.head_pillar(re.second);
+                const Pillar& neighborpillar = m_result.pillars()[re.second];
                 if(interconnect(pillar, neighborpillar)) {
                     pairs.insert(hashval);
 
@@ -1522,17 +1373,6 @@ class SLASupportTree::Algorithm {
                 BOOST_LOG_TRIVIAL(warning) << "Pillar is too long and has no "
                                               "neighbors. Head ID: "
                                            << pillar.start_junction_id;
-
-//                double D = 2*m_cfg.base_radius_mm;
-//                Vec3d jp = pillar.startpoint();
-//                double h = D / std::cos(m_cfg.bridge_slope);
-//                bool found = false;
-//                double phi = 0;
-
-//                // Search for a suitable angle for the two pillars
-//                while(!found && phi < 2*PI) {
-
-//                }
                 needpillars = 1;
             } else if(ncount < 2 && pillar.height > H2) {
                 // Not enough neighbors to support this pillar
@@ -1544,7 +1384,6 @@ class SLASupportTree::Algorithm {
 
             // WIP:
             // note: sideheads ARE tested to reach the ground!
-
 
 //            if(needpillars > 0) {
 //                if(pillar.starts_from_head) {
@@ -1567,77 +1406,6 @@ class SLASupportTree::Algorithm {
 //            }
 
         });
-    }
-
-    // This is the old interconnection strategy which has a lot of imperfections
-    void connect_pillars_spiderweb() {
-        std::vector<unsigned> rem; rem.reserve(m_pillar_index.size());
-        std::vector<unsigned> ring;
-
-        // Could use an unordered_map instead. Points can be quite many.
-        std::vector<Vec2d> pts(size_t(m_points.rows()));
-
-        m_pillar_index.foreach([&rem, &pts](const SpatElement& e) {
-            rem.emplace_back(e.second);
-            pts[e.second] = {e.first(X), e.first(Y)};
-        });
-
-        while(!rem.empty()) { // loop until all the points belong to some ring
-            m_thr();
-
-            std::sort(rem.begin(), rem.end());
-
-            auto newring = pts_convex_hull(rem,
-                                           [&pts](unsigned i) {
-                return pts[i]; // project to 2D in along Z axis
-            });
-
-            if(!ring.empty()) {
-                // inner ring is now in 'newring' and outer ring is in 'ring'
-                SpatIndex innerring;
-                for(unsigned i : newring) { m_thr();
-                    const Pillar& pill = m_result.head_pillar(i);
-                    assert(pill.id >= 0);
-                    innerring.insert(pill.endpt, unsigned(pill.id));
-                }
-
-                // For all pillars in the outer ring find the closest in the
-                // inner ring and connect them. This will create the spider web
-                // fashioned connections between pillars
-                for(unsigned i : ring) { m_thr();
-                    const Pillar& outerpill = m_result.head_pillar(i);
-
-                    auto res = innerring.nearest(outerpill.endpt,
-                                                 unsigned(innerring.size()));
-
-                    for(auto& ne : res) {
-                        const Pillar& innerpill = m_result.pillars()[ne.second];
-                        if(interconnect(outerpill, innerpill)) break;
-                    }
-                }
-            }
-
-            // no need for newring anymore in the current iteration
-            ring.swap(newring);
-
-            // now the ring has to be connected with bridge sticks
-            for(auto it = ring.begin(), next = std::next(it);
-                next != ring.end();
-                ++it, ++next)
-            {
-                m_thr();
-                const Pillar& pillar = m_result.head_pillar(*it);
-                const Pillar& nextpillar = m_result.head_pillar(*next);
-                interconnect(pillar, nextpillar);
-            }
-
-            auto sring = ring; ClusterEl tmp;
-            std::sort(sring.begin(), sring.end());
-            std::set_difference(rem.begin(), rem.end(),
-                                sring.begin(), sring.end(),
-                                std::back_inserter(tmp));
-            rem.swap(tmp);
-        }
     }
 
 public:
@@ -1919,9 +1687,12 @@ public:
             Head& h = m_result.head(hid);
             h.transform();
             Vec3d p = h.junction_point(); p(Z) = gndlvl;
-            m_result.add_pillar(hid, p, h.r_back_mm)
-                    .add_base(m_cfg.base_height_mm, m_cfg.base_radius_mm);
-            m_pillar_index.insert(p, hid); // TODO: replace hid with pillarID
+            auto& plr = m_result.add_pillar(hid, p, h.r_back_mm)
+                                .add_base(m_cfg.base_height_mm,
+                                          m_cfg.base_radius_mm);
+
+            // Save the pillar endpoint and the pillar id in the spatial index
+            m_pillar_index.insert(plr.endpoint(), unsigned(plr.id));
         }
 
         // now we will go through the clusters ones again and connect the
@@ -1950,20 +1721,16 @@ public:
                     Vec3d pstart = sidehead.junction_point();
                     Vec3d pend = Vec3d{pstart(X), pstart(Y), gndlvl};
                     // Could not find a pillar, create one
-                    m_result.add_pillar(
-                                unsigned(sidehead.id), pend,
-                                pradius).add_base(m_cfg.base_height_mm,
-                                                  m_cfg.base_radius_mm);
+                    auto& pillar = m_result.add_pillar(unsigned(sidehead.id),
+                                                       pend, pradius)
+                                            .add_base(m_cfg.base_height_mm,
+                                                      m_cfg.base_radius_mm);
 
                     // connects to ground, eligible for bridging
-                    m_pillar_index.insert(pend, c);
+                    m_pillar_index.insert(pend, unsigned(pillar.id));
                 }
             }
         }
-
-        // connect_pillars_spiderweb();
-        connect_pillars_nearest();
-
     }
 
     // Step: routing the pinheads that would connect to the model surface
@@ -1991,10 +1758,13 @@ public:
 
             auto groundp = endp;
             groundp(Z) = m_result.ground_level;
-            m_result.add_pillar(endp, groundp, head.r_back_mm).add_base(
-                        m_cfg.base_height_mm, m_cfg.base_radius_mm);
-//            m_pillar_index.insert(groundp, unsigned(head.id));
+            auto& newpillar = m_result.add_pillar(endp, groundp, head.r_back_mm)
+                                      .add_base(m_cfg.base_height_mm,
+                                                m_cfg.base_radius_mm);
+            m_pillar_index.insert(groundp, unsigned(newpillar.id));
         };
+
+        std::vector<unsigned> modelpillars;
 
         // TODO: connect these to the ground pillars if possible
         for(auto item : m_iheads_onmodel) { m_thr();
@@ -2008,16 +1778,7 @@ public:
             // Search nearby pillar
             // /////////////////////////////////////////////////////////////////
 
-            if(search_pillar_and_connect(head)) continue;
-
-//            long nearest_pillar_id = search_nearest(hjp);
-//            if(nearest_pillar_id >= 0) { // successful search
-//                auto nearest_uid = unsigned(nearest_pillar_id);
-//                const Pillar& nearpillar = m_result.head_pillar(nearest_uid);
-//                head.transform();  // accept the head
-//                connect_to_nearpillar(head, nearpillar);
-//                continue;
-//            }
+            if(search_pillar_and_connect(head)) { head.transform(); continue; }
 
             // /////////////////////////////////////////////////////////////////
             // Try straight path
@@ -2085,7 +1846,6 @@ public:
 
             d = 0; t = oresult.score;
 
-
             polar = std::get<0>(oresult.optimum);
             azimuth = std::get<1>(oresult.optimum);
             Vec3d bridgedir = Vec3d(std::cos(azimuth) * std::sin(polar),
@@ -2143,6 +1903,9 @@ public:
 
                 tailhead.transform();
                 pill.base = tailhead.mesh;
+
+                // Experimental: add the pillar to the index for cascading
+                modelpillars.emplace_back(unsigned(pill.id));
                 continue;
             }
 
@@ -2152,6 +1915,15 @@ public:
                     << " ID: " << idx;
             head.invalidate();
         }
+
+        for(auto pillid : modelpillars) {
+            auto& pillar = m_result.pillars()[pillid];
+            m_pillar_index.insert(pillar.endpoint(), pillid);
+        }
+    }
+
+    void cascade_pillars() {
+        connect_pillars_nearest();
     }
 
     // Step: process the support points where there is not enough space for a
@@ -2211,6 +1983,7 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
         CLASSIFY,
         ROUTING_GROUND,
         ROUTING_NONGROUND,
+        CASCADE_PILLARS,
         HEADLESS,
         DONE,
         ABORT,
@@ -2234,6 +2007,8 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
         std::bind(&Algorithm::routing_to_ground, &alg),
 
         std::bind(&Algorithm::routing_to_model, &alg),
+
+        std::bind(&Algorithm::cascade_pillars, &alg),
 
         std::bind(&Algorithm::routing_headless, &alg),
 
@@ -2268,6 +2043,7 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
             L("Classification"),
             L("Routing to ground"),
             L("Routing supports to model surface"),
+            L("Cascading pillars"),
             L("Processing small holes"),
             L("Done"),
             L("Abort")
@@ -2281,6 +2057,7 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
             60,
             70,
             80,
+            90,
             100,
             0
         };
@@ -2293,7 +2070,8 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
         case PINHEADS: pc = CLASSIFY; break;
         case CLASSIFY: pc = ROUTING_GROUND; break;
         case ROUTING_GROUND: pc = ROUTING_NONGROUND; break;
-        case ROUTING_NONGROUND: pc = HEADLESS; break;
+        case ROUTING_NONGROUND: pc = CASCADE_PILLARS; break;
+        case CASCADE_PILLARS: pc = HEADLESS; break;
         case HEADLESS: pc = DONE; break;
         case DONE:
         case ABORT: break;
