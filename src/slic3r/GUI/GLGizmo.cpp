@@ -981,7 +981,7 @@ void GLGizmoScale3D::on_render(const GLCanvas3D::Selection& selection) const
 
     ::glLineWidth((m_hover_id != -1) ? 2.0f : 1.5f);
 
-    float grabber_max_size = (float)std::max(grabber_size(0), std::max(grabber_size(1), grabber_size(2)));
+    float grabber_mean_size = (float)(grabber_size(0) + grabber_size(1) + grabber_size(2)) / 3.0f;
 
     if (m_hover_id == -1)
     {
@@ -1007,7 +1007,7 @@ void GLGizmoScale3D::on_render(const GLCanvas3D::Selection& selection) const
         render_grabbers_connection(8, 9);
         render_grabbers_connection(9, 6);
         // draw grabbers
-        render_grabbers(grabber_max_size);
+        render_grabbers(grabber_mean_size);
     }
     else if ((m_hover_id == 0) || (m_hover_id == 1))
     {
@@ -1015,8 +1015,8 @@ void GLGizmoScale3D::on_render(const GLCanvas3D::Selection& selection) const
         ::glColor3fv(m_grabbers[0].color);
         render_grabbers_connection(0, 1);
         // draw grabbers
-        m_grabbers[0].render(true, grabber_max_size);
-        m_grabbers[1].render(true, grabber_max_size);
+        m_grabbers[0].render(true, grabber_mean_size);
+        m_grabbers[1].render(true, grabber_mean_size);
     }
     else if ((m_hover_id == 2) || (m_hover_id == 3))
     {
@@ -1024,8 +1024,8 @@ void GLGizmoScale3D::on_render(const GLCanvas3D::Selection& selection) const
         ::glColor3fv(m_grabbers[2].color);
         render_grabbers_connection(2, 3);
         // draw grabbers
-        m_grabbers[2].render(true, grabber_max_size);
-        m_grabbers[3].render(true, grabber_max_size);
+        m_grabbers[2].render(true, grabber_mean_size);
+        m_grabbers[3].render(true, grabber_mean_size);
     }
     else if ((m_hover_id == 4) || (m_hover_id == 5))
     {
@@ -1033,8 +1033,8 @@ void GLGizmoScale3D::on_render(const GLCanvas3D::Selection& selection) const
         ::glColor3fv(m_grabbers[4].color);
         render_grabbers_connection(4, 5);
         // draw grabbers
-        m_grabbers[4].render(true, grabber_max_size);
-        m_grabbers[5].render(true, grabber_max_size);
+        m_grabbers[4].render(true, grabber_mean_size);
+        m_grabbers[5].render(true, grabber_mean_size);
     }
     else if (m_hover_id >= 6)
     {
@@ -1047,7 +1047,7 @@ void GLGizmoScale3D::on_render(const GLCanvas3D::Selection& selection) const
         // draw grabbers
         for (int i = 6; i < 10; ++i)
         {
-            m_grabbers[i].render(true, grabber_max_size);
+            m_grabbers[i].render(true, grabber_mean_size);
         }
     }
 }
