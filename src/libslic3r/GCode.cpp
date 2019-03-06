@@ -574,17 +574,16 @@ void GCode::_do_export(Print &print, FILE *file)
 
     // resets analyzer
     m_analyzer.reset();
-#if ENABLE_ANALYZER_EXTRUDER_OFFSET
+
     // send extruder offset data to analyzer
-    std::vector<Vec2d> extruder_offsets;
+    GCodeAnalyzer::ExtruderOffsetsMap extruder_offsets;
     for (unsigned int extruder_id : print.extruders())
     {
-        extruder_offsets.push_back(print.config().extruder_offset.get_at(extruder_id));
+        Vec2d offset = print.config().extruder_offset.get_at(extruder_id);
+        if (!offset.isApprox(Vec2d::Zero()))
+            extruder_offsets[extruder_id] = offset;
     }
-
     m_analyzer.set_extruder_offsets(extruder_offsets);
-#endif // ENABLE_ANALYZER_EXTRUDER_OFFSET
-
 
     // resets analyzer's tracking data
     m_last_mm3_per_mm = GCodeAnalyzer::Default_mm3_per_mm;
@@ -855,9 +854,7 @@ void GCode::_do_export(Print &print, FILE *file)
             for (unsigned int extruder_id : print.extruders()) {
                 const Vec2d &extruder_offset = print.config().extruder_offset.get_at(extruder_id);
                 Polygon s(outer_skirt);
-#if !ENABLE_ANALYZER_EXTRUDER_OFFSET
                 s.translate(Point::new_scale(-extruder_offset(0), -extruder_offset(1)));
-#endif // !ENABLE_ANALYZER_EXTRUDER_OFFSET
                 skirts.emplace_back(std::move(s));
             }
             m_ooze_prevention.enable = true;
