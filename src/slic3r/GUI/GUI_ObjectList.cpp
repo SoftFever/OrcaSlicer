@@ -2147,7 +2147,15 @@ void ObjectList::update_settings_items()
     for (auto& item : items) {        
         const wxDataViewItem& settings_item = m_objects_model->GetSettingsItem(item);
         select_item(settings_item ? settings_item : m_objects_model->AddSettingsChild(item));
+
+        // If settings item was deleted from the list, 
+        // it's need to be deleted from selection array, if it was there
+        if (settings_item != m_objects_model->GetSettingsItem(item) && 
+            sel.Index(settings_item) != wxNOT_FOUND) {
+            sel.Remove(settings_item);
+        }
     }
+
     // restore selection:
     SetSelections(sel);
     m_prevent_canvas_selection_update = false;
