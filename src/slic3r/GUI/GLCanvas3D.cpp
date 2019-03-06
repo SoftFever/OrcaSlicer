@@ -5298,7 +5298,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     if (m_hover_volume_id != -1)
                     {
                         // if right clicking on volume, propagate event through callback (shows context menu)
-                        if (m_volumes.volumes[m_hover_volume_id]->hover && !m_volumes.volumes[m_hover_volume_id]->is_wipe_tower)
+                        if (m_volumes.volumes[m_hover_volume_id]->hover
+                         && !m_volumes.volumes[m_hover_volume_id]->is_wipe_tower // no context menu for the wipe tower
+                         && m_gizmos.get_current_type() != Gizmos::SlaSupports)  // disable context menu when the gizmo is open
                         {
                             // forces the selection of the volume
                             if (!m_selection.is_multiple_full_instance())
