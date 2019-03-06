@@ -5354,11 +5354,14 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     GLfloat matrix[16];
                     ::glGetFloatv(GL_MODELVIEW_MATRIX, matrix);
                     Vec3d camera_right((double)matrix[0], (double)matrix[4], (double)matrix[8]);
+                    Vec3d camera_up((double)matrix[1], (double)matrix[5], (double)matrix[9]);
 
-                    // finds projection of the vector along the camera right axis
-                    double projection = inters_vec.dot(camera_right);
+                    // finds projection of the vector along the camera axes
+                    double projection_x = inters_vec.dot(camera_right);
+                    double projection_z = inters_vec.dot(camera_up);
 
-                    cur_pos = m_mouse.drag.start_position_3D + projection * camera_right;
+                    // apply offset
+                    cur_pos = m_mouse.drag.start_position_3D + projection_x * camera_right + projection_z * camera_up;
                 }
                 else
                 {
