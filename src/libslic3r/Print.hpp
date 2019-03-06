@@ -203,6 +203,7 @@ private:
 
     std::vector<ExPolygons> _slice_region(size_t region_id, const std::vector<float> &z, bool modifier);
     std::vector<ExPolygons> _slice_volumes(const std::vector<float> &z, const std::vector<const ModelVolume*> &volumes) const;
+    std::vector<ExPolygons> _slice_volume(const std::vector<float> &z, const ModelVolume &volume) const;
 };
 
 struct WipeTowerData
