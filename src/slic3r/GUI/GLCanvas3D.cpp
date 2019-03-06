@@ -3205,7 +3205,7 @@ void GLCanvas3D::Gizmos::do_render_overlay(const GLCanvas3D& canvas, const GLCan
         if (it->second->get_state() == GLGizmoBase::On) {
             float toolbar_top = (float)cnv_h - canvas.m_view_toolbar->get_height();
 #if ENABLE_SVG_ICONS
-            it->second->render_input_window(2.0f * scaled_border + scaled_icons_size * zoom, 0.5f * cnv_h - top_y * zoom, toolbar_top, selection);
+            it->second->render_input_window(2.0f * m_overlay_border + m_overlay_icons_size, 0.5f * cnv_h - top_y * zoom, toolbar_top, selection);
 #else
             it->second->render_input_window(2.0f * m_overlay_border + icon_size * zoom, 0.5f * cnv_h - top_y * zoom, toolbar_top, selection);
 #endif // ENABLE_SVG_ICONS
