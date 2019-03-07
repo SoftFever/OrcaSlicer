@@ -75,6 +75,7 @@ const double SupportConfig::max_solo_pillar_height_mm = 5.0;
 const double SupportConfig::max_dual_pillar_height_mm = 35.0;
 const double   SupportConfig::optimizer_rel_score_diff = 1e-6;
 const unsigned SupportConfig::optimizer_max_iterations = 500;
+const unsigned SupportConfig::pillar_cascade_neighbors = 2;
 
 using Coordf = double;
 using Portion = std::tuple<double, double>;
