@@ -497,11 +497,11 @@ void Choice::BUILD() {
 	if (m_opt.height >= 0) size.SetHeight(m_opt.height);
 	if (m_opt.width >= 0) size.SetWidth(m_opt.width);
 
-	wxComboBox* temp;	
+	wxBitmapComboBox* temp;	
 	if (!m_opt.gui_type.empty() && m_opt.gui_type.compare("select_open") != 0)
-		temp = new wxComboBox(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size);
+		temp = new wxBitmapComboBox(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size);
 	else
-		temp = new wxComboBox(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size, 0, NULL, wxCB_READONLY);
+		temp = new wxBitmapComboBox(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size, 0, nullptr, wxCB_READONLY);
 
 	// recast as a wxWindow to fit the calling convention
 	window = dynamic_cast<wxWindow*>(temp);
@@ -511,7 +511,7 @@ void Choice::BUILD() {
 	else{
 		for (auto el : m_opt.enum_labels.empty() ? m_opt.enum_values : m_opt.enum_labels) {
 			const wxString& str = _(el);//m_opt_id == "support" ? _(el) : el;
-			temp->Append(str);
+            temp->Append(str, *m_undo_bitmap);
 		}
 		set_selection();
 	}
@@ -523,7 +523,7 @@ void Choice::BUILD() {
             e.Skip();
             if (m_opt.type == coStrings) return;
             double old_val = !m_value.empty() ? boost::any_cast<double>(m_value) : -99999;
-            if (is_defined_input_value<wxComboBox>(window, m_opt.type)) {
+            if (is_defined_input_value<wxBitmapComboBox>(window, m_opt.type)) {
                 if (fabs(old_val - boost::any_cast<double>(get_value())) <= 0.0001)
                     return;
                 else
@@ -554,13 +554,13 @@ void Choice::set_selection()
 		}
 //		if (m_opt.type == coPercent) text_value += "%";
 		idx == m_opt.enum_values.size() ?
-			dynamic_cast<wxComboBox*>(window)->SetValue(text_value) :
-			dynamic_cast<wxComboBox*>(window)->SetSelection(idx);
+			dynamic_cast<wxBitmapComboBox*>(window)->SetValue(text_value) :
+			dynamic_cast<wxBitmapComboBox*>(window)->SetSelection(idx);
 		break;
 	}
 	case coEnum:{
 		int id_value = static_cast<const ConfigOptionEnum<SeamPosition>*>(m_opt.default_value)->value; //!!
-		dynamic_cast<wxComboBox*>(window)->SetSelection(id_value);
+		dynamic_cast<wxBitmapComboBox*>(window)->SetSelection(id_value);
 		break;
 	}
 	case coInt:{
@@ -574,8 +574,8 @@ void Choice::set_selection()
 			++idx;
 		}
 		idx == m_opt.enum_values.size() ?
-			dynamic_cast<wxComboBox*>(window)->SetValue(text_value) :
-			dynamic_cast<wxComboBox*>(window)->SetSelection(idx);
+			dynamic_cast<wxBitmapComboBox*>(window)->SetValue(text_value) :
+			dynamic_cast<wxBitmapComboBox*>(window)->SetSelection(idx);
 		break;
 	}
 	case coStrings:{
@@ -589,8 +589,8 @@ void Choice::set_selection()
 			++idx;
 		}
 		idx == m_opt.enum_values.size() ?
-			dynamic_cast<wxComboBox*>(window)->SetValue(text_value) :
-			dynamic_cast<wxComboBox*>(window)->SetSelection(idx);
+			dynamic_cast<wxBitmapComboBox*>(window)->SetValue(text_value) :
+			dynamic_cast<wxBitmapComboBox*>(window)->SetSelection(idx);
 		break;
 	}
 	}
@@ -609,8 +609,8 @@ void Choice::set_value(const std::string& value, bool change_event)  //! Redunda
 	}
 
 	idx == m_opt.enum_values.size() ? 
-		dynamic_cast<wxComboBox*>(window)->SetValue(value) :
-		dynamic_cast<wxComboBox*>(window)->SetSelection(idx);
+		dynamic_cast<wxBitmapComboBox*>(window)->SetValue(value) :
+		dynamic_cast<wxBitmapComboBox*>(window)->SetSelection(idx);
 	
 	m_disable_change_event = false;
 }
@@ -640,11 +640,11 @@ void Choice::set_value(const boost::any& value, bool change_event)
         if (idx == m_opt.enum_values.size()) {
             // For editable Combobox under OSX is needed to set selection to -1 explicitly,
             // otherwise selection doesn't be changed
-            dynamic_cast<wxComboBox*>(window)->SetSelection(-1);
-            dynamic_cast<wxComboBox*>(window)->SetValue(text_value);
+            dynamic_cast<wxBitmapComboBox*>(window)->SetSelection(-1);
+            dynamic_cast<wxBitmapComboBox*>(window)->SetValue(text_value);
         }
         else
-			dynamic_cast<wxComboBox*>(window)->SetSelection(idx);
+			dynamic_cast<wxBitmapComboBox*>(window)->SetSelection(idx);
 		break;
 	}
 	case coEnum: {
@@ -674,7 +674,7 @@ void Choice::set_value(const boost::any& value, bool change_event)
 			else
 				val = 0;
 		}
-		dynamic_cast<wxComboBox*>(window)->SetSelection(val);
+		dynamic_cast<wxBitmapComboBox*>(window)->SetSelection(val);
 		break;
 	}
 	default:
@@ -693,7 +693,7 @@ void Choice::set_values(const std::vector<std::string>& values)
 
 // 	# it looks that Clear() also clears the text field in recent wxWidgets versions,
 // 	# but we want to preserve it
-	auto ww = dynamic_cast<wxComboBox*>(window);
+	auto ww = dynamic_cast<wxBitmapComboBox*>(window);
 	auto value = ww->GetValue();
 	ww->Clear();
 	ww->Append("");
@@ -707,7 +707,7 @@ void Choice::set_values(const std::vector<std::string>& values)
 boost::any& Choice::get_value()
 {
 // 	boost::any m_value;
-	wxString ret_str = static_cast<wxComboBox*>(window)->GetValue();	
+	wxString ret_str = static_cast<wxBitmapComboBox*>(window)->GetValue();	
 
 	// options from right panel
 	std::vector <std::string> right_panel_options{ "support", "scale_unit" };
@@ -717,7 +717,7 @@ boost::any& Choice::get_value()
 
 	if (m_opt.type == coEnum)
 	{
-		int ret_enum = static_cast<wxComboBox*>(window)->GetSelection(); 
+		int ret_enum = static_cast<wxBitmapComboBox*>(window)->GetSelection(); 
 		if (m_opt_id == "top_fill_pattern" || m_opt_id == "bottom_fill_pattern")
 		{
 			if (!m_opt.enum_values.empty()) {
@@ -746,7 +746,7 @@ boost::any& Choice::get_value()
             m_value = static_cast<SLAPillarConnectionMode>(ret_enum);
 	}
     else if (m_opt.gui_type == "f_enum_open") {
-        const int ret_enum = static_cast<wxComboBox*>(window)->GetSelection();
+        const int ret_enum = static_cast<wxBitmapComboBox*>(window)->GetSelection();
         if (ret_enum < 0 || m_opt.enum_values.empty() || m_opt.type == coStrings)
 			// modifies ret_string!
             get_value_by_opt_type(ret_str);

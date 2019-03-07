@@ -11,6 +11,7 @@
 #include <boost/any.hpp>
 
 #include <wx/spinctrl.h>
+#include <wx/bmpcbox.h>
 #include <wx/clrpicker.h>
 
 #include "libslic3r/libslic3r.h"
@@ -357,8 +358,8 @@ public:
 	void			set_values(const std::vector<std::string> &values);
 	boost::any&		get_value() override;
 
-	void			enable() override { dynamic_cast<wxComboBox*>(window)->Enable(); };
-	void			disable() override{ dynamic_cast<wxComboBox*>(window)->Disable(); };
+	void			enable() override { dynamic_cast<wxBitmapComboBox*>(window)->Enable(); };
+	void			disable() override{ dynamic_cast<wxBitmapComboBox*>(window)->Disable(); };
 	wxWindow*		getWindow() override { return window; }
 };
 
