@@ -12,7 +12,7 @@
 #include <libslic3r/ClipperUtils.hpp>
 #include <libslic3r/Model.hpp>
 
-#include <libnest2d/optimizers/nlopt/simplex.hpp>
+#include <libnest2d/optimizers/nlopt/genetic.hpp>
 #include <boost/log/trivial.hpp>
 #include <tbb/parallel_for.h>
 #include <libslic3r/I18N.hpp>
@@ -62,6 +62,19 @@
 
 namespace Slic3r {
 namespace sla {
+
+// Compile time configuration value definitions:
+
+// The max Z angle for a normal at which it will get completely ignored.
+const double SupportConfig::normal_cutoff_angle = 150.0 * M_PI / 180.0;
+
+// The shortest distance of any support structure from the model surface
+const double SupportConfig::safety_distance_mm = 0.1;
+
+const double SupportConfig::max_solo_pillar_height_mm = 5.0;
+const double SupportConfig::max_dual_pillar_height_mm = 35.0;
+const double   SupportConfig::optimizer_rel_score_diff = 1e-6;
+const unsigned SupportConfig::optimizer_max_iterations = 500;
 
 using Coordf = double;
 using Portion = std::tuple<double, double>;
@@ -1309,105 +1322,6 @@ class SLASupportTree::Algorithm {
         return nearest_id >= 0;
     }
 
-    // Interconnection strategy. Pillars with height exceeding H1 will require
-    // at least one neighbor to connect with. Height exceeding H2 require two
-    // neighbors. A connection only counts if the height ratio is bigger
-    // than 20%
-    void connect_pillars_nearest(unsigned neighbors = 1,
-                                 double H1 = 4.0,   // min 1 neighbor required
-                                 double H2 = 35.0,  // min 2 neighbor required
-                                 double min_height_ratio = 0.2)
-    {
-        // Now comes the algorithm that connects ground pillars with each other.
-        // Ideally every pillar should be connected with at least one of its
-        // neighbors if that neighbor is within sufficient distance (a bridge to
-        // it would not be longer than max_bridge_distance)
-
-        double d = std::cos(m_cfg.bridge_slope) * m_cfg.max_bridge_length_mm;
-
-        std::set<unsigned long> pairs;
-
-        m_pillar_index.foreach(
-                    [this, d, &pairs, neighbors, min_height_ratio, H1, H2]
-                    (const SpatElement& el)
-        {
-            Vec3d qp = el.first;
-
-            // Query all remaining points within reach
-            auto qres = m_pillar_index.query([qp, d](const SpatElement& e){
-                return distance(e.first, qp) < d;
-            });
-
-            // sort the result by distance (have to check if this is needed)
-            std::sort(qres.begin(), qres.end(),
-                      [qp](const SpatElement& e1, const SpatElement& e2){
-                return distance(e1.first, qp) < distance(e2.first, qp);
-            });
-
-            const Pillar& pillar = m_result.pillars()[el.second];
-            unsigned ncount = 0;
-            for(auto& re : qres) {
-                if(re.second == el.second) continue;
-
-                auto hashval = m_pillar_index.size() * el.second + re.second;
-                if(pairs.find(hashval) != pairs.end()) continue;
-
-                const Pillar& neighborpillar = m_result.pillars()[re.second];
-                if(interconnect(pillar, neighborpillar)) {
-                    pairs.insert(hashval);
-
-                    // If the interconnection length between the two pillars is
-                    // less than 20% of the longer pillar's height, don't count
-                    if(std::min(pillar.height, neighborpillar.height) /
-                       std::max(pillar.height, neighborpillar.height) >
-                            min_height_ratio) ++ncount;
-                }
-
-                // 3 connections are enough for one pillar
-                if(ncount == neighbors) break;
-            }
-
-            unsigned needpillars = 0;
-            if(ncount < 1 && pillar.height > H1) {
-                // No neighbors could not be found and the pillar is too long.
-                BOOST_LOG_TRIVIAL(warning) << "Pillar is too long and has no "
-                                              "neighbors. Head ID: "
-                                           << pillar.start_junction_id;
-                needpillars = 1;
-            } else if(ncount < 2 && pillar.height > H2) {
-                // Not enough neighbors to support this pillar
-                BOOST_LOG_TRIVIAL(warning) << "Pillar is too long and has too "
-                                              "few neighbors. Head ID: "
-                                           << pillar.start_junction_id;
-                needpillars = 2 - ncount;
-            }
-
-            // WIP:
-            // note: sideheads ARE tested to reach the ground!
-
-//            if(needpillars > 0) {
-//                if(pillar.starts_from_head) {
-//                    // search for a sidehead for this head. We will route that
-//                    // to the ground.
-//                    const Head& head = m_result.head(unsigned(pillar.start_junction_id));
-//                    for(auto cl : m_pillar_clusters) {
-//                        auto it = std::find(cl.begin(), cl.end(), head.id);
-//                        if(it != cl.end()) {
-//                            cl.erase(it);
-//                            for(size_t j = 0; j < cl.size() && j < needpillars; j++) {
-//                                unsigned hid = cl[j];
-
-//                                m_result.add_pillar(hid, endpoint, )
-//                                        .add_base(m_cfg.base_height_mm, m_cfg.base_radius_mm);
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-
-        });
-    }
-
 public:
 
     Algorithm(const SupportConfig& config,
@@ -1468,9 +1382,8 @@ public:
 
         using libnest2d::opt::bound;
         using libnest2d::opt::initvals;
-        using libnest2d::opt::SimplexOptimizer;
+        using libnest2d::opt::GeneticOptimizer;
         using libnest2d::opt::StopCriteria;
-        static const unsigned MAX_TRIES = 100;
 
         for(unsigned i = 0, fidx = filtered_indices[0];
             i < filtered_indices.size(); ++i, fidx = filtered_indices[i])
@@ -1525,10 +1438,10 @@ public:
                     // geometry and its very close to the default.
 
                     StopCriteria stc;
-                    stc.max_iterations = MAX_TRIES;
-                    stc.relative_score_difference = 1e-3;
+                    stc.max_iterations = m_cfg.optimizer_max_iterations;
+                    stc.relative_score_difference = m_cfg.optimizer_rel_score_diff;
                     stc.stop_score = w; // space greater than w is enough
-                    SimplexOptimizer solver(stc);
+                    GeneticOptimizer solver(stc);
 
                     auto oresult = solver.optimize_max(
                         [this, pin_r, w, hp](double plr, double azm)
@@ -1538,8 +1451,8 @@ public:
                                        std::cos(plr)).normalized();
 
                         double score = pinhead_mesh_intersect( hp, n, pin_r,
-                                          m_cfg.head_back_radius_mm,
-                                          w);
+                                          m_cfg.head_back_radius_mm, w);
+
                         return score;
                     },
                     initvals(polar, azimuth), // start with what we have
@@ -1639,7 +1552,7 @@ public:
         auto predicate = [this](const SpatElement& e1, const SpatElement& e2) {
             double d2d = distance(to_2d(e1.first), to_2d(e2.first));
             double d3d = distance(e1.first, e2.first);
-            return d2d < 2*m_cfg.base_radius_mm &&
+            return d2d < 2 * m_cfg.base_radius_mm &&
                    d3d < m_cfg.max_bridge_length_mm;
         };
         m_pillar_clusters = cluster(ground_head_indices, pointfn, predicate, 3);
@@ -1819,14 +1732,14 @@ public:
 
             using libnest2d::opt::bound;
             using libnest2d::opt::initvals;
-            using libnest2d::opt::SimplexOptimizer;
+            using libnest2d::opt::GeneticOptimizer;
             using libnest2d::opt::StopCriteria;
 
             StopCriteria stc;
-            stc.max_iterations = 100;
-            stc.relative_score_difference = 1e-3;
+            stc.max_iterations = m_cfg.optimizer_max_iterations;
+            stc.relative_score_difference = m_cfg.optimizer_rel_score_diff;
             stc.stop_score = 1e6;
-            SimplexOptimizer solver(stc);
+            GeneticOptimizer solver(stc);
 
             double r_back = head.r_back_mm;
 
@@ -1836,7 +1749,6 @@ public:
                 Vec3d n = Vec3d(std::cos(azm) * std::sin(plr),
                                std::sin(azm) * std::sin(plr),
                                std::cos(plr)).normalized();
-
                 return bridge_mesh_intersect(hjp, n, r_back);
             },
             initvals(polar, azimuth),  // let's start with what we have
@@ -1923,7 +1835,102 @@ public:
     }
 
     void cascade_pillars() {
-        connect_pillars_nearest();
+        // Now comes the algorithm that connects ground pillars with each other.
+        // Ideally every pillar should be connected with at least one of its
+        // neighbors if that neighbor is within sufficient distance (a bridge to
+        // it would not be longer than max_bridge_distance)
+
+        // Pillars with height exceeding H1 will require at least one neighbor
+        // to connect with. Height exceeding H2 require two neighbors.
+        double H1 = m_cfg.max_solo_pillar_height_mm;
+        double H2 = m_cfg.max_dual_pillar_height_mm;
+        unsigned neighbors = m_cfg.pillar_cascade_neighbors;
+        double d = std::cos(m_cfg.bridge_slope) * m_cfg.max_bridge_length_mm;
+
+        //A connection between two pillars only counts if the height ratio is
+        // bigger than 20%
+        double min_height_ratio = 0.2;
+
+        std::set<unsigned long> pairs;
+
+        m_pillar_index.foreach(
+                    [this, d, &pairs, neighbors, min_height_ratio, H1, H2]
+                    (const SpatElement& el)
+        {
+            Vec3d qp = el.first;
+
+            // Query all remaining points within reach
+            auto qres = m_pillar_index.query([qp, d](const SpatElement& e){
+                return distance(e.first, qp) < d;
+            });
+
+            // sort the result by distance (have to check if this is needed)
+            std::sort(qres.begin(), qres.end(),
+                      [qp](const SpatElement& e1, const SpatElement& e2){
+                return distance(e1.first, qp) < distance(e2.first, qp);
+            });
+
+            const Pillar& pillar = m_result.pillars()[el.second];
+            unsigned ncount = 0;
+            for(auto& re : qres) {
+                if(re.second == el.second) continue;
+
+                auto hashval = m_pillar_index.size() * el.second + re.second;
+                if(pairs.find(hashval) != pairs.end()) continue;
+
+                const Pillar& neighborpillar = m_result.pillars()[re.second];
+                if(interconnect(pillar, neighborpillar)) {
+                    pairs.insert(hashval);
+
+                    // If the interconnection length between the two pillars is
+                    // less than 20% of the longer pillar's height, don't count
+                    if(neighborpillar.height / pillar.height > min_height_ratio)
+                        ++ncount;
+                }
+
+                // 3 connections are enough for one pillar
+                if(ncount == neighbors) break;
+            }
+
+            unsigned needpillars = 0;
+            if(ncount < 1 && pillar.height > H1) {
+                // No neighbors could not be found and the pillar is too long.
+                BOOST_LOG_TRIVIAL(warning) << "Pillar is too long and has no "
+                                              "neighbors. Head ID: "
+                                           << pillar.start_junction_id;
+                needpillars = 1;
+            } else if(ncount < 2 && pillar.height > H2) {
+                // Not enough neighbors to support this pillar
+                BOOST_LOG_TRIVIAL(warning) << "Pillar is too long and has too "
+                                              "few neighbors. Head ID: "
+                                           << pillar.start_junction_id;
+                needpillars = 2 - ncount;
+            }
+
+            // WIP:
+            // note: sideheads ARE tested to reach the ground!
+
+//            if(needpillars > 0) {
+//                if(pillar.starts_from_head) {
+//                    // search for a sidehead for this head. We will route that
+//                    // to the ground.
+//                    const Head& head = m_result.head(unsigned(pillar.start_junction_id));
+//                    for(auto cl : m_pillar_clusters) {
+//                        auto it = std::find(cl.begin(), cl.end(), head.id);
+//                        if(it != cl.end()) {
+//                            cl.erase(it);
+//                            for(size_t j = 0; j < cl.size() && j < needpillars; j++) {
+//                                unsigned hid = cl[j];
+
+//                                m_result.add_pillar(hid, endpoint, )
+//                                        .add_base(m_cfg.base_height_mm, m_cfg.base_radius_mm);
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+
+        });
     }
 
     // Step: process the support points where there is not enough space for a
