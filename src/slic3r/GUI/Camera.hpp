@@ -1,8 +1,6 @@
 #ifndef slic3r_Camera_hpp_
 #define slic3r_Camera_hpp_
 
-#if ENABLE_SHARED_CAMERA
-
 #include "libslic3r/BoundingBox.hpp"
 
 namespace Slic3r {
@@ -47,8 +45,6 @@ public:
 
 } // GUI
 } // Slic3r
-
-#endif // ENABLE_SHARED_CAMERA
 
 #endif // slic3r_Camera_hpp_
 

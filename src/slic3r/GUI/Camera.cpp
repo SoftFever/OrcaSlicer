@@ -2,8 +2,6 @@
 
 #include "Camera.hpp"
 
-#if ENABLE_SHARED_CAMERA
-
 static const float GIMBALL_LOCK_THETA_MAX = 180.0f;
 
 namespace Slic3r {
@@ -62,4 +60,3 @@ void Camera::set_scene_box(const BoundingBoxf3& box)
 } // GUI
 } // Slic3r
 
-#endif // ENABLE_SHARED_CAMERA

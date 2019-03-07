@@ -95,15 +95,11 @@ void View3D::set_bed(Bed3D* bed)
         m_canvas->set_bed(bed);
 }
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#if ENABLE_SHARED_CAMERA
 void View3D::set_camera(Camera* camera)
 {
     if (m_canvas != nullptr)
         m_canvas->set_camera(camera);
 }
-#endif // ENABLE_SHARED_CAMERA
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 void View3D::set_view_toolbar(GLToolbar* toolbar)
 {
@@ -358,15 +354,11 @@ void Preview::set_bed(Bed3D* bed)
         m_canvas->set_bed(bed);
 }
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#if ENABLE_SHARED_CAMERA
 void Preview::set_camera(Camera* camera)
 {
     if (m_canvas != nullptr)
         m_canvas->set_camera(camera);
 }
-#endif // ENABLE_SHARED_CAMERA
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 void Preview::set_view_toolbar(GLToolbar* toolbar)
 {
@@ -409,24 +401,6 @@ void Preview::select_view(const std::string& direction)
 {
     m_canvas->select_view(direction);
 }
-
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#if !ENABLE_SHARED_CAMERA
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-void Preview::set_viewport_from_scene(GLCanvas3D* canvas)
-{
-    if (canvas != nullptr)
-        m_canvas->set_viewport_from_scene(*canvas);
-}
-
-void Preview::set_viewport_into_scene(GLCanvas3D* canvas)
-{
-    if (canvas != nullptr)
-		canvas->set_viewport_from_scene(*m_canvas);
-}
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#endif // !ENABLE_SHARED_CAMERA
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 void Preview::set_drop_target(wxDropTarget* target)
 {
