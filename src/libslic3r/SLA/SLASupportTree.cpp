@@ -1536,7 +1536,7 @@ public:
             // collision check
             auto hit = bridge_mesh_intersect(headjp, n, r);
 
-            if(std::isinf(hit)) ground_head_indices.emplace_back(i);
+            if(std::isinf(hit.distance())) ground_head_indices.emplace_back(i);
             else {
                 if(m_cfg.ground_facing_only) head.invalidate();
                 m_iheads_onmodel.emplace_back(std::make_pair(i, hit));
@@ -1980,6 +1980,8 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
                               const SupportConfig &cfg,
                               const Controller &ctl)
 {
+    if(support_points.empty()) return false;
+
     Algorithm alg(cfg, mesh, support_points, *m_impl, ctl.cancelfn);
 
     // Let's define the individual steps of the processing. We can experiment
