@@ -511,7 +511,7 @@ void Choice::BUILD() {
 	else{
 		for (auto el : m_opt.enum_labels.empty() ? m_opt.enum_values : m_opt.enum_labels) {
 			const wxString& str = _(el);//m_opt_id == "support" ? _(el) : el;
-            temp->Append(str, *m_undo_bitmap);
+            temp->Append(str/*, *m_undo_bitmap*/);
 		}
 		set_selection();
 	}
