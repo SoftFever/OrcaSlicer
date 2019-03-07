@@ -25,6 +25,8 @@
 #include "GUI.hpp"
 #include "GUI_Utils.hpp"
 #include "GUI_App.hpp"
+#include "GUI_ObjectSettings.hpp"
+#include "GUI_ObjectList.hpp"
 #include "I18N.hpp"
 #include "PresetBundle.hpp"
 
@@ -157,11 +159,19 @@ void GLGizmoBase::Grabber::render_face(float half_size) const
     ::glEnd();
 }
 
-GLGizmoBase::GLGizmoBase(GLCanvas3D& parent)
+#if ENABLE_SVG_ICONS
+GLGizmoBase::GLGizmoBase(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
+#else
+GLGizmoBase::GLGizmoBase(GLCanvas3D& parent, unsigned int sprite_id)
+#endif // ENABLE_SVG_ICONS
     : m_parent(parent)
     , m_group_id(-1)
     , m_state(Off)
     , m_shortcut_key(0)
+#if ENABLE_SVG_ICONS
+    , m_icon_filename(icon_filename)
+#endif // ENABLE_SVG_ICONS
+    , m_sprite_id(sprite_id)
     , m_hover_id(-1)
     , m_dragging(false)
 #if ENABLE_IMGUI
@@ -304,7 +314,11 @@ const unsigned int GLGizmoRotate::SnapRegionsCount = 8;
 const float GLGizmoRotate::GrabberOffset = 0.15f; // in percent of radius
 
 GLGizmoRotate::GLGizmoRotate(GLCanvas3D& parent, GLGizmoRotate::Axis axis)
-    : GLGizmoBase(parent)
+#if ENABLE_SVG_ICONS
+    : GLGizmoBase(parent, "", -1)
+#else
+    : GLGizmoBase(parent, -1)
+#endif // ENABLE_SVG_ICONS
     , m_axis(axis)
     , m_angle(0.0)
     , m_quadric(nullptr)
@@ -321,7 +335,11 @@ GLGizmoRotate::GLGizmoRotate(GLCanvas3D& parent, GLGizmoRotate::Axis axis)
 }
 
 GLGizmoRotate::GLGizmoRotate(const GLGizmoRotate& other)
-    : GLGizmoBase(other.m_parent)
+#if ENABLE_SVG_ICONS
+    : GLGizmoBase(other.m_parent, other.m_icon_filename, other.m_sprite_id)
+#else
+    : GLGizmoBase(other.m_parent, other.m_sprite_id)
+#endif // ENABLE_SVG_ICONS
     , m_axis(other.m_axis)
     , m_angle(other.m_angle)
     , m_quadric(nullptr)
@@ -628,7 +646,7 @@ void GLGizmoRotate::transform_to_local(const GLCanvas3D::Selection& selection) c
 {
     ::glTranslated(m_center(0), m_center(1), m_center(2));
 
-    if (selection.is_single_volume() || selection.is_single_modifier())
+    if (selection.is_single_volume() || selection.is_single_modifier() || selection.requires_local_axes())
     {
         Transform3d orient_matrix = selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix(true, false, true, true);
         ::glMultMatrixd(orient_matrix.data());
@@ -685,7 +703,7 @@ Vec3d GLGizmoRotate::mouse_position_in_local_plane(const Linef3& mouse_ray, cons
     }
     }
 
-    if (selection.is_single_volume() || selection.is_single_modifier())
+    if (selection.is_single_volume() || selection.is_single_modifier() || selection.requires_local_axes())
         m = m * selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix(true, false, true, true).inverse();
 
     m.translate(-m_center);
@@ -693,8 +711,13 @@ Vec3d GLGizmoRotate::mouse_position_in_local_plane(const Linef3& mouse_ray, cons
     return transform(mouse_ray, m).intersect_plane(0.0);
 }
 
-GLGizmoRotate3D::GLGizmoRotate3D(GLCanvas3D& parent)
-    : GLGizmoBase(parent)
+#if ENABLE_SVG_ICONS
+GLGizmoRotate3D::GLGizmoRotate3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
+    : GLGizmoBase(parent, icon_filename, sprite_id)
+#else
+GLGizmoRotate3D::GLGizmoRotate3D(GLCanvas3D& parent, unsigned int sprite_id)
+    : GLGizmoBase(parent, sprite_id)
+#endif // ENABLE_SVG_ICONS
 {
     m_gizmos.emplace_back(parent, GLGizmoRotate::X);
     m_gizmos.emplace_back(parent, GLGizmoRotate::Y);
@@ -718,17 +741,6 @@ bool GLGizmoRotate3D::on_init()
     {
         m_gizmos[i].set_highlight_color(AXES_COLOR[i]);
     }
-
-    std::string path = resources_dir() + "/icons/overlay/";
-
-    if (!m_textures[Off].load_from_file(path + "rotate_off.png", false))
-        return false;
-
-    if (!m_textures[Hover].load_from_file(path + "rotate_hover.png", false))
-        return false;
-
-    if (!m_textures[On].load_from_file(path + "rotate_on.png", false))
-        return false;
 
     m_shortcut_key = WXK_CONTROL_R;
 
@@ -767,7 +779,7 @@ void GLGizmoRotate3D::on_render(const GLCanvas3D::Selection& selection) const
 }
 
 #if ENABLE_IMGUI
-void GLGizmoRotate3D::on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection)
+void GLGizmoRotate3D::on_render_input_window(float x, float y, float bottom_limit, const GLCanvas3D::Selection& selection)
 {
 #if !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
     Vec3d rotation(Geometry::rad2deg(m_gizmos[0].get_angle()), Geometry::rad2deg(m_gizmos[1].get_angle()), Geometry::rad2deg(m_gizmos[2].get_angle()));
@@ -784,8 +796,13 @@ void GLGizmoRotate3D::on_render_input_window(float x, float y, const GLCanvas3D:
 
 const float GLGizmoScale3D::Offset = 5.0f;
 
-GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent)
-    : GLGizmoBase(parent)
+#if ENABLE_SVG_ICONS
+GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
+    : GLGizmoBase(parent, icon_filename, sprite_id)
+#else
+GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent, unsigned int sprite_id)
+    : GLGizmoBase(parent, sprite_id)
+#endif // ENABLE_SVG_ICONS
     , m_scale(Vec3d::Ones())
     , m_snap_step(0.05)
     , m_starting_scale(Vec3d::Ones())
@@ -794,17 +811,6 @@ GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent)
 
 bool GLGizmoScale3D::on_init()
 {
-    std::string path = resources_dir() + "/icons/overlay/";
-
-    if (!m_textures[Off].load_from_file(path + "scale_off.png", false))
-        return false;
-
-    if (!m_textures[Hover].load_from_file(path + "scale_hover.png", false))
-        return false;
-
-    if (!m_textures[On].load_from_file(path + "scale_on.png", false))
-        return false;
-
     for (int i = 0; i < 10; ++i)
     {
         m_grabbers.push_back(Grabber());
@@ -975,7 +981,7 @@ void GLGizmoScale3D::on_render(const GLCanvas3D::Selection& selection) const
 
     ::glLineWidth((m_hover_id != -1) ? 2.0f : 1.5f);
 
-    float grabber_max_size = (float)std::max(grabber_size(0), std::max(grabber_size(1), grabber_size(2)));
+    float grabber_mean_size = (float)(grabber_size(0) + grabber_size(1) + grabber_size(2)) / 3.0f;
 
     if (m_hover_id == -1)
     {
@@ -1001,7 +1007,7 @@ void GLGizmoScale3D::on_render(const GLCanvas3D::Selection& selection) const
         render_grabbers_connection(8, 9);
         render_grabbers_connection(9, 6);
         // draw grabbers
-        render_grabbers(grabber_max_size);
+        render_grabbers(grabber_mean_size);
     }
     else if ((m_hover_id == 0) || (m_hover_id == 1))
     {
@@ -1009,8 +1015,8 @@ void GLGizmoScale3D::on_render(const GLCanvas3D::Selection& selection) const
         ::glColor3fv(m_grabbers[0].color);
         render_grabbers_connection(0, 1);
         // draw grabbers
-        m_grabbers[0].render(true, grabber_max_size);
-        m_grabbers[1].render(true, grabber_max_size);
+        m_grabbers[0].render(true, grabber_mean_size);
+        m_grabbers[1].render(true, grabber_mean_size);
     }
     else if ((m_hover_id == 2) || (m_hover_id == 3))
     {
@@ -1018,8 +1024,8 @@ void GLGizmoScale3D::on_render(const GLCanvas3D::Selection& selection) const
         ::glColor3fv(m_grabbers[2].color);
         render_grabbers_connection(2, 3);
         // draw grabbers
-        m_grabbers[2].render(true, grabber_max_size);
-        m_grabbers[3].render(true, grabber_max_size);
+        m_grabbers[2].render(true, grabber_mean_size);
+        m_grabbers[3].render(true, grabber_mean_size);
     }
     else if ((m_hover_id == 4) || (m_hover_id == 5))
     {
@@ -1027,8 +1033,8 @@ void GLGizmoScale3D::on_render(const GLCanvas3D::Selection& selection) const
         ::glColor3fv(m_grabbers[4].color);
         render_grabbers_connection(4, 5);
         // draw grabbers
-        m_grabbers[4].render(true, grabber_max_size);
-        m_grabbers[5].render(true, grabber_max_size);
+        m_grabbers[4].render(true, grabber_mean_size);
+        m_grabbers[5].render(true, grabber_mean_size);
     }
     else if (m_hover_id >= 6)
     {
@@ -1041,7 +1047,7 @@ void GLGizmoScale3D::on_render(const GLCanvas3D::Selection& selection) const
         // draw grabbers
         for (int i = 6; i < 10; ++i)
         {
-            m_grabbers[i].render(true, grabber_max_size);
+            m_grabbers[i].render(true, grabber_mean_size);
         }
     }
 }
@@ -1054,7 +1060,7 @@ void GLGizmoScale3D::on_render_for_picking(const GLCanvas3D::Selection& selectio
 }
 
 #if ENABLE_IMGUI
-void GLGizmoScale3D::on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection)
+void GLGizmoScale3D::on_render_input_window(float x, float y, float bottom_limit, const GLCanvas3D::Selection& selection)
 {
 #if !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
     bool single_instance = selection.is_single_full_instance();
@@ -1141,8 +1147,13 @@ double GLGizmoScale3D::calc_ratio(const UpdateData& data) const
 
 const double GLGizmoMove3D::Offset = 10.0;
 
-GLGizmoMove3D::GLGizmoMove3D(GLCanvas3D& parent)
-    : GLGizmoBase(parent)
+#if ENABLE_SVG_ICONS
+GLGizmoMove3D::GLGizmoMove3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
+    : GLGizmoBase(parent, icon_filename, sprite_id)
+#else
+GLGizmoMove3D::GLGizmoMove3D(GLCanvas3D& parent, unsigned int sprite_id)
+    : GLGizmoBase(parent, sprite_id)
+#endif // ENABLE_SVG_ICONS
     , m_displacement(Vec3d::Zero())
     , m_snap_step(1.0)
     , m_starting_drag_position(Vec3d::Zero())
@@ -1163,17 +1174,6 @@ GLGizmoMove3D::~GLGizmoMove3D()
 
 bool GLGizmoMove3D::on_init()
 {
-    std::string path = resources_dir() + "/icons/overlay/";
-
-    if (!m_textures[Off].load_from_file(path + "move_off.png", false))
-        return false;
-
-    if (!m_textures[Hover].load_from_file(path + "move_hover.png", false))
-        return false;
-
-    if (!m_textures[On].load_from_file(path + "move_on.png", false))
-        return false;
-
     for (int i = 0; i < 3; ++i)
     {
         m_grabbers.push_back(Grabber());
@@ -1305,7 +1305,7 @@ void GLGizmoMove3D::on_render_for_picking(const GLCanvas3D::Selection& selection
 }
 
 #if ENABLE_IMGUI
-void GLGizmoMove3D::on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection)
+void GLGizmoMove3D::on_render_input_window(float x, float y, float bottom_limit, const GLCanvas3D::Selection& selection)
 {
 #if !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
     bool show_position = selection.is_single_full_instance();
@@ -1389,8 +1389,13 @@ void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box
         ::glDisable(GL_LIGHTING);
 }
 
-GLGizmoFlatten::GLGizmoFlatten(GLCanvas3D& parent)
-    : GLGizmoBase(parent)
+#if ENABLE_SVG_ICONS
+GLGizmoFlatten::GLGizmoFlatten(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
+    : GLGizmoBase(parent, icon_filename, sprite_id)
+#else
+GLGizmoFlatten::GLGizmoFlatten(GLCanvas3D& parent, unsigned int sprite_id)
+    : GLGizmoBase(parent, sprite_id)
+#endif // ENABLE_SVG_ICONS
     , m_normal(Vec3d::Zero())
     , m_starting_center(Vec3d::Zero())
 {
@@ -1398,19 +1403,7 @@ GLGizmoFlatten::GLGizmoFlatten(GLCanvas3D& parent)
 
 bool GLGizmoFlatten::on_init()
 {
-    std::string path = resources_dir() + "/icons/overlay/";
-
-    if (!m_textures[Off].load_from_file(path + "layflat_off.png", false))
-        return false;
-
-    if (!m_textures[Hover].load_from_file(path + "layflat_hover.png", false))
-        return false;
-
-    if (!m_textures[On].load_from_file(path + "layflat_on.png", false))
-        return false;
-
     m_shortcut_key = WXK_CONTROL_F;
-
     return true;
 }
 
@@ -1740,8 +1733,14 @@ Vec3d GLGizmoFlatten::get_flattening_normal() const
     return out;
 }
 
-GLGizmoSlaSupports::GLGizmoSlaSupports(GLCanvas3D& parent)
-    : GLGizmoBase(parent), m_starting_center(Vec3d::Zero()), m_quadric(nullptr)
+#if ENABLE_SVG_ICONS
+GLGizmoSlaSupports::GLGizmoSlaSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
+    : GLGizmoBase(parent, icon_filename, sprite_id)
+#else
+GLGizmoSlaSupports::GLGizmoSlaSupports(GLCanvas3D& parent, unsigned int sprite_id)
+    : GLGizmoBase(parent, sprite_id)
+#endif // ENABLE_SVG_ICONS
+    , m_starting_center(Vec3d::Zero()), m_quadric(nullptr)
 {
     m_quadric = ::gluNewQuadric();
     if (m_quadric != nullptr)
@@ -1758,19 +1757,7 @@ GLGizmoSlaSupports::~GLGizmoSlaSupports()
 
 bool GLGizmoSlaSupports::on_init()
 {
-    std::string path = resources_dir() + "/icons/overlay/";
-
-    if (!m_textures[Off].load_from_file(path + "sla_support_points_off.png", false))
-        return false;
-
-    if (!m_textures[Hover].load_from_file(path + "sla_support_points_hover.png", false))
-        return false;
-
-    if (!m_textures[On].load_from_file(path + "sla_support_points_on.png", false))
-        return false;
-
     m_shortcut_key = WXK_CONTROL_L;
-
     return true;
 }
 
@@ -1789,12 +1776,12 @@ void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const G
         if (is_mesh_update_necessary())
             update_mesh();
 
-        // If there are no points, let's ask the backend if it calculated some.
-        if (m_editing_mode_cache.empty())
-            get_data_from_backend();
-
         if (m_model_object != m_old_model_object)
             m_editing_mode = false;
+
+        if (m_editing_mode_cache.empty() && m_model_object->sla_points_status != sla::PointsStatus::UserModified)
+            get_data_from_backend();
+
         if (m_state == On) {
             m_parent.toggle_model_objects_visibility(false);
             m_parent.toggle_model_objects_visibility(true, m_model_object, m_active_instance);
@@ -1937,7 +1924,7 @@ void GLGizmoSlaSupports::render_points(const GLCanvas3D::Selection& selection, b
 
 bool GLGizmoSlaSupports::is_mesh_update_necessary() const
 {
-    return (m_state == On) && (m_model_object != nullptr) && (m_model_object != m_old_model_object) && !m_model_object->instances.empty();
+    return (m_state == On) && (m_model_object != m_old_model_object) && (m_model_object != nullptr) && !m_model_object->instances.empty();
 
     //if (m_state != On || !m_model_object || m_model_object->instances.empty() || ! m_instance_matrix.isApprox(m_source_data.matrix))
     //    return false;
@@ -2176,13 +2163,10 @@ bool GLGizmoSlaSupports::mouse_event(SLAGizmoEventType action, const Vec2d& mous
     return false;
 }
 
-void GLGizmoSlaSupports::delete_selected_points()
+void GLGizmoSlaSupports::delete_selected_points(bool force)
 {
-    if (!m_editing_mode)
-        return;
-
     for (unsigned int idx=0; idx<m_editing_mode_cache.size(); ++idx) {
-        if (m_editing_mode_cache[idx].second && (!m_editing_mode_cache[idx].first.is_new_island || !m_lock_unique_islands)) {
+        if (m_editing_mode_cache[idx].second && (!m_editing_mode_cache[idx].first.is_new_island || !m_lock_unique_islands || force)) {
             m_editing_mode_cache.erase(m_editing_mode_cache.begin() + (idx--));
             m_unsaved_changes = true;
         }
@@ -2243,20 +2227,59 @@ void GLGizmoSlaSupports::render_tooltip_texture() const {
 #endif // not ENABLE_IMGUI
 
 
-#if ENABLE_IMGUI
-void GLGizmoSlaSupports::on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection)
+std::vector<ConfigOption*> GLGizmoSlaSupports::get_config_options(const std::vector<std::string>& keys) const
 {
+    std::vector<ConfigOption*> out;
+
+    if (!m_model_object)
+        return out;
+
+    DynamicPrintConfig& object_cfg = m_model_object->config;
+    DynamicPrintConfig& print_cfg = wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
+    std::unique_ptr<DynamicPrintConfig> default_cfg = nullptr;
+
+    for (const std::string& key : keys) {
+        if (object_cfg.has(key))
+            out.push_back(object_cfg.option(key));
+        else
+            if (print_cfg.has(key))
+                out.push_back(print_cfg.option(key));
+            else { // we must get it from defaults
+                if (default_cfg == nullptr)
+                    default_cfg.reset(DynamicPrintConfig::new_from_defaults_keys(keys));
+                out.push_back(default_cfg->option(key));
+            }
+    }
+
+    return out;
+}
+
+
+
+#if ENABLE_IMGUI
+void GLGizmoSlaSupports::on_render_input_window(float x, float y, float bottom_limit, const GLCanvas3D::Selection& selection)
+{
+    if (!m_model_object)
+        return;
+
     bool first_run = true; // This is a hack to redraw the button when all points are removed,
                            // so it is not delayed until the background process finishes.
 RENDER_AGAIN:
     m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
+
+    const float scaling = m_imgui->get_style_scaling();
+    const ImVec2 window_size(285.f * scaling, 260.f * scaling);
+    ImGui::SetNextWindowPos(ImVec2(x, y - std::max(0.f, y+window_size.y-bottom_limit) ));
+    ImGui::SetNextWindowSize(ImVec2(window_size));
+
     m_imgui->set_next_window_bg_alpha(0.5f);
-    m_imgui->begin(on_get_name(), ImGuiWindowFlags_NoMove |/* ImGuiWindowFlags_NoResize | */ImGuiWindowFlags_NoCollapse);
+    m_imgui->begin(on_get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
     ImGui::PushItemWidth(100.0f);
 
     bool force_refresh = false;
     bool remove_selected = false;
+    bool remove_all = false;
 
     if (m_editing_mode) {
         m_imgui->text(_(L("Left mouse click - add point")));
@@ -2264,16 +2287,20 @@ RENDER_AGAIN:
         m_imgui->text(_(L("Shift + Left (+ drag) - select point(s)")));
         m_imgui->text(" ");  // vertical gap
 
-        std::vector<wxString> options = {"0.2", "0.4", "0.6", "0.8", "1.0"};
-        std::stringstream ss;
-        ss << std::setprecision(1) << m_new_point_head_diameter;
-        wxString str = ss.str();
+        static const std::vector<float> options = {0.2f, 0.4f, 0.6f, 0.8f, 1.0f};
+        static const std::vector<std::string> options_str = {"0.2", "0.4", "0.6", "0.8", "1.0"};
+        int selection = -1;
+        for (size_t i = 0; i < options.size(); i++) {
+            if (options[i] == m_new_point_head_diameter) { selection = (int)i; }
+        }
 
         bool old_combo_state = m_combo_box_open;
-        m_combo_box_open = m_imgui->combo(_(L("Head diameter")), options, str);
+        // The combo is commented out for now, until the feature is supported by backend.
+        // m_combo_box_open = m_imgui->combo(_(L("Head diameter")), options_str, selection);
         force_refresh |= (old_combo_state != m_combo_box_open);
 
-        float current_number = atof(str);
+        // float current_number = atof(str);
+        const float current_number = selection < options.size() ? options[selection] : m_new_point_head_diameter;
         if (old_combo_state && !m_combo_box_open) // closing the combo must always change the sizes (even if the selection did not change)
             for (auto& point_and_selection : m_editing_mode_cache)
                 if (point_and_selection.second) {
@@ -2294,10 +2321,13 @@ RENDER_AGAIN:
         remove_selected = m_imgui->button(_(L("Remove selected points")));
         m_imgui->disabled_end();
 
+        m_imgui->disabled_begin(m_editing_mode_cache.empty());
+        remove_all = m_imgui->button(_(L("Remove all points")));
+        m_imgui->disabled_end();
+
         m_imgui->text(" "); // vertical gap
 
-        bool apply_changes = m_imgui->button(_(L("Apply changes")));
-        if (apply_changes) {
+        if (m_imgui->button(_(L("Apply changes")))) {
             editing_mode_apply_changes();
             force_refresh = true;
         }
@@ -2308,14 +2338,32 @@ RENDER_AGAIN:
             force_refresh = true;
         }
     }
-    else {
-       /* ImGui::PushItemWidth(50.0f);
+    else { // not in editing mode:
+        ImGui::PushItemWidth(100.0f);
         m_imgui->text(_(L("Minimal points distance: ")));
         ImGui::SameLine();
-        bool value_changed = ImGui::InputDouble("mm", &m_minimal_point_distance, 0.0f, 0.0f, "%.2f");
+
+        std::vector<ConfigOption*> opts = get_config_options({"support_points_density_relative", "support_points_minimal_distance"});
+        float density = static_cast<ConfigOptionInt*>(opts[0])->value;
+        float minimal_point_distance = static_cast<ConfigOptionFloat*>(opts[1])->value;
+
+        bool value_changed = ImGui::SliderFloat("", &minimal_point_distance, 0.f, 20.f, "%.f mm");
+        if (value_changed)
+            m_model_object->config.opt<ConfigOptionFloat>("support_points_minimal_distance", true)->value = minimal_point_distance;
+
         m_imgui->text(_(L("Support points density: ")));
         ImGui::SameLine();
-        value_changed |= ImGui::InputDouble("%", &m_density, 0.0f, 0.0f, "%.f");*/
+        if (ImGui::SliderFloat(" ", &density, 0.f, 200.f, "%.f %%")) {
+            value_changed = true;
+            m_model_object->config.opt<ConfigOptionInt>("support_points_density_relative", true)->value = (int)density;
+        }
+
+        if (value_changed) { // Update side panel
+            wxTheApp->CallAfter([]() {
+                wxGetApp().obj_settings()->UpdateAndShow(true);
+                wxGetApp().obj_list()->update_settings_items();
+            });
+        }
 
         bool generate = m_imgui->button(_(L("Auto-generate points [A]")));
 
@@ -2323,9 +2371,19 @@ RENDER_AGAIN:
             auto_generate();
 
         m_imgui->text("");
-        m_imgui->text("");
         if (m_imgui->button(_(L("Manual editing [M]"))))
             switch_to_editing_mode();
+
+        m_imgui->disabled_begin(m_editing_mode_cache.empty());
+        remove_all = m_imgui->button(_(L("Remove all points")));
+        m_imgui->disabled_end();
+
+        m_imgui->text("");
+
+        m_imgui->text(m_model_object->sla_points_status == sla::PointsStatus::None ? "No points  (will be autogenerated)" :
+                     (m_model_object->sla_points_status == sla::PointsStatus::AutoGenerated ? "Autogenerated points (no modifications)" :
+                     (m_model_object->sla_points_status == sla::PointsStatus::UserModified ? "User-modified points" :
+                     (m_model_object->sla_points_status == sla::PointsStatus::Generating ? "Generation in progress..." : "UNKNOWN STATUS"))));
     }
 
     m_imgui->end();
@@ -2336,10 +2394,14 @@ RENDER_AGAIN:
     }
     m_old_editing_state = m_editing_mode;
 
-    if (remove_selected) {
+    if (remove_selected || remove_all) {
         force_refresh = false;
-        m_parent.reload_scene(true);
-        delete_selected_points();
+        m_parent.set_as_dirty();
+        if (remove_all)
+            select_point(AllPoints);
+        delete_selected_points(remove_all);
+        if (remove_all && !m_editing_mode)
+            editing_mode_apply_changes();
         if (first_run) {
             first_run = false;
             goto RENDER_AGAIN;
@@ -2347,7 +2409,7 @@ RENDER_AGAIN:
     }
 
     if (force_refresh)
-        m_parent.reload_scene(true);
+        m_parent.set_as_dirty();
 }
 #endif // ENABLE_IMGUI
 
@@ -2387,19 +2449,22 @@ void GLGizmoSlaSupports::on_set_state()
             m_parent.toggle_model_objects_visibility(true, m_model_object, m_active_instance);
     }
     if (m_state == Off) {
-        if (m_old_state != Off && m_model_object) { // the gizmo was just turned Off
+        if (m_old_state != Off) { // the gizmo was just turned Off
 
-            if (m_unsaved_changes) {
-                wxMessageDialog dlg(GUI::wxGetApp().plater(), _(L("Do you want to save your manually edited support points ?\n")),
-                                    _(L("Save changes?")), wxICON_QUESTION | wxYES | wxNO);
-                if (dlg.ShowModal() == wxID_YES)
-                    editing_mode_apply_changes();
-                else
-                    editing_mode_discard_changes();
+            if (m_model_object) {
+                if (m_unsaved_changes) {
+                    wxMessageDialog dlg(GUI::wxGetApp().plater(), _(L("Do you want to save your manually edited support points ?\n")),
+                                        _(L("Save changes?")), wxICON_QUESTION | wxYES | wxNO);
+                    if (dlg.ShowModal() == wxID_YES)
+                        editing_mode_apply_changes();
+                    else
+                        editing_mode_discard_changes();
+                }
             }
 
             m_parent.toggle_model_objects_visibility(true);
             m_editing_mode = false; // so it is not active next time the gizmo opens
+            m_editing_mode_cache.clear();
         }
     }
     m_old_state = m_state;
@@ -2448,16 +2513,18 @@ void GLGizmoSlaSupports::editing_mode_apply_changes()
     // If there are no changes, don't touch the front-end. The data in the cache could have been
     // taken from the backend and copying them to ModelObject would needlessly invalidate them.
     if (m_unsaved_changes) {
+        m_model_object->sla_points_status = sla::PointsStatus::UserModified;
         m_model_object->sla_support_points.clear();
         for (const std::pair<sla::SupportPoint, bool>& point_and_selection : m_editing_mode_cache)
             m_model_object->sla_support_points.push_back(point_and_selection.first);
+
+        // Recalculate support structures once the editing mode is left.
+        // m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
+        // m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
+        wxGetApp().plater()->reslice_SLA_supports(*m_model_object);
     }
     m_editing_mode = false;
     m_unsaved_changes = false;
-
-    // Recalculate support structures once the editing mode is left.
-    // m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
-    wxGetApp().plater()->reslice_SLA_supports(*m_model_object);
 }
 
 
@@ -2467,6 +2534,7 @@ void GLGizmoSlaSupports::editing_mode_reload_cache()
     m_editing_mode_cache.clear();
     for (const sla::SupportPoint& point : m_model_object->sla_support_points)
         m_editing_mode_cache.push_back(std::make_pair(point, false));
+
     m_unsaved_changes = false;
 }
 
@@ -2476,10 +2544,15 @@ void GLGizmoSlaSupports::get_data_from_backend()
 {
     for (const SLAPrintObject* po : m_parent.sla_print()->objects()) {
         if (po->model_object()->id() == m_model_object->id() && po->is_step_done(slaposSupportPoints)) {
+            m_editing_mode_cache.clear();
             const std::vector<sla::SupportPoint>& points = po->get_support_points();
             auto mat = po->trafo().inverse().cast<float>();
             for (unsigned int i=0; i<points.size();++i)
                 m_editing_mode_cache.emplace_back(sla::SupportPoint(mat * points[i].pos, points[i].head_front_radius, points[i].is_new_island), false);
+
+            if (m_model_object->sla_points_status != sla::PointsStatus::UserModified)
+                m_model_object->sla_points_status = sla::PointsStatus::AutoGenerated;
+
             break;
         }
     }
@@ -2497,8 +2570,9 @@ void GLGizmoSlaSupports::auto_generate()
                 "Are you sure you want to do it?\n"
                 )), _(L("Warning")), wxICON_WARNING | wxYES | wxNO);
 
-    if (m_model_object->sla_support_points.empty() || dlg.ShowModal() == wxID_YES) {
+    if (m_model_object->sla_points_status != sla::PointsStatus::UserModified || m_editing_mode_cache.empty() || dlg.ShowModal() == wxID_YES) {
         m_model_object->sla_support_points.clear();
+        m_model_object->sla_points_status = sla::PointsStatus::Generating;
         m_editing_mode_cache.clear();
         wxGetApp().plater()->reslice_SLA_supports(*m_model_object);
     }
@@ -2508,7 +2582,9 @@ void GLGizmoSlaSupports::auto_generate()
 
 void GLGizmoSlaSupports::switch_to_editing_mode()
 {
-    editing_mode_reload_cache();
+    if (m_model_object->sla_points_status != sla::PointsStatus::AutoGenerated)
+        editing_mode_reload_cache();
+    m_unsaved_changes = false;
     m_editing_mode = true;
 }
 
@@ -2564,8 +2640,13 @@ const double GLGizmoCut::Offset = 10.0;
 const double GLGizmoCut::Margin = 20.0;
 const std::array<float, 3> GLGizmoCut::GrabberColor = { 1.0, 0.5, 0.0 };
 
-GLGizmoCut::GLGizmoCut(GLCanvas3D& parent)
-    : GLGizmoBase(parent)
+#if ENABLE_SVG_ICONS
+GLGizmoCut::GLGizmoCut(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
+    : GLGizmoBase(parent, icon_filename, sprite_id)
+#else
+GLGizmoCut::GLGizmoCut(GLCanvas3D& parent, unsigned int sprite_id)
+    : GLGizmoBase(parent, sprite_id)
+#endif // ENABLE_SVG_ICONS
     , m_cut_z(0.0)
     , m_max_z(0.0)
 #if !ENABLE_IMGUI
@@ -2598,26 +2679,8 @@ void GLGizmoCut::create_external_gizmo_widgets(wxWindow *parent)
 
 bool GLGizmoCut::on_init()
 {
-    // TODO: icon
-
-    std::string path = resources_dir() + "/icons/overlay/";
-
-    if (!m_textures[Off].load_from_file(path + "cut_off.png", false)) {
-        return false;
-    }
-
-    if (!m_textures[Hover].load_from_file(path + "cut_hover.png", false)) {
-        return false;
-    }
-
-    if (!m_textures[On].load_from_file(path + "cut_on.png", false)) {
-        return false;
-    }
-
     m_grabbers.emplace_back();
-
     m_shortcut_key = WXK_CONTROL_C;
-
     return true;
 }
 
@@ -2724,7 +2787,7 @@ void GLGizmoCut::on_render_for_picking(const GLCanvas3D::Selection& selection) c
 }
 
 #if ENABLE_IMGUI
-void GLGizmoCut::on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection)
+void GLGizmoCut::on_render_input_window(float x, float y, float bottom_limit, const GLCanvas3D::Selection& selection)
 {
     m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
     m_imgui->set_next_window_bg_alpha(0.5f);

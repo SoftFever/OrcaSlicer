@@ -375,6 +375,59 @@ class GLCanvas3D
     };
 
 public:
+    class TransformationType
+    {
+	public:
+		enum Enum {
+			// Transforming in a world coordinate system
+			World = 0,
+			// Transforming in a local coordinate system
+			Local = 1,
+			// Absolute transformations, allowed in local coordinate system only.
+			Absolute = 0,
+			// Relative transformations, allowed in both local and world coordinate system.
+			Relative = 2,
+			// For group selection, the transformation is performed as if the group made a single solid body.
+			Joint = 0,
+			// For group selection, the transformation is performed on each object independently.
+			Independent = 4,
+
+			World_Relative_Joint = World | Relative | Joint,
+			World_Relative_Independent = World | Relative | Independent,
+			Local_Absolute_Joint = Local | Absolute | Joint,
+			Local_Absolute_Independent = Local | Absolute | Independent,
+			Local_Relative_Joint = Local | Relative | Joint,
+			Local_Relative_Independent = Local | Relative | Independent,
+		};
+		
+		TransformationType() : m_value(World) {}
+        TransformationType(Enum value) : m_value(value) {}
+        TransformationType& operator=(Enum value) { m_value = value; return *this; }
+
+        Enum operator()() const { return m_value; }
+        bool has(Enum v) const { return ((unsigned int)m_value & (unsigned int)v) != 0; }
+
+        void set_world()        { this->remove(Local); }
+        void set_local()        { this->add(Local); }
+        void set_absolute()     { this->remove(Relative); }
+        void set_relative()     { this->add(Relative); }
+        void set_joint()        { this->remove(Independent); }
+        void set_independent()  { this->add(Independent); }
+
+        bool world()        const { return ! this->has(Local); }
+		bool local()        const { return this->has(Local); }
+		bool absolute()     const { return ! this->has(Relative); }
+		bool relative()     const { return this->has(Relative); }
+		bool joint()        const { return ! this->has(Independent); }
+		bool independent()  const { return this->has(Independent); }
+
+    private:
+        void add(Enum v) { m_value = Enum((unsigned int)m_value | (unsigned int)v); }
+        void remove(Enum v) { m_value = Enum((unsigned int)m_value & (~(unsigned int)v)); }
+
+        Enum    m_value;
+    };
+
     class Selection
     {
     public:
@@ -415,6 +468,7 @@ public:
                 Transform3d rotation_matrix;
                 Transform3d scale_matrix;
                 Transform3d mirror_matrix;
+                Transform3d full_matrix;
 
                 TransformCache();
                 explicit TransformCache(const Geometry::Transformation& transform);
@@ -434,6 +488,7 @@ public:
             const Transform3d& get_volume_rotation_matrix() const { return m_volume.rotation_matrix; }
             const Transform3d& get_volume_scale_matrix() const { return m_volume.scale_matrix; }
             const Transform3d& get_volume_mirror_matrix() const { return m_volume.mirror_matrix; }
+            const Transform3d& get_volume_full_matrix() const { return m_volume.full_matrix; }
 
             const Vec3d& get_instance_position() const { return m_instance.position; }
             const Vec3d& get_instance_rotation() const { return m_instance.rotation; }
@@ -442,6 +497,7 @@ public:
             const Transform3d& get_instance_rotation_matrix() const { return m_instance.rotation_matrix; }
             const Transform3d& get_instance_scale_matrix() const { return m_instance.scale_matrix; }
             const Transform3d& get_instance_mirror_matrix() const { return m_instance.mirror_matrix; }
+            const Transform3d& get_instance_full_matrix() const { return m_instance.full_matrix; }
         };
 
         typedef std::map<unsigned int, VolumeCache> VolumesCache;
@@ -553,7 +609,7 @@ public:
         void start_dragging();
 
         void translate(const Vec3d& displacement, bool local = false);
-        void rotate(const Vec3d& rotation, bool local);
+        void rotate(const Vec3d& rotation, TransformationType transformation_type);
         void flattening_rotate(const Vec3d& normal);
         void scale(const Vec3d& scale, bool local);
         void mirror(Axis axis);
@@ -635,6 +691,10 @@ private:
     class Gizmos
     {
     public:
+#if ENABLE_SVG_ICONS
+        static const float Default_Icons_Size;
+#endif // ENABLE_SVG_ICONS
+
         enum EType : unsigned char
         {
             Undefined,
@@ -651,10 +711,21 @@ private:
         bool m_enabled;
         typedef std::map<EType, GLGizmoBase*> GizmosMap;
         GizmosMap m_gizmos;
+#if ENABLE_SVG_ICONS
+        mutable GLTexture m_icons_texture;
+        mutable bool m_icons_texture_dirty;
+#else
+        ItemsIconsTexture m_icons_texture;
+#endif // ENABLE_SVG_ICONS
         BackgroundTexture m_background_texture;
         EType m_current;
 
+#if ENABLE_SVG_ICONS
+        float m_overlay_icons_size;
+        float m_overlay_scale;
+#else
         float m_overlay_icons_scale;
+#endif // ENABLE_SVG_ICONS
         float m_overlay_border;
         float m_overlay_gap_y;
 
@@ -667,6 +738,9 @@ private:
         bool is_enabled() const;
         void set_enabled(bool enable);
 
+#if ENABLE_SVG_ICONS
+        void set_overlay_icon_size(float size);
+#endif // ENABLE_SVG_ICONS
         void set_overlay_scale(float scale);
 
         std::string update_hover_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos, const Selection& selection);
@@ -716,15 +790,19 @@ private:
 #endif // not ENABLE_IMGUI
 
     private:
-        void _reset();
+        void reset();
 
-        void _render_overlay(const GLCanvas3D& canvas, const Selection& selection) const;
-        void _render_current_gizmo(const Selection& selection) const;
+        void do_render_overlay(const GLCanvas3D& canvas, const Selection& selection) const;
+        void do_render_current_gizmo(const Selection& selection) const;
 
-        float _get_total_overlay_height() const;
-        float _get_total_overlay_width() const;
+        float get_total_overlay_height() const;
+        float get_total_overlay_width() const;
 
-        GLGizmoBase* _get_current() const;
+        GLGizmoBase* get_current() const;
+
+#if ENABLE_SVG_ICONS
+        bool generate_icons_texture() const;
+#endif // ENABLE_SVG_ICONS
     };
 
     struct SlaCap
@@ -793,7 +871,7 @@ private:
         void fill_color_print_legend_values(const GCodePreviewData& preview_data, const GLCanvas3D& canvas,
                                      std::vector<std::pair<double, double>>& cp_legend_values);
 
-        bool generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors, const GLCanvas3D& canvas, bool use_error_colors);
+        bool generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors, const GLCanvas3D& canvas);
 
         void render(const GLCanvas3D& canvas) const;
     };
@@ -931,9 +1009,7 @@ public:
 
     void update_volumes_colors_by_extruder();
 
-#if ENABLE_MODE_AWARE_TOOLBAR_ITEMS
     void update_toolbar_items_visibility();
-#endif // ENABLE_MODE_AWARE_TOOLBAR_ITEMS
 
 #if !ENABLE_IMGUI
     Rect get_gizmo_reset_rect(const GLCanvas3D& canvas, bool viewport) const;
@@ -1095,7 +1171,9 @@ private:
 
     bool _is_any_volume_outside() const;
 
+#if !ENABLE_SVG_ICONS
     void _resize_toolbars() const;
+#endif // !ENABLE_SVG_ICONS
 
     static std::vector<float> _parse_colors(const std::vector<std::string>& colors);
 

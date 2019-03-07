@@ -805,6 +805,7 @@ GLCanvas3D::Selection::VolumeCache::TransformCache::TransformCache()
     , rotation_matrix(Transform3d::Identity())
     , scale_matrix(Transform3d::Identity())
     , mirror_matrix(Transform3d::Identity())
+    , full_matrix(Transform3d::Identity())
 {
 }
 
@@ -813,6 +814,7 @@ GLCanvas3D::Selection::VolumeCache::TransformCache::TransformCache(const Geometr
     , rotation(transform.get_rotation())
     , scaling_factor(transform.get_scaling_factor())
     , mirror(transform.get_mirror())
+    , full_matrix(transform.get_matrix())
 {
     rotation_matrix = Geometry::assemble_transform(Vec3d::Zero(), rotation);
     scale_matrix = Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), scaling_factor);
@@ -898,6 +900,9 @@ void GLCanvas3D::Selection::add(unsigned int volume_idx, bool as_single_selectio
 
     if (volume->is_modifier)
         m_mode = Volume;
+    else if (!contains_volume(volume_idx))
+        m_mode = Instance;
+    // else -> keep current mode
 
     switch (m_mode)
     {
@@ -1261,17 +1266,22 @@ static double rotation_diff_z(const Vec3d &rot_xyz_from, const Vec3d &rot_xyz_to
 	return (axis.z() < 0) ? -angle : angle;
 }
 
-void GLCanvas3D::Selection::rotate(const Vec3d& rotation, bool local)
+// Rotate an object around one of the axes. Only one rotation component is expected to be changing.
+void GLCanvas3D::Selection::rotate(const Vec3d& rotation, GLCanvas3D::TransformationType transformation_type)
 {
     if (!m_valid)
         return;
 
+    // Only relative rotation values are allowed in the world coordinate system.
+    assert(! transformation_type.world() || transformation_type.relative());
+
     int rot_axis_max;
+    //FIXME this does not work for absolute rotations (transformation_type.absolute() is true)
     rotation.cwiseAbs().maxCoeff(&rot_axis_max);
 
 	// For generic rotation, we want to rotate the first volume in selection, and then to synchronize the other volumes with it.
 	std::vector<int> object_instance_first(m_model->objects.size(), -1);
-	auto rotate_instance = [this, &rotation, &object_instance_first, rot_axis_max, local](GLVolume &volume, int i) {
+	auto rotate_instance = [this, &rotation, &object_instance_first, rot_axis_max, transformation_type](GLVolume &volume, int i) {
         int first_volume_idx = object_instance_first[volume.object_idx()];
         if (rot_axis_max != 2 && first_volume_idx != -1) {
             // Generic rotation, but no rotation around the Z axis.
@@ -1283,11 +1293,14 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation, bool local)
             volume.set_instance_rotation(Vec3d(rotation(0), rotation(1), rotation(2) + z_diff));
         } else {
             // extracts rotations from the composed transformation
-            Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), rotation);
-            Vec3d new_rotation = Geometry::extract_euler_angles(m * m_cache.volumes_data[i].get_instance_rotation_matrix());
-            if (rot_axis_max == 2 && !local)
+			Vec3d new_rotation = transformation_type.world() ?
+				Geometry::extract_euler_angles(Geometry::assemble_transform(Vec3d::Zero(), rotation) * m_cache.volumes_data[i].get_instance_rotation_matrix()) :
+				transformation_type.absolute() ? rotation : rotation + m_cache.volumes_data[i].get_instance_rotation();
+            if (rot_axis_max == 2 && transformation_type.joint()) {
                 // Only allow rotation of multiple instances as a single rigid body when rotating around the Z axis.
-                volume.set_instance_offset(m_cache.dragging_center + m * (m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center));
+                double z_diff = rotation_diff_z(new_rotation, m_cache.volumes_data[i].get_instance_rotation());
+                volume.set_instance_offset(m_cache.dragging_center + Eigen::AngleAxisd(z_diff, Vec3d::UnitZ()) * (m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center));
+            }
             volume.set_instance_rotation(new_rotation);
             object_instance_first[volume.object_idx()] = i;
         }
@@ -1300,7 +1313,7 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation, bool local)
             rotate_instance(volume, i);
         else if (is_single_volume() || is_single_modifier())
         {
-            if (local)
+            if (transformation_type.independent())
                 volume.set_volume_rotation(volume.get_volume_rotation() + rotation);
             else
             {
@@ -1318,10 +1331,11 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation, bool local)
                 // extracts rotations from the composed transformation
                 Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), rotation);
                 Vec3d new_rotation = Geometry::extract_euler_angles(m * m_cache.volumes_data[i].get_volume_rotation_matrix());
-                if (!local)
+                if (transformation_type.joint())
                 {
-                    Vec3d offset = m * (m_cache.volumes_data[i].get_volume_position() + m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center);
-                    volume.set_volume_offset(m_cache.dragging_center - m_cache.volumes_data[i].get_instance_position() + offset);
+                    Vec3d local_pivot = m_cache.volumes_data[i].get_instance_full_matrix().inverse() * m_cache.dragging_center;
+                    Vec3d offset = m * (m_cache.volumes_data[i].get_volume_position() - local_pivot);
+                    volume.set_volume_offset(local_pivot + offset);
                 }
                 volume.set_volume_rotation(new_rotation);
             }
@@ -2405,85 +2419,49 @@ void GLCanvas3D::Selection::_ensure_on_bed()
     }
 }
 
+#if ENABLE_SVG_ICONS
+const float GLCanvas3D::Gizmos::Default_Icons_Size = 64;
+#endif // ENABLE_SVG_ICONS
+
 GLCanvas3D::Gizmos::Gizmos()
     : m_enabled(false)
+#if ENABLE_SVG_ICONS
+    , m_icons_texture_dirty(true)
+#endif // ENABLE_SVG_ICONS
     , m_current(Undefined)
+#if ENABLE_SVG_ICONS
+    , m_overlay_icons_size(Default_Icons_Size)
+    , m_overlay_scale(1.0f)
+    , m_overlay_border(5.0f)
+    , m_overlay_gap_y(5.0f)
+{
+}
+#else
 {
     set_overlay_scale(1.0);
 }
+#endif // ENABLE_SVG_ICONS
 
 GLCanvas3D::Gizmos::~Gizmos()
 {
-    _reset();
+    reset();
 }
 
 bool GLCanvas3D::Gizmos::init(GLCanvas3D& parent)
 {
-    GLGizmoBase* gizmo = new GLGizmoMove3D(parent);
-    if (gizmo == nullptr)
-        return false;
+#if !ENABLE_SVG_ICONS
+    m_icons_texture.metadata.filename = "gizmos.png";
+    m_icons_texture.metadata.icon_size = 64;
 
-    if (!gizmo->init())
-        return false;
-
-    m_gizmos.insert(GizmosMap::value_type(Move, gizmo));
-
-    gizmo = new GLGizmoScale3D(parent);
-    if (gizmo == nullptr)
-        return false;
-
-    if (!gizmo->init())
-        return false;
-
-    m_gizmos.insert(GizmosMap::value_type(Scale, gizmo));
-
-    gizmo = new GLGizmoRotate3D(parent);
-    if (gizmo == nullptr)
+    if (!m_icons_texture.metadata.filename.empty())
     {
-        _reset();
-        return false;
+        if (!m_icons_texture.texture.load_from_file(resources_dir() + "/icons/" + m_icons_texture.metadata.filename, false))
+        {
+            reset();
+            return false;
+        }
     }
-
-    if (!gizmo->init())
-    {
-        _reset();
-        return false;
-    }
-
-    m_gizmos.insert(GizmosMap::value_type(Rotate, gizmo));
-
-    gizmo = new GLGizmoFlatten(parent);
-    if (gizmo == nullptr)
-        return false;
-
-    if (!gizmo->init()) {
-        _reset();
-        return false;
-    }
-
-    m_gizmos.insert(GizmosMap::value_type(Flatten, gizmo));
-
-    gizmo = new GLGizmoCut(parent);
-    if (gizmo == nullptr)
-        return false;
-
-    if (!gizmo->init()) {
-        _reset();
-        return false;
-    }
-
-    m_gizmos.insert(GizmosMap::value_type(Cut, gizmo));
-
-    gizmo = new GLGizmoSlaSupports(parent);
-    if (gizmo == nullptr)
-        return false;
-
-    if (!gizmo->init()) {
-        _reset();
-        return false;
-    }
-
-    m_gizmos.insert(GizmosMap::value_type(SlaSupports, gizmo));
+#endif // !ENABLE_SVG_ICONS
 
     m_background_texture.metadata.filename = "toolbar_background.png";
     m_background_texture.metadata.left = 16;
@@ -2495,10 +2473,100 @@ bool GLCanvas3D::Gizmos::init(GLCanvas3D& parent)
     {
         if (!m_background_texture.texture.load_from_file(resources_dir() + "/icons/" + m_background_texture.metadata.filename, false))
         {
-            _reset();
+            reset();
             return false;
         }
     }
+
+#if ENABLE_SVG_ICONS
+    GLGizmoBase* gizmo = new GLGizmoMove3D(parent, "move.svg", 0);
+#else
+    GLGizmoBase* gizmo = new GLGizmoMove3D(parent, 0);
+#endif // ENABLE_SVG_ICONS
+    if (gizmo == nullptr)
+        return false;
+
+    if (!gizmo->init())
+        return false;
+
+    m_gizmos.insert(GizmosMap::value_type(Move, gizmo));
+
+#if ENABLE_SVG_ICONS
+    gizmo = new GLGizmoScale3D(parent, "scale.svg", 1);
+#else
+    gizmo = new GLGizmoScale3D(parent, 1);
+#endif // ENABLE_SVG_ICONS
+    if (gizmo == nullptr)
+        return false;
+
+    if (!gizmo->init())
+        return false;
+
+    m_gizmos.insert(GizmosMap::value_type(Scale, gizmo));
+
+#if ENABLE_SVG_ICONS
+    gizmo = new GLGizmoRotate3D(parent, "rotate.svg", 2);
+#else
+    gizmo = new GLGizmoRotate3D(parent, 2);
+#endif // ENABLE_SVG_ICONS
+    if (gizmo == nullptr)
+    {
+        reset();
+        return false;
+    }
+
+    if (!gizmo->init())
+    {
+        reset();
+        return false;
+    }
+
+    m_gizmos.insert(GizmosMap::value_type(Rotate, gizmo));
+
+#if ENABLE_SVG_ICONS
+    gizmo = new GLGizmoFlatten(parent, "place.svg", 3);
+#else
+    gizmo = new GLGizmoFlatten(parent, 3);
+#endif // ENABLE_SVG_ICONS
+    if (gizmo == nullptr)
+        return false;
+
+    if (!gizmo->init()) {
+        reset();
+        return false;
+    }
+
+    m_gizmos.insert(GizmosMap::value_type(Flatten, gizmo));
+
+#if ENABLE_SVG_ICONS
+    gizmo = new GLGizmoCut(parent, "cut.svg", 4);
+#else
+    gizmo = new GLGizmoCut(parent, 4);
+#endif // ENABLE_SVG_ICONS
+    if (gizmo == nullptr)
+        return false;
+
+    if (!gizmo->init()) {
+        reset();
+        return false;
+    }
+
+    m_gizmos.insert(GizmosMap::value_type(Cut, gizmo));
+
+#if ENABLE_SVG_ICONS
+    gizmo = new GLGizmoSlaSupports(parent, "sla_supports.svg", 5);
+#else
+    gizmo = new GLGizmoSlaSupports(parent, 5);
+#endif // ENABLE_SVG_ICONS
+    if (gizmo == nullptr)
+        return false;
+
+    if (!gizmo->init()) {
+        reset();
+        return false;
+    }
+
+    m_gizmos.insert(GizmosMap::value_type(SlaSupports, gizmo));
 
     return true;
 }
@@ -2513,11 +2581,30 @@ void GLCanvas3D::Gizmos::set_enabled(bool enable)
     m_enabled = enable;
 }
 
+#if ENABLE_SVG_ICONS
+void GLCanvas3D::Gizmos::set_overlay_icon_size(float size)
+{
+    if (m_overlay_icons_size != size)
+    {
+        m_overlay_icons_size = size;
+        m_icons_texture_dirty = true;
+    }
+}
+#endif // ENABLE_SVG_ICONS
+
 void GLCanvas3D::Gizmos::set_overlay_scale(float scale)
 {
+#if ENABLE_SVG_ICONS
+    if (m_overlay_scale != scale)
+    {
+        m_overlay_scale = scale;
+        m_icons_texture_dirty = true;
+    }
+#else
     m_overlay_icons_scale = scale;
     m_overlay_border = 5.0f * scale;
     m_overlay_gap_y = 5.0f * scale;
+#endif // ENABLE_SVG_ICONS
 }
 
 std::string GLCanvas3D::Gizmos::update_hover_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos, const GLCanvas3D::Selection& selection)
@@ -2528,23 +2615,39 @@ std::string GLCanvas3D::Gizmos::update_hover_state(const GLCanvas3D& canvas, con
         return name;
 
     float cnv_h = (float)canvas.get_canvas_size().get_height();
-    float height = _get_total_overlay_height();
+    float height = get_total_overlay_height();
+#if ENABLE_SVG_ICONS
+    float scaled_icons_size = m_overlay_icons_size * m_overlay_scale;
+    float scaled_border = m_overlay_border * m_overlay_scale;
+    float scaled_gap_y = m_overlay_gap_y * m_overlay_scale;
+    float scaled_stride_y = scaled_icons_size + scaled_gap_y;
+    float top_y = 0.5f * (cnv_h - height) + scaled_border;
+#else
     float top_y = 0.5f * (cnv_h - height) + m_overlay_border;
+    float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * m_overlay_icons_scale;
+#endif // ENABLE_SVG_ICONS
+
     for (GizmosMap::iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
         if ((it->second == nullptr) || !it->second->is_selectable())
             continue;
 
-        float icon_size = (float)it->second->get_textures_size() * m_overlay_icons_scale;
-
-        bool inside = (m_overlay_border <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= m_overlay_border + icon_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + icon_size);
+#if ENABLE_SVG_ICONS
+        bool inside = (scaled_border <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= scaled_border + scaled_icons_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + scaled_icons_size);
+#else
+        bool inside = (m_overlay_border <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= m_overlay_border + scaled_icons_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + scaled_icons_size);
+#endif // ENABLE_SVG_ICONS
         if (inside)
             name = it->second->get_name();
 
         if (it->second->is_activable(selection) && (it->second->get_state() != GLGizmoBase::On))
             it->second->set_state(inside ? GLGizmoBase::Hover : GLGizmoBase::Off);
 
-        top_y += (icon_size + m_overlay_gap_y);
+#if ENABLE_SVG_ICONS
+        top_y += scaled_stride_y;
+#else
+        top_y += (scaled_icons_size + m_overlay_gap_y);
+#endif // ENABLE_SVG_ICONS
     }
 
     return name;
@@ -2556,17 +2659,29 @@ void GLCanvas3D::Gizmos::update_on_off_state(const GLCanvas3D& canvas, const Vec
         return;
 
     float cnv_h = (float)canvas.get_canvas_size().get_height();
-    float height = _get_total_overlay_height();
+    float height = get_total_overlay_height();
+
+#if ENABLE_SVG_ICONS
+    float scaled_icons_size = m_overlay_icons_size * m_overlay_scale;
+    float scaled_border = m_overlay_border * m_overlay_scale;
+    float scaled_gap_y = m_overlay_gap_y * m_overlay_scale;
+    float scaled_stride_y = scaled_icons_size + scaled_gap_y;
+    float top_y = 0.5f * (cnv_h - height) + scaled_border;
+#else
     float top_y = 0.5f * (cnv_h - height) + m_overlay_border;
+    float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * m_overlay_icons_scale;
+#endif // ENABLE_SVG_ICONS
 
     for (GizmosMap::iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
         if ((it->second == nullptr) || !it->second->is_selectable())
             continue;
 
-        float icon_size = (float)it->second->get_textures_size() * m_overlay_icons_scale;
-
-        bool inside = (m_overlay_border <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= m_overlay_border + icon_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + icon_size);
+#if ENABLE_SVG_ICONS
+        bool inside = (scaled_border <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= scaled_border + scaled_icons_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + scaled_icons_size);
+#else
+        bool inside = (m_overlay_border <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= m_overlay_border + scaled_icons_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + scaled_icons_size);
+#endif // ENABLE_SVG_ICONS
         if (it->second->is_activable(selection) && inside)
         {
             if ((it->second->get_state() == GLGizmoBase::On))
@@ -2583,7 +2698,11 @@ void GLCanvas3D::Gizmos::update_on_off_state(const GLCanvas3D& canvas, const Vec
         else
             it->second->set_state(GLGizmoBase::Off);
 
-        top_y += (icon_size + m_overlay_gap_y);
+#if ENABLE_SVG_ICONS
+        top_y += scaled_stride_y;
+#else
+        top_y += (scaled_icons_size + m_overlay_gap_y);
+#endif // ENABLE_SVG_ICONS
     }
 
     GizmosMap::iterator it = m_gizmos.find(m_current);
@@ -2654,19 +2773,36 @@ bool GLCanvas3D::Gizmos::overlay_contains_mouse(const GLCanvas3D& canvas, const 
         return false;
 
     float cnv_h = (float)canvas.get_canvas_size().get_height();
-    float height = _get_total_overlay_height();
+    float height = get_total_overlay_height();
+
+#if ENABLE_SVG_ICONS
+    float scaled_icons_size = m_overlay_icons_size * m_overlay_scale;
+    float scaled_border = m_overlay_border * m_overlay_scale;
+    float scaled_gap_y = m_overlay_gap_y * m_overlay_scale;
+    float scaled_stride_y = scaled_icons_size + scaled_gap_y;
+    float top_y = 0.5f * (cnv_h - height) + scaled_border;
+#else
     float top_y = 0.5f * (cnv_h - height) + m_overlay_border;
+    float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * m_overlay_icons_scale;
+#endif // ENABLE_SVG_ICONS
+
     for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
         if ((it->second == nullptr) || !it->second->is_selectable())
             continue;
 
-        float icon_size = (float)it->second->get_textures_size() * m_overlay_icons_scale;
-
-        if ((m_overlay_border <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= m_overlay_border + icon_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + icon_size))
+#if ENABLE_SVG_ICONS
+        if ((scaled_border <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= scaled_border + scaled_icons_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + scaled_icons_size))
+#else
+        if ((m_overlay_border <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= m_overlay_border + scaled_icons_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + scaled_icons_size))
+#endif // ENABLE_SVG_ICONS
             return true;
 
-        top_y += (icon_size + m_overlay_gap_y);
+#if ENABLE_SVG_ICONS
+        top_y += scaled_stride_y;
+#else
+        top_y += (scaled_icons_size + m_overlay_gap_y);
+#endif // ENABLE_SVG_ICONS
     }
 
     return false;
@@ -2677,7 +2813,7 @@ bool GLCanvas3D::Gizmos::grabber_contains_mouse() const
     if (!m_enabled)
         return false;
 
-    GLGizmoBase* curr = _get_current();
+    GLGizmoBase* curr = get_current();
     return (curr != nullptr) ? (curr->get_hover_id() != -1) : false;
 }
 
@@ -2686,7 +2822,7 @@ void GLCanvas3D::Gizmos::update(const Linef3& mouse_ray, const Selection& select
     if (!m_enabled)
         return;
 
-    GLGizmoBase* curr = _get_current();
+    GLGizmoBase* curr = get_current();
     if (curr != nullptr)
         curr->update(GLGizmoBase::UpdateData(mouse_ray, mouse_pos, shift_down), selection);
 }
@@ -2701,7 +2837,7 @@ bool GLCanvas3D::Gizmos::is_running() const
     if (!m_enabled)
         return false;
 
-    GLGizmoBase* curr = _get_current();
+    GLGizmoBase* curr = get_current();
     return (curr != nullptr) ? (curr->get_state() == GLGizmoBase::On) : false;
 }
 
@@ -2751,7 +2887,7 @@ bool GLCanvas3D::Gizmos::is_dragging() const
     if (!m_enabled)
         return false;
 
-    GLGizmoBase* curr = _get_current();
+    GLGizmoBase* curr = get_current();
     return (curr != nullptr) ? curr->is_dragging() : false;
 }
 
@@ -2760,7 +2896,7 @@ void GLCanvas3D::Gizmos::start_dragging(const GLCanvas3D::Selection& selection)
     if (!m_enabled)
         return;
 
-    GLGizmoBase* curr = _get_current();
+    GLGizmoBase* curr = get_current();
     if (curr != nullptr)
         curr->start_dragging(selection);
 }
@@ -2770,7 +2906,7 @@ void GLCanvas3D::Gizmos::stop_dragging()
     if (!m_enabled)
         return;
 
-    GLGizmoBase* curr = _get_current();
+    GLGizmoBase* curr = get_current();
     if (curr != nullptr)
         curr->stop_dragging();
 }
@@ -2870,7 +3006,7 @@ void GLCanvas3D::Gizmos::render_current_gizmo(const GLCanvas3D::Selection& selec
     if (!m_enabled)
         return;
 
-    _render_current_gizmo(selection);
+    do_render_current_gizmo(selection);
 }
 
 void GLCanvas3D::Gizmos::render_current_gizmo_for_picking_pass(const GLCanvas3D::Selection& selection) const
@@ -2878,7 +3014,7 @@ void GLCanvas3D::Gizmos::render_current_gizmo_for_picking_pass(const GLCanvas3D:
     if (!m_enabled)
         return;
 
-    GLGizmoBase* curr = _get_current();
+    GLGizmoBase* curr = get_current();
     if (curr != nullptr)
         curr->render_for_picking(selection);
 }
@@ -2888,12 +3024,17 @@ void GLCanvas3D::Gizmos::render_overlay(const GLCanvas3D& canvas, const GLCanvas
     if (!m_enabled)
         return;
 
+#if ENABLE_SVG_ICONS
+    if (m_icons_texture_dirty)
+        generate_icons_texture();
+#endif // ENABLE_SVG_ICONS
+
     ::glDisable(GL_DEPTH_TEST);
 
     ::glPushMatrix();
     ::glLoadIdentity();
 
-    _render_overlay(canvas, selection);
+    do_render_overlay(canvas, selection);
 
     ::glPopMatrix();
 }
@@ -2907,7 +3048,7 @@ void GLCanvas3D::Gizmos::create_external_gizmo_widgets(wxWindow *parent)
 }
 #endif // not ENABLE_IMGUI
 
-void GLCanvas3D::Gizmos::_reset()
+void GLCanvas3D::Gizmos::reset()
 {
     for (GizmosMap::value_type& gizmo : m_gizmos)
     {
@@ -2918,7 +3059,7 @@ void GLCanvas3D::Gizmos::_reset()
     m_gizmos.clear();
 }
 
-void GLCanvas3D::Gizmos::_render_overlay(const GLCanvas3D& canvas, const GLCanvas3D::Selection& selection) const
+void GLCanvas3D::Gizmos::do_render_overlay(const GLCanvas3D& canvas, const GLCanvas3D::Selection& selection) const
 {
     if (m_gizmos.empty())
         return;
@@ -2930,15 +3071,19 @@ void GLCanvas3D::Gizmos::_render_overlay(const GLCanvas3D& canvas, const GLCanva
     float zoom = canvas.get_camera_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
-    float height = _get_total_overlay_height();
+    float height = get_total_overlay_height();
+#if ENABLE_SVG_ICONS
+    float scaled_border = m_overlay_border * m_overlay_scale * inv_zoom;
+#else
     float scaled_border = m_overlay_border * inv_zoom;
+#endif // ENABLE_SVG_ICONS
 
     float top_x = (-0.5f * cnv_w) * inv_zoom;
     float top_y = (0.5f * height) * inv_zoom;
 
     float left = top_x;
     float top = top_y;
-    float right = left + _get_total_overlay_width() * inv_zoom;
+    float right = left + get_total_overlay_width() * inv_zoom;
     float bottom = top - height * inv_zoom;
 
     // renders background
@@ -3007,65 +3152,158 @@ void GLCanvas3D::Gizmos::_render_overlay(const GLCanvas3D& canvas, const GLCanva
         }
     }
 
+#if ENABLE_SVG_ICONS
+    top_x += scaled_border;
+    top_y -= scaled_border;
+    float scaled_gap_y = m_overlay_gap_y * m_overlay_scale * inv_zoom;
+
+    float scaled_icons_size = m_overlay_icons_size * m_overlay_scale * inv_zoom;
+    float scaled_stride_y = scaled_icons_size + scaled_gap_y;
+    unsigned int icons_texture_id = m_icons_texture.get_id();
+    unsigned int tex_width = m_icons_texture.get_width();
+    unsigned int tex_height = m_icons_texture.get_height();
+    float inv_tex_width = (tex_width != 0) ? 1.0f / (float)tex_width : 0.0f;
+    float inv_tex_height = (tex_height != 0) ? 1.0f / (float)tex_height : 0.0f;
+#else
     top_x += m_overlay_border * inv_zoom;
     top_y -= m_overlay_border * inv_zoom;
     float scaled_gap_y = m_overlay_gap_y * inv_zoom;
+
+    float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * m_overlay_icons_scale * inv_zoom;
+    unsigned int icons_texture_id = m_icons_texture.texture.get_id();
+    unsigned int texture_size = m_icons_texture.texture.get_width();
+    float inv_texture_size = (texture_size != 0) ? 1.0f / (float)texture_size : 0.0f;
+#endif // ENABLE_SVG_ICONS
+
+#if ENABLE_SVG_ICONS
+    if ((icons_texture_id == 0) || (tex_width <= 0) || (tex_height <= 0))
+        return;
+#endif // ENABLE_SVG_ICONS
+
     for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
         if ((it->second == nullptr) || !it->second->is_selectable())
             continue;
 
-        float icon_size = (float)it->second->get_textures_size() * m_overlay_icons_scale * inv_zoom;
-        GLTexture::render_texture(it->second->get_texture_id(), top_x, top_x + icon_size, top_y - icon_size, top_y);
+        unsigned int sprite_id = it->second->get_sprite_id();
+        GLGizmoBase::EState state = it->second->get_state();
+
+#if ENABLE_SVG_ICONS
+        float u_icon_size = m_overlay_icons_size * m_overlay_scale * inv_tex_width;
+        float v_icon_size = m_overlay_icons_size * m_overlay_scale * inv_tex_height;
+        float top = sprite_id * v_icon_size;
+        float left = state * u_icon_size;
+        float bottom = top + v_icon_size;
+        float right = left + u_icon_size;
+#else
+        float uv_icon_size = (float)m_icons_texture.metadata.icon_size * inv_texture_size;
+        float top = sprite_id * uv_icon_size;
+        float left = state * uv_icon_size;
+        float bottom = top + uv_icon_size;
+        float right = left + uv_icon_size;
+#endif // ENABLE_SVG_ICONS
+
+        GLTexture::render_sub_texture(icons_texture_id, top_x, top_x + scaled_icons_size, top_y - scaled_icons_size, top_y, { { left, bottom }, { right, bottom }, { right, top }, { left, top } });
 #if ENABLE_IMGUI
-        if (it->second->get_state() == GLGizmoBase::On)
-            it->second->render_input_window(2.0f * m_overlay_border + icon_size * zoom, 0.5f * cnv_h - top_y * zoom, selection);
+        if (it->second->get_state() == GLGizmoBase::On) {
+            float toolbar_top = (float)cnv_h - canvas.m_view_toolbar->get_height();
+#if ENABLE_SVG_ICONS
+            it->second->render_input_window(2.0f * m_overlay_border + m_overlay_icons_size, 0.5f * cnv_h - top_y * zoom, toolbar_top, selection);
+#else
+            it->second->render_input_window(2.0f * m_overlay_border + icon_size * zoom, 0.5f * cnv_h - top_y * zoom, toolbar_top, selection);
+#endif // ENABLE_SVG_ICONS
+        }
 #endif // ENABLE_IMGUI
-        top_y -= (icon_size + scaled_gap_y);
+#if ENABLE_SVG_ICONS
+        top_y -= scaled_stride_y;
+#else
+        top_y -= (scaled_icons_size + scaled_gap_y);
+#endif // ENABLE_SVG_ICONS
     }
 }
 
-void GLCanvas3D::Gizmos::_render_current_gizmo(const GLCanvas3D::Selection& selection) const
+void GLCanvas3D::Gizmos::do_render_current_gizmo(const GLCanvas3D::Selection& selection) const
 {
-    GLGizmoBase* curr = _get_current();
+    GLGizmoBase* curr = get_current();
     if (curr != nullptr)
         curr->render(selection);
 }
 
-float GLCanvas3D::Gizmos::_get_total_overlay_height() const
+float GLCanvas3D::Gizmos::get_total_overlay_height() const
 {
+#if ENABLE_SVG_ICONS
+    float scaled_icons_size = m_overlay_icons_size * m_overlay_scale;
+    float scaled_border = m_overlay_border * m_overlay_scale;
+    float scaled_gap_y = m_overlay_gap_y * m_overlay_scale;
+    float scaled_stride_y = scaled_icons_size + scaled_gap_y;
+    float height = 2.0f * scaled_border;
+#else
     float height = 2.0f * m_overlay_border;
 
+    float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * m_overlay_icons_scale;
+#endif // ENABLE_SVG_ICONS
+
     for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
         if ((it->second == nullptr) || !it->second->is_selectable())
             continue;
 
-        height += (float)it->second->get_textures_size() * m_overlay_icons_scale + m_overlay_gap_y;
+#if ENABLE_SVG_ICONS
+        height += scaled_stride_y;
+#else
+        height += (scaled_icons_size + m_overlay_gap_y);
+#endif // ENABLE_SVG_ICONS
     }
 
+#if ENABLE_SVG_ICONS
+    return height - scaled_gap_y;
+#else
     return height - m_overlay_gap_y;
+#endif // ENABLE_SVG_ICONS
 }
 
-float GLCanvas3D::Gizmos::_get_total_overlay_width() const
+float GLCanvas3D::Gizmos::get_total_overlay_width() const
 {
-    float max_icon_width = 0.0f;
-    for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
-    {
-        if ((it->second == nullptr) || !it->second->is_selectable())
-            continue;
-
-        max_icon_width = std::max(max_icon_width, (float)it->second->get_textures_size() * m_overlay_icons_scale);
-    }
-
-    return max_icon_width + 2.0f * m_overlay_border;
+#if ENABLE_SVG_ICONS
+    return (2.0f * m_overlay_border + m_overlay_icons_size) * m_overlay_scale;
+#else
+    return (float)m_icons_texture.metadata.icon_size * m_overlay_icons_scale + 2.0f * m_overlay_border;
+#endif // ENABLE_SVG_ICONS
 }
 
-GLGizmoBase* GLCanvas3D::Gizmos::_get_current() const
+GLGizmoBase* GLCanvas3D::Gizmos::get_current() const
 {
     GizmosMap::const_iterator it = m_gizmos.find(m_current);
     return (it != m_gizmos.end()) ? it->second : nullptr;
 }
+
+#if ENABLE_SVG_ICONS
+bool GLCanvas3D::Gizmos::generate_icons_texture() const
+{
+    std::string path = resources_dir() + "/icons/";
+    std::vector<std::string> filenames;
+    for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
+    {
+        if (it->second != nullptr)
+        {
+            const std::string& icon_filename = it->second->get_icon_filename();
+            if (!icon_filename.empty())
+                filenames.push_back(path + icon_filename);
+        }
+    }
+
+    std::vector<std::pair<int, bool>> states;
+    states.push_back(std::make_pair(1, false));
+    states.push_back(std::make_pair(0, false));
+    states.push_back(std::make_pair(0, true));
+
+    bool res = m_icons_texture.load_from_svg_files_as_sprites_array(filenames, states, (unsigned int)(m_overlay_icons_size * m_overlay_scale));
+    if (res)
+        m_icons_texture_dirty = false;
+
+    return res;
+}
+#endif // ENABLE_SVG_ICONS
 
 const unsigned char GLCanvas3D::WarningTexture::Background_Color[3] = { 9, 91, 134 };
 const unsigned char GLCanvas3D::WarningTexture::Opacity = 255;
@@ -3175,7 +3413,7 @@ bool GLCanvas3D::WarningTexture::_generate(const std::string& msg, const GLCanva
     ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data());
     ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
     ::glBindTexture(GL_TEXTURE_2D, 0);
 
     return true;
@@ -3258,7 +3496,7 @@ void GLCanvas3D::LegendTexture::fill_color_print_legend_values(const GCodePrevie
     }
 }
 
-bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors, const GLCanvas3D& canvas, bool use_error_colors)
+bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors, const GLCanvas3D& canvas)
 {
     reset();
 
@@ -3324,14 +3562,14 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
     memDC.SelectObject(bitmap);
     mask_memDC.SelectObject(mask);
 
-    memDC.SetBackground(wxBrush(use_error_colors ? *wxWHITE : *wxBLACK));
+    memDC.SetBackground(wxBrush(*wxBLACK));
     mask_memDC.SetBackground(wxBrush(*wxBLACK));
 
     memDC.Clear();
     mask_memDC.Clear();
 
     // draw title
-    memDC.SetTextForeground(use_error_colors ? *wxWHITE : *wxBLACK);
+    memDC.SetTextForeground(*wxWHITE);
     mask_memDC.SetTextForeground(*wxWHITE);
 
     int title_x = scaled_border;
@@ -3414,10 +3652,11 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
         unsigned char* px_ptr = data.data() + 4 * hh;
         for (int w = 0; w < m_width; ++w)
         {
+            unsigned char alpha = (mask_image.GetRed(w, h) + mask_image.GetGreen(w, h) + mask_image.GetBlue(w, h)) / 3;
             *px_ptr++ = image.GetRed(w, h);
             *px_ptr++ = image.GetGreen(w, h);
             *px_ptr++ = image.GetBlue(w, h);
-            *px_ptr++ = (mask_image.GetRed(w, h) + mask_image.GetGreen(w, h) + mask_image.GetBlue(w, h)) / 3;
+            *px_ptr++ = (alpha == 0) ? 128 : 255;
         }
     }
 
@@ -3428,7 +3667,7 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
     ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data());
     ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
     ::glBindTexture(GL_TEXTURE_2D, 0);
 
     return true;
@@ -3496,7 +3735,11 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
 #endif
     , m_in_render(false)
     , m_bed(nullptr)
+#if ENABLE_SVG_ICONS
+    , m_toolbar(GLToolbar::Normal, "Top")
+#else
     , m_toolbar(GLToolbar::Normal)
+#endif // ENABLE_SVG_ICONS
     , m_view_toolbar(nullptr)
     , m_use_clipping_planes(false)
     , m_sidebar_field("")
@@ -3909,7 +4152,6 @@ void GLCanvas3D::update_volumes_colors_by_extruder()
         m_volumes.update_colors_by_extruder(m_config);
 }
 
-#if ENABLE_MODE_AWARE_TOOLBAR_ITEMS
 void GLCanvas3D::update_toolbar_items_visibility()
 {
     ConfigOptionMode mode = wxGetApp().get_mode();
@@ -3918,7 +4160,6 @@ void GLCanvas3D::update_toolbar_items_visibility()
     m_toolbar.set_item_visible("splitvolumes", mode != comSimple);
     m_dirty = true;
 }
-#endif // ENABLE_MODE_AWARE_TOOLBAR_ITEMS
 
 // Returns a Rect object denoting size and position of the Reset button used by a gizmo.
 // Returns in either screen or viewport coords.
@@ -4032,7 +4273,9 @@ void GLCanvas3D::render()
     _render_gizmos_overlay();
     _render_warning_texture();
     _render_legend_texture();
+#if !ENABLE_SVG_ICONS
     _resize_toolbars();
+#endif // !ENABLE_SVG_ICONS
     _render_toolbar();
     _render_view_toolbar();
     if (m_layers_editing.last_object_id >= 0)
@@ -4673,16 +4916,17 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case 'b': { zoom_to_bed(); break; }
         case 'I':
         case 'i': { set_camera_zoom(1.0f); break; }
-        case 'M':
-        case 'm': {
-            if (m_gizmos.get_current_type() == Gizmos::SlaSupports && m_gizmos.mouse_event(SLAGizmoEventType::ManualEditing))
-                m_dirty = true;
-            break;
-        }
         case 'O':
         case 'o': { set_camera_zoom(-1.0f); break; }
         case 'Z':
         case 'z': { m_selection.is_empty() ? zoom_to_volumes() : zoom_to_selection(); break; }
+        case 'M':
+        case 'm': {
+            if (m_gizmos.get_current_type() == Gizmos::SlaSupports && m_gizmos.mouse_event(SLAGizmoEventType::ManualEditing)) {
+                m_dirty = true;
+                break;
+            }
+        } // intentional fallthrough
         default:
         {
             if (m_gizmos.handle_shortcut(keyCode, m_selection))
@@ -4773,6 +5017,54 @@ void GLCanvas3D::on_timer(wxTimerEvent& evt)
         _perform_layer_editing_action();
 }
 
+#ifndef NDEBUG
+// #define SLIC3R_DEBUG_MOUSE_EVENTS
+#endif
+
+#ifdef SLIC3R_DEBUG_MOUSE_EVENTS
+std::string format_mouse_event_debug_message(const wxMouseEvent &evt)
+{
+	static int idx = 0;
+	char buf[2048];
+	std::string out;
+	sprintf(buf, "Mouse Event %d - ", idx ++);
+	out = buf;
+
+	if (evt.Entering())
+		out += "Entering ";
+	if (evt.Leaving())
+		out += "Leaving ";
+	if (evt.Dragging())
+		out += "Dragging ";
+	if (evt.Moving())
+		out += "Moving ";
+	if (evt.Magnify())
+		out += "Magnify ";
+	if (evt.LeftDown())
+		out += "LeftDown ";
+	if (evt.LeftUp())
+		out += "LeftUp ";
+	if (evt.LeftDClick())
+		out += "LeftDClick ";
+	if (evt.MiddleDown())
+		out += "MiddleDown ";
+	if (evt.MiddleUp())
+		out += "MiddleUp ";
+	if (evt.MiddleDClick())
+		out += "MiddleDClick ";
+	if (evt.RightDown())
+		out += "RightDown ";
+	if (evt.RightUp())
+		out += "RightUp ";
+	if (evt.RightDClick())
+		out += "RightDClick ";
+
+	sprintf(buf, "(%d, %d)", evt.GetX(), evt.GetY());
+	out += buf;
+	return out;
+}
+#endif /* SLIC3R_DEBUG_MOUSE_EVENTS */
+
 void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 {
 #if ENABLE_RETINA_GL
@@ -4788,15 +5080,30 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     if (imgui->update_mouse_data(evt)) {
         m_mouse.position = evt.Leaving() ? Vec2d(-1.0, -1.0) : pos.cast<double>();
         render();
-        return;
+#ifdef SLIC3R_DEBUG_MOUSE_EVENTS
+		printf((format_mouse_event_debug_message(evt) + " - Consumed by ImGUI\n").c_str());
+#endif /* SLIC3R_DEBUG_MOUSE_EVENTS */
+		return;
     }
 #endif // ENABLE_IMGUI
 
+#ifdef __WXMSW__
+	bool on_enter_workaround = false;
     if (! evt.Entering() && ! evt.Leaving() && m_mouse.position.x() == -1.0) {
         // Workaround for SPE-832: There seems to be a mouse event sent to the window before evt.Entering()
         m_mouse.position = pos.cast<double>();
         render();
-    }
+#ifdef SLIC3R_DEBUG_MOUSE_EVENTS
+		printf((format_mouse_event_debug_message(evt) + " - OnEnter workaround\n").c_str());
+#endif /* SLIC3R_DEBUG_MOUSE_EVENTS */
+		on_enter_workaround = true;
+    } else 
+#endif /* __WXMSW__ */
+    {
+#ifdef SLIC3R_DEBUG_MOUSE_EVENTS
+		printf((format_mouse_event_debug_message(evt) + " - other\n").c_str());
+#endif /* SLIC3R_DEBUG_MOUSE_EVENTS */
+	}
 
     if (m_picking_enabled)
         _set_current();
@@ -4816,6 +5123,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     }
 #endif // ENABLE_MOVE_MIN_THRESHOLD
 
+    if (evt.ButtonDown() && wxWindow::FindFocus() != this->m_canvas)
+        // Grab keyboard focus on any mouse click event.
+        m_canvas->SetFocus();
+
     if (evt.Entering())
     {
 //#if defined(__WXMSW__) || defined(__linux__)
@@ -4828,15 +5139,14 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 p = p->GetParent();
             auto *top_level_wnd = dynamic_cast<wxTopLevelWindow*>(p);
             if (top_level_wnd && top_level_wnd->IsActive())
-            {
                 m_canvas->SetFocus();
-
-                // forces a frame render to ensure that m_hover_volume_id is updated even when the user right clicks while
-                // the context menu is shown, ensuring it to disappear if the mouse is outside any volume and to
-                // change the volume hover state if any is under the mouse 
-                m_mouse.position = pos.cast<double>();
-                render();
-            }
+            m_mouse.position = pos.cast<double>();
+            // 1) forces a frame render to ensure that m_hover_volume_id is updated even when the user right clicks while
+            // the context menu is shown, ensuring it to disappear if the mouse is outside any volume and to
+            // change the volume hover state if any is under the mouse 
+            // 2) when switching between 3d view and preview the size of the canvas changes if the side panels are visible,
+            // so forces a resize to avoid multiple renders with different sizes (seen as flickering)
+            _refresh_if_shown_on_screen();
         }
         m_mouse.set_start_position_2D_as_invalid();
 //#endif
@@ -4845,6 +5155,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     {
         // to remove hover on objects when the mouse goes out of this canvas
         m_mouse.position = Vec2d(-1.0, -1.0);
+        // ensure m_mouse.left_down is reset (it may happen when switching canvas)
+        m_mouse.left_down = false;
         m_dirty = true;
     }
     else if (evt.LeftDClick() && (toolbar_contains_mouse != -1))
@@ -4912,12 +5224,12 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         {
             // event was taken care of by the SlaSupports gizmo
         }
-        else if (view_toolbar_contains_mouse != -1)
+        else if (evt.LeftDown() && (view_toolbar_contains_mouse != -1))
         {
             if (m_view_toolbar != nullptr)
                 m_view_toolbar->do_action((unsigned int)view_toolbar_contains_mouse, *this);
         }
-        else if (toolbar_contains_mouse != -1)
+        else if (evt.LeftDown() && (toolbar_contains_mouse != -1))
         {
             m_toolbar_action_running = true;
             m_mouse.set_start_position_3D_as_invalid();
@@ -4991,17 +5303,23 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     if (m_hover_volume_id != -1)
                     {
                         // if right clicking on volume, propagate event through callback (shows context menu)
-                        if (m_volumes.volumes[m_hover_volume_id]->hover && !m_volumes.volumes[m_hover_volume_id]->is_wipe_tower)
+                        if (m_volumes.volumes[m_hover_volume_id]->hover
+                         && !m_volumes.volumes[m_hover_volume_id]->is_wipe_tower // no context menu for the wipe tower
+                         && m_gizmos.get_current_type() != Gizmos::SlaSupports)  // disable context menu when the gizmo is open
                         {
                             // forces the selection of the volume
-                            if (!m_selection.is_multiple_full_instance())
+                            /** #ys_FIXME_to_delete after testing:
+                              * Next condition allows a multiple instance selection for the context menu,
+                              * which has no reason. So it's commented till next testing
+                              */
+//                             if (!m_selection.is_multiple_full_instance()) // #ys_FIXME_to_delete
                                 m_selection.add(m_hover_volume_id);
                             m_gizmos.update_on_off_state(m_selection);
                             post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
                             _update_gizmos_data();
                             wxGetApp().obj_manipul()->update_settings_value(m_selection);
-//                            // forces a frame render to update the view before the context menu is shown
-//                            render();
+                           // forces a frame render to update the view before the context menu is shown
+                           render();
                             
                             Vec2d logical_pos = pos.cast<double>();
 #if ENABLE_RETINA_GL
@@ -5024,11 +5342,45 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #endif // ENABLE_MOVE_MIN_THRESHOLD
             m_mouse.dragging = true;
 
-            // Get new position at the same Z of the initial click point.
-            float z0 = 0.0f;
-            float z1 = 1.0f;
+            Vec3d cur_pos = m_mouse.drag.start_position_3D;
             // we do not want to translate objects if the user just clicked on an object while pressing shift to remove it from the selection and then drag
-            Vec3d cur_pos = m_selection.contains_volume(m_hover_volume_id) ? Linef3(_mouse_to_3d(pos, &z0), _mouse_to_3d(pos, &z1)).intersect_plane(m_mouse.drag.start_position_3D(2)) : m_mouse.drag.start_position_3D;
+            if (m_selection.contains_volume(m_hover_volume_id))
+            {
+                if (m_camera.get_theta() == 90.0f)
+                {
+                    // side view -> move selected volumes orthogonally to camera view direction
+                    Linef3 ray = mouse_ray(pos);
+                    Vec3d dir = ray.unit_vector();
+                    // finds the intersection of the mouse ray with the plane parallel to the camera viewport and passing throught the starting position
+                    // use ray-plane intersection see i.e. https://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection algebric form
+                    // in our case plane normal and ray direction are the same (orthogonal view)
+                    // when moving to perspective camera the negative z unit axis of the camera needs to be transformed in world space and used as plane normal
+                    Vec3d inters = ray.a + (m_mouse.drag.start_position_3D - ray.a).dot(dir) / dir.squaredNorm() * dir;
+                    // vector from the starting position to the found intersection
+                    Vec3d inters_vec = inters - m_mouse.drag.start_position_3D;
+
+                    // get the view matrix back from opengl
+                    GLfloat matrix[16];
+                    ::glGetFloatv(GL_MODELVIEW_MATRIX, matrix);
+                    Vec3d camera_right((double)matrix[0], (double)matrix[4], (double)matrix[8]);
+                    Vec3d camera_up((double)matrix[1], (double)matrix[5], (double)matrix[9]);
+
+                    // finds projection of the vector along the camera axes
+                    double projection_x = inters_vec.dot(camera_right);
+                    double projection_z = inters_vec.dot(camera_up);
+
+                    // apply offset
+                    cur_pos = m_mouse.drag.start_position_3D + projection_x * camera_right + projection_z * camera_up;
+                }
+                else
+                {
+                    // Generic view
+                    // Get new position at the same Z of the initial click point.
+                    float z0 = 0.0f;
+                    float z1 = 1.0f;
+                    cur_pos = Linef3(_mouse_to_3d(pos, &z0), _mouse_to_3d(pos, &z1)).intersect_plane(m_mouse.drag.start_position_3D(2));
+                }
+            }
 
             m_regenerate_volumes = false;
             m_selection.translate(cur_pos - m_mouse.drag.start_position_3D);
@@ -5066,7 +5418,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         case Gizmos::Rotate:
         {
             // Apply new temporary rotations
-            m_selection.rotate(m_gizmos.get_rotation(), evt.AltDown());
+			TransformationType transformation_type(TransformationType::World_Relative_Joint);
+			if (evt.AltDown())
+				transformation_type.set_independent();
+			m_selection.rotate(m_gizmos.get_rotation(), transformation_type);
             wxGetApp().obj_manipul()->update_settings_value(m_selection);
             break;
         }
@@ -5081,7 +5436,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         // the gizmo got the event and took some action, no need to do anything more here
         m_dirty = true;
     }
-    else if (evt.Dragging() && !gizmos_overlay_contains_mouse)
+    // do not process dragging if the mouse is into any of the HUD elements
+    else if (evt.Dragging() && !gizmos_overlay_contains_mouse && (toolbar_contains_mouse == -1) && (view_toolbar_contains_mouse == -1))
     {
         m_mouse.dragging = true;
 
@@ -5090,7 +5446,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             if (m_layers_editing.state == LayersEditing::Editing)
                 _perform_layer_editing_action(&evt);
         }
-        else if (evt.LeftIsDown())
+        // do not process the dragging if the left mouse was set down in another canvas
+        else if (m_mouse.left_down && evt.LeftIsDown())
         {
             // if dragging over blank area with left button, rotate
 #if ENABLE_MOVE_MIN_THRESHOLD
@@ -5244,6 +5601,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     }
     else
         evt.Skip();
+
+#ifdef __WXMSW__
+	if (on_enter_workaround)
+		m_mouse.position = Vec2d(-1., -1.);
+#endif /* __WXMSW__ */
 }
 
 void GLCanvas3D::on_paint(wxPaintEvent& evt)
@@ -5592,16 +5954,11 @@ bool GLCanvas3D::_init_toolbar()
     if (!m_toolbar.is_enabled())
         return true;
 
+#if !ENABLE_SVG_ICONS
     ItemsIconsTexture::Metadata icons_data;
     icons_data.filename = "toolbar.png";
-    icons_data.icon_size = 36;
-    icons_data.icon_border_size = 1;
-    icons_data.icon_gap_size = 1;
-
-//    icons_data.filename = "toolbar141.png";
-//    icons_data.icon_size = 52;
-//    icons_data.icon_border_size = 0;
-//    icons_data.icon_gap_size = 0;
+    icons_data.icon_size = 37;
+#endif // !ENABLE_SVG_ICONS
 
     BackgroundTexture::Metadata background_data;
     background_data.filename = "toolbar_background.png";
@@ -5610,7 +5967,11 @@ bool GLCanvas3D::_init_toolbar()
     background_data.right = 16;
     background_data.bottom = 16;
 
+#if ENABLE_SVG_ICONS
+    if (!m_toolbar.init(background_data))
+#else
     if (!m_toolbar.init(icons_data, background_data))
+#endif // ENABLE_SVG_ICONS
     {
         // unable to init the toolbar texture, disable it
         m_toolbar.set_enabled(false);
@@ -5627,6 +5988,9 @@ bool GLCanvas3D::_init_toolbar()
     GLToolbarItem::Data item;
 
     item.name = "add";
+#if ENABLE_SVG_ICONS
+    item.icon_filename = "add.svg";
+#endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Add...") + " [" + GUI::shortkey_ctrl_prefix() + "I]";
     item.sprite_id = 0;
     item.action_event = EVT_GLTOOLBAR_ADD;
@@ -5634,6 +5998,9 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "delete";
+#if ENABLE_SVG_ICONS
+    item.icon_filename = "remove.svg";
+#endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Delete") + " [Del]";
     item.sprite_id = 1;
     item.action_event = EVT_GLTOOLBAR_DELETE;
@@ -5641,6 +6008,9 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "deleteall";
+#if ENABLE_SVG_ICONS
+    item.icon_filename = "delete_all.svg";
+#endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Delete all") + " [" + GUI::shortkey_ctrl_prefix() + "Del]";
     item.sprite_id = 2;
     item.action_event = EVT_GLTOOLBAR_DELETE_ALL;
@@ -5648,6 +6018,9 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "arrange";
+#if ENABLE_SVG_ICONS
+    item.icon_filename = "arrange.svg";
+#endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Arrange [A]");
     item.sprite_id = 3;
     item.action_event = EVT_GLTOOLBAR_ARRANGE;
@@ -5658,6 +6031,9 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "more";
+#if ENABLE_SVG_ICONS
+    item.icon_filename = "instance_add.svg";
+#endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Add instance [+]");
     item.sprite_id = 4;
     item.action_event = EVT_GLTOOLBAR_MORE;
@@ -5665,6 +6041,9 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "fewer";
+#if ENABLE_SVG_ICONS
+    item.icon_filename = "instance_remove.svg";
+#endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Remove instance [-]");
     item.sprite_id = 5;
     item.action_event = EVT_GLTOOLBAR_FEWER;
@@ -5675,6 +6054,9 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "splitobjects";
+#if ENABLE_SVG_ICONS
+    item.icon_filename = "split_objects.svg";
+#endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Split to objects");
     item.sprite_id = 6;
     item.action_event = EVT_GLTOOLBAR_SPLIT_OBJECTS;
@@ -5682,8 +6064,11 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "splitvolumes";
+#if ENABLE_SVG_ICONS
+    item.icon_filename = "split_parts.svg";
+#endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Split to parts");
-    item.sprite_id = 8;
+    item.sprite_id = 7;
     item.action_event = EVT_GLTOOLBAR_SPLIT_VOLUMES;
     if (!m_toolbar.add_item(item))
         return false;
@@ -5692,8 +6077,11 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "layersediting";
+#if ENABLE_SVG_ICONS
+    item.icon_filename = "layers.svg";
+#endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Layers editing");
-    item.sprite_id = 7;
+    item.sprite_id = 8;
     item.is_toggable = true;
     item.action_event = EVT_GLTOOLBAR_LAYERSEDITING;
     if (!m_toolbar.add_item(item))
@@ -5701,9 +6089,7 @@ bool GLCanvas3D::_init_toolbar()
 
     enable_toolbar_item("add", true);
 
-#if ENABLE_MODE_AWARE_TOOLBAR_ITEMS
     update_toolbar_items_visibility();
-#endif // ENABLE_MODE_AWARE_TOOLBAR_ITEMS
 
     return true;
 }
@@ -6183,11 +6569,63 @@ void GLCanvas3D::_render_gizmos_overlay() const
 
 void GLCanvas3D::_render_toolbar() const
 {
+#if ENABLE_SVG_ICONS
+#if ENABLE_RETINA_GL
+    m_toolbar.set_scale(m_retina_helper->get_scale_factor());
+#else
+    m_toolbar.set_scale(m_canvas->GetContentScaleFactor());
+#endif // ENABLE_RETINA_GL
+
+    Size cnv_size = get_canvas_size();
+    float zoom = get_camera_zoom();
+    float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+
+    GLToolbar::Layout::EOrientation orientation = m_toolbar.get_layout_orientation();
+
+    float top = 0.0f;
+    float left = 0.0f;
+    switch (m_toolbar.get_layout_type())
+    {
+    default:
+    case GLToolbar::Layout::Horizontal:
+    {
+        // centers the toolbar on the top edge of the 3d scene
+        if (orientation == GLToolbar::Layout::Top)
+        {
+            top = 0.5f * (float)cnv_size.get_height() * inv_zoom;
+            left = -0.5f * m_toolbar.get_width() * inv_zoom;
+        }
+        else
+        {
+            top = (-0.5f * (float)cnv_size.get_height() + m_view_toolbar->get_height()) * inv_zoom;
+            left = -0.5f * m_toolbar.get_width() * inv_zoom;
+        }
+        break;
+    }
+    case GLToolbar::Layout::Vertical:
+    {
+        // centers the toolbar on the right edge of the 3d scene
+        if (orientation == GLToolbar::Layout::Left)
+        {
+            top = 0.5f * m_toolbar.get_height() * inv_zoom;
+            left = (-0.5f * (float)cnv_size.get_width()) * inv_zoom;
+        }
+        else
+        {
+            top = 0.5f * m_toolbar.get_height() * inv_zoom;
+            left = (0.5f * (float)cnv_size.get_width() - m_toolbar.get_width()) * inv_zoom;
+        }
+        break;
+    }
+    }
+    m_toolbar.set_position(top, left);
+#else
 #if ENABLE_RETINA_GL
     m_toolbar.set_icons_scale(m_retina_helper->get_scale_factor());
 #else
     m_toolbar.set_icons_scale(m_canvas->GetContentScaleFactor());
 #endif /* __WXMSW__ */
+#endif // ENABLE_SVG_ICONS
 
     m_toolbar.render(*this);
 }
@@ -6195,11 +6633,28 @@ void GLCanvas3D::_render_toolbar() const
 void GLCanvas3D::_render_view_toolbar() const
 {
     if (m_view_toolbar != nullptr) {
+#if ENABLE_SVG_ICONS
+#if ENABLE_RETINA_GL
+        m_view_toolbar->set_scale(m_retina_helper->get_scale_factor());
+#else
+        m_view_toolbar->set_scale(m_canvas->GetContentScaleFactor());
+#endif // ENABLE_RETINA_GL
+
+        Size cnv_size = get_canvas_size();
+        float zoom = get_camera_zoom();
+        float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+
+        // places the toolbar on the bottom-left corner of the 3d scene
+        float top = (-0.5f * (float)cnv_size.get_height() + m_view_toolbar->get_height()) * inv_zoom;
+        float left = -0.5f * (float)cnv_size.get_width() * inv_zoom;
+        m_view_toolbar->set_position(top, left);
+#else
 #if ENABLE_RETINA_GL
         m_view_toolbar->set_icons_scale(m_retina_helper->get_scale_factor());
 #else
         m_view_toolbar->set_icons_scale(m_canvas->GetContentScaleFactor());
 #endif /* __WXMSW__ */
+#endif // ENABLE_SVG_ICONS
         m_view_toolbar->render(*this);
     }
 }
@@ -7669,7 +8124,7 @@ std::vector<float> GLCanvas3D::_parse_colors(const std::vector<std::string>& col
 
 void GLCanvas3D::_generate_legend_texture(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors)
 {
-    m_legend_texture.generate(preview_data, tool_colors, *this, m_dynamic_background_enabled && _is_any_volume_outside());
+    m_legend_texture.generate(preview_data, tool_colors, *this);
 }
 
 void GLCanvas3D::_set_warning_texture(WarningTexture::Warning warning, bool state)
@@ -7688,6 +8143,7 @@ bool GLCanvas3D::_is_any_volume_outside() const
     return false;
 }
 
+#if !ENABLE_SVG_ICONS
 void GLCanvas3D::_resize_toolbars() const
 {
     Size cnv_size = get_canvas_size();
@@ -7755,6 +8211,7 @@ void GLCanvas3D::_resize_toolbars() const
         m_view_toolbar->set_position(top, left);
     }
 }
+#endif // !ENABLE_SVG_ICONS
 
 const Print* GLCanvas3D::fff_print() const
 {

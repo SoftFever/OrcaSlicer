@@ -131,7 +131,7 @@ private:
     EType detect_type(const Pointfs& shape) const;
 #if ENABLE_TEXTURES_FROM_SVG
     void render_prusa(const std::string& key, bool bottom) const;
-    void render_prusa_shader(unsigned int vertices_count, bool transparent) const;
+    void render_prusa_shader(bool transparent) const;
 #else
     void render_prusa(const std::string &key, float theta, bool useVBOs) const;
 #endif // ENABLE_TEXTURES_FROM_SVG

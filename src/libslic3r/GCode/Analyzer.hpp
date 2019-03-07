@@ -86,6 +86,7 @@ public:
 
     typedef std::vector<GCodeMove> GCodeMovesList;
     typedef std::map<GCodeMove::EType, GCodeMovesList> TypeToMovesMap;
+    typedef std::map<unsigned int, Vec2d> ExtruderOffsetsMap;
 
 private:
     struct State
@@ -104,12 +105,15 @@ private:
     State m_state;
     GCodeReader m_parser;
     TypeToMovesMap m_moves_map;
+    ExtruderOffsetsMap m_extruder_offsets;
 
     // The output of process_layer()
     std::string m_process_output;
 
 public:
     GCodeAnalyzer();
+
+    void set_extruder_offsets(const ExtruderOffsetsMap& extruder_offsets);
 
     // Reinitialize the analyzer
     void reset();

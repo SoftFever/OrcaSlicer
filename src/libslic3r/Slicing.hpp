@@ -42,6 +42,8 @@ struct SlicingParameters
     // Height of the object to be printed. This value does not contain the raft height.
     coordf_t    object_print_z_height() const { return object_print_z_max - object_print_z_min; }
 
+    bool        valid;
+
     // Number of raft layers.
     size_t      base_raft_layers;
     // Number of interface layers including the contact layer.
@@ -100,6 +102,8 @@ static_assert(IsTriviallyCopyable<SlicingParameters>::value, "SlicingParameters 
 // The two slicing parameters lead to the same layering as long as the variable layer thickness is not in action.
 inline bool equal_layering(const SlicingParameters &sp1, const SlicingParameters &sp2)
 {
+    assert(sp1.valid);
+    assert(sp2.valid);
     return  sp1.base_raft_layers                    == sp2.base_raft_layers                     &&
             sp1.interface_raft_layers               == sp2.interface_raft_layers                &&
             sp1.base_raft_layer_height              == sp2.base_raft_layer_height               &&

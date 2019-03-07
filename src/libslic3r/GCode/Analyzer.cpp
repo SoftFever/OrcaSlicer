@@ -101,6 +101,11 @@ GCodeAnalyzer::GCodeAnalyzer()
     reset();
 }
 
+void GCodeAnalyzer::set_extruder_offsets(const GCodeAnalyzer::ExtruderOffsetsMap& extruder_offsets)
+{
+    m_extruder_offsets = extruder_offsets;
+}
+
 void GCodeAnalyzer::reset()
 {
     _set_units(Millimeters);
@@ -118,6 +123,7 @@ void GCodeAnalyzer::reset()
     _reset_axes_position();
 
     m_moves_map.clear();
+    m_extruder_offsets.clear();
 }
 
 const std::string& GCodeAnalyzer::process_gcode(const std::string& gcode)
@@ -654,7 +660,15 @@ void GCodeAnalyzer::_store_move(GCodeAnalyzer::GCodeMove::EType type)
         it = m_moves_map.insert(TypeToMovesMap::value_type(type, GCodeMovesList())).first;
 
     // store move
-    it->second.emplace_back(type, _get_extrusion_role(), _get_extruder_id(), _get_mm3_per_mm(), _get_width(), _get_height(), _get_feedrate(), _get_start_position(), _get_end_position(), _get_delta_extrusion(), _get_cp_color_id());
+    Vec3d extruder_offset = Vec3d::Zero();
+    unsigned int extruder_id = _get_extruder_id();
+    ExtruderOffsetsMap::iterator extr_it = m_extruder_offsets.find(extruder_id);
+    if (extr_it != m_extruder_offsets.end())
+        extruder_offset = Vec3d(extr_it->second(0), extr_it->second(1), 0.0);
+
+    Vec3d start_position = _get_start_position() + extruder_offset;
+    Vec3d end_position = _get_end_position() + extruder_offset;
+    it->second.emplace_back(type, _get_extrusion_role(), extruder_id, _get_mm3_per_mm(), _get_width(), _get_height(), _get_feedrate(), start_position, end_position, _get_delta_extrusion(), _get_cp_color_id());
 }
 
 bool GCodeAnalyzer::_is_valid_extrusion_role(int value) const

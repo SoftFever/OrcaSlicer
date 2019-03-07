@@ -820,6 +820,8 @@ extern "C" {
 
 char * fmtstr(FILEFMT format);
 
+FILE *fopen_utf8(const char *filename, const char *mode);
+
 int fileio(int op, char * filename, FILEFMT format,
            struct avrpart * p, char * memtype, int size, unsigned section);
 
@@ -939,6 +941,7 @@ int init_config(void);
 void cleanup_config(void);
 
 int read_config(const char * file);
+int read_config_builtin();
 
 #ifdef __cplusplus
 }

@@ -1108,12 +1108,14 @@ void TabPrint::build()
 		optgroup = page->new_optgroup(_(L("Flow")));
 		optgroup->append_single_option_line("bridge_flow_ratio");
 
+		optgroup = page->new_optgroup(_(L("Slicing")));
+		optgroup->append_single_option_line("slice_closing_radius");
+		optgroup->append_single_option_line("resolution");
+		optgroup->append_single_option_line("xy_size_compensation");
+		optgroup->append_single_option_line("elefant_foot_compensation");
+
 		optgroup = page->new_optgroup(_(L("Other")));
 		optgroup->append_single_option_line("clip_multipart_objects");
-		optgroup->append_single_option_line("elefant_foot_compensation");
-		optgroup->append_single_option_line("xy_size_compensation");
-//		#            optgroup->append_single_option_line("threads");
-		optgroup->append_single_option_line("resolution");
 
 	page = add_options_page(_(L("Output options")), "page_white_go.png");
 		optgroup = page->new_optgroup(_(L("Sequential printing")));
@@ -1624,8 +1626,6 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 	// Only offer the host type selection for FFF, for SLA it's always the SL1 printer (at the moment)
 	if (! sla) {
 		optgroup->append_single_option_line("host_type");
-	} else {
-		m_config->option<ConfigOptionEnum<PrintHostType>>("host_type", true)->value = htSL1;
 	}
 
 	auto printhost_browse = [this, optgroup] (wxWindow* parent) {
@@ -2594,7 +2594,7 @@ void Tab::select_preset(std::string preset_name)
                     // The preset will be switched to a different, compatible preset, or the '-- default --'.
                     if (pu.technology == new_printer_technology)
                         m_dependent_tabs.emplace_back(pu.tab_type);
-                    if (pu.old_preset_dirty)
+                    if (pu.old_preset_dirty && !pu.new_preset_compatible)
                         pu.presets->discard_current_changes();
                 }
             }
@@ -3291,6 +3291,10 @@ void TabSLAPrint::build()
     // TODO: Disabling this parameter for the beta release
 //    optgroup->append_single_option_line("pad_edge_radius");
     optgroup->append_single_option_line("pad_wall_slope");
+
+	page = add_options_page(_(L("Advanced")), "wrench.png");
+	optgroup = page->new_optgroup(_(L("Slicing")));
+	optgroup->append_single_option_line("slice_closing_radius");
 
 	page = add_options_page(_(L("Output options")), "page_white_go.png");
 	optgroup = page->new_optgroup(_(L("Output file")));

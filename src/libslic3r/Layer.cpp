@@ -65,6 +65,7 @@ void Layer::make_slices()
         this->slices.expolygons.push_back(std::move(slices[i]));
 }
 
+// Merge typed slices into untyped slices. This method is used to revert the effects of detect_surfaces_type() called for posPrepareInfill.
 void Layer::merge_slices()
 {
     if (m_regions.size() == 1) {
@@ -78,6 +79,24 @@ void Layer::merge_slices()
     }
 }
 
+ExPolygons Layer::merged(float offset_scaled) const
+{
+	assert(offset_scaled >= 0.f);
+    // If no offset is set, apply EPSILON offset before union, and revert it afterwards.
+	float offset_scaled2 = 0;
+	if (offset_scaled == 0.f) {
+		offset_scaled  = float(  EPSILON);
+		offset_scaled2 = float(- EPSILON);
+    }
+    Polygons polygons;
+    for (LayerRegion *layerm : m_regions)
+		append(polygons, offset(to_expolygons(layerm->slices.surfaces), offset_scaled));
+    ExPolygons out = union_ex(polygons);
+	if (offset_scaled2 != 0.f)
+		out = offset_ex(out, offset_scaled2);
+    return out;
+}
+
 // Here the perimeters are created cummulatively for all layer regions sharing the same parameters influencing the perimeters.
 // The perimeter paths and the thin fills (ExtrusionEntityCollection) are assigned to the first compatible layer region.
 // The resulting fill surface is split back among the originating regions.
@@ -86,13 +105,14 @@ void Layer::make_perimeters()
     BOOST_LOG_TRIVIAL(trace) << "Generating perimeters for layer " << this->id();
     
     // keep track of regions whose perimeters we have already generated
-    std::set<size_t> done;
+    std::vector<unsigned char> done(m_regions.size(), false);
     
     for (LayerRegionPtrs::iterator layerm = m_regions.begin(); layerm != m_regions.end(); ++ layerm) {
         size_t region_id = layerm - m_regions.begin();
-        if (done.find(region_id) != done.end()) continue;
+        if (done[region_id])
+            continue;
         BOOST_LOG_TRIVIAL(trace) << "Generating perimeters for layer " << this->id() << ", region " << region_id;
-        done.insert(region_id);
+        done[region_id] = true;
         const PrintRegionConfig &config = (*layerm)->region()->config();
         
         // find compatible regions
@@ -112,7 +132,7 @@ void Layer::make_perimeters()
                 && config.thin_walls        == other_config.thin_walls
                 && config.external_perimeters_first == other_config.external_perimeters_first) {
                 layerms.push_back(other_layerm);
-                done.insert(it - m_regions.begin());
+                done[it - m_regions.begin()] = true;
             }
         }
         
@@ -124,15 +144,13 @@ void Layer::make_perimeters()
             SurfaceCollection new_slices;
             {
                 // group slices (surfaces) according to number of extra perimeters
-                std::map<unsigned short,Surfaces> slices;  // extra_perimeters => [ surface, surface... ]
-                for (LayerRegionPtrs::iterator l = layerms.begin(); l != layerms.end(); ++l) {
-                    for (Surfaces::iterator s = (*l)->slices.surfaces.begin(); s != (*l)->slices.surfaces.end(); ++s) {
-                        slices[s->extra_perimeters].push_back(*s);
-                    }
-                }
+                std::map<unsigned short, Surfaces> slices;  // extra_perimeters => [ surface, surface... ]
+                for (LayerRegion *layerm : layerms)
+                    for (Surface &surface : layerm->slices.surfaces)
+                        slices[surface.extra_perimeters].emplace_back(surface);
                 // merge the surfaces assigned to each group
-                for (std::map<unsigned short,Surfaces>::const_iterator it = slices.begin(); it != slices.end(); ++it)
-                    new_slices.append(union_ex(it->second, true), it->second.front());
+                for (std::pair<const unsigned short,Surfaces> &surfaces_with_extra_perimeters : slices)
+                    new_slices.append(union_ex(surfaces_with_extra_perimeters.second, true), surfaces_with_extra_perimeters.second.front());
             }
             
             // make perimeters

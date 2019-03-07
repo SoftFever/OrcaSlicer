@@ -592,6 +592,7 @@ ModelObject& ModelObject::assign_copy(const ModelObject &rhs)
     this->input_file                  = rhs.input_file;
     this->config                      = rhs.config;
     this->sla_support_points          = rhs.sla_support_points;
+    this->sla_points_status           = rhs.sla_points_status;
     this->layer_height_ranges         = rhs.layer_height_ranges;
     this->layer_height_profile        = rhs.layer_height_profile;
     this->origin_translation          = rhs.origin_translation;
@@ -625,6 +626,7 @@ ModelObject& ModelObject::assign_copy(ModelObject &&rhs)
     this->input_file                  = std::move(rhs.input_file);
     this->config                      = std::move(rhs.config);
     this->sla_support_points          = std::move(rhs.sla_support_points);
+    this->sla_points_status           = std::move(rhs.sla_points_status);
     this->layer_height_ranges         = std::move(rhs.layer_height_ranges);
     this->layer_height_profile        = std::move(rhs.layer_height_profile);
     this->origin_translation          = std::move(rhs.origin_translation);
@@ -1130,6 +1132,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
     if (keep_upper) {
         upper->set_model(nullptr);
         upper->sla_support_points.clear();
+        upper->sla_points_status = sla::PointsStatus::None;
         upper->clear_volumes();
         upper->input_file = "";
     }
@@ -1137,6 +1140,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
     if (keep_lower) {
         lower->set_model(nullptr);
         lower->sla_support_points.clear();
+        lower->sla_points_status = sla::PointsStatus::None;
         lower->clear_volumes();
         lower->input_file = "";
     }

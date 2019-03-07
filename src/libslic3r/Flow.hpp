@@ -42,14 +42,20 @@ public:
     bool  bridge;
     
     Flow(float _w, float _h, float _nd, bool _bridge = false) :
-        width(_w), height(_h), nozzle_diameter(_nd), bridge(_bridge) {};
+        width(_w), height(_h), nozzle_diameter(_nd), bridge(_bridge) {}
 
     float   spacing() const;
     float   spacing(const Flow &other) const;
     double  mm3_per_mm() const;
-    coord_t scaled_width() const { return coord_t(scale_(this->width)); };
-    coord_t scaled_spacing() const { return coord_t(scale_(this->spacing())); };
-    coord_t scaled_spacing(const Flow &other) const { return coord_t(scale_(this->spacing(other))); };
+    coord_t scaled_width() const { return coord_t(scale_(this->width)); }
+    coord_t scaled_spacing() const { return coord_t(scale_(this->spacing())); }
+    coord_t scaled_spacing(const Flow &other) const { return coord_t(scale_(this->spacing(other))); }
+
+    // Elephant foot compensation spacing to be used to detect narrow parts, where the elephant foot compensation cannot be applied.
+    // To be used on frExternalPerimeter only.
+    // Enable some perimeter squish (see INSET_OVERLAP_TOLERANCE).
+    // Here an overlap of 0.2x external perimeter spacing is allowed for by the elephant foot compensation.
+    coord_t scaled_elephant_foot_spacing() const { return coord_t(0.5f * float(this->scaled_width() + 0.6f * this->scaled_spacing())); }
     
     static Flow new_from_config_width(FlowRole role, const ConfigOptionFloatOrPercent &width, float nozzle_diameter, float height, float bridge_flow_ratio);
     // Create a flow from the spacing of extrusion lines.

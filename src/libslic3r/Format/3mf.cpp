@@ -6,6 +6,8 @@
 
 #include "3mf.hpp"
 
+#include <limits>
+
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/predicate.hpp>
@@ -1749,6 +1751,11 @@ namespace Slic3r {
     bool _3MF_Exporter::_add_model_file_to_archive(mz_zip_archive& archive, Model& model)
     {
         std::stringstream stream;
+        // https://en.cppreference.com/w/cpp/types/numeric_limits/max_digits10
+        // Conversion of a floating-point value to text and back is exact as long as at least max_digits10 were used (9 for float, 17 for double).
+        // It is guaranteed to produce the same floating-point value, even though the intermediate text representation is not exact.
+        // The default value of std::stream precision is 6 digits only!
+		stream << std::setprecision(std::numeric_limits<float>::max_digits10);
         stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
         stream << "<" << MODEL_TAG << " unit=\"millimeter\" xml:lang=\"en-US\" xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\" xmlns:slic3rpe=\"http://schemas.slic3r.org/3mf/2017/06\">\n";
         stream << " <" << METADATA_TAG << " name=\"" << SLIC3RPE_3MF_VERSION << "\">" << VERSION_3MF << "</" << METADATA_TAG << ">\n";
@@ -1864,7 +1871,7 @@ namespace Slic3r {
             for (int i = 0; i < stl.stats.shared_vertices; ++i)
             {
                 stream << "     <" << VERTEX_TAG << " ";
-                Vec3d v = matrix * stl.v_shared[i].cast<double>();
+                Vec3f v = (matrix * stl.v_shared[i].cast<double>()).cast<float>();
                 stream << "x=\"" << v(0) << "\" ";
                 stream << "y=\"" << v(1) << "\" ";
                 stream << "z=\"" << v(2) << "\" />\n";

@@ -38,6 +38,11 @@ FreqSettingsBundle FREQ_SETTINGS_BUNDLE_SLA =
     { L("Pad and Support")      , { "supports_enable", "pad_enable" } }
 };
 
+static PrinterTechnology printer_technology()
+{
+    return wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology();
+}
+
 ObjectList::ObjectList(wxWindow* parent) :
     wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxDV_MULTIPLE),
     m_parent(parent)
@@ -259,7 +264,7 @@ void ObjectList::update_extruder_values_for_items(const int max_extruder)
 void ObjectList::update_objects_list_extruder_column(int extruders_count)
 {
     if (!this) return; // #ys_FIXME
-    if (wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA)
+    if (printer_technology() == ptSLA)
         extruders_count = 1;
 
     wxDataViewChoiceRenderer* ch_render = dynamic_cast<wxDataViewChoiceRenderer*>(GetColumn(1)->GetRenderer());
@@ -376,7 +381,8 @@ void ObjectList::selection_changed()
     fix_multiselection_conflicts();
 
     // update object selection on Plater
-    update_selections_on_canvas();
+    if (!m_prevent_canvas_selection_update)
+        update_selections_on_canvas();
 
     // to update the toolbar and info sizer
     if (!GetSelection() || m_objects_model->GetItemType(GetSelection()) == itObject) {
@@ -451,7 +457,7 @@ void ObjectList::show_context_menu()
 
         wxMenu* menu = type & itInstance ? &m_menu_instance :
                        m_objects_model->GetParent(item) != wxDataViewItem(0) ? &m_menu_part :
-                       wxGetApp().plater()->printer_technology() == ptFFF ? &m_menu_object : &m_menu_sla_object;
+                       printer_technology() == ptFFF ? &m_menu_object : &m_menu_sla_object;
 
         if (!(type & itInstance))
             append_menu_item_settings(menu);
@@ -596,7 +602,7 @@ void ObjectList::OnDrop(wxDataViewEvent &event)
 
 std::vector<std::string> ObjectList::get_options(const bool is_part)
 {
-    if (wxGetApp().plater()->printer_technology() == ptSLA) {
+    if (printer_technology() == ptSLA) {
         SLAPrintObjectConfig full_sla_config;
         auto options = full_sla_config.keys();
         options.erase(find(options.begin(), options.end(), "layer_height"));
@@ -615,7 +621,7 @@ std::vector<std::string> ObjectList::get_options(const bool is_part)
     
 const std::vector<std::string>& ObjectList::get_options_for_bundle(const wxString& bundle_name)
 {
-    const FreqSettingsBundle& bundle = wxGetApp().plater()->printer_technology() == ptSLA ? 
+    const FreqSettingsBundle& bundle = printer_technology() == ptSLA ? 
                                        FREQ_SETTINGS_BUNDLE_SLA : FREQ_SETTINGS_BUNDLE_FFF;
 
     for (auto& it : bundle)
@@ -625,7 +631,7 @@ const std::vector<std::string>& ObjectList::get_options_for_bundle(const wxStrin
     }
 #if 0
     // if "Quick menu" is selected
-    FreqSettingsBundle& bundle_quick = wxGetApp().plater()->printer_technology() == ptSLA ?
+    FreqSettingsBundle& bundle_quick = printer_technology() == ptSLA ?
                                        m_freq_settings_sla: m_freq_settings_fff;
 
     for (auto& it : bundle_quick)
@@ -643,7 +649,7 @@ void ObjectList::get_options_menu(settings_menu_hierarchy& settings_menu, const 
 {
     auto options = get_options(is_part);
 
-    auto extruders_cnt = wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA ? 1 :
+    auto extruders_cnt = printer_technology() == ptSLA ? 1 :
         wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
 
     DynamicPrintConfig config;
@@ -704,7 +710,7 @@ void ObjectList::get_settings_choice(const wxString& category_name)
     if (selection_cnt > 0) 
     {
         // Add selected items to the "Quick menu"
-        FreqSettingsBundle& freq_settings = wxGetApp().plater()->printer_technology() == ptSLA ?
+        FreqSettingsBundle& freq_settings = printer_technology() == ptSLA ?
                                             m_freq_settings_sla : m_freq_settings_fff;
         bool changed_existing = false;
 
@@ -750,7 +756,9 @@ void ObjectList::get_settings_choice(const wxString& category_name)
     for (auto sel : selections)
         selected_options.push_back((*settings_list)[sel].first);
 
-    const DynamicPrintConfig& from_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    const DynamicPrintConfig& from_config = printer_technology() == ptFFF ? 
+                                            wxGetApp().preset_bundle->prints.get_edited_preset().config : 
+                                            wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
 
     for (auto& setting : (*settings_list))
     {
@@ -1064,10 +1072,10 @@ wxMenu* ObjectList::create_settings_popupmenu(wxMenu *parent_menu)
 void ObjectList::create_freq_settings_popupmenu(wxMenu *menu)
 {
     // Add default settings bundles
-    const FreqSettingsBundle& bundle = wxGetApp().plater()->printer_technology() == ptFFF ?
+    const FreqSettingsBundle& bundle = printer_technology() == ptFFF ?
                                      FREQ_SETTINGS_BUNDLE_FFF : FREQ_SETTINGS_BUNDLE_SLA;
 
-    auto extruders_cnt = wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA ? 1 :
+    auto extruders_cnt = printer_technology() == ptSLA ? 1 :
                          wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
 
     for (auto& it : bundle) {
@@ -1080,7 +1088,7 @@ void ObjectList::create_freq_settings_popupmenu(wxMenu *menu)
     }
 #if 0
     // Add "Quick" settings bundles
-    const FreqSettingsBundle& bundle_quick = wxGetApp().plater()->printer_technology() == ptFFF ?
+    const FreqSettingsBundle& bundle_quick = printer_technology() == ptFFF ?
                                              m_freq_settings_fff : m_freq_settings_sla;
 
     for (auto& it : bundle_quick) {
@@ -1173,10 +1181,94 @@ void ObjectList::load_part( ModelObject* model_object,
 
 }
 
+// Find volume transformation, so that the chained (instance_trafo * volume_trafo) will be as close to identity
+// as possible in least squares norm in regard to the 8 corners of bbox.
+// Bounding box is expected to be centered around zero in all axes.
+Geometry::Transformation volume_to_bed_transformation(const Geometry::Transformation &instance_transformation, const BoundingBoxf3 &bbox)
+{
+    Geometry::Transformation out;
+
+	// Is the angle close to a multiple of 90 degrees?
+	auto ninety_degrees = [](double a) { 
+		a = fmod(std::abs(a), 0.5 * PI);
+		if (a > 0.25 * PI)
+			a = 0.5 * PI - a;
+		return a < 0.001;
+	};
+    if (instance_transformation.is_scaling_uniform()) {
+        // No need to run the non-linear least squares fitting for uniform scaling.
+        // Just set the inverse.
+		out.set_from_transform(instance_transformation.get_matrix(true).inverse());
+    }
+	else if (ninety_degrees(instance_transformation.get_rotation().x()) && ninety_degrees(instance_transformation.get_rotation().y()) && ninety_degrees(instance_transformation.get_rotation().z()))
+	{
+		// Anisotropic scaling, rotation by multiples of ninety degrees.
+		Eigen::Matrix3d instance_rotation_trafo =
+			(Eigen::AngleAxisd(instance_transformation.get_rotation().z(), Vec3d::UnitZ()) *
+			 Eigen::AngleAxisd(instance_transformation.get_rotation().y(), Vec3d::UnitY()) *
+			 Eigen::AngleAxisd(instance_transformation.get_rotation().x(), Vec3d::UnitX())).toRotationMatrix();
+		Eigen::Matrix3d volume_rotation_trafo =
+			(Eigen::AngleAxisd(-instance_transformation.get_rotation().x(), Vec3d::UnitX()) *
+			 Eigen::AngleAxisd(-instance_transformation.get_rotation().y(), Vec3d::UnitY()) *
+			 Eigen::AngleAxisd(-instance_transformation.get_rotation().z(), Vec3d::UnitZ())).toRotationMatrix();
+
+		// 8 corners of the bounding box.
+		auto pts = Eigen::MatrixXd(8, 3);
+		pts(0, 0) = bbox.min.x(); pts(0, 1) = bbox.min.y(); pts(0, 2) = bbox.min.z();
+		pts(1, 0) = bbox.min.x(); pts(1, 1) = bbox.min.y(); pts(1, 2) = bbox.max.z();
+		pts(2, 0) = bbox.min.x(); pts(2, 1) = bbox.max.y(); pts(2, 2) = bbox.min.z();
+		pts(3, 0) = bbox.min.x(); pts(3, 1) = bbox.max.y(); pts(3, 2) = bbox.max.z();
+		pts(4, 0) = bbox.max.x(); pts(4, 1) = bbox.min.y(); pts(4, 2) = bbox.min.z();
+		pts(5, 0) = bbox.max.x(); pts(5, 1) = bbox.min.y(); pts(5, 2) = bbox.max.z();
+		pts(6, 0) = bbox.max.x(); pts(6, 1) = bbox.max.y(); pts(6, 2) = bbox.min.z();
+		pts(7, 0) = bbox.max.x(); pts(7, 1) = bbox.max.y(); pts(7, 2) = bbox.max.z();
+
+		// Corners of the bounding box transformed into the modifier mesh coordinate space, with inverse rotation applied to the modifier.
+		auto qs = pts * 
+			(instance_rotation_trafo *
+			 Eigen::Scaling(instance_transformation.get_scaling_factor().cwiseProduct(instance_transformation.get_mirror())) * 
+			 volume_rotation_trafo).inverse().transpose();
+		// Fill in scaling based on least squares fitting of the bounding box corners.
+		Vec3d scale;
+		for (int i = 0; i < 3; ++ i)
+			scale(i) = pts.col(i).dot(qs.col(i)) / pts.col(i).dot(pts.col(i));
+
+		out.set_rotation(Geometry::extract_euler_angles(volume_rotation_trafo));
+		out.set_scaling_factor(Vec3d(std::abs(scale(0)), std::abs(scale(1)), std::abs(scale(2))));
+		out.set_mirror(Vec3d(scale(0) > 0 ? 1. : -1, scale(1) > 0 ? 1. : -1, scale(2) > 0 ? 1. : -1));
+    }
+	else
+	{
+		// General anisotropic scaling, general rotation.
+		// Keep the modifier mesh in the instance coordinate system, so the modifier mesh will not be aligned with the world.
+		// Scale it to get the required size.
+		out.set_scaling_factor(instance_transformation.get_scaling_factor().cwiseInverse());
+	}
+
+    return out;
+}
+
 void ObjectList::load_generic_subobject(const std::string& type_name, const ModelVolumeType type)
 {
     const auto obj_idx = get_selected_obj_idx();
-    if (obj_idx < 0) return;
+    if (obj_idx < 0) 
+        return;
+
+    const GLCanvas3D::Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
+    assert(obj_idx == selection.get_object_idx());
+
+    /** Any changes of the Object's composition is duplicated for all Object's Instances
+      * So, It's enough to take a bounding box of a first selected Instance and calculate Part(generic_subobject) position
+      */
+    int instance_idx = *selection.get_instance_idxs().begin();
+    assert(instance_idx != -1);
+    if (instance_idx == -1)
+        return;
+
+    // Selected object
+    ModelObject  &model_object = *(*m_objects)[obj_idx];
+    // Bounding box of the selected instance in world coordinate system including the translation, without modifiers.
+    BoundingBoxf3 instance_bb = model_object.instance_bounding_box(instance_idx);
 
     const wxString name = _(L("Generic")) + "-" + _(type_name);
     TriangleMesh mesh;
@@ -1185,48 +1277,48 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
     const auto& sz = BoundingBoxf(bed_shape).size();
     const auto side = 0.1 * std::max(sz(0), sz(1));
 
-    if (type_name == "Box") {
+    if (type_name == "Box")
+        // Sitting on the print bed, left front front corner at (0, 0).
         mesh = make_cube(side, side, side);
-        // box sets the base coordinate at 0, 0, move to center of plate
-        mesh.translate(-side * 0.5, -side * 0.5, 0);
-    }
     else if (type_name == "Cylinder")
-        mesh = make_cylinder(0.5*side, side);
+        // Centered around 0, sitting on the print bed.
+        // The cylinder has the same volume as the box above.
+        mesh = make_cylinder(0.564 * side, side);
     else if (type_name == "Sphere")
-        mesh = make_sphere(0.5*side, PI/18);
-    else if (type_name == "Slab") {
-        const auto& size = (*m_objects)[obj_idx]->bounding_box().size();
-        mesh = make_cube(size(0)*1.5, size(1)*1.5, size(2)*0.5);
-        // box sets the base coordinate at 0, 0, move to center of plate and move it up to initial_z
-        mesh.translate(-size(0)*1.5 / 2.0, -size(1)*1.5 / 2.0, 0);
-    }
+        // Centered around 0, half the sphere below the print bed, half above.
+        // The sphere has the same volume as the box above.
+        mesh = make_sphere(0.62 * side, PI / 18);
+    else if (type_name == "Slab")
+        // Sitting on the print bed, left front front corner at (0, 0).
+        mesh = make_cube(instance_bb.size().x()*1.5, instance_bb.size().y()*1.5, instance_bb.size().z()*0.5);
     mesh.repair();
     
-    auto new_volume = (*m_objects)[obj_idx]->add_volume(mesh);
+	// Mesh will be centered when loading.
+    ModelVolume *new_volume = model_object.add_volume(std::move(mesh));
     new_volume->set_type(type);
 
 #if !ENABLE_GENERIC_SUBPARTS_PLACEMENT
-    new_volume->set_offset(Vec3d(0.0, 0.0, (*m_objects)[obj_idx]->origin_translation(2) - mesh.stl.stats.min(2)));
+    new_volume->set_offset(Vec3d(0.0, 0.0, model_object.origin_translation(2) - mesh.stl.stats.min(2)));
 #endif // !ENABLE_GENERIC_SUBPARTS_PLACEMENT
 #if !ENABLE_VOLUMES_CENTERING_FIXES
     new_volume->center_geometry();
 #endif // !ENABLE_VOLUMES_CENTERING_FIXES
 
 #if ENABLE_GENERIC_SUBPARTS_PLACEMENT
-    const GLCanvas3D::Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
-    int instance_idx = selection.get_instance_idx();
     if (instance_idx != -1)
     {
+        // First (any) GLVolume of the selected instance. They all share the same instance matrix.
         const GLVolume* v = selection.get_volume(*selection.get_volume_idxs().begin());
-        const Transform3d& inst_m = v->get_instance_transformation().get_matrix(true);
-        TriangleMesh vol_mesh(mesh);
-        vol_mesh.transform(inst_m);
-        Vec3d vol_shift = -vol_mesh.bounding_box().center();
-        vol_mesh.translate((float)vol_shift(0), (float)vol_shift(1), (float)vol_shift(2));
-        Vec3d world_mesh_bb_size = vol_mesh.bounding_box().size();
-        BoundingBoxf3 inst_bb = (*m_objects)[obj_idx]->instance_bounding_box(instance_idx);
-        Vec3d world_target = Vec3d(inst_bb.max(0), inst_bb.min(1), inst_bb.min(2)) + 0.5 * world_mesh_bb_size;
-        new_volume->set_offset(inst_m.inverse() * (world_target - v->get_instance_offset()));
+        // Transform the new modifier to be aligned with the print bed.
+		const BoundingBoxf3 mesh_bb = new_volume->mesh.bounding_box();
+		new_volume->set_transformation(volume_to_bed_transformation(v->get_instance_transformation(), mesh_bb));
+        // Set the modifier position.
+        auto offset = (type_name == "Slab") ?
+            // Slab: Lift to print bed
+			Vec3d(0., 0., 0.5 * mesh_bb.size().z() + instance_bb.min.z() - v->get_instance_offset().z()) :
+            // Translate the new modifier to be pickable: move to the left front corner of the instance's bounding box, lift to print bed.
+            Vec3d(instance_bb.max(0), instance_bb.min(1), instance_bb.min(2)) + 0.5 * mesh_bb.size() - v->get_instance_offset();
+        new_volume->set_offset(v->get_instance_transformation().get_matrix(true).inverse() * offset);
     }
 #endif // ENABLE_GENERIC_SUBPARTS_PLACEMENT
 
@@ -2048,14 +2140,28 @@ bool ObjectList::has_multi_part_objects()
 
 void ObjectList::update_settings_items()
 {
+    m_prevent_canvas_selection_update = true;
+    wxDataViewItemArray sel;
+    GetSelections(sel); // stash selection
+
     wxDataViewItemArray items;
     m_objects_model->GetChildren(wxDataViewItem(0), items);
 
     for (auto& item : items) {        
         const wxDataViewItem& settings_item = m_objects_model->GetSettingsItem(item);
         select_item(settings_item ? settings_item : m_objects_model->AddSettingsChild(item));
+
+        // If settings item was deleted from the list, 
+        // it's need to be deleted from selection array, if it was there
+        if (settings_item != m_objects_model->GetSettingsItem(item) && 
+            sel.Index(settings_item) != wxNOT_FOUND) {
+            sel.Remove(settings_item);
+        }
     }
-    UnselectAll();
+
+    // restore selection:
+    SetSelections(sel);
+    m_prevent_canvas_selection_update = false;
 }
 
 void ObjectList::update_object_menu()

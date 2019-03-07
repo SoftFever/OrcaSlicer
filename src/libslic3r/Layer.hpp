@@ -63,7 +63,12 @@ public:
     void    prepare_fill_surfaces();
     void    make_perimeters(const SurfaceCollection &slices, SurfaceCollection* fill_surfaces);
     void    process_external_surfaces(const Layer* lower_layer);
-    double infill_area_threshold() const;
+    double  infill_area_threshold() const;
+    // Trim surfaces by trimming polygons. Used by the elephant foot compensation at the 1st layer.
+    void    trim_surfaces(const Polygons &trimming_polygons);
+    // Single elephant foot compensation step, used by the elephant foor compensation at the 1st layer.
+    // Trim surfaces by trimming polygons (shrunk by an elephant foot compensation step), but don't shrink narrow parts so much that no perimeter would fit.
+    void    elephant_foot_compensation_step(const float elephant_foot_compensation_perimeter_step, const Polygons &trimming_polygons);
 
     void    export_region_slices_to_svg(const char *path) const;
     void    export_region_fill_surfaces_to_svg(const char *path) const;
@@ -117,7 +122,10 @@ public:
     // Test whether whether there are any slices assigned to this layer.
     bool                    empty() const;    
     void                    make_slices();
+    // Merge typed slices into untyped slices. This method is used to revert the effects of detect_surfaces_type() called for posPrepareInfill.
     void                    merge_slices();
+    // Slices merged into islands, to be used by the elephant foot compensation to trim the individual surfaces with the shrunk merged slices.
+    ExPolygons              merged(float offset) const;
     template <class T> bool any_internal_region_slice_contains(const T &item) const {
         for (const LayerRegion *layerm : m_regions) if (layerm->slices.any_internal_contains(item)) return true;
         return false;

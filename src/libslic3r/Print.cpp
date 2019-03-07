@@ -523,6 +523,9 @@ exit_for_rearrange_regions:
         invalidated = true;
     }
 
+    for (PrintObject *object : m_objects)
+        object->update_slicing_parameters();
+
     return invalidated;
 }
 
@@ -1098,6 +1101,12 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
         }
     }
 
+    // Update SlicingParameters for each object where the SlicingParameters is not valid.
+    // If it is not valid, then it is ensured that PrintObject.m_slicing_params is not in use
+    // (posSlicing and posSupportMaterial was invalidated).
+    for (PrintObject *object : m_objects)
+        object->update_slicing_parameters();
+
 #ifdef _DEBUG
     check_model_ids_equal(m_model, model);
 #endif /* _DEBUG */
@@ -1202,13 +1211,13 @@ std::string Print::validate() const
                     break;
                 }
             }
-            SlicingParameters slicing_params0    = m_objects.front()->slicing_parameters();
+            const SlicingParameters &slicing_params0 = m_objects.front()->slicing_parameters();
             size_t            tallest_object_idx = 0;
             if (has_custom_layering)
                 PrintObject::update_layer_height_profile(*m_objects.front()->model_object(), slicing_params0, layer_height_profiles.front());
             for (size_t i = 1; i < m_objects.size(); ++ i) {
-                const PrintObject      *object         = m_objects[i];
-                const SlicingParameters slicing_params = object->slicing_parameters();
+                const PrintObject       *object         = m_objects[i];
+                const SlicingParameters &slicing_params = object->slicing_parameters();
                 if (std::abs(slicing_params.first_print_layer_height - slicing_params0.first_print_layer_height) > EPSILON ||
                     std::abs(slicing_params.layer_height             - slicing_params0.layer_height            ) > EPSILON)
                     return L("The Wipe Tower is only supported for multiple objects if they have equal layer heigths");

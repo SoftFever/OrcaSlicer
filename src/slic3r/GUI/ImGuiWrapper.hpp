@@ -42,6 +42,8 @@ public:
     bool update_mouse_data(wxMouseEvent &evt);
     bool update_key_data(wxKeyEvent &evt);
 
+    float get_style_scaling() const { return m_style_scaling; }
+
     void new_frame();
     void render();
 
@@ -57,8 +59,10 @@ public:
     bool input_double(const std::string &label, const double &value, const std::string &format = "%.3f");
     bool input_vec3(const std::string &label, const Vec3d &value, float width, const std::string &format = "%.3f");
     bool checkbox(const wxString &label, bool &value);
+    void text(const char *label);
+    void text(const std::string &label);
     void text(const wxString &label);
-    bool combo(const wxString& label, const std::vector<wxString>& options, wxString& current_selection);
+    bool combo(const wxString& label, const std::vector<std::string>& options, int& selection);   // Use -1 to not mark any option as selected
 
     void disabled_begin(bool disabled);
     void disabled_end();

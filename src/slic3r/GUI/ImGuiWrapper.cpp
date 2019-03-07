@@ -239,32 +239,44 @@ bool ImGuiWrapper::checkbox(const wxString &label, bool &value)
     return ImGui::Checkbox(label_utf8.c_str(), &value);
 }
 
-void ImGuiWrapper::text(const wxString &label)
+void ImGuiWrapper::text(const char *label)
 {
-    auto label_utf8 = into_u8(label);
-    ImGui::Text(label_utf8.c_str(), NULL);
+    ImGui::Text(label, NULL);
 }
 
-
-bool ImGuiWrapper::combo(const wxString& label, const std::vector<wxString>& options, wxString& selection)
+void ImGuiWrapper::text(const std::string &label)
 {
-    std::string selection_u8 = into_u8(selection);
+    this->text(label.c_str());
+}
 
+void ImGuiWrapper::text(const wxString &label)
+{
+    this->text(into_u8(label).c_str());
+}
+
+bool ImGuiWrapper::combo(const wxString& label, const std::vector<std::string>& options, int& selection)
+{
     // this is to force the label to the left of the widget:
     text(label);
     ImGui::SameLine();
-    
-    if (ImGui::BeginCombo("", selection_u8.c_str())) {
-        for (const wxString& option : options) {
-            std::string option_u8 = into_u8(option);
-            bool is_selected = (selection_u8.empty()) ? false : (option_u8 == selection_u8);
-            if (ImGui::Selectable(option_u8.c_str(), is_selected))
-                selection = option_u8;
+
+    int selection_out = -1;
+    bool res = false;
+
+    const char *selection_str = selection < options.size() ? options[selection].c_str() : "";
+    if (ImGui::BeginCombo("", selection_str)) {
+        for (int i = 0; i < options.size(); i++) {
+            if (ImGui::Selectable(options[i].c_str(), i == selection)) {
+                selection_out = i;
+            }
         }
+
         ImGui::EndCombo();
-        return true;
+        res = true;
     }
-    return false;
+
+    selection = selection_out;
+    return res;
 }
 
 void ImGuiWrapper::disabled_begin(bool disabled)
@@ -405,8 +417,8 @@ void ImGuiWrapper::init_style()
 
     static const unsigned COL_GREY_DARK = 0x444444ff;
     static const unsigned COL_GREY_LIGHT = 0x666666ff;
-    static const unsigned COL_ORANGE_DARK = 0xba5418ff;
-    static const unsigned COL_ORANGE_LIGHT = 0xff6f22ff;
+    static const unsigned COL_ORANGE_DARK = 0xc16737ff;
+    static const unsigned COL_ORANGE_LIGHT = 0xff7d38ff;
 
     // Generics
     set_color(ImGuiCol_TitleBgActive, COL_ORANGE_DARK);

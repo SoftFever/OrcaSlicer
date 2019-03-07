@@ -74,7 +74,7 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollec
         // Cummulative sum of polygons over all the regions.
         g.lower_slices = &this->layer()->lower_layer->slices;
     
-    g.layer_id              = this->layer()->id();
+    g.layer_id              = (int)this->layer()->id();
     g.ext_perimeter_flow    = this->flow(frExternalPerimeter);
     g.overhang_flow         = this->region()->flow(frPerimeter, -1, true, false, -1, *this->layer()->object());
     g.solid_infill_flow     = this->flow(frSolidInfill);
@@ -383,6 +383,28 @@ double LayerRegion::infill_area_threshold() const
 {
     double ss = this->flow(frSolidInfill).scaled_spacing();
     return ss*ss;
+}
+
+void LayerRegion::trim_surfaces(const Polygons &trimming_polygons)
+{
+#ifndef NDEBUG
+    for (const Surface &surface : this->slices.surfaces)
+        assert(surface.surface_type == stInternal);
+#endif /* NDEBUG */
+	this->slices.set(intersection_ex(to_polygons(std::move(this->slices.surfaces)), trimming_polygons, false), stInternal);
+}
+
+void LayerRegion::elephant_foot_compensation_step(const float elephant_foot_compensation_perimeter_step, const Polygons &trimming_polygons)
+{
+#ifndef NDEBUG
+    for (const Surface &surface : this->slices.surfaces)
+        assert(surface.surface_type == stInternal);
+#endif /* NDEBUG */
+    ExPolygons slices_expolygons = to_expolygons(std::move(this->slices.surfaces));
+    Polygons   slices_polygons   = to_polygons(slices_expolygons);
+    Polygons   tmp               = intersection(slices_polygons, trimming_polygons, false);
+    append(tmp, diff(slices_polygons, offset(offset_ex(slices_expolygons, -elephant_foot_compensation_perimeter_step), elephant_foot_compensation_perimeter_step)));
+    this->slices.set(std::move(union_ex(tmp)), stInternal);
 }
 
 void LayerRegion::export_region_slices_to_svg(const char *path) const

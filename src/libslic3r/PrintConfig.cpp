@@ -59,6 +59,41 @@ void PrintConfigDef::init_common_params()
     def->cli = "max-print-height=f";
     def->mode = comAdvanced;
     def->default_value = new ConfigOptionFloat(200.0);
+
+    def = this->add("slice_closing_radius", coFloat);
+    def->label = L("Slice gap closing radius");
+    def->category = L("Advanced");
+    def->tooltip = L("Cracks smaller than 2x gap closing radius are being filled during the triangle mesh slicing. "
+                     "The gap closing operation may reduce the final print resolution, therefore it is advisable to keep the value reasonably low.");
+    def->sidetext = L("mm");
+    def->cli = "slice-closing-radius=f";
+    def->min = 0;
+	def->mode = comAdvanced;
+	def->default_value = new ConfigOptionFloat(0.049);
+
+    def = this->add("print_host", coString);
+    def->label = L("Hostname, IP or URL");
+    def->tooltip = L("Slic3r can upload G-code files to a printer host. This field should contain "
+                   "the hostname, IP address or URL of the printer host instance.");
+    def->cli = "print-host=s";
+    def->mode = comAdvanced;
+    def->default_value = new ConfigOptionString("");
+
+    def = this->add("printhost_apikey", coString);
+    def->label = L("API Key / Password");
+    def->tooltip = L("Slic3r can upload G-code files to a printer host. This field should contain "
+                   "the API Key or the password required for authentication.");
+    def->cli = "printhost-apikey=s";
+    def->mode = comAdvanced;
+    def->default_value = new ConfigOptionString("");
+    
+    def = this->add("printhost_cafile", coString);
+    def->label = "HTTPS CA File";
+    def->tooltip = "Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. "
+                   "If left blank, the default OS CA certificate repository is used.";
+    def->cli = "printhost-cafile=s";
+    def->mode = comAdvanced;
+    def->default_value = new ConfigOptionString("");
 }
 
 void PrintConfigDef::init_fff_params()
@@ -1319,30 +1354,6 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back("Duet");
     def->mode = comAdvanced;
     def->default_value = new ConfigOptionEnum<PrintHostType>(htOctoPrint);
-
-    def = this->add("printhost_apikey", coString);
-    def->label = L("API Key / Password");
-    def->tooltip = L("Slic3r can upload G-code files to a printer host. This field should contain "
-                   "the API Key or the password required for authentication.");
-    def->cli = "printhost-apikey=s";
-    def->mode = comAdvanced;
-    def->default_value = new ConfigOptionString("");
-    
-    def = this->add("printhost_cafile", coString);
-    def->label = "HTTPS CA File";
-    def->tooltip = "Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. "
-                   "If left blank, the default OS CA certificate repository is used.";
-    def->cli = "printhost-cafile=s";
-    def->mode = comAdvanced;
-    def->default_value = new ConfigOptionString("");
-
-    def = this->add("print_host", coString);
-    def->label = L("Hostname, IP or URL");
-    def->tooltip = L("Slic3r can upload G-code files to a printer host. This field should contain "
-                   "the hostname, IP address or URL of the printer host instance.");
-    def->cli = "print-host=s";
-    def->mode = comAdvanced;
-    def->default_value = new ConfigOptionString("");
 
     def = this->add("only_retract_when_crossing_perimeters", coBool);
     def->label = L("Only retract when crossing perimeters");

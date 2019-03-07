@@ -87,8 +87,10 @@ protected:
     int m_group_id;
     EState m_state;
     int m_shortcut_key;
-    // textures are assumed to be square and all with the same size in pixels, no internal check is done
-    GLTexture m_textures[Num_States];
+#if ENABLE_SVG_ICONS
+    std::string m_icon_filename;
+#endif // ENABLE_SVG_ICONS
+    unsigned int m_sprite_id;
     int m_hover_id;
     bool m_dragging;
     float m_base_color[3];
@@ -100,7 +102,11 @@ protected:
 #endif // ENABLE_IMGUI
 
 public:
-    explicit GLGizmoBase(GLCanvas3D& parent);
+#if ENABLE_SVG_ICONS
+    GLGizmoBase(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
+#else
+    GLGizmoBase(GLCanvas3D& parent, unsigned int sprite_id);
+#endif // ENABLE_SVG_ICONS
     virtual ~GLGizmoBase() {}
 
     bool init() { return on_init(); }
@@ -116,11 +122,14 @@ public:
     int get_shortcut_key() const { return m_shortcut_key; }
     void set_shortcut_key(int key) { m_shortcut_key = key; }
 
+#if ENABLE_SVG_ICONS
+    const std::string& get_icon_filename() const { return m_icon_filename; }
+#endif // ENABLE_SVG_ICONS
+
     bool is_activable(const GLCanvas3D::Selection& selection) const { return on_is_activable(selection); }
     bool is_selectable() const { return on_is_selectable(); }
 
-    unsigned int get_texture_id() const { return m_textures[m_state].get_id(); }
-    int get_textures_size() const { return m_textures[Off].get_width(); }
+    unsigned int get_sprite_id() const { return m_sprite_id; }
 
     int get_hover_id() const { return m_hover_id; }
     void set_hover_id(int id);
@@ -144,7 +153,7 @@ public:
 #endif // not ENABLE_IMGUI
 
 #if ENABLE_IMGUI
-    void render_input_window(float x, float y, const GLCanvas3D::Selection& selection) { on_render_input_window(x, y, selection); }
+    void render_input_window(float x, float y, float bottom_limit, const GLCanvas3D::Selection& selection) { on_render_input_window(x, y, bottom_limit, selection); }
 #endif // ENABLE_IMGUI
 
 protected:
@@ -163,7 +172,7 @@ protected:
     virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const = 0;
 
 #if ENABLE_IMGUI
-    virtual void on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection) {}
+    virtual void on_render_input_window(float x, float y, float bottom_limit, const GLCanvas3D::Selection& selection) {}
 #endif // ENABLE_IMGUI
 
     float picking_color_component(unsigned int id) const;
@@ -244,7 +253,11 @@ class GLGizmoRotate3D : public GLGizmoBase
     std::vector<GLGizmoRotate> m_gizmos;
 
 public:
-    explicit GLGizmoRotate3D(GLCanvas3D& parent);
+#if ENABLE_SVG_ICONS
+    GLGizmoRotate3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
+#else
+    GLGizmoRotate3D(GLCanvas3D& parent, unsigned int sprite_id);
+#endif // ENABLE_SVG_ICONS
 
     Vec3d get_rotation() const { return Vec3d(m_gizmos[X].get_angle(), m_gizmos[Y].get_angle(), m_gizmos[Z].get_angle()); }
     void set_rotation(const Vec3d& rotation) { m_gizmos[X].set_angle(rotation(0)); m_gizmos[Y].set_angle(rotation(1)); m_gizmos[Z].set_angle(rotation(2)); }
@@ -296,7 +309,7 @@ protected:
     }
 
 #if ENABLE_IMGUI
-    virtual void on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection);
+    virtual void on_render_input_window(float x, float y, float bottom_limit, const GLCanvas3D::Selection& selection);
 #endif // ENABLE_IMGUI
 };
 
@@ -315,7 +328,11 @@ class GLGizmoScale3D : public GLGizmoBase
     BoundingBoxf3 m_starting_box;
 
 public:
-    explicit GLGizmoScale3D(GLCanvas3D& parent);
+#if ENABLE_SVG_ICONS
+    GLGizmoScale3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
+#else
+    GLGizmoScale3D(GLCanvas3D& parent, unsigned int sprite_id);
+#endif // ENABLE_SVG_ICONS
 
     double get_snap_step(double step) const { return m_snap_step; }
     void set_snap_step(double step) { m_snap_step = step; }
@@ -333,7 +350,7 @@ protected:
     virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const;
 
 #if ENABLE_IMGUI
-    virtual void on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection);
+    virtual void on_render_input_window(float x, float y, float bottom_limit, const GLCanvas3D::Selection& selection);
 #endif // ENABLE_IMGUI
 
 private:
@@ -362,7 +379,11 @@ class GLGizmoMove3D : public GLGizmoBase
     GLUquadricObj* m_quadric;
 
 public:
-    explicit GLGizmoMove3D(GLCanvas3D& parent);
+#if ENABLE_SVG_ICONS
+    GLGizmoMove3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
+#else
+    GLGizmoMove3D(GLCanvas3D& parent, unsigned int sprite_id);
+#endif // ENABLE_SVG_ICONS
     virtual ~GLGizmoMove3D();
 
     double get_snap_step(double step) const { return m_snap_step; }
@@ -380,7 +401,7 @@ protected:
     virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const;
 
 #if ENABLE_IMGUI
-    virtual void on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection);
+    virtual void on_render_input_window(float x, float y, float bottom_limit, const GLCanvas3D::Selection& selection);
 #endif // ENABLE_IMGUI
 
 private:
@@ -417,7 +438,11 @@ private:
     bool is_plane_update_necessary() const;
 
 public:
-    explicit GLGizmoFlatten(GLCanvas3D& parent);
+#if ENABLE_SVG_ICONS
+    GLGizmoFlatten(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
+#else
+    GLGizmoFlatten(GLCanvas3D& parent, unsigned int sprite_id);
+#endif // ENABLE_SVG_ICONS
 
     void set_flattening_data(const ModelObject* model_object);
     Vec3d get_flattening_normal() const;
@@ -437,7 +462,7 @@ protected:
     }
 };
 
-
+#define SLAGIZMO_IMGUI_MODAL 0
 
 class GLGizmoSlaSupports : public GLGizmoBase
 {
@@ -465,11 +490,15 @@ private:
     mutable Vec3d m_starting_center;
 
 public:
-    explicit GLGizmoSlaSupports(GLCanvas3D& parent);
+#if ENABLE_SVG_ICONS
+    GLGizmoSlaSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
+#else
+    GLGizmoSlaSupports(GLCanvas3D& parent, unsigned int sprite_id);
+#endif // ENABLE_SVG_ICONS
     virtual ~GLGizmoSlaSupports();
     void set_sla_support_data(ModelObject* model_object, const GLCanvas3D::Selection& selection);
     bool mouse_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down);
-    void delete_selected_points();
+    void delete_selected_points(bool force = false);
 
 private:
     bool on_init();
@@ -489,23 +518,25 @@ private:
 #endif // not ENABLE_IMGUI
 
     bool m_lock_unique_islands = false;
-    bool m_editing_mode = false;
-    bool m_old_editing_state = false;
-    float m_new_point_head_diameter = 0.4f;
-    double m_minimal_point_distance = 20.;
-    double m_density = 100.;
+    bool m_editing_mode = false;            // Is editing mode active?
+    bool m_old_editing_state = false;       // To keep track of whether the user toggled between the modes (needed for imgui refreshes).
+    float m_new_point_head_diameter = 0.4f; // Size of a new point.
+    float m_minimal_point_distance = 20.f;
+    float m_density = 100.f;
     std::vector<std::pair<sla::SupportPoint, bool>> m_editing_mode_cache; // a support point and whether it is currently selected
 
     bool m_selection_rectangle_active = false;
     Vec2d m_selection_rectangle_start_corner;
     Vec2d m_selection_rectangle_end_corner;
     bool m_ignore_up_event = false;
-    bool m_combo_box_open = false;
-    bool m_unsaved_changes = false;
+    bool m_combo_box_open = false;  // To ensure proper rendering of the imgui combobox.
+    bool m_unsaved_changes = false; // Are there unsaved changes in manual mode?
     bool m_selection_empty = true;
     EState m_old_state = Off; // to be able to see that the gizmo has just been closed (see on_set_state)
     int m_canvas_width;
     int m_canvas_height;
+
+    std::vector<ConfigOption*> get_config_options(const std::vector<std::string>& keys) const;
 
     // Methods that do the model_object and editing cache synchronization,
     // editing mode selection, etc:
@@ -526,7 +557,7 @@ protected:
     void on_start_dragging(const GLCanvas3D::Selection& selection) override;
 
 #if ENABLE_IMGUI
-    virtual void on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection) override;
+    virtual void on_render_input_window(float x, float y, float bottom_limit, const GLCanvas3D::Selection& selection) override;
 #endif // ENABLE_IMGUI
 
     virtual std::string on_get_name() const;
@@ -558,7 +589,11 @@ class GLGizmoCut : public GLGizmoBase
 #endif // not ENABLE_IMGUI
 
 public:
-    explicit GLGizmoCut(GLCanvas3D& parent);
+#if ENABLE_SVG_ICONS
+    GLGizmoCut(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
+#else
+    GLGizmoCut(GLCanvas3D& parent, unsigned int sprite_id);
+#endif // ENABLE_SVG_ICONS
 
 #if !ENABLE_IMGUI
     virtual void create_external_gizmo_widgets(wxWindow *parent);
@@ -577,7 +612,7 @@ protected:
     virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const;
 
 #if ENABLE_IMGUI
-    virtual void on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection);
+    virtual void on_render_input_window(float x, float y, float bottom_limit, const GLCanvas3D::Selection& selection);
 #endif // ENABLE_IMGUI
 private:
     void update_max_z(const GLCanvas3D::Selection& selection) const;

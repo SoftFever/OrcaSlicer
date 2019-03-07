@@ -1004,7 +1004,7 @@ ConfigWizard::ConfigWizard(wxWindow *parent, RunReason reason)
     p->btn_prev = new wxButton(this, wxID_ANY, _(L("< &Back")));
     p->btn_next = new wxButton(this, wxID_ANY, _(L("&Next >")));
     p->btn_finish = new wxButton(this, wxID_APPLY, _(L("&Finish")));
-    p->btn_cancel = new wxButton(this, wxID_CANCEL);
+    p->btn_cancel = new wxButton(this, wxID_CANCEL, _(L("Cancel")));   // Note: The label needs to be present, otherwise we get accelerator bugs on Mac
     p->btnsizer->AddStretchSpacer();
     p->btnsizer->Add(p->btn_prev, 0, wxLEFT, BTN_SPACING);
     p->btnsizer->Add(p->btn_next, 0, wxLEFT, BTN_SPACING);

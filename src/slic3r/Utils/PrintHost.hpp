@@ -32,12 +32,15 @@ public:
     typedef Http::ProgressFn ProgressFn;
     typedef std::function<void(wxString /* error */)> ErrorFn;
 
+    virtual const char* get_name() const = 0;
+
     virtual bool test(wxString &curl_msg) const = 0;
     virtual wxString get_test_ok_msg () const = 0;
     virtual wxString get_test_failed_msg (wxString &msg) const = 0;
     virtual bool upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn error_fn) const = 0;
     virtual bool has_auto_discovery() const = 0;
     virtual bool can_test() const = 0;
+    virtual bool can_start_print() const = 0;
     virtual std::string get_host() const = 0;
 
     static PrintHost* get_print_host(DynamicPrintConfig *config);

@@ -813,7 +813,7 @@ void Sidebar::show_info_sizer()
     p->object_info->info_materials->SetLabel(wxString::Format("%d", static_cast<int>(model_object->materials_count())));
 
     auto& stats = model_object->volumes.front()->mesh.stl.stats;
-    p->object_info->info_volume->SetLabel(wxString::Format("%.2f", size(0) * size(1) * size(2)));
+    p->object_info->info_volume->SetLabel(wxString::Format("%.2f", stats.volume));
     p->object_info->info_facets->SetLabel(wxString::Format(_(L("%d (%d shells)")), static_cast<int>(model_object->facets_count()), stats.number_of_parts));
 
     int errors = stats.degenerate_facets + stats.edges_fixed + stats.facets_removed +
@@ -1014,8 +1014,8 @@ struct Plater::priv
     Slic3r::GCodePreviewData    gcode_preview_data;
 
     // GUI elements
-    wxSizer* panel_sizer;
-    wxPanel* current_panel;
+    wxSizer* panel_sizer{ nullptr };
+    wxPanel* current_panel{ nullptr };
     std::vector<wxPanel*> panels;
     Sidebar *sidebar;
     Bed3D bed;
@@ -1178,7 +1178,11 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     , sidebar(new Sidebar(q))
     , delayed_scene_refresh(false)
     , project_filename(wxEmptyString)
+#if ENABLE_SVG_ICONS
+    , view_toolbar(GLToolbar::Radio, "View")
+#else
     , view_toolbar(GLToolbar::Radio)
+#endif // ENABLE_SVG_ICONS
 {
     arranging.store(false);
     rotoptimizing.store(false);
@@ -1710,8 +1714,8 @@ void Plater::priv::selection_changed()
     view3D->enable_toolbar_item("delete", can_delete_object());
     view3D->enable_toolbar_item("more", can_increase_instances());
     view3D->enable_toolbar_item("fewer", can_decrease_instances());
-    view3D->enable_toolbar_item("splitobjects", can_split/*_to_objects*/());
-    view3D->enable_toolbar_item("splitvolumes", can_split/*_to_volumes*/());
+    view3D->enable_toolbar_item("splitobjects", can_split());
+    view3D->enable_toolbar_item("splitvolumes", printer_technology == ptFFF && can_split());
 
     // if the selection is not valid to allow for layer editing, we need to turn off the tool if it is running
     bool enable_layer_editing = layers_height_allowed();
@@ -2261,7 +2265,8 @@ void Plater::priv::set_current_panel(wxPanel* panel)
     else if (current_panel == preview)
     {
         this->q->reslice();        
-        preview->reload_print();
+        // keeps current gcode preview, if any
+        preview->reload_print(false, true);
         preview->set_canvas_as_dirty();
         view_toolbar.select_item("Preview");
     }
@@ -2623,11 +2628,11 @@ bool Plater::priv::complit_init_part_menu()
 
 void Plater::priv::init_view_toolbar()
 {
+#if !ENABLE_SVG_ICONS
     ItemsIconsTexture::Metadata icons_data;
     icons_data.filename = "view_toolbar.png";
     icons_data.icon_size = 64;
-    icons_data.icon_border_size = 0;
-    icons_data.icon_gap_size = 0;
+#endif // !ENABLE_SVG_ICONS
 
     BackgroundTexture::Metadata background_data;
     background_data.filename = "toolbar_background.png";
@@ -2636,7 +2641,11 @@ void Plater::priv::init_view_toolbar()
     background_data.right = 16;
     background_data.bottom = 16;
 
+#if ENABLE_SVG_ICONS
+    if (!view_toolbar.init(background_data))
+#else
     if (!view_toolbar.init(icons_data, background_data))
+#endif // ENABLE_SVG_ICONS
         return;
 
     view_toolbar.set_layout_orientation(GLToolbar::Layout::Bottom);
@@ -2646,6 +2655,9 @@ void Plater::priv::init_view_toolbar()
     GLToolbarItem::Data item;
 
     item.name = "3D";
+#if ENABLE_SVG_ICONS
+    item.icon_filename = "editor.svg";
+#endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("3D editor view") + " [" + GUI::shortkey_ctrl_prefix() + "5]";
     item.sprite_id = 0;
     item.action_event = EVT_GLVIEWTOOLBAR_3D;
@@ -2654,6 +2666,9 @@ void Plater::priv::init_view_toolbar()
         return;
 
     item.name = "Preview";
+#if ENABLE_SVG_ICONS
+    item.icon_filename = "preview.svg";
+#endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Preview") + " [" + GUI::shortkey_ctrl_prefix() + "6]";
     item.sprite_id = 1;
     item.action_event = EVT_GLVIEWTOOLBAR_PREVIEW;
@@ -2749,10 +2764,8 @@ void Plater::priv::set_bed_shape(const Pointfs& shape)
 void Plater::priv::update_object_menu()
 {
     sidebar->obj_list()->append_menu_items_add_volume(&object_menu);
-#if ENABLE_MODE_AWARE_TOOLBAR_ITEMS
     if (view3D != nullptr)
         view3D->update_toolbar_items_visibility();
-#endif // ENABLE_MODE_AWARE_TOOLBAR_ITEMS
 }
 
 // Plater / Public
@@ -2972,7 +2985,7 @@ void Plater::export_gcode()
     default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string()));
     auto start_dir = wxGetApp().app_config->get_last_output_dir(default_output_file.parent_path().string());
 
-    wxFileDialog dlg(this, (printer_technology() == ptFFF) ? _(L("Save G-code file as:")) : _(L("Save Zip file as:")),
+    wxFileDialog dlg(this, (printer_technology() == ptFFF) ? _(L("Save G-code file as:")) : _(L("Save SL1 file as:")),
         start_dir,
         from_path(default_output_file.filename()),
         GUI::file_wildcards((printer_technology() == ptFFF) ? FT_GCODE : FT_PNGZIP, default_output_file.extension().string()),
@@ -3131,7 +3144,7 @@ void Plater::send_gcode()
     }
     default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string()));
 
-    PrintHostSendDialog dlg(default_output_file);
+    PrintHostSendDialog dlg(default_output_file, upload_job.printhost->can_start_print());
     if (dlg.ShowModal() == wxID_OK) {
         upload_job.upload_data.upload_path = dlg.filename();
         upload_job.upload_data.start_print = dlg.start_print();
@@ -3203,9 +3216,6 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             // update to force bed selection(for texturing)
             bed_shape_changed = true;
             update_scheduled = true;
-        }
-        else if (opt_key == "host_type" && this->p->printer_technology == ptSLA) {
-            p->config->option<ConfigOptionEnum<PrintHostType>>(opt_key)->value = htSL1;
         }
     }
 

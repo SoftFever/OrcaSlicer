@@ -1,3 +1,4 @@
+#include "libslic3r.h"
 #include "GCode.hpp"
 #include "ExtrusionEntity.hpp"
 #include "EdgeGrid.hpp"
@@ -574,6 +575,16 @@ void GCode::_do_export(Print &print, FILE *file)
     // resets analyzer
     m_analyzer.reset();
 
+    // send extruder offset data to analyzer
+    GCodeAnalyzer::ExtruderOffsetsMap extruder_offsets;
+    for (unsigned int extruder_id : print.extruders())
+    {
+        Vec2d offset = print.config().extruder_offset.get_at(extruder_id);
+        if (!offset.isApprox(Vec2d::Zero()))
+            extruder_offsets[extruder_id] = offset;
+    }
+    m_analyzer.set_extruder_offsets(extruder_offsets);
+
     // resets analyzer's tracking data
     m_last_mm3_per_mm = GCodeAnalyzer::Default_mm3_per_mm;
     m_last_width = GCodeAnalyzer::Default_Width;
@@ -843,7 +854,7 @@ void GCode::_do_export(Print &print, FILE *file)
             for (unsigned int extruder_id : print.extruders()) {
                 const Vec2d &extruder_offset = print.config().extruder_offset.get_at(extruder_id);
                 Polygon s(outer_skirt);
-                s.translate(Point::new_scale(- extruder_offset(0), - extruder_offset(1)));
+                s.translate(Point::new_scale(-extruder_offset(0), -extruder_offset(1)));
                 skirts.emplace_back(std::move(s));
             }
             m_ooze_prevention.enable = true;
@@ -2488,6 +2499,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     // adds analyzer tags and updates analyzer's tracking data
     if (m_enable_analyzer)
     {
+        // PrusaMultiMaterial::Writer may generate GCodeAnalyzer::Height_Tag and GCodeAnalyzer::Width_Tag lines without updating m_last_height and m_last_width
+        // so, if the last role was erWipeTower we force export of GCodeAnalyzer::Height_Tag and GCodeAnalyzer::Width_Tag lines
+        bool last_was_wipe_tower = (m_last_analyzer_extrusion_role == erWipeTower);
+
         if (path.role() != m_last_analyzer_extrusion_role)
         {
             m_last_analyzer_extrusion_role = path.role();
@@ -2505,7 +2520,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             gcode += buf;
         }
 
-        if (m_last_width != path.width)
+        if (last_was_wipe_tower || (m_last_width != path.width))
         {
             m_last_width = path.width;
 
@@ -2514,7 +2529,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             gcode += buf;
         }
 
-        if (m_last_height != path.height)
+        if (last_was_wipe_tower || (m_last_height != path.height))
         {
             m_last_height = path.height;
 

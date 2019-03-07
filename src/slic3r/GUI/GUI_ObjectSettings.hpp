@@ -2,6 +2,7 @@
 #define slic3r_GUI_ObjectSettings_hpp_
 
 #include <memory>
+#include <vector>
 #include <wx/panel.h>
 
 class wxBoxSizer;

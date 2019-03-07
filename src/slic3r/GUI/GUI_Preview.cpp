@@ -137,13 +137,11 @@ void View3D::mirror_selection(Axis axis)
         m_canvas->mirror_selection(axis);
 }
 
-#if ENABLE_MODE_AWARE_TOOLBAR_ITEMS
 void View3D::update_toolbar_items_visibility()
 {
     if (m_canvas != nullptr)
         m_canvas->update_toolbar_items_visibility();
 }
-#endif // ENABLE_MODE_AWARE_TOOLBAR_ITEMS
 
 void View3D::enable_toolbar_item(const std::string& name, bool enable)
 {
@@ -191,7 +189,8 @@ void View3D::reload_scene(bool refresh_immediately, bool force_full_scene_refres
 void View3D::render()
 {
     if (m_canvas != nullptr)
-        m_canvas->render();
+        //m_canvas->render();
+        m_canvas->set_as_dirty();
 }
 
 Preview::Preview(wxWindow* parent, DynamicPrintConfig* config, BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, std::function<void()> schedule_background_process_func)
@@ -418,11 +417,14 @@ void Preview::load_print()
         load_print_as_sla();
 }
 
-void Preview::reload_print(bool force)
+void Preview::reload_print(bool force, bool keep_volumes)
 {
-    m_canvas->reset_volumes();
-    m_canvas->reset_legend_texture();
-    m_loaded = false;
+    if (!keep_volumes)
+    {
+        m_canvas->reset_volumes();
+        m_canvas->reset_legend_texture();
+        m_loaded = false;
+    }
 
     if (!IsShown() && !force)
         return;
@@ -563,8 +565,12 @@ void Preview::create_double_slider()
             auto& config = wxGetApp().preset_bundle->project_config;
             ((config.option<ConfigOptionFloats>("colorprint_heights"))->values) = (m_slider->GetTicksValues());
             m_schedule_background_process();
-            bool color_print = !config.option<ConfigOptionFloats>("colorprint_heights")->values.empty();
-            int type = m_choice_view_type->FindString(color_print ? _(L("Color Print")) : _(L("Feature type")) );
+
+            const wxString& choise = !config.option<ConfigOptionFloats>("colorprint_heights")->values.empty() ? _(L("Color Print")) :
+                                      config.option<ConfigOptionFloats>("wiping_volumes_matrix")->values.size() > 1  ? 
+                                      _(L("Tool")) : _(L("Feature type"));
+
+            int type = m_choice_view_type->FindString(choise);
             if (m_choice_view_type->GetSelection() != type) {
                 m_choice_view_type->SetSelection(type);
                 if ((0 <= type) && (type < (int)GCodePreviewData::Extrusion::Num_View_Types))
@@ -637,12 +643,13 @@ void Preview::update_double_slider(const std::vector<double>& layers_z, bool for
 
     const auto& config = wxGetApp().preset_bundle->project_config;
     const std::vector<double> &ticks_from_config = (config.option<ConfigOptionFloats>("colorprint_heights"))->values;
+
     m_slider->SetTicksValues(ticks_from_config);
 
     bool color_print_enable = (wxGetApp().plater()->printer_technology() == ptFFF);
     if (color_print_enable) {
-        const auto& config = wxGetApp().preset_bundle->full_config();
-        if (config.opt<ConfigOptionFloats>("nozzle_diameter")->values.size() > 1) 
+        const DynamicPrintConfig& cfg = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+        if (cfg.opt<ConfigOptionFloats>("nozzle_diameter")->values.size() > 1) 
             color_print_enable = false;
     }
     m_slider->EnableTickManipulation(color_print_enable);

@@ -38,7 +38,7 @@ enum GCodeFlavor {
 };
 
 enum PrintHostType {
-    htOctoPrint, htDuet, htSL1,
+    htOctoPrint, htDuet
 };
 
 enum InfillPattern {
@@ -384,6 +384,7 @@ public:
     ConfigOptionEnum<SeamPosition>  seam_position;
 //    ConfigOptionFloat               seam_preferred_direction;
 //    ConfigOptionFloat               seam_preferred_direction_jitter;
+    ConfigOptionFloat               slice_closing_radius;
     ConfigOptionBool                support_material;
     // Automatic supports (generated based on support_material_threshold).
     ConfigOptionBool                support_material_auto;
@@ -425,6 +426,7 @@ protected:
         OPT_PTR(layer_height);
         OPT_PTR(raft_layers);
         OPT_PTR(seam_position);
+        OPT_PTR(slice_closing_radius);
 //        OPT_PTR(seam_preferred_direction);
 //        OPT_PTR(seam_preferred_direction_jitter);
         OPT_PTR(support_material);
@@ -963,6 +965,8 @@ public:
     //Number of the layers needed for the exposure time fade [3;20]
     ConfigOptionInt  faded_layers /*= 10*/;
 
+    ConfigOptionFloat slice_closing_radius;
+
     // Enabling or disabling support creation
     ConfigOptionBool  supports_enable;
 
@@ -1036,6 +1040,7 @@ protected:
     {
         OPT_PTR(layer_height);
         OPT_PTR(faded_layers);
+        OPT_PTR(slice_closing_radius);
         OPT_PTR(supports_enable);
         OPT_PTR(support_head_front_diameter);
         OPT_PTR(support_head_penetration);

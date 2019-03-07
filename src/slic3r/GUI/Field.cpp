@@ -464,8 +464,14 @@ void SpinCtrl::BUILD() {
 // 		# As a workaround, we get the new value from $event->GetString and store
 // 		# here temporarily so that we can return it from $self->get_value
 		std::string value = e.GetString().utf8_str().data();
-        if (is_matched(value, "^\\-?\\d+$"))
-			tmp_value = std::stoi(value);
+        if (is_matched(value, "^\\-?\\d+$")) {
+            try {
+                tmp_value = std::stoi(value);
+            }
+            catch (const std::exception & /* e */) {
+                tmp_value = -9999;
+            }
+        }
         else tmp_value = -9999;
 #ifdef __WXOSX__
         propagate_value();

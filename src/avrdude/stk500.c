@@ -669,11 +669,15 @@ static int stk500_open(PROGRAMMER * pgm, char * port)
 
   // MIB510 init
   if (strcmp(ldata(lfirst(pgm->id)), "mib510") == 0 &&
-      mib510_isp(pgm, 1) != 0)
+      mib510_isp(pgm, 1) != 0) {
+    serial_close(&pgm->fd);
     return -1;
+  }
 
-  if (stk500_getsync(pgm) < 0)
+  if (stk500_getsync(pgm) < 0) {
+    serial_close(&pgm->fd);
     return -1;
+  }
 
   return 0;
 }
