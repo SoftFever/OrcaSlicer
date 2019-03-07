@@ -12,7 +12,7 @@ There are three new features:
 - _System preset_: These are the presets that come with Slic3r PE installation. They come from a vendor configuration bundle (not individual files like before). They are **read-only** – a user cannot modify them, but may instead create a derived User preset based on a System preset
 - _User preset_: These are regular presets stored in files just like before. Additionally, they may be derived (inherited) from one of the System presets
 
-A derived User preset keeps track of wich settings are inherited from the parent System preset and which are modified by the user. When a system preset is updated (either via installation of a new Slic3r or automatically from the internet), in a User preset the settings that are modified by the user will stay that way, while the ones that are inherited reflect the updated System preset.
+A derived User preset keeps track of which settings are inherited from the parent System preset and which are modified by the user. When a system preset is updated (either via installation of a new Slic3r or automatically from the internet), in a User preset the settings that are modified by the user will stay that way, while the ones that are inherited reflect the updated System preset.
 
 This system ensures that we don't overwrite user's settings when there is an update to the built in presets.
 
@@ -25,9 +25,9 @@ A settings modified in a User preset has an open lock icon:
 
 ![a user setting](setting_user.png)
 
-Clickign the open lock icon restored the system setting.
+Clicking the open lock icon restores the system setting.
 
-Additionaly, any setting that is modified but not yet saved onto disk is represented by orange label and a back-arrow:
+Additionally, any setting that is modified but not yet saved onto disk is represented by orange label and a back-arrow:
 
 ![a modified setting](setting_mod.png)
 
