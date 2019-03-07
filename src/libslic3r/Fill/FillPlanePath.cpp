@@ -15,7 +15,7 @@ void FillPlanePath::_fill_surface_single(
 {
     expolygon.rotate(- direction.first);
 
-    coord_t distance_between_lines = scale_(this->spacing) / params.density;
+	coord_t distance_between_lines = coord_t(scale_(this->spacing) / params.density);
     
     // align infill across layers using the object's bounding box
     // Rotated bounding box of the whole object.
@@ -89,7 +89,8 @@ Pointfs FillArchimedeanChords::_generate(coord_t min_x, coord_t min_y, coord_t m
     out.push_back(Vec2d(0, 0));
     out.push_back(Vec2d(1, 0));
     while (r < rmax) {
-        theta += 1. / r;
+        // Discretization angle to achieve a discretization error lower than RESOLUTION.
+        theta += 2. * acos(1. - RESOLUTION / r);
         r = a + b * theta;
         out.push_back(Vec2d(r * cos(theta), r * sin(theta)));
     }

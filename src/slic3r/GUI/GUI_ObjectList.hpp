@@ -186,6 +186,7 @@ public:
     wxMenuItem*         append_menu_item_instance_to_object(wxMenu* menu);
     void                append_menu_item_rename(wxMenu* menu);
     void                append_menu_item_fix_through_netfabb(wxMenu* menu);
+    void                append_menu_item_export_stl(wxMenu* menu) const ;
     void                create_object_popupmenu(wxMenu *menu);
     void                create_sla_object_popupmenu(wxMenu*menu);
     void                create_part_popupmenu(wxMenu*menu);
