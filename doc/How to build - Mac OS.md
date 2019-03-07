@@ -18,12 +18,12 @@ This will create a dependencies bundle inside the `build/destdir` directory.
 You can also customize the bundle output path using the `-DDESTDIR=<some path>` option passed to `cmake`.
 
 **Warning**: Once the dependency bundle is installed in a destdir, the destdir cannot be moved elsewhere.
-(This is because wxWidgets hardcode the installation path.)
+(This is because wxWidgets hardcodes the installation path.)
 
 
 ### Building Slic3r
 
-If dependencies built without an error, you can proceed to build Slic3r itself.
+If dependencies are built without errors, you can proceed to build Slic3r itself.
 Go back to top level Slic3r sources directory and use these commands:
 
     mkdir build
