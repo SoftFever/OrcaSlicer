@@ -27,7 +27,7 @@
 namespace Slic3r {
 namespace GUI {
 
-View3D::View3D(wxWindow* parent, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)
+    View3D::View3D(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)
     : m_canvas_widget(nullptr)
     , m_canvas(nullptr)
 #if !ENABLE_IMGUI
@@ -37,7 +37,7 @@ View3D::View3D(wxWindow* parent, Model* model, DynamicPrintConfig* config, Backg
     , m_config(nullptr)
     , m_process(nullptr)
 {
-    init(parent, model, config, process);
+    init(parent, bed, camera, view_toolbar, model, config, process);
 }
 
 View3D::~View3D()
@@ -50,13 +50,13 @@ View3D::~View3D()
     }
 }
 
-bool View3D::init(wxWindow* parent, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)
+bool View3D::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)
 {
     if (!Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 /* disable wxTAB_TRAVERSAL */))
         return false;
 
     m_canvas_widget = GLCanvas3DManager::create_wxglcanvas(this);
-    _3DScene::add_canvas(m_canvas_widget);
+    _3DScene::add_canvas(m_canvas_widget, bed, camera, view_toolbar);
     m_canvas = _3DScene::get_canvas(this->m_canvas_widget);
 
     m_canvas->allow_multisample(GLCanvas3DManager::can_multisample());
@@ -87,24 +87,6 @@ bool View3D::init(wxWindow* parent, Model* model, DynamicPrintConfig* config, Ba
     GetSizer()->SetSizeHints(this);
 
     return true;
-}
-
-void View3D::set_bed(Bed3D* bed)
-{
-    if (m_canvas != nullptr)
-        m_canvas->set_bed(bed);
-}
-
-void View3D::set_camera(Camera* camera)
-{
-    if (m_canvas != nullptr)
-        m_canvas->set_camera(camera);
-}
-
-void View3D::set_view_toolbar(GLToolbar* toolbar)
-{
-    if (m_canvas != nullptr)
-        m_canvas->set_view_toolbar(toolbar);
 }
 
 void View3D::set_as_dirty()
@@ -199,7 +181,7 @@ void View3D::render()
         m_canvas->set_as_dirty();
 }
 
-Preview::Preview(wxWindow* parent, DynamicPrintConfig* config, BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, std::function<void()> schedule_background_process_func)
+Preview::Preview(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, DynamicPrintConfig* config, BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, std::function<void()> schedule_background_process_func)
     : m_canvas_widget(nullptr)
     , m_canvas(nullptr)
     , m_double_slider_sizer(nullptr)
@@ -220,14 +202,14 @@ Preview::Preview(wxWindow* parent, DynamicPrintConfig* config, BackgroundSlicing
     , m_enabled(false)
     , m_schedule_background_process(schedule_background_process_func)
 {
-    if (init(parent, config, process, gcode_preview_data))
+    if (init(parent, bed, camera, view_toolbar, config, process, gcode_preview_data))
     {
         show_hide_ui_elements("none");
         load_print();
     }
 }
 
-bool Preview::init(wxWindow* parent, DynamicPrintConfig* config, BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data)
+bool Preview::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, DynamicPrintConfig* config, BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data)
 {
     if ((config == nullptr) || (process == nullptr) || (gcode_preview_data == nullptr))
         return false;
@@ -236,8 +218,8 @@ bool Preview::init(wxWindow* parent, DynamicPrintConfig* config, BackgroundSlici
         return false;
 
     m_canvas_widget = GLCanvas3DManager::create_wxglcanvas(this);
-	_3DScene::add_canvas(m_canvas_widget);
-	m_canvas = _3DScene::get_canvas(this->m_canvas_widget);
+    _3DScene::add_canvas(m_canvas_widget, bed, camera, view_toolbar);
+    m_canvas = _3DScene::get_canvas(this->m_canvas_widget);
     m_canvas->allow_multisample(GLCanvas3DManager::can_multisample());
     m_canvas->set_config(m_config);
     m_canvas->set_process(process);
@@ -346,24 +328,6 @@ Preview::~Preview()
         delete m_canvas_widget;
         m_canvas = nullptr;
     }
-}
-
-void Preview::set_bed(Bed3D* bed)
-{
-    if (m_canvas != nullptr)
-        m_canvas->set_bed(bed);
-}
-
-void Preview::set_camera(Camera* camera)
-{
-    if (m_canvas != nullptr)
-        m_canvas->set_camera(camera);
-}
-
-void Preview::set_view_toolbar(GLToolbar* toolbar)
-{
-    if (m_canvas != nullptr)
-        m_canvas->set_view_toolbar(toolbar);
 }
 
 void Preview::set_number_extruders(unsigned int number_extruders)

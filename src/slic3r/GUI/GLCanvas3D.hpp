@@ -850,14 +850,14 @@ private:
     LegendTexture m_legend_texture;
     WarningTexture m_warning_texture;
     wxTimer m_timer;
-    Camera* m_camera;
-    Bed3D* m_bed;
+    Bed3D& m_bed;
+    Camera& m_camera;
+    GLToolbar& m_view_toolbar;
     LayersEditing m_layers_editing;
     Shader m_shader;
     Mouse m_mouse;
     mutable Gizmos m_gizmos;
     mutable GLToolbar m_toolbar;
-    GLToolbar* m_view_toolbar;
     ClippingPlane m_clipping_planes[2];
     bool m_use_clipping_planes;
     mutable SlaCap m_sla_caps[2];
@@ -898,18 +898,13 @@ private:
 #endif // not ENABLE_IMGUI
 
 public:
-    GLCanvas3D(wxGLCanvas* canvas);
+    GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar);
     ~GLCanvas3D();
 
     void set_context(wxGLContext* context) { m_context = context; }
 
     wxGLCanvas* get_wxglcanvas() { return m_canvas; }
 	const wxGLCanvas* get_wxglcanvas() const { return m_canvas; }
-
-    void set_camera(Camera* camera) { m_camera = camera; }
-    void set_bed(Bed3D* bed) { m_bed = bed; }
-
-    void set_view_toolbar(GLToolbar* toolbar) { m_view_toolbar = toolbar; }
 
     bool init(bool useVBOs, bool use_legacy_opengl);
     void post_event(wxEvent &&event);

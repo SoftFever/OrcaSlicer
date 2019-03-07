@@ -3153,7 +3153,7 @@ void GLCanvas3D::Gizmos::do_render_overlay(const GLCanvas3D& canvas, const GLCan
         GLTexture::render_sub_texture(icons_texture_id, top_x, top_x + scaled_icons_size, top_y - scaled_icons_size, top_y, { { left, bottom }, { right, bottom }, { right, top }, { left, top } });
 #if ENABLE_IMGUI
         if (it->second->get_state() == GLGizmoBase::On) {
-            float toolbar_top = (float)cnv_h - canvas.m_view_toolbar->get_height();
+            float toolbar_top = (float)cnv_h - canvas.m_view_toolbar.get_height();
 #if ENABLE_SVG_ICONS
             it->second->render_input_window(2.0f * m_overlay_border + m_overlay_icons_size, 0.5f * cnv_h - top_y * zoom, toolbar_top, selection);
 #else
@@ -3673,21 +3673,21 @@ wxDEFINE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_UPDATE_BED_SHAPE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_TAB, SimpleEvent);
 
-GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
+GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar)
     : m_canvas(canvas)
     , m_context(nullptr)
 #if ENABLE_RETINA_GL
     , m_retina_helper(nullptr)
 #endif
     , m_in_render(false)
-    , m_camera(nullptr)
-    , m_bed(nullptr)
+    , m_bed(bed)
+    , m_camera(camera)
+    , m_view_toolbar(view_toolbar)
 #if ENABLE_SVG_ICONS
     , m_toolbar(GLToolbar::Normal, "Top")
 #else
     , m_toolbar(GLToolbar::Normal)
 #endif // ENABLE_SVG_ICONS
-    , m_view_toolbar(nullptr)
     , m_use_clipping_planes(false)
     , m_sidebar_field("")
     , m_config(nullptr)
@@ -3909,12 +3909,8 @@ void GLCanvas3D::set_model(Model* model)
 
 void GLCanvas3D::bed_shape_changed()
 {
-    if (m_camera != nullptr)
-    {
-        m_camera->set_scene_box(scene_bounding_box());
-        m_camera->requires_zoom_to_bed = true;
-    }
-
+    m_camera.set_scene_box(scene_bounding_box());
+    m_camera.requires_zoom_to_bed = true;
     m_dirty = true;
 }
 
@@ -3925,7 +3921,7 @@ void GLCanvas3D::set_color_by(const std::string& value)
 
 float GLCanvas3D::get_camera_zoom() const
 {
-    return (m_camera != nullptr) ? m_camera->zoom : 0.0f;
+    return m_camera.zoom;
 }
 
 BoundingBoxf3 GLCanvas3D::volumes_bounding_box() const
@@ -3942,8 +3938,7 @@ BoundingBoxf3 GLCanvas3D::volumes_bounding_box() const
 BoundingBoxf3 GLCanvas3D::scene_bounding_box() const
 {
     BoundingBoxf3 bb = volumes_bounding_box();
-    if (m_bed != nullptr)
-        bb.merge(m_bed->get_bounding_box());
+    bb.merge(m_bed.get_bounding_box());
 
     if (m_config != nullptr)
     {
@@ -4032,8 +4027,7 @@ bool GLCanvas3D::is_toolbar_item_pressed(const std::string& name) const
 
 void GLCanvas3D::zoom_to_bed()
 {
-    if (m_bed != nullptr)
-        _zoom_to_bounding_box(m_bed->get_bounding_box());
+    _zoom_to_bounding_box(m_bed.get_bounding_box());
 }
 
 void GLCanvas3D::zoom_to_volumes()
@@ -4070,12 +4064,8 @@ void GLCanvas3D::select_view(const std::string& direction)
 
     if (dir_vec != nullptr)
     {
-        if (m_camera != nullptr)
-        {
-            m_camera->phi = dir_vec[0];
-            m_camera->set_theta(dir_vec[1], false);
-        }
-        
+        m_camera.phi = dir_vec[0];
+        m_camera.set_theta(dir_vec[1], false);
         if (m_canvas != nullptr)
             m_canvas->Refresh();
     }
@@ -4135,18 +4125,16 @@ void GLCanvas3D::render()
     if (!_set_current() || !_3DScene::init(m_canvas))
         return;
 
-    if ((m_bed != nullptr) && m_bed->get_shape().empty())
-    {
+    if (m_bed.get_shape().empty())
         // this happens at startup when no data is still saved under <>\AppData\Roaming\Slic3rPE
         post_event(SimpleEvent(EVT_GLCANVAS_UPDATE_BED_SHAPE));
-    }
 
-    if ((m_camera != nullptr) && m_camera->requires_zoom_to_bed)
+    if (m_camera.requires_zoom_to_bed)
     {
         zoom_to_bed();
         const Size& cnv_size = get_canvas_size();
         _resize((unsigned int)cnv_size.get_width(), (unsigned int)cnv_size.get_height());
-        m_camera->requires_zoom_to_bed = false;
+        m_camera.requires_zoom_to_bed = false;
     }
 
     _camera_tranform();
@@ -4156,12 +4144,10 @@ void GLCanvas3D::render()
     GLfloat position_top[4] = { -0.5f, -0.5f, 1.0f, 0.0f };
     ::glLightfv(GL_LIGHT0, GL_POSITION, position_top);
 
-    float theta = (m_camera != nullptr) ? m_camera->get_theta() : 0.0f;
+    float theta = m_camera.get_theta();
     if (theta > 180.f)
         // absolute value of the rotation
         theta = 360.f - theta;
-
-    bool is_custom_bed = (m_bed == nullptr) || m_bed->is_custom();
 
 #if ENABLE_IMGUI
     wxGetApp().imgui()->new_frame();
@@ -4175,8 +4161,8 @@ void GLCanvas3D::render()
     _render_background();
 
     // textured bed needs to be rendered after objects if the texture is transparent
-    bool early_bed_render = is_custom_bed || (theta <= 90.0f);
-    if (early_bed_render) 
+    bool early_bed_render = m_bed.is_custom() || (theta <= 90.0f);
+    if (early_bed_render)
         _render_bed(theta);
 
     _render_objects();
@@ -4593,8 +4579,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     // restore to default value
     m_regenerate_volumes = true;
 
-    if (m_camera != nullptr)
-        m_camera->set_scene_box(scene_bounding_box());
+    m_camera.set_scene_box(scene_bounding_box());
 
     if (m_selection.is_empty())
     {
@@ -5048,7 +5033,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     m_layers_editing.select_object(*m_model, layer_editing_object_idx);
     bool gizmos_overlay_contains_mouse = m_gizmos.overlay_contains_mouse(*this, m_mouse.position);
     int toolbar_contains_mouse = m_toolbar.contains_mouse(m_mouse.position, *this);
-    int view_toolbar_contains_mouse = (m_view_toolbar != nullptr) ? m_view_toolbar->contains_mouse(m_mouse.position, *this) : -1;
+    int view_toolbar_contains_mouse = m_view_toolbar.contains_mouse(m_mouse.position, *this);
 
 #if ENABLE_MOVE_MIN_THRESHOLD
     if (m_mouse.drag.move_requires_threshold && m_mouse.is_move_start_threshold_position_2D_defined() && m_mouse.is_move_threshold_met(pos))
@@ -5160,10 +5145,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // event was taken care of by the SlaSupports gizmo
         }
         else if (evt.LeftDown() && (view_toolbar_contains_mouse != -1))
-        {
-            if (m_view_toolbar != nullptr)
-                m_view_toolbar->do_action((unsigned int)view_toolbar_contains_mouse, *this);
-        }
+            m_view_toolbar.do_action((unsigned int)view_toolbar_contains_mouse, *this);
         else if (evt.LeftDown() && (toolbar_contains_mouse != -1))
         {
             m_toolbar_action_running = true;
@@ -5281,7 +5263,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // we do not want to translate objects if the user just clicked on an object while pressing shift to remove it from the selection and then drag
             if (m_selection.contains_volume(m_hover_volume_id))
             {
-                if ((m_camera != nullptr) && (m_camera->get_theta() == 90.0f))
+                if (m_camera.get_theta() == 90.0f)
                 {
                     // side view -> move selected volumes orthogonally to camera view direction
                     Linef3 ray = mouse_ray(pos);
@@ -5392,12 +5374,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #endif // ENABLE_MOVE_MIN_THRESHOLD
             {
                 const Vec3d& orig = m_mouse.drag.start_position_3D;
-                if (m_camera != nullptr)
-                {
-                    m_camera->phi += (((float)pos(0) - (float)orig(0)) * TRACKBALLSIZE);
-                    m_camera->set_theta(m_camera->get_theta() - ((float)pos(1) - (float)orig(1)) * TRACKBALLSIZE, wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA);
-                }
-
+                m_camera.phi += (((float)pos(0) - (float)orig(0)) * TRACKBALLSIZE);
+                m_camera.set_theta(m_camera.get_theta() - ((float)pos(1) - (float)orig(1)) * TRACKBALLSIZE, wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA);
                 m_dirty = true;
             }
             m_mouse.drag.start_position_3D = Vec3d((double)pos(0), (double)pos(1), 0.0);
@@ -5411,9 +5389,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 float z = 0.0f;
                 const Vec3d& cur_pos = _mouse_to_3d(pos, &z);
                 Vec3d orig = _mouse_to_3d(m_mouse.drag.start_position_2D, &z);
-                if (m_camera != nullptr)
-                    m_camera->set_target(m_camera->get_target() + orig - cur_pos);
-
+                m_camera.set_target(m_camera.get_target() + orig - cur_pos);
                 m_dirty = true;
             }
             
@@ -5490,7 +5466,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // Let the platter know that the dragging finished, so a delayed refresh
             // of the scene with the background processing data should be performed.
             post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
-            m_camera->set_scene_box(scene_bounding_box());
+            m_camera.set_scene_box(scene_bounding_box());
         }
 
         m_moving = false;
@@ -5520,9 +5496,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             tooltip = m_toolbar.update_hover_state(m_mouse.position, *this);
 
         // updates view toolbar overlay
-        if (tooltip.empty() && (m_view_toolbar != nullptr))
+        if (tooltip.empty())
         {
-            tooltip = m_view_toolbar->update_hover_state(m_mouse.position, *this);    
+            tooltip = m_view_toolbar.update_hover_state(m_mouse.position, *this);
             if (!tooltip.empty())
                 m_dirty = true;
         }
@@ -5835,9 +5811,7 @@ void GLCanvas3D::set_camera_zoom(float zoom)
     // Don't allow to zoom too close to the scene.
     zoom = std::min(zoom, 100.0f);
 
-    if (m_camera != nullptr)
-        m_camera->zoom = zoom;
-
+    m_camera.zoom = zoom;
     _refresh_if_shown_on_screen();
 }
 
@@ -5872,11 +5846,8 @@ void GLCanvas3D::update_ui_from_settings()
     if (new_scaling != orig_scaling) {
         BOOST_LOG_TRIVIAL(debug) << "GLCanvas3D: Scaling factor: " << new_scaling;
 
-        if (m_camera != nullptr)
-        {
-            m_camera->zoom /= orig_scaling;
-            m_camera->zoom *= new_scaling;
-        }
+        m_camera.zoom /= orig_scaling;
+        m_camera.zoom *= new_scaling;
         _refresh_if_shown_on_screen();
     }
 #endif
@@ -6063,8 +6034,7 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
 
     const BoundingBoxf3& bbox = _max_bounding_box();
 
-    Camera::EType camera_type = (m_camera != nullptr) ? m_camera->type : Camera::Unknown;
-    switch (camera_type)
+    switch (m_camera.type)
     {
     case Camera::Ortho:
     {
@@ -6121,8 +6091,7 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
 BoundingBoxf3 GLCanvas3D::_max_bounding_box() const
 {
     BoundingBoxf3 bb = volumes_bounding_box();
-    if (m_bed != nullptr)
-        bb.merge(m_bed->get_bounding_box());
+    bb.merge(m_bed.get_bounding_box());
     return bb;
 }
 
@@ -6132,13 +6101,9 @@ void GLCanvas3D::_zoom_to_bounding_box(const BoundingBoxf3& bbox)
     float zoom = _get_zoom_to_bounding_box_factor(bbox);
     if (zoom > 0.0f)
     {
-        if (m_camera != nullptr)
-        {
-            m_camera->zoom = zoom;
-            // center view around bounding box center
-            m_camera->set_target(bbox.center());
-        }
-
+        m_camera.zoom = zoom;
+        // center view around bounding box center
+        m_camera.set_target(bbox.center());
         m_dirty = true;
     }
 }
@@ -6228,13 +6193,9 @@ void GLCanvas3D::_camera_tranform() const
     ::glMatrixMode(GL_MODELVIEW);
     ::glLoadIdentity();
 
-    Vec3d target = Vec3d::Zero();
-    if (m_camera != nullptr)
-    {
-        ::glRotatef(-m_camera->get_theta(), 1.0f, 0.0f, 0.0f); // pitch
-        ::glRotatef(m_camera->phi, 0.0f, 0.0f, 1.0f);          // yaw
-        target = -m_camera->get_target();
-    }
+    ::glRotatef(-m_camera.get_theta(), 1.0f, 0.0f, 0.0f); // pitch
+    ::glRotatef(m_camera.phi, 0.0f, 0.0f, 1.0f);          // yaw
+    Vec3d target = -m_camera.get_target();
     ::glTranslated(target(0), target(1), target(2));
 }
 
@@ -6329,16 +6290,13 @@ void GLCanvas3D::_render_bed(float theta) const
     float scale_factor = 1.0;
 #if ENABLE_RETINA_GL
     scale_factor = m_retina_helper->get_scale_factor();
-#endif
-
-    if (m_bed != nullptr)
-        m_bed->render(theta, m_use_VBOs, scale_factor);
+#endif // ENABLE_RETINA_GL
+    m_bed.render(theta, m_use_VBOs, scale_factor);
 }
 
 void GLCanvas3D::_render_axes() const
 {
-    if (m_bed != nullptr)
-        m_bed->render_axes();
+    m_bed.render_axes();
 }
 
 void GLCanvas3D::_render_objects() const
@@ -6356,9 +6314,9 @@ void GLCanvas3D::_render_objects() const
             // Update the layer editing selection to the first object selected, update the current object maximum Z.
             const_cast<LayersEditing&>(m_layers_editing).select_object(*m_model, this->is_layers_editing_enabled() ? m_selection.get_object_idx() : -1);
 
-            if ((m_config != nullptr) && (m_bed != nullptr))
+            if (m_config != nullptr)
             {
-                const BoundingBoxf3& bed_bb = m_bed->get_bounding_box();
+                const BoundingBoxf3& bed_bb = m_bed.get_bounding_box();
                 m_volumes.set_print_box((float)bed_bb.min(0), (float)bed_bb.min(1), 0.0f, (float)bed_bb.max(0), (float)bed_bb.max(1), (float)m_config->opt_float("max_print_height"));
                 m_volumes.check_outside_state(m_config, nullptr);
             }
@@ -6540,7 +6498,7 @@ void GLCanvas3D::_render_toolbar() const
         }
         else
         {
-            top = (-0.5f * (float)cnv_size.get_height() + m_view_toolbar->get_height()) * inv_zoom;
+            top = (-0.5f * (float)cnv_size.get_height() + m_view_toolbar.get_height()) * inv_zoom;
             left = -0.5f * m_toolbar.get_width() * inv_zoom;
         }
         break;
@@ -6575,31 +6533,29 @@ void GLCanvas3D::_render_toolbar() const
 
 void GLCanvas3D::_render_view_toolbar() const
 {
-    if (m_view_toolbar != nullptr) {
 #if ENABLE_SVG_ICONS
 #if ENABLE_RETINA_GL
-        m_view_toolbar->set_scale(m_retina_helper->get_scale_factor());
+    m_view_toolbar.set_scale(m_retina_helper->get_scale_factor());
 #else
-        m_view_toolbar->set_scale(m_canvas->GetContentScaleFactor());
+    m_view_toolbar.set_scale(m_canvas->GetContentScaleFactor());
 #endif // ENABLE_RETINA_GL
 
-        Size cnv_size = get_canvas_size();
-        float zoom = get_camera_zoom();
-        float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+    Size cnv_size = get_canvas_size();
+    float zoom = get_camera_zoom();
+    float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
-        // places the toolbar on the bottom-left corner of the 3d scene
-        float top = (-0.5f * (float)cnv_size.get_height() + m_view_toolbar->get_height()) * inv_zoom;
-        float left = -0.5f * (float)cnv_size.get_width() * inv_zoom;
-        m_view_toolbar->set_position(top, left);
+    // places the toolbar on the bottom-left corner of the 3d scene
+    float top = (-0.5f * (float)cnv_size.get_height() + m_view_toolbar.get_height()) * inv_zoom;
+    float left = -0.5f * (float)cnv_size.get_width() * inv_zoom;
+    m_view_toolbar.set_position(top, left);
 #else
 #if ENABLE_RETINA_GL
-        m_view_toolbar->set_icons_scale(m_retina_helper->get_scale_factor());
+    m_view_toolbar.set_icons_scale(m_retina_helper->get_scale_factor());
 #else
-        m_view_toolbar->set_icons_scale(m_canvas->GetContentScaleFactor());
+    m_view_toolbar.set_icons_scale(m_canvas->GetContentScaleFactor());
 #endif /* __WXMSW__ */
 #endif // ENABLE_SVG_ICONS
-        m_view_toolbar->render(*this);
-    }
+    m_view_toolbar.render(*this);
 }
 
 #if ENABLE_SHOW_CAMERA_TARGET
@@ -6611,7 +6567,7 @@ void GLCanvas3D::_render_camera_target() const
 
     ::glLineWidth(2.0f);
     ::glBegin(GL_LINES);
-    Vec3d target = (m_camera != nullptr) ? m_camera->get_target() : Vec3d::Zero();
+    const Vec3d& target = m_camera.get_target();
     // draw line for x axis
     ::glColor3f(1.0f, 0.0f, 0.0f);
     ::glVertex3d(target(0) - half_length, target(1), target(2));
@@ -8115,7 +8071,7 @@ void GLCanvas3D::_resize_toolbars() const
         }
         else
         {
-            top = (-0.5f * (float)cnv_size.get_height() + m_view_toolbar->get_height()) * inv_zoom;
+            top = (-0.5f * (float)cnv_size.get_height() + m_view_toolbar.get_height()) * inv_zoom;
             left = -0.5f * m_toolbar.get_width() * inv_zoom;
         }
         m_toolbar.set_position(top, left);
@@ -8143,15 +8099,15 @@ void GLCanvas3D::_resize_toolbars() const
     if (m_view_toolbar != nullptr)
     {
 #if ENABLE_RETINA_GL
-        m_view_toolbar->set_icons_scale(m_retina_helper->get_scale_factor());
+        m_view_toolbar.set_icons_scale(m_retina_helper->get_scale_factor());
 #else
-        m_view_toolbar->set_icons_scale(m_canvas->GetContentScaleFactor());
+        m_view_toolbar.set_icons_scale(m_canvas->GetContentScaleFactor());
 #endif /* __WXMSW__ */
 
         // places the toolbar on the bottom-left corner of the 3d scene
-        float top = (-0.5f * (float)cnv_size.get_height() + m_view_toolbar->get_height()) * inv_zoom;
+        float top = (-0.5f * (float)cnv_size.get_height() + m_view_toolbar.get_height()) * inv_zoom;
         float left = -0.5f * (float)cnv_size.get_width() * inv_zoom;
-        m_view_toolbar->set_position(top, left);
+        m_view_toolbar.set_position(top, left);
     }
 }
 #endif // !ENABLE_SVG_ICONS

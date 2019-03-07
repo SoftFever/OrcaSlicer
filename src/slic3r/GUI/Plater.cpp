@@ -1203,14 +1203,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     sla_print.set_status_callback(statuscb);
     this->q->Bind(EVT_SLICING_UPDATE, &priv::on_slicing_update, this);
 
-    view3D = new View3D(q, &model, config, &background_process);
-    preview = new Preview(q, config, &background_process, &gcode_preview_data, [this](){ schedule_background_process(); });
-
-    view3D->set_bed(&bed);
-    preview->set_bed(&bed);
-
-    view3D->set_camera(&camera);
-    preview->set_camera(&camera);
+    view3D = new View3D(q, bed, camera, view_toolbar, &model, config, &background_process);
+    preview = new Preview(q, bed, camera, view_toolbar, config, &background_process, &gcode_preview_data, [this](){ schedule_background_process(); });
 
     panels.push_back(view3D);
     panels.push_back(preview);
@@ -2674,9 +2668,6 @@ void Plater::priv::init_view_toolbar()
 
     view_toolbar.select_item("3D");
     view_toolbar.set_enabled(true);
-
-    view3D->set_view_toolbar(&view_toolbar);
-    preview->set_view_toolbar(&view_toolbar);
 }
 
 bool Plater::priv::can_delete_object() const
