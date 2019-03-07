@@ -78,12 +78,12 @@ struct SupportConfig {
     // and the model object's bounding box bottom.
     double object_elevation_mm = 10;
 
-    // The max Z angle for a normal at which it will get completely ignored.
-    static const double normal_cutoff_angle;
-
     // /////////////////////////////////////////////////////////////////////////
     // Compile time configuration values (candidates for runtime)
     // /////////////////////////////////////////////////////////////////////////
+
+    // The max Z angle for a normal at which it will get completely ignored.
+    static const double normal_cutoff_angle;
 
     // The shortest distance of any support structure from the model surface
     static const double safety_distance_mm;
@@ -93,6 +93,7 @@ struct SupportConfig {
     static const double   optimizer_rel_score_diff;
     static const unsigned optimizer_max_iterations;
     static const unsigned pillar_cascade_neighbors;
+    static const unsigned max_bridges_on_pillar;
 };
 
 struct PoolConfig;
