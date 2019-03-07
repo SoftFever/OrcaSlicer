@@ -257,6 +257,7 @@ void Tab::create_preset_tab()
 	// Initialize the DynamicPrintConfig by default keys/values.
 	build();
 	rebuild_page_tree();
+    m_complited = true;
 }
 
 void Tab::load_initial_data()

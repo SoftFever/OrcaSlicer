@@ -204,6 +204,8 @@ protected:
     void                set_type();
 
     int                 m_em_unit;
+    // To avoid actions with no-completed Tab
+    bool                m_complited { false };
 
 public:
 	PresetBundle*		m_preset_bundle;
@@ -226,6 +228,7 @@ public:
 	wxString	title()	 const { return m_title; }
 	std::string	name()	 const { return m_name; }
     Preset::Type type()  const { return m_type; }
+    bool complited()     const { return m_complited; }
     virtual bool supports_printer_technology(const PrinterTechnology tech) = 0;
 
 	void		create_preset_tab();

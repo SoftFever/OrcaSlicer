@@ -352,6 +352,11 @@ public:
 	wxWindow*		window{ nullptr };
 	void			BUILD() override;
 
+    /* Under OSX: wxBitmapComboBox->GetWindowStyle() returns some weard value, 
+     * so let use a flag, which has TRUE value for a control without wxCB_READONLY style
+     */
+    bool            m_is_editable { false };
+
 	void			set_selection();
 	void			set_value(const std::string& value, bool change_event = false);
 	void			set_value(const boost::any& value, bool change_event = false);

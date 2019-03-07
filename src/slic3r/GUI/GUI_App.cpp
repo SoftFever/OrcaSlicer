@@ -506,7 +506,7 @@ Tab* GUI_App::get_tab(Preset::Type type)
 {
     for (Tab* tab: tabs_list)
         if (tab->type() == type)
-            return tab;
+            return tab->complited() ? tab : nullptr; // To avoid actions with no-completed Tab
     return nullptr;
 }
 
