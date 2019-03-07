@@ -5308,14 +5308,18 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                          && m_gizmos.get_current_type() != Gizmos::SlaSupports)  // disable context menu when the gizmo is open
                         {
                             // forces the selection of the volume
-                            if (!m_selection.is_multiple_full_instance())
+                            /** #ys_FIXME_to_delete after testing:
+                              * Next condition allows a multiple instance selection for the context menu,
+                              * which has no reason. So it's commented till next testing
+                              */
+//                             if (!m_selection.is_multiple_full_instance()) // #ys_FIXME_to_delete
                                 m_selection.add(m_hover_volume_id);
                             m_gizmos.update_on_off_state(m_selection);
                             post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
                             _update_gizmos_data();
                             wxGetApp().obj_manipul()->update_settings_value(m_selection);
-//                            // forces a frame render to update the view before the context menu is shown
-//                            render();
+                           // forces a frame render to update the view before the context menu is shown
+                           render();
                             
                             Vec2d logical_pos = pos.cast<double>();
 #if ENABLE_RETINA_GL

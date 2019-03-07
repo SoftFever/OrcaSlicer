@@ -1256,8 +1256,11 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
 
     const GLCanvas3D::Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
     assert(obj_idx == selection.get_object_idx());
-    // Selected instance index in ModelObject. Only valid if there is only one instance selected in the selection.
-    int instance_idx = selection.get_instance_idx();
+
+    /** Any changes of the Object's composition is duplicated for all Object's Instances
+      * So, It's enough to take a bounding box of a first selected Instance and calculate Part(generic_subobject) position
+      */
+    int instance_idx = *selection.get_instance_idxs().begin();
     assert(instance_idx != -1);
     if (instance_idx == -1)
         return;
