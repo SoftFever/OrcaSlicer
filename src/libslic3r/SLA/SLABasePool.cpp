@@ -601,14 +601,16 @@ void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
     const double thickness      = cfg.min_wall_thickness_mm;
     const double wingheight     = cfg.min_wall_height_mm;
     const double fullheight     = wingheight + thickness;
-    const double slope           = cfg.wall_slope;
+    const double slope          = cfg.wall_slope;
     const double wingdist       = wingheight / std::tan(slope);
+    const double bottom_offs    = (thickness + wingheight) / std::tan(slope);
 
     // scaled values
     const coord_t s_thickness   = mm(thickness);
     const coord_t s_eradius     = mm(cfg.edge_radius_mm);
     const coord_t s_safety_dist = 2*s_eradius + coord_t(0.8*s_thickness);
     const coord_t s_wingdist    = mm(wingdist);
+    const coord_t s_bottom_offs = mm(bottom_offs);
 
     auto& thrcl = cfg.throw_on_cancel;
 
@@ -620,7 +622,7 @@ void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
         // Get rid of any holes in the concave hull output.
         concaveh.holes.clear();
 
-        // Here lies the trick that does the smooting only with clipper offset
+        // Here lies the trick that does the smoothing only with clipper offset
         // calls. The offset is configured to round edges. Inner edges will
         // be rounded because we offset twice: ones to get the outer (top) plate
         // and again to get the inner (bottom) plate
@@ -628,10 +630,9 @@ void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
         outer_base.holes.clear();
         offset(outer_base, s_safety_dist + s_wingdist + s_thickness);
 
-
         ExPolygon bottom_poly = outer_base;
         bottom_poly.holes.clear();
-        if(s_wingdist > 0) offset(bottom_poly, -s_wingdist);
+        offset(bottom_poly, -s_bottom_offs);
 
         // Punching a hole in the top plate for the cavity
         ExPolygon top_poly;
@@ -692,7 +693,7 @@ void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
         // Now that we have the rounded edge connecting the top plate with
         // the outer side walls, we can generate and merge the sidewall geometry
         pool.merge(walls(ob.contour, bottom_poly.contour, wh, -fullheight,
-                         wingdist, thrcl));
+                         bottom_offs, thrcl));
 
         if(wingheight > 0) {
             // Generate the smoothed edge geometry
