@@ -2002,9 +2002,9 @@ std::string _3DScene::get_gl_info(bool format_as_html, bool extensions)
     return s_canvas_mgr.get_gl_info(format_as_html, extensions);
 }
 
-bool _3DScene::add_canvas(wxGLCanvas* canvas)
+bool _3DScene::add_canvas(wxGLCanvas* canvas, GUI::Bed3D& bed, GUI::Camera& camera, GUI::GLToolbar& view_toolbar)
 {
-    return s_canvas_mgr.add(canvas);
+    return s_canvas_mgr.add(canvas, bed, camera, view_toolbar);
 }
 
 bool _3DScene::remove_canvas(wxGLCanvas* canvas)

@@ -25,6 +25,11 @@ inline void glAssertRecentCall() { }
 #endif
 
 namespace Slic3r {
+namespace GUI {
+class Bed3D;
+struct Camera;
+class GLToolbar;
+} // namespace GUI
 
 class Print;
 class PrintObject;
@@ -563,7 +568,7 @@ class _3DScene
 public:
     static std::string get_gl_info(bool format_as_html, bool extensions);
 
-    static bool add_canvas(wxGLCanvas* canvas);
+    static bool add_canvas(wxGLCanvas* canvas, GUI::Bed3D& bed, GUI::Camera& camera, GUI::GLToolbar& view_toolbar);
     static bool remove_canvas(wxGLCanvas* canvas);
     static void remove_all_canvases();
 

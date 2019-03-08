@@ -50,6 +50,7 @@
 #include "GLToolbar.hpp"
 #include "GUI_Preview.hpp"
 #include "3DBed.hpp"
+#include "Camera.hpp"
 #include "Tab.hpp"
 #include "PresetBundle.hpp"
 #include "BackgroundSlicingProcess.hpp"
@@ -1019,6 +1020,7 @@ struct Plater::priv
     std::vector<wxPanel*> panels;
     Sidebar *sidebar;
     Bed3D bed;
+    Camera camera;
     View3D* view3D;
     GLToolbar view_toolbar;
     Preview *preview;
@@ -1115,7 +1117,6 @@ struct Plater::priv
     void on_action_layersediting(SimpleEvent&);
 
     void on_object_select(SimpleEvent&);
-    void on_viewport_changed(SimpleEvent&);
     void on_right_click(Vec2dEvent&);
     void on_wipetower_moved(Vec3dEvent&);
     void on_update_geometry(Vec3dsEvent<2>&);
@@ -1202,11 +1203,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     sla_print.set_status_callback(statuscb);
     this->q->Bind(EVT_SLICING_UPDATE, &priv::on_slicing_update, this);
 
-    view3D = new View3D(q, &model, config, &background_process);
-    preview = new Preview(q, config, &background_process, &gcode_preview_data, [this](){ schedule_background_process(); });
-
-    view3D->set_bed(&bed);
-    preview->set_bed(&bed);
+    view3D = new View3D(q, bed, camera, view_toolbar, &model, config, &background_process);
+    preview = new Preview(q, bed, camera, view_toolbar, config, &background_process, &gcode_preview_data, [this](){ schedule_background_process(); });
 
     panels.push_back(view3D);
     panels.push_back(preview);
@@ -1238,7 +1236,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     // 3DScene events:
     view3D_canvas->Bind(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, [this](SimpleEvent&) { this->schedule_background_process(); });
     view3D_canvas->Bind(EVT_GLCANVAS_OBJECT_SELECT, &priv::on_object_select, this);
-    view3D_canvas->Bind(EVT_GLCANVAS_VIEWPORT_CHANGED, &priv::on_viewport_changed, this);
     view3D_canvas->Bind(EVT_GLCANVAS_RIGHT_CLICK, &priv::on_right_click, this);
     view3D_canvas->Bind(EVT_GLCANVAS_REMOVE_OBJECT, [q](SimpleEvent&) { q->remove_selected(); });
     view3D_canvas->Bind(EVT_GLCANVAS_ARRANGE, [this](SimpleEvent&) { arrange(); });
@@ -1268,7 +1265,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     view3D_canvas->Bind(EVT_GLCANVAS_UPDATE_BED_SHAPE, [this](SimpleEvent&) { set_bed_shape(config->option<ConfigOptionPoints>("bed_shape")->values); });
 
     // Preview events:
-    preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_VIEWPORT_CHANGED, &priv::on_viewport_changed, this);
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_QUESTION_MARK, [this](SimpleEvent&) { wxGetApp().keyboard_shortcuts(); });
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_UPDATE_BED_SHAPE, [this](SimpleEvent&) { set_bed_shape(config->option<ConfigOptionPoints>("bed_shape")->values); });
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_TAB, [this](SimpleEvent&) { select_next_view_3D(); });
@@ -2226,6 +2222,10 @@ void Plater::priv::set_current_panel(wxPanel* panel)
     if (std::find(panels.begin(), panels.end(), panel) == panels.end())
         return;
 
+#ifdef __WXMAC__
+    bool force_render = (current_panel != nullptr);
+#endif // __WXMAC__
+
     if (current_panel == panel)
         return;
 
@@ -2234,7 +2234,19 @@ void Plater::priv::set_current_panel(wxPanel* panel)
     for (wxPanel* p : panels)
     {
         if (p == current_panel)
+        {
+#ifdef __WXMAC__
+            // On Mac we need also to force a render to avoid flickering when changing view
+            if (force_render)
+            {
+                if (p == view3D)
+                    dynamic_cast<View3D*>(p)->get_canvas3d()->render();
+                else if (p == preview)
+                    dynamic_cast<Preview*>(p)->get_canvas3d()->render();
+            }
+#endif // __WXMAC__
             p->Show();
+        }
     }
     // then set to invisible the other
     for (wxPanel* p : panels)
@@ -2433,15 +2445,6 @@ void Plater::priv::on_object_select(SimpleEvent& evt)
 {
     wxGetApp().obj_list()->update_selections();
     selection_changed();
-}
-
-void Plater::priv::on_viewport_changed(SimpleEvent& evt)
-{
-    wxObject* o = evt.GetEventObject();
-    if (o == preview->get_wxglcanvas())
-        preview->set_viewport_into_scene(view3D->get_canvas3d());
-    else if (o == view3D->get_wxglcanvas())
-        preview->set_viewport_from_scene(view3D->get_canvas3d());
 }
 
 void Plater::priv::on_right_click(Vec2dEvent& evt)
@@ -2681,9 +2684,6 @@ void Plater::priv::init_view_toolbar()
 
     view_toolbar.select_item("3D");
     view_toolbar.set_enabled(true);
-
-    view3D->set_view_toolbar(&view_toolbar);
-    preview->set_view_toolbar(&view_toolbar);
 }
 
 bool Plater::priv::can_delete_object() const

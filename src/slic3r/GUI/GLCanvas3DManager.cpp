@@ -129,7 +129,7 @@ GLCanvas3DManager::~GLCanvas3DManager()
     }
 }
 
-bool GLCanvas3DManager::add(wxGLCanvas* canvas)
+bool GLCanvas3DManager::add(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar)
 {
     if (canvas == nullptr)
         return false;
@@ -137,7 +137,7 @@ bool GLCanvas3DManager::add(wxGLCanvas* canvas)
     if (_get_canvas(canvas) != m_canvases.end())
         return false;
 
-    GLCanvas3D* canvas3D = new GLCanvas3D(canvas);
+    GLCanvas3D* canvas3D = new GLCanvas3D(canvas, bed, camera, view_toolbar);
     if (canvas3D == nullptr)
         return false;
 

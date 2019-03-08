@@ -28,6 +28,7 @@ namespace GUI {
 class GLCanvas3D;
 class GLToolbar;
 class Bed3D;
+struct Camera;
 
 class View3D : public wxPanel
 {
@@ -43,14 +44,11 @@ class View3D : public wxPanel
     BackgroundSlicingProcess* m_process;
 
 public:
-    View3D(wxWindow* parent, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process);
+    View3D(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process);
     virtual ~View3D();
 
     wxGLCanvas* get_wxglcanvas() { return m_canvas_widget; }
     GLCanvas3D* get_canvas3d() { return m_canvas; }
-
-    void set_bed(Bed3D* bed);
-    void set_view_toolbar(GLToolbar* toolbar);
 
     void set_as_dirty();
     void bed_shape_changed();
@@ -75,7 +73,7 @@ public:
     void render();
 
 private:
-    bool init(wxWindow* parent, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process);
+    bool init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process);
 };
 
 class Preview : public wxPanel
@@ -108,22 +106,17 @@ class Preview : public wxPanel
     PrusaDoubleSlider* m_slider {nullptr};
 
 public:
-    Preview(wxWindow* parent, DynamicPrintConfig* config, BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, std::function<void()> schedule_background_process = [](){});
+    Preview(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, DynamicPrintConfig* config, BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, std::function<void()> schedule_background_process = [](){});
     virtual ~Preview();
 
     wxGLCanvas* get_wxglcanvas() { return m_canvas_widget; }
     GLCanvas3D* get_canvas3d() { return m_canvas; }
-
-    void set_bed(Bed3D* bed);
-    void set_view_toolbar(GLToolbar* toolbar);
 
     void set_number_extruders(unsigned int number_extruders);
     void set_canvas_as_dirty();
     void set_enabled(bool enabled);
     void bed_shape_changed();
     void select_view(const std::string& direction);
-    void set_viewport_from_scene(GLCanvas3D* canvas);
-    void set_viewport_into_scene(GLCanvas3D* canvas);
     void set_drop_target(wxDropTarget* target);
 
     void load_print();
@@ -131,7 +124,7 @@ public:
     void refresh_print();
 
 private:
-    bool init(wxWindow* parent, DynamicPrintConfig* config, BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data);
+    bool init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, DynamicPrintConfig* config, BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data);
 
     void bind_event_handlers();
     void unbind_event_handlers();

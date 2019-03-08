@@ -9,6 +9,7 @@
 #include "GLToolbar.hpp"
 #include "Event.hpp"
 #include "3DBed.hpp"
+#include "Camera.hpp"
 
 #include <float.h>
 
@@ -100,7 +101,6 @@ template <size_t N> using Vec3dsEvent = ArrayEvent<Vec3d, N>;
 
 wxDECLARE_EVENT(EVT_GLCANVAS_INIT, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, SimpleEvent);
-wxDECLARE_EVENT(EVT_GLCANVAS_VIEWPORT_CHANGED, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_RIGHT_CLICK, Vec2dEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_REMOVE_OBJECT, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_ARRANGE, SimpleEvent);
@@ -160,41 +160,6 @@ class GLCanvas3D
         std::vector<FirstVolume> first_volumes;
 
         void reset() { first_volumes.clear(); }
-    };
-
-    struct Camera
-    {
-        enum EType : unsigned char
-        {
-            Unknown,
-//            Perspective,
-            Ortho,
-            Num_types
-        };
-
-        EType type;
-        float zoom;
-        float phi;
-//        float distance;
-
-    private:
-        Vec3d m_target;
-        BoundingBoxf3 m_scene_box;
-        float m_theta;
-
-    public:
-        Camera();
-
-        std::string get_type_as_string() const;
-
-        float get_theta() const { return m_theta; }
-        void set_theta(float theta, bool apply_limit);
-
-        const Vec3d& get_target() const { return m_target; }
-        void set_target(const Vec3d& target, GLCanvas3D& canvas);
-
-        const BoundingBoxf3& get_scene_box() const { return m_scene_box; }
-        void set_scene_box(const BoundingBoxf3& box, GLCanvas3D& canvas);
     };
 
 #if !ENABLE_TEXTURES_FROM_SVG
@@ -885,14 +850,14 @@ private:
     LegendTexture m_legend_texture;
     WarningTexture m_warning_texture;
     wxTimer m_timer;
-    Camera m_camera;
-    Bed3D* m_bed;
+    Bed3D& m_bed;
+    Camera& m_camera;
+    GLToolbar& m_view_toolbar;
     LayersEditing m_layers_editing;
     Shader m_shader;
     Mouse m_mouse;
     mutable Gizmos m_gizmos;
     mutable GLToolbar m_toolbar;
-    GLToolbar* m_view_toolbar;
     ClippingPlane m_clipping_planes[2];
     bool m_use_clipping_planes;
     mutable SlaCap m_sla_caps[2];
@@ -908,7 +873,6 @@ private:
     bool m_dirty;
     bool m_initialized;
     bool m_use_VBOs;
-    bool m_requires_zoom_to_bed;
     bool m_apply_zoom_to_volumes_filter;
     mutable int m_hover_volume_id;
     bool m_toolbar_action_running;
@@ -934,17 +898,13 @@ private:
 #endif // not ENABLE_IMGUI
 
 public:
-    GLCanvas3D(wxGLCanvas* canvas);
+    GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar);
     ~GLCanvas3D();
 
     void set_context(wxGLContext* context) { m_context = context; }
 
     wxGLCanvas* get_wxglcanvas() { return m_canvas; }
 	const wxGLCanvas* get_wxglcanvas() const { return m_canvas; }
-
-    void set_bed(Bed3D* bed) { m_bed = bed; }
-
-    void set_view_toolbar(GLToolbar* toolbar) { m_view_toolbar = toolbar; }
 
     bool init(bool useVBOs, bool use_legacy_opengl);
     void post_event(wxEvent &&event);
@@ -1005,7 +965,6 @@ public:
     void zoom_to_volumes();
     void zoom_to_selection();
     void select_view(const std::string& direction);
-    void set_viewport_from_scene(const GLCanvas3D& other);
 
     void update_volumes_colors_by_extruder();
 
@@ -1069,8 +1028,6 @@ public:
     void set_camera_zoom(float zoom);
 
     void update_gizmos_on_off_state();
-
-    void viewport_changed();
 
     void handle_sidebar_focus_event(const std::string& opt_key, bool focus_on);
 
