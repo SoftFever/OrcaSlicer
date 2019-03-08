@@ -4118,10 +4118,8 @@ void GLCanvas3D::render()
     if (m_canvas == nullptr)
         return;
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//    if (!_is_shown_on_screen())
-//        return;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    if (!_is_shown_on_screen())
+        return;
 
     // ensures this canvas is current and initialized
     if (!_set_current() || !_3DScene::init(m_canvas))
