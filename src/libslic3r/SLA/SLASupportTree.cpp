@@ -1862,17 +1862,16 @@ public:
     }
 
     void cascade_pillars() {
-        // Now comes the algorithm that connects ground pillars with each other.
+        // Now comes the algorithm that connects pillars with each other.
         // Ideally every pillar should be connected with at least one of its
-        // neighbors if that neighbor is within sufficient distance (a bridge to
-        // it would not be longer than max_bridge_distance)
+        // neighbors if that neighbor is within max_pillar_link_distance
 
         // Pillars with height exceeding H1 will require at least one neighbor
         // to connect with. Height exceeding H2 require two neighbors.
         double H1 = m_cfg.max_solo_pillar_height_mm;
         double H2 = m_cfg.max_dual_pillar_height_mm;
         unsigned neighbors = m_cfg.pillar_cascade_neighbors;
-        double d = std::cos(m_cfg.bridge_slope) * m_cfg.max_bridge_length_mm;
+        double d = m_cfg.max_pillar_link_distance_mm;
 
         //A connection between two pillars only counts if the height ratio is
         // bigger than 20%
