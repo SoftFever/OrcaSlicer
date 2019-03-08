@@ -2458,7 +2458,12 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
         break;
     }
 
-    if (wxGetApp().get_mode() == comSimple)
+    if (canceled) {
+        if (wxGetApp().get_mode() == comSimple)
+            sidebar->set_btn_label(ActionButtonType::abReslice, "Slice now");
+        show_action_buttons(true);
+    }
+    else if (wxGetApp().get_mode() == comSimple)
         show_action_buttons(false);
 }
 
