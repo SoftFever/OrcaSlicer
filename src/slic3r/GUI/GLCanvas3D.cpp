@@ -5498,7 +5498,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         {
             // the gizmo got the event and took some action, no need to do anything more
         }
-        else if ((m_mouse.drag.move_volume_idx != -1) && m_mouse.dragging)
+        else if ((m_mouse.drag.move_volume_idx != -1) && m_mouse.dragging && m_gizmos.get_current_type() != Gizmos::SlaSupports)
         {
             m_regenerate_volumes = false;
             do_move();
