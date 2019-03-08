@@ -190,7 +190,7 @@ void Fill3DHoneycomb::_fill_surface_single(
         if (params.dont_connect) {
             polylines_out.insert(polylines_out.end(), polylines_chained.begin(), polylines_chained.end());
         } else {
-            this->connect_infill(polylines_chained, expolygon, polylines_out);
+            this->connect_infill(polylines_chained, expolygon, polylines_out, params);
         }
 
     }

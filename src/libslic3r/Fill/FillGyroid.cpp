@@ -191,13 +191,21 @@ void FillGyroid::_fill_surface_single(
         polylines_chained.insert(polylines_chained.end(), polylines_to_sort.begin(), polylines_to_sort.end());
     }
 
+    size_t polylines_out_first_idx = polylines_out.size();
     if (!polylines_chained.empty()) {
-
         // connect lines
         if (params.dont_connect) {
             polylines_out.insert(polylines_out.end(), polylines_chained.begin(), polylines_chained.end());
         } else {
-            this->connect_infill(polylines_chained, expolygon, polylines_out);
+            this->connect_infill(polylines_chained, expolygon, polylines_out, params);
+        }
+    }
+
+    //remove too small bits (larger than longer);
+    for (size_t idx = polylines_out_first_idx; idx < polylines_out.size(); idx++) {
+        if (polylines_out[idx].length() < scale_(this->spacing * 3)) {
+            polylines_out.erase(polylines_out.begin() + idx);
+            idx--;
         }
     }
 }

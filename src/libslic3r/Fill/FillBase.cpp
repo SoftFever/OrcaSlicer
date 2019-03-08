@@ -145,10 +145,9 @@ void cut_polyline(Polyline &poly, Polylines &polylines, size_t idx_1, Point p1, 
         p2 = p1;
         p1 = temp;
     }
-    if (idx_1 == 0) {
-        poly.points.insert(poly.points.begin(), p2);
-    } else if (idx_1 == poly.points.size() - 1) {
-        poly.points.push_back(p1);
+    if (idx_1 == poly.points.size() - 1) {
+        //shouldn't be possible.
+        poly.points.erase(poly.points.end() - 1);
     } else {
         // create new polyline
         Polyline new_poly;
@@ -158,7 +157,11 @@ void cut_polyline(Polyline &poly, Polylines &polylines, size_t idx_1, Point p1, 
         //erase&put points in poly
         poly.points.erase(poly.points.begin() + idx_1 + 1, poly.points.end());
         poly.points.push_back(p1);
-        polylines.emplace_back(new_poly);
+        //safe test
+        if (poly.length() == 0)
+            poly.points = new_poly.points;
+        else
+            polylines.emplace_back(new_poly);
     }
 }
 
@@ -187,13 +190,13 @@ void cut_polygon(Polyline &poly, size_t idx_1, Point p1, Point p2) {
 /// complexity : N(pts_to_check.equally_spaced_points(width / 2)) x N(polylines_blocker.points)
 bool collision(const Points &pts_to_check, const Polylines &polylines_blocker, const coordf_t width) {
     //check if it's not too close to a polyline
-    coordf_t min_dist = width * width * 0.9 - SCALED_EPSILON;
+    coordf_t min_dist_square = width * width * 0.9 - SCALED_EPSILON;
     Polyline better_polylines(pts_to_check);
     Points better_pts = better_polylines.equally_spaced_points(width / 2);
     for (const Point &p : better_pts) {
         for (const Polyline &poly2 : polylines_blocker) {
             for (const Point &p2 : poly2.points) {
-                if (p.distance_to_square(p2) < min_dist) {
+                if (p.distance_to_square(p2) < min_dist_square) {
                     return true;
                 }
             }
@@ -206,7 +209,7 @@ bool collision(const Points &pts_to_check, const Polylines &polylines_blocker, c
 /// width if the width of the extrusion
 /// polylines_blockers are the array of polylines to check if the path isn't blocked by something.
 /// complexity: N(polylines.points) + a collision check after that if we finded a path: N(2(p2-p1)/width) x N(polylines_blocker.points)
-Points getFrontier(Polylines &polylines, const Point& p1, const Point& p2, const coord_t width, const Polylines &polylines_blockers) {
+Points getFrontier(Polylines &polylines, const Point& p1, const Point& p2, const coord_t width, const Polylines &polylines_blockers, coord_t max_size = -1) {
     for (size_t idx_poly = 0; idx_poly < polylines.size(); ++idx_poly) {
         Polyline &poly = polylines[idx_poly];
         if (poly.size() <= 1) continue;
@@ -248,7 +251,7 @@ Points getFrontier(Polylines &polylines, const Point& p1, const Point& p2, const
             Points ret_1_to_2;
             double dist_1_to_2 = p1.distance_to(poly.points[idx_12]);
             ret_1_to_2.push_back(poly.points[idx_12]);
-            size_t max = idx_12 <= idx_21 ? idx_21 : poly.points.size() - 2;
+            size_t max = idx_12 <= idx_21 ? idx_21+1 : poly.points.size();
             for (size_t i = idx_12 + 1; i < max; i++) {
                 dist_1_to_2 += poly.points[i - 1].distance_to(poly.points[i]);
                 ret_1_to_2.push_back(poly.points[i]);
@@ -275,12 +278,16 @@ Points getFrontier(Polylines &polylines, const Point& p1, const Point& p2, const
             if (idx_22 > idx_11) {
                 dist_2_to_1 += poly.points.back().distance_to(poly.points.front());
                 ret_2_to_1.push_back(poly.points[poly.points.size() - 1]);
-                for (size_t i = poly.points.size() - 2; i > idx_22; i--) {
+                for (size_t i = poly.points.size() - 1; i > idx_22; i--) {
                     dist_2_to_1 += poly.points[i - 1].distance_to(poly.points[i]);
                     ret_2_to_1.push_back(poly.points[i - 1]);
                 }
             }
             dist_2_to_1 += p2.distance_to(poly.points[idx_22]);
+
+            if (max_size < dist_2_to_1 && max_size < dist_1_to_2) {
+                return Points();
+            }
 
             //choose between the two direction (keep the short one)
             if (dist_1_to_2 < dist_2_to_1) {
@@ -350,6 +357,14 @@ Points getFrontier(Polylines &polylines, const Point& p1, const Point& p2, const
             }
             Points p_ret;
             p_ret.insert(p_ret.end(), poly.points.begin() + first_idx + 1, poly.points.begin() + last_idx);
+
+            coordf_t length = 0;
+            for (size_t i = 1; i < p_ret.size(); i++) length += p_ret[i - 1].distance_to(p_ret[i]);
+
+            if (max_size < length) {
+                return Points();
+            }
+
             if (collision(p_ret, polylines_blockers, width)) return Points();
             //cut polyline
             poly.points.erase(poly.points.begin() + first_idx + 1, poly.points.begin() + last_idx);
@@ -372,7 +387,7 @@ Points getFrontier(Polylines &polylines, const Point& p1, const Point& p2, const
 /// return the connected polylines in polylines_out. Can output polygons (stored as polylines with first_point = last_point).
 /// complexity: worst: N(infill_ordered.points) x N(boundary.points)
 ///             typical: N(infill_ordered) x ( N(boundary.points) + N(infill_ordered.points) )
-void Fill::connect_infill(const Polylines &infill_ordered, const ExPolygon &boundary, Polylines &polylines_out) {
+void Fill::connect_infill(const Polylines &infill_ordered, const ExPolygon &boundary, Polylines &polylines_out, const FillParams &params) {
 
     //TODO: fallback to the quick & dirty old algorithm when n(points) is too high.
     Polylines polylines_frontier = to_polylines(((Polygons)boundary));
@@ -380,26 +395,54 @@ void Fill::connect_infill(const Polylines &infill_ordered, const ExPolygon &boun
     Polylines polylines_blocker;
     coord_t clip_size = scale_(this->spacing) * 2;
     for (const Polyline &polyline : infill_ordered) {
-        if (polyline.length() > 1.8 * clip_size) {
+        if (polyline.length() > 2.01 * clip_size) {
             polylines_blocker.push_back(polyline);
             polylines_blocker.back().clip_end(clip_size);
             polylines_blocker.back().clip_start(clip_size);
         }
     }
 
+    //length between two lines
+    coordf_t ideal_length = (1 / params.density) * this->spacing;
 
-    Polylines polylines_connected;
+    Polylines polylines_connected_first;
     bool first = true;
     for (const Polyline &polyline : infill_ordered) {
         if (!first) {
             // Try to connect the lines.
-            Points &pts_end = polylines_connected.back().points;
-            const Point &first_point = polyline.points.front();
+            Points &pts_end = polylines_connected_first.back().points;
             const Point &last_point = pts_end.back();
+            const Point &first_point = polyline.points.front();
+            if (last_point.distance_to(first_point) < scale_(this->spacing) * 10) {
+                Points pts_frontier = getFrontier(polylines_frontier, last_point, first_point, scale_(this->spacing), polylines_blocker, (coord_t)scale_(ideal_length) * 2);
+                if (!pts_frontier.empty()) {
+                    // The lines can be connected.
+                    pts_end.insert(pts_end.end(), pts_frontier.begin(), pts_frontier.end());
+                    pts_end.insert(pts_end.end(), polyline.points.begin(), polyline.points.end());
+                    continue;
+                }
+            }
+        }
+        // The lines cannot be connected.
+        polylines_connected_first.emplace_back(std::move(polyline));
 
-            Points pts = getFrontier(polylines_frontier, last_point, first_point, scale_(this->spacing), polylines_blocker);
-            if (!pts.empty()) {
-                pts_end.insert(pts_end.end(), pts.begin(), pts.end());
+        first = false;
+    }
+
+    Polylines polylines_connected;
+    first = true;
+    for (const Polyline &polyline : polylines_connected_first) {
+        if (!first) {
+            // Try to connect the lines.
+            Points &pts_end = polylines_connected.back().points;
+            const Point &last_point = pts_end.back();
+            const Point &first_point = polyline.points.front();
+
+            Polylines before = polylines_frontier;
+            Points pts_frontier = getFrontier(polylines_frontier, last_point, first_point, scale_(this->spacing), polylines_blocker);
+            if (!pts_frontier.empty()) {
+                // The lines can be connected.
+                pts_end.insert(pts_end.end(), pts_frontier.begin(), pts_frontier.end());
                 pts_end.insert(pts_end.end(), polyline.points.begin(), polyline.points.end());
                 continue;
             }
@@ -410,11 +453,46 @@ void Fill::connect_infill(const Polylines &infill_ordered, const ExPolygon &boun
         first = false;
     }
 
+    //try to link to nearest point if possible
+    for (int idx1 = 0; idx1 < polylines_connected.size(); idx1++) {
+        size_t min_idx = 0;
+        coordf_t min_length = 0;
+        bool switch_id1 = false;
+        bool switch_id2 = false;
+        for (int idx2 = idx1 + 1; idx2 < polylines_connected.size(); idx2++) {
+            double last_first = polylines_connected[idx1].last_point().distance_to_square(polylines_connected[idx2].first_point());
+            double first_first = polylines_connected[idx1].first_point().distance_to_square(polylines_connected[idx2].first_point());
+            double first_last = polylines_connected[idx1].first_point().distance_to_square(polylines_connected[idx2].last_point());
+            double last_last = polylines_connected[idx1].last_point().distance_to_square(polylines_connected[idx2].last_point());
+            double min = std::min(std::min(last_first, last_last), std::min(first_first, first_last));
+            if (min < min_length || min_length == 0) {
+                min_idx = idx2;
+                switch_id1 = (std::min(last_first, last_last) > std::min(first_first, first_last));
+                switch_id2 = (std::min(last_first, first_first) > std::min(last_last, first_last));
+                min_length = min;
+            }
+        }
+        if (min_idx > idx1 && min_idx < polylines_connected.size()){
+            Points pts_frontier = getFrontier(polylines_frontier, 
+                switch_id1 ? polylines_connected[idx1].first_point() : polylines_connected[idx1].last_point(), 
+                switch_id2 ? polylines_connected[min_idx].last_point() : polylines_connected[min_idx].first_point(),
+                scale_(this->spacing), polylines_blocker);
+            if (!pts_frontier.empty()) {
+                if (switch_id1) polylines_connected[idx1].reverse();
+                if (switch_id2) polylines_connected[min_idx].reverse();
+                Points &pts_end = polylines_connected[idx1].points;
+                pts_end.insert(pts_end.end(), pts_frontier.begin(), pts_frontier.end());
+                pts_end.insert(pts_end.end(), polylines_connected[min_idx].points.begin(), polylines_connected[min_idx].points.end());
+                polylines_connected.erase(polylines_connected.begin() + min_idx);
+            }
+        }
+    }
+
     //try to create some loops if possible
     for (Polyline &polyline : polylines_connected) {
-        Points pts = getFrontier(polylines_frontier, polyline.last_point(), polyline.first_point(), scale_(this->spacing), polylines_blocker);
-        if (!pts.empty()) {
-            polyline.points.insert(polyline.points.end(), pts.begin(), pts.end());
+        Points pts_frontier = getFrontier(polylines_frontier, polyline.last_point(), polyline.first_point(), scale_(this->spacing), polylines_blocker);
+        if (!pts_frontier.empty()) {
+            polyline.points.insert(polyline.points.end(), pts_frontier.begin(), pts_frontier.end());
             polyline.points.insert(polyline.points.begin(), polyline.points.back());
         }
         polylines_out.emplace_back(polyline);
