@@ -74,7 +74,7 @@ const double SupportConfig::safety_distance_mm = 0.1;
 const double SupportConfig::max_solo_pillar_height_mm = 15.0;
 const double SupportConfig::max_dual_pillar_height_mm = 35.0;
 const double   SupportConfig::optimizer_rel_score_diff = 1e-6;
-const unsigned SupportConfig::optimizer_max_iterations = 500;
+const unsigned SupportConfig::optimizer_max_iterations = 1000;
 const unsigned SupportConfig::pillar_cascade_neighbors = 2;
 const unsigned SupportConfig::max_bridges_on_pillar = 3;
 
@@ -1870,17 +1870,16 @@ public:
         // to connect with. Height exceeding H2 require two neighbors.
         double H1 = m_cfg.max_solo_pillar_height_mm;
         double H2 = m_cfg.max_dual_pillar_height_mm;
-        unsigned neighbors = m_cfg.pillar_cascade_neighbors;
         double d = m_cfg.max_pillar_link_distance_mm;
 
         //A connection between two pillars only counts if the height ratio is
         // bigger than 20%
-        double min_height_ratio = 0.5;
+        double min_height_ratio = 0.2;
 
         std::set<unsigned long> pairs;
 
         m_pillar_index.foreach(
-                    [this, d, &pairs, neighbors, min_height_ratio]
+                    [this, d, &pairs, min_height_ratio]
                     (const SpatElement& el)
         {
             Vec3d qp = el.first;
@@ -1897,13 +1896,23 @@ public:
             });
 
             const Pillar& pillar = m_result.pillars()[el.second];
+
+            unsigned neighbors = m_cfg.pillar_cascade_neighbors;
+
             for(auto& re : qres) {
+                // connections are enough for one pillar
+                if(pillar.links >= neighbors) break;
+
                 if(re.second == el.second) continue;
 
                 auto hashval = m_pillar_index.size() * el.second + re.second;
                 if(pairs.find(hashval) != pairs.end()) continue;
 
                 const Pillar& neighborpillar = m_result.pillars()[re.second];
+
+                // this neighbor is occupied
+                if(neighborpillar.links >= neighbors) continue;
+
                 if(interconnect(pillar, neighborpillar)) {
                     pairs.insert(hashval);
 
@@ -1916,9 +1925,6 @@ public:
                         m_result.increment_links(neighborpillar);
 
                 }
-
-                // 3 connections are enough for one pillar
-                if(pillar.links == neighbors) break;
             }
         });
 
