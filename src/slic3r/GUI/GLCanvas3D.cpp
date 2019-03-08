@@ -5890,6 +5890,9 @@ bool GLCanvas3D::_init_toolbar()
         return true;
     }
 
+#if ENABLE_SVG_ICONS
+    m_toolbar.set_icons_size(40);
+#endif // ENABLE_SVG_ICONS
 //    m_toolbar.set_layout_type(GLToolbar::Layout::Vertical);
     m_toolbar.set_layout_type(GLToolbar::Layout::Horizontal);
     m_toolbar.set_layout_orientation(GLToolbar::Layout::Top);
