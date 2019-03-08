@@ -4118,8 +4118,11 @@ void GLCanvas3D::render()
     if (m_canvas == nullptr)
         return;
 
+#ifndef __WXMAC__
+    // on Mac this check causes flickering when changing view
     if (!_is_shown_on_screen())
         return;
+#endif // __WXMAC__
 
     // ensures this canvas is current and initialized
     if (!_set_current() || !_3DScene::init(m_canvas))
