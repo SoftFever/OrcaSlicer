@@ -71,7 +71,7 @@ const double SupportConfig::normal_cutoff_angle = 150.0 * M_PI / 180.0;
 // The shortest distance of any support structure from the model surface
 const double SupportConfig::safety_distance_mm = 0.1;
 
-const double SupportConfig::max_solo_pillar_height_mm = 5.0;
+const double SupportConfig::max_solo_pillar_height_mm = 15.0;
 const double SupportConfig::max_dual_pillar_height_mm = 35.0;
 const double   SupportConfig::optimizer_rel_score_diff = 1e-6;
 const unsigned SupportConfig::optimizer_max_iterations = 500;
@@ -678,11 +678,15 @@ public:
     }
 
     void increment_bridges(const Pillar& pillar) {
+        assert(pillar.id >= 0 && size_t(pillar.id) < m_pillars.size());
+
         if(pillar.id >= 0 && size_t(pillar.id) < m_pillars.size())
             m_pillars[size_t(pillar.id)].bridges++;
     }
 
     void increment_links(const Pillar& pillar) {
+        assert(pillar.id >= 0 && size_t(pillar.id) < m_pillars.size());
+
         if(pillar.id >= 0 && size_t(pillar.id) < m_pillars.size())
             m_pillars[size_t(pillar.id)].links++;
     }
@@ -1169,8 +1173,8 @@ class SLASupportTree::Algorithm {
         double bridge_distance = pillar_dist / std::cos(-m_cfg.bridge_slope);
         double zstep = pillar_dist * std::tan(-m_cfg.bridge_slope);
 
-        if(pillar_dist < 2*m_cfg.head_back_radius_mm) return false;
-        if(bridge_distance > m_cfg.max_bridge_length_mm) return false;
+        if(pillar_dist < 2 * m_cfg.head_back_radius_mm ||
+           pillar_dist > m_cfg.max_pillar_link_distance_mm) return false;
 
         if(supper(Z) < slower(Z)) supper.swap(slower);
         if(eupper(Z) < elower(Z)) eupper.swap(elower);
@@ -1659,8 +1663,8 @@ public:
                     // Could not find a pillar, create one
                     auto& pillar = m_result.add_pillar(unsigned(sidehead.id),
                                                        pend, pradius)
-                                            .add_base(m_cfg.base_height_mm,
-                                                      m_cfg.base_radius_mm);
+                                           .add_base(m_cfg.base_height_mm,
+                                                     m_cfg.base_radius_mm);
 
                     // connects to ground, eligible for bridging
                     m_pillar_index.insert(pend, unsigned(pillar.id));
@@ -1962,7 +1966,7 @@ public:
                 alpha += 0.1 * PI;
             }
 
-            std::vector<std::reference_wrapper<const Pillar>> newpills;
+            std::vector<long> newpills;
             newpills.reserve(needpillars);
 
             if(found) for(unsigned n = 0; n < needpillars; n++) {
@@ -1982,13 +1986,16 @@ public:
                     if(pillar.endpoint()(Z) > m_result.ground_level)
                         m_result.add_junction(pillar.endpoint(), pillar.r);
 
-                    newpills.emplace_back(pp);
+                    newpills.emplace_back(pp.id);
                 }
             }
 
             if(!newpills.empty())
                 for(auto it = newpills.begin(), nx = std::next(it);
-                    nx != newpills.end(); ++it, ++nx) interconnect(*it, *nx);
+                    nx != newpills.end(); ++it, ++nx) {
+                    interconnect(m_result.pillars()[size_t(*it)],
+                                 m_result.pillars()[size_t(*nx)]);
+                }
         }
     }
 

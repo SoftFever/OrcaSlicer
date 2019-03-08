@@ -2672,6 +2672,15 @@ void PrintConfigDef::init_sla_params()
     def->min = 0;
     def->default_value = new ConfigOptionFloat(15.0);
 
+    def = this->add("support_max_pillar_link_distance", coFloat);
+    def->label = L("Max pillar linking distance");
+    def->category = L("Supports");
+    def->tooltip = L("The max distance of two pillars to get linked with each other.");
+    def->sidetext = L("mm");
+    def->cli = "";
+    def->min = 0;   // 0 means no linking
+    def->default_value = new ConfigOptionFloat(10.0);
+
     def = this->add("support_object_elevation", coFloat);
     def->label = L("Object elevation");
     def->category = L("Supports");

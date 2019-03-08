@@ -1006,6 +1006,9 @@ public:
     // The max length of a bridge in mm
     ConfigOptionFloat support_max_bridge_length /*= 15.0*/;
 
+    // The max distance of two pillars to get cross linked.
+    ConfigOptionFloat support_max_pillar_link_distance;
+
     // The elevation in Z direction upwards. This is the space between the pad
     // and the model object's bounding box bottom. Units in mm.
     ConfigOptionFloat support_object_elevation /*= 5.0*/;
@@ -1053,6 +1056,7 @@ protected:
         OPT_PTR(support_base_height);
         OPT_PTR(support_critical_angle);
         OPT_PTR(support_max_bridge_length);
+        OPT_PTR(support_max_pillar_link_distance);
         OPT_PTR(support_points_density_relative);
         OPT_PTR(support_points_minimal_distance);
         OPT_PTR(support_object_elevation);

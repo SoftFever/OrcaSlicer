@@ -3277,6 +3277,7 @@ void TabSLAPrint::build()
     optgroup = page->new_optgroup(_(L("Connection of the support sticks and junctions")));
     optgroup->append_single_option_line("support_critical_angle");
     optgroup->append_single_option_line("support_max_bridge_length");
+    optgroup->append_single_option_line("support_max_pillar_link_distance");
 
     optgroup = page->new_optgroup(_(L("Automatic generation")));
     optgroup->append_single_option_line("support_points_density_relative");

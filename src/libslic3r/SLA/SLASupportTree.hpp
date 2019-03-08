@@ -72,7 +72,10 @@ struct SupportConfig {
     double bridge_slope = M_PI/4;
 
     // The max length of a bridge in mm
-    double max_bridge_length_mm = 15.0;
+    double max_bridge_length_mm = 10.0;
+
+    // The max distance of a pillar to pillar link.
+    double max_pillar_link_distance_mm = 10.0;
 
     // The elevation in Z direction upwards. This is the space between the pad
     // and the model object's bounding box bottom.

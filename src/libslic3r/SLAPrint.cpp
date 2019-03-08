@@ -546,6 +546,7 @@ sla::SupportConfig make_support_cfg(const SLAPrintObjectConfig& c) {
     scfg.object_elevation_mm = c.support_object_elevation.getFloat();
     scfg.bridge_slope = c.support_critical_angle.getFloat() * PI / 180.0 ;
     scfg.max_bridge_length_mm = c.support_max_bridge_length.getFloat();
+    scfg.max_pillar_link_distance_mm = c.support_max_pillar_link_distance.getFloat();
     switch(c.support_pillar_connection_mode.getInt()) {
     case slapcmZigZag:
         scfg.pillar_connection_mode = sla::PillarConnectionMode::zigzag; break;
@@ -1386,6 +1387,7 @@ bool SLAPrintObject::invalidate_state_by_config_options(const std::vector<t_conf
             || opt_key == "support_base_height"
             || opt_key == "support_critical_angle"
             || opt_key == "support_max_bridge_length"
+            || opt_key == "support_max_pillar_link_distance"
             || opt_key == "support_object_elevation") {
             steps.emplace_back(slaposSupportTree);
         } else if (
