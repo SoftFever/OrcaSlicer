@@ -56,6 +56,10 @@ void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const S
 
     if (model_object && selection.is_from_single_instance())
     {
+        // Cache the bb - it's needed for dealing with the clipping plane quite often
+        // It could be done inside update_mesh but one has to account for scaling of the instance.
+        m_active_instance_bb = m_model_object->instance_bounding_box(m_active_instance);
+
         if (is_mesh_update_necessary()) {
             update_mesh();
             editing_mode_reload_cache();
@@ -231,6 +235,21 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
 
     ::glPopMatrix();
 }
+
+
+
+bool GLGizmoSlaSupports::is_point_clipped(const Vec3d& point, const Vec3d& direction_to_camera, float z_shift) const
+{
+    if (m_clipping_plane_distance == 0.f)
+        return false;
+
+    Vec3d transformed_point = m_model_object->instances.front()->get_transformation().get_matrix() * point;
+    transformed_point(2) += z_shift;
+    return direction_to_camera.dot(m_active_instance_bb.center()) + m_active_instance_bb.radius()
+            - m_clipping_plane_distance * 2*m_active_instance_bb.radius() < direction_to_camera.dot(transformed_point);
+}
+
+
 
 bool GLGizmoSlaSupports::is_mesh_update_necessary() const
 {
@@ -559,6 +578,69 @@ void GLGizmoSlaSupports::update_cache_entry_normal(unsigned int i) const
 
 
 
+
+std::pair<float, float> GLGizmoSlaSupports::get_sla_clipping_plane() const
+{
+    if (!m_model_object)
+        return std::make_pair(0.f, 0.f);;
+
+    Eigen::Matrix<GLdouble, 4, 4, Eigen::DontAlign> modelview_matrix;
+    ::glGetDoublev(GL_MODELVIEW_MATRIX, modelview_matrix.data());
+
+    // clipping space origin transformed to world coords:
+    Vec3d clipping_origin = (modelview_matrix.inverse() * Eigen::Matrix<GLdouble, 4, 1, Eigen::DontAlign>{0, 0, 0, 1}).block<3,1>(0,0);
+
+    // we'll recover current look direction from the modelview matrix (in world coords):
+    Vec3d direction_to_camera(modelview_matrix.data()[2], modelview_matrix.data()[6], modelview_matrix.data()[10]);
+    float dist = direction_to_camera.dot(clipping_origin) - direction_to_camera.dot(m_active_instance_bb.center());
+
+    return std::make_pair((dist - m_active_instance_bb.radius()) + m_clipping_plane_distance * 2*m_active_instance_bb.radius(), dist + 5.f*m_active_instance_bb.radius());
+}
+
+
+/*
+void GLGizmoSlaSupports::find_intersections(const igl::AABB<Eigen::MatrixXf, 3>* aabb, const Vec3f& normal, double offset, std::vector<IntersectionLine>& idxs) const
+{
+    if (aabb->is_leaf()) { // this is a facet
+        // corner.dot(normal) - offset
+        unsigned int facet_idx = aabb->m_primitive;
+
+        Vec3f a = m_V.row(m_F(facet_idx, 0));
+        Vec3f b = m_V.row(m_F(facet_idx, 1));
+        Vec3f c = m_V.row(m_F(facet_idx, 2));
+    }
+    else { // not a leaf
+    using CornerType = Eigen::AlignedBox<float, 3>::CornerType;
+        bool sign = std::signbit(offset - normal.dot(aabb->m_box.corner(CornerType(0))));
+        for (unsigned int i=1; i<8; ++i)
+            if (std::signbit(offset - normal.dot(aabb->m_box.corner(CornerType(i)))) != sign) {
+                find_intersections(aabb->m_left, normal, offset, idxs);
+                find_intersections(aabb->m_right, normal, offset, idxs);
+            }
+    }
+}
+
+void GLGizmoSlaSupports::make_line_segments() const
+{
+    TriangleMeshSlicer tms(&m_model_object->volumes.front()->mesh);
+    Vec3f normal(0.f, 1.f, 1.f);
+    double d = 0.;
+
+    std::vector<IntersectionLine> lines;
+    find_intersections(&m_AABB, normal, d, lines);
+    ExPolygons expolys;
+    tms.make_expolygons_simple(lines, &expolys);
+
+    SVG svg("slice_loops.svg", get_extents(expolys));
+    svg.draw(expolys);
+    //for (const IntersectionLine &l : lines[i])
+    //    svg.draw(l, "red", 0);
+    //svg.draw_outline(expolygons, "black", "blue", 0);
+    svg.Close();
+}
+*/
+
+
 void GLGizmoSlaSupports::on_render_input_window(float x, float y, float bottom_limit, const Selection& selection)
 {
     if (!m_model_object)
@@ -676,6 +758,13 @@ RENDER_AGAIN:
                      (m_model_object->sla_points_status == sla::PointsStatus::Generating ? "Generation in progress..." : "UNKNOWN STATUS"))));
     }
 
+
+    // Following is rendered in both editing and non-editing mode:
+    m_imgui->text("Clipping of view: ");
+    ImGui::SameLine();
+    ImGui::PushItemWidth(150.0f);
+    bool value_changed = ImGui::SliderFloat("  ", &m_clipping_plane_distance, 0.f, 1.f, "%.2f");
+    
     m_imgui->end();
 
     if (m_editing_mode != m_old_editing_state) { // user toggled between editing/non-editing mode
@@ -761,6 +850,7 @@ void GLGizmoSlaSupports::on_set_state()
         m_parent.toggle_model_objects_visibility(true);
         m_editing_mode = false; // so it is not active next time the gizmo opens
         m_editing_mode_cache.clear();
+        m_clipping_plane_distance = 0.f;
     }
     m_old_state = m_state;
 }

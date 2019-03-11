@@ -448,6 +448,7 @@ private:
 
         void set_sla_support_data(ModelObject* model_object, const Selection& selection);
         bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position = Vec2d::Zero(), bool shift_down = false);
+        std::pair<float, float> get_sla_clipping_plane() const;
 
         void render_current_gizmo(const Selection& selection) const;
         void render_current_gizmo_for_picking_pass(const Selection& selection) const;
@@ -773,6 +774,9 @@ private:
 
     // Returns the view ray line, in world coordinate, at the given mouse position.
     Linef3 mouse_ray(const Point& mouse_pos);
+
+    // Sets current projection matrix to ortho, accounting for current camera zoom.
+    void set_ortho_projection(float w, float h, float near, float far) const;
 
     void _start_timer();
     void _stop_timer();

@@ -22,6 +22,7 @@ private:
     ModelObject* m_model_object = nullptr;
     ModelObject* m_old_model_object = nullptr;
     int m_active_instance = -1;
+    BoundingBoxf3 m_active_instance_bb; // to cache the bb
     std::pair<Vec3f, Vec3f> unproject_on_mesh(const Vec2d& mouse_pos);
 
     const float RenderPointScale = 1.f;

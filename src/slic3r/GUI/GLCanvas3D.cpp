@@ -1317,6 +1317,22 @@ bool GLCanvas3D::Gizmos::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
     return false;
 }
 
+
+
+std::pair<float, float> GLCanvas3D::Gizmos::get_sla_clipping_plane() const
+{
+    if (!m_enabled)
+        return std::make_pair(0.f, 0.f);
+
+    GizmosMap::const_iterator it = m_gizmos.find(SlaSupports);
+    if (it != m_gizmos.end())
+        return reinterpret_cast<GLGizmoSlaSupports*>(it->second)->get_sla_clipping_plane();
+
+    return std::make_pair(0.f, 0.f);;
+}
+
+
+
 void GLCanvas3D::Gizmos::render_current_gizmo(const Selection& selection) const
 {
     if (!m_enabled)
@@ -2566,7 +2582,27 @@ void GLCanvas3D::render()
     if (early_bed_render)
         _render_bed(theta);
 
+////////////////////////
+    //Eigen::Matrix<GLdouble, 4, 4, Eigen::DontAlign> stashed_projection_matrix;
+    //::glGetDoublev(GL_PROJECTION_MATRIX, stashed_projection_matrix.data());
+    const Size& cnv_size = get_canvas_size();
+    if (m_gizmos.get_current_type() == Gizmos::SlaSupports) {
+        std::pair<float, float> clipping_limits = m_gizmos.get_sla_clipping_plane();
+        set_ortho_projection((unsigned int)cnv_size.get_width(), (unsigned int)cnv_size.get_height(), clipping_limits.first, clipping_limits.second);
+    }
+
+////////////////////
     _render_objects();
+//////////////////////////////////
+    if (m_gizmos.get_current_type() == Gizmos::SlaSupports) {
+        //::glMatrixMode(GL_PROJECTION);
+        //::glLoadIdentity();
+        //::glMultMatrixd(stashed_projection_matrix.data());
+        //::glMatrixMode(GL_MODELVIEW);
+        _resize((unsigned int)cnv_size.get_width(), (unsigned int)cnv_size.get_height());
+    }
+//////////////////////////////////
+
     _render_sla_slices();
     _render_selection();
 
@@ -4416,29 +4452,13 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
     _set_current();
     ::glViewport(0, 0, w, h);
 
-    ::glMatrixMode(GL_PROJECTION);
-    ::glLoadIdentity();
-
-    const BoundingBoxf3& bbox = _max_bounding_box();
-
     switch (m_camera.type)
     {
     case Camera::Ortho:
     {
-        float w2 = w;
-        float h2 = h;
-        float two_zoom = 2.0f * get_camera_zoom();
-        if (two_zoom != 0.0f)
-        {
-            float inv_two_zoom = 1.0f / two_zoom;
-            w2 *= inv_two_zoom;
-            h2 *= inv_two_zoom;
-        }
-
         // FIXME: calculate a tighter value for depth will improve z-fighting
-        float depth = 5.0f * (float)bbox.max_size();
-        ::glOrtho(-w2, w2, -h2, h2, -depth, depth);
-
+        float depth = 5.0f * (float)(_max_bounding_box().max_size());
+        set_ortho_projection(w, h, -depth, depth);
         break;
     }
 //    case Camera::Perspective:
@@ -4469,8 +4489,6 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
         break;
     }
     }
-
-    ::glMatrixMode(GL_MODELVIEW);
 
     m_dirty = false;
 }
@@ -4684,6 +4702,23 @@ void GLCanvas3D::_render_axes() const
 {
     m_bed.render_axes();
 }
+
+
+void GLCanvas3D::set_ortho_projection(float w, float h, float near, float far) const
+{
+    float two_zoom = 2.0f * get_camera_zoom();
+    if (two_zoom != 0.0f)
+    {
+        float inv_two_zoom = 1.0f / two_zoom;
+        w *= inv_two_zoom;
+        h *= inv_two_zoom;
+    }
+    ::glMatrixMode(GL_PROJECTION);
+    ::glLoadIdentity();
+    ::glOrtho(-w, w, -h, h, near, far);
+    ::glMatrixMode(GL_MODELVIEW);
+}
+
 
 void GLCanvas3D::_render_objects() const
 {
