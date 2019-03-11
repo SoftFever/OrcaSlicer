@@ -2463,14 +2463,17 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
     this->statusbar()->reset_cancel_callback();
     this->statusbar()->stop_busy();
   
-	bool canceled = evt.GetInt() < 0;
-    bool success  = evt.GetInt() > 0;
+    const bool canceled = evt.GetInt() < 0;
+	const bool error = evt.GetInt() == 0;
+    const bool success  = evt.GetInt() > 0;
     // Reset the "export G-code path" name, so that the automatic background processing will be enabled again.
     this->background_process.reset_export();
-    if (! success) {
+
+    if (error) {
         wxString message = evt.GetString();
         if (message.IsEmpty())
             message = _(L("Export failed"));
+        show_error(q, message);
         this->statusbar()->set_status_text(message);
     }
 	if (canceled)

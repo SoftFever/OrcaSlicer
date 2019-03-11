@@ -2,6 +2,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 
 #ifdef WIN32
@@ -88,7 +89,7 @@ static DWORD execute_process_winapi(const std::wstring &command_line)
 // Run the script. If it is a perl script, run it through the bundled perl interpreter.
 // If it is a batch file, run it through the cmd.exe.
 // Otherwise run it directly.
-static int run_script_win32(const std::string &script, const std::string &gcode)
+static int run_script(const std::string &script, const std::string &gcode, std::string &/*std_err*/)
 {
     // Unpack the argument list provided by the user.
     int     nArgs;
@@ -132,9 +133,46 @@ static int run_script_win32(const std::string &script, const std::string &gcode)
 }
 
 #else
-    #include <sys/stat.h> //for getting filesystem UID/GID
-    #include <unistd.h> //for getting current UID/GID
-    #include <boost/process.hpp>
+    // POSIX
+
+#include <cstdlib>   // getenv()
+#include <sstream>
+#include <boost/process.hpp>
+
+namespace process = boost::process;
+
+static int run_script(const std::string &script, const std::string &gcode, std::string &std_err)
+{
+    // Try to obtain user's default shell
+    const char *shell = ::getenv("SHELL");
+    if (shell == nullptr) { shell = "sh"; }
+
+    // Quote and escape the gcode path argument
+    std::string command { script };
+    command.append(" '");
+    for (char c : gcode) {
+        if (c == '\'') { command.append("'\\''"); }
+        else { command.push_back(c); }
+    }
+    command.push_back('\'');
+
+    BOOST_LOG_TRIVIAL(debug) << boost::format("Executing script, shell: %1%, command: %2%") % shell % command;
+
+    process::ipstream istd_err;
+    process::child child(shell, "-c", command, process::std_err > istd_err);
+
+    std_err.clear();
+    std::string line;
+
+    while (child.running() && std::getline(istd_err, line)) {
+        std_err.append(line);
+        std_err.push_back('\n');
+    }
+
+    child.wait();
+    return child.exit_code();
+}
+
 #endif
 
 namespace Slic3r {
@@ -158,27 +196,15 @@ void run_post_process_scripts(const std::string &path, const PrintConfig &config
             if (script.empty())
                 continue;
             BOOST_LOG_TRIVIAL(info) << "Executing script " << script << " on file " << path;
-#ifdef WIN32
-            int result = run_script_win32(script, gcode_file.string());
-#else
-            //FIXME testing existence of a script is risky, as the script line may contain the script and some additional command line parameters.
-            // We would have to process the script line into parameters before testing for the existence of the command, the command may be looked up
-            // in the PATH etc.
-            if (! boost::filesystem::exists(boost::filesystem::path(script)))
-                throw std::runtime_error(std::string("The configured post-processing script does not exist: ") + script);
-            struct stat info;
-            if (stat(script.c_str(), &info))
-                throw std::runtime_error(std::string("Cannot read information for post-processing script: ") + script);
-            boost::filesystem::perms script_perms = boost::filesystem::status(script).permissions();
-            //if UID matches, check UID perm. else if GID matches, check GID perm. Otherwise check other perm.
-            if (!(script_perms & ((info.st_uid == geteuid()) ? boost::filesystem::perms::owner_exe
-                               : ((info.st_gid == getegid()) ? boost::filesystem::perms::group_exe
-                                                             : boost::filesystem::perms::others_exe))))
-                throw std::runtime_error(std::string("The configured post-processing script is not executable: check permissions. ") + script);
-    		int result = boost::process::system(script, gcode_file);
-    		if (result < 0)
-    			BOOST_LOG_TRIVIAL(error) << "Script " << script << " on file " << path << " failed. Negative error code returned.";
-#endif
+
+            std::string std_err;
+            const int result = run_script(script, gcode_file.string(), std_err);
+            if (result != 0) {
+                const std::string msg = std_err.empty() ? (boost::format("Post-processing script %1% on file %2% failed.\nError code: %3%") % script % path % result).str()
+                    : (boost::format("Post-processing script %1% on file %2% failed.\nError code: %3%\nOutput:\n%4%") % script % path % result % std_err).str();
+                BOOST_LOG_TRIVIAL(error) << msg;
+                throw std::runtime_error(msg);
+            }
         }
     }
 }
