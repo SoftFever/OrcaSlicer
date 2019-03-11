@@ -1884,14 +1884,13 @@ public:
         double d = m_cfg.max_pillar_link_distance_mm;
 
         //A connection between two pillars only counts if the height ratio is
-        // bigger than 20%
-        double min_height_ratio = 0.2;
+        // bigger than 50%
+        double min_height_ratio = 0.5;
 
         std::set<unsigned long> pairs;
 
-        m_pillar_index.foreach(
-                    [this, d, &pairs, min_height_ratio]
-                    (const SpatElement& el)
+        auto cascadefn =
+                [this, d, &pairs, min_height_ratio, H1] (const SpatElement& el)
         {
             Vec3d qp = el.first;
 
@@ -1916,7 +1915,12 @@ public:
 
                 if(re.second == el.second) continue;
 
-                auto hashval = m_pillar_index.size() * el.second + re.second;
+                auto a = el.second, b = re.second;
+
+                // I hope that the area of a square is never equal to its
+                // circumference
+                auto hashval = 2 * (a + b) + a * b;
+
                 if(pairs.find(hashval) != pairs.end()) continue;
 
                 const Pillar& neighborpillar = m_result.pillars()[re.second];
@@ -1929,15 +1933,19 @@ public:
 
                     // If the interconnection length between the two pillars is
                     // less than 20% of the longer pillar's height, don't count
-                    if(neighborpillar.height / pillar.height > min_height_ratio)
+                    if(pillar.height < H1 ||
+                       neighborpillar.height / pillar.height > min_height_ratio)
                         m_result.increment_links(pillar);
 
-                    if(pillar.height / neighborpillar.height > min_height_ratio)
+                    if(neighborpillar.height < H1 ||
+                       pillar.height / neighborpillar.height > min_height_ratio)
                         m_result.increment_links(neighborpillar);
 
                 }
             }
-        });
+        };
+
+        m_pillar_index.foreach(cascadefn);
 
         size_t pillarcount = m_result.pillars().size();
 
@@ -1992,6 +2000,8 @@ public:
 
                 if(interconnect(pillar, p)) {
                     Pillar& pp = m_result.add_pillar(p);
+                    m_pillar_index.insert(pp.endpoint(), unsigned(pp.id));
+
                     m_result.add_junction(s, pillar.r);
                     double t = bridge_mesh_intersect(pillarsp,
                                                      dirv(pillarsp, s),
@@ -2003,15 +2013,23 @@ public:
                         m_result.add_junction(pillar.endpoint(), pillar.r);
 
                     newpills.emplace_back(pp.id);
+                    m_result.increment_links(pillar);
                 }
             }
 
-            if(!newpills.empty())
+            if(!newpills.empty()) {
                 for(auto it = newpills.begin(), nx = std::next(it);
                     nx != newpills.end(); ++it, ++nx) {
-                    interconnect(m_result.pillars()[size_t(*it)],
-                                 m_result.pillars()[size_t(*nx)]);
+                    const Pillar& itpll = m_result.pillars()[size_t(*it)];
+                    const Pillar& nxpll = m_result.pillars()[size_t(*nx)];
+                    if(interconnect(itpll, nxpll)) {
+                        m_result.increment_links(itpll);
+                        m_result.increment_links(nxpll);
+                    }
                 }
+
+                m_pillar_index.foreach(cascadefn);
+            }
         }
     }
 
