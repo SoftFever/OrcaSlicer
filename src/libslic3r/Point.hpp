@@ -224,7 +224,7 @@ public:
                     const ValueType &value = it->second;
                     const Vec2crd *pt2 = m_point_accessor(value);
                     if (pt2 != nullptr) {
-                        const double d2 = (pt - *pt2).squaredNorm();
+                        const double d2 = (pt - *pt2).cast<double>().squaredNorm();
                         if (d2 < dist_min) {
                             dist_min = d2;
                             value_min = &value;

@@ -620,8 +620,9 @@ void TriangleMesh::require_shared_vertices()
         for (int nbr_idx = 0; nbr_idx < 3; ++nbr_idx) {
             int nbr_face = this->stl.neighbors_start[facet_idx].neighbor[nbr_idx];
             if (nbr_face != -1) {
-                assert(stl.v_indices[nbr_face].vertex[(nbr.which_vertex_not[nbr_idx] + 1) % 3] == vertices[(nbr_idx + 1) % 3]);
-                assert(stl.v_indices[nbr_face].vertex[(nbr.which_vertex_not[nbr_idx] + 2) % 3] == vertices[nbr_idx]);
+				assert(
+					(stl.v_indices[nbr_face].vertex[(nbr.which_vertex_not[nbr_idx] + 1) % 3] == vertices[(nbr_idx + 1) % 3] && stl.v_indices[nbr_face].vertex[(nbr.which_vertex_not[nbr_idx] + 2) % 3] == vertices[nbr_idx]) ||
+					(stl.v_indices[nbr_face].vertex[(nbr.which_vertex_not[nbr_idx] + 2) % 3] == vertices[(nbr_idx + 1) % 3] && stl.v_indices[nbr_face].vertex[(nbr.which_vertex_not[nbr_idx] + 1) % 3] == vertices[nbr_idx]));
             }
         }
     }
