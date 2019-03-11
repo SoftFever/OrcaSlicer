@@ -2157,7 +2157,11 @@ unsigned int Plater::priv::update_background_process(bool force_validation)
 
         if (background_process.finished())
             show_action_buttons(false);
-        else if (!background_process.empty())
+        else if (!background_process.empty() && 
+                 !background_process.running()) /* Do not update buttons if background process is running
+                                                 * This condition is important for SLA mode especially, 
+                                                 * when this function is called several times during calculations 
+                                                 * */
             show_action_buttons(true);
     }
 
