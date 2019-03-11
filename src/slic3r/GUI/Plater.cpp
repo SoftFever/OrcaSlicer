@@ -2509,15 +2509,20 @@ bool Plater::priv::init_object_menu()
 
 bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/)
 {
-    wxMenuItem* item_delete = append_menu_item(menu, wxID_ANY, _(L("Delete")) + "\tDel", _(L("Remove the selected object")),
-        [this](wxCommandEvent&) { q->remove_selected(); }, "brick_delete.png");
-    if (!is_part){
+    wxMenuItem* item_delete = nullptr;
+    if (is_part) {
+        item_delete = append_menu_item(menu, wxID_ANY, _(L("Delete")) + "\tDel", _(L("Remove the selected object")),
+            [this](wxCommandEvent&) { q->remove_selected(); }, "brick_delete.png");
+    } else {
         wxMenuItem* item_increase = append_menu_item(menu, wxID_ANY, _(L("Increase copies")) + "\t+", _(L("Place one more copy of the selected object")),
             [this](wxCommandEvent&) { q->increase_instances(); }, "add.png");
         wxMenuItem* item_decrease = append_menu_item(menu, wxID_ANY, _(L("Decrease copies")) + "\t-", _(L("Remove one copy of the selected object")),
             [this](wxCommandEvent&) { q->decrease_instances(); }, "delete.png");
         wxMenuItem* item_set_number_of_copies = append_menu_item(menu, wxID_ANY, _(L("Set number of copies")) + dots, _(L("Change the number of copies of the selected object")),
             [this](wxCommandEvent&) { q->set_number_of_copies(); }, "textfield.png");
+        // Delete menu was moved to be after +/- instace to make it more difficult to be selected by mistake.
+        item_delete = append_menu_item(menu, wxID_ANY, _(L("Delete")) + "\tDel", _(L("Remove the selected object")),
+            [this](wxCommandEvent&) { q->remove_selected(); }, "brick_delete.png");
 
         menu->AppendSeparator();
         wxMenuItem* item_instance_to_object = sidebar->obj_list()->append_menu_item_instance_to_object(menu);
@@ -2554,7 +2559,7 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
 
     wxMenuItem* item_mirror = append_submenu(menu, mirror_menu, wxID_ANY, _(L("Mirror")), _(L("Mirror the selected object")));
 
-    // ui updates needs to be binded to the parent panel
+    // ui updates needs to be bound to the parent panel
     if (q != nullptr)
     {
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_mirror()); }, item_mirror->GetId());

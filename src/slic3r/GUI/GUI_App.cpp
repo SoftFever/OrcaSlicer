@@ -161,12 +161,15 @@ bool GUI_App::OnInit()
 
     Bind(wxEVT_IDLE, [this](wxIdleEvent& event)
     {
+		if (! plater_)
+			return;
+
         if (app_config->dirty() && app_config->get("autosave") == "1")
             app_config->save();
 
         // ! Temporary workaround for the correct behavior of the Scrolled sidebar panel 
         // Do this "manipulations" only once ( after (re)create of the application )
-        if (plater_ && sidebar().obj_list()->GetMinHeight() > 15 * wxGetApp().em_unit())
+        if (sidebar().obj_list()->GetMinHeight() > 15 * wxGetApp().em_unit())
         {
             wxWindowUpdateLocker noUpdates_sidebar(&sidebar());
             sidebar().obj_list()->SetMinSize(wxSize(-1, 15 * wxGetApp().em_unit()));
@@ -175,8 +178,7 @@ bool GUI_App::OnInit()
             update_mode(); // update view mode after fix of the object_list size
         }
 
-        if (this->plater() != nullptr)
-            this->obj_manipul()->update_if_dirty();
+        this->obj_manipul()->update_if_dirty();
 
         // Preset updating & Configwizard are done after the above initializations,
         // and after MainFrame is created & shown.
