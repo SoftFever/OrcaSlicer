@@ -2296,7 +2296,7 @@ RENDER_AGAIN:
 
         bool old_combo_state = m_combo_box_open;
         // The combo is commented out for now, until the feature is supported by backend.
-        // m_combo_box_open = m_imgui->combo(_(L("Head diameter")), options_str, selection);
+        m_combo_box_open = m_imgui->combo(_(L("Head diameter")), options_str, selection);
         force_refresh |= (old_combo_state != m_combo_box_open);
 
         // float current_number = atof(str);

@@ -69,7 +69,7 @@ namespace sla {
 const double SupportConfig::normal_cutoff_angle = 150.0 * M_PI / 180.0;
 
 // The shortest distance of any support structure from the model surface
-const double SupportConfig::safety_distance_mm = 0.1;
+const double SupportConfig::safety_distance_mm = 0.5;
 
 const double SupportConfig::max_solo_pillar_height_mm = 15.0;
 const double SupportConfig::max_dual_pillar_height_mm = 35.0;
@@ -438,8 +438,9 @@ struct Pillar {
 
     inline const Vec3d& endpoint() const { return endpt; }
 
-    Pillar& add_base(double height = 3, double radius = 2) {
-        if(height <= 0) return *this;
+    Pillar& add_base(double baseheight = 3, double radius = 2) {
+        if(baseheight <= 0) return *this;
+        if(baseheight > height) baseheight = height;
 
         assert(steps >= 0);
         auto last = int(steps - 1);
@@ -447,7 +448,7 @@ struct Pillar {
         if(radius < r ) radius = r;
 
         double a = 2*PI/steps;
-        double z = endpt(Z) + height;
+        double z = endpt(Z) + baseheight;
 
         for(size_t i = 0; i < steps; ++i) {
             double phi = i*a;
@@ -460,10 +461,10 @@ struct Pillar {
             double phi = i*a;
             double x = endpt(X) + radius*std::cos(phi);
             double y = endpt(Y) + radius*std::sin(phi);
-            base.points.emplace_back(x, y, z - height);
+            base.points.emplace_back(x, y, z - baseheight);
         }
 
-        auto ep = endpt; ep(Z) += height;
+        auto ep = endpt; ep(Z) += baseheight;
         base.points.emplace_back(endpt);
         base.points.emplace_back(ep);
 
@@ -1004,9 +1005,12 @@ class SLASupportTree::Algorithm {
         // Together they define the plane where we have to iterate with the
         // given angles in the 'phis' vector
 
+//        std::cout << "Head check begin: " << std::endl;
+
         tbb::parallel_for(size_t(0), phis.size(),
                           [&phis, &hits, &m, sd, r_pin, r_back, s, a, b, c]
                           (size_t i)
+//        for(size_t i = 0; i < phis.size(); ++i)
         {
             double& phi = phis[i];
             double sinphi = std::sin(phi);
@@ -1037,7 +1041,10 @@ class SLASupportTree::Algorithm {
             auto q = m.query_ray_hit(ps + sd*n, n);
 
             if(q.is_inside()) { // the hit is inside the model
-                if(q.distance() > 2*r_pin)  {
+                if(q.distance() > r_pin + sd)  {
+
+//                    std::cout << "Fatal inside hit. Phi: " << phi << " distance: " << q.distance() << std::endl;
+
                     // If we are inside the model and the hit distance is bigger
                     // than our pin circle diameter, it probably indicates that
                     // the support point was already inside the model, or there
@@ -1048,16 +1055,20 @@ class SLASupportTree::Algorithm {
                     hits[i] = HitResult(0.0);
                 }
                 else {
+//                    std::cout << "Recoverable inside hit. Phi: " << phi << " distance: " << q.distance() << " re-cast dist: " ;
                     // re-cast the ray from the outside of the object.
                     // The starting point has an offset of 2*safety_distance
                     // because the original ray has also had an offset
                     auto q2 = m.query_ray_hit(ps + (q.distance() + 2*sd)*n, n);
                     hits[i] = q2;
+//                    std::cout << q2.distance() << std::endl;
                 }
             } else hits[i] = q;
         });
 
         auto mit = std::min_element(hits.begin(), hits.end());
+
+//        std::cout << "Head check end. Result: " << mit->distance() << std::endl;
 
         return *mit;
     }
@@ -1128,7 +1139,7 @@ class SLASupportTree::Algorithm {
             auto hr = m.query_ray_hit(p + sd*dir, dir);
 
             if(ins_check && hr.is_inside()) {
-                if(hr.distance() > 2*r) hits[i] = HitResult(0.0);
+                if(hr.distance() > r + sd) hits[i] = HitResult(0.0);
                 else {
                     // re-cast the ray from the outside of the object
                     auto hr2 =
@@ -1457,7 +1468,7 @@ public:
                                   m_cfg.head_back_radius_mm,
                                   w);
 
-                if(t <= w) {
+                if(t <= w || (hp(Z) + nn(Z) * w) < m_result.ground_level) {
 
                     // Let's try to optimize this angle, there might be a
                     // viable normal that doesn't collide with the model
@@ -1499,7 +1510,7 @@ public:
                 // save the verified and corrected normal
                 m_support_nmls.row(fidx) = nn;
 
-                if(t > w) {
+                if(t > w && (hp(Z) + nn(Z) * w) > m_result.ground_level) {
                     // mark the point for needing a head.
                     m_iheads.emplace_back(fidx);
                 } else if( polar >= 3*PI/4 ) {
