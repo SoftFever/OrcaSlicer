@@ -1932,6 +1932,7 @@ bool GLGizmoSlaSupports::is_mesh_update_necessary() const
 
 void GLGizmoSlaSupports::update_mesh()
 {
+    wxBusyCursor wait;
     Eigen::MatrixXf& V = m_V;
     Eigen::MatrixXi& F = m_F;
     // Composite mesh of all instances in the world coordinate system.
