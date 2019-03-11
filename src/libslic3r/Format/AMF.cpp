@@ -600,6 +600,7 @@ void AMFParserContext::endElement(const char * /* name */)
 						break;
 					p = end + 1;
                 }
+                m_object->sla_points_status = sla::PointsStatus::UserModified;
             }
             else if (m_path.size() == 5 && m_path[3] == NODE_TYPE_VOLUME && m_volume) {
                 if (strcmp(opt_key, "modifier") == 0) {

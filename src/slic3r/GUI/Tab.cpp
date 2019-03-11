@@ -751,21 +751,25 @@ void Tab::load_key_value(const std::string& opt_key, const boost::any& value, bo
 
 void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 {
-    ConfigOptionsGroup* og_freq_chng_params = wxGetApp().sidebar().og_freq_chng_params(supports_printer_technology(ptFFF));
-    if (opt_key == "fill_density" || opt_key == "supports_enable" || opt_key == "pad_enable")
+    const bool is_fff = supports_printer_technology(ptFFF);
+    ConfigOptionsGroup* og_freq_chng_params = wxGetApp().sidebar().og_freq_chng_params(is_fff);
+    if (opt_key == "fill_density" || opt_key == "pad_enable")
 	{
         boost::any val = og_freq_chng_params->get_config_value(*m_config, opt_key);
         og_freq_chng_params->set_value(opt_key, val);
 	}
-	if (opt_key == "support_material" || opt_key == "support_material_buildplate_only")
+
+	if ( is_fff && (opt_key == "support_material" || opt_key == "support_material_buildplate_only") || 
+        !is_fff && (opt_key == "supports_enable"  || opt_key == "support_buildplate_only"))
 	{
-		wxString new_selection = !m_config->opt_bool("support_material") ?
-								_("None") :
-								m_config->opt_bool("support_material_buildplate_only") ?
-									_("Support on build plate only") :
-									_("Everywhere");
+        const std::string support         = is_fff ? "support_material"                 : "supports_enable";
+        const std::string buildplate_only = is_fff ? "support_material_buildplate_only" : "support_buildplate_only";
+        wxString new_selection = !m_config->opt_bool(support)         ? _("None") :
+                                  m_config->opt_bool(buildplate_only) ? _("Support on build plate only") :
+									                                    _("Everywhere");
         og_freq_chng_params->set_value("support", new_selection);
 	}
+
 	if (opt_key == "brim_width")
 	{
 		bool val = m_config->opt_float("brim_width") > 0.0 ? true : false;
