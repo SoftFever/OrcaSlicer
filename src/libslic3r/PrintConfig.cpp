@@ -2574,6 +2574,7 @@ void PrintConfigDef::init_sla_params()
     def->sidetext = L("mm");
     def->cli = "";
     def->min = 0;
+    def->mode = comAdvanced;
     def->default_value = new ConfigOptionFloat(0.4);
 
     def = this->add("support_head_penetration", coFloat);
@@ -2674,7 +2675,7 @@ void PrintConfigDef::init_sla_params()
     def->cli = "";
     def->min = 0;
     def->max = 90;
-    def->mode = comSimple;
+    def->mode = comExpert;
     def->default_value = new ConfigOptionFloat(45);
 
     def = this->add("support_max_bridge_length", coFloat);
@@ -2684,7 +2685,7 @@ void PrintConfigDef::init_sla_params()
     def->sidetext = L("mm");
     def->cli = "";
     def->min = 0;
-    def->mode = comSimple;
+    def->mode = comAdvanced;
     def->default_value = new ConfigOptionFloat(15.0);
 
     def = this->add("support_max_pillar_link_distance", coFloat);
@@ -2695,7 +2696,7 @@ void PrintConfigDef::init_sla_params()
     def->sidetext = L("mm");
     def->cli = "";
     def->min = 0;   // 0 means no linking
-    def->mode = comSimple;
+    def->mode = comAdvanced;
     def->default_value = new ConfigOptionFloat(10.0);
 
     def = this->add("support_object_elevation", coFloat);
@@ -2706,7 +2707,7 @@ void PrintConfigDef::init_sla_params()
     def->cli = "";
     def->min = 0;
     def->max = 150; // This is the max height of print on SL1
-    def->mode = comSimple;
+    def->mode = comAdvanced;
     def->default_value = new ConfigOptionFloat(5.0);
 
     def = this->add("support_points_density_relative", coInt);
