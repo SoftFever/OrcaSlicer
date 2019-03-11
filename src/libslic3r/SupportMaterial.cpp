@@ -2850,7 +2850,7 @@ void modulate_extrusion_by_overlapping_layers(
             if (end_and_dist2.first == nullptr) {
                 // New fragment connecting to pt_current was not found.
                 // Verify that the last point found is close to the original end point of the unfragmented path.
-                //const double d2 = (pt_end - pt_current).squaredNorm();
+                //const double d2 = (pt_end - pt_current).cast<double>.squaredNorm();
                 //assert(d2 < coordf_t(search_radius * search_radius));
                 // End of the path.
                 break;

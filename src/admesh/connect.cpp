@@ -293,8 +293,8 @@ static int stl_load_edge_nearby(stl_file *stl, stl_hash_edge *edge, stl_vertex *
 {
   // Index of a grid cell spaced by tolerance.
   typedef Eigen::Matrix<int32_t,  3, 1, Eigen::DontAlign> Vec3i;
-  Vec3i vertex1 = (*a / tolerance).cast<int32_t>();
-  Vec3i vertex2 = (*b / tolerance).cast<int32_t>();
+  Vec3i vertex1 = ((*a - stl->stats.min) / tolerance).cast<int32_t>();
+  Vec3i vertex2 = ((*b - stl->stats.min) / tolerance).cast<int32_t>();
   static_assert(sizeof(Vec3i) == 12, "size of Vec3i incorrect");
 
   if (vertex1 == vertex2)
