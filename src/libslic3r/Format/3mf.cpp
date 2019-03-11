@@ -587,8 +587,10 @@ namespace Slic3r {
                 object.second->layer_height_profile = obj_layer_heights_profile->second;
 
             IdToSlaSupportPointsMap::iterator obj_sla_support_points = m_sla_support_points.find(object.first);
-            if (obj_sla_support_points != m_sla_support_points.end() && !obj_sla_support_points->second.empty())
+            if (obj_sla_support_points != m_sla_support_points.end() && !obj_sla_support_points->second.empty()) {
                 object.second->sla_support_points = obj_sla_support_points->second;
+                object.second->sla_points_status = sla::PointsStatus::UserModified;
+            }
 
             IdToMetadataMap::iterator obj_metadata = m_objects_metadata.find(object.first);
             if (obj_metadata != m_objects_metadata.end())
