@@ -365,20 +365,20 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
     
     Line line = Line { "", "" };
 
-    ConfigOptionDef def;
-    def.label = L("Supports");
-    def.type = coStrings;
-    def.gui_type = "select_open";
-    def.tooltip = L("Select what kind of support do you need");
-    def.enum_labels.push_back(L("None"));
-    def.enum_labels.push_back(L("Support on build plate only"));
-    def.enum_labels.push_back(L("Everywhere"));
-    const std::string selection = !config->opt_bool("support_material") ?
-                                  "None" : config->opt_bool("support_material_buildplate_only") ?
-                                  "Support on build plate only" :
-                                  "Everywhere";
-    def.default_value = new ConfigOptionStrings{ selection };
-    Option option = Option(def, "support");
+    ConfigOptionDef support_def;
+    support_def.label = L("Supports");
+    support_def.type = coStrings;
+    support_def.gui_type = "select_open";
+    support_def.tooltip = L("Select what kind of support do you need");
+    support_def.enum_labels.push_back(L("None"));
+    support_def.enum_labels.push_back(L("Support on build plate only"));
+    support_def.enum_labels.push_back(L("Everywhere"));
+    std::string selection = !config->opt_bool("support_material") ?
+                            "None" : config->opt_bool("support_material_buildplate_only") ?
+                            "Support on build plate only" :
+                            "Everywhere";
+    support_def.default_value = new ConfigOptionStrings{ selection };
+    Option option = Option(support_def, "support");
     option.opt.full_width = true;
     line.append_option(option);
     m_og->append_line(line);
@@ -393,6 +393,7 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
     line.append_option(option);
 
     m_brim_width = config->opt_float("brim_width");
+    ConfigOptionDef def;
     def.label = L("Brim");
     def.type = coBool;
     def.tooltip = L("This flag enables the brim that will be printed around each object on the first layer.");
@@ -428,6 +429,7 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
 
     m_og->append_line(line);
 
+
     // Frequently changed parameters for SLA_technology
     m_og_sla = std::make_shared<ConfigOptionsGroup>(parent, "");
     DynamicPrintConfig*	config_sla = &wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
@@ -438,20 +440,43 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
         Tab* tab = wxGetApp().get_tab(Preset::TYPE_SLA_PRINT);
         if (!tab) return;
 
-        tab->set_value(opt_key, value);
+        if (opt_key == "pad_enable") {
+            tab->set_value(opt_key, value);
+            tab->update();
+        }
+        else //(opt_key == "support")
+        {
+            DynamicPrintConfig new_conf = *config_sla;
+            const wxString& selection = boost::any_cast<wxString>(value);
 
-        DynamicPrintConfig new_conf = *config_sla;
-        new_conf.set_key_value(opt_key, new ConfigOptionBool(boost::any_cast<bool>(value)));
-        tab->load_config(new_conf);
+            const bool supports_enable = selection == _("None") ? false : true;
+            new_conf.set_key_value("supports_enable", new ConfigOptionBool(supports_enable));
+
+            if (selection == _("Everywhere"))
+                new_conf.set_key_value("support_buildplate_only", new ConfigOptionBool(false));
+            else if (selection == _("Support on build plate only"))
+                new_conf.set_key_value("support_buildplate_only", new ConfigOptionBool(true));
+
+            tab->load_config(new_conf);
+        }
+
         tab->update_dirty();
-    };    
-
+    };
 
     line = Line{ "", "" };
 
-    option = m_og_sla->get_option("supports_enable");
-    option.opt.sidetext = "     ";
+    selection = !config_sla->opt_bool("supports_enable") ?
+                "None" : config_sla->opt_bool("support_buildplate_only") ?
+                "Support on build plate only" :
+                "Everywhere";
+    support_def.default_value = new ConfigOptionStrings{ selection };
+    option = Option(support_def, "support");
+    option.opt.full_width = true;
     line.append_option(option);
+    m_og_sla->append_line(line);
+
+
+    line = Line{ "", "" };
 
     option = m_og_sla->get_option("pad_enable");
     option.opt.sidetext = "     ";
