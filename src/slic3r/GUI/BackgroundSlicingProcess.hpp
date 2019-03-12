@@ -124,9 +124,6 @@ public:
     // and it does not account for the OctoPrint scheduling.
     bool    finished() const { return m_print->finished(); }
     
-    // set status line
-    void    set_status(const std::string & status_str) const { m_print->set_status(100, status_str); }
-
 private:
 	void 	thread_proc();
 	void 	thread_proc_safe();

@@ -684,9 +684,10 @@ Sidebar::Sidebar(Plater *parent)
     p->btn_reslice->Bind(wxEVT_BUTTON, [this](wxCommandEvent&)
     {
         const bool export_gcode_after_slicing = wxGetKeyState(WXK_SHIFT);
-        p->plater->reslice();
         if (export_gcode_after_slicing)
             p->plater->export_gcode();
+        else
+            p->plater->reslice();
     });
     p->btn_send_gcode->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->send_gcode(); });
 }
@@ -1098,6 +1099,7 @@ struct Plater::priv
     wxTimer                     background_process_timer;
 
     std::string                 label_btn_export;
+    std::string                 label_btn_send;
 
     static const std::regex pattern_bundle;
     static const std::regex pattern_3mf;
@@ -2150,28 +2152,22 @@ unsigned int Plater::priv::update_background_process(bool force_validation)
 		wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, evt.Clone());
 	}
 
-    //FIXME update "Slice Now / Schedule background process"
-    //background_process.is_export_scheduled() - byl zavolan "Export G-code", background processing ma jmeno export souboru
-    //background_process.is_upload_scheduled() - byl zavolan "Send to OctoPrint", jeste nebylo doslajsovano (pak se preda upload fronte a background process zapomene)
-    //background_process.empty() - prazdna plocha
-    // pokud (return_state & UPDATE_BACKGROUND_PROCESS_INVALID) != 0 -> doslo k chybe (gray out "Slice now") mozna "Invalid data"???
-    // jinak background_process.running() -> Zobraz "Slicing ..."
-    // jinak pokud ! background_process.empty() && ! background_process.finished() -> je neco ke slajsovani (povol tlacitko) "Slice Now"
-
     if ((return_state & UPDATE_BACKGROUND_PROCESS_INVALID) != 0)
     {
+        // Validation of the background data failed.
         const wxString invalid_str = _(L("Invalid data"));
         for (auto btn : {ActionButtonType::abReslice, ActionButtonType::abSendGCode, ActionButtonType::abExport})
             sidebar->set_btn_label(btn, invalid_str);
     }
     else
     {
+        // Background data is valid.
         if ((return_state & UPDATE_BACKGROUND_PROCESS_RESTART) != 0 ||
             (return_state & UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE) != 0 )
-            background_process.set_status("Ready to slice");
+            this->statusbar()->set_status_text(L("Ready to slice"));
 
         sidebar->set_btn_label(ActionButtonType::abExport, _(label_btn_export));
-        sidebar->set_btn_label(ActionButtonType::abSendGCode, _(L("Send G-code")));
+        sidebar->set_btn_label(ActionButtonType::abSendGCode, _(label_btn_send));
         
         const wxString slice_string = background_process.running() && wxGetApp().get_mode() == comSimple ? 
                                       _(L("Slicing")) + dots : _(L("Slice now"));
@@ -3447,7 +3443,8 @@ void Plater::set_printer_technology(PrinterTechnology printer_technology)
     //FIXME for SLA synchronize 
     //p->background_process.apply(Model)!
 
-    p->label_btn_export = printer_technology == ptFFF ? L("Export G-code") : L("Export"); // #ys_FIXME_rename
+    p->label_btn_export = printer_technology == ptFFF ? L("Export G-code") : L("Export");
+    p->label_btn_send   = printer_technology == ptFFF ? L("Send G-code")   : L("Send to printer");
 }
 
 void Plater::changed_object(int obj_idx)
