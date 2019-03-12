@@ -513,6 +513,12 @@ ConfigOptionsGroup* FreqChangedParams::get_og(const bool is_fff)
 
 // Sidebar / private
 
+enum class ActionButtonType : int {
+    abReslice,
+    abExport,
+    abSendGCode
+};
+
 struct Sidebar::priv
 {
     Plater *plater;
@@ -675,7 +681,13 @@ Sidebar::Sidebar(Plater *parent)
 
     // Events
     p->btn_export_gcode->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->export_gcode(); });
-    p->btn_reslice->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->reslice(); });
+    p->btn_reslice->Bind(wxEVT_BUTTON, [this](wxCommandEvent&)
+    {
+        const bool export_gcode_after_slicing = wxGetKeyState(WXK_SHIFT);
+        p->plater->reslice();
+        if (export_gcode_after_slicing)
+            p->plater->export_gcode();
+    });
     p->btn_send_gcode->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->send_gcode(); });
 }
 
@@ -773,9 +785,15 @@ void Sidebar::update_presets(Preset::Type preset_type)
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
 }
 
-void Sidebar::update_mode_sizer(const Slic3r::ConfigOptionMode& mode)
+void Sidebar::update_mode_sizer() const
 {
-    p->mode_sizer->SetMode(mode);
+    p->mode_sizer->SetMode(m_mode);
+}
+
+void Sidebar::update_reslice_btn_tooltip() const
+{
+    const wxString tooltip = m_mode == comSimple ? wxString("") : _(L("Hold Shift to Slice & Export G-code"));
+    p->btn_reslice->SetToolTip(tooltip);
 }
 
 ObjectManipulation* Sidebar::obj_manipul()
@@ -968,14 +986,33 @@ void Sidebar::enable_buttons(bool enable)
     p->btn_send_gcode->Enable(enable);
 }
 
-void Sidebar::show_reslice(bool show) { p->btn_reslice->Show(show); }
-void Sidebar::show_send(bool show) { p->btn_send_gcode->Show(show); }
+void Sidebar::show_reslice(bool show)   const { p->btn_reslice->Show(show); }
+void Sidebar::show_export(bool show)    const { p->btn_export_gcode->Show(show); }
+void Sidebar::show_send(bool show)      const { p->btn_send_gcode->Show(show); }
 
 bool Sidebar::is_multifilament()
 {
     return p->combos_filament.size() > 1;
 }
 
+
+void Sidebar::update_mode()
+{
+    m_mode = wxGetApp().get_mode();
+
+    update_reslice_btn_tooltip();
+    update_mode_sizer();
+
+    wxWindowUpdateLocker noUpdates(this);
+
+    p->object_list->get_sizer()->Show(m_mode > comSimple);
+
+    p->object_list->unselect_objects();
+    p->object_list->update_selections();
+    p->object_list->update_object_menu();
+    
+    Layout();
+}
 
 std::vector<PresetComboBox*>& Sidebar::combos_filament()
 {
@@ -1059,6 +1096,8 @@ struct Plater::priv
     std::string                 delayed_error_message;
 
     wxTimer                     background_process_timer;
+
+    std::string                 label_btn_export;
 
     static const std::regex pattern_bundle;
     static const std::regex pattern_3mf;
@@ -1148,6 +1187,7 @@ struct Plater::priv
     void on_3dcanvas_mouse_dragging_finished(SimpleEvent&);
 
     void update_object_menu();
+    void show_action_buttons(const bool is_ready_to_slice) const;
 
     // Set the bed shape to a single closed 2D polygon(array of two element arrays),
     // triangulate the bed and store the triangles into m_bed.m_triangles,
@@ -2118,6 +2158,35 @@ unsigned int Plater::priv::update_background_process(bool force_validation)
     // jinak background_process.running() -> Zobraz "Slicing ..."
     // jinak pokud ! background_process.empty() && ! background_process.finished() -> je neco ke slajsovani (povol tlacitko) "Slice Now"
 
+    if ((return_state & UPDATE_BACKGROUND_PROCESS_INVALID) != 0)
+    {
+        const wxString invalid_str = _(L("Invalid data"));
+        for (auto btn : {ActionButtonType::abReslice, ActionButtonType::abSendGCode, ActionButtonType::abExport})
+            sidebar->set_btn_label(btn, invalid_str);
+    }
+    else
+    {
+        if ((return_state & UPDATE_BACKGROUND_PROCESS_RESTART) != 0 ||
+            (return_state & UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE) != 0 )
+            background_process.set_status("Ready to slice");
+
+        sidebar->set_btn_label(ActionButtonType::abExport, _(label_btn_export));
+        sidebar->set_btn_label(ActionButtonType::abSendGCode, _(L("Send G-code")));
+        
+        const wxString slice_string = background_process.running() && wxGetApp().get_mode() == comSimple ? 
+                                      _(L("Slicing")) + dots : _(L("Slice now"));
+        sidebar->set_btn_label(ActionButtonType::abReslice, slice_string);
+
+        if (background_process.finished())
+            show_action_buttons(false);
+        else if (!background_process.empty() && 
+                 !background_process.running()) /* Do not update buttons if background process is running
+                                                 * This condition is important for SLA mode especially, 
+                                                 * when this function is called several times during calculations 
+                                                 * */
+            show_action_buttons(true);
+    }
+
     return return_state;
 }
 
@@ -2430,6 +2499,14 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
             this->update_sla_scene();
         break;
     }
+
+    if (canceled) {
+        if (wxGetApp().get_mode() == comSimple)
+            sidebar->set_btn_label(ActionButtonType::abReslice, "Slice now");
+        show_action_buttons(true);
+    }
+    else if (wxGetApp().get_mode() == comSimple)
+        show_action_buttons(false);
 }
 
 void Plater::priv::on_layer_editing_toggled(bool enable)
@@ -2798,6 +2875,37 @@ void Plater::priv::update_object_menu()
         view3D->update_toolbar_items_visibility();
 }
 
+void Plater::priv::show_action_buttons(const bool is_ready_to_slice) const 
+{
+    wxWindowUpdateLocker noUpdater(sidebar);
+    const auto prin_host_opt = config->option<ConfigOptionString>("print_host");
+    const bool send_gcode_shown = prin_host_opt != nullptr && !prin_host_opt->value.empty();
+
+    // when a background processing is ON, export_btn and/or send_btn are showing 
+    if (wxGetApp().app_config->get("background_processing") == "1")
+    {
+        sidebar->show_reslice(false);
+        sidebar->show_export(true);
+        sidebar->show_send(send_gcode_shown);
+    }
+    else
+    {
+        sidebar->show_reslice(is_ready_to_slice);
+        sidebar->show_export(!is_ready_to_slice);
+        sidebar->show_send(send_gcode_shown && !is_ready_to_slice);
+    }
+}
+
+void Sidebar::set_btn_label(const ActionButtonType btn_type, const wxString& label) const
+{
+    switch (btn_type)
+    {
+        case ActionButtonType::abReslice:   p->btn_reslice->SetLabelText(label);        break;
+        case ActionButtonType::abExport:    p->btn_export_gcode->SetLabelText(label);   break;
+        case ActionButtonType::abSendGCode: p->btn_send_gcode->SetLabelText(label);     break;
+    }
+}
+
 // Plater / Public
 
 Plater::Plater(wxWindow *parent, MainFrame *main_frame)
@@ -3124,6 +3232,22 @@ void Plater::reslice()
     this->p->background_process.set_task(PrintBase::TaskParams());
     // Only restarts if the state is valid.
     this->p->restart_background_process(state | priv::UPDATE_BACKGROUND_PROCESS_FORCE_RESTART);
+
+    if ((state & priv::UPDATE_BACKGROUND_PROCESS_INVALID) != 0)
+        return;
+
+    if (p->background_process.running())
+    {
+        if (wxGetApp().get_mode() == comSimple)
+            p->sidebar->set_btn_label(ActionButtonType::abReslice, _(L("Slicing")) + dots);
+        else
+        {
+            p->sidebar->set_btn_label(ActionButtonType::abReslice, _(L("Slice now")));
+            p->show_action_buttons(false);
+        }
+    }
+    else if (!p->background_process.empty() && !p->background_process.idle())
+        p->show_action_buttons(true);
 }
 
 void Plater::reslice_SLA_supports(const ModelObject &object)
@@ -3322,6 +3446,8 @@ void Plater::set_printer_technology(PrinterTechnology printer_technology)
     }
     //FIXME for SLA synchronize 
     //p->background_process.apply(Model)!
+
+    p->label_btn_export = printer_technology == ptFFF ? L("Export G-code") : L("Export"); // #ys_FIXME_rename
 }
 
 void Plater::changed_object(int obj_idx)
