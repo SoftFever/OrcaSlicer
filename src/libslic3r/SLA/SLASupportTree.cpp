@@ -1479,6 +1479,7 @@ public:
                     stc.relative_score_difference = m_cfg.optimizer_rel_score_diff;
                     stc.stop_score = w; // space greater than w is enough
                     GeneticOptimizer solver(stc);
+                    solver.seed(0); // we want deterministic behavior
 
                     auto oresult = solver.optimize_max(
                         [this, pin_r, w, hp](double plr, double azm)
@@ -1778,6 +1779,7 @@ public:
             stc.relative_score_difference = m_cfg.optimizer_rel_score_diff;
             stc.stop_score = 1e6;
             GeneticOptimizer solver(stc);
+            solver.seed(0); // we want deterministic behavior
 
             double r_back = head.r_back_mm;
 
