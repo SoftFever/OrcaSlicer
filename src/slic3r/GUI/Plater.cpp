@@ -555,8 +555,6 @@ void Sidebar::priv::show_preset_comboboxes()
 {
     const bool showSLA = wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA;
 
-    wxWindowUpdateLocker noUpdates_scrolled(scrolled->GetParent());
-    
     for (size_t i = 0; i < 4; ++i)
         sizer_presets->Show(i, !showSLA);
 
@@ -579,6 +577,10 @@ Sidebar::Sidebar(Plater *parent)
 {
     p->scrolled = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxSize(40 * wxGetApp().em_unit(), -1));
     p->scrolled->SetScrollbars(0, 20, 1, 2);
+
+#ifdef __WINDOWS__
+    p->scrolled->SetDoubleBuffered(true);
+#endif //__WINDOWS__
 
     // Sizer in the scrolled area
     auto *scrolled_sizer = new wxBoxSizer(wxVERTICAL);
@@ -645,9 +647,7 @@ Sidebar::Sidebar(Plater *parent)
     p->object_settings->Hide();
     p->sizer_params->Add(p->object_settings->get_sizer(), 0, wxEXPAND | wxTOP, margin_5);
 
-    wxBitmap arrow_up(GUI::from_u8(Slic3r::var("brick_go.png")), wxBITMAP_TYPE_PNG);
     p->btn_send_gcode = new wxButton(this, wxID_ANY, _(L("Send to printer")));
-    p->btn_send_gcode->SetBitmap(arrow_up);
     p->btn_send_gcode->SetFont(wxGetApp().bold_font());
     p->btn_send_gcode->Hide();
 
@@ -757,6 +757,8 @@ void Sidebar::update_presets(Preset::Type preset_type)
 
 	case Preset::TYPE_PRINTER:
 	{
+        wxWindowUpdateLocker noUpdates_scrolled(p->scrolled);
+
 		// Update the print choosers to only contain the compatible presets, update the dirty flags.
         if (print_tech == ptFFF)
 			preset_bundle.prints.update_platter_ui(p->combo_print);
@@ -2893,6 +2895,7 @@ void Plater::priv::show_action_buttons(const bool is_ready_to_slice) const
         sidebar->show_export(!is_ready_to_slice);
         sidebar->show_send(send_gcode_shown && !is_ready_to_slice);
     }
+    sidebar->Layout();
 }
 
 void Sidebar::set_btn_label(const ActionButtonType btn_type, const wxString& label) const
