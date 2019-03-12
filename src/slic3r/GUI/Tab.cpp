@@ -751,6 +751,10 @@ void Tab::load_key_value(const std::string& opt_key, const boost::any& value, bo
 
 void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 {
+	if (wxGetApp().plater() == nullptr) {
+		return;
+	}
+
     const bool is_fff = supports_printer_technology(ptFFF);
     ConfigOptionsGroup* og_freq_chng_params = wxGetApp().sidebar().og_freq_chng_params(is_fff);
     if (opt_key == "fill_density" || opt_key == "pad_enable")

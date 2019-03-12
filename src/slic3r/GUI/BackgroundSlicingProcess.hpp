@@ -123,7 +123,7 @@ public:
     // This "finished" flag does not account for the final export of the output file (.gcode or zipped PNGs),
     // and it does not account for the OctoPrint scheduling.
     bool    finished() const { return m_print->finished(); }
-
+    
 private:
 	void 	thread_proc();
 	void 	thread_proc_safe();
