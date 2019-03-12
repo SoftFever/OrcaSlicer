@@ -1612,25 +1612,21 @@ bool Tab::current_preset_is_dirty()
 
 void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 {
-	const bool sla = m_presets->get_selected_preset().printer_technology() == ptSLA;
+	const PrinterTechnology tech = m_presets->get_selected_preset().printer_technology();
 
 	// Only offer the host type selection for FFF, for SLA it's always the SL1 printer (at the moment)
-	if (! sla) {
+	if (tech == ptFFF) {
 		optgroup->append_single_option_line("host_type");
 	}
 
-	auto printhost_browse = [this, optgroup] (wxWindow* parent) {
-
-		// TODO: SLA Bonjour
-
+	auto printhost_browse = [=](wxWindow* parent) {
 		auto btn = m_printhost_browse_btn = new wxButton(parent, wxID_ANY, _(L(" Browse "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
-// 		btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("zoom.png")), wxBITMAP_TYPE_PNG));
         btn->SetBitmap(create_scaled_bitmap("zoom.png"));
 		auto sizer = new wxBoxSizer(wxHORIZONTAL);
 		sizer->Add(btn);
 
-		btn->Bind(wxEVT_BUTTON, [this, parent, optgroup](wxCommandEvent &e) {
-			BonjourDialog dialog(parent);
+		btn->Bind(wxEVT_BUTTON, [=](wxCommandEvent &e) {
+			BonjourDialog dialog(parent, tech);
 			if (dialog.show_and_lookup()) {
 				optgroup->set_value("print_host", std::move(dialog.get_selected()), true);
 				optgroup->get_field("print_host")->field_changed();
@@ -1643,7 +1639,6 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 	auto print_host_test = [this](wxWindow* parent) {
 		auto btn = m_print_host_test_btn = new wxButton(parent, wxID_ANY, _(L("Test")), 
 			wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
-// 		btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("wrench.png")), wxBITMAP_TYPE_PNG));
         btn->SetBitmap(create_scaled_bitmap("wrench.png"));
 		auto sizer = new wxBoxSizer(wxHORIZONTAL);
 		sizer->Add(btn);

@@ -10,6 +10,7 @@
 #include <wx/listctrl.h>
 #include <wx/stattext.h>
 #include <wx/timer.h>
+#include <wx/wupdlock.h>
 
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/I18N.hpp"
@@ -49,14 +50,16 @@ struct LifetimeGuard
 	LifetimeGuard(BonjourDialog *dialog) : dialog(dialog) {}
 };
 
+// FIXME: use em, resizable
 
-BonjourDialog::BonjourDialog(wxWindow *parent) :
-	wxDialog(parent, wxID_ANY, _(L("Network lookup"))),
-	list(new wxListView(this, wxID_ANY, wxDefaultPosition, wxSize(800, 300))),
-	replies(new ReplySet),
-	label(new wxStaticText(this, wxID_ANY, "")),
-	timer(new wxTimer()),
-	timer_state(0)
+BonjourDialog::BonjourDialog(wxWindow *parent, Slic3r::PrinterTechnology tech)
+	: wxDialog(parent, wxID_ANY, _(L("Network lookup")))
+	, list(new wxListView(this, wxID_ANY, wxDefaultPosition, wxSize(800, 300)))
+	, replies(new ReplySet)
+	, label(new wxStaticText(this, wxID_ANY, ""))
+	, timer(new wxTimer())
+	, timer_state(0)
+	, tech(tech)
 {
 	wxBoxSizer *vsizer = new wxBoxSizer(wxVERTICAL);
 
@@ -67,7 +70,9 @@ BonjourDialog::BonjourDialog(wxWindow *parent) :
 	list->AppendColumn(_(L("Address")), wxLIST_FORMAT_LEFT, 50);
 	list->AppendColumn(_(L("Hostname")), wxLIST_FORMAT_LEFT, 100);
 	list->AppendColumn(_(L("Service name")), wxLIST_FORMAT_LEFT, 200);
-	list->AppendColumn(_(L("OctoPrint version")), wxLIST_FORMAT_LEFT, 50);
+	if (tech == ptFFF) {
+		list->AppendColumn(_(L("OctoPrint version")), wxLIST_FORMAT_LEFT, 50);
+	}
 
 	vsizer->Add(list, 1, wxEXPAND | wxALL, 10);
 
@@ -110,7 +115,11 @@ bool BonjourDialog::show_and_lookup()
 	// so that both threads can access it safely.
 	auto dguard = std::make_shared<LifetimeGuard>(this);
 
+	// Note: More can be done here when we support discovery of hosts other than Octoprint and SL1
+	Bonjour::TxtKeys txt_keys { "version", "model" };
+
 	bonjour = std::move(Bonjour("octoprint")
+		.set_txt_keys(std::move(txt_keys))
 		.set_retries(3)
 		.set_timeout(4)
 		.on_reply([dguard](BonjourReply &&reply) {
@@ -157,9 +166,20 @@ void BonjourDialog::on_reply(BonjourReplyEvent &e)
 		return;
 	}
 
+	// Filter replies based on selected technology
+	const auto model = e.reply.txt_data.find("model");
+	const bool sl1 = model != e.reply.txt_data.end() && model->second == "SL1";
+	if (tech == ptFFF && sl1 || tech == ptSLA && !sl1) {
+		return;
+	}
+
 	replies->insert(std::move(e.reply));
 
 	auto selected = get_selected();
+
+	wxWindowUpdateLocker freeze_guard(this);
+	(void)freeze_guard;
+
 	list->DeleteAllItems();
 
 	// The whole list is recreated so that we benefit from it already being sorted in the set.
@@ -168,12 +188,18 @@ void BonjourDialog::on_reply(BonjourReplyEvent &e)
 		auto item = list->InsertItem(0, reply.full_address);
 		list->SetItem(item, 1, reply.hostname);
 		list->SetItem(item, 2, reply.service_name);
-		list->SetItem(item, 3, reply.version);
+
+		if (tech == ptFFF) {
+			const auto it = reply.txt_data.find("version");
+			if (it != reply.txt_data.end()) {
+				list->SetItem(item, 3, GUI::from_u8(it->second));
+			}
+		}
 	}
 
-	for (int i = 0; i < 4; i++) {
-		this->list->SetColumnWidth(i, wxLIST_AUTOSIZE);
-		if (this->list->GetColumnWidth(i) < 100) { this->list->SetColumnWidth(i, 100); }
+	for (int i = 0; i < list->GetColumnCount(); i++) {
+		list->SetColumnWidth(i, wxLIST_AUTOSIZE);
+		if (list->GetColumnWidth(i) < 100) { list->SetColumnWidth(i, 100); }
 	}
 
 	if (!selected.IsEmpty()) {
