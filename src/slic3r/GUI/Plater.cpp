@@ -601,7 +601,7 @@ Sidebar::Sidebar(Plater *parent)
 
     is_msw = true;
 #else
-    presets_panel = p->scrolled;
+    p->presets_panel = p->scrolled;
 #endif //__WINDOWS__
 
     p->sizer_filaments = new wxBoxSizer(wxVERTICAL);
