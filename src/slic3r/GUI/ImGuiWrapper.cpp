@@ -107,11 +107,11 @@ bool ImGuiWrapper::update_mouse_data(wxMouseEvent& evt)
 
     ImGuiIO& io = ImGui::GetIO();
     io.MousePos = ImVec2((float)evt.GetX(), (float)evt.GetY());
-    io.MouseDown[0] = evt.LeftDown();
-    io.MouseDown[1] = evt.RightDown();
-    io.MouseDown[2] = evt.MiddleDown();
+    io.MouseDown[0] = evt.LeftIsDown();
+    io.MouseDown[1] = evt.RightIsDown();
+    io.MouseDown[2] = evt.MiddleIsDown();
 
-    unsigned buttons = (evt.LeftDown() ? 1 : 0) | (evt.RightDown() ? 2 : 0) | (evt.MiddleDown() ? 4 : 0);
+    unsigned buttons = (evt.LeftIsDown() ? 1 : 0) | (evt.RightIsDown() ? 2 : 0) | (evt.MiddleIsDown() ? 4 : 0);
     m_mouse_buttons = buttons;
 
     new_frame();
