@@ -441,6 +441,10 @@ void ImGuiWrapper::init_style()
     set_color(ImGuiCol_Header, COL_ORANGE_DARK);
     set_color(ImGuiCol_HeaderHovered, COL_ORANGE_LIGHT);
     set_color(ImGuiCol_HeaderActive, COL_ORANGE_LIGHT);
+
+    // Slider
+    set_color(ImGuiCol_SliderGrab, COL_ORANGE_DARK);
+    set_color(ImGuiCol_SliderGrabActive, COL_ORANGE_LIGHT);
 }
 
 void ImGuiWrapper::render_draw_data(ImDrawData *draw_data)
