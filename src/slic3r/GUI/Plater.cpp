@@ -524,6 +524,7 @@ struct Sidebar::priv
     Plater *plater;
 
     wxScrolledWindow *scrolled;
+    wxPanel* presets_panel; // Used for MSW better layouts
 
     PrusaModeSizer  *mode_sizer;
     wxFlexGridSizer *sizer_presets;
@@ -578,9 +579,6 @@ Sidebar::Sidebar(Plater *parent)
     p->scrolled = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxSize(40 * wxGetApp().em_unit(), -1));
     p->scrolled->SetScrollbars(0, 20, 1, 2);
 
-#ifdef __WINDOWS__
-    p->scrolled->SetDoubleBuffered(true);
-#endif //__WINDOWS__
 
     // Sizer in the scrolled area
     auto *scrolled_sizer = new wxBoxSizer(wxVERTICAL);
@@ -593,12 +591,25 @@ Sidebar::Sidebar(Plater *parent)
     p->sizer_presets = new wxFlexGridSizer(10, 1, 1, 2);
     p->sizer_presets->AddGrowableCol(0, 1);
     p->sizer_presets->SetFlexibleDirection(wxBOTH);
+
+    bool is_msw = false;
+#ifdef __WINDOWS__
+    p->scrolled->SetDoubleBuffered(true);
+
+    p->presets_panel = new wxPanel(p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    p->presets_panel->SetSizer(p->sizer_presets);
+
+    is_msw = true;
+#else
+    presets_panel = p->scrolled;
+#endif //__WINDOWS__
+
     p->sizer_filaments = new wxBoxSizer(wxVERTICAL);
 
     auto init_combo = [this](PresetComboBox **combo, wxString label, Preset::Type preset_type, bool filament) {
-        auto *text = new wxStaticText(p->scrolled, wxID_ANY, label+" :");
+        auto *text = new wxStaticText(p->presets_panel, wxID_ANY, label + " :");
         text->SetFont(wxGetApp().small_font());
-        *combo = new PresetComboBox(p->scrolled, preset_type);
+        *combo = new PresetComboBox(p->presets_panel, preset_type);
 
         auto *sizer_presets = this->p->sizer_presets;
         auto *sizer_filaments = this->p->sizer_filaments;
@@ -657,7 +668,9 @@ Sidebar::Sidebar(Plater *parent)
 
     // Sizer in the scrolled area
     scrolled_sizer->Add(p->mode_sizer, 0, wxALIGN_CENTER_HORIZONTAL/*RIGHT | wxBOTTOM | wxRIGHT, 5*/);
-    scrolled_sizer->Add(p->sizer_presets, 0, wxEXPAND | wxLEFT, margin_5);
+    is_msw ?
+        scrolled_sizer->Add(p->presets_panel, 0, wxEXPAND | wxLEFT, margin_5) :  
+        scrolled_sizer->Add(p->sizer_presets, 0, wxEXPAND | wxLEFT, margin_5);
     scrolled_sizer->Add(p->sizer_params, 1, wxEXPAND | wxLEFT, margin_5);
     scrolled_sizer->Add(p->object_info, 0, wxEXPAND | wxTOP | wxLEFT, margin_5);
     scrolled_sizer->Add(p->sliced_info, 0, wxEXPAND | wxTOP | wxLEFT, margin_5);
@@ -695,7 +708,7 @@ Sidebar::Sidebar(Plater *parent)
 Sidebar::~Sidebar() {}
 
 void Sidebar::init_filament_combo(PresetComboBox **combo, const int extr_idx) {
-    *combo = new PresetComboBox(p->scrolled, Slic3r::Preset::TYPE_FILAMENT);
+    *combo = new PresetComboBox(p->presets_panel, Slic3r::Preset::TYPE_FILAMENT);
 //         # copy icons from first choice
 //         $choice->SetItemBitmap($_, $choices->[0]->GetItemBitmap($_)) for 0..$#presets;
 
@@ -757,7 +770,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
 
 	case Preset::TYPE_PRINTER:
 	{
-        wxWindowUpdateLocker noUpdates_scrolled(p->scrolled);
+//         wxWindowUpdateLocker noUpdates_scrolled(p->scrolled);
 
 		// Update the print choosers to only contain the compatible presets, update the dirty flags.
         if (print_tech == ptFFF)
@@ -817,6 +830,11 @@ ObjectSettings* Sidebar::obj_settings()
 wxScrolledWindow* Sidebar::scrolled_panel()
 {
     return p->scrolled;
+}
+
+wxPanel* Sidebar::presets_panel()
+{
+    return p->presets_panel;
 }
 
 ConfigOptionsGroup* Sidebar::og_freq_chng_params(const bool is_fff)
@@ -2392,7 +2410,7 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     //! instead of 
     //!     combo->GetStringSelection().ToUTF8().data()); 
 
-    std::string selected_string = combo->GetString(combo->GetSelection()).ToUTF8().data();
+    const std::string& selected_string = combo->GetString(combo->GetSelection()).ToUTF8().data();
 
     if (preset_type == Preset::TYPE_FILAMENT) {
         wxGetApp().preset_bundle->set_filament_preset(idx, selected_string);
@@ -2404,12 +2422,8 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
         wxGetApp().preset_bundle->update_platter_filament_ui(idx, combo);
     } 
     else {
-        for (Tab* tab : wxGetApp().tabs_list) {
-            if (tab->type() == preset_type) {
-                tab->select_preset(selected_string);
-                break;
-            }
-        }
+        wxWindowUpdateLocker noUpdates(sidebar->presets_panel());
+        wxGetApp().get_tab(preset_type)->select_preset(selected_string);
     }
 
     // update plater with new config
@@ -3313,8 +3327,10 @@ void Plater::on_extruders_change(int num_extruders)
 {
     auto& choices = sidebar().combos_filament();
 
+    if (num_extruders == choices.size())
+        return;
+
     wxWindowUpdateLocker noUpdates_scrolled_panel(&sidebar()/*.scrolled_panel()*/);
-//     sidebar().scrolled_panel()->Freeze();
 
     int i = choices.size();
     while ( i < num_extruders )

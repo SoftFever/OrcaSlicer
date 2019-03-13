@@ -51,6 +51,8 @@ public:
     int  get_extruder_idx() const               { return extruder_idx; }
     void check_selection();
 
+    std::string     selected_preset_name;
+
 private:
     typedef std::size_t Marker;
     enum { LABEL_ITEM_MARKER = 0x4d };
@@ -81,6 +83,7 @@ public:
     ObjectList*             obj_list();
     ObjectSettings*         obj_settings();
     wxScrolledWindow*       scrolled_panel();
+    wxPanel*                presets_panel();
 
     ConfigOptionsGroup*     og_freq_chng_params(const bool is_fff);
     wxButton*               get_wiping_dialog_button();

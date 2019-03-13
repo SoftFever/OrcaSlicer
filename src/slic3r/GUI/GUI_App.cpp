@@ -198,9 +198,9 @@ bool GUI_App::OnInit()
     });
 
     load_current_presets();
-    update_mode(); // update view mode after fix of the object_list size
 
     mainframe->Show(true);
+    update_mode(); // update view mode after fix of the object_list size
     m_initialized = true;
     return true;
 }

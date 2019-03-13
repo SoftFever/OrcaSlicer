@@ -73,6 +73,10 @@ void Tab::set_type()
 // sub new
 void Tab::create_preset_tab()
 {
+#ifdef __WINDOWS__
+    SetDoubleBuffered(true);
+#endif //__WINDOWS__
+
     m_preset_bundle = wxGetApp().preset_bundle;
 
 	// Vertical sizer to hold the choice menu and the rest of the page.
@@ -787,25 +791,6 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         wxGetApp().plater()->on_extruders_change(boost::any_cast<size_t>(value));
 
 	update();
-
-    // #ys_FIXME_to_delete
-    // Post event to the Plater after updating of the all dirty options
-    // It helps to avoid needless schedule_background_processing
-//     if (update_completed()) 
-//     if (m_update_stack.empty())
-//     {
-// //         wxCommandEvent event(EVT_TAB_VALUE_CHANGED);
-// //         event.SetEventObject(this);
-// //         event.SetString(opt_key);
-// //         if (opt_key == "extruders_count")
-// //         {
-// //             const int val = boost::any_cast<size_t>(value);
-// //             event.SetInt(val);
-// //         }
-// // 
-// //         wxPostEvent(this, event);
-//         wxGetApp().mainframe->on_value_changed(m_config);
-//     }
 }
 
 // Show/hide the 'purging volumes' button
@@ -828,9 +813,13 @@ void Tab::update_wiping_button_visibility() {
 // To update the content of the selection boxes,
 // to update the filament colors of the selection boxes,
 // to update the "dirty" flags of the selection boxes,
-// to uddate number of "filament" selection boxes when the number of extruders change.
+// to update number of "filament" selection boxes when the number of extruders change.
 void Tab::on_presets_changed()
 {
+    // Instead of PostEvent (EVT_TAB_PRESETS_CHANGED) just call update_presets
+    wxGetApp().plater()->sidebar().update_presets(m_type);
+	update_preset_description_line();
+
     // Printer selected at the Printer tab, update "compatible" marks at the print and filament selectors.
     for (auto t: m_dependent_tabs)
     {
@@ -841,16 +830,6 @@ void Tab::on_presets_changed()
     // clear m_dependent_tabs after first update from select_preset()
     // to avoid needless preset loading from update() function
     m_dependent_tabs.clear();
-
-    // #ys_FIXME_to_delete
-// 	wxCommandEvent event(EVT_TAB_PRESETS_CHANGED);
-// 	event.SetEventObject(this);
-// 	wxPostEvent(this, event);
-
-    // Instead of PostEvent (EVT_TAB_PRESETS_CHANGED) just call update_presets
-    wxGetApp().plater()->sidebar().update_presets(m_type);
-
-	update_preset_description_line();
 }
 
 void Tab::update_preset_description_line()
