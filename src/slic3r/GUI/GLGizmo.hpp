@@ -471,7 +471,7 @@ private:
     ModelObject* m_old_model_object = nullptr;
     int m_active_instance = -1;
     int m_old_instance_id = -1;
-    Vec3f unproject_on_mesh(const Vec2d& mouse_pos);
+    std::pair<Vec3f, Vec3f> unproject_on_mesh(const Vec2d& mouse_pos);
 
     const float RenderPointScale = 1.f;
 
@@ -482,6 +482,16 @@ private:
 
     struct SourceDataSummary {
         Geometry::Transformation transformation;
+    };
+
+    class CacheEntry {
+    public:
+        CacheEntry(const sla::SupportPoint& point, bool sel, const Vec3f& norm = Vec3f::Zero()) :
+            support_point(point), selected(sel), normal(norm) {}
+
+        sla::SupportPoint support_point;
+        bool selected; // whether the point is selected
+        Vec3f normal;
     };
 
     // This holds information to decide whether recalculation is necessary:
@@ -510,6 +520,7 @@ private:
     void render_points(const GLCanvas3D::Selection& selection, bool picking = false) const;
     bool is_mesh_update_necessary() const;
     void update_mesh();
+    void update_cache_entry_normal(unsigned int i) const;
 
 #if !ENABLE_IMGUI
     void render_tooltip_texture() const;
@@ -523,7 +534,7 @@ private:
     float m_new_point_head_diameter;        // Size of a new point.
     float m_minimal_point_distance = 20.f;
     float m_density = 100.f;
-    std::vector<std::pair<sla::SupportPoint, bool>> m_editing_mode_cache; // a support point and whether it is currently selected
+    mutable std::vector<CacheEntry> m_editing_mode_cache; // a support point and whether it is currently selected
 
     bool m_selection_rectangle_active = false;
     Vec2d m_selection_rectangle_start_corner;
