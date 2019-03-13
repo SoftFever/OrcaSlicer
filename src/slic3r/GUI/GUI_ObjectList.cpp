@@ -1407,12 +1407,14 @@ bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, con
 		// Cannot delete a wipe tower.
 		return false;
 
+    ModelObject* object = (*m_objects)[obj_idx];
+
     if (type == itVolume) {
-        const auto volume = (*m_objects)[obj_idx]->volumes[idx];
+        const auto volume = object->volumes[idx];
 
         // if user is deleting the last solid part, throw error
         int solid_cnt = 0;
-        for (auto vol : (*m_objects)[obj_idx]->volumes)
+        for (auto vol : object->volumes)
             if (vol->is_model_part())
                 ++solid_cnt;
         if (volume->is_model_part() && solid_cnt == 1) {
@@ -1420,14 +1422,23 @@ bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, con
             return false;
         }
 
-        (*m_objects)[obj_idx]->delete_volume(idx);
+        object->delete_volume(idx);
+
+        if (object->volumes.size() == 1)
+        {
+            const auto last_volume = object->volumes[0];
+            if (!last_volume->config.empty()) {
+                object->config.apply(last_volume->config);
+                last_volume->config.clear();
+            }
+        }
     }
     else if (type == itInstance) {
-        if ((*m_objects)[obj_idx]->instances.size() == 1) {
+        if (object->instances.size() == 1) {
             Slic3r::GUI::show_error(nullptr, _(L("You can't delete the last intance from object.")));
             return false;
         }
-        (*m_objects)[obj_idx]->delete_instance(idx);
+        object->delete_instance(idx);
     }
     else
         return false;
@@ -1752,6 +1763,11 @@ void ObjectList::delete_from_model_and_list(const std::vector<ItemForDelete>& it
             if (item->type&itVolume)
             {
                 m_objects_model->Delete(m_objects_model->GetItemByVolumeId(item->obj_idx, item->sub_obj_idx));
+                if ((*m_objects)[item->obj_idx]->volumes.size() == 1)
+                {
+                    const wxString extruder = wxString::Format("%d", (*m_objects)[item->obj_idx]->config.option<ConfigOptionInt>("extruder")->value);
+                    m_objects_model->SetValue(extruder, m_objects_model->GetItemById(item->obj_idx), 1);
+                }
                 wxGetApp().plater()->canvas3D()->ensure_on_bed(item->obj_idx);
             }
             else
