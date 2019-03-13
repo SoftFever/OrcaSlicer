@@ -159,7 +159,7 @@ print_config_def()
                 opt_type = "s@";
             } else if (optdef->type == coPoint || optdef->type == coPoints) {
                 opt_type = "point";
-            } else if (optdef.type == coPoint3) {
+            } else if (optdef->type == coPoint3) {
                 opt_type = "point3";
             } else if (optdef->type == coBool || optdef->type == coBools) {
                 opt_type = "bool";
