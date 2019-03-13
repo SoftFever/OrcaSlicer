@@ -2195,41 +2195,6 @@ void PrintConfigDef::init_sla_params()
 
     // SLA Printer settings
 
-    def = this->add("bed_size_x", coFloat);
-    def->label = L("Bed size X");
-    def->sidetext = L("mm");
-    def->default_value = new ConfigOptionFloat(68.);
-
-    def = this->add("bed_size_y", coFloat);
-    def->label = L("Bed size Y");
-    def->sidetext = L("mm");
-    def->default_value = new ConfigOptionFloat(120.);
-
-    def = this->add("pixel_width", coInt);
-    def->label = L("Picture resolution X");
-    def->sidetext = L("px");
-    def->min = 1;
-    def->mode = comExpert;
-    def->default_value = new ConfigOptionInt(1440);
-
-    def = this->add("pixel_height", coInt);
-    def->label = L("Picture resolution Y");
-    def->sidetext = L("px");
-    def->min = 1;
-    def->default_value = new ConfigOptionInt(2560);
-
-    def = this->add("exp_time", coFloat);
-    def->label = L("Exposure time");
-    def->sidetext = L("s");
-    def->min = 1;
-    def->default_value = new ConfigOptionFloat(8.);
-
-    def = this->add("exp_time_first", coFloat);
-    def->label = L("Exposure time first layers");
-    def->sidetext = L("s");
-    def->min = 1;
-    def->default_value = new ConfigOptionFloat(35.);
-
     def = this->add("display_width", coFloat);
     def->label = L("Display width");
     def->tooltip = L("Width of the display");
