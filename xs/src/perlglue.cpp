@@ -250,8 +250,9 @@ bool ConfigBase__set(ConfigBase* THIS, const t_config_option_key &opt_key, SV* v
     }
     case coPoint:
         return from_SV_check(value, &static_cast<ConfigOptionPoint*>(opt)->value);
-    case coPoint3:
-        return from_SV_check(value, &static_cast<ConfigOptionPoint3*>(opt)->value);
+//    case coPoint3:        
+        // not gonna fix it, die Perl die!
+//        return from_SV_check(value, &static_cast<ConfigOptionPoint3*>(opt)->value);
     case coPoints:
     {
         std::vector<Vec2d> &values = static_cast<ConfigOptionPoints*>(opt)->values;
