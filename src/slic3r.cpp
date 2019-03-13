@@ -133,8 +133,8 @@ int CLI::run(int argc, char **argv)
     // Initialize full print configs for both the FFF and SLA technologies.
     FullPrintConfig    fff_print_config;
     SLAFullPrintConfig sla_print_config;
-    fff_print_config.apply(m_print_config);
-    sla_print_config.apply(m_print_config);
+    fff_print_config.apply(m_print_config, true);
+    sla_print_config.apply(m_print_config, true);
     
     // Loop through transform options.
     for (auto const &opt_key : m_transforms) {
@@ -308,8 +308,6 @@ int CLI::run(int argc, char **argv)
     for (auto const &opt_key : m_actions) {
         if (opt_key == "help") {
             this->print_help();
-        } else if (opt_key == "help_options") {
-            this->print_help(true, ptAny);
         } else if (opt_key == "help_fff") {
             this->print_help(true, ptFFF);
         } else if (opt_key == "help_sla") {
@@ -375,7 +373,13 @@ int CLI::run(int argc, char **argv)
                 }
                 print->apply(model, m_print_config);
                 std::string err = print->validate();
-                if (err.empty()) {
+                if (! err.empty()) {
+                    boost::nowide::cerr << err << std::endl;
+                    return 1;
+                }
+                if (print->empty())
+                    boost::nowide::cout << "Nothing to print for " << outfile << " . Either the print is empty or no object is fully inside the print volume." << std::endl;
+                else 
                     try {
                         std::string outfile_final;
 						print->process();
@@ -393,15 +397,11 @@ int CLI::run(int argc, char **argv)
 							boost::nowide::cerr << "Renaming file " << outfile << " to " << outfile_final << " failed" << std::endl;
                             return 1;
                         }
+                        boost::nowide::cout << "Slicing result exported to " << outfile << std::endl;
                     } catch (const std::exception &ex) {
 						boost::nowide::cerr << ex.what() << std::endl;
                         return 1;                        
                     }
-                } else {
-					boost::nowide::cerr << err << std::endl;
-                    return 1;
-                }
-
 /*
                 print.center = ! m_config.has("center")
                     && ! m_config.has("align_xy")
@@ -577,7 +577,7 @@ void CLI::print_help(bool include_print_options, PrinterTechnology printer_techn
     } else {
         boost::nowide::cout
             << std::endl
-            << "Run --help-options / --help-fff / --help-sla to see the full listing of print options." << std::endl;
+            << "Run --help-fff / --help-sla to see the full listing of print options." << std::endl;
     }
 }
 

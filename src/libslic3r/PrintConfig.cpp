@@ -2955,11 +2955,6 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     def->cli = "help|h";
     def->default_value = new ConfigOptionBool(false);
 
-    def = this->add("help_options", coBool);
-    def->label = L("Help (options)");
-    def->tooltip = L("Show the full list of print/G-code configuration options.");
-    def->default_value = new ConfigOptionBool(false);
-
     def = this->add("help_fff", coBool);
     def->label = L("Help (FFF options)");
     def->tooltip = L("Show the full list of print/G-code configuration options.");
