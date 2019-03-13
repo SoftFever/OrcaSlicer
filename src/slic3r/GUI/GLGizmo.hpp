@@ -520,7 +520,7 @@ private:
     bool m_lock_unique_islands = false;
     bool m_editing_mode = false;            // Is editing mode active?
     bool m_old_editing_state = false;       // To keep track of whether the user toggled between the modes (needed for imgui refreshes).
-    float m_new_point_head_diameter = 0.4f; // Size of a new point.
+    float m_new_point_head_diameter;        // Size of a new point.
     float m_minimal_point_distance = 20.f;
     float m_density = 100.f;
     std::vector<std::pair<sla::SupportPoint, bool>> m_editing_mode_cache; // a support point and whether it is currently selected
@@ -536,7 +536,7 @@ private:
     int m_canvas_width;
     int m_canvas_height;
 
-    std::vector<ConfigOption*> get_config_options(const std::vector<std::string>& keys) const;
+    std::vector<const ConfigOption*> get_config_options(const std::vector<std::string>& keys) const;
 
     // Methods that do the model_object and editing cache synchronization,
     // editing mode selection, etc:

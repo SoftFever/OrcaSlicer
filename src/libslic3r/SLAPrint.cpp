@@ -673,6 +673,7 @@ void SLAPrint::process()
             // the density config value is in percents:
             config.density_relative = float(cfg.support_points_density_relative / 100.f);
             config.minimal_distance = float(cfg.support_points_minimal_distance);
+            config.head_diameter    = float(cfg.support_head_front_diameter);
 
             // Construction of this object does the calculation.
             this->throw_if_canceled();

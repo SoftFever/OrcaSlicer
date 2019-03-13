@@ -2227,15 +2227,15 @@ void GLGizmoSlaSupports::render_tooltip_texture() const {
 #endif // not ENABLE_IMGUI
 
 
-std::vector<ConfigOption*> GLGizmoSlaSupports::get_config_options(const std::vector<std::string>& keys) const
+std::vector<const ConfigOption*> GLGizmoSlaSupports::get_config_options(const std::vector<std::string>& keys) const
 {
-    std::vector<ConfigOption*> out;
+    std::vector<const ConfigOption*> out;
 
     if (!m_model_object)
         return out;
 
-    DynamicPrintConfig& object_cfg = m_model_object->config;
-    DynamicPrintConfig& print_cfg = wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
+    const DynamicPrintConfig& object_cfg = m_model_object->config;
+    const DynamicPrintConfig& print_cfg = wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
     std::unique_ptr<DynamicPrintConfig> default_cfg = nullptr;
 
     for (const std::string& key : keys) {
@@ -2268,7 +2268,7 @@ RENDER_AGAIN:
     m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
 
     const float scaling = m_imgui->get_style_scaling();
-    const ImVec2 window_size(285.f * scaling, 260.f * scaling);
+    const ImVec2 window_size(285.f * scaling, 300.f * scaling);
     ImGui::SetNextWindowPos(ImVec2(x, y - std::max(0.f, y+window_size.y-bottom_limit) ));
     ImGui::SetNextWindowSize(ImVec2(window_size));
 
@@ -2287,30 +2287,19 @@ RENDER_AGAIN:
         m_imgui->text(_(L("Shift + Left (+ drag) - select point(s)")));
         m_imgui->text(" ");  // vertical gap
 
-        static const std::vector<float> options = {0.2f, 0.4f, 0.6f, 0.8f, 1.0f};
-        static const std::vector<std::string> options_str = {"0.2", "0.4", "0.6", "0.8", "1.0"};
-        int selection = -1;
-        for (size_t i = 0; i < options.size(); i++) {
-            if (options[i] == m_new_point_head_diameter) { selection = (int)i; }
-        }
+        float diameter_upper_cap = static_cast<ConfigOptionFloat*>(wxGetApp().preset_bundle->sla_prints.get_edited_preset().config.option("support_pillar_diameter"))->value;
+        if (m_new_point_head_diameter > diameter_upper_cap)
+            m_new_point_head_diameter = diameter_upper_cap;
 
-        bool old_combo_state = m_combo_box_open;
-        // The combo is commented out for now, until the feature is supported by backend.
-        m_combo_box_open = m_imgui->combo(_(L("Head diameter")), options_str, selection);
-        force_refresh |= (old_combo_state != m_combo_box_open);
-
-        // float current_number = atof(str);
-        const float current_number = selection < options.size() ? options[selection] : m_new_point_head_diameter;
-        if (old_combo_state && !m_combo_box_open) // closing the combo must always change the sizes (even if the selection did not change)
+        m_imgui->text(_(L("Head diameter: ")));
+        ImGui::SameLine();
+        if (ImGui::SliderFloat("", &m_new_point_head_diameter, 0.1f, diameter_upper_cap, "%.1f")) {
+            // value was changed
             for (auto& point_and_selection : m_editing_mode_cache)
                 if (point_and_selection.second) {
-                    point_and_selection.first.head_front_radius = current_number / 2.f;
+                    point_and_selection.first.head_front_radius = m_new_point_head_diameter / 2.f;
                     m_unsaved_changes = true;
                 }
-
-        if (std::abs(current_number - m_new_point_head_diameter) > 0.001) {
-            force_refresh = true;
-            m_new_point_head_diameter = current_number;
         }
 
         bool changed = m_lock_unique_islands;
@@ -2343,9 +2332,9 @@ RENDER_AGAIN:
         m_imgui->text(_(L("Minimal points distance: ")));
         ImGui::SameLine();
 
-        std::vector<ConfigOption*> opts = get_config_options({"support_points_density_relative", "support_points_minimal_distance"});
-        float density = static_cast<ConfigOptionInt*>(opts[0])->value;
-        float minimal_point_distance = static_cast<ConfigOptionFloat*>(opts[1])->value;
+        std::vector<const ConfigOption*> opts = get_config_options({"support_points_density_relative", "support_points_minimal_distance"});
+        float density = static_cast<const ConfigOptionInt*>(opts[0])->value;
+        float minimal_point_distance = static_cast<const ConfigOptionFloat*>(opts[1])->value;
 
         bool value_changed = ImGui::SliderFloat("", &minimal_point_distance, 0.f, 20.f, "%.f mm");
         if (value_changed)
@@ -2451,6 +2440,10 @@ void GLGizmoSlaSupports::on_set_state()
         m_parent.toggle_model_objects_visibility(false);
         if (m_model_object)
             m_parent.toggle_model_objects_visibility(true, m_model_object, m_active_instance);
+
+        // Set default head diameter from config.
+        const DynamicPrintConfig& cfg = wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
+        m_new_point_head_diameter = static_cast<const ConfigOptionFloat*>(cfg.option("support_head_front_diameter"))->value;
     }
     if (m_state == Off && m_old_state != Off) { // the gizmo was just turned Off
         if (m_model_object) {
@@ -2489,10 +2482,14 @@ void GLGizmoSlaSupports::select_point(int i)
         for (auto& point_and_selection : m_editing_mode_cache)
             point_and_selection.second = ( i == AllPoints );
         m_selection_empty = (i == NoPoints);
+
+        if (i == AllPoints)
+            m_new_point_head_diameter = m_editing_mode_cache[0].first.head_front_radius * 2.f;
     }
     else {
         m_editing_mode_cache[i].second = true;
         m_selection_empty = false;
+        m_new_point_head_diameter = m_editing_mode_cache[i].first.head_front_radius * 2.f;
     }
 }
 
