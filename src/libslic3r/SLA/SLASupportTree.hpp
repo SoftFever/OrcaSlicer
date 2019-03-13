@@ -50,11 +50,6 @@ struct SupportConfig {
     // Width in mm from the back sphere center to the front sphere center.
     double head_width_mm = 1.0;
 
-    // Radius in mm of the support pillars. The actual radius of the pillars
-    // beginning with a head will not be higher than head_back_radius but the
-    // headless pillars will have half of this value.
-    double headless_pillar_radius_mm = 0.4;
-
     // How to connect pillars
     PillarConnectionMode pillar_connection_mode = PillarConnectionMode::dynamic;
 
@@ -74,18 +69,34 @@ struct SupportConfig {
     double base_height_mm = 1.0;
 
     // The default angle for connecting support sticks and junctions.
-    double tilt = M_PI/4;
+    double bridge_slope = M_PI/4;
 
     // The max length of a bridge in mm
-    double max_bridge_length_mm = 15.0;
+    double max_bridge_length_mm = 10.0;
+
+    // The max distance of a pillar to pillar link.
+    double max_pillar_link_distance_mm = 10.0;
 
     // The elevation in Z direction upwards. This is the space between the pad
     // and the model object's bounding box bottom.
     double object_elevation_mm = 10;
 
-    // The max Z angle for a normal at which it will get completely ignored.
-    double normal_cutoff_angle = 150.0 * M_PI / 180.0;
+    // /////////////////////////////////////////////////////////////////////////
+    // Compile time configuration values (candidates for runtime)
+    // /////////////////////////////////////////////////////////////////////////
 
+    // The max Z angle for a normal at which it will get completely ignored.
+    static const double normal_cutoff_angle;
+
+    // The shortest distance of any support structure from the model surface
+    static const double safety_distance_mm;
+
+    static const double max_solo_pillar_height_mm;
+    static const double max_dual_pillar_height_mm;
+    static const double   optimizer_rel_score_diff;
+    static const unsigned optimizer_max_iterations;
+    static const unsigned pillar_cascade_neighbors;
+    static const unsigned max_bridges_on_pillar;
 };
 
 struct PoolConfig;
@@ -116,21 +127,14 @@ using PointSet = Eigen::MatrixXd;
 //EigenMesh3D to_eigenmesh(const ModelObject& model);
 
 // Simple conversion of 'vector of points' to an Eigen matrix
-PointSet    to_point_set(const std::vector<sla::SupportPoint>&);
+//PointSet    to_point_set(const std::vector<sla::SupportPoint>&);
 
 
 /* ************************************************************************** */
 
-/// Just a wrapper to the runtime error to be recognizable in try blocks
-class SLASupportsStoppedException: public std::runtime_error {
-public:
-    using std::runtime_error::runtime_error;
-    SLASupportsStoppedException();
-};
-
 /// The class containing mesh data for the generated supports.
 class SLASupportTree {
-    class Impl;
+    class Impl;     // persistent support data
     std::unique_ptr<Impl> m_impl;
 
     Impl& get() { return *m_impl; }
@@ -140,16 +144,25 @@ class SLASupportTree {
                                  const SupportConfig&,
                                  const Controller&);
 
-    /// Generate the 3D supports for a model intended for SLA print.
-    bool generate(const PointSet& pts,
+    // The generation algorithm is quite long and will be captured in a separate
+    // class with private data, helper methods, etc... This data is only needed
+    // during the calculation whereas the Impl class contains the persistent
+    // data, mostly the meshes.
+    class Algorithm;
+
+    // Generate the 3D supports for a model intended for SLA print. This
+    // will instantiate the Algorithm class and call its appropriate methods
+    // with status indication.
+    bool generate(const std::vector<SupportPoint>& pts,
                   const EigenMesh3D& mesh,
                   const SupportConfig& cfg = {},
                   const Controller& ctl = {});
+
 public:
 
     SLASupportTree();
 
-    SLASupportTree(const PointSet& pts,
+    SLASupportTree(const std::vector<SupportPoint>& pts,
                    const EigenMesh3D& em,
                    const SupportConfig& cfg = {},
                    const Controller& ctl = {});

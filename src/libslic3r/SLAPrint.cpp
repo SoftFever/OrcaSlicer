@@ -545,9 +545,9 @@ sla::SupportConfig make_support_cfg(const SLAPrintObjectConfig& c) {
     scfg.head_penetration_mm = c.support_head_penetration.getFloat();
     scfg.head_width_mm = c.support_head_width.getFloat();
     scfg.object_elevation_mm = c.support_object_elevation.getFloat();
-    scfg.tilt = c.support_critical_angle.getFloat() * PI / 180.0 ;
+    scfg.bridge_slope = c.support_critical_angle.getFloat() * PI / 180.0 ;
     scfg.max_bridge_length_mm = c.support_max_bridge_length.getFloat();
-    scfg.headless_pillar_radius_mm = 0.375*c.support_pillar_diameter.getFloat();
+    scfg.max_pillar_link_distance_mm = c.support_max_pillar_link_distance.getFloat();
     switch(c.support_pillar_connection_mode.getInt()) {
     case slapcmZigZag:
         scfg.pillar_connection_mode = sla::PillarConnectionMode::zigzag; break;
@@ -674,6 +674,7 @@ void SLAPrint::process()
             // the density config value is in percents:
             config.density_relative = float(cfg.support_points_density_relative / 100.f);
             config.minimal_distance = float(cfg.support_points_minimal_distance);
+            config.head_diameter    = float(cfg.support_head_front_diameter);
 
             // Construction of this object does the calculation.
             this->throw_if_canceled();
@@ -711,54 +712,52 @@ void SLAPrint::process()
             return;
         }
 
-        try {
-            sla::SupportConfig scfg = make_support_cfg(po.m_config);
-            sla::Controller ctl;
+        sla::SupportConfig scfg = make_support_cfg(po.m_config);
+        sla::Controller ctl;
 
-            // some magic to scale the status values coming from the support
-            // tree creation into the whole print process
-            auto stfirst = OBJ_STEP_LEVELS.begin();
-            auto stthis = stfirst + slaposSupportTree;
-            // we need to add up the status portions until this operation
-            int init = std::accumulate(stfirst, stthis, 0);
-            init = int(init * ostepd);     // scale the init portion
+        // some magic to scale the status values coming from the support
+        // tree creation into the whole print process
+        auto stfirst = OBJ_STEP_LEVELS.begin();
+        auto stthis = stfirst + slaposSupportTree;
+        // we need to add up the status portions until this operation
+        int init = std::accumulate(stfirst, stthis, 0);
+        init = int(init * ostepd);     // scale the init portion
 
-            // scaling for the sub operations
-            double d = *stthis / (objcount * 100.0);
+        // scaling for the sub operations
+        double d = *stthis / (objcount * 100.0);
 
-            ctl.statuscb = [this, init, d](unsigned st, const std::string& msg)
-            {
-                //FIXME this status line scaling does not seem to be correct.
-                // How does it account for an increasing object index?
-                report_status(*this, int(init + st*d), msg);
-            };
+        ctl.statuscb = [this, init, d](unsigned st, const std::string& msg)
+        {
+            //FIXME this status line scaling does not seem to be correct.
+            // How does it account for an increasing object index?
+            report_status(*this, int(init + st*d), msg);
+        };
 
-            ctl.stopcondition = [this](){ return canceled(); };
-            ctl.cancelfn = [this]() { throw_if_canceled(); };
+        ctl.stopcondition = [this](){ return canceled(); };
+        ctl.cancelfn = [this]() { throw_if_canceled(); };
 
-            po.m_supportdata->support_tree_ptr.reset(
-                        new SLASupportTree(sla::to_point_set(po.m_supportdata->support_points),
-                                           po.m_supportdata->emesh, scfg, ctl));
+        po.m_supportdata->support_tree_ptr.reset(
+                    new SLASupportTree(po.m_supportdata->support_points,
+                                       po.m_supportdata->emesh, scfg, ctl));
 
-            // Create the unified mesh
-            auto rc = SlicingStatus::RELOAD_SCENE;
+        throw_if_canceled();
 
-            // This is to prevent "Done." being displayed during merged_mesh()
-            report_status(*this, -1, L("Visualizing supports"));
-            po.m_supportdata->support_tree_ptr->merged_mesh();
+        // Create the unified mesh
+        auto rc = SlicingStatus::RELOAD_SCENE;
 
-            BOOST_LOG_TRIVIAL(debug) << "Processed support point count "
-                                     << po.m_supportdata->support_points.size();
+        // This is to prevent "Done." being displayed during merged_mesh()
+        report_status(*this, -1, L("Visualizing supports"));
+        po.m_supportdata->support_tree_ptr->merged_mesh();
 
-            // Check the mesh for later troubleshooting.
-            if(po.support_mesh().empty())
-                BOOST_LOG_TRIVIAL(warning) << "Support mesh is empty";
+        BOOST_LOG_TRIVIAL(debug) << "Processed support point count "
+                                 << po.m_supportdata->support_points.size();
 
-            report_status(*this, -1, L("Visualizing supports"), rc);
-        } catch(sla::SLASupportsStoppedException&) {
-            // no need to rethrow
-            // throw_if_canceled();
-        }
+        // Check the mesh for later troubleshooting.
+        if(po.support_mesh().empty())
+            BOOST_LOG_TRIVIAL(warning) << "Support mesh is empty";
+
+        report_status(*this, -1, L("Visualizing supports"), rc);
+
     };
 
     // This step generates the sla base pad
@@ -1390,6 +1389,7 @@ bool SLAPrintObject::invalidate_state_by_config_options(const std::vector<t_conf
             || opt_key == "support_base_height"
             || opt_key == "support_critical_angle"
             || opt_key == "support_max_bridge_length"
+            || opt_key == "support_max_pillar_link_distance"
             || opt_key == "support_object_elevation") {
             steps.emplace_back(slaposSupportTree);
         } else if (

@@ -73,6 +73,10 @@ void Tab::set_type()
 // sub new
 void Tab::create_preset_tab()
 {
+#ifdef __WINDOWS__
+    SetDoubleBuffered(true);
+#endif //__WINDOWS__
+
     m_preset_bundle = wxGetApp().preset_bundle;
 
 	// Vertical sizer to hold the choice menu and the rest of the page.
@@ -751,6 +755,10 @@ void Tab::load_key_value(const std::string& opt_key, const boost::any& value, bo
 
 void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 {
+	if (wxGetApp().plater() == nullptr) {
+		return;
+	}
+
     const bool is_fff = supports_printer_technology(ptFFF);
     ConfigOptionsGroup* og_freq_chng_params = wxGetApp().sidebar().og_freq_chng_params(is_fff);
     if (opt_key == "fill_density" || opt_key == "pad_enable")
@@ -783,25 +791,6 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         wxGetApp().plater()->on_extruders_change(boost::any_cast<size_t>(value));
 
 	update();
-
-    // #ys_FIXME_to_delete
-    // Post event to the Plater after updating of the all dirty options
-    // It helps to avoid needless schedule_background_processing
-//     if (update_completed()) 
-//     if (m_update_stack.empty())
-//     {
-// //         wxCommandEvent event(EVT_TAB_VALUE_CHANGED);
-// //         event.SetEventObject(this);
-// //         event.SetString(opt_key);
-// //         if (opt_key == "extruders_count")
-// //         {
-// //             const int val = boost::any_cast<size_t>(value);
-// //             event.SetInt(val);
-// //         }
-// // 
-// //         wxPostEvent(this, event);
-//         wxGetApp().mainframe->on_value_changed(m_config);
-//     }
 }
 
 // Show/hide the 'purging volumes' button
@@ -824,9 +813,13 @@ void Tab::update_wiping_button_visibility() {
 // To update the content of the selection boxes,
 // to update the filament colors of the selection boxes,
 // to update the "dirty" flags of the selection boxes,
-// to uddate number of "filament" selection boxes when the number of extruders change.
+// to update number of "filament" selection boxes when the number of extruders change.
 void Tab::on_presets_changed()
 {
+    // Instead of PostEvent (EVT_TAB_PRESETS_CHANGED) just call update_presets
+    wxGetApp().plater()->sidebar().update_presets(m_type);
+	update_preset_description_line();
+
     // Printer selected at the Printer tab, update "compatible" marks at the print and filament selectors.
     for (auto t: m_dependent_tabs)
     {
@@ -837,16 +830,6 @@ void Tab::on_presets_changed()
     // clear m_dependent_tabs after first update from select_preset()
     // to avoid needless preset loading from update() function
     m_dependent_tabs.clear();
-
-    // #ys_FIXME_to_delete
-// 	wxCommandEvent event(EVT_TAB_PRESETS_CHANGED);
-// 	event.SetEventObject(this);
-// 	wxPostEvent(this, event);
-
-    // Instead of PostEvent (EVT_TAB_PRESETS_CHANGED) just call update_presets
-    wxGetApp().plater()->sidebar().update_presets(m_type);
-
-	update_preset_description_line();
 }
 
 void Tab::update_preset_description_line()
@@ -2472,7 +2455,7 @@ void Tab::load_current_preset()
 //Regerenerate content of the page tree.
 void Tab::rebuild_page_tree(bool tree_sel_change_event /*= false*/)
 {
-	Freeze();
+// 	Freeze();
 
 	// get label of the currently selected item
     const auto sel_item = m_treectrl->GetSelection();
@@ -2498,7 +2481,7 @@ void Tab::rebuild_page_tree(bool tree_sel_change_event /*= false*/)
 		// this is triggered on first load, so we don't disable the sel change event
 		m_treectrl->SelectItem(m_treectrl->GetFirstVisibleItem());//! (treectrl->GetFirstChild(rootItem));
 	}
-	Thaw();
+// 	Thaw();
 }
 
 void Tab::update_page_tree_visibility()
@@ -3273,7 +3256,8 @@ void TabSLAPrint::build()
     optgroup->append_single_option_line("support_pillar_diameter");
     optgroup->append_single_option_line("support_pillar_connection_mode");
     optgroup->append_single_option_line("support_buildplate_only");
-    optgroup->append_single_option_line("support_pillar_widening_factor");
+    // TODO: This parameter is not used at the moment.
+    // optgroup->append_single_option_line("support_pillar_widening_factor");
     optgroup->append_single_option_line("support_base_diameter");
     optgroup->append_single_option_line("support_base_height");
     optgroup->append_single_option_line("support_object_elevation");
@@ -3281,6 +3265,7 @@ void TabSLAPrint::build()
     optgroup = page->new_optgroup(_(L("Connection of the support sticks and junctions")));
     optgroup->append_single_option_line("support_critical_angle");
     optgroup->append_single_option_line("support_max_bridge_length");
+    optgroup->append_single_option_line("support_max_pillar_link_distance");
 
     optgroup = page->new_optgroup(_(L("Automatic generation")));
     optgroup->append_single_option_line("support_points_density_relative");
@@ -3339,11 +3324,37 @@ void TabSLAPrint::update()
         return; // #ys_FIXME
 
 // #ys_FIXME
-//     m_update_cnt++;
-//     ! something to update
-//     m_update_cnt--;
-// 
-//     if (m_update_cnt == 0)
+     m_update_cnt++;
+
+     double head_penetration = m_config->opt_float("support_head_penetration");
+     double head_width = m_config->opt_float("support_head_width");
+     if(head_penetration > head_width) {
+         wxString msg_text = _(L("Head penetration should not be greater than the head width."));
+         auto dialog = new wxMessageDialog(parent(), msg_text, _(L("Invalid Head penetration")), wxICON_WARNING | wxOK);
+         DynamicPrintConfig new_conf = *m_config;
+         if (dialog->ShowModal() == wxID_OK) {
+             new_conf.set_key_value("support_head_penetration", new ConfigOptionFloat(head_width));
+         }
+
+         load_config(new_conf);
+     }
+
+     double pinhead_d = m_config->opt_float("support_head_front_diameter");
+     double pillar_d     = m_config->opt_float("support_pillar_diameter");
+     if(pinhead_d > pillar_d) {
+         wxString msg_text = _(L("Pinhead diameter should be smaller than the pillar diameter."));
+         auto dialog = new wxMessageDialog(parent(), msg_text, _(L("Invalid pinhead diameter")), wxICON_WARNING | wxOK);
+         DynamicPrintConfig new_conf = *m_config;
+         if (dialog->ShowModal() == wxID_OK) {
+             new_conf.set_key_value("support_head_front_diameter", new ConfigOptionFloat(pillar_d / 2.0));
+         }
+
+         load_config(new_conf);
+     }
+
+     m_update_cnt--;
+
+     if (m_update_cnt == 0)
     wxGetApp().mainframe->on_config_changed(m_config);
 }
 

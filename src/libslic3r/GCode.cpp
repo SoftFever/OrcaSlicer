@@ -487,7 +487,7 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
     // starts analyzer calculations
     if (m_enable_analyzer) {
         BOOST_LOG_TRIVIAL(debug) << "Preparing G-code preview data";
-        m_analyzer.calc_gcode_preview_data(*preview_data);
+        m_analyzer.calc_gcode_preview_data(*preview_data, [print]() { print->throw_if_canceled(); });
         m_analyzer.reset();
     }
 

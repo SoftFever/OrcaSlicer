@@ -2450,6 +2450,7 @@ void PrintConfigDef::init_sla_params()
     def->enum_values.push_back("portrait");
     def->enum_labels.push_back(L("Landscape"));
     def->enum_labels.push_back(L("Portrait"));
+    def->mode = comExpert;
     def->default_value = new ConfigOptionEnum<SLADisplayOrientation>(sladoPortrait);
 
     def = this->add("fast_tilt_time", coFloat);
@@ -2563,6 +2564,7 @@ void PrintConfigDef::init_sla_params()
     def->category = L("Supports");
     def->tooltip = L("Generate supports for the models");
     def->cli = "";
+    def->mode = comSimple;
     def->default_value = new ConfigOptionBool(true);
 
     def = this->add("support_head_front_diameter", coFloat);
@@ -2572,6 +2574,7 @@ void PrintConfigDef::init_sla_params()
     def->sidetext = L("mm");
     def->cli = "";
     def->min = 0;
+    def->mode = comAdvanced;
     def->default_value = new ConfigOptionFloat(0.4);
 
     def = this->add("support_head_penetration", coFloat);
@@ -2580,6 +2583,7 @@ void PrintConfigDef::init_sla_params()
     def->tooltip = L("How much the pinhead has to penetrate the model surface");
     def->sidetext = L("mm");
     def->cli = "";
+    def->mode = comAdvanced;
     def->min = 0;
     def->default_value = new ConfigOptionFloat(0.2);
 
@@ -2590,6 +2594,8 @@ void PrintConfigDef::init_sla_params()
     def->sidetext = L("mm");
     def->cli = "";
     def->min = 0;
+    def->max = 20;
+    def->mode = comAdvanced;
     def->default_value = new ConfigOptionFloat(1.0);
 
     def = this->add("support_pillar_diameter", coFloat);
@@ -2599,6 +2605,8 @@ void PrintConfigDef::init_sla_params()
     def->sidetext = L("mm");
     def->cli = "";
     def->min = 0;
+    def->max = 15;
+    def->mode = comSimple;
     def->default_value = new ConfigOptionFloat(1.0);
 
     def = this->add("support_pillar_connection_mode", coEnum);
@@ -2615,6 +2623,7 @@ void PrintConfigDef::init_sla_params()
     def->enum_labels.push_back(L("Zig-Zag"));
     def->enum_labels.push_back(L("Cross"));
     def->enum_labels.push_back(L("Dynamic"));
+    def->mode = comAdvanced;
     def->default_value = new ConfigOptionEnum<SLAPillarConnectionMode>(slapcmDynamic);
 
     def = this->add("support_buildplate_only", coBool);
@@ -2634,6 +2643,7 @@ void PrintConfigDef::init_sla_params()
     def->cli = "";
     def->min = 0;
     def->max = 1;
+    def->mode = comExpert;
     def->default_value = new ConfigOptionFloat(0.0);
 
     def = this->add("support_base_diameter", coFloat);
@@ -2643,6 +2653,8 @@ void PrintConfigDef::init_sla_params()
     def->sidetext = L("mm");
     def->cli = "";
     def->min = 0;
+    def->max = 30;
+    def->mode = comAdvanced;
     def->default_value = new ConfigOptionFloat(4.0);
 
     def = this->add("support_base_height", coFloat);
@@ -2652,6 +2664,7 @@ void PrintConfigDef::init_sla_params()
     def->sidetext = L("mm");
     def->cli = "";
     def->min = 0;
+    def->mode = comAdvanced;
     def->default_value = new ConfigOptionFloat(1.0);
 
     def = this->add("support_critical_angle", coFloat);
@@ -2661,6 +2674,8 @@ void PrintConfigDef::init_sla_params()
     def->sidetext = L("°");
     def->cli = "";
     def->min = 0;
+    def->max = 90;
+    def->mode = comExpert;
     def->default_value = new ConfigOptionFloat(45);
 
     def = this->add("support_max_bridge_length", coFloat);
@@ -2670,7 +2685,19 @@ void PrintConfigDef::init_sla_params()
     def->sidetext = L("mm");
     def->cli = "";
     def->min = 0;
+    def->mode = comAdvanced;
     def->default_value = new ConfigOptionFloat(15.0);
+
+    def = this->add("support_max_pillar_link_distance", coFloat);
+    def->label = L("Max pillar linking distance");
+    def->category = L("Supports");
+    def->tooltip = L("The max distance of two pillars to get linked with each other."
+                     " A zero value will prohibit pillar cascading.");
+    def->sidetext = L("mm");
+    def->cli = "";
+    def->min = 0;   // 0 means no linking
+    def->mode = comAdvanced;
+    def->default_value = new ConfigOptionFloat(10.0);
 
     def = this->add("support_object_elevation", coFloat);
     def->label = L("Object elevation");
@@ -2679,6 +2706,8 @@ void PrintConfigDef::init_sla_params()
     def->sidetext = L("mm");
     def->cli = "";
     def->min = 0;
+    def->max = 150; // This is the max height of print on SL1
+    def->mode = comAdvanced;
     def->default_value = new ConfigOptionFloat(5.0);
 
     def = this->add("support_points_density_relative", coInt);
@@ -2704,35 +2733,46 @@ void PrintConfigDef::init_sla_params()
     def->category = L("Pad");
     def->tooltip = L("Add a pad underneath the supported model");
     def->cli = "";
+    def->mode = comSimple;
     def->default_value = new ConfigOptionBool(true);
 
     def = this->add("pad_wall_thickness", coFloat);
     def->label = L("Pad wall thickness");
     def->category = L("Pad");
-//     def->tooltip = L("");
+     def->tooltip = L("The thickness of the pad and its optional cavity walls.");
     def->sidetext = L("mm");
     def->cli = "";
     def->min = 0;
+    def->max = 30;
+    def->mode = comSimple;
     def->default_value = new ConfigOptionFloat(2.0);
 
     def = this->add("pad_wall_height", coFloat);
     def->label = L("Pad wall height");
+    def->tooltip = L("Defines the cavity depth. Set to zero to disable the cavity.");
     def->category = L("Pad");
 //     def->tooltip = L("");
     def->sidetext = L("mm");
     def->cli = "";
     def->min = 0;
+    def->max = 30;
+    def->mode = comSimple;
     def->default_value = new ConfigOptionFloat(5.0);
 
     def = this->add("pad_max_merge_distance", coFloat);
     def->label = L("Max merge distance");
     def->category = L("Pad");
-//     def->tooltip = L("");
+     def->tooltip = L("Some objects can get along with a few smaller pads "
+                      "instead of a single big one. This parameter defines "
+                      "how far the center of two smaller pads should be. If they"
+                      "are closer, they will get merged into one pad.");
     def->sidetext = L("mm");
     def->cli = "";
     def->min = 0;
+    def->mode = comExpert;
     def->default_value = new ConfigOptionFloat(50.0);
 
+    // This is disabled on the UI. I hope it will never be enabled.
     def = this->add("pad_edge_radius", coFloat);
     def->label = L("Pad edge radius");
     def->category = L("Pad");
@@ -2740,6 +2780,7 @@ void PrintConfigDef::init_sla_params()
     def->sidetext = L("mm");
     def->cli = "";
     def->min = 0;
+    def->mode = comAdvanced;
     def->default_value = new ConfigOptionFloat(1.0);
 
     def = this->add("pad_wall_slope", coFloat);
@@ -2751,6 +2792,7 @@ void PrintConfigDef::init_sla_params()
     def->cli = "";
     def->min = 45;
     def->max = 90;
+    def->mode = comAdvanced;
     def->default_value = new ConfigOptionFloat(45.0);
 }
 

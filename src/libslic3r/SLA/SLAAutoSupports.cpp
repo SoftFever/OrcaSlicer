@@ -496,7 +496,7 @@ void SLAAutoSupports::uniformly_cover(const ExPolygons& islands, Structure& stru
         poisson_samples.erase(poisson_samples.begin() + poisson_samples_target, poisson_samples.end());
     }
     for (const Vec2f &pt : poisson_samples) {
-        m_output.emplace_back(float(pt(0)), float(pt(1)), structure.height, 0.2f, is_new_island);
+        m_output.emplace_back(float(pt(0)), float(pt(1)), structure.height, m_config.head_diameter/2.f, is_new_island);
         structure.supports_force_this_layer += m_config.support_force();
         grid3d.insert(pt, &structure);
     }
