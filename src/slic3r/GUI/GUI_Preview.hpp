@@ -39,10 +39,6 @@ class View3D : public wxPanel
     wxPanel* m_gizmo_widget;
 #endif // !ENABLE_IMGUI
 
-    Model* m_model;
-    DynamicPrintConfig* m_config;
-    BackgroundSlicingProcess* m_process;
-
 public:
     View3D(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process);
     virtual ~View3D();
@@ -124,7 +120,7 @@ public:
     void refresh_print();
 
 private:
-    bool init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, DynamicPrintConfig* config, BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data);
+    bool init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar);
 
     void bind_event_handlers();
     void unbind_event_handlers();

@@ -33,9 +33,6 @@ namespace GUI {
 #if !ENABLE_IMGUI
     , m_gizmo_widget(nullptr)
 #endif // !ENABLE_IMGUI
-    , m_model(nullptr)
-    , m_config(nullptr)
-    , m_process(nullptr)
 {
     init(parent, bed, camera, view_toolbar, model, config, process);
 }
@@ -202,18 +199,15 @@ Preview::Preview(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_t
     , m_enabled(false)
     , m_schedule_background_process(schedule_background_process_func)
 {
-    if (init(parent, bed, camera, view_toolbar, config, process, gcode_preview_data))
+    if (init(parent, bed, camera, view_toolbar))
     {
         show_hide_ui_elements("none");
         load_print();
     }
 }
 
-bool Preview::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, DynamicPrintConfig* config, BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data)
+bool Preview::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar)
 {
-    if ((config == nullptr) || (process == nullptr) || (gcode_preview_data == nullptr))
-        return false;
-
     if (!Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 /* disable wxTAB_TRAVERSAL */))
         return false;
 
@@ -222,7 +216,7 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view
     m_canvas = _3DScene::get_canvas(this->m_canvas_widget);
     m_canvas->allow_multisample(GLCanvas3DManager::can_multisample());
     m_canvas->set_config(m_config);
-    m_canvas->set_process(process);
+    m_canvas->set_process(m_process);
     m_canvas->enable_legend_texture(true);
     m_canvas->enable_dynamic_background(true);
 
