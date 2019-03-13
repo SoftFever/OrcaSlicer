@@ -206,11 +206,8 @@ int wmain(int argc, wchar_t **argv)
 
 	std::vector<wchar_t*> argv_extended;
 	argv_extended.emplace_back(argv[0]);
-#ifdef SLIC3R_WRAPPER_GUI
-	std::wstring cmd_gui = L"--gui";
-	argv_extended.emplace_back(const_cast<wchar_t*>(cmd_gui.data()));
-#endif
-	for (int i = 1; i < argc; ++i)
+	// Here one may push some additional parameters based on the wrapper type.
+	for (int i = 1; i < argc; ++ i)
 		argv_extended.emplace_back(argv[i]);
 	argv_extended.emplace_back(nullptr);
 
