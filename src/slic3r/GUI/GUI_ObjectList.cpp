@@ -1519,12 +1519,7 @@ bool ObjectList::is_splittable()
     if (!get_volume_by_item(item, volume) || !volume)
         return false;
 
-	int splittable = volume->is_splittable();
-	if (splittable == -1) {
-		splittable = (int)volume->mesh.has_multiple_patches();
-		volume->set_splittable(splittable);
-	}
-    return splittable != 0;
+    return volume->is_splittable();
 }
 
 bool ObjectList::selected_instances_of_same_object()
