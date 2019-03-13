@@ -2455,7 +2455,7 @@ void Tab::load_current_preset()
 //Regerenerate content of the page tree.
 void Tab::rebuild_page_tree(bool tree_sel_change_event /*= false*/)
 {
-	Freeze();
+// 	Freeze();
 
 	// get label of the currently selected item
     const auto sel_item = m_treectrl->GetSelection();
@@ -2481,7 +2481,7 @@ void Tab::rebuild_page_tree(bool tree_sel_change_event /*= false*/)
 		// this is triggered on first load, so we don't disable the sel change event
 		m_treectrl->SelectItem(m_treectrl->GetFirstVisibleItem());//! (treectrl->GetFirstChild(rootItem));
 	}
-	Thaw();
+// 	Thaw();
 }
 
 void Tab::update_page_tree_visibility()
