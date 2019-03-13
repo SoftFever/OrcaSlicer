@@ -1509,7 +1509,7 @@ void Print::process()
 // The export_gcode may die for various reasons (fails to process output_filename_format,
 // write error into the G-code, cannot execute post-processing scripts).
 // It is up to the caller to show an error message.
-void Print::export_gcode(const std::string &path_template, GCodePreviewData *preview_data)
+std::string Print::export_gcode(const std::string &path_template, GCodePreviewData *preview_data)
 {
     // output everything to a G-code file
     // The following call may die if the output_filename_format template substitution fails.
@@ -1525,6 +1525,7 @@ void Print::export_gcode(const std::string &path_template, GCodePreviewData *pre
     // The following line may die for multiple reasons.
     GCode gcode;
     gcode.do_export(this, path.c_str(), preview_data);
+    return path.c_str();
 }
 
 void Print::_make_skirt()
@@ -1693,8 +1694,10 @@ void Print::_make_brim()
         }
         polygons_append(loops, offset(islands, -0.5f * float(flow.scaled_spacing())));
     }
-    
+
     loops = union_pt_chained(loops, false);
+    // The function above produces ordering well suited for concentric infill (from outside to inside).
+    // For Brim, the ordering should be reversed (from inside to outside).
     std::reverse(loops.begin(), loops.end());
     extrusion_entities_append_loops(m_brim.entities, std::move(loops), erSkirt, float(flow.mm3_per_mm()), float(flow.width), float(this->skirt_first_layer_height()));
 }

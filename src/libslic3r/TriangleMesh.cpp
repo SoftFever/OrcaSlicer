@@ -247,7 +247,7 @@ bool TriangleMesh::needed_repair() const
         || this->stl.stats.backwards_edges      > 0;
 }
 
-void TriangleMesh::WriteOBJFile(char* output_file)
+void TriangleMesh::WriteOBJFile(const char* output_file)
 {
     stl_generate_shared_vertices(&stl);
     stl_write_obj(&stl, output_file);
@@ -1499,9 +1499,16 @@ void TriangleMeshSlicer::make_loops(std::vector<IntersectionLine> &lines, Polygo
     // Try to close gaps.
     // Do it in two rounds, first try to connect in the same direction only,
     // then try to connect the open polylines in reversed order as well.
+#if 0
+    for (double max_gap : { EPSILON, 0.001, 0.1, 1., 2. }) {
+        chain_open_polylines_close_gaps(open_polylines, *loops, max_gap, false);
+        chain_open_polylines_close_gaps(open_polylines, *loops, max_gap, true);
+    }
+#else
     const double max_gap = 2.; //mm
     chain_open_polylines_close_gaps(open_polylines, *loops, max_gap, false);
     chain_open_polylines_close_gaps(open_polylines, *loops, max_gap, true);
+#endif
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
     {

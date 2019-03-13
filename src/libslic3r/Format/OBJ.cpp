@@ -115,4 +115,23 @@ bool load_obj(const char *path, Model *model, const char *object_name_in)
     return true;
 }
 
+bool store_obj(const char *path, TriangleMesh *mesh)
+{
+    //FIXME returning false even if write failed.
+    mesh->WriteOBJFile(path);
+    return true;
+}
+
+bool store_obj(const char *path, ModelObject *model_object)
+{
+    TriangleMesh mesh = model_object->mesh();
+    return store_obj(path, &mesh);
+}
+
+bool store_obj(const char *path, Model *model)
+{
+    TriangleMesh mesh = model->mesh();
+    return store_obj(path, &mesh);
+}
+
 }; // namespace Slic3r

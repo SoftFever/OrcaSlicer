@@ -27,6 +27,24 @@ extern std::string  escape_strings_cstyle(const std::vector<std::string> &strs);
 extern bool         unescape_string_cstyle(const std::string &str, std::string &out);
 extern bool         unescape_strings_cstyle(const std::string &str, std::vector<std::string> &out);
 
+/// Specialization of std::exception to indicate that an unknown config option has been encountered.
+class UnknownOptionException : public std::runtime_error {
+public:
+    UnknownOptionException() :
+        std::runtime_error("Unknown option exception") {}
+    UnknownOptionException(const std::string &opt_key) :
+        std::runtime_error(std::string("Unknown option exception: ") + opt_key) {}
+};
+
+/// Indicate that the ConfigBase derived class does not provide config definition (the method def() returns null).
+class NoDefinitionException : public std::runtime_error
+{
+public:
+    NoDefinitionException() :
+        std::runtime_error("No definition exception") {}
+    NoDefinitionException(const std::string &opt_key) :
+        std::runtime_error(std::string("No definition exception: ") + opt_key) {}
+};
 
 // Type of a configuration value.
 enum ConfigOptionType {
@@ -54,12 +72,14 @@ enum ConfigOptionType {
     coPoint         = 6,
     // vector of 2d points (Point2f). Currently used for the definition of the print bed and for the extruder offsets.
     coPoints        = coPoint + coVectorType,
+    coPoint3        = 7,
+//    coPoint3s       = coPoint3 + coVectorType,
     // single boolean value
-    coBool          = 7,
+    coBool          = 8,
     // vector of boolean values
     coBools         = coBool + coVectorType,
     // a generic enum
-    coEnum          = 8,
+    coEnum          = 9,
 };
 
 enum ConfigOptionMode {
@@ -718,6 +738,39 @@ public:
     }
 };
 
+
+class ConfigOptionPoint3 : public ConfigOptionSingle<Vec3d>
+{
+public:
+    ConfigOptionPoint3() : ConfigOptionSingle<Vec3d>(Vec3d(0,0,0)) {}
+    explicit ConfigOptionPoint3(const Vec3d &value) : ConfigOptionSingle<Vec3d>(value) {}
+    
+    static ConfigOptionType static_type() { return coPoint3; }
+    ConfigOptionType        type()  const override { return static_type(); }
+    ConfigOption*           clone() const override { return new ConfigOptionPoint3(*this); }
+    ConfigOptionPoint3&     operator=(const ConfigOption *opt) { this->set(opt); return *this; }
+    bool                    operator==(const ConfigOptionPoint3 &rhs) const { return this->value == rhs.value; }
+
+    std::string serialize() const override
+    {
+        std::ostringstream ss;
+        ss << this->value(0);
+        ss << ",";
+        ss << this->value(1);
+        ss << ",";
+        ss << this->value(2);
+        return ss.str();
+    }
+    
+    bool deserialize(const std::string &str, bool append = false) override
+    {
+        UNUSED(append);
+        char dummy;
+        return sscanf(str.data(), " %lf , %lf , %lf %c", &this->value(0), &this->value(1), &this->value(2), &dummy) == 2 ||
+               sscanf(str.data(), " %lf x %lf x %lf %c", &this->value(0), &this->value(1), &this->value(2), &dummy) == 2;
+    }
+};
+
 class ConfigOptionBool : public ConfigOptionSingle<bool>
 {
 public:
@@ -893,6 +946,7 @@ class ConfigOptionEnumGeneric : public ConfigOptionInt
 {
 public:
     ConfigOptionEnumGeneric(const t_config_enum_values* keys_map = nullptr) : keys_map(keys_map) {}
+    explicit ConfigOptionEnumGeneric(const t_config_enum_values* keys_map, int value) : ConfigOptionInt(value), keys_map(keys_map) {}
 
     const t_config_enum_values* keys_map;
     
@@ -1010,6 +1064,9 @@ public:
                 return true;
         return false;
     }
+
+    /// Returns the alternative CLI arguments for the given option.
+    std::vector<std::string> cli_args() const;
 };
 
 // Map from a config option name to its definition.
@@ -1043,6 +1100,9 @@ public:
             out.push_back(kvp.first);
         return out;
     }
+
+    /// Iterate through all of the CLI options and write them to a stream.
+    std::ostream&           print_cli_help(std::ostream& out, bool show_defaults) const;
 
 protected:
     ConfigOptionDef*        add(const t_config_option_key &opt_key, ConfigOptionType type) {
@@ -1089,12 +1149,24 @@ public:
     TYPE* option(const t_config_option_key &opt_key, bool create = false)
     { 
         ConfigOption *opt = this->optptr(opt_key, create);
-//        assert(opt == nullptr || opt->type() == TYPE::static_type());
         return (opt == nullptr || opt->type() != TYPE::static_type()) ? nullptr : static_cast<TYPE*>(opt);
     }
     template<typename TYPE>
     const TYPE* option(const t_config_option_key &opt_key) const
         { return const_cast<ConfigBase*>(this)->option<TYPE>(opt_key, false); }
+    template<typename TYPE>
+    TYPE* option_throw(const t_config_option_key &opt_key, bool create = false)
+    { 
+        ConfigOption *opt = this->optptr(opt_key, create);
+        if (opt == nullptr)
+            throw UnknownOptionException(opt_key);
+        if (opt->type() != TYPE::static_type())
+            throw std::runtime_error("Conversion to a wrong type");
+        return static_cast<TYPE*>(opt);
+    }
+    template<typename TYPE>
+    const TYPE* option_throw(const t_config_option_key &opt_key) const
+        { return const_cast<ConfigBase*>(this)->option_throw<TYPE>(opt_key, false); }
     // Apply all keys of other ConfigBase defined by this->def() to this ConfigBase.
     // An UnknownOptionException is thrown in case some option keys of other are not defined by this->def(),
     // or this ConfigBase is of a StaticConfig type and it does not support some of the keys, and ignore_nonexistent is not set.
@@ -1276,8 +1348,8 @@ public:
     bool                opt_bool(const t_config_option_key &opt_key, unsigned int idx) const    { return this->option<ConfigOptionBools>(opt_key)->get_at(idx) != 0; }
 
     // Command line processing
-    void                read_cli(const std::vector<std::string> &tokens, t_config_option_keys* extra);
-    bool                read_cli(int argc, char** argv, t_config_option_keys* extra);
+    void                read_cli(const std::vector<std::string> &tokens, t_config_option_keys* extra, t_config_option_keys* keys = nullptr);
+    bool                read_cli(int argc, char** argv, t_config_option_keys* extra, t_config_option_keys* keys = nullptr);
 
     typedef std::map<t_config_option_key,ConfigOption*> t_options_map;
     t_options_map::const_iterator cbegin() const { return options.cbegin(); }
@@ -1301,25 +1373,6 @@ public:
 protected:
     /// Set all statically defined config options to their defaults defined by this->def().
     void set_defaults();
-};
-
-/// Specialization of std::exception to indicate that an unknown config option has been encountered.
-class UnknownOptionException : public std::runtime_error {
-public:
-    UnknownOptionException() :
-        std::runtime_error("Unknown option exception") {}
-    UnknownOptionException(const std::string &opt_key) :
-        std::runtime_error(std::string("Unknown option exception: ") + opt_key) {}
-};
-
-/// Indicate that the ConfigBase derived class does not provide config definition (the method def() returns null).
-class NoDefinitionException : public std::runtime_error
-{
-public:
-    NoDefinitionException() :
-        std::runtime_error("No definition exception") {}
-    NoDefinitionException(const std::string &opt_key) :
-        std::runtime_error(std::string("No definition exception: ") + opt_key) {}
 };
 
 }

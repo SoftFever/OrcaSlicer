@@ -115,6 +115,8 @@ SV* ConfigOption_to_SV(const ConfigOption &opt, const ConfigOptionDef &def)
     }
     case coPoint:
         return perl_to_SV_clone_ref(static_cast<const ConfigOptionPoint*>(&opt)->value);
+    case coPoint3:
+        return perl_to_SV_clone_ref(static_cast<const ConfigOptionPoint3*>(&opt)->value);
     case coPoints:
     {
         auto optv = static_cast<const ConfigOptionPoints*>(&opt);
@@ -248,6 +250,8 @@ bool ConfigBase__set(ConfigBase* THIS, const t_config_option_key &opt_key, SV* v
     }
     case coPoint:
         return from_SV_check(value, &static_cast<ConfigOptionPoint*>(opt)->value);
+    case coPoint3:
+        return from_SV_check(value, &static_cast<const ConfigOptionPoint3*>(&opt)->value);
     case coPoints:
     {
         std::vector<Vec2d> &values = static_cast<ConfigOptionPoints*>(opt)->values;

@@ -577,6 +577,11 @@ end:
     return input_file;
 }
 
+std::string Model::propose_export_file_name_and_path(const std::string &new_extension) const
+{
+    return boost::filesystem::path(this->propose_export_file_name_and_path()).replace_extension(new_extension).string();
+}
+
 ModelObject::~ModelObject()
 {
     this->clear_volumes();
@@ -1566,6 +1571,22 @@ void ModelVolume::translate(const Vec3d& displacement)
 void ModelVolume::scale(const Vec3d& scaling_factors)
 {
     set_scaling_factor(get_scaling_factor().cwiseProduct(scaling_factors));
+}
+
+void ModelObject::scale_to_fit(const Vec3d &size)
+{
+/*
+    BoundingBoxf3 instance_bounding_box(size_t instance_idx, bool dont_translate = false) const;
+    Vec3d orig_size = this->bounding_box().size();
+    float factor = fminf(
+        size.x / orig_size.x,
+        fminf(
+            size.y / orig_size.y,
+            size.z / orig_size.z
+        )
+    );
+    this->scale(factor);
+*/
 }
 
 void ModelVolume::rotate(double angle, Axis axis)

@@ -1289,7 +1289,7 @@ void PresetBundle::update_compatible(bool select_other_if_incompatible)
 {
     const Preset &printer_preset = this->printers.get_edited_preset();
 
-    switch (printers.get_edited_preset().printer_technology()) {
+	switch (printer_preset.printer_technology()) {
     case ptFFF:
     {
 		assert(printer_preset.config.has("default_print_profile"));

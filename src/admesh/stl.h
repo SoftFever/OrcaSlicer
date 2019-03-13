@@ -177,10 +177,10 @@ extern void stl_transform(stl_file *stl, const Eigen::Transform<double, 3, Eigen
 extern void stl_open_merge(stl_file *stl, char *file);
 extern void stl_invalidate_shared_vertices(stl_file *stl);
 extern void stl_generate_shared_vertices(stl_file *stl);
-extern void stl_write_obj(stl_file *stl, char *file);
-extern void stl_write_off(stl_file *stl, char *file);
-extern void stl_write_dxf(stl_file *stl, char *file, char *label);
-extern void stl_write_vrml(stl_file *stl, char *file);
+extern void stl_write_obj(stl_file *stl, const char *file);
+extern void stl_write_off(stl_file *stl, const char *file);
+extern void stl_write_dxf(stl_file *stl, const char *file, char *label);
+extern void stl_write_vrml(stl_file *stl, const char *file);
 inline void stl_calculate_normal(stl_normal &normal, stl_facet *facet) {
   normal = (facet->vertex[1] - facet->vertex[0]).cross(facet->vertex[2] - facet->vertex[0]);
 }

@@ -365,7 +365,7 @@ stl_write_quad_object(stl_file *stl, char *file) {
 }
 
 void
-stl_write_dxf(stl_file *stl, char *file, char *label) {
+stl_write_dxf(stl_file *stl, const char *file, char *label) {
   int       i;
   FILE      *fp;
   char      *error_msg;

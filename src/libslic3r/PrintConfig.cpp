@@ -2955,7 +2955,7 @@ std::string FullPrintConfig::validate()
         return "--use-firmware-retraction is only supported by Marlin, Smoothie, Repetier and Machinekit firmware";
 
     if (this->use_firmware_retraction.value)
-        for (bool wipe : this->wipe.values)
+        for (unsigned char wipe : this->wipe.values)
              if (wipe)
                 return "--use-firmware-retraction is not compatible with --wipe";
         
@@ -2999,7 +2999,7 @@ std::string FullPrintConfig::validate()
         return "Invalid value for --extruder-clearance-height";
 
     // --extrusion-multiplier
-    for (float em : this->extrusion_multiplier.values)
+    for (double em : this->extrusion_multiplier.values)
         if (em <= 0)
             return "Invalid value for --extrusion-multiplier";
 
@@ -3100,55 +3100,65 @@ StaticPrintConfig::StaticCache<class Slic3r::SLAPrintObjectConfig>  SLAPrintObje
 StaticPrintConfig::StaticCache<class Slic3r::SLAPrinterConfig>      SLAPrinterConfig::s_cache_SLAPrinterConfig;
 StaticPrintConfig::StaticCache<class Slic3r::SLAFullPrintConfig>    SLAFullPrintConfig::s_cache_SLAFullPrintConfig;
 
-CLIConfigDef::CLIConfigDef()
+CLIActionsConfigDef::CLIActionsConfigDef()
 {
-    ConfigOptionDef *def;
+    ConfigOptionDef* def;
     
-    def = this->add("cut", coFloat);
-    def->label = L("Cut");
-    def->tooltip = L("Cut model at the given Z.");
-    def->cli = "cut";
-    def->default_value = new ConfigOptionFloat(0);
-
-    def = this->add("dont_arrange", coBool);
-    def->label = L("Dont arrange");
-    def->tooltip = L("Don't arrange the objects on the build plate. The model coordinates "
-                     "define the absolute positions on the build plate. "
-                     "The option --center will be ignored.");
-    def->cli = "dont-arrange";
+    // Actions:
+    def = this->add("export_obj", coBool);
+    def->label = L("Export SVG");
+    def->tooltip = L("Export the model(s) as OBJ.");
+    def->cli = "export-obj";
     def->default_value = new ConfigOptionBool(false);
-
-    def = this->add("datadir", coString);
-    def->label = L("User data directory");
-    def->tooltip = L("Load and store settings at the given directory. "
-                     "This is useful for maintaining different profiles or including "
-                     "configurations from a network storage.");
-    def->cli = "datadir";
-    def->default_value = new ConfigOptionString();
+    
+/*
+    def = this->add("export_svg", coBool);
+    def->label = L("Export SVG");
+    def->tooltip = L("Slice the model and export solid slices as SVG.");
+    def->cli = "export-svg";
+    def->default_value = new ConfigOptionBool(false);
+*/
+    
+    def = this->add("export_sla", coBool);
+    def->label = L("Export SLA");
+    def->tooltip = L("Slice the model and export SLA printing layers as PNG.");
+    def->cli = "export-sla|sla";
+    def->default_value = new ConfigOptionBool(false);
 
     def = this->add("export_3mf", coBool);
     def->label = L("Export 3MF");
-    def->tooltip = L("Slice the model and export slices as 3MF.");
+    def->tooltip = L("Export the model(s) as 3MF.");
     def->cli = "export-3mf";
     def->default_value = new ConfigOptionBool(false);
 
-    def = this->add("slice", coBool);
-    def->label = L("Slice");
-    def->tooltip = L("Slice the model and export gcode.");
-    def->cli = "slice";
+    def = this->add("export_amf", coBool);
+    def->label = L("Export AMF");
+    def->tooltip = L("Export the model(s) as AMF.");
+    def->cli = "export-amf";
+    def->default_value = new ConfigOptionBool(false);
+
+    def = this->add("export_stl", coBool);
+    def->label = L("Export STL");
+    def->tooltip = L("Export the model(s) as STL.");
+    def->cli = "export-stl";
+    def->default_value = new ConfigOptionBool(false);
+
+    def = this->add("export_gcode", coBool);
+    def->label = L("Export G-code");
+    def->tooltip = L("Slice the model and export toolpaths as G-code.");
+    def->cli = "export-gcode|gcode|g";
     def->default_value = new ConfigOptionBool(false);
 
     def = this->add("help", coBool);
     def->label = L("Help");
     def->tooltip = L("Show this help.");
-    def->cli = "help";
+    def->cli = "help|h";
     def->default_value = new ConfigOptionBool(false);
 
-    def = this->add("gui", coBool);
-    def->label = L("Use GUI");
-    def->tooltip = L("Forces the GUI launch instead of command line slicing "
-                     "(if you supply a model file, it will be loaded into the plater)");
-    def->cli = "gui";
+    def = this->add("help_options", coBool);
+    def->label = L("Help (options)");
+    def->tooltip = L("Show the full list of print/G-code configuration options.");
+    def->cli = "help-options";
     def->default_value = new ConfigOptionBool(false);
     
     def = this->add("info", coBool);
@@ -3157,107 +3167,169 @@ CLIConfigDef::CLIConfigDef()
     def->cli = "info";
     def->default_value = new ConfigOptionBool(false);
     
-    def = this->add("load", coStrings);
-    def->label = L("Load config file");
-    def->tooltip = L("Load configuration from the specified file. It can be used more than once to load options from multiple files.");
-    def->cli = "load";
-    def->default_value = new ConfigOptionStrings();
-
-    def = this->add("no_gui", coBool);
-    def->label = L("Do not use GUI");
-    def->tooltip = L("Forces the command line slicing instead of gui. This takes precedence over --gui if both are present.");
-    def->cli = "no-gui";
-    def->default_value = new ConfigOptionBool(false);
-    
-    def = this->add("output", coString);
-    def->label = L("Output File");
-    def->tooltip = L("The file where the output will be written (if not specified, it will be based on the input file).");
-    def->cli = "output";
-    def->default_value = new ConfigOptionString("");
-    
-    def = this->add("rotate", coFloat);
-    def->label = L("Rotate");
-    def->tooltip = L("Rotation angle around the Z axis in degrees (0-360, default: 0).");
-    def->cli = "rotate";
-    def->default_value = new ConfigOptionFloat(0);
-    
-    def = this->add("rotate_x", coFloat);
-    def->label = L("Rotate around X");
-    def->tooltip = L("Rotation angle around the X axis in degrees (0-360, default: 0).");
-    def->cli = "rotate-x";
-    def->default_value = new ConfigOptionFloat(0);
-    
-    def = this->add("rotate_y", coFloat);
-    def->label = L("Rotate around Y");
-    def->tooltip = L("Rotation angle around the Y axis in degrees (0-360, default: 0).");
-    def->cli = "rotate-y";
-    def->default_value = new ConfigOptionFloat(0);
-    
     def = this->add("save", coString);
     def->label = L("Save config file");
     def->tooltip = L("Save configuration to the specified file.");
     def->cli = "save";
     def->default_value = new ConfigOptionString();
-    
-    def = this->add("scale", coFloat);
-    def->label = L("Scale");
-    def->tooltip = L("Scaling factor (default: 1).");
-    def->cli = "scale";
-    def->default_value = new ConfigOptionFloat(1);
+}
 
-/*    
+CLITransformConfigDef::CLITransformConfigDef()
+{
+    ConfigOptionDef* def;
+    
+    // Transform options:
+    def = this->add("align_xy", coPoint);
+    def->label = L("Align XY");
+    def->tooltip = L("Align the model to the given point.");
+    def->cli = "align-xy";
+    def->default_value = new ConfigOptionPoint(Vec2d(100,100));
+    
+    def = this->add("cut", coFloat);
+    def->label = L("Cut");
+    def->tooltip = L("Cut model at the given Z.");
+    def->cli = "cut";
+    def->default_value = new ConfigOptionFloat(0);
+    
+/*
+    def = this->add("cut_grid", coFloat);
+    def->label = L("Cut");
+    def->tooltip = L("Cut model in the XY plane into tiles of the specified max size.");
+    def->cli = "cut-grid";
+    def->default_value = new ConfigOptionPoint();
+    
+    def = this->add("cut_x", coFloat);
+    def->label = L("Cut");
+    def->tooltip = L("Cut model at the given X.");
+    def->cli = "cut-x";
+    def->default_value = new ConfigOptionFloat(0);
+    
+    def = this->add("cut_y", coFloat);
+    def->label = L("Cut");
+    def->tooltip = L("Cut model at the given Y.");
+    def->cli = "cut-y";
+    def->default_value = new ConfigOptionFloat(0);
+*/
+    
+    def = this->add("center", coPoint);
+    def->label = L("Center");
+    def->tooltip = L("Center the print around the given center.");
+    def->cli = "center";
+    def->default_value = new ConfigOptionPoint(Vec2d(100,100));
+
+    def = this->add("dont_arrange", coBool);
+    def->label = L("Don't arrange");
+    def->tooltip = L("Do not rearrange the given models before merging and keep their original XY coordinates.");
+    def->cli = "dont-arrange";
+    
+    def = this->add("duplicate", coInt);
+    def->label = L("Duplicate");
+    def->tooltip =L("Multiply copies by this factor.");
+    def->cli = "duplicate=i";
+    def->min = 1;
+    
+    def = this->add("duplicate_grid", coPoint);
+    def->label = L("Duplicate by grid");
+    def->tooltip = L("Multiply copies by creating a grid.");
+    def->cli = "duplicate-grid";
+
+    def = this->add("merge", coBool);
+    def->label = L("Merge");
+    def->tooltip = L("Arrange the supplied models in a plate and merge them in a single model in order to perform actions once.");
+    def->cli = "merge|m";
+
+    def = this->add("repair", coBool);
+    def->label = L("Repair");
+    def->tooltip = L("Try to repair any non-manifold meshes (this option is implicitly added whenever we need to slice the model to perform the requested action).");
+    def->cli = "repair";
+    
+    def = this->add("rotate", coFloat);
+    def->label = L("Rotate");
+    def->tooltip = L("Rotation angle around the Z axis in degrees.");
+    def->cli = "rotate";
+    def->default_value = new ConfigOptionFloat(0);
+    
+    def = this->add("rotate_x", coFloat);
+    def->label = L("Rotate around X");
+    def->tooltip = L("Rotation angle around the X axis in degrees.");
+    def->cli = "rotate-x";
+    def->default_value = new ConfigOptionFloat(0);
+    
+    def = this->add("rotate_y", coFloat);
+    def->label = L("Rotate around Y");
+    def->tooltip = L("Rotation angle around the Y axis in degrees.");
+    def->cli = "rotate-y";
+    def->default_value = new ConfigOptionFloat(0);
+    
+    def = this->add("scale", coFloatOrPercent);
+    def->label = L("Scale");
+    def->tooltip = L("Scaling factor or percentage.");
+    def->cli = "scale";
+    def->default_value = new ConfigOptionFloatOrPercent(1, false);
+
+    def = this->add("split", coBool);
+    def->label = L("Split");
+    def->tooltip = L("Detect unconnected parts in the given model(s) and split them into separate objects.");
+    def->cli = "split";
+    
     def = this->add("scale_to_fit", coPoint3);
     def->label = L("Scale to Fit");
     def->tooltip = L("Scale to fit the given volume.");
     def->cli = "scale-to-fit";
-    def->default_value = new ConfigOptionPoint3(Pointf3(0,0,0));
-*/
-
-    def = this->add("print_center", coPoint);
-    def->label = L("Print center");
-    def->tooltip = L("Center the print around the given center (default: 100, 100).");
-    def->cli = "print-center";
-    def->default_value = new ConfigOptionPoint(Vec2d(100,100));
+    def->default_value = new ConfigOptionPoint3(Vec3d(0,0,0));
 }
 
-const CLIConfigDef cli_config_def;
+CLIMiscConfigDef::CLIMiscConfigDef()
+{
+    ConfigOptionDef* def;
+    
+    def = this->add("ignore_nonexistent_config", coBool);
+    def->label = L("Ignore non-existent config files");
+    def->tooltip = L("Do not fail if a file supplied to --load does not exist.");
+    def->cli = "ignore-nonexistent-config";
+    
+    def = this->add("load", coStrings);
+    def->label = L("Load config file");
+    def->tooltip = L("Load configuration from the specified file. It can be used more than once to load options from multiple files.");
+    def->cli = "load";
+    
+    def = this->add("output", coString);
+    def->label = L("Output File");
+    def->tooltip = L("The file where the output will be written (if not specified, it will be based on the input file).");
+    def->cli = "output|o";
+
+/*    
+    def = this->add("autosave", coString);
+    def->label = L("Autosave");
+    def->tooltip = L("Automatically export current configuration to the specified file.");
+    def->cli = "autosave";
+*/
+    
+    def = this->add("datadir", coString);
+    def->label = L("Data directory");
+    def->tooltip = L("Load and store settings at the given directory. This is useful for maintaining different profiles or including configurations from a network storage.");
+    def->cli = "datadir";
+
+    def = this->add("loglevel", coInt);
+    def->label = L("Logging level");
+    def->tooltip = L("Messages with severity lower or eqal to the loglevel will be printed out. 0:trace, 1:debug, 2:info, 3:warning, 4:error, 5:fatal");
+    def->cli = "loglevel";
+    def->min = 0;
+}
+
+const CLIActionsConfigDef    cli_actions_config_def;
+const CLITransformConfigDef  cli_transform_config_def;
+const CLIMiscConfigDef       cli_misc_config_def;
+
 DynamicPrintAndCLIConfig::PrintAndCLIConfigDef DynamicPrintAndCLIConfig::s_def;
 
 void DynamicPrintAndCLIConfig::handle_legacy(t_config_option_key &opt_key, std::string &value) const
 {
-    if (cli_config_def.options.find(opt_key) == cli_config_def.options.end()) {
-        PrintConfigDef::handle_legacy(opt_key, value);
-    }
-}
-
-std::ostream& print_cli_options(std::ostream& out)
-{
-    for (const auto& opt : cli_config_def.options) {
-        if (opt.second.cli.size() != 0) {
-            out << "\t" << std::left << std::setw(40) << std::string("--") + opt.second.cli;
-            out << "\t" << opt.second.tooltip << "\n";
-            if (opt.second.default_value != nullptr)
-                out << "\t" << std::setw(40) << " " << "\t" << " (default: " << opt.second.default_value->serialize() << ")";
-            out << "\n";
-        }
-    }
-    std::cerr << std::endl;
-    return out;
-}
-
-std::ostream& print_print_options(std::ostream& out)
-{
-    for (const auto& opt : print_config_def.options) {
-        if (opt.second.cli.size() != 0) {
-            out << "\t" << std::left << std::setw(40) << std::string("--") + opt.second.cli; 
-            out << "\t" << opt.second.tooltip << "\n";
-            if (opt.second.default_value != nullptr) 
-                out << "\t" << std::setw(40) << " " << "\t" << " (default: " << opt.second.default_value->serialize() << ")";
-            out << "\n";
-        }
-    }
-    std::cerr << std::endl;
-    return out;
+	if (cli_actions_config_def  .options.find(opt_key) == cli_actions_config_def  .options.end() &&
+		cli_transform_config_def.options.find(opt_key) == cli_transform_config_def.options.end() &&
+		cli_misc_config_def     .options.find(opt_key) == cli_misc_config_def     .options.end()) {
+		PrintConfigDef::handle_legacy(opt_key, value);
+	}
 }
 
 }

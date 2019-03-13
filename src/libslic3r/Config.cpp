@@ -190,6 +190,110 @@ bool unescape_strings_cstyle(const std::string &str, std::vector<std::string> &o
     }
 }
 
+std::vector<std::string> ConfigOptionDef::cli_args() const
+{
+    std::string cli = this->cli.substr(0, this->cli.find("="));
+    boost::trim_right_if(cli, boost::is_any_of("!"));
+    std::vector<std::string> args;
+    boost::split(args, cli, boost::is_any_of("|"));
+    return args;
+}
+
+std::ostream& ConfigDef::print_cli_help(std::ostream& out, bool show_defaults) const
+{
+    // prepare a function for wrapping text
+    auto wrap = [](std::string text, size_t line_length) -> std::string {
+        std::istringstream words(text);
+        std::ostringstream wrapped;
+        std::string word;
+ 
+        if (words >> word) {
+            wrapped << word;
+            size_t space_left = line_length - word.length();
+            while (words >> word) {
+                if (space_left < word.length() + 1) {
+                    wrapped << '\n' << word;
+                    space_left = line_length - word.length();
+                } else {
+                    wrapped << ' ' << word;
+                    space_left -= word.length() + 1;
+                }
+            }
+        }
+        return wrapped.str();
+    };
+    
+    // get the unique categories
+    std::set<std::string> categories;
+    for (const auto& opt : this->options) {
+        const ConfigOptionDef& def = opt.second;
+        categories.insert(def.category);
+    }
+    
+    for (auto category : categories) {
+        if (category != "") {
+            out << category << ":" << std::endl;
+        } else if (categories.size() > 1) {
+            out << "Misc options:" << std::endl;
+        }
+        
+        for (const auto& opt : this->options) {
+            const ConfigOptionDef& def = opt.second;
+            if (def.category != category) continue;
+            
+            if (!def.cli.empty()) {
+                // get all possible variations: --foo, --foobar, -f...
+                auto cli_args = def.cli_args();
+                for (auto& arg : cli_args) {
+                    arg.insert(0, (arg.size() == 1) ? "-" : "--");
+                    if (def.type == coFloat || def.type == coInt || def.type == coFloatOrPercent
+                        || def.type == coFloats || def.type == coInts) {
+                        arg += " N";
+                    } else if (def.type == coPoint) {
+                        arg += " X,Y";
+                    } else if (def.type == coPoint3) {
+                        arg += " X,Y,Z";
+                    } else if (def.type == coString || def.type == coStrings) {
+                        arg += " ABCD";
+                    }
+                }
+            
+                // left: command line options
+                const std::string cli = boost::algorithm::join(cli_args, ", ");
+                out << " " << std::left << std::setw(20) << cli;
+            
+                // right: option description
+                std::string descr = def.tooltip;
+                if (show_defaults && def.default_value != nullptr && def.type != coBool
+                    && (def.type != coString || !def.default_value->serialize().empty())) {
+                    descr += " (";
+                    if (!def.sidetext.empty()) {
+                        descr += def.sidetext + ", ";
+                    } else if (!def.enum_values.empty()) {
+                        descr += boost::algorithm::join(def.enum_values, ", ") + "; ";
+                    }
+                    descr += "default: " + def.default_value->serialize() + ")";
+                }
+            
+                // wrap lines of description
+                descr = wrap(descr, 80);
+                std::vector<std::string> lines;
+                boost::split(lines, descr, boost::is_any_of("\n"));
+            
+                // if command line options are too long, print description in new line
+                for (size_t i = 0; i < lines.size(); ++i) {
+                    if (i == 0 && cli.size() > 19)
+                        out << std::endl;
+                    if (i > 0 || cli.size() > 19)
+                        out << std::string(21, ' ');
+                    out << lines[i] << std::endl;
+                }
+            }
+        }
+    }
+    return out;
+}
+
 void ConfigBase::apply_only(const ConfigBase &other, const t_config_option_keys &keys, bool ignore_nonexistent)
 {
     // loop through options and apply them
@@ -508,50 +612,53 @@ ConfigOption* DynamicConfig::optptr(const t_config_option_key &opt_key, bool cre
         // Let the parent decide what to do if the opt_key is not defined by this->def().
         return nullptr;
     ConfigOption *opt = nullptr;
-    switch (optdef->type) {
-    case coFloat:           opt = new ConfigOptionFloat();          break;
-    case coFloats:          opt = new ConfigOptionFloats();         break;
-    case coInt:             opt = new ConfigOptionInt();            break;
-    case coInts:            opt = new ConfigOptionInts();           break;
-    case coString:          opt = new ConfigOptionString();         break;
-    case coStrings:         opt = new ConfigOptionStrings();        break;
-    case coPercent:         opt = new ConfigOptionPercent();        break;
-    case coPercents:        opt = new ConfigOptionPercents();       break;
-    case coFloatOrPercent:  opt = new ConfigOptionFloatOrPercent(); break;
-    case coPoint:           opt = new ConfigOptionPoint();          break;
-    case coPoints:          opt = new ConfigOptionPoints();         break;
-    case coBool:            opt = new ConfigOptionBool();           break;
-    case coBools:           opt = new ConfigOptionBools();          break;
-    case coEnum:            opt = new ConfigOptionEnumGeneric(optdef->enum_keys_map); break;
-    default:                throw std::runtime_error(std::string("Unknown option type for option ") + opt_key);
+    if (optdef->default_value != nullptr) {
+        opt = (optdef->default_value->type() == coEnum) ?
+            // Special case: For a DynamicConfig, convert a templated enum to a generic enum.
+            new ConfigOptionEnumGeneric(optdef->enum_keys_map, optdef->default_value->getInt()) :
+            optdef->default_value->clone();
+    } else {
+        switch (optdef->type) {
+        case coFloat:           opt = new ConfigOptionFloat();          break;
+        case coFloats:          opt = new ConfigOptionFloats();         break;
+        case coInt:             opt = new ConfigOptionInt();            break;
+        case coInts:            opt = new ConfigOptionInts();           break;
+        case coString:          opt = new ConfigOptionString();         break;
+        case coStrings:         opt = new ConfigOptionStrings();        break;
+        case coPercent:         opt = new ConfigOptionPercent();        break;
+        case coPercents:        opt = new ConfigOptionPercents();       break;
+        case coFloatOrPercent:  opt = new ConfigOptionFloatOrPercent(); break;
+        case coPoint:           opt = new ConfigOptionPoint();          break;
+        case coPoints:          opt = new ConfigOptionPoints();         break;
+        case coPoint3:          opt = new ConfigOptionPoint3();         break;
+    //    case coPoint3s:         opt = new ConfigOptionPoint3s();        break;
+        case coBool:            opt = new ConfigOptionBool();           break;
+        case coBools:           opt = new ConfigOptionBools();          break;
+        case coEnum:            opt = new ConfigOptionEnumGeneric(optdef->enum_keys_map); break;
+        default:                throw std::runtime_error(std::string("Unknown option type for option ") + opt_key);
+        }
     }
     this->options[opt_key] = opt;
     return opt;
 }
 
-void DynamicConfig::read_cli(const std::vector<std::string> &tokens, t_config_option_keys* extra)
+void DynamicConfig::read_cli(const std::vector<std::string> &tokens, t_config_option_keys* extra, t_config_option_keys* keys)
 {
     std::vector<char*> args;    
     // push a bogus executable name (argv[0])
     args.emplace_back(const_cast<char*>(""));
     for (size_t i = 0; i < tokens.size(); ++ i)
         args.emplace_back(const_cast<char *>(tokens[i].c_str()));
-    this->read_cli(int(args.size()), &args[0], extra);
+    this->read_cli(int(args.size()), &args[0], extra, keys);
 }
 
-bool DynamicConfig::read_cli(int argc, char** argv, t_config_option_keys* extra)
+bool DynamicConfig::read_cli(int argc, char** argv, t_config_option_keys* extra, t_config_option_keys* keys)
 {
     // cache the CLI option => opt_key mapping
     std::map<std::string,std::string> opts;
-    for (const auto &oit : this->def()->options) {
-        std::string cli = oit.second.cli;
-        cli = cli.substr(0, cli.find("="));
-        boost::trim_right_if(cli, boost::is_any_of("!"));
-        std::vector<std::string> tokens;
-        boost::split(tokens, cli, boost::is_any_of("|"));
-        for (const std::string &t : tokens)
+    for (const auto &oit : this->def()->options)
+        for (auto t : oit.second.cli_args())
             opts[t] = oit.first;
-    }
     
     bool parse_options = true;
     for (int i = 1; i < argc; ++ i) {
@@ -611,6 +718,10 @@ bool DynamicConfig::read_cli(int argc, char** argv, t_config_option_keys* extra)
         }
         // Store the option value.
         const bool               existing   = this->has(opt_key);
+        if (keys != nullptr && !existing) {
+            // Save the order of detected keys.
+            keys->push_back(opt_key);
+        }
         ConfigOption            *opt_base   = this->option(opt_key, true);
         ConfigOptionVectorBase  *opt_vector = opt_base->is_vector() ? static_cast<ConfigOptionVectorBase*>(opt_base) : nullptr;
         if (opt_vector) {
