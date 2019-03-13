@@ -75,7 +75,7 @@ const double SupportConfig::max_solo_pillar_height_mm = 15.0;
 const double SupportConfig::max_dual_pillar_height_mm = 35.0;
 const double   SupportConfig::optimizer_rel_score_diff = 1e-6;
 const unsigned SupportConfig::optimizer_max_iterations = 1000;
-const unsigned SupportConfig::pillar_cascade_neighbors = 2;
+const unsigned SupportConfig::pillar_cascade_neighbors = 3;
 const unsigned SupportConfig::max_bridges_on_pillar = 3;
 
 using Coordf = double;
@@ -1004,13 +1004,9 @@ class SLASupportTree::Algorithm {
         // Now a and b vectors are perpendicular to v and to each other.
         // Together they define the plane where we have to iterate with the
         // given angles in the 'phis' vector
-
-//        std::cout << "Head check begin: " << std::endl;
-
         tbb::parallel_for(size_t(0), phis.size(),
                           [&phis, &hits, &m, sd, r_pin, r_back, s, a, b, c]
                           (size_t i)
-//        for(size_t i = 0; i < phis.size(); ++i)
         {
             double& phi = phis[i];
             double sinphi = std::sin(phi);
@@ -1042,9 +1038,6 @@ class SLASupportTree::Algorithm {
 
             if(q.is_inside()) { // the hit is inside the model
                 if(q.distance() > r_pin + sd)  {
-
-//                    std::cout << "Fatal inside hit. Phi: " << phi << " distance: " << q.distance() << std::endl;
-
                     // If we are inside the model and the hit distance is bigger
                     // than our pin circle diameter, it probably indicates that
                     // the support point was already inside the model, or there
@@ -1055,20 +1048,16 @@ class SLASupportTree::Algorithm {
                     hits[i] = HitResult(0.0);
                 }
                 else {
-//                    std::cout << "Recoverable inside hit. Phi: " << phi << " distance: " << q.distance() << " re-cast dist: " ;
                     // re-cast the ray from the outside of the object.
                     // The starting point has an offset of 2*safety_distance
                     // because the original ray has also had an offset
                     auto q2 = m.query_ray_hit(ps + (q.distance() + 2*sd)*n, n);
                     hits[i] = q2;
-//                    std::cout << q2.distance() << std::endl;
                 }
             } else hits[i] = q;
         });
 
         auto mit = std::min_element(hits.begin(), hits.end());
-
-//        std::cout << "Head check end. Result: " << mit->distance() << std::endl;
 
         return *mit;
     }
@@ -1896,6 +1885,13 @@ public:
         {
             Vec3d qp = el.first;
 
+            const Pillar& pillar = m_result.pillars()[el.second];
+
+            unsigned neighbors = m_cfg.pillar_cascade_neighbors;
+
+            // connections are enough for one pillar
+            if(pillar.links >= neighbors) return;
+
             // Query all remaining points within reach
             auto qres = m_pillar_index.query([qp, d](const SpatElement& e){
                 return distance(e.first, qp) < d;
@@ -1907,13 +1903,7 @@ public:
                 return distance(e1.first, qp) < distance(e2.first, qp);
             });
 
-            const Pillar& pillar = m_result.pillars()[el.second];
-
-            unsigned neighbors = m_cfg.pillar_cascade_neighbors;
-
             for(auto& re : qres) {
-                // connections are enough for one pillar
-                if(pillar.links >= neighbors) break;
 
                 if(re.second == el.second) continue;
 
@@ -1934,7 +1924,7 @@ public:
                     pairs.insert(hashval);
 
                     // If the interconnection length between the two pillars is
-                    // less than 20% of the longer pillar's height, don't count
+                    // less than 50% of the longer pillar's height, don't count
                     if(pillar.height < H1 ||
                        neighborpillar.height / pillar.height > min_height_ratio)
                         m_result.increment_links(pillar);
@@ -1944,6 +1934,9 @@ public:
                         m_result.increment_links(neighborpillar);
 
                 }
+
+                // connections are enough for one pillar
+                if(pillar.links >= neighbors) break;
             }
         };
 
