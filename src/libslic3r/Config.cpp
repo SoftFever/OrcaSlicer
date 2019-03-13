@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <fstream>
 #include <iostream>
+#include <iomanip>
 #include <exception> // std::runtime_error
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/classification.hpp>
@@ -190,16 +191,26 @@ bool unescape_strings_cstyle(const std::string &str, std::vector<std::string> &o
     }
 }
 
-std::vector<std::string> ConfigOptionDef::cli_args() const
+std::vector<std::string> ConfigOptionDef::cli_args(const std::string &key) const
 {
-    std::string cli = this->cli.substr(0, this->cli.find("="));
-    boost::trim_right_if(cli, boost::is_any_of("!"));
-    std::vector<std::string> args;
-    boost::split(args, cli, boost::is_any_of("|"));
+	std::vector<std::string> args;
+	if (this->cli != ConfigOptionDef::nocli) {
+        std::string cli = this->cli.substr(0, this->cli.find("="));
+        boost::trim_right_if(cli, boost::is_any_of("!"));
+		if (cli.empty()) {
+            // Add the key
+            std::string opt = key;
+            boost::replace_all(opt, "_", "-");
+            args.emplace_back(std::move(opt));
+        } else
+			boost::split(args, cli, boost::is_any_of("|"));
+    }
     return args;
 }
 
-std::ostream& ConfigDef::print_cli_help(std::ostream& out, bool show_defaults) const
+std::string ConfigOptionDef::nocli = "~~~noCLI";
+
+std::ostream& ConfigDef::print_cli_help(std::ostream& out, bool show_defaults, std::function<bool(const ConfigOptionDef &)> filter) const
 {
     // prepare a function for wrapping text
     auto wrap = [](std::string text, size_t line_length) -> std::string {
@@ -222,12 +233,13 @@ std::ostream& ConfigDef::print_cli_help(std::ostream& out, bool show_defaults) c
         }
         return wrapped.str();
     };
-    
+
     // get the unique categories
     std::set<std::string> categories;
     for (const auto& opt : this->options) {
         const ConfigOptionDef& def = opt.second;
-        categories.insert(def.category);
+        if (filter(def))
+            categories.insert(def.category);
     }
     
     for (auto category : categories) {
@@ -239,55 +251,57 @@ std::ostream& ConfigDef::print_cli_help(std::ostream& out, bool show_defaults) c
         
         for (const auto& opt : this->options) {
             const ConfigOptionDef& def = opt.second;
-            if (def.category != category) continue;
+			if (def.category != category || def.cli == ConfigOptionDef::nocli || !filter(def))
+                continue;
             
-            if (!def.cli.empty()) {
-                // get all possible variations: --foo, --foobar, -f...
-                auto cli_args = def.cli_args();
-                for (auto& arg : cli_args) {
-                    arg.insert(0, (arg.size() == 1) ? "-" : "--");
-                    if (def.type == coFloat || def.type == coInt || def.type == coFloatOrPercent
-                        || def.type == coFloats || def.type == coInts) {
-                        arg += " N";
-                    } else if (def.type == coPoint) {
-                        arg += " X,Y";
-                    } else if (def.type == coPoint3) {
-                        arg += " X,Y,Z";
-                    } else if (def.type == coString || def.type == coStrings) {
-                        arg += " ABCD";
-                    }
+            // get all possible variations: --foo, --foobar, -f...
+            std::vector<std::string> cli_args = def.cli_args(opt.first);
+			if (cli_args.empty())
+				continue;
+
+            for (auto& arg : cli_args) {
+                arg.insert(0, (arg.size() == 1) ? "-" : "--");
+                if (def.type == coFloat || def.type == coInt || def.type == coFloatOrPercent
+                    || def.type == coFloats || def.type == coInts) {
+                    arg += " N";
+                } else if (def.type == coPoint) {
+                    arg += " X,Y";
+                } else if (def.type == coPoint3) {
+                    arg += " X,Y,Z";
+                } else if (def.type == coString || def.type == coStrings) {
+                    arg += " ABCD";
                 }
+            }
             
-                // left: command line options
-                const std::string cli = boost::algorithm::join(cli_args, ", ");
-                out << " " << std::left << std::setw(20) << cli;
+            // left: command line options
+            const std::string cli = boost::algorithm::join(cli_args, ", ");
+            out << " " << std::left << std::setw(20) << cli;
             
-                // right: option description
-                std::string descr = def.tooltip;
-                if (show_defaults && def.default_value != nullptr && def.type != coBool
-                    && (def.type != coString || !def.default_value->serialize().empty())) {
-                    descr += " (";
-                    if (!def.sidetext.empty()) {
-                        descr += def.sidetext + ", ";
-                    } else if (!def.enum_values.empty()) {
-                        descr += boost::algorithm::join(def.enum_values, ", ") + "; ";
-                    }
-                    descr += "default: " + def.default_value->serialize() + ")";
+            // right: option description
+            std::string descr = def.tooltip;
+            if (show_defaults && def.default_value != nullptr && def.type != coBool
+                && (def.type != coString || !def.default_value->serialize().empty())) {
+                descr += " (";
+                if (!def.sidetext.empty()) {
+                    descr += def.sidetext + ", ";
+                } else if (!def.enum_values.empty()) {
+                    descr += boost::algorithm::join(def.enum_values, ", ") + "; ";
                 }
+                descr += "default: " + def.default_value->serialize() + ")";
+            }
             
-                // wrap lines of description
-                descr = wrap(descr, 80);
-                std::vector<std::string> lines;
-                boost::split(lines, descr, boost::is_any_of("\n"));
+            // wrap lines of description
+            descr = wrap(descr, 80);
+            std::vector<std::string> lines;
+            boost::split(lines, descr, boost::is_any_of("\n"));
             
-                // if command line options are too long, print description in new line
-                for (size_t i = 0; i < lines.size(); ++i) {
-                    if (i == 0 && cli.size() > 19)
-                        out << std::endl;
-                    if (i > 0 || cli.size() > 19)
-                        out << std::string(21, ' ');
-                    out << lines[i] << std::endl;
-                }
+            // if command line options are too long, print description in new line
+            for (size_t i = 0; i < lines.size(); ++i) {
+                if (i == 0 && cli.size() > 19)
+                    out << std::endl;
+                if (i > 0 || cli.size() > 19)
+                    out << std::string(21, ' ');
+                out << lines[i] << std::endl;
             }
         }
     }
@@ -657,7 +671,7 @@ bool DynamicConfig::read_cli(int argc, char** argv, t_config_option_keys* extra,
     // cache the CLI option => opt_key mapping
     std::map<std::string,std::string> opts;
     for (const auto &oit : this->def()->options)
-        for (auto t : oit.second.cli_args())
+        for (auto t : oit.second.cli_args(oit.first))
             opts[t] = oit.first;
     
     bool parse_options = true;

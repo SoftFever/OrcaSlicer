@@ -309,7 +309,11 @@ int CLI::run(int argc, char **argv)
         if (opt_key == "help") {
             this->print_help();
         } else if (opt_key == "help_options") {
-            this->print_help(true);
+            this->print_help(true, ptAny);
+        } else if (opt_key == "help_fff") {
+            this->print_help(true, ptFFF);
+        } else if (opt_key == "help_sla") {
+            this->print_help(true, ptSLA);
         } else if (opt_key == "save") {
             //FIXME check for mixing the FFF / SLA parameters.
             // or better save fff_print_config vs. sla_print_config
@@ -546,7 +550,7 @@ bool CLI::setup(int argc, char **argv)
 	return true;
 }
 
-void CLI::print_help(bool include_print_options) const 
+void CLI::print_help(bool include_print_options, PrinterTechnology printer_technology) const 
 {
     boost::nowide::cout
 		<< "Slic3r Prusa Edition " << SLIC3R_BUILD << std::endl
@@ -568,11 +572,12 @@ void CLI::print_help(bool include_print_options) const
     
     if (include_print_options) {
         boost::nowide::cout << std::endl;
-        print_config_def.print_cli_help(boost::nowide::cout, true);
+		print_config_def.print_cli_help(boost::nowide::cout, true, [printer_technology](const ConfigOptionDef &def)
+            { return printer_technology == ptAny || def.printer_technology == ptAny || printer_technology == def.printer_technology; });
     } else {
         boost::nowide::cout
             << std::endl
-            << "Run --help-options to see the full listing of print/G-code options." << std::endl;
+            << "Run --help-options / --help-fff / --help-sla to see the full listing of print options." << std::endl;
     }
 }
 

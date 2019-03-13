@@ -6,6 +6,7 @@
 #include <climits>
 #include <cstdio>
 #include <cstdlib>
+#include <functional>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -86,6 +87,18 @@ enum ConfigOptionMode {
     comSimple = 0,
     comAdvanced,
     comExpert
+};
+
+enum PrinterTechnology
+{
+    // Fused Filament Fabrication
+    ptFFF,
+    // Stereolitography
+    ptSLA,
+    // Unknown, useful for command line processing
+    ptUnknown,
+    // Any technology, useful for parameters compatible with both ptFFF and ptSLA
+    ptAny
 };
 
 // A generic value of a configuration option.
@@ -1014,6 +1027,8 @@ public:
     // The full label is shown, when adding an override parameter for an object or a modified object.
     std::string                         label;
     std::string                         full_label;
+    // With which printer technology is this configuration valid?
+    PrinterTechnology                   printer_technology = ptUnknown;
     // Category of a configuration field, from the GUI perspective.
     // One of: "Layers and Perimeters", "Infill", "Support material", "Speed", "Extruders", "Advanced", "Extrusion Width"
     std::string                         category;
@@ -1065,8 +1080,12 @@ public:
         return false;
     }
 
-    /// Returns the alternative CLI arguments for the given option.
-    std::vector<std::string> cli_args() const;
+    // Returns the alternative CLI arguments for the given option.
+    // If there are no cli arguments defined, use the key and replace underscores with dashes.
+    std::vector<std::string> cli_args(const std::string &key) const;
+
+    // Assign this key to cli to disable CLI for this option.
+    static std::string                  nocli;
 };
 
 // Map from a config option name to its definition.
@@ -1102,7 +1121,9 @@ public:
     }
 
     /// Iterate through all of the CLI options and write them to a stream.
-    std::ostream&           print_cli_help(std::ostream& out, bool show_defaults) const;
+    std::ostream&           print_cli_help(
+        std::ostream& out, bool show_defaults, 
+        std::function<bool(const ConfigOptionDef &)> filter = [](const ConfigOptionDef &){ return true; }) const;
 
 protected:
     ConfigOptionDef*        add(const t_config_option_key &opt_key, ConfigOptionType type) {

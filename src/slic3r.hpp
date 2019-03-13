@@ -33,7 +33,7 @@ private:
     bool setup(int argc, char **argv);
     
     /// Prints usage of the CLI.
-    void print_help(bool include_print_options = false) const;
+    void print_help(bool include_print_options = false, PrinterTechnology printer_technology = ptAny) const;
     
     /// Exports loaded models to a file of the specified format, according to the options affecting output filename.
     bool export_models(IO::ExportFormat format);

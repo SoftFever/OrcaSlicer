@@ -24,16 +24,6 @@
 
 namespace Slic3r {
 
-enum PrinterTechnology
-{
-    // Fused Filament Fabrication
-    ptFFF,
-    // Stereolitography
-    ptSLA,
-    // Unknown, useful for command line processing
-    ptUnknown,
-};
-
 enum GCodeFlavor {
     gcfRepRap, gcfRepetier, gcfTeacup, gcfMakerWare, gcfMarlin, gcfSailfish, gcfMach3, gcfMachinekit,
     gcfSmoothie, gcfNoExtrusion,
