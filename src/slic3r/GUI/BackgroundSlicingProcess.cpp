@@ -129,8 +129,8 @@ public:
         return fpath.GetName().ToUTF8().data();
     }
 
-    template<class T> inline LayerWriter& operator<<(const T& arg) {
-        pngstream << arg; return *this;
+    template<class T> inline LayerWriter& operator<<(T&& arg) {
+        pngstream << std::forward<T>(arg); return *this;
     }
 
     bool is_ok() const {
@@ -149,7 +149,8 @@ void BackgroundSlicingProcess::process_sla()
     m_print->process();
     if (this->set_step_started(bspsGCodeFinalize)) {
         if (! m_export_path.empty()) {
-            m_sla_print->export_raster<SLAZipFmt>(m_export_path);
+            // m_sla_print->export_raster<SLAZipFmt>(m_export_path);
+            m_sla_print->export_raster<SLAminzFmt>(m_export_path);
             m_print->set_status(100, "Masked SLA file exported to " + m_export_path);
         } else if (! m_upload_job.empty()) {
             prepare_upload();
@@ -450,7 +451,8 @@ void BackgroundSlicingProcess::prepare_upload()
 		run_post_process_scripts(source_path.string(), m_fff_print->config());
 		m_upload_job.upload_data.upload_path = m_fff_print->print_statistics().finalize_output_path(m_upload_job.upload_data.upload_path.string());
 	} else {
-		m_sla_print->export_raster<SLAZipFmt>(source_path.string());
+        // m_sla_print->export_raster<SLAZipFmt>(source_path.string());
+        m_sla_print->export_raster<SLAminzFmt>(source_path.string());
 		// TODO: Also finalize upload path like with FFF when there are statistics for SLA print
 	}
 

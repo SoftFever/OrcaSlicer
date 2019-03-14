@@ -97,7 +97,7 @@ public:
 
     bool is_ok() { return false; }
 
-    template<class T> LayerWriter& operator<<(const T& /*arg*/) {
+    template<class T> LayerWriter& operator<<(T&& /*arg*/) {
         return *this;
     }
 
