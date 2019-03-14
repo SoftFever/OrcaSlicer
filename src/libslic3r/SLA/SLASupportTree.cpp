@@ -1411,10 +1411,11 @@ public:
         using libnest2d::opt::GeneticOptimizer;
         using libnest2d::opt::StopCriteria;
 
-        for(unsigned i = 0, fidx = filtered_indices[0];
-            i < filtered_indices.size(); ++i, fidx = filtered_indices[i])
+        for(unsigned i = 0, fidx = 0; i < filtered_indices.size(); ++i)
         {
             m_thr();
+
+            fidx = filtered_indices[i];
             auto n = nmls.row(i);
 
             // for all normals we generate the spherical coordinates and
