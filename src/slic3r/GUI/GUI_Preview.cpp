@@ -746,10 +746,11 @@ void Preview::load_print_as_fff()
 
     if (IsShown())
     {
-        if (gcode_preview_data_valid)
+        if (gcode_preview_data_valid) {
             // Load the real G-code preview.
             m_canvas->load_gcode_preview(*m_gcode_preview_data, colors);
-        else
+            m_loaded = true;
+        } else
             // Load the initial preview based on slices, not the final G-code.
             m_canvas->load_preview(colors, color_print_values);
         show_hide_ui_elements(gcode_preview_data_valid ? "full" : "simple");
@@ -761,7 +762,6 @@ void Preview::load_print_as_fff()
             m_canvas_widget->Refresh();
         } else
             update_sliders(zs);
-        m_loaded = true;
     }
 }
 
