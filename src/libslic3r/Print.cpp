@@ -661,6 +661,9 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
 
     // Make a copy of the config, normalize it.
     DynamicPrintConfig config(config_in);
+	config.option("print_settings_id",    true);
+	config.option("filament_settings_id", true);
+	config.option("printer_settings_id",  true);
     config.normalize();
     // Collect changes to print config.
     t_config_option_keys print_diff  = m_config.diff(config);
@@ -688,9 +691,9 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
 		PlaceholderParser &pp = this->placeholder_parser();
 		pp.apply_only(config, placeholder_parser_diff);
         // Set the profile aliases for the PrintBase::output_filename()
-        pp.set("print_preset",    config_in.option("print_settings_id"   )->clone());
-        pp.set("filament_preset", config_in.option("filament_settings_id")->clone());
-        pp.set("printer_preset",  config_in.option("printer_settings_id" )->clone());
+		pp.set("print_preset",    config.option("print_settings_id")->clone());
+		pp.set("filament_preset", config.option("filament_settings_id")->clone());
+		pp.set("printer_preset",  config.option("printer_settings_id")->clone());
     }
 
     // It is also safe to change m_config now after this->invalidate_state_by_config_options() call.

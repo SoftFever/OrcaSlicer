@@ -118,6 +118,9 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
 
     // Make a copy of the config, normalize it.
     DynamicPrintConfig config(config_in);
+	config.option("sla_print_settings_id",    true);
+	config.option("sla_material_settings_id", true);
+	config.option("printer_settings_id",      true);
     config.normalize();
     // Collect changes to print config.
     t_config_option_keys print_diff    = m_print_config.diff(config);    
@@ -151,9 +154,9 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
 		PlaceholderParser &pp = this->placeholder_parser();
 		pp.apply_config(config);
         // Set the profile aliases for the PrintBase::output_filename()
-		pp.set("print_preset", config_in.option("sla_print_settings_id")->clone());
-		pp.set("material_preset", config_in.option("sla_material_settings_id")->clone());
-		pp.set("printer_preset", config_in.option("printer_settings_id")->clone());
+		pp.set("print_preset",    config.option("sla_print_settings_id")->clone());
+		pp.set("material_preset", config.option("sla_material_settings_id")->clone());
+		pp.set("printer_preset",  config.option("printer_settings_id")->clone());
     }
 
     // It is also safe to change m_config now after this->invalidate_state_by_config_options() call.

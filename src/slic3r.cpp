@@ -68,7 +68,7 @@ int CLI::run(int argc, char **argv)
     // load config files supplied via --load
 	for (auto const &file : load_configs) {
         if (! boost::filesystem::exists(file)) {
-            if (m_config.opt_bool("ignore_nonexistent_file")) {
+            if (m_config.opt_bool("ignore_nonexistent_config")) {
                 continue;
             } else {
                 boost::nowide::cerr << "No such file: " << file << std::endl;
@@ -132,9 +132,9 @@ int CLI::run(int argc, char **argv)
 
     // Initialize full print configs for both the FFF and SLA technologies.
     FullPrintConfig    fff_print_config;
-    SLAFullPrintConfig sla_print_config;
+//    SLAFullPrintConfig sla_print_config;
     fff_print_config.apply(m_print_config, true);
-    sla_print_config.apply(m_print_config, true);
+//    sla_print_config.apply(m_print_config, true);
     
     // Loop through transform options.
     for (auto const &opt_key : m_transforms) {
@@ -530,7 +530,7 @@ bool CLI::setup(int argc, char **argv)
 	for (auto const &opt_key : opt_order) {
 		if (cli_actions_config_def.has(opt_key))
 			m_actions.emplace_back(opt_key);
-		if (cli_transform_config_def.has(opt_key))
+		else if (cli_transform_config_def.has(opt_key))
 			m_transforms.emplace_back(opt_key);
 	}
 
