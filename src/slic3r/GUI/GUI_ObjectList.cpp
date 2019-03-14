@@ -43,6 +43,18 @@ static PrinterTechnology printer_technology()
     return wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology();
 }
 
+// Config from current edited printer preset
+DynamicPrintConfig& printer_config()
+{
+    return wxGetApp().preset_bundle->printers.get_edited_preset().config;
+}
+
+int extruders_count()
+{
+    return printer_technology() == ptSLA ? 1 :
+        printer_config().option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+}
+
 ObjectList::ObjectList(wxWindow* parent) :
     wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxDV_MULTIPLE),
     m_parent(parent)
@@ -430,6 +442,9 @@ void ObjectList::OnContextMenu(wxDataViewEvent&)
         if (is_windows10())
             fix_through_netfabb();
     }
+    else if (title == _("Extruder"))
+        show_extruder_selection_menu();
+
 #ifndef __WXMSW__
     GetMainWindow()->SetToolTip(""); // hide tooltip
 #endif //__WXMSW__
@@ -437,9 +452,13 @@ void ObjectList::OnContextMenu(wxDataViewEvent&)
 
 void ObjectList::show_context_menu()
 {
-    if (multiple_selection() && selected_instances_of_same_object())
+    if (multiple_selection())
     {
-        wxGetApp().plater()->PopupMenu(&m_menu_instance);
+        if (selected_instances_of_same_object())
+            wxGetApp().plater()->PopupMenu(&m_menu_instance);
+        else
+            show_extruder_selection_menu();
+
         return;
     }
 
@@ -644,8 +663,7 @@ void ObjectList::get_options_menu(settings_menu_hierarchy& settings_menu, const 
 {
     auto options = get_options(is_part);
 
-    auto extruders_cnt = printer_technology() == ptSLA ? 1 :
-        wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+    const int extruders_cnt = extruders_count();
 
     DynamicPrintConfig config;
     for (auto& option : options)
@@ -1079,8 +1097,7 @@ void ObjectList::create_freq_settings_popupmenu(wxMenu *menu)
     const FreqSettingsBundle& bundle = printer_technology() == ptFFF ?
                                      FREQ_SETTINGS_BUNDLE_FFF : FREQ_SETTINGS_BUNDLE_SLA;
 
-    auto extruders_cnt = printer_technology() == ptSLA ? 1 :
-                         wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+    const int extruders_cnt = extruders_count();
 
     for (auto& it : bundle) {
         if (it.first.empty() || it.first == "Extruders" && extruders_cnt == 1) 
@@ -1277,7 +1294,7 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
     const wxString name = _(L("Generic")) + "-" + _(type_name);
     TriangleMesh mesh;
 
-    auto& bed_shape = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionPoints>("bed_shape")->values;
+    auto& bed_shape = printer_config().option<ConfigOptionPoints>("bed_shape")->values;
     const auto& sz = BoundingBoxf(bed_shape).size();
     const auto side = 0.1 * std::max(sz(0), sz(1));
 
@@ -1456,7 +1473,7 @@ void ObjectList::split()
 
     ModelVolume* volume;
     if (!get_volume_by_item(item, volume)) return;
-    DynamicPrintConfig&	config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    DynamicPrintConfig&	config = printer_config();
 	const ConfigOption *nozzle_dmtrs_opt = config.option("nozzle_diameter", false);
 	const auto nozzle_dmrs_cnt = (nozzle_dmtrs_opt == nullptr) ? size_t(1) : dynamic_cast<const ConfigOptionFloats*>(nozzle_dmtrs_opt)->values.size();
     if (volume->split(nozzle_dmrs_cnt) == 1) {
@@ -2336,6 +2353,87 @@ void ObjectList::OnEditingDone(wxDataViewEvent &event)
     if (renderer->WasCanceled())
         show_error(this, _(L("The supplied name is not valid;")) + "\n" +
                          _(L("the following characters are not allowed:")) + " <>:/\\|?*\"");
+}
+
+void ObjectList::show_extruder_selection_menu()
+{
+    wxDataViewItemArray sels;
+    GetSelections(sels);
+
+    for (const wxDataViewItem& item : sels)
+        if (!(m_objects_model->GetItemType(item) & (itVolume | itObject)))
+            // show this menu only for Object(s)/Volume(s) selection
+            return;
+
+    wxMenu* menu = new wxMenu();
+    append_menu_item(menu, wxID_ANY, _(L("Set extruder for selected items")),
+        _(L("Select extruder number for selected objects and/or parts")),
+        [this](wxCommandEvent&) { extruder_selection(); }, "", menu);
+    PopupMenu(menu);
+}
+
+void ObjectList::extruder_selection()
+{
+    wxArrayString choices;
+    choices.Add("default");
+    for (int i = 1; i <= extruders_count(); ++i)
+        choices.Add(wxString::Format("%d", i));
+
+    const wxString& selected_extruder = wxGetSingleChoice(_(L("Select extruder number:")),
+                                                          _(L("This extruder will be set for selected items")),
+                                                          choices, 0, this);
+    if (selected_extruder.IsEmpty())
+        return;
+
+    const int extruder_num = selected_extruder == "default" ? 0 : atoi(selected_extruder.c_str());
+
+//          /* Another variant for an extruder selection */
+//     extruder_num = wxGetNumberFromUser(_(L("Attention!!! \n"
+//                                              "It's a possibile to set an extruder number \n"
+//                                              "for whole Object(s) and/or object Part(s), \n"
+//                                              "not for an Instance. ")), 
+//                                          _(L("Enter extruder number:")),
+//                                          _(L("This extruder will be set for selected items")), 
+//                                          1, 1, 5, this);
+
+    set_extruder_for_selected_items(extruder_num);
+}
+
+void ObjectList::set_extruder_for_selected_items(const int extruder) const 
+{
+    wxDataViewItemArray sels;
+    GetSelections(sels);
+
+    for (const wxDataViewItem& item : sels)
+    {
+        const ItemType type = m_objects_model->GetItemType(item);
+
+        const int obj_idx = type & itObject ? m_objects_model->GetIdByItem(item) :
+                            m_objects_model->GetIdByItem(m_objects_model->GetTopParent(item));
+
+        const int vol_idx = type & itVolume ? m_objects_model->GetVolumeIdByItem(item) : -1;
+
+        DynamicPrintConfig& config = type & itObject ? (*m_objects)[obj_idx]->config : 
+                                     (*m_objects)[obj_idx]->volumes[vol_idx]->config;
+        
+        if (config.has("extruder")) {
+            if (extruder == 0)
+                config.erase("extruder");
+            else
+                config.option<ConfigOptionInt>("extruder")->value = extruder;
+        }
+        else if (extruder > 0)
+            config.set_key_value("extruder", new ConfigOptionInt(extruder));
+
+        const wxString extruder_str = extruder == 0 ? wxString ("default") : 
+                                      wxString::Format("%d", config.option<ConfigOptionInt>("extruder")->value);
+        m_objects_model->SetValue(extruder_str, item, 1);
+
+        wxGetApp().plater()->canvas3D()->ensure_on_bed(obj_idx);
+    }
+
+    // update scene
+    wxGetApp().plater()->update();
 }
 
 } //namespace GUI
