@@ -44,12 +44,12 @@ static PrinterTechnology printer_technology()
 }
 
 // Config from current edited printer preset
-DynamicPrintConfig& printer_config()
+static DynamicPrintConfig& printer_config()
 {
     return wxGetApp().preset_bundle->printers.get_edited_preset().config;
 }
 
-int extruders_count()
+static int extruders_count()
 {
     return printer_technology() == ptSLA ? 1 :
         printer_config().option<ConfigOptionFloats>("nozzle_diameter")->values.size();
