@@ -816,6 +816,10 @@ void Tab::update_wiping_button_visibility() {
 // to update number of "filament" selection boxes when the number of extruders change.
 void Tab::on_presets_changed()
 {
+	if (wxGetApp().plater() == nullptr) {
+		return;
+	}
+
     // Instead of PostEvent (EVT_TAB_PRESETS_CHANGED) just call update_presets
     wxGetApp().plater()->sidebar().update_presets(m_type);
 	update_preset_description_line();

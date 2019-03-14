@@ -655,9 +655,7 @@ void ObjectList::get_options_menu(settings_menu_hierarchy& settings_menu, const 
         if (category.empty() ||
             (category == "Extruders" && extruders_cnt == 1)) continue;
 
-        const std::string& label = opt->label.empty() ? opt->full_label : 
-                                   opt->full_label.empty() ? opt->label :
-                                   opt->full_label + " " + opt->label;;
+        const std::string& label = !opt->full_label.empty() ? opt->full_label : opt->label;
         std::pair<std::string, std::string> option_label(option, label);
         std::vector< std::pair<std::string, std::string> > new_category;
         auto& cat_opt_label = settings_menu.find(category) == settings_menu.end() ? new_category : settings_menu.at(category);
@@ -1763,7 +1761,8 @@ void ObjectList::delete_from_model_and_list(const std::vector<ItemForDelete>& it
             if (item->type&itVolume)
             {
                 m_objects_model->Delete(m_objects_model->GetItemByVolumeId(item->obj_idx, item->sub_obj_idx));
-                if ((*m_objects)[item->obj_idx]->volumes.size() == 1)
+                if ((*m_objects)[item->obj_idx]->volumes.size() == 1 && 
+                    (*m_objects)[item->obj_idx]->config.has("extruder"))
                 {
                     const wxString extruder = wxString::Format("%d", (*m_objects)[item->obj_idx]->config.option<ConfigOptionInt>("extruder")->value);
                     m_objects_model->SetValue(extruder, m_objects_model->GetItemById(item->obj_idx), 1);
