@@ -306,7 +306,7 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
 			// Update the ModelObject instance, possibly invalidate the linked PrintObjects.
 			assert(it_status->status == ModelObjectStatus::Old || it_status->status == ModelObjectStatus::Moved);
 			const ModelObject &model_object_new       = *model.objects[idx_model_object];
-			auto               it_print_object_status = print_object_status.lower_bound(PrintObjectStatus(model_object.id()));
+			it_print_object_status = print_object_status.lower_bound(PrintObjectStatus(model_object.id()));
 			if (it_print_object_status != print_object_status.end() && it_print_object_status->id != model_object.id())
 				it_print_object_status = print_object_status.end();
 			// Check whether a model part volume was added or removed, their transformations or order changed.
