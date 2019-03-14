@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <set>
+#include <unordered_map>
 #include <functional>
 #include <boost/asio/ip/address.hpp>
 
@@ -13,16 +15,24 @@ namespace Slic3r {
 
 struct BonjourReply
 {
+	typedef std::unordered_map<std::string, std::string> TxtData;
+
 	boost::asio::ip::address ip;
 	uint16_t port;
 	std::string service_name;
 	std::string hostname;
 	std::string full_address;
-	std::string path;
-	std::string version;
+
+	TxtData txt_data;
 
 	BonjourReply() = delete;
-	BonjourReply(boost::asio::ip::address ip, uint16_t port, std::string service_name, std::string hostname, std::string path, std::string version);
+	BonjourReply(boost::asio::ip::address ip,
+		uint16_t port,
+		std::string service_name,
+		std::string hostname,
+		TxtData txt_data);
+
+	std::string path() const;
 
 	bool operator==(const BonjourReply &other) const;
 	bool operator<(const BonjourReply &other) const;
@@ -39,11 +49,17 @@ public:
 	typedef std::shared_ptr<Bonjour> Ptr;
 	typedef std::function<void(BonjourReply &&)> ReplyFn;
 	typedef std::function<void()> CompleteFn;
+	typedef std::set<std::string> TxtKeys;
 
-	Bonjour(std::string service, std::string protocol = "tcp");
+	Bonjour(std::string service);
 	Bonjour(Bonjour &&other);
 	~Bonjour();
 
+	// Set requested service protocol, "tcp" by default
+	Bonjour& set_protocol(std::string protocol);
+	// Set which TXT key-values should be collected
+	// Note that "path" is always collected
+	Bonjour& set_txt_keys(TxtKeys txt_keys);
 	Bonjour& set_timeout(unsigned timeout);
 	Bonjour& set_retries(unsigned retries);
 	// ^ Note: By default there is 1 retry (meaning 1 broadcast is sent).
