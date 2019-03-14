@@ -74,7 +74,7 @@ void Tab::set_type()
 void Tab::create_preset_tab()
 {
 #ifdef __WINDOWS__
-    SetDoubleBuffered(true);
+//     SetDoubleBuffered(true);
 #endif //__WINDOWS__
 
     m_preset_bundle = wxGetApp().preset_bundle;
