@@ -24,7 +24,6 @@ namespace GUI {
 
 
 MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &headline, wxWindowID button_id) :
-// 	MsgDialog(parent, title, headline, wxBitmap(from_u8(Slic3r::var("Slic3r_192px.png")), wxBITMAP_TYPE_PNG), button_id)
 	MsgDialog(parent, title, headline, create_scaled_bitmap("Slic3r_192px.png"), button_id)
 {}
 
@@ -70,7 +69,6 @@ MsgDialog::~MsgDialog() {}
 
 ErrorDialog::ErrorDialog(wxWindow *parent, const wxString &msg)
 	: MsgDialog(parent, _(L("Slic3r error")), _(L("Slic3r has encountered an error")),
-// 		wxBitmap(from_u8(Slic3r::var("Slic3r_192px_grayscale.png")), wxBITMAP_TYPE_PNG),
         create_scaled_bitmap("Slic3r_192px_grayscale.png"),
 		wxID_NONE)
 	, msg(msg)

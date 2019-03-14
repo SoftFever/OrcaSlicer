@@ -13,6 +13,7 @@
 #include <wx/wupdlock.h>
 
 #include "slic3r/GUI/GUI.hpp"
+#include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/Utils/Bonjour.hpp"
 
@@ -50,35 +51,36 @@ struct LifetimeGuard
 	LifetimeGuard(BonjourDialog *dialog) : dialog(dialog) {}
 };
 
-// FIXME: use em, resizable
-
 BonjourDialog::BonjourDialog(wxWindow *parent, Slic3r::PrinterTechnology tech)
-	: wxDialog(parent, wxID_ANY, _(L("Network lookup")))
-	, list(new wxListView(this, wxID_ANY, wxDefaultPosition, wxSize(800, 300)))
+	: wxDialog(parent, wxID_ANY, _(L("Network lookup")), wxDefaultPosition, wxDefaultSize, wxRESIZE_BORDER)
+	, list(new wxListView(this, wxID_ANY))
 	, replies(new ReplySet)
 	, label(new wxStaticText(this, wxID_ANY, ""))
 	, timer(new wxTimer())
 	, timer_state(0)
 	, tech(tech)
 {
+	const int em = GUI::wxGetApp().em_unit();
+	list->SetMinSize(wxSize(80 * em, 30 * em));
+
 	wxBoxSizer *vsizer = new wxBoxSizer(wxVERTICAL);
 
-	vsizer->Add(label, 0, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, 10);
+	vsizer->Add(label, 0, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, em);
 
 	list->SetSingleStyle(wxLC_SINGLE_SEL);
 	list->SetSingleStyle(wxLC_SORT_DESCENDING);
-	list->AppendColumn(_(L("Address")), wxLIST_FORMAT_LEFT, 50);
-	list->AppendColumn(_(L("Hostname")), wxLIST_FORMAT_LEFT, 100);
-	list->AppendColumn(_(L("Service name")), wxLIST_FORMAT_LEFT, 200);
+	list->AppendColumn(_(L("Address")), wxLIST_FORMAT_LEFT, 5 * em);
+	list->AppendColumn(_(L("Hostname")), wxLIST_FORMAT_LEFT, 10 * em);
+	list->AppendColumn(_(L("Service name")), wxLIST_FORMAT_LEFT, 20 * em);
 	if (tech == ptFFF) {
-		list->AppendColumn(_(L("OctoPrint version")), wxLIST_FORMAT_LEFT, 50);
+		list->AppendColumn(_(L("OctoPrint version")), wxLIST_FORMAT_LEFT, 5 * em);
 	}
 
-	vsizer->Add(list, 1, wxEXPAND | wxALL, 10);
+	vsizer->Add(list, 1, wxEXPAND | wxALL, em);
 
 	wxBoxSizer *button_sizer = new wxBoxSizer(wxHORIZONTAL);
-	button_sizer->Add(new wxButton(this, wxID_OK, "OK"), 0, wxALL, 10);
-	button_sizer->Add(new wxButton(this, wxID_CANCEL, "Cancel"), 0, wxALL, 10);
+	button_sizer->Add(new wxButton(this, wxID_OK, "OK"), 0, wxALL, em);
+	button_sizer->Add(new wxButton(this, wxID_CANCEL, "Cancel"), 0, wxALL, em);
 	// ^ Note: The Ok/Cancel labels are translated by wxWidgets
 
 	vsizer->Add(button_sizer, 0, wxALIGN_CENTER);
@@ -197,9 +199,11 @@ void BonjourDialog::on_reply(BonjourReplyEvent &e)
 		}
 	}
 
+	const int em = GUI::wxGetApp().em_unit();
+
 	for (int i = 0; i < list->GetColumnCount(); i++) {
 		list->SetColumnWidth(i, wxLIST_AUTOSIZE);
-		if (list->GetColumnWidth(i) < 100) { list->SetColumnWidth(i, 100); }
+		if (list->GetColumnWidth(i) < 10 * em) { list->SetColumnWidth(i, 10 * em); }
 	}
 
 	if (!selected.IsEmpty()) {
