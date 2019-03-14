@@ -821,7 +821,7 @@ void SLAPrint::process()
 
     // We have the layer polygon collection but we need to unite them into
     // an index where the key is the height level in discrete levels (clipper)
-    auto index_slices = [ilhd](SLAPrintObject& po) {
+    auto index_slices = [this, ilhd](SLAPrintObject& po) {
         po.m_slice_index.clear();
         auto sih = LevelID(scale_(ilhd));
 
@@ -890,6 +890,9 @@ void SLAPrint::process()
                 sr.support_slices_idx = SLAPrintObject::SliceRecord::Idx(i);
             }
         }
+
+        // Using RELOAD_SLA_PREVIEW to tell the Plater to pass the update status to the 3D preview to load the SLA slices.
+        report_status(*this, -2, "", SlicingStatus::RELOAD_SLA_PREVIEW);
     };
 
     // Rasterizing the model objects, and their supports
