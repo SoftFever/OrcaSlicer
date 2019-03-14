@@ -405,7 +405,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("bottom_fill_pattern", coEnum);
     *def = *def_top_fill_pattern;
-    def->label = L("Bottom Pattern");
+    def->label = L("Bottom fill pattern");
     def->tooltip = L("Fill pattern for bottom infill. This only affects the bottom external visible layer, and not its adjacent solid shells.");
     def->cli = "bottom-fill-pattern|external-fill-pattern|solid-fill-pattern";
     def->default_value = new ConfigOptionEnum<InfillPattern>(ipRectilinear);
