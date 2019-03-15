@@ -6294,7 +6294,7 @@ void GLCanvas3D::_picking_pass() const
         else
         {
             m_hover_volume_id = -1;
-            m_gizmos.set_hover_id(inside && volume_id <=  254 * 255 * 255 ? (254 * 255 * 255 - volume_id) : -1);
+            m_gizmos.set_hover_id(inside && volume_id <= GLGizmoBase::BASE_ID ? (GLGizmoBase::BASE_ID - volume_id) : -1);
         }
 
         _update_volumes_hover_state();

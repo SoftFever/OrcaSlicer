@@ -246,18 +246,17 @@ void GLGizmoBase::update(const UpdateData& data, const GLCanvas3D::Selection& se
 
 std::array<float, 3> GLGizmoBase::picking_color_component(unsigned int id) const
 {
-    // Starting value for id to avoid clashing with id used by GLVolumes
-    static const unsigned int BASE = 254 * 255 * 255;
     static const float INV_255 = 1.0f / 255.0f;
 
-    id = BASE - id;
+    id = BASE_ID - id;
 
     if (m_group_id > -1)
         id -= m_group_id;
 
+    // color components are encoded to match the calculation of volume_id made into GLCanvas3D::_picking_pass()
     return std::array<float, 3> { (float)((id >> 0) & 0xff) * INV_255, // red
                                   (float)((id >> 8) & 0xff) * INV_255, // green
-                                  (float)((id >> 16)& 0xff) * INV_255}; // blue
+                                  (float)((id >> 16) & 0xff) * INV_255 }; // blue
 }
 
 void GLGizmoBase::render_grabbers(const BoundingBoxf3& box) const
