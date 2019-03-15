@@ -244,13 +244,21 @@ void GLGizmoBase::update(const UpdateData& data, const GLCanvas3D::Selection& se
         on_update(data, selection);
 }
 
-float GLGizmoBase::picking_color_component(unsigned int id) const
+std::array<float, 3> GLGizmoBase::picking_color_component(unsigned int id) const
 {
-    int color = 254 - (int)id;
-    if (m_group_id > -1)
-        color -= m_group_id;
+    // Starting value for id to avoid clashing with id used by GLVolumes
+    static const unsigned int BASE = 254 * 255 * 255;
+    static const float INV_255 = 1.0f / 255.0f;
 
-    return (float)color / 255.0f;
+    id = BASE - id;
+
+    std::array<float, 3> color;
+
+    color[0] = (float)((id >> 16) & 0xff) * INV_255; // red
+    color[1] = (float)((id >> 8) & 0xff) * INV_255; // green
+    color[2] = (float)(id & 0xff) * INV_255; // blue
+
+    return color;
 }
 
 void GLGizmoBase::render_grabbers(const BoundingBoxf3& box) const
@@ -281,9 +289,10 @@ void GLGizmoBase::render_grabbers_for_picking(const BoundingBoxf3& box) const
     {
         if (m_grabbers[i].enabled)
         {
-            m_grabbers[i].color[0] = 1.0f;
-            m_grabbers[i].color[1] = 1.0f;
-            m_grabbers[i].color[2] = picking_color_component(i);
+            std::array<float, 3> color = picking_color_component(i);
+            m_grabbers[i].color[0] = color[0];
+            m_grabbers[i].color[1] = color[1];
+            m_grabbers[i].color[2] = color[2];
             m_grabbers[i].render_for_picking(size);
         }
     }
@@ -1478,7 +1487,7 @@ void GLGizmoFlatten::on_render_for_picking(const GLCanvas3D::Selection& selectio
 			const_cast<GLGizmoFlatten*>(this)->update_planes();
         for (int i = 0; i < (int)m_planes.size(); ++i)
         {
-            ::glColor3f(1.0f, 1.0f, picking_color_component(i));
+            ::glColor3fv(picking_color_component(i).data());
             ::glBegin(GL_POLYGON);
             for (const Vec3d& vertex : m_planes[i].vertices)
             {
@@ -1878,9 +1887,10 @@ void GLGizmoSlaSupports::render_points(const GLCanvas3D::Selection& selection, b
 
         // First decide about the color of the point.
         if (picking) {
-            render_color[0] = 1.0f;
-            render_color[1] = 1.0f;
-            render_color[2] = picking_color_component(i);
+            std::array<float, 3> color = picking_color_component(i);
+            render_color[0] = color[0];
+            render_color[1] = color[1];
+            render_color[2] = color[2];
         }
         else {
             if ((m_hover_id == i && m_editing_mode)) { // ignore hover state unless editing mode is active

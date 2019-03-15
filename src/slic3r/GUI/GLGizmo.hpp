@@ -175,7 +175,7 @@ protected:
     virtual void on_render_input_window(float x, float y, float bottom_limit, const GLCanvas3D::Selection& selection) {}
 #endif // ENABLE_IMGUI
 
-    float picking_color_component(unsigned int id) const;
+    std::array<float, 3> picking_color_component(unsigned int id) const;
     void render_grabbers(const BoundingBoxf3& box) const;
     void render_grabbers(float size) const;
     void render_grabbers_for_picking(const BoundingBoxf3& box) const;
