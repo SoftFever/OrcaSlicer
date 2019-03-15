@@ -36,11 +36,15 @@ public:
     Zipper& operator=(const Zipper&) = delete;
 
     // Moving is fine.
-    Zipper(Zipper&&) = default;
-    Zipper& operator=(Zipper&&) = default;
+    // Zipper(Zipper&&) = default;
+    // Zipper& operator=(Zipper&&) = default;
+    // All becouse of VS2013:
+    Zipper(Zipper &&m);
+    Zipper& operator=(Zipper &&m);
 
     /// Adding an entry means a file inside the new archive. Name param is the
     /// name of the new file. To create directories, append a forward slash.
+    /// The previous entry is finished (see finish_entry)
     void add_entry(const std::string& name);
 
     // Writing data to the archive works like with standard streams. The target
@@ -64,7 +68,10 @@ public:
     }
 
     /// Finishing an entry means that subsequent writes will no longer be
-    /// appended to the previous entry.
+    /// appended to the previous entry. They will be written into the internal
+    /// buffer and ones an entry is added, the buffer will bind to the new entry
+    /// If the buffer was written, but no entry was added, the buffer will be
+    /// cleared after this call.
     void finish_entry();
 
     /// Gets the name of the archive without the path or extension.

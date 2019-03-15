@@ -93,10 +93,10 @@ void BackgroundSlicingProcess::process_fff()
 }
 
 // Pseudo type for specializing LayerWriter trait class
-struct SLAZipFmt {};
+struct SLAwxZipper {};
 
 // The implementation of creating zipped archives with wxWidgets
-template<> class LayerWriter<SLAZipFmt> {
+template<> class LayerWriter<SLAwxZipper> {
     wxFileName fpath;
     wxFFileOutputStream zipfile;
     wxZipOutputStream zipstream;
@@ -150,7 +150,7 @@ void BackgroundSlicingProcess::process_sla()
     if (this->set_step_started(bspsGCodeFinalize)) {
         if (! m_export_path.empty()) {
             // m_sla_print->export_raster<SLAZipFmt>(m_export_path);
-            m_sla_print->export_raster<SLAminzFmt>(m_export_path);
+            m_sla_print->export_raster<SLAminzZipper>(m_export_path);
             m_print->set_status(100, "Masked SLA file exported to " + m_export_path);
         } else if (! m_upload_job.empty()) {
             prepare_upload();
@@ -452,7 +452,7 @@ void BackgroundSlicingProcess::prepare_upload()
 		m_upload_job.upload_data.upload_path = m_fff_print->print_statistics().finalize_output_path(m_upload_job.upload_data.upload_path.string());
 	} else {
         // m_sla_print->export_raster<SLAZipFmt>(source_path.string());
-        m_sla_print->export_raster<SLAminzFmt>(source_path.string());
+        m_sla_print->export_raster<SLAminzZipper>(source_path.string());
 		// TODO: Also finalize upload path like with FFF when there are statistics for SLA print
 	}
 
