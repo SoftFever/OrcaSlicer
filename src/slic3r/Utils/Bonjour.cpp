@@ -5,6 +5,7 @@
 #include <array>
 #include <vector>
 #include <string>
+#include <map>
 #include <thread>
 #include <boost/optional.hpp>
 #include <boost/system/error_code.hpp>
@@ -33,7 +34,9 @@ namespace Slic3r {
 // the implementations has been tested with AFL.
 
 
-// Relevant RFC: https://www.ietf.org/rfc/rfc6762.txt
+// Relevant RFCs:
+//    https://tools.ietf.org/html/rfc6762.txt
+//    https://tools.ietf.org/html/rfc6763.txt
 
 
 struct DnsName: public std::string
@@ -156,9 +159,9 @@ struct DnsQuestion
 	uint16_t type;
 	uint16_t qclass;
 
-	DnsQuestion() :
-		type(0),
-		qclass(0)
+	DnsQuestion()
+		: type(0)
+		, qclass(0)
 	{}
 
 	static optional<DnsQuestion> decode(const std::vector<char> &buffer, size_t &offset)
@@ -187,10 +190,10 @@ struct DnsResource
 	uint32_t ttl;
 	std::vector<char> data;
 
-	DnsResource() :
-		type(0),
-		rclass(0),
-		ttl(0)
+	DnsResource()
+		: type(0)
+		, rclass(0)
+		, ttl(0)
 	{}
 
 	static optional<DnsResource> decode(const std::vector<char> &buffer, size_t &offset, size_t &dataoffset)
@@ -310,9 +313,9 @@ struct DnsRR_TXT
 		TAG = 0x10,
 	};
 
-	std::vector<std::string> values;
+	BonjourReply::TxtData data;
 
-	static optional<DnsRR_TXT> decode(const DnsResource &rr)
+	static optional<DnsRR_TXT> decode(const DnsResource &rr, const Bonjour::TxtKeys &txt_keys)
 	{
 		const size_t size = rr.data.size();
 		if (size < 2) {
@@ -328,11 +331,21 @@ struct DnsRR_TXT
 			}
 			++it;
 
-			std::string value(val_size, ' ');
-			std::copy(it, it + val_size, value.begin());
-			res.values.push_back(std::move(value));
+			const auto it_end = it + val_size;
+			const auto it_eq = std::find(it, it_end, '=');
+			if (it_eq > it && it_eq < it_end - 1) {
+				std::string key(it_eq - it, ' ');
+				std::copy(it, it_eq, key.begin());
 
-			it += val_size;
+				if (txt_keys.find(key) != txt_keys.end() || key == "path") {
+					// This key-value has been requested for
+					std::string value(it_end - it_eq - 1, ' ');
+					std::copy(it_eq + 1, it_end, value.begin());
+					res.data.insert(std::make_pair(std::move(key), std::move(value)));
+				}
+			}
+
+			it = it_end;
 		}
 
 		return std::move(res);
@@ -389,7 +402,7 @@ struct DnsMessage
 
 	DnsSDMap sdmap;
 
-	static optional<DnsMessage> decode(const std::vector<char> &buffer)
+	static optional<DnsMessage> decode(const std::vector<char> &buffer, const Bonjour::TxtKeys &txt_keys)
 	{
 		const auto size = buffer.size();
 		if (size < DnsHeader::SIZE + DnsQuestion::MIN_SIZE || size > MAX_SIZE) {
@@ -414,14 +427,15 @@ struct DnsMessage
 			if (!rr) {
 				return boost::none;
 			} else {
-				res.parse_rr(buffer, std::move(*rr), dataoffset);
+				res.parse_rr(buffer, std::move(*rr), dataoffset, txt_keys);
 			}
 		}
 
 		return std::move(res);
 	}
+
 private:
-	void parse_rr(const std::vector<char> &buffer, DnsResource &&rr, size_t dataoffset)
+	void parse_rr(const std::vector<char> &buffer, DnsResource &&rr, size_t dataoffset, const Bonjour::TxtKeys &txt_keys)
 	{
 		switch (rr.type) {
 			case DnsRR_A::TAG: DnsRR_A::decode(this->rr_a, rr); break;
@@ -432,7 +446,7 @@ private:
 				break;
 			}
 			case DnsRR_TXT::TAG: {
-				auto txt = DnsRR_TXT::decode(rr);
+				auto txt = DnsRR_TXT::decode(rr, txt_keys);
 				if (txt) { this->sdmap.insert_txt(std::move(rr.name), std::move(*txt)); }
 				break;
 			}
@@ -442,26 +456,28 @@ private:
 
 std::ostream& operator<<(std::ostream &os, const DnsMessage &msg)
 {
-	os << "DnsMessage(ID: " << msg.header.id << ", "
-		<< "Q: " << (msg.question ? msg.question->name.c_str() : "none") << ", "
-		<< "A: " << (msg.rr_a ? msg.rr_a->ip.to_string() : "none") << ", "
-		<< "AAAA: " << (msg.rr_aaaa ? msg.rr_aaaa->ip.to_string() : "none") << ", "
-		<< "services: [";
+	os << boost::format("DnsMessage(ID: %1%, Q: %2%, A: %3%, AAAA: %4%, services: [")
+		% msg.header.id
+		% (msg.question ? msg.question->name.c_str() : "none")
+		% (msg.rr_a ? msg.rr_a->ip.to_string() : "none")
+		% (msg.rr_aaaa ? msg.rr_aaaa->ip.to_string() : "none");
 
-		enum { SRV_PRINT_MAX = 3 };
-		unsigned i = 0;
-		for (const auto &sdpair : msg.sdmap) {
-			os << sdpair.first << ", ";
+	enum { SRV_PRINT_MAX = 3 };
+	unsigned i = 0;
+	for (const auto &sdpair : msg.sdmap) {
+		if (i > 0) { os << ", "; }
 
-			if (++i >= SRV_PRINT_MAX) {
-				os << "...";
-				break;
-			}
+		if (i < SRV_PRINT_MAX) {
+			os << sdpair.first;
+		} else {
+			os << "...";
+			break;
 		}
 
-		os << "])";
+		i++;
+	}
 
-	return os;
+	return os << "])";
 }
 
 
@@ -525,8 +541,9 @@ optional<BonjourRequest> BonjourRequest::make(const std::string &service, const 
 struct Bonjour::priv
 {
 	const std::string service;
-	const std::string protocol;
-	const std::string service_dn;
+	std::string protocol;
+	std::string service_dn;
+	TxtKeys txt_keys;
 	unsigned timeout;
 	unsigned retries;
 
@@ -535,19 +552,18 @@ struct Bonjour::priv
 	Bonjour::ReplyFn replyfn;
 	Bonjour::CompleteFn completefn;
 
-	priv(std::string service, std::string protocol);
+	priv(std::string &&service);
 
 	std::string strip_service_dn(const std::string &service_name) const;
 	void udp_receive(udp::endpoint from, size_t bytes);
 	void lookup_perform();
 };
 
-Bonjour::priv::priv(std::string service, std::string protocol) :
-	service(std::move(service)),
-	protocol(std::move(protocol)),
-	service_dn((boost::format("_%1%._%2%.local") % this->service % this->protocol).str()),
-	timeout(10),
-	retries(1)
+Bonjour::priv::priv(std::string &&service)
+	: service(std::move(service))
+	, protocol("tcp")
+	, timeout(10)
+	, retries(1)
 {
 	buffer.resize(DnsMessage::MAX_SIZE);
 }
@@ -573,13 +589,13 @@ void Bonjour::priv::udp_receive(udp::endpoint from, size_t bytes)
 	}
 
 	buffer.resize(bytes);
-	const auto dns_msg = DnsMessage::decode(buffer);
+	auto dns_msg = DnsMessage::decode(buffer, txt_keys);
 	if (dns_msg) {
 		asio::ip::address ip = from.address();
 		if (dns_msg->rr_a) { ip = dns_msg->rr_a->ip; }
 		else if (dns_msg->rr_aaaa) { ip = dns_msg->rr_aaaa->ip; }
 
-		for (const auto &sdpair : dns_msg->sdmap) {
+		for (auto &sdpair : dns_msg->sdmap) {
 			if (! sdpair.second.srv) {
 				continue;
 			}
@@ -590,20 +606,12 @@ void Bonjour::priv::udp_receive(udp::endpoint from, size_t bytes)
 			std::string path;
 			std::string version;
 
+			BonjourReply::TxtData txt_data;
 			if (sdpair.second.txt) {
-				static const std::string tag_path = "path=";
-				static const std::string tag_version = "version=";
-
-				for (const auto &value : sdpair.second.txt->values) {
-					if (value.size() > tag_path.size() && value.compare(0, tag_path.size(), tag_path) == 0) {
-						path = std::move(value.substr(tag_path.size()));
-					} else if (value.size() > tag_version.size() && value.compare(0, tag_version.size(), tag_version) == 0) {
-						version = std::move(value.substr(tag_version.size()));
-					}
-				}
+				txt_data = std::move(sdpair.second.txt->data);
 			}
 
-			BonjourReply reply(ip, srv.port, std::move(service_name), srv.hostname, std::move(path), std::move(version));
+			BonjourReply reply(ip, srv.port, std::move(service_name), srv.hostname, std::move(txt_data));
 			replyfn(std::move(reply));
 		}
 	}
@@ -611,6 +619,8 @@ void Bonjour::priv::udp_receive(udp::endpoint from, size_t bytes)
 
 void Bonjour::priv::lookup_perform()
 {
+	service_dn = (boost::format("_%1%._%2%.local") % service % protocol).str();
+
 	const auto brq = BonjourRequest::make(service, protocol);
 	if (!brq) {
 		return;
@@ -671,21 +681,29 @@ void Bonjour::priv::lookup_perform()
 
 // API - public part
 
-BonjourReply::BonjourReply(boost::asio::ip::address ip, uint16_t port, std::string service_name, std::string hostname, std::string path, std::string version) :
-	ip(std::move(ip)),
-	port(port),
-	service_name(std::move(service_name)),
-	hostname(std::move(hostname)),
-	path(path.empty() ? std::move(std::string("/")) : std::move(path)),
-	version(version.empty() ? std::move(std::string("Unknown")) : std::move(version))
+BonjourReply::BonjourReply(boost::asio::ip::address ip, uint16_t port, std::string service_name, std::string hostname, BonjourReply::TxtData txt_data)
+	: ip(std::move(ip))
+	, port(port)
+	, service_name(std::move(service_name))
+	, hostname(std::move(hostname))
+	, txt_data(std::move(txt_data))
 {
 	std::string proto;
 	std::string port_suffix;
 	if (port == 443) { proto = "https://"; }
 	if (port != 443 && port != 80) { port_suffix = std::to_string(port).insert(0, 1, ':'); }
-	if (this->path[0] != '/') { this->path.insert(0, 1, '/'); }
+
+	std::string path = this->path();
+	if (path[0] != '/') { path.insert(0, 1, '/'); }
 	full_address = proto + ip.to_string() + port_suffix;
-	if (this->path != "/") { full_address += path; }
+	if (path != "/") { full_address += path; }
+	txt_data["path"] = std::move(path);
+}
+
+std::string BonjourReply::path() const
+{
+	const auto it = txt_data.find("path");
+	return it != txt_data.end() ? it->second : std::string("/");
 }
 
 bool BonjourReply::operator==(const BonjourReply &other) const
@@ -707,14 +725,22 @@ bool BonjourReply::operator<(const BonjourReply &other) const
 
 std::ostream& operator<<(std::ostream &os, const BonjourReply &reply)
 {
-	os << "BonjourReply(" << reply.ip.to_string() << ", " << reply.service_name << ", "
-		<< reply.hostname << ", " << reply.path << ", " << reply.version << ")";
-	return os;
+	os << boost::format("BonjourReply(%1%, %2%, %3%, %4%")
+		% reply.ip.to_string()
+		% reply.service_name
+		% reply.hostname
+		% reply.full_address;
+
+	for (const auto &kv : reply.txt_data) {
+		os << boost::format(", %1%=%2%") % kv.first % kv.second;
+	}
+
+	return os << ')';
 }
 
 
-Bonjour::Bonjour(std::string service, std::string protocol) :
-	p(new priv(std::move(service), std::move(protocol)))
+Bonjour::Bonjour(std::string service)
+	: p(new priv(std::move(service)))
 {}
 
 Bonjour::Bonjour(Bonjour &&other) : p(std::move(other.p)) {}
@@ -724,6 +750,18 @@ Bonjour::~Bonjour()
 	if (p && p->io_thread.joinable()) {
 		p->io_thread.detach();
 	}
+}
+
+Bonjour& Bonjour::set_protocol(std::string protocol)
+{
+	if (p) { p->protocol = std::move(protocol); }
+	return *this;
+}
+
+Bonjour& Bonjour::set_txt_keys(TxtKeys txt_keys)
+{
+	if (p) { p->txt_keys = std::move(txt_keys); }
+	return *this;
 }
 
 Bonjour& Bonjour::set_timeout(unsigned timeout)

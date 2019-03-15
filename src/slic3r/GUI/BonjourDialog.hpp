@@ -5,6 +5,8 @@
 
 #include <wx/dialog.h>
 
+#include "libslic3r/PrintConfig.hpp"
+
 class wxListView;
 class wxStaticText;
 class wxTimer;
@@ -21,7 +23,7 @@ class ReplySet;
 class BonjourDialog: public wxDialog
 {
 public:
-	BonjourDialog(wxWindow *parent);
+	BonjourDialog(wxWindow *parent, Slic3r::PrinterTechnology);
 	BonjourDialog(BonjourDialog &&) = delete;
 	BonjourDialog(const BonjourDialog &) = delete;
 	BonjourDialog &operator=(BonjourDialog &&) = delete;
@@ -37,6 +39,7 @@ private:
 	std::shared_ptr<Bonjour> bonjour;
 	std::unique_ptr<wxTimer> timer;
 	unsigned timer_state;
+	Slic3r::PrinterTechnology tech;
 
 	void on_reply(BonjourReplyEvent &);
 	void on_timer(wxTimerEvent &);
