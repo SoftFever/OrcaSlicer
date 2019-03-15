@@ -12,11 +12,18 @@
 //! return same string
 #define L(s) Slic3r::I18N::translate(s)
 
+#if defined(_MSC_VER) &&  _MSC_VER <= 1800 || __cplusplus < 201103L
+    #define SLIC3R_NORETURN
+#elif __cplusplus >= 201103L
+    #define SLIC3R_NORETURN [[noreturn]]
+#endif
+
 namespace Slic3r {
 
 class Zipper::Impl {
 public:
     mz_zip_archive arch;
+    std::string m_zipname;
 
     std::string get_errorstr(mz_zip_error mz_err)
     {
@@ -93,8 +100,10 @@ public:
         return "unknown error";
     }
 
-    [[noreturn]] void blow_up() {
-        throw std::runtime_error(get_errorstr(arch.m_last_error));
+    SLIC3R_NORETURN void blow_up() {
+        std::string prefix(L("Error with zip archive"));
+        throw std::runtime_error(prefix + " " + m_zipname + ": " +
+                                 get_errorstr(arch.m_last_error) + "!");
     }
 };
 
@@ -102,14 +111,14 @@ Zipper::Zipper(const std::string &zipfname, e_compression compression)
 {
     m_impl.reset(new Impl());
 
+    m_compression = compression;
+    m_impl->m_zipname = zipfname;
+
     memset(&m_impl->arch, 0, sizeof(m_impl->arch));
 
     // Initialize the archive data
     if(!mz_zip_writer_init_file(&m_impl->arch, zipfname.c_str(), 0))
         m_impl->blow_up();
-
-    m_compression = compression;
-    m_zipname = zipfname;
 }
 
 Zipper::~Zipper()
@@ -124,15 +133,13 @@ Zipper::Zipper(Zipper &&m):
     m_impl(std::move(m.m_impl)),
     m_data(std::move(m.m_data)),
     m_entry(std::move(m.m_entry)),
-    m_compression(m.m_compression),
-    m_zipname(m.m_zipname) {}
+    m_compression(m.m_compression) {}
 
 Zipper &Zipper::operator=(Zipper &&m) {
     m_impl = std::move(m.m_impl);
     m_data = std::move(m.m_data);
     m_entry = std::move(m.m_entry);
     m_compression = m.m_compression;
-    m_zipname = std::move(m.m_zipname);
     return *this;
 }
 
@@ -164,7 +171,7 @@ void Zipper::finish_entry()
 }
 
 std::string Zipper::get_name() const {
-    return boost::filesystem::path(m_zipname).stem().string();
+    return boost::filesystem::path(m_impl->m_zipname).stem().string();
 }
 
 }

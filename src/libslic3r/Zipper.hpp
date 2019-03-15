@@ -22,7 +22,6 @@ private:
     std::string m_data;
     std::string m_entry;
     e_compression m_compression;
-    std::string m_zipname;
 
 public:
 
