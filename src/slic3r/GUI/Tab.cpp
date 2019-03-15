@@ -2594,7 +2594,7 @@ void Tab::select_preset(std::string preset_name)
 	} else {
 		if (current_dirty)
 			m_presets->discard_current_changes();
-		m_presets->select_preset_by_name(preset_name, false);
+		const bool is_selected = m_presets->select_preset_by_name(preset_name, false);
 		// Mark the print & filament enabled if they are compatible with the currently selected preset.
 		// The following method should not discard changes of current print or filament presets on change of a printer profile,
 		// if they are compatible with the current printer.
@@ -2603,6 +2603,28 @@ void Tab::select_preset(std::string preset_name)
 		// Initialize the UI from the current preset.
         if (printer_tab)
             static_cast<TabPrinter*>(this)->update_pages();
+
+        if (!is_selected && printer_tab)
+        {
+            /* There is a case, when :
+             * after Config Wizard applying we try to select previously selected preset, but 
+             * in a current configuration this one:
+             *  1. doesn't exist now,
+             *  2. have another printer_technology
+             * So, it is necessary to update list of dependent tabs 
+             * to the corresponding printer_technology
+             */
+            const PrinterTechnology printer_technology = m_presets->get_edited_preset().printer_technology();
+            if (printer_technology == ptFFF && m_dependent_tabs.front() != Preset::Type::TYPE_PRINT ||
+                printer_technology == ptSLA && m_dependent_tabs.front() != Preset::Type::TYPE_SLA_PRINT )
+            {
+                m_dependent_tabs.clear();
+                if (printer_technology == ptFFF)
+                    m_dependent_tabs = { Preset::Type::TYPE_PRINT, Preset::Type::TYPE_FILAMENT };
+                else
+                    m_dependent_tabs = { Preset::Type::TYPE_SLA_PRINT, Preset::Type::TYPE_SLA_MATERIAL };                
+            }
+        }
 		load_current_preset();
 	}
 }

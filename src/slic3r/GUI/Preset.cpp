@@ -952,7 +952,9 @@ void PresetCollection::update_platter_ui(GUI::PresetComboBox *ui)
 	ui->SetToolTip(ui->GetString(selected_preset_item));
 	ui->Thaw();
 
-    ui->selected_preset_name = this->get_selected_preset().name;
+    // For printer preset it's important to update preset list every time because of ConfigWizard 
+    // So, don't save selected preset name
+    ui->selected_preset_name = type()==Preset::TYPE_PRINTER ? "" : this->get_selected_preset().name;
 }
 
 size_t PresetCollection::update_tab_ui(wxBitmapComboBox *ui, bool show_incompatible)
