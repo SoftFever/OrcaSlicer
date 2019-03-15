@@ -483,7 +483,6 @@ void GLGizmoRotate3D::on_render(const GLCanvas3D::Selection& selection) const
         m_gizmos[Z].render(selection);
 }
 
-#if ENABLE_IMGUI
 void GLGizmoRotate3D::on_render_input_window(float x, float y, float bottom_limit, const GLCanvas3D::Selection& selection)
 {
 #if !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
@@ -497,7 +496,6 @@ void GLGizmoRotate3D::on_render_input_window(float x, float y, float bottom_limi
     m_imgui->end();
 #endif // !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
 }
-#endif // ENABLE_IMGUI
 
 
 

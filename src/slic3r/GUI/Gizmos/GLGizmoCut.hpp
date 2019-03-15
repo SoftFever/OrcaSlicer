@@ -7,10 +7,6 @@
 namespace Slic3r {
 namespace GUI {
 
-#if !ENABLE_IMGUI
-class GLGizmoCutPanel;
-#endif // not ENABLE_IMGUI
-
 class GLGizmoCut : public GLGizmoBase
 {
     static const double Offset;
@@ -25,9 +21,6 @@ class GLGizmoCut : public GLGizmoBase
     bool m_keep_upper;
     bool m_keep_lower;
     bool m_rotate_lower;
-#if !ENABLE_IMGUI
-    GLGizmoCutPanel *m_panel;
-#endif // not ENABLE_IMGUI
 
 public:
 #if ENABLE_SVG_ICONS
@@ -35,12 +28,6 @@ public:
 #else
     GLGizmoCut(GLCanvas3D& parent, unsigned int sprite_id);
 #endif // ENABLE_SVG_ICONS
-
-#if !ENABLE_IMGUI
-    virtual void create_external_gizmo_widgets(wxWindow *parent);
-#endif // not ENABLE_IMGUI
-#if !ENABLE_IMGUI
-#endif // not ENABLE_IMGUI
 
 protected:
     virtual bool on_init();
@@ -51,10 +38,8 @@ protected:
     virtual void on_update(const UpdateData& data, const GLCanvas3D::Selection& selection);
     virtual void on_render(const GLCanvas3D::Selection& selection) const;
     virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const;
-
-#if ENABLE_IMGUI
     virtual void on_render_input_window(float x, float y, float bottom_limit, const GLCanvas3D::Selection& selection);
-#endif // ENABLE_IMGUI
+
 private:
     void update_max_z(const GLCanvas3D::Selection& selection) const;
     void set_cut_z(double cut_z) const;

@@ -146,9 +146,7 @@ GLGizmoBase::GLGizmoBase(GLCanvas3D& parent, unsigned int sprite_id)
     , m_sprite_id(sprite_id)
     , m_hover_id(-1)
     , m_dragging(false)
-#if ENABLE_IMGUI
     , m_imgui(wxGetApp().imgui())
-#endif // ENABLE_IMGUI
 {
     ::memcpy((void*)m_base_color, (const void*)DEFAULT_BASE_COLOR, 3 * sizeof(float));
     ::memcpy((void*)m_drag_color, (const void*)DEFAULT_DRAG_COLOR, 3 * sizeof(float));
@@ -268,9 +266,6 @@ void GLGizmoBase::render_grabbers_for_picking(const BoundingBoxf3& box) const
     }
 }
 
-#if !ENABLE_IMGUI
-void GLGizmoBase::create_external_gizmo_widgets(wxWindow *parent) {}
-#endif // not ENABLE_IMGUI
 
 void GLGizmoBase::set_tooltip(const std::string& tooltip) const
 {

@@ -3005,14 +3005,6 @@ void GLCanvas3D::Gizmos::render_overlay(const GLCanvas3D& canvas, const GLCanvas
     ::glPopMatrix();
 }
 
-#if !ENABLE_IMGUI
-void GLCanvas3D::Gizmos::create_external_gizmo_widgets(wxWindow *parent)
-{
-    for (auto &entry : m_gizmos) {
-        entry.second->create_external_gizmo_widgets(parent);
-    }
-}
-#endif // not ENABLE_IMGUI
 
 void GLCanvas3D::Gizmos::reset()
 {
@@ -3031,9 +3023,7 @@ void GLCanvas3D::Gizmos::do_render_overlay(const GLCanvas3D& canvas, const GLCan
         return;
 
     float cnv_w = (float)canvas.get_canvas_size().get_width();
-#if ENABLE_IMGUI
     float cnv_h = (float)canvas.get_canvas_size().get_height();
-#endif // ENABLE_IMGUI
     float zoom = canvas.get_camera_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
@@ -3171,7 +3161,6 @@ void GLCanvas3D::Gizmos::do_render_overlay(const GLCanvas3D& canvas, const GLCan
 #endif // ENABLE_SVG_ICONS
 
         GLTexture::render_sub_texture(icons_texture_id, top_x, top_x + scaled_icons_size, top_y - scaled_icons_size, top_y, { { u_left, v_bottom }, { u_right, v_bottom }, { u_right, v_top }, { u_left, v_top } });
-#if ENABLE_IMGUI
         if (it->second->get_state() == GLGizmoBase::On) {
             float toolbar_top = (float)cnv_h - canvas.m_view_toolbar.get_height();
 #if ENABLE_SVG_ICONS
@@ -3180,7 +3169,6 @@ void GLCanvas3D::Gizmos::do_render_overlay(const GLCanvas3D& canvas, const GLCan
             it->second->render_input_window(2.0f * m_overlay_border + icon_size * zoom, 0.5f * cnv_h - top_y * zoom, toolbar_top, selection);
 #endif // ENABLE_SVG_ICONS
         }
-#endif // ENABLE_IMGUI
 #if ENABLE_SVG_ICONS
         top_y -= scaled_stride_y;
 #else
@@ -3739,9 +3727,6 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar
     , m_color_by("volume")
     , m_reload_delayed(false)
     , m_render_sla_auxiliaries(true)
-#if !ENABLE_IMGUI
-    , m_external_gizmo_widgets_parent(nullptr)
-#endif // not ENABLE_IMGUI
 {
     if (m_canvas != nullptr) {
         m_timer.SetOwner(m_canvas);
@@ -3834,13 +3819,6 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
             std::cout << "Unable to initialize gizmos: please, check that all the required textures are available" << std::endl;
             return false;
         }
-
-#if !ENABLE_IMGUI
-        if (m_external_gizmo_widgets_parent != nullptr) {
-            m_gizmos.create_external_gizmo_widgets(m_external_gizmo_widgets_parent);
-            m_canvas->GetParent()->Layout();
-        }
-#endif // not ENABLE_IMGUI
     }
 
     if (!_init_toolbar())
@@ -4115,27 +4093,6 @@ void GLCanvas3D::update_toolbar_items_visibility()
     m_dirty = true;
 }
 
-// Returns a Rect object denoting size and position of the Reset button used by a gizmo.
-// Returns in either screen or viewport coords.
-#if !ENABLE_IMGUI
-Rect GLCanvas3D::get_gizmo_reset_rect(const GLCanvas3D& canvas, bool viewport) const
-{
-    const Size& cnv_size = canvas.get_canvas_size();
-    float w = (viewport ? -0.5f : 0.f) * (float)cnv_size.get_width();
-    float h = (viewport ? 0.5f : 1.f) * (float)cnv_size.get_height();
-    float zoom = canvas.get_camera_zoom();
-    float inv_zoom = viewport ? ((zoom != 0.0f) ? 1.0f / zoom : 0.0f) : 1.f;
-    const float gap = 30.f;
-    return Rect((w + gap + 80.f) * inv_zoom, (viewport ? -1.f : 1.f) * (h - GIZMO_RESET_BUTTON_HEIGHT) * inv_zoom,
-                (w + gap + 80.f + GIZMO_RESET_BUTTON_WIDTH) * inv_zoom, (viewport ? -1.f : 1.f) * (h * inv_zoom));
-}
-
-bool GLCanvas3D::gizmo_reset_rect_contains(const GLCanvas3D& canvas, float x, float y) const
-{
-    const Rect& rect = get_gizmo_reset_rect(canvas, false);
-    return (rect.get_left() <= x) && (x <= rect.get_right()) && (rect.get_top() <= y) && (y <= rect.get_bottom());
-}
-#endif // not ENABLE_IMGUI
 
 void GLCanvas3D::render()
 {
@@ -4184,9 +4141,7 @@ void GLCanvas3D::render()
         // absolute value of the rotation
         theta = 360.f - theta;
 
-#if ENABLE_IMGUI
     wxGetApp().imgui()->new_frame();
-#endif // ENABLE_IMGUI
 
     // picking pass
     _picking_pass();
@@ -4237,9 +4192,7 @@ void GLCanvas3D::render()
     if (m_layers_editing.last_object_id >= 0)
         m_layers_editing.render_overlay(*this);
 
-#if ENABLE_IMGUI
     wxGetApp().imgui()->render();
-#endif // ENABLE_IMGUI
 
     m_canvas->SwapBuffers();
 }
@@ -4805,13 +4758,11 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
     int keyCode = evt.GetKeyCode();
     int ctrlMask = wxMOD_CONTROL;
 
-#if ENABLE_IMGUI
     auto imgui = wxGetApp().imgui();
     if (imgui->update_key_data(evt)) {
         render();
         return;
     }
-#endif // ENABLE_IMGUI
 
 //#ifdef __APPLE__
 //    ctrlMask |= wxMOD_RAW_CONTROL;
@@ -4919,12 +4870,10 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
 {
     const int keyCode = evt.GetKeyCode();
 
-#if ENABLE_IMGUI
     auto imgui = wxGetApp().imgui();
     if (imgui->update_key_data(evt)) {
         render();
     } else
-#endif // ENABLE_IMGUI
     if (evt.GetEventType() == wxEVT_KEY_UP) {
         if (m_tab_down && keyCode == WXK_TAB && !evt.HasAnyModifiers()) {
             // Enable switching between 3D and Preview with Tab
@@ -5047,7 +4996,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
 	Point pos(evt.GetX(), evt.GetY());
 
-#if ENABLE_IMGUI
     ImGuiWrapper *imgui = wxGetApp().imgui();
     if (imgui->update_mouse_data(evt)) {
         m_mouse.position = evt.Leaving() ? Vec2d(-1.0, -1.0) : pos.cast<double>();
@@ -5057,7 +5005,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #endif /* SLIC3R_DEBUG_MOUSE_EVENTS */
 		return;
     }
-#endif // ENABLE_IMGUI
 
 #ifdef __WXMSW__
 	bool on_enter_workaround = false;
@@ -5628,12 +5575,6 @@ void GLCanvas3D::set_tooltip(const std::string& tooltip) const
     }
 }
 
-#if !ENABLE_IMGUI
-void GLCanvas3D::set_external_gizmo_widgets_parent(wxWindow *parent)
-{
-    m_external_gizmo_widgets_parent = parent;
-}
-#endif // not ENABLE_IMGUI
 
 void GLCanvas3D::do_move()
 {
@@ -6066,14 +6007,12 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
     if ((m_canvas == nullptr) && (m_context == nullptr))
         return;
 
-#if ENABLE_IMGUI
     wxGetApp().imgui()->set_display_size((float)w, (float)h);
 #if ENABLE_RETINA_GL
     wxGetApp().imgui()->set_style_scaling(m_retina_helper->get_scale_factor());
 #else
     wxGetApp().imgui()->set_style_scaling(m_canvas->GetContentScaleFactor());
 #endif
-#endif // ENABLE_IMGUI
 
     // ensures that this canvas is current
     _set_current();

@@ -42,10 +42,7 @@ protected:
     virtual void on_update(const UpdateData& data, const GLCanvas3D::Selection& selection);
     virtual void on_render(const GLCanvas3D::Selection& selection) const;
     virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const;
-
-#if ENABLE_IMGUI
     virtual void on_render_input_window(float x, float y, float bottom_limit, const GLCanvas3D::Selection& selection);
-#endif // ENABLE_IMGUI
 
 private:
     double calc_projection(const UpdateData& data) const;

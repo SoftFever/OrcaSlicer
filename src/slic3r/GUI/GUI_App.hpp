@@ -5,9 +5,7 @@
 #include <string>
 #include "libslic3r/PrintConfig.hpp"
 #include "MainFrame.hpp"
-#if ENABLE_IMGUI
 #include "ImGuiWrapper.hpp"
-#endif // ENABLE_IMGUI
 
 #include <wx/app.h>
 #include <wx/colour.h>
@@ -86,10 +84,7 @@ class GUI_App : public wxApp
 
     wxLocale*	    m_wxLocale{ nullptr };
 
-#if ENABLE_IMGUI
     std::unique_ptr<ImGuiWrapper> m_imgui;
-#endif // ENABLE_IMGUI
-
     std::unique_ptr<PrintHostJobQueue> m_printhost_job_queue;
 
 public:
@@ -166,9 +161,7 @@ public:
 
     std::vector<Tab *>      tabs_list;
 
-#if ENABLE_IMGUI
     ImGuiWrapper* imgui() { return m_imgui.get(); }
-#endif // ENABLE_IMGUI
 
     PrintHostJobQueue& printhost_job_queue() { return *m_printhost_job_queue.get(); }
 

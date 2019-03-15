@@ -274,7 +274,6 @@ void GLGizmoScale3D::on_render_for_picking(const GLCanvas3D::Selection& selectio
     render_grabbers_for_picking(selection.get_bounding_box());
 }
 
-#if ENABLE_IMGUI
 void GLGizmoScale3D::on_render_input_window(float x, float y, float bottom_limit, const GLCanvas3D::Selection& selection)
 {
 #if !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
@@ -288,7 +287,6 @@ void GLGizmoScale3D::on_render_input_window(float x, float y, float bottom_limit
     m_imgui->end();
 #endif // !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
 }
-#endif // ENABLE_IMGUI
 
 void GLGizmoScale3D::render_grabbers_connection(unsigned int id_1, unsigned int id_2) const
 {

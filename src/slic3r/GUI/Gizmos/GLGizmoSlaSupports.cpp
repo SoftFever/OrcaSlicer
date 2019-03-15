@@ -80,10 +80,6 @@ void GLGizmoSlaSupports::on_render(const GLCanvas3D::Selection& selection) const
     render_points(selection, false);
     render_selection_rectangle();
 
-#if !ENABLE_IMGUI
-    render_tooltip_texture();
-#endif // not ENABLE_IMGUI
-
     ::glDisable(GL_BLEND);
 }
 
@@ -505,38 +501,6 @@ void GLGizmoSlaSupports::on_update(const UpdateData& data, const GLCanvas3D::Sel
     }
 }
 
-#if !ENABLE_IMGUI
-void GLGizmoSlaSupports::render_tooltip_texture() const {
-    if (m_tooltip_texture.get_id() == 0)
-        if (!m_tooltip_texture.load_from_file(resources_dir() + "/icons/sla_support_points_tooltip.png", false))
-            return;
-    if (m_reset_texture.get_id() == 0)
-        if (!m_reset_texture.load_from_file(resources_dir() + "/icons/sla_support_points_reset.png", false))
-            return;
-
-    float zoom = m_parent.get_camera_zoom();
-    float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
-    float gap = 30.0f * inv_zoom;
-
-    const Size& cnv_size = m_parent.get_canvas_size();
-    float l = gap - cnv_size.get_width()/2.f * inv_zoom;
-    float r = l + (float)m_tooltip_texture.get_width() * inv_zoom;
-    float b = gap - cnv_size.get_height()/2.f * inv_zoom;
-    float t = b + (float)m_tooltip_texture.get_height() * inv_zoom;
-
-    Rect reset_rect = m_parent.get_gizmo_reset_rect(m_parent, true);
-
-    ::glDisable(GL_DEPTH_TEST);
-    ::glPushMatrix();
-    ::glLoadIdentity();
-    GLTexture::render_texture(m_tooltip_texture.get_id(), l, r, b, t);
-    GLTexture::render_texture(m_reset_texture.get_id(), reset_rect.get_left(), reset_rect.get_right(), reset_rect.get_bottom(), reset_rect.get_top());
-    ::glPopMatrix();
-    ::glEnable(GL_DEPTH_TEST);
-}
-#endif // not ENABLE_IMGUI
-
-
 std::vector<const ConfigOption*> GLGizmoSlaSupports::get_config_options(const std::vector<std::string>& keys) const
 {
     std::vector<const ConfigOption*> out;
@@ -578,7 +542,6 @@ void GLGizmoSlaSupports::update_cache_entry_normal(unsigned int i) const
 
 
 
-#if ENABLE_IMGUI
 void GLGizmoSlaSupports::on_render_input_window(float x, float y, float bottom_limit, const GLCanvas3D::Selection& selection)
 {
     if (!m_model_object)
@@ -722,7 +685,6 @@ RENDER_AGAIN:
     if (force_refresh)
         m_parent.set_as_dirty();
 }
-#endif // ENABLE_IMGUI
 
 bool GLGizmoSlaSupports::on_is_activable(const GLCanvas3D::Selection& selection) const
 {

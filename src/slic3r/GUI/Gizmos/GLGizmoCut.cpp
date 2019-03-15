@@ -75,33 +75,11 @@ GLGizmoCut::GLGizmoCut(GLCanvas3D& parent, unsigned int sprite_id)
 #endif // ENABLE_SVG_ICONS
     , m_cut_z(0.0)
     , m_max_z(0.0)
-#if !ENABLE_IMGUI
-    , m_panel(nullptr)
-#endif // not ENABLE_IMGUI
     , m_keep_upper(true)
     , m_keep_lower(true)
     , m_rotate_lower(false)
 {}
 
-#if !ENABLE_IMGUI
-void GLGizmoCut::create_external_gizmo_widgets(wxWindow *parent)
-{
-    wxASSERT(m_panel == nullptr);
-
-    m_panel = new GLGizmoCutPanel(parent);
-    parent->GetSizer()->Add(m_panel, 0, wxEXPAND);
-
-    parent->Layout();
-    parent->Fit();
-    auto prev_heigh = parent->GetMinSize().GetHeight();
-    parent->SetMinSize(wxSize(-1, std::max(prev_heigh, m_panel->GetSize().GetHeight())));
-
-    m_panel->Hide();
-    m_panel->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
-        perform_cut(m_parent.get_selection());
-    }, wxID_OK);
-}
-#endif // not ENABLE_IMGUI
 
 bool GLGizmoCut::on_init()
 {
@@ -121,13 +99,6 @@ void GLGizmoCut::on_set_state()
     if (get_state() == On) {
         m_cut_z = m_parent.get_selection().get_bounding_box().size()(2) / 2.0;
     }
-
-#if !ENABLE_IMGUI
-    // Display or hide the extra panel
-    if (m_panel != nullptr) {
-        m_panel->display(get_state() == On);
-    }
-#endif // not ENABLE_IMGUI
 }
 
 bool GLGizmoCut::on_is_activable(const GLCanvas3D::Selection& selection) const
@@ -212,7 +183,6 @@ void GLGizmoCut::on_render_for_picking(const GLCanvas3D::Selection& selection) c
     render_grabbers_for_picking(selection.get_bounding_box());
 }
 
-#if ENABLE_IMGUI
 void GLGizmoCut::on_render_input_window(float x, float y, float bottom_limit, const GLCanvas3D::Selection& selection)
 {
     m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
@@ -236,7 +206,6 @@ void GLGizmoCut::on_render_input_window(float x, float y, float bottom_limit, co
         perform_cut(selection);
     }
 }
-#endif // ENABLE_IMGUI
 
 void GLGizmoCut::update_max_z(const GLCanvas3D::Selection& selection) const
 {

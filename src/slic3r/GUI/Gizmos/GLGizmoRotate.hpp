@@ -131,9 +131,7 @@ protected:
         }
     }
 
-#if ENABLE_IMGUI
     virtual void on_render_input_window(float x, float y, float bottom_limit, const GLCanvas3D::Selection& selection);
-#endif // ENABLE_IMGUI
 };
 
 

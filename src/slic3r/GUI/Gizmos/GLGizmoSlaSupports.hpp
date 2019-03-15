@@ -75,12 +75,6 @@ private:
     void update_mesh();
     void update_cache_entry_normal(unsigned int i) const;
 
-#if !ENABLE_IMGUI
-    void render_tooltip_texture() const;
-    mutable GLTexture m_tooltip_texture;
-    mutable GLTexture m_reset_texture;
-#endif // not ENABLE_IMGUI
-
     bool m_lock_unique_islands = false;
     bool m_editing_mode = false;            // Is editing mode active?
     bool m_old_editing_state = false;       // To keep track of whether the user toggled between the modes (needed for imgui refreshes).
@@ -120,10 +114,7 @@ private:
 protected:
     void on_set_state() override;
     void on_start_dragging(const GLCanvas3D::Selection& selection) override;
-
-#if ENABLE_IMGUI
     virtual void on_render_input_window(float x, float y, float bottom_limit, const GLCanvas3D::Selection& selection) override;
-#endif // ENABLE_IMGUI
 
     virtual std::string on_get_name() const;
     virtual bool on_is_activable(const GLCanvas3D::Selection& selection) const;
