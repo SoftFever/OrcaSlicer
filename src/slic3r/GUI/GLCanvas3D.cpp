@@ -3039,6 +3039,7 @@ void GLCanvas3D::Gizmos::do_render_overlay(const GLCanvas3D& canvas, const GLCan
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
     float height = get_total_overlay_height();
+    float width = get_total_overlay_width();
 #if ENABLE_SVG_ICONS
     float scaled_border = m_overlay_border * m_overlay_scale * inv_zoom;
 #else
@@ -3050,7 +3051,7 @@ void GLCanvas3D::Gizmos::do_render_overlay(const GLCanvas3D& canvas, const GLCan
 
     float left = top_x;
     float top = top_y;
-    float right = left + get_total_overlay_width() * inv_zoom;
+    float right = left + width * inv_zoom;
     float bottom = top - height * inv_zoom;
 
     // renders background
@@ -3158,24 +3159,24 @@ void GLCanvas3D::Gizmos::do_render_overlay(const GLCanvas3D& canvas, const GLCan
 #if ENABLE_SVG_ICONS
         float u_icon_size = m_overlay_icons_size * m_overlay_scale * inv_tex_width;
         float v_icon_size = m_overlay_icons_size * m_overlay_scale * inv_tex_height;
-        float top = sprite_id * v_icon_size;
-        float left = state * u_icon_size;
-        float bottom = top + v_icon_size;
-        float right = left + u_icon_size;
+        float v_top = sprite_id * v_icon_size;
+        float u_left = state * u_icon_size;
+        float v_bottom = v_top + v_icon_size;
+        float u_right = u_left + u_icon_size;
 #else
         float uv_icon_size = (float)m_icons_texture.metadata.icon_size * inv_texture_size;
-        float top = sprite_id * uv_icon_size;
-        float left = state * uv_icon_size;
-        float bottom = top + uv_icon_size;
-        float right = left + uv_icon_size;
+        float v_top = sprite_id * uv_icon_size;
+        float u_left = state * uv_icon_size;
+        float v_bottom = v_top + uv_icon_size;
+        float u_right = u_left + uv_icon_size;
 #endif // ENABLE_SVG_ICONS
 
-        GLTexture::render_sub_texture(icons_texture_id, top_x, top_x + scaled_icons_size, top_y - scaled_icons_size, top_y, { { left, bottom }, { right, bottom }, { right, top }, { left, top } });
+        GLTexture::render_sub_texture(icons_texture_id, top_x, top_x + scaled_icons_size, top_y - scaled_icons_size, top_y, { { u_left, v_bottom }, { u_right, v_bottom }, { u_right, v_top }, { u_left, v_top } });
 #if ENABLE_IMGUI
         if (it->second->get_state() == GLGizmoBase::On) {
             float toolbar_top = (float)cnv_h - canvas.m_view_toolbar.get_height();
 #if ENABLE_SVG_ICONS
-            it->second->render_input_window(2.0f * m_overlay_border + m_overlay_icons_size, 0.5f * cnv_h - top_y * zoom, toolbar_top, selection);
+            it->second->render_input_window(width, 0.5f * cnv_h - top_y * zoom, toolbar_top, selection);
 #else
             it->second->render_input_window(2.0f * m_overlay_border + icon_size * zoom, 0.5f * cnv_h - top_y * zoom, toolbar_top, selection);
 #endif // ENABLE_SVG_ICONS
