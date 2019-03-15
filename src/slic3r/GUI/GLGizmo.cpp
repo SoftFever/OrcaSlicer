@@ -1954,7 +1954,8 @@ void GLGizmoSlaSupports::render_points(const GLCanvas3D::Selection& selection, b
 
 bool GLGizmoSlaSupports::is_mesh_update_necessary() const
 {
-    return (m_state == On) && (m_model_object != m_old_model_object) && (m_model_object != nullptr) && !m_model_object->instances.empty();
+    return ((m_state == On) && (m_model_object != nullptr) && !m_model_object->instances.empty())
+        && ((m_model_object != m_old_model_object) || m_V.size()==0);
 
     //if (m_state != On || !m_model_object || m_model_object->instances.empty() || ! m_instance_matrix.isApprox(m_source_data.matrix))
     //    return false;
