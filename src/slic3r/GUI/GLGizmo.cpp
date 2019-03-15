@@ -252,13 +252,12 @@ std::array<float, 3> GLGizmoBase::picking_color_component(unsigned int id) const
 
     id = BASE - id;
 
-    std::array<float, 3> color;
+    if (m_group_id > -1)
+        id -= m_group_id;
 
-    color[0] = (float)((id >> 16) & 0xff) * INV_255; // red
-    color[1] = (float)((id >> 8) & 0xff) * INV_255; // green
-    color[2] = (float)(id & 0xff) * INV_255; // blue
-
-    return color;
+    return std::array<float, 3> { (float)((id >> 16) & 0xff) * INV_255, // red
+                                  (float)((id >> 8) & 0xff) * INV_255, // green
+                                  (float)(id & 0xff) * INV_255}; // blue
 }
 
 void GLGizmoBase::render_grabbers(const BoundingBoxf3& box) const
