@@ -1,0 +1,68 @@
+#ifndef slic3r_GLGizmoCut_hpp_
+#define slic3r_GLGizmoCut_hpp_
+
+#include "GLGizmoBase.hpp"
+
+
+namespace Slic3r {
+namespace GUI {
+
+#if !ENABLE_IMGUI
+class GLGizmoCutPanel;
+#endif // not ENABLE_IMGUI
+
+class GLGizmoCut : public GLGizmoBase
+{
+    static const double Offset;
+    static const double Margin;
+    static const std::array<float, 3> GrabberColor;
+
+    mutable double m_cut_z;
+    double m_start_z;
+    mutable double m_max_z;
+    Vec3d m_drag_pos;
+    Vec3d m_drag_center;
+    bool m_keep_upper;
+    bool m_keep_lower;
+    bool m_rotate_lower;
+#if !ENABLE_IMGUI
+    GLGizmoCutPanel *m_panel;
+#endif // not ENABLE_IMGUI
+
+public:
+#if ENABLE_SVG_ICONS
+    GLGizmoCut(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
+#else
+    GLGizmoCut(GLCanvas3D& parent, unsigned int sprite_id);
+#endif // ENABLE_SVG_ICONS
+
+#if !ENABLE_IMGUI
+    virtual void create_external_gizmo_widgets(wxWindow *parent);
+#endif // not ENABLE_IMGUI
+#if !ENABLE_IMGUI
+#endif // not ENABLE_IMGUI
+
+protected:
+    virtual bool on_init();
+    virtual std::string on_get_name() const;
+    virtual void on_set_state();
+    virtual bool on_is_activable(const GLCanvas3D::Selection& selection) const;
+    virtual void on_start_dragging(const GLCanvas3D::Selection& selection);
+    virtual void on_update(const UpdateData& data, const GLCanvas3D::Selection& selection);
+    virtual void on_render(const GLCanvas3D::Selection& selection) const;
+    virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const;
+
+#if ENABLE_IMGUI
+    virtual void on_render_input_window(float x, float y, float bottom_limit, const GLCanvas3D::Selection& selection);
+#endif // ENABLE_IMGUI
+private:
+    void update_max_z(const GLCanvas3D::Selection& selection) const;
+    void set_cut_z(double cut_z) const;
+    void perform_cut(const GLCanvas3D::Selection& selection);
+    double calc_projection(const Linef3& mouse_ray) const;
+};
+
+} // namespace GUI
+} // namespace Slic3r
+
+#endif // slic3r_GLGizmoCut_hpp_
