@@ -6504,7 +6504,6 @@ void GLCanvas3D::_picking_pass() const
             ::glReadPixels(pos(0), cnv_size.get_height() - pos(1) - 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, (void*)color);
             volume_id = color[0] + color[1] * 256 + color[2] * 256 * 256;
         }
-
         if ((0 <= volume_id) && (volume_id < (int)m_volumes.volumes.size()))
         {
             m_hover_volume_id = volume_id;
@@ -6513,7 +6512,7 @@ void GLCanvas3D::_picking_pass() const
         else
         {
             m_hover_volume_id = -1;
-            m_gizmos.set_hover_id(inside ? (254 - (int)color[2]) : -1);
+            m_gizmos.set_hover_id(inside && volume_id <= GLGizmoBase::BASE_ID ? (GLGizmoBase::BASE_ID - volume_id) : -1);
         }
 
         _update_volumes_hover_state();

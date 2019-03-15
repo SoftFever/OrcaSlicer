@@ -35,6 +35,11 @@ class ImGuiWrapper;
 
 class GLGizmoBase
 {
+public:
+    // Starting value for ids to avoid clashing with ids used by GLVolumes
+    // (254 is choosen to leave some space for forward compatibility)
+    static const unsigned int BASE_ID = 255 * 255 * 254;
+
 protected:
     struct Grabber
     {
@@ -175,7 +180,9 @@ protected:
     virtual void on_render_input_window(float x, float y, float bottom_limit, const GLCanvas3D::Selection& selection) {}
 #endif // ENABLE_IMGUI
 
-    float picking_color_component(unsigned int id) const;
+    // Returns the picking color for the given id, based on the BASE_ID constant
+    // No check is made for clashing with other picking color (i.e. GLVolumes)
+    std::array<float, 3> picking_color_component(unsigned int id) const;
     void render_grabbers(const BoundingBoxf3& box) const;
     void render_grabbers(float size) const;
     void render_grabbers_for_picking(const BoundingBoxf3& box) const;
