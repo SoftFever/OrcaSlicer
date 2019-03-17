@@ -51,8 +51,6 @@ public:
     int  get_extruder_idx() const               { return extruder_idx; }
     void check_selection();
 
-    std::string     selected_preset_name;
-
 private:
     typedef std::size_t Marker;
     enum { LABEL_ITEM_MARKER = 0x4d };
