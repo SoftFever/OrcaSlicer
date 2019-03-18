@@ -726,7 +726,7 @@ void GCodeAnalyzer::_calc_gcode_preview_extrusion_layers(GCodePreviewData& previ
     GCodePreviewData::Range volumetric_rate_range;
 
     // to avoid to call the callback too often
-    unsigned int cancel_callback_threshold = (unsigned int)extrude_moves->second.size() / 25;
+    unsigned int cancel_callback_threshold = (unsigned int)std::max((int)extrude_moves->second.size() / 25, 1);
     unsigned int cancel_callback_curr = 0;
 
     // constructs the polylines while traversing the moves
@@ -807,7 +807,7 @@ void GCodeAnalyzer::_calc_gcode_preview_travel(GCodePreviewData& preview_data, s
     GCodePreviewData::Range feedrate_range;
 
     // to avoid to call the callback too often
-    unsigned int cancel_callback_threshold = (unsigned int)travel_moves->second.size() / 25;
+    unsigned int cancel_callback_threshold = (unsigned int)std::max((int)travel_moves->second.size() / 25, 1);
     unsigned int cancel_callback_curr = 0;
 
     // constructs the polylines while traversing the moves
@@ -864,7 +864,7 @@ void GCodeAnalyzer::_calc_gcode_preview_retractions(GCodePreviewData& preview_da
         return;
 
     // to avoid to call the callback too often
-    unsigned int cancel_callback_threshold = (unsigned int)retraction_moves->second.size() / 25;
+    unsigned int cancel_callback_threshold = (unsigned int)std::max((int)retraction_moves->second.size() / 25, 1);
     unsigned int cancel_callback_curr = 0;
 
     for (const GCodeMove& move : retraction_moves->second)
@@ -886,7 +886,7 @@ void GCodeAnalyzer::_calc_gcode_preview_unretractions(GCodePreviewData& preview_
         return;
 
     // to avoid to call the callback too often
-    unsigned int cancel_callback_threshold = (unsigned int)unretraction_moves->second.size() / 25;
+    unsigned int cancel_callback_threshold = (unsigned int)std::max((int)unretraction_moves->second.size() / 25, 1);
     unsigned int cancel_callback_curr = 0;
 
     for (const GCodeMove& move : unretraction_moves->second)
