@@ -4183,8 +4183,11 @@ void GLCanvas3D::render()
         return;
 
     if (m_bed.get_shape().empty())
+    {
         // this happens at startup when no data is still saved under <>\AppData\Roaming\Slic3rPE
         post_event(SimpleEvent(EVT_GLCANVAS_UPDATE_BED_SHAPE));
+        return;
+    }
 
     if (m_camera.requires_zoom_to_bed)
     {
@@ -5338,42 +5341,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                         m_moving = true;
                     }
                 }
-                else if (evt.RightDown())
-                {
-                    m_mouse.position = pos.cast<double>();
-                    // forces a frame render to ensure that m_hover_volume_id is updated even when the user right clicks while
-                    // the context menu is already shown
-                    render();
-                    if (m_hover_volume_id != -1)
-                    {
-                        // if right clicking on volume, propagate event through callback (shows context menu)
-                        if (m_volumes.volumes[m_hover_volume_id]->hover
-                         && !m_volumes.volumes[m_hover_volume_id]->is_wipe_tower // no context menu for the wipe tower
-                         && m_gizmos.get_current_type() != Gizmos::SlaSupports)  // disable context menu when the gizmo is open
-                        {
-                            // forces the selection of the volume
-                            /** #ys_FIXME_to_delete after testing:
-                              * Next condition allows a multiple instance selection for the context menu,
-                              * which has no reason. So it's commented till next testing
-                              */
-//                             if (!m_selection.is_multiple_full_instance()) // #ys_FIXME_to_delete
-                                m_selection.add(m_hover_volume_id);
-                            m_gizmos.update_on_off_state(m_selection);
-                            post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
-                            _update_gizmos_data();
-                            wxGetApp().obj_manipul()->update_settings_value(m_selection);
-                           // forces a frame render to update the view before the context menu is shown
-                           render();
-                            
-                            Vec2d logical_pos = pos.cast<double>();
-#if ENABLE_RETINA_GL
-                            const float factor = m_retina_helper->get_scale_factor();
-                            logical_pos = logical_pos.cwiseQuotient(Vec2d(factor, factor));
-#endif // ENABLE_RETINA_GL
-                            post_event(Vec2dEvent(EVT_GLCANVAS_RIGHT_CLICK, logical_pos));
-                        }
-                    }
-                }
             }
         }
     }
@@ -5618,6 +5585,37 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // of the scene with the background processing data should be performed.
             post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
             m_camera.set_scene_box(scene_bounding_box());
+        }
+        else if (evt.RightUp())
+        {
+            m_mouse.position = pos.cast<double>();
+            // forces a frame render to ensure that m_hover_volume_id is updated even when the user right clicks while
+            // the context menu is already shown
+            render();
+            if (m_hover_volume_id != -1)
+            {
+                // if right clicking on volume, propagate event through callback (shows context menu)
+                if (m_volumes.volumes[m_hover_volume_id]->hover
+                    && !m_volumes.volumes[m_hover_volume_id]->is_wipe_tower // no context menu for the wipe tower
+                    && m_gizmos.get_current_type() != Gizmos::SlaSupports)  // disable context menu when the gizmo is open
+                {
+                    // forces the selection of the volume
+                    m_selection.add(m_hover_volume_id);
+                    m_gizmos.update_on_off_state(m_selection);
+                    post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
+                    _update_gizmos_data();
+                    wxGetApp().obj_manipul()->update_settings_value(m_selection);
+                    // forces a frame render to update the view before the context menu is shown
+                    render();
+
+                    Vec2d logical_pos = pos.cast<double>();
+#if ENABLE_RETINA_GL
+                    const float factor = m_retina_helper->get_scale_factor();
+                    logical_pos = logical_pos.cwiseQuotient(Vec2d(factor, factor));
+#endif // ENABLE_RETINA_GL
+                    post_event(Vec2dEvent(EVT_GLCANVAS_RIGHT_CLICK, logical_pos));
+                }
+            }
         }
 
         m_moving = false;
