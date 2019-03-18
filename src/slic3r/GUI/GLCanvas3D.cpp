@@ -4159,8 +4159,11 @@ void GLCanvas3D::render()
         return;
 
     if (m_bed.get_shape().empty())
+    {
         // this happens at startup when no data is still saved under <>\AppData\Roaming\Slic3rPE
         post_event(SimpleEvent(EVT_GLCANVAS_UPDATE_BED_SHAPE));
+        return;
+    }
 
     if (m_camera.requires_zoom_to_bed)
     {
