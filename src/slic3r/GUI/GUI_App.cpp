@@ -80,9 +80,7 @@ IMPLEMENT_APP(GUI_App)
 GUI_App::GUI_App()
     : wxApp()
     , m_em_unit(10)
-#if ENABLE_IMGUI
     , m_imgui(new ImGuiWrapper())
-#endif // ENABLE_IMGUI
 {}
 
 bool GUI_App::OnInit()
@@ -91,12 +89,9 @@ bool GUI_App::OnInit()
     const wxString resources_dir = from_u8(Slic3r::resources_dir());
     wxCHECK_MSG(wxDirExists(resources_dir), false,
         wxString::Format("Resources path does not exist or is not a directory: %s", resources_dir));
-
-#if ENABLE_IMGUI
     wxCHECK_MSG(m_imgui->init(), false, "Failed to initialize ImGui");
-#endif // ENABLE_IMGUI
 
-    SetAppName("Slic3rPE-alpha");
+    SetAppName("Slic3rPE-beta");
     SetAppDisplayName("Slic3r Prusa Edition");
 
 //    wxSystemOptions::SetOption("msw.staticbox.optimized-paint", 0);

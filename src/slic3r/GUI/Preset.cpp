@@ -879,8 +879,7 @@ size_t PresetCollection::update_compatible_internal(const Preset &active_printer
 // Hide the 
 void PresetCollection::update_platter_ui(GUI::PresetComboBox *ui)
 {
-    if (ui == nullptr || 
-        ui->selected_preset_name == this->get_selected_preset().name)
+    if (ui == nullptr)
         return;
 
     // Otherwise fill in the list from scratch.
@@ -951,8 +950,6 @@ void PresetCollection::update_platter_ui(GUI::PresetComboBox *ui)
 	ui->SetSelection(selected_preset_item);
 	ui->SetToolTip(ui->GetString(selected_preset_item));
 	ui->Thaw();
-
-    ui->selected_preset_name = this->get_selected_preset().name;
 }
 
 size_t PresetCollection::update_tab_ui(wxBitmapComboBox *ui, bool show_incompatible)

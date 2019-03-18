@@ -148,9 +148,6 @@ void config_wizard(int reason)
             _(L("Please check and fix your object list.")),
             _(L("Attention!")));
     }
-       
-    // Load the currently selected preset into the GUI, update the preset selection box.
-    // 	wxGetApp().load_current_presets(); // #ys_FIXME_to_delete presets are loaded now in select_preset function
 }
 
 // opt_index = 0, by the reason of zero-index in ConfigOptionVector by default (in case only one element)
