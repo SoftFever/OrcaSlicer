@@ -371,15 +371,15 @@ void Preview::load_print()
 
 void Preview::reload_print(bool force, bool keep_volumes)
 {
+    if (!IsShown() && !force)
+        return;
+
     if (!keep_volumes)
     {
         m_canvas->reset_volumes();
         m_canvas->reset_legend_texture();
         m_loaded = false;
     }
-
-    if (!IsShown() && !force)
-        return;
 
     load_print();
 }
