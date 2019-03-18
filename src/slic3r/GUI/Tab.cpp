@@ -58,6 +58,13 @@ Tab::Tab(wxNotebook* parent, const wxString& title, const char* name) :
 	wxGetApp().tabs_list.push_back(this);
 
     m_em_unit = wxGetApp().em_unit();
+
+	Bind(wxEVT_SIZE, ([this](wxSizeEvent &evt) {
+		for (auto page : m_pages)
+			if (! page.get()->IsShown())
+				page->layout_valid = false;
+		evt.Skip();
+	}));
 }
 
 void Tab::set_type()
@@ -74,7 +81,7 @@ void Tab::set_type()
 void Tab::create_preset_tab()
 {
 #ifdef __WINDOWS__
-//     SetDoubleBuffered(true);
+    SetDoubleBuffered(true);
 #endif //__WINDOWS__
 
     m_preset_bundle = wxGetApp().preset_bundle;
@@ -293,6 +300,11 @@ Slic3r::GUI::PageShp Tab::add_options_page(const wxString& title, const std::str
 	auto panel = this;
 #endif
 	PageShp page(new Page(panel, title, icon_idx));
+//	page->SetBackgroundStyle(wxBG_STYLE_SYSTEM);
+#ifdef __WINDOWS__
+//	page->SetDoubleBuffered(true);
+#endif //__WINDOWS__
+
 	page->SetScrollbars(1, 20, 1, 2);
 	page->Hide();
 	m_hsizer->Add(page.get(), 1, wxEXPAND | wxLEFT, 5);
@@ -318,7 +330,7 @@ void Tab::OnActivate()
 
 void Tab::update_labels_colour()
 {
-	Freeze();
+//	Freeze();
 	//update options "decoration"
 	for (const auto opt : m_options_list)
 	{
@@ -345,7 +357,7 @@ void Tab::update_labels_colour()
 		if (field == nullptr) continue;
 		field->set_label_colour_force(color);
 	}
-	Thaw();
+//	Thaw();
 
 	auto cur_item = m_treectrl->GetFirstVisibleItem();
 	while (cur_item) {
@@ -389,7 +401,7 @@ void Tab::update_changed_ui()
 	for (auto opt_key : dirty_options)	m_options_list[opt_key] &= ~osInitValue;
 	for (auto opt_key : nonsys_options)	m_options_list[opt_key] &= ~osSystemValue;
 
-	Freeze();
+//	Freeze();
 	//update options "decoration"
 	for (const auto opt : m_options_list)
 	{
@@ -439,7 +451,7 @@ void Tab::update_changed_ui()
 		field->set_undo_to_sys_tooltip(sys_tt);
 		field->set_label_colour(color);
 	}
-	Thaw();
+//	Thaw();
 
 	wxTheApp->CallAfter([this]() {
 		update_changed_tree_ui();
@@ -686,16 +698,16 @@ void Tab::load_config(const DynamicPrintConfig& config)
 // Reload current $self->{config} (aka $self->{presets}->edited_preset->config) into the UI fields.
 void Tab::reload_config()
 {
-	Freeze();
+//	Freeze();
 	for (auto page : m_pages)
 		page->reload_config();
- 	Thaw();
+// 	Thaw();
 }
 
 void Tab::update_visibility()
 {
     const ConfigOptionMode mode = wxGetApp().get_mode();
-    Freeze();
+//    Freeze();
 
 	for (auto page : m_pages)
         page->update_visibility(mode);
@@ -705,7 +717,7 @@ void Tab::update_visibility()
     m_mode_sizer->SetMode(mode);
 
     Layout();
-	Thaw();
+//	Thaw();
 
     // to update tree items color
 //    wxTheApp->CallAfter([this]() {
@@ -1180,7 +1192,7 @@ void TabPrint::update()
 //         return;                      // ! TODO Let delete this part of code after a common aplication testing
 
     m_update_cnt++;
-	Freeze();
+//	Freeze();
 
 	double fill_density = m_config->option<ConfigOptionPercent>("fill_density")->value;
 
@@ -1391,7 +1403,7 @@ void TabPrint::update()
 	m_recommended_thin_wall_thickness_description_line->SetText(
 		from_u8(PresetHints::recommended_thin_wall_thickness(*m_preset_bundle)));
 
-	Thaw();
+//	Thaw();
     m_update_cnt--;
 
     if (m_update_cnt==0)
@@ -1566,7 +1578,7 @@ void TabFilament::update()
         return; // ys_FIXME
 
     m_update_cnt++;
-	Freeze();
+//	Freeze();
 	wxString text = from_u8(PresetHints::cooling_description(m_presets->get_edited_preset()));
 	m_cooling_description_line->SetText(text);
 	text = from_u8(PresetHints::maximum_volumetric_flow_description(*m_preset_bundle));
@@ -1580,7 +1592,7 @@ void TabFilament::update()
 
 	for (auto el : { "min_fan_speed", "disable_fan_first_layers" })
 		get_field(el)->toggle(fan_always_on);
-    Thaw();
+//    Thaw();
     m_update_cnt--;
 
     if (m_update_cnt == 0)
@@ -2261,7 +2273,7 @@ void TabPrinter::update()
 
 void TabPrinter::update_fff()
 {
-	Freeze();
+//	Freeze();
 
 	bool en;
 	auto serial_speed = get_field("serial_speed");
@@ -2360,7 +2372,7 @@ void TabPrinter::update_fff()
 			(have_multiple_extruders && toolchange_retraction);
 	}
 
-	Thaw();
+//	Thaw();
 }
 
 void TabPrinter::update_sla()
@@ -2674,7 +2686,7 @@ void Tab::OnTreeSelChange(wxTreeEvent& event)
 #ifdef __linux__	
 	std::unique_ptr<wxWindowUpdateLocker> no_updates(new wxWindowUpdateLocker(this));
 #else
-	wxWindowUpdateLocker noUpdates(this);
+//	wxWindowUpdateLocker noUpdates(this);
 #endif
 
     if (m_pages.empty())
@@ -2694,17 +2706,22 @@ void Tab::OnTreeSelChange(wxTreeEvent& event)
 	if (page == nullptr) return;
 
 	for (auto& el : m_pages)
-		el.get()->Hide();
+//		if (el.get()->IsShown()) {
+			el.get()->Hide();
+//			break;
+//		}
 
-#ifdef __linux__
-    no_updates.reset(nullptr);
-#endif
-
-	page->Show();
-	m_hsizer->Layout();
-	Refresh();
+	#ifdef __linux__
+	    no_updates.reset(nullptr);
+	#endif
 
 	update_undo_buttons();
+	page->Show();
+//	if (! page->layout_valid) {
+		page->layout_valid = true;
+		m_hsizer->Layout();
+		Refresh();
+//	}
 }
 
 void Tab::OnKeyDown(wxKeyEvent& event)
@@ -3040,6 +3057,7 @@ ConfigOptionsGroupShp Page::new_optgroup(const wxString& title, int noncommon_la
         }                               
 //         auto bmp = new wxStaticBitmap(parent, wxID_ANY, bmp_name.empty() ? wxNullBitmap : wxBitmap(from_u8(var(bmp_name)), wxBITMAP_TYPE_PNG));
         auto bmp = new wxStaticBitmap(parent, wxID_ANY, bmp_name.empty() ? wxNullBitmap : create_scaled_bitmap(bmp_name));
+        bmp->SetBackgroundStyle(wxBG_STYLE_PAINT);
         return bmp;
     };
 
