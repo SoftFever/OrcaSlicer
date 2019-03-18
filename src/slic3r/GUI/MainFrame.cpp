@@ -56,7 +56,8 @@ wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAUL
 
     // initialize default width_unit according to the width of the one symbol ("x") of the current system font
     const wxSize size = GetTextExtent("m");
-    wxGetApp().set_em_unit(size.x-1);
+//     wxGetApp().set_em_unit(size.x-1);
+    wxGetApp().set_em_unit(std::max<size_t>(10, size.x - 1));
 
     // initialize tabpanel and menubar
     init_tabpanel();
@@ -76,12 +77,14 @@ wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAUL
     sizer->SetSizeHints(this);
     SetSizer(sizer);
     Fit();
+
+    const wxSize min_size = wxSize(76*wxGetApp().em_unit(), 49*wxGetApp().em_unit());
 #ifdef __APPLE__
     // Using SetMinSize() on Mac messes up the window position in some cases
     // cf. https://groups.google.com/forum/#!topic/wx-users/yUKPBBfXWO0
-    SetSize(wxSize(760, 490));
+    SetSize(min_size/*wxSize(760, 490)*/);
 #else
-    SetMinSize(wxSize(760, 490));
+    SetMinSize(min_size/*wxSize(760, 490)*/);
     SetSize(GetMinSize());
 #endif
     Layout();
