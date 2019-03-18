@@ -275,9 +275,36 @@ wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(15 *
             dialog->Destroy();
         });
     }
+
+    edit_btn = new wxButton(parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
+#ifdef __WINDOWS__
+    edit_btn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+#endif
+    edit_btn->SetBitmap(create_scaled_bitmap("cog.png"));
+    edit_btn->SetToolTip(_(L("Click to Edit a selected Filament Preset")));
+
+    edit_btn->Bind(wxEVT_BUTTON, ([preset_type, this](wxCommandEvent)
+    {
+        Tab* tab = wxGetApp().get_tab(preset_type);
+        if (!tab)
+            return;
+
+        int page_id = wxGetApp().tab_panel()->FindPage(tab);
+        if (page_id == wxNOT_FOUND)
+            return;
+
+        wxGetApp().tab_panel()->ChangeSelection(page_id);
+
+        tab->select_preset(GetString(GetSelection()).ToUTF8().data());
+
+    }));
 }
 
-PresetComboBox::~PresetComboBox() {}
+PresetComboBox::~PresetComboBox()
+{
+    if (edit_btn)
+        edit_btn->Destroy();
+}
 
 
 void PresetComboBox::set_label_marker(int item)
@@ -611,13 +638,18 @@ Sidebar::Sidebar(Plater *parent)
         text->SetFont(wxGetApp().small_font());
         *combo = new PresetComboBox(p->presets_panel, preset_type);
 
+        auto combo_and_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
+        combo_and_btn_sizer->Add(*combo, 1, wxEXPAND);
+        if ((*combo)->edit_btn)
+            combo_and_btn_sizer->Add((*combo)->edit_btn, 0, wxLEFT|wxRIGHT, int(0.3*wxGetApp().em_unit()));
+
         auto *sizer_presets = this->p->sizer_presets;
         auto *sizer_filaments = this->p->sizer_filaments;
         sizer_presets->Add(text, 0, wxALIGN_LEFT | wxEXPAND | wxRIGHT, 4);
         if (! filament) {
-            sizer_presets->Add(*combo, 0, wxEXPAND | wxBOTTOM, 1);
+            sizer_presets->Add(combo_and_btn_sizer, 0, wxEXPAND | wxBOTTOM, 1);
         } else {
-            sizer_filaments->Add(*combo, 0, wxEXPAND | wxBOTTOM, 1);
+            sizer_filaments->Add(combo_and_btn_sizer, 0, wxEXPAND | wxBOTTOM, 1);
             (*combo)->set_extruder_idx(0);
             sizer_presets->Add(sizer_filaments, 1, wxEXPAND);
         }
@@ -714,8 +746,12 @@ void Sidebar::init_filament_combo(PresetComboBox **combo, const int extr_idx) {
 
     (*combo)->set_extruder_idx(extr_idx);
 
+    auto combo_and_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
+    combo_and_btn_sizer->Add(*combo, 1, wxEXPAND);
+    combo_and_btn_sizer->Add((*combo)->edit_btn, 0, wxLEFT | wxRIGHT, int(0.3*wxGetApp().em_unit()));
+
     auto /***/sizer_filaments = this->p->sizer_filaments;
-    sizer_filaments->Add(*combo, 1, wxEXPAND | wxBOTTOM, 1);
+    sizer_filaments->Add(combo_and_btn_sizer, 1, wxEXPAND | wxBOTTOM, 1);
 }
 
 void Sidebar::remove_unused_filament_combos(const int current_extruder_count)
