@@ -15,9 +15,6 @@
 #include <agg/agg_rasterizer_scanline_aa.h>
 #include <agg/agg_path_storage.h>
 
-// For png compression
-//#include <png/writer.hpp>
-
 // Experimental minz image write:
 #include <miniz/miniz_tdef.h>
 
@@ -181,32 +178,10 @@ void Raster::draw(const ExPolygon &poly)
 void Raster::save(std::ostream& stream, Compression comp)
 {
     assert(m_impl);
+    if(!stream.good()) return;
+
     switch(comp) {
     case Compression::PNG: {
-
-//        png::writer<std::ostream> wr(stream);
-
-//        wr.set_bit_depth(8);
-//        wr.set_color_type(png::color_type_gray);
-//        wr.set_width(resolution().width_px);
-//        wr.set_height(resolution().height_px);
-//        wr.set_compression_type(png::compression_type_default);
-
-//        wr.write_info();
-
-//        auto& b = m_impl->buffer();
-//        auto ptr = reinterpret_cast<png::byte*>( b.data() );
-//        unsigned stride =
-//                sizeof(Impl::TBuffer::value_type) *  resolution().width_px;
-
-//        for(unsigned r = 0; r < resolution().height_px; r++, ptr+=stride) {
-//            wr.write_row(ptr);
-//        }
-
-//        wr.write_end_info();
-
-        if(!stream.good()) break;
-
         auto& b = m_impl->buffer();
         size_t out_len = 0;
         void * rawdata = tdefl_write_image_to_png_file_in_memory(
