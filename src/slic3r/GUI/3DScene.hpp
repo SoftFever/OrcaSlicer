@@ -364,7 +364,7 @@ public:
     void set_volume_rotation(const Vec3d& rotation) { m_volume_transformation.set_rotation(rotation); set_bounding_boxes_as_dirty(); }
     void set_volume_rotation(Axis axis, double rotation) { m_volume_transformation.set_rotation(axis, rotation); set_bounding_boxes_as_dirty(); }
 
-    Vec3d get_volume_scaling_factor() const { return m_volume_transformation.get_scaling_factor(); }
+    const Vec3d& get_volume_scaling_factor() const { return m_volume_transformation.get_scaling_factor(); }
     double get_volume_scaling_factor(Axis axis) const { return m_volume_transformation.get_scaling_factor(axis); }
 
     void set_volume_scaling_factor(const Vec3d& scaling_factor) { m_volume_transformation.set_scaling_factor(scaling_factor); set_bounding_boxes_as_dirty(); }
