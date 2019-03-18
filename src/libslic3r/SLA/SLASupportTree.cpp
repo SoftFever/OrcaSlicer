@@ -755,9 +755,12 @@ public:
         return m_compact_bridges;
     }
 
-    template<class T> inline
-    typename std::enable_if<std::is_integral<T>::value, const Pillar&>::type
-    pillar(T id) const { assert(id >= 0); return m_pillars.at(size_t(id)); }
+    template<class T> inline const Pillar& pillar(T id) const {
+        static_assert(std::is_integral<T>::value, "Invalid index type");
+        assert(id >= 0 && id < m_pillars.size() &&
+               id < std::numerix_limits<size_t>::max());
+        return m_pillars[size_t(id)];
+    }
 
     const Pad& create_pad(const TriangleMesh& object_supports,
                           const ExPolygons& baseplate,
