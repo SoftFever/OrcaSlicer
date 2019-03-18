@@ -6,6 +6,7 @@
 #include "PrintExport.hpp"
 #include "Point.hpp"
 #include "MTUtils.hpp"
+#include "Zipper.hpp"
 
 namespace Slic3r {
 
@@ -200,6 +201,32 @@ struct SLAPrintStatistics
     }
 };
 
+struct SLAminzZipper {};
+
+// The implementation of creating zipped archives with wxWidgets
+template<> class LayerWriter<SLAminzZipper> {
+    Zipper m_zip;
+public:
+
+    inline LayerWriter(const std::string& zipfile_path): m_zip(zipfile_path) {}
+
+    inline void next_entry(const std::string& fname) { m_zip.add_entry(fname); }
+
+    inline std::string get_name() const {
+        return m_zip.get_name();
+    }
+
+    template<class T> inline LayerWriter& operator<<(T&& arg) {
+        m_zip << std::forward<T>(arg); return *this;
+    }
+
+    bool is_ok() const {
+        return true; // m_zip blows up if something goes wrong...
+    }
+
+    inline void close() { /* m_zip closes upon destruction */ }
+};
+
 /**
  * @brief This class is the high level FSM for the SLA printing process.
  *
@@ -231,9 +258,11 @@ public:
     // Returns true if the last step was finished with success.
 	bool                finished() const override { return this->is_step_done(slaposIndexSlices) && this->Inherited::is_step_done(slapsRasterize); }
 
-    template<class Fmt> void export_raster(const std::string& fname) {
+    template<class Fmt = SLAminzZipper>
+    void export_raster(const std::string& fname) {
         if(m_printer) m_printer->save<Fmt>(fname);
     }
+
     const PrintObjects& objects() const { return m_objects; }
 
 	std::string         output_filename() const override;
