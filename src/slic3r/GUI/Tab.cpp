@@ -1498,6 +1498,7 @@ void TabFilament::build()
         line = optgroup->create_single_option_line("filament_ramming_parameters");// { _(L("Ramming")), "" };
         line.widget = [this](wxWindow* parent) {
 			auto ramming_dialog_btn = new wxButton(parent, wxID_ANY, _(L("Ramming settings"))+dots, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+			ramming_dialog_btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
             auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(ramming_dialog_btn);
             
@@ -1633,6 +1634,7 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 
 	auto printhost_browse = [=](wxWindow* parent) {
 		auto btn = m_printhost_browse_btn = new wxButton(parent, wxID_ANY, _(L(" Browse "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+		btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
         btn->SetBitmap(create_scaled_bitmap("zoom.png"));
 		auto sizer = new wxBoxSizer(wxHORIZONTAL);
 		sizer->Add(btn);
@@ -1651,6 +1653,7 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 	auto print_host_test = [this](wxWindow* parent) {
 		auto btn = m_print_host_test_btn = new wxButton(parent, wxID_ANY, _(L("Test")), 
 			wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
+		btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
         btn->SetBitmap(create_scaled_bitmap("wrench.png"));
 		auto sizer = new wxBoxSizer(wxHORIZONTAL);
 		sizer->Add(btn);
@@ -1688,6 +1691,7 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 		auto printhost_cafile_browse = [this, optgroup] (wxWindow* parent) {
 			auto btn = new wxButton(parent, wxID_ANY, _(L(" Browse "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
 // 			btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("zoom.png")), wxBITMAP_TYPE_PNG));
+			btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 			btn->SetBitmap(create_scaled_bitmap("zoom.png"));
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(btn);
@@ -1726,6 +1730,7 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 \tOn this system, Slic3r uses HTTPS certificates from the system Certificate Store or Keychain.\n\
 \tTo use a custom CA file, please import your CA file into Certificate Store / Keychain.")),
 				ca_file_hint));
+			txt->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(txt);
 			return sizer;
@@ -1966,7 +1971,7 @@ void TabPrinter::build_sla()
     Line line = optgroup->create_single_option_line("bed_shape");//{ _(L("Bed shape")), "" };
     line.widget = [this](wxWindow* parent) {
         auto btn = new wxButton(parent, wxID_ANY, _(L(" Set ")) + dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
-        //			btn->SetFont(Slic3r::GUI::small_font);
+        btn->SetFont(wxGetApp().small_font());
 //         btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("printer_empty.png")), wxBITMAP_TYPE_PNG));
         btn->SetBitmap(create_scaled_bitmap("printer_empty.png"));
 
@@ -2883,7 +2888,9 @@ void Tab::update_ui_from_settings()
 wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &deps)
 {
 	deps.checkbox = new wxCheckBox(parent, wxID_ANY, _(L("All")));
+	deps.checkbox->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 	deps.btn = new wxButton(parent, wxID_ANY, _(L(" Set "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
+	deps.btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 
 // 	deps.btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("printer_empty.png")), wxBITMAP_TYPE_PNG));
     deps.btn->SetBitmap(create_scaled_bitmap("printer_empty.png"));

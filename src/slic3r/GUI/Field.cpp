@@ -259,7 +259,12 @@ void TextCtrl::BUILD() {
 
     const long style = m_opt.multiline ? wxTE_MULTILINE : wxTE_PROCESS_ENTER/*0*/;
 	auto temp = new wxTextCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size, style);
-	temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
+	temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+
+	if (! m_opt.multiline)
+		// Only disable background refresh for single line input fields, as they are completely painted over by the edit control.
+		// This does not apply to the multi-line edit field, where the last line and a narrow frame around the text is not cleared.
+		temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
 #ifdef __WXOSX__
     temp->OSXDisableAllSmartSubstitutions();
 #endif // __WXOSX__
@@ -375,6 +380,7 @@ void CheckBox::BUILD() {
     					false;
 
 	auto temp = new wxCheckBox(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size); 
+	temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 	temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
 	temp->SetValue(check_value);
 	if (m_opt.readonly) temp->Disable();
@@ -433,6 +439,7 @@ void SpinCtrl::BUILD() {
 
 	auto temp = new wxSpinCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size,
 		0|wxTE_PROCESS_ENTER, min_val, max_val, default_value);
+	temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 	temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
 #ifndef __WXOSX__
@@ -507,6 +514,7 @@ void Choice::BUILD() {
 		temp = new wxComboBox(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size);
 	else
 		temp = new wxComboBox(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size, 0, NULL, wxCB_READONLY);
+	temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 	temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
 	// recast as a wxWindow to fit the calling convention
@@ -815,12 +823,16 @@ void PointCtrl::BUILD()
 
 	x_textctrl = new wxTextCtrl(m_parent, wxID_ANY, X, wxDefaultPosition, field_size, wxTE_PROCESS_ENTER);
 	y_textctrl = new wxTextCtrl(m_parent, wxID_ANY, Y, wxDefaultPosition, field_size, wxTE_PROCESS_ENTER);
+	x_textctrl->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 	x_textctrl->SetBackgroundStyle(wxBG_STYLE_PAINT);
+	y_textctrl->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 	y_textctrl->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
 	auto static_text_x = new wxStaticText(m_parent, wxID_ANY, "x : ");
 	auto static_text_y = new wxStaticText(m_parent, wxID_ANY, "   y : ");
+	static_text_x->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 	static_text_x->SetBackgroundStyle(wxBG_STYLE_PAINT);
+	static_text_y->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 	static_text_y->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
 	temp->Add(static_text_x, 0, wxALIGN_CENTER_VERTICAL, 0);
@@ -894,6 +906,7 @@ void StaticText::BUILD()
 
     const wxString legend(static_cast<const ConfigOptionString*>(m_opt.default_value)->value);
     auto temp = new wxStaticText(m_parent, wxID_ANY, legend, wxDefaultPosition, size, wxST_ELLIPSIZE_MIDDLE);
+	temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 	temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
     temp->SetFont(wxGetApp().bold_font());
 
@@ -918,11 +931,13 @@ void SliderCtrl::BUILD()
 	m_slider = new wxSlider(m_parent, wxID_ANY, def_val * m_scale,
 							min * m_scale, max * m_scale,
 							wxDefaultPosition, size);
+	m_slider->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 	m_slider->SetBackgroundStyle(wxBG_STYLE_PAINT);
  	wxSize field_size(40, -1);
 
 	m_textctrl = new wxTextCtrl(m_parent, wxID_ANY, wxString::Format("%d", m_slider->GetValue()/m_scale), 
 								wxDefaultPosition, field_size);
+	m_textctrl->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 	m_textctrl->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
 	temp->Add(m_slider, 1, wxEXPAND | wxALIGN_CENTER_VERTICAL, 0);

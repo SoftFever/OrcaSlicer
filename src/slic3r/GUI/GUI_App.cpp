@@ -94,7 +94,11 @@ bool GUI_App::OnInit()
     SetAppName("Slic3rPE-beta");
     SetAppDisplayName("Slic3r Prusa Edition");
 
+// Enable this to get the default Win32 COMCTRL32 behavior of static boxes.
 //    wxSystemOptions::SetOption("msw.staticbox.optimized-paint", 0);
+// Enable this to disable Windows Vista themes for all wxNotebooks. The themes seem to lead to terrible
+// performance when working on high resolution multi-display setups.
+//    wxSystemOptions::SetOption("msw.notebook.themed-background", 0);
 
 //     Slic3r::debugf "wxWidgets version %s, Wx version %s\n", wxVERSION_STRING, wxVERSION;
 
@@ -249,6 +253,7 @@ void GUI_App::init_fonts()
 {
     m_small_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
     m_bold_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold();
+    m_normal_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 
 #ifdef __WXMAC__
     m_small_font.SetPointSize(11);
