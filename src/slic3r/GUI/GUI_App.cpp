@@ -17,6 +17,7 @@
 #include <wx/dir.h>
 #include <wx/wupdlock.h>
 #include <wx/filefn.h>
+#include <wx/sysopt.h>
 
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Model.hpp"
@@ -97,6 +98,8 @@ bool GUI_App::OnInit()
 
     SetAppName("Slic3rPE-alpha");
     SetAppDisplayName("Slic3r Prusa Edition");
+
+//    wxSystemOptions::SetOption("msw.staticbox.optimized-paint", 0);
 
 //     Slic3r::debugf "wxWidgets version %s, Wx version %s\n", wxVERSION_STRING, wxVERSION;
 

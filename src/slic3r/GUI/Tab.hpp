@@ -65,6 +65,9 @@ public:
 	bool				m_is_modified_values{ false };
 	bool				m_is_nonsys_values{ true };
 
+    // Delayed layout after resizing the main window.
+    bool 				layout_valid = false;
+
 public:
 	std::vector <ConfigOptionsGroupShp> m_optgroups;
 	DynamicPrintConfig* m_config;

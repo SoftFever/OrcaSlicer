@@ -36,7 +36,9 @@ void Field::PostInitialize()
 	m_Undo_to_sys_btn	= new MyButton(m_parent, wxID_ANY, "", wxDefaultPosition,wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
 	if (wxMSW) {
 		m_Undo_btn->SetBackgroundColour(color);
+		m_Undo_btn->SetBackgroundStyle(wxBG_STYLE_PAINT);
 		m_Undo_to_sys_btn->SetBackgroundColour(color);
+		m_Undo_to_sys_btn->SetBackgroundStyle(wxBG_STYLE_PAINT);
 	}
 	m_Undo_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent) { on_back_to_initial_value(); }));
 	m_Undo_to_sys_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent) { on_back_to_sys_value(); }));
@@ -257,6 +259,7 @@ void TextCtrl::BUILD() {
 
     const long style = m_opt.multiline ? wxTE_MULTILINE : wxTE_PROCESS_ENTER/*0*/;
 	auto temp = new wxTextCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size, style);
+	temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
 #ifdef __WXOSX__
     temp->OSXDisableAllSmartSubstitutions();
 #endif // __WXOSX__
@@ -372,6 +375,7 @@ void CheckBox::BUILD() {
     					false;
 
 	auto temp = new wxCheckBox(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size); 
+	temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
 	temp->SetValue(check_value);
 	if (m_opt.readonly) temp->Disable();
 
@@ -429,6 +433,7 @@ void SpinCtrl::BUILD() {
 
 	auto temp = new wxSpinCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size,
 		0|wxTE_PROCESS_ENTER, min_val, max_val, default_value);
+	temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
 #ifndef __WXOSX__
     // #ys_FIXME_KILL_FOCUS 
@@ -502,6 +507,7 @@ void Choice::BUILD() {
 		temp = new wxComboBox(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size);
 	else
 		temp = new wxComboBox(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size, 0, NULL, wxCB_READONLY);
+	temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
 	// recast as a wxWindow to fit the calling convention
 	window = dynamic_cast<wxWindow*>(temp);
@@ -774,6 +780,7 @@ void ColourPicker::BUILD()
 	}
 
 	auto temp = new wxColourPickerCtrl(m_parent, wxID_ANY, clr, wxDefaultPosition, size);
+	temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
 	// 	// recast as a wxWindow to fit the calling convention
 	window = dynamic_cast<wxWindow*>(temp);
@@ -808,10 +815,17 @@ void PointCtrl::BUILD()
 
 	x_textctrl = new wxTextCtrl(m_parent, wxID_ANY, X, wxDefaultPosition, field_size, wxTE_PROCESS_ENTER);
 	y_textctrl = new wxTextCtrl(m_parent, wxID_ANY, Y, wxDefaultPosition, field_size, wxTE_PROCESS_ENTER);
+	x_textctrl->SetBackgroundStyle(wxBG_STYLE_PAINT);
+	y_textctrl->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
-	temp->Add(new wxStaticText(m_parent, wxID_ANY, "x : "), 0, wxALIGN_CENTER_VERTICAL, 0);
+	auto static_text_x = new wxStaticText(m_parent, wxID_ANY, "x : ");
+	auto static_text_y = new wxStaticText(m_parent, wxID_ANY, "   y : ");
+	static_text_x->SetBackgroundStyle(wxBG_STYLE_PAINT);
+	static_text_y->SetBackgroundStyle(wxBG_STYLE_PAINT);
+
+	temp->Add(static_text_x, 0, wxALIGN_CENTER_VERTICAL, 0);
 	temp->Add(x_textctrl);
-	temp->Add(new wxStaticText(m_parent, wxID_ANY, "   y : "), 0, wxALIGN_CENTER_VERTICAL, 0);
+	temp->Add(static_text_y, 0, wxALIGN_CENTER_VERTICAL, 0);
 	temp->Add(y_textctrl);
 
 // 	x_textctrl->Bind(wxEVT_TEXT, ([this](wxCommandEvent e) { on_change_field(); }), x_textctrl->GetId());
@@ -880,6 +894,7 @@ void StaticText::BUILD()
 
     const wxString legend(static_cast<const ConfigOptionString*>(m_opt.default_value)->value);
     auto temp = new wxStaticText(m_parent, wxID_ANY, legend, wxDefaultPosition, size, wxST_ELLIPSIZE_MIDDLE);
+	temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
     temp->SetFont(wxGetApp().bold_font());
 
 	// 	// recast as a wxWindow to fit the calling convention
@@ -903,10 +918,12 @@ void SliderCtrl::BUILD()
 	m_slider = new wxSlider(m_parent, wxID_ANY, def_val * m_scale,
 							min * m_scale, max * m_scale,
 							wxDefaultPosition, size);
+	m_slider->SetBackgroundStyle(wxBG_STYLE_PAINT);
  	wxSize field_size(40, -1);
 
 	m_textctrl = new wxTextCtrl(m_parent, wxID_ANY, wxString::Format("%d", m_slider->GetValue()/m_scale), 
 								wxDefaultPosition, field_size);
+	m_textctrl->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
 	temp->Add(m_slider, 1, wxEXPAND | wxALIGN_CENTER_VERTICAL, 0);
 	temp->Add(m_textctrl, 0, wxALIGN_CENTER_VERTICAL, 0);

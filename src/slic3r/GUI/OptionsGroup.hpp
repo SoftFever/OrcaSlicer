@@ -112,6 +112,10 @@ public:
     }
 #endif /* __WXGTK__ */
 
+    wxWindow* ctrl_parent() const {
+    	return this->stb ? (wxWindow*)this->stb : this->parent();
+    }
+
 	void		append_line(const Line& line, wxStaticText** full_Label = nullptr);
     Line		create_single_option_line(const Option& option) const;
     void		append_single_option_line(const Option& option) { append_line(create_single_option_line(option)); }
@@ -161,8 +165,10 @@ public:
 					staticbox(title!=""), extra_column(extra_clmn) {
         if (staticbox) {
             stb = new wxStaticBox(_parent, wxID_ANY, title);
+            stb->SetBackgroundStyle(wxBG_STYLE_PAINT);
             stb->SetFont(wxGetApp().bold_font());
-        }
+        } else
+        	stb = nullptr;
         sizer = (staticbox ? new wxStaticBoxSizer(stb, wxVERTICAL) : new wxBoxSizer(wxVERTICAL));
         auto num_columns = 1U;
         if (label_width != 0) num_columns++;

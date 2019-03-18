@@ -23,18 +23,18 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
     // is the normal type.
     if (opt.gui_type.compare("select") == 0) {
     } else if (opt.gui_type.compare("select_open") == 0) {
-		m_fields.emplace(id, std::move(Choice::Create<Choice>(parent(), opt, id)));
+		m_fields.emplace(id, std::move(Choice::Create<Choice>(this->ctrl_parent(), opt, id)));
     } else if (opt.gui_type.compare("color") == 0) {
-		m_fields.emplace(id, std::move(ColourPicker::Create<ColourPicker>(parent(), opt, id)));
+		m_fields.emplace(id, std::move(ColourPicker::Create<ColourPicker>(this->ctrl_parent(), opt, id)));
     } else if (opt.gui_type.compare("f_enum_open") == 0 || 
                 opt.gui_type.compare("i_enum_open") == 0 ||
                 opt.gui_type.compare("i_enum_closed") == 0) {
-		m_fields.emplace(id, std::move(Choice::Create<Choice>(parent(), opt, id)));
+		m_fields.emplace(id, std::move(Choice::Create<Choice>(this->ctrl_parent(), opt, id)));
     } else if (opt.gui_type.compare("slider") == 0) {
-		m_fields.emplace(id, std::move(SliderCtrl::Create<SliderCtrl>(parent(), opt, id)));
+		m_fields.emplace(id, std::move(SliderCtrl::Create<SliderCtrl>(this->ctrl_parent(), opt, id)));
     } else if (opt.gui_type.compare("i_spin") == 0) { // Spinctrl
     } else if (opt.gui_type.compare("legend") == 0) { // StaticText
-		m_fields.emplace(id, std::move(StaticText::Create<StaticText>(parent(), opt, id)));
+		m_fields.emplace(id, std::move(StaticText::Create<StaticText>(this->ctrl_parent(), opt, id)));
     } else { 
         switch (opt.type) {
             case coFloatOrPercent:
@@ -44,21 +44,21 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
 			case coPercents:
 			case coString:
 			case coStrings:
-				m_fields.emplace(id, std::move(TextCtrl::Create<TextCtrl>(parent(), opt, id)));
+				m_fields.emplace(id, std::move(TextCtrl::Create<TextCtrl>(this->ctrl_parent(), opt, id)));
                 break;
 			case coBool:
 			case coBools:
-				m_fields.emplace(id, std::move(CheckBox::Create<CheckBox>(parent(), opt, id)));
+				m_fields.emplace(id, std::move(CheckBox::Create<CheckBox>(this->ctrl_parent(), opt, id)));
 				break;
 			case coInt:
 			case coInts:
-				m_fields.emplace(id, std::move(SpinCtrl::Create<SpinCtrl>(parent(), opt, id)));
+				m_fields.emplace(id, std::move(SpinCtrl::Create<SpinCtrl>(this->ctrl_parent(), opt, id)));
 				break;
             case coEnum:
-				m_fields.emplace(id, std::move(Choice::Create<Choice>(parent(), opt, id)));
+				m_fields.emplace(id, std::move(Choice::Create<Choice>(this->ctrl_parent(), opt, id)));
 				break;
             case coPoints:
-				m_fields.emplace(id, std::move(PointCtrl::Create<PointCtrl>(parent(), opt, id)));
+				m_fields.emplace(id, std::move(PointCtrl::Create<PointCtrl>(this->ctrl_parent(), opt, id)));
 				break;
             case coNone:   break;
             default:
@@ -119,7 +119,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
             return;
         }
         if (line.widget != nullptr) {
-            sizer->Add(line.widget(m_parent), 0, wxEXPAND | wxALL, wxOSX ? 0 : 15);
+            sizer->Add(line.widget(this->ctrl_parent()), 0, wxEXPAND | wxALL, wxOSX ? 0 : 15);
             return;
         }
     }
@@ -167,7 +167,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
 
 	// if we have an extra column, build it
 	if (extra_column)
-		grid_sizer->Add(extra_column(parent(), line), 0, wxALIGN_CENTER_VERTICAL|wxRIGHT, 3);
+		grid_sizer->Add(extra_column(this->ctrl_parent(), line), 0, wxALIGN_CENTER_VERTICAL|wxRIGHT, 3);
 
     // Build a label if we have it
 	wxStaticText* label=nullptr;
@@ -179,18 +179,21 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
 		// Text is properly aligned only when Ellipsize is checked.
 		label_style |= staticbox ? 0 : wxST_ELLIPSIZE_END;
 #endif /* __WXGTK__ */
-		label = new wxStaticText(parent(), wxID_ANY, line.label + (line.label.IsEmpty() ? "" : ": "), 
+		label = new wxStaticText(this->ctrl_parent(), wxID_ANY, line.label + (line.label.IsEmpty() ? "" : ": "), 
 							wxDefaultPosition, wxSize(label_width, -1), label_style);
+		label->SetBackgroundStyle(wxBG_STYLE_PAINT);
         label->SetFont(label_font);
         label->Wrap(label_width); // avoid a Linux/GTK bug
         if (!line.near_label_widget)
             grid_sizer->Add(label, 0, (staticbox ? 0 : wxALIGN_RIGHT | wxRIGHT) | wxALIGN_CENTER_VERTICAL, line.label.IsEmpty() ? 0 : 5);
+        else if (line.near_label_widget && line.label.IsEmpty())
+            grid_sizer->Add(line.near_label_widget(this->ctrl_parent()), 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 7);
         else {
             // If we're here, we have some widget near the label
             // so we need a horizontal sizer to arrange these things
             auto sizer = new wxBoxSizer(wxHORIZONTAL);
             grid_sizer->Add(sizer, 0, wxEXPAND | (staticbox ? wxALL : wxBOTTOM | wxTOP | wxLEFT), staticbox ? 0 : 1);
-            sizer->Add(line.near_label_widget(parent()), 0, wxRIGHT, 7);
+            sizer->Add(line.near_label_widget(this->ctrl_parent()), 0, wxRIGHT, 7);
             sizer->Add(label, 0, (staticbox ? 0 : wxALIGN_RIGHT | wxRIGHT) | wxALIGN_CENTER_VERTICAL, 5);
         }
 		if (line.label_tooltip.compare("") != 0)
@@ -201,7 +204,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
         *full_Label = label; // Initiate the pointer to the control of the full label, if we need this one.
     // If there's a widget, build it and add the result to the sizer.
 	if (line.widget != nullptr) {
-		auto wgt = line.widget(parent());
+		auto wgt = line.widget(this->ctrl_parent());
 		// If widget doesn't have label, don't use border
 		grid_sizer->Add(wgt, 0, wxEXPAND | wxBOTTOM | wxTOP, (wxOSX || line.label.IsEmpty()) ? 0 : 5);
 		return;
@@ -237,7 +240,8 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
 			wxString str_label = (option.label == "Top" || option.label == "Bottom") ?
 								_CTX(option.label, "Layers") :
 								_(option.label);
-			label = new wxStaticText(parent(), wxID_ANY, str_label + ": ", wxDefaultPosition, wxDefaultSize);
+			label = new wxStaticText(this->ctrl_parent(), wxID_ANY, str_label + ": ", wxDefaultPosition, wxDefaultSize);
+			label->SetBackgroundStyle(wxBG_STYLE_PAINT);
 			label->SetFont(label_font);
 			sizer_tmp->Add(label, 0, /*wxALIGN_RIGHT |*/ wxALIGN_CENTER_VERTICAL, 0);
 		}
@@ -262,8 +266,9 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
 		
 		// add sidetext if any
 		if (option.sidetext != "") {
-			auto sidetext = new wxStaticText(	parent(), wxID_ANY, _(option.sidetext), wxDefaultPosition, 
+			auto sidetext = new wxStaticText(	this->ctrl_parent(), wxID_ANY, _(option.sidetext), wxDefaultPosition, 
 												wxSize(sidetext_width, -1)/*wxDefaultSize*/, wxALIGN_LEFT);
+			sidetext->SetBackgroundStyle(wxBG_STYLE_PAINT);
 			sidetext->SetFont(sidetext_font);
 			sizer_tmp->Add(sidetext, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 4);
 			field->set_side_text_ptr(sidetext);
@@ -271,7 +276,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
 
 		// add side widget if any
 		if (opt.side_widget != nullptr) {
-			sizer_tmp->Add(opt.side_widget(parent())/*!.target<wxWindow>()*/, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 1);	//! requires verification
+			sizer_tmp->Add(opt.side_widget(this->ctrl_parent())/*!.target<wxWindow>()*/, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 1);	//! requires verification
 		}
 
 		if (opt.opt_id != option_set.back().opt_id) //! istead of (opt != option_set.back())
@@ -287,11 +292,11 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
             // extra widget for non-staticbox option group (like for the frequently used parameters on the sidebar) should be wxALIGN_RIGHT
             const auto v_sizer = new wxBoxSizer(wxVERTICAL);
             sizer->Add(v_sizer, 1, wxEXPAND);
-            v_sizer->Add(extra_widget(parent()), 0, wxALIGN_RIGHT);
+            v_sizer->Add(extra_widget(this->ctrl_parent()), 0, wxALIGN_RIGHT);
             return;
         }
 
-		sizer->Add(extra_widget(parent())/*!.target<wxWindow>()*/, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 4);		//! requires verification
+		sizer->Add(extra_widget(this->ctrl_parent())/*!.target<wxWindow>()*/, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 4);		//! requires verification
 	}
 }
 
