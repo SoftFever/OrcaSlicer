@@ -86,6 +86,8 @@ class Preview : public wxPanel
     BackgroundSlicingProcess* m_process;
     GCodePreviewData* m_gcode_preview_data;
 
+    bool m_volumes_cleanup_required;
+
     // Calling this function object forces Plater::schedule_background_process.
     std::function<void()> m_schedule_background_process;
 
@@ -112,7 +114,7 @@ public:
     void set_drop_target(wxDropTarget* target);
 
     void load_print();
-    void reload_print(bool force = false, bool keep_volumes = false);
+    void reload_print(bool keep_volumes = false);
     void refresh_print();
 
 private:

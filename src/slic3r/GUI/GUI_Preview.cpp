@@ -186,6 +186,7 @@ Preview::Preview(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_t
     , m_loaded(false)
     , m_enabled(false)
     , m_schedule_background_process(schedule_background_process_func)
+    , m_volumes_cleanup_required(false)
 {
     if (init(parent, bed, camera, view_toolbar))
     {
@@ -363,16 +364,20 @@ void Preview::load_print()
         load_print_as_sla();
 }
 
-void Preview::reload_print(bool force, bool keep_volumes)
+void Preview::reload_print(bool keep_volumes)
 {
-    if (!IsShown() && !force)
+    if (!IsShown())
+    {
+        m_volumes_cleanup_required = !keep_volumes;
         return;
+    }
 
-    if (!keep_volumes)
+    if (m_volumes_cleanup_required || !keep_volumes)
     {
         m_canvas->reset_volumes();
         m_canvas->reset_legend_texture();
         m_loaded = false;
+        m_volumes_cleanup_required = false;
     }
 
     load_print();

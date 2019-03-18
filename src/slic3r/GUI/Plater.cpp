@@ -2388,7 +2388,7 @@ void Plater::priv::set_current_panel(wxPanel* panel)
     {
         this->q->reslice();        
         // keeps current gcode preview, if any
-        preview->reload_print(false, true);
+        preview->reload_print(true);
         preview->set_canvas_as_dirty();
         view_toolbar.select_item("Preview");
     }
