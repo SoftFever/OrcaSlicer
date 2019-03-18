@@ -2022,6 +2022,8 @@ void ObjectList::update_selections_on_canvas()
 
 void ObjectList::select_item(const wxDataViewItem& item)
 {
+    if (! item.IsOk()) { return; }
+
     m_prevent_list_events = true;
 
     UnselectAll();
