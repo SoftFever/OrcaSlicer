@@ -756,10 +756,6 @@ private:
 
         void render_overlay(const GLCanvas3D& canvas, const Selection& selection) const;
 
-#if !ENABLE_IMGUI
-        void create_external_gizmo_widgets(wxWindow *parent);
-#endif // not ENABLE_IMGUI
-
     private:
         void reset();
 
@@ -906,10 +902,6 @@ private:
 
     GCodePreviewVolumeIndex m_gcode_preview_volume_index;
 
-#if !ENABLE_IMGUI
-    wxWindow *m_external_gizmo_widgets_parent;
-#endif // not ENABLE_IMGUI
-
 public:
     GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar);
     ~GLCanvas3D();
@@ -995,11 +987,6 @@ public:
 #endif // !ENABLE_CANVAS_GUI_REFACTORING
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-#if !ENABLE_IMGUI
-    Rect get_gizmo_reset_rect(const GLCanvas3D& canvas, bool viewport) const;
-    bool gizmo_reset_rect_contains(const GLCanvas3D& canvas, float x, float y) const;
-#endif // not ENABLE_IMGUI
-
     bool is_dragging() const { return m_gizmos.is_dragging() || m_moving; }
 
     void render();
@@ -1039,10 +1026,6 @@ public:
     void reset_legend_texture();
 
     void set_tooltip(const std::string& tooltip) const;
-
-#if !ENABLE_IMGUI
-    void set_external_gizmo_widgets_parent(wxWindow *parent);
-#endif // not ENABLE_IMGUI
 
     void do_move();
     void do_rotate();
