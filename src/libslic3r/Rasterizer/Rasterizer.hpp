@@ -3,10 +3,17 @@
 
 #include <ostream>
 #include <memory>
+#include <vector>
 
 namespace Slic3r {
 
 class ExPolygon;
+
+// Raw byte buffer paired with its size. Suitable for compressed PNG data.
+struct RawBytes {
+    std::unique_ptr<std::uint8_t> buffer = nullptr;
+    size_t size = 0;
+};
 
 /**
  * @brief Raster captures an anti-aliased monochrome canvas where vectorial
@@ -87,6 +94,8 @@ public:
 
     /// Save the raster on the specified stream.
     void save(std::ostream& stream, Compression comp = Compression::RAW);
+
+    RawBytes save(Compression comp = Compression::RAW);
 };
 
 }

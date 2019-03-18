@@ -46,6 +46,9 @@ public:
     /// The previous entry is finished (see finish_entry)
     void add_entry(const std::string& name);
 
+    /// Add a new binary file entry with an instantly given byte buffer.
+    void add_entry(const std::string& name, const std::uint8_t* data, size_t l);
+
     // Writing data to the archive works like with standard streams. The target
     // within the zip file is the entry created with the add_entry method.
 

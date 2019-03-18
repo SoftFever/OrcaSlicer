@@ -149,6 +149,23 @@ void Zipper::add_entry(const std::string &name)
     m_entry = name;
 }
 
+void Zipper::add_entry(const std::string &name, const uint8_t *data, size_t l)
+{
+    finish_entry();
+    mz_uint cmpr = MZ_NO_COMPRESSION;
+    switch (m_compression) {
+    case NO_COMPRESSION: cmpr = MZ_NO_COMPRESSION; break;
+    case FAST_COMPRESSION: cmpr = MZ_BEST_SPEED; break;
+    case TIGHT_COMPRESSION: cmpr = MZ_BEST_COMPRESSION; break;
+    }
+
+    if(!mz_zip_writer_add_mem(&m_impl->arch, name.c_str(), data, l, cmpr))
+        m_impl->blow_up();
+
+    m_entry.clear();
+    m_data.clear();
+}
+
 void Zipper::finish_entry()
 {
     if(!m_data.empty() > 0 && !m_entry.empty()) {

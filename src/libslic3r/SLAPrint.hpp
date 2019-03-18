@@ -212,6 +212,13 @@ public:
 
     inline void next_entry(const std::string& fname) { m_zip.add_entry(fname); }
 
+    inline void binary_entry(const std::string& fname,
+                             const std::uint8_t* buf,
+                             size_t l)
+    {
+        m_zip.add_entry(fname, buf, l);
+    }
+
     inline std::string get_name() const {
         return m_zip.get_name();
     }

@@ -93,6 +93,10 @@ public:
 
     void next_entry(const std::string& /*fname*/) {}
 
+    // binary entry
+    void binary_entry(const std::string& /*fname*/,
+                      const std::uint8_t* buf, size_t len);
+
     std::string get_name() { return ""; }
 
     bool is_ok() { return false; }
@@ -111,7 +115,7 @@ template<> class FilePrinter<FilePrinterFormat::SLA_PNGZIP>
 {
     struct Layer {
         Raster first;
-        std::stringstream second;
+        RawBytes second;
 
         Layer() {}
 
@@ -226,15 +230,15 @@ public:
 
     inline void finish_layer(unsigned lyr_id) {
         assert(lyr_id < m_layers_rst.size());
-        m_layers_rst[lyr_id].first.save(m_layers_rst[lyr_id].second,
-                                       Raster::Compression::PNG);
+        m_layers_rst[lyr_id].second =
+                m_layers_rst[lyr_id].first.save(Raster::Compression::PNG);
         m_layers_rst[lyr_id].first.reset();
     }
 
     inline void finish_layer() {
         if(!m_layers_rst.empty()) {
-            m_layers_rst.back().first.save(m_layers_rst.back().second,
-                                          Raster::Compression::PNG);
+            m_layers_rst.back().second =
+                    m_layers_rst.back().first.save(Raster::Compression::PNG);
             m_layers_rst.back().first.reset();
         }
     }
@@ -254,18 +258,15 @@ public:
 
             for(unsigned i = 0; i < m_layers_rst.size() && writer.is_ok(); i++)
             {
-                if(m_layers_rst[i].second.rdbuf()->in_avail() > 0) {
+                if(m_layers_rst[i].second.size > 0) {
                     char lyrnum[6];
                     std::sprintf(lyrnum, "%.5d", i);
                     auto zfilename = project + lyrnum + ".png";
-                    writer.next_entry(zfilename);
-
                     if(!writer.is_ok()) break;
 
-                    writer << m_layers_rst[i].second.str();
-                    // writer << m_layers_rst[i].second.rdbuf();
-                    // we can keep the date for later calls of this method
-                    //m_layers_rst[i].second.str("");
+                    writer.binary_entry(zfilename,
+                                        m_layers_rst[i].second.buffer.get(),
+                                        m_layers_rst[i].second.size);
                 }
             }
         } catch(std::exception& e) {

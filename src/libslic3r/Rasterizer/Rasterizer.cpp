@@ -18,6 +18,8 @@
 // Experimental minz image write:
 #include <miniz/miniz_tdef.h>
 
+#include <miniz/miniz_tdef.h>
+
 namespace Slic3r {
 
 class Raster::Impl {
@@ -209,6 +211,43 @@ void Raster::save(std::ostream& stream, Compression comp)
                      std::streamsize(sz));
     }
     }
+}
+
+RawBytes Raster::save(Raster::Compression comp)
+{
+    assert(m_impl);
+
+    RawBytes ret;
+
+    switch(comp) {
+    case Compression::PNG: {
+
+        void *rawdata = tdefl_write_image_to_png_file_in_memory(
+                    m_impl->buffer().data(),
+                    int(resolution().width_px),
+                    int(resolution().height_px), 1, &ret.size);
+
+        if(rawdata == nullptr) break;
+
+        ret.buffer.reset(static_cast<std::uint8_t*>(rawdata));
+
+        break;
+    }
+    case Compression::RAW: {
+        auto header = std::string("P5 ") +
+                std::to_string(m_impl->resolution().width_px) + " " +
+                std::to_string(m_impl->resolution().height_px) + " " + "255 ";
+
+        auto sz = m_impl->buffer().size()*sizeof(Impl::TBuffer::value_type);
+
+        ret.buffer.reset(new std::uint8_t[sz + header.size()]);
+
+        auto buff = reinterpret_cast<std::uint8_t*>(m_impl->buffer().data());
+        std::copy(buff, buff+sz, ret.buffer.get() + header.size());
+    }
+    }
+
+    return ret;
 }
 
 }
