@@ -16,7 +16,10 @@
 #include <agg/agg_path_storage.h>
 
 // For png compression
-#include <png/writer.hpp>
+//#include <png/writer.hpp>
+
+// Experimental minz image write:
+#include <miniz/miniz_tdef.h>
 
 namespace Slic3r {
 
@@ -181,26 +184,42 @@ void Raster::save(std::ostream& stream, Compression comp)
     switch(comp) {
     case Compression::PNG: {
 
-        png::writer<std::ostream> wr(stream);
+//        png::writer<std::ostream> wr(stream);
 
-        wr.set_bit_depth(8);
-        wr.set_color_type(png::color_type_gray);
-        wr.set_width(resolution().width_px);
-        wr.set_height(resolution().height_px);
-        wr.set_compression_type(png::compression_type_default);
+//        wr.set_bit_depth(8);
+//        wr.set_color_type(png::color_type_gray);
+//        wr.set_width(resolution().width_px);
+//        wr.set_height(resolution().height_px);
+//        wr.set_compression_type(png::compression_type_default);
 
-        wr.write_info();
+//        wr.write_info();
+
+//        auto& b = m_impl->buffer();
+//        auto ptr = reinterpret_cast<png::byte*>( b.data() );
+//        unsigned stride =
+//                sizeof(Impl::TBuffer::value_type) *  resolution().width_px;
+
+//        for(unsigned r = 0; r < resolution().height_px; r++, ptr+=stride) {
+//            wr.write_row(ptr);
+//        }
+
+//        wr.write_end_info();
+
+        if(!stream.good()) break;
 
         auto& b = m_impl->buffer();
-        auto ptr = reinterpret_cast<png::byte*>( b.data() );
-        unsigned stride =
-                sizeof(Impl::TBuffer::value_type) *  resolution().width_px;
+        size_t out_len = 0;
+        void * rawdata = tdefl_write_image_to_png_file_in_memory(
+                    b.data(),
+                    int(resolution().width_px),
+                    int(resolution().height_px), 1, &out_len);
 
-        for(unsigned r = 0; r < resolution().height_px; r++, ptr+=stride) {
-            wr.write_row(ptr);
-        }
+        if(rawdata == nullptr) break;
 
-        wr.write_end_info();
+        stream.write(static_cast<const char*>(rawdata),
+                     std::streamsize(out_len));
+
+        MZ_FREE(rawdata);
 
         break;
     }
