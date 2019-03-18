@@ -559,15 +559,14 @@ static int find_close_layer_idx(const std::vector<double>& zs, double &z, double
     return -1;
 }
 
-void Preview::update_double_slider(const std::vector<double>& layers_z, bool force_sliders_full_range)
+void Preview::update_double_slider(const std::vector<double>& layers_z)
 {
     // Save the initial slider span.
     double z_low        = m_slider->GetLowerValueD();
     double z_high       = m_slider->GetHigherValueD();
     bool   was_empty    = m_slider->GetMaxValue() == 0;
-    bool   span_changed = layers_z.empty() || std::abs(layers_z.back() - m_slider->GetMaxValueD()) > 1e-6;
-    force_sliders_full_range |= was_empty | span_changed;
-	bool   snap_to_min  = force_sliders_full_range || m_slider->is_lower_at_min();
+    bool force_sliders_full_range = was_empty;
+    bool   snap_to_min = force_sliders_full_range || m_slider->is_lower_at_min();
 	bool   snap_to_max  = force_sliders_full_range || m_slider->is_higher_at_max();
 
     std::vector<std::pair<int, double>> values;
