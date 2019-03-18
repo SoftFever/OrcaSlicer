@@ -571,7 +571,24 @@ void swapXY(ExPolygon& expoly) {
     for(auto& p : expoly.contour.points) std::swap(p(X), p(Y));
     for(auto& h : expoly.holes) for(auto& p : h.points) std::swap(p(X), p(Y));
 }
+}
 
+std::string SLAPrint::validate() const
+{
+    for(SLAPrintObject * po : m_objects) {
+        sla::SupportConfig cfg = make_support_cfg(po->config());
+
+        double pinhead_width =
+                2 * cfg.head_front_radius_mm +
+                cfg.head_width_mm +
+                2 * cfg.head_back_radius_mm -
+                cfg.head_penetration_mm;
+
+        if(pinhead_width > cfg.object_elevation_mm)
+            return L("Elevetion is too low for object.");
+    }
+
+    return "";
 }
 
 std::vector<float> SLAPrint::calculate_heights(const BoundingBoxf3& bb3d,

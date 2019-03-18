@@ -1466,7 +1466,7 @@ public:
                                   m_cfg.head_back_radius_mm,
                                   w);
 
-                if(t <= w || (hp(Z) + nn(Z) * w) < m_result.ground_level) {
+                if(t <= w) {
 
                     // Let's try to optimize this angle, there might be a
                     // viable normal that doesn't collide with the model
@@ -1509,7 +1509,7 @@ public:
                 // save the verified and corrected normal
                 m_support_nmls.row(fidx) = nn;
 
-                if(t > w && (hp(Z) + nn(Z) * w) > m_result.ground_level) {
+                if(t > w) {
                     // mark the point for needing a head.
                     m_iheads.emplace_back(fidx);
                 } else if( polar >= 3*PI/4 ) {
