@@ -95,7 +95,7 @@ bool GUI_App::OnInit()
     wxCHECK_MSG(m_imgui->init(), false, "Failed to initialize ImGui");
 #endif // ENABLE_IMGUI
 
-    SetAppName("Slic3rPE-alpha");
+    SetAppName("Slic3rPE-beta");
     SetAppDisplayName("Slic3r Prusa Edition");
 
 //     Slic3r::debugf "wxWidgets version %s, Wx version %s\n", wxVERSION_STRING, wxVERSION;
