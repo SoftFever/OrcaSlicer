@@ -523,6 +523,8 @@ bool CLI::setup(int argc, char **argv)
     // If any option is unsupported, print usage and abort immediately.
     t_config_option_keys opt_order;
     if (! m_config.read_cli(argc, argv, &m_input_files, &opt_order)) {
+		// Separate error message reported by the CLI parser from the help.
+		boost::nowide::cerr << std::endl;
         this->print_help();
 		return false;
     }
@@ -615,7 +617,7 @@ std::string CLI::output_filepath(const Model &model, IO::ExportFormat format) co
     };
     auto proposed_path = boost::filesystem::path(model.propose_export_file_name_and_path(ext));
     // use --output when available
-	std::string cmdline_param = m_config.opt_string("output", false);
+	std::string cmdline_param = m_config.opt_string("output");
     if (! cmdline_param.empty()) {
         // if we were supplied a directory, use it and append our automatically generated filename
         boost::filesystem::path cmdline_path(cmdline_param);

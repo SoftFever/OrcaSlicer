@@ -28,8 +28,20 @@ set(SLIC3R_GUI_SOURCES
     GUI/GLCanvas3D.cpp
     GUI/GLCanvas3DManager.hpp
     GUI/GLCanvas3DManager.cpp
-    GUI/GLGizmo.hpp
-    GUI/GLGizmo.cpp
+    GUI/Gizmos/GLGizmoBase.cpp
+    GUI/Gizmos/GLGizmoBase.hpp
+    GUI/Gizmos/GLGizmoMove.cpp
+    GUI/Gizmos/GLGizmoMove.hpp
+    GUI/Gizmos/GLGizmoRotate.cpp
+    GUI/Gizmos/GLGizmoRotate.hpp
+    GUI/Gizmos/GLGizmoScale.cpp
+    GUI/Gizmos/GLGizmoScale.hpp
+    GUI/Gizmos/GLGizmoSlaSupports.cpp
+    GUI/Gizmos/GLGizmoSlaSupports.hpp
+    GUI/Gizmos/GLGizmoFlatten.cpp
+    GUI/Gizmos/GLGizmoFlatten.hpp
+    GUI/Gizmos/GLGizmoCut.cpp
+    GUI/Gizmos/GLGizmoCut.hpp
     GUI/GLTexture.hpp
     GUI/GLTexture.cpp
     GUI/GLToolbar.hpp

@@ -1436,8 +1436,7 @@ bool PresetBundle::parse_color(const std::string &scolor, unsigned char *rgb_out
 void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, GUI::PresetComboBox *ui)
 {
     if (ui == nullptr || this->printers.get_edited_preset().printer_technology() == ptSLA ||
-        this->filament_presets.size() <= idx_extruder ||
-        ui->selected_preset_name == this->filaments.find_preset(this->filament_presets[idx_extruder])->name)
+        this->filament_presets.size() <= idx_extruder )
         return;
 
     unsigned char rgb[3];
@@ -1526,8 +1525,6 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, GUI::Pr
 	ui->SetSelection(selected_preset_item);
 	ui->SetToolTip(ui->GetString(selected_preset_item));
     ui->Thaw();
-
-    ui->selected_preset_name = this->filaments.find_preset(this->filament_presets[idx_extruder])->name;
 }
 
 void PresetBundle::set_default_suppressed(bool default_suppressed)

@@ -2,6 +2,7 @@
 #define slic3r_GLTexture_hpp_
 
 #include <string>
+#include <vector>
 
 class wxImage;
 

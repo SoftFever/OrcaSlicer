@@ -15,6 +15,7 @@
 #include <boost/foreach.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/nowide/cenv.hpp>
+#include <boost/nowide/iostream.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/format.hpp>
@@ -713,11 +714,8 @@ bool DynamicConfig::read_cli(int argc, char** argv, t_config_option_keys* extra,
         // Look for the cli -> option mapping.
         const auto it = opts.find(token);
         if (it == opts.end()) {
-            printf("Warning: unknown option --%s\n", token.c_str());
-            // instead of continuing, return false to caller
-            // to stop execution and print usage
-            return false;
-            //continue;
+			boost::nowide::cerr << "Unknown option --" << token.c_str() << std::endl;
+			return false;
         }
         const t_config_option_key opt_key = it->second;
         const ConfigOptionDef &optdef = this->def()->options.at(opt_key);
@@ -725,8 +723,8 @@ bool DynamicConfig::read_cli(int argc, char** argv, t_config_option_keys* extra,
         // look for it in the next token.
         if (optdef.type != coBool && optdef.type != coBools && value.empty()) {
             if (i == (argc-1)) {
-                printf("No value supplied for --%s\n", token.c_str());
-                continue;
+				boost::nowide::cerr << "No value supplied for --" << token.c_str() << std::endl;
+                return false;
             }
             value = argv[++ i];
         }
@@ -759,7 +757,10 @@ bool DynamicConfig::read_cli(int argc, char** argv, t_config_option_keys* extra,
             static_cast<ConfigOptionString*>(opt_base)->value = value;
         } else {
             // Any scalar value of a type different from Bool and String.
-            this->set_deserialize(opt_key, value, false);
+            if (! this->set_deserialize(opt_key, value, false)) {
+				boost::nowide::cerr << "Invalid value supplied for --" << token.c_str() << std::endl;
+				return false;
+			}
         }
     }
     return true;

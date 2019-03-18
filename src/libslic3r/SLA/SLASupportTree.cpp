@@ -716,7 +716,7 @@ public:
         assert(it != m_heads.end());
         const Head& h = it->second;
         assert(h.pillar_id >= 0 && h.pillar_id < long(m_pillars.size()));
-        return m_pillars[size_t(h.pillar_id)];
+        return pillar(h.pillar_id);
     }
 
     template<class...Args> const Junction& add_junction(Args&&... args) {
@@ -753,6 +753,13 @@ public:
     const std::vector<Junction>& junctions() const { return m_junctions; }
     const std::vector<CompactBridge>& compact_bridges() const {
         return m_compact_bridges;
+    }
+
+    template<class T> inline const Pillar& pillar(T id) const {
+        static_assert(std::is_integral<T>::value, "Invalid index type");
+        assert(id >= 0 && id < m_pillars.size() &&
+               id < std::numeric_limits<size_t>::max());
+        return m_pillars[size_t(id)];
     }
 
     const Pad& create_pad(const TriangleMesh& object_supports,
@@ -1242,12 +1249,14 @@ class SLASupportTree::Algorithm {
     }
 
     // For connecting a head to a nearby pillar.
-    bool connect_to_nearpillar(const Head& head, const Pillar& nearpillar) {
-        if(nearpillar.bridges > m_cfg.max_bridges_on_pillar) return false;
+    bool connect_to_nearpillar(const Head& head, long nearpillar_id) {
+
+        auto nearpillar = [this, nearpillar_id]() { return m_result.pillar(nearpillar_id); };
+        if(nearpillar().bridges > m_cfg.max_bridges_on_pillar) return false;
 
         Vec3d headjp = head.junction_point();
-        Vec3d nearjp_u = nearpillar.startpoint();
-        Vec3d nearjp_l = nearpillar.endpoint();
+        Vec3d nearjp_u = nearpillar().startpoint();
+        Vec3d nearjp_l = nearpillar().endpoint();
 
         double r = head.r_back_mm;
         double d2d = distance(to_2d(headjp), to_2d(nearjp_u));
@@ -1308,7 +1317,7 @@ class SLASupportTree::Algorithm {
         }
 
         m_result.add_bridge(bridgestart, bridgeend, r);
-        m_result.increment_bridges(nearpillar);
+        m_result.increment_bridges(nearpillar());
 
         return true;
     }
@@ -1336,8 +1345,7 @@ class SLASupportTree::Algorithm {
             if(nearest_id >= 0) {
                 auto nearpillarID = unsigned(nearest_id);
                 if(nearpillarID < m_result.pillars().size()) {
-                    const Pillar& nearpillar = m_result.pillars()[nearpillarID];
-                    if(!connect_to_nearpillar(head, nearpillar)) {
+                    if(!connect_to_nearpillar(head, nearpillarID)) {
                         nearest_id = -1;    // continue searching
                         spindex.remove(ne); // without the current pillar
                     }
@@ -1649,7 +1657,7 @@ public:
             // central position where the pillar can be placed. this way
             // the weight is distributed more effectively on the pillar.
 
-            const Pillar& centerpillar = m_result.head_pillar(cidx);
+            auto centerpillarID = m_result.head_pillar(cidx).id;
 
             for(auto c : cl) { m_thr();
                 if(c == cidx) continue;
@@ -1657,7 +1665,7 @@ public:
                 auto& sidehead = m_result.head(c);
                 sidehead.transform();
 
-                if(!connect_to_nearpillar(sidehead, centerpillar) &&
+                if(!connect_to_nearpillar(sidehead, centerpillarID) &&
                    !search_pillar_and_connect(sidehead))
                 {
                     Vec3d pstart = sidehead.junction_point();
@@ -1859,7 +1867,7 @@ public:
         }
 
         for(auto pillid : modelpillars) {
-            auto& pillar = m_result.pillars()[pillid];
+            auto& pillar = m_result.pillar(pillid);
             m_pillar_index.insert(pillar.endpoint(), pillid);
         }
     }
@@ -1886,7 +1894,7 @@ public:
         {
             Vec3d qp = el.first;
 
-            const Pillar& pillar = m_result.pillars()[el.second];
+            const Pillar& pillar = m_result.pillar(el.second);
 
             unsigned neighbors = m_cfg.pillar_cascade_neighbors;
 
@@ -1946,15 +1954,15 @@ public:
         size_t pillarcount = m_result.pillars().size();
 
         for(size_t pid = 0; pid < pillarcount; pid++) {
-            const Pillar& pillar = m_result.pillars()[pid];
+            auto pillar = [this, pid]() { return m_result.pillar(pid); };
 
             unsigned needpillars = 0;
-            if(pillar.bridges > m_cfg.max_bridges_on_pillar) needpillars = 3;
-            else if(pillar.links < 2 && pillar.height > H2) {
+            if(pillar().bridges > m_cfg.max_bridges_on_pillar) needpillars = 3;
+            else if(pillar().links < 2 && pillar().height > H2) {
                 // Not enough neighbors to support this pillar
-                needpillars = 2 - pillar.links;
+                needpillars = 2 - pillar().links;
             }
-            else if(pillar.links < 1 && pillar.height > H1) {
+            else if(pillar().links < 1 && pillar().height > H1) {
                 // No neighbors could be found and the pillar is too long.
                 needpillars = 1;
             }
@@ -1963,7 +1971,7 @@ public:
             bool found = false;
             double alpha = 0; // goes to 2Pi
             double r = 2 * m_cfg.base_radius_mm;
-            Vec3d pillarsp = pillar.startpoint();
+            Vec3d pillarsp = pillar().startpoint();
             Vec3d sp(pillarsp(X), pillarsp(Y), pillarsp(Z) - r);
             std::vector<bool> tv(needpillars, false);
             std::vector<Vec3d> spts(needpillars);
@@ -1976,7 +1984,7 @@ public:
                     s(X) += std::cos(a) * r;
                     s(Y) += std::sin(a) * r;
                     spts[n] = s;
-                    auto hr = bridge_mesh_intersect(s, {0, 0, -1}, pillar.r);
+                    auto hr = bridge_mesh_intersect(s, {0, 0, -1}, pillar().r);
                     tv[n] = std::isinf(hr.distance());
                 }
 
@@ -1991,33 +1999,33 @@ public:
 
             if(found) for(unsigned n = 0; n < needpillars; n++) {
                 Vec3d s = spts[n]; double gnd = m_result.ground_level;
-                Pillar p(s, Vec3d(s(X), s(Y), gnd), pillar.r);
+                Pillar p(s, Vec3d(s(X), s(Y), gnd), pillar().r);
                 p.add_base(m_cfg.base_height_mm, m_cfg.base_radius_mm);
 
-                if(interconnect(pillar, p)) {
+                if(interconnect(pillar(), p)) {
                     Pillar& pp = m_result.add_pillar(p);
                     m_pillar_index.insert(pp.endpoint(), unsigned(pp.id));
 
-                    m_result.add_junction(s, pillar.r);
+                    m_result.add_junction(s, pillar().r);
                     double t = bridge_mesh_intersect(pillarsp,
                                                      dirv(pillarsp, s),
-                                                     pillar.r);
+                                                     pillar().r);
                     if(distance(pillarsp, s) < t)
-                        m_result.add_bridge(pillarsp, s, pillar.r);
+                        m_result.add_bridge(pillarsp, s, pillar().r);
 
-                    if(pillar.endpoint()(Z) > m_result.ground_level)
-                        m_result.add_junction(pillar.endpoint(), pillar.r);
+                    if(pillar().endpoint()(Z) > m_result.ground_level)
+                        m_result.add_junction(pillar().endpoint(), pillar().r);
 
                     newpills.emplace_back(pp.id);
-                    m_result.increment_links(pillar);
+                    m_result.increment_links(pillar());
                 }
             }
 
             if(!newpills.empty()) {
                 for(auto it = newpills.begin(), nx = std::next(it);
                     nx != newpills.end(); ++it, ++nx) {
-                    const Pillar& itpll = m_result.pillars()[size_t(*it)];
-                    const Pillar& nxpll = m_result.pillars()[size_t(*nx)];
+                    const Pillar& itpll = m_result.pillar(*it);
+                    const Pillar& nxpll = m_result.pillar(*nx);
                     if(interconnect(itpll, nxpll)) {
                         m_result.increment_links(itpll);
                         m_result.increment_links(nxpll);

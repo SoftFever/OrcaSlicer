@@ -1,4 +1,4 @@
-#include "slic3r/GUI/GLGizmo.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmos.hpp"
 #include "GLCanvas3D.hpp"
 
 #include "admesh/stl.h"
@@ -16,7 +16,6 @@
 #include "slic3r/GUI/GLShader.hpp"
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/PresetBundle.hpp"
-//#include "slic3r/GUI/GLGizmo.hpp"
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_ObjectManipulation.hpp"
@@ -78,7 +77,7 @@ static const float DEFAULT_BG_LIGHT_COLOR[3] = { 0.753f, 0.753f, 0.753f };
 static const float ERROR_BG_DARK_COLOR[3] = { 0.478f, 0.192f, 0.039f };
 static const float ERROR_BG_LIGHT_COLOR[3] = { 0.753f, 0.192f, 0.039f };
 static const float UNIFORM_SCALE_COLOR[3] = { 1.0f, 0.38f, 0.0f };
-static const float AXES_COLOR[3][3] = { { 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f, 1.0f } };
+//static const float AXES_COLOR[3][3] = { { 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f, 1.0f } };
 
 namespace Slic3r {
 namespace GUI {
@@ -3006,14 +3005,6 @@ void GLCanvas3D::Gizmos::render_overlay(const GLCanvas3D& canvas, const GLCanvas
     ::glPopMatrix();
 }
 
-#if !ENABLE_IMGUI
-void GLCanvas3D::Gizmos::create_external_gizmo_widgets(wxWindow *parent)
-{
-    for (auto &entry : m_gizmos) {
-        entry.second->create_external_gizmo_widgets(parent);
-    }
-}
-#endif // not ENABLE_IMGUI
 
 void GLCanvas3D::Gizmos::reset()
 {
@@ -3032,13 +3023,12 @@ void GLCanvas3D::Gizmos::do_render_overlay(const GLCanvas3D& canvas, const GLCan
         return;
 
     float cnv_w = (float)canvas.get_canvas_size().get_width();
-#if ENABLE_IMGUI
     float cnv_h = (float)canvas.get_canvas_size().get_height();
-#endif // ENABLE_IMGUI
     float zoom = canvas.get_camera_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
     float height = get_total_overlay_height();
+    float width = get_total_overlay_width();
 #if ENABLE_SVG_ICONS
     float scaled_border = m_overlay_border * m_overlay_scale * inv_zoom;
 #else
@@ -3050,7 +3040,7 @@ void GLCanvas3D::Gizmos::do_render_overlay(const GLCanvas3D& canvas, const GLCan
 
     float left = top_x;
     float top = top_y;
-    float right = left + get_total_overlay_width() * inv_zoom;
+    float right = left + width * inv_zoom;
     float bottom = top - height * inv_zoom;
 
     // renders background
@@ -3158,29 +3148,27 @@ void GLCanvas3D::Gizmos::do_render_overlay(const GLCanvas3D& canvas, const GLCan
 #if ENABLE_SVG_ICONS
         float u_icon_size = m_overlay_icons_size * m_overlay_scale * inv_tex_width;
         float v_icon_size = m_overlay_icons_size * m_overlay_scale * inv_tex_height;
-        float top = sprite_id * v_icon_size;
-        float left = state * u_icon_size;
-        float bottom = top + v_icon_size;
-        float right = left + u_icon_size;
+        float v_top = sprite_id * v_icon_size;
+        float u_left = state * u_icon_size;
+        float v_bottom = v_top + v_icon_size;
+        float u_right = u_left + u_icon_size;
 #else
         float uv_icon_size = (float)m_icons_texture.metadata.icon_size * inv_texture_size;
-        float top = sprite_id * uv_icon_size;
-        float left = state * uv_icon_size;
-        float bottom = top + uv_icon_size;
-        float right = left + uv_icon_size;
+        float v_top = sprite_id * uv_icon_size;
+        float u_left = state * uv_icon_size;
+        float v_bottom = v_top + uv_icon_size;
+        float u_right = u_left + uv_icon_size;
 #endif // ENABLE_SVG_ICONS
 
-        GLTexture::render_sub_texture(icons_texture_id, top_x, top_x + scaled_icons_size, top_y - scaled_icons_size, top_y, { { left, bottom }, { right, bottom }, { right, top }, { left, top } });
-#if ENABLE_IMGUI
+        GLTexture::render_sub_texture(icons_texture_id, top_x, top_x + scaled_icons_size, top_y - scaled_icons_size, top_y, { { u_left, v_bottom }, { u_right, v_bottom }, { u_right, v_top }, { u_left, v_top } });
         if (it->second->get_state() == GLGizmoBase::On) {
             float toolbar_top = (float)cnv_h - canvas.m_view_toolbar.get_height();
 #if ENABLE_SVG_ICONS
-            it->second->render_input_window(2.0f * m_overlay_border + m_overlay_icons_size, 0.5f * cnv_h - top_y * zoom, toolbar_top, selection);
+            it->second->render_input_window(width, 0.5f * cnv_h - top_y * zoom, toolbar_top, selection);
 #else
             it->second->render_input_window(2.0f * m_overlay_border + icon_size * zoom, 0.5f * cnv_h - top_y * zoom, toolbar_top, selection);
 #endif // ENABLE_SVG_ICONS
         }
-#endif // ENABLE_IMGUI
 #if ENABLE_SVG_ICONS
         top_y -= scaled_stride_y;
 #else
@@ -3739,9 +3727,6 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar
     , m_color_by("volume")
     , m_reload_delayed(false)
     , m_render_sla_auxiliaries(true)
-#if !ENABLE_IMGUI
-    , m_external_gizmo_widgets_parent(nullptr)
-#endif // not ENABLE_IMGUI
 {
     if (m_canvas != nullptr) {
         m_timer.SetOwner(m_canvas);
@@ -3834,13 +3819,6 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
             std::cout << "Unable to initialize gizmos: please, check that all the required textures are available" << std::endl;
             return false;
         }
-
-#if !ENABLE_IMGUI
-        if (m_external_gizmo_widgets_parent != nullptr) {
-            m_gizmos.create_external_gizmo_widgets(m_external_gizmo_widgets_parent);
-            m_canvas->GetParent()->Layout();
-        }
-#endif // not ENABLE_IMGUI
     }
 
     if (!_init_toolbar())
@@ -4115,27 +4093,6 @@ void GLCanvas3D::update_toolbar_items_visibility()
     m_dirty = true;
 }
 
-// Returns a Rect object denoting size and position of the Reset button used by a gizmo.
-// Returns in either screen or viewport coords.
-#if !ENABLE_IMGUI
-Rect GLCanvas3D::get_gizmo_reset_rect(const GLCanvas3D& canvas, bool viewport) const
-{
-    const Size& cnv_size = canvas.get_canvas_size();
-    float w = (viewport ? -0.5f : 0.f) * (float)cnv_size.get_width();
-    float h = (viewport ? 0.5f : 1.f) * (float)cnv_size.get_height();
-    float zoom = canvas.get_camera_zoom();
-    float inv_zoom = viewport ? ((zoom != 0.0f) ? 1.0f / zoom : 0.0f) : 1.f;
-    const float gap = 30.f;
-    return Rect((w + gap + 80.f) * inv_zoom, (viewport ? -1.f : 1.f) * (h - GIZMO_RESET_BUTTON_HEIGHT) * inv_zoom,
-                (w + gap + 80.f + GIZMO_RESET_BUTTON_WIDTH) * inv_zoom, (viewport ? -1.f : 1.f) * (h * inv_zoom));
-}
-
-bool GLCanvas3D::gizmo_reset_rect_contains(const GLCanvas3D& canvas, float x, float y) const
-{
-    const Rect& rect = get_gizmo_reset_rect(canvas, false);
-    return (rect.get_left() <= x) && (x <= rect.get_right()) && (rect.get_top() <= y) && (y <= rect.get_bottom());
-}
-#endif // not ENABLE_IMGUI
 
 void GLCanvas3D::render()
 {
@@ -4158,8 +4115,11 @@ void GLCanvas3D::render()
         return;
 
     if (m_bed.get_shape().empty())
+    {
         // this happens at startup when no data is still saved under <>\AppData\Roaming\Slic3rPE
         post_event(SimpleEvent(EVT_GLCANVAS_UPDATE_BED_SHAPE));
+        return;
+    }
 
     if (m_camera.requires_zoom_to_bed)
     {
@@ -4181,9 +4141,7 @@ void GLCanvas3D::render()
         // absolute value of the rotation
         theta = 360.f - theta;
 
-#if ENABLE_IMGUI
     wxGetApp().imgui()->new_frame();
-#endif // ENABLE_IMGUI
 
     // picking pass
     _picking_pass();
@@ -4234,9 +4192,7 @@ void GLCanvas3D::render()
     if (m_layers_editing.last_object_id >= 0)
         m_layers_editing.render_overlay(*this);
 
-#if ENABLE_IMGUI
     wxGetApp().imgui()->render();
-#endif // ENABLE_IMGUI
 
     m_canvas->SwapBuffers();
 }
@@ -4802,13 +4758,11 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
     int keyCode = evt.GetKeyCode();
     int ctrlMask = wxMOD_CONTROL;
 
-#if ENABLE_IMGUI
     auto imgui = wxGetApp().imgui();
     if (imgui->update_key_data(evt)) {
         render();
         return;
     }
-#endif // ENABLE_IMGUI
 
 //#ifdef __APPLE__
 //    ctrlMask |= wxMOD_RAW_CONTROL;
@@ -4916,12 +4870,10 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
 {
     const int keyCode = evt.GetKeyCode();
 
-#if ENABLE_IMGUI
     auto imgui = wxGetApp().imgui();
     if (imgui->update_key_data(evt)) {
         render();
     } else
-#endif // ENABLE_IMGUI
     if (evt.GetEventType() == wxEVT_KEY_UP) {
         if (m_tab_down && keyCode == WXK_TAB && !evt.HasAnyModifiers()) {
             // Enable switching between 3D and Preview with Tab
@@ -5044,7 +4996,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
 	Point pos(evt.GetX(), evt.GetY());
 
-#if ENABLE_IMGUI
     ImGuiWrapper *imgui = wxGetApp().imgui();
     if (imgui->update_mouse_data(evt)) {
         m_mouse.position = evt.Leaving() ? Vec2d(-1.0, -1.0) : pos.cast<double>();
@@ -5054,7 +5005,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #endif /* SLIC3R_DEBUG_MOUSE_EVENTS */
 		return;
     }
-#endif // ENABLE_IMGUI
 
 #ifdef __WXMSW__
 	bool on_enter_workaround = false;
@@ -5258,42 +5208,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                         m_selection.start_dragging();
                         m_mouse.drag.start_position_3D = m_mouse.scene_position;
                         m_moving = true;
-                    }
-                }
-                else if (evt.RightDown())
-                {
-                    m_mouse.position = pos.cast<double>();
-                    // forces a frame render to ensure that m_hover_volume_id is updated even when the user right clicks while
-                    // the context menu is already shown
-                    render();
-                    if (m_hover_volume_id != -1)
-                    {
-                        // if right clicking on volume, propagate event through callback (shows context menu)
-                        if (m_volumes.volumes[m_hover_volume_id]->hover
-                         && !m_volumes.volumes[m_hover_volume_id]->is_wipe_tower // no context menu for the wipe tower
-                         && m_gizmos.get_current_type() != Gizmos::SlaSupports)  // disable context menu when the gizmo is open
-                        {
-                            // forces the selection of the volume
-                            /** #ys_FIXME_to_delete after testing:
-                              * Next condition allows a multiple instance selection for the context menu,
-                              * which has no reason. So it's commented till next testing
-                              */
-//                             if (!m_selection.is_multiple_full_instance()) // #ys_FIXME_to_delete
-                                m_selection.add(m_hover_volume_id);
-                            m_gizmos.update_on_off_state(m_selection);
-                            post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
-                            _update_gizmos_data();
-                            wxGetApp().obj_manipul()->update_settings_value(m_selection);
-                           // forces a frame render to update the view before the context menu is shown
-                           render();
-                            
-                            Vec2d logical_pos = pos.cast<double>();
-#if ENABLE_RETINA_GL
-                            const float factor = m_retina_helper->get_scale_factor();
-                            logical_pos = logical_pos.cwiseQuotient(Vec2d(factor, factor));
-#endif // ENABLE_RETINA_GL
-                            post_event(Vec2dEvent(EVT_GLCANVAS_RIGHT_CLICK, logical_pos));
-                        }
                     }
                 }
             }
@@ -5517,6 +5431,37 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
             m_camera.set_scene_box(scene_bounding_box());
         }
+        else if (evt.RightUp())
+        {
+            m_mouse.position = pos.cast<double>();
+            // forces a frame render to ensure that m_hover_volume_id is updated even when the user right clicks while
+            // the context menu is already shown
+            render();
+            if (m_hover_volume_id != -1)
+            {
+                // if right clicking on volume, propagate event through callback (shows context menu)
+                if (m_volumes.volumes[m_hover_volume_id]->hover
+                    && !m_volumes.volumes[m_hover_volume_id]->is_wipe_tower // no context menu for the wipe tower
+                    && m_gizmos.get_current_type() != Gizmos::SlaSupports)  // disable context menu when the gizmo is open
+                {
+                    // forces the selection of the volume
+                    m_selection.add(m_hover_volume_id);
+                    m_gizmos.update_on_off_state(m_selection);
+                    post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
+                    _update_gizmos_data();
+                    wxGetApp().obj_manipul()->update_settings_value(m_selection);
+                    // forces a frame render to update the view before the context menu is shown
+                    render();
+
+                    Vec2d logical_pos = pos.cast<double>();
+#if ENABLE_RETINA_GL
+                    const float factor = m_retina_helper->get_scale_factor();
+                    logical_pos = logical_pos.cwiseQuotient(Vec2d(factor, factor));
+#endif // ENABLE_RETINA_GL
+                    post_event(Vec2dEvent(EVT_GLCANVAS_RIGHT_CLICK, logical_pos));
+                }
+            }
+        }
 
         m_moving = false;
         m_mouse.drag.move_volume_idx = -1;
@@ -5630,12 +5575,6 @@ void GLCanvas3D::set_tooltip(const std::string& tooltip) const
     }
 }
 
-#if !ENABLE_IMGUI
-void GLCanvas3D::set_external_gizmo_widgets_parent(wxWindow *parent)
-{
-    m_external_gizmo_widgets_parent = parent;
-}
-#endif // not ENABLE_IMGUI
 
 void GLCanvas3D::do_move()
 {
@@ -6068,14 +6007,12 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
     if ((m_canvas == nullptr) && (m_context == nullptr))
         return;
 
-#if ENABLE_IMGUI
     wxGetApp().imgui()->set_display_size((float)w, (float)h);
 #if ENABLE_RETINA_GL
     wxGetApp().imgui()->set_style_scaling(m_retina_helper->get_scale_factor());
 #else
     wxGetApp().imgui()->set_style_scaling(m_canvas->GetContentScaleFactor());
 #endif
-#endif // ENABLE_IMGUI
 
     // ensures that this canvas is current
     _set_current();
@@ -6285,7 +6222,6 @@ void GLCanvas3D::_picking_pass() const
             ::glReadPixels(pos(0), cnv_size.get_height() - pos(1) - 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, (void*)color);
             volume_id = color[0] + color[1] * 256 + color[2] * 256 * 256;
         }
-
         if ((0 <= volume_id) && (volume_id < (int)m_volumes.volumes.size()))
         {
             m_hover_volume_id = volume_id;
@@ -6294,7 +6230,7 @@ void GLCanvas3D::_picking_pass() const
         else
         {
             m_hover_volume_id = -1;
-            m_gizmos.set_hover_id(inside ? (254 - (int)color[2]) : -1);
+            m_gizmos.set_hover_id(inside && volume_id <= GLGizmoBase::BASE_ID ? (GLGizmoBase::BASE_ID - volume_id) : -1);
         }
 
         _update_volumes_hover_state();
