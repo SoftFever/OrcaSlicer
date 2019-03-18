@@ -240,6 +240,8 @@ public:
 
     const SLAPrintStatistics&      print_statistics() const { return m_print_statistics; }
 
+    std::string validate() const override;
+
 private:
     using SLAPrinter = FilePrinter<FilePrinterFormat::SLA_PNGZIP>;
     using SLAPrinterPtr = std::unique_ptr<SLAPrinter>;
