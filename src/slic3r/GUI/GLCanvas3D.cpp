@@ -716,18 +716,14 @@ float GLCanvas3D::LayersEditing::reset_button_height(const GLCanvas3D &canvas)
 
 const Point GLCanvas3D::Mouse::Drag::Invalid_2D_Point(INT_MAX, INT_MAX);
 const Vec3d GLCanvas3D::Mouse::Drag::Invalid_3D_Point(DBL_MAX, DBL_MAX, DBL_MAX);
-#if ENABLE_MOVE_MIN_THRESHOLD
 const int GLCanvas3D::Mouse::Drag::MoveThresholdPx = 5;
-#endif // ENABLE_MOVE_MIN_THRESHOLD
 
 GLCanvas3D::Mouse::Drag::Drag()
     : start_position_2D(Invalid_2D_Point)
     , start_position_3D(Invalid_3D_Point)
     , move_volume_idx(-1)
-#if ENABLE_MOVE_MIN_THRESHOLD
     , move_requires_threshold(false)
     , move_start_threshold_position_2D(Invalid_2D_Point)
-#endif // ENABLE_MOVE_MIN_THRESHOLD
 {
 }
 
@@ -5059,13 +5055,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     int view_toolbar_contains_mouse = m_view_toolbar.contains_mouse(m_mouse.position, *this);
 #endif // !ENABLE_CANVAS_GUI_REFACTORING
 
-#if ENABLE_MOVE_MIN_THRESHOLD
     if (m_mouse.drag.move_requires_threshold && m_mouse.is_move_start_threshold_position_2D_defined() && m_mouse.is_move_threshold_met(pos))
     {
         m_mouse.drag.move_requires_threshold = false;
         m_mouse.set_move_start_threshold_position_2D_as_invalid();
     }
-#endif // ENABLE_MOVE_MIN_THRESHOLD
 
     if (evt.ButtonDown() && wxWindow::FindFocus() != this->m_canvas)
         // Grab keyboard focus on any mouse click event.
@@ -5206,13 +5200,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     {
                         bool add_as_single = !already_selected && !shift_down;
                         m_selection.add(m_hover_volume_id, add_as_single);
-#if ENABLE_MOVE_MIN_THRESHOLD
                         m_mouse.drag.move_requires_threshold = !already_selected;
                         if (already_selected)
                             m_mouse.set_move_start_threshold_position_2D_as_invalid();
                         else
                             m_mouse.drag.move_start_threshold_position_2D = pos;
-#endif // ENABLE_MOVE_MIN_THRESHOLD
                     }
 
                     if (curr_idxs != m_selection.get_volume_idxs())
@@ -5249,10 +5241,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     else if (evt.Dragging() && evt.LeftIsDown() && !gizmos_overlay_contains_mouse && (m_layers_editing.state == LayersEditing::Unknown)
           && (m_mouse.drag.move_volume_idx != -1) && m_gizmos.get_current_type() != Gizmos::SlaSupports /* don't allow dragging objects with the Sla gizmo on */)
     {
-#if ENABLE_MOVE_MIN_THRESHOLD
         if (!m_mouse.drag.move_requires_threshold)
         {
-#endif // ENABLE_MOVE_MIN_THRESHOLD
             m_mouse.dragging = true;
 
             Vec3d cur_pos = m_mouse.drag.start_position_3D;
@@ -5300,9 +5290,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             wxGetApp().obj_manipul()->update_settings_value(m_selection);
 
             m_dirty = true;
-#if ENABLE_MOVE_MIN_THRESHOLD
         }
-#endif // ENABLE_MOVE_MIN_THRESHOLD
     }
     else if (evt.Dragging() && m_gizmos.is_dragging())
     {
@@ -5371,11 +5359,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #endif // ENABLE_CANVAS_GUI_REFACTORING
         {
             // if dragging over blank area with left button, rotate
-#if ENABLE_MOVE_MIN_THRESHOLD
             if ((m_hover_volume_id == -1) && m_mouse.is_start_position_3D_defined())
-#else
-            if (m_mouse.is_start_position_3D_defined())
-#endif // ENABLE_MOVE_MIN_THRESHOLD
             {
                 const Vec3d& orig = m_mouse.drag.start_position_3D;
                 m_camera.phi += (((float)pos(0) - (float)orig(0)) * TRACKBALLSIZE);
