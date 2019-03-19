@@ -46,6 +46,8 @@ public:
     PresetComboBox(wxWindow *parent, Preset::Type preset_type);
     ~PresetComboBox();
 
+    wxButton* edit_btn { nullptr };
+
     void set_label_marker(int item);
     void set_extruder_idx(const int extr_idx)   { extruder_idx = extr_idx; }
     int  get_extruder_idx() const               { return extruder_idx; }
