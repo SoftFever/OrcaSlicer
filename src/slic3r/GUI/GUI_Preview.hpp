@@ -92,6 +92,8 @@ class Preview : public wxPanel
     BackgroundSlicingProcess* m_process;
     GCodePreviewData* m_gcode_preview_data;
 
+    bool m_volumes_cleanup_required;
+
     // Calling this function object forces Plater::schedule_background_process.
     std::function<void()> m_schedule_background_process;
 
@@ -118,7 +120,7 @@ public:
     void set_drop_target(wxDropTarget* target);
 
     void load_print();
-    void reload_print(bool force = false, bool keep_volumes = false);
+    void reload_print(bool keep_volumes = false);
     void refresh_print();
 
 private:
@@ -142,7 +144,7 @@ private:
 
     // Create/Update/Reset double slider on 3dPreview
     void create_double_slider();
-    void update_double_slider(const std::vector<double>& layers_z, bool force_sliders_full_range = false);
+    void update_double_slider(const std::vector<double>& layers_z);
     void fill_slider_values(std::vector<std::pair<int, double>> &values,
                             const std::vector<double> &layers_z);
     void reset_double_slider();
