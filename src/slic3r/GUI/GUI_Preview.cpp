@@ -366,12 +366,7 @@ void Preview::load_print(bool keep_z_range)
 
 void Preview::reload_print(bool keep_volumes)
 {
-    if (!IsShown())
-    {
-        m_volumes_cleanup_required = !keep_volumes;
-        return;
-    }
-
+#ifndef __linux__
     if (m_volumes_cleanup_required || !keep_volumes)
     {
         m_canvas->reset_volumes();
@@ -379,6 +374,23 @@ void Preview::reload_print(bool keep_volumes)
         m_loaded = false;
         m_volumes_cleanup_required = false;
     }
+#endif // __linux__
+
+    if (!IsShown())
+    {
+        m_volumes_cleanup_required = !keep_volumes;
+        return;
+    }
+
+#ifdef __linux__
+    if (m_volumes_cleanup_required || !keep_volumes)
+    {
+        m_canvas->reset_volumes();
+        m_canvas->reset_legend_texture();
+        m_loaded = false;
+        m_volumes_cleanup_required = false;
+    }
+#endif // __linux__
 
     load_print();
 }
