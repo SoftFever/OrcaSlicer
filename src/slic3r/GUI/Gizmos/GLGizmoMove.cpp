@@ -51,7 +51,7 @@ std::string GLGizmoMove3D::on_get_name() const
     return L("Move [M]");
 }
 
-void GLGizmoMove3D::on_start_dragging(const GLCanvas3D::Selection& selection)
+void GLGizmoMove3D::on_start_dragging(const Selection& selection)
 {
     if (m_hover_id != -1)
     {
@@ -69,7 +69,7 @@ void GLGizmoMove3D::on_stop_dragging()
     m_displacement = Vec3d::Zero();
 }
 
-void GLGizmoMove3D::on_update(const UpdateData& data, const GLCanvas3D::Selection& selection)
+void GLGizmoMove3D::on_update(const UpdateData& data, const Selection& selection)
 {
     if (m_hover_id == 0)
         m_displacement(0) = calc_projection(data);
@@ -79,7 +79,7 @@ void GLGizmoMove3D::on_update(const UpdateData& data, const GLCanvas3D::Selectio
         m_displacement(2) = calc_projection(data);
 }
 
-void GLGizmoMove3D::on_render(const GLCanvas3D::Selection& selection) const
+void GLGizmoMove3D::on_render(const Selection& selection) const
 {
     bool show_position = selection.is_single_full_instance();
     const Vec3d& position = selection.get_bounding_box().center();
@@ -155,7 +155,7 @@ void GLGizmoMove3D::on_render(const GLCanvas3D::Selection& selection) const
     }
 }
 
-void GLGizmoMove3D::on_render_for_picking(const GLCanvas3D::Selection& selection) const
+void GLGizmoMove3D::on_render_for_picking(const Selection& selection) const
 {
     ::glDisable(GL_DEPTH_TEST);
 
@@ -166,7 +166,7 @@ void GLGizmoMove3D::on_render_for_picking(const GLCanvas3D::Selection& selection
     render_grabber_extension(Z, box, true);
 }
 
-void GLGizmoMove3D::on_render_input_window(float x, float y, float bottom_limit, const GLCanvas3D::Selection& selection)
+void GLGizmoMove3D::on_render_input_window(float x, float y, float bottom_limit, const Selection& selection)
 {
 #if !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
     bool show_position = selection.is_single_full_instance();

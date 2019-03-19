@@ -5,6 +5,7 @@
 
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/I18N.hpp"
+#include "slic3r/GUI/Selection.hpp"
 
 
 class wxWindow;
@@ -126,7 +127,7 @@ public:
     const std::string& get_icon_filename() const { return m_icon_filename; }
 #endif // ENABLE_SVG_ICONS
 
-    bool is_activable(const GLCanvas3D::Selection& selection) const { return on_is_activable(selection); }
+    bool is_activable(const Selection& selection) const { return on_is_activable(selection); }
     bool is_selectable() const { return on_is_selectable(); }
 
     unsigned int get_sprite_id() const { return m_sprite_id; }
@@ -139,31 +140,31 @@ public:
     void enable_grabber(unsigned int id);
     void disable_grabber(unsigned int id);
 
-    void start_dragging(const GLCanvas3D::Selection& selection);
+    void start_dragging(const Selection& selection);
     void stop_dragging();
     bool is_dragging() const { return m_dragging; }
 
-    void update(const UpdateData& data, const GLCanvas3D::Selection& selection);
+    void update(const UpdateData& data, const Selection& selection);
 
-    void render(const GLCanvas3D::Selection& selection) const { on_render(selection); }
-    void render_for_picking(const GLCanvas3D::Selection& selection) const { on_render_for_picking(selection); }
-    void render_input_window(float x, float y, float bottom_limit, const GLCanvas3D::Selection& selection) { on_render_input_window(x, y, bottom_limit, selection); }
+    void render(const Selection& selection) const { on_render(selection); }
+    void render_for_picking(const Selection& selection) const { on_render_for_picking(selection); }
+    void render_input_window(float x, float y, float bottom_limit, const Selection& selection) { on_render_input_window(x, y, bottom_limit, selection); }
 
 protected:
     virtual bool on_init() = 0;
     virtual std::string on_get_name() const = 0;
     virtual void on_set_state() {}
     virtual void on_set_hover_id() {}
-    virtual bool on_is_activable(const GLCanvas3D::Selection& selection) const { return true; }
+    virtual bool on_is_activable(const Selection& selection) const { return true; }
     virtual bool on_is_selectable() const { return true; }
     virtual void on_enable_grabber(unsigned int id) {}
     virtual void on_disable_grabber(unsigned int id) {}
-    virtual void on_start_dragging(const GLCanvas3D::Selection& selection) {}
+    virtual void on_start_dragging(const Selection& selection) {}
     virtual void on_stop_dragging() {}
-    virtual void on_update(const UpdateData& data, const GLCanvas3D::Selection& selection) = 0;
-    virtual void on_render(const GLCanvas3D::Selection& selection) const = 0;
-    virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const = 0;
-    virtual void on_render_input_window(float x, float y, float bottom_limit, const GLCanvas3D::Selection& selection) {}
+    virtual void on_update(const UpdateData& data, const Selection& selection) = 0;
+    virtual void on_render(const Selection& selection) const = 0;
+    virtual void on_render_for_picking(const Selection& selection) const = 0;
+    virtual void on_render_input_window(float x, float y, float bottom_limit, const Selection& selection) {}
 
     // Returns the picking color for the given id, based on the BASE_ID constant
     // No check is made for clashing with other picking color (i.e. GLVolumes)

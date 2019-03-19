@@ -7,6 +7,8 @@
 #include "PresetBundle.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Geometry.hpp"
+#include "GLCanvas3D.hpp"
+#include "Selection.hpp"
 
 #include <boost/algorithm/string.hpp>
 
@@ -155,7 +157,7 @@ void ObjectManipulation::UpdateAndShow(const bool show)
     OG_Settings::UpdateAndShow(show);
 }
 
-void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& selection)
+void ObjectManipulation::update_settings_value(const Selection& selection)
 {
 	m_new_move_label_string   = L("Position");
     m_new_rotate_label_string = L("Rotation");
@@ -348,7 +350,7 @@ void ObjectManipulation::reset_settings_value()
 void ObjectManipulation::change_position_value(const Vec3d& position)
 {
     auto canvas = wxGetApp().plater()->canvas3D();
-    GLCanvas3D::Selection& selection = canvas->get_selection();
+    Selection& selection = canvas->get_selection();
     selection.start_dragging();
     selection.translate(position - m_cache.position, selection.requires_local_axes());
     canvas->do_move();
@@ -359,10 +361,10 @@ void ObjectManipulation::change_position_value(const Vec3d& position)
 void ObjectManipulation::change_rotation_value(const Vec3d& rotation)
 {
     GLCanvas3D* canvas = wxGetApp().plater()->canvas3D();
-    const GLCanvas3D::Selection& selection = canvas->get_selection();
+    const Selection& selection = canvas->get_selection();
 
-	GLCanvas3D::TransformationType transformation_type(GLCanvas3D::TransformationType::World_Relative_Joint);
-	if (selection.is_single_full_instance() || selection.requires_local_axes())
+    TransformationType transformation_type(TransformationType::World_Relative_Joint);
+    if (selection.is_single_full_instance() || selection.requires_local_axes())
 		transformation_type.set_independent();
 	if (selection.is_single_full_instance()) {
         //FIXME GLCanvas3D::Selection::rotate() does not process absoulte rotations correctly: It does not recognize the axis index, which was changed.
@@ -384,7 +386,7 @@ void ObjectManipulation::change_rotation_value(const Vec3d& rotation)
 void ObjectManipulation::change_scale_value(const Vec3d& scale)
 {
     Vec3d scaling_factor = scale;
-    const GLCanvas3D::Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
+    const Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
     if (m_uniform_scale || selection.requires_uniform_scale())
     {
         Vec3d abs_scale_diff = (scale - m_cache.scale).cwiseAbs();
@@ -418,7 +420,7 @@ void ObjectManipulation::change_scale_value(const Vec3d& scale)
 
 void ObjectManipulation::change_size_value(const Vec3d& size)
 {
-    const GLCanvas3D::Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
+    const Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
 
     Vec3d ref_size = m_cache.size;
     if (selection.is_single_volume() || selection.is_single_modifier())

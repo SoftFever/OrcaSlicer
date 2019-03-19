@@ -4,7 +4,6 @@
 #include <memory>
 
 #include "GUI_ObjectSettings.hpp"
-#include "GLCanvas3D.hpp"
 
 class wxStaticText;
 class PrusaLockButton;
@@ -12,6 +11,7 @@ class PrusaLockButton;
 namespace Slic3r {
 namespace GUI {
 
+class Selection;
 
 class ObjectManipulation : public OG_Settings
 {
@@ -90,7 +90,7 @@ public:
     bool        IsShown() override;
     void        UpdateAndShow(const bool show) override;
 
-    void        update_settings_value(const GLCanvas3D::Selection& selection);
+    void        update_settings_value(const Selection& selection);
 
 	// Called from the App to update the UI if dirty.
 	void		update_if_dirty();

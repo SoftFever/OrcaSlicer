@@ -58,19 +58,19 @@ public:
     GLGizmoSlaSupports(GLCanvas3D& parent, unsigned int sprite_id);
 #endif // ENABLE_SVG_ICONS
     virtual ~GLGizmoSlaSupports();
-    void set_sla_support_data(ModelObject* model_object, const GLCanvas3D::Selection& selection);
+    void set_sla_support_data(ModelObject* model_object, const Selection& selection);
     bool mouse_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down);
     void delete_selected_points(bool force = false);
     std::pair<float, float> get_sla_clipping_plane() const;
 
 private:
     bool on_init();
-    void on_update(const UpdateData& data, const GLCanvas3D::Selection& selection);
-    virtual void on_render(const GLCanvas3D::Selection& selection) const;
-    virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const;
+    void on_update(const UpdateData& data, const Selection& selection);
+    virtual void on_render(const Selection& selection) const;
+    virtual void on_render_for_picking(const Selection& selection) const;
 
     void render_selection_rectangle() const;
-    void render_points(const GLCanvas3D::Selection& selection, bool picking = false) const;
+    void render_points(const Selection& selection, bool picking = false) const;
     bool is_mesh_update_necessary() const;
     void update_mesh();
     void update_cache_entry_normal(unsigned int i) const;
@@ -113,11 +113,11 @@ private:
 
 protected:
     void on_set_state() override;
-    void on_start_dragging(const GLCanvas3D::Selection& selection) override;
-    virtual void on_render_input_window(float x, float y, float bottom_limit, const GLCanvas3D::Selection& selection) override;
+    void on_start_dragging(const Selection& selection) override;
+    virtual void on_render_input_window(float x, float y, float bottom_limit, const Selection& selection) override;
 
     virtual std::string on_get_name() const;
-    virtual bool on_is_activable(const GLCanvas3D::Selection& selection) const;
+    virtual bool on_is_activable(const Selection& selection) const;
     virtual bool on_is_selectable() const;
 };
 

@@ -47,6 +47,7 @@
 #include "MainFrame.hpp"
 #include "3DScene.hpp"
 #include "GLCanvas3D.hpp"
+#include "Selection.hpp"
 #include "GLToolbar.hpp"
 #include "GUI_Preview.hpp"
 #include "3DBed.hpp"
@@ -1153,8 +1154,8 @@ struct Plater::priv
     std::vector<size_t> load_model_objects(const ModelObjectPtrs &model_objects);
     std::unique_ptr<CheckboxFileDialog> get_export_file(GUI::FileType file_type);
 
-    const GLCanvas3D::Selection& get_selection() const;
-    GLCanvas3D::Selection& get_selection();
+    const Selection& get_selection() const;
+    Selection& get_selection();
     int get_selected_object_idx() const;
     int get_selected_volume_idx() const;
     void selection_changed();
@@ -1641,7 +1642,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     // automatic selection of added objects
     if (!obj_idxs.empty() && (view3D != nullptr))
     {
-        GLCanvas3D::Selection& selection = view3D->get_canvas3d()->get_selection();
+        Selection& selection = view3D->get_canvas3d()->get_selection();
         selection.clear();
         for (size_t idx : obj_idxs)
         {
@@ -1790,12 +1791,12 @@ std::unique_ptr<CheckboxFileDialog> Plater::priv::get_export_file(GUI::FileType 
     return dlg;
 }
 
-const GLCanvas3D::Selection& Plater::priv::get_selection() const
+const Selection& Plater::priv::get_selection() const
 {
     return view3D->get_canvas3d()->get_selection();
 }
 
-GLCanvas3D::Selection& Plater::priv::get_selection()
+Selection& Plater::priv::get_selection()
 {
     return view3D->get_canvas3d()->get_selection();
 }
