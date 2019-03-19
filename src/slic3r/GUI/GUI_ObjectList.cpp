@@ -871,7 +871,7 @@ void ObjectList::append_menu_items_add_volume(wxMenu* menu)
 
     const ConfigOptionMode mode = wxGetApp().get_mode();
 
-    if (mode < comExpert)
+    if (mode == comAdvanced)
     {
         append_menu_item(menu, wxID_ANY, _(L("Add part")), "",
 			[this](wxCommandEvent&) { load_subobject(ModelVolumeType::MODEL_PART); }, *m_bmp_vector[int(ModelVolumeType::MODEL_PART)]);
@@ -2022,6 +2022,8 @@ void ObjectList::update_selections_on_canvas()
 
 void ObjectList::select_item(const wxDataViewItem& item)
 {
+    if (! item.IsOk()) { return; }
+
     m_prevent_list_events = true;
 
     UnselectAll();

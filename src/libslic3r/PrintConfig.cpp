@@ -208,7 +208,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Horizontal width of the brim that will be printed around each object on the first layer.");
     def->sidetext = L("mm");
     def->min = 0;
-    def->mode = comAdvanced;
+    def->mode = comSimple;
     def->default_value = new ConfigOptionFloat(0);
 
     def = this->add("clip_multipart_objects", coBool);

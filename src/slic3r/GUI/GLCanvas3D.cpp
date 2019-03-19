@@ -1698,8 +1698,11 @@ void GLCanvas3D::Selection::render_sidebar_hints(const std::string& sidebar_fiel
     }
     else if (is_single_volume() || is_single_modifier())
     {
-        Transform3d orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true) * (*m_volumes)[*m_list.begin()]->get_volume_transformation().get_matrix(true, false, true, true);
         ::glTranslated(center(0), center(1), center(2));
+        Transform3d orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
+        if (!boost::starts_with(sidebar_field, "position"))
+            orient_matrix = orient_matrix * (*m_volumes)[*m_list.begin()]->get_volume_transformation().get_matrix(true, false, true, true);
+
         ::glMultMatrixd(orient_matrix.data());
     }
     else

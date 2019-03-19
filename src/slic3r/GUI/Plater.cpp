@@ -1089,6 +1089,15 @@ struct Plater::priv
     // SLA-Object popup menu
     PrusaMenu sla_object_menu;
 
+    // Removed/Prepended Items according to the view mode
+    std::vector<wxMenuItem*> items_increase;
+    std::vector<wxMenuItem*> items_decrease;
+    std::vector<wxMenuItem*> items_set_number_of_copies;
+    enum MenuIdentifier {
+        miObjectFFF=0,
+        miObjectSLA
+    };
+
     // Data
     Slic3r::DynamicPrintConfig *config;        // FIXME: leak?
     Slic3r::Print               fff_print;
@@ -2388,7 +2397,7 @@ void Plater::priv::set_current_panel(wxPanel* panel)
     {
         this->q->reslice();        
         // keeps current gcode preview, if any
-        preview->reload_print(false, true);
+        preview->reload_print(true);
         preview->set_canvas_as_dirty();
         view_toolbar.select_item("Preview");
     }
@@ -2582,6 +2591,32 @@ void Plater::priv::on_right_click(Vec2dEvent& evt)
 
     sidebar->obj_list()->append_menu_item_settings(menu);
 
+    /* Remove/Prepend "increase/decrease instances" menu items according to the view mode.
+     * Suppress to show those items for a Simple mode
+     */
+    const MenuIdentifier id = printer_technology == ptSLA ? miObjectSLA : miObjectFFF;
+    if (wxGetApp().get_mode() == comSimple) {
+        if (menu->FindItem(_(L("Increase copies"))) != wxNOT_FOUND)
+        {
+            /* Detach an items from the menu, but don't delete them 
+             * so that they can be added back later
+             * (after switching to the Advanced/Expert mode)
+             */
+            menu->Remove(items_increase[id]);
+            menu->Remove(items_decrease[id]);
+            menu->Remove(items_set_number_of_copies[id]);
+        }
+    }
+    else {
+        if (menu->FindItem(_(L("Increase copies"))) == wxNOT_FOUND)
+        {
+            // Prepend items to the menu, if those aren't not there
+            menu->Prepend(items_set_number_of_copies[id]);
+            menu->Prepend(items_decrease[id]);
+            menu->Prepend(items_increase[id]);
+        }
+    }
+
     if (q != nullptr) {
 #ifdef __linux__
         // For some reason on Linux the menu isn't displayed if position is specified
@@ -2618,6 +2653,10 @@ void Plater::priv::on_3dcanvas_mouse_dragging_finished(SimpleEvent&)
 
 bool Plater::priv::init_object_menu()
 {
+    items_increase.reserve(2);
+    items_decrease.reserve(2);
+    items_set_number_of_copies.reserve(2);
+
     init_common_menu(&object_menu);
     complit_init_object_menu();
 
@@ -2643,6 +2682,11 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
             [this](wxCommandEvent&) { q->decrease_instances(); }, "delete.png");
         wxMenuItem* item_set_number_of_copies = append_menu_item(menu, wxID_ANY, _(L("Set number of copies")) + dots, _(L("Change the number of copies of the selected object")),
             [this](wxCommandEvent&) { q->set_number_of_copies(); }, "textfield.png");
+
+        items_increase.push_back(item_increase);
+        items_decrease.push_back(item_decrease);
+        items_set_number_of_copies.push_back(item_set_number_of_copies);
+
         // Delete menu was moved to be after +/- instace to make it more difficult to be selected by mistake.
         item_delete = append_menu_item(menu, wxID_ANY, _(L("Delete")) + "\tDel", _(L("Remove the selected object")),
             [this](wxCommandEvent&) { q->remove_selected(); }, "brick_delete.png");
@@ -2713,7 +2757,7 @@ bool Plater::priv::complit_init_object_menu()
     {
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split()); }, item_split->GetId());
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split()); }, item_split_objects->GetId());
-        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split()); }, item_split_volumes->GetId());
+        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split() && wxGetApp().get_mode() > comSimple); }, item_split_volumes->GetId());
     }
     return true;
 }

@@ -186,6 +186,7 @@ Preview::Preview(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_t
     , m_loaded(false)
     , m_enabled(false)
     , m_schedule_background_process(schedule_background_process_func)
+    , m_volumes_cleanup_required(false)
 {
     if (init(parent, bed, camera, view_toolbar))
     {
@@ -354,26 +355,42 @@ void Preview::set_drop_target(wxDropTarget* target)
         SetDropTarget(target);
 }
 
-void Preview::load_print()
+void Preview::load_print(bool keep_z_range)
 {
     PrinterTechnology tech = m_process->current_printer_technology();
     if (tech == ptFFF)
-        load_print_as_fff();
+        load_print_as_fff(keep_z_range);
     else if (tech == ptSLA)
         load_print_as_sla();
 }
 
-void Preview::reload_print(bool force, bool keep_volumes)
+void Preview::reload_print(bool keep_volumes)
 {
-    if (!keep_volumes)
+#ifndef __linux__
+    if (m_volumes_cleanup_required || !keep_volumes)
     {
         m_canvas->reset_volumes();
         m_canvas->reset_legend_texture();
         m_loaded = false;
+        m_volumes_cleanup_required = false;
+    }
+#endif // __linux__
+
+    if (!IsShown())
+    {
+        m_volumes_cleanup_required = !keep_volumes;
+        return;
     }
 
-    if (!IsShown() && !force)
-        return;
+#ifdef __linux__
+    if (m_volumes_cleanup_required || !keep_volumes)
+    {
+        m_canvas->reset_volumes();
+        m_canvas->reset_legend_texture();
+        m_loaded = false;
+        m_volumes_cleanup_required = false;
+    }
+#endif // __linux__
 
     load_print();
 }
@@ -385,7 +402,7 @@ void Preview::refresh_print()
     if (!IsShown())
         return;
 
-    load_print();
+    load_print(true);
 }
 
 void Preview::bind_event_handlers()
@@ -442,10 +459,10 @@ void Preview::reset_sliders()
     m_double_slider_sizer->Hide((size_t)0);
 }
 
-void Preview::update_sliders(const std::vector<double>& layers_z)
+void Preview::update_sliders(const std::vector<double>& layers_z, bool keep_z_range)
 {
     m_enabled = true;
-    update_double_slider(layers_z);
+    update_double_slider(layers_z, keep_z_range);
     m_double_slider_sizer->Show((size_t)0);
     Layout();
 }
@@ -554,15 +571,19 @@ static int find_close_layer_idx(const std::vector<double>& zs, double &z, double
     return -1;
 }
 
-void Preview::update_double_slider(const std::vector<double>& layers_z, bool force_sliders_full_range)
+void Preview::update_double_slider(const std::vector<double>& layers_z, bool keep_z_range)
 {
     // Save the initial slider span.
     double z_low        = m_slider->GetLowerValueD();
     double z_high       = m_slider->GetHigherValueD();
     bool   was_empty    = m_slider->GetMaxValue() == 0;
-    bool   span_changed = layers_z.empty() || std::abs(layers_z.back() - m_slider->GetMaxValueD()) > 1e-6;
-    force_sliders_full_range |= was_empty | span_changed;
-	bool   snap_to_min  = force_sliders_full_range || m_slider->is_lower_at_min();
+    bool force_sliders_full_range = was_empty;
+    if (!keep_z_range)
+    {
+        bool span_changed = layers_z.empty() || std::abs(layers_z.back() - m_slider->GetMaxValueD()) > 1e-6;
+        force_sliders_full_range |= span_changed;
+    }
+    bool   snap_to_min = force_sliders_full_range || m_slider->is_lower_at_min();
 	bool   snap_to_max  = force_sliders_full_range || m_slider->is_higher_at_max();
 
     std::vector<std::pair<int, double>> values;
@@ -648,7 +669,7 @@ void Preview::update_double_slider_from_canvas(wxKeyEvent& event)
         event.Skip();
 }
 
-void Preview::load_print_as_fff()
+void Preview::load_print_as_fff(bool keep_z_range)
 {
     if (m_loaded || m_process->current_printer_technology() != ptFFF)
         return;
@@ -749,7 +770,7 @@ void Preview::load_print_as_fff()
             reset_sliders();
             m_canvas_widget->Refresh();
         } else
-            update_sliders(zs);
+            update_sliders(zs, keep_z_range);
     }
 }
 
