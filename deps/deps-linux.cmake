@@ -3,7 +3,6 @@ set(DEP_CMAKE_OPTS "-DCMAKE_POSITION_INDEPENDENT_CODE=ON")
 
 include("deps-unix-common.cmake")
 
-
 ExternalProject_Add(dep_boost
     EXCLUDE_FROM_ALL 1
     URL "https://dl.bintray.com/boostorg/release/1.66.0/source/boost_1_66_0.tar.gz"
@@ -25,18 +24,17 @@ ExternalProject_Add(dep_boost
     INSTALL_COMMAND ""   # b2 does that already
 )
 
-ExternalProject_Add(dep_libpng
-    EXCLUDE_FROM_ALL 1
-    URL "https://github.com/glennrp/libpng/archive/v1.6.36.tar.gz"
-    URL_HASH SHA256=5bef5a850a9255365a2dc344671b7e9ef810de491bd479c2506ac3c337e2d84f
-    CMAKE_GENERATOR "${DEP_MSVC_GEN}"
-    CMAKE_ARGS
-        -DPNG_SHARED=OFF
-        -DPNG_TESTS=OFF
-        ${DEP_CMAKE_OPTS}
-    INSTALL_COMMAND make install "DESTDIR=${DESTDIR}"
-    INSTALL_COMMAND ""
-)
+# ExternalProject_Add(dep_libpng
+#     EXCLUDE_FROM_ALL 1
+#     URL "https://github.com/glennrp/libpng/archive/v1.6.36.tar.gz"
+#     URL_HASH SHA256=5bef5a850a9255365a2dc344671b7e9ef810de491bd479c2506ac3c337e2d84f
+#     CMAKE_ARGS
+#         -DPNG_SHARED=OFF
+#         -DPNG_TESTS=OFF
+#         -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
+#         ${DEP_CMAKE_OPTS}
+#     # INSTALL_COMMAND make install "DESTDIR=${DESTDIR}"
+# )
 
 ExternalProject_Add(dep_libopenssl
     EXCLUDE_FROM_ALL 1
