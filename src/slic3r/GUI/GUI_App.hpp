@@ -163,6 +163,7 @@ public:
     Plater*         plater_{ nullptr };
 
     wxNotebook*     tab_panel() const ;
+    int             extruders_cnt() const;
 
     std::vector<Tab *>      tabs_list;
 
