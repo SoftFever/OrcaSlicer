@@ -7,7 +7,6 @@
 #include "PresetBundle.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Geometry.hpp"
-#include "GLCanvas3D.hpp"
 #include "Selection.hpp"
 
 #include <boost/algorithm/string.hpp>
