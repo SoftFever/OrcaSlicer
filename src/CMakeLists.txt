@@ -40,6 +40,7 @@ if (SLIC3R_GUI)
             find_package(wxWidgets 3.0 REQUIRED COMPONENTS base core adv html gl)
         else ()
             find_package(wxWidgets 3.1 QUIET COMPONENTS base core adv html gl)
+
             if (NOT wxWidgets_FOUND)
                 message(FATAL_ERROR "\nCould not find wxWidgets 3.1.\n"
                     "Hint: On Linux you can set -DSLIC3R_WX_STABLE=1 to use wxWidgets 3.0\n")
@@ -91,7 +92,11 @@ endif ()
 
 # Add the Slic3r GUI library, libcurl, OpenGL and GLU libraries.
 if (SLIC3R_GUI)
-    target_link_libraries(slic3r libslic3r_gui ${wxWidgets_LIBRARIES})
+
+    # FIXME: Workaround for missing zlib (still needed by libgio despite wxzlib being present)
+    find_package(ZLIB REQUIRED)
+
+    target_link_libraries(slic3r  libslic3r_gui ${wxWidgets_LIBRARIES} ${ZLIB_LIBRARIES})
 
     # Configure libcurl & OpenSSL
     find_package(CURL REQUIRED)
