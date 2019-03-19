@@ -51,8 +51,7 @@ static DynamicPrintConfig& printer_config()
 
 static int extruders_count()
 {
-    return printer_technology() == ptSLA ? 1 :
-        printer_config().option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+    return wxGetApp().extruders_cnt();
 }
 
 ObjectList::ObjectList(wxWindow* parent) :
