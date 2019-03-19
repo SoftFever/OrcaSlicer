@@ -23,6 +23,9 @@ class PrintObject;
 namespace GUI {
 
 class GLCanvas3D;
+class Bed3D;
+class GLToolbar;
+struct Camera;
 
 class GLCanvas3DManager
 {
@@ -62,7 +65,7 @@ public:
     GLCanvas3DManager();
     ~GLCanvas3DManager();
 
-    bool add(wxGLCanvas* canvas);
+    bool add(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar);
     bool remove(wxGLCanvas* canvas);
     void remove_all();
 

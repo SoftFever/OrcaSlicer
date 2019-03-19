@@ -43,6 +43,8 @@ public:
     // For testing
     size_t size() const;
     bool empty() const { return size() == 0; }
+
+    void foreach(std::function<void(const SpatElement& el)> fn);
 };
 
 }

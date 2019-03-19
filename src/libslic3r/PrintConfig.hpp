@@ -24,14 +24,6 @@
 
 namespace Slic3r {
 
-enum PrinterTechnology
-{
-    // Fused Filament Fabrication
-    ptFFF,
-    // Stereolitography
-    ptSLA,
-};
-
 enum GCodeFlavor {
     gcfRepRap, gcfRepetier, gcfTeacup, gcfMakerWare, gcfMarlin, gcfSailfish, gcfMach3, gcfMachinekit,
     gcfSmoothie, gcfNoExtrusion,
@@ -806,12 +798,6 @@ public:
     ConfigOptionFloats              wiping_volumes_matrix;
     ConfigOptionFloats              wiping_volumes_extruders;
     ConfigOptionFloat               z_offset;
-    ConfigOptionFloat               bed_size_x;
-    ConfigOptionFloat               bed_size_y;
-    ConfigOptionInt                 pixel_width;
-    ConfigOptionInt                 pixel_height;
-    ConfigOptionFloat               exp_time;
-    ConfigOptionFloat               exp_time_first;
 
 protected:
 	PrintConfig(int) : MachineEnvelopeConfig(1), GCodeConfig(1) {}
@@ -884,12 +870,6 @@ protected:
         OPT_PTR(wiping_volumes_matrix);
         OPT_PTR(wiping_volumes_extruders);
         OPT_PTR(z_offset);
-        OPT_PTR(bed_size_x);
-        OPT_PTR(bed_size_y);
-        OPT_PTR(pixel_width);
-        OPT_PTR(pixel_height);
-        OPT_PTR(exp_time);
-        OPT_PTR(exp_time_first);
     }
 };
 
@@ -1006,6 +986,9 @@ public:
     // The max length of a bridge in mm
     ConfigOptionFloat support_max_bridge_length /*= 15.0*/;
 
+    // The max distance of two pillars to get cross linked.
+    ConfigOptionFloat support_max_pillar_link_distance;
+
     // The elevation in Z direction upwards. This is the space between the pad
     // and the model object's bounding box bottom. Units in mm.
     ConfigOptionFloat support_object_elevation /*= 5.0*/;
@@ -1053,6 +1036,7 @@ protected:
         OPT_PTR(support_base_height);
         OPT_PTR(support_critical_angle);
         OPT_PTR(support_max_bridge_length);
+        OPT_PTR(support_max_pillar_link_distance);
         OPT_PTR(support_points_density_relative);
         OPT_PTR(support_points_minimal_distance);
         OPT_PTR(support_object_elevation);
@@ -1145,72 +1129,32 @@ protected:
 #undef STATIC_PRINT_CONFIG_CACHE_DERIVED
 #undef OPT_PTR
 
-class CLIConfigDef : public ConfigDef
+class CLIActionsConfigDef : public ConfigDef
 {
 public:
-    CLIConfigDef();
+    CLIActionsConfigDef();
 };
 
-extern const CLIConfigDef cli_config_def;
-
-#define OPT_PTR(KEY) if (opt_key == #KEY) return &this->KEY
-
-class CLIConfig : public virtual ConfigBase, public StaticConfig
+class CLITransformConfigDef : public ConfigDef
 {
 public:
-    ConfigOptionFloat               cut;
-    ConfigOptionString              datadir;
-    ConfigOptionBool                dont_arrange;
-    ConfigOptionBool                export_3mf;
-    ConfigOptionBool                gui;
-    ConfigOptionBool                info;
-    ConfigOptionBool                help;
-    ConfigOptionStrings             load;
-    ConfigOptionBool                no_gui;
-    ConfigOptionString              output;
-    ConfigOptionPoint               print_center;
-    ConfigOptionFloat               rotate;
-    ConfigOptionFloat               rotate_x;
-    ConfigOptionFloat               rotate_y;
-    ConfigOptionString              save;
-    ConfigOptionFloat               scale;
-//    ConfigOptionPoint3              scale_to_fit;
-    ConfigOptionBool                slice;
-
-    CLIConfig() : ConfigBase(), StaticConfig()
-    {
-        this->set_defaults();
-    };
-
-    // Overrides ConfigBase::def(). Static configuration definition. Any value stored into this ConfigBase shall have its definition here.
-    const ConfigDef*		def() const override { return &cli_config_def; }
-    t_config_option_keys    keys() const override { return cli_config_def.keys(); }
-
-    ConfigOption*			optptr(const t_config_option_key &opt_key, bool create = false) override
-    {
-        OPT_PTR(cut);
-        OPT_PTR(datadir);
-        OPT_PTR(dont_arrange);
-        OPT_PTR(export_3mf);
-        OPT_PTR(gui);
-        OPT_PTR(help);
-        OPT_PTR(info);
-        OPT_PTR(load);
-        OPT_PTR(no_gui);
-        OPT_PTR(output);
-        OPT_PTR(print_center);
-        OPT_PTR(rotate);
-        OPT_PTR(rotate_x);
-        OPT_PTR(rotate_y);
-        OPT_PTR(save);
-        OPT_PTR(scale);
-//        OPT_PTR(scale_to_fit);
-        OPT_PTR(slice);
-        return NULL;
-    }
+    CLITransformConfigDef();
 };
 
-#undef OPT_PTR
+class CLIMiscConfigDef : public ConfigDef
+{
+public:
+    CLIMiscConfigDef();
+};
+
+// This class defines the command line options representing actions.
+extern const CLIActionsConfigDef    cli_actions_config_def;
+
+// This class defines the command line options representing transforms.
+extern const CLITransformConfigDef  cli_transform_config_def;
+
+// This class defines all command line options that are not actions or transforms.
+extern const CLIMiscConfigDef       cli_misc_config_def;
 
 class DynamicPrintAndCLIConfig : public DynamicPrintConfig
 {
@@ -1233,18 +1177,15 @@ private:
     public:
         PrintAndCLIConfigDef() {
             this->options.insert(print_config_def.options.begin(), print_config_def.options.end());
-            this->options.insert(cli_config_def.options.begin(), cli_config_def.options.end());
+            this->options.insert(cli_actions_config_def.options.begin(), cli_actions_config_def.options.end());
+            this->options.insert(cli_transform_config_def.options.begin(), cli_transform_config_def.options.end());
+            this->options.insert(cli_misc_config_def.options.begin(), cli_misc_config_def.options.end());
         }
-        // Do not release the default values, they are handled by print_config_def & cli_config_def.
+        // Do not release the default values, they are handled by print_config_def & cli_actions_config_def / cli_transform_config_def / cli_misc_config_def.
         ~PrintAndCLIConfigDef() { this->options.clear(); }
     };
     static PrintAndCLIConfigDef s_def;
 };
-
-/// Iterate through all of the print options and write them to a stream.
-std::ostream& print_print_options(std::ostream& out);
-/// Iterate through all of the CLI options and write them to a stream.
-std::ostream& print_cli_options(std::ostream& out);
 
 } // namespace Slic3r
 

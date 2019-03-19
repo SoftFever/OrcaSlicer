@@ -1,4 +1,4 @@
-#include "slic3r/GUI/GLGizmo.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmos.hpp"
 #include "GLCanvas3D.hpp"
 
 #include "admesh/stl.h"
@@ -16,7 +16,6 @@
 #include "slic3r/GUI/GLShader.hpp"
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/PresetBundle.hpp"
-//#include "slic3r/GUI/GLGizmo.hpp"
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_ObjectManipulation.hpp"
@@ -54,7 +53,6 @@
 #include <cmath>
 
 static const float TRACKBALLSIZE = 0.8f;
-static const float GIMBALL_LOCK_THETA_MAX = 180.0f;
 static const float GROUND_Z = -0.02f;
 
 // phi / theta angles to orient the camera.
@@ -79,7 +77,7 @@ static const float DEFAULT_BG_LIGHT_COLOR[3] = { 0.753f, 0.753f, 0.753f };
 static const float ERROR_BG_DARK_COLOR[3] = { 0.478f, 0.192f, 0.039f };
 static const float ERROR_BG_LIGHT_COLOR[3] = { 0.753f, 0.192f, 0.039f };
 static const float UNIFORM_SCALE_COLOR[3] = { 1.0f, 0.38f, 0.0f };
-static const float AXES_COLOR[3][3] = { { 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f, 1.0f } };
+//static const float AXES_COLOR[3][3] = { { 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f, 1.0f } };
 
 namespace Slic3r {
 namespace GUI {
@@ -181,61 +179,6 @@ float Rect::get_bottom() const
 void Rect::set_bottom(float bottom)
 {
     m_bottom = bottom;
-}
-
-GLCanvas3D::Camera::Camera()
-    : type(Ortho)
-    , zoom(1.0f)
-    , phi(45.0f)
-//    , distance(0.0f)
-    , m_theta(45.0f)
-    , m_target(Vec3d::Zero())
-{
-}
-
-std::string GLCanvas3D::Camera::get_type_as_string() const
-{
-    switch (type)
-    {
-    default:
-    case Unknown:
-        return "unknown";
-//    case Perspective:
-//        return "perspective";
-    case Ortho:
-        return "ortho";
-    };
-}
-
-void GLCanvas3D::Camera::set_theta(float theta, bool apply_limit)
-{
-    if (apply_limit)
-        m_theta = clamp(0.0f, GIMBALL_LOCK_THETA_MAX, theta);
-    else
-    {
-        m_theta = fmod(theta, 360.0f);
-        if (m_theta < 0.0f)
-            m_theta += 360.0f;
-    }
-}
-
-void GLCanvas3D::Camera::set_target(const Vec3d& target, GLCanvas3D& canvas)
-{
-    m_target = target;
-    m_target(0) = clamp(m_scene_box.min(0), m_scene_box.max(0), m_target(0));
-    m_target(1) = clamp(m_scene_box.min(1), m_scene_box.max(1), m_target(1));
-    m_target(2) = clamp(m_scene_box.min(2), m_scene_box.max(2), m_target(2));
-    if (!m_target.isApprox(target))
-        canvas.viewport_changed();
-}
-
-void GLCanvas3D::Camera::set_scene_box(const BoundingBoxf3& box, GLCanvas3D& canvas)
-{
-    if (m_scene_box != box)
-    {
-        m_scene_box = box;
-        canvas.viewport_changed();
-    }
 }
 
 #if !ENABLE_TEXTURES_FROM_SVG
@@ -1145,8 +1088,11 @@ bool GLCanvas3D::Selection::is_single_full_instance() const
     for (unsigned int i : m_list)
     {
         const GLVolume* v = (*m_volumes)[i];
+        if ((object_idx != v->object_idx()) || (instance_idx != v->instance_idx()))
+            return false;
+
         int volume_idx = v->volume_idx();
-        if ((v->object_idx() == object_idx) && (v->instance_idx() == instance_idx) && (volume_idx >= 0))
+        if (volume_idx >= 0)
             volumes_idxs.insert(volume_idx);
     }
 
@@ -1275,69 +1221,89 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation, GLCanvas3D::Transforma
     // Only relative rotation values are allowed in the world coordinate system.
     assert(! transformation_type.world() || transformation_type.relative());
 
-    int rot_axis_max;
-    //FIXME this does not work for absolute rotations (transformation_type.absolute() is true)
-    rotation.cwiseAbs().maxCoeff(&rot_axis_max);
-
-	// For generic rotation, we want to rotate the first volume in selection, and then to synchronize the other volumes with it.
-	std::vector<int> object_instance_first(m_model->objects.size(), -1);
-	auto rotate_instance = [this, &rotation, &object_instance_first, rot_axis_max, transformation_type](GLVolume &volume, int i) {
-        int first_volume_idx = object_instance_first[volume.object_idx()];
-        if (rot_axis_max != 2 && first_volume_idx != -1) {
-            // Generic rotation, but no rotation around the Z axis.
-            // Always do a local rotation (do not consider the selection to be a rigid body).
-            assert(is_approx(rotation.z(), 0.0));
-            const GLVolume &first_volume = *(*m_volumes)[first_volume_idx];
-            const Vec3d    &rotation     = first_volume.get_instance_rotation();
-            double z_diff = rotation_diff_z(m_cache.volumes_data[first_volume_idx].get_instance_rotation(), m_cache.volumes_data[i].get_instance_rotation());
-            volume.set_instance_rotation(Vec3d(rotation(0), rotation(1), rotation(2) + z_diff));
-        } else {
-            // extracts rotations from the composed transformation
-			Vec3d new_rotation = transformation_type.world() ?
-				Geometry::extract_euler_angles(Geometry::assemble_transform(Vec3d::Zero(), rotation) * m_cache.volumes_data[i].get_instance_rotation_matrix()) :
-				transformation_type.absolute() ? rotation : rotation + m_cache.volumes_data[i].get_instance_rotation();
-            if (rot_axis_max == 2 && transformation_type.joint()) {
-                // Only allow rotation of multiple instances as a single rigid body when rotating around the Z axis.
-                double z_diff = rotation_diff_z(new_rotation, m_cache.volumes_data[i].get_instance_rotation());
-                volume.set_instance_offset(m_cache.dragging_center + Eigen::AngleAxisd(z_diff, Vec3d::UnitZ()) * (m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center));
-            }
-            volume.set_instance_rotation(new_rotation);
-            object_instance_first[volume.object_idx()] = i;
-        }
-    };
-
-    for (unsigned int i : m_list)
+    int rot_axis_max = 0;
+    if (rotation.isApprox(Vec3d::Zero()))
     {
-        GLVolume &volume = *(*m_volumes)[i];
-        if (is_single_full_instance())
-            rotate_instance(volume, i);
-        else if (is_single_volume() || is_single_modifier())
+        for (unsigned int i : m_list)
         {
-            if (transformation_type.independent())
-                volume.set_volume_rotation(volume.get_volume_rotation() + rotation);
-            else
-            {
-                Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), rotation);
-                Vec3d new_rotation = Geometry::extract_euler_angles(m * m_cache.volumes_data[i].get_volume_rotation_matrix());
-                volume.set_volume_rotation(new_rotation);
-            }
-        }
-        else
-        {
+            GLVolume &volume = *(*m_volumes)[i];
             if (m_mode == Instance)
-                rotate_instance(volume, i);
+            {
+                volume.set_instance_rotation(m_cache.volumes_data[i].get_instance_rotation());
+                volume.set_instance_offset(m_cache.volumes_data[i].get_instance_position());
+            }
             else if (m_mode == Volume)
             {
+                volume.set_volume_rotation(m_cache.volumes_data[i].get_volume_rotation());
+                volume.set_volume_offset(m_cache.volumes_data[i].get_volume_position());
+            }
+        }
+    }
+    else
+    {
+        //FIXME this does not work for absolute rotations (transformation_type.absolute() is true)
+        rotation.cwiseAbs().maxCoeff(&rot_axis_max);
+
+	    // For generic rotation, we want to rotate the first volume in selection, and then to synchronize the other volumes with it.
+	    std::vector<int> object_instance_first(m_model->objects.size(), -1);
+	    auto rotate_instance = [this, &rotation, &object_instance_first, rot_axis_max, transformation_type](GLVolume &volume, int i) {
+            int first_volume_idx = object_instance_first[volume.object_idx()];
+            if (rot_axis_max != 2 && first_volume_idx != -1) {
+                // Generic rotation, but no rotation around the Z axis.
+                // Always do a local rotation (do not consider the selection to be a rigid body).
+                assert(is_approx(rotation.z(), 0.0));
+                const GLVolume &first_volume = *(*m_volumes)[first_volume_idx];
+                const Vec3d    &rotation     = first_volume.get_instance_rotation();
+                double z_diff = rotation_diff_z(m_cache.volumes_data[first_volume_idx].get_instance_rotation(), m_cache.volumes_data[i].get_instance_rotation());
+                volume.set_instance_rotation(Vec3d(rotation(0), rotation(1), rotation(2) + z_diff));
+            } else {
                 // extracts rotations from the composed transformation
-                Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), rotation);
-                Vec3d new_rotation = Geometry::extract_euler_angles(m * m_cache.volumes_data[i].get_volume_rotation_matrix());
-                if (transformation_type.joint())
-                {
-                    Vec3d local_pivot = m_cache.volumes_data[i].get_instance_full_matrix().inverse() * m_cache.dragging_center;
-                    Vec3d offset = m * (m_cache.volumes_data[i].get_volume_position() - local_pivot);
-                    volume.set_volume_offset(local_pivot + offset);
+			    Vec3d new_rotation = transformation_type.world() ?
+				    Geometry::extract_euler_angles(Geometry::assemble_transform(Vec3d::Zero(), rotation) * m_cache.volumes_data[i].get_instance_rotation_matrix()) :
+				    transformation_type.absolute() ? rotation : rotation + m_cache.volumes_data[i].get_instance_rotation();
+                if (rot_axis_max == 2 && transformation_type.joint()) {
+                    // Only allow rotation of multiple instances as a single rigid body when rotating around the Z axis.
+                    Vec3d offset = Geometry::assemble_transform(Vec3d::Zero(), Vec3d(0.0, 0.0, new_rotation(2) - m_cache.volumes_data[i].get_instance_rotation()(2))) * (m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center);
+                    volume.set_instance_offset(m_cache.dragging_center + offset);
                 }
-                volume.set_volume_rotation(new_rotation);
+                volume.set_instance_rotation(new_rotation);
+                object_instance_first[volume.object_idx()] = i;
+            }
+        };
+
+        for (unsigned int i : m_list)
+        {
+            GLVolume &volume = *(*m_volumes)[i];
+            if (is_single_full_instance())
+                rotate_instance(volume, i);
+            else if (is_single_volume() || is_single_modifier())
+            {
+                if (transformation_type.independent())
+                    volume.set_volume_rotation(volume.get_volume_rotation() + rotation);
+                else
+                {
+                    Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), rotation);
+                    Vec3d new_rotation = Geometry::extract_euler_angles(m * m_cache.volumes_data[i].get_volume_rotation_matrix());
+                    volume.set_volume_rotation(new_rotation);
+                }
+            }
+            else
+            {
+                if (m_mode == Instance)
+                    rotate_instance(volume, i);
+                else if (m_mode == Volume)
+                {
+                    // extracts rotations from the composed transformation
+                    Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), rotation);
+                    Vec3d new_rotation = Geometry::extract_euler_angles(m * m_cache.volumes_data[i].get_volume_rotation_matrix());
+                    if (transformation_type.joint())
+                    {
+                        Vec3d local_pivot = m_cache.volumes_data[i].get_instance_full_matrix().inverse() * m_cache.dragging_center;
+                        Vec3d offset = m * (m_cache.volumes_data[i].get_volume_position() - local_pivot);
+                        volume.set_volume_offset(local_pivot + offset);
+                    }
+                    volume.set_volume_rotation(new_rotation);
+                }
             }
         }
     }
@@ -3039,14 +3005,6 @@ void GLCanvas3D::Gizmos::render_overlay(const GLCanvas3D& canvas, const GLCanvas
     ::glPopMatrix();
 }
 
-#if !ENABLE_IMGUI
-void GLCanvas3D::Gizmos::create_external_gizmo_widgets(wxWindow *parent)
-{
-    for (auto &entry : m_gizmos) {
-        entry.second->create_external_gizmo_widgets(parent);
-    }
-}
-#endif // not ENABLE_IMGUI
 
 void GLCanvas3D::Gizmos::reset()
 {
@@ -3065,13 +3023,12 @@ void GLCanvas3D::Gizmos::do_render_overlay(const GLCanvas3D& canvas, const GLCan
         return;
 
     float cnv_w = (float)canvas.get_canvas_size().get_width();
-#if ENABLE_IMGUI
     float cnv_h = (float)canvas.get_canvas_size().get_height();
-#endif // ENABLE_IMGUI
     float zoom = canvas.get_camera_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
     float height = get_total_overlay_height();
+    float width = get_total_overlay_width();
 #if ENABLE_SVG_ICONS
     float scaled_border = m_overlay_border * m_overlay_scale * inv_zoom;
 #else
@@ -3083,7 +3040,7 @@ void GLCanvas3D::Gizmos::do_render_overlay(const GLCanvas3D& canvas, const GLCan
 
     float left = top_x;
     float top = top_y;
-    float right = left + get_total_overlay_width() * inv_zoom;
+    float right = left + width * inv_zoom;
     float bottom = top - height * inv_zoom;
 
     // renders background
@@ -3191,29 +3148,27 @@ void GLCanvas3D::Gizmos::do_render_overlay(const GLCanvas3D& canvas, const GLCan
 #if ENABLE_SVG_ICONS
         float u_icon_size = m_overlay_icons_size * m_overlay_scale * inv_tex_width;
         float v_icon_size = m_overlay_icons_size * m_overlay_scale * inv_tex_height;
-        float top = sprite_id * v_icon_size;
-        float left = state * u_icon_size;
-        float bottom = top + v_icon_size;
-        float right = left + u_icon_size;
+        float v_top = sprite_id * v_icon_size;
+        float u_left = state * u_icon_size;
+        float v_bottom = v_top + v_icon_size;
+        float u_right = u_left + u_icon_size;
 #else
         float uv_icon_size = (float)m_icons_texture.metadata.icon_size * inv_texture_size;
-        float top = sprite_id * uv_icon_size;
-        float left = state * uv_icon_size;
-        float bottom = top + uv_icon_size;
-        float right = left + uv_icon_size;
+        float v_top = sprite_id * uv_icon_size;
+        float u_left = state * uv_icon_size;
+        float v_bottom = v_top + uv_icon_size;
+        float u_right = u_left + uv_icon_size;
 #endif // ENABLE_SVG_ICONS
 
-        GLTexture::render_sub_texture(icons_texture_id, top_x, top_x + scaled_icons_size, top_y - scaled_icons_size, top_y, { { left, bottom }, { right, bottom }, { right, top }, { left, top } });
-#if ENABLE_IMGUI
+        GLTexture::render_sub_texture(icons_texture_id, top_x, top_x + scaled_icons_size, top_y - scaled_icons_size, top_y, { { u_left, v_bottom }, { u_right, v_bottom }, { u_right, v_top }, { u_left, v_top } });
         if (it->second->get_state() == GLGizmoBase::On) {
-            float toolbar_top = (float)cnv_h - canvas.m_view_toolbar->get_height();
+            float toolbar_top = (float)cnv_h - canvas.m_view_toolbar.get_height();
 #if ENABLE_SVG_ICONS
-            it->second->render_input_window(2.0f * m_overlay_border + m_overlay_icons_size, 0.5f * cnv_h - top_y * zoom, toolbar_top, selection);
+            it->second->render_input_window(width, 0.5f * cnv_h - top_y * zoom, toolbar_top, selection);
 #else
             it->second->render_input_window(2.0f * m_overlay_border + icon_size * zoom, 0.5f * cnv_h - top_y * zoom, toolbar_top, selection);
 #endif // ENABLE_SVG_ICONS
         }
-#endif // ENABLE_IMGUI
 #if ENABLE_SVG_ICONS
         top_y -= scaled_stride_y;
 #else
@@ -3305,7 +3260,7 @@ bool GLCanvas3D::Gizmos::generate_icons_texture() const
 }
 #endif // ENABLE_SVG_ICONS
 
-const unsigned char GLCanvas3D::WarningTexture::Background_Color[3] = { 9, 91, 134 };
+const unsigned char GLCanvas3D::WarningTexture::Background_Color[3] = { 120, 120, 120 };//{ 9, 91, 134 };
 const unsigned char GLCanvas3D::WarningTexture::Opacity = 255;
 
 GLCanvas3D::WarningTexture::WarningTexture()
@@ -3339,16 +3294,23 @@ void GLCanvas3D::WarningTexture::activate(WarningTexture::Warning warning, bool 
 
     // Look at the end of our vector and generate proper texture.
     std::string text;
+    bool red_colored = false;
     switch (m_warnings.back()) {
         case ObjectOutside      : text = L("Detected object outside print volume"); break;
         case ToolpathOutside    : text = L("Detected toolpath outside print volume"); break;
         case SomethingNotShown  : text = L("Some objects are not visible when editing supports"); break;
+        case ObjectClashed: {
+            text = L("Detected object outside print volume\n"
+                     "Resolve a clash to continue slicing/export process correctly"); 
+            red_colored = true;
+            break;
+        }
     }
 
-    _generate(text, canvas); // GUI::GLTexture::reset() is called at the beginning of generate(...)
+    _generate(text, canvas, red_colored); // GUI::GLTexture::reset() is called at the beginning of generate(...)
 }
 
-bool GLCanvas3D::WarningTexture::_generate(const std::string& msg, const GLCanvas3D& canvas)
+bool GLCanvas3D::WarningTexture::_generate(const std::string& msg, const GLCanvas3D& canvas, const bool red_colored/* = false*/)
 {
     reset();
 
@@ -3365,7 +3327,8 @@ bool GLCanvas3D::WarningTexture::_generate(const std::string& msg, const GLCanva
 
     // calculates texture size
     wxCoord w, h;
-    memDC.GetTextExtent(msg, &w, &h);
+//     memDC.GetTextExtent(msg, &w, &h);
+    memDC.GetMultiLineTextExtent(msg, &w, &h);
 
     int pow_of_two_size = next_highest_power_of_2(std::max<unsigned int>(w, h));
 
@@ -3382,8 +3345,9 @@ bool GLCanvas3D::WarningTexture::_generate(const std::string& msg, const GLCanva
     memDC.Clear();
 
     // draw message
-    memDC.SetTextForeground(*wxWHITE);
-    memDC.DrawText(msg, 0, 0);
+    memDC.SetTextForeground(red_colored ? wxColour(255,72,65/*204,204*/) : *wxWHITE);
+//     memDC.DrawText(msg, 0, 0);
+    memDC.DrawLabel(msg, wxRect(0,0, m_original_width, m_original_height), wxALIGN_CENTER);
 
     memDC.SelectObject(wxNullBitmap);
 
@@ -3710,7 +3674,6 @@ void GLCanvas3D::LegendTexture::render(const GLCanvas3D& canvas) const
 wxDEFINE_EVENT(EVT_GLCANVAS_INIT, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, SimpleEvent);
-wxDEFINE_EVENT(EVT_GLCANVAS_VIEWPORT_CHANGED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_RIGHT_CLICK, Vec2dEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_REMOVE_OBJECT, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ARRANGE, SimpleEvent);
@@ -3727,20 +3690,21 @@ wxDEFINE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_UPDATE_BED_SHAPE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_TAB, SimpleEvent);
 
-GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
+GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar)
     : m_canvas(canvas)
     , m_context(nullptr)
 #if ENABLE_RETINA_GL
     , m_retina_helper(nullptr)
 #endif
     , m_in_render(false)
-    , m_bed(nullptr)
+    , m_bed(bed)
+    , m_camera(camera)
+    , m_view_toolbar(view_toolbar)
 #if ENABLE_SVG_ICONS
     , m_toolbar(GLToolbar::Normal, "Top")
 #else
     , m_toolbar(GLToolbar::Normal)
 #endif // ENABLE_SVG_ICONS
-    , m_view_toolbar(nullptr)
     , m_use_clipping_planes(false)
     , m_sidebar_field("")
     , m_config(nullptr)
@@ -3749,7 +3713,6 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     , m_dirty(true)
     , m_initialized(false)
     , m_use_VBOs(false)
-    , m_requires_zoom_to_bed(false)
     , m_apply_zoom_to_volumes_filter(false)
     , m_hover_volume_id(-1)
     , m_toolbar_action_running(false)
@@ -3764,9 +3727,6 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     , m_color_by("volume")
     , m_reload_delayed(false)
     , m_render_sla_auxiliaries(true)
-#if !ENABLE_IMGUI
-    , m_external_gizmo_widgets_parent(nullptr)
-#endif // not ENABLE_IMGUI
 {
     if (m_canvas != nullptr) {
         m_timer.SetOwner(m_canvas);
@@ -3787,11 +3747,6 @@ void GLCanvas3D::post_event(wxEvent &&event)
 {
     event.SetEventObject(m_canvas);
     wxPostEvent(m_canvas, event);
-}
-
-void GLCanvas3D::viewport_changed()
-{
-    post_event(SimpleEvent(EVT_GLCANVAS_VIEWPORT_CHANGED));
 }
 
 bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
@@ -3864,13 +3819,6 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
             std::cout << "Unable to initialize gizmos: please, check that all the required textures are available" << std::endl;
             return false;
         }
-
-#if !ENABLE_IMGUI
-        if (m_external_gizmo_widgets_parent != nullptr) {
-            m_gizmos.create_external_gizmo_widgets(m_external_gizmo_widgets_parent);
-            m_canvas->GetParent()->Layout();
-        }
-#endif // not ENABLE_IMGUI
     }
 
     if (!_init_toolbar())
@@ -3968,9 +3916,8 @@ void GLCanvas3D::set_model(Model* model)
 
 void GLCanvas3D::bed_shape_changed()
 {
-    m_camera.set_scene_box(scene_bounding_box(), *this);
-    m_requires_zoom_to_bed = true;
-
+    m_camera.set_scene_box(scene_bounding_box());
+    m_camera.requires_zoom_to_bed = true;
     m_dirty = true;
 }
 
@@ -3998,8 +3945,7 @@ BoundingBoxf3 GLCanvas3D::volumes_bounding_box() const
 BoundingBoxf3 GLCanvas3D::scene_bounding_box() const
 {
     BoundingBoxf3 bb = volumes_bounding_box();
-    if (m_bed != nullptr)
-        bb.merge(m_bed->get_bounding_box());
+    bb.merge(m_bed.get_bounding_box());
 
     if (m_config != nullptr)
     {
@@ -4088,8 +4034,7 @@ bool GLCanvas3D::is_toolbar_item_pressed(const std::string& name) const
 
 void GLCanvas3D::zoom_to_bed()
 {
-    if (m_bed != nullptr)
-        _zoom_to_bounding_box(m_bed->get_bounding_box());
+    _zoom_to_bounding_box(m_bed.get_bounding_box());
 }
 
 void GLCanvas3D::zoom_to_volumes()
@@ -4128,22 +4073,9 @@ void GLCanvas3D::select_view(const std::string& direction)
     {
         m_camera.phi = dir_vec[0];
         m_camera.set_theta(dir_vec[1], false);
-
-        viewport_changed();
-        
         if (m_canvas != nullptr)
             m_canvas->Refresh();
     }
-}
-
-void GLCanvas3D::set_viewport_from_scene(const GLCanvas3D& other)
-{
-    m_camera.phi = other.m_camera.phi;
-    m_camera.set_theta(other.m_camera.get_theta(), false);
-    m_camera.set_scene_box(other.m_camera.get_scene_box(), *this);
-    m_camera.set_target(other.m_camera.get_target(), *this);
-    m_camera.zoom = other.m_camera.zoom;
-    m_dirty = true;
 }
 
 void GLCanvas3D::update_volumes_colors_by_extruder()
@@ -4161,27 +4093,6 @@ void GLCanvas3D::update_toolbar_items_visibility()
     m_dirty = true;
 }
 
-// Returns a Rect object denoting size and position of the Reset button used by a gizmo.
-// Returns in either screen or viewport coords.
-#if !ENABLE_IMGUI
-Rect GLCanvas3D::get_gizmo_reset_rect(const GLCanvas3D& canvas, bool viewport) const
-{
-    const Size& cnv_size = canvas.get_canvas_size();
-    float w = (viewport ? -0.5f : 0.f) * (float)cnv_size.get_width();
-    float h = (viewport ? 0.5f : 1.f) * (float)cnv_size.get_height();
-    float zoom = canvas.get_camera_zoom();
-    float inv_zoom = viewport ? ((zoom != 0.0f) ? 1.0f / zoom : 0.0f) : 1.f;
-    const float gap = 30.f;
-    return Rect((w + gap + 80.f) * inv_zoom, (viewport ? -1.f : 1.f) * (h - GIZMO_RESET_BUTTON_HEIGHT) * inv_zoom,
-                (w + gap + 80.f + GIZMO_RESET_BUTTON_WIDTH) * inv_zoom, (viewport ? -1.f : 1.f) * (h * inv_zoom));
-}
-
-bool GLCanvas3D::gizmo_reset_rect_contains(const GLCanvas3D& canvas, float x, float y) const
-{
-    const Rect& rect = get_gizmo_reset_rect(canvas, false);
-    return (rect.get_left() <= x) && (x <= rect.get_right()) && (rect.get_top() <= y) && (y <= rect.get_bottom());
-}
-#endif // not ENABLE_IMGUI
 
 void GLCanvas3D::render()
 {
@@ -4193,25 +4104,29 @@ void GLCanvas3D::render()
     if (m_canvas == nullptr)
         return;
 
+#ifndef __WXMAC__
+    // on Mac this check causes flickering when changing view
     if (!_is_shown_on_screen())
         return;
+#endif // __WXMAC__
 
     // ensures this canvas is current and initialized
     if (!_set_current() || !_3DScene::init(m_canvas))
         return;
 
-    if ((m_bed != nullptr) && m_bed->get_shape().empty())
+    if (m_bed.get_shape().empty())
     {
         // this happens at startup when no data is still saved under <>\AppData\Roaming\Slic3rPE
         post_event(SimpleEvent(EVT_GLCANVAS_UPDATE_BED_SHAPE));
+        return;
     }
 
-    if (m_requires_zoom_to_bed)
+    if (m_camera.requires_zoom_to_bed)
     {
         zoom_to_bed();
         const Size& cnv_size = get_canvas_size();
         _resize((unsigned int)cnv_size.get_width(), (unsigned int)cnv_size.get_height());
-        m_requires_zoom_to_bed = false;
+        m_camera.requires_zoom_to_bed = false;
     }
 
     _camera_tranform();
@@ -4226,11 +4141,7 @@ void GLCanvas3D::render()
         // absolute value of the rotation
         theta = 360.f - theta;
 
-    bool is_custom_bed = (m_bed == nullptr) || m_bed->is_custom();
-
-#if ENABLE_IMGUI
     wxGetApp().imgui()->new_frame();
-#endif // ENABLE_IMGUI
 
     // picking pass
     _picking_pass();
@@ -4240,8 +4151,8 @@ void GLCanvas3D::render()
     _render_background();
 
     // textured bed needs to be rendered after objects if the texture is transparent
-    bool early_bed_render = is_custom_bed || (theta <= 90.0f);
-    if (early_bed_render) 
+    bool early_bed_render = m_bed.is_custom() || (theta <= 90.0f);
+    if (early_bed_render)
         _render_bed(theta);
 
     _render_objects();
@@ -4281,9 +4192,7 @@ void GLCanvas3D::render()
     if (m_layers_editing.last_object_id >= 0)
         m_layers_editing.render_overlay(*this);
 
-#if ENABLE_IMGUI
     wxGetApp().imgui()->render();
-#endif // ENABLE_IMGUI
 
     m_canvas->SwapBuffers();
 }
@@ -4611,11 +4520,18 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
                 const Print *print = m_process->fff_print();
                 float depth = print->get_wipe_tower_depth();
+
+                // Calculate wipe tower brim spacing.
+                const DynamicPrintConfig &print_config  = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+                double layer_height                     = print_config.opt_float("layer_height");
+                double first_layer_height               = print_config.get_abs_value("first_layer_height", layer_height);
+                float brim_spacing = print->config().nozzle_diameter.values[0] * 1.25f - first_layer_height * (1. - M_PI_4);
+
                 if (!print->is_step_done(psWipeTower))
                     depth = (900.f/w) * (float)(extruders_count - 1) ;
                 int volume_idx_wipe_tower_new = m_volumes.load_wipe_tower_preview(
                     1000, x, y, w, depth, (float)height, a, m_use_VBOs && m_initialized, !print->is_step_done(psWipeTower),
-                    print->config().nozzle_diameter.values[0] * 1.25f * 4.5f);
+                    brim_spacing * 4.5f);
                 if (volume_idx_wipe_tower_old != -1)
                     map_glvolume_old_to_new[volume_idx_wipe_tower_old] = volume_idx_wipe_tower_new;
             }
@@ -4635,31 +4551,40 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     if (!m_volumes.empty())
     {
         ModelInstance::EPrintVolumeState state;
-        bool contained = m_volumes.check_outside_state(m_config, &state);
 
-        if (!contained)
-        {
-            _set_warning_texture(WarningTexture::ObjectOutside, true);
-            post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, state == ModelInstance::PVS_Fully_Outside));
-        }
-        else
-        {
-            m_volumes.reset_outside_state();
-            _set_warning_texture(WarningTexture::ObjectOutside, false);
-            post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, !m_model->objects.empty()));
-        }
+        const bool contained_min_one = m_volumes.check_outside_state(m_config, &state);
+
+        _set_warning_texture(WarningTexture::ObjectClashed, state == ModelInstance::PVS_Partly_Outside);
+        _set_warning_texture(WarningTexture::ObjectOutside, state == ModelInstance::PVS_Fully_Outside);
+
+        post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, 
+                               contained_min_one && !m_model->objects.empty() && state != ModelInstance::PVS_Partly_Outside));
+
+// #ys_FIXME_delete_after_testing
+//         bool contained = m_volumes.check_outside_state(m_config, &state);
+//         if (!contained)
+//         {
+//             _set_warning_texture(WarningTexture::ObjectOutside, true);
+//             post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, state == ModelInstance::PVS_Fully_Outside));
+//         }
+//         else
+//         {
+//             m_volumes.reset_outside_state();
+//             _set_warning_texture(WarningTexture::ObjectOutside, false);
+//             post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, !m_model->objects.empty()));
+//         }
     }
     else
     {
         _set_warning_texture(WarningTexture::ObjectOutside, false);
+        _set_warning_texture(WarningTexture::ObjectClashed, false);
         post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, false));
     }
 
     // restore to default value
     m_regenerate_volumes = true;
 
-    m_camera.set_scene_box(scene_bounding_box(), *this);
-    m_camera.set_target(m_camera.get_target(), *this);
+    m_camera.set_scene_box(scene_bounding_box());
 
     if (m_selection.is_empty())
     {
@@ -4833,13 +4758,11 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
     int keyCode = evt.GetKeyCode();
     int ctrlMask = wxMOD_CONTROL;
 
-#if ENABLE_IMGUI
     auto imgui = wxGetApp().imgui();
     if (imgui->update_key_data(evt)) {
         render();
         return;
     }
-#endif // ENABLE_IMGUI
 
 //#ifdef __APPLE__
 //    ctrlMask |= wxMOD_RAW_CONTROL;
@@ -4947,12 +4870,10 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
 {
     const int keyCode = evt.GetKeyCode();
 
-#if ENABLE_IMGUI
     auto imgui = wxGetApp().imgui();
     if (imgui->update_key_data(evt)) {
         render();
     } else
-#endif // ENABLE_IMGUI
     if (evt.GetEventType() == wxEVT_KEY_UP) {
         if (m_tab_down && keyCode == WXK_TAB && !evt.HasAnyModifiers()) {
             // Enable switching between 3D and Preview with Tab
@@ -5075,7 +4996,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
 	Point pos(evt.GetX(), evt.GetY());
 
-#if ENABLE_IMGUI
     ImGuiWrapper *imgui = wxGetApp().imgui();
     if (imgui->update_mouse_data(evt)) {
         m_mouse.position = evt.Leaving() ? Vec2d(-1.0, -1.0) : pos.cast<double>();
@@ -5085,7 +5005,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #endif /* SLIC3R_DEBUG_MOUSE_EVENTS */
 		return;
     }
-#endif // ENABLE_IMGUI
 
 #ifdef __WXMSW__
 	bool on_enter_workaround = false;
@@ -5113,7 +5032,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     m_layers_editing.select_object(*m_model, layer_editing_object_idx);
     bool gizmos_overlay_contains_mouse = m_gizmos.overlay_contains_mouse(*this, m_mouse.position);
     int toolbar_contains_mouse = m_toolbar.contains_mouse(m_mouse.position, *this);
-    int view_toolbar_contains_mouse = (m_view_toolbar != nullptr) ? m_view_toolbar->contains_mouse(m_mouse.position, *this) : -1;
+    int view_toolbar_contains_mouse = m_view_toolbar.contains_mouse(m_mouse.position, *this);
 
 #if ENABLE_MOVE_MIN_THRESHOLD
     if (m_mouse.drag.move_requires_threshold && m_mouse.is_move_start_threshold_position_2D_defined() && m_mouse.is_move_threshold_met(pos))
@@ -5225,10 +5144,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // event was taken care of by the SlaSupports gizmo
         }
         else if (evt.LeftDown() && (view_toolbar_contains_mouse != -1))
-        {
-            if (m_view_toolbar != nullptr)
-                m_view_toolbar->do_action((unsigned int)view_toolbar_contains_mouse, *this);
-        }
+            m_view_toolbar.do_action((unsigned int)view_toolbar_contains_mouse, *this);
         else if (evt.LeftDown() && (toolbar_contains_mouse != -1))
         {
             m_toolbar_action_running = true;
@@ -5292,42 +5208,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                         m_selection.start_dragging();
                         m_mouse.drag.start_position_3D = m_mouse.scene_position;
                         m_moving = true;
-                    }
-                }
-                else if (evt.RightDown())
-                {
-                    m_mouse.position = pos.cast<double>();
-                    // forces a frame render to ensure that m_hover_volume_id is updated even when the user right clicks while
-                    // the context menu is already shown
-                    render();
-                    if (m_hover_volume_id != -1)
-                    {
-                        // if right clicking on volume, propagate event through callback (shows context menu)
-                        if (m_volumes.volumes[m_hover_volume_id]->hover
-                         && !m_volumes.volumes[m_hover_volume_id]->is_wipe_tower // no context menu for the wipe tower
-                         && m_gizmos.get_current_type() != Gizmos::SlaSupports)  // disable context menu when the gizmo is open
-                        {
-                            // forces the selection of the volume
-                            /** #ys_FIXME_to_delete after testing:
-                              * Next condition allows a multiple instance selection for the context menu,
-                              * which has no reason. So it's commented till next testing
-                              */
-//                             if (!m_selection.is_multiple_full_instance()) // #ys_FIXME_to_delete
-                                m_selection.add(m_hover_volume_id);
-                            m_gizmos.update_on_off_state(m_selection);
-                            post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
-                            _update_gizmos_data();
-                            wxGetApp().obj_manipul()->update_settings_value(m_selection);
-                           // forces a frame render to update the view before the context menu is shown
-                           render();
-                            
-                            Vec2d logical_pos = pos.cast<double>();
-#if ENABLE_RETINA_GL
-                            const float factor = m_retina_helper->get_scale_factor();
-                            logical_pos = logical_pos.cwiseQuotient(Vec2d(factor, factor));
-#endif // ENABLE_RETINA_GL
-                            post_event(Vec2dEvent(EVT_GLCANVAS_RIGHT_CLICK, logical_pos));
-                        }
                     }
                 }
             }
@@ -5459,9 +5339,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 const Vec3d& orig = m_mouse.drag.start_position_3D;
                 m_camera.phi += (((float)pos(0) - (float)orig(0)) * TRACKBALLSIZE);
                 m_camera.set_theta(m_camera.get_theta() - ((float)pos(1) - (float)orig(1)) * TRACKBALLSIZE, wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA);
-
-                viewport_changed();
-
                 m_dirty = true;
             }
             m_mouse.drag.start_position_3D = Vec3d((double)pos(0), (double)pos(1), 0.0);
@@ -5475,10 +5352,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 float z = 0.0f;
                 const Vec3d& cur_pos = _mouse_to_3d(pos, &z);
                 Vec3d orig = _mouse_to_3d(m_mouse.drag.start_position_2D, &z);
-                m_camera.set_target(m_camera.get_target() + orig - cur_pos, *this);
-
-                viewport_changed();
-
+                m_camera.set_target(m_camera.get_target() + orig - cur_pos);
                 m_dirty = true;
             }
             
@@ -5498,7 +5372,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         {
             // the gizmo got the event and took some action, no need to do anything more
         }
-        else if ((m_mouse.drag.move_volume_idx != -1) && m_mouse.dragging)
+        else if ((m_mouse.drag.move_volume_idx != -1) && m_mouse.dragging && m_gizmos.get_current_type() != Gizmos::SlaSupports)
         {
             m_regenerate_volumes = false;
             do_move();
@@ -5555,8 +5429,38 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // Let the platter know that the dragging finished, so a delayed refresh
             // of the scene with the background processing data should be performed.
             post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
-            m_camera.set_scene_box(scene_bounding_box(), *this);
-            set_camera_zoom(0.0f);
+            m_camera.set_scene_box(scene_bounding_box());
+        }
+        else if (evt.RightUp())
+        {
+            m_mouse.position = pos.cast<double>();
+            // forces a frame render to ensure that m_hover_volume_id is updated even when the user right clicks while
+            // the context menu is already shown
+            render();
+            if (m_hover_volume_id != -1)
+            {
+                // if right clicking on volume, propagate event through callback (shows context menu)
+                if (m_volumes.volumes[m_hover_volume_id]->hover
+                    && !m_volumes.volumes[m_hover_volume_id]->is_wipe_tower // no context menu for the wipe tower
+                    && m_gizmos.get_current_type() != Gizmos::SlaSupports)  // disable context menu when the gizmo is open
+                {
+                    // forces the selection of the volume
+                    m_selection.add(m_hover_volume_id);
+                    m_gizmos.update_on_off_state(m_selection);
+                    post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
+                    _update_gizmos_data();
+                    wxGetApp().obj_manipul()->update_settings_value(m_selection);
+                    // forces a frame render to update the view before the context menu is shown
+                    render();
+
+                    Vec2d logical_pos = pos.cast<double>();
+#if ENABLE_RETINA_GL
+                    const float factor = m_retina_helper->get_scale_factor();
+                    logical_pos = logical_pos.cwiseQuotient(Vec2d(factor, factor));
+#endif // ENABLE_RETINA_GL
+                    post_event(Vec2dEvent(EVT_GLCANVAS_RIGHT_CLICK, logical_pos));
+                }
+            }
         }
 
         m_moving = false;
@@ -5586,9 +5490,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             tooltip = m_toolbar.update_hover_state(m_mouse.position, *this);
 
         // updates view toolbar overlay
-        if (tooltip.empty() && (m_view_toolbar != nullptr))
+        if (tooltip.empty())
         {
-            tooltip = m_view_toolbar->update_hover_state(m_mouse.position, *this);    
+            tooltip = m_view_toolbar.update_hover_state(m_mouse.position, *this);
             if (!tooltip.empty())
                 m_dirty = true;
         }
@@ -5671,12 +5575,6 @@ void GLCanvas3D::set_tooltip(const std::string& tooltip) const
     }
 }
 
-#if !ENABLE_IMGUI
-void GLCanvas3D::set_external_gizmo_widgets_parent(wxWindow *parent)
-{
-    m_external_gizmo_widgets_parent = parent;
-}
-#endif // not ENABLE_IMGUI
 
 void GLCanvas3D::do_move()
 {
@@ -5902,7 +5800,6 @@ void GLCanvas3D::set_camera_zoom(float zoom)
     zoom = std::min(zoom, 100.0f);
 
     m_camera.zoom = zoom;
-    viewport_changed();
     _refresh_if_shown_on_screen();
 }
 
@@ -5978,6 +5875,9 @@ bool GLCanvas3D::_init_toolbar()
         return true;
     }
 
+#if ENABLE_SVG_ICONS
+    m_toolbar.set_icons_size(40);
+#endif // ENABLE_SVG_ICONS
 //    m_toolbar.set_layout_type(GLToolbar::Layout::Vertical);
     m_toolbar.set_layout_type(GLToolbar::Layout::Horizontal);
     m_toolbar.set_layout_orientation(GLToolbar::Layout::Top);
@@ -6107,14 +6007,12 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
     if ((m_canvas == nullptr) && (m_context == nullptr))
         return;
 
-#if ENABLE_IMGUI
     wxGetApp().imgui()->set_display_size((float)w, (float)h);
 #if ENABLE_RETINA_GL
     wxGetApp().imgui()->set_style_scaling(m_retina_helper->get_scale_factor());
 #else
     wxGetApp().imgui()->set_style_scaling(m_canvas->GetContentScaleFactor());
 #endif
-#endif // ENABLE_IMGUI
 
     // ensures that this canvas is current
     _set_current();
@@ -6182,8 +6080,7 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
 BoundingBoxf3 GLCanvas3D::_max_bounding_box() const
 {
     BoundingBoxf3 bb = volumes_bounding_box();
-    if (m_bed != nullptr)
-        bb.merge(m_bed->get_bounding_box());
+    bb.merge(m_bed.get_bounding_box());
     return bb;
 }
 
@@ -6195,10 +6092,7 @@ void GLCanvas3D::_zoom_to_bounding_box(const BoundingBoxf3& bbox)
     {
         m_camera.zoom = zoom;
         // center view around bounding box center
-        m_camera.set_target(bbox.center(), *this);
-
-        viewport_changed();
-
+        m_camera.set_target(bbox.center());
         m_dirty = true;
     }
 }
@@ -6290,7 +6184,6 @@ void GLCanvas3D::_camera_tranform() const
 
     ::glRotatef(-m_camera.get_theta(), 1.0f, 0.0f, 0.0f); // pitch
     ::glRotatef(m_camera.phi, 0.0f, 0.0f, 1.0f);          // yaw
-
     Vec3d target = -m_camera.get_target();
     ::glTranslated(target(0), target(1), target(2));
 }
@@ -6329,7 +6222,6 @@ void GLCanvas3D::_picking_pass() const
             ::glReadPixels(pos(0), cnv_size.get_height() - pos(1) - 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, (void*)color);
             volume_id = color[0] + color[1] * 256 + color[2] * 256 * 256;
         }
-
         if ((0 <= volume_id) && (volume_id < (int)m_volumes.volumes.size()))
         {
             m_hover_volume_id = volume_id;
@@ -6338,7 +6230,7 @@ void GLCanvas3D::_picking_pass() const
         else
         {
             m_hover_volume_id = -1;
-            m_gizmos.set_hover_id(inside ? (254 - (int)color[2]) : -1);
+            m_gizmos.set_hover_id(inside && volume_id <= GLGizmoBase::BASE_ID ? (GLGizmoBase::BASE_ID - volume_id) : -1);
         }
 
         _update_volumes_hover_state();
@@ -6386,16 +6278,13 @@ void GLCanvas3D::_render_bed(float theta) const
     float scale_factor = 1.0;
 #if ENABLE_RETINA_GL
     scale_factor = m_retina_helper->get_scale_factor();
-#endif
-
-    if (m_bed != nullptr)
-        m_bed->render(theta, m_use_VBOs, scale_factor);
+#endif // ENABLE_RETINA_GL
+    m_bed.render(theta, m_use_VBOs, scale_factor);
 }
 
 void GLCanvas3D::_render_axes() const
 {
-    if (m_bed != nullptr)
-        m_bed->render_axes();
+    m_bed.render_axes();
 }
 
 void GLCanvas3D::_render_objects() const
@@ -6413,9 +6302,9 @@ void GLCanvas3D::_render_objects() const
             // Update the layer editing selection to the first object selected, update the current object maximum Z.
             const_cast<LayersEditing&>(m_layers_editing).select_object(*m_model, this->is_layers_editing_enabled() ? m_selection.get_object_idx() : -1);
 
-            if ((m_config != nullptr) && (m_bed != nullptr))
+            if (m_config != nullptr)
             {
-                const BoundingBoxf3& bed_bb = m_bed->get_bounding_box();
+                const BoundingBoxf3& bed_bb = m_bed.get_bounding_box();
                 m_volumes.set_print_box((float)bed_bb.min(0), (float)bed_bb.min(1), 0.0f, (float)bed_bb.max(0), (float)bed_bb.max(1), (float)m_config->opt_float("max_print_height"));
                 m_volumes.check_outside_state(m_config, nullptr);
             }
@@ -6597,7 +6486,7 @@ void GLCanvas3D::_render_toolbar() const
         }
         else
         {
-            top = (-0.5f * (float)cnv_size.get_height() + m_view_toolbar->get_height()) * inv_zoom;
+            top = (-0.5f * (float)cnv_size.get_height() + m_view_toolbar.get_height()) * inv_zoom;
             left = -0.5f * m_toolbar.get_width() * inv_zoom;
         }
         break;
@@ -6632,31 +6521,29 @@ void GLCanvas3D::_render_toolbar() const
 
 void GLCanvas3D::_render_view_toolbar() const
 {
-    if (m_view_toolbar != nullptr) {
 #if ENABLE_SVG_ICONS
 #if ENABLE_RETINA_GL
-        m_view_toolbar->set_scale(m_retina_helper->get_scale_factor());
+    m_view_toolbar.set_scale(m_retina_helper->get_scale_factor());
 #else
-        m_view_toolbar->set_scale(m_canvas->GetContentScaleFactor());
+    m_view_toolbar.set_scale(m_canvas->GetContentScaleFactor());
 #endif // ENABLE_RETINA_GL
 
-        Size cnv_size = get_canvas_size();
-        float zoom = get_camera_zoom();
-        float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+    Size cnv_size = get_canvas_size();
+    float zoom = get_camera_zoom();
+    float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
-        // places the toolbar on the bottom-left corner of the 3d scene
-        float top = (-0.5f * (float)cnv_size.get_height() + m_view_toolbar->get_height()) * inv_zoom;
-        float left = -0.5f * (float)cnv_size.get_width() * inv_zoom;
-        m_view_toolbar->set_position(top, left);
+    // places the toolbar on the bottom-left corner of the 3d scene
+    float top = (-0.5f * (float)cnv_size.get_height() + m_view_toolbar.get_height()) * inv_zoom;
+    float left = -0.5f * (float)cnv_size.get_width() * inv_zoom;
+    m_view_toolbar.set_position(top, left);
 #else
 #if ENABLE_RETINA_GL
-        m_view_toolbar->set_icons_scale(m_retina_helper->get_scale_factor());
+    m_view_toolbar.set_icons_scale(m_retina_helper->get_scale_factor());
 #else
-        m_view_toolbar->set_icons_scale(m_canvas->GetContentScaleFactor());
+    m_view_toolbar.set_icons_scale(m_canvas->GetContentScaleFactor());
 #endif /* __WXMSW__ */
 #endif // ENABLE_SVG_ICONS
-        m_view_toolbar->render(*this);
-    }
+    m_view_toolbar.render(*this);
 }
 
 #if ENABLE_SHOW_CAMERA_TARGET
@@ -7908,10 +7795,17 @@ void GLCanvas3D::_load_shells_fff()
         unsigned int extruders_count = config.nozzle_diameter.size();
         if ((extruders_count > 1) && config.single_extruder_multi_material && config.wipe_tower && !config.complete_objects) {
             float depth = print->get_wipe_tower_depth();
+
+            // Calculate wipe tower brim spacing.
+            const DynamicPrintConfig &print_config  = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+            double layer_height                     = print_config.opt_float("layer_height");
+            double first_layer_height               = print_config.get_abs_value("first_layer_height", layer_height);
+            float brim_spacing = print->config().nozzle_diameter.values[0] * 1.25f - first_layer_height * (1. - M_PI_4);
+
             if (!print->is_step_done(psWipeTower))
                 depth = (900.f/config.wipe_tower_width) * (float)(extruders_count - 1) ;
             m_volumes.load_wipe_tower_preview(1000, config.wipe_tower_x, config.wipe_tower_y, config.wipe_tower_width, depth, max_z, config.wipe_tower_rotation_angle,
-                                              m_use_VBOs && m_initialized, !print->is_step_done(psWipeTower), print->config().nozzle_diameter.values[0] * 1.25f * 4.5f);
+                                              m_use_VBOs && m_initialized, !print->is_step_done(psWipeTower), brim_spacing * 4.5f);
         }
     }
 }
@@ -8172,7 +8066,7 @@ void GLCanvas3D::_resize_toolbars() const
         }
         else
         {
-            top = (-0.5f * (float)cnv_size.get_height() + m_view_toolbar->get_height()) * inv_zoom;
+            top = (-0.5f * (float)cnv_size.get_height() + m_view_toolbar.get_height()) * inv_zoom;
             left = -0.5f * m_toolbar.get_width() * inv_zoom;
         }
         m_toolbar.set_position(top, left);
@@ -8200,15 +8094,15 @@ void GLCanvas3D::_resize_toolbars() const
     if (m_view_toolbar != nullptr)
     {
 #if ENABLE_RETINA_GL
-        m_view_toolbar->set_icons_scale(m_retina_helper->get_scale_factor());
+        m_view_toolbar.set_icons_scale(m_retina_helper->get_scale_factor());
 #else
-        m_view_toolbar->set_icons_scale(m_canvas->GetContentScaleFactor());
+        m_view_toolbar.set_icons_scale(m_canvas->GetContentScaleFactor());
 #endif /* __WXMSW__ */
 
         // places the toolbar on the bottom-left corner of the 3d scene
-        float top = (-0.5f * (float)cnv_size.get_height() + m_view_toolbar->get_height()) * inv_zoom;
+        float top = (-0.5f * (float)cnv_size.get_height() + m_view_toolbar.get_height()) * inv_zoom;
         float left = -0.5f * (float)cnv_size.get_width() * inv_zoom;
-        m_view_toolbar->set_position(top, left);
+        m_view_toolbar.set_position(top, left);
     }
 }
 #endif // !ENABLE_SVG_ICONS

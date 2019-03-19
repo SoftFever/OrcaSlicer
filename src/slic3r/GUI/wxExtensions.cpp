@@ -1958,21 +1958,8 @@ int PrusaDoubleSlider::get_value_from_position(const wxCoord x, const wxCoord y)
         return int(m_min_value + double(height - SLIDER_MARGIN - y) / step + 0.5);
 }
 
-void PrusaDoubleSlider::detect_selected_slider(const wxPoint& pt, const bool is_mouse_wheel /*= false*/)
+void PrusaDoubleSlider::detect_selected_slider(const wxPoint& pt)
 {
-    if (is_mouse_wheel)
-    {
-        if (is_horizontal()) {
-            m_selection = pt.x <= m_rect_lower_thumb.GetRight() ? ssLower :
-                          pt.x >= m_rect_higher_thumb.GetLeft() ? ssHigher : ssUndef;
-        }
-        else {
-            m_selection = pt.y >= m_rect_lower_thumb.GetTop() ? ssLower :
-                          pt.y <= m_rect_higher_thumb.GetBottom() ? ssHigher : ssUndef;            
-        }
-        return;
-    }
-
     m_selection = is_point_in_rect(pt, m_rect_lower_thumb) ? ssLower :
                   is_point_in_rect(pt, m_rect_higher_thumb) ? ssHigher : ssUndef;
 }
@@ -2192,12 +2179,20 @@ void PrusaDoubleSlider::action_tick(const TicksAction action)
 
 void PrusaDoubleSlider::OnWheel(wxMouseEvent& event)
 {
-    wxClientDC dc(this);
-    wxPoint pos = event.GetLogicalPosition(dc);
-    detect_selected_slider(pos, true);
-
-    if (m_selection == ssUndef)
-        return;
+    // Set nearest to the mouse thumb as a selected, if there is not selected thumb
+    if (m_selection == ssUndef) 
+    {
+        const wxPoint& pt = event.GetLogicalPosition(wxClientDC(this));
+        
+        if (is_horizontal())
+            m_selection = abs(pt.x - m_rect_lower_thumb.GetRight()) <= 
+                          abs(pt.x - m_rect_higher_thumb.GetLeft()) ? 
+                          ssLower : ssHigher;
+        else
+            m_selection = abs(pt.y - m_rect_lower_thumb.GetTop()) <= 
+                          abs(pt.y - m_rect_higher_thumb.GetBottom()) ? 
+                          ssLower : ssHigher;
+    }
 
     move_current_thumb(event.GetWheelRotation() > 0);
 }

@@ -14,6 +14,8 @@ public:
         localmethod_ = m;
         return *this;
     }
+
+    inline void seed(unsigned long val) { nlopt::srand(val); }
 };
 
 template<>

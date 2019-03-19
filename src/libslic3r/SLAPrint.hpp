@@ -240,12 +240,19 @@ public:
 
     const SLAPrintStatistics&      print_statistics() const { return m_print_statistics; }
 
+    std::string validate() const override;
+
 private:
     using SLAPrinter = FilePrinter<FilePrinterFormat::SLA_PNGZIP>;
     using SLAPrinterPtr = std::unique_ptr<SLAPrinter>;
 
     // Invalidate steps based on a set of parameters changed.
     bool invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
+
+    std::vector<float> calculate_heights(const BoundingBoxf3& bb,
+                                         float elevation,
+                                         float initial_layer_height,
+                                         float layer_height) const;
 
     void fill_statistics();
 
@@ -269,8 +276,6 @@ private:
         LayerRef(const Layer& lyr, const LayerCopies& cp) :
             lref(std::cref(lyr)), copies(std::cref(cp)) {}
     };
-
-    std::vector<float> calculate_heights(const BoundingBoxf3& bb, float elevation, float initial_layer_height, float layer_height) const;
 
     // One level may contain multiple slices from multiple objects and their
     // supports

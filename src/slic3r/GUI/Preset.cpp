@@ -457,6 +457,7 @@ const std::vector<std::string>& Preset::sla_print_options()
             "support_base_height",
             "support_critical_angle",
             "support_max_bridge_length",
+            "support_max_pillar_link_distance",
             "support_object_elevation",
             "support_points_density_relative",
             "support_points_minimal_distance",
@@ -880,6 +881,7 @@ void PresetCollection::update_platter_ui(GUI::PresetComboBox *ui)
 {
     if (ui == nullptr)
         return;
+
     // Otherwise fill in the list from scratch.
     ui->Freeze();
     ui->Clear();

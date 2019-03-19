@@ -17,6 +17,7 @@
 #include <wx/dir.h>
 #include <wx/wupdlock.h>
 #include <wx/filefn.h>
+#include <wx/sysopt.h>
 
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Model.hpp"
@@ -79,9 +80,7 @@ IMPLEMENT_APP(GUI_App)
 GUI_App::GUI_App()
     : wxApp()
     , m_em_unit(10)
-#if ENABLE_IMGUI
     , m_imgui(new ImGuiWrapper())
-#endif // ENABLE_IMGUI
 {}
 
 bool GUI_App::OnInit()
@@ -90,13 +89,16 @@ bool GUI_App::OnInit()
     const wxString resources_dir = from_u8(Slic3r::resources_dir());
     wxCHECK_MSG(wxDirExists(resources_dir), false,
         wxString::Format("Resources path does not exist or is not a directory: %s", resources_dir));
-
-#if ENABLE_IMGUI
     wxCHECK_MSG(m_imgui->init(), false, "Failed to initialize ImGui");
-#endif // ENABLE_IMGUI
 
-    SetAppName("Slic3rPE-alpha");
+    SetAppName("Slic3rPE-beta");
     SetAppDisplayName("Slic3r Prusa Edition");
+
+// Enable this to get the default Win32 COMCTRL32 behavior of static boxes.
+//    wxSystemOptions::SetOption("msw.staticbox.optimized-paint", 0);
+// Enable this to disable Windows Vista themes for all wxNotebooks. The themes seem to lead to terrible
+// performance when working on high resolution multi-display setups.
+//    wxSystemOptions::SetOption("msw.notebook.themed-background", 0);
 
 //     Slic3r::debugf "wxWidgets version %s, Wx version %s\n", wxVERSION_STRING, wxVERSION;
 
@@ -161,22 +163,13 @@ bool GUI_App::OnInit()
 
     Bind(wxEVT_IDLE, [this](wxIdleEvent& event)
     {
+		if (! plater_)
+			return;
+
         if (app_config->dirty() && app_config->get("autosave") == "1")
             app_config->save();
 
-        // ! Temporary workaround for the correct behavior of the Scrolled sidebar panel 
-        // Do this "manipulations" only once ( after (re)create of the application )
-        if (plater_ && sidebar().obj_list()->GetMinHeight() > 15 * wxGetApp().em_unit())
-        {
-            wxWindowUpdateLocker noUpdates_sidebar(&sidebar());
-            sidebar().obj_list()->SetMinSize(wxSize(-1, 15 * wxGetApp().em_unit()));
-
-            // !!! to correct later layouts
-            update_mode(); // update view mode after fix of the object_list size
-        }
-
-        if (this->plater() != nullptr)
-            this->obj_manipul()->update_if_dirty();
+        this->obj_manipul()->update_if_dirty();
 
         // Preset updating & Configwizard are done after the above initializations,
         // and after MainFrame is created & shown.
@@ -203,12 +196,13 @@ bool GUI_App::OnInit()
                 }
                 preset_updater->sync(preset_bundle);
             });
-
-            load_current_presets();
         }
     });
 
+    load_current_presets();
+
     mainframe->Show(true);
+    update_mode(); // update view mode after fix of the object_list size
     m_initialized = true;
     return true;
 }
@@ -259,6 +253,7 @@ void GUI_App::init_fonts()
 {
     m_small_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
     m_bold_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold();
+    m_normal_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 
 #ifdef __WXMAC__
     m_small_font.SetPointSize(11);
@@ -532,20 +527,7 @@ void GUI_App::save_mode(const /*ConfigOptionMode*/int mode)
 // Update view mode according to selected menu
 void GUI_App::update_mode()
 {
-    wxWindowUpdateLocker noUpdates(&sidebar());
-
-    const ConfigOptionMode mode = wxGetApp().get_mode();
-
-    obj_list()->get_sizer()->Show(mode > comSimple);
-    sidebar().set_mode_value(mode);
-//    sidebar().show_buttons(mode == comExpert);
-    obj_list()->unselect_objects();
-    obj_list()->update_selections();
-    obj_list()->update_object_menu();
-
-    sidebar().update_mode_sizer(mode);
-
-    sidebar().Layout();
+    sidebar().update_mode();
 
     for (auto tab : tabs_list)
         tab->update_visibility();

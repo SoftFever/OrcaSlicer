@@ -709,12 +709,11 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::toolchange_Brim(bool sideOnly, flo
     // The tool is supposed to be active and primed at the time when the wipe tower brim is extruded.
     // Extrude 4 rounds of a brim around the future wipe tower.
     box_coordinates box(wipeTower_box);
-    box.expand(m_perimeter_width);
     for (size_t i = 0; i < 4; ++ i) {
+        box.expand(m_perimeter_width - m_layer_height*(1.f-M_PI_4)); // the brim shall have 'normal' spacing with no extra void space
         writer.travel (box.ld, 7000)
                 .extrude(box.lu, 2100).extrude(box.ru)
                 .extrude(box.rd      ).extrude(box.ld);
-        box.expand(m_perimeter_width);
     }
 
     writer.travel(wipeTower_box.ld, 7000); // Move to the front left corner.

@@ -55,4 +55,10 @@ bool store_stl(const char *path, ModelObject *model_object, bool binary)
     return store_stl(path, &mesh, binary);
 }
 
+bool store_stl(const char *path, Model *model, bool binary)
+{
+    TriangleMesh mesh = model->mesh();
+    return store_stl(path, &mesh, binary);
+}
+
 }; // namespace Slic3r

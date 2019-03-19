@@ -38,7 +38,7 @@ static wxString generate_html_row(const Config::Snapshot &snapshot, bool row_eve
     text += wxString("<font size=\"5\"><b>") + (snapshot_active ? _(L("Active: ")) : "") + 
         Utils::format_local_date_time(snapshot.time_captured) + ": " + format_reason(snapshot.reason);
     if (! snapshot.comment.empty())
-        text += " (" + snapshot.comment + ")";
+        text += " (" + wxString::FromUTF8(snapshot.comment.data()) + ")";
     text += "</b></font><br>";
     // End of row header.
     text += _(L("slic3r version")) + ": " + snapshot.slic3r_version_captured.to_string() + "<br>";

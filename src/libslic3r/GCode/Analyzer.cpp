@@ -137,22 +137,22 @@ const std::string& GCodeAnalyzer::process_gcode(const std::string& gcode)
     return m_process_output;
 }
 
-void GCodeAnalyzer::calc_gcode_preview_data(GCodePreviewData& preview_data)
+void GCodeAnalyzer::calc_gcode_preview_data(GCodePreviewData& preview_data, std::function<void()> cancel_callback)
 {
     // resets preview data
     preview_data.reset();
 
     // calculates extrusion layers
-    _calc_gcode_preview_extrusion_layers(preview_data);
+    _calc_gcode_preview_extrusion_layers(preview_data, cancel_callback);
 
     // calculates travel
-    _calc_gcode_preview_travel(preview_data);
+    _calc_gcode_preview_travel(preview_data, cancel_callback);
 
     // calculates retractions
-    _calc_gcode_preview_retractions(preview_data);
+    _calc_gcode_preview_retractions(preview_data, cancel_callback);
 
     // calculates unretractions
-    _calc_gcode_preview_unretractions(preview_data);
+    _calc_gcode_preview_unretractions(preview_data, cancel_callback);
 }
 
 bool GCodeAnalyzer::is_valid_extrusion_role(ExtrusionRole role)
@@ -676,7 +676,7 @@ bool GCodeAnalyzer::_is_valid_extrusion_role(int value) const
     return ((int)erNone <= value) && (value <= (int)erMixed);
 }
 
-void GCodeAnalyzer::_calc_gcode_preview_extrusion_layers(GCodePreviewData& preview_data)
+void GCodeAnalyzer::_calc_gcode_preview_extrusion_layers(GCodePreviewData& preview_data, std::function<void()> cancel_callback)
 {
     struct Helper
     {
@@ -725,9 +725,18 @@ void GCodeAnalyzer::_calc_gcode_preview_extrusion_layers(GCodePreviewData& previ
     GCodePreviewData::Range feedrate_range;
     GCodePreviewData::Range volumetric_rate_range;
 
+    // to avoid to call the callback too often
+    unsigned int cancel_callback_threshold = (unsigned int)std::max((int)extrude_moves->second.size() / 25, 1);
+    unsigned int cancel_callback_curr = 0;
+
     // constructs the polylines while traversing the moves
     for (const GCodeMove& move : extrude_moves->second)
     {
+        // to avoid to call the callback too often
+        cancel_callback_curr = (cancel_callback_curr + 1) % cancel_callback_threshold;
+        if (cancel_callback_curr == 0)
+            cancel_callback();
+
         if ((data != move.data) || (z != move.start_position.z()) || (position != move.start_position) || (volumetric_rate != move.data.feedrate * (float)move.data.mm3_per_mm))
         {
             // store current polyline
@@ -769,7 +778,7 @@ void GCodeAnalyzer::_calc_gcode_preview_extrusion_layers(GCodePreviewData& previ
     preview_data.ranges.volumetric_rate.update_from(volumetric_rate_range);
 }
 
-void GCodeAnalyzer::_calc_gcode_preview_travel(GCodePreviewData& preview_data)
+void GCodeAnalyzer::_calc_gcode_preview_travel(GCodePreviewData& preview_data, std::function<void()> cancel_callback)
 {
     struct Helper
     {
@@ -797,9 +806,17 @@ void GCodeAnalyzer::_calc_gcode_preview_travel(GCodePreviewData& preview_data)
     GCodePreviewData::Range width_range;
     GCodePreviewData::Range feedrate_range;
 
+    // to avoid to call the callback too often
+    unsigned int cancel_callback_threshold = (unsigned int)std::max((int)travel_moves->second.size() / 25, 1);
+    unsigned int cancel_callback_curr = 0;
+
     // constructs the polylines while traversing the moves
     for (const GCodeMove& move : travel_moves->second)
     {
+        cancel_callback_curr = (cancel_callback_curr + 1) % cancel_callback_threshold;
+        if (cancel_callback_curr == 0)
+            cancel_callback();
+
         GCodePreviewData::Travel::EType move_type = (move.delta_extruder < 0.0f) ? GCodePreviewData::Travel::Retract : ((move.delta_extruder > 0.0f) ? GCodePreviewData::Travel::Extrude : GCodePreviewData::Travel::Move);
         GCodePreviewData::Travel::Polyline::EDirection move_direction = ((move.start_position.x() != move.end_position.x()) || (move.start_position.y() != move.end_position.y())) ? GCodePreviewData::Travel::Polyline::Generic : GCodePreviewData::Travel::Polyline::Vertical;
 
@@ -840,28 +857,44 @@ void GCodeAnalyzer::_calc_gcode_preview_travel(GCodePreviewData& preview_data)
     preview_data.ranges.feedrate.update_from(feedrate_range);
 }
 
-void GCodeAnalyzer::_calc_gcode_preview_retractions(GCodePreviewData& preview_data)
+void GCodeAnalyzer::_calc_gcode_preview_retractions(GCodePreviewData& preview_data, std::function<void()> cancel_callback)
 {
     TypeToMovesMap::iterator retraction_moves = m_moves_map.find(GCodeMove::Retract);
     if (retraction_moves == m_moves_map.end())
         return;
 
+    // to avoid to call the callback too often
+    unsigned int cancel_callback_threshold = (unsigned int)std::max((int)retraction_moves->second.size() / 25, 1);
+    unsigned int cancel_callback_curr = 0;
+
     for (const GCodeMove& move : retraction_moves->second)
     {
+        cancel_callback_curr = (cancel_callback_curr + 1) % cancel_callback_threshold;
+        if (cancel_callback_curr == 0)
+            cancel_callback();
+
         // store position
         Vec3crd position(scale_(move.start_position.x()), scale_(move.start_position.y()), scale_(move.start_position.z()));
         preview_data.retraction.positions.emplace_back(position, move.data.width, move.data.height);
     }
 }
 
-void GCodeAnalyzer::_calc_gcode_preview_unretractions(GCodePreviewData& preview_data)
+void GCodeAnalyzer::_calc_gcode_preview_unretractions(GCodePreviewData& preview_data, std::function<void()> cancel_callback)
 {
     TypeToMovesMap::iterator unretraction_moves = m_moves_map.find(GCodeMove::Unretract);
     if (unretraction_moves == m_moves_map.end())
         return;
 
+    // to avoid to call the callback too often
+    unsigned int cancel_callback_threshold = (unsigned int)std::max((int)unretraction_moves->second.size() / 25, 1);
+    unsigned int cancel_callback_curr = 0;
+
     for (const GCodeMove& move : unretraction_moves->second)
     {
+        cancel_callback_curr = (cancel_callback_curr + 1) % cancel_callback_threshold;
+        if (cancel_callback_curr == 0)
+            cancel_callback();
+
         // store position
         Vec3crd position(scale_(move.start_position.x()), scale_(move.start_position.y()), scale_(move.start_position.z()));
         preview_data.unretraction.positions.emplace_back(position, move.data.width, move.data.height);

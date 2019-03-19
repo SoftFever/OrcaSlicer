@@ -56,7 +56,8 @@ wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAUL
 
     // initialize default width_unit according to the width of the one symbol ("x") of the current system font
     const wxSize size = GetTextExtent("m");
-    wxGetApp().set_em_unit(size.x-1);
+//     wxGetApp().set_em_unit(size.x-1);
+    wxGetApp().set_em_unit(std::max<size_t>(10, size.x - 1));
 
     // initialize tabpanel and menubar
     init_tabpanel();
@@ -76,12 +77,14 @@ wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAUL
     sizer->SetSizeHints(this);
     SetSizer(sizer);
     Fit();
+
+    const wxSize min_size = wxSize(76*wxGetApp().em_unit(), 49*wxGetApp().em_unit());
 #ifdef __APPLE__
     // Using SetMinSize() on Mac messes up the window position in some cases
     // cf. https://groups.google.com/forum/#!topic/wx-users/yUKPBBfXWO0
-    SetSize(wxSize(760, 490));
+    SetSize(min_size/*wxSize(760, 490)*/);
 #else
-    SetMinSize(wxSize(760, 490));
+    SetMinSize(min_size/*wxSize(760, 490)*/);
     SetSize(GetMinSize());
 #endif
     Layout();
@@ -92,6 +95,12 @@ wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAUL
             event.Veto();
             return;
         }
+
+        // Weird things happen as the Paint messages are floating around the windows being destructed.
+        // Avoid the Paint messages by hiding the main window.
+        // Also the application closes much faster without these unnecessary screen refreshes.
+        // In addition, there were some crashes due to the Paint events sent to already destructed windows.
+        this->Show(false);
 
         // Save the slic3r.ini.Usually the ini file is saved from "on idle" callback,
         // but in rare cases it may not have been called yet.
@@ -124,7 +133,9 @@ wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAUL
 
 void MainFrame::init_tabpanel()
 {
-    m_tabpanel = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL);
+    // wxNB_NOPAGETHEME: Disable Windows Vista theme for the Notebook background. The theme performance is terrible on Windows 10
+    // with multiple high resolution displays connected.
+    m_tabpanel = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
 
     m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGED, [this](wxEvent&) {
         auto panel = m_tabpanel->GetCurrentPage();
@@ -881,9 +892,10 @@ void MainFrame::on_config_changed(DynamicPrintConfig* config) const
 // Update the UI based on the current preferences.
 void MainFrame::update_ui_from_settings()
 {
-    bool bp_on = wxGetApp().app_config->get("background_processing") == "1";
+    const bool bp_on = wxGetApp().app_config->get("background_processing") == "1";
 //     m_menu_item_reslice_now->Enable(!bp_on);
     m_plater->sidebar().show_reslice(!bp_on);
+    m_plater->sidebar().show_export(bp_on);
     m_plater->sidebar().Layout();
     if (m_plater)
         m_plater->update_ui_from_settings();

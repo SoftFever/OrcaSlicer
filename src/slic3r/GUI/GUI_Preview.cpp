@@ -27,17 +27,11 @@
 namespace Slic3r {
 namespace GUI {
 
-View3D::View3D(wxWindow* parent, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)
+    View3D::View3D(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)
     : m_canvas_widget(nullptr)
     , m_canvas(nullptr)
-#if !ENABLE_IMGUI
-    , m_gizmo_widget(nullptr)
-#endif // !ENABLE_IMGUI
-    , m_model(nullptr)
-    , m_config(nullptr)
-    , m_process(nullptr)
 {
-    init(parent, model, config, process);
+    init(parent, bed, camera, view_toolbar, model, config, process);
 }
 
 View3D::~View3D()
@@ -50,13 +44,13 @@ View3D::~View3D()
     }
 }
 
-bool View3D::init(wxWindow* parent, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)
+bool View3D::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)
 {
     if (!Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 /* disable wxTAB_TRAVERSAL */))
         return false;
 
     m_canvas_widget = GLCanvas3DManager::create_wxglcanvas(this);
-    _3DScene::add_canvas(m_canvas_widget);
+    _3DScene::add_canvas(m_canvas_widget, bed, camera, view_toolbar);
     m_canvas = _3DScene::get_canvas(this->m_canvas_widget);
 
     m_canvas->allow_multisample(GLCanvas3DManager::can_multisample());
@@ -70,35 +64,14 @@ bool View3D::init(wxWindow* parent, Model* model, DynamicPrintConfig* config, Ba
     m_canvas->enable_gizmos(true);
     m_canvas->enable_toolbar(true);
 
-#if !ENABLE_IMGUI
-    m_gizmo_widget = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-    m_gizmo_widget->SetSizer(new wxBoxSizer(wxVERTICAL));
-    m_canvas->set_external_gizmo_widgets_parent(m_gizmo_widget);
-#endif // !ENABLE_IMGUI
-
     wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
     main_sizer->Add(m_canvas_widget, 1, wxALL | wxEXPAND, 0);
-#if !ENABLE_IMGUI
-    main_sizer->Add(m_gizmo_widget, 0, wxALL | wxEXPAND, 0);
-#endif // !ENABLE_IMGUI
 
     SetSizer(main_sizer);
     SetMinSize(GetSize());
     GetSizer()->SetSizeHints(this);
 
     return true;
-}
-
-void View3D::set_bed(Bed3D* bed)
-{
-    if (m_canvas != nullptr)
-        m_canvas->set_bed(bed);
-}
-
-void View3D::set_view_toolbar(GLToolbar* toolbar)
-{
-    if (m_canvas != nullptr)
-        m_canvas->set_view_toolbar(toolbar);
 }
 
 void View3D::set_as_dirty()
@@ -193,7 +166,7 @@ void View3D::render()
         m_canvas->set_as_dirty();
 }
 
-Preview::Preview(wxWindow* parent, DynamicPrintConfig* config, BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, std::function<void()> schedule_background_process_func)
+Preview::Preview(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, DynamicPrintConfig* config, BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, std::function<void()> schedule_background_process_func)
     : m_canvas_widget(nullptr)
     , m_canvas(nullptr)
     , m_double_slider_sizer(nullptr)
@@ -213,28 +186,26 @@ Preview::Preview(wxWindow* parent, DynamicPrintConfig* config, BackgroundSlicing
     , m_loaded(false)
     , m_enabled(false)
     , m_schedule_background_process(schedule_background_process_func)
+    , m_volumes_cleanup_required(false)
 {
-    if (init(parent, config, process, gcode_preview_data))
+    if (init(parent, bed, camera, view_toolbar))
     {
         show_hide_ui_elements("none");
         load_print();
     }
 }
 
-bool Preview::init(wxWindow* parent, DynamicPrintConfig* config, BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data)
+bool Preview::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar)
 {
-    if ((config == nullptr) || (process == nullptr) || (gcode_preview_data == nullptr))
-        return false;
-
     if (!Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 /* disable wxTAB_TRAVERSAL */))
         return false;
 
     m_canvas_widget = GLCanvas3DManager::create_wxglcanvas(this);
-	_3DScene::add_canvas(m_canvas_widget);
-	m_canvas = _3DScene::get_canvas(this->m_canvas_widget);
+    _3DScene::add_canvas(m_canvas_widget, bed, camera, view_toolbar);
+    m_canvas = _3DScene::get_canvas(this->m_canvas_widget);
     m_canvas->allow_multisample(GLCanvas3DManager::can_multisample());
     m_canvas->set_config(m_config);
-    m_canvas->set_process(process);
+    m_canvas->set_process(m_process);
     m_canvas->enable_legend_texture(true);
     m_canvas->enable_dynamic_background(true);
 
@@ -342,18 +313,6 @@ Preview::~Preview()
     }
 }
 
-void Preview::set_bed(Bed3D* bed)
-{
-    if (m_canvas != nullptr)
-        m_canvas->set_bed(bed);
-}
-
-void Preview::set_view_toolbar(GLToolbar* toolbar)
-{
-    if (m_canvas != nullptr)
-        m_canvas->set_view_toolbar(toolbar);
-}
-
 void Preview::set_number_extruders(unsigned int number_extruders)
 {
     if (m_number_extruders != number_extruders)
@@ -390,18 +349,6 @@ void Preview::select_view(const std::string& direction)
     m_canvas->select_view(direction);
 }
 
-void Preview::set_viewport_from_scene(GLCanvas3D* canvas)
-{
-    if (canvas != nullptr)
-        m_canvas->set_viewport_from_scene(*canvas);
-}
-
-void Preview::set_viewport_into_scene(GLCanvas3D* canvas)
-{
-    if (canvas != nullptr)
-		canvas->set_viewport_from_scene(*m_canvas);
-}
-
 void Preview::set_drop_target(wxDropTarget* target)
 {
     if (target != nullptr)
@@ -417,17 +364,21 @@ void Preview::load_print()
         load_print_as_sla();
 }
 
-void Preview::reload_print(bool force, bool keep_volumes)
+void Preview::reload_print(bool keep_volumes)
 {
-    if (!keep_volumes)
+    if (!IsShown())
+    {
+        m_volumes_cleanup_required = !keep_volumes;
+        return;
+    }
+
+    if (m_volumes_cleanup_required || !keep_volumes)
     {
         m_canvas->reset_volumes();
         m_canvas->reset_legend_texture();
         m_loaded = false;
+        m_volumes_cleanup_required = false;
     }
-
-    if (!IsShown() && !force)
-        return;
 
     load_print();
 }
@@ -608,15 +559,14 @@ static int find_close_layer_idx(const std::vector<double>& zs, double &z, double
     return -1;
 }
 
-void Preview::update_double_slider(const std::vector<double>& layers_z, bool force_sliders_full_range)
+void Preview::update_double_slider(const std::vector<double>& layers_z)
 {
     // Save the initial slider span.
     double z_low        = m_slider->GetLowerValueD();
     double z_high       = m_slider->GetHigherValueD();
     bool   was_empty    = m_slider->GetMaxValue() == 0;
-    bool   span_changed = layers_z.empty() || std::abs(layers_z.back() - m_slider->GetMaxValueD()) > 1e-6;
-    force_sliders_full_range |= was_empty | span_changed;
-	bool   snap_to_min  = force_sliders_full_range || m_slider->is_lower_at_min();
+    bool force_sliders_full_range = was_empty;
+    bool   snap_to_min = force_sliders_full_range || m_slider->is_lower_at_min();
 	bool   snap_to_max  = force_sliders_full_range || m_slider->is_higher_at_max();
 
     std::vector<std::pair<int, double>> values;
@@ -788,10 +738,11 @@ void Preview::load_print_as_fff()
 
     if (IsShown())
     {
-        if (gcode_preview_data_valid)
+        if (gcode_preview_data_valid) {
             // Load the real G-code preview.
             m_canvas->load_gcode_preview(*m_gcode_preview_data, colors);
-        else
+            m_loaded = true;
+        } else
             // Load the initial preview based on slices, not the final G-code.
             m_canvas->load_preview(colors, color_print_values);
         show_hide_ui_elements(gcode_preview_data_valid ? "full" : "simple");
@@ -803,7 +754,6 @@ void Preview::load_print_as_fff()
             m_canvas_widget->Refresh();
         } else
             update_sliders(zs);
-        m_loaded = true;
     }
 }
 

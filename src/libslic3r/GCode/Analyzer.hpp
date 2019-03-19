@@ -122,7 +122,8 @@ public:
     const std::string& process_gcode(const std::string& gcode);
 
     // Calculates all data needed for gcode visualization
-    void calc_gcode_preview_data(GCodePreviewData& preview_data);
+    // throws CanceledException through print->throw_if_canceled() (sent by the caller as callback).
+    void calc_gcode_preview_data(GCodePreviewData& preview_data, std::function<void()> cancel_callback = std::function<void()>());
 
     // Return an estimate of the memory consumed by the time estimator.
     size_t memory_used() const;
@@ -237,10 +238,11 @@ private:
     // Checks if the given int is a valid extrusion role (contained into enum ExtrusionRole)
     bool _is_valid_extrusion_role(int value) const;
 
-    void _calc_gcode_preview_extrusion_layers(GCodePreviewData& preview_data);
-    void _calc_gcode_preview_travel(GCodePreviewData& preview_data);
-    void _calc_gcode_preview_retractions(GCodePreviewData& preview_data);
-    void _calc_gcode_preview_unretractions(GCodePreviewData& preview_data);
+    // All the following methods throw CanceledException through print->throw_if_canceled() (sent by the caller as callback).
+    void _calc_gcode_preview_extrusion_layers(GCodePreviewData& preview_data, std::function<void()> cancel_callback);
+    void _calc_gcode_preview_travel(GCodePreviewData& preview_data, std::function<void()> cancel_callback);
+    void _calc_gcode_preview_retractions(GCodePreviewData& preview_data, std::function<void()> cancel_callback);
+    void _calc_gcode_preview_unretractions(GCodePreviewData& preview_data, std::function<void()> cancel_callback);
 };
 
 } // namespace Slic3r

@@ -270,6 +270,7 @@ public:
     void split_instances();
     void rename_item();
     void fix_through_netfabb() const;
+    void update_item_error_icon(const int obj_idx, int vol_idx) const ;
 private:
     void OnChar(wxKeyEvent& event);
     void OnContextMenu(wxDataViewEvent &event);
@@ -281,6 +282,10 @@ private:
 
     void ItemValueChanged(wxDataViewEvent &event);
     void OnEditingDone(wxDataViewEvent &event);
+
+    void show_extruder_selection_menu();
+    void extruder_selection();
+    void set_extruder_for_selected_items(const int extruder) const ;
 
     std::vector<std::string>        get_options(const bool is_part);
     const std::vector<std::string>& get_options_for_bundle(const wxString& bundle_name);

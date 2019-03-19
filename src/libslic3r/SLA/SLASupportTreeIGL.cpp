@@ -17,6 +17,8 @@
 #include <igl/remove_duplicate_vertices.h>
 #include <igl/signed_distance.h>
 
+#include <tbb/parallel_for.h>
+
 #include "SLASpatIndex.hpp"
 #include "ClipperUtils.hpp"
 
@@ -87,6 +89,11 @@ std::vector<SpatElement> SpatIndex::nearest(const Vec3d &el, unsigned k = 1)
 size_t SpatIndex::size() const
 {
     return m_impl->m_store.size();
+}
+
+void SpatIndex::foreach(std::function<void (const SpatElement &)> fn)
+{
+    for(auto& el : m_impl->m_store) fn(el);
 }
 
 /* ****************************************************************************
@@ -167,6 +174,7 @@ EigenMesh3D::query_ray_hit(const Vec3d &s, const Vec3d &dir) const
     hit_result ret(*this);
     ret.m_t = double(hit.t);
     ret.m_dir = dir;
+    ret.m_source = s;
     if(!std::isinf(hit.t) && !std::isnan(hit.t)) ret.m_face_id = hit.id;
 
     return ret;
@@ -185,6 +193,15 @@ bool EigenMesh3D::inside(const Vec3d &p) const {
     return m_aabb->windtree.inside(p);
 }
 #endif /* SLIC3R_SLA_NEEDS_WINDTREE */
+
+double EigenMesh3D::squared_distance(const Vec3d &p, int& i, Vec3d& c) const {
+    double sqdst = 0;
+    Eigen::Matrix<double, 1, 3> pp = p;
+    Eigen::Matrix<double, 1, 3> cc;
+    sqdst = m_aabb->squared_distance(m_V, m_F, pp, i, cc);
+    c = cc;
+    return sqdst;
+}
 
 /* ****************************************************************************
  * Misc functions
@@ -208,22 +225,31 @@ template<class Vec> double distance(const Vec& pp1, const Vec& pp2) {
 PointSet normals(const PointSet& points,
                  const EigenMesh3D& mesh,
                  double eps,
-                 std::function<void()> throw_on_cancel)
+                 std::function<void()> thr, // throw on cancel
+                 const std::vector<unsigned>& pt_indices = {})
 {
     if(points.rows() == 0 || mesh.V().rows() == 0 || mesh.F().rows() == 0)
         return {};
 
-    Eigen::VectorXd dists;
-    Eigen::VectorXi I;
-    PointSet C;
+    std::vector<unsigned> range = pt_indices;
+    if(range.empty()) {
+        range.resize(size_t(points.rows()), 0);
+        std::iota(range.begin(), range.end(), 0);
+    }
 
-    igl::point_mesh_squared_distance( points, mesh.V(), mesh.F(), dists, I, C);
+    PointSet            ret(range.size(), 3);
 
-    PointSet ret(I.rows(), 3);
-    for(int i = 0; i < I.rows(); i++) {
-        throw_on_cancel();
-        auto idx = I(i);
-        auto trindex = mesh.F().row(idx);
+    tbb::parallel_for(size_t(0), range.size(),
+                      [&ret, &range, &mesh, &points, thr, eps](size_t ridx)
+    {
+        thr();
+        auto eidx = Eigen::Index(range[ridx]);
+        int faceid = 0;
+        Vec3d p;
+
+        mesh.squared_distance(points.row(eidx), faceid, p);
+
+        auto trindex = mesh.F().row(faceid);
 
         const Vec3d& p1 = mesh.V().row(trindex(0));
         const Vec3d& p2 = mesh.V().row(trindex(1));
@@ -236,8 +262,6 @@ PointSet normals(const PointSet& points,
         // consider the cases where the support point lies right on a vertex
         // of its triangle. The procedure is the same, get the neighbor
         // triangles and calculate an average normal.
-
-        const Vec3d& p = C.row(i);
 
         // mark the vertex indices of the edge. ia and ib marks and edge ic
         // will mark a single vertex.
@@ -266,7 +290,7 @@ PointSet normals(const PointSet& points,
         std::vector<Vec3i> neigh;
         if(ic >= 0) { // The point is right on a vertex of the triangle
             for(int n = 0; n < mesh.F().rows(); ++n) {
-                throw_on_cancel();
+                thr();
                 Vec3i ni = mesh.F().row(n);
                 if((ni(X) == ic || ni(Y) == ic || ni(Z) == ic))
                     neigh.emplace_back(ni);
@@ -275,7 +299,7 @@ PointSet normals(const PointSet& points,
         else if(ia >= 0 && ib >= 0) { // the point is on and edge
             // now get all the neigboring triangles
             for(int n = 0; n < mesh.F().rows(); ++n) {
-                throw_on_cancel();
+                thr();
                 Vec3i ni = mesh.F().row(n);
                 if((ni(X) == ia || ni(Y) == ia || ni(Z) == ia) &&
                    (ni(X) == ib || ni(Y) == ib || ni(Z) == ib))
@@ -316,52 +340,32 @@ PointSet normals(const PointSet& points,
             Vec3d sumnorm(0, 0, 0);
             sumnorm = std::accumulate(neighnorms.begin(), lend, sumnorm);
             sumnorm.normalize();
-            ret.row(i) = sumnorm;
+            ret.row(long(ridx)) = sumnorm;
         }
         else { // point lies safely within its triangle
             Eigen::Vector3d U = p2 - p1;
             Eigen::Vector3d V = p3 - p1;
-            ret.row(i) = U.cross(V).normalized();
+            ret.row(long(ridx)) = U.cross(V).normalized();
         }
-    }
+    });
 
     return ret;
 }
+namespace bgi = boost::geometry::index;
+using Index3D = bgi::rtree< SpatElement, bgi::rstar<16, 4> /* ? */ >;
 
-// Clustering a set of points by the given criteria
-ClusteredPoints cluster(
-        const sla::PointSet& points,
-        std::function<bool(const SpatElement&, const SpatElement&)> pred,
-        unsigned max_points = 0)
+ClusteredPoints cluster(Index3D& sindex, unsigned max_points,
+                        std::function<std::vector<SpatElement>(const Index3D&, const SpatElement&)> qfn)
 {
-
-    namespace bgi = boost::geometry::index;
-    using Index3D = bgi::rtree< SpatElement, bgi::rstar<16, 4> /* ? */ >;
-
-    // A spatial index for querying the nearest points
-    Index3D sindex;
-
-    // Build the index
-    for(unsigned idx = 0; idx < points.rows(); idx++)
-        sindex.insert( std::make_pair(points.row(idx), idx));
-
     using Elems = std::vector<SpatElement>;
 
     // Recursive function for visiting all the points in a given distance to
     // each other
     std::function<void(Elems&, Elems&)> group =
-    [&sindex, &group, pred, max_points](Elems& pts, Elems& cluster)
+    [&sindex, &group, max_points, qfn](Elems& pts, Elems& cluster)
     {
         for(auto& p : pts) {
-            std::vector<SpatElement> tmp;
-
-            sindex.query(
-                bgi::satisfies([p, pred](const SpatElement& se) {
-                    return pred(p, se);
-                }),
-                std::back_inserter(tmp)
-            );
-
+            std::vector<SpatElement> tmp = qfn(sindex, p);
             auto cmp = [](const SpatElement& e1, const SpatElement& e2){
                 return e1.second < e2.second;
             };
@@ -403,6 +407,85 @@ ClusteredPoints cluster(
     }
 
     return result;
+}
+
+namespace {
+std::vector<SpatElement> distance_queryfn(const Index3D& sindex,
+                                          const SpatElement& p,
+                                          double dist,
+                                          unsigned max_points)
+{
+    std::vector<SpatElement> tmp; tmp.reserve(max_points);
+    sindex.query(
+        bgi::nearest(p.first, max_points),
+        std::back_inserter(tmp)
+    );
+
+    for(auto it = tmp.begin(); it < tmp.end(); ++it)
+        if(distance(p.first, it->first) > dist) it = tmp.erase(it);
+
+    return tmp;
+}
+}
+
+// Clustering a set of points by the given criteria
+ClusteredPoints cluster(
+        const std::vector<unsigned>& indices,
+        std::function<Vec3d(unsigned)> pointfn,
+        double dist,
+        unsigned max_points)
+{
+    // A spatial index for querying the nearest points
+    Index3D sindex;
+
+    // Build the index
+    for(auto idx : indices) sindex.insert( std::make_pair(pointfn(idx), idx));
+
+    return cluster(sindex, max_points,
+                   [dist, max_points](const Index3D& sidx, const SpatElement& p)
+    {
+        return distance_queryfn(sidx, p, dist, max_points);
+    });
+}
+
+// Clustering a set of points by the given criteria
+ClusteredPoints cluster(
+        const std::vector<unsigned>& indices,
+        std::function<Vec3d(unsigned)> pointfn,
+        std::function<bool(const SpatElement&, const SpatElement&)> predicate,
+        unsigned max_points)
+{
+    // A spatial index for querying the nearest points
+    Index3D sindex;
+
+    // Build the index
+    for(auto idx : indices) sindex.insert( std::make_pair(pointfn(idx), idx));
+
+    return cluster(sindex, max_points,
+        [max_points, predicate](const Index3D& sidx, const SpatElement& p)
+    {
+        std::vector<SpatElement> tmp; tmp.reserve(max_points);
+        sidx.query(bgi::satisfies([p, predicate](const SpatElement& e){
+            return predicate(p, e);
+        }), std::back_inserter(tmp));
+        return tmp;
+    });
+}
+
+ClusteredPoints cluster(const PointSet& pts, double dist, unsigned max_points)
+{
+    // A spatial index for querying the nearest points
+    Index3D sindex;
+
+    // Build the index
+    for(Eigen::Index i = 0; i < pts.rows(); i++)
+        sindex.insert(std::make_pair(Vec3d(pts.row(i)), unsigned(i)));
+
+    return cluster(sindex, max_points,
+                   [dist, max_points](const Index3D& sidx, const SpatElement& p)
+    {
+        return distance_queryfn(sidx, p, dist, max_points);
+    });
 }
 
 }

@@ -245,6 +245,10 @@ public:
     void scale(const Vec3d &versor);
     void scale(const double s) { this->scale(Vec3d(s, s, s)); }
     void scale(double x, double y, double z) { this->scale(Vec3d(x, y, z)); }
+    /// Scale the current ModelObject to fit by altering the scaling factor of ModelInstances.
+    /// It operates on the total size by duplicating the object according to all the instances.
+    /// \param size Sizef3 the size vector
+    void scale_to_fit(const Vec3d &size);
     void rotate(double angle, Axis axis);
     void rotate(double angle, const Vec3d& axis);
     void mirror(Axis axis);
@@ -336,8 +340,7 @@ public:
     // Extruder ID is only valid for FFF. Returns -1 for SLA or if the extruder ID is not applicable (support volumes).
     int                 extruder_id() const;
 
-    void                set_splittable(const int val) { m_is_splittable = val; }
-    int                 is_splittable() const { return m_is_splittable; }
+    bool                is_splittable() const;
 
     // Split this volume, append the result to the object owning this volume.
     // Return the number of volumes created from this one.
@@ -417,7 +420,7 @@ private:
     //     -1   ->   is unknown value (before first cheking)
     //      0   ->   is not splittable
     //      1   ->   is splittable
-    int                     m_is_splittable {-1};
+    mutable int               m_is_splittable{ -1 };
 
 	ModelVolume(ModelObject *object, const TriangleMesh &mesh) : mesh(mesh), m_type(ModelVolumeType::MODEL_PART), object(object)
     {
@@ -619,6 +622,8 @@ public:
 
     // Propose an output file name & path based on the first printable object's name and source input file's path.
     std::string         propose_export_file_name_and_path() const;
+    // Propose an output path, replace extension. The new_extension shall contain the initial dot.
+    std::string         propose_export_file_name_and_path(const std::string &new_extension) const;
 
 private:
     MODELBASE_DERIVED_PRIVATE_COPY_MOVE(Model)

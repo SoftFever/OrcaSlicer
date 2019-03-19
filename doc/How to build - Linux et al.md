@@ -7,7 +7,7 @@ as the versions listed - generally versions available on conservative Linux dist
 
 Perl is not required any more.
 
-In a typical situaction, one would open a command line, go to the Slic3r sources, create a directory called `build` or similar,
+In a typical situation, one would open a command line, go to the Slic3r sources, create a directory called `build` or similar,
 `cd` into it and call:
 
     cmake ..
@@ -19,7 +19,7 @@ Additional CMake flags may be applicable as explained below.
 
 ### Dependency resolution
 
-By default Slic3r looks for dependencies the default way CMake looks for them, ie. in default system locations.
+By default Slic3r looks for dependencies the default way CMake looks for them, i.e. in default system locations.
 On Linux this will typically make Slic3r depend on dynamically loaded libraries from the system, however, Slic3r can be told
 to specifically look for static libraries with the `SLIC3R_STATIC` flag passed to cmake:
 
@@ -65,9 +65,9 @@ To create a debug build, use the following CMake flag:
 
 ### Installation
 
-In runtime, Slic3r needs a way to access its resource files. By default, it looks for a `resources` directory relative to its binary.
+At runtime, Slic3r needs a way to access its resource files. By default, it looks for a `resources` directory relative to its binary.
 
-If you instead wnat Slic3r installed in a structure according to the Filesystem Hierarchy Standard, use the `SLIC3R_FHS` flag
+If you instead want Slic3r installed in a structure according to the File System Hierarchy Standard, use the `SLIC3R_FHS` flag
 
     cmake .. -DSLIC3R_FHS=1
 

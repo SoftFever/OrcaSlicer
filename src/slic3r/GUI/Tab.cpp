@@ -58,6 +58,13 @@ Tab::Tab(wxNotebook* parent, const wxString& title, const char* name) :
 	wxGetApp().tabs_list.push_back(this);
 
     m_em_unit = wxGetApp().em_unit();
+
+	Bind(wxEVT_SIZE, ([this](wxSizeEvent &evt) {
+		for (auto page : m_pages)
+			if (! page.get()->IsShown())
+				page->layout_valid = false;
+		evt.Skip();
+	}));
 }
 
 void Tab::set_type()
@@ -73,6 +80,10 @@ void Tab::set_type()
 // sub new
 void Tab::create_preset_tab()
 {
+#ifdef __WINDOWS__
+    SetDoubleBuffered(true);
+#endif //__WINDOWS__
+
     m_preset_bundle = wxGetApp().preset_bundle;
 
 	// Vertical sizer to hold the choice menu and the rest of the page.
@@ -290,6 +301,11 @@ Slic3r::GUI::PageShp Tab::add_options_page(const wxString& title, const std::str
 	auto panel = this;
 #endif
 	PageShp page(new Page(panel, title, icon_idx));
+//	page->SetBackgroundStyle(wxBG_STYLE_SYSTEM);
+#ifdef __WINDOWS__
+//	page->SetDoubleBuffered(true);
+#endif //__WINDOWS__
+
 	page->SetScrollbars(1, 20, 1, 2);
 	page->Hide();
 	m_hsizer->Add(page.get(), 1, wxEXPAND | wxLEFT, 5);
@@ -315,7 +331,7 @@ void Tab::OnActivate()
 
 void Tab::update_labels_colour()
 {
-	Freeze();
+//	Freeze();
 	//update options "decoration"
 	for (const auto opt : m_options_list)
 	{
@@ -342,7 +358,7 @@ void Tab::update_labels_colour()
 		if (field == nullptr) continue;
 		field->set_label_colour_force(color);
 	}
-	Thaw();
+//	Thaw();
 
 	auto cur_item = m_treectrl->GetFirstVisibleItem();
 	while (cur_item) {
@@ -386,7 +402,7 @@ void Tab::update_changed_ui()
 	for (auto opt_key : dirty_options)	m_options_list[opt_key] &= ~osInitValue;
 	for (auto opt_key : nonsys_options)	m_options_list[opt_key] &= ~osSystemValue;
 
-	Freeze();
+//	Freeze();
 	//update options "decoration"
 	for (const auto opt : m_options_list)
 	{
@@ -436,7 +452,7 @@ void Tab::update_changed_ui()
 		field->set_undo_to_sys_tooltip(sys_tt);
 		field->set_label_colour(color);
 	}
-	Thaw();
+//	Thaw();
 
 	wxTheApp->CallAfter([this]() {
 		update_changed_tree_ui();
@@ -683,16 +699,16 @@ void Tab::load_config(const DynamicPrintConfig& config)
 // Reload current $self->{config} (aka $self->{presets}->edited_preset->config) into the UI fields.
 void Tab::reload_config()
 {
-	Freeze();
+//	Freeze();
 	for (auto page : m_pages)
 		page->reload_config();
- 	Thaw();
+// 	Thaw();
 }
 
 void Tab::update_visibility()
 {
     const ConfigOptionMode mode = wxGetApp().get_mode();
-    Freeze();
+//    Freeze();
 
 	for (auto page : m_pages)
         page->update_visibility(mode);
@@ -702,7 +718,7 @@ void Tab::update_visibility()
     m_mode_sizer->SetMode(mode);
 
     Layout();
-	Thaw();
+//	Thaw();
 
     // to update tree items color
 //    wxTheApp->CallAfter([this]() {
@@ -752,21 +768,29 @@ void Tab::load_key_value(const std::string& opt_key, const boost::any& value, bo
 
 void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 {
-    ConfigOptionsGroup* og_freq_chng_params = wxGetApp().sidebar().og_freq_chng_params(supports_printer_technology(ptFFF));
-    if (opt_key == "fill_density" || opt_key == "supports_enable" || opt_key == "pad_enable")
+	if (wxGetApp().plater() == nullptr) {
+		return;
+	}
+
+    const bool is_fff = supports_printer_technology(ptFFF);
+    ConfigOptionsGroup* og_freq_chng_params = wxGetApp().sidebar().og_freq_chng_params(is_fff);
+    if (opt_key == "fill_density" || opt_key == "pad_enable")
 	{
         boost::any val = og_freq_chng_params->get_config_value(*m_config, opt_key);
         og_freq_chng_params->set_value(opt_key, val);
 	}
-	if (opt_key == "support_material" || opt_key == "support_material_buildplate_only")
+
+	if ( is_fff && (opt_key == "support_material" || opt_key == "support_material_buildplate_only") || 
+        !is_fff && (opt_key == "supports_enable"  || opt_key == "support_buildplate_only"))
 	{
-		wxString new_selection = !m_config->opt_bool("support_material") ?
-								_("None") :
-								m_config->opt_bool("support_material_buildplate_only") ?
-									_("Support on build plate only") :
-									_("Everywhere");
+        const std::string support         = is_fff ? "support_material"                 : "supports_enable";
+        const std::string buildplate_only = is_fff ? "support_material_buildplate_only" : "support_buildplate_only";
+        wxString new_selection = !m_config->opt_bool(support)         ? _("None") :
+                                  m_config->opt_bool(buildplate_only) ? _("Support on build plate only") :
+									                                    _("Everywhere");
         og_freq_chng_params->set_value("support", new_selection);
 	}
+
 	if (opt_key == "brim_width")
 	{
 		bool val = m_config->opt_float("brim_width") > 0.0 ? true : false;
@@ -780,25 +804,6 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         wxGetApp().plater()->on_extruders_change(boost::any_cast<size_t>(value));
 
 	update();
-
-    // #ys_FIXME_to_delete
-    // Post event to the Plater after updating of the all dirty options
-    // It helps to avoid needless schedule_background_processing
-//     if (update_completed()) 
-//     if (m_update_stack.empty())
-//     {
-// //         wxCommandEvent event(EVT_TAB_VALUE_CHANGED);
-// //         event.SetEventObject(this);
-// //         event.SetString(opt_key);
-// //         if (opt_key == "extruders_count")
-// //         {
-// //             const int val = boost::any_cast<size_t>(value);
-// //             event.SetInt(val);
-// //         }
-// // 
-// //         wxPostEvent(this, event);
-//         wxGetApp().mainframe->on_value_changed(m_config);
-//     }
 }
 
 // Show/hide the 'purging volumes' button
@@ -821,9 +826,17 @@ void Tab::update_wiping_button_visibility() {
 // To update the content of the selection boxes,
 // to update the filament colors of the selection boxes,
 // to update the "dirty" flags of the selection boxes,
-// to uddate number of "filament" selection boxes when the number of extruders change.
+// to update number of "filament" selection boxes when the number of extruders change.
 void Tab::on_presets_changed()
 {
+	if (wxGetApp().plater() == nullptr) {
+		return;
+	}
+
+    // Instead of PostEvent (EVT_TAB_PRESETS_CHANGED) just call update_presets
+    wxGetApp().plater()->sidebar().update_presets(m_type);
+	update_preset_description_line();
+
     // Printer selected at the Printer tab, update "compatible" marks at the print and filament selectors.
     for (auto t: m_dependent_tabs)
     {
@@ -834,16 +847,6 @@ void Tab::on_presets_changed()
     // clear m_dependent_tabs after first update from select_preset()
     // to avoid needless preset loading from update() function
     m_dependent_tabs.clear();
-
-    // #ys_FIXME_to_delete
-// 	wxCommandEvent event(EVT_TAB_PRESETS_CHANGED);
-// 	event.SetEventObject(this);
-// 	wxPostEvent(this, event);
-
-    // Instead of PostEvent (EVT_TAB_PRESETS_CHANGED) just call update_presets
-    wxGetApp().plater()->sidebar().update_presets(m_type);
-
-	update_preset_description_line();
 }
 
 void Tab::update_preset_description_line()
@@ -1190,7 +1193,7 @@ void TabPrint::update()
 //         return;                      // ! TODO Let delete this part of code after a common aplication testing
 
     m_update_cnt++;
-	Freeze();
+//	Freeze();
 
 	double fill_density = m_config->option<ConfigOptionPercent>("fill_density")->value;
 
@@ -1401,7 +1404,7 @@ void TabPrint::update()
 	m_recommended_thin_wall_thickness_description_line->SetText(
 		from_u8(PresetHints::recommended_thin_wall_thickness(*m_preset_bundle)));
 
-	Thaw();
+//	Thaw();
     m_update_cnt--;
 
     if (m_update_cnt==0)
@@ -1496,6 +1499,7 @@ void TabFilament::build()
         line = optgroup->create_single_option_line("filament_ramming_parameters");// { _(L("Ramming")), "" };
         line.widget = [this](wxWindow* parent) {
 			auto ramming_dialog_btn = new wxButton(parent, wxID_ANY, _(L("Ramming settings"))+dots, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+			ramming_dialog_btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
             auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(ramming_dialog_btn);
             
@@ -1576,7 +1580,7 @@ void TabFilament::update()
         return; // ys_FIXME
 
     m_update_cnt++;
-	Freeze();
+//	Freeze();
 	wxString text = from_u8(PresetHints::cooling_description(m_presets->get_edited_preset()));
 	m_cooling_description_line->SetText(text);
 	text = from_u8(PresetHints::maximum_volumetric_flow_description(*m_preset_bundle));
@@ -1590,7 +1594,7 @@ void TabFilament::update()
 
 	for (auto el : { "min_fan_speed", "disable_fan_first_layers" })
 		get_field(el)->toggle(fan_always_on);
-    Thaw();
+//    Thaw();
     m_update_cnt--;
 
     if (m_update_cnt == 0)
@@ -1622,25 +1626,22 @@ bool Tab::current_preset_is_dirty()
 
 void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 {
-	const bool sla = m_presets->get_selected_preset().printer_technology() == ptSLA;
+	const PrinterTechnology tech = m_presets->get_selected_preset().printer_technology();
 
 	// Only offer the host type selection for FFF, for SLA it's always the SL1 printer (at the moment)
-	if (! sla) {
+	if (tech == ptFFF) {
 		optgroup->append_single_option_line("host_type");
 	}
 
-	auto printhost_browse = [this, optgroup] (wxWindow* parent) {
-
-		// TODO: SLA Bonjour
-
+	auto printhost_browse = [=](wxWindow* parent) {
 		auto btn = m_printhost_browse_btn = new wxButton(parent, wxID_ANY, _(L(" Browse "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
-// 		btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("zoom.png")), wxBITMAP_TYPE_PNG));
+		btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
         btn->SetBitmap(create_scaled_bitmap("zoom.png"));
 		auto sizer = new wxBoxSizer(wxHORIZONTAL);
 		sizer->Add(btn);
 
-		btn->Bind(wxEVT_BUTTON, [this, parent, optgroup](wxCommandEvent &e) {
-			BonjourDialog dialog(parent);
+		btn->Bind(wxEVT_BUTTON, [=](wxCommandEvent &e) {
+			BonjourDialog dialog(parent, tech);
 			if (dialog.show_and_lookup()) {
 				optgroup->set_value("print_host", std::move(dialog.get_selected()), true);
 				optgroup->get_field("print_host")->field_changed();
@@ -1653,7 +1654,7 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 	auto print_host_test = [this](wxWindow* parent) {
 		auto btn = m_print_host_test_btn = new wxButton(parent, wxID_ANY, _(L("Test")), 
 			wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
-// 		btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("wrench.png")), wxBITMAP_TYPE_PNG));
+		btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
         btn->SetBitmap(create_scaled_bitmap("wrench.png"));
 		auto sizer = new wxBoxSizer(wxHORIZONTAL);
 		sizer->Add(btn);
@@ -1691,6 +1692,7 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 		auto printhost_cafile_browse = [this, optgroup] (wxWindow* parent) {
 			auto btn = new wxButton(parent, wxID_ANY, _(L(" Browse "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
 // 			btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("zoom.png")), wxBITMAP_TYPE_PNG));
+			btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 			btn->SetBitmap(create_scaled_bitmap("zoom.png"));
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(btn);
@@ -1729,6 +1731,7 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 \tOn this system, Slic3r uses HTTPS certificates from the system Certificate Store or Keychain.\n\
 \tTo use a custom CA file, please import your CA file into Certificate Store / Keychain.")),
 				ca_file_hint));
+			txt->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(txt);
 			return sizer;
@@ -1969,7 +1972,7 @@ void TabPrinter::build_sla()
     Line line = optgroup->create_single_option_line("bed_shape");//{ _(L("Bed shape")), "" };
     line.widget = [this](wxWindow* parent) {
         auto btn = new wxButton(parent, wxID_ANY, _(L(" Set ")) + dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
-        //			btn->SetFont(Slic3r::GUI::small_font);
+        btn->SetFont(wxGetApp().small_font());
 //         btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("printer_empty.png")), wxBITMAP_TYPE_PNG));
         btn->SetBitmap(create_scaled_bitmap("printer_empty.png"));
 
@@ -2276,7 +2279,7 @@ void TabPrinter::update()
 
 void TabPrinter::update_fff()
 {
-	Freeze();
+//	Freeze();
 
 	bool en;
 	auto serial_speed = get_field("serial_speed");
@@ -2375,7 +2378,7 @@ void TabPrinter::update_fff()
 			(have_multiple_extruders && toolchange_retraction);
 	}
 
-	Thaw();
+//	Thaw();
 }
 
 void TabPrinter::update_sla()
@@ -2469,7 +2472,7 @@ void Tab::load_current_preset()
 //Regerenerate content of the page tree.
 void Tab::rebuild_page_tree(bool tree_sel_change_event /*= false*/)
 {
-	Freeze();
+// 	Freeze();
 
 	// get label of the currently selected item
     const auto sel_item = m_treectrl->GetSelection();
@@ -2495,7 +2498,7 @@ void Tab::rebuild_page_tree(bool tree_sel_change_event /*= false*/)
 		// this is triggered on first load, so we don't disable the sel change event
 		m_treectrl->SelectItem(m_treectrl->GetFirstVisibleItem());//! (treectrl->GetFirstChild(rootItem));
 	}
-	Thaw();
+// 	Thaw();
 }
 
 void Tab::update_page_tree_visibility()
@@ -2609,7 +2612,7 @@ void Tab::select_preset(std::string preset_name)
 	} else {
 		if (current_dirty)
 			m_presets->discard_current_changes();
-		m_presets->select_preset_by_name(preset_name, false);
+		const bool is_selected = m_presets->select_preset_by_name(preset_name, false);
 		// Mark the print & filament enabled if they are compatible with the currently selected preset.
 		// The following method should not discard changes of current print or filament presets on change of a printer profile,
 		// if they are compatible with the current printer.
@@ -2618,6 +2621,28 @@ void Tab::select_preset(std::string preset_name)
 		// Initialize the UI from the current preset.
         if (printer_tab)
             static_cast<TabPrinter*>(this)->update_pages();
+
+        if (!is_selected && printer_tab)
+        {
+            /* There is a case, when :
+             * after Config Wizard applying we try to select previously selected preset, but 
+             * in a current configuration this one:
+             *  1. doesn't exist now,
+             *  2. have another printer_technology
+             * So, it is necessary to update list of dependent tabs 
+             * to the corresponding printer_technology
+             */
+            const PrinterTechnology printer_technology = m_presets->get_edited_preset().printer_technology();
+            if (printer_technology == ptFFF && m_dependent_tabs.front() != Preset::Type::TYPE_PRINT ||
+                printer_technology == ptSLA && m_dependent_tabs.front() != Preset::Type::TYPE_SLA_PRINT )
+            {
+                m_dependent_tabs.clear();
+                if (printer_technology == ptFFF)
+                    m_dependent_tabs = { Preset::Type::TYPE_PRINT, Preset::Type::TYPE_FILAMENT };
+                else
+                    m_dependent_tabs = { Preset::Type::TYPE_SLA_PRINT, Preset::Type::TYPE_SLA_MATERIAL };                
+            }
+        }
 		load_current_preset();
 	}
 }
@@ -2689,7 +2714,7 @@ void Tab::OnTreeSelChange(wxTreeEvent& event)
 #ifdef __linux__	
 	std::unique_ptr<wxWindowUpdateLocker> no_updates(new wxWindowUpdateLocker(this));
 #else
-	wxWindowUpdateLocker noUpdates(this);
+//	wxWindowUpdateLocker noUpdates(this);
 #endif
 
     if (m_pages.empty())
@@ -2709,17 +2734,22 @@ void Tab::OnTreeSelChange(wxTreeEvent& event)
 	if (page == nullptr) return;
 
 	for (auto& el : m_pages)
-		el.get()->Hide();
+//		if (el.get()->IsShown()) {
+			el.get()->Hide();
+//			break;
+//		}
 
-#ifdef __linux__
-    no_updates.reset(nullptr);
-#endif
-
-	page->Show();
-	m_hsizer->Layout();
-	Refresh();
+	#ifdef __linux__
+	    no_updates.reset(nullptr);
+	#endif
 
 	update_undo_buttons();
+	page->Show();
+//	if (! page->layout_valid) {
+		page->layout_valid = true;
+		m_hsizer->Layout();
+		Refresh();
+//	}
 }
 
 void Tab::OnKeyDown(wxKeyEvent& event)
@@ -2859,7 +2889,9 @@ void Tab::update_ui_from_settings()
 wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &deps)
 {
 	deps.checkbox = new wxCheckBox(parent, wxID_ANY, _(L("All")));
+	deps.checkbox->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 	deps.btn = new wxButton(parent, wxID_ANY, _(L(" Set "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
+	deps.btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 
 // 	deps.btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("printer_empty.png")), wxBITMAP_TYPE_PNG));
     deps.btn->SetBitmap(create_scaled_bitmap("printer_empty.png"));
@@ -3055,6 +3087,7 @@ ConfigOptionsGroupShp Page::new_optgroup(const wxString& title, int noncommon_la
         }                               
 //         auto bmp = new wxStaticBitmap(parent, wxID_ANY, bmp_name.empty() ? wxNullBitmap : wxBitmap(from_u8(var(bmp_name)), wxBITMAP_TYPE_PNG));
         auto bmp = new wxStaticBitmap(parent, wxID_ANY, bmp_name.empty() ? wxNullBitmap : create_scaled_bitmap(bmp_name));
+        bmp->SetBackgroundStyle(wxBG_STYLE_PAINT);
         return bmp;
     };
 
@@ -3270,7 +3303,8 @@ void TabSLAPrint::build()
     optgroup->append_single_option_line("support_pillar_diameter");
     optgroup->append_single_option_line("support_pillar_connection_mode");
     optgroup->append_single_option_line("support_buildplate_only");
-    optgroup->append_single_option_line("support_pillar_widening_factor");
+    // TODO: This parameter is not used at the moment.
+    // optgroup->append_single_option_line("support_pillar_widening_factor");
     optgroup->append_single_option_line("support_base_diameter");
     optgroup->append_single_option_line("support_base_height");
     optgroup->append_single_option_line("support_object_elevation");
@@ -3278,6 +3312,7 @@ void TabSLAPrint::build()
     optgroup = page->new_optgroup(_(L("Connection of the support sticks and junctions")));
     optgroup->append_single_option_line("support_critical_angle");
     optgroup->append_single_option_line("support_max_bridge_length");
+    optgroup->append_single_option_line("support_max_pillar_link_distance");
 
     optgroup = page->new_optgroup(_(L("Automatic generation")));
     optgroup->append_single_option_line("support_points_density_relative");
@@ -3336,11 +3371,37 @@ void TabSLAPrint::update()
         return; // #ys_FIXME
 
 // #ys_FIXME
-//     m_update_cnt++;
-//     ! something to update
-//     m_update_cnt--;
-// 
-//     if (m_update_cnt == 0)
+     m_update_cnt++;
+
+     double head_penetration = m_config->opt_float("support_head_penetration");
+     double head_width = m_config->opt_float("support_head_width");
+     if(head_penetration > head_width) {
+         wxString msg_text = _(L("Head penetration should not be greater than the head width."));
+         auto dialog = new wxMessageDialog(parent(), msg_text, _(L("Invalid Head penetration")), wxICON_WARNING | wxOK);
+         DynamicPrintConfig new_conf = *m_config;
+         if (dialog->ShowModal() == wxID_OK) {
+             new_conf.set_key_value("support_head_penetration", new ConfigOptionFloat(head_width));
+         }
+
+         load_config(new_conf);
+     }
+
+     double pinhead_d = m_config->opt_float("support_head_front_diameter");
+     double pillar_d     = m_config->opt_float("support_pillar_diameter");
+     if(pinhead_d > pillar_d) {
+         wxString msg_text = _(L("Pinhead diameter should be smaller than the pillar diameter."));
+         auto dialog = new wxMessageDialog(parent(), msg_text, _(L("Invalid pinhead diameter")), wxICON_WARNING | wxOK);
+         DynamicPrintConfig new_conf = *m_config;
+         if (dialog->ShowModal() == wxID_OK) {
+             new_conf.set_key_value("support_head_front_diameter", new ConfigOptionFloat(pillar_d / 2.0));
+         }
+
+         load_config(new_conf);
+     }
+
+     m_update_cnt--;
+
+     if (m_update_cnt == 0)
     wxGetApp().mainframe->on_config_changed(m_config);
 }
 

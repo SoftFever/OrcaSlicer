@@ -2,6 +2,7 @@
 #define SLACOMMON_HPP
 
 #include <Eigen/Geometry>
+#include <memory>
 
 // #define SLIC3R_SLA_NEEDS_WINDTREE
 
@@ -44,7 +45,6 @@ struct SupportPoint {
     bool operator!=(const SupportPoint& sp) const { return !(sp == (*this)); }
 };
 
-
 /// An index-triangle structure for libIGL functions. Also serves as an
 /// alternative (raw) input format for the SLASupportTree
 /*struct EigenMesh3D {
@@ -78,24 +78,38 @@ public:
 
     // Result of a raycast
     class hit_result {
-        double m_t = std::numeric_limits<double>::infinity();
+        double m_t = std::nan("");
         int m_face_id = -1;
-        const EigenMesh3D& m_mesh;
+        const EigenMesh3D *m_mesh = nullptr;
         Vec3d m_dir;
-        inline hit_result(const EigenMesh3D& em): m_mesh(em) {}
+        Vec3d m_source;
         friend class EigenMesh3D;
+
+        // A valid object of this class can only be obtained from
+        // EigenMesh3D::query_ray_hit method.
+        explicit inline hit_result(const EigenMesh3D& em): m_mesh(&em) {}
     public:
+
+        // This can create a placeholder object which is invalid (not created
+        // by a query_ray_hit call) but the distance can be preset to
+        // a specific value for distinguishing the placeholder.
+        inline hit_result(double val = std::nan("")): m_t(val) {}
 
         inline double distance() const { return m_t; }
         inline const Vec3d& direction() const { return m_dir; }
+        inline Vec3d position() const { return m_source + m_dir * m_t; }
         inline int face() const { return m_face_id; }
+        inline bool is_valid() const { return m_mesh != nullptr; }
+
+        // Hit_result can decay into a double as the hit distance.
+        inline operator double() const { return distance(); }
 
         inline Vec3d normal() const {
-            if(m_face_id < 0) return {};
-            auto trindex    = m_mesh.m_F.row(m_face_id);
-            const Vec3d& p1 = m_mesh.V().row(trindex(0));
-            const Vec3d& p2 = m_mesh.V().row(trindex(1));
-            const Vec3d& p3 = m_mesh.V().row(trindex(2));
+            if(m_face_id < 0 || !is_valid()) return {};
+            auto trindex    = m_mesh->m_F.row(m_face_id);
+            const Vec3d& p1 = m_mesh->V().row(trindex(0));
+            const Vec3d& p2 = m_mesh->V().row(trindex(1));
+            const Vec3d& p3 = m_mesh->V().row(trindex(2));
             Eigen::Vector3d U = p2 - p1;
             Eigen::Vector3d V = p3 - p1;
             return U.cross(V).normalized();
@@ -133,6 +147,8 @@ public:
 
     bool inside(const Vec3d& p) const;
 #endif /* SLIC3R_SLA_NEEDS_WINDTREE */
+
+    double squared_distance(const Vec3d& p, int& i, Vec3d& c) const;
 };
 
 

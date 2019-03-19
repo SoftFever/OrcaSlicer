@@ -38,6 +38,7 @@ class GLCanvas3D;
 using t_optgroups = std::vector <std::shared_ptr<ConfigOptionsGroup>>;
 
 class Plater;
+enum class ActionButtonType : int;
 
 class PresetComboBox : public wxBitmapComboBox
 {
@@ -61,7 +62,7 @@ private:
 
 class Sidebar : public wxPanel
 {
-    /*ConfigOptionMode*/int    m_mode;
+    ConfigOptionMode    m_mode;
 public:
     Sidebar(Plater *parent);
     Sidebar(Sidebar &&) = delete;
@@ -73,12 +74,14 @@ public:
     void init_filament_combo(PresetComboBox **combo, const int extr_idx);
     void remove_unused_filament_combos(const int current_extruder_count);
     void update_presets(Slic3r::Preset::Type preset_type);
-    void update_mode_sizer(const Slic3r::ConfigOptionMode& mode);
+    void update_mode_sizer() const;
+    void update_reslice_btn_tooltip() const;
 
     ObjectManipulation*     obj_manipul();
     ObjectList*             obj_list();
     ObjectSettings*         obj_settings();
     wxScrolledWindow*       scrolled_panel();
+    wxPanel*                presets_panel();
 
     ConfigOptionsGroup*     og_freq_chng_params(const bool is_fff);
     wxButton*               get_wiping_dialog_button();
@@ -86,10 +89,12 @@ public:
     void                    show_info_sizer();
     void                    show_sliced_info_sizer(const bool show);
     void                    enable_buttons(bool enable);
-    void                    show_reslice(bool show);
-    void                    show_send(bool show);
+    void                    set_btn_label(const ActionButtonType btn_type, const wxString& label) const;
+    void                    show_reslice(bool show) const;
+    void                    show_export(bool show) const;
+    void                    show_send(bool show) const;
     bool                    is_multifilament();
-    void                    set_mode_value(const /*ConfigOptionMode*/int mode) { m_mode = mode; }
+    void                    update_mode();
 
     std::vector<PresetComboBox*>& combos_filament();
 private:
