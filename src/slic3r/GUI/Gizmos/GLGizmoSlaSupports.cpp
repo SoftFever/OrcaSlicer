@@ -157,6 +157,11 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
     const Transform3d& instance_scaling_matrix_inverse = vol->get_instance_transformation().get_matrix(true, true, false, true).inverse();
     const Transform3d& instance_matrix = vol->get_instance_transformation().get_matrix();
 
+    // we'll recover current look direction from the modelview matrix (in world coords):
+    Eigen::Matrix<double, 4, 4, Eigen::DontAlign> modelview_matrix;
+    ::glGetDoublev(GL_MODELVIEW_MATRIX, modelview_matrix.data());
+    Vec3d direction_to_camera(modelview_matrix.data()[2], modelview_matrix.data()[6], modelview_matrix.data()[10]);
+
     ::glPushMatrix();
     ::glTranslated(0.0, 0.0, z_shift);
     ::glMultMatrixd(instance_matrix.data());
@@ -166,6 +171,9 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
     {
         const sla::SupportPoint& support_point = m_editing_mode_cache[i].support_point;
         const bool& point_selected = m_editing_mode_cache[i].selected;
+
+        if (is_point_clipped(support_point.pos.cast<double>(), direction_to_camera, z_shift))
+            continue;
 
         // First decide about the color of the point.
         if (picking) {
@@ -285,6 +293,8 @@ void GLGizmoSlaSupports::update_mesh()
     m_AABB.init(m_V, m_F);
 }
 
+// Unprojects the mouse position on the mesh and return the hit point and normal of the facet.
+// The function throws if no intersection if found.
 std::pair<Vec3f, Vec3f> GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos)
 {
     // if the gizmo doesn't have the V, F structures for igl, calculate them first:
@@ -303,11 +313,14 @@ std::pair<Vec3f, Vec3f> GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse
     ::gluUnProject(mouse_pos(0), viewport(3)-mouse_pos(1), 0.f, modelview_matrix.data(), projection_matrix.data(), viewport.data(), &point1(0), &point1(1), &point1(2));
     ::gluUnProject(mouse_pos(0), viewport(3)-mouse_pos(1), 1.f, modelview_matrix.data(), projection_matrix.data(), viewport.data(), &point2(0), &point2(1), &point2(2));
 
-    igl::Hit hit;
+    std::vector<igl::Hit> hits;
 
     const Selection& selection = m_parent.get_selection();
     const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
     double z_offset = volume->get_sla_shift_z();
+
+    // we'll recover current look direction from the modelview matrix (in world coords):
+    Vec3d direction_to_camera(modelview_matrix.data()[2], modelview_matrix.data()[6], modelview_matrix.data()[10]);
 
     point1(2) -= z_offset;
 	point2(2) -= z_offset;
@@ -317,17 +330,37 @@ std::pair<Vec3f, Vec3f> GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse
     point1 = inv * point1;
     point2 = inv * point2;
 
-    if (!m_AABB.intersect_ray(m_V, m_F, point1.cast<float>(), (point2-point1).cast<float>(), hit))
+    if (!m_AABB.intersect_ray(m_V, m_F, point1.cast<float>(), (point2-point1).cast<float>(), hits))
         throw std::invalid_argument("unproject_on_mesh(): No intersection found.");
 
-    int fid = hit.id;   // facet id
-    Vec3f bc(1-hit.u-hit.v, hit.u, hit.v); // barycentric coordinates of the hit
-    Vec3f a = (m_V.row(m_F(fid, 1)) - m_V.row(m_F(fid, 0)));
-    Vec3f b = (m_V.row(m_F(fid, 2)) - m_V.row(m_F(fid, 0)));
+    std::sort(hits.begin(), hits.end(), [](const igl::Hit& a, const igl::Hit& b) { return a.t < b.t; });
+
+    // Now let's iterate through the points and find the first that is not clipped:
+    unsigned int i=0;
+    Vec3f bc;
+    Vec3f a;
+    Vec3f b;
+    Vec3f result;
+    for (i=0; i<hits.size(); ++i) {
+        igl::Hit& hit = hits[i];
+        int fid = hit.id;   // facet id
+        bc = Vec3f(1-hit.u-hit.v, hit.u, hit.v); // barycentric coordinates of the hit
+        a = (m_V.row(m_F(fid, 1)) - m_V.row(m_F(fid, 0)));
+        b = (m_V.row(m_F(fid, 2)) - m_V.row(m_F(fid, 0)));
+        result = bc(0) * m_V.row(m_F(fid, 0)) + bc(1) * m_V.row(m_F(fid, 1)) + bc(2)*m_V.row(m_F(fid, 2));
+        if (m_clipping_plane_distance == 0.f || !is_point_clipped(result.cast<double>(), direction_to_camera, z_offset))
+            break;
+    }
+
+    if (i==hits.size() || (hits.size()-i) % 2 != 0) {
+        // All hits are either clipped, or there is an odd number of unclipped
+        // hits - meaning the nearest must be from inside the mesh.
+        throw std::invalid_argument("unproject_on_mesh(): No intersection found.");
+    }
 
     // Calculate and return both the point and the facet normal.
     return std::make_pair(
-            bc(0) * m_V.row(m_F(fid, 0)) + bc(1) * m_V.row(m_F(fid, 1)) + bc(2)*m_V.row(m_F(fid, 2)),
+            result,
             a.cross(b)
         );
 }

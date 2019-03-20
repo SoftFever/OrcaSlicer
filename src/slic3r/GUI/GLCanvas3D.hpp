@@ -778,6 +778,9 @@ private:
     // Sets current projection matrix to ortho, accounting for current camera zoom.
     void set_ortho_projection(float w, float h, float near, float far) const;
 
+    // Set/unset near clipping plane according to SLA gizmo requirements.
+    void set_sla_clipping(bool enable) const;
+
     void _start_timer();
     void _stop_timer();
 

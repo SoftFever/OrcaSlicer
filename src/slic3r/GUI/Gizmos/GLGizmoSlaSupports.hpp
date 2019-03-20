@@ -86,6 +86,7 @@ private:
     int m_canvas_height;
 
     std::vector<const ConfigOption*> get_config_options(const std::vector<std::string>& keys) const;
+    bool is_point_clipped(const Vec3d& point, const Vec3d& direction_to_camera, float z_shift) const;
 
     // Methods that do the model_object and editing cache synchronization,
     // editing mode selection, etc:

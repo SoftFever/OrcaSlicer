@@ -2582,27 +2582,7 @@ void GLCanvas3D::render()
     if (early_bed_render)
         _render_bed(theta);
 
-////////////////////////
-    //Eigen::Matrix<GLdouble, 4, 4, Eigen::DontAlign> stashed_projection_matrix;
-    //::glGetDoublev(GL_PROJECTION_MATRIX, stashed_projection_matrix.data());
-    const Size& cnv_size = get_canvas_size();
-    if (m_gizmos.get_current_type() == Gizmos::SlaSupports) {
-        std::pair<float, float> clipping_limits = m_gizmos.get_sla_clipping_plane();
-        set_ortho_projection((unsigned int)cnv_size.get_width(), (unsigned int)cnv_size.get_height(), clipping_limits.first, clipping_limits.second);
-    }
-
-////////////////////
     _render_objects();
-//////////////////////////////////
-    if (m_gizmos.get_current_type() == Gizmos::SlaSupports) {
-        //::glMatrixMode(GL_PROJECTION);
-        //::glLoadIdentity();
-        //::glMultMatrixd(stashed_projection_matrix.data());
-        //::glMatrixMode(GL_MODELVIEW);
-        _resize((unsigned int)cnv_size.get_width(), (unsigned int)cnv_size.get_height());
-    }
-//////////////////////////////////
-
     _render_sla_slices();
     _render_selection();
 
@@ -4720,6 +4700,28 @@ void GLCanvas3D::set_ortho_projection(float w, float h, float near, float far) c
 }
 
 
+void GLCanvas3D::set_sla_clipping(bool enable) const
+{
+    if (m_gizmos.get_current_type() != Gizmos::SlaSupports)
+        return;
+
+    if (enable) {
+        ::glMatrixMode(GL_PROJECTION);
+        ::glPushMatrix();
+        ::glMatrixMode(GL_MODELVIEW);
+        const Size& cnv_size = get_canvas_size();
+        std::pair<float, float> clipping_limits = m_gizmos.get_sla_clipping_plane();
+        set_ortho_projection((unsigned int)cnv_size.get_width(), (unsigned int)cnv_size.get_height(), clipping_limits.first, clipping_limits.second);
+    }
+    else {
+        ::glMatrixMode(GL_PROJECTION);
+        ::glPopMatrix();
+        ::glMatrixMode(GL_MODELVIEW);
+        ::glClear(GL_DEPTH_BUFFER_BIT);
+    }
+}
+
+
 void GLCanvas3D::_render_objects() const
 {
     if (m_volumes.empty())
@@ -4727,6 +4729,8 @@ void GLCanvas3D::_render_objects() const
 
     ::glEnable(GL_LIGHTING);
     ::glEnable(GL_DEPTH_TEST);
+
+    set_sla_clipping(true);
 
     if (m_use_VBOs)
     {
@@ -4789,6 +4793,8 @@ void GLCanvas3D::_render_objects() const
         }
     }
 
+    set_sla_clipping(false);
+
     ::glDisable(GL_LIGHTING);
 }
 
@@ -4831,6 +4837,8 @@ void GLCanvas3D::_render_volumes(bool fake_colors) const
     if (!fake_colors)
         ::glEnable(GL_LIGHTING);
 
+    set_sla_clipping(true);
+
     // do not cull backfaces to show broken geometry, if any
     ::glDisable(GL_CULL_FACE);
 
@@ -4868,6 +4876,8 @@ void GLCanvas3D::_render_volumes(bool fake_colors) const
     ::glDisable(GL_BLEND);
 
     ::glEnable(GL_CULL_FACE);
+
+    set_sla_clipping(false);
 
     if (!fake_colors)
         ::glDisable(GL_LIGHTING);
