@@ -24,7 +24,7 @@ class Rect
 public:
     Rect() : m_left(0.0f) , m_top(0.0f) , m_right(0.0f) , m_bottom(0.0f) {}
 
-    Rect::Rect(float left, float top, float right, float bottom) : m_left(left) , m_top(top) , m_right(right) , m_bottom(bottom) {}
+    Rect(float left, float top, float right, float bottom) : m_left(left) , m_top(top) , m_right(right) , m_bottom(bottom) {}
 
     float get_left() const { return m_left; }
     void set_left(float left) { m_left = left; }
