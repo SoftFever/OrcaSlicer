@@ -515,8 +515,20 @@ void Choice::BUILD() {
         m_is_editable = true;
         temp = new wxBitmapComboBox(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size);
     }
-	else
-		temp = new wxBitmapComboBox(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size, 0, nullptr, wxCB_READONLY);
+    else {
+#ifdef __WXOSX__
+        /* wxBitmapComboBox with wxCB_READONLY style return NULL for GetTextCtrl(),
+         * so ToolTip doesn't shown.
+         * Next workaround helps to solve this problem
+         */
+        temp = new wxBitmapComboBox();
+        temp->SetTextCtrlStyle(wxTE_READONLY);
+        temp->Create(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size, 0, nullptr);
+#else
+        temp = new wxBitmapComboBox(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size, 0, nullptr, wxCB_READONLY);
+#endif //__WXOSX__
+    }
+
 	temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 	temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
