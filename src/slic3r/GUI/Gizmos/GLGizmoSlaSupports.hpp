@@ -2,6 +2,7 @@
 #define slic3r_GLGizmoSlaSupports_hpp_
 
 #include "GLGizmoBase.hpp"
+#include "GLGizmos.hpp"
 
 // There is an L function in igl that would be overridden by our localization macro - let's undefine it...
 #undef L

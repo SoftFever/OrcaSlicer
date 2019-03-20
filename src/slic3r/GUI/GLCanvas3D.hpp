@@ -10,6 +10,7 @@
 #include "3DBed.hpp"
 #include "Camera.hpp"
 #include "Selection.hpp"
+#include "Gizmos/GLGizmosManager.hpp"
 
 #include <float.h>
 
@@ -64,33 +65,6 @@ public:
     void set_scale_factor(int height);
 };
 
-class Rect
-{
-    float m_left;
-    float m_top;
-    float m_right;
-    float m_bottom;
-
-public:
-    Rect();
-    Rect(float left, float top, float right, float bottom);
-
-    float get_left() const;
-    void set_left(float left);
-
-    float get_top() const;
-    void set_top(float top);
-
-    float get_right() const;
-    void set_right(float right);
-
-    float get_bottom() const;
-    void set_bottom(float bottom);
-
-    float get_width() const { return m_right - m_left; }
-    float get_height() const { return m_top - m_bottom; }
-};
-
 wxDECLARE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, SimpleEvent);
 
 using Vec2dEvent = Event<Vec2d>;
@@ -116,22 +90,6 @@ wxDECLARE_EVENT(EVT_GLCANVAS_UPDATE_GEOMETRY, Vec3dsEvent<2>);
 wxDECLARE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_UPDATE_BED_SHAPE, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_TAB, SimpleEvent);
-
-// this describes events being passed from GLCanvas3D to SlaSupport gizmo
-enum class SLAGizmoEventType {
-    LeftDown = 1,
-    LeftUp,
-    RightDown,
-    Dragging,
-    Delete,
-    SelectAll,
-    ShiftUp,
-    ApplyChanges,
-    DiscardChanges,
-    AutomaticGeneration,
-    ManualEditing
-};
-
 
 class GLCanvas3D
 {
@@ -357,119 +315,6 @@ public:
     };
 
 private:
-    class Gizmos
-    {
-    public:
-#if ENABLE_SVG_ICONS
-        static const float Default_Icons_Size;
-#endif // ENABLE_SVG_ICONS
-
-        enum EType : unsigned char
-        {
-            Undefined,
-            Move,
-            Scale,
-            Rotate,
-            Flatten,
-            Cut,
-            SlaSupports,
-            Num_Types
-        };
-
-    private:
-        bool m_enabled;
-        typedef std::map<EType, GLGizmoBase*> GizmosMap;
-        GizmosMap m_gizmos;
-#if ENABLE_SVG_ICONS
-        mutable GLTexture m_icons_texture;
-        mutable bool m_icons_texture_dirty;
-#else
-        ItemsIconsTexture m_icons_texture;
-#endif // ENABLE_SVG_ICONS
-        BackgroundTexture m_background_texture;
-        EType m_current;
-
-#if ENABLE_SVG_ICONS
-        float m_overlay_icons_size;
-        float m_overlay_scale;
-#else
-        float m_overlay_icons_scale;
-#endif // ENABLE_SVG_ICONS
-        float m_overlay_border;
-        float m_overlay_gap_y;
-
-    public:
-        Gizmos();
-        ~Gizmos();
-
-        bool init(GLCanvas3D& parent);
-
-        bool is_enabled() const;
-        void set_enabled(bool enable);
-
-#if ENABLE_SVG_ICONS
-        void set_overlay_icon_size(float size);
-#endif // ENABLE_SVG_ICONS
-        void set_overlay_scale(float scale);
-
-        std::string update_hover_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos, const Selection& selection);
-        void update_on_off_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos, const Selection& selection);
-        void update_on_off_state(const Selection& selection);
-        void reset_all_states();
-
-        void set_hover_id(int id);
-        void enable_grabber(EType type, unsigned int id, bool enable);
-
-        bool overlay_contains_mouse(const GLCanvas3D& canvas, const Vec2d& mouse_pos) const;
-        bool grabber_contains_mouse() const;
-        void update(const Linef3& mouse_ray, const Selection& selection, bool shift_down, const Point* mouse_pos = nullptr);
-        Rect get_reset_rect_viewport(const GLCanvas3D& canvas) const;
-        EType get_current_type() const;
-
-        bool is_running() const;
-        bool handle_shortcut(int key, const Selection& selection);
-
-        bool is_dragging() const;
-        void start_dragging(const Selection& selection);
-        void stop_dragging();
-
-        Vec3d get_displacement() const;
-
-        Vec3d get_scale() const;
-        void set_scale(const Vec3d& scale);
-
-        Vec3d get_rotation() const;
-        void set_rotation(const Vec3d& rotation);
-
-        Vec3d get_flattening_normal() const;
-
-        void set_flattening_data(const ModelObject* model_object);
-
-        void set_sla_support_data(ModelObject* model_object, const Selection& selection);
-        bool mouse_event(SLAGizmoEventType action, const Vec2d& mouse_position = Vec2d::Zero(), bool shift_down = false);
-        void delete_current_grabber(bool delete_all = false);
-
-        void render_current_gizmo(const Selection& selection) const;
-        void render_current_gizmo_for_picking_pass(const Selection& selection) const;
-
-        void render_overlay(const GLCanvas3D& canvas, const Selection& selection) const;
-
-    private:
-        void reset();
-
-        void do_render_overlay(const GLCanvas3D& canvas, const Selection& selection) const;
-        void do_render_current_gizmo(const Selection& selection) const;
-
-        float get_total_overlay_height() const;
-        float get_total_overlay_width() const;
-
-        GLGizmoBase* get_current() const;
-
-#if ENABLE_SVG_ICONS
-        bool generate_icons_texture() const;
-#endif // ENABLE_SVG_ICONS
-    };
-
     struct SlaCap
     {
         struct Triangles
@@ -557,7 +402,7 @@ private:
     LayersEditing m_layers_editing;
     Shader m_shader;
     Mouse m_mouse;
-    mutable Gizmos m_gizmos;
+    mutable GLGizmosManager m_gizmos;
     mutable GLToolbar m_toolbar;
     ClippingPlane m_clipping_planes[2];
     bool m_use_clipping_planes;
@@ -714,6 +559,8 @@ public:
     void handle_sidebar_focus_event(const std::string& opt_key, bool focus_on);
 
     void update_ui_from_settings();
+
+    float get_view_toolbar_height() const { return m_view_toolbar.get_height(); }
 
 private:
     bool _is_shown_on_screen() const;
