@@ -562,14 +562,14 @@ void GLGizmosManager::set_sla_support_data(ModelObject* model_object, const Sele
 }
 
 // Returns true if the gizmo used the event to do something, false otherwise.
-bool GLGizmosManager::mouse_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down)
+bool GLGizmosManager::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down)
 {
     if (!m_enabled)
         return false;
 
     GizmosMap::const_iterator it = m_gizmos.find(SlaSupports);
     if (it != m_gizmos.end())
-        return reinterpret_cast<GLGizmoSlaSupports*>(it->second)->mouse_event(action, mouse_position, shift_down);
+        return reinterpret_cast<GLGizmoSlaSupports*>(it->second)->gizmo_event(action, mouse_position, shift_down);
 
     return false;
 }

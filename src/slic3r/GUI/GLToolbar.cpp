@@ -157,7 +157,7 @@ GLToolbar::GLToolbar(GLToolbar::EType type)
 #if ENABLE_SVG_ICONS
     , m_icons_texture_dirty(true)
 #endif // ENABLE_SVG_ICONS
-    , m_mouse_capture({false, false, false})
+    , m_mouse_capture({ false, false, false, nullptr })
     , m_tooltip("")
 {
 }
@@ -418,8 +418,17 @@ bool GLToolbar::on_mouse(wxMouseEvent& evt, GLCanvas3D& parent)
         m_mouse_capture.middle = false;
     else if (evt.RightUp())
         m_mouse_capture.right = false;
-    else if (m_mouse_capture.any() && evt.Dragging())
-        processed = true;
+    else if (m_mouse_capture.any())
+    {
+        if (evt.Dragging())
+            processed = true;
+        else if (evt.Entering() && (m_mouse_capture.parent == &parent))
+            // Resets the mouse capture state to avoid setting the dragging event as processed when, for example,
+            // the item action opens a modal dialog
+            // Keeps the mouse capture state if the entering event happens on different parent from the one
+            // who received the button down event, to prevent, for example, dragging when switching between scene views 
+            m_mouse_capture.reset();
+    }
 
     int item_id = contains_mouse(mouse_pos, parent);
     if (item_id == -1)
@@ -429,10 +438,11 @@ bool GLToolbar::on_mouse(wxMouseEvent& evt, GLCanvas3D& parent)
     }
     else
     {
-        // mouse inside toolbar only
+        // mouse inside toolbar
         if (evt.LeftDown() || evt.LeftDClick())
         {
             m_mouse_capture.left = true;
+            m_mouse_capture.parent = &parent;
             if ((item_id != -2) && !m_items[item_id]->is_separator())
             {
                 // mouse is inside an icon
@@ -441,9 +451,15 @@ bool GLToolbar::on_mouse(wxMouseEvent& evt, GLCanvas3D& parent)
             }
         }
         else if (evt.MiddleDown())
+        {
             m_mouse_capture.middle = true;
+            m_mouse_capture.parent = &parent;
+        }
         else if (evt.RightDown())
+        {
             m_mouse_capture.right = true;
+            m_mouse_capture.parent = &parent;
+        }
         else if (evt.LeftUp())
             processed = true;
     }

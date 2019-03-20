@@ -237,8 +237,10 @@ private:
         bool left;
         bool middle;
         bool right;
+        GLCanvas3D* parent;
 
         bool any() const { return left || middle || right; }
+        void reset() { left = middle = right = false; parent = nullptr; }
     };
 
     MouseCapture m_mouse_capture;

@@ -60,7 +60,7 @@ public:
 #endif // ENABLE_SVG_ICONS
     virtual ~GLGizmoSlaSupports();
     void set_sla_support_data(ModelObject* model_object, const Selection& selection);
-    bool mouse_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down);
+    bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down);
     void delete_selected_points(bool force = false);
     std::pair<float, float> get_sla_clipping_plane() const;
 
@@ -88,8 +88,7 @@ private:
     bool m_selection_rectangle_active = false;
     Vec2d m_selection_rectangle_start_corner;
     Vec2d m_selection_rectangle_end_corner;
-    bool m_ignore_up_event = false;
-    bool m_combo_box_open = false;  // To ensure proper rendering of the imgui combobox.
+    bool m_wait_for_up_event = false;
     bool m_unsaved_changes = false; // Are there unsaved changes in manual mode?
     bool m_selection_empty = true;
     EState m_old_state = Off; // to be able to see that the gizmo has just been closed (see on_set_state)

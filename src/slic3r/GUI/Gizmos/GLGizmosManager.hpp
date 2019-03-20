@@ -131,8 +131,7 @@ public:
     void set_flattening_data(const ModelObject* model_object);
 
     void set_sla_support_data(ModelObject* model_object, const Selection& selection);
-    bool mouse_event(SLAGizmoEventType action, const Vec2d& mouse_position = Vec2d::Zero(), bool shift_down = false);
-    void delete_current_grabber(bool delete_all = false);
+    bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position = Vec2d::Zero(), bool shift_down = false);
 
     void render_current_gizmo(const Selection& selection) const;
     void render_current_gizmo_for_picking_pass(const Selection& selection) const;
