@@ -5,7 +5,10 @@
 #include <wx/button.h>
 #include <wx/statusbr.h>
 #include <wx/frame.h>
+
 #include "GUI_App.hpp"
+
+#include "I18N.hpp"
 
 #include <iostream>
 
@@ -22,7 +25,7 @@ ProgressStatusBar::ProgressStatusBar(wxWindow *parent, int id):
                        wxDefaultSize)),
     m_cancelbutton(new wxButton(self,
                                -1,
-                               "Cancel",
+                               _(L("Cancel")),
                                wxDefaultPosition,
                                wxDefaultSize))
 {
@@ -32,6 +35,9 @@ ProgressStatusBar::ProgressStatusBar(wxWindow *parent, int id):
     self->SetFieldsCount(3);
     int w[] = {-1, 150, 155};
     self->SetStatusWidths(3, w);
+
+    wxSize s = m_cancelbutton->GetTextExtent(m_cancelbutton->GetLabel());
+    self->SetMinHeight(int(2 * self->GetBorderY() + 1.2 * s.GetHeight()));
 
     self->Bind(wxEVT_TIMER, [this](const wxTimerEvent&) {
         if (m_prog->IsShown()) m_timer->Stop();
