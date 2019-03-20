@@ -59,7 +59,7 @@ public:
 #endif // ENABLE_SVG_ICONS
     virtual ~GLGizmoSlaSupports();
     void set_sla_support_data(ModelObject* model_object, const Selection& selection);
-    bool mouse_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down);
+    bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down);
     void delete_selected_points(bool force = false);
     std::pair<float, float> get_sla_clipping_plane() const;
 

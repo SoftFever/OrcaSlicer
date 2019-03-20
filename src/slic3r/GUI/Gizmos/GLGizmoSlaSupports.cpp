@@ -307,7 +307,7 @@ std::pair<Vec3f, Vec3f> GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse
 // The gizmo has an opportunity to react - if it does, it should return true so that the Canvas3D is
 // aware that the event was reacted to and stops trying to make different sense of it. If the gizmo
 // concludes that the event was not intended for it, it should return false.
-bool GLGizmoSlaSupports::mouse_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down)
+bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down)
 {
     if (m_editing_mode) {
 
