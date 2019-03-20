@@ -2231,8 +2231,10 @@ void GLCanvas3D::toggle_model_objects_visibility(bool visible, const ModelObject
 {
     for (GLVolume* vol : m_volumes.volumes) {
         if ((mo == nullptr || m_model->objects[vol->composite_id.object_id] == mo)
-        && (instance_idx == -1 || vol->composite_id.instance_id == instance_idx))
+        && (instance_idx == -1 || vol->composite_id.instance_id == instance_idx)) {
             vol->is_active = visible;
+            vol->force_native_color = (instance_idx != -1);
+        }
     }
     if (visible && !mo)
         toggle_sla_auxiliaries_visibility(true);
