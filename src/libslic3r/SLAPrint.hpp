@@ -35,12 +35,34 @@ using _SLAPrintObjectBase =
 // the printer (rasterizer) in the SLAPrint class.
 using LevelID = long long;
 
+template<class It> struct Range {
+    It from, to;
+    It begin() const { return from; }
+    It end() const { return to; }
+    using Type = It;
+
+    Range() = default;
+    explicit Range(It &&b, It &&e):
+        from(std::forward<It>(b)), to(std::forward<It>(e)) {}
+};
+
+enum SliceOrigin { soSlice, soModel };
+
+using SliceStore = std::vector<ExPolygons>;
+using SliceIterator = SliceStore::const_iterator;
+using SliceRange = Range<SliceIterator>;
+
 class SLAPrintObject : public _SLAPrintObjectBase
 {
 private: // Prevents erroneous use by other classes.
     using Inherited = _SLAPrintObjectBase;
 
 public:
+
+    // I refuse to grantee copying (Tamas)
+    SLAPrintObject(const SLAPrintObject&) = delete;
+    SLAPrintObject& operator=(const SLAPrintObject&) = delete;
+
     const SLAPrintObjectConfig& config() const { return m_config; }
     const Transform3d&          trafo()  const { return m_trafo; }
 
@@ -82,39 +104,72 @@ public:
     // pad is not, then without the pad, otherwise the full value is returned.
     double get_current_elevation() const;
 
+    // This method returns the support points of this SLAPrintObject.
+    const std::vector<sla::SupportPoint>& get_support_points() const;
+
+private:
+
+    // An index record referencing the slices
+    // (get_model_slices(), get_support_slices()) where the keys are the height
+    // levels of the model in scaled-clipper coordinates. The levels correspond
+    // to the z coordinate of the object coordinate system.
+    class SliceRecord {
+    public:
+        using Key = LevelID;
+
+    private:
+        using Idx = size_t;
+        static const Idx NONE = Idx(-1); // this will be the max limit of size_t
+
+        LevelID m_print_z = 0;  // Top of the layer
+        float m_slice_z = 0.f;    // Exact level of the slice
+        float m_height = 0.f;     // Height of the sliced layer
+        Idx m_model_slices_idx = NONE;
+        Idx m_support_slices_idx = NONE;
+
+    public:
+
+        SliceRecord(Key key, float slicez, float height):
+            m_print_z(key), m_slice_z(slicez), m_height(height) {}
+
+        inline static bool cmpfn(const SliceRecord& sr1, const SliceRecord& sr2)
+        {
+            return sr1.key() < sr2.key();
+        }
+
+        inline Key key() const { return m_print_z; }
+        inline float slice_level() const { return m_slice_z; }
+        inline float layer_height() const { return m_height; }
+
+        SliceIterator get_slices(const SLAPrintObject& po,
+                                 SliceOrigin so) const;
+
+        void set_model_slice_idx(Idx id) { m_model_slices_idx = id; }
+        void set_support_slice_idx(Idx id) { m_support_slices_idx = id; }
+    };
+
+
+    // Retrieve the slice index which is readable only after slaposIndexSlices
+    // is done.
+    const std::vector<SliceRecord>& get_slice_index() const;
+
+    std::vector<float> get_slice_levels(float from_eq) const;
+
+public:
+
+    SliceIterator get_slices(SliceOrigin so, LevelID k) const;
+
+    SliceRange get_slices(
+            SliceOrigin so,
+            float from_level,
+            float to_level = std::numeric_limits<float>::infinity()) const;
+
     // These two methods should be callable on the client side (e.g. UI thread)
     // when the appropriate steps slaposObjectSlice and slaposSliceSupports
     // are ready. All the print objects are processed before slapsRasterize so
     // it is safe to call them during and/or after slapsRasterize.
     const std::vector<ExPolygons>& get_model_slices() const;
     const std::vector<ExPolygons>& get_support_slices() const;
-
-    // This method returns the support points of this SLAPrintObject.
-    const std::vector<sla::SupportPoint>& get_support_points() const;
-
-    // An index record referencing the slices
-    // (get_model_slices(), get_support_slices()) where the keys are the height
-    // levels of the model in scaled-clipper coordinates. The levels correspond
-    // to the z coordinate of the object coordinate system.
-    struct SliceRecord {
-        using Key = float;
-
-        using Idx = size_t;
-        static const Idx NONE = Idx(-1); // this will be the max limit of size_t
-
-        Idx model_slices_idx = NONE;
-        Idx support_slices_idx = NONE;
-    };
-
-    using SliceIndex = std::map<SliceRecord::Key, SliceRecord>;
-
-    // Retrieve the slice index which is readable only after slaposIndexSlices
-    // is done.
-    const SliceIndex& get_slice_index() const;
-
-    // I refuse to grantee copying (Tamas)
-    SLAPrintObject(const SLAPrintObject&) = delete;
-    SLAPrintObject& operator=(const SLAPrintObject&) = delete;
 
 protected:
     // to be called from SLAPrint only.
@@ -154,11 +209,12 @@ private:
 
     // Exact (float) height levels mapped to the slices. Each record contains
     // the index to the model and the support slice vectors.
-    SliceIndex                              m_slice_index;
+    std::vector<SliceRecord>                m_slice_index;
 
     // The height levels corrected and scaled up in integer values. This will
     // be used at rasterization.
     std::vector<LevelID>                    m_level_ids;
+    std::vector<float>                      m_height_levels;
 
     // Caching the transformed (m_trafo) raw mesh of the object
     mutable CachedObject<TriangleMesh>      m_transformed_rmesh;
