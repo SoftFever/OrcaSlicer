@@ -42,7 +42,7 @@ bool GLGizmoSlaSupports::on_init()
     return true;
 }
 
-void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const GLCanvas3D::Selection& selection)
+void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const Selection& selection)
 {
     m_starting_center = Vec3d::Zero();
     m_old_model_object = m_model_object;
@@ -72,7 +72,7 @@ void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const G
     }
 }
 
-void GLGizmoSlaSupports::on_render(const GLCanvas3D::Selection& selection) const
+void GLGizmoSlaSupports::on_render(const Selection& selection) const
 {
     ::glEnable(GL_BLEND);
     ::glEnable(GL_DEPTH_TEST);
@@ -123,14 +123,14 @@ void GLGizmoSlaSupports::render_selection_rectangle() const
     ::glPopAttrib();                // restore former MatrixMode
 }
 
-void GLGizmoSlaSupports::on_render_for_picking(const GLCanvas3D::Selection& selection) const
+void GLGizmoSlaSupports::on_render_for_picking(const Selection& selection) const
 {
     ::glEnable(GL_DEPTH_TEST);
 
     render_points(selection, true);
 }
 
-void GLGizmoSlaSupports::render_points(const GLCanvas3D::Selection& selection, bool picking) const
+void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking) const
 {
     if (m_quadric == nullptr || !selection.is_from_single_instance())
         return;
@@ -201,12 +201,12 @@ void GLGizmoSlaSupports::render_points(const GLCanvas3D::Selection& selection, b
             const float cone_height = 0.75f;
             ::glPushMatrix();
             ::glTranslatef(0.f, 0.f, m_editing_mode_cache[i].support_point.head_front_radius * RenderPointScale);
-            ::gluCylinder(m_quadric, 0.f, cone_radius, cone_height, 36, 1);
+            ::gluCylinder(m_quadric, 0.f, cone_radius, cone_height, 24, 1);
             ::glTranslatef(0.f, 0.f, cone_height);
-            ::gluDisk(m_quadric, 0.0, cone_radius, 36, 1);
+            ::gluDisk(m_quadric, 0.0, cone_radius, 24, 1);
             ::glPopMatrix();
         }
-        ::gluSphere(m_quadric, m_editing_mode_cache[i].support_point.head_front_radius * RenderPointScale, 64, 36);
+        ::gluSphere(m_quadric, m_editing_mode_cache[i].support_point.head_front_radius * RenderPointScale, 24, 12);
         ::glPopMatrix();
     }
 
@@ -276,7 +276,7 @@ std::pair<Vec3f, Vec3f> GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse
 
     igl::Hit hit;
 
-    const GLCanvas3D::Selection& selection = m_parent.get_selection();
+    const Selection& selection = m_parent.get_selection();
     const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
     double z_offset = volume->get_sla_shift_z();
 
@@ -380,7 +380,7 @@ bool GLGizmoSlaSupports::mouse_event(SLAGizmoEventType action, const Vec2d& mous
             GLdouble projection_matrix[16];
             ::glGetDoublev(GL_PROJECTION_MATRIX, projection_matrix);
 
-            const GLCanvas3D::Selection& selection = m_parent.get_selection();
+            const Selection& selection = m_parent.get_selection();
             const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
             double z_offset = volume->get_sla_shift_z();
 
@@ -484,7 +484,7 @@ void GLGizmoSlaSupports::delete_selected_points(bool force)
     //m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
 }
 
-void GLGizmoSlaSupports::on_update(const UpdateData& data, const GLCanvas3D::Selection& selection)
+void GLGizmoSlaSupports::on_update(const UpdateData& data, const Selection& selection)
 {
     if (m_editing_mode && m_hover_id != -1 && data.mouse_pos && (!m_editing_mode_cache[m_hover_id].support_point.is_new_island || !m_lock_unique_islands)) {
         std::pair<Vec3f, Vec3f> pos_and_normal;
@@ -542,7 +542,7 @@ void GLGizmoSlaSupports::update_cache_entry_normal(unsigned int i) const
 
 
 
-void GLGizmoSlaSupports::on_render_input_window(float x, float y, float bottom_limit, const GLCanvas3D::Selection& selection)
+void GLGizmoSlaSupports::on_render_input_window(float x, float y, float bottom_limit, const Selection& selection)
 {
     if (!m_model_object)
         return;
@@ -686,14 +686,14 @@ RENDER_AGAIN:
         m_parent.set_as_dirty();
 }
 
-bool GLGizmoSlaSupports::on_is_activable(const GLCanvas3D::Selection& selection) const
+bool GLGizmoSlaSupports::on_is_activable(const Selection& selection) const
 {
     if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA
         || !selection.is_from_single_instance())
             return false;
 
     // Check that none of the selected volumes is outside.
-    const GLCanvas3D::Selection::IndicesList& list = selection.get_volume_idxs();
+    const Selection::IndicesList& list = selection.get_volume_idxs();
     for (const auto& idx : list)
         if (selection.get_volume(idx)->is_outside)
             return false;
@@ -750,7 +750,7 @@ void GLGizmoSlaSupports::on_set_state()
 
 
 
-void GLGizmoSlaSupports::on_start_dragging(const GLCanvas3D::Selection& selection)
+void GLGizmoSlaSupports::on_start_dragging(const Selection& selection)
 {
     if (m_hover_id != -1) {
         select_point(NoPoints);

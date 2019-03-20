@@ -47,6 +47,7 @@
 #include "MainFrame.hpp"
 #include "3DScene.hpp"
 #include "GLCanvas3D.hpp"
+#include "Selection.hpp"
 #include "GLToolbar.hpp"
 #include "GUI_Preview.hpp"
 #include "3DBed.hpp"
@@ -1198,8 +1199,8 @@ struct Plater::priv
     std::vector<size_t> load_model_objects(const ModelObjectPtrs &model_objects);
     std::unique_ptr<CheckboxFileDialog> get_export_file(GUI::FileType file_type);
 
-    const GLCanvas3D::Selection& get_selection() const;
-    GLCanvas3D::Selection& get_selection();
+    const Selection& get_selection() const;
+    Selection& get_selection();
     int get_selected_object_idx() const;
     int get_selected_volume_idx() const;
     void selection_changed();
@@ -1271,6 +1272,15 @@ struct Plater::priv
     // Sets m_bed.m_polygon to limit the object placement.
     void set_bed_shape(const Pointfs& shape);
 
+    bool can_delete() const;
+    bool can_delete_all() const;
+    bool can_increase_instances() const;
+    bool can_decrease_instances() const;
+    bool can_split_to_objects() const;
+    bool can_split_to_volumes() const;
+    bool can_arrange() const;
+    bool can_layers_editing() const;
+
 private:
     bool init_object_menu();
     bool init_common_menu(wxMenu* menu, const bool is_part = false);
@@ -1279,16 +1289,9 @@ private:
     bool complit_init_part_menu();
     void init_view_toolbar();
 
-    bool can_delete_object() const;
-    bool can_increase_instances() const;
-    bool can_decrease_instances() const;
     bool can_set_instance_to_object() const;
-    bool can_split_to_objects() const;
-    bool can_split_to_volumes() const;
     bool can_split() const;
     bool layers_height_allowed() const;
-    bool can_delete_all() const;
-    bool can_arrange() const;
     bool can_mirror() const;
 
     void update_fff_scene();
@@ -1669,7 +1672,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     // automatic selection of added objects
     if (!obj_idxs.empty() && (view3D != nullptr))
     {
-        GLCanvas3D::Selection& selection = view3D->get_canvas3d()->get_selection();
+        Selection& selection = view3D->get_canvas3d()->get_selection();
         selection.clear();
         for (size_t idx : obj_idxs)
         {
@@ -1818,12 +1821,12 @@ std::unique_ptr<CheckboxFileDialog> Plater::priv::get_export_file(GUI::FileType 
     return dlg;
 }
 
-const GLCanvas3D::Selection& Plater::priv::get_selection() const
+const Selection& Plater::priv::get_selection() const
 {
     return view3D->get_canvas3d()->get_selection();
 }
 
-GLCanvas3D::Selection& Plater::priv::get_selection()
+Selection& Plater::priv::get_selection()
 {
     return view3D->get_canvas3d()->get_selection();
 }
@@ -1848,12 +1851,6 @@ int Plater::priv::get_selected_volume_idx() const
 
 void Plater::priv::selection_changed()
 {
-    view3D->enable_toolbar_item("delete", can_delete_object());
-    view3D->enable_toolbar_item("more", can_increase_instances());
-    view3D->enable_toolbar_item("fewer", can_decrease_instances());
-    view3D->enable_toolbar_item("splitobjects", can_split());
-    view3D->enable_toolbar_item("splitvolumes", printer_technology == ptFFF && can_split());
-
     // if the selection is not valid to allow for layer editing, we need to turn off the tool if it is running
     bool enable_layer_editing = layers_height_allowed();
     if (!enable_layer_editing && view3D->is_layers_editing_enabled()) {
@@ -1861,18 +1858,12 @@ void Plater::priv::selection_changed()
         on_action_layersediting(evt);
     }
 
-    view3D->enable_toolbar_item("layersediting", enable_layer_editing);
-
     // forces a frame render to update the view (to avoid a missed update if, for example, the context menu appears)
     view3D->render();
 }
 
 void Plater::priv::object_list_changed()
 {
-    // Enable/disable buttons depending on whether there are any objects on the platter.
-    view3D->enable_toolbar_item("deleteall", can_delete_all());
-    view3D->enable_toolbar_item("arrange", can_arrange());
-
     const bool export_in_progress = this->background_process.is_export_scheduled(); // || ! send_gcode_file.empty());
     // XXX: is this right?
     const bool model_fits = view3D->check_volumes_outside_state() == ModelInstance::PVS_Inside;
@@ -1951,9 +1942,6 @@ void Plater::priv::arrange()
 
     wxBusyCursor wait;
 
-    // Disable the arrange button (to prevent reentrancies, we will call wxYied)
-    view3D->enable_toolbar_item("arrange", can_arrange());
-
     this->background_process.stop();
     unsigned count = 0;
     for(auto obj : model.objects) count += obj->instances.size();
@@ -2023,9 +2011,6 @@ void Plater::priv::arrange()
     statusbar()->set_range(prev_range);
     statusbar()->set_cancel_callback(); // remove cancel button
     arranging.store(false);
-
-    // We enable back the arrange button
-    view3D->enable_toolbar_item("arrange", can_arrange());
 
     // Do a full refresh of scene tree, including regenerating all the GLVolumes.
     //FIXME The update function shall just reload the modified matrices.
@@ -2587,10 +2572,6 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
 void Plater::priv::on_layer_editing_toggled(bool enable)
 {
     view3D->enable_layers_editing(enable);
-    if (enable && !view3D->is_layers_editing_enabled()) {
-        // Initialization of the OpenGL shaders failed. Disable the tool.
-        view3D->enable_toolbar_item("layersediting", false);
-    }
     view3D->set_as_dirty();
 }
 
@@ -2612,10 +2593,7 @@ void Plater::priv::on_action_split_volumes(SimpleEvent&)
 
 void Plater::priv::on_action_layersediting(SimpleEvent&)
 {
-    bool enable = !view3D->is_layers_editing_enabled();
-    view3D->enable_layers_editing(enable);
-    if (enable && !view3D->is_layers_editing_enabled())
-        view3D->enable_toolbar_item("layersediting", false);
+    view3D->enable_layers_editing(!view3D->is_layers_editing_enabled());
 }
 
 void Plater::priv::on_object_select(SimpleEvent& evt)
@@ -2775,7 +2753,7 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
     if (q != nullptr)
     {
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_mirror()); }, item_mirror->GetId());
-        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_delete_object()); }, item_delete->GetId());
+        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_delete()); }, item_delete->GetId());
     }
 
     return true;
@@ -2880,7 +2858,7 @@ void Plater::priv::init_view_toolbar()
 #endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("3D editor view") + " [" + GUI::shortkey_ctrl_prefix() + "5]";
     item.sprite_id = 0;
-    item.action_event = EVT_GLVIEWTOOLBAR_3D;
+    item.action_callback = [this]() { if (this->q != nullptr) wxPostEvent(this->q, SimpleEvent(EVT_GLVIEWTOOLBAR_3D)); };
     item.is_toggable = false;
     if (!view_toolbar.add_item(item))
         return;
@@ -2891,55 +2869,19 @@ void Plater::priv::init_view_toolbar()
 #endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Preview") + " [" + GUI::shortkey_ctrl_prefix() + "6]";
     item.sprite_id = 1;
-    item.action_event = EVT_GLVIEWTOOLBAR_PREVIEW;
+    item.action_callback = [this]() { if (this->q != nullptr) wxPostEvent(this->q, SimpleEvent(EVT_GLVIEWTOOLBAR_PREVIEW)); };
     item.is_toggable = false;
     if (!view_toolbar.add_item(item))
         return;
 
-    view_toolbar.enable_item("3D");
-    view_toolbar.enable_item("Preview");
-
     view_toolbar.select_item("3D");
     view_toolbar.set_enabled(true);
-}
-
-bool Plater::priv::can_delete_object() const
-{
-    int obj_idx = get_selected_object_idx();
-    return (0 <= obj_idx) && (obj_idx < (int)model.objects.size());
-}
-
-bool Plater::priv::can_increase_instances() const
-{
-    int obj_idx = get_selected_object_idx();
-    return (0 <= obj_idx) && (obj_idx < (int)model.objects.size());
 }
 
 bool Plater::priv::can_set_instance_to_object() const
 {
     const int obj_idx = get_selected_object_idx();
     return (0 <= obj_idx) && (obj_idx < (int)model.objects.size()) && (model.objects[obj_idx]->instances.size() > 1);
-}
-
-bool Plater::priv::can_decrease_instances() const
-{
-    int obj_idx = get_selected_object_idx();
-    return (0 <= obj_idx) && (obj_idx < (int)model.objects.size()) && (model.objects[obj_idx]->instances.size() > 1);
-}
-
-bool Plater::priv::can_split_to_objects() const
-{
-    int obj_idx = get_selected_object_idx();
-    return (0 <= obj_idx) && (obj_idx < (int)model.objects.size()) && !model.objects[obj_idx]->is_multiparts();
-}
-
-bool Plater::priv::can_split_to_volumes() const
-{
-    if (printer_technology == ptSLA)
-        return false;
-//     int obj_idx = get_selected_object_idx();
-//     return (0 <= obj_idx) && (obj_idx < (int)model.objects.size()) && !model.objects[obj_idx]->is_multiparts();
-    return sidebar->obj_list()->is_splittable();
 }
 
 bool Plater::priv::can_split() const
@@ -2951,16 +2893,6 @@ bool Plater::priv::layers_height_allowed() const
 {
     int obj_idx = get_selected_object_idx();
     return (0 <= obj_idx) && (obj_idx < (int)model.objects.size()) && config->opt_bool("variable_layer_height") && view3D->is_layers_editing_allowed();
-}
-
-bool Plater::priv::can_delete_all() const
-{
-    return !model.objects.empty();
-}
-
-bool Plater::priv::can_arrange() const
-{
-    return !model.objects.empty() && !arranging.load();
 }
 
 bool Plater::priv::can_mirror() const
@@ -2978,11 +2910,51 @@ void Plater::priv::set_bed_shape(const Pointfs& shape)
     }
 }
 
+bool Plater::priv::can_delete() const
+{
+    return !get_selection().is_empty();
+}
+
+bool Plater::priv::can_delete_all() const
+{
+    return !model.objects.empty();
+}
+
+bool Plater::priv::can_increase_instances() const
+{
+    int obj_idx = get_selected_object_idx();
+    return (0 <= obj_idx) && (obj_idx < (int)model.objects.size());
+}
+
+bool Plater::priv::can_decrease_instances() const
+{
+    int obj_idx = get_selected_object_idx();
+    return (0 <= obj_idx) && (obj_idx < (int)model.objects.size()) && (model.objects[obj_idx]->instances.size() > 1);
+}
+
+bool Plater::priv::can_split_to_objects() const
+{
+    return can_split();
+}
+
+bool Plater::priv::can_split_to_volumes() const
+{
+    return (printer_technology != ptSLA) && can_split();
+}
+
+bool Plater::priv::can_arrange() const
+{
+    return !model.objects.empty() && !arranging.load();
+}
+
+bool Plater::priv::can_layers_editing() const
+{
+    return layers_height_allowed();
+}
+
 void Plater::priv::update_object_menu()
 {
     sidebar->obj_list()->append_menu_items_add_volume(&object_menu);
-    if (view3D != nullptr)
-        view3D->update_toolbar_items_visibility();
 }
 
 void Plater::priv::show_action_buttons(const bool is_ready_to_slice) const 
@@ -3465,14 +3437,10 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         } 
         else if(opt_key == "variable_layer_height") {
             if (p->config->opt_bool("variable_layer_height") != true) {
-                p->view3D->enable_toolbar_item("layersediting", false);
                 p->view3D->enable_layers_editing(false);
                 p->view3D->set_as_dirty();
             }
-            else if (p->view3D->is_layers_editing_allowed()) {
-                p->view3D->enable_toolbar_item("layersediting", true);
-            }
-        } 
+        }
         else if(opt_key == "extruder_colour") {
             update_scheduled = true;
             p->preview->set_number_extruders(p->config->option<ConfigOptionStrings>(opt_key)->values.size());
@@ -3592,5 +3560,14 @@ void Plater::changed_object(int obj_idx)
 void Plater::fix_through_netfabb(const int obj_idx, const int vol_idx/* = -1*/) { p->fix_through_netfabb(obj_idx, vol_idx); }
 
 void Plater::update_object_menu() { p->update_object_menu(); }
+
+bool Plater::can_delete() const { return p->can_delete(); }
+bool Plater::can_delete_all() const { return p->can_delete_all(); }
+bool Plater::can_increase_instances() const { return p->can_increase_instances(); }
+bool Plater::can_decrease_instances() const { return p->can_decrease_instances(); }
+bool Plater::can_split_to_objects() const { return p->can_split_to_objects(); }
+bool Plater::can_split_to_volumes() const { return p->can_split_to_volumes(); }
+bool Plater::can_arrange() const { return p->can_arrange(); }
+bool Plater::can_layers_editing() const { return p->can_layers_editing(); }
 
 }}    // namespace Slic3r::GUI

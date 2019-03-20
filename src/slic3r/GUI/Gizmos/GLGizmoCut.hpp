@@ -33,17 +33,17 @@ protected:
     virtual bool on_init();
     virtual std::string on_get_name() const;
     virtual void on_set_state();
-    virtual bool on_is_activable(const GLCanvas3D::Selection& selection) const;
-    virtual void on_start_dragging(const GLCanvas3D::Selection& selection);
-    virtual void on_update(const UpdateData& data, const GLCanvas3D::Selection& selection);
-    virtual void on_render(const GLCanvas3D::Selection& selection) const;
-    virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const;
-    virtual void on_render_input_window(float x, float y, float bottom_limit, const GLCanvas3D::Selection& selection);
+    virtual bool on_is_activable(const Selection& selection) const;
+    virtual void on_start_dragging(const Selection& selection);
+    virtual void on_update(const UpdateData& data, const Selection& selection);
+    virtual void on_render(const Selection& selection) const;
+    virtual void on_render_for_picking(const Selection& selection) const;
+    virtual void on_render_input_window(float x, float y, float bottom_limit, const Selection& selection);
 
 private:
-    void update_max_z(const GLCanvas3D::Selection& selection) const;
+    void update_max_z(const Selection& selection) const;
     void set_cut_z(double cut_z) const;
-    void perform_cut(const GLCanvas3D::Selection& selection);
+    void perform_cut(const Selection& selection);
     double calc_projection(const Linef3& mouse_ray) const;
 };
 

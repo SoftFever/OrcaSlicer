@@ -32,12 +32,12 @@ std::string GLGizmoFlatten::on_get_name() const
     return L("Place on face [F]");
 }
 
-bool GLGizmoFlatten::on_is_activable(const GLCanvas3D::Selection& selection) const
+bool GLGizmoFlatten::on_is_activable(const Selection& selection) const
 {
     return selection.is_single_full_instance();
 }
 
-void GLGizmoFlatten::on_start_dragging(const GLCanvas3D::Selection& selection)
+void GLGizmoFlatten::on_start_dragging(const Selection& selection)
 {
     if (m_hover_id != -1)
     {
@@ -47,7 +47,7 @@ void GLGizmoFlatten::on_start_dragging(const GLCanvas3D::Selection& selection)
     }
 }
 
-void GLGizmoFlatten::on_render(const GLCanvas3D::Selection& selection) const
+void GLGizmoFlatten::on_render(const Selection& selection) const
 {
     ::glClear(GL_DEPTH_BUFFER_BIT);
 
@@ -83,7 +83,7 @@ void GLGizmoFlatten::on_render(const GLCanvas3D::Selection& selection) const
     ::glDisable(GL_BLEND);
 }
 
-void GLGizmoFlatten::on_render_for_picking(const GLCanvas3D::Selection& selection) const
+void GLGizmoFlatten::on_render_for_picking(const Selection& selection) const
 {
     ::glDisable(GL_DEPTH_TEST);
     ::glDisable(GL_BLEND);

@@ -50,8 +50,6 @@ public:
     void delete_selected();
     void mirror_selection(Axis axis);
 
-    void update_toolbar_items_visibility();
-    void enable_toolbar_item(const std::string& name, bool enable);
     int check_volumes_outside_state() const;
 
     bool is_layers_editing_enabled() const;

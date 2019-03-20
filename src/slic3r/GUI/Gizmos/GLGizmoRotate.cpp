@@ -80,7 +80,7 @@ bool GLGizmoRotate::on_init()
     return true;
 }
 
-void GLGizmoRotate::on_start_dragging(const GLCanvas3D::Selection& selection)
+void GLGizmoRotate::on_start_dragging(const Selection& selection)
 {
     const BoundingBoxf3& box = selection.get_bounding_box();
     m_center = box.center();
@@ -91,7 +91,7 @@ void GLGizmoRotate::on_start_dragging(const GLCanvas3D::Selection& selection)
     m_snap_fine_out_radius = m_snap_fine_in_radius + m_radius * ScaleLongTooth;
 }
 
-void GLGizmoRotate::on_update(const UpdateData& data, const GLCanvas3D::Selection& selection)
+void GLGizmoRotate::on_update(const UpdateData& data, const Selection& selection)
 {
     Vec2d mouse_pos = to_2d(mouse_position_in_local_plane(data.mouse_ray, selection));
 
@@ -126,7 +126,7 @@ void GLGizmoRotate::on_update(const UpdateData& data, const GLCanvas3D::Selectio
     m_angle = theta;
 }
 
-void GLGizmoRotate::on_render(const GLCanvas3D::Selection& selection) const
+void GLGizmoRotate::on_render(const Selection& selection) const
 {
     if (!m_grabbers[0].enabled)
         return;
@@ -183,7 +183,7 @@ void GLGizmoRotate::on_render(const GLCanvas3D::Selection& selection) const
     ::glPopMatrix();
 }
 
-void GLGizmoRotate::on_render_for_picking(const GLCanvas3D::Selection& selection) const
+void GLGizmoRotate::on_render_for_picking(const Selection& selection) const
 {
     ::glDisable(GL_DEPTH_TEST);
 
@@ -347,7 +347,7 @@ void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool pick
         ::glDisable(GL_LIGHTING);
 }
 
-void GLGizmoRotate::transform_to_local(const GLCanvas3D::Selection& selection) const
+void GLGizmoRotate::transform_to_local(const Selection& selection) const
 {
     ::glTranslated(m_center(0), m_center(1), m_center(2));
 
@@ -380,7 +380,7 @@ void GLGizmoRotate::transform_to_local(const GLCanvas3D::Selection& selection) c
     }
 }
 
-Vec3d GLGizmoRotate::mouse_position_in_local_plane(const Linef3& mouse_ray, const GLCanvas3D::Selection& selection) const
+Vec3d GLGizmoRotate::mouse_position_in_local_plane(const Linef3& mouse_ray, const Selection& selection) const
 {
     double half_pi = 0.5 * (double)PI;
 
@@ -457,7 +457,7 @@ std::string GLGizmoRotate3D::on_get_name() const
     return L("Rotate [R]");
 }
 
-void GLGizmoRotate3D::on_start_dragging(const GLCanvas3D::Selection& selection)
+void GLGizmoRotate3D::on_start_dragging(const Selection& selection)
 {
     if ((0 <= m_hover_id) && (m_hover_id < 3))
         m_gizmos[m_hover_id].start_dragging(selection);
@@ -469,7 +469,7 @@ void GLGizmoRotate3D::on_stop_dragging()
         m_gizmos[m_hover_id].stop_dragging();
 }
 
-void GLGizmoRotate3D::on_render(const GLCanvas3D::Selection& selection) const
+void GLGizmoRotate3D::on_render(const Selection& selection) const
 {
     ::glClear(GL_DEPTH_BUFFER_BIT);
 
@@ -483,7 +483,7 @@ void GLGizmoRotate3D::on_render(const GLCanvas3D::Selection& selection) const
         m_gizmos[Z].render(selection);
 }
 
-void GLGizmoRotate3D::on_render_input_window(float x, float y, float bottom_limit, const GLCanvas3D::Selection& selection)
+void GLGizmoRotate3D::on_render_input_window(float x, float y, float bottom_limit, const Selection& selection)
 {
 #if !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
     Vec3d rotation(Geometry::rad2deg(m_gizmos[0].get_angle()), Geometry::rad2deg(m_gizmos[1].get_angle()), Geometry::rad2deg(m_gizmos[2].get_angle()));

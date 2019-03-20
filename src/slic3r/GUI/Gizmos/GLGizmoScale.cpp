@@ -51,7 +51,7 @@ std::string GLGizmoScale3D::on_get_name() const
     return L("Scale [S]");
 }
 
-void GLGizmoScale3D::on_start_dragging(const GLCanvas3D::Selection& selection)
+void GLGizmoScale3D::on_start_dragging(const Selection& selection)
 {
     if (m_hover_id != -1)
     {
@@ -60,7 +60,7 @@ void GLGizmoScale3D::on_start_dragging(const GLCanvas3D::Selection& selection)
     }
 }
 
-void GLGizmoScale3D::on_update(const UpdateData& data, const GLCanvas3D::Selection& selection)
+void GLGizmoScale3D::on_update(const UpdateData& data, const Selection& selection)
 {
     if ((m_hover_id == 0) || (m_hover_id == 1))
         do_scale_x(data);
@@ -72,7 +72,7 @@ void GLGizmoScale3D::on_update(const UpdateData& data, const GLCanvas3D::Selecti
         do_scale_uniform(data);
 }
 
-void GLGizmoScale3D::on_render(const GLCanvas3D::Selection& selection) const
+void GLGizmoScale3D::on_render(const Selection& selection) const
 {
     bool single_instance = selection.is_single_full_instance();
     bool single_volume = selection.is_single_modifier() || selection.is_single_volume();
@@ -121,7 +121,7 @@ void GLGizmoScale3D::on_render(const GLCanvas3D::Selection& selection) const
     if (single_instance)
     {
         // calculate bounding box in instance local reference system
-        const GLCanvas3D::Selection::IndicesList& idxs = selection.get_volume_idxs();
+        const Selection::IndicesList& idxs = selection.get_volume_idxs();
         for (unsigned int idx : idxs)
         {
             const GLVolume* vol = selection.get_volume(idx);
@@ -267,14 +267,14 @@ void GLGizmoScale3D::on_render(const GLCanvas3D::Selection& selection) const
     }
 }
 
-void GLGizmoScale3D::on_render_for_picking(const GLCanvas3D::Selection& selection) const
+void GLGizmoScale3D::on_render_for_picking(const Selection& selection) const
 {
     ::glDisable(GL_DEPTH_TEST);
 
     render_grabbers_for_picking(selection.get_bounding_box());
 }
 
-void GLGizmoScale3D::on_render_input_window(float x, float y, float bottom_limit, const GLCanvas3D::Selection& selection)
+void GLGizmoScale3D::on_render_input_window(float x, float y, float bottom_limit, const Selection& selection)
 {
 #if !DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI
     bool single_instance = selection.is_single_full_instance();

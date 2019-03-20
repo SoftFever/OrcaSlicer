@@ -101,12 +101,12 @@ void GLGizmoCut::on_set_state()
     }
 }
 
-bool GLGizmoCut::on_is_activable(const GLCanvas3D::Selection& selection) const
+bool GLGizmoCut::on_is_activable(const Selection& selection) const
 {
     return selection.is_single_full_instance() && !selection.is_wipe_tower();
 }
 
-void GLGizmoCut::on_start_dragging(const GLCanvas3D::Selection& selection)
+void GLGizmoCut::on_start_dragging(const Selection& selection)
 {
     if (m_hover_id == -1) { return; }
 
@@ -118,14 +118,14 @@ void GLGizmoCut::on_start_dragging(const GLCanvas3D::Selection& selection)
     m_drag_center(2) = m_cut_z;
 }
 
-void GLGizmoCut::on_update(const UpdateData& data, const GLCanvas3D::Selection& selection)
+void GLGizmoCut::on_update(const UpdateData& data, const Selection& selection)
 {
     if (m_hover_id != -1) {
         set_cut_z(m_start_z + calc_projection(data.mouse_ray));
     }
 }
 
-void GLGizmoCut::on_render(const GLCanvas3D::Selection& selection) const
+void GLGizmoCut::on_render(const Selection& selection) const
 {
     if (m_grabbers[0].dragging) {
         set_tooltip("Z: " + format(m_cut_z, 2));
@@ -176,14 +176,14 @@ void GLGizmoCut::on_render(const GLCanvas3D::Selection& selection) const
     m_grabbers[0].render(m_hover_id == 0, box.max_size());
 }
 
-void GLGizmoCut::on_render_for_picking(const GLCanvas3D::Selection& selection) const
+void GLGizmoCut::on_render_for_picking(const Selection& selection) const
 {
     ::glDisable(GL_DEPTH_TEST);
 
     render_grabbers_for_picking(selection.get_bounding_box());
 }
 
-void GLGizmoCut::on_render_input_window(float x, float y, float bottom_limit, const GLCanvas3D::Selection& selection)
+void GLGizmoCut::on_render_input_window(float x, float y, float bottom_limit, const Selection& selection)
 {
     m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
     m_imgui->set_next_window_bg_alpha(0.5f);
@@ -207,7 +207,7 @@ void GLGizmoCut::on_render_input_window(float x, float y, float bottom_limit, co
     }
 }
 
-void GLGizmoCut::update_max_z(const GLCanvas3D::Selection& selection) const
+void GLGizmoCut::update_max_z(const Selection& selection) const
 {
     m_max_z = selection.get_bounding_box().size()(2);
     set_cut_z(m_cut_z);
@@ -219,7 +219,7 @@ void GLGizmoCut::set_cut_z(double cut_z) const
     m_cut_z = std::max(0.0, std::min(m_max_z, cut_z));
 }
 
-void GLGizmoCut::perform_cut(const GLCanvas3D::Selection& selection)
+void GLGizmoCut::perform_cut(const Selection& selection)
 {
     const auto instance_idx = selection.get_instance_idx();
     const auto object_idx = selection.get_object_idx();

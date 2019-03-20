@@ -184,7 +184,7 @@ void GLGizmoBase::disable_grabber(unsigned int id)
     on_disable_grabber(id);
 }
 
-void GLGizmoBase::start_dragging(const GLCanvas3D::Selection& selection)
+void GLGizmoBase::start_dragging(const Selection& selection)
 {
     m_dragging = true;
 
@@ -208,7 +208,7 @@ void GLGizmoBase::stop_dragging()
     on_stop_dragging();
 }
 
-void GLGizmoBase::update(const UpdateData& data, const GLCanvas3D::Selection& selection)
+void GLGizmoBase::update(const UpdateData& data, const Selection& selection)
 {
     if (m_hover_id != -1)
         on_update(data, selection);

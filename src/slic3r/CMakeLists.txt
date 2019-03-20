@@ -28,6 +28,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/GLCanvas3D.cpp
     GUI/GLCanvas3DManager.hpp
     GUI/GLCanvas3DManager.cpp
+    GUI/Selection.hpp
+    GUI/Selection.cpp    
     GUI/Gizmos/GLGizmoBase.cpp
     GUI/Gizmos/GLGizmoBase.hpp
     GUI/Gizmos/GLGizmoMove.cpp

@@ -10,6 +10,7 @@
 #include "libslic3r/Model.hpp"
 #include "LambdaObjectDialog.hpp"
 #include "GLCanvas3D.hpp"
+#include "Selection.hpp"
 
 #include <boost/algorithm/string.hpp>
 #include "slic3r/Utils/FixModelByWin10.hpp"
@@ -1274,7 +1275,7 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
     if (obj_idx < 0) 
         return;
 
-    const GLCanvas3D::Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
+    const Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
     assert(obj_idx == selection.get_object_idx());
 
     /** Any changes of the Object's composition is duplicated for all Object's Instances
@@ -1562,7 +1563,7 @@ bool ObjectList::selected_instances_of_same_object()
 
 bool ObjectList::can_split_instances()
 {
-    const GLCanvas3D::Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
+    const Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
     return selection.is_multiple_full_instance() || selection.is_single_full_instance();
 }
 
@@ -1872,7 +1873,7 @@ bool ObjectList::multiple_selection() const
 
 void ObjectList::update_selections()
 {
-    const GLCanvas3D::Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
+    const Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
     wxDataViewItemArray sels;
 
     // We doesn't update selection if SettingsItem for the current object/part is selected
@@ -1970,7 +1971,7 @@ void ObjectList::update_selections()
 
 void ObjectList::update_selections_on_canvas()
 {
-    GLCanvas3D::Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
+    Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
 
     const int sel_cnt = GetSelectedItemsCount();
     if (sel_cnt == 0) {
@@ -1979,8 +1980,8 @@ void ObjectList::update_selections_on_canvas()
         return;
     }
 
-    auto add_to_selection = [this](const wxDataViewItem& item, GLCanvas3D::Selection& selection, bool as_single_selection)
-    {        
+    auto add_to_selection = [this](const wxDataViewItem& item, Selection& selection, bool as_single_selection)
+    {
         if (m_objects_model->GetParent(item) == wxDataViewItem(0)) {
             selection.add_object(m_objects_model->GetIdByItem(item), as_single_selection);
             return;
@@ -2239,7 +2240,7 @@ void ObjectList::instances_to_separated_object(const int obj_idx, const std::set
 
 void ObjectList::split_instances()
 {
-    const GLCanvas3D::Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
+    const Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
     const int obj_idx = selection.get_object_idx();
     if (obj_idx == -1)
         return;
