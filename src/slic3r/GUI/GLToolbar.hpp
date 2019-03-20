@@ -31,11 +31,9 @@ wxDECLARE_EVENT(EVT_GLVIEWTOOLBAR_PREVIEW, SimpleEvent);
 class GLToolbarItem
 {
 public:
-#if ENABLE_CANVAS_GUI_REFACTORING
     typedef std::function<void()> ActionCallback;
     typedef std::function<bool()> VisibilityCallback;
     typedef std::function<bool()> EnabledStateCallback;
-#endif // ENABLE_CANVAS_GUI_REFACTORING
 
     enum EType : unsigned char
     {
@@ -63,24 +61,17 @@ public:
         std::string tooltip;
         unsigned int sprite_id;
         bool is_toggable;
-#if !ENABLE_CANVAS_GUI_REFACTORING
-        wxEventType action_event;
-#endif // !ENABLE_CANVAS_GUI_REFACTORING
         bool visible;
-#if ENABLE_CANVAS_GUI_REFACTORING
         ActionCallback action_callback;
         VisibilityCallback visibility_callback;
         EnabledStateCallback enabled_state_callback;
-#endif // ENABLE_CANVAS_GUI_REFACTORING
 
         Data();
     };
 
-#if ENABLE_CANVAS_GUI_REFACTORING
     static const ActionCallback Default_Action_Callback;
     static const VisibilityCallback Default_Visibility_Callback;
     static const EnabledStateCallback Default_Enabled_State_Callback;
-#endif // ENABLE_CANVAS_GUI_REFACTORING
 
 private:
     EType m_type;
@@ -99,11 +90,7 @@ public:
 #endif // ENABLE_SVG_ICONS
     const std::string& get_tooltip() const { return m_data.tooltip; }
 
-#if ENABLE_CANVAS_GUI_REFACTORING
     void do_action() { m_data.action_callback(); }
-#else
-    void do_action(wxEvtHandler *target);
-#endif // ENABLE_CANVAS_GUI_REFACTORING
 
     bool is_enabled() const { return m_state != Disabled; }
     bool is_disabled() const { return m_state == Disabled; }
@@ -112,27 +99,20 @@ public:
 
     bool is_toggable() const { return m_data.is_toggable; }
     bool is_visible() const { return m_data.visible; }
-#if !ENABLE_CANVAS_GUI_REFACTORING
-    void set_visible(bool visible) { m_data.visible = visible; }
-#endif // !ENABLE_CANVAS_GUI_REFACTORING
     bool is_separator() const { return m_type == Separator; }
 
-#if ENABLE_CANVAS_GUI_REFACTORING
     // returns true if the state changes
     bool update_visibility();
     // returns true if the state changes
     bool update_enabled_state();
-#endif // ENABLE_CANVAS_GUI_REFACTORING
 
     void render(unsigned int tex_id, float left, float right, float bottom, float top, unsigned int tex_width, unsigned int tex_height, unsigned int icon_size) const;
 
 private:
     GLTexture::Quad_UVs get_uvs(unsigned int tex_width, unsigned int tex_height, unsigned int icon_size) const;
-#if ENABLE_CANVAS_GUI_REFACTORING
     void set_visible(bool visible) { m_data.visible = visible; }
 
     friend class GLToolbar;
-#endif // ENABLE_CANVAS_GUI_REFACTORING
 };
 
 #if !ENABLE_SVG_ICONS
@@ -250,7 +230,7 @@ private:
     mutable Layout m_layout;
 
     ItemsList m_items;
-#if ENABLE_CANVAS_GUI_REFACTORING
+
     struct MouseCapture
     {
         bool left;
@@ -262,7 +242,6 @@ private:
 
     MouseCapture m_mouse_capture;
     std::string m_tooltip;
-#endif // ENABLE_CANVAS_GUI_REFACTORING
 
 public:
 #if ENABLE_SVG_ICONS
@@ -303,42 +282,21 @@ public:
     float get_width() const;
     float get_height() const;
 
-#if !ENABLE_CANVAS_GUI_REFACTORING
-    void enable_item(const std::string& name);
-    void disable_item(const std::string& name);
-#endif // !ENABLE_CANVAS_GUI_REFACTORING
     void select_item(const std::string& name);
 
     bool is_item_pressed(const std::string& name) const;
     bool is_item_disabled(const std::string& name) const;
     bool is_item_visible(const std::string& name) const;
 
-#if ENABLE_CANVAS_GUI_REFACTORING
     const std::string& get_tooltip() const { return m_tooltip; }
-#endif // ENABLE_CANVAS_GUI_REFACTORING
 
 
-#if ENABLE_CANVAS_GUI_REFACTORING
     // returns true if any item changed its state
     bool update_items_state();
-#else
-    void set_item_visible(const std::string& name, bool visible);
-#endif // ENABLE_CANVAS_GUI_REFACTORING
-
-#if !ENABLE_CANVAS_GUI_REFACTORING
-    std::string update_hover_state(const Vec2d& mouse_pos, GLCanvas3D& parent);
-
-    // returns the id of the item under the given mouse position or -1 if none
-    int contains_mouse(const Vec2d& mouse_pos, const GLCanvas3D& parent) const;
-
-    void do_action(unsigned int item_id, GLCanvas3D& parent);
-#endif // !ENABLE_CANVAS_GUI_REFACTORING
 
     void render(const GLCanvas3D& parent) const;    
 
-#if ENABLE_CANVAS_GUI_REFACTORING
     bool on_mouse(wxMouseEvent& evt, GLCanvas3D& parent);
-#endif // ENABLE_CANVAS_GUI_REFACTORING
 
 private:
     void calc_layout() const;
@@ -347,16 +305,12 @@ private:
     float get_height_horizontal() const;
     float get_height_vertical() const;
     float get_main_size() const;
-#if ENABLE_CANVAS_GUI_REFACTORING
     void do_action(unsigned int item_id, GLCanvas3D& parent);
     std::string update_hover_state(const Vec2d& mouse_pos, GLCanvas3D& parent);
-#endif // ENABLE_CANVAS_GUI_REFACTORING
     std::string update_hover_state_horizontal(const Vec2d& mouse_pos, GLCanvas3D& parent);
     std::string update_hover_state_vertical(const Vec2d& mouse_pos, GLCanvas3D& parent);
-#if ENABLE_CANVAS_GUI_REFACTORING
     // returns the id of the item under the given mouse position or -1 if none
     int contains_mouse(const Vec2d& mouse_pos, const GLCanvas3D& parent) const;
-#endif // ENABLE_CANVAS_GUI_REFACTORING
     int contains_mouse_horizontal(const Vec2d& mouse_pos, const GLCanvas3D& parent) const;
     int contains_mouse_vertical(const Vec2d& mouse_pos, const GLCanvas3D& parent) const;
 
@@ -367,12 +321,10 @@ private:
     bool generate_icons_texture() const;
 #endif // ENABLE_SVG_ICONS
 
-#if ENABLE_CANVAS_GUI_REFACTORING
     // returns true if any item changed its state
     bool update_items_visibility();
     // returns true if any item changed its state
     bool update_items_enabled_state();
-#endif // ENABLE_CANVAS_GUI_REFACTORING
 };
 
 } // namespace GUI

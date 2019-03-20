@@ -728,9 +728,6 @@ GLCanvas3D::Mouse::Drag::Drag()
 
 GLCanvas3D::Mouse::Mouse()
     : dragging(false)
-#if !ENABLE_CANVAS_GUI_REFACTORING
-    , left_down(false)
-#endif // !ENABLE_CANVAS_GUI_REFACTORING
     , position(DBL_MAX, DBL_MAX)
     , scene_position(DBL_MAX, DBL_MAX, DBL_MAX)
     , ignore_up_event(false)
@@ -2067,9 +2064,6 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar
     , m_use_VBOs(false)
     , m_apply_zoom_to_volumes_filter(false)
     , m_hover_volume_id(-1)
-#if !ENABLE_CANVAS_GUI_REFACTORING
-    , m_toolbar_action_running(false)
-#endif // !ENABLE_CANVAS_GUI_REFACTORING
     , m_legend_texture_enabled(false)
     , m_picking_enabled(false)
     , m_moving_enabled(false)
@@ -2373,21 +2367,6 @@ void GLCanvas3D::allow_multisample(bool allow)
     m_multisample_allowed = allow;
 }
 
-#if !ENABLE_CANVAS_GUI_REFACTORING
-void GLCanvas3D::enable_toolbar_item(const std::string& name, bool enable)
-{
-    if (enable)
-        m_toolbar.enable_item(name);
-    else
-        m_toolbar.disable_item(name);
-}
-
-bool GLCanvas3D::is_toolbar_item_pressed(const std::string& name) const
-{
-    return m_toolbar.is_item_pressed(name);
-}
-#endif // !ENABLE_CANVAS_GUI_REFACTORING
-
 void GLCanvas3D::zoom_to_bed()
 {
     _zoom_to_bounding_box(m_bed.get_bounding_box());
@@ -2439,17 +2418,6 @@ void GLCanvas3D::update_volumes_colors_by_extruder()
     if (m_config != nullptr)
         m_volumes.update_colors_by_extruder(m_config);
 }
-
-#if !ENABLE_CANVAS_GUI_REFACTORING
-void GLCanvas3D::update_toolbar_items_visibility()
-{
-    ConfigOptionMode mode = wxGetApp().get_mode();
-    m_toolbar.set_item_visible("more", mode != comSimple);
-    m_toolbar.set_item_visible("fewer", mode != comSimple);
-    m_toolbar.set_item_visible("splitvolumes", mode != comSimple);
-    m_dirty = true;
-}
-#endif // !ENABLE_CANVAS_GUI_REFACTORING
 
 void GLCanvas3D::render()
 {
@@ -3103,10 +3071,8 @@ void GLCanvas3D::on_size(wxSizeEvent& evt)
 
 void GLCanvas3D::on_idle(wxIdleEvent& evt)
 {
-#if ENABLE_CANVAS_GUI_REFACTORING
     m_dirty |= m_toolbar.update_items_state();
     m_dirty |= m_view_toolbar.update_items_state();
-#endif // ENABLE_CANVAS_GUI_REFACTORING
 
     if (!m_dirty)
         return;
@@ -3386,7 +3352,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #endif /* SLIC3R_DEBUG_MOUSE_EVENTS */
 	}
 
-#if ENABLE_CANVAS_GUI_REFACTORING
     bool processed_by_toolbar = m_toolbar.on_mouse(evt, *this);
     processed_by_toolbar |= m_view_toolbar.on_mouse(evt, *this);
 
@@ -3395,7 +3360,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_mouse.set_start_position_3D_as_invalid();
         return;
     }
-#endif // ENABLE_CANVAS_GUI_REFACTORING
 
     if (m_picking_enabled)
         _set_current();
@@ -3404,10 +3368,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     int layer_editing_object_idx = is_layers_editing_enabled() ? selected_object_idx : -1;
     m_layers_editing.select_object(*m_model, layer_editing_object_idx);
     bool gizmos_overlay_contains_mouse = m_gizmos.overlay_contains_mouse(*this, m_mouse.position);
-#if !ENABLE_CANVAS_GUI_REFACTORING
-    int toolbar_contains_mouse = m_toolbar.contains_mouse(m_mouse.position, *this);
-    int view_toolbar_contains_mouse = m_view_toolbar.contains_mouse(m_mouse.position, *this);
-#endif // !ENABLE_CANVAS_GUI_REFACTORING
 
     if (m_mouse.drag.move_requires_threshold && m_mouse.is_move_start_threshold_position_2D_defined() && m_mouse.is_move_threshold_met(pos))
     {
@@ -3447,30 +3407,14 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     {
         // to remove hover on objects when the mouse goes out of this canvas
         m_mouse.position = Vec2d(-1.0, -1.0);
-#if !ENABLE_CANVAS_GUI_REFACTORING
-        // ensure m_mouse.left_down is reset (it may happen when switching canvas)
-        m_mouse.left_down = false;
-#endif // !ENABLE_CANVAS_GUI_REFACTORING
         m_dirty = true;
     }
-#if !ENABLE_CANVAS_GUI_REFACTORING
-    else if (evt.LeftDClick() && (toolbar_contains_mouse != -1))
-    {
-        m_toolbar_action_running = true;
-        m_mouse.set_start_position_3D_as_invalid();
-        m_toolbar.do_action((unsigned int)toolbar_contains_mouse, *this);
-    }
-#endif // !ENABLE_CANVAS_GUI_REFACTORING
     else if (evt.LeftDClick() && (m_gizmos.get_current_type() != Gizmos::Undefined))
     {
         m_mouse.ignore_up_event = true;
     }
     else if (evt.LeftDown() || evt.RightDown())
     {
-#if !ENABLE_CANVAS_GUI_REFACTORING
-        m_mouse.left_down = evt.LeftDown();
-#endif // !ENABLE_CANVAS_GUI_REFACTORING
-
         // If user pressed left or right button we first check whether this happened
         // on a volume or not.
         m_layers_editing.state = LayersEditing::Unknown;
@@ -3522,17 +3466,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         {
             // event was taken care of by the SlaSupports gizmo
         }
-#if !ENABLE_CANVAS_GUI_REFACTORING
-        else if (evt.LeftDown() && (view_toolbar_contains_mouse != -1))
-            m_view_toolbar.do_action((unsigned int)view_toolbar_contains_mouse, *this);
-        else if (evt.LeftDown() && (toolbar_contains_mouse != -1))
-        {
-            m_toolbar_action_running = true;
-            m_mouse.set_start_position_3D_as_invalid();
-            m_toolbar.do_action((unsigned int)toolbar_contains_mouse, *this);
-            m_mouse.left_down = false;
-        }
-#endif // !ENABLE_CANVAS_GUI_REFACTORING
         else
         {
             // Select volume in this 3D canvas.
@@ -3692,11 +3625,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_dirty = true;
     }
     // do not process dragging if the mouse is into any of the HUD elements
-#if ENABLE_CANVAS_GUI_REFACTORING
     else if (evt.Dragging() && !gizmos_overlay_contains_mouse)
-#else
-    else if (evt.Dragging() && !gizmos_overlay_contains_mouse && (toolbar_contains_mouse == -1) && (view_toolbar_contains_mouse == -1))
-#endif // ENABLE_CANVAS_GUI_REFACTORING
     {
         m_mouse.dragging = true;
 
@@ -3706,11 +3635,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 _perform_layer_editing_action(&evt);
         }
         // do not process the dragging if the left mouse was set down in another canvas
-#if ENABLE_CANVAS_GUI_REFACTORING
         else if (evt.LeftIsDown())
-#else
-        else if (m_mouse.left_down && evt.LeftIsDown())
-#endif // ENABLE_CANVAS_GUI_REFACTORING
         {
             // if dragging over blank area with left button, rotate
             if ((m_hover_volume_id == -1) && m_mouse.is_start_position_3D_defined())
@@ -3767,11 +3692,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // that's why the mouse_event function was called so that the gizmo can refuse the deselection in manual editing mode
 
             // deselect and propagate event through callback
-#if ENABLE_CANVAS_GUI_REFACTORING
             if (!evt.ShiftDown() && m_picking_enabled && !m_mouse.ignore_up_event)
-#else
-            if (!evt.ShiftDown() && m_picking_enabled && !m_toolbar_action_running && !m_mouse.ignore_up_event)
-#endif // ENABLE_CANVAS_GUI_REFACTORING
             {
                 m_selection.clear();
                 m_selection.set_mode(Selection::Instance);
@@ -3851,10 +3772,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_mouse.set_start_position_3D_as_invalid();
         m_mouse.set_start_position_2D_as_invalid();
         m_mouse.dragging = false;
-#if !ENABLE_CANVAS_GUI_REFACTORING
-        m_mouse.left_down = false;
-        m_toolbar_action_running = false;
-#endif // !ENABLE_CANVAS_GUI_REFACTORING
         m_dirty = true;
 
         if (m_canvas->HasCapture())
@@ -3870,25 +3787,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         if (m_selection.is_empty())
             m_gizmos.reset_all_states();
 
-#if ENABLE_CANVAS_GUI_REFACTORING
         if (tooltip.empty())
             tooltip = m_toolbar.get_tooltip();
 
         if (tooltip.empty())
             tooltip = m_view_toolbar.get_tooltip();
-#else
-        // updates toolbar overlay
-        if (tooltip.empty())
-            tooltip = m_toolbar.update_hover_state(m_mouse.position, *this);
-
-        // updates view toolbar overlay
-        if (tooltip.empty())
-        {
-            tooltip = m_view_toolbar.update_hover_state(m_mouse.position, *this);
-            if (!tooltip.empty())
-                m_dirty = true;
-        }
-#endif // ENABLE_CANVAS_GUI_REFACTORING
 
         set_tooltip(tooltip);
 
@@ -4286,11 +4189,7 @@ bool GLCanvas3D::_init_toolbar()
 #endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Add...") + " [" + GUI::shortkey_ctrl_prefix() + "I]";
     item.sprite_id = 0;
-#if ENABLE_CANVAS_GUI_REFACTORING
     item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_ADD)); };
-#else
-    item.action_event = EVT_GLTOOLBAR_ADD;
-#endif // ENABLE_CANVAS_GUI_REFACTORING
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -4300,12 +4199,8 @@ bool GLCanvas3D::_init_toolbar()
 #endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Delete") + " [Del]";
     item.sprite_id = 1;
-#if ENABLE_CANVAS_GUI_REFACTORING
     item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_DELETE)); };
     item.enabled_state_callback = []()->bool { return wxGetApp().plater()->can_delete(); };
-#else
-    item.action_event = EVT_GLTOOLBAR_DELETE;
-#endif // ENABLE_CANVAS_GUI_REFACTORING
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -4315,12 +4210,8 @@ bool GLCanvas3D::_init_toolbar()
 #endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Delete all") + " [" + GUI::shortkey_ctrl_prefix() + "Del]";
     item.sprite_id = 2;
-#if ENABLE_CANVAS_GUI_REFACTORING
     item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_DELETE_ALL)); };
     item.enabled_state_callback = []()->bool { return wxGetApp().plater()->can_delete_all(); };
-#else
-    item.action_event = EVT_GLTOOLBAR_DELETE_ALL;
-#endif // ENABLE_CANVAS_GUI_REFACTORING
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -4330,12 +4221,8 @@ bool GLCanvas3D::_init_toolbar()
 #endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Arrange [A]");
     item.sprite_id = 3;
-#if ENABLE_CANVAS_GUI_REFACTORING
     item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_ARRANGE)); };
     item.enabled_state_callback = []()->bool { return wxGetApp().plater()->can_arrange(); };
-#else
-    item.action_event = EVT_GLTOOLBAR_ARRANGE;
-#endif // ENABLE_CANVAS_GUI_REFACTORING
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -4348,13 +4235,9 @@ bool GLCanvas3D::_init_toolbar()
 #endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Add instance [+]");
     item.sprite_id = 4;
-#if ENABLE_CANVAS_GUI_REFACTORING
     item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_MORE)); };
     item.visibility_callback = []()->bool { return wxGetApp().get_mode() != comSimple; };
     item.enabled_state_callback = []()->bool { return wxGetApp().plater()->can_increase_instances(); };
-#else
-    item.action_event = EVT_GLTOOLBAR_MORE;
-#endif // ENABLE_CANVAS_GUI_REFACTORING
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -4364,13 +4247,9 @@ bool GLCanvas3D::_init_toolbar()
 #endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Remove instance [-]");
     item.sprite_id = 5;
-#if ENABLE_CANVAS_GUI_REFACTORING
     item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_FEWER)); };
     item.visibility_callback = []()->bool { return wxGetApp().get_mode() != comSimple; };
     item.enabled_state_callback = []()->bool { return wxGetApp().plater()->can_decrease_instances(); };
-#else
-    item.action_event = EVT_GLTOOLBAR_FEWER;
-#endif // ENABLE_CANVAS_GUI_REFACTORING
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -4383,13 +4262,9 @@ bool GLCanvas3D::_init_toolbar()
 #endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Split to objects");
     item.sprite_id = 6;
-#if ENABLE_CANVAS_GUI_REFACTORING
     item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_SPLIT_OBJECTS)); };
     item.visibility_callback = GLToolbarItem::Default_Visibility_Callback;
     item.enabled_state_callback = []()->bool { return wxGetApp().plater()->can_split_to_objects(); };
-#else
-    item.action_event = EVT_GLTOOLBAR_SPLIT_OBJECTS;
-#endif // ENABLE_CANVAS_GUI_REFACTORING
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -4399,13 +4274,9 @@ bool GLCanvas3D::_init_toolbar()
 #endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Split to parts");
     item.sprite_id = 7;
-#if ENABLE_CANVAS_GUI_REFACTORING
     item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_SPLIT_VOLUMES)); };
     item.visibility_callback = []()->bool { return wxGetApp().get_mode() != comSimple; };
     item.enabled_state_callback = []()->bool { return wxGetApp().plater()->can_split_to_volumes(); };
-#else
-    item.action_event = EVT_GLTOOLBAR_SPLIT_VOLUMES;
-#endif // ENABLE_CANVAS_GUI_REFACTORING
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -4419,21 +4290,11 @@ bool GLCanvas3D::_init_toolbar()
     item.tooltip = GUI::L_str("Layers editing");
     item.sprite_id = 8;
     item.is_toggable = true;
-#if ENABLE_CANVAS_GUI_REFACTORING
     item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_LAYERSEDITING)); };
     item.visibility_callback = GLToolbarItem::Default_Visibility_Callback;
     item.enabled_state_callback = []()->bool { return wxGetApp().plater()->can_layers_editing(); };
-#else
-    item.action_event = EVT_GLTOOLBAR_LAYERSEDITING;
-#endif // ENABLE_CANVAS_GUI_REFACTORING
     if (!m_toolbar.add_item(item))
         return false;
-
-#if !ENABLE_CANVAS_GUI_REFACTORING
-    enable_toolbar_item("add", true);
-
-    update_toolbar_items_visibility();
-#endif // !ENABLE_CANVAS_GUI_REFACTORING
 
     return true;
 }
@@ -4636,11 +4497,7 @@ void GLCanvas3D::_picking_pass() const
 {
     const Vec2d& pos = m_mouse.position;
 
-#if ENABLE_CANVAS_GUI_REFACTORING
     if (m_picking_enabled && !m_mouse.dragging && (pos != Vec2d(DBL_MAX, DBL_MAX)))
-#else
-    if (m_picking_enabled && !m_mouse.dragging && !m_mouse.left_down && (pos != Vec2d(DBL_MAX, DBL_MAX)))
-#endif // ENABLE_CANVAS_GUI_REFACTORING
     {
         // Render the object for picking.
         // FIXME This cannot possibly work in a multi - sampled context as the color gets mangled by the anti - aliasing.

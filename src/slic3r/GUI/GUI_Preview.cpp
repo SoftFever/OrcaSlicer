@@ -110,20 +110,6 @@ void View3D::mirror_selection(Axis axis)
         m_canvas->mirror_selection(axis);
 }
 
-#if !ENABLE_CANVAS_GUI_REFACTORING
-void View3D::update_toolbar_items_visibility()
-{
-    if (m_canvas != nullptr)
-        m_canvas->update_toolbar_items_visibility();
-}
-
-void View3D::enable_toolbar_item(const std::string& name, bool enable)
-{
-    if (m_canvas != nullptr)
-        m_canvas->enable_toolbar_item(name, enable);
-}
-#endif // !ENABLE_CANVAS_GUI_REFACTORING
-
 int View3D::check_volumes_outside_state() const
 {
     return (m_canvas != nullptr) ? m_canvas->check_volumes_outside_state() : false;

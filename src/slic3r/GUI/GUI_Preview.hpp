@@ -50,10 +50,6 @@ public:
     void delete_selected();
     void mirror_selection(Axis axis);
 
-#if !ENABLE_CANVAS_GUI_REFACTORING
-    void update_toolbar_items_visibility();
-    void enable_toolbar_item(const std::string& name, bool enable);
-#endif // !ENABLE_CANVAS_GUI_REFACTORING
     int check_volumes_outside_state() const;
 
     bool is_layers_editing_enabled() const;

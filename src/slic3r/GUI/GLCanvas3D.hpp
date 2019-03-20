@@ -310,9 +310,6 @@ class GLCanvas3D
         };
 
         bool dragging;
-#if !ENABLE_CANVAS_GUI_REFACTORING
-        bool left_down;
-#endif // !ENABLE_CANVAS_GUI_REFACTORING
         Vec2d position;
         Vec3d scene_position;
         Drag drag;
@@ -579,9 +576,6 @@ private:
     bool m_use_VBOs;
     bool m_apply_zoom_to_volumes_filter;
     mutable int m_hover_volume_id;
-#if !ENABLE_CANVAS_GUI_REFACTORING
-    bool m_toolbar_action_running;
-#endif // !ENABLE_CANVAS_GUI_REFACTORING
     bool m_warning_texture_enabled;
     bool m_legend_texture_enabled;
     bool m_picking_enabled;
@@ -660,21 +654,12 @@ public:
     void enable_dynamic_background(bool enable);
     void allow_multisample(bool allow);
 
-#if !ENABLE_CANVAS_GUI_REFACTORING
-    void enable_toolbar_item(const std::string& name, bool enable);
-    bool is_toolbar_item_pressed(const std::string& name) const;
-#endif // !ENABLE_CANVAS_GUI_REFACTORING
-
     void zoom_to_bed();
     void zoom_to_volumes();
     void zoom_to_selection();
     void select_view(const std::string& direction);
 
     void update_volumes_colors_by_extruder();
-
-#if !ENABLE_CANVAS_GUI_REFACTORING
-    void update_toolbar_items_visibility();
-#endif // !ENABLE_CANVAS_GUI_REFACTORING
 
     bool is_dragging() const { return m_gizmos.is_dragging() || m_moving; }
 
