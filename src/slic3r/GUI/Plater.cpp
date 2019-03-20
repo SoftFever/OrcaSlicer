@@ -281,7 +281,7 @@ wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(15 *
     edit_btn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 #endif
     edit_btn->SetBitmap(create_scaled_bitmap("cog.png"));
-    edit_btn->SetToolTip(_(L("Click to Edit a selected Filament Preset")));
+    edit_btn->SetToolTip(_(L("Click to edit preset")));
 
     edit_btn->Bind(wxEVT_BUTTON, ([preset_type, this](wxCommandEvent)
     {
@@ -303,7 +303,7 @@ wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(15 *
             const std::string& selected_preset = GetString(GetSelection()).ToUTF8().data();
 
             // Call select_preset() only if there is new preset and not just modified 
-            if ( !boost::algorithm::ends_with(selected_preset, "(modified)") )
+            if ( !boost::algorithm::ends_with(selected_preset, Preset::suffix_modified()) )
                 tab->select_preset(selected_preset);
         }
     }));
