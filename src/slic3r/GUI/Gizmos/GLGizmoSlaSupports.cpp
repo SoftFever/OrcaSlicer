@@ -201,12 +201,12 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
             const float cone_height = 0.75f;
             ::glPushMatrix();
             ::glTranslatef(0.f, 0.f, m_editing_mode_cache[i].support_point.head_front_radius * RenderPointScale);
-            ::gluCylinder(m_quadric, 0.f, cone_radius, cone_height, 36, 1);
+            ::gluCylinder(m_quadric, 0.f, cone_radius, cone_height, 24, 1);
             ::glTranslatef(0.f, 0.f, cone_height);
-            ::gluDisk(m_quadric, 0.0, cone_radius, 36, 1);
+            ::gluDisk(m_quadric, 0.0, cone_radius, 24, 1);
             ::glPopMatrix();
         }
-        ::gluSphere(m_quadric, m_editing_mode_cache[i].support_point.head_front_radius * RenderPointScale, 64, 36);
+        ::gluSphere(m_quadric, m_editing_mode_cache[i].support_point.head_front_radius * RenderPointScale, 24, 12);
         ::glPopMatrix();
     }
 
