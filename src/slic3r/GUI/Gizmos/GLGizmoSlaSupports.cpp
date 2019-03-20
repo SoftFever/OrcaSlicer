@@ -691,10 +691,10 @@ bool GLGizmoSlaSupports::on_is_activable(const Selection& selection) const
         || !selection.is_from_single_instance())
             return false;
 
-    // Check that none of the selected volumes is outside.
+    // Check that none of the selected volumes is outside. Only SLA auxiliaries (supports) are allowed outside.
     const Selection::IndicesList& list = selection.get_volume_idxs();
     for (const auto& idx : list)
-        if (selection.get_volume(idx)->is_outside)
+        if (selection.get_volume(idx)->is_outside && selection.get_volume(idx)->composite_id.volume_id >= 0)
             return false;
 
     return true;
