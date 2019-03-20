@@ -201,6 +201,7 @@ public:
     static const std::vector<std::string>&  sla_print_options();
 
 	static void                             update_suffix_modified();
+    static const std::string&               suffix_modified();
     static void                             normalize(DynamicPrintConfig &config);
     // Report configuration fields, which are misplaced into a wrong group, remove them from the config.
     static std::string                      remove_invalid_keys(DynamicPrintConfig &config, const DynamicPrintConfig &default_config);
@@ -210,7 +211,6 @@ protected:
     friend class        PresetBundle;
     // Resize the extruder specific vectors ()
     static void         set_num_extruders(DynamicPrintConfig &config, unsigned int n);
-    static const std::string& suffix_modified();
     static std::string  remove_suffix_modified(const std::string &name);
 };
 

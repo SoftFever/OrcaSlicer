@@ -746,6 +746,13 @@ wxNotebook* GUI_App::tab_panel() const
     return mainframe->m_tabpanel;
 }
 
+int GUI_App::extruders_cnt() const
+{
+    const Preset& preset = preset_bundle->printers.get_selected_preset();
+    return preset.printer_technology() == ptSLA ? 1 :
+           preset.config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+}
+
 void GUI_App::window_pos_save(wxTopLevelWindow* window, const std::string &name)
 {
     if (name.empty()) { return; }
