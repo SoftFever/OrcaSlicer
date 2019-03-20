@@ -326,39 +326,19 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             return true;
         }
 
-        // dragging the selection rectangle:
-        if (action == SLAGizmoEventType::Dragging && m_selection_rectangle_active) {
-            m_selection_rectangle_end_corner = mouse_position;
-            return true;
-        }
-
-        // mouse up without selection rectangle - place point on the mesh:
-        if (action == SLAGizmoEventType::LeftUp && !m_selection_rectangle_active && !shift_down) {
-            if (m_ignore_up_event) {
-                m_ignore_up_event = false;
-                return false;
-            }
-
-            int instance_id = m_parent.get_selection().get_instance_idx();
-            if (m_old_instance_id != instance_id)
-            {
-                bool something_selected = (m_old_instance_id != -1);
-                m_old_instance_id = instance_id;
-                if (something_selected)
-                    return false;
-            }
-            if (instance_id == -1)
-                return false;
-
+        // left down without selection rectangle - place point on the mesh:
+        if (action == SLAGizmoEventType::LeftDown && !m_selection_rectangle_active && !shift_down) {
             // If there is some selection, don't add new point and deselect everything instead.
             if (m_selection_empty) {
                 try {
                     std::pair<Vec3f, Vec3f> pos_and_normal = unproject_on_mesh(mouse_position); // don't create anything if this throws
                     m_editing_mode_cache.emplace_back(sla::SupportPoint(pos_and_normal.first, m_new_point_head_diameter/2.f, false), false, pos_and_normal.second);
                     m_unsaved_changes = true;
+                    m_parent.set_as_dirty();
+                    m_wait_for_up_event = true;
                 }
-                catch (...) {      // not clicked on object
-                    return true;   // prevents deselection of the gizmo by GLCanvas3D
+                catch (...) {   // not clicked on object
+                    return false;
                 }
             }
             else
@@ -368,10 +348,7 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         }
 
         // left up with selection rectangle - select points inside the rectangle:
-        if ((action == SLAGizmoEventType::LeftUp || action == SLAGizmoEventType::ShiftUp)
-          && m_selection_rectangle_active) {
-            if (action == SLAGizmoEventType::ShiftUp)
-                m_ignore_up_event = true;
+        if ((action == SLAGizmoEventType::LeftUp || action == SLAGizmoEventType::ShiftUp) && m_selection_rectangle_active) {
             const Transform3d& instance_matrix = m_model_object->instances[m_active_instance]->get_transformation().get_matrix();
             GLint viewport[4];
             ::glGetIntegerv(GL_VIEWPORT, viewport);
@@ -419,6 +396,28 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             }
             m_selection_rectangle_active = false;
             return true;
+        }
+
+        // left up with no selection rectangle
+        if (action == SLAGizmoEventType::LeftUp) {
+            if (m_wait_for_up_event) {
+                m_wait_for_up_event = false;
+                return true;
+            }
+        }
+
+        // dragging the selection rectangle:
+        if (action == SLAGizmoEventType::Dragging) {
+            if (m_wait_for_up_event)
+                return true; // point has been placed and the button not released yet
+                             // this prevents GLCanvas from starting scene rotation
+
+            if (m_selection_rectangle_active)  {
+                m_selection_rectangle_end_corner = mouse_position;
+                return true;
+            }
+
+            return false;
         }
 
         if (action == SLAGizmoEventType::Delete) {
