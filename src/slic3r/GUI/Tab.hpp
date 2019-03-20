@@ -209,6 +209,7 @@ protected:
     int                 m_em_unit;
     // To avoid actions with no-completed Tab
     bool                m_complited { false };
+    ConfigOptionMode    m_mode = comSimple;
 
 public:
 	PresetBundle*		m_preset_bundle;
@@ -236,7 +237,7 @@ public:
 
 	void		create_preset_tab();
 	void		load_current_preset();
-	void        rebuild_page_tree(bool tree_sel_change_event = false);
+	void        rebuild_page_tree();
 	void        update_page_tree_visibility();
 	void		select_preset(std::string preset_name = "");
 	bool		may_discard_current_dirty_preset(PresetCollection* presets = nullptr, const std::string& new_printer_name = "");
@@ -270,6 +271,7 @@ public:
 	void			update_tab_ui();
 	void			load_config(const DynamicPrintConfig& config);
 	virtual void	reload_config();
+    void            update_mode();
     void            update_visibility();
 	Field*			get_field(const t_config_option_key& opt_key, int opt_index = -1) const;
 	bool			set_value(const t_config_option_key& opt_key, const boost::any& value);

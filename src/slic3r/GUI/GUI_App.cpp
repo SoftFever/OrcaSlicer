@@ -530,7 +530,7 @@ void GUI_App::update_mode()
     sidebar().update_mode();
 
     for (auto tab : tabs_list)
-        tab->update_visibility();
+        tab->update_mode();
 
     plater()->update_object_menu();
 }

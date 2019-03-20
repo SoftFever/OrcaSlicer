@@ -705,25 +705,28 @@ void Tab::reload_config()
 // 	Thaw();
 }
 
-void Tab::update_visibility()
+void Tab::update_mode()
 {
-    const ConfigOptionMode mode = wxGetApp().get_mode();
-//    Freeze();
-
-	for (auto page : m_pages)
-        page->update_visibility(mode);
-    update_page_tree_visibility();
+    m_mode = wxGetApp().get_mode();
 
     // update mode for ModeSizer
-    m_mode_sizer->SetMode(mode);
+    m_mode_sizer->SetMode(m_mode);
+
+    update_visibility();
+}
+
+void Tab::update_visibility()
+{
+    Freeze(); // There is needed Freeze/Thaw to avoid a flashing after Show/Layout
+
+	for (auto page : m_pages)
+        page->update_visibility(m_mode);
+    update_page_tree_visibility();
 
     Layout();
-//	Thaw();
+	Thaw();
 
-    // to update tree items color
-//    wxTheApp->CallAfter([this]() {
-        update_changed_tree_ui();
-//     });
+    update_changed_tree_ui();
 }
 
 Field* Tab::get_field(const t_config_option_key& opt_key, int opt_index/* = -1*/) const
@@ -2264,7 +2267,7 @@ void TabPrinter::update_pages()
     else 
         m_pages_sla.empty() ? build_sla() : m_pages.swap(m_pages_sla);
 
-    rebuild_page_tree(true);
+    rebuild_page_tree();
 }
 
 void TabPrinter::update()
@@ -2470,10 +2473,8 @@ void Tab::load_current_preset()
 }
 
 //Regerenerate content of the page tree.
-void Tab::rebuild_page_tree(bool tree_sel_change_event /*= false*/)
+void Tab::rebuild_page_tree()
 {
-// 	Freeze();
-
 	// get label of the currently selected item
     const auto sel_item = m_treectrl->GetSelection();
 	const auto selected = sel_item ? m_treectrl->GetItemText(sel_item) : "";
@@ -2486,10 +2487,7 @@ void Tab::rebuild_page_tree(bool tree_sel_change_event /*= false*/)
 		auto itemId = m_treectrl->AppendItem(rootItem, p->title(), p->iconID());
 		m_treectrl->SetItemTextColour(itemId, p->get_item_colour());
 		if (p->title() == selected) {
-// 			if (!(p->title() == _(L("Machine limits")) || p->title() == _(L("Single extruder MM setup")))) // These Pages have to be updated inside OnTreeSelChange
-// 				m_disable_tree_sel_changed_event = !tree_sel_change_event;
 			m_treectrl->SelectItem(itemId);
-			m_disable_tree_sel_changed_event = false;
 			have_selection = 1;
 		}
 	}
