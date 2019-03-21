@@ -1308,19 +1308,23 @@ void PresetBundle::update_compatible(bool select_other_if_incompatible)
                     { return std::find(prefered_filament_profiles.begin(), prefered_filament_profiles.end(), profile_name) != prefered_filament_profiles.end(); });
         if (select_other_if_incompatible) {
             // Verify validity of the current filament presets.
-            this->filament_presets.front() = this->filaments.get_edited_preset().name;
-            for (size_t idx = 1; idx < this->filament_presets.size(); ++ idx) {
-                std::string &filament_name = this->filament_presets[idx];
-                Preset      *preset        = this->filaments.find_preset(filament_name, false);
-                if (preset == nullptr || ! preset->is_compatible) {
-                    // Pick a compatible profile. If there are prefered_filament_profiles, use them.
-                    if (prefered_filament_profiles.empty())
-                        filament_name = this->filaments.first_compatible().name;
-                    else {
-                        const std::string &preferred = (idx < prefered_filament_profiles.size()) ? 
-                            prefered_filament_profiles[idx] : prefered_filament_profiles.front();
-                        filament_name = this->filaments.first_compatible(
-                            [&preferred](const std::string& profile_name) { return profile_name == preferred; }).name;
+            if (this->filament_presets.size() == 1)
+                this->filament_presets.front() = this->filaments.get_edited_preset().name;
+            else
+            {
+                for (size_t idx = 0; idx < this->filament_presets.size(); ++idx) {
+                    std::string &filament_name = this->filament_presets[idx];
+                    Preset      *preset = this->filaments.find_preset(filament_name, false);
+                    if (preset == nullptr || !preset->is_compatible) {
+                        // Pick a compatible profile. If there are prefered_filament_profiles, use them.
+                        if (prefered_filament_profiles.empty())
+                            filament_name = this->filaments.first_compatible().name;
+                        else {
+                            const std::string &preferred = (idx < prefered_filament_profiles.size()) ?
+                                prefered_filament_profiles[idx] : prefered_filament_profiles.front();
+                            filament_name = this->filaments.first_compatible(
+                                [&preferred](const std::string& profile_name) { return profile_name == preferred; }).name;
+                        }
                     }
                 }
             }

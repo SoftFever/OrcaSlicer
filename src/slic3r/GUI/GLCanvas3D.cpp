@@ -34,6 +34,7 @@
 #include <wx/settings.h>
 #include <wx/tooltip.h>
 #include <wx/debug.h>
+#include <wx/fontutil.h>
 
 // Print now includes tbb, and tbb includes Windows. This breaks compilation of wxWidgets if included before wx.
 #include "libslic3r/Print.hpp"
@@ -1659,12 +1660,68 @@ void GLCanvas3D::WarningTexture::activate(WarningTexture::Warning warning, bool 
     _generate(text, canvas, red_colored); // GUI::GLTexture::reset() is called at the beginning of generate(...)
 }
 
-bool GLCanvas3D::WarningTexture::_generate(const std::string& msg, const GLCanvas3D& canvas, const bool red_colored/* = false*/)
+
+#ifdef __WXMSW__
+static bool is_font_cleartype(const wxFont &font)
+{
+    // Native font description: on MSW, it is a version number plus the content of LOGFONT, separated by semicolon.
+    wxString font_desc = font.GetNativeFontInfoDesc();
+    // Find the quality field.
+    wxString sep(";");
+    size_t startpos = 0;
+    for (size_t i = 0; i < 12; ++ i)
+        startpos = font_desc.find(sep, startpos + 1);
+    ++ startpos;
+    size_t endpos = font_desc.find(sep, startpos);
+    int quality = wxAtoi(font_desc(startpos, endpos - startpos));
+    return quality == CLEARTYPE_QUALITY;
+}
+
+// ClearType produces renders, which are difficult to convert into an alpha blended OpenGL texture.
+// Therefore it is better to disable it, though Vojtech found out, that the font returned with ClearType
+// disabled is signifcantly thicker than the default ClearType font.
+// This function modifies the font provided.
+static void msw_disable_cleartype(wxFont &font)
+{
+    // Native font description: on MSW, it is a version number plus the content of LOGFONT, separated by semicolon.
+    wxString font_desc = font.GetNativeFontInfoDesc();
+    // Find the quality field.
+    wxString sep(";");
+    size_t startpos_weight = 0;
+    for (size_t i = 0; i < 5; ++ i)
+        startpos_weight = font_desc.find(sep, startpos_weight + 1);
+    ++ startpos_weight;
+    size_t endpos_weight = font_desc.find(sep, startpos_weight);
+    // Parse the weight field.
+    unsigned int weight = atoi(font_desc(startpos_weight, endpos_weight - startpos_weight));
+    size_t startpos = endpos_weight;
+    for (size_t i = 0; i < 6; ++ i)
+        startpos = font_desc.find(sep, startpos + 1);
+    ++ startpos;
+    size_t endpos = font_desc.find(sep, startpos);
+    int quality = wxAtoi(font_desc(startpos, endpos - startpos));
+    if (quality == CLEARTYPE_QUALITY) {
+        // Replace the weight with a smaller value to compensate the weight of non ClearType font.
+        wxString sweight    = std::to_string(weight * 2 / 4);
+        size_t   len_weight = endpos_weight - startpos_weight;
+        wxString squality   = std::to_string(ANTIALIASED_QUALITY);
+        font_desc.replace(startpos_weight, len_weight, sweight);
+        font_desc.replace(startpos + sweight.size() - len_weight, endpos - startpos, squality);
+        font.SetNativeFontInfo(font_desc);
+        wxString font_desc2 = font.GetNativeFontInfoDesc();
+    }
+    wxString font_desc2 = font.GetNativeFontInfoDesc();
+}
+#endif /* __WXMSW__ */
+
+bool GLCanvas3D::WarningTexture::_generate(const std::string& msg_utf8, const GLCanvas3D& canvas, const bool red_colored/* = false*/)
 {
     reset();
 
-    if (msg.empty())
+    if (msg_utf8.empty())
         return false;
+
+    wxString msg = GUI::from_u8(msg_utf8);
 
     wxMemoryDC memDC;
     // select default font
@@ -1676,46 +1733,47 @@ bool GLCanvas3D::WarningTexture::_generate(const std::string& msg, const GLCanva
 
     // calculates texture size
     wxCoord w, h;
-//     memDC.GetTextExtent(msg, &w, &h);
     memDC.GetMultiLineTextExtent(msg, &w, &h);
-
-    int pow_of_two_size = next_highest_power_of_2(std::max<unsigned int>(w, h));
 
     m_original_width = (int)w;
     m_original_height = (int)h;
-    m_width = pow_of_two_size;
-    m_height = pow_of_two_size;
+    m_width = (int)next_highest_power_of_2((uint32_t)w);
+	m_height = (int)next_highest_power_of_2((uint32_t)h);
 
     // generates bitmap
     wxBitmap bitmap(m_width, m_height);
 
     memDC.SelectObject(bitmap);
-    memDC.SetBackground(wxBrush(wxColour(Background_Color[0], Background_Color[1], Background_Color[2])));
+    memDC.SetBackground(wxBrush(*wxBLACK));
     memDC.Clear();
 
     // draw message
-    memDC.SetTextForeground(red_colored ? wxColour(255,72,65/*204,204*/) : *wxWHITE);
-//     memDC.DrawText(msg, 0, 0);
-    memDC.DrawLabel(msg, wxRect(0,0, m_original_width, m_original_height), wxALIGN_CENTER);
+    memDC.SetTextForeground(*wxRED);
+	memDC.DrawLabel(msg, wxRect(0,0, m_original_width, m_original_height), wxALIGN_CENTER);
 
     memDC.SelectObject(wxNullBitmap);
 
     // Convert the bitmap into a linear data ready to be loaded into the GPU.
     wxImage image = bitmap.ConvertToImage();
-    image.SetMaskColour(Background_Color[0], Background_Color[1], Background_Color[2]);
 
     // prepare buffer
     std::vector<unsigned char> data(4 * m_width * m_height, 0);
+    const unsigned char *src = image.GetData();
     for (int h = 0; h < m_height; ++h)
     {
-        int hh = h * m_width;
-        unsigned char* px_ptr = data.data() + 4 * hh;
+        unsigned char* dst = data.data() + 4 * h * m_width;
         for (int w = 0; w < m_width; ++w)
         {
-            *px_ptr++ = image.GetRed(w, h);
-            *px_ptr++ = image.GetGreen(w, h);
-            *px_ptr++ = image.GetBlue(w, h);
-            *px_ptr++ = image.IsTransparent(w, h) ? 0 : Opacity;
+            *dst++ = 255;
+            if (red_colored) {
+                *dst++ = 72; // 204
+                *dst++ = 65; // 204
+            } else {
+                *dst++ = 255;
+                *dst++ = 255;
+            }
+			*dst++ = (unsigned char)std::min<int>(255, *src);
+            src += 3;
         }
     }
 
@@ -1839,7 +1897,15 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
     const int scaled_border = Px_Border * scale;
 
     // select default font
-    const wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Scale(scale_gl);
+    wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Scale(scale_gl);
+#ifdef __WXMSW__
+    // Disabling ClearType works, but the font returned is very different (much thicker) from the default.
+//    msw_disable_cleartype(font);
+    bool cleartype = is_font_cleartype(font);
+#else
+    bool cleartype = false;
+#endif /* __WXMSW__ */
+
     memDC.SetFont(font);
     mask_memDC.SetFont(font);
 
@@ -1863,10 +1929,8 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
     if (items_count > 1)
         m_original_height += (items_count - 1) * scaled_square_contour;
 
-    int pow_of_two_size = (int)next_highest_power_of_2(std::max<uint32_t>(m_original_width, m_original_height));
-
-    m_width = pow_of_two_size;
-    m_height = pow_of_two_size;
+	m_width = (int)next_highest_power_of_2((uint32_t)m_original_width);
+	m_height = (int)next_highest_power_of_2((uint32_t)m_original_height);
 
     // generates bitmap
     wxBitmap bitmap(m_width, m_height);
@@ -1883,15 +1947,12 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
 
     // draw title
     memDC.SetTextForeground(*wxWHITE);
-    mask_memDC.SetTextForeground(*wxWHITE);
+	mask_memDC.SetTextForeground(*wxRED);
 
     int title_x = scaled_border;
     int title_y = scaled_border;
     memDC.DrawText(title, title_x, title_y);
     mask_memDC.DrawText(title, title_x, title_y);
-
-    mask_memDC.SetPen(wxPen(*wxWHITE));
-    mask_memDC.SetBrush(wxBrush(*wxWHITE));
 
     // draw icons contours as background
     int squares_contour_x = scaled_border;
@@ -1907,7 +1968,6 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
     memDC.SetPen(pen);
     memDC.SetBrush(brush);
     memDC.DrawRectangle(wxRect(squares_contour_x, squares_contour_y, squares_contour_width, squares_contour_height));
-    mask_memDC.DrawRectangle(wxRect(squares_contour_x, squares_contour_y, squares_contour_width, squares_contour_height));
 
     // draw items (colored icon + text)
     int icon_x = squares_contour_x + scaled_square_contour;
@@ -1943,7 +2003,6 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
         memDC.DrawRectangle(wxRect(icon_x_inner, icon_y + 1, px_inner_square, px_inner_square));
 
         // draw text
-        memDC.DrawText(GUI::from_u8(item.text), text_x, icon_y + text_y_offset);
         mask_memDC.DrawText(GUI::from_u8(item.text), text_x, icon_y + text_y_offset);
 
         // update y
@@ -1959,17 +2018,34 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
 
     // prepare buffer
     std::vector<unsigned char> data(4 * m_width * m_height, 0);
-    for (int h = 0; h < m_height; ++h)
+	const unsigned char *src_image = image.GetData();
+    const unsigned char *src_mask  = mask_image.GetData();
+	for (int h = 0; h < m_height; ++h)
     {
         int hh = h * m_width;
         unsigned char* px_ptr = data.data() + 4 * hh;
         for (int w = 0; w < m_width; ++w)
         {
-            unsigned char alpha = (mask_image.GetRed(w, h) + mask_image.GetGreen(w, h) + mask_image.GetBlue(w, h)) / 3;
-            *px_ptr++ = image.GetRed(w, h);
-            *px_ptr++ = image.GetGreen(w, h);
-            *px_ptr++ = image.GetBlue(w, h);
-            *px_ptr++ = (alpha == 0) ? 128 : 255;
+			if (w >= squares_contour_x && w < squares_contour_x + squares_contour_width &&
+				h >= squares_contour_y && h < squares_contour_y + squares_contour_height) {
+				// Color palette, use the color verbatim.
+				*px_ptr++ = *src_image++;
+				*px_ptr++ = *src_image++;
+				*px_ptr++ = *src_image++;
+				*px_ptr++ = 255;
+			} else {
+				// Text or background
+				unsigned char alpha = *src_mask;
+				// Compensate the white color for the 50% opacity reduction at the character edges.
+                //unsigned char color = (unsigned char)floor(alpha * 255.f / (128.f + 0.5f * alpha));
+                unsigned char color = alpha;
+				*px_ptr++ = color;
+				*px_ptr++ = color; // *src_mask ++;
+				*px_ptr++ = color; // *src_mask ++;
+				*px_ptr++ = 128 + (alpha / 2); // (alpha > 0) ? 255 : 128;
+				src_image += 3;
+			}
+            src_mask += 3;
         }
     }
 

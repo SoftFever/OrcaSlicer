@@ -84,7 +84,11 @@ class Preview : public wxPanel
     BackgroundSlicingProcess* m_process;
     GCodePreviewData* m_gcode_preview_data;
 
+#ifdef __linux__
+    // We are getting mysterious crashes on Linux in gtk due to OpenGL context activation GH #1874 #1955.
+    // So we are applying a workaround here.
     bool m_volumes_cleanup_required;
+#endif /* __linux__ */
 
     // Calling this function object forces Plater::schedule_background_process.
     std::function<void()> m_schedule_background_process;
