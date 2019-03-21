@@ -724,7 +724,7 @@ void Tab::update_visibility()
     update_page_tree_visibility();
 
     Layout();
-//	Thaw();
+	Thaw();
 
     update_changed_tree_ui();
 }
