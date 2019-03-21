@@ -41,6 +41,7 @@ void glAssertRecentCallImpl()
     switch (err) {
     case GL_INVALID_ENUM:       sErr = "Invalid Enum";      break;
     case GL_INVALID_VALUE:      sErr = "Invalid Value";     break;
+    // be aware that GL_INVALID_OPERATION is generated if glGetError is executed between the execution of glBegin and the corresponding execution of glEnd 
     case GL_INVALID_OPERATION:  sErr = "Invalid Operation"; break;
     case GL_STACK_OVERFLOW:     sErr = "Stack Overflow";    break;
     case GL_STACK_UNDERFLOW:    sErr = "Stack Underflow";   break;
