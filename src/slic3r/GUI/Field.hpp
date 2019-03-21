@@ -11,6 +11,7 @@
 #include <boost/any.hpp>
 
 #include <wx/spinctrl.h>
+#include <wx/bmpcbox.h>
 #include <wx/clrpicker.h>
 
 #include "libslic3r/libslic3r.h"
@@ -351,14 +352,19 @@ public:
 	wxWindow*		window{ nullptr };
 	void			BUILD() override;
 
+    /* Under OSX: wxBitmapComboBox->GetWindowStyle() returns some weard value, 
+     * so let use a flag, which has TRUE value for a control without wxCB_READONLY style
+     */
+    bool            m_is_editable { false };
+
 	void			set_selection();
 	void			set_value(const std::string& value, bool change_event = false);
 	void			set_value(const boost::any& value, bool change_event = false);
 	void			set_values(const std::vector<std::string> &values);
 	boost::any&		get_value() override;
 
-	void			enable() override { dynamic_cast<wxComboBox*>(window)->Enable(); };
-	void			disable() override{ dynamic_cast<wxComboBox*>(window)->Disable(); };
+	void			enable() override { dynamic_cast<wxBitmapComboBox*>(window)->Enable(); };
+	void			disable() override{ dynamic_cast<wxBitmapComboBox*>(window)->Disable(); };
 	wxWindow*		getWindow() override { return window; }
 };
 

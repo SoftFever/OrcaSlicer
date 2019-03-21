@@ -2,6 +2,7 @@
 #include "GUI_App.hpp"
 #include "I18N.hpp"
 #include "Field.hpp"
+#include "wxExtensions.hpp"
 
 #include "libslic3r/PrintConfig.hpp"
 
@@ -259,7 +260,12 @@ void TextCtrl::BUILD() {
 
     const long style = m_opt.multiline ? wxTE_MULTILINE : wxTE_PROCESS_ENTER/*0*/;
 	auto temp = new wxTextCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size, style);
-	temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
+	temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+
+	if (! m_opt.multiline)
+		// Only disable background refresh for single line input fields, as they are completely painted over by the edit control.
+		// This does not apply to the multi-line edit field, where the last line and a narrow frame around the text is not cleared.
+		temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
 #ifdef __WXOSX__
     temp->OSXDisableAllSmartSubstitutions();
 #endif // __WXOSX__
@@ -375,6 +381,7 @@ void CheckBox::BUILD() {
     					false;
 
 	auto temp = new wxCheckBox(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size); 
+	temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 	temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
 	temp->SetValue(check_value);
 	if (m_opt.readonly) temp->Disable();
@@ -433,6 +440,7 @@ void SpinCtrl::BUILD() {
 
 	auto temp = new wxSpinCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size,
 		0|wxTE_PROCESS_ENTER, min_val, max_val, default_value);
+	temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 	temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
 #ifndef __WXOSX__
@@ -498,15 +506,30 @@ void SpinCtrl::propagate_value()
 }
 
 void Choice::BUILD() {
-	auto size = wxSize(wxDefaultSize);
+    wxSize size(15 * wxGetApp().em_unit(), -1);
 	if (m_opt.height >= 0) size.SetHeight(m_opt.height);
 	if (m_opt.width >= 0) size.SetWidth(m_opt.width);
 
-	wxComboBox* temp;	
-	if (!m_opt.gui_type.empty() && m_opt.gui_type.compare("select_open") != 0)
-		temp = new wxComboBox(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size);
-	else
-		temp = new wxComboBox(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size, 0, NULL, wxCB_READONLY);
+	wxBitmapComboBox* temp;	
+    if (!m_opt.gui_type.empty() && m_opt.gui_type.compare("select_open") != 0) {
+        m_is_editable = true;
+        temp = new wxBitmapComboBox(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size);
+    }
+    else {
+#ifdef __WXOSX__
+        /* wxBitmapComboBox with wxCB_READONLY style return NULL for GetTextCtrl(),
+         * so ToolTip doesn't shown.
+         * Next workaround helps to solve this problem
+         */
+        temp = new wxBitmapComboBox();
+        temp->SetTextCtrlStyle(wxTE_READONLY);
+        temp->Create(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size, 0, nullptr);
+#else
+        temp = new wxBitmapComboBox(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size, 0, nullptr, wxCB_READONLY);
+#endif //__WXOSX__
+    }
+
+	temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 	temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
 	// recast as a wxWindow to fit the calling convention
@@ -517,19 +540,19 @@ void Choice::BUILD() {
 	else{
 		for (auto el : m_opt.enum_labels.empty() ? m_opt.enum_values : m_opt.enum_labels) {
 			const wxString& str = _(el);//m_opt_id == "support" ? _(el) : el;
-			temp->Append(str);
+            temp->Append(str, create_scaled_bitmap("empty_icon.png"));
 		}
 		set_selection();
 	}
 // 	temp->Bind(wxEVT_TEXT, ([this](wxCommandEvent e) { on_change_field(); }), temp->GetId());
  	temp->Bind(wxEVT_COMBOBOX, ([this](wxCommandEvent e) { on_change_field(); }), temp->GetId());
 
-    if (temp->GetWindowStyle() != wxCB_READONLY) {
+    if (m_is_editable) {
         temp->Bind(wxEVT_KILL_FOCUS, ([this](wxEvent& e) {
             e.Skip();
             if (m_opt.type == coStrings) return;
             double old_val = !m_value.empty() ? boost::any_cast<double>(m_value) : -99999;
-            if (is_defined_input_value<wxComboBox>(window, m_opt.type)) {
+            if (is_defined_input_value<wxBitmapComboBox>(window, m_opt.type)) {
                 if (fabs(old_val - boost::any_cast<double>(get_value())) <= 0.0001)
                     return;
                 else
@@ -546,6 +569,8 @@ void Choice::BUILD() {
 void Choice::set_selection()
 {
 	wxString text_value = wxString("");
+
+    wxBitmapComboBox* field = dynamic_cast<wxBitmapComboBox*>(window);
 	switch (m_opt.type) {
 	case coFloat:
 	case coPercent:	{
@@ -560,13 +585,13 @@ void Choice::set_selection()
 		}
 //		if (m_opt.type == coPercent) text_value += "%";
 		idx == m_opt.enum_values.size() ?
-			dynamic_cast<wxComboBox*>(window)->SetValue(text_value) :
-			dynamic_cast<wxComboBox*>(window)->SetSelection(idx);
+			field->SetValue(text_value) :
+			field->SetSelection(idx);
 		break;
 	}
 	case coEnum:{
 		int id_value = static_cast<const ConfigOptionEnum<SeamPosition>*>(m_opt.default_value)->value; //!!
-		dynamic_cast<wxComboBox*>(window)->SetSelection(id_value);
+        field->SetSelection(id_value);
 		break;
 	}
 	case coInt:{
@@ -580,8 +605,8 @@ void Choice::set_selection()
 			++idx;
 		}
 		idx == m_opt.enum_values.size() ?
-			dynamic_cast<wxComboBox*>(window)->SetValue(text_value) :
-			dynamic_cast<wxComboBox*>(window)->SetSelection(idx);
+			field->SetValue(text_value) :
+			field->SetSelection(idx);
 		break;
 	}
 	case coStrings:{
@@ -595,8 +620,8 @@ void Choice::set_selection()
 			++idx;
 		}
 		idx == m_opt.enum_values.size() ?
-			dynamic_cast<wxComboBox*>(window)->SetValue(text_value) :
-			dynamic_cast<wxComboBox*>(window)->SetSelection(idx);
+			field->SetValue(text_value) :
+			field->SetSelection(idx);
 		break;
 	}
 	}
@@ -614,9 +639,10 @@ void Choice::set_value(const std::string& value, bool change_event)  //! Redunda
 		++idx;
 	}
 
+    wxBitmapComboBox* field = dynamic_cast<wxBitmapComboBox*>(window);
 	idx == m_opt.enum_values.size() ? 
-		dynamic_cast<wxComboBox*>(window)->SetValue(value) :
-		dynamic_cast<wxComboBox*>(window)->SetSelection(idx);
+		field->SetValue(value) :
+		field->SetSelection(idx);
 	
 	m_disable_change_event = false;
 }
@@ -624,6 +650,8 @@ void Choice::set_value(const std::string& value, bool change_event)  //! Redunda
 void Choice::set_value(const boost::any& value, bool change_event)
 {
 	m_disable_change_event = !change_event;
+
+    wxBitmapComboBox* field = dynamic_cast<wxBitmapComboBox*>(window);
 
 	switch (m_opt.type) {
 	case coInt:
@@ -646,11 +674,11 @@ void Choice::set_value(const boost::any& value, bool change_event)
         if (idx == m_opt.enum_values.size()) {
             // For editable Combobox under OSX is needed to set selection to -1 explicitly,
             // otherwise selection doesn't be changed
-            dynamic_cast<wxComboBox*>(window)->SetSelection(-1);
-            dynamic_cast<wxComboBox*>(window)->SetValue(text_value);
+            field->SetSelection(-1);
+            field->SetValue(text_value);
         }
         else
-			dynamic_cast<wxComboBox*>(window)->SetSelection(idx);
+			field->SetSelection(idx);
 		break;
 	}
 	case coEnum: {
@@ -680,7 +708,7 @@ void Choice::set_value(const boost::any& value, bool change_event)
 			else
 				val = 0;
 		}
-		dynamic_cast<wxComboBox*>(window)->SetSelection(val);
+		field->SetSelection(val);
 		break;
 	}
 	default:
@@ -699,7 +727,7 @@ void Choice::set_values(const std::vector<std::string>& values)
 
 // 	# it looks that Clear() also clears the text field in recent wxWidgets versions,
 // 	# but we want to preserve it
-	auto ww = dynamic_cast<wxComboBox*>(window);
+	auto ww = dynamic_cast<wxBitmapComboBox*>(window);
 	auto value = ww->GetValue();
 	ww->Clear();
 	ww->Append("");
@@ -712,8 +740,9 @@ void Choice::set_values(const std::vector<std::string>& values)
 
 boost::any& Choice::get_value()
 {
-// 	boost::any m_value;
-	wxString ret_str = static_cast<wxComboBox*>(window)->GetValue();	
+    wxBitmapComboBox* field = dynamic_cast<wxBitmapComboBox*>(window);
+
+	wxString ret_str = field->GetValue();	
 
 	// options from right panel
 	std::vector <std::string> right_panel_options{ "support", "scale_unit" };
@@ -723,7 +752,7 @@ boost::any& Choice::get_value()
 
 	if (m_opt.type == coEnum)
 	{
-		int ret_enum = static_cast<wxComboBox*>(window)->GetSelection(); 
+		int ret_enum = field->GetSelection(); 
 		if (m_opt_id == "top_fill_pattern" || m_opt_id == "bottom_fill_pattern")
 		{
 			if (!m_opt.enum_values.empty()) {
@@ -752,8 +781,9 @@ boost::any& Choice::get_value()
             m_value = static_cast<SLAPillarConnectionMode>(ret_enum);
 	}
     else if (m_opt.gui_type == "f_enum_open") {
-        const int ret_enum = static_cast<wxComboBox*>(window)->GetSelection();
-        if (ret_enum < 0 || m_opt.enum_values.empty() || m_opt.type == coStrings)
+        const int ret_enum = field->GetSelection();
+        if (ret_enum < 0 || m_opt.enum_values.empty() || m_opt.type == coStrings ||
+            ret_str != m_opt.enum_values[ret_enum] && ret_str != m_opt.enum_labels[ret_enum] )
 			// modifies ret_string!
             get_value_by_opt_type(ret_str);
         else 
@@ -815,12 +845,16 @@ void PointCtrl::BUILD()
 
 	x_textctrl = new wxTextCtrl(m_parent, wxID_ANY, X, wxDefaultPosition, field_size, wxTE_PROCESS_ENTER);
 	y_textctrl = new wxTextCtrl(m_parent, wxID_ANY, Y, wxDefaultPosition, field_size, wxTE_PROCESS_ENTER);
+	x_textctrl->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 	x_textctrl->SetBackgroundStyle(wxBG_STYLE_PAINT);
+	y_textctrl->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 	y_textctrl->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
 	auto static_text_x = new wxStaticText(m_parent, wxID_ANY, "x : ");
 	auto static_text_y = new wxStaticText(m_parent, wxID_ANY, "   y : ");
+	static_text_x->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 	static_text_x->SetBackgroundStyle(wxBG_STYLE_PAINT);
+	static_text_y->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 	static_text_y->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
 	temp->Add(static_text_x, 0, wxALIGN_CENTER_VERTICAL, 0);
@@ -894,6 +928,7 @@ void StaticText::BUILD()
 
     const wxString legend(static_cast<const ConfigOptionString*>(m_opt.default_value)->value);
     auto temp = new wxStaticText(m_parent, wxID_ANY, legend, wxDefaultPosition, size, wxST_ELLIPSIZE_MIDDLE);
+	temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 	temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
     temp->SetFont(wxGetApp().bold_font());
 
@@ -918,11 +953,13 @@ void SliderCtrl::BUILD()
 	m_slider = new wxSlider(m_parent, wxID_ANY, def_val * m_scale,
 							min * m_scale, max * m_scale,
 							wxDefaultPosition, size);
+	m_slider->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 	m_slider->SetBackgroundStyle(wxBG_STYLE_PAINT);
  	wxSize field_size(40, -1);
 
 	m_textctrl = new wxTextCtrl(m_parent, wxID_ANY, wxString::Format("%d", m_slider->GetValue()/m_scale), 
 								wxDefaultPosition, field_size);
+	m_textctrl->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 	m_textctrl->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
 	temp->Add(m_slider, 1, wxEXPAND | wxALIGN_CENTER_VERTICAL, 0);

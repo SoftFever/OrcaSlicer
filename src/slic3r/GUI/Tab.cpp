@@ -268,6 +268,7 @@ void Tab::create_preset_tab()
 	// Initialize the DynamicPrintConfig by default keys/values.
 	build();
 	rebuild_page_tree();
+    m_complited = true;
 }
 
 void Tab::load_initial_data()
@@ -704,25 +705,28 @@ void Tab::reload_config()
 // 	Thaw();
 }
 
-void Tab::update_visibility()
+void Tab::update_mode()
 {
-    const ConfigOptionMode mode = wxGetApp().get_mode();
-//    Freeze();
-
-	for (auto page : m_pages)
-        page->update_visibility(mode);
-    update_page_tree_visibility();
+    m_mode = wxGetApp().get_mode();
 
     // update mode for ModeSizer
-    m_mode_sizer->SetMode(mode);
+    m_mode_sizer->SetMode(m_mode);
+
+    update_visibility();
+}
+
+void Tab::update_visibility()
+{
+    Freeze(); // There is needed Freeze/Thaw to avoid a flashing after Show/Layout
+
+	for (auto page : m_pages)
+        page->update_visibility(m_mode);
+    update_page_tree_visibility();
 
     Layout();
 //	Thaw();
 
-    // to update tree items color
-//    wxTheApp->CallAfter([this]() {
-        update_changed_tree_ui();
-//     });
+    update_changed_tree_ui();
 }
 
 Field* Tab::get_field(const t_config_option_key& opt_key, int opt_index/* = -1*/) const
@@ -1498,6 +1502,7 @@ void TabFilament::build()
         line = optgroup->create_single_option_line("filament_ramming_parameters");// { _(L("Ramming")), "" };
         line.widget = [this](wxWindow* parent) {
 			auto ramming_dialog_btn = new wxButton(parent, wxID_ANY, _(L("Ramming settings"))+dots, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+			ramming_dialog_btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
             auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(ramming_dialog_btn);
             
@@ -1633,6 +1638,7 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 
 	auto printhost_browse = [=](wxWindow* parent) {
 		auto btn = m_printhost_browse_btn = new wxButton(parent, wxID_ANY, _(L(" Browse "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+		btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
         btn->SetBitmap(create_scaled_bitmap("zoom.png"));
 		auto sizer = new wxBoxSizer(wxHORIZONTAL);
 		sizer->Add(btn);
@@ -1651,6 +1657,7 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 	auto print_host_test = [this](wxWindow* parent) {
 		auto btn = m_print_host_test_btn = new wxButton(parent, wxID_ANY, _(L("Test")), 
 			wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
+		btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
         btn->SetBitmap(create_scaled_bitmap("wrench.png"));
 		auto sizer = new wxBoxSizer(wxHORIZONTAL);
 		sizer->Add(btn);
@@ -1688,6 +1695,7 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 		auto printhost_cafile_browse = [this, optgroup] (wxWindow* parent) {
 			auto btn = new wxButton(parent, wxID_ANY, _(L(" Browse "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
 // 			btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("zoom.png")), wxBITMAP_TYPE_PNG));
+			btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 			btn->SetBitmap(create_scaled_bitmap("zoom.png"));
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(btn);
@@ -1726,6 +1734,7 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 \tOn this system, Slic3r uses HTTPS certificates from the system Certificate Store or Keychain.\n\
 \tTo use a custom CA file, please import your CA file into Certificate Store / Keychain.")),
 				ca_file_hint));
+			txt->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(txt);
 			return sizer;
@@ -1966,7 +1975,7 @@ void TabPrinter::build_sla()
     Line line = optgroup->create_single_option_line("bed_shape");//{ _(L("Bed shape")), "" };
     line.widget = [this](wxWindow* parent) {
         auto btn = new wxButton(parent, wxID_ANY, _(L(" Set ")) + dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
-        //			btn->SetFont(Slic3r::GUI::small_font);
+        btn->SetFont(wxGetApp().small_font());
 //         btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("printer_empty.png")), wxBITMAP_TYPE_PNG));
         btn->SetBitmap(create_scaled_bitmap("printer_empty.png"));
 
@@ -2258,7 +2267,7 @@ void TabPrinter::update_pages()
     else 
         m_pages_sla.empty() ? build_sla() : m_pages.swap(m_pages_sla);
 
-    rebuild_page_tree(true);
+    rebuild_page_tree();
 }
 
 void TabPrinter::update()
@@ -2464,10 +2473,8 @@ void Tab::load_current_preset()
 }
 
 //Regerenerate content of the page tree.
-void Tab::rebuild_page_tree(bool tree_sel_change_event /*= false*/)
+void Tab::rebuild_page_tree()
 {
-// 	Freeze();
-
 	// get label of the currently selected item
     const auto sel_item = m_treectrl->GetSelection();
 	const auto selected = sel_item ? m_treectrl->GetItemText(sel_item) : "";
@@ -2480,10 +2487,7 @@ void Tab::rebuild_page_tree(bool tree_sel_change_event /*= false*/)
 		auto itemId = m_treectrl->AppendItem(rootItem, p->title(), p->iconID());
 		m_treectrl->SetItemTextColour(itemId, p->get_item_colour());
 		if (p->title() == selected) {
-// 			if (!(p->title() == _(L("Machine limits")) || p->title() == _(L("Single extruder MM setup")))) // These Pages have to be updated inside OnTreeSelChange
-// 				m_disable_tree_sel_changed_event = !tree_sel_change_event;
 			m_treectrl->SelectItem(itemId);
-			m_disable_tree_sel_changed_event = false;
 			have_selection = 1;
 		}
 	}
@@ -2883,7 +2887,9 @@ void Tab::update_ui_from_settings()
 wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &deps)
 {
 	deps.checkbox = new wxCheckBox(parent, wxID_ANY, _(L("All")));
+	deps.checkbox->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 	deps.btn = new wxButton(parent, wxID_ANY, _(L(" Set "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
+	deps.btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 
 // 	deps.btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("printer_empty.png")), wxBITMAP_TYPE_PNG));
     deps.btn->SetBitmap(create_scaled_bitmap("printer_empty.png"));

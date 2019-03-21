@@ -138,7 +138,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
 		option_set.front().opt.sidetext.size() == 0 && option_set.front().side_widget == nullptr && 
 		line.get_extra_widgets().size() == 0) {
 		wxSizer* tmp_sizer;
-#ifdef __WXGTK__
+#if 0//#ifdef __WXGTK__
 		tmp_sizer = new wxBoxSizer(wxVERTICAL);
         m_panel->SetSizer(tmp_sizer);
         m_panel->Layout();
@@ -160,7 +160,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
 	}
 
     auto grid_sizer = m_grid_sizer;
-#ifdef __WXGTK__
+#if 0//#ifdef __WXGTK__
         m_panel->SetSizer(m_grid_sizer);
         m_panel->Layout();
 #endif /* __WXGTK__ */
@@ -443,7 +443,7 @@ void ConfigOptionsGroup::Hide()
 void ConfigOptionsGroup::Show(const bool show)
 {
     sizer->ShowItems(show);
-#ifdef __WXGTK__
+#if 0//#ifdef __WXGTK__
     m_panel->Show(show);
     m_grid_sizer->Show(show);
 #endif /* __WXGTK__ */
