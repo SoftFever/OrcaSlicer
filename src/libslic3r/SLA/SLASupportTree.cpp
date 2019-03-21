@@ -2240,6 +2240,18 @@ SlicedSupports SLASupportTree::slice(float layerh, float init_layerh) const
     return ret;
 }
 
+SlicedSupports SLASupportTree::slice(const std::vector<float> &heights,
+                                     float cr) const
+{
+    TriangleMesh fullmesh = m_impl->merged_mesh();
+    fullmesh.merge(get_pad());
+    TriangleMeshSlicer slicer(&fullmesh);
+    SlicedSupports ret;
+    slicer.slice(heights, cr, &ret, get().ctl().cancelfn);
+
+    return ret;
+}
+
 const TriangleMesh &SLASupportTree::add_pad(const SliceLayer& baseplate,
                                             const PoolConfig& pcfg) const
 {

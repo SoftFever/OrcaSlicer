@@ -122,7 +122,7 @@ private:
         size_t m_model_slices_idx = NONE;
         size_t m_support_slices_idx = NONE;
 
-        LevelID m_print_z = 0;  // Top of the layer
+        LevelID m_print_z = 0;    // Top of the layer
         float m_slice_z = 0.f;    // Exact level of the slice
         float m_height = 0.f;     // Height of the sliced layer
 
@@ -131,34 +131,54 @@ private:
         SliceRecord(Key key, float slicez, float height):
             m_print_z(key), m_slice_z(slicez), m_height(height) {}
 
+        // The key will be the integer height level of the top of the layer.
         inline Key key() const { return m_print_z; }
+
+        // Returns the exact floating point Z coordinate of the slice
         inline float slice_level() const { return m_slice_z; }
+
+        // Returns the current layer height
         inline float layer_height() const { return m_height; }
 
-        SliceIterator get_slices(const SLAPrintObject& po,
-                                 SliceOrigin so) const;
+        // Returns the slices for eighter the model or the supports. The return
+        // value is an iterator to po.get_model_slices() or po.get_support_slices
+        // depending on the SliceOrigin parameter.
+        SliceIterator get_slices(const SLAPrintObject& po, SliceOrigin so) const;
 
-
+        // Methods for setting the indixes into the slice vectors.
         void set_model_slice_idx(size_t id) { m_model_slices_idx = id; }
         void set_support_slice_idx(size_t id) { m_support_slices_idx = id; }
-
     };
 
+    // Slice index will be a plain vector sorted by the integer height levels
     using SliceIndex = std::vector<SliceRecord>;
 
     // Retrieve the slice index which is readable only after slaposIndexSlices
     // is done.
     const SliceIndex& get_slice_index() const;
 
+    // Search slice index for the closest slice to the given level
     SliceIndex::iterator search_slice_index(float slice_level);
     SliceIndex::const_iterator search_slice_index(float slice_level) const;
+
+    // Search the slice index for a particular level in integer coordinates.
+    // If no such layer is present, it will return m_slice_index.end()
     SliceIndex::iterator search_slice_index(SliceRecord::Key key);
     SliceIndex::const_iterator search_slice_index(SliceRecord::Key key) const;
 
 public:
 
-    SliceIterator get_slices(SliceOrigin so, LevelID k) const;
+    // /////////////////////////////////////////////////////////////////////////
+    // The following methods can be used after the model and the support slicing
+    // steps have been succesfully finished.
+    // /////////////////////////////////////////////////////////////////////////
 
+    // Getting slices for either the model or the supports for a particular
+    // height ID.
+//    SliceIterator get_slices(SliceOrigin so, LevelID k) const;
+
+    // Getting slices (model or supports) for a Z coordinate range. The returned
+    // iterators should include the slices for the given boundaries as well.
     SliceRange get_slices(
             SliceOrigin so,
             float from_level,
@@ -171,7 +191,10 @@ public:
     const std::vector<ExPolygons>& get_model_slices() const;
     const std::vector<ExPolygons>& get_support_slices() const;
 
+    // Returns the total number of slices in the slice grid (model and supports)
     inline size_t get_slice_count() const { return m_slice_index.size(); }
+
+    // One can query the Z coordinate of the slice for a given
     inline float  get_slice_level(size_t idx) const {
         return m_slice_index[idx].slice_level();
     }

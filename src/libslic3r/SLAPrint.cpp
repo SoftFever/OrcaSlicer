@@ -856,11 +856,19 @@ void SLAPrint::process()
     // Slicing the support geometries similarly to the model slicing procedure.
     // If the pad had been added previously (see step "base_pool" than it will
     // be part of the slices)
-    auto slice_supports = [ilh](SLAPrintObject& po) {
+    auto slice_supports = [](SLAPrintObject& po) {
         auto& sd = po.m_supportdata;
         if(sd && sd->support_tree_ptr) {
-            auto lh = float(po.m_config.layer_height.getFloat());
-            sd->support_slices = sd->support_tree_ptr->slice(lh, ilh);
+            sd->support_slices.clear();
+
+            std::vector<float> heights; heights.reserve(po.m_slice_index.size());
+
+            for(auto& rec : po.m_slice_index) {
+                heights.emplace_back(rec.slice_level());
+            }
+
+            sd->support_slices = sd->support_tree_ptr->slice(
+                        heights, float(po.config().slice_closing_radius.value));
         }
 
         for(size_t i = 0;
@@ -1613,20 +1621,6 @@ SLAPrintObject::search_slice_index(SLAPrintObject::SliceRecord::Key key) const
     return it;
 }
 
-SliceIterator SLAPrintObject::get_slices(SliceOrigin so, LevelID k) const
-{
-    SliceIterator ret = so == soModel ? get_model_slices().end() :
-                                        get_support_slices().end();
-
-    auto it = search_slice_index(k);
-
-    if(it != m_slice_index.end()) {
-        ret = it->get_slices(*this, so);
-    }
-
-    return ret;
-}
-
 SliceRange SLAPrintObject::get_slices(SliceOrigin so,
                                       float from_level,
                                       float to_level) const
@@ -1657,23 +1651,6 @@ SLAPrintObject::get_slice_index() const
     // assert(is_step_done(slaposIndexSlices));
     return m_slice_index;
 }
-
-//std::vector<float> SLAPrintObject::get_slice_levels(float from_eq) const
-//{
-//    using SlRec = SLAPrintObject::SliceRecord;
-//    auto it = std::lower_bound(m_slice_index.begin(),
-//                               m_slice_index.end(),
-//                               from_eq, // model start z
-//                               [](const SlRec& sr1, const SlRec& sr2){
-//        return sr1.slice_level() < sr2.slice_level();
-//    });
-
-//    std::vector<float> heights; heights.reserve(m_slice_index.size());
-//    for(; it != m_slice_index.end(); ++it)
-//        heights.emplace_back(it->slice_level());
-
-
-//}
 
 const std::vector<ExPolygons> &SLAPrintObject::get_model_slices() const
 {
