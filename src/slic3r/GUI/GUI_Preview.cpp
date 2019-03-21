@@ -364,6 +364,7 @@ void Preview::reload_print(bool keep_volumes)
         m_volumes_cleanup_required = !keep_volumes;
         return;
     }
+#endif /* __linux __ */
     if (
 #ifdef __linux__
         m_volumes_cleanup_required || 
