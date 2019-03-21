@@ -107,29 +107,20 @@ public:
     // This method returns the support points of this SLAPrintObject.
     const std::vector<sla::SupportPoint>& get_support_points() const;
 
-private:
-
-    // An index record referencing the slices
-    // (get_model_slices(), get_support_slices()) where the keys are the height
-    // levels of the model in scaled-clipper coordinates. The levels correspond
-    // to the z coordinate of the object coordinate system.
     class SliceRecord {
     public:
         using Key = LevelID;
 
     private:
-        static const size_t NONE = size_t(-1); // this will be the max limit of size_t
-        size_t m_model_slices_idx = NONE;
-        size_t m_support_slices_idx = NONE;
-
         LevelID m_print_z = 0;    // Top of the layer
         float m_slice_z = 0.f;    // Exact level of the slice
         float m_height = 0.f;     // Height of the sliced layer
 
-    public:
-
+    protected:
         SliceRecord(Key key, float slicez, float height):
             m_print_z(key), m_slice_z(slicez), m_height(height) {}
+
+    public:
 
         // The key will be the integer height level of the top of the layer.
         inline Key key() const { return m_print_z; }
@@ -139,8 +130,25 @@ private:
 
         // Returns the current layer height
         inline float layer_height() const { return m_height; }
+    };
 
-        // Returns the slices for eighter the model or the supports. The return
+private:
+
+    // An index record referencing the slices
+    // (get_model_slices(), get_support_slices()) where the keys are the height
+    // levels of the model in scaled-clipper coordinates. The levels correspond
+    // to the z coordinate of the object coordinate system.
+    class _SliceRecord: public SliceRecord {
+    private:
+        static const size_t NONE = size_t(-1); // this will be the max limit of size_t
+        size_t m_model_slices_idx = NONE;
+        size_t m_support_slices_idx = NONE;
+
+    public:
+        _SliceRecord(Key key, float slicez, float height):
+            SliceRecord(key, slicez, height) {}
+
+        // Returns the slices for either the model or the supports. The return
         // value is an iterator to po.get_model_slices() or po.get_support_slices
         // depending on the SliceOrigin parameter.
         SliceIterator get_slices(const SLAPrintObject& po, SliceOrigin so) const;
@@ -151,7 +159,7 @@ private:
     };
 
     // Slice index will be a plain vector sorted by the integer height levels
-    using SliceIndex = std::vector<SliceRecord>;
+    using SliceIndex = std::vector<_SliceRecord>;
 
     // Retrieve the slice index which is readable only after slaposIndexSlices
     // is done.
@@ -163,8 +171,8 @@ private:
 
     // Search the slice index for a particular level in integer coordinates.
     // If no such layer is present, it will return m_slice_index.end()
-    SliceIndex::iterator search_slice_index(SliceRecord::Key key);
-    SliceIndex::const_iterator search_slice_index(SliceRecord::Key key) const;
+    SliceIndex::iterator search_slice_index(_SliceRecord::Key key);
+    SliceIndex::const_iterator search_slice_index(_SliceRecord::Key key) const;
 
 public:
 
@@ -172,10 +180,6 @@ public:
     // The following methods can be used after the model and the support slicing
     // steps have been succesfully finished.
     // /////////////////////////////////////////////////////////////////////////
-
-    // Getting slices for either the model or the supports for a particular
-    // height ID.
-//    SliceIterator get_slices(SliceOrigin so, LevelID k) const;
 
     // Getting slices (model or supports) for a Z coordinate range. The returned
     // iterators should include the slices for the given boundaries as well.
@@ -194,9 +198,8 @@ public:
     // Returns the total number of slices in the slice grid (model and supports)
     inline size_t get_slice_count() const { return m_slice_index.size(); }
 
-    // One can query the Z coordinate of the slice for a given
-    inline float  get_slice_level(size_t idx) const {
-        return m_slice_index[idx].slice_level();
+    inline const SliceRecord& get_slice_record(size_t idx) const {
+        return m_slice_index[idx];
     }
 
 protected:
@@ -239,7 +242,7 @@ private:
 
     // Exact (float) height levels mapped to the slices. Each record contains
     // the index to the model and the support slice vectors.
-    std::vector<SliceRecord>                m_slice_index;
+    std::vector<_SliceRecord>                m_slice_index;
 
     std::vector<float>                      m_model_height_levels;
 

@@ -615,12 +615,19 @@ void SLAPrint::process()
     using namespace sla;
     using ExPolygon = Slic3r::ExPolygon;
 
+    if(m_objects.empty()) return;
+
     // Assumption: at this point the print objects should be populated only with
     // the model objects we have to process and the instances are also filtered
 
     // shortcut to initial layer height
     double ilhd = m_material_config.initial_layer_height.getFloat();
     auto   ilh  = float(ilhd);
+    double lhd  = m_objects.front()->m_config.layer_height.getFloat();
+    float  lh   = float(lhd);
+
+    LevelID ilhs = ilhd / SCALING_FACTOR;
+    LevelID lhs  = lhd  / SCALING_FACTOR;
     const size_t objcount = m_objects.size();
 
     const unsigned min_objstatus = 0;   // where the per object operations start
@@ -641,24 +648,26 @@ void SLAPrint::process()
 
     // Slicing the model object. This method is oversimplified and needs to
     // be compared with the fff slicing algorithm for verification
-    auto slice_model = [this, ilh](SLAPrintObject& po) {
+    auto slice_model = [this, ilhs, lhs, ilh, lh](SLAPrintObject& po) {
         TriangleMesh mesh = po.transformed_mesh();
 
         // We need to prepare the slice index...
 
         auto&& bb3d = mesh.bounding_box();
-        float minZ = float(bb3d.min(Z)) - float(po.get_elevation());
-        float maxZ = float(bb3d.max(Z));
-        auto flh = float(po.m_config.layer_height.getFloat());
+        double minZ = bb3d.min(Z) - po.get_elevation();
+        double maxZ = bb3d.max(Z);
+
+        LevelID minZs = minZ / SCALING_FACTOR;
+        LevelID maxZs = maxZ / SCALING_FACTOR;
 
         auto slh = [](float h) { return LevelID( double(h) / SCALING_FACTOR); };
 
         po.m_slice_index.clear();
-        po.m_slice_index.reserve(size_t(maxZ - (minZ + ilh) / flh) + 1);
-        po.m_slice_index.emplace_back(slh(minZ + ilh), minZ + ilh / 2.f, ilh);
+        po.m_slice_index.reserve(size_t(maxZs - (minZs + ilhs) / lhs) + 1);
+        po.m_slice_index.emplace_back(minZs + ilhs, minZ + ilh / 2.f, ilh);
 
-        for(float h = minZ + ilh + flh; h <= maxZ; h += flh) {
-            po.m_slice_index.emplace_back(slh(h), h - flh / 2.f, flh);
+        for(LevelID h = minZs + ilhs + lhs; h <= maxZs; h += lhs) {
+            po.m_slice_index.emplace_back(h, h*SCALING_FACTOR - lh / 2.f, lh);
         }
 
         auto slindex_it = po.search_slice_index(float(bb3d.min(Z)));
@@ -1337,7 +1346,7 @@ void SLAPrint::fill_statistics()
 
         for (SLAPrintObject * po : m_objects)
         {
-            const SLAPrintObject::SliceRecord *record = nullptr;
+            const SLAPrintObject::_SliceRecord *record = nullptr;
             {
                 const SLAPrintObject::SliceIndex& index = po->get_slice_index();
                 auto it = po->search_slice_index(layer.slice_level() - float(EPSILON));
@@ -1562,10 +1571,10 @@ const std::vector<sla::SupportPoint>& SLAPrintObject::get_support_points() const
 SLAPrintObject::SliceIndex::iterator
 SLAPrintObject::search_slice_index(float slice_level)
 {
-    SliceRecord query(0, slice_level, 0);
+    _SliceRecord query(0, slice_level, 0);
     auto it = std::lower_bound(m_slice_index.begin(), m_slice_index.end(),
                                query,
-                               [](const SliceRecord& r1, const SliceRecord& r2)
+                               [](const _SliceRecord& r1, const _SliceRecord& r2)
     {
         return r1.slice_level() < r2.slice_level();
     });
@@ -1576,10 +1585,10 @@ SLAPrintObject::search_slice_index(float slice_level)
 SLAPrintObject::SliceIndex::const_iterator
 SLAPrintObject::search_slice_index(float slice_level) const
 {
-    SliceRecord query(0, slice_level, 0);
+    _SliceRecord query(0, slice_level, 0);
     auto it = std::lower_bound(m_slice_index.cbegin(), m_slice_index.cend(),
                                query,
-                               [](const SliceRecord& r1, const SliceRecord& r2)
+                               [](const _SliceRecord& r1, const _SliceRecord& r2)
     {
         return r1.slice_level() < r2.slice_level();
     });
@@ -1588,12 +1597,12 @@ SLAPrintObject::search_slice_index(float slice_level) const
 }
 
 SLAPrintObject::SliceIndex::iterator
-SLAPrintObject::search_slice_index(SLAPrintObject::SliceRecord::Key key)
+SLAPrintObject::search_slice_index(SLAPrintObject::_SliceRecord::Key key)
 {
-    SliceRecord query(key, 0.f, 0.f);
+    _SliceRecord query(key, 0.f, 0.f);
     auto it = std::lower_bound(m_slice_index.begin(), m_slice_index.end(),
                                query,
-                               [](const SliceRecord& r1, const SliceRecord& r2)
+                               [](const _SliceRecord& r1, const _SliceRecord& r2)
     {
         return r1.key() < r2.key();
     });
@@ -1605,12 +1614,12 @@ SLAPrintObject::search_slice_index(SLAPrintObject::SliceRecord::Key key)
 }
 
 SLAPrintObject::SliceIndex::const_iterator
-SLAPrintObject::search_slice_index(SLAPrintObject::SliceRecord::Key key) const
+SLAPrintObject::search_slice_index(SLAPrintObject::_SliceRecord::Key key) const
 {
-    SliceRecord query(key, 0.f, 0.f);
+    _SliceRecord query(key, 0.f, 0.f);
     auto it = std::lower_bound(m_slice_index.cbegin(), m_slice_index.cend(),
                                query,
-                               [](const SliceRecord& r1, const SliceRecord& r2)
+                               [](const _SliceRecord& r1, const _SliceRecord& r2)
     {
         return r1.key() < r2.key();
     });
@@ -1645,7 +1654,7 @@ const std::vector<ExPolygons> &SLAPrintObject::get_support_slices() const
     return m_supportdata->support_slices;
 }
 
-const std::vector<SLAPrintObject::SliceRecord>&
+const std::vector<SLAPrintObject::_SliceRecord>&
 SLAPrintObject::get_slice_index() const
 {
     // assert(is_step_done(slaposIndexSlices));
@@ -1769,7 +1778,7 @@ std::string SLAPrintStatistics::finalize_output_path(const std::string &path_in)
     return final_path;
 }
 
-SliceIterator SLAPrintObject::SliceRecord::get_slices(const SLAPrintObject &po,
+SliceIterator SLAPrintObject::_SliceRecord::get_slices(const SLAPrintObject &po,
                                                       SliceOrigin so) const
 {
 

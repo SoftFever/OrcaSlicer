@@ -778,7 +778,7 @@ void Preview::load_print_as_sla()
             size_t cnt = obj->get_slice_count();
             for (size_t i = 0; i < cnt; i++)
             {
-                zs.insert(shift_z + double(obj->get_slice_level(i)));
+                zs.insert(shift_z + obj->get_slice_record(i).key() * SCALING_FACTOR);
             }
         }
     }
