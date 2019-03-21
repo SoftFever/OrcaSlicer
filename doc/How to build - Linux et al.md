@@ -58,10 +58,19 @@ Note that Slic3r PE is tested with wxWidgets 3.0 somewhat sporadically and so th
 
 ### Build variant
 
-By default Scli3r builds the release variant.
+By default Slic3r builds the release variant.
 To create a debug build, use the following CMake flag:
 
     -DCMAKE_BUILD_TYPE=Debug
+
+### Enabling address sanitizer
+
+If you're using GCC/Clang compiler, it is possible to build Slic3r with the built-in address sanitizer enabled to help detect memory-corruption issues.
+To enable it, simply use the following CMake flag:
+
+    -DSLIC3R_ASAN=1
+
+This requires GCC>4.8 or Clang>3.1.
 
 ### Installation
 

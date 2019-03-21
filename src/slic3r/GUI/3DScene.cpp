@@ -249,6 +249,7 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     , is_wipe_tower(false)
     , is_extrusion_path(false)
     , force_transparent(false)
+    , force_native_color(false)
     , tverts_range(0, size_t(-1))
     , qverts_range(0, size_t(-1))
 {
@@ -280,16 +281,20 @@ void GLVolume::set_render_color(const float* rgba, unsigned int size)
 
 void GLVolume::set_render_color()
 {
-    if (selected)
-        set_render_color(is_outside ? SELECTED_OUTSIDE_COLOR : SELECTED_COLOR, 4);
-    else if (hover)
-        set_render_color(HOVER_COLOR, 4);
-    else if (disabled)
-        set_render_color(DISABLED_COLOR, 4);
-    else if (is_outside && shader_outside_printer_detection_enabled)
-        set_render_color(OUTSIDE_COLOR, 4);
-    else
+    if (force_native_color)
         set_render_color(color, 4);
+    else {
+        if (selected)
+            set_render_color(is_outside ? SELECTED_OUTSIDE_COLOR : SELECTED_COLOR, 4);
+        else if (hover)
+            set_render_color(HOVER_COLOR, 4);
+        else if (disabled)
+            set_render_color(DISABLED_COLOR, 4);
+        else if (is_outside && shader_outside_printer_detection_enabled)
+            set_render_color(OUTSIDE_COLOR, 4);
+        else
+            set_render_color(color, 4);
+    }
 
     if (force_transparent)
         render_color[3] = color[3];

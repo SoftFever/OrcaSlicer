@@ -95,7 +95,7 @@ ObjectList::ObjectList(wxWindow* parent) :
 #endif //__WXMSW__        
     });
 
-//     Bind(wxEVT_CHAR, [this](wxKeyEvent& event) { key_event(event); }); // doesn't work on OSX
+    Bind(wxEVT_CHAR, [this](wxKeyEvent& event) { key_event(event); }); // doesn't work on OSX
 
 #ifdef __WXMSW__
     GetMainWindow()->Bind(wxEVT_MOTION, [this](wxMouseEvent& event) {
@@ -442,8 +442,6 @@ void ObjectList::OnContextMenu(wxDataViewEvent&)
         if (is_windows10())
             fix_through_netfabb();
     }
-    else if (title == _("Extruder"))
-        show_extruder_selection_menu();
 
 #ifndef __WXMSW__
     GetMainWindow()->SetToolTip(""); // hide tooltip
@@ -457,7 +455,7 @@ void ObjectList::show_context_menu()
         if (selected_instances_of_same_object())
             wxGetApp().plater()->PopupMenu(&m_menu_instance);
         else
-            show_extruder_selection_menu();
+            show_multi_selection_menu();
 
         return;
     }
@@ -989,10 +987,14 @@ wxMenuItem* ObjectList::append_menu_item_instance_to_object(wxMenu* menu)
         [this](wxCommandEvent&) { split_instances(); }, "", menu);
 }
 
-void ObjectList::append_menu_item_rename(wxMenu* menu)
+void ObjectList::append_menu_items_osx(wxMenu* menu)
 {
+    append_menu_item(menu, wxID_ANY, _(L("Delete item")), "",
+        [this](wxCommandEvent&) { remove(); }, "", menu);
+    
     append_menu_item(menu, wxID_ANY, _(L("Rename")), "",
         [this](wxCommandEvent&) { rename_item(); }, "", menu);
+    
     menu->AppendSeparator();
 }
 
@@ -1015,7 +1017,7 @@ void ObjectList::append_menu_item_export_stl(wxMenu* menu) const
 void ObjectList::create_object_popupmenu(wxMenu *menu)
 {
 #ifdef __WXOSX__  
-    append_menu_item_rename(menu);
+    append_menu_items_osx(menu);
 #endif // __WXOSX__
 
     append_menu_item_export_stl(menu);
@@ -1036,7 +1038,7 @@ void ObjectList::create_object_popupmenu(wxMenu *menu)
 void ObjectList::create_sla_object_popupmenu(wxMenu *menu)
 {
 #ifdef __WXOSX__  
-    append_menu_item_rename(menu);
+    append_menu_items_osx(menu);
 #endif // __WXOSX__
 
     append_menu_item_export_stl(menu);
@@ -1048,7 +1050,7 @@ void ObjectList::create_sla_object_popupmenu(wxMenu *menu)
 void ObjectList::create_part_popupmenu(wxMenu *menu)
 {
 #ifdef __WXOSX__  
-    append_menu_item_rename(menu);
+    append_menu_items_osx(menu);
 #endif // __WXOSX__
 
     append_menu_item_fix_through_netfabb(menu);
@@ -1856,8 +1858,11 @@ void ObjectList::remove()
     {
         if (m_objects_model->GetParent(item) == wxDataViewItem(0))
             delete_from_model_and_list(itObject, m_objects_model->GetIdByItem(item), -1);
-        else
+        else {
+            if (sels.size() == 1)
+                select_item(m_objects_model->GetParent(item));
             del_subobject_item(item);
+        }
     }
 }
 
@@ -2357,7 +2362,7 @@ void ObjectList::OnEditingDone(wxDataViewEvent &event)
                          _(L("the following characters are not allowed:")) + " <>:/\\|?*\"");
 }
 
-void ObjectList::show_extruder_selection_menu()
+void ObjectList::show_multi_selection_menu()
 {
     wxDataViewItemArray sels;
     GetSelections(sels);
@@ -2368,9 +2373,17 @@ void ObjectList::show_extruder_selection_menu()
             return;
 
     wxMenu* menu = new wxMenu();
-    append_menu_item(menu, wxID_ANY, _(L("Set extruder for selected items")),
-        _(L("Select extruder number for selected objects and/or parts")),
-        [this](wxCommandEvent&) { extruder_selection(); }, "", menu);
+
+#ifdef __WXOSX__
+    append_menu_item(menu, wxID_ANY, _(L("Delete items")), "",
+        [this](wxCommandEvent&) { remove(); }, "", menu);
+#endif //__WXOSX__
+
+    if (extruders_count() > 1)
+        append_menu_item(menu, wxID_ANY, _(L("Set extruder for selected items")),
+            _(L("Select extruder number for selected objects and/or parts")),
+            [this](wxCommandEvent&) { extruder_selection(); }, "", menu);
+
     PopupMenu(menu);
 }
 

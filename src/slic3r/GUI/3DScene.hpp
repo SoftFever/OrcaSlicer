@@ -302,6 +302,8 @@ public:
     bool                is_extrusion_path;
     // Wheter or not to always render this volume using its own alpha 
     bool                force_transparent;
+    // Whether or not always use the volume's own color (not using SELECTED/HOVER/DISABLED/OUTSIDE)
+    bool                force_native_color;
 
     // Interleaved triangles & normals with indexed triangles & quads.
     GLIndexedVertexArray        indexed_vertex_array;
