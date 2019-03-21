@@ -46,7 +46,7 @@ template<class It> struct Range {
         from(std::forward<It>(b)), to(std::forward<It>(e)) {}
 };
 
-enum SliceOrigin { soSlice, soModel };
+enum SliceOrigin { soSupport, soModel };
 
 using SliceStore = std::vector<ExPolygons>;
 using SliceIterator = SliceStore::const_iterator;
@@ -118,24 +118,18 @@ private:
         using Key = LevelID;
 
     private:
-        using Idx = size_t;
-        static const Idx NONE = Idx(-1); // this will be the max limit of size_t
+        static const size_t NONE = size_t(-1); // this will be the max limit of size_t
+        size_t m_model_slices_idx = NONE;
+        size_t m_support_slices_idx = NONE;
 
         LevelID m_print_z = 0;  // Top of the layer
         float m_slice_z = 0.f;    // Exact level of the slice
         float m_height = 0.f;     // Height of the sliced layer
-        Idx m_model_slices_idx = NONE;
-        Idx m_support_slices_idx = NONE;
 
     public:
 
         SliceRecord(Key key, float slicez, float height):
             m_print_z(key), m_slice_z(slicez), m_height(height) {}
-
-        inline static bool cmpfn(const SliceRecord& sr1, const SliceRecord& sr2)
-        {
-            return sr1.key() < sr2.key();
-        }
 
         inline Key key() const { return m_print_z; }
         inline float slice_level() const { return m_slice_z; }
@@ -144,16 +138,22 @@ private:
         SliceIterator get_slices(const SLAPrintObject& po,
                                  SliceOrigin so) const;
 
-        void set_model_slice_idx(Idx id) { m_model_slices_idx = id; }
-        void set_support_slice_idx(Idx id) { m_support_slices_idx = id; }
+
+        void set_model_slice_idx(size_t id) { m_model_slices_idx = id; }
+        void set_support_slice_idx(size_t id) { m_support_slices_idx = id; }
+
     };
 
+    using SliceIndex = std::vector<SliceRecord>;
 
     // Retrieve the slice index which is readable only after slaposIndexSlices
     // is done.
-    const std::vector<SliceRecord>& get_slice_index() const;
+    const SliceIndex& get_slice_index() const;
 
-    std::vector<float> get_slice_levels(float from_eq) const;
+    SliceIndex::iterator search_slice_index(float slice_level);
+    SliceIndex::const_iterator search_slice_index(float slice_level) const;
+    SliceIndex::iterator search_slice_index(SliceRecord::Key key);
+    SliceIndex::const_iterator search_slice_index(SliceRecord::Key key) const;
 
 public:
 
@@ -170,6 +170,10 @@ public:
     // it is safe to call them during and/or after slapsRasterize.
     const std::vector<ExPolygons>& get_model_slices() const;
     const std::vector<ExPolygons>& get_support_slices() const;
+
+    inline const std::vector<float>& get_height_levels() const {
+        return m_height_levels;
+    }
 
 protected:
     // to be called from SLAPrint only.
