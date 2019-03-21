@@ -776,10 +776,10 @@ void Preview::load_print_as_sla()
         double shift_z = obj->get_current_elevation();
         if (obj->is_step_done(slaposIndexSlices))
         {
-            const std::vector<float>& hlvls = obj->get_height_levels();
-            for (float h : hlvls)
+            size_t cnt = obj->get_slice_count();
+            for (size_t i = 0; i < cnt; i++)
             {
-                zs.insert(shift_z + double(h));
+                zs.insert(shift_z + double(obj->get_slice_level(i)));
             }
         }
     }

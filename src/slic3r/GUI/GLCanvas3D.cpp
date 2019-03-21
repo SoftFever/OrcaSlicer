@@ -4938,24 +4938,26 @@ void GLCanvas3D::_render_sla_slices() const
         if ((bottom_obj_triangles.empty() || bottom_sup_triangles.empty() || top_obj_triangles.empty() || top_sup_triangles.empty()) && obj->is_step_done(slaposIndexSlices))
         {
             // FIXME: is this all right (by Tamas)?
-            SliceRange model_slices = obj->get_slices(soModel, float(min_z), float(max_z));
-            SliceRange support_slices = obj->get_slices(soSupport, float(min_z), float(max_z));
+            SliceRange obj_range = obj->get_slices(soModel, float(min_z), float(max_z));
+            SliceRange sup_range = obj->get_slices(soSupport, float(min_z), float(max_z));
+            auto obj_end         = obj->get_model_slices().end();
+            auto sup_end         = obj->get_support_slices().end();
 
             // calculate model bottom cap
-            if(bottom_obj_triangles.empty() && model_slices.from != obj->get_model_slices().end())
-                bottom_obj_triangles = triangulate_expolygons_3d(*model_slices.from, min_z, true);
+            if(bottom_obj_triangles.empty() && obj_range.from != obj_end)
+                bottom_obj_triangles = triangulate_expolygons_3d(*obj_range.from, min_z, true);
 
             // calculate support bottom cap
-            if(bottom_sup_triangles.empty() && support_slices.from != obj->get_support_slices().end())
-                bottom_sup_triangles = triangulate_expolygons_3d(*support_slices.from, min_z, true);
+            if(bottom_sup_triangles.empty() && sup_range.from != sup_end)
+                bottom_sup_triangles = triangulate_expolygons_3d(*sup_range.from, min_z, true);
 
             // calculate model top cap
-            if(top_obj_triangles.empty() && model_slices.to != obj->get_model_slices().end())
-                top_obj_triangles = triangulate_expolygons_3d(*model_slices.to, max_z, true);
+            if(top_obj_triangles.empty() && obj_range.to != obj_end)
+                top_obj_triangles = triangulate_expolygons_3d(*obj_range.to, max_z, false);
 
             // calculate support top cap
-            if(top_sup_triangles.empty() && support_slices.to != obj->get_support_slices().end())
-                top_sup_triangles = triangulate_expolygons_3d(*support_slices.to, max_z, true);
+            if(top_sup_triangles.empty() && sup_range.to != sup_end)
+                top_sup_triangles = triangulate_expolygons_3d(*sup_range.to, max_z, false);
 
 //            const std::vector<ExPolygons>& model_slices = obj->get_model_slices();
 //            const std::vector<ExPolygons>& support_slices = obj->get_support_slices();

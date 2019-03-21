@@ -171,8 +171,9 @@ public:
     const std::vector<ExPolygons>& get_model_slices() const;
     const std::vector<ExPolygons>& get_support_slices() const;
 
-    inline const std::vector<float>& get_height_levels() const {
-        return m_height_levels;
+    inline size_t get_slice_count() const { return m_slice_index.size(); }
+    inline float  get_slice_level(size_t idx) const {
+        return m_slice_index[idx].slice_level();
     }
 
 protected:
@@ -204,8 +205,10 @@ protected:
 private:
     // Object specific configuration, pulled from the configuration layer.
     SLAPrintObjectConfig                    m_config;
+
     // Translation in Z + Rotation by Y and Z + Scaling / Mirroring.
     Transform3d                             m_trafo = Transform3d::Identity();
+
     std::vector<Instance> 					m_instances;
 
     // Individual 2d slice polygons from lower z to higher z levels
@@ -215,10 +218,7 @@ private:
     // the index to the model and the support slice vectors.
     std::vector<SliceRecord>                m_slice_index;
 
-    // The height levels corrected and scaled up in integer values. This will
-    // be used at rasterization.
-    std::vector<LevelID>                    m_level_ids;
-    std::vector<float>                      m_height_levels;
+    std::vector<float>                      m_model_height_levels;
 
     // Caching the transformed (m_trafo) raw mesh of the object
     mutable CachedObject<TriangleMesh>      m_transformed_rmesh;

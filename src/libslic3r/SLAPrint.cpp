@@ -30,7 +30,6 @@ public:
     std::vector<sla::SupportPoint> support_points;     // all the support points (manual/auto)
     SupportTreePtr   support_tree_ptr;   // the supports
     SlicedSupports   support_slices;     // sliced supports
-    std::vector<LevelID>    level_ids;
 
     inline SupportData(const TriangleMesh& trmesh): emesh(trmesh) {}
 };
@@ -603,25 +602,9 @@ std::string SLAPrint::validate() const
     return "";
 }
 
-std::vector<float> SLAPrint::calculate_heights(const BoundingBoxf3& bb3d,
-                                               float elevation,
-                                               float initial_layer_height,
-                                               float layer_height) const
-{
-    std::vector<float> heights;
-    float minZ = float(bb3d.min(Z)) - float(elevation);
-    float maxZ = float(bb3d.max(Z));
-    auto flh = float(layer_height);
-    auto gnd = float(bb3d.min(Z));
-
-    for(float h = minZ + initial_layer_height; h < maxZ; h += flh)
-        if(h >= gnd) heights.emplace_back(h);
-
-    return heights;
-}
-
 template<class...Args>
-void report_status(SLAPrint& p, int st, const std::string& msg, Args&&...args) {
+void report_status(SLAPrint& p, int st, const std::string& msg, Args&&...args)
+{
     BOOST_LOG_TRIVIAL(info) << st << "% " << msg;
     p.set_status(st, msg, std::forward<Args>(args)...);
 }
@@ -684,15 +667,17 @@ void SLAPrint::process()
             throw std::runtime_error(L("Slicing had to be stopped "
                                        "due to an internal error."));
 
-        po.m_height_levels.clear();
-        po.m_height_levels.reserve(po.m_slice_index.size());
+        po.m_model_height_levels.clear();
+        po.m_model_height_levels.reserve(po.m_slice_index.size());
         for(auto it = slindex_it; it != po.m_slice_index.end(); ++it)
-            po.m_height_levels.emplace_back(it->slice_level());
+        {
+            po.m_model_height_levels.emplace_back(it->slice_level());
+        }
 
         TriangleMeshSlicer slicer(&mesh);
 
         po.m_model_slices.clear();
-        slicer.slice(po.m_height_levels,
+        slicer.slice(po.m_model_height_levels,
                      float(po.config().slice_closing_radius.value),
                      &po.m_model_slices,
                      [this](){ throw_if_canceled(); });
@@ -725,7 +710,7 @@ void SLAPrint::process()
         if (mo.sla_points_status != sla::PointsStatus::UserModified) {
 
             // calculate heights of slices (slices are calculated already)
-            const std::vector<float>& heights = po.m_height_levels;
+            const std::vector<float>& heights = po.m_model_height_levels;
 
             this->throw_if_canceled();
             SLAAutoSupports::Config config;
@@ -1646,10 +1631,17 @@ SliceRange SLAPrintObject::get_slices(SliceOrigin so,
                                       float from_level,
                                       float to_level) const
 {
-    auto from = LevelID(double(from_level) / SCALING_FACTOR);
-    auto to   = LevelID(double(to_level)   / SCALING_FACTOR);
+    auto it_from = search_slice_index(from_level);
+    auto it_to   = search_slice_index(to_level);
 
-    return SliceRange(get_slices(so, from), get_slices(so, to));
+    SliceRange ret;
+
+    auto endit = so == soModel? get_model_slices().end() : get_support_slices().end();
+
+    ret.from = it_from == m_slice_index.end() ? endit : it_from->get_slices(*this, so);
+    ret.to   = it_to   == m_slice_index.end() ? endit : it_to->get_slices(*this, so);
+
+    return ret;
 }
 
 const std::vector<ExPolygons> &SLAPrintObject::get_support_slices() const
