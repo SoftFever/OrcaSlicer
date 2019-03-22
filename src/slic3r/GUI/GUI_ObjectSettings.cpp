@@ -40,7 +40,7 @@ void OG_Settings::Hide()
 void OG_Settings::UpdateAndShow(const bool show)
 {
     Show(show);
-//     m_parent->Layout();
+//    m_parent->Layout();
 }
 
 wxSizer* OG_Settings::get_sizer()
@@ -119,7 +119,7 @@ void ObjectSettings::update_settings_list()
                 if (cat.second.size() == 1 && cat.second[0] == "extruder")
                     continue;
 
-                auto optgroup = std::make_shared<ConfigOptionsGroup>(m_parent, cat.first, config, false, extra_column);
+                auto optgroup = std::make_shared<ConfigOptionsGroup>(m_og->ctrl_parent(), cat.first, config, false, extra_column);
                 optgroup->label_width = 15 * wxGetApp().em_unit();//150;
                 optgroup->sidetext_width = 7 * wxGetApp().em_unit();//70;
 
