@@ -2502,7 +2502,7 @@ void Tab::rebuild_page_tree()
 		// this is triggered on first load, so we don't disable the sel change event
 		auto item = m_treectrl->GetFirstVisibleItem();
 		if (item) {
-			m_treectrl->SelectItem(m_treectrl->GetFirstVisibleItem());//! (treectrl->GetFirstChild(rootItem));
+			m_treectrl->SelectItem(item);
 		}
 	}
 // 	Thaw();
