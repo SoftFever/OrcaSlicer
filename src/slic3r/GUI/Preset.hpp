@@ -11,9 +11,10 @@
 #include "slic3r/Utils/Semver.hpp"
 
 class wxBitmap;
-class wxChoice;
 class wxBitmapComboBox;
+class wxChoice;
 class wxItemContainer;
+class wxString;
 
 namespace Slic3r {
 
