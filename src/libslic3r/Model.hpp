@@ -236,7 +236,11 @@ public:
     // This method is used by the auto arrange function.
     Polygon       convex_hull_2d(const Transform3d &trafo_instance);
 
+#if ENABLE_VOLUMES_CENTERING_FIXES
+    void center_around_origin(bool include_modifiers = true);
+#else
     void center_around_origin();
+#endif // ENABLE_VOLUMES_CENTERING_FIXES
     void ensure_on_bed();
     void translate_instances(const Vec3d& vector);
     void translate_instance(size_t instance_idx, const Vec3d& vector);

@@ -385,7 +385,7 @@ void Tab::update_changed_ui()
 	if (m_postpone_update_ui) 
 		return;
 
-	const bool deep_compare = (m_name == "printer" || m_name == "sla_material");
+	const bool deep_compare = (m_type == Slic3r::Preset::TYPE_PRINTER || m_type == Slic3r::Preset::TYPE_SLA_MATERIAL);
 	auto dirty_options = m_presets->current_dirty_options(deep_compare);
 	auto nonsys_options = m_presets->current_different_from_parent_options(deep_compare);
     if (m_type == Slic3r::Preset::TYPE_PRINTER) {
@@ -2395,7 +2395,7 @@ void Tab::load_current_preset()
 	(preset.is_default || preset.is_system) ? m_btn_delete_preset->Disable() : m_btn_delete_preset->Enable(true);
 
     update();
-	if (m_name == "printer") {
+	if (m_type == Slic3r::Preset::TYPE_PRINTER) {
 		// For the printer profile, generate the extruder pages.
 		if (preset.printer_technology() == ptFFF)
 			on_preset_loaded();
@@ -2425,7 +2425,7 @@ void Tab::load_current_preset()
 		update_tab_ui();
 
         // update show/hide tabs
-        if (m_name == "printer") {
+		if (m_type == Slic3r::Preset::TYPE_PRINTER) {
             const PrinterTechnology printer_technology = m_presets->get_edited_preset().printer_technology();
             if (printer_technology != static_cast<TabPrinter*>(this)->m_printer_technology)
             {
@@ -2458,7 +2458,7 @@ void Tab::load_current_preset()
 		}
 		else {
 			on_presets_changed();
-            if (m_type == Preset::TYPE_SLA_PRINT || m_type == Preset::TYPE_PRINT)// if (m_name == "print")
+            if (m_type == Preset::TYPE_SLA_PRINT || m_type == Preset::TYPE_PRINT)
 				update_frequently_changed_parameters();
 		}
 
@@ -2526,20 +2526,35 @@ void Tab::update_page_tree_visibility()
 
 }
 
-// Called by the UI combo box when the user switches profiles.
+// Called by the UI combo box when the user switches profiles, and also to delete the current profile.
 // Select a preset by a name.If !defined(name), then the default preset is selected.
 // If the current profile is modified, user is asked to save the changes.
-void Tab::select_preset(std::string preset_name)
+void Tab::select_preset(std::string preset_name, bool delete_current)
 {
-	// If no name is provided, select the "-- default --" preset.
-	if (preset_name.empty())
-		preset_name = m_presets->default_preset().name;
-	bool current_dirty = m_presets->current_is_dirty();
+	if (preset_name.empty()) {
+		if (delete_current) {
+			// Find an alternate preset to be selected after the current preset is deleted.
+			const std::deque<Preset> &presets 		= this->m_presets->get_presets();
+			size_t    				  idx_current   = this->m_presets->get_idx_selected();
+    		// Find the next visible preset.
+    		size_t 				      idx_new       = idx_current + 1;
+    		if (idx_new < presets.size())
+        		for (; idx_new < presets.size() && ! presets[idx_new].is_visible; ++ idx_new) ;
+    		if (idx_new == presets.size())
+				for (idx_new = idx_current - 1; idx_new > 0 && ! presets[idx_new].is_visible; -- idx_new);
+			preset_name = presets[idx_new].name;
+		} else {
+			// If no name is provided, select the "-- default --" preset.
+			preset_name = m_presets->default_preset().name;
+		}
+	}
+	assert(! delete_current || (m_presets->get_edited_preset().name != preset_name && m_presets->get_edited_preset().is_user()));
+	bool current_dirty = ! delete_current && m_presets->current_is_dirty();
 	bool print_tab     = m_presets->type() == Preset::TYPE_PRINT || m_presets->type() == Preset::TYPE_SLA_PRINT;
 	bool printer_tab   = m_presets->type() == Preset::TYPE_PRINTER;
 	bool canceled      = false;
 	m_dependent_tabs = {};
-	if (current_dirty && !may_discard_current_dirty_preset()) {
+	if (current_dirty && ! may_discard_current_dirty_preset()) {
 		canceled = true;
 	} else if (print_tab) {
 		// Before switching the print profile to a new one, verify, whether the currently active filament or SLA material
@@ -2602,6 +2617,19 @@ void Tab::select_preset(std::string preset_name)
             }
         }
 	}
+
+	if (! canceled && delete_current) {
+		// Delete the file and select some other reasonable preset.
+		// It does not matter which preset will be made active as the preset will be re-selected from the preset_name variable.
+		// The 'external' presets will only be removed from the preset list, their files will not be deleted.
+		try { 
+			m_presets->delete_current_preset();
+		} catch (const std::exception & /* e */) {
+			//FIXME add some error reporting!
+			canceled = true;
+		}
+	}
+
 	if (canceled) {
 		update_tab_ui();
 		// Trigger the on_presets_changed event so that we also restore the previous value in the plater selector,
@@ -2610,17 +2638,19 @@ void Tab::select_preset(std::string preset_name)
 	} else {
 		if (current_dirty)
 			m_presets->discard_current_changes();
-		const bool is_selected = m_presets->select_preset_by_name(preset_name, false);
+
+		const bool is_selected = m_presets->select_preset_by_name(preset_name, false) || delete_current;
+		assert(m_presets->get_edited_preset().name == preset_name || ! is_selected);
 		// Mark the print & filament enabled if they are compatible with the currently selected preset.
 		// The following method should not discard changes of current print or filament presets on change of a printer profile,
 		// if they are compatible with the current printer.
-		if (current_dirty || print_tab || printer_tab)
+		if (current_dirty || delete_current || print_tab || printer_tab)
 			m_preset_bundle->update_compatible(true);
 		// Initialize the UI from the current preset.
         if (printer_tab)
             static_cast<TabPrinter*>(this)->update_pages();
 
-        if (!is_selected && printer_tab)
+        if (! is_selected && printer_tab)
         {
             /* There is a case, when :
              * after Config Wizard applying we try to select previously selected preset, but 
@@ -2631,15 +2661,10 @@ void Tab::select_preset(std::string preset_name)
              * to the corresponding printer_technology
              */
             const PrinterTechnology printer_technology = m_presets->get_edited_preset().printer_technology();
-            if (printer_technology == ptFFF && m_dependent_tabs.front() != Preset::Type::TYPE_PRINT ||
-                printer_technology == ptSLA && m_dependent_tabs.front() != Preset::Type::TYPE_SLA_PRINT )
-            {
-                m_dependent_tabs.clear();
-                if (printer_technology == ptFFF)
-                    m_dependent_tabs = { Preset::Type::TYPE_PRINT, Preset::Type::TYPE_FILAMENT };
-                else
-                    m_dependent_tabs = { Preset::Type::TYPE_SLA_PRINT, Preset::Type::TYPE_SLA_MATERIAL };                
-            }
+            if (printer_technology == ptFFF && m_dependent_tabs.front() != Preset::Type::TYPE_PRINT)
+            	m_dependent_tabs = { Preset::Type::TYPE_PRINT, Preset::Type::TYPE_FILAMENT };
+            else if (printer_technology == ptSLA && m_dependent_tabs.front() != Preset::Type::TYPE_SLA_PRINT)
+                m_dependent_tabs = { Preset::Type::TYPE_SLA_PRINT, Preset::Type::TYPE_SLA_MATERIAL };
         }
 		load_current_preset();
 	}
@@ -2771,11 +2796,14 @@ void Tab::save_preset(std::string name /*= ""*/)
 //!	m_treectrl->OnSetFocus();
 
 	if (name.empty()) {
-		auto preset = m_presets->get_selected_preset();
+		const Preset &preset = m_presets->get_selected_preset();
 		auto default_name = preset.is_default ? "Untitled" : preset.name;
+		if (preset.is_system) {
+			default_name += " - ";
+			default_name += _(L("Copy")).ToUTF8().data();
+		}
  		bool have_extention = boost::iends_with(default_name, ".ini");
-		if (have_extention)
-		{
+		if (have_extention) {
 			size_t len = default_name.length()-4;
 			default_name.resize(len);
 		}
@@ -2819,7 +2847,7 @@ void Tab::save_preset(std::string name /*= ""*/)
 	// If current profile is saved, "delete preset" button have to be enabled
 	m_btn_delete_preset->Enable(true);
 
-	if (m_name == "printer")
+	if (m_type == Preset::TYPE_PRINTER)
 		static_cast<TabPrinter*>(this)->m_initial_extruders_count = static_cast<TabPrinter*>(this)->m_extruders_count;
 	update_changed_ui();
 }
@@ -2836,15 +2864,9 @@ void Tab::delete_preset()
 	if (current_preset.is_default ||
 		wxID_YES != wxMessageDialog(parent(), msg, title, wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION).ShowModal())
 		return;
-	// Delete the file and select some other reasonable preset.
-	// The 'external' presets will only be removed from the preset list, their files will not be deleted.
-	try{ m_presets->delete_current_preset(); }
-	catch (const std::exception & /* e */)
-	{
-		return;
-	}
-	// Load the newly selected preset into the UI, update selection combo boxes with their dirty flags.
-	load_current_preset();
+	// Select will handle of the preset dependencies, of saving & closing the depending profiles, and
+	// finally of deleting the preset.
+	this->select_preset("", true);
 }
 
 void Tab::toggle_show_hide_incompatible()

@@ -209,8 +209,8 @@ void ObjectManipulation::update_settings_value(const Selection& selection)
         m_new_position = volume->get_volume_offset();
         m_new_rotation = volume->get_volume_rotation();
         m_new_scale    = volume->get_volume_scaling_factor();
-        m_new_size = volume->get_instance_transformation().get_matrix(true, true) * volume->get_volume_transformation().get_matrix(true, true) * volume->bounding_box.size();
-        m_new_enabled  = true;
+        m_new_size = volume->get_volume_transformation().get_matrix(true, true) * volume->bounding_box.size();
+        m_new_enabled = true;
     }
     else if (wxGetApp().obj_list()->multiple_selection())
     {

@@ -740,6 +740,8 @@ void PresetCollection::save_current_preset(const std::string &new_name)
             return;
         // Overwriting an existing preset.
         preset.config = std::move(m_edited_preset.config);
+		// The newly saved preset will be activated -> make it visible.
+		preset.is_visible = true;
     } else {
         // Creating a new preset.
 		Preset       &preset   = *m_presets.insert(it, m_edited_preset);
@@ -761,18 +763,20 @@ void PresetCollection::save_current_preset(const std::string &new_name)
         preset.is_default  = false;
         preset.is_system   = false;
         preset.is_external = false;
-    }
+		// The newly saved preset will be activated -> make it visible.
+		preset.is_visible  = true;
+	}
 	// 2) Activate the saved preset.
 	this->select_preset_by_name(new_name, true);
 	// 2) Store the active preset to disk.
 	this->get_selected_preset().save();
 }
 
-void PresetCollection::delete_current_preset()
+bool PresetCollection::delete_current_preset()
 {
     const Preset &selected = this->get_selected_preset();
-    if (selected.is_default)
-        return;
+	if (selected.is_default)
+		return false;
 	if (! selected.is_external && ! selected.is_system) {
 		// Erase the preset file.
 		boost::nowide::remove(selected.file.c_str());
@@ -786,6 +790,7 @@ void PresetCollection::delete_current_preset()
     if (new_selected_idx == m_presets.size())
 		for (--new_selected_idx; new_selected_idx > 0 && !m_presets[new_selected_idx].is_visible; --new_selected_idx);
     this->select_preset(new_selected_idx);
+	return true;
 }
 
 bool PresetCollection::load_bitmap_default(const std::string &file_name)
@@ -843,7 +848,9 @@ void PresetCollection::set_default_suppressed(bool default_suppressed)
 {
     if (m_default_suppressed != default_suppressed) {
         m_default_suppressed = default_suppressed;
-        m_presets.front().is_visible = ! default_suppressed || (m_presets.size() > m_num_default_presets && m_idx_selected > 0);
+		bool default_visible = ! default_suppressed || m_idx_selected < m_num_default_presets;
+		for (size_t i = 0; i < m_num_default_presets; ++ i)
+			m_presets[i].is_visible = default_visible;
     }
 }
 
@@ -1114,7 +1121,9 @@ Preset& PresetCollection::select_preset(size_t idx)
         idx = first_visible_idx();
     m_idx_selected = idx;
     m_edited_preset = m_presets[idx];
-    m_presets.front().is_visible = ! m_default_suppressed || m_idx_selected == 0;
+	bool default_visible = ! m_default_suppressed || m_idx_selected < m_num_default_presets;
+	for (size_t i = 0; i < m_num_default_presets; ++i)
+		m_presets[i].is_visible = default_visible;
     return m_presets[idx];
 }
 

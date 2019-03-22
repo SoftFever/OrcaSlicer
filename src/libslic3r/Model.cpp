@@ -997,12 +997,16 @@ Polygon ModelObject::convex_hull_2d(const Transform3d &trafo_instance)
     return hull;
 }
 
+#if ENABLE_VOLUMES_CENTERING_FIXES
+void ModelObject::center_around_origin(bool include_modifiers)
+#else
 void ModelObject::center_around_origin()
+#endif // ENABLE_VOLUMES_CENTERING_FIXES
 {
     // calculate the displacements needed to 
     // center this object around the origin
 #if ENABLE_VOLUMES_CENTERING_FIXES
-    BoundingBoxf3 bb = full_raw_mesh_bounding_box();
+    BoundingBoxf3 bb = include_modifiers ? full_raw_mesh_bounding_box() : raw_mesh_bounding_box();
 #else
 	BoundingBoxf3 bb;
 	for (ModelVolume *v : this->volumes)
