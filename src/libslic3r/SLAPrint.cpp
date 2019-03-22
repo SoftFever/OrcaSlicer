@@ -1363,11 +1363,15 @@ bool SLAPrintObject::invalidate_state_by_config_options(const std::vector<t_conf
     for (const t_config_option_key &opt_key : opt_keys) {
 		if (   opt_key == "layer_height"
             || opt_key == "faded_layers"
+            || opt_key == "pad_enable"
+            || opt_key == "pad_wall_thickness"
+            || opt_key == "supports_enable"
+            || opt_key == "support_object_elevation"
             || opt_key == "slice_closing_radius") {
 			steps.emplace_back(slaposObjectSlice);
         } else if (
-               opt_key == "supports_enable"
-            || opt_key == "support_points_density_relative"
+
+               opt_key == "support_points_density_relative"
             || opt_key == "support_points_minimal_distance") {
             steps.emplace_back(slaposSupportPoints);
 		} else if (
@@ -1382,12 +1386,10 @@ bool SLAPrintObject::invalidate_state_by_config_options(const std::vector<t_conf
             || opt_key == "support_critical_angle"
             || opt_key == "support_max_bridge_length"
             || opt_key == "support_max_pillar_link_distance"
-            || opt_key == "support_object_elevation") {
+            ) {
             steps.emplace_back(slaposSupportTree);
         } else if (
-               opt_key == "pad_enable"
-            || opt_key == "pad_wall_thickness"
-            || opt_key == "pad_wall_height"
+               opt_key == "pad_wall_height"
             || opt_key == "pad_max_merge_distance"
             || opt_key == "pad_wall_slope"
             || opt_key == "pad_edge_radius") {
