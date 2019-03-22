@@ -1617,7 +1617,11 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             if (type_3mf || type_any_amf) {
 #endif // !ENABLE_VOLUMES_CENTERING_FIXES
                 for (ModelObject* model_object : model.objects) {
+#if ENABLE_VOLUMES_CENTERING_FIXES
+                    model_object->center_around_origin(false);
+#else
                     model_object->center_around_origin();
+#endif // ENABLE_VOLUMES_CENTERING_FIXES
                     model_object->ensure_on_bed();
                 }
 #if !ENABLE_VOLUMES_CENTERING_FIXES
