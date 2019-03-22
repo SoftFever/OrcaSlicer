@@ -181,6 +181,8 @@ public:
     /// Get the sliced 2d layers of the support geometry.
     SlicedSupports slice(float layerh, float init_layerh = -1.0) const;
 
+    SlicedSupports slice(const std::vector<float>&, float closing_radius) const;
+
     /// Adding the "pad" (base pool) under the supports
     const TriangleMesh& add_pad(const SliceLayer& baseplate,
                                 const PoolConfig& pcfg) const;
