@@ -910,7 +910,7 @@ void PresetCollection::update_platter_ui(GUI::PresetComboBox *ui)
 	std::map<wxString, wxBitmap*> nonsys_presets;
 	wxString selected = "";
 	if (!this->m_presets.front().is_visible)
-        ui->set_label_marker(ui->Append("------- " + _(L("System presets")) + " -------", wxNullBitmap));
+        ui->set_label_marker(ui->Append(PresetCollection::separator(L("System presets")), wxNullBitmap));
 	for (size_t i = this->m_presets.front().is_visible ? 0 : m_num_default_presets; i < this->m_presets.size(); ++ i) {
         const Preset &preset = this->m_presets[i];
         if (! preset.is_visible || (! preset.is_compatible && i != m_idx_selected))
@@ -950,11 +950,11 @@ void PresetCollection::update_platter_ui(GUI::PresetComboBox *ui)
 				selected = wxString::FromUTF8((preset.name + (preset.is_dirty ? g_suffix_modified : "")).c_str());
 		}
 		if (i + 1 == m_num_default_presets)
-            ui->set_label_marker(ui->Append("------- " + _(L("System presets")) + " -------", wxNullBitmap));
+            ui->set_label_marker(ui->Append(PresetCollection::separator(L("System presets")), wxNullBitmap));
 	}
 	if (!nonsys_presets.empty())
 	{
-        ui->set_label_marker(ui->Append("-------  " + _(L("User presets")) + "  -------", wxNullBitmap));
+        ui->set_label_marker(ui->Append(PresetCollection::separator(L("User presets")), wxNullBitmap));
 		for (std::map<wxString, wxBitmap*>::iterator it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
 			ui->Append(it->first, *it->second);
 			if (it->first == selected)
@@ -983,7 +983,7 @@ void PresetCollection::update_platter_ui(GUI::PresetComboBox *ui)
 			bmps.emplace_back(m_bitmap_add ? *m_bitmap_add : wxNullBitmap);
 			bmp = m_bitmap_cache->insert(bitmap_key, bmps);
 		}
-		ui->set_label_marker(ui->Append("------- " + _(L("Add a new printer")) + " -------", *bmp), GUI::PresetComboBox::LABEL_ITEM_CONFIG_WIZARD);
+		ui->set_label_marker(ui->Append(PresetCollection::separator(L("Add a new printer")), *bmp), GUI::PresetComboBox::LABEL_ITEM_CONFIG_WIZARD);
 	}
 
 	ui->SetSelection(selected_preset_item);
@@ -1002,7 +1002,7 @@ size_t PresetCollection::update_tab_ui(wxBitmapComboBox *ui, bool show_incompati
 	std::map<wxString, wxBitmap*> nonsys_presets;
 	wxString selected = "";
 	if (!this->m_presets.front().is_visible)
-		ui->Append("------- " + _(L("System presets")) + " -------", wxNullBitmap);
+		ui->Append(PresetCollection::separator(L("System presets")), wxNullBitmap);
 	for (size_t i = this->m_presets.front().is_visible ? 0 : m_num_default_presets; i < this->m_presets.size(); ++i) {
         const Preset &preset = this->m_presets[i];
         if (! preset.is_visible || (! show_incompatible && ! preset.is_compatible && i != m_idx_selected))
@@ -1034,11 +1034,11 @@ size_t PresetCollection::update_tab_ui(wxBitmapComboBox *ui, bool show_incompati
 				selected = wxString::FromUTF8((preset.name + (preset.is_dirty ? g_suffix_modified : "")).c_str());
 		}
 		if (i + 1 == m_num_default_presets)
-			ui->Append("------- " + _(L("System presets")) + " -------", wxNullBitmap);
+			ui->Append(PresetCollection::separator(L("System presets")), wxNullBitmap);
     }
 	if (!nonsys_presets.empty())
 	{
-		ui->Append("-------  " + _(L("User presets")) + "  -------", wxNullBitmap);
+		ui->Append(PresetCollection::separator(L("User presets")), wxNullBitmap);
 		for (std::map<wxString, wxBitmap*>::iterator it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
 			ui->Append(it->first, *it->second);
 			if (it->first == selected)
@@ -1054,7 +1054,7 @@ size_t PresetCollection::update_tab_ui(wxBitmapComboBox *ui, bool show_incompati
             bmps.emplace_back(m_bitmap_add ? *m_bitmap_add : wxNullBitmap);
             bmp = m_bitmap_cache->insert("add_printer_tab", bmps);
         }
-        ui->Append("------- " + _(L("Add a new printer")) + " -------", *bmp);
+        ui->Append(PresetCollection::separator("Add a new printer"), *bmp);
     }
 	ui->SetSelection(selected_preset_item);
 	ui->SetToolTip(ui->GetString(selected_preset_item));
@@ -1282,6 +1282,11 @@ std::string PresetCollection::path_from_name(const std::string &new_name) const
 {
 	std::string file_name = boost::iends_with(new_name, ".ini") ? new_name : (new_name + ".ini");
     return (boost::filesystem::path(m_dir_path) / file_name).make_preferred().string();
+}
+
+wxString PresetCollection::separator(const std::string &label)
+{
+	return wxString::FromUTF8(PresetCollection::separator_head()) + _(label) + wxString::FromUTF8(PresetCollection::separator_tail());
 }
 
 const Preset& PrinterPresetCollection::default_preset_for(const DynamicPrintConfig &config) const 

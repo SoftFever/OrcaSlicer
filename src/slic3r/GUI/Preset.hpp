@@ -410,6 +410,15 @@ public:
     // Generate a file path from a profile name. Add the ".ini" suffix if it is missing.
     std::string     path_from_name(const std::string &new_name) const;
 
+#ifdef __linux__
+	static const char* separator_head() { return "------- "; }
+	static const char* separator_tail() { return " -------"; }
+#else /* __linux__ */
+    static const char* separator_head() { return "————— "; }
+    static const char* separator_tail() { return " —————"; }
+#endif /* __linux__ */
+	static wxString    separator(const std::string &label);
+
 protected:
     // Select a preset, if it exists. If it does not exist, select an invalid (-1) index.
     // This is a temporary state, which shall be fixed immediately by the following step.

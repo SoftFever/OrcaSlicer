@@ -249,11 +249,11 @@ void Tab::create_preset_tab()
 			return;
 		if (selected_item >= 0) {
 			std::string selected_string = m_presets_choice->GetString(selected_item).ToUTF8().data();
-			if (selected_string.find("-------") == 0
+			if (selected_string.find(PresetCollection::separator_head()) == 0
 				/*selected_string == "------- System presets -------" ||
 				selected_string == "-------  User presets  -------"*/) {
 				m_presets_choice->SetSelection(m_selected_preset_item);
-				if (selected_string == "------- " + _(L("Add a new printer")) + " -------")
+				if (wxString::FromUTF8(selected_string.c_str()) == PresetCollection::separator(L("Add a new printer")))
 					wxTheApp->CallAfter([]() { Slic3r::GUI::config_wizard(Slic3r::GUI::ConfigWizard::RR_USER); });
 				return;
 			}
