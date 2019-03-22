@@ -107,6 +107,7 @@ PresetBundle::PresetBundle() :
     this->filaments    .load_bitmap_default("spool.png");
     this->sla_materials.load_bitmap_default("package_green.png");
     this->printers     .load_bitmap_default("printer_empty.png");
+    this->printers     .load_bitmap_add("add.png");
     this->load_compatible_bitmaps();
 
     // Re-activate the default presets, so their "edited" preset copies will be updated with the additional configuration values above.

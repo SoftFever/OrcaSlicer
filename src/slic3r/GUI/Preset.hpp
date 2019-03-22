@@ -277,6 +277,9 @@ public:
     // Load default bitmap to be placed at the wxBitmapComboBox of a MainFrame.
     bool            load_bitmap_default(const std::string &file_name);
 
+    // Load "add new printer" bitmap to be placed at the wxBitmapComboBox of a MainFrame.
+    bool            load_bitmap_add(const std::string &file_name);
+
     // Compatible & incompatible marks, to be placed at the wxBitmapComboBox items.
     void            set_bitmap_compatible  (const wxBitmap *bmp) { m_bitmap_compatible   = bmp; }
     void            set_bitmap_incompatible(const wxBitmap *bmp) { m_bitmap_incompatible = bmp; }
@@ -467,6 +470,8 @@ private:
     // Marks placed at the wxBitmapComboBox of a MainFrame.
     // These bitmaps are owned by PresetCollection.
     wxBitmap               *m_bitmap_main_frame;
+    // "Add printer profile" icon, owned by PresetCollection.
+    wxBitmap               *m_bitmap_add;
     // Path to the directory to store the config files into.
     std::string             m_dir_path;
 
