@@ -411,24 +411,19 @@ bool GLToolbar::on_mouse(wxMouseEvent& evt, GLCanvas3D& parent)
 
     // mouse anywhere
     if (evt.Moving())
+    {
         m_tooltip = update_hover_state(mouse_pos, parent);
+        if ((m_mouse_capture.parent != nullptr) && (m_mouse_capture.parent != &parent))
+            m_mouse_capture.reset();
+    }
     else if (evt.LeftUp())
         m_mouse_capture.left = false;
     else if (evt.MiddleUp())
         m_mouse_capture.middle = false;
     else if (evt.RightUp())
         m_mouse_capture.right = false;
-    else if (m_mouse_capture.any())
-    {
-        if (evt.Dragging())
-            processed = true;
-        else if (evt.Entering() && (m_mouse_capture.parent == &parent))
-            // Resets the mouse capture state to avoid setting the dragging event as processed when, for example,
-            // the item action opens a modal dialog
-            // Keeps the mouse capture state if the entering event happens on different parent from the one
-            // who received the button down event, to prevent, for example, dragging when switching between scene views 
-            m_mouse_capture.reset();
-    }
+    else if (evt.Dragging() && m_mouse_capture.any())
+        processed = true;
 
     int item_id = contains_mouse(mouse_pos, parent);
     if (item_id == -1)
