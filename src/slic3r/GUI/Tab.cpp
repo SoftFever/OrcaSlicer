@@ -29,6 +29,7 @@
 
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
+#include "ConfigWizard.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -252,6 +253,8 @@ void Tab::create_preset_tab()
 				/*selected_string == "------- System presets -------" ||
 				selected_string == "-------  User presets  -------"*/) {
 				m_presets_choice->SetSelection(m_selected_preset_item);
+				if (selected_string == "------- " + _(L("Add a new printer")) + " -------")
+					wxTheApp->CallAfter([]() { Slic3r::GUI::config_wizard(Slic3r::GUI::ConfigWizard::RR_USER); });
 				return;
 			}
 			m_selected_preset_item = selected_item;

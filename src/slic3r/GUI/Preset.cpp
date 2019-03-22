@@ -519,6 +519,7 @@ PresetCollection::PresetCollection(Preset::Type type, const std::vector<std::str
     m_edited_preset(type, "", false),
     m_idx_selected(0),
     m_bitmap_main_frame(new wxBitmap),
+    m_bitmap_add(new wxBitmap),
 	m_bitmap_cache(new GUI::BitmapCache)
 {
     // Insert just the default preset.
@@ -530,6 +531,8 @@ PresetCollection::~PresetCollection()
 {
     delete m_bitmap_main_frame;
     m_bitmap_main_frame = nullptr;
+    delete m_bitmap_add;
+    m_bitmap_add = nullptr;
 	delete m_bitmap_cache;
 	m_bitmap_cache = nullptr;
 }
@@ -798,6 +801,11 @@ bool PresetCollection::load_bitmap_default(const std::string &file_name)
     return m_bitmap_main_frame->LoadFile(wxString::FromUTF8(Slic3r::var(file_name).c_str()), wxBITMAP_TYPE_PNG);
 }
 
+bool PresetCollection::load_bitmap_add(const std::string &file_name)
+{
+	return m_bitmap_add->LoadFile(wxString::FromUTF8(Slic3r::var(file_name).c_str()), wxBITMAP_TYPE_PNG);
+}
+
 const Preset* PresetCollection::get_selected_preset_parent() const
 {
     const std::string &inherits = this->get_edited_preset().inherits();
@@ -903,7 +911,7 @@ void PresetCollection::update_platter_ui(GUI::PresetComboBox *ui)
 	wxString selected = "";
 	if (!this->m_presets.front().is_visible)
         ui->set_label_marker(ui->Append("------- " + _(L("System presets")) + " -------", wxNullBitmap));
-	for (size_t i = this->m_presets.front().is_visible ? 0 : m_num_default_presets; i < this->m_presets.size(); ++i) {
+	for (size_t i = this->m_presets.front().is_visible ? 0 : m_num_default_presets; i < this->m_presets.size(); ++ i) {
         const Preset &preset = this->m_presets[i];
         if (! preset.is_visible || (! preset.is_compatible && i != m_idx_selected))
             continue;
@@ -953,6 +961,30 @@ void PresetCollection::update_platter_ui(GUI::PresetComboBox *ui)
 				selected_preset_item = ui->GetCount() - 1;
 		}
 	}
+	if (m_type == Preset::TYPE_PRINTER) {
+		std::string   bitmap_key = "";
+		// If the filament preset is not compatible and there is a "red flag" icon loaded, show it left
+		// to the filament color image.
+		if (wide_icons)
+			bitmap_key += "wide,";
+		bitmap_key += "add_printer";
+		wxBitmap     *bmp = m_bitmap_cache->find(bitmap_key);
+		if (bmp == nullptr) {
+			// Create the bitmap with color bars.
+			std::vector<wxBitmap> bmps;
+			if (wide_icons)
+				// Paint a red flag for incompatible presets.
+				bmps.emplace_back(m_bitmap_cache->mkclear(16, 16));
+			// Paint the color bars.
+			bmps.emplace_back(m_bitmap_cache->mkclear(4, 16));
+			bmps.emplace_back(*m_bitmap_main_frame);
+			// Paint a lock at the system presets.
+			bmps.emplace_back(m_bitmap_cache->mkclear(6, 16));
+			bmps.emplace_back(m_bitmap_add ? *m_bitmap_add : wxNullBitmap);
+			bmp = m_bitmap_cache->insert(bitmap_key, bmps);
+		}
+		ui->set_label_marker(ui->Append("------- " + _(L("Add a new printer")) + " -------", *bmp), GUI::PresetComboBox::LABEL_ITEM_CONFIG_WIZARD);
+	}
 
 	ui->SetSelection(selected_preset_item);
 	ui->SetToolTip(ui->GetString(selected_preset_item));
@@ -1001,7 +1033,7 @@ size_t PresetCollection::update_tab_ui(wxBitmapComboBox *ui, bool show_incompati
 			if (i == m_idx_selected)
 				selected = wxString::FromUTF8((preset.name + (preset.is_dirty ? g_suffix_modified : "")).c_str());
 		}
-        if (i + 1 == m_num_default_presets)
+		if (i + 1 == m_num_default_presets)
 			ui->Append("------- " + _(L("System presets")) + " -------", wxNullBitmap);
     }
 	if (!nonsys_presets.empty())
@@ -1013,6 +1045,17 @@ size_t PresetCollection::update_tab_ui(wxBitmapComboBox *ui, bool show_incompati
 				selected_preset_item = ui->GetCount() - 1;
 		}
 	}
+    if (m_type == Preset::TYPE_PRINTER) {
+        wxBitmap *bmp = m_bitmap_cache->find("add_printer_tab");
+        if (bmp == nullptr) {
+            // Create the bitmap with color bars.
+            std::vector<wxBitmap> bmps;
+            bmps.emplace_back(*m_bitmap_main_frame);
+            bmps.emplace_back(m_bitmap_add ? *m_bitmap_add : wxNullBitmap);
+            bmp = m_bitmap_cache->insert("add_printer_tab", bmps);
+        }
+        ui->Append("------- " + _(L("Add a new printer")) + " -------", *bmp);
+    }
 	ui->SetSelection(selected_preset_item);
 	ui->SetToolTip(ui->GetString(selected_preset_item));
     ui->Thaw();

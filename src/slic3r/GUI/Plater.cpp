@@ -57,6 +57,7 @@
 #include "BackgroundSlicingProcess.hpp"
 #include "ProgressStatusBar.hpp"
 #include "PrintHostDialogs.hpp"
+#include "ConfigWizard.hpp"
 #include "../Utils/ASCIIFolding.hpp"
 #include "../Utils/PrintHost.hpp"
 #include "../Utils/FixModelByWin10.hpp"
@@ -233,9 +234,11 @@ wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(15 *
         auto selected_item = this->GetSelection();
 
         auto marker = reinterpret_cast<Marker>(this->GetClientData(selected_item));
-        if (marker == LABEL_ITEM_MARKER) {
+        if (marker == LABEL_ITEM_MARKER || marker == LABEL_ITEM_CONFIG_WIZARD) {
             this->SetSelection(this->last_selected);
             evt.StopPropagation();
+            if (marker == LABEL_ITEM_CONFIG_WIZARD)
+                wxTheApp->CallAfter([]() { Slic3r::GUI::config_wizard(Slic3r::GUI::ConfigWizard::RR_USER); });
         } else if ( this->last_selected != selected_item || 
                     wxGetApp().get_tab(this->preset_type)->get_presets()->current_is_dirty() ) {
             this->last_selected = selected_item;
@@ -317,9 +320,9 @@ PresetComboBox::~PresetComboBox()
 }
 
 
-void PresetComboBox::set_label_marker(int item)
+void PresetComboBox::set_label_marker(int item, LabelItemType label_item_type)
 {
-    this->SetClientData(item, (void*)LABEL_ITEM_MARKER);
+    this->SetClientData(item, (void*)label_item_type);
 }
 
 void PresetComboBox::check_selection()
