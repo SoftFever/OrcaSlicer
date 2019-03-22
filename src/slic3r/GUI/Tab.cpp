@@ -542,7 +542,10 @@ void Tab::update_changed_tree_ui()
 	auto cur_item = m_treectrl->GetFirstVisibleItem();
     if (!cur_item || !m_treectrl->IsVisible(cur_item))
         return;
-	auto selection = m_treectrl->GetItemText(m_treectrl->GetSelection());
+
+	auto selected_item = m_treectrl->GetSelection();
+	auto selection = selected_item ? m_treectrl->GetItemText(selected_item) : "";
+
 	while (cur_item) {
 		auto title = m_treectrl->GetItemText(cur_item);
 		for (auto page : m_pages)
@@ -2497,7 +2500,10 @@ void Tab::rebuild_page_tree()
 
 	if (!have_selection) {
 		// this is triggered on first load, so we don't disable the sel change event
-		m_treectrl->SelectItem(m_treectrl->GetFirstVisibleItem());//! (treectrl->GetFirstChild(rootItem));
+		auto item = m_treectrl->GetFirstVisibleItem();
+		if (item) {
+			m_treectrl->SelectItem(m_treectrl->GetFirstVisibleItem());//! (treectrl->GetFirstChild(rootItem));
+		}
 	}
 // 	Thaw();
 }
@@ -2524,7 +2530,10 @@ void Tab::update_page_tree_visibility()
 
     if (!have_selection) {
         // this is triggered on first load, so we don't disable the sel change event
-        m_treectrl->SelectItem(m_treectrl->GetFirstVisibleItem());//! (treectrl->GetFirstChild(rootItem));
+        auto item = m_treectrl->GetFirstVisibleItem();
+        if (item) {
+            m_treectrl->SelectItem(item);
+        }
     }
 
 }
