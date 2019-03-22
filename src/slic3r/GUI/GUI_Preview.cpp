@@ -769,19 +769,17 @@ void Preview::load_print_as_sla()
     unsigned int n_layers = 0;
     const SLAPrint* print = m_process->sla_print();
 
-    std::set<double> zs;
+    std::vector<double> zs;
+    double initial_layer_height = print->material_config().initial_layer_height.value;
     for (const SLAPrintObject* obj : print->objects())
-    {
-        double shift_z = obj->get_current_elevation();
         if (obj->is_step_done(slaposIndexSlices))
         {
             auto slicerecords = obj->get_slice_records();
+            auto low_coord = slicerecords.begin()->key();
             for (auto& rec : slicerecords)
-            {
-                zs.insert(shift_z + /*rec.slice_level()*/ rec.key() * SCALING_FACTOR);
-            }
+                zs.emplace_back(initial_layer_height + (rec.key() - low_coord) * SCALING_FACTOR);
         }
-    }
+    sort_remove_duplicates(zs);
 
     n_layers = (unsigned int)zs.size();
     if (n_layers == 0)
@@ -796,11 +794,7 @@ void Preview::load_print_as_sla()
         show_hide_ui_elements("none");
 
         if (n_layers > 0)
-        {
-            std::vector<double> layer_zs;
-            std::copy(zs.begin(), zs.end(), std::back_inserter(layer_zs));
-            update_sliders(layer_zs);
-        }
+            update_sliders(zs);
 
         m_loaded = true;
     }
