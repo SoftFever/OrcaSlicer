@@ -328,6 +328,10 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 
         // left down without selection rectangle - place point on the mesh:
         if (action == SLAGizmoEventType::LeftDown && !m_selection_rectangle_active && !shift_down) {
+            // If any point is in hover state, this should initiate its move - return control back to GLCanvas:
+            if (m_hover_id != -1)
+                return false;
+
             // If there is some selection, don't add new point and deselect everything instead.
             if (m_selection_empty) {
                 try {

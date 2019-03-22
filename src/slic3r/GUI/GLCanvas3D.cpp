@@ -3521,6 +3521,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             _update_gizmos_data();
             m_dirty = true;
         }
+        else if (evt.LeftDown() && m_gizmos.get_current_type() == Gizmos::SlaSupports && m_gizmos.gizmo_event(SLAGizmoEventType::LeftDown, Vec2d(pos(0), pos(1)), evt.ShiftDown()))
+        {
+            // the gizmo got the event and took some action, there is no need to do anything more
+        }
         else if (evt.LeftDown() && !m_selection.is_empty() && m_gizmos.grabber_contains_mouse())
         {
             _update_gizmos_data();
@@ -3535,10 +3539,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }
 
             m_dirty = true;
-        }
-        else if (evt.LeftDown() && m_gizmos.get_current_type() == Gizmos::SlaSupports && m_gizmos.gizmo_event(SLAGizmoEventType::LeftDown, Vec2d(pos(0), pos(1)), evt.ShiftDown()))
-        {
-            // the gizmo got the event and took some action, there is no need to do anything more
         }
         else if ((selected_object_idx != -1) && evt.RightDown() && m_gizmos.get_current_type() == Gizmos::SlaSupports && m_gizmos.gizmo_event(SLAGizmoEventType::RightDown))
         {
