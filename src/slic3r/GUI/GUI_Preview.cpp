@@ -775,10 +775,10 @@ void Preview::load_print_as_sla()
         double shift_z = obj->get_current_elevation();
         if (obj->is_step_done(slaposIndexSlices))
         {
-            size_t cnt = obj->get_slice_count();
-            for (size_t i = 0; i < cnt; i++)
+            auto slicerecords = obj->get_slice_records();
+            for (auto& rec : slicerecords)
             {
-                zs.insert(shift_z + obj->get_slice_record(i).key() * SCALING_FACTOR);
+                zs.insert(shift_z + /*rec.slice_level()*/ rec.key() * SCALING_FACTOR);
             }
         }
     }

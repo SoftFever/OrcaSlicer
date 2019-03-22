@@ -626,8 +626,8 @@ void SLAPrint::process()
     double lhd  = m_objects.front()->m_config.layer_height.getFloat();
     float  lh   = float(lhd);
 
-    LevelID ilhs = ilhd / SCALING_FACTOR;
-    LevelID lhs  = lhd  / SCALING_FACTOR;
+    auto ilhs = LevelID(ilhd / SCALING_FACTOR);
+    auto lhs  = LevelID(lhd  / SCALING_FACTOR);
     const size_t objcount = m_objects.size();
 
     const unsigned min_objstatus = 0;   // where the per object operations start
@@ -657,17 +657,15 @@ void SLAPrint::process()
         double minZ = bb3d.min(Z) - po.get_elevation();
         double maxZ = bb3d.max(Z);
 
-        LevelID minZs = minZ / SCALING_FACTOR;
-        LevelID maxZs = maxZ / SCALING_FACTOR;
-
-        auto slh = [](float h) { return LevelID( double(h) / SCALING_FACTOR); };
+        auto minZs = LevelID(minZ / SCALING_FACTOR);
+        auto maxZs = LevelID(maxZ / SCALING_FACTOR);
 
         po.m_slice_index.clear();
         po.m_slice_index.reserve(size_t(maxZs - (minZs + ilhs) / lhs) + 1);
-        po.m_slice_index.emplace_back(minZs + ilhs, minZ + ilh / 2.f, ilh);
+        po.m_slice_index.emplace_back(minZs + ilhs, float(minZ) + ilh / 2.f, ilh);
 
         for(LevelID h = minZs + ilhs + lhs; h <= maxZs; h += lhs) {
-            po.m_slice_index.emplace_back(h, h*SCALING_FACTOR - lh / 2.f, lh);
+            po.m_slice_index.emplace_back(h, float(h*SCALING_FACTOR) - lh / 2.f, lh);
         }
 
         auto slindex_it = po.search_slice_index(float(bb3d.min(Z)));
@@ -867,8 +865,10 @@ void SLAPrint::process()
     // be part of the slices)
     auto slice_supports = [](SLAPrintObject& po) {
         auto& sd = po.m_supportdata;
+
+        if(sd) sd->support_slices.clear();
+
         if(sd && sd->support_tree_ptr) {
-            sd->support_slices.clear();
 
             std::vector<float> heights; heights.reserve(po.m_slice_index.size());
 
@@ -891,75 +891,6 @@ void SLAPrint::process()
     // We have the layer polygon collection but we need to unite them into
     // an index where the key is the height level in discrete levels (clipper)
     auto index_slices = [this/*, ilhd*/](SLAPrintObject& /*po*/) {
-//        po.m_slice_index.clear();
-//        auto sih = LevelID(scale_(ilhd));
-
-//        // Establish the slice grid boundaries
-//        auto bb = po.transformed_mesh().bounding_box();
-//        double modelgnd = bb.min(Z);
-//        double elevation = po.get_elevation();
-//        double lh = po.m_config.layer_height.getFloat();
-//        double minZ = modelgnd - elevation;
-
-//        // scaled values:
-//        auto sminZ = LevelID(scale_(minZ));
-//        auto smaxZ = LevelID(scale_(bb.max(Z)));
-//        auto smodelgnd = LevelID(scale_(modelgnd));
-//        auto slh = LevelID(scale_(lh));
-
-//        // It is important that the next levels match the levels in
-//        // model_slice method. Only difference is that here it works with
-//        // scaled coordinates
-//        po.m_level_ids.clear();
-//        for(LevelID h = sminZ + sih; h < smaxZ; h += slh)
-//            if(h >= smodelgnd) po.m_level_ids.emplace_back(h);
-
-//        std::vector<ExPolygons>& oslices = po.m_model_slices;
-
-//        // If everything went well this code should not run at all, but
-//        // let's be robust...
-//        // assert(levelids.size() == oslices.size());
-//        if(po.m_level_ids.size() < oslices.size()) { // extend the levels until...
-
-//            BOOST_LOG_TRIVIAL(warning)
-//                    << "Height level mismatch at rasterization!\n";
-
-//            LevelID lastlvl = po.m_level_ids.back();
-//            while(po.m_level_ids.size() < oslices.size()) {
-//                lastlvl += slh;
-//                po.m_level_ids.emplace_back(lastlvl);
-//            }
-//        }
-
-//        for(size_t i = 0; i < oslices.size(); ++i) {
-//            LevelID h = po.m_level_ids[i];
-
-//            float fh = float(double(h) * SCALING_FACTOR);
-
-//            // now for the public slice index:
-//            SLAPrintObject::SliceRecord& sr = po.m_slice_index[fh];
-//            // There should be only one slice layer for each print object
-//            assert(sr.model_slices_idx == SLAPrintObject::SliceRecord::NONE);
-//            sr.model_slices_idx = i;
-//        }
-
-//        if(po.m_supportdata) { // deal with the support slices if present
-//            std::vector<ExPolygons>& sslices = po.m_supportdata->support_slices;
-//            po.m_supportdata->level_ids.clear();
-//            po.m_supportdata->level_ids.reserve(sslices.size());
-
-//            for(int i = 0; i < int(sslices.size()); ++i) {
-//                LevelID h = sminZ + sih + i * slh;
-//                po.m_supportdata->level_ids.emplace_back(h);
-
-//                float fh = float(double(h) * SCALING_FACTOR);
-
-//                SLAPrintObject::SliceRecord& sr = po.m_slice_index[fh];
-//                assert(sr.support_slices_idx == SLAPrintObject::SliceRecord::NONE);
-//                sr.support_slices_idx = SLAPrintObject::SliceRecord::Idx(i);
-//            }
-//        }
-
         // Using RELOAD_SLA_PREVIEW to tell the Plater to pass the update status to the 3D preview to load the SLA slices.
         report_status(*this, -2, "", SlicingStatus::RELOAD_SLA_PREVIEW);
     };
@@ -975,41 +906,16 @@ void SLAPrint::process()
             LevelID gndlvl = o->get_slice_index().front().key();
             for(auto& slicerecord : o->get_slice_index()) {
                 auto& lyrs = m_printer_input[slicerecord.key() - gndlvl];
-                auto objslit = slicerecord.get_slices(*o, soModel);
-                auto supslit = slicerecord.get_slices(*o, soSupport);
 
-                if(objslit != o->get_model_slices().end())
-                    lyrs.emplace_back(*objslit, o->instances());
+                const ExPolygons& objslices = o->get_slices_from_record(slicerecord, soModel);
+                const ExPolygons& supslices = o->get_slices_from_record(slicerecord, soSupport);
 
-                if(supslit != o->get_support_slices().end())
-                    lyrs.emplace_back(*supslit, o->instances());
+                if(!objslices.empty())
+                    lyrs.emplace_back(objslices, o->instances());
+
+                if(!supslices.empty())
+                    lyrs.emplace_back(supslices, o->instances());
             }
-
-//            auto& po = *o;
-//            std::vector<ExPolygons>& oslices = po.m_model_slices;
-
-//            // We need to adjust the min Z level of the slices to be zero
-//            LevelID smfirst =
-//                    po.m_supportdata && !po.m_supportdata->level_ids.empty() ?
-//                        po.m_supportdata->level_ids.front() : 0;
-//            LevelID mfirst = po.m_level_ids.empty()? 0 : po.m_level_ids.front();
-//            LevelID gndlvl = -(std::min(smfirst, mfirst));
-
-//            // now merge this object's support and object slices with the rest
-//            // of the print object slices
-
-//            for(size_t i = 0; i < oslices.size(); ++i) {
-//                auto& lyrs = m_printer_input[gndlvl + po.m_level_ids[i]];
-//                lyrs.emplace_back(oslices[i], po.m_instances);
-//            }
-
-//            if(!po.m_supportdata) continue;
-//            std::vector<ExPolygons>& sslices = po.m_supportdata->support_slices;
-//            for(size_t i = 0; i < sslices.size(); ++i) {
-//                LayerRefs& lyrs =
-//                       m_printer_input[gndlvl + po.m_supportdata->level_ids[i]];
-//                lyrs.emplace_back(sslices[i], po.m_instances);
-//            }
         }
 
         // collect all the keys
@@ -1355,13 +1261,13 @@ void SLAPrint::fill_statistics()
                 record = &(*it);
             }
 
-            auto modelslice_it = record->get_slices(*po, soModel);
-            if (modelslice_it != po->get_model_slices().end())
-                append(model_polygons, get_all_polygons(*modelslice_it, po->instances()));
-            
-            auto supportslice_it = record->get_slices(*po, soSupport);
-            if (supportslice_it != po->get_support_slices().end())
-                append(supports_polygons, get_all_polygons(*supportslice_it, po->instances()));
+            const ExPolygons &modelslices = po->get_slices_from_record(*record, soModel);
+            if (!modelslices.empty())
+                append(model_polygons, get_all_polygons(modelslices, po->instances()));
+
+            const ExPolygons &supportslices = po->get_slices_from_record(*record, soSupport);
+            if (!supportslices.empty())
+                append(supports_polygons, get_all_polygons(supportslices, po->instances()));
         }
         
         model_polygons = union_(model_polygons);
@@ -1561,6 +1467,7 @@ double SLAPrintObject::get_current_elevation() const
 namespace { // dummy empty static containers for return values in some methods
 const std::vector<ExPolygons> EMPTY_SLICES;
 const TriangleMesh EMPTY_MESH;
+const ExPolygons EMPTY_SLICE;
 }
 
 const std::vector<sla::SupportPoint>& SLAPrintObject::get_support_points() const
@@ -1597,7 +1504,8 @@ SLAPrintObject::search_slice_index(float slice_level) const
 }
 
 SLAPrintObject::SliceIndex::iterator
-SLAPrintObject::search_slice_index(SLAPrintObject::_SliceRecord::Key key)
+SLAPrintObject::search_slice_index(SLAPrintObject::_SliceRecord::Key key,
+                                   bool exact)
 {
     _SliceRecord query(key, 0.f, 0.f);
     auto it = std::lower_bound(m_slice_index.begin(), m_slice_index.end(),
@@ -1608,13 +1516,15 @@ SLAPrintObject::search_slice_index(SLAPrintObject::_SliceRecord::Key key)
     });
 
     // Return valid iterator only if the keys really match
-    if(it != m_slice_index.end() && it->key() != key) it = m_slice_index.end();
+    if(exact && it != m_slice_index.end() && it->key() != key)
+        it = m_slice_index.end();
 
     return it;
 }
 
 SLAPrintObject::SliceIndex::const_iterator
-SLAPrintObject::search_slice_index(SLAPrintObject::_SliceRecord::Key key) const
+SLAPrintObject::search_slice_index(SLAPrintObject::_SliceRecord::Key key,
+                                   bool exact) const
 {
     _SliceRecord query(key, 0.f, 0.f);
     auto it = std::lower_bound(m_slice_index.cbegin(), m_slice_index.cend(),
@@ -1625,26 +1535,10 @@ SLAPrintObject::search_slice_index(SLAPrintObject::_SliceRecord::Key key) const
     });
 
     // Return valid iterator only if the keys really match
-    if(it != m_slice_index.end() && it->key() != key) it = m_slice_index.end();
+    if(exact && it != m_slice_index.end() && it->key() != key)
+        it = m_slice_index.end();
 
     return it;
-}
-
-SliceRange SLAPrintObject::get_slices(SliceOrigin so,
-                                      float from_level,
-                                      float to_level) const
-{
-    auto it_from = search_slice_index(from_level);
-    auto it_to   = search_slice_index(to_level);
-
-    SliceRange ret;
-
-    auto endit = so == soModel? get_model_slices().end() : get_support_slices().end();
-
-    ret.from = it_from == m_slice_index.end() ? endit : it_from->get_slices(*this, so);
-    ret.to   = it_to   == m_slice_index.end() ? endit : it_to->get_slices(*this, so);
-
-    return ret;
 }
 
 const std::vector<ExPolygons> &SLAPrintObject::get_support_slices() const
@@ -1652,6 +1546,28 @@ const std::vector<ExPolygons> &SLAPrintObject::get_support_slices() const
     // assert(is_step_done(slaposSliceSupports));
     if (!m_supportdata) return EMPTY_SLICES;
     return m_supportdata->support_slices;
+}
+
+const ExPolygons &SLAPrintObject::get_slices_from_record(
+        const _SliceRecord &rec,
+        SliceOrigin o) const
+{
+    size_t idx = o == soModel ? rec.get_model_slice_idx() :
+                                rec.get_support_slice_idx();
+
+    const std::vector<ExPolygons>& v = o == soModel? get_model_slices() :
+                                                     get_support_slices();
+
+    if(idx >= v.size()) return EMPTY_SLICE;
+
+    return idx >= v.size() ? EMPTY_SLICE : v[idx];
+}
+
+const ExPolygons &SLAPrintObject::get_slices_from_record(
+        SLAPrintObject::SliceRecordConstIterator it, SliceOrigin o) const
+{
+    if(it.is_end()) return EMPTY_SLICE;
+    return get_slices_from_record(*it, o);
 }
 
 const std::vector<SLAPrintObject::_SliceRecord>&
@@ -1776,20 +1692,6 @@ std::string SLAPrintStatistics::finalize_output_path(const std::string &path_in)
         final_path = path_in;
     }
     return final_path;
-}
-
-SliceIterator SLAPrintObject::_SliceRecord::get_slices(const SLAPrintObject &po,
-                                                      SliceOrigin so) const
-{
-
-    const std::vector<ExPolygons>& v = so == soModel? po.get_model_slices() :
-                                                      po.get_support_slices();
-
-    size_t idx = so == soModel ? m_model_slices_idx : m_support_slices_idx;
-
-    using DiffT = std::vector<ExPolygons>::const_iterator::difference_type;
-
-    return idx == NONE? v.end() : v.begin() + DiffT(idx);
 }
 
 } // namespace Slic3r
