@@ -115,6 +115,8 @@ public:
     // Is this preset compatible with the currently active printer?
     bool                is_compatible = true;
 
+    bool                is_user() const { return ! this->is_default && ! this->is_system; }
+
     // Name of the preset, usually derived form the file name.
     std::string         name;
     // File name of the preset. This could be a Print / Filament / Printer preset, 
@@ -269,7 +271,8 @@ public:
     void            save_current_preset(const std::string &new_name);
 
     // Delete the current preset, activate the first visible preset.
-    void            delete_current_preset();
+    // returns true if the preset was deleted successfully.
+    bool            delete_current_preset();
 
     // Load default bitmap to be placed at the wxBitmapComboBox of a MainFrame.
     bool            load_bitmap_default(const std::string &file_name);
