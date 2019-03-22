@@ -158,7 +158,7 @@ private:
 
     // Search the slice index for a particular level in integer coordinates.
     // If no such layer is present, it will return m_slice_index.end()
-    // This behavior can be suppressed by the second parameter. If it is true
+    // This behavior can be suppressed by the second parameter. If it is false
     // the method will return the closest (non-equal) record
     SliceIndex::iterator search_slice_index(_SliceRecord::Key key, bool exact = false);
     SliceIndex::const_iterator search_slice_index(_SliceRecord::Key key, bool = false) const;

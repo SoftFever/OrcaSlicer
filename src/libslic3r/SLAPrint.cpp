@@ -623,11 +623,8 @@ void SLAPrint::process()
     // shortcut to initial layer height
     double ilhd = m_material_config.initial_layer_height.getFloat();
     auto   ilh  = float(ilhd);
-    double lhd  = m_objects.front()->m_config.layer_height.getFloat();
-    float  lh   = float(lhd);
 
     auto ilhs = LevelID(ilhd / SCALING_FACTOR);
-    auto lhs  = LevelID(lhd  / SCALING_FACTOR);
     const size_t objcount = m_objects.size();
 
     const unsigned min_objstatus = 0;   // where the per object operations start
@@ -648,10 +645,14 @@ void SLAPrint::process()
 
     // Slicing the model object. This method is oversimplified and needs to
     // be compared with the fff slicing algorithm for verification
-    auto slice_model = [this, ilhs, lhs, ilh, lh](SLAPrintObject& po) {
+    auto slice_model = [this, ilhs, ilh](SLAPrintObject& po) {
         TriangleMesh mesh = po.transformed_mesh();
 
         // We need to prepare the slice index...
+
+        double lhd  = m_objects.front()->m_config.layer_height.getFloat();
+        float  lh   = float(lhd);
+        auto   lhs  = LevelID(lhd  / SCALING_FACTOR);
 
         auto&& bb3d = mesh.bounding_box();
         double minZ = bb3d.min(Z) - po.get_elevation();
@@ -715,6 +716,12 @@ void SLAPrint::process()
         // the autoplacement. Otherwise we will just blindly copy the frontend data
         // into the backend cache.
         if (mo.sla_points_status != sla::PointsStatus::UserModified) {
+
+            // Hypotetical use of the slice index:
+            // auto bb = po.transformed_mesh().bounding_box();
+            // auto range = po.get_slice_records(bb.min(Z));
+            // std::vector<float> heights; heights.reserve(range.size());
+            // for(auto& record : range) heights.emplace_back(record.slice_level());
 
             // calculate heights of slices (slices are calculated already)
             const std::vector<float>& heights = po.m_model_height_levels;
@@ -896,15 +903,22 @@ void SLAPrint::process()
     };
 
     // Rasterizing the model objects, and their supports
-    auto rasterize = [this, max_objstatus]() {
+    auto rasterize = [this, max_objstatus, ilhs]() {
         if(canceled()) return;
 
         // clear the rasterizer input
         m_printer_input.clear();
+        auto eps = LevelID(EPSILON / SCALING_FACTOR);
 
         for(SLAPrintObject * o : m_objects) {
-            LevelID gndlvl = o->get_slice_index().front().key();
+            LevelID gndlvl = o->get_slice_index().front().key() - ilhs;
+
             for(auto& slicerecord : o->get_slice_index()) {
+                LevelID lvlid = slicerecord.key() - gndlvl;
+
+                // Neat trick to round the layer levels to the grid.
+                lvlid = eps * (lvlid / eps);
+
                 auto& lyrs = m_printer_input[slicerecord.key() - gndlvl];
 
                 const ExPolygons& objslices = o->get_slices_from_record(slicerecord, soModel);

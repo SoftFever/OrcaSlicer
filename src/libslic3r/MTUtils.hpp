@@ -56,8 +56,18 @@ public:
     }
 };
 
-template<class Vector,
-         class Value = typename Vector::value_type>
+/// An std compatible random access iterator which uses indices to the source
+/// vector thus resistant to invalidation caused by relocations. It also "knows"
+/// its container. No comparison is neccesary to the container "end()" iterator.
+/// The template can be instantiated with a different value type than that of
+/// the container's but the types must be compatible. E.g. a base class of the
+/// contained objects is compatible.
+///
+/// For a constant iterator, one can instantiate this template with a value
+/// type preceded with 'const'.
+template<class Vector,  // The container type, must be random access...
+         class Value = typename Vector::value_type // The value type
+         >
 class IndexBasedIterator {
     static const size_t NONE = size_t(-1);
 
@@ -110,6 +120,8 @@ public:
 
     operator difference_type() { return difference_type(m_idx); }
 
+    /// Tesing the end of the container... this is not possible with std
+    /// iterators.
     inline bool is_end() const { return m_idx >= m_index_ref.get().size();}
 
     inline Value & operator*() const {
@@ -122,6 +134,7 @@ public:
         return &m_index_ref.get().operator[](m_idx);
     }
 
+    /// If both iterators point past the container, they are equal...
     inline bool operator ==(const IndexBasedIterator& other) {
         size_t e = m_index_ref.get().size();
         return m_idx == other.m_idx || (m_idx >= e && other.m_idx >= e);
@@ -148,17 +161,23 @@ public:
     }
 };
 
+/// A very simple range concept implementation with iterator-like objects.
 template<class It> class Range {
     It from, to;
 public:
+
+    // The class is ready for range based for loops.
     It begin() const { return from; }
     It end() const { return to; }
+
+    // The iterator type can be obtained this way.
     using Type = It;
 
     Range() = default;
     Range(It &&b, It &&e):
         from(std::forward<It>(b)), to(std::forward<It>(e)) {}
 
+    // Some useful container-like methods...
     inline size_t size() const { return end() - begin(); }
     inline bool empty() const { return size() == 0; }
 };
