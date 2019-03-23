@@ -10,6 +10,8 @@
 
 #include "I18N.hpp"
 
+#include <wx/wupdlock.h>
+
 namespace Slic3r
 {
 namespace GUI
@@ -84,6 +86,7 @@ void ObjectSettings::update_settings_list()
 			btn->Bind(wxEVT_BUTTON, [opt_key, config, this](wxEvent &event) {
 				config->erase(opt_key);
                 wxTheApp->CallAfter([this]() { 
+                    wxWindowUpdateLocker noUpdates(m_parent);
                     update_settings_list(); 
                     m_parent->Layout(); 
                 });

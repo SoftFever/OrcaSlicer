@@ -540,7 +540,10 @@ void Choice::BUILD() {
 	else{
 		for (auto el : m_opt.enum_labels.empty() ? m_opt.enum_values : m_opt.enum_labels) {
 			const wxString& str = _(el);//m_opt_id == "support" ? _(el) : el;
-            temp->Append(str, create_scaled_bitmap("empty_icon.png"));
+			//FIXME Vojtech: Why is the single column empty icon necessary? It is a workaround of some kind, but what for?
+			// Please document such workarounds by comments!
+            // temp->Append(str, create_scaled_bitmap("empty_icon.png"));
+            temp->Append(str, wxNullBitmap);
 		}
 		set_selection();
 	}
