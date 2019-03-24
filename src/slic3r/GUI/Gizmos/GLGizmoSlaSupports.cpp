@@ -666,7 +666,7 @@ RENDER_AGAIN:
     m_imgui->end();
 
     if (m_editing_mode != m_old_editing_state) { // user toggled between editing/non-editing mode
-        m_parent.toggle_sla_auxiliaries_visibility(!m_editing_mode);
+        m_parent.toggle_sla_auxiliaries_visibility(!m_editing_mode, m_model_object, m_active_instance);
         force_refresh = true;
     }
     m_old_editing_state = m_editing_mode;
