@@ -354,6 +354,8 @@ public:
             m_data[3] = offset;
         }
 
+        static ClippingPlane ClipsNothing() { return ClippingPlane(Vec3d(0., 0., 1.), DBL_MAX); }
+
         const double* get_data() const { return m_data; }
     };
 
@@ -561,6 +563,7 @@ private:
     mutable Gizmos m_gizmos;
     mutable GLToolbar m_toolbar;
     ClippingPlane m_clipping_planes[2];
+    mutable ClippingPlane m_camera_clipping_plane;
     bool m_use_clipping_planes;
     mutable SlaCap m_sla_caps[2];
     std::string m_sidebar_field;
@@ -777,9 +780,6 @@ private:
 
     // Sets current projection matrix to ortho, accounting for current camera zoom.
     void set_ortho_projection(float w, float h, float near, float far) const;
-
-    // Set/unset near clipping plane according to SLA gizmo requirements.
-    void set_sla_clipping(bool enable) const;
 
     void _start_timer();
     void _stop_timer();

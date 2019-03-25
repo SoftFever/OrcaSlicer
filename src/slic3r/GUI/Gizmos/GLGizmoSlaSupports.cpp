@@ -615,7 +615,7 @@ void GLGizmoSlaSupports::update_cache_entry_normal(unsigned int i) const
 GLCanvas3D::ClippingPlane GLGizmoSlaSupports::get_sla_clipping_plane() const
 {
     if (!m_model_object)
-        throw std::invalid_argument("GLGizmoSlaSupports::get_sla_clipping_plane() has no model object pointer.");
+        return GLCanvas3D::ClippingPlane::ClipsNothing();
 
     Eigen::Matrix<GLdouble, 4, 4, Eigen::DontAlign> modelview_matrix;
     ::glGetDoublev(GL_MODELVIEW_MATRIX, modelview_matrix.data());
