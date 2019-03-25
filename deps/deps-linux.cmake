@@ -113,7 +113,7 @@ ExternalProject_Add(dep_wxwidgets
         --with-libxpm=builtin
         --with-libjpeg=builtin
         --with-libtiff=builtin
-        --with-zlib=builtin
+        --with-zlib
         --with-expat=builtin
         --disable-precomp-headers
         --enable-debug_info
