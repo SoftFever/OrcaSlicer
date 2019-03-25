@@ -191,17 +191,19 @@ public:
     template<class Key> Range<SliceRecordConstIterator>
     get_slice_records(Key from, Key to = std::numeric_limits<Key>::max()) const
     {
+        static_assert (std::is_integral<Key>::value ||
+                       std::is_floating_point<Key>::value,
+                       "Only floating point or integral types are allowed.");
+
         SliceIndex::const_iterator it_from, it_to;
+
         if(std::is_integral<Key>::value) {
             it_from = search_slice_index(SliceRecord::Key(from));
             it_to   = search_slice_index(SliceRecord::Key(to));
         } else if(std::is_floating_point<Key>::value) {
             it_from = search_slice_index(float(from));
             it_to   = search_slice_index(float(to));
-        } else return {
-            SliceRecordConstIterator(m_slice_index, _SliceRecord::NONE ),
-            SliceRecordConstIterator(m_slice_index, _SliceRecord::NONE ),
-        };
+        }
 
         auto start = m_slice_index.begin();
 
