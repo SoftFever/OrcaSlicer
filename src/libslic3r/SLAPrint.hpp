@@ -34,9 +34,67 @@ using _SLAPrintObjectBase =
 
 // Layers according to quantized height levels. This will be consumed by
 // the printer (rasterizer) in the SLAPrint class.
-using LevelID = long long;
+// using coord_t = long long;
 
 enum SliceOrigin { soSupport, soModel };
+
+// The public Slice record structure. It corresponds to one printable layer.
+// To get the sliced polygons, use SLAPrintObject::get_slices_from_record
+class SliceRecord {
+public:
+    // this will be the max limit of size_t
+    static const size_t NONE = size_t(-1);
+
+    static const SliceRecord EMPTY;
+
+private:
+    coord_t   m_print_z = 0;      // Top of the layer
+    float     m_slice_z = 0.f;    // Exact level of the slice
+    float     m_height  = 0.f;     // Height of the sliced layer
+
+    size_t m_model_slices_idx = NONE;
+    size_t m_support_slices_idx = NONE;
+
+public:
+
+    SliceRecord(coord_t key, float slicez, float height):
+        m_print_z(key), m_slice_z(slicez), m_height(height) {}
+
+    // The key will be the integer height level of the top of the layer.
+    inline coord_t print_level() const { return m_print_z; }
+
+    // Returns the exact floating point Z coordinate of the slice
+    inline float slice_level() const { return m_slice_z; }
+
+    // Returns the current layer height
+    inline float layer_height() const { return m_height; }
+
+    bool is_valid() const { return std::isnan(m_slice_z); }
+
+    template <class T> inline T level() const {
+        static_assert(std::is_integral<T>::value ||
+                      std::is_floating_point<T>::value,
+                      "Slice record level is only valid for numeric types!");
+        if (std::is_integral<T>::value) return T(print_level());
+        else return T(slice_level());
+    }
+
+    template <class T> inline static SliceRecord create(T val) {
+        static_assert(std::is_integral<T>::value ||
+                      std::is_floating_point<T>::value,
+                      "Slice record level is only valid for numeric types!");
+        if (std::is_integral<T>::value) return { coord_t(val), 0.f, 0.f };
+        else return { 0, float(val), 0.f };
+    }
+
+    // Methods for setting the indices into the slice vectors.
+    void set_model_slice_idx(size_t id) { m_model_slices_idx = id; }
+    void set_support_slice_idx(size_t id) { m_support_slices_idx = id; }
+
+    inline size_t get_model_slice_idx() const { return m_model_slices_idx; }
+    inline size_t get_support_slice_idx() const { return m_support_slices_idx; }
+};
+
 
 class SLAPrintObject : public _SLAPrintObjectBase
 {
@@ -93,145 +151,84 @@ public:
     // This method returns the support points of this SLAPrintObject.
     const std::vector<sla::SupportPoint>& get_support_points() const;
 
-    // The public Slice record structure. It corresponds to one printable layer.
-    // To get the sliced polygons, use SLAPrintObject::get_slices_from_record
-    class SliceRecord {
-    public:
-        using Key = LevelID;
-
-    private:
-        Key   m_print_z = 0;      // Top of the layer
-        float m_slice_z = 0.f;    // Exact level of the slice
-        float m_height = 0.f;     // Height of the sliced layer
-
-    protected:
-        SliceRecord(Key key, float slicez, float height):
-            m_print_z(key), m_slice_z(slicez), m_height(height) {}
-
-    public:
-
-        // The key will be the integer height level of the top of the layer.
-        inline Key key() const { return m_print_z; }
-
-        // Returns the exact floating point Z coordinate of the slice
-        inline float slice_level() const { return m_slice_z; }
-
-        // Returns the current layer height
-        inline float layer_height() const { return m_height; }
-    };
-
 private:
 
-    // An index record referencing the slices
-    // (get_model_slices(), get_support_slices()) where the keys are the height
-    // levels of the model in scaled-clipper coordinates. The levels correspond
-    // to the z coordinate of the object coordinate system.
-    class _SliceRecord: public SliceRecord {
-    public:
-        static const size_t NONE = size_t(-1); // this will be the max limit of size_t
-    private:
-        size_t m_model_slices_idx = NONE;
-        size_t m_support_slices_idx = NONE;
+    // This is a template method for searching the slice index either by
+    // an integer key: print_level or a floating point key: slice_level.
+    // The eps parameter gives the max deviation in + or - direction.
+    //
+    // This method can be used in const or non-const contexts as well.
+    template<class Container, class T>
+    static auto closest_slice_record(Container& cont, T lvl, T eps) -> decltype (cont.begin())
+    {
+        if(cont.empty()) return cont.end();
+        if(cont.size() == 1 && std::abs(cont.front().template level<T>() - lvl) > eps)
+            return cont.end();
 
-    public:
-        _SliceRecord(Key key, float slicez, float height):
-            SliceRecord(key, slicez, height) {}
+        SliceRecord query = SliceRecord::create(lvl);
 
-        // Methods for setting the indices into the slice vectors.
-        void set_model_slice_idx(size_t id) { m_model_slices_idx = id; }
-        void set_support_slice_idx(size_t id) { m_support_slices_idx = id; }
+        auto it = std::lower_bound(cont.begin(), cont.end(), query,
+                                   [](const SliceRecord& r1,
+                                      const SliceRecord& r2)
+        {
+            return r1.level<T>() < r2.level<T>();
+        });
 
-        inline size_t get_model_slice_idx() const { return m_model_slices_idx; }
-        inline size_t get_support_slice_idx() const { return m_support_slices_idx; }
-    };
+        T diff = std::abs(it->template level<T>() - lvl);
 
-    // Slice index will be a plain vector sorted by the integer height levels
-    using SliceIndex = std::vector<_SliceRecord>;
+        if(it != cont.begin()) {
+            auto it_prev = std::prev(it);
+            T diff_prev = std::abs(it_prev->template level<T>() - lvl);
+            if(diff_prev < diff) { diff = diff_prev; it = it_prev; }
+        }
 
-    // Retrieve the slice index which is readable only after slaposIndexSlices
-    // is done.
-    const SliceIndex& get_slice_index() const;
+        if(diff > eps) it = cont.end();
 
-    // Search slice index for the closest slice to the given level
-    SliceIndex::iterator search_slice_index(float slice_level);
-    SliceIndex::const_iterator search_slice_index(float slice_level) const;
-
-    // Search the slice index for a particular level in integer coordinates.
-    // If no such layer is present, it will return m_slice_index.end()
-    // This behavior can be suppressed by the second parameter. If it is false
-    // the method will return the closest (non-equal) record
-    SliceIndex::iterator search_slice_index(_SliceRecord::Key key, bool exact = false);
-    SliceIndex::const_iterator search_slice_index(_SliceRecord::Key key, bool = false) const;
-
-    const std::vector<ExPolygons>& get_model_slices() const;
-    const std::vector<ExPolygons>& get_support_slices() const;
+        return it;
+    }
 
 public:
 
-    // Should work as a polymorphic bidirectional iterator to the slice records
-    using SliceRecordConstIterator =
-        IndexBasedIterator<const SliceIndex, const _SliceRecord>;
-
     // /////////////////////////////////////////////////////////////////////////
     //
-    // These two methods should be callable on the client side (e.g. UI thread)
+    // These methods should be callable on the client side (e.g. UI thread)
     // when the appropriate steps slaposObjectSlice and slaposSliceSupports
     // are ready. All the print objects are processed before slapsRasterize so
     // it is safe to call them during and/or after slapsRasterize.
     //
     // /////////////////////////////////////////////////////////////////////////
 
-    // Get the slice records from a range of slice levels (inclusive). Floating
-    // point keys are the levels where the model was sliced with the mesh
-    // slicer. Integral keys are the keys of the slice records, which
-    // correspond to the top of each layer.. The end() method of the returned
-    // range points *after* the last valid element. This is for being
-    // consistent with std and makeing range based for loops work. use
-    // std::prev(range.end()) or --range.end() to get the last element.
-    template<class Key> Range<SliceRecordConstIterator>
-    get_slice_records(Key from, Key to = std::numeric_limits<Key>::max()) const
+    // Retrieve the slice index.
+    const std::vector<SliceRecord>& get_slice_index() const;
+
+    const std::vector<ExPolygons>& get_model_slices() const;
+    const std::vector<ExPolygons>& get_support_slices() const;
+
+    // Search slice index for the closest slice to given print_level.
+    // max_epsilon gives the allowable deviation of the returned slice record's
+    // level.
+    const SliceRecord& closest_slice_to_print_level(
+            coord_t print_level, coord_t max_epsilon = coord_t(SCALED_EPSILON)) const
     {
-        static_assert (std::is_integral<Key>::value ||
-                       std::is_floating_point<Key>::value,
-                       "Only floating point or integral types are allowed.");
-
-        SliceIndex::const_iterator it_from, it_to;
-
-        if(std::is_integral<Key>::value) {
-            it_from = search_slice_index(SliceRecord::Key(from));
-            it_to   = search_slice_index(SliceRecord::Key(to));
-        } else if(std::is_floating_point<Key>::value) {
-            it_from = search_slice_index(float(from));
-            it_to   = search_slice_index(float(to));
-        }
-
-        auto start = m_slice_index.begin();
-
-        size_t bidx = it_from == m_slice_index.end() ? _SliceRecord::NONE :
-                                                        size_t(it_from - start);
-
-        size_t eidx = it_to   == m_slice_index.end() ? _SliceRecord::NONE :
-                                                       size_t(it_to - start) + 1;
-
-        return {
-            SliceRecordConstIterator(m_slice_index, bidx),
-            SliceRecordConstIterator(m_slice_index, eidx),
-        };
+        auto it = closest_slice_record(m_slice_index, print_level, max_epsilon);
+        if (it == m_slice_index.end()) return SliceRecord::EMPTY;
+        return *it;
     }
 
-    // Get all the slice records as a range.
-    inline Range<SliceRecordConstIterator> get_slice_records() const {
-        return {
-            SliceRecordConstIterator(m_slice_index, 0),
-            SliceRecordConstIterator(m_slice_index, m_slice_index.size())
-        };
+    // Search slice index for the closest slice to given slice_level.
+    // max_epsilon gives the allowable deviation of the returned slice record's
+    // level.
+    const SliceRecord& closest_slice_to_slice_level(
+            float slice_level, float max_epsilon = float(EPSILON)) const
+    {
+        auto it = closest_slice_record(m_slice_index, slice_level, max_epsilon);
+        if (it == m_slice_index.end()) return SliceRecord::EMPTY;
+        return *it;
     }
 
-    const ExPolygons& get_slices_from_record(SliceRecordConstIterator it,
-                                             SliceOrigin o) const;
-
-    const ExPolygons& get_slices_from_record(const _SliceRecord& rec,
-                                             SliceOrigin o) const;
+    // Get the actual slice polygons using a valid slice record.
+    const ExPolygons& get_slices_from_record(
+            const SliceRecord& rec, SliceOrigin o) const;
 protected:
     // to be called from SLAPrint only.
     friend class SLAPrint;
@@ -272,7 +269,7 @@ private:
 
     // Exact (float) height levels mapped to the slices. Each record contains
     // the index to the model and the support slice vectors.
-    std::vector<_SliceRecord>               m_slice_index;
+    std::vector<SliceRecord>                m_slice_index;
 
     std::vector<float>                      m_model_height_levels;
 
@@ -395,8 +392,14 @@ private:
 
     // One level may contain multiple slices from multiple objects and their
     // supports
-    using LayerRefs = std::vector<LayerRef>;
-    std::map<LevelID, LayerRefs>            m_printer_input;
+    struct LayerRefs {
+        coord_t level;
+        std::vector<LayerRef> refs;
+        bool operator<(const LayerRefs& other) const { return level < other.level; }
+        explicit LayerRefs(coord_t lvl) : level(lvl) {}
+    };
+
+    std::vector<LayerRefs>                  m_printer_input;
 
     // The printer itself
     SLAPrinterPtr                           m_printer;

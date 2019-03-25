@@ -624,7 +624,7 @@ void SLAPrint::process()
     double ilhd = m_material_config.initial_layer_height.getFloat();
     auto   ilh  = float(ilhd);
 
-    auto ilhs = LevelID(ilhd / SCALING_FACTOR);
+    auto ilhs = coord_t(ilhd / SCALING_FACTOR);
     const size_t objcount = m_objects.size();
 
     const unsigned min_objstatus = 0;   // where the per object operations start
@@ -652,24 +652,27 @@ void SLAPrint::process()
 
         double lhd  = m_objects.front()->m_config.layer_height.getFloat();
         float  lh   = float(lhd);
-        auto   lhs  = LevelID(lhd  / SCALING_FACTOR);
+        auto   lhs  = coord_t(lhd  / SCALING_FACTOR);
 
         auto&& bb3d = mesh.bounding_box();
         double minZ = bb3d.min(Z) - po.get_elevation();
         double maxZ = bb3d.max(Z);
 
-        auto minZs = LevelID(minZ / SCALING_FACTOR);
-        auto maxZs = LevelID(maxZ / SCALING_FACTOR);
+        auto minZs = coord_t(minZ / SCALING_FACTOR);
+        auto maxZs = coord_t(maxZ / SCALING_FACTOR);
 
         po.m_slice_index.clear();
         po.m_slice_index.reserve(size_t(maxZs - (minZs + ilhs) / lhs) + 1);
         po.m_slice_index.emplace_back(minZs + ilhs, float(minZ) + ilh / 2.f, ilh);
 
-        for(LevelID h = minZs + ilhs + lhs; h <= maxZs; h += lhs) {
+        for(coord_t h = minZs + ilhs + lhs; h <= maxZs; h += lhs) {
             po.m_slice_index.emplace_back(h, float(h*SCALING_FACTOR) - lh / 2.f, lh);
         }
 
-        auto slindex_it = po.search_slice_index(float(bb3d.min(Z)));
+        // Just get the first record that is form the model:
+        auto slindex_it = po.closest_slice_record(
+                    po.m_slice_index, float(bb3d.min(Z)),
+                    std::numeric_limits<float>::infinity());
 
         if(slindex_it == po.m_slice_index.end())
             throw std::runtime_error(L("Slicing had to be stopped "
@@ -908,33 +911,46 @@ void SLAPrint::process()
 
         // clear the rasterizer input
         m_printer_input.clear();
-        auto eps = LevelID(EPSILON / SCALING_FACTOR);
+
+        size_t mx = 0;
+        for(SLAPrintObject * o : m_objects) {
+            if(auto m = o->get_slice_index().size() > mx) mx = m;
+        }
+
+        m_printer_input.reserve(mx);
+
+        auto eps = coord_t(SCALED_EPSILON);
 
         for(SLAPrintObject * o : m_objects) {
-            LevelID gndlvl = o->get_slice_index().front().key() - ilhs;
+            coord_t gndlvl = o->get_slice_index().front().print_level() - ilhs;
 
             for(auto& slicerecord : o->get_slice_index()) {
-                LevelID lvlid = slicerecord.key() - gndlvl;
+                coord_t lvlid = slicerecord.print_level() - gndlvl;
 
                 // Neat trick to round the layer levels to the grid.
                 lvlid = eps * (lvlid / eps);
 
-                auto& lyrs = m_printer_input[slicerecord.key() - gndlvl];
+                auto it = std::lower_bound(m_printer_input.begin(),
+                                           m_printer_input.end(),
+                                           LayerRefs(lvlid));
+
+                if(it == m_printer_input.end() || it->level != lvlid)
+                    it = m_printer_input.insert(it, LayerRefs(lvlid));
+
+                auto& lyrs = *it;
 
                 const ExPolygons& objslices = o->get_slices_from_record(slicerecord, soModel);
                 const ExPolygons& supslices = o->get_slices_from_record(slicerecord, soSupport);
 
                 if(!objslices.empty())
-                    lyrs.emplace_back(objslices, o->instances());
+                    lyrs.refs.emplace_back(objslices, o->instances());
 
                 if(!supslices.empty())
-                    lyrs.emplace_back(supslices, o->instances());
+                    lyrs.refs.emplace_back(supslices, o->instances());
             }
         }
 
         // collect all the keys
-        std::vector<long long> keys; keys.reserve(m_printer_input.size());
-        for(auto& e : m_printer_input) keys.emplace_back(e.first);
 
         // If the raster has vertical orientation, we will flip the coordinates
         bool flpXY = m_printer_config.display_orientation.getInt() ==
@@ -977,17 +993,17 @@ void SLAPrint::process()
 
         // procedure to process one height level. This will run in parallel
         auto lvlfn =
-        [this, &slck, &keys, &printer, slot, sd, ist, &pst, flpXY]
+        [this, &slck, &printer, slot, sd, ist, &pst, flpXY]
             (unsigned level_id)
         {
             if(canceled()) return;
 
-            LayerRefs& lrange = m_printer_input[keys[level_id]];
+            LayerRefs& lrange = m_printer_input[level_id];
 
             // Switch to the appropriate layer in the printer
             printer.begin_layer(level_id);
 
-            for(auto& lyrref : lrange) { // for all layers in the current level
+            for(auto& lyrref : lrange.refs) { // for all layers in the current level
                 if(canceled()) break;
                 const Layer& sl = lyrref.lref;   // get the layer reference
                 const LayerCopies& copies = lyrref.copies;
@@ -1235,7 +1251,7 @@ void SLAPrint::fill_statistics()
 	size_t max_layers_cnt = 0;
     size_t highest_obj_idx = 0;
 	for (SLAPrintObject *&po : m_objects) {
-        const SLAPrintObject::SliceIndex& slice_index = po->get_slice_index();
+        auto& slice_index = po->get_slice_index();
         if (! slice_index.empty()) {
             float z = (-- slice_index.end())->slice_level();
             size_t cnt = slice_index.size();
@@ -1249,7 +1265,7 @@ void SLAPrint::fill_statistics()
     }
 
     const SLAPrintObject * highest_obj = m_objects[highest_obj_idx];
-    const SLAPrintObject::SliceIndex& highest_obj_slice_index = highest_obj->get_slice_index();
+    auto& highest_obj_slice_index = highest_obj->get_slice_index();
 
     const double delta_fade_time = (init_exp_time - exp_time) / (fade_layers_cnt + 1);
     double fade_layer_time = init_exp_time;
@@ -1257,7 +1273,7 @@ void SLAPrint::fill_statistics()
     int sliced_layer_cnt = 0;
     for (const auto& layer : highest_obj_slice_index)
     {
-        const double l_height = (layer.key() == highest_obj_slice_index.begin()->key()) ? init_layer_height : layer_height;
+        const double l_height = (layer.print_level() == highest_obj_slice_index.begin()->print_level()) ? init_layer_height : layer_height;
 
         // Calculation of the consumed material 
 
@@ -1266,13 +1282,12 @@ void SLAPrint::fill_statistics()
 
         for (SLAPrintObject * po : m_objects)
         {
-            const SLAPrintObject::_SliceRecord *record = nullptr;
+            const SliceRecord *record = nullptr;
             {
-                const SLAPrintObject::SliceIndex& index = po->get_slice_index();
-                auto it = po->search_slice_index(layer.slice_level() - float(EPSILON));
-                if (it == index.end() || it->slice_level() > layer.slice_level() + float(EPSILON))
+                const SliceRecord& slr = po->closest_slice_to_slice_level(layer.slice_level(), float(EPSILON));
+                if (!slr.is_valid())
                     continue;
-                record = &(*it);
+                record = &slr;
             }
 
             const ExPolygons &modelslices = po->get_slices_from_record(*record, soModel);
@@ -1486,75 +1501,11 @@ const TriangleMesh EMPTY_MESH;
 const ExPolygons EMPTY_SLICE;
 }
 
+const SliceRecord SliceRecord::EMPTY(0, std::nanf(""), 0.f);
+
 const std::vector<sla::SupportPoint>& SLAPrintObject::get_support_points() const
 {
     return m_supportdata->support_points;
-}
-
-SLAPrintObject::SliceIndex::iterator
-SLAPrintObject::search_slice_index(float slice_level)
-{
-    _SliceRecord query(0, slice_level, 0);
-    auto it = std::lower_bound(m_slice_index.begin(), m_slice_index.end(),
-                               query,
-                               [](const _SliceRecord& r1, const _SliceRecord& r2)
-    {
-        return r1.slice_level() < r2.slice_level();
-    });
-
-    return it;
-}
-
-SLAPrintObject::SliceIndex::const_iterator
-SLAPrintObject::search_slice_index(float slice_level) const
-{
-    _SliceRecord query(0, slice_level, 0);
-    auto it = std::lower_bound(m_slice_index.cbegin(), m_slice_index.cend(),
-                               query,
-                               [](const _SliceRecord& r1, const _SliceRecord& r2)
-    {
-        return r1.slice_level() < r2.slice_level();
-    });
-
-    return it;
-}
-
-SLAPrintObject::SliceIndex::iterator
-SLAPrintObject::search_slice_index(SLAPrintObject::_SliceRecord::Key key,
-                                   bool exact)
-{
-    _SliceRecord query(key, 0.f, 0.f);
-    auto it = std::lower_bound(m_slice_index.begin(), m_slice_index.end(),
-                               query,
-                               [](const _SliceRecord& r1, const _SliceRecord& r2)
-    {
-        return r1.key() < r2.key();
-    });
-
-    // Return valid iterator only if the keys really match
-    if(exact && it != m_slice_index.end() && it->key() != key)
-        it = m_slice_index.end();
-
-    return it;
-}
-
-SLAPrintObject::SliceIndex::const_iterator
-SLAPrintObject::search_slice_index(SLAPrintObject::_SliceRecord::Key key,
-                                   bool exact) const
-{
-    _SliceRecord query(key, 0.f, 0.f);
-    auto it = std::lower_bound(m_slice_index.cbegin(), m_slice_index.cend(),
-                               query,
-                               [](const _SliceRecord& r1, const _SliceRecord& r2)
-    {
-        return r1.key() < r2.key();
-    });
-
-    // Return valid iterator only if the keys really match
-    if(exact && it != m_slice_index.end() && it->key() != key)
-        it = m_slice_index.end();
-
-    return it;
 }
 
 const std::vector<ExPolygons> &SLAPrintObject::get_support_slices() const
@@ -1565,7 +1516,7 @@ const std::vector<ExPolygons> &SLAPrintObject::get_support_slices() const
 }
 
 const ExPolygons &SLAPrintObject::get_slices_from_record(
-        const _SliceRecord &rec,
+        const SliceRecord &rec,
         SliceOrigin o) const
 {
     size_t idx = o == soModel ? rec.get_model_slice_idx() :
@@ -1579,15 +1530,7 @@ const ExPolygons &SLAPrintObject::get_slices_from_record(
     return idx >= v.size() ? EMPTY_SLICE : v[idx];
 }
 
-const ExPolygons &SLAPrintObject::get_slices_from_record(
-        SLAPrintObject::SliceRecordConstIterator it, SliceOrigin o) const
-{
-    if(it.is_end()) return EMPTY_SLICE;
-    return get_slices_from_record(*it, o);
-}
-
-const std::vector<SLAPrintObject::_SliceRecord>&
-SLAPrintObject::get_slice_index() const
+const std::vector<SliceRecord> & SLAPrintObject::get_slice_index() const
 {
     // assert(is_step_done(slaposIndexSlices));
     return m_slice_index;

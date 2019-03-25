@@ -5009,19 +5009,20 @@ void GLCanvas3D::_render_sla_slices() const
 			instance_transforms.push_back({ to_3d(unscale(inst.shift), 0.), Geometry::rad2deg(inst.rotation) });
         }
 
-        if ((bottom_obj_triangles.empty() || bottom_sup_triangles.empty() || top_obj_triangles.empty() || top_sup_triangles.empty()) && obj->is_step_done(slaposIndexSlices))
+        if ((bottom_obj_triangles.empty() || bottom_sup_triangles.empty() || top_obj_triangles.empty() || top_sup_triangles.empty()) &&
+            obj->is_step_done(slaposIndexSlices) && !obj->get_slice_index().empty())
         {
             double initial_layer_height = print->material_config().initial_layer_height.value;
-            LevelID key_zero = obj->get_slice_records().begin()->key();
-			LevelID key_low  = LevelID((clip_min_z - initial_layer_height) / SCALING_FACTOR) + key_zero;
-			LevelID key_high = LevelID((clip_max_z - initial_layer_height) / SCALING_FACTOR) + key_zero;
-			auto slice_range = obj->get_slice_records(key_low - LevelID(SCALED_EPSILON), key_high - LevelID(SCALED_EPSILON));
-            auto it_low  = slice_range.begin();
-            auto it_high = std::prev(slice_range.end());
+            coord_t key_zero = obj->get_slice_index().front().print_level();
+			coord_t key_low  = coord_t((clip_min_z - initial_layer_height) / SCALING_FACTOR) + key_zero;
+            coord_t key_high = coord_t((clip_max_z - initial_layer_height) / SCALING_FACTOR) + key_zero;
+
+            SliceRecord slice_low = obj->closest_slice_to_print_level(key_low, coord_t(SCALED_EPSILON));
+            SliceRecord slice_high = obj->closest_slice_to_print_level(key_high, coord_t(SCALED_EPSILON));
     
-            if (! it_low.is_end() && it_low->key() < key_low + LevelID(SCALED_EPSILON)) {
-                const ExPolygons& obj_bottom = obj->get_slices_from_record(it_low, soModel);
-                const ExPolygons& sup_bottom = obj->get_slices_from_record(it_low, soSupport);
+            if (! slice_low.is_valid()) {
+                const ExPolygons& obj_bottom = obj->get_slices_from_record(slice_low, soModel);
+                const ExPolygons& sup_bottom = obj->get_slices_from_record(slice_low, soSupport);
                 // calculate model bottom cap
                 if (bottom_obj_triangles.empty() && !obj_bottom.empty())
                     bottom_obj_triangles = triangulate_expolygons_3d(obj_bottom, clip_min_z, true);
@@ -5030,9 +5031,9 @@ void GLCanvas3D::_render_sla_slices() const
                     bottom_sup_triangles = triangulate_expolygons_3d(sup_bottom, clip_min_z, true);
             }
 
-            if (! it_high.is_end() && it_high->key() < key_high + LevelID(SCALED_EPSILON)) {
-                const ExPolygons& obj_top = obj->get_slices_from_record(it_high, soModel);
-                const ExPolygons& sup_top = obj->get_slices_from_record(it_high, soSupport);
+            if (! slice_high.is_valid()) {
+                const ExPolygons& obj_top = obj->get_slices_from_record(slice_high, soModel);
+                const ExPolygons& sup_top = obj->get_slices_from_record(slice_high, soSupport);
                 // calculate model top cap
                 if (top_obj_triangles.empty() && !obj_top.empty())
                     top_obj_triangles = triangulate_expolygons_3d(obj_top, clip_max_z, false);
