@@ -175,6 +175,11 @@ struct AMFParserContext
         bool  mirrory_set;
         float mirrorz;
         bool  mirrorz_set;
+
+        bool anything_set() const { return deltax_set || deltay_set || deltaz_set ||
+                                           rx_set || ry_set || rz_set ||
+                                           scalex_set || scaley_set || scalez_set ||
+                                           mirrorx_set || mirrory_set || mirrorz_set; }
     };
 
     struct Object {
@@ -644,11 +649,7 @@ void AMFParserContext::endDocument()
             continue;
         }
         for (const Instance &instance : object.second.instances)
-#if ENABLE_VOLUMES_CENTERING_FIXES
-        {
-#else
-            if (instance.deltax_set && instance.deltay_set) {
-#endif // ENABLE_VOLUMES_CENTERING_FIXES
+            if (instance.anything_set()) {
                 ModelInstance *mi = m_model.objects[object.second.idx]->add_instance();
                 mi->set_offset(Vec3d(instance.deltax_set ? (double)instance.deltax : 0.0, instance.deltay_set ? (double)instance.deltay : 0.0, instance.deltaz_set ? (double)instance.deltaz : 0.0));
                 mi->set_rotation(Vec3d(instance.rx_set ? (double)instance.rx : 0.0, instance.ry_set ? (double)instance.ry : 0.0, instance.rz_set ? (double)instance.rz : 0.0));

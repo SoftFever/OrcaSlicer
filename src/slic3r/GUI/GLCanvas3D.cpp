@@ -2293,11 +2293,13 @@ int GLCanvas3D::check_volumes_outside_state() const
     return (int)state;
 }
 
-void GLCanvas3D::toggle_sla_auxiliaries_visibility(bool visible)
+void GLCanvas3D::toggle_sla_auxiliaries_visibility(bool visible, const ModelObject* mo, int instance_idx)
 {
     for (GLVolume* vol : m_volumes.volumes) {
-        if (vol->composite_id.volume_id < 0)
-             vol->is_active = visible;
+        if ((mo == nullptr || m_model->objects[vol->composite_id.object_id] == mo)
+        && (instance_idx == -1 || vol->composite_id.instance_id == instance_idx)
+        && vol->composite_id.volume_id < 0)
+            vol->is_active = visible;
     }
 
     m_render_sla_auxiliaries = visible;
@@ -2313,7 +2315,7 @@ void GLCanvas3D::toggle_model_objects_visibility(bool visible, const ModelObject
         }
     }
     if (visible && !mo)
-        toggle_sla_auxiliaries_visibility(true);
+        toggle_sla_auxiliaries_visibility(true, mo, instance_idx);
 
     if (!mo && !visible && !m_model->objects.empty() && (m_model->objects.size() > 1 || m_model->objects.front()->instances.size() > 1))
         _set_warning_texture(WarningTexture::SomethingNotShown, true);
@@ -4971,24 +4973,20 @@ void GLCanvas3D::_render_sla_slices() const
     {
         const SLAPrintObject* obj = print_objects[i];
 
-        double shift_z = obj->get_current_elevation();
-        double min_z = clip_min_z - shift_z;
-        double max_z = clip_max_z - shift_z;
-
         SlaCap::ObjectIdToTrianglesMap::iterator it_caps_bottom = m_sla_caps[0].triangles.find(i);
         SlaCap::ObjectIdToTrianglesMap::iterator it_caps_top    = m_sla_caps[1].triangles.find(i);
         {
 			if (it_caps_bottom == m_sla_caps[0].triangles.end())
 				it_caps_bottom = m_sla_caps[0].triangles.emplace(i, SlaCap::Triangles()).first;
-            if (! m_sla_caps[0].matches(min_z)) {
-				m_sla_caps[0].z = min_z;
+            if (! m_sla_caps[0].matches(clip_min_z)) {
+				m_sla_caps[0].z = clip_min_z;
                 it_caps_bottom->second.object.clear();
                 it_caps_bottom->second.supports.clear();
             }
             if (it_caps_top == m_sla_caps[1].triangles.end())
 				it_caps_top = m_sla_caps[1].triangles.emplace(i, SlaCap::Triangles()).first;
-            if (! m_sla_caps[1].matches(max_z)) {
-				m_sla_caps[1].z = max_z;
+            if (! m_sla_caps[1].matches(clip_max_z)) {
+				m_sla_caps[1].z = clip_max_z;
                 it_caps_top->second.object.clear();
                 it_caps_top->second.supports.clear();
             }
@@ -5008,36 +5006,39 @@ void GLCanvas3D::_render_sla_slices() const
         std::vector<InstanceTransform> instance_transforms;
         for (const SLAPrintObject::Instance& inst : instances)
         {
-            instance_transforms.push_back({ to_3d(unscale(inst.shift), shift_z), Geometry::rad2deg(inst.rotation) });
+			instance_transforms.push_back({ to_3d(unscale(inst.shift), 0.), Geometry::rad2deg(inst.rotation) });
         }
 
         if ((bottom_obj_triangles.empty() || bottom_sup_triangles.empty() || top_obj_triangles.empty() || top_sup_triangles.empty()) && obj->is_step_done(slaposIndexSlices))
         {
-            const std::vector<ExPolygons>& model_slices = obj->get_model_slices();
-            const std::vector<ExPolygons>& support_slices = obj->get_support_slices();
-
-            const SLAPrintObject::SliceIndex& index = obj->get_slice_index();
-            SLAPrintObject::SliceIndex::const_iterator it_min_z = std::find_if(index.begin(), index.end(), [min_z](const SLAPrintObject::SliceIndex::value_type& id) -> bool { return std::abs(min_z - id.first) < EPSILON; });
-            SLAPrintObject::SliceIndex::const_iterator it_max_z = std::find_if(index.begin(), index.end(), [max_z](const SLAPrintObject::SliceIndex::value_type& id) -> bool { return std::abs(max_z - id.first) < EPSILON; });
-
-            if (it_min_z != index.end())
-            {
+            double initial_layer_height = print->material_config().initial_layer_height.value;
+            LevelID key_zero = obj->get_slice_records().begin()->key();
+			LevelID key_low  = LevelID((clip_min_z - initial_layer_height) / SCALING_FACTOR) + key_zero;
+			LevelID key_high = LevelID((clip_max_z - initial_layer_height) / SCALING_FACTOR) + key_zero;
+			auto slice_range = obj->get_slice_records(key_low - LevelID(SCALED_EPSILON), key_high - LevelID(SCALED_EPSILON));
+            auto it_low  = slice_range.begin();
+            auto it_high = std::prev(slice_range.end());
+    
+            if (! it_low.is_end() && it_low->key() < key_low + LevelID(SCALED_EPSILON)) {
+                const ExPolygons& obj_bottom = obj->get_slices_from_record(it_low, soModel);
+                const ExPolygons& sup_bottom = obj->get_slices_from_record(it_low, soSupport);
                 // calculate model bottom cap
-                if (bottom_obj_triangles.empty() && (it_min_z->second.model_slices_idx < model_slices.size()))
-                    bottom_obj_triangles = triangulate_expolygons_3d(model_slices[it_min_z->second.model_slices_idx], min_z, true);
+                if (bottom_obj_triangles.empty() && !obj_bottom.empty())
+                    bottom_obj_triangles = triangulate_expolygons_3d(obj_bottom, clip_min_z, true);
                 // calculate support bottom cap
-                if (bottom_sup_triangles.empty() && (it_min_z->second.support_slices_idx < support_slices.size()))
-                    bottom_sup_triangles = triangulate_expolygons_3d(support_slices[it_min_z->second.support_slices_idx], min_z, true);
+                if (bottom_sup_triangles.empty() && !sup_bottom.empty())
+                    bottom_sup_triangles = triangulate_expolygons_3d(sup_bottom, clip_min_z, true);
             }
 
-            if (it_max_z != index.end())
-            {
+            if (! it_high.is_end() && it_high->key() < key_high + LevelID(SCALED_EPSILON)) {
+                const ExPolygons& obj_top = obj->get_slices_from_record(it_high, soModel);
+                const ExPolygons& sup_top = obj->get_slices_from_record(it_high, soSupport);
                 // calculate model top cap
-                if (top_obj_triangles.empty() && (it_max_z->second.model_slices_idx < model_slices.size()))
-                    top_obj_triangles = triangulate_expolygons_3d(model_slices[it_max_z->second.model_slices_idx], max_z, false);
+                if (top_obj_triangles.empty() && !obj_top.empty())
+                    top_obj_triangles = triangulate_expolygons_3d(obj_top, clip_max_z, false);
                 // calculate support top cap
-                if (top_sup_triangles.empty() && (it_max_z->second.support_slices_idx < support_slices.size()))
-					top_sup_triangles = triangulate_expolygons_3d(support_slices[it_max_z->second.support_slices_idx], max_z, false);
+                if (top_sup_triangles.empty() && !sup_top.empty())
+                    top_sup_triangles = triangulate_expolygons_3d(sup_top, clip_max_z, false);
             }
         }
 

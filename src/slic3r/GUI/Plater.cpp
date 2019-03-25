@@ -327,8 +327,7 @@ void PresetComboBox::set_label_marker(int item, LabelItemType label_item_type)
 
 void PresetComboBox::check_selection()
 {
-    if (this->last_selected != GetSelection())
-        this->last_selected = GetSelection();
+    this->last_selected = GetSelection();
 }
 
 // Frequently changed parameters
@@ -829,10 +828,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
             preset_bundle.sla_materials.update_platter_ui(p->combo_sla_material);
         }
 		// Update the printer choosers, update the dirty flags.
-        auto prev_selection = p->combo_printer->GetSelection();
 		preset_bundle.printers.update_platter_ui(p->combo_printer);
-        if (prev_selection != p->combo_printer->GetSelection())
-            p->combo_printer->check_selection();
 		// Update the filament choosers to only contain the compatible presets, update the color preview,
 		// update the dirty flags.
         if (print_tech == ptFFF) {
@@ -1717,8 +1713,8 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
             object->center_around_origin();
             new_instances.emplace_back(object->add_instance());
 #else /* AUTOPLACEMENT_ON_LOAD */
-            // if object has no defined position(s) we need to rearrange everything after loading               object->center_around_origin();
-            need_arrange = true;                
+            // if object has no defined position(s) we need to rearrange everything after loading
+            need_arrange = true;
              // add a default instance and center object around origin  
             object->center_around_origin();  // also aligns object to Z = 0 
             ModelInstance* instance = object->add_instance();   

@@ -988,6 +988,7 @@ void PresetCollection::update_platter_ui(GUI::PresetComboBox *ui)
 
 	ui->SetSelection(selected_preset_item);
 	ui->SetToolTip(ui->GetString(selected_preset_item));
+    ui->check_selection();
 	ui->Thaw();
 }
 
