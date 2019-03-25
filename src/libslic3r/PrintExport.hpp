@@ -114,14 +114,14 @@ public:
 template<> class FilePrinter<FilePrinterFormat::SLA_PNGZIP>
 {
     struct Layer {
-        Raster first;
-        RawBytes second;
+        Raster raster;
+        RawBytes rawbytes;
 
         Layer() {}
 
         Layer(const Layer&) = delete;
         Layer(Layer&& m):
-            first(std::move(m.first))/*, second(std::move(m.second))*/ {}
+            raster(std::move(m.raster)) {}
     };
 
     // We will save the compressed PNG data into stringstreams which can be done
@@ -139,14 +139,11 @@ template<> class FilePrinter<FilePrinterFormat::SLA_PNGZIP>
     int    m_cnt_fast_layers = 0;
 
     std::string createIniContent(const std::string& projectname) {
-//         double layer_height = m_layer_height;
-
         using std::string;
         using std::to_string;
 
         auto expt_str = to_string(m_exp_time_s);
         auto expt_first_str = to_string(m_exp_time_first_s);
-//         auto stepnum_str = to_string(static_cast<unsigned>(800*layer_height));
         auto layerh_str = to_string(m_layer_height);
 
         const std::string cnt_fade_layers = to_string(m_cnt_fade_layers);
@@ -215,31 +212,31 @@ public:
 
     inline void draw_polygon(const ExPolygon& p, unsigned lyr) {
         assert(lyr < m_layers_rst.size());
-        m_layers_rst[lyr].first.draw(p);
+        m_layers_rst[lyr].raster.draw(p);
     }
 
     inline void begin_layer(unsigned lyr) {
         if(m_layers_rst.size() <= lyr) m_layers_rst.resize(lyr+1);
-        m_layers_rst[lyr].first.reset(m_res, m_pxdim, m_o);
+        m_layers_rst[lyr].raster.reset(m_res, m_pxdim, m_o);
     }
 
     inline void begin_layer() {
         m_layers_rst.emplace_back();
-        m_layers_rst.front().first.reset(m_res, m_pxdim, m_o);
+        m_layers_rst.front().raster.reset(m_res, m_pxdim, m_o);
     }
 
     inline void finish_layer(unsigned lyr_id) {
         assert(lyr_id < m_layers_rst.size());
-        m_layers_rst[lyr_id].second =
-                m_layers_rst[lyr_id].first.save(Raster::Compression::PNG);
-        m_layers_rst[lyr_id].first.reset();
+        m_layers_rst[lyr_id].rawbytes =
+                m_layers_rst[lyr_id].raster.save(Raster::Compression::PNG);
+        m_layers_rst[lyr_id].raster.reset();
     }
 
     inline void finish_layer() {
         if(!m_layers_rst.empty()) {
-            m_layers_rst.back().second =
-                    m_layers_rst.back().first.save(Raster::Compression::PNG);
-            m_layers_rst.back().first.reset();
+            m_layers_rst.back().rawbytes =
+                    m_layers_rst.back().raster.save(Raster::Compression::PNG);
+            m_layers_rst.back().raster.reset();
         }
     }
 
@@ -258,15 +255,15 @@ public:
 
             for(unsigned i = 0; i < m_layers_rst.size() && writer.is_ok(); i++)
             {
-                if(m_layers_rst[i].second.size > 0) {
+                if(m_layers_rst[i].rawbytes.size() > 0) {
                     char lyrnum[6];
                     std::sprintf(lyrnum, "%.5d", i);
                     auto zfilename = project + lyrnum + ".png";
                     if(!writer.is_ok()) break;
 
                     writer.binary_entry(zfilename,
-                                        m_layers_rst[i].second.buffer.get(),
-                                        m_layers_rst[i].second.size);
+                                        m_layers_rst[i].rawbytes.data(),
+                                        m_layers_rst[i].rawbytes.size());
                 }
             }
         } catch(std::exception& e) {
@@ -286,13 +283,13 @@ public:
 
         std::fstream out(loc, std::fstream::out | std::fstream::binary);
         if(out.good()) {
-            m_layers_rst[i].first.save(out, Raster::Compression::PNG);
+            m_layers_rst[i].raster.save(out, Raster::Compression::PNG);
         } else {
             BOOST_LOG_TRIVIAL(error) << "Can't create file for layer";
         }
 
         out.close();
-        m_layers_rst[i].first.reset();
+        m_layers_rst[i].raster.reset();
     }
 
     void set_statistics(const std::vector<double> statistics)

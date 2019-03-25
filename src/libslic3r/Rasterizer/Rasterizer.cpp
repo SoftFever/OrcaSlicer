@@ -213,7 +213,7 @@ RawBytes Raster::save(Raster::Compression comp)
 {
     assert(m_impl);
 
-    RawBytes ret;
+    std::uint8_t *ptr = nullptr; size_t s = 0;
 
     switch(comp) {
     case Compression::PNG: {
@@ -221,11 +221,11 @@ RawBytes Raster::save(Raster::Compression comp)
         void *rawdata = tdefl_write_image_to_png_file_in_memory(
                     m_impl->buffer().data(),
                     int(resolution().width_px),
-                    int(resolution().height_px), 1, &ret.size);
+                    int(resolution().height_px), 1, &s);
 
         if(rawdata == nullptr) break;
 
-        ret.buffer.reset(static_cast<std::uint8_t*>(rawdata));
+        ptr = static_cast<std::uint8_t*>(rawdata);
 
         break;
     }
@@ -236,14 +236,15 @@ RawBytes Raster::save(Raster::Compression comp)
 
         auto sz = m_impl->buffer().size()*sizeof(Impl::TBuffer::value_type);
 
-        ret.buffer.reset(new std::uint8_t[sz + header.size()]);
+        s = sz + header.size();
+        ptr = static_cast<std::uint8_t*>(MZ_MALLOC(s));
 
         auto buff = reinterpret_cast<std::uint8_t*>(m_impl->buffer().data());
-        std::copy(buff, buff+sz, ret.buffer.get() + header.size());
+        std::copy(buff, buff+sz, ptr + header.size());
     }
     }
 
-    return std::move(ret);
+    return {ptr, s};
 }
 
 void RawBytes::MinzDeleter::operator()(uint8_t *rawptr)
