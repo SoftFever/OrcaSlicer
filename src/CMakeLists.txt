@@ -92,16 +92,13 @@ endif ()
 
 # Add the Slic3r GUI library, libcurl, OpenGL and GLU libraries.
 if (SLIC3R_GUI)
+    target_link_libraries(slic3r  libslic3r_gui ${wxWidgets_LIBRARIES})
 
-    # FIXME: Workaround for missing zlib (still needed by libgio despite wxzlib being present)
-    find_package(ZLIB REQUIRED)
-
-    target_link_libraries(slic3r  libslic3r_gui ${wxWidgets_LIBRARIES} ${ZLIB_LIBRARIES})
-
-    # Configure libcurl & OpenSSL
+    # Configure libcurl and its dependencies OpenSSL & zlib
     find_package(CURL REQUIRED)
+    find_package(ZLIB REQUIRED)
     target_include_directories(slic3r PRIVATE ${CURL_INCLUDE_DIRS})
-    target_link_libraries(slic3r CURL::libcurl)
+    target_link_libraries(slic3r ${CURL_LIBRARIES} ${ZLIB_LIBRARIES})
     if (SLIC3R_STATIC)
         if (NOT APPLE)
             # libcurl is always linked dynamically to the system libcurl on OSX.
