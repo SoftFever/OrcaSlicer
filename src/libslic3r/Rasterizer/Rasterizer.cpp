@@ -247,7 +247,7 @@ RawBytes Raster::save(Raster::Compression comp)
     }
     }
 
-    return ret;
+    return std::move(ret);
 }
 
 }
