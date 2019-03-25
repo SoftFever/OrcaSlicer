@@ -612,46 +612,41 @@ void GLGizmoSlaSupports::update_cache_entry_normal(unsigned int i) const
 
 
 
-std::pair<float, float> GLGizmoSlaSupports::get_sla_clipping_plane() const
+GLCanvas3D::ClippingPlane GLGizmoSlaSupports::get_sla_clipping_plane() const
 {
     if (!m_model_object)
-        return std::make_pair(0.f, 0.f);;
+        throw std::invalid_argument("GLGizmoSlaSupports::get_sla_clipping_plane() has no model object pointer.");
 
     Eigen::Matrix<GLdouble, 4, 4, Eigen::DontAlign> modelview_matrix;
     ::glGetDoublev(GL_MODELVIEW_MATRIX, modelview_matrix.data());
 
-    // clipping space origin transformed to world coords:
-    Vec3d clipping_origin = (modelview_matrix.inverse() * Eigen::Matrix<GLdouble, 4, 1, Eigen::DontAlign>{0, 0, 0, 1}).block<3,1>(0,0);
-
     // we'll recover current look direction from the modelview matrix (in world coords):
     Vec3d direction_to_camera(modelview_matrix.data()[2], modelview_matrix.data()[6], modelview_matrix.data()[10]);
-    float dist = direction_to_camera.dot(clipping_origin) - direction_to_camera.dot(m_active_instance_bb.center());
+    float dist = direction_to_camera.dot(m_active_instance_bb.center());
 
-    return std::make_pair((dist - m_active_instance_bb.radius()) + m_clipping_plane_distance * 2*m_active_instance_bb.radius(), dist + 5.f*m_active_instance_bb.radius());
+    return GLCanvas3D::ClippingPlane(-direction_to_camera.normalized(),(dist - (-m_active_instance_bb.radius()) - m_clipping_plane_distance * 2*m_active_instance_bb.radius()));
 }
 
 
 /*
-void GLGizmoSlaSupports::find_intersections(const igl::AABB<Eigen::MatrixXf, 3>* aabb, const Vec3f& normal, double offset, std::vector<IntersectionLine>& idxs) const
+void GLGizmoSlaSupports::find_intersecting_facets(const igl::AABB<Eigen::MatrixXf, 3>* aabb, const Vec3f& normal, double offset, std::vector<unsigned int>& idxs) const
 {
     if (aabb->is_leaf()) { // this is a facet
         // corner.dot(normal) - offset
-        unsigned int facet_idx = aabb->m_primitive;
-
-        Vec3f a = m_V.row(m_F(facet_idx, 0));
-        Vec3f b = m_V.row(m_F(facet_idx, 1));
-        Vec3f c = m_V.row(m_F(facet_idx, 2));
+        idxs.push_back(aabb->m_primitive);
     }
     else { // not a leaf
     using CornerType = Eigen::AlignedBox<float, 3>::CornerType;
         bool sign = std::signbit(offset - normal.dot(aabb->m_box.corner(CornerType(0))));
         for (unsigned int i=1; i<8; ++i)
             if (std::signbit(offset - normal.dot(aabb->m_box.corner(CornerType(i)))) != sign) {
-                find_intersections(aabb->m_left, normal, offset, idxs);
-                find_intersections(aabb->m_right, normal, offset, idxs);
+                find_intersecting_facets(aabb->m_left, normal, offset, idxs);
+                find_intersecting_facets(aabb->m_right, normal, offset, idxs);
             }
     }
 }
+
+
 
 void GLGizmoSlaSupports::make_line_segments() const
 {

@@ -1319,16 +1319,16 @@ bool GLCanvas3D::Gizmos::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 
 
 
-std::pair<float, float> GLCanvas3D::Gizmos::get_sla_clipping_plane() const
+GLCanvas3D::ClippingPlane GLCanvas3D::Gizmos::get_sla_clipping_plane() const
 {
     if (!m_enabled)
-        return std::make_pair(0.f, 0.f);
+        return ClippingPlane();
 
     GizmosMap::const_iterator it = m_gizmos.find(SlaSupports);
     if (it != m_gizmos.end())
         return reinterpret_cast<GLGizmoSlaSupports*>(it->second)->get_sla_clipping_plane();
 
-    return std::make_pair(0.f, 0.f);;
+    return ClippingPlane();
 }
 
 
@@ -4706,19 +4706,17 @@ void GLCanvas3D::set_sla_clipping(bool enable) const
         return;
 
     if (enable) {
-        ::glMatrixMode(GL_PROJECTION);
-        ::glPushMatrix();
-        ::glMatrixMode(GL_MODELVIEW);
-        const Size& cnv_size = get_canvas_size();
-        std::pair<float, float> clipping_limits = m_gizmos.get_sla_clipping_plane();
-        set_ortho_projection((unsigned int)cnv_size.get_width(), (unsigned int)cnv_size.get_height(), clipping_limits.first, clipping_limits.second);
+        ClippingPlane gizmo_clipping_plane;
+        try {
+            gizmo_clipping_plane = m_gizmos.get_sla_clipping_plane();
+        }
+        catch (...) { return; }
+
+        ::glClipPlane(GL_CLIP_PLANE0, (GLdouble*)gizmo_clipping_plane.get_data());
+        ::glEnable(GL_CLIP_PLANE0);
     }
-    else {
-        ::glMatrixMode(GL_PROJECTION);
-        ::glPopMatrix();
-        ::glMatrixMode(GL_MODELVIEW);
-        ::glClear(GL_DEPTH_BUFFER_BIT);
-    }
+    else
+        ::glDisable(GL_CLIP_PLANE0);
 }
 
 
@@ -4774,10 +4772,10 @@ void GLCanvas3D::_render_objects() const
     {
         if (m_use_clipping_planes)
         {
-            ::glClipPlane(GL_CLIP_PLANE0, (GLdouble*)m_clipping_planes[0].get_data());
-            ::glEnable(GL_CLIP_PLANE0);
-            ::glClipPlane(GL_CLIP_PLANE1, (GLdouble*)m_clipping_planes[1].get_data());
+            ::glClipPlane(GL_CLIP_PLANE1, (GLdouble*)m_clipping_planes[0].get_data());
             ::glEnable(GL_CLIP_PLANE1);
+            ::glClipPlane(GL_CLIP_PLANE2, (GLdouble*)m_clipping_planes[1].get_data());
+            ::glEnable(GL_CLIP_PLANE2);
         }
 
         // do not cull backfaces to show broken geometry, if any
@@ -4788,8 +4786,8 @@ void GLCanvas3D::_render_objects() const
 
         if (m_use_clipping_planes)
         {
-            ::glDisable(GL_CLIP_PLANE0);
             ::glDisable(GL_CLIP_PLANE1);
+            ::glDisable(GL_CLIP_PLANE2);
         }
     }
 

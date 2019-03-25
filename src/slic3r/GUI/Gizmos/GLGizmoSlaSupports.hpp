@@ -52,7 +52,7 @@ public:
     void set_sla_support_data(ModelObject* model_object, const Selection& selection);
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down);
     void delete_selected_points(bool force = false);
-    std::pair<float, float> get_sla_clipping_plane() const;
+    GLCanvas3D::ClippingPlane get_sla_clipping_plane() const;
 
 private:
     bool on_init();
@@ -87,6 +87,7 @@ private:
 
     std::vector<const ConfigOption*> get_config_options(const std::vector<std::string>& keys) const;
     bool is_point_clipped(const Vec3d& point, const Vec3d& direction_to_camera, float z_shift) const;
+    void find_intersecting_facets(const igl::AABB<Eigen::MatrixXf, 3>* aabb, const Vec3f& normal, double offset, std::vector<unsigned int>& out) const;
 
     // Methods that do the model_object and editing cache synchronization,
     // editing mode selection, etc:
