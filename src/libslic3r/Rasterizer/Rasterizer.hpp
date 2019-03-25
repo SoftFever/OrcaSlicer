@@ -4,6 +4,7 @@
 #include <ostream>
 #include <memory>
 #include <vector>
+#include <cstdint>
 
 namespace Slic3r {
 
@@ -13,6 +14,19 @@ class ExPolygon;
 struct RawBytes {
     std::unique_ptr<std::uint8_t> buffer = nullptr;
     size_t size = 0;
+
+    // FIXME: the following is needed for MSVC2013 compatibility
+    RawBytes() = default;
+
+    RawBytes(const RawBytes&) = delete;
+    RawBytes(RawBytes&& mv): buffer(std::move(mv.buffer)), size(mv.size) {}
+
+    RawBytes& operator=(const RawBytes&) = delete;
+    RawBytes& operator=(RawBytes&& mv) {
+        buffer.swap(mv.buffer);
+        size = mv.size;
+        return *this;
+    }
 };
 
 /**

@@ -1,8 +1,6 @@
 #include "Rasterizer.hpp"
 #include <ExPolygon.hpp>
 
-#include <cstdint>
-
 // For rasterizing
 #include <agg/agg_basics.h>
 #include <agg/agg_rendering_buffer.h>
@@ -16,8 +14,6 @@
 #include <agg/agg_path_storage.h>
 
 // Experimental minz image write:
-#include <miniz/miniz_tdef.h>
-
 #include <miniz/miniz_tdef.h>
 
 namespace Slic3r {
