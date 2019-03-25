@@ -10,6 +10,8 @@
 
 #include "I18N.hpp"
 
+#include <wx/wupdlock.h>
+
 namespace Slic3r
 {
 namespace GUI
@@ -40,7 +42,7 @@ void OG_Settings::Hide()
 void OG_Settings::UpdateAndShow(const bool show)
 {
     Show(show);
-//     m_parent->Layout();
+//    m_parent->Layout();
 }
 
 wxSizer* OG_Settings::get_sizer()
@@ -84,6 +86,7 @@ void ObjectSettings::update_settings_list()
 			btn->Bind(wxEVT_BUTTON, [opt_key, config, this](wxEvent &event) {
 				config->erase(opt_key);
                 wxTheApp->CallAfter([this]() { 
+                    wxWindowUpdateLocker noUpdates(m_parent);
                     update_settings_list(); 
                     m_parent->Layout(); 
                 });
@@ -119,7 +122,7 @@ void ObjectSettings::update_settings_list()
                 if (cat.second.size() == 1 && cat.second[0] == "extruder")
                     continue;
 
-                auto optgroup = std::make_shared<ConfigOptionsGroup>(m_parent, cat.first, config, false, extra_column);
+                auto optgroup = std::make_shared<ConfigOptionsGroup>(m_og->ctrl_parent(), cat.first, config, false, extra_column);
                 optgroup->label_width = 15 * wxGetApp().em_unit();//150;
                 optgroup->sidetext_width = 7 * wxGetApp().em_unit();//70;
 
