@@ -246,4 +246,9 @@ RawBytes Raster::save(Raster::Compression comp)
     return std::move(ret);
 }
 
+void RawBytes::MinzDeleter::operator()(uint8_t *rawptr)
+{
+    MZ_FREE(rawptr);
+}
+
 }

@@ -11,8 +11,14 @@ namespace Slic3r {
 class ExPolygon;
 
 // Raw byte buffer paired with its size. Suitable for compressed PNG data.
-struct RawBytes {
-    std::unique_ptr<std::uint8_t> buffer = nullptr;
+class RawBytes {
+    class MinzDeleter {
+    public:
+        void operator()(std::uint8_t *rawptr);
+    };
+public:
+
+    std::unique_ptr<std::uint8_t, MinzDeleter> buffer = nullptr;
     size_t size = 0;
 
     // FIXME: the following is needed for MSVC2013 compatibility
