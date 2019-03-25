@@ -2293,11 +2293,13 @@ int GLCanvas3D::check_volumes_outside_state() const
     return (int)state;
 }
 
-void GLCanvas3D::toggle_sla_auxiliaries_visibility(bool visible)
+void GLCanvas3D::toggle_sla_auxiliaries_visibility(bool visible, const ModelObject* mo, int instance_idx)
 {
     for (GLVolume* vol : m_volumes.volumes) {
-        if (vol->composite_id.volume_id < 0)
-             vol->is_active = visible;
+        if ((mo == nullptr || m_model->objects[vol->composite_id.object_id] == mo)
+        && (instance_idx == -1 || vol->composite_id.instance_id == instance_idx)
+        && vol->composite_id.volume_id < 0)
+            vol->is_active = visible;
     }
 
     m_render_sla_auxiliaries = visible;
@@ -2313,7 +2315,7 @@ void GLCanvas3D::toggle_model_objects_visibility(bool visible, const ModelObject
         }
     }
     if (visible && !mo)
-        toggle_sla_auxiliaries_visibility(true);
+        toggle_sla_auxiliaries_visibility(true, mo, instance_idx);
 
     if (!mo && !visible && !m_model->objects.empty() && (m_model->objects.size() > 1 || m_model->objects.front()->instances.size() > 1))
         _set_warning_texture(WarningTexture::SomethingNotShown, true);

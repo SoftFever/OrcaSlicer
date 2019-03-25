@@ -1713,8 +1713,8 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
             object->center_around_origin();
             new_instances.emplace_back(object->add_instance());
 #else /* AUTOPLACEMENT_ON_LOAD */
-            // if object has no defined position(s) we need to rearrange everything after loading               object->center_around_origin();
-            need_arrange = true;                
+            // if object has no defined position(s) we need to rearrange everything after loading
+            need_arrange = true;
              // add a default instance and center object around origin  
             object->center_around_origin();  // also aligns object to Z = 0 
             ModelInstance* instance = object->add_instance();   
