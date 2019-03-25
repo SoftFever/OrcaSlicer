@@ -10,7 +10,6 @@ ExternalProject_Add(dep_tbb
         -DTBB_BUILD_TESTS=OFF
         -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
         ${DEP_CMAKE_OPTS}
-    # INSTALL_COMMAND make install "DESTDIR=${DESTDIR}"
 )
 
 ExternalProject_Add(dep_gtest
@@ -18,7 +17,6 @@ ExternalProject_Add(dep_gtest
     URL "https://github.com/google/googletest/archive/release-1.8.1.tar.gz"
     URL_HASH SHA256=9bf1fe5182a604b4135edc1a425ae356c9ad15e9b23f9f12a02e80184c3a249c
     CMAKE_ARGS -DBUILD_GMOCK=OFF ${DEP_CMAKE_OPTS} -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
-    # INSTALL_COMMAND make install "DESTDIR=${DESTDIR}"
 )
 
 ExternalProject_Add(dep_nlopt
@@ -33,6 +31,4 @@ ExternalProject_Add(dep_nlopt
         -DNLOPT_GUILE=OFF
         -DCMAKE_INSTALL_PREFIX=${DESTDIR}/usr/local
         ${DEP_CMAKE_OPTS}
-    # INSTALL_COMMAND make install "DESTDIR=${DESTDIR}"
-    # INSTALL_COMMAND ""
 )

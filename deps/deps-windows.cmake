@@ -165,46 +165,6 @@ if (${DEP_DEBUG})
 endif ()
 
 
-ExternalProject_Add(dep_libpng
-    DEPENDS dep_zlib
-    EXCLUDE_FROM_ALL 1
-    URL "https://github.com/glennrp/libpng/archive/v1.6.36.tar.gz"
-    URL_HASH SHA256=5bef5a850a9255365a2dc344671b7e9ef810de491bd479c2506ac3c337e2d84f
-    CMAKE_GENERATOR "${DEP_MSVC_GEN}"
-    CMAKE_ARGS
-        -DPNG_SHARED=OFF
-        -DPNG_TESTS=OFF
-        -DSKIP_INSTALL_FILES=ON                                   # Prevent installation of man pages et al.
-        -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-        "-DCMAKE_INSTALL_PREFIX:PATH=${DESTDIR}\\usr\\local"
-    BUILD_COMMAND msbuild /P:Configuration=Release INSTALL.vcxproj
-    INSTALL_COMMAND ""
-)
-if (${DEP_DEBUG})
-    ExternalProject_Get_Property(dep_libpng BINARY_DIR)
-    ExternalProject_Add_Step(dep_libpng build_debug
-        DEPENDEES build
-        DEPENDERS install
-        COMMAND msbuild /P:Configuration=Debug INSTALL.vcxproj
-        WORKING_DIRECTORY "${BINARY_DIR}"
-    )
-endif ()
-# The following steps are unfortunately needed to remove the _static suffix on libraries
-# (And also overwrite the dynamic .lib)
-ExternalProject_Add_Step(dep_libpng fix_static
-    DEPENDEES install
-    COMMAND "${CMAKE_COMMAND}" -E rename libpng16_static.lib libpng16.lib
-    WORKING_DIRECTORY "${DESTDIR}\\usr\\local\\lib\\"
-)
-if (${DEP_DEBUG})
-    ExternalProject_Add_Step(dep_libpng fix_static_debug
-        DEPENDEES install
-        COMMAND "${CMAKE_COMMAND}" -E rename libpng16_staticd.lib libpng16d.lib
-        WORKING_DIRECTORY "${DESTDIR}\\usr\\local\\lib\\"
-    )
-endif ()
-
-
 if (${DEPS_BITS} EQUAL 32)
     set(DEP_LIBCURL_TARGET "x86")
 else ()

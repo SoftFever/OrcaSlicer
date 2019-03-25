@@ -87,20 +87,6 @@ ExternalProject_Add(dep_libcurl
     INSTALL_COMMAND make install "DESTDIR=${DESTDIR}"
 )
 
-ExternalProject_Add(dep_libpng
-    EXCLUDE_FROM_ALL 1
-    URL "https://github.com/glennrp/libpng/archive/v1.6.36.tar.gz"
-    URL_HASH SHA256=5bef5a850a9255365a2dc344671b7e9ef810de491bd479c2506ac3c337e2d84f
-    CMAKE_GENERATOR "${DEP_MSVC_GEN}"
-    CMAKE_ARGS
-        -DPNG_SHARED=OFF
-        -DPNG_TESTS=OFF
-        ${DEP_CMAKE_OPTS}
-    INSTALL_COMMAND make install "DESTDIR=${DESTDIR}"
-    INSTALL_COMMAND ""
-)
-
-
 ExternalProject_Add(dep_wxwidgets
     EXCLUDE_FROM_ALL 1
     URL "https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.2/wxWidgets-3.1.2.tar.bz2"
