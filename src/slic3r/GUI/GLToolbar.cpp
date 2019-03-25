@@ -157,9 +157,6 @@ GLToolbar::GLToolbar(GLToolbar::EType type)
 #if ENABLE_SVG_ICONS
     , m_icons_texture_dirty(true)
 #endif // ENABLE_SVG_ICONS
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//    , m_mouse_capture({ false, false, false, nullptr })
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     , m_tooltip("")
 {
 }
@@ -412,7 +409,6 @@ bool GLToolbar::on_mouse(wxMouseEvent& evt, GLCanvas3D& parent)
     bool processed = false;
 
     // mouse anywhere
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     if (!evt.Dragging() && !evt.Leaving() && !evt.Entering() && (m_mouse_capture.parent != nullptr))
     {
         if (m_mouse_capture.any() && (evt.LeftUp() || evt.MiddleUp() || evt.RightUp()))
@@ -421,64 +417,10 @@ bool GLToolbar::on_mouse(wxMouseEvent& evt, GLCanvas3D& parent)
             processed = true;
 
         m_mouse_capture.reset();
-
-
-        std::cout << "Dragging restored by toolbar [";
-        if (evt.Entering())
-            std::cout << "Entering";
-        else if (evt.Leaving())
-            std::cout << "Leaving";
-        else if (evt.Dragging())
-            std::cout << "Dragging";
-        else if (evt.Moving())
-            std::cout << "Moving";
-        else if (evt.Magnify())
-            std::cout << "Magnify";
-        else if (evt.LeftDown())
-            std::cout << "LeftDown";
-        else if (evt.LeftUp())
-            std::cout << "LeftUp";
-        else if (evt.LeftDClick())
-            std::cout << "LeftDClick";
-        else if (evt.MiddleDown())
-            std::cout << "MiddleDown";
-        else if (evt.MiddleUp())
-            std::cout << "MiddleUp";
-        else if (evt.MiddleDClick())
-            std::cout << "MiddleDClick";
-        else if (evt.RightDown())
-            std::cout << "RightDown";
-        else if (evt.RightUp())
-            std::cout << "RightUp";
-        else if (evt.RightDClick())
-            std::cout << "RightDClick";
-        else 
-            std::cout << "UNKNOWN ";
-        std::cout << "]" << std::endl;
     }
 
-
-//    if (evt.Moving() || evt.LeftDown() || evt.MiddleDown() || evt.RightDown() || evt.LeftDClick() || evt.RightDClick())
-//    {
-//        std::cout << m_name << " - " << (void*)m_mouse_capture.parent << std::endl;
-//        if ((m_mouse_capture.parent != nullptr) && (m_mouse_capture.parent != &parent))
-//        {
-//            m_mouse_capture.reset();
-//            std::cout << "Dragging restored by toolbar" << std::endl;
-//       }
-//    }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
     if (evt.Moving())
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//    {
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         m_tooltip = update_hover_state(mouse_pos, parent);
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//    if ((m_mouse_capture.parent != nullptr) && (m_mouse_capture.parent != &parent))
-//            m_mouse_capture.reset();
-//    }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     else if (evt.LeftUp())
         m_mouse_capture.left = false;
     else if (evt.MiddleUp())
@@ -486,15 +428,8 @@ bool GLToolbar::on_mouse(wxMouseEvent& evt, GLCanvas3D& parent)
     else if (evt.RightUp())
         m_mouse_capture.right = false;
     else if (evt.Dragging() && m_mouse_capture.any())
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    {
-        std::cout << "Dragging prevented by toolbar" << std::endl;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         // if the button down was done on this toolbar, prevent from dragging into the scene
         processed = true;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     int item_id = contains_mouse(mouse_pos, parent);
     if (item_id == -1)
