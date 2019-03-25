@@ -413,14 +413,60 @@ bool GLToolbar::on_mouse(wxMouseEvent& evt, GLCanvas3D& parent)
 
     // mouse anywhere
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    if (evt.Moving() || evt.LeftDown() || evt.MiddleDown() || evt.RightDown() || evt.LeftDClick() || evt.RightDClick())
+    if (!evt.Dragging() && !evt.Leaving() && !evt.Entering() && (m_mouse_capture.parent != nullptr))
     {
-        if ((m_mouse_capture.parent != nullptr) && (m_mouse_capture.parent != &parent))
-        {
-            m_mouse_capture.reset();
-            std::cout << "Dragging restored by toolbar" << std::endl;
-        }
+        if (m_mouse_capture.any() && (evt.LeftUp() || evt.MiddleUp() || evt.RightUp()))
+            // prevents loosing selection into the scene if mouse down was done inside the toolbar and mouse up was down outside it,
+            // as when switching between views
+            processed = true;
+
+        m_mouse_capture.reset();
+
+
+        std::cout << "Dragging restored by toolbar [";
+        if (evt.Entering())
+            std::cout << "Entering";
+        else if (evt.Leaving())
+            std::cout << "Leaving";
+        else if (evt.Dragging())
+            std::cout << "Dragging";
+        else if (evt.Moving())
+            std::cout << "Moving";
+        else if (evt.Magnify())
+            std::cout << "Magnify";
+        else if (evt.LeftDown())
+            std::cout << "LeftDown";
+        else if (evt.LeftUp())
+            std::cout << "LeftUp";
+        else if (evt.LeftDClick())
+            std::cout << "LeftDClick";
+        else if (evt.MiddleDown())
+            std::cout << "MiddleDown";
+        else if (evt.MiddleUp())
+            std::cout << "MiddleUp";
+        else if (evt.MiddleDClick())
+            std::cout << "MiddleDClick";
+        else if (evt.RightDown())
+            std::cout << "RightDown";
+        else if (evt.RightUp())
+            std::cout << "RightUp";
+        else if (evt.RightDClick())
+            std::cout << "RightDClick";
+        else 
+            std::cout << "UNKNOWN ";
+        std::cout << "]" << std::endl;
     }
+
+
+//    if (evt.Moving() || evt.LeftDown() || evt.MiddleDown() || evt.RightDown() || evt.LeftDClick() || evt.RightDClick())
+//    {
+//        std::cout << m_name << " - " << (void*)m_mouse_capture.parent << std::endl;
+//        if ((m_mouse_capture.parent != nullptr) && (m_mouse_capture.parent != &parent))
+//        {
+//            m_mouse_capture.reset();
+//            std::cout << "Dragging restored by toolbar" << std::endl;
+//       }
+//    }
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     if (evt.Moving())
@@ -444,6 +490,7 @@ bool GLToolbar::on_mouse(wxMouseEvent& evt, GLCanvas3D& parent)
     {
         std::cout << "Dragging prevented by toolbar" << std::endl;
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        // if the button down was done on this toolbar, prevent from dragging into the scene
         processed = true;
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     }
