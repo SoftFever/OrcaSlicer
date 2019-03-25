@@ -116,8 +116,6 @@ void GLGizmoScale3D::on_render(const Selection& selection) const
     Vec3d angles = Vec3d::Zero();
     Transform3d offsets_transform = Transform3d::Identity();
 
-    Vec3d grabber_size = Vec3d::Zero();
-
     if (single_instance)
     {
         // calculate bounding box in instance local reference system
@@ -135,7 +133,6 @@ void GLGizmoScale3D::on_render(const Selection& selection) const
         angles = v->get_instance_rotation();
         // consider rotation+mirror only components of the transform for offsets
         offsets_transform = Geometry::assemble_transform(Vec3d::Zero(), angles, Vec3d::Ones(), v->get_instance_mirror());
-        grabber_size = v->get_instance_transformation().get_matrix(true, true, false, true) * box.size();
     }
     else if (single_volume)
     {
@@ -145,13 +142,9 @@ void GLGizmoScale3D::on_render(const Selection& selection) const
         angles = Geometry::extract_euler_angles(transform);
         // consider rotation+mirror only components of the transform for offsets
         offsets_transform = Geometry::assemble_transform(Vec3d::Zero(), angles, Vec3d::Ones(), v->get_instance_mirror());
-        grabber_size = v->get_volume_transformation().get_matrix(true, true, false, true) * box.size();
     }
     else
-    {
         box = selection.get_bounding_box();
-        grabber_size = box.size();
-    }
 
     m_box = box;
 
@@ -196,7 +189,9 @@ void GLGizmoScale3D::on_render(const Selection& selection) const
 
     ::glLineWidth((m_hover_id != -1) ? 2.0f : 1.5f);
 
-    float grabber_mean_size = (float)(grabber_size(0) + grabber_size(1) + grabber_size(2)) / 3.0f;
+    const BoundingBoxf3& selection_box = selection.get_bounding_box();
+
+    float grabber_mean_size = (float)((selection_box.size()(0) + selection_box.size()(1) + selection_box.size()(2)) / 3.0);
 
     if (m_hover_id == -1)
     {
