@@ -1,5 +1,5 @@
 #include "Rasterizer.hpp"
-#include <ExPolygon.hpp>
+#include <Polygon.hpp>
 
 #include <cstdint>
 
@@ -72,21 +72,15 @@ public:
         clear();
     }
 
-    void draw(const ExPolygon &poly) {
+    void draw(const Polygon &poly) {
         agg::rasterizer_scanline_aa<> ras;
         agg::scanline_p8 scanlines;
 
-        auto&& path = to_path(poly.contour);
+        auto&& path = to_path(poly);
 
         if(m_o == Origin::TOP_LEFT) flipy(path);
 
         ras.add_path(path);
-
-        for(auto h : poly.holes) {
-            auto&& holepath = to_path(h);
-            if(m_o == Origin::TOP_LEFT) flipy(holepath);
-            ras.add_path(holepath);
-        }
 
         agg::render_scanlines(ras, scanlines, m_renderer);
     }
@@ -169,7 +163,7 @@ void Raster::clear()
     m_impl->clear();
 }
 
-void Raster::draw(const ExPolygon &poly)
+void Raster::draw(const Polygon &poly)
 {
     assert(m_impl);
     m_impl->draw(poly);

@@ -127,7 +127,7 @@ public:
 
         bool is_valid() const { return ! std::isnan(m_slice_z); }
 
-        const SLAPrintObject* print_obj() const { return m_po; }
+        const SLAPrintObject* print_obj() const { assert(m_po); return m_po; }
 
         // Methods for setting the indices into the slice vectors.
         void set_model_slice_idx(const SLAPrintObject &po, size_t id) {
@@ -328,6 +328,7 @@ class SLAPrint : public PrintBaseWithState<SLAPrintStep, slapsCount>
 private: // Prevents erroneous use by other classes.
     typedef PrintBaseWithState<SLAPrintStep, slapsCount> Inherited;
 
+    void fill_statistics();
 public:
 
     // An aggregation of SliceRecord-s from all the print objects for each
@@ -338,6 +339,14 @@ public:
 
         // The collection of slice records for the current level.
         std::vector<std::reference_wrapper<const SliceRecord>> m_slices;
+
+        Polygons m_transformed_slices;
+
+        template<class Container> void transformed_slices(Container&& c) {
+            m_transformed_slices = std::forward<Container>(c);
+        }
+
+        friend void SLAPrint::fill_statistics();
 
     public:
 
@@ -353,6 +362,10 @@ public:
         coord_t level() const { return m_level; }
 
         auto slices() const -> const decltype (m_slices)& { return m_slices; }
+
+        const Polygons& transformed_slices() const {
+            return m_transformed_slices;
+        }
     };
 
     SLAPrint(): m_stepmask(slapsCount, true) {}
@@ -398,8 +411,6 @@ private:
 
     // Invalidate steps based on a set of parameters changed.
     bool invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
-
-    void fill_statistics();
 
     SLAPrintConfig                  m_print_config;
     SLAPrinterConfig                m_printer_config;

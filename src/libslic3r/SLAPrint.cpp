@@ -915,19 +915,7 @@ void SLAPrint::process()
         report_status(*this, -2, "", SlicingStatus::RELOAD_SLA_PREVIEW);
     };
 
-    auto fillstats = [this]() {
-
-        m_print_statistics.clear();
-
-        // Fill statistics
-        fill_statistics();
-
-        report_status(*this, -2, "", SlicingStatus::RELOAD_SLA_PREVIEW);
-    };
-
-    // Rasterizing the model objects, and their supports
-    auto rasterize = [this, max_objstatus, ilhs]() {
-        if(canceled()) return;
+    auto fillstats = [this, ilhs]() {
 
         // clear the rasterizer input
         m_printer_input.clear();
@@ -961,6 +949,18 @@ void SLAPrint::process()
                 it->add(slicerecord);
             }
         }
+
+        m_print_statistics.clear();
+
+        // Fill statistics
+        fill_statistics();
+
+        report_status(*this, -2, "", SlicingStatus::RELOAD_SLA_PREVIEW);
+    };
+
+    // Rasterizing the model objects, and their supports
+    auto rasterize = [this, max_objstatus]() {
+        if(canceled()) return;
 
         // collect all the keys
 
@@ -1015,28 +1015,30 @@ void SLAPrint::process()
             // Switch to the appropriate layer in the printer
             printer.begin_layer(level_id);
 
-            using Instance = SLAPrintObject::Instance;
-
-            auto draw =
-                [&printer, flpXY, level_id](ExPolygon& poly, const Instance& tr)
-            {
-                poly.rotate(double(tr.rotation));
-                poly.translate(tr.shift(X), tr.shift(Y));
-                if(flpXY) swapXY(poly);
+            for(const Polygon& poly : printlayer.transformed_slices())
                 printer.draw_polygon(poly, level_id);
-            };
 
-            for(const SliceRecord& sr : printlayer.slices()) {
-                if(! sr.print_obj()) continue;
 
-                for(const Instance& inst : sr.print_obj()->instances()) {
-                    ExPolygons objsl = sr.get_slice(soModel);
-                    for(ExPolygon& poly : objsl) draw(poly, inst);
+//            auto draw =
+//                [&printer, flpXY, level_id](Polygon& poly, const Instance& tr)
+//            {
+//                poly.rotate(double(tr.rotation));
+//                poly.translate(tr.shift(X), tr.shift(Y));
+//                if(flpXY) for(auto& p : poly.points) std::swap(p(X), p(Y));
+//                printer.draw_polygon(poly, level_id);
+//            };
 
-                    ExPolygons supsl = sr.get_slice(soSupport);
-                    for(ExPolygon& poly : supsl) draw(poly, inst);
-                }
-            }
+//            for(const SliceRecord& sr : printlayer.slices()) {
+//                if(! sr.print_obj()) continue;
+
+//                for(const Instance& inst : sr.print_obj()->instances()) {
+//                    ExPolygons objsl = sr.get_slice(soModel);
+//                    for(ExPolygon& poly : objsl) draw(poly, inst);
+
+//                    ExPolygons supsl = sr.get_slice(soSupport);
+//                    for(ExPolygon& poly : supsl) draw(poly, inst);
+//                }
+//            }
 
             // Finish the layer for later saving it.
             printer.finish_layer(level_id);
@@ -1217,9 +1219,6 @@ bool SLAPrint::invalidate_state_by_config_options(const std::vector<t_config_opt
 
 void SLAPrint::fill_statistics()
 {
-    const double init_layer_height  = m_material_config.initial_layer_height.getFloat();
-    const double layer_height       = m_default_object_config.layer_height.getFloat();
-
     const double area_fill          = m_printer_config.area_fill.getFloat()*0.01;// 0.5 (50%);
     const double fast_tilt          = m_printer_config.fast_tilt_time.getFloat();// 5.0;
     const double slow_tilt          = m_printer_config.slow_tilt_time.getFloat();// 8.0;
@@ -1233,8 +1232,15 @@ void SLAPrint::fill_statistics()
     const double height             = m_printer_config.display_height.getFloat() / SCALING_FACTOR;
     const double display_area       = width*height;
 
+    // If the raster has vertical orientation, we will flip the coordinates
+    bool flpXY = m_printer_config.display_orientation.getInt() ==
+            SLADisplayOrientation::sladoPortrait;
+
     // get polygons for all instances in the object
-    auto get_all_polygons = [](const ExPolygons& input_polygons, const std::vector<SLAPrintObject::Instance>& instances) {
+    auto get_all_polygons =
+            [flpXY](const ExPolygons& input_polygons,
+                    const std::vector<SLAPrintObject::Instance>& instances)
+    {
         const size_t inst_cnt = instances.size();
 
         size_t polygon_cnt = 0;
@@ -1249,6 +1255,7 @@ void SLAPrint::fill_statistics()
                 ExPolygon tmp = polygon;
                 tmp.rotate(double(instances[i].rotation));
                 tmp.translate(instances[i].shift.x(), instances[i].shift.y());
+                if(flpXY) swapXY(tmp);
                 polygons_append(polygons, to_polygons(std::move(tmp)));
             }
         }
@@ -1263,55 +1270,30 @@ void SLAPrint::fill_statistics()
     size_t slow_layers = 0;
     size_t fast_layers = 0;
 
-    // find highest object
-    // Which is a better bet? To compare by max_z or by number of layers in the index?
-    // float max_z = 0.;
-	size_t max_layers_cnt = 0;
-    size_t highest_obj_idx = 0;
-	for (SLAPrintObject *&po : m_objects) {
-        auto& slice_index = po->get_slice_index();
-        if (! slice_index.empty()) {
-            // float z = (-- slice_index.end())->slice_level();
-            size_t cnt = slice_index.size();
-            //if (z > max_z) {
-            if (cnt > max_layers_cnt) {
-                max_layers_cnt = cnt;
-                // max_z = z;
-                highest_obj_idx = &po - &m_objects.front();
-            }
-        }
-    }
-
-    const SLAPrintObject * highest_obj = m_objects[highest_obj_idx];
-    auto& highest_obj_slice_index = highest_obj->get_slice_index();
-
     const double delta_fade_time = (init_exp_time - exp_time) / (fade_layers_cnt + 1);
     double fade_layer_time = init_exp_time;
 
     int sliced_layer_cnt = 0;
-    for (const SliceRecord& layer : highest_obj_slice_index)
+    for (PrintLayer& layer : m_printer_input)
     {
-        const auto l_height = double(layer.layer_height());
+        if(layer.slices().empty()) continue;
+
+        // Layer height should match for all object slices for a given level.
+        const auto l_height = double(layer.slices().front().get().layer_height());
 
         // Calculation of the consumed material 
 
         Polygons model_polygons;
         Polygons supports_polygons;
 
-        for (SLAPrintObject * po : m_objects)
-        {
-            const SliceRecord *record = nullptr;
-            {
-                const SliceRecord& slr = po->closest_slice_to_slice_level(layer.slice_level(), float(EPSILON));
-                if (!slr.is_valid()) continue;
-                record = &slr;
-            }
+        for(const SliceRecord& record : layer.slices()) {
+            const SLAPrintObject *po = record.print_obj();
 
-            const ExPolygons &modelslices = record->get_slice(soModel);
+            const ExPolygons &modelslices = record.get_slice(soModel);
             if (!modelslices.empty())
                 append(model_polygons, get_all_polygons(modelslices, po->instances()));
 
-            const ExPolygons &supportslices = record->get_slice(soSupport);
+            const ExPolygons &supportslices = record.get_slice(soSupport);
             if (!supportslices.empty())
                 append(supports_polygons, get_all_polygons(supportslices, po->instances()));
         }
@@ -1321,7 +1303,7 @@ void SLAPrint::fill_statistics()
         for (const Polygon& polygon : model_polygons)
             layer_model_area += polygon.area();
 
-        if (layer_model_area != 0)
+        if (layer_model_area < 0 || layer_model_area > 0)
             models_volume += layer_model_area * l_height;
 
         if (!supports_polygons.empty() && !model_polygons.empty())
@@ -1330,8 +1312,12 @@ void SLAPrint::fill_statistics()
         for (const Polygon& polygon : supports_polygons)
             layer_support_area += polygon.area();
 
-        if (layer_support_area != 0)
+        if (layer_support_area < 0 || layer_model_area > 0)
             supports_volume += layer_support_area * l_height;
+
+        // Here we can save the expensively calculated polygons for printing
+        append(model_polygons, supports_polygons);
+        layer.transformed_slices(union_(model_polygons));
 
         // Calculation of the slow and fast layers to the future controlling those values on FW
 
@@ -1365,7 +1351,7 @@ void SLAPrint::fill_statistics()
 
     // Estimated printing time
     // A layers count o the highest object 
-    if (max_layers_cnt == 0)
+    if (m_printer_input.size() == 0)
         m_print_statistics.estimated_print_time = "N/A";
     else
         m_print_statistics.estimated_print_time = get_time_dhms(float(estim_time));
