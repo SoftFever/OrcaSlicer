@@ -587,6 +587,15 @@ void swapXY(ExPolygon& expoly) {
 std::string SLAPrint::validate() const
 {
     for(SLAPrintObject * po : m_objects) {
+
+        const ModelObject *mo = po->model_object();
+
+        if(po->config().supports_enable.getBool() &&
+           mo->sla_points_status == sla::PointsStatus::UserModified &&
+           mo->sla_support_points.empty())
+            return L("Cannot proceed without support points! "
+                     "Add support points or disable support generation.");
+
         sla::SupportConfig cfg = make_support_cfg(po->config());
 
         double pinhead_width =
@@ -596,7 +605,7 @@ std::string SLAPrint::validate() const
                 cfg.head_penetration_mm;
 
         if(pinhead_width > cfg.object_elevation_mm)
-            return L("Elevetion is too low for object.");
+            return L("Elevation is too low for object.");
     }
 
     return "";
