@@ -48,14 +48,18 @@ public:
 
     wxButton* edit_btn { nullptr };
 
-    void set_label_marker(int item);
+	enum LabelItemType {
+		LABEL_ITEM_MARKER = 0x4d,
+		LABEL_ITEM_CONFIG_WIZARD = 0x4e
+	};
+
+    void set_label_marker(int item, LabelItemType label_item_type = LABEL_ITEM_MARKER);
     void set_extruder_idx(const int extr_idx)   { extruder_idx = extr_idx; }
     int  get_extruder_idx() const               { return extruder_idx; }
     void check_selection();
 
 private:
     typedef std::size_t Marker;
-    enum { LABEL_ITEM_MARKER = 0x4d };
 
     Preset::Type preset_type;
     int last_selected;

@@ -430,6 +430,9 @@ private:
     bool m_regenerate_volumes;
     bool m_moving;
     bool m_tab_down;
+
+    // Following variable is obsolete and it should be safe to remove it.
+    // I just don't want to do it now before a release (Lukas Matena 24.3.2019)
     bool m_render_sla_auxiliaries;
 
     std::string m_color_by;
@@ -456,7 +459,7 @@ public:
     void reset_volumes();
     int check_volumes_outside_state() const;
 
-    void toggle_sla_auxiliaries_visibility(bool visible);
+    void toggle_sla_auxiliaries_visibility(bool visible, const ModelObject* mo = nullptr, int instance_idx = -1);
     void toggle_model_objects_visibility(bool visible, const ModelObject* mo = nullptr, int instance_idx = -1);
 
     void set_config(const DynamicPrintConfig* config);
@@ -562,6 +565,10 @@ public:
 
     float get_view_toolbar_height() const { return m_view_toolbar.get_height(); }
 
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    void update_gizmos_data();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
 private:
     bool _is_shown_on_screen() const;
 
@@ -601,7 +608,9 @@ private:
     void _render_selection_sidebar_hints() const;
 
     void _update_volumes_hover_state() const;
-    void _update_gizmos_data();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//    void _update_gizmos_data();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     void _perform_layer_editing_action(wxMouseEvent* evt = nullptr);
 

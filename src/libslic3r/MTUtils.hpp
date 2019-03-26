@@ -56,6 +56,113 @@ public:
     }
 };
 
+template<class Vector,
+         class Value = typename Vector::value_type>
+class IndexBasedIterator {
+    static const size_t NONE = size_t(-1);
+
+    std::reference_wrapper<Vector> m_index_ref;
+    size_t m_idx = NONE;
+public:
+
+    using value_type = Value;
+    using pointer = Value *;
+    using reference = Value &;
+    using difference_type = long;
+    using iterator_category = std::random_access_iterator_tag;
+
+    inline explicit
+    IndexBasedIterator(Vector& index, size_t idx):
+        m_index_ref(index), m_idx(idx) {}
+
+    // Post increment
+    inline IndexBasedIterator operator++(int) {
+        IndexBasedIterator cpy(*this); ++m_idx; return cpy;
+    }
+
+    inline IndexBasedIterator operator--(int) {
+        IndexBasedIterator cpy(*this); --m_idx; return cpy;
+    }
+
+    inline IndexBasedIterator& operator++() {
+        ++m_idx; return *this;
+    }
+
+    inline IndexBasedIterator& operator--() {
+        --m_idx; return *this;
+    }
+
+    inline IndexBasedIterator& operator+=(difference_type l) {
+        m_idx += size_t(l); return *this;
+    }
+
+    inline IndexBasedIterator operator+(difference_type l) {
+        auto cpy = *this; cpy += l; return cpy;
+    }
+
+    inline IndexBasedIterator& operator-=(difference_type l) {
+        m_idx -= size_t(l); return *this;
+    }
+
+    inline IndexBasedIterator operator-(difference_type l) {
+        auto cpy = *this; cpy -= l; return cpy;
+    }
+
+    operator difference_type() { return difference_type(m_idx); }
+
+    inline bool is_end() const { return m_idx >= m_index_ref.get().size();}
+
+    inline Value & operator*() const {
+        assert(m_idx < m_index_ref.get().size());
+        return m_index_ref.get().operator[](m_idx);
+    }
+
+    inline Value * operator->() const {
+        assert(m_idx < m_index_ref.get().size());
+        return &m_index_ref.get().operator[](m_idx);
+    }
+
+    inline bool operator ==(const IndexBasedIterator& other) {
+        size_t e = m_index_ref.get().size();
+        return m_idx == other.m_idx || (m_idx >= e && other.m_idx >= e);
+    }
+
+    inline bool operator !=(const IndexBasedIterator& other) {
+        return !(*this == other);
+    }
+
+    inline bool operator <=(const IndexBasedIterator& other) {
+        return (m_idx < other.m_idx) || (*this == other);
+    }
+
+    inline bool operator <(const IndexBasedIterator& other) {
+        return m_idx < other.m_idx && (*this != other);
+    }
+
+    inline bool operator >=(const IndexBasedIterator& other) {
+        return m_idx > other.m_idx || *this == other;
+    }
+
+    inline bool operator >(const IndexBasedIterator& other) {
+        return m_idx > other.m_idx && *this != other;
+    }
+};
+
+template<class It> class Range {
+    It from, to;
+public:
+    It begin() const { return from; }
+    It end() const { return to; }
+    using Type = It;
+
+    Range() = default;
+    Range(It &&b, It &&e):
+        from(std::forward<It>(b)), to(std::forward<It>(e)) {}
+
+    inline size_t size() const { return end() - begin(); }
+    inline bool empty() const { return size() == 0; }
+};
+
 }
 
 #endif // MTUTILS_HPP

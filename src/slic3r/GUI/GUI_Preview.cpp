@@ -174,7 +174,9 @@ Preview::Preview(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_t
     , m_loaded(false)
     , m_enabled(false)
     , m_schedule_background_process(schedule_background_process_func)
+#ifdef __linux__
     , m_volumes_cleanup_required(false)
+#endif // __linux__
 {
     if (init(parent, bed, camera, view_toolbar))
     {
@@ -354,31 +356,28 @@ void Preview::load_print(bool keep_z_range)
 
 void Preview::reload_print(bool keep_volumes)
 {
-#ifndef __linux__
-    if (m_volumes_cleanup_required || !keep_volumes)
-    {
-        m_canvas->reset_volumes();
-        m_canvas->reset_legend_texture();
-        m_loaded = false;
-        m_volumes_cleanup_required = false;
-    }
-#endif // __linux__
-
+#ifdef __linux__
+    // We are getting mysterious crashes on Linux in gtk due to OpenGL context activation GH #1874 #1955.
+    // So we are applying a workaround here: a delayed release of OpenGL vertex buffers.
     if (!IsShown())
     {
         m_volumes_cleanup_required = !keep_volumes;
         return;
     }
-
+#endif /* __linux __ */
+    if (
 #ifdef __linux__
-    if (m_volumes_cleanup_required || !keep_volumes)
+        m_volumes_cleanup_required || 
+#endif /* __linux__ */
+        !keep_volumes)
     {
         m_canvas->reset_volumes();
         m_canvas->reset_legend_texture();
         m_loaded = false;
+#ifdef __linux__
         m_volumes_cleanup_required = false;
+#endif /* __linux__ */
     }
-#endif // __linux__
 
     load_print();
 }
@@ -770,19 +769,17 @@ void Preview::load_print_as_sla()
     unsigned int n_layers = 0;
     const SLAPrint* print = m_process->sla_print();
 
-    std::set<double> zs;
+    std::vector<double> zs;
+    double initial_layer_height = print->material_config().initial_layer_height.value;
     for (const SLAPrintObject* obj : print->objects())
-    {
-        double shift_z = obj->get_current_elevation();
         if (obj->is_step_done(slaposIndexSlices))
         {
-            const SLAPrintObject::SliceIndex& index = obj->get_slice_index();
-            for (const SLAPrintObject::SliceIndex::value_type& id : index)
-            {
-                zs.insert(shift_z + id.first);
-            }
+            auto slicerecords = obj->get_slice_records();
+            auto low_coord = slicerecords.begin()->key();
+            for (auto& rec : slicerecords)
+                zs.emplace_back(initial_layer_height + (rec.key() - low_coord) * SCALING_FACTOR);
         }
-    }
+    sort_remove_duplicates(zs);
 
     n_layers = (unsigned int)zs.size();
     if (n_layers == 0)
@@ -797,11 +794,7 @@ void Preview::load_print_as_sla()
         show_hide_ui_elements("none");
 
         if (n_layers > 0)
-        {
-            std::vector<double> layer_zs;
-            std::copy(zs.begin(), zs.end(), std::back_inserter(layer_zs));
-            update_sliders(layer_zs);
-        }
+            update_sliders(zs);
 
         m_loaded = true;
     }

@@ -57,6 +57,7 @@
 #include "BackgroundSlicingProcess.hpp"
 #include "ProgressStatusBar.hpp"
 #include "PrintHostDialogs.hpp"
+#include "ConfigWizard.hpp"
 #include "../Utils/ASCIIFolding.hpp"
 #include "../Utils/PrintHost.hpp"
 #include "../Utils/FixModelByWin10.hpp"
@@ -233,9 +234,11 @@ wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(15 *
         auto selected_item = this->GetSelection();
 
         auto marker = reinterpret_cast<Marker>(this->GetClientData(selected_item));
-        if (marker == LABEL_ITEM_MARKER) {
+        if (marker == LABEL_ITEM_MARKER || marker == LABEL_ITEM_CONFIG_WIZARD) {
             this->SetSelection(this->last_selected);
             evt.StopPropagation();
+            if (marker == LABEL_ITEM_CONFIG_WIZARD)
+                wxTheApp->CallAfter([]() { Slic3r::GUI::config_wizard(Slic3r::GUI::ConfigWizard::RR_USER); });
         } else if ( this->last_selected != selected_item || 
                     wxGetApp().get_tab(this->preset_type)->get_presets()->current_is_dirty() ) {
             this->last_selected = selected_item;
@@ -317,15 +320,14 @@ PresetComboBox::~PresetComboBox()
 }
 
 
-void PresetComboBox::set_label_marker(int item)
+void PresetComboBox::set_label_marker(int item, LabelItemType label_item_type)
 {
-    this->SetClientData(item, (void*)LABEL_ITEM_MARKER);
+    this->SetClientData(item, (void*)label_item_type);
 }
 
 void PresetComboBox::check_selection()
 {
-    if (this->last_selected != GetSelection())
-        this->last_selected = GetSelection();
+    this->last_selected = GetSelection();
 }
 
 // Frequently changed parameters
@@ -826,10 +828,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
             preset_bundle.sla_materials.update_platter_ui(p->combo_sla_material);
         }
 		// Update the printer choosers, update the dirty flags.
-        auto prev_selection = p->combo_printer->GetSelection();
 		preset_bundle.printers.update_platter_ui(p->combo_printer);
-        if (prev_selection != p->combo_printer->GetSelection())
-            p->combo_printer->check_selection();
 		// Update the filament choosers to only contain the compatible presets, update the color preview,
 		// update the dirty flags.
         if (print_tech == ptFFF) {
@@ -1617,7 +1616,11 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             if (type_3mf || type_any_amf) {
 #endif // !ENABLE_VOLUMES_CENTERING_FIXES
                 for (ModelObject* model_object : model.objects) {
+#if ENABLE_VOLUMES_CENTERING_FIXES
+                    model_object->center_around_origin(false);
+#else
                     model_object->center_around_origin();
+#endif // ENABLE_VOLUMES_CENTERING_FIXES
                     model_object->ensure_on_bed();
                 }
 #if !ENABLE_VOLUMES_CENTERING_FIXES
@@ -1710,8 +1713,8 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
             object->center_around_origin();
             new_instances.emplace_back(object->add_instance());
 #else /* AUTOPLACEMENT_ON_LOAD */
-            // if object has no defined position(s) we need to rearrange everything after loading               object->center_around_origin();
-            need_arrange = true;                
+            // if object has no defined position(s) we need to rearrange everything after loading
+            need_arrange = true;
              // add a default instance and center object around origin  
             object->center_around_origin();  // also aligns object to Z = 0 
             ModelInstance* instance = object->add_instance();   

@@ -329,6 +329,10 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 
         // left down without selection rectangle - place point on the mesh:
         if (action == SLAGizmoEventType::LeftDown && !m_selection_rectangle_active && !shift_down) {
+            // If any point is in hover state, this should initiate its move - return control back to GLCanvas:
+            if (m_hover_id != -1)
+                return false;
+
             // If there is some selection, don't add new point and deselect everything instead.
             if (m_selection_empty) {
                 try {
@@ -663,7 +667,7 @@ RENDER_AGAIN:
     m_imgui->end();
 
     if (m_editing_mode != m_old_editing_state) { // user toggled between editing/non-editing mode
-        m_parent.toggle_sla_auxiliaries_visibility(!m_editing_mode);
+        m_parent.toggle_sla_auxiliaries_visibility(!m_editing_mode, m_model_object, m_active_instance);
         force_refresh = true;
     }
     m_old_editing_state = m_editing_mode;

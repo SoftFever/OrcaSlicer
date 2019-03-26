@@ -107,6 +107,7 @@ PresetBundle::PresetBundle() :
     this->filaments    .load_bitmap_default("spool.png");
     this->sla_materials.load_bitmap_default("package_green.png");
     this->printers     .load_bitmap_default("printer_empty.png");
+    this->printers     .load_bitmap_add("add.png");
     this->load_compatible_bitmaps();
 
     // Re-activate the default presets, so their "edited" preset copies will be updated with the additional configuration values above.
@@ -1405,7 +1406,7 @@ void PresetBundle::export_configbundle(const std::string &path, bool export_syst
 // an optional "(modified)" suffix will be removed from the filament name.
 void PresetBundle::set_filament_preset(size_t idx, const std::string &name)
 {
-	if (name.find_first_of("-------") == 0)
+	if (name.find_first_of(PresetCollection::separator_head()) == 0)
 		return;
 
     if (idx >= filament_presets.size())
@@ -1461,7 +1462,7 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, GUI::Pr
 	std::map<wxString, wxBitmap*> nonsys_presets;
 	wxString selected_str = "";
 	if (!this->filaments().front().is_visible)
-        ui->set_label_marker(ui->Append("------- " + _(L("System presets")) + " -------", wxNullBitmap));
+        ui->set_label_marker(ui->Append(PresetCollection::separator(L("System presets")), wxNullBitmap));
 	for (int i = this->filaments().front().is_visible ? 0 : 1; i < int(this->filaments().size()); ++i) {
         const Preset &preset    = this->filaments.preset(i);
         bool          selected  = this->filament_presets[idx_extruder] == preset.name;
@@ -1514,12 +1515,12 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, GUI::Pr
 				selected_str = wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str());
 		}
 		if (preset.is_default)
-            ui->set_label_marker(ui->Append("------- " + _(L("System presets")) + " -------", wxNullBitmap));
+            ui->set_label_marker(ui->Append(PresetCollection::separator(L("System presets")), wxNullBitmap));
     }
 
 	if (!nonsys_presets.empty())
 	{
-        ui->set_label_marker(ui->Append("-------  " + _(L("User presets")) + "  -------", wxNullBitmap));
+        ui->set_label_marker(ui->Append(PresetCollection::separator(L("User presets")), wxNullBitmap));
 		for (std::map<wxString, wxBitmap*>::iterator it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
 			ui->Append(it->first, *it->second);
 			if (it->first == selected_str)
@@ -1528,6 +1529,7 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, GUI::Pr
 	}
 	ui->SetSelection(selected_preset_item);
 	ui->SetToolTip(ui->GetString(selected_preset_item));
+    ui->check_selection();
     ui->Thaw();
 }
 

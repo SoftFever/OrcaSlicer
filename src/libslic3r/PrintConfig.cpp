@@ -1375,6 +1375,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("(minimum)");
     def->aliases = { "perimeter_offsets" };
     def->min = 0;
+    def->max = 10000;
     def->default_value = new ConfigOptionInt(3);
 
     def = this->add("post_process", coStrings);

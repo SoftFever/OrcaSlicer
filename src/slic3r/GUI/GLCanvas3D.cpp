@@ -34,6 +34,7 @@
 #include <wx/settings.h>
 #include <wx/tooltip.h>
 #include <wx/debug.h>
+#include <wx/fontutil.h>
 
 // Print now includes tbb, and tbb includes Windows. This breaks compilation of wxWidgets if included before wx.
 #include "libslic3r/Print.hpp"
@@ -728,12 +729,68 @@ void GLCanvas3D::WarningTexture::activate(WarningTexture::Warning warning, bool 
     _generate(text, canvas, red_colored); // GUI::GLTexture::reset() is called at the beginning of generate(...)
 }
 
-bool GLCanvas3D::WarningTexture::_generate(const std::string& msg, const GLCanvas3D& canvas, const bool red_colored/* = false*/)
+
+#ifdef __WXMSW__
+static bool is_font_cleartype(const wxFont &font)
+{
+    // Native font description: on MSW, it is a version number plus the content of LOGFONT, separated by semicolon.
+    wxString font_desc = font.GetNativeFontInfoDesc();
+    // Find the quality field.
+    wxString sep(";");
+    size_t startpos = 0;
+    for (size_t i = 0; i < 12; ++ i)
+        startpos = font_desc.find(sep, startpos + 1);
+    ++ startpos;
+    size_t endpos = font_desc.find(sep, startpos);
+    int quality = wxAtoi(font_desc(startpos, endpos - startpos));
+    return quality == CLEARTYPE_QUALITY;
+}
+
+// ClearType produces renders, which are difficult to convert into an alpha blended OpenGL texture.
+// Therefore it is better to disable it, though Vojtech found out, that the font returned with ClearType
+// disabled is signifcantly thicker than the default ClearType font.
+// This function modifies the font provided.
+static void msw_disable_cleartype(wxFont &font)
+{
+    // Native font description: on MSW, it is a version number plus the content of LOGFONT, separated by semicolon.
+    wxString font_desc = font.GetNativeFontInfoDesc();
+    // Find the quality field.
+    wxString sep(";");
+    size_t startpos_weight = 0;
+    for (size_t i = 0; i < 5; ++ i)
+        startpos_weight = font_desc.find(sep, startpos_weight + 1);
+    ++ startpos_weight;
+    size_t endpos_weight = font_desc.find(sep, startpos_weight);
+    // Parse the weight field.
+    unsigned int weight = atoi(font_desc(startpos_weight, endpos_weight - startpos_weight));
+    size_t startpos = endpos_weight;
+    for (size_t i = 0; i < 6; ++ i)
+        startpos = font_desc.find(sep, startpos + 1);
+    ++ startpos;
+    size_t endpos = font_desc.find(sep, startpos);
+    int quality = wxAtoi(font_desc(startpos, endpos - startpos));
+    if (quality == CLEARTYPE_QUALITY) {
+        // Replace the weight with a smaller value to compensate the weight of non ClearType font.
+        wxString sweight    = std::to_string(weight * 2 / 4);
+        size_t   len_weight = endpos_weight - startpos_weight;
+        wxString squality   = std::to_string(ANTIALIASED_QUALITY);
+        font_desc.replace(startpos_weight, len_weight, sweight);
+        font_desc.replace(startpos + sweight.size() - len_weight, endpos - startpos, squality);
+        font.SetNativeFontInfo(font_desc);
+        wxString font_desc2 = font.GetNativeFontInfoDesc();
+    }
+    wxString font_desc2 = font.GetNativeFontInfoDesc();
+}
+#endif /* __WXMSW__ */
+
+bool GLCanvas3D::WarningTexture::_generate(const std::string& msg_utf8, const GLCanvas3D& canvas, const bool red_colored/* = false*/)
 {
     reset();
 
-    if (msg.empty())
+    if (msg_utf8.empty())
         return false;
+
+    wxString msg = GUI::from_u8(msg_utf8);
 
     wxMemoryDC memDC;
     // select default font
@@ -745,46 +802,47 @@ bool GLCanvas3D::WarningTexture::_generate(const std::string& msg, const GLCanva
 
     // calculates texture size
     wxCoord w, h;
-//     memDC.GetTextExtent(msg, &w, &h);
     memDC.GetMultiLineTextExtent(msg, &w, &h);
-
-    int pow_of_two_size = next_highest_power_of_2(std::max<unsigned int>(w, h));
 
     m_original_width = (int)w;
     m_original_height = (int)h;
-    m_width = pow_of_two_size;
-    m_height = pow_of_two_size;
+    m_width = (int)next_highest_power_of_2((uint32_t)w);
+	m_height = (int)next_highest_power_of_2((uint32_t)h);
 
     // generates bitmap
     wxBitmap bitmap(m_width, m_height);
 
     memDC.SelectObject(bitmap);
-    memDC.SetBackground(wxBrush(wxColour(Background_Color[0], Background_Color[1], Background_Color[2])));
+    memDC.SetBackground(wxBrush(*wxBLACK));
     memDC.Clear();
 
     // draw message
-    memDC.SetTextForeground(red_colored ? wxColour(255,72,65/*204,204*/) : *wxWHITE);
-//     memDC.DrawText(msg, 0, 0);
-    memDC.DrawLabel(msg, wxRect(0,0, m_original_width, m_original_height), wxALIGN_CENTER);
+    memDC.SetTextForeground(*wxRED);
+	memDC.DrawLabel(msg, wxRect(0,0, m_original_width, m_original_height), wxALIGN_CENTER);
 
     memDC.SelectObject(wxNullBitmap);
 
     // Convert the bitmap into a linear data ready to be loaded into the GPU.
     wxImage image = bitmap.ConvertToImage();
-    image.SetMaskColour(Background_Color[0], Background_Color[1], Background_Color[2]);
 
     // prepare buffer
     std::vector<unsigned char> data(4 * m_width * m_height, 0);
+    const unsigned char *src = image.GetData();
     for (int h = 0; h < m_height; ++h)
     {
-        int hh = h * m_width;
-        unsigned char* px_ptr = data.data() + 4 * hh;
+        unsigned char* dst = data.data() + 4 * h * m_width;
         for (int w = 0; w < m_width; ++w)
         {
-            *px_ptr++ = image.GetRed(w, h);
-            *px_ptr++ = image.GetGreen(w, h);
-            *px_ptr++ = image.GetBlue(w, h);
-            *px_ptr++ = image.IsTransparent(w, h) ? 0 : Opacity;
+            *dst++ = 255;
+            if (red_colored) {
+                *dst++ = 72; // 204
+                *dst++ = 65; // 204
+            } else {
+                *dst++ = 255;
+                *dst++ = 255;
+            }
+			*dst++ = (unsigned char)std::min<int>(255, *src);
+            src += 3;
         }
     }
 
@@ -908,7 +966,15 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
     const int scaled_border = Px_Border * scale;
 
     // select default font
-    const wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Scale(scale_gl);
+    wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Scale(scale_gl);
+#ifdef __WXMSW__
+    // Disabling ClearType works, but the font returned is very different (much thicker) from the default.
+//    msw_disable_cleartype(font);
+    bool cleartype = is_font_cleartype(font);
+#else
+    bool cleartype = false;
+#endif /* __WXMSW__ */
+
     memDC.SetFont(font);
     mask_memDC.SetFont(font);
 
@@ -932,10 +998,8 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
     if (items_count > 1)
         m_original_height += (items_count - 1) * scaled_square_contour;
 
-    int pow_of_two_size = (int)next_highest_power_of_2(std::max<uint32_t>(m_original_width, m_original_height));
-
-    m_width = pow_of_two_size;
-    m_height = pow_of_two_size;
+	m_width = (int)next_highest_power_of_2((uint32_t)m_original_width);
+	m_height = (int)next_highest_power_of_2((uint32_t)m_original_height);
 
     // generates bitmap
     wxBitmap bitmap(m_width, m_height);
@@ -952,15 +1016,12 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
 
     // draw title
     memDC.SetTextForeground(*wxWHITE);
-    mask_memDC.SetTextForeground(*wxWHITE);
+	mask_memDC.SetTextForeground(*wxRED);
 
     int title_x = scaled_border;
     int title_y = scaled_border;
     memDC.DrawText(title, title_x, title_y);
     mask_memDC.DrawText(title, title_x, title_y);
-
-    mask_memDC.SetPen(wxPen(*wxWHITE));
-    mask_memDC.SetBrush(wxBrush(*wxWHITE));
 
     // draw icons contours as background
     int squares_contour_x = scaled_border;
@@ -976,7 +1037,6 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
     memDC.SetPen(pen);
     memDC.SetBrush(brush);
     memDC.DrawRectangle(wxRect(squares_contour_x, squares_contour_y, squares_contour_width, squares_contour_height));
-    mask_memDC.DrawRectangle(wxRect(squares_contour_x, squares_contour_y, squares_contour_width, squares_contour_height));
 
     // draw items (colored icon + text)
     int icon_x = squares_contour_x + scaled_square_contour;
@@ -1012,7 +1072,6 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
         memDC.DrawRectangle(wxRect(icon_x_inner, icon_y + 1, px_inner_square, px_inner_square));
 
         // draw text
-        memDC.DrawText(GUI::from_u8(item.text), text_x, icon_y + text_y_offset);
         mask_memDC.DrawText(GUI::from_u8(item.text), text_x, icon_y + text_y_offset);
 
         // update y
@@ -1028,17 +1087,34 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
 
     // prepare buffer
     std::vector<unsigned char> data(4 * m_width * m_height, 0);
-    for (int h = 0; h < m_height; ++h)
+	const unsigned char *src_image = image.GetData();
+    const unsigned char *src_mask  = mask_image.GetData();
+	for (int h = 0; h < m_height; ++h)
     {
         int hh = h * m_width;
         unsigned char* px_ptr = data.data() + 4 * hh;
         for (int w = 0; w < m_width; ++w)
         {
-            unsigned char alpha = (mask_image.GetRed(w, h) + mask_image.GetGreen(w, h) + mask_image.GetBlue(w, h)) / 3;
-            *px_ptr++ = image.GetRed(w, h);
-            *px_ptr++ = image.GetGreen(w, h);
-            *px_ptr++ = image.GetBlue(w, h);
-            *px_ptr++ = (alpha == 0) ? 128 : 255;
+			if (w >= squares_contour_x && w < squares_contour_x + squares_contour_width &&
+				h >= squares_contour_y && h < squares_contour_y + squares_contour_height) {
+				// Color palette, use the color verbatim.
+				*px_ptr++ = *src_image++;
+				*px_ptr++ = *src_image++;
+				*px_ptr++ = *src_image++;
+				*px_ptr++ = 255;
+			} else {
+				// Text or background
+				unsigned char alpha = *src_mask;
+				// Compensate the white color for the 50% opacity reduction at the character edges.
+                //unsigned char color = (unsigned char)floor(alpha * 255.f / (128.f + 0.5f * alpha));
+                unsigned char color = alpha;
+				*px_ptr++ = color;
+				*px_ptr++ = color; // *src_mask ++;
+				*px_ptr++ = color; // *src_mask ++;
+				*px_ptr++ = 128 + (alpha / 2); // (alpha > 0) ? 255 : 128;
+				src_image += 3;
+			}
+            src_mask += 3;
         }
     }
 
@@ -1286,11 +1362,13 @@ int GLCanvas3D::check_volumes_outside_state() const
     return (int)state;
 }
 
-void GLCanvas3D::toggle_sla_auxiliaries_visibility(bool visible)
+void GLCanvas3D::toggle_sla_auxiliaries_visibility(bool visible, const ModelObject* mo, int instance_idx)
 {
     for (GLVolume* vol : m_volumes.volumes) {
-        if (vol->composite_id.volume_id < 0)
-             vol->is_active = visible;
+        if ((mo == nullptr || m_model->objects[vol->composite_id.object_id] == mo)
+        && (instance_idx == -1 || vol->composite_id.instance_id == instance_idx)
+        && vol->composite_id.volume_id < 0)
+            vol->is_active = visible;
     }
 
     m_render_sla_auxiliaries = visible;
@@ -1306,7 +1384,7 @@ void GLCanvas3D::toggle_model_objects_visibility(bool visible, const ModelObject
         }
     }
     if (visible && !mo)
-        toggle_sla_auxiliaries_visibility(true);
+        toggle_sla_auxiliaries_visibility(true, mo, instance_idx);
 
     if (!mo && !visible && !m_model->objects.empty() && (m_model->objects.size() > 1 || m_model->objects.front()->instances.size() > 1))
         _set_warning_texture(WarningTexture::SomethingNotShown, true);
@@ -1938,7 +2016,10 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 		m_selection.volumes_changed(map_glvolume_old_to_new);
 	}
 
-    _update_gizmos_data();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    update_gizmos_data();
+//    _update_gizmos_data();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     // Update the toolbar
     post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
@@ -2253,7 +2334,10 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         {
             if (m_gizmos.handle_shortcut(keyCode, m_selection))
             {
-                _update_gizmos_data();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                update_gizmos_data();
+//                _update_gizmos_data();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                 m_dirty = true;
             }
             else
@@ -2432,13 +2516,25 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         return;
     }
 
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    std::cout << to_string(m_mouse.position) << std::endl;
+
+    if (m_gizmos.on_mouse(evt, *this))
+    {
+        m_mouse.set_start_position_3D_as_invalid();
+        return;
+    }
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
     if (m_picking_enabled)
         _set_current();
 
     int selected_object_idx = m_selection.get_object_idx();
     int layer_editing_object_idx = is_layers_editing_enabled() ? selected_object_idx : -1;
     m_layers_editing.select_object(*m_model, layer_editing_object_idx);
-    bool gizmos_overlay_contains_mouse = m_gizmos.overlay_contains_mouse(*this, m_mouse.position);
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//    bool gizmos_overlay_contains_mouse = m_gizmos.overlay_contains_mouse(*this, m_mouse.position);
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     if (m_mouse.drag.move_requires_threshold && m_mouse.is_move_start_threshold_position_2D_defined() && m_mouse.is_move_threshold_met(pos))
     {
@@ -2508,15 +2604,27 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 m_dirty = true;
             }
         }
-        else if (!m_selection.is_empty() && gizmos_overlay_contains_mouse)
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//        else if (!m_selection.is_empty() && gizmos_overlay_contains_mouse)
+//        {
+//            m_gizmos.update_on_off_state(*this, m_mouse.position, m_selection);
+//            _update_gizmos_data();
+//            m_dirty = true;
+//        }
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        else if (evt.LeftDown() && m_gizmos.get_current_type() == GLGizmosManager::SlaSupports && m_gizmos.gizmo_event(SLAGizmoEventType::LeftDown, Vec2d(pos(0), pos(1)), evt.ShiftDown()))
+//        else if (evt.LeftDown() && m_gizmos.get_current_type() == Gizmos::SlaSupports && m_gizmos.gizmo_event(SLAGizmoEventType::LeftDown, Vec2d(pos(0), pos(1)), evt.ShiftDown()))
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         {
-            m_gizmos.update_on_off_state(*this, m_mouse.position, m_selection);
-            _update_gizmos_data();
-            m_dirty = true;
+            // the gizmo got the event and took some action, there is no need to do anything more
         }
         else if (evt.LeftDown() && !m_selection.is_empty() && m_gizmos.grabber_contains_mouse())
         {
-            _update_gizmos_data();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            update_gizmos_data();
+//            _update_gizmos_data();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             m_selection.start_dragging();
             m_gizmos.start_dragging(m_selection);
 
@@ -2529,11 +2637,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
             m_dirty = true;
         }
-        else if (evt.LeftDown() && m_gizmos.get_current_type() == GLGizmosManager::SlaSupports && m_gizmos.gizmo_event(SLAGizmoEventType::LeftDown, Vec2d(pos(0), pos(1)), evt.ShiftDown()))
-        {
-            // the gizmo got the event and took some action, there is no need to do anything more
-        }
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         else if ((selected_object_idx != -1) && evt.RightDown() && m_gizmos.get_current_type() == GLGizmosManager::SlaSupports && m_gizmos.gizmo_event(SLAGizmoEventType::RightDown))
+//        else if ((selected_object_idx != -1) && evt.RightDown() && m_gizmos.get_current_type() == Gizmos::SlaSupports && m_gizmos.gizmo_event(SLAGizmoEventType::RightDown))
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         {
             // event was taken care of by the SlaSupports gizmo
         }
@@ -2569,7 +2676,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     {
 
                         m_gizmos.update_on_off_state(m_selection);
-                        _update_gizmos_data();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                        update_gizmos_data();
+//                        _update_gizmos_data();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                         post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
                         m_dirty = true;
                     }
@@ -2596,7 +2706,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }
         }
     }
-    else if (evt.Dragging() && evt.LeftIsDown() && !gizmos_overlay_contains_mouse && (m_layers_editing.state == LayersEditing::Unknown)
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    else if (evt.Dragging() && evt.LeftIsDown() && (m_layers_editing.state == LayersEditing::Unknown)
+//    else if (evt.Dragging() && evt.LeftIsDown() && !gizmos_overlay_contains_mouse && (m_layers_editing.state == LayersEditing::Unknown)
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         && (m_mouse.drag.move_volume_idx != -1) && m_gizmos.get_current_type() != GLGizmosManager::SlaSupports /* don't allow dragging objects with the Sla gizmo on */)
     {
         if (!m_mouse.drag.move_requires_threshold)
@@ -2695,8 +2808,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         // the gizmo got the event and took some action, no need to do anything more here
         m_dirty = true;
     }
-    // do not process dragging if the mouse is into any of the HUD elements
-    else if (evt.Dragging() && !gizmos_overlay_contains_mouse)
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    else if (evt.Dragging())
+//    // do not process dragging if the mouse is into any of the HUD elements
+//    else if (evt.Dragging() && !gizmos_overlay_contains_mouse)
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     {
         m_mouse.dragging = true;
 
@@ -2758,8 +2874,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // of the scene with the background processing data should be performed.
             post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
         }
-        else if (evt.LeftUp() && !m_mouse.dragging && (m_hover_volume_id == -1) && !gizmos_overlay_contains_mouse && !m_gizmos.is_dragging()
-              && !is_layers_editing_enabled())
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        else if (evt.LeftUp() && !m_mouse.dragging && (m_hover_volume_id == -1) && !m_gizmos.is_dragging()
+//        else if (evt.LeftUp() && !m_mouse.dragging && (m_hover_volume_id == -1) && !gizmos_overlay_contains_mouse && !m_gizmos.is_dragging()
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            && !is_layers_editing_enabled())
         {
             // deselect and propagate event through callback
             if (!evt.ShiftDown() && m_picking_enabled && !m_mouse.ignore_up_event)
@@ -2768,7 +2887,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 m_selection.set_mode(Selection::Instance);
                 wxGetApp().obj_manipul()->update_settings_value(m_selection);
                 m_gizmos.reset_all_states();
-                _update_gizmos_data();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                update_gizmos_data();
+//                _update_gizmos_data();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                 post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
             }
             m_mouse.ignore_up_event = false;
@@ -2797,7 +2919,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 break;
             }
             m_gizmos.stop_dragging();
-            _update_gizmos_data();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            update_gizmos_data();
+//            _update_gizmos_data();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
             wxGetApp().obj_manipul()->update_settings_value(m_selection);
             // Let the platter know that the dragging finished, so a delayed refresh
@@ -2822,7 +2947,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     m_selection.add(m_hover_volume_id);
                     m_gizmos.update_on_off_state(m_selection);
                     post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
-                    _update_gizmos_data();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                    update_gizmos_data();
+//                    _update_gizmos_data();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                     wxGetApp().obj_manipul()->update_settings_value(m_selection);
                     // forces a frame render to update the view before the context menu is shown
                     render();
@@ -2853,9 +2981,14 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         std::string tooltip = "";
 
         // updates gizmos overlay
-        tooltip = m_gizmos.update_hover_state(*this, m_mouse.position, m_selection);
-        if (m_selection.is_empty())
-            m_gizmos.reset_all_states();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        if (tooltip.empty())
+            tooltip = m_gizmos.get_tooltip();
+
+//        tooltip = m_gizmos.update_hover_state(*this, m_mouse.position, m_selection);
+//        if (m_selection.is_empty())
+//            m_gizmos.reset_all_states();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
         if (tooltip.empty())
             tooltip = m_toolbar.get_tooltip();
@@ -2864,6 +2997,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             tooltip = m_view_toolbar.get_tooltip();
 
         set_tooltip(tooltip);
+
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        if (m_selection.is_empty())
+            m_gizmos.reset_all_states();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
         // Only refresh if picking is enabled, in that case the objects may get highlighted if the mouse cursor hovers over.
         if (m_picking_enabled)
@@ -3172,7 +3310,10 @@ void GLCanvas3D::set_camera_zoom(float zoom)
 void GLCanvas3D::update_gizmos_on_off_state()
 {
     set_as_dirty();
-    _update_gizmos_data();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    update_gizmos_data();
+//    _update_gizmos_data();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     m_gizmos.update_on_off_state(get_selection());
 }
 
@@ -3206,6 +3347,48 @@ void GLCanvas3D::update_ui_from_settings()
     }
 #endif
 }
+
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+void GLCanvas3D::update_gizmos_data()
+{
+    if (!m_gizmos.is_enabled())
+        return;
+
+    bool enable_move_z = !m_selection.is_wipe_tower();
+    m_gizmos.enable_grabber(GLGizmosManager::Move, 2, enable_move_z);
+    bool enable_scale_xyz = m_selection.is_single_full_instance() || m_selection.is_single_volume() || m_selection.is_single_modifier();
+    for (int i = 0; i < 6; ++i)
+    {
+        m_gizmos.enable_grabber(GLGizmosManager::Scale, i, enable_scale_xyz);
+    }
+
+    if (m_selection.is_single_full_instance())
+    {
+        // all volumes in the selection belongs to the same instance, any of them contains the needed data, so we take the first
+        const GLVolume* volume = m_volumes.volumes[*m_selection.get_volume_idxs().begin()];
+        m_gizmos.set_scale(volume->get_instance_scaling_factor());
+        m_gizmos.set_rotation(Vec3d::Zero());
+        ModelObject* model_object = m_model->objects[m_selection.get_object_idx()];
+        m_gizmos.set_flattening_data(model_object);
+        m_gizmos.set_sla_support_data(model_object, m_selection);
+    }
+    else if (m_selection.is_single_volume() || m_selection.is_single_modifier())
+    {
+        const GLVolume* volume = m_volumes.volumes[*m_selection.get_volume_idxs().begin()];
+        m_gizmos.set_scale(volume->get_volume_scaling_factor());
+        m_gizmos.set_rotation(Vec3d::Zero());
+        m_gizmos.set_flattening_data(nullptr);
+        m_gizmos.set_sla_support_data(nullptr, m_selection);
+    }
+    else
+    {
+        m_gizmos.set_scale(Vec3d::Ones());
+        m_gizmos.set_rotation(Vec3d::Zero());
+        m_gizmos.set_flattening_data(m_selection.is_from_single_object() ? m_model->objects[m_selection.get_object_idx()] : nullptr);
+        m_gizmos.set_sla_support_data(nullptr, m_selection);
+    }
+}
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 bool GLCanvas3D::_is_shown_on_screen() const
 {
@@ -3964,24 +4147,20 @@ void GLCanvas3D::_render_sla_slices() const
     {
         const SLAPrintObject* obj = print_objects[i];
 
-        double shift_z = obj->get_current_elevation();
-        double min_z = clip_min_z - shift_z;
-        double max_z = clip_max_z - shift_z;
-
         SlaCap::ObjectIdToTrianglesMap::iterator it_caps_bottom = m_sla_caps[0].triangles.find(i);
         SlaCap::ObjectIdToTrianglesMap::iterator it_caps_top    = m_sla_caps[1].triangles.find(i);
         {
 			if (it_caps_bottom == m_sla_caps[0].triangles.end())
 				it_caps_bottom = m_sla_caps[0].triangles.emplace(i, SlaCap::Triangles()).first;
-            if (! m_sla_caps[0].matches(min_z)) {
-				m_sla_caps[0].z = min_z;
+            if (! m_sla_caps[0].matches(clip_min_z)) {
+				m_sla_caps[0].z = clip_min_z;
                 it_caps_bottom->second.object.clear();
                 it_caps_bottom->second.supports.clear();
             }
             if (it_caps_top == m_sla_caps[1].triangles.end())
 				it_caps_top = m_sla_caps[1].triangles.emplace(i, SlaCap::Triangles()).first;
-            if (! m_sla_caps[1].matches(max_z)) {
-				m_sla_caps[1].z = max_z;
+            if (! m_sla_caps[1].matches(clip_max_z)) {
+				m_sla_caps[1].z = clip_max_z;
                 it_caps_top->second.object.clear();
                 it_caps_top->second.supports.clear();
             }
@@ -4001,36 +4180,39 @@ void GLCanvas3D::_render_sla_slices() const
         std::vector<InstanceTransform> instance_transforms;
         for (const SLAPrintObject::Instance& inst : instances)
         {
-            instance_transforms.push_back({ to_3d(unscale(inst.shift), shift_z), Geometry::rad2deg(inst.rotation) });
+			instance_transforms.push_back({ to_3d(unscale(inst.shift), 0.), Geometry::rad2deg(inst.rotation) });
         }
 
         if ((bottom_obj_triangles.empty() || bottom_sup_triangles.empty() || top_obj_triangles.empty() || top_sup_triangles.empty()) && obj->is_step_done(slaposIndexSlices))
         {
-            const std::vector<ExPolygons>& model_slices = obj->get_model_slices();
-            const std::vector<ExPolygons>& support_slices = obj->get_support_slices();
-
-            const SLAPrintObject::SliceIndex& index = obj->get_slice_index();
-            SLAPrintObject::SliceIndex::const_iterator it_min_z = std::find_if(index.begin(), index.end(), [min_z](const SLAPrintObject::SliceIndex::value_type& id) -> bool { return std::abs(min_z - id.first) < EPSILON; });
-            SLAPrintObject::SliceIndex::const_iterator it_max_z = std::find_if(index.begin(), index.end(), [max_z](const SLAPrintObject::SliceIndex::value_type& id) -> bool { return std::abs(max_z - id.first) < EPSILON; });
-
-            if (it_min_z != index.end())
-            {
+            double initial_layer_height = print->material_config().initial_layer_height.value;
+            LevelID key_zero = obj->get_slice_records().begin()->key();
+			LevelID key_low  = LevelID((clip_min_z - initial_layer_height) / SCALING_FACTOR) + key_zero;
+			LevelID key_high = LevelID((clip_max_z - initial_layer_height) / SCALING_FACTOR) + key_zero;
+			auto slice_range = obj->get_slice_records(key_low - LevelID(SCALED_EPSILON), key_high - LevelID(SCALED_EPSILON));
+            auto it_low  = slice_range.begin();
+            auto it_high = std::prev(slice_range.end());
+    
+            if (! it_low.is_end() && it_low->key() < key_low + LevelID(SCALED_EPSILON)) {
+                const ExPolygons& obj_bottom = obj->get_slices_from_record(it_low, soModel);
+                const ExPolygons& sup_bottom = obj->get_slices_from_record(it_low, soSupport);
                 // calculate model bottom cap
-                if (bottom_obj_triangles.empty() && (it_min_z->second.model_slices_idx < model_slices.size()))
-                    bottom_obj_triangles = triangulate_expolygons_3d(model_slices[it_min_z->second.model_slices_idx], min_z, true);
+                if (bottom_obj_triangles.empty() && !obj_bottom.empty())
+                    bottom_obj_triangles = triangulate_expolygons_3d(obj_bottom, clip_min_z, true);
                 // calculate support bottom cap
-                if (bottom_sup_triangles.empty() && (it_min_z->second.support_slices_idx < support_slices.size()))
-                    bottom_sup_triangles = triangulate_expolygons_3d(support_slices[it_min_z->second.support_slices_idx], min_z, true);
+                if (bottom_sup_triangles.empty() && !sup_bottom.empty())
+                    bottom_sup_triangles = triangulate_expolygons_3d(sup_bottom, clip_min_z, true);
             }
 
-            if (it_max_z != index.end())
-            {
+            if (! it_high.is_end() && it_high->key() < key_high + LevelID(SCALED_EPSILON)) {
+                const ExPolygons& obj_top = obj->get_slices_from_record(it_high, soModel);
+                const ExPolygons& sup_top = obj->get_slices_from_record(it_high, soSupport);
                 // calculate model top cap
-                if (top_obj_triangles.empty() && (it_max_z->second.model_slices_idx < model_slices.size()))
-                    top_obj_triangles = triangulate_expolygons_3d(model_slices[it_max_z->second.model_slices_idx], max_z, false);
+                if (top_obj_triangles.empty() && !obj_top.empty())
+                    top_obj_triangles = triangulate_expolygons_3d(obj_top, clip_max_z, false);
                 // calculate support top cap
-                if (top_sup_triangles.empty() && (it_max_z->second.support_slices_idx < support_slices.size()))
-					top_sup_triangles = triangulate_expolygons_3d(support_slices[it_max_z->second.support_slices_idx], max_z, false);
+                if (top_sup_triangles.empty() && !sup_top.empty())
+                    top_sup_triangles = triangulate_expolygons_3d(sup_top, clip_max_z, false);
             }
         }
 
@@ -4122,45 +4304,47 @@ void GLCanvas3D::_update_volumes_hover_state() const
     }
 }
 
-void GLCanvas3D::_update_gizmos_data()
-{
-    if (!m_gizmos.is_enabled())
-        return;
-
-    bool enable_move_z = !m_selection.is_wipe_tower();
-    m_gizmos.enable_grabber(GLGizmosManager::Move, 2, enable_move_z);
-    bool enable_scale_xyz = m_selection.is_single_full_instance() || m_selection.is_single_volume() || m_selection.is_single_modifier();
-    for (int i = 0; i < 6; ++i)
-    {
-        m_gizmos.enable_grabber(GLGizmosManager::Scale, i, enable_scale_xyz);
-    }
-
-    if (m_selection.is_single_full_instance())
-    {
-        // all volumes in the selection belongs to the same instance, any of them contains the needed data, so we take the first
-        const GLVolume* volume = m_volumes.volumes[*m_selection.get_volume_idxs().begin()];
-        m_gizmos.set_scale(volume->get_instance_scaling_factor());
-        m_gizmos.set_rotation(Vec3d::Zero());
-        ModelObject* model_object = m_model->objects[m_selection.get_object_idx()];
-        m_gizmos.set_flattening_data(model_object);
-        m_gizmos.set_sla_support_data(model_object, m_selection);
-    }
-    else if (m_selection.is_single_volume() || m_selection.is_single_modifier())
-    {
-        const GLVolume* volume = m_volumes.volumes[*m_selection.get_volume_idxs().begin()];
-        m_gizmos.set_scale(volume->get_volume_scaling_factor());
-        m_gizmos.set_rotation(Vec3d::Zero());
-        m_gizmos.set_flattening_data(nullptr);
-        m_gizmos.set_sla_support_data(nullptr, m_selection);
-    }
-    else
-    {
-        m_gizmos.set_scale(Vec3d::Ones());
-        m_gizmos.set_rotation(Vec3d::Zero());
-        m_gizmos.set_flattening_data(m_selection.is_from_single_object() ? m_model->objects[m_selection.get_object_idx()] : nullptr);
-        m_gizmos.set_sla_support_data(nullptr, m_selection);
-    }
-}
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//void GLCanvas3D::_update_gizmos_data()
+//{
+//    if (!m_gizmos.is_enabled())
+//        return;
+//
+//    bool enable_move_z = !m_selection.is_wipe_tower();
+//    m_gizmos.enable_grabber(GLGizmosManager::Move, 2, enable_move_z);
+//    bool enable_scale_xyz = m_selection.is_single_full_instance() || m_selection.is_single_volume() || m_selection.is_single_modifier();
+//    for (int i = 0; i < 6; ++i)
+//    {
+//        m_gizmos.enable_grabber(GLGizmosManager::Scale, i, enable_scale_xyz);
+//    }
+//
+//    if (m_selection.is_single_full_instance())
+//    {
+//        // all volumes in the selection belongs to the same instance, any of them contains the needed data, so we take the first
+//        const GLVolume* volume = m_volumes.volumes[*m_selection.get_volume_idxs().begin()];
+//        m_gizmos.set_scale(volume->get_instance_scaling_factor());
+//        m_gizmos.set_rotation(Vec3d::Zero());
+//        ModelObject* model_object = m_model->objects[m_selection.get_object_idx()];
+//        m_gizmos.set_flattening_data(model_object);
+//        m_gizmos.set_sla_support_data(model_object, m_selection);
+//    }
+//    else if (m_selection.is_single_volume() || m_selection.is_single_modifier())
+//    {
+//        const GLVolume* volume = m_volumes.volumes[*m_selection.get_volume_idxs().begin()];
+//        m_gizmos.set_scale(volume->get_volume_scaling_factor());
+//        m_gizmos.set_rotation(Vec3d::Zero());
+//        m_gizmos.set_flattening_data(nullptr);
+//        m_gizmos.set_sla_support_data(nullptr, m_selection);
+//    }
+//    else
+//    {
+//        m_gizmos.set_scale(Vec3d::Ones());
+//        m_gizmos.set_rotation(Vec3d::Zero());
+//        m_gizmos.set_flattening_data(m_selection.is_from_single_object() ? m_model->objects[m_selection.get_object_idx()] : nullptr);
+//        m_gizmos.set_sla_support_data(nullptr, m_selection);
+//    }
+//}
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 void GLCanvas3D::_perform_layer_editing_action(wxMouseEvent* evt)
 {

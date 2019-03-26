@@ -11,9 +11,10 @@
 #include "slic3r/Utils/Semver.hpp"
 
 class wxBitmap;
-class wxChoice;
 class wxBitmapComboBox;
+class wxChoice;
 class wxItemContainer;
+class wxString;
 
 namespace Slic3r {
 
@@ -114,6 +115,8 @@ public:
     bool                is_dirty    = false;
     // Is this preset compatible with the currently active printer?
     bool                is_compatible = true;
+
+    bool                is_user() const { return ! this->is_default && ! this->is_system; }
 
     // Name of the preset, usually derived form the file name.
     std::string         name;
@@ -269,10 +272,14 @@ public:
     void            save_current_preset(const std::string &new_name);
 
     // Delete the current preset, activate the first visible preset.
-    void            delete_current_preset();
+    // returns true if the preset was deleted successfully.
+    bool            delete_current_preset();
 
     // Load default bitmap to be placed at the wxBitmapComboBox of a MainFrame.
     bool            load_bitmap_default(const std::string &file_name);
+
+    // Load "add new printer" bitmap to be placed at the wxBitmapComboBox of a MainFrame.
+    bool            load_bitmap_add(const std::string &file_name);
 
     // Compatible & incompatible marks, to be placed at the wxBitmapComboBox items.
     void            set_bitmap_compatible  (const wxBitmap *bmp) { m_bitmap_compatible   = bmp; }
@@ -404,6 +411,15 @@ public:
     // Generate a file path from a profile name. Add the ".ini" suffix if it is missing.
     std::string     path_from_name(const std::string &new_name) const;
 
+#ifdef __linux__
+	static const char* separator_head() { return "------- "; }
+	static const char* separator_tail() { return " -------"; }
+#else /* __linux__ */
+    static const char* separator_head() { return "————— "; }
+    static const char* separator_tail() { return " —————"; }
+#endif /* __linux__ */
+	static wxString    separator(const std::string &label);
+
 protected:
     // Select a preset, if it exists. If it does not exist, select an invalid (-1) index.
     // This is a temporary state, which shall be fixed immediately by the following step.
@@ -464,6 +480,8 @@ private:
     // Marks placed at the wxBitmapComboBox of a MainFrame.
     // These bitmaps are owned by PresetCollection.
     wxBitmap               *m_bitmap_main_frame;
+    // "Add printer profile" icon, owned by PresetCollection.
+    wxBitmap               *m_bitmap_add;
     // Path to the directory to store the config files into.
     std::string             m_dir_path;
 

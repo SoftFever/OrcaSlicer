@@ -83,6 +83,24 @@ private:
     float m_overlay_border;
     float m_overlay_gap_y;
 
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    struct MouseCapture
+    {
+        bool left;
+        bool middle;
+        bool right;
+        GLCanvas3D* parent;
+
+        MouseCapture() { reset(); }
+
+        bool any() const { return left || middle || right; }
+        void reset() { left = middle = right = false; parent = nullptr; }
+    };
+
+    MouseCapture m_mouse_capture;
+    std::string m_tooltip;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
 public:
     GLGizmosManager();
     ~GLGizmosManager();
@@ -97,7 +115,9 @@ public:
 #endif // ENABLE_SVG_ICONS
     void set_overlay_scale(float scale);
 
-    std::string update_hover_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos, const Selection& selection);
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//    std::string update_hover_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos, const Selection& selection);
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     void update_on_off_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos, const Selection& selection);
     void update_on_off_state(const Selection& selection);
     void reset_all_states();
@@ -105,7 +125,9 @@ public:
     void set_hover_id(int id);
     void enable_grabber(EType type, unsigned int id, bool enable);
 
-    bool overlay_contains_mouse(const GLCanvas3D& canvas, const Vec2d& mouse_pos) const;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//    bool overlay_contains_mouse(const GLCanvas3D& canvas, const Vec2d& mouse_pos) const;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     bool grabber_contains_mouse() const;
     void update(const Linef3& mouse_ray, const Selection& selection, bool shift_down, const Point* mouse_pos = nullptr);
     Rect get_reset_rect_viewport(const GLCanvas3D& canvas) const;
@@ -138,6 +160,12 @@ public:
 
     void render_overlay(const GLCanvas3D& canvas, const Selection& selection) const;
 
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    const std::string& get_tooltip() const { return m_tooltip; }
+
+    bool on_mouse(wxMouseEvent& evt, GLCanvas3D& canvas);
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
 private:
     void reset();
 
@@ -151,6 +179,11 @@ private:
 #if ENABLE_SVG_ICONS
     bool generate_icons_texture() const;
 #endif // ENABLE_SVG_ICONS
+
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    std::string update_hover_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos);
+    bool overlay_contains_mouse(const GLCanvas3D& canvas, const Vec2d& mouse_pos) const;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 };
 
 } // namespace GUI
