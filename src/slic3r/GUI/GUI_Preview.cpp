@@ -772,12 +772,11 @@ void Preview::load_print_as_sla()
     std::vector<double> zs;
     double initial_layer_height = print->material_config().initial_layer_height.value;
     for (const SLAPrintObject* obj : print->objects())
-        if (obj->is_step_done(slaposIndexSlices))
+        if (obj->is_step_done(slaposIndexSlices) && !obj->get_slice_index().empty())
         {
-            auto slicerecords = obj->get_slice_records();
-            auto low_coord = slicerecords.begin()->key();
-            for (auto& rec : slicerecords)
-                zs.emplace_back(initial_layer_height + (rec.key() - low_coord) * SCALING_FACTOR);
+            auto low_coord = obj->get_slice_index().front().print_level();
+            for (auto& rec : obj->get_slice_index())
+                zs.emplace_back(initial_layer_height + (rec.print_level() - low_coord) * SCALING_FACTOR);
         }
     sort_remove_duplicates(zs);
 

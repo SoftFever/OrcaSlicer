@@ -307,7 +307,8 @@ void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool pick
     if (m_quadric == nullptr)
         return;
 
-    double size = m_dragging ? (double)m_grabbers[0].get_dragging_half_size((float)box.max_size()) : (double)m_grabbers[0].get_half_size((float)box.max_size());
+    float mean_size = (float)((box.size()(0) + box.size()(1) + box.size()(2)) / 3.0);
+    double size = m_dragging ? (double)m_grabbers[0].get_dragging_half_size(mean_size) : (double)m_grabbers[0].get_half_size(mean_size);
 
     float color[3];
     ::memcpy((void*)color, (const void*)m_grabbers[0].color, 3 * sizeof(float));
