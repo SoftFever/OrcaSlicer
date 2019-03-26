@@ -660,7 +660,6 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt, GLCanvas3D& canvas)
     int keyCode = evt.GetKeyCode();
     int ctrlMask = wxMOD_CONTROL;
 
-    const Selection& selection = canvas.get_selection();
     bool processed = false;
 
     if ((evt.GetModifiers() & ctrlMask) != 0)
@@ -732,11 +731,29 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt, GLCanvas3D& canvas)
 
     if (!processed)
     {
-        if (handle_shortcut(keyCode, selection))
+        if (handle_shortcut(keyCode, canvas.get_selection()))
         {
             canvas.update_gizmos_data();
             processed = true;
         }
+    }
+
+    if (processed)
+        canvas.set_as_dirty();
+
+    return processed;
+}
+
+bool GLGizmosManager::on_key(wxKeyEvent& evt, GLCanvas3D& canvas)
+{
+    const int keyCode = evt.GetKeyCode();
+    bool processed = false;
+
+    if (evt.GetEventType() == wxEVT_KEY_UP)
+    {
+        if ((m_current == SlaSupports) && (keyCode == WXK_SHIFT) && gizmo_event(SLAGizmoEventType::ShiftUp))
+            // shift has been just released - SLA gizmo might want to close rectangular selection.
+            processed = true;
     }
 
     if (processed)

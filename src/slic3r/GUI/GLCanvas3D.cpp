@@ -2310,18 +2310,22 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
     auto imgui = wxGetApp().imgui();
     if (imgui->update_key_data(evt)) {
         render();
-    } else
-    if (evt.GetEventType() == wxEVT_KEY_UP) {
-        if (m_tab_down && keyCode == WXK_TAB && !evt.HasAnyModifiers()) {
-            // Enable switching between 3D and Preview with Tab
-            // m_canvas->HandleAsNavigationKey(evt);   // XXX: Doesn't work in some cases / on Linux
-            post_event(SimpleEvent(EVT_GLCANVAS_TAB));
-        } else if (m_gizmos.get_current_type() == GLGizmosManager::SlaSupports && keyCode == WXK_SHIFT && m_gizmos.gizmo_event(SLAGizmoEventType::ShiftUp)) {
-            // shift has been just released - SLA gizmo might want to close rectangular selection.
-            m_dirty = true;
+    }
+    else
+    {
+        if (!m_gizmos.on_key(evt, *this))
+        {
+            if (evt.GetEventType() == wxEVT_KEY_UP) {
+                if (m_tab_down && keyCode == WXK_TAB && !evt.HasAnyModifiers()) {
+                    // Enable switching between 3D and Preview with Tab
+                    // m_canvas->HandleAsNavigationKey(evt);   // XXX: Doesn't work in some cases / on Linux
+                    post_event(SimpleEvent(EVT_GLCANVAS_TAB));
+                }
+            }
+            else if (evt.GetEventType() == wxEVT_KEY_DOWN) {
+                m_tab_down = keyCode == WXK_TAB && !evt.HasAnyModifiers();
+            }
         }
-    } else if (evt.GetEventType() == wxEVT_KEY_DOWN) {
-        m_tab_down = keyCode == WXK_TAB && !evt.HasAnyModifiers();
     }
 
     if (keyCode != WXK_TAB

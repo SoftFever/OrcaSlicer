@@ -154,6 +154,7 @@ public:
 
     bool on_mouse(wxMouseEvent& evt, GLCanvas3D& canvas);
     bool on_char(wxKeyEvent& evt, GLCanvas3D& canvas);
+    bool on_key(wxKeyEvent& evt, GLCanvas3D& canvas);
 
 private:
     void reset();
