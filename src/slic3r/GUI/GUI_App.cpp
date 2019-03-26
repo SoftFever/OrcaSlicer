@@ -14,6 +14,7 @@
 #include <wx/menu.h>
 #include <wx/menuitem.h>
 #include <wx/filedlg.h>
+#include <wx/progdlg.h>
 #include <wx/dir.h>
 #include <wx/wupdlock.h>
 #include <wx/filefn.h>
@@ -279,9 +280,21 @@ void GUI_App::set_label_clr_sys(const wxColour& clr) {
 
 void GUI_App::recreate_GUI()
 {
+    // Weird things happen as the Paint messages are floating around the windows being destructed.
+    // Avoid the Paint messages by hiding the main window.
+    // Also the application closes much faster without these unnecessary screen refreshes.
+    // In addition, there were some crashes due to the Paint events sent to already destructed windows.
+    mainframe->Show(false);
+
+    const auto msg_name = _(L("Changing of an application language")) + dots;
+    wxProgressDialog dlg(msg_name, msg_name);
+    dlg.Pulse();
+
     // to make sure nobody accesses data from the soon-to-be-destroyed widgets:
     tabs_list.clear();
     plater_ = nullptr;
+
+    dlg.Update(10, _(L("Recreating")) + dots);
 
     MainFrame* topwindow = mainframe;
     mainframe = new MainFrame();
@@ -289,8 +302,12 @@ void GUI_App::recreate_GUI()
 
     if (topwindow) {
         SetTopWindow(mainframe);
+
+        dlg.Update(30, _(L("Recreating")) + dots);
         topwindow->Destroy();
     }
+
+    dlg.Update(80, _(L("Loading of a current presets")) + dots);
 
     m_printhost_job_queue.reset(new PrintHostJobQueue(mainframe->printhost_queue_dlg()));
 
@@ -298,12 +315,15 @@ void GUI_App::recreate_GUI()
 
     mainframe->Show(true);
 
-    // On OSX the UI was not initialized correctly if the wizard was called
-    // before the UI was up and running.
-    CallAfter([]() {
-        // Run the config wizard, don't offer the "reset user profile" checkbox.
-        config_wizard_startup(true);
-    });
+    dlg.Update(90, _(L("Loading of a mode view")) + dots);
+
+    update_mode();
+
+    // #ys_FIXME_delete_after_testing  Do we still need this  ?
+//     CallAfter([]() {
+//         // Run the config wizard, don't offer the "reset user profile" checkbox.
+//         config_wizard_startup(true);
+//     });
 }
 
 void GUI_App::system_info()
