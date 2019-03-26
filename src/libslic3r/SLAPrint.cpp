@@ -1676,17 +1676,26 @@ const ExPolygons &SLAPrint::PrintLayer::transformed_slice(SLADisplayOrientation 
 {
     if (! m_trcache.empty()) return m_trcache;
 
-    size_t cap = 0;
-    for (const SliceRecord& sr : m_slices) {
-        if(sr.print_obj()) {
-            size_t insts = sr.print_obj()->instances().size();
-            cap += insts * (sr.get_slice(soModel).size() +
-                            sr.get_slice(soSupport).size());
-        }
-    }
+    ClipperLib::Clipper clipper;
 
-    Polygons allpolys;
-    allpolys.reserve(cap);
+    bool valid = true;
+    bool closed = true;
+
+    auto rotate = [](ClipperLib::Path& path, double rads) {
+
+        auto cosa = std::cos(rads);
+        auto sina = std::sin(rads);
+
+        for(auto& p : path) {
+            p.X = ClipperLib::cInt(p.X * cosa - p.Y * sina);
+            p.Y = ClipperLib::cInt(p.X * sina + p.Y * cosa);
+        }
+    };
+
+    auto translate = [](ClipperLib::Path& path, coord_t dx, coord_t dy)
+    {
+        for(auto& p : path) { p.X += dx; p.Y += dy; }
+    };
 
     for (const SliceRecord& sr : m_slices) {
         const ExPolygons& objsl = sr.get_slice(soModel);
@@ -1696,34 +1705,40 @@ const ExPolygons &SLAPrint::PrintLayer::transformed_slice(SLADisplayOrientation 
 
         for(const SLAPrintObject::Instance& tr : sr.print_obj()->instances())
         {
-            Polygons polys;
+            ClipperLib::Paths polys;
             size_t polyscap = 0;
             for(const ExPolygon &p : objsl) polyscap += p.holes.size() + 1;
             for(const ExPolygon &p : supsl) polyscap += p.holes.size() + 1;
             polys.reserve(polyscap);
 
-            for(const ExPolygon &p : objsl) {
-                polys.emplace_back(p.contour);
-                for(auto& h : p.holes) polys.emplace_back(h);
-            }
+            auto cpyfn = [&polys](const ExPolygon &p) {
+                polys.emplace_back(Slic3rMultiPoint_to_ClipperPath(p.contour));
+                for(auto& h : p.holes)
+                    polys.emplace_back(Slic3rMultiPoint_to_ClipperPath(h));
+            };
 
-            for(const ExPolygon &p : supsl) {
-                polys.emplace_back(p.contour);
-                for(auto& h : p.holes) polys.emplace_back(h);
-            }
+            for(const ExPolygon &p : objsl) cpyfn(p);
+            for(const ExPolygon &p : supsl) cpyfn(p);
 
-            for(Polygon& poly : polys) {
-                poly.rotate(double(tr.rotation));
-                poly.translate(tr.shift(X), tr.shift(Y));
+            for(ClipperLib::Path& poly : polys) {
+                rotate(poly, double(tr.rotation));
+                translate(poly, tr.shift(X), tr.shift(Y));
+
                 if(o == SLADisplayOrientation::sladoPortrait)
-                    for(auto& p : poly.points) std::swap(p(X), p(Y));
+                    for(ClipperLib::IntPoint& p : poly) std::swap(p.X, p.Y);
 
-                allpolys.emplace_back(std::move(poly));
+                if(!poly.empty())
+                    valid &= clipper.AddPath(poly, ClipperLib::ptSubject, closed);
             }
         }
     }
 
-    m_trcache = union_ex(allpolys);
+    if(!valid) BOOST_LOG_TRIVIAL(warning) << "Unification of invalid shapes!";
+
+    ClipperLib::PolyTree result;
+    clipper.Execute(ClipperLib::ctUnion, result, ClipperLib::pftNonZero);
+
+    m_trcache = PolyTreeToExPolygons(result);
 
     return m_trcache;
 }
