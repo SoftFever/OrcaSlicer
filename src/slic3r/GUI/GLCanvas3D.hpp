@@ -271,7 +271,9 @@ class GLCanvas3D
         Vec2d position;
         Vec3d scene_position;
         Drag drag;
-        bool ignore_up_event;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//        bool ignore_up_event;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
         Mouse();
 
@@ -567,6 +569,18 @@ public:
 
     void update_gizmos_data();
 
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    int get_move_volume_id() const { return m_mouse.drag.move_volume_idx; }
+
+    // Returns the view ray line, in world coordinate, at the given mouse position.
+    Linef3 mouse_ray(const Point& mouse_pos);
+
+    void set_mouse_as_dragging() { m_mouse.dragging = true; }
+    void disable_regenerate_volumes() { m_regenerate_volumes = false; }
+    void refresh_camera_scene_box() { m_camera.set_scene_box(scene_bounding_box()); }
+    bool is_mouse_dragging() const { return m_mouse.dragging; }
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
 private:
     bool _is_shown_on_screen() const;
 
@@ -616,8 +630,10 @@ private:
     // Convert the screen space coordinate to world coordinate on the bed.
     Vec3d _mouse_to_bed_3d(const Point& mouse_pos);
 
-    // Returns the view ray line, in world coordinate, at the given mouse position.
-    Linef3 mouse_ray(const Point& mouse_pos);
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//    // Returns the view ray line, in world coordinate, at the given mouse position.
+//    Linef3 mouse_ray(const Point& mouse_pos);
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     void _start_timer();
     void _stop_timer();
