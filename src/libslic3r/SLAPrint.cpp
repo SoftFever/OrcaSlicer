@@ -995,48 +995,28 @@ void SLAPrint::process()
             // Switch to the appropriate layer in the printer
             printer.begin_layer(level_id);
 
-            auto orientation = flpXY? SLADisplayOrientation::sladoPortrait :
-                                      SLADisplayOrientation::sladoLandscape;
+            using Instance = SLAPrintObject::Instance;
 
-            // Get the transformed and properly oriented slice
-            const ExPolygons& slice = printlayer.transformed_slice(orientation);
+            auto draw =
+                [&printer, flpXY, level_id](ExPolygon& poly, const Instance& tr)
+            {
+                poly.rotate(double(tr.rotation));
+                poly.translate(tr.shift(X), tr.shift(Y));
+                if(flpXY) swapXY(poly);
+                printer.draw_polygon(poly, level_id);
+            };
 
-            // Now draw all the polygons with the printer...
-            for(const ExPolygon& p : slice) printer.draw_polygon(p, level_id);
+            for(const SliceRecord& sr : printlayer.slices()) {
+                if(! sr.print_obj()) continue;
 
+                for(const Instance& inst : sr.print_obj()->instances()) {
+                    ExPolygons objsl = sr.get_slice(soModel);
+                    for(ExPolygon& poly : objsl) draw(poly, inst);
 
-//            for(const SliceRecord& slrecord : printlayer.m_slices)
-//            { // for all layers in the current level
-
-//                if(canceled()) break;
-
-//                // get the layer reference
-//                const ExPolygons& objslice = slrecord.get_slice(soModel);
-//                const ExPolygons& supslice = slrecord.get_slice(soSupport);
-//                const SLAPrintObject *po = slrecord.print_obj();
-//                assert(po != nullptr);
-
-//                // Draw all the polygons in the slice to the actual layer.
-//                for(const SLAPrintObject::Instance& tr : po->instances()) {
-//                    for(ExPolygon poly : objslice) {
-//                        // The order is important here:
-//                        // apply rotation before translation...
-//                        poly.rotate(double(tr.rotation));
-//                        poly.translate(tr.shift(X), tr.shift(Y));
-//                        if(flpXY) swapXY(poly);
-//                        printer.draw_polygon(poly, level_id);
-//                    }
-
-//                    for(ExPolygon poly : supslice) {
-//                        // The order is important here:
-//                        // apply rotation before translation...
-//                        poly.rotate(double(tr.rotation));
-//                        poly.translate(tr.shift(X), tr.shift(Y));
-//                        if(flpXY) swapXY(poly);
-//                        printer.draw_polygon(poly, level_id);
-//                    }
-//                }
-//            }
+                    ExPolygons supsl = sr.get_slice(soSupport);
+                    for(ExPolygon& poly : supsl) draw(poly, inst);
+                }
+            }
 
             // Finish the layer for later saving it.
             printer.finish_layer(level_id);
@@ -1248,7 +1228,7 @@ void SLAPrint::fill_statistics()
             for (size_t i = 0; i < inst_cnt; ++i)
             {
                 ExPolygon tmp = polygon;
-                tmp.rotate(Geometry::rad2deg(instances[i].rotation));
+                tmp.rotate(double(instances[i].rotation));
                 tmp.translate(instances[i].shift.x(), instances[i].shift.y());
                 polygons_append(polygons, to_polygons(std::move(tmp)));
             }
@@ -1266,18 +1246,18 @@ void SLAPrint::fill_statistics()
 
     // find highest object
     // Which is a better bet? To compare by max_z or by number of layers in the index?
-    float max_z = 0.;
+    // float max_z = 0.;
 	size_t max_layers_cnt = 0;
     size_t highest_obj_idx = 0;
 	for (SLAPrintObject *&po : m_objects) {
         auto& slice_index = po->get_slice_index();
         if (! slice_index.empty()) {
-            float z = (-- slice_index.end())->slice_level();
+            // float z = (-- slice_index.end())->slice_level();
             size_t cnt = slice_index.size();
             //if (z > max_z) {
             if (cnt > max_layers_cnt) {
                 max_layers_cnt = cnt;
-                max_z = z;
+                // max_z = z;
                 highest_obj_idx = &po - &m_objects.front();
             }
         }
@@ -1290,7 +1270,7 @@ void SLAPrint::fill_statistics()
     double fade_layer_time = init_exp_time;
 
     int sliced_layer_cnt = 0;
-    for (const auto& layer : highest_obj_slice_index)
+    for (const SliceRecord& layer : highest_obj_slice_index)
     {
         const double l_height = (layer.print_level() == highest_obj_slice_index.begin()->print_level()) ? init_layer_height : layer_height;
 
@@ -1670,77 +1650,6 @@ std::string SLAPrintStatistics::finalize_output_path(const std::string &path_in)
         final_path = path_in;
     }
     return final_path;
-}
-
-const ExPolygons &SLAPrint::PrintLayer::transformed_slice(SLADisplayOrientation o) const
-{
-    if (! m_trcache.empty()) return m_trcache;
-
-    ClipperLib::Clipper clipper;
-
-    bool valid = true;
-    bool closed = true;
-
-    auto rotate = [](ClipperLib::Path& path, double rads) {
-
-        auto cosa = std::cos(rads);
-        auto sina = std::sin(rads);
-
-        for(auto& p : path) {
-            p.X = ClipperLib::cInt(p.X * cosa - p.Y * sina);
-            p.Y = ClipperLib::cInt(p.X * sina + p.Y * cosa);
-        }
-    };
-
-    auto translate = [](ClipperLib::Path& path, coord_t dx, coord_t dy)
-    {
-        for(auto& p : path) { p.X += dx; p.Y += dy; }
-    };
-
-    for (const SliceRecord& sr : m_slices) {
-        const ExPolygons& objsl = sr.get_slice(soModel);
-        const ExPolygons& supsl = sr.get_slice(soSupport);
-
-        if (! sr.print_obj()) continue;
-
-        for(const SLAPrintObject::Instance& tr : sr.print_obj()->instances())
-        {
-            ClipperLib::Paths polys;
-            size_t polyscap = 0;
-            for(const ExPolygon &p : objsl) polyscap += p.holes.size() + 1;
-            for(const ExPolygon &p : supsl) polyscap += p.holes.size() + 1;
-            polys.reserve(polyscap);
-
-            auto cpyfn = [&polys](const ExPolygon &p) {
-                polys.emplace_back(Slic3rMultiPoint_to_ClipperPath(p.contour));
-                for(auto& h : p.holes)
-                    polys.emplace_back(Slic3rMultiPoint_to_ClipperPath(h));
-            };
-
-            for(const ExPolygon &p : objsl) cpyfn(p);
-            for(const ExPolygon &p : supsl) cpyfn(p);
-
-            for(ClipperLib::Path& poly : polys) {
-                rotate(poly, double(tr.rotation));
-                translate(poly, tr.shift(X), tr.shift(Y));
-
-                if(o == SLADisplayOrientation::sladoPortrait)
-                    for(ClipperLib::IntPoint& p : poly) std::swap(p.X, p.Y);
-
-                if(!poly.empty())
-                    valid &= clipper.AddPath(poly, ClipperLib::ptSubject, closed);
-            }
-        }
-    }
-
-    if(!valid) BOOST_LOG_TRIVIAL(warning) << "Unification of invalid shapes!";
-
-    ClipperLib::PolyTree result;
-    clipper.Execute(ClipperLib::ctUnion, result, ClipperLib::pftNonZero);
-
-    m_trcache = PolyTreeToExPolygons(result);
-
-    return m_trcache;
 }
 
 } // namespace Slic3r

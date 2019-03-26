@@ -335,9 +335,6 @@ public:
         // The collection of slice records for the current level.
         std::vector<std::reference_wrapper<const SliceRecord>> m_slices;
 
-        // No need for concurrency handling with CachedObject (hopefully)
-        mutable ExPolygons m_trcache;
-
     public:
 
         explicit PrintLayer(coord_t lvl) : m_level(lvl) {}
@@ -347,13 +344,11 @@ public:
             return m_level < other.m_level;
         }
 
-        void add(const SliceRecord& sr) {
-            m_trcache.clear(); m_slices.emplace_back(sr);
-        }
+        void add(const SliceRecord& sr) { m_slices.emplace_back(sr); }
 
         coord_t level() const { return m_level; }
 
-        const ExPolygons& transformed_slice(SLADisplayOrientation o) const;
+        auto slices() const -> const decltype (m_slices)& { return m_slices; }
     };
 
     SLAPrint(): m_stepmask(slapsCount, true) {}
