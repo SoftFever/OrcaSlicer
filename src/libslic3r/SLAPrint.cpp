@@ -670,9 +670,8 @@ void SLAPrint::process()
         }
 
         // Just get the first record that is form the model:
-        auto slindex_it = po.closest_slice_record(
-                    po.m_slice_index, float(bb3d.min(Z)),
-                    std::numeric_limits<float>::infinity());
+        auto slindex_it =
+                po.closest_slice_record(po.m_slice_index, float(bb3d.min(Z)));
 
         if(slindex_it == po.m_slice_index.end())
             throw std::runtime_error(L("Slicing had to be stopped "
@@ -1272,7 +1271,7 @@ void SLAPrint::fill_statistics()
     int sliced_layer_cnt = 0;
     for (const SliceRecord& layer : highest_obj_slice_index)
     {
-        const double l_height = (layer.print_level() == highest_obj_slice_index.begin()->print_level()) ? init_layer_height : layer_height;
+        const auto l_height = double(layer.layer_height());
 
         // Calculation of the consumed material 
 
@@ -1283,9 +1282,8 @@ void SLAPrint::fill_statistics()
         {
             const SliceRecord *record = nullptr;
             {
-                const SliceRecord& slr = po->closest_slice_to_slice_level(layer.slice_level(), float(EPSILON));
-                if (!slr.is_valid())
-                    continue;
+                const SliceRecord& slr = po->closest_slice_to_slice_level(layer.slice_level());
+                if (!slr.is_valid()) continue;
                 record = &slr;
             }
 

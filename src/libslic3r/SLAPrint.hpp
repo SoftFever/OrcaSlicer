@@ -124,7 +124,7 @@ public:
         // Returns the current layer height
         float layer_height() const { return m_height; }
 
-        bool is_valid() const { return std::isnan(m_slice_z); }
+        bool is_valid() const { return ! std::isnan(m_slice_z); }
 
         const SLAPrintObject* print_obj() const { return m_po; }
 
@@ -158,7 +158,10 @@ private:
     //
     // This method can be used in const or non-const contexts as well.
     template<class Container, class T>
-    static auto closest_slice_record(Container& cont, T lvl, T eps) -> decltype (cont.begin())
+    static auto closest_slice_record(
+            Container& cont,
+            T lvl,
+            T eps = std::numeric_limits<T>::max()) -> decltype (cont.begin())
     {
         if(cont.empty()) return cont.end();
         if(cont.size() == 1 && std::abs(level<T>(cont.front()) - lvl) > eps)
@@ -207,22 +210,22 @@ public:
     // max_epsilon gives the allowable deviation of the returned slice record's
     // level.
     const SliceRecord& closest_slice_to_print_level(
-            coord_t print_level, coord_t max_epsilon = coord_t(SCALED_EPSILON)) const
+            coord_t print_level,
+            coord_t max_epsilon = std::numeric_limits<coord_t>::max()) const
     {
         auto it = closest_slice_record(m_slice_index, print_level, max_epsilon);
-        if (it == m_slice_index.end()) return SliceRecord::EMPTY;
-        return *it;
+        return it == m_slice_index.end() ? SliceRecord::EMPTY : *it;
     }
 
     // Search slice index for the closest slice to given slice_level.
     // max_epsilon gives the allowable deviation of the returned slice record's
-    // level.
+    // level. Use SliceRecord::is_valid() to check the result.
     const SliceRecord& closest_slice_to_slice_level(
-            float slice_level, float max_epsilon = float(EPSILON)) const
+            float slice_level,
+            float max_epsilon = std::numeric_limits<float>::max()) const
     {
         auto it = closest_slice_record(m_slice_index, slice_level, max_epsilon);
-        if (it == m_slice_index.end()) return SliceRecord::EMPTY;
-        return *it;
+        return it == m_slice_index.end() ? SliceRecord::EMPTY : *it;
     }
 
 protected:

@@ -5027,7 +5027,7 @@ void GLCanvas3D::_render_sla_slices() const
             // Offset to avoid OpenGL Z fighting between the object's horizontal surfaces and the triangluated surfaces of the cuts.
             double plane_shift_z = 0.002;
 
-            if (! slice_low.is_valid()) {
+            if (slice_low.is_valid()) {
                 const ExPolygons& obj_bottom = slice_low.get_slice(soModel);
                 const ExPolygons& sup_bottom = slice_low.get_slice(soSupport);
                 // calculate model bottom cap
@@ -5038,7 +5038,7 @@ void GLCanvas3D::_render_sla_slices() const
                     bottom_sup_triangles = triangulate_expolygons_3d(sup_bottom, clip_min_z - plane_shift_z, true);
             }
 
-            if (! slice_high.is_valid()) {
+            if (slice_high.is_valid()) {
                 const ExPolygons& obj_top = slice_high.get_slice(soModel);
                 const ExPolygons& sup_top = slice_high.get_slice(soSupport);
                 // calculate model top cap
