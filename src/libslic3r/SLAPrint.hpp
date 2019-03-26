@@ -38,56 +38,6 @@ using _SLAPrintObjectBase =
 
 enum SliceOrigin { soSupport, soModel };
 
-class SLAPrintObject;
-
-// The public Slice record structure. It corresponds to one printable layer.
-class SliceRecord {
-public:
-    // this will be the max limit of size_t
-    static const size_t NONE = size_t(-1);
-
-    static const SliceRecord EMPTY;
-
-private:
-    coord_t   m_print_z = 0;      // Top of the layer
-    float     m_slice_z = 0.f;    // Exact level of the slice
-    float     m_height  = 0.f;     // Height of the sliced layer
-
-    size_t m_model_slices_idx = NONE;
-    size_t m_support_slices_idx = NONE;
-    const SLAPrintObject *m_po = nullptr;
-
-public:
-
-    SliceRecord(coord_t key, float slicez, float height):
-        m_print_z(key), m_slice_z(slicez), m_height(height) {}
-
-    // The key will be the integer height level of the top of the layer.
-    coord_t print_level() const { return m_print_z; }
-
-    // Returns the exact floating point Z coordinate of the slice
-    float slice_level() const { return m_slice_z; }
-
-    // Returns the current layer height
-    float layer_height() const { return m_height; }
-
-    bool is_valid() const { return std::isnan(m_slice_z); }
-
-    const SLAPrintObject* print_obj() const { return m_po; }
-
-    // Methods for setting the indices into the slice vectors.
-    void set_model_slice_idx(const SLAPrintObject &po, size_t id) {
-        m_po = &po; m_model_slices_idx = id;
-    }
-
-    void set_support_slice_idx(const SLAPrintObject& po, size_t id) {
-        m_po = &po; m_support_slices_idx = id;
-    }
-
-    const ExPolygons& get_slice(SliceOrigin o) const;
-};
-
-
 class SLAPrintObject : public _SLAPrintObjectBase
 {
 private: // Prevents erroneous use by other classes.
@@ -143,6 +93,53 @@ public:
     // This method returns the support points of this SLAPrintObject.
     const std::vector<sla::SupportPoint>& get_support_points() const;
 
+    // The public Slice record structure. It corresponds to one printable layer.
+    class SliceRecord {
+    public:
+        // this will be the max limit of size_t
+        static const size_t NONE = size_t(-1);
+
+        static const SliceRecord EMPTY;
+
+    private:
+        coord_t   m_print_z = 0;      // Top of the layer
+        float     m_slice_z = 0.f;    // Exact level of the slice
+        float     m_height  = 0.f;     // Height of the sliced layer
+
+        size_t m_model_slices_idx = NONE;
+        size_t m_support_slices_idx = NONE;
+        const SLAPrintObject *m_po = nullptr;
+
+    public:
+
+        SliceRecord(coord_t key, float slicez, float height):
+            m_print_z(key), m_slice_z(slicez), m_height(height) {}
+
+        // The key will be the integer height level of the top of the layer.
+        coord_t print_level() const { return m_print_z; }
+
+        // Returns the exact floating point Z coordinate of the slice
+        float slice_level() const { return m_slice_z; }
+
+        // Returns the current layer height
+        float layer_height() const { return m_height; }
+
+        bool is_valid() const { return std::isnan(m_slice_z); }
+
+        const SLAPrintObject* print_obj() const { return m_po; }
+
+        // Methods for setting the indices into the slice vectors.
+        void set_model_slice_idx(const SLAPrintObject &po, size_t id) {
+            m_po = &po; m_model_slices_idx = id;
+        }
+
+        void set_support_slice_idx(const SLAPrintObject& po, size_t id) {
+            m_po = &po; m_support_slices_idx = id;
+        }
+
+        const ExPolygons& get_slice(SliceOrigin o) const;
+    };
+
 private:
 
     template <class T> inline static T level(const SliceRecord& sr) {
@@ -189,6 +186,9 @@ private:
         return it;
     }
 
+    const std::vector<ExPolygons>& get_model_slices() const;
+    const std::vector<ExPolygons>& get_support_slices() const;
+
 public:
 
     // /////////////////////////////////////////////////////////////////////////
@@ -202,9 +202,6 @@ public:
 
     // Retrieve the slice index.
     const std::vector<SliceRecord>& get_slice_index() const;
-
-    const std::vector<ExPolygons>& get_model_slices() const;
-    const std::vector<ExPolygons>& get_support_slices() const;
 
     // Search slice index for the closest slice to given print_level.
     // max_epsilon gives the allowable deviation of the returned slice record's
@@ -280,6 +277,8 @@ private:
 };
 
 using PrintObjects = std::vector<SLAPrintObject*>;
+
+using SliceRecord  = SLAPrintObject::SliceRecord;
 
 class TriangleMesh;
 
