@@ -2,15 +2,11 @@
 #include "GLGizmosManager.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/3DScene.hpp"
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/GUI_ObjectManipulation.hpp"
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 #include <GL/glew.h>
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #include <wx/glcanvas.h>
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 namespace Slic3r {
 namespace GUI {
@@ -194,69 +190,7 @@ void GLGizmosManager::set_overlay_scale(float scale)
 #endif // ENABLE_SVG_ICONS
 }
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//void GLGizmosManager::update_on_off_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos, const Selection& selection)
-//{
-//    if (!m_enabled)
-//        return;
-//
-//    float cnv_h = (float)canvas.get_canvas_size().get_height();
-//    float height = get_total_overlay_height();
-//
-//#if ENABLE_SVG_ICONS
-//    float scaled_icons_size = m_overlay_icons_size * m_overlay_scale;
-//    float scaled_border = m_overlay_border * m_overlay_scale;
-//    float scaled_gap_y = m_overlay_gap_y * m_overlay_scale;
-//    float scaled_stride_y = scaled_icons_size + scaled_gap_y;
-//    float top_y = 0.5f * (cnv_h - height) + scaled_border;
-//#else
-//    float top_y = 0.5f * (cnv_h - height) + m_overlay_border;
-//    float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * m_overlay_icons_scale;
-//#endif // ENABLE_SVG_ICONS
-//
-//    for (GizmosMap::iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
-//    {
-//        if ((it->second == nullptr) || !it->second->is_selectable())
-//            continue;
-//
-//#if ENABLE_SVG_ICONS
-//        bool inside = (scaled_border <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= scaled_border + scaled_icons_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + scaled_icons_size);
-//#else
-//        bool inside = (m_overlay_border <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= m_overlay_border + scaled_icons_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + scaled_icons_size);
-//#endif // ENABLE_SVG_ICONS
-//        if (it->second->is_activable(selection) && inside)
-//        {
-//            if ((it->second->get_state() == GLGizmoBase::On))
-//            {
-//                it->second->set_state(GLGizmoBase::Hover);
-//                m_current = Undefined;
-//            }
-//            else if ((it->second->get_state() == GLGizmoBase::Hover))
-//            {
-//                it->second->set_state(GLGizmoBase::On);
-//                m_current = it->first;
-//            }
-//        }
-//        else
-//            it->second->set_state(GLGizmoBase::Off);
-//
-//#if ENABLE_SVG_ICONS
-//        top_y += scaled_stride_y;
-//#else
-//        top_y += (scaled_icons_size + m_overlay_gap_y);
-//#endif // ENABLE_SVG_ICONS
-//    }
-//
-//    GizmosMap::iterator it = m_gizmos.find(m_current);
-//    if ((it != m_gizmos.end()) && (it->second != nullptr) && (it->second->get_state() != GLGizmoBase::On))
-//        it->second->set_state(GLGizmoBase::On);
-//}
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 void GLGizmosManager::refresh_on_off_state(const Selection& selection)
-//void GLGizmosManager::update_on_off_state(const Selection& selection)
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 {
     GizmosMap::iterator it = m_gizmos.find(m_current);
     if ((it != m_gizmos.end()) && (it->second != nullptr))
@@ -312,17 +246,6 @@ void GLGizmosManager::enable_grabber(EType type, unsigned int id, bool enable)
             it->second->disable_grabber(id);
     }
 }
-
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//bool GLGizmosManager::grabber_contains_mouse() const
-//{
-//    if (!m_enabled)
-//        return false;
-//
-//    GLGizmoBase* curr = get_current();
-//    return (curr != nullptr) ? (curr->get_hover_id() != -1) : false;
-//}
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 void GLGizmosManager::update(const Linef3& mouse_ray, const Selection& selection, bool shift_down, const Point* mouse_pos)
 {
@@ -544,16 +467,11 @@ void GLGizmosManager::render_overlay(const GLCanvas3D& canvas, const Selection& 
 
 bool GLGizmosManager::on_mouse(wxMouseEvent& evt, GLCanvas3D& canvas)
 {
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     Point pos(evt.GetX(), evt.GetY());
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     Vec2d mouse_pos((double)evt.GetX(), (double)evt.GetY());
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     Selection& selection = canvas.get_selection();
     int selected_object_idx = selection.get_object_idx();
-//    const Selection& selection = canvas.get_selection();
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     bool processed = false;
 
     // mouse anywhere
@@ -584,7 +502,6 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt, GLCanvas3D& canvas)
         // mouse is outside the toolbar
         m_tooltip = "";
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         if (evt.LeftDown())
         {
             if ((m_current == SlaSupports) && gizmo_event(SLAGizmoEventType::LeftDown, mouse_pos, evt.ShiftDown()))
@@ -704,7 +621,6 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt, GLCanvas3D& canvas)
             gizmo_event(SLAGizmoEventType::LeftUp, mouse_pos, evt.ShiftDown());
             processed = true;
         }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     }
     else
     {
@@ -985,7 +901,6 @@ bool GLGizmosManager::generate_icons_texture() const
 }
 #endif // ENABLE_SVG_ICONS
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 void GLGizmosManager::update_on_off_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos, const Selection& selection)
 {
     if (!m_enabled)
@@ -1042,7 +957,6 @@ void GLGizmosManager::update_on_off_state(const GLCanvas3D& canvas, const Vec2d&
     if ((it != m_gizmos.end()) && (it->second != nullptr) && (it->second->get_state() != GLGizmoBase::On))
         it->second->set_state(GLGizmoBase::On);
 }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 std::string GLGizmosManager::update_hover_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos)
 {
@@ -1133,7 +1047,6 @@ bool GLGizmosManager::overlay_contains_mouse(const GLCanvas3D& canvas, const Vec
     return false;
 }
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 bool GLGizmosManager::grabber_contains_mouse() const
 {
     if (!m_enabled)
@@ -1142,7 +1055,6 @@ bool GLGizmosManager::grabber_contains_mouse() const
     GLGizmoBase* curr = get_current();
     return (curr != nullptr) ? (curr->get_hover_id() != -1) : false;
 }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 } // namespace GUI
 } // namespace Slic3r
