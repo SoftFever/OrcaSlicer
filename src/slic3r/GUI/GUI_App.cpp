@@ -203,7 +203,16 @@ bool GUI_App::OnInit()
     load_current_presets();
 
     mainframe->Show(true);
+
+    /* Temporary workaround for the correct behavior of the Scrolled sidebar panel:
+     * change min hight of object list to the normal min value (15 * wxGetApp().em_unit()) 
+     * after first whole Mainframe updating/layouting
+     */
+    if (obj_list()->GetMinSize().GetY() > 15 * em_unit())
+        obj_list()->SetMinSize(wxSize(-1, 15 * em_unit()));
+
     update_mode(); // update view mode after fix of the object_list size
+
     m_initialized = true;
     return true;
 }
@@ -316,6 +325,13 @@ void GUI_App::recreate_GUI()
     mainframe->Show(true);
 
     dlg.Update(90, _(L("Loading of a mode view")) + dots);
+
+    /* Temporary workaround for the correct behavior of the Scrolled sidebar panel:
+    * change min hight of object list to the normal min value (15 * wxGetApp().em_unit())
+    * after first whole Mainframe updating/layouting
+    */
+    if (obj_list()->GetMinSize().GetY() > 15 * em_unit())
+        obj_list()->SetMinSize(wxSize(-1, 15 * em_unit()));
 
     update_mode();
 
@@ -633,12 +649,28 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
         }
         case ConfigMenuLanguage:
         {
+            /* Before change application language, let's check unsaved changes
+             * and draw user's attention to the application restarting after a language change
+             */
+            wxMessageDialog dialog(nullptr,
+                _(L("Application will be restarted after language change, "
+                    "and 3D-Scene will be cleaned.")) + "\n" +
+                _(L("Please, check your changes before.")) + "\n\n" +
+                _(L("Continue anyway?")),
+                _(L("Attention!")),
+                wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
+            if ( dialog.ShowModal() != wxID_YES)
+                return;
+
+            if (!wxGetApp().check_unsaved_changes())
+                return;
+
             wxArrayString names;
             wxArrayLong identifiers;
             get_installed_languages(names, identifiers);
             if (select_language(names, identifiers)) {
                 save_language();
-                show_info(mainframe->m_tabpanel, _(L("Application will be restarted")), _(L("Attention!")));
+//                 show_info(mainframe->m_tabpanel, _(L("Application will be restarted")), _(L("Attention!")));
                 _3DScene::remove_all_canvases();// remove all canvas before recreate GUI
                 recreate_GUI();
             }
@@ -674,11 +706,11 @@ bool GUI_App::check_unsaved_changes()
         // No changes, the application may close or reload presets.
         return true;
     // Ask the user.
-    auto dialog = new wxMessageDialog(mainframe,
+    wxMessageDialog dialog(mainframe,
         _(L("You have unsaved changes ")) + dirty + _(L(". Discard changes and continue anyway?")),
         _(L("Unsaved Presets")),
         wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
-    return dialog->ShowModal() == wxID_YES;
+    return dialog.ShowModal() == wxID_YES;
 }
 
 bool GUI_App::checked_tab(Tab* tab)
