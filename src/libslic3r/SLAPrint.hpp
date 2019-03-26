@@ -11,6 +11,7 @@
 namespace Slic3r {
 
 enum SLAPrintStep : unsigned int {
+    slapsStats,
 	slapsRasterize,
 	slapsValidate,
 	slapsCount

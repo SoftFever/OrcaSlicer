@@ -60,12 +60,14 @@ const std::array<std::string, slaposCount> OBJ_STEP_LABELS =
 // Should also add up to 100 (%)
 const std::array<unsigned, slapsCount> PRINT_STEP_LEVELS =
 {
-    80,     // slapsRasterize
-    20,     // slapsValidate
+    5,      // slapsStats
+    94,     // slapsRasterize
+    1,      // slapsValidate
 };
 
 const std::array<std::string, slapsCount> PRINT_STEP_LABELS =
 {
+    L("Calculating statistics"),     // slapsStats
     L("Rasterizing layers"),         // slapsRasterize
     L("Validating"),                 // slapsValidate
 };
@@ -913,6 +915,16 @@ void SLAPrint::process()
         report_status(*this, -2, "", SlicingStatus::RELOAD_SLA_PREVIEW);
     };
 
+    auto fillstats = [this]() {
+
+        m_print_statistics.clear();
+
+        // Fill statistics
+        fill_statistics();
+
+        report_status(*this, -2, "", SlicingStatus::RELOAD_SLA_PREVIEW);
+    };
+
     // Rasterizing the model objects, and their supports
     auto rasterize = [this, max_objstatus, ilhs]() {
         if(canceled()) return;
@@ -1050,8 +1062,6 @@ void SLAPrint::process()
         // Print all the layers in parallel
         tbb::parallel_for<unsigned, decltype(lvlfn)>(0, lvlcnt, lvlfn);
 
-        // Fill statistics
-        this->fill_statistics();
         // Set statistics values to the printer
         m_printer->set_statistics({(m_print_statistics.objects_used_material + m_print_statistics.support_used_material)/1000,
                                 double(m_default_object_config.faded_layers.getInt()),
@@ -1075,6 +1085,7 @@ void SLAPrint::process()
 
     std::array<slapsFn, slapsCount> print_program =
     {
+        fillstats,
         rasterize,
         [](){}  // validate
     };
@@ -1116,7 +1127,7 @@ void SLAPrint::process()
     }
 
     std::array<SLAPrintStep, slapsCount> printsteps = {
-        slapsRasterize, slapsValidate
+        slapsStats, slapsRasterize, slapsValidate
     };
 
     // this would disable the rasterization step
