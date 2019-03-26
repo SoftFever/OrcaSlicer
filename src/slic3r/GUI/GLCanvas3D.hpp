@@ -464,6 +464,7 @@ public:
     void set_config(const DynamicPrintConfig* config);
     void set_process(BackgroundSlicingProcess* process);
     void set_model(Model* model);
+    Model* get_model() { return m_model; }
 
     const Selection& get_selection() const { return m_selection; }
     Selection& get_selection() { return m_selection; }
@@ -563,8 +564,6 @@ public:
     void update_ui_from_settings();
 
     float get_view_toolbar_height() const { return m_view_toolbar.get_height(); }
-
-    void update_gizmos_data();
 
     int get_move_volume_id() const { return m_mouse.drag.move_volume_idx; }
 

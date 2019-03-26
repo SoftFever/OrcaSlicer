@@ -257,6 +257,48 @@ void GLGizmosManager::update(const Linef3& mouse_ray, const Selection& selection
         curr->update(GLGizmoBase::UpdateData(mouse_ray, mouse_pos, shift_down), selection);
 }
 
+void GLGizmosManager::update_data(GLCanvas3D& canvas)
+{
+    if (!m_enabled)
+        return;
+
+    const Selection& selection = canvas.get_selection();
+
+    bool enable_move_z = !selection.is_wipe_tower();
+    enable_grabber(Move, 2, enable_move_z);
+    bool enable_scale_xyz = selection.is_single_full_instance() || selection.is_single_volume() || selection.is_single_modifier();
+    for (int i = 0; i < 6; ++i)
+    {
+        enable_grabber(Scale, i, enable_scale_xyz);
+    }
+
+    if (selection.is_single_full_instance())
+    {
+        // all volumes in the selection belongs to the same instance, any of them contains the needed data, so we take the first
+        const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
+        set_scale(volume->get_instance_scaling_factor());
+        set_rotation(Vec3d::Zero());
+        ModelObject* model_object = canvas.get_model()->objects[selection.get_object_idx()];
+        set_flattening_data(model_object);
+        set_sla_support_data(model_object, selection);
+    }
+    else if (selection.is_single_volume() || selection.is_single_modifier())
+    {
+        const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
+        set_scale(volume->get_volume_scaling_factor());
+        set_rotation(Vec3d::Zero());
+        set_flattening_data(nullptr);
+        set_sla_support_data(nullptr, selection);
+    }
+    else
+    {
+        set_scale(Vec3d::Ones());
+        set_rotation(Vec3d::Zero());
+        set_flattening_data(selection.is_from_single_object() ? canvas.get_model()->objects[selection.get_object_idx()] : nullptr);
+        set_sla_support_data(nullptr, selection);
+    }
+}
+
 bool GLGizmosManager::is_running() const
 {
     if (!m_enabled)
@@ -509,7 +551,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt, GLCanvas3D& canvas)
                 processed = true;
             else if (!selection.is_empty() && grabber_contains_mouse())
             {
-                canvas.update_gizmos_data();
+                update_data(canvas);
                 selection.start_dragging();
                 start_dragging(selection);
 
@@ -603,7 +645,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt, GLCanvas3D& canvas)
             }
 
             stop_dragging();
-            canvas.update_gizmos_data();
+            update_data(canvas);
 
             wxGetApp().obj_manipul()->update_settings_value(selection);
             // Let the platter know that the dragging finished, so a delayed refresh
@@ -633,7 +675,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt, GLCanvas3D& canvas)
             if (!selection.is_empty())
             {
                 update_on_off_state(canvas, mouse_pos, selection);
-                canvas.update_gizmos_data();
+                update_data(canvas);
                 canvas.set_as_dirty();
             }
         }
@@ -733,7 +775,7 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt, GLCanvas3D& canvas)
     {
         if (handle_shortcut(keyCode, canvas.get_selection()))
         {
-            canvas.update_gizmos_data();
+            update_data(canvas);
             processed = true;
         }
     }

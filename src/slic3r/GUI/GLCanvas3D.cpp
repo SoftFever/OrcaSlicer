@@ -2015,7 +2015,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 		m_selection.volumes_changed(map_glvolume_old_to_new);
 	}
 
-    update_gizmos_data();
+    m_gizmos.update_data(*this);
 
     // Update the toolbar
     post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
@@ -2604,7 +2604,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     if (curr_idxs != m_selection.get_volume_idxs())
                     {
                         m_gizmos.refresh_on_off_state(m_selection);
-                        update_gizmos_data();
+                        m_gizmos.update_data(*this);
                         post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
                         m_dirty = true;
                     }
@@ -2748,7 +2748,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 m_selection.set_mode(Selection::Instance);
                 wxGetApp().obj_manipul()->update_settings_value(m_selection);
                 m_gizmos.reset_all_states();
-                update_gizmos_data();
+                m_gizmos.update_data(*this);
                 post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
             }
         }
@@ -2769,7 +2769,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     m_selection.add(m_hover_volume_id);
                     m_gizmos.refresh_on_off_state(m_selection);
                     post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
-                    update_gizmos_data();
+                    m_gizmos.update_data(*this);
                     wxGetApp().obj_manipul()->update_settings_value(m_selection);
                     // forces a frame render to update the view before the context menu is shown
                     render();
@@ -3113,7 +3113,7 @@ void GLCanvas3D::set_camera_zoom(float zoom)
 void GLCanvas3D::update_gizmos_on_off_state()
 {
     set_as_dirty();
-    update_gizmos_data();
+    m_gizmos.update_data(*this);
     m_gizmos.refresh_on_off_state(get_selection());
 }
 
@@ -3146,46 +3146,6 @@ void GLCanvas3D::update_ui_from_settings()
         _refresh_if_shown_on_screen();
     }
 #endif
-}
-
-void GLCanvas3D::update_gizmos_data()
-{
-    if (!m_gizmos.is_enabled())
-        return;
-
-    bool enable_move_z = !m_selection.is_wipe_tower();
-    m_gizmos.enable_grabber(GLGizmosManager::Move, 2, enable_move_z);
-    bool enable_scale_xyz = m_selection.is_single_full_instance() || m_selection.is_single_volume() || m_selection.is_single_modifier();
-    for (int i = 0; i < 6; ++i)
-    {
-        m_gizmos.enable_grabber(GLGizmosManager::Scale, i, enable_scale_xyz);
-    }
-
-    if (m_selection.is_single_full_instance())
-    {
-        // all volumes in the selection belongs to the same instance, any of them contains the needed data, so we take the first
-        const GLVolume* volume = m_volumes.volumes[*m_selection.get_volume_idxs().begin()];
-        m_gizmos.set_scale(volume->get_instance_scaling_factor());
-        m_gizmos.set_rotation(Vec3d::Zero());
-        ModelObject* model_object = m_model->objects[m_selection.get_object_idx()];
-        m_gizmos.set_flattening_data(model_object);
-        m_gizmos.set_sla_support_data(model_object, m_selection);
-    }
-    else if (m_selection.is_single_volume() || m_selection.is_single_modifier())
-    {
-        const GLVolume* volume = m_volumes.volumes[*m_selection.get_volume_idxs().begin()];
-        m_gizmos.set_scale(volume->get_volume_scaling_factor());
-        m_gizmos.set_rotation(Vec3d::Zero());
-        m_gizmos.set_flattening_data(nullptr);
-        m_gizmos.set_sla_support_data(nullptr, m_selection);
-    }
-    else
-    {
-        m_gizmos.set_scale(Vec3d::Ones());
-        m_gizmos.set_rotation(Vec3d::Zero());
-        m_gizmos.set_flattening_data(m_selection.is_from_single_object() ? m_model->objects[m_selection.get_object_idx()] : nullptr);
-        m_gizmos.set_sla_support_data(nullptr, m_selection);
-    }
 }
 
 Linef3 GLCanvas3D::mouse_ray(const Point& mouse_pos)

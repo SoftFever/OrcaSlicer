@@ -120,6 +120,8 @@ public:
     void enable_grabber(EType type, unsigned int id, bool enable);
 
     void update(const Linef3& mouse_ray, const Selection& selection, bool shift_down, const Point* mouse_pos = nullptr);
+    void update_data(GLCanvas3D& canvas);
+
     Rect get_reset_rect_viewport(const GLCanvas3D& canvas) const;
     EType get_current_type() const { return m_current; }
 
