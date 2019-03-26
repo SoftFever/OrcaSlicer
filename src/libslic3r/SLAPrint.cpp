@@ -934,11 +934,11 @@ void SLAPrint::process()
                                            m_printer_input.end(),
                                            PrintLayer(lvlid));
 
-                if(it == m_printer_input.end() || it->level != lvlid)
+                if(it == m_printer_input.end() || it->level() != lvlid)
                     it = m_printer_input.insert(it, PrintLayer(lvlid));
 
 
-                it->slices.emplace_back(std::cref(slicerecord));
+                it->add(slicerecord);
             }
         }
 
@@ -990,43 +990,53 @@ void SLAPrint::process()
         {
             if(canceled()) return;
 
-            PrintLayer& lrange = m_printer_input[level_id];
+            PrintLayer& printlayer = m_printer_input[level_id];
 
             // Switch to the appropriate layer in the printer
             printer.begin_layer(level_id);
 
-            for(const SliceRecord& slrecord : lrange.slices)
-            { // for all layers in the current level
+            auto orientation = flpXY? SLADisplayOrientation::sladoPortrait :
+                                      SLADisplayOrientation::sladoLandscape;
 
-                if(canceled()) break;
+            // Get the transformed and properly oriented slice
+            const ExPolygons& slice = printlayer.transformed_slice(orientation);
 
-                // get the layer reference
-                const ExPolygons& objslice = slrecord.get_slice(soModel);
-                const ExPolygons& supslice = slrecord.get_slice(soSupport);
-                const SLAPrintObject *po = slrecord.print_obj();
-                assert(po != nullptr);
+            // Now draw all the polygons with the printer...
+            for(const ExPolygon& p : slice) printer.draw_polygon(p, level_id);
 
-                // Draw all the polygons in the slice to the actual layer.
-                for(const SLAPrintObject::Instance& tr : po->instances()) {
-                    for(ExPolygon poly : objslice) {
-                        // The order is important here:
-                        // apply rotation before translation...
-                        poly.rotate(double(tr.rotation));
-                        poly.translate(tr.shift(X), tr.shift(Y));
-                        if(flpXY) swapXY(poly);
-                        printer.draw_polygon(poly, level_id);
-                    }
 
-                    for(ExPolygon poly : supslice) {
-                        // The order is important here:
-                        // apply rotation before translation...
-                        poly.rotate(double(tr.rotation));
-                        poly.translate(tr.shift(X), tr.shift(Y));
-                        if(flpXY) swapXY(poly);
-                        printer.draw_polygon(poly, level_id);
-                    }
-                }
-            }
+//            for(const SliceRecord& slrecord : printlayer.m_slices)
+//            { // for all layers in the current level
+
+//                if(canceled()) break;
+
+//                // get the layer reference
+//                const ExPolygons& objslice = slrecord.get_slice(soModel);
+//                const ExPolygons& supslice = slrecord.get_slice(soSupport);
+//                const SLAPrintObject *po = slrecord.print_obj();
+//                assert(po != nullptr);
+
+//                // Draw all the polygons in the slice to the actual layer.
+//                for(const SLAPrintObject::Instance& tr : po->instances()) {
+//                    for(ExPolygon poly : objslice) {
+//                        // The order is important here:
+//                        // apply rotation before translation...
+//                        poly.rotate(double(tr.rotation));
+//                        poly.translate(tr.shift(X), tr.shift(Y));
+//                        if(flpXY) swapXY(poly);
+//                        printer.draw_polygon(poly, level_id);
+//                    }
+
+//                    for(ExPolygon poly : supslice) {
+//                        // The order is important here:
+//                        // apply rotation before translation...
+//                        poly.rotate(double(tr.rotation));
+//                        poly.translate(tr.shift(X), tr.shift(Y));
+//                        if(flpXY) swapXY(poly);
+//                        printer.draw_polygon(poly, level_id);
+//                    }
+//                }
+//            }
 
             // Finish the layer for later saving it.
             printer.finish_layer(level_id);
@@ -1660,6 +1670,62 @@ std::string SLAPrintStatistics::finalize_output_path(const std::string &path_in)
         final_path = path_in;
     }
     return final_path;
+}
+
+const ExPolygons &SLAPrint::PrintLayer::transformed_slice(SLADisplayOrientation o) const
+{
+    if (! m_trcache.empty()) return m_trcache;
+
+    size_t cap = 0;
+    for (const SliceRecord& sr : m_slices) {
+        if(sr.print_obj()) {
+            size_t insts = sr.print_obj()->instances().size();
+            cap += insts * (sr.get_slice(soModel).size() +
+                            sr.get_slice(soSupport).size());
+        }
+    }
+
+    Polygons allpolys;
+    allpolys.reserve(cap);
+
+    for (const SliceRecord& sr : m_slices) {
+        const ExPolygons& objsl = sr.get_slice(soModel);
+        const ExPolygons& supsl = sr.get_slice(soSupport);
+
+        if (! sr.print_obj()) continue;
+
+        for(const SLAPrintObject::Instance& tr : sr.print_obj()->instances())
+        {
+            Polygons polys;
+            size_t polyscap = 0;
+            for(const ExPolygon &p : objsl) polyscap += p.holes.size() + 1;
+            for(const ExPolygon &p : supsl) polyscap += p.holes.size() + 1;
+            polys.reserve(polyscap);
+
+            for(const ExPolygon &p : objsl) {
+                polys.emplace_back(p.contour);
+                for(auto& h : p.holes) polys.emplace_back(h);
+            }
+
+            for(const ExPolygon &p : supsl) {
+                polys.emplace_back(p.contour);
+                for(auto& h : p.holes) polys.emplace_back(h);
+            }
+
+            for(Polygon& poly : polys) {
+                poly.rotate(double(tr.rotation));
+                poly.translate(tr.shift(X), tr.shift(Y));
+                if(o == SLADisplayOrientation::sladoPortrait)
+                    for(auto& p : poly.points) std::swap(p(X), p(Y));
+
+                allpolys.emplace_back(std::move(poly));
+            }
+        }
+    }
+
+    m_trcache = union_ex(allpolys);
+
+    return m_trcache;
 }
 
 } // namespace Slic3r

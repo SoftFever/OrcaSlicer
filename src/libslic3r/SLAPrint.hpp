@@ -329,18 +329,31 @@ public:
     // An aggregation of SliceRecord-s from all the print objects for each
     // occupied layer. Slice record levels dont have to match exactly.
     // They are unified if the level difference is within +/- SCALED_EPSILON
-    struct PrintLayer {
-        coord_t level;
+    class PrintLayer {
+        coord_t m_level;
 
         // The collection of slice records for the current level.
-        std::vector<std::reference_wrapper<const SliceRecord>> slices;
+        std::vector<std::reference_wrapper<const SliceRecord>> m_slices;
 
-        explicit PrintLayer(coord_t lvl) : level(lvl) {}
+        // No need for concurrency handling with CachedObject (hopefully)
+        mutable ExPolygons m_trcache;
+
+    public:
+
+        explicit PrintLayer(coord_t lvl) : m_level(lvl) {}
 
         // for being sorted in their container (see m_printer_input)
         bool operator<(const PrintLayer& other) const {
-            return level < other.level;
+            return m_level < other.m_level;
         }
+
+        void add(const SliceRecord& sr) {
+            m_trcache.clear(); m_slices.emplace_back(sr);
+        }
+
+        coord_t level() const { return m_level; }
+
+        const ExPolygons& transformed_slice(SLADisplayOrientation o) const;
     };
 
     SLAPrint(): m_stepmask(slapsCount, true) {}
