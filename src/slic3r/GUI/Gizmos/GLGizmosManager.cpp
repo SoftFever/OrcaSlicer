@@ -23,9 +23,7 @@ GLGizmosManager::GLGizmosManager()
     , m_overlay_scale(1.0f)
     , m_overlay_border(5.0f)
     , m_overlay_gap_y(5.0f)
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     , m_tooltip("")
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 {
 }
 #else
@@ -189,54 +187,6 @@ void GLGizmosManager::set_overlay_scale(float scale)
 #endif // ENABLE_SVG_ICONS
 }
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//std::string GLGizmosManager::update_hover_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos, const Selection& selection)
-//{
-//    std::string name = "";
-//
-//    if (!m_enabled)
-//        return name;
-//
-//    float cnv_h = (float)canvas.get_canvas_size().get_height();
-//    float height = get_total_overlay_height();
-//#if ENABLE_SVG_ICONS
-//    float scaled_icons_size = m_overlay_icons_size * m_overlay_scale;
-//    float scaled_border = m_overlay_border * m_overlay_scale;
-//    float scaled_gap_y = m_overlay_gap_y * m_overlay_scale;
-//    float scaled_stride_y = scaled_icons_size + scaled_gap_y;
-//    float top_y = 0.5f * (cnv_h - height) + scaled_border;
-//#else
-//    float top_y = 0.5f * (cnv_h - height) + m_overlay_border;
-//    float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * m_overlay_icons_scale;
-//#endif // ENABLE_SVG_ICONS
-//
-//    for (GizmosMap::iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
-//    {
-//        if ((it->second == nullptr) || !it->second->is_selectable())
-//            continue;
-//
-//#if ENABLE_SVG_ICONS
-//        bool inside = (scaled_border <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= scaled_border + scaled_icons_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + scaled_icons_size);
-//#else
-//        bool inside = (m_overlay_border <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= m_overlay_border + scaled_icons_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + scaled_icons_size);
-//#endif // ENABLE_SVG_ICONS
-//        if (inside)
-//            name = it->second->get_name();
-//
-//        if (it->second->is_activable(selection) && (it->second->get_state() != GLGizmoBase::On))
-//            it->second->set_state(inside ? GLGizmoBase::Hover : GLGizmoBase::Off);
-//
-//#if ENABLE_SVG_ICONS
-//        top_y += scaled_stride_y;
-//#else
-//        top_y += (scaled_icons_size + m_overlay_gap_y);
-//#endif // ENABLE_SVG_ICONS
-//    }
-//
-//    return name;
-//}
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
 void GLGizmosManager::update_on_off_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos, const Selection& selection)
 {
     if (!m_enabled)
@@ -350,49 +300,6 @@ void GLGizmosManager::enable_grabber(EType type, unsigned int id, bool enable)
             it->second->disable_grabber(id);
     }
 }
-
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//bool GLGizmosManager::overlay_contains_mouse(const GLCanvas3D& canvas, const Vec2d& mouse_pos) const
-//{
-//    if (!m_enabled)
-//        return false;
-//
-//    float cnv_h = (float)canvas.get_canvas_size().get_height();
-//    float height = get_total_overlay_height();
-//
-//#if ENABLE_SVG_ICONS
-//    float scaled_icons_size = m_overlay_icons_size * m_overlay_scale;
-//    float scaled_border = m_overlay_border * m_overlay_scale;
-//    float scaled_gap_y = m_overlay_gap_y * m_overlay_scale;
-//    float scaled_stride_y = scaled_icons_size + scaled_gap_y;
-//    float top_y = 0.5f * (cnv_h - height) + scaled_border;
-//#else
-//    float top_y = 0.5f * (cnv_h - height) + m_overlay_border;
-//    float scaled_icons_size = (float)m_icons_texture.metadata.icon_size * m_overlay_icons_scale;
-//#endif // ENABLE_SVG_ICONS
-//
-//    for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
-//    {
-//        if ((it->second == nullptr) || !it->second->is_selectable())
-//            continue;
-//
-//#if ENABLE_SVG_ICONS
-//        if ((scaled_border <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= scaled_border + scaled_icons_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + scaled_icons_size))
-//#else
-//        if ((m_overlay_border <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= m_overlay_border + scaled_icons_size) && (top_y <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= top_y + scaled_icons_size))
-//#endif // ENABLE_SVG_ICONS
-//            return true;
-//
-//#if ENABLE_SVG_ICONS
-//        top_y += scaled_stride_y;
-//#else
-//        top_y += (scaled_icons_size + m_overlay_gap_y);
-//#endif // ENABLE_SVG_ICONS
-//    }
-//
-//    return false;
-//}
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 bool GLGizmosManager::grabber_contains_mouse() const
 {
@@ -621,13 +528,9 @@ void GLGizmosManager::render_overlay(const GLCanvas3D& canvas, const Selection& 
     glsafe(::glPopMatrix());
 }
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 bool GLGizmosManager::on_mouse(wxMouseEvent& evt, GLCanvas3D& canvas)
 {
     Vec2d mouse_pos((double)evt.GetX(), (double)evt.GetY());
-
-    std::cout << to_string(mouse_pos) << std::endl;
-
 
     const Selection& selection = canvas.get_selection();
     bool processed = false;
@@ -691,7 +594,6 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt, GLCanvas3D& canvas)
 
     return processed;
 }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 void GLGizmosManager::reset()
 {
@@ -940,7 +842,6 @@ bool GLGizmosManager::generate_icons_texture() const
 }
 #endif // ENABLE_SVG_ICONS
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 std::string GLGizmosManager::update_hover_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos)
 {
     std::string name = "";
@@ -1029,7 +930,6 @@ bool GLGizmosManager::overlay_contains_mouse(const GLCanvas3D& canvas, const Vec
 
     return false;
 }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 } // namespace GUI
 } // namespace Slic3r

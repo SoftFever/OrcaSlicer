@@ -2016,10 +2016,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 		m_selection.volumes_changed(map_glvolume_old_to_new);
 	}
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     update_gizmos_data();
-//    _update_gizmos_data();
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     // Update the toolbar
     post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
@@ -2334,10 +2331,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         {
             if (m_gizmos.handle_shortcut(keyCode, m_selection))
             {
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                 update_gizmos_data();
-//                _update_gizmos_data();
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                 m_dirty = true;
             }
             else
@@ -2516,15 +2510,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         return;
     }
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    std::cout << to_string(m_mouse.position) << std::endl;
-
     if (m_gizmos.on_mouse(evt, *this))
     {
         m_mouse.set_start_position_3D_as_invalid();
         return;
     }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     if (m_picking_enabled)
         _set_current();
@@ -2532,9 +2522,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     int selected_object_idx = m_selection.get_object_idx();
     int layer_editing_object_idx = is_layers_editing_enabled() ? selected_object_idx : -1;
     m_layers_editing.select_object(*m_model, layer_editing_object_idx);
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//    bool gizmos_overlay_contains_mouse = m_gizmos.overlay_contains_mouse(*this, m_mouse.position);
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     if (m_mouse.drag.move_requires_threshold && m_mouse.is_move_start_threshold_position_2D_defined() && m_mouse.is_move_threshold_met(pos))
     {
@@ -2604,27 +2591,13 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 m_dirty = true;
             }
         }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//        else if (!m_selection.is_empty() && gizmos_overlay_contains_mouse)
-//        {
-//            m_gizmos.update_on_off_state(*this, m_mouse.position, m_selection);
-//            _update_gizmos_data();
-//            m_dirty = true;
-//        }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         else if (evt.LeftDown() && m_gizmos.get_current_type() == GLGizmosManager::SlaSupports && m_gizmos.gizmo_event(SLAGizmoEventType::LeftDown, Vec2d(pos(0), pos(1)), evt.ShiftDown()))
-//        else if (evt.LeftDown() && m_gizmos.get_current_type() == Gizmos::SlaSupports && m_gizmos.gizmo_event(SLAGizmoEventType::LeftDown, Vec2d(pos(0), pos(1)), evt.ShiftDown()))
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         {
             // the gizmo got the event and took some action, there is no need to do anything more
         }
         else if (evt.LeftDown() && !m_selection.is_empty() && m_gizmos.grabber_contains_mouse())
         {
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             update_gizmos_data();
-//            _update_gizmos_data();
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             m_selection.start_dragging();
             m_gizmos.start_dragging(m_selection);
 
@@ -2637,10 +2610,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
             m_dirty = true;
         }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         else if ((selected_object_idx != -1) && evt.RightDown() && m_gizmos.get_current_type() == GLGizmosManager::SlaSupports && m_gizmos.gizmo_event(SLAGizmoEventType::RightDown))
-//        else if ((selected_object_idx != -1) && evt.RightDown() && m_gizmos.get_current_type() == Gizmos::SlaSupports && m_gizmos.gizmo_event(SLAGizmoEventType::RightDown))
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         {
             // event was taken care of by the SlaSupports gizmo
         }
@@ -2676,10 +2646,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     {
 
                         m_gizmos.update_on_off_state(m_selection);
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                         update_gizmos_data();
-//                        _update_gizmos_data();
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                         post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
                         m_dirty = true;
                     }
@@ -2706,10 +2673,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }
         }
     }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     else if (evt.Dragging() && evt.LeftIsDown() && (m_layers_editing.state == LayersEditing::Unknown)
-//    else if (evt.Dragging() && evt.LeftIsDown() && !gizmos_overlay_contains_mouse && (m_layers_editing.state == LayersEditing::Unknown)
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         && (m_mouse.drag.move_volume_idx != -1) && m_gizmos.get_current_type() != GLGizmosManager::SlaSupports /* don't allow dragging objects with the Sla gizmo on */)
     {
         if (!m_mouse.drag.move_requires_threshold)
@@ -2808,11 +2772,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         // the gizmo got the event and took some action, no need to do anything more here
         m_dirty = true;
     }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     else if (evt.Dragging())
-//    // do not process dragging if the mouse is into any of the HUD elements
-//    else if (evt.Dragging() && !gizmos_overlay_contains_mouse)
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     {
         m_mouse.dragging = true;
 
@@ -2874,10 +2834,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // of the scene with the background processing data should be performed.
             post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
         }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         else if (evt.LeftUp() && !m_mouse.dragging && (m_hover_volume_id == -1) && !m_gizmos.is_dragging()
-//        else if (evt.LeftUp() && !m_mouse.dragging && (m_hover_volume_id == -1) && !gizmos_overlay_contains_mouse && !m_gizmos.is_dragging()
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             && !is_layers_editing_enabled())
         {
             // deselect and propagate event through callback
@@ -2887,10 +2844,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 m_selection.set_mode(Selection::Instance);
                 wxGetApp().obj_manipul()->update_settings_value(m_selection);
                 m_gizmos.reset_all_states();
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                 update_gizmos_data();
-//                _update_gizmos_data();
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                 post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
             }
             m_mouse.ignore_up_event = false;
@@ -2919,10 +2873,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 break;
             }
             m_gizmos.stop_dragging();
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             update_gizmos_data();
-//            _update_gizmos_data();
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
             wxGetApp().obj_manipul()->update_settings_value(m_selection);
             // Let the platter know that the dragging finished, so a delayed refresh
@@ -2947,10 +2898,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     m_selection.add(m_hover_volume_id);
                     m_gizmos.update_on_off_state(m_selection);
                     post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                     update_gizmos_data();
-//                    _update_gizmos_data();
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                     wxGetApp().obj_manipul()->update_settings_value(m_selection);
                     // forces a frame render to update the view before the context menu is shown
                     render();
@@ -2980,15 +2928,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_mouse.position = pos.cast<double>();
         std::string tooltip = "";
 
-        // updates gizmos overlay
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         if (tooltip.empty())
             tooltip = m_gizmos.get_tooltip();
-
-//        tooltip = m_gizmos.update_hover_state(*this, m_mouse.position, m_selection);
-//        if (m_selection.is_empty())
-//            m_gizmos.reset_all_states();
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
         if (tooltip.empty())
             tooltip = m_toolbar.get_tooltip();
@@ -2998,10 +2939,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
         set_tooltip(tooltip);
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        // updates gizmos overlay
         if (m_selection.is_empty())
             m_gizmos.reset_all_states();
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
         // Only refresh if picking is enabled, in that case the objects may get highlighted if the mouse cursor hovers over.
         if (m_picking_enabled)
@@ -3310,10 +3250,7 @@ void GLCanvas3D::set_camera_zoom(float zoom)
 void GLCanvas3D::update_gizmos_on_off_state()
 {
     set_as_dirty();
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     update_gizmos_data();
-//    _update_gizmos_data();
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     m_gizmos.update_on_off_state(get_selection());
 }
 
@@ -3348,7 +3285,6 @@ void GLCanvas3D::update_ui_from_settings()
 #endif
 }
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 void GLCanvas3D::update_gizmos_data()
 {
     if (!m_gizmos.is_enabled())
@@ -3388,7 +3324,6 @@ void GLCanvas3D::update_gizmos_data()
         m_gizmos.set_sla_support_data(nullptr, m_selection);
     }
 }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 bool GLCanvas3D::_is_shown_on_screen() const
 {
@@ -4303,48 +4238,6 @@ void GLCanvas3D::_update_volumes_hover_state() const
     }
     }
 }
-
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//void GLCanvas3D::_update_gizmos_data()
-//{
-//    if (!m_gizmos.is_enabled())
-//        return;
-//
-//    bool enable_move_z = !m_selection.is_wipe_tower();
-//    m_gizmos.enable_grabber(GLGizmosManager::Move, 2, enable_move_z);
-//    bool enable_scale_xyz = m_selection.is_single_full_instance() || m_selection.is_single_volume() || m_selection.is_single_modifier();
-//    for (int i = 0; i < 6; ++i)
-//    {
-//        m_gizmos.enable_grabber(GLGizmosManager::Scale, i, enable_scale_xyz);
-//    }
-//
-//    if (m_selection.is_single_full_instance())
-//    {
-//        // all volumes in the selection belongs to the same instance, any of them contains the needed data, so we take the first
-//        const GLVolume* volume = m_volumes.volumes[*m_selection.get_volume_idxs().begin()];
-//        m_gizmos.set_scale(volume->get_instance_scaling_factor());
-//        m_gizmos.set_rotation(Vec3d::Zero());
-//        ModelObject* model_object = m_model->objects[m_selection.get_object_idx()];
-//        m_gizmos.set_flattening_data(model_object);
-//        m_gizmos.set_sla_support_data(model_object, m_selection);
-//    }
-//    else if (m_selection.is_single_volume() || m_selection.is_single_modifier())
-//    {
-//        const GLVolume* volume = m_volumes.volumes[*m_selection.get_volume_idxs().begin()];
-//        m_gizmos.set_scale(volume->get_volume_scaling_factor());
-//        m_gizmos.set_rotation(Vec3d::Zero());
-//        m_gizmos.set_flattening_data(nullptr);
-//        m_gizmos.set_sla_support_data(nullptr, m_selection);
-//    }
-//    else
-//    {
-//        m_gizmos.set_scale(Vec3d::Ones());
-//        m_gizmos.set_rotation(Vec3d::Zero());
-//        m_gizmos.set_flattening_data(m_selection.is_from_single_object() ? m_model->objects[m_selection.get_object_idx()] : nullptr);
-//        m_gizmos.set_sla_support_data(nullptr, m_selection);
-//    }
-//}
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 void GLCanvas3D::_perform_layer_editing_action(wxMouseEvent* evt)
 {
