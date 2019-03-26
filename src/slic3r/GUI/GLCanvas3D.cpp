@@ -5012,23 +5012,30 @@ void GLCanvas3D::_render_sla_slices() const
         if ((bottom_obj_triangles.empty() || bottom_sup_triangles.empty() || top_obj_triangles.empty() || top_sup_triangles.empty()) &&
             obj->is_step_done(slaposIndexSlices) && !obj->get_slice_index().empty())
         {
+            double layer_height         = print->default_object_config().layer_height.value;
             double initial_layer_height = print->material_config().initial_layer_height.value;
+
             coord_t key_zero = obj->get_slice_index().front().print_level();
-			coord_t key_low  = coord_t((clip_min_z - initial_layer_height) / SCALING_FACTOR) + key_zero;
+            // Slice at the center of the slab starting at clip_min_z will be rendered for the lower plane.
+            coord_t key_low  = coord_t((clip_min_z - initial_layer_height + layer_height) / SCALING_FACTOR) + key_zero;
+            // Slice at the center of the slab ending at clip_max_z will be rendered for the upper plane.
             coord_t key_high = coord_t((clip_max_z - initial_layer_height) / SCALING_FACTOR) + key_zero;
 
-            SliceRecord slice_low = obj->closest_slice_to_print_level(key_low, coord_t(SCALED_EPSILON));
-            SliceRecord slice_high = obj->closest_slice_to_print_level(key_high, coord_t(SCALED_EPSILON));
-    
+            const SliceRecord& slice_low  = obj->closest_slice_to_print_level(key_low, coord_t(SCALED_EPSILON));
+            const SliceRecord& slice_high = obj->closest_slice_to_print_level(key_high, coord_t(SCALED_EPSILON));
+
+            // Offset to avoid OpenGL Z fighting between the object's horizontal surfaces and the triangluated surfaces of the cuts.
+            double plane_shift_z = 0.002;
+
             if (! slice_low.is_valid()) {
                 const ExPolygons& obj_bottom = slice_low.get_slice(soModel);
                 const ExPolygons& sup_bottom = slice_low.get_slice(soSupport);
                 // calculate model bottom cap
                 if (bottom_obj_triangles.empty() && !obj_bottom.empty())
-                    bottom_obj_triangles = triangulate_expolygons_3d(obj_bottom, clip_min_z, true);
+                    bottom_obj_triangles = triangulate_expolygons_3d(obj_bottom, clip_min_z - plane_shift_z, true);
                 // calculate support bottom cap
                 if (bottom_sup_triangles.empty() && !sup_bottom.empty())
-                    bottom_sup_triangles = triangulate_expolygons_3d(sup_bottom, clip_min_z, true);
+                    bottom_sup_triangles = triangulate_expolygons_3d(sup_bottom, clip_min_z - plane_shift_z, true);
             }
 
             if (! slice_high.is_valid()) {
@@ -5036,10 +5043,10 @@ void GLCanvas3D::_render_sla_slices() const
                 const ExPolygons& sup_top = slice_high.get_slice(soSupport);
                 // calculate model top cap
                 if (top_obj_triangles.empty() && !obj_top.empty())
-                    top_obj_triangles = triangulate_expolygons_3d(obj_top, clip_max_z, false);
+                    top_obj_triangles = triangulate_expolygons_3d(obj_top, clip_max_z + plane_shift_z, false);
                 // calculate support top cap
                 if (top_sup_triangles.empty() && !sup_top.empty())
-                    top_sup_triangles = triangulate_expolygons_3d(sup_top, clip_max_z, false);
+                    top_sup_triangles = triangulate_expolygons_3d(sup_top, clip_max_z + plane_shift_z, false);
             }
         }
 
