@@ -2240,6 +2240,9 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         return;
     }
 
+    if (m_gizmos.on_char(evt, *this))
+        return;
+
 //#ifdef __APPLE__
 //    ctrlMask |= wxMOD_RAW_CONTROL;
 //#endif /* __APPLE__ */
@@ -2248,9 +2251,6 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case 'a':
         case 'A':
         case WXK_CONTROL_A:
-            if (m_gizmos.get_current_type() == GLGizmosManager::SlaSupports && m_gizmos.gizmo_event(SLAGizmoEventType::SelectAll)) // Sla gizmo selects all support points
-                m_dirty = true;
-            else
                 post_event(SimpleEvent(EVT_GLCANVAS_SELECT_ALL));
         break;
 #ifdef __APPLE__
@@ -2266,29 +2266,12 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
     } else {
         switch (keyCode)
         {
-        // key ESC
-        case WXK_ESCAPE: {
-            if (m_gizmos.get_current_type() != GLGizmosManager::SlaSupports || !m_gizmos.gizmo_event(SLAGizmoEventType::DiscardChanges))
-                m_gizmos.reset_all_states();
-            m_dirty = true;
-            break;
-        }
-
-        case WXK_RETURN: {
-            if (m_gizmos.get_current_type() == GLGizmosManager::SlaSupports && m_gizmos.gizmo_event(SLAGizmoEventType::ApplyChanges))
-                m_dirty = true;
-            break;
-        }
-
 #ifdef __APPLE__
         case WXK_BACK: // the low cost Apple solutions are not equipped with a Delete key, use Backspace instead.
 #else /* __APPLE__ */
 		case WXK_DELETE:
 #endif /* __APPLE__ */
-                  if (m_gizmos.get_current_type() == GLGizmosManager::SlaSupports && m_gizmos.gizmo_event(SLAGizmoEventType::Delete))
-                        m_dirty = true;
-                  else
-                      post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE));
+                  post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE));
                   break;
 
 		case '0': { select_view("iso"); break; }
@@ -2302,15 +2285,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case '-': { post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, -1)); break; }
         case '?': { post_event(SimpleEvent(EVT_GLCANVAS_QUESTION_MARK)); break; }
         case 'A':
-        case 'a': {
-            if (m_gizmos.get_current_type() == GLGizmosManager::SlaSupports) {
-                if (m_gizmos.gizmo_event(SLAGizmoEventType::AutomaticGeneration))
-                    m_dirty = true;
-            }
-            else
-                post_event(SimpleEvent(EVT_GLCANVAS_ARRANGE));
-            break;
-        }
+        case 'a': { post_event(SimpleEvent(EVT_GLCANVAS_ARRANGE)); break; }
         case 'B':
         case 'b': { zoom_to_bed(); break; }
         case 'I':
@@ -2319,23 +2294,9 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case 'o': { set_camera_zoom(-1.0f); break; }
         case 'Z':
         case 'z': { m_selection.is_empty() ? zoom_to_volumes() : zoom_to_selection(); break; }
-        case 'M':
-        case 'm': {
-            if (m_gizmos.get_current_type() == GLGizmosManager::SlaSupports && m_gizmos.gizmo_event(SLAGizmoEventType::ManualEditing)) {
-                m_dirty = true;
-                break;
-            }
-        } // intentional fallthrough
         default:
         {
-            if (m_gizmos.handle_shortcut(keyCode, m_selection))
-            {
-                update_gizmos_data();
-                m_dirty = true;
-            }
-            else
-                evt.Skip();
-
+            evt.Skip();
             break;
         }
         }

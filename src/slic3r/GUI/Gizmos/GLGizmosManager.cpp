@@ -654,6 +654,97 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt, GLCanvas3D& canvas)
     return processed;
 }
 
+bool GLGizmosManager::on_char(wxKeyEvent& evt, GLCanvas3D& canvas)
+{
+    // see include/wx/defs.h enum wxKeyCode
+    int keyCode = evt.GetKeyCode();
+    int ctrlMask = wxMOD_CONTROL;
+
+    const Selection& selection = canvas.get_selection();
+    bool processed = false;
+
+    if ((evt.GetModifiers() & ctrlMask) != 0)
+    {
+        switch (keyCode)
+        {
+        case WXK_CONTROL_A:
+        {
+            // Sla gizmo selects all support points
+            if ((m_current == SlaSupports) && gizmo_event(SLAGizmoEventType::SelectAll))
+                processed = true;
+
+            break;
+        }
+        }
+    }
+    else if (!evt.HasModifiers())
+    {
+        switch (keyCode)
+        {
+        // key ESC
+        case WXK_ESCAPE:
+        {
+            if ((m_current != SlaSupports) || !gizmo_event(SLAGizmoEventType::DiscardChanges))
+                reset_all_states();
+
+            processed = true;
+            break;
+        }
+        case WXK_RETURN:
+        {
+            if ((m_current == SlaSupports) && gizmo_event(SLAGizmoEventType::ApplyChanges))
+                processed = true;
+
+            break;
+        }
+#ifdef __APPLE__
+        case WXK_BACK: // the low cost Apple solutions are not equipped with a Delete key, use Backspace instead.
+#else /* __APPLE__ */
+        case WXK_DELETE:
+#endif /* __APPLE__ */
+        {
+            if ((m_current == SlaSupports) && gizmo_event(SLAGizmoEventType::Delete))
+                processed = true;
+
+            break;
+        }
+        case 'A':
+        case 'a':
+        {
+            if (m_current == SlaSupports)
+            {
+                gizmo_event(SLAGizmoEventType::AutomaticGeneration);
+                // set as processed no matter what's returned by gizmo_event() to avoid the calling canvas to process 'A' as arrange
+                processed = true;
+            }
+            break;
+        }
+        case 'M':
+        case 'm':
+        {
+            if ((m_current == SlaSupports) && gizmo_event(SLAGizmoEventType::ManualEditing))
+                processed = true;
+                
+            break;
+        }
+        }
+    }
+
+    if (!processed)
+    {
+        if (handle_shortcut(keyCode, selection))
+        {
+            canvas.update_gizmos_data();
+            processed = true;
+        }
+    }
+
+    if (processed)
+        canvas.set_as_dirty();
+
+    return processed;
+}
+
 void GLGizmosManager::reset()
 {
     for (GizmosMap::value_type& gizmo : m_gizmos)
