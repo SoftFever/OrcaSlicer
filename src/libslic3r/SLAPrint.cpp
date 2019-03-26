@@ -698,7 +698,7 @@ void SLAPrint::process()
             id < po.m_model_slices.size() && mit != po.m_slice_index.end();
             id++)
         {
-            mit->set_model_slice_idx(id); ++mit;
+            mit->set_model_slice_idx(po, id); ++mit;
         }
     };
 
@@ -894,7 +894,7 @@ void SLAPrint::process()
             i < sd->support_slices.size() && i < po.m_slice_index.size();
             ++i)
         {
-            po.m_slice_index[i].set_support_slice_idx(i);
+            po.m_slice_index[i].set_support_slice_idx(po, i);
         }
     };
 
@@ -924,7 +924,7 @@ void SLAPrint::process()
         for(SLAPrintObject * o : m_objects) {
             coord_t gndlvl = o->get_slice_index().front().print_level() - ilhs;
 
-            for(auto& slicerecord : o->get_slice_index()) {
+            for(const SliceRecord& slicerecord : o->get_slice_index()) {
                 coord_t lvlid = slicerecord.print_level() - gndlvl;
 
                 // Neat trick to round the layer levels to the grid.
@@ -932,21 +932,13 @@ void SLAPrint::process()
 
                 auto it = std::lower_bound(m_printer_input.begin(),
                                            m_printer_input.end(),
-                                           LayerRefs(lvlid));
+                                           PrintLayer(lvlid));
 
                 if(it == m_printer_input.end() || it->level != lvlid)
-                    it = m_printer_input.insert(it, LayerRefs(lvlid));
+                    it = m_printer_input.insert(it, PrintLayer(lvlid));
 
-                auto& lyrs = *it;
 
-                const ExPolygons& objslices = o->get_slices_from_record(slicerecord, soModel);
-                const ExPolygons& supslices = o->get_slices_from_record(slicerecord, soSupport);
-
-                if(!objslices.empty())
-                    lyrs.refs.emplace_back(objslices, o->instances());
-
-                if(!supslices.empty())
-                    lyrs.refs.emplace_back(supslices, o->instances());
+                it->slices.emplace_back(std::cref(slicerecord));
             }
         }
 
@@ -998,25 +990,40 @@ void SLAPrint::process()
         {
             if(canceled()) return;
 
-            LayerRefs& lrange = m_printer_input[level_id];
+            PrintLayer& lrange = m_printer_input[level_id];
 
             // Switch to the appropriate layer in the printer
             printer.begin_layer(level_id);
 
-            for(auto& lyrref : lrange.refs) { // for all layers in the current level
+            for(const SliceRecord& slrecord : lrange.slices)
+            { // for all layers in the current level
+
                 if(canceled()) break;
-                const Layer& sl = lyrref.lref;   // get the layer reference
-                const LayerCopies& copies = lyrref.copies;
+
+                // get the layer reference
+                const ExPolygons& objslice = slrecord.get_slice(soModel);
+                const ExPolygons& supslice = slrecord.get_slice(soModel);
+                const SLAPrintObject *po = slrecord.print_obj();
+                assert(po != nullptr);
 
                 // Draw all the polygons in the slice to the actual layer.
-                for(auto& cp : copies) {
-                    for(ExPolygon slice : sl) {
+                for(const SLAPrintObject::Instance& tr : po->instances()) {
+                    for(ExPolygon poly : objslice) {
                         // The order is important here:
                         // apply rotation before translation...
-                        slice.rotate(double(cp.rotation));
-                        slice.translate(cp.shift(X), cp.shift(Y));
-                        if(flpXY) swapXY(slice);
-                        printer.draw_polygon(slice, level_id);
+                        poly.rotate(double(tr.rotation));
+                        poly.translate(tr.shift(X), tr.shift(Y));
+                        if(flpXY) swapXY(poly);
+                        printer.draw_polygon(poly, level_id);
+                    }
+
+                    for(ExPolygon poly : supslice) {
+                        // The order is important here:
+                        // apply rotation before translation...
+                        poly.rotate(double(tr.rotation));
+                        poly.translate(tr.shift(X), tr.shift(Y));
+                        if(flpXY) swapXY(poly);
+                        printer.draw_polygon(poly, level_id);
                     }
                 }
             }
@@ -1026,11 +1033,13 @@ void SLAPrint::process()
 
             // Status indication guarded with the spinlock
             auto st = ist + unsigned(sd*level_id*slot/m_printer_input.size());
-            { std::lock_guard<SpinMutex> lck(slck);
-            if( st > pst) {
-                report_status(*this, int(st), PRINT_STEP_LABELS[slapsRasterize]);
-                pst = st;
-            }
+            {
+                std::lock_guard<SpinMutex> lck(slck);
+                if( st > pst) {
+                    report_status(*this, int(st),
+                                  PRINT_STEP_LABELS[slapsRasterize]);
+                    pst = st;
+                }
             }
         };
 
@@ -1290,11 +1299,11 @@ void SLAPrint::fill_statistics()
                 record = &slr;
             }
 
-            const ExPolygons &modelslices = po->get_slices_from_record(*record, soModel);
+            const ExPolygons &modelslices = record->get_slice(soModel);
             if (!modelslices.empty())
                 append(model_polygons, get_all_polygons(modelslices, po->instances()));
 
-            const ExPolygons &supportslices = po->get_slices_from_record(*record, soSupport);
+            const ExPolygons &supportslices = record->get_slice(soSupport);
             if (!supportslices.empty())
                 append(supports_polygons, get_all_polygons(supportslices, po->instances()));
         }
@@ -1515,15 +1524,15 @@ const std::vector<ExPolygons> &SLAPrintObject::get_support_slices() const
     return m_supportdata->support_slices;
 }
 
-const ExPolygons &SLAPrintObject::get_slices_from_record(
-        const SliceRecord &rec,
-        SliceOrigin o) const
+const ExPolygons &SliceRecord::get_slice(SliceOrigin o) const
 {
-    size_t idx = o == soModel ? rec.get_model_slice_idx() :
-                                rec.get_support_slice_idx();
+    size_t idx = o == soModel ? m_model_slices_idx :
+                                m_support_slices_idx;
 
-    const std::vector<ExPolygons>& v = o == soModel? get_model_slices() :
-                                                     get_support_slices();
+    if(m_po == nullptr) return EMPTY_SLICE;
+
+    const std::vector<ExPolygons>& v = o == soModel? m_po->get_model_slices() :
+                                                     m_po->get_support_slices();
 
     if(idx >= v.size()) return EMPTY_SLICE;
 

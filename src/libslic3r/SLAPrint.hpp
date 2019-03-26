@@ -38,8 +38,9 @@ using _SLAPrintObjectBase =
 
 enum SliceOrigin { soSupport, soModel };
 
+class SLAPrintObject;
+
 // The public Slice record structure. It corresponds to one printable layer.
-// To get the sliced polygons, use SLAPrintObject::get_slices_from_record
 class SliceRecord {
 public:
     // this will be the max limit of size_t
@@ -54,6 +55,7 @@ private:
 
     size_t m_model_slices_idx = NONE;
     size_t m_support_slices_idx = NONE;
+    const SLAPrintObject *m_po = nullptr;
 
 public:
 
@@ -61,38 +63,28 @@ public:
         m_print_z(key), m_slice_z(slicez), m_height(height) {}
 
     // The key will be the integer height level of the top of the layer.
-    inline coord_t print_level() const { return m_print_z; }
+    coord_t print_level() const { return m_print_z; }
 
     // Returns the exact floating point Z coordinate of the slice
-    inline float slice_level() const { return m_slice_z; }
+    float slice_level() const { return m_slice_z; }
 
     // Returns the current layer height
-    inline float layer_height() const { return m_height; }
+    float layer_height() const { return m_height; }
 
     bool is_valid() const { return std::isnan(m_slice_z); }
 
-    template <class T> inline T level() const {
-        static_assert(std::is_integral<T>::value ||
-                      std::is_floating_point<T>::value,
-                      "Slice record level is only valid for numeric types!");
-        if (std::is_integral<T>::value) return T(print_level());
-        else return T(slice_level());
-    }
-
-    template <class T> inline static SliceRecord create(T val) {
-        static_assert(std::is_integral<T>::value ||
-                      std::is_floating_point<T>::value,
-                      "Slice record level is only valid for numeric types!");
-        if (std::is_integral<T>::value) return { coord_t(val), 0.f, 0.f };
-        else return { 0, float(val), 0.f };
-    }
+    const SLAPrintObject* print_obj() const { return m_po; }
 
     // Methods for setting the indices into the slice vectors.
-    void set_model_slice_idx(size_t id) { m_model_slices_idx = id; }
-    void set_support_slice_idx(size_t id) { m_support_slices_idx = id; }
+    void set_model_slice_idx(const SLAPrintObject &po, size_t id) {
+        m_po = &po; m_model_slices_idx = id;
+    }
 
-    inline size_t get_model_slice_idx() const { return m_model_slices_idx; }
-    inline size_t get_support_slice_idx() const { return m_support_slices_idx; }
+    void set_support_slice_idx(const SLAPrintObject& po, size_t id) {
+        m_po = &po; m_support_slices_idx = id;
+    }
+
+    const ExPolygons& get_slice(SliceOrigin o) const;
 };
 
 
@@ -153,6 +145,16 @@ public:
 
 private:
 
+    template <class T> inline static T level(const SliceRecord& sr) {
+        static_assert(std::is_arithmetic<T>::value, "Arithmetic only!");
+        return std::is_integral<T>::value ? T(sr.print_level()) : T(sr.slice_level());
+    }
+
+    template <class T> inline static SliceRecord create_slice_record(T val) {
+        static_assert(std::is_arithmetic<T>::value, "Arithmetic only!");
+        return std::is_integral<T>::value ? SliceRecord{ coord_t(val), 0.f, 0.f } : SliceRecord{ 0, float(val), 0.f };
+    }
+
     // This is a template method for searching the slice index either by
     // an integer key: print_level or a floating point key: slice_level.
     // The eps parameter gives the max deviation in + or - direction.
@@ -162,23 +164,23 @@ private:
     static auto closest_slice_record(Container& cont, T lvl, T eps) -> decltype (cont.begin())
     {
         if(cont.empty()) return cont.end();
-        if(cont.size() == 1 && std::abs(cont.front().template level<T>() - lvl) > eps)
+        if(cont.size() == 1 && std::abs(level<T>(cont.front()) - lvl) > eps)
             return cont.end();
 
-        SliceRecord query = SliceRecord::create(lvl);
+        SliceRecord query = create_slice_record(lvl);
 
         auto it = std::lower_bound(cont.begin(), cont.end(), query,
                                    [](const SliceRecord& r1,
                                       const SliceRecord& r2)
         {
-            return r1.level<T>() < r2.level<T>();
+            return level<T>(r1) < level<T>(r2);
         });
 
-        T diff = std::abs(it->template level<T>() - lvl);
+        T diff = std::abs(level<T>(*it) - lvl);
 
         if(it != cont.begin()) {
             auto it_prev = std::prev(it);
-            T diff_prev = std::abs(it_prev->template level<T>() - lvl);
+            T diff_prev = std::abs(level<T>(*it_prev) - lvl);
             if(diff_prev < diff) { diff = diff_prev; it = it_prev; }
         }
 
@@ -226,9 +228,6 @@ public:
         return *it;
     }
 
-    // Get the actual slice polygons using a valid slice record.
-    const ExPolygons& get_slices_from_record(
-            const SliceRecord& rec, SliceOrigin o) const;
 protected:
     // to be called from SLAPrint only.
     friend class SLAPrint;
@@ -327,6 +326,24 @@ private: // Prevents erroneous use by other classes.
     typedef PrintBaseWithState<SLAPrintStep, slapsCount> Inherited;
 
 public:
+
+    // An aggregation of SliceRecord-s from all the print objects for each
+    // occupied layer. Slice record levels dont have to match exactly.
+    // They are unified if the level difference is within +/- SCALED_EPSILON
+    struct PrintLayer {
+        coord_t level;
+
+        // The collection of slice records for the current level.
+        std::vector<std::reference_wrapper<const SliceRecord>> slices;
+
+        explicit PrintLayer(coord_t lvl) : level(lvl) {}
+
+        // for being sorted in their container (see m_printer_input)
+        bool operator<(const PrintLayer& other) const {
+            return level < other.level;
+        }
+    };
+
     SLAPrint(): m_stepmask(slapsCount, true) {}
 
     virtual ~SLAPrint() override { this->clear(); }
@@ -360,6 +377,10 @@ public:
 
     std::string validate() const override;
 
+    // The aggregated and leveled print records from various objects.
+    // TODO: use this structure for the preview in the future.
+    const std::vector<PrintLayer>& print_layers() const { return m_printer_input; }
+
 private:
     using SLAPrinter = FilePrinter<FilePrinterFormat::SLA_PNGZIP>;
     using SLAPrinterPtr = std::unique_ptr<SLAPrinter>;
@@ -377,29 +398,8 @@ private:
     PrintObjects                    m_objects;
     std::vector<bool>               m_stepmask;
 
-    // Definition of the print input map. It consists of the slices indexed
-    // with scaled (clipper) Z coordinates. Also contains the instance
-    // transformations in scaled and filtered version. This is enough for the
-    // rasterizer to be able to draw every layer in the right position
-    using Layer = ExPolygons;
-    using LayerCopies = std::vector<SLAPrintObject::Instance>;
-    struct LayerRef {
-        std::reference_wrapper<const Layer> lref;
-        std::reference_wrapper<const LayerCopies> copies;
-        LayerRef(const Layer& lyr, const LayerCopies& cp) :
-            lref(std::cref(lyr)), copies(std::cref(cp)) {}
-    };
-
-    // One level may contain multiple slices from multiple objects and their
-    // supports
-    struct LayerRefs {
-        coord_t level;
-        std::vector<LayerRef> refs;
-        bool operator<(const LayerRefs& other) const { return level < other.level; }
-        explicit LayerRefs(coord_t lvl) : level(lvl) {}
-    };
-
-    std::vector<LayerRefs>                  m_printer_input;
+    // Ready-made data for rasterization.
+    std::vector<PrintLayer>                 m_printer_input;
 
     // The printer itself
     SLAPrinterPtr                           m_printer;
