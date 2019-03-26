@@ -56,6 +56,14 @@ bool ImGuiWrapper::init()
 
 void ImGuiWrapper::set_language(const std::string &language)
 {
+    if (m_new_frame_open) {
+        // ImGUI internally locks the font between NewFrame() and EndFrame()
+        // NewFrame() might've been called here because of input from the 3D scene;
+        // call EndFrame()
+        ImGui::EndFrame();
+        m_new_frame_open = false;
+    }
+
     const ImWchar *ranges = nullptr;
     size_t idx = language.find('_');
     std::string lang = (idx == std::string::npos) ? language : language.substr(0, idx);
