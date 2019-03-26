@@ -350,10 +350,10 @@ public:
     }
     const PrintObjects& objects() const { return m_objects; }
 
-    const SLAPrintConfig&     print_config() const { return m_print_config; }
-    const SLAPrinterConfig&   printer_config() const { return m_printer_config; }
-    const SLAMaterialConfig&  material_config() const { return m_material_config; }
-
+    const SLAPrintConfig&       print_config() const { return m_print_config; }
+    const SLAPrinterConfig&     printer_config() const { return m_printer_config; }
+    const SLAMaterialConfig&    material_config() const { return m_material_config; }
+    const SLAPrintObjectConfig& default_object_config() const { return m_default_object_config; }
 
 	std::string         output_filename() const override;
 

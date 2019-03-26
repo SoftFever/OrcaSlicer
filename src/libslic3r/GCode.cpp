@@ -2408,6 +2408,9 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 {
     std::string gcode;
     
+    if (is_bridge(path.role()))
+        description += " (bridge)";
+    
     // go to first point of extrusion path
     if (!m_last_pos_defined || m_last_pos != path.first_point()) {
         gcode += this->travel_to(
