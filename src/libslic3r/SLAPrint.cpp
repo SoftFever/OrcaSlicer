@@ -1002,7 +1002,7 @@ void SLAPrint::process()
 
                 // get the layer reference
                 const ExPolygons& objslice = slrecord.get_slice(soModel);
-                const ExPolygons& supslice = slrecord.get_slice(soModel);
+                const ExPolygons& supslice = slrecord.get_slice(soSupport);
                 const SLAPrintObject *po = slrecord.print_obj();
                 assert(po != nullptr);
 
