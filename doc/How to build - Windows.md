@@ -92,7 +92,7 @@ The `DESTDIR` option is the location where the bundle will be installed.
 This may be customized. If you leave it empty, the `DESTDIR` will be placed inside the same `build` directory.
 
 Warning: If the `build` directory is nested too deep inside other folders, various file paths during the build
-become too long and the build might fail due to file writing errors. For this reason, it is recommended to
+become too long and the build might fail due to file writing errors (\*). For this reason, it is recommended to
 place the `build` directory relatively close to the drive root.
 
 Note that the build variant that you may choose using Visual Studio (i.e. _Release_ or _Debug_ etc.) when building the dependency package is **not relevant**.
@@ -100,3 +100,6 @@ The dependency build will by default build _both_ the _Release_ and _Debug_ vari
 You can disable building of the debug variant by passing the `-DDEP_DEBUG=OFF` option to CMake, this will only produce a _Release_ build.
 
 Refer to the CMake scripts inside the `deps` directory to see which dependencies are built in what versions and how this is done.
+
+\*) Specifically, the problem arises when building boost. Boost build tool appends all build options into paths of
+intermediate files, which are not handled correctly by either `b2.exe` or possibly `ninja` (?).
