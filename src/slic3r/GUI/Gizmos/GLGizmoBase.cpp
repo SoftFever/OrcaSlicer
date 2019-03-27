@@ -232,13 +232,7 @@ std::array<float, 3> GLGizmoBase::picking_color_component(unsigned int id) const
 
 void GLGizmoBase::render_grabbers(const BoundingBoxf3& box) const
 {
-    float size = (float)box.max_size();
-
-    for (int i = 0; i < (int)m_grabbers.size(); ++i)
-    {
-        if (m_grabbers[i].enabled)
-            m_grabbers[i].render((m_hover_id == i), size);
-    }
+    render_grabbers((float)((box.size()(0) + box.size()(1) + box.size()(2)) / 3.0));
 }
 
 void GLGizmoBase::render_grabbers(float size) const
@@ -252,7 +246,7 @@ void GLGizmoBase::render_grabbers(float size) const
 
 void GLGizmoBase::render_grabbers_for_picking(const BoundingBoxf3& box) const
 {
-    float size = (float)box.max_size();
+    float mean_size = (float)((box.size()(0) + box.size()(1) + box.size()(2)) / 3.0);
 
     for (unsigned int i = 0; i < (unsigned int)m_grabbers.size(); ++i)
     {
@@ -262,7 +256,7 @@ void GLGizmoBase::render_grabbers_for_picking(const BoundingBoxf3& box) const
             m_grabbers[i].color[0] = color[0];
             m_grabbers[i].color[1] = color[1];
             m_grabbers[i].color[2] = color[2];
-            m_grabbers[i].render_for_picking(size);
+            m_grabbers[i].render_for_picking(mean_size);
         }
     }
 }

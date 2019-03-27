@@ -127,7 +127,11 @@ ObjectList::~ObjectList()
 
 void ObjectList::create_objects_ctrl()
 {
-    SetMinSize(wxSize(-1, 15 * wxGetApp().em_unit()));
+    /* Temporary workaround for the correct behavior of the Scrolled sidebar panel:
+     * 1. set a height of the list to some big value 
+     * 2. change it to the normal min value (15 * wxGetApp().em_unit()) after first whole Mainframe updating/layouting
+     */
+    SetMinSize(wxSize(-1, 3000));
 
     m_sizer = new wxBoxSizer(wxVERTICAL);
     m_sizer->Add(this, 1, wxGROW);

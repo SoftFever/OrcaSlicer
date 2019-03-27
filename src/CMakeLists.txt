@@ -156,7 +156,7 @@ if (MSVC)
     add_executable(slic3r_app_gui WIN32 slic3r_app_msvc.cpp ${CMAKE_CURRENT_BINARY_DIR}/slic3r.rc)
     target_compile_definitions(slic3r_app_gui PRIVATE -DSLIC3R_WRAPPER_NOCONSOLE)
     add_dependencies(slic3r_app_gui slic3r)
-    set_target_properties(slic3r_app_gui PROPERTIES OUTPUT_NAME "slic3r")
+    set_target_properties(slic3r_app_gui PROPERTIES OUTPUT_NAME "slic3r" PDB_NAME "slic3r_gui")
 
     add_executable(slic3r_app_console slic3r_app_msvc.cpp ${CMAKE_CURRENT_BINARY_DIR}/slic3r.rc)
     target_compile_definitions(slic3r_app_console PRIVATE -DSLIC3R_WRAPPER_CONSOLE)
