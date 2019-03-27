@@ -59,6 +59,8 @@ enum {
 	USB_PID_MK3      = 2,
 	USB_PID_MMU_BOOT = 3,
 	USB_PID_MMU_APP  = 4,
+	USB_PID_CW1_BOOT = 7,
+	USB_PID_CW1_APP  = 8,
 };
 
 // This enum discriminates the kind of information in EVT_AVRDUDE,
@@ -77,6 +79,13 @@ wxDEFINE_EVENT(EVT_AVRDUDE, wxCommandEvent);
 wxDECLARE_EVENT(EVT_ASYNC_DIALOG, wxCommandEvent);
 wxDEFINE_EVENT(EVT_ASYNC_DIALOG, wxCommandEvent);
 
+struct Avr109Pid
+{
+	unsigned boot;
+	unsigned app;
+
+	Avr109Pid(unsigned boot, unsigned app) : boot(boot), app(app) {}
+};
 
 // Private
 
@@ -151,19 +160,21 @@ struct FirmwareDialog::priv
 
 	bool ask_model_id_mismatch(const std::string &printer_model);
 	bool check_model_id();
-	void wait_for_mmu_bootloader(unsigned retries);
-	void mmu_reboot(const SerialPortInfo &port);
-	void lookup_port_mmu();
+	void avr109_wait_for_bootloader(Avr109Pid usb_pid, unsigned retries);
+	void avr109_reboot(const SerialPortInfo &port);
+	void avr109_lookup_port(Avr109Pid usb_pid);
 	void prepare_common();
 	void prepare_mk2();
 	void prepare_mk3();
-	void prepare_mm_control();
+	void prepare_avr109(Avr109Pid usb_pid);
 	void perform_upload();
 
 	void user_cancel();
 	void on_avrdude(const wxCommandEvent &evt);
 	void on_async_dialog(const wxCommandEvent &evt);
 	void ensure_joined();
+
+	static const char* avr109_dev_name(Avr109Pid usb_pid);
 };
 
 void FirmwareDialog::priv::find_serial_ports()
@@ -259,7 +270,8 @@ void FirmwareDialog::priv::enable_port_picker(bool enable)
 void FirmwareDialog::priv::load_hex_file(const wxString &path)
 {
 	hex_file = HexFile(path.wx_str());
-	enable_port_picker(hex_file.device != HexFile::DEV_MM_CONTROL);
+	const bool auto_lookup = hex_file.device == HexFile::DEV_MM_CONTROL || hex_file.device == HexFile::DEV_CW1;
+	enable_port_picker(! auto_lookup);
 }
 
 void FirmwareDialog::priv::queue_status(wxString message)
@@ -356,7 +368,7 @@ bool FirmwareDialog::priv::check_model_id()
 	// return false;
 }
 
-void FirmwareDialog::priv::wait_for_mmu_bootloader(unsigned retries)
+void FirmwareDialog::priv::avr109_wait_for_bootloader(Avr109Pid usb_pid, unsigned retries)
 {
 	enum {
 		SLEEP_MS = 500,
@@ -367,61 +379,67 @@ void FirmwareDialog::priv::wait_for_mmu_bootloader(unsigned retries)
 
 		auto ports = Utils::scan_serial_ports_extended();
 		ports.erase(std::remove_if(ports.begin(), ports.end(), [=](const SerialPortInfo &port ) {
-			return port.id_vendor != USB_VID_PRUSA || port.id_product != USB_PID_MMU_BOOT;
+			return port.id_vendor != USB_VID_PRUSA || port.id_product != usb_pid.boot;
 		}), ports.end());
 
 		if (ports.size() == 1) {
 			port = ports[0];
 			return;
 		} else if (ports.size() > 1) {
-			BOOST_LOG_TRIVIAL(error) << "Several VID/PID 0x2c99/3 devices found";
-			queue_error(_(L("Multiple Original Prusa i3 MMU 2.0 devices found. Please only connect one at a time for flashing.")));
+			BOOST_LOG_TRIVIAL(error) << boost::format("Several VID/PID 0x2c99/%1% devices found") % usb_pid.boot;
+			queue_error(wxString::Format(
+				_(L("Multiple %s devices found. Please only connect one at a time for flashing.")), avr109_dev_name(usb_pid)));
 			return;
 		}
 	}
 }
 
-void FirmwareDialog::priv::mmu_reboot(const SerialPortInfo &port)
+void FirmwareDialog::priv::avr109_reboot(const SerialPortInfo &port)
 {
 	asio::io_service io;
 	Serial serial(io, port.port, 1200);
 	std::this_thread::sleep_for(std::chrono::milliseconds(50));
 }
 
-void FirmwareDialog::priv::lookup_port_mmu()
+void FirmwareDialog::priv::avr109_lookup_port(Avr109Pid usb_pid)
 {
-	static const auto msg_not_found =
-		"The Multi Material Control device was not found.\n"
-		"If the device is connected, please press the Reset button next to the USB connector ...";
+	const char *dev_name = avr109_dev_name(usb_pid);
+	const wxString msg_not_found = wxString::Format(
+		_(L("The %s device was not found.\n"
+			"If the device is connected, please press the Reset button next to the USB connector ...")),
+		dev_name);
 
-	BOOST_LOG_TRIVIAL(info) << "Flashing MMU 2.0, looking for VID/PID 0x2c99/3 or 0x2c99/4 ...";
+	BOOST_LOG_TRIVIAL(info) << boost::format("Flashing %1%, looking for VID/PID 0x2c99/%2% or 0x2c99/%3% ...")
+		% dev_name
+		% usb_pid.boot
+		% usb_pid.app;
 
 	auto ports = Utils::scan_serial_ports_extended();
 	ports.erase(std::remove_if(ports.begin(), ports.end(), [=](const SerialPortInfo &port ) {
 		return port.id_vendor != USB_VID_PRUSA ||
-			port.id_product != USB_PID_MMU_BOOT &&
-			port.id_product != USB_PID_MMU_APP;
+			port.id_product != usb_pid.boot &&
+			port.id_product != usb_pid.app;
 	}), ports.end());
 
 	if (ports.size() == 0) {
-		BOOST_LOG_TRIVIAL(info) << "MMU 2.0 device not found, asking the user to press Reset and waiting for the device to show up ...";
-		queue_status(_(L(msg_not_found)));
-		wait_for_mmu_bootloader(30);
+		BOOST_LOG_TRIVIAL(info) << "Device not found, asking the user to press Reset and waiting for the device to show up ...";
+		queue_status(msg_not_found);
+		avr109_wait_for_bootloader(usb_pid, 30);
 	} else if (ports.size() > 1) {
-		BOOST_LOG_TRIVIAL(error) << "Several VID/PID 0x2c99/3 devices found";
-		queue_error(_(L("Multiple Original Prusa i3 MMU 2.0 devices found. Please only connect one at a time for flashing.")));
+		BOOST_LOG_TRIVIAL(error) << boost::format("Several VID/PID 0x2c99/%1% devices found") % usb_pid.boot;
+		queue_error(wxString::Format(_(L("Multiple %s devices found. Please only connect one at a time for flashing.")), dev_name));
 	} else {
-		if (ports[0].id_product == USB_PID_MMU_APP) {
+		if (ports[0].id_product == usb_pid.app) {
 			// The device needs to be rebooted into the bootloader mode
-			BOOST_LOG_TRIVIAL(info) << boost::format("Found VID/PID 0x2c99/4 at `%1%`, rebooting the device ...") % ports[0].port;
-			mmu_reboot(ports[0]);
-			wait_for_mmu_bootloader(10);
+			BOOST_LOG_TRIVIAL(info) << boost::format("Found VID/PID 0x2c99/%1% at `%2%`, rebooting the device ...") % usb_pid.app % ports[0].port;
+			avr109_reboot(ports[0]);
+			avr109_wait_for_bootloader(usb_pid, 10);
 
 			if (! port) {
 				// The device in bootloader mode was not found, inform the user and wait some more...
-				BOOST_LOG_TRIVIAL(info) << "MMU 2.0 bootloader device not found after reboot, asking the user to press Reset and waiting for the device to show up ...";
-				queue_status(_(L(msg_not_found)));
-				wait_for_mmu_bootloader(30);
+				BOOST_LOG_TRIVIAL(info) << boost::format("%1% device not found after reboot, asking the user to press Reset and waiting for the device to show up ...") % dev_name;
+				queue_status(msg_not_found);
+				avr109_wait_for_bootloader(usb_pid, 30);
 			}
 		} else {
 			port = ports[0];
@@ -498,16 +516,16 @@ void FirmwareDialog::priv::prepare_mk3()
 	avrdude->push_args(std::move(args));
 }
 
-void FirmwareDialog::priv::prepare_mm_control()
+void FirmwareDialog::priv::prepare_avr109(Avr109Pid usb_pid)
 {
 	port = boost::none;
-	lookup_port_mmu();
+	avr109_lookup_port(usb_pid);
 	if (! port) {
-		queue_error(_(L("The device could not have been found")));
+		queue_error(wxString::Format(_(L("The %s device could not have been found")), avr109_dev_name(usb_pid)));
 		return;
 	}
 
-	BOOST_LOG_TRIVIAL(info) << boost::format("Found VID/PID 0x2c99/3 at `%1%`, flashing ...") % port->port;
+	BOOST_LOG_TRIVIAL(info) << boost::format("Found VID/PID 0x2c99/%1% at `%2%`, flashing ...") % usb_pid.boot % port->port;
 	queue_status(label_status_flashing);
 
 	std::vector<std::string> args {{
@@ -568,7 +586,11 @@ void FirmwareDialog::priv::perform_upload()
 					break;
 
 				case HexFile::DEV_MM_CONTROL:
-					this->prepare_mm_control();
+					this->prepare_avr109(Avr109Pid(USB_PID_MMU_BOOT, USB_PID_MMU_APP));
+					break;
+
+				case HexFile::DEV_CW1:
+					this->prepare_avr109(Avr109Pid(USB_PID_CW1_BOOT, USB_PID_CW1_APP));
 					break;
 
 				default:
@@ -576,7 +598,11 @@ void FirmwareDialog::priv::perform_upload()
 					break;
 				}
 			} catch (const std::exception &ex) {
-				queue_error(wxString::Format(_(L("Error accessing port at %s: %s")), port->port, ex.what()));
+				if (port) {
+					queue_error(wxString::Format(_(L("Error accessing port at %s: %s")), port->port, ex.what()));
+				} else {
+					queue_error(wxString::Format(_(L("Error: %s")), ex.what()));
+				}
 			}
 		})
 		.on_message(std::move([q, extra_verbose](const char *msg, unsigned /* size */) {
@@ -686,6 +712,19 @@ void FirmwareDialog::priv::ensure_joined()
 	// Make sure the background thread is collected and the AvrDude object reset
 	if (avrdude) { avrdude->join(); }
 	avrdude.reset();
+}
+
+const char* FirmwareDialog::priv::avr109_dev_name(Avr109Pid usb_pid) {
+	switch (usb_pid.boot) {
+		case USB_PID_MMU_BOOT:
+			return "Prusa MMU 2.0 Control";
+		break;
+		case USB_PID_CW1_BOOT:
+			return "Prusa CurWa";
+		break;
+
+		default: throw std::runtime_error((boost::format("Invalid avr109 device USB PID: %1%") % usb_pid.boot).str());
+	}
 }
 
 
