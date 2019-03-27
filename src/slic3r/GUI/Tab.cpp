@@ -1,4 +1,5 @@
 // #include "libslic3r/GCodeSender.hpp"
+#include "slic3r/Utils/Serial.hpp"
 #include "Tab.hpp"
 #include "PresetBundle.hpp"
 #include "PresetHints.hpp"
@@ -6,7 +7,6 @@
 
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/Utils/PrintHost.hpp"
-#include "slic3r/Utils/Serial.hpp"
 #include "BonjourDialog.hpp"
 #include "WipeTowerDialog.hpp"
 #include "ButtonsDescription.hpp"
