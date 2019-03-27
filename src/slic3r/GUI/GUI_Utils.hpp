@@ -103,7 +103,7 @@ public:
     }
 
     void unbind() { event_storage.reset(nullptr); }
-    explicit operator bool() const noexcept { return !!event_storage; }
+    explicit operator bool() const { return !!event_storage; }
 };
 
 

@@ -32,7 +32,7 @@
 #include "GUI.hpp"
 
 #ifdef HAS_GLSAFE
-void glAssertRecentCallImpl()
+void glAssertRecentCallImpl(const char *file_name, unsigned int line, const char *function_name)
 {
     GLenum err = glGetError();
     if (err == GL_NO_ERROR)
@@ -48,7 +48,7 @@ void glAssertRecentCallImpl()
     case GL_OUT_OF_MEMORY:      sErr = "Out Of Memory";     break;
     default:                    sErr = "Unknown";           break;
     }
-    BOOST_LOG_TRIVIAL(error) << "OpenGL error " << (int)err << ": " << sErr;
+	BOOST_LOG_TRIVIAL(error) << "OpenGL error in " << file_name << ":" << line << ", function " << function_name << "() : " << (int)err << " - " << sErr;
     assert(false);
 }
 #endif

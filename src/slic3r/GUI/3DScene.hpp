@@ -16,9 +16,9 @@
 #endif
 
 #ifdef HAS_GLSAFE
-extern void glAssertRecentCallImpl();
-inline void glAssertRecentCall() { glAssertRecentCallImpl(); }
-#define glsafe(cmd) do { cmd; glAssertRecentCallImpl(); } while (false)
+extern void glAssertRecentCallImpl(const char *file_name, unsigned int line, const char *function_name);
+inline void glAssertRecentCall() { glAssertRecentCallImpl(__FILE__, __LINE__, __FUNCTION__); }
+#define glsafe(cmd) do { cmd; glAssertRecentCallImpl(__FILE__, __LINE__, __FUNCTION__); } while (false)
 #else
 inline void glAssertRecentCall() { }
 #define glsafe(cmd) cmd
