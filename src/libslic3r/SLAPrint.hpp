@@ -231,7 +231,7 @@ public:
         return true; // m_zip blows up if something goes wrong...
     }
 
-    inline void close() { /* m_zip closes upon destruction */ }
+    inline void close() { m_zip.close(); }
 };
 
 /**

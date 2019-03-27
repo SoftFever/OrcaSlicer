@@ -5,6 +5,7 @@
 #include "Zipper.hpp"
 #include "miniz/miniz_zip.h"
 #include <boost/filesystem/path.hpp>
+#include <boost/log/trivial.hpp>
 
 #include "I18N.hpp"
 
@@ -25,7 +26,7 @@ public:
     mz_zip_archive arch;
     std::string m_zipname;
 
-    std::string get_errorstr(mz_zip_error mz_err)
+    static std::string get_errorstr(mz_zip_error mz_err)
     {
         switch (mz_err)
         {
@@ -100,10 +101,15 @@ public:
         return "unknown error";
     }
 
-    SLIC3R_NORETURN void blow_up() {
-        std::string prefix(L("Error with zip archive"));
-        throw std::runtime_error(prefix + " " + m_zipname + ": " +
-                                 get_errorstr(arch.m_last_error) + "!");
+    std::string formatted_errorstr() const
+    {
+        return L("Error with zip archive") + " " + m_zipname + ": " +
+               get_errorstr(arch.m_last_error) + "!";
+    }
+
+    SLIC3R_NORETURN void blow_up() const
+    {
+        throw std::runtime_error(formatted_errorstr());
     }
 };
 
@@ -123,10 +129,11 @@ Zipper::Zipper(const std::string &zipfname, e_compression compression)
 
 Zipper::~Zipper()
 {
-    finish_entry();
-
-    if(!mz_zip_writer_finalize_archive(&m_impl->arch)) m_impl->blow_up();
-    if(!mz_zip_writer_end(&m_impl->arch)) m_impl->blow_up();
+    try {
+        close();
+    } catch(...) {
+        BOOST_LOG_TRIVIAL(error) << m_impl->formatted_errorstr();
+    }
 }
 
 Zipper::Zipper(Zipper &&m):
@@ -189,6 +196,14 @@ void Zipper::finish_entry()
 
 std::string Zipper::get_name() const {
     return boost::filesystem::path(m_impl->m_zipname).stem().string();
+}
+
+void Zipper::close()
+{
+    finish_entry();
+
+    if(!mz_zip_writer_finalize_archive(&m_impl->arch)) m_impl->blow_up();
+    if(!mz_zip_writer_end(&m_impl->arch)) m_impl->blow_up();
 }
 
 }

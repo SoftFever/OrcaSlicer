@@ -266,6 +266,8 @@ public:
                                         m_layers_rst[i].rawbytes.size());
                 }
             }
+
+            writer.close();
         } catch(std::exception& e) {
             BOOST_LOG_TRIVIAL(error) << e.what();
             // Rethrow the exception

@@ -78,6 +78,8 @@ public:
 
     /// Gets the name of the archive without the path or extension.
     std::string get_name() const;
+
+    void close();
 };
 
 
