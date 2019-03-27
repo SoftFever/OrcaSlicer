@@ -778,9 +778,6 @@ private:
     // Returns the view ray line, in world coordinate, at the given mouse position.
     Linef3 mouse_ray(const Point& mouse_pos);
 
-    // Sets current projection matrix to ortho, accounting for current camera zoom.
-    void set_ortho_projection(float w, float h, float near, float far) const;
-
     void _start_timer();
     void _stop_timer();
 

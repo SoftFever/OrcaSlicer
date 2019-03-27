@@ -9,6 +9,7 @@
 #include "slic3r/GUI/GUI_ObjectSettings.hpp"
 #include "slic3r/GUI/GUI_ObjectList.hpp"
 #include "slic3r/GUI/PresetBundle.hpp"
+#include "libslic3r/Tesselate.hpp"
 
 
 namespace Slic3r {
@@ -91,11 +92,70 @@ void GLGizmoSlaSupports::on_render(const Selection& selection) const
     ::glEnable(GL_BLEND);
     ::glEnable(GL_DEPTH_TEST);
 
-    render_points(selection, false);
+    // we'll recover current look direction from the modelview matrix (in world coords):
+    Eigen::Matrix<double, 4, 4, Eigen::DontAlign> modelview_matrix;
+    ::glGetDoublev(GL_MODELVIEW_MATRIX, modelview_matrix.data());
+    Vec3d direction_to_camera(modelview_matrix.data()[2], modelview_matrix.data()[6], modelview_matrix.data()[10]);
+
+    if (m_quadric != nullptr && selection.is_from_single_instance())
+        render_points(selection, direction_to_camera, false);
+
     render_selection_rectangle();
+    render_clipping_plane(selection, direction_to_camera);
 
     ::glDisable(GL_BLEND);
 }
+
+
+
+void GLGizmoSlaSupports::render_clipping_plane(const Selection& selection, const Vec3d& direction_to_camera) const
+{
+    if (m_clipping_plane_distance == 0.f)
+        return;
+
+    const GLVolume* vol = selection.get_volume(*selection.get_volume_idxs().begin());
+    double z_shift = vol->get_sla_shift_z();
+    Transform3f instance_matrix = vol->get_instance_transformation().get_matrix().cast<float>();
+    Transform3f instance_matrix_no_translation_no_scaling = vol->get_instance_transformation().get_matrix(true,false,true).cast<float>();
+    Transform3f instance_matrix_no_translation = vol->get_instance_transformation().get_matrix(true).cast<float>();
+    Vec3f scaling = vol->get_instance_scaling_factor().cast<float>();
+
+    Vec3f up = instance_matrix_no_translation_no_scaling.inverse() * direction_to_camera.cast<float>().normalized();
+    up = Vec3f(up(0)*scaling(0), up(1)*scaling(1), up(2)*scaling(2));
+    float height      = m_active_instance_bb.radius() - m_clipping_plane_distance * 2*m_active_instance_bb.radius();
+    float height_mesh = height;
+
+    if (m_clipping_plane_distance != m_old_clipping_plane_distance
+     || m_old_direction_to_camera != direction_to_camera) {
+
+        std::vector<ExPolygons> list_of_expolys;
+        m_tms->set_up_direction(up);
+        m_tms->slice(std::vector<float>{height_mesh}, 0.f, &list_of_expolys, [](){});
+        m_triangles = triangulate_expolygons_2f(list_of_expolys[0]);
+
+        m_old_direction_to_camera = direction_to_camera;
+        m_old_clipping_plane_distance = m_clipping_plane_distance;
+    }
+
+    ::glPushMatrix();
+    ::glTranslated(0.0, 0.0, z_shift);
+    ::glMultMatrixf(instance_matrix.data());
+    Eigen::Quaternionf q;
+    q.setFromTwoVectors(Vec3f::UnitZ(), up);
+    Eigen::AngleAxisf aa(q);
+    ::glRotatef(aa.angle() * (180./M_PI), aa.axis()(0), aa.axis()(1), aa.axis()(2));
+    ::glTranslatef(0.f, 0.f, -0.001f); // to make sure the cut is safely beyond the near clipping plane
+
+    ::glBegin(GL_TRIANGLES);
+    ::glColor3f(1.0f, 0.37f, 0.0f);
+    for (const Vec2f& point : m_triangles)
+        ::glVertex3f(point(0), point(1), height_mesh);
+    ::glEnd();
+
+    ::glPopMatrix();
+}
+
+
 
 void GLGizmoSlaSupports::render_selection_rectangle() const
 {
@@ -141,14 +201,16 @@ void GLGizmoSlaSupports::on_render_for_picking(const Selection& selection) const
 {
     ::glEnable(GL_DEPTH_TEST);
 
-    render_points(selection, true);
+    // we'll recover current look direction from the modelview matrix (in world coords):
+    Eigen::Matrix<double, 4, 4, Eigen::DontAlign> modelview_matrix;
+    ::glGetDoublev(GL_MODELVIEW_MATRIX, modelview_matrix.data());
+    Vec3d direction_to_camera(modelview_matrix.data()[2], modelview_matrix.data()[6], modelview_matrix.data()[10]);
+
+    render_points(selection, direction_to_camera, true);
 }
 
-void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking) const
+void GLGizmoSlaSupports::render_points(const Selection& selection, const Vec3d& direction_to_camera, bool picking) const
 {
-    if (m_quadric == nullptr || !selection.is_from_single_instance())
-        return;
-
     if (!picking)
         ::glEnable(GL_LIGHTING);
 
@@ -156,11 +218,6 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
     double z_shift = vol->get_sla_shift_z();
     const Transform3d& instance_scaling_matrix_inverse = vol->get_instance_transformation().get_matrix(true, true, false, true).inverse();
     const Transform3d& instance_matrix = vol->get_instance_transformation().get_matrix();
-
-    // we'll recover current look direction from the modelview matrix (in world coords):
-    Eigen::Matrix<double, 4, 4, Eigen::DontAlign> modelview_matrix;
-    ::glGetDoublev(GL_MODELVIEW_MATRIX, modelview_matrix.data());
-    Vec3d direction_to_camera(modelview_matrix.data()[2], modelview_matrix.data()[6], modelview_matrix.data()[10]);
 
     ::glPushMatrix();
     ::glTranslated(0.0, 0.0, z_shift);
@@ -263,9 +320,6 @@ bool GLGizmoSlaSupports::is_mesh_update_necessary() const
 {
     return ((m_state == On) && (m_model_object != nullptr) && !m_model_object->instances.empty())
         && ((m_model_object != m_old_model_object) || m_V.size()==0);
-
-    //if (m_state != On || !m_model_object || m_model_object->instances.empty() || ! m_instance_matrix.isApprox(m_source_data.matrix))
-    //    return false;
 }
 
 void GLGizmoSlaSupports::update_mesh()
@@ -273,10 +327,9 @@ void GLGizmoSlaSupports::update_mesh()
     wxBusyCursor wait;
     Eigen::MatrixXf& V = m_V;
     Eigen::MatrixXi& F = m_F;
-    // Composite mesh of all instances in the world coordinate system.
     // This mesh does not account for the possible Z up SLA offset.
-    TriangleMesh mesh = m_model_object->raw_mesh();
-    const stl_file& stl = mesh.stl;
+    m_mesh = m_model_object->raw_mesh();
+    const stl_file& stl = m_mesh.stl;
     V.resize(3 * stl.stats.number_of_facets, 3);
     F.resize(stl.stats.number_of_facets, 3);
     for (unsigned int i=0; i<stl.stats.number_of_facets; ++i) {
@@ -291,6 +344,9 @@ void GLGizmoSlaSupports::update_mesh()
 
     m_AABB = igl::AABB<Eigen::MatrixXf,3>();
     m_AABB.init(m_V, m_F);
+
+    m_tms.reset(new TriangleMeshSlicer);
+    m_tms->init(&m_mesh, [](){});
 }
 
 // Unprojects the mouse position on the mesh and return the hit point and normal of the facet.

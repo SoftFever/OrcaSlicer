@@ -31,6 +31,8 @@ private:
     Eigen::MatrixXf m_V; // vertices
     Eigen::MatrixXi m_F; // facets indices
     igl::AABB<Eigen::MatrixXf,3> m_AABB;
+    TriangleMesh m_mesh;
+    mutable std::vector<Vec2f> m_triangles;
 
     class CacheEntry {
     public:
@@ -61,7 +63,8 @@ private:
     virtual void on_render_for_picking(const Selection& selection) const;
 
     void render_selection_rectangle() const;
-    void render_points(const Selection& selection, bool picking = false) const;
+    void render_points(const Selection& selection, const Vec3d& direction_to_camera, bool picking = false) const;
+    void render_clipping_plane(const Selection& selection, const Vec3d& direction_to_camera) const;
     bool is_mesh_update_necessary() const;
     void update_mesh();
     void update_cache_entry_normal(unsigned int i) const;
@@ -74,6 +77,8 @@ private:
     float m_density = 100.f;
     mutable std::vector<CacheEntry> m_editing_mode_cache; // a support point and whether it is currently selected
     float m_clipping_plane_distance = 0.f;
+    mutable float m_old_clipping_plane_distance = 0.f;
+    mutable Vec3d m_old_direction_to_camera;
 
     bool m_selection_rectangle_active = false;
     Vec2d m_selection_rectangle_start_corner;
@@ -84,6 +89,8 @@ private:
     EState m_old_state = Off; // to be able to see that the gizmo has just been closed (see on_set_state)
     int m_canvas_width;
     int m_canvas_height;
+
+    mutable std::unique_ptr<TriangleMeshSlicer> m_tms;
 
     std::vector<const ConfigOption*> get_config_options(const std::vector<std::string>& keys) const;
     bool is_point_clipped(const Vec3d& point, const Vec3d& direction_to_camera, float z_shift) const;
