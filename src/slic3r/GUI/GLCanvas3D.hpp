@@ -90,6 +90,7 @@ wxDECLARE_EVENT(EVT_GLCANVAS_UPDATE_GEOMETRY, Vec3dsEvent<2>);
 wxDECLARE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_UPDATE_BED_SHAPE, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_TAB, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLCANVAS_RESETGIZMOS, SimpleEvent);
 
 class GLCanvas3D
 {
@@ -558,6 +559,7 @@ public:
     void set_camera_zoom(float zoom);
 
     void update_gizmos_on_off_state();
+    void reset_all_gizmos() { m_gizmos.reset_all_states(); }
 
     void handle_sidebar_focus_event(const std::string& opt_key, bool focus_on);
 
