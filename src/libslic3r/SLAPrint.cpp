@@ -43,8 +43,7 @@ const std::array<unsigned, slaposCount>     OBJ_STEP_LEVELS =
     30,     // slaposSupportPoints,
     25,     // slaposSupportTree,
     25,     // slaposBasePool,
-    5,      // slaposSliceSupports,
-    5       // slaposIndexSlices
+    10,      // slaposSliceSupports,
 };
 
 const std::array<std::string, slaposCount> OBJ_STEP_LABELS =
@@ -54,22 +53,19 @@ const std::array<std::string, slaposCount> OBJ_STEP_LABELS =
     L("Generating support tree"),       // slaposSupportTree,
     L("Generating pad"),                // slaposBasePool,
     L("Slicing supports"),              // slaposSliceSupports,
-    L("Slicing supports")               // slaposIndexSlices,
 };
 
 // Should also add up to 100 (%)
 const std::array<unsigned, slapsCount> PRINT_STEP_LEVELS =
 {
     5,      // slapsStats
-    94,     // slapsRasterize
-    1,      // slapsValidate
+    95,     // slapsRasterize
 };
 
 const std::array<std::string, slapsCount> PRINT_STEP_LABELS =
 {
-    L("Calculating statistics"),     // slapsStats
+    L("Merging slices and calculating statistics"),     // slapsStats
     L("Rasterizing layers"),         // slapsRasterize
-    L("Validating"),                 // slapsValidate
 };
 
 }
@@ -206,7 +202,7 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
                 model_object_status.emplace(model_object->id(), ModelObjectStatus::Old);
         } else if (model_object_list_extended(m_model, model)) {
             // Add new objects. Their volumes and configs will be synchronized later.
-            update_apply_status(this->invalidate_step(slapsRasterize));
+            update_apply_status(this->invalidate_step(slapsMergeSlicesAndEval));
             for (const ModelObject *model_object : m_model.objects)
                 model_object_status.emplace(model_object->id(), ModelObjectStatus::Old);
             for (size_t i = m_model.objects.size(); i < model.objects.size(); ++ i) {
@@ -218,7 +214,7 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
             // Reorder the objects, add new objects.
             // First stop background processing before shuffling or deleting the PrintObjects in the object list.
             this->call_cancel_callback();
-            update_apply_status(this->invalidate_step(slapsRasterize));
+            update_apply_status(this->invalidate_step(slapsMergeSlicesAndEval));
             // Second create a new list of objects.
             std::vector<ModelObject*> model_objects_old(std::move(m_model.objects));
             m_model.objects.clear();
@@ -390,7 +386,7 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
 				if (new_instances != it_print_object_status->print_object->instances()) {
 					// Instances changed.
 					it_print_object_status->print_object->set_instances(new_instances);
-					update_apply_status(this->invalidate_step(slapsRasterize));
+                    update_apply_status(this->invalidate_step(slapsMergeSlicesAndEval));
 				}
 				print_objects_new.emplace_back(it_print_object_status->print_object);
 				const_cast<PrintObjectStatus&>(*it_print_object_status).status = PrintObjectStatus::Reused;
@@ -613,6 +609,18 @@ std::string SLAPrint::validate() const
     return "";
 }
 
+bool SLAPrint::invalidate_step(SLAPrintStep step)
+{
+    bool invalidated = Inherited::invalidate_step(step);
+
+    // propagate to dependent steps
+    if (step == slapsMergeSlicesAndEval) {
+        invalidated |= this->invalidate_all_steps();
+    }
+
+    return invalidated;
+}
+
 template<class...Args>
 void report_status(SLAPrint& p, int st, const std::string& msg, Args&&...args)
 {
@@ -639,7 +647,7 @@ void SLAPrint::process()
     const size_t objcount = m_objects.size();
 
     const unsigned min_objstatus = 0;   // where the per object operations start
-    const unsigned max_objstatus = PRINT_STEP_LEVELS[slapsRasterize];  // where the per object operations end
+    const unsigned max_objstatus = PRINT_STEP_LEVELS[slapsMergeSlicesAndEval];  // where the per object operations end
 
     // the coefficient that multiplies the per object status values which
     // are set up for <0, 100>. They need to be scaled into the whole process
@@ -883,7 +891,7 @@ void SLAPrint::process()
     // Slicing the support geometries similarly to the model slicing procedure.
     // If the pad had been added previously (see step "base_pool" than it will
     // be part of the slices)
-    auto slice_supports = [](SLAPrintObject& po) {
+    auto slice_supports = [this](SLAPrintObject& po) {
         auto& sd = po.m_supportdata;
 
         if(sd) sd->support_slices.clear();
@@ -906,16 +914,14 @@ void SLAPrint::process()
         {
             po.m_slice_index[i].set_support_slice_idx(po, i);
         }
-    };
 
-    // We have the layer polygon collection but we need to unite them into
-    // an index where the key is the height level in discrete levels (clipper)
-    auto index_slices = [this/*, ilhd*/](SLAPrintObject& /*po*/) {
         // Using RELOAD_SLA_PREVIEW to tell the Plater to pass the update status to the 3D preview to load the SLA slices.
         report_status(*this, -2, "", SlicingStatus::RELOAD_SLA_PREVIEW);
     };
 
-    auto fillstats = [this]() {
+    // Merging the slices from all the print objects into one slice grid and
+    // calculating print statistics from the merge result.
+    auto merge_slices_and_eval_stats = [this]() {
 
         m_print_statistics.clear();
 
@@ -1079,15 +1085,13 @@ void SLAPrint::process()
         support_points,
         support_tree,
         base_pool,
-        slice_supports,
-        index_slices
+        slice_supports
     };
 
     std::array<slapsFn, slapsCount> print_program =
     {
-        fillstats,
-        rasterize,
-        [](){}  // validate
+        merge_slices_and_eval_stats,
+        rasterize
     };
 
     unsigned st = min_objstatus;
@@ -1127,7 +1131,7 @@ void SLAPrint::process()
     }
 
     std::array<SLAPrintStep, slapsCount> printsteps = {
-        slapsStats, slapsRasterize, slapsValidate
+        slapsMergeSlicesAndEval, slapsRasterize
     };
 
     // this would disable the rasterization step
@@ -1193,11 +1197,11 @@ bool SLAPrint::invalidate_state_by_config_options(const std::vector<t_config_opt
         if (steps_rasterize.find(opt_key) != steps_rasterize.end()) {
             // These options only affect the final rasterization, or they are just notes without influence on the output,
             // so there is nothing to invalidate.
-            steps.emplace_back(slapsRasterize);
+            steps.emplace_back(slapsMergeSlicesAndEval);
         } else if (steps_ignore.find(opt_key) != steps_ignore.end()) {
             // These steps have no influence on the output. Just ignore them.
         } else if (opt_key == "initial_layer_height") {
-            steps.emplace_back(slapsRasterize);
+            steps.emplace_back(slapsMergeSlicesAndEval);
             osteps.emplace_back(slaposObjectSlice);
         } else {
             // All values should be covered.
@@ -1459,19 +1463,16 @@ bool SLAPrintObject::invalidate_step(SLAPrintObjectStep step)
     if (step == slaposObjectSlice) {
         invalidated |= this->invalidate_all_steps();
     } else if (step == slaposSupportPoints) {
-        invalidated |= this->invalidate_steps({ slaposSupportTree, slaposBasePool, slaposSliceSupports, slaposIndexSlices });
-        invalidated |= m_print->invalidate_step(slapsRasterize);
+        invalidated |= this->invalidate_steps({ slaposSupportTree, slaposBasePool, slaposSliceSupports });
+        invalidated |= m_print->invalidate_step(slapsMergeSlicesAndEval);
     } else if (step == slaposSupportTree) {
-        invalidated |= this->invalidate_steps({ slaposBasePool, slaposSliceSupports, slaposIndexSlices });
-        invalidated |= m_print->invalidate_step(slapsRasterize);
+        invalidated |= this->invalidate_steps({ slaposBasePool, slaposSliceSupports });
+        invalidated |= m_print->invalidate_step(slapsMergeSlicesAndEval);
     } else if (step == slaposBasePool) {
-        invalidated |= this->invalidate_steps({slaposSliceSupports, slaposIndexSlices});
-        invalidated |= m_print->invalidate_step(slapsRasterize);
+        invalidated |= this->invalidate_steps({slaposSliceSupports});
+        invalidated |= m_print->invalidate_step(slapsMergeSlicesAndEval);
     } else if (step == slaposSliceSupports) {
-        invalidated |= this->invalidate_step(slaposIndexSlices);
-        invalidated |= m_print->invalidate_step(slapsRasterize);
-    } else if(step == slaposIndexSlices) {
-        invalidated |= m_print->invalidate_step(slapsRasterize);
+        invalidated |= m_print->invalidate_step(slapsMergeSlicesAndEval);
     }
     return invalidated;
 }
@@ -1545,18 +1546,6 @@ const ExPolygons &SliceRecord::get_slice(SliceOrigin o) const
     if(idx >= v.size()) return EMPTY_SLICE;
 
     return idx >= v.size() ? EMPTY_SLICE : v[idx];
-}
-
-const std::vector<SliceRecord> & SLAPrintObject::get_slice_index() const
-{
-    // assert(is_step_done(slaposIndexSlices));
-    return m_slice_index;
-}
-
-const std::vector<ExPolygons> &SLAPrintObject::get_model_slices() const
-{
-    // assert(is_step_done(slaposObjectSlice));
-    return m_model_slices;
 }
 
 bool SLAPrintObject::has_mesh(SLAPrintObjectStep step) const
