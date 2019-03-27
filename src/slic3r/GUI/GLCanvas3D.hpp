@@ -566,6 +566,7 @@ public:
     float get_view_toolbar_height() const { return m_view_toolbar.get_height(); }
 
     int get_move_volume_id() const { return m_mouse.drag.move_volume_idx; }
+    int get_hover_volume_id() const { return m_hover_volume_id; }
 
     // Returns the view ray line, in world coordinate, at the given mouse position.
     Linef3 mouse_ray(const Point& mouse_pos);
