@@ -3,6 +3,7 @@
 #include "GLShader.hpp"
 
 #include "libslic3r/Utils.hpp"
+#include "3DScene.hpp"
 #include <boost/nowide/fstream.hpp>
 
 #include <string>
@@ -52,21 +53,22 @@ bool GLShader::load_from_text(const char *fragment_shader, const char *vertex_sh
     }
 
     if (fragment_shader != nullptr) {
-        this->fragment_program_id = glCreateShader(GL_FRAGMENT_SHADER);
+        this->fragment_program_id = ::glCreateShader(GL_FRAGMENT_SHADER);
+        glcheck();
         if (this->fragment_program_id == 0) {
             last_error = "glCreateShader(GL_FRAGMENT_SHADER) failed.";
             return false;
         }
         GLint len = (GLint)strlen(fragment_shader);
-        glShaderSource(this->fragment_program_id, 1, &fragment_shader, &len);
-        glCompileShader(this->fragment_program_id);
+        glsafe(::glShaderSource(this->fragment_program_id, 1, &fragment_shader, &len));
+        glsafe(::glCompileShader(this->fragment_program_id));
         GLint params;
-        glGetShaderiv(this->fragment_program_id, GL_COMPILE_STATUS, &params);
+        glsafe(::glGetShaderiv(this->fragment_program_id, GL_COMPILE_STATUS, &params));
         if (params == GL_FALSE) {
             // Compilation failed. Get the log.
-            glGetShaderiv(this->fragment_program_id, GL_INFO_LOG_LENGTH, &params);
+            glsafe(::glGetShaderiv(this->fragment_program_id, GL_INFO_LOG_LENGTH, &params));
             std::vector<char> msg(params);
-            glGetShaderInfoLog(this->fragment_program_id, params, &params, msg.data());
+            glsafe(::glGetShaderInfoLog(this->fragment_program_id, params, &params, msg.data()));
             this->last_error = std::string("Fragment shader compilation failed:\n") + msg.data();
             this->release();
             return false;
@@ -74,22 +76,23 @@ bool GLShader::load_from_text(const char *fragment_shader, const char *vertex_sh
     }
 
     if (vertex_shader != nullptr) {
-        this->vertex_program_id = glCreateShader(GL_VERTEX_SHADER);
+        this->vertex_program_id = ::glCreateShader(GL_VERTEX_SHADER);
+        glcheck();
         if (this->vertex_program_id == 0) {
             last_error = "glCreateShader(GL_VERTEX_SHADER) failed.";
             this->release();
             return false;
         }
         GLint len = (GLint)strlen(vertex_shader);
-        glShaderSource(this->vertex_program_id, 1, &vertex_shader, &len);
-        glCompileShader(this->vertex_program_id);
+        glsafe(::glShaderSource(this->vertex_program_id, 1, &vertex_shader, &len));
+        glsafe(::glCompileShader(this->vertex_program_id));
         GLint params;
-        glGetShaderiv(this->vertex_program_id, GL_COMPILE_STATUS, &params);
+        glsafe(::glGetShaderiv(this->vertex_program_id, GL_COMPILE_STATUS, &params));
         if (params == GL_FALSE) {
             // Compilation failed. Get the log.
-            glGetShaderiv(this->vertex_program_id, GL_INFO_LOG_LENGTH, &params);
+            glsafe(::glGetShaderiv(this->vertex_program_id, GL_INFO_LOG_LENGTH, &params));
             std::vector<char> msg(params);
-            glGetShaderInfoLog(this->vertex_program_id, params, &params, msg.data());
+            glsafe(::glGetShaderInfoLog(this->vertex_program_id, params, &params, msg.data()));
             this->last_error = std::string("Vertex shader compilation failed:\n") + msg.data();
             this->release();
             return false;
@@ -97,7 +100,8 @@ bool GLShader::load_from_text(const char *fragment_shader, const char *vertex_sh
     }
 
     // Link shaders
-    this->shader_program_id = glCreateProgram();
+    this->shader_program_id = ::glCreateProgram();
+    glcheck();
     if (this->shader_program_id == 0) {
         last_error = "glCreateProgram() failed.";
         this->release();
@@ -105,18 +109,18 @@ bool GLShader::load_from_text(const char *fragment_shader, const char *vertex_sh
     }
 
     if (this->fragment_program_id)
-        glAttachShader(this->shader_program_id, this->fragment_program_id);
+        glsafe(::glAttachShader(this->shader_program_id, this->fragment_program_id));
     if (this->vertex_program_id)
-        glAttachShader(this->shader_program_id, this->vertex_program_id);
-    glLinkProgram(this->shader_program_id);
+        glsafe(::glAttachShader(this->shader_program_id, this->vertex_program_id));
+    glsafe(::glLinkProgram(this->shader_program_id));
 
     GLint params;
-    glGetProgramiv(this->shader_program_id, GL_LINK_STATUS, &params);
+    glsafe(::glGetProgramiv(this->shader_program_id, GL_LINK_STATUS, &params));
     if (params == GL_FALSE) {
         // Linking failed. Get the log.
-        glGetProgramiv(this->vertex_program_id, GL_INFO_LOG_LENGTH, &params);
+        glsafe(::glGetProgramiv(this->vertex_program_id, GL_INFO_LOG_LENGTH, &params));
         std::vector<char> msg(params);
-        glGetProgramInfoLog(this->vertex_program_id, params, &params, msg.data());
+        glsafe(::glGetProgramInfoLog(this->vertex_program_id, params, &params, msg.data()));
         this->last_error = std::string("Shader linking failed:\n") + msg.data();
         this->release();
         return false;
@@ -165,31 +169,31 @@ void GLShader::release()
 {
     if (this->shader_program_id) {
         if (this->vertex_program_id)
-            glDetachShader(this->shader_program_id, this->vertex_program_id);
+            glsafe(::glDetachShader(this->shader_program_id, this->vertex_program_id));
         if (this->fragment_program_id)
-            glDetachShader(this->shader_program_id, this->fragment_program_id);
-        glDeleteProgram(this->shader_program_id);
+            glsafe(::glDetachShader(this->shader_program_id, this->fragment_program_id));
+        glsafe(::glDeleteProgram(this->shader_program_id));
         this->shader_program_id = 0;
     }
 
     if (this->vertex_program_id) {
-        glDeleteShader(this->vertex_program_id);
+        glsafe(::glDeleteShader(this->vertex_program_id));
         this->vertex_program_id = 0;
     }
     if (this->fragment_program_id) {
-        glDeleteShader(this->fragment_program_id);
+        glsafe(::glDeleteShader(this->fragment_program_id));
         this->fragment_program_id = 0;
     }
 }
 
 void GLShader::enable() const
 {
-    glUseProgram(this->shader_program_id);
+    glsafe(::glUseProgram(this->shader_program_id));
 }
 
 void GLShader::disable() const
 {
-    glUseProgram(0);
+    glsafe(::glUseProgram(0));
 }
 
 // Return shader vertex attribute ID
@@ -208,7 +212,7 @@ bool GLShader::set_uniform(const char *name, float value) const
 {
     int id = this->get_uniform_location(name);
     if (id >= 0) { 
-        glUniform1fARB(id, value);
+        glsafe(::glUniform1fARB(id, value));
         return true;
     }
     return false;
@@ -219,7 +223,7 @@ bool GLShader::set_uniform(const char* name, const float* matrix) const
     int id = get_uniform_location(name);
     if (id >= 0)
     {
-        ::glUniformMatrix4fv(id, 1, GL_FALSE, (const GLfloat*)matrix);
+        glsafe(::glUniformMatrix4fv(id, 1, GL_FALSE, (const GLfloat*)matrix));
         return true;
     }
     return false;
@@ -230,7 +234,7 @@ bool GLShader::set_uniform(const char* name, int value) const
     int id = get_uniform_location(name);
     if (id >= 0)
     {
-        ::glUniform1i(id, value);
+        glsafe(::glUniform1i(id, value));
         return true;
     }
     return false;

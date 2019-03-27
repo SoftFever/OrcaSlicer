@@ -227,7 +227,7 @@ GLCanvas3D::LayersEditing::~LayersEditing()
 {
     if (m_z_texture_id != 0)
     {
-        ::glDeleteTextures(1, &m_z_texture_id);
+        glsafe(::glDeleteTextures(1, &m_z_texture_id));
         m_z_texture_id = 0;
     }
     delete m_slicing_parameters;
@@ -241,14 +241,14 @@ bool GLCanvas3D::LayersEditing::init(const std::string& vertex_shader_filename, 
     if (!m_shader.init(vertex_shader_filename, fragment_shader_filename))
         return false;
 
-    ::glGenTextures(1, (GLuint*)&m_z_texture_id);
-    ::glBindTexture(GL_TEXTURE_2D, m_z_texture_id);
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
-    ::glBindTexture(GL_TEXTURE_2D, 0);
+    glsafe(::glGenTextures(1, (GLuint*)&m_z_texture_id));
+    glsafe(::glBindTexture(GL_TEXTURE_2D, m_z_texture_id));
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP));
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP));
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST));
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1));
+    glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
 
     return true;
 }
@@ -304,12 +304,12 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     const Rect& bar_rect = get_bar_rect_viewport(canvas);
     const Rect& reset_rect = get_reset_rect_viewport(canvas);
 
-    ::glDisable(GL_DEPTH_TEST);
+    glsafe(::glDisable(GL_DEPTH_TEST));
 
     // The viewport and camera are set to complete view and glOrtho(-$x / 2, $x / 2, -$y / 2, $y / 2, -$depth, $depth),
     // where x, y is the window size divided by $self->_zoom.
-    ::glPushMatrix();
-    ::glLoadIdentity();
+    glsafe(::glPushMatrix());
+    glsafe(::glLoadIdentity());
 
     _render_tooltip_texture(canvas, bar_rect, reset_rect);
     _render_reset_texture(reset_rect);
@@ -317,9 +317,9 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     _render_profile(bar_rect);
 
     // Revert the matrices.
-    ::glPopMatrix();
+    glsafe(::glPopMatrix());
 
-    ::glEnable(GL_DEPTH_TEST);
+    glsafe(::glEnable(GL_DEPTH_TEST));
 }
 
 float GLCanvas3D::LayersEditing::get_cursor_z_relative(const GLCanvas3D& canvas)
@@ -455,8 +455,8 @@ void GLCanvas3D::LayersEditing::_render_active_object_annotations(const GLCanvas
     // The shader requires the original model coordinates when rendering to the texture, so we pass it the unit matrix
     m_shader.set_uniform("volume_world_matrix", UNIT_MATRIX);
 
-    ::glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    ::glBindTexture(GL_TEXTURE_2D, m_z_texture_id);
+    glsafe(::glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
+    glsafe(::glBindTexture(GL_TEXTURE_2D, m_z_texture_id));
 
     // Render the color bar
     float l = bar_rect.get_left();
@@ -470,8 +470,8 @@ void GLCanvas3D::LayersEditing::_render_active_object_annotations(const GLCanvas
     ::glVertex3f(r, b, 0.0f);
     ::glVertex3f(r, t, m_object_max_z);
     ::glVertex3f(l, t, m_object_max_z);
-    ::glEnd();
-    ::glBindTexture(GL_TEXTURE_2D, 0);
+    glsafe(::glEnd());
+    glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
 
     m_shader.stop_using();
 }
@@ -487,18 +487,18 @@ void GLCanvas3D::LayersEditing::_render_profile(const Rect& bar_rect) const
     float x = bar_rect.get_left() + (float)m_slicing_parameters->layer_height * scale_x;
 
     // Baseline
-    ::glColor3f(0.0f, 0.0f, 0.0f);
+    glsafe(::glColor3f(0.0f, 0.0f, 0.0f));
     ::glBegin(GL_LINE_STRIP);
     ::glVertex2f(x, bar_rect.get_bottom());
     ::glVertex2f(x, bar_rect.get_top());
-    ::glEnd();
+    glsafe(::glEnd());
 
     // Curve
-    ::glColor3f(0.0f, 0.0f, 1.0f);
+    glsafe(::glColor3f(0.0f, 0.0f, 1.0f));
     ::glBegin(GL_LINE_STRIP);
     for (unsigned int i = 0; i < m_layer_height_profile.size(); i += 2)
         ::glVertex2f(bar_rect.get_left() + (float)m_layer_height_profile[i + 1] * scale_x, bar_rect.get_bottom() + (float)m_layer_height_profile[i] * scale_y);
-    ::glEnd();
+    glsafe(::glEnd());
 }
 
 void GLCanvas3D::LayersEditing::render_volumes(const GLCanvas3D& canvas, const GLVolumeCollection &volumes) const
@@ -509,51 +509,52 @@ void GLCanvas3D::LayersEditing::render_volumes(const GLCanvas3D& canvas, const G
     assert(shader_id > 0);
 
     GLint current_program_id;
-    glGetIntegerv(GL_CURRENT_PROGRAM, &current_program_id);
+    glsafe(::glGetIntegerv(GL_CURRENT_PROGRAM, &current_program_id));
     if (shader_id > 0 && shader_id != current_program_id)
         // The layer editing shader is not yet active. Activate it.
-        glUseProgram(shader_id);
+        glsafe(::glUseProgram(shader_id));
     else
         // The layer editing shader was already active.
         current_program_id = -1;
 
-    GLint z_to_texture_row_id               = glGetUniformLocation(shader_id, "z_to_texture_row");
-    GLint z_texture_row_to_normalized_id    = glGetUniformLocation(shader_id, "z_texture_row_to_normalized");
-    GLint z_cursor_id                       = glGetUniformLocation(shader_id, "z_cursor");
-    GLint z_cursor_band_width_id            = glGetUniformLocation(shader_id, "z_cursor_band_width");
-    GLint world_matrix_id                   = glGetUniformLocation(shader_id, "volume_world_matrix");
+    GLint z_to_texture_row_id               = ::glGetUniformLocation(shader_id, "z_to_texture_row");
+    GLint z_texture_row_to_normalized_id    = ::glGetUniformLocation(shader_id, "z_texture_row_to_normalized");
+    GLint z_cursor_id                       = ::glGetUniformLocation(shader_id, "z_cursor");
+    GLint z_cursor_band_width_id            = ::glGetUniformLocation(shader_id, "z_cursor_band_width");
+    GLint world_matrix_id                   = ::glGetUniformLocation(shader_id, "volume_world_matrix");
+    glcheck();
 
     if (z_to_texture_row_id != -1 && z_texture_row_to_normalized_id != -1 && z_cursor_id != -1 && z_cursor_band_width_id != -1 && world_matrix_id != -1) 
     {
         const_cast<LayersEditing*>(this)->generate_layer_height_texture();
 
         // Uniforms were resolved, go ahead using the layer editing shader.
-        glUniform1f(z_to_texture_row_id, GLfloat(m_layers_texture.cells - 1) / (GLfloat(m_layers_texture.width) * GLfloat(m_object_max_z)));
-        glUniform1f(z_texture_row_to_normalized_id, GLfloat(1.0f / m_layers_texture.height));
-		glUniform1f(z_cursor_id, GLfloat(m_object_max_z) * GLfloat(this->get_cursor_z_relative(canvas)));
-		glUniform1f(z_cursor_band_width_id, GLfloat(this->band_width));
+        glsafe(::glUniform1f(z_to_texture_row_id, GLfloat(m_layers_texture.cells - 1) / (GLfloat(m_layers_texture.width) * GLfloat(m_object_max_z))));
+        glsafe(::glUniform1f(z_texture_row_to_normalized_id, GLfloat(1.0f / m_layers_texture.height)));
+        glsafe(::glUniform1f(z_cursor_id, GLfloat(m_object_max_z) * GLfloat(this->get_cursor_z_relative(canvas))));
+        glsafe(::glUniform1f(z_cursor_band_width_id, GLfloat(this->band_width)));
         // Initialize the layer height texture mapping.
         GLsizei w = (GLsizei)m_layers_texture.width;
         GLsizei h = (GLsizei)m_layers_texture.height;
         GLsizei half_w = w / 2;
         GLsizei half_h = h / 2;
-        ::glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-        glBindTexture(GL_TEXTURE_2D, m_z_texture_id);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-        glTexImage2D(GL_TEXTURE_2D, 1, GL_RGBA, half_w, half_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, m_layers_texture.data.data());
-        glTexSubImage2D(GL_TEXTURE_2D, 1, 0, 0, half_w, half_h, GL_RGBA, GL_UNSIGNED_BYTE, m_layers_texture.data.data() + m_layers_texture.width * m_layers_texture.height * 4);
+        glsafe(::glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
+        glsafe(::glBindTexture(GL_TEXTURE_2D, m_z_texture_id));
+        glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
+        glsafe(::glTexImage2D(GL_TEXTURE_2D, 1, GL_RGBA, half_w, half_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
+        glsafe(::glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, m_layers_texture.data.data()));
+        glsafe(::glTexSubImage2D(GL_TEXTURE_2D, 1, 0, 0, half_w, half_h, GL_RGBA, GL_UNSIGNED_BYTE, m_layers_texture.data.data() + m_layers_texture.width * m_layers_texture.height * 4));
         for (const GLVolume *glvolume : volumes.volumes) {
             // Render the object using the layer editing shader and texture.
             if (! glvolume->is_active || glvolume->composite_id.object_id != this->last_object_id || glvolume->is_modifier)
                 continue;
-            ::glUniformMatrix4fv(world_matrix_id, 1, GL_FALSE, (const GLfloat*)glvolume->world_matrix().cast<float>().data());
+            glsafe(::glUniformMatrix4fv(world_matrix_id, 1, GL_FALSE, (const GLfloat*)glvolume->world_matrix().cast<float>().data()));
             glvolume->render();
         }
         // Revert back to the previous shader.
         glBindTexture(GL_TEXTURE_2D, 0);
         if (current_program_id > 0)
-            glUseProgram(current_program_id);
+            glsafe(::glUseProgram(current_program_id));
     } 
     else 
     {
@@ -563,7 +564,7 @@ void GLCanvas3D::LayersEditing::render_volumes(const GLCanvas3D& canvas, const G
 			// Render the object using the layer editing shader and texture.
 			if (!glvolume->is_active || glvolume->composite_id.object_id != this->last_object_id || glvolume->is_modifier)
 				continue;
-			::glUniformMatrix4fv(world_matrix_id, 1, GL_FALSE, (const GLfloat*)glvolume->world_matrix().cast<float>().data());
+            glsafe(::glUniformMatrix4fv(world_matrix_id, 1, GL_FALSE, (const GLfloat*)glvolume->world_matrix().cast<float>().data()));
 			glvolume->render();
 		}
 	}
@@ -846,14 +847,14 @@ bool GLCanvas3D::WarningTexture::_generate(const std::string& msg_utf8, const GL
     }
 
     // sends buffer to gpu
-    ::glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    ::glGenTextures(1, &m_id);
-    ::glBindTexture(GL_TEXTURE_2D, (GLuint)m_id);
-    ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data());
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-    ::glBindTexture(GL_TEXTURE_2D, 0);
+    glsafe(::glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
+    glsafe(::glGenTextures(1, &m_id));
+    glsafe(::glBindTexture(GL_TEXTURE_2D, (GLuint)m_id));
+    glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0));
+    glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
 
     return true;
 }
@@ -865,9 +866,9 @@ void GLCanvas3D::WarningTexture::render(const GLCanvas3D& canvas) const
 
     if ((m_id > 0) && (m_original_width > 0) && (m_original_height > 0) && (m_width > 0) && (m_height > 0))
     {
-        ::glDisable(GL_DEPTH_TEST);
-        ::glPushMatrix();
-        ::glLoadIdentity();
+        glsafe(::glDisable(GL_DEPTH_TEST));
+        glsafe(::glPushMatrix());
+        glsafe(::glLoadIdentity());
 
         const Size& cnv_size = canvas.get_canvas_size();
         float zoom = canvas.get_camera_zoom();
@@ -890,8 +891,8 @@ void GLCanvas3D::WarningTexture::render(const GLCanvas3D& canvas) const
 
         GLTexture::render_sub_texture(m_id, left, right, bottom, top, uvs);
 
-        ::glPopMatrix();
-        ::glEnable(GL_DEPTH_TEST);
+        glsafe(::glPopMatrix());
+        glsafe(::glEnable(GL_DEPTH_TEST));
     }
 }
 
@@ -1118,14 +1119,14 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
     }
 
     // sends buffer to gpu
-    ::glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    ::glGenTextures(1, &m_id);
-    ::glBindTexture(GL_TEXTURE_2D, (GLuint)m_id);
-    ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data());
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-    ::glBindTexture(GL_TEXTURE_2D, 0);
+    glsafe(::glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
+    glsafe(::glGenTextures(1, &m_id));
+    glsafe(::glBindTexture(GL_TEXTURE_2D, (GLuint)m_id));
+    glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0));
+    glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
 
     return true;
 }
@@ -1134,9 +1135,9 @@ void GLCanvas3D::LegendTexture::render(const GLCanvas3D& canvas) const
 {
     if ((m_id > 0) && (m_original_width > 0) && (m_original_height > 0) && (m_width > 0) && (m_height > 0))
     {
-        ::glDisable(GL_DEPTH_TEST);
-        ::glPushMatrix();
-        ::glLoadIdentity();
+        glsafe(::glDisable(GL_DEPTH_TEST));
+        glsafe(::glPushMatrix());
+        glsafe(::glLoadIdentity());
 
         const Size& cnv_size = canvas.get_canvas_size();
         float zoom = canvas.get_camera_zoom();
@@ -1159,8 +1160,8 @@ void GLCanvas3D::LegendTexture::render(const GLCanvas3D& canvas) const
 
         GLTexture::render_sub_texture(m_id, left, right, bottom, top, uvs);
 
-        ::glPopMatrix();
-        ::glEnable(GL_DEPTH_TEST);
+        glsafe(::glPopMatrix());
+        glsafe(::glEnable(GL_DEPTH_TEST));
     }
 }
 
@@ -1249,48 +1250,48 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
     if ((m_canvas == nullptr) || (m_context == nullptr))
         return false;
 
-    ::glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-    ::glClearDepth(1.0f);
+    glsafe(::glClearColor(1.0f, 1.0f, 1.0f, 1.0f));
+    glsafe(::glClearDepth(1.0f));
 
-    ::glDepthFunc(GL_LESS);
+    glsafe(::glDepthFunc(GL_LESS));
 
-    ::glEnable(GL_DEPTH_TEST);
-    ::glEnable(GL_CULL_FACE);
-    ::glEnable(GL_BLEND);
-    ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glsafe(::glEnable(GL_DEPTH_TEST));
+    glsafe(::glEnable(GL_CULL_FACE));
+    glsafe(::glEnable(GL_BLEND));
+    glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
     // Set antialiasing / multisampling
-    ::glDisable(GL_LINE_SMOOTH);
-    ::glDisable(GL_POLYGON_SMOOTH);
+    glsafe(::glDisable(GL_LINE_SMOOTH));
+    glsafe(::glDisable(GL_POLYGON_SMOOTH));
 
     // ambient lighting
     GLfloat ambient[4] = { 0.3f, 0.3f, 0.3f, 1.0f };
-    ::glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient);
+    glsafe(::glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient));
 
-    ::glEnable(GL_LIGHT0);
-    ::glEnable(GL_LIGHT1);
+    glsafe(::glEnable(GL_LIGHT0));
+    glsafe(::glEnable(GL_LIGHT1));
 
     // light from camera
     GLfloat specular_cam[4] = { 0.3f, 0.3f, 0.3f, 1.0f };
-    ::glLightfv(GL_LIGHT1, GL_SPECULAR, specular_cam);
+    glsafe(::glLightfv(GL_LIGHT1, GL_SPECULAR, specular_cam));
     GLfloat diffuse_cam[4] = { 0.2f, 0.2f, 0.2f, 1.0f };
-    ::glLightfv(GL_LIGHT1, GL_DIFFUSE, diffuse_cam);
+    glsafe(::glLightfv(GL_LIGHT1, GL_DIFFUSE, diffuse_cam));
 
     // light from above
     GLfloat specular_top[4] = { 0.2f, 0.2f, 0.2f, 1.0f };
-    ::glLightfv(GL_LIGHT0, GL_SPECULAR, specular_top);
+    glsafe(::glLightfv(GL_LIGHT0, GL_SPECULAR, specular_top));
     GLfloat diffuse_top[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
-    ::glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse_top);
+    glsafe(::glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse_top));
 
     // Enables Smooth Color Shading; try GL_FLAT for (lack of) fun.
-    ::glShadeModel(GL_SMOOTH);
+    glsafe(::glShadeModel(GL_SMOOTH));
 
     // A handy trick -- have surface material mirror the color.
-    ::glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-    ::glEnable(GL_COLOR_MATERIAL);
+    glsafe(::glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE));
+    glsafe(::glEnable(GL_COLOR_MATERIAL));
 
     if (m_multisample_allowed)
-        ::glEnable(GL_MULTISAMPLE);
+        glsafe(::glEnable(GL_MULTISAMPLE));
 
     if (useVBOs && !m_shader.init("gouraud.vs", "gouraud.fs"))
         return false;
@@ -1605,9 +1606,9 @@ void GLCanvas3D::render()
     _camera_tranform();
 
     GLfloat position_cam[4] = { 1.0f, 0.0f, 1.0f, 0.0f };
-    ::glLightfv(GL_LIGHT1, GL_POSITION, position_cam);
+    glsafe(::glLightfv(GL_LIGHT1, GL_POSITION, position_cam));
     GLfloat position_top[4] = { -0.5f, -0.5f, 1.0f, 0.0f };
-    ::glLightfv(GL_LIGHT0, GL_POSITION, position_top);
+    glsafe(::glLightfv(GL_LIGHT0, GL_POSITION, position_top));
 
     float theta = m_camera.get_theta();
     if (theta > 180.f)
@@ -1620,7 +1621,7 @@ void GLCanvas3D::render()
     _picking_pass();
 
     // draw scene
-    ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     _render_background();
 
     // textured bed needs to be rendered after objects if the texture is transparent
@@ -2656,7 +2657,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
                     // get the view matrix back from opengl
                     GLfloat matrix[16];
-                    ::glGetFloatv(GL_MODELVIEW_MATRIX, matrix);
+                    glsafe(::glGetFloatv(GL_MODELVIEW_MATRIX, matrix));
                     Vec3d camera_right((double)matrix[0], (double)matrix[4], (double)matrix[8]);
                     Vec3d camera_up((double)matrix[1], (double)matrix[5], (double)matrix[9]);
 
@@ -3339,10 +3340,10 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
 
     // ensures that this canvas is current
     _set_current();
-    ::glViewport(0, 0, w, h);
+    glsafe(::glViewport(0, 0, w, h));
 
-    ::glMatrixMode(GL_PROJECTION);
-    ::glLoadIdentity();
+    glsafe(::glMatrixMode(GL_PROJECTION));
+    glsafe(::glLoadIdentity());
 
     const BoundingBoxf3& bbox = _max_bounding_box();
 
@@ -3362,7 +3363,7 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
 
         // FIXME: calculate a tighter value for depth will improve z-fighting
         float depth = 5.0f * (float)bbox.max_size();
-        ::glOrtho(-w2, w2, -h2, h2, -depth, depth);
+        glsafe(::glOrtho(-w2, w2, -h2, h2, -depth, depth));
 
         break;
     }
@@ -3395,7 +3396,7 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
     }
     }
 
-    ::glMatrixMode(GL_MODELVIEW);
+    glsafe(::glMatrixMode(GL_MODELVIEW));
 
     m_dirty = false;
 }
@@ -3434,7 +3435,7 @@ float GLCanvas3D::_get_zoom_to_bounding_box_factor(const BoundingBoxf3& bbox) co
 
     // get the view matrix back from opengl
     GLfloat matrix[16];
-    ::glGetFloatv(GL_MODELVIEW_MATRIX, matrix);
+    glsafe(::glGetFloatv(GL_MODELVIEW_MATRIX, matrix));
 
     // camera axes
     Vec3d right((double)matrix[0], (double)matrix[4], (double)matrix[8]);
@@ -3502,13 +3503,13 @@ void GLCanvas3D::_refresh_if_shown_on_screen()
 
 void GLCanvas3D::_camera_tranform() const
 {
-    ::glMatrixMode(GL_MODELVIEW);
-    ::glLoadIdentity();
+    glsafe(::glMatrixMode(GL_MODELVIEW));
+    glsafe(::glLoadIdentity());
 
-    ::glRotatef(-m_camera.get_theta(), 1.0f, 0.0f, 0.0f); // pitch
-    ::glRotatef(m_camera.phi, 0.0f, 0.0f, 1.0f);          // yaw
+    glsafe(::glRotatef(-m_camera.get_theta(), 1.0f, 0.0f, 0.0f)); // pitch
+    glsafe(::glRotatef(m_camera.phi, 0.0f, 0.0f, 1.0f));          // yaw
     Vec3d target = -m_camera.get_target();
-    ::glTranslated(target(0), target(1), target(2));
+    glsafe(::glTranslated(target(0), target(1), target(2)));
 }
 
 void GLCanvas3D::_picking_pass() const
@@ -3522,18 +3523,18 @@ void GLCanvas3D::_picking_pass() const
         // Better to use software ray - casting on a bounding - box hierarchy.
 
         if (m_multisample_allowed)
-            ::glDisable(GL_MULTISAMPLE);
+            glsafe(::glDisable(GL_MULTISAMPLE));
 
-        ::glDisable(GL_BLEND);
-        ::glEnable(GL_DEPTH_TEST);
+        glsafe(::glDisable(GL_BLEND));
+        glsafe(::glEnable(GL_DEPTH_TEST));
 
-        ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
         _render_volumes(true);
         m_gizmos.render_current_gizmo_for_picking_pass(m_selection);
 
         if (m_multisample_allowed)
-            ::glEnable(GL_MULTISAMPLE);
+            glsafe(::glEnable(GL_MULTISAMPLE));
 
         int volume_id = -1;
 
@@ -3542,7 +3543,7 @@ void GLCanvas3D::_picking_pass() const
         bool inside = (0 <= pos(0)) && (pos(0) < cnv_size.get_width()) && (0 <= pos(1)) && (pos(1) < cnv_size.get_height());
         if (inside)
         {
-            ::glReadPixels(pos(0), cnv_size.get_height() - pos(1) - 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, (void*)color);
+            glsafe(::glReadPixels(pos(0), cnv_size.get_height() - pos(1) - 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, (void*)color));
             volume_id = color[0] + color[1] * 256 + color[2] * 256 * 256;
         }
         if ((0 <= volume_id) && (volume_id < (int)m_volumes.volumes.size()))
@@ -3562,14 +3563,14 @@ void GLCanvas3D::_picking_pass() const
 
 void GLCanvas3D::_render_background() const
 {
-    ::glPushMatrix();
-    ::glLoadIdentity();
-    ::glMatrixMode(GL_PROJECTION);
-    ::glPushMatrix();
-    ::glLoadIdentity();
+    glsafe(::glPushMatrix());
+    glsafe(::glLoadIdentity());
+    glsafe(::glMatrixMode(GL_PROJECTION));
+    glsafe(::glPushMatrix());
+    glsafe(::glLoadIdentity());
 
     // Draws a bottom to top gradient over the complete screen.
-    ::glDisable(GL_DEPTH_TEST);
+    glsafe(::glDisable(GL_DEPTH_TEST));
 
     ::glBegin(GL_QUADS);
     if (m_dynamic_background_enabled && _is_any_volume_outside())
@@ -3587,13 +3588,13 @@ void GLCanvas3D::_render_background() const
 
     ::glVertex2f(1.0f, 1.0f);
     ::glVertex2f(-1.0f, 1.0f);
-    ::glEnd();
+    glsafe(::glEnd());
 
-    ::glEnable(GL_DEPTH_TEST);
+    glsafe(::glEnable(GL_DEPTH_TEST));
 
-    ::glPopMatrix();
-    ::glMatrixMode(GL_MODELVIEW);
-    ::glPopMatrix();
+    glsafe(::glPopMatrix());
+    glsafe(::glMatrixMode(GL_MODELVIEW));
+    glsafe(::glPopMatrix());
 }
 
 void GLCanvas3D::_render_bed(float theta) const
@@ -3615,8 +3616,8 @@ void GLCanvas3D::_render_objects() const
     if (m_volumes.empty())
         return;
 
-    ::glEnable(GL_LIGHTING);
-    ::glEnable(GL_DEPTH_TEST);
+    glsafe(::glEnable(GL_LIGHTING));
+    glsafe(::glEnable(GL_DEPTH_TEST));
 
     if (m_use_VBOs)
     {
@@ -3660,10 +3661,10 @@ void GLCanvas3D::_render_objects() const
     {
         if (m_use_clipping_planes)
         {
-            ::glClipPlane(GL_CLIP_PLANE0, (GLdouble*)m_clipping_planes[0].get_data());
-            ::glEnable(GL_CLIP_PLANE0);
-            ::glClipPlane(GL_CLIP_PLANE1, (GLdouble*)m_clipping_planes[1].get_data());
-            ::glEnable(GL_CLIP_PLANE1);
+            glsafe(::glClipPlane(GL_CLIP_PLANE0, (GLdouble*)m_clipping_planes[0].get_data()));
+            glsafe(::glEnable(GL_CLIP_PLANE0));
+            glsafe(::glClipPlane(GL_CLIP_PLANE1, (GLdouble*)m_clipping_planes[1].get_data()));
+            glsafe(::glEnable(GL_CLIP_PLANE1));
         }
 
         // do not cull backfaces to show broken geometry, if any
@@ -3674,12 +3675,12 @@ void GLCanvas3D::_render_objects() const
 
         if (m_use_clipping_planes)
         {
-            ::glDisable(GL_CLIP_PLANE0);
-            ::glDisable(GL_CLIP_PLANE1);
+            glsafe(::glDisable(GL_CLIP_PLANE0));
+            glsafe(::glDisable(GL_CLIP_PLANE1));
         }
     }
 
-    ::glDisable(GL_LIGHTING);
+    glsafe(::glDisable(GL_LIGHTING));
 }
 
 void GLCanvas3D::_render_selection() const
@@ -3719,16 +3720,16 @@ void GLCanvas3D::_render_volumes(bool fake_colors) const
     static const GLfloat INV_255 = 1.0f / 255.0f;
 
     if (!fake_colors)
-        ::glEnable(GL_LIGHTING);
+        glsafe(::glEnable(GL_LIGHTING));
 
     // do not cull backfaces to show broken geometry, if any
-    ::glDisable(GL_CULL_FACE);
+    glsafe(::glDisable(GL_CULL_FACE));
 
-    ::glEnable(GL_BLEND);
-    ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glsafe(::glEnable(GL_BLEND));
+    glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-    ::glEnableClientState(GL_VERTEX_ARRAY);
-    ::glEnableClientState(GL_NORMAL_ARRAY);
+    glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
+    glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
 
     unsigned int volume_id = 0;
     for (GLVolume* vol : m_volumes.volumes)
@@ -3739,12 +3740,12 @@ void GLCanvas3D::_render_volumes(bool fake_colors) const
             unsigned int r = (volume_id & 0x000000FF) >> 0;
             unsigned int g = (volume_id & 0x0000FF00) >> 8;
             unsigned int b = (volume_id & 0x00FF0000) >> 16;
-            ::glColor3f((GLfloat)r * INV_255, (GLfloat)g * INV_255, (GLfloat)b * INV_255);
+            glsafe(::glColor3f((GLfloat)r * INV_255, (GLfloat)g * INV_255, (GLfloat)b * INV_255));
         }
         else
         {
             vol->set_render_color();
-            ::glColor4fv(vol->render_color);
+            glsafe(::glColor4fv(vol->render_color));
         }
 
         if ((!fake_colors || !vol->disabled) && (vol->composite_id.volume_id >= 0 || m_render_sla_auxiliaries))
@@ -3753,14 +3754,14 @@ void GLCanvas3D::_render_volumes(bool fake_colors) const
         ++volume_id;
     }
 
-    ::glDisableClientState(GL_NORMAL_ARRAY);
-    ::glDisableClientState(GL_VERTEX_ARRAY);
-    ::glDisable(GL_BLEND);
+    glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
+    glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
+    glsafe(::glDisable(GL_BLEND));
 
-    ::glEnable(GL_CULL_FACE);
+    glsafe(::glEnable(GL_CULL_FACE));
 
     if (!fake_colors)
-        ::glDisable(GL_LIGHTING);
+        glsafe(::glDisable(GL_LIGHTING));
 }
 
 void GLCanvas3D::_render_current_gizmo() const
@@ -3874,9 +3875,9 @@ void GLCanvas3D::_render_camera_target() const
 {
     double half_length = 5.0;
 
-    ::glDisable(GL_DEPTH_TEST);
+    glsafe(::glDisable(GL_DEPTH_TEST));
 
-    ::glLineWidth(2.0f);
+    glsafe(::glLineWidth(2.0f));
     ::glBegin(GL_LINES);
     const Vec3d& target = m_camera.get_target();
     // draw line for x axis
@@ -3891,7 +3892,7 @@ void GLCanvas3D::_render_camera_target() const
     ::glColor3f(0.0f, 0.0f, 1.0f);
     ::glVertex3d(target(0), target(1), target(2) - half_length);
     ::glVertex3d(target(0), target(1), target(2) + half_length);
-    ::glEnd();
+    glsafe(::glEnd());
 }
 #endif // ENABLE_SHOW_CAMERA_TARGET
 
@@ -3993,9 +3994,9 @@ void GLCanvas3D::_render_sla_slices() const
         {
             for (const InstanceTransform& inst : instance_transforms)
             {
-                ::glPushMatrix();
-                ::glTranslated(inst.offset(0), inst.offset(1), inst.offset(2));
-                ::glRotatef(inst.rotation, 0.0, 0.0, 1.0);
+                glsafe(::glPushMatrix());
+                glsafe(::glTranslated(inst.offset(0), inst.offset(1), inst.offset(2)));
+                glsafe(::glRotatef(inst.rotation, 0.0, 0.0, 1.0));
 
                 ::glBegin(GL_TRIANGLES);
 
@@ -4023,9 +4024,9 @@ void GLCanvas3D::_render_sla_slices() const
                     ::glVertex3dv((GLdouble*)v.data());
                 }
 
-                ::glEnd();
+                glsafe(::glEnd());
 
-                ::glPopMatrix();
+                glsafe(::glPopMatrix());
             }
         }
     }
@@ -4109,16 +4110,16 @@ Vec3d GLCanvas3D::_mouse_to_3d(const Point& mouse_pos, float* z)
     _camera_tranform();
 
     GLint viewport[4];
-    ::glGetIntegerv(GL_VIEWPORT, viewport);
+    glsafe(::glGetIntegerv(GL_VIEWPORT, viewport));
     GLdouble modelview_matrix[16];
-    ::glGetDoublev(GL_MODELVIEW_MATRIX, modelview_matrix);
+    glsafe(::glGetDoublev(GL_MODELVIEW_MATRIX, modelview_matrix));
     GLdouble projection_matrix[16];
-    ::glGetDoublev(GL_PROJECTION_MATRIX, projection_matrix);
+    glsafe(::glGetDoublev(GL_PROJECTION_MATRIX, projection_matrix));
 
     GLint y = viewport[3] - (GLint)mouse_pos(1);
     GLfloat mouse_z;
     if (z == nullptr)
-        ::glReadPixels((GLint)mouse_pos(0), y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, (void*)&mouse_z);
+        glsafe(::glReadPixels((GLint)mouse_pos(0), y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, (void*)&mouse_z));
     else
         mouse_z = *z;
 

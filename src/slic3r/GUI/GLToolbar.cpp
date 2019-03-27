@@ -388,10 +388,10 @@ void GLToolbar::render(const GLCanvas3D& parent) const
         generate_icons_texture();
 #endif // ENABLE_SVG_ICONS
 
-    ::glDisable(GL_DEPTH_TEST);
+    glsafe(::glDisable(GL_DEPTH_TEST));
 
-    ::glPushMatrix();
-    ::glLoadIdentity();
+    glsafe(::glPushMatrix());
+    glsafe(::glLoadIdentity());
 
     switch (m_layout.type)
     {
@@ -400,7 +400,7 @@ void GLToolbar::render(const GLCanvas3D& parent) const
     case Layout::Vertical: { render_vertical(parent); break; }
     }
 
-    ::glPopMatrix();
+    glsafe(::glPopMatrix());
 }
 
 bool GLToolbar::on_mouse(wxMouseEvent& evt, GLCanvas3D& parent)
