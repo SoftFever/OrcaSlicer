@@ -10,84 +10,15 @@
 #include <libnest2d/geometry_traits.hpp>
 #include <libnest2d/geometry_traits_nfp.hpp>
 
-#include <clipper.hpp>
-
-namespace ClipperLib {
-using PointImpl = IntPoint;
-using PathImpl = Path;
-using HoleStore = std::vector<PathImpl>;
-
-struct PolygonImpl {
-    PathImpl Contour;
-    HoleStore Holes;
-
-    inline PolygonImpl() = default;
-
-    inline explicit PolygonImpl(const PathImpl& cont): Contour(cont) {}
-    inline explicit PolygonImpl(const HoleStore& holes):
-        Holes(holes) {}
-    inline PolygonImpl(const Path& cont, const HoleStore& holes):
-        Contour(cont), Holes(holes) {}
-
-    inline explicit PolygonImpl(PathImpl&& cont): Contour(std::move(cont)) {}
-    inline explicit PolygonImpl(HoleStore&& holes): Holes(std::move(holes)) {}
-    inline PolygonImpl(Path&& cont, HoleStore&& holes):
-        Contour(std::move(cont)), Holes(std::move(holes)) {}
-};
-
-inline PointImpl& operator +=(PointImpl& p, const PointImpl& pa ) {
-    // This could be done with SIMD
-    p.X += pa.X;
-    p.Y += pa.Y;
-    return p;
-}
-
-inline PointImpl operator+(const PointImpl& p1, const PointImpl& p2) {
-    PointImpl ret = p1;
-    ret += p2;
-    return ret;
-}
-
-inline PointImpl& operator -=(PointImpl& p, const PointImpl& pa ) {
-    p.X -= pa.X;
-    p.Y -= pa.Y;
-    return p;
-}
-
-inline PointImpl operator -(PointImpl& p ) {
-    PointImpl ret = p;
-    ret.X = -ret.X;
-    ret.Y = -ret.Y;
-    return ret;
-}
-
-inline PointImpl operator-(const PointImpl& p1, const PointImpl& p2) {
-    PointImpl ret = p1;
-    ret -= p2;
-    return ret;
-}
-
-inline PointImpl& operator *=(PointImpl& p, const PointImpl& pa ) {
-    p.X *= pa.X;
-    p.Y *= pa.Y;
-    return p;
-}
-
-inline PointImpl operator*(const PointImpl& p1, const PointImpl& p2) {
-    PointImpl ret = p1;
-    ret *= p2;
-    return ret;
-}
-
-}
+#include "clipper_polygon.hpp"
 
 namespace libnest2d {
 
 // Aliases for convinience
-using ClipperLib::PointImpl;
-using ClipperLib::PathImpl;
-using ClipperLib::PolygonImpl;
-using ClipperLib::HoleStore;
+using PointImpl = ClipperLib::IntPoint;
+using PathImpl  = ClipperLib::Path;
+using HoleStore = ClipperLib::Paths;
+using PolygonImpl = ClipperLib::Polygon;
 
 // Type of coordinate units used by Clipper
 template<> struct CoordType<PointImpl> {
@@ -158,33 +89,24 @@ template<> inline TCoord<PointImpl>& y(PointImpl& p)
 #define DISABLE_BOOST_AREA
 
 namespace _smartarea {
+
 template<Orientation o>
 inline double area(const PolygonImpl& /*sh*/) {
     return std::nan("");
 }
 
 template<>
-inline double area<Orientation::CLOCKWISE>(const PolygonImpl& sh) {
-    double a = 0;
-
-    std::for_each(sh.Holes.begin(), sh.Holes.end(), [&a](const PathImpl& h)
-    {
-        a -= ClipperLib::Area(h);
+inline double area<Orientation::COUNTER_CLOCKWISE>(const PolygonImpl& sh) {
+    return std::accumulate(sh.Holes.begin(), sh.Holes.end(),
+                           ClipperLib::Area(sh.Contour),
+                           [](double a, const ClipperLib::Path& pt){
+        return a + ClipperLib::Area(pt);
     });
-
-    return -ClipperLib::Area(sh.Contour) + a;
 }
 
 template<>
-inline double area<Orientation::COUNTER_CLOCKWISE>(const PolygonImpl& sh) {
-    double a = 0;
-
-    std::for_each(sh.Holes.begin(), sh.Holes.end(), [&a](const PathImpl& h)
-    {
-        a += ClipperLib::Area(h);
-    });
-
-    return ClipperLib::Area(sh.Contour) + a;
+inline double area<Orientation::CLOCKWISE>(const PolygonImpl& sh) {
+    return -area<Orientation::COUNTER_CLOCKWISE>(sh);
 }
 
 }
@@ -390,11 +312,17 @@ inline void rotate(PolygonImpl& sh, const Radians& rads)
 } // namespace shapelike
 
 #define DISABLE_BOOST_NFP_MERGE
-inline std::vector<PolygonImpl> _merge(ClipperLib::Clipper& clipper) {
+inline std::vector<PolygonImpl> clipper_execute(
+        ClipperLib::Clipper& clipper,
+        ClipperLib::ClipType clipType,
+        ClipperLib::PolyFillType subjFillType = ClipperLib::pftEvenOdd,
+        ClipperLib::PolyFillType clipFillType = ClipperLib::pftEvenOdd)
+{
     shapelike::Shapes<PolygonImpl> retv;
 
     ClipperLib::PolyTree result;
-    clipper.Execute(ClipperLib::ctUnion, result, ClipperLib::pftNegative);
+    clipper.Execute(clipType, result, subjFillType, clipFillType);
+
     retv.reserve(static_cast<size_t>(result.Total()));
 
     std::function<void(ClipperLib::PolyNode*, PolygonImpl&)> processHole;
@@ -437,15 +365,12 @@ merge(const std::vector<PolygonImpl>& shapes)
 
     for(auto& path : shapes) {
         valid &= clipper.AddPath(path.Contour, ClipperLib::ptSubject, closed);
-
-        for(auto& hole : path.Holes) {
-            valid &= clipper.AddPath(hole, ClipperLib::ptSubject, closed);
-        }
+        valid &= clipper.AddPaths(path.Holes, ClipperLib::ptSubject, closed);
     }
 
     if(!valid) throw GeometryException(GeomErr::MERGE);
 
-    return _merge(clipper);
+    return clipper_execute(clipper, ClipperLib::ctUnion, ClipperLib::pftNegative);
 }
 
 }

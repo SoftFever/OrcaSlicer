@@ -574,7 +574,7 @@ ShapeData2D projectModelFromTop(const Slic3r::Model &model) {
 
             for(ModelInstance* objinst : objptr->instances) {
                 if(objinst) {
-                    ClipperLib::PolygonImpl pn;
+                    ClipperLib::Polygon pn;
                     pn.Contour = clpath;
 
                     // Efficient conversion to item.

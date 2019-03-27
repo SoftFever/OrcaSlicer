@@ -42,8 +42,9 @@ template<FilePrinterFormat format>
 class FilePrinter {
 public:
 
-    // Draw an ExPolygon which is a polygon inside a slice on the specified layer.
-    void draw_polygon(const Polygon& p, unsigned lyr);
+    // Draw a polygon which is a polygon inside a slice on the specified layer.
+    void draw_polygon(const ExPolygon& p, unsigned lyr);
+    void draw_polygon(const ClipperLib::Polygon& p, unsigned lyr);
 
     // Tell the printer how many layers should it consider.
     void layers(unsigned layernum);
@@ -209,7 +210,12 @@ public:
     inline void layers(unsigned cnt) { if(cnt > 0) m_layers_rst.resize(cnt); }
     inline unsigned layers() const { return unsigned(m_layers_rst.size()); }
 
-    inline void draw_polygon(const Polygon& p, unsigned lyr) {
+    inline void draw_polygon(const ExPolygon& p, unsigned lyr) {
+        assert(lyr < m_layers_rst.size());
+        m_layers_rst[lyr].first.draw(p);
+    }
+
+    inline void draw_polygon(const ClipperLib::Polygon& p, unsigned lyr) {
         assert(lyr < m_layers_rst.size());
         m_layers_rst[lyr].first.draw(p);
     }

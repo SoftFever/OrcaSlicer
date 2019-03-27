@@ -6,6 +6,7 @@
 #include "PrintExport.hpp"
 #include "Point.hpp"
 #include "MTUtils.hpp"
+#include <libnest2d/backends/clipper/clipper_polygon.hpp>
 #include <iterator>
 
 namespace Slic3r {
@@ -328,45 +329,7 @@ class SLAPrint : public PrintBaseWithState<SLAPrintStep, slapsCount>
 private: // Prevents erroneous use by other classes.
     typedef PrintBaseWithState<SLAPrintStep, slapsCount> Inherited;
 
-    void fill_statistics();
 public:
-
-    // An aggregation of SliceRecord-s from all the print objects for each
-    // occupied layer. Slice record levels dont have to match exactly.
-    // They are unified if the level difference is within +/- SCALED_EPSILON
-    class PrintLayer {
-        coord_t m_level;
-
-        // The collection of slice records for the current level.
-        std::vector<std::reference_wrapper<const SliceRecord>> m_slices;
-
-        Polygons m_transformed_slices;
-
-        template<class Container> void transformed_slices(Container&& c) {
-            m_transformed_slices = std::forward<Container>(c);
-        }
-
-        friend void SLAPrint::fill_statistics();
-
-    public:
-
-        explicit PrintLayer(coord_t lvl) : m_level(lvl) {}
-
-        // for being sorted in their container (see m_printer_input)
-        bool operator<(const PrintLayer& other) const {
-            return m_level < other.m_level;
-        }
-
-        void add(const SliceRecord& sr) { m_slices.emplace_back(sr); }
-
-        coord_t level() const { return m_level; }
-
-        auto slices() const -> const decltype (m_slices)& { return m_slices; }
-
-        const Polygons& transformed_slices() const {
-            return m_transformed_slices;
-        }
-    };
 
     SLAPrint(): m_stepmask(slapsCount, true) {}
 
@@ -400,6 +363,43 @@ public:
     const SLAPrintStatistics&      print_statistics() const { return m_print_statistics; }
 
     std::string validate() const override;
+
+    // An aggregation of SliceRecord-s from all the print objects for each
+    // occupied layer. Slice record levels dont have to match exactly.
+    // They are unified if the level difference is within +/- SCALED_EPSILON
+    class PrintLayer {
+        coord_t m_level;
+
+        // The collection of slice records for the current level.
+        std::vector<std::reference_wrapper<const SliceRecord>> m_slices;
+
+        std::vector<ClipperLib::Polygon> m_transformed_slices;
+
+        template<class Container> void transformed_slices(Container&& c) {
+            m_transformed_slices = std::forward<Container>(c);
+        }
+
+        friend void SLAPrint::process();
+
+    public:
+
+        explicit PrintLayer(coord_t lvl) : m_level(lvl) {}
+
+        // for being sorted in their container (see m_printer_input)
+        bool operator<(const PrintLayer& other) const {
+            return m_level < other.m_level;
+        }
+
+        void add(const SliceRecord& sr) { m_slices.emplace_back(sr); }
+
+        coord_t level() const { return m_level; }
+
+        auto slices() const -> const decltype (m_slices)& { return m_slices; }
+
+        const std::vector<ClipperLib::Polygon> & transformed_slices() const {
+            return m_transformed_slices;
+        }
+    };
 
     // The aggregated and leveled print records from various objects.
     // TODO: use this structure for the preview in the future.

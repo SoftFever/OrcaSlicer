@@ -4,9 +4,11 @@
 #include <ostream>
 #include <memory>
 
+namespace ClipperLib { class Polygon; }
+
 namespace Slic3r {
 
-class Polygon;
+class ExPolygon;
 
 /**
  * @brief Raster captures an anti-aliased monochrome canvas where vectorial
@@ -83,7 +85,8 @@ public:
     void clear();
 
     /// Draw a polygon with holes.
-    void draw(const Polygon& poly);
+    void draw(const ExPolygon& poly);
+    void draw(const ClipperLib::Polygon& poly);
 
     /// Save the raster on the specified stream.
     void save(std::ostream& stream, Compression comp = Compression::RAW);

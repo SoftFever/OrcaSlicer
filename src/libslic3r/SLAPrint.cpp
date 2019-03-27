@@ -12,6 +12,9 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/log/trivial.hpp>
 
+// For geometry algorithms with native Clipper types (no copies and conversions)
+#include <libnest2d/backends/clipper/geometries.hpp>
+
 //#include <tbb/spin_mutex.h>//#include "tbb/mutex.h"
 
 #include "I18N.hpp"
@@ -958,8 +961,249 @@ void SLAPrint::process()
 
         m_print_statistics.clear();
 
-        // Fill statistics
-        fill_statistics();
+        using ClipperPolygon = libnest2d::PolygonImpl;
+        using ClipperPath   = ClipperLib::Path;
+        using ClipperPoint  = ClipperLib::IntPoint;
+        using ClipperPolygons = std::vector<ClipperPolygon>;
+        using libnest2d::Radians;
+        namespace sl = libnest2d::shapelike;
+
+        // If the raster has vertical orientation, we will flip the coordinates
+        bool flpXY = m_printer_config.display_orientation.getInt() == SLADisplayOrientation::sladoPortrait;
+
+        auto polyunion = [] (const ClipperPolygons& subjects)
+        {
+            ClipperLib::Clipper clipper;
+
+            bool closed = true;
+
+            for(auto& path : subjects) {
+                clipper.AddPath(path.Contour, ClipperLib::ptSubject, closed);
+                clipper.AddPaths(path.Holes, ClipperLib::ptSubject, closed);
+            }
+
+            auto mode = ClipperLib::pftPositive;
+
+            return libnest2d::clipper_execute(clipper, ClipperLib::ctUnion, mode, mode);
+        };
+
+        auto polydiff = [](const ClipperPolygons& subjects, const ClipperPolygons& clips)
+        {
+            ClipperLib::Clipper clipper;
+
+            bool closed = true;
+
+            for(auto& path : subjects) {
+                clipper.AddPath(path.Contour, ClipperLib::ptSubject, closed);
+                clipper.AddPaths(path.Holes, ClipperLib::ptSubject, closed);
+            }
+
+            for(auto& path : clips) {
+                clipper.AddPath(path.Contour, ClipperLib::ptClip, closed);
+                clipper.AddPaths(path.Holes, ClipperLib::ptClip, closed);
+            }
+
+            auto mode = ClipperLib::pftPositive;
+
+            return libnest2d::clipper_execute(clipper, ClipperLib::ctDifference, mode, mode);
+        };
+
+        auto area = [](const ClipperPolygon& poly)
+        {
+            using ClipperLib::Area;
+            return std::accumulate( poly.Holes.begin(), poly.Holes.end(),
+                                        Area(poly.Contour),
+                                        [](double a, const ClipperPath& p) { return a + Area(p); });
+        };
+
+        const double area_fill          = m_printer_config.area_fill.getFloat()*0.01;// 0.5 (50%);
+        const double fast_tilt          = m_printer_config.fast_tilt_time.getFloat();// 5.0;
+        const double slow_tilt          = m_printer_config.slow_tilt_time.getFloat();// 8.0;
+
+        const double init_exp_time      = m_material_config.initial_exposure_time.getFloat();
+        const double exp_time           = m_material_config.exposure_time.getFloat();
+
+        const int    fade_layers_cnt    = m_default_object_config.faded_layers.getInt();// 10 // [3;20]
+
+        const double width              = m_printer_config.display_width.getFloat() / SCALING_FACTOR;
+        const double height             = m_printer_config.display_height.getFloat() / SCALING_FACTOR;
+        const double display_area       = width*height;
+
+        // get polygons for all instances in the object
+        auto get_all_polygons =
+                [flpXY](const ExPolygons& input_polygons,
+                        const std::vector<SLAPrintObject::Instance>& instances)
+        {
+            ClipperPolygons polygons;
+            polygons.reserve(input_polygons.size() * instances.size());
+
+            for (const ExPolygon& polygon : input_polygons) {
+                if(polygon.contour.empty()) continue;
+
+                for (size_t i = 0; i < instances.size(); ++i)
+                {
+                    ClipperPolygon poly;
+
+                    // should be a move
+                    poly.Contour.reserve(polygon.contour.size() + 1);
+
+                    for(auto& p : polygon.contour.points)
+                        poly.Contour.emplace_back(p.x(), p.y());
+
+                    auto pfirst = poly.Contour.front();
+                    poly.Contour.emplace_back(pfirst);
+
+                    for(auto& h : polygon.holes) {
+                        poly.Holes.emplace_back();
+                        auto& hole = poly.Holes.back();
+                        hole.reserve(h.points.size() + 1);
+
+                        for(auto& p : h.points) hole.emplace_back(p.x(), p.y());
+                        auto pfirst = hole.front(); hole.emplace_back(pfirst);
+                    }
+
+                    sl::rotate(poly, Radians(double(instances[i].rotation)));
+                    sl::translate(poly, ClipperPoint{instances[i].shift(X),
+                                                     instances[i].shift(Y)});
+                    if (flpXY) {
+                        for(auto& p : poly.Contour) std::swap(p.X, p.Y);
+                        std::reverse(poly.Contour.begin(), poly.Contour.end());
+
+                        for(auto& h : poly.Holes) {
+                            for(auto& p : h) std::swap(p.X, p.Y);
+                            std::reverse(h.begin(), h.end());
+                        }
+                    }
+
+                    polygons.emplace_back(std::move(poly));
+                }
+            }
+            return polygons;
+        };
+
+        double supports_volume = 0.0;
+        double models_volume = 0.0;
+
+        double estim_time = 0.0;
+
+        size_t slow_layers = 0;
+        size_t fast_layers = 0;
+
+        const double delta_fade_time = (init_exp_time - exp_time) / (fade_layers_cnt + 1);
+        double fade_layer_time = init_exp_time;
+
+        int sliced_layer_cnt = 0;
+        for (PrintLayer& layer : m_printer_input)
+        {
+            // vector of slice record references
+            auto& lyrslices = layer.slices();
+
+            if(lyrslices.empty()) continue;
+
+            // Layer height should match for all object slices for a given level.
+            const auto l_height = double(lyrslices.front().get().layer_height());
+
+            // Calculation of the consumed material
+
+            ClipperPolygons model_polygons;
+            ClipperPolygons supports_polygons;
+
+            size_t c = std::accumulate(layer.slices().begin(), layer.slices().end(), 0u, [](size_t a, const SliceRecord& sr) {
+                                           return a + sr.get_slice(soModel).size();
+                                       });
+
+            model_polygons.reserve(c);
+
+            c = std::accumulate(layer.slices().begin(), layer.slices().end(), 0u, [](size_t a, const SliceRecord& sr) {
+                                    return a + sr.get_slice(soModel).size();
+                                });
+
+            supports_polygons.reserve(c);
+
+            for(const SliceRecord& record : layer.slices()) {
+                const SLAPrintObject *po = record.print_obj();
+
+                const ExPolygons &modelslices = record.get_slice(soModel);
+                if (!modelslices.empty()) {
+                    ClipperPolygons v = get_all_polygons(modelslices, po->instances());
+                    for(ClipperPolygon& p_tmp : v) model_polygons.emplace_back(std::move(p_tmp));
+                }
+
+                const ExPolygons &supportslices = record.get_slice(soSupport);
+                if (!supportslices.empty()) {
+                    ClipperPolygons v = get_all_polygons(supportslices, po->instances());
+                    for(ClipperPolygon& p_tmp : v) supports_polygons.emplace_back(std::move(p_tmp));
+                }
+            }
+
+            model_polygons = polyunion(model_polygons);
+            double layer_model_area = 0;
+            for (const ClipperPolygon& polygon : model_polygons)
+                layer_model_area += area(polygon);
+
+            if (layer_model_area < 0 || layer_model_area > 0)
+                models_volume += layer_model_area * l_height;
+
+            if(!supports_polygons.empty()) {
+                if(model_polygons.empty()) supports_polygons = polyunion(supports_polygons);
+                else supports_polygons = polydiff(supports_polygons, model_polygons);
+                // allegedly, union of subject is done withing the diff
+            }
+
+            double layer_support_area = 0;
+            for (const ClipperPolygon& polygon : supports_polygons)
+                layer_support_area += area(polygon);
+
+            if (layer_support_area < 0 || layer_model_area > 0)
+                supports_volume += layer_support_area * l_height;
+
+            // Here we can save the expensively calculated polygons for printing
+            ClipperPolygons trslices;
+            trslices.reserve(model_polygons.size() + supports_polygons.size());
+            for(ClipperPolygon& poly : model_polygons) trslices.emplace_back(std::move(poly));
+            for(ClipperPolygon& poly : supports_polygons) trslices.emplace_back(std::move(poly));
+
+            layer.transformed_slices(polyunion(trslices));
+
+            // Calculation of the slow and fast layers to the future controlling those values on FW
+
+            const bool is_fast_layer = (layer_model_area + layer_support_area) <= display_area*area_fill;
+            const double tilt_time = is_fast_layer ? fast_tilt : slow_tilt;
+            if (is_fast_layer)
+                fast_layers++;
+            else
+                slow_layers++;
+
+
+            // Calculation of the printing time
+
+            if (sliced_layer_cnt < 3)
+                estim_time += init_exp_time;
+            else if (fade_layer_time > exp_time)
+            {
+                fade_layer_time -= delta_fade_time;
+                estim_time += fade_layer_time;
+            }
+            else
+                estim_time += exp_time;
+
+            estim_time += tilt_time;
+
+            sliced_layer_cnt++;
+        }
+
+        m_print_statistics.support_used_material = supports_volume * SCALING_FACTOR * SCALING_FACTOR;
+        m_print_statistics.objects_used_material = models_volume  * SCALING_FACTOR * SCALING_FACTOR;
+
+        // Estimated printing time
+        // A layers count o the highest object
+        if (m_printer_input.size() == 0)
+            m_print_statistics.estimated_print_time = "N/A";
+        else
+            m_print_statistics.estimated_print_time = get_time_dhms(float(estim_time));
+
+        m_print_statistics.fast_layers_count = fast_layers;
+        m_print_statistics.slow_layers_count = slow_layers;
 
         report_status(*this, -2, "", SlicingStatus::RELOAD_SLA_PREVIEW);
     };
@@ -1011,7 +1255,7 @@ void SLAPrint::process()
 
         // procedure to process one height level. This will run in parallel
         auto lvlfn =
-        [this, &slck, &printer, slot, sd, ist, &pst, flpXY]
+        [this, &slck, &printer, slot, sd, ist, &pst]
             (unsigned level_id)
         {
             if(canceled()) return;
@@ -1021,30 +1265,8 @@ void SLAPrint::process()
             // Switch to the appropriate layer in the printer
             printer.begin_layer(level_id);
 
-            for(const Polygon& poly : printlayer.transformed_slices())
+            for(const ClipperLib::Polygon& poly : printlayer.transformed_slices())
                 printer.draw_polygon(poly, level_id);
-
-
-//            auto draw =
-//                [&printer, flpXY, level_id](Polygon& poly, const Instance& tr)
-//            {
-//                poly.rotate(double(tr.rotation));
-//                poly.translate(tr.shift(X), tr.shift(Y));
-//                if(flpXY) for(auto& p : poly.points) std::swap(p(X), p(Y));
-//                printer.draw_polygon(poly, level_id);
-//            };
-
-//            for(const SliceRecord& sr : printlayer.slices()) {
-//                if(! sr.print_obj()) continue;
-
-//                for(const Instance& inst : sr.print_obj()->instances()) {
-//                    ExPolygons objsl = sr.get_slice(soModel);
-//                    for(ExPolygon& poly : objsl) draw(poly, inst);
-
-//                    ExPolygons supsl = sr.get_slice(soSupport);
-//                    for(ExPolygon& poly : supsl) draw(poly, inst);
-//                }
-//            }
 
             // Finish the layer for later saving it.
             printer.finish_layer(level_id);
@@ -1219,149 +1441,6 @@ bool SLAPrint::invalidate_state_by_config_options(const std::vector<t_config_opt
         for (SLAPrintObject *object : m_objects)
             invalidated |= object->invalidate_step(ostep);
     return invalidated;
-}
-
-void SLAPrint::fill_statistics()
-{
-    const double area_fill          = m_printer_config.area_fill.getFloat()*0.01;// 0.5 (50%);
-    const double fast_tilt          = m_printer_config.fast_tilt_time.getFloat();// 5.0;
-    const double slow_tilt          = m_printer_config.slow_tilt_time.getFloat();// 8.0;
-
-    const double init_exp_time      = m_material_config.initial_exposure_time.getFloat();
-    const double exp_time           = m_material_config.exposure_time.getFloat();
-
-    const int    fade_layers_cnt    = m_default_object_config.faded_layers.getInt();// 10 // [3;20]
-
-    const double width              = m_printer_config.display_width.getFloat() / SCALING_FACTOR;
-    const double height             = m_printer_config.display_height.getFloat() / SCALING_FACTOR;
-    const double display_area       = width*height;
-
-    // If the raster has vertical orientation, we will flip the coordinates
-    bool flpXY = m_printer_config.display_orientation.getInt() ==
-            SLADisplayOrientation::sladoPortrait;
-
-    // get polygons for all instances in the object
-    auto get_all_polygons =
-            [flpXY](const ExPolygons& input_polygons,
-                    const std::vector<SLAPrintObject::Instance>& instances)
-    {
-        const size_t inst_cnt = instances.size();
-
-        size_t polygon_cnt = 0;
-        for (const ExPolygon& polygon : input_polygons)
-			polygon_cnt += polygon.holes.size() + 1;
-
-        Polygons polygons;
-        polygons.reserve(polygon_cnt * inst_cnt);
-        for (const ExPolygon& polygon : input_polygons) {
-            for (size_t i = 0; i < inst_cnt; ++i)
-            {
-                ExPolygon tmp = polygon;
-                tmp.rotate(double(instances[i].rotation));
-                tmp.translate(instances[i].shift.x(), instances[i].shift.y());
-                if(flpXY) swapXY(tmp);
-                polygons_append(polygons, to_polygons(std::move(tmp)));
-            }
-        }
-        return polygons;
-    };
-
-    double supports_volume = 0.0;
-    double models_volume = 0.0;
-
-    double estim_time = 0.0;
-
-    size_t slow_layers = 0;
-    size_t fast_layers = 0;
-
-    const double delta_fade_time = (init_exp_time - exp_time) / (fade_layers_cnt + 1);
-    double fade_layer_time = init_exp_time;
-
-    int sliced_layer_cnt = 0;
-    for (PrintLayer& layer : m_printer_input)
-    {
-        if(layer.slices().empty()) continue;
-
-        // Layer height should match for all object slices for a given level.
-        const auto l_height = double(layer.slices().front().get().layer_height());
-
-        // Calculation of the consumed material 
-
-        Polygons model_polygons;
-        Polygons supports_polygons;
-
-        for(const SliceRecord& record : layer.slices()) {
-            const SLAPrintObject *po = record.print_obj();
-
-            const ExPolygons &modelslices = record.get_slice(soModel);
-            if (!modelslices.empty())
-                append(model_polygons, get_all_polygons(modelslices, po->instances()));
-
-            const ExPolygons &supportslices = record.get_slice(soSupport);
-            if (!supportslices.empty())
-                append(supports_polygons, get_all_polygons(supportslices, po->instances()));
-        }
-        
-        model_polygons = union_(model_polygons);
-        double layer_model_area = 0;
-        for (const Polygon& polygon : model_polygons)
-            layer_model_area += polygon.area();
-
-        if (layer_model_area < 0 || layer_model_area > 0)
-            models_volume += layer_model_area * l_height;
-
-        if (!supports_polygons.empty() && !model_polygons.empty())
-            supports_polygons = diff(supports_polygons, model_polygons);
-        double layer_support_area = 0;
-        for (const Polygon& polygon : supports_polygons)
-            layer_support_area += polygon.area();
-
-        if (layer_support_area < 0 || layer_model_area > 0)
-            supports_volume += layer_support_area * l_height;
-
-        // Here we can save the expensively calculated polygons for printing
-        append(model_polygons, supports_polygons);
-        layer.transformed_slices(union_(model_polygons));
-
-        // Calculation of the slow and fast layers to the future controlling those values on FW
-
-        const bool is_fast_layer = (layer_model_area + layer_support_area) <= display_area*area_fill;
-        const double tilt_time = is_fast_layer ? fast_tilt : slow_tilt;
-        if (is_fast_layer)
-            fast_layers++;
-        else
-            slow_layers++;
-
-
-        // Calculation of the printing time
-
-        if (sliced_layer_cnt < 3)
-            estim_time += init_exp_time;
-        else if (fade_layer_time > exp_time)
-        {
-            fade_layer_time -= delta_fade_time;
-            estim_time += fade_layer_time;
-        }
-        else
-            estim_time += exp_time;
-
-        estim_time += tilt_time;
-
-        sliced_layer_cnt++;
-    }
-
-    m_print_statistics.support_used_material = supports_volume * SCALING_FACTOR * SCALING_FACTOR; 
-    m_print_statistics.objects_used_material = models_volume  * SCALING_FACTOR * SCALING_FACTOR;
-
-    // Estimated printing time
-    // A layers count o the highest object 
-    if (m_printer_input.size() == 0)
-        m_print_statistics.estimated_print_time = "N/A";
-    else
-        m_print_statistics.estimated_print_time = get_time_dhms(float(estim_time));
-
-    m_print_statistics.fast_layers_count = fast_layers;
-    m_print_statistics.slow_layers_count = slow_layers;
 }
 
 // Returns true if an object step is done on all objects and there's at least one object.
