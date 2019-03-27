@@ -3767,8 +3767,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // of the scene with the background processing data should be performed.
             post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
         }
-        else if (evt.LeftUp() && !m_mouse.dragging && (m_hover_volume_id == -1) && !gizmos_overlay_contains_mouse && !m_gizmos.is_dragging()
-              && !is_layers_editing_enabled())
+        else if (evt.LeftUp() && !m_mouse.dragging && (m_hover_volume_id == -1) && !gizmos_overlay_contains_mouse && !m_gizmos.grabber_contains_mouse() && !m_gizmos.is_dragging()
+            && !is_layers_editing_enabled())
         {
             // deselect and propagate event through callback
             if (!evt.ShiftDown() && m_picking_enabled && !m_mouse.ignore_up_event)
