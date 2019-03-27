@@ -21,7 +21,7 @@ GLGizmoSlaSupports::GLGizmoSlaSupports(GLCanvas3D& parent, const std::string& ic
 GLGizmoSlaSupports::GLGizmoSlaSupports(GLCanvas3D& parent, unsigned int sprite_id)
     : GLGizmoBase(parent, sprite_id)
 #endif // ENABLE_SVG_ICONS
-    , m_starting_center(Vec3d::Zero()), m_quadric(nullptr)
+    , m_quadric(nullptr)
 {
     m_quadric = ::gluNewQuadric();
     if (m_quadric != nullptr)
@@ -44,12 +44,11 @@ bool GLGizmoSlaSupports::on_init()
 
 void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const Selection& selection)
 {
-    m_starting_center = Vec3d::Zero();
+    if (selection.is_empty())
+        return;
+
     m_old_model_object = m_model_object;
     m_model_object = model_object;
-    if (selection.is_empty())
-        m_old_instance_id = -1;
-
     m_active_instance = selection.get_instance_idx();
 
     if (model_object && selection.is_from_single_instance())
@@ -74,6 +73,14 @@ void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const S
 
 void GLGizmoSlaSupports::on_render(const Selection& selection) const
 {
+    // If current m_model_object does not match selection, ask GLCanvas3D to turn us off
+    if (m_state == On
+     && (m_model_object != selection.get_model()->objects[selection.get_object_idx()]
+      || m_active_instance != selection.get_instance_idx())) {
+        m_parent.post_event(SimpleEvent(EVT_GLCANVAS_RESETGIZMOS));
+        return;
+    }
+
     ::glEnable(GL_BLEND);
     ::glEnable(GL_DEPTH_TEST);
 
@@ -717,6 +724,7 @@ std::string GLGizmoSlaSupports::on_get_name() const
 void GLGizmoSlaSupports::on_set_state()
 {
     if (m_state == On && m_old_state != On) { // the gizmo was just turned on
+
         if (is_mesh_update_necessary())
             update_mesh();
 
