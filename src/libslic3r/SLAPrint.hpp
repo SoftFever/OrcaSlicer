@@ -11,9 +11,8 @@
 namespace Slic3r {
 
 enum SLAPrintStep : unsigned int {
-    slapsStats,
-	slapsRasterize,
-	slapsValidate,
+    slapsMergeSlicesAndEval,
+    slapsRasterize,
 	slapsCount
 };
 
@@ -22,8 +21,7 @@ enum SLAPrintObjectStep : unsigned int {
 	slaposSupportPoints,
 	slaposSupportTree,
 	slaposBasePool,
-	slaposSliceSupports,
-    slaposIndexSlices,
+    slaposSliceSupports,
 	slaposCount
 };
 
@@ -190,7 +188,7 @@ private:
         return it;
     }
 
-    const std::vector<ExPolygons>& get_model_slices() const;
+    const std::vector<ExPolygons>& get_model_slices() const { return m_model_slices; }
     const std::vector<ExPolygons>& get_support_slices() const;
 
 public:
@@ -205,7 +203,9 @@ public:
     // /////////////////////////////////////////////////////////////////////////
 
     // Retrieve the slice index.
-    const std::vector<SliceRecord>& get_slice_index() const;
+    const std::vector<SliceRecord>& get_slice_index() const {
+        return m_slice_index;
+    }
 
     // Search slice index for the closest slice to given print_level.
     // max_epsilon gives the allowable deviation of the returned slice record's
@@ -383,7 +383,7 @@ public:
     // Returns true if an object step is done on all objects and there's at least one object.    
     bool                is_step_done(SLAPrintObjectStep step) const;
     // Returns true if the last step was finished with success.
-	bool                finished() const override { return this->is_step_done(slaposIndexSlices) && this->Inherited::is_step_done(slapsRasterize); }
+    bool                finished() const override { return this->is_step_done(slaposSliceSupports) && this->Inherited::is_step_done(slapsRasterize); }
 
     template<class Fmt> void export_raster(const std::string& fname) {
         if(m_printer) m_printer->save<Fmt>(fname);
@@ -408,6 +408,9 @@ public:
 private:
     using SLAPrinter = FilePrinter<FilePrinterFormat::SLA_PNGZIP>;
     using SLAPrinterPtr = std::unique_ptr<SLAPrinter>;
+
+    // Implement same logic as in SLAPrintObject
+    bool invalidate_step(SLAPrintStep st);
 
     // Invalidate steps based on a set of parameters changed.
     bool invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);

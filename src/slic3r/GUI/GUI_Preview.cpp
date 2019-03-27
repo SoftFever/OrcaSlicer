@@ -772,7 +772,7 @@ void Preview::load_print_as_sla()
     std::vector<double> zs;
     double initial_layer_height = print->material_config().initial_layer_height.value;
     for (const SLAPrintObject* obj : print->objects())
-        if (obj->is_step_done(slaposIndexSlices) && !obj->get_slice_index().empty())
+        if (obj->is_step_done(slaposSliceSupports) && !obj->get_slice_index().empty())
         {
             auto low_coord = obj->get_slice_index().front().print_level();
             for (auto& rec : obj->get_slice_index())
