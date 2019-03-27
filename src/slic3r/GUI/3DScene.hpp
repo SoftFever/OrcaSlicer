@@ -23,6 +23,7 @@ inline void glAssertRecentCall() { glAssertRecentCallImpl(__FILE__, __LINE__, __
 #else
 inline void glAssertRecentCall() { }
 #define glsafe(cmd) cmd
+#define glcheck()
 #endif
 
 namespace Slic3r {
