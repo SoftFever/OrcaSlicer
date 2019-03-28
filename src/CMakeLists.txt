@@ -97,7 +97,10 @@ if (SLIC3R_GUI)
 
     # Configure libcurl and its dependencies OpenSSL & zlib
     find_package(CURL REQUIRED)
-    find_package(ZLIB REQUIRED)
+    if (NOT MSVC)
+        # Required by libcurl
+        find_package(ZLIB REQUIRED)
+    endif()
     target_include_directories(slic3r PRIVATE ${CURL_INCLUDE_DIRS})
     target_link_libraries(slic3r ${CURL_LIBRARIES} ${ZLIB_LIBRARIES})
     if (SLIC3R_STATIC)
