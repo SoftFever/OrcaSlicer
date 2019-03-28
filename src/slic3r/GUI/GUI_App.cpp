@@ -649,20 +649,16 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
         }
         case ConfigMenuLanguage:
         {
-            /* Before change application language, let's check unsaved changes
+            /* Before change application language, let's check unsaved changes on 3D-Scene
              * and draw user's attention to the application restarting after a language change
              */
             wxMessageDialog dialog(nullptr,
-                _(L("Application will be restarted after language change, "
-                    "and 3D-Scene will be cleaned.")) + "\n" +
-                _(L("Please, check your changes before.")) + "\n\n" +
-                _(L("Continue anyway?")),
+                _(L("Application will be restarted after language change.")) + "\n" +
+                _(L("3D-Scene will be cleaned.")) + "\n\n" +
+                _(L("Please, check your changes before.")),
                 _(L("Attention!")),
-                wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
-            if ( dialog.ShowModal() != wxID_YES)
-                return;
-
-            if (!wxGetApp().check_unsaved_changes())
+                wxICON_QUESTION | wxOK | wxCANCEL);
+            if ( dialog.ShowModal() == wxID_CANCEL)
                 return;
 
             wxArrayString names;
