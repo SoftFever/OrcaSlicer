@@ -2249,7 +2249,7 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
     if (!_init_toolbar())
         return false;
 
-    if (!m_selection.init(m_use_VBOs))
+    if (m_selection.is_enabled() && !m_selection.init(m_use_VBOs))
         return false;
 
     post_event(SimpleEvent(EVT_GLCANVAS_INIT));
@@ -2431,6 +2431,11 @@ void GLCanvas3D::enable_moving(bool enable)
 void GLCanvas3D::enable_gizmos(bool enable)
 {
     m_gizmos.set_enabled(enable);
+}
+
+void GLCanvas3D::enable_selection(bool enable)
+{
+    m_selection.set_enabled(enable);
 }
 
 void GLCanvas3D::enable_toolbar(bool enable)
