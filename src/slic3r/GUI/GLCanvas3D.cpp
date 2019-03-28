@@ -1297,7 +1297,7 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
     if (useVBOs && !m_shader.init("gouraud.vs", "gouraud.fs"))
         return false;
 
-    if (useVBOs && !m_layers_editing.init("variable_layer_height.vs", "variable_layer_height.fs"))
+    if (m_toolbar.is_enabled() && useVBOs && !m_layers_editing.init("variable_layer_height.vs", "variable_layer_height.fs"))
         return false;
 
     m_use_VBOs = useVBOs;
@@ -1318,7 +1318,7 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
     if (!_init_toolbar())
         return false;
 
-    if (!m_selection.init(m_use_VBOs))
+    if (m_selection.is_enabled() && !m_selection.init(m_use_VBOs))
         return false;
 
     post_event(SimpleEvent(EVT_GLCANVAS_INIT));
@@ -1500,6 +1500,11 @@ void GLCanvas3D::enable_moving(bool enable)
 void GLCanvas3D::enable_gizmos(bool enable)
 {
     m_gizmos.set_enabled(enable);
+}
+
+void GLCanvas3D::enable_selection(bool enable)
+{
+    m_selection.set_enabled(enable);
 }
 
 void GLCanvas3D::enable_toolbar(bool enable)

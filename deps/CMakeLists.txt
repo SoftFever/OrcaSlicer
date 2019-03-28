@@ -32,6 +32,7 @@ if (NPROC EQUAL 0)
 endif ()
 
 set(DESTDIR "${CMAKE_CURRENT_BINARY_DIR}/destdir" CACHE PATH "Destination directory")
+
 option(DEP_DEBUG "Build debug variants (only applicable on Windows)" ON)
 option(DEP_WX_STABLE "Build against wxWidgets stable 3.0 as opposed to default 3.1 (Linux only)" OFF)
 
@@ -73,7 +74,9 @@ else ()
     include("deps-linux.cmake")
 endif()
 
-add_custom_target(deps ALL
+if (MSVC)
+
+    add_custom_target(deps ALL
     DEPENDS
         dep_boost
         dep_tbb
@@ -81,8 +84,22 @@ add_custom_target(deps ALL
         dep_wxwidgets
         dep_gtest
         dep_nlopt
-        dep_libpng
-)
+        dep_zlib    # on Windows we still need zlib
+    )
+
+else()
+
+    add_custom_target(deps ALL
+    DEPENDS
+        dep_boost
+        dep_tbb
+        dep_libcurl
+        dep_wxwidgets
+        dep_gtest
+        dep_nlopt
+    )
+
+endif()
 
 # Note: I'm not using any of the LOG_xxx options in ExternalProject_Add() commands
 # because they seem to generate bogus build files (possibly a bug in ExternalProject).

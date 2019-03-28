@@ -21,30 +21,6 @@ add_subdirectory(libnest2d)
 include_directories(${LIBDIR}/qhull/src)
 #message(STATUS ${LIBDIR}/qhull/src)
 
-# ##############################################################################
-# Configure rasterizer target
-# ##############################################################################
-
-find_package(PNG QUIET)
-
-option(RASTERIZER_FORCE_BUILTIN_LIBPNG "Force the usage of builting libpng instead of the system version." OFF)
-
-if(PNG_FOUND AND NOT RASTERIZER_FORCE_BUILTIN_LIBPNG)
-    message(STATUS "Using system libpng.")
-else()
-    set(ZLIB_LIBRARY "")
-    message(WARNING "Using builtin libpng. This can cause crashes on some platforms.")
-    set(SKIP_INSTALL_ALL 1)   # Prevent png+zlib from creating install targets
-    add_subdirectory(png/zlib)
-    set(ZLIB_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/png/zlib ${CMAKE_CURRENT_BINARY_DIR}/png/zlib)
-    include_directories(${ZLIB_INCLUDE_DIR})
-    add_subdirectory(png/libpng)
-    set_target_properties(zlibstatic PROPERTIES POSITION_INDEPENDENT_CODE ON)
-    set_target_properties(png_static PROPERTIES POSITION_INDEPENDENT_CODE ON)
-    set(PNG_LIBRARIES png_static zlibstatic)
-    set(PNG_INCLUDE_DIRS ${ZLIB_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/png/libpng ${CMAKE_CURRENT_BINARY_DIR}/png/libpng)
-endif()
-
 add_subdirectory(libslic3r)
 
 if (SLIC3R_GUI)
@@ -65,6 +41,7 @@ if (SLIC3R_GUI)
             find_package(wxWidgets 3.0 REQUIRED COMPONENTS base core adv html gl)
         else ()
             find_package(wxWidgets 3.1 QUIET COMPONENTS base core adv html gl)
+
             if (NOT wxWidgets_FOUND)
                 message(FATAL_ERROR "\nCould not find wxWidgets 3.1.\n"
                     "Hint: On Linux you can set -DSLIC3R_WX_STABLE=1 to use wxWidgets 3.0\n")
@@ -116,12 +93,13 @@ endif ()
 
 # Add the Slic3r GUI library, libcurl, OpenGL and GLU libraries.
 if (SLIC3R_GUI)
-    target_link_libraries(slic3r libslic3r_gui ${wxWidgets_LIBRARIES})
+    target_link_libraries(slic3r  libslic3r_gui ${wxWidgets_LIBRARIES})
 
-    # Configure libcurl & OpenSSL
+    # Configure libcurl and its dependencies OpenSSL & zlib
     find_package(CURL REQUIRED)
+    find_package(ZLIB REQUIRED)
     target_include_directories(slic3r PRIVATE ${CURL_INCLUDE_DIRS})
-    target_link_libraries(slic3r CURL::libcurl)
+    target_link_libraries(slic3r ${CURL_LIBRARIES} ${ZLIB_LIBRARIES})
     if (SLIC3R_STATIC)
         if (NOT APPLE)
             # libcurl is always linked dynamically to the system libcurl on OSX.
@@ -189,7 +167,7 @@ if (MSVC)
         )
     endif ()
 elseif (XCODE)
-    # Because of Debug/Release/etc. configurations (similar to MSVC) the slic3r binary is located in an extra level
+    # Because of Debug/Release/etc. configurations (similar to MSVC) the slic3r binary is located in an extra level
     add_custom_command(TARGET slic3r POST_BUILD
         COMMAND ln -sf "${SLIC3R_RESOURCES_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/resources"
         COMMENT "Symlinking the resources directory into the build tree"
