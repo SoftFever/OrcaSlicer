@@ -361,6 +361,10 @@ bool TriangleMesh::is_splittable() const
  */
 std::deque<uint32_t> TriangleMesh::find_unvisited_neighbors(std::vector<bool> &facet_visited) const
 {
+    // Make sure we're not operating on a broken mesh.
+    if (!this->repaired)
+        throw std::runtime_error("split() requires repair()");
+
     // If the visited list is empty, populate it with false for every facet.
     if (facet_visited.empty()) {
         facet_visited = std::vector<bool>(this->stl.stats.number_of_facets, false);
@@ -397,10 +401,6 @@ std::deque<uint32_t> TriangleMesh::find_unvisited_neighbors(std::vector<bool> &f
  */
 TriangleMeshPtrs TriangleMesh::split() const
 {
-    // Make sure we're not operating on a broken mesh.
-    if (!this->repaired)
-        throw std::runtime_error("split() requires repair()");
-    
     // Loop while we have remaining facets.
     std::vector<bool> facet_visited;
     TriangleMeshPtrs meshes;
@@ -417,7 +417,7 @@ TriangleMeshPtrs TriangleMesh::split() const
         mesh->stl.stats.original_num_facets = mesh->stl.stats.number_of_facets;
         stl_clear_error(&mesh->stl);
         stl_allocate(&mesh->stl);
-        
+
         // Assign the facets to the new mesh.
         bool first = true;
         for (auto facet = facets.begin(); facet != facets.end(); ++ facet) {
@@ -425,7 +425,7 @@ TriangleMeshPtrs TriangleMesh::split() const
             stl_facet_stats(&mesh->stl, this->stl.facet_start[*facet], first);
         }
     }
-    
+
     return meshes;
 }
 
