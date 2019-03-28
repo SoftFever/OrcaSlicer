@@ -2897,6 +2897,8 @@ NSVGimage* nsvgParse(char* input, const char* units, float dpi)
 	return ret;
 }
 
+#include <boost/nowide/cstdio.hpp>
+
 NSVGimage* nsvgParseFromFile(const char* filename, const char* units, float dpi)
 {
 	FILE* fp = NULL;
@@ -2904,8 +2906,8 @@ NSVGimage* nsvgParseFromFile(const char* filename, const char* units, float dpi)
 	char* data = NULL;
 	NSVGimage* image = NULL;
 
-	fp = fopen(filename, "rb");
-	if (!fp) goto error;
+    fp = boost::nowide::fopen(filename, "rb");
+    if (!fp) goto error;
 	fseek(fp, 0, SEEK_END);
 	size = ftell(fp);
 	fseek(fp, 0, SEEK_SET);

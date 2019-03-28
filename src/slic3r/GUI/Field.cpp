@@ -584,6 +584,11 @@ void Choice::BUILD() {
 
 void Choice::set_selection()
 {
+    /* To prevent earlier control updating under OSX set m_disable_change_event to true
+     * (under OSX wxBitmapComboBox send wxEVT_COMBOBOX even after SetSelection())
+     */
+    m_disable_change_event = true;
+
 	wxString text_value = wxString("");
 
     wxBitmapComboBox* field = dynamic_cast<wxBitmapComboBox*>(window);

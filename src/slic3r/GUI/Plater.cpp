@@ -427,7 +427,7 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
 
     option = m_og->get_option("fill_density");
     option.opt.label = L("Infill");
-    option.opt.width = 7 * wxGetApp().em_unit();
+    option.opt.width = 5 * wxGetApp().em_unit();
     option.opt.sidetext = "     ";
     line.append_option(option);
 
