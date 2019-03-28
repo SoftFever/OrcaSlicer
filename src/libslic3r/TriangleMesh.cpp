@@ -338,113 +338,78 @@ void TriangleMesh::rotate(double angle, Point* center)
     this->translate(c(0), c(1), 0);
 }
 
-bool TriangleMesh::has_multiple_patches() const
+/**
+ * Calculates whether or not the mesh is splittable.
+ */
+bool TriangleMesh::is_splittable() const
 {
-    // we need neighbors
-    if (!this->repaired)
-        throw std::runtime_error("split() requires repair()");
-    
-    if (this->stl.stats.number_of_facets == 0)
-        return false;
+    std::vector<bool> visited;
+    find_unvisited_neighbors(visited);
 
-    std::vector<int>  facet_queue(this->stl.stats.number_of_facets, 0);
-    std::vector<char> facet_visited(this->stl.stats.number_of_facets, false);
-    int               facet_queue_cnt = 1;
-    facet_queue[0] = 0;
-    facet_visited[0] = true;
-    while (facet_queue_cnt > 0) {
-        int facet_idx = facet_queue[-- facet_queue_cnt];
-        facet_visited[facet_idx] = true;
-        for (int j = 0; j < 3; ++ j) {
-            int neighbor_idx = this->stl.neighbors_start[facet_idx].neighbor[j];
-            if (neighbor_idx != -1 && ! facet_visited[neighbor_idx])
-                facet_queue[facet_queue_cnt ++] = neighbor_idx;
-        }
-    }
-
-    // If any of the face was not visited at the first time, return "multiple bodies".
-    for (int facet_idx = 0; facet_idx < this->stl.stats.number_of_facets; ++ facet_idx)
-        if (! facet_visited[facet_idx])
-            return true;
-    return false;
+    // Try finding an unvisited facet. If there are none, the mesh is not splittable.
+    auto it = std::find(visited.begin(), visited.end(), false);
+    return it != visited.end();
 }
 
-size_t TriangleMesh::number_of_patches() const
+/**
+ * Visit all unvisited neighboring facets that are reachable from the first unvisited facet,
+ * and return them.
+ * 
+ * @param facet_visited A reference to a vector of booleans. Contains whether or not a
+ *                      facet with the same index has been visited.
+ * @return A deque with all newly visited facets.
+ */
+std::deque<uint32_t> TriangleMesh::find_unvisited_neighbors(std::vector<bool> &facet_visited) const
 {
-    // we need neighbors
-    if (!this->repaired)
-        throw std::runtime_error("split() requires repair()");
-    
-    if (this->stl.stats.number_of_facets == 0)
-        return false;
+    // If the visited list is empty, populate it with false for every facet.
+    if (facet_visited.empty()) {
+        facet_visited = std::vector<bool>(this->stl.stats.number_of_facets, false);
+    }
 
-    std::vector<int>  facet_queue(this->stl.stats.number_of_facets, 0);
-    std::vector<char> facet_visited(this->stl.stats.number_of_facets, false);
-    int               facet_queue_cnt = 0;
-    size_t            num_bodies = 0;
-    for (;;) {
-        // Find a seeding triangle for a new body.
-        int facet_idx = 0;
-        for (; facet_idx < this->stl.stats.number_of_facets; ++ facet_idx)
-            if (! facet_visited[facet_idx]) {
-                // A seed triangle was found.
-                facet_queue[facet_queue_cnt ++] = facet_idx;
-                facet_visited[facet_idx] = true;
-                break;
-            }
-        if (facet_idx == this->stl.stats.number_of_facets)
-            // No seed found.
-            break;
-        ++ num_bodies;
-        while (facet_queue_cnt > 0) {
-            int facet_idx = facet_queue[-- facet_queue_cnt];
+    // Find the first unvisited facet.
+    std::queue<int> facet_queue;
+    auto facet = std::find(facet_visited.begin(), facet_visited.end(), false);
+    if (facet != facet_visited.end())
+        facet_queue.push(facet - facet_visited.begin());
+
+    // Traverse all reachable neighbors and mark them as visited.
+    std::deque<uint32_t> facets;
+    while (!facet_queue.empty()) {
+        int facet_idx = facet_queue.front();
+        facet_queue.pop();
+
+        if (facet_idx != -1 && !facet_visited[facet_idx]) {
             facet_visited[facet_idx] = true;
-            for (int j = 0; j < 3; ++ j) {
-                int neighbor_idx = this->stl.neighbors_start[facet_idx].neighbor[j];
-                if (neighbor_idx != -1 && ! facet_visited[neighbor_idx])
-                    facet_queue[facet_queue_cnt ++] = neighbor_idx;
-            }
+
+            facets.emplace_back(facet_idx);
+            for (int facet : this->stl.neighbors_start[facet_idx].neighbor)
+                facet_queue.push(facet);
         }
     }
 
-    return num_bodies;
+    return facets;
 }
 
+/**
+ * Splits a mesh into multiple meshes when possible.
+ * 
+ * @return A TriangleMeshPtrs with the newly created meshes.
+ */
 TriangleMeshPtrs TriangleMesh::split() const
 {
-    TriangleMeshPtrs            meshes;
-    std::vector<unsigned char>  facet_visited(this->stl.stats.number_of_facets, false);
-    
-    // we need neighbors
+    // Make sure we're not operating on a broken mesh.
     if (!this->repaired)
         throw std::runtime_error("split() requires repair()");
     
-    // loop while we have remaining facets
+    // Loop while we have remaining facets.
+    std::vector<bool> facet_visited;
+    TriangleMeshPtrs meshes;
     for (;;) {
-        // get the first facet
-        std::queue<int> facet_queue;
-        std::deque<int> facets;
-        for (int facet_idx = 0; facet_idx < this->stl.stats.number_of_facets; ++ facet_idx) {
-            if (! facet_visited[facet_idx]) {
-                // if facet was not seen put it into queue and start searching
-                facet_queue.push(facet_idx);
-                break;
-            }
-        }
-        if (facet_queue.empty())
+        std::deque<uint32_t> facets = find_unvisited_neighbors(facet_visited);
+        if (facets.empty())
             break;
 
-        while (! facet_queue.empty()) {
-            int facet_idx = facet_queue.front();
-            facet_queue.pop();
-            if (! facet_visited[facet_idx]) {
-                facets.emplace_back(facet_idx);
-                for (int j = 0; j < 3; ++ j)
-                    facet_queue.push(this->stl.neighbors_start[facet_idx].neighbor[j]);
-                facet_visited[facet_idx] = true;
-            }
-        }
-
+        // Create a new mesh for the part that was just split off.
         TriangleMesh* mesh = new TriangleMesh;
         meshes.emplace_back(mesh);
         mesh->stl.stats.type = inmemory;
@@ -453,8 +418,9 @@ TriangleMeshPtrs TriangleMesh::split() const
         stl_clear_error(&mesh->stl);
         stl_allocate(&mesh->stl);
         
+        // Assign the facets to the new mesh.
         bool first = true;
-        for (std::deque<int>::const_iterator facet = facets.begin(); facet != facets.end(); ++ facet) {
+        for (auto facet = facets.begin(); facet != facets.end(); ++ facet) {
             mesh->stl.facet_start[facet - facets.begin()] = this->stl.facet_start[*facet];
             stl_facet_stats(&mesh->stl, this->stl.facet_start[*facet], first);
         }

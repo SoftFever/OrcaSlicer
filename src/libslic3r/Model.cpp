@@ -61,7 +61,7 @@ Model& Model::assign_copy(Model &&rhs)
 	this->objects = std::move(rhs.objects);
     for (ModelObject *model_object : this->objects)
         model_object->set_model(this);
-	rhs.objects.clear();
+    rhs.objects.clear();
     return *this;
 }
 
@@ -651,7 +651,7 @@ ModelObject& ModelObject::assign_copy(ModelObject &&rhs)
     for (ModelInstance *model_instance : this->instances)
         model_instance->set_model_object(this);
 
-	return *this;
+    return *this;
 }
 
 void ModelObject::assign_new_unique_ids_recursive()
@@ -970,8 +970,8 @@ Polygon ModelObject::convex_hull_2d(const Transform3d &trafo_instance)
                 }
             }
         }
-	std::sort(pts.begin(), pts.end(), [](const Point& a, const Point& b) { return a(0) < b(0) || (a(0) == b(0) && a(1) < b(1)); });
-	pts.erase(std::unique(pts.begin(), pts.end(), [](const Point& a, const Point& b) { return a(0) == b(0) && a(1) == b(1); }), pts.end());
+    std::sort(pts.begin(), pts.end(), [](const Point& a, const Point& b) { return a(0) < b(0) || (a(0) == b(0) && a(1) < b(1)); });
+    pts.erase(std::unique(pts.begin(), pts.end(), [](const Point& a, const Point& b) { return a(0) == b(0) && a(1) == b(1); }), pts.end());
 
     Polygon hull;
     int n = (int)pts.size();
@@ -1291,11 +1291,11 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
         
         // XXX: this seems to be the only real usage of m_model, maybe refactor this so that it's not needed?
         ModelObject* new_object = m_model->add_object();    
-		new_object->name   = this->name;
-		new_object->config = this->config;
-		new_object->instances.reserve(this->instances.size());
-		for (const ModelInstance *model_instance : this->instances)
-			new_object->add_instance(*model_instance);
+        new_object->name   = this->name;
+        new_object->config = this->config;
+        new_object->instances.reserve(this->instances.size());
+        for (const ModelInstance *model_instance : this->instances)
+            new_object->add_instance(*model_instance);
         ModelVolume* new_vol = new_object->add_volume(*volume, std::move(*mesh));
 #if !ENABLE_VOLUMES_CENTERING_FIXES
         new_vol->center_geometry();
@@ -1467,9 +1467,9 @@ int ModelVolume::extruder_id() const
 
 bool ModelVolume::is_splittable() const
 {
-    // the call mesh.has_multiple_patches() is expensive, so cache the value to calculate it only once
+    // the call mesh.is_splittable() is expensive, so cache the value to calculate it only once
     if (m_is_splittable == -1)
-        m_is_splittable = (int)mesh.has_multiple_patches();
+        m_is_splittable = (int)mesh.is_splittable();
 
     return m_is_splittable == 1;
 }
