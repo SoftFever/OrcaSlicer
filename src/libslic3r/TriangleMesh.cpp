@@ -55,7 +55,7 @@ TriangleMesh::TriangleMesh(const Pointf3s &points, const std::vector<Vec3crd>& f
     stl.stats.original_num_facets = stl.stats.number_of_facets;
     stl_allocate(&stl);
 
-    for (int i = 0; i < stl.stats.number_of_facets; i++) {
+    for (uint32_t i = 0; i < stl.stats.number_of_facets; i++) {
         stl_facet facet;
         facet.vertex[0] = points[facets[i](0)].cast<float>();
         facet.vertex[1] = points[facets[i](1)].cast<float>();
@@ -125,9 +125,9 @@ void TriangleMesh::repair()
 	float tolerance = stl.stats.shortest_edge;
     float increment = stl.stats.bounding_diameter / 10000.0;
     int iterations = 2;
-    if (stl.stats.connected_facets_3_edge < stl.stats.number_of_facets) {
+    if (stl.stats.connected_facets_3_edge < (int)stl.stats.number_of_facets) {
         for (int i = 0; i < iterations; i++) {
-            if (stl.stats.connected_facets_3_edge < stl.stats.number_of_facets) {
+            if (stl.stats.connected_facets_3_edge < (int)stl.stats.number_of_facets) {
                 //printf("Checking nearby. Tolerance= %f Iteration=%d of %d...", tolerance, i + 1, iterations);
 #ifdef SLIC3R_TRACE_REPAIR
 				BOOST_LOG_TRIVIAL(trace) << "\tstl_check_faces_nearby";
@@ -143,7 +143,7 @@ void TriangleMesh::repair()
     }
     
     // remove_unconnected
-    if (stl.stats.connected_facets_3_edge <  stl.stats.number_of_facets) {
+    if (stl.stats.connected_facets_3_edge < (int)stl.stats.number_of_facets) {
 #ifdef SLIC3R_TRACE_REPAIR
         BOOST_LOG_TRIVIAL(trace) << "\tstl_remove_unconnected_facets";
 #endif /* SLIC3R_TRACE_REPAIR */
@@ -212,9 +212,9 @@ void TriangleMesh::check_topology()
     float tolerance = stl.stats.shortest_edge;
     float increment = stl.stats.bounding_diameter / 10000.0;
     int iterations = 2;
-    if (stl.stats.connected_facets_3_edge < stl.stats.number_of_facets) {
+    if (stl.stats.connected_facets_3_edge < (int)stl.stats.number_of_facets) {
         for (int i = 0; i < iterations; i++) {
-            if (stl.stats.connected_facets_3_edge < stl.stats.number_of_facets) {
+            if (stl.stats.connected_facets_3_edge < (int)stl.stats.number_of_facets) {
                 //printf("Checking nearby. Tolerance= %f Iteration=%d of %d...", tolerance, i + 1, iterations);
                 stl_check_facets_nearby(&stl, tolerance);
                 //printf("  Fixed %d edges.\n", stl.stats.edges_fixed - last_edges_fixed);
@@ -442,7 +442,7 @@ void TriangleMesh::merge(const TriangleMesh &mesh)
     stl_reallocate(&this->stl);
     
     // copy facets
-    for (int i = 0; i < mesh.stl.stats.number_of_facets; ++ i)
+    for (uint32_t i = 0; i < mesh.stl.stats.number_of_facets; ++ i)
         this->stl.facet_start[number_of_facets + i] = mesh.stl.facet_start[i];
     
     // update size
@@ -455,7 +455,7 @@ ExPolygons TriangleMesh::horizontal_projection() const
 {
     Polygons pp;
     pp.reserve(this->stl.stats.number_of_facets);
-    for (int i = 0; i < this->stl.stats.number_of_facets; ++ i) {
+    for (uint32_t i = 0; i < this->stl.stats.number_of_facets; ++ i) {
         stl_facet* facet = &this->stl.facet_start[i];
         Polygon p;
         p.points.resize(3);
@@ -497,7 +497,7 @@ BoundingBoxf3 TriangleMesh::transformed_bounding_box(const Transform3d &trafo) c
     BoundingBoxf3 bbox;
     if (stl.v_shared == nullptr) {
         // Using the STL faces.
-        for (int i = 0; i < this->facets_count(); ++ i) {
+        for (size_t i = 0; i < this->facets_count(); ++ i) {
             const stl_facet &facet = this->stl.facet_start[i];
             for (size_t j = 0; j < 3; ++ j)
                 bbox.merge(trafo * facet.vertex[j].cast<double>());
@@ -622,7 +622,7 @@ void TriangleMeshSlicer::init(TriangleMesh *_mesh, throw_on_cancel_callback_type
     };
     std::vector<EdgeToFace> edges_map;
     edges_map.assign(this->mesh->stl.stats.number_of_facets * 3, EdgeToFace());
-    for (int facet_idx = 0; facet_idx < this->mesh->stl.stats.number_of_facets; ++ facet_idx)
+    for (uint32_t facet_idx = 0; facet_idx < this->mesh->stl.stats.number_of_facets; ++ facet_idx)
         for (int i = 0; i < 3; ++ i) {
             EdgeToFace &e2f = edges_map[facet_idx*3+i];
             e2f.vertex_low  = this->mesh->stl.v_indices[facet_idx].vertex[i];
@@ -871,7 +871,6 @@ TriangleMeshSlicer::FacetSliceType TriangleMeshSlicer::slice_facet(
             const stl_normal &normal = this->mesh->stl.facet_start[facet_idx].normal;
             // We may ignore this edge for slicing purposes, but we may still use it for object cutting.
             FacetSliceType    result = Slicing;
-            const stl_neighbors &nbr = this->mesh->stl.neighbors_start[facet_idx];
             if (min_z == max_z) {
                 // All three vertices are aligned with slice_z.
                 line_out->edge_type = feHorizontal;
@@ -883,8 +882,6 @@ TriangleMeshSlicer::FacetSliceType TriangleMeshSlicer::slice_facet(
                 }
             } else {
                 // Two vertices are aligned with the cutting plane, the third vertex is below or above the cutting plane.
-                int  nbr_idx     = j % 3;
-                int  nbr_face    = nbr.neighbor[nbr_idx];
                 // Is the third vertex below the cutting plane?
                 bool third_below = v0.z() < slice_z || v1.z() < slice_z || v2.z() < slice_z;
                 // Two vertices on the cutting plane, the third vertex is below the plane. Consider the edge to be part of the slice
@@ -1663,7 +1660,7 @@ void TriangleMeshSlicer::cut(float z, TriangleMesh* upper, TriangleMesh* lower) 
     
     BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::cut - slicing object";
     float scaled_z = scale_(z);
-    for (int facet_idx = 0; facet_idx < this->mesh->stl.stats.number_of_facets; ++ facet_idx) {
+    for (uint32_t facet_idx = 0; facet_idx < this->mesh->stl.stats.number_of_facets; ++ facet_idx) {
         stl_facet* facet = &this->mesh->stl.facet_start[facet_idx];
         
         // find facet extents

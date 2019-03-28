@@ -1609,6 +1609,7 @@ void ModelVolume::rotate(double angle, Axis axis)
     case X: { rotate(angle, Vec3d::UnitX()); break; }
     case Y: { rotate(angle, Vec3d::UnitY()); break; }
     case Z: { rotate(angle, Vec3d::UnitZ()); break; }
+    default: break;
     }
 }
 
@@ -1625,6 +1626,7 @@ void ModelVolume::mirror(Axis axis)
     case X: { mirror(0) *= -1.0; break; }
     case Y: { mirror(1) *= -1.0; break; }
     case Z: { mirror(2) *= -1.0; break; }
+    default: break;
     }
     set_mirror(mirror);
 }
@@ -1711,7 +1713,6 @@ bool model_object_list_extended(const Model &model_old, const Model &model_new)
 
 bool model_volume_list_changed(const ModelObject &model_object_old, const ModelObject &model_object_new, const ModelVolumeType type)
 {
-    bool modifiers_differ = false;
     size_t i_old, i_new;
     for (i_old = 0, i_new = 0; i_old < model_object_old.volumes.size() && i_new < model_object_new.volumes.size();) {
         const ModelVolume &mv_old = *model_object_old.volumes[i_old];
