@@ -2624,29 +2624,35 @@ void Plater::priv::on_right_click(Vec2dEvent& evt)
 
     sidebar->obj_list()->append_menu_item_settings(menu);
 
-    /* Remove/Prepend "increase/decrease instances" menu items according to the view mode.
-     * Suppress to show those items for a Simple mode
-     */
-    const MenuIdentifier id = printer_technology == ptSLA ? miObjectSLA : miObjectFFF;
-    if (wxGetApp().get_mode() == comSimple) {
-        if (menu->FindItem(_(L("Increase copies"))) != wxNOT_FOUND)
-        {
-            /* Detach an items from the menu, but don't delete them 
-             * so that they can be added back later
-             * (after switching to the Advanced/Expert mode)
-             */
-            menu->Remove(items_increase[id]);
-            menu->Remove(items_decrease[id]);
-            menu->Remove(items_set_number_of_copies[id]);
+    if (printer_technology != ptSLA)
+        sidebar->obj_list()->append_menu_item_change_extruder(menu);
+
+    if (menu != &part_menu)
+    {
+        /* Remove/Prepend "increase/decrease instances" menu items according to the view mode.
+         * Suppress to show those items for a Simple mode
+         */
+        const MenuIdentifier id = printer_technology == ptSLA ? miObjectSLA : miObjectFFF;
+        if (wxGetApp().get_mode() == comSimple) {
+            if (menu->FindItem(_(L("Increase copies"))) != wxNOT_FOUND)
+            {
+                /* Detach an items from the menu, but don't delete them
+                 * so that they can be added back later
+                 * (after switching to the Advanced/Expert mode)
+                 */
+                menu->Remove(items_increase[id]);
+                menu->Remove(items_decrease[id]);
+                menu->Remove(items_set_number_of_copies[id]);
+            }
         }
-    }
-    else {
-        if (menu->FindItem(_(L("Increase copies"))) == wxNOT_FOUND)
-        {
-            // Prepend items to the menu, if those aren't not there
-            menu->Prepend(items_set_number_of_copies[id]);
-            menu->Prepend(items_decrease[id]);
-            menu->Prepend(items_increase[id]);
+        else {
+            if (menu->FindItem(_(L("Increase copies"))) == wxNOT_FOUND)
+            {
+                // Prepend items to the menu, if those aren't not there
+                menu->Prepend(items_set_number_of_copies[id]);
+                menu->Prepend(items_decrease[id]);
+                menu->Prepend(items_increase[id]);
+            }
         }
     }
 
