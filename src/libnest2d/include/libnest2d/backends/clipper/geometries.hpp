@@ -150,9 +150,10 @@ template<> inline void offset(PolygonImpl& sh, TCoord<PointImpl> distance)
             // but throwing would be an overkill. Instead, we should warn the
             // caller about the inability to create correct geometries
             if(!found_the_contour) {
-                sh.Contour = r;
+                sh.Contour = std::move(r);
                 ClipperLib::ReversePath(sh.Contour);
-                sh.Contour.push_back(sh.Contour.front());
+                auto front_p = sh.Contour.front();
+                sh.Contour.emplace_back(std::move(front_p));
                 found_the_contour = true;
             } else {
                 dout() << "Warning: offsetting result is invalid!";
@@ -162,9 +163,10 @@ template<> inline void offset(PolygonImpl& sh, TCoord<PointImpl> distance)
             // TODO If there are multiple contours we can't be sure which hole
             // belongs to the first contour. (But in this case the situation is
             // bad enough to let it go...)
-            sh.Holes.push_back(r);
+            sh.Holes.emplace_back(std::move(r));
             ClipperLib::ReversePath(sh.Holes.back());
-            sh.Holes.back().push_back(sh.Holes.back().front());
+            auto front_p = sh.Holes.back().front();
+            sh.Holes.back().emplace_back(std::move(front_p));
         }
     }
 }
@@ -328,16 +330,18 @@ inline std::vector<PolygonImpl> clipper_execute(
     std::function<void(ClipperLib::PolyNode*, PolygonImpl&)> processHole;
 
     auto processPoly = [&retv, &processHole](ClipperLib::PolyNode *pptr) {
-        PolygonImpl poly(pptr->Contour);
-        poly.Contour.push_back(poly.Contour.front());
+        PolygonImpl poly;
+        poly.Contour.swap(pptr->Contour); auto front_p = poly.Contour.front();
+        poly.Contour.emplace_back(std::move(front_p));
         for(auto h : pptr->Childs) { processHole(h, poly); }
         retv.push_back(poly);
     };
 
     processHole = [&processPoly](ClipperLib::PolyNode *pptr, PolygonImpl& poly)
     {
-        poly.Holes.push_back(pptr->Contour);
-        poly.Holes.back().push_back(poly.Holes.back().front());
+        poly.Holes.emplace_back(std::move(pptr->Contour));
+        auto front_p = poly.Holes.back().front();
+        poly.Holes.back().emplace_back(std::move(front_p));
         for(auto c : pptr->Childs) processPoly(c);
     };
 
@@ -365,7 +369,9 @@ merge(const std::vector<PolygonImpl>& shapes)
 
     for(auto& path : shapes) {
         valid &= clipper.AddPath(path.Contour, ClipperLib::ptSubject, closed);
-        valid &= clipper.AddPaths(path.Holes, ClipperLib::ptSubject, closed);
+
+        for(auto& h : path.Holes)
+            valid &= clipper.AddPath(h, ClipperLib::ptSubject, closed);
     }
 
     if(!valid) throw GeometryException(GeomErr::MERGE);

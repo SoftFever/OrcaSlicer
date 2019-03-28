@@ -463,7 +463,7 @@ template<> inline std::string serialize<libnest2d::Formats::SVG>(
             auto& v = *it;
             hf.emplace_back(getX(v)*scale, getY(v)*scale);
         };
-        holes.push_back(hf);
+        holes.emplace_back(std::move(hf));
     }
 
     Polygonf poly;
