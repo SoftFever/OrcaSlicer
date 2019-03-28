@@ -389,8 +389,7 @@ int CLI::run(int argc, char **argv)
                             outfile_final = fff_print.print_statistics().finalize_output_path(outfile);
                         } else {
 							outfile = sla_print.output_filepath(outfile);
-                            //FIXME Tamas, please port it to miniz
-							// sla_print.export_raster<SLAZipFmt>(outfile);
+							sla_print.export_raster(outfile);
 							outfile_final = sla_print.print_statistics().finalize_output_path(outfile);
                         }
                         if (outfile != outfile_final && Slic3r::rename_file(outfile, outfile_final) != 0) {
