@@ -208,18 +208,18 @@ template<> class LayerWriter<SLAminzZipper> {
     Zipper m_zip;
 public:
 
-    inline LayerWriter(const std::string& zipfile_path): m_zip(zipfile_path) {}
+    LayerWriter(const std::string& zipfile_path): m_zip(zipfile_path) {}
 
-    inline void next_entry(const std::string& fname) { m_zip.add_entry(fname); }
+    void next_entry(const std::string& fname) { m_zip.add_entry(fname); }
 
-    inline void binary_entry(const std::string& fname,
+    void binary_entry(const std::string& fname,
                              const std::uint8_t* buf,
                              size_t l)
     {
         m_zip.add_entry(fname, buf, l);
     }
 
-    inline std::string get_name() const {
+    std::string get_name() const {
         return m_zip.get_name();
     }
 
@@ -231,7 +231,11 @@ public:
         return true; // m_zip blows up if something goes wrong...
     }
 
-    inline void close() { m_zip.close(); }
+    // After finalize, no writing to the archive will have an effect. The only
+    // valid operation is to dispose the object calling the destructor which
+    // should close the file. This method can throw and signal potential errors
+    // when flushing the archive. This is why its present.
+    void finalize() { m_zip.finalize(); }
 };
 
 /**
