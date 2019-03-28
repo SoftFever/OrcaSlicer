@@ -278,7 +278,7 @@ void GLGizmosManager::update_data(GLCanvas3D& canvas)
         const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
         set_scale(volume->get_instance_scaling_factor());
         set_rotation(Vec3d::Zero());
-        ModelObject* model_object = canvas.get_model()->objects[selection.get_object_idx()];
+        ModelObject* model_object = selection.get_model()->objects[selection.get_object_idx()];
         set_flattening_data(model_object);
         set_sla_support_data(model_object, selection);
     }
@@ -294,7 +294,7 @@ void GLGizmosManager::update_data(GLCanvas3D& canvas)
     {
         set_scale(Vec3d::Ones());
         set_rotation(Vec3d::Zero());
-        set_flattening_data(selection.is_from_single_object() ? canvas.get_model()->objects[selection.get_object_idx()] : nullptr);
+        set_flattening_data(selection.is_from_single_object() ? selection.get_model()->objects[selection.get_object_idx()] : nullptr);
         set_sla_support_data(nullptr, selection);
     }
 }
