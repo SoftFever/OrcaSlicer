@@ -2228,7 +2228,7 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
     if (useVBOs && !m_shader.init("gouraud.vs", "gouraud.fs"))
         return false;
 
-    if (useVBOs && !m_layers_editing.init("variable_layer_height.vs", "variable_layer_height.fs"))
+    if (m_toolbar.is_enabled() && useVBOs && !m_layers_editing.init("variable_layer_height.vs", "variable_layer_height.fs"))
         return false;
 
     m_use_VBOs = useVBOs;
