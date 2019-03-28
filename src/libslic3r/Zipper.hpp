@@ -47,6 +47,7 @@ public:
     void add_entry(const std::string& name);
 
     /// Add a new binary file entry with an instantly given byte buffer.
+    /// This method throws exactly like finish_entry() does.
     void add_entry(const std::string& name, const std::uint8_t* data, size_t l);
 
     // Writing data to the archive works like with standard streams. The target
@@ -74,12 +75,16 @@ public:
     /// buffer and ones an entry is added, the buffer will bind to the new entry
     /// If the buffer was written, but no entry was added, the buffer will be
     /// cleared after this call.
+    ///
+    /// This method will throw a runtime exception if an error occures. The
+    /// entry will still be open (with the data intact) but the state of the
+    /// file is up to minz after the erroneous write.
     void finish_entry();
 
     /// Gets the name of the archive without the path or extension.
     std::string get_name() const;
 
-    void close();
+    void finalize();
 };
 
 

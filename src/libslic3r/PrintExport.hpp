@@ -80,9 +80,8 @@ public:
 // Provokes static_assert in the right way.
 template<class T = void> struct VeryFalse { static const bool value = false; };
 
-// This has to be explicitly implemented in the gui layer or a default zlib
-// based implementation is needed. I don't have time for that and I'm delegating
-// the implementation to the gui layer where the gui toolkit can cover this.
+// This can be explicitly implemented in the gui layer or the default Zipper
+// API in libslic3r with minz.
 template<class Fmt> class LayerWriter {
 public:
 
@@ -91,21 +90,28 @@ public:
                       "No layer writer implementation provided!");
     }
 
+    // Should create a new file within the zip with the given filename. It
+    // should also finish any previous entry.
     void next_entry(const std::string& /*fname*/) {}
 
-    // binary entry
+    // Should create a new file within the archive and write the provided data.
     void binary_entry(const std::string& /*fname*/,
                       const std::uint8_t* buf, size_t len);
 
+    // Get the name of the archive but only the name part without the path or
+    // the extension.
     std::string get_name() { return ""; }
 
+    // Test whether the object can still be used for writing.
     bool is_ok() { return false; }
 
+    // Write some data (text) into the current file (entry) within the archive.
     template<class T> LayerWriter& operator<<(T&& /*arg*/) {
         return *this;
     }
 
-    void close() {}
+    // Flush the current entry into the archive.
+    void finalize() {}
 };
 
 // Implementation for PNG raster output
@@ -267,7 +273,7 @@ public:
                 }
             }
 
-            writer.close();
+            writer.finalize();
         } catch(std::exception& e) {
             BOOST_LOG_TRIVIAL(error) << e.what();
             // Rethrow the exception

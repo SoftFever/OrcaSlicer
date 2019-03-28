@@ -111,6 +111,11 @@ public:
     {
         throw std::runtime_error(formatted_errorstr());
     }
+
+    bool is_alive()
+    {
+        return arch.m_zip_mode != MZ_ZIP_MODE_WRITING_HAS_BEEN_FINALIZED;
+    }
 };
 
 Zipper::Zipper(const std::string &zipfname, e_compression compression)
@@ -129,11 +134,19 @@ Zipper::Zipper(const std::string &zipfname, e_compression compression)
 
 Zipper::~Zipper()
 {
-    try {
-        close();
-    } catch(...) {
-        BOOST_LOG_TRIVIAL(error) << m_impl->formatted_errorstr();
+    if(m_impl->is_alive()) {
+        // Flush the current entry if not finished yet.
+        try { finish_entry(); } catch(...) {
+            BOOST_LOG_TRIVIAL(error) << m_impl->formatted_errorstr();
+        }
+
+        if(!mz_zip_writer_finalize_archive(&m_impl->arch))
+            BOOST_LOG_TRIVIAL(error) << m_impl->formatted_errorstr();
     }
+
+    // The file should be closed no matter what...
+    if(!mz_zip_writer_end(&m_impl->arch))
+        BOOST_LOG_TRIVIAL(error) << m_impl->formatted_errorstr();
 }
 
 Zipper::Zipper(Zipper &&m):
@@ -152,12 +165,16 @@ Zipper &Zipper::operator=(Zipper &&m) {
 
 void Zipper::add_entry(const std::string &name)
 {
+    if(!m_impl->is_alive()) return;
+
     finish_entry(); // finish previous business
     m_entry = name;
 }
 
 void Zipper::add_entry(const std::string &name, const uint8_t *data, size_t l)
 {
+    if(!m_impl->is_alive()) return;
+
     finish_entry();
     mz_uint cmpr = MZ_NO_COMPRESSION;
     switch (m_compression) {
@@ -175,7 +192,9 @@ void Zipper::add_entry(const std::string &name, const uint8_t *data, size_t l)
 
 void Zipper::finish_entry()
 {
-    if(!m_data.empty() > 0 && !m_entry.empty()) {
+    if(!m_impl->is_alive()) return;
+
+    if(!m_data.empty() && !m_entry.empty()) {
         mz_uint compression = MZ_NO_COMPRESSION;
 
         switch (m_compression) {
@@ -198,12 +217,12 @@ std::string Zipper::get_name() const {
     return boost::filesystem::path(m_impl->m_zipname).stem().string();
 }
 
-void Zipper::close()
+void Zipper::finalize()
 {
     finish_entry();
 
-    if(!mz_zip_writer_finalize_archive(&m_impl->arch)) m_impl->blow_up();
-    if(!mz_zip_writer_end(&m_impl->arch)) m_impl->blow_up();
+    if(m_impl->is_alive()) if(!mz_zip_writer_finalize_archive(&m_impl->arch))
+        m_impl->blow_up();
 }
 
 }
