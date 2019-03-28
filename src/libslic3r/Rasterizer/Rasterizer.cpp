@@ -1,8 +1,6 @@
 #include "Rasterizer.hpp"
 #include <ExPolygon.hpp>
 
-#include <cstdint>
-
 // For rasterizing
 #include <agg/agg_basics.h>
 #include <agg/agg_rendering_buffer.h>
@@ -15,8 +13,8 @@
 #include <agg/agg_rasterizer_scanline_aa.h>
 #include <agg/agg_path_storage.h>
 
-// For png compression
-#include <png/writer.hpp>
+// Experimental minz image write:
+#include <miniz/miniz_tdef.h>
 
 namespace Slic3r {
 
@@ -178,29 +176,23 @@ void Raster::draw(const ExPolygon &poly)
 void Raster::save(std::ostream& stream, Compression comp)
 {
     assert(m_impl);
+    if(!stream.good()) return;
+
     switch(comp) {
     case Compression::PNG: {
-
-        png::writer<std::ostream> wr(stream);
-
-        wr.set_bit_depth(8);
-        wr.set_color_type(png::color_type_gray);
-        wr.set_width(resolution().width_px);
-        wr.set_height(resolution().height_px);
-        wr.set_compression_type(png::compression_type_default);
-
-        wr.write_info();
-
         auto& b = m_impl->buffer();
-        auto ptr = reinterpret_cast<png::byte*>( b.data() );
-        unsigned stride =
-                sizeof(Impl::TBuffer::value_type) *  resolution().width_px;
+        size_t out_len = 0;
+        void * rawdata = tdefl_write_image_to_png_file_in_memory(
+                    b.data(),
+                    int(resolution().width_px),
+                    int(resolution().height_px), 1, &out_len);
 
-        for(unsigned r = 0; r < resolution().height_px; r++, ptr+=stride) {
-            wr.write_row(ptr);
-        }
+        if(rawdata == nullptr) break;
 
-        wr.write_end_info();
+        stream.write(static_cast<const char*>(rawdata),
+                     std::streamsize(out_len));
+
+        MZ_FREE(rawdata);
 
         break;
     }
@@ -215,6 +207,49 @@ void Raster::save(std::ostream& stream, Compression comp)
                      std::streamsize(sz));
     }
     }
+}
+
+RawBytes Raster::save(Raster::Compression comp)
+{
+    assert(m_impl);
+
+    std::uint8_t *ptr = nullptr; size_t s = 0;
+
+    switch(comp) {
+    case Compression::PNG: {
+
+        void *rawdata = tdefl_write_image_to_png_file_in_memory(
+                    m_impl->buffer().data(),
+                    int(resolution().width_px),
+                    int(resolution().height_px), 1, &s);
+
+        if(rawdata == nullptr) break;
+
+        ptr = static_cast<std::uint8_t*>(rawdata);
+
+        break;
+    }
+    case Compression::RAW: {
+        auto header = std::string("P5 ") +
+                std::to_string(m_impl->resolution().width_px) + " " +
+                std::to_string(m_impl->resolution().height_px) + " " + "255 ";
+
+        auto sz = m_impl->buffer().size()*sizeof(Impl::TBuffer::value_type);
+
+        s = sz + header.size();
+        ptr = static_cast<std::uint8_t*>(MZ_MALLOC(s));
+
+        auto buff = reinterpret_cast<std::uint8_t*>(m_impl->buffer().data());
+        std::copy(buff, buff+sz, ptr + header.size());
+    }
+    }
+
+    return {ptr, s};
+}
+
+void RawBytes::MinzDeleter::operator()(uint8_t *rawptr)
+{
+    MZ_FREE(rawptr);
 }
 
 }
