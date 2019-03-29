@@ -3,12 +3,51 @@
 
 #include <ostream>
 #include <memory>
+#include <vector>
+#include <cstdint>
 
 namespace ClipperLib { class Polygon; }
 
 namespace Slic3r {
 
 class ExPolygon;
+
+// Raw byte buffer paired with its size. Suitable for compressed PNG data.
+class RawBytes {
+
+    class MinzDeleter {
+    public:
+        void operator()(std::uint8_t *rawptr);
+    };
+
+    std::unique_ptr<std::uint8_t, MinzDeleter> m_buffer = nullptr;
+    size_t m_size = 0;
+
+public:
+
+    RawBytes() = default;
+    RawBytes(std::uint8_t *rawptr, size_t s): m_buffer(rawptr), m_size(s) {}
+
+    size_t size() const { return m_size; }
+    const uint8_t * data() { return m_buffer.get(); }
+
+    // /////////////////////////////////////////////////////////////////////////
+    // FIXME: the following is needed for MSVC2013 compatibility
+    // /////////////////////////////////////////////////////////////////////////
+
+    RawBytes(const RawBytes&) = delete;
+    RawBytes(RawBytes&& mv):
+        m_buffer(std::move(mv.m_buffer)), m_size(mv.m_size) {}
+
+    RawBytes& operator=(const RawBytes&) = delete;
+    RawBytes& operator=(RawBytes&& mv) {
+        m_buffer.swap(mv.m_buffer);
+        m_size = mv.m_size;
+        return *this;
+    }
+
+    // /////////////////////////////////////////////////////////////////////////
+};
 
 /**
  * @brief Raster captures an anti-aliased monochrome canvas where vectorial
@@ -90,6 +129,8 @@ public:
 
     /// Save the raster on the specified stream.
     void save(std::ostream& stream, Compression comp = Compression::RAW);
+
+    RawBytes save(Compression comp = Compression::RAW);
 };
 
 }

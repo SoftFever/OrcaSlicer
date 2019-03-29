@@ -7,7 +7,7 @@
 #include "Point.hpp"
 #include "MTUtils.hpp"
 #include <libnest2d/backends/clipper/clipper_polygon.hpp>
-#include <iterator>
+#include "Zipper.hpp"
 
 namespace Slic3r {
 
@@ -316,6 +316,43 @@ struct SLAPrintStatistics
     }
 };
 
+struct SLAminzZipper {};
+
+// The implementation of creating zipped archives with wxWidgets
+template<> class LayerWriter<SLAminzZipper> {
+    Zipper m_zip;
+public:
+
+    LayerWriter(const std::string& zipfile_path): m_zip(zipfile_path) {}
+
+    void next_entry(const std::string& fname) { m_zip.add_entry(fname); }
+
+    void binary_entry(const std::string& fname,
+                             const std::uint8_t* buf,
+                             size_t l)
+    {
+        m_zip.add_entry(fname, buf, l);
+    }
+
+    std::string get_name() const {
+        return m_zip.get_name();
+    }
+
+    template<class T> inline LayerWriter& operator<<(T&& arg) {
+        m_zip << std::forward<T>(arg); return *this;
+    }
+
+    bool is_ok() const {
+        return true; // m_zip blows up if something goes wrong...
+    }
+
+    // After finalize, no writing to the archive will have an effect. The only
+    // valid operation is to dispose the object calling the destructor which
+    // should close the file. This method can throw and signal potential errors
+    // when flushing the archive. This is why its present.
+    void finalize() { m_zip.finalize(); }
+};
+
 /**
  * @brief This class is the high level FSM for the SLA printing process.
  *
@@ -348,9 +385,11 @@ public:
     // Returns true if the last step was finished with success.
     bool                finished() const override { return this->is_step_done(slaposSliceSupports) && this->Inherited::is_step_done(slapsRasterize); }
 
-    template<class Fmt> void export_raster(const std::string& fname) {
+    template<class Fmt = SLAminzZipper>
+    void export_raster(const std::string& fname) {
         if(m_printer) m_printer->save<Fmt>(fname);
     }
+
     const PrintObjects& objects() const { return m_objects; }
 
     const SLAPrintConfig&       print_config() const { return m_print_config; }

@@ -228,6 +228,21 @@ int ObjectList::get_selected_obj_idx() const
     return -1;
 }
 
+DynamicPrintConfig& ObjectList::get_item_config(const wxDataViewItem& item) const 
+{
+    assert(item);
+    const ItemType type = m_objects_model->GetItemType(item);
+
+    const int obj_idx = type & itObject ? m_objects_model->GetIdByItem(item) :
+        m_objects_model->GetIdByItem(m_objects_model->GetTopParent(item));
+
+    const int vol_idx = type & itVolume ? m_objects_model->GetVolumeIdByItem(item) : -1;
+
+    assert(obj_idx >= 0 || ((type & itVolume) && vol_idx >=0));
+    return type & itObject|itInstance ? (*m_objects)[obj_idx]->config :
+        (*m_objects)[obj_idx]->volumes[vol_idx]->config;
+}
+
 wxDataViewColumn* ObjectList::create_objects_list_extruder_column(int extruders_count)
 {
     wxArrayString choices;
@@ -910,8 +925,10 @@ wxMenuItem* ObjectList::append_menu_item_split(wxMenu* menu)
 wxMenuItem* ObjectList::append_menu_item_settings(wxMenu* menu_) 
 {
     PrusaMenu* menu = dynamic_cast<PrusaMenu*>(menu_);
+
+    const wxString menu_name = _(L("Add settings"));
     // Delete old items from settings popupmenu
-    auto settings_id = menu->FindItem(_("Add settings"));
+    auto settings_id = menu->FindItem(menu_name);
     if (settings_id != wxNOT_FOUND)
         menu->Destroy(settings_id);
 
@@ -966,14 +983,10 @@ wxMenuItem* ObjectList::append_menu_item_settings(wxMenu* menu_)
     menu->m_separator_scnd = menu->AppendSeparator();
 
     // Add full settings list
-    auto  menu_item = new wxMenuItem(menu, wxID_ANY, _(L("Add settings")));
+    auto  menu_item = new wxMenuItem(menu, wxID_ANY, menu_name);
     menu_item->SetBitmap(m_bmp_cog);
 
-//     const auto sel_vol = get_selected_model_volume();
-//     if (sel_vol && sel_vol->type() >= ModelVolumeType::SUPPORT_ENFORCER)
-//         menu_item->Enable(false);
-//     else
-        menu_item->SetSubMenu(create_settings_popupmenu(menu));
+    menu_item->SetSubMenu(create_settings_popupmenu(menu));
 
     return menu->Append(menu_item);
 }
@@ -1016,6 +1029,37 @@ void ObjectList::append_menu_item_export_stl(wxMenu* menu) const
     append_menu_item(menu, wxID_ANY, _(L("Export object as STL")) + dots, "",
         [](wxCommandEvent&) { wxGetApp().plater()->export_stl(true); }, "", menu);
     menu->AppendSeparator();
+}
+
+void ObjectList::append_menu_item_change_extruder(wxMenu* menu) const
+{
+    const wxString name = _(L("Change extruder"));
+    // Delete old menu item
+    const int item_id = menu->FindItem(name);
+    if (item_id != wxNOT_FOUND)
+        menu->Destroy(item_id);
+
+    const int extruders_cnt = extruders_count();
+    const wxDataViewItem item = GetSelection();
+    if (item && extruders_cnt > 1)
+    {
+        DynamicPrintConfig& config = get_item_config(item);
+
+        const int initial_extruder = !config.has("extruder") ? 0 :
+                                      config.option<ConfigOptionInt>("extruder")->value;
+
+        wxMenu* extruder_selection_menu = new wxMenu();
+
+        for (int i = 0; i <= extruders_cnt; i++)
+        {
+            const wxString& item_name = i == 0 ? _(L("Default")) : wxString::Format("%d", i);
+
+            append_menu_radio_item(extruder_selection_menu, wxID_ANY, item_name, "",
+                [this, i](wxCommandEvent&) { set_extruder_for_selected_items(i); }, menu)->Check(i == initial_extruder);
+        }
+
+        menu->AppendSubMenu(extruder_selection_menu, name, _(L("Select new extruder for the object/part")));
+    }
 }
 
 void ObjectList::create_object_popupmenu(wxMenu *menu)
@@ -1989,7 +2033,7 @@ void ObjectList::update_selections_on_canvas()
         return;
     }
 
-    auto add_to_selection = [this](const wxDataViewItem& item, Selection& selection, bool as_single_selection)
+    auto add_to_selection = [this](const wxDataViewItem& item, Selection& selection, int instance_idx, bool as_single_selection)
     {
         if (m_objects_model->GetParent(item) == wxDataViewItem(0)) {
             selection.add_object(m_objects_model->GetIdByItem(item), as_single_selection);
@@ -1999,7 +2043,7 @@ void ObjectList::update_selections_on_canvas()
         if (m_objects_model->GetItemType(item) == itVolume) {
             const int obj_idx = m_objects_model->GetIdByItem(m_objects_model->GetParent(item));
             const int vol_idx = m_objects_model->GetVolumeIdByItem(item);
-            selection.add_volume(obj_idx, vol_idx, 0, as_single_selection);
+            selection.add_volume(obj_idx, vol_idx, std::max(instance_idx, 0), as_single_selection);
         }
         else if (m_objects_model->GetItemType(item) == itInstance) {
             const int obj_idx = m_objects_model->GetIdByItem(m_objects_model->GetTopParent(item));
@@ -2011,10 +2055,10 @@ void ObjectList::update_selections_on_canvas()
     if (sel_cnt == 1) {
         wxDataViewItem item = GetSelection();
         if (m_objects_model->GetItemType(item) & (itSettings|itInstanceRoot))
-            add_to_selection(m_objects_model->GetParent(item), selection, true);
+            add_to_selection(m_objects_model->GetParent(item), selection, -1, true);
         else
-            add_to_selection(item, selection, true);
-            
+            add_to_selection(item, selection, -1, true);
+
         wxGetApp().plater()->canvas3D()->update_gizmos_on_off_state();
         return;
     }
@@ -2022,9 +2066,11 @@ void ObjectList::update_selections_on_canvas()
     wxDataViewItemArray sels;
     GetSelections(sels);
 
+    // stores current instance idx before to clear the selection
+    int instance_idx = selection.get_instance_idx();
     selection.clear();
     for (auto item: sels)
-        add_to_selection(item, selection, false);
+        add_to_selection(item, selection, instance_idx, false);
 
     wxGetApp().plater()->canvas3D()->update_gizmos_on_off_state();
 }
@@ -2425,15 +2471,7 @@ void ObjectList::set_extruder_for_selected_items(const int extruder) const
 
     for (const wxDataViewItem& item : sels)
     {
-        const ItemType type = m_objects_model->GetItemType(item);
-
-        const int obj_idx = type & itObject ? m_objects_model->GetIdByItem(item) :
-                            m_objects_model->GetIdByItem(m_objects_model->GetTopParent(item));
-
-        const int vol_idx = type & itVolume ? m_objects_model->GetVolumeIdByItem(item) : -1;
-
-        DynamicPrintConfig& config = type & itObject ? (*m_objects)[obj_idx]->config : 
-                                     (*m_objects)[obj_idx]->volumes[vol_idx]->config;
+        DynamicPrintConfig& config = get_item_config(item);
         
         if (config.has("extruder")) {
             if (extruder == 0)
@@ -2446,7 +2484,16 @@ void ObjectList::set_extruder_for_selected_items(const int extruder) const
 
         const wxString extruder_str = extruder == 0 ? wxString ("default") : 
                                       wxString::Format("%d", config.option<ConfigOptionInt>("extruder")->value);
-        m_objects_model->SetValue(extruder_str, item, 1);
+
+        auto const type = m_objects_model->GetItemType(item);
+
+        /* We can change extruder for Object/Volume only.
+         * So, if Instance is selected, get its Object item and change it
+         */
+        m_objects_model->SetValue(extruder_str, type & itInstance ? m_objects_model->GetTopParent(item) : item, 1);
+
+        const int obj_idx = type & itObject ? m_objects_model->GetIdByItem(item) :
+                            m_objects_model->GetIdByItem(m_objects_model->GetTopParent(item));
 
         wxGetApp().plater()->canvas3D()->ensure_on_bed(obj_idx);
     }

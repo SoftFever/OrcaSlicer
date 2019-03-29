@@ -61,6 +61,24 @@ wxMenuItem* append_submenu(wxMenu* menu, wxMenu* sub_menu, int id, const wxStrin
     return item;
 }
 
+wxMenuItem* append_menu_radio_item(wxMenu* menu, int id, const wxString& string, const wxString& description,
+    std::function<void(wxCommandEvent& event)> cb, wxEvtHandler* event_handler)
+{
+    if (id == wxID_ANY)
+        id = wxNewId();
+
+    wxMenuItem* item = menu->AppendRadioItem(id, string, description);
+
+#ifdef __WXMSW__
+    if (event_handler != nullptr && event_handler != menu)
+        event_handler->Bind(wxEVT_MENU, cb, id);
+    else
+#endif // __WXMSW__
+        menu->Bind(wxEVT_MENU, cb, id);
+
+    return item;
+}
+
 const unsigned int wxCheckListBoxComboPopup::DefaultWidth = 200;
 const unsigned int wxCheckListBoxComboPopup::DefaultHeight = 200;
 const unsigned int wxCheckListBoxComboPopup::DefaultItemHeight = 18;

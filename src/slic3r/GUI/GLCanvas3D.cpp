@@ -2114,6 +2114,7 @@ wxDEFINE_EVENT(EVT_GLCANVAS_UPDATE_GEOMETRY, Vec3dsEvent<2>);
 wxDEFINE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_UPDATE_BED_SHAPE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_TAB, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_RESETGIZMOS, SimpleEvent);
 
 GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar)
     : m_canvas(canvas)
@@ -2227,7 +2228,7 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
     if (useVBOs && !m_shader.init("gouraud.vs", "gouraud.fs"))
         return false;
 
-    if (useVBOs && !m_layers_editing.init("variable_layer_height.vs", "variable_layer_height.fs"))
+    if (m_toolbar.is_enabled() && useVBOs && !m_layers_editing.init("variable_layer_height.vs", "variable_layer_height.fs"))
         return false;
 
     m_use_VBOs = useVBOs;
@@ -2248,7 +2249,7 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
     if (!_init_toolbar())
         return false;
 
-    if (!m_selection.init(m_use_VBOs))
+    if (m_selection.is_enabled() && !m_selection.init(m_use_VBOs))
         return false;
 
     post_event(SimpleEvent(EVT_GLCANVAS_INIT));
@@ -2430,6 +2431,11 @@ void GLCanvas3D::enable_moving(bool enable)
 void GLCanvas3D::enable_gizmos(bool enable)
 {
     m_gizmos.set_enabled(enable);
+}
+
+void GLCanvas3D::enable_selection(bool enable)
+{
+    m_selection.set_enabled(enable);
 }
 
 void GLCanvas3D::enable_toolbar(bool enable)
@@ -3767,8 +3773,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // of the scene with the background processing data should be performed.
             post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
         }
-        else if (evt.LeftUp() && !m_mouse.dragging && (m_hover_volume_id == -1) && !gizmos_overlay_contains_mouse && !m_gizmos.is_dragging()
-              && !is_layers_editing_enabled())
+        else if (evt.LeftUp() && !m_mouse.dragging && (m_hover_volume_id == -1) && !gizmos_overlay_contains_mouse && !m_gizmos.grabber_contains_mouse() && !m_gizmos.is_dragging()
+            && !is_layers_editing_enabled())
         {
             // deselect and propagate event through callback
             if (!evt.ShiftDown() && m_picking_enabled && !m_mouse.ignore_up_event)

@@ -1,4 +1,5 @@
 // #include "libslic3r/GCodeSender.hpp"
+#include "slic3r/Utils/Serial.hpp"
 #include "Tab.hpp"
 #include "PresetBundle.hpp"
 #include "PresetHints.hpp"
@@ -6,7 +7,6 @@
 
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/Utils/PrintHost.hpp"
-#include "slic3r/Utils/Serial.hpp"
 #include "BonjourDialog.hpp"
 #include "WipeTowerDialog.hpp"
 #include "ButtonsDescription.hpp"
@@ -542,7 +542,10 @@ void Tab::update_changed_tree_ui()
 	auto cur_item = m_treectrl->GetFirstVisibleItem();
     if (!cur_item || !m_treectrl->IsVisible(cur_item))
         return;
-	auto selection = m_treectrl->GetItemText(m_treectrl->GetSelection());
+
+	auto selected_item = m_treectrl->GetSelection();
+	auto selection = selected_item ? m_treectrl->GetItemText(selected_item) : "";
+
 	while (cur_item) {
 		auto title = m_treectrl->GetItemText(cur_item);
 		for (auto page : m_pages)
@@ -924,31 +927,26 @@ void Tab::update_frequently_changed_parameters()
     auto og_freq_chng_params = wxGetApp().sidebar().og_freq_chng_params(supports_printer_technology(ptFFF));
     if (!og_freq_chng_params) return;
 
-    if (m_type == Preset::TYPE_SLA_PRINT)
-    {
-        for (auto opt_key : { "supports_enable", "pad_enable" })
-        {
-            boost::any val = og_freq_chng_params->get_config_value(*m_config, opt_key);
-            og_freq_chng_params->set_value(opt_key, val);
-        }
-        return;
-    }
+    const bool is_fff = supports_printer_technology(ptFFF);
 
-    // for m_type == Preset::TYPE_PRINT
-    boost::any value = og_freq_chng_params->get_config_value(*m_config, "fill_density");
-    og_freq_chng_params->set_value("fill_density", value);
+    const std::string support           = is_fff ? "support_material"                   : "supports_enable";
+    const std::string buildplate_only   = is_fff ? "support_material_buildplate_only"   : "support_buildplate_only";
 
-	wxString new_selection = !m_config->opt_bool("support_material") ?
-							_("None") :
-							m_config->opt_bool("support_material_buildplate_only") ?
-								_("Support on build plate only") :
-								_("Everywhere");
+    wxString new_selection = !m_config->opt_bool(support)         ? _("None") :
+                              m_config->opt_bool(buildplate_only) ? _("Support on build plate only") :
+                                                                    _("Everywhere");
     og_freq_chng_params->set_value("support", new_selection);
 
-	bool val = m_config->opt_float("brim_width") > 0.0 ? true : false;
-    og_freq_chng_params->set_value("brim", val);
+    const std::string updated_value_key = is_fff ? "fill_density" : "pad_enable";
 
-	update_wiping_button_visibility();
+    const boost::any val = og_freq_chng_params->get_config_value(*m_config, updated_value_key);
+    og_freq_chng_params->set_value(updated_value_key, val);
+
+    if (is_fff)
+    {
+        og_freq_chng_params->set_value("brim", bool(m_config->opt_float("brim_width") > 0.0));
+        update_wiping_button_visibility();
+    }
 }
 
 void TabPrint::build()
@@ -2497,7 +2495,10 @@ void Tab::rebuild_page_tree()
 
 	if (!have_selection) {
 		// this is triggered on first load, so we don't disable the sel change event
-		m_treectrl->SelectItem(m_treectrl->GetFirstVisibleItem());//! (treectrl->GetFirstChild(rootItem));
+		auto item = m_treectrl->GetFirstVisibleItem();
+		if (item) {
+			m_treectrl->SelectItem(item);
+		}
 	}
 // 	Thaw();
 }
@@ -2524,7 +2525,10 @@ void Tab::update_page_tree_visibility()
 
     if (!have_selection) {
         // this is triggered on first load, so we don't disable the sel change event
-        m_treectrl->SelectItem(m_treectrl->GetFirstVisibleItem());//! (treectrl->GetFirstChild(rootItem));
+        auto item = m_treectrl->GetFirstVisibleItem();
+        if (item) {
+            m_treectrl->SelectItem(item);
+        }
     }
 
 }

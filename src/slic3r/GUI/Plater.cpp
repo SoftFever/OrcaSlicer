@@ -427,7 +427,7 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
 
     option = m_og->get_option("fill_density");
     option.opt.label = L("Infill");
-    option.opt.width = 7 * wxGetApp().em_unit();
+    option.opt.width = 6 * wxGetApp().em_unit();
     option.opt.sidetext = "     ";
     line.append_option(option);
 
@@ -1191,6 +1191,7 @@ struct Plater::priv
     void select_view(const std::string& direction);
     void select_view_3D(const std::string& name);
     void select_next_view_3D();
+    void reset_all_gizmos();
     void update_ui_from_settings();
     ProgressStatusBar* statusbar();
     std::string get_config(const std::string &key) const;
@@ -1396,6 +1397,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     view3D_canvas->Bind(EVT_GLCANVAS_UPDATE_GEOMETRY, &priv::on_update_geometry, this);
     view3D_canvas->Bind(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, &priv::on_3dcanvas_mouse_dragging_finished, this);
     view3D_canvas->Bind(EVT_GLCANVAS_TAB, [this](SimpleEvent&) { select_next_view_3D(); });
+    view3D_canvas->Bind(EVT_GLCANVAS_RESETGIZMOS, [this](SimpleEvent&) { reset_all_gizmos(); });
     // 3DScene/Toolbar:
     view3D_canvas->Bind(EVT_GLTOOLBAR_ADD, &priv::on_action_add, this);
     view3D_canvas->Bind(EVT_GLTOOLBAR_DELETE, [q](SimpleEvent&) { q->remove_selected(); });
@@ -1413,8 +1415,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_QUESTION_MARK, [this](SimpleEvent&) { wxGetApp().keyboard_shortcuts(); });
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_UPDATE_BED_SHAPE, [this](SimpleEvent&) { set_bed_shape(config->option<ConfigOptionPoints>("bed_shape")->values); });
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_TAB, [this](SimpleEvent&) { select_next_view_3D(); });
-
-    view3D_canvas->Bind(EVT_GLCANVAS_INIT, [this](SimpleEvent&) { init_view_toolbar(); });
 
     q->Bind(EVT_SLICING_COMPLETED, &priv::on_slicing_completed, this);
     q->Bind(EVT_PROCESS_COMPLETED, &priv::on_process_completed, this);
@@ -1476,6 +1476,11 @@ void Plater::priv::select_next_view_3D()
         set_current_panel(preview);
     else if (current_panel == preview)
         set_current_panel(view3D);
+}
+
+void Plater::priv::reset_all_gizmos()
+{
+    view3D->get_canvas3d()->reset_all_gizmos();
 }
 
 // Called after the Preferences dialog is closed and the program settings are saved.
@@ -2619,29 +2624,35 @@ void Plater::priv::on_right_click(Vec2dEvent& evt)
 
     sidebar->obj_list()->append_menu_item_settings(menu);
 
-    /* Remove/Prepend "increase/decrease instances" menu items according to the view mode.
-     * Suppress to show those items for a Simple mode
-     */
-    const MenuIdentifier id = printer_technology == ptSLA ? miObjectSLA : miObjectFFF;
-    if (wxGetApp().get_mode() == comSimple) {
-        if (menu->FindItem(_(L("Increase copies"))) != wxNOT_FOUND)
-        {
-            /* Detach an items from the menu, but don't delete them 
-             * so that they can be added back later
-             * (after switching to the Advanced/Expert mode)
-             */
-            menu->Remove(items_increase[id]);
-            menu->Remove(items_decrease[id]);
-            menu->Remove(items_set_number_of_copies[id]);
+    if (printer_technology != ptSLA)
+        sidebar->obj_list()->append_menu_item_change_extruder(menu);
+
+    if (menu != &part_menu)
+    {
+        /* Remove/Prepend "increase/decrease instances" menu items according to the view mode.
+         * Suppress to show those items for a Simple mode
+         */
+        const MenuIdentifier id = printer_technology == ptSLA ? miObjectSLA : miObjectFFF;
+        if (wxGetApp().get_mode() == comSimple) {
+            if (menu->FindItem(_(L("Increase copies"))) != wxNOT_FOUND)
+            {
+                /* Detach an items from the menu, but don't delete them
+                 * so that they can be added back later
+                 * (after switching to the Advanced/Expert mode)
+                 */
+                menu->Remove(items_increase[id]);
+                menu->Remove(items_decrease[id]);
+                menu->Remove(items_set_number_of_copies[id]);
+            }
         }
-    }
-    else {
-        if (menu->FindItem(_(L("Increase copies"))) == wxNOT_FOUND)
-        {
-            // Prepend items to the menu, if those aren't not there
-            menu->Prepend(items_set_number_of_copies[id]);
-            menu->Prepend(items_decrease[id]);
-            menu->Prepend(items_increase[id]);
+        else {
+            if (menu->FindItem(_(L("Increase copies"))) == wxNOT_FOUND)
+            {
+                // Prepend items to the menu, if those aren't not there
+                menu->Prepend(items_set_number_of_copies[id]);
+                menu->Prepend(items_decrease[id]);
+                menu->Prepend(items_increase[id]);
+            }
         }
     }
 

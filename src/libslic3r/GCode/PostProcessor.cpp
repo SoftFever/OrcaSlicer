@@ -4,6 +4,7 @@
 #include <boost/log/trivial.hpp>
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/nowide/convert.hpp>
 
 #ifdef WIN32
 
@@ -11,6 +12,7 @@
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <Windows.h>
+#include <shellapi.h>
 
 // https://blogs.msdn.microsoft.com/twistylittlepassagesallalike/2011/04/23/everyone-quotes-command-line-arguments-the-wrong-way/
 // This routine appends the given argument to a command line such that CommandLineToArgvW will return the argument string unchanged.

@@ -22,7 +22,6 @@ private:
     ModelObject* m_model_object = nullptr;
     ModelObject* m_old_model_object = nullptr;
     int m_active_instance = -1;
-    int m_old_instance_id = -1;
     std::pair<Vec3f, Vec3f> unproject_on_mesh(const Vec2d& mouse_pos);
 
     const float RenderPointScale = 1.f;
@@ -31,10 +30,6 @@ private:
     Eigen::MatrixXf m_V; // vertices
     Eigen::MatrixXi m_F; // facets indices
     igl::AABB<Eigen::MatrixXf,3> m_AABB;
-
-    struct SourceDataSummary {
-        Geometry::Transformation transformation;
-    };
 
     class CacheEntry {
     public:
@@ -45,11 +40,6 @@ private:
         bool selected; // whether the point is selected
         Vec3f normal;
     };
-
-    // This holds information to decide whether recalculation is necessary:
-    SourceDataSummary m_source_data;
-
-    mutable Vec3d m_starting_center;
 
 public:
 #if ENABLE_SVG_ICONS

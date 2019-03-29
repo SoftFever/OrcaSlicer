@@ -49,6 +49,7 @@ Selection::VolumeCache::VolumeCache(const Geometry::Transformation& volume_trans
 Selection::Selection()
     : m_volumes(nullptr)
     , m_model(nullptr)
+    , m_enabled(false)
     , m_mode(Instance)
     , m_type(Empty)
     , m_valid(false)

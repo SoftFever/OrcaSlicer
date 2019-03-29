@@ -81,9 +81,8 @@ public:
 // Provokes static_assert in the right way.
 template<class T = void> struct VeryFalse { static const bool value = false; };
 
-// This has to be explicitly implemented in the gui layer or a default zlib
-// based implementation is needed. I don't have time for that and I'm delegating
-// the implementation to the gui layer where the gui toolkit can cover this.
+// This can be explicitly implemented in the gui layer or the default Zipper
+// API in libslic3r with minz.
 template<class Fmt> class LayerWriter {
 public:
 
@@ -92,17 +91,28 @@ public:
                       "No layer writer implementation provided!");
     }
 
+    // Should create a new file within the zip with the given filename. It
+    // should also finish any previous entry.
     void next_entry(const std::string& /*fname*/) {}
 
+    // Should create a new file within the archive and write the provided data.
+    void binary_entry(const std::string& /*fname*/,
+                      const std::uint8_t* buf, size_t len);
+
+    // Get the name of the archive but only the name part without the path or
+    // the extension.
     std::string get_name() { return ""; }
 
+    // Test whether the object can still be used for writing.
     bool is_ok() { return false; }
 
-    template<class T> LayerWriter& operator<<(const T& /*arg*/) {
+    // Write some data (text) into the current file (entry) within the archive.
+    template<class T> LayerWriter& operator<<(T&& /*arg*/) {
         return *this;
     }
 
-    void close() {}
+    // Flush the current entry into the archive.
+    void finalize() {}
 };
 
 // Implementation for PNG raster output
@@ -111,14 +121,14 @@ public:
 template<> class FilePrinter<FilePrinterFormat::SLA_PNGZIP>
 {
     struct Layer {
-        Raster first;
-        std::stringstream second;
+        Raster raster;
+        RawBytes rawbytes;
 
         Layer() {}
 
         Layer(const Layer&) = delete;
         Layer(Layer&& m):
-            first(std::move(m.first))/*, second(std::move(m.second))*/ {}
+            raster(std::move(m.raster)) {}
     };
 
     // We will save the compressed PNG data into stringstreams which can be done
@@ -136,14 +146,11 @@ template<> class FilePrinter<FilePrinterFormat::SLA_PNGZIP>
     int    m_cnt_fast_layers = 0;
 
     std::string createIniContent(const std::string& projectname) {
-//         double layer_height = m_layer_height;
-
         using std::string;
         using std::to_string;
 
         auto expt_str = to_string(m_exp_time_s);
         auto expt_first_str = to_string(m_exp_time_first_s);
-//         auto stepnum_str = to_string(static_cast<unsigned>(800*layer_height));
         auto layerh_str = to_string(m_layer_height);
 
         const std::string cnt_fade_layers = to_string(m_cnt_fade_layers);
@@ -212,7 +219,7 @@ public:
 
     inline void draw_polygon(const ExPolygon& p, unsigned lyr) {
         assert(lyr < m_layers_rst.size());
-        m_layers_rst[lyr].first.draw(p);
+        m_layers_rst[lyr].raster.draw(p);
     }
 
     inline void draw_polygon(const ClipperLib::Polygon& p, unsigned lyr) {
@@ -222,26 +229,26 @@ public:
 
     inline void begin_layer(unsigned lyr) {
         if(m_layers_rst.size() <= lyr) m_layers_rst.resize(lyr+1);
-        m_layers_rst[lyr].first.reset(m_res, m_pxdim, m_o);
+        m_layers_rst[lyr].raster.reset(m_res, m_pxdim, m_o);
     }
 
     inline void begin_layer() {
         m_layers_rst.emplace_back();
-        m_layers_rst.front().first.reset(m_res, m_pxdim, m_o);
+        m_layers_rst.front().raster.reset(m_res, m_pxdim, m_o);
     }
 
     inline void finish_layer(unsigned lyr_id) {
         assert(lyr_id < m_layers_rst.size());
-        m_layers_rst[lyr_id].first.save(m_layers_rst[lyr_id].second,
-                                       Raster::Compression::PNG);
-        m_layers_rst[lyr_id].first.reset();
+        m_layers_rst[lyr_id].rawbytes =
+                m_layers_rst[lyr_id].raster.save(Raster::Compression::PNG);
+        m_layers_rst[lyr_id].raster.reset();
     }
 
     inline void finish_layer() {
         if(!m_layers_rst.empty()) {
-            m_layers_rst.back().first.save(m_layers_rst.back().second,
-                                          Raster::Compression::PNG);
-            m_layers_rst.back().first.reset();
+            m_layers_rst.back().rawbytes =
+                    m_layers_rst.back().raster.save(Raster::Compression::PNG);
+            m_layers_rst.back().raster.reset();
         }
     }
 
@@ -260,20 +267,19 @@ public:
 
             for(unsigned i = 0; i < m_layers_rst.size() && writer.is_ok(); i++)
             {
-                if(m_layers_rst[i].second.rdbuf()->in_avail() > 0) {
+                if(m_layers_rst[i].rawbytes.size() > 0) {
                     char lyrnum[6];
                     std::sprintf(lyrnum, "%.5d", i);
                     auto zfilename = project + lyrnum + ".png";
-                    writer.next_entry(zfilename);
-
                     if(!writer.is_ok()) break;
 
-                    writer << m_layers_rst[i].second.str();
-                    // writer << m_layers_rst[i].second.rdbuf();
-                    // we can keep the date for later calls of this method
-                    //m_layers_rst[i].second.str("");
+                    writer.binary_entry(zfilename,
+                                        m_layers_rst[i].rawbytes.data(),
+                                        m_layers_rst[i].rawbytes.size());
                 }
             }
+
+            writer.finalize();
         } catch(std::exception& e) {
             BOOST_LOG_TRIVIAL(error) << e.what();
             // Rethrow the exception
@@ -291,13 +297,13 @@ public:
 
         std::fstream out(loc, std::fstream::out | std::fstream::binary);
         if(out.good()) {
-            m_layers_rst[i].first.save(out, Raster::Compression::PNG);
+            m_layers_rst[i].raster.save(out, Raster::Compression::PNG);
         } else {
             BOOST_LOG_TRIVIAL(error) << "Can't create file for layer";
         }
 
         out.close();
-        m_layers_rst[i].first.reset();
+        m_layers_rst[i].raster.reset();
     }
 
     void set_statistics(const std::vector<double> statistics)

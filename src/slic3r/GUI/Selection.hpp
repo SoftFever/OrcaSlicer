@@ -154,6 +154,7 @@ private:
     // Model, not owned.
     Model* m_model;
 
+    bool m_enabled;
     bool m_valid;
     EMode m_mode;
     EType m_type;
@@ -179,6 +180,9 @@ public:
 
     void set_volumes(GLVolumePtrs* volumes);
     bool init(bool useVBOs);
+
+    bool is_enabled() const { return m_enabled; }
+    void set_enabled(bool enable) { m_enabled = enable; }
 
     Model* get_model() const { return m_model; }
     void set_model(Model* model);

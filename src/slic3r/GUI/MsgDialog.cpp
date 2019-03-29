@@ -28,7 +28,7 @@ MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &he
 {}
 
 MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &headline, wxBitmap bitmap, wxWindowID button_id) :
-	wxDialog(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxRESIZE_BORDER),
+wxDialog(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
 	boldfont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT)),
 	content_sizer(new wxBoxSizer(wxVERTICAL)),
 	btn_sizer(new wxBoxSizer(wxHORIZONTAL))

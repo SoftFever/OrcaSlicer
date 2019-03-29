@@ -540,13 +540,26 @@ void Choice::BUILD() {
 	else{
 		for (auto el : m_opt.enum_labels.empty() ? m_opt.enum_values : m_opt.enum_labels) {
 			const wxString& str = _(el);//m_opt_id == "support" ? _(el) : el;
-			//FIXME Vojtech: Why is the single column empty icon necessary? It is a workaround of some kind, but what for?
-			// Please document such workarounds by comments!
-            // temp->Append(str, create_scaled_bitmap("empty_icon.png"));
-            temp->Append(str, wxNullBitmap);
+			temp->Append(str);
 		}
 		set_selection();
 	}
+
+#ifndef __WXGTK__
+    /* Workaround for a correct rendering of the control without Bitmap (under MSW and OSX):
+     * 
+     * 1. We should create small Bitmap to fill Bitmaps RefData,
+     *    ! in this case wxBitmap.IsOK() return true.
+     * 2. But then set width to 0 value for no using of bitmap left and right spacing 
+     * 3. Set this empty bitmap to the at list one item and BitmapCombobox will be recreated correct
+     * 
+     * Note: Set bitmap height to the Font size because of OSX rendering.
+     */
+    wxBitmap empty_bmp(1, temp->GetFont().GetPixelSize().y + 2);
+    empty_bmp.SetWidth(0);
+    temp->SetItemBitmap(0, empty_bmp);
+#endif
+
 // 	temp->Bind(wxEVT_TEXT, ([this](wxCommandEvent e) { on_change_field(); }), temp->GetId());
  	temp->Bind(wxEVT_COMBOBOX, ([this](wxCommandEvent e) { on_change_field(); }), temp->GetId());
 
@@ -571,6 +584,11 @@ void Choice::BUILD() {
 
 void Choice::set_selection()
 {
+    /* To prevent earlier control updating under OSX set m_disable_change_event to true
+     * (under OSX wxBitmapComboBox send wxEVT_COMBOBOX even after SetSelection())
+     */
+    m_disable_change_event = true;
+
 	wxString text_value = wxString("");
 
     wxBitmapComboBox* field = dynamic_cast<wxBitmapComboBox*>(window);
