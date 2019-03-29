@@ -2033,7 +2033,7 @@ void ObjectList::update_selections_on_canvas()
         return;
     }
 
-    auto add_to_selection = [this](const wxDataViewItem& item, Selection& selection, bool as_single_selection)
+    auto add_to_selection = [this](const wxDataViewItem& item, Selection& selection, int instance_idx, bool as_single_selection)
     {
         if (m_objects_model->GetParent(item) == wxDataViewItem(0)) {
             selection.add_object(m_objects_model->GetIdByItem(item), as_single_selection);
@@ -2043,7 +2043,7 @@ void ObjectList::update_selections_on_canvas()
         if (m_objects_model->GetItemType(item) == itVolume) {
             const int obj_idx = m_objects_model->GetIdByItem(m_objects_model->GetParent(item));
             const int vol_idx = m_objects_model->GetVolumeIdByItem(item);
-            selection.add_volume(obj_idx, vol_idx, 0, as_single_selection);
+            selection.add_volume(obj_idx, vol_idx, std::max(instance_idx, 0), as_single_selection);
         }
         else if (m_objects_model->GetItemType(item) == itInstance) {
             const int obj_idx = m_objects_model->GetIdByItem(m_objects_model->GetTopParent(item));
@@ -2055,10 +2055,10 @@ void ObjectList::update_selections_on_canvas()
     if (sel_cnt == 1) {
         wxDataViewItem item = GetSelection();
         if (m_objects_model->GetItemType(item) & (itSettings|itInstanceRoot))
-            add_to_selection(m_objects_model->GetParent(item), selection, true);
+            add_to_selection(m_objects_model->GetParent(item), selection, -1, true);
         else
-            add_to_selection(item, selection, true);
-            
+            add_to_selection(item, selection, -1, true);
+
         wxGetApp().plater()->canvas3D()->update_gizmos_on_off_state();
         return;
     }
@@ -2066,9 +2066,11 @@ void ObjectList::update_selections_on_canvas()
     wxDataViewItemArray sels;
     GetSelections(sels);
 
+    // stores current instance idx before to clear the selection
+    int instance_idx = selection.get_instance_idx();
     selection.clear();
     for (auto item: sels)
-        add_to_selection(item, selection, false);
+        add_to_selection(item, selection, instance_idx, false);
 
     wxGetApp().plater()->canvas3D()->update_gizmos_on_off_state();
 }
