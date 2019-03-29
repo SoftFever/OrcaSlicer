@@ -251,6 +251,7 @@ public:
 
     void init_objects();
     bool multiple_selection() const ;
+    bool is_selected(const ItemType type) const;
     void update_selections();
     void update_selections_on_canvas();
     void select_item(const wxDataViewItem& item);

@@ -511,7 +511,7 @@ public:
 	virtual bool IsContainer(const wxDataViewItem &item) const override;
 	virtual unsigned int GetChildren(const wxDataViewItem &parent,
 		wxDataViewItemArray &array) const override;
-
+    void GetAllChildren(const wxDataViewItem &parent,wxDataViewItemArray &array) const;
 	// Is the container just a header or an item with all columns
 	// In our case it is an item with all columns 
 	virtual bool HasContainerColumns(const wxDataViewItem& WXUNUSED(item)) const override {	return true; }

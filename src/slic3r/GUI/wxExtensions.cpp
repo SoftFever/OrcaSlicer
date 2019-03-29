@@ -1239,6 +1239,32 @@ unsigned int PrusaObjectDataViewModel::GetChildren(const wxDataViewItem &parent,
 	return count;
 }
 
+void PrusaObjectDataViewModel::GetAllChildren(const wxDataViewItem &parent, wxDataViewItemArray &array) const
+{
+	PrusaObjectDataViewModelNode *node = (PrusaObjectDataViewModelNode*)parent.GetID();
+	if (!node) {
+		for (auto object : m_objects)
+			array.Add(wxDataViewItem((void*)object));
+	}
+	else if (node->GetChildCount() == 0)
+		return;
+    else {
+        const size_t count = node->GetChildren().GetCount();
+        for (size_t pos = 0; pos < count; pos++) {
+            PrusaObjectDataViewModelNode *child = node->GetChildren().Item(pos);
+            array.Add(wxDataViewItem((void*)child));
+        }
+    }
+
+    wxDataViewItemArray new_array = array;
+    for (const auto item : new_array)
+    {
+        wxDataViewItemArray children;
+        GetAllChildren(item, children);
+        WX_APPEND_ARRAY(array, children);
+    }
+}
+
 ItemType PrusaObjectDataViewModel::GetItemType(const wxDataViewItem &item) const 
 {
     if (!item.IsOk())
