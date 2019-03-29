@@ -187,6 +187,7 @@ public:
     void                append_menu_items_osx(wxMenu* menu);
     void                append_menu_item_fix_through_netfabb(wxMenu* menu);
     void                append_menu_item_export_stl(wxMenu* menu) const ;
+    void                append_menu_item_change_extruder(wxMenu* menu) const;
     void                create_object_popupmenu(wxMenu *menu);
     void                create_sla_object_popupmenu(wxMenu*menu);
     void                create_part_popupmenu(wxMenu*menu);
@@ -213,12 +214,13 @@ public:
     wxPoint             get_mouse_position_in_control();
     wxBoxSizer*         get_sizer() {return  m_sizer;}
     int                 get_selected_obj_idx() const;
+    DynamicPrintConfig& get_item_config(const wxDataViewItem& item) const;
     bool                is_parts_changed() const { return m_parts_changed; }
     bool                is_part_settings_changed() const { return m_part_settings_changed; }
     void                part_settings_changed();
 
-    void                 parts_changed(int obj_idx);
-    void                 part_selection_changed();
+    void                parts_changed(int obj_idx);
+    void                part_selection_changed();
 
     // Add object to the list
     void add_object_to_list(size_t obj_idx);
