@@ -578,11 +578,6 @@ sla::PoolConfig make_pool_config(const SLAPrintObjectConfig& c) {
 
     return pcfg;
 }
-
-void swapXY(ExPolygon& expoly) {
-    for(auto& p : expoly.contour.points) std::swap(p(X), p(Y));
-    for(auto& h : expoly.holes) for(auto& p : h.points) std::swap(p(X), p(Y));
-}
 }
 
 std::string SLAPrint::validate() const
@@ -1008,13 +1003,7 @@ void SLAPrint::process()
             return libnest2d::clipper_execute(clipper, ClipperLib::ctDifference, mode, mode);
         };
 
-        auto area = [](const ClipperPolygon& poly)
-        {
-            using ClipperLib::Area;
-            return std::accumulate( poly.Holes.begin(), poly.Holes.end(),
-                                        Area(poly.Contour),
-                                        [](double a, const ClipperPath& p) { return a + Area(p); });
-        };
+        auto area = [](const ClipperPolygon& poly) { return - sl::area(poly); };
 
         const double area_fill          = m_printer_config.area_fill.getFloat()*0.01;// 0.5 (50%);
         const double fast_tilt          = m_printer_config.fast_tilt_time.getFloat();// 5.0;
