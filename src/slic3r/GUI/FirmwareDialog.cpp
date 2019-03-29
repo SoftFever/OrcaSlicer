@@ -155,8 +155,7 @@ struct FirmwareDialog::priv
 	void flashing_done(AvrDudeComplete complete);
 	void enable_port_picker(bool enable);
 	void load_hex_file(const wxString &path);
-	void queue_status(wxString message);
-	void queue_error(const wxString &message);
+	void queue_event(AvrdudeEvent aevt, wxString message);
 
 	bool ask_model_id_mismatch(const std::string &printer_model);
 	bool check_model_id();
@@ -173,6 +172,21 @@ struct FirmwareDialog::priv
 	void on_avrdude(const wxCommandEvent &evt);
 	void on_async_dialog(const wxCommandEvent &evt);
 	void ensure_joined();
+
+	void queue_status(wxString message) { queue_event(AE_STATUS, std::move(message)); }
+
+	template<class ...Args> void queue_message(const wxString &format, Args... args) {
+		auto message = wxString::Format(format, args...);
+		BOOST_LOG_TRIVIAL(info) << message;
+		message.Append('\n');
+		queue_event(AE_MESSAGE, std::move(message));
+	}
+
+	template<class ...Args> void queue_error(const wxString &format, Args... args) {
+		queue_message(format, args...);
+		queue_event(AE_STATUS, _(L("Flashing failed: ")) + wxString::Format(format, args...));
+		avrdude->cancel();
+	}
 
 	static const char* avr109_dev_name(Avr109Pid usb_pid);
 };
@@ -274,21 +288,12 @@ void FirmwareDialog::priv::load_hex_file(const wxString &path)
 	enable_port_picker(! auto_lookup);
 }
 
-void FirmwareDialog::priv::queue_status(wxString message)
+void FirmwareDialog::priv::queue_event(AvrdudeEvent aevt, wxString message)
 {
 	auto evt = new wxCommandEvent(EVT_AVRDUDE, this->q->GetId());
-	evt->SetExtraLong(AE_STATUS);
+	evt->SetExtraLong(aevt);
 	evt->SetString(std::move(message));
 	wxQueueEvent(this->q, evt);
-}
-
-void FirmwareDialog::priv::queue_error(const wxString &message)
-{
-	auto evt = new wxCommandEvent(EVT_AVRDUDE, this->q->GetId());
-	evt->SetExtraLong(AE_STATUS);
-	evt->SetString(wxString::Format(_(L("Flashing failed: %s")), message));
-
-	wxQueueEvent(this->q, evt);	avrdude->cancel();
 }
 
 bool FirmwareDialog::priv::ask_model_id_mismatch(const std::string &printer_model)
@@ -386,9 +391,8 @@ void FirmwareDialog::priv::avr109_wait_for_bootloader(Avr109Pid usb_pid, unsigne
 			port = ports[0];
 			return;
 		} else if (ports.size() > 1) {
-			BOOST_LOG_TRIVIAL(error) << boost::format("Several VID/PID 0x2c99/%1% devices found") % usb_pid.boot;
-			queue_error(wxString::Format(
-				_(L("Multiple %s devices found. Please only connect one at a time for flashing.")), avr109_dev_name(usb_pid)));
+			queue_message("Several VID/PID 0x2c99/%u devices found", usb_pid.boot);
+			queue_error(_(L("Multiple %s devices found. Please only connect one at a time for flashing.")), avr109_dev_name(usb_pid));
 			return;
 		}
 	}
@@ -409,10 +413,7 @@ void FirmwareDialog::priv::avr109_lookup_port(Avr109Pid usb_pid)
 			"If the device is connected, please press the Reset button next to the USB connector ...")),
 		dev_name);
 
-	BOOST_LOG_TRIVIAL(info) << boost::format("Flashing %1%, looking for VID/PID 0x2c99/%2% or 0x2c99/%3% ...")
-		% dev_name
-		% usb_pid.boot
-		% usb_pid.app;
+	queue_message("Flashing %s, looking for VID/PID 0x2c99/%u or 0x2c99/%u ...", dev_name, usb_pid.boot, usb_pid.app);
 
 	auto ports = Utils::scan_serial_ports_extended();
 	ports.erase(std::remove_if(ports.begin(), ports.end(), [=](const SerialPortInfo &port ) {
@@ -422,22 +423,22 @@ void FirmwareDialog::priv::avr109_lookup_port(Avr109Pid usb_pid)
 	}), ports.end());
 
 	if (ports.size() == 0) {
-		BOOST_LOG_TRIVIAL(info) << "Device not found, asking the user to press Reset and waiting for the device to show up ...";
+		queue_message("The %s device was not found.", dev_name);
 		queue_status(msg_not_found);
 		avr109_wait_for_bootloader(usb_pid, 30);
 	} else if (ports.size() > 1) {
-		BOOST_LOG_TRIVIAL(error) << boost::format("Several VID/PID 0x2c99/%1% devices found") % usb_pid.boot;
-		queue_error(wxString::Format(_(L("Multiple %s devices found. Please only connect one at a time for flashing.")), dev_name));
+		queue_message("Several VID/PID 0x2c99/%u devices found", usb_pid.boot);
+		queue_error(_(L("Multiple %s devices found. Please only connect one at a time for flashing.")), dev_name);
 	} else {
 		if (ports[0].id_product == usb_pid.app) {
 			// The device needs to be rebooted into the bootloader mode
-			BOOST_LOG_TRIVIAL(info) << boost::format("Found VID/PID 0x2c99/%1% at `%2%`, rebooting the device ...") % usb_pid.app % ports[0].port;
+			queue_message("Found VID/PID 0x2c99/%u at `%s`, rebooting the device ...", usb_pid.app, ports[0].port);
 			avr109_reboot(ports[0]);
 			avr109_wait_for_bootloader(usb_pid, 10);
 
 			if (! port) {
 				// The device in bootloader mode was not found, inform the user and wait some more...
-				BOOST_LOG_TRIVIAL(info) << boost::format("%1% device not found after reboot, asking the user to press Reset and waiting for the device to show up ...") % dev_name;
+				queue_message("%s device not found after reboot", dev_name);
 				queue_status(msg_not_found);
 				avr109_wait_for_bootloader(usb_pid, 30);
 			}
@@ -521,11 +522,11 @@ void FirmwareDialog::priv::prepare_avr109(Avr109Pid usb_pid)
 	port = boost::none;
 	avr109_lookup_port(usb_pid);
 	if (! port) {
-		queue_error(wxString::Format(_(L("The %s device could not have been found")), avr109_dev_name(usb_pid)));
+		queue_error(_(L("The %s device could not have been found")), avr109_dev_name(usb_pid));
 		return;
 	}
 
-	BOOST_LOG_TRIVIAL(info) << boost::format("Found VID/PID 0x2c99/%1% at `%2%`, flashing ...") % usb_pid.boot % port->port;
+	queue_message("Found VID/PID 0x2c99/%u at `%s`, flashing ...", usb_pid.boot, port->port);
 	queue_status(label_status_flashing);
 
 	std::vector<std::string> args {{
@@ -599,9 +600,9 @@ void FirmwareDialog::priv::perform_upload()
 				}
 			} catch (const std::exception &ex) {
 				if (port) {
-					queue_error(wxString::Format(_(L("Error accessing port at %s: %s")), port->port, ex.what()));
+					queue_error(_(L("Error accessing port at %s: %s")), port->port, ex.what());
 				} else {
-					queue_error(wxString::Format(_(L("Error: %s")), ex.what()));
+					queue_error(_(L("Error: %s")), ex.what());
 				}
 			}
 		})
@@ -796,7 +797,7 @@ FirmwareDialog::FirmwareDialog(wxWindow *parent) :
 
 	vsizer->Add(grid, 0, wxEXPAND | wxTOP | wxBOTTOM, SPACING);
 
-	p->spoiler = new wxCollapsiblePane(panel, wxID_ANY, _(L("Advanced: avrdude output log")), wxDefaultPosition, wxDefaultSize, wxCP_DEFAULT_STYLE | wxCP_NO_TLW_RESIZE);
+	p->spoiler = new wxCollapsiblePane(panel, wxID_ANY, _(L("Advanced: Output log")), wxDefaultPosition, wxDefaultSize, wxCP_DEFAULT_STYLE | wxCP_NO_TLW_RESIZE);
 	auto *spoiler_pane = p->spoiler->GetPane();
 	auto *spoiler_sizer = new wxBoxSizer(wxVERTICAL);
 	p->txt_stdout = new wxTextCtrl(spoiler_pane, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxTE_READONLY);
