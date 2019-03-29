@@ -22,6 +22,7 @@ class ImGuiWrapper
 
     FontsMap m_fonts;
     const ImWchar *m_glyph_ranges;
+    float m_font_size;
     unsigned m_font_texture;
     float m_style_scaling;
     unsigned m_mouse_buttons;
@@ -30,10 +31,9 @@ class ImGuiWrapper
     std::string m_clipboard_text;
 
 public:
-    ImGuiWrapper();
+    ImGuiWrapper(float font_size);
     ~ImGuiWrapper();
 
-    bool init();
     void read_glsl_version();
 
     void set_language(const std::string &language);
@@ -73,7 +73,7 @@ public:
     bool want_any_input() const;
 
 private:
-    void init_default_font(float scaling);
+    void init_default_font();
     void create_device_objects();
     void create_fonts_texture();
     void init_input();

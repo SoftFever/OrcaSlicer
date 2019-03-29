@@ -81,7 +81,7 @@ IMPLEMENT_APP(GUI_App)
 GUI_App::GUI_App()
     : wxApp()
     , m_em_unit(10)
-    , m_imgui(new ImGuiWrapper())
+    , m_imgui(nullptr)
 {}
 
 bool GUI_App::OnInit()
@@ -90,7 +90,6 @@ bool GUI_App::OnInit()
     const wxString resources_dir = from_u8(Slic3r::resources_dir());
     wxCHECK_MSG(wxDirExists(resources_dir), false,
         wxString::Format("Resources path does not exist or is not a directory: %s", resources_dir));
-    wxCHECK_MSG(m_imgui->init(), false, "Failed to initialize ImGui");
 
     SetAppName("Slic3rPE-beta");
     SetAppDisplayName("Slic3r Prusa Edition");
@@ -136,6 +135,11 @@ bool GUI_App::OnInit()
         app_config->save();
     });
 
+    // initialize label colors and fonts
+    init_label_colours();
+    init_fonts();
+    m_imgui.reset(new ImGuiWrapper(m_normal_font.GetPixelSize().y));
+
     load_language();
 
     // Suppress the '- default -' presets.
@@ -148,9 +152,6 @@ bool GUI_App::OnInit()
 
     // Let the libslic3r know the callback, which will translate messages on demand.
     Slic3r::I18N::set_translate_callback(libslic3r_translate_callback);
-    // initialize label colors and fonts
-    init_label_colours();
-    init_fonts();
 
     // application frame
     if (wxImage::FindHandler(wxBITMAP_TYPE_PNG) == nullptr)
