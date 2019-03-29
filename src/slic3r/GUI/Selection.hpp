@@ -133,10 +133,12 @@ private:
         const Transform3d& get_instance_full_matrix() const { return m_instance.full_matrix; }
     };
 
+public:
     typedef std::map<unsigned int, VolumeCache> VolumesCache;
     typedef std::set<int> InstanceIdxsList;
     typedef std::map<int, InstanceIdxsList> ObjectIdxsToInstanceIdxsMap;
 
+private:
     struct Cache
     {
         // Cache of GLVolume derived transformation matrices, valid during mouse dragging.
