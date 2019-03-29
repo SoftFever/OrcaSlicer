@@ -1143,7 +1143,7 @@ void SLAPrint::process()
             for (const ClipperPolygon& polygon : supports_polygons)
                 layer_support_area += area(polygon);
 
-            if (layer_support_area < 0 || layer_model_area > 0)
+            if (layer_support_area < 0 || layer_support_area > 0)
                 supports_volume += layer_support_area * l_height;
 
             // Here we can save the expensively calculated polygons for printing

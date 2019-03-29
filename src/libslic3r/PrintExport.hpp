@@ -224,7 +224,7 @@ public:
 
     inline void draw_polygon(const ClipperLib::Polygon& p, unsigned lyr) {
         assert(lyr < m_layers_rst.size());
-        m_layers_rst[lyr].first.draw(p);
+        m_layers_rst[lyr].raster.draw(p);
     }
 
     inline void begin_layer(unsigned lyr) {
