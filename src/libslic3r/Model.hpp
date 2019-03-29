@@ -420,12 +420,6 @@ private:
     TriangleMesh             m_convex_hull;
     Geometry::Transformation m_transformation;
 
-    // flag to optimize the checking if the volume is splittable
-    //     -1   ->   is unknown value (before first cheking)
-    //      0   ->   is not splittable
-    //      1   ->   is splittable
-    mutable int               m_is_splittable{ -1 };
-
 	ModelVolume(ModelObject *object, const TriangleMesh &mesh) : mesh(mesh), m_type(ModelVolumeType::MODEL_PART), object(object)
     {
         if (mesh.stl.stats.number_of_facets > 1)

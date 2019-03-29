@@ -339,19 +339,6 @@ void TriangleMesh::rotate(double angle, Point* center)
 }
 
 /**
- * Calculates whether or not the mesh is splittable.
- */
-bool TriangleMesh::is_splittable() const
-{
-    std::vector<bool> visited;
-    find_unvisited_neighbors(visited);
-
-    // Try finding an unvisited facet. If there are none, the mesh is not splittable.
-    auto it = std::find(visited.begin(), visited.end(), false);
-    return it != visited.end();
-}
-
-/**
  * Visit all unvisited neighboring facets that are reachable from the first unvisited facet,
  * and return them.
  * 

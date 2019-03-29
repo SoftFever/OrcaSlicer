@@ -68,7 +68,6 @@ public:
     size_t facets_count() const { return this->stl.stats.number_of_facets; }
     bool   empty() const { return this->facets_count() == 0; }
 
-    bool is_splittable() const;
     std::deque<uint32_t> find_unvisited_neighbors(std::vector<bool> &facet_visited) const;
 
     stl_file stl;

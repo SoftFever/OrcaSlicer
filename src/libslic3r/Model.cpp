@@ -1467,11 +1467,7 @@ int ModelVolume::extruder_id() const
 
 bool ModelVolume::is_splittable() const
 {
-    // the call mesh.is_splittable() is expensive, so cache the value to calculate it only once
-    if (m_is_splittable == -1)
-        m_is_splittable = (int)mesh.is_splittable();
-
-    return m_is_splittable == 1;
+    return mesh.stl.stats.number_of_parts > 1;
 }
 
 void ModelVolume::center_geometry()
