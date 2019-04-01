@@ -2,6 +2,7 @@
 #define slic3r_Camera_hpp_
 
 #include "libslic3r/BoundingBox.hpp"
+#include <array>
 
 namespace Slic3r {
 namespace GUI {
