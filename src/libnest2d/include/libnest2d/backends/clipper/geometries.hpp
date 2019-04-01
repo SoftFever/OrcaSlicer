@@ -331,8 +331,15 @@ inline std::vector<PolygonImpl> clipper_execute(
 
     auto processPoly = [&retv, &processHole](ClipperLib::PolyNode *pptr) {
         PolygonImpl poly;
-        poly.Contour.swap(pptr->Contour); auto front_p = poly.Contour.front();
-        poly.Contour.emplace_back(std::move(front_p));
+        poly.Contour.swap(pptr->Contour);
+
+        assert(!pptr->IsHole());
+
+        if(pptr->IsOpen()) {
+            auto front_p = poly.Contour.front();
+            poly.Contour.emplace_back(front_p);
+        }
+
         for(auto h : pptr->Childs) { processHole(h, poly); }
         retv.push_back(poly);
     };
@@ -340,8 +347,14 @@ inline std::vector<PolygonImpl> clipper_execute(
     processHole = [&processPoly](ClipperLib::PolyNode *pptr, PolygonImpl& poly)
     {
         poly.Holes.emplace_back(std::move(pptr->Contour));
-        auto front_p = poly.Holes.back().front();
-        poly.Holes.back().emplace_back(std::move(front_p));
+
+        assert(pptr->IsHole());
+
+        if(pptr->IsOpen()) {
+            auto front_p = poly.Holes.back().front();
+            poly.Holes.back().emplace_back(front_p);
+        }
+
         for(auto c : pptr->Childs) processPoly(c);
     };
 

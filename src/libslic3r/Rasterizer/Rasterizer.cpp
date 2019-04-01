@@ -71,15 +71,40 @@ public:
         clear();
     }
 
-    template<class Geometry> inline void draw(const Geometry &poly) {
+    void draw(const ExPolygon &poly) {
         agg::rasterizer_scanline_aa<> ras;
         agg::scanline_p8 scanlines;
 
-        auto&& path = to_path(poly);
+        auto&& path = to_path(poly.contour);
 
         if(m_o == Origin::TOP_LEFT) flipy(path);
 
         ras.add_path(path);
+
+        for(auto h : poly.holes) {
+            auto&& holepath = to_path(h);
+            if(m_o == Origin::TOP_LEFT) flipy(holepath);
+            ras.add_path(holepath);
+        }
+
+        agg::render_scanlines(ras, scanlines, m_renderer);
+    }
+
+    void draw(const ClipperLib::Polygon &poly) {
+        agg::rasterizer_scanline_aa<> ras;
+        agg::scanline_p8 scanlines;
+
+        auto&& path = to_path(poly.Contour);
+
+        if(m_o == Origin::TOP_LEFT) flipy(path);
+
+        ras.add_path(path);
+
+        for(auto h : poly.Holes) {
+            auto&& holepath = to_path(h);
+            if(m_o == Origin::TOP_LEFT) flipy(holepath);
+            ras.add_path(holepath);
+        }
 
         agg::render_scanlines(ras, scanlines, m_renderer);
     }
@@ -186,14 +211,12 @@ void Raster::clear()
 
 void Raster::draw(const ExPolygon &expoly)
 {
-    m_impl->draw(expoly.contour);
-    for(auto& h : expoly.holes) m_impl->draw(h);
+    m_impl->draw(expoly);
 }
 
 void Raster::draw(const ClipperLib::Polygon &poly)
 {
-    m_impl->draw(poly.Contour);
-    for(auto& h : poly.Holes) m_impl->draw(h);
+    m_impl->draw(poly);
 }
 
 void Raster::save(std::ostream& stream, Compression comp)

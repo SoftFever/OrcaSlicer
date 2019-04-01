@@ -1084,9 +1084,15 @@ void SLAPrint::process()
         SpinMutex mutex;
         using Lock = std::lock_guard<SpinMutex>;
 
-//        for (PrintLayer& layer : m_printer_input)
-        auto printlayerfn = [this, get_all_polygons, polyunion, polydiff, areafn, area_fill, display_area, exp_time, init_exp_time, fast_tilt, slow_tilt, delta_fade_time,
-                            &mutex, &models_volume, &supports_volume, &estim_time, &slow_layers, &fast_layers, &fade_layer_time](size_t sliced_layer_cnt)
+        // Going to parallel:
+        auto printlayerfn = [this,
+                // functions and read only vars
+                get_all_polygons, polyunion, polydiff, areafn,
+                area_fill, display_area, exp_time, init_exp_time, fast_tilt, slow_tilt, delta_fade_time,
+
+                // write vars
+                &mutex, &models_volume, &supports_volume, &estim_time, &slow_layers,
+                &fast_layers, &fade_layer_time](size_t sliced_layer_cnt)
         {
             PrintLayer& layer = m_printer_input[sliced_layer_cnt];
 
@@ -1141,9 +1147,9 @@ void SLAPrint::process()
             }
 
             if(!supports_polygons.empty()) {
-                /*if(model_polygons.empty()) */supports_polygons = polyunion(supports_polygons);
-                /*else */ if(!model_polygons.empty())supports_polygons = polydiff(supports_polygons, model_polygons);
-                // allegedly, union of subject is done withing the diff
+                if(model_polygons.empty()) supports_polygons = polyunion(supports_polygons);
+                else supports_polygons = polydiff(supports_polygons, model_polygons);
+                // allegedly, union of subject is done withing the diff according to the pftPositive polyFillType
             }
 
             double layer_support_area = 0;
@@ -1190,8 +1196,9 @@ void SLAPrint::process()
             }
         };
 
-        for(size_t i = 0; i < m_printer_input.size(); ++i) printlayerfn(i);
-//        tbb::parallel_for<size_t, decltype(printlayerfn)>(0, m_printer_input.size(), printlayerfn);
+        // sequential version for debugging:
+        // for(size_t i = 0; i < m_printer_input.size(); ++i) printlayerfn(i);
+        tbb::parallel_for<size_t, decltype(printlayerfn)>(0, m_printer_input.size(), printlayerfn);
 
         m_print_statistics.support_used_material = supports_volume * SCALING_FACTOR * SCALING_FACTOR;
         m_print_statistics.objects_used_material = models_volume  * SCALING_FACTOR * SCALING_FACTOR;
