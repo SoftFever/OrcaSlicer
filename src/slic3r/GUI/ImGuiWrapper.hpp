@@ -35,8 +35,7 @@ public:
 
     void set_language(const std::string &language);
     void set_display_size(float w, float h);
-    void set_font_size(float font_size);
-    void set_style_scaling(float scaling);
+    void set_scaling(float font_size, float scaling);
     bool update_mouse_data(wxMouseEvent &evt);
     bool update_key_data(wxKeyEvent &evt);
 
@@ -47,7 +46,8 @@ public:
     void render();
 
     float scaled(float x) const { return x * m_font_size * m_style_scaling; }
-    ImVec2 scaled_vec(float x, float y) const { return ImVec2(x * m_font_size * m_style_scaling, y * m_font_size * m_style_scaling); }
+    ImVec2 scaled(float x, float y) const { return ImVec2(x * m_font_size * m_style_scaling, y * m_font_size * m_style_scaling); }
+    ImVec2 calc_text_size(const wxString &text);
 
     void set_next_window_pos(float x, float y, int flag);
     void set_next_window_bg_alpha(float alpha);
@@ -65,8 +65,6 @@ public:
     void text(const std::string &label);
     void text(const wxString &label);
     bool combo(const wxString& label, const std::vector<std::string>& options, int& selection);   // Use -1 to not mark any option as selected
-
-    ImVec2 calc_text_size(const wxString &text);
 
     void disabled_begin(bool disabled);
     void disabled_end();
