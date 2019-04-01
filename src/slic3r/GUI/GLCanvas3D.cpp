@@ -380,7 +380,7 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
 
 float GLCanvas3D::LayersEditing::get_cursor_z_relative(const GLCanvas3D& canvas)
 {
-    const Point& mouse_pos = canvas.get_local_mouse_position();
+    const Vec2d mouse_pos = canvas.get_local_mouse_position();
     const Rect& rect = get_bar_rect_screen(canvas);
     float x = (float)mouse_pos(0);
     float y = (float)mouse_pos(1);
@@ -3915,19 +3915,25 @@ Size GLCanvas3D::get_canvas_size() const
     w *= factor;
     h *= factor;
 #else
-    const float factor = 1.0;
+    const float factor = 1.0f;
 #endif
 
     return Size(w, h, factor);
 }
 
-Point GLCanvas3D::get_local_mouse_position() const
+Vec2d GLCanvas3D::get_local_mouse_position() const
 {
     if (m_canvas == nullptr)
-        return Point();
+		return Vec2d::Zero();
 
     wxPoint mouse_pos = m_canvas->ScreenToClient(wxGetMousePosition());
-    return Point(mouse_pos.x, mouse_pos.y);
+    const double factor = 
+#if ENABLE_RETINA_GL
+        m_retina_helper->get_scale_factor();
+#else
+        1.0;
+#endif
+    return Vec2d(factor * mouse_pos.x, factor * mouse_pos.y);
 }
 
 void GLCanvas3D::reset_legend_texture()
