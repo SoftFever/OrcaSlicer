@@ -347,9 +347,7 @@ inline std::vector<PolygonImpl> clipper_execute(
 
     auto traverse = [&processPoly] (ClipperLib::PolyNode *node)
     {
-        for(auto ch : node->Childs) {
-            processPoly(ch);
-        }
+        for(auto ch : node->Childs) processPoly(ch);
     };
 
     traverse(&result);

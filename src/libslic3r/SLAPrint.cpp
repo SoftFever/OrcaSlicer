@@ -956,16 +956,15 @@ void SLAPrint::process()
 
         m_print_statistics.clear();
 
-        using ClipperPolygon = libnest2d::PolygonImpl;
-        using ClipperPath   = ClipperLib::Path;
         using ClipperPoint  = ClipperLib::IntPoint;
+        using ClipperPolygon = ClipperLib::Polygon; // see clipper_polygon.hpp in libnest2d
         using ClipperPolygons = std::vector<ClipperPolygon>;
-        using libnest2d::Radians;
-        namespace sl = libnest2d::shapelike;
+        namespace sl = libnest2d::shapelike;    // For algorithms
 
         // If the raster has vertical orientation, we will flip the coordinates
         bool flpXY = m_printer_config.display_orientation.getInt() == SLADisplayOrientation::sladoPortrait;
 
+        // Set up custom union and diff functions for clipper polygons
         auto polyunion = [] (const ClipperPolygons& subjects)
         {
             ClipperLib::Clipper clipper;
@@ -1003,7 +1002,8 @@ void SLAPrint::process()
             return libnest2d::clipper_execute(clipper, ClipperLib::ctDifference, mode, mode);
         };
 
-        auto area = [](const ClipperPolygon& poly) { return - sl::area(poly); };
+        // libnest calculates positive area for clockwise polygons, Slic3r is in counter-clockwise
+        auto areafn = [](const ClipperPolygon& poly) { return - sl::area(poly); };
 
         const double area_fill          = m_printer_config.area_fill.getFloat()*0.01;// 0.5 (50%);
         const double fast_tilt          = m_printer_config.fast_tilt_time.getFloat();// 5.0;
@@ -1051,7 +1051,7 @@ void SLAPrint::process()
                         auto pfirst = hole.front(); hole.emplace_back(pfirst);
                     }
 
-                    sl::rotate(poly, Radians(double(instances[i].rotation)));
+                    sl::rotate(poly, double(instances[i].rotation));
                     sl::translate(poly, ClipperPoint{instances[i].shift(X),
                                                      instances[i].shift(Y)});
                     if (flpXY) {
@@ -1070,10 +1070,10 @@ void SLAPrint::process()
             return polygons;
         };
 
-        double supports_volume = 0.0;
-        double models_volume = 0.0;
+        double supports_volume(0.0);
+        double models_volume(0.0);
 
-        double estim_time = 0.0;
+        double estim_time(0.0);
 
         size_t slow_layers = 0;
         size_t fast_layers = 0;
@@ -1081,16 +1081,22 @@ void SLAPrint::process()
         const double delta_fade_time = (init_exp_time - exp_time) / (fade_layers_cnt + 1);
         double fade_layer_time = init_exp_time;
 
-        int sliced_layer_cnt = 0;
-        for (PrintLayer& layer : m_printer_input)
-        {
-            // vector of slice record references
-            auto& lyrslices = layer.slices();
+        SpinMutex mutex;
+        using Lock = std::lock_guard<SpinMutex>;
 
-            if(lyrslices.empty()) continue;
+//        for (PrintLayer& layer : m_printer_input)
+        auto printlayerfn = [this, get_all_polygons, polyunion, polydiff, areafn, area_fill, display_area, exp_time, init_exp_time, fast_tilt, slow_tilt, delta_fade_time,
+                            &mutex, &models_volume, &supports_volume, &estim_time, &slow_layers, &fast_layers, &fade_layer_time](size_t sliced_layer_cnt)
+        {
+            PrintLayer& layer = m_printer_input[sliced_layer_cnt];
+
+            // vector of slice record references
+            auto& slicerecord_references = layer.slices();
+
+            if(slicerecord_references.empty()) return;
 
             // Layer height should match for all object slices for a given level.
-            const auto l_height = double(lyrslices.front().get().layer_height());
+            const auto l_height = double(slicerecord_references.front().get().layer_height());
 
             // Calculation of the consumed material
 
@@ -1128,23 +1134,25 @@ void SLAPrint::process()
             model_polygons = polyunion(model_polygons);
             double layer_model_area = 0;
             for (const ClipperPolygon& polygon : model_polygons)
-                layer_model_area += area(polygon);
+                layer_model_area += areafn(polygon);
 
-            if (layer_model_area < 0 || layer_model_area > 0)
-                models_volume += layer_model_area * l_height;
+            if (layer_model_area < 0 || layer_model_area > 0) {
+                Lock lck(mutex); models_volume += layer_model_area * l_height;
+            }
 
             if(!supports_polygons.empty()) {
-                if(model_polygons.empty()) supports_polygons = polyunion(supports_polygons);
-                else supports_polygons = polydiff(supports_polygons, model_polygons);
+                /*if(model_polygons.empty()) */supports_polygons = polyunion(supports_polygons);
+                /*else */ if(!model_polygons.empty())supports_polygons = polydiff(supports_polygons, model_polygons);
                 // allegedly, union of subject is done withing the diff
             }
 
             double layer_support_area = 0;
             for (const ClipperPolygon& polygon : supports_polygons)
-                layer_support_area += area(polygon);
+                layer_support_area += areafn(polygon);
 
-            if (layer_support_area < 0 || layer_support_area > 0)
-                supports_volume += layer_support_area * l_height;
+            if (layer_support_area < 0 || layer_support_area > 0) {
+                Lock lck(mutex); supports_volume += layer_support_area * l_height;
+            }
 
             // Here we can save the expensively calculated polygons for printing
             ClipperPolygons trslices;
@@ -1158,28 +1166,32 @@ void SLAPrint::process()
 
             const bool is_fast_layer = (layer_model_area + layer_support_area) <= display_area*area_fill;
             const double tilt_time = is_fast_layer ? fast_tilt : slow_tilt;
-            if (is_fast_layer)
-                fast_layers++;
-            else
-                slow_layers++;
+
+            { Lock lck(mutex);
+                if (is_fast_layer)
+                    fast_layers++;
+                else
+                    slow_layers++;
 
 
-            // Calculation of the printing time
+                // Calculation of the printing time
 
-            if (sliced_layer_cnt < 3)
-                estim_time += init_exp_time;
-            else if (fade_layer_time > exp_time)
-            {
-                fade_layer_time -= delta_fade_time;
-                estim_time += fade_layer_time;
+                if (sliced_layer_cnt < 3)
+                    estim_time += init_exp_time;
+                else if (fade_layer_time > exp_time)
+                {
+                    fade_layer_time -= delta_fade_time;
+                    estim_time += fade_layer_time;
+                }
+                else
+                    estim_time += exp_time;
+
+                estim_time += tilt_time;
             }
-            else
-                estim_time += exp_time;
+        };
 
-            estim_time += tilt_time;
-
-            sliced_layer_cnt++;
-        }
+        for(size_t i = 0; i < m_printer_input.size(); ++i) printlayerfn(i);
+//        tbb::parallel_for<size_t, decltype(printlayerfn)>(0, m_printer_input.size(), printlayerfn);
 
         m_print_statistics.support_used_material = supports_volume * SCALING_FACTOR * SCALING_FACTOR;
         m_print_statistics.objects_used_material = models_volume  * SCALING_FACTOR * SCALING_FACTOR;
