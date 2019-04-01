@@ -544,7 +544,7 @@ public:
     void on_paint(wxPaintEvent& evt);
 
     Size get_canvas_size() const;
-    Point get_local_mouse_position() const;
+    Vec2d get_local_mouse_position() const;
 
     void reset_legend_texture();
 
