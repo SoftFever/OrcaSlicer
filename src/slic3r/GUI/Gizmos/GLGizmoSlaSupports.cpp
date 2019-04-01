@@ -273,17 +273,15 @@ std::pair<Vec3f, Vec3f> GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse
     if (m_V.size() == 0)
         update_mesh();
 
-    Eigen::Matrix<GLint, 4, 1, Eigen::DontAlign> viewport;
-    glsafe(::glGetIntegerv(GL_VIEWPORT, viewport.data()));
-    Eigen::Matrix<GLdouble, 4, 4, Eigen::DontAlign> modelview_matrix;
-    glsafe(::glGetDoublev(GL_MODELVIEW_MATRIX, modelview_matrix.data()));
-    Eigen::Matrix<GLdouble, 4, 4, Eigen::DontAlign> projection_matrix;
-    glsafe(::glGetDoublev(GL_PROJECTION_MATRIX, projection_matrix.data()));
+    const Camera& camera = m_parent.get_camera();
+    const std::array<int, 4>& viewport = camera.get_viewport();
+    const Transform3d& modelview_matrix = camera.get_view_matrix();
+    const Transform3d& projection_matrix = camera.get_projection_matrix();
 
     Vec3d point1;
     Vec3d point2;
-    ::gluUnProject(mouse_pos(0), viewport(3)-mouse_pos(1), 0.f, modelview_matrix.data(), projection_matrix.data(), viewport.data(), &point1(0), &point1(1), &point1(2));
-    ::gluUnProject(mouse_pos(0), viewport(3)-mouse_pos(1), 1.f, modelview_matrix.data(), projection_matrix.data(), viewport.data(), &point2(0), &point2(1), &point2(2));
+    ::gluUnProject(mouse_pos(0), viewport[3] - mouse_pos(1), 0.f, modelview_matrix.data(), projection_matrix.data(), viewport.data(), &point1(0), &point1(1), &point1(2));
+    ::gluUnProject(mouse_pos(0), viewport[3] - mouse_pos(1), 1.f, modelview_matrix.data(), projection_matrix.data(), viewport.data(), &point2(0), &point2(1), &point2(2));
 
     igl::Hit hit;
 
@@ -365,12 +363,10 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         // left up with selection rectangle - select points inside the rectangle:
         if ((action == SLAGizmoEventType::LeftUp || action == SLAGizmoEventType::ShiftUp) && m_selection_rectangle_active) {
             const Transform3d& instance_matrix = m_model_object->instances[m_active_instance]->get_transformation().get_matrix();
-            GLint viewport[4];
-            glsafe(::glGetIntegerv(GL_VIEWPORT, viewport));
-            GLdouble modelview_matrix[16];
-            glsafe(::glGetDoublev(GL_MODELVIEW_MATRIX, modelview_matrix));
-            GLdouble projection_matrix[16];
-            glsafe(::glGetDoublev(GL_PROJECTION_MATRIX, projection_matrix));
+            const Camera& camera = m_parent.get_camera();
+            const std::array<int, 4>& viewport = camera.get_viewport();
+            const Transform3d& modelview_matrix = camera.get_view_matrix();
+            const Transform3d& projection_matrix = camera.get_projection_matrix();
 
             const Selection& selection = m_parent.get_selection();
             const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
@@ -381,7 +377,7 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 
             const Transform3d& instance_matrix_no_translation = volume->get_instance_transformation().get_matrix(true);
             // we'll recover current look direction from the modelview matrix (in world coords)...
-            Vec3f direction_to_camera(modelview_matrix[2], modelview_matrix[6], modelview_matrix[10]);
+            Vec3f direction_to_camera = camera.get_dir_forward().cast<float>();
             // ...and transform it to model coords.
             direction_to_camera = (instance_matrix_no_translation.inverse().cast<float>() * direction_to_camera).normalized().eval();
 
@@ -391,8 +387,8 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                 Vec3f pos = instance_matrix.cast<float>() * support_point.pos;
                 pos(2) += z_offset;
                   GLdouble out_x, out_y, out_z;
-                 ::gluProject((GLdouble)pos(0), (GLdouble)pos(1), (GLdouble)pos(2), modelview_matrix, projection_matrix, viewport, &out_x, &out_y, &out_z);
-                 out_y = m_canvas_height - out_y;
+                  ::gluProject((GLdouble)pos(0), (GLdouble)pos(1), (GLdouble)pos(2), (GLdouble*)modelview_matrix.data(), (GLdouble*)projection_matrix.data(), (GLint*)viewport.data(), &out_x, &out_y, &out_z);
+                  out_y = m_canvas_height - out_y;
 
                 if (rectangle.contains(Point(out_x, out_y))) {
                     bool is_obscured = false;

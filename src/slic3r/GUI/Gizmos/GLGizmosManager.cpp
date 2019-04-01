@@ -827,7 +827,7 @@ void GLGizmosManager::do_render_overlay(const GLCanvas3D& canvas, const Selectio
 
     float cnv_w = (float)canvas.get_canvas_size().get_width();
     float cnv_h = (float)canvas.get_canvas_size().get_height();
-    float zoom = canvas.get_camera_zoom();
+    float zoom = canvas.get_camera().zoom;
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
     float height = get_total_overlay_height();

@@ -464,8 +464,8 @@ public:
         int obj_idx, float pos_x, float pos_y, float width, float depth, float height, float rotation_angle, bool use_VBOs, bool size_unknown, float brim_width);
 
     // Render the volumes by OpenGL.
-	void render_VBOs(ERenderType type, bool disable_cullface, std::function<bool(const GLVolume&)> filter_func = std::function<bool(const GLVolume&)>()) const;
-    void render_legacy(ERenderType type, bool disable_cullface, std::function<bool(const GLVolume&)> filter_func = std::function<bool(const GLVolume&)>()) const;
+    void render_VBOs(ERenderType type, bool disable_cullface, const Transform3d& view_matrix, std::function<bool(const GLVolume&)> filter_func = std::function<bool(const GLVolume&)>()) const;
+    void render_legacy(ERenderType type, bool disable_cullface, const Transform3d& view_matrix, std::function<bool(const GLVolume&)> filter_func = std::function<bool(const GLVolume&)>()) const;
 
     // Finalize the initialization of the geometry & indices,
     // upload the geometry and indices to OpenGL VBO objects

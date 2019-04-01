@@ -56,15 +56,6 @@
 static const float TRACKBALLSIZE = 0.8f;
 static const float GROUND_Z = -0.02f;
 
-// phi / theta angles to orient the camera.
-static const float VIEW_DEFAULT[2] = { 45.0f, 45.0f };
-static const float VIEW_LEFT[2] = { 90.0f, 90.0f };
-static const float VIEW_RIGHT[2] = { -90.0f, 90.0f };
-static const float VIEW_TOP[2] = { 0.0f, 0.0f };
-static const float VIEW_BOTTOM[2] = { 0.0f, 180.0f };
-static const float VIEW_FRONT[2] = { 0.0f, 90.0f };
-static const float VIEW_REAR[2] = { 180.0f, 90.0f };
-
 static const float GIZMO_RESET_BUTTON_HEIGHT = 22.0f;
 static const float GIZMO_RESET_BUTTON_WIDTH = 70.f;
 
@@ -374,7 +365,7 @@ Rect GLCanvas3D::LayersEditing::get_bar_rect_viewport(const GLCanvas3D& canvas)
     float half_w = 0.5f * (float)cnv_size.get_width();
     float half_h = 0.5f * (float)cnv_size.get_height();
 
-    float zoom = canvas.get_camera_zoom();
+    float zoom = canvas.get_camera().zoom;
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
     return Rect((half_w - thickness_bar_width(canvas)) * inv_zoom, half_h * inv_zoom, half_w * inv_zoom, (-half_h + reset_button_height(canvas)) * inv_zoom);
@@ -386,7 +377,7 @@ Rect GLCanvas3D::LayersEditing::get_reset_rect_viewport(const GLCanvas3D& canvas
     float half_w = 0.5f * (float)cnv_size.get_width();
     float half_h = 0.5f * (float)cnv_size.get_height();
 
-    float zoom = canvas.get_camera_zoom();
+    float zoom = canvas.get_camera().zoom;
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
     return Rect((half_w - thickness_bar_width(canvas)) * inv_zoom, (-half_h + reset_button_height(canvas)) * inv_zoom, half_w * inv_zoom, -half_h * inv_zoom);
@@ -417,7 +408,7 @@ void GLCanvas3D::LayersEditing::_render_tooltip_texture(const GLCanvas3D& canvas
     const float width = (float)m_tooltip_texture.get_width() * scale;
     const float height = (float)m_tooltip_texture.get_height() * scale;
 
-    float zoom = canvas.get_camera_zoom();
+    float zoom = canvas.get_camera().zoom;
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
     float gap = 10.0f * inv_zoom;
 
@@ -871,7 +862,7 @@ void GLCanvas3D::WarningTexture::render(const GLCanvas3D& canvas) const
         glsafe(::glLoadIdentity());
 
         const Size& cnv_size = canvas.get_canvas_size();
-        float zoom = canvas.get_camera_zoom();
+        float zoom = canvas.get_camera().zoom;
         float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
         float left = (-0.5f * (float)m_original_width) * inv_zoom;
         float top = (-0.5f * (float)cnv_size.get_height() + (float)m_original_height + 2.0f) * inv_zoom;
@@ -1140,7 +1131,7 @@ void GLCanvas3D::LegendTexture::render(const GLCanvas3D& canvas) const
         glsafe(::glLoadIdentity());
 
         const Size& cnv_size = canvas.get_canvas_size();
-        float zoom = canvas.get_camera_zoom();
+        float zoom = canvas.get_camera().zoom;
         float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
         float left = (-0.5f * (float)cnv_size.get_width()) * inv_zoom;
         float top = (0.5f * (float)cnv_size.get_height()) * inv_zoom;
@@ -1424,11 +1415,6 @@ void GLCanvas3D::set_color_by(const std::string& value)
     m_color_by = value;
 }
 
-float GLCanvas3D::get_camera_zoom() const
-{
-    return m_camera.zoom;
-}
-
 BoundingBoxf3 GLCanvas3D::volumes_bounding_box() const
 {
     BoundingBoxf3 bb;
@@ -1542,30 +1528,8 @@ void GLCanvas3D::zoom_to_selection()
 
 void GLCanvas3D::select_view(const std::string& direction)
 {
-    const float* dir_vec = nullptr;
-
-    if (direction == "iso")
-        dir_vec = VIEW_DEFAULT;
-    else if (direction == "left")
-        dir_vec = VIEW_LEFT;
-    else if (direction == "right")
-        dir_vec = VIEW_RIGHT;
-    else if (direction == "top")
-        dir_vec = VIEW_TOP;
-    else if (direction == "bottom")
-        dir_vec = VIEW_BOTTOM;
-    else if (direction == "front")
-        dir_vec = VIEW_FRONT;
-    else if (direction == "rear")
-        dir_vec = VIEW_REAR;
-
-    if (dir_vec != nullptr)
-    {
-        m_camera.phi = dir_vec[0];
-        m_camera.set_theta(dir_vec[1], false);
-        if (m_canvas != nullptr)
-            m_canvas->Refresh();
-    }
+    if (m_camera.select_view(direction) && (m_canvas != nullptr))
+        m_canvas->Refresh();
 }
 
 void GLCanvas3D::update_volumes_colors_by_extruder()
@@ -1609,7 +1573,7 @@ void GLCanvas3D::render()
         m_camera.requires_zoom_to_bed = false;
     }
 
-    _camera_tranform();
+    m_camera.apply_view_matrix();
 
     GLfloat position_cam[4] = { 1.0f, 0.0f, 1.0f, 0.0f };
     glsafe(::glLightfv(GL_LIGHT1, GL_POSITION, position_cam));
@@ -2661,11 +2625,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     // vector from the starting position to the found intersection
                     Vec3d inters_vec = inters - m_mouse.drag.start_position_3D;
 
-                    // get the view matrix back from opengl
-                    GLfloat matrix[16];
-                    glsafe(::glGetFloatv(GL_MODELVIEW_MATRIX, matrix));
-                    Vec3d camera_right((double)matrix[0], (double)matrix[4], (double)matrix[8]);
-                    Vec3d camera_up((double)matrix[1], (double)matrix[5], (double)matrix[9]);
+                    Vec3d camera_right = m_camera.get_dir_right();
+                    Vec3d camera_up = m_camera.get_dir_up();
 
                     // finds projection of the vector along the camera axes
                     double projection_x = inters_vec.dot(camera_right);
@@ -3103,7 +3064,7 @@ void GLCanvas3D::do_mirror()
 void GLCanvas3D::set_camera_zoom(float zoom)
 {
     zoom = std::max(std::min(zoom, 4.0f), -4.0f) / 10.0f;
-    zoom = get_camera_zoom() / (1.0f - zoom);
+    zoom = m_camera.zoom / (1.0f - zoom);
 
     // Don't allow to zoom too far outside the scene.
     float zoom_min = _get_zoom_to_bounding_box_factor(_max_bounding_box());
@@ -3346,10 +3307,7 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
 
     // ensures that this canvas is current
     _set_current();
-    glsafe(::glViewport(0, 0, w, h));
-
-    glsafe(::glMatrixMode(GL_PROJECTION));
-    glsafe(::glLoadIdentity());
+    m_camera.apply_viewport(0, 0, w, h);
 
     const BoundingBoxf3& bbox = _max_bounding_box();
 
@@ -3359,7 +3317,7 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
     {
         float w2 = w;
         float h2 = h;
-        float two_zoom = 2.0f * get_camera_zoom();
+        float two_zoom = 2.0f * m_camera.zoom;
         if (two_zoom != 0.0f)
         {
             float inv_two_zoom = 1.0f / two_zoom;
@@ -3369,7 +3327,7 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
 
         // FIXME: calculate a tighter value for depth will improve z-fighting
         float depth = 5.0f * (float)bbox.max_size();
-        glsafe(::glOrtho(-w2, w2, -h2, h2, -depth, depth));
+        m_camera.apply_ortho_projection(-w2, w2, -h2, h2, -depth, depth);
 
         break;
     }
@@ -3401,8 +3359,6 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
         break;
     }
     }
-
-    glsafe(::glMatrixMode(GL_MODELVIEW));
 
     m_dirty = false;
 }
@@ -3437,16 +3393,11 @@ float GLCanvas3D::_get_zoom_to_bounding_box_factor(const BoundingBoxf3& bbox) co
     // then calculates the vertices coordinate on this plane along the camera xy axes
 
     // we need the view matrix, we let opengl calculate it (same as done in render())
-    _camera_tranform();
+    m_camera.apply_view_matrix();
 
-    // get the view matrix back from opengl
-    GLfloat matrix[16];
-    glsafe(::glGetFloatv(GL_MODELVIEW_MATRIX, matrix));
-
-    // camera axes
-    Vec3d right((double)matrix[0], (double)matrix[4], (double)matrix[8]);
-    Vec3d up((double)matrix[1], (double)matrix[5], (double)matrix[9]);
-    Vec3d forward((double)matrix[2], (double)matrix[6], (double)matrix[10]);
+    Vec3d right = m_camera.get_dir_right();
+    Vec3d up = m_camera.get_dir_up();
+    Vec3d forward = m_camera.get_dir_forward();
 
     Vec3d bb_min = bbox.min;
     Vec3d bb_max = bbox.max;
@@ -3505,17 +3456,6 @@ void GLCanvas3D::_refresh_if_shown_on_screen()
         // frequently enough, we call render() here directly when we can.
         render();
     }
-}
-
-void GLCanvas3D::_camera_tranform() const
-{
-    glsafe(::glMatrixMode(GL_MODELVIEW));
-    glsafe(::glLoadIdentity());
-
-    glsafe(::glRotatef(-m_camera.get_theta(), 1.0f, 0.0f, 0.0f)); // pitch
-    glsafe(::glRotatef(m_camera.phi, 0.0f, 0.0f, 1.0f));          // yaw
-    Vec3d target = -m_camera.get_target();
-    glsafe(::glTranslated(target(0), target(1), target(2)));
 }
 
 void GLCanvas3D::_picking_pass() const
@@ -3648,19 +3588,19 @@ void GLCanvas3D::_render_objects() const
         m_shader.start_using();
         if (m_picking_enabled && m_layers_editing.is_enabled() && m_layers_editing.last_object_id != -1) {
 			int object_id = m_layers_editing.last_object_id;
-			m_volumes.render_VBOs(GLVolumeCollection::Opaque, false, [object_id](const GLVolume &volume) {
+            m_volumes.render_VBOs(GLVolumeCollection::Opaque, false, m_camera.get_view_matrix(), [object_id](const GLVolume &volume) {
                 // Which volume to paint without the layer height profile shader?
-				return volume.is_active && (volume.is_modifier || volume.composite_id.object_id != object_id);
+                return volume.is_active && (volume.is_modifier || volume.composite_id.object_id != object_id);
             });
             // Let LayersEditing handle rendering of the active object using the layer height profile shader.
             m_layers_editing.render_volumes(*this, this->m_volumes);
         } else {
             // do not cull backfaces to show broken geometry, if any
-            m_volumes.render_VBOs(GLVolumeCollection::Opaque, m_picking_enabled, [this](const GLVolume& volume) {
+            m_volumes.render_VBOs(GLVolumeCollection::Opaque, m_picking_enabled, m_camera.get_view_matrix(), [this](const GLVolume& volume) {
                 return (m_render_sla_auxiliaries || volume.composite_id.volume_id >= 0);
             });
         }
-        m_volumes.render_VBOs(GLVolumeCollection::Transparent, false);
+        m_volumes.render_VBOs(GLVolumeCollection::Transparent, false, m_camera.get_view_matrix());
         m_shader.stop_using();
     }
     else
@@ -3674,10 +3614,10 @@ void GLCanvas3D::_render_objects() const
         }
 
         // do not cull backfaces to show broken geometry, if any
-        m_volumes.render_legacy(GLVolumeCollection::Opaque, m_picking_enabled, [this](const GLVolume& volume) {
-                return (m_render_sla_auxiliaries || volume.composite_id.volume_id >= 0);
-            });
-        m_volumes.render_legacy(GLVolumeCollection::Transparent, false);
+        m_volumes.render_legacy(GLVolumeCollection::Opaque, m_picking_enabled, m_camera.get_view_matrix(), [this](const GLVolume& volume) {
+            return (m_render_sla_auxiliaries || volume.composite_id.volume_id >= 0);
+        });
+        m_volumes.render_legacy(GLVolumeCollection::Transparent, false, m_camera.get_view_matrix());
 
         if (m_use_clipping_planes)
         {
@@ -3796,7 +3736,7 @@ void GLCanvas3D::_render_toolbar() const
 #endif // ENABLE_RETINA_GL
 
     Size cnv_size = get_canvas_size();
-    float zoom = get_camera_zoom();
+    float zoom = m_camera.zoom;
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
     GLToolbar::Layout::EOrientation orientation = m_toolbar.get_layout_orientation();
@@ -3859,7 +3799,7 @@ void GLCanvas3D::_render_view_toolbar() const
 #endif // ENABLE_RETINA_GL
 
     Size cnv_size = get_canvas_size();
-    float zoom = get_camera_zoom();
+    float zoom = m_camera.zoom;
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
     // places the toolbar on the bottom-left corner of the 3d scene
@@ -4113,14 +4053,10 @@ Vec3d GLCanvas3D::_mouse_to_3d(const Point& mouse_pos, float* z)
     if (m_canvas == nullptr)
         return Vec3d(DBL_MAX, DBL_MAX, DBL_MAX);
 
-    _camera_tranform();
 
-    GLint viewport[4];
-    glsafe(::glGetIntegerv(GL_VIEWPORT, viewport));
-    GLdouble modelview_matrix[16];
-    glsafe(::glGetDoublev(GL_MODELVIEW_MATRIX, modelview_matrix));
-    GLdouble projection_matrix[16];
-    glsafe(::glGetDoublev(GL_PROJECTION_MATRIX, projection_matrix));
+    const std::array<int, 4>& viewport = m_camera.get_viewport();
+    const Transform3d& modelview_matrix = m_camera.get_view_matrix();
+    const Transform3d& projection_matrix = m_camera.get_projection_matrix();
 
     GLint y = viewport[3] - (GLint)mouse_pos(1);
     GLfloat mouse_z;
@@ -4130,7 +4066,7 @@ Vec3d GLCanvas3D::_mouse_to_3d(const Point& mouse_pos, float* z)
         mouse_z = *z;
 
     GLdouble out_x, out_y, out_z;
-    ::gluUnProject((GLdouble)mouse_pos(0), (GLdouble)y, (GLdouble)mouse_z, modelview_matrix, projection_matrix, viewport, &out_x, &out_y, &out_z);
+    ::gluUnProject((GLdouble)mouse_pos(0), (GLdouble)y, (GLdouble)mouse_z, (GLdouble*)modelview_matrix.data(), (GLdouble*)projection_matrix.data(), (GLint*)viewport.data(), &out_x, &out_y, &out_z);
     return Vec3d((double)out_x, (double)out_y, (double)out_z);
 }
 

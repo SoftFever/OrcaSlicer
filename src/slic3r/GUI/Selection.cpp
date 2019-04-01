@@ -971,7 +971,23 @@ void Selection::render_sidebar_hints(const std::string& sidebar_field) const
         glsafe(::glTranslated(center(0), center(1), center(2)));
         if (!boost::starts_with(sidebar_field, "position"))
         {
-            Transform3d orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
+            Transform3d orient_matrix = Transform3d::Identity();
+            if (boost::starts_with(sidebar_field, "scale"))
+                orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
+            else if (boost::starts_with(sidebar_field, "rotation"))
+            {
+                if (boost::ends_with(sidebar_field, "x"))
+                    orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
+                else if (boost::ends_with(sidebar_field, "y"))
+                {
+                    const Vec3d& rotation = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_rotation();
+                    if (rotation(0) == 0.0)
+                        orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
+                    else
+                        orient_matrix.rotate(Eigen::AngleAxisd(rotation(2), Vec3d::UnitZ()));
+                }
+            }
+
             glsafe(::glMultMatrixd(orient_matrix.data()));
         }
     }

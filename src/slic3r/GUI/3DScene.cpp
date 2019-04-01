@@ -714,7 +714,7 @@ int GLVolumeCollection::load_wipe_tower_preview(
 
 typedef std::pair<GLVolume*, double> GLVolumeWithZ;
 typedef std::vector<GLVolumeWithZ> GLVolumesWithZList;
-static GLVolumesWithZList volumes_to_render(const GLVolumePtrs& volumes, GLVolumeCollection::ERenderType type, std::function<bool(const GLVolume&)> filter_func)
+static GLVolumesWithZList volumes_to_render(const GLVolumePtrs& volumes, GLVolumeCollection::ERenderType type, const Transform3d& view_matrix, std::function<bool(const GLVolume&)> filter_func)
 {
     GLVolumesWithZList list;
     list.reserve(volumes.size());
@@ -731,12 +731,9 @@ static GLVolumesWithZList volumes_to_render(const GLVolumePtrs& volumes, GLVolum
 
     if ((type == GLVolumeCollection::Transparent) && (list.size() > 1))
     {
-        Transform3d modelview_matrix;
-        glsafe(::glGetDoublev(GL_MODELVIEW_MATRIX, modelview_matrix.data()));
-
         for (GLVolumeWithZ& volume : list)
         {
-            volume.second = volume.first->bounding_box.transformed(modelview_matrix * volume.first->world_matrix()).max(2);
+            volume.second = volume.first->bounding_box.transformed(view_matrix * volume.first->world_matrix()).max(2);
         }
 
         std::sort(list.begin(), list.end(),
@@ -747,7 +744,7 @@ static GLVolumesWithZList volumes_to_render(const GLVolumePtrs& volumes, GLVolum
     return list;
 }
 
-void GLVolumeCollection::render_VBOs(GLVolumeCollection::ERenderType type, bool disable_cullface, std::function<bool(const GLVolume&)> filter_func) const
+void GLVolumeCollection::render_VBOs(GLVolumeCollection::ERenderType type, bool disable_cullface, const Transform3d& view_matrix, std::function<bool(const GLVolume&)> filter_func) const
 {
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
@@ -778,7 +775,7 @@ void GLVolumeCollection::render_VBOs(GLVolumeCollection::ERenderType type, bool 
     if (z_range_id != -1)
         glsafe(::glUniform2fv(z_range_id, 1, (const GLfloat*)z_range));
 
-    GLVolumesWithZList to_render = volumes_to_render(this->volumes, type, filter_func);
+    GLVolumesWithZList to_render = volumes_to_render(this->volumes, type, view_matrix, filter_func);
     for (GLVolumeWithZ& volume : to_render) {
         volume.first->set_render_color();
         volume.first->render_VBOs(color_id, print_box_detection_id, print_box_worldmatrix_id);
@@ -796,7 +793,7 @@ void GLVolumeCollection::render_VBOs(GLVolumeCollection::ERenderType type, bool 
     glsafe(::glDisable(GL_BLEND));
 }
 
-void GLVolumeCollection::render_legacy(ERenderType type, bool disable_cullface, std::function<bool(const GLVolume&)> filter_func) const
+void GLVolumeCollection::render_legacy(ERenderType type, bool disable_cullface, const Transform3d& view_matrix, std::function<bool(const GLVolume&)> filter_func) const
 {
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
@@ -808,7 +805,7 @@ void GLVolumeCollection::render_legacy(ERenderType type, bool disable_cullface, 
     glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
     glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
  
-	GLVolumesWithZList to_render = volumes_to_render(this->volumes, type, filter_func);
+    GLVolumesWithZList to_render = volumes_to_render(this->volumes, type, view_matrix, filter_func);
     for (GLVolumeWithZ& volume : to_render)
     {
         volume.first->set_render_color();
