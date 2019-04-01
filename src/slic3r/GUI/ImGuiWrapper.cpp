@@ -26,33 +26,28 @@ namespace Slic3r {
 namespace GUI {
 
 
-ImGuiWrapper::ImGuiWrapper()
+ImGuiWrapper::ImGuiWrapper(float font_size)
     : m_glyph_ranges(nullptr)
+    , m_font_size(font_size)
     , m_font_texture(0)
     , m_style_scaling(1.0)
     , m_mouse_buttons(0)
     , m_disabled(false)
     , m_new_frame_open(false)
 {
+    ImGui::CreateContext();
+
+    init_default_font();
+    init_input();
+    init_style();
+
+    ImGui::GetIO().IniFilename = nullptr;
 }
 
 ImGuiWrapper::~ImGuiWrapper()
 {
     destroy_device_objects();
     ImGui::DestroyContext();
-}
-
-bool ImGuiWrapper::init()
-{
-    ImGui::CreateContext();
-
-    init_default_font(m_style_scaling);
-    init_input();
-    init_style();
-
-    ImGui::GetIO().IniFilename = nullptr;
-
-    return true;
 }
 
 void ImGuiWrapper::set_language(const std::string &language)
@@ -88,7 +83,7 @@ void ImGuiWrapper::set_language(const std::string &language)
 
     if (ranges != m_glyph_ranges) {
         m_glyph_ranges = ranges;
-        init_default_font(m_style_scaling);
+        init_default_font();
     }
 }
 
@@ -103,8 +98,8 @@ void ImGuiWrapper::set_style_scaling(float scaling)
 {
     if (!std::isnan(scaling) && !std::isinf(scaling) && scaling != m_style_scaling) {
         ImGui::GetStyle().ScaleAllSizes(scaling / m_style_scaling);
-        init_default_font(scaling);
         m_style_scaling = scaling;
+        init_default_font();
     }
 }
 
@@ -329,15 +324,15 @@ bool ImGuiWrapper::want_any_input() const
     return io.WantCaptureMouse || io.WantCaptureKeyboard || io.WantTextInput;
 }
 
-void ImGuiWrapper::init_default_font(float scaling)
+void ImGuiWrapper::init_default_font()
 {
-    static const float font_size = 18.0f;
+    const float font_size = m_font_size * m_style_scaling;
 
     destroy_fonts_texture();
 
     ImGuiIO& io = ImGui::GetIO();
     io.Fonts->Clear();
-    ImFont* font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/NotoSans-Regular.ttf").c_str(), font_size * scaling, nullptr, m_glyph_ranges);
+    ImFont* font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/NotoSans-Regular.ttf").c_str(), font_size, nullptr, m_glyph_ranges);
     if (font == nullptr) {
         font = io.Fonts->AddFontDefault();
         if (font == nullptr) {

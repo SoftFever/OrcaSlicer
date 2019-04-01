@@ -45,8 +45,11 @@ bool GLGizmoSlaSupports::on_init()
 
 void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const Selection& selection)
 {
-    if (selection.is_empty())
+    if (selection.is_empty()) {
+        m_model_object = nullptr;
+        m_old_model_object = nullptr;
         return;
+    }
 
     m_old_model_object = m_model_object;
     m_model_object = model_object;
