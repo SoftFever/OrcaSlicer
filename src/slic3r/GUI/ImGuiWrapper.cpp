@@ -25,9 +25,9 @@ namespace Slic3r {
 namespace GUI {
 
 
-ImGuiWrapper::ImGuiWrapper(float font_size)
+ImGuiWrapper::ImGuiWrapper()
     : m_glyph_ranges(nullptr)
-    , m_font_size(font_size)
+    , m_font_size(18.0)
     , m_font_texture(0)
     , m_style_scaling(1.0)
     , m_mouse_buttons(0)
@@ -36,7 +36,6 @@ ImGuiWrapper::ImGuiWrapper(float font_size)
 {
     ImGui::CreateContext();
 
-    init_default_font();
     init_input();
     init_style();
 
@@ -45,7 +44,7 @@ ImGuiWrapper::ImGuiWrapper(float font_size)
 
 ImGuiWrapper::~ImGuiWrapper()
 {
-    destroy_device_objects();
+    destroy_font();
     ImGui::DestroyContext();
 }
 
@@ -82,7 +81,7 @@ void ImGuiWrapper::set_language(const std::string &language)
 
     if (ranges != m_glyph_ranges) {
         m_glyph_ranges = ranges;
-        init_default_font();
+        destroy_font();
     }
 }
 
@@ -93,12 +92,20 @@ void ImGuiWrapper::set_display_size(float w, float h)
     io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
 }
 
+void ImGuiWrapper::set_font_size(float font_size)
+{
+    if (m_font_size != font_size) {
+        m_font_size = font_size;
+        destroy_font();
+    }
+}
+
 void ImGuiWrapper::set_style_scaling(float scaling)
 {
     if (!std::isnan(scaling) && !std::isinf(scaling) && scaling != m_style_scaling) {
         ImGui::GetStyle().ScaleAllSizes(scaling / m_style_scaling);
         m_style_scaling = scaling;
-        init_default_font();
+        destroy_font();
     }
 }
 
@@ -156,12 +163,15 @@ bool ImGuiWrapper::update_key_data(wxKeyEvent &evt)
 
 void ImGuiWrapper::new_frame()
 {
+    printf("ImGuiWrapper: new_frame()\n");
+
     if (m_new_frame_open) {
         return;
     }
 
-    if (m_font_texture == 0)
-        create_device_objects();
+    if (m_font_texture == 0) {
+        init_font();
+    }
 
     ImGui::NewFrame();
     m_new_frame_open = true;
@@ -254,7 +264,8 @@ void ImGuiWrapper::text(const std::string &label)
 
 void ImGuiWrapper::text(const wxString &label)
 {
-    this->text(into_u8(label).c_str());
+    auto label_utf8 = into_u8(label);
+    this->text(label_utf8.c_str());
 }
 
 bool ImGuiWrapper::combo(const wxString& label, const std::vector<std::string>& options, int& selection)
@@ -280,6 +291,12 @@ bool ImGuiWrapper::combo(const wxString& label, const std::vector<std::string>& 
 
     selection = selection_out;
     return res;
+}
+
+ImVec2 ImGuiWrapper::calc_text_size(const wxString &text)
+{
+    auto text_utf8 = into_u8(text);
+    return ImGui::CalcTextSize(text_utf8.c_str());
 }
 
 void ImGuiWrapper::disabled_begin(bool disabled)
@@ -323,11 +340,13 @@ bool ImGuiWrapper::want_any_input() const
     return io.WantCaptureMouse || io.WantCaptureKeyboard || io.WantTextInput;
 }
 
-void ImGuiWrapper::init_default_font()
+void ImGuiWrapper::init_font()
 {
+    printf("ImGuiWrapper: init_font()\n");
+
     const float font_size = m_font_size * m_style_scaling;
 
-    destroy_fonts_texture();
+    destroy_font();
 
     ImGuiIO& io = ImGui::GetIO();
     io.Fonts->Clear();
@@ -338,17 +357,8 @@ void ImGuiWrapper::init_default_font()
             throw std::runtime_error("ImGui: Could not load deafult font");
         }
     }
-}
 
-void ImGuiWrapper::create_device_objects()
-{
-    create_fonts_texture();
-}
-
-void ImGuiWrapper::create_fonts_texture()
-{
     // Build texture atlas
-    ImGuiIO& io = ImGui::GetIO();
     unsigned char* pixels;
     int width, height;
     io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);   // Load as RGBA 32-bits (75% of the memory is wasted, but default font is so small) because it is more likely to be compatible with user's existing shaders. If your ImTextureId represent a higher-level concept than just a GL texture id, consider calling GetTexDataAsAlpha8() instead to save on GPU memory.
@@ -554,14 +564,9 @@ bool ImGuiWrapper::display_initialized() const
     return io.DisplaySize.x >= 0.0f && io.DisplaySize.y >= 0.0f;
 }
 
-void ImGuiWrapper::destroy_device_objects()
+void ImGuiWrapper::destroy_font()
 {
-    destroy_fonts_texture();
-}
-
-void ImGuiWrapper::destroy_fonts_texture()
-{
-    if (m_font_texture) {
+    if (m_font_texture != 0) {
         ImGuiIO& io = ImGui::GetIO();
         io.Fonts->TexID = 0;
         glDeleteTextures(1, &m_font_texture);
