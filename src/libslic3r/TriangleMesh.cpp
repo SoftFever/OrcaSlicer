@@ -343,7 +343,7 @@ void TriangleMesh::rotate(double angle, Point* center)
  */
 bool TriangleMesh::is_splittable() const
 {
-    std::vector<bool> visited;
+    std::vector<unsigned char> visited;
     find_unvisited_neighbors(visited);
 
     // Try finding an unvisited facet. If there are none, the mesh is not splittable.
@@ -359,36 +359,37 @@ bool TriangleMesh::is_splittable() const
  *                      facet with the same index has been visited.
  * @return A deque with all newly visited facets.
  */
-std::deque<uint32_t> TriangleMesh::find_unvisited_neighbors(std::vector<bool> &facet_visited) const
+std::deque<uint32_t> TriangleMesh::find_unvisited_neighbors(std::vector<unsigned char> &facet_visited) const
 {
     // Make sure we're not operating on a broken mesh.
     if (!this->repaired)
-        throw std::runtime_error("split() requires repair()");
+        throw std::runtime_error("find_unvisited_neighbors() requires repair()");
 
     // If the visited list is empty, populate it with false for every facet.
-    if (facet_visited.empty()) {
-        facet_visited = std::vector<bool>(this->stl.stats.number_of_facets, false);
-    }
+    if (facet_visited.empty())
+        facet_visited = std::vector<unsigned char>(this->stl.stats.number_of_facets, false);
 
     // Find the first unvisited facet.
-    std::queue<int> facet_queue;
+    std::queue<uint32_t> facet_queue;
+    std::deque<uint32_t> facets;
     auto facet = std::find(facet_visited.begin(), facet_visited.end(), false);
-    if (facet != facet_visited.end())
-        facet_queue.push(facet - facet_visited.begin());
+    if (facet != facet_visited.end()) {
+        uint32_t idx = uint32_t(facet - facet_visited.begin());
+        facet_queue.push(idx);
+        facet_visited[idx] = true;
+        facets.emplace_back(idx);
+    }
 
     // Traverse all reachable neighbors and mark them as visited.
-    std::deque<uint32_t> facets;
-    while (!facet_queue.empty()) {
-        int facet_idx = facet_queue.front();
+    while (! facet_queue.empty()) {
+        uint32_t facet_idx = facet_queue.front();
         facet_queue.pop();
-
-        if (facet_idx != -1 && !facet_visited[facet_idx]) {
-            facet_visited[facet_idx] = true;
-
-            facets.emplace_back(facet_idx);
-            for (int facet : this->stl.neighbors_start[facet_idx].neighbor)
-                facet_queue.push(facet);
-        }
+        for (int neighbor_idx : this->stl.neighbors_start[facet_idx].neighbor)
+            if (neighbor_idx != -1 && ! facet_visited[neighbor_idx]) {
+                facet_queue.push(uint32_t(neighbor_idx));
+                facet_visited[neighbor_idx] = true;
+                facets.emplace_back(uint32_t(neighbor_idx));
+            }
     }
 
     return facets;
@@ -402,7 +403,7 @@ std::deque<uint32_t> TriangleMesh::find_unvisited_neighbors(std::vector<bool> &f
 TriangleMeshPtrs TriangleMesh::split() const
 {
     // Loop while we have remaining facets.
-    std::vector<bool> facet_visited;
+    std::vector<unsigned char> facet_visited;
     TriangleMeshPtrs meshes;
     for (;;) {
         std::deque<uint32_t> facets = find_unvisited_neighbors(facet_visited);

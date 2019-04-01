@@ -69,13 +69,13 @@ public:
     bool   empty() const { return this->facets_count() == 0; }
 
     bool is_splittable() const;
-    std::deque<uint32_t> find_unvisited_neighbors(std::vector<bool> &facet_visited) const;
 
     stl_file stl;
     bool repaired;
     
 private:
     void require_shared_vertices();
+    std::deque<uint32_t> find_unvisited_neighbors(std::vector<unsigned char> &facet_visited) const;
     friend class TriangleMeshSlicer;
 };
 
