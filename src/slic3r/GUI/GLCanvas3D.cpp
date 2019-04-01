@@ -4403,11 +4403,13 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
     if ((m_canvas == nullptr) && (m_context == nullptr))
         return;
 
-    wxGetApp().imgui()->set_display_size((float)w, (float)h);
+    auto *imgui = wxGetApp().imgui();
+    imgui->set_display_size((float)w, (float)h);
+    imgui->set_font_size(m_canvas->GetFont().GetPixelSize().y);
 #if ENABLE_RETINA_GL
-    wxGetApp().imgui()->set_style_scaling(m_retina_helper->get_scale_factor());
+    imgui->set_style_scaling(m_retina_helper->get_scale_factor());
 #else
-    wxGetApp().imgui()->set_style_scaling(m_canvas->GetContentScaleFactor());
+    imgui->set_style_scaling(m_canvas->GetContentScaleFactor());
 #endif
 
     // ensures that this canvas is current
