@@ -46,13 +46,13 @@ const std::array<unsigned, slaposCount>     OBJ_STEP_LEVELS =
     30,     // slaposSupportPoints,
     25,     // slaposSupportTree,
     25,     // slaposBasePool,
-    10,      // slaposSliceSupports,
+    10,     // slaposSliceSupports,
 };
 
 const std::array<std::string, slaposCount> OBJ_STEP_LABELS =
 {
     L("Slicing model"),                 // slaposObjectSlice,
-    L("Generating support points"),      // slaposSupportPoints,
+    L("Generating support points"),     // slaposSupportPoints,
     L("Generating support tree"),       // slaposSupportTree,
     L("Generating pad"),                // slaposBasePool,
     L("Slicing supports"),              // slaposSliceSupports,
@@ -61,7 +61,7 @@ const std::array<std::string, slaposCount> OBJ_STEP_LABELS =
 // Should also add up to 100 (%)
 const std::array<unsigned, slapsCount> PRINT_STEP_LEVELS =
 {
-    5,      // slapsStats
+    5,      // slapsMergeSlicesAndEval
     95,     // slapsRasterize
 };
 
@@ -645,7 +645,7 @@ void SLAPrint::process()
     const size_t objcount = m_objects.size();
 
     const unsigned min_objstatus = 0;   // where the per object operations start
-    const unsigned max_objstatus = PRINT_STEP_LEVELS[slapsMergeSlicesAndEval];  // where the per object operations end
+    const unsigned max_objstatus = 50;  // where the per object operations end
 
     // the coefficient that multiplies the per object status values which
     // are set up for <0, 100>. They need to be scaled into the whole process
@@ -802,13 +802,13 @@ void SLAPrint::process()
         init = int(init * ostepd);     // scale the init portion
 
         // scaling for the sub operations
-        double d = *stthis / (objcount * 100.0);
+        double d = *stthis / 100.0;
 
-        ctl.statuscb = [this, init, d](unsigned st, const std::string& msg)
+        ctl.statuscb = [this, init, d, ostepd](unsigned st, const std::string& /*msg*/)
         {
             //FIXME this status line scaling does not seem to be correct.
             // How does it account for an increasing object index?
-            report_status(*this, int(init + st*d), msg);
+            report_status(*this, int(init + st*d*ostepd), OBJ_STEP_LABELS[slaposSupportTree]);
         };
 
         ctl.stopcondition = [this](){ return canceled(); };
@@ -1252,18 +1252,29 @@ void SLAPrint::process()
         auto lvlcnt = unsigned(m_printer_input.size());
         printer.layers(lvlcnt);
 
-        // slot is the portion of 100% that is realted to rasterization
-        unsigned slot = PRINT_STEP_LEVELS[slapsRasterize];
-        // ist: initial state; pst: previous state
-        unsigned ist = max_objstatus, pst = ist;
         // coefficient to map the rasterization state (0-99) to the allocated
         // portion (slot) of the process state
-        double sd = (100 - ist) / 100.0;
+        double sd = (100 - max_objstatus) / 100.0;
+
+        // slot is the portion of 100% that is realted to rasterization
+        unsigned slot = PRINT_STEP_LEVELS[slapsRasterize];
+
+        // ist: initial state; pst: previous state
+        unsigned ist = std::accumulate(PRINT_STEP_LEVELS.begin(),
+                                       PRINT_STEP_LEVELS.begin()+slapsRasterize,
+                                       0u);
+
+        ist = max_objstatus + unsigned(ist * sd);
+        unsigned pst = ist;
+
+        double increment = (slot * sd) / m_printer_input.size();
+        double dstatus = double(ist);
+
         SpinMutex slck;
 
         // procedure to process one height level. This will run in parallel
         auto lvlfn =
-        [this, &slck, &printer, slot, sd, ist, &pst]
+        [this, &slck, &printer, increment, &dstatus, &pst]
             (unsigned level_id)
         {
             if(canceled()) return;
@@ -1280,9 +1291,10 @@ void SLAPrint::process()
             printer.finish_layer(level_id);
 
             // Status indication guarded with the spinlock
-            auto st = ist + unsigned(sd*level_id*slot/m_printer_input.size());
             {
                 std::lock_guard<SpinMutex> lck(slck);
+                dstatus += increment;
+                auto st = unsigned(dstatus);
                 if( st > pst) {
                     report_status(*this, int(st),
                                   PRINT_STEP_LABELS[slapsRasterize]);
