@@ -6,6 +6,8 @@
 #include <vector>
 #include <cstdint>
 
+namespace ClipperLib { class Polygon; }
+
 namespace Slic3r {
 
 class ExPolygon;
@@ -123,6 +125,7 @@ public:
 
     /// Draw a polygon with holes.
     void draw(const ExPolygon& poly);
+    void draw(const ClipperLib::Polygon& poly);
 
     /// Save the raster on the specified stream.
     void save(std::ostream& stream, Compression comp = Compression::RAW);

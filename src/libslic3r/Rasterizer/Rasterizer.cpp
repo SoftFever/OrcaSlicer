@@ -1,5 +1,6 @@
 #include "Rasterizer.hpp"
 #include <ExPolygon.hpp>
+#include <libnest2d/backends/clipper/clipper_polygon.hpp>
 
 // For rasterizing
 #include <agg/agg_basics.h>
@@ -89,6 +90,25 @@ public:
         agg::render_scanlines(ras, scanlines, m_renderer);
     }
 
+    void draw(const ClipperLib::Polygon &poly) {
+        agg::rasterizer_scanline_aa<> ras;
+        agg::scanline_p8 scanlines;
+
+        auto&& path = to_path(poly.Contour);
+
+        if(m_o == Origin::TOP_LEFT) flipy(path);
+
+        ras.add_path(path);
+
+        for(auto h : poly.Holes) {
+            auto&& holepath = to_path(h);
+            if(m_o == Origin::TOP_LEFT) flipy(holepath);
+            ras.add_path(holepath);
+        }
+
+        agg::render_scanlines(ras, scanlines, m_renderer);
+    }
+
     inline void clear() {
         m_raw_renderer.clear(ColorBlack);
     }
@@ -108,14 +128,36 @@ private:
         return p(1) * SCALING_FACTOR/m_pxdim.h_mm;
     }
 
-    agg::path_storage to_path(const Polygon& poly) {
+    agg::path_storage to_path(const Polygon& poly)
+    {
         agg::path_storage path;
+
         auto it = poly.points.begin();
         path.move_to(getPx(*it), getPy(*it));
-        while(++it != poly.points.end())
+        while(++it != poly.points.end()) path.line_to(getPx(*it), getPy(*it));
+        path.line_to(getPx(poly.points.front()), getPy(poly.points.front()));
+
+        return path;
+    }
+
+
+    double getPx(const ClipperLib::IntPoint& p) {
+        return p.X * SCALING_FACTOR/m_pxdim.w_mm;
+    }
+
+    double getPy(const ClipperLib::IntPoint& p) {
+        return p.Y * SCALING_FACTOR/m_pxdim.h_mm;
+    }
+
+    agg::path_storage to_path(const ClipperLib::Path& poly)
+    {
+        agg::path_storage path;
+        auto it = poly.begin();
+        path.move_to(getPx(*it), getPy(*it));
+        while(++it != poly.end())
             path.line_to(getPx(*it), getPy(*it));
 
-        path.line_to(getPx(poly.points.front()), getPy(poly.points.front()));
+        path.line_to(getPx(poly.front()), getPy(poly.front()));
         return path;
     }
 
@@ -167,9 +209,13 @@ void Raster::clear()
     m_impl->clear();
 }
 
-void Raster::draw(const ExPolygon &poly)
+void Raster::draw(const ExPolygon &expoly)
 {
-    assert(m_impl);
+    m_impl->draw(expoly);
+}
+
+void Raster::draw(const ClipperLib::Polygon &poly)
+{
     m_impl->draw(poly);
 }
 

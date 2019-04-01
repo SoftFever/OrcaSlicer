@@ -261,7 +261,7 @@ template<class RawShape> class EdgeCache {
             while(next != endit) {
                 contour_.emap.emplace_back(*(first++), *(next++));
                 contour_.full_distance += contour_.emap.back().length();
-                contour_.distances.push_back(contour_.full_distance);
+                contour_.distances.emplace_back(contour_.full_distance);
             }
         }
 
@@ -276,10 +276,10 @@ template<class RawShape> class EdgeCache {
             while(next != endit) {
                 hc.emap.emplace_back(*(first++), *(next++));
                 hc.full_distance += hc.emap.back().length();
-                hc.distances.push_back(hc.full_distance);
+                hc.distances.emplace_back(hc.full_distance);
             }
 
-            holes_.push_back(hc);
+            holes_.emplace_back(std::move(hc));
         }
     }
 

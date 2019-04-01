@@ -64,6 +64,7 @@ endif()
 target_include_directories(ClipperBackend INTERFACE ${Boost_INCLUDE_DIRS} )
 target_sources(ClipperBackend INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}/geometries.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/clipper_polygon.hpp
     ${SRC_DIR}/libnest2d/utils/boost_alg.hpp )
 
 target_compile_definitions(ClipperBackend INTERFACE LIBNEST2D_BACKEND_CLIPPER)

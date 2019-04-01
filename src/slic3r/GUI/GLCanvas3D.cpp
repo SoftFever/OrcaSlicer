@@ -5022,7 +5022,7 @@ void GLCanvas3D::_render_sla_slices() const
         }
 
         if ((bottom_obj_triangles.empty() || bottom_sup_triangles.empty() || top_obj_triangles.empty() || top_sup_triangles.empty()) &&
-            obj->is_step_done(slaposIndexSlices) && !obj->get_slice_index().empty())
+            obj->is_step_done(slaposSliceSupports) && !obj->get_slice_index().empty())
         {
             double layer_height         = print->default_object_config().layer_height.value;
             double initial_layer_height = print->material_config().initial_layer_height.value;
@@ -6224,7 +6224,7 @@ void GLCanvas3D::_load_shells_sla()
     int obj_idx = 0;
     for (const SLAPrintObject* obj : print->objects())
     {
-        if (!obj->is_step_done(slaposIndexSlices))
+        if (!obj->is_step_done(slaposSliceSupports))
             continue;
 
         unsigned int initial_volumes_count = (unsigned int)m_volumes.volumes.size();
