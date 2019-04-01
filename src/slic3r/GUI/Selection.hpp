@@ -297,6 +297,7 @@ private:
     void synchronize_unselected_instances(SyncRotationType sync_rotation_type);
     void synchronize_unselected_volumes();
     void ensure_on_bed();
+    bool is_from_fully_selected_instance(unsigned int volume_idx) const;
 };
 
 } // namespace GUI

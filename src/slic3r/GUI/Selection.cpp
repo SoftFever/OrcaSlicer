@@ -119,17 +119,17 @@ void Selection::add(unsigned int volume_idx, bool as_single_selection)
     if (needs_reset)
         clear();
 
-    if (volume->is_modifier)
-        m_mode = Volume;
-    else if (!contains_volume(volume_idx))
-        m_mode = Instance;
-    // else -> keep current mode
+    if (!contains_volume(volume_idx))
+        m_mode = volume->is_modifier ? Volume : Instance;
+    else
+        // keep current mode
+        return;
 
     switch (m_mode)
     {
     case Volume:
     {
-        if (volume->volume_idx() >= 0 && (is_empty() || (volume->instance_idx() == get_instance_idx())))
+        if ((volume->volume_idx() >= 0) && (is_empty() || (volume->instance_idx() == get_instance_idx())))
             do_add_volume(volume_idx);
 
         break;
@@ -440,6 +440,8 @@ void Selection::translate(const Vec3d& displacement, bool local)
     if (!m_valid)
         return;
 
+    EMode translation_type = m_mode;
+
     for (unsigned int i : m_list)
     {
         if ((m_mode == Volume) || (*m_volumes)[i]->is_wipe_tower)
@@ -453,13 +455,22 @@ void Selection::translate(const Vec3d& displacement, bool local)
             }
         }
         else if (m_mode == Instance)
-            (*m_volumes)[i]->set_instance_offset(m_cache.volumes_data[i].get_instance_position() + displacement);
+        {
+            if (is_from_fully_selected_instance(i))
+                (*m_volumes)[i]->set_instance_offset(m_cache.volumes_data[i].get_instance_position() + displacement);
+            else
+            {
+                Vec3d local_displacement = (m_cache.volumes_data[i].get_instance_rotation_matrix() * m_cache.volumes_data[i].get_instance_scale_matrix() * m_cache.volumes_data[i].get_instance_mirror_matrix()).inverse() * displacement;
+                (*m_volumes)[i]->set_volume_offset(m_cache.volumes_data[i].get_volume_position() + local_displacement);
+                translation_type = Volume;
+            }
+        }
     }
 
 #if !DISABLE_INSTANCES_SYNCH
-    if (m_mode == Instance)
+    if (translation_type == Instance)
         synchronize_unselected_instances(SYNC_ROTATION_NONE);
-    else if (m_mode == Volume)
+    else if (translation_type == Volume)
         synchronize_unselected_volumes();
 #endif // !DISABLE_INSTANCES_SYNCH
 
@@ -1682,6 +1693,30 @@ void Selection::ensure_on_bed()
         if (it != instances_min_z.end())
             volume->set_instance_offset(Z, volume->get_instance_offset(Z) - it->second);
     }
+}
+
+bool Selection::is_from_fully_selected_instance(unsigned int volume_idx) const
+{
+    struct SameInstance
+    {
+        int obj_idx;
+        int inst_idx;
+        GLVolumePtrs& volumes;
+
+        SameInstance(int obj_idx, int inst_idx, GLVolumePtrs& volumes) : obj_idx(obj_idx), inst_idx(inst_idx), volumes(volumes) {}
+        bool operator () (unsigned int i) { return (volumes[i]->object_idx() == obj_idx) && (volumes[i]->instance_idx() == inst_idx); }
+    };
+
+    if ((unsigned int)m_volumes->size() <= volume_idx)
+        return false;
+
+    GLVolume* volume = (*m_volumes)[volume_idx];
+    int object_idx = volume->object_idx();
+    if ((int)m_model->objects.size() <= object_idx)
+        return false;
+
+    unsigned int count = (unsigned int)std::count_if(m_list.begin(), m_list.end(), SameInstance(object_idx, volume->instance_idx(), *m_volumes));
+    return count == (unsigned int)m_model->objects[object_idx]->volumes.size();
 }
 
 } // namespace GUI
