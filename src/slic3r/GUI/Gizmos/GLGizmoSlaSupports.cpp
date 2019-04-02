@@ -816,7 +816,7 @@ void GLGizmoSlaSupports::editing_mode_apply_changes()
         // Recalculate support structures once the editing mode is left.
         // m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
         // m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
-        wxGetApp().plater()->reslice_SLA_supports(*m_model_object);
+        wxGetApp().CallAfter([this]() { wxGetApp().plater()->reslice_SLA_supports(*m_model_object); });
     }
     m_editing_mode = false;
     m_unsaved_changes = false;
@@ -869,7 +869,7 @@ void GLGizmoSlaSupports::auto_generate()
         m_model_object->sla_support_points.clear();
         m_model_object->sla_points_status = sla::PointsStatus::Generating;
         m_editing_mode_cache.clear();
-        wxGetApp().plater()->reslice_SLA_supports(*m_model_object);
+        wxGetApp().CallAfter([this]() { wxGetApp().plater()->reslice_SLA_supports(*m_model_object); });
     }
 }
 
