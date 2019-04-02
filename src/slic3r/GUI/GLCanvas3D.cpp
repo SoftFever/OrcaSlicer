@@ -4987,6 +4987,9 @@ void GLCanvas3D::_render_sla_slices() const
     {
         const SLAPrintObject* obj = print_objects[i];
 
+        if (!obj->is_step_done(slaposSliceSupports))
+            continue;
+
         SlaCap::ObjectIdToTrianglesMap::iterator it_caps_bottom = m_sla_caps[0].triangles.find(i);
         SlaCap::ObjectIdToTrianglesMap::iterator it_caps_top    = m_sla_caps[1].triangles.find(i);
         {
@@ -5011,7 +5014,7 @@ void GLCanvas3D::_render_sla_slices() const
         Pointf3s &top_sup_triangles    = it_caps_top->second.supports;
 
         if ((bottom_obj_triangles.empty() || bottom_sup_triangles.empty() || top_obj_triangles.empty() || top_sup_triangles.empty()) &&
-            obj->is_step_done(slaposSliceSupports) && !obj->get_slice_index().empty())
+            !obj->get_slice_index().empty())
         {
             double layer_height         = print->default_object_config().layer_height.value;
             double initial_layer_height = print->material_config().initial_layer_height.value;
