@@ -246,7 +246,8 @@ protected:
 		m_transformed_rmesh.invalidate([this, &trafo, left_handed](){ m_trafo = trafo; m_left_handed = left_handed; });
     }
 
-    void                    set_instances(const std::vector<Instance> &instances) { m_instances = instances; }
+    template<class InstVec> inline void set_instances(InstVec&& instances) { m_instances = std::forward<InstVec>(instances); }
+
     // Invalidates the step, and its depending steps in SLAPrintObject and SLAPrint.
     bool                    invalidate_step(SLAPrintObjectStep step);
     bool                    invalidate_all_steps();

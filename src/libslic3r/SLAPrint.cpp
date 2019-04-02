@@ -105,10 +105,10 @@ static std::vector<SLAPrintObject::Instance> sla_instances(const ModelObject &mo
     std::vector<SLAPrintObject::Instance> instances;
     for (ModelInstance *model_instance : model_object.instances)
         if (model_instance->is_printable()) {
-            instances.emplace_back(SLAPrintObject::Instance(
+            instances.emplace_back(
                 model_instance->id(),
                 Point::new_scale(model_instance->get_offset(X), model_instance->get_offset(Y)),
-                float(model_instance->get_rotation(Z))));
+                float(model_instance->get_rotation(Z)));
         }
     return instances;
 }
@@ -404,7 +404,7 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
             // which is expensive to calculate (especially the raw_mesh() call)
             print_object->set_trafo(sla_trafo(model_object), model_object.instances.front()->is_left_handed());
 
-            print_object->set_instances(new_instances);
+            print_object->set_instances(std::move(new_instances));
             print_object->config_apply(config, true);
             print_objects_new.emplace_back(print_object);
             new_objects = true;
@@ -1025,7 +1025,8 @@ void SLAPrint::process()
         // get polygons for all instances in the object
         auto get_all_polygons =
                 [flpXY](const ExPolygons& input_polygons,
-                        const std::vector<SLAPrintObject::Instance>& instances)
+                        const std::vector<SLAPrintObject::Instance>& instances,
+                        bool is_lefthanded)
         {
             ClipperPolygons polygons;
             polygons.reserve(input_polygons.size() * instances.size());
@@ -1055,9 +1056,19 @@ void SLAPrint::process()
                         auto pfirst = hole.front(); hole.emplace_back(pfirst);
                     }
 
+                    if(is_lefthanded) {
+                        for(auto& p : poly.Contour) p.X = -p.X;
+                        std::reverse(poly.Contour.begin(), poly.Contour.end());
+                        for(auto& h : poly.Holes) {
+                            for(auto& p : h) p.X = -p.X;
+                            std::reverse(h.begin(), h.end());
+                        }
+                    }
+
                     sl::rotate(poly, double(instances[i].rotation));
                     sl::translate(poly, ClipperPoint{instances[i].shift(X),
                                                      instances[i].shift(Y)});
+
                     if (flpXY) {
                         for(auto& p : poly.Contour) std::swap(p.X, p.Y);
                         std::reverse(poly.Contour.begin(), poly.Contour.end());
@@ -1129,14 +1140,15 @@ void SLAPrint::process()
                 const SLAPrintObject *po = record.print_obj();
 
                 const ExPolygons &modelslices = record.get_slice(soModel);
+                bool is_lefth = record.print_obj()->is_left_handed();
                 if (!modelslices.empty()) {
-                    ClipperPolygons v = get_all_polygons(modelslices, po->instances());
+                    ClipperPolygons v = get_all_polygons(modelslices, po->instances(), is_lefth);
                     for(ClipperPolygon& p_tmp : v) model_polygons.emplace_back(std::move(p_tmp));
                 }
 
                 const ExPolygons &supportslices = record.get_slice(soSupport);
                 if (!supportslices.empty()) {
-                    ClipperPolygons v = get_all_polygons(supportslices, po->instances());
+                    ClipperPolygons v = get_all_polygons(supportslices, po->instances(), is_lefth);
                     for(ClipperPolygon& p_tmp : v) supports_polygons.emplace_back(std::move(p_tmp));
                 }
             }
