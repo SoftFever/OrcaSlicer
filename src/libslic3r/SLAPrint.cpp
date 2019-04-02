@@ -94,7 +94,7 @@ static Transform3d sla_trafo(const ModelObject &model_object)
     offset(1) = 0.;
     rotation(2) = 0.;
     Transform3d trafo = Geometry::assemble_transform(offset, rotation, model_instance.get_scaling_factor(), model_instance.get_mirror());
-    if (model_instance.is_left_handed())
+	if (model_instance.is_left_handed())
 		trafo = Eigen::Scaling(Vec3d(-1., 1., 1.)) * trafo;
     return trafo;
 }
@@ -317,8 +317,11 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
 				it_print_object_status = print_object_status.end();
 			// Check whether a model part volume was added or removed, their transformations or order changed.
 			bool model_parts_differ = model_volume_list_changed(model_object, model_object_new, ModelVolumeType::MODEL_PART);
-			bool sla_trafo_differs  = model_object.instances.empty() != model_object_new.instances.empty() ||
-				(! model_object.instances.empty() && ! sla_trafo(model_object).isApprox(sla_trafo(model_object_new)));
+			bool sla_trafo_differs  = 
+				model_object.instances.empty() != model_object_new.instances.empty() ||
+				(! model_object.instances.empty() && 
+				  (! sla_trafo(model_object).isApprox(sla_trafo(model_object_new)) || 
+				    model_object.instances.front()->is_left_handed() != model_object_new.instances.front()->is_left_handed()));
 			if (model_parts_differ || sla_trafo_differs) {
 				// The very first step (the slicing step) is invalidated. One may freely remove all associated PrintObjects.
 				if (it_print_object_status != print_object_status.end()) {

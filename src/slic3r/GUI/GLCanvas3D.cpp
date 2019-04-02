@@ -5065,17 +5065,25 @@ void GLCanvas3D::_render_sla_slices() const
 				if (obj->is_left_handed())
                     // The polygons are mirrored by X.
                     ::glScalef(-1.0, 1.0, 1.0);
-                ::glColor3f(1.0f, 0.37f, 0.0f);
 				::glEnableClientState(GL_VERTEX_ARRAY);
-				::glVertexPointer(3, GL_DOUBLE, 0, (GLdouble*)bottom_obj_triangles.front().data());
-				::glDrawArrays(GL_TRIANGLES, 0, bottom_obj_triangles.size());
-				::glVertexPointer(3, GL_DOUBLE, 0, (GLdouble*)top_obj_triangles.front().data());
-				::glDrawArrays(GL_TRIANGLES, 0, top_obj_triangles.size());
+				::glColor3f(1.0f, 0.37f, 0.0f);
+				if (!bottom_obj_triangles.empty()) {
+					::glVertexPointer(3, GL_DOUBLE, 0, (GLdouble*)bottom_obj_triangles.front().data());
+					::glDrawArrays(GL_TRIANGLES, 0, bottom_obj_triangles.size());
+				}
+				if (! top_obj_triangles.empty()) {
+					::glVertexPointer(3, GL_DOUBLE, 0, (GLdouble*)top_obj_triangles.front().data());
+					::glDrawArrays(GL_TRIANGLES, 0, top_obj_triangles.size());
+				}
 				::glColor3f(1.0f, 0.0f, 0.37f);
-				::glVertexPointer(3, GL_DOUBLE, 0, (GLdouble*)bottom_sup_triangles.front().data());
-				::glDrawArrays(GL_TRIANGLES, 0, bottom_sup_triangles.size());
-				::glVertexPointer(3, GL_DOUBLE, 0, (GLdouble*)top_sup_triangles.front().data());
-				::glDrawArrays(GL_TRIANGLES, 0, top_sup_triangles.size());
+				if (! bottom_sup_triangles.empty()) {
+					::glVertexPointer(3, GL_DOUBLE, 0, (GLdouble*)bottom_sup_triangles.front().data());
+					::glDrawArrays(GL_TRIANGLES, 0, bottom_sup_triangles.size());
+				}
+				if (! top_sup_triangles.empty()) {
+					::glVertexPointer(3, GL_DOUBLE, 0, (GLdouble*)top_sup_triangles.front().data());
+					::glDrawArrays(GL_TRIANGLES, 0, top_sup_triangles.size());
+				}
 				::glDisableClientState(GL_VERTEX_ARRAY);
                 ::glPopMatrix();
             }
