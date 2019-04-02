@@ -479,6 +479,7 @@ public:
             m_sla_caps[id].reset();
         }
     }
+    void reset_clipping_planes_cache() { m_sla_caps[0].triangles.clear(); m_sla_caps[1].triangles.clear(); }
     void set_use_clipping_planes(bool use) { m_use_clipping_planes = use; }
 
     void set_color_by(const std::string& value);

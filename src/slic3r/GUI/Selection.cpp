@@ -1704,7 +1704,7 @@ bool Selection::is_from_fully_selected_instance(unsigned int volume_idx) const
         GLVolumePtrs& volumes;
 
         SameInstance(int obj_idx, int inst_idx, GLVolumePtrs& volumes) : obj_idx(obj_idx), inst_idx(inst_idx), volumes(volumes) {}
-        bool operator () (unsigned int i) { return (volumes[i]->object_idx() == obj_idx) && (volumes[i]->instance_idx() == inst_idx); }
+        bool operator () (unsigned int i) { return (volumes[i]->volume_idx() >= 0) && (volumes[i]->object_idx() == obj_idx) && (volumes[i]->instance_idx() == inst_idx); }
     };
 
     if ((unsigned int)m_volumes->size() <= volume_idx)

@@ -562,8 +562,7 @@ void GLGizmoSlaSupports::on_render_input_window(float x, float y, float bottom_l
 RENDER_AGAIN:
     m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
 
-    const float scaling = m_imgui->get_style_scaling();
-    const ImVec2 window_size(285.f * scaling, 300.f * scaling);
+    const ImVec2 window_size(m_imgui->scaled(15.f, 16.5f));
     ImGui::SetNextWindowPos(ImVec2(x, y - std::max(0.f, y+window_size.y-bottom_limit) ));
     ImGui::SetNextWindowSize(ImVec2(window_size));
 
@@ -814,7 +813,7 @@ void GLGizmoSlaSupports::editing_mode_apply_changes()
         // Recalculate support structures once the editing mode is left.
         // m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
         // m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
-        wxGetApp().plater()->reslice_SLA_supports(*m_model_object);
+        wxGetApp().CallAfter([this]() { wxGetApp().plater()->reslice_SLA_supports(*m_model_object); });
     }
     m_editing_mode = false;
     m_unsaved_changes = false;
@@ -867,7 +866,7 @@ void GLGizmoSlaSupports::auto_generate()
         m_model_object->sla_support_points.clear();
         m_model_object->sla_points_status = sla::PointsStatus::Generating;
         m_editing_mode_cache.clear();
-        wxGetApp().plater()->reslice_SLA_supports(*m_model_object);
+        wxGetApp().CallAfter([this]() { wxGetApp().plater()->reslice_SLA_supports(*m_model_object); });
     }
 }
 

@@ -81,7 +81,7 @@ IMPLEMENT_APP(GUI_App)
 GUI_App::GUI_App()
     : wxApp()
     , m_em_unit(10)
-    , m_imgui(nullptr)
+    , m_imgui(new ImGuiWrapper())
 {}
 
 bool GUI_App::OnInit()
@@ -138,7 +138,6 @@ bool GUI_App::OnInit()
     // initialize label colors and fonts
     init_label_colours();
     init_fonts();
-    m_imgui.reset(new ImGuiWrapper(m_normal_font.GetPixelSize().y));
 
     load_language();
 

@@ -18,9 +18,6 @@ namespace GUI {
 
 class ImGuiWrapper
 {
-    typedef std::map<std::string, ImFont*> FontsMap;
-
-    FontsMap m_fonts;
     const ImWchar *m_glyph_ranges;
     float m_font_size;
     unsigned m_font_texture;
@@ -31,21 +28,26 @@ class ImGuiWrapper
     std::string m_clipboard_text;
 
 public:
-    ImGuiWrapper(float font_size);
+    ImGuiWrapper();
     ~ImGuiWrapper();
 
     void read_glsl_version();
 
     void set_language(const std::string &language);
     void set_display_size(float w, float h);
-    void set_style_scaling(float scaling);
+    void set_scaling(float font_size, float scaling);
     bool update_mouse_data(wxMouseEvent &evt);
     bool update_key_data(wxKeyEvent &evt);
 
+    float get_font_size() const { return m_font_size; }
     float get_style_scaling() const { return m_style_scaling; }
 
     void new_frame();
     void render();
+
+    float scaled(float x) const { return x * m_font_size * m_style_scaling; }
+    ImVec2 scaled(float x, float y) const { return ImVec2(x * m_font_size * m_style_scaling, y * m_font_size * m_style_scaling); }
+    ImVec2 calc_text_size(const wxString &text);
 
     void set_next_window_pos(float x, float y, int flag);
     void set_next_window_bg_alpha(float alpha);
@@ -73,15 +75,12 @@ public:
     bool want_any_input() const;
 
 private:
-    void init_default_font();
-    void create_device_objects();
-    void create_fonts_texture();
+    void init_font();
     void init_input();
     void init_style();
     void render_draw_data(ImDrawData *draw_data);
     bool display_initialized() const;
-    void destroy_device_objects();
-    void destroy_fonts_texture();
+    void destroy_font();
 
     static const char* clipboard_get(void* user_data);
     static void clipboard_set(void* user_data, const char* text);

@@ -6,7 +6,7 @@
 #include <vector>
 #include <cstdint>
 
-namespace ClipperLib { class Polygon; }
+namespace ClipperLib { struct Polygon; }
 
 namespace Slic3r {
 

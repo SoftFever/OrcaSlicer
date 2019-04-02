@@ -334,6 +334,13 @@ Transform3d GLVolume::world_matrix() const
     return m;
 }
 
+bool GLVolume::is_left_handed() const
+{
+    const Vec3d &m1 = m_instance_transformation.get_mirror();
+    const Vec3d &m2 = m_volume_transformation.get_mirror();
+    return m1.x() * m1.y() * m1.z() * m2.x() * m2.y() * m2.z() < 0.;
+}
+
 const BoundingBoxf3& GLVolume::transformed_bounding_box() const
 {
 	assert(bounding_box.defined || bounding_box.min(0) >= bounding_box.max(0) || bounding_box.min(1) >= bounding_box.max(1) || bounding_box.min(2) >= bounding_box.max(2));
@@ -402,6 +409,8 @@ void GLVolume::render() const
     if (!is_active)
         return;
 
+    if (this->is_left_handed())
+        glFrontFace(GL_CW);
     glsafe(::glCullFace(GL_BACK));
     glsafe(::glPushMatrix());
 
@@ -411,6 +420,8 @@ void GLVolume::render() const
     else
         this->indexed_vertex_array.render();
     glsafe(::glPopMatrix());
+    if (this->is_left_handed())
+        glFrontFace(GL_CCW);
 }
 
 void GLVolume::render_VBOs(int color_id, int detection_id, int worldmatrix_id) const
@@ -420,6 +431,9 @@ void GLVolume::render_VBOs(int color_id, int detection_id, int worldmatrix_id) c
 
     if (!indexed_vertex_array.vertices_and_normals_interleaved_VBO_id)
         return;
+
+    if (this->is_left_handed())
+        glFrontFace(GL_CW);
 
     GLsizei n_triangles = GLsizei(std::min(indexed_vertex_array.triangle_indices_size, tverts_range.second - tverts_range.first));
     GLsizei n_quads = GLsizei(std::min(indexed_vertex_array.quad_indices_size, qverts_range.second - qverts_range.first));
@@ -482,6 +496,9 @@ void GLVolume::render_VBOs(int color_id, int detection_id, int worldmatrix_id) c
     }
 
     glsafe(::glPopMatrix());
+
+    if (this->is_left_handed())
+        glFrontFace(GL_CCW);
 }
 
 void GLVolume::render_legacy() const
@@ -489,6 +506,9 @@ void GLVolume::render_legacy() const
     assert(!indexed_vertex_array.vertices_and_normals_interleaved_VBO_id);
     if (!is_active)
         return;
+
+    if (this->is_left_handed())
+        glFrontFace(GL_CW);
 
     GLsizei n_triangles = GLsizei(std::min(indexed_vertex_array.triangle_indices_size, tverts_range.second - tverts_range.first));
     GLsizei n_quads = GLsizei(std::min(indexed_vertex_array.quad_indices_size, qverts_range.second - qverts_range.first));
@@ -521,6 +541,9 @@ void GLVolume::render_legacy() const
         glsafe(::glDrawElements(GL_QUADS, n_quads, GL_UNSIGNED_INT, indexed_vertex_array.quad_indices.data() + qverts_range.first));
 
     glsafe(::glPopMatrix());
+
+    if (this->is_left_handed())
+        glFrontFace(GL_CCW);
 }
 
 std::vector<int> GLVolumeCollection::load_object(
