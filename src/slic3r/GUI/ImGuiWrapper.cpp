@@ -92,21 +92,18 @@ void ImGuiWrapper::set_display_size(float w, float h)
     io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
 }
 
-void ImGuiWrapper::set_font_size(float font_size)
+void ImGuiWrapper::set_scaling(float font_size, float scaling)
 {
-    if (m_font_size != font_size) {
-        m_font_size = font_size;
-        destroy_font();
+    if (m_font_size == font_size && m_style_scaling == scaling) {
+        return;
     }
-}
 
-void ImGuiWrapper::set_style_scaling(float scaling)
-{
-    if (!std::isnan(scaling) && !std::isinf(scaling) && scaling != m_style_scaling) {
-        ImGui::GetStyle().ScaleAllSizes(scaling / m_style_scaling);
-        m_style_scaling = scaling;
-        destroy_font();
-    }
+    m_font_size = font_size;
+
+    ImGui::GetStyle().ScaleAllSizes(scaling / m_style_scaling);
+    m_style_scaling = scaling;
+
+    destroy_font();
 }
 
 bool ImGuiWrapper::update_mouse_data(wxMouseEvent& evt)
@@ -163,8 +160,6 @@ bool ImGuiWrapper::update_key_data(wxKeyEvent &evt)
 
 void ImGuiWrapper::new_frame()
 {
-    printf("ImGuiWrapper: new_frame()\n");
-
     if (m_new_frame_open) {
         return;
     }
@@ -182,6 +177,12 @@ void ImGuiWrapper::render()
     ImGui::Render();
     render_draw_data(ImGui::GetDrawData());
     m_new_frame_open = false;
+}
+
+ImVec2 ImGuiWrapper::calc_text_size(const wxString &text)
+{
+    auto text_utf8 = into_u8(text);
+    return ImGui::CalcTextSize(text_utf8.c_str());
 }
 
 void ImGuiWrapper::set_next_window_pos(float x, float y, int flag)
@@ -293,12 +294,6 @@ bool ImGuiWrapper::combo(const wxString& label, const std::vector<std::string>& 
     return res;
 }
 
-ImVec2 ImGuiWrapper::calc_text_size(const wxString &text)
-{
-    auto text_utf8 = into_u8(text);
-    return ImGui::CalcTextSize(text_utf8.c_str());
-}
-
 void ImGuiWrapper::disabled_begin(bool disabled)
 {
     wxCHECK_RET(!m_disabled, "ImGUI: Unbalanced disabled_begin() call");
@@ -342,8 +337,6 @@ bool ImGuiWrapper::want_any_input() const
 
 void ImGuiWrapper::init_font()
 {
-    printf("ImGuiWrapper: init_font()\n");
-
     const float font_size = m_font_size * m_style_scaling;
 
     destroy_font();
