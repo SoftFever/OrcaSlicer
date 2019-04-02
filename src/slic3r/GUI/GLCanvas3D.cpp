@@ -5010,24 +5010,12 @@ void GLCanvas3D::_render_sla_slices() const
         Pointf3s &top_obj_triangles    = it_caps_top->second.object;
         Pointf3s &top_sup_triangles    = it_caps_top->second.supports;
 
-        const std::vector<SLAPrintObject::Instance>& instances = obj->instances();
-        struct InstanceTransform
-        {
-            Vec3d offset;
-            float rotation;
-        };
-
-        std::vector<InstanceTransform> instance_transforms;
-        for (const SLAPrintObject::Instance& inst : instances)
-        {
-			instance_transforms.push_back({ to_3d(unscale(inst.shift), 0.), Geometry::rad2deg(inst.rotation) });
-        }
-
         if ((bottom_obj_triangles.empty() || bottom_sup_triangles.empty() || top_obj_triangles.empty() || top_sup_triangles.empty()) &&
             obj->is_step_done(slaposSliceSupports) && !obj->get_slice_index().empty())
         {
             double layer_height         = print->default_object_config().layer_height.value;
             double initial_layer_height = print->material_config().initial_layer_height.value;
+            bool   left_handed          = obj->is_left_handed();
 
             coord_t key_zero = obj->get_slice_index().front().print_level();
             // Slice at the center of the slab starting at clip_min_z will be rendered for the lower plane.
@@ -5046,10 +5034,10 @@ void GLCanvas3D::_render_sla_slices() const
                 const ExPolygons& sup_bottom = slice_low.get_slice(soSupport);
                 // calculate model bottom cap
                 if (bottom_obj_triangles.empty() && !obj_bottom.empty())
-                    bottom_obj_triangles = triangulate_expolygons_3d(obj_bottom, clip_min_z - plane_shift_z, true);
+                    bottom_obj_triangles = triangulate_expolygons_3d(obj_bottom, clip_min_z - plane_shift_z, ! left_handed);
                 // calculate support bottom cap
                 if (bottom_sup_triangles.empty() && !sup_bottom.empty())
-                    bottom_sup_triangles = triangulate_expolygons_3d(sup_bottom, clip_min_z - plane_shift_z, true);
+                    bottom_sup_triangles = triangulate_expolygons_3d(sup_bottom, clip_min_z - plane_shift_z, ! left_handed);
             }
 
             if (slice_high.is_valid()) {
@@ -5057,49 +5045,35 @@ void GLCanvas3D::_render_sla_slices() const
                 const ExPolygons& sup_top = slice_high.get_slice(soSupport);
                 // calculate model top cap
                 if (top_obj_triangles.empty() && !obj_top.empty())
-                    top_obj_triangles = triangulate_expolygons_3d(obj_top, clip_max_z + plane_shift_z, false);
+                    top_obj_triangles = triangulate_expolygons_3d(obj_top, clip_max_z + plane_shift_z, left_handed);
                 // calculate support top cap
                 if (top_sup_triangles.empty() && !sup_top.empty())
-                    top_sup_triangles = triangulate_expolygons_3d(sup_top, clip_max_z + plane_shift_z, false);
+                    top_sup_triangles = triangulate_expolygons_3d(sup_top, clip_max_z + plane_shift_z, left_handed);
             }
         }
 
         if (!bottom_obj_triangles.empty() || !top_obj_triangles.empty() || !bottom_sup_triangles.empty() || !top_sup_triangles.empty())
         {
-            for (const InstanceTransform& inst : instance_transforms)
+			for (const SLAPrintObject::Instance& inst : obj->instances())
             {
                 ::glPushMatrix();
-                ::glTranslated(inst.offset(0), inst.offset(1), inst.offset(2));
-                ::glRotatef(inst.rotation, 0.0, 0.0, 1.0);
-
-                ::glBegin(GL_TRIANGLES);
-
+				::glTranslated(unscale<double>(inst.shift.x()), unscale<double>(inst.shift.y()), 0);
+				::glRotatef(Geometry::rad2deg(inst.rotation), 0.0, 0.0, 1.0);
+				if (obj->is_left_handed())
+                    // The polygons are mirrored by X.
+                    ::glScalef(-1.0, 1.0, 1.0);
                 ::glColor3f(1.0f, 0.37f, 0.0f);
-
-                for (const Vec3d& v : bottom_obj_triangles)
-                {
-                    ::glVertex3dv((GLdouble*)v.data());
-                }
-
-                for (const Vec3d& v : top_obj_triangles)
-                {
-                    ::glVertex3dv((GLdouble*)v.data());
-                }
-
-                ::glColor3f(1.0f, 0.0f, 0.37f);
-
-                for (const Vec3d& v : bottom_sup_triangles)
-                {
-                    ::glVertex3dv((GLdouble*)v.data());
-                }
-
-                for (const Vec3d& v : top_sup_triangles)
-                {
-                    ::glVertex3dv((GLdouble*)v.data());
-                }
-
-                ::glEnd();
-
+				::glEnableClientState(GL_VERTEX_ARRAY);
+				::glVertexPointer(3, GL_DOUBLE, 0, (GLdouble*)bottom_obj_triangles.front().data());
+				::glDrawArrays(GL_TRIANGLES, 0, bottom_obj_triangles.size());
+				::glVertexPointer(3, GL_DOUBLE, 0, (GLdouble*)top_obj_triangles.front().data());
+				::glDrawArrays(GL_TRIANGLES, 0, top_obj_triangles.size());
+				::glColor3f(1.0f, 0.0f, 0.37f);
+				::glVertexPointer(3, GL_DOUBLE, 0, (GLdouble*)bottom_sup_triangles.front().data());
+				::glDrawArrays(GL_TRIANGLES, 0, bottom_sup_triangles.size());
+				::glVertexPointer(3, GL_DOUBLE, 0, (GLdouble*)top_sup_triangles.front().data());
+				::glDrawArrays(GL_TRIANGLES, 0, top_sup_triangles.size());
+				::glDisableClientState(GL_VERTEX_ARRAY);
                 ::glPopMatrix();
             }
         }
@@ -6217,6 +6191,8 @@ void GLCanvas3D::_load_shells_fff()
 
 void GLCanvas3D::_load_shells_sla()
 {
+    //FIXME use reload_scene
+#if 1
     const SLAPrint* print = this->sla_print();
     if (print->objects().empty())
         // nothing to render, return
@@ -6240,9 +6216,7 @@ void GLCanvas3D::_load_shells_sla()
 
         m_volumes.load_object(model_obj, obj_idx, instance_idxs, "object", m_use_VBOs && m_initialized);
 
-        const std::vector<SLAPrintObject::Instance>& instances = obj->instances();
-
-        for (const SLAPrintObject::Instance& instance : instances)
+        for (const SLAPrintObject::Instance& instance : obj->instances())
         {
             Vec3d offset = unscale(instance.shift(0), instance.shift(1), 0);
             Vec3d rotation(0.0, 0.0, (double)instance.rotation);
@@ -6265,6 +6239,7 @@ void GLCanvas3D::_load_shells_sla()
                 v.composite_id.volume_id = -1;
                 v.set_instance_offset(offset);
                 v.set_instance_rotation(rotation);
+                v.set_instance_mirror(X, obj->is_left_handed() ? -1. : 1.);
             }
 
             // add pad
@@ -6283,6 +6258,7 @@ void GLCanvas3D::_load_shells_sla()
                 v.composite_id.volume_id = -1;
                 v.set_instance_offset(offset);
                 v.set_instance_rotation(rotation);
+                v.set_instance_mirror(X, obj->is_left_handed() ? -1. : 1.);
             }
 
             // finalize volumes and sends geometry to gpu
@@ -6305,6 +6281,9 @@ void GLCanvas3D::_load_shells_sla()
     }
 
     update_volumes_colors_by_extruder();
+#else
+    this->reload_scene(true, true);
+#endif
 }
 
 void GLCanvas3D::_update_gcode_volumes_visibility(const GCodePreviewData& preview_data)

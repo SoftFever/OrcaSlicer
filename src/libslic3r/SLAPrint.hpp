@@ -51,6 +51,7 @@ public:
 
     const SLAPrintObjectConfig& config() const { return m_config; }
     const Transform3d&          trafo()  const { return m_trafo; }
+    bool                        is_left_handed() const { return m_left_handed; }
 
     struct Instance {
     	Instance(ModelID instance_id, const Point &shift, float rotation) : instance_id(instance_id), shift(shift), rotation(rotation) {}
@@ -241,8 +242,8 @@ protected:
     void                    config_apply_only(const ConfigBase &other, const t_config_option_keys &keys, bool ignore_nonexistent = false) 
     	{ this->m_config.apply_only(other, keys, ignore_nonexistent); }
 
-    void                    set_trafo(const Transform3d& trafo) {
-        m_transformed_rmesh.invalidate([this, &trafo](){ m_trafo = trafo; });
+    void                    set_trafo(const Transform3d& trafo, bool left_handed) {
+		m_transformed_rmesh.invalidate([this, &trafo, left_handed](){ m_trafo = trafo; m_left_handed = left_handed; });
     }
 
     void                    set_instances(const std::vector<Instance> &instances) { m_instances = instances; }
@@ -262,6 +263,8 @@ private:
 
     // Translation in Z + Rotation by Y and Z + Scaling / Mirroring.
     Transform3d                             m_trafo = Transform3d::Identity();
+    // m_trafo is left handed -> 3x3 affine transformation has negative determinant.
+    bool                                    m_left_handed = false;
 
     std::vector<Instance> 					m_instances;
 
