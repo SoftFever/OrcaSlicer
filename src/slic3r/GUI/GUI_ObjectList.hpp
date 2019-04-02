@@ -60,6 +60,12 @@ struct ItemForDelete
 
 class ObjectList : public wxDataViewCtrl
 {
+    enum SELECTION_MODE
+    {
+        smUndef,
+        smVolume,
+        smInstance
+    } m_selection_mode {smUndef};
 
     struct dragged_item_data
     {
@@ -135,6 +141,7 @@ class ObjectList : public wxDataViewCtrl
     bool        m_part_settings_changed = false;
 
     int         m_selected_row = 0;
+    wxDataViewItem m_last_selected_item {nullptr};
 
 #if 0
     FreqSettingsBundle m_freq_settings_fff;
@@ -188,6 +195,7 @@ public:
     void                append_menu_item_fix_through_netfabb(wxMenu* menu);
     void                append_menu_item_export_stl(wxMenu* menu) const ;
     void                append_menu_item_change_extruder(wxMenu* menu) const;
+    void                append_menu_item_delete(wxMenu* menu);
     void                create_object_popupmenu(wxMenu *menu);
     void                create_sla_object_popupmenu(wxMenu*menu);
     void                create_part_popupmenu(wxMenu*menu);
@@ -258,6 +266,8 @@ public:
     void select_items(const wxDataViewItemArray& sels);
     void select_all();
     void select_item_all_children();
+    void update_selection_mode();
+    bool check_last_selection();
     // correct current selections to avoid of the possible conflicts
     void fix_multiselection_conflicts();
 
