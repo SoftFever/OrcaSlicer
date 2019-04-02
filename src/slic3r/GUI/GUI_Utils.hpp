@@ -8,10 +8,13 @@
 
 #include <boost/optional.hpp>
 
+#include <wx/frame.h>
+#include <wx/dialog.h>
 #include <wx/event.h>
 #include <wx/filedlg.h>
 #include <wx/gdicmn.h>
 #include <wx/panel.h>
+#include <wx/dcclient.h>
 #include <wx/debug.h>
 
 class wxCheckBox;
@@ -26,6 +29,68 @@ namespace GUI {
 wxTopLevelWindow* find_toplevel_parent(wxWindow *window);
 
 void on_window_geometry(wxTopLevelWindow *tlw, std::function<void()> callback);
+
+enum { DPI_DEFAULT = 96 };
+
+int get_dpi_for_window(wxWindow *window);
+
+struct DpiChangedEvent : public wxEvent {
+    int dpi;
+    wxRect rect;
+
+    DpiChangedEvent(wxEventType eventType, int dpi, wxRect rect)
+        : wxEvent(0, eventType), dpi(dpi), rect(rect)
+    {}
+
+    virtual wxEvent *Clone() const
+    {
+        return new DpiChangedEvent(*this);
+    }
+};
+
+wxDECLARE_EVENT(EVT_DPI_CHANGED, DpiChangedEvent);
+
+template<class P> class DPIAware : public P
+{
+public:
+    DPIAware(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &pos=wxDefaultPosition,
+        const wxSize &size=wxDefaultSize, long style=wxDEFAULT_FRAME_STYLE, const wxString &name=wxFrameNameStr)
+        : P(parent, id, title, pos, size, style, name)
+    {
+        m_scale_factor = (float)get_dpi_for_window(this) / (float)DPI_DEFAULT;
+        recalc_font();
+
+        this->Bind(EVT_DPI_CHANGED, [this](const DpiChangedEvent &evt) {
+            m_scale_factor = (float)evt.dpi / (float)DPI_DEFAULT;
+            on_dpi_changed(evt.rect);
+        });
+    }
+
+    virtual ~DPIAware() {}
+
+    float scale_factor() const { return m_scale_factor; }
+    int em_unit() const { return m_em_unit; }
+    int font_size() const { return m_font_size; }
+
+protected:
+    virtual void on_dpi_changed(const wxRect &suggested_rect) = 0;
+
+private:
+    int m_scale_factor;
+    int m_em_unit;
+    int m_font_size;
+
+    void recalc_font()
+    {
+        wxClientDC dc(this);
+        const auto metrics = dc.GetFontMetrics();
+        m_font_size = metrics.height;
+        m_em_unit = metrics.averageWidth;
+    }
+};
+
+typedef DPIAware<wxFrame> DPIFrame;
+typedef DPIAware<wxDialog> DPIDialog;
 
 
 class EventGuard
