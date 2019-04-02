@@ -4405,12 +4405,12 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
 
     auto *imgui = wxGetApp().imgui();
     imgui->set_display_size((float)w, (float)h);
+    const float font_size = 1.5f * wxGetApp().em_unit();
 #if ENABLE_RETINA_GL
-    const float scaling = m_retina_helper->get_scale_factor();
+    imgui->set_scaling(font_size, 1.0f, m_retina_helper->get_scale_factor());
 #else
-    const float scaling = m_canvas->GetContentScaleFactor();
+    imgui->set_scaling(font_size, m_canvas->GetContentScaleFactor(), 1.0f);
 #endif
-    imgui->set_scaling(m_canvas->GetFont().GetPixelSize().y, scaling);
 
     // ensures that this canvas is current
     _set_current();

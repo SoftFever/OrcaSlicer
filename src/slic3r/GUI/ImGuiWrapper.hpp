@@ -35,7 +35,7 @@ public:
 
     void set_language(const std::string &language);
     void set_display_size(float w, float h);
-    void set_scaling(float font_size, float scaling);
+    void set_scaling(float font_size, float scale_style, float scale_both);
     bool update_mouse_data(wxMouseEvent &evt);
     bool update_key_data(wxKeyEvent &evt);
 
