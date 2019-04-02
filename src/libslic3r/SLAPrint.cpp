@@ -619,14 +619,6 @@ bool SLAPrint::invalidate_step(SLAPrintStep step)
     return invalidated;
 }
 
-template<class...Args>
-void report_status(SLAPrint& p, int st, const std::string& msg, Args&&...args)
-{
-    BOOST_LOG_TRIVIAL(info) << st << "% " << msg;
-    p.set_status(st, msg, std::forward<Args>(args)...);
-}
-
-
 void SLAPrint::process()
 {
     using namespace sla;
@@ -720,7 +712,7 @@ void SLAPrint::process()
 
     // In this step we check the slices, identify island and cover them with
     // support points. Then we sprinkle the rest of the mesh.
-    auto support_points = [this](SLAPrintObject& po) {
+    auto support_points = [this, ostepd](SLAPrintObject& po) {
         const ModelObject& mo = *po.m_model_object;
         po.m_supportdata.reset(
                     new SLAPrintObject::SupportData(po.transformed_mesh()) );
@@ -754,6 +746,19 @@ void SLAPrint::process()
             config.minimal_distance = float(cfg.support_points_minimal_distance);
             config.head_diameter    = float(cfg.support_head_front_diameter);
 
+            // scaling for the sub operations
+            double d = ostepd * OBJ_STEP_LEVELS[slaposSupportPoints] / 100.0;
+            double init = m_report_status.status();
+
+            auto statuscb = [this, d, init](unsigned st)
+            {
+                double current = init + st * d;
+                if(std::round(m_report_status.status()) < std::round(current))
+                    m_report_status(*this, current,
+                                    OBJ_STEP_LABELS[slaposSupportPoints]);
+
+            };
+
             // Construction of this object does the calculation.
             this->throw_if_canceled();
             SLAAutoSupports auto_supports(po.transformed_mesh(),
@@ -761,7 +766,8 @@ void SLAPrint::process()
                                           po.get_model_slices(),
                                           heights,
                                           config, 
-                                          [this]() { throw_if_canceled(); });
+                                          [this]() { throw_if_canceled(); },
+                                          statuscb);
 
             // Now let's extract the result.
             const std::vector<sla::SupportPoint>& points = auto_supports.output();
@@ -772,7 +778,7 @@ void SLAPrint::process()
                                      << po.m_supportdata->support_points.size();
 
             // Using RELOAD_SLA_SUPPORT_POINTS to tell the Plater to pass the update status to GLGizmoSlaSupports
-            report_status(*this, -1, L("Generating support points"), SlicingStatus::RELOAD_SLA_SUPPORT_POINTS);
+            m_report_status(*this, -1, L("Generating support points"), SlicingStatus::RELOAD_SLA_SUPPORT_POINTS);
         }
         else {
             // There are either some points on the front-end, or the user removed them on purpose. No calculation will be done.
@@ -781,7 +787,8 @@ void SLAPrint::process()
     };
 
     // In this step we create the supports
-    auto support_tree = [this, objcount, ostepd](SLAPrintObject& po) {
+    auto support_tree = [this, ostepd](SLAPrintObject& po)
+    {
         if(!po.m_supportdata) return;
 
         if(!po.m_config.supports_enable.getBool()) {
@@ -793,22 +800,17 @@ void SLAPrint::process()
         sla::SupportConfig scfg = make_support_cfg(po.m_config);
         sla::Controller ctl;
 
-        // some magic to scale the status values coming from the support
-        // tree creation into the whole print process
-        auto stfirst = OBJ_STEP_LEVELS.begin();
-        auto stthis = stfirst + slaposSupportTree;
-        // we need to add up the status portions until this operation
-        int init = std::accumulate(stfirst, stthis, 0);
-        init = int(init * ostepd);     // scale the init portion
-
         // scaling for the sub operations
-        double d = *stthis / 100.0;
+        double d = ostepd * OBJ_STEP_LEVELS[slaposSupportTree] / 100.0;
+        double init = m_report_status.status();
 
-        ctl.statuscb = [this, init, d, ostepd](unsigned st, const std::string& /*msg*/)
+        ctl.statuscb = [this, d, init](unsigned st, const std::string&)
         {
-            //FIXME this status line scaling does not seem to be correct.
-            // How does it account for an increasing object index?
-            report_status(*this, int(init + st*d*ostepd), OBJ_STEP_LABELS[slaposSupportTree]);
+            double current = init + st * d;
+            if(std::round(m_report_status.status()) < std::round(current))
+                m_report_status(*this, current,
+                                OBJ_STEP_LABELS[slaposSupportTree]);
+
         };
 
         ctl.stopcondition = [this](){ return canceled(); };
@@ -824,7 +826,7 @@ void SLAPrint::process()
         auto rc = SlicingStatus::RELOAD_SCENE;
 
         // This is to prevent "Done." being displayed during merged_mesh()
-        report_status(*this, -1, L("Visualizing supports"));
+        m_report_status(*this, -1, L("Visualizing supports"));
         po.m_supportdata->support_tree_ptr->merged_mesh();
 
         BOOST_LOG_TRIVIAL(debug) << "Processed support point count "
@@ -834,8 +836,7 @@ void SLAPrint::process()
         if(po.support_mesh().empty())
             BOOST_LOG_TRIVIAL(warning) << "Support mesh is empty";
 
-        report_status(*this, -1, L("Visualizing supports"), rc);
-
+        m_report_status(*this, -1, L("Visualizing supports"), rc);
     };
 
     // This step generates the sla base pad
@@ -883,7 +884,7 @@ void SLAPrint::process()
 
         po.throw_if_canceled();
         auto rc = SlicingStatus::RELOAD_SCENE;
-        report_status(*this, -1, L("Visualizing supports"), rc);
+        m_report_status(*this, -1, L("Visualizing supports"), rc);
     };
 
     // Slicing the support geometries similarly to the model slicing procedure.
@@ -914,7 +915,7 @@ void SLAPrint::process()
         }
 
         // Using RELOAD_SLA_PREVIEW to tell the Plater to pass the update status to the 3D preview to load the SLA slices.
-        report_status(*this, -2, "", SlicingStatus::RELOAD_SLA_PREVIEW);
+        m_report_status(*this, -2, "", SlicingStatus::RELOAD_SLA_PREVIEW);
     };
 
     // Merging the slices from all the print objects into one slice grid and
@@ -1213,7 +1214,7 @@ void SLAPrint::process()
         m_print_statistics.fast_layers_count = fast_layers;
         m_print_statistics.slow_layers_count = slow_layers;
 
-        report_status(*this, -2, "", SlicingStatus::RELOAD_SLA_PREVIEW);
+        m_report_status(*this, -2, "", SlicingStatus::RELOAD_SLA_PREVIEW);
     };
 
     // Rasterizing the model objects, and their supports
@@ -1259,16 +1260,11 @@ void SLAPrint::process()
         // slot is the portion of 100% that is realted to rasterization
         unsigned slot = PRINT_STEP_LEVELS[slapsRasterize];
 
-        // ist: initial state; pst: previous state
-        unsigned ist = std::accumulate(PRINT_STEP_LEVELS.begin(),
-                                       PRINT_STEP_LEVELS.begin()+slapsRasterize,
-                                       0u);
-
-        ist = max_objstatus + unsigned(ist * sd);
-        unsigned pst = ist;
+        // pst: previous state
+        double pst = m_report_status.status();
 
         double increment = (slot * sd) / m_printer_input.size();
-        double dstatus = double(ist);
+        double dstatus = m_report_status.status();
 
         SpinMutex slck;
 
@@ -1294,10 +1290,10 @@ void SLAPrint::process()
             {
                 std::lock_guard<SpinMutex> lck(slck);
                 dstatus += increment;
-                auto st = unsigned(dstatus);
-                if( st > pst) {
-                    report_status(*this, int(st),
-                                  PRINT_STEP_LABELS[slapsRasterize]);
+                double st = std::round(dstatus);
+                if(st > pst) {
+                    m_report_status(*this, st,
+                                    PRINT_STEP_LABELS[slapsRasterize]);
                     pst = st;
                 }
             }
@@ -1338,7 +1334,7 @@ void SLAPrint::process()
         rasterize
     };
 
-    unsigned st = min_objstatus;
+    double st = min_objstatus;
     unsigned incr = 0;
 
     BOOST_LOG_TRIVIAL(info) << "Start slicing process.";
@@ -1352,18 +1348,18 @@ void SLAPrint::process()
 
             BOOST_LOG_TRIVIAL(info) << "Slicing object " << po->model_object()->name;
 
-            for (int s = (int)step_ranges[idx_range]; s < (int)step_ranges[idx_range + 1]; ++s) {
-                auto currentstep = (SLAPrintObjectStep)s;
+            for (int s = int(step_ranges[idx_range]); s < int(step_ranges[idx_range + 1]); ++s) {
+                auto currentstep = static_cast<SLAPrintObjectStep>(s);
 
                 // Cancellation checking. Each step will check for cancellation
                 // on its own and return earlier gracefully. Just after it returns
                 // execution gets to this point and throws the canceled signal.
                 throw_if_canceled();
 
-                st += unsigned(incr * ostepd);
+                st += incr * ostepd;
 
                 if(po->m_stepmask[currentstep] && po->set_started(currentstep)) {
-                    report_status(*this, int(st), OBJ_STEP_LABELS[currentstep]);
+                    m_report_status(*this, st, OBJ_STEP_LABELS[currentstep]);
                     pobj_program[currentstep](*po);
                     throw_if_canceled();
                     po->set_done(currentstep);
@@ -1390,17 +1386,17 @@ void SLAPrint::process()
 
         if(m_stepmask[currentstep] && set_started(currentstep))
         {
-            report_status(*this, int(st), PRINT_STEP_LABELS[currentstep]);
+            m_report_status(*this, st, PRINT_STEP_LABELS[currentstep]);
             print_program[currentstep]();
             throw_if_canceled();
             set_done(currentstep);
         }
 
-        st += unsigned(PRINT_STEP_LEVELS[currentstep] * pstd);
+        st += PRINT_STEP_LEVELS[currentstep] * pstd;
     }
 
     // If everything vent well
-    report_status(*this, 100, L("Slicing done"));
+    m_report_status(*this, 100, L("Slicing done"));
 }
 
 bool SLAPrint::invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys)
@@ -1724,7 +1720,8 @@ DynamicConfig SLAPrintStatistics::placeholders()
         "print_time", "total_cost", "total_weight",
         "objects_used_material", "support_used_material" })
         config.set_key_value(key, new ConfigOptionString(std::string("{") + key + "}"));
-        return config;
+
+    return config;
 }
 
 std::string SLAPrintStatistics::finalize_output_path(const std::string &path_in) const
@@ -1742,6 +1739,14 @@ std::string SLAPrintStatistics::finalize_output_path(const std::string &path_in)
         final_path = path_in;
     }
     return final_path;
+}
+
+void SLAPrint::StatusReporter::operator()(
+        SLAPrint &p, double st, const std::string &msg, unsigned flags)
+{
+    m_st = st;
+    BOOST_LOG_TRIVIAL(info) << st << "% " << msg;
+    p.set_status(int(std::round(st)), msg, flags);
 }
 
 } // namespace Slic3r
