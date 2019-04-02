@@ -6207,16 +6207,25 @@ void GLCanvas3D::_load_shells_sla()
 
         unsigned int initial_volumes_count = (unsigned int)m_volumes.volumes.size();
 
+        // selects only instances which were sliced
         const ModelObject* model_obj = obj->model_object();
-        std::vector<int> instance_idxs(model_obj->instances.size());
-        for (int i = 0; i < (int)model_obj->instances.size(); ++i)
+        const std::vector<SLAPrintObject::Instance>& sla_instances = obj->instances();
+        std::vector<int> instances_model_idxs(sla_instances.size());
+        for (int i = 0; i < (int)sla_instances.size(); ++i)
         {
-            instance_idxs[i] = i;
+            instances_model_idxs[i] = (int)sla_instances[i].instance_id.id;
         }
 
-        m_volumes.load_object(model_obj, obj_idx, instance_idxs, "object", m_use_VBOs && m_initialized);
+        std::vector<int> sliced_instance_idxs;
+        for (int i = 0; i < (int)model_obj->instances.size(); ++i)
+        {
+            if (std::find(instances_model_idxs.begin(), instances_model_idxs.end(), (int)model_obj->instances[i]->id().id) != instances_model_idxs.end())
+                sliced_instance_idxs.push_back(i);
+        }
 
-        for (const SLAPrintObject::Instance& instance : obj->instances())
+        m_volumes.load_object(model_obj, obj_idx, sliced_instance_idxs, "object", m_use_VBOs && m_initialized);
+
+        for (const SLAPrintObject::Instance& instance : sla_instances)
         {
             Vec3d offset = unscale(instance.shift(0), instance.shift(1), 0);
             Vec3d rotation(0.0, 0.0, (double)instance.rotation);
