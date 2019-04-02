@@ -42,11 +42,11 @@ namespace {
 // should add up to 100 (%)
 const std::array<unsigned, slaposCount>     OBJ_STEP_LEVELS =
 {
-    10,     // slaposObjectSlice,
-    30,     // slaposSupportPoints,
-    25,     // slaposSupportTree,
-    25,     // slaposBasePool,
-    10,     // slaposSliceSupports,
+    30,     // slaposObjectSlice,
+    20,     // slaposSupportPoints,
+    10,     // slaposSupportTree,
+    10,     // slaposBasePool,
+    30,     // slaposSliceSupports,
 };
 
 const std::array<std::string, slaposCount> OBJ_STEP_LABELS =
@@ -61,8 +61,8 @@ const std::array<std::string, slaposCount> OBJ_STEP_LABELS =
 // Should also add up to 100 (%)
 const std::array<unsigned, slapsCount> PRINT_STEP_LEVELS =
 {
-    5,      // slapsMergeSlicesAndEval
-    95,     // slapsRasterize
+    10,      // slapsMergeSlicesAndEval
+    90,      // slapsRasterize
 };
 
 const std::array<std::string, slapsCount> PRINT_STEP_LABELS =
