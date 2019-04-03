@@ -485,7 +485,7 @@ const std::vector<std::string>& Preset::sla_material_options()
         s_opts = {
             "initial_layer_height",
             "exposure_time", "initial_exposure_time",
-            "material_correction_printing", "material_correction_curing",
+            "material_correction",
             "material_notes",
             "default_sla_material_profile",
             "compatible_prints", "compatible_prints_condition", 

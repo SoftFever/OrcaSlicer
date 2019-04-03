@@ -1056,16 +1056,14 @@ public:
     ConfigOptionFloat                       initial_layer_height;
     ConfigOptionFloat                       exposure_time;
     ConfigOptionFloat                       initial_exposure_time;
-    ConfigOptionFloats                      material_correction_printing;
-    ConfigOptionFloats                      material_correction_curing;
+    ConfigOptionFloats                      material_correction;
 protected:
     void initialize(StaticCacheBase &cache, const char *base_ptr)
     {
         OPT_PTR(initial_layer_height);
         OPT_PTR(exposure_time);
         OPT_PTR(initial_exposure_time);
-        OPT_PTR(material_correction_printing);
-        OPT_PTR(material_correction_curing);
+        OPT_PTR(material_correction);
     }
 };
 

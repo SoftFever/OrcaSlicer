@@ -85,17 +85,33 @@ void SLAPrint::clear()
 }
 
 // Transformation without rotation around Z and without a shift by X and Y.
-static Transform3d sla_trafo(const ModelObject &model_object)
+static Transform3d sla_trafo(const ModelObject &model_object, const SLAPrinterConfig& pconf, const SLAMaterialConfig& mconf)
 {
+
+    Vec3d corr(1., 1., 1.);
+
+    if(pconf.printer_correction.values.size() == 3) {
+        corr(X) = pconf.printer_correction.values[X];
+        corr(Y) = pconf.printer_correction.values[Y];
+        corr(Z) = pconf.printer_correction.values[Z];
+    }
+
+    if(mconf.material_correction.values.size() == 3) {
+        corr(X) *= mconf.material_correction.values[X];
+        corr(Y) *= mconf.material_correction.values[Y];
+        corr(Z) *= mconf.material_correction.values[Z];
+    }
+
     ModelInstance &model_instance = *model_object.instances.front();
     Vec3d          offset         = model_instance.get_offset();
     Vec3d          rotation       = model_instance.get_rotation();
     offset(0) = 0.;
     offset(1) = 0.;
     rotation(2) = 0.;
-    Transform3d trafo = Geometry::assemble_transform(offset, rotation, model_instance.get_scaling_factor(), model_instance.get_mirror());
-	if (model_instance.is_left_handed())
-		trafo = Eigen::Scaling(Vec3d(-1., 1., 1.)) * trafo;
+    Transform3d trafo = Geometry::assemble_transform(offset, rotation, model_instance.get_scaling_factor().cwiseProduct(corr), model_instance.get_mirror());
+    if (model_instance.is_left_handed())
+        trafo = Eigen::Scaling(Vec3d(-1., 1., 1.)) * trafo;
+
     return trafo;
 }
 
@@ -320,7 +336,7 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
 			bool sla_trafo_differs  = 
 				model_object.instances.empty() != model_object_new.instances.empty() ||
 				(! model_object.instances.empty() && 
-				  (! sla_trafo(model_object).isApprox(sla_trafo(model_object_new)) || 
+                  (! sla_trafo(model_object, m_printer_config, m_material_config).isApprox(sla_trafo(model_object_new, m_printer_config, m_material_config)) ||
 				    model_object.instances.front()->is_left_handed() != model_object_new.instances.front()->is_left_handed()));
 			if (model_parts_differ || sla_trafo_differs) {
 				// The very first step (the slicing step) is invalidated. One may freely remove all associated PrintObjects.
@@ -405,7 +421,7 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
 
             // FIXME: this invalidates the transformed mesh in SLAPrintObject
             // which is expensive to calculate (especially the raw_mesh() call)
-            print_object->set_trafo(sla_trafo(model_object), model_object.instances.front()->is_left_handed());
+            print_object->set_trafo(sla_trafo(model_object, m_printer_config, m_material_config), model_object.instances.front()->is_left_handed());
 
             print_object->set_instances(std::move(new_instances));
             print_object->config_apply(config, true);
@@ -1423,19 +1439,22 @@ bool SLAPrint::invalidate_state_by_config_options(const std::vector<t_config_opt
     if (opt_keys.empty())
         return false;
 
+    static std::unordered_set<std::string> steps_full = {
+        "initial_layer_height",
+        "material_correction",
+        "printer_correction"
+    };
+
     // Cache the plenty of parameters, which influence the final rasterization only,
     // or they are only notes not influencing the rasterization step.
     static std::unordered_set<std::string> steps_rasterize = {
         "exposure_time",
         "initial_exposure_time",
-        "material_correction_printing",
-        "material_correction_curing",
         "display_width",
         "display_height",
         "display_pixels_x",
         "display_pixels_y",
-        "display_orientation",
-        "printer_correction"
+        "display_orientation"
     };
 
     static std::unordered_set<std::string> steps_ignore = {
@@ -1459,7 +1478,7 @@ bool SLAPrint::invalidate_state_by_config_options(const std::vector<t_config_opt
             steps.emplace_back(slapsMergeSlicesAndEval);
         } else if (steps_ignore.find(opt_key) != steps_ignore.end()) {
             // These steps have no influence on the output. Just ignore them.
-        } else if (opt_key == "initial_layer_height") {
+        } else if (steps_full.find(opt_key) != steps_full.end()) {
             steps.emplace_back(slapsMergeSlicesAndEval);
             osteps.emplace_back(slaposObjectSlice);
         } else {
