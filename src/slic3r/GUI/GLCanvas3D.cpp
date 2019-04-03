@@ -3306,12 +3306,12 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
 
     auto *imgui = wxGetApp().imgui();
     imgui->set_display_size((float)w, (float)h);
+    const float font_size = 1.5f * wxGetApp().em_unit();
 #if ENABLE_RETINA_GL
-    const float scaling = m_retina_helper->get_scale_factor();
+    imgui->set_scaling(font_size, 1.0f, m_retina_helper->get_scale_factor());
 #else
-    const float scaling = m_canvas->GetContentScaleFactor();
+    imgui->set_scaling(font_size, m_canvas->GetContentScaleFactor(), 1.0f);
 #endif
-    imgui->set_scaling(m_canvas->GetFont().GetPixelSize().y, scaling);
 
     // ensures that this canvas is current
     _set_current();
@@ -3945,17 +3945,25 @@ void GLCanvas3D::_render_sla_slices() const
 				if (obj->is_left_handed())
                     // The polygons are mirrored by X.
                     glsafe(::glScalef(-1.0, 1.0, 1.0));
-                glsafe(::glColor3f(1.0f, 0.37f, 0.0f));
                 glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
-                glsafe(::glVertexPointer(3, GL_DOUBLE, 0, (GLdouble*)bottom_obj_triangles.front().data()));
-                glsafe(::glDrawArrays(GL_TRIANGLES, 0, bottom_obj_triangles.size()));
-                glsafe(::glVertexPointer(3, GL_DOUBLE, 0, (GLdouble*)top_obj_triangles.front().data()));
-                glsafe(::glDrawArrays(GL_TRIANGLES, 0, top_obj_triangles.size()));
+                glsafe(::glColor3f(1.0f, 0.37f, 0.0f));
+				if (!bottom_obj_triangles.empty()) {
+                    glsafe(::glVertexPointer(3, GL_DOUBLE, 0, (GLdouble*)bottom_obj_triangles.front().data()));
+                    glsafe(::glDrawArrays(GL_TRIANGLES, 0, bottom_obj_triangles.size()));
+				}
+				if (! top_obj_triangles.empty()) {
+                    glsafe(::glVertexPointer(3, GL_DOUBLE, 0, (GLdouble*)top_obj_triangles.front().data()));
+                    glsafe(::glDrawArrays(GL_TRIANGLES, 0, top_obj_triangles.size()));
+				}
                 glsafe(::glColor3f(1.0f, 0.0f, 0.37f));
-                glsafe(::glVertexPointer(3, GL_DOUBLE, 0, (GLdouble*)bottom_sup_triangles.front().data()));
-                glsafe(::glDrawArrays(GL_TRIANGLES, 0, bottom_sup_triangles.size()));
-                glsafe(::glVertexPointer(3, GL_DOUBLE, 0, (GLdouble*)top_sup_triangles.front().data()));
-                glsafe(::glDrawArrays(GL_TRIANGLES, 0, top_sup_triangles.size()));
+				if (! bottom_sup_triangles.empty()) {
+                    glsafe(::glVertexPointer(3, GL_DOUBLE, 0, (GLdouble*)bottom_sup_triangles.front().data()));
+                    glsafe(::glDrawArrays(GL_TRIANGLES, 0, bottom_sup_triangles.size()));
+				}
+				if (! top_sup_triangles.empty()) {
+                    glsafe(::glVertexPointer(3, GL_DOUBLE, 0, (GLdouble*)top_sup_triangles.front().data()));
+                    glsafe(::glDrawArrays(GL_TRIANGLES, 0, top_sup_triangles.size()));
+				}
                 glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
                 glsafe(::glPopMatrix());
             }

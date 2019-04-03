@@ -93,16 +93,19 @@ void ImGuiWrapper::set_display_size(float w, float h)
     io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
 }
 
-void ImGuiWrapper::set_scaling(float font_size, float scaling)
+void ImGuiWrapper::set_scaling(float font_size, float scale_style, float scale_both)
 {
-    if (m_font_size == font_size && m_style_scaling == scaling) {
+    font_size *= scale_both;
+    scale_style *= scale_both;
+
+    if (m_font_size == font_size && m_style_scaling == scale_style) {
         return;
     }
 
     m_font_size = font_size;
 
-    ImGui::GetStyle().ScaleAllSizes(scaling / m_style_scaling);
-    m_style_scaling = scaling;
+    ImGui::GetStyle().ScaleAllSizes(scale_style / m_style_scaling);
+    m_style_scaling = scale_style;
 
     destroy_font();
 }
