@@ -108,7 +108,18 @@ static Transform3d sla_trafo(const ModelObject &model_object, const SLAPrinterCo
     offset(0) = 0.;
     offset(1) = 0.;
     rotation(2) = 0.;
-    Transform3d trafo = Geometry::assemble_transform(offset, rotation, model_instance.get_scaling_factor().cwiseProduct(corr), model_instance.get_mirror());
+
+    offset(Z) *= corr(Z);
+
+    auto trafo = Transform3d::Identity();
+    trafo.translate(offset);
+    trafo.scale(corr);
+    trafo.rotate(Eigen::AngleAxisd(rotation(2), Vec3d::UnitZ()));
+    trafo.rotate(Eigen::AngleAxisd(rotation(1), Vec3d::UnitY()));
+    trafo.rotate(Eigen::AngleAxisd(rotation(0), Vec3d::UnitX()));
+    trafo.scale(model_instance.get_scaling_factor());
+    trafo.scale(model_instance.get_mirror());
+
     if (model_instance.is_left_handed())
         trafo = Eigen::Scaling(Vec3d(-1., 1., 1.)) * trafo;
 
@@ -137,12 +148,12 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
 
     // Make a copy of the config, normalize it.
     DynamicPrintConfig config(config_in);
-	config.option("sla_print_settings_id",    true);
-	config.option("sla_material_settings_id", true);
-	config.option("printer_settings_id",      true);
+    config.option("sla_print_settings_id",    true);
+    config.option("sla_material_settings_id", true);
+    config.option("printer_settings_id",      true);
     config.normalize();
     // Collect changes to print config.
-    t_config_option_keys print_diff    = m_print_config.diff(config);    
+    t_config_option_keys print_diff    = m_print_config.diff(config);
     t_config_option_keys printer_diff  = m_printer_config.diff(config);
     t_config_option_keys material_diff = m_material_config.diff(config);
     t_config_option_keys object_diff   = m_default_object_config.diff(config);
@@ -168,14 +179,14 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
 
     // Apply variables to placeholder parser. The placeholder parser is currently used
     // only to generate the output file name.
-	if (! placeholder_parser_diff.empty()) {
+    if (! placeholder_parser_diff.empty()) {
         // update_apply_status(this->invalidate_step(slapsRasterize));
-		PlaceholderParser &pp = this->placeholder_parser();
-		pp.apply_config(config);
+        PlaceholderParser &pp = this->placeholder_parser();
+        pp.apply_config(config);
         // Set the profile aliases for the PrintBase::output_filename()
-		pp.set("print_preset",    config.option("sla_print_settings_id")->clone());
-		pp.set("material_preset", config.option("sla_material_settings_id")->clone());
-		pp.set("printer_preset",  config.option("printer_settings_id")->clone());
+        pp.set("print_preset",    config.option("sla_print_settings_id")->clone());
+        pp.set("material_preset", config.option("sla_material_settings_id")->clone());
+        pp.set("printer_preset",  config.option("printer_settings_id")->clone());
     }
 
     // It is also safe to change m_config now after this->invalidate_state_by_config_options() call.
@@ -322,101 +333,101 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
         auto it_status = model_object_status.find(ModelObjectStatus(model_object.id()));
         assert(it_status != model_object_status.end());
         assert(it_status->status != ModelObjectStatus::Deleted);
-		// PrintObject for this ModelObject, if it exists.
-		auto it_print_object_status = print_object_status.end();
-		if (it_status->status != ModelObjectStatus::New) {
-			// Update the ModelObject instance, possibly invalidate the linked PrintObjects.
-			assert(it_status->status == ModelObjectStatus::Old || it_status->status == ModelObjectStatus::Moved);
-			const ModelObject &model_object_new       = *model.objects[idx_model_object];
-			it_print_object_status = print_object_status.lower_bound(PrintObjectStatus(model_object.id()));
-			if (it_print_object_status != print_object_status.end() && it_print_object_status->id != model_object.id())
-				it_print_object_status = print_object_status.end();
-			// Check whether a model part volume was added or removed, their transformations or order changed.
-			bool model_parts_differ = model_volume_list_changed(model_object, model_object_new, ModelVolumeType::MODEL_PART);
-			bool sla_trafo_differs  = 
-				model_object.instances.empty() != model_object_new.instances.empty() ||
-				(! model_object.instances.empty() && 
+        // PrintObject for this ModelObject, if it exists.
+        auto it_print_object_status = print_object_status.end();
+        if (it_status->status != ModelObjectStatus::New) {
+            // Update the ModelObject instance, possibly invalidate the linked PrintObjects.
+            assert(it_status->status == ModelObjectStatus::Old || it_status->status == ModelObjectStatus::Moved);
+            const ModelObject &model_object_new       = *model.objects[idx_model_object];
+            it_print_object_status = print_object_status.lower_bound(PrintObjectStatus(model_object.id()));
+            if (it_print_object_status != print_object_status.end() && it_print_object_status->id != model_object.id())
+                it_print_object_status = print_object_status.end();
+            // Check whether a model part volume was added or removed, their transformations or order changed.
+            bool model_parts_differ = model_volume_list_changed(model_object, model_object_new, ModelVolumeType::MODEL_PART);
+            bool sla_trafo_differs  =
+                model_object.instances.empty() != model_object_new.instances.empty() ||
+                (! model_object.instances.empty() &&
                   (! sla_trafo(model_object, m_printer_config, m_material_config).isApprox(sla_trafo(model_object_new, m_printer_config, m_material_config)) ||
-				    model_object.instances.front()->is_left_handed() != model_object_new.instances.front()->is_left_handed()));
-			if (model_parts_differ || sla_trafo_differs) {
-				// The very first step (the slicing step) is invalidated. One may freely remove all associated PrintObjects.
-				if (it_print_object_status != print_object_status.end()) {
-					update_apply_status(it_print_object_status->print_object->invalidate_all_steps());
-					const_cast<PrintObjectStatus&>(*it_print_object_status).status = PrintObjectStatus::Deleted;
-				}
-				// Copy content of the ModelObject including its ID, do not change the parent.
-				model_object.assign_copy(model_object_new);
-			} else {
-				// Synchronize Object's config.
-				bool object_config_changed = model_object.config != model_object_new.config;
-				if (object_config_changed)
-					model_object.config = model_object_new.config;
-				if (! object_diff.empty() || object_config_changed) {
-					SLAPrintObjectConfig new_config = m_default_object_config;
-					normalize_and_apply_config(new_config, model_object.config);
-					if (it_print_object_status != print_object_status.end()) {
-						t_config_option_keys diff = it_print_object_status->print_object->config().diff(new_config);
-						if (! diff.empty()) {
-							update_apply_status(it_print_object_status->print_object->invalidate_state_by_config_options(diff));
-							it_print_object_status->print_object->config_apply_only(new_config, diff, true);
-						}
-					}
-				}
-				/*if (model_object.sla_support_points != model_object_new.sla_support_points) {
-					model_object.sla_support_points = model_object_new.sla_support_points;
-					if (it_print_object_status != print_object_status.end())
-						update_apply_status(it_print_object_status->print_object->invalidate_step(slaposSupportPoints));
-				}
-				if (model_object.sla_points_status != model_object_new.sla_points_status) {
-					// Change of this status should invalidate support points. The points themselves are not enough, there are none
-					// in case that nothing was generated OR that points were autogenerated already and not copied to the front-end.
-					// These cases can only be differentiated by checking the status change. However, changing from 'Generating' should NOT
-					// invalidate - that would keep stopping the background processing without a reason.
-					if (model_object.sla_points_status != sla::PointsStatus::Generating)
-						if (it_print_object_status != print_object_status.end())
-							update_apply_status(it_print_object_status->print_object->invalidate_step(slaposSupportPoints));
-					model_object.sla_points_status = model_object_new.sla_points_status;
-				}*/
+                    model_object.instances.front()->is_left_handed() != model_object_new.instances.front()->is_left_handed()));
+            if (model_parts_differ || sla_trafo_differs) {
+                // The very first step (the slicing step) is invalidated. One may freely remove all associated PrintObjects.
+                if (it_print_object_status != print_object_status.end()) {
+                    update_apply_status(it_print_object_status->print_object->invalidate_all_steps());
+                    const_cast<PrintObjectStatus&>(*it_print_object_status).status = PrintObjectStatus::Deleted;
+                }
+                // Copy content of the ModelObject including its ID, do not change the parent.
+                model_object.assign_copy(model_object_new);
+            } else {
+                // Synchronize Object's config.
+                bool object_config_changed = model_object.config != model_object_new.config;
+                if (object_config_changed)
+                    model_object.config = model_object_new.config;
+                if (! object_diff.empty() || object_config_changed) {
+                    SLAPrintObjectConfig new_config = m_default_object_config;
+                    normalize_and_apply_config(new_config, model_object.config);
+                    if (it_print_object_status != print_object_status.end()) {
+                        t_config_option_keys diff = it_print_object_status->print_object->config().diff(new_config);
+                        if (! diff.empty()) {
+                            update_apply_status(it_print_object_status->print_object->invalidate_state_by_config_options(diff));
+                            it_print_object_status->print_object->config_apply_only(new_config, diff, true);
+                        }
+                    }
+                }
+                /*if (model_object.sla_support_points != model_object_new.sla_support_points) {
+                    model_object.sla_support_points = model_object_new.sla_support_points;
+                    if (it_print_object_status != print_object_status.end())
+                        update_apply_status(it_print_object_status->print_object->invalidate_step(slaposSupportPoints));
+                }
+                if (model_object.sla_points_status != model_object_new.sla_points_status) {
+                    // Change of this status should invalidate support points. The points themselves are not enough, there are none
+                    // in case that nothing was generated OR that points were autogenerated already and not copied to the front-end.
+                    // These cases can only be differentiated by checking the status change. However, changing from 'Generating' should NOT
+                    // invalidate - that would keep stopping the background processing without a reason.
+                    if (model_object.sla_points_status != sla::PointsStatus::Generating)
+                        if (it_print_object_status != print_object_status.end())
+                            update_apply_status(it_print_object_status->print_object->invalidate_step(slaposSupportPoints));
+                    model_object.sla_points_status = model_object_new.sla_points_status;
+                }*/
 
-				bool old_user_modified = model_object.sla_points_status == sla::PointsStatus::UserModified;
-				bool new_user_modified = model_object_new.sla_points_status == sla::PointsStatus::UserModified;
-				if ((old_user_modified && ! new_user_modified) || // switching to automatic supports from manual supports
-					(! old_user_modified && new_user_modified) || // switching to manual supports from automatic supports
-					(new_user_modified && model_object.sla_support_points != model_object_new.sla_support_points)) {
-					if (it_print_object_status != print_object_status.end())
-						update_apply_status(it_print_object_status->print_object->invalidate_step(slaposSupportPoints));
+                bool old_user_modified = model_object.sla_points_status == sla::PointsStatus::UserModified;
+                bool new_user_modified = model_object_new.sla_points_status == sla::PointsStatus::UserModified;
+                if ((old_user_modified && ! new_user_modified) || // switching to automatic supports from manual supports
+                    (! old_user_modified && new_user_modified) || // switching to manual supports from automatic supports
+                    (new_user_modified && model_object.sla_support_points != model_object_new.sla_support_points)) {
+                    if (it_print_object_status != print_object_status.end())
+                        update_apply_status(it_print_object_status->print_object->invalidate_step(slaposSupportPoints));
 
-					model_object.sla_points_status = model_object_new.sla_points_status;
-					model_object.sla_support_points = model_object_new.sla_support_points;
-				}
+                    model_object.sla_points_status = model_object_new.sla_points_status;
+                    model_object.sla_support_points = model_object_new.sla_support_points;
+                }
 
-				// Copy the ModelObject name, input_file and instances. The instances will compared against PrintObject instances in the next step.
-				model_object.name       = model_object_new.name;
-				model_object.input_file = model_object_new.input_file;
-				model_object.clear_instances();
-				model_object.instances.reserve(model_object_new.instances.size());
-				for (const ModelInstance *model_instance : model_object_new.instances) {
-					model_object.instances.emplace_back(new ModelInstance(*model_instance));
-					model_object.instances.back()->set_model_object(&model_object);
-				}
-			}
-		}
+                // Copy the ModelObject name, input_file and instances. The instances will compared against PrintObject instances in the next step.
+                model_object.name       = model_object_new.name;
+                model_object.input_file = model_object_new.input_file;
+                model_object.clear_instances();
+                model_object.instances.reserve(model_object_new.instances.size());
+                for (const ModelInstance *model_instance : model_object_new.instances) {
+                    model_object.instances.emplace_back(new ModelInstance(*model_instance));
+                    model_object.instances.back()->set_model_object(&model_object);
+                }
+            }
+        }
 
         std::vector<SLAPrintObject::Instance> new_instances = sla_instances(model_object);
         if (it_print_object_status != print_object_status.end() && it_print_object_status->status != PrintObjectStatus::Deleted) {
             // The SLAPrintObject is already there.
-			if (new_instances.empty()) {
-				const_cast<PrintObjectStatus&>(*it_print_object_status).status = PrintObjectStatus::Deleted;
-			} else {
-				if (new_instances != it_print_object_status->print_object->instances()) {
-					// Instances changed.
-					it_print_object_status->print_object->set_instances(new_instances);
+            if (new_instances.empty()) {
+                const_cast<PrintObjectStatus&>(*it_print_object_status).status = PrintObjectStatus::Deleted;
+            } else {
+                if (new_instances != it_print_object_status->print_object->instances()) {
+                    // Instances changed.
+                    it_print_object_status->print_object->set_instances(new_instances);
                     update_apply_status(this->invalidate_step(slapsMergeSlicesAndEval));
-				}
-				print_objects_new.emplace_back(it_print_object_status->print_object);
-				const_cast<PrintObjectStatus&>(*it_print_object_status).status = PrintObjectStatus::Reused;
-			}
-		} else if (! new_instances.empty()) {
+                }
+                print_objects_new.emplace_back(it_print_object_status->print_object);
+                const_cast<PrintObjectStatus&>(*it_print_object_status).status = PrintObjectStatus::Reused;
+            }
+        } else if (! new_instances.empty()) {
             auto print_object = new SLAPrintObject(this, &model_object);
 
             // FIXME: this invalidates the transformed mesh in SLAPrintObject
@@ -456,56 +467,56 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
 // After calling the apply() function, set_task() may be called to limit the task to be processed by process().
 void SLAPrint::set_task(const TaskParams &params)
 {
-	// Grab the lock for the Print / PrintObject milestones.
-	tbb::mutex::scoped_lock lock(this->state_mutex());
+    // Grab the lock for the Print / PrintObject milestones.
+    tbb::mutex::scoped_lock lock(this->state_mutex());
 
-	int n_object_steps = int(params.to_object_step) + 1;
-	if (n_object_steps == 0)
-		n_object_steps = (int)slaposCount;
+    int n_object_steps = int(params.to_object_step) + 1;
+    if (n_object_steps == 0)
+        n_object_steps = (int)slaposCount;
 
-	if (params.single_model_object.valid()) {
+    if (params.single_model_object.valid()) {
         // Find the print object to be processed with priority.
-		SLAPrintObject *print_object = nullptr;
-		size_t          idx_print_object = 0;
-		for (; idx_print_object < m_objects.size(); ++ idx_print_object)
-			if (m_objects[idx_print_object]->model_object()->id() == params.single_model_object) {
-				print_object = m_objects[idx_print_object];
-				break;
-			}
-		assert(print_object != nullptr);
+        SLAPrintObject *print_object = nullptr;
+        size_t          idx_print_object = 0;
+        for (; idx_print_object < m_objects.size(); ++ idx_print_object)
+            if (m_objects[idx_print_object]->model_object()->id() == params.single_model_object) {
+                print_object = m_objects[idx_print_object];
+                break;
+            }
+        assert(print_object != nullptr);
         // Find out whether the priority print object is being currently processed.
         bool running = false;
-		for (int istep = 0; istep < n_object_steps; ++ istep) {
-			if (! print_object->m_stepmask[istep])
+        for (int istep = 0; istep < n_object_steps; ++ istep) {
+            if (! print_object->m_stepmask[istep])
                 // Step was skipped, cancel.
-				break;
-			if (print_object->is_step_started_unguarded(SLAPrintObjectStep(istep))) {
+                break;
+            if (print_object->is_step_started_unguarded(SLAPrintObjectStep(istep))) {
                 // No step was skipped, and a wanted step is being processed. Don't cancel.
-				running = true;
-				break;
-			}
-		}
-		if (! running)
-			this->call_cancel_callback();
+                running = true;
+                break;
+            }
+        }
+        if (! running)
+            this->call_cancel_callback();
 
-		// Now the background process is either stopped, or it is inside one of the print object steps to be calculated anyway.
-		if (params.single_model_instance_only) {
-			// Suppress all the steps of other instances.
-			for (SLAPrintObject *po : m_objects)
-				for (int istep = 0; istep < (int)slaposCount; ++ istep)
-					po->m_stepmask[istep] = false;
-		} else if (! running) {
-			// Swap the print objects, so that the selected print_object is first in the row.
-			// At this point the background processing must be stopped, so it is safe to shuffle print objects.
-			if (idx_print_object != 0)
-				std::swap(m_objects.front(), m_objects[idx_print_object]);
-		}
+        // Now the background process is either stopped, or it is inside one of the print object steps to be calculated anyway.
+        if (params.single_model_instance_only) {
+            // Suppress all the steps of other instances.
+            for (SLAPrintObject *po : m_objects)
+                for (int istep = 0; istep < (int)slaposCount; ++ istep)
+                    po->m_stepmask[istep] = false;
+        } else if (! running) {
+            // Swap the print objects, so that the selected print_object is first in the row.
+            // At this point the background processing must be stopped, so it is safe to shuffle print objects.
+            if (idx_print_object != 0)
+                std::swap(m_objects.front(), m_objects[idx_print_object]);
+        }
         // and set the steps for the current object.
-		for (int istep = 0; istep < n_object_steps; ++ istep)
-			print_object->m_stepmask[istep] = true;
-		for (int istep = n_object_steps; istep < (int)slaposCount; ++ istep)
-			print_object->m_stepmask[istep] = false;
-	} else {
+        for (int istep = 0; istep < n_object_steps; ++ istep)
+            print_object->m_stepmask[istep] = true;
+        for (int istep = n_object_steps; istep < (int)slaposCount; ++ istep)
+            print_object->m_stepmask[istep] = false;
+    } else {
         // Slicing all objects.
         bool running = false;
         for (SLAPrintObject *print_object : m_objects)
@@ -534,9 +545,9 @@ void SLAPrint::set_task(const TaskParams &params)
 
     if (params.to_object_step != -1 || params.to_print_step != -1) {
         // Limit the print steps.
-		size_t istep = (params.to_object_step != -1) ? 0 : size_t(params.to_print_step) + 1;
-		for (; istep < m_stepmask.size(); ++ istep)
-			m_stepmask[istep] = false;
+        size_t istep = (params.to_object_step != -1) ? 0 : size_t(params.to_print_step) + 1;
+        for (; istep < m_stepmask.size(); ++ istep)
+            m_stepmask[istep] = false;
     }
 }
 
@@ -546,7 +557,7 @@ void SLAPrint::finalize()
 {
     for (SLAPrintObject *po : m_objects)
         for (int istep = 0; istep < (int)slaposCount; ++ istep)
-			po->m_stepmask[istep] = true;
+            po->m_stepmask[istep] = true;
     for (int istep = 0; istep < (int)slapsCount; ++ istep)
         m_stepmask[istep] = true;
 }
@@ -555,7 +566,7 @@ void SLAPrint::finalize()
 // (timestamps, object placeholders derived from the model, current placeholder prameters and print statistics.
 // Use the final print statistics if available, or just keep the print statistics placeholders if not available yet (before the output is finalized).
 std::string SLAPrint::output_filename() const
-{ 
+{
     DynamicConfig config = this->finished() ? this->print_statistics().config() : this->print_statistics().placeholders();
     return this->PrintBase::output_filename(m_print_config.output_filename_format.value, "sl1", &config);
 }
@@ -787,7 +798,7 @@ void SLAPrint::process()
                                           po.m_supportdata->emesh,
                                           po.get_model_slices(),
                                           heights,
-                                          config, 
+                                          config,
                                           [this]() { throw_if_canceled(); },
                                           statuscb);
 
@@ -1462,8 +1473,8 @@ bool SLAPrint::invalidate_state_by_config_options(const std::vector<t_config_opt
         "max_print_height",
         "printer_technology",
         "output_filename_format",
-        "fast_tilt_time", 
-        "slow_tilt_time", 
+        "fast_tilt_time",
+        "slow_tilt_time",
         "area_fill"
     };
 
@@ -1530,20 +1541,20 @@ bool SLAPrintObject::invalidate_state_by_config_options(const std::vector<t_conf
     std::vector<SLAPrintObjectStep> steps;
     bool invalidated = false;
     for (const t_config_option_key &opt_key : opt_keys) {
-		if (   opt_key == "layer_height"
+        if (   opt_key == "layer_height"
             || opt_key == "faded_layers"
             || opt_key == "pad_enable"
             || opt_key == "pad_wall_thickness"
             || opt_key == "supports_enable"
             || opt_key == "support_object_elevation"
             || opt_key == "slice_closing_radius") {
-			steps.emplace_back(slaposObjectSlice);
+            steps.emplace_back(slaposObjectSlice);
         } else if (
 
                opt_key == "support_points_density_relative"
             || opt_key == "support_points_minimal_distance") {
             steps.emplace_back(slaposSupportPoints);
-		} else if (
+        } else if (
                opt_key == "support_head_front_diameter"
             || opt_key == "support_head_penetration"
             || opt_key == "support_head_width"
