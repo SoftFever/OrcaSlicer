@@ -27,31 +27,25 @@ namespace GUI {
 
 ImGuiWrapper::ImGuiWrapper()
     : m_glyph_ranges(nullptr)
+    , m_font_size(18.0)
     , m_font_texture(0)
     , m_style_scaling(1.0)
     , m_mouse_buttons(0)
     , m_disabled(false)
     , m_new_frame_open(false)
 {
-}
-
-ImGuiWrapper::~ImGuiWrapper()
-{
-    destroy_device_objects();
-    ImGui::DestroyContext();
-}
-
-bool ImGuiWrapper::init()
-{
     ImGui::CreateContext();
 
-    init_default_font(m_style_scaling);
     init_input();
     init_style();
 
     ImGui::GetIO().IniFilename = nullptr;
+}
 
-    return true;
+ImGuiWrapper::~ImGuiWrapper()
+{
+    destroy_font();
+    ImGui::DestroyContext();
 }
 
 void ImGuiWrapper::set_language(const std::string &language)
@@ -87,7 +81,7 @@ void ImGuiWrapper::set_language(const std::string &language)
 
     if (ranges != m_glyph_ranges) {
         m_glyph_ranges = ranges;
-        init_default_font(m_style_scaling);
+        destroy_font();
     }
 }
 
@@ -98,13 +92,21 @@ void ImGuiWrapper::set_display_size(float w, float h)
     io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
 }
 
-void ImGuiWrapper::set_style_scaling(float scaling)
+void ImGuiWrapper::set_scaling(float font_size, float scale_style, float scale_both)
 {
-    if (!std::isnan(scaling) && !std::isinf(scaling) && scaling != m_style_scaling) {
-        ImGui::GetStyle().ScaleAllSizes(scaling / m_style_scaling);
-        init_default_font(scaling);
-        m_style_scaling = scaling;
+    font_size *= scale_both;
+    scale_style *= scale_both;
+
+    if (m_font_size == font_size && m_style_scaling == scale_style) {
+        return;
     }
+
+    m_font_size = font_size;
+
+    ImGui::GetStyle().ScaleAllSizes(scale_style / m_style_scaling);
+    m_style_scaling = scale_style;
+
+    destroy_font();
 }
 
 bool ImGuiWrapper::update_mouse_data(wxMouseEvent& evt)
@@ -165,8 +167,9 @@ void ImGuiWrapper::new_frame()
         return;
     }
 
-    if (m_font_texture == 0)
-        create_device_objects();
+    if (m_font_texture == 0) {
+        init_font();
+    }
 
     ImGui::NewFrame();
     m_new_frame_open = true;
@@ -177,6 +180,12 @@ void ImGuiWrapper::render()
     ImGui::Render();
     render_draw_data(ImGui::GetDrawData());
     m_new_frame_open = false;
+}
+
+ImVec2 ImGuiWrapper::calc_text_size(const wxString &text)
+{
+    auto text_utf8 = into_u8(text);
+    return ImGui::CalcTextSize(text_utf8.c_str());
 }
 
 void ImGuiWrapper::set_next_window_pos(float x, float y, int flag)
@@ -259,7 +268,8 @@ void ImGuiWrapper::text(const std::string &label)
 
 void ImGuiWrapper::text(const wxString &label)
 {
-    this->text(into_u8(label).c_str());
+    auto label_utf8 = into_u8(label);
+    this->text(label_utf8.c_str());
 }
 
 bool ImGuiWrapper::combo(const wxString& label, const std::vector<std::string>& options, int& selection)
@@ -328,32 +338,23 @@ bool ImGuiWrapper::want_any_input() const
     return io.WantCaptureMouse || io.WantCaptureKeyboard || io.WantTextInput;
 }
 
-void ImGuiWrapper::init_default_font(float scaling)
+void ImGuiWrapper::init_font()
 {
-    static const float font_size = 18.0f;
+    const float font_size = m_font_size * m_style_scaling;
 
-    destroy_fonts_texture();
+    destroy_font();
 
     ImGuiIO& io = ImGui::GetIO();
     io.Fonts->Clear();
-    ImFont* font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/NotoSans-Regular.ttf").c_str(), font_size * scaling, nullptr, m_glyph_ranges);
+    ImFont* font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/NotoSans-Regular.ttf").c_str(), font_size, nullptr, m_glyph_ranges);
     if (font == nullptr) {
         font = io.Fonts->AddFontDefault();
         if (font == nullptr) {
             throw std::runtime_error("ImGui: Could not load deafult font");
         }
     }
-}
 
-void ImGuiWrapper::create_device_objects()
-{
-    create_fonts_texture();
-}
-
-void ImGuiWrapper::create_fonts_texture()
-{
     // Build texture atlas
-    ImGuiIO& io = ImGui::GetIO();
     unsigned char* pixels;
     int width, height;
     io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);   // Load as RGBA 32-bits (75% of the memory is wasted, but default font is so small) because it is more likely to be compatible with user's existing shaders. If your ImTextureId represent a higher-level concept than just a GL texture id, consider calling GetTexDataAsAlpha8() instead to save on GPU memory.
@@ -559,14 +560,9 @@ bool ImGuiWrapper::display_initialized() const
     return io.DisplaySize.x >= 0.0f && io.DisplaySize.y >= 0.0f;
 }
 
-void ImGuiWrapper::destroy_device_objects()
+void ImGuiWrapper::destroy_font()
 {
-    destroy_fonts_texture();
-}
-
-void ImGuiWrapper::destroy_fonts_texture()
-{
-    if (m_font_texture) {
+    if (m_font_texture != 0) {
         ImGuiIO& io = ImGui::GetIO();
         io.Fonts->TexID = 0;
         glDeleteTextures(1, &m_font_texture);

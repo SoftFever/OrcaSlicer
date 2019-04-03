@@ -388,6 +388,7 @@ public:
     int                 instance_idx() const { return this->composite_id.instance_id; }
 
     Transform3d         world_matrix() const;
+    bool                is_left_handed() const;
 
     const BoundingBoxf3& transformed_bounding_box() const;
     const BoundingBoxf3& transformed_convex_hull_bounding_box() const;

@@ -55,7 +55,7 @@ TriangleMesh::TriangleMesh(const Pointf3s &points, const std::vector<Vec3crd>& f
     stl.stats.original_num_facets = stl.stats.number_of_facets;
     stl_allocate(&stl);
 
-    for (int i = 0; i < stl.stats.number_of_facets; i++) {
+    for (uint32_t i = 0; i < stl.stats.number_of_facets; i++) {
         stl_facet facet;
         facet.vertex[0] = points[facets[i](0)].cast<float>();
         facet.vertex[1] = points[facets[i](1)].cast<float>();
@@ -125,9 +125,9 @@ void TriangleMesh::repair()
 	float tolerance = stl.stats.shortest_edge;
     float increment = stl.stats.bounding_diameter / 10000.0;
     int iterations = 2;
-    if (stl.stats.connected_facets_3_edge < stl.stats.number_of_facets) {
+    if (stl.stats.connected_facets_3_edge < (int)stl.stats.number_of_facets) {
         for (int i = 0; i < iterations; i++) {
-            if (stl.stats.connected_facets_3_edge < stl.stats.number_of_facets) {
+            if (stl.stats.connected_facets_3_edge < (int)stl.stats.number_of_facets) {
                 //printf("Checking nearby. Tolerance= %f Iteration=%d of %d...", tolerance, i + 1, iterations);
 #ifdef SLIC3R_TRACE_REPAIR
 				BOOST_LOG_TRIVIAL(trace) << "\tstl_check_faces_nearby";
@@ -143,7 +143,7 @@ void TriangleMesh::repair()
     }
     
     // remove_unconnected
-    if (stl.stats.connected_facets_3_edge <  stl.stats.number_of_facets) {
+    if (stl.stats.connected_facets_3_edge < (int)stl.stats.number_of_facets) {
 #ifdef SLIC3R_TRACE_REPAIR
         BOOST_LOG_TRIVIAL(trace) << "\tstl_remove_unconnected_facets";
 #endif /* SLIC3R_TRACE_REPAIR */
@@ -212,9 +212,9 @@ void TriangleMesh::check_topology()
     float tolerance = stl.stats.shortest_edge;
     float increment = stl.stats.bounding_diameter / 10000.0;
     int iterations = 2;
-    if (stl.stats.connected_facets_3_edge < stl.stats.number_of_facets) {
+    if (stl.stats.connected_facets_3_edge < (int)stl.stats.number_of_facets) {
         for (int i = 0; i < iterations; i++) {
-            if (stl.stats.connected_facets_3_edge < stl.stats.number_of_facets) {
+            if (stl.stats.connected_facets_3_edge < (int)stl.stats.number_of_facets) {
                 //printf("Checking nearby. Tolerance= %f Iteration=%d of %d...", tolerance, i + 1, iterations);
                 stl_check_facets_nearby(&stl, tolerance);
                 //printf("  Fixed %d edges.\n", stl.stats.edges_fixed - last_edges_fixed);
@@ -338,113 +338,79 @@ void TriangleMesh::rotate(double angle, Point* center)
     this->translate(c(0), c(1), 0);
 }
 
-bool TriangleMesh::has_multiple_patches() const
+/**
+ * Calculates whether or not the mesh is splittable.
+ */
+bool TriangleMesh::is_splittable() const
 {
-    // we need neighbors
-    if (!this->repaired)
-        throw std::runtime_error("split() requires repair()");
-    
-    if (this->stl.stats.number_of_facets == 0)
-        return false;
+    std::vector<unsigned char> visited;
+    find_unvisited_neighbors(visited);
 
-    std::vector<int>  facet_queue(this->stl.stats.number_of_facets, 0);
-    std::vector<char> facet_visited(this->stl.stats.number_of_facets, false);
-    int               facet_queue_cnt = 1;
-    facet_queue[0] = 0;
-    facet_visited[0] = true;
-    while (facet_queue_cnt > 0) {
-        int facet_idx = facet_queue[-- facet_queue_cnt];
-        facet_visited[facet_idx] = true;
-        for (int j = 0; j < 3; ++ j) {
-            int neighbor_idx = this->stl.neighbors_start[facet_idx].neighbor[j];
-            if (neighbor_idx != -1 && ! facet_visited[neighbor_idx])
-                facet_queue[facet_queue_cnt ++] = neighbor_idx;
-        }
-    }
-
-    // If any of the face was not visited at the first time, return "multiple bodies".
-    for (int facet_idx = 0; facet_idx < this->stl.stats.number_of_facets; ++ facet_idx)
-        if (! facet_visited[facet_idx])
-            return true;
-    return false;
+    // Try finding an unvisited facet. If there are none, the mesh is not splittable.
+    auto it = std::find(visited.begin(), visited.end(), false);
+    return it != visited.end();
 }
 
-size_t TriangleMesh::number_of_patches() const
+/**
+ * Visit all unvisited neighboring facets that are reachable from the first unvisited facet,
+ * and return them.
+ * 
+ * @param facet_visited A reference to a vector of booleans. Contains whether or not a
+ *                      facet with the same index has been visited.
+ * @return A deque with all newly visited facets.
+ */
+std::deque<uint32_t> TriangleMesh::find_unvisited_neighbors(std::vector<unsigned char> &facet_visited) const
 {
-    // we need neighbors
+    // Make sure we're not operating on a broken mesh.
     if (!this->repaired)
-        throw std::runtime_error("split() requires repair()");
-    
-    if (this->stl.stats.number_of_facets == 0)
-        return false;
+        throw std::runtime_error("find_unvisited_neighbors() requires repair()");
 
-    std::vector<int>  facet_queue(this->stl.stats.number_of_facets, 0);
-    std::vector<char> facet_visited(this->stl.stats.number_of_facets, false);
-    int               facet_queue_cnt = 0;
-    size_t            num_bodies = 0;
-    for (;;) {
-        // Find a seeding triangle for a new body.
-        int facet_idx = 0;
-        for (; facet_idx < this->stl.stats.number_of_facets; ++ facet_idx)
-            if (! facet_visited[facet_idx]) {
-                // A seed triangle was found.
-                facet_queue[facet_queue_cnt ++] = facet_idx;
-                facet_visited[facet_idx] = true;
-                break;
-            }
-        if (facet_idx == this->stl.stats.number_of_facets)
-            // No seed found.
-            break;
-        ++ num_bodies;
-        while (facet_queue_cnt > 0) {
-            int facet_idx = facet_queue[-- facet_queue_cnt];
-            facet_visited[facet_idx] = true;
-            for (int j = 0; j < 3; ++ j) {
-                int neighbor_idx = this->stl.neighbors_start[facet_idx].neighbor[j];
-                if (neighbor_idx != -1 && ! facet_visited[neighbor_idx])
-                    facet_queue[facet_queue_cnt ++] = neighbor_idx;
-            }
-        }
+    // If the visited list is empty, populate it with false for every facet.
+    if (facet_visited.empty())
+        facet_visited = std::vector<unsigned char>(this->stl.stats.number_of_facets, false);
+
+    // Find the first unvisited facet.
+    std::queue<uint32_t> facet_queue;
+    std::deque<uint32_t> facets;
+    auto facet = std::find(facet_visited.begin(), facet_visited.end(), false);
+    if (facet != facet_visited.end()) {
+        uint32_t idx = uint32_t(facet - facet_visited.begin());
+        facet_queue.push(idx);
+        facet_visited[idx] = true;
+        facets.emplace_back(idx);
     }
 
-    return num_bodies;
+    // Traverse all reachable neighbors and mark them as visited.
+    while (! facet_queue.empty()) {
+        uint32_t facet_idx = facet_queue.front();
+        facet_queue.pop();
+        for (int neighbor_idx : this->stl.neighbors_start[facet_idx].neighbor)
+            if (neighbor_idx != -1 && ! facet_visited[neighbor_idx]) {
+                facet_queue.push(uint32_t(neighbor_idx));
+                facet_visited[neighbor_idx] = true;
+                facets.emplace_back(uint32_t(neighbor_idx));
+            }
+    }
+
+    return facets;
 }
 
+/**
+ * Splits a mesh into multiple meshes when possible.
+ * 
+ * @return A TriangleMeshPtrs with the newly created meshes.
+ */
 TriangleMeshPtrs TriangleMesh::split() const
 {
-    TriangleMeshPtrs            meshes;
-    std::vector<unsigned char>  facet_visited(this->stl.stats.number_of_facets, false);
-    
-    // we need neighbors
-    if (!this->repaired)
-        throw std::runtime_error("split() requires repair()");
-    
-    // loop while we have remaining facets
+    // Loop while we have remaining facets.
+    std::vector<unsigned char> facet_visited;
+    TriangleMeshPtrs meshes;
     for (;;) {
-        // get the first facet
-        std::queue<int> facet_queue;
-        std::deque<int> facets;
-        for (int facet_idx = 0; facet_idx < this->stl.stats.number_of_facets; ++ facet_idx) {
-            if (! facet_visited[facet_idx]) {
-                // if facet was not seen put it into queue and start searching
-                facet_queue.push(facet_idx);
-                break;
-            }
-        }
-        if (facet_queue.empty())
+        std::deque<uint32_t> facets = find_unvisited_neighbors(facet_visited);
+        if (facets.empty())
             break;
 
-        while (! facet_queue.empty()) {
-            int facet_idx = facet_queue.front();
-            facet_queue.pop();
-            if (! facet_visited[facet_idx]) {
-                facets.emplace_back(facet_idx);
-                for (int j = 0; j < 3; ++ j)
-                    facet_queue.push(this->stl.neighbors_start[facet_idx].neighbor[j]);
-                facet_visited[facet_idx] = true;
-            }
-        }
-
+        // Create a new mesh for the part that was just split off.
         TriangleMesh* mesh = new TriangleMesh;
         meshes.emplace_back(mesh);
         mesh->stl.stats.type = inmemory;
@@ -452,14 +418,15 @@ TriangleMeshPtrs TriangleMesh::split() const
         mesh->stl.stats.original_num_facets = mesh->stl.stats.number_of_facets;
         stl_clear_error(&mesh->stl);
         stl_allocate(&mesh->stl);
-        
+
+        // Assign the facets to the new mesh.
         bool first = true;
-        for (std::deque<int>::const_iterator facet = facets.begin(); facet != facets.end(); ++ facet) {
+        for (auto facet = facets.begin(); facet != facets.end(); ++ facet) {
             mesh->stl.facet_start[facet - facets.begin()] = this->stl.facet_start[*facet];
             stl_facet_stats(&mesh->stl, this->stl.facet_start[*facet], first);
         }
     }
-    
+
     return meshes;
 }
 
@@ -476,7 +443,7 @@ void TriangleMesh::merge(const TriangleMesh &mesh)
     stl_reallocate(&this->stl);
     
     // copy facets
-    for (int i = 0; i < mesh.stl.stats.number_of_facets; ++ i)
+    for (uint32_t i = 0; i < mesh.stl.stats.number_of_facets; ++ i)
         this->stl.facet_start[number_of_facets + i] = mesh.stl.facet_start[i];
     
     // update size
@@ -489,7 +456,7 @@ ExPolygons TriangleMesh::horizontal_projection() const
 {
     Polygons pp;
     pp.reserve(this->stl.stats.number_of_facets);
-    for (int i = 0; i < this->stl.stats.number_of_facets; ++ i) {
+    for (uint32_t i = 0; i < this->stl.stats.number_of_facets; ++ i) {
         stl_facet* facet = &this->stl.facet_start[i];
         Polygon p;
         p.points.resize(3);
@@ -531,7 +498,7 @@ BoundingBoxf3 TriangleMesh::transformed_bounding_box(const Transform3d &trafo) c
     BoundingBoxf3 bbox;
     if (stl.v_shared == nullptr) {
         // Using the STL faces.
-        for (int i = 0; i < this->facets_count(); ++ i) {
+        for (size_t i = 0; i < this->facets_count(); ++ i) {
             const stl_facet &facet = this->stl.facet_start[i];
             for (size_t j = 0; j < 3; ++ j)
                 bbox.merge(trafo * facet.vertex[j].cast<double>());
@@ -656,7 +623,7 @@ void TriangleMeshSlicer::init(TriangleMesh *_mesh, throw_on_cancel_callback_type
     };
     std::vector<EdgeToFace> edges_map;
     edges_map.assign(this->mesh->stl.stats.number_of_facets * 3, EdgeToFace());
-    for (int facet_idx = 0; facet_idx < this->mesh->stl.stats.number_of_facets; ++ facet_idx)
+    for (uint32_t facet_idx = 0; facet_idx < this->mesh->stl.stats.number_of_facets; ++ facet_idx)
         for (int i = 0; i < 3; ++ i) {
             EdgeToFace &e2f = edges_map[facet_idx*3+i];
             e2f.vertex_low  = this->mesh->stl.v_indices[facet_idx].vertex[i];
@@ -905,7 +872,6 @@ TriangleMeshSlicer::FacetSliceType TriangleMeshSlicer::slice_facet(
             const stl_normal &normal = this->mesh->stl.facet_start[facet_idx].normal;
             // We may ignore this edge for slicing purposes, but we may still use it for object cutting.
             FacetSliceType    result = Slicing;
-            const stl_neighbors &nbr = this->mesh->stl.neighbors_start[facet_idx];
             if (min_z == max_z) {
                 // All three vertices are aligned with slice_z.
                 line_out->edge_type = feHorizontal;
@@ -917,8 +883,6 @@ TriangleMeshSlicer::FacetSliceType TriangleMeshSlicer::slice_facet(
                 }
             } else {
                 // Two vertices are aligned with the cutting plane, the third vertex is below or above the cutting plane.
-                int  nbr_idx     = j % 3;
-                int  nbr_face    = nbr.neighbor[nbr_idx];
                 // Is the third vertex below the cutting plane?
                 bool third_below = v0.z() < slice_z || v1.z() < slice_z || v2.z() < slice_z;
                 // Two vertices on the cutting plane, the third vertex is below the plane. Consider the edge to be part of the slice
@@ -1697,7 +1661,7 @@ void TriangleMeshSlicer::cut(float z, TriangleMesh* upper, TriangleMesh* lower) 
     
     BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::cut - slicing object";
     float scaled_z = scale_(z);
-    for (int facet_idx = 0; facet_idx < this->mesh->stl.stats.number_of_facets; ++ facet_idx) {
+    for (uint32_t facet_idx = 0; facet_idx < this->mesh->stl.stats.number_of_facets; ++ facet_idx) {
         stl_facet* facet = &this->mesh->stl.facet_start[facet_idx];
         
         // find facet extents

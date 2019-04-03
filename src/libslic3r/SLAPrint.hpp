@@ -6,14 +6,14 @@
 #include "PrintExport.hpp"
 #include "Point.hpp"
 #include "MTUtils.hpp"
+#include <libnest2d/backends/clipper/clipper_polygon.hpp>
 #include "Zipper.hpp"
 
 namespace Slic3r {
 
 enum SLAPrintStep : unsigned int {
-    slapsStats,
-	slapsRasterize,
-	slapsValidate,
+    slapsMergeSlicesAndEval,
+    slapsRasterize,
 	slapsCount
 };
 
@@ -22,8 +22,7 @@ enum SLAPrintObjectStep : unsigned int {
 	slaposSupportPoints,
 	slaposSupportTree,
 	slaposBasePool,
-	slaposSliceSupports,
-    slaposIndexSlices,
+    slaposSliceSupports,
 	slaposCount
 };
 
@@ -52,6 +51,7 @@ public:
 
     const SLAPrintObjectConfig& config() const { return m_config; }
     const Transform3d&          trafo()  const { return m_trafo; }
+    bool                        is_left_handed() const { return m_left_handed; }
 
     struct Instance {
     	Instance(ModelID instance_id, const Point &shift, float rotation) : instance_id(instance_id), shift(shift), rotation(rotation) {}
@@ -127,7 +127,7 @@ public:
 
         bool is_valid() const { return ! std::isnan(m_slice_z); }
 
-        const SLAPrintObject* print_obj() const { return m_po; }
+        const SLAPrintObject* print_obj() const { assert(m_po); return m_po; }
 
         // Methods for setting the indices into the slice vectors.
         void set_model_slice_idx(const SLAPrintObject &po, size_t id) {
@@ -190,7 +190,7 @@ private:
         return it;
     }
 
-    const std::vector<ExPolygons>& get_model_slices() const;
+    const std::vector<ExPolygons>& get_model_slices() const { return m_model_slices; }
     const std::vector<ExPolygons>& get_support_slices() const;
 
 public:
@@ -205,7 +205,9 @@ public:
     // /////////////////////////////////////////////////////////////////////////
 
     // Retrieve the slice index.
-    const std::vector<SliceRecord>& get_slice_index() const;
+    const std::vector<SliceRecord>& get_slice_index() const {
+        return m_slice_index;
+    }
 
     // Search slice index for the closest slice to given print_level.
     // max_epsilon gives the allowable deviation of the returned slice record's
@@ -240,11 +242,12 @@ protected:
     void                    config_apply_only(const ConfigBase &other, const t_config_option_keys &keys, bool ignore_nonexistent = false) 
     	{ this->m_config.apply_only(other, keys, ignore_nonexistent); }
 
-    void                    set_trafo(const Transform3d& trafo) {
-        m_transformed_rmesh.invalidate([this, &trafo](){ m_trafo = trafo; });
+    void                    set_trafo(const Transform3d& trafo, bool left_handed) {
+		m_transformed_rmesh.invalidate([this, &trafo, left_handed](){ m_trafo = trafo; m_left_handed = left_handed; });
     }
 
-    void                    set_instances(const std::vector<Instance> &instances) { m_instances = instances; }
+    template<class InstVec> inline void set_instances(InstVec&& instances) { m_instances = std::forward<InstVec>(instances); }
+
     // Invalidates the step, and its depending steps in SLAPrintObject and SLAPrint.
     bool                    invalidate_step(SLAPrintObjectStep step);
     bool                    invalidate_all_steps();
@@ -261,6 +264,8 @@ private:
 
     // Translation in Z + Rotation by Y and Z + Scaling / Mirroring.
     Transform3d                             m_trafo = Transform3d::Identity();
+    // m_trafo is left handed -> 3x3 affine transformation has negative determinant.
+    bool                                    m_left_handed = false;
 
     std::vector<Instance> 					m_instances;
 
@@ -367,31 +372,6 @@ private: // Prevents erroneous use by other classes.
 
 public:
 
-    // An aggregation of SliceRecord-s from all the print objects for each
-    // occupied layer. Slice record levels dont have to match exactly.
-    // They are unified if the level difference is within +/- SCALED_EPSILON
-    class PrintLayer {
-        coord_t m_level;
-
-        // The collection of slice records for the current level.
-        std::vector<std::reference_wrapper<const SliceRecord>> m_slices;
-
-    public:
-
-        explicit PrintLayer(coord_t lvl) : m_level(lvl) {}
-
-        // for being sorted in their container (see m_printer_input)
-        bool operator<(const PrintLayer& other) const {
-            return m_level < other.m_level;
-        }
-
-        void add(const SliceRecord& sr) { m_slices.emplace_back(sr); }
-
-        coord_t level() const { return m_level; }
-
-        auto slices() const -> const decltype (m_slices)& { return m_slices; }
-    };
-
     SLAPrint(): m_stepmask(slapsCount, true) {}
 
     virtual ~SLAPrint() override { this->clear(); }
@@ -407,7 +387,7 @@ public:
     // Returns true if an object step is done on all objects and there's at least one object.    
     bool                is_step_done(SLAPrintObjectStep step) const;
     // Returns true if the last step was finished with success.
-	bool                finished() const override { return this->is_step_done(slaposIndexSlices) && this->Inherited::is_step_done(slapsRasterize); }
+    bool                finished() const override { return this->is_step_done(slaposSliceSupports) && this->Inherited::is_step_done(slapsRasterize); }
 
     template<class Fmt = SLAminzZipper>
     void export_raster(const std::string& fname) {
@@ -427,6 +407,43 @@ public:
 
     std::string validate() const override;
 
+    // An aggregation of SliceRecord-s from all the print objects for each
+    // occupied layer. Slice record levels dont have to match exactly.
+    // They are unified if the level difference is within +/- SCALED_EPSILON
+    class PrintLayer {
+        coord_t m_level;
+
+        // The collection of slice records for the current level.
+        std::vector<std::reference_wrapper<const SliceRecord>> m_slices;
+
+        std::vector<ClipperLib::Polygon> m_transformed_slices;
+
+        template<class Container> void transformed_slices(Container&& c) {
+            m_transformed_slices = std::forward<Container>(c);
+        }
+
+        friend void SLAPrint::process();
+
+    public:
+
+        explicit PrintLayer(coord_t lvl) : m_level(lvl) {}
+
+        // for being sorted in their container (see m_printer_input)
+        bool operator<(const PrintLayer& other) const {
+            return m_level < other.m_level;
+        }
+
+        void add(const SliceRecord& sr) { m_slices.emplace_back(sr); }
+
+        coord_t level() const { return m_level; }
+
+        auto slices() const -> const decltype (m_slices)& { return m_slices; }
+
+        const std::vector<ClipperLib::Polygon> & transformed_slices() const {
+            return m_transformed_slices;
+        }
+    };
+
     // The aggregated and leveled print records from various objects.
     // TODO: use this structure for the preview in the future.
     const std::vector<PrintLayer>& print_layers() const { return m_printer_input; }
@@ -435,10 +452,11 @@ private:
     using SLAPrinter = FilePrinter<FilePrinterFormat::SLA_PNGZIP>;
     using SLAPrinterPtr = std::unique_ptr<SLAPrinter>;
 
+    // Implement same logic as in SLAPrintObject
+    bool invalidate_step(SLAPrintStep st);
+
     // Invalidate steps based on a set of parameters changed.
     bool invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
-
-    void fill_statistics();
 
     SLAPrintConfig                  m_print_config;
     SLAPrinterConfig                m_printer_config;
@@ -456,6 +474,15 @@ private:
 
     // Estimated print time, material consumed.
     SLAPrintStatistics                      m_print_statistics;
+
+    class StatusReporter {
+        double m_st = 0;
+    public:
+        void operator() (SLAPrint& p, double st, const std::string& msg,
+                         unsigned flags = SlicingStatus::DEFAULT);
+        double status() const { return m_st; }
+    } m_report_status;
+
 
 	friend SLAPrintObject;
 };

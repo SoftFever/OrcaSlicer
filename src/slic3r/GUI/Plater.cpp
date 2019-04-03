@@ -1350,7 +1350,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     this->q->Bind(EVT_SLICING_UPDATE, &priv::on_slicing_update, this);
 
     view3D = new View3D(q, bed, camera, view_toolbar, &model, config, &background_process);
-    preview = new Preview(q, bed, camera, view_toolbar, config, &background_process, &gcode_preview_data, [this](){ schedule_background_process(); });
+    preview = new Preview(q, bed, camera, view_toolbar, &model, config, &background_process, &gcode_preview_data, [this](){ schedule_background_process(); });
 
     panels.push_back(view3D);
     panels.push_back(preview);

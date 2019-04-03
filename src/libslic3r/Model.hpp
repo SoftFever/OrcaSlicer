@@ -394,6 +394,7 @@ public:
 
     const Vec3d& get_mirror() const { return m_transformation.get_mirror(); }
     double get_mirror(Axis axis) const { return m_transformation.get_mirror(axis); }
+    bool is_left_handed() const { return m_transformation.is_left_handed(); }
 
     void set_mirror(const Vec3d& mirror) { m_transformation.set_mirror(mirror); }
     void set_mirror(Axis axis, double mirror) { m_transformation.set_mirror(axis, mirror); }
@@ -498,6 +499,7 @@ public:
 
     const Vec3d& get_mirror() const { return m_transformation.get_mirror(); }
     double get_mirror(Axis axis) const { return m_transformation.get_mirror(axis); }
+	bool is_left_handed() const { return m_transformation.is_left_handed(); }
 
     void set_mirror(const Vec3d& mirror) { m_transformation.set_mirror(mirror); }
     void set_mirror(Axis axis, double mirror) { m_transformation.set_mirror(axis, mirror); }

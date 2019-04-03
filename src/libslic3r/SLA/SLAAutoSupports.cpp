@@ -49,8 +49,8 @@ float SLAAutoSupports::distance_limit(float angle) const
 }*/
 
 SLAAutoSupports::SLAAutoSupports(const TriangleMesh& mesh, const sla::EigenMesh3D& emesh, const std::vector<ExPolygons>& slices, const std::vector<float>& heights,
-                                   const Config& config, std::function<void(void)> throw_on_cancel)
-: m_config(config), m_emesh(emesh), m_throw_on_cancel(throw_on_cancel)
+                                   const Config& config, std::function<void(void)> throw_on_cancel, std::function<void(int)> statusfn)
+: m_config(config), m_emesh(emesh), m_throw_on_cancel(throw_on_cancel), m_statusfn(statusfn)
 {
     process(slices, heights);
     project_onto_mesh(m_output);
@@ -197,6 +197,9 @@ void SLAAutoSupports::process(const std::vector<ExPolygons>& slices, const std::
     PointGrid3D point_grid;
     point_grid.cell_size = Vec3f(10.f, 10.f, 10.f);
 
+    double increment = 100.0 / layers.size();
+    double status    = 0;
+
     for (unsigned int layer_id = 0; layer_id < layers.size(); ++ layer_id) {
         SLAAutoSupports::MyLayer *layer_top     = &layers[layer_id];
         SLAAutoSupports::MyLayer *layer_bottom  = (layer_id > 0) ? &layers[layer_id - 1] : nullptr;
@@ -251,6 +254,9 @@ void SLAAutoSupports::process(const std::vector<ExPolygons>& slices, const std::
         }
 
         m_throw_on_cancel();
+
+        status += increment;
+        m_statusfn(int(std::round(status)));
 
 #ifdef SLA_AUTOSUPPORTS_DEBUG
         /*std::string layer_num_str = std::string((i<10 ? "0" : "")) + std::string((i<100 ? "0" : "")) + std::to_string(i);

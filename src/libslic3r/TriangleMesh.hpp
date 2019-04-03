@@ -68,18 +68,14 @@ public:
     size_t facets_count() const { return this->stl.stats.number_of_facets; }
     bool   empty() const { return this->facets_count() == 0; }
 
-    // Returns true, if there are two and more connected patches in the mesh.
-    // Returns false, if one or zero connected patch is in the mesh.
-    bool has_multiple_patches() const;
-
-    // Count disconnected triangle patches.
-    size_t number_of_patches() const;
+    bool is_splittable() const;
 
     stl_file stl;
     bool repaired;
     
 private:
     void require_shared_vertices();
+    std::deque<uint32_t> find_unvisited_neighbors(std::vector<unsigned char> &facet_visited) const;
     friend class TriangleMeshSlicer;
 };
 

@@ -208,7 +208,7 @@ public:
 
 // Shorten the dhms time by removing the seconds, rounding the dhm to full minutes
 // and removing spaces.
-static std::string short_time(const std::string &time)
+inline std::string short_time(const std::string &time)
 {
     // Parse the dhms time format.
     int days = 0;
@@ -247,7 +247,7 @@ static std::string short_time(const std::string &time)
 }
 
 // Returns the given time is seconds in format DDd HHh MMm SSs
-static std::string get_time_dhms(float time_in_secs)
+inline std::string get_time_dhms(float time_in_secs)
 {
     int days = (int)(time_in_secs / 86400.0f);
     time_in_secs -= (float)days * 86400.0f;

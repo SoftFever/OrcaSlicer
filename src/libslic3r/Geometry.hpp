@@ -246,6 +246,7 @@ public:
 
     const Vec3d& get_mirror() const { return m_mirror; }
     double get_mirror(Axis axis) const { return m_mirror(axis); }
+    bool is_left_handed() const { return m_mirror.x() * m_mirror.y() * m_mirror.z() < 0.; }
 
     void set_mirror(const Vec3d& mirror);
     void set_mirror(Axis axis, double mirror);
