@@ -45,8 +45,8 @@ public:
     void new_frame();
     void render();
 
-    float scaled(float x) const { return x * m_font_size * m_style_scaling; }
-    ImVec2 scaled(float x, float y) const { return ImVec2(x * m_font_size * m_style_scaling, y * m_font_size * m_style_scaling); }
+    float scaled(float x) const { return x * m_font_size; }
+    ImVec2 scaled(float x, float y) const { return ImVec2(x * m_font_size, y * m_font_size); }
     ImVec2 calc_text_size(const wxString &text);
 
     void set_next_window_pos(float x, float y, int flag);
