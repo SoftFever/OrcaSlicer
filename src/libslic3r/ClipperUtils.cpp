@@ -643,7 +643,7 @@ _clipper_ln(ClipperLib::ClipType clipType, const Lines &subject, const Polygons 
     // convert Polylines to Lines
     Lines retval;
     for (Polylines::const_iterator polyline = polylines.begin(); polyline != polylines.end(); ++polyline)
-        retval.emplace_back(std::move(*polyline));
+        retval.emplace_back(polyline->operator Line());
     return retval;
 }
 
