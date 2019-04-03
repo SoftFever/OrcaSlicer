@@ -2570,7 +2570,7 @@ void ObjectList::show_multi_selection_menu()
     wxMenu* menu = new wxMenu();
 
 #ifdef __WXOSX__
-    append_menu_item_delete();
+    append_menu_item_delete(menu);
 #endif //__WXOSX__
 
     if (extruders_count() > 1)
