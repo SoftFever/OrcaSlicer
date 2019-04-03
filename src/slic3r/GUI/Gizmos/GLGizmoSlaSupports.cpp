@@ -490,11 +490,14 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             // bounding box created from the rectangle corners - will take care of order of the corners
             BoundingBox rectangle(Points{Point(m_selection_rectangle_start_corner.cast<int>()), Point(m_selection_rectangle_end_corner.cast<int>())});
 
-            const Transform3d& instance_matrix_no_translation = volume->get_instance_transformation().get_matrix(true);
+            const Transform3d& instance_matrix_no_translation_no_scaling = volume->get_instance_transformation().get_matrix(true,false,true);
+
             // we'll recover current look direction from the modelview matrix (in world coords)...
             Vec3f direction_to_camera(modelview_matrix[2], modelview_matrix[6], modelview_matrix[10]);
             // ...and transform it to model coords.
-            direction_to_camera = (instance_matrix_no_translation.inverse().cast<float>() * direction_to_camera).normalized().eval();
+            Vec3f direction_to_camera_mesh = (instance_matrix_no_translation_no_scaling.inverse().cast<float>() * direction_to_camera).normalized().eval();
+            Vec3f scaling = volume->get_instance_scaling_factor().cast<float>();
+            direction_to_camera_mesh = Vec3f(direction_to_camera_mesh(0)*scaling(0), direction_to_camera_mesh(1)*scaling(1), direction_to_camera_mesh(2)*scaling(2));
 
             // Iterate over all points, check if they're in the rectangle and if so, check that they are not obscured by the mesh:
             for (unsigned int i=0; i<m_editing_mode_cache.size(); ++i) {
@@ -505,16 +508,44 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                  ::gluProject((GLdouble)pos(0), (GLdouble)pos(1), (GLdouble)pos(2), modelview_matrix, projection_matrix, viewport, &out_x, &out_y, &out_z);
                  out_y = m_canvas_height - out_y;
 
-                if (rectangle.contains(Point(out_x, out_y))) {
+                if (rectangle.contains(Point(out_x, out_y)) && !is_point_clipped(support_point.pos.cast<double>(), direction_to_camera.cast<double>(), z_offset)) {
                     bool is_obscured = false;
                     // Cast a ray in the direction of the camera and look for intersection with the mesh:
                     std::vector<igl::Hit> hits;
                     // Offset the start of the ray to the front of the ball + EPSILON to account for numerical inaccuracies.
-                    if (m_AABB.intersect_ray(m_V, m_F, support_point.pos + direction_to_camera * (support_point.head_front_radius + EPSILON), direction_to_camera, hits))
+                    if (m_AABB.intersect_ray(m_V, m_F, support_point.pos + direction_to_camera_mesh * (support_point.head_front_radius + EPSILON), direction_to_camera_mesh, hits)) {
+                        std::sort(hits.begin(), hits.end(), [](const igl::Hit& h1, const igl::Hit& h2) { return h1.t < h2.t; });
+                        if (hits.front().t < 0.001f)
+                            hits.erase(hits.begin());
+
+                        if (m_clipping_plane_distance != 0.f) {
+                            // If the closest hit facet normal points in the same direction as the ray,
+                            // we are looking through the mesh and should therefore discard the point:
+                            int fid = hits.front().id;   // facet id
+                            Vec3f a = (m_V.row(m_F(fid, 1)) - m_V.row(m_F(fid, 0)));
+                            Vec3f b = (m_V.row(m_F(fid, 2)) - m_V.row(m_F(fid, 0)));
+                            if ((a.cross(b)).dot(direction_to_camera_mesh) > 0.f)
+                                is_obscured = true;
+
+                            // Eradicate all hits that are on clipped surfaces:
+                            for (unsigned int j=0; j<hits.size(); ++j) {
+                                const igl::Hit& hit = hits[j];
+                                int fid = hit.id;   // facet id
+
+                                Vec3f bc = Vec3f(1-hit.u-hit.v, hit.u, hit.v); // barycentric coordinates of the hit
+                                Vec3f hit_pos = bc(0) * m_V.row(m_F(fid, 0)) + bc(1) * m_V.row(m_F(fid, 1)) + bc(2)*m_V.row(m_F(fid, 2));
+                                if (is_point_clipped(hit_pos.cast<double>(), direction_to_camera.cast<double>(), z_offset)) {
+                                    hits.erase(hits.begin()+j);
+                                    --j;
+                                }
+                            }
+                        }
+
                         // FIXME: the intersection could in theory be behind the camera, but as of now we only have camera direction.
                         // Also, the threshold is in mesh coordinates, not in actual dimensions.
-                        if (hits.size() > 1 || hits.front().t > 0.001f)
+                        if (!hits.empty())
                             is_obscured = true;
+                    }
 
                     if (!is_obscured)
                         select_point(i);
