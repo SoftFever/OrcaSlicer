@@ -8,6 +8,8 @@
 #include <wx/dcclient.h>
 #include <wx/numformatter.h>
 
+#include <boost/algorithm/string/replace.hpp>
+
 #include "BitmapCache.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
@@ -421,19 +423,16 @@ void PrusaCollapsiblePaneMSW::Collapse(bool collapse)
 // PrusaObjectDataViewModelNode
 // ----------------------------------------------------------------------------
 
-wxBitmap create_scaled_bitmap(const std::string& bmp_name)
+wxBitmap create_scaled_bitmap(const std::string& bmp_name_in)
 {
-    const double scale_f = Slic3r::GUI::wxGetApp().em_unit()* 0.1;//GetContentScaleFactor();
-    if (scale_f == 1.0)
-        return wxBitmap(Slic3r::GUI::from_u8(Slic3r::var(bmp_name)), wxBITMAP_TYPE_PNG);
-//     else if (scale_f == 2.0) // use biger icon
-//         return wxBitmap(Slic3r::GUI::from_u8(Slic3r::var(bmp_name_X2)), wxBITMAP_TYPE_PNG);
-
-    wxImage img = wxImage(Slic3r::GUI::from_u8(Slic3r::var(bmp_name)), wxBITMAP_TYPE_PNG);
-    const int sz_w = int(img.GetWidth()*scale_f);
-    const int sz_h = int(img.GetHeight()*scale_f);
-    img.Rescale(sz_w, sz_h, wxIMAGE_QUALITY_BILINEAR);
-    return wxBitmap(img);
+	static Slic3r::GUI::BitmapCache cache;
+	const auto height = (unsigned int)(Slic3r::GUI::wxGetApp().em_unit() * 1.6f + 0.5f);
+	std::string bmp_name = bmp_name_in;
+	boost::replace_last(bmp_name, ".png", "");
+    wxBitmap *bmp = cache.load_svg(bmp_name, height);
+    if (bmp == nullptr)
+        bmp = cache.load_png(bmp_name, height);
+    return *bmp;
 }
 
 void PrusaObjectDataViewModelNode::set_object_action_icon() {

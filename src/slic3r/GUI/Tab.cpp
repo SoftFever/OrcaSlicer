@@ -1446,7 +1446,7 @@ void TabFilament::build()
 		line.append_option(optgroup->get_option("bed_temperature"));
 		optgroup->append_line(line);
 
-	page = add_options_page(_(L("Cooling")), "hourglass.png");
+	page = add_options_page(_(L("Cooling")), "cooling");
 		optgroup = page->new_optgroup(_(L("Enable")));
 		optgroup->append_single_option_line("fan_always_on");
 		optgroup->append_single_option_line("cooling");
