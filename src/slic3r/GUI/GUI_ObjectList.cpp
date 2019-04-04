@@ -2051,12 +2051,15 @@ void ObjectList::update_selections_on_canvas()
         }
     };
 
+    // stores current instance idx before to clear the selection
+    int instance_idx = selection.get_instance_idx();
+
     if (sel_cnt == 1) {
         wxDataViewItem item = GetSelection();
         if (m_objects_model->GetItemType(item) & (itSettings|itInstanceRoot))
             add_to_selection(m_objects_model->GetParent(item), selection, -1, true);
         else
-            add_to_selection(item, selection, -1, true);
+            add_to_selection(item, selection, instance_idx, true);
 
         wxGetApp().plater()->canvas3D()->update_gizmos_on_off_state();
         return;
@@ -2065,8 +2068,6 @@ void ObjectList::update_selections_on_canvas()
     wxDataViewItemArray sels;
     GetSelections(sels);
 
-    // stores current instance idx before to clear the selection
-    int instance_idx = selection.get_instance_idx();
     selection.clear();
     for (auto item: sels)
         add_to_selection(item, selection, instance_idx, false);
