@@ -81,9 +81,6 @@ public:
     /// file is up to minz after the erroneous write.
     void finish_entry();
 
-    /// Gets the name of the archive without the path or extension.
-    std::string get_name() const;
-
     void finalize();
 };
 

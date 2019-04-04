@@ -38,6 +38,8 @@
 #include "libslic3r/SLA/SLARotfinder.hpp"
 #include "libslic3r/Utils.hpp"
 
+#include "libnest2d/optimizers/nlopt/genetic.hpp"
+
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
@@ -1199,7 +1201,7 @@ struct Plater::priv
     BoundingBox scaled_bed_shape_bb() const;
     std::vector<size_t> load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config);
     std::vector<size_t> load_model_objects(const ModelObjectPtrs &model_objects);
-    std::unique_ptr<CheckboxFileDialog> get_export_file(GUI::FileType file_type);
+    wxString get_export_file(GUI::FileType file_type);
 
     const Selection& get_selection() const;
     Selection& get_selection();
@@ -1617,6 +1619,45 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 }
 #if ENABLE_VOLUMES_CENTERING_FIXES
             }
+            else if ((wxGetApp().get_mode() == comSimple) && (type_3mf || type_any_amf))
+            {
+                bool advanced = false;
+                for (const ModelObject* model_object : model.objects)
+                {
+                    // is there more than one instance ?
+                    if (model_object->instances.size() > 1)
+                    {
+                        advanced = true;
+                        break;
+                    }
+
+                    // is there any modifier ?
+                    for (const ModelVolume* model_volume : model_object->volumes)
+                    {
+                        if (!model_volume->is_model_part())
+                        {
+                            advanced = true;
+                            break;
+                        }
+                    }
+
+                    if (advanced)
+                        break;
+                }
+
+                if (advanced)
+                {
+                    wxMessageDialog dlg(q, _(L("This file cannot be loaded in simple mode. Do you want to switch to expert mode?\n")),
+                        _(L("Detected advanced data")), wxICON_WARNING | wxYES | wxNO);
+                    if (dlg.ShowModal() == wxID_YES)
+                    {
+                        Slic3r::GUI::wxGetApp().save_mode(comExpert);
+                        view3D->set_as_dirty();
+                    }
+                    else
+                        return obj_idxs;
+                }
+            }
 #endif // ENABLE_VOLUMES_CENTERING_FIXES
 
 #if !ENABLE_VOLUMES_CENTERING_FIXES
@@ -1642,7 +1683,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         Slic3r::GUI::show_error(nullptr, 
                             wxString::Format(_(L("You can't to add the object(s) from %s because of one or some of them is(are) multi-part")), 
                                              from_path(filename)));
-                        return std::vector<size_t>();
+                        return obj_idxs;
                     }
             }
 
@@ -1784,7 +1825,7 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
     return obj_idxs;
 }
 
-std::unique_ptr<CheckboxFileDialog> Plater::priv::get_export_file(GUI::FileType file_type)
+wxString Plater::priv::get_export_file(GUI::FileType file_type)
 {
     wxString wildcard;
     switch (file_type) {
@@ -1801,34 +1842,56 @@ std::unique_ptr<CheckboxFileDialog> Plater::priv::get_export_file(GUI::FileType 
 
     // Update printbility state of each of the ModelInstances.
     this->update_print_volume_state();
-    // Find the file name of the first printable object.
-	fs::path output_file = this->model.propose_export_file_name_and_path();
 
+    const Selection& selection = get_selection();
+    int obj_idx = selection.get_object_idx();
+
+    fs::path output_file;
+    // first try to get the file name from the current selection
+    if ((0 <= obj_idx) && (obj_idx < (int)this->model.objects.size()))
+        output_file = this->model.objects[obj_idx]->get_export_filename();
+
+    if (output_file.empty())
+        // Find the file name of the first printable object.
+        output_file = this->model.propose_export_file_name_and_path();
+
+    wxString dlg_title;
     switch (file_type) {
-        case FT_STL: output_file.replace_extension("stl"); break;
-        case FT_AMF: output_file.replace_extension("zip.amf"); break;   // XXX: Problem on OS X with double extension?
-        case FT_3MF: output_file.replace_extension("3mf"); break;
+        case FT_STL:
+        {
+            output_file.replace_extension("stl");
+            dlg_title = _(L("Export STL file:"));
+            break;
+        }
+        case FT_AMF:
+        {
+            // XXX: Problem on OS X with double extension?
+            output_file.replace_extension("zip.amf");
+            dlg_title = _(L("Export AMF file:"));
+            break;
+        }
+        case FT_3MF:
+        {
+            output_file.replace_extension("3mf");
+            dlg_title = _(L("Save file as:"));
+            break;
+        }
         default: break;
     }
 
-    auto dlg = Slic3r::make_unique<CheckboxFileDialog>(q,
-        ((file_type == FT_AMF) || (file_type == FT_3MF)) ? _(L("Export print config")) : "",
-        true,
-        _(L("Save file as:")),
-        from_path(output_file.parent_path()),
-        from_path(output_file.filename()),
-        wildcard,
-        wxFD_SAVE | wxFD_OVERWRITE_PROMPT
-    );
+    wxFileDialog* dlg = new wxFileDialog(q, dlg_title,
+        from_path(output_file.parent_path()), from_path(output_file.filename()),
+        wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
     if (dlg->ShowModal() != wxID_OK) {
-        return nullptr;
+        return wxEmptyString;
     }
 
-    fs::path path(into_path(dlg->GetPath()));
+    wxString out_path = dlg->GetPath();
+    fs::path path(into_path(out_path));
     wxGetApp().app_config->update_last_output_dir(path.parent_path().string());
 
-    return dlg;
+    return out_path;
 }
 
 const Selection& Plater::priv::get_selection() const
@@ -2039,7 +2102,9 @@ void Plater::priv::sla_optimize_rotation() {
     rotoptimizing.store(true);
 
     int obj_idx = get_selected_object_idx();
-    ModelObject * o = model.objects[obj_idx];
+    if(obj_idx < 0) { rotoptimizing.store(false); return; }
+
+    ModelObject * o = model.objects[size_t(obj_idx)];
 
     background_process.stop();
 
@@ -2047,7 +2112,7 @@ void Plater::priv::sla_optimize_rotation() {
     statusbar()->set_range(100);
 
     auto stfn = [this] (unsigned st, const std::string& msg) {
-        statusbar()->set_progress(st);
+        statusbar()->set_progress(int(st));
         statusbar()->set_status_text(msg);
 
         // could be problematic, but we need the cancel button.
@@ -2065,8 +2130,59 @@ void Plater::priv::sla_optimize_rotation() {
                 [this](){ return !rotoptimizing.load(); }
     );
 
+    const auto *bed_shape_opt = config->opt<ConfigOptionPoints>("bed_shape");
+    assert(bed_shape_opt);
+
+    auto& bedpoints = bed_shape_opt->values;
+    Polyline bed; bed.points.reserve(bedpoints.size());
+    for(auto& v : bedpoints) bed.append(Point::new_scale(v(0), v(1)));
+
+    double mindist = 6.0; // FIXME
+    double offs = mindist / 2.0 - EPSILON;
+
     if(rotoptimizing.load()) // wasn't canceled
-    for(ModelInstance * oi : o->instances) oi->set_rotation({r[X], r[Y], r[Z]});
+    for(ModelInstance * oi : o->instances) {
+        oi->set_rotation({r[X], r[Y], r[Z]});
+
+        auto trchull = o->convex_hull_2d(oi->get_transformation().get_matrix());
+
+        namespace opt = libnest2d::opt;
+        opt::StopCriteria stopcr;
+        stopcr.relative_score_difference = 0.01;
+        stopcr.max_iterations = 10000;
+        stopcr.stop_score = 0.0;
+        opt::GeneticOptimizer solver(stopcr);
+        Polygon pbed(bed);
+
+        auto bin = pbed.bounding_box();
+        double binw = bin.size()(X) * SCALING_FACTOR - offs;
+        double binh = bin.size()(Y) * SCALING_FACTOR - offs;
+
+        auto result = solver.optimize_min([&trchull, binw, binh](double rot){
+            auto chull = trchull;
+            chull.rotate(rot);
+
+            auto bb = chull.bounding_box();
+            double bbw = bb.size()(X) * SCALING_FACTOR;
+            double bbh = bb.size()(Y) * SCALING_FACTOR;
+
+            auto wdiff = bbw - binw;
+            auto hdiff = bbh - binh;
+            double diff = 0;
+            if(wdiff < 0 && hdiff < 0) diff = wdiff + hdiff;
+            if(wdiff > 0) diff += wdiff;
+            if(hdiff > 0) diff += hdiff;
+
+            return diff;
+        }, opt::initvals(0.0), opt::bound(-PI/2, PI/2));
+
+        double r = std::get<0>(result.optimum);
+
+        Vec3d rt = oi->get_rotation(); rt(Z) += r;
+        oi->set_rotation(rt);
+    }
+
+    arr::find_new_position(model, o->instances, coord_t(mindist/SCALING_FACTOR), bed);
 
     // Correct the z offset of the object which was corrupted be the rotation
     o->ensure_on_bed();
@@ -2714,7 +2830,10 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
     if (is_part) {
         item_delete = append_menu_item(menu, wxID_ANY, _(L("Delete")) + "\tDel", _(L("Remove the selected object")),
             [this](wxCommandEvent&) { q->remove_selected(); }, "brick_delete.png");
-    } else {
+
+        sidebar->obj_list()->append_menu_item_export_stl(menu);
+    }
+    else {
         wxMenuItem* item_increase = append_menu_item(menu, wxID_ANY, _(L("Increase copies")) + "\t+", _(L("Place one more copy of the selected object")),
             [this](wxCommandEvent&) { q->increase_instances(); }, "add.png");
         wxMenuItem* item_decrease = append_menu_item(menu, wxID_ANY, _(L("Decrease copies")) + "\t-", _(L("Remove one copy of the selected object")),
@@ -2747,8 +2866,9 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
 
         append_menu_item(menu, wxID_ANY, _(L("Export object as STL")) + dots, _(L("Export this single object as STL file")),
             [this](wxCommandEvent&) { q->export_stl(true); });
+
+        menu->AppendSeparator();
     }
-    menu->AppendSeparator();
 
     sidebar->obj_list()->append_menu_item_fix_through_netfabb(menu);
 
@@ -3243,11 +3363,8 @@ void Plater::export_stl(bool selection_only)
 {
     if (p->model.objects.empty()) { return; }
 
-    auto dialog = p->get_export_file(FT_STL);
-    if (! dialog) { return; }
-
-    // Store a binary STL
-    const wxString path = dialog->GetPath();
+    wxString path = p->get_export_file(FT_STL);
+    if (path.empty()) { return; }
     const std::string path_u8 = into_u8(path);
 
     wxBusyCursor wait;
@@ -3259,8 +3376,17 @@ void Plater::export_stl(bool selection_only)
 
         const auto obj_idx = selection.get_object_idx();
         if (obj_idx == -1) { return; }
-        mesh = p->model.objects[obj_idx]->mesh();
-    } else {
+
+        if (selection.get_mode() == Selection::Instance)
+            mesh = p->model.objects[obj_idx]->mesh();
+        else
+        {
+            const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
+            mesh = p->model.objects[obj_idx]->volumes[volume->volume_idx()]->mesh;
+            mesh.transform(volume->get_volume_transformation().get_matrix());
+        }
+    }
+    else {
         mesh = p->model.mesh();
     }
 
@@ -3272,15 +3398,14 @@ void Plater::export_amf()
 {
     if (p->model.objects.empty()) { return; }
 
-    auto dialog = p->get_export_file(FT_AMF);
-    if (! dialog) { return; }
-
-    const wxString path = dialog->GetPath();
+    wxString path = p->get_export_file(FT_AMF);
+    if (path.empty()) { return; }
     const std::string path_u8 = into_u8(path);
 
-	DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config_secure();
     wxBusyCursor wait;
-	if (Slic3r::store_amf(path_u8.c_str(), &p->model, dialog->get_checkbox_value() ? &cfg : nullptr)) {
+    bool export_config = true;
+    DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config_secure();
+    if (Slic3r::store_amf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr)) {
         // Success
         p->statusbar()->set_status_text(wxString::Format(_(L("AMF file exported to %s")), path));
     } else {
@@ -3297,10 +3422,8 @@ void Plater::export_3mf(const boost::filesystem::path& output_path)
     bool export_config = true;
     if (output_path.empty())
     {
-        auto dialog = p->get_export_file(FT_3MF);
-        if (!dialog) { return; }
-        path = dialog->GetPath();
-        export_config = dialog->get_checkbox_value();
+        path = p->get_export_file(FT_3MF);
+        if (path.empty()) { return; }
     }
     else
         path = from_path(output_path);

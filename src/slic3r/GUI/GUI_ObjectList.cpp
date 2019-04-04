@@ -1025,7 +1025,7 @@ void ObjectList::append_menu_item_fix_through_netfabb(wxMenu* menu)
 
 void ObjectList::append_menu_item_export_stl(wxMenu* menu) const 
 {
-    append_menu_item(menu, wxID_ANY, _(L("Export object as STL")) + dots, "",
+    append_menu_item(menu, wxID_ANY, _(L("Export as STL")) + dots, "",
         [](wxCommandEvent&) { wxGetApp().plater()->export_stl(true); }, "", menu);
     menu->AppendSeparator();
 }
@@ -1101,6 +1101,7 @@ void ObjectList::create_part_popupmenu(wxMenu *menu)
 #endif // __WXOSX__
 
     append_menu_item_fix_through_netfabb(menu);
+    append_menu_item_export_stl(menu);
 
     m_menu_item_split_part = append_menu_item_split(menu);
 
