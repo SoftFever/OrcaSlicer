@@ -34,24 +34,6 @@
 #endif
 
 void
-stl_print_edges(stl_file *stl, FILE *file) {
-  int i;
-  int edges_allocated;
-
-  if (stl->error) return;
-
-  edges_allocated = stl->stats.number_of_facets * 3;
-  for(i = 0; i < edges_allocated; i++) {
-    fprintf(file, "%d, %f, %f, %f, %f, %f, %f\n",
-            stl->edge_start[i].facet_number,
-            stl->edge_start[i].p1(0), stl->edge_start[i].p1(1),
-            stl->edge_start[i].p1(2), stl->edge_start[i].p2(0),
-            stl->edge_start[i].p2(1), stl->edge_start[i].p2(2));
-  }
-}
-
-
-void
 stl_stats_out(stl_file *stl, FILE *file, char *input_file) {
   if (stl->error) return;
 

@@ -1790,8 +1790,13 @@ std::vector<ExPolygons> PrintObject::_slice_volumes(const std::vector<float> &z,
     if (! volumes.empty()) {
         // Compose mesh.
         //FIXME better to perform slicing over each volume separately and then to use a Boolean operation to merge them.
-        TriangleMesh mesh(volumes.front()->mesh);
+		TriangleMesh mesh(volumes.front()->mesh);
         mesh.transform(volumes.front()->get_matrix(), true);
+		assert(mesh.repaired);
+		if (volumes.size() == 1 && mesh.repaired) {
+			//FIXME The admesh repair function may break the face connectivity, rather refresh it here as the slicing code relies on it.
+			stl_check_facets_exact(&mesh.stl);
+		}
         for (size_t idx_volume = 1; idx_volume < volumes.size(); ++ idx_volume) {
             const ModelVolume &model_volume = *volumes[idx_volume];
             TriangleMesh vol_mesh(model_volume.mesh);
@@ -1821,6 +1826,10 @@ std::vector<ExPolygons> PrintObject::_slice_volume(const std::vector<float> &z, 
     //FIXME better to perform slicing over each volume separately and then to use a Boolean operation to merge them.
     TriangleMesh mesh(volume.mesh);
     mesh.transform(volume.get_matrix(), true);
+	if (mesh.repaired) {
+		//FIXME The admesh repair function may break the face connectivity, rather refresh it here as the slicing code relies on it.
+		stl_check_facets_exact(&mesh.stl);
+	}
     if (mesh.stl.stats.number_of_facets > 0) {
         mesh.transform(m_trafo, true);
         // apply XY shift
