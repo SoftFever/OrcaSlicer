@@ -85,22 +85,10 @@ void SLAPrint::clear()
 }
 
 // Transformation without rotation around Z and without a shift by X and Y.
-static Transform3d sla_trafo(const ModelObject &model_object, const SLAPrinterConfig& pconf, const SLAMaterialConfig& mconf)
+static Transform3d sla_trafo(const SLAPrint& p, const ModelObject &model_object)
 {
 
-    Vec3d corr(1., 1., 1.);
-
-    if(pconf.printer_correction.values.size() == 3) {
-        corr(X) = pconf.printer_correction.values[X];
-        corr(Y) = pconf.printer_correction.values[Y];
-        corr(Z) = pconf.printer_correction.values[Z];
-    }
-
-    if(mconf.material_correction.values.size() == 3) {
-        corr(X) *= mconf.material_correction.values[X];
-        corr(Y) *= mconf.material_correction.values[Y];
-        corr(Z) *= mconf.material_correction.values[Z];
-    }
+    Vec3d corr = p.relative_correction();
 
     ModelInstance &model_instance = *model_object.instances.front();
     Vec3d          offset         = model_instance.get_offset();
@@ -347,7 +335,7 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
             bool sla_trafo_differs  =
                 model_object.instances.empty() != model_object_new.instances.empty() ||
                 (! model_object.instances.empty() &&
-                  (! sla_trafo(model_object, m_printer_config, m_material_config).isApprox(sla_trafo(model_object_new, m_printer_config, m_material_config)) ||
+                  (! sla_trafo(*this, model_object_new).isApprox(sla_trafo(*this, model_object_new)) ||
                     model_object.instances.front()->is_left_handed() != model_object_new.instances.front()->is_left_handed()));
             if (model_parts_differ || sla_trafo_differs) {
                 // The very first step (the slicing step) is invalidated. One may freely remove all associated PrintObjects.
@@ -432,7 +420,7 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
 
             // FIXME: this invalidates the transformed mesh in SLAPrintObject
             // which is expensive to calculate (especially the raw_mesh() call)
-            print_object->set_trafo(sla_trafo(model_object, m_printer_config, m_material_config), model_object.instances.front()->is_left_handed());
+            print_object->set_trafo(sla_trafo(*this, model_object), model_object.instances.front()->is_left_handed());
 
             print_object->set_instances(std::move(new_instances));
             print_object->config_apply(config, true);
@@ -1641,6 +1629,25 @@ double SLAPrintObject::get_current_elevation() const
         return se ? m_config.support_object_elevation.getFloat() : 0;
 
     return get_elevation();
+}
+
+Vec3d SLAPrint::relative_correction() const
+{
+    Vec3d corr(1., 1., 1.);
+
+    if(printer_config().printer_correction.values.size() == 3) {
+        corr(X) = printer_config().printer_correction.values[X];
+        corr(Y) = printer_config().printer_correction.values[Y];
+        corr(Z) = printer_config().printer_correction.values[Z];
+    }
+
+    if(material_config().material_correction.values.size() == 3) {
+        corr(X) *= material_config().material_correction.values[X];
+        corr(Y) *= material_config().material_correction.values[Y];
+        corr(Z) *= material_config().material_correction.values[Z];
+    }
+
+    return corr;
 }
 
 namespace { // dummy empty static containers for return values in some methods
