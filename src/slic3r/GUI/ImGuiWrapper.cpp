@@ -341,13 +341,11 @@ bool ImGuiWrapper::want_any_input() const
 
 void ImGuiWrapper::init_font()
 {
-    const float font_size = m_font_size * m_style_scaling;
-
     destroy_font();
 
     ImGuiIO& io = ImGui::GetIO();
     io.Fonts->Clear();
-    ImFont* font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/NotoSans-Regular.ttf").c_str(), font_size, nullptr, m_glyph_ranges);
+    ImFont* font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/NotoSans-Regular.ttf").c_str(), m_font_size, nullptr, m_glyph_ranges);
     if (font == nullptr) {
         font = io.Fonts->AddFontDefault();
         if (font == nullptr) {

@@ -329,8 +329,12 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                 m_canvas_width = m_parent.get_canvas_size().get_width();
                 m_canvas_height = m_parent.get_canvas_size().get_height();
             }
-            else
-                select_point(m_hover_id);
+            else {
+                if (m_editing_mode_cache[m_hover_id].selected)
+                    unselect_point(m_hover_id);
+                else
+                    select_point(m_hover_id);
+            }
 
             return true;
         }
@@ -562,12 +566,12 @@ void GLGizmoSlaSupports::on_render_input_window(float x, float y, float bottom_l
 RENDER_AGAIN:
     m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
 
-    const ImVec2 window_size(m_imgui->scaled(15.f, 16.5f));
+    const ImVec2 window_size(m_imgui->scaled(17.f, 18.f));
     ImGui::SetNextWindowPos(ImVec2(x, y - std::max(0.f, y+window_size.y-bottom_limit) ));
     ImGui::SetNextWindowSize(ImVec2(window_size));
 
     m_imgui->set_next_window_bg_alpha(0.5f);
-    m_imgui->begin(on_get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+    m_imgui->begin(on_get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
 
     ImGui::PushItemWidth(100.0f);
 
@@ -784,6 +788,19 @@ void GLGizmoSlaSupports::select_point(int i)
         m_editing_mode_cache[i].selected = true;
         m_selection_empty = false;
         m_new_point_head_diameter = m_editing_mode_cache[i].support_point.head_front_radius * 2.f;
+    }
+}
+
+
+void GLGizmoSlaSupports::unselect_point(int i)
+{
+    m_editing_mode_cache[i].selected = false;
+    m_selection_empty = true;
+    for (const CacheEntry& ce : m_editing_mode_cache) {
+        if (ce.selected) {
+            m_selection_empty = false;
+            break;
+        }
     }
 }
 

@@ -94,6 +94,7 @@ private:
         NoPoints,
     };
     void select_point(int i);
+    void unselect_point(int i);
     void editing_mode_apply_changes();
     void editing_mode_discard_changes();
     void editing_mode_reload_cache();

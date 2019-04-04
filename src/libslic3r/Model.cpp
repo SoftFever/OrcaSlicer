@@ -1187,8 +1187,9 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
         else {
             TriangleMesh upper_mesh, lower_mesh;
 
-            // Transform the mesh by the combined transformation matrix
-            volume->mesh.transform(instance_matrix * volume_matrix);
+            // Transform the mesh by the combined transformation matrix.
+            // Flip the triangles in case the composite transformation is left handed.
+            volume->mesh.transform(instance_matrix * volume_matrix, true);
 
             // Perform cut
             TriangleMeshSlicer tms(&volume->mesh);
