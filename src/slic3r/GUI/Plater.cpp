@@ -1199,7 +1199,7 @@ struct Plater::priv
     BoundingBox scaled_bed_shape_bb() const;
     std::vector<size_t> load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config);
     std::vector<size_t> load_model_objects(const ModelObjectPtrs &model_objects);
-    std::unique_ptr<CheckboxFileDialog> get_export_file(GUI::FileType file_type);
+    wxString get_export_file(GUI::FileType file_type);
 
     const Selection& get_selection() const;
     Selection& get_selection();
@@ -1784,7 +1784,7 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
     return obj_idxs;
 }
 
-std::unique_ptr<CheckboxFileDialog> Plater::priv::get_export_file(GUI::FileType file_type)
+wxString Plater::priv::get_export_file(GUI::FileType file_type)
 {
     wxString wildcard;
     switch (file_type) {
@@ -1804,31 +1804,43 @@ std::unique_ptr<CheckboxFileDialog> Plater::priv::get_export_file(GUI::FileType 
     // Find the file name of the first printable object.
 	fs::path output_file = this->model.propose_export_file_name_and_path();
 
+    wxString dlg_title;
     switch (file_type) {
-        case FT_STL: output_file.replace_extension("stl"); break;
-        case FT_AMF: output_file.replace_extension("zip.amf"); break;   // XXX: Problem on OS X with double extension?
-        case FT_3MF: output_file.replace_extension("3mf"); break;
+        case FT_STL:
+        {
+            output_file.replace_extension("stl");
+            dlg_title = _(L("Export STL file:"));
+            break;
+        }
+        case FT_AMF:
+        {
+            // XXX: Problem on OS X with double extension?
+            output_file.replace_extension("zip.amf");
+            dlg_title = _(L("Export AMF file:"));
+            break;
+        }
+        case FT_3MF:
+        {
+            output_file.replace_extension("3mf");
+            dlg_title = _(L("Save file as:"));
+            break;
+        }
         default: break;
     }
 
-    auto dlg = Slic3r::make_unique<CheckboxFileDialog>(q,
-        ((file_type == FT_AMF) || (file_type == FT_3MF)) ? _(L("Export print config")) : "",
-        true,
-        _(L("Save file as:")),
-        from_path(output_file.parent_path()),
-        from_path(output_file.filename()),
-        wildcard,
-        wxFD_SAVE | wxFD_OVERWRITE_PROMPT
-    );
+    wxFileDialog* dlg = new wxFileDialog(q, dlg_title,
+        from_path(output_file.parent_path()), from_path(output_file.filename()),
+        wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
     if (dlg->ShowModal() != wxID_OK) {
-        return nullptr;
+        return wxEmptyString;
     }
 
-    fs::path path(into_path(dlg->GetPath()));
+    wxString out_path = dlg->GetPath();
+    fs::path path(into_path(out_path));
     wxGetApp().app_config->update_last_output_dir(path.parent_path().string());
 
-    return dlg;
+    return out_path;
 }
 
 const Selection& Plater::priv::get_selection() const
@@ -3243,11 +3255,8 @@ void Plater::export_stl(bool selection_only)
 {
     if (p->model.objects.empty()) { return; }
 
-    auto dialog = p->get_export_file(FT_STL);
-    if (! dialog) { return; }
-
-    // Store a binary STL
-    const wxString path = dialog->GetPath();
+    wxString path = p->get_export_file(FT_STL);
+    if (path.empty()) { return; }
     const std::string path_u8 = into_u8(path);
 
     wxBusyCursor wait;
@@ -3272,15 +3281,14 @@ void Plater::export_amf()
 {
     if (p->model.objects.empty()) { return; }
 
-    auto dialog = p->get_export_file(FT_AMF);
-    if (! dialog) { return; }
-
-    const wxString path = dialog->GetPath();
+    wxString path = p->get_export_file(FT_AMF);
+    if (path.empty()) { return; }
     const std::string path_u8 = into_u8(path);
 
-	DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config_secure();
     wxBusyCursor wait;
-	if (Slic3r::store_amf(path_u8.c_str(), &p->model, dialog->get_checkbox_value() ? &cfg : nullptr)) {
+    bool export_config = true;
+    DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config_secure();
+    if (Slic3r::store_amf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr)) {
         // Success
         p->statusbar()->set_status_text(wxString::Format(_(L("AMF file exported to %s")), path));
     } else {
@@ -3297,10 +3305,8 @@ void Plater::export_3mf(const boost::filesystem::path& output_path)
     bool export_config = true;
     if (output_path.empty())
     {
-        auto dialog = p->get_export_file(FT_3MF);
-        if (!dialog) { return; }
-        path = dialog->GetPath();
-        export_config = dialog->get_checkbox_value();
+        path = p->get_export_file(FT_3MF);
+        if (path.empty()) { return; }
     }
     else
         path = from_path(output_path);
