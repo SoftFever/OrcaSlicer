@@ -270,6 +270,7 @@ public:
     void update_object_menu();
 
     void instances_to_separated_object(const int obj_idx, const std::set<int>& inst_idx);
+    void instances_to_separated_objects(const int obj_idx);
     void split_instances();
     void rename_item();
     void fix_through_netfabb() const;

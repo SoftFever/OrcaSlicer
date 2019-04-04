@@ -1120,8 +1120,16 @@ void ObjectList::create_instance_popupmenu(wxMenu*menu)
 {
     m_menu_item_split_instances = append_menu_item_instance_to_object(menu);
 
+    /* New behavior logic:
+     * 1. Split Object to several separated object, if ALL instances are selected
+     * 2. Separate selected instances from the initial object to the separated object,
+     *    if some (not all) instances are selected
+     */
     wxGetApp().plater()->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) {
-        evt.Enable(can_split_instances()); }, m_menu_item_split_instances->GetId());
+//         evt.Enable(can_split_instances()); }, m_menu_item_split_instances->GetId());
+        evt.SetText(wxGetApp().plater()->canvas3D()->get_selection().is_single_full_object() ? 
+                    _(L("Set as a Separated Objects")) : _(L("Set as a Separated Object")));
+    }, m_menu_item_split_instances->GetId());
 }
 
 wxMenu* ObjectList::create_settings_popupmenu(wxMenu *parent_menu)
@@ -2358,12 +2366,43 @@ void ObjectList::instances_to_separated_object(const int obj_idx, const std::set
     }
 }
 
+void ObjectList::instances_to_separated_objects(const int obj_idx)
+{
+    const int inst_cnt = (*m_objects)[obj_idx]->instances.size();
+
+    for (int i = inst_cnt-1; i > 0 ; i--)
+    {
+        // create new object from initial
+        ModelObject* object = (*m_objects)[obj_idx]->get_model()->add_object(*(*m_objects)[obj_idx]);
+        for (int inst_idx = object->instances.size() - 1; inst_idx >= 0; inst_idx--)
+        {
+            if (inst_idx == i)
+                continue;
+            // delete unnecessary instances
+            object->delete_instance(inst_idx);
+        }
+
+        // Add new object to the object_list
+        add_object_to_list(m_objects->size() - 1);
+
+        // delete current instance from the initial object
+        del_subobject_from_object(obj_idx, i, itInstance);
+        delete_instance_from_list(obj_idx, i);
+    }
+}
+
 void ObjectList::split_instances()
 {
     const Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
     const int obj_idx = selection.get_object_idx();
     if (obj_idx == -1)
         return;
+
+    if (selection.is_single_full_object())
+    {
+        instances_to_separated_objects(obj_idx);
+        return;
+    }
 
     const int inst_idx = selection.get_instance_idx();
     const std::set<int> inst_idxs = inst_idx < 0 ?
