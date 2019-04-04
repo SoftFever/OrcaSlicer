@@ -2775,7 +2775,10 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
     if (is_part) {
         item_delete = append_menu_item(menu, wxID_ANY, _(L("Delete")) + "\tDel", _(L("Remove the selected object")),
             [this](wxCommandEvent&) { q->remove_selected(); }, "brick_delete.png");
-    } else {
+
+        sidebar->obj_list()->append_menu_item_export_stl(menu);
+    }
+    else {
         wxMenuItem* item_increase = append_menu_item(menu, wxID_ANY, _(L("Increase copies")) + "\t+", _(L("Place one more copy of the selected object")),
             [this](wxCommandEvent&) { q->increase_instances(); }, "add.png");
         wxMenuItem* item_decrease = append_menu_item(menu, wxID_ANY, _(L("Decrease copies")) + "\t-", _(L("Remove one copy of the selected object")),
@@ -2808,8 +2811,9 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
 
         append_menu_item(menu, wxID_ANY, _(L("Export object as STL")) + dots, _(L("Export this single object as STL file")),
             [this](wxCommandEvent&) { q->export_stl(true); });
+
+        menu->AppendSeparator();
     }
-    menu->AppendSeparator();
 
     sidebar->obj_list()->append_menu_item_fix_through_netfabb(menu);
 
@@ -3317,8 +3321,17 @@ void Plater::export_stl(bool selection_only)
 
         const auto obj_idx = selection.get_object_idx();
         if (obj_idx == -1) { return; }
-        mesh = p->model.objects[obj_idx]->mesh();
-    } else {
+
+        if (selection.get_mode() == Selection::Instance)
+            mesh = p->model.objects[obj_idx]->mesh();
+        else
+        {
+            const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
+            mesh = p->model.objects[obj_idx]->volumes[volume->volume_idx()]->mesh;
+            mesh.transform(volume->get_volume_transformation().get_matrix());
+        }
+    }
+    else {
         mesh = p->model.mesh();
     }
 
