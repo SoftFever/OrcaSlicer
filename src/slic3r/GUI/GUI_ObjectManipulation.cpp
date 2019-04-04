@@ -181,7 +181,7 @@ void ObjectManipulation::update_settings_value(const Selection& selection)
                 changed_box = true;
             }
             if (changed_box || !m_cache.instance.matches_instance(instance_idx) || !m_cache.scale.isApprox(100.0 * m_new_scale))
-                m_new_size = volume->get_instance_transformation().get_matrix(true, true) * m_cache.instance.box_size;
+                m_new_size = (volume->get_instance_transformation().get_matrix(true, true) * m_cache.instance.box_size).cwiseAbs();
         }
         else
             // this should never happen
@@ -211,7 +211,7 @@ void ObjectManipulation::update_settings_value(const Selection& selection)
         m_new_position = volume->get_volume_offset();
         m_new_rotation = volume->get_volume_rotation();
         m_new_scale    = volume->get_volume_scaling_factor();
-        m_new_size = volume->get_volume_transformation().get_matrix(true, true) * volume->bounding_box.size();
+        m_new_size = (volume->get_volume_transformation().get_matrix(true, true) * volume->bounding_box.size()).cwiseAbs();
         m_new_enabled = true;
     }
     else if (obj_list->multiple_selection() || obj_list->is_selected(itInstanceRoot))

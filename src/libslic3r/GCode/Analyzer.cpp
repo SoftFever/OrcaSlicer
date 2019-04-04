@@ -776,6 +776,9 @@ void GCodeAnalyzer::_calc_gcode_preview_extrusion_layers(GCodePreviewData& previ
     preview_data.ranges.width.update_from(width_range);
     preview_data.ranges.feedrate.update_from(feedrate_range);
     preview_data.ranges.volumetric_rate.update_from(volumetric_rate_range);
+
+    // we need to sort the layers by their z as they can be shuffled in case of sequential prints
+    std::sort(preview_data.extrusion.layers.begin(), preview_data.extrusion.layers.end(), [](const GCodePreviewData::Extrusion::Layer& l1, const GCodePreviewData::Extrusion::Layer& l2)->bool { return l1.z < l2.z; });
 }
 
 void GCodeAnalyzer::_calc_gcode_preview_travel(GCodePreviewData& preview_data, std::function<void()> cancel_callback)
@@ -855,6 +858,11 @@ void GCodeAnalyzer::_calc_gcode_preview_travel(GCodePreviewData& preview_data, s
     preview_data.ranges.height.update_from(height_range);
     preview_data.ranges.width.update_from(width_range);
     preview_data.ranges.feedrate.update_from(feedrate_range);
+
+    // we need to sort the polylines by their min z as they can be shuffled in case of sequential prints
+    std::sort(preview_data.travel.polylines.begin(), preview_data.travel.polylines.end(),
+        [](const GCodePreviewData::Travel::Polyline& p1, const GCodePreviewData::Travel::Polyline& p2)->bool
+    { return unscale<double>(p1.polyline.bounding_box().min(2)) < unscale<double>(p2.polyline.bounding_box().min(2)); });
 }
 
 void GCodeAnalyzer::_calc_gcode_preview_retractions(GCodePreviewData& preview_data, std::function<void()> cancel_callback)
@@ -877,6 +885,11 @@ void GCodeAnalyzer::_calc_gcode_preview_retractions(GCodePreviewData& preview_da
         Vec3crd position(scale_(move.start_position.x()), scale_(move.start_position.y()), scale_(move.start_position.z()));
         preview_data.retraction.positions.emplace_back(position, move.data.width, move.data.height);
     }
+
+    // we need to sort the positions by their z as they can be shuffled in case of sequential prints
+    std::sort(preview_data.retraction.positions.begin(), preview_data.retraction.positions.end(),
+        [](const GCodePreviewData::Retraction::Position& p1, const GCodePreviewData::Retraction::Position& p2)->bool
+    { return unscale<double>(p1.position(2)) < unscale<double>(p2.position(2)); });
 }
 
 void GCodeAnalyzer::_calc_gcode_preview_unretractions(GCodePreviewData& preview_data, std::function<void()> cancel_callback)
@@ -899,6 +912,11 @@ void GCodeAnalyzer::_calc_gcode_preview_unretractions(GCodePreviewData& preview_
         Vec3crd position(scale_(move.start_position.x()), scale_(move.start_position.y()), scale_(move.start_position.z()));
         preview_data.unretraction.positions.emplace_back(position, move.data.width, move.data.height);
     }
+
+    // we need to sort the positions by their z as they can be shuffled in case of sequential prints
+    std::sort(preview_data.unretraction.positions.begin(), preview_data.unretraction.positions.end(),
+        [](const GCodePreviewData::Retraction::Position& p1, const GCodePreviewData::Retraction::Position& p2)->bool
+    { return unscale<double>(p1.position(2)) < unscale<double>(p2.position(2)); });
 }
 
 // Return an estimate of the memory consumed by the time estimator.

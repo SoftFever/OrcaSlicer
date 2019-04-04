@@ -556,19 +556,9 @@ std::string Model::propose_export_file_name_and_path() const
     for (const ModelObject *model_object : this->objects)
         for (ModelInstance *model_instance : model_object->instances)
             if (model_instance->is_printable()) {
-                input_file = model_object->input_file;
-                if (! model_object->name.empty()) {
-                    if (input_file.empty())
-                        // model_object->input_file was empty, just use model_object->name
-                        input_file = model_object->name;
-                    else {
-                        // Replace file name in input_file with model_object->name, but keep the path and file extension.
-						input_file = (boost::filesystem::path(model_object->name).parent_path().empty()) ?
-							(boost::filesystem::path(input_file).parent_path() / model_object->name).make_preferred().string() :
-							model_object->name;
-					}
-                }
-                if (! input_file.empty())
+                input_file = model_object->get_export_filename();
+
+                if (!input_file.empty())
                     goto end;
                 // Other instances will produce the same name, skip them.
                 break;
@@ -1187,8 +1177,9 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
         else {
             TriangleMesh upper_mesh, lower_mesh;
 
-            // Transform the mesh by the combined transformation matrix
-            volume->mesh.transform(instance_matrix * volume_matrix);
+            // Transform the mesh by the combined transformation matrix.
+            // Flip the triangles in case the composite transformation is left handed.
+            volume->mesh.transform(instance_matrix * volume_matrix, true);
 
             // Perform cut
             TriangleMeshSlicer tms(&volume->mesh);
@@ -1430,6 +1421,26 @@ void ModelObject::print_info() const
     }
     cout << "number_of_parts =  " << mesh.stl.stats.number_of_parts << endl;
     cout << "volume = "           << mesh.volume()                  << endl;
+}
+
+std::string ModelObject::get_export_filename() const
+{
+    std::string ret = input_file;
+
+    if (!name.empty())
+    {
+        if (ret.empty())
+            // input_file was empty, just use name
+            ret = name;
+        else
+        {
+            // Replace file name in input_file with name, but keep the path and file extension.
+            ret = (boost::filesystem::path(name).parent_path().empty()) ?
+                (boost::filesystem::path(ret).parent_path() / name).make_preferred().string() : name;
+        }
+    }
+
+    return ret;
 }
 
 void ModelVolume::set_material_id(t_model_material_id material_id)
