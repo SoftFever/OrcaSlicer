@@ -11,12 +11,8 @@
 #include <vector>
 #include <algorithm>
 
-#define NANOSVG_IMPLEMENTATION
 #include "nanosvg/nanosvg.h"
-#define NANOSVGRAST_IMPLEMENTATION
 #include "nanosvg/nanosvgrast.h"
-
-#include "libslic3r/Utils.hpp"
 
 #include "libslic3r/Utils.hpp"
 
@@ -378,6 +374,7 @@ bool GLTexture::load_from_svg(const std::string& filename, bool use_mipmaps, uns
     if (n_pixels <= 0)
     {
         reset();
+        nsvgDelete(image);
         return false;
     }
 

@@ -1,25 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Generator: Adobe Illustrator 23.0.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<!-- Generator: Adobe Illustrator 23.0.3, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
 <svg version="1.0" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 viewBox="0 0 128 128" enable-background="new 0 0 128 128" xml:space="preserve">
-<g>
+	 viewBox="0 0 16 16" enable-background="new 0 0 16 16" xml:space="preserve">
+<g id="layers">
 	<g>
-		<rect x="7.98" y="105" fill="#FFFFFF" width="112.04" height="15"/>
-	</g>
-	<g>
-		<rect x="7.98" y="85.67" fill="#FFFFFF" width="112.04" height="13"/>
-	</g>
-	<g>
-		<rect x="7.98" y="66.33" fill="#FFFFFF" width="112.04" height="11"/>
-	</g>
-	<g>
-		<rect x="7.98" y="47" fill="#ED6B21" width="112.04" height="9"/>
-	</g>
-	<g>
-		<rect x="7.98" y="27.67" fill="#ED6B21" width="112.04" height="7"/>
-	</g>
-	<g>
-		<rect x="7.98" y="8.33" fill="#ED6B21" width="112.04" height="5"/>
+		<g>
+			<rect x="1" y="13" fill="#808080" width="14" height="2"/>
+		</g>
+		<g>
+			<rect x="1" y="10.6" fill="#808080" width="14" height="1.74"/>
+		</g>
+		<g>
+			<rect x="1" y="8.19" fill="#808080" width="14" height="1.47"/>
+		</g>
+		<g>
+			<rect x="1" y="5.79" fill="#ED6B21" width="14" height="1.2"/>
+		</g>
+		<g>
+			<rect x="1" y="3.39" fill="#ED6B21" width="14" height="0.93"/>
+		</g>
+		<g>
+			<rect x="1" y="0.99" fill="#808080" width="14" height="0.67"/>
+		</g>
 	</g>
 </g>
 </svg>
