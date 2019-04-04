@@ -89,7 +89,24 @@ ObjectList::ObjectList(wxWindow* parent) :
         // manipulator cache with the following call to selection_changed()
         wxGetApp().obj_manipul()->emulate_kill_focus();
 #endif // __APPLE__
-        m_last_selected_item = event.GetItem();
+
+        /* For multiple selection with pressed SHIFT, 
+         * event.GetItem() returns value of a first item in selection list 
+         * instead of real last clicked item.
+         * So, let check last selected item in such strange way
+         */
+        if (wxGetKeyState(WXK_SHIFT))
+        {
+            wxDataViewItemArray sels;
+            GetSelections(sels);
+            if (sels.front() == m_last_selected_item)
+                m_last_selected_item = sels.back();
+            else
+                m_last_selected_item = event.GetItem();
+        }
+        else
+            m_last_selected_item = event.GetItem();
+
         selection_changed();
 #ifndef __WXMSW__
         set_tooltip_for_item(get_mouse_position_in_control());
@@ -511,7 +528,7 @@ void ObjectList::key_event(wxKeyEvent& event)
         printf("WXK_BACK\n");
         remove();
     }
-    else if (wxGetKeyState(wxKeyCode('A')) && wxGetKeyState(WXK_SHIFT))
+    else if (wxGetKeyState(wxKeyCode('A')) && wxGetKeyState(WXK_CONTROL/*WXK_SHIFT*/))
         select_item_all_children();
     else
         event.Skip();
@@ -2183,11 +2200,10 @@ void ObjectList::select_item_all_children()
 // update selection mode for non-multiple selection
 void ObjectList::update_selection_mode()
 {
-    m_last_selected_item = wxDataViewItem(0);
-
     // All items are unselected 
     if (!GetSelection())
     {
+        m_last_selected_item = wxDataViewItem(0);
         m_selection_mode = smUndef;
         return;
     }
@@ -2198,33 +2214,55 @@ void ObjectList::update_selection_mode()
 }
 
 // check last selected item. If is it possible to select it
-bool ObjectList::check_last_selection()
+bool ObjectList::check_last_selection(wxString& msg_str)
 {
     if (!m_last_selected_item)
         return true;
+        
+    const bool is_shift_pressed = wxGetKeyState(WXK_SHIFT);
 
     /* We can't mix Parts and Objects/Instances.
-     * So, unselect last selected item and show information about it
+     * So, show information about it
      */
     const ItemType type = m_objects_model->GetItemType(m_last_selected_item);
-    if (type & itSettings ||
+
+    // check a case of a selection of the Parts from different Objects
+    bool impossible_multipart_selection = false;
+    if (type & itVolume && m_selection_mode == smVolume)
+    {
+        wxDataViewItemArray sels;
+        GetSelections(sels);
+        for (const auto& sel: sels)
+            if (sel != m_last_selected_item && 
+                m_objects_model->GetParent(sel) != m_objects_model->GetParent(m_last_selected_item))
+            {
+                impossible_multipart_selection = true;
+                break;
+            }
+    }
+
+    if (impossible_multipart_selection ||
+        type & itSettings ||
         type & itVolume && m_selection_mode == smInstance ||
         !(type & itVolume) && m_selection_mode == smVolume)
     {
-        Unselect(m_last_selected_item);
-
         // Inform user why selection isn't complited
         const wxString item_type = m_selection_mode == smInstance ? _(L("Object or Instance")) : _(L("Part"));
 
-        const wxString msg_str = wxString::Format(_(L("You started your selection with %s Item.")) + "\n" +
-            _(L("In this mode you can select only another %s Items%s")), item_type, item_type,
-            m_selection_mode == smInstance ? "." : " " + _(L("of a current Object")));
+        msg_str = wxString::Format( _(L("Unsupported selection")) + "\n\n" + 
+                                    _(L("You started your selection with %s Item.")) + "\n" +
+                                    _(L("In this mode you can select only other %s Items%s")), 
+                                    item_type, item_type,
+                                    m_selection_mode == smInstance ? "." : 
+                                                        " " + _(L("of a current Object")));
 
-        wxMessageDialog dialog(this, _(L("Unsupported selection")) + "\n\n" + msg_str,
-            _(L("Info")), wxICON_INFORMATION);
-        dialog.ShowModal();
-
-        return false;
+        // Unselect last selected item, if selection is without SHIFT
+        if (!is_shift_pressed) {
+            Unselect(m_last_selected_item);
+            show_info(this, msg_str, _(L("Info")));
+        }
+        
+        return is_shift_pressed;
     }
 
     return true;
@@ -2237,7 +2275,8 @@ void ObjectList::fix_multiselection_conflicts()
         return;
     }
 
-    if (!check_last_selection())
+    wxString msg_string;
+    if (!check_last_selection(msg_string))
         return;
 
     m_prevent_list_events = true;
@@ -2245,48 +2284,58 @@ void ObjectList::fix_multiselection_conflicts()
     wxDataViewItemArray sels;
     GetSelections(sels);
 
-    m_selection_mode = smInstance;
+    if (m_selection_mode == smVolume)
+    {
+        // identify correct parent of the initial selected item
+        const wxDataViewItem& parent = m_objects_model->GetParent(m_last_selected_item == sels.front() ? sels.back() : sels.front());
 
-    for (const auto item : sels) {
-        if (!IsSelected(item)) // if this item is unselected now (from previous actions)
-            continue;
+        sels.clear();
+        wxDataViewItemArray children; // selected volumes from current parent
+        m_objects_model->GetChildren(parent, children);
 
-        if (m_objects_model->GetItemType(item) & itSettings) {
-            Unselect(item);
-            continue;
-        }
+        for (const auto child : children)
+            if (IsSelected(child) && m_objects_model->GetItemType(child)&itVolume)
+                sels.Add(child);
 
-        const wxDataViewItem& parent = m_objects_model->GetParent(item);
-        if (parent != wxDataViewItem(0) && IsSelected(parent))
-            Unselect(parent);
-        else
+        // If some part is selected, unselect all items except of selected parts of the current object
+        UnselectAll();
+        SetSelections(sels);
+    }
+    else
+    {
+        for (const auto item : sels)
         {
-            wxDataViewItemArray unsels;
-            m_objects_model->GetAllChildren(item, unsels);
-            for (const auto unsel_item : unsels)
-                Unselect(unsel_item);
-        }
+            if (!IsSelected(item)) // if this item is unselected now (from previous actions)
+                continue;
 
-        if (m_objects_model->GetItemType(item) == itVolume)
-        {
-            // If some part is selected, unselect all items except of selected parts of the current object
-            sels.clear(); 
-
-            wxDataViewItemArray children; // selected volumes from current parent
-            m_objects_model->GetChildren(parent, children);
-            for (const auto child : children)
-            {
-                if (IsSelected(child) && m_objects_model->GetItemType(child)&itVolume)
-                    sels.Add(child);
+            if (m_objects_model->GetItemType(item) & itSettings) {
+                Unselect(item);
+                continue;
             }
 
-            UnselectAll();
-            SetSelections(sels);
+            const wxDataViewItem& parent = m_objects_model->GetParent(item);
+            if (parent != wxDataViewItem(0) && IsSelected(parent))
+                Unselect(parent);
+            else
+            {
+                wxDataViewItemArray unsels;
+                m_objects_model->GetAllChildren(item, unsels);
+                for (const auto unsel_item : unsels)
+                    Unselect(unsel_item);
+            }
 
-            m_selection_mode = smVolume;
-            break;
+            if (m_objects_model->GetItemType(item) & itVolume)
+                Unselect(item);
+
+            m_selection_mode = smInstance;
         }
     }
+
+    if (!msg_string.IsEmpty())
+        show_info(this, msg_string, _(L("Info")));
+
+    if (!IsSelected(m_last_selected_item))
+        m_last_selected_item = wxDataViewItem(0);
 
     m_prevent_list_events = false;
 }

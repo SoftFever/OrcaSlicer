@@ -267,7 +267,7 @@ public:
     void select_all();
     void select_item_all_children();
     void update_selection_mode();
-    bool check_last_selection();
+    bool check_last_selection(wxString& msg_str);
     // correct current selections to avoid of the possible conflicts
     void fix_multiselection_conflicts();
 
