@@ -1617,6 +1617,45 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 }
 #if ENABLE_VOLUMES_CENTERING_FIXES
             }
+            else if ((wxGetApp().get_mode() == comSimple) && (type_3mf || type_any_amf))
+            {
+                bool advanced = false;
+                for (const ModelObject* model_object : model.objects)
+                {
+                    // is there more than one instance ?
+                    if (model_object->instances.size() > 1)
+                    {
+                        advanced = true;
+                        break;
+                    }
+
+                    // is there any modifier ?
+                    for (const ModelVolume* model_volume : model_object->volumes)
+                    {
+                        if (!model_volume->is_model_part())
+                        {
+                            advanced = true;
+                            break;
+                        }
+                    }
+
+                    if (advanced)
+                        break;
+                }
+
+                if (advanced)
+                {
+                    wxMessageDialog dlg(q, _(L("This file cannot be loaded in simple mode. Do you want to switch to expert mode?\n")),
+                        _(L("Detected advanced data")), wxICON_WARNING | wxYES | wxNO);
+                    if (dlg.ShowModal() == wxID_YES)
+                    {
+                        Slic3r::GUI::wxGetApp().save_mode(comExpert);
+                        view3D->set_as_dirty();
+                    }
+                    else
+                        return obj_idxs;
+                }
+            }
 #endif // ENABLE_VOLUMES_CENTERING_FIXES
 
 #if !ENABLE_VOLUMES_CENTERING_FIXES
@@ -1642,7 +1681,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         Slic3r::GUI::show_error(nullptr, 
                             wxString::Format(_(L("You can't to add the object(s) from %s because of one or some of them is(are) multi-part")), 
                                              from_path(filename)));
-                        return std::vector<size_t>();
+                        return obj_idxs;
                     }
             }
 
