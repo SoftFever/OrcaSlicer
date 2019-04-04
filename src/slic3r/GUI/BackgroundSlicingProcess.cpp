@@ -98,8 +98,9 @@ void BackgroundSlicingProcess::process_sla()
     m_print->process();
     if (this->set_step_started(bspsGCodeFinalize)) {
         if (! m_export_path.empty()) {
-            m_sla_print->export_raster(m_export_path);
-            m_print->set_status(100, "Masked SLA file exported to " + m_export_path);
+        	const std::string export_path = m_sla_print->print_statistics().finalize_output_path(m_export_path);
+            m_sla_print->export_raster(export_path);
+            m_print->set_status(100, "Masked SLA file exported to " + export_path);
         } else if (! m_upload_job.empty()) {
             prepare_upload();
         } else {
@@ -389,7 +390,7 @@ void BackgroundSlicingProcess::prepare_upload()
 
 	// Generate a unique temp path to which the gcode/zip file is copied/exported
 	boost::filesystem::path source_path = boost::filesystem::temp_directory_path()
-		/ boost::filesystem::unique_path(".printhost.%%%%-%%%%-%%%%-%%%%.gcode");
+		/ boost::filesystem::unique_path(".Slic3rPE.upload.%%%%-%%%%-%%%%-%%%%");
 
 	if (m_print == m_fff_print) {
 		m_print->set_status(95, "Running post-processing scripts");
@@ -399,8 +400,8 @@ void BackgroundSlicingProcess::prepare_upload()
 		run_post_process_scripts(source_path.string(), m_fff_print->config());
 		m_upload_job.upload_data.upload_path = m_fff_print->print_statistics().finalize_output_path(m_upload_job.upload_data.upload_path.string());
     } else {
-        m_sla_print->export_raster(source_path.string());
-		// TODO: Also finalize upload path like with FFF when there are statistics for SLA print
+		m_upload_job.upload_data.upload_path = m_sla_print->print_statistics().finalize_output_path(m_upload_job.upload_data.upload_path.string());
+        m_sla_print->export_raster(source_path.string(), m_upload_job.upload_data.upload_path.string());
 	}
 
 	m_print->set_status(100, (boost::format("Scheduling upload to `%1%`. See Window -> Print Host Upload Queue") % m_upload_job.printhost->get_host()).str());
