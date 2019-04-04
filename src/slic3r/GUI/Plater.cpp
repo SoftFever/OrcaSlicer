@@ -38,6 +38,8 @@
 #include "libslic3r/SLA/SLARotfinder.hpp"
 #include "libslic3r/Utils.hpp"
 
+#include "libnest2d/optimizers/nlopt/genetic.hpp"
+
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
@@ -2100,7 +2102,9 @@ void Plater::priv::sla_optimize_rotation() {
     rotoptimizing.store(true);
 
     int obj_idx = get_selected_object_idx();
-    ModelObject * o = model.objects[obj_idx];
+    if(obj_idx < 0) { rotoptimizing.store(false); return; }
+
+    ModelObject * o = model.objects[size_t(obj_idx)];
 
     background_process.stop();
 
@@ -2108,7 +2112,7 @@ void Plater::priv::sla_optimize_rotation() {
     statusbar()->set_range(100);
 
     auto stfn = [this] (unsigned st, const std::string& msg) {
-        statusbar()->set_progress(st);
+        statusbar()->set_progress(int(st));
         statusbar()->set_status_text(msg);
 
         // could be problematic, but we need the cancel button.
@@ -2126,8 +2130,59 @@ void Plater::priv::sla_optimize_rotation() {
                 [this](){ return !rotoptimizing.load(); }
     );
 
+    const auto *bed_shape_opt = config->opt<ConfigOptionPoints>("bed_shape");
+    assert(bed_shape_opt);
+
+    auto& bedpoints = bed_shape_opt->values;
+    Polyline bed; bed.points.reserve(bedpoints.size());
+    for(auto& v : bedpoints) bed.append(Point::new_scale(v(0), v(1)));
+
+    double mindist = 6.0; // FIXME
+    double offs = mindist / 2.0 - EPSILON;
+
     if(rotoptimizing.load()) // wasn't canceled
-    for(ModelInstance * oi : o->instances) oi->set_rotation({r[X], r[Y], r[Z]});
+    for(ModelInstance * oi : o->instances) {
+        oi->set_rotation({r[X], r[Y], r[Z]});
+
+        auto trchull = o->convex_hull_2d(oi->get_transformation().get_matrix());
+
+        namespace opt = libnest2d::opt;
+        opt::StopCriteria stopcr;
+        stopcr.relative_score_difference = 0.01;
+        stopcr.max_iterations = 10000;
+        stopcr.stop_score = 0.0;
+        opt::GeneticOptimizer solver(stopcr);
+        Polygon pbed(bed);
+
+        auto bin = pbed.bounding_box();
+        double binw = bin.size()(X) * SCALING_FACTOR - offs;
+        double binh = bin.size()(Y) * SCALING_FACTOR - offs;
+
+        auto result = solver.optimize_min([&trchull, binw, binh](double rot){
+            auto chull = trchull;
+            chull.rotate(rot);
+
+            auto bb = chull.bounding_box();
+            double bbw = bb.size()(X) * SCALING_FACTOR;
+            double bbh = bb.size()(Y) * SCALING_FACTOR;
+
+            auto wdiff = bbw - binw;
+            auto hdiff = bbh - binh;
+            double diff = 0;
+            if(wdiff < 0 && hdiff < 0) diff = wdiff + hdiff;
+            if(wdiff > 0) diff += wdiff;
+            if(hdiff > 0) diff += hdiff;
+
+            return diff;
+        }, opt::initvals(0.0), opt::bound(-PI/2, PI/2));
+
+        double r = std::get<0>(result.optimum);
+
+        Vec3d rt = oi->get_rotation(); rt(Z) += r;
+        oi->set_rotation(rt);
+    }
+
+    arr::find_new_position(model, o->instances, coord_t(mindist/SCALING_FACTOR), bed);
 
     // Correct the z offset of the object which was corrupted be the rotation
     o->ensure_on_bed();
