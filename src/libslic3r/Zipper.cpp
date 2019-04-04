@@ -4,7 +4,6 @@
 
 #include "Zipper.hpp"
 #include "miniz/miniz_zip.h"
-#include <boost/filesystem/path.hpp>
 #include <boost/log/trivial.hpp>
 
 #include "I18N.hpp"
@@ -211,10 +210,6 @@ void Zipper::finish_entry()
 
     m_data.clear();
     m_entry.clear();
-}
-
-std::string Zipper::get_name() const {
-    return boost::filesystem::path(m_impl->m_zipname).stem().string();
 }
 
 void Zipper::finalize()
