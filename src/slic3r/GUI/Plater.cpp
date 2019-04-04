@@ -1840,8 +1840,18 @@ wxString Plater::priv::get_export_file(GUI::FileType file_type)
 
     // Update printbility state of each of the ModelInstances.
     this->update_print_volume_state();
-    // Find the file name of the first printable object.
-	fs::path output_file = this->model.propose_export_file_name_and_path();
+
+    const Selection& selection = get_selection();
+    int obj_idx = selection.get_object_idx();
+
+    fs::path output_file;
+    // first try to get the file name from the current selection
+    if ((0 <= obj_idx) && (obj_idx < (int)this->model.objects.size()))
+        output_file = this->model.objects[obj_idx]->get_export_filename();
+
+    if (output_file.empty())
+        // Find the file name of the first printable object.
+        output_file = this->model.propose_export_file_name_and_path();
 
     wxString dlg_title;
     switch (file_type) {
