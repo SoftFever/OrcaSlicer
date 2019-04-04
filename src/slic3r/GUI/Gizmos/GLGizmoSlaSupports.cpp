@@ -330,8 +330,12 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                 m_canvas_width = m_parent.get_canvas_size().get_width();
                 m_canvas_height = m_parent.get_canvas_size().get_height();
             }
-            else
-                select_point(m_hover_id);
+            else {
+                if (m_editing_mode_cache[m_hover_id].selected)
+                    unselect_point(m_hover_id);
+                else
+                    select_point(m_hover_id);
+            }
 
             return true;
         }
@@ -787,6 +791,19 @@ void GLGizmoSlaSupports::select_point(int i)
         m_editing_mode_cache[i].selected = true;
         m_selection_empty = false;
         m_new_point_head_diameter = m_editing_mode_cache[i].support_point.head_front_radius * 2.f;
+    }
+}
+
+
+void GLGizmoSlaSupports::unselect_point(int i)
+{
+    m_editing_mode_cache[i].selected = false;
+    m_selection_empty = true;
+    for (const CacheEntry& ce : m_editing_mode_cache) {
+        if (ce.selected) {
+            m_selection_empty = false;
+            break;
+        }
     }
 }
 

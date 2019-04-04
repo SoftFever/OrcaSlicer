@@ -85,7 +85,8 @@ void ObjectSettings::update_settings_list()
 #endif // __WXMSW__
 			btn->Bind(wxEVT_BUTTON, [opt_key, config, this](wxEvent &event) {
 				config->erase(opt_key);
-                wxTheApp->CallAfter([this]() { 
+                wxGetApp().obj_list()->part_settings_changed();
+                wxTheApp->CallAfter([this]() {
                     wxWindowUpdateLocker noUpdates(m_parent);
                     update_settings_list(); 
                     m_parent->Layout(); 
