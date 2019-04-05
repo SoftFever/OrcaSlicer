@@ -22,7 +22,8 @@ private:
     ModelObject* m_model_object = nullptr;
     ModelObject* m_old_model_object = nullptr;
     int m_active_instance = -1;
-    BoundingBoxf3 m_active_instance_bb; // to cache the bb
+    float m_active_instance_bb_radius; // to cache the bb
+    mutable float m_z_shift = 0.f;
     std::pair<Vec3f, Vec3f> unproject_on_mesh(const Vec2d& mouse_pos);
 
     const float RenderPointScale = 1.f;
@@ -93,7 +94,7 @@ private:
     mutable std::unique_ptr<TriangleMeshSlicer> m_tms;
 
     std::vector<const ConfigOption*> get_config_options(const std::vector<std::string>& keys) const;
-    bool is_point_clipped(const Vec3d& point, const Vec3d& direction_to_camera, float z_shift) const;
+    bool is_point_clipped(const Vec3d& point, const Vec3d& direction_to_camera) const;
     void find_intersecting_facets(const igl::AABB<Eigen::MatrixXf, 3>* aabb, const Vec3f& normal, double offset, std::vector<unsigned int>& out) const;
 
     // Methods that do the model_object and editing cache synchronization,
