@@ -1638,7 +1638,8 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 	}
 
 	auto printhost_browse = [=](wxWindow* parent) {
-		auto btn = m_printhost_browse_btn = new wxButton(parent, wxID_ANY, _(L(" Browse "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+        auto btn = m_printhost_browse_btn = new wxButton(parent, wxID_ANY, _(L(" Browse ")) + dots, 
+            wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
 		btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
         btn->SetBitmap(create_scaled_bitmap("zoom.png"));
 		auto sizer = new wxBoxSizer(wxHORIZONTAL);

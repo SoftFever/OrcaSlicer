@@ -31,7 +31,7 @@ wxMenuItem* append_submenu(wxMenu* menu, wxMenu* sub_menu, int id, const wxStrin
 wxMenuItem* append_menu_radio_item(wxMenu* menu, int id, const wxString& string, const wxString& description, 
     std::function<void(wxCommandEvent& event)> cb, wxEvtHandler* event_handler);
 
-wxBitmap create_scaled_bitmap(const std::string& bmp_name);
+wxBitmap create_scaled_bitmap(const std::string& bmp_name, const bool is_horizontal = false);
 
 class wxCheckListBoxComboPopup : public wxCheckListBox, public wxComboPopup
 {

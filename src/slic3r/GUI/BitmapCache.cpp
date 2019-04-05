@@ -178,9 +178,11 @@ wxBitmap* BitmapCache::insert_raw_rgba(const std::string &bitmap_key, unsigned i
     return this->insert(bitmap_key, wxImage_to_wxBitmap_with_alpha(std::move(image)));
 }
 
-wxBitmap* BitmapCache::load_png(const std::string &bitmap_name, unsigned int height)
+wxBitmap* BitmapCache::load_png(const std::string &bitmap_name, unsigned int width, unsigned int height)
 {
-    std::string bitmap_key = bitmap_name + "-h" + std::to_string(height);
+    std::string bitmap_key = bitmap_name + ( height !=0 ? 
+                                           "-h" + std::to_string(height) : 
+                                           "-w" + std::to_string(width));
     auto it = m_map.find(bitmap_key);
     if (it != m_map.end())
         return it->second;
@@ -189,14 +191,23 @@ wxBitmap* BitmapCache::load_png(const std::string &bitmap_name, unsigned int hei
     if (! image.LoadFile(Slic3r::GUI::from_u8(Slic3r::var(bitmap_name + ".png")), wxBITMAP_TYPE_PNG) ||
         image.GetWidth() == 0 || image.GetHeight() == 0)
         return nullptr;
-    if (image.GetHeight() != height)
-        image.Rescale(int(0.5f + float(image.GetWidth()) * height / image.GetHeight()), height, wxIMAGE_QUALITY_BILINEAR);
+
+    if (height != 0 && image.GetHeight() != height)
+        width   = int(0.5f + float(image.GetWidth()) * height / image.GetHeight());
+    else if (width != 0 && image.GetWidth() != width)
+        height  = int(0.5f + float(image.GetHeight()) * width / image.GetWidth());
+
+    if (height != 0 && width != 0)
+        image.Rescale(width, height, wxIMAGE_QUALITY_BILINEAR);
+
     return this->insert(bitmap_key, wxImage_to_wxBitmap_with_alpha(std::move(image)));
 }
 
-wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned int target_height)
+wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned int target_width, unsigned int target_height)
 {
-	std::string bitmap_key = bitmap_name + "-h" + std::to_string(target_height);
+    std::string bitmap_key = bitmap_name + (target_height != 0 ?
+                                            "-h" + std::to_string(target_height) :
+                                            "-w" + std::to_string(target_width));
     auto it = m_map.find(bitmap_key);
     if (it != m_map.end())
         return it->second;
@@ -205,7 +216,10 @@ wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned int tar
     if (image == nullptr)
         return nullptr;
 
-    float scale    = (float)target_height / image->height;
+    float scale = target_height != 0 ? 
+                  (float)target_height / image->height  : target_width != 0 ?
+                  (float)target_width / image->width    : 1;
+
     int   width    = (int)(scale * image->width + 0.5f);
     int   height   = (int)(scale * image->height + 0.5f);
     int   n_pixels = width * height;

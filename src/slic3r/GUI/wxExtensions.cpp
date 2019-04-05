@@ -423,15 +423,20 @@ void PrusaCollapsiblePaneMSW::Collapse(bool collapse)
 // PrusaObjectDataViewModelNode
 // ----------------------------------------------------------------------------
 
-wxBitmap create_scaled_bitmap(const std::string& bmp_name_in)
+// If an icon has horizontal orientation (width > height) call this function with is_horizontal = true
+wxBitmap create_scaled_bitmap(const std::string& bmp_name_in, const bool is_horizontal /* = false*/)
 {
 	static Slic3r::GUI::BitmapCache cache;
-	const auto height = (unsigned int)(Slic3r::GUI::wxGetApp().em_unit() * 1.6f + 0.5f);
-	std::string bmp_name = bmp_name_in;
+
+    unsigned int height, width = height = 0;
+    unsigned int& scale_base = is_horizontal ? width : height;
+    scale_base = (unsigned int)(Slic3r::GUI::wxGetApp().em_unit() * 1.6f + 0.5f);
+        
+    std::string bmp_name = bmp_name_in;
 	boost::replace_last(bmp_name, ".png", "");
-    wxBitmap *bmp = cache.load_svg(bmp_name, height);
+    wxBitmap *bmp = cache.load_svg(bmp_name, height, width);
     if (bmp == nullptr)
-        bmp = cache.load_png(bmp_name, height);
+        bmp = cache.load_png(bmp_name, height, width);
     return *bmp;
 }
 
@@ -1481,8 +1486,8 @@ PrusaDoubleSlider::PrusaDoubleSlider(wxWindow *parent,
     if (!is_osx)
         SetDoubleBuffered(true);// SetDoubleBuffered exists on Win and Linux/GTK, but is missing on OSX
 
-    m_bmp_thumb_higher = wxBitmap(create_scaled_bitmap(style == wxSL_HORIZONTAL ? "right_half_circle.png"   : "up_half_circle.png"));
-    m_bmp_thumb_lower  = wxBitmap(create_scaled_bitmap(style == wxSL_HORIZONTAL ? "left_half_circle.png"    : "down_half_circle.png"));
+    m_bmp_thumb_higher = wxBitmap(style == wxSL_HORIZONTAL ? create_scaled_bitmap("right_half_circle.png") : create_scaled_bitmap("up_half_circle.png",   true));
+    m_bmp_thumb_lower  = wxBitmap(style == wxSL_HORIZONTAL ? create_scaled_bitmap("left_half_circle.png" ) : create_scaled_bitmap("down_half_circle.png", true));
     m_thumb_size = m_bmp_thumb_lower.GetSize();
 
     m_bmp_add_tick_on  = create_scaled_bitmap("colorchange_add_on.png");
