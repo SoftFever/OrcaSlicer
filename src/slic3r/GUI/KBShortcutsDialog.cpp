@@ -17,7 +17,7 @@ KBShortcutsDialog::KBShortcutsDialog()
 	auto main_sizer = new wxBoxSizer(wxVERTICAL);
 
     // logo
-	const wxBitmap logo_bmp = create_scaled_bitmap("Slic3r_32px.png", 32);
+	const wxBitmap logo_bmp = create_scaled_bitmap(this, "Slic3r_32px.png", 32);
 
     // fonts
     wxFont head_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold();

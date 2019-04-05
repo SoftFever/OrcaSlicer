@@ -802,13 +802,13 @@ bool PresetCollection::delete_current_preset()
 bool PresetCollection::load_bitmap_default(const std::string &file_name)
 {
 //     return m_bitmap_main_frame->LoadFile(wxString::FromUTF8(Slic3r::var(file_name).c_str()), wxBITMAP_TYPE_PNG);
-    return load_scaled_bitmap(&m_bitmap_main_frame, file_name);
+    return load_scaled_bitmap(nullptr, &m_bitmap_main_frame, file_name);  // FIXME: pass window ptr for proper scaling
 }
 
 bool PresetCollection::load_bitmap_add(const std::string &file_name)
 {
 // 	return m_bitmap_add->LoadFile(wxString::FromUTF8(Slic3r::var(file_name).c_str()), wxBITMAP_TYPE_PNG);
-    return load_scaled_bitmap(&m_bitmap_add, file_name);
+    return load_scaled_bitmap(nullptr, &m_bitmap_add, file_name);  // FIXME: pass window ptr for proper scaling
 }
 
 const Preset* PresetCollection::get_selected_preset_parent() const

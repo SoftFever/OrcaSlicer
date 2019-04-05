@@ -411,10 +411,11 @@ bool PresetBundle::load_compatible_bitmaps()
 //     bool loaded_lock_open = m_bitmapLockOpen->LoadFile(
 //         wxString::FromUTF8(Slic3r::var(path_bitmap_lock_open).c_str()), wxBITMAP_TYPE_PNG);
 
-    bool loaded_compatible = load_scaled_bitmap(&m_bitmapCompatible, path_bitmap_compatible);
-    bool loaded_incompatible = load_scaled_bitmap(&m_bitmapIncompatible,path_bitmap_incompatible);
-    bool loaded_lock = load_scaled_bitmap(&m_bitmapLock, path_bitmap_lock);
-    bool loaded_lock_open = load_scaled_bitmap(&m_bitmapLockOpen, path_bitmap_lock_open);
+    // FIXME: pass window ptr for proper scaling
+    bool loaded_compatible = load_scaled_bitmap(nullptr, &m_bitmapCompatible, path_bitmap_compatible);
+    bool loaded_incompatible = load_scaled_bitmap(nullptr, &m_bitmapIncompatible,path_bitmap_incompatible);
+    bool loaded_lock = load_scaled_bitmap(nullptr, &m_bitmapLock, path_bitmap_lock);
+    bool loaded_lock_open = load_scaled_bitmap(nullptr, &m_bitmapLockOpen, path_bitmap_lock_open);
 
     if (loaded_compatible) {
         prints       .set_bitmap_compatible(m_bitmapCompatible);

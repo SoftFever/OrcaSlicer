@@ -286,7 +286,7 @@ wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(15 *
 #ifdef __WINDOWS__
     edit_btn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 #endif
-    edit_btn->SetBitmap(create_scaled_bitmap("cog"));
+    edit_btn->SetBitmap(create_scaled_bitmap(this, "cog"));
     edit_btn->SetToolTip(_(L("Click to edit preset")));
 
     edit_btn->Bind(wxEVT_BUTTON, ([preset_type, this](wxCommandEvent)

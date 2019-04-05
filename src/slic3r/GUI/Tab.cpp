@@ -116,16 +116,16 @@ void Tab::create_preset_tab()
 
 	//buttons
 	wxBitmap bmpMenu;
-    bmpMenu = create_scaled_bitmap("disk.png");
+    bmpMenu = create_scaled_bitmap(this, "disk.png");
 	m_btn_save_preset = new wxBitmapButton(panel, wxID_ANY, bmpMenu, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
 	if (wxMSW) m_btn_save_preset->SetBackgroundColour(color);
-    bmpMenu = create_scaled_bitmap("delete.png");
+    bmpMenu = create_scaled_bitmap(this, "delete.png");
 	m_btn_delete_preset = new wxBitmapButton(panel, wxID_ANY, bmpMenu, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
 	if (wxMSW) m_btn_delete_preset->SetBackgroundColour(color);
 
 	m_show_incompatible_presets = false;
-	m_bmp_show_incompatible_presets = create_scaled_bitmap("flag-red-icon.png");
-	m_bmp_hide_incompatible_presets = create_scaled_bitmap("flag-green-icon.png");
+	m_bmp_show_incompatible_presets = create_scaled_bitmap(this, "flag-red-icon.png");
+	m_bmp_hide_incompatible_presets = create_scaled_bitmap(this, "flag-green-icon.png");
 	m_btn_hide_incompatible_presets = new wxBitmapButton(panel, wxID_ANY, m_bmp_hide_incompatible_presets, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
 	if (wxMSW) m_btn_hide_incompatible_presets->SetBackgroundColour(color);
 
@@ -148,13 +148,13 @@ void Tab::create_preset_tab()
 	// Determine the theme color of OS (dark or light)
     auto luma = wxGetApp().get_colour_approx_luma(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 	// Bitmaps to be shown on the "Revert to system" aka "Lock to system" button next to each input field.
-	m_bmp_value_lock  	   = create_scaled_bitmap("sys_lock.png");
-	m_bmp_value_unlock     = create_scaled_bitmap(luma >= 128 ? "sys_unlock.png" : "sys_unlock_grey.png");
+	m_bmp_value_lock  	   = create_scaled_bitmap(this, "sys_lock.png");
+	m_bmp_value_unlock     = create_scaled_bitmap(this, luma >= 128 ? "sys_unlock.png" : "sys_unlock_grey.png");
 	m_bmp_non_system = &m_bmp_white_bullet;
 	// Bitmaps to be shown on the "Undo user changes" button next to each input field.
-	m_bmp_value_revert    = create_scaled_bitmap(luma >= 128 ? "action_undo.png" : "action_undo_grey.png");
-	m_bmp_white_bullet    = create_scaled_bitmap("bullet_white.png");
-	m_bmp_question        = create_scaled_bitmap("question_mark_01.png");
+	m_bmp_value_revert    = create_scaled_bitmap(this, luma >= 128 ? "action_undo.png" : "action_undo_grey.png");
+	m_bmp_white_bullet    = create_scaled_bitmap(this, "bullet_white.png");
+	m_bmp_question        = create_scaled_bitmap(this, "question_mark_01.png");
 
 	fill_icon_descriptions();
 	set_tooltips_text();
@@ -283,7 +283,7 @@ Slic3r::GUI::PageShp Tab::add_options_page(const wxString& title, const std::str
 			// Add a new icon to the icon list.
 //             wxIcon img_icon(from_u8(Slic3r::var(icon)), wxBITMAP_TYPE_PNG);
 //             m_icons->Add(img_icon);
-            m_icons->Add(create_scaled_bitmap(icon));
+            m_icons->Add(create_scaled_bitmap(this, icon));
             icon_idx = ++m_icon_count;
 			m_icon_index[icon] = icon_idx;
 		}
@@ -1632,7 +1632,7 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
         auto btn = m_printhost_browse_btn = new wxButton(parent, wxID_ANY, _(L(" Browse ")) + dots, 
             wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
 		btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
-        btn->SetBitmap(create_scaled_bitmap("zoom.png"));
+        btn->SetBitmap(create_scaled_bitmap(this, "zoom.png"));
 		auto sizer = new wxBoxSizer(wxHORIZONTAL);
 		sizer->Add(btn);
 
@@ -1651,7 +1651,7 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 		auto btn = m_print_host_test_btn = new wxButton(parent, wxID_ANY, _(L("Test")), 
 			wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
 		btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
-        btn->SetBitmap(create_scaled_bitmap("wrench.png"));
+        btn->SetBitmap(create_scaled_bitmap(this, "wrench.png"));
 		auto sizer = new wxBoxSizer(wxHORIZONTAL);
 		sizer->Add(btn);
 
@@ -1688,7 +1688,7 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 		auto printhost_cafile_browse = [this, optgroup] (wxWindow* parent) {
 			auto btn = new wxButton(parent, wxID_ANY, _(L(" Browse "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
 			btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
-			btn->SetBitmap(create_scaled_bitmap("zoom.png"));
+			btn->SetBitmap(create_scaled_bitmap(this, "zoom.png"));
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(btn);
 
@@ -1766,7 +1766,7 @@ void TabPrinter::build_fff()
 		line.widget = [this](wxWindow* parent) {
 			auto btn = new wxButton(parent, wxID_ANY, _(L(" Set "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
             btn->SetFont(wxGetApp().small_font());
-            btn->SetBitmap(create_scaled_bitmap("printer"));
+            btn->SetBitmap(create_scaled_bitmap(this, "printer"));
 
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(btn);
@@ -1967,7 +1967,7 @@ void TabPrinter::build_sla()
     line.widget = [this](wxWindow* parent) {
         auto btn = new wxButton(parent, wxID_ANY, _(L(" Set ")) + dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
         btn->SetFont(wxGetApp().small_font());
-        btn->SetBitmap(create_scaled_bitmap("printer"));
+        btn->SetBitmap(create_scaled_bitmap(this, "printer"));
 
         auto sizer = new wxBoxSizer(wxHORIZONTAL);
         sizer->Add(btn);
@@ -2911,7 +2911,7 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
 	deps.btn = new wxButton(parent, wxID_ANY, _(L(" Set "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
 	deps.btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 
-    deps.btn->SetBitmap(create_scaled_bitmap("printer"));
+    deps.btn->SetBitmap(create_scaled_bitmap(this, "printer"));
 
 	auto sizer = new wxBoxSizer(wxHORIZONTAL);
 	sizer->Add((deps.checkbox), 0, wxALIGN_CENTER_VERTICAL);
@@ -3102,7 +3102,7 @@ ConfigOptionsGroupShp Page::new_optgroup(const wxString& title, int noncommon_la
             bmp_name = mode == comExpert   ? "mode_expert_.png" :
                        mode == comAdvanced ? "mode_middle_.png" : "mode_simple_.png";
         }                               
-        auto bmp = new wxStaticBitmap(parent, wxID_ANY, bmp_name.empty() ? wxNullBitmap : create_scaled_bitmap(bmp_name));
+        auto bmp = new wxStaticBitmap(parent, wxID_ANY, bmp_name.empty() ? wxNullBitmap : create_scaled_bitmap(parent, bmp_name));
         bmp->SetBackgroundStyle(wxBG_STYLE_PAINT);
         return bmp;
     };

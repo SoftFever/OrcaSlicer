@@ -52,7 +52,7 @@ SysInfoDialog::SysInfoDialog()
 	main_sizer->Add(hsizer, 1, wxEXPAND | wxALL, 10);
 
     // logo
-    auto *logo = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("Slic3r_192px.png", 192));
+    auto *logo = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap(this, "Slic3r_192px.png", 192));
 	hsizer->Add(logo, 0, wxALIGN_CENTER_VERTICAL);
     
     wxBoxSizer* vsizer = new wxBoxSizer(wxVERTICAL);
