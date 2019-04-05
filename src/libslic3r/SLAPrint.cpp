@@ -1041,31 +1041,37 @@ void SLAPrint::process()
                 {
                     ClipperPolygon poly;
 
+                    // We need to reverse if flpXY OR is_lefthanded is true but
+                    // not if both are true which is a logical inequality (XOR)
+                    bool needreverse = flpXY != is_lefthanded;
+
                     // should be a move
                     poly.Contour.reserve(polygon.contour.size() + 1);
 
-                    for(auto& p : polygon.contour.points)
-                        poly.Contour.emplace_back(p.x(), p.y());
-
-                    auto pfirst = poly.Contour.front();
-                    poly.Contour.emplace_back(pfirst);
+                    auto& cntr = polygon.contour.points;
+                    if(needreverse)
+                        for(auto it = cntr.rbegin(); it != cntr.rend(); ++it)
+                            poly.Contour.emplace_back(it->x(), it->y());
+                    else
+                        for(auto& p : cntr)
+                            poly.Contour.emplace_back(p.x(), p.y());
 
                     for(auto& h : polygon.holes) {
                         poly.Holes.emplace_back();
                         auto& hole = poly.Holes.back();
                         hole.reserve(h.points.size() + 1);
 
-                        for(auto& p : h.points) hole.emplace_back(p.x(), p.y());
-                        auto pfirst = hole.front(); hole.emplace_back(pfirst);
+                        if(needreverse)
+                            for(auto it = h.points.rbegin(); it != h.points.rend(); ++it)
+                                hole.emplace_back(it->x(), it->y());
+                        else
+                            for(auto& p : h.points)
+                                hole.emplace_back(p.x(), p.y());
                     }
 
                     if(is_lefthanded) {
                         for(auto& p : poly.Contour) p.X = -p.X;
-                        std::reverse(poly.Contour.begin(), poly.Contour.end());
-                        for(auto& h : poly.Holes) {
-                            for(auto& p : h) p.X = -p.X;
-                            std::reverse(h.begin(), h.end());
-                        }
+                        for(auto& h : poly.Holes) for(auto& p : h) p.X = -p.X;
                     }
 
                     sl::rotate(poly, double(instances[i].rotation));
@@ -1074,12 +1080,7 @@ void SLAPrint::process()
 
                     if (flpXY) {
                         for(auto& p : poly.Contour) std::swap(p.X, p.Y);
-                        std::reverse(poly.Contour.begin(), poly.Contour.end());
-
-                        for(auto& h : poly.Holes) {
-                            for(auto& p : h) std::swap(p.X, p.Y);
-                            std::reverse(h.begin(), h.end());
-                        }
+                        for(auto& h : poly.Holes) for(auto& p : h) std::swap(p.X, p.Y);
                     }
 
                     polygons.emplace_back(std::move(poly));
