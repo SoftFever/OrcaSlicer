@@ -3027,6 +3027,9 @@ bool Plater::priv::can_split() const
 
 bool Plater::priv::layers_height_allowed() const
 {
+    if (printer_technology != ptFFF)
+        return false;
+
     int obj_idx = get_selected_object_idx();
     return (0 <= obj_idx) && (obj_idx < (int)model.objects.size()) && config->opt_bool("variable_layer_height") && view3D->is_layers_editing_allowed();
 }

@@ -4382,7 +4382,7 @@ bool GLCanvas3D::_init_toolbar()
     item.sprite_id = 8;
     item.is_toggable = true;
     item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_LAYERSEDITING)); };
-    item.visibility_callback = GLToolbarItem::Default_Visibility_Callback;
+    item.visibility_callback = [this]()->bool { return m_process->current_printer_technology() == ptFFF; };
     item.enabled_state_callback = []()->bool { return wxGetApp().plater()->can_layers_editing(); };
     if (!m_toolbar.add_item(item))
         return false;
