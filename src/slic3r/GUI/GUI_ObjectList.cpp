@@ -2346,6 +2346,12 @@ void ObjectList::update_object_menu()
 
 void ObjectList::instances_to_separated_object(const int obj_idx, const std::set<int>& inst_idxs)
 {
+    if ((*m_objects)[obj_idx]->instances.size() == inst_idxs.size())
+    {
+        instances_to_separated_objects(obj_idx);
+        return;
+    }
+
     // create new object from selected instance  
     ModelObject* model_object = (*m_objects)[obj_idx]->get_model()->add_object(*(*m_objects)[obj_idx]);
     for (int inst_idx = model_object->instances.size() - 1; inst_idx >= 0; inst_idx--)
