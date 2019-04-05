@@ -434,9 +434,9 @@ wxBitmap create_scaled_bitmap(const std::string& bmp_name_in, const bool is_hori
         
     std::string bmp_name = bmp_name_in;
 	boost::replace_last(bmp_name, ".png", "");
-    wxBitmap *bmp = cache.load_svg(bmp_name, height, width);
+    wxBitmap *bmp = cache.load_svg(bmp_name, width, height);
     if (bmp == nullptr)
-        bmp = cache.load_png(bmp_name, height, width);
+        bmp = cache.load_png(bmp_name, width, height);
     return *bmp;
 }
 
