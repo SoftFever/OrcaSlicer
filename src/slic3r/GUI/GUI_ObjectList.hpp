@@ -60,6 +60,12 @@ struct ItemForDelete
 
 class ObjectList : public wxDataViewCtrl
 {
+    enum SELECTION_MODE
+    {
+        smUndef,
+        smVolume,
+        smInstance
+    } m_selection_mode {smUndef};
 
     struct dragged_item_data
     {
@@ -135,6 +141,7 @@ class ObjectList : public wxDataViewCtrl
     bool        m_part_settings_changed = false;
 
     int         m_selected_row = 0;
+    wxDataViewItem m_last_selected_item {nullptr};
 
 #if 0
     FreqSettingsBundle m_freq_settings_fff;
@@ -188,6 +195,7 @@ public:
     void                append_menu_item_fix_through_netfabb(wxMenu* menu);
     void                append_menu_item_export_stl(wxMenu* menu) const ;
     void                append_menu_item_change_extruder(wxMenu* menu) const;
+    void                append_menu_item_delete(wxMenu* menu);
     void                create_object_popupmenu(wxMenu *menu);
     void                create_sla_object_popupmenu(wxMenu*menu);
     void                create_part_popupmenu(wxMenu*menu);
@@ -251,12 +259,15 @@ public:
 
     void init_objects();
     bool multiple_selection() const ;
+    bool is_selected(const ItemType type) const;
     void update_selections();
     void update_selections_on_canvas();
     void select_item(const wxDataViewItem& item);
     void select_items(const wxDataViewItemArray& sels);
     void select_all();
     void select_item_all_children();
+    void update_selection_mode();
+    bool check_last_selection(wxString& msg_str);
     // correct current selections to avoid of the possible conflicts
     void fix_multiselection_conflicts();
 
@@ -269,6 +280,7 @@ public:
     void update_object_menu();
 
     void instances_to_separated_object(const int obj_idx, const std::set<int>& inst_idx);
+    void instances_to_separated_objects(const int obj_idx);
     void split_instances();
     void rename_item();
     void fix_through_netfabb() const;

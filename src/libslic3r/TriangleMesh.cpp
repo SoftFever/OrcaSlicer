@@ -273,6 +273,11 @@ void TriangleMesh::translate(float x, float y, float z)
     stl_invalidate_shared_vertices(&this->stl);
 }
 
+void TriangleMesh::translate(const Vec3f &displacement)
+{
+    translate(displacement(0), displacement(1), displacement(2));
+}
+
 void TriangleMesh::rotate(float angle, const Axis &axis)
 {
     if (angle == 0.f)

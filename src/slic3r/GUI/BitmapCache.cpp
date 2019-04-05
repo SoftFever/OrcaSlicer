@@ -1,5 +1,7 @@
 #include "BitmapCache.hpp"
 
+#include "libslic3r/Utils.hpp"
+
 #if ! defined(WIN32) && ! defined(__APPLE__)
 #define BROKEN_ALPHA
 #endif
@@ -8,6 +10,11 @@
     #include <wx/mstream.h>
     #include <wx/rawbmp.h>
 #endif /* BROKEN_ALPHA */
+
+#define NANOSVG_IMPLEMENTATION
+#include "nanosvg/nanosvg.h"
+#define NANOSVGRAST_IMPLEMENTATION
+#include "nanosvg/nanosvgrast.h"
 
 namespace Slic3r { namespace GUI {
 
@@ -153,6 +160,86 @@ wxBitmap* BitmapCache::insert(const std::string &bitmap_key, const wxBitmap *beg
     return bitmap;
 
 #endif
+}
+
+wxBitmap* BitmapCache::insert_raw_rgba(const std::string &bitmap_key, unsigned int width, unsigned int height, const unsigned char *raw_data)
+{
+    wxImage image(width, height);
+    image.InitAlpha();
+    unsigned char *rgb   = image.GetData();
+    unsigned char *alpha = image.GetAlpha();
+    unsigned int pixels = width * height;
+    for (unsigned int i = 0; i < pixels; ++ i) {
+        *rgb   ++ = *raw_data ++;
+        *rgb   ++ = *raw_data ++;
+        *rgb   ++ = *raw_data ++;
+        *alpha ++ = *raw_data ++;
+    }
+    return this->insert(bitmap_key, wxImage_to_wxBitmap_with_alpha(std::move(image)));
+}
+
+wxBitmap* BitmapCache::load_png(const std::string &bitmap_name, unsigned int width, unsigned int height)
+{
+    std::string bitmap_key = bitmap_name + ( height !=0 ? 
+                                           "-h" + std::to_string(height) : 
+                                           "-w" + std::to_string(width));
+    auto it = m_map.find(bitmap_key);
+    if (it != m_map.end())
+        return it->second;
+
+    wxImage image;
+    if (! image.LoadFile(Slic3r::GUI::from_u8(Slic3r::var(bitmap_name + ".png")), wxBITMAP_TYPE_PNG) ||
+        image.GetWidth() == 0 || image.GetHeight() == 0)
+        return nullptr;
+
+    if (height != 0 && image.GetHeight() != height)
+        width   = int(0.5f + float(image.GetWidth()) * height / image.GetHeight());
+    else if (width != 0 && image.GetWidth() != width)
+        height  = int(0.5f + float(image.GetHeight()) * width / image.GetWidth());
+
+    if (height != 0 && width != 0)
+        image.Rescale(width, height, wxIMAGE_QUALITY_BILINEAR);
+
+    return this->insert(bitmap_key, wxImage_to_wxBitmap_with_alpha(std::move(image)));
+}
+
+wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned int target_width, unsigned int target_height)
+{
+    std::string bitmap_key = bitmap_name + (target_height != 0 ?
+                                            "-h" + std::to_string(target_height) :
+                                            "-w" + std::to_string(target_width));
+    auto it = m_map.find(bitmap_key);
+    if (it != m_map.end())
+        return it->second;
+
+    NSVGimage *image = ::nsvgParseFromFile(Slic3r::var(bitmap_name + ".svg").c_str(), "px", 96.0f);
+    if (image == nullptr)
+        return nullptr;
+
+    float scale = target_height != 0 ? 
+                  (float)target_height / image->height  : target_width != 0 ?
+                  (float)target_width / image->width    : 1;
+
+    int   width    = (int)(scale * image->width + 0.5f);
+    int   height   = (int)(scale * image->height + 0.5f);
+    int   n_pixels = width * height;
+    if (n_pixels <= 0) {
+        ::nsvgDelete(image);
+        return nullptr;
+    }
+
+    NSVGrasterizer *rast = ::nsvgCreateRasterizer();
+    if (rast == nullptr) {
+        ::nsvgDelete(image);
+        return nullptr;
+    }
+
+    std::vector<unsigned char> data(n_pixels * 4, 0);
+    ::nsvgRasterize(rast, image, 0, 0, scale, data.data(), width, height, width * 4);
+    ::nsvgDeleteRasterizer(rast);
+    ::nsvgDelete(image);
+
+    return this->insert_raw_rgba(bitmap_key, width, height, data.data());
 }
 
 wxBitmap BitmapCache::mksolid(size_t width, size_t height, unsigned char r, unsigned char g, unsigned char b, unsigned char transparency)

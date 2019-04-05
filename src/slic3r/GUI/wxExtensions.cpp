@@ -8,6 +8,8 @@
 #include <wx/dcclient.h>
 #include <wx/numformatter.h>
 
+#include <boost/algorithm/string/replace.hpp>
+
 #include "BitmapCache.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
@@ -421,19 +423,21 @@ void PrusaCollapsiblePaneMSW::Collapse(bool collapse)
 // PrusaObjectDataViewModelNode
 // ----------------------------------------------------------------------------
 
-wxBitmap create_scaled_bitmap(const std::string& bmp_name)
+// If an icon has horizontal orientation (width > height) call this function with is_horizontal = true
+wxBitmap create_scaled_bitmap(const std::string& bmp_name_in, const bool is_horizontal /* = false*/)
 {
-    const double scale_f = Slic3r::GUI::wxGetApp().em_unit()* 0.1;//GetContentScaleFactor();
-    if (scale_f == 1.0)
-        return wxBitmap(Slic3r::GUI::from_u8(Slic3r::var(bmp_name)), wxBITMAP_TYPE_PNG);
-//     else if (scale_f == 2.0) // use biger icon
-//         return wxBitmap(Slic3r::GUI::from_u8(Slic3r::var(bmp_name_X2)), wxBITMAP_TYPE_PNG);
+	static Slic3r::GUI::BitmapCache cache;
 
-    wxImage img = wxImage(Slic3r::GUI::from_u8(Slic3r::var(bmp_name)), wxBITMAP_TYPE_PNG);
-    const int sz_w = int(img.GetWidth()*scale_f);
-    const int sz_h = int(img.GetHeight()*scale_f);
-    img.Rescale(sz_w, sz_h, wxIMAGE_QUALITY_BILINEAR);
-    return wxBitmap(img);
+    unsigned int height, width = height = 0;
+    unsigned int& scale_base = is_horizontal ? width : height;
+    scale_base = (unsigned int)(Slic3r::GUI::wxGetApp().em_unit() * 1.6f + 0.5f);
+        
+    std::string bmp_name = bmp_name_in;
+	boost::replace_last(bmp_name, ".png", "");
+    wxBitmap *bmp = cache.load_svg(bmp_name, height, width);
+    if (bmp == nullptr)
+        bmp = cache.load_png(bmp_name, height, width);
+    return *bmp;
 }
 
 void PrusaObjectDataViewModelNode::set_object_action_icon() {
@@ -1239,6 +1243,32 @@ unsigned int PrusaObjectDataViewModel::GetChildren(const wxDataViewItem &parent,
 	return count;
 }
 
+void PrusaObjectDataViewModel::GetAllChildren(const wxDataViewItem &parent, wxDataViewItemArray &array) const
+{
+	PrusaObjectDataViewModelNode *node = (PrusaObjectDataViewModelNode*)parent.GetID();
+	if (!node) {
+		for (auto object : m_objects)
+			array.Add(wxDataViewItem((void*)object));
+	}
+	else if (node->GetChildCount() == 0)
+		return;
+    else {
+        const size_t count = node->GetChildren().GetCount();
+        for (size_t pos = 0; pos < count; pos++) {
+            PrusaObjectDataViewModelNode *child = node->GetChildren().Item(pos);
+            array.Add(wxDataViewItem((void*)child));
+        }
+    }
+
+    wxDataViewItemArray new_array = array;
+    for (const auto item : new_array)
+    {
+        wxDataViewItemArray children;
+        GetAllChildren(item, children);
+        WX_APPEND_ARRAY(array, children);
+    }
+}
+
 ItemType PrusaObjectDataViewModel::GetItemType(const wxDataViewItem &item) const 
 {
     if (!item.IsOk())
@@ -1456,8 +1486,8 @@ PrusaDoubleSlider::PrusaDoubleSlider(wxWindow *parent,
     if (!is_osx)
         SetDoubleBuffered(true);// SetDoubleBuffered exists on Win and Linux/GTK, but is missing on OSX
 
-    m_bmp_thumb_higher = wxBitmap(create_scaled_bitmap(style == wxSL_HORIZONTAL ? "right_half_circle.png"   : "up_half_circle.png"));
-    m_bmp_thumb_lower  = wxBitmap(create_scaled_bitmap(style == wxSL_HORIZONTAL ? "left_half_circle.png"    : "down_half_circle.png"));
+    m_bmp_thumb_higher = wxBitmap(style == wxSL_HORIZONTAL ? create_scaled_bitmap("right_half_circle.png") : create_scaled_bitmap("up_half_circle.png",   true));
+    m_bmp_thumb_lower  = wxBitmap(style == wxSL_HORIZONTAL ? create_scaled_bitmap("left_half_circle.png" ) : create_scaled_bitmap("down_half_circle.png", true));
     m_thumb_size = m_bmp_thumb_lower.GetSize();
 
     m_bmp_add_tick_on  = create_scaled_bitmap("colorchange_add_on.png");

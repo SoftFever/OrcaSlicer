@@ -212,7 +212,12 @@ int wmain(int argc, wchar_t **argv)
 	argv_extended.emplace_back(nullptr);
 
 	OpenGLVersionCheck opengl_version_check;
-	bool load_mesa = ! opengl_version_check.load_opengl_dll() || ! opengl_version_check.is_version_greater_or_equal_to(2, 0);
+	bool load_mesa = 
+		// Running over a rempote desktop, and the RemoteFX is not enabled, therefore Windows will only provide SW OpenGL 1.1 context.
+		// In that case, use Mesa.
+		::GetSystemMetrics(SM_REMOTESESSION) ||
+		// Try to load the default OpenGL driver and test its context version.
+		! opengl_version_check.load_opengl_dll() || ! opengl_version_check.is_version_greater_or_equal_to(2, 0);
 
 	wchar_t path_to_exe[MAX_PATH + 1] = { 0 };
 	::GetModuleFileNameW(nullptr, path_to_exe, MAX_PATH);

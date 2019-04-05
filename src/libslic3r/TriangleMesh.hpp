@@ -40,6 +40,7 @@ public:
     void scale(float factor);
     void scale(const Vec3d &versor);
     void translate(float x, float y, float z);
+    void translate(const Vec3f &displacement);
     void rotate(float angle, const Axis &axis);
     void rotate(float angle, const Vec3d& axis);
     void rotate_x(float angle) { this->rotate(angle, X); }

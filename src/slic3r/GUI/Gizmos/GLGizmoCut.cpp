@@ -16,12 +16,6 @@ namespace Slic3r {
 namespace GUI {
 
 
-
-
-
-
-// GLGizmoCut
-
 class GLGizmoCutPanel : public wxPanel
 {
 public:
@@ -193,7 +187,7 @@ void GLGizmoCut::on_render_input_window(float x, float y, float bottom_limit, co
     m_imgui->set_next_window_bg_alpha(0.5f);
     m_imgui->begin(_(L("Cut")), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
-    ImGui::PushItemWidth(100.0f);
+    ImGui::PushItemWidth(m_imgui->scaled(5.0f));
     bool _value_changed = ImGui::InputDouble("Z", &m_cut_z, 0.0f, 0.0f, "%.2f");
 
     m_imgui->checkbox(_(L("Keep upper part")), m_keep_upper);

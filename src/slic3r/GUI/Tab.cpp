@@ -1446,7 +1446,7 @@ void TabFilament::build()
 		line.append_option(optgroup->get_option("bed_temperature"));
 		optgroup->append_line(line);
 
-	page = add_options_page(_(L("Cooling")), "hourglass.png");
+	page = add_options_page(_(L("Cooling")), "cooling");
 		optgroup = page->new_optgroup(_(L("Enable")));
 		optgroup->append_single_option_line("fan_always_on");
 		optgroup->append_single_option_line("cooling");
@@ -1638,7 +1638,8 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 	}
 
 	auto printhost_browse = [=](wxWindow* parent) {
-		auto btn = m_printhost_browse_btn = new wxButton(parent, wxID_ANY, _(L(" Browse "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+        auto btn = m_printhost_browse_btn = new wxButton(parent, wxID_ANY, _(L(" Browse ")) + dots, 
+            wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
 		btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
         btn->SetBitmap(create_scaled_bitmap("zoom.png"));
 		auto sizer = new wxBoxSizer(wxHORIZONTAL);

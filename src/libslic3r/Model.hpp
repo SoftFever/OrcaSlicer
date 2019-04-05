@@ -275,6 +275,8 @@ public:
     // Print object statistics to console.
     void print_info() const;
 
+    std::string get_export_filename() const;
+
 protected:
     friend class Print;
     friend class SLAPrint;
