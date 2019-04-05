@@ -158,12 +158,13 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
     tbb::mutex::scoped_lock lock(this->state_mutex());
 
     // The following call may stop the background processing.
+    bool invalidate_all_model_objects = false;
     if (! print_diff.empty())
-        update_apply_status(this->invalidate_state_by_config_options(print_diff));
+        update_apply_status(this->invalidate_state_by_config_options(print_diff, invalidate_all_model_objects));
     if (! printer_diff.empty())
-        update_apply_status(this->invalidate_state_by_config_options(printer_diff));
+        update_apply_status(this->invalidate_state_by_config_options(printer_diff, invalidate_all_model_objects));
     if (! material_diff.empty())
-        update_apply_status(this->invalidate_state_by_config_options(material_diff));
+        update_apply_status(this->invalidate_state_by_config_options(material_diff, invalidate_all_model_objects));
 
     // Apply variables to placeholder parser. The placeholder parser is currently used
     // only to generate the output file name.
@@ -202,7 +203,7 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
     std::set<ModelObjectStatus> model_object_status;
 
     // 1) Synchronize model objects.
-    if (model.id() != m_model.id()) {
+    if (model.id() != m_model.id() || invalidate_all_model_objects) {
         // Kill everything, initialize from scratch.
         // Stop background processing.
         this->call_cancel_callback();
@@ -1433,7 +1434,7 @@ void SLAPrint::process()
     m_report_status(*this, 100, L("Slicing done"));
 }
 
-bool SLAPrint::invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys)
+bool SLAPrint::invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys, bool &invalidate_all_model_objects)
 {
     if (opt_keys.empty())
         return false;
@@ -1480,6 +1481,7 @@ bool SLAPrint::invalidate_state_by_config_options(const std::vector<t_config_opt
         } else if (steps_full.find(opt_key) != steps_full.end()) {
             steps.emplace_back(slapsMergeSlicesAndEval);
             osteps.emplace_back(slaposObjectSlice);
+            invalidate_all_model_objects = true;
         } else {
             // All values should be covered.
             assert(false);

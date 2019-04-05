@@ -459,7 +459,7 @@ private:
     bool invalidate_step(SLAPrintStep st);
 
     // Invalidate steps based on a set of parameters changed.
-    bool invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
+    bool invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys, bool &invalidate_all_model_objects);
 
     SLAPrintConfig                  m_print_config;
     SLAPrinterConfig                m_printer_config;
