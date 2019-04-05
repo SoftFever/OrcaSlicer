@@ -2864,7 +2864,7 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
         append_menu_item(menu, wxID_ANY, _(L("Reload from Disk")), _(L("Reload the selected file from Disk")),
             [this](wxCommandEvent&) { reload_from_disk(); });
 
-        append_menu_item(menu, wxID_ANY, _(L("Export object as STL")) + dots, _(L("Export this single object as STL file")),
+        append_menu_item(menu, wxID_ANY, _(L("Export as STL")) + dots, _(L("Export the selected object as STL file")),
             [this](wxCommandEvent&) { q->export_stl(true); });
 
         menu->AppendSeparator();
@@ -3382,7 +3382,12 @@ void Plater::export_stl(bool selection_only)
 
         const ModelObject* model_object = p->model.objects[obj_idx];
         if (selection.get_mode() == Selection::Instance)
-            mesh = model_object->mesh();
+        {
+            if (selection.is_single_full_object())
+                mesh = model_object->mesh();
+            else
+                mesh = model_object->full_raw_mesh();
+        }
         else
         {
             const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
