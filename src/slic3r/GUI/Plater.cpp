@@ -3380,18 +3380,19 @@ void Plater::export_stl(bool selection_only)
         const auto obj_idx = selection.get_object_idx();
         if (obj_idx == -1) { return; }
 
+        const ModelObject* model_object = p->model.objects[obj_idx];
         if (selection.get_mode() == Selection::Instance)
-            mesh = p->model.objects[obj_idx]->mesh();
+            mesh = model_object->mesh();
         else
         {
             const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
-            mesh = p->model.objects[obj_idx]->volumes[volume->volume_idx()]->mesh;
+            mesh = model_object->volumes[volume->volume_idx()]->mesh;
             mesh.transform(volume->get_volume_transformation().get_matrix());
+            mesh.translate(-model_object->origin_translation.cast<float>());
         }
     }
-    else {
+    else
         mesh = p->model.mesh();
-    }
 
     Slic3r::store_stl(path_u8.c_str(), &mesh, true);
     p->statusbar()->set_status_text(wxString::Format(_(L("STL file exported to %s")), path));
