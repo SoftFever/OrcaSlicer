@@ -482,30 +482,6 @@ void Selection::translate(const Vec3d& displacement, bool local)
     m_bounding_box_dirty = true;
 }
 
-static Eigen::Quaterniond rotation_xyz_diff(const Vec3d &rot_xyz_from, const Vec3d &rot_xyz_to)
-{
-    return
-        // From the current coordinate system to world.
-        Eigen::AngleAxisd(rot_xyz_to(2), Vec3d::UnitZ()) * Eigen::AngleAxisd(rot_xyz_to(1), Vec3d::UnitY()) * Eigen::AngleAxisd(rot_xyz_to(0), Vec3d::UnitX()) *
-        // From world to the initial coordinate system.
-        Eigen::AngleAxisd(-rot_xyz_from(0), Vec3d::UnitX()) * Eigen::AngleAxisd(-rot_xyz_from(1), Vec3d::UnitY()) * Eigen::AngleAxisd(-rot_xyz_from(2), Vec3d::UnitZ());
-}
-
-// This should only be called if it is known, that the two rotations only differ in rotation around the Z axis.
-static double rotation_diff_z(const Vec3d &rot_xyz_from, const Vec3d &rot_xyz_to)
-{
-    Eigen::AngleAxisd angle_axis(rotation_xyz_diff(rot_xyz_from, rot_xyz_to));
-    Vec3d  axis = angle_axis.axis();
-    double angle = angle_axis.angle();
-#ifndef NDEBUG
-    if (std::abs(angle) > 1e-8) {
-        assert(std::abs(axis.x()) < 1e-8);
-        assert(std::abs(axis.y()) < 1e-8);
-    }
-#endif /* NDEBUG */
-    return (axis.z() < 0) ? -angle : angle;
-}
-
 // Rotate an object around one of the axes. Only one rotation component is expected to be changing.
 void Selection::rotate(const Vec3d& rotation, TransformationType transformation_type)
 {
@@ -548,7 +524,7 @@ void Selection::rotate(const Vec3d& rotation, TransformationType transformation_
                 assert(is_approx(rotation.z(), 0.0));
                 const GLVolume &first_volume = *(*m_volumes)[first_volume_idx];
                 const Vec3d    &rotation = first_volume.get_instance_rotation();
-                double z_diff = rotation_diff_z(m_cache.volumes_data[first_volume_idx].get_instance_rotation(), m_cache.volumes_data[i].get_instance_rotation());
+                double z_diff = Geometry::rotation_diff_z(m_cache.volumes_data[first_volume_idx].get_instance_rotation(), m_cache.volumes_data[i].get_instance_rotation());
                 volume.set_instance_rotation(Vec3d(rotation(0), rotation(1), rotation(2) + z_diff));
             }
             else {
@@ -1538,7 +1514,7 @@ void Selection::render_sidebar_size_hint(Axis axis, double length) const
 #ifndef NDEBUG
 static bool is_rotation_xy_synchronized(const Vec3d &rot_xyz_from, const Vec3d &rot_xyz_to)
 {
-    Eigen::AngleAxisd angle_axis(rotation_xyz_diff(rot_xyz_from, rot_xyz_to));
+    Eigen::AngleAxisd angle_axis(Geometry::rotation_xyz_diff(rot_xyz_from, rot_xyz_to));
     Vec3d  axis = angle_axis.axis();
     double angle = angle_axis.angle();
     if (std::abs(angle) < 1e-8)
@@ -1618,7 +1594,7 @@ void Selection::synchronize_unselected_instances(SyncRotationType sync_rotation_
                 break;
             case SYNC_ROTATION_GENERAL:
                 // generic rotation -> update instance z with the delta of the rotation.
-                double z_diff = rotation_diff_z(m_cache.volumes_data[i].get_instance_rotation(), m_cache.volumes_data[j].get_instance_rotation());
+                double z_diff = Geometry::rotation_diff_z(m_cache.volumes_data[i].get_instance_rotation(), m_cache.volumes_data[j].get_instance_rotation());
                 v->set_instance_rotation(Vec3d(rotation(0), rotation(1), rotation(2) + z_diff));
                 break;
             }
