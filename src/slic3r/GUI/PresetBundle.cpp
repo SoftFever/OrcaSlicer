@@ -1449,7 +1449,7 @@ bool PresetBundle::parse_color(const std::string &scolor, unsigned char *rgb_out
 void PresetBundle::load_default_preset_bitmaps()
 {
     this->prints.load_bitmap_default("cog");
-    this->sla_prints.load_bitmap_default("package_green.png");
+    this->sla_prints.load_bitmap_default("cog");
     this->filaments.load_bitmap_default("spool.png");
     this->sla_materials.load_bitmap_default("package_green.png");
     this->printers.load_bitmap_default("printer");
