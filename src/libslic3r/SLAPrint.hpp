@@ -398,9 +398,9 @@ public:
     const SLAPrintObjectConfig& default_object_config() const { return m_default_object_config; }
 
     // Extracted value from the configuration objects
-    Vec3d relative_correction() const;
+    Vec3d                       relative_correction() const;
 
-	std::string         output_filename() const override;
+	std::string                 output_filename() const override;
 
     const SLAPrintStatistics&      print_statistics() const { return m_print_statistics; }
 

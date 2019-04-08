@@ -227,6 +227,12 @@ const float GLVolume::HOVER_COLOR[4] = { 0.4f, 0.9f, 0.1f, 1.0f };
 const float GLVolume::OUTSIDE_COLOR[4] = { 0.0f, 0.38f, 0.8f, 1.0f };
 const float GLVolume::SELECTED_OUTSIDE_COLOR[4] = { 0.19f, 0.58f, 1.0f, 1.0f };
 const float GLVolume::DISABLED_COLOR[4] = { 0.25f, 0.25f, 0.25f, 1.0f };
+const float GLVolume::MODEL_COLOR[4][4] = {
+    { 1.0f, 1.0f, 0.0f, 1.f },
+    { 1.0f, 0.5f, 0.5f, 1.f },
+    { 0.5f, 1.0f, 0.5f, 1.f },
+    { 0.5f, 0.5f, 1.0f, 1.f }
+};
 const float GLVolume::SLA_SUPPORT_COLOR[4] = { 0.75f, 0.75f, 0.75f, 1.0f };
 const float GLVolume::SLA_PAD_COLOR[4] = { 0.0f, 0.2f, 0.0f, 1.0f };
 
@@ -568,19 +574,12 @@ int GLVolumeCollection::load_object_volume(
     const std::string              &color_by,
     bool                            use_VBOs)
 {
-    static float colors[4][4] = {
-        { 1.0f, 1.0f, 0.0f, 1.f }, 
-        { 1.0f, 0.5f, 0.5f, 1.f },
-        { 0.5f, 1.0f, 0.5f, 1.f }, 
-        { 0.5f, 0.5f, 1.0f, 1.f }
-    };
-
     const ModelVolume   *model_volume = model_object->volumes[volume_idx];
     const int            extruder_id  = model_volume->extruder_id();
     const ModelInstance *instance     = model_object->instances[instance_idx];
     const TriangleMesh& mesh = model_volume->mesh;
     float color[4];
-    memcpy(color, colors[((color_by == "volume") ? volume_idx : obj_idx) % 4], sizeof(float) * 3);
+    memcpy(color, GLVolume::MODEL_COLOR[((color_by == "volume") ? volume_idx : obj_idx) % 4], sizeof(float) * 3);
 /*    if (model_volume->is_support_blocker()) {
         color[0] = 1.0f;
         color[1] = 0.2f;
@@ -640,8 +639,7 @@ void GLVolumeCollection::load_object_auxiliary(
 	// Convex hull is required for out of print bed detection.
 	TriangleMesh convex_hull = mesh.convex_hull_3d();
     for (const std::pair<size_t, size_t> &instance_idx : instances) {
-        const ModelInstance            &model_instance = *print_object->model_object()->instances[instance_idx.first];
-        const SLAPrintObject::Instance &print_instance = print_object->instances()[instance_idx.second];
+        const ModelInstance &model_instance = *print_object->model_object()->instances[instance_idx.first];
         this->volumes.emplace_back(new GLVolume((milestone == slaposBasePool) ? GLVolume::SLA_PAD_COLOR : GLVolume::SLA_SUPPORT_COLOR));
         GLVolume &v = *this->volumes.back();
         if (use_VBOs)

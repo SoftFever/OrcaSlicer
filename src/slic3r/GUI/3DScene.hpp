@@ -116,6 +116,7 @@ public:
 
     void load_mesh_flat_shading(const TriangleMesh &mesh);
     void load_mesh_full_shading(const TriangleMesh &mesh);
+	void load_mesh(const TriangleMesh &mesh, bool use_VBOs) { use_VBOs ? this->load_mesh_full_shading(mesh) : this->load_mesh_flat_shading(mesh); }
 
     inline bool has_VBOs() const { return vertices_and_normals_interleaved_VBO_id != 0; }
 
@@ -228,6 +229,7 @@ public:
     static const float OUTSIDE_COLOR[4];
     static const float SELECTED_OUTSIDE_COLOR[4];
     static const float DISABLED_COLOR[4];
+    static const float MODEL_COLOR[4][4];
     static const float SLA_SUPPORT_COLOR[4];
     static const float SLA_PAD_COLOR[4];
 

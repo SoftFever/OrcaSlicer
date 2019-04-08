@@ -1893,6 +1893,9 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             size_t idx = 0;
             const SLAPrint *sla_print = this->sla_print();
 			std::vector<double> shift_zs(m_model->objects.size(), 0);
+            double relative_correction_z = sla_print->relative_correction().z();
+            if (relative_correction_z <= EPSILON)
+                relative_correction_z = 1.;
 			for (const SLAPrintObject *print_object : sla_print->objects()) {
                 SLASupportState   &state        = sla_support_state[idx ++];
                 const ModelObject *model_object = print_object->model_object();
@@ -1906,7 +1909,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 assert(it != sla_print->model().objects.end());
 				object_idx = it - sla_print->model().objects.begin();
 				// Cache the Z offset to be applied to all volumes with this object_idx.
-				shift_zs[object_idx] = print_object->get_current_elevation();
+				shift_zs[object_idx] = print_object->get_current_elevation() / relative_correction_z;
                 // Collect indices of this print_object's instances, for which the SLA support meshes are to be added to the scene.
                 // pairs of <instance_idx, print_instance_idx>
 				std::vector<std::pair<size_t, size_t>> instances[std::tuple_size<SLASteps>::value];
@@ -5038,96 +5041,43 @@ void GLCanvas3D::_load_shells_sla()
         // nothing to render, return
         return;
 
+    auto add_volume = [this](const SLAPrintObject &object, const SLAPrintObject::Instance& instance, 
+                             const TriangleMesh &mesh, const float color[4], bool outside_printer_detection_enabled) {
+        m_volumes.volumes.emplace_back(new GLVolume(color));
+        GLVolume& v = *m_volumes.volumes.back();
+        v.indexed_vertex_array.load_mesh(mesh, m_use_VBOs);
+		v.shader_outside_printer_detection_enabled = outside_printer_detection_enabled;
+        v.composite_id.volume_id = -1;
+        v.set_instance_offset(unscale(instance.shift(0), instance.shift(1), 0));
+        v.set_instance_rotation(Vec3d(0.0, 0.0, (double)instance.rotation));
+        v.set_instance_mirror(X, object.is_left_handed() ? -1. : 1.);
+    };
+
     // adds objects' volumes 
-    int obj_idx = 0;
     for (const SLAPrintObject* obj : print->objects())
-    {
-        if (!obj->is_step_done(slaposSliceSupports))
-            continue;
-
-        unsigned int initial_volumes_count = (unsigned int)m_volumes.volumes.size();
-
-        // selects only instances which were sliced
-        const ModelObject* model_obj = obj->model_object();
-        const std::vector<SLAPrintObject::Instance>& sla_instances = obj->instances();
-        std::vector<int> instances_model_idxs(sla_instances.size());
-        for (int i = 0; i < (int)sla_instances.size(); ++i)
-        {
-            instances_model_idxs[i] = (int)sla_instances[i].instance_id.id;
-        }
-
-        std::vector<int> sliced_instance_idxs;
-        for (int i = 0; i < (int)model_obj->instances.size(); ++i)
-        {
-            if (std::find(instances_model_idxs.begin(), instances_model_idxs.end(), (int)model_obj->instances[i]->id().id) != instances_model_idxs.end())
-                sliced_instance_idxs.push_back(i);
-        }
-
-        m_volumes.load_object(model_obj, obj_idx, sliced_instance_idxs, "object", m_use_VBOs && m_initialized);
-
-        for (const SLAPrintObject::Instance& instance : sla_instances)
-        {
-            Vec3d offset = unscale(instance.shift(0), instance.shift(1), 0);
-            Vec3d rotation(0.0, 0.0, (double)instance.rotation);
-
-            unsigned int partial_volumes_count = (unsigned int)m_volumes.volumes.size();
-
-            // add supports
-            if (obj->is_step_done(slaposSupportTree) && obj->has_mesh(slaposSupportTree))
-            {
-                const TriangleMesh& mesh = obj->support_mesh();
-                m_volumes.volumes.emplace_back(new GLVolume(GLVolume::SLA_SUPPORT_COLOR));
-                GLVolume& v = *m_volumes.volumes.back();
-
-                if (m_use_VBOs)
-                    v.indexed_vertex_array.load_mesh_full_shading(mesh);
-                else
-                    v.indexed_vertex_array.load_mesh_flat_shading(mesh);
-
-                v.shader_outside_printer_detection_enabled = true;
-                v.composite_id.volume_id = -1;
-                v.set_instance_offset(offset);
-                v.set_instance_rotation(rotation);
-                v.set_instance_mirror(X, obj->is_left_handed() ? -1. : 1.);
+        if (obj->is_step_done(slaposSliceSupports)) {
+            unsigned int initial_volumes_count = (unsigned int)m_volumes.volumes.size();
+            for (const SLAPrintObject::Instance& instance : obj->instances()) {
+                add_volume(*obj, instance, obj->transformed_mesh(), GLVolume::MODEL_COLOR[0], true);
+                // Set the extruder_id and volume_id to achieve the same color as in the 3D scene when
+                // through the update_volumes_colors_by_extruder() call.
+                m_volumes.volumes.back()->extruder_id = obj->model_object()->volumes.front()->extruder_id();
+                m_volumes.volumes.back()->composite_id.volume_id = 0;
+                if (obj->is_step_done(slaposSupportTree) && obj->has_mesh(slaposSupportTree))
+                    add_volume(*obj, instance, obj->support_mesh(), GLVolume::SLA_SUPPORT_COLOR, true);
+                if (obj->is_step_done(slaposBasePool) && obj->has_mesh(slaposBasePool))
+                    add_volume(*obj, instance, obj->pad_mesh(), GLVolume::SLA_PAD_COLOR, true);
             }
-
-            // add pad
-            if (obj->is_step_done(slaposBasePool) && obj->has_mesh(slaposBasePool))
-            {
-                const TriangleMesh& mesh = obj->pad_mesh();
-                m_volumes.volumes.emplace_back(new GLVolume(GLVolume::SLA_PAD_COLOR));
-                GLVolume& v = *m_volumes.volumes.back();
-
-                if (m_use_VBOs)
-                    v.indexed_vertex_array.load_mesh_full_shading(mesh);
-                else
-                    v.indexed_vertex_array.load_mesh_flat_shading(mesh);
-
-                v.shader_outside_printer_detection_enabled = false;
-                v.composite_id.volume_id = -1;
-                v.set_instance_offset(offset);
-                v.set_instance_rotation(rotation);
-                v.set_instance_mirror(X, obj->is_left_handed() ? -1. : 1.);
-            }
-
-            // finalize volumes and sends geometry to gpu
-            for (unsigned int i = partial_volumes_count; i < m_volumes.volumes.size(); ++i)
-            {
+            double shift_z = obj->get_current_elevation();
+            for (unsigned int i = initial_volumes_count; i < m_volumes.volumes.size(); ++ i) {
                 GLVolume& v = *m_volumes.volumes[i];
+                // finalize volumes and sends geometry to gpu
                 v.bounding_box = v.indexed_vertex_array.bounding_box();
                 v.indexed_vertex_array.finalize_geometry(m_use_VBOs);
+                // apply shift z
+                v.set_sla_shift_z(shift_z);
             }
-
-            ++obj_idx;
         }
-
-        // apply shift z
-        double shift_z = obj->get_current_elevation();
-        for (unsigned int i = initial_volumes_count; i < m_volumes.volumes.size(); ++i)
-        {
-            m_volumes.volumes[i]->set_sla_shift_z(shift_z);
-        }
-    }
 
     update_volumes_colors_by_extruder();
 #else
