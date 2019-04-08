@@ -108,8 +108,8 @@ void GLGizmoScale3D::on_render(const Selection& selection) const
         ((m_hover_id == 6) || (m_hover_id == 7) || (m_hover_id == 8) || (m_hover_id == 9)))
         set_tooltip("X/Y/Z");
 
-    ::glClear(GL_DEPTH_BUFFER_BIT);
-    ::glEnable(GL_DEPTH_TEST);
+    glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
+    glsafe(::glEnable(GL_DEPTH_TEST));
 
     BoundingBoxf3 box;
     Transform3d transform = Transform3d::Identity();
@@ -187,7 +187,7 @@ void GLGizmoScale3D::on_render(const Selection& selection) const
         m_grabbers[i].angles = angles;
     }
 
-    ::glLineWidth((m_hover_id != -1) ? 2.0f : 1.5f);
+    glsafe(::glLineWidth((m_hover_id != -1) ? 2.0f : 1.5f));
 
     const BoundingBoxf3& selection_box = selection.get_bounding_box();
 
@@ -198,20 +198,20 @@ void GLGizmoScale3D::on_render(const Selection& selection) const
         // draw connections
         if (m_grabbers[0].enabled && m_grabbers[1].enabled)
         {
-            ::glColor3fv(m_grabbers[0].color);
+            glsafe(::glColor3fv(m_grabbers[0].color));
             render_grabbers_connection(0, 1);
         }
         if (m_grabbers[2].enabled && m_grabbers[3].enabled)
         {
-            ::glColor3fv(m_grabbers[2].color);
+            glsafe(::glColor3fv(m_grabbers[2].color));
             render_grabbers_connection(2, 3);
         }
         if (m_grabbers[4].enabled && m_grabbers[5].enabled)
         {
-            ::glColor3fv(m_grabbers[4].color);
+            glsafe(::glColor3fv(m_grabbers[4].color));
             render_grabbers_connection(4, 5);
         }
-        ::glColor3fv(m_base_color);
+        glsafe(::glColor3fv(m_base_color));
         render_grabbers_connection(6, 7);
         render_grabbers_connection(7, 8);
         render_grabbers_connection(8, 9);
@@ -222,7 +222,7 @@ void GLGizmoScale3D::on_render(const Selection& selection) const
     else if ((m_hover_id == 0) || (m_hover_id == 1))
     {
         // draw connection
-        ::glColor3fv(m_grabbers[0].color);
+        glsafe(::glColor3fv(m_grabbers[0].color));
         render_grabbers_connection(0, 1);
         // draw grabbers
         m_grabbers[0].render(true, grabber_mean_size);
@@ -231,7 +231,7 @@ void GLGizmoScale3D::on_render(const Selection& selection) const
     else if ((m_hover_id == 2) || (m_hover_id == 3))
     {
         // draw connection
-        ::glColor3fv(m_grabbers[2].color);
+        glsafe(::glColor3fv(m_grabbers[2].color));
         render_grabbers_connection(2, 3);
         // draw grabbers
         m_grabbers[2].render(true, grabber_mean_size);
@@ -240,7 +240,7 @@ void GLGizmoScale3D::on_render(const Selection& selection) const
     else if ((m_hover_id == 4) || (m_hover_id == 5))
     {
         // draw connection
-        ::glColor3fv(m_grabbers[4].color);
+        glsafe(::glColor3fv(m_grabbers[4].color));
         render_grabbers_connection(4, 5);
         // draw grabbers
         m_grabbers[4].render(true, grabber_mean_size);
@@ -249,7 +249,7 @@ void GLGizmoScale3D::on_render(const Selection& selection) const
     else if (m_hover_id >= 6)
     {
         // draw connection
-        ::glColor3fv(m_drag_color);
+        glsafe(::glColor3fv(m_drag_color));
         render_grabbers_connection(6, 7);
         render_grabbers_connection(7, 8);
         render_grabbers_connection(8, 9);
@@ -264,7 +264,7 @@ void GLGizmoScale3D::on_render(const Selection& selection) const
 
 void GLGizmoScale3D::on_render_for_picking(const Selection& selection) const
 {
-    ::glDisable(GL_DEPTH_TEST);
+    glsafe(::glDisable(GL_DEPTH_TEST));
 
     render_grabbers_for_picking(selection.get_bounding_box());
 }
@@ -291,7 +291,7 @@ void GLGizmoScale3D::render_grabbers_connection(unsigned int id_1, unsigned int 
         ::glBegin(GL_LINES);
         ::glVertex3dv(m_grabbers[id_1].center.data());
         ::glVertex3dv(m_grabbers[id_2].center.data());
-        ::glEnd();
+        glsafe(::glEnd());
     }
 }
 

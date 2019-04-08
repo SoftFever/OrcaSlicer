@@ -1,6 +1,8 @@
 #include "libslic3r/libslic3r.h"
 #include "GLTexture.hpp"
 
+#include "3DScene.hpp"
+
 #include <GL/glew.h>
 
 #include <wx/image.h>
@@ -11,12 +13,8 @@
 #include <vector>
 #include <algorithm>
 
-#define NANOSVG_IMPLEMENTATION
 #include "nanosvg/nanosvg.h"
-#define NANOSVGRAST_IMPLEMENTATION
 #include "nanosvg/nanosvgrast.h"
-
-#include "libslic3r/Utils.hpp"
 
 #include "libslic3r/Utils.hpp"
 
@@ -177,15 +175,15 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
     nsvgDeleteRasterizer(rast);
 
     // sends data to gpu
-    ::glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    ::glGenTextures(1, &m_id);
-    ::glBindTexture(GL_TEXTURE_2D, m_id);
-    ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data());
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glsafe(::glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
+    glsafe(::glGenTextures(1, &m_id));
+    glsafe(::glBindTexture(GL_TEXTURE_2D, m_id));
+    glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0));
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 
-    ::glBindTexture(GL_TEXTURE_2D, 0);
+    glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
 
     m_source = filenames.front();
     
@@ -218,7 +216,7 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
 void GLTexture::reset()
 {
     if (m_id != 0)
-        ::glDeleteTextures(1, &m_id);
+        glsafe(::glDeleteTextures(1, &m_id));
 
     m_id = 0;
     m_width = 0;
@@ -233,25 +231,25 @@ void GLTexture::render_texture(unsigned int tex_id, float left, float right, flo
 
 void GLTexture::render_sub_texture(unsigned int tex_id, float left, float right, float bottom, float top, const GLTexture::Quad_UVs& uvs)
 {
-    ::glEnable(GL_BLEND);
-    ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glsafe(::glEnable(GL_BLEND));
+    glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-    ::glEnable(GL_TEXTURE_2D);
-    ::glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+    glsafe(::glEnable(GL_TEXTURE_2D));
+    glsafe(::glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE));
 
-    ::glBindTexture(GL_TEXTURE_2D, (GLuint)tex_id);
+    glsafe(::glBindTexture(GL_TEXTURE_2D, (GLuint)tex_id));
 
     ::glBegin(GL_QUADS);
     ::glTexCoord2f(uvs.left_bottom.u, uvs.left_bottom.v); ::glVertex2f(left, bottom);
     ::glTexCoord2f(uvs.right_bottom.u, uvs.right_bottom.v); ::glVertex2f(right, bottom);
     ::glTexCoord2f(uvs.right_top.u, uvs.right_top.v); ::glVertex2f(right, top);
     ::glTexCoord2f(uvs.left_top.u, uvs.left_top.v); ::glVertex2f(left, top);
-    ::glEnd();
+    glsafe(::glEnd());
 
-    ::glBindTexture(GL_TEXTURE_2D, 0);
+    glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
 
-    ::glDisable(GL_TEXTURE_2D);
-    ::glDisable(GL_BLEND);
+    glsafe(::glDisable(GL_TEXTURE_2D));
+    glsafe(::glDisable(GL_BLEND));
 }
 
 unsigned int GLTexture::generate_mipmaps(wxImage& image)
@@ -286,7 +284,7 @@ unsigned int GLTexture::generate_mipmaps(wxImage& image)
             data[data_id + 3] = (img_alpha != nullptr) ? img_alpha[i] : 255;
         }
 
-        ::glTexImage2D(GL_TEXTURE_2D, level, GL_RGBA, (GLsizei)w, (GLsizei)h, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data());
+        glsafe(::glTexImage2D(GL_TEXTURE_2D, level, GL_RGBA, (GLsizei)w, (GLsizei)h, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
     }
 
     return (unsigned int)level;
@@ -334,25 +332,25 @@ bool GLTexture::load_from_png(const std::string& filename, bool use_mipmaps)
     }
 
     // sends data to gpu
-    ::glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    ::glGenTextures(1, &m_id);
-    ::glBindTexture(GL_TEXTURE_2D, m_id);
-    ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data());
+    glsafe(::glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
+    glsafe(::glGenTextures(1, &m_id));
+    glsafe(::glBindTexture(GL_TEXTURE_2D, m_id));
+    glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
     if (use_mipmaps)
     {
         // we manually generate mipmaps because glGenerateMipmap() function is not reliable on all graphics cards
         unsigned int levels_count = generate_mipmaps(image);
-        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, levels_count);
-        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, levels_count));
+        glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR));
     }
     else
     {
-        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+        glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+        glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0));
     }
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 
-    ::glBindTexture(GL_TEXTURE_2D, 0);
+    glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
 
     m_source = filename;
 
@@ -378,6 +376,7 @@ bool GLTexture::load_from_svg(const std::string& filename, bool use_mipmaps, uns
     if (n_pixels <= 0)
     {
         reset();
+        nsvgDelete(image);
         return false;
     }
 
@@ -395,10 +394,10 @@ bool GLTexture::load_from_svg(const std::string& filename, bool use_mipmaps, uns
     nsvgRasterize(rast, image, 0, 0, scale, data.data(), m_width, m_height, m_width * 4);
 
     // sends data to gpu
-    ::glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    ::glGenTextures(1, &m_id);
-    ::glBindTexture(GL_TEXTURE_2D, m_id);
-    ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data());
+    glsafe(::glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
+    glsafe(::glGenTextures(1, &m_id));
+    glsafe(::glBindTexture(GL_TEXTURE_2D, m_id));
+    glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
     if (use_mipmaps)
     {
         // we manually generate mipmaps because glGenerateMipmap() function is not reliable on all graphics cards
@@ -414,20 +413,20 @@ bool GLTexture::load_from_svg(const std::string& filename, bool use_mipmaps, uns
             scale /= 2.0f;
 
             nsvgRasterize(rast, image, 0, 0, scale, data.data(), lod_w, lod_h, lod_w * 4);
-            ::glTexImage2D(GL_TEXTURE_2D, level, GL_RGBA, (GLsizei)lod_w, (GLsizei)lod_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data());
+            glsafe(::glTexImage2D(GL_TEXTURE_2D, level, GL_RGBA, (GLsizei)lod_w, (GLsizei)lod_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
         }
 
-        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, level);
-        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, level));
+        glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR));
     }
     else
     {
-        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+        glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+        glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0));
     }
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 
-    ::glBindTexture(GL_TEXTURE_2D, 0);
+    glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
 
     m_source = filename;
 

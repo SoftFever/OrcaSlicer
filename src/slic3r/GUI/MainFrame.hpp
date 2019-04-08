@@ -9,6 +9,7 @@
 #include <string>
 #include <map>
 
+#include "GUI_Utils.hpp"
 #include "Plater.hpp"
 #include "Event.hpp"
 
@@ -40,7 +41,7 @@ struct PresetTab {
     PrinterTechnology technology;
 };
 
-class MainFrame : public wxFrame
+class MainFrame : public DPIFrame
 {
     bool        m_loaded {false};
 
@@ -67,6 +68,9 @@ class MainFrame : public wxFrame
     bool can_select() const;
     bool can_delete() const;
     bool can_delete_all() const;
+
+protected:
+    virtual void on_dpi_changed(const wxRect &suggested_rect);
 
 public:
     MainFrame();

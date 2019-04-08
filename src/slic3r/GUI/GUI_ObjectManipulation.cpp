@@ -92,7 +92,6 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
         else if (option_name == "Size") {
             line.near_label_widget = [this](wxWindow* parent) {
                 return new wxStaticBitmap(parent, wxID_ANY, wxNullBitmap, wxDefaultPosition,
-//                                           wxBitmap(from_u8(var("one_layer_lock_on.png")), wxBITMAP_TYPE_PNG).GetSize());
                                           create_scaled_bitmap("one_layer_lock_on.png").GetSize());
             };
         }
@@ -161,6 +160,8 @@ void ObjectManipulation::update_settings_value(const Selection& selection)
 	m_new_move_label_string   = L("Position");
     m_new_rotate_label_string = L("Rotation");
     m_new_scale_label_string  = L("Scale factors");
+
+    ObjectList* obj_list = wxGetApp().obj_list();
     if (selection.is_single_full_instance())
     {
         // all volumes in the selection belongs to the same instance, any of them contains the needed instance data, so we take the first one
@@ -187,7 +188,7 @@ void ObjectManipulation::update_settings_value(const Selection& selection)
 
         m_new_enabled  = true;
     }
-    else if (selection.is_single_full_object())
+    else if (selection.is_single_full_object() && obj_list->is_selected(itObject))
     {
         m_cache.instance.reset();
 
@@ -212,7 +213,7 @@ void ObjectManipulation::update_settings_value(const Selection& selection)
         m_new_size = (volume->get_volume_transformation().get_matrix(true, true) * volume->bounding_box.size()).cwiseAbs();
         m_new_enabled = true;
     }
-    else if (wxGetApp().obj_list()->multiple_selection())
+    else if (obj_list->multiple_selection() || obj_list->is_selected(itInstanceRoot))
     {
         reset_settings_value();
 		m_new_move_label_string   = L("Translate");

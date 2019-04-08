@@ -7,6 +7,7 @@
 
 #include "GLTexture.hpp"
 #include "Event.hpp"
+#include "libslic3r/Point.hpp"
 
 class wxEvtHandler;
 

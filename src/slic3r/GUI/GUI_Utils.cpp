@@ -4,9 +4,14 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/format.hpp>
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
 #include <wx/toplevel.h>
 #include <wx/sizer.h>
 #include <wx/checkbox.h>
+#include <wx/dcclient.h>
 
 #include "libslic3r/Config.hpp"
 
@@ -45,6 +50,64 @@ void on_window_geometry(wxTopLevelWindow *tlw, std::function<void()> callback)
         callback();
         evt.Skip();
     });
+#endif
+}
+
+wxDEFINE_EVENT(EVT_DPI_CHANGED, DpiChangedEvent);
+
+#ifdef _WIN32
+template<class F> typename F::FN winapi_get_function(const wchar_t *dll, const char *fn_name) {
+    static HINSTANCE dll_handle = LoadLibraryExW(dll, nullptr, 0);
+
+    if (dll_handle == nullptr) { return nullptr; }
+    return (F::FN)GetProcAddress(dll_handle, fn_name);
+}
+#endif
+
+int get_dpi_for_window(wxWindow *window)
+{
+#ifdef _WIN32
+    enum MONITOR_DPI_TYPE_ {
+        // This enum is inlined here to avoid build-time dependency
+        MDT_EFFECTIVE_DPI_ = 0,
+        MDT_ANGULAR_DPI_ = 1,
+        MDT_RAW_DPI_ = 2,
+        MDT_DEFAULT_ = MDT_EFFECTIVE_DPI_,
+    };
+
+    // Need strong types for winapi_get_function() to work
+    struct GetDpiForWindow_t { typedef HRESULT (WINAPI *FN)(HWND hwnd); };
+    struct GetDpiForMonitor_t { typedef HRESULT (WINAPI *FN)(HMONITOR hmonitor, MONITOR_DPI_TYPE_ dpiType, UINT *dpiX, UINT *dpiY); };
+
+    static auto GetDpiForWindow_fn = winapi_get_function<GetDpiForWindow_t>(L"User32.dll", "GetDpiForWindow");
+    static auto GetDpiForMonitor_fn = winapi_get_function<GetDpiForMonitor_t>(L"Shcore.dll", "GetDpiForMonitor");
+
+    const HWND hwnd = window->GetHandle();
+
+    if (GetDpiForWindow_fn != nullptr) {
+        // We're on Windows 10, we have per-screen DPI settings
+        return GetDpiForWindow_fn(hwnd);
+    } else if (GetDpiForMonitor_fn != nullptr) {
+        // We're on Windows 8.1, we have per-system DPI
+        // Note: MonitorFromWindow() is available on all Windows.
+
+        const HMONITOR monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+        UINT dpiX;
+        UINT dpiY;
+        return GetDpiForMonitor_fn(monitor, MDT_EFFECTIVE_DPI_, &dpiX, &dpiY) == S_OK ? dpiX : DPI_DEFAULT;
+    } else {
+        // We're on Windows earlier than 8.1, use DC
+
+        const HDC hdc = GetDC(hwnd);
+        if (hdc == NULL) { return DPI_DEFAULT; }
+        return GetDeviceCaps(hdc, LOGPIXELSX);
+    }
+#elif defined __linux__
+    // TODO
+    return DPI_DEFAULT;
+#elif defined __APPLE__
+    // TODO
+    return DPI_DEFAULT;
 #endif
 }
 

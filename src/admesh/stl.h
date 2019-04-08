@@ -127,7 +127,6 @@ typedef struct {
 typedef struct {
   FILE          *fp;
   stl_facet     *facet_start;
-  stl_edge      *edge_start;
   stl_hash_edge **heads;
   stl_hash_edge *tail;
   int           M;
@@ -142,7 +141,6 @@ typedef struct {
 extern void stl_open(stl_file *stl, const char *file);
 extern void stl_close(stl_file *stl);
 extern void stl_stats_out(stl_file *stl, FILE *file, char *input_file);
-extern void stl_print_edges(stl_file *stl, FILE *file);
 extern void stl_print_neighbors(stl_file *stl, char *file);
 extern void stl_put_little_int(FILE *fp, int value_in);
 extern void stl_put_little_float(FILE *fp, float value_in);

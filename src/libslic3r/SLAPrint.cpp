@@ -3,6 +3,7 @@
 #include "SLA/SLABasePool.hpp"
 #include "SLA/SLAAutoSupports.hpp"
 #include "ClipperUtils.hpp"
+#include "Geometry.hpp"
 #include "MTUtils.hpp"
 
 #include <unordered_set>
@@ -118,13 +119,18 @@ static Transform3d sla_trafo(const SLAPrint& p, const ModelObject &model_object)
 static std::vector<SLAPrintObject::Instance> sla_instances(const ModelObject &model_object)
 {
     std::vector<SLAPrintObject::Instance> instances;
-    for (ModelInstance *model_instance : model_object.instances)
-        if (model_instance->is_printable()) {
-            instances.emplace_back(
-                model_instance->id(),
-                Point::new_scale(model_instance->get_offset(X), model_instance->get_offset(Y)),
-                float(model_instance->get_rotation(Z)));
-        }
+    assert(! model_object.instances.empty());
+    if (! model_object.instances.empty()) {
+        Vec3d rotation0 = model_object.instances.front()->get_rotation();
+        rotation0(2) = 0.;
+        for (ModelInstance *model_instance : model_object.instances)
+            if (model_instance->is_printable()) {
+                instances.emplace_back(
+                    model_instance->id(),
+                    Point::new_scale(model_instance->get_offset(X), model_instance->get_offset(Y)),
+					float(Geometry::rotation_diff_z(rotation0, model_instance->get_rotation())));
+            }
+    }
     return instances;
 }
 
@@ -1078,11 +1084,11 @@ void SLAPrint::process()
                         hole.reserve(h.points.size() + 1);
 
                         if(needreverse)
-                            for(auto& p : h.points)
-                                hole.emplace_back(p.x(), p.y());
-                        else
                             for(auto it = h.points.rbegin(); it != h.points.rend(); ++it)
                                 hole.emplace_back(it->x(), it->y());
+                        else
+                            for(auto& p : h.points)
+                                hole.emplace_back(p.x(), p.y());
                     }
 
                     if(is_lefthanded) {

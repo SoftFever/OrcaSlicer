@@ -4,6 +4,7 @@
 #include "BitmapCache.hpp"
 #include "Plater.hpp"
 #include "I18N.hpp"
+#include "wxExtensions.hpp"
 
 #include <algorithm>
 #include <fstream>
@@ -102,13 +103,14 @@ PresetBundle::PresetBundle() :
     }
 
 	// Load the default preset bitmaps.
-    this->prints       .load_bitmap_default("cog.png");
-    this->sla_prints   .load_bitmap_default("package_green.png");
-    this->filaments    .load_bitmap_default("spool.png");
-    this->sla_materials.load_bitmap_default("package_green.png");
-    this->printers     .load_bitmap_default("printer_empty.png");
-    this->printers     .load_bitmap_add("add.png");
-    this->load_compatible_bitmaps();
+	// #ys_FIXME_to_delete we'll load them later, using em_unit()
+//     this->prints       .load_bitmap_default("cog");
+//     this->sla_prints   .load_bitmap_default("package_green.png");
+//     this->filaments    .load_bitmap_default("spool.png");
+//     this->sla_materials.load_bitmap_default("package_green.png");
+//     this->printers     .load_bitmap_default("printer_empty.png");
+//     this->printers     .load_bitmap_add("add.png");
+//     this->load_compatible_bitmaps();
 
     // Re-activate the default presets, so their "edited" preset copies will be updated with the additional configuration values above.
     this->prints       .select_preset(0);
@@ -400,14 +402,20 @@ bool PresetBundle::load_compatible_bitmaps()
     const std::string path_bitmap_incompatible = "flag-red-icon.png";
     const std::string path_bitmap_lock         = "sys_lock.png";//"lock.png";
 	const std::string path_bitmap_lock_open    = "sys_unlock.png";//"lock_open.png";
-    bool loaded_compatible   = m_bitmapCompatible  ->LoadFile(
-        wxString::FromUTF8(Slic3r::var(path_bitmap_compatible).c_str()), wxBITMAP_TYPE_PNG);
-    bool loaded_incompatible = m_bitmapIncompatible->LoadFile(
-        wxString::FromUTF8(Slic3r::var(path_bitmap_incompatible).c_str()), wxBITMAP_TYPE_PNG);
-    bool loaded_lock = m_bitmapLock->LoadFile(
-        wxString::FromUTF8(Slic3r::var(path_bitmap_lock).c_str()), wxBITMAP_TYPE_PNG);
-    bool loaded_lock_open = m_bitmapLockOpen->LoadFile(
-        wxString::FromUTF8(Slic3r::var(path_bitmap_lock_open).c_str()), wxBITMAP_TYPE_PNG);
+//     bool loaded_compatible   = m_bitmapCompatible  ->LoadFile(
+//         wxString::FromUTF8(Slic3r::var(path_bitmap_compatible).c_str()), wxBITMAP_TYPE_PNG);
+//     bool loaded_incompatible = m_bitmapIncompatible->LoadFile(
+//         wxString::FromUTF8(Slic3r::var(path_bitmap_incompatible).c_str()), wxBITMAP_TYPE_PNG);
+//     bool loaded_lock = m_bitmapLock->LoadFile(
+//         wxString::FromUTF8(Slic3r::var(path_bitmap_lock).c_str()), wxBITMAP_TYPE_PNG);
+//     bool loaded_lock_open = m_bitmapLockOpen->LoadFile(
+//         wxString::FromUTF8(Slic3r::var(path_bitmap_lock_open).c_str()), wxBITMAP_TYPE_PNG);
+
+    bool loaded_compatible = load_scaled_bitmap(&m_bitmapCompatible, path_bitmap_compatible);
+    bool loaded_incompatible = load_scaled_bitmap(&m_bitmapIncompatible,path_bitmap_incompatible);
+    bool loaded_lock = load_scaled_bitmap(&m_bitmapLock, path_bitmap_lock);
+    bool loaded_lock_open = load_scaled_bitmap(&m_bitmapLockOpen, path_bitmap_lock_open);
+
     if (loaded_compatible) {
         prints       .set_bitmap_compatible(m_bitmapCompatible);
         filaments    .set_bitmap_compatible(m_bitmapCompatible);
@@ -1436,6 +1444,17 @@ bool PresetBundle::parse_color(const std::string &scolor, unsigned char *rgb_out
         rgb_out[i] = (unsigned char)(digit1 * 16 + digit2);
     }
     return true;
+}
+
+void PresetBundle::load_default_preset_bitmaps()
+{
+    this->prints.load_bitmap_default("cog");
+    this->sla_prints.load_bitmap_default("cog");
+    this->filaments.load_bitmap_default("spool.png");
+    this->sla_materials.load_bitmap_default("package_green.png");
+    this->printers.load_bitmap_default("printer");
+    this->printers.load_bitmap_add("add.png");
+    this->load_compatible_bitmaps();
 }
 
 void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, GUI::PresetComboBox *ui)

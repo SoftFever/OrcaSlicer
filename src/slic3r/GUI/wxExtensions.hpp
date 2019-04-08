@@ -31,7 +31,8 @@ wxMenuItem* append_submenu(wxMenu* menu, wxMenu* sub_menu, int id, const wxStrin
 wxMenuItem* append_menu_radio_item(wxMenu* menu, int id, const wxString& string, const wxString& description, 
     std::function<void(wxCommandEvent& event)> cb, wxEvtHandler* event_handler);
 
-wxBitmap create_scaled_bitmap(const std::string& bmp_name);
+bool     load_scaled_bitmap(wxBitmap** bmp, const std::string& bmp_name, const int px_cnt=16, const bool is_horizontal = false);
+wxBitmap create_scaled_bitmap(const std::string& bmp_name, const int px_cnt=16, const bool is_horizontal = false);
 
 class wxCheckListBoxComboPopup : public wxCheckListBox, public wxComboPopup
 {
@@ -511,7 +512,7 @@ public:
 	virtual bool IsContainer(const wxDataViewItem &item) const override;
 	virtual unsigned int GetChildren(const wxDataViewItem &parent,
 		wxDataViewItemArray &array) const override;
-
+    void GetAllChildren(const wxDataViewItem &parent,wxDataViewItemArray &array) const;
 	// Is the container just a header or an item with all columns
 	// In our case it is an item with all columns 
 	virtual bool HasContainerColumns(const wxDataViewItem& WXUNUSED(item)) const override {	return true; }

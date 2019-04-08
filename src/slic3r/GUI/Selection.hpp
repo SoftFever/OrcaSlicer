@@ -133,10 +133,12 @@ private:
         const Transform3d& get_instance_full_matrix() const { return m_instance.full_matrix; }
     };
 
+public:
     typedef std::map<unsigned int, VolumeCache> VolumesCache;
     typedef std::set<int> InstanceIdxsList;
     typedef std::map<int, InstanceIdxsList> ObjectIdxsToInstanceIdxsMap;
 
+private:
     struct Cache
     {
         // Cache of GLVolume derived transformation matrices, valid during mouse dragging.
@@ -265,27 +267,27 @@ public:
     bool requires_local_axes() const;
 
 private:
-    void _update_valid();
-    void _update_type();
-    void _set_caches();
-    void _add_volume(unsigned int volume_idx);
-    void _add_instance(unsigned int object_idx, unsigned int instance_idx);
-    void _add_object(unsigned int object_idx);
-    void _remove_volume(unsigned int volume_idx);
-    void _remove_instance(unsigned int object_idx, unsigned int instance_idx);
-    void _remove_object(unsigned int object_idx);
-    void _calc_bounding_box() const;
-    void _render_selected_volumes() const;
-    void _render_synchronized_volumes() const;
-    void _render_bounding_box(const BoundingBoxf3& box, float* color) const;
-    void _render_sidebar_position_hints(const std::string& sidebar_field) const;
-    void _render_sidebar_rotation_hints(const std::string& sidebar_field) const;
-    void _render_sidebar_scale_hints(const std::string& sidebar_field) const;
-    void _render_sidebar_size_hints(const std::string& sidebar_field) const;
-    void _render_sidebar_position_hint(Axis axis) const;
-    void _render_sidebar_rotation_hint(Axis axis) const;
-    void _render_sidebar_scale_hint(Axis axis) const;
-    void _render_sidebar_size_hint(Axis axis, double length) const;
+    void update_valid();
+    void update_type();
+    void set_caches();
+    void do_add_volume(unsigned int volume_idx);
+    void do_add_instance(unsigned int object_idx, unsigned int instance_idx);
+    void do_add_object(unsigned int object_idx);
+    void do_remove_volume(unsigned int volume_idx);
+    void do_remove_instance(unsigned int object_idx, unsigned int instance_idx);
+    void do_remove_object(unsigned int object_idx);
+    void calc_bounding_box() const;
+    void render_selected_volumes() const;
+    void render_synchronized_volumes() const;
+    void render_bounding_box(const BoundingBoxf3& box, float* color) const;
+    void render_sidebar_position_hints(const std::string& sidebar_field) const;
+    void render_sidebar_rotation_hints(const std::string& sidebar_field) const;
+    void render_sidebar_scale_hints(const std::string& sidebar_field) const;
+    void render_sidebar_size_hints(const std::string& sidebar_field) const;
+    void render_sidebar_position_hint(Axis axis) const;
+    void render_sidebar_rotation_hint(Axis axis) const;
+    void render_sidebar_scale_hint(Axis axis) const;
+    void render_sidebar_size_hint(Axis axis, double length) const;
     enum SyncRotationType {
         // Do not synchronize rotation. Either not rotating at all, or rotating by world Z axis.
         SYNC_ROTATION_NONE = 0,
@@ -294,10 +296,10 @@ private:
         // Synchronize after rotation by an axis not parallel with Z.
         SYNC_ROTATION_GENERAL = 2,
     };
-    void _synchronize_unselected_instances(SyncRotationType sync_rotation_type);
-    void _synchronize_unselected_volumes();
-    void _ensure_on_bed();
-    bool _is_from_fully_selected_instance(unsigned int volume_idx) const;
+    void synchronize_unselected_instances(SyncRotationType sync_rotation_type);
+    void synchronize_unselected_volumes();
+    void ensure_on_bed();
+    bool is_from_fully_selected_instance(unsigned int volume_idx) const;
 };
 
 } // namespace GUI

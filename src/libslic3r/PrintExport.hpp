@@ -7,6 +7,7 @@
 #include <vector>
 
 #include <boost/log/trivial.hpp>
+#include <boost/filesystem/path.hpp>
 
 #include "Rasterizer/Rasterizer.hpp"
 //#include <tbb/parallel_for.h>
@@ -72,7 +73,8 @@ public:
     void finish_layer();
 
     // Save all the layers into the file (or dir) specified in the path argument
-    void save(const std::string& path);
+    // An optional project name can be added to be used for the layer file names
+    void save(const std::string& path, const std::string& projectname = "");
 
     // Save only the selected layer to the file specified in path argument.
     void save_layer(unsigned lyr, const std::string& path);
@@ -86,7 +88,8 @@ template<class T = void> struct VeryFalse { static const bool value = false; };
 template<class Fmt> class LayerWriter {
 public:
 
-    LayerWriter(const std::string& /*zipfile_path*/) {
+    LayerWriter(const std::string& /*zipfile_path*/)
+    {
         static_assert(VeryFalse<Fmt>::value,
                       "No layer writer implementation provided!");
     }
@@ -98,10 +101,6 @@ public:
     // Should create a new file within the archive and write the provided data.
     void binary_entry(const std::string& /*fname*/,
                       const std::uint8_t* buf, size_t len);
-
-    // Get the name of the archive but only the name part without the path or
-    // the extension.
-    std::string get_name() { return ""; }
 
     // Test whether the object can still be used for writing.
     bool is_ok() { return false; }
@@ -253,12 +252,14 @@ public:
     }
 
     template<class LyrFmt>
-    inline void save(const std::string& path) {
+    inline void save(const std::string& fpath, const std::string& prjname = "")
+    {
         try {
-            LayerWriter<LyrFmt> writer(path);
+            LayerWriter<LyrFmt> writer(fpath);
             if(!writer.is_ok()) return;
 
-            std::string project = writer.get_name();
+            std::string project = prjname.empty()?
+                       boost::filesystem::path(fpath).stem().string() : prjname;
 
             writer.next_entry("config.ini");
             if(!writer.is_ok()) return;

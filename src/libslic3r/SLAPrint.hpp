@@ -320,10 +320,8 @@ struct SLAPrintStatistics
     }
 };
 
-struct SLAminzZipper {};
-
 // The implementation of creating zipped archives with wxWidgets
-template<> class LayerWriter<SLAminzZipper> {
+template<> class LayerWriter<Zipper> {
     Zipper m_zip;
 public:
 
@@ -332,14 +330,10 @@ public:
     void next_entry(const std::string& fname) { m_zip.add_entry(fname); }
 
     void binary_entry(const std::string& fname,
-                             const std::uint8_t* buf,
-                             size_t l)
+                      const std::uint8_t* buf,
+                      size_t l)
     {
         m_zip.add_entry(fname, buf, l);
-    }
-
-    std::string get_name() const {
-        return m_zip.get_name();
     }
 
     template<class T> inline LayerWriter& operator<<(T&& arg) {
@@ -389,9 +383,11 @@ public:
     // Returns true if the last step was finished with success.
     bool                finished() const override { return this->is_step_done(slaposSliceSupports) && this->Inherited::is_step_done(slapsRasterize); }
 
-    template<class Fmt = SLAminzZipper>
-    void export_raster(const std::string& fname) {
-        if(m_printer) m_printer->save<Fmt>(fname);
+    template<class Fmt = Zipper>
+    inline void export_raster(const std::string& fpath,
+                       const std::string& projectname = "")
+    {
+        if(m_printer) m_printer->save<Fmt>(fpath, projectname);
     }
 
     const PrintObjects& objects() const { return m_objects; }
