@@ -726,40 +726,45 @@ std::string GLGizmoSlaSupports::on_get_name() const
 
 void GLGizmoSlaSupports::on_set_state()
 {
-    if (m_state == On && m_old_state != On) { // the gizmo was just turned on
+    // Following is called through CallAfter, because otherwise there was a problem
+    // on OSX with the wxMessageDialog being shown several times when clicked into.
 
-        if (is_mesh_update_necessary())
-            update_mesh();
+    wxGetApp().CallAfter([this]() {
+        if (m_state == On && m_old_state != On) { // the gizmo was just turned on
 
-        // we'll now reload support points:
-        if (m_model_object)
-            editing_mode_reload_cache();
+            if (is_mesh_update_necessary())
+                update_mesh();
 
-        m_parent.toggle_model_objects_visibility(false);
-        if (m_model_object)
-            m_parent.toggle_model_objects_visibility(true, m_model_object, m_active_instance);
+            // we'll now reload support points:
+            if (m_model_object)
+                editing_mode_reload_cache();
 
-        // Set default head diameter from config.
-        const DynamicPrintConfig& cfg = wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
-        m_new_point_head_diameter = static_cast<const ConfigOptionFloat*>(cfg.option("support_head_front_diameter"))->value;
-    }
-    if (m_state == Off && m_old_state != Off) { // the gizmo was just turned Off
-        if (m_model_object) {
-            if (m_unsaved_changes) {
-                wxMessageDialog dlg(GUI::wxGetApp().plater(), _(L("Do you want to save your manually edited support points ?\n")),
-                                    _(L("Save changes?")), wxICON_QUESTION | wxYES | wxNO);
-                if (dlg.ShowModal() == wxID_YES)
-                    editing_mode_apply_changes();
-                else
-                    editing_mode_discard_changes();
-            }
+            m_parent.toggle_model_objects_visibility(false);
+            if (m_model_object)
+                m_parent.toggle_model_objects_visibility(true, m_model_object, m_active_instance);
+
+            // Set default head diameter from config.
+            const DynamicPrintConfig& cfg = wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
+            m_new_point_head_diameter = static_cast<const ConfigOptionFloat*>(cfg.option("support_head_front_diameter"))->value;
         }
+        if (m_state == Off && m_old_state != Off) { // the gizmo was just turned Off
+            if (m_model_object) {
+                if (m_unsaved_changes) {
+                    wxMessageDialog dlg(GUI::wxGetApp().mainframe, _(L("Do you want to save your manually edited support points ?\n")),
+                                        _(L("Save changes?")), wxICON_QUESTION | wxYES | wxNO);
+                    if (dlg.ShowModal() == wxID_YES)
+                        editing_mode_apply_changes();
+                    else
+                        editing_mode_discard_changes();
+                }
+            }
 
-        m_parent.toggle_model_objects_visibility(true);
-        m_editing_mode = false; // so it is not active next time the gizmo opens
-        m_editing_mode_cache.clear();
-    }
-    m_old_state = m_state;
+            m_parent.toggle_model_objects_visibility(true);
+            m_editing_mode = false; // so it is not active next time the gizmo opens
+            m_editing_mode_cache.clear();
+        }
+        m_old_state = m_state;
+    });
 }
 
 
