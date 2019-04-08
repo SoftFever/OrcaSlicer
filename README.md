@@ -1,12 +1,6 @@
-_Q: Oh cool, a new RepRap slicer?_
+# Slic3r Prusa Edition
 
-A: Yes.
-
-Slic3r
-======
 Prebuilt Windows, OSX and Linux binaries are available through the [git releases page](https://github.com/prusa3d/Slic3r/releases).
-
-<img width=256 src=https://cloud.githubusercontent.com/assets/31754/22719818/09998c92-ed6d-11e6-9fa0-09de638f3a36.png />
 
 Slic3r takes 3D models (STL, OBJ, AMF) and converts them into G-code
 instructions for FFF printers or PNG layers for mSLA 3D printers. It's
