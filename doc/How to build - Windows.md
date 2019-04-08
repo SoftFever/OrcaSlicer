@@ -12,7 +12,7 @@ _Note:_ Thanks to [**@supermerill**](https://github.com/supermerill) for testing
 ### Dependencies
 
 On Windows Slic3r is built against statically built libraries.
-We provide a prebuilt package of all the needed dependencies.
+We provide a prebuilt package of all the needed dependencies. This package only works on Visual Studio 2013, so if you are using a newer version of Visual Studio, you need to compile the dependencies yourself as per [below](#building-the-dependencies-package-yourself).
 The package comes in a several variants:
 
   - [64 bit, Release mode only](https://bintray.com/vojtechkral/Slic3r-PE/download_file?file_path=destdir-64.7z) (41 MB, 578 MB unpacked)
@@ -28,7 +28,7 @@ Alternatively you can also compile the dependencies yourself, see below.
 
 ### Building Slic3r PE with Visual Studio
 
-First obtain the Slic3 PE sources via either git or by extracting the source archive.
+First obtain the Slic3r PE sources via either git or by extracting the source archive.
 
 Then you will need to note down the so-called 'prefix path' to the dependencies, this is the location of the dependencies packages + `\usr\local` appended.
 For example on 64 bits this would be `C:\local\destdir-64\usr\local`. The prefix path will need to be passed to CMake.
