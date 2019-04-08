@@ -62,18 +62,18 @@ ObjectList::ObjectList(wxWindow* parent) :
     // Fill CATEGORY_ICON
     {
         // ptFFF
-		CATEGORY_ICON[L("Layers and Perimeters")]	= create_scaled_bitmap("layers.png"); // wxBitmap(from_u8(var("layers.png")), wxBITMAP_TYPE_PNG);
-		CATEGORY_ICON[L("Infill")]					= create_scaled_bitmap("infill.png"); // wxBitmap(from_u8(var("infill.png")), wxBITMAP_TYPE_PNG);
-		CATEGORY_ICON[L("Support material")]		= create_scaled_bitmap("building.png"); // wxBitmap(from_u8(var("building.png")), wxBITMAP_TYPE_PNG);
-		CATEGORY_ICON[L("Speed")]					= create_scaled_bitmap("time.png"); // wxBitmap(from_u8(var("time.png")), wxBITMAP_TYPE_PNG);
-		CATEGORY_ICON[L("Extruders")]				= create_scaled_bitmap("funnel.png"); // wxBitmap(from_u8(var("funnel.png")), wxBITMAP_TYPE_PNG);
-		CATEGORY_ICON[L("Extrusion Width")]			= create_scaled_bitmap("funnel.png"); // wxBitmap(from_u8(var("funnel.png")), wxBITMAP_TYPE_PNG);
-// 		CATEGORY_ICON[L("Skirt and brim")]			= create_scaled_bitmap("box.png"); // wxBitmap(from_u8(var("box.png")), wxBITMAP_TYPE_PNG);
-// 		CATEGORY_ICON[L("Speed > Acceleration")]	= create_scaled_bitmap("time.png"); // wxBitmap(from_u8(var("time.png")), wxBITMAP_TYPE_PNG);
-		CATEGORY_ICON[L("Advanced")]				= create_scaled_bitmap("wand.png"); // wxBitmap(from_u8(var("wand.png")), wxBITMAP_TYPE_PNG);
+		CATEGORY_ICON[L("Layers and Perimeters")]	= create_scaled_bitmap("layers");
+		CATEGORY_ICON[L("Infill")]					= create_scaled_bitmap("infill");
+		CATEGORY_ICON[L("Support material")]		= create_scaled_bitmap("support");
+		CATEGORY_ICON[L("Speed")]					= create_scaled_bitmap("time");
+		CATEGORY_ICON[L("Extruders")]				= create_scaled_bitmap("funnel");
+		CATEGORY_ICON[L("Extrusion Width")]			= create_scaled_bitmap("funnel");
+// 		CATEGORY_ICON[L("Skirt and brim")]			= create_scaled_bitmap("skirt+brim"); 
+// 		CATEGORY_ICON[L("Speed > Acceleration")]	= create_scaled_bitmap("time");
+		CATEGORY_ICON[L("Advanced")]				= create_scaled_bitmap("wrench");
 		// ptSLA
-		CATEGORY_ICON[L("Supports")]				= create_scaled_bitmap("building.png"); // wxBitmap(from_u8(var("building.png")), wxBITMAP_TYPE_PNG);
-		CATEGORY_ICON[L("Pad")]				        = create_scaled_bitmap("brick.png"); // wxBitmap(from_u8(var("brick.png")), wxBITMAP_TYPE_PNG);
+		CATEGORY_ICON[L("Supports")]				= create_scaled_bitmap("sla_supports");
+		CATEGORY_ICON[L("Pad")]				        = create_scaled_bitmap("brick.png");
     }
 
     // create control
@@ -386,13 +386,6 @@ void ObjectList::update_name_in_model(const wxDataViewItem& item) const
 
 void ObjectList::init_icons()
 {
-//     m_bmp_modifiermesh      = wxBitmap(from_u8(var("lambda.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("plugin.png")), wxBITMAP_TYPE_PNG);
-//     m_bmp_solidmesh         = wxBitmap(from_u8(var("object.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("package.png")), wxBITMAP_TYPE_PNG);
-
-//     m_bmp_support_enforcer  = wxBitmap(from_u8(var("support_enforcer_.png")), wxBITMAP_TYPE_PNG);
-//     m_bmp_support_blocker   = wxBitmap(from_u8(var("support_blocker_.png")), wxBITMAP_TYPE_PNG);
-
-
     m_bmp_modifiermesh     = create_scaled_bitmap("lambda.png");
     m_bmp_solidmesh        = create_scaled_bitmap("object.png");
     m_bmp_support_enforcer = create_scaled_bitmap("support_enforcer_.png");
@@ -407,16 +400,13 @@ void ObjectList::init_icons()
     m_objects_model->SetVolumeBitmaps(m_bmp_vector);
 
     // init icon for manifold warning
-//     m_bmp_manifold_warning  = wxBitmap(from_u8(var("exclamation_mark_.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("error.png")), wxBITMAP_TYPE_PNG);
     m_bmp_manifold_warning  = create_scaled_bitmap("exclamation_mark_.png");
 
     // init bitmap for "Split to sub-objects" context menu
-//     m_bmp_split             = wxBitmap(from_u8(var("split.png")), wxBITMAP_TYPE_PNG);
-    m_bmp_split             = create_scaled_bitmap("split.png");
+    m_bmp_split             = create_scaled_bitmap("split_parts");
 
     // init bitmap for "Add Settings" context menu
-//     m_bmp_cog               = wxBitmap(from_u8(var("cog.png")), wxBITMAP_TYPE_PNG);
-    m_bmp_cog               = create_scaled_bitmap("cog.png");
+    m_bmp_cog               = create_scaled_bitmap("cog");
 }
 
 

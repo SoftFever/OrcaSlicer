@@ -418,33 +418,42 @@ void PrusaCollapsiblePaneMSW::Collapse(bool collapse)
 }
 #endif //__WXMSW__
 
+
+// If an icon has horizontal orientation (width > height) call this function with is_horizontal = true
+bool load_scaled_bitmap(wxBitmap** bmp, const std::string& bmp_name_in, const int px_cnt/* = 16*/, const bool is_horizontal /*= false*/)
+{
+    static Slic3r::GUI::BitmapCache cache;
+
+    unsigned int height, width = height = 0;
+    unsigned int& scale_base = is_horizontal ? width : height;
+    scale_base = (unsigned int)(Slic3r::GUI::wxGetApp().em_unit() * px_cnt * 0.1f + 0.5f);
+
+    std::string bmp_name = bmp_name_in;
+	boost::replace_last(bmp_name, ".png", "");
+    *bmp = cache.load_svg(bmp_name, width, height);
+    if (*bmp == nullptr)
+        *bmp = cache.load_png(bmp_name, width, height);
+    return *bmp != nullptr;
+}
+
+// If an icon has horizontal orientation (width > height) call this function with is_horizontal = true
+wxBitmap create_scaled_bitmap(const std::string& bmp_name_in, const int px_cnt/* = 16*/, const bool is_horizontal /* = false*/)
+{
+    wxBitmap *bmp {nullptr};
+    load_scaled_bitmap(&bmp, bmp_name_in, px_cnt, is_horizontal);
+    return *bmp;
+}
+
 // *****************************************************************************
 // ----------------------------------------------------------------------------
 // PrusaObjectDataViewModelNode
 // ----------------------------------------------------------------------------
 
-// If an icon has horizontal orientation (width > height) call this function with is_horizontal = true
-wxBitmap create_scaled_bitmap(const std::string& bmp_name_in, const bool is_horizontal /* = false*/)
-{
-	static Slic3r::GUI::BitmapCache cache;
-
-    unsigned int height, width = height = 0;
-    unsigned int& scale_base = is_horizontal ? width : height;
-    scale_base = (unsigned int)(Slic3r::GUI::wxGetApp().em_unit() * 1.6f + 0.5f);
-        
-    std::string bmp_name = bmp_name_in;
-	boost::replace_last(bmp_name, ".png", "");
-    wxBitmap *bmp = cache.load_svg(bmp_name, width, height);
-    if (bmp == nullptr)
-        bmp = cache.load_png(bmp_name, width, height);
-    return *bmp;
-}
-
 void PrusaObjectDataViewModelNode::set_object_action_icon() {
     m_action_icon = create_scaled_bitmap("add_object.png");
 }
 void  PrusaObjectDataViewModelNode::set_part_action_icon() {
-    m_action_icon = create_scaled_bitmap(m_type == itVolume ? "cog.png" : "brick_go.png");
+    m_action_icon = create_scaled_bitmap(m_type == itVolume ? "cog" : "brick_go.png");
 }
 
 Slic3r::GUI::BitmapCache *m_bitmap_cache = nullptr;
@@ -1486,8 +1495,8 @@ PrusaDoubleSlider::PrusaDoubleSlider(wxWindow *parent,
     if (!is_osx)
         SetDoubleBuffered(true);// SetDoubleBuffered exists on Win and Linux/GTK, but is missing on OSX
 
-    m_bmp_thumb_higher = wxBitmap(style == wxSL_HORIZONTAL ? create_scaled_bitmap("right_half_circle.png") : create_scaled_bitmap("up_half_circle.png",   true));
-    m_bmp_thumb_lower  = wxBitmap(style == wxSL_HORIZONTAL ? create_scaled_bitmap("left_half_circle.png" ) : create_scaled_bitmap("down_half_circle.png", true));
+    m_bmp_thumb_higher = wxBitmap(style == wxSL_HORIZONTAL ? create_scaled_bitmap("right_half_circle.png") : create_scaled_bitmap("up_half_circle.png",  16, true));
+    m_bmp_thumb_lower  = wxBitmap(style == wxSL_HORIZONTAL ? create_scaled_bitmap("left_half_circle.png" ) : create_scaled_bitmap("down_half_circle.png",16, true));
     m_thumb_size = m_bmp_thumb_lower.GetSize();
 
     m_bmp_add_tick_on  = create_scaled_bitmap("colorchange_add_on.png");

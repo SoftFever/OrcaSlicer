@@ -15,6 +15,7 @@
 #include "nanosvg/nanosvg.h"
 #define NANOSVGRAST_IMPLEMENTATION
 #include "nanosvg/nanosvgrast.h"
+#include "GUI_App.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -244,6 +245,9 @@ wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned int tar
 
 wxBitmap BitmapCache::mksolid(size_t width, size_t height, unsigned char r, unsigned char g, unsigned char b, unsigned char transparency)
 {
+    width = width * 0.1f * Slic3r::GUI::wxGetApp().em_unit() + 0.5f;
+    height = height * 0.1f * Slic3r::GUI::wxGetApp().em_unit() + 0.5f;
+
     wxImage image(width, height);
     image.InitAlpha();
     unsigned char* imgdata = image.GetData();

@@ -286,7 +286,7 @@ wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(15 *
 #ifdef __WINDOWS__
     edit_btn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 #endif
-    edit_btn->SetBitmap(create_scaled_bitmap("cog.png"));
+    edit_btn->SetBitmap(create_scaled_bitmap("cog"));
     edit_btn->SetToolTip(_(L("Click to edit preset")));
 
     edit_btn->Bind(wxEVT_BUTTON, ([preset_type, this](wxCommandEvent)
@@ -2829,15 +2829,15 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
     wxMenuItem* item_delete = nullptr;
     if (is_part) {
         item_delete = append_menu_item(menu, wxID_ANY, _(L("Delete")) + "\tDel", _(L("Remove the selected object")),
-            [this](wxCommandEvent&) { q->remove_selected(); }, "brick_delete.png");
+            [this](wxCommandEvent&) { q->remove_selected(); }, "remove");
 
         sidebar->obj_list()->append_menu_item_export_stl(menu);
     }
     else {
         wxMenuItem* item_increase = append_menu_item(menu, wxID_ANY, _(L("Increase copies")) + "\t+", _(L("Place one more copy of the selected object")),
-            [this](wxCommandEvent&) { q->increase_instances(); }, "add.png");
+            [this](wxCommandEvent&) { q->increase_instances(); }, "instance_add");
         wxMenuItem* item_decrease = append_menu_item(menu, wxID_ANY, _(L("Decrease copies")) + "\t-", _(L("Remove one copy of the selected object")),
-            [this](wxCommandEvent&) { q->decrease_instances(); }, "delete.png");
+            [this](wxCommandEvent&) { q->decrease_instances(); }, "instance_remove");
         wxMenuItem* item_set_number_of_copies = append_menu_item(menu, wxID_ANY, _(L("Set number of copies")) + dots, _(L("Change the number of copies of the selected object")),
             [this](wxCommandEvent&) { q->set_number_of_copies(); }, "textfield.png");
 
@@ -2847,7 +2847,7 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
 
         // Delete menu was moved to be after +/- instace to make it more difficult to be selected by mistake.
         item_delete = append_menu_item(menu, wxID_ANY, _(L("Delete")) + "\tDel", _(L("Remove the selected object")),
-            [this](wxCommandEvent&) { q->remove_selected(); }, "brick_delete.png");
+            [this](wxCommandEvent&) { q->remove_selected(); }, "remove");
 
         menu->AppendSeparator();
         wxMenuItem* item_instance_to_object = sidebar->obj_list()->append_menu_item_instance_to_object(menu);
@@ -2902,11 +2902,11 @@ bool Plater::priv::complit_init_object_menu()
         return false;
 
     wxMenuItem* item_split_objects = append_menu_item(split_menu, wxID_ANY, _(L("To objects")), _(L("Split the selected object into individual objects")),
-        [this](wxCommandEvent&) { split_object(); }, "shape_ungroup_o.png", &object_menu);
+        [this](wxCommandEvent&) { split_object(); }, "split_objects.png", &object_menu);
     wxMenuItem* item_split_volumes = append_menu_item(split_menu, wxID_ANY, _(L("To parts")), _(L("Split the selected object into individual sub-parts")),
-        [this](wxCommandEvent&) { split_volume(); }, "shape_ungroup_p.png", &object_menu);
+        [this](wxCommandEvent&) { split_volume(); }, "split_parts.png", &object_menu);
 
-    wxMenuItem* item_split = append_submenu(&object_menu, split_menu, wxID_ANY, _(L("Split")), _(L("Split the selected object")), "shape_ungroup.png");
+    wxMenuItem* item_split = append_submenu(&object_menu, split_menu, wxID_ANY, _(L("Split")), _(L("Split the selected object"))/*, "shape_ungroup.png"*/);
     object_menu.AppendSeparator();
 
     // "Add (volumes)" popupmenu will be added later in append_menu_items_add_volume()

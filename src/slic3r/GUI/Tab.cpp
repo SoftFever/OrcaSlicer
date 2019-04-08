@@ -116,18 +116,14 @@ void Tab::create_preset_tab()
 
 	//buttons
 	wxBitmap bmpMenu;
-// 	bmpMenu = wxBitmap(from_u8(Slic3r::var("disk.png")), wxBITMAP_TYPE_PNG);
     bmpMenu = create_scaled_bitmap("disk.png");
 	m_btn_save_preset = new wxBitmapButton(panel, wxID_ANY, bmpMenu, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
 	if (wxMSW) m_btn_save_preset->SetBackgroundColour(color);
-// 	bmpMenu = wxBitmap(from_u8(Slic3r::var("delete.png")), wxBITMAP_TYPE_PNG);
     bmpMenu = create_scaled_bitmap("delete.png");
 	m_btn_delete_preset = new wxBitmapButton(panel, wxID_ANY, bmpMenu, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
 	if (wxMSW) m_btn_delete_preset->SetBackgroundColour(color);
 
 	m_show_incompatible_presets = false;
-// 	m_bmp_show_incompatible_presets.LoadFile(from_u8(Slic3r::var("flag-red-icon.png")), wxBITMAP_TYPE_PNG);
-// 	m_bmp_hide_incompatible_presets.LoadFile(from_u8(Slic3r::var("flag-green-icon.png")), wxBITMAP_TYPE_PNG);
 	m_bmp_show_incompatible_presets = create_scaled_bitmap("flag-red-icon.png");
 	m_bmp_hide_incompatible_presets = create_scaled_bitmap("flag-green-icon.png");
 	m_btn_hide_incompatible_presets = new wxBitmapButton(panel, wxID_ANY, m_bmp_hide_incompatible_presets, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
@@ -152,15 +148,10 @@ void Tab::create_preset_tab()
 	// Determine the theme color of OS (dark or light)
     auto luma = wxGetApp().get_colour_approx_luma(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 	// Bitmaps to be shown on the "Revert to system" aka "Lock to system" button next to each input field.
-// 	m_bmp_value_lock  	  .LoadFile(from_u8(var("sys_lock.png")),     wxBITMAP_TYPE_PNG);
-// 	m_bmp_value_unlock    .LoadFile(from_u8(var(luma >= 128 ? "sys_unlock.png" : "sys_unlock_grey.png")), wxBITMAP_TYPE_PNG);
 	m_bmp_value_lock  	   = create_scaled_bitmap("sys_lock.png");
 	m_bmp_value_unlock     = create_scaled_bitmap(luma >= 128 ? "sys_unlock.png" : "sys_unlock_grey.png");
 	m_bmp_non_system = &m_bmp_white_bullet;
 	// Bitmaps to be shown on the "Undo user changes" button next to each input field.
-// 	m_bmp_value_revert    .LoadFile(from_u8(var(luma >= 128 ? "action_undo.png" : "action_undo_grey.png")), wxBITMAP_TYPE_PNG);
-// 	m_bmp_white_bullet    .LoadFile(from_u8(var("bullet_white.png")), wxBITMAP_TYPE_PNG);
-// 	m_bmp_question        .LoadFile(from_u8(var("question_mark_01.png")), wxBITMAP_TYPE_PNG);
 	m_bmp_value_revert    = create_scaled_bitmap(luma >= 128 ? "action_undo.png" : "action_undo_grey.png");
 	m_bmp_white_bullet    = create_scaled_bitmap("bullet_white.png");
 	m_bmp_question        = create_scaled_bitmap("question_mark_01.png");
@@ -954,7 +945,7 @@ void TabPrint::build()
 	m_presets = &m_preset_bundle->prints;
 	load_initial_data();
 
-	auto page = add_options_page(_(L("Layers and perimeters")), "layers.png");
+	auto page = add_options_page(_(L("Layers and perimeters")), "layers");
 		auto optgroup = page->new_optgroup(_(L("Layer height")));
 		optgroup->append_single_option_line("layer_height");
 		optgroup->append_single_option_line("first_layer_height");
@@ -987,7 +978,7 @@ void TabPrint::build()
 		optgroup->append_single_option_line("seam_position");
 		optgroup->append_single_option_line("external_perimeters_first");
 
-	page = add_options_page(_(L("Infill")), "infill.png");
+	page = add_options_page(_(L("Infill")), "infill");
 		optgroup = page->new_optgroup(_(L("Infill")));
 		optgroup->append_single_option_line("fill_density");
 		optgroup->append_single_option_line("fill_pattern");
@@ -1006,7 +997,7 @@ void TabPrint::build()
 		optgroup->append_single_option_line("only_retract_when_crossing_perimeters");
 		optgroup->append_single_option_line("infill_first");
 
-	page = add_options_page(_(L("Skirt and brim")), "box.png");
+	page = add_options_page(_(L("Skirt and brim")), "skirt+brim");
 		optgroup = page->new_optgroup(_(L("Skirt")));
 		optgroup->append_single_option_line("skirts");
 		optgroup->append_single_option_line("skirt_distance");
@@ -1016,7 +1007,7 @@ void TabPrint::build()
 		optgroup = page->new_optgroup(_(L("Brim")));
 		optgroup->append_single_option_line("brim_width");
 
-	page = add_options_page(_(L("Support material")), "building.png");
+	page = add_options_page(_(L("Support material")), "support");
 		optgroup = page->new_optgroup(_(L("Support material")));
 		optgroup->append_single_option_line("support_material");
 		optgroup->append_single_option_line("support_material_auto");
@@ -1041,7 +1032,7 @@ void TabPrint::build()
 		optgroup->append_single_option_line("dont_support_bridges");
 		optgroup->append_single_option_line("support_material_synchronize_layers");
 
-	page = add_options_page(_(L("Speed")), "time.png");
+	page = add_options_page(_(L("Speed")), "time");
 		optgroup = page->new_optgroup(_(L("Speed for print moves")));
 		optgroup->append_single_option_line("perimeter_speed");
 		optgroup->append_single_option_line("small_perimeter_speed");
@@ -1075,7 +1066,7 @@ void TabPrint::build()
 		optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_negative");
 #endif /* HAS_PRESSURE_EQUALIZER */
 
-	page = add_options_page(_(L("Multiple Extruders")), "funnel.png");
+	page = add_options_page(_(L("Multiple Extruders")), "funnel");
 		optgroup = page->new_optgroup(_(L("Extruders")));
 		optgroup->append_single_option_line("perimeter_extruder");
 		optgroup->append_single_option_line("infill_extruder");
@@ -1125,7 +1116,7 @@ void TabPrint::build()
 		optgroup = page->new_optgroup(_(L("Other")));
 		optgroup->append_single_option_line("clip_multipart_objects");
 
-	page = add_options_page(_(L("Output options")), "page_white_go.png");
+	page = add_options_page(_(L("Output options")), "output+page_white");
 		optgroup = page->new_optgroup(_(L("Sequential printing")));
 		optgroup->append_single_option_line("complete_objects");
 		line = { _(L("Extruder clearance (mm)")), "" };
@@ -1520,7 +1511,7 @@ void TabFilament::build()
         const int gcode_field_height = 15 * m_em_unit; // 150
         const int notes_field_height = 25 * m_em_unit; // 250
 
-        page = add_options_page(_(L("Custom G-code")), "cog.png");
+        page = add_options_page(_(L("Custom G-code")), "cog");
 		optgroup = page->new_optgroup(_(L("Start G-code")), 0);
 		Option option = optgroup->get_option("start_filament_gcode");
 		option.opt.full_width = true;
@@ -1696,7 +1687,6 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 
 		auto printhost_cafile_browse = [this, optgroup] (wxWindow* parent) {
 			auto btn = new wxButton(parent, wxID_ANY, _(L(" Browse "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
-// 			btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("zoom.png")), wxBITMAP_TYPE_PNG));
 			btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 			btn->SetBitmap(create_scaled_bitmap("zoom.png"));
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -1769,15 +1759,14 @@ void TabPrinter::build_fff()
 	m_sys_extruders_count = parent_preset == nullptr ? 0 :
 			static_cast<const ConfigOptionFloats*>(parent_preset->config.option("nozzle_diameter"))->values.size();
 
-	auto page = add_options_page(_(L("General")), "printer_empty.png");
+	auto page = add_options_page(_(L("General")), "printer");
 		auto optgroup = page->new_optgroup(_(L("Size and coordinates")));
 
         Line line = optgroup->create_single_option_line("bed_shape");//{ _(L("Bed shape")), "" };
 		line.widget = [this](wxWindow* parent) {
 			auto btn = new wxButton(parent, wxID_ANY, _(L(" Set "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
             btn->SetFont(wxGetApp().small_font());
-// 			btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("printer_empty.png")), wxBITMAP_TYPE_PNG));
-            btn->SetBitmap(create_scaled_bitmap("printer_empty.png"));
+            btn->SetBitmap(create_scaled_bitmap("printer"));
 
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(btn);
@@ -1906,7 +1895,7 @@ void TabPrinter::build_fff()
 
     const int gcode_field_height = 15 * m_em_unit; // 150
     const int notes_field_height = 25 * m_em_unit; // 250
-	page = add_options_page(_(L("Custom G-code")), "cog.png");
+	page = add_options_page(_(L("Custom G-code")), "cog");
 		optgroup = page->new_optgroup(_(L("Start G-code")), 0);
 		option = optgroup->get_option("start_gcode");
 		option.opt.full_width = true;
@@ -1971,15 +1960,14 @@ void TabPrinter::build_sla()
 {
     if (!m_pages.empty())
         m_pages.resize(0);
-    auto page = add_options_page(_(L("General")), "printer_empty.png");
+    auto page = add_options_page(_(L("General")), "printer");
     auto optgroup = page->new_optgroup(_(L("Size and coordinates")));
 
     Line line = optgroup->create_single_option_line("bed_shape");//{ _(L("Bed shape")), "" };
     line.widget = [this](wxWindow* parent) {
         auto btn = new wxButton(parent, wxID_ANY, _(L(" Set ")) + dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
         btn->SetFont(wxGetApp().small_font());
-//         btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("printer_empty.png")), wxBITMAP_TYPE_PNG));
-        btn->SetBitmap(create_scaled_bitmap("printer_empty.png"));
+        btn->SetBitmap(create_scaled_bitmap("printer"));
 
         auto sizer = new wxBoxSizer(wxHORIZONTAL);
         sizer->Add(btn);
@@ -2081,7 +2069,7 @@ void TabPrinter::append_option_line(ConfigOptionsGroupShp optgroup, const std::s
 
 PageShp TabPrinter::build_kinematics_page()
 {
-	auto page = add_options_page(_(L("Machine limits")), "cog.png", true);
+	auto page = add_options_page(_(L("Machine limits")), "cog", true);
 
 	if (m_use_silent_mode)	{
 		// Legend for OptionsGroups
@@ -2173,7 +2161,7 @@ void TabPrinter::build_extruder_pages()
 	}
 	if (m_extruders_count > 1 && m_config->opt_bool("single_extruder_multi_material") && !m_has_single_extruder_MM_page) {
 		// create a page, but pretend it's an extruder page, so we can add it to m_pages ourselves
-		auto page = add_options_page(_(L("Single extruder MM setup")), "printer_empty.png", true);
+		auto page = add_options_page(_(L("Single extruder MM setup")), "printer", true);
 		auto optgroup = page->new_optgroup(_(L("Single extruder multimaterial parameters")));
 		optgroup->append_single_option_line("cooling_tube_retraction");
 		optgroup->append_single_option_line("cooling_tube_length");
@@ -2189,7 +2177,7 @@ void TabPrinter::build_extruder_pages()
 		//# build page
 		char buf[512];
 		sprintf(buf, _CHB(L("Extruder %d")), extruder_idx + 1);
-		auto page = add_options_page(from_u8(buf), "funnel.png", true);
+		auto page = add_options_page(from_u8(buf), "funnel", true);
 		m_pages.insert(m_pages.begin() + n_before_extruders + extruder_idx, page);
 			
 			auto optgroup = page->new_optgroup(_(L("Size")));
@@ -2921,8 +2909,7 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
 	deps.btn = new wxButton(parent, wxID_ANY, _(L(" Set "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
 	deps.btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 
-// 	deps.btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("printer_empty.png")), wxBITMAP_TYPE_PNG));
-    deps.btn->SetBitmap(create_scaled_bitmap("printer_empty.png"));
+    deps.btn->SetBitmap(create_scaled_bitmap("printer"));
 
 	auto sizer = new wxBoxSizer(wxHORIZONTAL);
 	sizer->Add((deps.checkbox), 0, wxALIGN_CENTER_VERTICAL);
@@ -3113,7 +3100,6 @@ ConfigOptionsGroupShp Page::new_optgroup(const wxString& title, int noncommon_la
             bmp_name = mode == comExpert   ? "mode_expert_.png" :
                        mode == comAdvanced ? "mode_middle_.png" : "mode_simple_.png";
         }                               
-//         auto bmp = new wxStaticBitmap(parent, wxID_ANY, bmp_name.empty() ? wxNullBitmap : wxBitmap(from_u8(var(bmp_name)), wxBITMAP_TYPE_PNG));
         auto bmp = new wxStaticBitmap(parent, wxID_ANY, bmp_name.empty() ? wxNullBitmap : create_scaled_bitmap(bmp_name));
         bmp->SetBackgroundStyle(wxBG_STYLE_PAINT);
         return bmp;
@@ -3312,13 +3298,13 @@ void TabSLAPrint::build()
     m_presets = &m_preset_bundle->sla_prints;
     load_initial_data();
 
-    auto page = add_options_page(_(L("Layers and perimeters")), "package_green.png");
+    auto page = add_options_page(_(L("Layers and perimeters")), "layers");
 
     auto optgroup = page->new_optgroup(_(L("Layers")));
     optgroup->append_single_option_line("layer_height");
     optgroup->append_single_option_line("faded_layers");
 
-    page = add_options_page(_(L("Supports")), "building.png");
+    page = add_options_page(_(L("Supports")), "sla_supports");
     optgroup = page->new_optgroup(_(L("Supports")));
     optgroup->append_single_option_line("supports_enable");
 
@@ -3356,17 +3342,17 @@ void TabSLAPrint::build()
 //    optgroup->append_single_option_line("pad_edge_radius");
     optgroup->append_single_option_line("pad_wall_slope");
 
-	page = add_options_page(_(L("Advanced")), "wrench.png");
+	page = add_options_page(_(L("Advanced")), "wrench");
 	optgroup = page->new_optgroup(_(L("Slicing")));
 	optgroup->append_single_option_line("slice_closing_radius");
 
-	page = add_options_page(_(L("Output options")), "page_white_go.png");
+	page = add_options_page(_(L("Output options")), "output+page_white");
 	optgroup = page->new_optgroup(_(L("Output file")));
 	Option option = optgroup->get_option("output_filename_format");
 	option.opt.full_width = true;
 	optgroup->append_single_option_line(option);
 
-    page = add_options_page(_(L("Dependencies")), "wrench.png");
+    page = add_options_page(_(L("Dependencies")), "wrench");
     optgroup = page->new_optgroup(_(L("Profile dependencies")));
     Line line = optgroup->create_single_option_line("compatible_printers");//Line { _(L("Compatible printers")), "" };
     line.widget = [this](wxWindow* parent) {

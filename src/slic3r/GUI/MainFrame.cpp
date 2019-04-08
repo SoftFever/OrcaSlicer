@@ -56,8 +56,12 @@ wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAUL
 
     // initialize default width_unit according to the width of the one symbol ("x") of the current system font
     const wxSize size = GetTextExtent("m");
-//     wxGetApp().set_em_unit(size.x-1);
     wxGetApp().set_em_unit(std::max<size_t>(10, size.x - 1));
+
+    /* Load default preset bitmaps before a tabpanel initialization,
+     * but after filling of an em_unit value 
+     */
+    wxGetApp().preset_bundle->load_default_preset_bitmaps();
 
     // initialize tabpanel and menubar
     init_tabpanel();
@@ -388,11 +392,11 @@ void MainFrame::init_menubar()
             windowMenu->AppendSeparator();
         }
         append_menu_item(windowMenu, wxID_HIGHEST + 2, _(L("P&rint Settings Tab")) + "\tCtrl+2", _(L("Show the print settings")),
-            [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 0); }, "cog.png");
+            [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 0); }, "cog");
         append_menu_item(windowMenu, wxID_HIGHEST + 3, _(L("&Filament Settings Tab")) + "\tCtrl+3", _(L("Show the filament settings")),
             [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 1); }, "spool.png");
         append_menu_item(windowMenu, wxID_HIGHEST + 4, _(L("Print&er Settings Tab")) + "\tCtrl+4", _(L("Show the printer settings")),
-            [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 2); }, "printer_empty.png");
+            [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 2); }, "printer");
         if (m_plater) {
             windowMenu->AppendSeparator();
             wxMenuItem* item_3d = append_menu_item(windowMenu, wxID_HIGHEST + 5, _(L("3&D")) + "\tCtrl+5", _(L("Show the 3D editing view")),

@@ -24,7 +24,7 @@ namespace GUI {
 
 
 MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &headline, wxWindowID button_id) :
-	MsgDialog(parent, title, headline, create_scaled_bitmap("Slic3r_192px.png"), button_id)
+	MsgDialog(parent, title, headline, create_scaled_bitmap("Slic3r_192px.png", 192), button_id)
 {}
 
 MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &headline, wxBitmap bitmap, wxWindowID button_id) :
