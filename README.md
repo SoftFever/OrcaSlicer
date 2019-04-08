@@ -1,3 +1,6 @@
+
+![Slic3rPE logo](/resources/icons/Slic3r.png?raw=true)
+
 # Slic3r Prusa Edition
 
 Prebuilt Windows, OSX and Linux binaries are available through the [git releases page](https://github.com/prusa3d/Slic3r/releases).
