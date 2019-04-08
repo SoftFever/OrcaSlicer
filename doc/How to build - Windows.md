@@ -66,7 +66,7 @@ There are several options for building from the command line:
 
 To build with msbuild, use the same CMake command as in previous paragraph and then build using
 
-    msbuild /P:Configuration=Release ALL_BUILD.vcxproj
+    msbuild /m /P:Configuration=Release ALL_BUILD.vcxproj
 
 To build with Ninja or nmake, replace the `-G` option in the CMake call with `-G Ninja` or `-G "NMake Makefiles"` , respectively.
 Then use either `ninja` or `nmake` to start the build.
@@ -84,7 +84,7 @@ Then `cd` into the `deps` directory and use these commands to build:
     mkdir build
     cd build
     cmake .. -G "Visual Studio 12 Win64" -DDESTDIR="C:\local\destdir-custom"
-    msbuild ALL_BUILD.vcxproj
+    msbuild /m ALL_BUILD.vcxproj
 
 You can also use the Visual Studio GUI or other generators as mentioned above.
 
