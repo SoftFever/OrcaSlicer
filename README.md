@@ -8,19 +8,20 @@ Prebuilt Windows, OSX and Linux binaries are available through the [git releases
 
 <img width=256 src=https://cloud.githubusercontent.com/assets/31754/22719818/09998c92-ed6d-11e6-9fa0-09de638f3a36.png />
 
-Slic3r takes 3D models (STL, OBJ, AMF) and converts them into G-code instructions for 
-3D printers. It's compatible with any modern printer based on the RepRap toolchain,
-including all those based on the Marlin, Sprinter and Repetier firmware. It also works
+Slic3r takes 3D models (STL, OBJ, AMF) and converts them into G-code
+instructions for FFF printers or PNG layers for mSLA 3D printers. It's
+compatible with any modern printer based on the RepRap toolchain, including all
+those based on the Marlin, Prusa, Sprinter and Repetier firmware. It also works
 with Mach3, LinuxCNC and Machinekit controllers.
 
-See the [project homepage](http://slic3r.org/) at slic3r.org and the
-[manual](http://manual.slic3r.org/) for more information.
+See the [project homepage](https://www.prusa3d.com/slic3r-prusa-edition/) and
+the [documentation directory](doc/) for more information.
 
 ### What language is it written in?
 
-The core geometric algorithms and data structures are written in C++,
-and Perl is used for high-level flow abstraction, GUI and testing.
-If you're wondering why Perl, see https://xkcd.com/224/
+All user facing code is written in C++, and some legacy code as well as unit
+tests are written in Perl. Perl is not required for either development or use
+of Slic3r.
 
 The C++ API is public and its use in other projects is encouraged.
 The goal is to make Slic3r fully modular so that any part of its logic
@@ -49,34 +50,23 @@ Other major features are:
 * several infill patterns including honeycomb, spirals, Hilbert curves
 * support material, raft, brim, skirt
 * **standby temperature** and automatic wiping for multi-extruder printing
-* customizable **G-code macros** and output filename with variable placeholders
+* [customizable **G-code macros**](https://github.com/prusa3d/Slic3r/wiki/Slic3r-Prusa-Edition-Macro-Language) and output filename with variable placeholders
 * support for **post-processing scripts**
 * **cooling logic** controlling fan speed and dynamic print speed
 
-### How to install?
+### Development
 
-You can download a precompiled package from [slic3r.org](http://slic3r.org/);
-it will run without the need for any dependency.
-
-If you want to compile the source yourself follow the instructions on one of these wiki pages: 
-* [Linux](https://github.com/alexrj/Slic3r/wiki/Running-Slic3r-from-git-on-GNU-Linux)
-* [Windows](https://github.com/prusa3d/Slic3r/wiki/How-to-compile-Slic3r-Prusa-Edition-on-MS-Windows)
-* [Mac OSX](https://github.com/alexrj/Slic3r/wiki/Running-Slic3r-from-git-on-OS-X)
+If you want to compile the source yourself, follow the instructions on one of
+these documentation pages:
+* [Linux](doc/How%20to%20build%20-%20Linux%20et%20al.md)
+* [macOS](doc/How%20to%20build%20-%20Mac%20OS.md)
+* [Windows](doc/How%20to%20build%20-%20Windows.md)
 
 ### Can I help?
 
 Sure! You can do the following to find things that are available to help with:
-* [Pull Request Milestone](https://github.com/alexrj/Slic3r/milestone/31)
-    * Please comment in the related github issue that you are working on it so that other people know. 
-* Items in the [TODO](https://github.com/alexrj/Slic3r/wiki/TODO) wiki page.
-    * Please comment in the related github issue that you are working on it so that other people know. 
-* Drop me a line at aar@cpan.org.
-* You can also find me (rarely) in #reprap and in #slic3r on [FreeNode](https://webchat.freenode.net) with the nickname _Sound_. Another contributor, _LoH_, is also in both channels.
-* Add an [issue](https://github.com/alexrj/Slic3r/issues) to the github tracker if it isn't already present.
-
-Before sending patches and pull requests contact me (preferably through opening a github issue or commenting on an existing, related, issue) to discuss your proposed
-changes: this way we'll ensure nobody wastes their time and no conflicts arise
-in development.
+* Add an [issue](https://github.com/prusa3d/Slic3r/issues) to the github tracker if it isn't already present.
+* Look at [issues labeled "volunteer needed"](https://github.com/prusa3d/Slic3r/issues?utf8=%E2%9C%93&q=is%3Aopen+is%3Aissue+label%3A%22volunteer+needed%22)
 
 ### What's Slic3r license?
 
