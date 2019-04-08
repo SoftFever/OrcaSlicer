@@ -388,10 +388,10 @@ void GLToolbar::render(const GLCanvas3D& parent) const
         generate_icons_texture();
 #endif // ENABLE_SVG_ICONS
 
-    ::glDisable(GL_DEPTH_TEST);
+    glsafe(::glDisable(GL_DEPTH_TEST));
 
-    ::glPushMatrix();
-    ::glLoadIdentity();
+    glsafe(::glPushMatrix());
+    glsafe(::glLoadIdentity());
 
     switch (m_layout.type)
     {
@@ -400,7 +400,7 @@ void GLToolbar::render(const GLCanvas3D& parent) const
     case Layout::Vertical: { render_vertical(parent); break; }
     }
 
-    ::glPopMatrix();
+    glsafe(::glPopMatrix());
 }
 
 bool GLToolbar::on_mouse(wxMouseEvent& evt, GLCanvas3D& parent)
@@ -444,11 +444,11 @@ bool GLToolbar::on_mouse(wxMouseEvent& evt, GLCanvas3D& parent)
         {
             m_mouse_capture.left = true;
             m_mouse_capture.parent = &parent;
+            processed = true;
             if ((item_id != -2) && !m_items[item_id]->is_separator())
             {
                 // mouse is inside an icon
                 do_action((unsigned int)item_id, parent);
-                processed = true;
             }
         }
         else if (evt.MiddleDown())
@@ -612,7 +612,7 @@ std::string GLToolbar::update_hover_state_horizontal(const Vec2d& mouse_pos, GLC
 {
     // NB: mouse_pos is already scaled appropriately
 
-    float zoom = parent.get_camera_zoom();
+    float zoom = parent.get_camera().zoom;
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 #if ENABLE_SVG_ICONS
     float factor = m_layout.scale * inv_zoom;
@@ -717,7 +717,7 @@ std::string GLToolbar::update_hover_state_vertical(const Vec2d& mouse_pos, GLCan
 {
     // NB: mouse_pos is already scaled appropriately
 
-    float zoom = parent.get_camera_zoom();
+    float zoom = parent.get_camera().zoom;
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 #if ENABLE_SVG_ICONS
     float factor = m_layout.scale * inv_zoom;
@@ -834,7 +834,7 @@ int GLToolbar::contains_mouse_horizontal(const Vec2d& mouse_pos, const GLCanvas3
 {
     // NB: mouse_pos is already scaled appropriately
 
-    float zoom = parent.get_camera_zoom();
+    float zoom = parent.get_camera().zoom;
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 #if ENABLE_SVG_ICONS
     float factor = m_layout.scale * inv_zoom;
@@ -917,7 +917,7 @@ int GLToolbar::contains_mouse_vertical(const Vec2d& mouse_pos, const GLCanvas3D&
 {
     // NB: mouse_pos is already scaled appropriately
 
-    float zoom = parent.get_camera_zoom();
+    float zoom = parent.get_camera().zoom;
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 #if ENABLE_SVG_ICONS
     float factor = m_layout.scale * inv_zoom;
@@ -1013,7 +1013,7 @@ void GLToolbar::render_horizontal(const GLCanvas3D& parent) const
         return;
 #endif // !ENABLE_SVG_ICONS
 
-    float zoom = parent.get_camera_zoom();
+    float zoom = parent.get_camera().zoom;
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 #if ENABLE_SVG_ICONS
     float factor = inv_zoom * m_layout.scale;
@@ -1168,7 +1168,7 @@ void GLToolbar::render_vertical(const GLCanvas3D& parent) const
         return;
 #endif // !ENABLE_SVG_ICONS
 
-    float zoom = parent.get_camera_zoom();
+    float zoom = parent.get_camera().zoom;
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 #if ENABLE_SVG_ICONS
     float factor = inv_zoom * m_layout.scale;

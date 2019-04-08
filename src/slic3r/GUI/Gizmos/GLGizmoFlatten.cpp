@@ -49,67 +49,67 @@ void GLGizmoFlatten::on_start_dragging(const Selection& selection)
 
 void GLGizmoFlatten::on_render(const Selection& selection) const
 {
-    ::glClear(GL_DEPTH_BUFFER_BIT);
+    glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
 
-    ::glEnable(GL_DEPTH_TEST);
-    ::glEnable(GL_BLEND);
+    glsafe(::glEnable(GL_DEPTH_TEST));
+    glsafe(::glEnable(GL_BLEND));
 
     if (selection.is_single_full_instance())
     {
         const Transform3d& m = selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix();
-        ::glPushMatrix();
-        ::glTranslatef(0.f, 0.f, selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z());
-        ::glMultMatrixd(m.data());
+        glsafe(::glPushMatrix());
+        glsafe(::glTranslatef(0.f, 0.f, selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z()));
+        glsafe(::glMultMatrixd(m.data()));
         if (this->is_plane_update_necessary())
 			const_cast<GLGizmoFlatten*>(this)->update_planes();
         for (int i = 0; i < (int)m_planes.size(); ++i)
         {
             if (i == m_hover_id)
-                ::glColor4f(0.9f, 0.9f, 0.9f, 0.75f);
+                glsafe(::glColor4f(0.9f, 0.9f, 0.9f, 0.75f));
             else
-                ::glColor4f(0.9f, 0.9f, 0.9f, 0.5f);
+                glsafe(::glColor4f(0.9f, 0.9f, 0.9f, 0.5f));
 
             ::glBegin(GL_POLYGON);
             for (const Vec3d& vertex : m_planes[i].vertices)
             {
                 ::glVertex3dv(vertex.data());
             }
-            ::glEnd();
+            glsafe(::glEnd());
         }
-        ::glPopMatrix();
+        glsafe(::glPopMatrix());
     }
 
-    ::glEnable(GL_CULL_FACE);
-    ::glDisable(GL_BLEND);
+    glsafe(::glEnable(GL_CULL_FACE));
+    glsafe(::glDisable(GL_BLEND));
 }
 
 void GLGizmoFlatten::on_render_for_picking(const Selection& selection) const
 {
-    ::glDisable(GL_DEPTH_TEST);
-    ::glDisable(GL_BLEND);
+    glsafe(::glDisable(GL_DEPTH_TEST));
+    glsafe(::glDisable(GL_BLEND));
 
     if (selection.is_single_full_instance())
     {
         const Transform3d& m = selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix();
-        ::glPushMatrix();
-        ::glTranslatef(0.f, 0.f, selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z());
-        ::glMultMatrixd(m.data());
+        glsafe(::glPushMatrix());
+        glsafe(::glTranslatef(0.f, 0.f, selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z()));
+        glsafe(::glMultMatrixd(m.data()));
         if (this->is_plane_update_necessary())
 			const_cast<GLGizmoFlatten*>(this)->update_planes();
         for (int i = 0; i < (int)m_planes.size(); ++i)
         {
-            ::glColor3fv(picking_color_component(i).data());
+            glsafe(::glColor3fv(picking_color_component(i).data()));
             ::glBegin(GL_POLYGON);
             for (const Vec3d& vertex : m_planes[i].vertices)
             {
                 ::glVertex3dv(vertex.data());
             }
-            ::glEnd();
+            glsafe(::glEnd());
         }
-        ::glPopMatrix();
+        glsafe(::glPopMatrix());
     }
 
-    ::glEnable(GL_CULL_FACE);
+    glsafe(::glEnable(GL_CULL_FACE));
 }
 
 void GLGizmoFlatten::set_flattening_data(const ModelObject* model_object)

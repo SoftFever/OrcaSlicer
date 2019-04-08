@@ -1,5 +1,6 @@
 // Include GLGizmoBase.hpp before I18N.hpp as it includes some libigl code, which overrides our localization "L" macro.
 #include "GLGizmoCut.hpp"
+#include "slic3r/GUI/GLCanvas3D.hpp"
 
 #include <GL/glew.h>
 
@@ -135,10 +136,10 @@ void GLGizmoCut::on_render(const Selection& selection) const
     const float max_x = box.max(0) + Margin;
     const float min_y = box.min(1) - Margin;
     const float max_y = box.max(1) + Margin;
-    ::glEnable(GL_DEPTH_TEST);
-    ::glDisable(GL_CULL_FACE);
-    ::glEnable(GL_BLEND);
-    ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glsafe(::glEnable(GL_DEPTH_TEST));
+    glsafe(::glDisable(GL_CULL_FACE));
+    glsafe(::glEnable(GL_BLEND));
+    glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
     // Draw the cutting plane
     ::glBegin(GL_QUADS);
@@ -147,10 +148,10 @@ void GLGizmoCut::on_render(const Selection& selection) const
     ::glVertex3f(max_x, min_y, plane_center(2));
     ::glVertex3f(max_x, max_y, plane_center(2));
     ::glVertex3f(min_x, max_y, plane_center(2));
-    ::glEnd();
+    glsafe(::glEnd());
 
-    ::glEnable(GL_CULL_FACE);
-    ::glDisable(GL_BLEND);
+    glsafe(::glEnable(GL_CULL_FACE));
+    glsafe(::glDisable(GL_BLEND));
 
     // TODO: draw cut part contour?
 
@@ -158,13 +159,13 @@ void GLGizmoCut::on_render(const Selection& selection) const
     m_grabbers[0].center = plane_center;
     m_grabbers[0].center(2) = plane_center(2) + Offset;
 
-    ::glDisable(GL_DEPTH_TEST);
-    ::glLineWidth(m_hover_id != -1 ? 2.0f : 1.5f);
-    ::glColor3f(1.0, 1.0, 0.0);
+    glsafe(::glDisable(GL_DEPTH_TEST));
+    glsafe(::glLineWidth(m_hover_id != -1 ? 2.0f : 1.5f));
+    glsafe(::glColor3f(1.0, 1.0, 0.0));
     ::glBegin(GL_LINES);
     ::glVertex3dv(plane_center.data());
     ::glVertex3dv(m_grabbers[0].center.data());
-    ::glEnd();
+    glsafe(::glEnd());
 
     std::copy(std::begin(GrabberColor), std::end(GrabberColor), m_grabbers[0].color);
     m_grabbers[0].render(m_hover_id == 0, (float)((box.size()(0) + box.size()(1) + box.size()(2)) / 3.0));
@@ -172,7 +173,7 @@ void GLGizmoCut::on_render(const Selection& selection) const
 
 void GLGizmoCut::on_render_for_picking(const Selection& selection) const
 {
-    ::glDisable(GL_DEPTH_TEST);
+    glsafe(::glDisable(GL_DEPTH_TEST));
 
     render_grabbers_for_picking(selection.get_bounding_box());
 }
