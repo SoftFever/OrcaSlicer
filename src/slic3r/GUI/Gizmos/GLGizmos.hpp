@@ -10,6 +10,7 @@ enum class SLAGizmoEventType {
     Delete,
     SelectAll,
     ShiftUp,
+    AltUp,
     ApplyChanges,
     DiscardChanges,
     AutomaticGeneration,
