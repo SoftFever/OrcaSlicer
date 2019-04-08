@@ -1151,9 +1151,9 @@ void Selection::update_type()
                             m_type = MultipleVolume;
                         else if (modifiers_count == (unsigned int)m_list.size())
                             m_type = MultipleModifier;
-                    }
 
-                    requires_disable = true;
+                        requires_disable = true;
+                    }
                 }
                 else if ((selected_instances_count > 1) && (selected_instances_count * volumes_count == (unsigned int)m_list.size()))
                 {
