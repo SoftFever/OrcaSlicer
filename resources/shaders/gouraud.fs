@@ -23,7 +23,7 @@ void main()
     if ((world_pos.z < z_range.x) || (z_range.y < world_pos.z))
         discard;
 
-    if (world_pos.x*clipping_plane.x + world_pos.y*clipping_plane.y + world_pos.z*clipping_plane.z + clipping_plane.w < 0.f )
+    if (world_pos.x*clipping_plane.x + world_pos.y*clipping_plane.y + world_pos.z*clipping_plane.z + clipping_plane.w < 0.0 )
         discard;
 
     // if the fragment is outside the print volume -> use darker color
