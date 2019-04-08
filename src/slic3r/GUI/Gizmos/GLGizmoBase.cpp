@@ -1,4 +1,5 @@
 #include "GLGizmoBase.hpp"
+#include "slic3r/GUI/GLCanvas3D.hpp"
 
 #include <GL/glew.h>
 
@@ -60,62 +61,62 @@ void GLGizmoBase::Grabber::render(float size, const float* render_color, bool us
     float half_size = dragging ? get_dragging_half_size(size) : get_half_size(size);
 
     if (use_lighting)
-        ::glEnable(GL_LIGHTING);
+        glsafe(::glEnable(GL_LIGHTING));
 
-    ::glColor3fv(render_color);
+    glsafe(::glColor3fv(render_color));
 
-    ::glPushMatrix();
-    ::glTranslated(center(0), center(1), center(2));
+    glsafe(::glPushMatrix());
+    glsafe(::glTranslated(center(0), center(1), center(2)));
 
-    ::glRotated(Geometry::rad2deg(angles(2)), 0.0, 0.0, 1.0);
-    ::glRotated(Geometry::rad2deg(angles(1)), 0.0, 1.0, 0.0);
-    ::glRotated(Geometry::rad2deg(angles(0)), 1.0, 0.0, 0.0);
+    glsafe(::glRotated(Geometry::rad2deg(angles(2)), 0.0, 0.0, 1.0));
+    glsafe(::glRotated(Geometry::rad2deg(angles(1)), 0.0, 1.0, 0.0));
+    glsafe(::glRotated(Geometry::rad2deg(angles(0)), 1.0, 0.0, 0.0));
 
     // face min x
-    ::glPushMatrix();
-    ::glTranslatef(-(GLfloat)half_size, 0.0f, 0.0f);
-    ::glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+    glsafe(::glPushMatrix());
+    glsafe(::glTranslatef(-(GLfloat)half_size, 0.0f, 0.0f));
+    glsafe(::glRotatef(-90.0f, 0.0f, 1.0f, 0.0f));
     render_face(half_size);
-    ::glPopMatrix();
+    glsafe(::glPopMatrix());
 
     // face max x
-    ::glPushMatrix();
-    ::glTranslatef((GLfloat)half_size, 0.0f, 0.0f);
-    ::glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+    glsafe(::glPushMatrix());
+    glsafe(::glTranslatef((GLfloat)half_size, 0.0f, 0.0f));
+    glsafe(::glRotatef(90.0f, 0.0f, 1.0f, 0.0f));
     render_face(half_size);
-    ::glPopMatrix();
+    glsafe(::glPopMatrix());
 
     // face min y
-    ::glPushMatrix();
-    ::glTranslatef(0.0f, -(GLfloat)half_size, 0.0f);
-    ::glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+    glsafe(::glPushMatrix());
+    glsafe(::glTranslatef(0.0f, -(GLfloat)half_size, 0.0f));
+    glsafe(::glRotatef(90.0f, 1.0f, 0.0f, 0.0f));
     render_face(half_size);
-    ::glPopMatrix();
+    glsafe(::glPopMatrix());
 
     // face max y
-    ::glPushMatrix();
-    ::glTranslatef(0.0f, (GLfloat)half_size, 0.0f);
-    ::glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+    glsafe(::glPushMatrix());
+    glsafe(::glTranslatef(0.0f, (GLfloat)half_size, 0.0f));
+    glsafe(::glRotatef(-90.0f, 1.0f, 0.0f, 0.0f));
     render_face(half_size);
-    ::glPopMatrix();
+    glsafe(::glPopMatrix());
 
     // face min z
-    ::glPushMatrix();
-    ::glTranslatef(0.0f, 0.0f, -(GLfloat)half_size);
-    ::glRotatef(180.0f, 1.0f, 0.0f, 0.0f);
+    glsafe(::glPushMatrix());
+    glsafe(::glTranslatef(0.0f, 0.0f, -(GLfloat)half_size));
+    glsafe(::glRotatef(180.0f, 1.0f, 0.0f, 0.0f));
     render_face(half_size);
-    ::glPopMatrix();
+    glsafe(::glPopMatrix());
 
     // face max z
-    ::glPushMatrix();
-    ::glTranslatef(0.0f, 0.0f, (GLfloat)half_size);
+    glsafe(::glPushMatrix());
+    glsafe(::glTranslatef(0.0f, 0.0f, (GLfloat)half_size));
     render_face(half_size);
-    ::glPopMatrix();
+    glsafe(::glPopMatrix());
 
-    ::glPopMatrix();
+    glsafe(::glPopMatrix());
 
     if (use_lighting)
-        ::glDisable(GL_LIGHTING);
+        glsafe(::glDisable(GL_LIGHTING));
 }
 
 void GLGizmoBase::Grabber::render_face(float half_size) const
@@ -128,7 +129,7 @@ void GLGizmoBase::Grabber::render_face(float half_size) const
     ::glVertex3f((GLfloat)half_size, (GLfloat)half_size, 0.0f);
     ::glVertex3f(-(GLfloat)half_size, (GLfloat)half_size, 0.0f);
     ::glVertex3f(-(GLfloat)half_size, -(GLfloat)half_size, 0.0f);
-    ::glEnd();
+    glsafe(::glEnd());
 }
 
 #if ENABLE_SVG_ICONS

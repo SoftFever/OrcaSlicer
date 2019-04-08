@@ -2,6 +2,7 @@
 #define slic3r_GLGizmoSlaSupports_hpp_
 
 #include "GLGizmoBase.hpp"
+#include "GLGizmos.hpp"
 
 // There is an L function in igl that would be overridden by our localization macro - let's undefine it...
 #undef L
@@ -14,6 +15,9 @@
 
 namespace Slic3r {
 namespace GUI {
+
+
+class ClippingPlane;
 
 
 class GLGizmoSlaSupports : public GLGizmoBase
@@ -55,7 +59,7 @@ public:
     void set_sla_support_data(ModelObject* model_object, const Selection& selection);
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down);
     void delete_selected_points(bool force = false);
-    GLCanvas3D::ClippingPlane get_sla_clipping_plane() const;
+    ClippingPlane get_sla_clipping_plane() const;
 
 private:
     bool on_init();

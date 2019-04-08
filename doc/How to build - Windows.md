@@ -12,7 +12,7 @@ _Note:_ Thanks to [**@supermerill**](https://github.com/supermerill) for testing
 ### Dependencies
 
 On Windows Slic3r is built against statically built libraries.
-We provide a prebuilt package of all the needed dependencies.
+We provide a prebuilt package of all the needed dependencies. This package only works on Visual Studio 2013, so if you are using a newer version of Visual Studio, you need to compile the dependencies yourself as per [below](#building-the-dependencies-package-yourself).
 The package comes in a several variants:
 
   - [64 bit, Release mode only](https://bintray.com/vojtechkral/Slic3r-PE/download_file?file_path=destdir-64.7z) (41 MB, 578 MB unpacked)
@@ -28,7 +28,7 @@ Alternatively you can also compile the dependencies yourself, see below.
 
 ### Building Slic3r PE with Visual Studio
 
-First obtain the Slic3 PE sources via either git or by extracting the source archive.
+First obtain the Slic3r PE sources via either git or by extracting the source archive.
 
 Then you will need to note down the so-called 'prefix path' to the dependencies, this is the location of the dependencies packages + `\usr\local` appended.
 For example on 64 bits this would be `C:\local\destdir-64\usr\local`. The prefix path will need to be passed to CMake.
@@ -66,7 +66,7 @@ There are several options for building from the command line:
 
 To build with msbuild, use the same CMake command as in previous paragraph and then build using
 
-    msbuild /P:Configuration=Release ALL_BUILD.vcxproj
+    msbuild /m /P:Configuration=Release ALL_BUILD.vcxproj
 
 To build with Ninja or nmake, replace the `-G` option in the CMake call with `-G Ninja` or `-G "NMake Makefiles"` , respectively.
 Then use either `ninja` or `nmake` to start the build.
@@ -84,7 +84,7 @@ Then `cd` into the `deps` directory and use these commands to build:
     mkdir build
     cd build
     cmake .. -G "Visual Studio 12 Win64" -DDESTDIR="C:\local\destdir-custom"
-    msbuild ALL_BUILD.vcxproj
+    msbuild /m ALL_BUILD.vcxproj
 
 You can also use the Visual Studio GUI or other generators as mentioned above.
 
@@ -97,7 +97,11 @@ place the `build` directory relatively close to the drive root.
 
 Note that the build variant that you may choose using Visual Studio (i.e. _Release_ or _Debug_ etc.) when building the dependency package is **not relevant**.
 The dependency build will by default build _both_ the _Release_ and _Debug_ variants regardless of what you choose in Visual Studio.
-You can disable building of the debug variant by passing the `-DDEP_DEBUG=OFF` option to CMake, this will only produce a _Release_ build.
+You can disable building of the debug variant by passing the
+
+    -DDEP_DEBUG=OFF
+
+option to CMake, this will only produce a _Release_ build.
 
 Refer to the CMake scripts inside the `deps` directory to see which dependencies are built in what versions and how this is done.
 

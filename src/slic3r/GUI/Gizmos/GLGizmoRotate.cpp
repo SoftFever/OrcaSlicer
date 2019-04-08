@@ -155,13 +155,13 @@ void GLGizmoRotate::on_render(const Selection& selection) const
         m_snap_fine_out_radius = m_radius * (1.0f + ScaleLongTooth);
     }
 
-    ::glEnable(GL_DEPTH_TEST);
+    glsafe(::glEnable(GL_DEPTH_TEST));
 
-    ::glPushMatrix();
+    glsafe(::glPushMatrix());
     transform_to_local(selection);
 
-    ::glLineWidth((m_hover_id != -1) ? 2.0f : 1.5f);
-    ::glColor3fv((m_hover_id != -1) ? m_drag_color : m_highlight_color);
+    glsafe(::glLineWidth((m_hover_id != -1) ? 2.0f : 1.5f));
+    glsafe(::glColor3fv((m_hover_id != -1) ? m_drag_color : m_highlight_color));
 
     render_circle();
 
@@ -172,7 +172,7 @@ void GLGizmoRotate::on_render(const Selection& selection) const
         render_reference_radius();
     }
 
-    ::glColor3fv(m_highlight_color);
+    glsafe(::glColor3fv(m_highlight_color));
 
     if (m_hover_id != -1)
         render_angle();
@@ -180,14 +180,14 @@ void GLGizmoRotate::on_render(const Selection& selection) const
     render_grabber(box);
     render_grabber_extension(box, false);
 
-    ::glPopMatrix();
+    glsafe(::glPopMatrix());
 }
 
 void GLGizmoRotate::on_render_for_picking(const Selection& selection) const
 {
-    ::glDisable(GL_DEPTH_TEST);
+    glsafe(::glDisable(GL_DEPTH_TEST));
 
-    ::glPushMatrix();
+    glsafe(::glPushMatrix());
 
     transform_to_local(selection);
 
@@ -195,7 +195,7 @@ void GLGizmoRotate::on_render_for_picking(const Selection& selection) const
     render_grabbers_for_picking(box);
     render_grabber_extension(box, true);
 
-    ::glPopMatrix();
+    glsafe(::glPopMatrix());
 }
 
 void GLGizmoRotate::render_circle() const
@@ -209,7 +209,7 @@ void GLGizmoRotate::render_circle() const
         float z = 0.0f;
         ::glVertex3f((GLfloat)x, (GLfloat)y, (GLfloat)z);
     }
-    ::glEnd();
+    glsafe(::glEnd());
 }
 
 void GLGizmoRotate::render_scale() const
@@ -232,7 +232,7 @@ void GLGizmoRotate::render_scale() const
         ::glVertex3f((GLfloat)in_x, (GLfloat)in_y, (GLfloat)in_z);
         ::glVertex3f((GLfloat)out_x, (GLfloat)out_y, (GLfloat)out_z);
     }
-    ::glEnd();
+    glsafe(::glEnd());
 }
 
 void GLGizmoRotate::render_snap_radii() const
@@ -257,7 +257,7 @@ void GLGizmoRotate::render_snap_radii() const
         ::glVertex3f((GLfloat)in_x, (GLfloat)in_y, (GLfloat)in_z);
         ::glVertex3f((GLfloat)out_x, (GLfloat)out_y, (GLfloat)out_z);
     }
-    ::glEnd();
+    glsafe(::glEnd());
 }
 
 void GLGizmoRotate::render_reference_radius() const
@@ -265,7 +265,7 @@ void GLGizmoRotate::render_reference_radius() const
     ::glBegin(GL_LINES);
     ::glVertex3f(0.0f, 0.0f, 0.0f);
     ::glVertex3f((GLfloat)(m_radius * (1.0f + GrabberOffset)), 0.0f, 0.0f);
-    ::glEnd();
+    glsafe(::glEnd());
 }
 
 void GLGizmoRotate::render_angle() const
@@ -282,7 +282,7 @@ void GLGizmoRotate::render_angle() const
         float z = 0.0f;
         ::glVertex3f((GLfloat)x, (GLfloat)y, (GLfloat)z);
     }
-    ::glEnd();
+    glsafe(::glEnd());
 }
 
 void GLGizmoRotate::render_grabber(const BoundingBoxf3& box) const
@@ -291,12 +291,12 @@ void GLGizmoRotate::render_grabber(const BoundingBoxf3& box) const
     m_grabbers[0].center = Vec3d(::cos(m_angle) * grabber_radius, ::sin(m_angle) * grabber_radius, 0.0);
     m_grabbers[0].angles(2) = m_angle;
 
-    ::glColor3fv((m_hover_id != -1) ? m_drag_color : m_highlight_color);
+    glsafe(::glColor3fv((m_hover_id != -1) ? m_drag_color : m_highlight_color));
 
     ::glBegin(GL_LINES);
     ::glVertex3f(0.0f, 0.0f, 0.0f);
     ::glVertex3dv(m_grabbers[0].center.data());
-    ::glEnd();
+    glsafe(::glEnd());
 
     ::memcpy((void*)m_grabbers[0].color, (const void*)m_highlight_color, 3 * sizeof(float));
     render_grabbers(box);
@@ -320,56 +320,56 @@ void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool pick
     }
 
     if (!picking)
-        ::glEnable(GL_LIGHTING);
+        glsafe(::glEnable(GL_LIGHTING));
 
-    ::glColor3fv(color);
-    ::glPushMatrix();
-    ::glTranslated(m_grabbers[0].center(0), m_grabbers[0].center(1), m_grabbers[0].center(2));
-    ::glRotated(Geometry::rad2deg(m_angle), 0.0, 0.0, 1.0);
-    ::glRotated(90.0, 1.0, 0.0, 0.0);
-    ::glTranslated(0.0, 0.0, 2.0 * size);
+    glsafe(::glColor3fv(color));
+    glsafe(::glPushMatrix());
+    glsafe(::glTranslated(m_grabbers[0].center(0), m_grabbers[0].center(1), m_grabbers[0].center(2)));
+    glsafe(::glRotated(Geometry::rad2deg(m_angle), 0.0, 0.0, 1.0));
+    glsafe(::glRotated(90.0, 1.0, 0.0, 0.0));
+    glsafe(::glTranslated(0.0, 0.0, 2.0 * size));
     ::gluQuadricOrientation(m_quadric, GLU_OUTSIDE);
     ::gluCylinder(m_quadric, 0.75 * size, 0.0, 3.0 * size, 36, 1);
     ::gluQuadricOrientation(m_quadric, GLU_INSIDE);
     ::gluDisk(m_quadric, 0.0, 0.75 * size, 36, 1);
-    ::glPopMatrix();
-    ::glPushMatrix();
-    ::glTranslated(m_grabbers[0].center(0), m_grabbers[0].center(1), m_grabbers[0].center(2));
-    ::glRotated(Geometry::rad2deg(m_angle), 0.0, 0.0, 1.0);
-    ::glRotated(-90.0, 1.0, 0.0, 0.0);
-    ::glTranslated(0.0, 0.0, 2.0 * size);
+    glsafe(::glPopMatrix());
+    glsafe(::glPushMatrix());
+    glsafe(::glTranslated(m_grabbers[0].center(0), m_grabbers[0].center(1), m_grabbers[0].center(2)));
+    glsafe(::glRotated(Geometry::rad2deg(m_angle), 0.0, 0.0, 1.0));
+    glsafe(::glRotated(-90.0, 1.0, 0.0, 0.0));
+    glsafe(::glTranslated(0.0, 0.0, 2.0 * size));
     ::gluQuadricOrientation(m_quadric, GLU_OUTSIDE);
     ::gluCylinder(m_quadric, 0.75 * size, 0.0, 3.0 * size, 36, 1);
     ::gluQuadricOrientation(m_quadric, GLU_INSIDE);
     ::gluDisk(m_quadric, 0.0, 0.75 * size, 36, 1);
-    ::glPopMatrix();
+    glsafe(::glPopMatrix());
 
     if (!picking)
-        ::glDisable(GL_LIGHTING);
+        glsafe(::glDisable(GL_LIGHTING));
 }
 
 void GLGizmoRotate::transform_to_local(const Selection& selection) const
 {
-    ::glTranslated(m_center(0), m_center(1), m_center(2));
+    glsafe(::glTranslated(m_center(0), m_center(1), m_center(2)));
 
     if (selection.is_single_volume() || selection.is_single_modifier() || selection.requires_local_axes())
     {
         Transform3d orient_matrix = selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix(true, false, true, true);
-        ::glMultMatrixd(orient_matrix.data());
+        glsafe(::glMultMatrixd(orient_matrix.data()));
     }
 
     switch (m_axis)
     {
     case X:
     {
-        ::glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-        ::glRotatef(-90.0f, 0.0f, 0.0f, 1.0f);
+        glsafe(::glRotatef(90.0f, 0.0f, 1.0f, 0.0f));
+        glsafe(::glRotatef(-90.0f, 0.0f, 0.0f, 1.0f));
         break;
     }
     case Y:
     {
-        ::glRotatef(-90.0f, 0.0f, 0.0f, 1.0f);
-        ::glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+        glsafe(::glRotatef(-90.0f, 0.0f, 0.0f, 1.0f));
+        glsafe(::glRotatef(-90.0f, 0.0f, 1.0f, 0.0f));
         break;
     }
     default:
@@ -472,7 +472,7 @@ void GLGizmoRotate3D::on_stop_dragging()
 
 void GLGizmoRotate3D::on_render(const Selection& selection) const
 {
-    ::glClear(GL_DEPTH_BUFFER_BIT);
+    glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
 
     if ((m_hover_id == -1) || (m_hover_id == 0))
         m_gizmos[X].render(selection);

@@ -1,5 +1,6 @@
 // Include GLGizmoBase.hpp before I18N.hpp as it includes some libigl code, which overrides our localization "L" macro.
 #include "GLGizmoSlaSupports.hpp"
+#include "slic3r/GUI/GLCanvas3D.hpp"
 
 #include <GL/glew.h>
 
@@ -89,8 +90,8 @@ void GLGizmoSlaSupports::on_render(const Selection& selection) const
         return;
     }
 
-    ::glEnable(GL_BLEND);
-    ::glEnable(GL_DEPTH_TEST);
+    glsafe(::glEnable(GL_BLEND));
+    glsafe(::glEnable(GL_DEPTH_TEST));
 
     // we'll recover current look direction from the modelview matrix (in world coords):
     Eigen::Matrix<double, 4, 4, Eigen::DontAlign> modelview_matrix;
@@ -104,7 +105,7 @@ void GLGizmoSlaSupports::on_render(const Selection& selection) const
     render_selection_rectangle();
     render_clipping_plane(selection, direction_to_camera);
 
-    ::glDisable(GL_BLEND);
+    glsafe(::glDisable(GL_BLEND));
 }
 
 
@@ -160,44 +161,44 @@ void GLGizmoSlaSupports::render_selection_rectangle() const
     if (!m_selection_rectangle_active)
         return;
 
-    ::glLineWidth(1.5f);
+    glsafe(::glLineWidth(1.5f));
     float render_color[3] = {1.f, 0.f, 0.f};
-    ::glColor3fv(render_color);
+    glsafe(::glColor3fv(render_color));
 
-    ::glPushAttrib(GL_TRANSFORM_BIT);   // remember current MatrixMode
+    glsafe(::glPushAttrib(GL_TRANSFORM_BIT));   // remember current MatrixMode
 
-    ::glMatrixMode(GL_MODELVIEW);       // cache modelview matrix and set to identity
-    ::glPushMatrix();
-    ::glLoadIdentity();
+    glsafe(::glMatrixMode(GL_MODELVIEW));       // cache modelview matrix and set to identity
+    glsafe(::glPushMatrix());
+    glsafe(::glLoadIdentity());
 
-    ::glMatrixMode(GL_PROJECTION);      // cache projection matrix and set to identity
-    ::glPushMatrix();
-    ::glLoadIdentity();
+    glsafe(::glMatrixMode(GL_PROJECTION));      // cache projection matrix and set to identity
+    glsafe(::glPushMatrix());
+    glsafe(::glLoadIdentity());
 
-    ::glOrtho(0.f, m_canvas_width, m_canvas_height, 0.f, -1.f, 1.f); // set projection matrix so that world coords = window coords
+    glsafe(::glOrtho(0.f, m_canvas_width, m_canvas_height, 0.f, -1.f, 1.f)); // set projection matrix so that world coords = window coords
 
     // render the selection  rectangle (window coordinates):
-    ::glPushAttrib(GL_ENABLE_BIT);
-    ::glLineStipple(4, 0xAAAA);
-    ::glEnable(GL_LINE_STIPPLE);
+    glsafe(::glPushAttrib(GL_ENABLE_BIT));
+    glsafe(::glLineStipple(4, 0xAAAA));
+    glsafe(::glEnable(GL_LINE_STIPPLE));
 
     ::glBegin(GL_LINE_LOOP);
     ::glVertex3f((GLfloat)m_selection_rectangle_start_corner(0), (GLfloat)m_selection_rectangle_start_corner(1), (GLfloat)0.5f);
     ::glVertex3f((GLfloat)m_selection_rectangle_end_corner(0), (GLfloat)m_selection_rectangle_start_corner(1), (GLfloat)0.5f);
     ::glVertex3f((GLfloat)m_selection_rectangle_end_corner(0), (GLfloat)m_selection_rectangle_end_corner(1), (GLfloat)0.5f);
     ::glVertex3f((GLfloat)m_selection_rectangle_start_corner(0), (GLfloat)m_selection_rectangle_end_corner(1), (GLfloat)0.5f);
-    ::glEnd();
-    ::glPopAttrib();
+    glsafe(::glEnd());
+    glsafe(::glPopAttrib());
 
-    ::glPopMatrix();                // restore former projection matrix
-    ::glMatrixMode(GL_MODELVIEW);
-    ::glPopMatrix();                // restore former modelview matrix
-    ::glPopAttrib();                // restore former MatrixMode
+    glsafe(::glPopMatrix());                // restore former projection matrix
+    glsafe(::glMatrixMode(GL_MODELVIEW));
+    glsafe(::glPopMatrix());                // restore former modelview matrix
+    glsafe(::glPopAttrib());                // restore former MatrixMode
 }
 
 void GLGizmoSlaSupports::on_render_for_picking(const Selection& selection) const
 {
-    ::glEnable(GL_DEPTH_TEST);
+    glsafe(::glEnable(GL_DEPTH_TEST));
 
     // we'll recover current look direction from the modelview matrix (in world coords):
     Eigen::Matrix<double, 4, 4, Eigen::DontAlign> modelview_matrix;
@@ -210,15 +211,15 @@ void GLGizmoSlaSupports::on_render_for_picking(const Selection& selection) const
 void GLGizmoSlaSupports::render_points(const Selection& selection, const Vec3d& direction_to_camera, bool picking) const
 {
     if (!picking)
-        ::glEnable(GL_LIGHTING);
+        glsafe(::glEnable(GL_LIGHTING));
 
     const GLVolume* vol = selection.get_volume(*selection.get_volume_idxs().begin());
     const Transform3d& instance_scaling_matrix_inverse = vol->get_instance_transformation().get_matrix(true, true, false, true).inverse();
     const Transform3d& instance_matrix = vol->get_instance_transformation().get_matrix();
 
-    ::glPushMatrix();
-    ::glTranslated(0.0, 0.0, m_z_shift);
-    ::glMultMatrixd(instance_matrix.data());
+    glsafe(::glPushMatrix());
+    glsafe(::glTranslated(0.0, 0.0, m_z_shift));
+    glsafe(::glMultMatrixd(instance_matrix.data()));
 
     float render_color[3];
     for (int i = 0; i < (int)m_editing_mode_cache.size(); ++i)
@@ -253,14 +254,14 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, const Vec3d& 
                     for (unsigned char i=0; i<3; ++i) render_color[i] = 0.5f;
             }
         }
-        ::glColor3fv(render_color);
+        glsafe(::glColor3fv(render_color));
         float render_color_emissive[4] = { 0.5f * render_color[0], 0.5f * render_color[1], 0.5f * render_color[2], 1.f};
-        ::glMaterialfv(GL_FRONT, GL_EMISSION, render_color_emissive);
+        glsafe(::glMaterialfv(GL_FRONT, GL_EMISSION, render_color_emissive));
 
         // Inverse matrix of the instance scaling is applied so that the mark does not scale with the object.
-        ::glPushMatrix();
-        ::glTranslated(support_point.pos(0), support_point.pos(1), support_point.pos(2));
-        ::glMultMatrixd(instance_scaling_matrix_inverse.data());
+        glsafe(::glPushMatrix());
+        glsafe(::glTranslated(support_point.pos(0), support_point.pos(1), support_point.pos(2)));
+        glsafe(::glMultMatrixd(instance_scaling_matrix_inverse.data()));
 
         // Matrices set, we can render the point mark now.
         // If in editing mode, we'll also render a cone pointing to the sphere.
@@ -271,31 +272,31 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, const Vec3d& 
             Eigen::Quaterniond q;
             q.setFromTwoVectors(Vec3d{0., 0., 1.}, instance_scaling_matrix_inverse * m_editing_mode_cache[i].normal.cast<double>());
             Eigen::AngleAxisd aa(q);
-            ::glRotated(aa.angle() * (180./M_PI), aa.axis()(0), aa.axis()(1), aa.axis()(2));
+            glsafe(::glRotated(aa.angle() * (180. / M_PI), aa.axis()(0), aa.axis()(1), aa.axis()(2)));
 
             const float cone_radius = 0.25f; // mm
             const float cone_height = 0.75f;
-            ::glPushMatrix();
-            ::glTranslatef(0.f, 0.f, m_editing_mode_cache[i].support_point.head_front_radius * RenderPointScale);
+            glsafe(::glPushMatrix());
+            glsafe(::glTranslatef(0.f, 0.f, m_editing_mode_cache[i].support_point.head_front_radius * RenderPointScale));
             ::gluCylinder(m_quadric, 0.f, cone_radius, cone_height, 24, 1);
-            ::glTranslatef(0.f, 0.f, cone_height);
+            glsafe(::glTranslatef(0.f, 0.f, cone_height));
             ::gluDisk(m_quadric, 0.0, cone_radius, 24, 1);
-            ::glPopMatrix();
+            glsafe(::glPopMatrix());
         }
         ::gluSphere(m_quadric, m_editing_mode_cache[i].support_point.head_front_radius * RenderPointScale, 24, 12);
-        ::glPopMatrix();
+        glsafe(::glPopMatrix());
     }
 
     {
         // Reset emissive component to zero (the default value)
         float render_color_emissive[4] = { 0.f, 0.f, 0.f, 1.f };
-        ::glMaterialfv(GL_FRONT, GL_EMISSION, render_color_emissive);
+        glsafe(::glMaterialfv(GL_FRONT, GL_EMISSION, render_color_emissive));
     }
 
     if (!picking)
-        ::glDisable(GL_LIGHTING);
+        glsafe(::glDisable(GL_LIGHTING));
 
-    ::glPopMatrix();
+    glsafe(::glPopMatrix());
 }
 
 
@@ -354,17 +355,15 @@ std::pair<Vec3f, Vec3f> GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse
     if (m_V.size() == 0)
         update_mesh();
 
-    Eigen::Matrix<GLint, 4, 1, Eigen::DontAlign> viewport;
-    ::glGetIntegerv(GL_VIEWPORT, viewport.data());
-    Eigen::Matrix<GLdouble, 4, 4, Eigen::DontAlign> modelview_matrix;
-    ::glGetDoublev(GL_MODELVIEW_MATRIX, modelview_matrix.data());
-    Eigen::Matrix<GLdouble, 4, 4, Eigen::DontAlign> projection_matrix;
-    ::glGetDoublev(GL_PROJECTION_MATRIX, projection_matrix.data());
+    const Camera& camera = m_parent.get_camera();
+    const std::array<int, 4>& viewport = camera.get_viewport();
+    const Transform3d& modelview_matrix = camera.get_view_matrix();
+    const Transform3d& projection_matrix = camera.get_projection_matrix();
 
     Vec3d point1;
     Vec3d point2;
-    ::gluUnProject(mouse_pos(0), viewport(3)-mouse_pos(1), 0.f, modelview_matrix.data(), projection_matrix.data(), viewport.data(), &point1(0), &point1(1), &point1(2));
-    ::gluUnProject(mouse_pos(0), viewport(3)-mouse_pos(1), 1.f, modelview_matrix.data(), projection_matrix.data(), viewport.data(), &point2(0), &point2(1), &point2(2));
+    ::gluUnProject(mouse_pos(0), viewport[3] - mouse_pos(1), 0.f, modelview_matrix.data(), projection_matrix.data(), viewport.data(), &point1(0), &point1(1), &point1(2));
+    ::gluUnProject(mouse_pos(0), viewport[3] - mouse_pos(1), 1.f, modelview_matrix.data(), projection_matrix.data(), viewport.data(), &point2(0), &point2(1), &point2(2));
 
     std::vector<igl::Hit> hits;
 
@@ -472,12 +471,10 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         // left up with selection rectangle - select points inside the rectangle:
         if ((action == SLAGizmoEventType::LeftUp || action == SLAGizmoEventType::ShiftUp) && m_selection_rectangle_active) {
             const Transform3d& instance_matrix = m_model_object->instances[m_active_instance]->get_transformation().get_matrix();
-            GLint viewport[4];
-            ::glGetIntegerv(GL_VIEWPORT, viewport);
-            GLdouble modelview_matrix[16];
-            ::glGetDoublev(GL_MODELVIEW_MATRIX, modelview_matrix);
-            GLdouble projection_matrix[16];
-            ::glGetDoublev(GL_PROJECTION_MATRIX, projection_matrix);
+            const Camera& camera = m_parent.get_camera();
+            const std::array<int, 4>& viewport = camera.get_viewport();
+            const Transform3d& modelview_matrix = camera.get_view_matrix();
+            const Transform3d& projection_matrix = camera.get_projection_matrix();
 
             const Selection& selection = m_parent.get_selection();
             const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
@@ -488,7 +485,7 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             const Transform3d& instance_matrix_no_translation_no_scaling = volume->get_instance_transformation().get_matrix(true,false,true);
 
             // we'll recover current look direction from the modelview matrix (in world coords)...
-            Vec3f direction_to_camera(modelview_matrix[2], modelview_matrix[6], modelview_matrix[10]);
+            Vec3f direction_to_camera = camera.get_dir_forward().cast<float>();
             // ...and transform it to model coords.
             Vec3f direction_to_camera_mesh = (instance_matrix_no_translation_no_scaling.inverse().cast<float>() * direction_to_camera).normalized().eval();
             Vec3f scaling = volume->get_instance_scaling_factor().cast<float>();
@@ -500,8 +497,8 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                 Vec3f pos = instance_matrix.cast<float>() * support_point.pos;
                 pos(2) += m_z_shift;
                   GLdouble out_x, out_y, out_z;
-                 ::gluProject((GLdouble)pos(0), (GLdouble)pos(1), (GLdouble)pos(2), modelview_matrix, projection_matrix, viewport, &out_x, &out_y, &out_z);
-                 out_y = m_canvas_height - out_y;
+                  ::gluProject((GLdouble)pos(0), (GLdouble)pos(1), (GLdouble)pos(2), (GLdouble*)modelview_matrix.data(), (GLdouble*)projection_matrix.data(), (GLint*)viewport.data(), &out_x, &out_y, &out_z);
+                  out_y = m_canvas_height - out_y;
 
                 if (rectangle.contains(Point(out_x, out_y)) && !is_point_clipped(support_point.pos.cast<double>(), direction_to_camera.cast<double>())) {
                     bool is_obscured = false;
@@ -692,10 +689,10 @@ void GLGizmoSlaSupports::update_cache_entry_normal(unsigned int i) const
 
 
 
-GLCanvas3D::ClippingPlane GLGizmoSlaSupports::get_sla_clipping_plane() const
+ClippingPlane GLGizmoSlaSupports::get_sla_clipping_plane() const
 {
     if (!m_model_object)
-        return GLCanvas3D::ClippingPlane::ClipsNothing();
+        return ClippingPlane::ClipsNothing();
 
     Eigen::Matrix<GLdouble, 4, 4, Eigen::DontAlign> modelview_matrix;
     ::glGetDoublev(GL_MODELVIEW_MATRIX, modelview_matrix.data());
@@ -704,7 +701,7 @@ GLCanvas3D::ClippingPlane GLGizmoSlaSupports::get_sla_clipping_plane() const
     Vec3d direction_to_camera(modelview_matrix.data()[2], modelview_matrix.data()[6], modelview_matrix.data()[10]);
     float dist = direction_to_camera.dot(m_model_object->instances[m_active_instance]->get_offset() + Vec3d(0., 0., m_z_shift));
 
-    return GLCanvas3D::ClippingPlane(-direction_to_camera.normalized(),(dist - (-m_active_instance_bb_radius) - m_clipping_plane_distance * 2*m_active_instance_bb_radius));
+    return ClippingPlane(-direction_to_camera.normalized(),(dist - (-m_active_instance_bb_radius) - m_clipping_plane_distance * 2*m_active_instance_bb_radius));
 }
 
 
