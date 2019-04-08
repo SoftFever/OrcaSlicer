@@ -3563,15 +3563,15 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 if (evt.LeftDown() && (m_hover_volume_id != -1))
                 {
                     bool already_selected = m_selection.contains_volume(m_hover_volume_id);
-                    bool shift_down = evt.ShiftDown();
+                    bool ctrl_down = evt.CmdDown();
 
                     Selection::IndicesList curr_idxs = m_selection.get_volume_idxs();
 
-                    if (already_selected && shift_down)
+                    if (already_selected && ctrl_down)
                         m_selection.remove(m_hover_volume_id);
                     else
                     {
-                        bool add_as_single = !already_selected && !shift_down;
+                        bool add_as_single = !already_selected && !ctrl_down;
                         m_selection.add(m_hover_volume_id, add_as_single);
                         m_mouse.drag.move_requires_threshold = !already_selected;
                         if (already_selected)
