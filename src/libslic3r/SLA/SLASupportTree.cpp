@@ -755,9 +755,12 @@ public:
         return m_compact_bridges;
     }
 
-    template<class T> inline
-    typename std::enable_if<std::is_integral<T>::value, const Pillar&>::type
-    pillar(T id) const { assert(id >= 0); return m_pillars.at(size_t(id)); }
+    template<class T> inline const Pillar& pillar(T id) const {
+        static_assert(std::is_integral<T>::value, "Invalid index type");
+        assert(id >= 0 && id < m_pillars.size() &&
+               id < std::numeric_limits<size_t>::max());
+        return m_pillars[size_t(id)];
+    }
 
     const Pad& create_pad(const TriangleMesh& object_supports,
                           const ExPolygons& baseplate,
@@ -1463,7 +1466,7 @@ public:
                                   m_cfg.head_back_radius_mm,
                                   w);
 
-                if(t <= w || (hp(Z) + nn(Z) * w) < m_result.ground_level) {
+                if(t <= w) {
 
                     // Let's try to optimize this angle, there might be a
                     // viable normal that doesn't collide with the model
@@ -1506,7 +1509,7 @@ public:
                 // save the verified and corrected normal
                 m_support_nmls.row(fidx) = nn;
 
-                if(t > w && (hp(Z) + nn(Z) * w) > m_result.ground_level) {
+                if(t > w) {
                     // mark the point for needing a head.
                     m_iheads.emplace_back(fidx);
                 } else if( polar >= 3*PI/4 ) {
@@ -2233,6 +2236,18 @@ SlicedSupports SLASupportTree::slice(float layerh, float init_layerh) const
     TriangleMeshSlicer slicer(&fullmesh);
     SlicedSupports ret;
     slicer.slice(heights, 0.f, &ret, get().ctl().cancelfn);
+
+    return ret;
+}
+
+SlicedSupports SLASupportTree::slice(const std::vector<float> &heights,
+                                     float cr) const
+{
+    TriangleMesh fullmesh = m_impl->merged_mesh();
+    fullmesh.merge(get_pad());
+    TriangleMeshSlicer slicer(&fullmesh);
+    SlicedSupports ret;
+    slicer.slice(heights, cr, &ret, get().ctl().cancelfn);
 
     return ret;
 }

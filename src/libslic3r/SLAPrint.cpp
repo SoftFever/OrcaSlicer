@@ -12,6 +12,9 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/log/trivial.hpp>
 
+// For geometry algorithms with native Clipper types (no copies and conversions)
+#include <libnest2d/backends/clipper/geometries.hpp>
+
 //#include <tbb/spin_mutex.h>//#include "tbb/mutex.h"
 
 #include "I18N.hpp"
@@ -30,7 +33,6 @@ public:
     std::vector<sla::SupportPoint> support_points;     // all the support points (manual/auto)
     SupportTreePtr   support_tree_ptr;   // the supports
     SlicedSupports   support_slices;     // sliced supports
-    std::vector<LevelID>    level_ids;
 
     inline SupportData(const TriangleMesh& trmesh): emesh(trmesh) {}
 };
@@ -40,35 +42,33 @@ namespace {
 // should add up to 100 (%)
 const std::array<unsigned, slaposCount>     OBJ_STEP_LEVELS =
 {
-    10,     // slaposObjectSlice,
-    30,     // slaposSupportPoints,
-    25,     // slaposSupportTree,
-    25,     // slaposBasePool,
-    5,      // slaposSliceSupports,
-    5       // slaposIndexSlices
+    30,     // slaposObjectSlice,
+    20,     // slaposSupportPoints,
+    10,     // slaposSupportTree,
+    10,     // slaposBasePool,
+    30,     // slaposSliceSupports,
 };
 
 const std::array<std::string, slaposCount> OBJ_STEP_LABELS =
 {
     L("Slicing model"),                 // slaposObjectSlice,
-    L("Generating support points"),      // slaposSupportPoints,
+    L("Generating support points"),     // slaposSupportPoints,
     L("Generating support tree"),       // slaposSupportTree,
     L("Generating pad"),                // slaposBasePool,
     L("Slicing supports"),              // slaposSliceSupports,
-    L("Slicing supports")               // slaposIndexSlices,
 };
 
 // Should also add up to 100 (%)
 const std::array<unsigned, slapsCount> PRINT_STEP_LEVELS =
 {
-    80,     // slapsRasterize
-    20,     // slapsValidate
+    10,      // slapsMergeSlicesAndEval
+    90,      // slapsRasterize
 };
 
 const std::array<std::string, slapsCount> PRINT_STEP_LABELS =
 {
+    L("Merging slices and calculating statistics"),     // slapsStats
     L("Rasterizing layers"),         // slapsRasterize
-    L("Validating"),                 // slapsValidate
 };
 
 }
@@ -93,7 +93,10 @@ static Transform3d sla_trafo(const ModelObject &model_object)
     offset(0) = 0.;
     offset(1) = 0.;
     rotation(2) = 0.;
-    return Geometry::assemble_transform(offset, rotation, model_instance.get_scaling_factor(), model_instance.get_mirror());
+    Transform3d trafo = Geometry::assemble_transform(offset, rotation, model_instance.get_scaling_factor(), model_instance.get_mirror());
+	if (model_instance.is_left_handed())
+		trafo = Eigen::Scaling(Vec3d(-1., 1., 1.)) * trafo;
+    return trafo;
 }
 
 // List of instances, where the ModelInstance transformation is a composite of sla_trafo and the transformation defined by SLAPrintObject::Instance.
@@ -102,10 +105,10 @@ static std::vector<SLAPrintObject::Instance> sla_instances(const ModelObject &mo
     std::vector<SLAPrintObject::Instance> instances;
     for (ModelInstance *model_instance : model_object.instances)
         if (model_instance->is_printable()) {
-            instances.emplace_back(SLAPrintObject::Instance(
+            instances.emplace_back(
                 model_instance->id(),
                 Point::new_scale(model_instance->get_offset(X), model_instance->get_offset(Y)),
-                float(model_instance->get_rotation(Z))));
+                float(model_instance->get_rotation(Z)));
         }
     return instances;
 }
@@ -205,7 +208,7 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
                 model_object_status.emplace(model_object->id(), ModelObjectStatus::Old);
         } else if (model_object_list_extended(m_model, model)) {
             // Add new objects. Their volumes and configs will be synchronized later.
-            update_apply_status(this->invalidate_step(slapsRasterize));
+            update_apply_status(this->invalidate_step(slapsMergeSlicesAndEval));
             for (const ModelObject *model_object : m_model.objects)
                 model_object_status.emplace(model_object->id(), ModelObjectStatus::Old);
             for (size_t i = m_model.objects.size(); i < model.objects.size(); ++ i) {
@@ -217,7 +220,7 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
             // Reorder the objects, add new objects.
             // First stop background processing before shuffling or deleting the PrintObjects in the object list.
             this->call_cancel_callback();
-            update_apply_status(this->invalidate_step(slapsRasterize));
+            update_apply_status(this->invalidate_step(slapsMergeSlicesAndEval));
             // Second create a new list of objects.
             std::vector<ModelObject*> model_objects_old(std::move(m_model.objects));
             m_model.objects.clear();
@@ -314,8 +317,11 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
 				it_print_object_status = print_object_status.end();
 			// Check whether a model part volume was added or removed, their transformations or order changed.
 			bool model_parts_differ = model_volume_list_changed(model_object, model_object_new, ModelVolumeType::MODEL_PART);
-			bool sla_trafo_differs  = model_object.instances.empty() != model_object_new.instances.empty() ||
-				(! model_object.instances.empty() && ! sla_trafo(model_object).isApprox(sla_trafo(model_object_new)));
+			bool sla_trafo_differs  = 
+				model_object.instances.empty() != model_object_new.instances.empty() ||
+				(! model_object.instances.empty() && 
+				  (! sla_trafo(model_object).isApprox(sla_trafo(model_object_new)) || 
+				    model_object.instances.front()->is_left_handed() != model_object_new.instances.front()->is_left_handed()));
 			if (model_parts_differ || sla_trafo_differs) {
 				// The very first step (the slicing step) is invalidated. One may freely remove all associated PrintObjects.
 				if (it_print_object_status != print_object_status.end()) {
@@ -389,7 +395,7 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
 				if (new_instances != it_print_object_status->print_object->instances()) {
 					// Instances changed.
 					it_print_object_status->print_object->set_instances(new_instances);
-					update_apply_status(this->invalidate_step(slapsRasterize));
+                    update_apply_status(this->invalidate_step(slapsMergeSlicesAndEval));
 				}
 				print_objects_new.emplace_back(it_print_object_status->print_object);
 				const_cast<PrintObjectStatus&>(*it_print_object_status).status = PrintObjectStatus::Reused;
@@ -399,9 +405,9 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
 
             // FIXME: this invalidates the transformed mesh in SLAPrintObject
             // which is expensive to calculate (especially the raw_mesh() call)
-            print_object->set_trafo(sla_trafo(model_object));
+            print_object->set_trafo(sla_trafo(model_object), model_object.instances.front()->is_left_handed());
 
-            print_object->set_instances(new_instances);
+            print_object->set_instances(std::move(new_instances));
             print_object->config_apply(config, true);
             print_objects_new.emplace_back(print_object);
             new_objects = true;
@@ -567,41 +573,64 @@ sla::SupportConfig make_support_cfg(const SLAPrintObjectConfig& c) {
     return scfg;
 }
 
-void swapXY(ExPolygon& expoly) {
-    for(auto& p : expoly.contour.points) std::swap(p(X), p(Y));
-    for(auto& h : expoly.holes) for(auto& p : h.points) std::swap(p(X), p(Y));
+sla::PoolConfig make_pool_config(const SLAPrintObjectConfig& c) {
+    sla::PoolConfig pcfg;
+
+    pcfg.min_wall_thickness_mm = c.pad_wall_thickness.getFloat();
+    pcfg.wall_slope = c.pad_wall_slope.getFloat();
+    pcfg.edge_radius_mm = c.pad_edge_radius.getFloat();
+    pcfg.max_merge_distance_mm = c.pad_max_merge_distance.getFloat();
+    pcfg.min_wall_height_mm = c.pad_wall_height.getFloat();
+
+    return pcfg;
+}
 }
 
-}
-
-std::vector<float> SLAPrint::calculate_heights(const BoundingBoxf3& bb3d,
-                                               float elevation,
-                                               float initial_layer_height,
-                                               float layer_height) const
+std::string SLAPrint::validate() const
 {
-    std::vector<float> heights;
-    float minZ = float(bb3d.min(Z)) - float(elevation);
-    float maxZ = float(bb3d.max(Z));
-    auto flh = float(layer_height);
-    auto gnd = float(bb3d.min(Z));
+    for(SLAPrintObject * po : m_objects) {
 
-    for(float h = minZ + initial_layer_height; h < maxZ; h += flh)
-        if(h >= gnd) heights.emplace_back(h);
+        const ModelObject *mo = po->model_object();
 
-    return heights;
+        if(po->config().supports_enable.getBool() &&
+           mo->sla_points_status == sla::PointsStatus::UserModified &&
+           mo->sla_support_points.empty())
+            return L("Cannot proceed without support points! "
+                     "Add support points or disable support generation.");
+
+        sla::SupportConfig cfg = make_support_cfg(po->config());
+
+        double pinhead_width =
+                2 * cfg.head_front_radius_mm +
+                cfg.head_width_mm +
+                2 * cfg.head_back_radius_mm -
+                cfg.head_penetration_mm;
+
+        if(pinhead_width > cfg.object_elevation_mm)
+            return L("Elevation is too low for object.");
+    }
+
+    return "";
 }
 
-template<class...Args>
-void report_status(SLAPrint& p, int st, const std::string& msg, Args&&...args) {
-    BOOST_LOG_TRIVIAL(info) << st << "% " << msg;
-    p.set_status(st, msg, std::forward<Args>(args)...);
-}
+bool SLAPrint::invalidate_step(SLAPrintStep step)
+{
+    bool invalidated = Inherited::invalidate_step(step);
 
+    // propagate to dependent steps
+    if (step == slapsMergeSlicesAndEval) {
+        invalidated |= this->invalidate_all_steps();
+    }
+
+    return invalidated;
+}
 
 void SLAPrint::process()
 {
     using namespace sla;
     using ExPolygon = Slic3r::ExPolygon;
+
+    if(m_objects.empty()) return;
 
     // Assumption: at this point the print objects should be populated only with
     // the model objects we have to process and the instances are also filtered
@@ -609,10 +638,12 @@ void SLAPrint::process()
     // shortcut to initial layer height
     double ilhd = m_material_config.initial_layer_height.getFloat();
     auto   ilh  = float(ilhd);
+
+    auto ilhs = coord_t(ilhd / SCALING_FACTOR);
     const size_t objcount = m_objects.size();
 
     const unsigned min_objstatus = 0;   // where the per object operations start
-    const unsigned max_objstatus = PRINT_STEP_LEVELS[slapsRasterize];  // where the per object operations end
+    const unsigned max_objstatus = 50;  // where the per object operations end
 
     // the coefficient that multiplies the per object status values which
     // are set up for <0, 100>. They need to be scaled into the whole process
@@ -629,24 +660,65 @@ void SLAPrint::process()
 
     // Slicing the model object. This method is oversimplified and needs to
     // be compared with the fff slicing algorithm for verification
-    auto slice_model = [this, ilh](SLAPrintObject& po) {
-        double lh = po.m_config.layer_height.getFloat();
-
+    auto slice_model = [this, ilhs, ilh](SLAPrintObject& po) {
         TriangleMesh mesh = po.transformed_mesh();
+
+        // We need to prepare the slice index...
+
+        double lhd  = m_objects.front()->m_config.layer_height.getFloat();
+        float  lh   = float(lhd);
+        auto   lhs  = coord_t(lhd  / SCALING_FACTOR);
+
+        auto&& bb3d = mesh.bounding_box();
+        double minZ = bb3d.min(Z) - po.get_elevation();
+        double maxZ = bb3d.max(Z);
+
+        auto minZs = coord_t(minZ / SCALING_FACTOR);
+        auto maxZs = coord_t(maxZ / SCALING_FACTOR);
+
+        po.m_slice_index.clear();
+        po.m_slice_index.reserve(size_t(maxZs - (minZs + ilhs) / lhs) + 1);
+        po.m_slice_index.emplace_back(minZs + ilhs, float(minZ) + ilh / 2.f, ilh);
+
+        for(coord_t h = minZs + ilhs + lhs; h <= maxZs; h += lhs) {
+            po.m_slice_index.emplace_back(h, float(h*SCALING_FACTOR) - lh / 2.f, lh);
+        }
+
+        // Just get the first record that is form the model:
+        auto slindex_it =
+                po.closest_slice_record(po.m_slice_index, float(bb3d.min(Z)));
+
+        if(slindex_it == po.m_slice_index.end())
+            throw std::runtime_error(L("Slicing had to be stopped "
+                                       "due to an internal error."));
+
+        po.m_model_height_levels.clear();
+        po.m_model_height_levels.reserve(po.m_slice_index.size());
+        for(auto it = slindex_it; it != po.m_slice_index.end(); ++it)
+        {
+            po.m_model_height_levels.emplace_back(it->slice_level());
+        }
+
         TriangleMeshSlicer slicer(&mesh);
 
-        // The 1D grid heights
-        std::vector<float> heights = calculate_heights(mesh.bounding_box(),
-                                                       float(po.get_elevation()),
-                                                       ilh, float(lh));
+        po.m_model_slices.clear();
+        slicer.slice(po.m_model_height_levels,
+                     float(po.config().slice_closing_radius.value),
+                     &po.m_model_slices,
+                     [this](){ throw_if_canceled(); });
 
-        auto& layers = po.m_model_slices; layers.clear();
-		slicer.slice(heights, float(po.config().slice_closing_radius.value), &layers, [this](){ throw_if_canceled(); });
+        auto mit = slindex_it;
+        for(size_t id = 0;
+            id < po.m_model_slices.size() && mit != po.m_slice_index.end();
+            id++)
+        {
+            mit->set_model_slice_idx(po, id); ++mit;
+        }
     };
 
     // In this step we check the slices, identify island and cover them with
     // support points. Then we sprinkle the rest of the mesh.
-    auto support_points = [this, ilh](SLAPrintObject& po) {
+    auto support_points = [this, ostepd](SLAPrintObject& po) {
         const ModelObject& mo = *po.m_model_object;
         po.m_supportdata.reset(
                     new SLAPrintObject::SupportData(po.transformed_mesh()) );
@@ -662,13 +734,14 @@ void SLAPrint::process()
         // into the backend cache.
         if (mo.sla_points_status != sla::PointsStatus::UserModified) {
 
-            // calculate heights of slices (slices are calculated already)
-            double lh = po.m_config.layer_height.getFloat();
+            // Hypotetical use of the slice index:
+            // auto bb = po.transformed_mesh().bounding_box();
+            // auto range = po.get_slice_records(bb.min(Z));
+            // std::vector<float> heights; heights.reserve(range.size());
+            // for(auto& record : range) heights.emplace_back(record.slice_level());
 
-            std::vector<float> heights =
-                    calculate_heights(po.transformed_mesh().bounding_box(),
-                                      float(po.get_elevation()),
-                                      ilh, float(lh));
+            // calculate heights of slices (slices are calculated already)
+            const std::vector<float>& heights = po.m_model_height_levels;
 
             this->throw_if_canceled();
             SLAAutoSupports::Config config;
@@ -679,6 +752,19 @@ void SLAPrint::process()
             config.minimal_distance = float(cfg.support_points_minimal_distance);
             config.head_diameter    = float(cfg.support_head_front_diameter);
 
+            // scaling for the sub operations
+            double d = ostepd * OBJ_STEP_LEVELS[slaposSupportPoints] / 100.0;
+            double init = m_report_status.status();
+
+            auto statuscb = [this, d, init](unsigned st)
+            {
+                double current = init + st * d;
+                if(std::round(m_report_status.status()) < std::round(current))
+                    m_report_status(*this, current,
+                                    OBJ_STEP_LABELS[slaposSupportPoints]);
+
+            };
+
             // Construction of this object does the calculation.
             this->throw_if_canceled();
             SLAAutoSupports auto_supports(po.transformed_mesh(),
@@ -686,7 +772,8 @@ void SLAPrint::process()
                                           po.get_model_slices(),
                                           heights,
                                           config, 
-                                          [this]() { throw_if_canceled(); });
+                                          [this]() { throw_if_canceled(); },
+                                          statuscb);
 
             // Now let's extract the result.
             const std::vector<sla::SupportPoint>& points = auto_supports.output();
@@ -697,7 +784,7 @@ void SLAPrint::process()
                                      << po.m_supportdata->support_points.size();
 
             // Using RELOAD_SLA_SUPPORT_POINTS to tell the Plater to pass the update status to GLGizmoSlaSupports
-            report_status(*this, -1, L("Generating support points"), SlicingStatus::RELOAD_SLA_SUPPORT_POINTS);
+            m_report_status(*this, -1, L("Generating support points"), SlicingStatus::RELOAD_SLA_SUPPORT_POINTS);
         }
         else {
             // There are either some points on the front-end, or the user removed them on purpose. No calculation will be done.
@@ -706,7 +793,8 @@ void SLAPrint::process()
     };
 
     // In this step we create the supports
-    auto support_tree = [this, objcount, ostepd](SLAPrintObject& po) {
+    auto support_tree = [this, ostepd](SLAPrintObject& po)
+    {
         if(!po.m_supportdata) return;
 
         if(!po.m_config.supports_enable.getBool()) {
@@ -718,22 +806,17 @@ void SLAPrint::process()
         sla::SupportConfig scfg = make_support_cfg(po.m_config);
         sla::Controller ctl;
 
-        // some magic to scale the status values coming from the support
-        // tree creation into the whole print process
-        auto stfirst = OBJ_STEP_LEVELS.begin();
-        auto stthis = stfirst + slaposSupportTree;
-        // we need to add up the status portions until this operation
-        int init = std::accumulate(stfirst, stthis, 0);
-        init = int(init * ostepd);     // scale the init portion
-
         // scaling for the sub operations
-        double d = *stthis / (objcount * 100.0);
+        double d = ostepd * OBJ_STEP_LEVELS[slaposSupportTree] / 100.0;
+        double init = m_report_status.status();
 
-        ctl.statuscb = [this, init, d](unsigned st, const std::string& msg)
+        ctl.statuscb = [this, d, init](unsigned st, const std::string&)
         {
-            //FIXME this status line scaling does not seem to be correct.
-            // How does it account for an increasing object index?
-            report_status(*this, int(init + st*d), msg);
+            double current = init + st * d;
+            if(std::round(m_report_status.status()) < std::round(current))
+                m_report_status(*this, current,
+                                OBJ_STEP_LABELS[slaposSupportTree]);
+
         };
 
         ctl.stopcondition = [this](){ return canceled(); };
@@ -749,7 +832,7 @@ void SLAPrint::process()
         auto rc = SlicingStatus::RELOAD_SCENE;
 
         // This is to prevent "Done." being displayed during merged_mesh()
-        report_status(*this, -1, L("Visualizing supports"));
+        m_report_status(*this, -1, L("Visualizing supports"));
         po.m_supportdata->support_tree_ptr->merged_mesh();
 
         BOOST_LOG_TRIVIAL(debug) << "Processed support point count "
@@ -759,8 +842,7 @@ void SLAPrint::process()
         if(po.support_mesh().empty())
             BOOST_LOG_TRIVIAL(warning) << "Support mesh is empty";
 
-        report_status(*this, -1, L("Visualizing supports"), rc);
-
+        m_report_status(*this, -1, L("Visualizing supports"), rc);
     };
 
     // This step generates the sla base pad
@@ -808,134 +890,357 @@ void SLAPrint::process()
 
         po.throw_if_canceled();
         auto rc = SlicingStatus::RELOAD_SCENE;
-        report_status(*this, -1, L("Visualizing supports"), rc);
+        m_report_status(*this, -1, L("Visualizing supports"), rc);
     };
 
     // Slicing the support geometries similarly to the model slicing procedure.
     // If the pad had been added previously (see step "base_pool" than it will
     // be part of the slices)
-    auto slice_supports = [ilh](SLAPrintObject& po) {
+    auto slice_supports = [this](SLAPrintObject& po) {
         auto& sd = po.m_supportdata;
+
+        if(sd) sd->support_slices.clear();
+
         if(sd && sd->support_tree_ptr) {
-            auto lh = float(po.m_config.layer_height.getFloat());
-            sd->support_slices = sd->support_tree_ptr->slice(lh, ilh);
-        }
-    };
 
-    // We have the layer polygon collection but we need to unite them into
-    // an index where the key is the height level in discrete levels (clipper)
-    auto index_slices = [this, ilhd](SLAPrintObject& po) {
-        po.m_slice_index.clear();
-        auto sih = LevelID(scale_(ilhd));
+            std::vector<float> heights; heights.reserve(po.m_slice_index.size());
 
-        // Establish the slice grid boundaries
-        auto bb = po.transformed_mesh().bounding_box();
-        double modelgnd = bb.min(Z);
-        double elevation = po.get_elevation();
-        double lh = po.m_config.layer_height.getFloat();
-        double minZ = modelgnd - elevation;
-
-        // scaled values:
-        auto sminZ = LevelID(scale_(minZ));
-        auto smaxZ = LevelID(scale_(bb.max(Z)));
-        auto smodelgnd = LevelID(scale_(modelgnd));
-        auto slh = LevelID(scale_(lh));
-
-        // It is important that the next levels match the levels in
-        // model_slice method. Only difference is that here it works with
-        // scaled coordinates
-        po.m_level_ids.clear();
-        for(LevelID h = sminZ + sih; h < smaxZ; h += slh)
-            if(h >= smodelgnd) po.m_level_ids.emplace_back(h);
-
-        std::vector<ExPolygons>& oslices = po.m_model_slices;
-
-        // If everything went well this code should not run at all, but
-        // let's be robust...
-        // assert(levelids.size() == oslices.size());
-        if(po.m_level_ids.size() < oslices.size()) { // extend the levels until...
-
-            BOOST_LOG_TRIVIAL(warning)
-                    << "Height level mismatch at rasterization!\n";
-
-            LevelID lastlvl = po.m_level_ids.back();
-            while(po.m_level_ids.size() < oslices.size()) {
-                lastlvl += slh;
-                po.m_level_ids.emplace_back(lastlvl);
+            for(auto& rec : po.m_slice_index) {
+                heights.emplace_back(rec.slice_level());
             }
+
+            sd->support_slices = sd->support_tree_ptr->slice(
+                        heights, float(po.config().slice_closing_radius.value));
         }
 
-        for(size_t i = 0; i < oslices.size(); ++i) {
-            LevelID h = po.m_level_ids[i];
-
-            float fh = float(double(h) * SCALING_FACTOR);
-
-            // now for the public slice index:
-            SLAPrintObject::SliceRecord& sr = po.m_slice_index[fh];
-            // There should be only one slice layer for each print object
-            assert(sr.model_slices_idx == SLAPrintObject::SliceRecord::NONE);
-            sr.model_slices_idx = i;
-        }
-
-        if(po.m_supportdata) { // deal with the support slices if present
-            std::vector<ExPolygons>& sslices = po.m_supportdata->support_slices;
-            po.m_supportdata->level_ids.clear();
-            po.m_supportdata->level_ids.reserve(sslices.size());
-
-            for(int i = 0; i < int(sslices.size()); ++i) {
-                LevelID h = sminZ + sih + i * slh;
-                po.m_supportdata->level_ids.emplace_back(h);
-
-                float fh = float(double(h) * SCALING_FACTOR);
-
-                SLAPrintObject::SliceRecord& sr = po.m_slice_index[fh];
-                assert(sr.support_slices_idx == SLAPrintObject::SliceRecord::NONE);
-                sr.support_slices_idx = SLAPrintObject::SliceRecord::Idx(i);
-            }
+        for(size_t i = 0;
+            i < sd->support_slices.size() && i < po.m_slice_index.size();
+            ++i)
+        {
+            po.m_slice_index[i].set_support_slice_idx(po, i);
         }
 
         // Using RELOAD_SLA_PREVIEW to tell the Plater to pass the update status to the 3D preview to load the SLA slices.
-        report_status(*this, -2, "", SlicingStatus::RELOAD_SLA_PREVIEW);
+        m_report_status(*this, -2, "", SlicingStatus::RELOAD_SLA_PREVIEW);
+    };
+
+    // Merging the slices from all the print objects into one slice grid and
+    // calculating print statistics from the merge result.
+    auto merge_slices_and_eval_stats = [this, ilhs]() {
+
+        // clear the rasterizer input
+        m_printer_input.clear();
+
+        size_t mx = 0;
+        for(SLAPrintObject * o : m_objects) {
+            if(auto m = o->get_slice_index().size() > mx) mx = m;
+        }
+
+        m_printer_input.reserve(mx);
+
+        auto eps = coord_t(SCALED_EPSILON);
+
+        for(SLAPrintObject * o : m_objects) {
+            coord_t gndlvl = o->get_slice_index().front().print_level() - ilhs;
+
+            for(const SliceRecord& slicerecord : o->get_slice_index()) {
+                coord_t lvlid = slicerecord.print_level() - gndlvl;
+
+                // Neat trick to round the layer levels to the grid.
+                lvlid = eps * (lvlid / eps);
+
+                auto it = std::lower_bound(m_printer_input.begin(),
+                                           m_printer_input.end(),
+                                           PrintLayer(lvlid));
+
+                if(it == m_printer_input.end() || it->level() != lvlid)
+                    it = m_printer_input.insert(it, PrintLayer(lvlid));
+
+
+                it->add(slicerecord);
+            }
+        }
+
+        m_print_statistics.clear();
+
+        using ClipperPoint  = ClipperLib::IntPoint;
+        using ClipperPolygon = ClipperLib::Polygon; // see clipper_polygon.hpp in libnest2d
+        using ClipperPolygons = std::vector<ClipperPolygon>;
+        namespace sl = libnest2d::shapelike;    // For algorithms
+
+        // If the raster has vertical orientation, we will flip the coordinates
+        bool flpXY = m_printer_config.display_orientation.getInt() == SLADisplayOrientation::sladoPortrait;
+
+        // Set up custom union and diff functions for clipper polygons
+        auto polyunion = [] (const ClipperPolygons& subjects)
+        {
+            ClipperLib::Clipper clipper;
+
+            bool closed = true;
+
+            for(auto& path : subjects) {
+                clipper.AddPath(path.Contour, ClipperLib::ptSubject, closed);
+                clipper.AddPaths(path.Holes, ClipperLib::ptSubject, closed);
+            }
+
+            auto mode = ClipperLib::pftPositive;
+
+            return libnest2d::clipper_execute(clipper, ClipperLib::ctUnion, mode, mode);
+        };
+
+        auto polydiff = [](const ClipperPolygons& subjects, const ClipperPolygons& clips)
+        {
+            ClipperLib::Clipper clipper;
+
+            bool closed = true;
+
+            for(auto& path : subjects) {
+                clipper.AddPath(path.Contour, ClipperLib::ptSubject, closed);
+                clipper.AddPaths(path.Holes, ClipperLib::ptSubject, closed);
+            }
+
+            for(auto& path : clips) {
+                clipper.AddPath(path.Contour, ClipperLib::ptClip, closed);
+                clipper.AddPaths(path.Holes, ClipperLib::ptClip, closed);
+            }
+
+            auto mode = ClipperLib::pftPositive;
+
+            return libnest2d::clipper_execute(clipper, ClipperLib::ctDifference, mode, mode);
+        };
+
+        // libnest calculates positive area for clockwise polygons, Slic3r is in counter-clockwise
+        auto areafn = [](const ClipperPolygon& poly) { return - sl::area(poly); };
+
+        const double area_fill          = m_printer_config.area_fill.getFloat()*0.01;// 0.5 (50%);
+        const double fast_tilt          = m_printer_config.fast_tilt_time.getFloat();// 5.0;
+        const double slow_tilt          = m_printer_config.slow_tilt_time.getFloat();// 8.0;
+
+        const double init_exp_time      = m_material_config.initial_exposure_time.getFloat();
+        const double exp_time           = m_material_config.exposure_time.getFloat();
+
+        const int    fade_layers_cnt    = m_default_object_config.faded_layers.getInt();// 10 // [3;20]
+
+        const double width              = m_printer_config.display_width.getFloat() / SCALING_FACTOR;
+        const double height             = m_printer_config.display_height.getFloat() / SCALING_FACTOR;
+        const double display_area       = width*height;
+
+        // get polygons for all instances in the object
+        auto get_all_polygons =
+                [flpXY](const ExPolygons& input_polygons,
+                        const std::vector<SLAPrintObject::Instance>& instances,
+                        bool is_lefthanded)
+        {
+            ClipperPolygons polygons;
+            polygons.reserve(input_polygons.size() * instances.size());
+
+            for (const ExPolygon& polygon : input_polygons) {
+                if(polygon.contour.empty()) continue;
+
+                for (size_t i = 0; i < instances.size(); ++i)
+                {
+                    ClipperPolygon poly;
+
+                    // We need to reverse if flpXY OR is_lefthanded is true but
+                    // not if both are true which is a logical inequality (XOR)
+                    bool needreverse = flpXY != is_lefthanded;
+
+                    // should be a move
+                    poly.Contour.reserve(polygon.contour.size() + 1);
+
+                    auto& cntr = polygon.contour.points;
+                    if(needreverse)
+                        for(auto it = cntr.rbegin(); it != cntr.rend(); ++it)
+                            poly.Contour.emplace_back(it->x(), it->y());
+                    else
+                        for(auto& p : cntr)
+                            poly.Contour.emplace_back(p.x(), p.y());
+
+                    for(auto& h : polygon.holes) {
+                        poly.Holes.emplace_back();
+                        auto& hole = poly.Holes.back();
+                        hole.reserve(h.points.size() + 1);
+
+                        if(needreverse)
+                            for(auto it = h.points.rbegin(); it != h.points.rend(); ++it)
+                                hole.emplace_back(it->x(), it->y());
+                        else
+                            for(auto& p : h.points)
+                                hole.emplace_back(p.x(), p.y());
+                    }
+
+                    if(is_lefthanded) {
+                        for(auto& p : poly.Contour) p.X = -p.X;
+                        for(auto& h : poly.Holes) for(auto& p : h) p.X = -p.X;
+                    }
+
+                    sl::rotate(poly, double(instances[i].rotation));
+                    sl::translate(poly, ClipperPoint{instances[i].shift(X),
+                                                     instances[i].shift(Y)});
+
+                    if (flpXY) {
+                        for(auto& p : poly.Contour) std::swap(p.X, p.Y);
+                        for(auto& h : poly.Holes) for(auto& p : h) std::swap(p.X, p.Y);
+                    }
+
+                    polygons.emplace_back(std::move(poly));
+                }
+            }
+            return polygons;
+        };
+
+        double supports_volume(0.0);
+        double models_volume(0.0);
+
+        double estim_time(0.0);
+
+        size_t slow_layers = 0;
+        size_t fast_layers = 0;
+
+        const double delta_fade_time = (init_exp_time - exp_time) / (fade_layers_cnt + 1);
+        double fade_layer_time = init_exp_time;
+
+        SpinMutex mutex;
+        using Lock = std::lock_guard<SpinMutex>;
+
+        // Going to parallel:
+        auto printlayerfn = [this,
+                // functions and read only vars
+                get_all_polygons, polyunion, polydiff, areafn,
+                area_fill, display_area, exp_time, init_exp_time, fast_tilt, slow_tilt, delta_fade_time,
+
+                // write vars
+                &mutex, &models_volume, &supports_volume, &estim_time, &slow_layers,
+                &fast_layers, &fade_layer_time](size_t sliced_layer_cnt)
+        {
+            PrintLayer& layer = m_printer_input[sliced_layer_cnt];
+
+            // vector of slice record references
+            auto& slicerecord_references = layer.slices();
+
+            if(slicerecord_references.empty()) return;
+
+            // Layer height should match for all object slices for a given level.
+            const auto l_height = double(slicerecord_references.front().get().layer_height());
+
+            // Calculation of the consumed material
+
+            ClipperPolygons model_polygons;
+            ClipperPolygons supports_polygons;
+
+            size_t c = std::accumulate(layer.slices().begin(), layer.slices().end(), 0u, [](size_t a, const SliceRecord& sr) {
+                                           return a + sr.get_slice(soModel).size();
+                                       });
+
+            model_polygons.reserve(c);
+
+            c = std::accumulate(layer.slices().begin(), layer.slices().end(), 0u, [](size_t a, const SliceRecord& sr) {
+                                    return a + sr.get_slice(soModel).size();
+                                });
+
+            supports_polygons.reserve(c);
+
+            for(const SliceRecord& record : layer.slices()) {
+                const SLAPrintObject *po = record.print_obj();
+
+                const ExPolygons &modelslices = record.get_slice(soModel);
+                bool is_lefth = record.print_obj()->is_left_handed();
+                if (!modelslices.empty()) {
+                    ClipperPolygons v = get_all_polygons(modelslices, po->instances(), is_lefth);
+                    for(ClipperPolygon& p_tmp : v) model_polygons.emplace_back(std::move(p_tmp));
+                }
+
+                const ExPolygons &supportslices = record.get_slice(soSupport);
+                if (!supportslices.empty()) {
+                    ClipperPolygons v = get_all_polygons(supportslices, po->instances(), is_lefth);
+                    for(ClipperPolygon& p_tmp : v) supports_polygons.emplace_back(std::move(p_tmp));
+                }
+            }
+
+            model_polygons = polyunion(model_polygons);
+            double layer_model_area = 0;
+            for (const ClipperPolygon& polygon : model_polygons)
+                layer_model_area += areafn(polygon);
+
+            if (layer_model_area < 0 || layer_model_area > 0) {
+                Lock lck(mutex); models_volume += layer_model_area * l_height;
+            }
+
+            if(!supports_polygons.empty()) {
+                if(model_polygons.empty()) supports_polygons = polyunion(supports_polygons);
+                else supports_polygons = polydiff(supports_polygons, model_polygons);
+                // allegedly, union of subject is done withing the diff according to the pftPositive polyFillType
+            }
+
+            double layer_support_area = 0;
+            for (const ClipperPolygon& polygon : supports_polygons)
+                layer_support_area += areafn(polygon);
+
+            if (layer_support_area < 0 || layer_support_area > 0) {
+                Lock lck(mutex); supports_volume += layer_support_area * l_height;
+            }
+
+            // Here we can save the expensively calculated polygons for printing
+            ClipperPolygons trslices;
+            trslices.reserve(model_polygons.size() + supports_polygons.size());
+            for(ClipperPolygon& poly : model_polygons) trslices.emplace_back(std::move(poly));
+            for(ClipperPolygon& poly : supports_polygons) trslices.emplace_back(std::move(poly));
+
+            layer.transformed_slices(polyunion(trslices));
+
+            // Calculation of the slow and fast layers to the future controlling those values on FW
+
+            const bool is_fast_layer = (layer_model_area + layer_support_area) <= display_area*area_fill;
+            const double tilt_time = is_fast_layer ? fast_tilt : slow_tilt;
+
+            { Lock lck(mutex);
+                if (is_fast_layer)
+                    fast_layers++;
+                else
+                    slow_layers++;
+
+
+                // Calculation of the printing time
+
+                if (sliced_layer_cnt < 3)
+                    estim_time += init_exp_time;
+                else if (fade_layer_time > exp_time)
+                {
+                    fade_layer_time -= delta_fade_time;
+                    estim_time += fade_layer_time;
+                }
+                else
+                    estim_time += exp_time;
+
+                estim_time += tilt_time;
+            }
+        };
+
+        // sequential version for debugging:
+        // for(size_t i = 0; i < m_printer_input.size(); ++i) printlayerfn(i);
+        tbb::parallel_for<size_t, decltype(printlayerfn)>(0, m_printer_input.size(), printlayerfn);
+
+        m_print_statistics.support_used_material = supports_volume * SCALING_FACTOR * SCALING_FACTOR;
+        m_print_statistics.objects_used_material = models_volume  * SCALING_FACTOR * SCALING_FACTOR;
+
+        // Estimated printing time
+        // A layers count o the highest object
+        if (m_printer_input.size() == 0)
+            m_print_statistics.estimated_print_time = "N/A";
+        else
+            m_print_statistics.estimated_print_time = get_time_dhms(float(estim_time));
+
+        m_print_statistics.fast_layers_count = fast_layers;
+        m_print_statistics.slow_layers_count = slow_layers;
+
+        m_report_status(*this, -2, "", SlicingStatus::RELOAD_SLA_PREVIEW);
     };
 
     // Rasterizing the model objects, and their supports
     auto rasterize = [this, max_objstatus]() {
         if(canceled()) return;
 
-        // clear the rasterizer input
-        m_printer_input.clear();
-
-        for(SLAPrintObject * o : m_objects) {
-            auto& po = *o;
-            std::vector<ExPolygons>& oslices = po.m_model_slices;
-
-            // We need to adjust the min Z level of the slices to be zero
-            LevelID smfirst =
-                    po.m_supportdata && !po.m_supportdata->level_ids.empty() ?
-                        po.m_supportdata->level_ids.front() : 0;
-            LevelID mfirst = po.m_level_ids.empty()? 0 : po.m_level_ids.front();
-            LevelID gndlvl = -(std::min(smfirst, mfirst));
-
-            // now merge this object's support and object slices with the rest
-            // of the print object slices
-
-            for(size_t i = 0; i < oslices.size(); ++i) {
-                auto& lyrs = m_printer_input[gndlvl + po.m_level_ids[i]];
-                lyrs.emplace_back(oslices[i], po.m_instances);
-            }
-
-            if(!po.m_supportdata) continue;
-            std::vector<ExPolygons>& sslices = po.m_supportdata->support_slices;
-            for(size_t i = 0; i < sslices.size(); ++i) {
-                LayerRefs& lyrs =
-                       m_printer_input[gndlvl + po.m_supportdata->level_ids[i]];
-                lyrs.emplace_back(sslices[i], po.m_instances);
-            }
-        }
-
         // collect all the keys
-        std::vector<long long> keys; keys.reserve(m_printer_input.size());
-        for(auto& e : m_printer_input) keys.emplace_back(e.first);
 
         // If the raster has vertical orientation, we will flip the coordinates
         bool flpXY = m_printer_config.display_orientation.getInt() ==
@@ -967,55 +1272,49 @@ void SLAPrint::process()
         auto lvlcnt = unsigned(m_printer_input.size());
         printer.layers(lvlcnt);
 
-        // slot is the portion of 100% that is realted to rasterization
-        unsigned slot = PRINT_STEP_LEVELS[slapsRasterize];
-        // ist: initial state; pst: previous state
-        unsigned ist = max_objstatus, pst = ist;
         // coefficient to map the rasterization state (0-99) to the allocated
         // portion (slot) of the process state
-        double sd = (100 - ist) / 100.0;
+        double sd = (100 - max_objstatus) / 100.0;
+
+        // slot is the portion of 100% that is realted to rasterization
+        unsigned slot = PRINT_STEP_LEVELS[slapsRasterize];
+
+        // pst: previous state
+        double pst = m_report_status.status();
+
+        double increment = (slot * sd) / m_printer_input.size();
+        double dstatus = m_report_status.status();
+
         SpinMutex slck;
 
         // procedure to process one height level. This will run in parallel
         auto lvlfn =
-        [this, &slck, &keys, &printer, slot, sd, ist, &pst, flpXY]
+        [this, &slck, &printer, increment, &dstatus, &pst]
             (unsigned level_id)
         {
             if(canceled()) return;
 
-            LayerRefs& lrange = m_printer_input[keys[level_id]];
+            PrintLayer& printlayer = m_printer_input[level_id];
 
             // Switch to the appropriate layer in the printer
             printer.begin_layer(level_id);
 
-            for(auto& lyrref : lrange) { // for all layers in the current level
-                if(canceled()) break;
-                const Layer& sl = lyrref.lref;   // get the layer reference
-                const LayerCopies& copies = lyrref.copies;
-
-                // Draw all the polygons in the slice to the actual layer.
-                for(auto& cp : copies) {
-                    for(ExPolygon slice : sl) {
-                        // The order is important here:
-                        // apply rotation before translation...
-                        slice.rotate(double(cp.rotation));
-                        slice.translate(cp.shift(X), cp.shift(Y));
-                        if(flpXY) swapXY(slice);
-                        printer.draw_polygon(slice, level_id);
-                    }
-                }
-            }
+            for(const ClipperLib::Polygon& poly : printlayer.transformed_slices())
+                printer.draw_polygon(poly, level_id);
 
             // Finish the layer for later saving it.
             printer.finish_layer(level_id);
 
             // Status indication guarded with the spinlock
-            auto st = ist + unsigned(sd*level_id*slot/m_printer_input.size());
-            { std::lock_guard<SpinMutex> lck(slck);
-            if( st > pst) {
-                report_status(*this, int(st), PRINT_STEP_LABELS[slapsRasterize]);
-                pst = st;
-            }
+            {
+                std::lock_guard<SpinMutex> lck(slck);
+                dstatus += increment;
+                double st = std::round(dstatus);
+                if(st > pst) {
+                    m_report_status(*this, st,
+                                    PRINT_STEP_LABELS[slapsRasterize]);
+                    pst = st;
+                }
             }
         };
 
@@ -1028,8 +1327,6 @@ void SLAPrint::process()
         // Print all the layers in parallel
         tbb::parallel_for<unsigned, decltype(lvlfn)>(0, lvlcnt, lvlfn);
 
-        // Fill statistics
-        this->fill_statistics();
         // Set statistics values to the printer
         m_printer->set_statistics({(m_print_statistics.objects_used_material + m_print_statistics.support_used_material)/1000,
                                 double(m_default_object_config.faded_layers.getInt()),
@@ -1047,17 +1344,16 @@ void SLAPrint::process()
         support_points,
         support_tree,
         base_pool,
-        slice_supports,
-        index_slices
+        slice_supports
     };
 
     std::array<slapsFn, slapsCount> print_program =
     {
-        rasterize,
-        [](){}  // validate
+        merge_slices_and_eval_stats,
+        rasterize
     };
 
-    unsigned st = min_objstatus;
+    double st = min_objstatus;
     unsigned incr = 0;
 
     BOOST_LOG_TRIVIAL(info) << "Start slicing process.";
@@ -1071,18 +1367,18 @@ void SLAPrint::process()
 
             BOOST_LOG_TRIVIAL(info) << "Slicing object " << po->model_object()->name;
 
-            for (int s = (int)step_ranges[idx_range]; s < (int)step_ranges[idx_range + 1]; ++s) {
-                auto currentstep = (SLAPrintObjectStep)s;
+            for (int s = int(step_ranges[idx_range]); s < int(step_ranges[idx_range + 1]); ++s) {
+                auto currentstep = static_cast<SLAPrintObjectStep>(s);
 
                 // Cancellation checking. Each step will check for cancellation
                 // on its own and return earlier gracefully. Just after it returns
                 // execution gets to this point and throws the canceled signal.
                 throw_if_canceled();
 
-                st += unsigned(incr * ostepd);
+                st += incr * ostepd;
 
                 if(po->m_stepmask[currentstep] && po->set_started(currentstep)) {
-                    report_status(*this, int(st), OBJ_STEP_LABELS[currentstep]);
+                    m_report_status(*this, st, OBJ_STEP_LABELS[currentstep]);
                     pobj_program[currentstep](*po);
                     throw_if_canceled();
                     po->set_done(currentstep);
@@ -1094,7 +1390,7 @@ void SLAPrint::process()
     }
 
     std::array<SLAPrintStep, slapsCount> printsteps = {
-        slapsRasterize, slapsValidate
+        slapsMergeSlicesAndEval, slapsRasterize
     };
 
     // this would disable the rasterization step
@@ -1109,17 +1405,17 @@ void SLAPrint::process()
 
         if(m_stepmask[currentstep] && set_started(currentstep))
         {
-            report_status(*this, int(st), PRINT_STEP_LABELS[currentstep]);
+            m_report_status(*this, st, PRINT_STEP_LABELS[currentstep]);
             print_program[currentstep]();
             throw_if_canceled();
             set_done(currentstep);
         }
 
-        st += unsigned(PRINT_STEP_LEVELS[currentstep] * pstd);
+        st += PRINT_STEP_LEVELS[currentstep] * pstd;
     }
 
     // If everything vent well
-    report_status(*this, 100, L("Slicing done"));
+    m_report_status(*this, 100, L("Slicing done"));
 }
 
 bool SLAPrint::invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys)
@@ -1160,11 +1456,11 @@ bool SLAPrint::invalidate_state_by_config_options(const std::vector<t_config_opt
         if (steps_rasterize.find(opt_key) != steps_rasterize.end()) {
             // These options only affect the final rasterization, or they are just notes without influence on the output,
             // so there is nothing to invalidate.
-            steps.emplace_back(slapsRasterize);
+            steps.emplace_back(slapsMergeSlicesAndEval);
         } else if (steps_ignore.find(opt_key) != steps_ignore.end()) {
             // These steps have no influence on the output. Just ignore them.
         } else if (opt_key == "initial_layer_height") {
-            steps.emplace_back(slapsRasterize);
+            steps.emplace_back(slapsMergeSlicesAndEval);
             osteps.emplace_back(slaposObjectSlice);
         } else {
             // All values should be covered.
@@ -1180,166 +1476,6 @@ bool SLAPrint::invalidate_state_by_config_options(const std::vector<t_config_opt
         for (SLAPrintObject *object : m_objects)
             invalidated |= object->invalidate_step(ostep);
     return invalidated;
-}
-
-void SLAPrint::fill_statistics()
-{
-    const double init_layer_height  = m_material_config.initial_layer_height.getFloat();
-    const double layer_height       = m_default_object_config.layer_height.getFloat();
-
-    const double area_fill          = m_printer_config.area_fill.getFloat()*0.01;// 0.5 (50%);
-    const double fast_tilt          = m_printer_config.fast_tilt_time.getFloat();// 5.0;
-    const double slow_tilt          = m_printer_config.slow_tilt_time.getFloat();// 8.0;
-
-    const double init_exp_time      = m_material_config.initial_exposure_time.getFloat();
-    const double exp_time           = m_material_config.exposure_time.getFloat();
-
-    const int    fade_layers_cnt    = m_default_object_config.faded_layers.getInt();// 10 // [3;20]
-
-    const double width              = m_printer_config.display_width.getFloat() / SCALING_FACTOR;
-    const double height             = m_printer_config.display_height.getFloat() / SCALING_FACTOR;
-    const double display_area       = width*height;
-
-    // get polygons for all instances in the object
-    auto get_all_polygons = [](const ExPolygons& input_polygons, const std::vector<SLAPrintObject::Instance>& instances) {
-        const size_t inst_cnt = instances.size();
-
-        size_t polygon_cnt = 0;
-        for (const ExPolygon& polygon : input_polygons)
-			polygon_cnt += polygon.holes.size() + 1;
-
-        Polygons polygons;
-        polygons.reserve(polygon_cnt * inst_cnt);
-        for (const ExPolygon& polygon : input_polygons) {
-            for (size_t i = 0; i < inst_cnt; ++i)
-            {
-                ExPolygon tmp = polygon;
-                tmp.rotate(Geometry::rad2deg(instances[i].rotation));
-                tmp.translate(instances[i].shift.x(), instances[i].shift.y());
-                polygons_append(polygons, to_polygons(std::move(tmp)));
-            }
-        }
-        return polygons;
-    };
-
-    double supports_volume = 0.0;
-    double models_volume = 0.0;
-
-    double estim_time = 0.0;
-
-    size_t slow_layers = 0;
-    size_t fast_layers = 0;
-
-    // find highest object
-    // Which is a better bet? To compare by max_z or by number of layers in the index?
-    double max_z = 0.;
-	size_t max_layers_cnt = 0;
-    size_t highest_obj_idx = 0;
-	for (SLAPrintObject *&po : m_objects) {
-        const SLAPrintObject::SliceIndex& slice_index = po->get_slice_index();
-        if (! slice_index.empty()) {
-            double z = (-- slice_index.end())->first;
-            size_t cnt = slice_index.size();
-            //if (z > max_z) {
-            if (cnt > max_layers_cnt) {
-                max_layers_cnt = cnt;
-                max_z = z;
-                highest_obj_idx = &po - &m_objects.front();
-            }
-        }
-    }
-
-    const SLAPrintObject * highest_obj = m_objects[highest_obj_idx];
-    const SLAPrintObject::SliceIndex& highest_obj_slice_index = highest_obj->get_slice_index();
-
-    const double delta_fade_time = (init_exp_time - exp_time) / (fade_layers_cnt + 1);
-    double fade_layer_time = init_exp_time;
-
-    int sliced_layer_cnt = 0;
-    for (const auto& layer : highest_obj_slice_index)
-    {
-        const double l_height = (layer.first == highest_obj_slice_index.begin()->first) ? init_layer_height : layer_height;
-
-        // Calculation of the consumed material 
-
-        Polygons model_polygons;
-        Polygons supports_polygons;
-
-        for (SLAPrintObject * po : m_objects)
-        {
-            const SLAPrintObject::SliceRecord *record = nullptr;
-            {
-                const SLAPrintObject::SliceIndex& index = po->get_slice_index();
-                auto key = layer.first;
-				const SLAPrintObject::SliceIndex::const_iterator it_key = index.lower_bound(key - float(EPSILON));
-                if (it_key == index.end() || it_key->first > key + EPSILON)
-                    continue;
-                record = &it_key->second;
-            }
-
-            if (record->model_slices_idx != SLAPrintObject::SliceRecord::NONE)
-                append(model_polygons, get_all_polygons(po->get_model_slices()[record->model_slices_idx], po->instances()));
-            
-            if (record->support_slices_idx != SLAPrintObject::SliceRecord::NONE)
-                append(supports_polygons, get_all_polygons(po->get_support_slices()[record->support_slices_idx], po->instances()));
-        }
-        
-        model_polygons = union_(model_polygons);
-        double layer_model_area = 0;
-        for (const Polygon& polygon : model_polygons)
-            layer_model_area += polygon.area();
-
-        if (layer_model_area != 0)
-            models_volume += layer_model_area * l_height;
-
-        if (!supports_polygons.empty() && !model_polygons.empty())
-            supports_polygons = diff(supports_polygons, model_polygons);
-        double layer_support_area = 0;
-        for (const Polygon& polygon : supports_polygons)
-            layer_support_area += polygon.area();
-
-        if (layer_support_area != 0)
-            supports_volume += layer_support_area * l_height;
-
-        // Calculation of the slow and fast layers to the future controlling those values on FW
-
-        const bool is_fast_layer = (layer_model_area + layer_support_area) <= display_area*area_fill;
-        const double tilt_time = is_fast_layer ? fast_tilt : slow_tilt;
-        if (is_fast_layer)
-            fast_layers++;
-        else
-            slow_layers++;
-
-
-        // Calculation of the printing time
-
-        if (sliced_layer_cnt < 3)
-            estim_time += init_exp_time;
-        else if (fade_layer_time > exp_time)
-        {
-            fade_layer_time -= delta_fade_time;
-            estim_time += fade_layer_time;
-        }
-        else
-            estim_time += exp_time;
-
-        estim_time += tilt_time;
-
-        sliced_layer_cnt++;
-    }
-
-    m_print_statistics.support_used_material = supports_volume * SCALING_FACTOR * SCALING_FACTOR; 
-    m_print_statistics.objects_used_material = models_volume  * SCALING_FACTOR * SCALING_FACTOR;
-
-    // Estimated printing time
-    // A layers count o the highest object 
-    if (max_layers_cnt == 0)
-        m_print_statistics.estimated_print_time = "N/A";
-    else
-        m_print_statistics.estimated_print_time = get_time_dhms(float(estim_time));
-
-    m_print_statistics.fast_layers_count = fast_layers;
-    m_print_statistics.slow_layers_count = slow_layers;
 }
 
 // Returns true if an object step is done on all objects and there's at least one object.
@@ -1377,11 +1513,15 @@ bool SLAPrintObject::invalidate_state_by_config_options(const std::vector<t_conf
     for (const t_config_option_key &opt_key : opt_keys) {
 		if (   opt_key == "layer_height"
             || opt_key == "faded_layers"
+            || opt_key == "pad_enable"
+            || opt_key == "pad_wall_thickness"
+            || opt_key == "supports_enable"
+            || opt_key == "support_object_elevation"
             || opt_key == "slice_closing_radius") {
 			steps.emplace_back(slaposObjectSlice);
         } else if (
-               opt_key == "supports_enable"
-            || opt_key == "support_points_density_relative"
+
+               opt_key == "support_points_density_relative"
             || opt_key == "support_points_minimal_distance") {
             steps.emplace_back(slaposSupportPoints);
 		} else if (
@@ -1396,12 +1536,10 @@ bool SLAPrintObject::invalidate_state_by_config_options(const std::vector<t_conf
             || opt_key == "support_critical_angle"
             || opt_key == "support_max_bridge_length"
             || opt_key == "support_max_pillar_link_distance"
-            || opt_key == "support_object_elevation") {
+            ) {
             steps.emplace_back(slaposSupportTree);
         } else if (
-               opt_key == "pad_enable"
-            || opt_key == "pad_wall_thickness"
-            || opt_key == "pad_wall_height"
+               opt_key == "pad_wall_height"
             || opt_key == "pad_max_merge_distance"
             || opt_key == "pad_wall_slope"
             || opt_key == "pad_edge_radius") {
@@ -1425,19 +1563,16 @@ bool SLAPrintObject::invalidate_step(SLAPrintObjectStep step)
     if (step == slaposObjectSlice) {
         invalidated |= this->invalidate_all_steps();
     } else if (step == slaposSupportPoints) {
-        invalidated |= this->invalidate_steps({ slaposSupportTree, slaposBasePool, slaposSliceSupports, slaposIndexSlices });
-        invalidated |= m_print->invalidate_step(slapsRasterize);
+        invalidated |= this->invalidate_steps({ slaposSupportTree, slaposBasePool, slaposSliceSupports });
+        invalidated |= m_print->invalidate_step(slapsMergeSlicesAndEval);
     } else if (step == slaposSupportTree) {
-        invalidated |= this->invalidate_steps({ slaposBasePool, slaposSliceSupports, slaposIndexSlices });
-        invalidated |= m_print->invalidate_step(slapsRasterize);
+        invalidated |= this->invalidate_steps({ slaposBasePool, slaposSliceSupports });
+        invalidated |= m_print->invalidate_step(slapsMergeSlicesAndEval);
     } else if (step == slaposBasePool) {
-        invalidated |= this->invalidate_steps({slaposSliceSupports, slaposIndexSlices});
-        invalidated |= m_print->invalidate_step(slapsRasterize);
+        invalidated |= this->invalidate_steps({slaposSliceSupports});
+        invalidated |= m_print->invalidate_step(slapsMergeSlicesAndEval);
     } else if (step == slaposSliceSupports) {
-        invalidated |= this->invalidate_step(slaposIndexSlices);
-        invalidated |= m_print->invalidate_step(slapsRasterize);
-    } else if(step == slaposIndexSlices) {
-        invalidated |= m_print->invalidate_step(slapsRasterize);
+        invalidated |= m_print->invalidate_step(slapsMergeSlicesAndEval);
     }
     return invalidated;
 }
@@ -1457,11 +1592,7 @@ double SLAPrintObject::get_elevation() const {
         // its walls but currently it is half of its thickness. Whatever it
         // will be in the future, we provide the config to the get_pad_elevation
         // method and we will have the correct value
-        sla::PoolConfig pcfg;
-        pcfg.min_wall_height_mm = m_config.pad_wall_height.getFloat();
-        pcfg.min_wall_thickness_mm = m_config.pad_wall_thickness.getFloat();
-        pcfg.edge_radius_mm = m_config.pad_edge_radius.getFloat();
-        pcfg.max_merge_distance_mm = m_config.pad_max_merge_distance.getFloat();
+        sla::PoolConfig pcfg = make_pool_config(m_config);
         ret += sla::get_pad_elevation(pcfg);
     }
 
@@ -1485,7 +1616,10 @@ double SLAPrintObject::get_current_elevation() const
 namespace { // dummy empty static containers for return values in some methods
 const std::vector<ExPolygons> EMPTY_SLICES;
 const TriangleMesh EMPTY_MESH;
+const ExPolygons EMPTY_SLICE;
 }
+
+const SliceRecord SliceRecord::EMPTY(0, std::nanf(""), 0.f);
 
 const std::vector<sla::SupportPoint>& SLAPrintObject::get_support_points() const
 {
@@ -1499,16 +1633,19 @@ const std::vector<ExPolygons> &SLAPrintObject::get_support_slices() const
     return m_supportdata->support_slices;
 }
 
-const SLAPrintObject::SliceIndex &SLAPrintObject::get_slice_index() const
+const ExPolygons &SliceRecord::get_slice(SliceOrigin o) const
 {
-    // assert(is_step_done(slaposIndexSlices));
-    return m_slice_index;
-}
+    size_t idx = o == soModel ? m_model_slices_idx :
+                                m_support_slices_idx;
 
-const std::vector<ExPolygons> &SLAPrintObject::get_model_slices() const
-{
-    // assert(is_step_done(slaposObjectSlice));
-    return m_model_slices;
+    if(m_po == nullptr) return EMPTY_SLICE;
+
+    const std::vector<ExPolygons>& v = o == soModel? m_po->get_model_slices() :
+                                                     m_po->get_support_slices();
+
+    if(idx >= v.size()) return EMPTY_SLICE;
+
+    return idx >= v.size() ? EMPTY_SLICE : v[idx];
 }
 
 bool SLAPrintObject::has_mesh(SLAPrintObjectStep step) const
@@ -1602,7 +1739,8 @@ DynamicConfig SLAPrintStatistics::placeholders()
         "print_time", "total_cost", "total_weight",
         "objects_used_material", "support_used_material" })
         config.set_key_value(key, new ConfigOptionString(std::string("{") + key + "}"));
-        return config;
+
+    return config;
 }
 
 std::string SLAPrintStatistics::finalize_output_path(const std::string &path_in) const
@@ -1620,6 +1758,14 @@ std::string SLAPrintStatistics::finalize_output_path(const std::string &path_in)
         final_path = path_in;
     }
     return final_path;
+}
+
+void SLAPrint::StatusReporter::operator()(
+        SLAPrint &p, double st, const std::string &msg, unsigned flags)
+{
+    m_st = st;
+    BOOST_LOG_TRIVIAL(info) << st << "% " << msg;
+    p.set_status(int(std::round(st)), msg, flags);
 }
 
 } // namespace Slic3r

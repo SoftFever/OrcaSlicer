@@ -667,7 +667,7 @@ public:
                 addBin();
                 ItemList& not_packed = not_packeds[b];
                 for(unsigned idx = b; idx < store_.size(); idx+=bincount_guess) {
-                    not_packed.push_back(store_[idx]);
+                    not_packed.emplace_back(store_[idx]);
                 }
             }
 

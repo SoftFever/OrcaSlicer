@@ -46,14 +46,20 @@ public:
     PresetComboBox(wxWindow *parent, Preset::Type preset_type);
     ~PresetComboBox();
 
-    void set_label_marker(int item);
+    wxButton* edit_btn { nullptr };
+
+	enum LabelItemType {
+		LABEL_ITEM_MARKER = 0x4d,
+		LABEL_ITEM_CONFIG_WIZARD = 0x4e
+	};
+
+    void set_label_marker(int item, LabelItemType label_item_type = LABEL_ITEM_MARKER);
     void set_extruder_idx(const int extr_idx)   { extruder_idx = extr_idx; }
     int  get_extruder_idx() const               { return extruder_idx; }
     void check_selection();
 
 private:
     typedef std::size_t Marker;
-    enum { LABEL_ITEM_MARKER = 0x4d };
 
     Preset::Type preset_type;
     int last_selected;
@@ -175,6 +181,15 @@ public:
 
     PrinterTechnology   printer_technology() const;
     void                set_printer_technology(PrinterTechnology printer_technology);
+
+    bool can_delete() const;
+    bool can_delete_all() const;
+    bool can_increase_instances() const;
+    bool can_decrease_instances() const;
+    bool can_split_to_objects() const;
+    bool can_split_to_volumes() const;
+    bool can_arrange() const;
+    bool can_layers_editing() const;
 
 private:
     struct priv;

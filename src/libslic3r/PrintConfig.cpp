@@ -208,7 +208,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Horizontal width of the brim that will be printed around each object on the first layer.");
     def->sidetext = L("mm");
     def->min = 0;
-    def->mode = comAdvanced;
+    def->mode = comSimple;
     def->default_value = new ConfigOptionFloat(0);
 
     def = this->add("clip_multipart_objects", coBool);
@@ -1375,6 +1375,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("(minimum)");
     def->aliases = { "perimeter_offsets" };
     def->min = 0;
+    def->max = 10000;
     def->default_value = new ConfigOptionInt(3);
 
     def = this->add("post_process", coStrings);

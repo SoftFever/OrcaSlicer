@@ -120,7 +120,7 @@ Slic3r::Polygon ClipperPath_to_Slic3rPolygon(const ClipperLib::Path &input)
 {
     Polygon retval;
     for (ClipperLib::Path::const_iterator pit = input.begin(); pit != input.end(); ++pit)
-        retval.points.push_back(Point( (*pit).X, (*pit).Y ));
+        retval.points.emplace_back(pit->X, pit->Y);
     return retval;
 }
 
@@ -128,7 +128,7 @@ Slic3r::Polyline ClipperPath_to_Slic3rPolyline(const ClipperLib::Path &input)
 {
     Polyline retval;
     for (ClipperLib::Path::const_iterator pit = input.begin(); pit != input.end(); ++pit)
-        retval.points.push_back(Point( (*pit).X, (*pit).Y ));
+        retval.points.emplace_back(pit->X, pit->Y);
     return retval;
 }
 
@@ -137,7 +137,7 @@ Slic3r::Polygons ClipperPaths_to_Slic3rPolygons(const ClipperLib::Paths &input)
     Slic3r::Polygons retval;
     retval.reserve(input.size());
     for (ClipperLib::Paths::const_iterator it = input.begin(); it != input.end(); ++it)
-        retval.push_back(ClipperPath_to_Slic3rPolygon(*it));
+        retval.emplace_back(ClipperPath_to_Slic3rPolygon(*it));
     return retval;
 }
 
@@ -146,7 +146,7 @@ Slic3r::Polylines ClipperPaths_to_Slic3rPolylines(const ClipperLib::Paths &input
     Slic3r::Polylines retval;
     retval.reserve(input.size());
     for (ClipperLib::Paths::const_iterator it = input.begin(); it != input.end(); ++it)
-        retval.push_back(ClipperPath_to_Slic3rPolyline(*it));
+        retval.emplace_back(ClipperPath_to_Slic3rPolyline(*it));
     return retval;
 }
 
@@ -171,7 +171,7 @@ Slic3rMultiPoint_to_ClipperPath(const MultiPoint &input)
 {
     ClipperLib::Path retval;
     for (Points::const_iterator pit = input.points.begin(); pit != input.points.end(); ++pit)
-        retval.push_back(ClipperLib::IntPoint( (*pit)(0), (*pit)(1) ));
+        retval.emplace_back((*pit)(0), (*pit)(1));
     return retval;
 }
 
@@ -181,7 +181,7 @@ Slic3rMultiPoint_to_ClipperPath_reversed(const Slic3r::MultiPoint &input)
     ClipperLib::Path output;
     output.reserve(input.points.size());
     for (Slic3r::Points::const_reverse_iterator pit = input.points.rbegin(); pit != input.points.rend(); ++pit)
-        output.push_back(ClipperLib::IntPoint( (*pit)(0), (*pit)(1) ));
+        output.emplace_back((*pit)(0), (*pit)(1));
     return output;
 }
 
@@ -189,7 +189,7 @@ ClipperLib::Paths Slic3rMultiPoints_to_ClipperPaths(const Polygons &input)
 {
     ClipperLib::Paths retval;
     for (Polygons::const_iterator it = input.begin(); it != input.end(); ++it)
-        retval.push_back(Slic3rMultiPoint_to_ClipperPath(*it));
+        retval.emplace_back(Slic3rMultiPoint_to_ClipperPath(*it));
     return retval;
 }
 
@@ -197,7 +197,7 @@ ClipperLib::Paths Slic3rMultiPoints_to_ClipperPaths(const Polylines &input)
 {
     ClipperLib::Paths retval;
     for (Polylines::const_iterator it = input.begin(); it != input.end(); ++it)
-        retval.push_back(Slic3rMultiPoint_to_ClipperPath(*it));
+        retval.emplace_back(Slic3rMultiPoint_to_ClipperPath(*it));
     return retval;
 }
 
@@ -226,7 +226,7 @@ ClipperLib::Paths _offset(ClipperLib::Paths &&input, ClipperLib::EndType endType
 ClipperLib::Paths _offset(ClipperLib::Path &&input, ClipperLib::EndType endType, const float delta, ClipperLib::JoinType joinType, double miterLimit)
 {
     ClipperLib::Paths paths;
-    paths.push_back(std::move(input));
+    paths.emplace_back(std::move(input));
 	return _offset(std::move(paths), endType, delta, joinType, miterLimit);
 }
 
@@ -585,7 +585,7 @@ Polylines _clipper_pl(ClipperLib::ClipType clipType, const Polygons &subject, co
     Polylines polylines;
     polylines.reserve(subject.size());
     for (Polygons::const_iterator polygon = subject.begin(); polygon != subject.end(); ++polygon)
-        polylines.push_back(*polygon);  // implicit call to split_at_first_point()
+        polylines.emplace_back(polygon->operator Polyline());  // implicit call to split_at_first_point()
     
     // perform clipping
     Polylines retval = _clipper_pl(clipType, polylines, clip, safety_offset_);
@@ -643,7 +643,7 @@ _clipper_ln(ClipperLib::ClipType clipType, const Lines &subject, const Polygons 
     // convert Polylines to Lines
     Lines retval;
     for (Polylines::const_iterator polyline = polylines.begin(); polyline != polylines.end(); ++polyline)
-        retval.push_back(*polyline);
+        retval.emplace_back(polyline->operator Line());
     return retval;
 }
 
@@ -673,7 +673,7 @@ void traverse_pt(ClipperLib::PolyNodes &nodes, Polygons* retval)
     ordering_points.reserve(nodes.size());
     for (ClipperLib::PolyNodes::const_iterator it = nodes.begin(); it != nodes.end(); ++it) {
         Point p((*it)->Contour.front().X, (*it)->Contour.front().Y);
-        ordering_points.push_back(p);
+        ordering_points.emplace_back(p);
     }
     
     // perform the ordering
@@ -684,7 +684,7 @@ void traverse_pt(ClipperLib::PolyNodes &nodes, Polygons* retval)
     for (ClipperLib::PolyNodes::iterator it = ordered_nodes.begin(); it != ordered_nodes.end(); ++it) {
         // traverse the next depth
         traverse_pt((*it)->Childs, retval);
-        retval->push_back(ClipperPath_to_Slic3rPolygon((*it)->Contour));
+        retval->emplace_back(ClipperPath_to_Slic3rPolygon((*it)->Contour));
         if ((*it)->IsHole()) retval->back().reverse();  // ccw
     }
 }
@@ -791,7 +791,7 @@ Polygons top_level_islands(const Slic3r::Polygons &polygons)
     Polygons out;
     out.reserve(polytree.ChildCount());
     for (int i = 0; i < polytree.ChildCount(); ++i)
-        out.push_back(ClipperPath_to_Slic3rPolygon(polytree.Childs[i]->Contour));
+        out.emplace_back(ClipperPath_to_Slic3rPolygon(polytree.Childs[i]->Contour));
     return out;
 }
 

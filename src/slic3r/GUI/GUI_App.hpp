@@ -5,9 +5,7 @@
 #include <string>
 #include "libslic3r/PrintConfig.hpp"
 #include "MainFrame.hpp"
-#if ENABLE_IMGUI
 #include "ImGuiWrapper.hpp"
-#endif // ENABLE_IMGUI
 
 #include <wx/app.h>
 #include <wx/colour.h>
@@ -80,16 +78,14 @@ class GUI_App : public wxApp
 
     wxFont		    m_small_font;
     wxFont		    m_bold_font;
+	wxFont			m_normal_font;
 
     size_t          m_em_unit; // width of a "m"-symbol in pixels for current system font 
                                // Note: for 100% Scale m_em_unit = 10 -> it's a good enough coefficient for a size setting of controls
 
     wxLocale*	    m_wxLocale{ nullptr };
 
-#if ENABLE_IMGUI
     std::unique_ptr<ImGuiWrapper> m_imgui;
-#endif // ENABLE_IMGUI
-
     std::unique_ptr<PrintHostJobQueue> m_printhost_job_queue;
 
 public:
@@ -111,6 +107,7 @@ public:
 
     const wxFont&   small_font()            { return m_small_font; }
     const wxFont&   bold_font()             { return m_bold_font; }
+    const wxFont&   normal_font()           { return m_normal_font; }
     size_t          em_unit() const         { return m_em_unit; }
     void            set_em_unit(const size_t em_unit)    { m_em_unit = em_unit; }
 
@@ -163,12 +160,11 @@ public:
     Plater*         plater_{ nullptr };
 
     wxNotebook*     tab_panel() const ;
+    int             extruders_cnt() const;
 
     std::vector<Tab *>      tabs_list;
 
-#if ENABLE_IMGUI
     ImGuiWrapper* imgui() { return m_imgui.get(); }
-#endif // ENABLE_IMGUI
 
     PrintHostJobQueue& printhost_job_queue() { return *m_printhost_job_queue.get(); }
 

@@ -7,6 +7,7 @@
 #include <vector>
 
 #include <boost/log/trivial.hpp>
+#include <boost/filesystem/path.hpp>
 
 #include "Rasterizer/Rasterizer.hpp"
 //#include <tbb/parallel_for.h>
@@ -42,8 +43,9 @@ template<FilePrinterFormat format>
 class FilePrinter {
 public:
 
-    // Draw an ExPolygon which is a polygon inside a slice on the specified layer.
+    // Draw a polygon which is a polygon inside a slice on the specified layer.
     void draw_polygon(const ExPolygon& p, unsigned lyr);
+    void draw_polygon(const ClipperLib::Polygon& p, unsigned lyr);
 
     // Tell the printer how many layers should it consider.
     void layers(unsigned layernum);
@@ -71,7 +73,8 @@ public:
     void finish_layer();
 
     // Save all the layers into the file (or dir) specified in the path argument
-    void save(const std::string& path);
+    // An optional project name can be added to be used for the layer file names
+    void save(const std::string& path, const std::string& projectname = "");
 
     // Save only the selected layer to the file specified in path argument.
     void save_layer(unsigned lyr, const std::string& path);
@@ -80,28 +83,35 @@ public:
 // Provokes static_assert in the right way.
 template<class T = void> struct VeryFalse { static const bool value = false; };
 
-// This has to be explicitly implemented in the gui layer or a default zlib
-// based implementation is needed. I don't have time for that and I'm delegating
-// the implementation to the gui layer where the gui toolkit can cover this.
+// This can be explicitly implemented in the gui layer or the default Zipper
+// API in libslic3r with minz.
 template<class Fmt> class LayerWriter {
 public:
 
-    LayerWriter(const std::string& /*zipfile_path*/) {
+    LayerWriter(const std::string& /*zipfile_path*/)
+    {
         static_assert(VeryFalse<Fmt>::value,
                       "No layer writer implementation provided!");
     }
 
+    // Should create a new file within the zip with the given filename. It
+    // should also finish any previous entry.
     void next_entry(const std::string& /*fname*/) {}
 
-    std::string get_name() { return ""; }
+    // Should create a new file within the archive and write the provided data.
+    void binary_entry(const std::string& /*fname*/,
+                      const std::uint8_t* buf, size_t len);
 
+    // Test whether the object can still be used for writing.
     bool is_ok() { return false; }
 
-    template<class T> LayerWriter& operator<<(const T& /*arg*/) {
+    // Write some data (text) into the current file (entry) within the archive.
+    template<class T> LayerWriter& operator<<(T&& /*arg*/) {
         return *this;
     }
 
-    void close() {}
+    // Flush the current entry into the archive.
+    void finalize() {}
 };
 
 // Implementation for PNG raster output
@@ -110,14 +120,14 @@ public:
 template<> class FilePrinter<FilePrinterFormat::SLA_PNGZIP>
 {
     struct Layer {
-        Raster first;
-        std::stringstream second;
+        Raster raster;
+        RawBytes rawbytes;
 
         Layer() {}
 
         Layer(const Layer&) = delete;
         Layer(Layer&& m):
-            first(std::move(m.first))/*, second(std::move(m.second))*/ {}
+            raster(std::move(m.raster)) {}
     };
 
     // We will save the compressed PNG data into stringstreams which can be done
@@ -135,14 +145,11 @@ template<> class FilePrinter<FilePrinterFormat::SLA_PNGZIP>
     int    m_cnt_fast_layers = 0;
 
     std::string createIniContent(const std::string& projectname) {
-//         double layer_height = m_layer_height;
-
         using std::string;
         using std::to_string;
 
         auto expt_str = to_string(m_exp_time_s);
         auto expt_first_str = to_string(m_exp_time_first_s);
-//         auto stepnum_str = to_string(static_cast<unsigned>(800*layer_height));
         auto layerh_str = to_string(m_layer_height);
 
         const std::string cnt_fade_layers = to_string(m_cnt_fade_layers);
@@ -211,41 +218,48 @@ public:
 
     inline void draw_polygon(const ExPolygon& p, unsigned lyr) {
         assert(lyr < m_layers_rst.size());
-        m_layers_rst[lyr].first.draw(p);
+        m_layers_rst[lyr].raster.draw(p);
+    }
+
+    inline void draw_polygon(const ClipperLib::Polygon& p, unsigned lyr) {
+        assert(lyr < m_layers_rst.size());
+        m_layers_rst[lyr].raster.draw(p);
     }
 
     inline void begin_layer(unsigned lyr) {
         if(m_layers_rst.size() <= lyr) m_layers_rst.resize(lyr+1);
-        m_layers_rst[lyr].first.reset(m_res, m_pxdim, m_o);
+        m_layers_rst[lyr].raster.reset(m_res, m_pxdim, m_o);
     }
 
     inline void begin_layer() {
         m_layers_rst.emplace_back();
-        m_layers_rst.front().first.reset(m_res, m_pxdim, m_o);
+        m_layers_rst.front().raster.reset(m_res, m_pxdim, m_o);
     }
 
     inline void finish_layer(unsigned lyr_id) {
         assert(lyr_id < m_layers_rst.size());
-        m_layers_rst[lyr_id].first.save(m_layers_rst[lyr_id].second,
-                                       Raster::Compression::PNG);
-        m_layers_rst[lyr_id].first.reset();
+        m_layers_rst[lyr_id].rawbytes =
+                m_layers_rst[lyr_id].raster.save(Raster::Compression::PNG);
+        m_layers_rst[lyr_id].raster.reset();
     }
 
     inline void finish_layer() {
         if(!m_layers_rst.empty()) {
-            m_layers_rst.back().first.save(m_layers_rst.back().second,
-                                          Raster::Compression::PNG);
-            m_layers_rst.back().first.reset();
+            m_layers_rst.back().rawbytes =
+                    m_layers_rst.back().raster.save(Raster::Compression::PNG);
+            m_layers_rst.back().raster.reset();
         }
     }
 
     template<class LyrFmt>
-    inline void save(const std::string& path) {
+    inline void save(const std::string& fpath, const std::string& prjname = "")
+    {
         try {
-            LayerWriter<LyrFmt> writer(path);
+            LayerWriter<LyrFmt> writer(fpath);
             if(!writer.is_ok()) return;
 
-            std::string project = writer.get_name();
+            std::string project = prjname.empty()?
+                       boost::filesystem::path(fpath).stem().string() : prjname;
 
             writer.next_entry("config.ini");
             if(!writer.is_ok()) return;
@@ -254,20 +268,19 @@ public:
 
             for(unsigned i = 0; i < m_layers_rst.size() && writer.is_ok(); i++)
             {
-                if(m_layers_rst[i].second.rdbuf()->in_avail() > 0) {
+                if(m_layers_rst[i].rawbytes.size() > 0) {
                     char lyrnum[6];
                     std::sprintf(lyrnum, "%.5d", i);
                     auto zfilename = project + lyrnum + ".png";
-                    writer.next_entry(zfilename);
-
                     if(!writer.is_ok()) break;
 
-                    writer << m_layers_rst[i].second.str();
-                    // writer << m_layers_rst[i].second.rdbuf();
-                    // we can keep the date for later calls of this method
-                    //m_layers_rst[i].second.str("");
+                    writer.binary_entry(zfilename,
+                                        m_layers_rst[i].rawbytes.data(),
+                                        m_layers_rst[i].rawbytes.size());
                 }
             }
+
+            writer.finalize();
         } catch(std::exception& e) {
             BOOST_LOG_TRIVIAL(error) << e.what();
             // Rethrow the exception
@@ -285,13 +298,13 @@ public:
 
         std::fstream out(loc, std::fstream::out | std::fstream::binary);
         if(out.good()) {
-            m_layers_rst[i].first.save(out, Raster::Compression::PNG);
+            m_layers_rst[i].raster.save(out, Raster::Compression::PNG);
         } else {
             BOOST_LOG_TRIVIAL(error) << "Can't create file for layer";
         }
 
         out.close();
-        m_layers_rst[i].first.reset();
+        m_layers_rst[i].raster.reset();
     }
 
     void set_statistics(const std::vector<double> statistics)

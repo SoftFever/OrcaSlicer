@@ -19,6 +19,8 @@ namespace Slic3r {
     public:
         static const std::string Normal_First_M73_Output_Placeholder_Tag;
         static const std::string Silent_First_M73_Output_Placeholder_Tag;
+        static const std::string Normal_Last_M73_Output_Placeholder_Tag;
+        static const std::string Silent_Last_M73_Output_Placeholder_Tag;
 
         enum EMode : unsigned char
         {

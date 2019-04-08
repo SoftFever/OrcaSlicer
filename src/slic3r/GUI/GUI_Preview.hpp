@@ -35,10 +35,6 @@ class View3D : public wxPanel
     wxGLCanvas* m_canvas_widget;
     GLCanvas3D* m_canvas;
 
-#if !ENABLE_IMGUI
-    wxPanel* m_gizmo_widget;
-#endif // !ENABLE_IMGUI
-
 public:
     View3D(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process);
     virtual ~View3D();
@@ -54,8 +50,6 @@ public:
     void delete_selected();
     void mirror_selection(Axis axis);
 
-    void update_toolbar_items_visibility();
-    void enable_toolbar_item(const std::string& name, bool enable);
     int check_volumes_outside_state() const;
 
     bool is_layers_editing_enabled() const;
@@ -90,6 +84,12 @@ class Preview : public wxPanel
     BackgroundSlicingProcess* m_process;
     GCodePreviewData* m_gcode_preview_data;
 
+#ifdef __linux__
+    // We are getting mysterious crashes on Linux in gtk due to OpenGL context activation GH #1874 #1955.
+    // So we are applying a workaround here.
+    bool m_volumes_cleanup_required;
+#endif /* __linux__ */
+
     // Calling this function object forces Plater::schedule_background_process.
     std::function<void()> m_schedule_background_process;
 
@@ -102,7 +102,8 @@ class Preview : public wxPanel
     PrusaDoubleSlider* m_slider {nullptr};
 
 public:
-    Preview(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, DynamicPrintConfig* config, BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, std::function<void()> schedule_background_process = [](){});
+    Preview(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model, DynamicPrintConfig* config, 
+        BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, std::function<void()> schedule_background_process = [](){});
     virtual ~Preview();
 
     wxGLCanvas* get_wxglcanvas() { return m_canvas_widget; }
@@ -115,12 +116,12 @@ public:
     void select_view(const std::string& direction);
     void set_drop_target(wxDropTarget* target);
 
-    void load_print();
-    void reload_print(bool force = false, bool keep_volumes = false);
+    void load_print(bool keep_z_range = false);
+    void reload_print(bool keep_volumes = false);
     void refresh_print();
 
 private:
-    bool init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar);
+    bool init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model);
 
     void bind_event_handlers();
     void unbind_event_handlers();
@@ -128,7 +129,7 @@ private:
     void show_hide_ui_elements(const std::string& what);
 
     void reset_sliders();
-    void update_sliders(const std::vector<double>& layers_z);
+    void update_sliders(const std::vector<double>& layers_z, bool keep_z_range = false);
 
     void on_size(wxSizeEvent& evt);
     void on_choice_view_type(wxCommandEvent& evt);
@@ -140,14 +141,14 @@ private:
 
     // Create/Update/Reset double slider on 3dPreview
     void create_double_slider();
-    void update_double_slider(const std::vector<double>& layers_z, bool force_sliders_full_range = false);
+    void update_double_slider(const std::vector<double>& layers_z, bool keep_z_range = false);
     void fill_slider_values(std::vector<std::pair<int, double>> &values,
                             const std::vector<double> &layers_z);
     void reset_double_slider();
     // update DoubleSlider after keyDown in canvas
     void update_double_slider_from_canvas(wxKeyEvent& event);
 
-    void load_print_as_fff();
+    void load_print_as_fff(bool keep_z_range = false);
     void load_print_as_sla();
 
     void on_sliders_scroll_changed(wxEvent& event);

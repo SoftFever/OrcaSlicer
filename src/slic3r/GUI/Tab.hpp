@@ -65,6 +65,9 @@ public:
 	bool				m_is_modified_values{ false };
 	bool				m_is_nonsys_values{ true };
 
+    // Delayed layout after resizing the main window.
+    bool 				layout_valid = false;
+
 public:
 	std::vector <ConfigOptionsGroupShp> m_optgroups;
 	DynamicPrintConfig* m_config;
@@ -204,6 +207,9 @@ protected:
     void                set_type();
 
     int                 m_em_unit;
+    // To avoid actions with no-completed Tab
+    bool                m_complited { false };
+    ConfigOptionMode    m_mode = comSimple;
 
 public:
 	PresetBundle*		m_preset_bundle;
@@ -226,13 +232,15 @@ public:
 	wxString	title()	 const { return m_title; }
 	std::string	name()	 const { return m_name; }
     Preset::Type type()  const { return m_type; }
+    bool complited()     const { return m_complited; }
     virtual bool supports_printer_technology(const PrinterTechnology tech) = 0;
 
 	void		create_preset_tab();
 	void		load_current_preset();
-	void        rebuild_page_tree(bool tree_sel_change_event = false);
+	void        rebuild_page_tree();
 	void        update_page_tree_visibility();
-	void		select_preset(std::string preset_name = "");
+	// Select a new preset, possibly delete the current one.
+	void		select_preset(std::string preset_name = "", bool delete_current = false);
 	bool		may_discard_current_dirty_preset(PresetCollection* presets = nullptr, const std::string& new_printer_name = "");
     bool        may_switch_to_SLA_preset();
 
@@ -264,6 +272,7 @@ public:
 	void			update_tab_ui();
 	void			load_config(const DynamicPrintConfig& config);
 	virtual void	reload_config();
+    void            update_mode();
     void            update_visibility();
 	Field*			get_field(const t_config_option_key& opt_key, int opt_index = -1) const;
 	bool			set_value(const t_config_option_key& opt_key, const boost::any& value);

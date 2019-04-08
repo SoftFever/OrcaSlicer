@@ -24,11 +24,11 @@ namespace GUI {
 
 
 MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &headline, wxWindowID button_id) :
-	MsgDialog(parent, title, headline, create_scaled_bitmap("Slic3r_192px.png"), button_id)
+	MsgDialog(parent, title, headline, create_scaled_bitmap("Slic3r_192px.png", 192), button_id)
 {}
 
 MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &headline, wxBitmap bitmap, wxWindowID button_id) :
-	wxDialog(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxRESIZE_BORDER),
+wxDialog(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
 	boldfont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT)),
 	content_sizer(new wxBoxSizer(wxVERTICAL)),
 	btn_sizer(new wxBoxSizer(wxHORIZONTAL))

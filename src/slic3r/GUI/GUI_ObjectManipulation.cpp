@@ -7,6 +7,7 @@
 #include "PresetBundle.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Geometry.hpp"
+#include "Selection.hpp"
 
 #include <boost/algorithm/string.hpp>
 
@@ -91,7 +92,6 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
         else if (option_name == "Size") {
             line.near_label_widget = [this](wxWindow* parent) {
                 return new wxStaticBitmap(parent, wxID_ANY, wxNullBitmap, wxDefaultPosition,
-//                                           wxBitmap(from_u8(var("one_layer_lock_on.png")), wxBITMAP_TYPE_PNG).GetSize());
                                           create_scaled_bitmap("one_layer_lock_on.png").GetSize());
             };
         }
@@ -155,11 +155,13 @@ void ObjectManipulation::UpdateAndShow(const bool show)
     OG_Settings::UpdateAndShow(show);
 }
 
-void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& selection)
+void ObjectManipulation::update_settings_value(const Selection& selection)
 {
 	m_new_move_label_string   = L("Position");
     m_new_rotate_label_string = L("Rotation");
     m_new_scale_label_string  = L("Scale factors");
+
+    ObjectList* obj_list = wxGetApp().obj_list();
     if (selection.is_single_full_instance())
     {
         // all volumes in the selection belongs to the same instance, any of them contains the needed instance data, so we take the first one
@@ -178,7 +180,7 @@ void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& sele
                 changed_box = true;
             }
             if (changed_box || !m_cache.instance.matches_instance(instance_idx) || !m_cache.scale.isApprox(100.0 * m_new_scale))
-                m_new_size = volume->get_instance_transformation().get_matrix(true, true) * m_cache.instance.box_size;
+                m_new_size = (volume->get_instance_transformation().get_matrix(true, true) * m_cache.instance.box_size).cwiseAbs();
         }
         else
             // this should never happen
@@ -186,7 +188,7 @@ void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& sele
 
         m_new_enabled  = true;
     }
-    else if (selection.is_single_full_object())
+    else if (selection.is_single_full_object() && obj_list->is_selected(itObject))
     {
         m_cache.instance.reset();
 
@@ -208,10 +210,10 @@ void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& sele
         m_new_position = volume->get_volume_offset();
         m_new_rotation = volume->get_volume_rotation();
         m_new_scale    = volume->get_volume_scaling_factor();
-        m_new_size = volume->get_instance_transformation().get_matrix(true, true) * volume->get_volume_transformation().get_matrix(true, true) * volume->bounding_box.size();
-        m_new_enabled  = true;
+        m_new_size = (volume->get_volume_transformation().get_matrix(true, true) * volume->bounding_box.size()).cwiseAbs();
+        m_new_enabled = true;
     }
-    else if (wxGetApp().obj_list()->multiple_selection())
+    else if (obj_list->multiple_selection() || obj_list->is_selected(itInstanceRoot))
     {
         reset_settings_value();
 		m_new_move_label_string   = L("Translate");
@@ -348,7 +350,7 @@ void ObjectManipulation::reset_settings_value()
 void ObjectManipulation::change_position_value(const Vec3d& position)
 {
     auto canvas = wxGetApp().plater()->canvas3D();
-    GLCanvas3D::Selection& selection = canvas->get_selection();
+    Selection& selection = canvas->get_selection();
     selection.start_dragging();
     selection.translate(position - m_cache.position, selection.requires_local_axes());
     canvas->do_move();
@@ -359,13 +361,13 @@ void ObjectManipulation::change_position_value(const Vec3d& position)
 void ObjectManipulation::change_rotation_value(const Vec3d& rotation)
 {
     GLCanvas3D* canvas = wxGetApp().plater()->canvas3D();
-    const GLCanvas3D::Selection& selection = canvas->get_selection();
+    const Selection& selection = canvas->get_selection();
 
-	GLCanvas3D::TransformationType transformation_type(GLCanvas3D::TransformationType::World_Relative_Joint);
-	if (selection.is_single_full_instance() || selection.requires_local_axes())
+    TransformationType transformation_type(TransformationType::World_Relative_Joint);
+    if (selection.is_single_full_instance() || selection.requires_local_axes())
 		transformation_type.set_independent();
 	if (selection.is_single_full_instance()) {
-        //FIXME GLCanvas3D::Selection::rotate() does not process absoulte rotations correctly: It does not recognize the axis index, which was changed.
+        //FIXME Selection::rotate() does not process absoulte rotations correctly: It does not recognize the axis index, which was changed.
 		// transformation_type.set_absolute();
 		transformation_type.set_local();
 	}
@@ -384,7 +386,7 @@ void ObjectManipulation::change_rotation_value(const Vec3d& rotation)
 void ObjectManipulation::change_scale_value(const Vec3d& scale)
 {
     Vec3d scaling_factor = scale;
-    const GLCanvas3D::Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
+    const Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
     if (m_uniform_scale || selection.requires_uniform_scale())
     {
         Vec3d abs_scale_diff = (scale - m_cache.scale).cwiseAbs();
@@ -418,7 +420,7 @@ void ObjectManipulation::change_scale_value(const Vec3d& scale)
 
 void ObjectManipulation::change_size_value(const Vec3d& size)
 {
-    const GLCanvas3D::Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
+    const Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
 
     Vec3d ref_size = m_cache.size;
     if (selection.is_single_volume() || selection.is_single_modifier())

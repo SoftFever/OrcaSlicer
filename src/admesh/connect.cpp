@@ -39,8 +39,7 @@ static void stl_record_neighbors(stl_file *stl,
                                  stl_hash_edge *edge_a, stl_hash_edge *edge_b);
 static void stl_initialize_facet_check_exact(stl_file *stl);
 static void stl_initialize_facet_check_nearby(stl_file *stl);
-static void stl_load_edge_exact(stl_file *stl, stl_hash_edge *edge,
-                                stl_vertex *a, stl_vertex *b);
+static void stl_load_edge_exact(stl_file *stl, stl_hash_edge *edge, const stl_vertex *a, const stl_vertex *b);
 static int stl_load_edge_nearby(stl_file *stl, stl_hash_edge *edge,
                                 stl_vertex *a, stl_vertex *b, float tolerance);
 static void insert_hash_edge(stl_file *stl, stl_hash_edge edge,
@@ -60,41 +59,40 @@ extern int stl_check_normal_vector(stl_file *stl,
                                    int facet_num, int normal_fix_flag);
 static void stl_update_connects_remove_1(stl_file *stl, int facet_num);
 
-
-void
-stl_check_facets_exact(stl_file *stl) {
-  /* This function builds the neighbors list.  No modifications are made
-   *  to any of the facets.  The edges are said to match only if all six
-   *  floats of the first edge matches all six floats of the second edge.
-   */
-
-  stl_hash_edge  edge;
-  stl_facet      facet;
-  int            i;
-  int            j;
-
-  if (stl->error) return;
+// This function builds the neighbors list.  No modifications are made
+// to any of the facets.  The edges are said to match only if all six
+// floats of the first edge matches all six floats of the second edge.
+void stl_check_facets_exact(stl_file *stl)
+{
+  if (stl->error)
+	  return;
 
   stl->stats.connected_edges = 0;
   stl->stats.connected_facets_1_edge = 0;
   stl->stats.connected_facets_2_edge = 0;
   stl->stats.connected_facets_3_edge = 0;
 
-  stl_initialize_facet_check_exact(stl);
+  // If any two of the three vertices are found to be exactally the same, call them degenerate and remove the facet.
+  // Do it before the next step, as the next step stores references to the face indices in the hash tables and removing a facet
+  // will break the references.
+  for (int i = 0; i < stl->stats.number_of_facets;) {
+	  stl_facet &facet = stl->facet_start[i];
+	  if (facet.vertex[0] == facet.vertex[1] || facet.vertex[1] == facet.vertex[2] || facet.vertex[0] == facet.vertex[2]) {
+		  // Remove the degenerate facet.
+		  facet = stl->facet_start[--stl->stats.number_of_facets];
+		  stl->stats.facets_removed += 1;
+		  stl->stats.degenerate_facets += 1;
+	  } else
+		  ++ i;
+  }
 
-  for(i = 0; i < stl->stats.number_of_facets; i++) {
-    facet = stl->facet_start[i];
-    // If any two of the three vertices are found to be exactally the same, call them degenerate and remove the facet.
-    if (facet.vertex[0] == facet.vertex[1] ||
-        facet.vertex[1] == facet.vertex[2] ||
-        facet.vertex[0] == facet.vertex[2]) {
-      stl->stats.degenerate_facets += 1;
-      stl_remove_facet(stl, i);
-      -- i;
-      continue;
-    }
-    for(j = 0; j < 3; j++) {
-      edge.facet_number = i;
+  // Connect neighbor edges.
+  stl_initialize_facet_check_exact(stl);
+  for (int i = 0; i < stl->stats.number_of_facets; i++) {
+	const stl_facet &facet = stl->facet_start[i];
+    for (int j = 0; j < 3; j++) {
+	  stl_hash_edge  edge;
+	  edge.facet_number = i;
       edge.which_edge = j;
       stl_load_edge_exact(stl, &edge, &facet.vertex[j], &facet.vertex[(j + 1) % 3]);
       insert_hash_edge(stl, edge, stl_record_neighbors);
@@ -109,9 +107,7 @@ stl_check_facets_exact(stl_file *stl) {
 #endif
 }
 
-static void
-stl_load_edge_exact(stl_file *stl, stl_hash_edge *edge,
-                    stl_vertex *a, stl_vertex *b) {
+static void stl_load_edge_exact(stl_file *stl, stl_hash_edge *edge, const stl_vertex *a, const stl_vertex *b) {
 
   if (stl->error) return;
 
@@ -333,7 +329,9 @@ static void stl_free_edges(stl_file *stl)
     }
   }
   free(stl->heads);
+  stl->heads = nullptr;
   free(stl->tail);
+  stl->tail = nullptr;
 }
 
 static void stl_initialize_facet_check_nearby(stl_file *stl)

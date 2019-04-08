@@ -1034,6 +1034,15 @@ void GCode::_do_export(Print &print, FILE *file)
     }
     _write(file, m_writer.update_progress(m_layer_count, m_layer_count, true)); // 100%
     _write(file, m_writer.postamble());
+
+    // adds tags for time estimators
+    if (print.config().remaining_times.value)
+    {
+        _writeln(file, GCodeTimeEstimator::Normal_Last_M73_Output_Placeholder_Tag);
+        if (m_silent_time_estimator_enabled)
+            _writeln(file, GCodeTimeEstimator::Silent_Last_M73_Output_Placeholder_Tag);
+    }
+
     print.throw_if_canceled();
 
     // calculates estimated printing time
@@ -2407,6 +2416,9 @@ void GCode::_write_format(FILE* file, const char* format, ...)
 std::string GCode::_extrude(const ExtrusionPath &path, std::string description, double speed)
 {
     std::string gcode;
+    
+    if (is_bridge(path.role()))
+        description += " (bridge)";
     
     // go to first point of extrusion path
     if (!m_last_pos_defined || m_last_pos != path.first_point()) {

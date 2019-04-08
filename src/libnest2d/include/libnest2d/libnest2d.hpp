@@ -966,7 +966,7 @@ private:
 
         for(size_t i = 0; i < pckgrp.size(); i++) {
             auto items = pckgrp[i];
-            pg.push_back({});
+            pg.emplace_back();
             pg[i].reserve(items.size());
 
             for(Item& itemA : items) {

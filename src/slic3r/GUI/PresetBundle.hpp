@@ -127,6 +127,8 @@ public:
 
     static bool                 parse_color(const std::string &scolor, unsigned char *rgb_out);
 
+    void                        load_default_preset_bitmaps();
+
 private:
     std::string                 load_system_presets();
     // Merge one vendor's presets with the other vendor's presets, report duplicates.

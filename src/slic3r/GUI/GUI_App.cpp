@@ -14,9 +14,11 @@
 #include <wx/menu.h>
 #include <wx/menuitem.h>
 #include <wx/filedlg.h>
+#include <wx/progdlg.h>
 #include <wx/dir.h>
 #include <wx/wupdlock.h>
 #include <wx/filefn.h>
+#include <wx/sysopt.h>
 
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Model.hpp"
@@ -74,14 +76,30 @@ wxString file_wildcards(FileType file_type, const std::string &custom_extension)
 
 static std::string libslic3r_translate_callback(const char *s) { return wxGetTranslation(wxString(s, wxConvUTF8)).utf8_str().data(); }
 
+static void register_dpi_event()
+{
+#ifdef WIN32
+    enum { WM_DPICHANGED_ = 0x02e0 };
+
+    wxWindow::MSWRegisterMessageHandler(WM_DPICHANGED_, [](wxWindow *win, WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam) {
+        const int dpi = wParam & 0xffff;
+        const auto rect = reinterpret_cast<PRECT>(lParam);
+        const wxRect wxrect(wxPoint(rect->top, rect->left), wxPoint(rect->bottom, rect->right));
+
+        DpiChangedEvent evt(EVT_DPI_CHANGED, dpi, wxrect);
+        win->GetEventHandler()->AddPendingEvent(evt);
+
+        return true;
+    });
+#endif
+}
+
 IMPLEMENT_APP(GUI_App)
 
 GUI_App::GUI_App()
     : wxApp()
     , m_em_unit(10)
-#if ENABLE_IMGUI
     , m_imgui(new ImGuiWrapper())
-#endif // ENABLE_IMGUI
 {}
 
 bool GUI_App::OnInit()
@@ -91,12 +109,14 @@ bool GUI_App::OnInit()
     wxCHECK_MSG(wxDirExists(resources_dir), false,
         wxString::Format("Resources path does not exist or is not a directory: %s", resources_dir));
 
-#if ENABLE_IMGUI
-    wxCHECK_MSG(m_imgui->init(), false, "Failed to initialize ImGui");
-#endif // ENABLE_IMGUI
-
     SetAppName("Slic3rPE-beta");
     SetAppDisplayName("Slic3r Prusa Edition");
+
+// Enable this to get the default Win32 COMCTRL32 behavior of static boxes.
+//    wxSystemOptions::SetOption("msw.staticbox.optimized-paint", 0);
+// Enable this to disable Windows Vista themes for all wxNotebooks. The themes seem to lead to terrible
+// performance when working on high resolution multi-display setups.
+//    wxSystemOptions::SetOption("msw.notebook.themed-background", 0);
 
 //     Slic3r::debugf "wxWidgets version %s, Wx version %s\n", wxVERSION_STRING, wxVERSION;
 
@@ -133,6 +153,10 @@ bool GUI_App::OnInit()
         app_config->save();
     });
 
+    // initialize label colors and fonts
+    init_label_colours();
+    init_fonts();
+
     load_language();
 
     // Suppress the '- default -' presets.
@@ -143,11 +167,10 @@ bool GUI_App::OnInit()
         show_error(nullptr, ex.what());
 	}
 
+    register_dpi_event();
+
     // Let the libslic3r know the callback, which will translate messages on demand.
     Slic3r::I18N::set_translate_callback(libslic3r_translate_callback);
-    // initialize label colors and fonts
-    init_label_colours();
-    init_fonts();
 
     // application frame
     if (wxImage::FindHandler(wxBITMAP_TYPE_PNG) == nullptr)
@@ -200,7 +223,16 @@ bool GUI_App::OnInit()
     load_current_presets();
 
     mainframe->Show(true);
+
+    /* Temporary workaround for the correct behavior of the Scrolled sidebar panel:
+     * change min hight of object list to the normal min value (15 * wxGetApp().em_unit()) 
+     * after first whole Mainframe updating/layouting
+     */
+    if (obj_list()->GetMinSize().GetY() > 15 * em_unit())
+        obj_list()->SetMinSize(wxSize(-1, 15 * em_unit()));
+
     update_mode(); // update view mode after fix of the object_list size
+
     m_initialized = true;
     return true;
 }
@@ -251,6 +283,7 @@ void GUI_App::init_fonts()
 {
     m_small_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
     m_bold_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold();
+    m_normal_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 
 #ifdef __WXMAC__
     m_small_font.SetPointSize(11);
@@ -276,9 +309,21 @@ void GUI_App::set_label_clr_sys(const wxColour& clr) {
 
 void GUI_App::recreate_GUI()
 {
+    // Weird things happen as the Paint messages are floating around the windows being destructed.
+    // Avoid the Paint messages by hiding the main window.
+    // Also the application closes much faster without these unnecessary screen refreshes.
+    // In addition, there were some crashes due to the Paint events sent to already destructed windows.
+    mainframe->Show(false);
+
+    const auto msg_name = _(L("Changing of an application language")) + dots;
+    wxProgressDialog dlg(msg_name, msg_name);
+    dlg.Pulse();
+
     // to make sure nobody accesses data from the soon-to-be-destroyed widgets:
     tabs_list.clear();
     plater_ = nullptr;
+
+    dlg.Update(10, _(L("Recreating")) + dots);
 
     MainFrame* topwindow = mainframe;
     mainframe = new MainFrame();
@@ -286,8 +331,12 @@ void GUI_App::recreate_GUI()
 
     if (topwindow) {
         SetTopWindow(mainframe);
+
+        dlg.Update(30, _(L("Recreating")) + dots);
         topwindow->Destroy();
     }
+
+    dlg.Update(80, _(L("Loading of a current presets")) + dots);
 
     m_printhost_job_queue.reset(new PrintHostJobQueue(mainframe->printhost_queue_dlg()));
 
@@ -295,12 +344,22 @@ void GUI_App::recreate_GUI()
 
     mainframe->Show(true);
 
-    // On OSX the UI was not initialized correctly if the wizard was called
-    // before the UI was up and running.
-    CallAfter([]() {
-        // Run the config wizard, don't offer the "reset user profile" checkbox.
-        config_wizard_startup(true);
-    });
+    dlg.Update(90, _(L("Loading of a mode view")) + dots);
+
+    /* Temporary workaround for the correct behavior of the Scrolled sidebar panel:
+    * change min hight of object list to the normal min value (15 * wxGetApp().em_unit())
+    * after first whole Mainframe updating/layouting
+    */
+    if (obj_list()->GetMinSize().GetY() > 15 * em_unit())
+        obj_list()->SetMinSize(wxSize(-1, 15 * em_unit()));
+
+    update_mode();
+
+    // #ys_FIXME_delete_after_testing  Do we still need this  ?
+//     CallAfter([]() {
+//         // Run the config wizard, don't offer the "reset user profile" checkbox.
+//         config_wizard_startup(true);
+//     });
 }
 
 void GUI_App::system_info()
@@ -498,7 +557,7 @@ Tab* GUI_App::get_tab(Preset::Type type)
 {
     for (Tab* tab: tabs_list)
         if (tab->type() == type)
-            return tab;
+            return tab->complited() ? tab : nullptr; // To avoid actions with no-completed Tab
     return nullptr;
 }
 
@@ -527,7 +586,7 @@ void GUI_App::update_mode()
     sidebar().update_mode();
 
     for (auto tab : tabs_list)
-        tab->update_visibility();
+        tab->update_mode();
 
     plater()->update_object_menu();
 }
@@ -610,12 +669,24 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
         }
         case ConfigMenuLanguage:
         {
+            /* Before change application language, let's check unsaved changes on 3D-Scene
+             * and draw user's attention to the application restarting after a language change
+             */
+            wxMessageDialog dialog(nullptr,
+                _(L("Application will be restarted after language change.")) + "\n" +
+                _(L("3D-Scene will be cleaned.")) + "\n\n" +
+                _(L("Please, check your changes before.")),
+                _(L("Attention!")),
+                wxICON_QUESTION | wxOK | wxCANCEL);
+            if ( dialog.ShowModal() == wxID_CANCEL)
+                return;
+
             wxArrayString names;
             wxArrayLong identifiers;
             get_installed_languages(names, identifiers);
             if (select_language(names, identifiers)) {
                 save_language();
-                show_info(mainframe->m_tabpanel, _(L("Application will be restarted")), _(L("Attention!")));
+//                 show_info(mainframe->m_tabpanel, _(L("Application will be restarted")), _(L("Attention!")));
                 _3DScene::remove_all_canvases();// remove all canvas before recreate GUI
                 recreate_GUI();
             }
@@ -651,11 +722,11 @@ bool GUI_App::check_unsaved_changes()
         // No changes, the application may close or reload presets.
         return true;
     // Ask the user.
-    auto dialog = new wxMessageDialog(mainframe,
+    wxMessageDialog dialog(mainframe,
         _(L("You have unsaved changes ")) + dirty + _(L(". Discard changes and continue anyway?")),
         _(L("Unsaved Presets")),
         wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
-    return dialog->ShowModal() == wxID_YES;
+    return dialog.ShowModal() == wxID_YES;
 }
 
 bool GUI_App::checked_tab(Tab* tab)
@@ -741,6 +812,13 @@ ModelObjectPtrs* GUI_App::model_objects()
 wxNotebook* GUI_App::tab_panel() const
 {
     return mainframe->m_tabpanel;
+}
+
+int GUI_App::extruders_cnt() const
+{
+    const Preset& preset = preset_bundle->printers.get_selected_preset();
+    return preset.printer_technology() == ptSLA ? 1 :
+           preset.config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
 }
 
 void GUI_App::window_pos_save(wxTopLevelWindow* window, const std::string &name)

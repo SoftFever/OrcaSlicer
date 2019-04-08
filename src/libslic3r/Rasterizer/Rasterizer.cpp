@@ -1,7 +1,6 @@
 #include "Rasterizer.hpp"
 #include <ExPolygon.hpp>
-
-#include <cstdint>
+#include <libnest2d/backends/clipper/clipper_polygon.hpp>
 
 // For rasterizing
 #include <agg/agg_basics.h>
@@ -15,8 +14,8 @@
 #include <agg/agg_rasterizer_scanline_aa.h>
 #include <agg/agg_path_storage.h>
 
-// For png compression
-#include <png/writer.hpp>
+// Experimental minz image write:
+#include <miniz/miniz_tdef.h>
 
 namespace Slic3r {
 
@@ -91,6 +90,25 @@ public:
         agg::render_scanlines(ras, scanlines, m_renderer);
     }
 
+    void draw(const ClipperLib::Polygon &poly) {
+        agg::rasterizer_scanline_aa<> ras;
+        agg::scanline_p8 scanlines;
+
+        auto&& path = to_path(poly.Contour);
+
+        if(m_o == Origin::TOP_LEFT) flipy(path);
+
+        ras.add_path(path);
+
+        for(auto h : poly.Holes) {
+            auto&& holepath = to_path(h);
+            if(m_o == Origin::TOP_LEFT) flipy(holepath);
+            ras.add_path(holepath);
+        }
+
+        agg::render_scanlines(ras, scanlines, m_renderer);
+    }
+
     inline void clear() {
         m_raw_renderer.clear(ColorBlack);
     }
@@ -110,14 +128,36 @@ private:
         return p(1) * SCALING_FACTOR/m_pxdim.h_mm;
     }
 
-    agg::path_storage to_path(const Polygon& poly) {
+    agg::path_storage to_path(const Polygon& poly)
+    {
         agg::path_storage path;
+
         auto it = poly.points.begin();
         path.move_to(getPx(*it), getPy(*it));
-        while(++it != poly.points.end())
+        while(++it != poly.points.end()) path.line_to(getPx(*it), getPy(*it));
+        path.line_to(getPx(poly.points.front()), getPy(poly.points.front()));
+
+        return path;
+    }
+
+
+    double getPx(const ClipperLib::IntPoint& p) {
+        return p.X * SCALING_FACTOR/m_pxdim.w_mm;
+    }
+
+    double getPy(const ClipperLib::IntPoint& p) {
+        return p.Y * SCALING_FACTOR/m_pxdim.h_mm;
+    }
+
+    agg::path_storage to_path(const ClipperLib::Path& poly)
+    {
+        agg::path_storage path;
+        auto it = poly.begin();
+        path.move_to(getPx(*it), getPy(*it));
+        while(++it != poly.end())
             path.line_to(getPx(*it), getPy(*it));
 
-        path.line_to(getPx(poly.points.front()), getPy(poly.points.front()));
+        path.line_to(getPx(poly.front()), getPy(poly.front()));
         return path;
     }
 
@@ -169,38 +209,36 @@ void Raster::clear()
     m_impl->clear();
 }
 
-void Raster::draw(const ExPolygon &poly)
+void Raster::draw(const ExPolygon &expoly)
 {
-    assert(m_impl);
+    m_impl->draw(expoly);
+}
+
+void Raster::draw(const ClipperLib::Polygon &poly)
+{
     m_impl->draw(poly);
 }
 
 void Raster::save(std::ostream& stream, Compression comp)
 {
     assert(m_impl);
+    if(!stream.good()) return;
+
     switch(comp) {
     case Compression::PNG: {
-
-        png::writer<std::ostream> wr(stream);
-
-        wr.set_bit_depth(8);
-        wr.set_color_type(png::color_type_gray);
-        wr.set_width(resolution().width_px);
-        wr.set_height(resolution().height_px);
-        wr.set_compression_type(png::compression_type_default);
-
-        wr.write_info();
-
         auto& b = m_impl->buffer();
-        auto ptr = reinterpret_cast<png::byte*>( b.data() );
-        unsigned stride =
-                sizeof(Impl::TBuffer::value_type) *  resolution().width_px;
+        size_t out_len = 0;
+        void * rawdata = tdefl_write_image_to_png_file_in_memory(
+                    b.data(),
+                    int(resolution().width_px),
+                    int(resolution().height_px), 1, &out_len);
 
-        for(unsigned r = 0; r < resolution().height_px; r++, ptr+=stride) {
-            wr.write_row(ptr);
-        }
+        if(rawdata == nullptr) break;
 
-        wr.write_end_info();
+        stream.write(static_cast<const char*>(rawdata),
+                     std::streamsize(out_len));
+
+        MZ_FREE(rawdata);
 
         break;
     }
@@ -215,6 +253,49 @@ void Raster::save(std::ostream& stream, Compression comp)
                      std::streamsize(sz));
     }
     }
+}
+
+RawBytes Raster::save(Raster::Compression comp)
+{
+    assert(m_impl);
+
+    std::uint8_t *ptr = nullptr; size_t s = 0;
+
+    switch(comp) {
+    case Compression::PNG: {
+
+        void *rawdata = tdefl_write_image_to_png_file_in_memory(
+                    m_impl->buffer().data(),
+                    int(resolution().width_px),
+                    int(resolution().height_px), 1, &s);
+
+        if(rawdata == nullptr) break;
+
+        ptr = static_cast<std::uint8_t*>(rawdata);
+
+        break;
+    }
+    case Compression::RAW: {
+        auto header = std::string("P5 ") +
+                std::to_string(m_impl->resolution().width_px) + " " +
+                std::to_string(m_impl->resolution().height_px) + " " + "255 ";
+
+        auto sz = m_impl->buffer().size()*sizeof(Impl::TBuffer::value_type);
+
+        s = sz + header.size();
+        ptr = static_cast<std::uint8_t*>(MZ_MALLOC(s));
+
+        auto buff = reinterpret_cast<std::uint8_t*>(m_impl->buffer().data());
+        std::copy(buff, buff+sz, ptr + header.size());
+    }
+    }
+
+    return {ptr, s};
+}
+
+void RawBytes::MinzDeleter::operator()(uint8_t *rawptr)
+{
+    MZ_FREE(rawptr);
 }
 
 }

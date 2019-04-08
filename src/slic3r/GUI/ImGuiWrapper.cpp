@@ -19,6 +19,7 @@
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Utils.hpp"
+#include "3DScene.hpp"
 #include "GUI.hpp"
 
 namespace Slic3r {
@@ -27,35 +28,37 @@ namespace GUI {
 
 ImGuiWrapper::ImGuiWrapper()
     : m_glyph_ranges(nullptr)
+    , m_font_size(18.0)
     , m_font_texture(0)
     , m_style_scaling(1.0)
     , m_mouse_buttons(0)
     , m_disabled(false)
     , m_new_frame_open(false)
 {
-}
-
-ImGuiWrapper::~ImGuiWrapper()
-{
-    destroy_device_objects();
-    ImGui::DestroyContext();
-}
-
-bool ImGuiWrapper::init()
-{
     ImGui::CreateContext();
 
-    init_default_font(m_style_scaling);
     init_input();
     init_style();
 
     ImGui::GetIO().IniFilename = nullptr;
+}
 
-    return true;
+ImGuiWrapper::~ImGuiWrapper()
+{
+    destroy_font();
+    ImGui::DestroyContext();
 }
 
 void ImGuiWrapper::set_language(const std::string &language)
 {
+    if (m_new_frame_open) {
+        // ImGUI internally locks the font between NewFrame() and EndFrame()
+        // NewFrame() might've been called here because of input from the 3D scene;
+        // call EndFrame()
+        ImGui::EndFrame();
+        m_new_frame_open = false;
+    }
+
     const ImWchar *ranges = nullptr;
     size_t idx = language.find('_');
     std::string lang = (idx == std::string::npos) ? language : language.substr(0, idx);
@@ -79,7 +82,7 @@ void ImGuiWrapper::set_language(const std::string &language)
 
     if (ranges != m_glyph_ranges) {
         m_glyph_ranges = ranges;
-        init_default_font(m_style_scaling);
+        destroy_font();
     }
 }
 
@@ -90,13 +93,21 @@ void ImGuiWrapper::set_display_size(float w, float h)
     io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
 }
 
-void ImGuiWrapper::set_style_scaling(float scaling)
+void ImGuiWrapper::set_scaling(float font_size, float scale_style, float scale_both)
 {
-    if (!std::isnan(scaling) && !std::isinf(scaling) && scaling != m_style_scaling) {
-        ImGui::GetStyle().ScaleAllSizes(scaling / m_style_scaling);
-        init_default_font(scaling);
-        m_style_scaling = scaling;
+    font_size *= scale_both;
+    scale_style *= scale_both;
+
+    if (m_font_size == font_size && m_style_scaling == scale_style) {
+        return;
     }
+
+    m_font_size = font_size;
+
+    ImGui::GetStyle().ScaleAllSizes(scale_style / m_style_scaling);
+    m_style_scaling = scale_style;
+
+    destroy_font();
 }
 
 bool ImGuiWrapper::update_mouse_data(wxMouseEvent& evt)
@@ -157,8 +168,9 @@ void ImGuiWrapper::new_frame()
         return;
     }
 
-    if (m_font_texture == 0)
-        create_device_objects();
+    if (m_font_texture == 0) {
+        init_font();
+    }
 
     ImGui::NewFrame();
     m_new_frame_open = true;
@@ -169,6 +181,12 @@ void ImGuiWrapper::render()
     ImGui::Render();
     render_draw_data(ImGui::GetDrawData());
     m_new_frame_open = false;
+}
+
+ImVec2 ImGuiWrapper::calc_text_size(const wxString &text)
+{
+    auto text_utf8 = into_u8(text);
+    return ImGui::CalcTextSize(text_utf8.c_str());
 }
 
 void ImGuiWrapper::set_next_window_pos(float x, float y, int flag)
@@ -251,7 +269,8 @@ void ImGuiWrapper::text(const std::string &label)
 
 void ImGuiWrapper::text(const wxString &label)
 {
-    this->text(into_u8(label).c_str());
+    auto label_utf8 = into_u8(label);
+    this->text(label_utf8.c_str());
 }
 
 bool ImGuiWrapper::combo(const wxString& label, const std::vector<std::string>& options, int& selection)
@@ -320,51 +339,40 @@ bool ImGuiWrapper::want_any_input() const
     return io.WantCaptureMouse || io.WantCaptureKeyboard || io.WantTextInput;
 }
 
-void ImGuiWrapper::init_default_font(float scaling)
+void ImGuiWrapper::init_font()
 {
-    static const float font_size = 18.0f;
-
-    destroy_fonts_texture();
+    destroy_font();
 
     ImGuiIO& io = ImGui::GetIO();
     io.Fonts->Clear();
-    ImFont* font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/NotoSans-Regular.ttf").c_str(), font_size * scaling, nullptr, m_glyph_ranges);
+    ImFont* font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/NotoSans-Regular.ttf").c_str(), m_font_size, nullptr, m_glyph_ranges);
     if (font == nullptr) {
         font = io.Fonts->AddFontDefault();
         if (font == nullptr) {
             throw std::runtime_error("ImGui: Could not load deafult font");
         }
     }
-}
 
-void ImGuiWrapper::create_device_objects()
-{
-    create_fonts_texture();
-}
-
-void ImGuiWrapper::create_fonts_texture()
-{
     // Build texture atlas
-    ImGuiIO& io = ImGui::GetIO();
     unsigned char* pixels;
     int width, height;
     io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);   // Load as RGBA 32-bits (75% of the memory is wasted, but default font is so small) because it is more likely to be compatible with user's existing shaders. If your ImTextureId represent a higher-level concept than just a GL texture id, consider calling GetTexDataAsAlpha8() instead to save on GPU memory.
 
     // Upload texture to graphics system
     GLint last_texture;
-    glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture);
-    glGenTextures(1, &m_font_texture);
-    glBindTexture(GL_TEXTURE_2D, m_font_texture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+    glsafe(::glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture));
+    glsafe(::glGenTextures(1, &m_font_texture));
+    glsafe(::glBindTexture(GL_TEXTURE_2D, m_font_texture));
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+    glsafe(::glPixelStorei(GL_UNPACK_ROW_LENGTH, 0));
+    glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels));
 
     // Store our identifier
     io.Fonts->TexID = (ImTextureID)(intptr_t)m_font_texture;
 
     // Restore state
-    glBindTexture(GL_TEXTURE_2D, last_texture);
+    glsafe(::glBindTexture(GL_TEXTURE_2D, last_texture));
 }
 
 void ImGuiWrapper::init_input()
@@ -459,39 +467,39 @@ void ImGuiWrapper::render_draw_data(ImDrawData *draw_data)
 
     // We are using the OpenGL fixed pipeline to make the example code simpler to read!
     // Setup render state: alpha-blending enabled, no face culling, no depth testing, scissor enabled, vertex/texcoord/color pointers, polygon fill.
-    GLint last_texture; glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture);
-    GLint last_polygon_mode[2]; glGetIntegerv(GL_POLYGON_MODE, last_polygon_mode);
-    GLint last_viewport[4]; glGetIntegerv(GL_VIEWPORT, last_viewport);
-    GLint last_scissor_box[4]; glGetIntegerv(GL_SCISSOR_BOX, last_scissor_box); 
-    glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_TRANSFORM_BIT);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glDisable(GL_CULL_FACE);
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_LIGHTING);
-    glDisable(GL_COLOR_MATERIAL);
-    glEnable(GL_SCISSOR_TEST);
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-    glEnableClientState(GL_COLOR_ARRAY);
-    glEnable(GL_TEXTURE_2D);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    GLint last_texture; glsafe(::glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture));
+    GLint last_polygon_mode[2]; glsafe(::glGetIntegerv(GL_POLYGON_MODE, last_polygon_mode));
+    GLint last_viewport[4]; glsafe(::glGetIntegerv(GL_VIEWPORT, last_viewport));
+    GLint last_scissor_box[4]; glsafe(::glGetIntegerv(GL_SCISSOR_BOX, last_scissor_box));
+    glsafe(::glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_TRANSFORM_BIT));
+    glsafe(::glEnable(GL_BLEND));
+    glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+    glsafe(::glDisable(GL_CULL_FACE));
+    glsafe(::glDisable(GL_DEPTH_TEST));
+    glsafe(::glDisable(GL_LIGHTING));
+    glsafe(::glDisable(GL_COLOR_MATERIAL));
+    glsafe(::glEnable(GL_SCISSOR_TEST));
+    glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
+    glsafe(::glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+    glsafe(::glEnableClientState(GL_COLOR_ARRAY));
+    glsafe(::glEnable(GL_TEXTURE_2D));
+    glsafe(::glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
+    glsafe(::glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE));
     GLint texture_env_mode = GL_MODULATE;
-    glGetTexEnviv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, &texture_env_mode);
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    glsafe(::glGetTexEnviv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, &texture_env_mode));
+    glsafe(::glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE));
     //glUseProgram(0); // You may want this if using this code in an OpenGL 3+ context where shaders may be bound
 
     // Setup viewport, orthographic projection matrix
     // Our visible imgui space lies from draw_data->DisplayPps (top left) to draw_data->DisplayPos+data_data->DisplaySize (bottom right). DisplayMin is typically (0,0) for single viewport apps.
-    glViewport(0, 0, (GLsizei)fb_width, (GLsizei)fb_height);
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
-    glOrtho(draw_data->DisplayPos.x, draw_data->DisplayPos.x + draw_data->DisplaySize.x, draw_data->DisplayPos.y + draw_data->DisplaySize.y, draw_data->DisplayPos.y, -1.0f, +1.0f);
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
+    glsafe(::glViewport(0, 0, (GLsizei)fb_width, (GLsizei)fb_height));
+    glsafe(::glMatrixMode(GL_PROJECTION));
+    glsafe(::glPushMatrix());
+    glsafe(::glLoadIdentity());
+    glsafe(::glOrtho(draw_data->DisplayPos.x, draw_data->DisplayPos.x + draw_data->DisplaySize.x, draw_data->DisplayPos.y + draw_data->DisplaySize.y, draw_data->DisplayPos.y, -1.0f, +1.0f));
+    glsafe(::glMatrixMode(GL_MODELVIEW));
+    glsafe(::glPushMatrix());
+    glsafe(::glLoadIdentity());
 
     // Render command lists
     ImVec2 pos = draw_data->DisplayPos;
@@ -500,9 +508,9 @@ void ImGuiWrapper::render_draw_data(ImDrawData *draw_data)
         const ImDrawList* cmd_list = draw_data->CmdLists[n];
         const ImDrawVert* vtx_buffer = cmd_list->VtxBuffer.Data;
         const ImDrawIdx* idx_buffer = cmd_list->IdxBuffer.Data;
-        glVertexPointer(2, GL_FLOAT, sizeof(ImDrawVert), (const GLvoid*)((const char*)vtx_buffer + IM_OFFSETOF(ImDrawVert, pos)));
-        glTexCoordPointer(2, GL_FLOAT, sizeof(ImDrawVert), (const GLvoid*)((const char*)vtx_buffer + IM_OFFSETOF(ImDrawVert, uv)));
-        glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(ImDrawVert), (const GLvoid*)((const char*)vtx_buffer + IM_OFFSETOF(ImDrawVert, col)));
+        glsafe(::glVertexPointer(2, GL_FLOAT, sizeof(ImDrawVert), (const GLvoid*)((const char*)vtx_buffer + IM_OFFSETOF(ImDrawVert, pos))));
+        glsafe(::glTexCoordPointer(2, GL_FLOAT, sizeof(ImDrawVert), (const GLvoid*)((const char*)vtx_buffer + IM_OFFSETOF(ImDrawVert, uv))));
+        glsafe(::glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(ImDrawVert), (const GLvoid*)((const char*)vtx_buffer + IM_OFFSETOF(ImDrawVert, col))));
 
         for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
         {
@@ -518,11 +526,11 @@ void ImGuiWrapper::render_draw_data(ImDrawData *draw_data)
                 if (clip_rect.x < fb_width && clip_rect.y < fb_height && clip_rect.z >= 0.0f && clip_rect.w >= 0.0f)
                 {
                     // Apply scissor/clipping rectangle
-                    glScissor((int)clip_rect.x, (int)(fb_height - clip_rect.w), (int)(clip_rect.z - clip_rect.x), (int)(clip_rect.w - clip_rect.y));
+                    glsafe(::glScissor((int)clip_rect.x, (int)(fb_height - clip_rect.w), (int)(clip_rect.z - clip_rect.x), (int)(clip_rect.w - clip_rect.y)));
 
                     // Bind texture, Draw
-                    glBindTexture(GL_TEXTURE_2D, (GLuint)(intptr_t)pcmd->TextureId);
-                    glDrawElements(GL_TRIANGLES, (GLsizei)pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, idx_buffer);
+                    glsafe(::glBindTexture(GL_TEXTURE_2D, (GLuint)(intptr_t)pcmd->TextureId));
+                    glsafe(::glDrawElements(GL_TRIANGLES, (GLsizei)pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, idx_buffer));
                 }
             }
             idx_buffer += pcmd->ElemCount;
@@ -530,19 +538,19 @@ void ImGuiWrapper::render_draw_data(ImDrawData *draw_data)
     }
 
     // Restore modified state
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, texture_env_mode);
-    glDisableClientState(GL_COLOR_ARRAY);
-    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glBindTexture(GL_TEXTURE_2D, (GLuint)last_texture);
-    glMatrixMode(GL_MODELVIEW);
-    glPopMatrix();
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-    glPopAttrib();
-    glPolygonMode(GL_FRONT, (GLenum)last_polygon_mode[0]); glPolygonMode(GL_BACK, (GLenum)last_polygon_mode[1]);
-    glViewport(last_viewport[0], last_viewport[1], (GLsizei)last_viewport[2], (GLsizei)last_viewport[3]);
-    glScissor(last_scissor_box[0], last_scissor_box[1], (GLsizei)last_scissor_box[2], (GLsizei)last_scissor_box[3]);
+    glsafe(::glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, texture_env_mode));
+    glsafe(::glDisableClientState(GL_COLOR_ARRAY));
+    glsafe(::glDisableClientState(GL_TEXTURE_COORD_ARRAY));
+    glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
+    glsafe(::glBindTexture(GL_TEXTURE_2D, (GLuint)last_texture));
+    glsafe(::glMatrixMode(GL_MODELVIEW));
+    glsafe(::glPopMatrix());
+    glsafe(::glMatrixMode(GL_PROJECTION));
+    glsafe(::glPopMatrix());
+    glsafe(::glPopAttrib());
+    glsafe(::glPolygonMode(GL_FRONT, (GLenum)last_polygon_mode[0]); glPolygonMode(GL_BACK, (GLenum)last_polygon_mode[1]));
+    glsafe(::glViewport(last_viewport[0], last_viewport[1], (GLsizei)last_viewport[2], (GLsizei)last_viewport[3]));
+    glsafe(::glScissor(last_scissor_box[0], last_scissor_box[1], (GLsizei)last_scissor_box[2], (GLsizei)last_scissor_box[3]));
 }
 
 bool ImGuiWrapper::display_initialized() const
@@ -551,17 +559,12 @@ bool ImGuiWrapper::display_initialized() const
     return io.DisplaySize.x >= 0.0f && io.DisplaySize.y >= 0.0f;
 }
 
-void ImGuiWrapper::destroy_device_objects()
+void ImGuiWrapper::destroy_font()
 {
-    destroy_fonts_texture();
-}
-
-void ImGuiWrapper::destroy_fonts_texture()
-{
-    if (m_font_texture) {
+    if (m_font_texture != 0) {
         ImGuiIO& io = ImGui::GetIO();
         io.Fonts->TexID = 0;
-        glDeleteTextures(1, &m_font_texture);
+        glsafe(::glDeleteTextures(1, &m_font_texture));
         m_font_texture = 0;
     }
 }

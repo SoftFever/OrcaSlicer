@@ -27,12 +27,9 @@
 namespace Slic3r {
 namespace GUI {
 
-    View3D::View3D(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)
+View3D::View3D(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)
     : m_canvas_widget(nullptr)
     , m_canvas(nullptr)
-#if !ENABLE_IMGUI
-    , m_gizmo_widget(nullptr)
-#endif // !ENABLE_IMGUI
 {
     init(parent, bed, camera, view_toolbar, model, config, process);
 }
@@ -65,19 +62,11 @@ bool View3D::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_
     m_canvas->set_process(process);
     m_canvas->set_config(config);
     m_canvas->enable_gizmos(true);
+    m_canvas->enable_selection(true);
     m_canvas->enable_toolbar(true);
-
-#if !ENABLE_IMGUI
-    m_gizmo_widget = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-    m_gizmo_widget->SetSizer(new wxBoxSizer(wxVERTICAL));
-    m_canvas->set_external_gizmo_widgets_parent(m_gizmo_widget);
-#endif // !ENABLE_IMGUI
 
     wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
     main_sizer->Add(m_canvas_widget, 1, wxALL | wxEXPAND, 0);
-#if !ENABLE_IMGUI
-    main_sizer->Add(m_gizmo_widget, 0, wxALL | wxEXPAND, 0);
-#endif // !ENABLE_IMGUI
 
     SetSizer(main_sizer);
     SetMinSize(GetSize());
@@ -120,18 +109,6 @@ void View3D::mirror_selection(Axis axis)
 {
     if (m_canvas != nullptr)
         m_canvas->mirror_selection(axis);
-}
-
-void View3D::update_toolbar_items_visibility()
-{
-    if (m_canvas != nullptr)
-        m_canvas->update_toolbar_items_visibility();
-}
-
-void View3D::enable_toolbar_item(const std::string& name, bool enable)
-{
-    if (m_canvas != nullptr)
-        m_canvas->enable_toolbar_item(name, enable);
 }
 
 int View3D::check_volumes_outside_state() const
@@ -178,7 +155,9 @@ void View3D::render()
         m_canvas->set_as_dirty();
 }
 
-Preview::Preview(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, DynamicPrintConfig* config, BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, std::function<void()> schedule_background_process_func)
+Preview::Preview(
+    wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model, DynamicPrintConfig* config, 
+    BackgroundSlicingProcess* process, GCodePreviewData* gcode_preview_data, std::function<void()> schedule_background_process_func)
     : m_canvas_widget(nullptr)
     , m_canvas(nullptr)
     , m_double_slider_sizer(nullptr)
@@ -198,15 +177,18 @@ Preview::Preview(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_t
     , m_loaded(false)
     , m_enabled(false)
     , m_schedule_background_process(schedule_background_process_func)
+#ifdef __linux__
+    , m_volumes_cleanup_required(false)
+#endif // __linux__
 {
-    if (init(parent, bed, camera, view_toolbar))
+    if (init(parent, bed, camera, view_toolbar, model))
     {
         show_hide_ui_elements("none");
         load_print();
     }
 }
 
-bool Preview::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar)
+bool Preview::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model)
 {
     if (!Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 /* disable wxTAB_TRAVERSAL */))
         return false;
@@ -216,6 +198,7 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view
     m_canvas = _3DScene::get_canvas(this->m_canvas_widget);
     m_canvas->allow_multisample(GLCanvas3DManager::can_multisample());
     m_canvas->set_config(m_config);
+    m_canvas->set_model(model);
     m_canvas->set_process(m_process);
     m_canvas->enable_legend_texture(true);
     m_canvas->enable_dynamic_background(true);
@@ -366,26 +349,39 @@ void Preview::set_drop_target(wxDropTarget* target)
         SetDropTarget(target);
 }
 
-void Preview::load_print()
+void Preview::load_print(bool keep_z_range)
 {
     PrinterTechnology tech = m_process->current_printer_technology();
     if (tech == ptFFF)
-        load_print_as_fff();
+        load_print_as_fff(keep_z_range);
     else if (tech == ptSLA)
         load_print_as_sla();
 }
 
-void Preview::reload_print(bool force, bool keep_volumes)
+void Preview::reload_print(bool keep_volumes)
 {
-    if (!keep_volumes)
+#ifdef __linux__
+    // We are getting mysterious crashes on Linux in gtk due to OpenGL context activation GH #1874 #1955.
+    // So we are applying a workaround here: a delayed release of OpenGL vertex buffers.
+    if (!IsShown())
+    {
+        m_volumes_cleanup_required = !keep_volumes;
+        return;
+    }
+#endif /* __linux __ */
+    if (
+#ifdef __linux__
+        m_volumes_cleanup_required || 
+#endif /* __linux__ */
+        !keep_volumes)
     {
         m_canvas->reset_volumes();
         m_canvas->reset_legend_texture();
         m_loaded = false;
+#ifdef __linux__
+        m_volumes_cleanup_required = false;
+#endif /* __linux__ */
     }
-
-    if (!IsShown() && !force)
-        return;
 
     load_print();
 }
@@ -397,7 +393,7 @@ void Preview::refresh_print()
     if (!IsShown())
         return;
 
-    load_print();
+    load_print(true);
 }
 
 void Preview::bind_event_handlers()
@@ -454,10 +450,10 @@ void Preview::reset_sliders()
     m_double_slider_sizer->Hide((size_t)0);
 }
 
-void Preview::update_sliders(const std::vector<double>& layers_z)
+void Preview::update_sliders(const std::vector<double>& layers_z, bool keep_z_range)
 {
     m_enabled = true;
-    update_double_slider(layers_z);
+    update_double_slider(layers_z, keep_z_range);
     m_double_slider_sizer->Show((size_t)0);
     Layout();
 }
@@ -566,15 +562,19 @@ static int find_close_layer_idx(const std::vector<double>& zs, double &z, double
     return -1;
 }
 
-void Preview::update_double_slider(const std::vector<double>& layers_z, bool force_sliders_full_range)
+void Preview::update_double_slider(const std::vector<double>& layers_z, bool keep_z_range)
 {
     // Save the initial slider span.
     double z_low        = m_slider->GetLowerValueD();
     double z_high       = m_slider->GetHigherValueD();
     bool   was_empty    = m_slider->GetMaxValue() == 0;
-    bool   span_changed = layers_z.empty() || std::abs(layers_z.back() - m_slider->GetMaxValueD()) > 1e-6;
-    force_sliders_full_range |= was_empty | span_changed;
-	bool   snap_to_min  = force_sliders_full_range || m_slider->is_lower_at_min();
+    bool force_sliders_full_range = was_empty;
+    if (!keep_z_range)
+    {
+        bool span_changed = layers_z.empty() || std::abs(layers_z.back() - m_slider->GetMaxValueD()) > 1e-6;
+        force_sliders_full_range |= span_changed;
+    }
+    bool   snap_to_min = force_sliders_full_range || m_slider->is_lower_at_min();
 	bool   snap_to_max  = force_sliders_full_range || m_slider->is_higher_at_max();
 
     std::vector<std::pair<int, double>> values;
@@ -660,7 +660,7 @@ void Preview::update_double_slider_from_canvas(wxKeyEvent& event)
         event.Skip();
 }
 
-void Preview::load_print_as_fff()
+void Preview::load_print_as_fff(bool keep_z_range)
 {
     if (m_loaded || m_process->current_printer_technology() != ptFFF)
         return;
@@ -761,7 +761,7 @@ void Preview::load_print_as_fff()
             reset_sliders();
             m_canvas_widget->Refresh();
         } else
-            update_sliders(zs);
+            update_sliders(zs, keep_z_range);
     }
 }
 
@@ -773,19 +773,18 @@ void Preview::load_print_as_sla()
     unsigned int n_layers = 0;
     const SLAPrint* print = m_process->sla_print();
 
-    std::set<double> zs;
+    std::vector<double> zs;
+    double initial_layer_height = print->material_config().initial_layer_height.value;
     for (const SLAPrintObject* obj : print->objects())
-    {
-        double shift_z = obj->get_current_elevation();
-        if (obj->is_step_done(slaposIndexSlices))
+        if (obj->is_step_done(slaposSliceSupports) && !obj->get_slice_index().empty())
         {
-            const SLAPrintObject::SliceIndex& index = obj->get_slice_index();
-            for (const SLAPrintObject::SliceIndex::value_type& id : index)
-            {
-                zs.insert(shift_z + id.first);
-            }
+            auto low_coord = obj->get_slice_index().front().print_level();
+            for (auto& rec : obj->get_slice_index())
+                zs.emplace_back(initial_layer_height + (rec.print_level() - low_coord) * SCALING_FACTOR);
         }
-    }
+    sort_remove_duplicates(zs);
+
+    m_canvas->reset_clipping_planes_cache();
 
     n_layers = (unsigned int)zs.size();
     if (n_layers == 0)
@@ -800,11 +799,7 @@ void Preview::load_print_as_sla()
         show_hide_ui_elements("none");
 
         if (n_layers > 0)
-        {
-            std::vector<double> layer_zs;
-            std::copy(zs.begin(), zs.end(), std::back_inserter(layer_zs));
-            update_sliders(layer_zs);
-        }
+            update_sliders(zs);
 
         m_loaded = true;
     }

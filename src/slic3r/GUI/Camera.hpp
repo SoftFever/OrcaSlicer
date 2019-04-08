@@ -2,6 +2,7 @@
 #define slic3r_Camera_hpp_
 
 #include "libslic3r/BoundingBox.hpp"
+#include <array>
 
 namespace Slic3r {
 namespace GUI {
@@ -26,6 +27,10 @@ private:
     Vec3d m_target;
     float m_theta;
 
+    mutable std::array<int, 4> m_viewport;
+    mutable Transform3d m_view_matrix;
+    mutable Transform3d m_projection_matrix;
+
     BoundingBoxf3 m_scene_box;
 
 public:
@@ -41,6 +46,22 @@ public:
 
     const BoundingBoxf3& get_scene_box() const { return m_scene_box; }
     void set_scene_box(const BoundingBoxf3& box);
+
+    bool select_view(const std::string& direction);
+
+    const std::array<int, 4>& get_viewport() const { return m_viewport; }
+    const Transform3d& get_view_matrix() const { return m_view_matrix; }
+    const Transform3d& get_projection_matrix() const { return m_projection_matrix; }
+
+    Vec3d get_dir_right() const { return m_view_matrix.matrix().block(0, 0, 3, 3).row(0); }
+    Vec3d get_dir_up() const { return m_view_matrix.matrix().block(0, 0, 3, 3).row(1); }
+    Vec3d get_dir_forward() const { return m_view_matrix.matrix().block(0, 0, 3, 3).row(2); }
+
+    Vec3d get_position() const { return m_view_matrix.matrix().block(0, 0, 3, 3).row(3); }
+
+    void apply_viewport(int x, int y, unsigned int w, unsigned int h) const;
+    void apply_view_matrix() const;
+    void apply_ortho_projection(float x_min, float x_max, float y_min, float y_max, float z_min, float z_max) const;
 };
 
 } // GUI

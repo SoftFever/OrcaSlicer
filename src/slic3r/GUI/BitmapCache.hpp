@@ -29,6 +29,12 @@ public:
 	wxBitmap* 		insert(const std::string &name, const wxBitmap &bmp, const wxBitmap &bmp2, const wxBitmap &bmp3);
 	wxBitmap* 		insert(const std::string &name, const std::vector<wxBitmap> &bmps) { return this->insert(name, &bmps.front(), &bmps.front() + bmps.size()); }
 	wxBitmap* 		insert(const std::string &name, const wxBitmap *begin, const wxBitmap *end);
+	wxBitmap* 		insert_raw_rgba(const std::string &bitmap_key, unsigned int width, unsigned int height, const unsigned char *raw_data);
+
+	// Load png from resources/icons. bitmap_key is given without the .png suffix. Bitmap will be rescaled to provided height/width if nonzero.
+	wxBitmap* 		load_png(const std::string &bitmap_key, unsigned int width = 0, unsigned int height = 0);
+	// Load svg from resources/icons. bitmap_key is given without the .svg suffix. SVG will be rasterized to provided height/width.
+    wxBitmap* 		load_svg(const std::string &bitmap_key, unsigned int width = 0, unsigned int height = 0);
 
 	static wxBitmap mksolid(size_t width, size_t height, unsigned char r, unsigned char g, unsigned char b, unsigned char transparency);
 	static wxBitmap mksolid(size_t width, size_t height, const unsigned char rgb[3]) { return mksolid(width, height, rgb[0], rgb[1], rgb[2], wxALPHA_OPAQUE); }

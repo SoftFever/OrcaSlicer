@@ -61,7 +61,7 @@ Model& Model::assign_copy(Model &&rhs)
 	this->objects = std::move(rhs.objects);
     for (ModelObject *model_object : this->objects)
         model_object->set_model(this);
-	rhs.objects.clear();
+    rhs.objects.clear();
     return *this;
 }
 
@@ -556,19 +556,9 @@ std::string Model::propose_export_file_name_and_path() const
     for (const ModelObject *model_object : this->objects)
         for (ModelInstance *model_instance : model_object->instances)
             if (model_instance->is_printable()) {
-                input_file = model_object->input_file;
-                if (! model_object->name.empty()) {
-                    if (input_file.empty())
-                        // model_object->input_file was empty, just use model_object->name
-                        input_file = model_object->name;
-                    else {
-                        // Replace file name in input_file with model_object->name, but keep the path and file extension.
-						input_file = (boost::filesystem::path(model_object->name).parent_path().empty()) ?
-							(boost::filesystem::path(input_file).parent_path() / model_object->name).make_preferred().string() :
-							model_object->name;
-					}
-                }
-                if (! input_file.empty())
+                input_file = model_object->get_export_filename();
+
+                if (!input_file.empty())
                     goto end;
                 // Other instances will produce the same name, skip them.
                 break;
@@ -651,7 +641,7 @@ ModelObject& ModelObject::assign_copy(ModelObject &&rhs)
     for (ModelInstance *model_instance : this->instances)
         model_instance->set_model_object(this);
 
-	return *this;
+    return *this;
 }
 
 void ModelObject::assign_new_unique_ids_recursive()
@@ -970,8 +960,8 @@ Polygon ModelObject::convex_hull_2d(const Transform3d &trafo_instance)
                 }
             }
         }
-	std::sort(pts.begin(), pts.end(), [](const Point& a, const Point& b) { return a(0) < b(0) || (a(0) == b(0) && a(1) < b(1)); });
-	pts.erase(std::unique(pts.begin(), pts.end(), [](const Point& a, const Point& b) { return a(0) == b(0) && a(1) == b(1); }), pts.end());
+    std::sort(pts.begin(), pts.end(), [](const Point& a, const Point& b) { return a(0) < b(0) || (a(0) == b(0) && a(1) < b(1)); });
+    pts.erase(std::unique(pts.begin(), pts.end(), [](const Point& a, const Point& b) { return a(0) == b(0) && a(1) == b(1); }), pts.end());
 
     Polygon hull;
     int n = (int)pts.size();
@@ -997,12 +987,16 @@ Polygon ModelObject::convex_hull_2d(const Transform3d &trafo_instance)
     return hull;
 }
 
+#if ENABLE_VOLUMES_CENTERING_FIXES
+void ModelObject::center_around_origin(bool include_modifiers)
+#else
 void ModelObject::center_around_origin()
+#endif // ENABLE_VOLUMES_CENTERING_FIXES
 {
     // calculate the displacements needed to 
     // center this object around the origin
 #if ENABLE_VOLUMES_CENTERING_FIXES
-    BoundingBoxf3 bb = full_raw_mesh_bounding_box();
+    BoundingBoxf3 bb = include_modifiers ? full_raw_mesh_bounding_box() : raw_mesh_bounding_box();
 #else
 	BoundingBoxf3 bb;
 	for (ModelVolume *v : this->volumes)
@@ -1183,8 +1177,9 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
         else {
             TriangleMesh upper_mesh, lower_mesh;
 
-            // Transform the mesh by the combined transformation matrix
-            volume->mesh.transform(instance_matrix * volume_matrix);
+            // Transform the mesh by the combined transformation matrix.
+            // Flip the triangles in case the composite transformation is left handed.
+            volume->mesh.transform(instance_matrix * volume_matrix, true);
 
             // Perform cut
             TriangleMeshSlicer tms(&volume->mesh);
@@ -1287,11 +1282,11 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
         
         // XXX: this seems to be the only real usage of m_model, maybe refactor this so that it's not needed?
         ModelObject* new_object = m_model->add_object();    
-		new_object->name   = this->name;
-		new_object->config = this->config;
-		new_object->instances.reserve(this->instances.size());
-		for (const ModelInstance *model_instance : this->instances)
-			new_object->add_instance(*model_instance);
+        new_object->name   = this->name;
+        new_object->config = this->config;
+        new_object->instances.reserve(this->instances.size());
+        for (const ModelInstance *model_instance : this->instances)
+            new_object->add_instance(*model_instance);
         ModelVolume* new_vol = new_object->add_volume(*volume, std::move(*mesh));
 #if !ENABLE_VOLUMES_CENTERING_FIXES
         new_vol->center_geometry();
@@ -1428,6 +1423,26 @@ void ModelObject::print_info() const
     cout << "volume = "           << mesh.volume()                  << endl;
 }
 
+std::string ModelObject::get_export_filename() const
+{
+    std::string ret = input_file;
+
+    if (!name.empty())
+    {
+        if (ret.empty())
+            // input_file was empty, just use name
+            ret = name;
+        else
+        {
+            // Replace file name in input_file with name, but keep the path and file extension.
+            ret = (boost::filesystem::path(name).parent_path().empty()) ?
+                (boost::filesystem::path(ret).parent_path() / name).make_preferred().string() : name;
+        }
+    }
+
+    return ret;
+}
+
 void ModelVolume::set_material_id(t_model_material_id material_id)
 {
     m_material_id = material_id;
@@ -1463,9 +1478,9 @@ int ModelVolume::extruder_id() const
 
 bool ModelVolume::is_splittable() const
 {
-    // the call mesh.has_multiple_patches() is expensive, so cache the value to calculate it only once
+    // the call mesh.is_splittable() is expensive, so cache the value to calculate it only once
     if (m_is_splittable == -1)
-        m_is_splittable = (int)mesh.has_multiple_patches();
+        m_is_splittable = (int)mesh.is_splittable();
 
     return m_is_splittable == 1;
 }
@@ -1605,6 +1620,7 @@ void ModelVolume::rotate(double angle, Axis axis)
     case X: { rotate(angle, Vec3d::UnitX()); break; }
     case Y: { rotate(angle, Vec3d::UnitY()); break; }
     case Z: { rotate(angle, Vec3d::UnitZ()); break; }
+    default: break;
     }
 }
 
@@ -1621,6 +1637,7 @@ void ModelVolume::mirror(Axis axis)
     case X: { mirror(0) *= -1.0; break; }
     case Y: { mirror(1) *= -1.0; break; }
     case Z: { mirror(2) *= -1.0; break; }
+    default: break;
     }
     set_mirror(mirror);
 }
@@ -1707,7 +1724,6 @@ bool model_object_list_extended(const Model &model_old, const Model &model_new)
 
 bool model_volume_list_changed(const ModelObject &model_object_old, const ModelObject &model_object_new, const ModelVolumeType type)
 {
-    bool modifiers_differ = false;
     size_t i_old, i_new;
     for (i_old = 0, i_new = 0; i_old < model_object_old.volumes.size() && i_new < model_object_new.volumes.size();) {
         const ModelVolume &mv_old = *model_object_old.volumes[i_old];

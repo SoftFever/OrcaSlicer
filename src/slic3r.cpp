@@ -361,6 +361,14 @@ int CLI::run(int argc, char **argv)
                 std::string outfile = m_config.opt_string("output");
                 Print       fff_print;
                 SLAPrint    sla_print;
+
+                sla_print.set_status_callback(
+                            [](const PrintBase::SlicingStatus& s)
+                {
+                    if(s.percent >= 0) // FIXME: is this sufficient?
+                        printf("%3d%s %s\n", s.percent, "% =>", s.text.c_str());
+                });
+
                 PrintBase  *print = (printer_technology == ptFFF) ? static_cast<PrintBase*>(&fff_print) : static_cast<PrintBase*>(&sla_print);
                 if (! m_config.opt_bool("dont_arrange")) {
                     //FIXME make the min_object_distance configurable.
@@ -389,9 +397,9 @@ int CLI::run(int argc, char **argv)
                             outfile_final = fff_print.print_statistics().finalize_output_path(outfile);
                         } else {
 							outfile = sla_print.output_filepath(outfile);
-                            //FIXME Tamas, please port it to miniz
-							// sla_print.export_raster<SLAZipFmt>(outfile);
-							outfile_final = sla_print.print_statistics().finalize_output_path(outfile);
+                            // We need to finalize the filename beforehand because the export function sets the filename inside the zip metadata
+                            outfile_final = sla_print.print_statistics().finalize_output_path(outfile);
+							sla_print.export_raster(outfile_final);
                         }
                         if (outfile != outfile_final && Slic3r::rename_file(outfile, outfile_final) != 0) {
 							boost::nowide::cerr << "Renaming file " << outfile << " to " << outfile_final << " failed" << std::endl;

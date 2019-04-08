@@ -20,9 +20,8 @@
 
 // Disable synchronization of unselected instances
 #define DISABLE_INSTANCES_SYNCH (0 && ENABLE_1_42_0_ALPHA1)
-// Scene's GUI made using imgui library
-#define ENABLE_IMGUI (1 && ENABLE_1_42_0_ALPHA1)
-#define DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI (1 && ENABLE_IMGUI)
+// Disable imgui dialog for move, rotate and scale gizmos
+#define DISABLE_MOVE_ROTATE_SCALE_GIZMOS_IMGUI (1 && ENABLE_1_42_0_ALPHA1)
 // Use wxDataViewRender instead of wxDataViewCustomRenderer
 #define ENABLE_NONCUSTOM_DATA_VIEW_RENDERING (0 && ENABLE_1_42_0_ALPHA1)
 
@@ -34,8 +33,6 @@
 
 // Changed algorithm to extract euler angles from rotation matrix
 #define ENABLE_NEW_EULER_ANGLES (1 && ENABLE_1_42_0_ALPHA4)
-// Added minimum threshold for click and drag movements
-#define ENABLE_MOVE_MIN_THRESHOLD (1 && ENABLE_1_42_0_ALPHA4)
 // Modified initial default placement of generic subparts
 #define ENABLE_GENERIC_SUBPARTS_PLACEMENT (1 && ENABLE_1_42_0_ALPHA4)
 // Bunch of fixes related to volumes centering
@@ -58,5 +55,6 @@
 
 // Toolbars and Gizmos use icons imported from svg files
 #define ENABLE_SVG_ICONS (1 && ENABLE_1_42_0_ALPHA8 && ENABLE_TEXTURES_FROM_SVG)
+
 
 #endif // _technologies_h_

@@ -100,17 +100,21 @@ public:
     /// Accessor function is because users are not allowed to change the parent
     /// but defining it as const means a lot of const_casts to deal with wx functions.
     inline wxWindow* parent() const { 
-#ifdef __WXGTK__
+#if 0//#ifdef __WXGTK__
 		return m_panel;
 #else
 		return m_parent;
 #endif /* __WXGTK__ */
     }
-#ifdef __WXGTK__
+#if 0//#ifdef __WXGTK__
     wxWindow* get_parent() const {
         return m_parent;
     }
 #endif /* __WXGTK__ */
+
+    wxWindow* ctrl_parent() const {
+    	return this->stb ? (wxWindow*)this->stb : this->parent();
+    }
 
 	void		append_line(const Line& line, wxStaticText** full_Label = nullptr);
     Line		create_single_option_line(const Option& option) const;
@@ -161,8 +165,10 @@ public:
 					staticbox(title!=""), extra_column(extra_clmn) {
         if (staticbox) {
             stb = new wxStaticBox(_parent, wxID_ANY, title);
+            stb->SetBackgroundStyle(wxBG_STYLE_PAINT);
             stb->SetFont(wxGetApp().bold_font());
-        }
+        } else
+        	stb = nullptr;
         sizer = (staticbox ? new wxStaticBoxSizer(stb, wxVERTICAL) : new wxBoxSizer(wxVERTICAL));
         auto num_columns = 1U;
         if (label_width != 0) num_columns++;
@@ -170,7 +176,7 @@ public:
         m_grid_sizer = new wxFlexGridSizer(0, num_columns, 1,0);
         static_cast<wxFlexGridSizer*>(m_grid_sizer)->SetFlexibleDirection(wxBOTH/*wxHORIZONTAL*/);
         static_cast<wxFlexGridSizer*>(m_grid_sizer)->AddGrowableCol(label_width == 0 ? 0 : !extra_column ? 1 : 2 );
-#ifdef __WXGTK__
+#if 0//#ifdef __WXGTK__
         m_panel = new wxPanel( _parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
         sizer->Fit(m_panel);
         sizer->Add(m_panel, 0, wxEXPAND | wxALL, wxOSX||!staticbox ? 0: 5);
@@ -198,7 +204,7 @@ protected:
 	// This panel is needed for correct showing of the ToolTips for Button, StaticText and CheckBox
 	// Tooltips on GTK doesn't work inside wxStaticBoxSizer unless you insert a panel 
 	// inside it before you insert the other controls.
-#ifdef __WXGTK__
+#if 0//#ifdef__WXGTK__
 	wxPanel*				m_panel {nullptr};
 #endif /* __WXGTK__ */
 

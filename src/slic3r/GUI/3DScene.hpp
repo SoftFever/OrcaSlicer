@@ -16,12 +16,14 @@
 #endif
 
 #ifdef HAS_GLSAFE
-extern void glAssertRecentCallImpl();
-inline void glAssertRecentCall() { glAssertRecentCallImpl(); }
-#define glsafe(cmd) do { cmd; glAssertRecentCallImpl(); } while (false)
+extern void glAssertRecentCallImpl(const char *file_name, unsigned int line, const char *function_name);
+inline void glAssertRecentCall() { glAssertRecentCallImpl(__FILE__, __LINE__, __FUNCTION__); }
+#define glsafe(cmd) do { cmd; glAssertRecentCallImpl(__FILE__, __LINE__, __FUNCTION__); } while (false)
+#define glcheck() do { glAssertRecentCallImpl(__FILE__, __LINE__, __FUNCTION__); } while (false)
 #else
 inline void glAssertRecentCall() { }
 #define glsafe(cmd) cmd
+#define glcheck()
 #endif
 
 namespace Slic3r {
@@ -302,6 +304,8 @@ public:
     bool                is_extrusion_path;
     // Wheter or not to always render this volume using its own alpha 
     bool                force_transparent;
+    // Whether or not always use the volume's own color (not using SELECTED/HOVER/DISABLED/OUTSIDE)
+    bool                force_native_color;
 
     // Interleaved triangles & normals with indexed triangles & quads.
     GLIndexedVertexArray        indexed_vertex_array;
@@ -364,7 +368,7 @@ public:
     void set_volume_rotation(const Vec3d& rotation) { m_volume_transformation.set_rotation(rotation); set_bounding_boxes_as_dirty(); }
     void set_volume_rotation(Axis axis, double rotation) { m_volume_transformation.set_rotation(axis, rotation); set_bounding_boxes_as_dirty(); }
 
-    Vec3d get_volume_scaling_factor() const { return m_volume_transformation.get_scaling_factor(); }
+    const Vec3d& get_volume_scaling_factor() const { return m_volume_transformation.get_scaling_factor(); }
     double get_volume_scaling_factor(Axis axis) const { return m_volume_transformation.get_scaling_factor(axis); }
 
     void set_volume_scaling_factor(const Vec3d& scaling_factor) { m_volume_transformation.set_scaling_factor(scaling_factor); set_bounding_boxes_as_dirty(); }
@@ -386,6 +390,7 @@ public:
     int                 instance_idx() const { return this->composite_id.instance_id; }
 
     Transform3d         world_matrix() const;
+    bool                is_left_handed() const;
 
     const BoundingBoxf3& transformed_bounding_box() const;
     const BoundingBoxf3& transformed_convex_hull_bounding_box() const;
@@ -460,8 +465,8 @@ public:
         int obj_idx, float pos_x, float pos_y, float width, float depth, float height, float rotation_angle, bool use_VBOs, bool size_unknown, float brim_width);
 
     // Render the volumes by OpenGL.
-	void render_VBOs(ERenderType type, bool disable_cullface, std::function<bool(const GLVolume&)> filter_func = std::function<bool(const GLVolume&)>()) const;
-    void render_legacy(ERenderType type, bool disable_cullface, std::function<bool(const GLVolume&)> filter_func = std::function<bool(const GLVolume&)>()) const;
+    void render_VBOs(ERenderType type, bool disable_cullface, const Transform3d& view_matrix, std::function<bool(const GLVolume&)> filter_func = std::function<bool(const GLVolume&)>()) const;
+    void render_legacy(ERenderType type, bool disable_cullface, const Transform3d& view_matrix, std::function<bool(const GLVolume&)> filter_func = std::function<bool(const GLVolume&)>()) const;
 
     // Finalize the initialization of the geometry & indices,
     // upload the geometry and indices to OpenGL VBO objects

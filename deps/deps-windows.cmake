@@ -62,7 +62,7 @@ ExternalProject_Add(dep_tbb
         -DTBB_BUILD_SHARED=OFF
         -DTBB_BUILD_TESTS=OFF
         "-DCMAKE_INSTALL_PREFIX:PATH=${DESTDIR}\\usr\\local"
-    BUILD_COMMAND msbuild /P:Configuration=Release INSTALL.vcxproj
+    BUILD_COMMAND msbuild /m /P:Configuration=Release INSTALL.vcxproj
     INSTALL_COMMAND ""
 )
 if (${DEP_DEBUG})
@@ -70,7 +70,7 @@ if (${DEP_DEBUG})
     ExternalProject_Add_Step(dep_tbb build_debug
         DEPENDEES build
         DEPENDERS install
-        COMMAND msbuild /P:Configuration=Debug INSTALL.vcxproj
+        COMMAND msbuild /m /P:Configuration=Debug INSTALL.vcxproj
         WORKING_DIRECTORY "${BINARY_DIR}"
     )
 endif ()
@@ -86,7 +86,7 @@ ExternalProject_Add(dep_gtest
         -Dgtest_force_shared_crt=ON
         -DCMAKE_POSITION_INDEPENDENT_CODE=ON
         "-DCMAKE_INSTALL_PREFIX:PATH=${DESTDIR}\\usr\\local"
-    BUILD_COMMAND msbuild /P:Configuration=Release INSTALL.vcxproj
+    BUILD_COMMAND msbuild /m /P:Configuration=Release INSTALL.vcxproj
     INSTALL_COMMAND ""
 )
 if (${DEP_DEBUG})
@@ -94,7 +94,7 @@ if (${DEP_DEBUG})
     ExternalProject_Add_Step(dep_gtest build_debug
         DEPENDEES build
         DEPENDERS install
-        COMMAND msbuild /P:Configuration=Debug INSTALL.vcxproj
+        COMMAND msbuild /m /P:Configuration=Debug INSTALL.vcxproj
         WORKING_DIRECTORY "${BINARY_DIR}"
     )
 endif ()
@@ -114,7 +114,7 @@ ExternalProject_Add(dep_nlopt
         -DCMAKE_POSITION_INDEPENDENT_CODE=ON
         -DCMAKE_DEBUG_POSTFIX=d
         "-DCMAKE_INSTALL_PREFIX:PATH=${DESTDIR}\\usr\\local"
-    BUILD_COMMAND msbuild /P:Configuration=Release INSTALL.vcxproj
+    BUILD_COMMAND msbuild /m /P:Configuration=Release INSTALL.vcxproj
     INSTALL_COMMAND ""
 )
 if (${DEP_DEBUG})
@@ -122,7 +122,7 @@ if (${DEP_DEBUG})
     ExternalProject_Add_Step(dep_nlopt build_debug
         DEPENDEES build
         DEPENDERS install
-        COMMAND msbuild /P:Configuration=Debug INSTALL.vcxproj
+        COMMAND msbuild /m /P:Configuration=Debug INSTALL.vcxproj
         WORKING_DIRECTORY "${BINARY_DIR}"
     )
 endif ()
@@ -138,7 +138,7 @@ ExternalProject_Add(dep_zlib
         "-DINSTALL_BIN_DIR=${CMAKE_CURRENT_BINARY_DIR}\\fallout"   # I found no better way of preventing zlib from creating & installing DLLs :-/
         -DCMAKE_POSITION_INDEPENDENT_CODE=ON
         "-DCMAKE_INSTALL_PREFIX:PATH=${DESTDIR}\\usr\\local"
-    BUILD_COMMAND msbuild /P:Configuration=Release INSTALL.vcxproj
+    BUILD_COMMAND msbuild /m /P:Configuration=Release INSTALL.vcxproj
     INSTALL_COMMAND ""
 )
 if (${DEP_DEBUG})
@@ -146,7 +146,7 @@ if (${DEP_DEBUG})
     ExternalProject_Add_Step(dep_zlib build_debug
         DEPENDEES build
         DEPENDERS install
-        COMMAND msbuild /P:Configuration=Debug INSTALL.vcxproj
+        COMMAND msbuild /m /P:Configuration=Debug INSTALL.vcxproj
         WORKING_DIRECTORY "${BINARY_DIR}"
     )
 endif ()
@@ -160,46 +160,6 @@ if (${DEP_DEBUG})
     ExternalProject_Add_Step(dep_zlib fix_static_debug
         DEPENDEES install
         COMMAND "${CMAKE_COMMAND}" -E rename zlibstaticd.lib zlibd.lib
-        WORKING_DIRECTORY "${DESTDIR}\\usr\\local\\lib\\"
-    )
-endif ()
-
-
-ExternalProject_Add(dep_libpng
-    DEPENDS dep_zlib
-    EXCLUDE_FROM_ALL 1
-    URL "https://github.com/glennrp/libpng/archive/v1.6.36.tar.gz"
-    URL_HASH SHA256=5bef5a850a9255365a2dc344671b7e9ef810de491bd479c2506ac3c337e2d84f
-    CMAKE_GENERATOR "${DEP_MSVC_GEN}"
-    CMAKE_ARGS
-        -DPNG_SHARED=OFF
-        -DPNG_TESTS=OFF
-        -DSKIP_INSTALL_FILES=ON                                   # Prevent installation of man pages et al.
-        -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-        "-DCMAKE_INSTALL_PREFIX:PATH=${DESTDIR}\\usr\\local"
-    BUILD_COMMAND msbuild /P:Configuration=Release INSTALL.vcxproj
-    INSTALL_COMMAND ""
-)
-if (${DEP_DEBUG})
-    ExternalProject_Get_Property(dep_libpng BINARY_DIR)
-    ExternalProject_Add_Step(dep_libpng build_debug
-        DEPENDEES build
-        DEPENDERS install
-        COMMAND msbuild /P:Configuration=Debug INSTALL.vcxproj
-        WORKING_DIRECTORY "${BINARY_DIR}"
-    )
-endif ()
-# The following steps are unfortunately needed to remove the _static suffix on libraries
-# (And also overwrite the dynamic .lib)
-ExternalProject_Add_Step(dep_libpng fix_static
-    DEPENDEES install
-    COMMAND "${CMAKE_COMMAND}" -E rename libpng16_static.lib libpng16.lib
-    WORKING_DIRECTORY "${DESTDIR}\\usr\\local\\lib\\"
-)
-if (${DEP_DEBUG})
-    ExternalProject_Add_Step(dep_libpng fix_static_debug
-        DEPENDEES install
-        COMMAND "${CMAKE_COMMAND}" -E rename libpng16_staticd.lib libpng16d.lib
         WORKING_DIRECTORY "${DESTDIR}\\usr\\local\\lib\\"
     )
 endif ()

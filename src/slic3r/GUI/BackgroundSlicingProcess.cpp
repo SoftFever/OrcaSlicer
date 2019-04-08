@@ -92,65 +92,15 @@ void BackgroundSlicingProcess::process_fff()
 	}
 }
 
-// Pseudo type for specializing LayerWriter trait class
-struct SLAZipFmt {};
-
-// The implementation of creating zipped archives with wxWidgets
-template<> class LayerWriter<SLAZipFmt> {
-    wxFileName fpath;
-    wxFFileOutputStream zipfile;
-    wxZipOutputStream zipstream;
-    wxStdOutputStream pngstream;
-
-public:
-
-    inline LayerWriter(const std::string& zipfile_path):
-        fpath(zipfile_path),
-        zipfile(zipfile_path),
-        zipstream(zipfile),
-        pngstream(zipstream)
-    {
-        if(!is_ok())
-            throw std::runtime_error("Cannot create zip file.");
-    }
-
-    ~LayerWriter() {
-        // In case of an error (disk space full) zipstream destructor would
-        // crash.
-        pngstream.clear();
-        zipstream.CloseEntry();
-    }
-
-    inline void next_entry(const std::string& fname) {
-        zipstream.PutNextEntry(fname);
-    }
-
-    inline std::string get_name() const {
-        return fpath.GetName().ToUTF8().data();
-    }
-
-    template<class T> inline LayerWriter& operator<<(const T& arg) {
-        pngstream << arg; return *this;
-    }
-
-    bool is_ok() const {
-        return pngstream.good() && zipstream.IsOk() && zipfile.IsOk();
-    }
-
-    inline void close() {
-        zipstream.Close();
-        zipfile.Close();
-    }
-};
-
 void BackgroundSlicingProcess::process_sla()
 {
     assert(m_print == m_sla_print);
     m_print->process();
     if (this->set_step_started(bspsGCodeFinalize)) {
         if (! m_export_path.empty()) {
-            m_sla_print->export_raster<SLAZipFmt>(m_export_path);
-            m_print->set_status(100, "Masked SLA file exported to " + m_export_path);
+        	const std::string export_path = m_sla_print->print_statistics().finalize_output_path(m_export_path);
+            m_sla_print->export_raster(export_path);
+            m_print->set_status(100, "Masked SLA file exported to " + export_path);
         } else if (! m_upload_job.empty()) {
             prepare_upload();
         } else {
@@ -440,7 +390,7 @@ void BackgroundSlicingProcess::prepare_upload()
 
 	// Generate a unique temp path to which the gcode/zip file is copied/exported
 	boost::filesystem::path source_path = boost::filesystem::temp_directory_path()
-		/ boost::filesystem::unique_path(".printhost.%%%%-%%%%-%%%%-%%%%.gcode");
+		/ boost::filesystem::unique_path(".Slic3rPE.upload.%%%%-%%%%-%%%%-%%%%");
 
 	if (m_print == m_fff_print) {
 		m_print->set_status(95, "Running post-processing scripts");
@@ -449,9 +399,9 @@ void BackgroundSlicingProcess::prepare_upload()
 		}
 		run_post_process_scripts(source_path.string(), m_fff_print->config());
 		m_upload_job.upload_data.upload_path = m_fff_print->print_statistics().finalize_output_path(m_upload_job.upload_data.upload_path.string());
-	} else {
-		m_sla_print->export_raster<SLAZipFmt>(source_path.string());
-		// TODO: Also finalize upload path like with FFF when there are statistics for SLA print
+    } else {
+		m_upload_job.upload_data.upload_path = m_sla_print->print_statistics().finalize_output_path(m_upload_job.upload_data.upload_path.string());
+        m_sla_print->export_raster(source_path.string(), m_upload_job.upload_data.upload_path.string());
 	}
 
 	m_print->set_status(100, (boost::format("Scheduling upload to `%1%`. See Window -> Print Host Upload Queue") % m_upload_job.printhost->get_host()).str());

@@ -40,6 +40,7 @@ public:
     void scale(float factor);
     void scale(const Vec3d &versor);
     void translate(float x, float y, float z);
+    void translate(const Vec3f &displacement);
     void rotate(float angle, const Axis &axis);
     void rotate(float angle, const Vec3d& axis);
     void rotate_x(float angle) { this->rotate(angle, X); }
@@ -49,7 +50,7 @@ public:
     void mirror_x() { this->mirror(X); }
     void mirror_y() { this->mirror(Y); }
     void mirror_z() { this->mirror(Z); }
-    void transform(const Transform3d& t);
+    void transform(const Transform3d& t, bool fix_left_handed = false);
     void align_to_origin();
     void rotate(double angle, Point* center);
     TriangleMeshPtrs split() const;
@@ -68,18 +69,14 @@ public:
     size_t facets_count() const { return this->stl.stats.number_of_facets; }
     bool   empty() const { return this->facets_count() == 0; }
 
-    // Returns true, if there are two and more connected patches in the mesh.
-    // Returns false, if one or zero connected patch is in the mesh.
-    bool has_multiple_patches() const;
-
-    // Count disconnected triangle patches.
-    size_t number_of_patches() const;
+    bool is_splittable() const;
 
     stl_file stl;
     bool repaired;
     
 private:
     void require_shared_vertices();
+    std::deque<uint32_t> find_unvisited_neighbors(std::vector<unsigned char> &facet_visited) const;
     friend class TriangleMeshSlicer;
 };
 

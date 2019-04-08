@@ -10,6 +10,8 @@
 
 #include "I18N.hpp"
 
+#include <wx/wupdlock.h>
+
 namespace Slic3r
 {
 namespace GUI
@@ -40,7 +42,7 @@ void OG_Settings::Hide()
 void OG_Settings::UpdateAndShow(const bool show)
 {
     Show(show);
-//     m_parent->Layout();
+//    m_parent->Layout();
 }
 
 wxSizer* OG_Settings::get_sizer()
@@ -75,7 +77,6 @@ void ObjectSettings::update_settings_list()
 		{
 			auto opt_key = (line.get_options())[0].opt_id;  //we assume that we have one option per line
 
-// 			auto btn = new wxBitmapButton(parent, wxID_ANY, wxBitmap(from_u8(var("colorchange_delete_on.png")), wxBITMAP_TYPE_PNG),
 			auto btn = new wxBitmapButton(parent, wxID_ANY, create_scaled_bitmap("colorchange_delete_on.png"),
 				wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
 #ifdef __WXMSW__
@@ -83,7 +84,9 @@ void ObjectSettings::update_settings_list()
 #endif // __WXMSW__
 			btn->Bind(wxEVT_BUTTON, [opt_key, config, this](wxEvent &event) {
 				config->erase(opt_key);
-                wxTheApp->CallAfter([this]() { 
+                wxGetApp().obj_list()->part_settings_changed();
+                wxTheApp->CallAfter([this]() {
+                    wxWindowUpdateLocker noUpdates(m_parent);
                     update_settings_list(); 
                     m_parent->Layout(); 
                 });
@@ -119,9 +122,9 @@ void ObjectSettings::update_settings_list()
                 if (cat.second.size() == 1 && cat.second[0] == "extruder")
                     continue;
 
-                auto optgroup = std::make_shared<ConfigOptionsGroup>(m_parent, cat.first, config, false, extra_column);
-                optgroup->label_width = 15 * wxGetApp().em_unit();//150;
-                optgroup->sidetext_width = 7 * wxGetApp().em_unit();//70;
+                auto optgroup = std::make_shared<ConfigOptionsGroup>(m_og->ctrl_parent(), cat.first, config, false, extra_column);
+                optgroup->label_width = 15 * wxGetApp().em_unit();
+                optgroup->sidetext_width = 5.5 * wxGetApp().em_unit();
 
                 optgroup->m_on_change = [](const t_config_option_key& opt_id, const boost::any& value) {
                                         wxGetApp().obj_list()->part_settings_changed(); };
@@ -131,7 +134,7 @@ void ObjectSettings::update_settings_list()
                     if (opt == "extruder")
                         continue;
                     Option option = optgroup->get_option(opt);
-                    option.opt.width = 7 * wxGetApp().em_unit();//70;
+                    option.opt.width = 12 * wxGetApp().em_unit();
                     optgroup->append_single_option_line(option);
                 }
                 optgroup->reload_config();

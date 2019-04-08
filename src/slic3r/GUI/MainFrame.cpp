@@ -32,7 +32,7 @@ namespace Slic3r {
 namespace GUI {
 
 MainFrame::MainFrame() :
-wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, "mainframe"),
+DPIFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, "mainframe"),
         m_printhost_queue_dlg(new PrintHostQueueDialog(this))
 {
     // Load the icon either from the exe, or from the ico file.
@@ -56,7 +56,12 @@ wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAUL
 
     // initialize default width_unit according to the width of the one symbol ("x") of the current system font
     const wxSize size = GetTextExtent("m");
-    wxGetApp().set_em_unit(size.x-1);
+    wxGetApp().set_em_unit(std::max<size_t>(10, size.x - 1));
+
+    /* Load default preset bitmaps before a tabpanel initialization,
+     * but after filling of an em_unit value 
+     */
+    wxGetApp().preset_bundle->load_default_preset_bitmaps();
 
     // initialize tabpanel and menubar
     init_tabpanel();
@@ -76,12 +81,14 @@ wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAUL
     sizer->SetSizeHints(this);
     SetSizer(sizer);
     Fit();
+
+    const wxSize min_size = wxSize(76*wxGetApp().em_unit(), 49*wxGetApp().em_unit());
 #ifdef __APPLE__
     // Using SetMinSize() on Mac messes up the window position in some cases
     // cf. https://groups.google.com/forum/#!topic/wx-users/yUKPBBfXWO0
-    SetSize(wxSize(760, 490));
+    SetSize(min_size/*wxSize(760, 490)*/);
 #else
-    SetMinSize(wxSize(760, 490));
+    SetMinSize(min_size/*wxSize(760, 490)*/);
     SetSize(GetMinSize());
 #endif
     Layout();
@@ -92,6 +99,12 @@ wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAUL
             event.Veto();
             return;
         }
+
+        // Weird things happen as the Paint messages are floating around the windows being destructed.
+        // Avoid the Paint messages by hiding the main window.
+        // Also the application closes much faster without these unnecessary screen refreshes.
+        // In addition, there were some crashes due to the Paint events sent to already destructed windows.
+        this->Show(false);
 
         // Save the slic3r.ini.Usually the ini file is saved from "on idle" callback,
         // but in rare cases it may not have been called yet.
@@ -124,7 +137,9 @@ wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAUL
 
 void MainFrame::init_tabpanel()
 {
-    m_tabpanel = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL);
+    // wxNB_NOPAGETHEME: Disable Windows Vista theme for the Notebook background. The theme performance is terrible on Windows 10
+    // with multiple high resolution displays connected.
+    m_tabpanel = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
 
     m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGED, [this](wxEvent&) {
         auto panel = m_tabpanel->GetCurrentPage();
@@ -239,6 +254,11 @@ bool MainFrame::can_delete() const
 bool MainFrame::can_delete_all() const
 {
     return (m_plater != nullptr) ? !m_plater->model().objects.empty() : false;
+}
+
+void MainFrame::on_dpi_changed(const wxRect &suggested_rect)
+{
+    // TODO
 }
 
 void MainFrame::init_menubar()
@@ -377,11 +397,11 @@ void MainFrame::init_menubar()
             windowMenu->AppendSeparator();
         }
         append_menu_item(windowMenu, wxID_HIGHEST + 2, _(L("P&rint Settings Tab")) + "\tCtrl+2", _(L("Show the print settings")),
-            [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 0); }, "cog.png");
+            [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 0); }, "cog");
         append_menu_item(windowMenu, wxID_HIGHEST + 3, _(L("&Filament Settings Tab")) + "\tCtrl+3", _(L("Show the filament settings")),
             [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 1); }, "spool.png");
         append_menu_item(windowMenu, wxID_HIGHEST + 4, _(L("Print&er Settings Tab")) + "\tCtrl+4", _(L("Show the printer settings")),
-            [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 2); }, "printer_empty.png");
+            [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 2); }, "printer");
         if (m_plater) {
             windowMenu->AppendSeparator();
             wxMenuItem* item_3d = append_menu_item(windowMenu, wxID_HIGHEST + 5, _(L("3&D")) + "\tCtrl+5", _(L("Show the 3D editing view")),

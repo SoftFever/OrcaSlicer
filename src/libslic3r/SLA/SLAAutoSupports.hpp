@@ -24,7 +24,7 @@ public:
         };
 
     SLAAutoSupports(const TriangleMesh& mesh, const sla::EigenMesh3D& emesh, const std::vector<ExPolygons>& slices,
-                     const std::vector<float>& heights, const Config& config, std::function<void(void)> throw_on_cancel);
+                     const std::vector<float>& heights, const Config& config, std::function<void(void)> throw_on_cancel, std::function<void(int)> statusfn);
     const std::vector<sla::SupportPoint>& output() { return m_output; }
 
 	struct MyLayer;
@@ -196,8 +196,9 @@ private:
     static void output_structures(const std::vector<Structure> &structures);
 #endif // SLA_AUTOSUPPORTS_DEBUG
 
-    std::function<void(void)> m_throw_on_cancel;
     const sla::EigenMesh3D& m_emesh;
+    std::function<void(void)> m_throw_on_cancel;
+    std::function<void(int)>  m_statusfn;
 };
 
 
