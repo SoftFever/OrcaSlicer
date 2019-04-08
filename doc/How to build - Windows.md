@@ -97,7 +97,11 @@ place the `build` directory relatively close to the drive root.
 
 Note that the build variant that you may choose using Visual Studio (i.e. _Release_ or _Debug_ etc.) when building the dependency package is **not relevant**.
 The dependency build will by default build _both_ the _Release_ and _Debug_ variants regardless of what you choose in Visual Studio.
-You can disable building of the debug variant by passing the `-DDEP_DEBUG=OFF` option to CMake, this will only produce a _Release_ build.
+You can disable building of the debug variant by passing the
+
+    -DDEP_DEBUG=OFF
+
+option to CMake, this will only produce a _Release_ build.
 
 Refer to the CMake scripts inside the `deps` directory to see which dependencies are built in what versions and how this is done.
 
