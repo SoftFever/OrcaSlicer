@@ -88,6 +88,10 @@ ObjectList::ObjectList(wxWindow* parent) :
         // before the kill focus event handler on the object manipulator when changing selection in the list, invalidating the object
         // manipulator cache with the following call to selection_changed()
         wxGetApp().obj_manipul()->emulate_kill_focus();
+
+        // To avoid selection update from SetSelection() and UnselectAll() under osx
+        if (m_prevent_list_events)
+            return;
 #endif // __APPLE__
 
         /* For multiple selection with pressed SHIFT, 
