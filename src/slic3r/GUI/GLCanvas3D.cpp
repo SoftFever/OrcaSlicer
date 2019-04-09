@@ -2569,8 +2569,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                         m_selection.remove(m_hover_volume_id);
                     else
                     {
-                        bool add_as_single = !already_selected && !ctrl_down;
-                        m_selection.add(m_hover_volume_id, add_as_single);
+                        m_selection.add(m_hover_volume_id, !ctrl_down);
                         m_mouse.drag.move_requires_threshold = !already_selected;
                         if (already_selected)
                             m_mouse.set_move_start_threshold_position_2D_as_invalid();

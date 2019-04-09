@@ -109,19 +109,20 @@ void Selection::add(unsigned int volume_idx, bool as_single_selection)
     if (is_wipe_tower() && volume->is_wipe_tower)
         return;
 
-    bool keep_instance_mode = (m_mode == Instance) && !as_single_selection && (is_single_full_instance() || is_multiple_full_instance());
+    bool keep_instance_mode = (m_mode == Instance) && !as_single_selection;
+    bool already_contained = contains_volume(volume_idx);
 
     // resets the current list if needed
-    bool needs_reset = as_single_selection;
+    bool needs_reset = as_single_selection && !already_contained;
     needs_reset |= volume->is_wipe_tower;
     needs_reset |= is_wipe_tower() && !volume->is_wipe_tower;
-    needs_reset |= !keep_instance_mode && !is_modifier() && volume->is_modifier;
-    needs_reset |= is_modifier() && !volume->is_modifier;
+    needs_reset |= as_single_selection && !is_any_modifier() && volume->is_modifier;
+    needs_reset |= is_any_modifier() && !volume->is_modifier;
 
     if (needs_reset)
         clear();
 
-    if (!contains_volume(volume_idx))
+    if (!already_contained || needs_reset)
     {
         if (!keep_instance_mode)
             m_mode = volume->is_modifier ? Volume : Instance;

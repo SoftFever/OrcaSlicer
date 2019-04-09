@@ -1979,7 +1979,7 @@ void ObjectList::update_selections()
         if (selection.is_single_full_object() && 
             m_objects_model->GetIdByItem(m_objects_model->GetParent(item)) == selection.get_object_idx())
             return; 
-        if (selection.is_single_volume() || selection.is_modifier()) {
+        if (selection.is_single_volume() || selection.is_any_modifier()) {
             const auto gl_vol = selection.get_volume(*selection.get_volume_idxs().begin());
             if (m_objects_model->GetVolumeIdByItem(m_objects_model->GetParent(item)) == gl_vol->volume_idx())
                 return;
@@ -2014,7 +2014,7 @@ void ObjectList::update_selections()
             }
         }
     }
-    else if (selection.is_single_volume() || selection.is_modifier() || selection.is_multiple_volume()) 
+    else if (selection.is_any_volume() || selection.is_any_modifier())
     {
         for (auto idx : selection.get_volume_idxs()) {
             const auto gl_vol = selection.get_volume(idx);
