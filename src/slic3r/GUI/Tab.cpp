@@ -2007,7 +2007,8 @@ void TabPrinter::build_sla()
 
     optgroup = page->new_optgroup(_(L("Corrections")));
     line = Line{ m_config->def()->get("relative_correction")->full_label, "" };
-    std::vector<std::string> axes{ "X", "Y", "Z" };
+//    std::vector<std::string> axes{ "X", "Y", "Z" };
+    std::vector<std::string> axes{ "XY", "Z" };
     int id = 0;
     for (auto& axis : axes) {
         auto opt = optgroup->get_option("relative_correction", id);
