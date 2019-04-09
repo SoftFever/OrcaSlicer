@@ -2313,6 +2313,9 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
 
 void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
 {
+    if (!m_initialized)
+        return;
+
     // Ignore the wheel events if the middle button is pressed.
     if (evt.MiddleIsDown())
         return;
