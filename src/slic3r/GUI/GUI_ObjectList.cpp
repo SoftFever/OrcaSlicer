@@ -141,6 +141,8 @@ ObjectList::ObjectList(wxWindow* parent) :
 #ifdef __WXOSX__
     Bind(wxEVT_KEY_DOWN, &ObjectList::OnChar, this);
 #endif //__WXOSX__
+
+    Bind(wxEVT_SIZE, ([this](wxSizeEvent &e) { this->EnsureVisible(this->GetCurrentItem()); e.Skip(); }));
 }
 
 ObjectList::~ObjectList()
@@ -2071,23 +2073,8 @@ void ObjectList::update_selections()
     
     select_items(sels);
 
-    /* Because of ScrollLines() and GetItemRect() functions are implemented 
-     * only for GENERIC DataViewCtrl in current version of wxWidgets,
-     * use this part of code only for MSW 
-     */
-#if defined(wxUSE_GENERICDATAVIEWCTRL)
     // Scroll selected Item in the middle of an object list
-    if (GetSelection()) {
-        const wxRect& sel_rc = GetItemRect(GetSelection());
-        const wxRect& main_rc = GetClientRect();
-        if (sel_rc.GetBottom() <= main_rc.GetTop()+sel_rc.height ||
-            sel_rc.GetTop() >= main_rc.GetBottom() )
-        {
-            const wxRect& top_rc = GetItemRect(GetTopItem());
-            ScrollLines(int((sel_rc.y - top_rc.y) / top_rc.GetHeight()) - 0.5*GetCountPerPage());
-        }
-    }
-#endif
+    this->EnsureVisible(this->GetCurrentItem());
 }
 
 void ObjectList::update_selections_on_canvas()
