@@ -747,6 +747,7 @@ Sidebar::Sidebar(Plater *parent)
             p->plater->export_gcode();
         else
             p->plater->reslice();
+		p->plater->select_view_3D("Preview");
     });
     p->btn_send_gcode->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->send_gcode(); });
 }
