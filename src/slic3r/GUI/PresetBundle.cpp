@@ -396,56 +396,37 @@ void PresetBundle::export_selections(AppConfig &config)
     config.set("presets", "printer",      printers.get_selected_preset_name());
 }
 
-bool PresetBundle::load_compatible_bitmaps()
+void PresetBundle::load_compatible_bitmaps()
 {
-    const std::string path_bitmap_compatible   = "flag-green-icon.png";
-    const std::string path_bitmap_incompatible = "flag-red-icon.png";
-    const std::string path_bitmap_lock         = "sys_lock.png";//"lock.png";
-	const std::string path_bitmap_lock_open    = "sys_unlock.png";//"lock_open.png";
-//     bool loaded_compatible   = m_bitmapCompatible  ->LoadFile(
-//         wxString::FromUTF8(Slic3r::var(path_bitmap_compatible).c_str()), wxBITMAP_TYPE_PNG);
-//     bool loaded_incompatible = m_bitmapIncompatible->LoadFile(
-//         wxString::FromUTF8(Slic3r::var(path_bitmap_incompatible).c_str()), wxBITMAP_TYPE_PNG);
-//     bool loaded_lock = m_bitmapLock->LoadFile(
-//         wxString::FromUTF8(Slic3r::var(path_bitmap_lock).c_str()), wxBITMAP_TYPE_PNG);
-//     bool loaded_lock_open = m_bitmapLockOpen->LoadFile(
-//         wxString::FromUTF8(Slic3r::var(path_bitmap_lock_open).c_str()), wxBITMAP_TYPE_PNG);
-
     // FIXME: pass window ptr for proper scaling
-    bool loaded_compatible = load_scaled_bitmap(nullptr, &m_bitmapCompatible, path_bitmap_compatible);
-    bool loaded_incompatible = load_scaled_bitmap(nullptr, &m_bitmapIncompatible,path_bitmap_incompatible);
-    bool loaded_lock = load_scaled_bitmap(nullptr, &m_bitmapLock, path_bitmap_lock);
-    bool loaded_lock_open = load_scaled_bitmap(nullptr, &m_bitmapLockOpen, path_bitmap_lock_open);
+    *m_bitmapCompatible = create_scaled_bitmap(nullptr, "flag-green-icon.png");
+    *m_bitmapIncompatible = create_scaled_bitmap(nullptr, "flag-red-icon.png");
+    *m_bitmapLock = create_scaled_bitmap(nullptr, "sys_lock.png");
+    *m_bitmapLockOpen = create_scaled_bitmap(nullptr, "sys_unlock.png");
 
-    if (loaded_compatible) {
-        prints       .set_bitmap_compatible(m_bitmapCompatible);
-        filaments    .set_bitmap_compatible(m_bitmapCompatible);
-        sla_prints   .set_bitmap_compatible(m_bitmapCompatible);
-        sla_materials.set_bitmap_compatible(m_bitmapCompatible);
-//        printers .set_bitmap_compatible(m_bitmapCompatible);
-    }
-    if (loaded_incompatible) {
-        prints       .set_bitmap_incompatible(m_bitmapIncompatible);
-        filaments    .set_bitmap_incompatible(m_bitmapIncompatible);
-        sla_prints   .set_bitmap_incompatible(m_bitmapIncompatible);
-        sla_materials.set_bitmap_incompatible(m_bitmapIncompatible);
-//        printers .set_bitmap_incompatible(m_bitmapIncompatible);
-    }
-    if (loaded_lock) {
-        prints       .set_bitmap_lock(m_bitmapLock);
-        filaments    .set_bitmap_lock(m_bitmapLock);
-        sla_prints   .set_bitmap_lock(m_bitmapLock);
-        sla_materials.set_bitmap_lock(m_bitmapLock);
-        printers     .set_bitmap_lock(m_bitmapLock);
-    }
-    if (loaded_lock_open) {
-        prints       .set_bitmap_lock_open(m_bitmapLock);
-        filaments    .set_bitmap_lock_open(m_bitmapLock);
-        sla_prints   .set_bitmap_lock_open(m_bitmapLock);
-        sla_materials.set_bitmap_lock_open(m_bitmapLock);
-        printers     .set_bitmap_lock_open(m_bitmapLock);
-    }
-    return loaded_compatible && loaded_incompatible && loaded_lock && loaded_lock_open;
+    prints       .set_bitmap_compatible(m_bitmapCompatible);
+    filaments    .set_bitmap_compatible(m_bitmapCompatible);
+    sla_prints   .set_bitmap_compatible(m_bitmapCompatible);
+    sla_materials.set_bitmap_compatible(m_bitmapCompatible);
+    printers .set_bitmap_compatible(m_bitmapCompatible);
+
+    prints       .set_bitmap_incompatible(m_bitmapIncompatible);
+    filaments    .set_bitmap_incompatible(m_bitmapIncompatible);
+    sla_prints   .set_bitmap_incompatible(m_bitmapIncompatible);
+    sla_materials.set_bitmap_incompatible(m_bitmapIncompatible);
+    printers .set_bitmap_incompatible(m_bitmapIncompatible);
+
+    prints       .set_bitmap_lock(m_bitmapLock);
+    filaments    .set_bitmap_lock(m_bitmapLock);
+    sla_prints   .set_bitmap_lock(m_bitmapLock);
+    sla_materials.set_bitmap_lock(m_bitmapLock);
+    printers     .set_bitmap_lock(m_bitmapLock);
+
+    prints       .set_bitmap_lock_open(m_bitmapLock);
+    filaments    .set_bitmap_lock_open(m_bitmapLock);
+    sla_prints   .set_bitmap_lock_open(m_bitmapLock);
+    sla_materials.set_bitmap_lock_open(m_bitmapLock);
+    printers     .set_bitmap_lock_open(m_bitmapLock);
 }
 
 DynamicPrintConfig PresetBundle::full_config() const

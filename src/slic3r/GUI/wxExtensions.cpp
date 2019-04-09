@@ -422,7 +422,7 @@ void PrusaCollapsiblePaneMSW::Collapse(bool collapse)
 
 
 // If an icon has horizontal orientation (width > height) call this function with is_horizontal = true
-bool load_scaled_bitmap(wxWindow *win, wxBitmap** bmp, const std::string& bmp_name_in, const int px_cnt/* = 16*/, const bool is_horizontal /*= false*/)
+wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name_in, const int px_cnt/* = 16*/, const bool is_horizontal /* = false*/)
 {
     static Slic3r::GUI::BitmapCache cache;
 
@@ -434,28 +434,19 @@ bool load_scaled_bitmap(wxWindow *win, wxBitmap** bmp, const std::string& bmp_na
     scale_base = (unsigned int)(Slic3r::GUI::wxGetApp().em_unit() * px_cnt * 0.1f + 0.5f);
 
     std::string bmp_name = bmp_name_in;
-	boost::replace_last(bmp_name, ".png", "");
+    boost::replace_last(bmp_name, ".png", "");
 
     // Try loading an SVG first, then PNG if SVG is not found:
-    *bmp = cache.load_svg(bmp_name, width, height, scale_factor);
-    if (*bmp == nullptr) {
-        *bmp = cache.load_png(bmp_name, width, height);
+    wxBitmap *bmp = cache.load_svg(bmp_name, width, height, scale_factor);
+    if (bmp == nullptr) {
+        bmp = cache.load_png(bmp_name, width, height);
     }
 
-    if (*bmp == nullptr) {
+    if (bmp == nullptr) {
         // Neither SVG nor PNG has been found, raise error
         throw std::runtime_error("Could not load bitmap: " + bmp_name);
     }
 
-    // XXX: useless
-    return *bmp != nullptr;
-}
-
-// If an icon has horizontal orientation (width > height) call this function with is_horizontal = true
-wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name_in, const int px_cnt/* = 16*/, const bool is_horizontal /* = false*/)
-{
-    wxBitmap *bmp {nullptr};
-    load_scaled_bitmap(win, &bmp, bmp_name_in, px_cnt, is_horizontal);
     return *bmp;
 }
 
