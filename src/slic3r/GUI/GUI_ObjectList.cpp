@@ -2133,6 +2133,7 @@ void ObjectList::update_selections_on_canvas()
             add_to_selection(item, selection, instance_idx, true);
 
         wxGetApp().plater()->canvas3D()->update_gizmos_on_off_state();
+        wxGetApp().plater()->canvas3D()->render();
         return;
     }
     
