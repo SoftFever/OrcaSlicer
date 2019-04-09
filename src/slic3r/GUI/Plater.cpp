@@ -2288,20 +2288,14 @@ unsigned int Plater::priv::update_background_process(bool force_validation)
         this->sidebar->show_sliced_info_sizer(false);
         // Reset preview canvases. If the print has been invalidated, the preview canvases will be cleared.
         // Otherwise they will be just refreshed.
-        switch (this->printer_technology) {
-        case ptFFF:
-            if (this->preview != nullptr)
-                // If the preview is not visible, the following line just invalidates the preview,
-                // but the G-code paths are calculated first once the preview is made visible.
-                this->preview->reload_print();
-            // We also need to reload 3D scene because of the wipe tower preview box
-            if (this->config->opt_bool("wipe_tower"))
-                return_state |= UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE;
-            break;
-        case ptSLA:
-            return_state |= UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE;
-            break;
-        }
+		if (this->preview != nullptr)
+			// If the preview is not visible, the following line just invalidates the preview,
+			// but the G-code paths or SLA preview are calculated first once the preview is made visible.
+			this->preview->reload_print();
+		// In FDM mode, we need to reload the 3D scene because of the wipe tower preview box.
+		// In SLA mode, we need to reload the 3D scene every time to show the support structures.
+		if (this->printer_technology == ptSLA || (this->printer_technology == ptFFF && this->config->opt_bool("wipe_tower")))
+			return_state |= UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE;
     }
 
     if ((invalidated != Print::APPLY_STATUS_UNCHANGED || force_validation) && ! this->background_process.empty()) {
