@@ -396,13 +396,12 @@ void PresetBundle::export_selections(AppConfig &config)
     config.set("presets", "printer",      printers.get_selected_preset_name());
 }
 
-void PresetBundle::load_compatible_bitmaps()
+void PresetBundle::load_compatible_bitmaps(wxWindow *window)
 {
-    // FIXME: pass window ptr for proper scaling
-    *m_bitmapCompatible = create_scaled_bitmap(nullptr, "flag-green-icon.png");
-    *m_bitmapIncompatible = create_scaled_bitmap(nullptr, "flag-red-icon.png");
-    *m_bitmapLock = create_scaled_bitmap(nullptr, "sys_lock.png");
-    *m_bitmapLockOpen = create_scaled_bitmap(nullptr, "sys_unlock.png");
+    *m_bitmapCompatible = create_scaled_bitmap(window, "flag-green-icon.png");
+    *m_bitmapIncompatible = create_scaled_bitmap(window, "flag-red-icon.png");
+    *m_bitmapLock = create_scaled_bitmap(window, "sys_lock.png");
+    *m_bitmapLockOpen = create_scaled_bitmap(window, "sys_unlock.png");
 
     prints       .set_bitmap_compatible(m_bitmapCompatible);
     filaments    .set_bitmap_compatible(m_bitmapCompatible);
@@ -1428,15 +1427,15 @@ bool PresetBundle::parse_color(const std::string &scolor, unsigned char *rgb_out
     return true;
 }
 
-void PresetBundle::load_default_preset_bitmaps()
+void PresetBundle::load_default_preset_bitmaps(wxWindow *window)
 {
-    this->prints.load_bitmap_default("cog");
-    this->sla_prints.load_bitmap_default("cog");
-    this->filaments.load_bitmap_default("spool.png");
-    this->sla_materials.load_bitmap_default("package_green.png");
-    this->printers.load_bitmap_default("printer");
-    this->printers.load_bitmap_add("add.png");
-    this->load_compatible_bitmaps();
+    this->prints.load_bitmap_default(window, "cog");
+    this->sla_prints.load_bitmap_default(window, "cog");
+    this->filaments.load_bitmap_default(window, "spool.png");
+    this->sla_materials.load_bitmap_default(window, "package_green.png");
+    this->printers.load_bitmap_default(window, "printer");
+    this->printers.load_bitmap_add(window, "add.png");
+    this->load_compatible_bitmaps(window);
 }
 
 void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, GUI::PresetComboBox *ui)

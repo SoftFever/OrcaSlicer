@@ -61,7 +61,7 @@ DPIFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAU
     /* Load default preset bitmaps before a tabpanel initialization,
      * but after filling of an em_unit value 
      */
-    wxGetApp().preset_bundle->load_default_preset_bitmaps();
+    wxGetApp().preset_bundle->load_default_preset_bitmaps(this);
 
     // initialize tabpanel and menubar
     init_tabpanel();

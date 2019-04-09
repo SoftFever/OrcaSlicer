@@ -799,16 +799,14 @@ bool PresetCollection::delete_current_preset()
 	return true;
 }
 
-void PresetCollection::load_bitmap_default(const std::string &file_name)
+void PresetCollection::load_bitmap_default(wxWindow *window, const std::string &file_name)
 {
-    // FIXME: pass window ptr for proper scaling
-    *m_bitmap_main_frame = create_scaled_bitmap(nullptr, file_name);
+    *m_bitmap_main_frame = create_scaled_bitmap(window, file_name);
 }
 
-void PresetCollection::load_bitmap_add(const std::string &file_name)
+void PresetCollection::load_bitmap_add(wxWindow *window, const std::string &file_name)
 {
-    // FIXME: pass window ptr for proper scaling
-    *m_bitmap_add = create_scaled_bitmap(nullptr, file_name);
+    *m_bitmap_add = create_scaled_bitmap(window, file_name);
 }
 
 const Preset* PresetCollection::get_selected_preset_parent() const
