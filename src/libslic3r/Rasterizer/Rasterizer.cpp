@@ -19,6 +19,12 @@
 
 namespace Slic3r {
 
+const Polygon& contour(const ExPolygon& p) { return p.contour; }
+const ClipperLib::Path& contour(const ClipperLib::Polygon& p) { return p.Contour; }
+
+const Polygons& holes(const ExPolygon& p) { return p.holes; }
+const ClipperLib::Paths& holes(const ClipperLib::Polygon& p) { return p.Holes; }
+
 class Raster::Impl {
 public:
     using TPixelRenderer = agg::pixfmt_gray8; // agg::pixfmt_rgb24;
@@ -44,6 +50,7 @@ private:
     TRawRenderer m_raw_renderer;
     TRendererAA m_renderer;
     Origin m_o;
+    double m_gamma;
 
     inline void flipy(agg::path_storage& path) const {
         path.flip_y(0, m_resolution.height_px);
@@ -52,7 +59,7 @@ private:
 public:
 
     inline Impl(const Raster::Resolution& res, const Raster::PixelDim &pd,
-                Origin o):
+                Origin o, double gamma = 1.0):
         m_resolution(res), m_pxdim(pd),
         m_buf(res.pixels()),
         m_rbuf(reinterpret_cast<TPixelRenderer::value_type*>(m_buf.data()),
@@ -61,46 +68,26 @@ public:
         m_pixfmt(m_rbuf),
         m_raw_renderer(m_pixfmt),
         m_renderer(m_raw_renderer),
-        m_o(o)
+        m_o(o),
+        m_gamma(gamma)
     {
         m_renderer.color(ColorWhite);
-
-        // If we would like to play around with gamma
-        // ras.gamma(agg::gamma_power(1.0));
-
         clear();
     }
 
-    void draw(const ExPolygon &poly) {
+    template<class P> void draw(const P &poly) {
         agg::rasterizer_scanline_aa<> ras;
         agg::scanline_p8 scanlines;
+        
+        ras.gamma(agg::gamma_power(m_gamma));
 
-        auto&& path = to_path(poly.contour);
+        auto&& path = to_path(contour(poly));
 
         if(m_o == Origin::TOP_LEFT) flipy(path);
 
         ras.add_path(path);
 
-        for(auto h : poly.holes) {
-            auto&& holepath = to_path(h);
-            if(m_o == Origin::TOP_LEFT) flipy(holepath);
-            ras.add_path(holepath);
-        }
-
-        agg::render_scanlines(ras, scanlines, m_renderer);
-    }
-
-    void draw(const ClipperLib::Polygon &poly) {
-        agg::rasterizer_scanline_aa<> ras;
-        agg::scanline_p8 scanlines;
-
-        auto&& path = to_path(poly.Contour);
-
-        if(m_o == Origin::TOP_LEFT) flipy(path);
-
-        ras.add_path(path);
-
-        for(auto h : poly.Holes) {
+        for(auto& h : holes(poly)) {
             auto&& holepath = to_path(h);
             if(m_o == Origin::TOP_LEFT) flipy(holepath);
             ras.add_path(holepath);
@@ -128,18 +115,10 @@ private:
         return p(1) * SCALING_FACTOR/m_pxdim.h_mm;
     }
 
-    agg::path_storage to_path(const Polygon& poly)
+    inline agg::path_storage to_path(const Polygon& poly)
     {
-        agg::path_storage path;
-
-        auto it = poly.points.begin();
-        path.move_to(getPx(*it), getPy(*it));
-        while(++it != poly.points.end()) path.line_to(getPx(*it), getPy(*it));
-        path.line_to(getPx(poly.points.front()), getPy(poly.points.front()));
-
-        return path;
+        return to_path(poly.points);
     }
-
 
     double getPx(const ClipperLib::IntPoint& p) {
         return p.X * SCALING_FACTOR/m_pxdim.w_mm;
@@ -149,7 +128,7 @@ private:
         return p.Y * SCALING_FACTOR/m_pxdim.h_mm;
     }
 
-    agg::path_storage to_path(const ClipperLib::Path& poly)
+    template<class PointVec> agg::path_storage to_path(const PointVec& poly)
     {
         agg::path_storage path;
         auto it = poly.begin();
@@ -166,8 +145,8 @@ private:
 const Raster::Impl::TPixel Raster::Impl::ColorWhite = Raster::Impl::TPixel(255);
 const Raster::Impl::TPixel Raster::Impl::ColorBlack = Raster::Impl::TPixel(0);
 
-Raster::Raster(const Resolution &r, const PixelDim &pd, Origin o):
-    m_impl(new Impl(r, pd, o)) {}
+Raster::Raster(const Resolution &r, const PixelDim &pd, Origin o, double g):
+    m_impl(new Impl(r, pd, o, g)) {}
 
 Raster::Raster() {}
 
@@ -176,19 +155,20 @@ Raster::~Raster() {}
 Raster::Raster(Raster &&m):
     m_impl(std::move(m.m_impl)) {}
 
-void Raster::reset(const Raster::Resolution &r, const Raster::PixelDim &pd)
+void Raster::reset(const Raster::Resolution &r, const Raster::PixelDim &pd, 
+                   double g)
 {
     // Free up the unnecessary memory and make sure it stays clear after
     // an exception
     auto o = m_impl? m_impl->origin() : Origin::TOP_LEFT;
-    reset(r, pd, o);
+    reset(r, pd, o, g);
 }
 
 void Raster::reset(const Raster::Resolution &r, const Raster::PixelDim &pd,
-                   Raster::Origin o)
+                   Raster::Origin o, double gamma)
 {
     m_impl.reset();
-    m_impl.reset(new Impl(r, pd, o));
+    m_impl.reset(new Impl(r, pd, o, gamma));
 }
 
 void Raster::reset()

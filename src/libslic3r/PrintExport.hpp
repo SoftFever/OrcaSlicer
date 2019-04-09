@@ -138,6 +138,7 @@ template<> class FilePrinter<FilePrinterFormat::SLA_PNGZIP>
     double m_exp_time_s = .0, m_exp_time_first_s = .0;
     double m_layer_height = .0;
     Raster::Origin m_o = Raster::Origin::TOP_LEFT;
+    double m_gamma;
 
     double m_used_material = 0.0;
     int    m_cnt_fade_layers = 0;
@@ -194,7 +195,8 @@ public:
                        unsigned width_px, unsigned height_px,
                        double layer_height,
                        double exp_time, double exp_time_first,
-                       RasterOrientation ro = RO_PORTRAIT):
+                       RasterOrientation ro = RO_PORTRAIT,
+                       double gamma = 1.0):
         m_res(width_px, height_px),
         m_pxdim(width_mm/width_px, height_mm/height_px),
         m_exp_time_s(exp_time),
@@ -203,7 +205,8 @@ public:
 
         // Here is the trick with the orientation.
         m_o(ro == RO_LANDSCAPE? Raster::Origin::BOTTOM_LEFT :
-                                Raster::Origin::TOP_LEFT )
+                                Raster::Origin::TOP_LEFT ),
+        m_gamma(gamma)
     {
     }
 
@@ -228,12 +231,12 @@ public:
 
     inline void begin_layer(unsigned lyr) {
         if(m_layers_rst.size() <= lyr) m_layers_rst.resize(lyr+1);
-        m_layers_rst[lyr].raster.reset(m_res, m_pxdim, m_o);
+        m_layers_rst[lyr].raster.reset(m_res, m_pxdim, m_o, m_gamma);
     }
 
     inline void begin_layer() {
         m_layers_rst.emplace_back();
-        m_layers_rst.front().raster.reset(m_res, m_pxdim, m_o);
+        m_layers_rst.front().raster.reset(m_res, m_pxdim, m_o, m_gamma);
     }
 
     inline void finish_layer(unsigned lyr_id) {

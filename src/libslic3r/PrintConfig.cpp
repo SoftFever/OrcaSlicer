@@ -2260,11 +2260,31 @@ void PrintConfigDef::init_sla_params()
     def->mode = comExpert;
     def->default_value = new ConfigOptionFloat(50.);
 
-    def = this->add("printer_correction", coFloats);
+    def = this->add("relative_correction", coFloats);
+    def->label = L("Printer scaling correction");
     def->full_label = L("Printer scaling correction");
     def->tooltip  = L("Printer scaling correction");
     def->min = 0;
+    def->mode = comExpert;
     def->default_value = new ConfigOptionFloats( { 1., 1., 1. } );
+    
+    def = this->add("absolute_correction", coFloat);
+    def->label = L("Printer absolute correction");
+    def->full_label = L("Printer absolute correction");
+    def->tooltip  = L("Will inflate or deflate the sliced 2D polygons according "
+                      "to the sign of the correction.");
+    def->mode = comExpert;
+    def->default_value = new ConfigOptionFloat(0.0);
+    
+    def = this->add("gamma_correction", coFloat);
+    def->label = L("Printer gamma correction");
+    def->full_label = L("Printer gamma correction");
+    def->tooltip  = L("This will apply a gamm correction to the rasterized 2D "
+                      "polygons.");
+    def->min = 0;
+    def->mode = comExpert;
+    def->default_value = new ConfigOptionFloat(1.0);
+    
 
     // SLA Material settings.
     def = this->add("initial_layer_height", coFloat);

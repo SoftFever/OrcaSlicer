@@ -1079,7 +1079,9 @@ public:
     ConfigOptionInt                         display_pixels_x;
     ConfigOptionInt                         display_pixels_y;
     ConfigOptionEnum<SLADisplayOrientation> display_orientation;
-    ConfigOptionFloats                      printer_correction;
+    ConfigOptionFloats                      relative_correction;
+    ConfigOptionFloat                       absolute_correction;
+    ConfigOptionFloat                       gamma_correction;
     ConfigOptionFloat                       fast_tilt_time;
     ConfigOptionFloat                       slow_tilt_time;
     ConfigOptionFloat                       area_fill;
@@ -1094,7 +1096,9 @@ protected:
         OPT_PTR(display_pixels_x);
         OPT_PTR(display_pixels_y);
         OPT_PTR(display_orientation);
-        OPT_PTR(printer_correction);
+        OPT_PTR(relative_correction);
+        OPT_PTR(absolute_correction);
+        OPT_PTR(gamma_correction);
         OPT_PTR(fast_tilt_time);
         OPT_PTR(slow_tilt_time);
         OPT_PTR(area_fill);

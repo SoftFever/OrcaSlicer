@@ -2006,16 +2006,18 @@ void TabPrinter::build_sla()
     optgroup->append_single_option_line("area_fill");
 
     optgroup = page->new_optgroup(_(L("Corrections")));
-    line = Line{ m_config->def()->get("printer_correction")->full_label, "" };
+    line = Line{ m_config->def()->get("relative_correction")->full_label, "" };
     std::vector<std::string> axes{ "X", "Y", "Z" };
     int id = 0;
     for (auto& axis : axes) {
-        auto opt = optgroup->get_option("printer_correction", id);
+        auto opt = optgroup->get_option("relative_correction", id);
         opt.opt.label = axis;
         line.append_option(opt);
         ++id;
     }
     optgroup->append_line(line);
+    optgroup->append_single_option_line("absolute_correction");
+    optgroup->append_single_option_line("gamma_correction");
 
     optgroup = page->new_optgroup(_(L("Print Host upload")));
     build_printhost(optgroup.get());

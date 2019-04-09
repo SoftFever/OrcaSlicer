@@ -715,10 +715,17 @@ void SLAPrint::process()
                      [this](){ throw_if_canceled(); });
 
         auto mit = slindex_it;
+        double doffs = m_printer_config.absolute_correction.getFloat();
+        coord_t clpr_offs = coord_t(doffs / SCALING_FACTOR);
         for(size_t id = 0;
             id < po.m_model_slices.size() && mit != po.m_slice_index.end();
             id++)
         {
+            // We apply the printer correction offset here.
+            if(clpr_offs != 0)
+                po.m_model_slices[id] = 
+                        offset_ex(po.m_model_slices[id], clpr_offs);
+            
             mit->set_model_slice_idx(po, id); ++mit;
         }
     };
@@ -920,10 +927,17 @@ void SLAPrint::process()
                         heights, float(po.config().slice_closing_radius.value));
         }
 
+        double doffs = m_printer_config.absolute_correction.getFloat();
+        coord_t clpr_offs = coord_t(doffs / SCALING_FACTOR);
         for(size_t i = 0;
             i < sd->support_slices.size() && i < po.m_slice_index.size();
             ++i)
         {
+            // We apply the printer correction offset here.
+            if(clpr_offs != 0)
+                sd->support_slices[i] = 
+                        offset_ex(sd->support_slices[i], clpr_offs);
+            
             po.m_slice_index[i].set_support_slice_idx(po, i);
         }
 
@@ -1031,6 +1045,8 @@ void SLAPrint::process()
         const double width              = m_printer_config.display_width.getFloat() / SCALING_FACTOR;
         const double height             = m_printer_config.display_height.getFloat() / SCALING_FACTOR;
         const double display_area       = width*height;
+        
+        const coord_t clpr_back_offs    = - coord_t(m_printer_config.absolute_correction.getFloat() / SCALING_FACTOR);
 
         // get polygons for all instances in the object
         auto get_all_polygons =
@@ -1114,7 +1130,7 @@ void SLAPrint::process()
         auto printlayerfn = [this,
                 // functions and read only vars
                 get_all_polygons, polyunion, polydiff, areafn,
-                area_fill, display_area, exp_time, init_exp_time, fast_tilt, slow_tilt, delta_fade_time,
+                area_fill, display_area, exp_time, init_exp_time, fast_tilt, slow_tilt, delta_fade_time, clpr_back_offs,
 
                 // write vars
                 &mutex, &models_volume, &supports_volume, &estim_time, &slow_layers,
@@ -1150,14 +1166,18 @@ void SLAPrint::process()
             for(const SliceRecord& record : layer.slices()) {
                 const SLAPrintObject *po = record.print_obj();
 
-                const ExPolygons &modelslices = record.get_slice(soModel);
+                const ExPolygons &rawmodelslices = record.get_slice(soModel);
+                const ExPolygons &modelslices = clpr_back_offs != 0 ? offset_ex(rawmodelslices, clpr_back_offs) : rawmodelslices;
+                
                 bool is_lefth = record.print_obj()->is_left_handed();
                 if (!modelslices.empty()) {
                     ClipperPolygons v = get_all_polygons(modelslices, po->instances(), is_lefth);
                     for(ClipperPolygon& p_tmp : v) model_polygons.emplace_back(std::move(p_tmp));
                 }
 
-                const ExPolygons &supportslices = record.get_slice(soSupport);
+                const ExPolygons &rawsupportslices = record.get_slice(soSupport);
+                const ExPolygons &supportslices = clpr_back_offs != 0 ? offset_ex(rawsupportslices, clpr_back_offs) : rawsupportslices;
+                
                 if (!supportslices.empty()) {
                     ClipperPolygons v = get_all_polygons(supportslices, po->instances(), is_lefth);
                     for(ClipperPolygon& p_tmp : v) supports_polygons.emplace_back(std::move(p_tmp));
@@ -1266,12 +1286,16 @@ void SLAPrint::process()
             double lh = ocfg.layer_height.getFloat();
             double exp_t = matcfg.exposure_time.getFloat();
             double iexp_t = matcfg.initial_exposure_time.getFloat();
+            
+            double gamma = m_printer_config.gamma_correction.getFloat();
 
             if(flpXY) { std::swap(w, h); std::swap(pw, ph); }
 
-            m_printer.reset(new SLAPrinter(w, h, pw, ph, lh, exp_t, iexp_t,
-                                           flpXY? SLAPrinter::RO_PORTRAIT :
-                                                  SLAPrinter::RO_LANDSCAPE));
+            m_printer.reset(
+                new SLAPrinter(w, h, pw, ph, lh, exp_t, iexp_t,
+                               flpXY? SLAPrinter::RO_PORTRAIT : 
+                                      SLAPrinter::RO_LANDSCAPE, 
+                               gamma));
         }
 
         // Allocate space for all the layers
@@ -1433,7 +1457,9 @@ bool SLAPrint::invalidate_state_by_config_options(const std::vector<t_config_opt
     static std::unordered_set<std::string> steps_full = {
         "initial_layer_height",
         "material_correction",
-        "printer_correction"
+        "relative_correction",
+        "absolute_correction",
+        "gamma_correction"
     };
 
     // Cache the plenty of parameters, which influence the final rasterization only,
@@ -1628,10 +1654,10 @@ Vec3d SLAPrint::relative_correction() const
 {
     Vec3d corr(1., 1., 1.);
 
-    if(printer_config().printer_correction.values.size() == 3) {
-        corr(X) = printer_config().printer_correction.values[X];
-        corr(Y) = printer_config().printer_correction.values[Y];
-        corr(Z) = printer_config().printer_correction.values[Z];
+    if(printer_config().relative_correction.values.size() == 3) {
+        corr(X) = printer_config().relative_correction.values[X];
+        corr(Y) = printer_config().relative_correction.values[Y];
+        corr(Z) = printer_config().relative_correction.values[Z];
     }
 
     if(material_config().material_correction.values.size() == 3) {
