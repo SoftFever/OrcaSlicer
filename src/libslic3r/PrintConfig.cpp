@@ -2279,8 +2279,10 @@ void PrintConfigDef::init_sla_params()
     def = this->add("gamma_correction", coFloat);
     def->label = L("Printer gamma correction");
     def->full_label = L("Printer gamma correction");
-    def->tooltip  = L("This will apply a gamm correction to the rasterized 2D "
-                      "polygons.");
+    def->tooltip  = L("This will apply a gamma correction to the rasterized 2D "
+                      "polygons. A gamma value of zero means thresholding with "
+                      "the threshold in the middle. This behaviour eliminates "
+                      "antialiasing without losing holes in polygons.");
     def->min = 0;
     def->mode = comExpert;
     def->default_value = new ConfigOptionFloat(1.0);

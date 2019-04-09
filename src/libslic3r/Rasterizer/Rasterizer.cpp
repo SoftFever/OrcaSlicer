@@ -43,15 +43,17 @@ public:
 
 private:
     Raster::Resolution m_resolution;
-    Raster::PixelDim m_pxdim;
+//    Raster::PixelDim m_pxdim;
+    Raster::PixelDim m_pxdim_scaled;    // used for scaled coordinate polygons
     TBuffer m_buf;
     TRawBuffer m_rbuf;
     TPixelRenderer m_pixfmt;
     TRawRenderer m_raw_renderer;
     TRendererAA m_renderer;
+    
+    std::function<double(double)> m_gammafn;
     Origin m_o;
-    double m_gamma;
-
+    
     inline void flipy(agg::path_storage& path) const {
         path.flip_y(0, m_resolution.height_px);
     }
@@ -60,7 +62,9 @@ public:
 
     inline Impl(const Raster::Resolution& res, const Raster::PixelDim &pd,
                 Origin o, double gamma = 1.0):
-        m_resolution(res), m_pxdim(pd),
+        m_resolution(res), 
+//        m_pxdim(pd), 
+        m_pxdim_scaled(SCALING_FACTOR / pd.w_mm, SCALING_FACTOR / pd.h_mm),
         m_buf(res.pixels()),
         m_rbuf(reinterpret_cast<TPixelRenderer::value_type*>(m_buf.data()),
               res.width_px, res.height_px,
@@ -68,10 +72,13 @@ public:
         m_pixfmt(m_rbuf),
         m_raw_renderer(m_pixfmt),
         m_renderer(m_raw_renderer),
-        m_o(o),
-        m_gamma(gamma)
+        m_o(o)
     {
         m_renderer.color(ColorWhite);
+        
+        if(gamma > 0) m_gammafn = agg::gamma_power(gamma);
+        else m_gammafn = agg::gamma_threshold(0.5);
+        
         clear();
     }
 
@@ -79,7 +86,7 @@ public:
         agg::rasterizer_scanline_aa<> ras;
         agg::scanline_p8 scanlines;
         
-        ras.gamma(agg::gamma_power(m_gamma));
+        ras.gamma(m_gammafn);
 
         auto&& path = to_path(contour(poly));
 
@@ -107,12 +114,12 @@ public:
     inline Origin origin() const /*noexcept*/ { return m_o; }
 
 private:
-    double getPx(const Point& p) {
-        return p(0) * SCALING_FACTOR/m_pxdim.w_mm;
+    inline double getPx(const Point& p) {
+        return p(0) * m_pxdim_scaled.w_mm;
     }
 
-    double getPy(const Point& p) {
-        return p(1) * SCALING_FACTOR/m_pxdim.h_mm;
+    inline double getPy(const Point& p) {
+        return p(1) * m_pxdim_scaled.h_mm;
     }
 
     inline agg::path_storage to_path(const Polygon& poly)
@@ -120,19 +127,21 @@ private:
         return to_path(poly.points);
     }
 
-    double getPx(const ClipperLib::IntPoint& p) {
-        return p.X * SCALING_FACTOR/m_pxdim.w_mm;
+    inline double getPx(const ClipperLib::IntPoint& p) {
+        return p.X * m_pxdim_scaled.w_mm;
     }
 
-    double getPy(const ClipperLib::IntPoint& p) {
-        return p.Y * SCALING_FACTOR/m_pxdim.h_mm;
+    inline double getPy(const ClipperLib::IntPoint& p) {
+        return p.Y * m_pxdim_scaled.h_mm;
     }
 
     template<class PointVec> agg::path_storage to_path(const PointVec& poly)
     {
         agg::path_storage path;
+        
         auto it = poly.begin();
         path.move_to(getPx(*it), getPy(*it));
+        
         while(++it != poly.end())
             path.line_to(getPx(*it), getPy(*it));
 
