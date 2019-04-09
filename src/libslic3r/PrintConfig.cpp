@@ -2485,7 +2485,7 @@ void PrintConfigDef::init_sla_params()
     def->tooltip = L("No support points will be placed closer than this threshold.");
     def->sidetext = L("mm");
     def->min = 0;
-    def->default_value = new ConfigOptionFloat(0.f);
+    def->default_value = new ConfigOptionFloat(1.f);
 
     def = this->add("pad_enable", coBool);
     def->label = L("Use pad");
