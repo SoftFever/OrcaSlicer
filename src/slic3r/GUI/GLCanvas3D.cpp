@@ -3299,8 +3299,9 @@ bool GLCanvas3D::_init_toolbar()
 
 bool GLCanvas3D::_set_current()
 {
-    if ((m_canvas != nullptr) && (m_context != nullptr))
+    if (_is_shown_on_screen() && (m_context != nullptr)) {
         return m_canvas->SetCurrent(*m_context);
+    }
 
     return false;
 }
