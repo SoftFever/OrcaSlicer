@@ -154,26 +154,17 @@ private:
     class Clipboard
     {
         Model m_model;
-        ModelObject* m_object;
         Selection::EMode m_mode;
-        Selection::EType m_type;
 
     public:
-        Clipboard();
+        void reset() { m_model.clear_objects(); }
+        bool is_empty() const { return m_model.objects.empty(); }
 
-        void reset() { if (m_object != nullptr) m_object->clear_volumes(); }
-        void add_volume(const ModelVolume& volume);
-        const ModelVolume* get_volume(unsigned int id) const;
-        ModelObject* get_object() { return m_object; }
-        const ModelObject* get_object() const { return m_object; }
-        const unsigned int get_volumes_count() const { return (unsigned int)m_object->volumes.size(); }
-
-        bool is_empty() const { return (m_object == nullptr) || m_object->volumes.empty(); }
+        ModelObject* add_object() { return m_model.add_object(); }
+        ModelObject* get_object(unsigned int id) { return (id < (unsigned int)m_model.objects.size()) ? m_model.objects[id] : nullptr; }
 
         Selection::EMode get_mode() const { return m_mode; }
         void set_mode(Selection::EMode mode) { m_mode = mode; }
-        Selection::EType get_type() const { return m_type; }
-        void set_type(Selection::EType type) { m_type = type; }
     };
 
     // Volumes owned by GLCanvas3D.
