@@ -713,7 +713,12 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt, GLCanvas3D& canvas)
     {
         switch (keyCode)
         {
+#ifdef __APPLE__
+        case 'a':
+        case 'A':
+#else /* __APPLE__ */
         case WXK_CONTROL_A:
+#endif /* __APPLE__ */
         {
             // Sla gizmo selects all support points
             if ((m_current == SlaSupports) && gizmo_event(SLAGizmoEventType::SelectAll))
