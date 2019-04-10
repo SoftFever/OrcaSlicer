@@ -4000,14 +4000,9 @@ void GLCanvas3D::_update_volumes_hover_state() const
         return;
 
     GLVolume* volume = m_volumes.volumes[m_hover_volume_id];
-    switch (m_selection.get_mode())
-    {
-    case Selection::Volume:
-    {
+    if (volume->is_modifier)
         volume->hover = true;
-        break;
-    }
-    case Selection::Instance:
+    else
     {
         int object_idx = volume->object_idx();
         int instance_idx = volume->instance_idx();
@@ -4017,9 +4012,6 @@ void GLCanvas3D::_update_volumes_hover_state() const
             if ((v->object_idx() == object_idx) && (v->instance_idx() == instance_idx))
                 v->hover = true;
         }
-
-        break;
-    }
     }
 }
 
