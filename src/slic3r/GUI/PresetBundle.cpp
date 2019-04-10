@@ -398,10 +398,10 @@ void PresetBundle::export_selections(AppConfig &config)
 
 void PresetBundle::load_compatible_bitmaps(wxWindow *window)
 {
-    *m_bitmapCompatible = create_scaled_bitmap(window, "flag-green-icon.png");
-    *m_bitmapIncompatible = create_scaled_bitmap(window, "flag-red-icon.png");
-    *m_bitmapLock = create_scaled_bitmap(window, "sys_lock.png");
-    *m_bitmapLockOpen = create_scaled_bitmap(window, "sys_unlock.png");
+    *m_bitmapCompatible     = create_scaled_bitmap(window, "flag_green");
+    *m_bitmapIncompatible   = create_scaled_bitmap(window, "flag_red");
+    *m_bitmapLock           = create_scaled_bitmap(window, "lock_closed");
+    *m_bitmapLockOpen       = create_scaled_bitmap(window, "sys_unlock.png");
 
     prints       .set_bitmap_compatible(m_bitmapCompatible);
     filaments    .set_bitmap_compatible(m_bitmapCompatible);
@@ -1432,7 +1432,7 @@ void PresetBundle::load_default_preset_bitmaps(wxWindow *window)
     this->prints.load_bitmap_default(window, "cog");
     this->sla_prints.load_bitmap_default(window, "cog");
     this->filaments.load_bitmap_default(window, "spool.png");
-    this->sla_materials.load_bitmap_default(window, "package_green.png");
+    this->sla_materials.load_bitmap_default(window, "resin");
     this->printers.load_bitmap_default(window, "printer");
     this->printers.load_bitmap_add(window, "add.png");
     this->load_compatible_bitmaps(window);
