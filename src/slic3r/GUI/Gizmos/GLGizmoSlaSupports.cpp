@@ -96,11 +96,16 @@ void GLGizmoSlaSupports::on_render(const Selection& selection) const
 
 void GLGizmoSlaSupports::render_selection_rectangle() const
 {
-    if (!m_selection_rectangle_active)
+    if (m_selection_rectangle_status == srOff)
         return;
 
     glsafe(::glLineWidth(1.5f));
-    float render_color[3] = {1.f, 0.f, 0.f};
+    float render_color[3] = {0.f, 1.f, 0.f};
+    if (m_selection_rectangle_status == srDeselect) {
+        render_color[0] = 1.f;
+        render_color[1] = 0.3f;
+        render_color[2] = 0.3f;
+    }
     glsafe(::glColor3fv(render_color));
 
     glsafe(::glPushAttrib(GL_TRANSFORM_BIT));   // remember current MatrixMode
@@ -316,31 +321,35 @@ std::pair<Vec3f, Vec3f> GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse
 // The gizmo has an opportunity to react - if it does, it should return true so that the Canvas3D is
 // aware that the event was reacted to and stops trying to make different sense of it. If the gizmo
 // concludes that the event was not intended for it, it should return false.
-bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down)
+bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down)
 {
     if (m_editing_mode) {
 
-        // left down - show the selection rectangle:
-        if (action == SLAGizmoEventType::LeftDown && shift_down) {
+        // left down with shift - show the selection rectangle:
+        if (action == SLAGizmoEventType::LeftDown && (shift_down || alt_down || control_down)) {
             if (m_hover_id == -1) {
-                m_selection_rectangle_active = true;
-                m_selection_rectangle_start_corner = mouse_position;
-                m_selection_rectangle_end_corner = mouse_position;
-                m_canvas_width = m_parent.get_canvas_size().get_width();
-                m_canvas_height = m_parent.get_canvas_size().get_height();
+                if (shift_down || alt_down) {
+                    m_selection_rectangle_status = shift_down ? srSelect : srDeselect;
+                    m_selection_rectangle_start_corner = mouse_position;
+                    m_selection_rectangle_end_corner = mouse_position;
+                    m_canvas_width = m_parent.get_canvas_size().get_width();
+                    m_canvas_height = m_parent.get_canvas_size().get_height();
+                }
             }
             else {
                 if (m_editing_mode_cache[m_hover_id].selected)
                     unselect_point(m_hover_id);
-                else
-                    select_point(m_hover_id);
+                else {
+                    if (!alt_down)
+                        select_point(m_hover_id);
+                }
             }
 
             return true;
         }
 
         // left down without selection rectangle - place point on the mesh:
-        if (action == SLAGizmoEventType::LeftDown && !m_selection_rectangle_active && !shift_down) {
+        if (action == SLAGizmoEventType::LeftDown && m_selection_rectangle_status == srOff && !shift_down) {
             // If any point is in hover state, this should initiate its move - return control back to GLCanvas:
             if (m_hover_id != -1)
                 return false;
@@ -365,7 +374,7 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         }
 
         // left up with selection rectangle - select points inside the rectangle:
-        if ((action == SLAGizmoEventType::LeftUp || action == SLAGizmoEventType::ShiftUp) && m_selection_rectangle_active) {
+        if ((action == SLAGizmoEventType::LeftUp || action == SLAGizmoEventType::ShiftUp || action == SLAGizmoEventType::AltUp) && m_selection_rectangle_status != srOff) {
             const Transform3d& instance_matrix = m_model_object->instances[m_active_instance]->get_transformation().get_matrix();
             const Camera& camera = m_parent.get_camera();
             const std::array<int, 4>& viewport = camera.get_viewport();
@@ -405,11 +414,15 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                         if (hits.size() > 1 || hits.front().t > 0.001f)
                             is_obscured = true;
 
-                    if (!is_obscured)
-                        select_point(i);
+                    if (!is_obscured) {
+                        if (m_selection_rectangle_status == srDeselect)
+                            unselect_point(i);
+                        else
+                            select_point(i);
+                    }
                 }
             }
-            m_selection_rectangle_active = false;
+            m_selection_rectangle_status = srOff;
             return true;
         }
 
@@ -427,8 +440,9 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                 return true; // point has been placed and the button not released yet
                              // this prevents GLCanvas from starting scene rotation
 
-            if (m_selection_rectangle_active)  {
+            if (m_selection_rectangle_status != srOff)  {
                 m_selection_rectangle_end_corner = mouse_position;
+                m_selection_rectangle_status = shift_down ? srSelect : srDeselect;
                 return true;
             }
 

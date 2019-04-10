@@ -18,10 +18,10 @@ wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(25 * wxGetApp().em_unit(), -
 #ifdef __APPLE__
     m_user_drawn_background = false;
 #endif /*__APPLE__*/
-    Bind(wxEVT_PAINT, ([this](wxPaintEvent e) { repaint(); }));
-    Bind(wxEVT_LEFT_DOWN, ([this](wxMouseEvent  event) { mouse_event(event); }));
-    Bind(wxEVT_MOTION, ([this](wxMouseEvent  event) { mouse_event(event); }));
-    Bind(wxEVT_SIZE, ([this](wxSizeEvent e) { Refresh(); }));
+    Bind(wxEVT_PAINT, ([this](wxPaintEvent &/* e */) { repaint(); }));
+    Bind(wxEVT_LEFT_DOWN, ([this](wxMouseEvent &event) { mouse_event(event); }));
+    Bind(wxEVT_MOTION, ([this](wxMouseEvent &event) { mouse_event(event); }));
+    Bind(wxEVT_SIZE, ([this](wxSizeEvent & /* e */) { Refresh(); }));
 }
 void Bed_2D::repaint()
 {

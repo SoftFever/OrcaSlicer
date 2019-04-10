@@ -61,7 +61,7 @@ DPIFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAU
     /* Load default preset bitmaps before a tabpanel initialization,
      * but after filling of an em_unit value 
      */
-    wxGetApp().preset_bundle->load_default_preset_bitmaps();
+    wxGetApp().preset_bundle->load_default_preset_bitmaps(this);
 
     // initialize tabpanel and menubar
     init_tabpanel();
@@ -327,9 +327,9 @@ void MainFrame::init_menubar()
         wxMenuItem* item_open = append_menu_item(fileMenu, wxID_ANY, _(L("&Open Project")) + dots + "\tCtrl+O", _(L("Open a project file")),
             [this](wxCommandEvent&) { if (m_plater) m_plater->load_project(); }, "brick_add.png");
         wxMenuItem* item_save = append_menu_item(fileMenu, wxID_ANY, _(L("&Save Project")) + "\tCtrl+S", _(L("Save current project file")),
-            [this](wxCommandEvent&) { if (m_plater) m_plater->export_3mf(into_path(m_plater->get_project_filename())); }, "disk.png");
+            [this](wxCommandEvent&) { if (m_plater) m_plater->export_3mf(into_path(m_plater->get_project_filename())); }, "save");
         wxMenuItem* item_save_as = append_menu_item(fileMenu, wxID_ANY, _(L("Save Project &as")) + dots + "\tCtrl+Alt+S", _(L("Save current project file as")),
-            [this](wxCommandEvent&) { if (m_plater) m_plater->export_3mf(); }, "disk.png");
+            [this](wxCommandEvent&) { if (m_plater) m_plater->export_3mf(); }, "save");
 
         fileMenu->AppendSeparator();
 

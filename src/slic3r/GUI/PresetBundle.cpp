@@ -396,55 +396,36 @@ void PresetBundle::export_selections(AppConfig &config)
     config.set("presets", "printer",      printers.get_selected_preset_name());
 }
 
-bool PresetBundle::load_compatible_bitmaps()
+void PresetBundle::load_compatible_bitmaps(wxWindow *window)
 {
-    const std::string path_bitmap_compatible   = "flag-green-icon.png";
-    const std::string path_bitmap_incompatible = "flag-red-icon.png";
-    const std::string path_bitmap_lock         = "sys_lock.png";//"lock.png";
-	const std::string path_bitmap_lock_open    = "sys_unlock.png";//"lock_open.png";
-//     bool loaded_compatible   = m_bitmapCompatible  ->LoadFile(
-//         wxString::FromUTF8(Slic3r::var(path_bitmap_compatible).c_str()), wxBITMAP_TYPE_PNG);
-//     bool loaded_incompatible = m_bitmapIncompatible->LoadFile(
-//         wxString::FromUTF8(Slic3r::var(path_bitmap_incompatible).c_str()), wxBITMAP_TYPE_PNG);
-//     bool loaded_lock = m_bitmapLock->LoadFile(
-//         wxString::FromUTF8(Slic3r::var(path_bitmap_lock).c_str()), wxBITMAP_TYPE_PNG);
-//     bool loaded_lock_open = m_bitmapLockOpen->LoadFile(
-//         wxString::FromUTF8(Slic3r::var(path_bitmap_lock_open).c_str()), wxBITMAP_TYPE_PNG);
+    *m_bitmapCompatible     = create_scaled_bitmap(window, "flag_green");
+    *m_bitmapIncompatible   = create_scaled_bitmap(window, "flag_red");
+    *m_bitmapLock           = create_scaled_bitmap(window, "lock_closed");
+    *m_bitmapLockOpen       = create_scaled_bitmap(window, "sys_unlock.png");
 
-    bool loaded_compatible = load_scaled_bitmap(&m_bitmapCompatible, path_bitmap_compatible);
-    bool loaded_incompatible = load_scaled_bitmap(&m_bitmapIncompatible,path_bitmap_incompatible);
-    bool loaded_lock = load_scaled_bitmap(&m_bitmapLock, path_bitmap_lock);
-    bool loaded_lock_open = load_scaled_bitmap(&m_bitmapLockOpen, path_bitmap_lock_open);
+    prints       .set_bitmap_compatible(m_bitmapCompatible);
+    filaments    .set_bitmap_compatible(m_bitmapCompatible);
+    sla_prints   .set_bitmap_compatible(m_bitmapCompatible);
+    sla_materials.set_bitmap_compatible(m_bitmapCompatible);
+    printers .set_bitmap_compatible(m_bitmapCompatible);
 
-    if (loaded_compatible) {
-        prints       .set_bitmap_compatible(m_bitmapCompatible);
-        filaments    .set_bitmap_compatible(m_bitmapCompatible);
-        sla_prints   .set_bitmap_compatible(m_bitmapCompatible);
-        sla_materials.set_bitmap_compatible(m_bitmapCompatible);
-//        printers .set_bitmap_compatible(m_bitmapCompatible);
-    }
-    if (loaded_incompatible) {
-        prints       .set_bitmap_incompatible(m_bitmapIncompatible);
-        filaments    .set_bitmap_incompatible(m_bitmapIncompatible);
-        sla_prints   .set_bitmap_incompatible(m_bitmapIncompatible);
-        sla_materials.set_bitmap_incompatible(m_bitmapIncompatible);
-//        printers .set_bitmap_incompatible(m_bitmapIncompatible);
-    }
-    if (loaded_lock) {
-        prints       .set_bitmap_lock(m_bitmapLock);
-        filaments    .set_bitmap_lock(m_bitmapLock);
-        sla_prints   .set_bitmap_lock(m_bitmapLock);
-        sla_materials.set_bitmap_lock(m_bitmapLock);
-        printers     .set_bitmap_lock(m_bitmapLock);
-    }
-    if (loaded_lock_open) {
-        prints       .set_bitmap_lock_open(m_bitmapLock);
-        filaments    .set_bitmap_lock_open(m_bitmapLock);
-        sla_prints   .set_bitmap_lock_open(m_bitmapLock);
-        sla_materials.set_bitmap_lock_open(m_bitmapLock);
-        printers     .set_bitmap_lock_open(m_bitmapLock);
-    }
-    return loaded_compatible && loaded_incompatible && loaded_lock && loaded_lock_open;
+    prints       .set_bitmap_incompatible(m_bitmapIncompatible);
+    filaments    .set_bitmap_incompatible(m_bitmapIncompatible);
+    sla_prints   .set_bitmap_incompatible(m_bitmapIncompatible);
+    sla_materials.set_bitmap_incompatible(m_bitmapIncompatible);
+    printers .set_bitmap_incompatible(m_bitmapIncompatible);
+
+    prints       .set_bitmap_lock(m_bitmapLock);
+    filaments    .set_bitmap_lock(m_bitmapLock);
+    sla_prints   .set_bitmap_lock(m_bitmapLock);
+    sla_materials.set_bitmap_lock(m_bitmapLock);
+    printers     .set_bitmap_lock(m_bitmapLock);
+
+    prints       .set_bitmap_lock_open(m_bitmapLock);
+    filaments    .set_bitmap_lock_open(m_bitmapLock);
+    sla_prints   .set_bitmap_lock_open(m_bitmapLock);
+    sla_materials.set_bitmap_lock_open(m_bitmapLock);
+    printers     .set_bitmap_lock_open(m_bitmapLock);
 }
 
 DynamicPrintConfig PresetBundle::full_config() const
@@ -1446,7 +1427,7 @@ bool PresetBundle::parse_color(const std::string &scolor, unsigned char *rgb_out
     return true;
 }
 
-void PresetBundle::load_default_preset_bitmaps()
+void PresetBundle::load_default_preset_bitmaps(wxWindow *window)
 {
     // Clear bitmap cache, before load new scaled default preset bitmaps 
     m_bitmapCache->clear();
@@ -1456,13 +1437,13 @@ void PresetBundle::load_default_preset_bitmaps()
     this->sla_materials.clear_bitmap_cache();
     this->printers.clear_bitmap_cache();
 
-    this->prints.load_bitmap_default("cog");
-    this->sla_prints.load_bitmap_default("cog");
-    this->filaments.load_bitmap_default("spool.png");
-    this->sla_materials.load_bitmap_default("package_green.png");
-    this->printers.load_bitmap_default("printer");
-    this->printers.load_bitmap_add("add.png");
-    this->load_compatible_bitmaps();
+    this->prints.load_bitmap_default(window, "cog");
+    this->sla_prints.load_bitmap_default(window, "cog");
+    this->filaments.load_bitmap_default(window, "spool.png");
+    this->sla_materials.load_bitmap_default(window, "resin");
+    this->printers.load_bitmap_default(window, "printer");
+    this->printers.load_bitmap_add(window, "add.png");
+    this->load_compatible_bitmaps(window);
 }
 
 void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, GUI::PresetComboBox *ui)

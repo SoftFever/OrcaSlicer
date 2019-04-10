@@ -1,5 +1,7 @@
 #include "wxExtensions.hpp"
 
+#include <stdexcept>
+
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Model.hpp"
 
@@ -44,7 +46,7 @@ wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const
 wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const wxString& description,
     std::function<void(wxCommandEvent& event)> cb, const std::string& icon, wxEvtHandler* event_handler)
 {
-    const wxBitmap& bmp = !icon.empty() ? create_scaled_bitmap(icon) : wxNullBitmap;
+    const wxBitmap& bmp = !icon.empty() ? create_scaled_bitmap(nullptr, icon) : wxNullBitmap;   // FIXME: pass window ptr
     return append_menu_item(menu, id, string, description, cb, bmp, event_handler);
 }
 
@@ -55,7 +57,7 @@ wxMenuItem* append_submenu(wxMenu* menu, wxMenu* sub_menu, int id, const wxStrin
 
     wxMenuItem* item = new wxMenuItem(menu, id, string, description);
     if (!icon.empty())
-        item->SetBitmap(create_scaled_bitmap(icon));
+        item->SetBitmap(create_scaled_bitmap(nullptr, icon));    // FIXME: pass window ptr
 
     item->SetSubMenu(sub_menu);
     menu->Append(item);
@@ -420,27 +422,36 @@ void PrusaCollapsiblePaneMSW::Collapse(bool collapse)
 
 
 // If an icon has horizontal orientation (width > height) call this function with is_horizontal = true
-bool load_scaled_bitmap(wxBitmap** bmp, const std::string& bmp_name_in, const int px_cnt/* = 16*/, const bool is_horizontal /*= false*/)
+wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name_in, const int px_cnt/* = 16*/, const bool is_horizontal /* = false*/)
 {
     static Slic3r::GUI::BitmapCache cache;
 
+#ifdef __APPLE__
+    const float scale_factor = win != nullptr ? win->GetContentScaleFactor() : 1.0f;
+#else
+    (void)(win);
+    const float scale_factor = 1.0f;
+#endif
+
     unsigned int height, width = height = 0;
     unsigned int& scale_base = is_horizontal ? width : height;
+
     scale_base = (unsigned int)(Slic3r::GUI::wxGetApp().em_unit() * px_cnt * 0.1f + 0.5f);
 
     std::string bmp_name = bmp_name_in;
-	boost::replace_last(bmp_name, ".png", "");
-    *bmp = cache.load_svg(bmp_name, width, height);
-    if (*bmp == nullptr)
-        *bmp = cache.load_png(bmp_name, width, height);
-    return *bmp != nullptr;
-}
+    boost::replace_last(bmp_name, ".png", "");
 
-// If an icon has horizontal orientation (width > height) call this function with is_horizontal = true
-wxBitmap create_scaled_bitmap(const std::string& bmp_name_in, const int px_cnt/* = 16*/, const bool is_horizontal /* = false*/)
-{
-    wxBitmap *bmp {nullptr};
-    load_scaled_bitmap(&bmp, bmp_name_in, px_cnt, is_horizontal);
+    // Try loading an SVG first, then PNG if SVG is not found:
+    wxBitmap *bmp = cache.load_svg(bmp_name, width, height, scale_factor);
+    if (bmp == nullptr) {
+        bmp = cache.load_png(bmp_name, width, height);
+    }
+
+    if (bmp == nullptr) {
+        // Neither SVG nor PNG has been found, raise error
+        throw std::runtime_error("Could not load bitmap: " + bmp_name);
+    }
+
     return *bmp;
 }
 
@@ -450,10 +461,10 @@ wxBitmap create_scaled_bitmap(const std::string& bmp_name_in, const int px_cnt/*
 // ----------------------------------------------------------------------------
 
 void PrusaObjectDataViewModelNode::set_object_action_icon() {
-    m_action_icon = create_scaled_bitmap("add_object.png");
+    m_action_icon = create_scaled_bitmap(nullptr, "add_object.png");    // FIXME: pass window ptr
 }
 void  PrusaObjectDataViewModelNode::set_part_action_icon() {
-    m_action_icon = create_scaled_bitmap(m_type == itVolume ? "cog" : "brick_go.png");
+    m_action_icon = create_scaled_bitmap(nullptr, m_type == itVolume ? "cog.png" : "brick_go.png");    // FIXME: pass window ptr
 }
 
 Slic3r::GUI::BitmapCache *m_bitmap_cache = nullptr;
@@ -1495,20 +1506,20 @@ PrusaDoubleSlider::PrusaDoubleSlider(wxWindow *parent,
     if (!is_osx)
         SetDoubleBuffered(true);// SetDoubleBuffered exists on Win and Linux/GTK, but is missing on OSX
 
-    m_bmp_thumb_higher = wxBitmap(style == wxSL_HORIZONTAL ? create_scaled_bitmap("right_half_circle.png") : create_scaled_bitmap("up_half_circle.png",  16, true));
-    m_bmp_thumb_lower  = wxBitmap(style == wxSL_HORIZONTAL ? create_scaled_bitmap("left_half_circle.png" ) : create_scaled_bitmap("down_half_circle.png",16, true));
+    m_bmp_thumb_higher = wxBitmap(style == wxSL_HORIZONTAL ? create_scaled_bitmap(this, "right_half_circle.png") : create_scaled_bitmap(this, "up_half_circle.png",   16, true));
+    m_bmp_thumb_lower  = wxBitmap(style == wxSL_HORIZONTAL ? create_scaled_bitmap(this, "left_half_circle.png" ) : create_scaled_bitmap(this, "down_half_circle.png", 16, true));
     m_thumb_size = m_bmp_thumb_lower.GetSize();
 
-    m_bmp_add_tick_on  = create_scaled_bitmap("colorchange_add_on.png");
-    m_bmp_add_tick_off = create_scaled_bitmap("colorchange_add_off.png");
-    m_bmp_del_tick_on  = create_scaled_bitmap("colorchange_delete_on.png");
-    m_bmp_del_tick_off = create_scaled_bitmap("colorchange_delete_off.png");
+    m_bmp_add_tick_on  = create_scaled_bitmap(this, "colorchange_add_on.png");
+    m_bmp_add_tick_off = create_scaled_bitmap(this, "colorchange_add_off.png");
+    m_bmp_del_tick_on  = create_scaled_bitmap(this, "colorchange_delete_on.png");
+    m_bmp_del_tick_off = create_scaled_bitmap(this, "colorchange_delete_off.png");
     m_tick_icon_dim = m_bmp_add_tick_on.GetSize().x;
 
-    m_bmp_one_layer_lock_on    = create_scaled_bitmap("one_layer_lock_on.png");
-    m_bmp_one_layer_lock_off   = create_scaled_bitmap("one_layer_lock_off.png");
-    m_bmp_one_layer_unlock_on  = create_scaled_bitmap("one_layer_unlock_on.png");
-    m_bmp_one_layer_unlock_off = create_scaled_bitmap("one_layer_unlock_off.png");
+    m_bmp_one_layer_lock_on    = create_scaled_bitmap(this, "one_layer_lock_on.png");
+    m_bmp_one_layer_lock_off   = create_scaled_bitmap(this, "one_layer_lock_off.png");
+    m_bmp_one_layer_unlock_on  = create_scaled_bitmap(this, "one_layer_unlock_on.png");
+    m_bmp_one_layer_unlock_off = create_scaled_bitmap(this, "one_layer_unlock_off.png");
     m_lock_icon_dim = m_bmp_one_layer_lock_on.GetSize().x;
 
     m_selection = ssUndef;
@@ -2332,10 +2343,10 @@ PrusaLockButton::PrusaLockButton(   wxWindow *parent,
                                     const wxSize& size /*= wxDefaultSize*/):
                                     wxButton(parent, id, wxEmptyString, pos, size, wxBU_EXACTFIT | wxNO_BORDER)
 {
-    m_bmp_lock_on      = create_scaled_bitmap("one_layer_lock_on.png");
-    m_bmp_lock_off     = create_scaled_bitmap("one_layer_lock_off.png");
-    m_bmp_unlock_on    = create_scaled_bitmap("one_layer_unlock_on.png");
-    m_bmp_unlock_off   = create_scaled_bitmap("one_layer_unlock_off.png");
+    m_bmp_lock_on      = create_scaled_bitmap(this, "one_layer_lock_on.png");
+    m_bmp_lock_off     = create_scaled_bitmap(this, "one_layer_lock_off.png");
+    m_bmp_unlock_on    = create_scaled_bitmap(this, "one_layer_unlock_on.png");
+    m_bmp_unlock_off   = create_scaled_bitmap(this, "one_layer_unlock_off.png");
 
 
 #ifdef __WXMSW__
@@ -2393,7 +2404,7 @@ PrusaModeButton::PrusaModeButton(   wxWindow *parent,
 #ifdef __WXMSW__
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 #endif // __WXMSW__
-    m_bmp_off = create_scaled_bitmap("mode_off_sq.png");
+    m_bmp_off = create_scaled_bitmap(this, "mode_off_sq.png");
 
     m_tt_focused = wxString::Format(_(L("Switch to the %s mode")), mode);
     m_tt_selected = wxString::Format(_(L("Current mode is %s")), mode);
@@ -2447,9 +2458,9 @@ PrusaModeSizer::PrusaModeSizer(wxWindow *parent, int hgap/* = 10*/) :
     SetFlexibleDirection(wxHORIZONTAL);
 
     std::vector<std::pair<wxString, wxBitmap>> buttons = {
-        {_(L("Simple")),    create_scaled_bitmap("mode_simple_sq.png")},
-        {_(L("Advanced")),  create_scaled_bitmap("mode_middle_sq.png")},
-        {_(L("Expert")),    create_scaled_bitmap("mode_expert_sq.png")}
+        {_(L("Simple")),    create_scaled_bitmap(parent, "mode_simple_sq.png")},
+        {_(L("Advanced")),  create_scaled_bitmap(parent, "mode_middle_sq.png")},
+        {_(L("Expert")),    create_scaled_bitmap(parent, "mode_expert_sq.png")}
     };
 
     mode_btns.reserve(3);

@@ -99,8 +99,9 @@ public:
     };
 
     /// Constructor taking the resolution and the pixel dimension.
-    explicit Raster(const Resolution& r, const PixelDim& pd,
-                    Origin o = Origin::BOTTOM_LEFT );
+    Raster(const Resolution& r,  const PixelDim& pd, 
+           Origin o = Origin::BOTTOM_LEFT, double gamma = 1.0);
+    
     Raster();
     Raster(const Raster& cpy) = delete;
     Raster& operator=(const Raster& cpy) = delete;
@@ -108,8 +109,8 @@ public:
     ~Raster();
 
     /// Reallocated everything for the given resolution and pixel dimension.
-    void reset(const Resolution& r, const PixelDim& pd);
-    void reset(const Resolution& r, const PixelDim& pd, Origin o);
+    void reset(const Resolution& r, const PixelDim& pd, double gamma = 1.0);
+    void reset(const Resolution& r, const PixelDim& pd, Origin o, double gamma);
 
     /**
      * Release the allocated resources. Drawing in this state ends in

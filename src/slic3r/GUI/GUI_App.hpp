@@ -169,6 +169,7 @@ public:
     PrintHostJobQueue& printhost_job_queue() { return *m_printhost_job_queue.get(); }
 
 private:
+    bool            on_init_inner();
     void            window_pos_save(wxTopLevelWindow* window, const std::string &name);
     void            window_pos_restore(wxTopLevelWindow* window, const std::string &name);
     void            window_pos_sanitize(wxTopLevelWindow* window);

@@ -62,18 +62,18 @@ ObjectList::ObjectList(wxWindow* parent) :
     // Fill CATEGORY_ICON
     {
         // ptFFF
-		CATEGORY_ICON[L("Layers and Perimeters")]	= create_scaled_bitmap("layers");
-		CATEGORY_ICON[L("Infill")]					= create_scaled_bitmap("infill");
-		CATEGORY_ICON[L("Support material")]		= create_scaled_bitmap("support");
-		CATEGORY_ICON[L("Speed")]					= create_scaled_bitmap("time");
-		CATEGORY_ICON[L("Extruders")]				= create_scaled_bitmap("funnel");
-		CATEGORY_ICON[L("Extrusion Width")]			= create_scaled_bitmap("funnel");
-// 		CATEGORY_ICON[L("Skirt and brim")]			= create_scaled_bitmap("skirt+brim"); 
-// 		CATEGORY_ICON[L("Speed > Acceleration")]	= create_scaled_bitmap("time");
-		CATEGORY_ICON[L("Advanced")]				= create_scaled_bitmap("wrench");
+		CATEGORY_ICON[L("Layers and Perimeters")]	= create_scaled_bitmap(this, "layers");
+		CATEGORY_ICON[L("Infill")]					= create_scaled_bitmap(this, "infill");
+		CATEGORY_ICON[L("Support material")]		= create_scaled_bitmap(this, "support");
+		CATEGORY_ICON[L("Speed")]					= create_scaled_bitmap(this, "time");
+		CATEGORY_ICON[L("Extruders")]				= create_scaled_bitmap(this, "funnel");
+		CATEGORY_ICON[L("Extrusion Width")]			= create_scaled_bitmap(this, "funnel");
+// 		CATEGORY_ICON[L("Skirt and brim")]			= create_scaled_bitmap(this, "skirt+brim"); 
+// 		CATEGORY_ICON[L("Speed > Acceleration")]	= create_scaled_bitmap(this, "time");
+		CATEGORY_ICON[L("Advanced")]				= create_scaled_bitmap(this, "wrench");
 		// ptSLA
-		CATEGORY_ICON[L("Supports")]				= create_scaled_bitmap("sla_supports");
-		CATEGORY_ICON[L("Pad")]				        = create_scaled_bitmap("brick.png");
+		CATEGORY_ICON[L("Supports")]				= create_scaled_bitmap(this, "sla_supports");
+		CATEGORY_ICON[L("Pad")]				        = create_scaled_bitmap(this, "brick.png");
     }
 
     // create control
@@ -88,7 +88,7 @@ ObjectList::ObjectList(wxWindow* parent) :
         // before the kill focus event handler on the object manipulator when changing selection in the list, invalidating the object
         // manipulator cache with the following call to selection_changed()
         wxGetApp().obj_manipul()->emulate_kill_focus();
-
+#else
         // To avoid selection update from SetSelection() and UnselectAll() under osx
         if (m_prevent_list_events)
             return;
@@ -141,6 +141,8 @@ ObjectList::ObjectList(wxWindow* parent) :
 #ifdef __WXOSX__
     Bind(wxEVT_KEY_DOWN, &ObjectList::OnChar, this);
 #endif //__WXOSX__
+
+    Bind(wxEVT_SIZE, ([this](wxSizeEvent &e) { this->EnsureVisible(this->GetCurrentItem()); e.Skip(); }));
 }
 
 ObjectList::~ObjectList()
@@ -390,10 +392,10 @@ void ObjectList::update_name_in_model(const wxDataViewItem& item) const
 
 void ObjectList::init_icons()
 {
-    m_bmp_modifiermesh     = create_scaled_bitmap("lambda.png");
-    m_bmp_solidmesh        = create_scaled_bitmap("object.png");
-    m_bmp_support_enforcer = create_scaled_bitmap("support_enforcer_.png");
-    m_bmp_support_blocker  = create_scaled_bitmap("support_blocker_.png");
+    m_bmp_modifiermesh     = create_scaled_bitmap(this, "lambda.png");
+    m_bmp_solidmesh        = create_scaled_bitmap(this, "object.png");
+    m_bmp_support_enforcer = create_scaled_bitmap(this, "support_enforcer_.png");
+    m_bmp_support_blocker  = create_scaled_bitmap(this, "support_blocker_.png");
 
 
     m_bmp_vector.reserve(4); // bitmaps for different types of parts 
@@ -404,13 +406,13 @@ void ObjectList::init_icons()
     m_objects_model->SetVolumeBitmaps(m_bmp_vector);
 
     // init icon for manifold warning
-    m_bmp_manifold_warning  = create_scaled_bitmap("exclamation_mark_.png");
+    m_bmp_manifold_warning  = create_scaled_bitmap(this, "exclamation_mark_.png");
 
     // init bitmap for "Split to sub-objects" context menu
-    m_bmp_split             = create_scaled_bitmap("split_parts");
+    m_bmp_split             = create_scaled_bitmap(this, "split_parts");
 
     // init bitmap for "Add Settings" context menu
-    m_bmp_cog               = create_scaled_bitmap("cog");
+    m_bmp_cog               = create_scaled_bitmap(this, "cog");
 }
 
 
@@ -1977,7 +1979,7 @@ void ObjectList::update_selections()
         if (selection.is_single_full_object() && 
             m_objects_model->GetIdByItem(m_objects_model->GetParent(item)) == selection.get_object_idx())
             return; 
-        if (selection.is_single_volume() || selection.is_modifier()) {
+        if (selection.is_single_volume() || selection.is_any_modifier()) {
             const auto gl_vol = selection.get_volume(*selection.get_volume_idxs().begin());
             if (m_objects_model->GetVolumeIdByItem(m_objects_model->GetParent(item)) == gl_vol->volume_idx())
                 return;
@@ -2012,7 +2014,7 @@ void ObjectList::update_selections()
             }
         }
     }
-    else if (selection.is_single_volume() || selection.is_modifier() || selection.is_multiple_volume()) 
+    else if (selection.is_any_volume() || selection.is_any_modifier())
     {
         for (auto idx : selection.get_volume_idxs()) {
             const auto gl_vol = selection.get_volume(idx);
@@ -2071,23 +2073,8 @@ void ObjectList::update_selections()
     
     select_items(sels);
 
-    /* Because of ScrollLines() and GetItemRect() functions are implemented 
-     * only for GENERIC DataViewCtrl in current version of wxWidgets,
-     * use this part of code only for MSW 
-     */
-#if defined(wxUSE_GENERICDATAVIEWCTRL)
     // Scroll selected Item in the middle of an object list
-    if (GetSelection()) {
-        const wxRect& sel_rc = GetItemRect(GetSelection());
-        const wxRect& main_rc = GetClientRect();
-        if (sel_rc.GetBottom() <= main_rc.GetTop()+sel_rc.height ||
-            sel_rc.GetTop() >= main_rc.GetBottom() )
-        {
-            const wxRect& top_rc = GetItemRect(GetTopItem());
-            ScrollLines(int((sel_rc.y - top_rc.y) / top_rc.GetHeight()) - 0.5*GetCountPerPage());
-        }
-    }
-#endif
+    this->EnsureVisible(this->GetCurrentItem());
 }
 
 void ObjectList::update_selections_on_canvas()
@@ -2133,6 +2120,7 @@ void ObjectList::update_selections_on_canvas()
             add_to_selection(item, selection, instance_idx, true);
 
         wxGetApp().plater()->canvas3D()->update_gizmos_on_off_state();
+        wxGetApp().plater()->canvas3D()->render();
         return;
     }
     

@@ -27,7 +27,7 @@ void BitmapCache::clear()
     m_map.clear();
 }
 
-static wxBitmap wxImage_to_wxBitmap_with_alpha(wxImage &&image)
+static wxBitmap wxImage_to_wxBitmap_with_alpha(wxImage &&image, float scale = 1.0f)
 {
 #ifdef BROKEN_ALPHA
     wxMemoryOutputStream stream;
@@ -35,7 +35,16 @@ static wxBitmap wxImage_to_wxBitmap_with_alpha(wxImage &&image)
     wxStreamBuffer *buf = stream.GetOutputStreamBuffer();
     return wxBitmap::NewFromPNGData(buf->GetBufferStart(), buf->GetBufferSize());
 #else
+#ifdef __APPLE__
+    // This is a c-tor native to Mac OS. We need to let the Mac OS wxBitmap implementation
+    // know that the image may already be scaled appropriately for Retina,
+    // and thereby that it's not supposed to upscale it.
+    // Contrary to intuition, the `scale` argument isn't "please scale this to such and such"
+    // but rather "the wxImage is sized for backing scale such and such".
+    return wxBitmap(std::move(image), -1, scale);
+#else
     return wxBitmap(std::move(image));
+#endif
 #endif
 }
 
@@ -165,7 +174,7 @@ wxBitmap* BitmapCache::insert(const std::string &bitmap_key, const wxBitmap *beg
 #endif
 }
 
-wxBitmap* BitmapCache::insert_raw_rgba(const std::string &bitmap_key, unsigned int width, unsigned int height, const unsigned char *raw_data)
+wxBitmap* BitmapCache::insert_raw_rgba(const std::string &bitmap_key, unsigned width, unsigned height, const unsigned char *raw_data, float scale /* = 1.0f */)
 {
     wxImage image(width, height);
     image.InitAlpha();
@@ -178,7 +187,7 @@ wxBitmap* BitmapCache::insert_raw_rgba(const std::string &bitmap_key, unsigned i
         *rgb   ++ = *raw_data ++;
         *alpha ++ = *raw_data ++;
     }
-    return this->insert(bitmap_key, wxImage_to_wxBitmap_with_alpha(std::move(image)));
+    return this->insert(bitmap_key, wxImage_to_wxBitmap_with_alpha(std::move(image), scale));
 }
 
 wxBitmap* BitmapCache::load_png(const std::string &bitmap_name, unsigned int width, unsigned int height)
@@ -186,6 +195,7 @@ wxBitmap* BitmapCache::load_png(const std::string &bitmap_name, unsigned int wid
     std::string bitmap_key = bitmap_name + ( height !=0 ? 
                                            "-h" + std::to_string(height) : 
                                            "-w" + std::to_string(width));
+
     auto it = m_map.find(bitmap_key);
     if (it != m_map.end())
         return it->second;
@@ -206,11 +216,15 @@ wxBitmap* BitmapCache::load_png(const std::string &bitmap_name, unsigned int wid
     return this->insert(bitmap_key, wxImage_to_wxBitmap_with_alpha(std::move(image)));
 }
 
-wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned int target_width, unsigned int target_height)
+wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_width, unsigned target_height, float scale /* = 1.0f */)
 {
-    std::string bitmap_key = bitmap_name + (target_height != 0 ?
-                                            "-h" + std::to_string(target_height) :
-                                            "-w" + std::to_string(target_width));
+    std::string bitmap_key = bitmap_name + ( target_height !=0 ? 
+                                           "-h" + std::to_string(target_height) : 
+                                           "-w" + std::to_string(target_width))
+                                         + (scale != 1.0f ? "-s" + std::to_string(scale) : "");
+
+    target_height != 0 ? target_height *= scale : target_width *= scale;
+
     auto it = m_map.find(bitmap_key);
     if (it != m_map.end())
         return it->second;
@@ -219,12 +233,12 @@ wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned int tar
     if (image == nullptr)
         return nullptr;
 
-    float scale = target_height != 0 ? 
+    float svg_scale = target_height != 0 ? 
                   (float)target_height / image->height  : target_width != 0 ?
                   (float)target_width / image->width    : 1;
 
-    int   width    = (int)(scale * image->width + 0.5f);
-    int   height   = (int)(scale * image->height + 0.5f);
+    int   width    = (int)(svg_scale * image->width + 0.5f);
+    int   height   = (int)(svg_scale * image->height + 0.5f);
     int   n_pixels = width * height;
     if (n_pixels <= 0) {
         ::nsvgDelete(image);
@@ -238,11 +252,11 @@ wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned int tar
     }
 
     std::vector<unsigned char> data(n_pixels * 4, 0);
-    ::nsvgRasterize(rast, image, 0, 0, scale, data.data(), width, height, width * 4);
+    ::nsvgRasterize(rast, image, 0, 0, svg_scale, data.data(), width, height, width * 4);
     ::nsvgDeleteRasterizer(rast);
     ::nsvgDelete(image);
 
-    return this->insert_raw_rgba(bitmap_key, width, height, data.data());
+    return this->insert_raw_rgba(bitmap_key, width, height, data.data(), scale);
 }
 
 wxBitmap BitmapCache::mksolid(size_t width, size_t height, unsigned char r, unsigned char g, unsigned char b, unsigned char transparency)

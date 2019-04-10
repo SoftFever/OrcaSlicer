@@ -1455,4 +1455,28 @@ Transformation Transformation::operator * (const Transformation& other) const
     return Transformation(get_matrix() * other.get_matrix());
 }
 
+Eigen::Quaterniond rotation_xyz_diff(const Vec3d &rot_xyz_from, const Vec3d &rot_xyz_to)
+{
+    return
+        // From the current coordinate system to world.
+        Eigen::AngleAxisd(rot_xyz_to(2), Vec3d::UnitZ()) * Eigen::AngleAxisd(rot_xyz_to(1), Vec3d::UnitY()) * Eigen::AngleAxisd(rot_xyz_to(0), Vec3d::UnitX()) *
+        // From world to the initial coordinate system.
+        Eigen::AngleAxisd(-rot_xyz_from(0), Vec3d::UnitX()) * Eigen::AngleAxisd(-rot_xyz_from(1), Vec3d::UnitY()) * Eigen::AngleAxisd(-rot_xyz_from(2), Vec3d::UnitZ());
+}
+
+// This should only be called if it is known, that the two rotations only differ in rotation around the Z axis.
+double rotation_diff_z(const Vec3d &rot_xyz_from, const Vec3d &rot_xyz_to)
+{
+    Eigen::AngleAxisd angle_axis(rotation_xyz_diff(rot_xyz_from, rot_xyz_to));
+    Vec3d  axis  = angle_axis.axis();
+    double angle = angle_axis.angle();
+#ifndef NDEBUG
+    if (std::abs(angle) > 1e-8) {
+        assert(std::abs(axis.x()) < 1e-8);
+        assert(std::abs(axis.y()) < 1e-8);
+    }
+#endif /* NDEBUG */
+    return (axis.z() < 0) ? -angle : angle;
+}
+
 } }
