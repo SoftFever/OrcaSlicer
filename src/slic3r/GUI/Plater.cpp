@@ -3046,7 +3046,7 @@ void Plater::priv::set_bed_shape(const Pointfs& shape)
 
 bool Plater::priv::can_delete() const
 {
-    return !get_selection().is_empty();
+    return !get_selection().is_empty() && !get_selection().is_wipe_tower();
 }
 
 bool Plater::priv::can_delete_all() const
@@ -3297,7 +3297,7 @@ void Plater::set_number_of_copies(/*size_t num*/)
 
 bool Plater::is_selection_empty() const
 {
-    return p->get_selection().is_empty();
+    return p->get_selection().is_empty() || p->get_selection().is_wipe_tower();
 }
 
 void Plater::cut(size_t obj_idx, size_t instance_idx, coordf_t z, bool keep_upper, bool keep_lower, bool rotate_lower)
