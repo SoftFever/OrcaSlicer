@@ -79,6 +79,7 @@ public:
 
     void init_filament_combo(PresetComboBox **combo, const int extr_idx);
     void remove_unused_filament_combos(const int current_extruder_count);
+    void update_all_preset_comboboxes();
     void update_presets(Slic3r::Preset::Type preset_type);
     void update_mode_sizer() const;
     void update_reslice_btn_tooltip() const;

@@ -274,6 +274,7 @@ public:
 	virtual void	reload_config();
     void            update_mode();
     void            update_visibility();
+    void            rescale();
 	Field*			get_field(const t_config_option_key& opt_key, int opt_index = -1) const;
 	bool			set_value(const t_config_option_key& opt_key, const boost::any& value);
 	wxSizer*		description_line_widget(wxWindow* parent, ogStaticText** StaticText);

@@ -2387,7 +2387,7 @@ PrusaModeButton::PrusaModeButton(   wxWindow *parent,
                                     const wxBitmap& bmp_on/* = wxNullBitmap*/,
                                     const wxSize& size/* = wxDefaultSize*/,
                                     const wxPoint& pos/* = wxDefaultPosition*/) :
-    wxButton(parent, id, mode, pos, size, /*wxBU_EXACTFIT | */wxNO_BORDER),
+    wxButton(parent, id, mode, pos, wxDefaultSize/*size*/, wxBU_EXACTFIT | wxNO_BORDER),
     m_bmp_on(bmp_on)
 {
 #ifdef __WXMSW__
@@ -2425,7 +2425,11 @@ void PrusaModeButton::focus_button(const bool focus)
 {
 //     const wxBitmap& bmp = focus ? m_bmp_on : m_bmp_off;
 //     SetBitmap(bmp);
-    const wxFont& new_font = focus ? Slic3r::GUI::wxGetApp().bold_font() : Slic3r::GUI::wxGetApp().small_font();
+
+//     const wxFont& new_font = focus ? Slic3r::GUI::wxGetApp().bold_font() : Slic3r::GUI::wxGetApp().small_font();
+    wxFont font = GetFont();
+    const wxFont& new_font = focus ? font.Bold() : font.GetBaseFont();
+
     SetFont(new_font);
 
     Refresh();

@@ -781,6 +781,31 @@ void Sidebar::remove_unused_filament_combos(const int current_extruder_count)
     }
 }
 
+void Sidebar::update_all_preset_comboboxes()
+{
+    PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
+    const auto print_tech = preset_bundle.printers.get_edited_preset().printer_technology();
+
+//     wxWindowUpdateLocker noUpdates_scrolled(p->scrolled);
+
+    // Update the print choosers to only contain the compatible presets, update the dirty flags.
+    if (print_tech == ptFFF)
+        preset_bundle.prints.update_platter_ui(p->combo_print);
+    else {
+        preset_bundle.sla_prints.update_platter_ui(p->combo_sla_print);
+        preset_bundle.sla_materials.update_platter_ui(p->combo_sla_material);
+    }
+    // Update the printer choosers, update the dirty flags.
+    preset_bundle.printers.update_platter_ui(p->combo_printer);
+    // Update the filament choosers to only contain the compatible presets, update the color preview,
+    // update the dirty flags.
+    if (print_tech == ptFFF) {
+        for (size_t i = 0; i < p->combos_filament.size(); ++i)
+            preset_bundle.update_platter_filament_ui(i, p->combos_filament[i]);
+    }
+    p->show_preset_comboboxes();
+}
+
 void Sidebar::update_presets(Preset::Type preset_type)
 {
 	PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
@@ -822,22 +847,23 @@ void Sidebar::update_presets(Preset::Type preset_type)
 	{
 //         wxWindowUpdateLocker noUpdates_scrolled(p->scrolled);
 
-		// Update the print choosers to only contain the compatible presets, update the dirty flags.
-        if (print_tech == ptFFF)
-			preset_bundle.prints.update_platter_ui(p->combo_print);
-        else {
-            preset_bundle.sla_prints.update_platter_ui(p->combo_sla_print);
-            preset_bundle.sla_materials.update_platter_ui(p->combo_sla_material);
-        }
-		// Update the printer choosers, update the dirty flags.
-		preset_bundle.printers.update_platter_ui(p->combo_printer);
-		// Update the filament choosers to only contain the compatible presets, update the color preview,
-		// update the dirty flags.
-        if (print_tech == ptFFF) {
-            for (size_t i = 0; i < p->combos_filament.size(); ++ i)
-                preset_bundle.update_platter_filament_ui(i, p->combos_filament[i]);
-		}
-		p->show_preset_comboboxes();
+// 		// Update the print choosers to only contain the compatible presets, update the dirty flags.
+//         if (print_tech == ptFFF)
+// 			preset_bundle.prints.update_platter_ui(p->combo_print);
+//         else {
+//             preset_bundle.sla_prints.update_platter_ui(p->combo_sla_print);
+//             preset_bundle.sla_materials.update_platter_ui(p->combo_sla_material);
+//         }
+// 		// Update the printer choosers, update the dirty flags.
+// 		preset_bundle.printers.update_platter_ui(p->combo_printer);
+// 		// Update the filament choosers to only contain the compatible presets, update the color preview,
+// 		// update the dirty flags.
+//         if (print_tech == ptFFF) {
+//             for (size_t i = 0; i < p->combos_filament.size(); ++ i)
+//                 preset_bundle.update_platter_filament_ui(i, p->combos_filament[i]);
+// 		}
+// 		p->show_preset_comboboxes();
+        update_all_preset_comboboxes();
 		break;
 	}
 

@@ -256,9 +256,63 @@ bool MainFrame::can_delete_all() const
     return (m_plater != nullptr) ? !m_plater->model().objects.empty() : false;
 }
 
+static void scale(wxWindow *window, const float scale_f)
+{
+    auto children = window->GetChildren();
+
+    for (auto child : children)
+    {
+        scale(child, scale_f);
+
+        child->SetFont(child->GetFont().Scaled(scale_f));
+
+//         const wxSize& sz = child->GetSize();
+//         if (sz != wxDefaultSize)
+//             child->SetSize(sz*scale_f);
+
+        child->Layout();
+    }
+}
+
 void MainFrame::on_dpi_changed(const wxRect &suggested_rect)
 {
-    // TODO
+    printf("WM_DPICHANGED: %.2f\n", scale_factor());
+
+    // ->-
+    const float old_sc_factor = prev_scale_factor();
+    const float new_sc_factor = scale_factor();
+
+    if (fabs(old_sc_factor - new_sc_factor) > 0.001)
+    {
+        Freeze();
+
+        const auto new_em_unit = wxGetApp().em_unit()*new_sc_factor / old_sc_factor;
+
+        scale(this, new_sc_factor / old_sc_factor/*, 1/new_em_unit*/);
+
+        wxGetApp().set_em_unit(std::max<size_t>(10, new_em_unit));
+
+        /* Load default preset bitmaps before a tabpanel initialization,
+        * but after filling of an em_unit value
+        */
+        wxGetApp().preset_bundle->load_default_preset_bitmaps();
+
+        wxGetApp().sidebar().scrolled_panel()->SetSize(40 * wxGetApp().em_unit(), -1);
+        wxGetApp().sidebar().scrolled_panel()->Layout();
+
+        // update preset comboboxes on Tabs
+        for (auto tab : wxGetApp().tabs_list)
+            tab->rescale();//update_tab_ui();
+
+        // update preset comboboxes on Plater
+        wxGetApp().sidebar().update_all_preset_comboboxes();
+
+        Refresh();
+        Layout();
+
+        Thaw();
+    }
+    // -<-
 }
 
 void MainFrame::init_menubar()

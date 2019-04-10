@@ -726,6 +726,16 @@ void Tab::update_visibility()
     update_changed_tree_ui();
 }
 
+void Tab::rescale()
+{
+    m_em_unit = wxGetApp().em_unit();
+
+    m_presets_choice->SetSize(25 * m_em_unit, -1);
+    m_treectrl->SetSize(20 * m_em_unit, -1);
+
+    update_tab_ui();
+}
+
 Field* Tab::get_field(const t_config_option_key& opt_key, int opt_index/* = -1*/) const
 {
 	Field* field = nullptr;

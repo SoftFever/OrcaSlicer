@@ -58,9 +58,18 @@ public:
         : P(parent, id, title, pos, size, style, name)
     {
         m_scale_factor = (float)get_dpi_for_window(this) / (float)DPI_DEFAULT;
+
+        // ->-
+        m_prev_scale_factor = -1;
+        // -<-
+
         recalc_font();
 
         this->Bind(EVT_DPI_CHANGED, [this](const DpiChangedEvent &evt) {
+            // ->-
+            m_prev_scale_factor = m_scale_factor;
+            // -<-
+
             m_scale_factor = (float)evt.dpi / (float)DPI_DEFAULT;
             on_dpi_changed(evt.rect);
         });
@@ -69,14 +78,20 @@ public:
     virtual ~DPIAware() {}
 
     float scale_factor() const { return m_scale_factor; }
+    float prev_scale_factor() const { return m_prev_scale_factor; }
     int em_unit() const { return m_em_unit; }
     int font_size() const { return m_font_size; }
 
+
 protected:
     virtual void on_dpi_changed(const wxRect &suggested_rect) = 0;
+    // ->-
+//     virtual void scale(wxWindow *window, const float& scale) = 0;
+    // -<-
 
 private:
-    int m_scale_factor;
+    float m_scale_factor;
+    float m_prev_scale_factor;
     int m_em_unit;
     int m_font_size;
 

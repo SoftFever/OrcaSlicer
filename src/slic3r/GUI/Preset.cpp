@@ -1288,6 +1288,11 @@ std::string PresetCollection::path_from_name(const std::string &new_name) const
     return (boost::filesystem::path(m_dir_path) / file_name).make_preferred().string();
 }
 
+void PresetCollection::clear_bitmap_cache()
+{
+    m_bitmap_cache->clear();
+}
+
 wxString PresetCollection::separator(const std::string &label)
 {
 	return wxString::FromUTF8(PresetCollection::separator_head()) + _(label) + wxString::FromUTF8(PresetCollection::separator_tail());

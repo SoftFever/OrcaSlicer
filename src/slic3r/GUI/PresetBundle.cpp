@@ -1448,6 +1448,14 @@ bool PresetBundle::parse_color(const std::string &scolor, unsigned char *rgb_out
 
 void PresetBundle::load_default_preset_bitmaps()
 {
+    // Clear bitmap cache, before load new scaled default preset bitmaps 
+    m_bitmapCache->clear();
+    this->prints.clear_bitmap_cache();
+    this->sla_prints.clear_bitmap_cache();
+    this->filaments.clear_bitmap_cache();
+    this->sla_materials.clear_bitmap_cache();
+    this->printers.clear_bitmap_cache();
+
     this->prints.load_bitmap_default("cog");
     this->sla_prints.load_bitmap_default("cog");
     this->filaments.load_bitmap_default("spool.png");
