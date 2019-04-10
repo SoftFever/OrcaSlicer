@@ -529,10 +529,9 @@ wxDataViewItem PrusaObjectDataViewModel::Add(const wxString &name, const int ext
 }
 
 wxDataViewItem PrusaObjectDataViewModel::AddVolumeChild(const wxDataViewItem &parent_item,
-													const wxString &name,
-                                                    const Slic3r::ModelVolumeType volume_type,
-                                                    const int extruder/* = 0*/,
-                                                    const bool create_frst_child/* = true*/)
+    const wxString &name,
+    const Slic3r::ModelVolumeType volume_type,
+    const int extruder/* = 0*/)
 {
 	PrusaObjectDataViewModelNode *root = (PrusaObjectDataViewModelNode*)parent_item.GetID();
 	if (!root) return wxDataViewItem(0);
@@ -544,8 +543,8 @@ wxDataViewItem PrusaObjectDataViewModel::AddVolumeChild(const wxDataViewItem &pa
     if (insert_position < 0 || root->GetNthChild(insert_position)->m_type != itInstanceRoot)
         insert_position = -1;
 
-    if (create_frst_child && root->m_volumes_cnt == 0)
-	{
+    if (root->m_volumes_cnt == 0)
+    {
 		const auto node = new PrusaObjectDataViewModelNode(root, root->m_name, *m_volume_bmps[0], extruder_str, 0);
         insert_position < 0 ? root->Append(node) : root->Insert(node, insert_position);
 		// notify control
