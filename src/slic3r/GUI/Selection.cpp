@@ -1033,6 +1033,9 @@ void Selection::copy_to_clipboard()
     {
         ModelObject* src_object = m_model->objects[object.first];
         ModelObject* dst_object = m_clipboard.add_object();
+        dst_object->name = src_object->name;
+        dst_object->input_file = src_object->input_file;
+        dst_object->config = src_object->config;
 
         for (int i : object.second)
         {
@@ -1044,13 +1047,16 @@ void Selection::copy_to_clipboard()
             const GLVolume* volume = (*m_volumes)[i];
             if (volume->object_idx() == object.first)
             {
-                ModelVolume* src_volume = src_object->volumes[i];
-                ModelVolume* dst_volume = dst_object->add_volume(*src_volume);
-                dst_volume->set_new_unique_id();
-                dst_volume->config = src_volume->config;
+                int volume_idx = volume->volume_idx();
+                if ((0 <= volume_idx) && (volume_idx < (int)src_object->volumes.size()))
+                {
+                    ModelVolume* src_volume = src_object->volumes[volume->volume_idx()];
+                    ModelVolume* dst_volume = dst_object->add_volume(*src_volume);
+                    dst_volume->set_new_unique_id();
+                    dst_volume->config = src_volume->config;
+                }
             }
         }
-        dst_object->config = src_object->config;
     }
 
     m_clipboard.set_mode(m_mode);
@@ -1064,7 +1070,7 @@ void Selection::paste_from_clipboard()
     if ((m_clipboard.get_mode() == Volume) && is_from_single_instance())
         paste_volumes_from_clipboard();
     else
-        paste_object_from_clipboard();
+        paste_objects_from_clipboard();
 }
 
 bool Selection::is_clipboard_empty()
@@ -1770,8 +1776,16 @@ void Selection::paste_volumes_from_clipboard()
     }
 }
 
-void Selection::paste_object_from_clipboard()
+void Selection::paste_objects_from_clipboard()
 {
+    std::vector<size_t> object_idxs;
+    const ModelObjectPtrs& src_objects = m_clipboard.get_objects();
+    for (const ModelObject* src_object : src_objects)
+    {
+        ModelObject* dst_object = m_model->add_object(*src_object);
+        object_idxs.push_back(m_model->objects.size() - 1);
+    }
+    wxGetApp().obj_list()->paste_objects_into_list(object_idxs);
 }
 
 } // namespace GUI

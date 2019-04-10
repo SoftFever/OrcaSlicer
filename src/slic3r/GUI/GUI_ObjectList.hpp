@@ -289,7 +289,7 @@ public:
     void update_item_error_icon(const int obj_idx, int vol_idx) const ;
 
     void paste_volumes_into_list(int obj_idx, const ModelVolumePtrs& volumes);
-    void paste_object_into_list(const ModelObject& object);
+    void paste_objects_into_list(const std::vector<size_t>& object_idxs);
 
 private:
     void OnChar(wxKeyEvent& event);

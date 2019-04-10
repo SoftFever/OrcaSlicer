@@ -162,6 +162,7 @@ private:
 
         ModelObject* add_object() { return m_model.add_object(); }
         ModelObject* get_object(unsigned int id) { return (id < (unsigned int)m_model.objects.size()) ? m_model.objects[id] : nullptr; }
+        const ModelObjectPtrs& get_objects() const { return m_model.objects; }
 
         Selection::EMode get_mode() const { return m_mode; }
         void set_mode(Selection::EMode mode) { m_mode = mode; }
@@ -322,8 +323,9 @@ private:
     void synchronize_unselected_volumes();
     void ensure_on_bed();
     bool is_from_fully_selected_instance(unsigned int volume_idx) const;
+
     void paste_volumes_from_clipboard();
-    void paste_object_from_clipboard();
+    void paste_objects_from_clipboard();
 };
 
 } // namespace GUI

@@ -469,8 +469,25 @@ void ObjectList::paste_volumes_into_list(int obj_idx, const ModelVolumePtrs& vol
 #endif //no __WXOSX__ //__WXMSW__
 }
 
-void ObjectList::paste_object_into_list(const ModelObject& object)
+void ObjectList::paste_objects_into_list(const std::vector<size_t>& object_idxs)
 {
+    if (object_idxs.empty())
+        return;
+
+    wxDataViewItemArray items;
+    for (const size_t object : object_idxs)
+    {
+        add_object_to_list(object);
+        m_parts_changed = true;
+        parts_changed(object);
+
+        items.Add(m_objects_model->GetItemById(object));
+    }
+
+    select_items(items);
+#ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
+    selection_changed();
+#endif //no __WXOSX__ //__WXMSW__
 }
 
 void ObjectList::OnChar(wxKeyEvent& event)
