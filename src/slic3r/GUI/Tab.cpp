@@ -116,16 +116,16 @@ void Tab::create_preset_tab()
 
 	//buttons
 	wxBitmap bmpMenu;
-    bmpMenu = create_scaled_bitmap(this, "disk.png");
+    bmpMenu = create_scaled_bitmap(this, "save");
 	m_btn_save_preset = new wxBitmapButton(panel, wxID_ANY, bmpMenu, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
 	if (wxMSW) m_btn_save_preset->SetBackgroundColour(color);
-    bmpMenu = create_scaled_bitmap(this, "delete.png");
+    bmpMenu = create_scaled_bitmap(this, "cross"/*"delete.png"*/);
 	m_btn_delete_preset = new wxBitmapButton(panel, wxID_ANY, bmpMenu, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
 	if (wxMSW) m_btn_delete_preset->SetBackgroundColour(color);
 
 	m_show_incompatible_presets = false;
-	m_bmp_show_incompatible_presets = create_scaled_bitmap(this, "flag-red-icon.png");
-	m_bmp_hide_incompatible_presets = create_scaled_bitmap(this, "flag-green-icon.png");
+	m_bmp_show_incompatible_presets = create_scaled_bitmap(this, "flag_red");
+	m_bmp_hide_incompatible_presets = create_scaled_bitmap(this, "flag_green");
 	m_btn_hide_incompatible_presets = new wxBitmapButton(panel, wxID_ANY, m_bmp_hide_incompatible_presets, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
 	if (wxMSW) m_btn_hide_incompatible_presets->SetBackgroundColour(color);
 
@@ -148,13 +148,13 @@ void Tab::create_preset_tab()
 	// Determine the theme color of OS (dark or light)
     auto luma = wxGetApp().get_colour_approx_luma(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 	// Bitmaps to be shown on the "Revert to system" aka "Lock to system" button next to each input field.
-	m_bmp_value_lock  	   = create_scaled_bitmap(this, "sys_lock.png");
-	m_bmp_value_unlock     = create_scaled_bitmap(this, luma >= 128 ? "sys_unlock.png" : "sys_unlock_grey.png");
+	m_bmp_value_lock  	   = create_scaled_bitmap(this, luma >= 128 ? "lock_closed" : "lock_closed_white");
+	m_bmp_value_unlock     = create_scaled_bitmap(this, "lock_open");
 	m_bmp_non_system = &m_bmp_white_bullet;
 	// Bitmaps to be shown on the "Undo user changes" button next to each input field.
-	m_bmp_value_revert    = create_scaled_bitmap(this, luma >= 128 ? "action_undo.png" : "action_undo_grey.png");
+	m_bmp_value_revert    = create_scaled_bitmap(this, "undo");
 	m_bmp_white_bullet    = create_scaled_bitmap(this, "bullet_white.png");
-	m_bmp_question        = create_scaled_bitmap(this, "question_mark_01.png");
+	m_bmp_question        = create_scaled_bitmap(this, "question");
 
 	fill_icon_descriptions();
 	set_tooltips_text();
@@ -2007,7 +2007,8 @@ void TabPrinter::build_sla()
 
     optgroup = page->new_optgroup(_(L("Corrections")));
     line = Line{ m_config->def()->get("relative_correction")->full_label, "" };
-    std::vector<std::string> axes{ "X", "Y", "Z" };
+//    std::vector<std::string> axes{ "X", "Y", "Z" };
+    std::vector<std::string> axes{ "XY", "Z" };
     int id = 0;
     for (auto& axis : axes) {
         auto opt = optgroup->get_option("relative_correction", id);
@@ -3210,7 +3211,7 @@ void TabSLAMaterial::build()
     m_presets = &m_preset_bundle->sla_materials;
     load_initial_data();
 
-    auto page = add_options_page(_(L("Material")), "package_green.png");
+    auto page = add_options_page(_(L("Material")), "resin");
 
     auto optgroup = page->new_optgroup(_(L("Layers")));
 //     optgroup->append_single_option_line("layer_height");

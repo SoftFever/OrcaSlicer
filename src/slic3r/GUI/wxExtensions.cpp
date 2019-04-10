@@ -426,7 +426,12 @@ wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name_in, con
 {
     static Slic3r::GUI::BitmapCache cache;
 
+#ifdef __APPLE__
     const float scale_factor = win != nullptr ? win->GetContentScaleFactor() : 1.0f;
+#else
+    (void)(win);
+    const float scale_factor = 1.0f;
+#endif
 
     unsigned int height, width = height = 0;
     unsigned int& scale_base = is_horizontal ? width : height;
