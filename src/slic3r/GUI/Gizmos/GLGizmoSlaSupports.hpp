@@ -21,7 +21,7 @@ class GLGizmoSlaSupports : public GLGizmoBase
 {
 private:
     ModelObject* m_model_object = nullptr;
-    ModelObject* m_old_model_object = nullptr;
+    ModelID m_current_mesh_model_id = 0;
     int m_active_instance = -1;
     std::pair<Vec3f, Vec3f> unproject_on_mesh(const Vec2d& mouse_pos);
 

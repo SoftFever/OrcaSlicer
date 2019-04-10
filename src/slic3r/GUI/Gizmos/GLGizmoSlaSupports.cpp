@@ -47,11 +47,9 @@ void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const S
 {
     if (selection.is_empty()) {
         m_model_object = nullptr;
-        m_old_model_object = nullptr;
         return;
     }
 
-    m_old_model_object = m_model_object;
     m_model_object = model_object;
     m_active_instance = selection.get_instance_idx();
 
@@ -61,9 +59,6 @@ void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const S
             update_mesh();
             editing_mode_reload_cache();
         }
-
-        if (m_model_object != m_old_model_object)
-            m_editing_mode = false;
 
         if (m_editing_mode_cache.empty() && m_model_object->sla_points_status != sla::PointsStatus::UserModified)
             get_data_from_backend();
@@ -241,10 +236,7 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
 bool GLGizmoSlaSupports::is_mesh_update_necessary() const
 {
     return ((m_state == On) && (m_model_object != nullptr) && !m_model_object->instances.empty())
-        && ((m_model_object != m_old_model_object) || m_V.size()==0);
-
-    //if (m_state != On || !m_model_object || m_model_object->instances.empty() || ! m_instance_matrix.isApprox(m_source_data.matrix))
-    //    return false;
+        && ((m_model_object->id() != m_current_mesh_model_id) || m_V.size()==0);
 }
 
 void GLGizmoSlaSupports::update_mesh()
@@ -267,6 +259,8 @@ void GLGizmoSlaSupports::update_mesh()
         F(i, 1) = 3*i+1;
         F(i, 2) = 3*i+2;
     }
+    m_current_mesh_model_id = m_model_object->id();
+    m_editing_mode = false;
 
     m_AABB = igl::AABB<Eigen::MatrixXf,3>();
     m_AABB.init(m_V, m_F);
@@ -740,10 +734,6 @@ std::string GLGizmoSlaSupports::on_get_name() const
 
 void GLGizmoSlaSupports::on_set_state()
 {
-    // Following is called through CallAfter, because otherwise there was a problem
-    // on OSX with the wxMessageDialog being shown several times when clicked into.
-
-    wxGetApp().CallAfter([this]() {
         if (m_state == On && m_old_state != On) { // the gizmo was just turned on
 
             if (is_mesh_update_necessary())
@@ -762,23 +752,26 @@ void GLGizmoSlaSupports::on_set_state()
             m_new_point_head_diameter = static_cast<const ConfigOptionFloat*>(cfg.option("support_head_front_diameter"))->value;
         }
         if (m_state == Off && m_old_state != Off) { // the gizmo was just turned Off
-            if (m_model_object) {
-                if (m_unsaved_changes) {
-                    wxMessageDialog dlg(GUI::wxGetApp().mainframe, _(L("Do you want to save your manually edited support points ?\n")),
-                                        _(L("Save changes?")), wxICON_QUESTION | wxYES | wxNO);
-                    if (dlg.ShowModal() == wxID_YES)
-                        editing_mode_apply_changes();
-                    else
-                        editing_mode_discard_changes();
+        wxGetApp().CallAfter([this]() {
+               // Following is called through CallAfter, because otherwise there was a problem
+                // on OSX with the wxMessageDialog being shown several times when clicked into.
+                if (m_model_object) {
+                    if (m_unsaved_changes) {
+                        wxMessageDialog dlg(GUI::wxGetApp().mainframe, _(L("Do you want to save your manually edited support points ?\n")),
+                                            _(L("Save changes?")), wxICON_QUESTION | wxYES | wxNO);
+                        if (dlg.ShowModal() == wxID_YES)
+                            editing_mode_apply_changes();
+                        else
+                            editing_mode_discard_changes();
+                    }
                 }
-            }
 
-            m_parent.toggle_model_objects_visibility(true);
-            m_editing_mode = false; // so it is not active next time the gizmo opens
-            m_editing_mode_cache.clear();
+                m_parent.toggle_model_objects_visibility(true);
+                m_editing_mode = false; // so it is not active next time the gizmo opens
+                m_editing_mode_cache.clear();
+            });
         }
         m_old_state = m_state;
-    });
 }
 
 
