@@ -2260,11 +2260,33 @@ void PrintConfigDef::init_sla_params()
     def->mode = comExpert;
     def->default_value = new ConfigOptionFloat(50.);
 
-    def = this->add("printer_correction", coFloats);
+    def = this->add("relative_correction", coFloats);
+    def->label = L("Printer scaling correction");
     def->full_label = L("Printer scaling correction");
     def->tooltip  = L("Printer scaling correction");
     def->min = 0;
+    def->mode = comExpert;
     def->default_value = new ConfigOptionFloats( { 1., 1., 1. } );
+    
+    def = this->add("absolute_correction", coFloat);
+    def->label = L("Printer absolute correction");
+    def->full_label = L("Printer absolute correction");
+    def->tooltip  = L("Will inflate or deflate the sliced 2D polygons according "
+                      "to the sign of the correction.");
+    def->mode = comExpert;
+    def->default_value = new ConfigOptionFloat(0.0);
+    
+    def = this->add("gamma_correction", coFloat);
+    def->label = L("Printer gamma correction");
+    def->full_label = L("Printer gamma correction");
+    def->tooltip  = L("This will apply a gamma correction to the rasterized 2D "
+                      "polygons. A gamma value of zero means thresholding with "
+                      "the threshold in the middle. This behaviour eliminates "
+                      "antialiasing without losing holes in polygons.");
+    def->min = 0;
+    def->mode = comExpert;
+    def->default_value = new ConfigOptionFloat(1.0);
+    
 
     // SLA Material settings.
     def = this->add("initial_layer_height", coFloat);
@@ -2296,16 +2318,11 @@ void PrintConfigDef::init_sla_params()
     def->min = 0;
     def->default_value = new ConfigOptionFloat(15);
 
-    def = this->add("material_correction_printing", coFloats);
-    def->full_label = L("Correction for expansion when printing");
-    def->tooltip  = L("Correction for expansion when printing");
+    def = this->add("material_correction", coFloats);
+    def->full_label = L("Correction for expansion");
+    def->tooltip  = L("Correction for expansion");
     def->min = 0;
-    def->default_value = new ConfigOptionFloats( { 1. , 1., 1. } );
-
-    def = this->add("material_correction_curing", coFloats);
-    def->full_label = L("Correction for expansion after curing");
-    def->tooltip  = L("Correction for expansion after curing");
-    def->min = 0;
+    def->mode = comExpert;
     def->default_value = new ConfigOptionFloats( { 1. , 1., 1. } );
 
     def = this->add("material_notes", coString);
@@ -2490,7 +2507,7 @@ void PrintConfigDef::init_sla_params()
     def->tooltip = L("No support points will be placed closer than this threshold.");
     def->sidetext = L("mm");
     def->min = 0;
-    def->default_value = new ConfigOptionFloat(0.f);
+    def->default_value = new ConfigOptionFloat(1.f);
 
     def = this->add("pad_enable", coBool);
     def->label = L("Use pad");

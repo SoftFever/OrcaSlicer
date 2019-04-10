@@ -262,6 +262,13 @@ public:
     Transformation operator * (const Transformation& other) const;
 };
 
+// Rotation when going from the first coordinate system with rotation rot_xyz_from applied
+// to a coordinate system with rot_xyz_to applied.
+extern Eigen::Quaterniond rotation_xyz_diff(const Vec3d &rot_xyz_from, const Vec3d &rot_xyz_to);
+// Rotation by Z to align rot_xyz_from to rot_xyz_to.
+// This should only be called if it is known, that the two rotations only differ in rotation around the Z axis.
+extern double rotation_diff_z(const Vec3d &rot_xyz_from, const Vec3d &rot_xyz_to);
+
 } }
 
 #endif

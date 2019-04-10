@@ -227,6 +227,12 @@ const float GLVolume::HOVER_COLOR[4] = { 0.4f, 0.9f, 0.1f, 1.0f };
 const float GLVolume::OUTSIDE_COLOR[4] = { 0.0f, 0.38f, 0.8f, 1.0f };
 const float GLVolume::SELECTED_OUTSIDE_COLOR[4] = { 0.19f, 0.58f, 1.0f, 1.0f };
 const float GLVolume::DISABLED_COLOR[4] = { 0.25f, 0.25f, 0.25f, 1.0f };
+const float GLVolume::MODEL_COLOR[4][4] = {
+    { 1.0f, 1.0f, 0.0f, 1.f },
+    { 1.0f, 0.5f, 0.5f, 1.f },
+    { 0.5f, 1.0f, 0.5f, 1.f },
+    { 0.5f, 0.5f, 1.0f, 1.f }
+};
 const float GLVolume::SLA_SUPPORT_COLOR[4] = { 0.75f, 0.75f, 0.75f, 1.0f };
 const float GLVolume::SLA_PAD_COLOR[4] = { 0.0f, 0.2f, 0.0f, 1.0f };
 
@@ -568,19 +574,12 @@ int GLVolumeCollection::load_object_volume(
     const std::string              &color_by,
     bool                            use_VBOs)
 {
-    static float colors[4][4] = {
-        { 1.0f, 1.0f, 0.0f, 1.f }, 
-        { 1.0f, 0.5f, 0.5f, 1.f },
-        { 0.5f, 1.0f, 0.5f, 1.f }, 
-        { 0.5f, 0.5f, 1.0f, 1.f }
-    };
-
     const ModelVolume   *model_volume = model_object->volumes[volume_idx];
     const int            extruder_id  = model_volume->extruder_id();
     const ModelInstance *instance     = model_object->instances[instance_idx];
     const TriangleMesh& mesh = model_volume->mesh;
     float color[4];
-    memcpy(color, colors[((color_by == "volume") ? volume_idx : obj_idx) % 4], sizeof(float) * 3);
+    memcpy(color, GLVolume::MODEL_COLOR[((color_by == "volume") ? volume_idx : obj_idx) % 4], sizeof(float) * 3);
 /*    if (model_volume->is_support_blocker()) {
         color[0] = 1.0f;
         color[1] = 0.2f;
@@ -595,10 +594,7 @@ int GLVolumeCollection::load_object_volume(
     this->volumes.emplace_back(new GLVolume(color));
     GLVolume &v = *this->volumes.back();
     v.set_color_from_model_volume(model_volume);
-    if (use_VBOs)
-        v.indexed_vertex_array.load_mesh_full_shading(mesh);
-    else
-        v.indexed_vertex_array.load_mesh_flat_shading(mesh);
+    v.indexed_vertex_array.load_mesh(mesh, use_VBOs);
 
     // finalize_geometry() clears the vertex arrays, therefore the bounding box has to be computed before finalize_geometry().
     v.bounding_box = v.indexed_vertex_array.bounding_box();
@@ -640,14 +636,10 @@ void GLVolumeCollection::load_object_auxiliary(
 	// Convex hull is required for out of print bed detection.
 	TriangleMesh convex_hull = mesh.convex_hull_3d();
     for (const std::pair<size_t, size_t> &instance_idx : instances) {
-        const ModelInstance            &model_instance = *print_object->model_object()->instances[instance_idx.first];
-        const SLAPrintObject::Instance &print_instance = print_object->instances()[instance_idx.second];
+        const ModelInstance &model_instance = *print_object->model_object()->instances[instance_idx.first];
         this->volumes.emplace_back(new GLVolume((milestone == slaposBasePool) ? GLVolume::SLA_PAD_COLOR : GLVolume::SLA_SUPPORT_COLOR));
         GLVolume &v = *this->volumes.back();
-        if (use_VBOs)
-            v.indexed_vertex_array.load_mesh_full_shading(mesh);
-        else
-            v.indexed_vertex_array.load_mesh_flat_shading(mesh);
+        v.indexed_vertex_array.load_mesh(mesh, use_VBOs);
         // finalize_geometry() clears the vertex arrays, therefore the bounding box has to be computed before finalize_geometry().
         v.bounding_box = v.indexed_vertex_array.bounding_box();
         v.indexed_vertex_array.finalize_geometry(use_VBOs);
@@ -718,14 +710,8 @@ int GLVolumeCollection::load_wipe_tower_preview(
 
     this->volumes.emplace_back(new GLVolume(color));
     GLVolume &v = *this->volumes.back();
-
-    if (use_VBOs)
-        v.indexed_vertex_array.load_mesh_full_shading(mesh);
-    else
-        v.indexed_vertex_array.load_mesh_flat_shading(mesh);
-
+    v.indexed_vertex_array.load_mesh(mesh, use_VBOs);
     v.set_volume_offset(Vec3d(pos_x, pos_y, 0.0));
-
     // finalize_geometry() clears the vertex arrays, therefore the bounding box has to be computed before finalize_geometry().
     v.bounding_box = v.indexed_vertex_array.bounding_box();
     v.indexed_vertex_array.finalize_geometry(use_VBOs);
@@ -1861,12 +1847,7 @@ bool GLArrow::on_init(bool useVBOs)
     triangles.emplace_back(7, 13, 6);
 
     m_useVBOs = useVBOs;
-
-    if (m_useVBOs)
-        m_volume.indexed_vertex_array.load_mesh_full_shading(TriangleMesh(vertices, triangles));
-    else
-        m_volume.indexed_vertex_array.load_mesh_flat_shading(TriangleMesh(vertices, triangles));
-
+	m_volume.indexed_vertex_array.load_mesh(TriangleMesh(vertices, triangles), useVBOs);
     m_volume.finalize_geometry(m_useVBOs);
     return true;
 }
@@ -1981,12 +1962,7 @@ bool GLCurvedArrow::on_init(bool useVBOs)
     triangles.emplace_back(vertices_per_level, 2 * vertices_per_level + 1, vertices_per_level + 1);
 
     m_useVBOs = useVBOs;
-
-    if (m_useVBOs)
-        m_volume.indexed_vertex_array.load_mesh_full_shading(TriangleMesh(vertices, triangles));
-    else
-        m_volume.indexed_vertex_array.load_mesh_flat_shading(TriangleMesh(vertices, triangles));
-
+	m_volume.indexed_vertex_array.load_mesh(TriangleMesh(vertices, triangles), useVBOs);
     m_volume.bounding_box = m_volume.indexed_vertex_array.bounding_box();
     m_volume.finalize_geometry(m_useVBOs);
     return true;
@@ -2021,10 +1997,7 @@ bool GLBed::on_init_from_file(const std::string& filename, bool useVBOs)
     TriangleMesh mesh = model.mesh();
     mesh.repair();
 
-    if (m_useVBOs)
-        m_volume.indexed_vertex_array.load_mesh_full_shading(mesh);
-    else
-        m_volume.indexed_vertex_array.load_mesh_flat_shading(mesh);
+	m_volume.indexed_vertex_array.load_mesh(mesh, useVBOs);
 
     float color[4] = { 0.235f, 0.235f, 0.235f, 1.0f };
     set_color(color, 4);

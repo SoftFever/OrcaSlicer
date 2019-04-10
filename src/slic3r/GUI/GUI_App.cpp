@@ -19,6 +19,8 @@
 #include <wx/wupdlock.h>
 #include <wx/filefn.h>
 #include <wx/sysopt.h>
+#include <wx/msgdlg.h>
+#include <wx/log.h>
 
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Model.hpp"
@@ -76,6 +78,52 @@ wxString file_wildcards(FileType file_type, const std::string &custom_extension)
 
 static std::string libslic3r_translate_callback(const char *s) { return wxGetTranslation(wxString(s, wxConvUTF8)).utf8_str().data(); }
 
+static void register_dpi_event()
+{
+#ifdef WIN32
+    enum { WM_DPICHANGED_ = 0x02e0 };
+
+    wxWindow::MSWRegisterMessageHandler(WM_DPICHANGED_, [](wxWindow *win, WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam) {
+        const int dpi = wParam & 0xffff;
+        const auto rect = reinterpret_cast<PRECT>(lParam);
+        const wxRect wxrect(wxPoint(rect->top, rect->left), wxPoint(rect->bottom, rect->right));
+
+        DpiChangedEvent evt(EVT_DPI_CHANGED, dpi, wxrect);
+        win->GetEventHandler()->AddPendingEvent(evt);
+
+        return true;
+    });
+#endif
+}
+
+
+static void generic_exception_handle()
+{
+    // Note: Some wxWidgets APIs use wxLogError() to report errors, eg. wxImage
+    // - see https://docs.wxwidgets.org/3.1/classwx_image.html#aa249e657259fe6518d68a5208b9043d0
+    //
+    // wxLogError typically goes around exception handling and display an error dialog some time
+    // after an error is logged even if exception handling and OnExceptionInMainLoop() take place.
+    // This is why we use wxLogError() here as well instead of a custom dialog, because it accumulates
+    // errors if multiple have been collected and displays just one error message for all of them.
+    // Otherwise we would get multiple error messages for one missing png, for example.
+    //
+    // If a custom error message window (or some other solution) were to be used, it would be necessary
+    // to turn off wxLogError() usage in wx APIs, most notably in wxImage
+    // - see https://docs.wxwidgets.org/trunk/classwx_image.html#aa32e5d3507cc0f8c3330135bc0befc6a
+
+    try {
+        throw;
+    } catch (const std::exception &ex) {
+        wxLogError("Internal error: %s", ex.what());
+        BOOST_LOG_TRIVIAL(error) << boost::format("Uncaught exception: %1%") % ex.what();
+        throw;
+    } catch (...) {
+        wxLogError("Unknown internal error");
+        BOOST_LOG_TRIVIAL(error) << "Uncaught exception: Unknown error";
+    }
+}
+
 IMPLEMENT_APP(GUI_App)
 
 GUI_App::GUI_App()
@@ -85,6 +133,16 @@ GUI_App::GUI_App()
 {}
 
 bool GUI_App::OnInit()
+{
+    try {
+        return on_init_inner();
+    } catch (...) {
+        generic_exception_handle();
+        return false;
+    }
+}
+
+bool GUI_App::on_init_inner()
 {
     // Verify resources path
     const wxString resources_dir = from_u8(Slic3r::resources_dir());
@@ -114,13 +172,7 @@ bool GUI_App::OnInit()
 
     // just checking for existence of Slic3r::data_dir is not enough : it may be an empty directory
     // supplied as argument to --datadir; in that case we should still run the wizard
-    try { 
-        preset_bundle->setup_directories();
-    } catch (const std::exception &ex) {
-        show_error(nullptr, ex.what());
-        // Exit the application.
-        return false;
-    }
+    preset_bundle->setup_directories();
 
     app_conf_exists = app_config->exists();
     // load settings
@@ -143,11 +195,13 @@ bool GUI_App::OnInit()
 
     // Suppress the '- default -' presets.
     preset_bundle->set_default_suppressed(app_config->get("no_defaults") == "1");
-	try {
-		preset_bundle->load_presets(*app_config);
-	} catch (const std::exception &ex) {
-        show_error(nullptr, ex.what());
-	}
+    try {
+        preset_bundle->load_presets(*app_config);
+    } catch (const std::exception &ex) {
+        show_error(nullptr, from_u8(ex.what()));
+    }
+
+    register_dpi_event();
 
     // Let the libslic3r know the callback, which will translate messages on demand.
     Slic3r::I18N::set_translate_callback(libslic3r_translate_callback);
@@ -164,8 +218,8 @@ bool GUI_App::OnInit()
 
     Bind(wxEVT_IDLE, [this](wxIdleEvent& event)
     {
-		if (! plater_)
-			return;
+        if (! plater_)
+            return;
 
         if (app_config->dirty() && app_config->get("autosave") == "1")
             app_config->save();
@@ -187,7 +241,7 @@ bool GUI_App::OnInit()
                     mainframe->Close();
                 }
             } catch (const std::exception &ex) {
-                show_error(nullptr, ex.what());
+                show_error(nullptr, from_u8(ex.what()));
             }
 
             CallAfter([this] {
@@ -732,18 +786,7 @@ void GUI_App::load_current_presets()
 
 bool GUI_App::OnExceptionInMainLoop()
 {
-    try {
-        throw;
-    } catch (const std::exception &ex) {
-        const std::string error = (boost::format("Uncaught exception: %1%") % ex.what()).str();
-        BOOST_LOG_TRIVIAL(error) << error;
-        show_error(nullptr, from_u8(error));
-    } catch (...) {
-        const char *error = "Uncaught exception: Unknown error";
-        BOOST_LOG_TRIVIAL(error) << error;
-        show_error(nullptr, from_u8(error));
-    }
-
+    generic_exception_handle();
     return false;
 }
 

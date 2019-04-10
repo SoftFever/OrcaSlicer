@@ -42,9 +42,7 @@ AboutDialog::AboutDialog()
 	main_sizer->Add(hsizer, 0, wxEXPAND | wxALL, 20);
 
     // logo
-// 	wxBitmap logo_bmp = wxBitmap(from_u8(Slic3r::var("Slic3r_192px.png")), wxBITMAP_TYPE_PNG);
-//     auto *logo = new wxStaticBitmap(this, wxID_ANY, std::move(logo_bmp));
-	auto *logo = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("Slic3r_192px.png"));
+    auto *logo = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap(this, "Slic3r_192px.png", 192));
 	hsizer->Add(logo, 1, wxALIGN_CENTER_VERTICAL);
     
     wxBoxSizer* vsizer = new wxBoxSizer(wxVERTICAL); 	

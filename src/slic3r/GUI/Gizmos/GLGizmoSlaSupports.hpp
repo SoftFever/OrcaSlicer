@@ -24,7 +24,7 @@ class GLGizmoSlaSupports : public GLGizmoBase
 {
 private:
     ModelObject* m_model_object = nullptr;
-    ModelObject* m_old_model_object = nullptr;
+    ModelID m_current_mesh_model_id = 0;
     int m_active_instance = -1;
     float m_active_instance_bb_radius; // to cache the bb
     mutable float m_z_shift = 0.f;
@@ -57,7 +57,7 @@ public:
 #endif // ENABLE_SVG_ICONS
     virtual ~GLGizmoSlaSupports();
     void set_sla_support_data(ModelObject* model_object, const Selection& selection);
-    bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down);
+    bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
     void delete_selected_points(bool force = false);
     ClippingPlane get_sla_clipping_plane() const;
 
@@ -85,7 +85,12 @@ private:
     mutable float m_old_clipping_plane_distance = 0.f;
     mutable Vec3d m_old_direction_to_camera;
 
-    bool m_selection_rectangle_active = false;
+    enum SelectionRectangleStatus {
+        srOff = 0,
+        srSelect = 1,
+        srDeselect = 2
+    }m_selection_rectangle_status = srOff;
+
     Vec2d m_selection_rectangle_start_corner;
     Vec2d m_selection_rectangle_end_corner;
     bool m_wait_for_up_event = false;

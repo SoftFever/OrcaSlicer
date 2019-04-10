@@ -213,7 +213,7 @@ public:
 
     bool is_empty() const { return m_type == Empty; }
     bool is_wipe_tower() const { return m_type == WipeTower; }
-    bool is_modifier() const { return (m_type == SingleModifier) || (m_type == MultipleModifier); }
+    bool is_any_modifier() const { return is_single_modifier() || is_multiple_modifier(); }
     bool is_single_modifier() const { return m_type == SingleModifier; }
     bool is_multiple_modifier() const { return m_type == MultipleModifier; }
     bool is_single_full_instance() const;
@@ -222,6 +222,7 @@ public:
     bool is_multiple_full_object() const { return m_type == MultipleFullObject; }
     bool is_single_volume() const { return m_type == SingleVolume; }
     bool is_multiple_volume() const { return m_type == MultipleVolume; }
+    bool is_any_volume() const { return is_single_volume() || is_multiple_volume(); }
     bool is_mixed() const { return m_type == Mixed; }
     bool is_from_single_instance() const { return get_instance_idx() != -1; }
     bool is_from_single_object() const;

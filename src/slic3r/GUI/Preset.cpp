@@ -4,6 +4,7 @@
 #include "AppConfig.hpp"
 #include "BitmapCache.hpp"
 #include "I18N.hpp"
+#include "wxExtensions.hpp"
 
 #ifdef _MSC_VER
     #define WIN32_LEAN_AND_MEAN
@@ -485,7 +486,7 @@ const std::vector<std::string>& Preset::sla_material_options()
         s_opts = {
             "initial_layer_height",
             "exposure_time", "initial_exposure_time",
-            "material_correction_printing", "material_correction_curing",
+            "material_correction",
             "material_notes",
             "default_sla_material_profile",
             "compatible_prints", "compatible_prints_condition", 
@@ -505,7 +506,9 @@ const std::vector<std::string>& Preset::sla_printer_options()
             "display_width", "display_height", "display_pixels_x", "display_pixels_y",
             "display_orientation",
             "fast_tilt_time", "slow_tilt_time", "area_fill",
-            "printer_correction",
+            "relative_correction",
+            "absolute_correction",
+            "gamma_correction",
             "print_host", "printhost_apikey", "printhost_cafile",
             "printer_notes",
             "inherits"
@@ -796,14 +799,14 @@ bool PresetCollection::delete_current_preset()
 	return true;
 }
 
-bool PresetCollection::load_bitmap_default(const std::string &file_name)
+void PresetCollection::load_bitmap_default(wxWindow *window, const std::string &file_name)
 {
-    return m_bitmap_main_frame->LoadFile(wxString::FromUTF8(Slic3r::var(file_name).c_str()), wxBITMAP_TYPE_PNG);
+    *m_bitmap_main_frame = create_scaled_bitmap(window, file_name);
 }
 
-bool PresetCollection::load_bitmap_add(const std::string &file_name)
+void PresetCollection::load_bitmap_add(wxWindow *window, const std::string &file_name)
 {
-	return m_bitmap_add->LoadFile(wxString::FromUTF8(Slic3r::var(file_name).c_str()), wxBITMAP_TYPE_PNG);
+    *m_bitmap_add = create_scaled_bitmap(window, file_name);
 }
 
 const Preset* PresetCollection::get_selected_preset_parent() const

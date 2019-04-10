@@ -32,7 +32,7 @@ namespace Slic3r {
 namespace GUI {
 
 MainFrame::MainFrame() :
-wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, "mainframe"),
+DPIFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, "mainframe"),
         m_printhost_queue_dlg(new PrintHostQueueDialog(this))
 {
     // Load the icon either from the exe, or from the ico file.
@@ -56,8 +56,12 @@ wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAUL
 
     // initialize default width_unit according to the width of the one symbol ("x") of the current system font
     const wxSize size = GetTextExtent("m");
-//     wxGetApp().set_em_unit(size.x-1);
     wxGetApp().set_em_unit(std::max<size_t>(10, size.x - 1));
+
+    /* Load default preset bitmaps before a tabpanel initialization,
+     * but after filling of an em_unit value 
+     */
+    wxGetApp().preset_bundle->load_default_preset_bitmaps(this);
 
     // initialize tabpanel and menubar
     init_tabpanel();
@@ -252,6 +256,11 @@ bool MainFrame::can_delete_all() const
     return (m_plater != nullptr) ? !m_plater->model().objects.empty() : false;
 }
 
+void MainFrame::on_dpi_changed(const wxRect &suggested_rect)
+{
+    // TODO
+}
+
 void MainFrame::init_menubar()
 {
 #ifdef __APPLE__
@@ -264,9 +273,9 @@ void MainFrame::init_menubar()
         wxMenuItem* item_open = append_menu_item(fileMenu, wxID_ANY, _(L("&Open Project")) + dots + "\tCtrl+O", _(L("Open a project file")),
             [this](wxCommandEvent&) { if (m_plater) m_plater->load_project(); }, "brick_add.png");
         wxMenuItem* item_save = append_menu_item(fileMenu, wxID_ANY, _(L("&Save Project")) + "\tCtrl+S", _(L("Save current project file")),
-            [this](wxCommandEvent&) { if (m_plater) m_plater->export_3mf(into_path(m_plater->get_project_filename())); }, "disk.png");
+            [this](wxCommandEvent&) { if (m_plater) m_plater->export_3mf(into_path(m_plater->get_project_filename())); }, "save");
         wxMenuItem* item_save_as = append_menu_item(fileMenu, wxID_ANY, _(L("Save Project &as")) + dots + "\tCtrl+Alt+S", _(L("Save current project file as")),
-            [this](wxCommandEvent&) { if (m_plater) m_plater->export_3mf(); }, "disk.png");
+            [this](wxCommandEvent&) { if (m_plater) m_plater->export_3mf(); }, "save");
 
         fileMenu->AppendSeparator();
 
@@ -388,11 +397,11 @@ void MainFrame::init_menubar()
             windowMenu->AppendSeparator();
         }
         append_menu_item(windowMenu, wxID_HIGHEST + 2, _(L("P&rint Settings Tab")) + "\tCtrl+2", _(L("Show the print settings")),
-            [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 0); }, "cog.png");
+            [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 0); }, "cog");
         append_menu_item(windowMenu, wxID_HIGHEST + 3, _(L("&Filament Settings Tab")) + "\tCtrl+3", _(L("Show the filament settings")),
             [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 1); }, "spool.png");
         append_menu_item(windowMenu, wxID_HIGHEST + 4, _(L("Print&er Settings Tab")) + "\tCtrl+4", _(L("Show the printer settings")),
-            [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 2); }, "printer_empty.png");
+            [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 2); }, "printer");
         if (m_plater) {
             windowMenu->AppendSeparator();
             wxMenuItem* item_3d = append_menu_item(windowMenu, wxID_HIGHEST + 5, _(L("3&D")) + "\tCtrl+5", _(L("Show the 3D editing view")),

@@ -12,6 +12,7 @@
 
 class wxBoxSizer;
 class wxCheckBox;
+class wxStaticBitmap;
 
 namespace Slic3r {
 
@@ -40,12 +41,12 @@ protected:
 	};
 
 	// button_id is an id of a button that can be added by default, use wxID_NONE to disable
-	MsgDialog(wxWindow *parent, const wxString &title, const wxString &headline, wxWindowID button_id = wxID_OK);
-	MsgDialog(wxWindow *parent, const wxString &title, const wxString &headline, wxBitmap bitmap, wxWindowID button_id = wxID_OK);
+	MsgDialog(wxWindow *parent, const wxString &title, const wxString &headline, wxWindowID button_id = wxID_OK, wxBitmap bitmap = wxNullBitmap);
 
 	wxFont boldfont;
 	wxBoxSizer *content_sizer;
 	wxBoxSizer *btn_sizer;
+	wxStaticBitmap *logo;
 };
 
 

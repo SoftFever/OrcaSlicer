@@ -397,7 +397,10 @@ public:
     const SLAMaterialConfig&    material_config() const { return m_material_config; }
     const SLAPrintObjectConfig& default_object_config() const { return m_default_object_config; }
 
-	std::string         output_filename() const override;
+    // Extracted value from the configuration objects
+    Vec3d                       relative_correction() const;
+
+	std::string                 output_filename() const override;
 
     const SLAPrintStatistics&      print_statistics() const { return m_print_statistics; }
 
@@ -452,7 +455,7 @@ private:
     bool invalidate_step(SLAPrintStep st);
 
     // Invalidate steps based on a set of parameters changed.
-    bool invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
+    bool invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys, bool &invalidate_all_model_objects);
 
     SLAPrintConfig                  m_print_config;
     SLAPrinterConfig                m_printer_config;

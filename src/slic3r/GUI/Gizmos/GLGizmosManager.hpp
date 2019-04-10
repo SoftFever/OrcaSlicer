@@ -146,7 +146,7 @@ public:
     void set_flattening_data(const ModelObject* model_object);
 
     void set_sla_support_data(ModelObject* model_object, const Selection& selection);
-    bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position = Vec2d::Zero(), bool shift_down = false);
+    bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position = Vec2d::Zero(), bool shift_down = false, bool alt_down = false, bool control_down = false);
     ClippingPlane get_sla_clipping_plane() const;
 
     void render_current_gizmo(const Selection& selection) const;

@@ -23,15 +23,11 @@ namespace Slic3r {
 namespace GUI {
 
 
-MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &headline, wxWindowID button_id) :
-	MsgDialog(parent, title, headline, create_scaled_bitmap("Slic3r_192px.png"), button_id)
-{}
-
-MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &headline, wxBitmap bitmap, wxWindowID button_id) :
-wxDialog(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
-	boldfont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT)),
-	content_sizer(new wxBoxSizer(wxVERTICAL)),
-	btn_sizer(new wxBoxSizer(wxHORIZONTAL))
+MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &headline, wxWindowID button_id, wxBitmap bitmap)
+	: wxDialog(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+	, boldfont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT))
+	, content_sizer(new wxBoxSizer(wxVERTICAL))
+	, btn_sizer(new wxBoxSizer(wxHORIZONTAL))
 {
 	boldfont.SetWeight(wxFONTWEIGHT_BOLD);
 
@@ -54,7 +50,11 @@ wxDialog(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DI
 
 	rightsizer->Add(btn_sizer, 0, wxALIGN_RIGHT);
 
-	auto *logo = new wxStaticBitmap(this, wxID_ANY, std::move(bitmap));
+	if (! bitmap.IsOk()) {
+		bitmap = create_scaled_bitmap(this, "Slic3r_192px.png", 192);
+	}
+
+	logo = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap);
 
 	topsizer->Add(logo, 0, wxALL, BORDER);
 	topsizer->Add(rightsizer, 1, wxALL | wxEXPAND, BORDER);
@@ -69,7 +69,6 @@ MsgDialog::~MsgDialog() {}
 
 ErrorDialog::ErrorDialog(wxWindow *parent, const wxString &msg)
 	: MsgDialog(parent, _(L("Slic3r error")), _(L("Slic3r has encountered an error")),
-        create_scaled_bitmap("Slic3r_192px_grayscale.png"),
 		wxID_NONE)
 	, msg(msg)
 {
@@ -96,6 +95,8 @@ ErrorDialog::ErrorDialog(wxWindow *parent, const wxString &msg)
 	auto *btn_ok = new wxButton(this, wxID_OK);
 	btn_ok->SetFocus();
 	btn_sizer->Add(btn_ok, 0, wxRIGHT, HORIZ_SPACING);
+
+	logo->SetBitmap(create_scaled_bitmap(this, "Slic3r_192px_grayscale.png", 192));
 
     SetMaxSize(wxSize(-1, CONTENT_MAX_HEIGHT*wxGetApp().em_unit()));
 	Fit();

@@ -7,6 +7,8 @@
 #include <set>
 #include <boost/filesystem/path.hpp>
 
+class wxWindow;
+
 namespace Slic3r {
 
 namespace GUI {
@@ -127,6 +129,8 @@ public:
 
     static bool                 parse_color(const std::string &scolor, unsigned char *rgb_out);
 
+    void                        load_default_preset_bitmaps(wxWindow *window);
+
 private:
     std::string                 load_system_presets();
     // Merge one vendor's presets with the other vendor's presets, report duplicates.
@@ -146,7 +150,7 @@ private:
     // If it is not an external config, then the config will be stored into the user profile directory.
     void                        load_config_file_config(const std::string &name_or_path, bool is_external, DynamicPrintConfig &&config);
     void                        load_config_file_config_bundle(const std::string &path, const boost::property_tree::ptree &tree);
-    bool                        load_compatible_bitmaps();
+    void                        load_compatible_bitmaps(wxWindow *window);
 
     DynamicPrintConfig          full_fff_config() const;
     DynamicPrintConfig          full_sla_config() const;

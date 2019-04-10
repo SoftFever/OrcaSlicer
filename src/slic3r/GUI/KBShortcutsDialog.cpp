@@ -17,8 +17,7 @@ KBShortcutsDialog::KBShortcutsDialog()
 	auto main_sizer = new wxBoxSizer(wxVERTICAL);
 
     // logo
-// 	wxBitmap logo_bmp = wxBitmap(from_u8(Slic3r::var("Slic3r_32px.png")), wxBITMAP_TYPE_PNG);
-	const wxBitmap logo_bmp = create_scaled_bitmap("Slic3r_32px.png");
+	const wxBitmap logo_bmp = create_scaled_bitmap(this, "Slic3r_32px.png", 32);
 
     // fonts
     wxFont head_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold();
@@ -120,7 +119,7 @@ void KBShortcutsDialog::fill_shortcuts()
     main_shortcuts.push_back(Shortcut("+"               ,L("Add Instance to selected object ")));
     main_shortcuts.push_back(Shortcut("-"               ,L("Remove Instance from selected object")));
     main_shortcuts.push_back(Shortcut("?"               ,L("Show keyboard shortcuts list")));
-    main_shortcuts.push_back(Shortcut("Shift+LeftMouse", L("Select multiple object/Move multiple object")));
+    main_shortcuts.push_back(Shortcut(ctrl+"LeftMouse"  ,L("Select multiple object/Move multiple object")));
 
     m_full_shortcuts.push_back(std::make_pair( _(L("Main Shortcuts")), std::make_pair(main_shortcuts, 0) ));
 
