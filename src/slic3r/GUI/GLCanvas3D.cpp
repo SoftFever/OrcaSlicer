@@ -2222,9 +2222,12 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 //#endif /* __APPLE__ */
     if ((evt.GetModifiers() & ctrlMask) != 0) {
         switch (keyCode) {
+#ifdef __APPLE__
         case 'a':
         case 'A':
+#else /* __APPLE__ */
         case WXK_CONTROL_A:
+#endif /* __APPLE__ */
                 post_event(SimpleEvent(EVT_GLCANVAS_SELECT_ALL));
         break;
 #ifdef __APPLE__
