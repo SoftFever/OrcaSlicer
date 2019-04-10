@@ -3490,7 +3490,7 @@ void GLCanvas3D::_picking_pass() const
 
         glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
-        _render_volumes(true);
+        _render_volumes_for_picking();
         m_gizmos.render_current_gizmo_for_picking_pass(m_selection);
 
         if (m_multisample_allowed)
@@ -3675,12 +3675,9 @@ void GLCanvas3D::_render_legend_texture() const
     m_legend_texture.render(*this);
 }
 
-void GLCanvas3D::_render_volumes(bool fake_colors) const
+void GLCanvas3D::_render_volumes_for_picking() const
 {
     static const GLfloat INV_255 = 1.0f / 255.0f;
-
-    if (!fake_colors)
-        glsafe(::glEnable(GL_LIGHTING));
 
     // do not cull backfaces to show broken geometry, if any
     glsafe(::glDisable(GL_CULL_FACE));
@@ -3691,27 +3688,31 @@ void GLCanvas3D::_render_volumes(bool fake_colors) const
     glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
     glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
 
-    unsigned int volume_id = 0;
-    for (GLVolume* vol : m_volumes.volumes)
+    const Transform3d& view_matrix = m_camera.get_view_matrix();
+    GLVolumeWithIdAndZList to_render = volumes_to_render(m_volumes.volumes, GLVolumeCollection::Opaque, view_matrix);
+    for (const GLVolumeWithIdAndZ& volume : to_render)
     {
-        if (fake_colors)
-        {
-            // Object picking mode. Render the object with a color encoding the object index.
-            unsigned int r = (volume_id & 0x000000FF) >> 0;
-            unsigned int g = (volume_id & 0x0000FF00) >> 8;
-            unsigned int b = (volume_id & 0x00FF0000) >> 16;
-            glsafe(::glColor3f((GLfloat)r * INV_255, (GLfloat)g * INV_255, (GLfloat)b * INV_255));
-        }
-        else
-        {
-            vol->set_render_color();
-            glsafe(::glColor4fv(vol->render_color));
-        }
+        // Object picking mode. Render the object with a color encoding the object index.
+        unsigned int r = (volume.second.first & 0x000000FF) >> 0;
+        unsigned int g = (volume.second.first & 0x0000FF00) >> 8;
+        unsigned int b = (volume.second.first & 0x00FF0000) >> 16;
+        glsafe(::glColor3f((GLfloat)r * INV_255, (GLfloat)g * INV_255, (GLfloat)b * INV_255));
 
-        if ((!fake_colors || !vol->disabled) && (vol->composite_id.volume_id >= 0 || m_render_sla_auxiliaries))
-            vol->render();
+        if (!volume.first->disabled && ((volume.first->composite_id.volume_id >= 0) || m_render_sla_auxiliaries))
+            volume.first->render();
+    }
 
-        ++volume_id;
+    to_render = volumes_to_render(m_volumes.volumes, GLVolumeCollection::Transparent, view_matrix);
+    for (const GLVolumeWithIdAndZ& volume : to_render)
+    {
+        // Object picking mode. Render the object with a color encoding the object index.
+        unsigned int r = (volume.second.first & 0x000000FF) >> 0;
+        unsigned int g = (volume.second.first & 0x0000FF00) >> 8;
+        unsigned int b = (volume.second.first & 0x00FF0000) >> 16;
+        glsafe(::glColor3f((GLfloat)r * INV_255, (GLfloat)g * INV_255, (GLfloat)b * INV_255));
+
+        if (!volume.first->disabled && ((volume.first->composite_id.volume_id >= 0) || m_render_sla_auxiliaries))
+            volume.first->render();
     }
 
     glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
@@ -3719,9 +3720,6 @@ void GLCanvas3D::_render_volumes(bool fake_colors) const
     glsafe(::glDisable(GL_BLEND));
 
     glsafe(::glEnable(GL_CULL_FACE));
-
-    if (!fake_colors)
-        glsafe(::glDisable(GL_LIGHTING));
 }
 
 void GLCanvas3D::_render_current_gizmo() const
@@ -3999,7 +3997,6 @@ void GLCanvas3D::_update_volumes_hover_state() const
         return;
 
     GLVolume* volume = m_volumes.volumes[m_hover_volume_id];
-
     switch (m_selection.get_mode())
     {
     case Selection::Volume:

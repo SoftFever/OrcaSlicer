@@ -605,7 +605,7 @@ private:
 #endif // ENABLE_RENDER_SELECTION_CENTER
     void _render_warning_texture() const;
     void _render_legend_texture() const;
-    void _render_volumes(bool fake_colors) const;
+    void _render_volumes_for_picking() const;
     void _render_current_gizmo() const;
     void _render_gizmos_overlay() const;
     void _render_toolbar() const;
