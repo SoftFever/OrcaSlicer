@@ -47,6 +47,23 @@ Selection::VolumeCache::VolumeCache(const Geometry::Transformation& volume_trans
 {
 }
 
+Selection::Clipboard::Clipboard()
+    : m_object(nullptr)
+{
+    m_object = m_model.add_object();
+}
+
+void Selection::Clipboard::add_volume(const ModelVolume& volume)
+{
+    ModelVolume* v = m_object->add_volume(volume);
+    v->config = volume.config;
+}
+
+const ModelVolume* Selection::Clipboard::get_volume(unsigned int id) const
+{
+    return (id < (unsigned int)m_object->volumes.size()) ? m_object->volumes[id] : nullptr;
+}
+
 Selection::Selection()
     : m_volumes(nullptr)
     , m_model(nullptr)
@@ -1022,6 +1039,53 @@ bool Selection::requires_local_axes() const
     return (m_mode == Volume) && is_from_single_instance();
 }
 
+void Selection::copy_to_clipboard()
+{
+    if (!m_valid)
+        return;
+
+    m_clipboard.reset();
+
+    for (unsigned int i : m_list)
+    {
+        const GLVolume* volume = (*m_volumes)[i];
+        int obj_idx = volume->object_idx();
+        if ((0 <= obj_idx) && (obj_idx < (int)m_model->objects.size()))
+        {
+            const ModelObject* model_object = m_model->objects[obj_idx];
+            int vol_idx = volume->volume_idx();
+            if ((0 <= vol_idx) && (vol_idx < (int)model_object->volumes.size()))
+                m_clipboard.add_volume(*model_object->volumes[vol_idx]);
+        }
+    }
+
+    int obj_idx = get_object_idx();
+    if ((0 <= obj_idx) && (obj_idx < (int)m_model->objects.size()))
+        m_clipboard.get_object()->config = m_model->objects[obj_idx]->config;
+
+    m_clipboard.set_mode(m_mode);
+    m_clipboard.set_type(m_type);
+}
+
+void Selection::paste_from_clipboard()
+{
+    if (!m_valid)
+        return;
+
+    if (m_clipboard.is_empty())
+        return;
+
+    if ((m_clipboard.get_mode() == Volume) && is_from_single_instance())
+        paste_volumes_from_clipboard();
+    else
+        paste_object_from_clipboard();
+}
+
+bool Selection::is_clipboard_empty()
+{
+    return m_clipboard.is_empty();
+}
+
 void Selection::update_valid()
 {
     m_valid = (m_volumes != nullptr) && (m_model != nullptr);
@@ -1695,6 +1759,34 @@ bool Selection::is_from_fully_selected_instance(unsigned int volume_idx) const
 
     unsigned int count = (unsigned int)std::count_if(m_list.begin(), m_list.end(), SameInstance(object_idx, volume->instance_idx(), *m_volumes));
     return count == (unsigned int)m_model->objects[object_idx]->volumes.size();
+}
+
+void Selection::paste_volumes_from_clipboard()
+{
+    int obj_idx = get_object_idx();
+    if ((obj_idx < 0) || ((int)m_model->objects.size() <= obj_idx))
+        return;
+
+    ModelObject& model_object = *m_model->objects[obj_idx];
+    unsigned int count = m_clipboard.get_volumes_count();
+    ModelVolumePtrs volumes;
+    for (unsigned int i = 0; i < count; ++i)
+    {
+        const ModelVolume* volume = m_clipboard.get_volume(i);
+        ModelVolume* new_volume = model_object.add_volume(*volume);
+        new_volume->config = volume->config;
+        new_volume->set_new_unique_id();
+        volumes.push_back(new_volume);
+    }
+    wxGetApp().obj_list()->paste_volumes_into_list(obj_idx, volumes);
+    int a = 0;
+}
+
+void Selection::paste_object_from_clipboard()
+{
+    ModelObject* model_object = m_clipboard.get_object();
+    if (model_object != nullptr)
+        wxGetApp().obj_list()->paste_object_into_list(*model_object);
 }
 
 } // namespace GUI

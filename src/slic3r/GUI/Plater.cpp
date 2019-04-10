@@ -3704,6 +3704,21 @@ void Plater::fix_through_netfabb(const int obj_idx, const int vol_idx/* = -1*/) 
 
 void Plater::update_object_menu() { p->update_object_menu(); }
 
+void Plater::copy_selection_to_clipboard()
+{
+    p->view3D->get_canvas3d()->get_selection().copy_to_clipboard();
+}
+
+void Plater::paste_from_clipboard()
+{
+    p->view3D->get_canvas3d()->get_selection().paste_from_clipboard();
+}
+
+bool Plater::is_selection_clipboard_empty() const
+{
+    return p->view3D->get_canvas3d()->get_selection().is_clipboard_empty();
+}
+
 bool Plater::can_delete() const { return p->can_delete(); }
 bool Plater::can_delete_all() const { return p->can_delete_all(); }
 bool Plater::can_increase_instances() const { return p->can_increase_instances(); }

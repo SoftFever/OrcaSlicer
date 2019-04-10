@@ -151,6 +151,31 @@ private:
         ObjectIdxsToInstanceIdxsMap content;
     };
 
+    class Clipboard
+    {
+        Model m_model;
+        ModelObject* m_object;
+        Selection::EMode m_mode;
+        Selection::EType m_type;
+
+    public:
+        Clipboard();
+
+        void reset() { if (m_object != nullptr) m_object->clear_volumes(); }
+        void add_volume(const ModelVolume& volume);
+        const ModelVolume* get_volume(unsigned int id) const;
+        ModelObject* get_object() { return m_object; }
+        const ModelObject* get_object() const { return m_object; }
+        const unsigned int get_volumes_count() const { return (unsigned int)m_object->volumes.size(); }
+
+        bool is_empty() const { return (m_object == nullptr) || m_object->volumes.empty(); }
+
+        Selection::EMode get_mode() const { return m_mode; }
+        void set_mode(Selection::EMode mode) { m_mode = mode; }
+        Selection::EType get_type() const { return m_type; }
+        void set_type(Selection::EType type) { m_type = type; }
+    };
+
     // Volumes owned by GLCanvas3D.
     GLVolumePtrs* m_volumes;
     // Model, not owned.
@@ -163,6 +188,7 @@ private:
     // set of indices to m_volumes
     IndicesList m_list;
     Cache m_cache;
+    Clipboard m_clipboard;
     mutable BoundingBoxf3 m_bounding_box;
     mutable bool m_bounding_box_dirty;
 
@@ -267,6 +293,10 @@ public:
 
     bool requires_local_axes() const;
 
+    void copy_to_clipboard();
+    void paste_from_clipboard();
+    bool is_clipboard_empty();
+
 private:
     void update_valid();
     void update_type();
@@ -301,6 +331,8 @@ private:
     void synchronize_unselected_volumes();
     void ensure_on_bed();
     bool is_from_fully_selected_instance(unsigned int volume_idx) const;
+    void paste_volumes_from_clipboard();
+    void paste_object_from_clipboard();
 };
 
 } // namespace GUI

@@ -68,6 +68,8 @@ class MainFrame : public DPIFrame
     bool can_select() const;
     bool can_delete() const;
     bool can_delete_all() const;
+    bool can_copy() const;
+    bool can_paste() const;
 
 protected:
     virtual void on_dpi_changed(const wxRect &suggested_rect);

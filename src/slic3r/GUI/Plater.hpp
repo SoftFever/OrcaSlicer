@@ -182,6 +182,10 @@ public:
     PrinterTechnology   printer_technology() const;
     void                set_printer_technology(PrinterTechnology printer_technology);
 
+    void copy_selection_to_clipboard();
+    void paste_from_clipboard();
+    bool is_selection_clipboard_empty() const;
+
     bool can_delete() const;
     bool can_delete_all() const;
     bool can_increase_instances() const;

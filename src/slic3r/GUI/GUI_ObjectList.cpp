@@ -436,6 +436,43 @@ void ObjectList::selection_changed()
     part_selection_changed();
 }
 
+void ObjectList::paste_volumes_into_list(int obj_idx, const ModelVolumePtrs& volumes)
+{
+    if ((obj_idx < 0) || ((int)m_objects->size() <= obj_idx))
+        return;
+
+    if (volumes.empty())
+        return;
+
+    ModelObject& model_object = *(*m_objects)[obj_idx];
+    const auto object_item = m_objects_model->GetItemById(obj_idx);
+
+    wxDataViewItemArray items;
+
+    for (const ModelVolume* volume : volumes)
+    {
+        auto vol_item = m_objects_model->AddVolumeChild(object_item, volume->name, volume->type(),
+            volume->config.has("extruder") ? volume->config.option<ConfigOptionInt>("extruder")->value : 0, false);
+        auto opt_keys = volume->config.keys();
+        if (!opt_keys.empty() && !((opt_keys.size() == 1) && (opt_keys[0] == "extruder")))
+            select_item(m_objects_model->AddSettingsChild(vol_item));
+
+        items.Add(vol_item);
+    }
+
+    m_parts_changed = true;
+    parts_changed(obj_idx);
+
+    select_items(items);
+#ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
+    selection_changed();
+#endif //no __WXOSX__ //__WXMSW__
+}
+
+void ObjectList::paste_object_into_list(const ModelObject& object)
+{
+}
+
 void ObjectList::OnChar(wxKeyEvent& event)
 {
     if (event.GetKeyCode() == WXK_BACK){

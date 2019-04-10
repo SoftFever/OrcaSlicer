@@ -256,6 +256,16 @@ bool MainFrame::can_delete_all() const
     return (m_plater != nullptr) ? !m_plater->model().objects.empty() : false;
 }
 
+bool MainFrame::can_copy() const
+{
+    return (m_plater != nullptr) ? !m_plater->is_selection_empty() : false;
+}
+
+bool MainFrame::can_paste() const
+{
+    return (m_plater != nullptr) ? !m_plater->is_selection_clipboard_empty() : false;
+}
+
 void MainFrame::on_dpi_changed(const wxRect &suggested_rect)
 {
     // TODO
@@ -379,9 +389,18 @@ void MainFrame::init_menubar()
         wxMenuItem* item_delete_all = append_menu_item(editMenu, wxID_ANY, _(L("Delete &all")) + sep + GUI::shortkey_ctrl_prefix() + sep_space + hotkey_delete, _(L("Deletes all objects")),
             [this](wxCommandEvent&) { m_plater->reset(); }, "");
 
+        editMenu->AppendSeparator();
+
+        wxMenuItem* item_copy = append_menu_item(editMenu, wxID_ANY, _(L("&Copy")) + "\tCtrl+C", _(L("Copy selection to clipboard")),
+            [this](wxCommandEvent&) { m_plater->copy_selection_to_clipboard(); }, "");
+        wxMenuItem* item_paste = append_menu_item(editMenu, wxID_ANY, _(L("&Paste")) + "\tCtrl+V", _(L("Paste clipboard")),
+            [this](wxCommandEvent&) { m_plater->paste_from_clipboard(); }, "");
+
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_select()); }, item_select_all->GetId());
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_delete()); }, item_delete_sel->GetId());
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_delete_all()); }, item_delete_all->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_copy()); }, item_copy->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_paste()); }, item_paste->GetId());
     }
 
     // Window menu
