@@ -2598,25 +2598,21 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
         this->statusbar()->set_progress(evt.status.percent);
         this->statusbar()->set_status_text(_(L(evt.status.text)) + wxString::FromUTF8("…"));
     }
-    if (evt.status.flags & PrintBase::SlicingStatus::RELOAD_SCENE) {
+    if (evt.status.flags & (PrintBase::SlicingStatus::RELOAD_SCENE || PrintBase::SlicingStatus::RELOAD_SLA_SUPPORT_POINTS)) {
         switch (this->printer_technology) {
         case ptFFF:
             this->update_fff_scene();
             break;
         case ptSLA:
+            // If RELOAD_SLA_SUPPORT_POINTS, then the SLA gizmo is updated (reload_scene calls update_gizmos_data)
             if (view3D->is_dragging())
                 delayed_scene_refresh = true;
             else
                 this->update_sla_scene();
             break;
         }
-    }
-    if (evt.status.flags & PrintBase::SlicingStatus::RELOAD_SLA_SUPPORT_POINTS) {
-        // Update SLA gizmo  (reload_scene calls update_gizmos_data)
-        q->canvas3D()->reload_scene(true);
-    }
-    if (evt.status.flags & PrintBase::SlicingStatus::RELOAD_SLA_PREVIEW) {
-        // Update the SLA preview
+    } else if (evt.status.flags & PrintBase::SlicingStatus::RELOAD_SLA_PREVIEW) {
+        // Update the SLA preview. Only called if not RELOAD_SLA_SUPPORT_POINTS, as the block above will refresh the preview anyways.
         this->preview->reload_print();
     }
 }
