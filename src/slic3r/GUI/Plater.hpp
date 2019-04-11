@@ -194,6 +194,8 @@ public:
     bool can_split_to_volumes() const;
     bool can_arrange() const;
     bool can_layers_editing() const;
+    bool can_copy() const;
+    bool can_paste() const;
 
 private:
     struct priv;

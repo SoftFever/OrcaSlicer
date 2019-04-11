@@ -3232,12 +3232,37 @@ bool GLCanvas3D::_init_toolbar()
     if (!m_toolbar.add_separator())
         return false;
 
+    item.name = "copy";
+#if ENABLE_SVG_ICONS
+    item.icon_filename = "copy.svg";
+#endif // ENABLE_SVG_ICONS
+    item.tooltip = GUI::L_str("Copy [Ctrl+C]");
+    item.sprite_id = 4;
+    item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_COPY)); };
+    item.enabled_state_callback = []()->bool { return wxGetApp().plater()->can_copy(); };
+    if (!m_toolbar.add_item(item))
+        return false;
+
+    item.name = "paste";
+#if ENABLE_SVG_ICONS
+    item.icon_filename = "paste.svg";
+#endif // ENABLE_SVG_ICONS
+    item.tooltip = GUI::L_str("Paste [Ctrl+V]");
+    item.sprite_id = 5;
+    item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_PASTE)); };
+    item.enabled_state_callback = []()->bool { return wxGetApp().plater()->can_paste(); };
+    if (!m_toolbar.add_item(item))
+        return false;
+
+    if (!m_toolbar.add_separator())
+        return false;
+
     item.name = "more";
 #if ENABLE_SVG_ICONS
     item.icon_filename = "instance_add.svg";
 #endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Add instance [+]");
-    item.sprite_id = 4;
+    item.sprite_id = 6;
     item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_MORE)); };
     item.visibility_callback = []()->bool { return wxGetApp().get_mode() != comSimple; };
     item.enabled_state_callback = []()->bool { return wxGetApp().plater()->can_increase_instances(); };
@@ -3249,7 +3274,7 @@ bool GLCanvas3D::_init_toolbar()
     item.icon_filename = "instance_remove.svg";
 #endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Remove instance [-]");
-    item.sprite_id = 5;
+    item.sprite_id = 7;
     item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_FEWER)); };
     item.visibility_callback = []()->bool { return wxGetApp().get_mode() != comSimple; };
     item.enabled_state_callback = []()->bool { return wxGetApp().plater()->can_decrease_instances(); };
@@ -3264,7 +3289,7 @@ bool GLCanvas3D::_init_toolbar()
     item.icon_filename = "split_objects.svg";
 #endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Split to objects");
-    item.sprite_id = 6;
+    item.sprite_id = 8;
     item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_SPLIT_OBJECTS)); };
     item.visibility_callback = GLToolbarItem::Default_Visibility_Callback;
     item.enabled_state_callback = []()->bool { return wxGetApp().plater()->can_split_to_objects(); };
@@ -3276,7 +3301,7 @@ bool GLCanvas3D::_init_toolbar()
     item.icon_filename = "split_parts.svg";
 #endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Split to parts");
-    item.sprite_id = 7;
+    item.sprite_id = 9;
     item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_SPLIT_VOLUMES)); };
     item.visibility_callback = []()->bool { return wxGetApp().get_mode() != comSimple; };
     item.enabled_state_callback = []()->bool { return wxGetApp().plater()->can_split_to_volumes(); };
@@ -3291,7 +3316,7 @@ bool GLCanvas3D::_init_toolbar()
     item.icon_filename = "layers.svg";
 #endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Layers editing");
-    item.sprite_id = 8;
+    item.sprite_id = 10;
     item.is_toggable = true;
     item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_LAYERSEDITING)); };
     item.visibility_callback = [this]()->bool { return m_process->current_printer_technology() == ptFFF; };

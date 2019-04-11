@@ -256,16 +256,6 @@ bool MainFrame::can_delete_all() const
     return (m_plater != nullptr) ? !m_plater->model().objects.empty() : false;
 }
 
-bool MainFrame::can_copy() const
-{
-    return (m_plater != nullptr) ? !m_plater->is_selection_empty() : false;
-}
-
-bool MainFrame::can_paste() const
-{
-    return (m_plater != nullptr) ? !m_plater->is_selection_clipboard_empty() : false;
-}
-
 void MainFrame::on_dpi_changed(const wxRect &suggested_rect)
 {
     // TODO
@@ -399,8 +389,8 @@ void MainFrame::init_menubar()
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_select()); }, item_select_all->GetId());
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_delete()); }, item_delete_sel->GetId());
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_delete_all()); }, item_delete_all->GetId());
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_copy()); }, item_copy->GetId());
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_paste()); }, item_paste->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(m_plater->can_copy()); }, item_copy->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(m_plater->can_paste()); }, item_paste->GetId());
     }
 
     // Window menu
