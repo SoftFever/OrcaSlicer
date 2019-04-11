@@ -748,6 +748,12 @@ GLVolumeWithIdAndZList volumes_to_render(const GLVolumePtrs& volumes, GLVolumeCo
             [](const GLVolumeWithIdAndZ& v1, const GLVolumeWithIdAndZ& v2) -> bool { return v1.second.second < v2.second.second; }
         );
     }
+    else if ((type == GLVolumeCollection::Opaque) && (list.size() > 1))
+    {
+        std::sort(list.begin(), list.end(),
+            [](const GLVolumeWithIdAndZ& v1, const GLVolumeWithIdAndZ& v2) -> bool { return v1.first->selected && !v2.first->selected; }
+        );
+    }
 
     return list;
 }
