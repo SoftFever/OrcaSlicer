@@ -457,7 +457,8 @@ public:
     wxDataViewItem AddVolumeChild(const wxDataViewItem &parent_item,
         const wxString &name,
         const Slic3r::ModelVolumeType volume_type,
-        const int extruder = 0);
+        const int extruder = 0,
+        const bool create_frst_child = true);
     wxDataViewItem AddSettingsChild(const wxDataViewItem &parent_item);
     wxDataViewItem AddInstanceChild(const wxDataViewItem &parent_item, size_t num);
 	wxDataViewItem Delete(const wxDataViewItem &item);

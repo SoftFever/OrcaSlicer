@@ -1045,12 +1045,12 @@ void Selection::copy_to_clipboard()
         for (unsigned int i : m_list)
         {
             const GLVolume* volume = (*m_volumes)[i];
-            if (volume->object_idx() == object.first)
+            if ((volume->object_idx() == object.first) && (volume->instance_idx() == *object.second.begin()))
             {
                 int volume_idx = volume->volume_idx();
                 if ((0 <= volume_idx) && (volume_idx < (int)src_object->volumes.size()))
                 {
-                    ModelVolume* src_volume = src_object->volumes[volume->volume_idx()];
+                    ModelVolume* src_volume = src_object->volumes[volume_idx];
                     ModelVolume* dst_volume = dst_object->add_volume(*src_volume);
                     dst_volume->set_new_unique_id();
                     dst_volume->config = src_volume->config;

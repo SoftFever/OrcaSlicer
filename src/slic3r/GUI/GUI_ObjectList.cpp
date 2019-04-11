@@ -1630,7 +1630,8 @@ void ObjectList::split()
             model_object->volumes[id]->is_modifier() ?
             ModelVolumeType::PARAMETER_MODIFIER : ModelVolumeType::MODEL_PART,
             model_object->volumes[id]->config.has("extruder") ?
-            model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value : 0);
+            model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value : 0,
+            false);
         // add settings to the part, if it has those
         auto opt_keys = model_object->volumes[id]->config.keys();
         if ( !(opt_keys.size() == 1 && opt_keys[0] == "extruder") ) {
@@ -1824,7 +1825,8 @@ void ObjectList::add_object_to_list(size_t obj_idx)
                 from_u8(model_object->volumes[id]->name),
                 model_object->volumes[id]->type(),
                 !model_object->volumes[id]->config.has("extruder") ? 0 :
-                model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value);
+                model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value,
+                false);
             auto opt_keys = model_object->volumes[id]->config.keys();
             if (!opt_keys.empty() && !(opt_keys.size() == 1 && opt_keys[0] == "extruder")) {
                 select_item(m_objects_model->AddSettingsChild(vol_item));
