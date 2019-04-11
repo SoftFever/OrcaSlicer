@@ -25,9 +25,10 @@ public:
     TriangleMesh(const Pointf3s &points, const std::vector<Vec3crd> &facets);
     TriangleMesh(const TriangleMesh &other) : repaired(false) { stl_initialize(&this->stl); *this = other; }
     TriangleMesh(TriangleMesh &&other) : repaired(false) { stl_initialize(&this->stl); this->swap(other); }
-    ~TriangleMesh() { stl_close(&this->stl); }
+    ~TriangleMesh() { clear(); }
     TriangleMesh& operator=(const TriangleMesh &other);
     TriangleMesh& operator=(TriangleMesh &&other) { this->swap(other); return *this; }
+    void clear() { stl_close(&this->stl); this->repaired = false; }
     void swap(TriangleMesh &other) { std::swap(this->stl, other.stl); std::swap(this->repaired, other.repaired); }
     void ReadSTLFile(const char* input_file) { stl_open(&stl, input_file); }
     void write_ascii(const char* output_file) { stl_write_ascii(&this->stl, output_file, ""); }
@@ -171,6 +172,7 @@ public:
     FacetSliceType slice_facet(float slice_z, const stl_facet &facet, const int facet_idx,
         const float min_z, const float max_z, IntersectionLine *line_out) const;
     void cut(float z, TriangleMesh* upper, TriangleMesh* lower) const;
+    void set_up_direction(const Vec3f& up);
     
 private:
     const TriangleMesh      *mesh;
@@ -178,6 +180,10 @@ private:
     std::vector<int>         facets_edges;
     // Scaled copy of this->mesh->stl.v_shared
     std::vector<stl_vertex>  v_scaled_shared;
+    // Quaternion that will be used to rotate every facet before the slicing
+    Eigen::Quaternion<float, Eigen::DontAlign> m_quaternion;
+    // Whether or not the above quaterion should be used
+    bool                     m_use_quaternion = false;
 
     void _slice_do(size_t facet_idx, std::vector<IntersectionLines>* lines, boost::mutex* lines_mutex, const std::vector<float> &z) const;
     void make_loops(std::vector<IntersectionLine> &lines, Polygons* loops) const;

@@ -3496,7 +3496,15 @@ void GLCanvas3D::_picking_pass() const
 
         glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
+        m_camera_clipping_plane = m_gizmos.get_sla_clipping_plane();
+        if (! m_use_VBOs) {
+            ::glClipPlane(GL_CLIP_PLANE0, (GLdouble*)m_camera_clipping_plane.get_data());
+            ::glEnable(GL_CLIP_PLANE0);
+        }
         _render_volumes(true);
+        if (! m_use_VBOs)
+            ::glDisable(GL_CLIP_PLANE0);
+
         m_gizmos.render_current_gizmo_for_picking_pass(m_selection);
 
         if (m_multisample_allowed)
@@ -3577,6 +3585,8 @@ void GLCanvas3D::_render_axes() const
     m_bed.render_axes();
 }
 
+
+
 void GLCanvas3D::_render_objects() const
 {
     if (m_volumes.empty())
@@ -3584,6 +3594,8 @@ void GLCanvas3D::_render_objects() const
 
     glsafe(::glEnable(GL_LIGHTING));
     glsafe(::glEnable(GL_DEPTH_TEST));
+
+    m_camera_clipping_plane = m_gizmos.get_sla_clipping_plane();
 
     if (m_use_VBOs)
     {
@@ -3605,6 +3617,8 @@ void GLCanvas3D::_render_objects() const
         else
             m_volumes.set_z_range(-FLT_MAX, FLT_MAX);
 
+        m_volumes.set_clipping_plane(m_camera_clipping_plane.get_data());
+
         m_shader.start_using();
         if (m_picking_enabled && m_layers_editing.is_enabled() && m_layers_editing.last_object_id != -1) {
 			int object_id = m_layers_editing.last_object_id;
@@ -3625,13 +3639,17 @@ void GLCanvas3D::_render_objects() const
     }
     else
     {
+        ::glClipPlane(GL_CLIP_PLANE0, (GLdouble*)m_camera_clipping_plane.get_data());
+        ::glEnable(GL_CLIP_PLANE0);
+
         if (m_use_clipping_planes)
         {
-            glsafe(::glClipPlane(GL_CLIP_PLANE0, (GLdouble*)m_clipping_planes[0].get_data()));
-            glsafe(::glEnable(GL_CLIP_PLANE0));
-            glsafe(::glClipPlane(GL_CLIP_PLANE1, (GLdouble*)m_clipping_planes[1].get_data()));
+            glsafe(::glClipPlane(GL_CLIP_PLANE1, (GLdouble*)m_clipping_planes[0].get_data()));
             glsafe(::glEnable(GL_CLIP_PLANE1));
+            glsafe(::glClipPlane(GL_CLIP_PLANE2, (GLdouble*)m_clipping_planes[1].get_data()));
+            glsafe(::glEnable(GL_CLIP_PLANE2));
         }
+        
 
         // do not cull backfaces to show broken geometry, if any
         m_volumes.render_legacy(GLVolumeCollection::Opaque, m_picking_enabled, m_camera.get_view_matrix(), [this](const GLVolume& volume) {
@@ -3639,13 +3657,16 @@ void GLCanvas3D::_render_objects() const
         });
         m_volumes.render_legacy(GLVolumeCollection::Transparent, false, m_camera.get_view_matrix());
 
+        ::glDisable(GL_CLIP_PLANE0);
+
         if (m_use_clipping_planes)
         {
-            glsafe(::glDisable(GL_CLIP_PLANE0));
             glsafe(::glDisable(GL_CLIP_PLANE1));
+            glsafe(::glDisable(GL_CLIP_PLANE2));
         }
     }
-
+    
+    m_camera_clipping_plane = ClippingPlane::ClipsNothing();
     glsafe(::glDisable(GL_LIGHTING));
 }
 
