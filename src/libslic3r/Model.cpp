@@ -897,13 +897,13 @@ BoundingBoxf3 ModelObject::raw_bounding_box() const
                 throw std::invalid_argument("Can't call raw_bounding_box() with no instances");
 #endif // !ENABLE_GENERIC_SUBPARTS_PLACEMENT
 
-            TriangleMesh vol_mesh(v->mesh);
 #if ENABLE_GENERIC_SUBPARTS_PLACEMENT
-            vol_mesh.transform(inst_matrix * v->get_matrix());
-            bb.merge(vol_mesh.bounding_box());
+            bb.merge(v->mesh.transformed_bounding_box(inst_matrix * v->get_matrix()));
 #else
-            vol_mesh.transform(v->get_matrix());
-            bb.merge(this->instances.front()->transform_mesh_bounding_box(vol_mesh, true));
+            // unmaintaned
+            assert(false);
+            // vol_mesh.transform(v->get_matrix());
+            // bb.merge(this->instances.front()->transform_mesh_bounding_box(vol_mesh, true));
 #endif // ENABLE_GENERIC_SUBPARTS_PLACEMENT
         }
     return bb;
@@ -920,13 +920,13 @@ BoundingBoxf3 ModelObject::instance_bounding_box(size_t instance_idx, bool dont_
     {
         if (v->is_model_part())
         {
-            TriangleMesh mesh(v->mesh);
 #if ENABLE_GENERIC_SUBPARTS_PLACEMENT
-            mesh.transform(inst_matrix * v->get_matrix());
-            bb.merge(mesh.bounding_box());
+            bb.merge(v->mesh.transformed_bounding_box(inst_matrix * v->get_matrix()));
 #else
-            mesh.transform(v->get_matrix());
-            bb.merge(this->instances[instance_idx]->transform_mesh_bounding_box(mesh, dont_translate));
+            // not maintained
+            assert(false);
+            //mesh.transform(v->get_matrix());
+            //bb.merge(this->instances[instance_idx]->transform_mesh_bounding_box(mesh, dont_translate));
 #endif // ENABLE_GENERIC_SUBPARTS_PLACEMENT
         }
     }

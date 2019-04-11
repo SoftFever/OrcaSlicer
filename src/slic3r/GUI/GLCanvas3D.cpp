@@ -3494,10 +3494,13 @@ void GLCanvas3D::_picking_pass() const
         glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
         m_camera_clipping_plane = m_gizmos.get_sla_clipping_plane();
-        ::glClipPlane(GL_CLIP_PLANE0, (GLdouble*)m_camera_clipping_plane.get_data());
-        ::glEnable(GL_CLIP_PLANE0);
+        if (! m_use_VBOs) {
+            ::glClipPlane(GL_CLIP_PLANE0, (GLdouble*)m_camera_clipping_plane.get_data());
+            ::glEnable(GL_CLIP_PLANE0);
+        }
         _render_volumes(true);
-        ::glDisable(GL_CLIP_PLANE0);
+        if (! m_use_VBOs)
+            ::glDisable(GL_CLIP_PLANE0);
 
         m_gizmos.render_current_gizmo_for_picking_pass(m_selection);
 
@@ -3661,7 +3664,7 @@ void GLCanvas3D::_render_objects() const
     }
     
     m_camera_clipping_plane = ClippingPlane::ClipsNothing();
-    ::glDisable(GL_LIGHTING);
+    glsafe(::glDisable(GL_LIGHTING));
 }
 
 void GLCanvas3D::_render_selection() const

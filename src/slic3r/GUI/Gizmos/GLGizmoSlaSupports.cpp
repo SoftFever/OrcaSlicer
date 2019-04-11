@@ -58,6 +58,7 @@ void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const S
     {
         // Cache the bb - it's needed for dealing with the clipping plane quite often
         // It could be done inside update_mesh but one has to account for scaling of the instance.
+        //FIXME calling ModelObject::instance_bounding_box() is expensive!
         m_active_instance_bb_radius = m_model_object->instance_bounding_box(m_active_instance).radius();
 
         if (is_mesh_update_necessary()) {
@@ -123,6 +124,11 @@ void GLGizmoSlaSupports::render_clipping_plane(const Selection& selection, const
      || m_old_direction_to_camera != direction_to_camera) {
 
         std::vector<ExPolygons> list_of_expolys;
+        if (! m_tms) {
+            m_tms.reset(new TriangleMeshSlicer);
+            m_tms->init(const_cast<TriangleMesh*>(&m_mesh), [](){});
+        }
+
         m_tms->set_up_direction(up);
         m_tms->slice(std::vector<float>{height_mesh}, 0.f, &list_of_expolys, [](){});
         m_triangles = triangulate_expolygons_2f(list_of_expolys[0]);
@@ -131,22 +137,23 @@ void GLGizmoSlaSupports::render_clipping_plane(const Selection& selection, const
         m_old_clipping_plane_distance = m_clipping_plane_distance;
     }
 
-    ::glPushMatrix();
-    ::glTranslated(0.0, 0.0, m_z_shift);
-    ::glMultMatrixf(instance_matrix.data());
-    Eigen::Quaternionf q;
-    q.setFromTwoVectors(Vec3f::UnitZ(), up);
-    Eigen::AngleAxisf aa(q);
-    ::glRotatef(aa.angle() * (180./M_PI), aa.axis()(0), aa.axis()(1), aa.axis()(2));
-    ::glTranslatef(0.f, 0.f, -0.001f); // to make sure the cut is safely beyond the near clipping plane
-
-    ::glBegin(GL_TRIANGLES);
-    ::glColor3f(1.0f, 0.37f, 0.0f);
-    for (const Vec2f& point : m_triangles)
-        ::glVertex3f(point(0), point(1), height_mesh);
-    ::glEnd();
-
-    ::glPopMatrix();
+	if (! m_triangles.empty()) {
+		::glPushMatrix();
+		::glTranslated(0.0, 0.0, m_z_shift);
+		::glMultMatrixf(instance_matrix.data());
+		Eigen::Quaternionf q;
+		q.setFromTwoVectors(Vec3f::UnitZ(), up);
+		Eigen::AngleAxisf aa(q);
+		::glRotatef(aa.angle() * (180./M_PI), aa.axis()(0), aa.axis()(1), aa.axis()(2));
+		::glTranslatef(0.f, 0.f, -0.001f); // to make sure the cut is safely beyond the near clipping plane
+		::glColor3f(1.0f, 0.37f, 0.0f);
+        ::glBegin(GL_TRIANGLES);
+        ::glColor3f(1.0f, 0.37f, 0.0f);
+        for (const Vec2f& point : m_triangles)
+            ::glVertex3f(point(0), point(1), height_mesh);
+        ::glEnd();
+		::glPopMatrix();
+	}
 }
 
 
@@ -344,9 +351,6 @@ void GLGizmoSlaSupports::update_mesh()
 
     m_AABB = igl::AABB<Eigen::MatrixXf,3>();
     m_AABB.init(m_V, m_F);
-
-    m_tms.reset(new TriangleMeshSlicer);
-    m_tms->init(&m_mesh, [](){});
 }
 
 // Unprojects the mouse position on the mesh and return the hit point and normal of the facet.
@@ -969,6 +973,12 @@ void GLGizmoSlaSupports::on_set_state()
                 m_editing_mode = false; // so it is not active next time the gizmo opens
                 m_editing_mode_cache.clear();
                 m_clipping_plane_distance = 0.f;
+                // Release copy of the mesh, triangle slicer and the AABB spatial search structure.
+				m_mesh.clear();
+                m_AABB.deinit();
+				m_V = Eigen::MatrixXf();
+				m_F = Eigen::MatrixXi();
+                m_tms.reset(nullptr);
             });
         }
         m_old_state = m_state;

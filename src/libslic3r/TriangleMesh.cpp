@@ -805,14 +805,7 @@ void TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<Polygons
 void TriangleMeshSlicer::_slice_do(size_t facet_idx, std::vector<IntersectionLines>* lines, boost::mutex* lines_mutex, 
     const std::vector<float> &z) const
 {
-    const stl_facet &facet_orig = this->mesh->stl.facet_start[facet_idx];
-    stl_facet facet = facet_orig;
-
-    if (m_use_quaternion) {
-        facet.vertex[0] = m_quaternion * facet.vertex[0];
-        facet.vertex[1] = m_quaternion * facet.vertex[1];
-        facet.vertex[2] = m_quaternion * facet.vertex[2];
-    }
+    const stl_facet &facet = m_use_quaternion ? this->mesh->stl.facet_start[facet_idx].rotated(m_quaternion) : this->mesh->stl.facet_start[facet_idx];
     
     // find facet extents
     const float min_z = fminf(facet.vertex[0](2), fminf(facet.vertex[1](2), facet.vertex[2](2)));
@@ -884,7 +877,7 @@ TriangleMeshSlicer::FacetSliceType TriangleMeshSlicer::slice_facet(
     const int *vertices = this->mesh->stl.v_indices[facet_idx].vertex;
     int i = (facet.vertex[1].z() == min_z) ? 1 : ((facet.vertex[2].z() == min_z) ? 2 : 0);
 
-    // These are used only if the cut plane is inclined:
+    // These are used only if the cut plane is tilted:
     stl_vertex rotated_a;
     stl_vertex rotated_b;
 
@@ -909,10 +902,11 @@ TriangleMeshSlicer::FacetSliceType TriangleMeshSlicer::slice_facet(
         // Is edge or face aligned with the cutting plane?
         if (a->z() == slice_z && b->z() == slice_z) {
             // Edge is horizontal and belongs to the current layer.
+            // The following rotation of the three vertices may not be efficient, but this branch happens rarely.
             const stl_vertex &v0 = m_use_quaternion ? stl_vertex(m_quaternion * this->v_scaled_shared[vertices[0]]) : this->v_scaled_shared[vertices[0]];
             const stl_vertex &v1 = m_use_quaternion ? stl_vertex(m_quaternion * this->v_scaled_shared[vertices[1]]) : this->v_scaled_shared[vertices[1]];
             const stl_vertex &v2 = m_use_quaternion ? stl_vertex(m_quaternion * this->v_scaled_shared[vertices[2]]) : this->v_scaled_shared[vertices[2]];
-            const stl_normal &normal = m_use_quaternion ? stl_vertex(m_quaternion * this->mesh->stl.facet_start[facet_idx].normal) : this->mesh->stl.facet_start[facet_idx].normal;
+            const stl_normal &normal = facet.normal;
             // We may ignore this edge for slicing purposes, but we may still use it for object cutting.
             FacetSliceType    result = Slicing;
             if (min_z == max_z) {
@@ -1029,7 +1023,7 @@ TriangleMeshSlicer::FacetSliceType TriangleMeshSlicer::slice_facet(
                 i = vertices[2];
             assert(i != line_out->a_id && i != line_out->b_id);
             line_out->edge_type = ((m_use_quaternion ?
-                                    m_quaternion * this->v_scaled_shared[i].z()
+                                    (m_quaternion * this->v_scaled_shared[i]).z()
                                     : this->v_scaled_shared[i].z()) < slice_z) ? feTop : feBottom;
         }
 #endif
