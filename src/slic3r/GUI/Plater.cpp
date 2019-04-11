@@ -3711,10 +3711,12 @@ void Plater::paste_from_clipboard()
 {
     p->view3D->get_canvas3d()->get_selection().paste_from_clipboard();
 }
-
-bool Plater::is_selection_clipboard_empty() const
+bool Plater::can_paste_from_clipboard() const
 {
-    return p->view3D->get_canvas3d()->get_selection().is_clipboard_empty();
+    const Selection& selection = p->view3D->get_canvas3d()->get_selection();
+    const Selection::Clipboard& clipboard = selection.get_clipboard();
+    Selection::EMode mode = clipboard.get_mode();
+    return !clipboard.is_empty() && ((mode == Selection::Instance) || selection.is_from_single_instance());
 }
 
 bool Plater::can_delete() const { return p->can_delete(); }
@@ -3726,6 +3728,6 @@ bool Plater::can_split_to_volumes() const { return p->can_split_to_volumes(); }
 bool Plater::can_arrange() const { return p->can_arrange(); }
 bool Plater::can_layers_editing() const { return p->can_layers_editing(); }
 bool Plater::can_copy() const { return !is_selection_empty(); }
-bool Plater::can_paste() const { return !is_selection_clipboard_empty(); }
+bool Plater::can_paste() const { return can_paste_from_clipboard(); }
 
 }}    // namespace Slic3r::GUI

@@ -1067,15 +1067,21 @@ void Selection::paste_from_clipboard()
     if (!m_valid || m_clipboard.is_empty())
         return;
 
-    if ((m_clipboard.get_mode() == Volume) && is_from_single_instance())
-        paste_volumes_from_clipboard();
-    else
-        paste_objects_from_clipboard();
-}
+    switch (m_clipboard.get_mode())
+    {
+    case Volume:
+    {
+        if (is_from_single_instance())
+            paste_volumes_from_clipboard();
 
-bool Selection::is_clipboard_empty()
-{
-    return m_clipboard.is_empty();
+        break;
+    }
+    case Instance:
+    {
+        paste_objects_from_clipboard();
+        break;
+    }
+    }
 }
 
 void Selection::update_valid()

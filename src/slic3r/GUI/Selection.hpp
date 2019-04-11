@@ -138,19 +138,6 @@ public:
     typedef std::set<int> InstanceIdxsList;
     typedef std::map<int, InstanceIdxsList> ObjectIdxsToInstanceIdxsMap;
 
-private:
-    struct Cache
-    {
-        // Cache of GLVolume derived transformation matrices, valid during mouse dragging.
-        VolumesCache volumes_data;
-        // Center of the dragged selection, valid during mouse dragging.
-        Vec3d dragging_center;
-        // Map from indices of ModelObject instances in Model::objects
-        // to a set of indices of ModelVolume instances in ModelObject::instances
-        // Here the index means a position inside the respective std::vector, not ModelID.
-        ObjectIdxsToInstanceIdxsMap content;
-    };
-
     class Clipboard
     {
         Model m_model;
@@ -166,6 +153,19 @@ private:
 
         Selection::EMode get_mode() const { return m_mode; }
         void set_mode(Selection::EMode mode) { m_mode = mode; }
+    };
+
+private:
+    struct Cache
+    {
+        // Cache of GLVolume derived transformation matrices, valid during mouse dragging.
+        VolumesCache volumes_data;
+        // Center of the dragged selection, valid during mouse dragging.
+        Vec3d dragging_center;
+        // Map from indices of ModelObject instances in Model::objects
+        // to a set of indices of ModelVolume instances in ModelObject::instances
+        // Here the index means a position inside the respective std::vector, not ModelID.
+        ObjectIdxsToInstanceIdxsMap content;
     };
 
     // Volumes owned by GLCanvas3D.
@@ -287,7 +287,8 @@ public:
 
     void copy_to_clipboard();
     void paste_from_clipboard();
-    bool is_clipboard_empty();
+
+    const Clipboard& get_clipboard() const { return m_clipboard; }
 
 private:
     void update_valid();
