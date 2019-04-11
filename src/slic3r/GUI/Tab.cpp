@@ -3224,7 +3224,8 @@ void TabSLAMaterial::build()
     optgroup = page->new_optgroup(_(L("Corrections")));
     optgroup->label_width = 19 * m_em_unit;//190;
     std::vector<std::string> corrections = {"material_correction"};
-    std::vector<std::string> axes{ "X", "Y", "Z" };
+//    std::vector<std::string> axes{ "X", "Y", "Z" };
+    std::vector<std::string> axes{ "XY", "Z" };
     for (auto& opt_key : corrections) {
         auto line = Line{ m_config->def()->get(opt_key)->full_label, "" };
         int id = 0;
