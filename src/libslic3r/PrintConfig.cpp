@@ -3117,6 +3117,13 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->label = L("Logging level");
     def->tooltip = L("Messages with severity lower or eqal to the loglevel will be printed out. 0:trace, 1:debug, 2:info, 3:warning, 4:error, 5:fatal");
     def->min = 0;
+
+#ifdef _MSC_VER
+    def = this->add("sw_renderer", coBool);
+    def->label = L("Render with a software renderer");
+    def->tooltip = L("Render with a software renderer. The bundled MESA software renderer is loaded instead of the default OpenGL driver.");
+    def->min = 0;
+#endif /* _MSC_VER */
 }
 
 const CLIActionsConfigDef    cli_actions_config_def;

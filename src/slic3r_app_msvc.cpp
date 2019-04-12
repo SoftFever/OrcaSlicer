@@ -207,12 +207,20 @@ int wmain(int argc, wchar_t **argv)
 	std::vector<wchar_t*> argv_extended;
 	argv_extended.emplace_back(argv[0]);
 	// Here one may push some additional parameters based on the wrapper type.
-	for (int i = 1; i < argc; ++ i)
+	bool force_mesa = false;
+	for (int i = 1; i < argc; ++ i) {
+		if (wcscmp(argv[i], L"--sw-renderer") == 0)
+			force_mesa = true;
+		else if (wcscmp(argv[i], L"--no-sw-renderer") == 0)
+			force_mesa = false;
 		argv_extended.emplace_back(argv[i]);
+	}
 	argv_extended.emplace_back(nullptr);
 
 	OpenGLVersionCheck opengl_version_check;
 	bool load_mesa = 
+		// Forced from the command line.
+		force_mesa ||
 		// Running over a rempote desktop, and the RemoteFX is not enabled, therefore Windows will only provide SW OpenGL 1.1 context.
 		// In that case, use Mesa.
 		::GetSystemMetrics(SM_REMOTESESSION) ||
@@ -267,5 +275,5 @@ int wmain(int argc, wchar_t **argv)
 		return -1;
 	}
 	// argc minus the trailing nullptr of the argv
-	return slic3r_main(argv_extended.size() - 1, argv_extended.data());
+	return slic3r_main((int)argv_extended.size() - 1, argv_extended.data());
 }
