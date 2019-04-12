@@ -143,8 +143,7 @@ ObjectInfo::ObjectInfo(wxWindow *parent) :
     info_manifold_text->SetFont(wxGetApp().small_font());
     info_manifold = new wxStaticText(parent, wxID_ANY, "");
     info_manifold->SetFont(wxGetApp().small_font());
-    wxBitmap bitmap(GUI::from_u8(Slic3r::var("error.png")), wxBITMAP_TYPE_PNG);
-    manifold_warning_icon = new wxStaticBitmap(parent, wxID_ANY, bitmap);
+    manifold_warning_icon = new wxStaticBitmap(parent, wxID_ANY, create_scaled_bitmap(parent, "exclamation_mark_.png")/*bitmap*/);
     auto *sizer_manifold = new wxBoxSizer(wxHORIZONTAL);
     sizer_manifold->Add(info_manifold_text, 0);
     sizer_manifold->Add(manifold_warning_icon, 0, wxLEFT, 2);
@@ -2820,17 +2819,17 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
     wxMenuItem* item_delete = nullptr;
     if (is_part) {
         item_delete = append_menu_item(menu, wxID_ANY, _(L("Delete")) + "\tDel", _(L("Remove the selected object")),
-            [this](wxCommandEvent&) { q->remove_selected(); }, "remove");
+            [this](wxCommandEvent&) { q->remove_selected(); }, "delete");
 
         sidebar->obj_list()->append_menu_item_export_stl(menu);
     }
     else {
         wxMenuItem* item_increase = append_menu_item(menu, wxID_ANY, _(L("Increase copies")) + "\t+", _(L("Place one more copy of the selected object")),
-            [this](wxCommandEvent&) { q->increase_instances(); }, "instance_add");
+            [this](wxCommandEvent&) { q->increase_instances(); }, "add_copies");
         wxMenuItem* item_decrease = append_menu_item(menu, wxID_ANY, _(L("Decrease copies")) + "\t-", _(L("Remove one copy of the selected object")),
-            [this](wxCommandEvent&) { q->decrease_instances(); }, "instance_remove");
+            [this](wxCommandEvent&) { q->decrease_instances(); }, "remove_copies");
         wxMenuItem* item_set_number_of_copies = append_menu_item(menu, wxID_ANY, _(L("Set number of copies")) + dots, _(L("Change the number of copies of the selected object")),
-            [this](wxCommandEvent&) { q->set_number_of_copies(); }, "textfield.png");
+            [this](wxCommandEvent&) { q->set_number_of_copies(); }, "number_of_copies");
 
         items_increase.push_back(item_increase);
         items_decrease.push_back(item_decrease);
@@ -2838,7 +2837,7 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
 
         // Delete menu was moved to be after +/- instace to make it more difficult to be selected by mistake.
         item_delete = append_menu_item(menu, wxID_ANY, _(L("Delete")) + "\tDel", _(L("Remove the selected object")),
-            [this](wxCommandEvent&) { q->remove_selected(); }, "remove");
+            [this](wxCommandEvent&) { q->remove_selected(); }, "delete");
 
         menu->AppendSeparator();
         wxMenuItem* item_instance_to_object = sidebar->obj_list()->append_menu_item_instance_to_object(menu);
@@ -2893,9 +2892,9 @@ bool Plater::priv::complit_init_object_menu()
         return false;
 
     wxMenuItem* item_split_objects = append_menu_item(split_menu, wxID_ANY, _(L("To objects")), _(L("Split the selected object into individual objects")),
-        [this](wxCommandEvent&) { split_object(); }, "split_objects.png", &object_menu);
+        [this](wxCommandEvent&) { split_object(); }, "split_objects", &object_menu);
     wxMenuItem* item_split_volumes = append_menu_item(split_menu, wxID_ANY, _(L("To parts")), _(L("Split the selected object into individual sub-parts")),
-        [this](wxCommandEvent&) { split_volume(); }, "split_parts.png", &object_menu);
+        [this](wxCommandEvent&) { split_volume(); }, "split_parts_SMALL", &object_menu);
 
     wxMenuItem* item_split = append_submenu(&object_menu, split_menu, wxID_ANY, _(L("Split")), _(L("Split the selected object"))/*, "shape_ungroup.png"*/);
     object_menu.AppendSeparator();
@@ -2915,7 +2914,7 @@ bool Plater::priv::complit_init_object_menu()
 bool Plater::priv::complit_init_sla_object_menu()
 {
     wxMenuItem* item_split = append_menu_item(&sla_object_menu, wxID_ANY, _(L("Split")), _(L("Split the selected object into individual objects")),
-        [this](wxCommandEvent&) { split_object(); }, "shape_ungroup_o.png");
+        [this](wxCommandEvent&) { split_object(); }, "split_objects");
 
     sla_object_menu.AppendSeparator();
 
@@ -2935,7 +2934,7 @@ bool Plater::priv::complit_init_sla_object_menu()
 bool Plater::priv::complit_init_part_menu()
 {
     wxMenuItem* item_split = append_menu_item(&part_menu, wxID_ANY, _(L("Split")), _(L("Split the selected object into individual sub-parts")),
-        [this](wxCommandEvent&) { split_volume(); }, "shape_ungroup_p.png");
+        [this](wxCommandEvent&) { split_volume(); }, "split_parts_SMALL");
 
     part_menu.AppendSeparator();
 

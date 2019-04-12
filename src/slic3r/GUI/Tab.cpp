@@ -1090,7 +1090,7 @@ void TabPrint::build()
 		optgroup = page->new_optgroup(_(L("Advanced")));
 		optgroup->append_single_option_line("interface_shells");
 
-	page = add_options_page(_(L("Advanced")), "wrench.png");
+	page = add_options_page(_(L("Advanced")), "wrench");
 		optgroup = page->new_optgroup(_(L("Extrusion width")));
 		optgroup->append_single_option_line("extrusion_width");
 		optgroup->append_single_option_line("first_layer_extrusion_width");
@@ -1463,7 +1463,7 @@ void TabFilament::build()
 		optgroup->append_single_option_line("slowdown_below_layer_time");
 		optgroup->append_single_option_line("min_print_speed");
 
-	page = add_options_page(_(L("Advanced")), "wrench.png");
+	page = add_options_page(_(L("Advanced")), "wrench");
 		optgroup = page->new_optgroup(_(L("Filament properties")));
 		optgroup->append_single_option_line("filament_type");
 		optgroup->append_single_option_line("filament_soluble");
