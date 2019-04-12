@@ -3717,7 +3717,17 @@ bool Plater::can_paste_from_clipboard() const
     const Selection& selection = p->view3D->get_canvas3d()->get_selection();
     const Selection::Clipboard& clipboard = selection.get_clipboard();
     Selection::EMode mode = clipboard.get_mode();
-    return !clipboard.is_empty() && ((mode == Selection::Instance) || selection.is_from_single_instance());
+
+    if (clipboard.is_empty())
+        return false;
+
+    if ((mode == Selection::Volume) && !selection.is_from_single_instance())
+        return false;
+
+    if ((mode == Selection::Instance) && (selection.get_mode() != Selection::Instance))
+        return false;
+
+    return true;
 }
 
 bool Plater::can_delete() const { return p->can_delete(); }
