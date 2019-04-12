@@ -3236,7 +3236,7 @@ bool GLCanvas3D::_init_toolbar()
 #if ENABLE_SVG_ICONS
     item.icon_filename = "copy.svg";
 #endif // ENABLE_SVG_ICONS
-    item.tooltip = GUI::L_str("Copy [Ctrl+C]");
+    item.tooltip = GUI::L_str("Copy") + " [" + GUI::shortkey_ctrl_prefix() + "C]";
     item.sprite_id = 4;
     item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_COPY)); };
     item.enabled_state_callback = []()->bool { return wxGetApp().plater()->can_copy(); };
@@ -3247,7 +3247,7 @@ bool GLCanvas3D::_init_toolbar()
 #if ENABLE_SVG_ICONS
     item.icon_filename = "paste.svg";
 #endif // ENABLE_SVG_ICONS
-    item.tooltip = GUI::L_str("Paste [Ctrl+V]");
+    item.tooltip = GUI::L_str("Paste") + " [" + GUI::shortkey_ctrl_prefix() + "V]";
     item.sprite_id = 5;
     item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_PASTE)); };
     item.enabled_state_callback = []()->bool { return wxGetApp().plater()->can_paste(); };
