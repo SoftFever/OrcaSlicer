@@ -266,6 +266,8 @@ int wmain(int argc, wchar_t **argv)
 		} else
 			printf("MESA OpenGL library was loaded sucessfully\n");		
 	}
+#endif /* SLIC3R_GUI */
+
 
 	wchar_t path_to_slic3r[MAX_PATH + 1] = { 0 };
 	wcscpy(path_to_slic3r, path_to_exe);
@@ -276,7 +278,6 @@ int wmain(int argc, wchar_t **argv)
 		printf("slic3r.dll was not loaded\n");
 		return -1;
 	}
-#endif /* SLIC3R_GUI */
 
 	// resolve function address here
 	slic3r_main = (Slic3rMainFunc)GetProcAddress(hInstance_Slic3r, 
