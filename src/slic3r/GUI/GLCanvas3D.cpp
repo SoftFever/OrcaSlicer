@@ -3232,12 +3232,37 @@ bool GLCanvas3D::_init_toolbar()
     if (!m_toolbar.add_separator())
         return false;
 
+    item.name = "copy";
+#if ENABLE_SVG_ICONS
+    item.icon_filename = "copy.svg";
+#endif // ENABLE_SVG_ICONS
+    item.tooltip = GUI::L_str("Copy") + " [" + GUI::shortkey_ctrl_prefix() + "C]";
+    item.sprite_id = 4;
+    item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_COPY)); };
+    item.enabled_state_callback = []()->bool { return wxGetApp().plater()->can_copy(); };
+    if (!m_toolbar.add_item(item))
+        return false;
+
+    item.name = "paste";
+#if ENABLE_SVG_ICONS
+    item.icon_filename = "paste.svg";
+#endif // ENABLE_SVG_ICONS
+    item.tooltip = GUI::L_str("Paste") + " [" + GUI::shortkey_ctrl_prefix() + "V]";
+    item.sprite_id = 5;
+    item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_PASTE)); };
+    item.enabled_state_callback = []()->bool { return wxGetApp().plater()->can_paste(); };
+    if (!m_toolbar.add_item(item))
+        return false;
+
+    if (!m_toolbar.add_separator())
+        return false;
+
     item.name = "more";
 #if ENABLE_SVG_ICONS
     item.icon_filename = "instance_add.svg";
 #endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Add instance [+]");
-    item.sprite_id = 4;
+    item.sprite_id = 6;
     item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_MORE)); };
     item.visibility_callback = []()->bool { return wxGetApp().get_mode() != comSimple; };
     item.enabled_state_callback = []()->bool { return wxGetApp().plater()->can_increase_instances(); };
@@ -3249,7 +3274,7 @@ bool GLCanvas3D::_init_toolbar()
     item.icon_filename = "instance_remove.svg";
 #endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Remove instance [-]");
-    item.sprite_id = 5;
+    item.sprite_id = 7;
     item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_FEWER)); };
     item.visibility_callback = []()->bool { return wxGetApp().get_mode() != comSimple; };
     item.enabled_state_callback = []()->bool { return wxGetApp().plater()->can_decrease_instances(); };
@@ -3264,7 +3289,7 @@ bool GLCanvas3D::_init_toolbar()
     item.icon_filename = "split_objects.svg";
 #endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Split to objects");
-    item.sprite_id = 6;
+    item.sprite_id = 8;
     item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_SPLIT_OBJECTS)); };
     item.visibility_callback = GLToolbarItem::Default_Visibility_Callback;
     item.enabled_state_callback = []()->bool { return wxGetApp().plater()->can_split_to_objects(); };
@@ -3276,7 +3301,7 @@ bool GLCanvas3D::_init_toolbar()
     item.icon_filename = "split_parts.svg";
 #endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Split to parts");
-    item.sprite_id = 7;
+    item.sprite_id = 9;
     item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_SPLIT_VOLUMES)); };
     item.visibility_callback = []()->bool { return wxGetApp().get_mode() != comSimple; };
     item.enabled_state_callback = []()->bool { return wxGetApp().plater()->can_split_to_volumes(); };
@@ -3291,7 +3316,7 @@ bool GLCanvas3D::_init_toolbar()
     item.icon_filename = "layers.svg";
 #endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Layers editing");
-    item.sprite_id = 8;
+    item.sprite_id = 10;
     item.is_toggable = true;
     item.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_LAYERSEDITING)); };
     item.visibility_callback = [this]()->bool { return m_process->current_printer_technology() == ptFFF; };
@@ -3501,7 +3526,7 @@ void GLCanvas3D::_picking_pass() const
             ::glClipPlane(GL_CLIP_PLANE0, (GLdouble*)m_camera_clipping_plane.get_data());
             ::glEnable(GL_CLIP_PLANE0);
         }
-        _render_volumes(true);
+        _render_volumes_for_picking();
         if (! m_use_VBOs)
             ::glDisable(GL_CLIP_PLANE0);
 
@@ -3702,12 +3727,9 @@ void GLCanvas3D::_render_legend_texture() const
     m_legend_texture.render(*this);
 }
 
-void GLCanvas3D::_render_volumes(bool fake_colors) const
+void GLCanvas3D::_render_volumes_for_picking() const
 {
     static const GLfloat INV_255 = 1.0f / 255.0f;
-
-    if (!fake_colors)
-        glsafe(::glEnable(GL_LIGHTING));
 
     // do not cull backfaces to show broken geometry, if any
     glsafe(::glDisable(GL_CULL_FACE));
@@ -3718,27 +3740,31 @@ void GLCanvas3D::_render_volumes(bool fake_colors) const
     glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
     glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
 
-    unsigned int volume_id = 0;
-    for (GLVolume* vol : m_volumes.volumes)
+    const Transform3d& view_matrix = m_camera.get_view_matrix();
+    GLVolumeWithIdAndZList to_render = volumes_to_render(m_volumes.volumes, GLVolumeCollection::Opaque, view_matrix);
+    for (const GLVolumeWithIdAndZ& volume : to_render)
     {
-        if (fake_colors)
-        {
-            // Object picking mode. Render the object with a color encoding the object index.
-            unsigned int r = (volume_id & 0x000000FF) >> 0;
-            unsigned int g = (volume_id & 0x0000FF00) >> 8;
-            unsigned int b = (volume_id & 0x00FF0000) >> 16;
-            glsafe(::glColor3f((GLfloat)r * INV_255, (GLfloat)g * INV_255, (GLfloat)b * INV_255));
-        }
-        else
-        {
-            vol->set_render_color();
-            glsafe(::glColor4fv(vol->render_color));
-        }
+        // Object picking mode. Render the object with a color encoding the object index.
+        unsigned int r = (volume.second.first & 0x000000FF) >> 0;
+        unsigned int g = (volume.second.first & 0x0000FF00) >> 8;
+        unsigned int b = (volume.second.first & 0x00FF0000) >> 16;
+        glsafe(::glColor3f((GLfloat)r * INV_255, (GLfloat)g * INV_255, (GLfloat)b * INV_255));
 
-        if ((!fake_colors || !vol->disabled) && (vol->composite_id.volume_id >= 0 || m_render_sla_auxiliaries))
-            vol->render();
+        if (!volume.first->disabled && ((volume.first->composite_id.volume_id >= 0) || m_render_sla_auxiliaries))
+            volume.first->render();
+    }
 
-        ++volume_id;
+    to_render = volumes_to_render(m_volumes.volumes, GLVolumeCollection::Transparent, view_matrix);
+    for (const GLVolumeWithIdAndZ& volume : to_render)
+    {
+        // Object picking mode. Render the object with a color encoding the object index.
+        unsigned int r = (volume.second.first & 0x000000FF) >> 0;
+        unsigned int g = (volume.second.first & 0x0000FF00) >> 8;
+        unsigned int b = (volume.second.first & 0x00FF0000) >> 16;
+        glsafe(::glColor3f((GLfloat)r * INV_255, (GLfloat)g * INV_255, (GLfloat)b * INV_255));
+
+        if (!volume.first->disabled && ((volume.first->composite_id.volume_id >= 0) || m_render_sla_auxiliaries))
+            volume.first->render();
     }
 
     glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
@@ -3746,9 +3772,6 @@ void GLCanvas3D::_render_volumes(bool fake_colors) const
     glsafe(::glDisable(GL_BLEND));
 
     glsafe(::glEnable(GL_CULL_FACE));
-
-    if (!fake_colors)
-        glsafe(::glDisable(GL_LIGHTING));
 }
 
 void GLCanvas3D::_render_current_gizmo() const
@@ -4026,15 +4049,9 @@ void GLCanvas3D::_update_volumes_hover_state() const
         return;
 
     GLVolume* volume = m_volumes.volumes[m_hover_volume_id];
-
-    switch (m_selection.get_mode())
-    {
-    case Selection::Volume:
-    {
+    if (volume->is_modifier)
         volume->hover = true;
-        break;
-    }
-    case Selection::Instance:
+    else
     {
         int object_idx = volume->object_idx();
         int instance_idx = volume->instance_idx();
@@ -4044,9 +4061,6 @@ void GLCanvas3D::_update_volumes_hover_state() const
             if ((v->object_idx() == object_idx) && (v->instance_idx() == instance_idx))
                 v->hover = true;
         }
-
-        break;
-    }
     }
 }
 

@@ -439,6 +439,66 @@ void ObjectList::selection_changed()
     part_selection_changed();
 }
 
+void ObjectList::paste_volumes_into_list(int obj_idx, const ModelVolumePtrs& volumes)
+{
+    if ((obj_idx < 0) || ((int)m_objects->size() <= obj_idx))
+        return;
+
+    if (volumes.empty())
+        return;
+
+    ModelObject& model_object = *(*m_objects)[obj_idx];
+    const auto object_item = m_objects_model->GetItemById(obj_idx);
+
+    wxDataViewItemArray items;
+
+    for (const ModelVolume* volume : volumes)
+    {
+        auto vol_item = m_objects_model->AddVolumeChild(object_item, volume->name, volume->type(),
+            volume->config.has("extruder") ? volume->config.option<ConfigOptionInt>("extruder")->value : 0);
+        auto opt_keys = volume->config.keys();
+        if (!opt_keys.empty() && !((opt_keys.size() == 1) && (opt_keys[0] == "extruder")))
+            select_item(m_objects_model->AddSettingsChild(vol_item));
+
+        items.Add(vol_item);
+    }
+
+    m_parts_changed = true;
+    parts_changed(obj_idx);
+
+    if (items.size() > 1)
+    {
+        m_selection_mode = smVolume;
+        m_last_selected_item = wxDataViewItem(0);
+    }
+
+    select_items(items);
+#ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
+    selection_changed();
+#endif //no __WXOSX__ //__WXMSW__
+}
+
+void ObjectList::paste_objects_into_list(const std::vector<size_t>& object_idxs)
+{
+    if (object_idxs.empty())
+        return;
+
+    wxDataViewItemArray items;
+    for (const size_t object : object_idxs)
+    {
+        add_object_to_list(object);
+        m_parts_changed = true;
+        parts_changed(object);
+
+        items.Add(m_objects_model->GetItemById(object));
+    }
+
+    select_items(items);
+#ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
+    selection_changed();
+#endif //no __WXOSX__ //__WXMSW__
+}
+
 void ObjectList::OnChar(wxKeyEvent& event)
 {
     if (event.GetKeyCode() == WXK_BACK){
@@ -1576,11 +1636,11 @@ void ObjectList::split()
 
     for (auto id = 0; id < model_object->volumes.size(); id++) {
         const auto vol_item = m_objects_model->AddVolumeChild(parent, from_u8(model_object->volumes[id]->name),
-                                            model_object->volumes[id]->is_modifier() ? 
-                                                ModelVolumeType::PARAMETER_MODIFIER : ModelVolumeType::MODEL_PART,
-                                            model_object->volumes[id]->config.has("extruder") ?
-                                                model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value : 0,
-                                            false);
+            model_object->volumes[id]->is_modifier() ?
+            ModelVolumeType::PARAMETER_MODIFIER : ModelVolumeType::MODEL_PART,
+            model_object->volumes[id]->config.has("extruder") ?
+            model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value : 0,
+            false);
         // add settings to the part, if it has those
         auto opt_keys = model_object->volumes[id]->config.keys();
         if ( !(opt_keys.size() == 1 && opt_keys[0] == "extruder") ) {
@@ -2135,6 +2195,7 @@ void ObjectList::update_selections_on_canvas()
         add_to_selection(item, selection, instance_idx, false);
 
     wxGetApp().plater()->canvas3D()->update_gizmos_on_off_state();
+    wxGetApp().plater()->canvas3D()->render();
 }
 
 void ObjectList::select_item(const wxDataViewItem& item)
