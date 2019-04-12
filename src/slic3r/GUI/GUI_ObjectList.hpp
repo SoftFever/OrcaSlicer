@@ -31,6 +31,8 @@ typedef std::map<std::string, std::vector<std::string>> FreqSettingsBundle;
 //				  category ->		vector 			 ( option	;  label )
 typedef std::map< std::string, std::vector< std::pair<std::string, std::string> > > settings_menu_hierarchy;
 
+typedef std::vector<ModelVolume*> ModelVolumePtrs;
+
 namespace GUI {
 
 wxDECLARE_EVENT(EVT_OBJ_LIST_OBJECT_SELECT, SimpleEvent);
@@ -285,6 +287,10 @@ public:
     void rename_item();
     void fix_through_netfabb() const;
     void update_item_error_icon(const int obj_idx, int vol_idx) const ;
+
+    void paste_volumes_into_list(int obj_idx, const ModelVolumePtrs& volumes);
+    void paste_objects_into_list(const std::vector<size_t>& object_idxs);
+
 private:
     void OnChar(wxKeyEvent& event);
     void OnContextMenu(wxDataViewEvent &event);

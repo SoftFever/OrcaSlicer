@@ -412,6 +412,8 @@ public:
 };
 
 typedef std::vector<GLVolume*> GLVolumePtrs;
+typedef std::pair<GLVolume*, std::pair<unsigned int, double>> GLVolumeWithIdAndZ;
+typedef std::vector<GLVolumeWithIdAndZ> GLVolumeWithIdAndZList;
 
 class GLVolumeCollection
 {
@@ -508,6 +510,8 @@ private:
     GLVolumeCollection(const GLVolumeCollection &other);
     GLVolumeCollection& operator=(const GLVolumeCollection &);
 };
+
+GLVolumeWithIdAndZList volumes_to_render(const GLVolumePtrs& volumes, GLVolumeCollection::ERenderType type, const Transform3d& view_matrix, std::function<bool(const GLVolume&)> filter_func = nullptr);
 
 class GLModel
 {
