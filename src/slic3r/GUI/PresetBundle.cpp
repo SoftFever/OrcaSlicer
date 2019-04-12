@@ -399,7 +399,7 @@ void PresetBundle::export_selections(AppConfig &config)
 void PresetBundle::load_compatible_bitmaps(wxWindow *window)
 {
     // We don't actually pass the window pointer here and instead generate
-    // a low DPI bitmap, because the wxBitmapComboBox and wxDataViewControl don't support
+    // a low DPI bitmap, because the wxBitmapComboBox and wxDataViewCtrl don't support
     // high DPI bitmaps very well, they compute their dimensions wrong.
     // TODO: Update this when fixed in wxWidgets
     // See also PresetCollection::load_bitmap_default() and PresetCollection::load_bitmap_add()
