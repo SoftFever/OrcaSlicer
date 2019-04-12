@@ -88,6 +88,8 @@ public:
         m_data[3] = offset;
     }
 
+    bool is_active() const { return m_data[3] != DBL_MAX; }
+
     static ClippingPlane ClipsNothing() { return ClippingPlane(Vec3d(0., 0., 1.), DBL_MAX); }
 
     const double* get_data() const { return m_data; }

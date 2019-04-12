@@ -706,7 +706,7 @@ void GLGizmoSlaSupports::update_cache_entry_normal(unsigned int i) const
 
 ClippingPlane GLGizmoSlaSupports::get_sla_clipping_plane() const
 {
-    if (!m_model_object)
+    if (!m_model_object || m_state == Off)
         return ClippingPlane::ClipsNothing();
 
     Eigen::Matrix<GLdouble, 4, 4, Eigen::DontAlign> modelview_matrix;
@@ -939,7 +939,6 @@ std::string GLGizmoSlaSupports::on_get_name() const
 void GLGizmoSlaSupports::on_set_state()
 {
         if (m_state == On && m_old_state != On) { // the gizmo was just turned on
-
             if (is_mesh_update_necessary())
                 update_mesh();
 

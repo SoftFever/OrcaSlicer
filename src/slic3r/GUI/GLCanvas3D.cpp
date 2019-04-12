@@ -3527,12 +3527,12 @@ void GLCanvas3D::_picking_pass() const
         glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
         m_camera_clipping_plane = m_gizmos.get_sla_clipping_plane();
-        if (! m_use_VBOs) {
+        if (m_camera_clipping_plane.is_active()) {
             ::glClipPlane(GL_CLIP_PLANE0, (GLdouble*)m_camera_clipping_plane.get_data());
             ::glEnable(GL_CLIP_PLANE0);
         }
         _render_volumes_for_picking();
-        if (! m_use_VBOs)
+        if (m_camera_clipping_plane.is_active())
             ::glDisable(GL_CLIP_PLANE0);
 
         m_gizmos.render_current_gizmo_for_picking_pass(m_selection);
