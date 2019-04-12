@@ -75,8 +75,8 @@ ObjectList::ObjectList(wxWindow* parent) :
 //         CATEGORY_ICON[L("Speed > Acceleration")]    = create_scaled_bitmap(nullptr, "time");
         CATEGORY_ICON[L("Advanced")]                 = create_scaled_bitmap(nullptr, "wrench");
         // ptSLA
-        CATEGORY_ICON[L("Supports")]                 = create_scaled_bitmap(nullptr, "sla_supports");
-        CATEGORY_ICON[L("Pad")]                      = create_scaled_bitmap(nullptr, "brick.png");
+        CATEGORY_ICON[L("Supports")]                 = create_scaled_bitmap(nullptr, "support"/*"sla_supports"*/);
+        CATEGORY_ICON[L("Pad")]                      = create_scaled_bitmap(nullptr, "pad");
     }
 
     // create control
@@ -409,7 +409,7 @@ void ObjectList::init_icons()
     m_objects_model->SetVolumeBitmaps(m_bmp_vector);
 
     // init icon for manifold warning
-    m_bmp_manifold_warning  = create_scaled_bitmap(nullptr, "exclamation_mark_.png");
+    m_bmp_manifold_warning  = create_scaled_bitmap(nullptr, "exclamation");
 
     // init bitmap for "Split to sub-objects" context menu
     m_bmp_split             = create_scaled_bitmap(nullptr, "split_parts_SMALL");

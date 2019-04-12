@@ -414,13 +414,11 @@ void PresetBundle::load_compatible_bitmaps(wxWindow *window)
     filaments    .set_bitmap_compatible(m_bitmapCompatible);
     sla_prints   .set_bitmap_compatible(m_bitmapCompatible);
     sla_materials.set_bitmap_compatible(m_bitmapCompatible);
-    printers .set_bitmap_compatible(m_bitmapCompatible);
 
     prints       .set_bitmap_incompatible(m_bitmapIncompatible);
     filaments    .set_bitmap_incompatible(m_bitmapIncompatible);
     sla_prints   .set_bitmap_incompatible(m_bitmapIncompatible);
     sla_materials.set_bitmap_incompatible(m_bitmapIncompatible);
-    printers .set_bitmap_incompatible(m_bitmapIncompatible);
 
     prints       .set_bitmap_lock(m_bitmapLock);
     filaments    .set_bitmap_lock(m_bitmapLock);

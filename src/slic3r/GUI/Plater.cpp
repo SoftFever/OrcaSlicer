@@ -143,7 +143,7 @@ ObjectInfo::ObjectInfo(wxWindow *parent) :
     info_manifold_text->SetFont(wxGetApp().small_font());
     info_manifold = new wxStaticText(parent, wxID_ANY, "");
     info_manifold->SetFont(wxGetApp().small_font());
-    manifold_warning_icon = new wxStaticBitmap(parent, wxID_ANY, create_scaled_bitmap(parent, "exclamation_mark_.png")/*bitmap*/);
+    manifold_warning_icon = new wxStaticBitmap(parent, wxID_ANY, create_scaled_bitmap(parent, "exclamation"));
     auto *sizer_manifold = new wxBoxSizer(wxHORIZONTAL);
     sizer_manifold->Add(info_manifold_text, 0);
     sizer_manifold->Add(manifold_warning_icon, 0, wxLEFT, 2);
@@ -2869,11 +2869,11 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
         return false;
 
     append_menu_item(mirror_menu, wxID_ANY, _(L("Along X axis")), _(L("Mirror the selected object along the X axis")),
-        [this](wxCommandEvent&) { mirror(X); }, "bullet_red.png", menu);
+        [this](wxCommandEvent&) { mirror(X); }, "mark_X", menu);
     append_menu_item(mirror_menu, wxID_ANY, _(L("Along Y axis")), _(L("Mirror the selected object along the Y axis")),
-        [this](wxCommandEvent&) { mirror(Y); }, "bullet_green.png", menu);
+        [this](wxCommandEvent&) { mirror(Y); }, "mark_Y", menu);
     append_menu_item(mirror_menu, wxID_ANY, _(L("Along Z axis")), _(L("Mirror the selected object along the Z axis")),
-        [this](wxCommandEvent&) { mirror(Z); }, "bullet_blue.png", menu);
+        [this](wxCommandEvent&) { mirror(Z); }, "mark_Z", menu);
 
     wxMenuItem* item_mirror = append_submenu(menu, mirror_menu, wxID_ANY, _(L("Mirror")), _(L("Mirror the selected object")));
 
@@ -2894,7 +2894,7 @@ bool Plater::priv::complit_init_object_menu()
         return false;
 
     wxMenuItem* item_split_objects = append_menu_item(split_menu, wxID_ANY, _(L("To objects")), _(L("Split the selected object into individual objects")),
-        [this](wxCommandEvent&) { split_object(); }, "split_objects", &object_menu);
+        [this](wxCommandEvent&) { split_object(); }, "split_object_SMALL", &object_menu);
     wxMenuItem* item_split_volumes = append_menu_item(split_menu, wxID_ANY, _(L("To parts")), _(L("Split the selected object into individual sub-parts")),
         [this](wxCommandEvent&) { split_volume(); }, "split_parts_SMALL", &object_menu);
 
@@ -2916,7 +2916,7 @@ bool Plater::priv::complit_init_object_menu()
 bool Plater::priv::complit_init_sla_object_menu()
 {
     wxMenuItem* item_split = append_menu_item(&sla_object_menu, wxID_ANY, _(L("Split")), _(L("Split the selected object into individual objects")),
-        [this](wxCommandEvent&) { split_object(); }, "split_objects");
+        [this](wxCommandEvent&) { split_object(); }, "split_object_SMALL");
 
     sla_object_menu.AppendSeparator();
 

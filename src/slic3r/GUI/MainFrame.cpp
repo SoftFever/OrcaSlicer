@@ -281,30 +281,30 @@ void MainFrame::init_menubar()
 
         wxMenu* import_menu = new wxMenu();
         wxMenuItem* item_import_model = append_menu_item(import_menu, wxID_ANY, _(L("Import STL/OBJ/AM&F/3MF")) + dots + "\tCtrl+I", _(L("Load a model")),
-            [this](wxCommandEvent&) { if (m_plater) m_plater->add_model(); }, "brick_add.png");
+            [this](wxCommandEvent&) { if (m_plater) m_plater->add_model(); }, "import_plater");
         import_menu->AppendSeparator();
         append_menu_item(import_menu, wxID_ANY, _(L("Import &Config")) + dots + "\tCtrl+L", _(L("Load exported configuration file")),
-            [this](wxCommandEvent&) { load_config_file(); }, "plugin_add.png");
+            [this](wxCommandEvent&) { load_config_file(); }, "import_config");
         append_menu_item(import_menu, wxID_ANY, _(L("Import Config from &project")) + dots +"\tCtrl+Alt+L", _(L("Load configuration from project file")),
-            [this](wxCommandEvent&) { if (m_plater) m_plater->extract_config_from_project(); }, "plugin_add.png");
+            [this](wxCommandEvent&) { if (m_plater) m_plater->extract_config_from_project(); }, "import_config");
         import_menu->AppendSeparator();
         append_menu_item(import_menu, wxID_ANY, _(L("Import Config &Bundle")) + dots, _(L("Load presets from a bundle")),
-            [this](wxCommandEvent&) { load_configbundle(); }, "lorry_add.png");
+            [this](wxCommandEvent&) { load_configbundle(); }, "import_config_bundle");
         append_submenu(fileMenu, import_menu, wxID_ANY, _(L("&Import")), "");
 
         wxMenu* export_menu = new wxMenu();
         wxMenuItem* item_export_gcode = append_menu_item(export_menu, wxID_ANY, _(L("Export &G-code")) + dots +"\tCtrl+G", _(L("Export current plate as G-code")),
-            [this](wxCommandEvent&) { if (m_plater) m_plater->export_gcode(); }, "cog_go.png");
+            [this](wxCommandEvent&) { if (m_plater) m_plater->export_gcode(); }, "export_gcode");
         export_menu->AppendSeparator();
         wxMenuItem* item_export_stl = append_menu_item(export_menu, wxID_ANY, _(L("Export plate as &STL")) + dots, _(L("Export current plate as STL")),
-            [this](wxCommandEvent&) { if (m_plater) m_plater->export_stl(); }, "brick_go.png");
+            [this](wxCommandEvent&) { if (m_plater) m_plater->export_stl(); }, "export_plater");
         wxMenuItem* item_export_amf = append_menu_item(export_menu, wxID_ANY, _(L("Export plate as &AMF")) + dots, _(L("Export current plate as AMF")),
-            [this](wxCommandEvent&) { if (m_plater) m_plater->export_amf(); }, "brick_go.png");
+            [this](wxCommandEvent&) { if (m_plater) m_plater->export_amf(); }, "export_plater");
         export_menu->AppendSeparator();
         append_menu_item(export_menu, wxID_ANY, _(L("Export &Config")) +dots +"\tCtrl+E", _(L("Export current configuration to file")),
-            [this](wxCommandEvent&) { export_config(); }, "plugin_go.png");
+            [this](wxCommandEvent&) { export_config(); }, "export_config");
         append_menu_item(export_menu, wxID_ANY, _(L("Export Config &Bundle")) + dots, _(L("Export all presets to file")),
-            [this](wxCommandEvent&) { export_configbundle(); }, "lorry_go.png");
+            [this](wxCommandEvent&) { export_configbundle(); }, "export_config_bundle");
         append_submenu(fileMenu, export_menu, wxID_ANY, _(L("&Export")), "");
 
         fileMenu->AppendSeparator();

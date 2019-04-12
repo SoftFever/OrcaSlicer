@@ -153,7 +153,7 @@ void Tab::create_preset_tab()
 	m_bmp_non_system = &m_bmp_white_bullet;
 	// Bitmaps to be shown on the "Undo user changes" button next to each input field.
 	m_bmp_value_revert    = create_scaled_bitmap(this, "undo");
-	m_bmp_white_bullet    = create_scaled_bitmap(this, "bullet_white.png");
+	m_bmp_white_bullet    = create_scaled_bitmap(this, luma >= 128 ? "dot" : "dot_white"/*"bullet_white.png"*/);
 	m_bmp_question        = create_scaled_bitmap(this, "question");
 
 	fill_icon_descriptions();
@@ -1632,7 +1632,7 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
         auto btn = m_printhost_browse_btn = new wxButton(parent, wxID_ANY, _(L(" Browse ")) + dots, 
             wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
 		btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
-        btn->SetBitmap(create_scaled_bitmap(this, "zoom.png"));
+        btn->SetBitmap(create_scaled_bitmap(this, "browse"));
 		auto sizer = new wxBoxSizer(wxHORIZONTAL);
 		sizer->Add(btn);
 
@@ -1651,7 +1651,7 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 		auto btn = m_print_host_test_btn = new wxButton(parent, wxID_ANY, _(L("Test")), 
 			wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
 		btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
-        btn->SetBitmap(create_scaled_bitmap(this, "wrench.png"));
+        btn->SetBitmap(create_scaled_bitmap(this, "test"));
 		auto sizer = new wxBoxSizer(wxHORIZONTAL);
 		sizer->Add(btn);
 
@@ -1688,7 +1688,7 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 		auto printhost_cafile_browse = [this, optgroup] (wxWindow* parent) {
 			auto btn = new wxButton(parent, wxID_ANY, _(L(" Browse "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
 			btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
-			btn->SetBitmap(create_scaled_bitmap(this, "zoom.png"));
+			btn->SetBitmap(create_scaled_bitmap(this, "browse"));
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(btn);
 
@@ -1766,7 +1766,7 @@ void TabPrinter::build_fff()
 		line.widget = [this](wxWindow* parent) {
 			auto btn = new wxButton(parent, wxID_ANY, _(L(" Set "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
             btn->SetFont(wxGetApp().small_font());
-            btn->SetBitmap(create_scaled_bitmap(this, "printer"));
+            btn->SetBitmap(create_scaled_bitmap(this, "printer_white"));
 
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(btn);
@@ -1967,7 +1967,7 @@ void TabPrinter::build_sla()
     line.widget = [this](wxWindow* parent) {
         auto btn = new wxButton(parent, wxID_ANY, _(L(" Set ")) + dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
         btn->SetFont(wxGetApp().small_font());
-        btn->SetBitmap(create_scaled_bitmap(this, "printer"));
+        btn->SetBitmap(create_scaled_bitmap(this, "printer_white"));
 
         auto sizer = new wxBoxSizer(wxHORIZONTAL);
         sizer->Add(btn);
@@ -2912,7 +2912,7 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
 	deps.btn = new wxButton(parent, wxID_ANY, _(L(" Set "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
 	deps.btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 
-    deps.btn->SetBitmap(create_scaled_bitmap(this, "printer"));
+    deps.btn->SetBitmap(create_scaled_bitmap(this, "printer_white"));
 
 	auto sizer = new wxBoxSizer(wxHORIZONTAL);
 	sizer->Add((deps.checkbox), 0, wxALIGN_CENTER_VERTICAL);
@@ -3308,7 +3308,7 @@ void TabSLAPrint::build()
     optgroup->append_single_option_line("layer_height");
     optgroup->append_single_option_line("faded_layers");
 
-    page = add_options_page(_(L("Supports")), "sla_supports");
+    page = add_options_page(_(L("Supports")), "support"/*"sla_supports"*/);
     optgroup = page->new_optgroup(_(L("Supports")));
     optgroup->append_single_option_line("supports_enable");
 
@@ -3336,7 +3336,7 @@ void TabSLAPrint::build()
     optgroup->append_single_option_line("support_points_density_relative");
     optgroup->append_single_option_line("support_points_minimal_distance");
 
-    page = add_options_page(_(L("Pad")), "brick.png");
+    page = add_options_page(_(L("Pad")), "pad");
     optgroup = page->new_optgroup(_(L("Pad")));
     optgroup->append_single_option_line("pad_enable");
     optgroup->append_single_option_line("pad_wall_thickness");
