@@ -189,7 +189,6 @@ target_link_libraries(libslic3r
     clipper
     nowide
     ${EXPAT_LIBRARIES}
-    ${GLEW_LIBRARIES}
     glu-libtess
     polypartition
     poly2tri
