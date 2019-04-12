@@ -774,6 +774,7 @@ void GLVolumeCollection::render_VBOs(GLVolumeCollection::ERenderType type, bool 
     glsafe(::glGetIntegerv(GL_CURRENT_PROGRAM, &current_program_id));
     GLint color_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "uniform_color") : -1;
     GLint z_range_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "z_range") : -1;
+    GLint clipping_plane_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "clipping_plane") : -1;
     GLint print_box_min_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "print_box.min") : -1;
     GLint print_box_max_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "print_box.max") : -1;
     GLint print_box_detection_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "print_box.volume_detection") : -1;
@@ -788,6 +789,9 @@ void GLVolumeCollection::render_VBOs(GLVolumeCollection::ERenderType type, bool 
 
     if (z_range_id != -1)
         glsafe(::glUniform2fv(z_range_id, 1, (const GLfloat*)z_range));
+
+    if (clipping_plane_id != -1)
+        glsafe(::glUniform4fv(clipping_plane_id, 1, (const GLfloat*)clipping_plane));
 
     GLVolumeWithIdAndZList to_render = volumes_to_render(this->volumes, type, view_matrix, filter_func);
     for (GLVolumeWithIdAndZ& volume : to_render) {

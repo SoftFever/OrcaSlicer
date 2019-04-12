@@ -13,6 +13,7 @@ namespace GUI {
 class Selection;
 class GLGizmoBase;
 class GLCanvas3D;
+class ClippingPlane;
 
 class Rect
 {
@@ -146,7 +147,7 @@ public:
 
     void set_sla_support_data(ModelObject* model_object, const Selection& selection);
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position = Vec2d::Zero(), bool shift_down = false, bool alt_down = false, bool control_down = false);
-
+    ClippingPlane get_sla_clipping_plane() const;
 
     void render_current_gizmo(const Selection& selection) const;
     void render_current_gizmo_for_picking_pass(const Selection& selection) const;

@@ -1079,6 +1079,7 @@ void Selection::paste_from_clipboard()
     case Instance:
     {
         paste_objects_from_clipboard();
+
         break;
     }
     }

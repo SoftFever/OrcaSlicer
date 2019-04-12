@@ -34,7 +34,7 @@ varying vec2 intensity;
 varying vec3 delta_box_min;
 varying vec3 delta_box_max;
 
-varying float world_z;
+varying vec3 world_pos;
 
 void main()
 {
@@ -69,5 +69,5 @@ void main()
     }    
 
     gl_Position = ftransform();
-    world_z = vec3(print_box.volume_world_matrix * gl_Vertex).z;
+    world_pos = vec3(print_box.volume_world_matrix * gl_Vertex);
 } 

@@ -2528,14 +2528,17 @@ void PrintConfigDef::init_sla_params()
 
     def = this->add("pad_wall_height", coFloat);
     def->label = L("Pad wall height");
-    def->tooltip = L("Defines the cavity depth. Set to zero to disable the cavity.");
+    def->tooltip = L("Defines the pad cavity depth. Set to zero to disable the cavity. "
+                     "Be careful when enabling this feature, as some resins may "
+                     "produce an extreme suction effect inside the cavity, "
+                     "which makes pealing the print off the vat foil difficult.");
     def->category = L("Pad");
 //     def->tooltip = L("");
     def->sidetext = L("mm");
     def->min = 0;
     def->max = 30;
-    def->mode = comSimple;
-    def->default_value = new ConfigOptionFloat(5.0);
+    def->mode = comExpert;
+    def->default_value = new ConfigOptionFloat(0.);
 
     def = this->add("pad_max_merge_distance", coFloat);
     def->label = L("Max merge distance");

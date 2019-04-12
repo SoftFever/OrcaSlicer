@@ -65,6 +65,35 @@ public:
     void set_scale_factor(int height);
 };
 
+
+class ClippingPlane
+{
+    double m_data[4];
+
+public:
+    ClippingPlane()
+    {
+        m_data[0] = 0.0;
+        m_data[1] = 0.0;
+        m_data[2] = 1.0;
+        m_data[3] = 0.0;
+    }
+
+    ClippingPlane(const Vec3d& direction, double offset)
+    {
+        Vec3d norm_dir = direction.normalized();
+        m_data[0] = norm_dir(0);
+        m_data[1] = norm_dir(1);
+        m_data[2] = norm_dir(2);
+        m_data[3] = offset;
+    }
+
+    static ClippingPlane ClipsNothing() { return ClippingPlane(Vec3d(0., 0., 1.), DBL_MAX); }
+
+    const double* get_data() const { return m_data; }
+};
+
+
 wxDECLARE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, SimpleEvent);
 
 using Vec2dEvent = Event<Vec2d>;
@@ -288,32 +317,6 @@ class GLCanvas3D
         }
     };
 
-public:
-    class ClippingPlane
-    {
-        double m_data[4];
-
-    public:
-        ClippingPlane()
-        {
-            m_data[0] = 0.0;
-            m_data[1] = 0.0;
-            m_data[2] = 1.0;
-            m_data[3] = 0.0;
-        }
-
-        ClippingPlane(const Vec3d& direction, double offset)
-        {
-            Vec3d norm_dir = direction.normalized();
-            m_data[0] = norm_dir(0);
-            m_data[1] = norm_dir(1);
-            m_data[2] = norm_dir(2);
-            m_data[3] = offset;
-        }
-
-        const double* get_data() const { return m_data; }
-    };
-
 private:
     struct SlaCap
     {
@@ -405,6 +408,7 @@ private:
     mutable GLGizmosManager m_gizmos;
     mutable GLToolbar m_toolbar;
     ClippingPlane m_clipping_planes[2];
+    mutable ClippingPlane m_camera_clipping_plane;
     bool m_use_clipping_planes;
     mutable SlaCap m_sla_caps[2];
     std::string m_sidebar_field;

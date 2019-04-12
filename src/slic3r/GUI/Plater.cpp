@@ -3711,6 +3711,7 @@ void Plater::paste_from_clipboard()
 {
     p->view3D->get_canvas3d()->get_selection().paste_from_clipboard();
 }
+
 bool Plater::can_paste_from_clipboard() const
 {
     const Selection& selection = p->view3D->get_canvas3d()->get_selection();
