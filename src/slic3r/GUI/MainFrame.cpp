@@ -375,16 +375,16 @@ void MainFrame::init_menubar()
             [this](wxCommandEvent&) { m_plater->select_all(); }, "");
         editMenu->AppendSeparator();
         wxMenuItem* item_delete_sel = append_menu_item(editMenu, wxID_ANY, _(L("&Delete selected")) + sep + hotkey_delete, _(L("Deletes the current selection")),
-            [this](wxCommandEvent&) { m_plater->remove_selected(); }, "");
+            [this](wxCommandEvent&) { m_plater->remove_selected(); }, "remove_menu");
         wxMenuItem* item_delete_all = append_menu_item(editMenu, wxID_ANY, _(L("Delete &all")) + sep + GUI::shortkey_ctrl_prefix() + sep_space + hotkey_delete, _(L("Deletes all objects")),
-            [this](wxCommandEvent&) { m_plater->reset(); }, "");
+            [this](wxCommandEvent&) { m_plater->reset(); }, "delete_all_menu");
 
         editMenu->AppendSeparator();
 
         wxMenuItem* item_copy = append_menu_item(editMenu, wxID_ANY, _(L("&Copy")) + "\tCtrl+C", _(L("Copy selection to clipboard")),
-            [this](wxCommandEvent&) { m_plater->copy_selection_to_clipboard(); }, "");
+            [this](wxCommandEvent&) { m_plater->copy_selection_to_clipboard(); }, "copy_menu");
         wxMenuItem* item_paste = append_menu_item(editMenu, wxID_ANY, _(L("&Paste")) + "\tCtrl+V", _(L("Paste clipboard")),
-            [this](wxCommandEvent&) { m_plater->paste_from_clipboard(); }, "");
+            [this](wxCommandEvent&) { m_plater->paste_from_clipboard(); }, "paste_menu");
 
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_select()); }, item_select_all->GetId());
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_delete()); }, item_delete_sel->GetId());
