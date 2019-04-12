@@ -1572,10 +1572,8 @@ public:
             auto hit = bridge_mesh_intersect(headjp, n, r);
 
             if(std::isinf(hit.distance())) ground_head_indices.emplace_back(i);
-            else {
-                if(m_cfg.ground_facing_only) head.invalidate();
-                m_iheads_onmodel.emplace_back(std::make_pair(i, hit));
-            }
+            else if(m_cfg.ground_facing_only)  head.invalidate();
+            else m_iheads_onmodel.emplace_back(std::make_pair(i, hit));
         }
 
         // We want to search for clusters of points that are far enough
@@ -1872,7 +1870,7 @@ public:
         }
     }
 
-    void cascade_pillars() {
+    void interconnect_pillars() {
         // Now comes the algorithm that connects pillars with each other.
         // Ideally every pillar should be connected with at least one of its
         // neighbors if that neighbor is within max_pillar_link_distance
@@ -2121,7 +2119,7 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
 
         std::bind(&Algorithm::routing_to_model, &alg),
 
-        std::bind(&Algorithm::cascade_pillars, &alg),
+        std::bind(&Algorithm::interconnect_pillars, &alg),
 
         std::bind(&Algorithm::routing_headless, &alg),
 
@@ -2150,16 +2148,16 @@ bool SLASupportTree::generate(const std::vector<SupportPoint> &support_points,
     // Let's define a simple automaton that will run our program.
     auto progress = [&ctl, &pc] () {
         static const std::array<std::string, NUM_STEPS> stepstr {
-            L("Starting"),
-            L("Filtering"),
-            L("Generate pinheads"),
-            L("Classification"),
-            L("Routing to ground"),
-            L("Routing supports to model surface"),
-            L("Cascading pillars"),
-            L("Processing small holes"),
-            L("Done"),
-            L("Abort")
+            "Starting",
+            "Filtering",
+            "Generate pinheads",
+            "Classification",
+            "Routing to ground",
+            "Routing supports to model surface",
+            "Interconnecting pillars",
+            "Processing small holes",
+            "Done",
+            "Abort"
         };
 
         static const std::array<unsigned, NUM_STEPS> stepstate {
