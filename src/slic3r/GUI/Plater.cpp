@@ -3698,6 +3698,11 @@ void Plater::changed_object(int obj_idx)
     this->p->schedule_background_process();
 }
 
+void Plater::schedule_background_process()
+{
+    this->p->schedule_background_process();    
+}
+
 void Plater::fix_through_netfabb(const int obj_idx, const int vol_idx/* = -1*/) { p->fix_through_netfabb(obj_idx, vol_idx); }
 
 void Plater::update_object_menu() { p->update_object_menu(); }

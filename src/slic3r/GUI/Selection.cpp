@@ -1033,9 +1033,14 @@ void Selection::copy_to_clipboard()
     {
         ModelObject* src_object = m_model->objects[object.first];
         ModelObject* dst_object = m_clipboard.add_object();
-        dst_object->name = src_object->name;
-        dst_object->input_file = src_object->input_file;
-        dst_object->config = src_object->config;
+        dst_object->name                 = src_object->name;
+        dst_object->input_file           = src_object->input_file;
+        dst_object->config               = src_object->config;
+        dst_object->sla_support_points   = src_object->sla_support_points;
+        dst_object->sla_points_status    = src_object->sla_points_status;
+        dst_object->layer_height_ranges  = src_object->layer_height_ranges;
+        dst_object->layer_height_profile = src_object->layer_height_profile;
+        dst_object->origin_translation   = src_object->origin_translation;
 
         for (int i : object.second)
         {
@@ -1044,6 +1049,7 @@ void Selection::copy_to_clipboard()
 
         for (unsigned int i : m_list)
         {
+            // Copy the ModelVolumes only for the selected GLVolumes of the 1st selected instance.
             const GLVolume* volume = (*m_volumes)[i];
             if ((volume->object_idx() == object.first) && (volume->instance_idx() == *object.second.begin()))
             {
@@ -1053,7 +1059,8 @@ void Selection::copy_to_clipboard()
                     ModelVolume* src_volume = src_object->volumes[volume_idx];
                     ModelVolume* dst_volume = dst_object->add_volume(*src_volume);
                     dst_volume->set_new_unique_id();
-                    dst_volume->config = src_volume->config;
+                } else {
+                    assert(false);
                 }
             }
         }
@@ -1776,7 +1783,6 @@ void Selection::paste_volumes_from_clipboard()
         for (ModelVolume* src_volume : src_object->volumes)
         {
             ModelVolume* dst_volume = dst_object->add_volume(*src_volume);
-            dst_volume->config = src_volume->config;
             dst_volume->set_new_unique_id();
             double offset = wxGetApp().plater()->canvas3D()->get_size_proportional_to_max_bed_size(0.05);
             dst_volume->translate(offset, offset, 0.0);
