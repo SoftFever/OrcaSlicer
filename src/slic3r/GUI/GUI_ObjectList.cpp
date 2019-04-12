@@ -1437,9 +1437,7 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
     const wxString name = _(L("Generic")) + "-" + _(type_name);
     TriangleMesh mesh;
 
-    auto& bed_shape = printer_config().option<ConfigOptionPoints>("bed_shape")->values;
-    const auto& sz = BoundingBoxf(bed_shape).size();
-    const auto side = 0.1 * std::max(sz(0), sz(1));
+    double side = wxGetApp().plater()->canvas3D()->get_size_proportional_to_max_bed_size(0.1);
 
     if (type_name == "Box")
         // Sitting on the print bed, left front front corner at (0, 0).

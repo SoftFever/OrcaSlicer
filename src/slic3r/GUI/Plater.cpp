@@ -3225,8 +3225,9 @@ void Plater::increase_instances(size_t num)
 
     bool was_one_instance = model_object->instances.size()==1;
         
-    float offset = 10.0;
-    for (size_t i = 0; i < num; i++, offset += 10.0) {
+    double offset_base = canvas3D()->get_size_proportional_to_max_bed_size(0.05);
+    double offset = offset_base;
+    for (size_t i = 0; i < num; i++, offset += offset_base) {
         Vec3d offset_vec = model_instance->get_offset() + Vec3d(offset, offset, 0.0);
         model_object->add_instance(offset_vec, model_instance->get_scaling_factor(), model_instance->get_rotation(), model_instance->get_mirror());
 //        p->print.get_object(obj_idx)->add_copy(Slic3r::to_2d(offset_vec));

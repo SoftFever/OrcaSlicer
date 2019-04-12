@@ -3140,6 +3140,11 @@ Linef3 GLCanvas3D::mouse_ray(const Point& mouse_pos)
     return Linef3(_mouse_to_3d(mouse_pos, &z0), _mouse_to_3d(mouse_pos, &z1));
 }
 
+double GLCanvas3D::get_size_proportional_to_max_bed_size(double factor) const
+{
+    return factor * m_bed.get_bounding_box().max_size();
+}
+
 bool GLCanvas3D::_is_shown_on_screen() const
 {
     return (m_canvas != nullptr) ? m_canvas->IsShownOnScreen() : false;

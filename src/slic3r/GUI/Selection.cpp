@@ -1778,7 +1778,8 @@ void Selection::paste_volumes_from_clipboard()
             ModelVolume* dst_volume = dst_object->add_volume(*src_volume);
             dst_volume->config = src_volume->config;
             dst_volume->set_new_unique_id();
-            dst_volume->translate(10.0, 10.0, 0.0);
+            double offset = wxGetApp().plater()->canvas3D()->get_size_proportional_to_max_bed_size(0.05);
+            dst_volume->translate(offset, offset, 0.0);
             volumes.push_back(dst_volume);
         }
         wxGetApp().obj_list()->paste_volumes_into_list(obj_idx, volumes);
@@ -1792,7 +1793,8 @@ void Selection::paste_objects_from_clipboard()
     for (const ModelObject* src_object : src_objects)
     {
         ModelObject* dst_object = m_model->add_object(*src_object);
-        dst_object->translate(10.0, 10.0, 0.0);
+        double offset = wxGetApp().plater()->canvas3D()->get_size_proportional_to_max_bed_size(0.05);
+        dst_object->translate(offset, offset, 0.0);
         object_idxs.push_back(m_model->objects.size() - 1);
     }
 

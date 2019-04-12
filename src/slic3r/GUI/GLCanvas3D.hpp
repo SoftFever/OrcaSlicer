@@ -583,6 +583,8 @@ public:
     void refresh_camera_scene_box() { m_camera.set_scene_box(scene_bounding_box()); }
     bool is_mouse_dragging() const { return m_mouse.dragging; }
 
+    double get_size_proportional_to_max_bed_size(double factor) const;
+
 private:
     bool _is_shown_on_screen() const;
 
