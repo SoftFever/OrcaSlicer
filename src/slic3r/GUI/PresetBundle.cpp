@@ -323,6 +323,14 @@ void PresetBundle::load_installed_printers(const AppConfig &config)
     for (auto &preset : printers) {
         preset.set_visible_from_appconfig(config);
     }
+
+    for (auto &preset : filaments) {
+        preset.set_visible_from_appconfig(config);
+    }
+
+    for (auto &preset : sla_materials) {
+        preset.set_visible_from_appconfig(config);
+    }
 }
 
 // Load selections (current print, current filaments, current printer) from config.ini

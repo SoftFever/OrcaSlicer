@@ -15,6 +15,8 @@
 #include <wx/choice.h>
 #include <wx/spinctrl.h>
 #include <wx/textctrl.h>
+#include <wx/listbox.h>
+#include <wx/checklst.h>
 
 #include "libslic3r/PrintConfig.hpp"
 #include "slic3r/Utils/PresetUpdater.hpp"
@@ -41,6 +43,13 @@ enum {
     ROW_SPACING = 75,
 };
 
+enum Technology {
+    // Bitflag equivalent of PrinterTechnology
+    T_FFF = 0x1,
+    T_SLA = 0x2,
+    T_Any = ~0,
+};
+
 typedef std::function<bool(const VendorProfile::PrinterModel&)> ModelFilter;
 
 struct PrinterPicker: wxPanel
@@ -61,19 +70,20 @@ struct PrinterPicker: wxPanel
     std::vector<Checkbox*> cboxes;
     std::vector<Checkbox*> cboxes_alt;
 
-    PrinterPicker(wxWindow *parent, const VendorProfile &vendor, wxString title, size_t max_cols, const AppConfig &appconfig_vendors, const ModelFilter &filter);
-    PrinterPicker(wxWindow *parent, const VendorProfile &vendor, wxString title, size_t max_cols, const AppConfig &appconfig_vendors);
+    PrinterPicker(wxWindow *parent, const VendorProfile &vendor, wxString title, size_t max_cols, const AppConfig &appconfig, const ModelFilter &filter);
+    PrinterPicker(wxWindow *parent, const VendorProfile &vendor, wxString title, size_t max_cols, const AppConfig &appconfig);
 
     void select_all(bool select, bool alternates = false);
     void select_one(size_t i, bool select);
-    void on_checkbox(const Checkbox *cbox, bool checked);
+    bool any_selected() const;
 
     int get_width() const { return width; }
     const std::vector<int>& get_button_indexes() { return m_button_indexes; }
 private:
     int width;
-
     std::vector<int> m_button_indexes;
+
+    void on_checkbox(const Checkbox *cbox, bool checked);
 };
 
 struct ConfigWizardPage: wxPanel
@@ -111,19 +121,93 @@ struct PageWelcome: ConfigWizardPage
 
 struct PagePrinters: ConfigWizardPage
 {
-    enum Technology {
-        // Bitflag equivalent of PrinterTechnology
-        T_FFF = 0x1,
-        T_SLA = 0x2,
-        T_Any = ~0,
-    };
-
     std::vector<PrinterPicker *> printer_pickers;
 
     PagePrinters(ConfigWizard *parent, wxString title, wxString shortname, const VendorProfile &vendor, unsigned indent, Technology technology);
 
     void select_all(bool select, bool alternates = false);
     int get_width() const;
+    bool any_selected() const;
+};
+
+
+struct Materials
+{
+    Technology technology;
+    std::vector<Preset> presets;
+    std::set<std::string> types;
+
+    Materials(Technology technology) : technology(technology) {}
+
+    const std::string& appconfig_section() const;
+    const std::string& get_type(Preset &preset) const;
+    const std::string& get_vendor(Preset &preset) const;
+
+    template<class F> void filter_presets(const std::string &type, const std::string &vendor, F cb) {
+        for (Preset &preset : presets) {
+            if ((type.empty() || get_type(preset) == type) && (vendor.empty() || get_vendor(preset) == vendor)) {
+                cb(preset);
+            }
+        }
+    }
+
+    static const std::string UNKNOWN;
+    static const std::string SECTION_FILAMENTS;
+    static const std::string SECTION_MATERIALS;
+    static const std::string& get_filament_type(const Preset &preset);
+    static const std::string& get_filament_vendor(const Preset &preset);
+    static const std::string& get_material_type(Preset &preset);
+    static const std::string& get_material_vendor(const Preset &preset);
+};
+
+// Here we extend wxListBox and wxCheckListBox
+// to make the client data API much easier to use.
+template<class T, class D> struct DataList : public T
+{
+    DataList(wxWindow *parent) : T(parent, wxID_ANY) {}
+
+    int append(const std::string &label, const D *data) {
+        void *ptr = reinterpret_cast<void*>(const_cast<D*>(data));
+        return this->Append(from_u8(label), ptr);
+    }
+
+    int append(const wxString &label, const D *data) {
+        void *ptr = reinterpret_cast<void*>(const_cast<D*>(data));
+        return this->Append(label, ptr);
+    }
+
+    const D& get_data(int n) {
+        return *reinterpret_cast<const D*>(this->GetClientData(n));
+    }
+
+    int find(const D &data) {
+        for (int i = 0; i < this->GetCount(); i++) {
+            if (get_data(i) == data) { return i; }
+        }
+
+        return wxNOT_FOUND;
+    }
+};
+
+typedef DataList<wxListBox, std::string> StringList;
+typedef DataList<wxCheckListBox, Preset> PresetList;
+
+struct PageMaterials: ConfigWizardPage
+{
+    // Technology technology;
+    Materials *materials;
+    StringList *list_l1, *list_l2;
+    PresetList *list_l3;
+    // wxCheckListBox *list_l3;
+    int sel1_prev, sel2_prev;
+
+    PageMaterials(ConfigWizard *parent, Materials *materials, wxString title, wxString shortname, wxString list1name);
+
+    void update_lists(int sel1, int sel2);
+    void select_material(int i);
+    void select_all(bool select);
+
+    static const std::string EMPTY;
 };
 
 struct PageCustom: ConfigWizardPage
@@ -228,12 +312,6 @@ private:
 
     int em_w;
     int em_h;
-    /* #ys_FIXME_delete_after_testing by VK 
-    const wxBitmap bg;
-    const wxBitmap bullet_black;
-    const wxBitmap bullet_blue;
-    const wxBitmap bullet_white;
-    */
     ScalableBitmap bg;
     ScalableBitmap bullet_black;
     ScalableBitmap bullet_blue;
@@ -245,9 +323,6 @@ private:
     ssize_t item_hover;
     size_t last_page;
 
-    /* #ys_FIXME_delete_after_testing by VK 
-    int item_height() const { return std::max(bullet_black.GetSize().GetHeight(), em_w) + em_w; }
-    */
     int item_height() const { return std::max(bullet_black.bmp().GetSize().GetHeight(), em_w) + em_w; }
 
     void on_paint(wxPaintEvent &evt);
@@ -256,14 +331,18 @@ private:
 
 wxDEFINE_EVENT(EVT_INDEX_PAGE, wxCommandEvent);
 
+
 struct ConfigWizard::priv
 {
     ConfigWizard *q;
     ConfigWizard::RunReason run_reason;
-    AppConfig appconfig_vendors;
+    AppConfig appconfig_new;      // Backing for vendor/model/variant and material selections in the GUI
     std::unordered_map<std::string, VendorProfile> vendors;
-    std::unordered_map<std::string, std::string> vendors_rsrc;
-    std::unique_ptr<DynamicPrintConfig> custom_config;
+    Materials filaments;          // Holds available filament presets and their types & vendors
+    Materials sla_materials;      // Ditto for SLA materials
+    std::unordered_map<std::string, std::string> vendors_rsrc;   // List of bundles to install from resources
+    std::unique_ptr<DynamicPrintConfig> custom_config;           // Backing for custom printer definition
+    bool any_sla_selected;        // Used to decide whether to display SLA Materials page
 
     wxScrolledWindow *hscroll = nullptr;
     wxBoxSizer *hscroll_sizer = nullptr;
@@ -279,6 +358,8 @@ struct ConfigWizard::priv
     PageWelcome      *page_welcome = nullptr;
     PagePrinters     *page_fff = nullptr;
     PagePrinters     *page_msla = nullptr;
+    PageMaterials    *page_filaments = nullptr;
+    PageMaterials    *page_sla_materials = nullptr;
     PageCustom       *page_custom = nullptr;
     PageUpdate       *page_update = nullptr;
     PageVendors      *page_vendors = nullptr;   // XXX: ?
@@ -289,9 +370,14 @@ struct ConfigWizard::priv
     PageDiameters    *page_diams = nullptr;
     PageTemperatures *page_temps = nullptr;
 
-    priv(ConfigWizard *q) : q(q) {}
+    priv(ConfigWizard *q)
+        : q(q)
+        , filaments(T_FFF)
+        , sla_materials(T_SLA)
+        , any_sla_selected(false)
+    {}
 
-    void load_pages(bool custom_setup);
+    void load_pages();
     void init_dialog_size();
 
     bool check_first_variant() const;
@@ -299,7 +385,8 @@ struct ConfigWizard::priv
     void add_page(ConfigWizardPage *page);
     void enable_next(bool enable);
 
-    void on_custom_setup(bool custom_wanted);
+    void on_custom_setup();
+    void on_printer_pick(PagePrinters *page);
 
     void apply_config(AppConfig *app_config, PresetBundle *preset_bundle, const PresetUpdater *updater);
 

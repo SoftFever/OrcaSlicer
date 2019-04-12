@@ -749,6 +749,10 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionStrings { "" });
     def->cli = ConfigOptionDef::nocli;
 
+    def = this->add("filament_vendor", coString);
+    def->set_default_value(new ConfigOptionString(L("(Unknown)")));
+    def->cli = ConfigOptionDef::nocli;
+
     def = this->add("fill_angle", coFloat);
     def->label = L("Fill angle");
     def->category = L("Infill");
@@ -2473,6 +2477,10 @@ void PrintConfigDef::init_sla_params()
     def->height = 13;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString(""));
+
+    def = this->add("material_vendor", coString);
+    def->set_default_value(new ConfigOptionString(L("(Unknown)")));
+    def->cli = ConfigOptionDef::nocli;
 
     def = this->add("default_sla_material_profile", coString);
     def->label = L("Default SLA material profile");

@@ -80,6 +80,12 @@ public:
 		}
 	}
 
+	bool                has_section(const std::string &section) const
+		{ return m_storage.find(section) != m_storage.end(); }
+	const std::map<std::string, std::string>& get_section(const std::string &section) const
+		{ return m_storage.find(section)->second; }
+	void set_section(const std::string &section, const std::map<std::string, std::string>& data)
+		{ m_storage[section] = data; }
 	void 				clear_section(const std::string &section)
 		{ m_storage[section].clear(); }
 

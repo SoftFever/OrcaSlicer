@@ -71,9 +71,14 @@ public:
     };
     std::vector<PrinterModel>          models;
 
+    std::set<std::string>              default_filaments;
+    std::set<std::string>              default_sla_materials;
+
     VendorProfile() {}
     VendorProfile(std::string id) : id(std::move(id)) {}
 
+    // Load VendorProfile from an ini file.
+    // If `load_all` is false, only the header with basic info (name, version, URLs) is loaded.
     static VendorProfile from_ini(const boost::filesystem::path &path, bool load_all=true);
     static VendorProfile from_ini(const boost::property_tree::ptree &tree, const boost::filesystem::path &path, bool load_all=true);
 
