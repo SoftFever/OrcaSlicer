@@ -392,10 +392,10 @@ void ObjectList::update_name_in_model(const wxDataViewItem& item) const
 
 void ObjectList::init_icons()
 {
-    m_bmp_modifiermesh     = create_scaled_bitmap(this, "lambda.png");
-    m_bmp_solidmesh        = create_scaled_bitmap(this, "object.png");
-    m_bmp_support_enforcer = create_scaled_bitmap(this, "support_enforcer_.png");
-    m_bmp_support_blocker  = create_scaled_bitmap(this, "support_blocker_.png");
+    m_bmp_modifiermesh     = create_scaled_bitmap(this, "add_modifier");
+    m_bmp_solidmesh        = create_scaled_bitmap(this, "add_part");
+    m_bmp_support_enforcer = create_scaled_bitmap(this, "support_enforcer");
+    m_bmp_support_blocker  = create_scaled_bitmap(this, "support_blocker");
 
 
     m_bmp_vector.reserve(4); // bitmaps for different types of parts 
@@ -409,7 +409,7 @@ void ObjectList::init_icons()
     m_bmp_manifold_warning  = create_scaled_bitmap(this, "exclamation_mark_.png");
 
     // init bitmap for "Split to sub-objects" context menu
-    m_bmp_split             = create_scaled_bitmap(this, "split_parts");
+    m_bmp_split             = create_scaled_bitmap(this, "split_parts_SMALL");
 
     // init bitmap for "Add Settings" context menu
     m_bmp_cog               = create_scaled_bitmap(this, "cog");

@@ -461,7 +461,7 @@ wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name_in, con
 // ----------------------------------------------------------------------------
 
 void PrusaObjectDataViewModelNode::set_object_action_icon() {
-    m_action_icon = create_scaled_bitmap(nullptr, "add_object.png");    // FIXME: pass window ptr
+    m_action_icon = create_scaled_bitmap(nullptr, "advanced_plus");    // FIXME: pass window ptr
 }
 void  PrusaObjectDataViewModelNode::set_part_action_icon() {
     m_action_icon = create_scaled_bitmap(nullptr, m_type == itVolume ? "cog.png" : "brick_go.png");    // FIXME: pass window ptr

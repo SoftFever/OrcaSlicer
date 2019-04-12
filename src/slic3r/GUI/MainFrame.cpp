@@ -271,7 +271,7 @@ void MainFrame::init_menubar()
     wxMenu* fileMenu = new wxMenu;
     {
         wxMenuItem* item_open = append_menu_item(fileMenu, wxID_ANY, _(L("&Open Project")) + dots + "\tCtrl+O", _(L("Open a project file")),
-            [this](wxCommandEvent&) { if (m_plater) m_plater->load_project(); }, "brick_add.png");
+            [this](wxCommandEvent&) { if (m_plater) m_plater->load_project(); }, "open");
         wxMenuItem* item_save = append_menu_item(fileMenu, wxID_ANY, _(L("&Save Project")) + "\tCtrl+S", _(L("Save current project file")),
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_3mf(into_path(m_plater->get_project_filename())); }, "save");
         wxMenuItem* item_save_as = append_menu_item(fileMenu, wxID_ANY, _(L("Save Project &as")) + dots + "\tCtrl+Alt+S", _(L("Save current project file as")),
@@ -332,10 +332,10 @@ void MainFrame::init_menubar()
         fileMenu->AppendSeparator();
 #endif
         m_menu_item_reslice_now = append_menu_item(fileMenu, wxID_ANY, _(L("(Re)Slice &Now")) + "\tCtrl+R", _(L("Start new slicing process")),
-            [this](wxCommandEvent&) { reslice_now(); }, "shape_handles.png");
+            [this](wxCommandEvent&) { reslice_now(); }, "re_slice");
         fileMenu->AppendSeparator();
         append_menu_item(fileMenu, wxID_ANY, _(L("&Repair STL file")) + dots, _(L("Automatically repair an STL file")),
-            [this](wxCommandEvent&) { repair_stl(); }, "wrench.png");
+            [this](wxCommandEvent&) { repair_stl(); }, "wrench");
         fileMenu->AppendSeparator();
         append_menu_item(fileMenu, wxID_EXIT, _(L("&Quit")), _(L("Quit Slic3r")),
             [this](wxCommandEvent&) { Close(false); });
@@ -390,7 +390,7 @@ void MainFrame::init_menubar()
         size_t tab_offset = 0;
         if (m_plater) {
             append_menu_item(windowMenu, wxID_HIGHEST + 1, _(L("&Plater Tab")) + "\tCtrl+1", _(L("Show the plater")),
-                [this](wxCommandEvent&) { select_tab(0); }, "application_view_tile.png");
+                [this](wxCommandEvent&) { select_tab(0); }, "plater");
             tab_offset += 1;
         }
         if (tab_offset > 0) {
@@ -428,7 +428,7 @@ void MainFrame::init_menubar()
 
         windowMenu->AppendSeparator();
         append_menu_item(windowMenu, wxID_ANY, _(L("Print &Host Upload Queue")) + "\tCtrl+J", _(L("Display the Print Host Upload Queue window")),
-            [this](wxCommandEvent&) { m_printhost_queue_dlg->Show(); }, "arrow_up.png");
+            [this](wxCommandEvent&) { m_printhost_queue_dlg->Show(); }, "upload_queue");
     }
 
     // View menu
