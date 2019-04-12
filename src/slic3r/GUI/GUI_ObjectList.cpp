@@ -61,19 +61,22 @@ ObjectList::ObjectList(wxWindow* parent) :
 {
     // Fill CATEGORY_ICON
     {
+        // Note: `this` isn't passed to create_scaled_bitmap() here because of bugs in the widget,
+        // see note in PresetBundle::load_compatible_bitmaps()
+
         // ptFFF
-		CATEGORY_ICON[L("Layers and Perimeters")]	= create_scaled_bitmap(this, "layers");
-		CATEGORY_ICON[L("Infill")]					= create_scaled_bitmap(this, "infill");
-		CATEGORY_ICON[L("Support material")]		= create_scaled_bitmap(this, "support");
-		CATEGORY_ICON[L("Speed")]					= create_scaled_bitmap(this, "time");
-		CATEGORY_ICON[L("Extruders")]				= create_scaled_bitmap(this, "funnel");
-		CATEGORY_ICON[L("Extrusion Width")]			= create_scaled_bitmap(this, "funnel");
-// 		CATEGORY_ICON[L("Skirt and brim")]			= create_scaled_bitmap(this, "skirt+brim"); 
-// 		CATEGORY_ICON[L("Speed > Acceleration")]	= create_scaled_bitmap(this, "time");
-		CATEGORY_ICON[L("Advanced")]				= create_scaled_bitmap(this, "wrench");
-		// ptSLA
-		CATEGORY_ICON[L("Supports")]				= create_scaled_bitmap(this, "sla_supports");
-		CATEGORY_ICON[L("Pad")]				        = create_scaled_bitmap(this, "brick.png");
+        CATEGORY_ICON[L("Layers and Perimeters")]    = create_scaled_bitmap(nullptr, "layers");
+        CATEGORY_ICON[L("Infill")]                   = create_scaled_bitmap(nullptr, "infill");
+        CATEGORY_ICON[L("Support material")]         = create_scaled_bitmap(nullptr, "support");
+        CATEGORY_ICON[L("Speed")]                    = create_scaled_bitmap(nullptr, "time");
+        CATEGORY_ICON[L("Extruders")]                = create_scaled_bitmap(nullptr, "funnel");
+        CATEGORY_ICON[L("Extrusion Width")]          = create_scaled_bitmap(nullptr, "funnel");
+//         CATEGORY_ICON[L("Skirt and brim")]          = create_scaled_bitmap(nullptr, "skirt+brim"); 
+//         CATEGORY_ICON[L("Speed > Acceleration")]    = create_scaled_bitmap(nullptr, "time");
+        CATEGORY_ICON[L("Advanced")]                 = create_scaled_bitmap(nullptr, "wrench");
+        // ptSLA
+        CATEGORY_ICON[L("Supports")]                 = create_scaled_bitmap(nullptr, "sla_supports");
+        CATEGORY_ICON[L("Pad")]                      = create_scaled_bitmap(nullptr, "brick.png");
     }
 
     // create control
@@ -392,10 +395,10 @@ void ObjectList::update_name_in_model(const wxDataViewItem& item) const
 
 void ObjectList::init_icons()
 {
-    m_bmp_modifiermesh     = create_scaled_bitmap(this, "lambda.png");
-    m_bmp_solidmesh        = create_scaled_bitmap(this, "object.png");
-    m_bmp_support_enforcer = create_scaled_bitmap(this, "support_enforcer_.png");
-    m_bmp_support_blocker  = create_scaled_bitmap(this, "support_blocker_.png");
+    m_bmp_modifiermesh     = create_scaled_bitmap(nullptr, "lambda.png");
+    m_bmp_solidmesh        = create_scaled_bitmap(nullptr, "object.png");
+    m_bmp_support_enforcer = create_scaled_bitmap(nullptr, "support_enforcer_.png");
+    m_bmp_support_blocker  = create_scaled_bitmap(nullptr, "support_blocker_.png");
 
 
     m_bmp_vector.reserve(4); // bitmaps for different types of parts 
@@ -406,13 +409,13 @@ void ObjectList::init_icons()
     m_objects_model->SetVolumeBitmaps(m_bmp_vector);
 
     // init icon for manifold warning
-    m_bmp_manifold_warning  = create_scaled_bitmap(this, "exclamation_mark_.png");
+    m_bmp_manifold_warning  = create_scaled_bitmap(nullptr, "exclamation_mark_.png");
 
     // init bitmap for "Split to sub-objects" context menu
-    m_bmp_split             = create_scaled_bitmap(this, "split_parts");
+    m_bmp_split             = create_scaled_bitmap(nullptr, "split_parts");
 
     // init bitmap for "Add Settings" context menu
-    m_bmp_cog               = create_scaled_bitmap(this, "cog");
+    m_bmp_cog               = create_scaled_bitmap(nullptr, "cog");
 }
 
 
