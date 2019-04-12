@@ -463,6 +463,12 @@ void ObjectList::paste_volumes_into_list(int obj_idx, const ModelVolumePtrs& vol
     m_parts_changed = true;
     parts_changed(obj_idx);
 
+    if (items.size() > 1)
+    {
+        m_selection_mode = smVolume;
+        m_last_selected_item = wxDataViewItem(0);
+    }
+
     select_items(items);
 #ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
     selection_changed();

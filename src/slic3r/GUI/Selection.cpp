@@ -1795,6 +1795,7 @@ void Selection::paste_objects_from_clipboard()
         dst_object->translate(10.0, 10.0, 0.0);
         object_idxs.push_back(m_model->objects.size() - 1);
     }
+
     wxGetApp().obj_list()->paste_objects_into_list(object_idxs);
 }
 
