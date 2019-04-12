@@ -40,8 +40,11 @@
 #include "libslic3r/Utils.hpp"
 
 #include "slic3r.hpp"
-#include "slic3r/GUI/GUI.hpp"
-#include "slic3r/GUI/GUI_App.hpp"
+
+#ifdef SLIC3R_GUI
+    #include "slic3r/GUI/GUI.hpp"
+    #include "slic3r/GUI/GUI_App.hpp"
+#endif /* SLIC3R_GUI */
 
 using namespace Slic3r;
 
