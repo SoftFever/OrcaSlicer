@@ -2394,22 +2394,23 @@ void PrusaLockButton::enter_button(const bool enter)
 
 PrusaModeButton::PrusaModeButton(   wxWindow *parent,
                                     wxWindowID id,
+                                    const std::string& icon_name/* = ""*/,
                                     const wxString& mode/* = wxEmptyString*/,
-                                    const wxBitmap& bmp_on/* = wxNullBitmap*/,
                                     const wxSize& size/* = wxDefaultSize*/,
                                     const wxPoint& pos/* = wxDefaultPosition*/) :
-    wxButton(parent, id, mode, pos, wxDefaultSize/*size*/, wxBU_EXACTFIT | wxNO_BORDER),
-    m_bmp_on(bmp_on)
+//     wxButton(parent, id, mode, pos, wxDefaultSize/*size*/, wxBU_EXACTFIT | wxNO_BORDER),
+    PrusaButton(parent, id, icon_name, mode, size, pos)
+//     m_bmp_on(bmp_on)
 {
-#ifdef __WXMSW__
-    SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
-#endif // __WXMSW__
-    m_bmp_off = create_scaled_bitmap(this, "mode_off_sq.png");
+// #ifdef __WXMSW__
+//     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+// #endif // __WXMSW__
+//     m_bmp_off = create_scaled_bitmap(this, "mode_off_sq.png");
 
     m_tt_focused = wxString::Format(_(L("Switch to the %s mode")), mode);
     m_tt_selected = wxString::Format(_(L("Current mode is %s")), mode);
 
-    SetBitmap(m_bmp_on);
+//     SetBitmap(m_bmp_on);
 
     //button events
     Bind(wxEVT_BUTTON,          &PrusaModeButton::OnButton, this);
@@ -2457,19 +2458,19 @@ PrusaModeSizer::PrusaModeSizer(wxWindow *parent, int hgap/* = 10*/) :
 {
     SetFlexibleDirection(wxHORIZONTAL);
 
-    std::vector<std::pair<wxString, wxBitmap>> buttons = {
-        {_(L("Simple")),    create_scaled_bitmap(parent, "mode_simple_sq.png")},
-        {_(L("Advanced")),  create_scaled_bitmap(parent, "mode_middle_sq.png")},
-        {_(L("Expert")),    create_scaled_bitmap(parent, "mode_expert_sq.png")}
+    std::vector < std::pair < wxString, std::string >> buttons = {
+        {_(L("Simple")),    /*create_scaled_bitmap(parent, */"mode_simple_sq.png"/*)*/},
+        {_(L("Advanced")),  /*create_scaled_bitmap(parent, */"mode_middle_sq.png"/*)*/},
+        {_(L("Expert")),    /*create_scaled_bitmap(parent, */"mode_expert_sq.png"/*)*/}
     };
 
     mode_btns.reserve(3);
     for (const auto& button : buttons) {
-        int x, y;
-        parent->GetTextExtent(button.first, &x, &y, nullptr, nullptr, &Slic3r::GUI::wxGetApp().bold_font());
-        const wxSize size = wxSize(x + button.second.GetWidth() + Slic3r::GUI::wxGetApp().em_unit(), 
-                                   y + Slic3r::GUI::wxGetApp().em_unit());
-        mode_btns.push_back(new PrusaModeButton(parent, wxID_ANY, button.first, button.second, size));
+//         int x, y;
+//         parent->GetTextExtent(button.first, &x, &y, nullptr, nullptr, &Slic3r::GUI::wxGetApp().bold_font());
+//         const wxSize size = wxSize(x + button.second.GetWidth() + Slic3r::GUI::wxGetApp().em_unit(), 
+//                                    y + Slic3r::GUI::wxGetApp().em_unit());
+        mode_btns.push_back(new PrusaModeButton(parent, wxID_ANY, button.second, button.first/*, size*/));
     }
 
     for (auto btn : mode_btns)
@@ -2498,6 +2499,12 @@ void PrusaModeSizer::SetMode(const int mode)
 }
 
 
+void PrusaModeSizer::rescale()
+{
+    for (int m = 0; m < mode_btns.size(); m++)
+        mode_btns[m]->rescale();
+}
+
 // ----------------------------------------------------------------------------
 // PrusaMenu
 // ----------------------------------------------------------------------------
@@ -2516,9 +2523,78 @@ void PrusaMenu::DestroySeparators()
 }
 
 
-// ************************************** EXPERIMENTS ***************************************
+// ----------------------------------------------------------------------------
+// PrusaBitmap
+// ----------------------------------------------------------------------------
+PrusaBitmap::PrusaBitmap(wxWindow *parent, 
+                        const std::string& icon_name/* = ""*/):
+                        m_parent(parent), m_icon_name(icon_name)
+{
+    m_bmp = create_scaled_bitmap(parent, icon_name);
+}
 
-// *****************************************************************************
+
+void PrusaBitmap::rescale()
+{
+    m_bmp = create_scaled_bitmap(m_parent, m_icon_name);
+}
+
+// ----------------------------------------------------------------------------
+// PrusaButton
+// ----------------------------------------------------------------------------
+
+PrusaButton::PrusaButton(wxWindow *parent,
+    wxWindowID id,
+    const std::string& icon_name/*= ""*/,
+    const wxString& label       /* = wxEmptyString*/,
+    const wxSize& size          /* = wxDefaultSize*/,
+    const wxPoint& pos          /* = wxDefaultPosition*/,
+    long style                  /*= wxBU_EXACTFIT | wxNO_BORDER*/) :
+    m_current_icon_name(icon_name),
+    m_parent(parent)
+{
+    const wxBitmap bmp = create_scaled_bitmap(parent, icon_name);
+    Create(parent, id, label, pos, size, style);
+#ifdef __WXMSW__
+    if (style & wxNO_BORDER)
+        SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+#endif // __WXMSW__
+ 
+    SetBitmap(bmp);
+}
+
+
+PrusaButton::PrusaButton(wxWindow *parent, 
+                        wxWindowID id,
+                        const PrusaBitmap& bitmap,
+                        const wxString& label   /*= wxEmptyString*/, 
+                        long style              /*= wxBU_EXACTFIT | wxNO_BORDER*/) :
+    m_current_icon_name(bitmap.name()),
+    m_parent(parent)
+{
+    const wxBitmap& bmp = bitmap.bmp();
+    Create(parent, id, label, wxDefaultPosition, wxDefaultSize, style);
+#ifdef __WXMSW__
+    if (style & wxNO_BORDER)
+        SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+#endif // __WXMSW__
+
+    SetBitmap(bmp);
+}
+
+void PrusaButton::SetBitmap_(const PrusaBitmap& bmp)
+{
+    SetBitmap(bmp.bmp());
+    m_current_icon_name = bmp.name();
+}
+
+void PrusaButton::rescale()
+{
+    const wxBitmap bmp = create_scaled_bitmap(m_parent, m_current_icon_name);
+
+    SetBitmap(bmp);
+}
+
 
 
 

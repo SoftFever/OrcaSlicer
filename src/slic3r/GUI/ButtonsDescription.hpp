@@ -4,10 +4,12 @@
 #include <wx/dialog.h>
 #include <vector>
 
+class PrusaBitmap;
+
 namespace Slic3r {
 namespace GUI {
 
-using t_icon_descriptions = std::vector<std::pair<wxBitmap*, std::string>>;
+using t_icon_descriptions = std::vector<std::pair</*wxBitmap*/PrusaBitmap*, std::string>>;
 
 class ButtonsDescription : public wxDialog
 {

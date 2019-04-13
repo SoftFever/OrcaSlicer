@@ -131,7 +131,7 @@ void PrintConfigDef::init_fff_params()
                    "as [layer_num] and [layer_z].");
     def->multiline = true;
     def->full_width = true;
-    def->height = 50;
+    def->height = 5;
     def->mode = comExpert;
     def->default_value = new ConfigOptionString("");
 
@@ -140,7 +140,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("This code is inserted between objects when using sequential printing. By default extruder and bed temperature are reset using non-wait command; however if M104, M109, M140 or M190 are detected in this custom code, Slic3r will not add temperature commands. Note that you can use placeholder variables for all Slic3r settings, so you can put a \"M109 S[first_layer_temperature]\" command wherever you want.");
     def->multiline = true;
     def->full_width = true;
-    def->height = 120;
+    def->height = 12;
     def->mode = comExpert;
     def->default_value = new ConfigOptionString("");
 
@@ -360,7 +360,7 @@ void PrintConfigDef::init_fff_params()
                    "Note that you can use placeholder variables for all Slic3r settings.");
     def->multiline = true;
     def->full_width = true;
-    def->height = 120;
+    def->height = 12;
     def->mode = comExpert;
     def->default_value = new ConfigOptionString("M104 S0 ; turn off temperature\nG28 X0  ; home X axis\nM84     ; disable motors\n");
 
@@ -539,7 +539,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("If layer print time is estimated below this number of seconds, fan will be enabled "
                    "and its speed will be calculated by interpolating the minimum and maximum speeds.");
     def->sidetext = L("approximate seconds");
-    def->width = 60;
+    def->width = 6;
     def->min = 0;
     def->max = 1000;
     def->mode = comExpert;
@@ -556,7 +556,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("You can put your notes regarding the filament here.");
     def->multiline = true;
     def->full_width = true;
-    def->height = 130;
+    def->height = 13;
     def->mode = comAdvanced;
     def->default_value = new ConfigOptionStrings { "" };
 
@@ -1007,7 +1007,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Inherits profile");
     def->tooltip = L("Name of the profile, from which this profile inherits.");
     def->full_width = true;
-    def->height = 50;
+    def->height = 5;
     def->default_value = new ConfigOptionString();
     def->cli = ConfigOptionDef::nocli;
 
@@ -1034,7 +1034,7 @@ void PrintConfigDef::init_fff_params()
     def->cli = "after-layer-gcode|layer-gcode";
     def->multiline = true;
     def->full_width = true;
-    def->height = 50;
+    def->height = 5;
     def->mode = comExpert;
     def->default_value = new ConfigOptionString("");
 
@@ -1053,7 +1053,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comExpert;
 	def->default_value = new ConfigOptionBool(true);
 
-	const int machine_limits_opt_width = 70;
+	const int machine_limits_opt_width = 7;
 	{
 		struct AxisDefault {
 			std::string         name;
@@ -1252,7 +1252,7 @@ void PrintConfigDef::init_fff_params()
                    "header comments.");
     def->multiline = true;
     def->full_width = true;
-    def->height = 130;
+    def->height = 13;
     def->mode = comAdvanced;
     def->default_value = new ConfigOptionString("");
 
@@ -1387,7 +1387,7 @@ void PrintConfigDef::init_fff_params()
     def->gui_flags = "serialized";
     def->multiline = true;
     def->full_width = true;
-	def->height = 60;
+	def->height = 6;
     def->mode = comExpert;
 	def->default_value = new ConfigOptionStrings();
 
@@ -1402,7 +1402,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("You can put your notes regarding the printer here.");
     def->multiline = true;
     def->full_width = true;
-    def->height = 130;
+    def->height = 13;
     def->mode = comAdvanced;
     def->default_value = new ConfigOptionString("");
 
@@ -1589,7 +1589,7 @@ void PrintConfigDef::init_fff_params()
     def->label = "";
     def->full_label = L("Serial port");
     def->tooltip = L("USB/serial port for printer connection.");
-    def->width = 200;
+    def->width = 20;
     def->default_value = new ConfigOptionString("");
 
     def = this->add("serial_speed", coInt);
@@ -1635,7 +1635,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("If layer print time is estimated below this number of seconds, print moves "
                    "speed will be scaled down to extend duration to this value.");
     def->sidetext = L("approximate seconds");
-    def->width = 60;
+    def->width = 6;
     def->min = 0;
     def->max = 1000;
     def->mode = comExpert;
@@ -1742,7 +1742,7 @@ void PrintConfigDef::init_fff_params()
                    "a \"M109 S[first_layer_temperature]\" command wherever you want.");
     def->multiline = true;
     def->full_width = true;
-    def->height = 120;
+    def->height = 12;
     def->mode = comExpert;
     def->default_value = new ConfigOptionString("G28 ; home all axes\nG1 Z5 F5000 ; lift nozzle\n");
 
@@ -1758,7 +1758,7 @@ void PrintConfigDef::init_fff_params()
                    "in extruder order.");
     def->multiline = true;
     def->full_width = true;
-    def->height = 120;
+    def->height = 12;
     def->mode = comExpert;
     def->default_value = new ConfigOptionStrings { "; Filament gcode\n" };
 
@@ -2008,7 +2008,7 @@ void PrintConfigDef::init_fff_params()
                    "as [previous_extruder] and [next_extruder].");
     def->multiline = true;
     def->full_width = true;
-    def->height = 50;
+    def->height = 5;
     def->mode = comExpert;
     def->default_value = new ConfigOptionString("");
 
@@ -2330,7 +2330,7 @@ void PrintConfigDef::init_sla_params()
     def->tooltip = L("You can put your notes regarding the SLA print material here.");
     def->multiline = true;
     def->full_width = true;
-    def->height = 130;
+    def->height = 13;
     def->mode = comAdvanced;
     def->default_value = new ConfigOptionString("");
 

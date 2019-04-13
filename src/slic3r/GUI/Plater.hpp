@@ -14,6 +14,7 @@
 #include "GLTexture.hpp"
 
 class wxButton;
+class PrusaButton;
 class wxBoxSizer;
 class wxGLCanvas;
 class wxScrolledWindow;
@@ -46,7 +47,7 @@ public:
     PresetComboBox(wxWindow *parent, Preset::Type preset_type);
     ~PresetComboBox();
 
-    wxButton* edit_btn { nullptr };
+    /*wxButton*/PrusaButton* edit_btn { nullptr };
 
 	enum LabelItemType {
 		LABEL_ITEM_MARKER = 0x4d,
@@ -57,6 +58,8 @@ public:
     void set_extruder_idx(const int extr_idx)   { extruder_idx = extr_idx; }
     int  get_extruder_idx() const               { return extruder_idx; }
     void check_selection();
+
+    void rescale();
 
 private:
     typedef std::size_t Marker;
@@ -83,6 +86,7 @@ public:
     void update_presets(Slic3r::Preset::Type preset_type);
     void update_mode_sizer() const;
     void update_reslice_btn_tooltip() const;
+    void rescale();
 
     ObjectManipulation*     obj_manipul();
     ObjectList*             obj_list();

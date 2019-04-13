@@ -882,18 +882,79 @@ private:
 };
 
 
+
+// ----------------------------------------------------------------------------
+// PrusaBitmap
+// ----------------------------------------------------------------------------
+
+class PrusaBitmap
+{
+public:
+    PrusaBitmap() {};
+    PrusaBitmap( wxWindow *parent, const std::string& icon_name = "");
+
+    ~PrusaBitmap() {}
+
+    void                rescale();
+
+    const wxBitmap&     bmp() const { return m_bmp; }
+    const std::string&  name() const { return m_icon_name; }
+
+private:
+    wxWindow*       m_parent {nullptr};
+    wxBitmap        m_bmp;
+    std::string     m_icon_name = "";
+};
+
+
+// ----------------------------------------------------------------------------
+// PrusaButton
+// ----------------------------------------------------------------------------
+
+class PrusaButton : public wxButton
+{
+public:
+    PrusaButton(){}
+    PrusaButton(
+        wxWindow *parent,
+        wxWindowID id,
+        const std::string& icon_name = "",
+        const wxString& label = wxEmptyString,
+        const wxSize& size = wxDefaultSize,
+        const wxPoint& pos = wxDefaultPosition,
+        long style = wxBU_EXACTFIT | wxNO_BORDER);
+
+    PrusaButton(
+        wxWindow *parent,
+        wxWindowID id,
+        const PrusaBitmap& bitmap,
+        const wxString& label = wxEmptyString,
+        long style = wxBU_EXACTFIT | wxNO_BORDER);
+
+    ~PrusaButton() {}
+
+    void SetBitmap_(const PrusaBitmap& bmp);
+
+    void    rescale();
+
+private:
+    wxWindow*       m_parent;
+    std::string     m_current_icon_name = "";
+};
+
+
 // ----------------------------------------------------------------------------
 // PrusaModeButton
 // ----------------------------------------------------------------------------
 
-class PrusaModeButton : public wxButton
+class PrusaModeButton : public PrusaButton/*wxButton*/
 {
 public:
     PrusaModeButton(
         wxWindow *parent,
         wxWindowID id,
+        const std::string& icon_name = "",
         const wxString& mode = wxEmptyString,
-        const wxBitmap& bmp_on = wxNullBitmap,
         const wxSize& size = wxDefaultSize,
         const wxPoint& pos = wxDefaultPosition);
     ~PrusaModeButton() {}
@@ -910,8 +971,8 @@ protected:
 private:
     bool        m_is_selected = false;
 
-    wxBitmap    m_bmp_on;
-    wxBitmap    m_bmp_off;
+//     wxBitmap    m_bmp_on;
+//     wxBitmap    m_bmp_off;
     wxString    m_tt_selected;
     wxString    m_tt_focused;
 };
@@ -929,6 +990,8 @@ public:
     ~PrusaModeSizer() {}
 
     void SetMode(const /*ConfigOptionMode*/int mode);
+
+    void rescale();
 
 private:
     std::vector<PrusaModeButton*> mode_btns;
@@ -957,9 +1020,6 @@ public:
     wxMenuItem* m_separator_scnd { nullptr };   // use like separator between settings items
 };
 
-
-// ******************************* EXPERIMENTS **********************************************
-// ******************************************************************************************
 
 
 #endif // slic3r_GUI_wxExtensions_hpp_

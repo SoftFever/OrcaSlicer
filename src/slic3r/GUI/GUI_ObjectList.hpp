@@ -285,6 +285,9 @@ public:
     void rename_item();
     void fix_through_netfabb() const;
     void update_item_error_icon(const int obj_idx, int vol_idx) const ;
+
+    void rescale();
+
 private:
     void OnChar(wxKeyEvent& event);
     void OnContextMenu(wxDataViewEvent &event);

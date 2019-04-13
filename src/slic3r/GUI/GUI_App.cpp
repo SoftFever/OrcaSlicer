@@ -325,6 +325,13 @@ void GUI_App::init_fonts()
 #endif /*__WXMAC__*/
 }
 
+void GUI_App::scale_fonts(const float scale_f)
+{
+    m_small_font = m_small_font.Scaled(scale_f);
+    m_bold_font = m_bold_font.Scaled(scale_f);
+    m_normal_font = m_normal_font.Scaled(scale_f);
+}
+
 void GUI_App::set_label_clr_modified(const wxColour& clr) {
     m_color_label_modified = clr;
     auto clr_str = wxString::Format(wxT("#%02X%02X%02X"), clr.Red(), clr.Green(), clr.Blue());

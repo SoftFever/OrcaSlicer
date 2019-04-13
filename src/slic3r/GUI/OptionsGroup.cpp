@@ -166,8 +166,11 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
 #endif /* __WXGTK__ */
 
 	// if we have an extra column, build it
-	if (extra_column)
-		grid_sizer->Add(extra_column(this->ctrl_parent(), line), 0, wxALIGN_CENTER_VERTICAL|wxRIGHT, 3);
+        if (extra_column)
+        {
+            m_extra_column_ptrs.push_back(extra_column(this->ctrl_parent(), line));
+            grid_sizer->Add(m_extra_column_ptrs.back(), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 3);
+        }
 
     // Build a label if we have it
 	wxStaticText* label=nullptr;
@@ -180,10 +183,10 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
 		label_style |= staticbox ? 0 : wxST_ELLIPSIZE_END;
 #endif /* __WXGTK__ */
 		label = new wxStaticText(this->ctrl_parent(), wxID_ANY, line.label + (line.label.IsEmpty() ? "" : ": "), 
-							wxDefaultPosition, wxSize(label_width, -1), label_style);
+							wxDefaultPosition, wxSize(label_width*wxGetApp().em_unit(), -1), label_style);
 		label->SetBackgroundStyle(wxBG_STYLE_PAINT);
-        label->SetFont(label_font);
-        label->Wrap(label_width); // avoid a Linux/GTK bug
+        label->SetFont(wxGetApp().normal_font());
+        label->Wrap(label_width*wxGetApp().em_unit()); // avoid a Linux/GTK bug
         if (!line.near_label_widget)
             grid_sizer->Add(label, 0, (staticbox ? 0 : wxALIGN_RIGHT | wxRIGHT) | wxALIGN_CENTER_VERTICAL, line.label.IsEmpty() ? 0 : 5);
         else if (line.near_label_widget && line.label.IsEmpty())
@@ -235,14 +238,13 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
 		wxSizer* sizer_tmp = sizer;
 		// add label if any
 		if (option.label != "") {
-// 			wxString str_label = _(option.label);
 //!			To correct translation by context have to use wxGETTEXT_IN_CONTEXT macro from wxWidget 3.1.1
 			wxString str_label = (option.label == "Top" || option.label == "Bottom") ?
 								_CTX(option.label, "Layers") :
 								_(option.label);
 			label = new wxStaticText(this->ctrl_parent(), wxID_ANY, str_label + ": ", wxDefaultPosition, wxDefaultSize);
 			label->SetBackgroundStyle(wxBG_STYLE_PAINT);
-			label->SetFont(label_font);
+            label->SetFont(wxGetApp().normal_font());
 			sizer_tmp->Add(label, 0, /*wxALIGN_RIGHT |*/ wxALIGN_CENTER_VERTICAL, 0);
 		}
 
@@ -269,7 +271,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
 			auto sidetext = new wxStaticText(	this->ctrl_parent(), wxID_ANY, _(option.sidetext), wxDefaultPosition, 
 												wxSize(sidetext_width, -1)/*wxDefaultSize*/, wxALIGN_LEFT);
 			sidetext->SetBackgroundStyle(wxBG_STYLE_PAINT);
-			sidetext->SetFont(sidetext_font);
+            sidetext->SetFont(wxGetApp().normal_font());
 			sizer_tmp->Add(sidetext, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 4);
 			field->set_side_text_ptr(sidetext);
 		}
@@ -476,6 +478,50 @@ bool ConfigOptionsGroup::update_visibility(ConfigOptionMode mode) {
         return false;
     }
     return true;
+}
+
+void ConfigOptionsGroup::rescale()
+{
+    // update bitmaps for mode markers : set new (rescaled) bitmaps
+    if (rescale_extra_column)
+        for (auto extra_col : m_extra_column_ptrs)
+            rescale_extra_column(extra_col);
+
+    // update undo buttons : rescale bitmaps
+    for (const auto& field : m_fields)
+        field.second->rescale();
+
+    // rescale width of label column
+    if (!m_options_mode.empty() && label_width > 1)
+    {
+        const int cols = m_grid_sizer->GetCols();
+        const int rows = m_grid_sizer->GetEffectiveRowsCount();
+        const int label_col = extra_column == nullptr ? 0 : 1;
+
+        for (int i = 0; i < rows; i++)
+        {
+            const wxSizerItem* label_item = m_grid_sizer->GetItem(i*cols+label_col);
+            if (label_item->IsWindow())
+            {
+                auto label = dynamic_cast<wxStaticText*>(label_item->GetWindow());
+                if (label != nullptr) {
+                    label->SetMinSize(wxSize(label_width*wxGetApp().em_unit(), -1));
+                }
+            }
+            else if (label_item->IsSizer()) // case when we nave near_label_widget
+            {
+                const wxSizerItem* l_item = label_item->GetSizer()->GetItem(1);
+                if (l_item->IsWindow())
+                {
+                    auto label = dynamic_cast<wxStaticText*>(l_item->GetWindow());
+                    if (label != nullptr) {
+                        label->SetMinSize(wxSize(label_width*wxGetApp().em_unit(), -1));
+                    }
+                }
+            }
+        }
+        m_grid_sizer->Layout();
+    }
 }
 
 boost::any ConfigOptionsGroup::config_value(const std::string& opt_key, int opt_index, bool deserialize) {

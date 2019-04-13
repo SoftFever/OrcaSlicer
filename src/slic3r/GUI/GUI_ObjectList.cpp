@@ -2613,6 +2613,18 @@ void ObjectList::update_item_error_icon(const int obj_idx, const int vol_idx) co
     }
 }
 
+void ObjectList::rescale()
+{
+    // update min size !!! Width shouldn't be a wxDefaultCoord
+    SetMinSize(wxSize(1, 15 * wxGetApp().em_unit()));
+
+    GetColumn(0)->SetWidth(19 * wxGetApp().em_unit());
+    GetColumn(1)->SetWidth(8 * wxGetApp().em_unit());
+    GetColumn(2)->SetWidth(int(2 * wxGetApp().em_unit()));
+
+    Layout();
+}
+
 void ObjectList::ItemValueChanged(wxDataViewEvent &event)
 {
     if (event.GetColumn() == 0)
