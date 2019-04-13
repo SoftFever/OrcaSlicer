@@ -549,7 +549,7 @@ void MainFrame::quick_slice(const int qs)
             dlg->ShowModal();
             return;
         }
-        if (std::ifstream(m_qs_last_input_file.char_str())) {
+        if (std::ifstream(m_qs_last_input_file.ToUTF8().data())) {
             auto dlg = new wxMessageDialog(this, _(L("Previously sliced file ("))+m_qs_last_input_file+_(L(") not found.")),
                 _(L("File Not Found")), wxICON_ERROR | wxOK);
             dlg->ShowModal();
@@ -664,24 +664,23 @@ void MainFrame::repair_stl()
         dlg->Destroy();
     }
 
-    auto output_file = input_file;
+    wxString output_file = input_file;
     {
-//         output_file = ~s / \.[sS][tT][lL]$ / _fixed.obj / ;
         auto dlg = new wxFileDialog( this, L("Save OBJ file (less prone to coordinate errors than STL) as:"), 
-                                        get_dir_name(output_file), get_base_name(output_file), 
+                                        get_dir_name(output_file), get_base_name(output_file, ".obj"),
                                         file_wildcards(FT_OBJ), wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if (dlg->ShowModal() != wxID_OK) {
             dlg->Destroy();
-            return /*undef*/;
+            return;
         }
         output_file = dlg->GetPath();
         dlg->Destroy();
     }
 
     auto tmesh = new Slic3r::TriangleMesh();
-    tmesh->ReadSTLFile(input_file.char_str());
+    tmesh->ReadSTLFile(input_file.ToUTF8().data());
     tmesh->repair();
-    tmesh->WriteOBJFile(output_file.char_str());
+    tmesh->WriteOBJFile(output_file.ToUTF8().data());
     Slic3r::GUI::show_info(this, L("Your file was repaired."), L("Repair"));
 }
 
@@ -921,9 +920,12 @@ void MainFrame::update_ui_from_settings()
         tab->update_ui_from_settings();
 }
 
-std::string MainFrame::get_base_name(const wxString &full_name) const 
+std::string MainFrame::get_base_name(const wxString &full_name, const char *extension) const 
 {
-    return boost::filesystem::path(full_name.wx_str()).filename().string();
+    boost::filesystem::path filename = boost::filesystem::path(full_name.wx_str()).filename();
+    if (extension != nullptr)
+		filename = filename.replace_extension(extension);
+    return filename.string();
 }
 
 std::string MainFrame::get_dir_name(const wxString &full_name) const 
