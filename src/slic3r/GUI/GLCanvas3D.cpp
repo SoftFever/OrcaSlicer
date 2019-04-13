@@ -255,16 +255,21 @@ void GLCanvas3D::LayersEditing::set_config(const DynamicPrintConfig* config)
 void GLCanvas3D::LayersEditing::select_object(const Model &model, int object_id)
 {
     const ModelObject *model_object_new = (object_id >= 0) ? model.objects[object_id] : nullptr;
-    if (model_object_new == nullptr || this->last_object_id != object_id || m_model_object != model_object_new || m_model_object->id() != model_object_new->id()) {
+    // Maximum height of an object changes when the object gets rotated or scaled.
+    // Changing maximum height of an object will invalidate the layer heigth editing profile.
+    // m_model_object->raw_bounding_box() is cached, therefore it is cheap even if this method is called frequently.
+    float new_max_z = (m_model_object == nullptr) ? 0.f : m_model_object->raw_bounding_box().size().z();
+	if (m_model_object != model_object_new || this->last_object_id != object_id || m_object_max_z != new_max_z ||
+        (model_object_new != nullptr && m_model_object->id() != model_object_new->id())) {
         m_layer_height_profile.clear();
         m_layer_height_profile_modified = false;
         delete m_slicing_parameters;
-        m_slicing_parameters = nullptr;
+        m_slicing_parameters   = nullptr;
         m_layers_texture.valid = false;
+        this->last_object_id   = object_id;
+        m_model_object         = model_object_new;
+        m_object_max_z         = new_max_z;
     }
-    this->last_object_id = object_id;
-    m_model_object       = model_object_new;
-    m_object_max_z       = (m_model_object == nullptr) ? 0.f : m_model_object->bounding_box().max.z();
 }
 
 bool GLCanvas3D::LayersEditing::is_allowed() const
@@ -623,7 +628,7 @@ void GLCanvas3D::LayersEditing::update_slicing_parameters()
 {
 	if (m_slicing_parameters == nullptr) {
 		m_slicing_parameters = new SlicingParameters();
-    	*m_slicing_parameters = PrintObject::slicing_parameters(*m_config, *m_model_object);
+    	*m_slicing_parameters = PrintObject::slicing_parameters(*m_config, *m_model_object, m_object_max_z);
     }
 }
 
