@@ -1709,9 +1709,6 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 //            wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
 //		btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 //        btn->SetBitmap(create_scaled_bitmap(this, "browse"));
-//         auto btn = m_printhost_browse_btn = new wxButton(parent, wxID_ANY, _(L(" Browse ")) + dots, 
-//             wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
-//         btn->SetBitmap(create_scaled_bitmap(this, "zoom.png"));
         add_scaled_button(parent, &m_printhost_browse_btn, "browse", _(L(" Browse ")) + dots, wxBU_LEFT | wxBU_EXACTFIT);
         PrusaButton* btn = m_printhost_browse_btn;
 		btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
@@ -1731,15 +1728,11 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 	};
 
 	auto print_host_test = [this](wxWindow* parent) {
-		auto btn = m_print_host_test_btn = new wxButton(parent, wxID_ANY, _(L("Test")), 
-			wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
-		btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
-        btn->SetBitmap(create_scaled_bitmap(this, "test"));
-    auto print_host_test = [this](wxWindow* parent) {
 // 		auto btn = m_print_host_test_btn = new wxButton(parent, wxID_ANY, _(L("Test")), 
 // 			wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
-//         btn->SetBitmap(create_scaled_bitmap(this, "wrench.png"));
-        add_scaled_button(parent, &m_print_host_test_btn, "wrench_white", _(L("Test")), wxBU_LEFT | wxBU_EXACTFIT);
+// 		btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+//         btn->SetBitmap(create_scaled_bitmap(this, "test"));
+        add_scaled_button(parent, &m_print_host_test_btn, "test", _(L("Test")), wxBU_LEFT | wxBU_EXACTFIT);
         PrusaButton* btn = m_print_host_test_btn;
         btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 		auto sizer = new wxBoxSizer(wxHORIZONTAL);
