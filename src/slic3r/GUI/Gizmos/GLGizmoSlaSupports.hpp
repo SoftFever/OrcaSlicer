@@ -17,12 +17,17 @@ namespace Slic3r {
 namespace GUI {
 
 
+class ClippingPlane;
+
+
 class GLGizmoSlaSupports : public GLGizmoBase
 {
 private:
     ModelObject* m_model_object = nullptr;
-    ModelObject* m_old_model_object = nullptr;
+    ModelID m_current_mesh_model_id = 0;
     int m_active_instance = -1;
+    float m_active_instance_bb_radius; // to cache the bb
+    mutable float m_z_shift = 0.f;
     std::pair<Vec3f, Vec3f> unproject_on_mesh(const Vec2d& mouse_pos);
 
     const float RenderPointScale = 1.f;
@@ -31,6 +36,8 @@ private:
     Eigen::MatrixXf m_V; // vertices
     Eigen::MatrixXi m_F; // facets indices
     igl::AABB<Eigen::MatrixXf,3> m_AABB;
+    TriangleMesh m_mesh;
+    mutable std::vector<Vec2f> m_triangles;
 
     class CacheEntry {
     public:
@@ -52,7 +59,7 @@ public:
     void set_sla_support_data(ModelObject* model_object, const Selection& selection);
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
     void delete_selected_points(bool force = false);
-    std::pair<float, float> get_sla_clipping_plane() const;
+    ClippingPlane get_sla_clipping_plane() const;
 
 private:
     bool on_init();
@@ -61,7 +68,8 @@ private:
     virtual void on_render_for_picking(const Selection& selection) const;
 
     void render_selection_rectangle() const;
-    void render_points(const Selection& selection, bool picking = false) const;
+    void render_points(const Selection& selection, const Vec3d& direction_to_camera, bool picking = false) const;
+    void render_clipping_plane(const Selection& selection, const Vec3d& direction_to_camera) const;
     bool is_mesh_update_necessary() const;
     void update_mesh();
     void update_cache_entry_normal(unsigned int i) const;
@@ -74,6 +82,8 @@ private:
     float m_density = 100.f;
     mutable std::vector<CacheEntry> m_editing_mode_cache; // a support point and whether it is currently selected
     float m_clipping_plane_distance = 0.f;
+    mutable float m_old_clipping_plane_distance = 0.f;
+    mutable Vec3d m_old_direction_to_camera;
 
     enum SelectionRectangleStatus {
         srOff = 0,
@@ -90,7 +100,11 @@ private:
     int m_canvas_width;
     int m_canvas_height;
 
+    mutable std::unique_ptr<TriangleMeshSlicer> m_tms;
+
     std::vector<const ConfigOption*> get_config_options(const std::vector<std::string>& keys) const;
+    bool is_point_clipped(const Vec3d& point, const Vec3d& direction_to_camera) const;
+    void find_intersecting_facets(const igl::AABB<Eigen::MatrixXf, 3>* aabb, const Vec3f& normal, double offset, std::vector<unsigned int>& out) const;
 
     // Methods that do the model_object and editing cache synchronization,
     // editing mode selection, etc:

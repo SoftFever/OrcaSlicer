@@ -1370,7 +1370,7 @@ void PrintObject::update_slicing_parameters()
             this->print()->config(), m_config, unscale<double>(this->size(2)), this->object_extruders());
 }
 
-SlicingParameters PrintObject::slicing_parameters(const DynamicPrintConfig &full_config, const ModelObject &model_object)
+SlicingParameters PrintObject::slicing_parameters(const DynamicPrintConfig &full_config, const ModelObject &model_object, float object_max_z)
 {
     PrintConfig         print_config;
     PrintObjectConfig   object_config;
@@ -1390,7 +1390,9 @@ SlicingParameters PrintObject::slicing_parameters(const DynamicPrintConfig &full
                 object_extruders);
     sort_remove_duplicates(object_extruders);
 
-    return SlicingParameters::create_from_config(print_config, object_config, model_object.bounding_box().max.z(), object_extruders);
+    if (object_max_z <= 0.f)
+        object_max_z = model_object.raw_bounding_box().size().z();
+	return SlicingParameters::create_from_config(print_config, object_config, object_max_z, object_extruders);
 }
 
 // returns 0-based indices of extruders used to print the object (without brim, support and other helper extrusions)

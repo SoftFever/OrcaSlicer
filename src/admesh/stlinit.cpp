@@ -41,9 +41,11 @@ stl_open(stl_file *stl, const char *file) {
   stl_count_facets(stl, file);
   stl_allocate(stl);
   stl_read(stl, 0, true);
-  if (!stl->error) fclose(stl->fp);
+  if (stl->fp != nullptr) {
+	  fclose(stl->fp);
+	  stl->fp = nullptr;
+  }
 }
-
 
 void
 stl_initialize(stl_file *stl) {
@@ -118,7 +120,7 @@ stl_count_facets(stl_file *stl, const char *file) {
     }
 
     /* Read the int following the header.  This should contain # of facets */
-    bool header_num_faces_read = fread(&header_num_facets, sizeof(uint32_t), 1, stl->fp);
+    bool header_num_faces_read = fread(&header_num_facets, sizeof(uint32_t), 1, stl->fp) != 0;
 #ifndef BOOST_LITTLE_ENDIAN
     // Convert from little endian to big endian.
     stl_internal_reverse_quads((char*)&header_num_facets, 4);
@@ -257,7 +259,6 @@ stl_reallocate(stl_file *stl) {
    time running this for the stl and therefore we should reset our max and min stats. */
 void stl_read(stl_file *stl, int first_facet, bool first) {
   stl_facet facet;
-  int   i;
 
   if (stl->error) return;
 
@@ -268,7 +269,7 @@ void stl_read(stl_file *stl, int first_facet, bool first) {
   }
 
   char normal_buf[3][32];
-  for(i = first_facet; i < stl->stats.number_of_facets; i++) {
+  for(uint32_t i = first_facet; i < stl->stats.number_of_facets; i++) {
     if(stl->stats.type == binary)
       /* Read a single facet from a binary .STL file */
     {
@@ -366,17 +367,19 @@ void stl_facet_stats(stl_file *stl, stl_facet facet, bool &first)
   }
 }
 
-void
-stl_close(stl_file *stl) {
-  if (stl->error) return;
+void stl_close(stl_file *stl)
+{
+	assert(stl->fp == nullptr);
+	assert(stl->heads == nullptr);
+	assert(stl->tail == nullptr);
 
-  if(stl->neighbors_start != NULL)
-    free(stl->neighbors_start);
-  if(stl->facet_start != NULL)
-    free(stl->facet_start);
-  if(stl->v_indices != NULL)
-    free(stl->v_indices);
-  if(stl->v_shared != NULL)
-    free(stl->v_shared);
+	if (stl->facet_start != NULL)
+		free(stl->facet_start);
+	if (stl->neighbors_start != NULL)
+		free(stl->neighbors_start);
+	if (stl->v_indices != NULL)
+		free(stl->v_indices);
+	if (stl->v_shared != NULL)
+		free(stl->v_shared);
+	memset(stl, 0, sizeof(stl_file));
 }
-

@@ -693,6 +693,16 @@ void TriangleMeshSlicer::init(TriangleMesh *_mesh, throw_on_cancel_callback_type
     }
 }
 
+
+
+void TriangleMeshSlicer::set_up_direction(const Vec3f& up)
+{
+    m_quaternion.setFromTwoVectors(up, Vec3f::UnitZ());
+    m_use_quaternion = true;
+}
+
+
+
 void TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<Polygons>* layers, throw_on_cancel_callback_type throw_on_cancel) const
 {
     BOOST_LOG_TRIVIAL(debug) << "TriangleMeshSlicer::slice";
@@ -795,7 +805,7 @@ void TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<Polygons
 void TriangleMeshSlicer::_slice_do(size_t facet_idx, std::vector<IntersectionLines>* lines, boost::mutex* lines_mutex, 
     const std::vector<float> &z) const
 {
-    const stl_facet &facet = this->mesh->stl.facet_start[facet_idx];
+    const stl_facet &facet = m_use_quaternion ? this->mesh->stl.facet_start[facet_idx].rotated(m_quaternion) : this->mesh->stl.facet_start[facet_idx];
     
     // find facet extents
     const float min_z = fminf(facet.vertex[0](2), fminf(facet.vertex[1](2), facet.vertex[2](2)));
@@ -860,26 +870,43 @@ TriangleMeshSlicer::FacetSliceType TriangleMeshSlicer::slice_facet(
     IntersectionPoint points[3];
     size_t            num_points = 0;
     size_t            point_on_layer = size_t(-1);
-    
+
     // Reorder vertices so that the first one is the one with lowest Z.
     // This is needed to get all intersection lines in a consistent order
     // (external on the right of the line)
     const int *vertices = this->mesh->stl.v_indices[facet_idx].vertex;
     int i = (facet.vertex[1].z() == min_z) ? 1 : ((facet.vertex[2].z() == min_z) ? 2 : 0);
+
+    // These are used only if the cut plane is tilted:
+    stl_vertex rotated_a;
+    stl_vertex rotated_b;
+
     for (int j = i; j - i < 3; ++j) {  // loop through facet edges
         int        edge_id  = this->facets_edges[facet_idx * 3 + (j % 3)];
         int        a_id     = vertices[j % 3];
         int        b_id     = vertices[(j+1) % 3];
-        const stl_vertex *a = &this->v_scaled_shared[a_id];
-        const stl_vertex *b = &this->v_scaled_shared[b_id];
+
+        const stl_vertex *a;
+        const stl_vertex *b;
+        if (m_use_quaternion) {
+            rotated_a = m_quaternion * this->v_scaled_shared[a_id];
+            rotated_b = m_quaternion * this->v_scaled_shared[b_id];
+            a = &rotated_a;
+            b = &rotated_b;
+        }
+        else {
+            a = &this->v_scaled_shared[a_id];
+            b = &this->v_scaled_shared[b_id];
+        }
         
         // Is edge or face aligned with the cutting plane?
         if (a->z() == slice_z && b->z() == slice_z) {
             // Edge is horizontal and belongs to the current layer.
-            const stl_vertex &v0 = this->v_scaled_shared[vertices[0]];
-            const stl_vertex &v1 = this->v_scaled_shared[vertices[1]];
-            const stl_vertex &v2 = this->v_scaled_shared[vertices[2]];
-            const stl_normal &normal = this->mesh->stl.facet_start[facet_idx].normal;
+            // The following rotation of the three vertices may not be efficient, but this branch happens rarely.
+            const stl_vertex &v0 = m_use_quaternion ? stl_vertex(m_quaternion * this->v_scaled_shared[vertices[0]]) : this->v_scaled_shared[vertices[0]];
+            const stl_vertex &v1 = m_use_quaternion ? stl_vertex(m_quaternion * this->v_scaled_shared[vertices[1]]) : this->v_scaled_shared[vertices[1]];
+            const stl_vertex &v2 = m_use_quaternion ? stl_vertex(m_quaternion * this->v_scaled_shared[vertices[2]]) : this->v_scaled_shared[vertices[2]];
+            const stl_normal &normal = facet.normal;
             // We may ignore this edge for slicing purposes, but we may still use it for object cutting.
             FacetSliceType    result = Slicing;
             if (min_z == max_z) {
@@ -995,7 +1022,9 @@ TriangleMeshSlicer::FacetSliceType TriangleMeshSlicer::slice_facet(
             if (i == line_out->a_id || i == line_out->b_id)
                 i = vertices[2];
             assert(i != line_out->a_id && i != line_out->b_id);
-            line_out->edge_type = (this->v_scaled_shared[i].z() < slice_z) ? feTop : feBottom;
+            line_out->edge_type = ((m_use_quaternion ?
+                                    (m_quaternion * this->v_scaled_shared[i]).z()
+                                    : this->v_scaled_shared[i].z()) < slice_z) ? feTop : feBottom;
         }
 #endif
         return Slicing;

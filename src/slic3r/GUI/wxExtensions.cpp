@@ -461,10 +461,10 @@ wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name_in, con
 // ----------------------------------------------------------------------------
 
 void PrusaObjectDataViewModelNode::set_object_action_icon() {
-    m_action_icon = create_scaled_bitmap(nullptr, "add_object.png");    // FIXME: pass window ptr
+    m_action_icon = create_scaled_bitmap(nullptr, "advanced_plus");    // FIXME: pass window ptr
 }
 void  PrusaObjectDataViewModelNode::set_part_action_icon() {
-    m_action_icon = create_scaled_bitmap(nullptr, m_type == itVolume ? "cog.png" : "brick_go.png");    // FIXME: pass window ptr
+    m_action_icon = create_scaled_bitmap(nullptr, m_type == itVolume ? "cog" : "set_separate_obj");    // FIXME: pass window ptr
 }
 
 Slic3r::GUI::BitmapCache *m_bitmap_cache = nullptr;
@@ -529,10 +529,10 @@ wxDataViewItem PrusaObjectDataViewModel::Add(const wxString &name, const int ext
 }
 
 wxDataViewItem PrusaObjectDataViewModel::AddVolumeChild(const wxDataViewItem &parent_item,
-													const wxString &name,
-                                                    const Slic3r::ModelVolumeType volume_type,
-                                                    const int extruder/* = 0*/,
-                                                    const bool create_frst_child/* = true*/)
+    const wxString &name,
+    const Slic3r::ModelVolumeType volume_type,
+    const int extruder/* = 0*/,
+    const bool create_frst_child/* = true*/)
 {
 	PrusaObjectDataViewModelNode *root = (PrusaObjectDataViewModelNode*)parent_item.GetID();
 	if (!root) return wxDataViewItem(0);
@@ -545,7 +545,7 @@ wxDataViewItem PrusaObjectDataViewModel::AddVolumeChild(const wxDataViewItem &pa
         insert_position = -1;
 
     if (create_frst_child && root->m_volumes_cnt == 0)
-	{
+    {
 		const auto node = new PrusaObjectDataViewModelNode(root, root->m_name, *m_volume_bmps[0], extruder_str, 0);
         insert_position < 0 ? root->Append(node) : root->Insert(node, insert_position);
 		// notify control

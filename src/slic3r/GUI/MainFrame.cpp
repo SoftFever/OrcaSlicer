@@ -321,7 +321,7 @@ void MainFrame::init_menubar()
     wxMenu* fileMenu = new wxMenu;
     {
         wxMenuItem* item_open = append_menu_item(fileMenu, wxID_ANY, _(L("&Open Project")) + dots + "\tCtrl+O", _(L("Open a project file")),
-            [this](wxCommandEvent&) { if (m_plater) m_plater->load_project(); }, "brick_add.png");
+            [this](wxCommandEvent&) { if (m_plater) m_plater->load_project(); }, "open");
         wxMenuItem* item_save = append_menu_item(fileMenu, wxID_ANY, _(L("&Save Project")) + "\tCtrl+S", _(L("Save current project file")),
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_3mf(into_path(m_plater->get_project_filename())); }, "save");
         wxMenuItem* item_save_as = append_menu_item(fileMenu, wxID_ANY, _(L("Save Project &as")) + dots + "\tCtrl+Alt+S", _(L("Save current project file as")),
@@ -331,30 +331,30 @@ void MainFrame::init_menubar()
 
         wxMenu* import_menu = new wxMenu();
         wxMenuItem* item_import_model = append_menu_item(import_menu, wxID_ANY, _(L("Import STL/OBJ/AM&F/3MF")) + dots + "\tCtrl+I", _(L("Load a model")),
-            [this](wxCommandEvent&) { if (m_plater) m_plater->add_model(); }, "brick_add.png");
+            [this](wxCommandEvent&) { if (m_plater) m_plater->add_model(); }, "import_plater");
         import_menu->AppendSeparator();
         append_menu_item(import_menu, wxID_ANY, _(L("Import &Config")) + dots + "\tCtrl+L", _(L("Load exported configuration file")),
-            [this](wxCommandEvent&) { load_config_file(); }, "plugin_add.png");
+            [this](wxCommandEvent&) { load_config_file(); }, "import_config");
         append_menu_item(import_menu, wxID_ANY, _(L("Import Config from &project")) + dots +"\tCtrl+Alt+L", _(L("Load configuration from project file")),
-            [this](wxCommandEvent&) { if (m_plater) m_plater->extract_config_from_project(); }, "plugin_add.png");
+            [this](wxCommandEvent&) { if (m_plater) m_plater->extract_config_from_project(); }, "import_config");
         import_menu->AppendSeparator();
         append_menu_item(import_menu, wxID_ANY, _(L("Import Config &Bundle")) + dots, _(L("Load presets from a bundle")),
-            [this](wxCommandEvent&) { load_configbundle(); }, "lorry_add.png");
+            [this](wxCommandEvent&) { load_configbundle(); }, "import_config_bundle");
         append_submenu(fileMenu, import_menu, wxID_ANY, _(L("&Import")), "");
 
         wxMenu* export_menu = new wxMenu();
         wxMenuItem* item_export_gcode = append_menu_item(export_menu, wxID_ANY, _(L("Export &G-code")) + dots +"\tCtrl+G", _(L("Export current plate as G-code")),
-            [this](wxCommandEvent&) { if (m_plater) m_plater->export_gcode(); }, "cog_go.png");
+            [this](wxCommandEvent&) { if (m_plater) m_plater->export_gcode(); }, "export_gcode");
         export_menu->AppendSeparator();
         wxMenuItem* item_export_stl = append_menu_item(export_menu, wxID_ANY, _(L("Export plate as &STL")) + dots, _(L("Export current plate as STL")),
-            [this](wxCommandEvent&) { if (m_plater) m_plater->export_stl(); }, "brick_go.png");
+            [this](wxCommandEvent&) { if (m_plater) m_plater->export_stl(); }, "export_plater");
         wxMenuItem* item_export_amf = append_menu_item(export_menu, wxID_ANY, _(L("Export plate as &AMF")) + dots, _(L("Export current plate as AMF")),
-            [this](wxCommandEvent&) { if (m_plater) m_plater->export_amf(); }, "brick_go.png");
+            [this](wxCommandEvent&) { if (m_plater) m_plater->export_amf(); }, "export_plater");
         export_menu->AppendSeparator();
         append_menu_item(export_menu, wxID_ANY, _(L("Export &Config")) +dots +"\tCtrl+E", _(L("Export current configuration to file")),
-            [this](wxCommandEvent&) { export_config(); }, "plugin_go.png");
+            [this](wxCommandEvent&) { export_config(); }, "export_config");
         append_menu_item(export_menu, wxID_ANY, _(L("Export Config &Bundle")) + dots, _(L("Export all presets to file")),
-            [this](wxCommandEvent&) { export_configbundle(); }, "lorry_go.png");
+            [this](wxCommandEvent&) { export_configbundle(); }, "export_config_bundle");
         append_submenu(fileMenu, export_menu, wxID_ANY, _(L("&Export")), "");
 
         fileMenu->AppendSeparator();
@@ -382,10 +382,10 @@ void MainFrame::init_menubar()
         fileMenu->AppendSeparator();
 #endif
         m_menu_item_reslice_now = append_menu_item(fileMenu, wxID_ANY, _(L("(Re)Slice &Now")) + "\tCtrl+R", _(L("Start new slicing process")),
-            [this](wxCommandEvent&) { reslice_now(); }, "shape_handles.png");
+            [this](wxCommandEvent&) { reslice_now(); }, "re_slice");
         fileMenu->AppendSeparator();
         append_menu_item(fileMenu, wxID_ANY, _(L("&Repair STL file")) + dots, _(L("Automatically repair an STL file")),
-            [this](wxCommandEvent&) { repair_stl(); }, "wrench.png");
+            [this](wxCommandEvent&) { repair_stl(); }, "wrench");
         fileMenu->AppendSeparator();
         append_menu_item(fileMenu, wxID_EXIT, _(L("&Quit")), _(L("Quit Slic3r")),
             [this](wxCommandEvent&) { Close(false); });
@@ -425,13 +425,22 @@ void MainFrame::init_menubar()
             [this](wxCommandEvent&) { m_plater->select_all(); }, "");
         editMenu->AppendSeparator();
         wxMenuItem* item_delete_sel = append_menu_item(editMenu, wxID_ANY, _(L("&Delete selected")) + sep + hotkey_delete, _(L("Deletes the current selection")),
-            [this](wxCommandEvent&) { m_plater->remove_selected(); }, "");
+            [this](wxCommandEvent&) { m_plater->remove_selected(); }, "remove_menu");
         wxMenuItem* item_delete_all = append_menu_item(editMenu, wxID_ANY, _(L("Delete &all")) + sep + GUI::shortkey_ctrl_prefix() + sep_space + hotkey_delete, _(L("Deletes all objects")),
-            [this](wxCommandEvent&) { m_plater->reset(); }, "");
+            [this](wxCommandEvent&) { m_plater->reset(); }, "delete_all_menu");
+
+        editMenu->AppendSeparator();
+
+        wxMenuItem* item_copy = append_menu_item(editMenu, wxID_ANY, _(L("&Copy")) + "\tCtrl+C", _(L("Copy selection to clipboard")),
+            [this](wxCommandEvent&) { m_plater->copy_selection_to_clipboard(); }, "copy_menu");
+        wxMenuItem* item_paste = append_menu_item(editMenu, wxID_ANY, _(L("&Paste")) + "\tCtrl+V", _(L("Paste clipboard")),
+            [this](wxCommandEvent&) { m_plater->paste_from_clipboard(); }, "paste_menu");
 
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_select()); }, item_select_all->GetId());
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_delete()); }, item_delete_sel->GetId());
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_delete_all()); }, item_delete_all->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(m_plater->can_copy()); }, item_copy->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(m_plater->can_paste()); }, item_paste->GetId());
     }
 
     // Window menu
@@ -440,7 +449,7 @@ void MainFrame::init_menubar()
         size_t tab_offset = 0;
         if (m_plater) {
             append_menu_item(windowMenu, wxID_HIGHEST + 1, _(L("&Plater Tab")) + "\tCtrl+1", _(L("Show the plater")),
-                [this](wxCommandEvent&) { select_tab(0); }, "application_view_tile.png");
+                [this](wxCommandEvent&) { select_tab(0); }, "plater");
             tab_offset += 1;
         }
         if (tab_offset > 0) {
@@ -455,9 +464,9 @@ void MainFrame::init_menubar()
         if (m_plater) {
             windowMenu->AppendSeparator();
             wxMenuItem* item_3d = append_menu_item(windowMenu, wxID_HIGHEST + 5, _(L("3&D")) + "\tCtrl+5", _(L("Show the 3D editing view")),
-                [this](wxCommandEvent&) { m_plater->select_view_3D("3D"); }, "");
+                [this](wxCommandEvent&) { m_plater->select_view_3D("3D"); }, "editor_menu");
             wxMenuItem* item_preview = append_menu_item(windowMenu, wxID_HIGHEST + 6, _(L("Pre&view")) + "\tCtrl+6", _(L("Show the 3D slices preview")),
-                [this](wxCommandEvent&) { m_plater->select_view_3D("Preview"); }, "");
+                [this](wxCommandEvent&) { m_plater->select_view_3D("Preview"); }, "preview_menu");
 
             Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_change_view()); }, item_3d->GetId());
             Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_change_view()); }, item_preview->GetId());
@@ -478,7 +487,7 @@ void MainFrame::init_menubar()
 
         windowMenu->AppendSeparator();
         append_menu_item(windowMenu, wxID_ANY, _(L("Print &Host Upload Queue")) + "\tCtrl+J", _(L("Display the Print Host Upload Queue window")),
-            [this](wxCommandEvent&) { m_printhost_queue_dlg->Show(); }, "arrow_up.png");
+            [this](wxCommandEvent&) { m_printhost_queue_dlg->Show(); }, "upload_queue");
     }
 
     // View menu
@@ -590,7 +599,7 @@ void MainFrame::quick_slice(const int qs)
             dlg->ShowModal();
             return;
         }
-        if (std::ifstream(m_qs_last_input_file.char_str())) {
+        if (std::ifstream(m_qs_last_input_file.ToUTF8().data())) {
             auto dlg = new wxMessageDialog(this, _(L("Previously sliced file ("))+m_qs_last_input_file+_(L(") not found.")),
                 _(L("File Not Found")), wxICON_ERROR | wxOK);
             dlg->ShowModal();
@@ -705,24 +714,23 @@ void MainFrame::repair_stl()
         dlg->Destroy();
     }
 
-    auto output_file = input_file;
+    wxString output_file = input_file;
     {
-//         output_file = ~s / \.[sS][tT][lL]$ / _fixed.obj / ;
         auto dlg = new wxFileDialog( this, L("Save OBJ file (less prone to coordinate errors than STL) as:"), 
-                                        get_dir_name(output_file), get_base_name(output_file), 
+                                        get_dir_name(output_file), get_base_name(output_file, ".obj"),
                                         file_wildcards(FT_OBJ), wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if (dlg->ShowModal() != wxID_OK) {
             dlg->Destroy();
-            return /*undef*/;
+            return;
         }
         output_file = dlg->GetPath();
         dlg->Destroy();
     }
 
     auto tmesh = new Slic3r::TriangleMesh();
-    tmesh->ReadSTLFile(input_file.char_str());
+    tmesh->ReadSTLFile(input_file.ToUTF8().data());
     tmesh->repair();
-    tmesh->WriteOBJFile(output_file.char_str());
+    tmesh->WriteOBJFile(output_file.ToUTF8().data());
     Slic3r::GUI::show_info(this, L("Your file was repaired."), L("Repair"));
 }
 
@@ -962,9 +970,12 @@ void MainFrame::update_ui_from_settings()
         tab->update_ui_from_settings();
 }
 
-std::string MainFrame::get_base_name(const wxString &full_name) const 
+std::string MainFrame::get_base_name(const wxString &full_name, const char *extension) const 
 {
-    return boost::filesystem::path(full_name.wx_str()).filename().string();
+    boost::filesystem::path filename = boost::filesystem::path(full_name.wx_str()).filename();
+    if (extension != nullptr)
+		filename = filename.replace_extension(extension);
+    return filename.string();
 }
 
 std::string MainFrame::get_dir_name(const wxString &full_name) const 

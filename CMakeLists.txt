@@ -49,6 +49,10 @@ foreach (_cache_var ${_cache_vars})
     endif ()
 endforeach()
 
+if (SLIC3R_GUI)
+    add_definitions(-DSLIC3R_GUI)
+endif ()
+
 if (MSVC)
     if (SLIC3R_MSVC_COMPILE_PARALLEL)
 	   add_compile_options(/MP)

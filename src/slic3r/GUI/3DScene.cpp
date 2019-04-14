@@ -721,32 +721,37 @@ int GLVolumeCollection::load_wipe_tower_preview(
     return int(this->volumes.size() - 1);
 }
 
-typedef std::pair<GLVolume*, double> GLVolumeWithZ;
-typedef std::vector<GLVolumeWithZ> GLVolumesWithZList;
-static GLVolumesWithZList volumes_to_render(const GLVolumePtrs& volumes, GLVolumeCollection::ERenderType type, const Transform3d& view_matrix, std::function<bool(const GLVolume&)> filter_func)
+GLVolumeWithIdAndZList volumes_to_render(const GLVolumePtrs& volumes, GLVolumeCollection::ERenderType type, const Transform3d& view_matrix, std::function<bool(const GLVolume&)> filter_func)
 {
-    GLVolumesWithZList list;
+    GLVolumeWithIdAndZList list;
     list.reserve(volumes.size());
 
-    for (GLVolume* volume : volumes)
+    for (unsigned int i = 0; i < (unsigned int)volumes.size(); ++i)
     {
+        GLVolume* volume = volumes[i];
         bool is_transparent = (volume->render_color[3] < 1.0f);
         if ((((type == GLVolumeCollection::Opaque) && !is_transparent) ||
              ((type == GLVolumeCollection::Transparent) && is_transparent) ||
              (type == GLVolumeCollection::All)) &&
             (! filter_func || filter_func(*volume)))
-            list.emplace_back(std::make_pair(volume, 0.0));
+            list.emplace_back(std::make_pair(volume, std::make_pair(i, 0.0)));
     }
 
     if ((type == GLVolumeCollection::Transparent) && (list.size() > 1))
     {
-        for (GLVolumeWithZ& volume : list)
+        for (GLVolumeWithIdAndZ& volume : list)
         {
-            volume.second = volume.first->bounding_box.transformed(view_matrix * volume.first->world_matrix()).max(2);
+            volume.second.second = volume.first->bounding_box.transformed(view_matrix * volume.first->world_matrix()).max(2);
         }
 
         std::sort(list.begin(), list.end(),
-            [](const GLVolumeWithZ& v1, const GLVolumeWithZ& v2) -> bool { return v1.second < v2.second; }
+            [](const GLVolumeWithIdAndZ& v1, const GLVolumeWithIdAndZ& v2) -> bool { return v1.second.second < v2.second.second; }
+        );
+    }
+    else if ((type == GLVolumeCollection::Opaque) && (list.size() > 1))
+    {
+        std::sort(list.begin(), list.end(),
+            [](const GLVolumeWithIdAndZ& v1, const GLVolumeWithIdAndZ& v2) -> bool { return v1.first->selected && !v2.first->selected; }
         );
     }
 
@@ -769,6 +774,7 @@ void GLVolumeCollection::render_VBOs(GLVolumeCollection::ERenderType type, bool 
     glsafe(::glGetIntegerv(GL_CURRENT_PROGRAM, &current_program_id));
     GLint color_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "uniform_color") : -1;
     GLint z_range_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "z_range") : -1;
+    GLint clipping_plane_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "clipping_plane") : -1;
     GLint print_box_min_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "print_box.min") : -1;
     GLint print_box_max_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "print_box.max") : -1;
     GLint print_box_detection_id = (current_program_id > 0) ? ::glGetUniformLocation(current_program_id, "print_box.volume_detection") : -1;
@@ -784,8 +790,11 @@ void GLVolumeCollection::render_VBOs(GLVolumeCollection::ERenderType type, bool 
     if (z_range_id != -1)
         glsafe(::glUniform2fv(z_range_id, 1, (const GLfloat*)z_range));
 
-    GLVolumesWithZList to_render = volumes_to_render(this->volumes, type, view_matrix, filter_func);
-    for (GLVolumeWithZ& volume : to_render) {
+    if (clipping_plane_id != -1)
+        glsafe(::glUniform4fv(clipping_plane_id, 1, (const GLfloat*)clipping_plane));
+
+    GLVolumeWithIdAndZList to_render = volumes_to_render(this->volumes, type, view_matrix, filter_func);
+    for (GLVolumeWithIdAndZ& volume : to_render) {
         volume.first->set_render_color();
         volume.first->render_VBOs(color_id, print_box_detection_id, print_box_worldmatrix_id);
     }
@@ -814,8 +823,8 @@ void GLVolumeCollection::render_legacy(ERenderType type, bool disable_cullface, 
     glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
     glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
  
-    GLVolumesWithZList to_render = volumes_to_render(this->volumes, type, view_matrix, filter_func);
-    for (GLVolumeWithZ& volume : to_render)
+    GLVolumeWithIdAndZList to_render = volumes_to_render(this->volumes, type, view_matrix, filter_func);
+    for (GLVolumeWithIdAndZ& volume : to_render)
     {
         volume.first->set_render_color();
         volume.first->render_legacy();

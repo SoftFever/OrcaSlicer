@@ -412,6 +412,8 @@ public:
 };
 
 typedef std::vector<GLVolume*> GLVolumePtrs;
+typedef std::pair<GLVolume*, std::pair<unsigned int, double>> GLVolumeWithIdAndZ;
+typedef std::vector<GLVolumeWithIdAndZ> GLVolumeWithIdAndZList;
 
 class GLVolumeCollection
 {
@@ -430,6 +432,9 @@ private:
 
     // z range for clipping in shaders
     float z_range[2];
+
+    // plane coeffs for clipping in shaders
+    float clipping_plane[4];
 
 public:
     GLVolumePtrs volumes;
@@ -489,6 +494,7 @@ public:
     }
 
     void set_z_range(float min_z, float max_z) { z_range[0] = min_z; z_range[1] = max_z; }
+    void set_clipping_plane(const double* coeffs) { clipping_plane[0] = coeffs[0]; clipping_plane[1] = coeffs[1]; clipping_plane[2] = coeffs[2]; clipping_plane[3] = coeffs[3]; }
 
     // returns true if all the volumes are completely contained in the print volume
     // returns the containment state in the given out_state, if non-null
@@ -504,6 +510,8 @@ private:
     GLVolumeCollection(const GLVolumeCollection &other);
     GLVolumeCollection& operator=(const GLVolumeCollection &);
 };
+
+GLVolumeWithIdAndZList volumes_to_render(const GLVolumePtrs& volumes, GLVolumeCollection::ERenderType type, const Transform3d& view_matrix, std::function<bool(const GLVolume&)> filter_func = nullptr);
 
 class GLModel
 {

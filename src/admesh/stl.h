@@ -43,11 +43,21 @@ typedef Eigen::Matrix<float, 3, 1, Eigen::DontAlign> stl_normal;
 static_assert(sizeof(stl_vertex) == 12, "size of stl_vertex incorrect");
 static_assert(sizeof(stl_normal) == 12, "size of stl_normal incorrect");
 
-typedef struct {
+struct stl_facet {
   stl_normal normal;
   stl_vertex vertex[3];
   char       extra[2];
-} stl_facet;
+
+  stl_facet  rotated(const Eigen::Quaternion<float, Eigen::DontAlign> &rot) {
+    stl_facet out;
+    out.normal    = rot * this->normal;
+    out.vertex[0] = rot * this->vertex[0];
+    out.vertex[1] = rot * this->vertex[1];
+    out.vertex[2] = rot * this->vertex[2];
+    return out;
+  }
+};
+
 #define SIZEOF_STL_FACET       50
 
 static_assert(offsetof(stl_facet, normal) == 0, "stl_facet.normal has correct offset");

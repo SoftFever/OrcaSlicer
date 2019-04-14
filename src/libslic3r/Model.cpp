@@ -593,6 +593,8 @@ ModelObject& ModelObject::assign_copy(const ModelObject &rhs)
     this->origin_translation          = rhs.origin_translation;
     m_bounding_box                    = rhs.m_bounding_box;
     m_bounding_box_valid              = rhs.m_bounding_box_valid;
+    m_raw_bounding_box                = rhs.m_raw_bounding_box;
+    m_raw_bounding_box_valid          = rhs.m_raw_bounding_box_valid;
     m_raw_mesh_bounding_box           = rhs.m_raw_mesh_bounding_box;
     m_raw_mesh_bounding_box_valid     = rhs.m_raw_mesh_bounding_box_valid;
 
@@ -627,6 +629,8 @@ ModelObject& ModelObject::assign_copy(ModelObject &&rhs)
     this->origin_translation          = std::move(rhs.origin_translation);
     m_bounding_box                    = std::move(rhs.m_bounding_box);
     m_bounding_box_valid              = std::move(rhs.m_bounding_box_valid);
+    m_raw_bounding_box                = rhs.m_raw_bounding_box;
+    m_raw_bounding_box_valid          = rhs.m_raw_bounding_box_valid;
     m_raw_mesh_bounding_box           = rhs.m_raw_mesh_bounding_box;
     m_raw_mesh_bounding_box_valid     = rhs.m_raw_mesh_bounding_box_valid;
 
@@ -859,7 +863,7 @@ TriangleMesh ModelObject::full_raw_mesh() const
     return mesh;
 }
 
-BoundingBoxf3 ModelObject::raw_mesh_bounding_box() const
+const BoundingBoxf3& ModelObject::raw_mesh_bounding_box() const
 {
     if (! m_raw_mesh_bounding_box_valid) {
         m_raw_mesh_bounding_box_valid = true;
@@ -880,33 +884,36 @@ BoundingBoxf3 ModelObject::full_raw_mesh_bounding_box() const
 }
 
 // A transformed snug bounding box around the non-modifier object volumes, without the translation applied.
-// This bounding box is only used for the actual slicing.
-BoundingBoxf3 ModelObject::raw_bounding_box() const
+// This bounding box is only used for the actual slicing and for layer editing UI to calculate the layers.
+const BoundingBoxf3& ModelObject::raw_bounding_box() const
 {
-    BoundingBoxf3 bb;
-#if ENABLE_GENERIC_SUBPARTS_PLACEMENT
-    if (this->instances.empty())
-        throw std::invalid_argument("Can't call raw_bounding_box() with no instances");
+    if (! m_raw_bounding_box_valid) {
+        m_raw_bounding_box_valid = true;
+        m_raw_bounding_box.reset();
+    #if ENABLE_GENERIC_SUBPARTS_PLACEMENT
+        if (this->instances.empty())
+            throw std::invalid_argument("Can't call raw_bounding_box() with no instances");
 
-    const Transform3d& inst_matrix = this->instances.front()->get_transformation().get_matrix(true);
-#endif // ENABLE_GENERIC_SUBPARTS_PLACEMENT
-    for (const ModelVolume *v : this->volumes)
-        if (v->is_model_part()) {
-#if !ENABLE_GENERIC_SUBPARTS_PLACEMENT
-            if (this->instances.empty())
-                throw std::invalid_argument("Can't call raw_bounding_box() with no instances");
-#endif // !ENABLE_GENERIC_SUBPARTS_PLACEMENT
+        const Transform3d& inst_matrix = this->instances.front()->get_transformation().get_matrix(true);
+    #endif // ENABLE_GENERIC_SUBPARTS_PLACEMENT
+        for (const ModelVolume *v : this->volumes)
+            if (v->is_model_part()) {
+    #if !ENABLE_GENERIC_SUBPARTS_PLACEMENT
+                if (this->instances.empty())
+                    throw std::invalid_argument("Can't call raw_bounding_box() with no instances");
+    #endif // !ENABLE_GENERIC_SUBPARTS_PLACEMENT
 
-            TriangleMesh vol_mesh(v->mesh);
-#if ENABLE_GENERIC_SUBPARTS_PLACEMENT
-            vol_mesh.transform(inst_matrix * v->get_matrix());
-            bb.merge(vol_mesh.bounding_box());
-#else
-            vol_mesh.transform(v->get_matrix());
-            bb.merge(this->instances.front()->transform_mesh_bounding_box(vol_mesh, true));
-#endif // ENABLE_GENERIC_SUBPARTS_PLACEMENT
-        }
-    return bb;
+    #if ENABLE_GENERIC_SUBPARTS_PLACEMENT
+				m_raw_bounding_box.merge(v->mesh.transformed_bounding_box(inst_matrix * v->get_matrix()));
+    #else
+                // unmaintaned
+                assert(false);
+                // vol_mesh.transform(v->get_matrix());
+                // m_raw_bounding_box_valid.merge(this->instances.front()->transform_mesh_bounding_box(vol_mesh, true));
+    #endif // ENABLE_GENERIC_SUBPARTS_PLACEMENT
+            }
+    }
+	return m_raw_bounding_box;
 }
 
 // This returns an accurate snug bounding box of the transformed object instance, without the translation applied.
@@ -920,13 +927,13 @@ BoundingBoxf3 ModelObject::instance_bounding_box(size_t instance_idx, bool dont_
     {
         if (v->is_model_part())
         {
-            TriangleMesh mesh(v->mesh);
 #if ENABLE_GENERIC_SUBPARTS_PLACEMENT
-            mesh.transform(inst_matrix * v->get_matrix());
-            bb.merge(mesh.bounding_box());
+            bb.merge(v->mesh.transformed_bounding_box(inst_matrix * v->get_matrix()));
 #else
-            mesh.transform(v->get_matrix());
-            bb.merge(this->instances[instance_idx]->transform_mesh_bounding_box(mesh, dont_translate));
+            // not maintained
+            assert(false);
+            //mesh.transform(v->get_matrix());
+            //bb.merge(this->instances[instance_idx]->transform_mesh_bounding_box(mesh, dont_translate));
 #endif // ENABLE_GENERIC_SUBPARTS_PLACEMENT
         }
     }

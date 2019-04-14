@@ -6,10 +6,12 @@
     #define NOMINMAX
     #include <Windows.h>
     #include <wchar.h>
-    // Let the NVIDIA and AMD know we want to use their graphics card
-    // on a dual graphics card system.
-    __declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
-    __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
+    #ifdef SLIC3R_GUI
+        // Let the NVIDIA and AMD know we want to use their graphics card
+        // on a dual graphics card system.
+        __declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
+        __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
+    #endif /* SLIC3R_GUI */
 #endif /* WIN32 */
 
 #include <cstdio>
@@ -38,8 +40,11 @@
 #include "libslic3r/Utils.hpp"
 
 #include "slic3r.hpp"
-#include "slic3r/GUI/GUI.hpp"
-#include "slic3r/GUI/GUI_App.hpp"
+
+#ifdef SLIC3R_GUI
+    #include "slic3r/GUI/GUI.hpp"
+    #include "slic3r/GUI/GUI_App.hpp"
+#endif /* SLIC3R_GUI */
 
 using namespace Slic3r;
 
@@ -448,7 +453,7 @@ int CLI::run(int argc, char **argv)
     }
     
 	if (start_gui) {
-#if 1
+#ifdef SLIC3R_GUI
 // #ifdef USE_WX
 		GUI::GUI_App *gui = new GUI::GUI_App();
 //		gui->autosave = m_config.opt_string("autosave");
@@ -477,12 +482,12 @@ int CLI::run(int argc, char **argv)
 				gui->mainframe->load_config(m_extra_config);
 		});
 		return wxEntry(argc, argv);
-#else
+#else /* SLIC3R_GUI */
 		// No GUI support. Just print out a help.
 		this->print_help(false);
 		// If started without a parameter, consider it to be OK, otherwise report an error code (no action etc).
 		return (argc == 0) ? 0 : 1;
-#endif   
+#endif /* SLIC3R_GUI */
     }
     
     return 0;
@@ -563,7 +568,13 @@ bool CLI::setup(int argc, char **argv)
 void CLI::print_help(bool include_print_options, PrinterTechnology printer_technology) const 
 {
     boost::nowide::cout
-		<< "Slic3r Prusa Edition " << SLIC3R_BUILD << std::endl
+		<< "Slic3r Prusa Edition " << SLIC3R_BUILD 
+#ifdef SLIC3R_GUI
+        << " (with GUI support)"
+#else /* SLIC3R_GUI */
+        << " (without GUI support)"
+#endif /* SLIC3R_GUI */
+        << std::endl
         << "https://github.com/prusa3d/Slic3r" << std::endl << std::endl
         << "Usage: slic3r [ ACTIONS ] [ TRANSFORM ] [ OPTIONS ] [ file.stl ... ]" << std::endl
         << std::endl

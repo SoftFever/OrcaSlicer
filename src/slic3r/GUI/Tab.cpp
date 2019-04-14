@@ -165,10 +165,13 @@ void Tab::create_preset_tab()
 	add_scaled_bitmap(this, m_bmp_value_unlock, "lock_open");
 	m_bmp_non_system = &m_bmp_white_bullet;
 	// Bitmaps to be shown on the "Undo user changes" button next to each input field.
+//	m_bmp_value_revert    = create_scaled_bitmap(this, "undo");
+//	m_bmp_white_bullet    = create_scaled_bitmap(this, luma >= 128 ? "dot" : "dot_white"/*"bullet_white.png"*/);
+//	m_bmp_question        = create_scaled_bitmap(this, "question");
 // 	m_bmp_value_revert    = create_scaled_bitmap(this, "undo");
 // 	m_bmp_white_bullet    = create_scaled_bitmap(this, "bullet_white.png");
 	add_scaled_bitmap(this, m_bmp_value_revert, "undo");
-	add_scaled_bitmap(this, m_bmp_white_bullet, "bullet_white.png");
+	add_scaled_bitmap(this, m_bmp_white_bullet, luma >= 128 ? "dot" : "dot_white"/*"bullet_white.png"*/);
 
 	fill_icon_descriptions();
 	set_tooltips_text();
@@ -1163,7 +1166,7 @@ void TabPrint::build()
 		optgroup = page->new_optgroup(_(L("Advanced")));
 		optgroup->append_single_option_line("interface_shells");
 
-	page = add_options_page(_(L("Advanced")), "wrench.png");
+	page = add_options_page(_(L("Advanced")), "wrench");
 		optgroup = page->new_optgroup(_(L("Extrusion width")));
 		optgroup->append_single_option_line("extrusion_width");
 		optgroup->append_single_option_line("first_layer_extrusion_width");
@@ -1536,7 +1539,7 @@ void TabFilament::build()
 		optgroup->append_single_option_line("slowdown_below_layer_time");
 		optgroup->append_single_option_line("min_print_speed");
 
-	page = add_options_page(_(L("Advanced")), "wrench.png");
+	page = add_options_page(_(L("Advanced")), "wrench");
 		optgroup = page->new_optgroup(_(L("Filament properties")));
 		optgroup->append_single_option_line("filament_type");
 		optgroup->append_single_option_line("filament_soluble");
@@ -1702,12 +1705,17 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 	}
 
 	auto printhost_browse = [=](wxWindow* parent) {
+//        auto btn = m_printhost_browse_btn = new wxButton(parent, wxID_ANY, _(L(" Browse ")) + dots, 
+//            wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
+//		btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+//        btn->SetBitmap(create_scaled_bitmap(this, "browse"));
 //         auto btn = m_printhost_browse_btn = new wxButton(parent, wxID_ANY, _(L(" Browse ")) + dots, 
 //             wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
 //         btn->SetBitmap(create_scaled_bitmap(this, "zoom.png"));
-        add_scaled_button(parent, &m_printhost_browse_btn, "zoom.png", _(L(" Browse ")) + dots, wxBU_LEFT | wxBU_EXACTFIT);
+        add_scaled_button(parent, &m_printhost_browse_btn, "browse", _(L(" Browse ")) + dots, wxBU_LEFT | wxBU_EXACTFIT);
         PrusaButton* btn = m_printhost_browse_btn;
-        btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+		btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+
 		auto sizer = new wxBoxSizer(wxHORIZONTAL);
 		sizer->Add(btn);
 
@@ -1722,6 +1730,11 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 		return sizer;
 	};
 
+	auto print_host_test = [this](wxWindow* parent) {
+		auto btn = m_print_host_test_btn = new wxButton(parent, wxID_ANY, _(L("Test")), 
+			wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
+		btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+        btn->SetBitmap(create_scaled_bitmap(this, "test"));
     auto print_host_test = [this](wxWindow* parent) {
 // 		auto btn = m_print_host_test_btn = new wxButton(parent, wxID_ANY, _(L("Test")), 
 // 			wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
@@ -1765,7 +1778,7 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 		auto printhost_cafile_browse = [this, optgroup] (wxWindow* parent) {
 			auto btn = new wxButton(parent, wxID_ANY, _(L(" Browse "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
 			btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
-			btn->SetBitmap(create_scaled_bitmap(this, "zoom.png"));
+			btn->SetBitmap(create_scaled_bitmap(this, "browse"));
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(btn);
 
@@ -3330,7 +3343,8 @@ void TabSLAMaterial::build()
     optgroup = page->new_optgroup(_(L("Corrections")));
     optgroup->label_width = 19;//190;
     std::vector<std::string> corrections = {"material_correction"};
-    std::vector<std::string> axes{ "X", "Y", "Z" };
+//    std::vector<std::string> axes{ "X", "Y", "Z" };
+    std::vector<std::string> axes{ "XY", "Z" };
     for (auto& opt_key : corrections) {
         auto line = Line{ m_config->def()->get(opt_key)->full_label, "" };
         int id = 0;
@@ -3413,7 +3427,7 @@ void TabSLAPrint::build()
     optgroup->append_single_option_line("layer_height");
     optgroup->append_single_option_line("faded_layers");
 
-    page = add_options_page(_(L("Supports")), "sla_supports");
+    page = add_options_page(_(L("Supports")), "support"/*"sla_supports"*/);
     optgroup = page->new_optgroup(_(L("Supports")));
     optgroup->append_single_option_line("supports_enable");
 
@@ -3441,7 +3455,7 @@ void TabSLAPrint::build()
     optgroup->append_single_option_line("support_points_density_relative");
     optgroup->append_single_option_line("support_points_minimal_distance");
 
-    page = add_options_page(_(L("Pad")), "brick.png");
+    page = add_options_page(_(L("Pad")), "pad");
     optgroup = page->new_optgroup(_(L("Pad")));
     optgroup->append_single_option_line("pad_enable");
     optgroup->append_single_option_line("pad_wall_thickness");

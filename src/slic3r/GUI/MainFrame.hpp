@@ -54,7 +54,7 @@ class MainFrame : public DPIFrame
 
     PrintHostQueueDialog *m_printhost_queue_dlg;
 
-    std::string     get_base_name(const wxString &full_name) const;
+    std::string     get_base_name(const wxString &full_name, const char *extension = nullptr) const;
     std::string     get_dir_name(const wxString &full_name) const;
 
     void on_presets_changed(SimpleEvent&);

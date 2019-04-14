@@ -467,6 +467,19 @@ bool GLGizmosManager::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_p
     return false;
 }
 
+ClippingPlane GLGizmosManager::get_sla_clipping_plane() const
+{
+    if (!m_enabled || m_current != SlaSupports)
+        return ClippingPlane::ClipsNothing();
+
+    GizmosMap::const_iterator it = m_gizmos.find(SlaSupports);
+    if (it != m_gizmos.end())
+        return reinterpret_cast<GLGizmoSlaSupports*>(it->second)->get_sla_clipping_plane();
+
+    return ClippingPlane::ClipsNothing();
+}
+
+
 void GLGizmosManager::render_current_gizmo(const Selection& selection) const
 {
     if (!m_enabled)
@@ -713,7 +726,12 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt, GLCanvas3D& canvas)
     {
         switch (keyCode)
         {
+#ifdef __APPLE__
+        case 'a':
+        case 'A':
+#else /* __APPLE__ */
         case WXK_CONTROL_A:
+#endif /* __APPLE__ */
         {
             // Sla gizmo selects all support points
             if ((m_current == SlaSupports) && gizmo_event(SLAGizmoEventType::SelectAll))

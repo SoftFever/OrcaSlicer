@@ -212,7 +212,7 @@ public:
     // This bounding box is approximate and not snug.
     // This bounding box is being cached.
     const BoundingBoxf3& bounding_box() const;
-    void invalidate_bounding_box() { m_bounding_box_valid = false; m_raw_mesh_bounding_box_valid = false; }
+    void invalidate_bounding_box() { m_bounding_box_valid = false; m_raw_bounding_box_valid = false; m_raw_mesh_bounding_box_valid = false; }
 
     // A mesh containing all transformed instances of this object.
     TriangleMesh mesh() const;
@@ -223,11 +223,11 @@ public:
     TriangleMesh full_raw_mesh() const;
     // A transformed snug bounding box around the non-modifier object volumes, without the translation applied.
     // This bounding box is only used for the actual slicing.
-    BoundingBoxf3 raw_bounding_box() const;
+    const BoundingBoxf3& raw_bounding_box() const;
     // A snug bounding box around the transformed non-modifier object volumes.
     BoundingBoxf3 instance_bounding_box(size_t instance_idx, bool dont_translate = false) const;
 	// A snug bounding box of non-transformed (non-rotated, non-scaled, non-translated) sum of non-modifier object volumes.
-	BoundingBoxf3 raw_mesh_bounding_box() const;
+	const BoundingBoxf3& raw_mesh_bounding_box() const;
 	// A snug bounding box of non-transformed (non-rotated, non-scaled, non-translated) sum of all object volumes.
     BoundingBoxf3 full_raw_mesh_bounding_box() const;
 
@@ -285,7 +285,7 @@ protected:
 
 private:
     ModelObject(Model *model) : m_model(model), origin_translation(Vec3d::Zero()), 
-        m_bounding_box_valid(false), m_raw_mesh_bounding_box_valid(false) {}
+        m_bounding_box_valid(false), m_raw_bounding_box_valid(false), m_raw_mesh_bounding_box_valid(false) {}
     ~ModelObject();
 
     /* To be able to return an object from own copy / clone methods. Hopefully the compiler will do the "Copy elision" */
@@ -304,6 +304,8 @@ private:
     // Bounding box, cached.
     mutable BoundingBoxf3 m_bounding_box;
     mutable bool          m_bounding_box_valid;
+    mutable BoundingBoxf3 m_raw_bounding_box;
+    mutable bool          m_raw_bounding_box_valid;
     mutable BoundingBoxf3 m_raw_mesh_bounding_box;
     mutable bool          m_raw_mesh_bounding_box_valid;    
 };

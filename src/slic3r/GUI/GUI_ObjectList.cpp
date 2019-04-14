@@ -61,19 +61,22 @@ ObjectList::ObjectList(wxWindow* parent) :
 {
     // Fill CATEGORY_ICON
     {
+        // Note: `this` isn't passed to create_scaled_bitmap() here because of bugs in the widget,
+        // see note in PresetBundle::load_compatible_bitmaps()
+
         // ptFFF
-		CATEGORY_ICON[L("Layers and Perimeters")]	= create_scaled_bitmap(this, "layers");
-		CATEGORY_ICON[L("Infill")]					= create_scaled_bitmap(this, "infill");
-		CATEGORY_ICON[L("Support material")]		= create_scaled_bitmap(this, "support");
-		CATEGORY_ICON[L("Speed")]					= create_scaled_bitmap(this, "time");
-		CATEGORY_ICON[L("Extruders")]				= create_scaled_bitmap(this, "funnel");
-		CATEGORY_ICON[L("Extrusion Width")]			= create_scaled_bitmap(this, "funnel");
-// 		CATEGORY_ICON[L("Skirt and brim")]			= create_scaled_bitmap(this, "skirt+brim"); 
-// 		CATEGORY_ICON[L("Speed > Acceleration")]	= create_scaled_bitmap(this, "time");
-		CATEGORY_ICON[L("Advanced")]				= create_scaled_bitmap(this, "wrench");
-		// ptSLA
-		CATEGORY_ICON[L("Supports")]				= create_scaled_bitmap(this, "sla_supports");
-		CATEGORY_ICON[L("Pad")]				        = create_scaled_bitmap(this, "brick.png");
+        CATEGORY_ICON[L("Layers and Perimeters")]    = create_scaled_bitmap(nullptr, "layers");
+        CATEGORY_ICON[L("Infill")]                   = create_scaled_bitmap(nullptr, "infill");
+        CATEGORY_ICON[L("Support material")]         = create_scaled_bitmap(nullptr, "support");
+        CATEGORY_ICON[L("Speed")]                    = create_scaled_bitmap(nullptr, "time");
+        CATEGORY_ICON[L("Extruders")]                = create_scaled_bitmap(nullptr, "funnel");
+        CATEGORY_ICON[L("Extrusion Width")]          = create_scaled_bitmap(nullptr, "funnel");
+//         CATEGORY_ICON[L("Skirt and brim")]          = create_scaled_bitmap(nullptr, "skirt+brim"); 
+//         CATEGORY_ICON[L("Speed > Acceleration")]    = create_scaled_bitmap(nullptr, "time");
+        CATEGORY_ICON[L("Advanced")]                 = create_scaled_bitmap(nullptr, "wrench");
+        // ptSLA
+        CATEGORY_ICON[L("Supports")]                 = create_scaled_bitmap(nullptr, "support"/*"sla_supports"*/);
+        CATEGORY_ICON[L("Pad")]                      = create_scaled_bitmap(nullptr, "pad");
     }
 
     // create control
@@ -392,10 +395,10 @@ void ObjectList::update_name_in_model(const wxDataViewItem& item) const
 
 void ObjectList::init_icons()
 {
-    m_bmp_modifiermesh     = create_scaled_bitmap(this, "lambda.png");
-    m_bmp_solidmesh        = create_scaled_bitmap(this, "object.png");
-    m_bmp_support_enforcer = create_scaled_bitmap(this, "support_enforcer_.png");
-    m_bmp_support_blocker  = create_scaled_bitmap(this, "support_blocker_.png");
+    m_bmp_modifiermesh     = create_scaled_bitmap(nullptr, "add_modifier");
+    m_bmp_solidmesh        = create_scaled_bitmap(nullptr, "add_part");
+    m_bmp_support_enforcer = create_scaled_bitmap(nullptr, "support_enforcer");
+    m_bmp_support_blocker  = create_scaled_bitmap(nullptr, "support_blocker");
 
 
     m_bmp_vector.reserve(4); // bitmaps for different types of parts 
@@ -406,13 +409,13 @@ void ObjectList::init_icons()
     m_objects_model->SetVolumeBitmaps(m_bmp_vector);
 
     // init icon for manifold warning
-    m_bmp_manifold_warning  = create_scaled_bitmap(this, "exclamation_mark_.png");
+    m_bmp_manifold_warning  = create_scaled_bitmap(nullptr, "exclamation");
 
     // init bitmap for "Split to sub-objects" context menu
-    m_bmp_split             = create_scaled_bitmap(this, "split_parts");
+    m_bmp_split             = create_scaled_bitmap(nullptr, "split_parts_SMALL");
 
     // init bitmap for "Add Settings" context menu
-    m_bmp_cog               = create_scaled_bitmap(this, "cog");
+    m_bmp_cog               = create_scaled_bitmap(nullptr, "cog");
 }
 
 
@@ -434,6 +437,66 @@ void ObjectList::selection_changed()
     }
 
     part_selection_changed();
+}
+
+void ObjectList::paste_volumes_into_list(int obj_idx, const ModelVolumePtrs& volumes)
+{
+    if ((obj_idx < 0) || ((int)m_objects->size() <= obj_idx))
+        return;
+
+    if (volumes.empty())
+        return;
+
+    ModelObject& model_object = *(*m_objects)[obj_idx];
+    const auto object_item = m_objects_model->GetItemById(obj_idx);
+
+    wxDataViewItemArray items;
+
+    for (const ModelVolume* volume : volumes)
+    {
+        auto vol_item = m_objects_model->AddVolumeChild(object_item, volume->name, volume->type(),
+            volume->config.has("extruder") ? volume->config.option<ConfigOptionInt>("extruder")->value : 0);
+        auto opt_keys = volume->config.keys();
+        if (!opt_keys.empty() && !((opt_keys.size() == 1) && (opt_keys[0] == "extruder")))
+            select_item(m_objects_model->AddSettingsChild(vol_item));
+
+        items.Add(vol_item);
+    }
+
+    m_parts_changed = true;
+    parts_changed(obj_idx);
+
+    if (items.size() > 1)
+    {
+        m_selection_mode = smVolume;
+        m_last_selected_item = wxDataViewItem(0);
+    }
+
+    select_items(items);
+#ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
+    selection_changed();
+#endif //no __WXOSX__ //__WXMSW__
+}
+
+void ObjectList::paste_objects_into_list(const std::vector<size_t>& object_idxs)
+{
+    if (object_idxs.empty())
+        return;
+
+    wxDataViewItemArray items;
+    for (const size_t object : object_idxs)
+    {
+        add_object_to_list(object);
+        m_parts_changed = true;
+        parts_changed(object);
+
+        items.Add(m_objects_model->GetItemById(object));
+    }
+
+    select_items(items);
+#ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
+    selection_changed();
+#endif //no __WXOSX__ //__WXMSW__
 }
 
 void ObjectList::OnChar(wxKeyEvent& event)
@@ -1374,9 +1437,7 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
     const wxString name = _(L("Generic")) + "-" + _(type_name);
     TriangleMesh mesh;
 
-    auto& bed_shape = printer_config().option<ConfigOptionPoints>("bed_shape")->values;
-    const auto& sz = BoundingBoxf(bed_shape).size();
-    const auto side = 0.1 * std::max(sz(0), sz(1));
+    double side = wxGetApp().plater()->canvas3D()->get_size_proportional_to_max_bed_size(0.1);
 
     if (type_name == "Box")
         // Sitting on the print bed, left front front corner at (0, 0).
@@ -1573,11 +1634,11 @@ void ObjectList::split()
 
     for (auto id = 0; id < model_object->volumes.size(); id++) {
         const auto vol_item = m_objects_model->AddVolumeChild(parent, from_u8(model_object->volumes[id]->name),
-                                            model_object->volumes[id]->is_modifier() ? 
-                                                ModelVolumeType::PARAMETER_MODIFIER : ModelVolumeType::MODEL_PART,
-                                            model_object->volumes[id]->config.has("extruder") ?
-                                                model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value : 0,
-                                            false);
+            model_object->volumes[id]->is_modifier() ?
+            ModelVolumeType::PARAMETER_MODIFIER : ModelVolumeType::MODEL_PART,
+            model_object->volumes[id]->config.has("extruder") ?
+            model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value : 0,
+            false);
         // add settings to the part, if it has those
         auto opt_keys = model_object->volumes[id]->config.keys();
         if ( !(opt_keys.size() == 1 && opt_keys[0] == "extruder") ) {
@@ -2132,6 +2193,7 @@ void ObjectList::update_selections_on_canvas()
         add_to_selection(item, selection, instance_idx, false);
 
     wxGetApp().plater()->canvas3D()->update_gizmos_on_off_state();
+    wxGetApp().plater()->canvas3D()->render();
 }
 
 void ObjectList::select_item(const wxDataViewItem& item)

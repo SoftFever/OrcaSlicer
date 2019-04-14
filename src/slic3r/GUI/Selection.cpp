@@ -1022,6 +1022,77 @@ bool Selection::requires_local_axes() const
     return (m_mode == Volume) && is_from_single_instance();
 }
 
+void Selection::copy_to_clipboard()
+{
+    if (!m_valid)
+        return;
+
+    m_clipboard.reset();
+
+    for (const ObjectIdxsToInstanceIdxsMap::value_type& object : m_cache.content)
+    {
+        ModelObject* src_object = m_model->objects[object.first];
+        ModelObject* dst_object = m_clipboard.add_object();
+        dst_object->name                 = src_object->name;
+        dst_object->input_file           = src_object->input_file;
+        dst_object->config               = src_object->config;
+        dst_object->sla_support_points   = src_object->sla_support_points;
+        dst_object->sla_points_status    = src_object->sla_points_status;
+        dst_object->layer_height_ranges  = src_object->layer_height_ranges;
+        dst_object->layer_height_profile = src_object->layer_height_profile;
+        dst_object->origin_translation   = src_object->origin_translation;
+
+        for (int i : object.second)
+        {
+            dst_object->add_instance(*src_object->instances[i]);
+        }
+
+        for (unsigned int i : m_list)
+        {
+            // Copy the ModelVolumes only for the selected GLVolumes of the 1st selected instance.
+            const GLVolume* volume = (*m_volumes)[i];
+            if ((volume->object_idx() == object.first) && (volume->instance_idx() == *object.second.begin()))
+            {
+                int volume_idx = volume->volume_idx();
+                if ((0 <= volume_idx) && (volume_idx < (int)src_object->volumes.size()))
+                {
+                    ModelVolume* src_volume = src_object->volumes[volume_idx];
+                    ModelVolume* dst_volume = dst_object->add_volume(*src_volume);
+                    dst_volume->set_new_unique_id();
+                } else {
+                    assert(false);
+                }
+            }
+        }
+    }
+
+    m_clipboard.set_mode(m_mode);
+}
+
+void Selection::paste_from_clipboard()
+{
+    if (!m_valid || m_clipboard.is_empty())
+        return;
+
+    switch (m_clipboard.get_mode())
+    {
+    case Volume:
+    {
+        if (is_from_single_instance())
+            paste_volumes_from_clipboard();
+
+        break;
+    }
+    case Instance:
+    {
+        if (m_mode == Instance)
+            paste_objects_from_clipboard();
+
+        break;
+    }
+    }
+}
+
 void Selection::update_valid()
 {
     m_valid = (m_volumes != nullptr) && (m_model != nullptr);
@@ -1695,6 +1766,45 @@ bool Selection::is_from_fully_selected_instance(unsigned int volume_idx) const
 
     unsigned int count = (unsigned int)std::count_if(m_list.begin(), m_list.end(), SameInstance(object_idx, volume->instance_idx(), *m_volumes));
     return count == (unsigned int)m_model->objects[object_idx]->volumes.size();
+}
+
+void Selection::paste_volumes_from_clipboard()
+{
+    int obj_idx = get_object_idx();
+    if ((obj_idx < 0) || ((int)m_model->objects.size() <= obj_idx))
+        return;
+
+    ModelObject* src_object = m_clipboard.get_object(0);
+    if (src_object != nullptr)
+    {
+        ModelObject* dst_object = m_model->objects[obj_idx];
+
+        ModelVolumePtrs volumes;
+        for (ModelVolume* src_volume : src_object->volumes)
+        {
+            ModelVolume* dst_volume = dst_object->add_volume(*src_volume);
+            dst_volume->set_new_unique_id();
+            double offset = wxGetApp().plater()->canvas3D()->get_size_proportional_to_max_bed_size(0.05);
+            dst_volume->translate(offset, offset, 0.0);
+            volumes.push_back(dst_volume);
+        }
+        wxGetApp().obj_list()->paste_volumes_into_list(obj_idx, volumes);
+    }
+}
+
+void Selection::paste_objects_from_clipboard()
+{
+    std::vector<size_t> object_idxs;
+    const ModelObjectPtrs& src_objects = m_clipboard.get_objects();
+    for (const ModelObject* src_object : src_objects)
+    {
+        ModelObject* dst_object = m_model->add_object(*src_object);
+        double offset = wxGetApp().plater()->canvas3D()->get_size_proportional_to_max_bed_size(0.05);
+        dst_object->translate(offset, offset, 0.0);
+        object_idxs.push_back(m_model->objects.size() - 1);
+    }
+
+    wxGetApp().obj_list()->paste_objects_into_list(object_idxs);
 }
 
 } // namespace GUI

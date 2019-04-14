@@ -65,6 +65,37 @@ public:
     void set_scale_factor(int height);
 };
 
+
+class ClippingPlane
+{
+    double m_data[4];
+
+public:
+    ClippingPlane()
+    {
+        m_data[0] = 0.0;
+        m_data[1] = 0.0;
+        m_data[2] = 1.0;
+        m_data[3] = 0.0;
+    }
+
+    ClippingPlane(const Vec3d& direction, double offset)
+    {
+        Vec3d norm_dir = direction.normalized();
+        m_data[0] = norm_dir(0);
+        m_data[1] = norm_dir(1);
+        m_data[2] = norm_dir(2);
+        m_data[3] = offset;
+    }
+
+    bool is_active() const { return m_data[3] != DBL_MAX; }
+
+    static ClippingPlane ClipsNothing() { return ClippingPlane(Vec3d(0., 0., 1.), DBL_MAX); }
+
+    const double* get_data() const { return m_data; }
+};
+
+
 wxDECLARE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, SimpleEvent);
 
 using Vec2dEvent = Event<Vec2d>;
@@ -288,32 +319,6 @@ class GLCanvas3D
         }
     };
 
-public:
-    class ClippingPlane
-    {
-        double m_data[4];
-
-    public:
-        ClippingPlane()
-        {
-            m_data[0] = 0.0;
-            m_data[1] = 0.0;
-            m_data[2] = 1.0;
-            m_data[3] = 0.0;
-        }
-
-        ClippingPlane(const Vec3d& direction, double offset)
-        {
-            Vec3d norm_dir = direction.normalized();
-            m_data[0] = norm_dir(0);
-            m_data[1] = norm_dir(1);
-            m_data[2] = norm_dir(2);
-            m_data[3] = offset;
-        }
-
-        const double* get_data() const { return m_data; }
-    };
-
 private:
     struct SlaCap
     {
@@ -405,6 +410,7 @@ private:
     mutable GLGizmosManager m_gizmos;
     mutable GLToolbar m_toolbar;
     ClippingPlane m_clipping_planes[2];
+    mutable ClippingPlane m_camera_clipping_plane;
     bool m_use_clipping_planes;
     mutable SlaCap m_sla_caps[2];
     std::string m_sidebar_field;
@@ -579,6 +585,8 @@ public:
     void refresh_camera_scene_box() { m_camera.set_scene_box(scene_bounding_box()); }
     bool is_mouse_dragging() const { return m_mouse.dragging; }
 
+    double get_size_proportional_to_max_bed_size(double factor) const;
+
 private:
     bool _is_shown_on_screen() const;
 
@@ -605,7 +613,7 @@ private:
 #endif // ENABLE_RENDER_SELECTION_CENTER
     void _render_warning_texture() const;
     void _render_legend_texture() const;
-    void _render_volumes(bool fake_colors) const;
+    void _render_volumes_for_picking() const;
     void _render_current_gizmo() const;
     void _render_gizmos_overlay() const;
     void _render_toolbar() const;
