@@ -1649,11 +1649,11 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
                 if (advanced)
                 {
-                    wxMessageDialog dlg(q, _(L("This file cannot be loaded in simple mode. Do you want to switch to expert mode?\n")),
+                    wxMessageDialog dlg(q, _(L("This file cannot be loaded in a simple mode. Do you want to switch to an advanced mode?\n")),
                         _(L("Detected advanced data")), wxICON_WARNING | wxYES | wxNO);
                     if (dlg.ShowModal() == wxID_YES)
                     {
-                        Slic3r::GUI::wxGetApp().save_mode(comExpert);
+                        Slic3r::GUI::wxGetApp().save_mode(comAdvanced);
                         view3D->set_as_dirty();
                     }
                     else
