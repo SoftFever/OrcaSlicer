@@ -150,7 +150,8 @@ void GLGizmoMove3D::on_render(const Selection& selection) const
         glsafe(::glEnd());
 
         // draw grabber
-        m_grabbers[m_hover_id].render(true, box.max_size());
+        float mean_size = (float)((box.size()(0) + box.size()(1) + box.size()(2)) / 3.0);
+        m_grabbers[m_hover_id].render(true, mean_size);
         render_grabber_extension((Axis)m_hover_id, box, false);
     }
 }
