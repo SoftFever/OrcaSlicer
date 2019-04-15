@@ -1470,6 +1470,8 @@ void GLCanvas3D::enable_layers_editing(bool enable)
         if (v->is_modifier)
             v->force_transparent = enable;
     }
+
+    set_as_dirty();
 }
 
 void GLCanvas3D::enable_legend_texture(bool enable)
@@ -1638,7 +1640,7 @@ void GLCanvas3D::render()
 #endif // !ENABLE_SVG_ICONS
     _render_toolbar();
     _render_view_toolbar();
-    if (m_layers_editing.last_object_id >= 0)
+    if ((m_layers_editing.last_object_id >= 0) && (m_layers_editing.object_max_z() > 0.0f))
         m_layers_editing.render_overlay(*this);
 
     wxGetApp().imgui()->render();
@@ -3655,8 +3657,8 @@ void GLCanvas3D::_render_objects() const
         m_volumes.set_clipping_plane(m_camera_clipping_plane.get_data());
 
         m_shader.start_using();
-        if (m_picking_enabled && m_layers_editing.is_enabled() && m_layers_editing.last_object_id != -1) {
-			int object_id = m_layers_editing.last_object_id;
+        if (m_picking_enabled && m_layers_editing.is_enabled() && (m_layers_editing.last_object_id != -1) && (m_layers_editing.object_max_z() > 0.0f)) {
+            int object_id = m_layers_editing.last_object_id;
             m_volumes.render_VBOs(GLVolumeCollection::Opaque, false, m_camera.get_view_matrix(), [object_id](const GLVolume &volume) {
                 // Which volume to paint without the layer height profile shader?
                 return volume.is_active && (volume.is_modifier || volume.composite_id.object_id != object_id);
