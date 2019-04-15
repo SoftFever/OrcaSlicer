@@ -706,6 +706,7 @@ void SLAPrint::process()
             po.m_model_height_levels.emplace_back(it->slice_level());
         }
 
+        mesh.require_shared_vertices(); // TriangleMeshSlicer needs this
         TriangleMeshSlicer slicer(&mesh);
 
         po.m_model_slices.clear();

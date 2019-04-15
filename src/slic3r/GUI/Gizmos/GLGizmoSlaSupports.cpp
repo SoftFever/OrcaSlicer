@@ -178,6 +178,7 @@ void GLGizmoSlaSupports::render_clipping_plane(const Selection& selection, const
                     // The timestamp has changed - stash the mesh and initialize the TMS.
                     m_supports_mesh = print_object->support_mesh();
                     m_supports_tms.reset(new TriangleMeshSlicer);
+                    m_supports_mesh.require_shared_vertices(); // TriangleMeshSlicer needs this
                     m_supports_tms->init(const_cast<TriangleMesh*>(&m_supports_mesh), [](){});
                     m_old_timestamp = timestamp;
                 }
@@ -411,6 +412,7 @@ void GLGizmoSlaSupports::update_mesh()
     Eigen::MatrixXi& F = m_F;
     // This mesh does not account for the possible Z up SLA offset.
     m_mesh = m_model_object->raw_mesh();
+    m_mesh.require_shared_vertices(); // TriangleMeshSlicer needs this
     const stl_file& stl = m_mesh.stl;
     V.resize(3 * stl.stats.number_of_facets, 3);
     F.resize(stl.stats.number_of_facets, 3);

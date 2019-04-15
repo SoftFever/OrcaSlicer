@@ -1813,6 +1813,7 @@ std::vector<ExPolygons> PrintObject::_slice_volumes(const std::vector<float> &z,
             TriangleMeshSlicer mslicer;
             const Print *print = this->print();
             auto callback = TriangleMeshSlicer::throw_on_cancel_callback_type([print](){print->throw_if_canceled();});
+            mesh.require_shared_vertices(); // TriangleMeshSlicer needs this
             mslicer.init(&mesh, callback);
 			mslicer.slice(z, float(m_config.slice_closing_radius.value), &layers, callback);
             m_print->throw_if_canceled();
@@ -1840,6 +1841,7 @@ std::vector<ExPolygons> PrintObject::_slice_volume(const std::vector<float> &z, 
         TriangleMeshSlicer mslicer;
         const Print *print = this->print();
         auto callback = TriangleMeshSlicer::throw_on_cancel_callback_type([print](){print->throw_if_canceled();});
+        mesh.require_shared_vertices(); // TriangleMeshSlicer needs this
         mslicer.init(&mesh, callback);
         mslicer.slice(z, float(m_config.slice_closing_radius.value), &layers, callback);
         m_print->throw_if_canceled();
