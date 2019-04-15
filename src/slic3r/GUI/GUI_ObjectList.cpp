@@ -487,11 +487,12 @@ void ObjectList::paste_objects_into_list(const std::vector<size_t>& object_idxs)
     for (const size_t object : object_idxs)
     {
         add_object_to_list(object);
-        m_parts_changed = true;
-        parts_changed(object);
-
         items.Add(m_objects_model->GetItemById(object));
     }
+
+    m_parts_changed = true;
+    wxGetApp().plater()->changed_objects(object_idxs);
+    m_parts_changed = false;
 
     select_items(items);
 #ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
