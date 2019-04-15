@@ -37,7 +37,12 @@ private:
     Eigen::MatrixXi m_F; // facets indices
     igl::AABB<Eigen::MatrixXf,3> m_AABB;
     TriangleMesh m_mesh;
+    mutable TriangleMesh m_supports_mesh;
     mutable std::vector<Vec2f> m_triangles;
+    mutable std::vector<Vec2f> m_supports_triangles;
+    mutable int m_old_timestamp = -1;
+    mutable int m_print_object_idx = -1;
+    mutable int m_print_objects_count = -1;
 
     class CacheEntry {
     public:
@@ -79,7 +84,6 @@ private:
     bool m_old_editing_state = false;       // To keep track of whether the user toggled between the modes (needed for imgui refreshes).
     float m_new_point_head_diameter;        // Size of a new point.
     float m_minimal_point_distance = 20.f;
-    float m_density = 100.f;
     mutable std::vector<CacheEntry> m_editing_mode_cache; // a support point and whether it is currently selected
     float m_clipping_plane_distance = 0.f;
     mutable float m_old_clipping_plane_distance = 0.f;
@@ -101,6 +105,7 @@ private:
     int m_canvas_height;
 
     mutable std::unique_ptr<TriangleMeshSlicer> m_tms;
+    mutable std::unique_ptr<TriangleMeshSlicer> m_supports_tms;
 
     std::vector<const ConfigOption*> get_config_options(const std::vector<std::string>& keys) const;
     bool is_point_clipped(const Vec3d& point, const Vec3d& direction_to_camera) const;

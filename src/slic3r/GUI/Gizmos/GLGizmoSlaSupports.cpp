@@ -51,6 +51,9 @@ void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const S
         return;
     }
 
+    if (m_model_object != model_object)
+        m_print_object_idx = -1;
+
     m_model_object = model_object;
     m_active_instance = selection.get_instance_idx();
 
@@ -111,31 +114,90 @@ void GLGizmoSlaSupports::render_clipping_plane(const Selection& selection, const
     if (m_clipping_plane_distance == 0.f)
         return;
 
+    // First cache instance transformation to be used later.
     const GLVolume* vol = selection.get_volume(*selection.get_volume_idxs().begin());
     Transform3f instance_matrix = vol->get_instance_transformation().get_matrix().cast<float>();
     Transform3f instance_matrix_no_translation_no_scaling = vol->get_instance_transformation().get_matrix(true,false,true).cast<float>();
     Vec3f scaling = vol->get_instance_scaling_factor().cast<float>();
+    Vec3d instance_offset = vol->get_instance_offset();
 
+    // Calculate distance from mesh origin to the clipping plane (in mesh coordinates).
     Vec3f up_noscale = instance_matrix_no_translation_no_scaling.inverse() * direction_to_camera.cast<float>();
     Vec3f up = Vec3f(up_noscale(0)*scaling(0), up_noscale(1)*scaling(1), up_noscale(2)*scaling(2));
     float height_mesh = (m_active_instance_bb_radius - m_clipping_plane_distance * 2*m_active_instance_bb_radius) * (up_noscale.norm()/up.norm());
 
+    // Get transformation of the supports and calculate how far from its origin the clipping plane is.
+    Transform3d supports_trafo = Transform3d::Identity();
+    supports_trafo = supports_trafo.rotate(Eigen::AngleAxisd(vol->get_instance_rotation()(2), Vec3d::UnitZ()));
+    Vec3f up_supports = (supports_trafo.inverse() * direction_to_camera).cast<float>();
+    supports_trafo = supports_trafo.pretranslate(Vec3d(instance_offset(0), instance_offset(1), vol->get_sla_shift_z()));
+    // Instance and supports origin do not coincide, so the following is quite messy:
+    float height_supports = height_mesh * (up.norm() / up_supports.norm()) + instance_offset(2) * (direction_to_camera(2) / direction_to_camera.norm());
+
+    // In case either of these was recently changed, the cached triangulated ExPolygons are invalid now.
+    // We are gonna recalculate them both for the object and for the support structures.
     if (m_clipping_plane_distance != m_old_clipping_plane_distance
      || m_old_direction_to_camera != direction_to_camera) {
 
-        std::vector<ExPolygons> list_of_expolys;
+        m_old_direction_to_camera = direction_to_camera;
+        m_old_clipping_plane_distance = m_clipping_plane_distance;
+
+        // Now initialize the TMS for the object, perform the cut and save the result.
         if (! m_tms) {
             m_tms.reset(new TriangleMeshSlicer);
             m_tms->init(const_cast<TriangleMesh*>(&m_mesh), [](){});
         }
-
+        std::vector<ExPolygons> list_of_expolys;
         m_tms->set_up_direction(up);
         m_tms->slice(std::vector<float>{height_mesh}, 0.f, &list_of_expolys, [](){});
         m_triangles = triangulate_expolygons_2f(list_of_expolys[0]);
 
-        m_old_direction_to_camera = direction_to_camera;
-        m_old_clipping_plane_distance = m_clipping_plane_distance;
+
+
+        // Next, ask the backend if supports are already calculated. If so, we are gonna cut them too.
+        // First we need a pointer to the respective SLAPrintObject. The index into objects vector is
+        // cached so we don't have todo it on each render. We only search for the po if needed:
+        if (m_print_object_idx < 0 || (int)m_parent.sla_print()->objects().size() != m_print_objects_count) {
+            m_print_objects_count = m_parent.sla_print()->objects().size();
+            m_print_object_idx = -1;
+            for (const SLAPrintObject* po : m_parent.sla_print()->objects()) {
+                ++m_print_object_idx;
+                if (po->model_object()->id() == m_model_object->id())
+                    break;
+            }
+        }
+        if (m_print_object_idx >= 0) {
+            const SLAPrintObject* print_object = m_parent.sla_print()->objects()[m_print_object_idx];
+
+            if (print_object->is_step_done(slaposSupportTree)) {
+                // If the supports are already calculated, save the timestamp of the respective step
+                // so we can later tell they were recalculated.
+                size_t timestamp = print_object->step_state_with_timestamp(slaposSupportTree).timestamp;
+
+                if (!m_supports_tms || (int)timestamp != m_old_timestamp) {
+                    // The timestamp has changed - stash the mesh and initialize the TMS.
+                    m_supports_mesh = print_object->support_mesh();
+                    m_supports_tms.reset(new TriangleMeshSlicer);
+                    m_supports_tms->init(const_cast<TriangleMesh*>(&m_supports_mesh), [](){});
+                    m_old_timestamp = timestamp;
+                }
+
+                // The TMS is initialized - let's do the cutting:
+                list_of_expolys.clear();
+                m_supports_tms->set_up_direction(up_supports);
+                m_supports_tms->slice(std::vector<float>{height_supports}, 0.f, &list_of_expolys, [](){});
+                m_supports_triangles = triangulate_expolygons_2f(list_of_expolys[0]);
+            }
+            else {
+                // The supports are not valid. We better dump the cached data.
+                m_supports_tms.reset();
+                m_supports_triangles.clear();
+            }
+        }
     }
+
+    // At this point we have the triangulated cuts for both the object and supports - let's render.
+    ::glColor3f(1.0f, 0.37f, 0.0f);
 
 	if (! m_triangles.empty()) {
 		::glPushMatrix();
@@ -146,11 +208,26 @@ void GLGizmoSlaSupports::render_clipping_plane(const Selection& selection, const
 		Eigen::AngleAxisf aa(q);
 		::glRotatef(aa.angle() * (180./M_PI), aa.axis()(0), aa.axis()(1), aa.axis()(2));
 		::glTranslatef(0.f, 0.f, -0.001f); // to make sure the cut is safely beyond the near clipping plane
-		::glColor3f(1.0f, 0.37f, 0.0f);
         ::glBegin(GL_TRIANGLES);
-        ::glColor3f(1.0f, 0.37f, 0.0f);
         for (const Vec2f& point : m_triangles)
             ::glVertex3f(point(0), point(1), height_mesh);
+
+        ::glEnd();
+		::glPopMatrix();
+	}
+
+    if (! m_supports_triangles.empty()) {
+		::glPushMatrix();
+        ::glMultMatrixd(supports_trafo.data());
+        Eigen::Quaternionf q;
+		q.setFromTwoVectors(Vec3f::UnitZ(), up_supports);
+		Eigen::AngleAxisf aa(q);
+		::glRotatef(aa.angle() * (180./M_PI), aa.axis()(0), aa.axis()(1), aa.axis()(2));
+		::glTranslatef(0.f, 0.f, -0.001f); // to make sure the cut is safely beyond the near clipping plane
+        ::glBegin(GL_TRIANGLES);
+        for (const Vec2f& point : m_supports_triangles)
+            ::glVertex3f(point(0), point(1), height_supports);
+
         ::glEnd();
 		::glPopMatrix();
 	}
@@ -974,10 +1051,12 @@ void GLGizmoSlaSupports::on_set_state()
                 m_clipping_plane_distance = 0.f;
                 // Release copy of the mesh, triangle slicer and the AABB spatial search structure.
 				m_mesh.clear();
+                m_supports_mesh.clear();
                 m_AABB.deinit();
 				m_V = Eigen::MatrixXf();
 				m_F = Eigen::MatrixXi();
-                m_tms.reset(nullptr);
+                m_tms.reset();
+                m_supports_tms.reset();
             });
         }
         m_old_state = m_state;
