@@ -210,7 +210,7 @@ public:
     EMode get_mode() const { return m_mode; }
     void set_mode(EMode mode) { m_mode = mode; }
 
-    void add(unsigned int volume_idx, bool as_single_selection = true);
+    void add(unsigned int volume_idx, bool as_single_selection = true, bool check_for_already_contained = false);
     void remove(unsigned int volume_idx);
 
     void add_object(unsigned int object_idx, bool as_single_selection = true);
