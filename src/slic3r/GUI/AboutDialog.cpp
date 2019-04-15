@@ -32,7 +32,7 @@ void AboutDialogLogo::onRepaint(wxEvent &event)
 }
 
 AboutDialog::AboutDialog()
-    : wxDialog(NULL, wxID_ANY, _(L("About Slic3r")), wxDefaultPosition, wxDefaultSize, wxCAPTION)
+    : wxDialog(NULL, wxID_ANY, wxString::Format(_(L("About %s")), SLIC3R_APP_NAME), wxDefaultPosition, wxDefaultSize, wxCAPTION)
 {
 	wxColour bgr_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 	SetBackgroundColour(bgr_clr);

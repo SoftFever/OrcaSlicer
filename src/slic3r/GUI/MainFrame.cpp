@@ -485,7 +485,7 @@ void MainFrame::init_menubar()
             [this](wxCommandEvent&) { Slic3r::GUI::desktop_open_datadir_folder(); });
         append_menu_item(helpMenu, wxID_ANY, _(L("Report an I&ssue")), wxString::Format(_(L("Report an issue on %s")), SLIC3R_APP_NAME), 
             [this](wxCommandEvent&) { wxLaunchDefaultBrowser("http://github.com/prusa3d/slic3r/issues/new"); });
-        append_menu_item(helpMenu, wxID_ANY, _(L("&About Slic3r")), _(L("Show about dialog")),
+        append_menu_item(helpMenu, wxID_ANY, wxString::Format(_(L("&About %s")), SLIC3R_APP_NAME), _(L("Show about dialog")),
             [this](wxCommandEvent&) { Slic3r::GUI::about(); });
         helpMenu->AppendSeparator();
         append_menu_item(helpMenu, wxID_ANY, _(L("Keyboard Shortcuts")) + sep + "&?", _(L("Show the list of the keyboard shortcuts")),
@@ -754,7 +754,7 @@ void MainFrame::export_configbundle()
     // Ask user for a file name.
     auto dlg = new wxFileDialog(this, _(L("Save presets bundle as:")),
         !m_last_config.IsEmpty() ? get_dir_name(m_last_config) : wxGetApp().app_config->get_last_dir(),
-        "Slic3r_config_bundle.ini",
+        SLIC3R_APP_KEY "_config_bundle.ini",
         file_wildcards(FT_INI), wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     wxString file;
     if (dlg->ShowModal() == wxID_OK)
