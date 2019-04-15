@@ -1633,10 +1633,26 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         break;
                     }
 
+                    // is there any advanced config data ?
+                    auto opt_keys = model_object->config.keys();
+                    if (!opt_keys.empty() && !((opt_keys.size() == 1) && (opt_keys[0] == "extruder")))
+                    {
+                        advanced = true;
+                        break;
+                    }
+
                     // is there any modifier ?
                     for (const ModelVolume* model_volume : model_object->volumes)
                     {
                         if (!model_volume->is_model_part())
+                        {
+                            advanced = true;
+                            break;
+                        }
+
+                        // is there any advanced config data ?
+                        opt_keys = model_volume->config.keys();
+                        if (!opt_keys.empty() && !((opt_keys.size() == 1) && (opt_keys[0] == "extruder")))
                         {
                             advanced = true;
                             break;
