@@ -208,7 +208,7 @@ void PresetUpdater::priv::sync_version() const
 {
 	if (! enabled_version_check) { return; }
 
-	BOOST_LOG_TRIVIAL(info) << boost::format("Downloading Slic3rPE online version from: `%1%`") % version_check_url;
+	BOOST_LOG_TRIVIAL(info) << boost::format("Downloading %1% online version from: `%2%`") % SLIC3R_APP_NAME % version_check_url;
 
 	Http::get(version_check_url)
 		.size_limit(SLIC3R_VERSION_BODY_MAX)
@@ -224,7 +224,7 @@ void PresetUpdater::priv::sync_version() const
 		})
 		.on_complete([&](std::string body, unsigned /* http_status */) {
 			boost::trim(body);
-			BOOST_LOG_TRIVIAL(info) << boost::format("Got Slic3rPE online version: `%1%`. Sending to GUI thread...") % body;
+			BOOST_LOG_TRIVIAL(info) << boost::format("Got %1% online version: `%2%`. Sending to GUI thread...") % SLIC3R_APP_NAME % body;
 
 			wxCommandEvent* evt = new wxCommandEvent(EVT_SLIC3R_VERSION_ONLINE);
 			evt->SetString(GUI::from_u8(body));

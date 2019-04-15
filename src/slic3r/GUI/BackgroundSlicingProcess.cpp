@@ -16,6 +16,7 @@
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/GCode/PostProcessor.hpp"
 #include "libslic3r/GCode/PreviewData.hpp"
+#include "libslic3r/libslic3r.h"
 
 #include <cassert>
 #include <stdexcept>
@@ -390,7 +391,7 @@ void BackgroundSlicingProcess::prepare_upload()
 
 	// Generate a unique temp path to which the gcode/zip file is copied/exported
 	boost::filesystem::path source_path = boost::filesystem::temp_directory_path()
-		/ boost::filesystem::unique_path(".Slic3rPE.upload.%%%%-%%%%-%%%%-%%%%");
+		/ boost::filesystem::unique_path("." SLIC3R_APP_KEY ".upload.%%%%-%%%%-%%%%-%%%%");
 
 	if (m_print == m_fff_print) {
 		m_print->set_status(95, "Running post-processing scripts");

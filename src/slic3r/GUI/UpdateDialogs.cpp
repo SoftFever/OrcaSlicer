@@ -27,7 +27,7 @@ static const std::string CONFIG_UPDATE_WIKI_URL("https://github.com/prusa3d/Slic
 // MsgUpdateSlic3r
 
 MsgUpdateSlic3r::MsgUpdateSlic3r(const Semver &ver_current, const Semver &ver_online) :
-	MsgDialog(nullptr, _(L("Update available")), _(L("New version of Slic3r PE is available"))),
+	MsgDialog(nullptr, _(L("Update available")), wxString::Format(_(L("New version of % is available")), SLIC3R_APP_NAME)),
 	ver_current(ver_current),
 	ver_online(ver_online)
 {
@@ -113,17 +113,17 @@ MsgDataIncompatible::MsgDataIncompatible(const std::unordered_map<std::string, w
 {
 	logo->SetBitmap(create_scaled_bitmap(this, "Slic3r_192px_grayscale.png", 192));
 
-	auto *text = new wxStaticText(this, wxID_ANY, _(L(
-		"This version of Slic3r PE is not compatible with currently installed configuration bundles.\n"
-		"This probably happened as a result of running an older Slic3r PE after using a newer one.\n\n"
+	auto *text = new wxStaticText(this, wxID_ANY, wxString::Format(_(L(
+		"This version of %s is not compatible with currently installed configuration bundles.\n"
+		"This probably happened as a result of running an older %s after using a newer one.\n\n"
 
 		"You may either exit Slic3r and try again with a newer version, or you may re-run the initial configuration. "
 		"Doing so will create a backup snapshot of the existing configuration before installing files compatible with this Slic3r.\n"
-	)));
+		)), SLIC3R_APP_NAME, SLIC3R_APP_NAME));
 	text->Wrap(CONTENT_WIDTH * wxGetApp().em_unit());
 	content_sizer->Add(text);
 
-	auto *text2 = new wxStaticText(this, wxID_ANY, wxString::Format(_(L("This Slic3r PE version: %s")), SLIC3R_VERSION));
+	auto *text2 = new wxStaticText(this, wxID_ANY, wxString::Format(_(L("This %s version: %s")), SLIC3R_APP_NAME, SLIC3R_VERSION));
 	text2->Wrap(CONTENT_WIDTH * wxGetApp().em_unit());
 	content_sizer->Add(text2);
 	content_sizer->AddSpacer(VERT_SPACING);
@@ -168,7 +168,7 @@ MsgDataLegacy::MsgDataLegacy() :
 {
 	auto *text = new wxStaticText(this, wxID_ANY, wxString::Format(
 		_(L(
-			"Slic3r PE now uses an updated configuration structure.\n\n"
+			"%s now uses an updated configuration structure.\n\n"
 
 			"So called 'System presets' have been introduced, which hold the built-in default settings for various "
 			"printers. These System presets cannot be modified, instead, users now may create their "
@@ -178,7 +178,7 @@ MsgDataLegacy::MsgDataLegacy() :
 			"Please proceed with the %s that follows to set up the new presets "
 			"and to choose whether to enable automatic preset updates."
 		)),
-		ConfigWizard::name()
+		SLIC3R_APP_NAME, ConfigWizard::name()
 	));
 	text->Wrap(CONTENT_WIDTH * wxGetApp().em_unit());
 	content_sizer->Add(text);

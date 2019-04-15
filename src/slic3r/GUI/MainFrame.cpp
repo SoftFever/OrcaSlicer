@@ -483,7 +483,7 @@ void MainFrame::init_menubar()
             [this](wxCommandEvent&) { wxGetApp().system_info(); });
         append_menu_item(helpMenu, wxID_ANY, _(L("Show &Configuration Folder")), _(L("Show user configuration folder (datadir)")),
             [this](wxCommandEvent&) { Slic3r::GUI::desktop_open_datadir_folder(); });
-        append_menu_item(helpMenu, wxID_ANY, _(L("Report an I&ssue")), _(L("Report an issue on the Slic3r Prusa Edition")), 
+        append_menu_item(helpMenu, wxID_ANY, _(L("Report an I&ssue")), wxString::Format(_(L("Report an issue on %s")), SLIC3R_APP_NAME), 
             [this](wxCommandEvent&) { wxLaunchDefaultBrowser("http://github.com/prusa3d/slic3r/issues/new"); });
         append_menu_item(helpMenu, wxID_ANY, _(L("&About Slic3r")), _(L("Show about dialog")),
             [this](wxCommandEvent&) { Slic3r::GUI::about(); });
