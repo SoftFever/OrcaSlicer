@@ -36,8 +36,8 @@ private:
     Eigen::MatrixXf m_V; // vertices
     Eigen::MatrixXi m_F; // facets indices
     igl::AABB<Eigen::MatrixXf,3> m_AABB;
-    TriangleMesh m_mesh;
-    mutable TriangleMesh m_supports_mesh;
+    const TriangleMesh* m_mesh;
+    mutable const TriangleMesh* m_supports_mesh;
     mutable std::vector<Vec2f> m_triangles;
     mutable std::vector<Vec2f> m_supports_triangles;
     mutable int m_old_timestamp = -1;

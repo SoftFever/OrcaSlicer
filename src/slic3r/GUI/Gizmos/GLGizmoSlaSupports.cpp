@@ -145,7 +145,7 @@ void GLGizmoSlaSupports::render_clipping_plane(const Selection& selection, const
         // Now initialize the TMS for the object, perform the cut and save the result.
         if (! m_tms) {
             m_tms.reset(new TriangleMeshSlicer);
-            m_tms->init(const_cast<TriangleMesh*>(&m_mesh), [](){});
+            m_tms->init(m_mesh, [](){});
         }
         std::vector<ExPolygons> list_of_expolys;
         m_tms->set_up_direction(up);
@@ -176,10 +176,10 @@ void GLGizmoSlaSupports::render_clipping_plane(const Selection& selection, const
 
                 if (!m_supports_tms || (int)timestamp != m_old_timestamp) {
                     // The timestamp has changed - stash the mesh and initialize the TMS.
-                    m_supports_mesh = print_object->support_mesh();
+                    m_supports_mesh = &print_object->support_mesh();
                     m_supports_tms.reset(new TriangleMeshSlicer);
-                    m_supports_mesh.require_shared_vertices(); // TriangleMeshSlicer needs this
-                    m_supports_tms->init(const_cast<TriangleMesh*>(&m_supports_mesh), [](){});
+                    // The mesh should already have the shared vertices calculated.
+                    m_supports_tms->init(m_supports_mesh, [](){});
                     m_old_timestamp = timestamp;
                 }
 
@@ -410,10 +410,12 @@ void GLGizmoSlaSupports::update_mesh()
     wxBusyCursor wait;
     Eigen::MatrixXf& V = m_V;
     Eigen::MatrixXi& F = m_F;
+    // We rely on SLA model object having a single volume,
+    // this way we can use that mesh directly.
     // This mesh does not account for the possible Z up SLA offset.
-    m_mesh = m_model_object->raw_mesh();
-    m_mesh.require_shared_vertices(); // TriangleMeshSlicer needs this
-    const stl_file& stl = m_mesh.stl;
+    m_mesh = &m_model_object->volumes.front()->mesh;
+    const_cast<TriangleMesh*>(m_mesh)->require_shared_vertices(); // TriangleMeshSlicer needs this
+    const stl_file& stl = m_mesh->stl;
     V.resize(3 * stl.stats.number_of_facets, 3);
     F.resize(stl.stats.number_of_facets, 3);
     for (unsigned int i=0; i<stl.stats.number_of_facets; ++i) {
@@ -1051,9 +1053,7 @@ void GLGizmoSlaSupports::on_set_state()
                 m_editing_mode = false; // so it is not active next time the gizmo opens
                 m_editing_mode_cache.clear();
                 m_clipping_plane_distance = 0.f;
-                // Release copy of the mesh, triangle slicer and the AABB spatial search structure.
-				m_mesh.clear();
-                m_supports_mesh.clear();
+                // Release triangle mesh slicer and the AABB spatial search structure.
                 m_AABB.deinit();
 				m_V = Eigen::MatrixXf();
 				m_F = Eigen::MatrixXi();

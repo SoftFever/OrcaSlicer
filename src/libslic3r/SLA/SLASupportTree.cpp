@@ -817,6 +817,10 @@ public:
 
         meshcache = mesh(merged);
 
+        // The mesh will be passed by const-pointer to TriangleMeshSlicer,
+        // which will need this.
+        meshcache.require_shared_vertices();
+
         // TODO: Is this necessary?
         //meshcache.repair();
 
