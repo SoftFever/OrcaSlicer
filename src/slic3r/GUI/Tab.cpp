@@ -110,7 +110,7 @@ void Tab::create_preset_tab()
 #endif //__WXOSX__
 
 	// preset chooser
-    m_presets_choice = new wxBitmapComboBox(panel, wxID_ANY, "", wxDefaultPosition, wxSize(25 * m_em_unit, -1), 0, 0, wxCB_READONLY);
+    m_presets_choice = new wxBitmapComboBox(panel, wxID_ANY, "", wxDefaultPosition, wxSize(35 * m_em_unit, -1), 0, 0, wxCB_READONLY);
 
 	auto color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 
@@ -772,7 +772,7 @@ void Tab::rescale()
 
     m_mode_sizer->rescale();
 
-    m_presets_choice->SetSize(25 * m_em_unit, -1);
+    m_presets_choice->SetSize(35 * m_em_unit, -1);
     m_treectrl->SetMinSize(wxSize(20 * m_em_unit, -1));
 
     update_tab_ui();
@@ -3246,7 +3246,7 @@ ConfigOptionsGroupShp Page::new_optgroup(const wxString& title, int noncommon_la
 		return static_cast<Tab*>(tab)->m_presets->get_selected_preset_parent() != nullptr;
 	};
 
-    optgroup->rescale_extra_column = [this](wxWindow* win) {
+    optgroup->rescale_extra_column_item = [this](wxWindow* win) {
         auto *ctrl = dynamic_cast<wxStaticBitmap*>(win);
         if (ctrl == nullptr)
             return;

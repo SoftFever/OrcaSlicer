@@ -396,6 +396,11 @@ void Preview::refresh_print()
     load_print(true);
 }
 
+void Preview::rescale_slider()
+{
+    if (m_slider) m_slider->rescale();
+}
+
 void Preview::bind_event_handlers()
 {
     this->Bind(wxEVT_SIZE, &Preview::on_size, this);

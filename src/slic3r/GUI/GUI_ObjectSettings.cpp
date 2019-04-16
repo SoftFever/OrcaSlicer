@@ -127,7 +127,7 @@ void ObjectSettings::update_settings_list()
 
                 auto optgroup = std::make_shared<ConfigOptionsGroup>(m_og->ctrl_parent(), cat.first, config, false, extra_column);
                 optgroup->label_width = 15;
-                optgroup->sidetext_width = 5.5 * wxGetApp().em_unit();
+                optgroup->sidetext_width = 5.5;
 
                 optgroup->m_on_change = [](const t_config_option_key& opt_id, const boost::any& value) {
                                         wxGetApp().obj_list()->part_settings_changed(); };
@@ -137,14 +137,14 @@ void ObjectSettings::update_settings_list()
                     if (opt == "extruder")
                         continue;
                     Option option = optgroup->get_option(opt);
-                    option.opt.width = 12 * wxGetApp().em_unit();
+                    option.opt.width = 12;
                     optgroup->append_single_option_line(option);
                 }
                 optgroup->reload_config();
                 m_settings_list_sizer->Add(optgroup->sizer, 0, wxEXPAND | wxALL, 0);
 
                 // call back for rescaling of the extracolumn control
-                optgroup->rescale_extra_column = [this](wxWindow* win) {
+                optgroup->rescale_extra_column_item = [this](wxWindow* win) {
                     auto *ctrl = dynamic_cast<PrusaButton*>(win);
                     if (ctrl == nullptr)
                         return;

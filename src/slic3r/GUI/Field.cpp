@@ -424,8 +424,8 @@ int undef_spin_val = -9999;		//! Probably, It's not necessary
 
 void SpinCtrl::BUILD() {
 	auto size = wxSize(wxDefaultSize);
-	if (m_opt.height >= 0) size.SetHeight(m_opt.height);
-	if (m_opt.width >= 0) size.SetWidth(m_opt.width);
+    if (m_opt.height >= 0) size.SetHeight(m_opt.height*wxGetApp().em_unit());
+    if (m_opt.width >= 0) size.SetWidth(m_opt.width*wxGetApp().em_unit());
 
 	wxString	text_value = wxString("");
 	int			default_value = 0;
@@ -885,8 +885,8 @@ void Choice::rescale()
 void ColourPicker::BUILD()
 {
 	auto size = wxSize(wxDefaultSize);
-	if (m_opt.height >= 0) size.SetHeight(m_opt.height);
-	if (m_opt.width >= 0) size.SetWidth(m_opt.width);
+    if (m_opt.height >= 0) size.SetHeight(m_opt.height*wxGetApp().em_unit());
+    if (m_opt.width >= 0) size.SetWidth(m_opt.width*wxGetApp().em_unit());
 
 	// Validate the color
 	wxString clr_str(static_cast<const ConfigOptionStrings*>(m_opt.default_value)->get_at(m_opt_idx));

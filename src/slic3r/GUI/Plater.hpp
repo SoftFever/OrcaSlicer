@@ -203,6 +203,8 @@ public:
     bool can_copy() const;
     bool can_paste() const;
 
+    void rescale();
+
 private:
     struct priv;
     std::unique_ptr<priv> p;

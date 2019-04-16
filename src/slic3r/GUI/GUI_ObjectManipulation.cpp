@@ -117,15 +117,13 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     m_og->append_line(add_og_to_object_settings(L("Scale"), "%"), &m_scale_Label);
     m_og->append_line(add_og_to_object_settings(L("Size"), "mm"));
 
-    /* Unused parameter at this time
-    def.label = L("Place on bed");
-    def.type = coBool;
-    def.tooltip = L("Automatic placing of models on printing bed in Y axis");
-    def.gui_type = "";
-    def.sidetext = "";
-    def.default_value = new ConfigOptionBool{ false };
-    m_og->append_single_option_line(Option(def, "place_on_bed"));
-    */
+    // call back for a rescale of button "Set uniform scale"
+    m_og->rescale_near_label_widget = [this](wxWindow* win) {
+        auto *ctrl = dynamic_cast<PrusaLockButton*>(win);
+        if (ctrl == nullptr)
+            return;
+        ctrl->rescale();
+    };
 }
 
 void ObjectManipulation::Show(const bool show)

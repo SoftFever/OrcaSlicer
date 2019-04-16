@@ -233,6 +233,10 @@ class PrusaObjectDataViewModelNode
     wxBitmap                        m_empty_bmp;
     size_t                          m_volumes_cnt = 0;
     std::vector< std::string >      m_opt_categories;
+
+    std::string                     m_action_icon_name = "";
+    Slic3r::ModelVolumeType         m_volume_type;
+
 public:
     PrusaObjectDataViewModelNode(const wxString &name, 
                                  const wxString& extruder) {
@@ -246,7 +250,9 @@ public:
         m_container = true;
 #endif  //__WXGTK__
         m_extruder = extruder;
-		set_object_action_icon();
+
+// 		set_object_action_icon();
+        set_action_icon();
 	}
 
 	PrusaObjectDataViewModelNode(	PrusaObjectDataViewModelNode* parent,
@@ -266,7 +272,9 @@ public:
         // it will be produce "segmentation fault"
         m_container = true;
 #endif  //__WXGTK__
-		set_part_action_icon();
+
+// 		set_part_action_icon();
+        set_action_icon();
     }
 
     PrusaObjectDataViewModelNode(   PrusaObjectDataViewModelNode* parent, const ItemType type) :
@@ -286,7 +294,8 @@ public:
         else if (type == itInstance) {
             m_idx = parent->GetChildCount();
             m_name = wxString::Format("Instance_%d", m_idx+1);
-            set_part_action_icon();
+//             set_part_action_icon();
+            set_action_icon();
         }
 	}
 
@@ -428,9 +437,14 @@ public:
 	}
 
 	// Set action icons for node
-	void set_object_action_icon();
-	void set_part_action_icon();
-    bool update_settings_digest(const std::vector<std::string>& categories);
+// 	void set_object_action_icon();
+// 	void set_part_action_icon();
+    void set_action_icon();
+
+    void    update_settings_digest_bitmaps();
+	bool    update_settings_digest(const std::vector<std::string>& categories);
+    int     volume_type() const { return int(m_volume_type); }
+    void    rescale();
 private:
     friend class PrusaObjectDataViewModel;
 };
@@ -527,6 +541,8 @@ public:
     void    SetVolumeType(const wxDataViewItem &item, const Slic3r::ModelVolumeType type);
 
     void    SetAssociatedControl(wxDataViewCtrl* ctrl) { m_ctrl = ctrl; }
+    // Rescale bitmaps for existing Items
+    void    Rescale();
 };
 
 // ----------------------------------------------------------------------------
@@ -676,6 +692,36 @@ private:
 
 
 // ----------------------------------------------------------------------------
+// PrusaBitmap
+// ----------------------------------------------------------------------------
+
+class PrusaBitmap
+{
+public:
+    PrusaBitmap() {};
+    PrusaBitmap(wxWindow *parent, 
+                const std::string& icon_name = "",
+                const int px_cnt = 16, 
+                const bool is_horizontal  = false);
+
+    ~PrusaBitmap() {}
+
+    void                rescale();
+
+    const wxBitmap&     bmp() const { return m_bmp; }
+    wxBitmap&           bmp()       { return m_bmp; }
+    const std::string&  name() const{ return m_icon_name; }
+
+private:
+    wxWindow*       m_parent{ nullptr };
+    wxBitmap        m_bmp = wxBitmap();
+    std::string     m_icon_name = "";
+    int             m_px_cnt {16};
+    bool            m_is_horizontal {false};
+};
+
+
+// ----------------------------------------------------------------------------
 // PrusaDoubleSlider
 // ----------------------------------------------------------------------------
 
@@ -710,6 +756,8 @@ public:
         const wxString& name = wxEmptyString);
     ~PrusaDoubleSlider() {}
 
+    void    rescale();
+
     int GetMinValue() const { return m_min_value; }
     int GetMaxValue() const { return m_max_value; }
     double GetMinValueD()  { return m_values.empty() ? 0. : m_values[m_min_value].second; }
@@ -717,6 +765,7 @@ public:
     int GetLowerValue() const { return m_lower_value; }
     int GetHigherValue() const { return m_higher_value; }
     int GetActiveValue() const;
+    wxSize get_min_size() const ;
     double GetLowerValueD()  { return get_double_value(ssLower); }
     double GetHigherValueD() { return get_double_value(ssHigher); }
     wxSize DoGetBestSize() const override;
@@ -801,16 +850,16 @@ private:
     int         m_max_value;
     int         m_lower_value;
     int         m_higher_value;
-    wxBitmap    m_bmp_thumb_higher;
-    wxBitmap    m_bmp_thumb_lower;
-    wxBitmap    m_bmp_add_tick_on;
-    wxBitmap    m_bmp_add_tick_off;
-    wxBitmap    m_bmp_del_tick_on;
-    wxBitmap    m_bmp_del_tick_off;
-    wxBitmap    m_bmp_one_layer_lock_on;
-    wxBitmap    m_bmp_one_layer_lock_off;
-    wxBitmap    m_bmp_one_layer_unlock_on;
-    wxBitmap    m_bmp_one_layer_unlock_off;
+    /*wxBitmap*/PrusaBitmap    m_bmp_thumb_higher;
+    /*wxBitmap*/PrusaBitmap    m_bmp_thumb_lower;
+    /*wxBitmap*/PrusaBitmap    m_bmp_add_tick_on;
+    /*wxBitmap*/PrusaBitmap    m_bmp_add_tick_off;
+    /*wxBitmap*/PrusaBitmap    m_bmp_del_tick_on;
+    /*wxBitmap*/PrusaBitmap    m_bmp_del_tick_off;
+    /*wxBitmap*/PrusaBitmap    m_bmp_one_layer_lock_on;
+    /*wxBitmap*/PrusaBitmap    m_bmp_one_layer_lock_off;
+    /*wxBitmap*/PrusaBitmap    m_bmp_one_layer_unlock_on;
+    /*wxBitmap*/PrusaBitmap    m_bmp_one_layer_unlock_off;
     SelectedSlider  m_selection;
     bool        m_is_left_down = false;
     bool        m_is_right_down = false;
@@ -869,41 +918,18 @@ public:
     bool    IsLocked() const { return m_is_pushed; }
     void    SetLock(bool lock);
 
+    void    rescale();
+
 protected:
     void    enter_button(const bool enter);
 
 private:
     bool        m_is_pushed = false;
 
-    wxBitmap    m_bmp_lock_on;
-    wxBitmap    m_bmp_lock_off;
-    wxBitmap    m_bmp_unlock_on;
-    wxBitmap    m_bmp_unlock_off;
-};
-
-
-
-// ----------------------------------------------------------------------------
-// PrusaBitmap
-// ----------------------------------------------------------------------------
-
-class PrusaBitmap
-{
-public:
-    PrusaBitmap() {};
-    PrusaBitmap( wxWindow *parent, const std::string& icon_name = "");
-
-    ~PrusaBitmap() {}
-
-    void                rescale();
-
-    const wxBitmap&     bmp() const { return m_bmp; }
-    const std::string&  name() const { return m_icon_name; }
-
-private:
-    wxWindow*       m_parent {nullptr};
-    wxBitmap        m_bmp;
-    std::string     m_icon_name = "";
+    /*wxBitmap*/PrusaBitmap    m_bmp_lock_on;
+    /*wxBitmap*/PrusaBitmap    m_bmp_lock_off;
+    /*wxBitmap*/PrusaBitmap    m_bmp_unlock_on;
+    /*wxBitmap*/PrusaBitmap    m_bmp_unlock_off;
 };
 
 

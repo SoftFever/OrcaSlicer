@@ -168,8 +168,8 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
 	// if we have an extra column, build it
         if (extra_column)
         {
-            m_extra_column_ptrs.push_back(extra_column(this->ctrl_parent(), line));
-            grid_sizer->Add(m_extra_column_ptrs.back(), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 3);
+            m_extra_column_item_ptrs.push_back(extra_column(this->ctrl_parent(), line));
+            grid_sizer->Add(m_extra_column_item_ptrs.back(), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 3);
         }
 
     // Build a label if we have it
@@ -189,15 +189,19 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
         label->Wrap(label_width*wxGetApp().em_unit()); // avoid a Linux/GTK bug
         if (!line.near_label_widget)
             grid_sizer->Add(label, 0, (staticbox ? 0 : wxALIGN_RIGHT | wxRIGHT) | wxALIGN_CENTER_VERTICAL, line.label.IsEmpty() ? 0 : 5);
-        else if (line.near_label_widget && line.label.IsEmpty())
-            grid_sizer->Add(line.near_label_widget(this->ctrl_parent()), 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 7);
         else {
-            // If we're here, we have some widget near the label
-            // so we need a horizontal sizer to arrange these things
-            auto sizer = new wxBoxSizer(wxHORIZONTAL);
-            grid_sizer->Add(sizer, 0, wxEXPAND | (staticbox ? wxALL : wxBOTTOM | wxTOP | wxLEFT), staticbox ? 0 : 1);
-            sizer->Add(line.near_label_widget(this->ctrl_parent()), 0, wxRIGHT, 7);
-            sizer->Add(label, 0, (staticbox ? 0 : wxALIGN_RIGHT | wxRIGHT) | wxALIGN_CENTER_VERTICAL, 5);
+            m_near_label_widget_ptrs.push_back(line.near_label_widget(this->ctrl_parent()));
+
+            if (line.label.IsEmpty())
+                grid_sizer->Add(m_near_label_widget_ptrs.back(), 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 7);
+            else {
+                // If we're here, we have some widget near the label
+                // so we need a horizontal sizer to arrange these things
+                auto sizer = new wxBoxSizer(wxHORIZONTAL);
+                grid_sizer->Add(sizer, 0, wxEXPAND | (staticbox ? wxALL : wxBOTTOM | wxTOP | wxLEFT), staticbox ? 0 : 1);
+                sizer->Add(m_near_label_widget_ptrs.back(), 0, wxRIGHT, 7);
+                sizer->Add(label, 0, (staticbox ? 0 : wxALIGN_RIGHT | wxRIGHT) | wxALIGN_CENTER_VERTICAL, 5);
+            }
         }
 		if (line.label_tooltip.compare("") != 0)
 			label->SetToolTip(line.label_tooltip);
@@ -269,7 +273,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
 		// add sidetext if any
 		if (option.sidetext != "") {
 			auto sidetext = new wxStaticText(	this->ctrl_parent(), wxID_ANY, _(option.sidetext), wxDefaultPosition, 
-												wxSize(sidetext_width, -1)/*wxDefaultSize*/, wxALIGN_LEFT);
+												/*wxSize(sidetext_width*wxGetApp().em_unit(), -1)*/wxDefaultSize, wxALIGN_LEFT);
 			sidetext->SetBackgroundStyle(wxBG_STYLE_PAINT);
             sidetext->SetFont(wxGetApp().normal_font());
 			sizer_tmp->Add(sidetext, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 4);
@@ -482,10 +486,15 @@ bool ConfigOptionsGroup::update_visibility(ConfigOptionMode mode) {
 
 void ConfigOptionsGroup::rescale()
 {
-    // update bitmaps for mode markers : set new (rescaled) bitmaps
-    if (rescale_extra_column)
-        for (auto extra_col : m_extra_column_ptrs)
-            rescale_extra_column(extra_col);
+    // update bitmaps for extra column items (like "mode markers" or buttons on settings panel)
+    if (rescale_extra_column_item)
+        for (auto extra_col : m_extra_column_item_ptrs)
+            rescale_extra_column_item(extra_col);
+
+    // update bitmaps for near label widgets (like "Set uniform scale" button on settings panel)
+    if (rescale_near_label_widget)
+        for (auto near_label_widget : m_near_label_widget_ptrs)
+            rescale_near_label_widget(near_label_widget);
 
     // update undo buttons : rescale bitmaps
     for (const auto& field : m_fields)

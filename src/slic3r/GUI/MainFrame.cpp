@@ -297,16 +297,18 @@ void MainFrame::on_dpi_changed(const wxRect &suggested_rect)
         */
         wxGetApp().preset_bundle->load_default_preset_bitmaps(this);
 
-        // update preset comboboxes on Plater
-        wxGetApp().sidebar().rescale();
+        // update Plater
+        wxGetApp().plater()->rescale();
 
-        // update preset comboboxes on Tabs
+        // update Tabs
         for (auto tab : wxGetApp().tabs_list)
             tab->rescale();
 
         Layout();
 
         Thaw();
+
+        Refresh();
     }
     // -<-
 }

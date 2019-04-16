@@ -163,7 +163,7 @@ void ObjectInfo::show_sizer(bool show)
 
 void ObjectInfo::rescale()
 {
-    manifold_warning_icon->SetBitmap(create_scaled_bitmap(nullptr, "exclamation_mark_"));
+    manifold_warning_icon->SetBitmap(create_scaled_bitmap(nullptr, "exclamation"));
 }
 
 enum SlisedInfoIdx
@@ -928,8 +928,6 @@ void Sidebar::rescale()
     p->object_info->rescale();
 
     p->scrolled->Layout();
-    p->plater->Layout();
-    p->plater->GetParent()->Layout();
 }
 
 ObjectManipulation* Sidebar::obj_manipul()
@@ -3804,6 +3802,16 @@ bool Plater::can_paste_from_clipboard() const
         return false;
 
     return true;
+}
+
+void Plater::rescale()
+{
+    p->preview->rescale_slider();
+
+    p->sidebar->rescale();
+
+    Layout();
+    GetParent()->Layout();
 }
 
 bool Plater::can_delete() const { return p->can_delete(); }
