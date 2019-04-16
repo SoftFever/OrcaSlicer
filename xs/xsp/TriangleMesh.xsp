@@ -180,6 +180,8 @@ SV*
 TriangleMesh::slice(z)
     std::vector<double> z
     CODE:
+        THIS->require_shared_vertices(); // TriangleMeshSlicer needs this
+
         // convert doubles to floats
         std::vector<float> z_f = cast<float>(z);
         
