@@ -174,8 +174,8 @@ void KBShortcutsDialog::fill_shortcuts()
     Shortcuts layers_slider_shortcuts;
     layers_slider_shortcuts.reserve(6);
 
-    layers_slider_shortcuts.push_back(Shortcut(L("Arrow Up"),   L("Move current slider thump Up")));
-    layers_slider_shortcuts.push_back(Shortcut(L("Arrow Down"), L("Move current slider thump Down")));
+    layers_slider_shortcuts.push_back(Shortcut(L("Arrow Up"),   L("Move current slider thumb Up")));
+    layers_slider_shortcuts.push_back(Shortcut(L("Arrow Down"), L("Move current slider thumb Down")));
     layers_slider_shortcuts.push_back(Shortcut(L("Arrow Left"), L("Set upper thumb to current slider thumb")));
     layers_slider_shortcuts.push_back(Shortcut(L("Arrow Right"),L("Set lower thumb to current slider thumb")));
     layers_slider_shortcuts.push_back(Shortcut("+",             L("Add color change marker for current layer")));
