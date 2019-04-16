@@ -10,7 +10,7 @@ namespace Slic3r {
 namespace GUI {
 
 KBShortcutsDialog::KBShortcutsDialog()
-    : wxDialog(NULL, wxID_ANY, _(L("Slic3r Prusa Edition - Keyboard Shortcuts")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
+    : wxDialog(NULL, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _(L("Keyboard Shortcuts")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
 {
 	SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));    
 
@@ -131,6 +131,8 @@ void KBShortcutsDialog::fill_shortcuts()
     plater_shortcuts.push_back(Shortcut(ctrl+"A",   L("Select All objects")));
     plater_shortcuts.push_back(Shortcut("Del",      L("Delete selected")));
     plater_shortcuts.push_back(Shortcut(ctrl+"Del", L("Delete All")));
+    plater_shortcuts.push_back(Shortcut(ctrl+"C",   L("Copy to clipboard")));
+    plater_shortcuts.push_back(Shortcut(ctrl+"V",   L("Paste from clipboard")));
     plater_shortcuts.push_back(Shortcut("M",        L("Gizmo move")));
     plater_shortcuts.push_back(Shortcut("S",        L("Gizmo scale")));
     plater_shortcuts.push_back(Shortcut("R",        L("Gizmo rotate")));
@@ -172,8 +174,8 @@ void KBShortcutsDialog::fill_shortcuts()
     Shortcuts layers_slider_shortcuts;
     layers_slider_shortcuts.reserve(6);
 
-    layers_slider_shortcuts.push_back(Shortcut(L("Arrow Up"),   L("Move current slider thump Up")));
-    layers_slider_shortcuts.push_back(Shortcut(L("Arrow Down"), L("Move current slider thump Down")));
+    layers_slider_shortcuts.push_back(Shortcut(L("Arrow Up"),   L("Move current slider thumb Up")));
+    layers_slider_shortcuts.push_back(Shortcut(L("Arrow Down"), L("Move current slider thumb Down")));
     layers_slider_shortcuts.push_back(Shortcut(L("Arrow Left"), L("Set upper thumb to current slider thumb")));
     layers_slider_shortcuts.push_back(Shortcut(L("Arrow Right"),L("Set lower thumb to current slider thumb")));
     layers_slider_shortcuts.push_back(Shortcut("+",             L("Add color change marker for current layer")));

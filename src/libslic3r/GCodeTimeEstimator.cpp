@@ -38,7 +38,6 @@ static const std::string MOVE_TYPE_STR[Slic3r::GCodeTimeEstimator::Block::Num_Ty
 #endif // ENABLE_MOVE_STATS
 
 namespace Slic3r {
-
     void GCodeTimeEstimator::Feedrates::reset()
     {
         feedrate = 0.0f;
@@ -695,6 +694,8 @@ namespace Slic3r {
         set_axis_position(X, 0.0f);
         set_axis_position(Y, 0.0f);
         set_axis_position(Z, 0.0f);
+        if (get_e_local_positioning_type() == Absolute)
+            set_axis_position(E, 0.0f);
 
         set_additional_time(0.0f);
 
@@ -714,7 +715,6 @@ namespace Slic3r {
     {
         _blocks.clear();
     }
-
 
     void GCodeTimeEstimator::_calculate_time()
     {

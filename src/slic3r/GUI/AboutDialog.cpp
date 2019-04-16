@@ -32,7 +32,7 @@ void AboutDialogLogo::onRepaint(wxEvent &event)
 }
 
 AboutDialog::AboutDialog()
-    : wxDialog(NULL, wxID_ANY, _(L("About Slic3r")), wxDefaultPosition, wxDefaultSize, wxCAPTION)
+    : wxDialog(NULL, wxID_ANY, wxString::Format(_(L("About %s")), SLIC3R_APP_NAME), wxDefaultPosition, wxDefaultSize, wxCAPTION)
 {
 	wxColour bgr_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 	SetBackgroundColour(bgr_clr);
@@ -50,7 +50,7 @@ AboutDialog::AboutDialog()
 
     // title
     {
-        wxStaticText* title = new wxStaticText(this, wxID_ANY, "Slic3r Prusa Edition", wxDefaultPosition, wxDefaultSize);
+        wxStaticText* title = new wxStaticText(this, wxID_ANY, SLIC3R_APP_NAME, wxDefaultPosition, wxDefaultSize);
         wxFont title_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
         title_font.SetWeight(wxFONTWEIGHT_BOLD);
         title_font.SetFamily(wxFONTFAMILY_ROMAN);

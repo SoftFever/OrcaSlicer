@@ -99,7 +99,7 @@ void Selection::set_model(Model* model)
     update_valid();
 }
 
-void Selection::add(unsigned int volume_idx, bool as_single_selection)
+void Selection::add(unsigned int volume_idx, bool as_single_selection, bool check_for_already_contained)
 {
     if (!m_valid || ((unsigned int)m_volumes->size() <= volume_idx))
         return;
@@ -110,7 +110,7 @@ void Selection::add(unsigned int volume_idx, bool as_single_selection)
         return;
 
     bool keep_instance_mode = (m_mode == Instance) && !as_single_selection;
-    bool already_contained = contains_volume(volume_idx);
+    bool already_contained = check_for_already_contained && contains_volume(volume_idx);
 
     // resets the current list if needed
     bool needs_reset = as_single_selection && !already_contained;

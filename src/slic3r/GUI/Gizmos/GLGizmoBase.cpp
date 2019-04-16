@@ -16,7 +16,7 @@
 namespace Slic3r {
 namespace GUI {
 
-const float GLGizmoBase::Grabber::SizeFactor = 0.025f;
+    const float GLGizmoBase::Grabber::SizeFactor = 0.05f;
 const float GLGizmoBase::Grabber::MinHalfSize = 1.5f;
 const float GLGizmoBase::Grabber::DraggingScaleFactor = 1.25f;
 
@@ -53,7 +53,7 @@ float GLGizmoBase::Grabber::get_half_size(float size) const
 
 float GLGizmoBase::Grabber::get_dragging_half_size(float size) const
 {
-    return std::max(size * SizeFactor * DraggingScaleFactor, MinHalfSize);
+    return get_half_size(size) * DraggingScaleFactor;
 }
 
 void GLGizmoBase::Grabber::render(float size, const float* render_color, bool use_lighting) const
