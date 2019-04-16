@@ -212,6 +212,7 @@ TriangleMesh::cut(z, upper, lower)
     TriangleMesh*   upper;
     TriangleMesh*   lower;
     CODE:
+        THIS->require_shared_vertices(); // TriangleMeshSlicer needs this
         TriangleMeshSlicer mslicer(THIS);
         mslicer.cut(z, upper, lower);
 
