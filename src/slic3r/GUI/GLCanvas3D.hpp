@@ -319,7 +319,6 @@ class GLCanvas3D
         }
     };
 
-private:
     struct SlaCap
     {
         struct Triangles
@@ -392,6 +391,15 @@ private:
         void render(const GLCanvas3D& canvas) const;
     };
 
+#if ENABLE_RENDER_STATISTICS
+    struct RenderStats
+    {
+        long long last_frame;
+
+        RenderStats() : last_frame(0) {}
+    };
+#endif // ENABLE_RENDER_STATISTICS
+
     wxGLCanvas* m_canvas;
     wxGLContext* m_context;
 #if ENABLE_RETINA_GL
@@ -446,6 +454,10 @@ private:
     bool m_reload_delayed;
 
     GCodePreviewVolumeIndex m_gcode_preview_volume_index;
+
+#if ENABLE_RENDER_STATISTICS
+    RenderStats m_render_stats;
+#endif // ENABLE_RENDER_STATISTICS
 
 public:
     GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar);
