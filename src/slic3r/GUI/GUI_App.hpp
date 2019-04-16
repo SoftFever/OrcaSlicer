@@ -98,7 +98,7 @@ public:
     void            init_label_colours();
     void            update_label_colours_from_appconfig();
     void            init_fonts();
-    void            scale_fonts(const float scale_f);
+    void            scale_default_fonts(const float scale_f);
     void            set_label_clr_modified(const wxColour& clr);
     void            set_label_clr_sys(const wxColour& clr);
 

@@ -846,7 +846,7 @@ void Choice::rescale()
 
     wxBitmapComboBox* field = dynamic_cast<wxBitmapComboBox*>(window);
 
-    const wxString selection = field->GetStringSelection();
+    const wxString selection = field->GetString(field->GetSelection());
 
 	/* To correct scaling (set new controll size) of a wxBitmapCombobox 
 	 * we need to refill control with new bitmaps. So, in our case : 

@@ -67,7 +67,8 @@ public:
 
         this->Bind(EVT_DPI_CHANGED, [this](const DpiChangedEvent &evt) {
             // ->-
-            m_prev_scale_factor = m_scale_factor;
+            if (m_prev_scale_factor < 0)
+                reset_prev_scale_factor();
             // -<-
 
             m_scale_factor = (float)evt.dpi / (float)DPI_DEFAULT;
@@ -77,10 +78,11 @@ public:
 
     virtual ~DPIAware() {}
 
-    float scale_factor() const { return m_scale_factor; }
-    float prev_scale_factor() const { return m_prev_scale_factor; }
-    int em_unit() const { return m_em_unit; }
-    int font_size() const { return m_font_size; }
+    float   scale_factor() const        { return m_scale_factor; }
+    float   prev_scale_factor() const   { return m_prev_scale_factor; }
+    void    reset_prev_scale_factor()   { m_prev_scale_factor = m_scale_factor; }
+    int     em_unit() const             { return m_em_unit; }
+    int     font_size() const           { return m_font_size; }
 
 
 protected:

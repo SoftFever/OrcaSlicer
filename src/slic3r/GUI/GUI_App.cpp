@@ -325,7 +325,7 @@ void GUI_App::init_fonts()
 #endif /*__WXMAC__*/
 }
 
-void GUI_App::scale_fonts(const float scale_f)
+void GUI_App::scale_default_fonts(const float scale_f)
 {
     m_small_font = m_small_font.Scaled(scale_f);
     m_bold_font = m_bold_font.Scaled(scale_f);

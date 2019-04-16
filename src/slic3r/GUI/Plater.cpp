@@ -728,7 +728,8 @@ Sidebar::Sidebar(Plater *parent)
     // Buttons underneath the scrolled area
 
     auto init_btn = [this](wxButton **btn, wxString label) {
-        *btn = new wxButton(this, wxID_ANY, label);
+        *btn = new wxButton(this, wxID_ANY, label, wxDefaultPosition, 
+                            wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
         (*btn)->SetFont(wxGetApp().bold_font());
     };
 

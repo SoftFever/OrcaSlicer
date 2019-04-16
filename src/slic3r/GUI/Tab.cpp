@@ -3203,10 +3203,11 @@ ConfigOptionsGroupShp Page::new_optgroup(const wxString& title, int noncommon_la
 //                        mode == comAdvanced ? "mode_middle_.png" : "mode_simple_.png";
 //         }                               
 //         auto bmp = new wxStaticBitmap(parent, wxID_ANY, bmp_name.empty() ? wxNullBitmap : create_scaled_bitmap(parent, bmp_name));
+        int mode_id = int(options[0].opt.mode);
         const wxBitmap& bitmap = options.size() == 0 || options[0].opt.gui_type == "legend" ? wxNullBitmap :
-                                 m_mode_bitmap_cache[int(options[0].opt.mode)].bmp();
+                                 m_mode_bitmap_cache[mode_id].bmp();
         auto bmp = new wxStaticBitmap(parent, wxID_ANY, bitmap);
-        bmp->SetClientData((void*)options[0].opt.mode);
+        bmp->SetClientData((void*)&m_mode_bitmap_cache[mode_id]);
 
         bmp->SetBackgroundStyle(wxBG_STYLE_PAINT);
         return bmp;
@@ -3251,7 +3252,7 @@ ConfigOptionsGroupShp Page::new_optgroup(const wxString& title, int noncommon_la
         if (ctrl == nullptr)
             return;
 
-        ctrl->SetBitmap(m_mode_bitmap_cache[reinterpret_cast<int>(ctrl->GetClientData())].bmp());
+        ctrl->SetBitmap(reinterpret_cast<PrusaBitmap*>(ctrl->GetClientData())->bmp());
     };
 
 	vsizer()->Add(optgroup->sizer, 0, wxEXPAND | wxALL, 10);
