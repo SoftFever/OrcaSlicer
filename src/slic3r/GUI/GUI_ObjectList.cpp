@@ -589,6 +589,10 @@ void ObjectList::key_event(wxKeyEvent& event)
     }
     else if (wxGetKeyState(wxKeyCode('A')) && wxGetKeyState(WXK_CONTROL/*WXK_SHIFT*/))
         select_item_all_children();
+    else if (wxGetKeyState(wxKeyCode('C')) && wxGetKeyState(WXK_CONTROL))
+        wxPostEvent((wxEvtHandler*)wxGetApp().plater()->canvas3D()->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_COPY));
+    else if (wxGetKeyState(wxKeyCode('V')) && wxGetKeyState(WXK_CONTROL))
+        wxPostEvent((wxEvtHandler*)wxGetApp().plater()->canvas3D()->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_PASTE));
     else
         event.Skip();
 }

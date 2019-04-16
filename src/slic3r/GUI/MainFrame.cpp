@@ -381,9 +381,9 @@ void MainFrame::init_menubar()
 
         editMenu->AppendSeparator();
 
-        wxMenuItem* item_copy = append_menu_item(editMenu, wxID_ANY, _(L("&Copy")) + "\tCtrl+C", _(L("Copy selection to clipboard")),
+        wxMenuItem* item_copy = append_menu_item(editMenu, wxID_ANY, _(L("&Copy")) + sep + GUI::shortkey_ctrl_prefix() + sep_space + "C", _(L("Copy selection to clipboard")),
             [this](wxCommandEvent&) { m_plater->copy_selection_to_clipboard(); }, "copy_menu");
-        wxMenuItem* item_paste = append_menu_item(editMenu, wxID_ANY, _(L("&Paste")) + "\tCtrl+V", _(L("Paste clipboard")),
+        wxMenuItem* item_paste = append_menu_item(editMenu, wxID_ANY, _(L("&Paste")) + sep + GUI::shortkey_ctrl_prefix() + sep_space + "V", _(L("Paste clipboard")),
             [this](wxCommandEvent&) { m_plater->paste_from_clipboard(); }, "paste_menu");
 
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_select()); }, item_select_all->GetId());
