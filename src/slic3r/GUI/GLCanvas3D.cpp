@@ -3657,7 +3657,7 @@ void GLCanvas3D::_render_objects() const
         m_volumes.set_clipping_plane(m_camera_clipping_plane.get_data());
 
         m_shader.start_using();
-        if (m_picking_enabled && m_layers_editing.is_enabled() && (m_layers_editing.last_object_id != -1) && (m_layers_editing.object_max_z() > 0.0f)) {
+        if (m_picking_enabled && !m_gizmos.is_dragging() && m_layers_editing.is_enabled() && (m_layers_editing.last_object_id != -1) && (m_layers_editing.object_max_z() > 0.0f)) {
             int object_id = m_layers_editing.last_object_id;
             m_volumes.render_VBOs(GLVolumeCollection::Opaque, false, m_camera.get_view_matrix(), [object_id](const GLVolume &volume) {
                 // Which volume to paint without the layer height profile shader?
