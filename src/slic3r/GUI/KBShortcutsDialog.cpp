@@ -131,6 +131,8 @@ void KBShortcutsDialog::fill_shortcuts()
     plater_shortcuts.push_back(Shortcut(ctrl+"A",   L("Select All objects")));
     plater_shortcuts.push_back(Shortcut("Del",      L("Delete selected")));
     plater_shortcuts.push_back(Shortcut(ctrl+"Del", L("Delete All")));
+    plater_shortcuts.push_back(Shortcut(ctrl+"C",   L("Copy to clipboard")));
+    plater_shortcuts.push_back(Shortcut(ctrl+"V",   L("Paste from clipboard")));
     plater_shortcuts.push_back(Shortcut("M",        L("Gizmo move")));
     plater_shortcuts.push_back(Shortcut("S",        L("Gizmo scale")));
     plater_shortcuts.push_back(Shortcut("R",        L("Gizmo rotate")));

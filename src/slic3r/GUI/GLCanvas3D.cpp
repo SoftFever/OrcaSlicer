@@ -2241,6 +2241,22 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
                 post_event(SimpleEvent(EVT_GLCANVAS_SELECT_ALL));
         break;
 #ifdef __APPLE__
+        case 'c':
+        case 'C':
+#else /* __APPLE__ */
+        case WXK_CONTROL_C:
+#endif /* __APPLE__ */
+            post_event(SimpleEvent(EVT_GLTOOLBAR_COPY));
+        break;
+#ifdef __APPLE__
+        case 'v':
+        case 'V':
+#else /* __APPLE__ */
+        case WXK_CONTROL_V:
+#endif /* __APPLE__ */
+            post_event(SimpleEvent(EVT_GLTOOLBAR_PASTE));
+        break;
+#ifdef __APPLE__
         case WXK_BACK: // the low cost Apple solutions are not equipped with a Delete key, use Backspace instead.
 #else /* __APPLE__ */
         case WXK_DELETE:
