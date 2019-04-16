@@ -3806,7 +3806,9 @@ bool Plater::can_paste_from_clipboard() const
 
 void Plater::rescale()
 {
-    p->preview->rescale_slider();
+    p->preview->rescale();
+
+    p->view3D->get_canvas3d()->rescale();
 
     p->sidebar->rescale();
 

@@ -396,9 +396,16 @@ void Preview::refresh_print()
     load_print(true);
 }
 
-void Preview::rescale_slider()
+void Preview::rescale()
 {
+    // rescale slider
     if (m_slider) m_slider->rescale();
+
+    // rescale warning legend on the canvas
+    get_canvas3d()->rescale();
+
+    // rescale legend
+    refresh_print();
 }
 
 void Preview::bind_event_handlers()
