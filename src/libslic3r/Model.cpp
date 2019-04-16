@@ -1189,6 +1189,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, bool keep_upper, b
             volume->mesh.transform(instance_matrix * volume_matrix, true);
 
             // Perform cut
+            volume->mesh.require_shared_vertices(); // TriangleMeshSlicer needs this
             TriangleMeshSlicer tms(&volume->mesh);
             tms.cut(float(z), &upper_mesh, &lower_mesh);
 

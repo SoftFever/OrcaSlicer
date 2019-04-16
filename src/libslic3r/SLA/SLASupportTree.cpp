@@ -817,6 +817,10 @@ public:
 
         meshcache = mesh(merged);
 
+        // The mesh will be passed by const-pointer to TriangleMeshSlicer,
+        // which will need this.
+        meshcache.require_shared_vertices();
+
         // TODO: Is this necessary?
         //meshcache.repair();
 
@@ -2231,6 +2235,7 @@ SlicedSupports SLASupportTree::slice(float layerh, float init_layerh) const
 
     TriangleMesh fullmesh = m_impl->merged_mesh();
     fullmesh.merge(get_pad());
+    fullmesh.require_shared_vertices(); // TriangleMeshSlicer needs this
     TriangleMeshSlicer slicer(&fullmesh);
     SlicedSupports ret;
     slicer.slice(heights, 0.f, &ret, get().ctl().cancelfn);
@@ -2243,6 +2248,7 @@ SlicedSupports SLASupportTree::slice(const std::vector<float> &heights,
 {
     TriangleMesh fullmesh = m_impl->merged_mesh();
     fullmesh.merge(get_pad());
+    fullmesh.require_shared_vertices(); // TriangleMeshSlicer needs this
     TriangleMeshSlicer slicer(&fullmesh);
     SlicedSupports ret;
     slicer.slice(heights, cr, &ret, get().ctl().cancelfn);
