@@ -198,8 +198,6 @@ void GLGizmoSlaSupports::render_clipping_plane(const Selection& selection, const
     }
 
     // At this point we have the triangulated cuts for both the object and supports - let's render.
-    ::glColor3f(1.0f, 0.37f, 0.0f);
-
 	if (! m_triangles.empty()) {
 		::glPushMatrix();
 		::glTranslated(0.0, 0.0, m_z_shift);
@@ -208,7 +206,8 @@ void GLGizmoSlaSupports::render_clipping_plane(const Selection& selection, const
 		q.setFromTwoVectors(Vec3f::UnitZ(), up);
 		Eigen::AngleAxisf aa(q);
 		::glRotatef(aa.angle() * (180./M_PI), aa.axis()(0), aa.axis()(1), aa.axis()(2));
-		::glTranslatef(0.f, 0.f, -0.001f); // to make sure the cut is safely beyond the near clipping plane
+		::glTranslatef(0.f, 0.f, 0.1f); // to make sure the cut does not intersect the structure itself
+        ::glColor3f(1.0f, 0.37f, 0.0f);
         ::glBegin(GL_TRIANGLES);
         for (const Vec2f& point : m_triangles)
             ::glVertex3f(point(0), point(1), height_mesh);
@@ -217,14 +216,16 @@ void GLGizmoSlaSupports::render_clipping_plane(const Selection& selection, const
 		::glPopMatrix();
 	}
 
-    if (! m_supports_triangles.empty()) {
+    if (! m_supports_triangles.empty() && !m_editing_mode) {
+        // The supports are hidden in the editing mode, so it makes no sense to render the cuts.
 		::glPushMatrix();
         ::glMultMatrixd(supports_trafo.data());
         Eigen::Quaternionf q;
 		q.setFromTwoVectors(Vec3f::UnitZ(), up_supports);
 		Eigen::AngleAxisf aa(q);
 		::glRotatef(aa.angle() * (180./M_PI), aa.axis()(0), aa.axis()(1), aa.axis()(2));
-		::glTranslatef(0.f, 0.f, -0.001f); // to make sure the cut is safely beyond the near clipping plane
+		::glTranslatef(0.f, 0.f, 0.1f);
+        ::glColor3f(1.0f, 0.f, 0.37f);
         ::glBegin(GL_TRIANGLES);
         for (const Vec2f& point : m_supports_triangles)
             ::glVertex3f(point(0), point(1), height_supports);
