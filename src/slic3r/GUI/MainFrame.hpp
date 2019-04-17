@@ -44,8 +44,6 @@ struct PresetTab {
 class MainFrame : public DPIFrame
 {
     bool        m_loaded {false};
-    bool        m_can_rescale_application {true};
-    float       m_scale_factor_cache;
 
     wxString    m_qs_last_input_file = wxEmptyString;
     wxString    m_qs_last_output_file = wxEmptyString;

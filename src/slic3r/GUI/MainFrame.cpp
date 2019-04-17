@@ -129,30 +129,6 @@ DPIFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAU
         event.Skip();
     });
 
-    Bind(wxEVT_MOVE_START, [this](wxMoveEvent& event)
-    { 
-        event.Skip();
-
-        // Suppress application rescaling, when a MainFrame moving is not ended
-        m_can_rescale_application = false; 
-        // Cash scale factor value before a MainFrame moving 
-        m_scale_factor_cache = scale_factor();
-    });
-
-    Bind(wxEVT_MOVE_END, [this](wxMoveEvent& event)
-    {
-        event.Skip();
-
-        // If scale factor is different after moving of MainFrame ...
-        m_can_rescale_application = fabs(m_scale_factor_cache - scale_factor()) > 0.0001;
-
-        // ... rescale application
-        on_dpi_changed(event.GetRect());
-
-        // set value to _true_ in purpose of possibility of a display dpi changing from System Settings
-        m_can_rescale_application = true;
-    });
-
     wxGetApp().persist_window_geometry(this);
 
     update_ui_from_settings();    // FIXME (?)
@@ -280,62 +256,33 @@ bool MainFrame::can_delete_all() const
     return (m_plater != nullptr) ? !m_plater->model().objects.empty() : false;
 }
 
-// scale font for existing controls
-static void scale_controls_fonts(wxWindow *window, const float scale_f)
-{
-    auto children = window->GetChildren();
-
-    for (auto child : children)
-    {
-        scale_controls_fonts(child, scale_f);
-
-        child->SetFont(child->GetFont().Scaled(scale_f));
-    }
-    window->Layout();
-}
-
 void MainFrame::on_dpi_changed(const wxRect &suggested_rect)
 {
-    if (!m_can_rescale_application)
-        return;
-
-    printf("WM_DPICHANGED: %.2f\n", scale_factor());
-
     const float old_sc_factor = prev_scale_factor();
     const float new_sc_factor = scale_factor();
 
-    if (fabs(old_sc_factor - new_sc_factor) > 0.001)
-    {
-        printf("\told_sc_factor: %.2f\n", old_sc_factor);
-        printf("\tnew_sc_factor: %.2f\n", new_sc_factor);
+    printf("old_sc_factor: %.2f  \n", old_sc_factor);
+    printf("new_sc_factor: %.2f\n\n", new_sc_factor);
 
-        Freeze();
+    const float relative_scale_factor = new_sc_factor / old_sc_factor;
 
-        scale_controls_fonts(this, new_sc_factor / old_sc_factor);
-        wxGetApp().scale_default_fonts(new_sc_factor / old_sc_factor);
+    wxGetApp().scale_default_fonts(relative_scale_factor);
 
-        const auto new_em_unit = wxGetApp().em_unit()*new_sc_factor / old_sc_factor;
-        wxGetApp().set_em_unit(std::max<size_t>(10, new_em_unit));
+    // _strange_ workaround for correct em_unit calculation
+    const int new_em_unit = new_sc_factor * 10;//int(relative_scale_factor*wxGetApp().em_unit());
+    wxGetApp().set_em_unit(std::max<size_t>(10, new_em_unit));
 
-        /* Load default preset bitmaps before a tabpanel initialization,
-        * but after filling of an em_unit value
-        */
-        wxGetApp().preset_bundle->load_default_preset_bitmaps(this);
+    /* Load default preset bitmaps before a tabpanel initialization,
+     * but after filling of an em_unit value
+     */
+    wxGetApp().preset_bundle->load_default_preset_bitmaps(this);
 
-        // update Plater
-        wxGetApp().plater()->rescale();
+    // update Plater
+    wxGetApp().plater()->rescale();
 
-        // update Tabs
-        for (auto tab : wxGetApp().tabs_list)
-            tab->rescale();
-
-        Layout();
-
-        Thaw();
-
-        Refresh();
-        reset_prev_scale_factor();
-    } 
+    // update Tabs
+    for (auto tab : wxGetApp().tabs_list)
+        tab->rescale();
 }
 
 void MainFrame::init_menubar()
