@@ -794,7 +794,7 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt, GLCanvas3D& canvas)
         }
     }
 
-    if (!processed)
+    if (!processed && !evt.HasModifiers())
     {
         if (handle_shortcut(keyCode, canvas.get_selection()))
         {
