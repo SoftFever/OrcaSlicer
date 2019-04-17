@@ -708,6 +708,18 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         }
     }
 
+    if (action == SLAGizmoEventType::MouseWheelUp && control_down) {
+        m_clipping_plane_distance = std::min(1.f, m_clipping_plane_distance + 0.01f);
+        m_parent.set_as_dirty();
+        return true;
+    }
+
+    if (action == SLAGizmoEventType::MouseWheelDown && control_down) {
+        m_clipping_plane_distance = std::max(0.f, m_clipping_plane_distance - 0.01f);
+        m_parent.set_as_dirty();
+        return true;
+    }
+
     return false;
 }
 

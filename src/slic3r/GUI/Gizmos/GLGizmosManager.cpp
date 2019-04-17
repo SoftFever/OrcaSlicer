@@ -520,6 +520,23 @@ void GLGizmosManager::render_overlay(const GLCanvas3D& canvas, const Selection& 
     glsafe(::glPopMatrix());
 }
 
+
+
+bool GLGizmosManager::on_mouse_wheel(wxMouseEvent& evt, GLCanvas3D& canvas)
+{
+    bool processed = false;
+
+    if (m_current == SlaSupports) {
+        float rot = (float)evt.GetWheelRotation() / (float)evt.GetWheelDelta();
+        if (gizmo_event((rot > 0.f ? SLAGizmoEventType::MouseWheelUp : SLAGizmoEventType::MouseWheelDown), Vec2d::Zero(), evt.ShiftDown(), evt.AltDown(), evt.ControlDown()))
+            processed = true;
+    }
+
+    return processed;
+}
+
+
+
 bool GLGizmosManager::on_mouse(wxMouseEvent& evt, GLCanvas3D& canvas)
 {
     Point pos(evt.GetX(), evt.GetY());

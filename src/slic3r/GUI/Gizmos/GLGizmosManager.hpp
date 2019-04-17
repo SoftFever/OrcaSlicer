@@ -157,6 +157,7 @@ public:
     const std::string& get_tooltip() const { return m_tooltip; }
 
     bool on_mouse(wxMouseEvent& evt, GLCanvas3D& canvas);
+    bool on_mouse_wheel(wxMouseEvent& evt, GLCanvas3D& canvas);
     bool on_char(wxKeyEvent& evt, GLCanvas3D& canvas);
     bool on_key(wxKeyEvent& evt, GLCanvas3D& canvas);
 
