@@ -92,27 +92,28 @@ void GLGizmoSlaSupports::on_render(const Selection& selection) const
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glEnable(GL_DEPTH_TEST));
 
-    // we'll recover current look direction from the modelview matrix (in world coords):
-    Eigen::Matrix<double, 4, 4, Eigen::DontAlign> modelview_matrix;
-    ::glGetDoublev(GL_MODELVIEW_MATRIX, modelview_matrix.data());
-    Vec3d direction_to_camera(modelview_matrix.data()[2], modelview_matrix.data()[6], modelview_matrix.data()[10]);
     m_z_shift = selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z();
 
     if (m_quadric != nullptr && selection.is_from_single_instance())
-        render_points(selection, direction_to_camera, false);
+        render_points(selection, false);
 
     render_selection_rectangle();
-    render_clipping_plane(selection, direction_to_camera);
+    render_clipping_plane(selection);
 
     glsafe(::glDisable(GL_BLEND));
 }
 
 
 
-void GLGizmoSlaSupports::render_clipping_plane(const Selection& selection, const Vec3d& direction_to_camera) const
+void GLGizmoSlaSupports::render_clipping_plane(const Selection& selection) const
 {
     if (m_clipping_plane_distance == 0.f)
         return;
+
+    if (m_clipping_plane_normal == Vec3d::Zero())
+        reset_clipping_plane_normal();
+
+    const Vec3d& direction_to_camera = m_clipping_plane_normal;
 
     // First cache instance transformation to be used later.
     const GLVolume* vol = selection.get_volume(*selection.get_volume_idxs().begin());
@@ -137,9 +138,9 @@ void GLGizmoSlaSupports::render_clipping_plane(const Selection& selection, const
     // In case either of these was recently changed, the cached triangulated ExPolygons are invalid now.
     // We are gonna recalculate them both for the object and for the support structures.
     if (m_clipping_plane_distance != m_old_clipping_plane_distance
-     || m_old_direction_to_camera != direction_to_camera) {
+     || m_old_clipping_plane_normal != direction_to_camera) {
 
-        m_old_direction_to_camera = direction_to_camera;
+        m_old_clipping_plane_normal = direction_to_camera;
         m_old_clipping_plane_distance = m_clipping_plane_distance;
 
         // Now initialize the TMS for the object, perform the cut and save the result.
@@ -198,8 +199,6 @@ void GLGizmoSlaSupports::render_clipping_plane(const Selection& selection, const
     }
 
     // At this point we have the triangulated cuts for both the object and supports - let's render.
-    ::glColor3f(1.0f, 0.37f, 0.0f);
-
 	if (! m_triangles.empty()) {
 		::glPushMatrix();
 		::glTranslated(0.0, 0.0, m_z_shift);
@@ -208,7 +207,8 @@ void GLGizmoSlaSupports::render_clipping_plane(const Selection& selection, const
 		q.setFromTwoVectors(Vec3f::UnitZ(), up);
 		Eigen::AngleAxisf aa(q);
 		::glRotatef(aa.angle() * (180./M_PI), aa.axis()(0), aa.axis()(1), aa.axis()(2));
-		::glTranslatef(0.f, 0.f, -0.001f); // to make sure the cut is safely beyond the near clipping plane
+		::glTranslatef(0.f, 0.f, 0.01f); // to make sure the cut does not intersect the structure itself
+        ::glColor3f(1.0f, 0.37f, 0.0f);
         ::glBegin(GL_TRIANGLES);
         for (const Vec2f& point : m_triangles)
             ::glVertex3f(point(0), point(1), height_mesh);
@@ -217,14 +217,16 @@ void GLGizmoSlaSupports::render_clipping_plane(const Selection& selection, const
 		::glPopMatrix();
 	}
 
-    if (! m_supports_triangles.empty()) {
+    if (! m_supports_triangles.empty() && !m_editing_mode) {
+        // The supports are hidden in the editing mode, so it makes no sense to render the cuts.
 		::glPushMatrix();
         ::glMultMatrixd(supports_trafo.data());
         Eigen::Quaternionf q;
 		q.setFromTwoVectors(Vec3f::UnitZ(), up_supports);
 		Eigen::AngleAxisf aa(q);
 		::glRotatef(aa.angle() * (180./M_PI), aa.axis()(0), aa.axis()(1), aa.axis()(2));
-		::glTranslatef(0.f, 0.f, -0.001f); // to make sure the cut is safely beyond the near clipping plane
+		::glTranslatef(0.f, 0.f, 0.01f);
+        ::glColor3f(1.0f, 0.f, 0.37f);
         ::glBegin(GL_TRIANGLES);
         for (const Vec2f& point : m_supports_triangles)
             ::glVertex3f(point(0), point(1), height_supports);
@@ -284,16 +286,10 @@ void GLGizmoSlaSupports::render_selection_rectangle() const
 void GLGizmoSlaSupports::on_render_for_picking(const Selection& selection) const
 {
     glsafe(::glEnable(GL_DEPTH_TEST));
-
-    // we'll recover current look direction from the modelview matrix (in world coords):
-    Eigen::Matrix<double, 4, 4, Eigen::DontAlign> modelview_matrix;
-    ::glGetDoublev(GL_MODELVIEW_MATRIX, modelview_matrix.data());
-    Vec3d direction_to_camera(modelview_matrix.data()[2], modelview_matrix.data()[6], modelview_matrix.data()[10]);
-
-    render_points(selection, direction_to_camera, true);
+    render_points(selection, true);
 }
 
-void GLGizmoSlaSupports::render_points(const Selection& selection, const Vec3d& direction_to_camera, bool picking) const
+void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking) const
 {
     if (!picking)
         glsafe(::glEnable(GL_LIGHTING));
@@ -312,7 +308,7 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, const Vec3d& 
         const sla::SupportPoint& support_point = m_editing_mode_cache[i].support_point;
         const bool& point_selected = m_editing_mode_cache[i].selected;
 
-        if (is_point_clipped(support_point.pos.cast<double>(), direction_to_camera))
+        if (is_point_clipped(support_point.pos.cast<double>()))
             continue;
 
         // First decide about the color of the point.
@@ -386,8 +382,10 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, const Vec3d& 
 
 
 
-bool GLGizmoSlaSupports::is_point_clipped(const Vec3d& point, const Vec3d& direction_to_camera) const
+bool GLGizmoSlaSupports::is_point_clipped(const Vec3d& point) const
 {
+    const Vec3d& direction_to_camera = m_clipping_plane_normal;
+
     if (m_clipping_plane_distance == 0.f)
         return false;
 
@@ -457,9 +455,6 @@ std::pair<Vec3f, Vec3f> GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse
     const Selection& selection = m_parent.get_selection();
     const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
 
-    // we'll recover current look direction from the modelview matrix (in world coords):
-    Vec3d direction_to_camera(modelview_matrix.data()[2], modelview_matrix.data()[6], modelview_matrix.data()[10]);
-
     point1(2) -= m_z_shift;
 	point2(2) -= m_z_shift;
 
@@ -486,7 +481,7 @@ std::pair<Vec3f, Vec3f> GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse
         a = (m_V.row(m_F(fid, 1)) - m_V.row(m_F(fid, 0)));
         b = (m_V.row(m_F(fid, 2)) - m_V.row(m_F(fid, 0)));
         result = bc(0) * m_V.row(m_F(fid, 0)) + bc(1) * m_V.row(m_F(fid, 1)) + bc(2)*m_V.row(m_F(fid, 2));
-        if (m_clipping_plane_distance == 0.f || !is_point_clipped(result.cast<double>(), direction_to_camera))
+        if (m_clipping_plane_distance == 0.f || !is_point_clipped(result.cast<double>()))
             break;
     }
 
@@ -591,7 +586,7 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                   ::gluProject((GLdouble)pos(0), (GLdouble)pos(1), (GLdouble)pos(2), (GLdouble*)modelview_matrix.data(), (GLdouble*)projection_matrix.data(), (GLint*)viewport.data(), &out_x, &out_y, &out_z);
                   out_y = m_canvas_height - out_y;
 
-                if (rectangle.contains(Point(out_x, out_y)) && !is_point_clipped(support_point.pos.cast<double>(), direction_to_camera.cast<double>())) {
+                if (rectangle.contains(Point(out_x, out_y)) && !is_point_clipped(support_point.pos.cast<double>())) {
                     bool is_obscured = false;
                     // Cast a ray in the direction of the camera and look for intersection with the mesh:
                     std::vector<igl::Hit> hits;
@@ -615,7 +610,7 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 
                                 Vec3f bc = Vec3f(1-hit.u-hit.v, hit.u, hit.v); // barycentric coordinates of the hit
                                 Vec3f hit_pos = bc(0) * m_V.row(m_F(fid, 0)) + bc(1) * m_V.row(m_F(fid, 1)) + bc(2)*m_V.row(m_F(fid, 2));
-                                if (is_point_clipped(hit_pos.cast<double>(), direction_to_camera.cast<double>())) {
+                                if (is_point_clipped(hit_pos.cast<double>())) {
                                     hits.erase(hits.begin()+j);
                                     --j;
                                 }
@@ -707,6 +702,23 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         }
     }
 
+    if (action == SLAGizmoEventType::MouseWheelUp && control_down) {
+        m_clipping_plane_distance = std::min(1.f, m_clipping_plane_distance + 0.01f);
+        m_parent.set_as_dirty();
+        return true;
+    }
+
+    if (action == SLAGizmoEventType::MouseWheelDown && control_down) {
+        m_clipping_plane_distance = std::max(0.f, m_clipping_plane_distance - 0.01f);
+        m_parent.set_as_dirty();
+        return true;
+    }
+
+    if (action == SLAGizmoEventType::ResetClippingPlane) {
+        reset_clipping_plane_normal();
+        return true;
+    }
+
     return false;
 }
 
@@ -790,11 +802,12 @@ ClippingPlane GLGizmoSlaSupports::get_sla_clipping_plane() const
     if (!m_model_object || m_state == Off)
         return ClippingPlane::ClipsNothing();
 
-    Eigen::Matrix<GLdouble, 4, 4, Eigen::DontAlign> modelview_matrix;
-    ::glGetDoublev(GL_MODELVIEW_MATRIX, modelview_matrix.data());
-
+    //Eigen::Matrix<GLdouble, 4, 4, Eigen::DontAlign> modelview_matrix;
+    //::glGetDoublev(GL_MODELVIEW_MATRIX, modelview_matrix.data());
     // we'll recover current look direction from the modelview matrix (in world coords):
-    Vec3d direction_to_camera(modelview_matrix.data()[2], modelview_matrix.data()[6], modelview_matrix.data()[10]);
+    //Vec3d direction_to_camera(modelview_matrix.data()[2], modelview_matrix.data()[6], modelview_matrix.data()[10]);
+
+    const Vec3d& direction_to_camera = m_clipping_plane_normal;
     float dist = direction_to_camera.dot(m_model_object->instances[m_active_instance]->get_offset() + Vec3d(0., 0., m_z_shift));
 
     return ClippingPlane(-direction_to_camera.normalized(),(dist - (-m_active_instance_bb_radius) - m_clipping_plane_distance * 2*m_active_instance_bb_radius));
@@ -953,18 +966,27 @@ RENDER_AGAIN:
 
         m_imgui->text("");
 
-        m_imgui->text(m_model_object->sla_points_status == sla::PointsStatus::None ? "No points  (will be autogenerated)" :
-                     (m_model_object->sla_points_status == sla::PointsStatus::AutoGenerated ? "Autogenerated points (no modifications)" :
-                     (m_model_object->sla_points_status == sla::PointsStatus::UserModified ? "User-modified points" :
-                     (m_model_object->sla_points_status == sla::PointsStatus::Generating ? "Generation in progress..." : "UNKNOWN STATUS"))));
+        m_imgui->text(m_model_object->sla_points_status == sla::PointsStatus::None ? _(L("No points  (will be autogenerated)")) :
+                     (m_model_object->sla_points_status == sla::PointsStatus::AutoGenerated ? _(L("Autogenerated points (no modifications)")) :
+                     (m_model_object->sla_points_status == sla::PointsStatus::UserModified ? _(L("User-modified points")) :
+                     (m_model_object->sla_points_status == sla::PointsStatus::Generating ? _(L("Generation in progress...")) : "UNKNOWN STATUS"))));
     }
 
 
     // Following is rendered in both editing and non-editing mode:
-    m_imgui->text("Clipping of view: ");
-    ImGui::SameLine();
+    if (m_clipping_plane_distance == 0.f)
+        m_imgui->text("Clipping of view: ");
+    else {
+        if (m_imgui->button(_(L("Reset direction [R] ")))) {
+            wxGetApp().CallAfter([this](){
+                    reset_clipping_plane_normal();
+                });
+        }
+    }
+
+    ImGui::SameLine(140.f);
     ImGui::PushItemWidth(150.0f);
-    bool value_changed = ImGui::SliderFloat("  ", &m_clipping_plane_distance, 0.f, 1.f, "%.2f");
+    ImGui::SliderFloat("  ", &m_clipping_plane_distance, 0.f, 1.f, "%.2f");
     
     m_imgui->end();
 
@@ -1206,6 +1228,18 @@ void GLGizmoSlaSupports::switch_to_editing_mode()
     m_unsaved_changes = false;
     m_editing_mode = true;
 }
+
+
+
+void GLGizmoSlaSupports::reset_clipping_plane_normal() const
+{
+    Eigen::Matrix<double, 4, 4, Eigen::DontAlign> modelview_matrix;
+    ::glGetDoublev(GL_MODELVIEW_MATRIX, modelview_matrix.data());
+    m_clipping_plane_normal = Vec3d(modelview_matrix.data()[2], modelview_matrix.data()[6], modelview_matrix.data()[10]);
+    m_parent.set_as_dirty();
+}
+
+
 
 } // namespace GUI
 } // namespace Slic3r

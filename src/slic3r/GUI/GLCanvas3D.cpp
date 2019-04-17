@@ -2398,6 +2398,10 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
         }
     }
 
+    // Inform gizmos about the event so they have the opportunity to react.
+    if (m_gizmos.on_mouse_wheel(evt, *this))
+        return;
+
     // Calculate the zoom delta and apply it to the current zoom factor
     float zoom = (float)evt.GetWheelRotation() / (float)evt.GetWheelDelta();
     set_camera_zoom(zoom);
