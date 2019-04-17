@@ -598,8 +598,9 @@ std::string SLAPrint::validate() const
     for(SLAPrintObject * po : m_objects) {
 
         const ModelObject *mo = po->model_object();
+        bool supports_en = po->config().supports_enable.getBool();
 
-        if(po->config().supports_enable.getBool() &&
+        if(supports_en &&
            mo->sla_points_status == sla::PointsStatus::UserModified &&
            mo->sla_support_points.empty())
             return L("Cannot proceed without support points! "
@@ -613,7 +614,7 @@ std::string SLAPrint::validate() const
                 2 * cfg.head_back_radius_mm -
                 cfg.head_penetration_mm;
 
-        if(pinhead_width > cfg.object_elevation_mm)
+        if(supports_en && pinhead_width > cfg.object_elevation_mm)
             return L("Elevation is too low for object.");
     }
 
