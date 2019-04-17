@@ -16,7 +16,8 @@ enum class SLAGizmoEventType {
     AutomaticGeneration,
     ManualEditing,
     MouseWheelUp,
-    MouseWheelDown
+    MouseWheelDown,
+    ResetClippingPlane
 };
 
 #include "slic3r/GUI/Gizmos/GLGizmoMove.hpp"
