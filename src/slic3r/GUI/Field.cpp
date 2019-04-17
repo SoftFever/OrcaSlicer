@@ -65,6 +65,9 @@ void Field::PostInitialize()
 		break;
 	}
 
+    // initialize m_unit_value
+    m_em_unit = em_unit(m_parent);
+
 	BUILD();
 }
 
@@ -212,8 +215,8 @@ bool is_defined_input_value(wxWindow* win, const ConfigOptionType& type)
 
 void TextCtrl::BUILD() {
     auto size = wxSize(wxDefaultSize);
-    if (m_opt.height >= 0) size.SetHeight(m_opt.height*wxGetApp().em_unit());
-    if (m_opt.width >= 0) size.SetWidth(m_opt.width*wxGetApp().em_unit());
+    if (m_opt.height >= 0) size.SetHeight(m_opt.height*m_em_unit);
+    if (m_opt.width >= 0) size.SetWidth(m_opt.width*m_em_unit);
 
 	wxString text_value = wxString(""); 
 
@@ -361,8 +364,8 @@ void TextCtrl::rescale()
 {
     Field::rescale();
     auto size = wxSize(wxDefaultSize);
-    if (m_opt.height >= 0) size.SetHeight(m_opt.height*wxGetApp().em_unit());
-    if (m_opt.width >= 0) size.SetWidth(m_opt.width*wxGetApp().em_unit());
+    if (m_opt.height >= 0) size.SetHeight(m_opt.height*m_em_unit);
+    if (m_opt.width >= 0) size.SetWidth(m_opt.width*m_em_unit);
 
     if (size != wxDefaultSize)
     {
@@ -424,8 +427,8 @@ int undef_spin_val = -9999;		//! Probably, It's not necessary
 
 void SpinCtrl::BUILD() {
 	auto size = wxSize(wxDefaultSize);
-    if (m_opt.height >= 0) size.SetHeight(m_opt.height*wxGetApp().em_unit());
-    if (m_opt.width >= 0) size.SetWidth(m_opt.width*wxGetApp().em_unit());
+    if (m_opt.height >= 0) size.SetHeight(m_opt.height*m_em_unit);
+    if (m_opt.width >= 0) size.SetWidth(m_opt.width*m_em_unit);
 
 	wxString	text_value = wxString("");
 	int			default_value = 0;
@@ -529,9 +532,9 @@ void SpinCtrl::rescale()
 }
 
 void Choice::BUILD() {
-    wxSize size(m_width * wxGetApp().em_unit(), -1);
-    if (m_opt.height >= 0) size.SetHeight(m_opt.height*wxGetApp().em_unit());
-    if (m_opt.width >= 0) size.SetWidth(m_opt.width*wxGetApp().em_unit());
+    wxSize size(m_width * m_em_unit, -1);
+    if (m_opt.height >= 0) size.SetHeight(m_opt.height*m_em_unit);
+    if (m_opt.width >= 0) size.SetWidth(m_opt.width*m_em_unit);
 
 	wxBitmapComboBox* temp;	
     if (!m_opt.gui_type.empty() && m_opt.gui_type.compare("select_open") != 0) {
@@ -856,8 +859,8 @@ void Choice::rescale()
 	 */
     field->Clear();
     wxSize size(wxDefaultSize);
-    if (m_opt.height >= 0) size.SetHeight(m_opt.height * wxGetApp().em_unit());
-    size.SetWidth((m_opt.width > 0 ? m_opt.width : m_width) * wxGetApp().em_unit());
+    if (m_opt.height >= 0) size.SetHeight(m_opt.height * m_em_unit);
+    size.SetWidth((m_opt.width > 0 ? m_opt.width : m_width) * m_em_unit);
     
     field->SetSize(size);
 
@@ -885,8 +888,8 @@ void Choice::rescale()
 void ColourPicker::BUILD()
 {
 	auto size = wxSize(wxDefaultSize);
-    if (m_opt.height >= 0) size.SetHeight(m_opt.height*wxGetApp().em_unit());
-    if (m_opt.width >= 0) size.SetWidth(m_opt.width*wxGetApp().em_unit());
+    if (m_opt.height >= 0) size.SetHeight(m_opt.height*m_em_unit);
+    if (m_opt.width >= 0) size.SetWidth(m_opt.width*m_em_unit);
 
 	// Validate the color
 	wxString clr_str(static_cast<const ConfigOptionStrings*>(m_opt.default_value)->get_at(m_opt_idx));
@@ -921,7 +924,7 @@ void PointCtrl::BUILD()
 {
 	auto temp = new wxBoxSizer(wxHORIZONTAL);
 
-    const wxSize field_size(4 * wxGetApp().em_unit(), -1);
+    const wxSize field_size(4 * m_em_unit, -1);
 
 	auto default_pt = static_cast<const ConfigOptionPoints*>(m_opt.default_value)->values.at(0);
 	double val = default_pt(0);
@@ -962,6 +965,16 @@ void PointCtrl::BUILD()
 
 	x_textctrl->SetToolTip(get_tooltip_text(X+", "+Y));
 	y_textctrl->SetToolTip(get_tooltip_text(X+", "+Y));
+}
+
+void PointCtrl::rescale()
+{
+    Field::rescale();
+
+    const wxSize field_size(4 * m_em_unit, -1);
+
+    x_textctrl->SetMinSize(field_size);
+    y_textctrl->SetMinSize(field_size);
 }
 
 void PointCtrl::propagate_value(wxTextCtrl* win)
@@ -1009,8 +1022,8 @@ boost::any& PointCtrl::get_value()
 void StaticText::BUILD()
 {
 	auto size = wxSize(wxDefaultSize);
-    if (m_opt.height >= 0) size.SetHeight(m_opt.height*wxGetApp().em_unit());
-    if (m_opt.width >= 0) size.SetWidth(m_opt.width*wxGetApp().em_unit());
+    if (m_opt.height >= 0) size.SetHeight(m_opt.height*m_em_unit);
+    if (m_opt.width >= 0) size.SetWidth(m_opt.width*m_em_unit);
 
     const wxString legend(static_cast<const ConfigOptionString*>(m_opt.default_value)->value);
     auto temp = new wxStaticText(m_parent, wxID_ANY, legend, wxDefaultPosition, size, wxST_ELLIPSIZE_MIDDLE);
@@ -1029,8 +1042,8 @@ void StaticText::rescale()
     Field::rescale();
 
     auto size = wxSize(wxDefaultSize);
-    if (m_opt.height >= 0) size.SetHeight(m_opt.height*wxGetApp().em_unit());
-    if (m_opt.width >= 0) size.SetWidth(m_opt.width*wxGetApp().em_unit());
+    if (m_opt.height >= 0) size.SetHeight(m_opt.height*m_em_unit);
+    if (m_opt.width >= 0) size.SetWidth(m_opt.width*m_em_unit);
 
     if (size != wxDefaultSize)
     {

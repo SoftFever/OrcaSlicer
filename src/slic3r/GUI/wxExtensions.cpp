@@ -18,6 +18,7 @@
 #include "GUI_ObjectList.hpp"
 #include "libslic3r/GCode/PreviewData.hpp"
 #include "I18N.hpp"
+#include "GUI_Utils.hpp"
 
 using Slic3r::GUI::from_u8;
 
@@ -420,6 +421,27 @@ void PrusaCollapsiblePaneMSW::Collapse(bool collapse)
 }
 #endif //__WXMSW__
 
+/* Function for getting of em_unit value from correct parent.
+ * In most of cases it is m_em_unit value from GUI_App,
+ * but for DPIDialogs it's its own value. 
+ * This value will be used to correct rescale after moving between 
+ * Displays with different HDPI */
+int em_unit(wxWindow* win)
+{
+    if (win) {
+        // get TopLevelWindow for some window
+        wxWindow* top_win = win;
+        while (!top_win->IsTopLevel())
+            top_win = top_win->GetParent();
+
+        Slic3r::GUI::DPIDialog* dlg = dynamic_cast<Slic3r::GUI::DPIDialog*>(top_win);
+        if (dlg)
+            // An analog of em_unit value from GUI_App.
+            return 10 * dlg->scale_factor();
+    }
+    
+    return Slic3r::GUI::wxGetApp().em_unit();
+}
 
 // If an icon has horizontal orientation (width > height) call this function with is_horizontal = true
 wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name_in, const int px_cnt/* = 16*/, const bool is_horizontal /* = false*/)
@@ -436,7 +458,7 @@ wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name_in, con
     unsigned int height, width = height = 0;
     unsigned int& scale_base = is_horizontal ? width : height;
 
-    scale_base = (unsigned int)(Slic3r::GUI::wxGetApp().em_unit() * px_cnt * 0.1f + 0.5f);
+    scale_base = (unsigned int)(em_unit(win) * px_cnt * 0.1f + 0.5f);
 
     std::string bmp_name = bmp_name_in;
     boost::replace_last(bmp_name, ".png", "");

@@ -220,6 +220,9 @@ public:
     virtual void rescale() {
         m_Undo_to_sys_btn->rescale();
         m_Undo_btn->rescale();
+
+        // update em_unit value
+        m_em_unit = em_unit(m_parent);
     }
 
 protected:
@@ -240,6 +243,8 @@ protected:
 
 	// current value
 	boost::any			m_value;
+
+    int                 m_em_unit;
 
     bool    bEnterPressed = false;
     
@@ -431,6 +436,8 @@ public:
 	void			set_value(const Vec2d& value, bool change_event = false);
 	void			set_value(const boost::any& value, bool change_event = false);
 	boost::any&		get_value() override;
+
+    void            rescale() override;
 
 	void			enable() override {
 		x_textctrl->Enable();
