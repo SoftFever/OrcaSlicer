@@ -197,7 +197,7 @@ private:
 
 
     const bool  m_peters_wipe_tower   = false; // sparse wipe tower inspired by Peter's post processor - not finished yet
-    const float Filament_Area         = M_PI * 1.75f * 1.75f / 4.f; // filament area in mm^2
+    const float Filament_Area         = float(M_PI * 1.75f * 1.75f / 4.f); // filament area in mm^2
     const float Width_To_Nozzle_Ratio = 1.25f; // desired line width (oval) in multiples of nozzle diameter - may not be actually neccessary to adjust
     const float WT_EPSILON            = 1e-3f;
 
@@ -224,8 +224,8 @@ private:
     bool 			m_retain_speed_override		= true;
     bool            m_adhesion                  = true;
 
-	float m_perimeter_width = 0.4 * Width_To_Nozzle_Ratio; // Width of an extrusion line, also a perimeter spacing for 100% infill.
-	float m_extrusion_flow = 0.038; //0.029f;// Extrusion flow is derived from m_perimeter_width, layer height and filament diameter.
+	float m_perimeter_width = 0.4f * Width_To_Nozzle_Ratio; // Width of an extrusion line, also a perimeter spacing for 100% infill.
+	float m_extrusion_flow = 0.038f; //0.029f;// Extrusion flow is derived from m_perimeter_width, layer height and filament diameter.
 
 
     struct FilamentParameters {
@@ -269,12 +269,12 @@ private:
 	{
 		if ( layer_height < 0 )
 			return m_extrusion_flow;
-		return layer_height * ( m_perimeter_width - layer_height * (1-M_PI/4.f)) / Filament_Area;
+		return layer_height * ( m_perimeter_width - layer_height * (1.f-float(M_PI)/4.f)) / Filament_Area;
 	}
 
 	// Calculates length of extrusion line to extrude given volume
 	float volume_to_length(float volume, float line_width, float layer_height) const {
-		return std::max(0., volume / (layer_height * (line_width - layer_height * (1. - M_PI / 4.))));
+		return std::max(0.f, volume / (layer_height * (line_width - layer_height * (1.f - float(M_PI) / 4.f))));
 	}
 
 	// Calculates depth for all layers and propagates them downwards

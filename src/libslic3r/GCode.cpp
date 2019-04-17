@@ -173,7 +173,7 @@ std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::T
 
     // Toolchangeresult.gcode assumes the wipe tower corner is at the origin
     // We want to rotate and shift all extrusions (gcode postprocessing) and starting and ending position
-    float alpha = m_wipe_tower_rotation/180.f * M_PI;
+    float alpha = m_wipe_tower_rotation/180.f * float(M_PI);
     WipeTower::xy start_pos = tcr.start_pos;
     WipeTower::xy end_pos = tcr.end_pos;
     start_pos.rotate(alpha);
@@ -519,43 +519,43 @@ void GCode::_do_export(Print &print, FILE *file)
     // this->print_machine_envelope(file, print);
     // shall be adjusted as well to produce a G-code block compatible with the particular firmware flavor.
     if (print.config().gcode_flavor.value == gcfMarlin) {
-        m_normal_time_estimator.set_max_acceleration(print.config().machine_max_acceleration_extruding.values[0]);
-        m_normal_time_estimator.set_retract_acceleration(print.config().machine_max_acceleration_retracting.values[0]);
-        m_normal_time_estimator.set_minimum_feedrate(print.config().machine_min_extruding_rate.values[0]);
-        m_normal_time_estimator.set_minimum_travel_feedrate(print.config().machine_min_travel_rate.values[0]);
-        m_normal_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::X, print.config().machine_max_acceleration_x.values[0]);
-        m_normal_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Y, print.config().machine_max_acceleration_y.values[0]);
-        m_normal_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Z, print.config().machine_max_acceleration_z.values[0]);
-        m_normal_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::E, print.config().machine_max_acceleration_e.values[0]);
-        m_normal_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::X, print.config().machine_max_feedrate_x.values[0]);
-        m_normal_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Y, print.config().machine_max_feedrate_y.values[0]);
-        m_normal_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Z, print.config().machine_max_feedrate_z.values[0]);
-        m_normal_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::E, print.config().machine_max_feedrate_e.values[0]);
-        m_normal_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::X, print.config().machine_max_jerk_x.values[0]);
-        m_normal_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Y, print.config().machine_max_jerk_y.values[0]);
-        m_normal_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Z, print.config().machine_max_jerk_z.values[0]);
-        m_normal_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::E, print.config().machine_max_jerk_e.values[0]);
+        m_normal_time_estimator.set_max_acceleration((float)print.config().machine_max_acceleration_extruding.values[0]);
+		m_normal_time_estimator.set_retract_acceleration((float)print.config().machine_max_acceleration_retracting.values[0]);
+		m_normal_time_estimator.set_minimum_feedrate((float)print.config().machine_min_extruding_rate.values[0]);
+		m_normal_time_estimator.set_minimum_travel_feedrate((float)print.config().machine_min_travel_rate.values[0]);
+		m_normal_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::X, (float)print.config().machine_max_acceleration_x.values[0]);
+		m_normal_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Y, (float)print.config().machine_max_acceleration_y.values[0]);
+		m_normal_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Z, (float)print.config().machine_max_acceleration_z.values[0]);
+		m_normal_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::E, (float)print.config().machine_max_acceleration_e.values[0]);
+		m_normal_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::X, (float)print.config().machine_max_feedrate_x.values[0]);
+		m_normal_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Y, (float)print.config().machine_max_feedrate_y.values[0]);
+		m_normal_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Z, (float)print.config().machine_max_feedrate_z.values[0]);
+		m_normal_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::E, (float)print.config().machine_max_feedrate_e.values[0]);
+		m_normal_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::X, (float)print.config().machine_max_jerk_x.values[0]);
+		m_normal_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Y, (float)print.config().machine_max_jerk_y.values[0]);
+		m_normal_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Z, (float)print.config().machine_max_jerk_z.values[0]);
+		m_normal_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::E, (float)print.config().machine_max_jerk_e.values[0]);
 
         if (m_silent_time_estimator_enabled)
         {
             m_silent_time_estimator.reset();
             m_silent_time_estimator.set_dialect(print.config().gcode_flavor);
-            m_silent_time_estimator.set_max_acceleration(print.config().machine_max_acceleration_extruding.values[1]);
-            m_silent_time_estimator.set_retract_acceleration(print.config().machine_max_acceleration_retracting.values[1]);
-            m_silent_time_estimator.set_minimum_feedrate(print.config().machine_min_extruding_rate.values[1]);
-            m_silent_time_estimator.set_minimum_travel_feedrate(print.config().machine_min_travel_rate.values[1]);
-            m_silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::X, print.config().machine_max_acceleration_x.values[1]);
-            m_silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Y, print.config().machine_max_acceleration_y.values[1]);
-            m_silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Z, print.config().machine_max_acceleration_z.values[1]);
-            m_silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::E, print.config().machine_max_acceleration_e.values[1]);
-            m_silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::X, print.config().machine_max_feedrate_x.values[1]);
-            m_silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Y, print.config().machine_max_feedrate_y.values[1]);
-            m_silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Z, print.config().machine_max_feedrate_z.values[1]);
-            m_silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::E, print.config().machine_max_feedrate_e.values[1]);
-            m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::X, print.config().machine_max_jerk_x.values[1]);
-            m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Y, print.config().machine_max_jerk_y.values[1]);
-            m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Z, print.config().machine_max_jerk_z.values[1]);
-            m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::E, print.config().machine_max_jerk_e.values[1]);
+			m_silent_time_estimator.set_max_acceleration((float)print.config().machine_max_acceleration_extruding.values[1]);
+			m_silent_time_estimator.set_retract_acceleration((float)print.config().machine_max_acceleration_retracting.values[1]);
+			m_silent_time_estimator.set_minimum_feedrate((float)print.config().machine_min_extruding_rate.values[1]);
+			m_silent_time_estimator.set_minimum_travel_feedrate((float)print.config().machine_min_travel_rate.values[1]);
+			m_silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::X, (float)print.config().machine_max_acceleration_x.values[1]);
+			m_silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Y, (float)print.config().machine_max_acceleration_y.values[1]);
+			m_silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Z, (float)print.config().machine_max_acceleration_z.values[1]);
+			m_silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::E, (float)print.config().machine_max_acceleration_e.values[1]);
+			m_silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::X, (float)print.config().machine_max_feedrate_x.values[1]);
+			m_silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Y, (float)print.config().machine_max_feedrate_y.values[1]);
+			m_silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Z, (float)print.config().machine_max_feedrate_z.values[1]);
+			m_silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::E, (float)print.config().machine_max_feedrate_e.values[1]);
+			m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::X, (float)print.config().machine_max_jerk_x.values[1]);
+			m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Y, (float)print.config().machine_max_jerk_y.values[1]);
+			m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Z, (float)print.config().machine_max_jerk_z.values[1]);
+			m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::E, (float)print.config().machine_max_jerk_e.values[1]);
             if (print.config().single_extruder_multi_material) {
                 // As of now the fields are shown at the UI dialog in the same combo box as the ramming values, so they
                 // are considered to be active for the single extruder multi-material printers only.
@@ -1054,26 +1054,54 @@ void GCode::_do_export(Print &print, FILE *file)
     print.m_print_statistics.clear();
     print.m_print_statistics.estimated_normal_print_time = m_normal_time_estimator.get_time_dhms();
     print.m_print_statistics.estimated_silent_print_time = m_silent_time_estimator_enabled ? m_silent_time_estimator.get_time_dhms() : "N/A";
-    for (const Extruder &extruder : m_writer.extruders()) {
-        double used_filament   = extruder.used_filament() + (has_wipe_tower ? print.wipe_tower_data().used_filament[extruder.id()] : 0.f);
-        double extruded_volume = extruder.extruded_volume() + (has_wipe_tower ? print.wipe_tower_data().used_filament[extruder.id()] * 2.4052f : 0.f); // assumes 1.75mm filament diameter
-        double filament_weight = extruded_volume * extruder.filament_density() * 0.001;
-        double filament_cost   = filament_weight * extruder.filament_cost()    * 0.001;
-        print.m_print_statistics.filament_stats.insert(std::pair<size_t, float>(extruder.id(), (float)used_filament));
-        _write_format(file, "; filament used = %.1lfmm (%.1lfcm3)\n", used_filament, extruded_volume * 0.001);
-        if (filament_weight > 0.) {
-            print.m_print_statistics.total_weight = print.m_print_statistics.total_weight + filament_weight;
-            _write_format(file, "; filament used = %.1lf\n", filament_weight);
-            if (filament_cost > 0.) {
-                print.m_print_statistics.total_cost = print.m_print_statistics.total_cost + filament_cost;
-                _write_format(file, "; filament cost = %.1lf\n", filament_cost);
+    std::vector<Extruder> extruders = m_writer.extruders();
+    if (! extruders.empty()) {
+        std::pair<std::string, unsigned int> out_filament_used_mm ("; filament used [mm] = ", 0);
+        std::pair<std::string, unsigned int> out_filament_used_cm3("; filament used [cm3] = ", 0);
+        std::pair<std::string, unsigned int> out_filament_used_g  ("; filament used [g] = ", 0);
+        std::pair<std::string, unsigned int> out_filament_cost    ("; filament cost = ", 0);
+        for (const Extruder &extruder : extruders) {
+            double used_filament   = extruder.used_filament() + (has_wipe_tower ? print.wipe_tower_data().used_filament[extruder.id()] : 0.f);
+            double extruded_volume = extruder.extruded_volume() + (has_wipe_tower ? print.wipe_tower_data().used_filament[extruder.id()] * 2.4052f : 0.f); // assumes 1.75mm filament diameter
+            double filament_weight = extruded_volume * extruder.filament_density() * 0.001;
+            double filament_cost   = filament_weight * extruder.filament_cost()    * 0.001;
+            auto append = [&extruder, &extruders](std::pair<std::string, unsigned int> &dst, const char *tmpl, double value) {
+                while (dst.second < extruder.id()) {
+                    // Fill in the non-printing extruders with zeros.
+                    dst.first += (dst.second > 0) ? ", 0" : "0";
+                    ++ dst.second;
+                }
+                if (dst.second > 0)
+                    dst.first += ", ";
+                char buf[64];
+				sprintf(buf, tmpl, value);
+                dst.first += buf;
+                ++ dst.second;
+            };
+            print.m_print_statistics.filament_stats.insert(std::pair<size_t, float>(extruder.id(), (float)used_filament));
+            append(out_filament_used_mm,  "%.1lf", used_filament);
+            append(out_filament_used_cm3, "%.1lf", extruded_volume * 0.001);
+            if (filament_weight > 0.) {
+                print.m_print_statistics.total_weight = print.m_print_statistics.total_weight + filament_weight;
+                append(out_filament_used_g, "%.1lf", filament_weight);
+                if (filament_cost > 0.) {
+                    print.m_print_statistics.total_cost = print.m_print_statistics.total_cost + filament_cost;
+                    append(out_filament_cost, "%.1lf", filament_cost);
+                }
             }
+            print.m_print_statistics.total_used_filament += used_filament;
+            print.m_print_statistics.total_extruded_volume += extruded_volume;
+            print.m_print_statistics.total_wipe_tower_filament += has_wipe_tower ? used_filament - extruder.used_filament() : 0.;
+            print.m_print_statistics.total_wipe_tower_cost += has_wipe_tower ? (extruded_volume - extruder.extruded_volume())* extruder.filament_density() * 0.001 * extruder.filament_cost() * 0.001 : 0.;
         }
-        print.m_print_statistics.total_used_filament += used_filament;
-        print.m_print_statistics.total_extruded_volume += extruded_volume;
-        print.m_print_statistics.total_wipe_tower_filament += has_wipe_tower ? used_filament - extruder.used_filament() : 0.;
-        print.m_print_statistics.total_wipe_tower_cost += has_wipe_tower ? (extruded_volume - extruder.extruded_volume())* extruder.filament_density() * 0.001 * extruder.filament_cost() * 0.001 : 0.;
+        _writeln(file, out_filament_used_mm.first);
+		_writeln(file, out_filament_used_cm3.first);
+		if (out_filament_used_g.second)
+			_writeln(file, out_filament_used_g.first);
+		if (out_filament_cost.second)
+			_writeln(file, out_filament_cost.first);
     }
+    _write_format(file, "; total filament used [g] = %.1lf\n", print.m_print_statistics.total_weight);
     _write_format(file, "; total filament cost = %.1lf\n", print.m_print_statistics.total_cost);
     _write_format(file, "; estimated printing time (normal mode) = %s\n", m_normal_time_estimator.get_time_dhms().c_str());
     if (m_silent_time_estimator_enabled)
@@ -1528,7 +1556,7 @@ void GCode::process_layer(
                             std::max<int>(region.config().perimeter_extruder.value - 1, 0);
 
                         // Let's recover vector of extruder overrides:
-                        const ExtruderPerCopy* entity_overrides = const_cast<LayerTools&>(layer_tools).wiping_extrusions().get_extruder_overrides(fill, correct_extruder_id, layer_to_print.object()->copies().size());
+                        const ExtruderPerCopy* entity_overrides = const_cast<LayerTools&>(layer_tools).wiping_extrusions().get_extruder_overrides(fill, correct_extruder_id, (int)layer_to_print.object()->copies().size());
 
                         // Now we must add this extrusion into the by_extruder map, once for each extruder that will print it:
                         for (unsigned int extruder : layer_tools.extruders)
