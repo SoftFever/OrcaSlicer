@@ -1239,8 +1239,8 @@ struct Plater::priv
     wxString project_filename;
 
     BackgroundSlicingProcess    background_process;
-    std::atomic<bool>           arranging;
-    std::atomic<bool>           rotoptimizing;
+    bool                        arranging;
+    bool                        rotoptimizing;
     bool                        delayed_scene_refresh;
     std::string                 delayed_error_message;
 
@@ -1403,8 +1403,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     , view_toolbar(GLToolbar::Radio)
 #endif // ENABLE_SVG_ICONS
 {
-    arranging.store(false);
-    rotoptimizing.store(false);
+    arranging = false;
+    rotoptimizing = false;
     background_process.set_fff_print(&fff_print);
 	background_process.set_sla_print(&sla_print);
     background_process.set_gcode_preview_data(&gcode_preview_data);
@@ -2095,15 +2095,14 @@ void Plater::priv::mirror(Axis axis)
 
 void Plater::priv::arrange()
 {
-    // don't do anything if currently arranging. Then this is a re-entrance
-    if(arranging.load()) return;
-
-    // Guard the arrange process
-    arranging.store(true);
+    if (arranging) { return; }
+    arranging = true;
+    Slic3r::ScopeGuard arranging_guard([this]() { arranging = false; });
 
     wxBusyCursor wait;
 
     this->background_process.stop();
+
     unsigned count = 0;
     for(auto obj : model.objects) count += obj->instances.size();
 
@@ -2119,14 +2118,14 @@ void Plater::priv::arrange()
         statusbar()->set_progress(count - st);
         statusbar()->set_status_text(msg);
 
-        // ok, this is dangerous, but we are protected by the atomic flag
+        // ok, this is dangerous, but we are protected by the flag
         // 'arranging' and the arrange button is also disabled.
         // This call is needed for the cancel button to work.
         wxYieldIfNeeded();
     };
 
     statusbar()->set_cancel_callback([this, statusfn](){
-        arranging.store(false);
+        arranging = false;
         statusfn(0, L("Arranging canceled"));
     });
 
@@ -2162,7 +2161,7 @@ void Plater::priv::arrange()
                      hint,
                      false, // create many piles not just one pile
                      [statusfn](unsigned st) { statusfn(st, arrangestr); },
-                     [this] () { return !arranging.load(); });
+                     [this] () { return !arranging; });
     } catch(std::exception& /*e*/) {
         GUI::show_error(this->q, L("Could not arrange model objects! "
                                    "Some geometries may be invalid."));
@@ -2171,7 +2170,6 @@ void Plater::priv::arrange()
     statusfn(0, L("Arranging done."));
     statusbar()->set_range(prev_range);
     statusbar()->set_cancel_callback(); // remove cancel button
-    arranging.store(false);
 
     // Do a full refresh of scene tree, including regenerating all the GLVolumes.
     //FIXME The update function shall just reload the modified matrices.
@@ -2186,11 +2184,12 @@ void Plater::priv::sla_optimize_rotation() {
     // running we should probably disable explicit slicing and background
     // processing
 
-    if(rotoptimizing.load()) return;
-    rotoptimizing.store(true);
+    if (rotoptimizing) { return; }
+    rotoptimizing = true;
+    Slic3r::ScopeGuard rotoptimizing_guard([this]() { rotoptimizing = false; });
 
     int obj_idx = get_selected_object_idx();
-    if(obj_idx < 0) { rotoptimizing.store(false); return; }
+    if (obj_idx < 0) { return; }
 
     ModelObject * o = model.objects[size_t(obj_idx)];
 
@@ -2208,14 +2207,14 @@ void Plater::priv::sla_optimize_rotation() {
     };
 
     statusbar()->set_cancel_callback([this, stfn](){
-        rotoptimizing.store(false);
+        rotoptimizing = false;
         stfn(0, L("Orientation search canceled"));
     });
 
     auto r = sla::find_best_rotation(
                 *o, .005f,
                 [stfn](unsigned s) { stfn(s, L("Searching for optimal orientation")); },
-                [this](){ return !rotoptimizing.load(); }
+                [this](){ return !rotoptimizing; }
     );
 
     const auto *bed_shape_opt = config->opt<ConfigOptionPoints>("bed_shape");
@@ -2228,7 +2227,7 @@ void Plater::priv::sla_optimize_rotation() {
     double mindist = 6.0; // FIXME
     double offs = mindist / 2.0 - EPSILON;
 
-    if(rotoptimizing.load()) // wasn't canceled
+    if(rotoptimizing) // wasn't canceled
     for(ModelInstance * oi : o->instances) {
         oi->set_rotation({r[X], r[Y], r[Z]});
 
@@ -2278,7 +2277,6 @@ void Plater::priv::sla_optimize_rotation() {
     stfn(0, L("Orientation found."));
     statusbar()->set_range(prev_range);
     statusbar()->set_cancel_callback();
-    rotoptimizing.store(false);
 
     update(true);
 }
@@ -2456,6 +2454,11 @@ unsigned int Plater::priv::update_background_process(bool force_validation)
 // Restart background processing thread based on a bitmask of UpdateBackgroundProcessReturnState.
 bool Plater::priv::restart_background_process(unsigned int state)
 {
+    if (arranging || rotoptimizing) {
+        // Avoid a race condition
+        return false;
+    }
+
 	if ( ! this->background_process.empty() &&
 		 (state & priv::UPDATE_BACKGROUND_PROCESS_INVALID) == 0 &&
 		 ( ((state & UPDATE_BACKGROUND_PROCESS_FORCE_RESTART) != 0 && ! this->background_process.finished()) ||
@@ -2682,6 +2685,11 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
 void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
 {
     if (evt.status.percent >= -1) {
+        if (arranging || rotoptimizing) {
+            // Avoid a race condition
+            return;
+        }
+
         this->statusbar()->set_progress(evt.status.percent);
         this->statusbar()->set_status_text(_(L(evt.status.text)) + wxString::FromUTF8("…"));
     }
@@ -3139,12 +3147,20 @@ bool Plater::priv::can_delete_all() const
 
 bool Plater::priv::can_increase_instances() const
 {
+    if (arranging || rotoptimizing) {
+        return false;
+    }
+
     int obj_idx = get_selected_object_idx();
     return (0 <= obj_idx) && (obj_idx < (int)model.objects.size());
 }
 
 bool Plater::priv::can_decrease_instances() const
 {
+    if (arranging || rotoptimizing) {
+        return false;
+    }
+
     int obj_idx = get_selected_object_idx();
     return (0 <= obj_idx) && (obj_idx < (int)model.objects.size()) && (model.objects[obj_idx]->instances.size() > 1);
 }
@@ -3161,7 +3177,7 @@ bool Plater::priv::can_split_to_volumes() const
 
 bool Plater::priv::can_arrange() const
 {
-    return !model.objects.empty() && !arranging.load();
+    return !model.objects.empty() && !arranging;
 }
 
 bool Plater::priv::can_layers_editing() const
@@ -3302,9 +3318,9 @@ void Plater::remove_selected()
 
 void Plater::increase_instances(size_t num)
 {
+    if (! can_increase_instances()) { return; }
+
     int obj_idx = p->get_selected_object_idx();
-    if (obj_idx == -1)
-        return;
 
     ModelObject* model_object = p->model.objects[obj_idx];
     ModelInstance* model_instance = model_object->instances.back();
@@ -3336,9 +3352,9 @@ void Plater::increase_instances(size_t num)
 
 void Plater::decrease_instances(size_t num)
 {
+    if (! can_decrease_instances()) { return; }
+
     int obj_idx = p->get_selected_object_idx();
-    if (obj_idx == -1)
-        return;
 
     ModelObject* model_object = p->model.objects[obj_idx];
     if (model_object->instances.size() > num) {

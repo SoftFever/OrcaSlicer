@@ -73,8 +73,8 @@ private:
     virtual void on_render_for_picking(const Selection& selection) const;
 
     void render_selection_rectangle() const;
-    void render_points(const Selection& selection, const Vec3d& direction_to_camera, bool picking = false) const;
-    void render_clipping_plane(const Selection& selection, const Vec3d& direction_to_camera) const;
+    void render_points(const Selection& selection, bool picking = false) const;
+    void render_clipping_plane(const Selection& selection) const;
     bool is_mesh_update_necessary() const;
     void update_mesh();
     void update_cache_entry_normal(unsigned int i) const;
@@ -87,7 +87,8 @@ private:
     mutable std::vector<CacheEntry> m_editing_mode_cache; // a support point and whether it is currently selected
     float m_clipping_plane_distance = 0.f;
     mutable float m_old_clipping_plane_distance = 0.f;
-    mutable Vec3d m_old_direction_to_camera;
+    mutable Vec3d m_old_clipping_plane_normal;
+    mutable Vec3d m_clipping_plane_normal = Vec3d::Zero();
 
     enum SelectionRectangleStatus {
         srOff = 0,
@@ -108,8 +109,8 @@ private:
     mutable std::unique_ptr<TriangleMeshSlicer> m_supports_tms;
 
     std::vector<const ConfigOption*> get_config_options(const std::vector<std::string>& keys) const;
-    bool is_point_clipped(const Vec3d& point, const Vec3d& direction_to_camera) const;
-    void find_intersecting_facets(const igl::AABB<Eigen::MatrixXf, 3>* aabb, const Vec3f& normal, double offset, std::vector<unsigned int>& out) const;
+    bool is_point_clipped(const Vec3d& point) const;
+    //void find_intersecting_facets(const igl::AABB<Eigen::MatrixXf, 3>* aabb, const Vec3f& normal, double offset, std::vector<unsigned int>& out) const;
 
     // Methods that do the model_object and editing cache synchronization,
     // editing mode selection, etc:
@@ -125,6 +126,7 @@ private:
     void get_data_from_backend();
     void auto_generate();
     void switch_to_editing_mode();
+    void reset_clipping_plane_normal() const;
 
 protected:
     void on_set_state() override;

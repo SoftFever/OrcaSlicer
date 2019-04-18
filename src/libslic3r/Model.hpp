@@ -234,7 +234,7 @@ public:
     // Calculate 2D convex hull of of a projection of the transformed printable volumes into the XY plane.
     // This method is cheap in that it does not make any unnecessary copy of the volume meshes.
     // This method is used by the auto arrange function.
-    Polygon       convex_hull_2d(const Transform3d &trafo_instance);
+    Polygon       convex_hull_2d(const Transform3d &trafo_instance) const;
 
 #if ENABLE_VOLUMES_CENTERING_FIXES
     void center_around_origin(bool include_modifiers = true);

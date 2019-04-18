@@ -520,6 +520,23 @@ void GLGizmosManager::render_overlay(const GLCanvas3D& canvas, const Selection& 
     glsafe(::glPopMatrix());
 }
 
+
+
+bool GLGizmosManager::on_mouse_wheel(wxMouseEvent& evt, GLCanvas3D& canvas)
+{
+    bool processed = false;
+
+    if (m_current == SlaSupports) {
+        float rot = (float)evt.GetWheelRotation() / (float)evt.GetWheelDelta();
+        if (gizmo_event((rot > 0.f ? SLAGizmoEventType::MouseWheelUp : SLAGizmoEventType::MouseWheelDown), Vec2d::Zero(), evt.ShiftDown(), evt.AltDown(), evt.ControlDown()))
+            processed = true;
+    }
+
+    return processed;
+}
+
+
+
 bool GLGizmosManager::on_mouse(wxMouseEvent& evt, GLCanvas3D& canvas)
 {
     Point pos(evt.GetX(), evt.GetY());
@@ -761,6 +778,16 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt, GLCanvas3D& canvas)
 
             break;
         }
+
+        case 'r' :
+        case 'R' :
+        {
+            if ((m_current == SlaSupports) && gizmo_event(SLAGizmoEventType::ResetClippingPlane))
+                processed = true;
+
+            break;
+        }
+
 #ifdef __APPLE__
         case WXK_BACK: // the low cost Apple solutions are not equipped with a Delete key, use Backspace instead.
 #else /* __APPLE__ */
@@ -794,7 +821,7 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt, GLCanvas3D& canvas)
         }
     }
 
-    if (!processed)
+    if (!processed && !evt.HasModifiers())
     {
         if (handle_shortcut(keyCode, canvas.get_selection()))
         {

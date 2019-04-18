@@ -2926,7 +2926,7 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     
     // Actions:
     def = this->add("export_obj", coBool);
-    def->label = L("Export SVG");
+    def->label = L("Export OBJ");
     def->tooltip = L("Export the model(s) as OBJ.");
     def->default_value = new ConfigOptionBool(false);
     

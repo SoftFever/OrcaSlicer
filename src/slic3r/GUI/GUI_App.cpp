@@ -34,7 +34,7 @@
 
 #include "../Utils/PresetUpdater.hpp"
 #include "../Utils/PrintHost.hpp"
-#include "ConfigWizard_private.hpp"
+#include "ConfigWizard.hpp"
 #include "slic3r/Config/Snapshot.hpp"
 #include "ConfigSnapshotDialog.hpp"
 #include "FirmwareDialog.hpp"
@@ -230,7 +230,7 @@ bool GUI_App::on_init_inner()
         // and after MainFrame is created & shown.
         // The extra CallAfter() is needed because of Mac, where this is the only way
         // to popup a modal dialog on start without screwing combo boxes.
-        // This is ugly but I honestly found not better way to do it.
+        // This is ugly but I honestly found no better way to do it.
         // Neither wxShowEvent nor wxWindowCreateEvent work reliably.
         static bool once = true;
         if (once) {
