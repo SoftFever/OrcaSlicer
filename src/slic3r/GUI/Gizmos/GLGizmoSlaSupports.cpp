@@ -97,7 +97,10 @@ void GLGizmoSlaSupports::on_render(const Selection& selection) const
     if (m_quadric != nullptr && selection.is_from_single_instance())
         render_points(selection, false);
 
-    m_selection_rectangle.render();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    m_selection_rectangle.render(m_parent);
+//    m_selection_rectangle.render();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     render_clipping_plane(selection);
 
     glsafe(::glDisable(GL_BLEND));
@@ -464,9 +467,12 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         if (action == SLAGizmoEventType::LeftDown && (shift_down || alt_down || control_down)) {
             if (m_hover_id == -1) {
                 if (shift_down || alt_down) {
-                    Size size = m_parent.get_canvas_size();
-                    m_selection_rectangle.start_dragging(mouse_position, size.get_width(), size.get_height(),
-                        shift_down ? GLSelectionRectangle::SlaSelect : GLSelectionRectangle::SlaDeselect);
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                    m_selection_rectangle.start_dragging(mouse_position, shift_down ? GLSelectionRectangle::Select : GLSelectionRectangle::Deselect);
+//                        Size size = m_parent.get_canvas_size();
+//                        m_selection_rectangle.start_dragging(mouse_position, size.get_width(), size.get_height(),
+//                        shift_down ? GLSelectionRectangle::SlaSelect : GLSelectionRectangle::SlaDeselect);
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                 }
             }
             else {
@@ -521,7 +527,10 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             }
             // Now ask the rectangle which of the points are inside.
             const Camera& camera = m_parent.get_camera();
-            std::vector<unsigned int> selected_idxs = m_selection_rectangle.end_dragging(camera, points);
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            std::vector<unsigned int> selected_idxs = m_selection_rectangle.stop_dragging(m_parent, points);
+//            std::vector<unsigned int> selected_idxs = m_selection_rectangle.end_dragging(camera, points);
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
             // we'll recover current look direction (in world coords) and transform it to model coords.
             const Selection& selection = m_parent.get_selection();
@@ -574,7 +583,10 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                     }
 
                     if (!is_obscured) {
-                        if (rectangle_status == GLSelectionRectangle::SlaDeselect)
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                        if (rectangle_status == GLSelectionRectangle::Deselect)
+//                        if (rectangle_status == GLSelectionRectangle::SlaDeselect)
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                             unselect_point(i);
                         else
                             select_point(i);

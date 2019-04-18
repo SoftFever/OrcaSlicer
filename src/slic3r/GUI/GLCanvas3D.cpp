@@ -1164,100 +1164,6 @@ void GLCanvas3D::LegendTexture::render(const GLCanvas3D& canvas) const
     }
 }
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-void GLCanvas3D::RectangleSelection::render(const GLCanvas3D& canvas) const
-{
-    if (status == Off)
-        return;
-
-#if 1
-    float zoom = canvas.get_camera().zoom;
-    float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
-
-    Size cnv_size = canvas.get_canvas_size();
-    float cnv_half_width = 0.5f * (float)cnv_size.get_width();
-    float cnv_half_height = 0.5f * (float)cnv_size.get_height();
-    if ((cnv_half_width == 0.0f) || (cnv_half_height == 0.0f))
-        return;
-
-    Vec2d start(start_corner(0) - cnv_half_width, cnv_half_height - start_corner(1));
-    Vec2d end(end_corner(0) - cnv_half_width, cnv_half_height - end_corner(1));
-
-    float left = (float)std::min(start(0), end(0)) * inv_zoom;
-    float top = (float)std::max(start(1), end(1)) * inv_zoom;
-    float right = (float)std::max(start(0), end(0)) * inv_zoom;
-    float bottom = (float)std::min(start(1), end(1)) * inv_zoom;
-
-    glsafe(::glLineWidth(1.5f));
-    float color[3];
-    color[0] = (status == Select) ? 0.3f : 1.0f;
-    color[1] = (status == Select) ? 1.0f : 0.3f;
-    color[2] = 0.3f;
-    glsafe(::glColor3fv(color));
-
-    glsafe(::glDisable(GL_DEPTH_TEST));
-
-    glsafe(::glPushMatrix());
-    glsafe(::glLoadIdentity());
-
-    glsafe(::glPushAttrib(GL_ENABLE_BIT));
-    glsafe(::glLineStipple(4, 0xAAAA));
-    glsafe(::glEnable(GL_LINE_STIPPLE));
-
-    ::glBegin(GL_LINE_LOOP);
-    ::glVertex2f((GLfloat)left, (GLfloat)bottom);
-    ::glVertex2f((GLfloat)right, (GLfloat)bottom);
-    ::glVertex2f((GLfloat)right, (GLfloat)top);
-    ::glVertex2f((GLfloat)left, (GLfloat)top);
-    glsafe(::glEnd());
-
-    glsafe(::glPopAttrib());
-
-    glsafe(::glPopMatrix());
-#else
-    glsafe(::glLineWidth(1.5f));
-    float render_color[3] = { 0.f, 1.f, 0.f };
-    if (status == Deselect) {
-        render_color[0] = 1.f;
-        render_color[1] = 0.3f;
-        render_color[2] = 0.3f;
-    }
-    glsafe(::glColor3fv(render_color));
-
-    glsafe(::glPushAttrib(GL_TRANSFORM_BIT));   // remember current MatrixMode
-
-    glsafe(::glMatrixMode(GL_MODELVIEW));       // cache modelview matrix and set to identity
-    glsafe(::glPushMatrix());
-    glsafe(::glLoadIdentity());
-
-    glsafe(::glMatrixMode(GL_PROJECTION));      // cache projection matrix and set to identity
-    glsafe(::glPushMatrix());
-    glsafe(::glLoadIdentity());
-
-    Size cnv_size = canvas.get_canvas_size();
-    glsafe(::glOrtho(0.f, cnv_size.get_width(), cnv_size.get_height(), 0.f, -1.f, 1.f)); // set projection matrix so that world coords = window coords
-
-    // render the selection  rectangle (window coordinates):
-    glsafe(::glPushAttrib(GL_ENABLE_BIT));
-    glsafe(::glLineStipple(4, 0xAAAA));
-    glsafe(::glEnable(GL_LINE_STIPPLE));
-
-    ::glBegin(GL_LINE_LOOP);
-    ::glVertex3f((GLfloat)start_corner(0), (GLfloat)start_corner(1), (GLfloat)0.5f);
-    ::glVertex3f((GLfloat)end_corner(0), (GLfloat)start_corner(1), (GLfloat)0.5f);
-    ::glVertex3f((GLfloat)end_corner(0), (GLfloat)end_corner(1), (GLfloat)0.5f);
-    ::glVertex3f((GLfloat)start_corner(0), (GLfloat)end_corner(1), (GLfloat)0.5f);
-    glsafe(::glEnd());
-    glsafe(::glPopAttrib());
-
-    glsafe(::glPopMatrix());                // restore former projection matrix
-    glsafe(::glMatrixMode(GL_MODELVIEW));
-    glsafe(::glPopMatrix());                // restore former modelview matrix
-    glsafe(::glPopAttrib());                // restore former MatrixMode
-#endif
-}
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
 wxDEFINE_EVENT(EVT_GLCANVAS_INIT, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, SimpleEvent);
@@ -2460,22 +2366,18 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                 else if (keyCode == WXK_SHIFT)
                 {
-//                    std::cout << "Shift up" << std::endl;
                     if (m_rectangle_selection.is_active())
                     {
-//                        std::cout << ">>>>>>>> STOP rectangle selection" << std::endl;
-                        m_rectangle_selection.status = RectangleSelection::Off;
+                        m_rectangle_selection.stop_dragging();
                         m_dirty = true;
                     }
                     set_cursor(Standard);
                 }
                 else if (keyCode == WXK_ALT)
                 {
-//                    std::cout << "Alt up" << std::endl;
                     if (m_rectangle_selection.is_active())
                     {
-//                        std::cout << ">>>>>>>> STOP rectangle deselection" << std::endl;
-                        m_rectangle_selection.status = RectangleSelection::Off;
+                        m_rectangle_selection.stop_dragging();
                         m_dirty = true;
                     }
                     set_cursor(Standard);
@@ -2487,13 +2389,13 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                 if (keyCode == WXK_SHIFT)
                 {
-//                    std::cout << "Shift down" << std::endl;
-                    set_cursor(Cross);
+                    if (m_picking_enabled && (m_gizmos.get_current_type() != GLGizmosManager::SlaSupports))
+                        set_cursor(Cross);
                 }
                 else if (keyCode == WXK_ALT)
                 {
-//                    std::cout << "Alt down" << std::endl;
-                    set_cursor(Cross);
+                    if (m_picking_enabled && (m_gizmos.get_current_type() != GLGizmosManager::SlaSupports))
+                        set_cursor(Cross);
                 }
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             }
@@ -2753,13 +2655,13 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }
         }
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        else if (evt.LeftDown() && (evt.ShiftDown() || evt.AltDown()))
+        else if (evt.LeftDown() && (evt.ShiftDown() || evt.AltDown()) && m_picking_enabled)
         {
-            m_rectangle_selection.start_corner = m_mouse.position;
-            m_rectangle_selection.end_corner = m_mouse.position;
-            m_rectangle_selection.status = evt.ShiftDown() ? RectangleSelection::Select : RectangleSelection::Deselect;
-//            std::cout << ">>>>>>>> START rectangle" << (evt.ShiftDown() ? " selection" : " deselection") << " -> start: " << to_string(m_rectangle_selection.start_corner) << " - end: " << to_string(m_rectangle_selection.end_corner) << std::endl;
-            m_dirty = true;
+            if (m_gizmos.get_current_type() != GLGizmosManager::SlaSupports)
+            {
+                m_rectangle_selection.start_dragging(m_mouse.position, evt.ShiftDown() ? GLSelectionRectangle::Select : GLSelectionRectangle::Deselect);
+                m_dirty = true;
+            }
         }
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         else
@@ -2872,9 +2774,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     else if (evt.Dragging() && evt.LeftIsDown() && m_rectangle_selection.is_active())
     {
-        m_mouse.position = pos.cast<double>();
-        m_rectangle_selection.end_corner = m_mouse.position;
-//        std::cout << "start: " << to_string(m_rectangle_selection.start_corner) << " - end: " << to_string(m_rectangle_selection.end_corner) << std::endl;
+        m_rectangle_selection.dragging(pos.cast<double>());
         m_dirty = true;
     }
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -2936,8 +2836,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         else if (evt.LeftUp() && m_rectangle_selection.is_active())
         {
-//            std::cout << ">>>>>>>> STOP rectangle" << ((m_rectangle_selection.status == RectangleSelection::Select) ? " selection" : " deselection") << std::endl;
-            m_rectangle_selection.status = RectangleSelection::Off;
+            m_rectangle_selection.stop_dragging();
             m_dirty = true;
         }
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -3749,9 +3648,14 @@ void GLCanvas3D::_refresh_if_shown_on_screen()
 
 void GLCanvas3D::_picking_pass() const
 {
-    const Vec2d& pos = m_mouse.position;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//    const Vec2d& pos = m_mouse.position;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-    if (m_picking_enabled && !m_mouse.dragging && (pos != Vec2d(DBL_MAX, DBL_MAX)))
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    if (m_picking_enabled && !m_mouse.dragging && (m_mouse.position != Vec2d(DBL_MAX, DBL_MAX)))
+//    if (m_picking_enabled && !m_mouse.dragging && (pos != Vec2d(DBL_MAX, DBL_MAX)))
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     {
         // Render the object for picking.
         // FIXME This cannot possibly work in a multi - sampled context as the color gets mangled by the anti - aliasing.
@@ -3783,10 +3687,16 @@ void GLCanvas3D::_picking_pass() const
 
         GLubyte color[4] = { 0, 0, 0, 0 };
         const Size& cnv_size = get_canvas_size();
-        bool inside = (0 <= pos(0)) && (pos(0) < cnv_size.get_width()) && (0 <= pos(1)) && (pos(1) < cnv_size.get_height());
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        bool inside = (0 <= m_mouse.position(0)) && (m_mouse.position(0) < cnv_size.get_width()) && (0 <= m_mouse.position(1)) && (m_mouse.position(1) < cnv_size.get_height());
+//        bool inside = (0 <= pos(0)) && (pos(0) < cnv_size.get_width()) && (0 <= pos(1)) && (pos(1) < cnv_size.get_height());
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         if (inside)
         {
-            glsafe(::glReadPixels(pos(0), cnv_size.get_height() - pos(1) - 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, (void*)color));
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            glsafe(::glReadPixels(m_mouse.position(0), cnv_size.get_height() - m_mouse.position(1) - 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, (void*)color));
+//            glsafe(::glReadPixels(pos(0), cnv_size.get_height() - pos(1) - 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, (void*)color));
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             volume_id = color[0] + color[1] * 256 + color[2] * 256 * 256;
         }
         if ((0 <= volume_id) && (volume_id < (int)m_volumes.volumes.size()))
@@ -3807,6 +3717,9 @@ void GLCanvas3D::_picking_pass() const
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 void GLCanvas3D::_rectangular_selection_picking_pass() const
 {
+    if (m_picking_enabled)
+    {
+    }
 }
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 

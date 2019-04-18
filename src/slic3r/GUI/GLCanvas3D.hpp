@@ -402,24 +402,6 @@ class GLCanvas3D
 
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 public:
-    struct RectangleSelection
-    {
-        enum EStatus
-        {
-            Off,
-            Select,
-            Deselect
-        };
-
-        EStatus status;
-        Vec2d start_corner;
-        Vec2d end_corner;
-
-        RectangleSelection() : status(Off), start_corner(Vec2d::Zero()), end_corner(Vec2d::Zero()) {}
-        bool is_active() const { return status != Off; }
-        void render(const GLCanvas3D& canvas) const;
-    };
-
     enum ECursorType : unsigned char
     {
         Standard,
@@ -474,7 +456,7 @@ private:
     bool m_tab_down;
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     ECursorType m_cursor_type;
-    RectangleSelection m_rectangle_selection;
+    GLSelectionRectangle m_rectangle_selection;
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     // Following variable is obsolete and it should be safe to remove it.

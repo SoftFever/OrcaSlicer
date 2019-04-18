@@ -7,6 +7,7 @@ namespace Slic3r {
 namespace GUI {
     
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+class GLCanvas3D;
 struct Camera;
 //class Camera;
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -15,33 +16,54 @@ class GLSelectionRectangle {
 public:
     enum EState {
             Off,
-            SlaSelect,
-            SlaDeselect
-        };
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            Select,
+            Deselect
+//            SlaSelect,
+//            SlaDeselect
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    };
 
-    // Initiates the rectangle. Width and height describe canvas size.
-    void start_dragging(const Vec2d& mouse_position, float width, float height, EState status);
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    // Initiates the rectangle. 
+    void start_dragging(const Vec2d& mouse_position, EState status);
 
     // To be called on mouse move.
     void dragging(const Vec2d& mouse_position);
 
     // Given a vector of points in world coordinates, the function returns indices of those
     // that are in the rectangle. It then disables the rectangle.
-    std::vector<unsigned int> end_dragging(const Camera& camera, const std::vector<Vec3d>& points);
+    std::vector<unsigned int> stop_dragging(const GLCanvas3D& canvas, const std::vector<Vec3d>& points);
 
-    void render() const;
-        
+    // Disables the rectangle.
+    void stop_dragging();
+
+    void render(const GLCanvas3D& canvas) const;
+
+//    // Initiates the rectangle. Width and height describe canvas size.
+//    void start_dragging(const Vec2d& mouse_position, float width, float height, EState status);
+//
+//    // To be called on mouse move.
+//    void dragging(const Vec2d& mouse_position);
+//
+//    // Given a vector of points in world coordinates, the function returns indices of those
+//    // that are in the rectangle. It then disables the rectangle.
+//    std::vector<unsigned int> end_dragging(const Camera& camera, const std::vector<Vec3d>& points);
+//
+//    void render() const;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
     bool is_active() const { return m_status != Off; }
     EState get_status() const { return m_status; }
     
-    
-
 private:
     EState m_status = Off;
     Vec2d m_start_corner;
     Vec2d m_end_corner;
-    float m_width;
-    float m_height;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//    float m_width;
+//    float m_height;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 };
 
     
