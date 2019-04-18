@@ -55,7 +55,16 @@ public:
 
     bool is_active() const { return m_status != Off; }
     EState get_status() const { return m_status; }
-    
+
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    float get_width() const { return std::abs(m_start_corner(0) - m_end_corner(0)); }
+    float get_height() const { return std::abs(m_start_corner(1) - m_end_corner(1)); }
+    float get_left() const { return std::min(m_start_corner(0), m_end_corner(0)); }
+    float get_right() const { return std::max(m_start_corner(0), m_end_corner(0)); }
+    float get_top() const { return std::max(m_start_corner(1), m_end_corner(1)); }
+    float get_bottom() const { return std::min(m_start_corner(1), m_end_corner(1)); }
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
 private:
     EState m_status = Off;
     Vec2d m_start_corner;
