@@ -647,7 +647,7 @@ ConfigWizardIndex::ConfigWizardIndex(wxWindow *parent)
     SetMinSize(bg.GetSize());
 
     const wxSize size = GetTextExtent("m");
-    em = size.x;
+    em_w = size.x;
     em_h = size.y;
 
     // Add logo bitmap.
@@ -775,7 +775,7 @@ void ConfigWizardIndex::on_paint(wxPaintEvent & evt)
     unsigned y = 0;
     for (size_t i = 0; i < items.size(); i++) {
         const Item& item = items[i];
-        unsigned x = em/2 + item.indent * em;
+        unsigned x = em_w/2 + item.indent * em_w;
 
         if (i == item_active || item_hover >= 0 && i == (size_t)item_hover) {
             dc.DrawBitmap(bullet_blue,  x, y + yoff_icon, false);
@@ -783,7 +783,7 @@ void ConfigWizardIndex::on_paint(wxPaintEvent & evt)
         else if (i < item_active)  { dc.DrawBitmap(bullet_black, x, y + yoff_icon, false); }
         else if (i > item_active)  { dc.DrawBitmap(bullet_white, x, y + yoff_icon, false); }
 
-        x += + bullet_w + em/2;
+        x += + bullet_w + em_w/2;
         const auto text_size = dc.GetTextExtent(item.label);
         dc.DrawText(item.label, x, y + yoff_text);
 
@@ -794,6 +794,7 @@ void ConfigWizardIndex::on_paint(wxPaintEvent & evt)
     if (GetMinSize().x < index_width) {
         CallAfter([this, index_width]() {
             SetMinSize(wxSize(index_width, GetMinSize().y));
+            Refresh();
         });
     }
 }
@@ -1073,7 +1074,7 @@ ConfigWizard::ConfigWizard(wxWindow *parent, RunReason reason)
             9*disp_rect.width / 10,
             9*disp_rect.height / 10);
 
-        const int width_hint = p->index->GetSize().GetWidth() + p->page_fff->get_width() + 300;    // XXX: magic constant, I found no better solution
+        const int width_hint = p->index->GetSize().GetWidth() + p->page_fff->get_width() + 30 * p->em();    // XXX: magic constant, I found no better solution
         if (width_hint < window_rect.width) {
             window_rect.x += (window_rect.width - width_hint) / 2;
             window_rect.width = width_hint;

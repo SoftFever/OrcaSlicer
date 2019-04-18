@@ -211,6 +211,7 @@ public:
 
     void clear();
 
+    int em() const { return em_w; }
 private:
     struct Item
     {
@@ -221,7 +222,7 @@ private:
         bool operator==(ConfigWizardPage *page) const { return this->page == page; }
     };
 
-    int em;
+    int em_w;
     int em_h;
 
     const wxBitmap bg;
@@ -234,7 +235,7 @@ private:
     ssize_t item_hover;
     size_t last_page;
 
-    int item_height() const { return std::max(bullet_black.GetSize().GetHeight(), em) + em; }
+    int item_height() const { return std::max(bullet_black.GetSize().GetHeight(), em_w) + em_w; }
 
     void on_paint(wxPaintEvent &evt);
     void on_mouse_move(wxMouseEvent &evt);
@@ -286,6 +287,8 @@ struct ConfigWizard::priv
     void on_custom_setup(bool custom_wanted);
 
     void apply_config(AppConfig *app_config, PresetBundle *preset_bundle, const PresetUpdater *updater);
+
+    int em() const { return index->em(); }
 };
 
 
