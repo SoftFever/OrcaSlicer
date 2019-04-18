@@ -7,6 +7,9 @@
 #include <wx/intl.h>
 #include <wx/html/htmlwin.h>
 
+#include "GUI_Utils.hpp"
+#include "wxExtensions.hpp"
+
 namespace Slic3r { 
 namespace GUI {
 
@@ -20,10 +23,16 @@ private:
     void onRepaint(wxEvent &event);
 };
 
-class AboutDialog : public wxDialog
+class AboutDialog : public DPIDialog
 {
+    PrusaBitmap     m_logo_bitmap;
+    wxHtmlWindow*   m_html;
+    wxStaticBitmap* m_logo;
 public:
     AboutDialog();
+
+protected:
+    void on_dpi_changed(const wxRect &suggested_rect) override;
     
 private:
     void onLinkClicked(wxHtmlLinkEvent &event);

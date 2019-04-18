@@ -13,7 +13,7 @@ KBShortcutsDialog::KBShortcutsDialog()
     : DPIDialog(NULL, wxID_ANY, _(L("Slic3r Prusa Edition - Keyboard Shortcuts")), 
      wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
-	SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));    
+	SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 
 	main_sizer = new wxBoxSizer(wxVERTICAL);
 
@@ -21,15 +21,16 @@ KBShortcutsDialog::KBShortcutsDialog()
     m_logo_bmp = PrusaBitmap(this, "Slic3r_32px.png", 32);
 
     // fonts
-    wxFont head_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold();
+    const wxFont& font = wxGetApp().normal_font();
+    const wxFont& bold_font = wxGetApp().bold_font();   
+    SetFont(font);
+
+    wxFont head_font = bold_font;// wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold();
 #ifdef __WXOSX__
     head_font.SetPointSize(14);
 #else
-    head_font.SetPointSize(12);
+    head_font.SetPointSize(/*12*/bold_font.GetPointSize() + 2);
 #endif // __WXOSX__
-
-    const wxFont& font = wxGetApp().normal_font();
-    const wxFont& bold_font = wxGetApp().bold_font();
 
     fill_shortcuts();
 

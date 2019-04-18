@@ -428,16 +428,11 @@ void PrusaCollapsiblePaneMSW::Collapse(bool collapse)
  * Displays with different HDPI */
 int em_unit(wxWindow* win)
 {
-    if (win) {
-        // get TopLevelWindow for some window
-        wxWindow* top_win = win;
-        while (!top_win->IsTopLevel())
-            top_win = top_win->GetParent();
-
-        Slic3r::GUI::DPIDialog* dlg = dynamic_cast<Slic3r::GUI::DPIDialog*>(top_win);
+    if (win)
+    {
+        Slic3r::GUI::DPIDialog* dlg = dynamic_cast<Slic3r::GUI::DPIDialog*>(Slic3r::GUI::find_toplevel_parent(win));
         if (dlg)
-            // An analog of em_unit value from GUI_App.
-            return 10 * dlg->scale_factor();
+            return dlg->em_unit();
     }
     
     return Slic3r::GUI::wxGetApp().em_unit();
@@ -2574,10 +2569,6 @@ void PrusaModeButton::SetState(const bool state)
 
 void PrusaModeButton::focus_button(const bool focus)
 {
-//     const wxBitmap& bmp = focus ? m_bmp_on : m_bmp_off;
-//     SetBitmap(bmp);
-
-//     const wxFont& new_font = focus ? Slic3r::GUI::wxGetApp().bold_font() : Slic3r::GUI::wxGetApp().small_font();
     wxFont font = GetFont();
     const wxFont& new_font = focus ? font.Bold() : font.GetBaseFont();
 

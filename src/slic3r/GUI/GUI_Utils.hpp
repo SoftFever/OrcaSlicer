@@ -58,6 +58,9 @@ public:
         : P(parent, id, title, pos, size, style, name)
     {
         m_scale_factor = (float)get_dpi_for_window(this) / (float)DPI_DEFAULT;
+        m_normal_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+        // An analog of em_unit value from GUI_App.
+        m_em_unit = std::max<size_t>(10, 10 * m_scale_factor);
 
         m_prev_scale_factor = m_scale_factor;
 
@@ -104,6 +107,7 @@ public:
 
     int     em_unit() const             { return m_em_unit; }
     int     font_size() const           { return m_font_size; }
+    const wxFont& normal_font() const   { return m_normal_font; }
 
 protected:
     virtual void on_dpi_changed(const wxRect &suggested_rect) = 0;
@@ -113,6 +117,7 @@ private:
     int m_em_unit;
     int m_font_size;
 
+    wxFont m_normal_font;
     float m_prev_scale_factor;
     bool  m_can_rescale{ true };
 
@@ -121,7 +126,7 @@ private:
         wxClientDC dc(this);
         const auto metrics = dc.GetFontMetrics();
         m_font_size = metrics.height;
-        m_em_unit = metrics.averageWidth;
+//         m_em_unit = metrics.averageWidth;
     }
 
     // check if new scale is differ from previous
@@ -143,9 +148,18 @@ private:
     void    rescale(const wxRect &suggested_rect)
     {
         this->Freeze();
+        const float relative_scale_factor = m_scale_factor / m_prev_scale_factor;
 
         // rescale fonts of all controls
-        scale_controls_fonts(this, m_scale_factor / m_prev_scale_factor);
+        scale_controls_fonts(this, relative_scale_factor);
+        this->SetFont(this->GetFont().Scaled(relative_scale_factor));
+
+
+        // rescale normal_font value
+        m_normal_font = m_normal_font.Scaled(relative_scale_factor);
+
+        // An analog of em_unit value from GUI_App.
+        m_em_unit = std::max<size_t>(10, 10 * m_scale_factor);
 
         // rescale missed controls sizes and images
         on_dpi_changed(suggested_rect);

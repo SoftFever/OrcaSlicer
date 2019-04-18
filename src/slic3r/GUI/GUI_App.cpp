@@ -682,6 +682,12 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
             // Take a configuration snapshot.
             if (check_unsaved_changes()) {
                 wxTextEntryDialog dlg(nullptr, _(L("Taking configuration snapshot")), _(L("Snapshot name")));
+                
+                // set current normal font for dialog children, 
+                // because of just dlg.SetFont(normal_font()) has no result;
+                for (auto child : dlg.GetChildren())
+                    child->SetFont(normal_font());
+
                 if (dlg.ShowModal() == wxID_OK)
                     app_config->set("on_snapshot",
                     Slic3r::GUI::Config::SnapshotDB::singleton().take_snapshot(
@@ -731,7 +737,6 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
             get_installed_languages(names, identifiers);
             if (select_language(names, identifiers)) {
                 save_language();
-//                 show_info(mainframe->m_tabpanel, _(L("Application will be restarted")), _(L("Attention!")));
                 _3DScene::remove_all_canvases();// remove all canvas before recreate GUI
                 recreate_GUI();
             }
