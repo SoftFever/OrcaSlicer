@@ -697,6 +697,7 @@ void SLAPrint::process()
                 po.closest_slice_record(po.m_slice_index, float(bb3d.min(Z)));
 
         if(slindex_it == po.m_slice_index.end())
+			//TRN To be shown at the status bar on SLA slicing error.
             throw std::runtime_error(L("Slicing had to be stopped "
                                        "due to an internal error."));
 
