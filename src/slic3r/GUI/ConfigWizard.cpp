@@ -635,6 +635,7 @@ void PageTemperatures::apply_custom_config(DynamicPrintConfig &config)
 
 ConfigWizardIndex::ConfigWizardIndex(wxWindow *parent)
     : wxPanel(parent)
+    // XXX: use create_scaled_bitmap:
     , bg(GUI::from_u8(Slic3r::var("Slic3r_192px_transparent.png")), wxBITMAP_TYPE_PNG)
     , bullet_black(GUI::from_u8(Slic3r::var("bullet_black.png")), wxBITMAP_TYPE_PNG)
     , bullet_blue(GUI::from_u8(Slic3r::var("bullet_blue.png")), wxBITMAP_TYPE_PNG)
@@ -769,6 +770,8 @@ void ConfigWizardIndex::on_paint(wxPaintEvent & evt)
     const int yoff_text = bullet_h > em_h ? (bullet_h - em_h) / 2 : 0;
     const int yinc = item_height();
 
+    int index_width = 0;
+
     unsigned y = 0;
     for (size_t i = 0; i < items.size(); i++) {
         const Item& item = items[i];
@@ -780,8 +783,18 @@ void ConfigWizardIndex::on_paint(wxPaintEvent & evt)
         else if (i < item_active)  { dc.DrawBitmap(bullet_black, x, y + yoff_icon, false); }
         else if (i > item_active)  { dc.DrawBitmap(bullet_white, x, y + yoff_icon, false); }
 
-        dc.DrawText(item.label, x + bullet_w + em/2, y + yoff_text);
+        x += + bullet_w + em/2;
+        const auto text_size = dc.GetTextExtent(item.label);
+        dc.DrawText(item.label, x, y + yoff_text);
+
         y += yinc;
+        index_width = std::max(index_width, (int)x + text_size.x);
+    }
+
+    if (GetMinSize().x < index_width) {
+        CallAfter([this, index_width]() {
+            SetMinSize(wxSize(index_width, GetMinSize().y));
+        });
     }
 }
 

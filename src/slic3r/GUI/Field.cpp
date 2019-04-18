@@ -45,8 +45,7 @@ void Field::PostInitialize()
 	m_Undo_to_sys_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent) { on_back_to_sys_value(); }));
 
 	//set default bitmap
-	wxBitmap bmp;
-	bmp.LoadFile(from_u8(var("bullet_white.png")), wxBITMAP_TYPE_PNG);
+	wxBitmap bmp = create_scaled_bitmap(m_parent, "bullet_white.png");
 	set_undo_bitmap(&bmp);
 	set_undo_to_sys_bitmap(&bmp);
 
