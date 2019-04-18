@@ -34,7 +34,7 @@
 
 #include "../Utils/PresetUpdater.hpp"
 #include "../Utils/PrintHost.hpp"
-#include "ConfigWizard_private.hpp"
+#include "ConfigWizard.hpp"
 #include "slic3r/Config/Snapshot.hpp"
 #include "ConfigSnapshotDialog.hpp"
 #include "FirmwareDialog.hpp"
@@ -149,8 +149,8 @@ bool GUI_App::on_init_inner()
     wxCHECK_MSG(wxDirExists(resources_dir), false,
         wxString::Format("Resources path does not exist or is not a directory: %s", resources_dir));
 
-    SetAppName("Slic3rPE-beta");
-    SetAppDisplayName("Slic3r Prusa Edition");
+    SetAppName(SLIC3R_APP_KEY "-beta");
+    SetAppDisplayName(SLIC3R_APP_NAME);
 
 // Enable this to get the default Win32 COMCTRL32 behavior of static boxes.
 //    wxSystemOptions::SetOption("msw.staticbox.optimized-paint", 0);
@@ -230,7 +230,7 @@ bool GUI_App::on_init_inner()
         // and after MainFrame is created & shown.
         // The extra CallAfter() is needed because of Mac, where this is the only way
         // to popup a modal dialog on start without screwing combo boxes.
-        // This is ugly but I honestly found not better way to do it.
+        // This is ugly but I honestly found no better way to do it.
         // Neither wxShowEvent nor wxWindowCreateEvent work reliably.
         static bool once = true;
         if (once) {
@@ -381,7 +381,7 @@ void GUI_App::recreate_GUI()
         topwindow->Destroy();
     }
 
-    dlg.Update(80, _(L("Loading of a current presets")) + dots);
+    dlg.Update(80, _(L("Loading of current presets")) + dots);
 
     m_printhost_job_queue.reset(new PrintHostJobQueue(mainframe->printhost_queue_dlg()));
 
@@ -513,7 +513,7 @@ bool GUI_App::select_language(  wxArrayString & names,
         m_wxLocale = new wxLocale;
         m_wxLocale->Init(identifiers[index]);
 		m_wxLocale->AddCatalogLookupPathPrefix(from_u8(localization_dir()));
-        m_wxLocale->AddCatalog(/*GetAppName()*/"Slic3rPE");
+        m_wxLocale->AddCatalog("Slic3rPE");
 		//FIXME This is a temporary workaround, the correct solution is to switch to "C" locale during file import / export only.
 		wxSetlocale(LC_NUMERIC, "C");
         Preset::update_suffix_modified();
@@ -542,7 +542,7 @@ bool GUI_App::load_language()
             m_wxLocale = new wxLocale;
             m_wxLocale->Init(identifiers[i]);
 			m_wxLocale->AddCatalogLookupPathPrefix(from_u8(localization_dir()));
-            m_wxLocale->AddCatalog(/*GetAppName()*/"Slic3rPE");
+            m_wxLocale->AddCatalog("Slic3rPE");
 			//FIXME This is a temporary workaround, the correct solution is to switch to "C" locale during file import / export only.
             wxSetlocale(LC_NUMERIC, "C");
 			Preset::update_suffix_modified();
@@ -586,9 +586,7 @@ void GUI_App::get_installed_languages(wxArrayString & names, wxArrayLong & ident
         if (langinfo != NULL)
         {
             auto full_file_name = dir.GetName() + wxFileName::GetPathSeparator() +
-                filename + wxFileName::GetPathSeparator() +
-                /*GetAppName()*/"Slic3rPE" + 
-                wxT(".mo");
+                filename + wxFileName::GetPathSeparator() + "Slic3rPE" + wxT(".mo");
             if (wxFileExists(full_file_name))
             {
                 names.Add(langinfo->Description);

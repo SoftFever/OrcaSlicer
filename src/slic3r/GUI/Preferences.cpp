@@ -60,7 +60,7 @@ void PreferencesDialog::build()
 	// Please keep in sync with ConfigWizard
 	def.label = L("Check for application updates");
 	def.type = coBool;
-	def.tooltip = L("If enabled, Slic3r checks for new versions of Slic3r PE online. When a new version becomes available a notification is displayed at the next application startup (never during program usage). This is only a notification mechanisms, no automatic installation is done.");
+	def.tooltip = L("If enabled, Slic3r checks for new versions of " SLIC3R_APP_NAME " online. When a new version becomes available a notification is displayed at the next application startup (never during program usage). This is only a notification mechanisms, no automatic installation is done.");
 	def.default_value = new ConfigOptionBool(app_config->get("version_check") == "1");
 	option = Option (def, "version_check");
 	m_optgroup->append_single_option_line(option);

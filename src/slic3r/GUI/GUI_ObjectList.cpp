@@ -543,11 +543,12 @@ void ObjectList::paste_objects_into_list(const std::vector<size_t>& object_idxs)
     for (const size_t object : object_idxs)
     {
         add_object_to_list(object);
-        m_parts_changed = true;
-        parts_changed(object);
-
         items.Add(m_objects_model->GetItemById(object));
     }
+
+    m_parts_changed = true;
+    wxGetApp().plater()->changed_objects(object_idxs);
+    m_parts_changed = false;
 
     select_items(items);
 #ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
@@ -644,6 +645,10 @@ void ObjectList::key_event(wxKeyEvent& event)
     }
     else if (wxGetKeyState(wxKeyCode('A')) && wxGetKeyState(WXK_CONTROL/*WXK_SHIFT*/))
         select_item_all_children();
+    else if (wxGetKeyState(wxKeyCode('C')) && wxGetKeyState(WXK_CONTROL))
+        wxPostEvent((wxEvtHandler*)wxGetApp().plater()->canvas3D()->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_COPY));
+    else if (wxGetKeyState(wxKeyCode('V')) && wxGetKeyState(WXK_CONTROL))
+        wxPostEvent((wxEvtHandler*)wxGetApp().plater()->canvas3D()->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_PASTE));
     else
         event.Skip();
 }

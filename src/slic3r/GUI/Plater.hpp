@@ -167,6 +167,7 @@ public:
     void reslice();
     void reslice_SLA_supports(const ModelObject &object);
     void changed_object(int obj_idx);
+    void changed_objects(const std::vector<size_t>& object_idxs);
     void schedule_background_process();
     void fix_through_netfabb(const int obj_idx, const int vol_idx = -1);
     void send_gcode();
