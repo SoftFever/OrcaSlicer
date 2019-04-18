@@ -11,6 +11,7 @@
 
 #include "libslic3r/SLA/SLACommon.hpp"
 #include "libslic3r/SLAPrint.hpp"
+#include <wx/dialog.h>
 
 
 namespace Slic3r {
@@ -138,6 +139,12 @@ protected:
     virtual bool on_is_selectable() const;
 };
 
+
+class SlaGizmoHelpDialog : public wxDialog
+{
+public:
+    SlaGizmoHelpDialog();
+};
 
 } // namespace GUI
 } // namespace Slic3r
