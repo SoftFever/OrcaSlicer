@@ -61,3 +61,10 @@ Please note that the `CMAKE_OSX_DEPLOYMENT_TARGET` and `CMAKE_OSX_SYSROOT` optio
 on both the dependencies bundle as well as Slic3r PE itself.
 
 Official Mac Slic3r builds are currently built against SDK 10.9 to ensure compatibility with older Macs.
+
+_Warning:_ XCode may be set such that it rejects SDKs bellow some version (silently, more or less).
+This is set in the property list file
+
+    /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Info.plist
+
+To remove the limitation, simply delete the key `MinimumSDKVersion` from that file.

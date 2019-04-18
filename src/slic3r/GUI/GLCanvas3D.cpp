@@ -1486,6 +1486,8 @@ void GLCanvas3D::enable_layers_editing(bool enable)
         if (v->is_modifier)
             v->force_transparent = enable;
     }
+
+    set_as_dirty();
 }
 
 void GLCanvas3D::enable_legend_texture(bool enable)
@@ -1654,7 +1656,7 @@ void GLCanvas3D::render()
 #endif // !ENABLE_SVG_ICONS
     _render_toolbar();
     _render_view_toolbar();
-    if (m_layers_editing.last_object_id >= 0)
+    if ((m_layers_editing.last_object_id >= 0) && (m_layers_editing.object_max_z() > 0.0f))
         m_layers_editing.render_overlay(*this);
 
     wxGetApp().imgui()->render();
@@ -2255,6 +2257,22 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
                 post_event(SimpleEvent(EVT_GLCANVAS_SELECT_ALL));
         break;
 #ifdef __APPLE__
+        case 'c':
+        case 'C':
+#else /* __APPLE__ */
+        case WXK_CONTROL_C:
+#endif /* __APPLE__ */
+            post_event(SimpleEvent(EVT_GLTOOLBAR_COPY));
+        break;
+#ifdef __APPLE__
+        case 'v':
+        case 'V':
+#else /* __APPLE__ */
+        case WXK_CONTROL_V:
+#endif /* __APPLE__ */
+            post_event(SimpleEvent(EVT_GLTOOLBAR_PASTE));
+        break;
+#ifdef __APPLE__
         case WXK_BACK: // the low cost Apple solutions are not equipped with a Delete key, use Backspace instead.
 #else /* __APPLE__ */
         case WXK_DELETE:
@@ -2596,7 +2614,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                         m_selection.remove(m_hover_volume_id);
                     else
                     {
-                        m_selection.add(m_hover_volume_id, !ctrl_down);
+                        m_selection.add(m_hover_volume_id, !ctrl_down, true);
                         m_mouse.drag.move_requires_threshold = !already_selected;
                         if (already_selected)
                             m_mouse.set_move_start_threshold_position_2D_as_invalid();
@@ -3676,8 +3694,8 @@ void GLCanvas3D::_render_objects() const
         m_volumes.set_clipping_plane(m_camera_clipping_plane.get_data());
 
         m_shader.start_using();
-        if (m_picking_enabled && m_layers_editing.is_enabled() && m_layers_editing.last_object_id != -1) {
-			int object_id = m_layers_editing.last_object_id;
+        if (m_picking_enabled && !m_gizmos.is_dragging() && m_layers_editing.is_enabled() && (m_layers_editing.last_object_id != -1) && (m_layers_editing.object_max_z() > 0.0f)) {
+            int object_id = m_layers_editing.last_object_id;
             m_volumes.render_VBOs(GLVolumeCollection::Opaque, false, m_camera.get_view_matrix(), [object_id](const GLVolume &volume) {
                 // Which volume to paint without the layer height profile shader?
                 return volume.is_active && (volume.is_modifier || volume.composite_id.object_id != object_id);

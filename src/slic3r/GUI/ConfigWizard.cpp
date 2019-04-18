@@ -281,13 +281,14 @@ void ConfigWizardPage::append_spacer(int space)
 // Wizard pages
 
 PageWelcome::PageWelcome(ConfigWizard *parent)
-    : ConfigWizardPage(parent, wxString::Format(_(L("Welcome to the Slic3r %s")), ConfigWizard::name()), _(L("Welcome")))
+    : ConfigWizardPage(parent, wxString::Format(_(L("Welcome to the %s %s")), SLIC3R_APP_NAME, ConfigWizard::name()), _(L("Welcome")))
     , cbox_reset(nullptr)
 {
     if (wizard_p()->run_reason == ConfigWizard::RR_DATA_EMPTY) {
         wxString::Format(_(L("Run %s")), ConfigWizard::name());
         append_text(wxString::Format(
-            _(L("Hello, welcome to Slic3r Prusa Edition! This %s helps you with the initial configuration; just a few settings and you will be ready to print.")),
+            _(L("Hello, welcome to %s! This %s helps you with the initial configuration; just a few settings and you will be ready to print.")),
+            SLIC3R_APP_NAME,
             ConfigWizard::name())
         );
     } else {
@@ -398,7 +399,9 @@ PageUpdate::PageUpdate(ConfigWizard *parent)
     auto *box_slic3r = new wxCheckBox(this, wxID_ANY, _(L("Check for application updates")));
     box_slic3r->SetValue(app_config->get("version_check") == "1");
     append(box_slic3r);
-    append_text(_(L("If enabled, Slic3r checks for new versions of Slic3r PE online. When a new version becomes available a notification is displayed at the next application startup (never during program usage). This is only a notification mechanisms, no automatic installation is done.")));
+    append_text(wxString::Format(_(L("If enabled, Slic3r checks for new versions of %s online. When a new version becomes available, "
+                                     "a notification is displayed at the next application startup (never during program usage). "
+                                     "This is only a notification mechanisms, no automatic installation is done.")), SLIC3R_APP_NAME));
 
     append_spacer(VERTICAL_SPACING);
 
@@ -420,7 +423,7 @@ PageUpdate::PageUpdate(ConfigWizard *parent)
 PageVendors::PageVendors(ConfigWizard *parent)
     : ConfigWizardPage(parent, _(L("Other Vendors")), _(L("Other Vendors")))
 {
-    append_text(_(L("Pick another vendor supported by Slic3r PE:")));
+    append_text(wxString::Format(_(L("Pick another vendor supported by %s:")), SLIC3R_APP_NAME));
 
     auto boldfont = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
     boldfont.SetWeight(wxFONTWEIGHT_BOLD);

@@ -67,18 +67,17 @@ public:
     TriangleMesh convex_hull_3d() const;
     void reset_repair_stats();
     bool needed_repair() const;
+    void require_shared_vertices();
+    bool   has_shared_vertices() const { return stl.v_shared != NULL; }
     size_t facets_count() const { return this->stl.stats.number_of_facets; }
     bool   empty() const { return this->facets_count() == 0; }
-
     bool is_splittable() const;
 
     stl_file stl;
     bool repaired;
-    
+
 private:
-    void require_shared_vertices();
     std::deque<uint32_t> find_unvisited_neighbors(std::vector<unsigned char> &facet_visited) const;
-    friend class TriangleMeshSlicer;
 };
 
 enum FacetEdgeType { 
@@ -159,9 +158,8 @@ class TriangleMeshSlicer
 public:
     typedef std::function<void()> throw_on_cancel_callback_type;
     TriangleMeshSlicer() : mesh(nullptr) {}
-    // Not quite nice, but the constructor and init() methods require non-const mesh pointer to be able to call mesh->require_shared_vertices()
-	TriangleMeshSlicer(TriangleMesh* mesh) { this->init(mesh, [](){}); }
-    void init(TriangleMesh *mesh, throw_on_cancel_callback_type throw_on_cancel);
+	TriangleMeshSlicer(const TriangleMesh* mesh) { this->init(mesh, [](){}); }
+    void init(const TriangleMesh *mesh, throw_on_cancel_callback_type throw_on_cancel);
     void slice(const std::vector<float> &z, std::vector<Polygons>* layers, throw_on_cancel_callback_type throw_on_cancel) const;
     void slice(const std::vector<float> &z, const float closing_radius, std::vector<ExPolygons>* layers, throw_on_cancel_callback_type throw_on_cancel) const;
     enum FacetSliceType {

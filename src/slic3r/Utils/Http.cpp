@@ -88,7 +88,7 @@ Http::priv::priv(const std::string &url)
 
 	set_timeout_connect(DEFAULT_TIMEOUT_CONNECT);
 	::curl_easy_setopt(curl, CURLOPT_URL, url.c_str());   // curl makes a copy internally
-	::curl_easy_setopt(curl, CURLOPT_USERAGENT, SLIC3R_FORK_NAME "/" SLIC3R_VERSION);
+	::curl_easy_setopt(curl, CURLOPT_USERAGENT, SLIC3R_APP_NAME "/" SLIC3R_VERSION);
 	::curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error_buffer.front());
 }
 
@@ -228,6 +228,7 @@ std::string Http::priv::body_size_error()
 void Http::priv::http_perform()
 {
 	::curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+	::curl_easy_setopt(curl, CURLOPT_POSTREDIR, CURL_REDIR_POST_ALL);
 	::curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writecb);
 	::curl_easy_setopt(curl, CURLOPT_WRITEDATA, static_cast<void*>(this));
 	::curl_easy_setopt(curl, CURLOPT_READFUNCTION, form_file_read_cb);

@@ -552,6 +552,7 @@ void base_plate(const TriangleMesh &mesh, ExPolygons &output, float h,
                 float layerh, ThrowOnCancel thrfn)
 {
     TriangleMesh m = mesh;
+    m.require_shared_vertices(); // TriangleMeshSlicer needs this
     TriangleMeshSlicer slicer(&m);
 
     auto bb = mesh.bounding_box();

@@ -607,10 +607,12 @@ void TriangleMesh::require_shared_vertices()
     BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::require_shared_vertices - end";
 }
 
-void TriangleMeshSlicer::init(TriangleMesh *_mesh, throw_on_cancel_callback_type throw_on_cancel)
+void TriangleMeshSlicer::init(const TriangleMesh *_mesh, throw_on_cancel_callback_type throw_on_cancel)
 {
     mesh = _mesh;
-    _mesh->require_shared_vertices();
+    if (! mesh->has_shared_vertices())
+        throw std::invalid_argument("TriangleMeshSlicer was passed a mesh without shared vertices.");
+
     throw_on_cancel();
     facets_edges.assign(_mesh->stl.stats.number_of_facets * 3, -1);
     v_scaled_shared.assign(_mesh->stl.v_shared, _mesh->stl.v_shared + _mesh->stl.stats.shared_vertices);
