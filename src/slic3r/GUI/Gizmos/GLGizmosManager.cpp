@@ -692,6 +692,10 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt, GLCanvas3D& canvas)
             // object moving or selecting is suppressed in that case
             gizmo_event(SLAGizmoEventType::LeftUp, mouse_pos, evt.ShiftDown(), evt.AltDown(), evt.ControlDown());
             processed = true;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//            std::cout << "GIZMO - Left up" << std::endl;
+//            canvas.get_wxglcanvas()->SetCursor(*wxSTANDARD_CURSOR);
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         }
         else if (evt.LeftUp() && (m_current == Flatten) && ((canvas.get_hover_volume_id() != -1) || grabber_contains_mouse()))
         {
@@ -843,14 +847,51 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt, GLCanvas3D& canvas)
 
     if (evt.GetEventType() == wxEVT_KEY_UP)
     {
-        if ((m_current == SlaSupports) && (keyCode == WXK_SHIFT) && gizmo_event(SLAGizmoEventType::ShiftUp))
-            // shift has been just released - SLA gizmo might want to close rectangular selection.
-            processed = true;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        if (m_current == SlaSupports)
+        {
+            GLGizmoSlaSupports* gizmo = reinterpret_cast<GLGizmoSlaSupports*>(get_current());
 
-        if ((m_current == SlaSupports) && (keyCode == WXK_ALT) && gizmo_event(SLAGizmoEventType::AltUp))
-            // alt has been just released - SLA gizmo might want to close rectangular selection.
-            processed = true;
+            if (keyCode == WXK_SHIFT)
+            {
+                // shift has been just released - SLA gizmo might want to close rectangular selection.
+                if (gizmo_event(SLAGizmoEventType::ShiftUp) || (gizmo->is_in_editing_mode() && (gizmo->get_selection_rectangle_status() == GLGizmoSlaSupports::srOff)))
+                    processed = true;
+            }
+            else if (keyCode == WXK_ALT)
+            {
+                // alt has been just released - SLA gizmo might want to close rectangular selection.
+                if (gizmo_event(SLAGizmoEventType::AltUp) || (gizmo->is_in_editing_mode() && (gizmo->get_selection_rectangle_status() == GLGizmoSlaSupports::srOff)))
+                    processed = true;
+            }
+        }
+
+        if (processed)
+        {
+//            std::cout << "GIZMO - Shift or Alt up" << std::endl;
+            canvas.set_cursor(GLCanvas3D::Standard);
+        }
+
+//        if ((m_current == SlaSupports) && (keyCode == WXK_SHIFT) && gizmo_event(SLAGizmoEventType::ShiftUp))
+//            // shift has been just released - SLA gizmo might want to close rectangular selection.
+//            processed = true;
+//
+//        if ((m_current == SlaSupports) && (keyCode == WXK_ALT) && gizmo_event(SLAGizmoEventType::AltUp))
+//            // alt has been just released - SLA gizmo might want to close rectangular selection.
+//            processed = true;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     }
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    else if (evt.GetEventType() == wxEVT_KEY_DOWN)
+    {
+        if ((m_current == SlaSupports) && ((keyCode == WXK_SHIFT) || (keyCode == WXK_ALT)) && reinterpret_cast<GLGizmoSlaSupports*>(get_current())->is_in_editing_mode())
+        {
+//            std::cout << "GIZMO - Shift or Alt down" << std::endl;
+            canvas.set_cursor(GLCanvas3D::Cross);
+            processed = true;
+        }
+    }
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     if (processed)
         canvas.set_as_dirty();

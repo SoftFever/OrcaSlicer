@@ -66,6 +66,18 @@ public:
     void delete_selected_points(bool force = false);
     ClippingPlane get_sla_clipping_plane() const;
 
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    bool is_in_editing_mode() const { return m_editing_mode; }
+
+    enum SelectionRectangleStatus {
+        srOff = 0,
+        srSelect = 1,
+        srDeselect = 2
+    };
+
+    SelectionRectangleStatus get_selection_rectangle_status() const { return m_selection_rectangle_status; }
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
 private:
     bool on_init();
     void on_update(const UpdateData& data, const Selection& selection);
@@ -90,11 +102,14 @@ private:
     mutable Vec3d m_old_clipping_plane_normal;
     mutable Vec3d m_clipping_plane_normal = Vec3d::Zero();
 
-    enum SelectionRectangleStatus {
-        srOff = 0,
-        srSelect = 1,
-        srDeselect = 2
-    }m_selection_rectangle_status = srOff;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    SelectionRectangleStatus m_selection_rectangle_status{ srOff };
+//    enum SelectionRectangleStatus {
+//        srOff = 0,
+//        srSelect = 1,
+//        srDeselect = 2
+//    }m_selection_rectangle_status = srOff;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     Vec2d m_selection_rectangle_start_corner;
     Vec2d m_selection_rectangle_end_corner;
