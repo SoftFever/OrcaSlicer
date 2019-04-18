@@ -1139,31 +1139,29 @@ std::string Print::validate() const
         // Check horizontal clearance.
         {
             Polygons convex_hulls_other;
-            for (const PrintObject *object : m_objects) {
+            for (const PrintObject *print_object : m_objects) {
+                assert(! print_object->model_object()->instances.empty());
+                assert(! print_object->copies().empty());
                 // Get convex hull of all meshes assigned to this print object.
-                Polygon convex_hull;
-                {
-                    Polygons mesh_convex_hulls;
-                    for (const std::vector<int> &volumes : object->region_volumes)
-                        for (int volume_id : volumes)
-                            mesh_convex_hulls.emplace_back(object->model_object()->volumes[volume_id]->mesh.convex_hull());
-                    // make a single convex hull for all of them
-                    convex_hull = Slic3r::Geometry::convex_hull(mesh_convex_hulls);
-                }
-                // Apply the same transformations we apply to the actual meshes when slicing them.
-                object->model_object()->instances.front()->transform_polygon(&convex_hull);
+                ModelInstance *model_instance0 = print_object->model_object()->instances.front();
+                Vec3d          rotation        = model_instance0->get_rotation();
+                rotation.z() = 0.;
+                // Calculate the convex hull of a printable object centered around X=0,Y=0. 
                 // Grow convex hull with the clearance margin.
                 // FIXME: Arrangement has different parameters for offsetting (jtMiter, limit 2)
                 // which causes that the warning will be showed after arrangement with the
                 // appropriate object distance. Even if I set this to jtMiter the warning still shows up.
-                convex_hull = offset(convex_hull, scale_(m_config.extruder_clearance_radius.value)/2, jtRound, scale_(0.1)).front();
+                Polygon        convex_hull0    = offset(
+                    print_object->model_object()->convex_hull_2d(
+                        Geometry::assemble_transform(Vec3d::Zero(), rotation, model_instance0->get_scaling_factor(), model_instance0->get_mirror())),
+                    scale_(m_config.extruder_clearance_radius.value) / 2., jtRound, scale_(0.1)).front();
                 // Now we check that no instance of convex_hull intersects any of the previously checked object instances.
-                for (const Point &copy : object->m_copies) {
-                    Polygon p = convex_hull;
-                    p.translate(copy);
-                    if (! intersection(convex_hulls_other, p).empty())
+                for (const Point &copy : print_object->m_copies) {
+                    Polygon convex_hull = convex_hull0;
+                    convex_hull.translate(copy);
+                    if (! intersection(convex_hulls_other, convex_hull).empty())
                         return L("Some objects are too close; your extruder will collide with them.");
-                    polygons_append(convex_hulls_other, p);
+                    polygons_append(convex_hulls_other, convex_hull);
                 }
             }
         }
