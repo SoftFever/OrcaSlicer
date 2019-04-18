@@ -500,6 +500,8 @@ void ConfigOptionsGroup::rescale()
     for (const auto& field : m_fields)
         field.second->rescale();
 
+    const int em = em_unit(parent());
+
     // rescale width of label column
     if (!m_options_mode.empty() && label_width > 1)
     {
@@ -514,7 +516,7 @@ void ConfigOptionsGroup::rescale()
             {
                 auto label = dynamic_cast<wxStaticText*>(label_item->GetWindow());
                 if (label != nullptr) {
-                    label->SetMinSize(wxSize(label_width*wxGetApp().em_unit(), -1));
+                    label->SetMinSize(wxSize(label_width*em, -1));
                 }
             }
             else if (label_item->IsSizer()) // case when we nave near_label_widget
@@ -524,7 +526,7 @@ void ConfigOptionsGroup::rescale()
                 {
                     auto label = dynamic_cast<wxStaticText*>(l_item->GetWindow());
                     if (label != nullptr) {
-                        label->SetMinSize(wxSize(label_width*wxGetApp().em_unit(), -1));
+                        label->SetMinSize(wxSize(label_width*em, -1));
                     }
                 }
             }

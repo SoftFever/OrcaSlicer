@@ -210,6 +210,7 @@ public:
     void go_to(ConfigWizardPage *page);
 
     void clear();
+    void rescale();
 
 private:
     struct Item
@@ -223,18 +224,27 @@ private:
 
     int em;
     int em_h;
-
+    /* #ys_FIXME_delete_after_testing by VK 
     const wxBitmap bg;
     const wxBitmap bullet_black;
     const wxBitmap bullet_blue;
     const wxBitmap bullet_white;
+    */
+    PrusaBitmap bg;
+    PrusaBitmap bullet_black;
+    PrusaBitmap bullet_blue;
+    PrusaBitmap bullet_white;
+    wxStaticBitmap* logo;
 
     std::vector<Item> items;
     size_t item_active;
     ssize_t item_hover;
     size_t last_page;
 
+    /* #ys_FIXME_delete_after_testing by VK 
     int item_height() const { return std::max(bullet_black.GetSize().GetHeight(), em) + em; }
+    */
+    int item_height() const { return std::max(bullet_black.bmp().GetSize().GetHeight(), em) + em; }
 
     void on_paint(wxPaintEvent &evt);
     void on_mouse_move(wxMouseEvent &evt);

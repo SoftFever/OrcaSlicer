@@ -632,15 +632,21 @@ void PageTemperatures::apply_custom_config(DynamicPrintConfig &config)
 
 ConfigWizardIndex::ConfigWizardIndex(wxWindow *parent)
     : wxPanel(parent)
+    /* #ys_FIXME_delete_after_testing by VK
     , bg(GUI::from_u8(Slic3r::var("Slic3r_192px_transparent.png")), wxBITMAP_TYPE_PNG)
     , bullet_black(GUI::from_u8(Slic3r::var("bullet_black.png")), wxBITMAP_TYPE_PNG)
     , bullet_blue(GUI::from_u8(Slic3r::var("bullet_blue.png")), wxBITMAP_TYPE_PNG)
     , bullet_white(GUI::from_u8(Slic3r::var("bullet_white.png")), wxBITMAP_TYPE_PNG)
+    */
+    , bg(PrusaBitmap(parent, "Slic3r_192px_transparent.png", 192))
+    , bullet_black(PrusaBitmap(parent, "bullet_black.png"))
+    , bullet_blue(PrusaBitmap(parent, "bullet_blue.png"))
+    , bullet_white(PrusaBitmap(parent, "bullet_white.png"))
     , item_active(0)
     , item_hover(-1)
     , last_page((size_t)-1)
 {
-    SetMinSize(bg.GetSize());
+    SetMinSize(bg.bmp().GetSize());
 
     const wxSize size = GetTextExtent("m");
     em = size.x;
@@ -652,7 +658,10 @@ ConfigWizardIndex::ConfigWizardIndex(wxWindow *parent)
     // In some cases it didn't work at all. And so wxStaticBitmap is used here instead,
     // because it has all the platform quirks figured out.
     auto *sizer = new wxBoxSizer(wxVERTICAL);
+    /* #ys_FIXME_delete_after_testing by VK
     auto *logo = new wxStaticBitmap(this, wxID_ANY, bg);
+    */
+    logo = new wxStaticBitmap(this, wxID_ANY, bg.bmp());
     sizer->AddStretchSpacer();
     sizer->Add(logo);
     SetSizer(sizer);
@@ -760,8 +769,12 @@ void ConfigWizardIndex::on_paint(wxPaintEvent & evt)
 
     wxPaintDC dc(this);
 
+    /* #ys_FIXME_delete_after_testing by VK
     const auto bullet_w = bullet_black.GetSize().GetWidth();
     const auto bullet_h = bullet_black.GetSize().GetHeight();
+    */
+    const auto bullet_w = bullet_black.bmp().GetSize().GetWidth();
+    const auto bullet_h = bullet_black.bmp().GetSize().GetHeight();
     const int yoff_icon = bullet_h < em_h ? (em_h - bullet_h) / 2 : 0;
     const int yoff_text = bullet_h > em_h ? (bullet_h - em_h) / 2 : 0;
     const int yinc = item_height();
@@ -772,10 +785,16 @@ void ConfigWizardIndex::on_paint(wxPaintEvent & evt)
         unsigned x = em/2 + item.indent * em;
 
         if (i == item_active || item_hover >= 0 && i == (size_t)item_hover) {
+            /*#ys_FIXME_delete_after_testing by VK
             dc.DrawBitmap(bullet_blue,  x, y + yoff_icon, false);
         }
         else if (i < item_active)  { dc.DrawBitmap(bullet_black, x, y + yoff_icon, false); }
         else if (i > item_active)  { dc.DrawBitmap(bullet_white, x, y + yoff_icon, false); }
+            */
+            dc.DrawBitmap(bullet_blue.bmp(), x, y + yoff_icon, false);
+        }
+        else if (i < item_active)  { dc.DrawBitmap(bullet_black.bmp(), x, y + yoff_icon, false); }
+        else if (i > item_active)  { dc.DrawBitmap(bullet_white.bmp(), x, y + yoff_icon, false); }
 
         dc.DrawText(item.label, x + bullet_w + em/2, y + yoff_text);
         y += yinc;
@@ -795,6 +814,18 @@ void ConfigWizardIndex::on_mouse_move(wxMouseEvent &evt)
     }
 
     evt.Skip();
+}
+
+void ConfigWizardIndex::rescale()
+{
+    bg.rescale();
+    SetMinSize(bg.bmp().GetSize());
+    logo->SetBitmap(bg.bmp());
+
+    bullet_black.rescale();
+    bullet_blue.rescale();
+    bullet_white.rescale();
+    Refresh();
 }
 
 
@@ -971,9 +1002,10 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
 // Public
 
 ConfigWizard::ConfigWizard(wxWindow *parent, RunReason reason)
-    : wxDialog(parent, wxID_ANY, _(name().ToStdString()), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+    : DPIDialog(parent, wxID_ANY, _(name().ToStdString()), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
     , p(new priv(this))
 {
+    this->SetFont(wxGetApp().normal_font());
     p->run_reason = reason;
 
     p->load_vendors();
@@ -1115,6 +1147,12 @@ const wxString& ConfigWizard::name(const bool from_menu/* = false*/)
     static const wxString config_wizard_name_menu = L("Configuration &Assistant");
 #endif
     return from_menu ? config_wizard_name_menu : config_wizard_name;
+}
+
+void ConfigWizard::on_dpi_changed(const wxRect &suggested_rect)
+{
+    p->index->rescale();
+    Refresh();
 }
 
 }

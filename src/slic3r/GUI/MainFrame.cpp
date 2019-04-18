@@ -258,18 +258,16 @@ bool MainFrame::can_delete_all() const
 
 void MainFrame::on_dpi_changed(const wxRect &suggested_rect)
 {
-    const float old_sc_factor = prev_scale_factor();
-    const float new_sc_factor = scale_factor();
+//     const float old_sc_factor = prev_scale_factor();
+//     const float new_sc_factor = scale_factor();
+// 
+//     printf("old_sc_factor: %.2f  \n", old_sc_factor);
+//     printf("new_sc_factor: %.2f\n\n", new_sc_factor);
 
-    printf("old_sc_factor: %.2f  \n", old_sc_factor);
-    printf("new_sc_factor: %.2f\n\n", new_sc_factor);
-
-    const float relative_scale_factor = new_sc_factor / old_sc_factor;
-
-    wxGetApp().scale_default_fonts(relative_scale_factor);
+    wxGetApp().update_fonts();
 
     // _strange_ workaround for correct em_unit calculation
-    const int new_em_unit = new_sc_factor * 10;//int(relative_scale_factor*wxGetApp().em_unit());
+    const int new_em_unit = scale_factor() * 10;
     wxGetApp().set_em_unit(std::max<size_t>(10, new_em_unit));
 
     /* Load default preset bitmaps before a tabpanel initialization,

@@ -325,11 +325,15 @@ void GUI_App::init_fonts()
 #endif /*__WXMAC__*/
 }
 
-void GUI_App::scale_default_fonts(const float scale_f)
+void GUI_App::update_fonts()
 {
-    m_small_font = m_small_font.Scaled(scale_f);
-    m_bold_font = m_bold_font.Scaled(scale_f);
-    m_normal_font = m_normal_font.Scaled(scale_f);
+    /* Only normal and bold fonts are used for an application rescale,
+     * because of under MSW small and normal fonts are the same.
+     * To avoid same rescaling twice, just fill this values
+     * from rescaled MainFrame
+     */
+    m_normal_font   = mainframe->normal_font();
+    m_bold_font     = mainframe->normal_font().Bold();
 }
 
 void GUI_App::set_label_clr_modified(const wxColour& clr) {
