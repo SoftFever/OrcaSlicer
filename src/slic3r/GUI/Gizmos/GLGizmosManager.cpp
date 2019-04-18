@@ -855,22 +855,19 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt, GLCanvas3D& canvas)
             if (keyCode == WXK_SHIFT)
             {
                 // shift has been just released - SLA gizmo might want to close rectangular selection.
-                if (gizmo_event(SLAGizmoEventType::ShiftUp) || (gizmo->is_in_editing_mode() && (gizmo->get_selection_rectangle_status() == GLGizmoSlaSupports::srOff)))
+                if (gizmo_event(SLAGizmoEventType::ShiftUp) || (gizmo->is_in_editing_mode() && gizmo->is_selection_rectangle_active()))
                     processed = true;
             }
             else if (keyCode == WXK_ALT)
             {
                 // alt has been just released - SLA gizmo might want to close rectangular selection.
-                if (gizmo_event(SLAGizmoEventType::AltUp) || (gizmo->is_in_editing_mode() && (gizmo->get_selection_rectangle_status() == GLGizmoSlaSupports::srOff)))
+                if (gizmo_event(SLAGizmoEventType::AltUp) || (gizmo->is_in_editing_mode() && gizmo->is_selection_rectangle_active()))
                     processed = true;
             }
         }
 
         if (processed)
-        {
-//            std::cout << "GIZMO - Shift or Alt up" << std::endl;
             canvas.set_cursor(GLCanvas3D::Standard);
-        }
 
 //        if ((m_current == SlaSupports) && (keyCode == WXK_SHIFT) && gizmo_event(SLAGizmoEventType::ShiftUp))
 //            // shift has been just released - SLA gizmo might want to close rectangular selection.
@@ -886,7 +883,6 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt, GLCanvas3D& canvas)
     {
         if ((m_current == SlaSupports) && ((keyCode == WXK_SHIFT) || (keyCode == WXK_ALT)) && reinterpret_cast<GLGizmoSlaSupports*>(get_current())->is_in_editing_mode())
         {
-//            std::cout << "GIZMO - Shift or Alt down" << std::endl;
             canvas.set_cursor(GLCanvas3D::Cross);
             processed = true;
         }
