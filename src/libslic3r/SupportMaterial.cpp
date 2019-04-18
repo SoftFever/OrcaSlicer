@@ -161,16 +161,12 @@ PrintObjectSupportMaterial::PrintObjectSupportMaterial(const PrintObject *object
     }
 
     // Evaluate the XY gap between the object outer perimeters and the support structures.
+    // Evaluate the XY gap between the object outer perimeters and the support structures.
     coordf_t external_perimeter_width = 0.;
-    for (size_t region_id = 0; region_id < object->region_volumes.size(); ++ region_id) {
-        if (! object->region_volumes[region_id].empty()) {
-            const PrintRegionConfig &config = object->print()->get_region(region_id)->config();
-            coordf_t width = config.external_perimeter_extrusion_width.get_abs_value(slicing_params.layer_height);
-            if (width <= 0.)
-                width = m_print_config->nozzle_diameter.get_at(config.perimeter_extruder-1);
-            external_perimeter_width = std::max(external_perimeter_width, width);
-        }
-    }
+    for (size_t region_id = 0; region_id < object->region_volumes.size(); ++ region_id)
+        if (! object->region_volumes[region_id].empty())
+            external_perimeter_width = std::max(external_perimeter_width,
+                (coordf_t)object->print()->get_region(region_id)->flow(frExternalPerimeter, slicing_params.layer_height, false, false, -1, *object).width);
     m_gap_xy = m_object_config->support_material_xy_spacing.get_abs_value(external_perimeter_width);
 
     m_can_merge_support_regions = m_object_config->support_material_extruder.value == m_object_config->support_material_interface_extruder.value;
