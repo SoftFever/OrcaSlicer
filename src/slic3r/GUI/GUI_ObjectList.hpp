@@ -139,8 +139,8 @@ class ObjectList : public wxDataViewCtrl
                                                            // update_settings_items - updating canvas selection is undesirable,
                                                            // because it would turn off the gizmos (mainly a problem for the SLA gizmo)
 
-    bool        m_parts_changed = false;
-    bool        m_part_settings_changed = false;
+//     bool        m_parts_changed = false;
+//     bool        m_part_settings_changed = false;
 
     int         m_selected_row = 0;
     wxDataViewItem m_last_selected_item {nullptr};
@@ -225,11 +225,8 @@ public:
     wxBoxSizer*         get_sizer() {return  m_sizer;}
     int                 get_selected_obj_idx() const;
     DynamicPrintConfig& get_item_config(const wxDataViewItem& item) const;
-    bool                is_parts_changed() const { return m_parts_changed; }
-    bool                is_part_settings_changed() const { return m_part_settings_changed; }
-    void                part_settings_changed();
 
-    void                parts_changed(int obj_idx);
+    void                changed_object(const int obj_idx = -1) const;
     void                part_selection_changed();
 
     // Add object to the list

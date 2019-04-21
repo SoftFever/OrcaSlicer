@@ -3709,22 +3709,16 @@ void Plater::changed_object(int obj_idx)
 {
     if (obj_idx < 0)
         return;
-    auto list = wxGetApp().obj_list();
-    wxASSERT(list != nullptr);
-    if (list == nullptr)
-        return;
-
-    if (list->is_parts_changed()) {
-        // recenter and re - align to Z = 0
-        auto model_object = p->model.objects[obj_idx];
-        model_object->ensure_on_bed();
-        if (this->p->printer_technology == ptSLA) {
-            // Update the SLAPrint from the current Model, so that the reload_scene()
-            // pulls the correct data, update the 3D scene.
-            this->p->update_restart_background_process(true, false);
-        } else
-            p->view3D->reload_scene(false);
+    // recenter and re - align to Z = 0
+    auto model_object = p->model.objects[obj_idx];
+    model_object->ensure_on_bed();
+    if (this->p->printer_technology == ptSLA) {
+        // Update the SLAPrint from the current Model, so that the reload_scene()
+        // pulls the correct data, update the 3D scene.
+        this->p->update_restart_background_process(true, false);
     }
+    else
+        p->view3D->reload_scene(false);
 
     // update print
     this->p->schedule_background_process();
@@ -3735,26 +3729,19 @@ void Plater::changed_objects(const std::vector<size_t>& object_idxs)
     if (object_idxs.empty())
         return;
 
-    auto list = wxGetApp().obj_list();
-    wxASSERT(list != nullptr);
-    if (list == nullptr)
-        return;
-
-    if (list->is_parts_changed()) {
-        for (int obj_idx : object_idxs)
-        {
-            if (obj_idx < p->model.objects.size())
-                // recenter and re - align to Z = 0
-                p->model.objects[obj_idx]->ensure_on_bed();
-        }
-        if (this->p->printer_technology == ptSLA) {
-            // Update the SLAPrint from the current Model, so that the reload_scene()
-            // pulls the correct data, update the 3D scene.
-            this->p->update_restart_background_process(true, false);
-        }
-        else
-            p->view3D->reload_scene(false);
+    for (int obj_idx : object_idxs)
+    {
+        if (obj_idx < p->model.objects.size())
+            // recenter and re - align to Z = 0
+            p->model.objects[obj_idx]->ensure_on_bed();
     }
+    if (this->p->printer_technology == ptSLA) {
+        // Update the SLAPrint from the current Model, so that the reload_scene()
+        // pulls the correct data, update the 3D scene.
+        this->p->update_restart_background_process(true, false);
+    }
+    else
+        p->view3D->reload_scene(false);
 
     // update print
     this->p->schedule_background_process();

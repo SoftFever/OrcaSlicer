@@ -1755,6 +1755,8 @@ void TabPrinter::build_fff()
 
 	auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"));
 	m_initial_extruders_count = m_extruders_count = nozzle_diameter->values.size();
+    wxGetApp().sidebar().update_objects_list_extruder_column(m_initial_extruders_count);
+
 	const Preset* parent_preset = m_presets->get_selected_preset_parent();
 	m_sys_extruders_count = parent_preset == nullptr ? 0 :
 			static_cast<const ConfigOptionFloats*>(parent_preset->config.option("nozzle_diameter"))->values.size();
