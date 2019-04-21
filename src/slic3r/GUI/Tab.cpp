@@ -1881,7 +1881,7 @@ void TabPrinter::build_fff()
 						m_use_silent_mode = val;
 					}
 				}
-				build_extruder_pages();
+				build_unregular_pages();
 				update_dirty();
 				on_value_change(opt_key, value);
 			});
@@ -1948,7 +1948,7 @@ void TabPrinter::build_fff()
 		};
 		optgroup->append_line(line);
 
-	build_extruder_pages();
+	build_unregular_pages();
 
 #if 0
 	if (!m_no_controller)
@@ -2051,13 +2051,24 @@ void TabPrinter::update_serial_ports()
 
 void TabPrinter::extruders_count_changed(size_t extruders_count)
 {
-	m_extruders_count = extruders_count;
-	m_preset_bundle->printers.get_edited_preset().set_num_extruders(extruders_count);
-	m_preset_bundle->update_multi_material_filament_presets();
-	build_extruder_pages();
-	reload_config();
-	on_value_change("extruders_count", extruders_count);
-    wxGetApp().sidebar().update_objects_list_extruder_column(extruders_count);
+    bool is_count_changed = false;
+    if (m_extruders_count != extruders_count) {
+	    m_extruders_count = extruders_count;
+	    m_preset_bundle->printers.get_edited_preset().set_num_extruders(extruders_count);
+	    m_preset_bundle->update_multi_material_filament_presets();
+        is_count_changed = true;
+    }
+
+    /* This function should be call in any case because of correct updating/rebuilding 
+     * of unregular pages of a Printer Settings
+     */
+	build_unregular_pages();
+// 	reload_config(); // #ys_FIXME_delete_after_testing : This function is called from build_extruder_pages() now
+
+    if (is_count_changed) {
+        on_value_change("extruders_count", extruders_count);
+        wxGetApp().sidebar().update_objects_list_extruder_column(extruders_count);
+    }
 }
 
 void TabPrinter::append_option_line(ConfigOptionsGroupShp optgroup, const std::string opt_key)
@@ -2125,8 +2136,13 @@ PageShp TabPrinter::build_kinematics_page()
 	return page;
 }
 
-
-void TabPrinter::build_extruder_pages()
+/* Previous name build_extruder_pages().
+ * 
+ * This function was renamed because of now it implements not just an extruder pages building, 
+ * but "Machine limits" and "Single extruder MM setup" too 
+ * (These pages can changes according to the another values of a current preset)
+ * */
+void TabPrinter::build_unregular_pages()
 {
 	size_t		n_before_extruders = 2;			//	Count of pages before Extruder pages
 	bool		is_marlin_flavor = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value == gcfMarlin;
@@ -2175,7 +2191,7 @@ void TabPrinter::build_extruder_pages()
 		m_has_single_extruder_MM_page = true;
 	}
 	
-
+    // Build missed extruder pages
 	for (auto extruder_idx = m_extruders_count_old; extruder_idx < m_extruders_count; ++extruder_idx) {
 		//# build page
 		char buf[512];
@@ -2225,6 +2241,9 @@ void TabPrinter::build_extruder_pages()
 
 	m_extruders_count_old = m_extruders_count;
 	rebuild_page_tree();
+
+    // Reload preset pages with current configuration values
+    reload_config();
 }
 
 // this gets executed after preset is loaded and before GUI fields are updated

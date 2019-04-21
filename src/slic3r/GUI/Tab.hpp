@@ -368,7 +368,7 @@ public:
 	void		update_serial_ports();
 	void		extruders_count_changed(size_t extruders_count);
 	PageShp		build_kinematics_page();
-	void		build_extruder_pages();
+	void		build_unregular_pages();
 	void		on_preset_loaded() override;
 	void		init_options_list() override;
     bool 		supports_printer_technology(const PrinterTechnology /* tech */) override { return true; }
