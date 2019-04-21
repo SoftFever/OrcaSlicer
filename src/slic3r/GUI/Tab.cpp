@@ -2147,6 +2147,12 @@ void TabPrinter::build_unregular_pages()
 	size_t		n_before_extruders = 2;			//	Count of pages before Extruder pages
 	bool		is_marlin_flavor = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value == gcfMarlin;
 
+    /* ! Freeze/Thaw in this function is needed to avoid call OnPaint() for erased pages 
+     * and be cause of application crash, when try to change Preset in moment,
+     * when one of unregular pages is selected.
+     *  */
+    Freeze();
+
 	// Add/delete Kinematics page according to is_marlin_flavor
 	size_t existed_page = 0;
 	for (int i = n_before_extruders; i < m_pages.size(); ++i) // first make sure it's not there already
@@ -2194,9 +2200,8 @@ void TabPrinter::build_unregular_pages()
     // Build missed extruder pages
 	for (auto extruder_idx = m_extruders_count_old; extruder_idx < m_extruders_count; ++extruder_idx) {
 		//# build page
-		char buf[512];
-		sprintf(buf, _CHB(L("Extruder %d")), extruder_idx + 1);
-		auto page = add_options_page(from_u8(buf), "funnel", true);
+        const wxString& page_name = wxString::Format(_(L("Extruder %d")), int(extruder_idx + 1));
+        auto page = add_options_page(page_name, "funnel", true);
 		m_pages.insert(m_pages.begin() + n_before_extruders + extruder_idx, page);
 			
 			auto optgroup = page->new_optgroup(_(L("Size")));
@@ -2238,6 +2243,8 @@ void TabPrinter::build_unregular_pages()
 	if (m_extruders_count < m_extruders_count_old)
 		m_pages.erase(	m_pages.begin() + n_before_extruders + m_extruders_count, 
 						m_pages.begin() + n_before_extruders + m_extruders_count_old);
+
+    Thaw();
 
 	m_extruders_count_old = m_extruders_count;
 	rebuild_page_tree();
@@ -2511,7 +2518,6 @@ void Tab::rebuild_page_tree()
 			m_treectrl->SelectItem(item);
 		}
 	}
-// 	Thaw();
 }
 
 void Tab::update_page_tree_visibility()
@@ -2747,7 +2753,8 @@ bool Tab::may_switch_to_SLA_preset()
 
 void Tab::OnTreeSelChange(wxTreeEvent& event)
 {
-	if (m_disable_tree_sel_changed_event) return;
+	if (m_disable_tree_sel_changed_event)         
+        return;
 
 // There is a bug related to Ubuntu overlay scrollbars, see https://github.com/prusa3d/Slic3r/issues/898 and https://github.com/prusa3d/Slic3r/issues/952.
 // The issue apparently manifests when Show()ing a window with overlay scrollbars while the UI is frozen. For this reason,
