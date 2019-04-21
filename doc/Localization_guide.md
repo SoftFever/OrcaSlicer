@@ -46,7 +46,7 @@ https://github.com/prusa3d/Slic3r/tree/master/resources/localization/list.txt.
 
 2.  Create template file(*.POT) with GNUgettext command:
     ```
-        xgettext --keyword=L --from-code=UTF-8 --debug -o Slic3rPE.pot -f list.txt
+        xgettext --keyword=L --add-comments=TRN --from-code=UTF-8 --debug -o Slic3rPE.pot -f list.txt
     ```
 
     Use flag `--from-code=UTF-8` to specify that the source strings are in UTF-8 encoding
