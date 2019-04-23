@@ -508,31 +508,15 @@ void ObjectManipulation::on_fill_empty_value(const std::string& opt_key)
     std::copy(opt_key.begin(), opt_key.end() - 2, std::back_inserter(param));
 
     double value = 0.0;
-
-    if (param == "position") {
-        int axis = opt_key.back() == 'x' ? 0 :
-            opt_key.back() == 'y' ? 1 : 2;
-
-        value = m_cache.position(axis);
-    }
-    else if (param == "rotation") {
-        int axis = opt_key.back() == 'x' ? 0 :
-            opt_key.back() == 'y' ? 1 : 2;
-
-        value = m_cache.rotation(axis);
-    }
-    else if (param == "scale") {
-        int axis = opt_key.back() == 'x' ? 0 :
-            opt_key.back() == 'y' ? 1 : 2;
-
-        value = m_cache.scale(axis);
-    }
-    else if (param == "size") {
-        int axis = opt_key.back() == 'x' ? 0 :
-            opt_key.back() == 'y' ? 1 : 2;
-
-        value = m_cache.size(axis);
-    }
+	auto opt_key_to_axis = [&opt_key]() { return opt_key.back() == 'x' ? 0 : opt_key.back() == 'y' ? 1 : 2; };
+    if (param == "position")
+        value = m_cache.position(opt_key_to_axis());
+    else if (param == "rotation")
+		value = m_cache.rotation(opt_key_to_axis());
+    else if (param == "scale")
+		value = m_cache.scale(opt_key_to_axis());
+    else if (param == "size")
+		value = m_cache.size(opt_key_to_axis());
 
     m_og->set_value(opt_key, double_to_string(value));
 }
