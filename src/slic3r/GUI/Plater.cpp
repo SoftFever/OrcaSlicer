@@ -235,7 +235,8 @@ void SlicedInfo::SetTextAndShow(SlisedInfoIdx idx, const wxString& text, const w
 PresetComboBox::PresetComboBox(wxWindow *parent, Preset::Type preset_type) :
 wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(15 * wxGetApp().em_unit(), -1), 0, nullptr, wxCB_READONLY),
     preset_type(preset_type),
-    last_selected(wxNOT_FOUND)
+    last_selected(wxNOT_FOUND),
+    m_em_unit(wxGetApp().em_unit())
 {
     Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &evt) {
         auto selected_item = this->GetSelection();
@@ -280,7 +281,7 @@ wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(15 *
                 cfg.set_key_value("extruder_colour", colors);
 
                 wxGetApp().get_tab(Preset::TYPE_PRINTER)->load_config(cfg);
-                wxGetApp().preset_bundle->update_platter_filament_ui(extruder_idx, this, wxGetApp().em_unit());
+                wxGetApp().preset_bundle->update_platter_filament_ui(extruder_idx, this);
                 wxGetApp().plater()->on_config_change(cfg);
             }
             dialog->Destroy();
@@ -340,8 +341,7 @@ void PresetComboBox::check_selection()
 
 void PresetComboBox::rescale()
 {
-    // update min control's height from new scaled size
-    this->SetMinSize(wxSize(20*wxGetApp().em_unit(), this->GetSize().GetHeight()));
+    m_em_unit = wxGetApp().em_unit();
     edit_btn->rescale();
 }
 
@@ -798,8 +798,6 @@ void Sidebar::update_all_preset_comboboxes()
     PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
     const auto print_tech = preset_bundle.printers.get_edited_preset().printer_technology();
 
-//     wxWindowUpdateLocker noUpdates_scrolled(p->scrolled);
-
     // Update the print choosers to only contain the compatible presets, update the dirty flags.
     if (print_tech == ptFFF)
         preset_bundle.prints.update_platter_ui(p->combo_print);
@@ -813,9 +811,8 @@ void Sidebar::update_all_preset_comboboxes()
     // update the dirty flags.
     if (print_tech == ptFFF) {
         for (size_t i = 0; i < p->combos_filament.size(); ++i)
-            preset_bundle.update_platter_filament_ui(i, p->combos_filament[i], wxGetApp().em_unit());
+            preset_bundle.update_platter_filament_ui(i, p->combos_filament[i]);
     }
-    p->show_preset_comboboxes();
 }
 
 void Sidebar::update_presets(Preset::Type preset_type)
@@ -837,7 +834,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
         }
 
         for (size_t i = 0; i < filament_cnt; i++) {
-            preset_bundle.update_platter_filament_ui(i, p->combos_filament[i], wxGetApp().em_unit());
+            preset_bundle.update_platter_filament_ui(i, p->combos_filament[i]);
         }
 
         break;
@@ -874,8 +871,8 @@ void Sidebar::update_presets(Preset::Type preset_type)
 //             for (size_t i = 0; i < p->combos_filament.size(); ++ i)
 //                 preset_bundle.update_platter_filament_ui(i, p->combos_filament[i], wxGetApp().em_unit());
 // 		}
-// 		p->show_preset_comboboxes();
         update_all_preset_comboboxes();
+		p->show_preset_comboboxes();
 		break;
 	}
 
@@ -905,18 +902,17 @@ void Sidebar::rescale()
 
     p->mode_sizer->rescale();
 
-    // first of all : recreate preset comboboxes, because of
-    // in AddBitmap() function autonaticaly set the size of controll
-    update_all_preset_comboboxes();
-    // then rescale them to current min size to correct layout of the sidebar
+    // Rescale preset comboboxes in respect to the current  em_unit ...
     for (PresetComboBox* combo : std::vector<PresetComboBox*> { p->combo_print,
                                                                 p->combo_sla_print,
                                                                 p->combo_sla_material,
                                                                 p->combo_printer } )
         combo->rescale();
-    
     for (PresetComboBox* combo : p->combos_filament)
         combo->rescale();
+
+    // ... then refill them and set min size to correct layout of the sidebar
+    update_all_preset_comboboxes();
 
     p->frequently_changed_parameters->get_og(true)->rescale();
     p->frequently_changed_parameters->get_og(false)->rescale();
@@ -2669,7 +2665,7 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     // TODO: ?
     if (preset_type == Preset::TYPE_FILAMENT && sidebar->is_multifilament()) {
         // Only update the platter UI for the 2nd and other filaments.
-        wxGetApp().preset_bundle->update_platter_filament_ui(idx, combo, wxGetApp().em_unit());
+        wxGetApp().preset_bundle->update_platter_filament_ui(idx, combo);
     } 
     else {
         wxWindowUpdateLocker noUpdates(sidebar->presets_panel());
@@ -3650,7 +3646,7 @@ void Plater::on_extruders_change(int num_extruders)
         choices.push_back(choice);
 
         // initialize selection
-        wxGetApp().preset_bundle->update_platter_filament_ui(i, choice, wxGetApp().em_unit());
+        wxGetApp().preset_bundle->update_platter_filament_ui(i, choice);
         ++i;
     }
 

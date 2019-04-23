@@ -394,7 +394,7 @@ public:
     // Update the choice UI from the list of presets.
     // If show_incompatible, all presets are shown, otherwise only the compatible presets are shown.
     // If an incompatible preset is selected, it is shown as well.
-    size_t          update_tab_ui(wxBitmapComboBox *ui, bool show_incompatible);
+    size_t          update_tab_ui(wxBitmapComboBox *ui, bool show_incompatible, const int em = 10);
     // Update the choice UI from the list of presets.
     // Only the compatible presets are shown.
     // If an incompatible preset is selected, it is shown as well.

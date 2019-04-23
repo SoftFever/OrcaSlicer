@@ -57,6 +57,7 @@ public:
     void set_label_marker(int item, LabelItemType label_item_type = LABEL_ITEM_MARKER);
     void set_extruder_idx(const int extr_idx)   { extruder_idx = extr_idx; }
     int  get_extruder_idx() const               { return extruder_idx; }
+    int  em_unit() const                        { return m_em_unit; }
     void check_selection();
 
     void rescale();
@@ -67,6 +68,7 @@ private:
     Preset::Type preset_type;
     int last_selected;
     int extruder_idx = -1;
+    int m_em_unit;
 };
 
 class Sidebar : public wxPanel

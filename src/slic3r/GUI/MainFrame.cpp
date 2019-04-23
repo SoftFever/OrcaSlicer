@@ -258,12 +258,6 @@ bool MainFrame::can_delete_all() const
 
 void MainFrame::on_dpi_changed(const wxRect &suggested_rect)
 {
-//     const float old_sc_factor = prev_scale_factor();
-//     const float new_sc_factor = scale_factor();
-// 
-//     printf("old_sc_factor: %.2f  \n", old_sc_factor);
-//     printf("new_sc_factor: %.2f\n\n", new_sc_factor);
-
     wxGetApp().update_fonts();
 
     // _strange_ workaround for correct em_unit calculation
@@ -281,6 +275,13 @@ void MainFrame::on_dpi_changed(const wxRect &suggested_rect)
     // update Tabs
     for (auto tab : wxGetApp().tabs_list)
         tab->rescale();
+
+    /* To correct window rendering (especially redraw of a status bar)
+     * we should imitate window resizing.
+     */
+    const wxSize& sz = this->GetSize();
+    this->SetSize(sz.x + 1, sz.y + 1);
+    this->SetSize(sz);
 }
 
 void MainFrame::init_menubar()

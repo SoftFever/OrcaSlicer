@@ -713,7 +713,7 @@ void Tab::update_dirty()
 
 void Tab::update_tab_ui()
 {
-	m_selected_preset_item = m_presets->update_tab_ui(m_presets_choice, m_show_incompatible_presets);
+	m_selected_preset_item = m_presets->update_tab_ui(m_presets_choice, m_show_incompatible_presets, m_em_unit);
 }
 
 // Load a provied DynamicConfig into the tab, modifying the active preset.
