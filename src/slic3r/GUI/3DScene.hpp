@@ -227,7 +227,7 @@ public:
     static const float SELECTED_COLOR[4];
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     static const float HOVER_SELECT_COLOR[4];
-    static const float HOVER_UNSELECT_COLOR[4];
+    static const float HOVER_DESELECT_COLOR[4];
 //    static const float HOVER_COLOR[4];
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     static const float OUTSIDE_COLOR[4];
@@ -300,8 +300,15 @@ public:
     bool                shader_outside_printer_detection_enabled;
     // Wheter or not this volume is outside print volume.
     bool                is_outside;
-    // Boolean: Is mouse over this object?
-    bool                hover;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    // Boolean: Is mouse over this object to select it ?
+    bool                hover_select;
+    // Boolean: Is mouse over this object to deselect it ?
+    bool                hover_deselect;
+
+//    // Boolean: Is mouse over this object?
+//    bool                hover;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     // Wheter or not this volume has been generated from a modifier
     bool                is_modifier;
     // Wheter or not this volume has been generated from the wipe tower

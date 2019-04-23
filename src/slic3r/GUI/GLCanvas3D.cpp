@@ -1208,7 +1208,9 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar
     , m_initialized(false)
     , m_use_VBOs(false)
     , m_apply_zoom_to_volumes_filter(false)
-    , m_hover_volume_id(-1)
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//    , m_hover_volume_id(-1)
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     , m_legend_texture_enabled(false)
     , m_picking_enabled(false)
     , m_moving_enabled(false)
@@ -2368,8 +2370,8 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                 {
                     if (m_rectangle_selection.is_dragging())
                     {
+                        _update_selection_from_hover(m_rectangle_selection.get_state());
                         m_rectangle_selection.stop_dragging();
-                        m_dirty = true;
                     }
                     set_cursor(Standard);
                 }
@@ -2377,11 +2379,13 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                 {
                     if (m_rectangle_selection.is_dragging())
                     {
+                        _update_selection_from_hover(m_rectangle_selection.get_state());
                         m_rectangle_selection.stop_dragging();
-                        m_dirty = true;
                     }
                     set_cursor(Standard);
                 }
+                else if (keyCode == WXK_CONTROL)
+                    m_dirty = true;
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             }
             else if (evt.GetEventType() == wxEVT_KEY_DOWN) {
@@ -2397,6 +2401,8 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                     if (m_picking_enabled && (m_gizmos.get_current_type() != GLGizmosManager::SlaSupports))
                         set_cursor(Cross);
                 }
+                else if (keyCode == WXK_CONTROL)
+                    m_dirty = true;
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             }
         }
@@ -2670,20 +2676,36 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // Don't deselect a volume if layer editing is enabled. We want the object to stay selected
             // during the scene manipulation.
 
-            if (m_picking_enabled && ((m_hover_volume_id != -1) || !is_layers_editing_enabled()))
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            if (m_picking_enabled && (!m_hover_volume_ids.empty() || !is_layers_editing_enabled()))
+//            if (m_picking_enabled && ((m_hover_volume_id != -1) || !is_layers_editing_enabled()))
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             {
-                if (evt.LeftDown() && (m_hover_volume_id != -1))
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                if (evt.LeftDown() && !m_hover_volume_ids.empty())
+//                if (evt.LeftDown() && (m_hover_volume_id != -1))
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                 {
-                    bool already_selected = m_selection.contains_volume(m_hover_volume_id);
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                    int volume_idx = m_hover_volume_ids.front();
+                    bool already_selected = m_selection.contains_volume(volume_idx);
+//                    bool already_selected = m_selection.contains_volume(m_hover_volume_id);
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                     bool ctrl_down = evt.CmdDown();
 
                     Selection::IndicesList curr_idxs = m_selection.get_volume_idxs();
 
                     if (already_selected && ctrl_down)
-                        m_selection.remove(m_hover_volume_id);
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                        m_selection.remove(volume_idx);
+//                        m_selection.remove(m_hover_volume_id);
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                     else
                     {
-                        m_selection.add(m_hover_volume_id, !ctrl_down, true);
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                        m_selection.add(volume_idx, !ctrl_down, true);
+//                        m_selection.add(m_hover_volume_id, !ctrl_down, true);
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                         m_mouse.drag.move_requires_threshold = !already_selected;
                         if (already_selected)
                             m_mouse.set_move_start_threshold_position_2D_as_invalid();
@@ -2702,17 +2724,27 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }
 
             // propagate event through callback
-            if (m_hover_volume_id != -1)
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            if (!m_hover_volume_ids.empty())
+//            if (m_hover_volume_id != -1)
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             {
                 if (evt.LeftDown() && m_moving_enabled && (m_mouse.drag.move_volume_idx == -1))
                 {
                     // Only accept the initial position, if it is inside the volume bounding box.
-                    BoundingBoxf3 volume_bbox = m_volumes.volumes[m_hover_volume_id]->transformed_bounding_box();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                    int volume_idx = m_hover_volume_ids.front();
+                    BoundingBoxf3 volume_bbox = m_volumes.volumes[volume_idx]->transformed_bounding_box();
+//                    BoundingBoxf3 volume_bbox = m_volumes.volumes[m_hover_volume_id]->transformed_bounding_box();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                     volume_bbox.offset(1.0);
                     if (volume_bbox.contains(m_mouse.scene_position))
                     {
                         // The dragging operation is initiated.
-                        m_mouse.drag.move_volume_idx = m_hover_volume_id;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                        m_mouse.drag.move_volume_idx = volume_idx;
+//                        m_mouse.drag.move_volume_idx = m_hover_volume_id;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                         m_selection.start_dragging();
                         m_mouse.drag.start_position_3D = m_mouse.scene_position;
                         m_moving = true;
@@ -2729,7 +2761,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
             Vec3d cur_pos = m_mouse.drag.start_position_3D;
             // we do not want to translate objects if the user just clicked on an object while pressing shift to remove it from the selection and then drag
-            if (m_selection.contains_volume(m_hover_volume_id))
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            if (m_selection.contains_volume(get_first_hover_volume_id()))
+//            if (m_selection.contains_volume(m_hover_volume_id))
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             {
                 if (m_camera.get_theta() == 90.0f)
                 {
@@ -2791,7 +2826,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         else if (evt.LeftIsDown())
         {
             // if dragging over blank area with left button, rotate
-            if ((m_hover_volume_id == -1) && m_mouse.is_start_position_3D_defined())
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            if (m_hover_volume_ids.empty() && m_mouse.is_start_position_3D_defined())
+//            if ((m_hover_volume_id == -1) && m_mouse.is_start_position_3D_defined())
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             {
                 const Vec3d& orig = m_mouse.drag.start_position_3D;
                 m_camera.phi += (((float)pos(0) - (float)orig(0)) * TRACKBALLSIZE);
@@ -2836,11 +2874,14 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         else if (evt.LeftUp() && m_rectangle_selection.is_dragging())
         {
+            _update_selection_from_hover(m_rectangle_selection.get_state());
             m_rectangle_selection.stop_dragging();
-            m_dirty = true;
         }
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        else if (evt.LeftUp() && !m_mouse.dragging && (m_hover_volume_id == -1) && !is_layers_editing_enabled())
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        else if (evt.LeftUp() && !m_mouse.dragging && m_hover_volume_ids.empty() && !is_layers_editing_enabled())
+//        else if (evt.LeftUp() && !m_mouse.dragging && (m_hover_volume_id == -1) && !is_layers_editing_enabled())
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         {
             // deselect and propagate event through callback
             if (!evt.ShiftDown() && m_picking_enabled)
@@ -2859,15 +2900,26 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // forces a frame render to ensure that m_hover_volume_id is updated even when the user right clicks while
             // the context menu is already shown
             render();
-            if (m_hover_volume_id != -1)
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            if (!m_hover_volume_ids.empty())
+//            if (m_hover_volume_id != -1)
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             {
                 // if right clicking on volume, propagate event through callback (shows context menu)
-                if (m_volumes.volumes[m_hover_volume_id]->hover
-                    && !m_volumes.volumes[m_hover_volume_id]->is_wipe_tower // no context menu for the wipe tower
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                int volume_idx = m_hover_volume_ids.front();
+                if (m_volumes.volumes[volume_idx]->hover_select
+                    && !m_volumes.volumes[volume_idx]->is_wipe_tower // no context menu for the wipe tower
+//                if (m_volumes.volumes[m_hover_volume_id]->hover
+//                    && !m_volumes.volumes[m_hover_volume_id]->is_wipe_tower // no context menu for the wipe tower
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                     && m_gizmos.get_current_type() != GLGizmosManager::SlaSupports)  // disable context menu when the gizmo is open
                 {
                     // forces the selection of the volume
-                    m_selection.add(m_hover_volume_id);
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                    m_selection.add(volume_idx);
+//                    m_selection.add(m_hover_volume_id);
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                     m_gizmos.refresh_on_off_state(m_selection);
                     post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
                     m_gizmos.update_data(*this);
@@ -3648,6 +3700,10 @@ void GLCanvas3D::_refresh_if_shown_on_screen()
 
 void GLCanvas3D::_picking_pass() const
 {
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    m_hover_volume_ids.clear();
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
     if (m_picking_enabled && !m_mouse.dragging && (m_mouse.position != Vec2d(DBL_MAX, DBL_MAX)))
     {
         // Render the object for picking.
@@ -3691,12 +3747,17 @@ void GLCanvas3D::_picking_pass() const
         }
         if ((0 <= volume_id) && (volume_id < (int)m_volumes.volumes.size()))
         {
-            m_hover_volume_id = volume_id;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            m_hover_volume_ids.push_back(volume_id);
+//            m_hover_volume_id = volume_id;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             m_gizmos.set_hover_id(-1);
         }
         else
         {
-            m_hover_volume_id = -1;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//            m_hover_volume_id = -1;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             m_gizmos.set_hover_id(inside && volume_id <= GLGizmoBase::BASE_ID ? (GLGizmoBase::BASE_ID - volume_id) : -1);
         }
 
@@ -3707,7 +3768,7 @@ void GLCanvas3D::_picking_pass() const
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 void GLCanvas3D::_rectangular_selection_picking_pass() const
 {
-    m_hover_volume_id = -1;
+    m_hover_volume_ids.empty();
     m_gizmos.set_hover_id(-1);
 
     std::set<int> idxs;
@@ -3779,34 +3840,8 @@ void GLCanvas3D::_rectangular_selection_picking_pass() const
         }
     }
 
-    // see _update_volumes_hover_state()
-    for (GLVolume* v : m_volumes.volumes)
-    {
-        v->hover = false;
-    }
-
-    if (!idxs.empty())
-    {
-        GLSelectionRectangle::EState state = m_rectangle_selection.get_state();
-
-        for (int idx : idxs)
-        {
-            GLVolume* volume = m_volumes.volumes[idx];
-            if (volume->is_modifier)
-                volume->hover = true;
-            else
-            {
-                int object_idx = volume->object_idx();
-                int instance_idx = volume->instance_idx();
-
-                for (GLVolume* v : m_volumes.volumes)
-                {
-                    if ((v->object_idx() == object_idx) && (v->instance_idx() == instance_idx))
-                        v->hover = true;
-                }
-            }
-        }
-    }
+    m_hover_volume_ids.assign(idxs.begin(), idxs.end());
+    _update_volumes_hover_state();
 }
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
@@ -4292,26 +4327,88 @@ void GLCanvas3D::_update_volumes_hover_state() const
 {
     for (GLVolume* v : m_volumes.volumes)
     {
-        v->hover = false;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        v->hover_select = false;
+        v->hover_deselect = false;
+//        v->hover = false;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     }
 
-    if (m_hover_volume_id == -1)
-        return;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//    if (m_hover_volume_id == -1)
+//        return;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-    GLVolume* volume = m_volumes.volumes[m_hover_volume_id];
-    if (volume->is_modifier)
-        volume->hover = true;
-    else
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    bool is_ctrl_pressed = wxGetKeyState(WXK_CONTROL);
+
+    std::map<std::pair<int, int>, unsigned int> instances_idxs;
+    for (int i : m_hover_volume_ids)
     {
-        int object_idx = volume->object_idx();
-        int instance_idx = volume->instance_idx();
+        GLVolume* volume = m_volumes.volumes[i];
+        std::pair<int, int> instance_idx = std::make_pair(volume->object_idx(), volume->instance_idx());
+        std::map<std::pair<int, int>, unsigned int>::iterator it = instances_idxs.find(instance_idx);
+        if (it == instances_idxs.end())
+            instances_idxs.insert(std::map<std::pair<int, int>, unsigned int>::value_type(instance_idx, 0)).first;
+        else
+            ++it->second;
+    }
+    
+    std::vector<int>::iterator it = m_hover_volume_ids.begin();
+    while (it != m_hover_volume_ids.end())
+    {
+        GLVolume* volume = m_volumes.volumes[*it];
+        bool deselect = volume->selected && (is_ctrl_pressed || (m_rectangle_selection.get_state() == GLSelectionRectangle::Deselect));
+        bool select = !volume->selected || (volume->is_modifier && !is_ctrl_pressed);
 
-        for (GLVolume* v : m_volumes.volumes)
+        if (!select && !deselect)
         {
-            if ((v->object_idx() == object_idx) && (v->instance_idx() == instance_idx))
-                v->hover = true;
+            std::map<std::pair<int, int>, unsigned int>::iterator inst_it = instances_idxs.find(std::make_pair(volume->object_idx(), volume->instance_idx()));
+            --inst_it->second;
+            if (inst_it->second == 0)
+                instances_idxs.erase(inst_it);
+
+            it = m_hover_volume_ids.erase(it);
+        }
+        else
+        {
+            if (volume->is_modifier && !deselect && (instances_idxs.size() == 1))
+//            GLVolume* volume = m_volumes.volumes[m_hover_volume_id];
+//            if (volume->is_modifier)
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            {
+//                if (deselect)
+//                    volume->hover_deselect = true;
+//                else
+                    volume->hover_select = true;
+            }
+//            volume->hover = true;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            else
+            {
+                int object_idx = volume->object_idx();
+                int instance_idx = volume->instance_idx();
+
+                for (GLVolume* v : m_volumes.volumes)
+                {
+                    if ((v->object_idx() == object_idx) && (v->instance_idx() == instance_idx))
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                    {
+                        if (deselect)
+                            v->hover_deselect = true;
+                        else
+                            v->hover_select = true;
+                    }
+//                    v->hover = true;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                }
+            }
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            ++it;
         }
     }
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 }
 
 void GLCanvas3D::_perform_layer_editing_action(wxMouseEvent* evt)
@@ -5583,6 +5680,30 @@ void GLCanvas3D::_resize_toolbars() const
     }
 }
 #endif // !ENABLE_SVG_ICONS
+
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+void GLCanvas3D::_update_selection_from_hover(GLSelectionRectangle::EState state)
+{
+    if (m_hover_volume_ids.empty())
+        return;
+
+    if (state == GLSelectionRectangle::Select)
+        m_selection.clear();
+
+    for (int idx : m_hover_volume_ids)
+    {
+        if (state == GLSelectionRectangle::Select)
+            m_selection.add(idx, false);
+        else
+            m_selection.remove(idx);
+    }
+
+    m_gizmos.refresh_on_off_state(m_selection);
+    m_gizmos.update_data(*this);
+    post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
+    m_dirty = true;
+}
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 const Print* GLCanvas3D::fff_print() const
 {

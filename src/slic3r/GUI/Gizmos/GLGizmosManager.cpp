@@ -693,7 +693,10 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt, GLCanvas3D& canvas)
             gizmo_event(SLAGizmoEventType::LeftUp, mouse_pos, evt.ShiftDown(), evt.AltDown(), evt.ControlDown());
             processed = true;
         }
-        else if (evt.LeftUp() && (m_current == Flatten) && ((canvas.get_hover_volume_id() != -1) || grabber_contains_mouse()))
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        else if (evt.LeftUp() && (m_current == Flatten) && ((canvas.get_first_hover_volume_id() != -1) || grabber_contains_mouse()))
+//        else if (evt.LeftUp() && (m_current == Flatten) && ((canvas.get_hover_volume_id() != -1) || grabber_contains_mouse()))
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         {
             // to avoid to loose the selection when user clicks an object while the Flatten gizmo is active
             processed = true;

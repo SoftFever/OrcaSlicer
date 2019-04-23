@@ -444,7 +444,10 @@ private:
     bool m_initialized;
     bool m_use_VBOs;
     bool m_apply_zoom_to_volumes_filter;
-    mutable int m_hover_volume_id;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    mutable std::vector<int> m_hover_volume_ids;
+//    mutable int m_hover_volume_id;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     bool m_warning_texture_enabled;
     bool m_legend_texture_enabled;
     bool m_picking_enabled;
@@ -601,7 +604,11 @@ public:
     float get_view_toolbar_height() const { return m_view_toolbar.get_height(); }
 
     int get_move_volume_id() const { return m_mouse.drag.move_volume_idx; }
-    int get_hover_volume_id() const { return m_hover_volume_id; }
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    int get_first_hover_volume_id() const { return m_hover_volume_ids.empty() ? -1 : m_hover_volume_ids.front(); }
+
+//    int get_hover_volume_id() const { return m_hover_volume_id; }
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     // Returns the view ray line, in world coordinate, at the given mouse position.
     Linef3 mouse_ray(const Point& mouse_pos);
@@ -713,6 +720,10 @@ private:
 #if !ENABLE_SVG_ICONS
     void _resize_toolbars() const;
 #endif // !ENABLE_SVG_ICONS
+
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    void _update_selection_from_hover(GLSelectionRectangle::EState state);
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     static std::vector<float> _parse_colors(const std::vector<std::string>& colors);
 
