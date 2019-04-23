@@ -56,9 +56,10 @@ if (SLIC3R_GUI)
     endif()
 
     include(${wxWidgets_USE_FILE})
+
+    add_subdirectory(slic3r)
 endif()
 
-add_subdirectory(slic3r)
 
 # Create a slic3r executable
 # Process mainfests for various platforms.
