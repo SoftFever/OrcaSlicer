@@ -12,7 +12,6 @@ add_subdirectory(poly2tri)
 add_subdirectory(qhull)
 add_subdirectory(Shiny)
 add_subdirectory(semver)
-add_subdirectory(imgui)
 
 # Adding libnest2d project for bin packing...
 set(LIBNEST2D_UNITTESTS ON CACHE BOOL "Force generating unittests for libnest2d")
@@ -24,6 +23,8 @@ include_directories(${LIBDIR}/qhull/src)
 add_subdirectory(libslic3r)
 
 if (SLIC3R_GUI)
+    add_subdirectory(imgui)
+
     if(WIN32)
         message(STATUS "WXWIN environment set to: $ENV{WXWIN}")
     elseif(UNIX)
