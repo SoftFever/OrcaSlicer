@@ -1605,7 +1605,7 @@ void GLCanvas3D::render()
     wxGetApp().imgui()->new_frame();
 
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    if (m_rectangle_selection.is_active())
+    if (m_rectangle_selection.is_dragging())
         // picking pass using rectangle selection
         _rectangular_selection_picking_pass();
     else
@@ -1649,7 +1649,7 @@ void GLCanvas3D::render()
 #endif // ENABLE_SHOW_CAMERA_TARGET
 
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    if (m_rectangle_selection.is_active())
+    if (m_rectangle_selection.is_dragging())
         m_rectangle_selection.render(*this);
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
@@ -2366,7 +2366,7 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                 else if (keyCode == WXK_SHIFT)
                 {
-                    if (m_rectangle_selection.is_active())
+                    if (m_rectangle_selection.is_dragging())
                     {
                         m_rectangle_selection.stop_dragging();
                         m_dirty = true;
@@ -2375,7 +2375,7 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                 }
                 else if (keyCode == WXK_ALT)
                 {
-                    if (m_rectangle_selection.is_active())
+                    if (m_rectangle_selection.is_dragging())
                     {
                         m_rectangle_selection.stop_dragging();
                         m_dirty = true;
@@ -2772,7 +2772,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
     }
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    else if (evt.Dragging() && evt.LeftIsDown() && m_rectangle_selection.is_active())
+    else if (evt.Dragging() && evt.LeftIsDown() && m_rectangle_selection.is_dragging())
     {
         m_rectangle_selection.dragging(pos.cast<double>());
         m_dirty = true;
@@ -2834,7 +2834,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
         }
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        else if (evt.LeftUp() && m_rectangle_selection.is_active())
+        else if (evt.LeftUp() && m_rectangle_selection.is_dragging())
         {
             m_rectangle_selection.stop_dragging();
             m_dirty = true;
@@ -3684,7 +3684,10 @@ void GLCanvas3D::_picking_pass() const
         if (inside)
         {
             glsafe(::glReadPixels(m_mouse.position(0), cnv_size.get_height() - m_mouse.position(1) - 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, (void*)color));
-            volume_id = color[0] + color[1] * 256 + color[2] * 256 * 256;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            volume_id = color[0] + (color[1] << 8) + (color[2] << 16);
+//            volume_id = color[0] + color[1] * 256 + color[2] * 256 * 256;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         }
         if ((0 <= volume_id) && (volume_id < (int)m_volumes.volumes.size()))
         {
@@ -3704,6 +3707,11 @@ void GLCanvas3D::_picking_pass() const
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 void GLCanvas3D::_rectangular_selection_picking_pass() const
 {
+    m_hover_volume_id = -1;
+    m_gizmos.set_hover_id(-1);
+
+    std::set<int> idxs;
+
     if (m_picking_enabled)
     {
         if (m_multisample_allowed)
@@ -3721,61 +3729,58 @@ void GLCanvas3D::_rectangular_selection_picking_pass() const
 
         int width = (int)m_rectangle_selection.get_width();
         int height = (int)m_rectangle_selection.get_height();
+        int px_count = width * height;
 
-        if ((width > 0) && (height > 0))
+        if (px_count > 0)
         {
             int left = (int)m_rectangle_selection.get_left();
             int top = get_canvas_size().get_height() - (int)m_rectangle_selection.get_top();
             if ((left >= 0) && (top >= 0))
             {
-                std::vector<std::array<unsigned char, 4>> frame(width * height);
-//                std::vector<GLubyte> frame(4 * width * height);
+                std::vector<GLubyte> frame(4 * px_count);
                 glsafe(::glReadPixels(left, top, width, height, GL_RGBA, GL_UNSIGNED_BYTE, (void*)frame.data()));
 
-#if 1
-                std::sort(frame.begin(), frame.end());
-                frame.resize(std::distance(frame.begin(), std::unique(frame.begin(), frame.end())));
-                if (frame.size() > 1)
+                for (int i = 0; i < px_count; ++i)
                 {
-                    std::cout << frame.size() - 1 << std::endl;
+                    int px_id = 4 * i;
+                    int volume_id = frame[px_id] + (frame[px_id + 1] << 8) + (frame[px_id + 2] << 16);
+                    if ((0 <= volume_id) && (volume_id < (int)m_volumes.volumes.size()))
+                        idxs.insert(volume_id);
                 }
-
-/*
-                std::set<int> idxs;
-                for (int r = 0; r < height; ++r)
-                {
-                    for (int c = 0; c < width; ++c)
-                    {
-                        int id_px = 4 * (r * width + c);
-                        idxs.insert(frame[id_px] + frame[id_px + 1] * 256 + frame[id_px + 2] * 256 * 256);
-                    }
-                }
-
-                if (idxs.size() > 1)
-                {
-                    std::cout << idxs.size() - 1 << std::endl;
-                }
-*/
-#else
-                wxImage frame_image(width, height);
-                unsigned char* image_data = frame_image.GetData();
-                for (int r = 0; r < height; ++r)
-                {
-                    for (int c = 0; c < width; ++c)
-                    {
-                        int id_px = r * width + c;
-                        ::memcpy((void*)(image_data + 3 * id_px), (const void*)&frame[4 * id_px], 3);
-                    }
-                }
-
-                wxImageHistogram frame_histogram;
-                unsigned long colors_count = frame_image.ComputeHistogram(frame_histogram);
-                if (colors_count > 1)
-                {
-                    std::cout << colors_count - 1 << std::endl;
-                }
-#endif
             }
+        }
+    }
+
+    // see _update_volumes_hover_state()
+    for (GLVolume* v : m_volumes.volumes)
+    {
+        v->hover = false;
+    }
+
+    if (!idxs.empty())
+    {
+        GLSelectionRectangle::EState state = m_rectangle_selection.get_state();
+
+        for (int idx : idxs)
+        {
+            GLVolume* volume = m_volumes.volumes[idx];
+//            if ((!volume->selected && (state == GLSelectionRectangle::Select)) ||
+//                (volume->selected && (state == GLSelectionRectangle::Deselect)))
+//            {
+                if (volume->is_modifier)
+                    volume->hover = true;
+                else
+                {
+                    int object_idx = volume->object_idx();
+                    int instance_idx = volume->instance_idx();
+
+                    for (GLVolume* v : m_volumes.volumes)
+                    {
+                        if ((v->object_idx() == object_idx) && (v->instance_idx() == instance_idx))
+                            v->hover = true;
+                    }
+                }
+//            }
         }
     }
 }

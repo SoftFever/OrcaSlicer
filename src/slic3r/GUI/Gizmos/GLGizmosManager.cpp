@@ -851,13 +851,13 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt, GLCanvas3D& canvas)
             if (keyCode == WXK_SHIFT)
             {
                 // shift has been just released - SLA gizmo might want to close rectangular selection.
-                if (gizmo_event(SLAGizmoEventType::ShiftUp) || (gizmo->is_in_editing_mode() && gizmo->is_selection_rectangle_active()))
+                if (gizmo_event(SLAGizmoEventType::ShiftUp) || (gizmo->is_in_editing_mode() && gizmo->is_selection_rectangle_dragging()))
                     processed = true;
             }
             else if (keyCode == WXK_ALT)
             {
                 // alt has been just released - SLA gizmo might want to close rectangular selection.
-                if (gizmo_event(SLAGizmoEventType::AltUp) || (gizmo->is_in_editing_mode() && gizmo->is_selection_rectangle_active()))
+                if (gizmo_event(SLAGizmoEventType::AltUp) || (gizmo->is_in_editing_mode() && gizmo->is_selection_rectangle_dragging()))
                     processed = true;
             }
         }

@@ -11,19 +11,19 @@ namespace Slic3r {
 namespace GUI {
 
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-void GLSelectionRectangle::start_dragging(const Vec2d& mouse_position, EState status)
+void GLSelectionRectangle::start_dragging(const Vec2d& mouse_position, EState state)
 {
-    if (is_active() || (status == Off))
+    if (is_dragging() || (state == Off))
         return;
 
-    m_status = status;
+    m_state = state;
     m_start_corner = mouse_position;
     m_end_corner = mouse_position;
 }
 
 void GLSelectionRectangle::dragging(const Vec2d& mouse_position)
 {
-    if (!is_active())
+    if (!is_dragging())
         return;
     
     m_end_corner = mouse_position;
@@ -33,10 +33,10 @@ std::vector<unsigned int> GLSelectionRectangle::stop_dragging(const GLCanvas3D& 
 {
     std::vector<unsigned int> out;
 
-    if (!is_active())
+    if (!is_dragging())
         return out;
 
-    m_status = Off;
+    m_state = Off;
 
     const Camera& camera = canvas.get_camera();
     const std::array<int, 4>& viewport = camera.get_viewport();
@@ -62,15 +62,15 @@ std::vector<unsigned int> GLSelectionRectangle::stop_dragging(const GLCanvas3D& 
 
 void GLSelectionRectangle::stop_dragging()
 {
-    if (!is_active())
+    if (!is_dragging())
         return;
 
-    m_status = Off;
+    m_state = Off;
 }
 
 void GLSelectionRectangle::render(const GLCanvas3D& canvas) const
 {
-    if (m_status == Off)
+    if (m_state == Off)
         return;
 
     float zoom = canvas.get_camera().zoom;
@@ -92,8 +92,8 @@ void GLSelectionRectangle::render(const GLCanvas3D& canvas) const
 
     glsafe(::glLineWidth(1.5f));
     float color[3];
-    color[0] = (m_status == Select) ? 0.3f : 1.0f;
-    color[1] = (m_status == Select) ? 1.0f : 0.3f;
+    color[0] = (m_state == Select) ? 0.3f : 1.0f;
+    color[1] = (m_state == Select) ? 1.0f : 0.3f;
     color[2] = 0.3f;
     glsafe(::glColor3fv(color));
 
