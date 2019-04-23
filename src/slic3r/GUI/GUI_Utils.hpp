@@ -16,6 +16,7 @@
 #include <wx/panel.h>
 #include <wx/dcclient.h>
 #include <wx/debug.h>
+#include <wx/settings.h>
 
 class wxCheckBox;
 class wxTopLevelWindow;
