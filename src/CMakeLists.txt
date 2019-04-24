@@ -12,7 +12,6 @@ add_subdirectory(poly2tri)
 add_subdirectory(qhull)
 add_subdirectory(Shiny)
 add_subdirectory(semver)
-add_subdirectory(imgui)
 
 # Adding libnest2d project for bin packing...
 set(LIBNEST2D_UNITTESTS ON CACHE BOOL "Force generating unittests for libnest2d")
@@ -24,6 +23,8 @@ include_directories(${LIBDIR}/qhull/src)
 add_subdirectory(libslic3r)
 
 if (SLIC3R_GUI)
+    add_subdirectory(imgui)
+
     if(WIN32)
         message(STATUS "WXWIN environment set to: $ENV{WXWIN}")
     elseif(UNIX)
@@ -56,9 +57,10 @@ if (SLIC3R_GUI)
     endif()
 
     include(${wxWidgets_USE_FILE})
+
+    add_subdirectory(slic3r)
 endif()
 
-add_subdirectory(slic3r)
 
 # Create a slic3r executable
 # Process mainfests for various platforms.
@@ -88,7 +90,8 @@ elseif (MSVC)
     # Manifest is provided through slic3r.rc, don't generate your own.
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /MANIFEST:NO")
 else ()
-    target_link_libraries(slic3r ${CMAKE_DL_LIBS} -lstdc++)
+    # Boost on Raspberry-Pi does not link to pthreads explicitely.
+    target_link_libraries(slic3r ${CMAKE_DL_LIBS} -lstdc++ Threads::Threads)
 endif ()
 
 # Add the Slic3r GUI library, libcurl, OpenGL and GLU libraries.

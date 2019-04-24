@@ -86,6 +86,8 @@ public:
     wxSizer*		sizer {nullptr};
     column_t		extra_column {nullptr};
     t_change		m_on_change { nullptr };
+	// To be called when the field loses focus, to assign a new initial value to the field.
+	// Used by the relative position / rotation / scale manipulation fields of the Object Manipulation UI.
     t_kill_focus    m_fill_empty_value { nullptr };
     t_kill_focus    m_set_focus { nullptr };
 	std::function<DynamicPrintConfig()>	m_get_initial_config{ nullptr };

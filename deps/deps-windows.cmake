@@ -210,10 +210,12 @@ endif ()
 
 ExternalProject_Add(dep_wxwidgets
     EXCLUDE_FROM_ALL 1
-    URL "https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.1/wxWidgets-3.1.1.tar.bz2"
-    URL_HASH SHA256=c925dfe17e8f8b09eb7ea9bfdcfcc13696a3e14e92750effd839f5e10726159e
+    GIT_REPOSITORY "https://github.com/prusa3d/wxWidgets"
+    GIT_TAG v3.1.1-patched
+#    URL "https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.1/wxWidgets-3.1.1.tar.bz2"
+#    URL_HASH SHA256=c925dfe17e8f8b09eb7ea9bfdcfcc13696a3e14e92750effd839f5e10726159e
     BUILD_IN_SOURCE 1
-    PATCH_COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_CURRENT_SOURCE_DIR}\\wxwidgets-pngprefix.h" src\\png\\pngprefix.h
+#    PATCH_COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_CURRENT_SOURCE_DIR}\\wxwidgets-pngprefix.h" src\\png\\pngprefix.h
     CONFIGURE_COMMAND ""
     BUILD_COMMAND cd build\\msw && nmake /f makefile.vc BUILD=release SHARED=0 UNICODE=1 USE_GUI=1 "${DEP_WXWIDGETS_TARGET}"
     INSTALL_COMMAND "${CMAKE_COMMAND}" -E copy_directory include "${DESTDIR}\\usr\\local\\include"

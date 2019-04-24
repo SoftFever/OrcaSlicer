@@ -139,6 +139,10 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
         # Workaround for an old CMake, which does not understand CMAKE_CXX_STANDARD.
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
     endif()
+
+    # Boost on Raspberry-Pi does not link to pthreads.
+    set(THREADS_PREFER_PTHREAD_FLAG ON)
+    find_package(Threads REQUIRED)
 endif()
 
 if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUXX)
