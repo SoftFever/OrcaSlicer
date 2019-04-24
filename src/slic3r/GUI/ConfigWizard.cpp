@@ -18,6 +18,7 @@
 #include <wx/dataview.h>
 #include <wx/notebook.h>
 #include <wx/display.h>
+#include <wx/filefn.h>
 #include <wx/debug.h>
 
 #include "libslic3r/Utils.hpp"
@@ -81,11 +82,17 @@ PrinterPicker::PrinterPicker(wxWindow *parent, const VendorProfile &vendor, wxSt
     for (const auto &model : models) {
         if (! filter(model)) { continue; }
 
-        wxBitmap bitmap(GUI::from_u8(Slic3r::var((boost::format("printers/%1%_%2%.png") % vendor.id % model.id).str())), wxBITMAP_TYPE_PNG);
+        wxBitmap bitmap;
+        int bitmap_width = 0;
+        const wxString bitmap_file = GUI::from_u8(Slic3r::var((boost::format("printers/%1%_%2%.png") % vendor.id % model.id).str()));
+        if (wxFileExists(bitmap_file)) {
+            bitmap.LoadFile(bitmap_file, wxBITMAP_TYPE_PNG);
+            bitmap_width = bitmap.GetWidth();
+        }
 
         auto *title = new wxStaticText(this, wxID_ANY, model.name, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
         title->SetFont(font_name);
-        const int wrap_width = std::max((int)MODEL_MIN_WRAP, bitmap.GetWidth());
+        const int wrap_width = std::max((int)MODEL_MIN_WRAP, bitmap_width);
         title->Wrap(wrap_width);
 
         current_row_width += wrap_width;
