@@ -193,6 +193,106 @@ void ObjectList::create_popup_menus()
     create_instance_popupmenu(&m_menu_instance);
 }
 
+void ObjectList::get_selected_item_indexes(int& obj_idx, int& vol_idx, const wxDataViewItem& input_item/* = wxDataViewItem(0)*/)
+{
+    const wxDataViewItem item = input_item == wxDataViewItem(0) ? GetSelection() : input_item;
+
+    if (!item)
+    {
+        obj_idx = vol_idx = -1;
+        return;
+    }
+
+    const ItemType type = m_objects_model->GetItemType(item);
+
+    obj_idx =   type & itObject ? m_objects_model->GetIdByItem(item) :
+                type & itVolume ? m_objects_model->GetIdByItem(m_objects_model->GetTopParent(item)) : -1;
+
+    vol_idx =   type & itVolume ? m_objects_model->GetVolumeIdByItem(item) : -1;
+}
+
+int ObjectList::get_mesh_errors_count(const int obj_idx, const int vol_idx /*= -1*/) const
+{
+    if (obj_idx < 0)
+        return 0;
+
+    int errors = 0;
+
+    std::vector<ModelVolume*> volumes;
+    if (vol_idx == -1)
+        volumes = (*m_objects)[obj_idx]->volumes;
+    else
+        volumes.emplace_back((*m_objects)[obj_idx]->volumes[vol_idx]);
+
+    for (ModelVolume* volume : volumes)
+    {
+        const stl_stats& stats = volume->mesh.stl.stats;
+
+        errors +=   stats.degenerate_facets + stats.edges_fixed     + stats.facets_removed +
+                    stats.facets_added      + stats.facets_reversed + stats.backwards_edges;
+    }
+
+    return errors;
+}
+
+wxString ObjectList::get_mesh_errors_list(const int obj_idx, const int vol_idx /*= -1*/) const
+{    
+    const int errors = get_mesh_errors_count(obj_idx, vol_idx);
+
+    if (errors == 0)
+        return ""; // hide tooltip
+
+    // Create tooltip string, if there are errors 
+    wxString tooltip = wxString::Format(_(L("Auto-repaired (%d errors):\n")), errors);
+
+    std::vector<ModelVolume*> volumes;
+    if (vol_idx == -1)
+        volumes = (*m_objects)[obj_idx]->volumes;
+    else
+        volumes.emplace_back((*m_objects)[obj_idx]->volumes[vol_idx]);
+
+    std::map<std::string, int> error_msg = {
+        {L("degenerate facets") , 0},
+        {L("edges fixed")       , 0},
+        {L("facets removed")    , 0},
+        {L("facets added")      , 0},
+        {L("facets reversed")   , 0},
+        {L("backwards edges")   , 0}
+    };
+
+    for (ModelVolume* volume : volumes)
+    {
+        const stl_stats& stats = volume->mesh.stl.stats;
+        
+        error_msg[L("degenerate facets")]   += stats.degenerate_facets;
+        error_msg[L("edges fixed")]         += stats.edges_fixed;
+        error_msg[L("facets removed")]      += stats.facets_removed;
+        error_msg[L("facets added")]        += stats.facets_added;
+        error_msg[L("facets reversed")]     += stats.facets_reversed;
+        error_msg[L("backwards edges")]     += stats.backwards_edges;
+    }
+
+    for (const auto& error : error_msg)
+        if (error.second > 0)
+            tooltip += wxString::Format(_("\t%d %s\n"), error.second, error.first);
+
+    if (is_windows10())
+        tooltip += _(L("Right button click the icon to fix STL through Netfabb"));
+
+    return tooltip;
+}
+
+wxString ObjectList::get_mesh_errors_list()
+{
+    if (!GetSelection())
+        return "";
+
+    int obj_idx, vol_idx;
+    get_selected_item_indexes(obj_idx, vol_idx);
+
+    return get_mesh_errors_list(obj_idx, vol_idx);
+}
+
 void ObjectList::set_tooltip_for_item(const wxPoint& pt)
 {
     wxDataViewItem item;
@@ -202,38 +302,11 @@ void ObjectList::set_tooltip_for_item(const wxPoint& pt)
 
     if (col->GetTitle() == " " && GetSelectedItemsCount()<2)
         GetMainWindow()->SetToolTip(_(L("Right button click the icon to change the object settings")));
-    else if (col->GetTitle() == _("Name") &&
-        m_objects_model->GetBitmap(item).GetRefData() == m_bmp_manifold_warning.GetRefData()) {
-        int obj_idx = m_objects_model->GetIdByItem(item);
-        auto& stats = (*m_objects)[obj_idx]->volumes[0]->mesh.stl.stats;
-        int errors = stats.degenerate_facets + stats.edges_fixed + stats.facets_removed +
-            stats.facets_added + stats.facets_reversed + stats.backwards_edges;
-
-        wxString tooltip = wxString::Format(_(L("Auto-repaired (%d errors):\n")), errors);
-
-        std::map<std::string, int> error_msg;
-        error_msg[L("degenerate facets")] = stats.degenerate_facets;
-        error_msg[L("edges fixed")] = stats.edges_fixed;
-        error_msg[L("facets removed")] = stats.facets_removed;
-        error_msg[L("facets added")] = stats.facets_added;
-        error_msg[L("facets reversed")] = stats.facets_reversed;
-        error_msg[L("backwards edges")] = stats.backwards_edges;
-
-        for (auto error : error_msg)
-        {
-            if (error.second > 0)
-                tooltip += wxString::Format(_("\t%d %s\n"), error.second, error.first);
-        }
-// OR
-//             tooltip += wxString::Format(_(L("%d degenerate facets, %d edges fixed, %d facets removed, "
-//                                             "%d facets added, %d facets reversed, %d backwards edges")),
-//                                             stats.degenerate_facets, stats.edges_fixed, stats.facets_removed,
-//                                             stats.facets_added, stats.facets_reversed, stats.backwards_edges);
-
-        if (is_windows10())
-            tooltip += _(L("Right button click the icon to fix STL through Netfabb"));
-
-        GetMainWindow()->SetToolTip(tooltip);
+    else if (col->GetTitle() == _("Name") )
+    {
+        int obj_idx, vol_idx;
+        get_selected_item_indexes(obj_idx, vol_idx, item);
+        GetMainWindow()->SetToolTip(get_mesh_errors_list(obj_idx, vol_idx));
     }
     else
         GetMainWindow()->SetToolTip(""); // hide tooltip
@@ -533,10 +606,12 @@ void ObjectList::OnContextMenu(wxDataViewEvent&)
 
     if (title == " ")
         show_context_menu();
-    else if (title == _("Name") && pt.x >15 &&
-             m_objects_model->GetBitmap(item).GetRefData() == m_bmp_manifold_warning.GetRefData())
+    else if (title == _("Name") && pt.x > 1.6f*wxGetApp().em_unit() && pt.x < 3.2f*wxGetApp().em_unit())
     {
-        if (is_windows10())
+        int obj_idx, vol_idx;
+        get_selected_item_indexes(obj_idx, vol_idx, item);
+        
+        if (is_windows10() && get_mesh_errors_count(obj_idx, vol_idx) > 0)
             fix_through_netfabb();
     }
 
@@ -1729,6 +1804,7 @@ void ObjectList::parts_changed(int obj_idx)
 void ObjectList::part_selection_changed()
 {
     int obj_idx = -1;
+    int volume_id = -1;
     m_config = nullptr;
     wxString og_name = wxEmptyString;
 
@@ -1775,7 +1851,7 @@ void ObjectList::part_selection_changed()
                 }
                 else if (m_objects_model->GetItemType(item) == itVolume) {
                     og_name = _(L("Part manipulation"));
-                    const auto volume_id = m_objects_model->GetVolumeIdByItem(item);
+                    volume_id = m_objects_model->GetVolumeIdByItem(item);
                     m_config = &(*m_objects)[obj_idx]->volumes[volume_id]->config;
                     update_and_show_manipulations = true;
                 }
@@ -1795,7 +1871,11 @@ void ObjectList::part_selection_changed()
 
     if (update_and_show_manipulations) {
         wxGetApp().obj_manipul()->get_og()->set_name(" " + og_name + " ");
-        wxGetApp().obj_manipul()->get_og()->set_value("object_name", m_objects_model->GetName(GetSelection()));
+
+        if (item) {
+            wxGetApp().obj_manipul()->get_og()->set_value("object_name", m_objects_model->GetName(item));
+            wxGetApp().obj_manipul()->update_manifold_warning_icon_state(get_mesh_errors_list(obj_idx, volume_id));
+        }
     }
 
     if (update_and_show_settings)
@@ -1815,16 +1895,13 @@ void ObjectList::part_selection_changed()
 void ObjectList::add_object_to_list(size_t obj_idx)
 {
     auto model_object = (*m_objects)[obj_idx];
-    wxString item_name = from_u8(model_object->name);
+    const wxString& item_name = from_u8(model_object->name);
     const auto item = m_objects_model->Add(item_name,
                       !model_object->config.has("extruder") ? 0 :
                       model_object->config.option<ConfigOptionInt>("extruder")->value);
 
     // Add error icon if detected auto-repaire
-    auto stats = model_object->volumes[0]->mesh.stl.stats;
-    int errors = stats.degenerate_facets + stats.edges_fixed + stats.facets_removed +
-        stats.facets_added + stats.facets_reversed + stats.backwards_edges;
-    if (errors > 0) {
+    if (get_mesh_errors_count(obj_idx) > 0) {
         wxVariant variant;
         variant << PrusaDataViewBitmapText(item_name, m_bmp_manifold_warning);
         m_objects_model->SetValue(variant, item, 0);
@@ -2641,18 +2718,10 @@ void ObjectList::rename_item()
     update_name_in_model(item);
 }
 
-void ObjectList::fix_through_netfabb() const 
+void ObjectList::fix_through_netfabb() 
 {
-    const wxDataViewItem item = GetSelection();
-    if (!item)
-        return;
-    
-    const ItemType type = m_objects_model->GetItemType(item);
-
-    const int obj_idx = type & itObject ? m_objects_model->GetIdByItem(item) :
-                        type & itVolume ? m_objects_model->GetIdByItem(m_objects_model->GetTopParent(item)) : -1;
-
-    const int vol_idx = type & itVolume ? m_objects_model->GetVolumeIdByItem(item) : -1;
+    int obj_idx, vol_idx;
+    get_selected_item_indexes(obj_idx, vol_idx);
 
     wxGetApp().plater()->fix_through_netfabb(obj_idx, vol_idx);
     
@@ -2666,16 +2735,10 @@ void ObjectList::update_item_error_icon(const int obj_idx, const int vol_idx) co
     if (!item)
         return;
 
-    auto model_object = (*m_objects)[obj_idx];
-
-    const stl_stats& stats = model_object->volumes[vol_idx<0 ? 0 : vol_idx]->mesh.stl.stats;
-    const int errors = stats.degenerate_facets + stats.edges_fixed + stats.facets_removed +
-                       stats.facets_added + stats.facets_reversed + stats.backwards_edges;
-
-    if (errors == 0) {
+    if (get_mesh_errors_count(obj_idx, vol_idx) == 0) {
         // delete Error_icon if all errors are fixed
         wxVariant variant;
-        variant << PrusaDataViewBitmapText(from_u8(model_object->name), wxNullBitmap);
+        variant << PrusaDataViewBitmapText(from_u8((*m_objects)[obj_idx]->name), wxNullBitmap);
         m_objects_model->SetValue(variant, item, 0);
     }
 }

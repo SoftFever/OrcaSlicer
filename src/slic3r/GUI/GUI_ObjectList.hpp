@@ -177,6 +177,16 @@ public:
 
     void                init_icons();
 
+    // Get obj_idx and vol_idx values for the selected (by default) or an adjusted item
+    void                get_selected_item_indexes(int& obj_idx, int& vol_idx, const wxDataViewItem& item = wxDataViewItem(0));
+    // Get count of errors in the mesh
+    int                 get_mesh_errors_count(const int obj_idx, const int vol_idx = -1) const;
+    /* Get list of errors in the mesh. Return value is a string, used for the tooltip
+     * Function without parameters is for a call from Manipulation panel, 
+     * when we don't know parameters of selected item 
+     */
+    wxString            get_mesh_errors_list(const int obj_idx, const int vol_idx = -1) const;
+    wxString            get_mesh_errors_list();
     void                set_tooltip_for_item(const wxPoint& pt);
 
     void                selection_changed();
@@ -285,7 +295,7 @@ public:
     void instances_to_separated_objects(const int obj_idx);
     void split_instances();
     void rename_item();
-    void fix_through_netfabb() const;
+    void fix_through_netfabb();
     void update_item_error_icon(const int obj_idx, int vol_idx) const ;
 
     void paste_volumes_into_list(int obj_idx, const ModelVolumePtrs& volumes);
