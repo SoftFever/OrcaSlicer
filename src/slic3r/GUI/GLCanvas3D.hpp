@@ -594,7 +594,7 @@ public:
 
     double get_size_proportional_to_max_bed_size(double factor) const;
 
-    void rescale();
+    void msw_rescale();
 
 private:
     bool _is_shown_on_screen() const;

@@ -78,7 +78,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
         // Add "uniform scaling" button in front of "Scale" option 
         if (option_name == "Scale") {
             line.near_label_widget = [this](wxWindow* parent) {
-                auto btn = new PrusaLockButton(parent, wxID_ANY);
+                auto btn = new LockButton(parent, wxID_ANY);
                 btn->Bind(wxEVT_BUTTON, [btn, this](wxCommandEvent &event){
                     event.Skip();
                     wxTheApp->CallAfter([btn, this]() { set_uniform_scaling(btn->IsLocked()); });
@@ -119,10 +119,10 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
 
     // call back for a rescale of button "Set uniform scale"
     m_og->rescale_near_label_widget = [this](wxWindow* win) {
-        auto *ctrl = dynamic_cast<PrusaLockButton*>(win);
+        auto *ctrl = dynamic_cast<LockButton*>(win);
         if (ctrl == nullptr)
             return;
-        ctrl->rescale();
+        ctrl->msw_rescale();
     };
 }
 

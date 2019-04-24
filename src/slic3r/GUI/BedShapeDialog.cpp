@@ -43,7 +43,7 @@ void BedShapeDialog::on_dpi_changed(const wxRect &suggested_rect)
     m_panel->m_shape_options_book->SetMinSize(wxSize(25 * em, -1));
 
     for (auto og : m_panel->m_optgroups)
-        og->rescale();
+        og->msw_rescale();
 
     const wxSize& size = wxSize(50 * em, -1);
 

@@ -60,7 +60,7 @@ ObjectSettings::ObjectSettings(wxWindow* parent) :
     m_settings_list_sizer = new wxBoxSizer(wxVERTICAL);
     m_og->sizer->Add(m_settings_list_sizer, 1, wxEXPAND | wxLEFT, 5);
 
-    m_bmp_delete = PrusaBitmap(parent, "cross");
+    m_bmp_delete = ScalableBitmap(parent, "cross");
 }
 
 void ObjectSettings::update_settings_list()
@@ -79,12 +79,8 @@ void ObjectSettings::update_settings_list()
 		{
 			auto opt_key = (line.get_options())[0].opt_id;  //we assume that we have one option per line
 
-// 			auto btn = new wxBitmapButton(parent, wxID_ANY, create_scaled_bitmap(m_parent, "cross"/*"colorchange_delete_on.png"*/),
-// 				wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-			auto btn = new PrusaButton(parent, wxID_ANY, m_bmp_delete);
-//#ifdef __WXMSW__
-//            btn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
-//#endif // __WXMSW__
+			auto btn = new ScalableButton(parent, wxID_ANY, m_bmp_delete);
+
 			btn->Bind(wxEVT_BUTTON, [opt_key, config, this](wxEvent &event) {
 				config->erase(opt_key);
                 wxGetApp().obj_list()->changed_object();
@@ -145,7 +141,7 @@ void ObjectSettings::update_settings_list()
 
                 // call back for rescaling of the extracolumn control
                 optgroup->rescale_extra_column_item = [this](wxWindow* win) {
-                    auto *ctrl = dynamic_cast<PrusaButton*>(win);
+                    auto *ctrl = dynamic_cast<ScalableButton*>(win);
                     if (ctrl == nullptr)
                         return;
                     ctrl->SetBitmap_(m_bmp_delete);
@@ -175,12 +171,12 @@ void ObjectSettings::UpdateAndShow(const bool show)
     OG_Settings::UpdateAndShow(show);
 }
 
-void ObjectSettings::rescale()
+void ObjectSettings::msw_rescale()
 {
-    m_bmp_delete.rescale();
+    m_bmp_delete.msw_rescale();
 
     for (auto group : m_og_settings)
-        group->rescale();
+        group->msw_rescale();
 }
 
 } //namespace GUI

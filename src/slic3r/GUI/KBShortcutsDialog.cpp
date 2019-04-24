@@ -15,21 +15,21 @@ KBShortcutsDialog::KBShortcutsDialog()
 {
 	SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 
-	main_sizer = new wxBoxSizer(wxVERTICAL);
+	auto main_sizer = new wxBoxSizer(wxVERTICAL);
 
     // logo
-    m_logo_bmp = PrusaBitmap(this, "Slic3r_32px.png", 32);
+    m_logo_bmp = ScalableBitmap(this, "Slic3r_32px.png", 32);
 
     // fonts
     const wxFont& font = wxGetApp().normal_font();
     const wxFont& bold_font = wxGetApp().bold_font();   
     SetFont(font);
 
-    wxFont head_font = bold_font;// wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold();
+    wxFont head_font = bold_font;
 #ifdef __WXOSX__
     head_font.SetPointSize(14);
 #else
-    head_font.SetPointSize(/*12*/bold_font.GetPointSize() + 2);
+    head_font.SetPointSize(bold_font.GetPointSize() + 2);
 #endif // __WXOSX__
 
     fill_shortcuts();
@@ -191,7 +191,7 @@ void KBShortcutsDialog::fill_shortcuts()
 
 void KBShortcutsDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
-    m_logo_bmp.rescale();
+    m_logo_bmp.msw_rescale();
 
     for (wxStaticBitmap* bmp : m_head_bitmaps)
         bmp->SetBitmap(m_logo_bmp.bmp());

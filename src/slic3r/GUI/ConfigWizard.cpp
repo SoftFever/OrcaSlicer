@@ -648,10 +648,10 @@ ConfigWizardIndex::ConfigWizardIndex(wxWindow *parent)
     , bullet_blue(GUI::from_u8(Slic3r::var("bullet_blue.png")), wxBITMAP_TYPE_PNG)
     , bullet_white(GUI::from_u8(Slic3r::var("bullet_white.png")), wxBITMAP_TYPE_PNG)
     */
-    , bg(PrusaBitmap(parent, "Slic3r_192px_transparent.png", 192))
-    , bullet_black(PrusaBitmap(parent, "bullet_black.png"))
-    , bullet_blue(PrusaBitmap(parent, "bullet_blue.png"))
-    , bullet_white(PrusaBitmap(parent, "bullet_white.png"))
+    , bg(ScalableBitmap(parent, "Slic3r_192px_transparent.png", 192))
+    , bullet_black(ScalableBitmap(parent, "bullet_black.png"))
+    , bullet_blue(ScalableBitmap(parent, "bullet_blue.png"))
+    , bullet_white(ScalableBitmap(parent, "bullet_white.png"))
     , item_active(0)
     , item_hover(-1)
     , last_page((size_t)-1)
@@ -839,15 +839,15 @@ void ConfigWizardIndex::on_mouse_move(wxMouseEvent &evt)
     evt.Skip();
 }
 
-void ConfigWizardIndex::rescale()
+void ConfigWizardIndex::msw_rescale()
 {
-    bg.rescale();
+    bg.msw_rescale();
     SetMinSize(bg.bmp().GetSize());
     logo->SetBitmap(bg.bmp());
 
-    bullet_black.rescale();
-    bullet_blue.rescale();
-    bullet_white.rescale();
+    bullet_black.msw_rescale();
+    bullet_blue.msw_rescale();
+    bullet_white.msw_rescale();
     Refresh();
 }
 
@@ -1174,7 +1174,7 @@ const wxString& ConfigWizard::name(const bool from_menu/* = false*/)
 
 void ConfigWizard::on_dpi_changed(const wxRect &suggested_rect)
 {
-    p->index->rescale();
+    p->index->msw_rescale();
     Refresh();
 }
 

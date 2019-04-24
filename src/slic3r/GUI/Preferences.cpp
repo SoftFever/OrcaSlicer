@@ -144,7 +144,7 @@ void PreferencesDialog::accept()
 
 void PreferencesDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
-    m_optgroup->rescale();
+    m_optgroup->msw_rescale();
 
     const int& em = em_unit();
     const wxSize& size = wxSize(50 * em, 29 * em);

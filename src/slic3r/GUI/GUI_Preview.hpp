@@ -13,7 +13,7 @@ class wxStaticText;
 class wxChoice;
 class wxComboCtrl;
 class wxCheckBox;
-class PrusaDoubleSlider;
+class DoubleSlider;
 
 namespace Slic3r {
 
@@ -99,7 +99,7 @@ class Preview : public wxPanel
     bool m_loaded;
     bool m_enabled;
 
-    PrusaDoubleSlider* m_slider {nullptr};
+    DoubleSlider* m_slider {nullptr};
 
 public:
     Preview(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model, DynamicPrintConfig* config, 
@@ -120,7 +120,7 @@ public:
     void reload_print(bool keep_volumes = false);
     void refresh_print();
 
-    void rescale();
+    void msw_rescale();
 
 private:
     bool init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model);

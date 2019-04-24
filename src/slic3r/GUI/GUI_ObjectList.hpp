@@ -13,8 +13,8 @@
 
 class wxBoxSizer;
 class wxMenuItem;
-class PrusaObjectDataViewModel;
-class PrusaMenu;
+class ObjectDataViewModel;
+class MenuWithSeparators;
 
 namespace Slic3r {
 class ConfigOptionsGroup;
@@ -108,24 +108,24 @@ class ObjectList : public wxDataViewCtrl
     wxBoxSizer          *m_sizer {nullptr};
     wxWindow            *m_parent {nullptr};
 
-    /*wxBitmap*/PrusaBitmap	m_bmp_modifiermesh;
-    /*wxBitmap*/PrusaBitmap	m_bmp_solidmesh;
-    /*wxBitmap*/PrusaBitmap	m_bmp_support_enforcer;
-    /*wxBitmap*/PrusaBitmap	m_bmp_support_blocker;
-    /*wxBitmap*/PrusaBitmap	m_bmp_manifold_warning;
-    /*wxBitmap*/PrusaBitmap	m_bmp_cog;
-    /*wxBitmap*/PrusaBitmap	m_bmp_split;
+    ScalableBitmap	    m_bmp_modifiermesh;
+    ScalableBitmap	    m_bmp_solidmesh;
+    ScalableBitmap	    m_bmp_support_enforcer;
+    ScalableBitmap	    m_bmp_support_blocker;
+    ScalableBitmap	    m_bmp_manifold_warning;
+    ScalableBitmap	    m_bmp_cog;
+    ScalableBitmap	    m_bmp_split;
 
-    PrusaMenu   m_menu_object;
-    PrusaMenu   m_menu_part;
-    PrusaMenu   m_menu_sla_object;
-    PrusaMenu   m_menu_instance;
+    MenuWithSeparators  m_menu_object;
+    MenuWithSeparators  m_menu_part;
+    MenuWithSeparators  m_menu_sla_object;
+    MenuWithSeparators  m_menu_instance;
     wxMenuItem* m_menu_item_split { nullptr };
     wxMenuItem* m_menu_item_split_part { nullptr };
     wxMenuItem* m_menu_item_settings { nullptr };
     wxMenuItem* m_menu_item_split_instances { nullptr };
 
-    std::vector<wxBitmap* /*const wxBitmap&*/> m_bmp_vector;
+    std::vector<wxBitmap*> m_bmp_vector;
 
     int			m_selected_object_id = -1;
     bool		m_prevent_list_events = false;		// We use this flag to avoid circular event handling Select() 
@@ -138,9 +138,6 @@ class ObjectList : public wxDataViewCtrl
     bool        m_prevent_canvas_selection_update = false; // This flag prevents changing selection on the canvas. See function
                                                            // update_settings_items - updating canvas selection is undesirable,
                                                            // because it would turn off the gizmos (mainly a problem for the SLA gizmo)
-
-//     bool        m_parts_changed = false;
-//     bool        m_part_settings_changed = false;
 
     int         m_selected_row = 0;
     wxDataViewItem m_last_selected_item {nullptr};
@@ -157,7 +154,7 @@ public:
 
     std::map<std::string, wxBitmap> CATEGORY_ICON;
 
-    PrusaObjectDataViewModel	*m_objects_model{ nullptr };
+    ObjectDataViewModel	*m_objects_model{ nullptr };
     DynamicPrintConfig          *m_config {nullptr};
 
     std::vector<ModelObject*>   *m_objects{ nullptr };
@@ -289,7 +286,7 @@ public:
     void paste_volumes_into_list(int obj_idx, const ModelVolumePtrs& volumes);
     void paste_objects_into_list(const std::vector<size_t>& object_idxs);
 
-    void rescale();
+    void msw_rescale();
 
 private:
     void OnChar(wxKeyEvent& event);

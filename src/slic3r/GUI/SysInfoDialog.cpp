@@ -54,8 +54,7 @@ SysInfoDialog::SysInfoDialog()
 	main_sizer->Add(hsizer, 1, wxEXPAND | wxALL, 10);
 
     // logo
-    m_logo_bmp = PrusaBitmap(this, "Slic3r_192px.png", 192);
-//     auto *logo = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap(this, "Slic3r_192px.png", 192));
+    m_logo_bmp = ScalableBitmap(this, "Slic3r_192px.png", 192);
     m_logo = new wxStaticBitmap(this, wxID_ANY, m_logo_bmp.bmp());
 	hsizer->Add(m_logo, 0, wxALIGN_CENTER_VERTICAL);
     
@@ -65,8 +64,7 @@ SysInfoDialog::SysInfoDialog()
     // title
     {
         wxStaticText* title = new wxStaticText(this, wxID_ANY, SLIC3R_APP_NAME, wxDefaultPosition, wxDefaultSize);
-        wxFont title_font = wxGetApp().bold_font();//wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
-//         title_font.SetWeight(wxFONTWEIGHT_BOLD);
+        wxFont title_font = wxGetApp().bold_font();
         title_font.SetFamily(wxFONTFAMILY_ROMAN);
         title_font.SetPointSize(22);
         title->SetFont(title_font);
@@ -74,7 +72,7 @@ SysInfoDialog::SysInfoDialog()
     }
 
     // main_info_text
-    wxFont font = wxGetApp().normal_font();//wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+    wxFont font = wxGetApp().normal_font();
     const auto text_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
     auto text_clr_str = wxString::Format(wxT("#%02X%02X%02X"), text_clr.Red(), text_clr.Green(), text_clr.Blue());
     auto bgr_clr_str = wxString::Format(wxT("#%02X%02X%02X"), bgr_clr.Red(), bgr_clr.Green(), bgr_clr.Blue());
@@ -136,7 +134,7 @@ SysInfoDialog::SysInfoDialog()
 
 void SysInfoDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
-    m_logo_bmp.rescale();
+    m_logo_bmp.msw_rescale();
     m_logo->SetBitmap(m_logo_bmp.bmp());
 
     wxFont font = GetFont();

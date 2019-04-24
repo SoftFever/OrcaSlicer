@@ -25,7 +25,7 @@ private:
 
 class AboutDialog : public DPIDialog
 {
-    PrusaBitmap     m_logo_bitmap;
+    ScalableBitmap  m_logo_bitmap;
     wxHtmlWindow*   m_html;
     wxStaticBitmap* m_logo;
 public:

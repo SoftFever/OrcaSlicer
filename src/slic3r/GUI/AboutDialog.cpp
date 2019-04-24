@@ -45,9 +45,8 @@ AboutDialog::AboutDialog()
 	main_sizer->Add(hsizer, 0, wxEXPAND | wxALL, 20);
 
     // logo
-    m_logo_bitmap = PrusaBitmap(this, "Slic3r_192px.png", 192);
+    m_logo_bitmap = ScalableBitmap(this, "Slic3r_192px.png", 192);
     m_logo = new wxStaticBitmap(this, wxID_ANY, m_logo_bitmap.bmp());
-//     auto *logo = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap(this, "Slic3r_192px.png", 192));
 	hsizer->Add(m_logo, 1, wxALIGN_CENTER_VERTICAL);
     
     wxBoxSizer* vsizer = new wxBoxSizer(wxVERTICAL); 	
@@ -56,8 +55,7 @@ AboutDialog::AboutDialog()
     // title
     {
         wxStaticText* title = new wxStaticText(this, wxID_ANY, SLIC3R_APP_NAME, wxDefaultPosition, wxDefaultSize);
-        wxFont title_font = GUI::wxGetApp().bold_font();// wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
-//         title_font.SetWeight(wxFONTWEIGHT_BOLD);
+        wxFont title_font = GUI::wxGetApp().bold_font();
         title_font.SetFamily(wxFONTFAMILY_ROMAN);
         title_font.SetPointSize(24);
         title->SetFont(title_font);
@@ -68,9 +66,9 @@ AboutDialog::AboutDialog()
     {
         auto version_string = _(L("Version"))+ " " + std::string(SLIC3R_VERSION);
         wxStaticText* version = new wxStaticText(this, wxID_ANY, version_string.c_str(), wxDefaultPosition, wxDefaultSize);
-        wxFont version_font = GetFont();//wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+        wxFont version_font = GetFont();
         #ifdef __WXMSW__
-        version_font.SetPointSize(/*9*/version_font.GetPointSize()-1);
+        version_font.SetPointSize(version_font.GetPointSize()-1);
         #else
             version_font.SetPointSize(11);
         #endif
@@ -82,7 +80,7 @@ AboutDialog::AboutDialog()
     m_html = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_AUTO/*NEVER*/);
     {
         m_html->SetMinSize(wxSize(-1, 16 * wxGetApp().em_unit()));
-        wxFont font = GetFont();//GUI::wxGetApp().normal_font(); // wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+        wxFont font = GetFont();
         const auto text_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
 		auto text_clr_str = wxString::Format(wxT("#%02X%02X%02X"), text_clr.Red(), text_clr.Green(), text_clr.Blue());
 		auto bgr_clr_str = wxString::Format(wxT("#%02X%02X%02X"), bgr_clr.Red(), bgr_clr.Green(), bgr_clr.Blue());
@@ -125,7 +123,7 @@ AboutDialog::AboutDialog()
 
 void AboutDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
-    m_logo_bitmap.rescale();
+    m_logo_bitmap.msw_rescale();
     m_logo->SetBitmap(m_logo_bitmap.bmp());
 
     const wxFont& font = GetFont();

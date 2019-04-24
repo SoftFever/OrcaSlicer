@@ -111,7 +111,7 @@ public:
 
     bool        showing_manifold_warning_icon;
     void        show_sizer(bool show);
-    void        rescale();
+    void        msw_rescale();
 };
 
 ObjectInfo::ObjectInfo(wxWindow *parent) :
@@ -161,7 +161,7 @@ void ObjectInfo::show_sizer(bool show)
         manifold_warning_icon->Show(showing_manifold_warning_icon && show);
 }
 
-void ObjectInfo::rescale()
+void ObjectInfo::msw_rescale()
 {
     manifold_warning_icon->SetBitmap(create_scaled_bitmap(nullptr, "exclamation"));
 }
@@ -288,12 +288,7 @@ wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(15 *
         });
     }
 
-//     edit_btn = new wxButton(parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
-// #ifdef __WINDOWS__
-//     edit_btn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
-// #endif
-//     edit_btn->SetBitmap(create_scaled_bitmap(this, "cog"));
-    edit_btn = new PrusaButton(parent, wxID_ANY, "cog");
+    edit_btn = new ScalableButton(parent, wxID_ANY, "cog");
     edit_btn->SetToolTip(_(L("Click to edit preset")));
 
     edit_btn->Bind(wxEVT_BUTTON, ([preset_type, this](wxCommandEvent)
@@ -339,10 +334,10 @@ void PresetComboBox::check_selection()
     this->last_selected = GetSelection();
 }
 
-void PresetComboBox::rescale()
+void PresetComboBox::msw_rescale()
 {
     m_em_unit = wxGetApp().em_unit();
-    edit_btn->rescale();
+    edit_btn->msw_rescale();
 }
 
 // Frequently changed parameters
@@ -580,7 +575,7 @@ struct Sidebar::priv
     wxScrolledWindow *scrolled;
     wxPanel* presets_panel; // Used for MSW better layouts
 
-    PrusaModeSizer  *mode_sizer;
+    ModeSizer  *mode_sizer;
     wxFlexGridSizer *sizer_presets;
     PresetComboBox *combo_print;
     std::vector<PresetComboBox*> combos_filament;
@@ -639,7 +634,7 @@ Sidebar::Sidebar(Plater *parent)
     p->scrolled->SetSizer(scrolled_sizer);
 
     // Sizer with buttons for mode changing
-    p->mode_sizer = new PrusaModeSizer(p->scrolled, 2 * wxGetApp().em_unit());
+    p->mode_sizer = new ModeSizer(p->scrolled, 2 * wxGetApp().em_unit());
 
     // The preset chooser
     p->sizer_presets = new wxFlexGridSizer(10, 1, 1, 2);
@@ -854,23 +849,6 @@ void Sidebar::update_presets(Preset::Type preset_type)
 
 	case Preset::TYPE_PRINTER:
 	{
-//         wxWindowUpdateLocker noUpdates_scrolled(p->scrolled);
-
-// 		// Update the print choosers to only contain the compatible presets, update the dirty flags.
-//         if (print_tech == ptFFF)
-// 			preset_bundle.prints.update_platter_ui(p->combo_print);
-//         else {
-//             preset_bundle.sla_prints.update_platter_ui(p->combo_sla_print);
-//             preset_bundle.sla_materials.update_platter_ui(p->combo_sla_material);
-//         }
-// 		// Update the printer choosers, update the dirty flags.
-// 		preset_bundle.printers.update_platter_ui(p->combo_printer);
-// 		// Update the filament choosers to only contain the compatible presets, update the color preview,
-// 		// update the dirty flags.
-//         if (print_tech == ptFFF) {
-//             for (size_t i = 0; i < p->combos_filament.size(); ++ i)
-//                 preset_bundle.update_platter_filament_ui(i, p->combos_filament[i], wxGetApp().em_unit());
-// 		}
         update_all_preset_comboboxes();
 		p->show_preset_comboboxes();
 		break;
@@ -896,33 +874,33 @@ void Sidebar::update_reslice_btn_tooltip() const
     p->btn_reslice->SetToolTip(tooltip);
 }
 
-void Sidebar::rescale() 
+void Sidebar::msw_rescale() 
 {
     SetMinSize(wxSize(40 * wxGetApp().em_unit(), -1));
 
-    p->mode_sizer->rescale();
+    p->mode_sizer->msw_rescale();
 
     // Rescale preset comboboxes in respect to the current  em_unit ...
     for (PresetComboBox* combo : std::vector<PresetComboBox*> { p->combo_print,
                                                                 p->combo_sla_print,
                                                                 p->combo_sla_material,
                                                                 p->combo_printer } )
-        combo->rescale();
+        combo->msw_rescale();
     for (PresetComboBox* combo : p->combos_filament)
-        combo->rescale();
+        combo->msw_rescale();
 
     // ... then refill them and set min size to correct layout of the sidebar
     update_all_preset_comboboxes();
 
-    p->frequently_changed_parameters->get_og(true)->rescale();
-    p->frequently_changed_parameters->get_og(false)->rescale();
+    p->frequently_changed_parameters->get_og(true)->msw_rescale();
+    p->frequently_changed_parameters->get_og(false)->msw_rescale();
 
-    p->object_list->rescale();
+    p->object_list->msw_rescale();
 
-    p->object_manipulation->get_og()->rescale();
-    p->object_settings->rescale();
+    p->object_manipulation->get_og()->msw_rescale();
+    p->object_settings->msw_rescale();
 
-    p->object_info->rescale();
+    p->object_info->msw_rescale();
 
     p->scrolled->Layout();
 }
@@ -1198,11 +1176,11 @@ struct Plater::priv
     MainFrame *main_frame;
 
     // Object popup menu
-    PrusaMenu object_menu;
+    MenuWithSeparators object_menu;
     // Part popup menu
-    PrusaMenu part_menu;
+    MenuWithSeparators part_menu;
     // SLA-Object popup menu
-    PrusaMenu sla_object_menu;
+    MenuWithSeparators sla_object_menu;
 
     // Removed/Prepended Items according to the view mode
     std::vector<wxMenuItem*> items_increase;
@@ -3850,13 +3828,13 @@ bool Plater::can_paste_from_clipboard() const
     return true;
 }
 
-void Plater::rescale()
+void Plater::msw_rescale()
 {
-    p->preview->rescale();
+    p->preview->msw_rescale();
 
-    p->view3D->get_canvas3d()->rescale();
+    p->view3D->get_canvas3d()->msw_rescale();
 
-    p->sidebar->rescale();
+    p->sidebar->msw_rescale();
 
     Layout();
     GetParent()->Layout();

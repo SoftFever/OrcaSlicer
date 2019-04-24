@@ -38,7 +38,7 @@ class ObjectSettings : public OG_Settings
     // option groups for settings
     std::vector <std::shared_ptr<ConfigOptionsGroup>> m_og_settings;
 
-    PrusaBitmap m_bmp_delete;
+    ScalableBitmap m_bmp_delete;
 
 public:
     ObjectSettings(wxWindow* parent);
@@ -46,7 +46,7 @@ public:
 
     void        update_settings_list();
     void        UpdateAndShow(const bool show) override;
-    void        rescale();
+    void        msw_rescale();
 };
 
 }}

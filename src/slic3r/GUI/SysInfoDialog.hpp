@@ -12,11 +12,10 @@ namespace GUI {
 
 class SysInfoDialog : public DPIDialog
 {
-    wxString text_info {wxEmptyString};
-    PrusaBitmap     m_logo_bmp;
+    ScalableBitmap  m_logo_bmp;
     wxStaticBitmap* m_logo;
-    wxHtmlWindow* m_opengl_info_html;
-    wxHtmlWindow* m_html;
+    wxHtmlWindow*   m_opengl_info_html;
+    wxHtmlWindow*   m_html;
 
 public:
     SysInfoDialog();

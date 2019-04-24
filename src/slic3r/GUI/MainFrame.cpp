@@ -270,11 +270,11 @@ void MainFrame::on_dpi_changed(const wxRect &suggested_rect)
     wxGetApp().preset_bundle->load_default_preset_bitmaps(this);
 
     // update Plater
-    wxGetApp().plater()->rescale();
+    wxGetApp().plater()->msw_rescale();
 
     // update Tabs
     for (auto tab : wxGetApp().tabs_list)
-        tab->rescale();
+        tab->msw_rescale();
 
     /* To correct window rendering (especially redraw of a status bar)
      * we should imitate window resizing.

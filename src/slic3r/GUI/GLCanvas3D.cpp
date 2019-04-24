@@ -3188,7 +3188,7 @@ double GLCanvas3D::get_size_proportional_to_max_bed_size(double factor) const
     return factor * m_bed.get_bounding_box().max_size();
 }
 
-void GLCanvas3D::rescale()
+void GLCanvas3D::msw_rescale()
 {
     m_warning_texture.rescale(*this);
 }

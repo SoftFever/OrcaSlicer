@@ -11,7 +11,7 @@
 namespace Slic3r { 
 namespace GUI {
 
-class KBShortcutsDialog : public DPIDialog/*wxDialog*/
+class KBShortcutsDialog : public DPIDialog
 {
     enum PLACED_SIZER_ID
     {
@@ -26,8 +26,7 @@ class KBShortcutsDialog : public DPIDialog/*wxDialog*/
     wxString text_info {wxEmptyString};
 
     ShortcutsVec    m_full_shortcuts;
-    wxSizer*        main_sizer;
-    PrusaBitmap     m_logo_bmp;
+    ScalableBitmap  m_logo_bmp;
     std::vector<wxStaticBitmap*>    m_head_bitmaps;
 
 public:

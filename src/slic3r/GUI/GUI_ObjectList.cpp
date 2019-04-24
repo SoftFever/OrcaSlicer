@@ -163,7 +163,7 @@ void ObjectList::create_objects_ctrl()
     m_sizer = new wxBoxSizer(wxVERTICAL);
     m_sizer->Add(this, 1, wxGROW);
 
-    m_objects_model = new PrusaObjectDataViewModel;
+    m_objects_model = new ObjectDataViewModel;
     AssociateModel(m_objects_model);
     m_objects_model->SetAssociatedControl(this);
 #if wxUSE_DRAG_AND_DROP && wxUSE_UNICODE
@@ -173,7 +173,7 @@ void ObjectList::create_objects_ctrl()
 
     // column 0(Icon+Text) of the view control: 
     // And Icon can be consisting of several bitmaps
-    AppendColumn(new wxDataViewColumn(_(L("Name")), new PrusaBitmapTextRenderer(),
+    AppendColumn(new wxDataViewColumn(_(L("Name")), new BitmapTextRenderer(),
         0, 20*wxGetApp().em_unit()/*200*/, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
 
     // column 1 of the view control:
@@ -395,22 +395,10 @@ void ObjectList::update_name_in_model(const wxDataViewItem& item) const
 
 void ObjectList::init_icons()
 {
-//     m_bmp_modifiermesh      = create_scaled_bitmap(nullptr, "add_modifier");
-//     m_bmp_solidmesh         = create_scaled_bitmap(nullptr, "add_part");
-//     m_bmp_support_enforcer  = create_scaled_bitmap(nullptr, "support_enforcer");
-//     m_bmp_support_blocker   = create_scaled_bitmap(nullptr, "support_blocker");
-// 
-// 
-//     m_bmp_vector.reserve(4); // bitmaps for different types of parts 
-//     m_bmp_vector.push_back(&m_bmp_solidmesh);         
-//     m_bmp_vector.push_back(&m_bmp_modifiermesh);      
-//     m_bmp_vector.push_back(&m_bmp_support_enforcer);  
-//     m_bmp_vector.push_back(&m_bmp_support_blocker);   
-
-    m_bmp_modifiermesh      = PrusaBitmap(nullptr, "add_modifier");    // Add part 
-    m_bmp_solidmesh         = PrusaBitmap(nullptr, "add_part");        // Add modifier 
-    m_bmp_support_enforcer  = PrusaBitmap(nullptr, "support_enforcer");// Add support enforcer 
-    m_bmp_support_blocker   = PrusaBitmap(nullptr, "support_blocker"); // Add support blocker  
+    m_bmp_modifiermesh      = ScalableBitmap(nullptr, "add_modifier");    // Add part 
+    m_bmp_solidmesh         = ScalableBitmap(nullptr, "add_part");        // Add modifier 
+    m_bmp_support_enforcer  = ScalableBitmap(nullptr, "support_enforcer");// Add support enforcer 
+    m_bmp_support_blocker   = ScalableBitmap(nullptr, "support_blocker"); // Add support blocker  
 
     m_bmp_vector.reserve(4); // bitmaps for different types of parts 
     m_bmp_vector.push_back(&m_bmp_solidmesh.bmp());         
@@ -423,34 +411,34 @@ void ObjectList::init_icons()
     m_objects_model->SetVolumeBitmaps(m_bmp_vector);
 
     // init icon for manifold warning
-    m_bmp_manifold_warning  = /*create_scaled_bitmap*/PrusaBitmap(nullptr, "exclamation");
+    m_bmp_manifold_warning  = ScalableBitmap(nullptr, "exclamation");
 
     // init bitmap for "Split to sub-objects" context menu
-    m_bmp_split             = /*create_scaled_bitmap*/PrusaBitmap(nullptr, "split_parts_SMALL");
+    m_bmp_split             = ScalableBitmap(nullptr, "split_parts_SMALL");
 
     // init bitmap for "Add Settings" context menu
-    m_bmp_cog               = /*create_scaled_bitmap*/PrusaBitmap(nullptr, "cog");
+    m_bmp_cog               = ScalableBitmap(nullptr, "cog");
 }
 
 void ObjectList::rescale_icons()
 {
     m_bmp_vector.clear();
     m_bmp_vector.reserve(4); // bitmaps for different types of parts 
-    for (PrusaBitmap* bitmap : std::vector<PrusaBitmap*> {
+    for (ScalableBitmap* bitmap : std::vector<ScalableBitmap*> {
                                     &m_bmp_modifiermesh,         // Add part
                                     &m_bmp_solidmesh,             // Add modifier
                                     &m_bmp_support_enforcer,     // Add support enforcer
                                     &m_bmp_support_blocker })    // Add support blocker                                                           
     {
-        bitmap->rescale();
+        bitmap->msw_rescale();
         m_bmp_vector.push_back(& bitmap->bmp());
     }
     // Set volumes default bitmaps for the model
     m_objects_model->SetVolumeBitmaps(m_bmp_vector);
 
-    m_bmp_manifold_warning.rescale();
-    m_bmp_split.rescale();
-    m_bmp_cog.rescale();
+    m_bmp_manifold_warning.msw_rescale();
+    m_bmp_split.msw_rescale();
+    m_bmp_cog.msw_rescale();
 
 
     // Update CATEGORY_ICON according to new scale
@@ -1057,7 +1045,7 @@ wxMenuItem* ObjectList::append_menu_item_split(wxMenu* menu)
 
 wxMenuItem* ObjectList::append_menu_item_settings(wxMenu* menu_) 
 {
-    PrusaMenu* menu = dynamic_cast<PrusaMenu*>(menu_);
+    MenuWithSeparators* menu = dynamic_cast<MenuWithSeparators*>(menu_);
 
     const wxString menu_name = _(L("Add settings"));
     // Delete old items from settings popupmenu
@@ -1105,7 +1093,7 @@ wxMenuItem* ObjectList::append_menu_item_settings(wxMenu* menu_)
 
     if (printer_technology() == ptFFF ||
         menu->GetMenuItems().size() > 0 && !menu->GetMenuItems().back()->IsSeparator())
-        menu->m_separator_frst = menu->AppendSeparator();
+        menu->SetFirstSeparator();
 
     // Add frequently settings
     create_freq_settings_popupmenu(menu);
@@ -1113,7 +1101,7 @@ wxMenuItem* ObjectList::append_menu_item_settings(wxMenu* menu_)
     if (mode == comAdvanced)
         return nullptr;
 
-    menu->m_separator_scnd = menu->AppendSeparator();
+    menu->SetSecondSeparator();
 
     // Add full settings list
     auto  menu_item = new wxMenuItem(menu, wxID_ANY, menu_name);
@@ -1864,7 +1852,7 @@ void ObjectList::add_object_to_list(size_t obj_idx)
         stats.facets_added + stats.facets_reversed + stats.backwards_edges;
     if (errors > 0) {
         wxVariant variant;
-        variant << PrusaDataViewBitmapText(item_name, m_bmp_manifold_warning.bmp());
+        variant << DataViewBitmapText(item_name, m_bmp_manifold_warning.bmp());
         m_objects_model->SetValue(variant, item, 0);
     }
 
@@ -2664,7 +2652,7 @@ void ObjectList::rename_item()
     wxVariant valueOld;
     m_objects_model->GetValue(valueOld, item, 0);
 
-    PrusaDataViewBitmapText bmpText;
+    DataViewBitmapText bmpText;
     bmpText << valueOld;
 
     // But replace the text with the value entered by user.
@@ -2712,12 +2700,12 @@ void ObjectList::update_item_error_icon(const int obj_idx, const int vol_idx) co
     if (errors == 0) {
         // delete Error_icon if all errors are fixed
         wxVariant variant;
-        variant << PrusaDataViewBitmapText(from_u8(model_object->name), wxNullBitmap);
+        variant << DataViewBitmapText(from_u8(model_object->name), wxNullBitmap);
         m_objects_model->SetValue(variant, item, 0);
     }
 }
 
-void ObjectList::rescale()
+void ObjectList::msw_rescale()
 {
     // update min size !!! A width of control shouldn't be a wxDefaultCoord
     SetMinSize(wxSize(1, 15 * wxGetApp().em_unit()));
@@ -2748,7 +2736,7 @@ void ObjectList::OnEditingDone(wxDataViewEvent &event)
     if (event.GetColumn() != 0)
         return;
 
-    const auto renderer = dynamic_cast<PrusaBitmapTextRenderer*>(GetColumn(0)->GetRenderer());
+    const auto renderer = dynamic_cast<BitmapTextRenderer*>(GetColumn(0)->GetRenderer());
 
     if (renderer->WasCanceled())
         show_error(this, _(L("The supplied name is not valid;")) + "\n" +

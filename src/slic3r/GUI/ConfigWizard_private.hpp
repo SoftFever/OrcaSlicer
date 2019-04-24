@@ -210,7 +210,7 @@ public:
     void go_to(ConfigWizardPage *page);
 
     void clear();
-    void rescale();
+    void msw_rescale();
 
     int em() const { return em_w; }
 private:
@@ -231,10 +231,10 @@ private:
     const wxBitmap bullet_blue;
     const wxBitmap bullet_white;
     */
-    PrusaBitmap bg;
-    PrusaBitmap bullet_black;
-    PrusaBitmap bullet_blue;
-    PrusaBitmap bullet_white;
+    ScalableBitmap bg;
+    ScalableBitmap bullet_black;
+    ScalableBitmap bullet_blue;
+    ScalableBitmap bullet_white;
     wxStaticBitmap* logo;
 
     std::vector<Item> items;

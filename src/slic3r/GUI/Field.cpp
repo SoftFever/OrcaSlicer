@@ -33,21 +33,11 @@ wxString double_to_string(double const value, const int max_precision /*= 4*/)
 void Field::PostInitialize()
 {
 	auto color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
-	m_Undo_btn			= new RevertButton(m_parent, "bullet_white.png");//(m_parent, wxID_ANY, "", wxDefaultPosition,wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
-	m_Undo_to_sys_btn	= new RevertButton(m_parent, "bullet_white.png");//(m_parent, wxID_ANY, "", wxDefaultPosition,wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
-// 	if (wxMSW) {
-// 		m_Undo_btn->SetBackgroundColour(color);
-// 		m_Undo_btn->SetBackgroundStyle(wxBG_STYLE_PAINT);
-// 		m_Undo_to_sys_btn->SetBackgroundColour(color);
-// 		m_Undo_to_sys_btn->SetBackgroundStyle(wxBG_STYLE_PAINT);
-// 	}
-	m_Undo_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent) { on_back_to_initial_value(); }));
-	m_Undo_to_sys_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent) { on_back_to_sys_value(); }));
+	m_Undo_btn			= new RevertButton(m_parent, "bullet_white.png");
+	m_Undo_to_sys_btn	= new RevertButton(m_parent, "bullet_white.png");
 
-	//set default bitmap
-// 	wxBitmap bmp = create_scaled_bitmap(m_parent, "bullet_white.png" );
-// 	set_undo_bitmap(&bmp);
-// 	set_undo_to_sys_bitmap(&bmp);
+    m_Undo_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent) { on_back_to_initial_value(); }));
+	m_Undo_to_sys_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent) { on_back_to_sys_value(); }));
 
 	switch (m_opt.type)
 	{
@@ -360,9 +350,9 @@ boost::any& TextCtrl::get_value()
 	return m_value;
 }
 
-void TextCtrl::rescale()
+void TextCtrl::msw_rescale()
 {
-    Field::rescale();
+    Field::msw_rescale();
     auto size = wxSize(wxDefaultSize);
     if (m_opt.height >= 0) size.SetHeight(m_opt.height*m_em_unit);
     if (m_opt.width >= 0) size.SetWidth(m_opt.width*m_em_unit);
@@ -523,9 +513,9 @@ void SpinCtrl::propagate_value()
         on_change_field();
 }
 
-void SpinCtrl::rescale()
+void SpinCtrl::msw_rescale()
 {
-    Field::rescale();
+    Field::msw_rescale();
 
     wxSpinCtrl* field = dynamic_cast<wxSpinCtrl*>(window);
     field->SetMinSize(wxSize(-1, int(1.9f*field->GetFont().GetPixelSize().y)));
@@ -843,9 +833,9 @@ boost::any& Choice::get_value()
 	return m_value;
 }
 
-void Choice::rescale()
+void Choice::msw_rescale()
 {
-    Field::rescale();
+    Field::msw_rescale();
 
     wxBitmapComboBox* field = dynamic_cast<wxBitmapComboBox*>(window);
 
@@ -967,9 +957,9 @@ void PointCtrl::BUILD()
 	y_textctrl->SetToolTip(get_tooltip_text(X+", "+Y));
 }
 
-void PointCtrl::rescale()
+void PointCtrl::msw_rescale()
 {
-    Field::rescale();
+    Field::msw_rescale();
 
     const wxSize field_size(4 * m_em_unit, -1);
 
@@ -1037,9 +1027,9 @@ void StaticText::BUILD()
 	temp->SetToolTip(get_tooltip_text(legend));
 }
 
-void StaticText::rescale()
+void StaticText::msw_rescale()
 {
-    Field::rescale();
+    Field::msw_rescale();
 
     auto size = wxSize(wxDefaultSize);
     if (m_opt.height >= 0) size.SetHeight(m_opt.height*m_em_unit);

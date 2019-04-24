@@ -484,7 +484,7 @@ bool ConfigOptionsGroup::update_visibility(ConfigOptionMode mode) {
     return true;
 }
 
-void ConfigOptionsGroup::rescale()
+void ConfigOptionsGroup::msw_rescale()
 {
     // update bitmaps for extra column items (like "mode markers" or buttons on settings panel)
     if (rescale_extra_column_item)
@@ -498,7 +498,7 @@ void ConfigOptionsGroup::rescale()
 
     // update undo buttons : rescale bitmaps
     for (const auto& field : m_fields)
-        field.second->rescale();
+        field.second->msw_rescale();
 
     const int em = em_unit(parent());
 
