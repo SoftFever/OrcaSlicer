@@ -6,7 +6,7 @@
 namespace Slic3r {
 namespace GUI {
     
-class Camera;
+struct Camera;
 
 class GLSelectionRectangle {
 public:
