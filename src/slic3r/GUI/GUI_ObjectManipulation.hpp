@@ -76,6 +76,8 @@ class ObjectManipulation : public OG_Settings
     Vec3d           m_new_size;
     bool            m_new_enabled;
     bool            m_uniform_scale {true};
+    // Does the object manipulation panel work in World or Local coordinates?
+    bool            m_world_coordinates = true;
     PrusaLockButton* m_lock_bnt{ nullptr };
 
 #ifndef __APPLE__
@@ -98,6 +100,8 @@ public:
 
     void        set_uniform_scaling(const bool uniform_scale) { m_uniform_scale = uniform_scale;}
     bool        get_uniform_scaling() const { return m_uniform_scale; }
+    // Does the object manipulation panel work in World or Local coordinates?
+    bool        get_world_coordinates() const { return m_world_coordinates; }
 
     void reset_cache() { m_cache.reset(); }
 #ifndef __APPLE__
@@ -116,12 +120,13 @@ private:
     void update_rotation_value(const Vec3d& rotation);
 
     // change values 
-    void    change_position_value(const Vec3d& position);
-    void    change_rotation_value(const Vec3d& rotation);
-    void    change_scale_value(const Vec3d& scale);
-    void    change_size_value(const Vec3d& size);
+    void change_position_value(const Vec3d& position);
+    void change_rotation_value(const Vec3d& rotation);
+    void change_scale_value(const Vec3d& scale);
+    void change_size_value(const Vec3d& size);
+    void do_scale(const Vec3d &scale) const;
 
-    void on_change(const t_config_option_key& opt_key, const boost::any& value);
+    void on_change(t_config_option_key opt_key, const boost::any& value);
     void on_fill_empty_value(const std::string& opt_key);
 };
 

@@ -57,15 +57,13 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     def.type = coString;
     def.width = field_width/*50*/;
 
-    std::vector<std::string> axes{ "x", "y", "z" };
-    for (const auto axis : axes) {
-        const auto label = boost::algorithm::to_upper_copy(axis);
+	for (const std::string axis : { "x", "y", "z" }) {
+        const std::string label = boost::algorithm::to_upper_copy(axis);
         def.default_value = new ConfigOptionString{ "   " + label };
         Option option = Option(def, axis + "_axis_legend");
         line.append_option(option);
     }
     m_og->append_line(line);
-
 
     auto add_og_to_object_settings = [this, field_width](const std::string& option_name, const std::string& sidetext)
     {
@@ -98,11 +96,10 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
 
         const std::string lower_name = boost::algorithm::to_lower_copy(option_name);
 
-        std::vector<std::string> axes{ "x", "y", "z" };
-        for (auto axis : axes) {
-            if (axis == "z")
+        for (const char *axis : { "_x", "_y", "_z" }) {
+            if (axis[1] == 'z')
                 def.sidetext = sidetext;
-            Option option = Option(def, lower_name + "_" + axis);
+            Option option = Option(def, lower_name + axis);
             option.opt.full_width = true;
             line.append_option(option);
         }
@@ -162,7 +159,7 @@ void ObjectManipulation::update_settings_value(const Selection& selection)
     m_new_scale_label_string  = L("Scale factors");
 
     ObjectList* obj_list = wxGetApp().obj_list();
-    if (selection.is_single_full_instance())
+    if (selection.is_single_full_instance() && ! m_world_coordinates)
     {
         // all volumes in the selection belongs to the same instance, any of them contains the needed instance data, so we take the first one
         const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
@@ -174,21 +171,26 @@ void ObjectManipulation::update_settings_value(const Selection& selection)
         if ((0 <= obj_idx) && (obj_idx < (int)wxGetApp().model_objects()->size()))
         {
             bool changed_box = false;
+            //FIXME matching an object idx may not be enough
             if (!m_cache.instance.matches_object(obj_idx))
             {
                 m_cache.instance.set(obj_idx, instance_idx, (*wxGetApp().model_objects())[obj_idx]->raw_mesh_bounding_box().size());
                 changed_box = true;
             }
+            //FIXME matching an instance idx may not be enough. Check for ModelObject id an all ModelVolume ids.
             if (changed_box || !m_cache.instance.matches_instance(instance_idx) || !m_cache.scale.isApprox(100.0 * m_new_scale))
-                m_new_size = (volume->get_instance_transformation().get_matrix(true, true) * m_cache.instance.box_size).cwiseAbs();
+                m_new_size = volume->get_instance_transformation().get_scaling_factor().cwiseProduct(m_cache.instance.box_size);
         }
-        else
+        else {
             // this should never happen
+            assert(false);
             m_new_size = Vec3d::Zero();
+        }
 
         m_new_enabled  = true;
     }
-    else if (selection.is_single_full_object() && obj_list->is_selected(itObject))
+    else if ((selection.is_single_full_instance() && m_world_coordinates) ||
+             (selection.is_single_full_object() && obj_list->is_selected(itObject)))
     {
         m_cache.instance.reset();
 
@@ -210,7 +212,7 @@ void ObjectManipulation::update_settings_value(const Selection& selection)
         m_new_position = volume->get_volume_offset();
         m_new_rotation = volume->get_volume_rotation();
         m_new_scale    = volume->get_volume_scaling_factor();
-        m_new_size = (volume->get_volume_transformation().get_matrix(true, true) * volume->bounding_box.size()).cwiseAbs();
+        m_new_size = volume->get_volume_transformation().get_scaling_factor().cwiseProduct(volume->bounding_box.size());
         m_new_enabled = true;
     }
     else if (obj_list->multiple_selection() || obj_list->is_selected(itInstanceRoot))
@@ -222,8 +224,11 @@ void ObjectManipulation::update_settings_value(const Selection& selection)
         m_new_size = selection.get_bounding_box().size();
         m_new_enabled  = true;
     }
-    else
-        reset_settings_value();
+	else {
+        // No selection, reset the cache.
+		assert(selection.is_empty());
+		reset_settings_value();
+	}
 
     m_dirty = true;
 }
@@ -233,73 +238,35 @@ void ObjectManipulation::update_if_dirty()
     if (!m_dirty)
         return;
 
-    if (m_cache.move_label_string != _(m_new_move_label_string)+ ":")
-    {
-        m_cache.move_label_string = _(m_new_move_label_string)+ ":";
-        m_move_Label->SetLabel(m_cache.move_label_string);
+    auto update_label = [](std::string &label_cache, const std::string &new_label, wxStaticText *widget) {
+        std::string new_label_localized = _(new_label) + ":";
+        if (label_cache != new_label_localized) {
+            label_cache = new_label_localized;
+            widget->SetLabel(new_label_localized);
+        }
+    };
+    update_label(m_cache.move_label_string,   m_new_move_label_string,   m_move_Label);
+    update_label(m_cache.rotate_label_string, m_new_rotate_label_string, m_rotate_Label);
+    update_label(m_cache.scale_label_string,  m_new_scale_label_string,  m_scale_Label);
+
+	Vec3d scale = m_new_scale * 100.0;
+    Vec3d deg_rotation = (180.0 / M_PI) * m_new_rotation;
+
+    char axis[2] = "x";
+    for (int i = 0; i < 3; ++ i, ++ axis[0]) {
+        if (m_cache.position(i) != m_new_position(i))
+            m_og->set_value(std::string("position_") + axis, double_to_string(m_new_position(i), 2));
+        if (m_cache.scale(i) != scale(i))
+            m_og->set_value(std::string("scale_") + axis, double_to_string(scale(i), 2));
+        if (m_cache.size(i) != m_new_size(i))
+            m_og->set_value(std::string("size_") + axis, double_to_string(m_new_size(i), 2));
+        if (m_cache.rotation(i) != m_new_rotation(i) || m_new_rotation(i) == 0.0)
+            m_og->set_value(std::string("rotation_") + axis, double_to_string(deg_rotation(i), 2));
     }
-
-    if (m_cache.rotate_label_string != _(m_new_rotate_label_string)+ ":")
-    {
-        m_cache.rotate_label_string = _(m_new_rotate_label_string)+ ":";
-        m_rotate_Label->SetLabel(m_cache.rotate_label_string);
-    }
-
-    if (m_cache.scale_label_string != _(m_new_scale_label_string)+ ":")
-    {
-        m_cache.scale_label_string = _(m_new_scale_label_string)+ ":";
-        m_scale_Label->SetLabel(m_cache.scale_label_string);
-    }
-
-    if (m_cache.position(0) != m_new_position(0))
-        m_og->set_value("position_x", double_to_string(m_new_position(0), 2));
-
-    if (m_cache.position(1) != m_new_position(1))
-        m_og->set_value("position_y", double_to_string(m_new_position(1), 2));
-
-    if (m_cache.position(2) != m_new_position(2))
-        m_og->set_value("position_z", double_to_string(m_new_position(2), 2));
 
     m_cache.position = m_new_position;
-
-    auto scale = m_new_scale * 100.0;
-    if (m_cache.scale(0) != scale(0))
-        m_og->set_value("scale_x", double_to_string(scale(0), 2));
-
-    if (m_cache.scale(1) != scale(1))
-        m_og->set_value("scale_y", double_to_string(scale(1), 2));
-
-    if (m_cache.scale(2) != scale(2))
-        m_og->set_value("scale_z", double_to_string(scale(2), 2));
-
     m_cache.scale = scale;
-
-    if (m_cache.size(0) != m_new_size(0))
-        m_og->set_value("size_x", double_to_string(m_new_size(0), 2));
-
-    if (m_cache.size(1) != m_new_size(1))
-        m_og->set_value("size_y", double_to_string(m_new_size(1), 2));
-
-    if (m_cache.size(2) != m_new_size(2))
-        m_og->set_value("size_z", double_to_string(m_new_size(2), 2));
-
     m_cache.size = m_new_size;
-
-    Vec3d deg_rotation;
-    for (size_t i = 0; i < 3; ++i)
-    {
-        deg_rotation(i) = Geometry::rad2deg(m_new_rotation(i));
-    }
-
-    if ((m_cache.rotation(0) != m_new_rotation(0)) || (m_new_rotation(0) == 0.0))
-        m_og->set_value("rotation_x", double_to_string(deg_rotation(0), 2));
-
-    if ((m_cache.rotation(1) != m_new_rotation(1)) || (m_new_rotation(1) == 0.0))
-        m_og->set_value("rotation_y", double_to_string(deg_rotation(1), 2));
-
-    if ((m_cache.rotation(2) != m_new_rotation(2)) || (m_new_rotation(2) == 0.0))
-        m_og->set_value("rotation_z", double_to_string(deg_rotation(2), 2));
-
     m_cache.rotation = deg_rotation;
 
     if (wxGetApp().plater()->canvas3D()->get_selection().requires_uniform_scale()) {
@@ -361,23 +328,21 @@ void ObjectManipulation::change_position_value(const Vec3d& position)
 void ObjectManipulation::change_rotation_value(const Vec3d& rotation)
 {
     GLCanvas3D* canvas = wxGetApp().plater()->canvas3D();
-    const Selection& selection = canvas->get_selection();
+    Selection& selection = canvas->get_selection();
 
     TransformationType transformation_type(TransformationType::World_Relative_Joint);
     if (selection.is_single_full_instance() || selection.requires_local_axes())
 		transformation_type.set_independent();
-	if (selection.is_single_full_instance()) {
+	if (selection.is_single_full_instance() && ! m_world_coordinates) {
         //FIXME Selection::rotate() does not process absoulte rotations correctly: It does not recognize the axis index, which was changed.
 		// transformation_type.set_absolute();
 		transformation_type.set_local();
 	}
 
-    Vec3d rad_rotation;
-    for (size_t i = 0; i < 3; ++i)
-		rad_rotation(i) = Geometry::deg2rad((transformation_type.absolute()) ? rotation(i) : rotation(i) - m_cache.rotation(i));
-
-    canvas->get_selection().start_dragging();
-	canvas->get_selection().rotate(rad_rotation, transformation_type);
+    selection.start_dragging();
+	selection.rotate(
+		(M_PI / 180.0) * (transformation_type.absolute() ? rotation : rotation - m_cache.rotation), 
+		transformation_type);
     canvas->do_rotate();
 
     m_cache.rotation = rotation;
@@ -385,32 +350,7 @@ void ObjectManipulation::change_rotation_value(const Vec3d& rotation)
 
 void ObjectManipulation::change_scale_value(const Vec3d& scale)
 {
-    Vec3d scaling_factor = scale;
-    const Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
-    if (m_uniform_scale || selection.requires_uniform_scale())
-    {
-        Vec3d abs_scale_diff = (scale - m_cache.scale).cwiseAbs();
-        double max_diff = abs_scale_diff(X);
-        Axis max_diff_axis = X;
-        if (max_diff < abs_scale_diff(Y))
-        {
-            max_diff = abs_scale_diff(Y);
-            max_diff_axis = Y;
-        }
-        if (max_diff < abs_scale_diff(Z))
-        {
-            max_diff = abs_scale_diff(Z);
-            max_diff_axis = Z;
-        }
-        scaling_factor = scale(max_diff_axis) * Vec3d::Ones();
-    }
-
-    scaling_factor *= 0.01;
-
-    auto canvas = wxGetApp().plater()->canvas3D();
-    canvas->get_selection().start_dragging();
-    canvas->get_selection().scale(scaling_factor, false);
-    canvas->do_scale();
+    this->do_scale(scale);
 
     if (!m_cache.scale.isApprox(scale))
         m_cache.instance.instance_idx = -1;
@@ -428,41 +368,35 @@ void ObjectManipulation::change_size_value(const Vec3d& size)
         const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
         ref_size = volume->bounding_box.size();
     }
-    else if (selection.is_single_full_instance())
+    else if (selection.is_single_full_instance() && ! m_world_coordinates)
         ref_size = m_cache.instance.box_size;
 
-    Vec3d scale = 100.0 * Vec3d(size(0) / ref_size(0), size(1) / ref_size(1), size(2) / ref_size(2));
-    Vec3d scaling_factor = scale;
-
-    if (m_uniform_scale || selection.requires_uniform_scale())
-    {
-        Vec3d abs_scale_diff = (scale - m_cache.scale).cwiseAbs();
-        double max_diff = abs_scale_diff(X);
-        Axis max_diff_axis = X;
-        if (max_diff < abs_scale_diff(Y))
-        {
-            max_diff = abs_scale_diff(Y);
-            max_diff_axis = Y;
-        }
-        if (max_diff < abs_scale_diff(Z))
-        {
-            max_diff = abs_scale_diff(Z);
-            max_diff_axis = Z;
-        }
-        scaling_factor = scale(max_diff_axis) * Vec3d::Ones();
-    }
-
-    scaling_factor *= 0.01;
-
-    auto canvas = wxGetApp().plater()->canvas3D();
-    canvas->get_selection().start_dragging();
-    canvas->get_selection().scale(scaling_factor, false);
-    canvas->do_scale();
+    this->do_scale(100.0 * Vec3d(size(0) / ref_size(0), size(1) / ref_size(1), size(2) / ref_size(2)));
 
     m_cache.size = size;
 }
 
-void ObjectManipulation::on_change(const t_config_option_key& opt_key, const boost::any& value)
+void ObjectManipulation::do_scale(const Vec3d &scale) const
+{
+    Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
+    Vec3d scaling_factor = scale;
+
+    if (m_uniform_scale || selection.requires_uniform_scale())
+    {
+        int max_diff_axis;
+        (scale - m_cache.scale).cwiseAbs().maxCoeff(&max_diff_axis);
+        scaling_factor = scale(max_diff_axis) * Vec3d::Ones();
+    }
+
+    TransformationType transformation_type(TransformationType::World_Relative_Joint);
+    if (selection.is_single_full_instance() && ! m_world_coordinates)
+        transformation_type.set_local();
+    selection.start_dragging();
+    selection.scale(scaling_factor * 0.01, transformation_type);
+    wxGetApp().plater()->canvas3D()->do_scale();
+}
+
+void ObjectManipulation::on_change(t_config_option_key opt_key, const boost::any& value)
 {
     // needed to hide the visual hints in 3D scene
     wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event(opt_key, false);
@@ -473,23 +407,19 @@ void ObjectManipulation::on_change(const t_config_option_key& opt_key, const boo
     if (!m_cache.is_valid())
         return;
 
-    std::vector<std::string> axes{ "_x", "_y", "_z" };
-
-    std::string param;
-    std::copy(opt_key.begin(), opt_key.end() - 2, std::back_inserter(param));
-
-    size_t i = 0;
+    // Value of all three axes of the position / rotation / scale / size is extracted.
     Vec3d new_value;
-    for (auto axis : axes)
-        new_value(i++) = boost::any_cast<double>(m_og->get_value(param + axis));
+    opt_key.back() = 'x';
+	for (int i = 0; i < 3; ++ i, ++ opt_key.back())
+		new_value(i) = boost::any_cast<double>(m_og->get_value(opt_key));
 
-    if (param == "position")
+    if (boost::starts_with(opt_key, "position_"))
         change_position_value(new_value);
-    else if (param == "rotation")
+    else if (boost::starts_with(opt_key, "rotation_"))
         change_rotation_value(new_value);
-    else if (param == "scale")
+    else if (boost::starts_with(opt_key, "scale_"))
         change_scale_value(new_value);
-    else if (param == "size")
+    else if (boost::starts_with(opt_key, "size_"))
         change_size_value(new_value);
 }
 
@@ -504,21 +434,20 @@ void ObjectManipulation::on_fill_empty_value(const std::string& opt_key)
     if (!m_cache.is_valid())
         return;
 
-    std::string param;
-    std::copy(opt_key.begin(), opt_key.end() - 2, std::back_inserter(param));
+    const Vec3d *vec = nullptr;
+	if (boost::starts_with(opt_key, "position_"))
+		vec = &m_cache.position;
+	else if (boost::starts_with(opt_key, "rotation_"))
+		vec = &m_cache.rotation;
+	else if (boost::starts_with(opt_key, "scale_"))
+		vec = &m_cache.scale;
+	else if (boost::starts_with(opt_key, "size_"))
+		vec = &m_cache.size;
+	else
+		assert(false);
 
-    double value = 0.0;
-	auto opt_key_to_axis = [&opt_key]() { return opt_key.back() == 'x' ? 0 : opt_key.back() == 'y' ? 1 : 2; };
-    if (param == "position")
-        value = m_cache.position(opt_key_to_axis());
-    else if (param == "rotation")
-		value = m_cache.rotation(opt_key_to_axis());
-    else if (param == "scale")
-		value = m_cache.scale(opt_key_to_axis());
-    else if (param == "size")
-		value = m_cache.size(opt_key_to_axis());
-
-    m_og->set_value(opt_key, double_to_string(value));
+	if (vec != nullptr)
+		m_og->set_value(opt_key, double_to_string((*vec)(opt_key.back() - 'x')));
 }
 
 } //namespace GUI

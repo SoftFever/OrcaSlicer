@@ -15,19 +15,7 @@ namespace Slic3r { namespace GUI {
 
 wxString double_to_string(double const value, const int max_precision /*= 4*/)
 {
-	if (value - int(value) == 0)
-		return wxString::Format(_T("%i"), int(value));
-
-    int precision = max_precision;
-    for (size_t p = 1; p < max_precision; p++)
-	{
-		double cur_val = pow(10, p)*value;
-		if (cur_val - int(cur_val) == 0) {
-			precision = p;
-			break;
-		}
-	}
-	return wxNumberFormatter::ToString(value, precision, wxNumberFormatter::Style_None);
+	return wxNumberFormatter::ToString(value, max_precision, wxNumberFormatter::Style_NoTrailingZeroes);
 }
 
 void Field::PostInitialize()

@@ -104,8 +104,8 @@ void KBShortcutsDialog::fill_shortcuts()
     main_shortcuts.push_back(Shortcut(ctrl+"S"          ,L("Save project (3MF)")));
     main_shortcuts.push_back(Shortcut(ctrl+alt+"L"      ,L("Load Config from .ini/amf/3mf/gcode and merge")));
     main_shortcuts.push_back(Shortcut(ctrl+"R"          ,L("(Re)slice")));
-    main_shortcuts.push_back(Shortcut(ctrl+"U"          ,L("Quick slice")));
-    main_shortcuts.push_back(Shortcut(ctrl+"Shift+U"    ,L("Repeat last quick slice")));
+//    main_shortcuts.push_back(Shortcut(ctrl+"U"          ,L("Quick slice")));
+//    main_shortcuts.push_back(Shortcut(ctrl+"Shift+U"    ,L("Repeat last quick slice")));
     main_shortcuts.push_back(Shortcut(ctrl+"1"          ,L("Select Plater Tab")));
     main_shortcuts.push_back(Shortcut(ctrl+alt+"U"      ,L("Quick slice and Save as")));
     main_shortcuts.push_back(Shortcut(ctrl+"2"          ,L("Select Print Settings Tab")));

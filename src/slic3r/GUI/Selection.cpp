@@ -631,14 +631,17 @@ void Selection::flattening_rotate(const Vec3d& normal)
     m_bounding_box_dirty = true;
 }
 
-void Selection::scale(const Vec3d& scale, bool local)
+void Selection::scale(const Vec3d& scale, TransformationType transformation_type)
 {
     if (!m_valid)
         return;
 
+    // Only relative scaling values are allowed in the world coordinate system.
+    assert(! transformation_type.world() || transformation_type.relative());
+
     for (unsigned int i : m_list)
     {
-        if (is_single_full_instance())
+        if (is_single_full_instance() && ! transformation_type.world())
             (*m_volumes)[i]->set_instance_scaling_factor(scale);
         else if (is_single_volume() || is_single_modifier())
             (*m_volumes)[i]->set_volume_scaling_factor(scale);
@@ -650,7 +653,7 @@ void Selection::scale(const Vec3d& scale, bool local)
                 Eigen::Matrix<double, 3, 3, Eigen::DontAlign> new_matrix = (m * m_cache.volumes_data[i].get_instance_scale_matrix()).matrix().block(0, 0, 3, 3);
                 // extracts scaling factors from the composed transformation
                 Vec3d new_scale(new_matrix.col(0).norm(), new_matrix.col(1).norm(), new_matrix.col(2).norm());
-                if (!local)
+                if (transformation_type.joint())
                     (*m_volumes)[i]->set_instance_offset(m_cache.dragging_center + m * (m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center));
 
                 (*m_volumes)[i]->set_instance_scaling_factor(new_scale);
@@ -660,7 +663,7 @@ void Selection::scale(const Vec3d& scale, bool local)
                 Eigen::Matrix<double, 3, 3, Eigen::DontAlign> new_matrix = (m * m_cache.volumes_data[i].get_volume_scale_matrix()).matrix().block(0, 0, 3, 3);
                 // extracts scaling factors from the composed transformation
                 Vec3d new_scale(new_matrix.col(0).norm(), new_matrix.col(1).norm(), new_matrix.col(2).norm());
-                if (!local)
+                if (transformation_type.joint())
                 {
                     Vec3d offset = m * (m_cache.volumes_data[i].get_volume_position() + m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center);
                     (*m_volumes)[i]->set_volume_offset(m_cache.dragging_center - m_cache.volumes_data[i].get_instance_position() + offset);
@@ -959,7 +962,7 @@ void Selection::render_sidebar_hints(const std::string& sidebar_field) const
 
     const Vec3d& center = get_bounding_box().center();
 
-    if (is_single_full_instance())
+    if (is_single_full_instance() && ! wxGetApp().obj_manipul()->get_world_coordinates())
     {
         glsafe(::glTranslated(center(0), center(1), center(2)));
         if (!boost::starts_with(sidebar_field, "position"))

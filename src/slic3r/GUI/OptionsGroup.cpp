@@ -417,22 +417,21 @@ void ConfigOptionsGroup::back_to_config_value(const DynamicPrintConfig& config, 
 
 void ConfigOptionsGroup::on_kill_focus(const std::string& opt_key)
 {
-    if (m_fill_empty_value) {
+    if (m_fill_empty_value)
         m_fill_empty_value(opt_key);
-        return;
-    }
-    reload_config();
+    else
+	    reload_config();
 }
 
-void ConfigOptionsGroup::reload_config() {
-	for (t_opt_map::iterator it = m_opt_map.begin(); it != m_opt_map.end(); ++it) {
-		auto opt_id = it->first;
-		std::string opt_key = m_opt_map.at(opt_id).first;
-		int opt_index = m_opt_map.at(opt_id).second;
-		auto option = m_options.at(opt_id).opt;
-		set_value(opt_id, config_value(opt_key, opt_index, option.gui_flags.compare("serialized") == 0 ));
+void ConfigOptionsGroup::reload_config()
+{
+	for (auto &kvp : m_opt_map) {
+		const std::string &opt_id    = kvp.first;
+		const std::string &opt_key   = kvp.second.first;
+		int 			   opt_index = kvp.second.second;
+		const ConfigOptionDef &option = m_options.at(opt_id).opt;
+		this->set_value(opt_key, config_value(opt_key, opt_index, option.gui_flags == "serialized"));
 	}
-
 }
 
 void ConfigOptionsGroup::Hide()
