@@ -463,8 +463,7 @@ void ObjectList::paste_volumes_into_list(int obj_idx, const ModelVolumePtrs& vol
         items.Add(vol_item);
     }
 
-    m_parts_changed = true;
-    parts_changed(obj_idx);
+    changed_object(obj_idx);
 
     if (items.size() > 1)
     {
@@ -490,9 +489,7 @@ void ObjectList::paste_objects_into_list(const std::vector<size_t>& object_idxs)
         items.Add(m_objects_model->GetItemById(object));
     }
 
-    m_parts_changed = true;
     wxGetApp().plater()->changed_objects(object_idxs);
-    m_parts_changed = false;
 
     select_items(items);
 #ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
@@ -703,8 +700,7 @@ void ObjectList::OnDrop(wxDataViewEvent &event)
     select_item(m_objects_model->ReorganizeChildren(from_volume_id, to_volume_id,
                                                     m_objects_model->GetParent(item)));
 
-    m_parts_changed = true;
-    parts_changed(m_dragged_data.obj_idx());
+    changed_object(m_dragged_data.obj_idx());
 
     m_dragged_data.clear();
 }
@@ -1290,7 +1286,7 @@ void ObjectList::load_subobject(ModelVolumeType type)
     wxArrayString part_names;
     load_part((*m_objects)[obj_idx], part_names, type);
 
-    parts_changed(obj_idx);
+    changed_object(obj_idx);
 
     for (int i = 0; i < part_names.size(); ++i) {
         const wxDataViewItem sel_item = m_objects_model->AddVolumeChild(item, part_names.Item(i), type);
@@ -1306,7 +1302,6 @@ void ObjectList::load_part( ModelObject* model_object,
 {
     wxWindow* parent = wxGetApp().tab_panel()->GetPage(0);
 
-    m_parts_changed = false;
     wxArrayString input_files;
     wxGetApp().import_model(parent, input_files);
     for (int i = 0; i < input_files.size(); ++i) {
@@ -1342,8 +1337,6 @@ void ObjectList::load_part( ModelObject* model_object,
 
                 // set a default extruder value, since user can't add it manually
                 new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
-
-                m_parts_changed = true;
             }
         }
     }
@@ -1493,8 +1486,7 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
     // set a default extruder value, since user can't add it manually
     new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
 
-    m_parts_changed = true;
-    parts_changed(obj_idx);
+    changed_object(obj_idx);
 
     const auto object_item = m_objects_model->GetTopParent(GetSelection());
     select_item(m_objects_model->AddVolumeChild(object_item, name, type));
@@ -1558,8 +1550,7 @@ void ObjectList::del_instances_from_object(const int obj_idx)
 
     (*m_objects)[obj_idx]->invalidate_bounding_box(); // ? #ys_FIXME
 
-    m_parts_changed = true;
-    parts_changed(obj_idx);
+    changed_object(obj_idx);
 }
 
 bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, const int type)
@@ -1604,8 +1595,7 @@ bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, con
     else
         return false;
 
-    m_parts_changed = true;
-    parts_changed(obj_idx);
+    changed_object(obj_idx);
 
     return true;
 }
@@ -1655,8 +1645,7 @@ void ObjectList::split()
     if (parent == item)
         Expand(parent);
 
-    m_parts_changed = true;
-    parts_changed(obj_idx);
+    changed_object(obj_idx);
 }
 
 bool ObjectList::get_volume_by_item(const wxDataViewItem& item, ModelVolume*& volume)
@@ -1713,17 +1702,10 @@ bool ObjectList::can_split_instances()
     return selection.is_multiple_full_instance() || selection.is_single_full_instance();
 }
 
-void ObjectList::part_settings_changed()
+// NO_PARAMETERS function call means that changed object index will be determine from Selection() 
+void ObjectList::changed_object(const int obj_idx/* = -1*/) const 
 {
-    m_part_settings_changed = true;
-    wxGetApp().plater()->changed_object(get_selected_obj_idx());
-    m_part_settings_changed = false;
-}
-
-void ObjectList::parts_changed(int obj_idx)
-{
-    wxGetApp().plater()->changed_object(obj_idx);
-    m_parts_changed = false;
+    wxGetApp().plater()->changed_object(obj_idx < 0 ? get_selected_obj_idx() : obj_idx);
 }
 
 void ObjectList::part_selection_changed()
@@ -2446,8 +2428,7 @@ void ObjectList::change_part_type()
     volume->set_type(new_type);
     m_objects_model->SetVolumeType(item, new_type);
 
-    m_parts_changed = true;
-    parts_changed(get_selected_obj_idx());
+    changed_object(get_selected_obj_idx());
 
     // Update settings showing, if we have it
     //(we show additional settings for Part and Modifier and hide it for Support Blocker/Enforcer)

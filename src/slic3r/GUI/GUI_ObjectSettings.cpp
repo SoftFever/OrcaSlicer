@@ -84,7 +84,7 @@ void ObjectSettings::update_settings_list()
 #endif // __WXMSW__
 			btn->Bind(wxEVT_BUTTON, [opt_key, config, this](wxEvent &event) {
 				config->erase(opt_key);
-                wxGetApp().obj_list()->part_settings_changed();
+                wxGetApp().obj_list()->changed_object();
                 wxTheApp->CallAfter([this]() {
                     wxWindowUpdateLocker noUpdates(m_parent);
                     update_settings_list(); 
@@ -127,7 +127,7 @@ void ObjectSettings::update_settings_list()
                 optgroup->sidetext_width = 5.5 * wxGetApp().em_unit();
 
                 optgroup->m_on_change = [](const t_config_option_key& opt_id, const boost::any& value) {
-                                        wxGetApp().obj_list()->part_settings_changed(); };
+                                        wxGetApp().obj_list()->changed_object(); };
 
                 for (auto& opt : cat.second)
                 {

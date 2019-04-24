@@ -1755,6 +1755,8 @@ void TabPrinter::build_fff()
 
 	auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"));
 	m_initial_extruders_count = m_extruders_count = nozzle_diameter->values.size();
+    wxGetApp().sidebar().update_objects_list_extruder_column(m_initial_extruders_count);
+
 	const Preset* parent_preset = m_presets->get_selected_preset_parent();
 	m_sys_extruders_count = parent_preset == nullptr ? 0 :
 			static_cast<const ConfigOptionFloats*>(parent_preset->config.option("nozzle_diameter"))->values.size();
@@ -1881,7 +1883,7 @@ void TabPrinter::build_fff()
 						m_use_silent_mode = val;
 					}
 				}
-				build_extruder_pages();
+				build_unregular_pages();
 				update_dirty();
 				on_value_change(opt_key, value);
 			});
@@ -1948,7 +1950,7 @@ void TabPrinter::build_fff()
 		};
 		optgroup->append_line(line);
 
-	build_extruder_pages();
+	build_unregular_pages();
 
 #if 0
 	if (!m_no_controller)
@@ -2051,13 +2053,24 @@ void TabPrinter::update_serial_ports()
 
 void TabPrinter::extruders_count_changed(size_t extruders_count)
 {
-	m_extruders_count = extruders_count;
-	m_preset_bundle->printers.get_edited_preset().set_num_extruders(extruders_count);
-	m_preset_bundle->update_multi_material_filament_presets();
-	build_extruder_pages();
-	reload_config();
-	on_value_change("extruders_count", extruders_count);
-    wxGetApp().sidebar().update_objects_list_extruder_column(extruders_count);
+    bool is_count_changed = false;
+    if (m_extruders_count != extruders_count) {
+	    m_extruders_count = extruders_count;
+	    m_preset_bundle->printers.get_edited_preset().set_num_extruders(extruders_count);
+	    m_preset_bundle->update_multi_material_filament_presets();
+        is_count_changed = true;
+    }
+
+    /* This function should be call in any case because of correct updating/rebuilding 
+     * of unregular pages of a Printer Settings
+     */
+	build_unregular_pages();
+// 	reload_config(); // #ys_FIXME_delete_after_testing : This function is called from build_extruder_pages() now
+
+    if (is_count_changed) {
+        on_value_change("extruders_count", extruders_count);
+        wxGetApp().sidebar().update_objects_list_extruder_column(extruders_count);
+    }
 }
 
 void TabPrinter::append_option_line(ConfigOptionsGroupShp optgroup, const std::string opt_key)
@@ -2125,11 +2138,22 @@ PageShp TabPrinter::build_kinematics_page()
 	return page;
 }
 
-
-void TabPrinter::build_extruder_pages()
+/* Previous name build_extruder_pages().
+ * 
+ * This function was renamed because of now it implements not just an extruder pages building, 
+ * but "Machine limits" and "Single extruder MM setup" too 
+ * (These pages can changes according to the another values of a current preset)
+ * */
+void TabPrinter::build_unregular_pages()
 {
 	size_t		n_before_extruders = 2;			//	Count of pages before Extruder pages
 	bool		is_marlin_flavor = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value == gcfMarlin;
+
+    /* ! Freeze/Thaw in this function is needed to avoid call OnPaint() for erased pages 
+     * and be cause of application crash, when try to change Preset in moment,
+     * when one of unregular pages is selected.
+     *  */
+    Freeze();
 
 	// Add/delete Kinematics page according to is_marlin_flavor
 	size_t existed_page = 0;
@@ -2175,12 +2199,11 @@ void TabPrinter::build_extruder_pages()
 		m_has_single_extruder_MM_page = true;
 	}
 	
-
+    // Build missed extruder pages
 	for (auto extruder_idx = m_extruders_count_old; extruder_idx < m_extruders_count; ++extruder_idx) {
 		//# build page
-		char buf[512];
-		sprintf(buf, _CHB(L("Extruder %d")), extruder_idx + 1);
-		auto page = add_options_page(from_u8(buf), "funnel", true);
+        const wxString& page_name = wxString::Format(_(L("Extruder %d")), int(extruder_idx + 1));
+        auto page = add_options_page(page_name, "funnel", true);
 		m_pages.insert(m_pages.begin() + n_before_extruders + extruder_idx, page);
 			
 			auto optgroup = page->new_optgroup(_(L("Size")));
@@ -2223,8 +2246,13 @@ void TabPrinter::build_extruder_pages()
 		m_pages.erase(	m_pages.begin() + n_before_extruders + m_extruders_count, 
 						m_pages.begin() + n_before_extruders + m_extruders_count_old);
 
+    Thaw();
+
 	m_extruders_count_old = m_extruders_count;
 	rebuild_page_tree();
+
+    // Reload preset pages with current configuration values
+    reload_config();
 }
 
 // this gets executed after preset is loaded and before GUI fields are updated
@@ -2492,7 +2520,6 @@ void Tab::rebuild_page_tree()
 			m_treectrl->SelectItem(item);
 		}
 	}
-// 	Thaw();
 }
 
 void Tab::update_page_tree_visibility()
@@ -2728,7 +2755,8 @@ bool Tab::may_switch_to_SLA_preset()
 
 void Tab::OnTreeSelChange(wxTreeEvent& event)
 {
-	if (m_disable_tree_sel_changed_event) return;
+	if (m_disable_tree_sel_changed_event)         
+        return;
 
 // There is a bug related to Ubuntu overlay scrollbars, see https://github.com/prusa3d/Slic3r/issues/898 and https://github.com/prusa3d/Slic3r/issues/952.
 // The issue apparently manifests when Show()ing a window with overlay scrollbars while the UI is frozen. For this reason,
