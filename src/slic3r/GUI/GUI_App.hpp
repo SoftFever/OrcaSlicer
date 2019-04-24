@@ -139,6 +139,8 @@ public:
     bool            checked_tab(Tab* tab);
     void            load_current_presets();
 
+    wxString        current_language_code() { return m_wxLocale != nullptr ? m_wxLocale->GetCanonicalName() : wxString("en_US"); }
+
     virtual bool OnExceptionInMainLoop();
 
 #ifdef __APPLE__
