@@ -8,6 +8,7 @@
 #include <algorithm>
 
 #include "WipeTower.hpp"
+#include "PrintConfig.hpp"
 
 
 namespace Slic3r
@@ -46,7 +47,7 @@ public:
 	// wipe_area	-- space available for one toolchange in mm
 	WipeTowerPrusaMM(float x, float y, float width, float rotation_angle, float cooling_tube_retraction,
                      float cooling_tube_length, float parking_pos_retraction, float extra_loading_move, 
-                     float bridging, bool set_extruder_trimpot,
+                     float bridging, bool set_extruder_trimpot, GCodeFlavor flavor,
                      const std::vector<std::vector<float>>& wiping_matrix, unsigned int initial_tool) :
     m_wipe_tower_pos(x, y),
 		m_wipe_tower_width(width),
@@ -60,6 +61,7 @@ public:
         m_extra_loading_move(extra_loading_move),
 		m_bridging(bridging),
 		m_set_extruder_trimpot(set_extruder_trimpot),
+        m_gcode_flavor(flavor),
         m_current_tool(initial_tool),
         wipe_volumes(wiping_matrix)
         {}
@@ -223,6 +225,7 @@ private:
     bool            m_set_extruder_trimpot      = false;
     bool 			m_retain_speed_override		= true;
     bool            m_adhesion                  = true;
+    GCodeFlavor     m_gcode_flavor;
 
 	float m_perimeter_width = 0.4f * Width_To_Nozzle_Ratio; // Width of an extrusion line, also a perimeter spacing for 100% infill.
 	float m_extrusion_flow = 0.038f; //0.029f;// Extrusion flow is derived from m_perimeter_width, layer height and filament diameter.
