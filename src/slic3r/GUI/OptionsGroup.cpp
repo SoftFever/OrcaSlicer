@@ -172,19 +172,21 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
     // Build a label if we have it
 	wxStaticText* label=nullptr;
     if (label_width != 0) {
-		long label_style = staticbox ? 0 : wxALIGN_RIGHT;
-#ifdef __WXGTK__
-		// workaround for correct text align of the StaticBox on Linux
-		// flags wxALIGN_RIGHT and wxALIGN_CENTRE don't work when Ellipsize flags are _not_ given.
-		// Text is properly aligned only when Ellipsize is checked.
-		label_style |= staticbox ? 0 : wxST_ELLIPSIZE_END;
-#endif /* __WXGTK__ */
-		label = new wxStaticText(this->ctrl_parent(), wxID_ANY, line.label + (line.label.IsEmpty() ? "" : ": "), 
-							wxDefaultPosition, wxSize(label_width, -1), label_style);
-		label->SetBackgroundStyle(wxBG_STYLE_PAINT);
-        label->SetFont(label_font);
-        label->Wrap(label_width); // avoid a Linux/GTK bug
-        if (!line.near_label_widget)
+    	if (! line.near_label_widget || ! line.label.IsEmpty()) {
+			long label_style = staticbox ? 0 : wxALIGN_RIGHT;
+	#ifdef __WXGTK__
+			// workaround for correct text align of the StaticBox on Linux
+			// flags wxALIGN_RIGHT and wxALIGN_CENTRE don't work when Ellipsize flags are _not_ given.
+			// Text is properly aligned only when Ellipsize is checked.
+			label_style |= staticbox ? 0 : wxST_ELLIPSIZE_END;
+	#endif /* __WXGTK__ */
+			label = new wxStaticText(this->ctrl_parent(), wxID_ANY, line.label + (line.label.IsEmpty() ? "" : ": "), 
+								wxDefaultPosition, wxSize(label_width, -1), label_style);
+			label->SetBackgroundStyle(wxBG_STYLE_PAINT);
+	        label->SetFont(label_font);
+	        label->Wrap(label_width); // avoid a Linux/GTK bug
+	    }
+        if (! line.near_label_widget)
             grid_sizer->Add(label, 0, (staticbox ? 0 : wxALIGN_RIGHT | wxRIGHT) | wxALIGN_CENTER_VERTICAL, line.label.IsEmpty() ? 0 : 5);
         else if (line.near_label_widget && line.label.IsEmpty())
             grid_sizer->Add(line.near_label_widget(this->ctrl_parent()), 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 7);
@@ -196,7 +198,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	full_Label/* = n
             sizer->Add(line.near_label_widget(this->ctrl_parent()), 0, wxRIGHT, 7);
             sizer->Add(label, 0, (staticbox ? 0 : wxALIGN_RIGHT | wxRIGHT) | wxALIGN_CENTER_VERTICAL, 5);
         }
-		if (line.label_tooltip.compare("") != 0)
+		if (label != nullptr && line.label_tooltip != "")
 			label->SetToolTip(line.label_tooltip);
     }
 

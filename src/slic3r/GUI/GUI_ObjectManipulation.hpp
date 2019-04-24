@@ -19,9 +19,13 @@ class ObjectManipulation : public OG_Settings
     struct Cache
     {
         Vec3d position;
+        Vec3d position_rounded;
         Vec3d rotation;
+        Vec3d rotation_rounded;
         Vec3d scale;
+        Vec3d scale_rounded;
         Vec3d size;
+        Vec3d size_rounded;
 
         std::string move_label_string;
         std::string rotate_label_string;
@@ -46,10 +50,10 @@ class ObjectManipulation : public OG_Settings
         Cache() { reset(); }
         void reset()
         {
-            position = Vec3d(DBL_MAX, DBL_MAX, DBL_MAX);
-            rotation = Vec3d(DBL_MAX, DBL_MAX, DBL_MAX);
-            scale = Vec3d(DBL_MAX, DBL_MAX, DBL_MAX);
-            size = Vec3d(DBL_MAX, DBL_MAX, DBL_MAX);
+            position = position_rounded = Vec3d(DBL_MAX, DBL_MAX, DBL_MAX);
+            rotation = rotation_rounded = Vec3d(DBL_MAX, DBL_MAX, DBL_MAX);
+            scale = scale_rounded = Vec3d(DBL_MAX, DBL_MAX, DBL_MAX);
+            size = size_rounded = Vec3d(DBL_MAX, DBL_MAX, DBL_MAX);
             move_label_string = "";
             rotate_label_string = "";
             scale_label_string = "";
@@ -79,6 +83,7 @@ class ObjectManipulation : public OG_Settings
     // Does the object manipulation panel work in World or Local coordinates?
     bool            m_world_coordinates = true;
     PrusaLockButton* m_lock_bnt{ nullptr };
+    wxBitmapComboBox* m_word_local_combo = nullptr;
 
 #ifndef __APPLE__
     // Currently focused option name (empty if none)
@@ -101,6 +106,7 @@ public:
     void        set_uniform_scaling(const bool uniform_scale) { m_uniform_scale = uniform_scale;}
     bool        get_uniform_scaling() const { return m_uniform_scale; }
     // Does the object manipulation panel work in World or Local coordinates?
+    void        set_world_coordinates(const bool world_coordinates) { m_world_coordinates = world_coordinates; this->UpdateAndShow(true); }
     bool        get_world_coordinates() const { return m_world_coordinates; }
 
     void reset_cache() { m_cache.reset(); }
@@ -120,10 +126,10 @@ private:
     void update_rotation_value(const Vec3d& rotation);
 
     // change values 
-    void change_position_value(const Vec3d& position);
-    void change_rotation_value(const Vec3d& rotation);
-    void change_scale_value(const Vec3d& scale);
-    void change_size_value(const Vec3d& size);
+    void change_position_value(int axis, double value);
+    void change_rotation_value(int axis, double value);
+    void change_scale_value(int axis, double value);
+    void change_size_value(int axis, double value);
     void do_scale(const Vec3d &scale) const;
 
     void on_change(t_config_option_key opt_key, const boost::any& value);

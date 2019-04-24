@@ -16,6 +16,50 @@ namespace Slic3r
 namespace GUI
 {
 
+static wxBitmapComboBox* create_word_local_combo(wxWindow *parent)
+{
+    wxSize size(15 * wxGetApp().em_unit(), -1);
+
+    wxBitmapComboBox *temp = nullptr;
+#ifdef __WXOSX__
+    /* wxBitmapComboBox with wxCB_READONLY style return NULL for GetTextCtrl(),
+     * so ToolTip doesn't shown.
+     * Next workaround helps to solve this problem
+     */
+    temp = new wxBitmapComboBox();
+    temp->SetTextCtrlStyle(wxTE_READONLY);
+	temp->Create(parent, wxID_ANY, wxString(""), wxDefaultPosition, size, 0, nullptr);
+#else
+	temp = new wxBitmapComboBox(parent, wxID_ANY, wxString(""), wxDefaultPosition, size, 0, nullptr, wxCB_READONLY);
+#endif //__WXOSX__
+
+    temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+    temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
+
+    temp->Append(_(L("World")));
+    temp->Append(_(L("Local")));
+    temp->SetSelection(0);
+    temp->SetValue(temp->GetString(0));
+
+#ifndef __WXGTK__
+    /* Workaround for a correct rendering of the control without Bitmap (under MSW and OSX):
+     * 
+     * 1. We should create small Bitmap to fill Bitmaps RefData,
+     *    ! in this case wxBitmap.IsOK() return true.
+     * 2. But then set width to 0 value for no using of bitmap left and right spacing 
+     * 3. Set this empty bitmap to the at list one item and BitmapCombobox will be recreated correct
+     * 
+     * Note: Set bitmap height to the Font size because of OSX rendering.
+     */
+    wxBitmap empty_bmp(1, temp->GetFont().GetPixelSize().y + 2);
+    empty_bmp.SetWidth(0);
+    temp->SetItemBitmap(0, empty_bmp);
+#endif
+
+    temp->SetToolTip(_(L("Select coordinate space, in which the transformation will be performed.")));
+	return temp;
+}
+
 ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     OG_Settings(parent, true)
 #ifndef __APPLE__
@@ -63,6 +107,12 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
         Option option = Option(def, axis + "_axis_legend");
         line.append_option(option);
     }
+    line.near_label_widget = [this](wxWindow* parent) {
+        wxBitmapComboBox *combo = create_word_local_combo(parent);
+		combo->Bind(wxEVT_COMBOBOX, ([this](wxCommandEvent &evt) { this->set_world_coordinates(evt.GetSelection() != 1); }), combo->GetId());
+        m_word_local_combo = combo;
+        return combo;
+    };
     m_og->append_line(line);
 
     auto add_og_to_object_settings = [this, field_width](const std::string& option_name, const std::string& sidetext)
@@ -145,9 +195,8 @@ bool ObjectManipulation::IsShown()
 
 void ObjectManipulation::UpdateAndShow(const bool show)
 {
-    if (show) {
+    if (show)
         update_settings_value(wxGetApp().plater()->canvas3D()->get_selection());
-    }
 
     OG_Settings::UpdateAndShow(show);
 }
@@ -164,8 +213,8 @@ void ObjectManipulation::update_settings_value(const Selection& selection)
         // all volumes in the selection belongs to the same instance, any of them contains the needed instance data, so we take the first one
         const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
         m_new_position = volume->get_instance_offset();
-        m_new_rotation = volume->get_instance_rotation();
-        m_new_scale    = volume->get_instance_scaling_factor();
+        m_new_rotation = volume->get_instance_rotation() * (180. / M_PI);
+        m_new_scale    = volume->get_instance_scaling_factor() * 100.;
         int obj_idx = volume->object_idx();
         int instance_idx = volume->instance_idx();
         if ((0 <= obj_idx) && (obj_idx < (int)wxGetApp().model_objects()->size()))
@@ -178,7 +227,7 @@ void ObjectManipulation::update_settings_value(const Selection& selection)
                 changed_box = true;
             }
             //FIXME matching an instance idx may not be enough. Check for ModelObject id an all ModelVolume ids.
-            if (changed_box || !m_cache.instance.matches_instance(instance_idx) || !m_cache.scale.isApprox(100.0 * m_new_scale))
+            if (changed_box || !m_cache.instance.matches_instance(instance_idx) || !m_cache.scale.isApprox(m_new_scale))
                 m_new_size = volume->get_instance_transformation().get_scaling_factor().cwiseProduct(m_cache.instance.box_size);
         }
         else {
@@ -197,7 +246,7 @@ void ObjectManipulation::update_settings_value(const Selection& selection)
         const BoundingBoxf3& box = selection.get_bounding_box();
         m_new_position = box.center();
         m_new_rotation = Vec3d::Zero();
-        m_new_scale    = Vec3d(1.0, 1.0, 1.0);
+        m_new_scale    = Vec3d(100., 100., 100.);
         m_new_size     = box.size();
         m_new_rotate_label_string = L("Rotate");
 		m_new_scale_label_string  = L("Scale");
@@ -210,8 +259,8 @@ void ObjectManipulation::update_settings_value(const Selection& selection)
         // the selection contains a single volume
         const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
         m_new_position = volume->get_volume_offset();
-        m_new_rotation = volume->get_volume_rotation();
-        m_new_scale    = volume->get_volume_scaling_factor();
+        m_new_rotation = volume->get_volume_rotation() * (180. / M_PI);
+        m_new_scale    = volume->get_volume_scaling_factor() * 100.;
         m_new_size = volume->get_volume_transformation().get_scaling_factor().cwiseProduct(volume->bounding_box.size());
         m_new_enabled = true;
     }
@@ -226,7 +275,7 @@ void ObjectManipulation::update_settings_value(const Selection& selection)
     }
 	else {
         // No selection, reset the cache.
-		assert(selection.is_empty());
+//		assert(selection.is_empty());
 		reset_settings_value();
 	}
 
@@ -249,25 +298,23 @@ void ObjectManipulation::update_if_dirty()
     update_label(m_cache.rotate_label_string, m_new_rotate_label_string, m_rotate_Label);
     update_label(m_cache.scale_label_string,  m_new_scale_label_string,  m_scale_Label);
 
-	Vec3d scale = m_new_scale * 100.0;
-    Vec3d deg_rotation = (180.0 / M_PI) * m_new_rotation;
-
     char axis[2] = "x";
     for (int i = 0; i < 3; ++ i, ++ axis[0]) {
-        if (m_cache.position(i) != m_new_position(i))
-            m_og->set_value(std::string("position_") + axis, double_to_string(m_new_position(i), 2));
-        if (m_cache.scale(i) != scale(i))
-            m_og->set_value(std::string("scale_") + axis, double_to_string(scale(i), 2));
-        if (m_cache.size(i) != m_new_size(i))
-            m_og->set_value(std::string("size_") + axis, double_to_string(m_new_size(i), 2));
-        if (m_cache.rotation(i) != m_new_rotation(i) || m_new_rotation(i) == 0.0)
-            m_og->set_value(std::string("rotation_") + axis, double_to_string(deg_rotation(i), 2));
+        auto update = [this, i, &axis](Vec3d &cached, Vec3d &cached_rounded, const char *key, const Vec3d &new_value) {
+			wxString new_text = double_to_string(new_value(i), 2);
+			double new_rounded;
+			new_text.ToDouble(&new_rounded);
+			if (std::abs(cached_rounded(i) - new_rounded) > EPSILON) {
+				cached_rounded(i) = new_rounded;
+                m_og->set_value(std::string(key) + axis, new_text);
+            }
+			cached(i) = new_value(i);
+		};
+        update(m_cache.position, m_cache.position_rounded, "position_", m_new_position);
+        update(m_cache.scale,    m_cache.scale_rounded,    "scale_",    m_new_scale);
+        update(m_cache.size,     m_cache.size_rounded,     "size_",     m_new_size);
+        update(m_cache.rotation, m_cache.rotation_rounded, "rotation_", m_new_rotation);
     }
-
-    m_cache.position = m_new_position;
-    m_cache.scale = scale;
-    m_cache.size = m_new_size;
-    m_cache.rotation = deg_rotation;
 
     if (wxGetApp().plater()->canvas3D()->get_selection().requires_uniform_scale()) {
         m_lock_bnt->SetLock(true);
@@ -276,6 +323,12 @@ void ObjectManipulation::update_if_dirty()
     else {
         m_lock_bnt->SetLock(m_uniform_scale);
         m_lock_bnt->Enable();
+    }
+
+    { 
+        int new_selection = m_world_coordinates ? 0 : 1; 
+        if (m_word_local_combo->GetSelection() != new_selection)
+            m_word_local_combo->SetSelection(new_selection);
     }
 
     if (m_new_enabled)
@@ -314,8 +367,14 @@ void ObjectManipulation::reset_settings_value()
     m_dirty = true;
 }
 
-void ObjectManipulation::change_position_value(const Vec3d& position)
+void ObjectManipulation::change_position_value(int axis, double value)
 {
+    if (std::abs(m_cache.position_rounded(axis) - value) < EPSILON)
+        return;
+
+    Vec3d position = m_cache.position;
+    position(axis) = value;
+
     auto canvas = wxGetApp().plater()->canvas3D();
     Selection& selection = canvas->get_selection();
     selection.start_dragging();
@@ -323,10 +382,18 @@ void ObjectManipulation::change_position_value(const Vec3d& position)
     canvas->do_move();
 
     m_cache.position = position;
+	m_cache.position_rounded(axis) = DBL_MAX;
+    this->UpdateAndShow(true);
 }
 
-void ObjectManipulation::change_rotation_value(const Vec3d& rotation)
+void ObjectManipulation::change_rotation_value(int axis, double value)
 {
+    if (std::abs(m_cache.rotation_rounded(axis) - value) < EPSILON)
+        return;
+
+    Vec3d rotation = m_cache.rotation;
+    rotation(axis) = value;
+
     GLCanvas3D* canvas = wxGetApp().plater()->canvas3D();
     Selection& selection = canvas->get_selection();
 
@@ -346,20 +413,36 @@ void ObjectManipulation::change_rotation_value(const Vec3d& rotation)
     canvas->do_rotate();
 
     m_cache.rotation = rotation;
+	m_cache.rotation_rounded(axis) = DBL_MAX;
+	this->UpdateAndShow(true);
 }
 
-void ObjectManipulation::change_scale_value(const Vec3d& scale)
+void ObjectManipulation::change_scale_value(int axis, double value)
 {
+    if (std::abs(m_cache.scale_rounded(axis) - value) < EPSILON)
+        return;
+
+    Vec3d scale = m_cache.scale;
+    scale(axis) = value;
+
     this->do_scale(scale);
 
     if (!m_cache.scale.isApprox(scale))
         m_cache.instance.instance_idx = -1;
 
     m_cache.scale = scale;
+	m_cache.scale_rounded(axis) = DBL_MAX;
+	this->UpdateAndShow(true);
 }
 
-void ObjectManipulation::change_size_value(const Vec3d& size)
+void ObjectManipulation::change_size_value(int axis, double value)
 {
+    if (std::abs(m_cache.size_rounded(axis) - value) < EPSILON)
+        return;
+
+    Vec3d size = m_cache.size;
+    size(axis) = value;
+
     const Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
 
     Vec3d ref_size = m_cache.size;
@@ -371,9 +454,11 @@ void ObjectManipulation::change_size_value(const Vec3d& size)
     else if (selection.is_single_full_instance() && ! m_world_coordinates)
         ref_size = m_cache.instance.box_size;
 
-    this->do_scale(100.0 * Vec3d(size(0) / ref_size(0), size(1) / ref_size(1), size(2) / ref_size(2)));
+    this->do_scale(100. * Vec3d(size(0) / ref_size(0), size(1) / ref_size(1), size(2) / ref_size(2)));
 
     m_cache.size = size;
+	m_cache.size_rounded(axis) = DBL_MAX;
+	this->UpdateAndShow(true);
 }
 
 void ObjectManipulation::do_scale(const Vec3d &scale) const
@@ -407,20 +492,17 @@ void ObjectManipulation::on_change(t_config_option_key opt_key, const boost::any
     if (!m_cache.is_valid())
         return;
 
-    // Value of all three axes of the position / rotation / scale / size is extracted.
-    Vec3d new_value;
-    opt_key.back() = 'x';
-	for (int i = 0; i < 3; ++ i, ++ opt_key.back())
-		new_value(i) = boost::any_cast<double>(m_og->get_value(opt_key));
+    int    axis      = opt_key.back() - 'x';
+    double new_value = boost::any_cast<double>(m_og->get_value(opt_key));
 
     if (boost::starts_with(opt_key, "position_"))
-        change_position_value(new_value);
+        change_position_value(axis, new_value);
     else if (boost::starts_with(opt_key, "rotation_"))
-        change_rotation_value(new_value);
+        change_rotation_value(axis, new_value);
     else if (boost::starts_with(opt_key, "scale_"))
-        change_scale_value(new_value);
+        change_scale_value(axis, new_value);
     else if (boost::starts_with(opt_key, "size_"))
-        change_size_value(new_value);
+        change_size_value(axis, new_value);
 }
 
 void ObjectManipulation::on_fill_empty_value(const std::string& opt_key)
@@ -435,19 +517,28 @@ void ObjectManipulation::on_fill_empty_value(const std::string& opt_key)
         return;
 
     const Vec3d *vec = nullptr;
-	if (boost::starts_with(opt_key, "position_"))
+    Vec3d       *rounded = nullptr;
+	if (boost::starts_with(opt_key, "position_")) {
 		vec = &m_cache.position;
-	else if (boost::starts_with(opt_key, "rotation_"))
+        rounded = &m_cache.position_rounded;
+    } else if (boost::starts_with(opt_key, "rotation_")) {
 		vec = &m_cache.rotation;
-	else if (boost::starts_with(opt_key, "scale_"))
+        rounded = &m_cache.rotation_rounded;
+    } else if (boost::starts_with(opt_key, "scale_")) {
 		vec = &m_cache.scale;
-	else if (boost::starts_with(opt_key, "size_"))
+        rounded = &m_cache.scale_rounded;
+    } else if (boost::starts_with(opt_key, "size_")) {
 		vec = &m_cache.size;
-	else
+        rounded = &m_cache.size_rounded;
+    } else
 		assert(false);
 
-	if (vec != nullptr)
-		m_og->set_value(opt_key, double_to_string((*vec)(opt_key.back() - 'x')));
+	if (vec != nullptr) {
+        int axis = opt_key.back() - 'x';
+        wxString new_text = double_to_string((*vec)(axis));
+		m_og->set_value(opt_key, new_text);
+		new_text.ToDouble(&(*rounded)(axis));
+    }
 }
 
 } //namespace GUI

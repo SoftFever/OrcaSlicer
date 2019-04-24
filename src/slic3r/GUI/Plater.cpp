@@ -1056,9 +1056,9 @@ void Sidebar::enable_buttons(bool enable)
     p->btn_send_gcode->Enable(enable);
 }
 
-void Sidebar::show_reslice(bool show)   const { p->btn_reslice->Show(show); }
-void Sidebar::show_export(bool show)    const { p->btn_export_gcode->Show(show); }
-void Sidebar::show_send(bool show)      const { p->btn_send_gcode->Show(show); }
+bool Sidebar::show_reslice(bool show)   const { return p->btn_reslice->Show(show); }
+bool Sidebar::show_export(bool show)    const { return p->btn_export_gcode->Show(show); }
+bool Sidebar::show_send(bool show)      const { return p->btn_send_gcode->Show(show); }
 
 bool Sidebar::is_multifilament()
 {
@@ -3129,17 +3129,18 @@ void Plater::priv::show_action_buttons(const bool is_ready_to_slice) const
     // when a background processing is ON, export_btn and/or send_btn are showing 
     if (wxGetApp().app_config->get("background_processing") == "1")
     {
-        sidebar->show_reslice(false);
-        sidebar->show_export(true);
-        sidebar->show_send(send_gcode_shown);
-    }
+        if (sidebar->show_reslice(false) |
+			sidebar->show_export(true) |
+			sidebar->show_send(send_gcode_shown))
+			sidebar->Layout();
+	}
     else
     {
-        sidebar->show_reslice(is_ready_to_slice);
-        sidebar->show_export(!is_ready_to_slice);
-        sidebar->show_send(send_gcode_shown && !is_ready_to_slice);
-    }
-    sidebar->Layout();
+		if (sidebar->show_reslice(is_ready_to_slice) |
+			sidebar->show_export(!is_ready_to_slice) |
+			sidebar->show_send(send_gcode_shown && !is_ready_to_slice))
+			sidebar->Layout();
+	}
 }
 
 void Sidebar::set_btn_label(const ActionButtonType btn_type, const wxString& label) const

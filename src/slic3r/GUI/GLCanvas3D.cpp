@@ -1870,8 +1870,12 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     if (m_reload_delayed)
         return;
 
+	bool update_object_list = false;
+
     if (m_regenerate_volumes)
     {
+		if (m_volumes.volumes != glvolumes_new)
+			update_object_list = true;
         m_volumes.volumes = std::move(glvolumes_new);
         for (unsigned int obj_idx = 0; obj_idx < (unsigned int)m_model->objects.size(); ++ obj_idx) {
             const ModelObject &model_object = *m_model->objects[obj_idx];
@@ -1886,12 +1890,16 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                         // New volume.
                         m_volumes.load_object_volume(&model_object, obj_idx, volume_idx, instance_idx, m_color_by, m_use_VBOs && m_initialized);
 						m_volumes.volumes.back()->geometry_id = key.geometry_id;
+						update_object_list = true;
                     } else {
 						// Recycling an old GLVolume.
 						GLVolume &existing_volume = *m_volumes.volumes[it->volume_idx];
                         assert(existing_volume.geometry_id == key.geometry_id);
 						// Update the Object/Volume/Instance indices into the current Model.
-                        existing_volume.composite_id = it->composite_id;
+						if (existing_volume.composite_id != it->composite_id) {
+							existing_volume.composite_id = it->composite_id;
+							update_object_list = true;
+						}
                     }
                 }
             }
@@ -1999,7 +2007,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     m_gizmos.update_data(*this);
 
     // Update the toolbar
-    post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
+	if (update_object_list)
+		post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
 
     // checks for geometry outside the print volume to render it accordingly
     if (!m_volumes.empty())

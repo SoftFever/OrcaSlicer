@@ -275,6 +275,8 @@ public:
         int             volume_id;
         // Instance ID, which is equal to the index of the respective ModelInstance in ModelObject.instances array.
         int             instance_id;
+		bool operator==(const CompositeID &rhs) const { return object_id == rhs.object_id && volume_id == rhs.volume_id && instance_id == rhs.instance_id; }
+		bool operator!=(const CompositeID &rhs) const { return ! (*this == rhs); }
     };
     CompositeID         composite_id;
     // Fingerprint of the source geometry. For ModelVolumes, it is the ModelVolume::ID and ModelInstanceID, 
