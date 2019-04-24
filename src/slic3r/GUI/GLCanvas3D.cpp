@@ -1205,7 +1205,6 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar
     , m_initialized(false)
     , m_use_VBOs(false)
     , m_apply_zoom_to_volumes_filter(false)
-    , m_hover_volume_id(-1)
     , m_legend_texture_enabled(false)
     , m_picking_enabled(false)
     , m_moving_enabled(false)
@@ -2543,7 +2542,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             if (top_level_wnd && top_level_wnd->IsActive())
                 m_canvas->SetFocus();
             m_mouse.position = pos.cast<double>();
-            // 1) forces a frame render to ensure that m_hover_volume_id is updated even when the user right clicks while
+            // 1) forces a frame render to ensure that m_hover_volume_idxs is updated even when the user right clicks while
             // the context menu is shown, ensuring it to disappear if the mouse is outside any volume and to
             // change the volume hover state if any is under the mouse 
             // 2) when switching between 3d view and preview the size of the canvas changes if the side panels are visible,
@@ -2589,20 +2588,21 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // Don't deselect a volume if layer editing is enabled. We want the object to stay selected
             // during the scene manipulation.
 
-            if (m_picking_enabled && ((m_hover_volume_id != -1) || !is_layers_editing_enabled()))
+            if (m_picking_enabled && (!m_hover_volume_idxs.empty() || !is_layers_editing_enabled()))
             {
-                if (evt.LeftDown() && (m_hover_volume_id != -1))
+                if (evt.LeftDown() && !m_hover_volume_idxs.empty())
                 {
-                    bool already_selected = m_selection.contains_volume(m_hover_volume_id);
+                    int volume_idx = get_first_hover_volume_idx();
+                    bool already_selected = m_selection.contains_volume(volume_idx);
                     bool ctrl_down = evt.CmdDown();
 
                     Selection::IndicesList curr_idxs = m_selection.get_volume_idxs();
 
                     if (already_selected && ctrl_down)
-                        m_selection.remove(m_hover_volume_id);
+                        m_selection.remove(volume_idx);
                     else
                     {
-                        m_selection.add(m_hover_volume_id, !ctrl_down, true);
+                        m_selection.add(volume_idx, !ctrl_down, true);
                         m_mouse.drag.move_requires_threshold = !already_selected;
                         if (already_selected)
                             m_mouse.set_move_start_threshold_position_2D_as_invalid();
@@ -2610,6 +2610,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                             m_mouse.drag.move_start_threshold_position_2D = pos;
                     }
 
+                    // propagate event through callback
                     if (curr_idxs != m_selection.get_volume_idxs())
                     {
                         m_gizmos.refresh_on_off_state(m_selection);
@@ -2620,18 +2621,18 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 }
             }
 
-            // propagate event through callback
-            if (m_hover_volume_id != -1)
+            if (!m_hover_volume_idxs.empty())
             {
                 if (evt.LeftDown() && m_moving_enabled && (m_mouse.drag.move_volume_idx == -1))
                 {
                     // Only accept the initial position, if it is inside the volume bounding box.
-                    BoundingBoxf3 volume_bbox = m_volumes.volumes[m_hover_volume_id]->transformed_bounding_box();
+                    int volume_idx = get_first_hover_volume_idx();
+                    BoundingBoxf3 volume_bbox = m_volumes.volumes[volume_idx]->transformed_bounding_box();
                     volume_bbox.offset(1.0);
                     if (volume_bbox.contains(m_mouse.scene_position))
                     {
                         // The dragging operation is initiated.
-                        m_mouse.drag.move_volume_idx = m_hover_volume_id;
+                        m_mouse.drag.move_volume_idx = volume_idx;
                         m_selection.start_dragging();
                         m_mouse.drag.start_position_3D = m_mouse.scene_position;
                         m_moving = true;
@@ -2648,7 +2649,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
             Vec3d cur_pos = m_mouse.drag.start_position_3D;
             // we do not want to translate objects if the user just clicked on an object while pressing shift to remove it from the selection and then drag
-            if (m_selection.contains_volume(m_hover_volume_id))
+            if (m_selection.contains_volume(get_first_hover_volume_idx()))
             {
                 if (m_camera.get_theta() == 90.0f)
                 {
@@ -2703,7 +2704,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         else if (evt.LeftIsDown())
         {
             // if dragging over blank area with left button, rotate
-            if ((m_hover_volume_id == -1) && m_mouse.is_start_position_3D_defined())
+            if (m_hover_volume_idxs.empty() && m_mouse.is_start_position_3D_defined())
             {
                 const Vec3d& orig = m_mouse.drag.start_position_3D;
                 m_camera.phi += (((float)pos(0) - (float)orig(0)) * TRACKBALLSIZE);
@@ -2745,7 +2746,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // of the scene with the background processing data should be performed.
             post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
         }
-        else if (evt.LeftUp() && !m_mouse.dragging && (m_hover_volume_id == -1) && !is_layers_editing_enabled())
+        else if (evt.LeftUp() && !m_mouse.dragging && m_hover_volume_idxs.empty() && !is_layers_editing_enabled())
         {
             // deselect and propagate event through callback
             if (!evt.ShiftDown() && m_picking_enabled)
@@ -2761,18 +2762,18 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         else if (evt.RightUp())
         {
             m_mouse.position = pos.cast<double>();
-            // forces a frame render to ensure that m_hover_volume_id is updated even when the user right clicks while
+            // forces a frame render to ensure that m_hover_volume_idxs is updated even when the user right clicks while
             // the context menu is already shown
             render();
-            if (m_hover_volume_id != -1)
+            if (!m_hover_volume_idxs.empty())
             {
                 // if right clicking on volume, propagate event through callback (shows context menu)
-                if (m_volumes.volumes[m_hover_volume_id]->hover
-                    && !m_volumes.volumes[m_hover_volume_id]->is_wipe_tower // no context menu for the wipe tower
+                int volume_idx = get_first_hover_volume_idx();
+                if (!m_volumes.volumes[volume_idx]->is_wipe_tower // no context menu for the wipe tower
                     && m_gizmos.get_current_type() != GLGizmosManager::SlaSupports)  // disable context menu when the gizmo is open
                 {
                     // forces the selection of the volume
-                    m_selection.add(m_hover_volume_id);
+                    m_selection.add(volume_idx);
                     m_gizmos.refresh_on_off_state(m_selection);
                     post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
                     m_gizmos.update_data(*this);
@@ -3541,6 +3542,8 @@ void GLCanvas3D::_picking_pass() const
 
     if (m_picking_enabled && !m_mouse.dragging && (pos != Vec2d(DBL_MAX, DBL_MAX)))
     {
+        m_hover_volume_idxs.clear();
+
         // Render the object for picking.
         // FIXME This cannot possibly work in a multi - sampled context as the color gets mangled by the anti - aliasing.
         // Better to use software ray - casting on a bounding - box hierarchy.
@@ -3579,14 +3582,11 @@ void GLCanvas3D::_picking_pass() const
         }
         if ((0 <= volume_id) && (volume_id < (int)m_volumes.volumes.size()))
         {
-            m_hover_volume_id = volume_id;
+            m_hover_volume_idxs.push_back(volume_id);
             m_gizmos.set_hover_id(-1);
         }
         else
-        {
-            m_hover_volume_id = -1;
             m_gizmos.set_hover_id(inside && volume_id <= GLGizmoBase::BASE_ID ? (GLGizmoBase::BASE_ID - volume_id) : -1);
-        }
 
         _update_volumes_hover_state();
     }
@@ -4077,10 +4077,10 @@ void GLCanvas3D::_update_volumes_hover_state() const
         v->hover = false;
     }
 
-    if (m_hover_volume_id == -1)
+    if (m_hover_volume_idxs.empty())
         return;
 
-    GLVolume* volume = m_volumes.volumes[m_hover_volume_id];
+    GLVolume* volume = m_volumes.volumes[get_first_hover_volume_idx()];
     if (volume->is_modifier)
         volume->hover = true;
     else
