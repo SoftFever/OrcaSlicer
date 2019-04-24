@@ -7,7 +7,9 @@ namespace Slic3r {
 namespace GUI {
 
 PreferencesDialog::PreferencesDialog(wxWindow* parent) : 
-	wxDialog(parent, wxID_ANY, _(L("Preferences")), wxDefaultPosition, wxDefaultSize) {
+    DPIDialog(parent, wxID_ANY, _(L("Preferences")), wxDefaultPosition, 
+              wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+{
 	build();
 }
 
@@ -15,7 +17,7 @@ void PreferencesDialog::build()
 {
 	auto app_config = get_app_config();
 	m_optgroup = std::make_shared<ConfigOptionsGroup>(this, _(L("General")));
-    m_optgroup->label_width = 40 * wxGetApp().em_unit(); //400;
+    m_optgroup->label_width = 40;
 	m_optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value){
 		m_values[opt_key] = boost::any_cast<bool>(value) ? "1" : "0";
 	};
@@ -110,6 +112,8 @@ void PreferencesDialog::build()
 	auto sizer = new wxBoxSizer(wxVERTICAL);
 	sizer->Add(m_optgroup->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, 10);
 
+    SetFont(wxGetApp().normal_font());
+
 	auto buttons = CreateStdDialogButtonSizer(wxOK | wxCANCEL);
 	wxButton* btn = static_cast<wxButton*>(FindWindowById(wxID_OK, this));
 	btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { accept(); });
@@ -136,6 +140,19 @@ void PreferencesDialog::accept()
 
 	// Nothify the UI to update itself from the ini file.
     wxGetApp().update_ui_from_settings();
+}
+
+void PreferencesDialog::on_dpi_changed(const wxRect &suggested_rect)
+{
+    m_optgroup->rescale();
+
+    const int& em = em_unit();
+    const wxSize& size = wxSize(50 * em, 29 * em);
+
+    SetMinSize(size);
+    SetSize(size);
+
+    Refresh();
 }
 
 } // GUI

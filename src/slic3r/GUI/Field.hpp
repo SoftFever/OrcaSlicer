@@ -19,6 +19,7 @@
 #include "libslic3r/Utils.hpp"
 
 #include "GUI.hpp"
+#include "wxExtensions.hpp"
 
 #ifdef __WXMSW__
 #define wxMSW true
@@ -36,19 +37,24 @@ using t_back_to_init = std::function<void(const std::string&)>;
 
 wxString double_to_string(double const value, const int max_precision = 4);
 
-class MyButton : public wxButton
+class RevertButton : public /*wxButton*/PrusaButton
 {
     bool hidden = false; // never show button if it's hidden ones
 public:
-	MyButton() {}
-	MyButton(wxWindow* parent, wxWindowID id, const wxString& label = wxEmptyString,
-		const wxPoint& pos = wxDefaultPosition,
-		const wxSize& size = wxDefaultSize, long style = 0,
-		const wxValidator& validator = wxDefaultValidator,
-		const wxString& name = wxTextCtrlNameStr)
-	{
-		this->Create(parent, id, label, pos, size, style, validator, name);
-	}
+// 	RevertButton() {} 
+// 	RevertButton(wxWindow* parent, wxWindowID id, const wxString& label = wxEmptyString,
+// 		const wxPoint& pos = wxDefaultPosition,
+// 		const wxSize& size = wxDefaultSize, long style = 0,
+// 		const wxValidator& validator = wxDefaultValidator,
+// 		const wxString& name = wxTextCtrlNameStr)
+// 	{
+// 		this->Create(parent, id, label, pos, size, style, validator, name);
+// 	}
+    RevertButton(
+        wxWindow *parent,
+        const std::string& icon_name = ""
+        ) :
+        PrusaButton(parent, wxID_ANY, icon_name) {}
 
 	// overridden from wxWindow base class
 	virtual bool
@@ -154,19 +160,19 @@ public:
 		return std::move(p); //!p;
     }
 
-    bool 	set_undo_bitmap(const wxBitmap *bmp) {
+    bool 	set_undo_bitmap(const /*wxBitmap*/PrusaBitmap *bmp) {
     	if (m_undo_bitmap != bmp) {
     		m_undo_bitmap = bmp;
-    		m_Undo_btn->SetBitmap(*bmp);
+    		m_Undo_btn->SetBitmap_(*bmp);
     		return true;
     	}
     	return false;
     }
 
-    bool 	set_undo_to_sys_bitmap(const wxBitmap *bmp) {
+    bool 	set_undo_to_sys_bitmap(const /*wxBitmap*/PrusaBitmap *bmp) {
     	if (m_undo_to_sys_bitmap != bmp) {
     		m_undo_to_sys_bitmap = bmp;
-    		m_Undo_to_sys_btn->SetBitmap(*bmp);
+    		m_Undo_to_sys_btn->SetBitmap_(*bmp);
     		return true;
     	}
     	return false;
@@ -211,14 +217,22 @@ public:
 		m_side_text = side_text;
     }
 
+    virtual void rescale() {
+        m_Undo_to_sys_btn->rescale();
+        m_Undo_btn->rescale();
+
+        // update em_unit value
+        m_em_unit = em_unit(m_parent);
+    }
+
 protected:
-	MyButton*			m_Undo_btn = nullptr;
+	RevertButton*			m_Undo_btn = nullptr;
 	// Bitmap and Tooltip text for m_Undo_btn. The wxButton will be updated only if the new wxBitmap pointer differs from the currently rendered one.
-	const wxBitmap*		m_undo_bitmap = nullptr;
+	const /*wxBitmap*/PrusaBitmap*		m_undo_bitmap = nullptr;
 	const wxString*		m_undo_tooltip = nullptr;
-	MyButton*			m_Undo_to_sys_btn = nullptr;
+	RevertButton*			m_Undo_to_sys_btn = nullptr;
 	// Bitmap and Tooltip text for m_Undo_to_sys_btn. The wxButton will be updated only if the new wxBitmap pointer differs from the currently rendered one.
-	const wxBitmap*		m_undo_to_sys_bitmap = nullptr;
+    const /*wxBitmap*/PrusaBitmap*		m_undo_to_sys_bitmap = nullptr;
 	const wxString*		m_undo_to_sys_tooltip = nullptr;
 
 	wxStaticText*		m_Label = nullptr;
@@ -229,6 +243,8 @@ protected:
 
 	// current value
 	boost::any			m_value;
+
+    int                 m_em_unit;
 
     bool    bEnterPressed = false;
     
@@ -273,6 +289,8 @@ public:
     }
 
 	boost::any&		get_value() override;
+
+    void            rescale() override;
     
     virtual void	enable();
     virtual void	disable();
@@ -337,6 +355,8 @@ public:
 		return m_value = tmp_value;
 	}
 
+    void            rescale() override;
+
 	void			enable() override { dynamic_cast<wxSpinCtrl*>(window)->Enable(); }
 	void			disable() override { dynamic_cast<wxSpinCtrl*>(window)->Disable(); }
 	wxWindow*		getWindow() override { return window; }
@@ -344,6 +364,7 @@ public:
 
 class Choice : public Field {
 	using Field::Field;
+    int             m_width{ 15 };
 public:
 	Choice(const ConfigOptionDef& opt, const t_config_option_key& id) : Field(opt, id) {}
 	Choice(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id) : Field(parent, opt, id) {}
@@ -362,6 +383,8 @@ public:
 	void			set_value(const boost::any& value, bool change_event = false);
 	void			set_values(const std::vector<std::string> &values);
 	boost::any&		get_value() override;
+
+    void            rescale() override;
 
 	void			enable() override { dynamic_cast<wxBitmapComboBox*>(window)->Enable(); };
 	void			disable() override{ dynamic_cast<wxBitmapComboBox*>(window)->Disable(); };
@@ -414,6 +437,8 @@ public:
 	void			set_value(const boost::any& value, bool change_event = false);
 	boost::any&		get_value() override;
 
+    void            rescale() override;
+
 	void			enable() override {
 		x_textctrl->Enable();
 		y_textctrl->Enable(); }
@@ -445,6 +470,8 @@ public:
 	}
 
 	boost::any&		get_value()override { return m_value; }
+
+    void            rescale() override;
 
 	void			enable() override { dynamic_cast<wxStaticText*>(window)->Enable(); };
 	void			disable() override{ dynamic_cast<wxStaticText*>(window)->Disable(); };

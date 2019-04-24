@@ -108,13 +108,13 @@ class ObjectList : public wxDataViewCtrl
     wxBoxSizer          *m_sizer {nullptr};
     wxWindow            *m_parent {nullptr};
 
-    wxBitmap	m_bmp_modifiermesh;
-    wxBitmap	m_bmp_solidmesh;
-    wxBitmap	m_bmp_support_enforcer;
-    wxBitmap	m_bmp_support_blocker;
-    wxBitmap	m_bmp_manifold_warning;
-    wxBitmap	m_bmp_cog;
-    wxBitmap	m_bmp_split;
+    /*wxBitmap*/PrusaBitmap	m_bmp_modifiermesh;
+    /*wxBitmap*/PrusaBitmap	m_bmp_solidmesh;
+    /*wxBitmap*/PrusaBitmap	m_bmp_support_enforcer;
+    /*wxBitmap*/PrusaBitmap	m_bmp_support_blocker;
+    /*wxBitmap*/PrusaBitmap	m_bmp_manifold_warning;
+    /*wxBitmap*/PrusaBitmap	m_bmp_cog;
+    /*wxBitmap*/PrusaBitmap	m_bmp_split;
 
     PrusaMenu   m_menu_object;
     PrusaMenu   m_menu_part;
@@ -125,7 +125,7 @@ class ObjectList : public wxDataViewCtrl
     wxMenuItem* m_menu_item_settings { nullptr };
     wxMenuItem* m_menu_item_split_instances { nullptr };
 
-    std::vector<wxBitmap*> m_bmp_vector;
+    std::vector<wxBitmap* /*const wxBitmap&*/> m_bmp_vector;
 
     int			m_selected_object_id = -1;
     bool		m_prevent_list_events = false;		// We use this flag to avoid circular event handling Select() 
@@ -176,6 +176,7 @@ public:
     void                update_extruder_values_for_items(const int max_extruder);
 
     void                init_icons();
+    void                rescale_icons();
 
     void                set_tooltip_for_item(const wxPoint& pt);
 
@@ -287,6 +288,8 @@ public:
 
     void paste_volumes_into_list(int obj_idx, const ModelVolumePtrs& volumes);
     void paste_objects_into_list(const std::vector<size_t>& object_idxs);
+
+    void rescale();
 
 private:
     void OnChar(wxKeyEvent& event);

@@ -72,7 +72,7 @@ private:
     std::vector<widget_t>	m_extra_widgets;//! {std::vector<widget_t>()};
 };
 
-using column_t = std::function<wxWindow*(wxWindow* parent, const Line&)>;//std::function<wxSizer*(const Line&)>;
+using column_t = std::function<wxWindow*(wxWindow* parent, const Line&)>;
 
 using t_optionfield_map = std::map<t_config_option_key, t_field>;
 using t_opt_map = std::map< std::string, std::pair<std::string, int> >;
@@ -82,7 +82,7 @@ class OptionsGroup {
 public:
     const bool		staticbox {true};
     const wxString	title {wxString("")};
-    size_t			label_width = 20 * wxGetApp().em_unit();// {200};
+    size_t			label_width = 20 ;// {200};
     wxSizer*		sizer {nullptr};
     column_t		extra_column {nullptr};
     t_change		m_on_change { nullptr };
@@ -94,6 +94,9 @@ public:
 	std::function<DynamicPrintConfig()>	m_get_sys_config{ nullptr };
 	std::function<bool()>	have_sys_config{ nullptr };
 
+    std::function<void(wxWindow* win)> rescale_extra_column_item { nullptr };
+    std::function<void(wxWindow* win)> rescale_near_label_widget { nullptr };
+    
     wxFont			sidetext_font {wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT) };
     wxFont			label_font {wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT) };
 	int				sidetext_width{ -1 };
@@ -193,6 +196,8 @@ protected:
 	std::map<t_config_option_key, Option>	m_options;
     wxWindow*				m_parent {nullptr};
     std::vector<ConfigOptionMode>           m_options_mode;
+    std::vector<wxWindow*>                  m_extra_column_item_ptrs;
+    std::vector<wxWindow*>                  m_near_label_widget_ptrs;
 
     /// Field list, contains unique_ptrs of the derived type.
     /// using types that need to know what it is beyond the public interface 
@@ -261,6 +266,7 @@ public:
     void        Hide();
     void        Show(const bool show);
     bool        update_visibility(ConfigOptionMode mode);
+    void        rescale();
 	boost::any	config_value(const std::string& opt_key, int opt_index, bool deserialize);
 	// return option value from config 
 	boost::any	get_config_value(const DynamicPrintConfig& config, const std::string& opt_key, int opt_index = -1);

@@ -4,12 +4,13 @@
 #include <memory>
 
 #include <wx/dialog.h>
+#include "GUI_Utils.hpp"
 
 
 namespace Slic3r {
 
 
-class FirmwareDialog: public wxDialog
+class FirmwareDialog: public GUI::DPIDialog
 {
 public:
 	FirmwareDialog(wxWindow *parent);
@@ -20,6 +21,9 @@ public:
 	~FirmwareDialog();
 
 	static void run(wxWindow *parent);
+
+protected:
+    void on_dpi_changed(const wxRect &suggested_rect) override{;}
 private:
 	struct priv;
 	std::unique_ptr<priv> p;

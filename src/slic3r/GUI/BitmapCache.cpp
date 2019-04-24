@@ -23,6 +23,8 @@ void BitmapCache::clear()
 {
     for (std::pair<const std::string, wxBitmap*> &bitmap : m_map)
         delete bitmap.second;
+
+    m_map.clear();
 }
 
 static wxBitmap wxImage_to_wxBitmap_with_alpha(wxImage &&image, float scale = 1.0f)

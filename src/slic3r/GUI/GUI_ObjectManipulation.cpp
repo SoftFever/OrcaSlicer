@@ -23,7 +23,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
 #endif // __APPLE__
 {
     m_og->set_name(_(L("Object Manipulation")));
-    m_og->label_width = 12 * wxGetApp().em_unit();//125;
+    m_og->label_width = 12;//125;
     m_og->set_grid_vgap(5);
     
     m_og->m_on_change = std::bind(&ObjectManipulation::on_change, this, std::placeholders::_1, std::placeholders::_2);
@@ -45,11 +45,11 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     def.label = L("Name");
     def.gui_type = "legend";
     def.tooltip = L("Object name");
-    def.width = 21 * wxGetApp().em_unit();
+    def.width = 21;
     def.default_value = new ConfigOptionString{ " " };
     m_og->append_single_option_line(Option(def, "object_name"));
 
-    const int field_width = 5 * wxGetApp().em_unit()/*50*/;
+    const int field_width = 5;
 
     // Legend for object modification
     auto line = Line{ "", "" };
@@ -117,15 +117,13 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     m_og->append_line(add_og_to_object_settings(L("Scale"), "%"), &m_scale_Label);
     m_og->append_line(add_og_to_object_settings(L("Size"), "mm"));
 
-    /* Unused parameter at this time
-    def.label = L("Place on bed");
-    def.type = coBool;
-    def.tooltip = L("Automatic placing of models on printing bed in Y axis");
-    def.gui_type = "";
-    def.sidetext = "";
-    def.default_value = new ConfigOptionBool{ false };
-    m_og->append_single_option_line(Option(def, "place_on_bed"));
-    */
+    // call back for a rescale of button "Set uniform scale"
+    m_og->rescale_near_label_widget = [this](wxWindow* win) {
+        auto *ctrl = dynamic_cast<PrusaLockButton*>(win);
+        if (ctrl == nullptr)
+            return;
+        ctrl->rescale();
+    };
 }
 
 void ObjectManipulation::Show(const bool show)

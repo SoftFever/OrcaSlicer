@@ -203,7 +203,7 @@ void ObjectList::set_tooltip_for_item(const wxPoint& pt)
     if (col->GetTitle() == " " && GetSelectedItemsCount()<2)
         GetMainWindow()->SetToolTip(_(L("Right button click the icon to change the object settings")));
     else if (col->GetTitle() == _("Name") &&
-        m_objects_model->GetBitmap(item).GetRefData() == m_bmp_manifold_warning.GetRefData()) {
+        m_objects_model->GetBitmap(item).GetRefData() == m_bmp_manifold_warning.bmp().GetRefData()) {
         int obj_idx = m_objects_model->GetIdByItem(item);
         auto& stats = (*m_objects)[obj_idx]->volumes[0]->mesh.stl.stats;
         int errors = stats.degenerate_facets + stats.edges_fixed + stats.facets_removed +
@@ -395,27 +395,83 @@ void ObjectList::update_name_in_model(const wxDataViewItem& item) const
 
 void ObjectList::init_icons()
 {
-    m_bmp_modifiermesh     = create_scaled_bitmap(nullptr, "add_modifier");
-    m_bmp_solidmesh        = create_scaled_bitmap(nullptr, "add_part");
-    m_bmp_support_enforcer = create_scaled_bitmap(nullptr, "support_enforcer");
-    m_bmp_support_blocker  = create_scaled_bitmap(nullptr, "support_blocker");
+//     m_bmp_modifiermesh      = create_scaled_bitmap(nullptr, "add_modifier");
+//     m_bmp_solidmesh         = create_scaled_bitmap(nullptr, "add_part");
+//     m_bmp_support_enforcer  = create_scaled_bitmap(nullptr, "support_enforcer");
+//     m_bmp_support_blocker   = create_scaled_bitmap(nullptr, "support_blocker");
+// 
+// 
+//     m_bmp_vector.reserve(4); // bitmaps for different types of parts 
+//     m_bmp_vector.push_back(&m_bmp_solidmesh);         
+//     m_bmp_vector.push_back(&m_bmp_modifiermesh);      
+//     m_bmp_vector.push_back(&m_bmp_support_enforcer);  
+//     m_bmp_vector.push_back(&m_bmp_support_blocker);   
 
+    m_bmp_modifiermesh      = PrusaBitmap(nullptr, "add_modifier");    // Add part 
+    m_bmp_solidmesh         = PrusaBitmap(nullptr, "add_part");        // Add modifier 
+    m_bmp_support_enforcer  = PrusaBitmap(nullptr, "support_enforcer");// Add support enforcer 
+    m_bmp_support_blocker   = PrusaBitmap(nullptr, "support_blocker"); // Add support blocker  
 
     m_bmp_vector.reserve(4); // bitmaps for different types of parts 
-    m_bmp_vector.push_back(&m_bmp_solidmesh);         // Add part
-    m_bmp_vector.push_back(&m_bmp_modifiermesh);      // Add modifier
-    m_bmp_vector.push_back(&m_bmp_support_enforcer);  // Add support enforcer
-    m_bmp_vector.push_back(&m_bmp_support_blocker);   // Add support blocker
+    m_bmp_vector.push_back(&m_bmp_solidmesh.bmp());         
+    m_bmp_vector.push_back(&m_bmp_modifiermesh.bmp());      
+    m_bmp_vector.push_back(&m_bmp_support_enforcer.bmp());  
+    m_bmp_vector.push_back(&m_bmp_support_blocker.bmp());   
+
+
+    // Set volumes default bitmaps for the model
     m_objects_model->SetVolumeBitmaps(m_bmp_vector);
 
     // init icon for manifold warning
-    m_bmp_manifold_warning  = create_scaled_bitmap(nullptr, "exclamation");
+    m_bmp_manifold_warning  = /*create_scaled_bitmap*/PrusaBitmap(nullptr, "exclamation");
 
     // init bitmap for "Split to sub-objects" context menu
-    m_bmp_split             = create_scaled_bitmap(nullptr, "split_parts_SMALL");
+    m_bmp_split             = /*create_scaled_bitmap*/PrusaBitmap(nullptr, "split_parts_SMALL");
 
     // init bitmap for "Add Settings" context menu
-    m_bmp_cog               = create_scaled_bitmap(nullptr, "cog");
+    m_bmp_cog               = /*create_scaled_bitmap*/PrusaBitmap(nullptr, "cog");
+}
+
+void ObjectList::rescale_icons()
+{
+    m_bmp_vector.clear();
+    m_bmp_vector.reserve(4); // bitmaps for different types of parts 
+    for (PrusaBitmap* bitmap : std::vector<PrusaBitmap*> {
+                                    &m_bmp_modifiermesh,         // Add part
+                                    &m_bmp_solidmesh,             // Add modifier
+                                    &m_bmp_support_enforcer,     // Add support enforcer
+                                    &m_bmp_support_blocker })    // Add support blocker                                                           
+    {
+        bitmap->rescale();
+        m_bmp_vector.push_back(& bitmap->bmp());
+    }
+    // Set volumes default bitmaps for the model
+    m_objects_model->SetVolumeBitmaps(m_bmp_vector);
+
+    m_bmp_manifold_warning.rescale();
+    m_bmp_split.rescale();
+    m_bmp_cog.rescale();
+
+
+    // Update CATEGORY_ICON according to new scale
+    {
+        // Note: `this` isn't passed to create_scaled_bitmap() here because of bugs in the widget,
+        // see note in PresetBundle::load_compatible_bitmaps()
+
+        // ptFFF
+        CATEGORY_ICON[L("Layers and Perimeters")]    = create_scaled_bitmap(nullptr, "layers");
+        CATEGORY_ICON[L("Infill")]                   = create_scaled_bitmap(nullptr, "infill");
+        CATEGORY_ICON[L("Support material")]         = create_scaled_bitmap(nullptr, "support");
+        CATEGORY_ICON[L("Speed")]                    = create_scaled_bitmap(nullptr, "time");
+        CATEGORY_ICON[L("Extruders")]                = create_scaled_bitmap(nullptr, "funnel");
+        CATEGORY_ICON[L("Extrusion Width")]          = create_scaled_bitmap(nullptr, "funnel");
+//         CATEGORY_ICON[L("Skirt and brim")]          = create_scaled_bitmap(nullptr, "skirt+brim"); 
+//         CATEGORY_ICON[L("Speed > Acceleration")]    = create_scaled_bitmap(nullptr, "time");
+        CATEGORY_ICON[L("Advanced")]                 = create_scaled_bitmap(nullptr, "wrench");
+        // ptSLA
+        CATEGORY_ICON[L("Supports")]                 = create_scaled_bitmap(nullptr, "support"/*"sla_supports"*/);
+        CATEGORY_ICON[L("Pad")]                      = create_scaled_bitmap(nullptr, "pad");
+    }
 }
 
 
@@ -531,7 +587,7 @@ void ObjectList::OnContextMenu(wxDataViewEvent&)
     if (title == " ")
         show_context_menu();
     else if (title == _("Name") && pt.x >15 &&
-             m_objects_model->GetBitmap(item).GetRefData() == m_bmp_manifold_warning.GetRefData())
+             m_objects_model->GetBitmap(item).GetRefData() == m_bmp_manifold_warning.bmp().GetRefData())
     {
         if (is_windows10())
             fix_through_netfabb();
@@ -996,7 +1052,7 @@ void ObjectList::append_menu_items_add_volume(wxMenu* menu)
 wxMenuItem* ObjectList::append_menu_item_split(wxMenu* menu) 
 {
     return append_menu_item(menu, wxID_ANY, _(L("Split to parts")), "",
-        [this](wxCommandEvent&) { split(); }, m_bmp_split, menu);
+        [this](wxCommandEvent&) { split(); }, m_bmp_split.bmp(), menu);
 }
 
 wxMenuItem* ObjectList::append_menu_item_settings(wxMenu* menu_) 
@@ -1061,7 +1117,7 @@ wxMenuItem* ObjectList::append_menu_item_settings(wxMenu* menu_)
 
     // Add full settings list
     auto  menu_item = new wxMenuItem(menu, wxID_ANY, menu_name);
-    menu_item->SetBitmap(m_bmp_cog);
+    menu_item->SetBitmap(m_bmp_cog.bmp());
 
     menu_item->SetSubMenu(create_settings_popupmenu(menu));
 
@@ -1808,7 +1864,7 @@ void ObjectList::add_object_to_list(size_t obj_idx)
         stats.facets_added + stats.facets_reversed + stats.backwards_edges;
     if (errors > 0) {
         wxVariant variant;
-        variant << PrusaDataViewBitmapText(item_name, m_bmp_manifold_warning);
+        variant << PrusaDataViewBitmapText(item_name, m_bmp_manifold_warning.bmp());
         m_objects_model->SetValue(variant, item, 0);
     }
 
@@ -2659,6 +2715,24 @@ void ObjectList::update_item_error_icon(const int obj_idx, const int vol_idx) co
         variant << PrusaDataViewBitmapText(from_u8(model_object->name), wxNullBitmap);
         m_objects_model->SetValue(variant, item, 0);
     }
+}
+
+void ObjectList::rescale()
+{
+    // update min size !!! A width of control shouldn't be a wxDefaultCoord
+    SetMinSize(wxSize(1, 15 * wxGetApp().em_unit()));
+
+    GetColumn(0)->SetWidth(19 * wxGetApp().em_unit());
+    GetColumn(1)->SetWidth(8 * wxGetApp().em_unit());
+    GetColumn(2)->SetWidth(int(2 * wxGetApp().em_unit()));
+
+    // rescale all icons, used by ObjectList
+    rescale_icons();
+
+    // rescale/update existingitems with bitmaps
+    m_objects_model->Rescale();
+
+    Layout();
 }
 
 void ObjectList::ItemValueChanged(wxDataViewEvent &event)

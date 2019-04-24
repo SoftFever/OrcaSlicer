@@ -120,6 +120,8 @@ public:
     void reload_print(bool keep_volumes = false);
     void refresh_print();
 
+    void rescale();
+
 private:
     bool init(wxWindow* parent, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar, Model* model);
 

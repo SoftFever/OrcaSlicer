@@ -4,14 +4,25 @@
 #include <wx/wx.h>
 #include <wx/html/htmlwin.h>
 
+#include "GUI_Utils.hpp"
+#include "wxExtensions.hpp"
+
 namespace Slic3r { 
 namespace GUI {
 
-class SysInfoDialog : public wxDialog
+class SysInfoDialog : public DPIDialog
 {
     wxString text_info {wxEmptyString};
+    PrusaBitmap     m_logo_bmp;
+    wxStaticBitmap* m_logo;
+    wxHtmlWindow* m_opengl_info_html;
+    wxHtmlWindow* m_html;
+
 public:
     SysInfoDialog();
+
+protected:
+    void on_dpi_changed(const wxRect &suggested_rect) override;
     
 private:
     void onCopyToClipboard(wxEvent &);

@@ -41,10 +41,12 @@ std::string get_main_info(bool format_as_html)
 }
 
 SysInfoDialog::SysInfoDialog()
-    : wxDialog(NULL, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _(L("System Information")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
+    : DPIDialog(NULL, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _(L("System Information")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
 {
 	wxColour bgr_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 	SetBackgroundColour(bgr_clr);
+    SetFont(wxGetApp().normal_font());
+
     wxBoxSizer* hsizer = new wxBoxSizer(wxHORIZONTAL);
     hsizer->SetMinSize(wxSize(50 * wxGetApp().em_unit(), -1));
 
@@ -52,8 +54,10 @@ SysInfoDialog::SysInfoDialog()
 	main_sizer->Add(hsizer, 1, wxEXPAND | wxALL, 10);
 
     // logo
-    auto *logo = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap(this, "Slic3r_192px.png", 192));
-	hsizer->Add(logo, 0, wxALIGN_CENTER_VERTICAL);
+    m_logo_bmp = PrusaBitmap(this, "Slic3r_192px.png", 192);
+//     auto *logo = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap(this, "Slic3r_192px.png", 192));
+    m_logo = new wxStaticBitmap(this, wxID_ANY, m_logo_bmp.bmp());
+	hsizer->Add(m_logo, 0, wxALIGN_CENTER_VERTICAL);
     
     wxBoxSizer* vsizer = new wxBoxSizer(wxVERTICAL);
     hsizer->Add(vsizer, 1, wxEXPAND|wxLEFT, 20);
@@ -61,8 +65,8 @@ SysInfoDialog::SysInfoDialog()
     // title
     {
         wxStaticText* title = new wxStaticText(this, wxID_ANY, SLIC3R_APP_NAME, wxDefaultPosition, wxDefaultSize);
-        wxFont title_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
-        title_font.SetWeight(wxFONTWEIGHT_BOLD);
+        wxFont title_font = wxGetApp().bold_font();//wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+//         title_font.SetWeight(wxFONTWEIGHT_BOLD);
         title_font.SetFamily(wxFONTFAMILY_ROMAN);
         title_font.SetPointSize(22);
         title->SetFont(title_font);
@@ -70,7 +74,7 @@ SysInfoDialog::SysInfoDialog()
     }
 
     // main_info_text
-    wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+    wxFont font = wxGetApp().normal_font();//wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
     const auto text_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
     auto text_clr_str = wxString::Format(wxT("#%02X%02X%02X"), text_clr.Red(), text_clr.Green(), text_clr.Blue());
     auto bgr_clr_str = wxString::Format(wxT("#%02X%02X%02X"), bgr_clr.Red(), bgr_clr.Green(), bgr_clr.Blue());
@@ -78,10 +82,10 @@ SysInfoDialog::SysInfoDialog()
     const int fs = font.GetPointSize() - 1;
     int size[] = { static_cast<int>(fs*1.5), static_cast<int>(fs*1.4), static_cast<int>(fs*1.3), fs, fs, fs, fs };
 
-    wxHtmlWindow* html = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_NEVER);
+    m_html = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_NEVER);
     {
-        html->SetFonts(font.GetFaceName(), font.GetFaceName(), size);
-        html->SetBorders(2);
+        m_html->SetFonts(font.GetFaceName(), font.GetFaceName(), size);
+        m_html->SetBorders(2);
 		const auto text = wxString::Format(
             "<html>"
             "<body bgcolor= %s link= %s>"
@@ -91,16 +95,16 @@ SysInfoDialog::SysInfoDialog()
             "</body>"
             "</html>", bgr_clr_str, text_clr_str, text_clr_str,
             get_main_info(true));
-        html->SetPage(text);
-        vsizer->Add(html, 1, wxEXPAND | wxBOTTOM, wxGetApp().em_unit());
+        m_html->SetPage(text);
+        vsizer->Add(m_html, 1, wxEXPAND | wxBOTTOM, wxGetApp().em_unit());
     }
 
     // opengl_info
-    wxHtmlWindow* opengl_info_html = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_AUTO);
+    m_opengl_info_html = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_AUTO);
     {
-        opengl_info_html->SetMinSize(wxSize(-1, 16 * wxGetApp().em_unit()));
-        opengl_info_html->SetFonts(font.GetFaceName(), font.GetFaceName(), size);
-        opengl_info_html->SetBorders(10);
+        m_opengl_info_html->SetMinSize(wxSize(-1, 16 * wxGetApp().em_unit()));
+        m_opengl_info_html->SetFonts(font.GetFaceName(), font.GetFaceName(), size);
+        m_opengl_info_html->SetBorders(10);
         const auto text = wxString::Format(
             "<html>"
             "<body bgcolor= %s link= %s>"
@@ -110,8 +114,8 @@ SysInfoDialog::SysInfoDialog()
             "</body>"
             "</html>", bgr_clr_str, text_clr_str, text_clr_str,
             _3DScene::get_gl_info(true, true));
-        opengl_info_html->SetPage(text);
-        main_sizer->Add(opengl_info_html, 1, wxEXPAND | wxBOTTOM, 15);
+        m_opengl_info_html->SetPage(text);
+        main_sizer->Add(m_opengl_info_html, 1, wxEXPAND | wxBOTTOM, 15);
     }
     
     wxStdDialogButtonSizer* buttons = this->CreateStdDialogButtonSizer(wxOK);
@@ -128,6 +132,32 @@ SysInfoDialog::SysInfoDialog()
 
 	SetSizer(main_sizer);
 	main_sizer->SetSizeHints(this);
+}
+
+void SysInfoDialog::on_dpi_changed(const wxRect &suggested_rect)
+{
+    m_logo_bmp.rescale();
+    m_logo->SetBitmap(m_logo_bmp.bmp());
+
+    wxFont font = GetFont();
+    const int fs = font.GetPointSize() - 1;
+    int font_size[] = { static_cast<int>(fs*1.5), static_cast<int>(fs*1.4), static_cast<int>(fs*1.3), fs, fs, fs, fs };
+
+    m_html->SetFonts(font.GetFaceName(), font.GetFaceName(), font_size);
+    m_html->Refresh();
+
+    const int& em = em_unit();
+
+    m_opengl_info_html->SetMinSize(wxSize(-1, 16 * em));
+    m_opengl_info_html->SetFonts(font.GetFaceName(), font.GetFaceName(), font_size);
+    m_opengl_info_html->Refresh();
+
+    const wxSize& size = wxSize(65 * em, 55 * em);
+
+    SetMinSize(size);
+    SetSize(size);
+
+    Refresh();
 }
 
 void SysInfoDialog::onCopyToClipboard(wxEvent &)

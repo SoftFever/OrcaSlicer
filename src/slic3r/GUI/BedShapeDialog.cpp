@@ -18,6 +18,7 @@ namespace GUI {
 
 void BedShapeDialog::build_dialog(ConfigOptionPoints* default_pt)
 {
+    SetFont(wxGetApp().normal_font());
 	m_panel = new BedShapePanel(this);
 	m_panel->build_panel(default_pt);
 
@@ -34,6 +35,22 @@ void BedShapeDialog::build_dialog(ConfigOptionPoints* default_pt)
 		EndModal(wxID_OK);
 		Destroy();
 	}));
+}
+
+void BedShapeDialog::on_dpi_changed(const wxRect &suggested_rect)
+{
+    const int& em = em_unit();
+    m_panel->m_shape_options_book->SetMinSize(wxSize(25 * em, -1));
+
+    for (auto og : m_panel->m_optgroups)
+        og->rescale();
+
+    const wxSize& size = wxSize(50 * em, -1);
+
+    SetMinSize(size);
+    SetSize(size);
+
+    Refresh();
 }
 
 void BedShapePanel::build_panel(ConfigOptionPoints* default_pt)
@@ -125,7 +142,7 @@ ConfigOptionsGroupShp BedShapePanel::init_shape_options_page(wxString title)
 	ConfigOptionsGroupShp optgroup;
 	optgroup = std::make_shared<ConfigOptionsGroup>(panel, _(L("Settings")));
 
-    optgroup->label_width = 10*wxGetApp().em_unit();//100;
+    optgroup->label_width = 10;
 	optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
 		update_shape();
 	};

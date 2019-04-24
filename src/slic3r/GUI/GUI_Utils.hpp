@@ -59,35 +59,119 @@ public:
         : P(parent, id, title, pos, size, style, name)
     {
         m_scale_factor = (float)get_dpi_for_window(this) / (float)DPI_DEFAULT;
+        m_normal_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+        // An analog of em_unit value from GUI_App.
+        m_em_unit = std::max<size_t>(10, 10 * m_scale_factor);
+
+        m_prev_scale_factor = m_scale_factor;
+
         recalc_font();
 
         this->Bind(EVT_DPI_CHANGED, [this](const DpiChangedEvent &evt) {
             m_scale_factor = (float)evt.dpi / (float)DPI_DEFAULT;
-            on_dpi_changed(evt.rect);
+
+            if (!m_can_rescale)
+                return;
+
+            if (is_new_scale_factor())
+                rescale(evt.rect);
+        });
+
+        this->Bind(wxEVT_MOVE_START, [this](wxMoveEvent& event)
+        {
+            event.Skip();
+
+            // Suppress application rescaling, when a MainFrame moving is not ended
+            m_can_rescale = false;
+        });
+
+        this->Bind(wxEVT_MOVE_END, [this](wxMoveEvent& event)
+        {
+            event.Skip();
+
+            m_can_rescale = is_new_scale_factor();
+
+            // If scale factor is different after moving of MainFrame ...
+            if (m_can_rescale)
+                // ... rescale application
+                rescale(event.GetRect());
+            else
+            // set value to _true_ in purpose of possibility of a display dpi changing from System Settings
+                m_can_rescale = true;
         });
     }
 
     virtual ~DPIAware() {}
 
-    float scale_factor() const { return m_scale_factor; }
-    int em_unit() const { return m_em_unit; }
-    int font_size() const { return m_font_size; }
+    float   scale_factor() const        { return m_scale_factor; }
+    float   prev_scale_factor() const   { return m_prev_scale_factor; }
+
+    int     em_unit() const             { return m_em_unit; }
+    int     font_size() const           { return m_font_size; }
+    const wxFont& normal_font() const   { return m_normal_font; }
 
 protected:
     virtual void on_dpi_changed(const wxRect &suggested_rect) = 0;
 
 private:
-    int m_scale_factor;
+    float m_scale_factor;
     int m_em_unit;
     int m_font_size;
+
+    wxFont m_normal_font;
+    float m_prev_scale_factor;
+    bool  m_can_rescale{ true };
 
     void recalc_font()
     {
         wxClientDC dc(this);
         const auto metrics = dc.GetFontMetrics();
         m_font_size = metrics.height;
-        m_em_unit = metrics.averageWidth;
+//         m_em_unit = metrics.averageWidth;
     }
+
+    // check if new scale is differ from previous
+    bool    is_new_scale_factor() const { return fabs(m_scale_factor - m_prev_scale_factor) > 0.001; }
+
+    // recursive function for scaling fonts for all controls in Window
+    void    scale_controls_fonts(wxWindow *window, const float scale_f)
+    {
+        auto children = window->GetChildren();
+
+        for (auto child : children) {
+            scale_controls_fonts(child, scale_f);
+            child->SetFont(child->GetFont().Scaled(scale_f));
+        }
+
+        window->Layout();
+    }
+
+    void    rescale(const wxRect &suggested_rect)
+    {
+        this->Freeze();
+        const float relative_scale_factor = m_scale_factor / m_prev_scale_factor;
+
+        // rescale fonts of all controls
+        scale_controls_fonts(this, relative_scale_factor);
+        this->SetFont(this->GetFont().Scaled(relative_scale_factor));
+
+
+        // rescale normal_font value
+        m_normal_font = m_normal_font.Scaled(relative_scale_factor);
+
+        // An analog of em_unit value from GUI_App.
+        m_em_unit = std::max<size_t>(10, 10 * m_scale_factor);
+
+        // rescale missed controls sizes and images
+        on_dpi_changed(suggested_rect);
+
+        this->Layout();
+        this->Thaw();
+
+        // reset previous scale factor from current scale factor value
+        m_prev_scale_factor = m_scale_factor;
+    }
+
 };
 
 typedef DPIAware<wxFrame> DPIFrame;

@@ -1434,6 +1434,14 @@ bool PresetBundle::parse_color(const std::string &scolor, unsigned char *rgb_out
 
 void PresetBundle::load_default_preset_bitmaps(wxWindow *window)
 {
+    // Clear bitmap cache, before load new scaled default preset bitmaps 
+    m_bitmapCache->clear();
+    this->prints.clear_bitmap_cache();
+    this->sla_prints.clear_bitmap_cache();
+    this->filaments.clear_bitmap_cache();
+    this->sla_materials.clear_bitmap_cache();
+    this->printers.clear_bitmap_cache();
+
     this->prints.load_bitmap_default(window, "cog");
     this->sla_prints.load_bitmap_default(window, "cog");
     this->filaments.load_bitmap_default(window, "spool.png");
@@ -1443,7 +1451,7 @@ void PresetBundle::load_default_preset_bitmaps(wxWindow *window)
     this->load_compatible_bitmaps(window);
 }
 
-void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, GUI::PresetComboBox *ui, const int em/* = 10*/)
+void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, GUI::PresetComboBox *ui)
 {
     if (ui == nullptr || this->printers.get_edited_preset().printer_technology() == ptSLA ||
         this->filament_presets.size() <= idx_extruder )
@@ -1471,9 +1479,9 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, GUI::Pr
 
     /* It's supposed that standard size of an icon is 16px*16px for 100% scaled display.
      * So set sizes for solid_colored icons used for filament preset 
-     * and scale then in respect to em_unit value
+     * and scale them in respect to em_unit value
      */
-    const float scale_f = em * 0.1f;
+    const float scale_f = ui->em_unit() * 0.1f;
     const int icon_height       = 16 * scale_f + 0.5f;
     const int normal_icon_width = 16 * scale_f + 0.5f;
     const int space_icon_width  = 2  * scale_f + 0.5f;
@@ -1548,6 +1556,10 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, GUI::Pr
 	ui->SetToolTip(ui->GetString(selected_preset_item));
     ui->check_selection();
     ui->Thaw();
+
+    // Update control min size after rescale (changed Display DPI under MSW)
+    if (ui->GetMinWidth() != 20 * ui->em_unit())
+        ui->SetMinSize(wxSize(20 * ui->em_unit(), ui->GetSize().GetHeight()));
 }
 
 void PresetBundle::set_default_suppressed(bool default_suppressed)
