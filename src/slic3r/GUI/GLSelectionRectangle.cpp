@@ -9,7 +9,7 @@ namespace GUI {
 
 void GLSelectionRectangle::start_dragging(const Vec2d& mouse_position, float width, float height, EState status)
 {
-    if (is_active() || status==Off)
+    if (is_dragging() || status == Off)
         return;
 
     m_width = width;
@@ -23,7 +23,7 @@ void GLSelectionRectangle::start_dragging(const Vec2d& mouse_position, float wid
 
 void GLSelectionRectangle::dragging(const Vec2d& mouse_position)
 {
-    if (is_active())
+    if (is_dragging())
         m_end_corner = mouse_position;
 }
 
@@ -31,7 +31,7 @@ void GLSelectionRectangle::dragging(const Vec2d& mouse_position)
 
 std::vector<unsigned int> GLSelectionRectangle::end_dragging(const Camera& camera, const std::vector<Vec3d>& points)
 {
-    if (!is_active())
+    if (!is_dragging())
         return std::vector<unsigned int>();
 
     m_status = Off;

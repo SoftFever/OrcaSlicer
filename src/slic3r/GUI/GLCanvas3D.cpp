@@ -1213,6 +1213,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar
     , m_regenerate_volumes(true)
     , m_moving(false)
     , m_tab_down(false)
+    , m_cursor_type(Standard)
     , m_color_by("volume")
     , m_reload_delayed(false)
     , m_render_sla_auxiliaries(true)
@@ -2323,9 +2324,25 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                     // m_canvas->HandleAsNavigationKey(evt);   // XXX: Doesn't work in some cases / on Linux
                     post_event(SimpleEvent(EVT_GLCANVAS_TAB));
                 }
+                else if (keyCode == WXK_SHIFT)
+                {
+                    set_cursor(Standard);
+                }
+                else if (keyCode == WXK_ALT)
+                {
+                    set_cursor(Standard);
+                }
             }
             else if (evt.GetEventType() == wxEVT_KEY_DOWN) {
                 m_tab_down = keyCode == WXK_TAB && !evt.HasAnyModifiers();
+                if (keyCode == WXK_SHIFT)
+                {
+                    set_cursor(Cross);
+                }
+                else if (keyCode == WXK_ALT)
+                {
+                    set_cursor(Cross);
+                }
             }
         }
     }
@@ -3171,6 +3188,20 @@ Linef3 GLCanvas3D::mouse_ray(const Point& mouse_pos)
 double GLCanvas3D::get_size_proportional_to_max_bed_size(double factor) const
 {
     return factor * m_bed.get_bounding_box().max_size();
+}
+
+void GLCanvas3D::set_cursor(ECursorType type)
+{
+    if ((m_canvas != nullptr) && (m_cursor_type != type))
+    {
+        switch (type)
+        {
+        case Standard: { m_canvas->SetCursor(*wxSTANDARD_CURSOR); break; }
+        case Cross: { m_canvas->SetCursor(*wxCROSS_CURSOR); break; }
+        }
+
+        m_cursor_type = type;
+    }
 }
 
 bool GLCanvas3D::_is_shown_on_screen() const

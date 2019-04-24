@@ -68,6 +68,9 @@ public:
     void delete_selected_points(bool force = false);
     ClippingPlane get_sla_clipping_plane() const;
 
+    bool is_in_editing_mode() const { return m_editing_mode; }
+    bool is_selection_rectangle_dragging() const { return m_selection_rectangle.is_dragging(); }
+
 private:
     bool on_init();
     void on_update(const UpdateData& data, const Selection& selection);

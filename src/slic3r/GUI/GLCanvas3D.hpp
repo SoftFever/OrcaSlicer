@@ -392,6 +392,14 @@ private:
         void render(const GLCanvas3D& canvas) const;
     };
 
+public:
+    enum ECursorType : unsigned char
+    {
+        Standard,
+        Cross
+    };
+
+private:
     wxGLCanvas* m_canvas;
     wxGLContext* m_context;
 #if ENABLE_RETINA_GL
@@ -436,6 +444,7 @@ private:
     bool m_regenerate_volumes;
     bool m_moving;
     bool m_tab_down;
+    ECursorType m_cursor_type;
 
     // Following variable is obsolete and it should be safe to remove it.
     // I just don't want to do it now before a release (Lukas Matena 24.3.2019)
@@ -586,6 +595,8 @@ public:
     bool is_mouse_dragging() const { return m_mouse.dragging; }
 
     double get_size_proportional_to_max_bed_size(double factor) const;
+
+    void set_cursor(ECursorType type);
 
 private:
     bool _is_shown_on_screen() const;

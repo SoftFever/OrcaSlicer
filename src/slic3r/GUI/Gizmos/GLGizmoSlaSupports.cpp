@@ -485,7 +485,7 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         }
 
         // left down without selection rectangle - place point on the mesh:
-        if (action == SLAGizmoEventType::LeftDown && !m_selection_rectangle.is_active() && !shift_down) {
+        if (action == SLAGizmoEventType::LeftDown && !m_selection_rectangle.is_dragging() && !shift_down) {
             // If any point is in hover state, this should initiate its move - return control back to GLCanvas:
             if (m_hover_id != -1)
                 return false;
@@ -510,7 +510,7 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         }
 
         // left up with selection rectangle - select points inside the rectangle:
-        if ((action == SLAGizmoEventType::LeftUp || action == SLAGizmoEventType::ShiftUp || action == SLAGizmoEventType::AltUp) && m_selection_rectangle.is_active()) {
+        if ((action == SLAGizmoEventType::LeftUp || action == SLAGizmoEventType::ShiftUp || action == SLAGizmoEventType::AltUp) && m_selection_rectangle.is_dragging()) {
             // Is this a selection or deselection rectangle?
             GLSelectionRectangle::EState rectangle_status = m_selection_rectangle.get_status();
 
@@ -601,7 +601,7 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                 return true; // point has been placed and the button not released yet
                              // this prevents GLCanvas from starting scene rotation
 
-            if (m_selection_rectangle.is_active())  {
+            if (m_selection_rectangle.is_dragging())  {
                 m_selection_rectangle.dragging(mouse_position);
                 return true;
             }

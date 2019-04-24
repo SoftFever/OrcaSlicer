@@ -27,8 +27,8 @@ public:
     std::vector<unsigned int> end_dragging(const Camera& camera, const std::vector<Vec3d>& points);
 
     void render() const;
-        
-    bool is_active() const { return m_status != Off; }
+
+    bool is_dragging() const { return m_status != Off; }
     EState get_status() const { return m_status; }
     
     
