@@ -40,7 +40,7 @@ namespace PrusaMultiMaterial {
 class Writer
 {
 public:
-	Writer(float layer_height, float line_width) :
+	Writer(float layer_height, float line_width, GCodeFlavor flavor) :
 		m_current_pos(std::numeric_limits<float>::max(), std::numeric_limits<float>::max()),
 		m_current_z(0.f),
 		m_current_feedrate(0.f),
@@ -48,7 +48,8 @@ public:
 		m_extrusion_flow(0.f),
 		m_preview_suppressed(false),
 		m_elapsed_time(0.f),
-        m_default_analyzer_line_width(line_width)
+        m_default_analyzer_line_width(line_width),
+        m_gcode_flavor(flavor)
         {
             // adds tag for analyzer:
             char buf[64];
@@ -333,7 +334,10 @@ public:
 	Writer& set_extruder_trimpot(int current) 
 	{
 		char buf[128];
-		sprintf(buf, "M907 E%d\n", current);
+        if (m_gcode_flavor == gcfRepRap)
+            sprintf(buf, "M906 E%d\n", current);
+        else
+            sprintf(buf, "M907 E%d\n", current);
 		m_gcode += buf;
 		return *this;
 	};
@@ -407,6 +411,7 @@ private:
     int           current_temp = -1;
     const float   m_default_analyzer_line_width;
     float         m_used_filament_length = 0.f;
+    GCodeFlavor   m_gcode_flavor;
 
 	std::string   set_format_X(float x)
 	{
@@ -510,7 +515,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(
 	const float prime_section_width = std::min(240.f / tools.size(), 60.f);
 	box_coordinates cleaning_box(xy(5.f, 0.01f + m_perimeter_width/2.f), prime_section_width, 100.f);
 
-	PrusaMultiMaterial::Writer writer(m_layer_height, m_perimeter_width);
+	PrusaMultiMaterial::Writer writer(m_layer_height, m_perimeter_width, m_gcode_flavor);
 	writer.set_extrusion_flow(m_extrusion_flow)
 		  .set_z(m_z_pos)
 		  .set_initial_tool(m_current_tool)
@@ -612,7 +617,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
 		(tool != (unsigned int)(-1) ? /*m_layer_info->depth*/wipe_area+m_depth_traversed-0.5*m_perimeter_width
                                     : m_wipe_tower_depth-m_perimeter_width));
 
-	PrusaMultiMaterial::Writer writer(m_layer_height, m_perimeter_width);
+	PrusaMultiMaterial::Writer writer(m_layer_height, m_perimeter_width, m_gcode_flavor);
 	writer.set_extrusion_flow(m_extrusion_flow)
 		.set_z(m_z_pos)
 		.set_initial_tool(m_current_tool)
@@ -631,7 +636,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
 
     // Increase the extruder driver current to allow fast ramming.
 	if (m_set_extruder_trimpot)
-		writer.set_extruder_trimpot(550);
+		writer.set_extruder_trimpot(750);
 
     // Ram the hot material out of the melt zone, retract the filament into the cooling tubes and let it cool.
     if (tool != (unsigned int)-1){ 			// This is not the last change.
@@ -693,7 +698,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::toolchange_Brim(bool sideOnly, flo
 		m_wipe_tower_width,
 		m_wipe_tower_depth);
 
-	PrusaMultiMaterial::Writer writer(m_layer_height, m_perimeter_width);
+	PrusaMultiMaterial::Writer writer(m_layer_height, m_perimeter_width, m_gcode_flavor);
 	writer.set_extrusion_flow(m_extrusion_flow * 1.1f)
 		  .set_z(m_z_pos) // Let the writer know the current Z position as a base for Z-hop.
 		  .set_initial_tool(m_current_tool)
@@ -1022,7 +1027,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::finish_layer()
 	// Otherwise the caller would likely travel to the wipe tower in vain.
 	assert(! this->layer_finished());
 
-	PrusaMultiMaterial::Writer writer(m_layer_height, m_perimeter_width);
+	PrusaMultiMaterial::Writer writer(m_layer_height, m_perimeter_width, m_gcode_flavor);
 	writer.set_extrusion_flow(m_extrusion_flow)
 		.set_z(m_z_pos)
 		.set_initial_tool(m_current_tool)
