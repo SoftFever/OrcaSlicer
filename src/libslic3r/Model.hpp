@@ -277,6 +277,11 @@ public:
 
     std::string get_export_filename() const;
 
+    // Get full stl statistics for all object's meshes 
+    stl_stats   get_object_stl_stats() const;
+    // Get count of errors in the mesh( or all object's meshes, if volume index isn't defined) 
+    int         get_mesh_errors_count(const int vol_idx = -1) const;
+
 protected:
     friend class Print;
     friend class SLAPrint;

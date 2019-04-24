@@ -1451,6 +1451,48 @@ std::string ModelObject::get_export_filename() const
     return ret;
 }
 
+stl_stats ModelObject::get_object_stl_stats() const
+{
+    if (this->volumes.size() == 1)
+        return this->volumes[0]->mesh.stl.stats;
+
+    stl_stats full_stats;
+
+    // initialise full_stats
+    full_stats.degenerate_facets= 0;
+    full_stats.edges_fixed      = 0;
+    full_stats.facets_removed   = 0;
+    full_stats.facets_added     = 0;
+    full_stats.facets_reversed  = 0;
+    full_stats.backwards_edges  = 0;
+    full_stats.normals_fixed    = 0;
+
+    // fill full_stats from all objet's meshes
+    for (ModelVolume* volume : this->volumes)
+    {
+        const stl_stats& stats = volume->mesh.stl.stats;
+
+        full_stats.degenerate_facets+= stats.degenerate_facets;
+        full_stats.edges_fixed      += stats.edges_fixed;
+        full_stats.facets_removed   += stats.facets_removed;
+        full_stats.facets_added     += stats.facets_added;
+        full_stats.facets_reversed  += stats.facets_reversed;
+        full_stats.backwards_edges  += stats.backwards_edges;
+    }
+
+    return full_stats;
+}
+
+int ModelObject::get_mesh_errors_count(const int vol_idx /*= -1*/) const
+{
+    const stl_stats& stats = vol_idx == -1 ?
+                             get_object_stl_stats() :
+                             this->volumes[vol_idx]->mesh.stl.stats;
+
+    return  stats.degenerate_facets + stats.edges_fixed     + stats.facets_removed +
+            stats.facets_added      + stats.facets_reversed + stats.backwards_edges;
+}
+
 void ModelVolume::set_material_id(t_model_material_id material_id)
 {
     m_material_id = material_id;

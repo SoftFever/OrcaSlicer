@@ -926,7 +926,7 @@ void Sidebar::show_info_sizer()
     p->object_info->info_size->SetLabel(wxString::Format("%.2f x %.2f x %.2f",size(0), size(1), size(2)));
     p->object_info->info_materials->SetLabel(wxString::Format("%d", static_cast<int>(model_object->materials_count())));
 
-    auto& stats = model_object->volumes.front()->mesh.stl.stats;
+    const auto& stats = model_object->get_object_stl_stats();//model_object->volumes.front()->mesh.stl.stats;
     p->object_info->info_volume->SetLabel(wxString::Format("%.2f", stats.volume));
     p->object_info->info_facets->SetLabel(wxString::Format(_(L("%d (%d shells)")), static_cast<int>(model_object->facets_count()), stats.number_of_parts));
 
@@ -1284,6 +1284,7 @@ struct Plater::priv
     bool can_split_to_volumes() const;
     bool can_arrange() const;
     bool can_layers_editing() const;
+    bool can_fix_through_netfabb() const;
 
 private:
     bool init_object_menu();
@@ -2886,7 +2887,7 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
         menu->AppendSeparator();
     }
 
-    sidebar->obj_list()->append_menu_item_fix_through_netfabb(menu);
+    wxMenuItem* item_fix_through_netfabb = sidebar->obj_list()->append_menu_item_fix_through_netfabb(menu);
 
     wxMenu* mirror_menu = new wxMenu();
     if (mirror_menu == nullptr)
@@ -2906,6 +2907,7 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
     {
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_mirror()); }, item_mirror->GetId());
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_delete()); }, item_delete->GetId());
+        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_fix_through_netfabb()); }, item_fix_through_netfabb->GetId());
     }
 
     return true;
@@ -3073,6 +3075,15 @@ bool Plater::priv::can_delete() const
 bool Plater::priv::can_delete_all() const
 {
     return !model.objects.empty();
+}
+
+bool Plater::priv::can_fix_through_netfabb() const
+{
+    int obj_idx = get_selected_object_idx();
+    if (obj_idx < 0)
+        return false;
+
+    return model.objects[obj_idx]->get_mesh_errors_count() > 0;
 }
 
 bool Plater::priv::can_increase_instances() const

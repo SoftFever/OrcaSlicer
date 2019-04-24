@@ -216,23 +216,7 @@ int ObjectList::get_mesh_errors_count(const int obj_idx, const int vol_idx /*= -
     if (obj_idx < 0)
         return 0;
 
-    int errors = 0;
-
-    std::vector<ModelVolume*> volumes;
-    if (vol_idx == -1)
-        volumes = (*m_objects)[obj_idx]->volumes;
-    else
-        volumes.emplace_back((*m_objects)[obj_idx]->volumes[vol_idx]);
-
-    for (ModelVolume* volume : volumes)
-    {
-        const stl_stats& stats = volume->mesh.stl.stats;
-
-        errors +=   stats.degenerate_facets + stats.edges_fixed     + stats.facets_removed +
-                    stats.facets_added      + stats.facets_reversed + stats.backwards_edges;
-    }
-
-    return errors;
+    return (*m_objects)[obj_idx]->get_mesh_errors_count(vol_idx);
 }
 
 wxString ObjectList::get_mesh_errors_list(const int obj_idx, const int vol_idx /*= -1*/) const
@@ -245,32 +229,18 @@ wxString ObjectList::get_mesh_errors_list(const int obj_idx, const int vol_idx /
     // Create tooltip string, if there are errors 
     wxString tooltip = wxString::Format(_(L("Auto-repaired (%d errors):\n")), errors);
 
-    std::vector<ModelVolume*> volumes;
-    if (vol_idx == -1)
-        volumes = (*m_objects)[obj_idx]->volumes;
-    else
-        volumes.emplace_back((*m_objects)[obj_idx]->volumes[vol_idx]);
+    const stl_stats& stats = vol_idx == -1 ?
+                            (*m_objects)[obj_idx]->get_object_stl_stats() :
+                            (*m_objects)[obj_idx]->volumes[vol_idx]->mesh.stl.stats;
 
     std::map<std::string, int> error_msg = {
-        {L("degenerate facets") , 0},
-        {L("edges fixed")       , 0},
-        {L("facets removed")    , 0},
-        {L("facets added")      , 0},
-        {L("facets reversed")   , 0},
-        {L("backwards edges")   , 0}
+        { L("degenerate facets"),   stats.degenerate_facets },
+        { L("edges fixed"),         stats.edges_fixed       },
+        { L("facets removed"),      stats.facets_removed    },
+        { L("facets added"),        stats.facets_added      },
+        { L("facets reversed"),     stats.facets_reversed   },
+        { L("backwards edges"),     stats.backwards_edges   }
     };
-
-    for (ModelVolume* volume : volumes)
-    {
-        const stl_stats& stats = volume->mesh.stl.stats;
-        
-        error_msg[L("degenerate facets")]   += stats.degenerate_facets;
-        error_msg[L("edges fixed")]         += stats.edges_fixed;
-        error_msg[L("facets removed")]      += stats.facets_removed;
-        error_msg[L("facets added")]        += stats.facets_added;
-        error_msg[L("facets reversed")]     += stats.facets_reversed;
-        error_msg[L("backwards edges")]     += stats.backwards_edges;
-    }
 
     for (const auto& error : error_msg)
         if (error.second > 0)
@@ -1170,13 +1140,15 @@ void ObjectList::append_menu_items_osx(wxMenu* menu)
     menu->AppendSeparator();
 }
 
-void ObjectList::append_menu_item_fix_through_netfabb(wxMenu* menu)
+wxMenuItem* ObjectList::append_menu_item_fix_through_netfabb(wxMenu* menu)
 {
-    if (!is_windows10())
-        return;
-    append_menu_item(menu, wxID_ANY, _(L("Fix through the Netfabb")), "",
+//     if (!is_windows10())
+//         return;
+    wxMenuItem* menu_item = append_menu_item(menu, wxID_ANY, _(L("Fix through the Netfabb")), "",
         [this](wxCommandEvent&) { fix_through_netfabb(); }, "", menu);
     menu->AppendSeparator();
+
+    return menu_item;
 }
 
 void ObjectList::append_menu_item_export_stl(wxMenu* menu) const 

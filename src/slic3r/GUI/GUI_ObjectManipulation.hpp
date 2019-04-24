@@ -8,6 +8,7 @@
 
 class wxStaticText;
 class PrusaLockButton;
+class wxStaticBitmap;
 
 namespace Slic3r {
 namespace GUI {
