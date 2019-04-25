@@ -1610,8 +1610,12 @@ void GLCanvas3D::render()
 
     wxGetApp().imgui()->new_frame();
 
-    // picking pass
-    _picking_pass();
+    if (m_rectangle_selection.is_dragging())
+        // picking pass using rectangle selection
+        _rectangular_selection_picking_pass();
+    else
+        // regular picking pass
+        _picking_pass();
 
     // draw scene
     glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
@@ -2361,6 +2365,8 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                     }
                     set_cursor(Standard);
                 }
+                else if (keyCode == WXK_CONTROL)
+                    m_dirty = true;
             }
             else if (evt.GetEventType() == wxEVT_KEY_DOWN) {
                 m_tab_down = keyCode == WXK_TAB && !evt.HasAnyModifiers();
@@ -2374,6 +2380,8 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                     if (m_picking_enabled && (m_gizmos.get_current_type() != GLGizmosManager::SlaSupports))
                         set_cursor(Cross);
                 }
+                else if (keyCode == WXK_CONTROL)
+                    m_dirty = true;
             }
         }
     }
@@ -3662,7 +3670,7 @@ void GLCanvas3D::_picking_pass() const
         if (inside)
         {
             glsafe(::glReadPixels(pos(0), cnv_size.get_height() - pos(1) - 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, (void*)color));
-            volume_id = color[0] + color[1] * 256 + color[2] * 256 * 256;
+            volume_id = color[0] + (color[1] << 8) + (color[2] << 16);
         }
         if ((0 <= volume_id) && (volume_id < (int)m_volumes.volumes.size()))
         {
@@ -3674,6 +3682,83 @@ void GLCanvas3D::_picking_pass() const
 
         _update_volumes_hover_state();
     }
+}
+
+void GLCanvas3D::_rectangular_selection_picking_pass() const
+{
+    m_gizmos.set_hover_id(-1);
+
+    std::set<int> idxs;
+
+    if (m_picking_enabled)
+    {
+        if (m_multisample_allowed)
+            glsafe(::glDisable(GL_MULTISAMPLE));
+
+        glsafe(::glDisable(GL_BLEND));
+        glsafe(::glEnable(GL_DEPTH_TEST));
+
+        glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+
+        _render_volumes_for_picking();
+
+        if (m_multisample_allowed)
+            glsafe(::glEnable(GL_MULTISAMPLE));
+
+        int width = (int)m_rectangle_selection.get_width();
+        int height = (int)m_rectangle_selection.get_height();
+        int px_count = width * height;
+
+        if (px_count > 0)
+        {
+            int left = (int)m_rectangle_selection.get_left();
+            int top = get_canvas_size().get_height() - (int)m_rectangle_selection.get_top();
+            if ((left >= 0) && (top >= 0))
+            {
+#define USE_PARALLEL 1
+#if USE_PARALLEL
+                struct Pixel
+                {
+                    std::array<GLubyte, 4> data;
+                    int id() const { return data[0] + (data[1] << 8) + (data[2] << 16); }
+                };
+
+                std::vector<Pixel> frame(px_count);
+                glsafe(::glReadPixels(left, top, width, height, GL_RGBA, GL_UNSIGNED_BYTE, (void*)frame.data()));
+
+                tbb::spin_mutex mutex;
+                tbb::parallel_for(tbb::blocked_range<size_t>(0, frame.size(), (size_t)width),
+                    [this, &frame, &idxs, &mutex](const tbb::blocked_range<size_t>& range) {
+                    for (size_t i = range.begin(); i < range.end(); ++i)
+                    {
+                        int volume_id = frame[i].id();
+                        if ((0 <= volume_id) && (volume_id < (int)m_volumes.volumes.size()))
+                        {
+                            mutex.lock();
+                            idxs.insert(volume_id);
+                            mutex.unlock();
+                        }
+                    }
+                }
+                );
+#else
+                std::vector<GLubyte> frame(4 * px_count);
+                glsafe(::glReadPixels(left, top, width, height, GL_RGBA, GL_UNSIGNED_BYTE, (void*)frame.data()));
+
+                for (int i = 0; i < px_count; ++i)
+                {
+                    int px_id = 4 * i;
+                    int volume_id = frame[px_id] + (frame[px_id + 1] << 8) + (frame[px_id + 2] << 16);
+                    if ((0 <= volume_id) && (volume_id < (int)m_volumes.volumes.size()))
+                        idxs.insert(volume_id);
+                }
+#endif // USE_PARALLEL
+            }
+        }
+    }
+
+    m_hover_volume_idxs.assign(idxs.begin(), idxs.end());
+    _update_volumes_hover_state();
 }
 
 void GLCanvas3D::_render_background() const
@@ -4161,24 +4246,48 @@ void GLCanvas3D::_update_volumes_hover_state() const
 {
     for (GLVolume* v : m_volumes.volumes)
     {
-        v->hover = false;
+        v->hover_select = false;
+        v->hover_deselect = false;
     }
 
     if (m_hover_volume_idxs.empty())
         return;
 
-    GLVolume* volume = m_volumes.volumes[get_first_hover_volume_idx()];
-    if (volume->is_modifier)
-        volume->hover = true;
-    else
-    {
-        int object_idx = volume->object_idx();
-        int instance_idx = volume->instance_idx();
+    bool is_ctrl_pressed = wxGetKeyState(WXK_CONTROL);
+    bool is_shift_pressed = wxGetKeyState(WXK_SHIFT);
+    bool is_alt_pressed = wxGetKeyState(WXK_ALT);
 
-        for (GLVolume* v : m_volumes.volumes)
+    for (int i : m_hover_volume_idxs)
+    {
+        GLVolume* volume = m_volumes.volumes[i];
+        bool deselect = volume->selected && ((is_ctrl_pressed && !is_shift_pressed) || (!is_ctrl_pressed && (m_rectangle_selection.get_state() == GLSelectionRectangle::Deselect)));
+        bool select = !volume->selected || (volume->is_modifier && ((is_ctrl_pressed && !is_alt_pressed) || (!is_ctrl_pressed && (!m_rectangle_selection.is_dragging() || (m_rectangle_selection.get_state() == GLSelectionRectangle::Select)))));
+
+        if (select || deselect)
         {
-            if ((v->object_idx() == object_idx) && (v->instance_idx() == instance_idx))
-                v->hover = true;
+            if (volume->is_modifier && (!deselect || ((volume->object_idx() == m_selection.get_object_idx()) && (volume->instance_idx() == m_selection.get_instance_idx()))))
+            {
+                if (deselect)
+                    volume->hover_deselect = true;
+                else
+                    volume->hover_select = true;
+            }
+            else
+            {
+                int object_idx = volume->object_idx();
+                int instance_idx = volume->instance_idx();
+
+                for (GLVolume* v : m_volumes.volumes)
+                {
+                    if ((v->object_idx() == object_idx) && (v->instance_idx() == instance_idx))
+                    {
+                        if (deselect)
+                            v->hover_deselect = true;
+                        else
+                            v->hover_select = true;
+                    }
+                }
+            }
         }
     }
 }
