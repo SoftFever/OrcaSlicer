@@ -103,7 +103,7 @@ public:
 	// Called from the App to update the UI if dirty.
 	void		update_if_dirty();
 
-    void        set_uniform_scaling(const bool uniform_scale) { m_uniform_scale = uniform_scale;}
+    void        set_uniform_scaling(const bool uniform_scale);
     bool        get_uniform_scaling() const { return m_uniform_scale; }
     // Does the object manipulation panel work in World or Local coordinates?
     void        set_world_coordinates(const bool world_coordinates) { m_world_coordinates = world_coordinates; this->UpdateAndShow(true); }
