@@ -2951,7 +2951,8 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
     {
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_mirror()); }, item_mirror->GetId());
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_delete()); }, item_delete->GetId());
-        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_fix_through_netfabb()); }, item_fix_through_netfabb->GetId());
+        if (item_fix_through_netfabb)
+            q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_fix_through_netfabb()); }, item_fix_through_netfabb->GetId());
     }
 
     return true;

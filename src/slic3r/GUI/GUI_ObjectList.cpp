@@ -1182,8 +1182,8 @@ void ObjectList::append_menu_items_osx(wxMenu* menu)
 
 wxMenuItem* ObjectList::append_menu_item_fix_through_netfabb(wxMenu* menu)
 {
-//     if (!is_windows10())
-//         return;
+    if (!is_windows10())
+        return nullptr;
     wxMenuItem* menu_item = append_menu_item(menu, wxID_ANY, _(L("Fix through the Netfabb")), "",
         [this](wxCommandEvent&) { fix_through_netfabb(); }, "", menu);
     menu->AppendSeparator();
@@ -2735,19 +2735,20 @@ void ObjectList::update_item_error_icon(const int obj_idx, const int vol_idx) co
     if (get_mesh_errors_count(obj_idx, vol_idx) == 0) {
         // delete Error_icon if all errors are fixed
         wxVariant variant;
-        variant << PrusaDataViewBitmapText(from_u8((*m_objects)[obj_idx]->name), wxNullBitmap);
+        variant << DataViewBitmapText(from_u8((*m_objects)[obj_idx]->name), wxNullBitmap);
         m_objects_model->SetValue(variant, item, 0);
     }
 }
 
 void ObjectList::msw_rescale()
 {
+    const int em = wxGetApp().em_unit();
     // update min size !!! A width of control shouldn't be a wxDefaultCoord
-    SetMinSize(wxSize(1, 15 * wxGetApp().em_unit()));
+    SetMinSize(wxSize(1, 15 * em));
 
-    GetColumn(0)->SetWidth(19 * wxGetApp().em_unit());
-    GetColumn(1)->SetWidth(8 * wxGetApp().em_unit());
-    GetColumn(2)->SetWidth(int(2 * wxGetApp().em_unit()));
+    GetColumn(0)->SetWidth(19 * em);
+    GetColumn(1)->SetWidth( 8 * em);
+    GetColumn(2)->SetWidth( 2 * em);
 
     // rescale all icons, used by ObjectList
     rescale_icons();
