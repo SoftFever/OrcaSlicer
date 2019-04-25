@@ -16,10 +16,7 @@ namespace GUI {
 using ConfigOptionsGroupShp = std::shared_ptr<ConfigOptionsGroup>;
 class BedShapePanel : public wxPanel
 {
-	wxChoicebook*	m_shape_options_book;
 	Bed_2D*			m_canvas;
-
-	std::vector <ConfigOptionsGroupShp>	m_optgroups;
 
 public:
 	BedShapePanel(wxWindow* parent) : wxPanel(parent, wxID_ANY) {}
@@ -35,18 +32,25 @@ public:
 	
 	// Returns the resulting bed shape polygon. This value will be stored to the ini file.
 	std::vector<Vec2d>	GetValue() { return m_canvas->m_bed_shape; }
+
+	wxChoicebook*	m_shape_options_book;
+	std::vector <ConfigOptionsGroupShp>	m_optgroups;
+
 };
 
-class BedShapeDialog : public wxDialog
+class BedShapeDialog : public DPIDialog
 {
 	BedShapePanel*	m_panel;
 public:
-	BedShapeDialog(wxWindow* parent) : wxDialog(parent, wxID_ANY, _(L("Bed Shape")),
+	BedShapeDialog(wxWindow* parent) : DPIDialog(parent, wxID_ANY, _(L("Bed Shape")),
         wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER) {}
 	~BedShapeDialog() {}
 
 	void		build_dialog(ConfigOptionPoints* default_pt);
 	std::vector<Vec2d>	GetValue() { return m_panel->GetValue(); }
+
+protected:
+    void on_dpi_changed(const wxRect &suggested_rect) override;
 };
 
 } // GUI

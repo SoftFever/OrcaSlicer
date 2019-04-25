@@ -1434,6 +1434,14 @@ bool PresetBundle::parse_color(const std::string &scolor, unsigned char *rgb_out
 
 void PresetBundle::load_default_preset_bitmaps(wxWindow *window)
 {
+    // Clear bitmap cache, before load new scaled default preset bitmaps 
+    m_bitmapCache->clear();
+    this->prints.clear_bitmap_cache();
+    this->sla_prints.clear_bitmap_cache();
+    this->filaments.clear_bitmap_cache();
+    this->sla_materials.clear_bitmap_cache();
+    this->printers.clear_bitmap_cache();
+
     this->prints.load_bitmap_default(window, "cog");
     this->sla_prints.load_bitmap_default(window, "cog");
     this->filaments.load_bitmap_default(window, "spool.png");
@@ -1468,6 +1476,18 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, GUI::Pr
 	wxString selected_str = "";
 	if (!this->filaments().front().is_visible)
         ui->set_label_marker(ui->Append(PresetCollection::separator(L("System presets")), wxNullBitmap));
+
+    /* It's supposed that standard size of an icon is 16px*16px for 100% scaled display.
+     * So set sizes for solid_colored icons used for filament preset 
+     * and scale them in respect to em_unit value
+     */
+    const float scale_f = ui->em_unit() * 0.1f;
+    const int icon_height       = 16 * scale_f + 0.5f;
+    const int normal_icon_width = 16 * scale_f + 0.5f;
+    const int space_icon_width  = 2  * scale_f + 0.5f;
+    const int wide_icon_width   = 24 * scale_f + 0.5f;
+    const int thin_icon_width   = 8  * scale_f + 0.5f;
+
 	for (int i = this->filaments().front().is_visible ? 0 : 1; i < int(this->filaments().size()); ++i) {
         const Preset &preset    = this->filaments.preset(i);
         bool          selected  = this->filament_presets[idx_extruder] == preset.name;
@@ -1491,17 +1511,17 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, GUI::Pr
             std::vector<wxBitmap> bmps;
             if (wide_icons)
                 // Paint a red flag for incompatible presets.
-                bmps.emplace_back(preset.is_compatible ? m_bitmapCache->mkclear(16, 16) : *m_bitmapIncompatible);
+                bmps.emplace_back(preset.is_compatible ? m_bitmapCache->mkclear(normal_icon_width, icon_height) : *m_bitmapIncompatible);
             // Paint the color bars.
             parse_color(filament_rgb, rgb);
-            bmps.emplace_back(m_bitmapCache->mksolid(single_bar ? 24 : 16, 16, rgb));
+            bmps.emplace_back(m_bitmapCache->mksolid(single_bar ? wide_icon_width : normal_icon_width, icon_height, rgb));
             if (! single_bar) {
                 parse_color(extruder_rgb, rgb);
-                bmps.emplace_back(m_bitmapCache->mksolid(8,  16, rgb));
+                bmps.emplace_back(m_bitmapCache->mksolid(thin_icon_width, icon_height, rgb));
             }
             // Paint a lock at the system presets.
-            bmps.emplace_back(m_bitmapCache->mkclear(2, 16));
-			bmps.emplace_back((preset.is_system || preset.is_default) ? *m_bitmapLock : m_bitmapCache->mkclear(16, 16));
+            bmps.emplace_back(m_bitmapCache->mkclear(space_icon_width, icon_height));
+            bmps.emplace_back((preset.is_system || preset.is_default) ? *m_bitmapLock : m_bitmapCache->mkclear(normal_icon_width, icon_height));
 //                 (preset.is_dirty ? *m_bitmapLockOpen : *m_bitmapLock) : m_bitmapCache->mkclear(16, 16));
             bitmap = m_bitmapCache->insert(bitmap_key, bmps);
 		}
@@ -1536,6 +1556,10 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, GUI::Pr
 	ui->SetToolTip(ui->GetString(selected_preset_item));
     ui->check_selection();
     ui->Thaw();
+
+    // Update control min size after rescale (changed Display DPI under MSW)
+    if (ui->GetMinWidth() != 20 * ui->em_unit())
+        ui->SetMinSize(wxSize(20 * ui->em_unit(), ui->GetSize().GetHeight()));
 }
 
 void PresetBundle::set_default_suppressed(bool default_suppressed)

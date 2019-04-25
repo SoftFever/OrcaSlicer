@@ -141,6 +141,9 @@ void Chart::mouse_double_clicked(wxMouseEvent& event) {
 
 
 void Chart::recalculate_line() {
+    m_line_to_draw.clear();
+    m_total_volume = 0.f;
+
     std::vector<wxPoint> points;
     for (auto& but : m_buttons) {
         points.push_back(wxPoint(math_to_screen(but.get_pos())));
@@ -150,92 +153,88 @@ void Chart::recalculate_line() {
             break;
         }
     }
-    std::sort(points.begin(),points.end(),[](wxPoint& a,wxPoint& b) { return a.x < b.x; });
-    
-    m_line_to_draw.clear();
-    m_total_volume = 0.f;
-   
-   
-    // Cubic spline interpolation: see https://en.wikiversity.org/wiki/Cubic_Spline_Interpolation#Methods
-    const bool boundary_first_derivative = true; // true - first derivative is 0 at the leftmost and rightmost point
-                                                 // false - second ---- || -------
-    const int N = points.size()-1; // last point can be accessed as N, we have N+1 total points
-    std::vector<float> diag(N+1);
-    std::vector<float> mu(N+1);
-    std::vector<float> lambda(N+1);
-    std::vector<float> h(N+1);
-    std::vector<float> rhs(N+1);
-    
-    // let's fill in inner equations
-    for (int i=1;i<=N;++i) h[i] = points[i].x-points[i-1].x;
-    std::fill(diag.begin(),diag.end(),2.f);
-    for (int i=1;i<=N-1;++i) {
-        mu[i] = h[i]/(h[i]+h[i+1]);
-        lambda[i] = 1.f - mu[i];
-        rhs[i] = 6 * ( float(points[i+1].y-points[i].y  )/(h[i+1]*(points[i+1].x-points[i-1].x)) -  
-                       float(points[i].y  -points[i-1].y)/(h[i]  *(points[i+1].x-points[i-1].x))   );                       
-    }
-    
-    // now fill in the first and last equations, according to boundary conditions:
-    if (boundary_first_derivative) {
-        const float endpoints_derivative = 0;
-        lambda[0] = 1;
-        mu[N]     = 1;
-        rhs[0] = (6.f/h[1]) * (float(points[0].y-points[1].y)/(points[0].x-points[1].x) - endpoints_derivative);
-        rhs[N] = (6.f/h[N]) * (endpoints_derivative - float(points[N-1].y-points[N].y)/(points[N-1].x-points[N].x));        
-    }
-    else {
-        lambda[0] = 0;
-        mu[N]     = 0;
-        rhs[0]    = 0;
-        rhs[N]    = 0;
-    }
+
+    // The calculation wouldn't work in case the ramming is to be turned off completely.
+    if (points.size()>1) {
+        std::sort(points.begin(),points.end(),[](wxPoint& a,wxPoint& b) { return a.x < b.x; });
+
+        // Cubic spline interpolation: see https://en.wikiversity.org/wiki/Cubic_Spline_Interpolation#Methods
+        const bool boundary_first_derivative = true; // true - first derivative is 0 at the leftmost and rightmost point
+                                                     // false - second ---- || -------
+        const int N = points.size()-1; // last point can be accessed as N, we have N+1 total points
+        std::vector<float> diag(N+1);
+        std::vector<float> mu(N+1);
+        std::vector<float> lambda(N+1);
+        std::vector<float> h(N+1);
+        std::vector<float> rhs(N+1);
         
-    // the trilinear system is ready to be solved:
-    for (int i=1;i<=N;++i) {
-        float multiple = mu[i]/diag[i-1];    // let's subtract proper multiple of above equation
-        diag[i]-= multiple * lambda[i-1];
-        rhs[i] -= multiple * rhs[i-1];        
-    }
-    // now the back substitution (vector mu contains invalid values from now on):
-    rhs[N] = rhs[N]/diag[N];
-    for (int i=N-1;i>=0;--i)
-        rhs[i] = (rhs[i]-lambda[i]*rhs[i+1])/diag[i];
-    
-    
-    
-    
-    unsigned int i=1;
-    float y=0.f;
-    for (int x=m_rect.GetLeft(); x<=m_rect.GetRight() ; ++x) {        
-        if (splines) {
-            if (i<points.size()-1 && points[i].x < x ) {
-                ++i; 
+        // let's fill in inner equations
+        for (int i=1;i<=N;++i) h[i] = points[i].x-points[i-1].x;
+        std::fill(diag.begin(),diag.end(),2.f);
+        for (int i=1;i<=N-1;++i) {
+            mu[i] = h[i]/(h[i]+h[i+1]);
+            lambda[i] = 1.f - mu[i];
+            rhs[i] = 6 * ( float(points[i+1].y-points[i].y  )/(h[i+1]*(points[i+1].x-points[i-1].x)) -
+                           float(points[i].y  -points[i-1].y)/(h[i]  *(points[i+1].x-points[i-1].x))   );
+        }
+
+        // now fill in the first and last equations, according to boundary conditions:
+        if (boundary_first_derivative) {
+            const float endpoints_derivative = 0;
+            lambda[0] = 1;
+            mu[N]     = 1;
+            rhs[0] = (6.f/h[1]) * (float(points[0].y-points[1].y)/(points[0].x-points[1].x) - endpoints_derivative);
+            rhs[N] = (6.f/h[N]) * (endpoints_derivative - float(points[N-1].y-points[N].y)/(points[N-1].x-points[N].x));
+        }
+        else {
+            lambda[0] = 0;
+            mu[N]     = 0;
+            rhs[0]    = 0;
+            rhs[N]    = 0;
+        }
+
+        // the trilinear system is ready to be solved:
+        for (int i=1;i<=N;++i) {
+            float multiple = mu[i]/diag[i-1];    // let's subtract proper multiple of above equation
+            diag[i]-= multiple * lambda[i-1];
+            rhs[i] -= multiple * rhs[i-1];
+        }
+        // now the back substitution (vector mu contains invalid values from now on):
+        rhs[N] = rhs[N]/diag[N];
+        for (int i=N-1;i>=0;--i)
+            rhs[i] = (rhs[i]-lambda[i]*rhs[i+1])/diag[i];
+
+        unsigned int i=1;
+        float y=0.f;
+        for (int x=m_rect.GetLeft(); x<=m_rect.GetRight() ; ++x) {
+            if (splines) {
+                if (i<points.size()-1 && points[i].x < x ) {
+                    ++i;
+                }
+                if (points[0].x > x)
+                    y = points[0].y;
+                else
+                    if (points[N].x < x)
+                        y = points[N].y;
+                    else
+                        y = (rhs[i-1]*pow(points[i].x-x,3)+rhs[i]*pow(x-points[i-1].x,3)) / (6*h[i]) +
+                            (points[i-1].y-rhs[i-1]*h[i]*h[i]/6.f) * (points[i].x-x)/h[i] +
+                            (points[i].y  -rhs[i]  *h[i]*h[i]/6.f) * (x-points[i-1].x)/h[i];
+                m_line_to_draw.push_back(y);
             }
-            if (points[0].x > x)
-                y = points[0].y;
-            else
-                if (points[N].x < x)
-                    y = points[N].y;
-                else 
-                    y = (rhs[i-1]*pow(points[i].x-x,3)+rhs[i]*pow(x-points[i-1].x,3)) / (6*h[i]) +
-                        (points[i-1].y-rhs[i-1]*h[i]*h[i]/6.f) * (points[i].x-x)/h[i] +
-                        (points[i].y  -rhs[i]  *h[i]*h[i]/6.f) * (x-points[i-1].x)/h[i];
-            m_line_to_draw.push_back(y);
+            else {
+                float x_math = screen_to_math(wxPoint(x,0)).m_x;
+                if (i+2<=points.size() && m_buttons[i+1].get_pos().m_x-0.125 < x_math)
+                    ++i;
+                m_line_to_draw.push_back(math_to_screen(wxPoint2DDouble(x_math,m_buttons[i].get_pos().m_y)).y);
+            }
+
+            m_line_to_draw.back() = std::max(m_line_to_draw.back(), m_rect.GetTop()-1);
+            m_line_to_draw.back() = std::min(m_line_to_draw.back(), m_rect.GetBottom()-1);
+            m_total_volume += (m_rect.GetBottom() - m_line_to_draw.back()) * (visible_area.m_width / m_rect.GetWidth()) * (visible_area.m_height / m_rect.GetHeight());
         }
-        else {            
-            float x_math = screen_to_math(wxPoint(x,0)).m_x;
-            if (i+2<=points.size() && m_buttons[i+1].get_pos().m_x-0.125 < x_math)
-                ++i;
-            m_line_to_draw.push_back(math_to_screen(wxPoint2DDouble(x_math,m_buttons[i].get_pos().m_y)).y);
-        }
-            
-                    
-        m_line_to_draw.back() = std::max(m_line_to_draw.back(), m_rect.GetTop()-1);
-        m_line_to_draw.back() = std::min(m_line_to_draw.back(), m_rect.GetBottom()-1);
-        m_total_volume += (m_rect.GetBottom() - m_line_to_draw.back()) * (visible_area.m_width / m_rect.GetWidth()) * (visible_area.m_height / m_rect.GetHeight());
     }
-    
+
     wxPostEvent(this->GetParent(), wxCommandEvent(EVT_WIPE_TOWER_CHART_CHANGED));
     Refresh();
 }

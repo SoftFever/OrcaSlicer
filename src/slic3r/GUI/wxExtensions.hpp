@@ -31,7 +31,11 @@ wxMenuItem* append_submenu(wxMenu* menu, wxMenu* sub_menu, int id, const wxStrin
 wxMenuItem* append_menu_radio_item(wxMenu* menu, int id, const wxString& string, const wxString& description, 
     std::function<void(wxCommandEvent& event)> cb, wxEvtHandler* event_handler);
 
-wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name, const int px_cnt=16, const bool is_horizontal = false);
+class wxDialog;
+void    msw_buttons_rescale(wxDialog* dlg, const int em_unit, const std::vector<int>& btn_ids);
+int     em_unit(wxWindow* win);
+
+wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name, const int px_cnt = 16, const bool is_horizontal = false);
 
 class wxCheckListBoxComboPopup : public wxCheckListBox, public wxComboPopup
 {
@@ -94,91 +98,20 @@ public:
 };
 
 
-
-// ***  PrusaCollapsiblePane  *** 
 // ----------------------------------------------------------------------------
-class PrusaCollapsiblePane : public wxCollapsiblePane
+// DataViewBitmapText: helper class used by PrusaBitmapTextRenderer
+// ----------------------------------------------------------------------------
+
+class DataViewBitmapText : public wxObject
 {
 public:
-	PrusaCollapsiblePane() {}
-	PrusaCollapsiblePane(wxWindow *parent,
-		wxWindowID winid,
-		const wxString& label,
-		const wxPoint& pos = wxDefaultPosition,
-		const wxSize& size = wxDefaultSize,
-		long style = wxCP_DEFAULT_STYLE,
-		const wxValidator& val = wxDefaultValidator,
-		const wxString& name = wxCollapsiblePaneNameStr)
-	{
-		Create(parent, winid, label, pos, size, style, val, name);
-	}
-	~PrusaCollapsiblePane() {}
-
-	void OnStateChange(const wxSize& sz); //override/hide of OnStateChange from wxCollapsiblePane
-	virtual bool Show(bool show = true) override {
-		wxCollapsiblePane::Show(show);
-		OnStateChange(GetBestSize());
-		return true;
-	}
-};
-
-
-// ***  PrusaCollapsiblePaneMSW  ***  used only #ifdef __WXMSW__
-// ----------------------------------------------------------------------------
-#ifdef __WXMSW__
-class PrusaCollapsiblePaneMSW : public PrusaCollapsiblePane//wxCollapsiblePane
-{
-	wxButton*	m_pDisclosureTriangleButton = nullptr;
-	wxBitmap	m_bmp_close;
-	wxBitmap	m_bmp_open;
-	wxString    m_strLabel;
-public:
-	PrusaCollapsiblePaneMSW() {}
-	PrusaCollapsiblePaneMSW(	wxWindow *parent,
-							wxWindowID winid,
-							const wxString& label,
-							const wxPoint& pos = wxDefaultPosition,
-							const wxSize& size = wxDefaultSize,
-							long style = wxCP_DEFAULT_STYLE,
-							const wxValidator& val = wxDefaultValidator,
-							const wxString& name = wxCollapsiblePaneNameStr)
-	{
-		Create(parent, winid, label, pos, size, style, val, name);
-	}
-
-	~PrusaCollapsiblePaneMSW() {}
-
-	bool Create(wxWindow *parent,
-				wxWindowID id,
-				const wxString& label,
-				const wxPoint& pos,
-				const wxSize& size,
-				long style,
-				const wxValidator& val,
-				const wxString& name);
-
-	void UpdateBtnBmp();
-	void SetLabel(const wxString &label) override;
-	bool Layout() override;
-	void Collapse(bool collapse) override;
-};
-#endif //__WXMSW__
-
-// *****************************************************************************
-
-// ----------------------------------------------------------------------------
-// PrusaDataViewBitmapText: helper class used by PrusaBitmapTextRenderer
-// ----------------------------------------------------------------------------
-
-class PrusaDataViewBitmapText : public wxObject
-{
-public:
-    PrusaDataViewBitmapText(const wxString &text = wxEmptyString,
-        const wxBitmap& bmp = wxNullBitmap) :
-        m_text(text), m_bmp(bmp)
+    DataViewBitmapText( const wxString &text = wxEmptyString,
+                        const wxBitmap& bmp = wxNullBitmap) :
+        m_text(text), 
+        m_bmp(bmp)
     { }
 
-    PrusaDataViewBitmapText(const PrusaDataViewBitmapText &other)
+    DataViewBitmapText(const DataViewBitmapText &other)
         : wxObject(),
         m_text(other.m_text),
         m_bmp(other.m_bmp)
@@ -186,18 +119,18 @@ public:
 
     void SetText(const wxString &text)      { m_text = text; }
     wxString GetText() const                { return m_text; }
-    void SetBitmap(const wxBitmap &bmp)      { m_bmp = bmp; }
+    void SetBitmap(const wxBitmap &bmp)     { m_bmp = bmp; }
     const wxBitmap &GetBitmap() const       { return m_bmp; }
 
-    bool IsSameAs(const PrusaDataViewBitmapText& other) const {
+    bool IsSameAs(const DataViewBitmapText& other) const {
         return m_text == other.m_text && m_bmp.IsSameAs(other.m_bmp);
     }
 
-    bool operator==(const PrusaDataViewBitmapText& other) const {
+    bool operator==(const DataViewBitmapText& other) const {
         return IsSameAs(other);
     }
 
-    bool operator!=(const PrusaDataViewBitmapText& other) const {
+    bool operator!=(const DataViewBitmapText& other) const {
         return !IsSameAs(other);
     }
 
@@ -205,13 +138,13 @@ private:
     wxString    m_text;
     wxBitmap    m_bmp;
 
-    wxDECLARE_DYNAMIC_CLASS(PrusaDataViewBitmapText);
+    wxDECLARE_DYNAMIC_CLASS(DataViewBitmapText);
 };
-DECLARE_VARIANT_OBJECT(PrusaDataViewBitmapText)
+DECLARE_VARIANT_OBJECT(DataViewBitmapText)
 
 
 // ----------------------------------------------------------------------------
-// PrusaObjectDataViewModelNode: a node inside PrusaObjectDataViewModel
+// ObjectDataViewModelNode: a node inside PrusaObjectDataViewModel
 // ----------------------------------------------------------------------------
 
 enum ItemType {
@@ -223,56 +156,73 @@ enum ItemType {
     itSettings = 16
 };
 
-class PrusaObjectDataViewModelNode;
-WX_DEFINE_ARRAY_PTR(PrusaObjectDataViewModelNode*, MyObjectTreeModelNodePtrArray);
+class ObjectDataViewModelNode;
+WX_DEFINE_ARRAY_PTR(ObjectDataViewModelNode*, MyObjectTreeModelNodePtrArray);
 
-class PrusaObjectDataViewModelNode
+class ObjectDataViewModelNode
 {
-	PrusaObjectDataViewModelNode*	m_parent;
+	ObjectDataViewModelNode*	    m_parent;
 	MyObjectTreeModelNodePtrArray   m_children;
     wxBitmap                        m_empty_bmp;
     size_t                          m_volumes_cnt = 0;
     std::vector< std::string >      m_opt_categories;
+
+    wxString				        m_name;
+    wxBitmap&                       m_bmp = m_empty_bmp;
+    ItemType				        m_type;
+    int                             m_idx = -1;
+    bool					        m_container = false;
+    wxString				        m_extruder = "default";
+    wxBitmap				        m_action_icon;
+
+    std::string                     m_action_icon_name = "";
+    Slic3r::ModelVolumeType         m_volume_type;
+
 public:
-    PrusaObjectDataViewModelNode(const wxString &name, 
-                                 const wxString& extruder) {
-		m_parent	= NULL;
-		m_name		= name;
-		m_type		= itObject;
+    ObjectDataViewModelNode(const wxString &name, 
+                            const wxString& extruder):
+        m_parent(NULL),
+        m_name(name),
+        m_type(itObject),
+        m_extruder(extruder)
+    {
 #ifdef __WXGTK__
         // it's necessary on GTK because of control have to know if this item will be container
         // in another case you couldn't to add subitem for this item
         // it will be produce "segmentation fault"
         m_container = true;
 #endif  //__WXGTK__
-        m_extruder = extruder;
-		set_object_action_icon();
+
+        set_action_icon();
 	}
 
-	PrusaObjectDataViewModelNode(	PrusaObjectDataViewModelNode* parent,
-									const wxString& sub_obj_name, 
-									const wxBitmap& bmp, 
-                                    const wxString& extruder, 
-                                    const int idx = -1 ) {
-		m_parent	= parent;
-		m_name		= sub_obj_name;
-		m_bmp		= bmp;
-		m_type		= itVolume;
-        m_idx       = idx;
-        m_extruder = extruder;
+	ObjectDataViewModelNode(ObjectDataViewModelNode* parent,
+							const wxString& sub_obj_name, 
+							const wxBitmap& bmp, 
+                            const wxString& extruder, 
+                            const int idx = -1 ) :
+        m_parent	(parent),
+		m_name		(sub_obj_name),
+		m_type		(itVolume),
+        m_idx       (idx),
+        m_extruder  (extruder)
+    {
+        m_bmp = bmp;		
 #ifdef __WXGTK__
         // it's necessary on GTK because of control have to know if this item will be container
         // in another case you couldn't to add subitem for this item
         // it will be produce "segmentation fault"
         m_container = true;
 #endif  //__WXGTK__
-		set_part_action_icon();
+
+        set_action_icon();
     }
 
-    PrusaObjectDataViewModelNode(   PrusaObjectDataViewModelNode* parent, const ItemType type) :
-                                    m_parent(parent),
-                                    m_type(type),
-                                    m_extruder(wxEmptyString)
+    ObjectDataViewModelNode(ObjectDataViewModelNode* parent, 
+                            const ItemType type) :
+        m_parent(parent),
+        m_type(type),
+        m_extruder(wxEmptyString)
 	{
         if (type == itSettings) {
             m_name = "Settings to modified";
@@ -286,35 +236,28 @@ public:
         else if (type == itInstance) {
             m_idx = parent->GetChildCount();
             m_name = wxString::Format("Instance_%d", m_idx+1);
-            set_part_action_icon();
+
+            set_action_icon();
         }
 	}
 
-	~PrusaObjectDataViewModelNode()
+	~ObjectDataViewModelNode()
 	{
 		// free all our children nodes
 		size_t count = m_children.GetCount();
 		for (size_t i = 0; i < count; i++)
 		{
-			PrusaObjectDataViewModelNode *child = m_children[i];
+			ObjectDataViewModelNode *child = m_children[i];
 			delete child;
 		}
 	}
-	
-	wxString				m_name;
-    wxBitmap&               m_bmp = m_empty_bmp;
-    ItemType				m_type;
-    int                     m_idx = -1;
-	bool					m_container = false;
-	wxString				m_extruder = "default";
-	wxBitmap				m_action_icon;
 
 	bool IsContainer() const
 	{
 		return m_container;
 	}
 
-	PrusaObjectDataViewModelNode* GetParent()
+	ObjectDataViewModelNode* GetParent()
 	{
 		return m_parent;
 	}
@@ -322,17 +265,17 @@ public:
 	{
 		return m_children;
 	}
-	PrusaObjectDataViewModelNode* GetNthChild(unsigned int n)
+	ObjectDataViewModelNode* GetNthChild(unsigned int n)
 	{
 		return m_children.Item(n);
 	}
-	void Insert(PrusaObjectDataViewModelNode* child, unsigned int n)
+	void Insert(ObjectDataViewModelNode* child, unsigned int n)
 	{
 		if (!m_container)
 			m_container = true;
 		m_children.Insert(child, n);
 	}
-	void Append(PrusaObjectDataViewModelNode* child)
+	void Append(ObjectDataViewModelNode* child)
 	{
 		if (!m_container)
 			m_container = true;
@@ -362,7 +305,7 @@ public:
 		switch (col)
 		{
 		case 0:{
-            PrusaDataViewBitmapText data;
+            DataViewBitmapText data;
 			data << variant;
             m_bmp = data.GetBitmap();
 			m_name = data.GetText();
@@ -400,7 +343,7 @@ public:
 	}
 
 	// use this function only for childrens
-	void AssignAllVal(PrusaObjectDataViewModelNode& from_node)
+	void AssignAllVal(ObjectDataViewModelNode& from_node)
 	{
 		// ! Don't overwrite other values because of equality of this values for all children --
 		m_name = from_node.m_name;
@@ -416,8 +359,8 @@ public:
 			scnd_id < 0 || scnd_id >= GetChildCount())
 			return false;
 
-		PrusaObjectDataViewModelNode new_scnd = *GetNthChild(frst_id);
-		PrusaObjectDataViewModelNode new_frst = *GetNthChild(scnd_id);
+		ObjectDataViewModelNode new_scnd = *GetNthChild(frst_id);
+		ObjectDataViewModelNode new_frst = *GetNthChild(scnd_id);
 
         new_scnd.m_idx = m_children.Item(scnd_id)->m_idx;
         new_frst.m_idx = m_children.Item(frst_id)->m_idx;
@@ -428,37 +371,40 @@ public:
 	}
 
 	// Set action icons for node
-	void set_object_action_icon();
-	void set_part_action_icon();
-    bool update_settings_digest(const std::vector<std::string>& categories);
+    void set_action_icon();
+
+    void    update_settings_digest_bitmaps();
+	bool    update_settings_digest(const std::vector<std::string>& categories);
+    int     volume_type() const { return int(m_volume_type); }
+    void    msw_rescale();
 private:
-    friend class PrusaObjectDataViewModel;
+    friend class ObjectDataViewModel;
 };
 
 // ----------------------------------------------------------------------------
-// PrusaObjectDataViewModel
+// ObjectDataViewModel
 // ----------------------------------------------------------------------------
 
 // custom message the model sends to associated control to notify a last volume deleted from the object:
 wxDECLARE_EVENT(wxCUSTOMEVT_LAST_VOLUME_IS_DELETED, wxCommandEvent);
 
-class PrusaObjectDataViewModel :public wxDataViewModel
+class ObjectDataViewModel :public wxDataViewModel
 {
-	std::vector<PrusaObjectDataViewModelNode*>  m_objects;
+	std::vector<ObjectDataViewModelNode*>       m_objects;
     std::vector<wxBitmap*>                      m_volume_bmps;
 
     wxDataViewCtrl*                             m_ctrl{ nullptr };
 
 public:
-    PrusaObjectDataViewModel();
-    ~PrusaObjectDataViewModel();
+    ObjectDataViewModel();
+    ~ObjectDataViewModel();
 
 	wxDataViewItem Add(const wxString &name, const int extruder);
-    wxDataViewItem AddVolumeChild(const wxDataViewItem &parent_item,
-        const wxString &name,
-        const Slic3r::ModelVolumeType volume_type,
-        const int extruder = 0,
-        const bool create_frst_child = true);
+    wxDataViewItem AddVolumeChild(  const wxDataViewItem &parent_item,
+                                    const wxString &name,
+                                    const Slic3r::ModelVolumeType volume_type,
+                                    const int extruder = 0,
+                                    const bool create_frst_child = true);
     wxDataViewItem AddSettingsChild(const wxDataViewItem &parent_item);
     wxDataViewItem AddInstanceChild(const wxDataViewItem &parent_item, size_t num);
 	wxDataViewItem Delete(const wxDataViewItem &item);
@@ -470,76 +416,82 @@ public:
 	wxDataViewItem GetItemById(int obj_idx);
 	wxDataViewItem GetItemByVolumeId(int obj_idx, int volume_idx);
 	wxDataViewItem GetItemByInstanceId(int obj_idx, int inst_idx);
-	int GetIdByItem(const wxDataViewItem& item) const;
-    int GetIdByItemAndType(const wxDataViewItem& item, const ItemType type) const;
-    int GetObjectIdByItem(const wxDataViewItem& item) const;
-    int GetVolumeIdByItem(const wxDataViewItem& item) const;
-    int GetInstanceIdByItem(const wxDataViewItem& item) const;
+	int  GetIdByItem(const wxDataViewItem& item) const;
+    int  GetIdByItemAndType(const wxDataViewItem& item, const ItemType type) const;
+    int  GetObjectIdByItem(const wxDataViewItem& item) const;
+    int  GetVolumeIdByItem(const wxDataViewItem& item) const;
+    int  GetInstanceIdByItem(const wxDataViewItem& item) const;
     void GetItemInfo(const wxDataViewItem& item, ItemType& type, int& obj_idx, int& idx);
-    int GetRowByItem(const wxDataViewItem& item) const;
+    int  GetRowByItem(const wxDataViewItem& item) const;
     bool IsEmpty() { return m_objects.empty(); }
 
 	// helper method for wxLog
 
-	wxString GetName(const wxDataViewItem &item) const;
-    wxBitmap& GetBitmap(const wxDataViewItem &item) const;
+	wxString    GetName(const wxDataViewItem &item) const;
+    wxBitmap&   GetBitmap(const wxDataViewItem &item) const;
 
 	// helper methods to change the model
 
-	virtual unsigned int GetColumnCount() const override { return 3;}
-	virtual wxString GetColumnType(unsigned int col) const override{ return wxT("string"); }
+	virtual unsigned int    GetColumnCount() const override { return 3;}
+	virtual wxString        GetColumnType(unsigned int col) const override{ return wxT("string"); }
 
-	virtual void GetValue(wxVariant &variant,
-		const wxDataViewItem &item, unsigned int col) const override;
-	virtual bool SetValue(const wxVariant &variant,
-		const wxDataViewItem &item, unsigned int col) override;
-	bool SetValue(const wxVariant &variant, const int item_idx, unsigned int col);
+	virtual void GetValue(  wxVariant &variant,
+		                    const wxDataViewItem &item, 
+                            unsigned int col) const override;
+	virtual bool SetValue(  const wxVariant &variant,
+		                    const wxDataViewItem &item, 
+                            unsigned int col) override;
+	bool SetValue(  const wxVariant &variant, 
+                    const int item_idx, 
+                    unsigned int col);
 
-// 	wxDataViewItem MoveChildUp(const wxDataViewItem &item);
-// 	wxDataViewItem MoveChildDown(const wxDataViewItem &item);
     // For parent move child from cur_volume_id place to new_volume_id 
     // Remaining items will moved up/down accordingly
-    wxDataViewItem ReorganizeChildren(int cur_volume_id, 
-                                      int new_volume_id,
-                                      const wxDataViewItem &parent);
+    wxDataViewItem  ReorganizeChildren( const int cur_volume_id, 
+                                        const int new_volume_id,
+                                        const wxDataViewItem &parent);
 
-	virtual bool IsEnabled(const wxDataViewItem &item, unsigned int col) const override;
+	virtual bool    IsEnabled(const wxDataViewItem &item, unsigned int col) const override;
 
-	virtual wxDataViewItem GetParent(const wxDataViewItem &item) const override;
+	virtual wxDataViewItem  GetParent(const wxDataViewItem &item) const override;
     // get object item
-    wxDataViewItem GetTopParent(const wxDataViewItem &item) const;
-	virtual bool IsContainer(const wxDataViewItem &item) const override;
-	virtual unsigned int GetChildren(const wxDataViewItem &parent,
-		wxDataViewItemArray &array) const override;
+    wxDataViewItem          GetTopParent(const wxDataViewItem &item) const;
+	virtual bool            IsContainer(const wxDataViewItem &item) const override;
+	virtual unsigned int    GetChildren(const wxDataViewItem &parent,
+		                                wxDataViewItemArray &array) const override;
     void GetAllChildren(const wxDataViewItem &parent,wxDataViewItemArray &array) const;
 	// Is the container just a header or an item with all columns
 	// In our case it is an item with all columns 
-	virtual bool HasContainerColumns(const wxDataViewItem& WXUNUSED(item)) const override {	return true; }
+	virtual bool    HasContainerColumns(const wxDataViewItem& WXUNUSED(item)) const override {	return true; }
 
-    ItemType GetItemType(const wxDataViewItem &item) const ;
-    wxDataViewItem    GetItemByType(const wxDataViewItem &parent_item, ItemType type) const;
-    wxDataViewItem    GetSettingsItem(const wxDataViewItem &item) const;
-    wxDataViewItem    GetInstanceRootItem(const wxDataViewItem &item) const;
+    ItemType        GetItemType(const wxDataViewItem &item) const ;
+    wxDataViewItem  GetItemByType(  const wxDataViewItem &parent_item, 
+                                    ItemType type) const;
+    wxDataViewItem  GetSettingsItem(const wxDataViewItem &item) const;
+    wxDataViewItem  GetInstanceRootItem(const wxDataViewItem &item) const;
     bool    IsSettingsItem(const wxDataViewItem &item) const;
-    void    UpdateSettingsDigest(const wxDataViewItem &item, const std::vector<std::string>& categories);
+    void    UpdateSettingsDigest(   const wxDataViewItem &item, 
+                                    const std::vector<std::string>& categories);
 
     void    SetVolumeBitmaps(const std::vector<wxBitmap*>& volume_bmps) { m_volume_bmps = volume_bmps; }
     void    SetVolumeType(const wxDataViewItem &item, const Slic3r::ModelVolumeType type);
 
     void    SetAssociatedControl(wxDataViewCtrl* ctrl) { m_ctrl = ctrl; }
+    // Rescale bitmaps for existing Items
+    void    Rescale();
 };
 
 // ----------------------------------------------------------------------------
-// PrusaBitmapTextRenderer
+// BitmapTextRenderer
 // ----------------------------------------------------------------------------
 #if ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
-class PrusaBitmapTextRenderer : public wxDataViewRenderer
+class BitmapTextRenderer : public wxDataViewRenderer
 #else
-class PrusaBitmapTextRenderer : public wxDataViewCustomRenderer
+class BitmapTextRenderer : public wxDataViewCustomRenderer
 #endif //ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
 {
 public:
-    PrusaBitmapTextRenderer(wxDataViewCellMode mode =
+    BitmapTextRenderer(wxDataViewCellMode mode =
 #ifdef __WXOSX__
                                                         wxDATAVIEW_CELL_INERT
 #else
@@ -550,7 +502,7 @@ public:
 #if ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
                             );
 #else
-                            ) : wxDataViewCustomRenderer(wxT("PrusaDataViewBitmapText"), mode, align) {}
+                            ) : wxDataViewCustomRenderer(wxT("DataViewBitmapText"), mode, align) {}
 #endif //ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
 
     bool SetValue(const wxVariant &value);
@@ -578,7 +530,7 @@ public:
     bool        WasCanceled() const { return m_was_unusable_symbol; }
 
 private:
-    PrusaDataViewBitmapText m_value;
+    DataViewBitmapText m_value;
     bool                    m_was_unusable_symbol {false};
 };
 
@@ -676,7 +628,37 @@ private:
 
 
 // ----------------------------------------------------------------------------
-// PrusaDoubleSlider
+// ScalableBitmap
+// ----------------------------------------------------------------------------
+
+class ScalableBitmap
+{
+public:
+    ScalableBitmap() {};
+    ScalableBitmap( wxWindow *parent, 
+                    const std::string& icon_name = "",
+                    const int px_cnt = 16,
+                    const bool is_horizontal = false);
+
+    ~ScalableBitmap() {}
+
+    void                msw_rescale();
+
+    const wxBitmap&     bmp() const { return m_bmp; }
+    wxBitmap&           bmp()       { return m_bmp; }
+    const std::string&  name() const{ return m_icon_name; }
+
+private:
+    wxWindow*       m_parent{ nullptr };
+    wxBitmap        m_bmp = wxBitmap();
+    std::string     m_icon_name = "";
+    int             m_px_cnt {16};
+    bool            m_is_horizontal {false};
+};
+
+
+// ----------------------------------------------------------------------------
+// DoubleSlider
 // ----------------------------------------------------------------------------
 
 // custom message the slider sends to its parent to notify a tick-change:
@@ -693,10 +675,10 @@ enum TicksAction{
     taDel
 };
 
-class PrusaDoubleSlider : public wxControl
+class DoubleSlider : public wxControl
 {
 public:
-    PrusaDoubleSlider(
+    DoubleSlider(
         wxWindow *parent,
         wxWindowID id,
         int lowerValue, 
@@ -708,7 +690,9 @@ public:
         long style = wxSL_VERTICAL,
         const wxValidator& val = wxDefaultValidator,
         const wxString& name = wxEmptyString);
-    ~PrusaDoubleSlider() {}
+    ~DoubleSlider() {}
+
+    void    msw_rescale();
 
     int GetMinValue() const { return m_min_value; }
     int GetMaxValue() const { return m_max_value; }
@@ -717,6 +701,7 @@ public:
     int GetLowerValue() const { return m_lower_value; }
     int GetHigherValue() const { return m_higher_value; }
     int GetActiveValue() const;
+    wxSize get_min_size() const ;
     double GetLowerValueD()  { return get_double_value(ssLower); }
     double GetHigherValueD() { return get_double_value(ssHigher); }
     wxSize DoGetBestSize() const override;
@@ -801,16 +786,16 @@ private:
     int         m_max_value;
     int         m_lower_value;
     int         m_higher_value;
-    wxBitmap    m_bmp_thumb_higher;
-    wxBitmap    m_bmp_thumb_lower;
-    wxBitmap    m_bmp_add_tick_on;
-    wxBitmap    m_bmp_add_tick_off;
-    wxBitmap    m_bmp_del_tick_on;
-    wxBitmap    m_bmp_del_tick_off;
-    wxBitmap    m_bmp_one_layer_lock_on;
-    wxBitmap    m_bmp_one_layer_lock_off;
-    wxBitmap    m_bmp_one_layer_unlock_on;
-    wxBitmap    m_bmp_one_layer_unlock_off;
+    ScalableBitmap    m_bmp_thumb_higher;
+    ScalableBitmap    m_bmp_thumb_lower;
+    ScalableBitmap    m_bmp_add_tick_on;
+    ScalableBitmap    m_bmp_add_tick_off;
+    ScalableBitmap    m_bmp_del_tick_on;
+    ScalableBitmap    m_bmp_del_tick_off;
+    ScalableBitmap    m_bmp_one_layer_lock_on;
+    ScalableBitmap    m_bmp_one_layer_lock_off;
+    ScalableBitmap    m_bmp_one_layer_unlock_on;
+    ScalableBitmap    m_bmp_one_layer_unlock_off;
     SelectedSlider  m_selection;
     bool        m_is_left_down = false;
     bool        m_is_right_down = false;
@@ -841,26 +826,26 @@ private:
     wxPen   GREY_PEN;
     wxPen   LIGHT_GREY_PEN;
 
-    std::vector<wxPen*> line_pens;
-    std::vector<wxPen*> segm_pens;
+    std::vector<wxPen*> m_line_pens;
+    std::vector<wxPen*> m_segm_pens;
     std::set<int>       m_ticks;
     std::vector<std::pair<int,double>> m_values;
 };
 
 
 // ----------------------------------------------------------------------------
-// PrusaLockButton
+// LockButton
 // ----------------------------------------------------------------------------
 
-class PrusaLockButton : public wxButton
+class LockButton : public wxButton
 {
 public:
-    PrusaLockButton(
+    LockButton(
         wxWindow *parent,
         wxWindowID id,
         const wxPoint& pos = wxDefaultPosition,
         const wxSize& size = wxDefaultSize);
-    ~PrusaLockButton() {}
+    ~LockButton() {}
 
     void    OnButton(wxCommandEvent& event);
     void    OnEnterBtn(wxMouseEvent& event) { enter_button(true); event.Skip(); }
@@ -869,34 +854,72 @@ public:
     bool    IsLocked() const { return m_is_pushed; }
     void    SetLock(bool lock);
 
+    void    msw_rescale();
+
 protected:
     void    enter_button(const bool enter);
 
 private:
     bool        m_is_pushed = false;
 
-    wxBitmap    m_bmp_lock_on;
-    wxBitmap    m_bmp_lock_off;
-    wxBitmap    m_bmp_unlock_on;
-    wxBitmap    m_bmp_unlock_off;
+    ScalableBitmap    m_bmp_lock_on;
+    ScalableBitmap    m_bmp_lock_off;
+    ScalableBitmap    m_bmp_unlock_on;
+    ScalableBitmap    m_bmp_unlock_off;
 };
 
 
 // ----------------------------------------------------------------------------
-// PrusaModeButton
+// ScalableButton
 // ----------------------------------------------------------------------------
 
-class PrusaModeButton : public wxButton
+class ScalableButton : public wxButton
 {
 public:
-    PrusaModeButton(
-        wxWindow *parent,
-        wxWindowID id,
-        const wxString& mode = wxEmptyString,
-        const wxBitmap& bmp_on = wxNullBitmap,
-        const wxSize& size = wxDefaultSize,
-        const wxPoint& pos = wxDefaultPosition);
-    ~PrusaModeButton() {}
+    ScalableButton(){}
+    ScalableButton(
+        wxWindow *          parent,
+        wxWindowID          id,
+        const std::string&  icon_name = "",
+        const wxString&     label = wxEmptyString,
+        const wxSize&       size = wxDefaultSize,
+        const wxPoint&      pos = wxDefaultPosition,
+        long                style = wxBU_EXACTFIT | wxNO_BORDER);
+
+    ScalableButton(
+        wxWindow *          parent,
+        wxWindowID          id,
+        const ScalableBitmap&  bitmap,
+        const wxString&     label = wxEmptyString,
+        long                style = wxBU_EXACTFIT | wxNO_BORDER);
+
+    ~ScalableButton() {}
+
+    void SetBitmap_(const ScalableBitmap& bmp);
+
+    void    msw_rescale();
+
+private:
+    wxWindow*       m_parent;
+    std::string     m_current_icon_name = "";
+};
+
+
+// ----------------------------------------------------------------------------
+// ModeButton
+// ----------------------------------------------------------------------------
+
+class ModeButton : public ScalableButton
+{
+public:
+    ModeButton(
+        wxWindow*           parent,
+        wxWindowID          id,
+        const std::string&  icon_name = "",
+        const wxString&     mode = wxEmptyString,
+        const wxSize&       size = wxDefaultSize,
+        const wxPoint&      pos = wxDefaultPosition);
+    ~ModeButton() {}
 
     void    OnButton(wxCommandEvent& event);
     void    OnEnterBtn(wxMouseEvent& event) { focus_button(true); event.Skip(); }
@@ -910,8 +933,6 @@ protected:
 private:
     bool        m_is_selected = false;
 
-    wxBitmap    m_bmp_on;
-    wxBitmap    m_bmp_off;
     wxString    m_tt_selected;
     wxString    m_tt_focused;
 };
@@ -919,47 +940,49 @@ private:
 
 
 // ----------------------------------------------------------------------------
-// PrusaModeSizer
+// ModeSizer
 // ----------------------------------------------------------------------------
 
-class PrusaModeSizer : public wxFlexGridSizer
+class ModeSizer : public wxFlexGridSizer
 {
 public:
-    PrusaModeSizer( wxWindow *parent, int hgap = 10);
-    ~PrusaModeSizer() {}
+    ModeSizer( wxWindow *parent, int hgap = 10);
+    ~ModeSizer() {}
 
     void SetMode(const /*ConfigOptionMode*/int mode);
 
+    void msw_rescale();
+
 private:
-    std::vector<PrusaModeButton*> mode_btns;
+    std::vector<ModeButton*> m_mode_btns;
 };
 
 
 
 // ----------------------------------------------------------------------------
-// PrusaMenu
+// MenuWithSeparators
 // ----------------------------------------------------------------------------
 
-class PrusaMenu : public wxMenu
+class MenuWithSeparators : public wxMenu
 {
 public:
-    PrusaMenu(const wxString& title, long style = 0)
+    MenuWithSeparators(const wxString& title, long style = 0)
         : wxMenu(title, style) {}
 
-    PrusaMenu(long style = 0)
+    MenuWithSeparators(long style = 0)
         : wxMenu(style) {}
 
-    ~PrusaMenu() {}
+    ~MenuWithSeparators() {}
 
     void DestroySeparators();
+    void SetFirstSeparator();
+    void SetSecondSeparator();
 
+private:
     wxMenuItem* m_separator_frst { nullptr };    // use like separator before settings item
     wxMenuItem* m_separator_scnd { nullptr };   // use like separator between settings items
 };
 
-
-// ******************************* EXPERIMENTS **********************************************
-// ******************************************************************************************
 
 
 #endif // slic3r_GUI_wxExtensions_hpp_

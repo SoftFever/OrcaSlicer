@@ -5,6 +5,8 @@
 
 #include <wx/dialog.h>
 
+#include "GUI_Utils.hpp"
+
 namespace Slic3r {
 
 class PresetBundle;
@@ -13,7 +15,7 @@ class PresetUpdater;
 namespace GUI {
 
 
-class ConfigWizard: public wxDialog
+class ConfigWizard: public DPIDialog
 {
 public:
     // Why is the Wizard run
@@ -35,6 +37,10 @@ public:
     bool run(PresetBundle *preset_bundle, const PresetUpdater *updater);
 
     static const wxString& name(const bool from_menu = false);
+
+protected:
+    void on_dpi_changed(const wxRect &suggested_rect) override ;
+
 private:
     struct priv;
     std::unique_ptr<priv> p;

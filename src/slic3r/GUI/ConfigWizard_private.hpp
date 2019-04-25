@@ -69,8 +69,11 @@ struct PrinterPicker: wxPanel
     void on_checkbox(const Checkbox *cbox, bool checked);
 
     int get_width() const { return width; }
+    const std::vector<int>& get_button_indexes() { return m_button_indexes; }
 private:
     int width;
+
+    std::vector<int> m_button_indexes;
 };
 
 struct ConfigWizardPage: wxPanel
@@ -210,7 +213,9 @@ public:
     void go_to(ConfigWizardPage *page);
 
     void clear();
+    void msw_rescale();
 
+    int em() const { return em_w; }
 private:
     struct Item
     {
@@ -221,20 +226,29 @@ private:
         bool operator==(ConfigWizardPage *page) const { return this->page == page; }
     };
 
-    int em;
+    int em_w;
     int em_h;
-
+    /* #ys_FIXME_delete_after_testing by VK 
     const wxBitmap bg;
     const wxBitmap bullet_black;
     const wxBitmap bullet_blue;
     const wxBitmap bullet_white;
+    */
+    ScalableBitmap bg;
+    ScalableBitmap bullet_black;
+    ScalableBitmap bullet_blue;
+    ScalableBitmap bullet_white;
+    wxStaticBitmap* logo;
 
     std::vector<Item> items;
     size_t item_active;
     ssize_t item_hover;
     size_t last_page;
 
-    int item_height() const { return std::max(bullet_black.GetSize().GetHeight(), em) + em; }
+    /* #ys_FIXME_delete_after_testing by VK 
+    int item_height() const { return std::max(bullet_black.GetSize().GetHeight(), em_w) + em_w; }
+    */
+    int item_height() const { return std::max(bullet_black.bmp().GetSize().GetHeight(), em_w) + em_w; }
 
     void on_paint(wxPaintEvent &evt);
     void on_mouse_move(wxMouseEvent &evt);
@@ -256,6 +270,7 @@ struct ConfigWizard::priv
     wxBoxSizer *btnsizer = nullptr;
     ConfigWizardPage *page_current = nullptr;
     ConfigWizardIndex *index = nullptr;
+    wxButton *btn_sel_all = nullptr;
     wxButton *btn_prev = nullptr;
     wxButton *btn_next = nullptr;
     wxButton *btn_finish = nullptr;
@@ -286,6 +301,8 @@ struct ConfigWizard::priv
     void on_custom_setup(bool custom_wanted);
 
     void apply_config(AppConfig *app_config, PresetBundle *preset_bundle, const PresetUpdater *updater);
+
+    int em() const { return index->em(); }
 };
 
 

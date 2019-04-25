@@ -7,7 +7,7 @@
 #include "GLCanvas3D.hpp"
 
 class wxStaticText;
-class PrusaLockButton;
+class LockButton;
 
 namespace Slic3r {
 namespace GUI {
@@ -76,7 +76,7 @@ class ObjectManipulation : public OG_Settings
     Vec3d           m_new_size;
     bool            m_new_enabled;
     bool            m_uniform_scale {true};
-    PrusaLockButton* m_lock_bnt{ nullptr };
+    LockButton*     m_lock_bnt{ nullptr };
 
 #ifndef __APPLE__
     // Currently focused option name (empty if none)
