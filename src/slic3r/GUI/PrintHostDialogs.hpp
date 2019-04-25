@@ -64,7 +64,7 @@ public:
     void append_job(const PrintHostJob &job);
 
 protected:
-    void on_dpi_changed(const wxRect &suggested_rect) override { Refresh(); }
+    void on_dpi_changed(const wxRect &suggested_rect) override;
 
 private:
     enum Column {
@@ -84,6 +84,8 @@ private:
         ST_CANCELLED,
         ST_COMPLETED,
     };
+
+    enum { HEIGHT = 60, WIDTH = 30, SPACING = 5 };
 
     wxButton *btn_cancel;
     wxButton *btn_error;

@@ -133,13 +133,15 @@ void AboutDialog::on_dpi_changed(const wxRect &suggested_rect)
 
     const int& em = em_unit();
 
+    msw_buttons_rescale(this, em, { wxID_CLOSE });
+
     m_html->SetMinSize(wxSize(-1, 16 * em));
     m_html->Refresh();
 
     const wxSize& size = wxSize(65 * em, 30 * em);
 
     SetMinSize(size);
-    SetSize(size);
+    Fit();
 
     Refresh();
 }

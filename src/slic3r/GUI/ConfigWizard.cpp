@@ -194,6 +194,9 @@ PrinterPicker::PrinterPicker(wxWindow *parent, const VendorProfile &vendor, wxSt
         title_sizer->Add(sel_all_std, 0, wxRIGHT, BTN_SPACING);
         title_sizer->Add(sel_all, 0, wxRIGHT, BTN_SPACING);
         title_sizer->Add(sel_none);
+
+        // fill button indexes used later for buttons rescaling
+        m_button_indexes = { sel_all_std->GetId(), sel_all->GetId(), sel_none->GetId() };
     }
 
     sizer->Add(title_sizer, 0, wxEXPAND | wxBOTTOM, BTN_SPACING);
@@ -1057,8 +1060,8 @@ ConfigWizard::ConfigWizard(wxWindow *parent, RunReason reason)
     topsizer->AddSpacer(INDEX_MARGIN);
     topsizer->Add(p->hscroll, 1, wxEXPAND);
 
-    auto *btn_sel_all = new wxButton(this, wxID_ANY, _(L("Select all standard printers")));
-    p->btnsizer->Add(btn_sel_all);
+    p->btn_sel_all = new wxButton(this, wxID_ANY, _(L("Select all standard printers")));
+    p->btnsizer->Add(p->btn_sel_all);
 
     p->btn_prev = new wxButton(this, wxID_ANY, _(L("< &Back")));
     p->btn_next = new wxButton(this, wxID_ANY, _(L("&Next >")));
@@ -1130,7 +1133,7 @@ ConfigWizard::ConfigWizard(wxWindow *parent, RunReason reason)
     p->btn_finish->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &) { this->EndModal(wxID_OK); });
     p->btn_finish->Hide();
 
-    btn_sel_all->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &) {
+    p->btn_sel_all->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &) {
         p->page_fff->select_all(true, false);
         p->page_msla->select_all(true, false);
         p->index->go_to(p->page_update);
@@ -1179,6 +1182,20 @@ const wxString& ConfigWizard::name(const bool from_menu/* = false*/)
 void ConfigWizard::on_dpi_changed(const wxRect &suggested_rect)
 {
     p->index->msw_rescale();
+
+    const int& em = em_unit();
+
+    msw_buttons_rescale(this, em, { wxID_APPLY, 
+                                    wxID_CANCEL,
+                                    p->btn_sel_all->GetId(),
+                                    p->btn_next->GetId(),
+                                    p->btn_prev->GetId() });
+
+    for (auto printer_picker: p->page_fff->printer_pickers)
+        msw_buttons_rescale(this, em, printer_picker->get_button_indexes());
+
+    // FIXME VK SetSize(???)
+
     Refresh();
 }
 
