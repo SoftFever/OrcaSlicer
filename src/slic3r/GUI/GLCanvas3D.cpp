@@ -1647,6 +1647,9 @@ void GLCanvas3D::render()
     _render_camera_target();
 #endif // ENABLE_SHOW_CAMERA_TARGET
 
+    if (m_picking_enabled && m_rectangle_selection.is_dragging())
+        m_rectangle_selection.render(*this);
+
     // draw overlays
     _render_gizmos_overlay();
     _render_warning_texture();
@@ -2342,10 +2345,20 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                 }
                 else if (keyCode == WXK_SHIFT)
                 {
+                    if (m_picking_enabled && m_rectangle_selection.is_dragging())
+                    {
+                        m_rectangle_selection.stop_dragging();
+                        m_dirty = true;
+                    }
                     set_cursor(Standard);
                 }
                 else if (keyCode == WXK_ALT)
                 {
+                    if (m_picking_enabled && m_rectangle_selection.is_dragging())
+                    {
+                        m_rectangle_selection.stop_dragging();
+                        m_dirty = true;
+                    }
                     set_cursor(Standard);
                 }
             }
@@ -2353,11 +2366,13 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                 m_tab_down = keyCode == WXK_TAB && !evt.HasAnyModifiers();
                 if (keyCode == WXK_SHIFT)
                 {
-                    set_cursor(Cross);
+                    if (m_picking_enabled && (m_gizmos.get_current_type() != GLGizmosManager::SlaSupports))
+                        set_cursor(Cross);
                 }
                 else if (keyCode == WXK_ALT)
                 {
-                    set_cursor(Cross);
+                    if (m_picking_enabled && (m_gizmos.get_current_type() != GLGizmosManager::SlaSupports))
+                        set_cursor(Cross);
                 }
             }
         }
@@ -2615,6 +2630,14 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 m_dirty = true;
             }
         }
+        else if (evt.LeftDown() && (evt.ShiftDown() || evt.AltDown()) && m_picking_enabled)
+        {
+            if (m_gizmos.get_current_type() != GLGizmosManager::SlaSupports)
+            {
+                m_rectangle_selection.start_dragging(m_mouse.position, evt.ShiftDown() ? GLSelectionRectangle::Select : GLSelectionRectangle::Deselect);
+                m_dirty = true;
+            }
+        }
         else
         {
             // Select volume in this 3D canvas.
@@ -2724,6 +2747,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_dirty = true;
         }
     }
+    else if (evt.Dragging() && evt.LeftIsDown() && m_picking_enabled && m_rectangle_selection.is_dragging())
+    {
+        m_rectangle_selection.dragging(pos.cast<double>());
+        m_dirty = true;
+    }
     else if (evt.Dragging())
     {
         m_mouse.dragging = true;
@@ -2778,6 +2806,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // Let the platter know that the dragging finished, so a delayed refresh
             // of the scene with the background processing data should be performed.
             post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
+        }
+        else if (evt.LeftUp() && m_picking_enabled && m_rectangle_selection.is_dragging())
+        {
+            m_rectangle_selection.stop_dragging();
         }
         else if (evt.LeftUp() && !m_mouse.dragging && m_hover_volume_idxs.empty() && !is_layers_editing_enabled())
         {

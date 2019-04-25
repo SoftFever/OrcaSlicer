@@ -96,6 +96,7 @@ private:
     mutable Vec3d m_clipping_plane_normal = Vec3d::Zero();
 
     GLSelectionRectangle m_selection_rectangle;
+
     bool m_wait_for_up_event = false;
     bool m_unsaved_changes = false; // Are there unsaved changes in manual mode?
     bool m_selection_empty = true;

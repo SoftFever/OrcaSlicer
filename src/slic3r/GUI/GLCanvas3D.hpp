@@ -452,6 +452,7 @@ private:
     bool m_moving;
     bool m_tab_down;
     ECursorType m_cursor_type;
+    GLSelectionRectangle m_rectangle_selection;
 
     // Following variable is obsolete and it should be safe to remove it.
     // I just don't want to do it now before a release (Lukas Matena 24.3.2019)
