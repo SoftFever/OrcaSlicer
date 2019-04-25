@@ -196,11 +196,14 @@ void KBShortcutsDialog::on_dpi_changed(const wxRect &suggested_rect)
     for (wxStaticBitmap* bmp : m_head_bitmaps)
         bmp->SetBitmap(m_logo_bmp.bmp());
 
-    const int& em = em_unit();
+    const int em = em_unit();
+
+    msw_buttons_rescale(this, em, { wxID_OK });
+
     const wxSize& size = wxSize(85 * em, 75 * em);
 
     SetMinSize(size);
-    SetSize(size);
+    Fit();
 
     Refresh();
 }

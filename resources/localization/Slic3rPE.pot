@@ -2016,7 +2016,12 @@ msgstr ""
 msgid "Iso View"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:450 src/libslic3r/PrintConfig.cpp:2041
+#: src/slic3r/GUI/MainFrame.cpp:450
+msgid "Top"
+msgstr ""
+
+#: src/libslic3r/PrintConfig.cpp:2041
+msgctxt "Layers"
 msgid "Top"
 msgstr ""
 
@@ -2024,7 +2029,12 @@ msgstr ""
 msgid "Top View"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:451 src/libslic3r/PrintConfig.cpp:148
+#: src/slic3r/GUI/MainFrame.cpp:451
+msgid "Bottom"
+msgstr ""
+
+#: src/libslic3r/PrintConfig.cpp:148
+msgctxt "Layers"
 msgid "Bottom"
 msgstr ""
 
