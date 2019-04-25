@@ -1617,12 +1617,15 @@ void GLCanvas3D::render()
 
     wxGetApp().imgui()->new_frame();
 
-    if (m_rectangle_selection.is_dragging())
-        // picking pass using rectangle selection
-        _rectangular_selection_picking_pass();
-    else
-        // regular picking pass
-        _picking_pass();
+    if (m_picking_enabled)
+    {
+        if (m_rectangle_selection.is_dragging())
+            // picking pass using rectangle selection
+            _rectangular_selection_picking_pass();
+        else
+            // regular picking pass
+            _picking_pass();
+    }
 
     // draw scene
     glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
