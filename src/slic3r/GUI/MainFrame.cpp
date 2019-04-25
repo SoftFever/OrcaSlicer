@@ -258,7 +258,30 @@ bool MainFrame::can_delete_all() const
 
 void MainFrame::on_dpi_changed(const wxRect &suggested_rect)
 {
-    // TODO
+    wxGetApp().update_fonts();
+
+    // _strange_ workaround for correct em_unit calculation
+    const int new_em_unit = scale_factor() * 10;
+    wxGetApp().set_em_unit(std::max<size_t>(10, new_em_unit));
+
+    /* Load default preset bitmaps before a tabpanel initialization,
+     * but after filling of an em_unit value
+     */
+    wxGetApp().preset_bundle->load_default_preset_bitmaps(this);
+
+    // update Plater
+    wxGetApp().plater()->msw_rescale();
+
+    // update Tabs
+    for (auto tab : wxGetApp().tabs_list)
+        tab->msw_rescale();
+
+    /* To correct window rendering (especially redraw of a status bar)
+     * we should imitate window resizing.
+     */
+    const wxSize& sz = this->GetSize();
+    this->SetSize(sz.x + 1, sz.y + 1);
+    this->SetSize(sz);
 }
 
 void MainFrame::init_menubar()

@@ -7,6 +7,7 @@
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "I18N.hpp"
+#include "wxExtensions.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -23,7 +24,7 @@ ButtonsDescription::ButtonsDescription(wxWindow* parent, t_icon_descriptions* ic
 	// Icon description
 	for (auto pair : *m_icon_descriptions)
 	{
-		auto icon = new wxStaticBitmap(this, wxID_ANY, *pair.first);
+		auto icon = new wxStaticBitmap(this, wxID_ANY, /***/pair.first->bmp());
 		grid_sizer->Add(icon, -1, wxALIGN_CENTRE_VERTICAL);
 
 		std::istringstream f(pair.second);

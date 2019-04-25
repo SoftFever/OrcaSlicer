@@ -10,25 +10,27 @@ namespace Slic3r {
 namespace GUI {
 
 KBShortcutsDialog::KBShortcutsDialog()
-    : wxDialog(NULL, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _(L("Keyboard Shortcuts")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
+    : DPIDialog(NULL, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _(L("Keyboard Shortcuts")), 
+     wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
-	SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));    
+	SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 
 	auto main_sizer = new wxBoxSizer(wxVERTICAL);
 
     // logo
-	const wxBitmap logo_bmp = create_scaled_bitmap(this, "Slic3r_32px.png", 32);
+    m_logo_bmp = ScalableBitmap(this, "Slic3r_32px.png", 32);
 
     // fonts
-    wxFont head_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold();
+    const wxFont& font = wxGetApp().normal_font();
+    const wxFont& bold_font = wxGetApp().bold_font();   
+    SetFont(font);
+
+    wxFont head_font = bold_font;
 #ifdef __WXOSX__
     head_font.SetPointSize(14);
 #else
-    head_font.SetPointSize(12);
+    head_font.SetPointSize(bold_font.GetPointSize() + 2);
 #endif // __WXOSX__
-
-    const wxFont& font = wxGetApp().small_font();
-    const wxFont& bold_font = wxGetApp().bold_font();
 
     fill_shortcuts();
 
@@ -43,21 +45,24 @@ KBShortcutsDialog::KBShortcutsDialog()
     wxBoxSizer* r_sizer = new wxBoxSizer(wxVERTICAL);
     main_grid_sizer->Add(r_sizer, 0);
 
+    m_head_bitmaps.reserve(m_full_shortcuts.size());
+    const wxSize topic_size = wxSize(10 * wxGetApp().em_unit(), -1);
+
     for (auto& sc : m_full_shortcuts)
     {
-//         auto sizer = sc.first == _(L("Main Shortcuts")) ? l_sizer : r_sizer;
-        auto sizer = sc.second.second == 0 ? l_sizer : r_sizer;
+        auto sizer = sc.second.second == szLeft ? l_sizer : r_sizer;
         wxBoxSizer* hsizer = new wxBoxSizer(wxHORIZONTAL);
         sizer->Add(hsizer, 0, wxEXPAND | wxTOP | wxBOTTOM, 10);
 
         // logo
-        auto *logo = new wxStaticBitmap(panel, wxID_ANY, logo_bmp);
-        hsizer->Add(logo, 0, wxEXPAND | wxLEFT | wxRIGHT, 15);
+        m_head_bitmaps.push_back(new wxStaticBitmap(panel, wxID_ANY, m_logo_bmp.bmp()));
+        hsizer->Add(m_head_bitmaps.back(), 0, wxEXPAND | wxLEFT | wxRIGHT, 15);
 
         // head
-        wxStaticText* head = new wxStaticText(panel, wxID_ANY, sc.first, wxDefaultPosition, wxSize(20 * wxGetApp().em_unit(), -1));
+        wxStaticText* head = new wxStaticText(panel, wxID_ANY, sc.first, wxDefaultPosition, topic_size);
         head->SetFont(head_font);
         hsizer->Add(head, 0, wxALIGN_CENTER_VERTICAL);
+
 
         // Shortcuts list
         auto grid_sizer = new wxFlexGridSizer(2, 5, 15);
@@ -121,7 +126,7 @@ void KBShortcutsDialog::fill_shortcuts()
     main_shortcuts.push_back(Shortcut("?"               ,L("Show keyboard shortcuts list")));
     main_shortcuts.push_back(Shortcut(ctrl+"LeftMouse"  ,L("Select multiple object/Move multiple object")));
 
-    m_full_shortcuts.push_back(std::make_pair( _(L("Main Shortcuts")), std::make_pair(main_shortcuts, 0) ));
+    m_full_shortcuts.push_back(std::make_pair(_(L("Main Shortcuts")), std::make_pair(main_shortcuts, szLeft)));
 
 
     Shortcuts plater_shortcuts;
@@ -148,7 +153,7 @@ void KBShortcutsDialog::fill_shortcuts()
     plater_shortcuts.push_back(Shortcut("O",        L("Zoom out")));
     plater_shortcuts.push_back(Shortcut("ESC",      L("Unselect gizmo, keep object selection")));
 
-    m_full_shortcuts.push_back(std::make_pair(_(L("Plater Shortcuts")), std::make_pair(plater_shortcuts, 1)));
+    m_full_shortcuts.push_back(std::make_pair(_(L("Plater Shortcuts")), std::make_pair(plater_shortcuts, szRight)));
 
 
 //     Shortcuts gizmo_shortcuts;
@@ -168,7 +173,7 @@ void KBShortcutsDialog::fill_shortcuts()
     preview_shortcuts.push_back(Shortcut("U",               L("Upper Layer")));
     preview_shortcuts.push_back(Shortcut("D",               L("Lower Layer")));
 
-    m_full_shortcuts.push_back(std::make_pair( _(L("Preview Shortcuts")), std::make_pair(preview_shortcuts, 0) ));
+    m_full_shortcuts.push_back(std::make_pair(_(L("Preview Shortcuts")), std::make_pair(preview_shortcuts, szLeft)));
 
 
     Shortcuts layers_slider_shortcuts;
@@ -181,7 +186,23 @@ void KBShortcutsDialog::fill_shortcuts()
     layers_slider_shortcuts.push_back(Shortcut("+",             L("Add color change marker for current layer")));
     layers_slider_shortcuts.push_back(Shortcut("-",             L("Delete color change marker for current layer")));
 
-    m_full_shortcuts.push_back(std::make_pair( _(L("Layers Slider Shortcuts")), std::make_pair(layers_slider_shortcuts, 1) ));
+    m_full_shortcuts.push_back(std::make_pair(_(L("Layers Slider Shortcuts")), std::make_pair(layers_slider_shortcuts, szRight)));
+}
+
+void KBShortcutsDialog::on_dpi_changed(const wxRect &suggested_rect)
+{
+    m_logo_bmp.msw_rescale();
+
+    for (wxStaticBitmap* bmp : m_head_bitmaps)
+        bmp->SetBitmap(m_logo_bmp.bmp());
+
+    const int& em = em_unit();
+    const wxSize& size = wxSize(85 * em, 75 * em);
+
+    SetMinSize(size);
+    SetSize(size);
+
+    Refresh();
 }
 
 void KBShortcutsDialog::onCloseDialog(wxEvent &)

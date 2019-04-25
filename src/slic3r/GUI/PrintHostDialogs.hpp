@@ -41,7 +41,7 @@ private:
 };
 
 
-class PrintHostQueueDialog : public wxDialog
+class PrintHostQueueDialog : public DPIDialog
 {
 public:
     class Event : public wxEvent
@@ -62,6 +62,10 @@ public:
     PrintHostQueueDialog(wxWindow *parent);
 
     void append_job(const PrintHostJob &job);
+
+protected:
+    void on_dpi_changed(const wxRect &suggested_rect) override { Refresh(); }
+
 private:
     enum Column {
         COL_ID,
