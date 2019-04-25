@@ -714,6 +714,9 @@ private:
     void _resize_toolbars() const;
 #endif // !ENABLE_SVG_ICONS
 
+    // updates the selection from the content of m_hover_volume_idxs
+    void _update_selection_from_hover();
+
     static std::vector<float> _parse_colors(const std::vector<std::string>& colors);
 
 public:

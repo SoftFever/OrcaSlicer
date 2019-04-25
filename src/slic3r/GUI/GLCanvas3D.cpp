@@ -2375,6 +2375,7 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                 {
                     if (m_picking_enabled && m_rectangle_selection.is_dragging())
                     {
+                        _update_selection_from_hover();
                         m_rectangle_selection.stop_dragging();
                         m_dirty = true;
                     }
@@ -2384,6 +2385,7 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                 {
                     if (m_picking_enabled && m_rectangle_selection.is_dragging())
                     {
+                        _update_selection_from_hover();
                         m_rectangle_selection.stop_dragging();
                         m_dirty = true;
                     }
@@ -2840,6 +2842,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
         else if (evt.LeftUp() && m_picking_enabled && m_rectangle_selection.is_dragging())
         {
+            if (evt.ShiftDown() || evt.AltDown())
+                _update_selection_from_hover();
+
             m_rectangle_selection.stop_dragging();
         }
         else if (evt.LeftUp() && !m_mouse.dragging && m_hover_volume_idxs.empty() && !is_layers_editing_enabled())
@@ -5583,6 +5588,33 @@ void GLCanvas3D::_resize_toolbars() const
     }
 }
 #endif // !ENABLE_SVG_ICONS
+
+void GLCanvas3D::_update_selection_from_hover()
+{
+    if (m_hover_volume_idxs.empty())
+        return;
+
+    GLSelectionRectangle::EState state = m_rectangle_selection.get_state();
+    bool is_ctrl_pressed = wxGetKeyState(WXK_CONTROL);
+
+    bool is_single_modifier = (m_hover_volume_idxs.size() == 1) && m_volumes.volumes[m_hover_volume_idxs.front()]->is_modifier;
+
+    if ((state == GLSelectionRectangle::Select) && !is_ctrl_pressed)
+        m_selection.clear();
+
+    for (int idx : m_hover_volume_idxs)
+    {
+        if (state == GLSelectionRectangle::Select)
+            m_selection.add(idx, is_single_modifier && !is_ctrl_pressed);
+        else
+            m_selection.remove(idx);
+    }
+
+    m_gizmos.refresh_on_off_state(m_selection);
+    m_gizmos.update_data(*this);
+    post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
+    m_dirty = true;
+}
 
 const Print* GLCanvas3D::fff_print() const
 {
