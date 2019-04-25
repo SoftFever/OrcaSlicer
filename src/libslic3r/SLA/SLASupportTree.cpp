@@ -846,6 +846,16 @@ public:
         if(!meshcache_valid) merged_mesh();
         return model_height;
     }
+    
+    // Intended to be called after the generation is fully complete
+    void clear_support_data() {
+        merged_mesh(); // in case the mesh is not generated, it should be...
+        m_heads.clear();
+        m_pillars.clear();
+        m_junctions.clear();
+        m_bridges.clear();
+        m_compact_bridges.clear();
+    }
 
 };
 
@@ -2285,6 +2295,7 @@ SLASupportTree::SLASupportTree(const std::vector<SupportPoint> &points,
 {
     m_impl->ground_level = emesh.ground_level() - cfg.object_elevation_mm;
     generate(points, emesh, cfg, ctl);
+    m_impl->clear_support_data();
 }
 
 SLASupportTree::SLASupportTree(const SLASupportTree &c):

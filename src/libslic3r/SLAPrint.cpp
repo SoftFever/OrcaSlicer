@@ -436,6 +436,12 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
         if (new_objects)
             update_apply_status(false);
     }
+    
+    if(m_objects.empty()) {
+        m_printer.release();
+        m_printer_input.clear();
+        m_print_statistics.clear();
+    }
 
 #ifdef _DEBUG
     check_model_ids_equal(m_model, model);
@@ -669,7 +675,7 @@ void SLAPrint::process()
     // Slicing the model object. This method is oversimplified and needs to
     // be compared with the fff slicing algorithm for verification
     auto slice_model = [this, ilhs, ilh](SLAPrintObject& po) {
-        TriangleMesh mesh = po.transformed_mesh();
+        const TriangleMesh& mesh = po.transformed_mesh();
 
         // We need to prepare the slice index...
 
@@ -708,7 +714,7 @@ void SLAPrint::process()
             po.m_model_height_levels.emplace_back(it->slice_level());
         }
 
-        mesh.require_shared_vertices(); // TriangleMeshSlicer needs this
+//        mesh.require_shared_vertices(); // TriangleMeshSlicer needs this
         TriangleMeshSlicer slicer(&mesh);
 
         po.m_model_slices.clear();
@@ -1534,7 +1540,7 @@ SLAPrintObject::SLAPrintObject(SLAPrint *print, ModelObject *model_object):
     Inherited(print, model_object),
     m_stepmask(slaposCount, true),
     m_transformed_rmesh( [this](TriangleMesh& obj){
-            obj = m_model_object->raw_mesh(); obj.transform(m_trafo);
+            obj = m_model_object->raw_mesh(); obj.transform(m_trafo); obj.require_shared_vertices();
         })
 {
 }
