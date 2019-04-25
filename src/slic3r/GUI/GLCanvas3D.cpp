@@ -4246,8 +4246,7 @@ void GLCanvas3D::_update_volumes_hover_state() const
 {
     for (GLVolume* v : m_volumes.volumes)
     {
-        v->hover_select = false;
-        v->hover_deselect = false;
+        v->hover = GLVolume::None;
     }
 
     if (m_hover_volume_idxs.empty())
@@ -4268,9 +4267,9 @@ void GLCanvas3D::_update_volumes_hover_state() const
             if (volume->is_modifier && (!deselect || ((volume->object_idx() == m_selection.get_object_idx()) && (volume->instance_idx() == m_selection.get_instance_idx()))))
             {
                 if (deselect)
-                    volume->hover_deselect = true;
+                    volume->hover = GLVolume::Deselect;
                 else
-                    volume->hover_select = true;
+                    volume->hover = GLVolume::Select;
             }
             else
             {
@@ -4282,9 +4281,9 @@ void GLCanvas3D::_update_volumes_hover_state() const
                     if ((v->object_idx() == object_idx) && (v->instance_idx() == instance_idx))
                     {
                         if (deselect)
-                            v->hover_deselect = true;
+                            v->hover = GLVolume::Deselect;
                         else
-                            v->hover_select = true;
+                            v->hover = GLVolume::Select;
                     }
                 }
             }

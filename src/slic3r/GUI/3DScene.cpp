@@ -252,8 +252,7 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     , zoom_to_volumes(true)
     , shader_outside_printer_detection_enabled(false)
     , is_outside(false)
-    , hover_select(false)
-    , hover_deselect(false)
+    , hover(None)
     , is_modifier(false)
     , is_wipe_tower(false)
     , is_extrusion_path(false)
@@ -293,9 +292,9 @@ void GLVolume::set_render_color()
     if (force_native_color)
         set_render_color(color, 4);
     else {
-        if (hover_select)
+        if (hover == Select)
             set_render_color(HOVER_SELECT_COLOR, 4);
-        else if (hover_deselect)
+        else if (hover == Deselect)
             set_render_color(HOVER_DESELECT_COLOR, 4);
         else if (selected)
             set_render_color(is_outside ? SELECTED_OUTSIDE_COLOR : SELECTED_COLOR, 4);

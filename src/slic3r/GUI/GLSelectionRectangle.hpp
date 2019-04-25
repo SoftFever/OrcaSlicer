@@ -34,7 +34,7 @@ public:
 
     bool is_dragging() const { return m_state != Off; }
     EState get_state() const { return m_state; }
-    
+
     float get_width() const { return std::abs(m_start_corner(0) - m_end_corner(0)); }
     float get_height() const { return std::abs(m_start_corner(1) - m_end_corner(1)); }
     float get_left() const { return std::min(m_start_corner(0), m_end_corner(0)); }
