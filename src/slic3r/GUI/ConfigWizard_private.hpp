@@ -210,6 +210,7 @@ public:
     void go_to(ConfigWizardPage *page);
 
     void clear();
+    void msw_rescale();
 
     int em() const { return em_w; }
 private:
@@ -224,18 +225,27 @@ private:
 
     int em_w;
     int em_h;
-
+    /* #ys_FIXME_delete_after_testing by VK 
     const wxBitmap bg;
     const wxBitmap bullet_black;
     const wxBitmap bullet_blue;
     const wxBitmap bullet_white;
+    */
+    ScalableBitmap bg;
+    ScalableBitmap bullet_black;
+    ScalableBitmap bullet_blue;
+    ScalableBitmap bullet_white;
+    wxStaticBitmap* logo;
 
     std::vector<Item> items;
     size_t item_active;
     ssize_t item_hover;
     size_t last_page;
 
+    /* #ys_FIXME_delete_after_testing by VK 
     int item_height() const { return std::max(bullet_black.GetSize().GetHeight(), em_w) + em_w; }
+    */
+    int item_height() const { return std::max(bullet_black.bmp().GetSize().GetHeight(), em_w) + em_w; }
 
     void on_paint(wxPaintEvent &evt);
     void on_mouse_move(wxMouseEvent &evt);

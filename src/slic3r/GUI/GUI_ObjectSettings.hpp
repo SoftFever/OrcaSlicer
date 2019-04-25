@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 #include <wx/panel.h>
+#include "wxExtensions.hpp"
 
 class wxBoxSizer;
 
@@ -37,12 +38,15 @@ class ObjectSettings : public OG_Settings
     // option groups for settings
     std::vector <std::shared_ptr<ConfigOptionsGroup>> m_og_settings;
 
+    ScalableBitmap m_bmp_delete;
+
 public:
     ObjectSettings(wxWindow* parent);
     ~ObjectSettings() {}
 
     void        update_settings_list();
     void        UpdateAndShow(const bool show) override;
+    void        msw_rescale();
 };
 
 }}

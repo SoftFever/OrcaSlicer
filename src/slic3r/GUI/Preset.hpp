@@ -394,7 +394,7 @@ public:
     // Update the choice UI from the list of presets.
     // If show_incompatible, all presets are shown, otherwise only the compatible presets are shown.
     // If an incompatible preset is selected, it is shown as well.
-    size_t          update_tab_ui(wxBitmapComboBox *ui, bool show_incompatible);
+    size_t          update_tab_ui(wxBitmapComboBox *ui, bool show_incompatible, const int em = 10);
     // Update the choice UI from the list of presets.
     // Only the compatible presets are shown.
     // If an incompatible preset is selected, it is shown as well.
@@ -411,6 +411,8 @@ public:
 
     // Generate a file path from a profile name. Add the ".ini" suffix if it is missing.
     std::string     path_from_name(const std::string &new_name) const;
+
+    void            clear_bitmap_cache();
 
 #ifdef __linux__
 	static const char* separator_head() { return "------- "; }

@@ -353,12 +353,19 @@ private:
         void activate(WarningTexture::Warning warning, bool state, const GLCanvas3D& canvas);
         void render(const GLCanvas3D& canvas) const;
 
+        // function used to get an information for rescaling of the warning
+        void rescale(const GLCanvas3D& canvas);
+
     private:
         static const unsigned char Background_Color[3];
         static const unsigned char Opacity;
 
         int m_original_width;
         int m_original_height;
+
+        // information for rescaling of the warning legend
+        std::string     m_msg_text = "";
+        bool            m_is_colored_red{false};
 
         // Information about which warnings are currently active.
         std::vector<Warning> m_warnings;
@@ -597,6 +604,7 @@ public:
     double get_size_proportional_to_max_bed_size(double factor) const;
 
     void set_cursor(ECursorType type);
+    void msw_rescale();
 
 private:
     bool _is_shown_on_screen() const;

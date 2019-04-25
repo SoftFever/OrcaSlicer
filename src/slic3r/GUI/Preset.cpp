@@ -914,6 +914,16 @@ void PresetCollection::update_platter_ui(GUI::PresetComboBox *ui)
 	// and draw a red flag in front of the selected preset.
 	bool wide_icons = ! selected_preset.is_compatible && m_bitmap_incompatible != nullptr;
 
+    /* It's supposed that standard size of an icon is 16px*16px for 100% scaled display.
+    * So set sizes for solid_colored icons used for filament preset
+    * and scale them in respect to em_unit value
+    */
+    const float scale_f = ui->em_unit() * 0.1f;
+    const int icon_height           = 16 * scale_f + 0.5f;
+    const int icon_width            = 16 * scale_f + 0.5f;
+    const int thin_space_icon_width = 4 * scale_f + 0.5f;
+    const int wide_space_icon_width = 6 * scale_f + 0.5f;
+
 	std::map<wxString, wxBitmap*> nonsys_presets;
 	wxString selected = "";
 	if (!this->m_presets.front().is_visible)
@@ -934,13 +944,13 @@ void PresetCollection::update_platter_ui(GUI::PresetComboBox *ui)
 			std::vector<wxBitmap> bmps;
 			if (wide_icons)
 				// Paint a red flag for incompatible presets.
-				bmps.emplace_back(preset.is_compatible ? m_bitmap_cache->mkclear(16, 16) : *m_bitmap_incompatible);
+				bmps.emplace_back(preset.is_compatible ? m_bitmap_cache->mkclear(icon_width, icon_height) : *m_bitmap_incompatible);
 			// Paint the color bars.
-			bmps.emplace_back(m_bitmap_cache->mkclear(4, 16));
+			bmps.emplace_back(m_bitmap_cache->mkclear(thin_space_icon_width, icon_height));
 			bmps.emplace_back(*m_bitmap_main_frame);
 			// Paint a lock at the system presets.
- 			bmps.emplace_back(m_bitmap_cache->mkclear(6, 16));
-			bmps.emplace_back((preset.is_system || preset.is_default) ? *m_bitmap_lock : m_bitmap_cache->mkclear(16, 16));
+			bmps.emplace_back(m_bitmap_cache->mkclear(wide_space_icon_width, icon_height));
+			bmps.emplace_back((preset.is_system || preset.is_default) ? *m_bitmap_lock : m_bitmap_cache->mkclear(icon_width, icon_height));
 			bmp = m_bitmap_cache->insert(bitmap_key, bmps);
 		}
 
@@ -981,12 +991,12 @@ void PresetCollection::update_platter_ui(GUI::PresetComboBox *ui)
 			std::vector<wxBitmap> bmps;
 			if (wide_icons)
 				// Paint a red flag for incompatible presets.
-				bmps.emplace_back(m_bitmap_cache->mkclear(16, 16));
+				bmps.emplace_back(m_bitmap_cache->mkclear(icon_width, icon_height));
 			// Paint the color bars.
-			bmps.emplace_back(m_bitmap_cache->mkclear(4, 16));
+			bmps.emplace_back(m_bitmap_cache->mkclear(thin_space_icon_width, icon_height));
 			bmps.emplace_back(*m_bitmap_main_frame);
 			// Paint a lock at the system presets.
-			bmps.emplace_back(m_bitmap_cache->mkclear(6, 16));
+			bmps.emplace_back(m_bitmap_cache->mkclear(wide_space_icon_width, icon_height));
 			bmps.emplace_back(m_bitmap_add ? *m_bitmap_add : wxNullBitmap);
 			bmp = m_bitmap_cache->insert(bitmap_key, bmps);
 		}
@@ -996,16 +1006,28 @@ void PresetCollection::update_platter_ui(GUI::PresetComboBox *ui)
 	ui->SetSelection(selected_preset_item);
 	ui->SetToolTip(ui->GetString(selected_preset_item));
     ui->check_selection();
-	ui->Thaw();
+    ui->Thaw();
+
+    // Update control min size after rescale (changed Display DPI under MSW)
+    if (ui->GetMinWidth() != 20 * ui->em_unit())
+        ui->SetMinSize(wxSize(20 * ui->em_unit(), ui->GetSize().GetHeight()));
 }
 
-size_t PresetCollection::update_tab_ui(wxBitmapComboBox *ui, bool show_incompatible)
+size_t PresetCollection::update_tab_ui(wxBitmapComboBox *ui, bool show_incompatible, const int em/* = 10*/)
 {
     if (ui == nullptr)
         return 0;
     ui->Freeze();
     ui->Clear();
 	size_t selected_preset_item = 0;
+
+    /* It's supposed that standard size of an icon is 16px*16px for 100% scaled display.
+    * So set sizes for solid_colored(empty) icons used for preset
+    * and scale them in respect to em_unit value
+    */
+    const float scale_f = em * 0.1f;
+    const int icon_height = 16 * scale_f + 0.5f;
+    const int icon_width  = 16 * scale_f + 0.5f;
 
 	std::map<wxString, wxBitmap*> nonsys_presets;
 	wxString selected = "";
@@ -1025,7 +1047,7 @@ size_t PresetCollection::update_tab_ui(wxBitmapComboBox *ui, bool show_incompati
 			const wxBitmap* tmp_bmp = preset.is_compatible ? m_bitmap_compatible : m_bitmap_incompatible;
 			bmps.emplace_back((tmp_bmp == 0) ? (m_bitmap_main_frame ? *m_bitmap_main_frame : wxNullBitmap) : *tmp_bmp);
 			// Paint a lock at the system presets.
-			bmps.emplace_back((preset.is_system || preset.is_default) ? *m_bitmap_lock : m_bitmap_cache->mkclear(16, 16));
+			bmps.emplace_back((preset.is_system || preset.is_default) ? *m_bitmap_lock : m_bitmap_cache->mkclear(icon_width, icon_height));
 			bmp = m_bitmap_cache->insert(bitmap_key, bmps);
 		}
 
@@ -1290,6 +1312,11 @@ std::string PresetCollection::path_from_name(const std::string &new_name) const
 {
 	std::string file_name = boost::iends_with(new_name, ".ini") ? new_name : (new_name + ".ini");
     return (boost::filesystem::path(m_dir_path) / file_name).make_preferred().string();
+}
+
+void PresetCollection::clear_bitmap_cache()
+{
+    m_bitmap_cache->clear();
 }
 
 wxString PresetCollection::separator(const std::string &label)

@@ -14,6 +14,7 @@
 #include "GLTexture.hpp"
 
 class wxButton;
+class ScalableButton;
 class wxBoxSizer;
 class wxGLCanvas;
 class wxScrolledWindow;
@@ -46,7 +47,7 @@ public:
     PresetComboBox(wxWindow *parent, Preset::Type preset_type);
     ~PresetComboBox();
 
-    wxButton* edit_btn { nullptr };
+    ScalableButton* edit_btn { nullptr };
 
 	enum LabelItemType {
 		LABEL_ITEM_MARKER = 0x4d,
@@ -56,7 +57,10 @@ public:
     void set_label_marker(int item, LabelItemType label_item_type = LABEL_ITEM_MARKER);
     void set_extruder_idx(const int extr_idx)   { extruder_idx = extr_idx; }
     int  get_extruder_idx() const               { return extruder_idx; }
+    int  em_unit() const                        { return m_em_unit; }
     void check_selection();
+
+    void msw_rescale();
 
 private:
     typedef std::size_t Marker;
@@ -64,6 +68,7 @@ private:
     Preset::Type preset_type;
     int last_selected;
     int extruder_idx = -1;
+    int m_em_unit;
 };
 
 class Sidebar : public wxPanel
@@ -79,9 +84,11 @@ public:
 
     void init_filament_combo(PresetComboBox **combo, const int extr_idx);
     void remove_unused_filament_combos(const int current_extruder_count);
+    void update_all_preset_comboboxes();
     void update_presets(Slic3r::Preset::Type preset_type);
     void update_mode_sizer() const;
     void update_reslice_btn_tooltip() const;
+    void msw_rescale();
 
     ObjectManipulation*     obj_manipul();
     ObjectList*             obj_list();
@@ -198,6 +205,8 @@ public:
     bool can_layers_editing() const;
     bool can_copy() const;
     bool can_paste() const;
+
+    void msw_rescale();
 
 private:
     struct priv;

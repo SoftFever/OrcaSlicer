@@ -30,14 +30,14 @@
 
 #include "BedShapeDialog.hpp"
 #include "Event.hpp"
-
-class PrusaModeSizer;
+#include "wxExtensions.hpp"
 
 namespace Slic3r {
 namespace GUI {
 
-typedef std::pair<wxBitmap*, std::string>				t_icon_description;
-typedef std::vector<std::pair<wxBitmap*, std::string>>	t_icon_descriptions;
+
+typedef std::pair<ScalableBitmap*, std::string>				    t_icon_description;
+typedef std::vector<std::pair<ScalableBitmap*, std::string>>    t_icon_descriptions;
 
 // Single Tab page containing a{ vsizer } of{ optgroups }
 // package Slic3r::GUI::Tab::Page;
@@ -50,10 +50,11 @@ class Page : public wxScrolledWindow
 	wxBoxSizer*		m_vsizer;
     bool            m_show = true;
 public:
-	Page(wxWindow* parent, const wxString title, const int iconID) :
+    Page(wxWindow* parent, const wxString title, const int iconID, const std::vector<ScalableBitmap>& mode_bmp_cache) :
 			m_parent(parent),
 			m_title(title),
-			m_iconID(iconID)
+			m_iconID(iconID),
+            m_mode_bitmap_cache(mode_bmp_cache)
 	{
 		Create(m_parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
 		m_vsizer = new wxBoxSizer(wxVERTICAL);
@@ -67,6 +68,7 @@ public:
 
     // Delayed layout after resizing the main window.
     bool 				layout_valid = false;
+    const std::vector<ScalableBitmap>&   m_mode_bitmap_cache;
 
 public:
 	std::vector <ConfigOptionsGroupShp> m_optgroups;
@@ -79,6 +81,7 @@ public:
 	void		set_config(DynamicPrintConfig* config_in) { m_config = config_in; }
 	void		reload_config();
     void        update_visibility(ConfigOptionMode mode);
+    void        msw_rescale();
 	Field*		get_field(const t_config_option_key& opt_key, int opt_index = -1) const;
 	bool		set_value(const t_config_option_key& opt_key, const boost::any& value);
 	ConfigOptionsGroupShp	new_optgroup(const wxString& title, int noncommon_label_width = -1);
@@ -119,20 +122,20 @@ protected:
 	std::string			m_name;
 	const wxString		m_title;
 	wxBitmapComboBox*	m_presets_choice;
-	wxBitmapButton*		m_btn_save_preset;
-	wxBitmapButton*		m_btn_delete_preset;
-	wxBitmapButton*		m_btn_hide_incompatible_presets;
+	ScalableButton*		m_btn_save_preset;
+	ScalableButton*		m_btn_delete_preset;
+	ScalableButton*		m_btn_hide_incompatible_presets;
 	wxBoxSizer*			m_hsizer;
 	wxBoxSizer*			m_left_sizer;
 	wxTreeCtrl*			m_treectrl;
 	wxImageList*		m_icons;
 
-    PrusaModeSizer*     m_mode_sizer;
+    ModeSizer*     m_mode_sizer;
 
    	struct PresetDependencies {
 		Preset::Type type	  = Preset::TYPE_INVALID;
 		wxCheckBox 	*checkbox = nullptr;
-		wxButton 	*btn   	  = nullptr;
+		ScalableButton 	*btn  = nullptr;
 		std::string  key_list; // "compatible_printers"
 		std::string  key_condition;
 		std::string  dialog_title;
@@ -141,25 +144,27 @@ protected:
 	PresetDependencies 	m_compatible_printers;
 	PresetDependencies 	m_compatible_prints;
 
-	wxButton*			m_undo_btn;
-	wxButton*			m_undo_to_sys_btn;
-	wxButton*			m_question_btn;
-	wxImageList*		m_preset_icons;
+	ScalableButton*			m_undo_btn;
+	ScalableButton*			m_undo_to_sys_btn;
+	ScalableButton*			m_question_btn;
 
 	// Cached bitmaps.
 	// A "flag" icon to be displayned next to the preset name in the Tab's combo box.
-	wxBitmap			m_bmp_show_incompatible_presets;
-	wxBitmap			m_bmp_hide_incompatible_presets;
+	ScalableBitmap			m_bmp_show_incompatible_presets;
+	ScalableBitmap			m_bmp_hide_incompatible_presets;
 	// Bitmaps to be shown on the "Revert to system" aka "Lock to system" button next to each input field.
-	wxBitmap 			m_bmp_value_lock;
-	wxBitmap 			m_bmp_value_unlock;
-	wxBitmap 			m_bmp_white_bullet;
+	ScalableBitmap 			m_bmp_value_lock;
+	ScalableBitmap 			m_bmp_value_unlock;
+	ScalableBitmap 			m_bmp_white_bullet;
 	// The following bitmap points to either m_bmp_value_unlock or m_bmp_white_bullet, depending on whether the current preset has a parent preset.
-	wxBitmap 		   *m_bmp_non_system;
+	ScalableBitmap 		   *m_bmp_non_system;
 	// Bitmaps to be shown on the "Undo user changes" button next to each input field.
-	wxBitmap 			m_bmp_value_revert;
-// 	wxBitmap 			m_bmp_value_unmodified;
-	wxBitmap			m_bmp_question;
+	ScalableBitmap 			m_bmp_value_revert;
+    
+    std::vector<ScalableButton*>	m_scaled_buttons = {};    
+    std::vector<ScalableBitmap*>	m_scaled_bitmaps = {};    
+    std::vector<ScalableBitmap>     m_scaled_icons_list = {};
+    std::vector<ScalableBitmap>     m_mode_bitmap_cache = {};
 
 	// Colors for ui "decoration"
 	wxColour			m_sys_label_clr;
@@ -236,7 +241,11 @@ public:
     virtual bool supports_printer_technology(const PrinterTechnology tech) = 0;
 
 	void		create_preset_tab();
-	void		load_current_preset();
+    void        add_scaled_button(wxWindow* parent, ScalableButton** btn, const std::string& icon_name, 
+                                  const wxString& label = wxEmptyString, 
+                                  long style = wxBU_EXACTFIT | wxNO_BORDER);
+    void        add_scaled_bitmap(wxWindow* parent, ScalableBitmap& btn, const std::string& icon_name);
+    void		load_current_preset();
 	void        rebuild_page_tree();
 	void        update_page_tree_visibility();
 	// Select a new preset, possibly delete the current one.
@@ -274,6 +283,7 @@ public:
 	virtual void	reload_config();
     void            update_mode();
     void            update_visibility();
+    void            msw_rescale();
 	Field*			get_field(const t_config_option_key& opt_key, int opt_index = -1) const;
 	bool			set_value(const t_config_option_key& opt_key, const boost::any& value);
 	wxSizer*		description_line_widget(wxWindow* parent, ogStaticText** StaticText);
@@ -345,8 +355,8 @@ class TabPrinter : public Tab
     void build_printhost(ConfigOptionsGroup *optgroup);
 public:
 	wxButton*	m_serial_test_btn = nullptr;
-	wxButton*	m_print_host_test_btn = nullptr;
-	wxButton*	m_printhost_browse_btn = nullptr;
+	ScalableButton*	m_print_host_test_btn = nullptr;
+	ScalableButton*	m_printhost_browse_btn = nullptr;
 
 	size_t		m_extruders_count;
 	size_t		m_extruders_count_old = 0;
@@ -368,7 +378,7 @@ public:
 	void		update_serial_ports();
 	void		extruders_count_changed(size_t extruders_count);
 	PageShp		build_kinematics_page();
-	void		build_extruder_pages();
+	void		build_unregular_pages();
 	void		on_preset_loaded() override;
 	void		init_options_list() override;
     bool 		supports_printer_technology(const PrinterTechnology /* tech */) override { return true; }

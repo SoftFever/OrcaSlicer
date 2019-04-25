@@ -23,6 +23,8 @@ void BitmapCache::clear()
 {
     for (std::pair<const std::string, wxBitmap*> &bitmap : m_map)
         delete bitmap.second;
+
+    m_map.clear();
 }
 
 static wxBitmap wxImage_to_wxBitmap_with_alpha(wxImage &&image, float scale = 1.0f)
@@ -259,9 +261,6 @@ wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_
 
 wxBitmap BitmapCache::mksolid(size_t width, size_t height, unsigned char r, unsigned char g, unsigned char b, unsigned char transparency)
 {
-    width = width * 0.1f * Slic3r::GUI::wxGetApp().em_unit() + 0.5f;
-    height = height * 0.1f * Slic3r::GUI::wxGetApp().em_unit() + 0.5f;
-
     wxImage image(width, height);
     image.InitAlpha();
     unsigned char* imgdata = image.GetData();
