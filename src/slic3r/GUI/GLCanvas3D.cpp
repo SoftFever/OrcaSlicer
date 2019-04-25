@@ -52,6 +52,9 @@
 #include <float.h>
 #include <algorithm>
 #include <cmath>
+#if ENABLE_RENDER_STATISTICS
+#include <chrono>
+#endif // ENABLE_RENDER_STATISTICS
 
 static const float TRACKBALLSIZE = 0.8f;
 static const float GROUND_Z = -0.02f;
@@ -1581,6 +1584,10 @@ void GLCanvas3D::render()
     if (!_set_current() || !_3DScene::init(m_canvas))
         return;
 
+#if ENABLE_RENDER_STATISTICS
+    auto start_time = std::chrono::high_resolution_clock::now();
+#endif // ENABLE_RENDER_STATISTICS
+
     if (m_bed.get_shape().empty())
     {
         // this happens at startup when no data is still saved under <>\AppData\Roaming\Slic3rPE
@@ -1666,9 +1673,26 @@ void GLCanvas3D::render()
     if ((m_layers_editing.last_object_id >= 0) && (m_layers_editing.object_max_z() > 0.0f))
         m_layers_editing.render_overlay(*this);
 
+#if ENABLE_RENDER_STATISTICS
+    ImGuiWrapper& imgui = *wxGetApp().imgui();
+    imgui.set_next_window_bg_alpha(0.5f);
+    imgui.begin(std::string("Render statistics"), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+    imgui.text("Last frame: ");
+    ImGui::SameLine();
+    imgui.text(std::to_string(m_render_stats.last_frame));
+    ImGui::SameLine();
+    imgui.text(" ms");
+    imgui.end();
+#endif // ENABLE_RENDER_STATISTICS
+
     wxGetApp().imgui()->render();
 
     m_canvas->SwapBuffers();
+
+#if ENABLE_RENDER_STATISTICS
+    auto end_time = std::chrono::high_resolution_clock::now();
+    m_render_stats.last_frame = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+#endif // ENABLE_RENDER_STATISTICS
 }
 
 void GLCanvas3D::select_all()
@@ -2751,7 +2775,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_regenerate_volumes = false;
             m_selection.translate(cur_pos - m_mouse.drag.start_position_3D);
             wxGetApp().obj_manipul()->update_settings_value(m_selection);
-
             m_dirty = true;
         }
     }
