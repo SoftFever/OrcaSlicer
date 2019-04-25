@@ -20,29 +20,26 @@ class RawBytes {
         void operator()(std::uint8_t *rawptr);
     };
 
-    std::unique_ptr<std::uint8_t, MinzDeleter> m_buffer = nullptr;
-    size_t m_size = 0;
+    std::vector<std::uint8_t> m_buffer;
 
 public:
 
     RawBytes() = default;
-    RawBytes(std::uint8_t *rawptr, size_t s): m_buffer(rawptr), m_size(s) {}
+    RawBytes(std::uint8_t *rawptr, size_t s): m_buffer(rawptr, rawptr + s) { MinzDeleter()(rawptr); }
 
-    size_t size() const { return m_size; }
-    const uint8_t * data() { return m_buffer.get(); }
+    size_t size() const { return m_buffer.size(); }
+    const uint8_t * data() { return m_buffer.data(); }
 
     // /////////////////////////////////////////////////////////////////////////
     // FIXME: the following is needed for MSVC2013 compatibility
     // /////////////////////////////////////////////////////////////////////////
 
     RawBytes(const RawBytes&) = delete;
-    RawBytes(RawBytes&& mv):
-        m_buffer(std::move(mv.m_buffer)), m_size(mv.m_size) {}
+    RawBytes(RawBytes&& mv) : m_buffer(std::move(mv.m_buffer)) {}
 
     RawBytes& operator=(const RawBytes&) = delete;
     RawBytes& operator=(RawBytes&& mv) {
-        m_buffer.swap(mv.m_buffer);
-        m_size = mv.m_size;
+        m_buffer = std::move(mv.m_buffer);
         return *this;
     }
 
