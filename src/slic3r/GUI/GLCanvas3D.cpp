@@ -1676,7 +1676,7 @@ void GLCanvas3D::render()
 #if ENABLE_RENDER_STATISTICS
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     imgui.set_next_window_bg_alpha(0.5f);
-    imgui.begin(std::string("Render statistics"), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+    imgui.begin(std::string("Render statistics"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
     imgui.text("Last frame: ");
     ImGui::SameLine();
     imgui.text(std::to_string(m_render_stats.last_frame));
@@ -4283,11 +4283,11 @@ void GLCanvas3D::_update_volumes_hover_state() const
     {
         GLVolume* volume = m_volumes.volumes[i];
         bool deselect = volume->selected && ((is_ctrl_pressed && !is_shift_pressed) || (!is_ctrl_pressed && (m_rectangle_selection.get_state() == GLSelectionRectangle::Deselect)));
-        bool select = !volume->selected || (volume->is_modifier && ((is_ctrl_pressed && !is_alt_pressed) || (!is_ctrl_pressed && (!m_rectangle_selection.is_dragging() || (m_rectangle_selection.get_state() == GLSelectionRectangle::Select)))));
+        bool select = (!volume->selected && !is_alt_pressed) || (volume->is_modifier && ((is_ctrl_pressed && !is_alt_pressed) || (!is_ctrl_pressed && (!m_rectangle_selection.is_dragging() || (m_rectangle_selection.get_state() == GLSelectionRectangle::Select)))));
 
         if (select || deselect)
         {
-            if (volume->is_modifier && (!deselect || ((volume->object_idx() == m_selection.get_object_idx()) && (volume->instance_idx() == m_selection.get_instance_idx()))))
+            if (volume->is_modifier && ((!deselect && !is_ctrl_pressed) || (deselect && (volume->object_idx() == m_selection.get_object_idx()) && (volume->instance_idx() == m_selection.get_instance_idx()))))
             {
                 if (deselect)
                     volume->hover = GLVolume::Deselect;
