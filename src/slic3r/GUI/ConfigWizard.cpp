@@ -406,16 +406,20 @@ PageUpdate::PageUpdate(ConfigWizard *parent)
     auto *box_slic3r = new wxCheckBox(this, wxID_ANY, _(L("Check for application updates")));
     box_slic3r->SetValue(app_config->get("version_check") == "1");
     append(box_slic3r);
-    append_text(wxString::Format(_(L("If enabled, Slic3r checks for new versions of %s online. When a new version becomes available, "
-                                     "a notification is displayed at the next application startup (never during program usage). "
-                                     "This is only a notification mechanisms, no automatic installation is done.")), SLIC3R_APP_NAME));
+    append_text(wxString::Format(_(L(
+        "If enabled, %s checks for new application versions online. When a new version becomes available, "
+         "a notification is displayed at the next application startup (never during program usage). "
+         "This is only a notification mechanisms, no automatic installation is done.")), SLIC3R_APP_NAME));
 
     append_spacer(VERTICAL_SPACING);
 
     auto *box_presets = new wxCheckBox(this, wxID_ANY, _(L("Update built-in Presets automatically")));
     box_presets->SetValue(app_config->get("preset_update") == "1");
     append(box_presets);
-    append_text(_(L("If enabled, Slic3r downloads updates of built-in system presets in the background. These updates are downloaded into a separate temporary location. When a new preset version becomes available it is offered at application startup.")));
+    append_text(wxString::Format(_(L(
+        "If enabled, %s downloads updates of built-in system presets in the background."
+        "These updates are downloaded into a separate temporary location."
+        "When a new preset version becomes available it is offered at application startup.")), SLIC3R_APP_NAME));
     const auto text_bold = _(L("Updates are never applied without user's consent and never overwrite user's customized settings."));
     auto *label_bold = new wxStaticText(this, wxID_ANY, text_bold);
     label_bold->SetFont(boldfont);
