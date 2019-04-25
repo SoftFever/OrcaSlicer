@@ -111,6 +111,7 @@ public:
 
     bool        showing_manifold_warning_icon;
     void        show_sizer(bool show);
+    void        msw_rescale();
 };
 
 ObjectInfo::ObjectInfo(wxWindow *parent) :
@@ -118,10 +119,10 @@ ObjectInfo::ObjectInfo(wxWindow *parent) :
 {
     GetStaticBox()->SetFont(wxGetApp().bold_font());
 
-    auto *grid_sizer = new wxFlexGridSizer(4, 5, 5);
+    auto *grid_sizer = new wxFlexGridSizer(4, 5, 15);
     grid_sizer->SetFlexibleDirection(wxHORIZONTAL);
-    grid_sizer->AddGrowableCol(1, 1);
-    grid_sizer->AddGrowableCol(3, 1);
+//     grid_sizer->AddGrowableCol(1, 1);
+//     grid_sizer->AddGrowableCol(3, 1);
 
     auto init_info_label = [parent, grid_sizer](wxStaticText **info_label, wxString text_label) {
         auto *text = new wxStaticText(parent, wxID_ANY, text_label+":");
@@ -158,6 +159,11 @@ void ObjectInfo::show_sizer(bool show)
     Show(show);
     if (show)
         manifold_warning_icon->Show(showing_manifold_warning_icon && show);
+}
+
+void ObjectInfo::msw_rescale()
+{
+    manifold_warning_icon->SetBitmap(create_scaled_bitmap(nullptr, "exclamation"));
 }
 
 enum SlisedInfoIdx
@@ -229,7 +235,8 @@ void SlicedInfo::SetTextAndShow(SlisedInfoIdx idx, const wxString& text, const w
 PresetComboBox::PresetComboBox(wxWindow *parent, Preset::Type preset_type) :
 wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(15 * wxGetApp().em_unit(), -1), 0, nullptr, wxCB_READONLY),
     preset_type(preset_type),
-    last_selected(wxNOT_FOUND)
+    last_selected(wxNOT_FOUND),
+    m_em_unit(wxGetApp().em_unit())
 {
     Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &evt) {
         auto selected_item = this->GetSelection();
@@ -281,11 +288,7 @@ wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(15 *
         });
     }
 
-    edit_btn = new wxButton(parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
-#ifdef __WINDOWS__
-    edit_btn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
-#endif
-    edit_btn->SetBitmap(create_scaled_bitmap(this, "cog"));
+    edit_btn = new ScalableButton(parent, wxID_ANY, "cog");
     edit_btn->SetToolTip(_(L("Click to edit preset")));
 
     edit_btn->Bind(wxEVT_BUTTON, ([preset_type, this](wxCommandEvent)
@@ -329,6 +332,12 @@ void PresetComboBox::set_label_marker(int item, LabelItemType label_item_type)
 void PresetComboBox::check_selection()
 {
     this->last_selected = GetSelection();
+}
+
+void PresetComboBox::msw_rescale()
+{
+    m_em_unit = wxGetApp().em_unit();
+    edit_btn->msw_rescale();
 }
 
 // Frequently changed parameters
@@ -428,7 +437,7 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
 
     option = m_og->get_option("fill_density");
     option.opt.label = L("Infill");
-    option.opt.width = 6 * wxGetApp().em_unit();
+    option.opt.width = 6;
     option.opt.sidetext = "     ";
     line.append_option(option);
 
@@ -566,7 +575,7 @@ struct Sidebar::priv
     wxScrolledWindow *scrolled;
     wxPanel* presets_panel; // Used for MSW better layouts
 
-    PrusaModeSizer  *mode_sizer;
+    ModeSizer  *mode_sizer;
     wxFlexGridSizer *sizer_presets;
     PresetComboBox *combo_print;
     std::vector<PresetComboBox*> combos_filament;
@@ -614,9 +623,9 @@ void Sidebar::priv::show_preset_comboboxes()
 // Sidebar / public
 
 Sidebar::Sidebar(Plater *parent)
-    : wxPanel(parent), p(new priv(parent))
+    : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(40 * wxGetApp().em_unit(), -1)), p(new priv(parent))
 {
-    p->scrolled = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxSize(40 * wxGetApp().em_unit(), -1));
+    p->scrolled = new wxScrolledWindow(this, wxID_ANY/*, wxDefaultPosition, wxSize(40 * wxGetApp().em_unit(), -1)*/);
     p->scrolled->SetScrollbars(0, 20, 1, 2);
 
 
@@ -625,7 +634,7 @@ Sidebar::Sidebar(Plater *parent)
     p->scrolled->SetSizer(scrolled_sizer);
 
     // Sizer with buttons for mode changing
-    p->mode_sizer = new PrusaModeSizer(p->scrolled, 2 * wxGetApp().em_unit());
+    p->mode_sizer = new ModeSizer(p->scrolled, 2 * wxGetApp().em_unit());
 
     // The preset chooser
     p->sizer_presets = new wxFlexGridSizer(10, 1, 1, 2);
@@ -675,13 +684,8 @@ Sidebar::Sidebar(Plater *parent)
     init_combo(&p->combo_sla_material,  _(L("SLA material")),   Preset::TYPE_SLA_MATERIAL,  false);
     init_combo(&p->combo_printer,       _(L("Printer")),        Preset::TYPE_PRINTER,       false);
 
-    // calculate width of the preset labels 
-//     p->sizer_presets->Layout();
-//     const wxArrayInt& ar = p->sizer_presets->GetColWidths();
-//     const int label_width = ar.IsEmpty() ? 10*wxGetApp().em_unit() : ar.front()-4;
-
     const int margin_5  = int(0.5*wxGetApp().em_unit());// 5;
-    const int margin_10 = int(1.5*wxGetApp().em_unit());// 15;
+    const int margin_10 = 10;//int(1.5*wxGetApp().em_unit());// 15;
 
     p->sizer_params = new wxBoxSizer(wxVERTICAL);
 
@@ -703,10 +707,6 @@ Sidebar::Sidebar(Plater *parent)
     p->object_settings->Hide();
     p->sizer_params->Add(p->object_settings->get_sizer(), 0, wxEXPAND | wxTOP, margin_5);
 
-    p->btn_send_gcode = new wxButton(this, wxID_ANY, _(L("Send to printer")));
-    p->btn_send_gcode->SetFont(wxGetApp().bold_font());
-    p->btn_send_gcode->Hide();
-
     // Info boxes
     p->object_info = new ObjectInfo(p->scrolled);
     p->sliced_info = new SlicedInfo(p->scrolled);
@@ -721,10 +721,17 @@ Sidebar::Sidebar(Plater *parent)
     scrolled_sizer->Add(p->sliced_info, 0, wxEXPAND | wxTOP | wxLEFT, margin_5);
 
     // Buttons underneath the scrolled area
-    p->btn_export_gcode = new wxButton(this, wxID_ANY, _(L("Export G-code")) + dots);
-    p->btn_export_gcode->SetFont(wxGetApp().bold_font());
-    p->btn_reslice = new wxButton(this, wxID_ANY, _(L("Slice now")));
-    p->btn_reslice->SetFont(wxGetApp().bold_font());
+
+    auto init_btn = [this](wxButton **btn, wxString label) {
+        *btn = new wxButton(this, wxID_ANY, label, wxDefaultPosition, 
+                            wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
+        (*btn)->SetFont(wxGetApp().bold_font());
+    };
+
+    init_btn(&p->btn_send_gcode,   _(L("Send to printer")));
+    p->btn_send_gcode->Hide();
+    init_btn(&p->btn_export_gcode, _(L("Export G-code")) + dots);
+    init_btn(&p->btn_reslice,      _(L("Slice now")));
     enable_buttons(false);
 
     auto *btns_sizer = new wxBoxSizer(wxVERTICAL);
@@ -781,6 +788,28 @@ void Sidebar::remove_unused_filament_combos(const int current_extruder_count)
     }
 }
 
+void Sidebar::update_all_preset_comboboxes()
+{
+    PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
+    const auto print_tech = preset_bundle.printers.get_edited_preset().printer_technology();
+
+    // Update the print choosers to only contain the compatible presets, update the dirty flags.
+    if (print_tech == ptFFF)
+        preset_bundle.prints.update_platter_ui(p->combo_print);
+    else {
+        preset_bundle.sla_prints.update_platter_ui(p->combo_sla_print);
+        preset_bundle.sla_materials.update_platter_ui(p->combo_sla_material);
+    }
+    // Update the printer choosers, update the dirty flags.
+    preset_bundle.printers.update_platter_ui(p->combo_printer);
+    // Update the filament choosers to only contain the compatible presets, update the color preview,
+    // update the dirty flags.
+    if (print_tech == ptFFF) {
+        for (size_t i = 0; i < p->combos_filament.size(); ++i)
+            preset_bundle.update_platter_filament_ui(i, p->combos_filament[i]);
+    }
+}
+
 void Sidebar::update_presets(Preset::Type preset_type)
 {
 	PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
@@ -820,23 +849,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
 
 	case Preset::TYPE_PRINTER:
 	{
-//         wxWindowUpdateLocker noUpdates_scrolled(p->scrolled);
-
-		// Update the print choosers to only contain the compatible presets, update the dirty flags.
-        if (print_tech == ptFFF)
-			preset_bundle.prints.update_platter_ui(p->combo_print);
-        else {
-            preset_bundle.sla_prints.update_platter_ui(p->combo_sla_print);
-            preset_bundle.sla_materials.update_platter_ui(p->combo_sla_material);
-        }
-		// Update the printer choosers, update the dirty flags.
-		preset_bundle.printers.update_platter_ui(p->combo_printer);
-		// Update the filament choosers to only contain the compatible presets, update the color preview,
-		// update the dirty flags.
-        if (print_tech == ptFFF) {
-            for (size_t i = 0; i < p->combos_filament.size(); ++ i)
-                preset_bundle.update_platter_filament_ui(i, p->combos_filament[i]);
-		}
+        update_all_preset_comboboxes();
 		p->show_preset_comboboxes();
 		break;
 	}
@@ -859,6 +872,37 @@ void Sidebar::update_reslice_btn_tooltip() const
     if (m_mode != comSimple)
 		tooltip += wxString("\n") + _(L("Hold Shift to Slice & Export G-code"));
     p->btn_reslice->SetToolTip(tooltip);
+}
+
+void Sidebar::msw_rescale() 
+{
+    SetMinSize(wxSize(40 * wxGetApp().em_unit(), -1));
+
+    p->mode_sizer->msw_rescale();
+
+    // Rescale preset comboboxes in respect to the current  em_unit ...
+    for (PresetComboBox* combo : std::vector<PresetComboBox*> { p->combo_print,
+                                                                p->combo_sla_print,
+                                                                p->combo_sla_material,
+                                                                p->combo_printer } )
+        combo->msw_rescale();
+    for (PresetComboBox* combo : p->combos_filament)
+        combo->msw_rescale();
+
+    // ... then refill them and set min size to correct layout of the sidebar
+    update_all_preset_comboboxes();
+
+    p->frequently_changed_parameters->get_og(true)->msw_rescale();
+    p->frequently_changed_parameters->get_og(false)->msw_rescale();
+
+    p->object_list->msw_rescale();
+
+    p->object_manipulation->get_og()->msw_rescale();
+    p->object_settings->msw_rescale();
+
+    p->object_info->msw_rescale();
+
+    p->scrolled->Layout();
 }
 
 ObjectManipulation* Sidebar::obj_manipul()
@@ -1132,11 +1176,11 @@ struct Plater::priv
     MainFrame *main_frame;
 
     // Object popup menu
-    PrusaMenu object_menu;
+    MenuWithSeparators object_menu;
     // Part popup menu
-    PrusaMenu part_menu;
+    MenuWithSeparators part_menu;
     // SLA-Object popup menu
-    PrusaMenu sla_object_menu;
+    MenuWithSeparators sla_object_menu;
 
     // Removed/Prepended Items according to the view mode
     std::vector<wxMenuItem*> items_increase;
@@ -3720,22 +3764,16 @@ void Plater::changed_object(int obj_idx)
 {
     if (obj_idx < 0)
         return;
-    auto list = wxGetApp().obj_list();
-    wxASSERT(list != nullptr);
-    if (list == nullptr)
-        return;
-
-    if (list->is_parts_changed()) {
-        // recenter and re - align to Z = 0
-        auto model_object = p->model.objects[obj_idx];
-        model_object->ensure_on_bed();
-        if (this->p->printer_technology == ptSLA) {
-            // Update the SLAPrint from the current Model, so that the reload_scene()
-            // pulls the correct data, update the 3D scene.
-            this->p->update_restart_background_process(true, false);
-        } else
-            p->view3D->reload_scene(false);
+    // recenter and re - align to Z = 0
+    auto model_object = p->model.objects[obj_idx];
+    model_object->ensure_on_bed();
+    if (this->p->printer_technology == ptSLA) {
+        // Update the SLAPrint from the current Model, so that the reload_scene()
+        // pulls the correct data, update the 3D scene.
+        this->p->update_restart_background_process(true, false);
     }
+    else
+        p->view3D->reload_scene(false);
 
     // update print
     this->p->schedule_background_process();
@@ -3746,26 +3784,19 @@ void Plater::changed_objects(const std::vector<size_t>& object_idxs)
     if (object_idxs.empty())
         return;
 
-    auto list = wxGetApp().obj_list();
-    wxASSERT(list != nullptr);
-    if (list == nullptr)
-        return;
-
-    if (list->is_parts_changed()) {
-        for (int obj_idx : object_idxs)
-        {
-            if (obj_idx < p->model.objects.size())
-                // recenter and re - align to Z = 0
-                p->model.objects[obj_idx]->ensure_on_bed();
-        }
-        if (this->p->printer_technology == ptSLA) {
-            // Update the SLAPrint from the current Model, so that the reload_scene()
-            // pulls the correct data, update the 3D scene.
-            this->p->update_restart_background_process(true, false);
-        }
-        else
-            p->view3D->reload_scene(false);
+    for (int obj_idx : object_idxs)
+    {
+        if (obj_idx < p->model.objects.size())
+            // recenter and re - align to Z = 0
+            p->model.objects[obj_idx]->ensure_on_bed();
     }
+    if (this->p->printer_technology == ptSLA) {
+        // Update the SLAPrint from the current Model, so that the reload_scene()
+        // pulls the correct data, update the 3D scene.
+        this->p->update_restart_background_process(true, false);
+    }
+    else
+        p->view3D->reload_scene(false);
 
     // update print
     this->p->schedule_background_process();
@@ -3806,6 +3837,18 @@ bool Plater::can_paste_from_clipboard() const
         return false;
 
     return true;
+}
+
+void Plater::msw_rescale()
+{
+    p->preview->msw_rescale();
+
+    p->view3D->get_canvas3d()->msw_rescale();
+
+    p->sidebar->msw_rescale();
+
+    Layout();
+    GetParent()->Layout();
 }
 
 bool Plater::can_delete() const { return p->can_delete(); }

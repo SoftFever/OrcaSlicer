@@ -18,6 +18,7 @@
 #include <wx/dataview.h>
 #include <wx/notebook.h>
 #include <wx/display.h>
+#include <wx/filefn.h>
 #include <wx/debug.h>
 
 #include "libslic3r/Utils.hpp"
@@ -81,11 +82,17 @@ PrinterPicker::PrinterPicker(wxWindow *parent, const VendorProfile &vendor, wxSt
     for (const auto &model : models) {
         if (! filter(model)) { continue; }
 
-        wxBitmap bitmap(GUI::from_u8(Slic3r::var((boost::format("printers/%1%_%2%.png") % vendor.id % model.id).str())), wxBITMAP_TYPE_PNG);
+        wxBitmap bitmap;
+        int bitmap_width = 0;
+        const wxString bitmap_file = GUI::from_u8(Slic3r::var((boost::format("printers/%1%_%2%.png") % vendor.id % model.id).str()));
+        if (wxFileExists(bitmap_file)) {
+            bitmap.LoadFile(bitmap_file, wxBITMAP_TYPE_PNG);
+            bitmap_width = bitmap.GetWidth();
+        }
 
         auto *title = new wxStaticText(this, wxID_ANY, model.name, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
         title->SetFont(font_name);
-        const int wrap_width = std::max((int)MODEL_MIN_WRAP, bitmap.GetWidth());
+        const int wrap_width = std::max((int)MODEL_MIN_WRAP, bitmap_width);
         title->Wrap(wrap_width);
 
         current_row_width += wrap_width;
@@ -635,19 +642,24 @@ void PageTemperatures::apply_custom_config(DynamicPrintConfig &config)
 
 ConfigWizardIndex::ConfigWizardIndex(wxWindow *parent)
     : wxPanel(parent)
-    // XXX: use create_scaled_bitmap:
+    /* #ys_FIXME_delete_after_testing by VK
     , bg(GUI::from_u8(Slic3r::var("Slic3r_192px_transparent.png")), wxBITMAP_TYPE_PNG)
     , bullet_black(GUI::from_u8(Slic3r::var("bullet_black.png")), wxBITMAP_TYPE_PNG)
     , bullet_blue(GUI::from_u8(Slic3r::var("bullet_blue.png")), wxBITMAP_TYPE_PNG)
     , bullet_white(GUI::from_u8(Slic3r::var("bullet_white.png")), wxBITMAP_TYPE_PNG)
+    */
+    , bg(ScalableBitmap(parent, "Slic3r_192px_transparent.png", 192))
+    , bullet_black(ScalableBitmap(parent, "bullet_black.png"))
+    , bullet_blue(ScalableBitmap(parent, "bullet_blue.png"))
+    , bullet_white(ScalableBitmap(parent, "bullet_white.png"))
     , item_active(0)
     , item_hover(-1)
     , last_page((size_t)-1)
 {
-    SetMinSize(bg.GetSize());
+    SetMinSize(bg.bmp().GetSize());
 
     const wxSize size = GetTextExtent("m");
-    em = size.x;
+    em_w = size.x;
     em_h = size.y;
 
     // Add logo bitmap.
@@ -656,7 +668,10 @@ ConfigWizardIndex::ConfigWizardIndex(wxWindow *parent)
     // In some cases it didn't work at all. And so wxStaticBitmap is used here instead,
     // because it has all the platform quirks figured out.
     auto *sizer = new wxBoxSizer(wxVERTICAL);
+    /* #ys_FIXME_delete_after_testing by VK
     auto *logo = new wxStaticBitmap(this, wxID_ANY, bg);
+    */
+    logo = new wxStaticBitmap(this, wxID_ANY, bg.bmp());
     sizer->AddStretchSpacer();
     sizer->Add(logo);
     SetSizer(sizer);
@@ -764,8 +779,12 @@ void ConfigWizardIndex::on_paint(wxPaintEvent & evt)
 
     wxPaintDC dc(this);
 
+    /* #ys_FIXME_delete_after_testing by VK
     const auto bullet_w = bullet_black.GetSize().GetWidth();
     const auto bullet_h = bullet_black.GetSize().GetHeight();
+    */
+    const auto bullet_w = bullet_black.bmp().GetSize().GetWidth();
+    const auto bullet_h = bullet_black.bmp().GetSize().GetHeight();
     const int yoff_icon = bullet_h < em_h ? (em_h - bullet_h) / 2 : 0;
     const int yoff_text = bullet_h > em_h ? (bullet_h - em_h) / 2 : 0;
     const int yinc = item_height();
@@ -775,15 +794,21 @@ void ConfigWizardIndex::on_paint(wxPaintEvent & evt)
     unsigned y = 0;
     for (size_t i = 0; i < items.size(); i++) {
         const Item& item = items[i];
-        unsigned x = em/2 + item.indent * em;
+        unsigned x = em_w/2 + item.indent * em_w;
 
         if (i == item_active || item_hover >= 0 && i == (size_t)item_hover) {
+            /*#ys_FIXME_delete_after_testing by VK
             dc.DrawBitmap(bullet_blue,  x, y + yoff_icon, false);
         }
         else if (i < item_active)  { dc.DrawBitmap(bullet_black, x, y + yoff_icon, false); }
         else if (i > item_active)  { dc.DrawBitmap(bullet_white, x, y + yoff_icon, false); }
+            */
+            dc.DrawBitmap(bullet_blue.bmp(), x, y + yoff_icon, false);
+        }
+        else if (i < item_active)  { dc.DrawBitmap(bullet_black.bmp(), x, y + yoff_icon, false); }
+        else if (i > item_active)  { dc.DrawBitmap(bullet_white.bmp(), x, y + yoff_icon, false); }
 
-        x += + bullet_w + em/2;
+        x += + bullet_w + em_w/2;
         const auto text_size = dc.GetTextExtent(item.label);
         dc.DrawText(item.label, x, y + yoff_text);
 
@@ -794,6 +819,7 @@ void ConfigWizardIndex::on_paint(wxPaintEvent & evt)
     if (GetMinSize().x < index_width) {
         CallAfter([this, index_width]() {
             SetMinSize(wxSize(index_width, GetMinSize().y));
+            Refresh();
         });
     }
 }
@@ -811,6 +837,18 @@ void ConfigWizardIndex::on_mouse_move(wxMouseEvent &evt)
     }
 
     evt.Skip();
+}
+
+void ConfigWizardIndex::msw_rescale()
+{
+    bg.msw_rescale();
+    SetMinSize(bg.bmp().GetSize());
+    logo->SetBitmap(bg.bmp());
+
+    bullet_black.msw_rescale();
+    bullet_blue.msw_rescale();
+    bullet_white.msw_rescale();
+    Refresh();
 }
 
 
@@ -987,9 +1025,10 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
 // Public
 
 ConfigWizard::ConfigWizard(wxWindow *parent, RunReason reason)
-    : wxDialog(parent, wxID_ANY, _(name().ToStdString()), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+    : DPIDialog(parent, wxID_ANY, _(name().ToStdString()), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
     , p(new priv(this))
 {
+    this->SetFont(wxGetApp().normal_font());
     p->run_reason = reason;
 
     p->load_vendors();
@@ -1073,7 +1112,7 @@ ConfigWizard::ConfigWizard(wxWindow *parent, RunReason reason)
             9*disp_rect.width / 10,
             9*disp_rect.height / 10);
 
-        const int width_hint = p->index->GetSize().GetWidth() + p->page_fff->get_width() + 300;    // XXX: magic constant, I found no better solution
+        const int width_hint = p->index->GetSize().GetWidth() + p->page_fff->get_width() + 30 * p->em();    // XXX: magic constant, I found no better solution
         if (width_hint < window_rect.width) {
             window_rect.x += (window_rect.width - width_hint) / 2;
             window_rect.width = width_hint;
@@ -1131,6 +1170,12 @@ const wxString& ConfigWizard::name(const bool from_menu/* = false*/)
     static const wxString config_wizard_name_menu = L("Configuration &Assistant");
 #endif
     return from_menu ? config_wizard_name_menu : config_wizard_name;
+}
+
+void ConfigWizard::on_dpi_changed(const wxRect &suggested_rect)
+{
+    p->index->msw_rescale();
+    Refresh();
 }
 
 }

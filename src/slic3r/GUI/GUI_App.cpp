@@ -325,6 +325,17 @@ void GUI_App::init_fonts()
 #endif /*__WXMAC__*/
 }
 
+void GUI_App::update_fonts()
+{
+    /* Only normal and bold fonts are used for an application rescale,
+     * because of under MSW small and normal fonts are the same.
+     * To avoid same rescaling twice, just fill this values
+     * from rescaled MainFrame
+     */
+    m_normal_font   = mainframe->normal_font();
+    m_bold_font     = mainframe->normal_font().Bold();
+}
+
 void GUI_App::set_label_clr_modified(const wxColour& clr) {
     m_color_label_modified = clr;
     auto clr_str = wxString::Format(wxT("#%02X%02X%02X"), clr.Red(), clr.Green(), clr.Blue());
@@ -669,6 +680,12 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
             // Take a configuration snapshot.
             if (check_unsaved_changes()) {
                 wxTextEntryDialog dlg(nullptr, _(L("Taking configuration snapshot")), _(L("Snapshot name")));
+                
+                // set current normal font for dialog children, 
+                // because of just dlg.SetFont(normal_font()) has no result;
+                for (auto child : dlg.GetChildren())
+                    child->SetFont(normal_font());
+
                 if (dlg.ShowModal() == wxID_OK)
                     app_config->set("on_snapshot",
                     Slic3r::GUI::Config::SnapshotDB::singleton().take_snapshot(
@@ -718,7 +735,6 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
             get_installed_languages(names, identifiers);
             if (select_language(names, identifiers)) {
                 save_language();
-//                 show_info(mainframe->m_tabpanel, _(L("Application will be restarted")), _(L("Attention!")));
                 _3DScene::remove_all_canvases();// remove all canvas before recreate GUI
                 recreate_GUI();
             }

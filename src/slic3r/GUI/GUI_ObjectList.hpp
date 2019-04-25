@@ -13,8 +13,8 @@
 
 class wxBoxSizer;
 class wxMenuItem;
-class PrusaObjectDataViewModel;
-class PrusaMenu;
+class ObjectDataViewModel;
+class MenuWithSeparators;
 
 namespace Slic3r {
 class ConfigOptionsGroup;
@@ -108,18 +108,18 @@ class ObjectList : public wxDataViewCtrl
     wxBoxSizer          *m_sizer {nullptr};
     wxWindow            *m_parent {nullptr};
 
-    wxBitmap	m_bmp_modifiermesh;
-    wxBitmap	m_bmp_solidmesh;
-    wxBitmap	m_bmp_support_enforcer;
-    wxBitmap	m_bmp_support_blocker;
-    wxBitmap	m_bmp_manifold_warning;
-    wxBitmap	m_bmp_cog;
-    wxBitmap	m_bmp_split;
+    ScalableBitmap	    m_bmp_modifiermesh;
+    ScalableBitmap	    m_bmp_solidmesh;
+    ScalableBitmap	    m_bmp_support_enforcer;
+    ScalableBitmap	    m_bmp_support_blocker;
+    ScalableBitmap	    m_bmp_manifold_warning;
+    ScalableBitmap	    m_bmp_cog;
+    ScalableBitmap	    m_bmp_split;
 
-    PrusaMenu   m_menu_object;
-    PrusaMenu   m_menu_part;
-    PrusaMenu   m_menu_sla_object;
-    PrusaMenu   m_menu_instance;
+    MenuWithSeparators  m_menu_object;
+    MenuWithSeparators  m_menu_part;
+    MenuWithSeparators  m_menu_sla_object;
+    MenuWithSeparators  m_menu_instance;
     wxMenuItem* m_menu_item_split { nullptr };
     wxMenuItem* m_menu_item_split_part { nullptr };
     wxMenuItem* m_menu_item_settings { nullptr };
@@ -139,9 +139,6 @@ class ObjectList : public wxDataViewCtrl
                                                            // update_settings_items - updating canvas selection is undesirable,
                                                            // because it would turn off the gizmos (mainly a problem for the SLA gizmo)
 
-    bool        m_parts_changed = false;
-    bool        m_part_settings_changed = false;
-
     int         m_selected_row = 0;
     wxDataViewItem m_last_selected_item {nullptr};
 
@@ -157,7 +154,7 @@ public:
 
     std::map<std::string, wxBitmap> CATEGORY_ICON;
 
-    PrusaObjectDataViewModel	*m_objects_model{ nullptr };
+    ObjectDataViewModel	*m_objects_model{ nullptr };
     DynamicPrintConfig          *m_config {nullptr};
 
     std::vector<ModelObject*>   *m_objects{ nullptr };
@@ -176,6 +173,7 @@ public:
     void                update_extruder_values_for_items(const int max_extruder);
 
     void                init_icons();
+    void                rescale_icons();
 
     // Get obj_idx and vol_idx values for the selected (by default) or an adjusted item
     void                get_selected_item_indexes(int& obj_idx, int& vol_idx, const wxDataViewItem& item = wxDataViewItem(0));
@@ -235,11 +233,8 @@ public:
     wxBoxSizer*         get_sizer() {return  m_sizer;}
     int                 get_selected_obj_idx() const;
     DynamicPrintConfig& get_item_config(const wxDataViewItem& item) const;
-    bool                is_parts_changed() const { return m_parts_changed; }
-    bool                is_part_settings_changed() const { return m_part_settings_changed; }
-    void                part_settings_changed();
 
-    void                parts_changed(int obj_idx);
+    void                changed_object(const int obj_idx = -1) const;
     void                part_selection_changed();
 
     // Add object to the list
@@ -300,6 +295,8 @@ public:
 
     void paste_volumes_into_list(int obj_idx, const ModelVolumePtrs& volumes);
     void paste_objects_into_list(const std::vector<size_t>& object_idxs);
+
+    void msw_rescale();
 
 private:
     void OnChar(wxKeyEvent& event);

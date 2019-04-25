@@ -732,7 +732,7 @@ const char* FirmwareDialog::priv::avr109_dev_name(Avr109Pid usb_pid) {
 // Public
 
 FirmwareDialog::FirmwareDialog(wxWindow *parent) :
-	wxDialog(parent, wxID_ANY, _(L("Firmware flasher")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
+	GUI::DPIDialog(parent, wxID_ANY, _(L("Firmware flasher")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
 	p(new priv(this))
 {
 	enum {
@@ -748,7 +748,13 @@ FirmwareDialog::FirmwareDialog(wxWindow *parent) :
 	int min_height = MIN_HEIGHT * em;
 	int min_height_expanded = MIN_HEIGHT_EXPANDED * em;
 
-	wxFont status_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+    /* get current font from application, 
+     * because of wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT) function
+     * returns font for primary Display
+     */
+    const wxFont& font = GUI::wxGetApp().normal_font();
+    SetFont(font);
+    wxFont status_font = font;//wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 	status_font.MakeBold();
 	wxFont mono_font(wxFontInfo().Family(wxFONTFAMILY_TELETYPE));
 	mono_font.MakeSmaller();

@@ -7,7 +7,7 @@
 #include "GLCanvas3D.hpp"
 
 class wxStaticText;
-class PrusaLockButton;
+class LockButton;
 class wxStaticBitmap;
 
 namespace Slic3r {
@@ -77,7 +77,7 @@ class ObjectManipulation : public OG_Settings
     Vec3d           m_new_size;
     bool            m_new_enabled;
     bool            m_uniform_scale {true};
-    PrusaLockButton* m_lock_bnt{ nullptr };
+    LockButton*     m_lock_bnt{ nullptr };
 
     wxBitmap        m_manifold_warning_bmp;
     wxStaticBitmap* m_fix_throught_netfab_bitmap;
