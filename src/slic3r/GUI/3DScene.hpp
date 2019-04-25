@@ -236,9 +236,9 @@ public:
 
     enum EHoverState : unsigned char
     {
-        None,
-        Select,
-        Deselect
+        HS_None,
+        HS_Select,
+        HS_Deselect
     };
 
     GLVolume(float r = 1.f, float g = 1.f, float b = 1.f, float a = 1.f);
