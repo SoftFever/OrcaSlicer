@@ -303,6 +303,7 @@ class GLCanvas3D
         Vec2d position;
         Vec3d scene_position;
         Drag drag;
+        bool ignore_left_up;
 
         Mouse();
 

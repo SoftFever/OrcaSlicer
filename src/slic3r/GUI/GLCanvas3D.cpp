@@ -675,6 +675,7 @@ GLCanvas3D::Mouse::Mouse()
     : dragging(false)
     , position(DBL_MAX, DBL_MAX)
     , scene_position(DBL_MAX, DBL_MAX, DBL_MAX)
+    , ignore_left_up(false)
 {
 }
 
@@ -2387,6 +2388,7 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                     {
                         _update_selection_from_hover();
                         m_rectangle_selection.stop_dragging();
+                        m_mouse.ignore_left_up = true;
                         m_dirty = true;
                     }
                     set_cursor(Standard);
@@ -2397,6 +2399,7 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                     {
                         _update_selection_from_hover();
                         m_rectangle_selection.stop_dragging();
+                        m_mouse.ignore_left_up = true;
                         m_dirty = true;
                     }
                     set_cursor(Standard);
@@ -2409,12 +2412,18 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                 if (keyCode == WXK_SHIFT)
                 {
                     if (m_picking_enabled && (m_gizmos.get_current_type() != GLGizmosManager::SlaSupports))
+                    {
+                        m_mouse.ignore_left_up = false;
                         set_cursor(Cross);
+                    }
                 }
                 else if (keyCode == WXK_ALT)
                 {
                     if (m_picking_enabled && (m_gizmos.get_current_type() != GLGizmosManager::SlaSupports))
+                    {
+                        m_mouse.ignore_left_up = false;
                         set_cursor(Cross);
+                    }
                 }
                 else if (keyCode == WXK_CONTROL)
                     m_dirty = true;
@@ -2536,6 +2545,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_mouse.set_start_position_3D_as_invalid();
         m_mouse.set_start_position_2D_as_invalid();
         m_mouse.dragging = false;
+        m_mouse.ignore_left_up = false;
         m_dirty = true;
 
         if (m_canvas->HasCapture())
@@ -2857,7 +2867,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
             m_rectangle_selection.stop_dragging();
         }
-        else if (evt.LeftUp() && !m_mouse.dragging && m_hover_volume_idxs.empty() && !is_layers_editing_enabled())
+        else if (evt.LeftUp() && !m_mouse.ignore_left_up && !m_mouse.dragging && m_hover_volume_idxs.empty() && !is_layers_editing_enabled())
         {
             // deselect and propagate event through callback
             if (!evt.ShiftDown() && m_picking_enabled)
