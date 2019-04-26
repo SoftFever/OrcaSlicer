@@ -34,6 +34,7 @@
 
 #include "../Utils/PresetUpdater.hpp"
 #include "../Utils/PrintHost.hpp"
+#include "../Utils/MacDarkMode.hpp"
 #include "ConfigWizard.hpp"
 #include "slic3r/Config/Snapshot.hpp"
 #include "ConfigSnapshotDialog.hpp"
@@ -284,10 +285,24 @@ unsigned GUI_App::get_colour_approx_luma(const wxColour &colour)
         ));
 }
 
+bool GUI_App::dark_mode()
+{
+    const unsigned luma = get_colour_approx_luma(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+    return luma < 128;
+}
+
+bool GUI_App::dark_mode_menus()
+{
+#if __APPLE__
+    return mac_dark_mode();
+#else
+    return dark_mode();
+#endif
+}
+
 void GUI_App::init_label_colours()
 {
-    auto luma = get_colour_approx_luma(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
-    if (luma >= 128) {
+    if (dark_mode()) {
         m_color_label_modified = wxColour(252, 77, 1);
         m_color_label_sys = wxColour(26, 132, 57);
     }
