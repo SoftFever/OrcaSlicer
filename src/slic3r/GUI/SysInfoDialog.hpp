@@ -17,6 +17,8 @@ class SysInfoDialog : public DPIDialog
     wxHtmlWindow*   m_opengl_info_html;
     wxHtmlWindow*   m_html;
 
+    wxButton*       m_btn_copy_to_clipboard;
+
 public:
     SysInfoDialog();
 

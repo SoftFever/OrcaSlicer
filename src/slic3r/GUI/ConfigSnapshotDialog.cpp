@@ -6,6 +6,7 @@
 
 #include "libslic3r/Utils.hpp"
 #include "GUI_App.hpp"
+#include "wxExtensions.hpp"
 
 namespace Slic3r { 
 namespace GUI {
@@ -144,10 +145,12 @@ void ConfigSnapshotDialog::on_dpi_changed(const wxRect &suggested_rect)
     html->Refresh();
 
     const int& em = em_unit();
-    const wxSize& size = wxSize(45 * em, 40 * em);
 
+    msw_buttons_rescale(this, em, { wxID_CLOSE});
+
+    const wxSize& size = wxSize(45 * em, 40 * em);
     SetMinSize(size);
-    SetSize(size);
+    Fit();
 
     Refresh();
 }

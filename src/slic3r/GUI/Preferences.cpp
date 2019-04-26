@@ -8,7 +8,7 @@ namespace GUI {
 
 PreferencesDialog::PreferencesDialog(wxWindow* parent) : 
     DPIDialog(parent, wxID_ANY, _(L("Preferences")), wxDefaultPosition, 
-              wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+              wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
 {
 	build();
 }
@@ -146,11 +146,14 @@ void PreferencesDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
     m_optgroup->msw_rescale();
 
-    const int& em = em_unit();
-    const wxSize& size = wxSize(50 * em, 29 * em);
+    const int em = em_unit();
+
+    msw_buttons_rescale(this, em, { wxID_OK, wxID_CANCEL });
+
+    const wxSize& size = wxSize(47 * em, 28 * em);
 
     SetMinSize(size);
-    SetSize(size);
+    Fit();
 
     Refresh();
 }

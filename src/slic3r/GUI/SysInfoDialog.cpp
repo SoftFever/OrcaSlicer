@@ -117,9 +117,10 @@ SysInfoDialog::SysInfoDialog()
     }
     
     wxStdDialogButtonSizer* buttons = this->CreateStdDialogButtonSizer(wxOK);
-    auto btn_copy_to_clipboard = new wxButton(this, wxID_ANY, "Copy to Clipboard", wxDefaultPosition, wxDefaultSize);
-    buttons->Insert(0, btn_copy_to_clipboard, 0, wxLEFT, 5);
-    btn_copy_to_clipboard->Bind(wxEVT_BUTTON, &SysInfoDialog::onCopyToClipboard, this);
+    m_btn_copy_to_clipboard = new wxButton(this, wxID_ANY, "Copy to Clipboard", wxDefaultPosition, wxDefaultSize);
+
+    buttons->Insert(0, m_btn_copy_to_clipboard, 0, wxLEFT, 5);
+    m_btn_copy_to_clipboard->Bind(wxEVT_BUTTON, &SysInfoDialog::onCopyToClipboard, this);
 
     this->SetEscapeId(wxID_OK);
     this->Bind(wxEVT_BUTTON, &SysInfoDialog::onCloseDialog, this, wxID_OK);
@@ -146,6 +147,8 @@ void SysInfoDialog::on_dpi_changed(const wxRect &suggested_rect)
 
     const int& em = em_unit();
 
+    msw_buttons_rescale(this, em, { wxID_OK, m_btn_copy_to_clipboard->GetId() });
+
     m_opengl_info_html->SetMinSize(wxSize(-1, 16 * em));
     m_opengl_info_html->SetFonts(font.GetFaceName(), font.GetFaceName(), font_size);
     m_opengl_info_html->Refresh();
@@ -153,7 +156,7 @@ void SysInfoDialog::on_dpi_changed(const wxRect &suggested_rect)
     const wxSize& size = wxSize(65 * em, 55 * em);
 
     SetMinSize(size);
-    SetSize(size);
+    Fit();
 
     Refresh();
 }

@@ -69,8 +69,11 @@ struct PrinterPicker: wxPanel
     void on_checkbox(const Checkbox *cbox, bool checked);
 
     int get_width() const { return width; }
+    const std::vector<int>& get_button_indexes() { return m_button_indexes; }
 private:
     int width;
+
+    std::vector<int> m_button_indexes;
 };
 
 struct ConfigWizardPage: wxPanel
@@ -267,6 +270,7 @@ struct ConfigWizard::priv
     wxBoxSizer *btnsizer = nullptr;
     ConfigWizardPage *page_current = nullptr;
     ConfigWizardIndex *index = nullptr;
+    wxButton *btn_sel_all = nullptr;
     wxButton *btn_prev = nullptr;
     wxButton *btn_next = nullptr;
     wxButton *btn_finish = nullptr;

@@ -267,6 +267,22 @@ void wxDataViewTreeCtrlComboPopup::OnDataViewTreeCtrlSelection(wxCommandEvent& e
 	cmb->SetText(selected);
 }
 
+/* Function for rescale of buttons in Dialog under MSW if dpi is changed.
+ * btn_ids - vector of buttons identifiers
+ */
+void msw_buttons_rescale(wxDialog* dlg, const int em_unit, const std::vector<int>& btn_ids)
+{
+    const wxSize& btn_size = wxSize(-1, int(2.5f * em_unit + 0.5f));
+
+    for (int btn_id : btn_ids) {
+        // There is a case [FirmwareDialog], when we have wxControl instead of wxButton
+        // so let casting everything to the wxControl
+        wxControl* btn = static_cast<wxControl*>(dlg->FindWindowById(btn_id, dlg));
+        if (btn)
+            btn->SetMinSize(btn_size);
+    }
+}
+
 /* Function for getting of em_unit value from correct parent.
  * In most of cases it is m_em_unit value from GUI_App,
  * but for DPIDialogs it's its own value. 

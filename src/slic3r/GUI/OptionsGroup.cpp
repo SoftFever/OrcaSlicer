@@ -516,17 +516,19 @@ void ConfigOptionsGroup::msw_rescale()
             {
                 auto label = dynamic_cast<wxStaticText*>(label_item->GetWindow());
                 if (label != nullptr) {
-                    label->SetMinSize(wxSize(label_width*em, -1));
+                    const int label_height = int(1.5f*label->GetFont().GetPixelSize().y + 0.5f);
+                    label->SetMinSize(wxSize(label_width*em, /*-1*/label_height));
                 }
             }
-            else if (label_item->IsSizer()) // case when we nave near_label_widget
+            else if (label_item->IsSizer()) // case when we have near_label_widget
             {
                 const wxSizerItem* l_item = label_item->GetSizer()->GetItem(1);
                 if (l_item->IsWindow())
                 {
                     auto label = dynamic_cast<wxStaticText*>(l_item->GetWindow());
                     if (label != nullptr) {
-                        label->SetMinSize(wxSize(label_width*em, -1));
+                        const int label_height = int(1.5f*label->GetFont().GetPixelSize().y + 0.5f);
+                        label->SetMinSize(wxSize(label_width*em, /*-1*/label_height));
                     }
                 }
             }
