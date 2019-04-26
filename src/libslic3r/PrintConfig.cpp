@@ -213,7 +213,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("clip_multipart_objects", coBool);
     def->label = L("Clip multi-part objects");
-    def->tooltip = L("When printing multi-material objects, this settings will make slic3r "
+    def->tooltip = L("When printing multi-material objects, this settings will make Slic3r "
                    "to clip the overlapping object parts one by the other "
                    "(2nd part will be clipped by the 1st, 3rd part will be clipped by the 1st and 2nd etc).");
     def->mode = comExpert;

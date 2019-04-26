@@ -267,6 +267,13 @@ void wxDataViewTreeCtrlComboPopup::OnDataViewTreeCtrlSelection(wxCommandEvent& e
 	cmb->SetText(selected);
 }
 
+// edit tooltip : change Slic3r to SLIC3R_APP_KEY
+// Temporary workaround for localization
+void edit_tooltip(wxString& tooltip)
+{
+    tooltip.Replace("Slic3r", SLIC3R_APP_KEY, true);
+}
+
 /* Function for rescale of buttons in Dialog under MSW if dpi is changed.
  * btn_ids - vector of buttons identifiers
  */

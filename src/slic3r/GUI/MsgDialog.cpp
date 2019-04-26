@@ -70,7 +70,8 @@ MsgDialog::~MsgDialog() {}
 // ErrorDialog
 
 ErrorDialog::ErrorDialog(wxWindow *parent, const wxString &msg)
-	: MsgDialog(parent, _(L("Slic3r error")), _(L("Slic3r has encountered an error")),
+    : MsgDialog(parent, wxString::Format(_(L("%s error")), SLIC3R_APP_NAME), 
+                        wxString::Format(_(L("%s has encountered an error")), SLIC3R_APP_NAME),
 		wxID_NONE)
 	, msg(msg)
 {

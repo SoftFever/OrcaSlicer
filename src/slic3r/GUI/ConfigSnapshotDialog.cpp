@@ -67,7 +67,7 @@ static wxString generate_html_row(const Config::Snapshot &snapshot, bool row_eve
     }
 
     if (! compatible) {
-        text += "<p align=\"right\">" + _(L("Incompatible with this Slic3r")) + "</p>";
+        text += "<p align=\"right\">" + wxString::Format(_(L("Incompatible with this %s")), SLIC3R_APP_NAME) + "</p>";
     }
     else if (! snapshot_active)
         text += "<p align=\"right\"><a href=\"" + snapshot.id + "\">" + _(L("Activate")) + "</a></p>";

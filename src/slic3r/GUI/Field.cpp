@@ -100,6 +100,7 @@ wxString Field::get_tooltip_text(const wxString& default_string)
 {
 	wxString tooltip_text("");
 	wxString tooltip = _(m_opt.tooltip);
+    edit_tooltip(tooltip);
 	if (tooltip.length() > 0)
         tooltip_text = tooltip + "\n" + _(L("default value")) + "\t: " +
         (boost::iends_with(m_opt_id, "_gcode") ? "\n" : "") + default_string +
@@ -504,6 +505,11 @@ void SpinCtrl::BUILD() {
         else tmp_value = -9999;
 #ifdef __WXOSX__
         propagate_value();
+
+        // Forcibly set the input value for SpinControl, since the value 
+	    // inserted from the clipboard is not updated under OSX
+        if (tmp_value > -9999)
+            dynamic_cast<wxSpinCtrl*>(window)->SetValue(tmp_value);
 #endif
 	}), temp->GetId());
 	
