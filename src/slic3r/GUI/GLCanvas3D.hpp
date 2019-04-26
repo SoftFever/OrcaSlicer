@@ -354,7 +354,7 @@ private:
         void render(const GLCanvas3D& canvas) const;
 
         // function used to get an information for rescaling of the warning
-        void rescale(const GLCanvas3D& canvas);
+        void msw_rescale(const GLCanvas3D& canvas);
 
     private:
         static const unsigned char Background_Color[3];
