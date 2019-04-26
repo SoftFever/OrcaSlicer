@@ -4281,29 +4281,75 @@ void GLCanvas3D::_update_volumes_hover_state() const
     if (m_hover_volume_idxs.empty())
         return;
 
-    bool is_ctrl_pressed = wxGetKeyState(WXK_CONTROL);
-    bool is_shift_pressed = wxGetKeyState(WXK_SHIFT);
-    bool is_alt_pressed = wxGetKeyState(WXK_ALT);
+    bool ctrl_pressed = wxGetKeyState(WXK_CONTROL); // additive select/deselect
+    bool shift_pressed = wxGetKeyState(WXK_SHIFT);  // select by rectangle
+    bool alt_pressed = wxGetKeyState(WXK_ALT);      // deselect by rectangle
+
+    if (alt_pressed && (shift_pressed || ctrl_pressed))
+    {
+        // illegal combinations of keys
+        m_hover_volume_idxs.clear();
+        return;
+    }
+
+    bool selection_modifiers_only = m_selection.is_empty() || m_selection.is_any_modifier();
+
+    bool hover_modifiers_only = true;
+    for (int i : m_hover_volume_idxs)
+    {
+        if (!m_volumes.volumes[i]->is_modifier)
+        {
+            hover_modifiers_only = false;
+            break;
+        }
+    }
+
+    std::set<std::pair<int, int>> hover_instances;
+    for (int i : m_hover_volume_idxs)
+    {
+        const GLVolume& v = *m_volumes.volumes[i];
+        hover_instances.insert(std::make_pair(v.object_idx(), v.instance_idx()));
+    }
+
+    bool hover_from_single_instance = hover_instances.size() == 1;
+
+    if (hover_modifiers_only && !hover_from_single_instance)
+    {
+        // do not allow to select volumes from different instances
+        m_hover_volume_idxs.clear();
+        return;
+    }
 
     for (int i : m_hover_volume_idxs)
     {
-        GLVolume* volume = m_volumes.volumes[i];
-        bool deselect = volume->selected && ((is_ctrl_pressed && !is_shift_pressed) || (!is_ctrl_pressed && (m_rectangle_selection.get_state() == GLSelectionRectangle::Deselect)));
-        bool select = (!volume->selected && !is_alt_pressed) || (volume->is_modifier && ((is_ctrl_pressed && !is_alt_pressed) || (!is_ctrl_pressed && (!m_rectangle_selection.is_dragging() || (m_rectangle_selection.get_state() == GLSelectionRectangle::Select)))));
+        GLVolume& volume = *m_volumes.volumes[i];
+        if (volume.hover != GLVolume::HS_None)
+            continue;
+
+        bool deselect = volume.selected && ((ctrl_pressed && !shift_pressed) || alt_pressed);
+        // (volume->is_modifier && !selection_modifiers_only && !is_ctrl_pressed) -> allows hovering on selected modifiers belonging to selection of type Instance
+        bool select = (!volume.selected || (volume.is_modifier && !selection_modifiers_only && !ctrl_pressed)) && !alt_pressed;
 
         if (select || deselect)
         {
-            if (volume->is_modifier && ((!deselect && !is_ctrl_pressed) || (deselect && (volume->object_idx() == m_selection.get_object_idx()) && (volume->instance_idx() == m_selection.get_instance_idx()))))
+            bool as_volume =
+                volume.is_modifier && hover_from_single_instance && !ctrl_pressed &&
+                (
+                (!deselect) ||
+                (deselect && !m_selection.is_single_full_instance() && (volume.object_idx() == m_selection.get_object_idx()) && (volume.instance_idx() == m_selection.get_instance_idx()))
+                );
+
+            if (as_volume)
             {
                 if (deselect)
-                    volume->hover = GLVolume::HS_Deselect;
+                    volume.hover = GLVolume::HS_Deselect;
                 else
-                    volume->hover = GLVolume::HS_Select;
+                    volume.hover = GLVolume::HS_Select;
             }
             else
             {
-                int object_idx = volume->object_idx();
-                int instance_idx = volume->instance_idx();
+                int object_idx = volume.object_idx();
+                int instance_idx = volume.instance_idx();
 
                 for (GLVolume* v : m_volumes.volumes)
                 {
@@ -5592,23 +5638,45 @@ void GLCanvas3D::_resize_toolbars() const
 
 void GLCanvas3D::_update_selection_from_hover()
 {
+    bool ctrl_pressed = wxGetKeyState(WXK_CONTROL);
+
     if (m_hover_volume_idxs.empty())
+    {
+        if (!ctrl_pressed && (m_rectangle_selection.get_state() == GLSelectionRectangle::Select))
+            m_selection.clear();
+
         return;
+    }
 
     GLSelectionRectangle::EState state = m_rectangle_selection.get_state();
-    bool is_ctrl_pressed = wxGetKeyState(WXK_CONTROL);
 
-    bool is_single_modifier = (m_hover_volume_idxs.size() == 1) && m_volumes.volumes[m_hover_volume_idxs.front()]->is_modifier;
+    bool hover_modifiers_only = true;
+    for (int i : m_hover_volume_idxs)
+    {
+        if (!m_volumes.volumes[i]->is_modifier)
+        {
+            hover_modifiers_only = false;
+            break;
+        }
+    }
 
-    if ((state == GLSelectionRectangle::Select) && !is_ctrl_pressed)
+    if ((state == GLSelectionRectangle::Select) && !ctrl_pressed)
         m_selection.clear();
 
-    for (int idx : m_hover_volume_idxs)
+    for (int i : m_hover_volume_idxs)
     {
         if (state == GLSelectionRectangle::Select)
-            m_selection.add(idx, is_single_modifier && !is_ctrl_pressed);
+        {
+            if (hover_modifiers_only)
+            {
+                const GLVolume& v = *m_volumes.volumes[i];
+                m_selection.add_volume(v.object_idx(), v.volume_idx(), v.instance_idx(), false);
+            }
+            else
+                m_selection.add(i, false);
+        }
         else
-            m_selection.remove(idx);
+            m_selection.remove(i);
     }
 
     m_gizmos.refresh_on_off_state(m_selection);
