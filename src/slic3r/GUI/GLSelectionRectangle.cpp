@@ -59,10 +59,8 @@ std::vector<unsigned int> GLSelectionRectangle::stop_dragging(const GLCanvas3D& 
 
 void GLSelectionRectangle::stop_dragging()
 {
-    if (!is_dragging())
-        return;
-
-    m_state = Off;
+    if (is_dragging())
+        m_state = Off;
 }
 
 void GLSelectionRectangle::render(const GLCanvas3D& canvas) const
