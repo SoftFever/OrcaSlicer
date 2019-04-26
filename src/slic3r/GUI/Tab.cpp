@@ -1770,9 +1770,9 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 
 		line.widget = [this, ca_file_hint] (wxWindow* parent) {
 			auto txt = new wxStaticText(parent, wxID_ANY, wxString::Format("%s\n\n\t%s",
-				_(L("HTTPS CA File:\n\
-\tOn this system, Slic3r uses HTTPS certificates from the system Certificate Store or Keychain.\n\
-\tTo use a custom CA file, please import your CA file into Certificate Store / Keychain.")),
+	wxString::Format(_(L("HTTPS CA File:\n\
+    \tOn this system, %s uses HTTPS certificates from the system Certificate Store or Keychain.\n\
+    \tTo use a custom CA file, please import your CA file into Certificate Store / Keychain.")), SLIC3R_APP_NAME),
 				ca_file_hint));
 			txt->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);

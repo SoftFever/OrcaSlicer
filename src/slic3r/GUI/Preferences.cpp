@@ -127,7 +127,7 @@ void PreferencesDialog::accept()
 {
 	if (m_values.find("no_defaults")       != m_values.end() ||
 		m_values.find("use_legacy_opengl") != m_values.end()) {
-		warning_catcher(this, _(L("You need to restart Slic3r to make the changes effective.")));
+        warning_catcher(this, wxString::Format(_(L("You need to restart %s to make the changes effective.")), SLIC3R_APP_NAME));
 	}
 
 	auto app_config = get_app_config();
