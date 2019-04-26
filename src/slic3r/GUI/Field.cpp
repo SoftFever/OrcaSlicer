@@ -505,6 +505,11 @@ void SpinCtrl::BUILD() {
         else tmp_value = -9999;
 #ifdef __WXOSX__
         propagate_value();
+
+        // Forcibly set the input value for SpinControl, since the value 
+	    // inserted from the clipboard is not updated under OSX
+        if (tmp_value > -9999)
+            dynamic_cast<wxSpinCtrl*>(window)->SetValue(tmp_value);
 #endif
 	}), temp->GetId());
 	
