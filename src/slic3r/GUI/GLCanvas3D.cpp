@@ -797,10 +797,15 @@ bool GLCanvas3D::WarningTexture::_generate(const std::string& msg_utf8, const GL
     wxString msg = GUI::from_u8(msg_utf8);
 
     wxMemoryDC memDC;
+
+#ifdef __WXMSW__
+    // set scaled application normal font as default font 
+    wxFont font = wxGetApp().normal_font();
+#else
     // select default font
     const float scale = canvas.get_canvas_size().get_scale_factor();
-//     wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Scale(scale);
-    wxFont font = wxGetApp().normal_font();//! #ys_FIXME_experiment
+    wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Scale(scale);
+#endif
 
     font.MakeLarger();
     font.MakeBold();
@@ -902,7 +907,7 @@ void GLCanvas3D::WarningTexture::render(const GLCanvas3D& canvas) const
     }
 }
 
-void GLCanvas3D::WarningTexture::rescale(const GLCanvas3D& canvas)
+void GLCanvas3D::WarningTexture::msw_rescale(const GLCanvas3D& canvas)
 {
     if (m_msg_text.empty())
         return;
@@ -979,14 +984,16 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
     const int scaled_square_contour = Px_Square_Contour * scale;
     const int scaled_border = Px_Border * scale;
 
-    // select default font
-//     wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Scale(scale_gl);
-    wxFont font = wxGetApp().normal_font();//! #ys_FIXME_experiment
 #ifdef __WXMSW__
+    // set scaled application normal font as default font 
+    wxFont font = wxGetApp().normal_font();
+
     // Disabling ClearType works, but the font returned is very different (much thicker) from the default.
 //    msw_disable_cleartype(font);
     bool cleartype = is_font_cleartype(font);
 #else
+    // select default font
+    wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Scale(scale_gl);
     bool cleartype = false;
 #endif /* __WXMSW__ */
 
@@ -3293,7 +3300,7 @@ void GLCanvas3D::set_cursor(ECursorType type)
 
 void GLCanvas3D::msw_rescale()
 {
-    m_warning_texture.rescale(*this);
+    m_warning_texture.msw_rescale(*this);
 }
 
 bool GLCanvas3D::_is_shown_on_screen() const
