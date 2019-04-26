@@ -4,6 +4,7 @@
 #include "slic3r/GUI/3DScene.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/GUI_ObjectManipulation.hpp"
+#include "slic3r/GUI/PresetBundle.hpp"
 
 #include <GL/glew.h>
 #include <wx/glcanvas.h>
@@ -264,8 +265,12 @@ void GLGizmosManager::update_data(GLCanvas3D& canvas)
 
     const Selection& selection = canvas.get_selection();
 
-    bool enable_move_z = !selection.is_wipe_tower();
-    enable_grabber(Move, 2, enable_move_z);
+    bool is_wipe_tower = selection.is_wipe_tower();
+    enable_grabber(Move, 2, !is_wipe_tower);
+    enable_grabber(Move, 2, !is_wipe_tower);
+    enable_grabber(Rotate, 0, !is_wipe_tower);
+    enable_grabber(Rotate, 1, !is_wipe_tower);
+    
     bool enable_scale_xyz = selection.is_single_full_instance() || selection.is_single_volume() || selection.is_single_modifier();
     for (int i = 0; i < 6; ++i)
     {
@@ -287,6 +292,14 @@ void GLGizmosManager::update_data(GLCanvas3D& canvas)
         const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
         set_scale(volume->get_volume_scaling_factor());
         set_rotation(Vec3d::Zero());
+        set_flattening_data(nullptr);
+        set_sla_support_data(nullptr, selection);
+    }
+    else if (is_wipe_tower)
+    {
+        DynamicPrintConfig& config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+        set_scale(Vec3d::Ones());
+        set_rotation(Vec3d(0., 0., (M_PI/180.) * dynamic_cast<const ConfigOptionFloat*>(config.option("wipe_tower_rotation_angle"))->value));
         set_flattening_data(nullptr);
         set_sla_support_data(nullptr, selection);
     }

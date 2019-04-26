@@ -492,100 +492,111 @@ void Selection::rotate(const Vec3d& rotation, TransformationType transformation_
     // Only relative rotation values are allowed in the world coordinate system.
     assert(!transformation_type.world() || transformation_type.relative());
 
-    int rot_axis_max = 0;
-    if (rotation.isApprox(Vec3d::Zero()))
-    {
-        for (unsigned int i : m_list)
+    if (!is_wipe_tower()) {
+        int rot_axis_max = 0;
+        if (rotation.isApprox(Vec3d::Zero()))
         {
-            GLVolume &volume = *(*m_volumes)[i];
-            if (m_mode == Instance)
+            for (unsigned int i : m_list)
             {
-                volume.set_instance_rotation(m_cache.volumes_data[i].get_instance_rotation());
-                volume.set_instance_offset(m_cache.volumes_data[i].get_instance_position());
-            }
-            else if (m_mode == Volume)
-            {
-                volume.set_volume_rotation(m_cache.volumes_data[i].get_volume_rotation());
-                volume.set_volume_offset(m_cache.volumes_data[i].get_volume_position());
-            }
-        }
-    }
-    else
-    {
-        //FIXME this does not work for absolute rotations (transformation_type.absolute() is true)
-        rotation.cwiseAbs().maxCoeff(&rot_axis_max);
-
-        // For generic rotation, we want to rotate the first volume in selection, and then to synchronize the other volumes with it.
-        std::vector<int> object_instance_first(m_model->objects.size(), -1);
-        auto rotate_instance = [this, &rotation, &object_instance_first, rot_axis_max, transformation_type](GLVolume &volume, int i) {
-            int first_volume_idx = object_instance_first[volume.object_idx()];
-            if (rot_axis_max != 2 && first_volume_idx != -1) {
-                // Generic rotation, but no rotation around the Z axis.
-                // Always do a local rotation (do not consider the selection to be a rigid body).
-                assert(is_approx(rotation.z(), 0.0));
-                const GLVolume &first_volume = *(*m_volumes)[first_volume_idx];
-                const Vec3d    &rotation = first_volume.get_instance_rotation();
-                double z_diff = Geometry::rotation_diff_z(m_cache.volumes_data[first_volume_idx].get_instance_rotation(), m_cache.volumes_data[i].get_instance_rotation());
-                volume.set_instance_rotation(Vec3d(rotation(0), rotation(1), rotation(2) + z_diff));
-            }
-            else {
-                // extracts rotations from the composed transformation
-                Vec3d new_rotation = transformation_type.world() ?
-                    Geometry::extract_euler_angles(Geometry::assemble_transform(Vec3d::Zero(), rotation) * m_cache.volumes_data[i].get_instance_rotation_matrix()) :
-                    transformation_type.absolute() ? rotation : rotation + m_cache.volumes_data[i].get_instance_rotation();
-                if (rot_axis_max == 2 && transformation_type.joint()) {
-                    // Only allow rotation of multiple instances as a single rigid body when rotating around the Z axis.
-                    Vec3d offset = Geometry::assemble_transform(Vec3d::Zero(), Vec3d(0.0, 0.0, new_rotation(2) - m_cache.volumes_data[i].get_instance_rotation()(2))) * (m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center);
-                    volume.set_instance_offset(m_cache.dragging_center + offset);
-                }
-                volume.set_instance_rotation(new_rotation);
-                object_instance_first[volume.object_idx()] = i;
-            }
-        };
-
-        for (unsigned int i : m_list)
-        {
-            GLVolume &volume = *(*m_volumes)[i];
-            if (is_single_full_instance())
-                rotate_instance(volume, i);
-            else if (is_single_volume() || is_single_modifier())
-            {
-                if (transformation_type.independent())
-                    volume.set_volume_rotation(volume.get_volume_rotation() + rotation);
-                else
-                {
-                    Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), rotation);
-                    Vec3d new_rotation = Geometry::extract_euler_angles(m * m_cache.volumes_data[i].get_volume_rotation_matrix());
-                    volume.set_volume_rotation(new_rotation);
-                }
-            }
-            else
-            {
+                GLVolume &volume = *(*m_volumes)[i];
                 if (m_mode == Instance)
-                    rotate_instance(volume, i);
+                {
+                    volume.set_instance_rotation(m_cache.volumes_data[i].get_instance_rotation());
+                    volume.set_instance_offset(m_cache.volumes_data[i].get_instance_position());
+                }
                 else if (m_mode == Volume)
                 {
-                    // extracts rotations from the composed transformation
-                    Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), rotation);
-                    Vec3d new_rotation = Geometry::extract_euler_angles(m * m_cache.volumes_data[i].get_volume_rotation_matrix());
-                    if (transformation_type.joint())
-                    {
-                        Vec3d local_pivot = m_cache.volumes_data[i].get_instance_full_matrix().inverse() * m_cache.dragging_center;
-                        Vec3d offset = m * (m_cache.volumes_data[i].get_volume_position() - local_pivot);
-                        volume.set_volume_offset(local_pivot + offset);
-                    }
-                    volume.set_volume_rotation(new_rotation);
+                    volume.set_volume_rotation(m_cache.volumes_data[i].get_volume_rotation());
+                    volume.set_volume_offset(m_cache.volumes_data[i].get_volume_position());
                 }
             }
         }
-    }
+        else { // this is not the wipe tower
+            //FIXME this does not work for absolute rotations (transformation_type.absolute() is true)
+            rotation.cwiseAbs().maxCoeff(&rot_axis_max);
 
-#if !DISABLE_INSTANCES_SYNCH
-    if (m_mode == Instance)
-        synchronize_unselected_instances((rot_axis_max == 2) ? SYNC_ROTATION_NONE : SYNC_ROTATION_GENERAL);
-    else if (m_mode == Volume)
-        synchronize_unselected_volumes();
-#endif // !DISABLE_INSTANCES_SYNCH
+            // For generic rotation, we want to rotate the first volume in selection, and then to synchronize the other volumes with it.
+            std::vector<int> object_instance_first(m_model->objects.size(), -1);
+            auto rotate_instance = [this, &rotation, &object_instance_first, rot_axis_max, transformation_type](GLVolume &volume, int i) {
+                int first_volume_idx = object_instance_first[volume.object_idx()];
+                if (rot_axis_max != 2 && first_volume_idx != -1) {
+                    // Generic rotation, but no rotation around the Z axis.
+                    // Always do a local rotation (do not consider the selection to be a rigid body).
+                    assert(is_approx(rotation.z(), 0.0));
+                    const GLVolume &first_volume = *(*m_volumes)[first_volume_idx];
+                    const Vec3d    &rotation = first_volume.get_instance_rotation();
+                    double z_diff = Geometry::rotation_diff_z(m_cache.volumes_data[first_volume_idx].get_instance_rotation(), m_cache.volumes_data[i].get_instance_rotation());
+                    volume.set_instance_rotation(Vec3d(rotation(0), rotation(1), rotation(2) + z_diff));
+                }
+                else {
+                    // extracts rotations from the composed transformation
+                    Vec3d new_rotation = transformation_type.world() ?
+                        Geometry::extract_euler_angles(Geometry::assemble_transform(Vec3d::Zero(), rotation) * m_cache.volumes_data[i].get_instance_rotation_matrix()) :
+                        transformation_type.absolute() ? rotation : rotation + m_cache.volumes_data[i].get_instance_rotation();
+                    if (rot_axis_max == 2 && transformation_type.joint()) {
+                        // Only allow rotation of multiple instances as a single rigid body when rotating around the Z axis.
+                        Vec3d offset = Geometry::assemble_transform(Vec3d::Zero(), Vec3d(0.0, 0.0, new_rotation(2) - m_cache.volumes_data[i].get_instance_rotation()(2))) * (m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center);
+                        volume.set_instance_offset(m_cache.dragging_center + offset);
+                    }
+                    volume.set_instance_rotation(new_rotation);
+                    object_instance_first[volume.object_idx()] = i;
+                }
+            };
+
+            for (unsigned int i : m_list)
+            {
+                GLVolume &volume = *(*m_volumes)[i];
+                if (is_single_full_instance())
+                    rotate_instance(volume, i);
+                else if (is_single_volume() || is_single_modifier())
+                {
+                    if (transformation_type.independent())
+                        volume.set_volume_rotation(volume.get_volume_rotation() + rotation);
+                    else
+                    {
+                        Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), rotation);
+                        Vec3d new_rotation = Geometry::extract_euler_angles(m * m_cache.volumes_data[i].get_volume_rotation_matrix());
+                        volume.set_volume_rotation(new_rotation);
+                    }
+                }
+                else
+                {
+                    if (m_mode == Instance)
+                        rotate_instance(volume, i);
+                    else if (m_mode == Volume)
+                    {
+                        // extracts rotations from the composed transformation
+                        Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), rotation);
+                        Vec3d new_rotation = Geometry::extract_euler_angles(m * m_cache.volumes_data[i].get_volume_rotation_matrix());
+                        if (transformation_type.joint())
+                        {
+                            Vec3d local_pivot = m_cache.volumes_data[i].get_instance_full_matrix().inverse() * m_cache.dragging_center;
+                            Vec3d offset = m * (m_cache.volumes_data[i].get_volume_position() - local_pivot);
+                            volume.set_volume_offset(local_pivot + offset);
+                        }
+                        volume.set_volume_rotation(new_rotation);
+                    }
+                }
+            }
+        }
+
+    #if !DISABLE_INSTANCES_SYNCH
+        if (m_mode == Instance)
+            synchronize_unselected_instances((rot_axis_max == 2) ? SYNC_ROTATION_NONE : SYNC_ROTATION_GENERAL);
+        else if (m_mode == Volume)
+            synchronize_unselected_volumes();
+    #endif // !DISABLE_INSTANCES_SYNCH
+    }
+    else { // it's the wipe tower that's selected and being rotated
+        GLVolume& volume = *((*m_volumes)[*m_list.begin()]); // the wipe tower is always alone in the selection
+
+        // make sure the wipe tower rotates around its center, not origin
+        // we can assume that only Z rotation changes
+        Vec3d center_local = volume.transformed_bounding_box().center() - volume.get_volume_offset();
+        Vec3d center_local_new = Eigen::AngleAxisd(rotation(2)-volume.get_volume_rotation()(2), Vec3d(0, 0, 1)) * center_local;
+        volume.set_volume_rotation(rotation);
+        volume.set_volume_offset(volume.get_volume_offset() + center_local - center_local_new);
+    }
 
     m_bounding_box_dirty = true;
 }
