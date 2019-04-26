@@ -276,12 +276,26 @@ void MainFrame::on_dpi_changed(const wxRect &suggested_rect)
     for (auto tab : wxGetApp().tabs_list)
         tab->msw_rescale();
 
+    // Workarounds for correct Window rendering after rescale
+
+    /* Even if Window is maximized during moving, 
+     * first of all we should imitate Window resizing. So:
+     * 1. cancel maximization, if it was set
+     * 2. imitate resizing
+     * 3. set maximization, if it was set
+     */
+    const bool is_maximized = this->IsMaximized();
+    if (is_maximized)
+        this->Maximize(false);
+
     /* To correct window rendering (especially redraw of a status bar)
      * we should imitate window resizing.
      */
     const wxSize& sz = this->GetSize();
     this->SetSize(sz.x + 1, sz.y + 1);
     this->SetSize(sz);
+
+    this->Maximize(is_maximized);
 }
 
 void MainFrame::init_menubar()
