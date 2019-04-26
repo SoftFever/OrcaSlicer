@@ -25,11 +25,13 @@ namespace GUI {
 
 MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &headline, wxWindowID button_id, wxBitmap bitmap)
 	: wxDialog(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
-	, boldfont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT))
+	, boldfont(wxGetApp().normal_font()/*wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT)*/)
 	, content_sizer(new wxBoxSizer(wxVERTICAL))
 	, btn_sizer(new wxBoxSizer(wxHORIZONTAL))
 {
 	boldfont.SetWeight(wxFONTWEIGHT_BOLD);
+
+    this->SetFont(wxGetApp().normal_font());
 
 	auto *topsizer = new wxBoxSizer(wxHORIZONTAL);
 	auto *rightsizer = new wxBoxSizer(wxVERTICAL);
@@ -68,7 +70,8 @@ MsgDialog::~MsgDialog() {}
 // ErrorDialog
 
 ErrorDialog::ErrorDialog(wxWindow *parent, const wxString &msg)
-	: MsgDialog(parent, _(L("Slic3r error")), _(L("Slic3r has encountered an error")),
+    : MsgDialog(parent, wxString::Format(_(L("%s error")), SLIC3R_APP_NAME), 
+                        wxString::Format(_(L("%s has encountered an error")), SLIC3R_APP_NAME),
 		wxID_NONE)
 	, msg(msg)
 {

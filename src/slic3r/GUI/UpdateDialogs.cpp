@@ -109,7 +109,8 @@ MsgUpdateConfig::~MsgUpdateConfig() {}
 // MsgDataIncompatible
 
 MsgDataIncompatible::MsgDataIncompatible(const std::unordered_map<std::string, wxString> &incompats) :
-	MsgDialog(nullptr, _(L("Slic3r incompatibility")), _(L("Slic3r configuration is incompatible")), wxID_NONE)
+    MsgDialog(nullptr, wxString::Format(_(L("%s incompatibility")), SLIC3R_APP_NAME), 
+                       wxString::Format(_(L("%s configuration is incompatible")), SLIC3R_APP_NAME), wxID_NONE)
 {
 	logo->SetBitmap(create_scaled_bitmap(this, "Slic3r_192px_grayscale.png", 192));
 
@@ -117,9 +118,9 @@ MsgDataIncompatible::MsgDataIncompatible(const std::unordered_map<std::string, w
 		"This version of %s is not compatible with currently installed configuration bundles.\n"
 		"This probably happened as a result of running an older %s after using a newer one.\n\n"
 
-		"You may either exit Slic3r and try again with a newer version, or you may re-run the initial configuration. "
-		"Doing so will create a backup snapshot of the existing configuration before installing files compatible with this Slic3r.\n"
-		)), SLIC3R_APP_NAME, SLIC3R_APP_NAME));
+		"You may either exit %s and try again with a newer version, or you may re-run the initial configuration. "
+		"Doing so will create a backup snapshot of the existing configuration before installing files compatible with this %s.\n"
+		)), SLIC3R_APP_NAME, SLIC3R_APP_NAME, SLIC3R_APP_NAME, SLIC3R_APP_NAME));
 	text->Wrap(CONTENT_WIDTH * wxGetApp().em_unit());
 	content_sizer->Add(text);
 
@@ -144,7 +145,7 @@ MsgDataIncompatible::MsgDataIncompatible(const std::unordered_map<std::string, w
 	content_sizer->Add(versions);
 	content_sizer->AddSpacer(2*VERT_SPACING);
 
-	auto *btn_exit = new wxButton(this, wxID_EXIT, _(L("Exit Slic3r")));
+    auto *btn_exit = new wxButton(this, wxID_EXIT, wxString::Format(_(L("Exit %s")), SLIC3R_APP_NAME));
 	btn_sizer->Add(btn_exit);
 	btn_sizer->AddSpacer(HORIZ_SPACING);
 	auto *btn_reconf = new wxButton(this, wxID_REPLACE, _(L("Re-configure")));
@@ -187,7 +188,7 @@ MsgDataLegacy::MsgDataLegacy() :
 	auto *text2 = new wxStaticText(this, wxID_ANY, _(L("For more information please visit our wiki page:")));
 	static const wxString url("https://github.com/prusa3d/Slic3r/wiki/Slic3r-PE-1.40-configuration-update");
 	// The wiki page name is intentionally not localized:
-	auto *link = new wxHyperlinkCtrl(this, wxID_ANY, "Slic3r PE 1.40 configuration update", CONFIG_UPDATE_WIKI_URL);
+	auto *link = new wxHyperlinkCtrl(this, wxID_ANY, wxString::Format("%s 1.40 configuration update", SLIC3R_APP_NAME), CONFIG_UPDATE_WIKI_URL);
 	content_sizer->Add(text2);
 	content_sizer->Add(link);
 	content_sizer->AddSpacer(VERT_SPACING);

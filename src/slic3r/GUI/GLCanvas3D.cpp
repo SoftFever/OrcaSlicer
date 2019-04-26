@@ -703,6 +703,7 @@ void GLCanvas3D::WarningTexture::activate(WarningTexture::Warning warning, bool 
         m_warnings.erase(it);
         if (m_warnings.empty()) { // nothing remains to be shown
             reset();
+            m_msg_text = "";// save information for rescaling
             return;
         }
     }
@@ -723,6 +724,10 @@ void GLCanvas3D::WarningTexture::activate(WarningTexture::Warning warning, bool 
     }
 
     _generate(text, canvas, red_colored); // GUI::GLTexture::reset() is called at the beginning of generate(...)
+
+    // save information for rescaling
+    m_msg_text = text;
+    m_is_colored_red = red_colored;
 }
 
 
@@ -789,9 +794,16 @@ bool GLCanvas3D::WarningTexture::_generate(const std::string& msg_utf8, const GL
     wxString msg = GUI::from_u8(msg_utf8);
 
     wxMemoryDC memDC;
+
+#ifdef __WXMSW__
+    // set scaled application normal font as default font 
+    wxFont font = wxGetApp().normal_font();
+#else
     // select default font
     const float scale = canvas.get_canvas_size().get_scale_factor();
     wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Scale(scale);
+#endif
+
     font.MakeLarger();
     font.MakeBold();
     memDC.SetFont(font);
@@ -892,6 +904,14 @@ void GLCanvas3D::WarningTexture::render(const GLCanvas3D& canvas) const
     }
 }
 
+void GLCanvas3D::WarningTexture::msw_rescale(const GLCanvas3D& canvas)
+{
+    if (m_msg_text.empty())
+        return;
+
+    _generate(m_msg_text, canvas, m_is_colored_red);
+}
+
 const unsigned char GLCanvas3D::LegendTexture::Squares_Border_Color[3] = { 64, 64, 64 };
 const unsigned char GLCanvas3D::LegendTexture::Default_Background_Color[3] = { (unsigned char)(DEFAULT_BG_LIGHT_COLOR[0] * 255.0f), (unsigned char)(DEFAULT_BG_LIGHT_COLOR[1] * 255.0f), (unsigned char)(DEFAULT_BG_LIGHT_COLOR[2] * 255.0f) };
 const unsigned char GLCanvas3D::LegendTexture::Error_Background_Color[3] = { (unsigned char)(ERROR_BG_LIGHT_COLOR[0] * 255.0f), (unsigned char)(ERROR_BG_LIGHT_COLOR[1] * 255.0f), (unsigned char)(ERROR_BG_LIGHT_COLOR[2] * 255.0f) };
@@ -961,13 +981,16 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
     const int scaled_square_contour = Px_Square_Contour * scale;
     const int scaled_border = Px_Border * scale;
 
-    // select default font
-    wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Scale(scale_gl);
 #ifdef __WXMSW__
+    // set scaled application normal font as default font 
+    wxFont font = wxGetApp().normal_font();
+
     // Disabling ClearType works, but the font returned is very different (much thicker) from the default.
 //    msw_disable_cleartype(font);
     bool cleartype = is_font_cleartype(font);
 #else
+    // select default font
+    wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Scale(scale_gl);
     bool cleartype = false;
 #endif /* __WXMSW__ */
 
@@ -3190,6 +3213,11 @@ double GLCanvas3D::get_size_proportional_to_max_bed_size(double factor) const
     return factor * m_bed.get_bounding_box().max_size();
 }
 
+void GLCanvas3D::msw_rescale()
+{
+    m_warning_texture.msw_rescale(*this);
+}
+
 bool GLCanvas3D::_is_shown_on_screen() const
 {
     return (m_canvas != nullptr) ? m_canvas->IsShownOnScreen() : false;
@@ -3834,7 +3862,8 @@ void GLCanvas3D::_render_gizmos_overlay() const
 #if ENABLE_RETINA_GL
     m_gizmos.set_overlay_scale(m_retina_helper->get_scale_factor());
 #else
-    m_gizmos.set_overlay_scale(m_canvas->GetContentScaleFactor());
+//     m_gizmos.set_overlay_scale(m_canvas->GetContentScaleFactor());
+    m_gizmos.set_overlay_scale(wxGetApp().em_unit()*0.1f);//! #ys_FIXME_experiment
 #endif /* __WXMSW__ */
 
     m_gizmos.render_overlay(*this, m_selection);
@@ -3846,7 +3875,8 @@ void GLCanvas3D::_render_toolbar() const
 #if ENABLE_RETINA_GL
     m_toolbar.set_scale(m_retina_helper->get_scale_factor());
 #else
-    m_toolbar.set_scale(m_canvas->GetContentScaleFactor());
+//     m_toolbar.set_scale(m_canvas->GetContentScaleFactor());
+    m_toolbar.set_scale(wxGetApp().em_unit()*0.1f);//! #ys_FIXME_experiment
 #endif // ENABLE_RETINA_GL
 
     Size cnv_size = get_canvas_size();
@@ -3909,7 +3939,8 @@ void GLCanvas3D::_render_view_toolbar() const
 #if ENABLE_RETINA_GL
     m_view_toolbar.set_scale(m_retina_helper->get_scale_factor());
 #else
-    m_view_toolbar.set_scale(m_canvas->GetContentScaleFactor());
+//     m_view_toolbar.set_scale(m_canvas->GetContentScaleFactor());
+    m_view_toolbar.set_scale(wxGetApp().em_unit()*0.1f); //! #ys_FIXME_experiment
 #endif // ENABLE_RETINA_GL
 
     Size cnv_size = get_canvas_size();

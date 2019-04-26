@@ -6,6 +6,7 @@
 
 #include "libslic3r/Utils.hpp"
 #include "GUI_App.hpp"
+#include "wxExtensions.hpp"
 
 namespace Slic3r { 
 namespace GUI {
@@ -66,7 +67,7 @@ static wxString generate_html_row(const Config::Snapshot &snapshot, bool row_eve
     }
 
     if (! compatible) {
-        text += "<p align=\"right\">" + _(L("Incompatible with this Slic3r")) + "</p>";
+        text += "<p align=\"right\">" + wxString::Format(_(L("Incompatible with this %s")), SLIC3R_APP_NAME) + "</p>";
     }
     else if (! snapshot_active)
         text += "<p align=\"right\"><a href=\"" + snapshot.id + "\">" + _(L("Activate")) + "</a></p>";
@@ -95,21 +96,26 @@ static wxString generate_html_page(const Config::SnapshotDB &snapshot_db, const 
 }
 
 ConfigSnapshotDialog::ConfigSnapshotDialog(const Config::SnapshotDB &snapshot_db, const wxString &on_snapshot)
-    : wxDialog(NULL, wxID_ANY, _(L("Configuration Snapshots")), wxDefaultPosition, 
+    : DPIDialog(NULL, wxID_ANY, _(L("Configuration Snapshots")), wxDefaultPosition, 
                wxSize(45 * wxGetApp().em_unit(), 40 * wxGetApp().em_unit()), 
                wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxMAXIMIZE_BOX)
 {
+    this->SetFont(wxGetApp().normal_font());
     this->SetBackgroundColour(*wxWHITE);
     
     wxBoxSizer* vsizer = new wxBoxSizer(wxVERTICAL);
     this->SetSizer(vsizer);
 
     // text
-    wxHtmlWindow* html = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_AUTO);
+    html = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_AUTO);
     {
-        wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+        wxFont font = wxGetApp().normal_font();//wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
         #ifdef __WXMSW__
-            int size[] = {8,8,8,8,11,11,11};
+            const int fs = font.GetPointSize();
+            const int fs1 = static_cast<int>(0.8f*fs);
+            const int fs2 = static_cast<int>(1.1f*fs);
+            int size[] = {fs1, fs1, fs1, fs1, fs2, fs2, fs2};
+//             int size[] = {8,8,8,8,11,11,11};
         #else
             int size[] = {11,11,11,11,14,14,14};
         #endif
@@ -125,6 +131,28 @@ ConfigSnapshotDialog::ConfigSnapshotDialog(const Config::SnapshotDB &snapshot_db
     this->SetEscapeId(wxID_CLOSE);
     this->Bind(wxEVT_BUTTON, &ConfigSnapshotDialog::onCloseDialog, this, wxID_CLOSE);
     vsizer->Add(buttons, 0, wxEXPAND | wxRIGHT | wxBOTTOM, 3);
+}
+
+void ConfigSnapshotDialog::on_dpi_changed(const wxRect &suggested_rect)
+{
+    wxFont font = GetFont();
+    const int fs = font.GetPointSize();
+    const int fs1 = static_cast<int>(0.8f*fs);
+    const int fs2 = static_cast<int>(1.1f*fs);
+    int font_size[] = { fs1, fs1, fs1, fs1, fs2, fs2, fs2 };
+
+    html->SetFonts(font.GetFaceName(), font.GetFaceName(), font_size);
+    html->Refresh();
+
+    const int& em = em_unit();
+
+    msw_buttons_rescale(this, em, { wxID_CLOSE});
+
+    const wxSize& size = wxSize(45 * em, 40 * em);
+    SetMinSize(size);
+    Fit();
+
+    Refresh();
 }
 
 void ConfigSnapshotDialog::onLinkClicked(wxHtmlLinkEvent &event)

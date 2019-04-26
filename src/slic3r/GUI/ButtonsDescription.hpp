@@ -4,10 +4,12 @@
 #include <wx/dialog.h>
 #include <vector>
 
+class ScalableBitmap;
+
 namespace Slic3r {
 namespace GUI {
 
-using t_icon_descriptions = std::vector<std::pair<wxBitmap*, std::string>>;
+using t_icon_descriptions = std::vector<std::pair<ScalableBitmap*, std::string>>;
 
 class ButtonsDescription : public wxDialog
 {
@@ -15,8 +17,6 @@ class ButtonsDescription : public wxDialog
 public:
 	ButtonsDescription(wxWindow* parent, t_icon_descriptions* icon_descriptions);
 	~ButtonsDescription() {}
-
-
 };
 
 } // GUI

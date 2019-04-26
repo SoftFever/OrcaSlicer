@@ -184,7 +184,7 @@ std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::T
     
 
     // Disable linear advance for the wipe tower operations.
-    gcode += "M900 K0\n";
+    gcode += (gcodegen.config().gcode_flavor == gcfRepRap ? std::string("M572 D0 S0\n") : std::string("M900 K0\n"));
     // Move over the wipe tower.
     // Retract for a tool change, using the toolchange retract value and setting the priming extra length.
     gcode += gcodegen.retract(true);
@@ -289,7 +289,7 @@ std::string WipeTowerIntegration::prime(GCode &gcodegen)
 
     if (&m_priming != nullptr && ! m_priming.extrusions.empty()) {
         // Disable linear advance for the wipe tower operations.
-        gcode += "M900 K0\n";
+        gcode += (gcodegen.config().gcode_flavor == gcfRepRap ? std::string("M572 D0 S0\n") : std::string("M900 K0\n"));
         // Let the tool change be executed by the wipe tower class.
         // Inform the G-code writer about the changes done behind its back.
         gcode += m_priming.gcode;

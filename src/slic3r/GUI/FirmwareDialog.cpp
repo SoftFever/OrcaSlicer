@@ -18,6 +18,7 @@
 #include "MsgDialog.hpp"
 #include "../Utils/HexFile.hpp"
 #include "../Utils/Serial.hpp"
+#include "wxExtensions.hpp"
 
 // wx includes need to come after asio because of the WinSock.h problem
 #include "FirmwareDialog.hpp"
@@ -117,6 +118,10 @@ struct FirmwareDialog::priv
 	wxString label_status_flashing;
 
 	wxTimer timer_pulse;
+
+    int min_width;
+    int min_height;
+    int min_height_expanded;
 
 	// Async modal dialog during flashing
 	std::mutex mutex;
@@ -732,23 +737,21 @@ const char* FirmwareDialog::priv::avr109_dev_name(Avr109Pid usb_pid) {
 // Public
 
 FirmwareDialog::FirmwareDialog(wxWindow *parent) :
-	wxDialog(parent, wxID_ANY, _(L("Firmware flasher")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
+	GUI::DPIDialog(parent, wxID_ANY, _(L("Firmware flasher")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
 	p(new priv(this))
 {
-	enum {
-		DIALOG_MARGIN = 15,
-		SPACING = 10,
-		MIN_WIDTH = 50,
-		MIN_HEIGHT = 18,
-		MIN_HEIGHT_EXPANDED = 40,
-	};
-
 	const int em = GUI::wxGetApp().em_unit();
-	int min_width = MIN_WIDTH * em;
-	int min_height = MIN_HEIGHT * em;
-	int min_height_expanded = MIN_HEIGHT_EXPANDED * em;
+	p->min_width = MIN_WIDTH * em;
+	p->min_height = MIN_HEIGHT * em;
+	p->min_height_expanded = MIN_HEIGHT_EXPANDED * em;
 
-	wxFont status_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+    /* get current font from application, 
+     * because of wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT) function
+     * returns font for primary Display
+     */
+    const wxFont& font = GUI::wxGetApp().normal_font();
+    SetFont(font);
+    wxFont status_font = font;//wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 	status_font.MakeBold();
 	wxFont mono_font(wxFontInfo().Family(wxFONTFAMILY_TELETYPE));
 	mono_font.MakeSmaller();
@@ -819,10 +822,10 @@ FirmwareDialog::FirmwareDialog(wxWindow *parent) :
 
 	auto *topsizer = new wxBoxSizer(wxVERTICAL);
 	topsizer->Add(panel, 1, wxEXPAND | wxALL, DIALOG_MARGIN);
-	SetMinSize(wxSize(min_width, min_height));
+	SetMinSize(wxSize(p->min_width, p->min_height));
 	SetSizerAndFit(topsizer);
 	const auto size = GetSize();
-	SetSize(std::max(size.GetWidth(), static_cast<int>(min_width)), std::max(size.GetHeight(), static_cast<int>(min_height)));
+	SetSize(std::max(size.GetWidth(), static_cast<int>(p->min_width)), std::max(size.GetHeight(), static_cast<int>(p->min_height)));
 	Layout();
 
     SetEscapeId(wxID_CLOSE); // To close the dialog using "Esc" button
@@ -838,11 +841,11 @@ FirmwareDialog::FirmwareDialog(wxWindow *parent) :
 
 	p->spoiler->Bind(wxEVT_COLLAPSIBLEPANE_CHANGED, [=](wxCollapsiblePaneEvent &evt) {
 		if (evt.GetCollapsed()) {
-			this->SetMinSize(wxSize(min_width, min_height));
+			this->SetMinSize(wxSize(p->min_width, p->min_height));
 			const auto new_height = this->GetSize().GetHeight() - this->p->txt_stdout->GetSize().GetHeight();
 			this->SetSize(this->GetSize().GetWidth(), new_height);
 		} else {
-			this->SetMinSize(wxSize(min_width, min_height_expanded));
+			this->SetMinSize(wxSize(p->min_width, p->min_height_expanded));
 		}
 
 		this->Layout();
@@ -897,5 +900,25 @@ void FirmwareDialog::run(wxWindow *parent)
 	dialog.ShowModal();
 }
 
+void FirmwareDialog::on_dpi_changed(const wxRect &suggested_rect)
+{
+    const int& em = em_unit();
+
+    msw_buttons_rescale(this, em, { p->btn_close->GetId(), 
+                                    p->btn_rescan->GetId(),
+                                    p->btn_flash->GetId(),
+                                    p->hex_picker->GetPickerCtrl()->GetId()
+                                                            });
+
+    p->min_width = MIN_WIDTH * em;
+    p->min_height = MIN_HEIGHT * em;
+    p->min_height_expanded = MIN_HEIGHT_EXPANDED * em;
+
+    const int min_height = p->spoiler->IsExpanded() ? p->min_height_expanded : p->min_height;
+    SetMinSize(wxSize(p->min_width, min_height));
+    Fit();
+
+    Refresh();
+}
 
 }

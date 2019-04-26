@@ -4,6 +4,7 @@
 #include "libslic3r/PrintConfig.hpp"
 
 #include <wx/frame.h>
+#include <wx/settings.h>
 #include <wx/string.h>
 
 #include <string>

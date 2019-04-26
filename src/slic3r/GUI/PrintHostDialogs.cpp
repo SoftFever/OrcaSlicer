@@ -19,6 +19,7 @@
 #include "MsgDialog.hpp"
 #include "I18N.hpp"
 #include "../Utils/PrintHost.hpp"
+#include "wxExtensions.hpp"
 
 namespace fs = boost::filesystem;
 
@@ -131,13 +132,11 @@ wxEvent *PrintHostQueueDialog::Event::Clone() const
 }
 
 PrintHostQueueDialog::PrintHostQueueDialog(wxWindow *parent)
-    : wxDialog(parent, wxID_ANY, _(L("Print host upload queue")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+    : DPIDialog(parent, wxID_ANY, _(L("Print host upload queue")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
     , on_progress_evt(this, EVT_PRINTHOST_PROGRESS, &PrintHostQueueDialog::on_progress, this)
     , on_error_evt(this, EVT_PRINTHOST_ERROR, &PrintHostQueueDialog::on_error, this)
     , on_cancel_evt(this, EVT_PRINTHOST_CANCEL, &PrintHostQueueDialog::on_cancel, this)
 {
-    enum { HEIGHT = 60, WIDTH = 30, SPACING = 5 };
-
     const auto em = GetTextExtent("m").x;
 
     SetSize(wxSize(HEIGHT * em, WIDTH * em));
@@ -200,6 +199,18 @@ void PrintHostQueueDialog::append_job(const PrintHostJob &job)
     fields.push_back(wxVariant(job.upload_data.upload_path.string()));
     fields.push_back(wxVariant(""));
     job_list->AppendItem(fields, static_cast<wxUIntPtr>(ST_NEW));
+}
+
+void PrintHostQueueDialog::on_dpi_changed(const wxRect &suggested_rect)
+{
+    const int& em = em_unit();
+
+    msw_buttons_rescale(this, em, { wxID_DELETE, wxID_CANCEL, btn_error->GetId() });
+
+    SetMinSize(wxSize(HEIGHT * em, WIDTH * em));
+
+    Fit();
+    Refresh();
 }
 
 PrintHostQueueDialog::JobState PrintHostQueueDialog::get_state(int idx)

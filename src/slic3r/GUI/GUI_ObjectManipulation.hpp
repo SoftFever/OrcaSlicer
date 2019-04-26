@@ -7,7 +7,7 @@
 #include "GLCanvas3D.hpp"
 
 class wxStaticText;
-class PrusaLockButton;
+class LockButton;
 
 namespace Slic3r {
 namespace GUI {
@@ -82,7 +82,7 @@ class ObjectManipulation : public OG_Settings
     bool            m_uniform_scale {true};
     // Does the object manipulation panel work in World or Local coordinates?
     bool            m_world_coordinates = true;
-    PrusaLockButton* m_lock_bnt{ nullptr };
+    LockButton*     m_lock_bnt{ nullptr };
     wxBitmapComboBox* m_word_local_combo = nullptr;
 
 #ifndef __APPLE__
