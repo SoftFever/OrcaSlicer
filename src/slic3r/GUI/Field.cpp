@@ -379,8 +379,8 @@ void TextCtrl::change_field_value(wxEvent& event)
 
 void CheckBox::BUILD() {
 	auto size = wxSize(wxDefaultSize);
-	if (m_opt.height >= 0) size.SetHeight(m_opt.height);
-	if (m_opt.width >= 0) size.SetWidth(m_opt.width);
+	if (m_opt.height >= 0) size.SetHeight(m_opt.height*m_em_unit);
+	if (m_opt.width >= 0) size.SetWidth(m_opt.width*m_em_unit);
 
 	bool check_value =	m_opt.type == coBool ? 
 						m_opt.default_value->getBool() : m_opt.type == coBools ? 
@@ -411,6 +411,14 @@ boost::any& CheckBox::get_value()
 	else
 		m_value = static_cast<unsigned char>(value);
  	return m_value;
+}
+
+void CheckBox::msw_rescale()
+{
+    Field::msw_rescale();
+
+    wxCheckBox* field = dynamic_cast<wxCheckBox*>(window);
+    field->SetMinSize(wxSize(-1, int(1.5f*field->GetFont().GetPixelSize().y +0.5f)));
 }
 
 int undef_spin_val = -9999;		//! Probably, It's not necessary
@@ -849,9 +857,11 @@ void Choice::msw_rescale()
 	 */
     field->Clear();
     wxSize size(wxDefaultSize);
-    if (m_opt.height >= 0) size.SetHeight(m_opt.height * m_em_unit);
     size.SetWidth((m_opt.width > 0 ? m_opt.width : m_width) * m_em_unit);
-    
+ 
+    // Set rescaled min height to correct layout
+    field->SetMinSize(wxSize(-1, int(1.5f*field->GetFont().GetPixelSize().y + 0.5f)));
+    // Set rescaled size
     field->SetSize(size);
 
     size_t idx, counter = idx = 0;

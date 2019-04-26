@@ -319,6 +319,8 @@ public:
 	}
 	boost::any&		get_value() override;
 
+    void            msw_rescale() override;
+
 	void			enable() override { dynamic_cast<wxCheckBox*>(window)->Enable(); }
 	void			disable() override { dynamic_cast<wxCheckBox*>(window)->Disable(); }
 	wxWindow*		getWindow() override { return window; }
