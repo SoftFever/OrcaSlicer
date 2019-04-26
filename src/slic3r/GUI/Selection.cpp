@@ -310,43 +310,36 @@ void Selection::clear()
     wxGetApp().obj_manipul()->reset_cache();
 }
 
+// Update the selection based on the new instance IDs.
+void Selection::instances_changed(const std::vector<size_t> &instance_ids_selected)
+{
+    assert(m_valid);
+    assert(m_mode == Instance);
+    m_list.clear();
+    for (unsigned int volume_idx = 0; volume_idx < (unsigned int)m_volumes->size(); ++ volume_idx) {
+        const GLVolume *volume = (*m_volumes)[volume_idx];
+        auto it = std::lower_bound(instance_ids_selected.begin(), instance_ids_selected.end(), volume->geometry_id.second);
+		if (it != instance_ids_selected.end() && *it == volume->geometry_id.second)
+            this->do_add_volume(volume_idx);
+    }
+    update_type();
+    m_bounding_box_dirty = true;
+}
+
 // Update the selection based on the map from old indices to new indices after m_volumes changed.
 // If the current selection is by instance, this call may select newly added volumes, if they belong to already selected instances.
 void Selection::volumes_changed(const std::vector<size_t> &map_volume_old_to_new)
 {
     assert(m_valid);
-
-    // 1) Update the selection set.
+    assert(m_mode == Volume);
     IndicesList list_new;
-    std::vector<std::pair<unsigned int, unsigned int>> model_instances;
-    for (unsigned int idx : m_list) {
+    for (unsigned int idx : m_list)
         if (map_volume_old_to_new[idx] != size_t(-1)) {
             unsigned int new_idx = (unsigned int)map_volume_old_to_new[idx];
+            assert((*m_volumes)[new_idx]->selected);
             list_new.insert(new_idx);
-            if (m_mode == Instance) {
-                // Save the object_idx / instance_idx pair of selected old volumes,
-                // so we may add the newly added volumes of the same object_idx / instance_idx pair
-                // to the selection.
-                const GLVolume *volume = (*m_volumes)[new_idx];
-                model_instances.emplace_back(volume->object_idx(), volume->instance_idx());
-            }
         }
-    }
     m_list = std::move(list_new);
-
-    if (!model_instances.empty()) {
-        // Instance selection mode. Add the newly added volumes of the same object_idx / instance_idx pair
-        // to the selection.
-        assert(m_mode == Instance);
-        sort_remove_duplicates(model_instances);
-        for (unsigned int i = 0; i < (unsigned int)m_volumes->size(); ++i) {
-            const GLVolume* volume = (*m_volumes)[i];
-            for (const std::pair<int, int> &model_instance : model_instances)
-                if (volume->object_idx() == model_instance.first && volume->instance_idx() == model_instance.second)
-                    do_add_volume(i);
-        }
-    }
-
     update_type();
     m_bounding_box_dirty = true;
 }

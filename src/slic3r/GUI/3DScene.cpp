@@ -716,6 +716,8 @@ int GLVolumeCollection::load_wipe_tower_preview(
     v.bounding_box = v.indexed_vertex_array.bounding_box();
     v.indexed_vertex_array.finalize_geometry(use_VBOs);
 	v.composite_id = GLVolume::CompositeID(obj_idx, 0, 0);
+    v.geometry_id.first = 0;
+    v.geometry_id.second = wipe_tower_instance_id().id;
     v.is_wipe_tower = true;
     v.shader_outside_printer_detection_enabled = ! size_unknown;
     return int(this->volumes.size() - 1);

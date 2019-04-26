@@ -177,15 +177,19 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
 
 void ObjectManipulation::Show(const bool show)
 {
-    if (show == IsShown())
-        return;
+	if (show != IsShown()) {
+		m_og->Show(show);
 
-    m_og->Show(show);
+		if (show && wxGetApp().get_mode() != comSimple) {
+			m_og->get_grid_sizer()->Show(size_t(0), false);
+			m_og->get_grid_sizer()->Show(size_t(1), false);
+		}
+	}
 
-    if (show && wxGetApp().get_mode() != comSimple) {
-        m_og->get_grid_sizer()->Show(size_t(0), false);
-        m_og->get_grid_sizer()->Show(size_t(1), false);
-    }
+	if (show) {
+		bool show_world_local_combo = wxGetApp().plater()->canvas3D()->get_selection().is_single_full_instance();
+		m_word_local_combo->Show(show_world_local_combo);
+	}
 }
 
 bool ObjectManipulation::IsShown()
@@ -199,18 +203,6 @@ void ObjectManipulation::UpdateAndShow(const bool show)
         update_settings_value(wxGetApp().plater()->canvas3D()->get_selection());
 
     OG_Settings::UpdateAndShow(show);
-}
-
-static bool is_rotation_ninety_degrees(const Vec3d &rotation)
-{
-	// Is the angle close to a multiple of 90 degrees?
-	auto ninety_degrees = [](double a) {
-		a = fmod(std::abs(a), 0.5 * PI);
-		if (a > 0.25 * PI)
-			a = 0.5 * PI - a;
-		return a < 0.001;
-	};
-	return ninety_degrees(rotation.x()) && ninety_degrees(rotation.y()) && ninety_degrees(rotation.z());
 }
 
 void ObjectManipulation::update_settings_value(const Selection& selection)
@@ -269,7 +261,7 @@ void ObjectManipulation::update_settings_value(const Selection& selection)
 			// all volumes in the selection belongs to the same instance, any of them contains the needed instance data, so we take the first one
 			const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
 			// Is the angle close to a multiple of 90 degrees?
-			if (! is_rotation_ninety_degrees(volume->get_instance_rotation())) {
+			if (! Geometry::is_rotation_ninety_degrees(volume->get_instance_rotation())) {
 				// Manipulating an instance in the world coordinate system, rotation is not multiples of ninety degrees, therefore enforce uniform scaling.
 				m_uniform_scale = true;
 				m_lock_bnt->SetLock(true);
@@ -573,7 +565,7 @@ void ObjectManipulation::set_uniform_scaling(const bool new_value)
         // all volumes in the selection belongs to the same instance, any of them contains the needed instance data, so we take the first one
         const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
         // Is the angle close to a multiple of 90 degrees?
-		if (! is_rotation_ninety_degrees(volume->get_instance_rotation())) {
+		if (! Geometry::is_rotation_ninety_degrees(volume->get_instance_rotation())) {
             // Cannot apply scaling in the world coordinate system.
 			wxMessageDialog dlg(GUI::wxGetApp().mainframe,
                 _(L("Non-uniform scaling of tilted objects is not supported in the World coordinate system.\n"
@@ -586,6 +578,9 @@ void ObjectManipulation::set_uniform_scaling(const bool new_value)
                 return;
             }
             // Bake the rotation into the meshes of the object.
+            (*wxGetApp().model_objects())[volume->composite_id.object_id]->bake_xy_rotation_into_meshes(volume->composite_id.instance_id);
+            // Update the 3D scene, selections etc.
+            wxGetApp().plater()->update();
         }
     }
     m_uniform_scale = new_value;

@@ -224,6 +224,8 @@ public:
 
     void add_all();
 
+    // Update the selection based on the new instance IDs.
+	void instances_changed(const std::vector<size_t> &instance_ids_selected);
     // Update the selection based on the map from old indices to new indices after m_volumes changed.
     // If the current selection is by instance, this call may select newly added volumes, if they belong to already selected instances.
     void volumes_changed(const std::vector<size_t> &map_volume_old_to_new);
@@ -245,7 +247,7 @@ public:
     bool is_from_single_instance() const { return get_instance_idx() != -1; }
     bool is_from_single_object() const;
 
-    bool contains_volume(unsigned int volume_idx) const { return std::find(m_list.begin(), m_list.end(), volume_idx) != m_list.end(); }
+    bool contains_volume(unsigned int volume_idx) const { return m_list.find(volume_idx) != m_list.end(); }
     bool requires_uniform_scale() const;
 
     // Returns the the object id if the selection is from a single object, otherwise is -1

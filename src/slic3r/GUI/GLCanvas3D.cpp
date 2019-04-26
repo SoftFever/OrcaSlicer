@@ -1770,6 +1770,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     // State of the sla_steps for all SLAPrintObjects.
     std::vector<SLASupportState>   sla_support_state;
 
+    std::vector<size_t> instance_ids_selected;
     std::vector<size_t> map_glvolume_old_to_new(m_volumes.volumes.size(), size_t(-1));
     std::vector<GLVolume*> glvolumes_new;
     glvolumes_new.reserve(m_volumes.volumes.size());
@@ -1834,6 +1835,10 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 if (it != model_volume_state.end() && it->geometry_id == key.geometry_id)
 					mvs = &(*it);
             }
+            // Emplace instance ID of the volume. Both the aux volumes and model volumes share the same instance ID.
+            // The wipe tower has its own wipe_tower_instance_id().
+            if (m_selection.contains_volume(volume_id))
+                instance_ids_selected.emplace_back(volume->geometry_id.second);
             if (mvs == nullptr || force_full_scene_refresh) {
                 // This GLVolume will be released.
                 if (volume->is_wipe_tower) {
@@ -1865,6 +1870,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 }
             }
         }
+        sort_remove_duplicates(instance_ids_selected);
     }
 
     if (m_reload_delayed)
@@ -2001,7 +2007,10 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
         update_volumes_colors_by_extruder();
 		// Update selection indices based on the old/new GLVolumeCollection.
-		m_selection.volumes_changed(map_glvolume_old_to_new);
+        if (m_selection.get_mode() == Selection::Instance)
+            m_selection.instances_changed(instance_ids_selected);
+        else
+            m_selection.volumes_changed(map_glvolume_old_to_new);
 	}
 
     m_gizmos.update_data(*this);

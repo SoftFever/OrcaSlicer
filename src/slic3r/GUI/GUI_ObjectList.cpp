@@ -1357,19 +1357,12 @@ Geometry::Transformation volume_to_bed_transformation(const Geometry::Transforma
 {
     Geometry::Transformation out;
 
-	// Is the angle close to a multiple of 90 degrees?
-	auto ninety_degrees = [](double a) { 
-		a = fmod(std::abs(a), 0.5 * PI);
-		if (a > 0.25 * PI)
-			a = 0.5 * PI - a;
-		return a < 0.001;
-	};
     if (instance_transformation.is_scaling_uniform()) {
         // No need to run the non-linear least squares fitting for uniform scaling.
         // Just set the inverse.
 		out.set_from_transform(instance_transformation.get_matrix(true).inverse());
     }
-	else if (ninety_degrees(instance_transformation.get_rotation().x()) && ninety_degrees(instance_transformation.get_rotation().y()) && ninety_degrees(instance_transformation.get_rotation().z()))
+	else if (Geometry::is_rotation_ninety_degrees(instance_transformation.get_rotation()))
 	{
 		// Anisotropic scaling, rotation by multiples of ninety degrees.
 		Eigen::Matrix3d instance_rotation_trafo =

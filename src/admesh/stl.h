@@ -180,8 +180,65 @@ extern void stl_rotate_z(stl_file *stl, float angle);
 extern void stl_mirror_xy(stl_file *stl);
 extern void stl_mirror_yz(stl_file *stl);
 extern void stl_mirror_xz(stl_file *stl);
-extern void stl_transform(stl_file *stl, float *trafo3x4);
-extern void stl_transform(stl_file *stl, const Eigen::Transform<double, 3, Eigen::Affine, Eigen::DontAlign>& t);
+
+template<typename T>
+extern void stl_transform(stl_file *stl, T *trafo3x4)
+{
+  if (stl->error)
+    return;
+
+  for (uint32_t i_face = 0; i_face < stl->stats.number_of_facets; ++ i_face) {
+    stl_facet &face = stl->facet_start[i_face];
+    for (int i_vertex = 0; i_vertex < 3; ++ i_vertex) {
+      stl_vertex &v_dst = face.vertex[i_vertex];
+      stl_vertex  v_src = v_dst;
+      v_dst(0) = T(trafo3x4[0] * v_src(0) + trafo3x4[1] * v_src(1) + trafo3x4[2]  * v_src(2) + trafo3x4[3]);
+      v_dst(1) = T(trafo3x4[4] * v_src(0) + trafo3x4[5] * v_src(1) + trafo3x4[6]  * v_src(2) + trafo3x4[7]);
+      v_dst(2) = T(trafo3x4[8] * v_src(0) + trafo3x4[9] * v_src(1) + trafo3x4[10] * v_src(2) + trafo3x4[11]);
+    }
+    stl_vertex &v_dst = face.normal;
+    stl_vertex  v_src = v_dst;
+    v_dst(0) = T(trafo3x4[0] * v_src(0) + trafo3x4[1] * v_src(1) + trafo3x4[2]  * v_src(2));
+    v_dst(1) = T(trafo3x4[4] * v_src(0) + trafo3x4[5] * v_src(1) + trafo3x4[6]  * v_src(2));
+    v_dst(2) = T(trafo3x4[8] * v_src(0) + trafo3x4[9] * v_src(1) + trafo3x4[10] * v_src(2));
+  }
+
+  stl_get_size(stl);
+}
+
+template<typename T>
+inline void stl_transform(stl_file *stl, const Eigen::Transform<T, 3, Eigen::Affine, Eigen::DontAlign>& t)
+{
+	if (stl->error)
+		return;
+
+	const Eigen::Matrix<double, 3, 3, Eigen::DontAlign> r = t.matrix().block<3, 3>(0, 0);
+	for (size_t i = 0; i < stl->stats.number_of_facets; ++i) {
+		stl_facet &f = stl->facet_start[i];
+		for (size_t j = 0; j < 3; ++j)
+			f.vertex[j] = (t * f.vertex[j].cast<T>()).cast<float>().eval();
+		f.normal = (r * f.normal.cast<T>()).cast<float>().eval();
+	}
+
+	stl_get_size(stl);
+}
+
+template<typename T>
+inline void stl_transform(stl_file *stl, const Eigen::Matrix<T, 3, 3, Eigen::DontAlign>& m)
+{
+	if (stl->error)
+		return;
+
+	for (size_t i = 0; i < stl->stats.number_of_facets; ++i) {
+		stl_facet &f = stl->facet_start[i];
+		for (size_t j = 0; j < 3; ++j)
+			f.vertex[j] = (m * f.vertex[j].cast<T>()).cast<float>().eval();
+		f.normal = (m * f.normal.cast<T>()).cast<float>().eval();
+	}
+
+	stl_get_size(stl);
+}
+
 extern void stl_open_merge(stl_file *stl, char *file);
 extern void stl_invalidate_shared_vertices(stl_file *stl);
 extern void stl_generate_shared_vertices(stl_file *stl);

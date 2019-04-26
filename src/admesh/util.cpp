@@ -137,65 +137,6 @@ static void calculate_normals(stl_file *stl)
   }
 }
 
-void stl_transform(stl_file *stl, float *trafo3x4) {
-  int i_face, i_vertex;
-  if (stl->error)
-    return;
-  for (i_face = 0; i_face < stl->stats.number_of_facets; ++ i_face) {
-    stl_vertex *vertices = stl->facet_start[i_face].vertex;
-    for (i_vertex = 0; i_vertex < 3; ++ i_vertex) {
-      stl_vertex &v_dst = vertices[i_vertex];
-      stl_vertex  v_src = v_dst;
-      v_dst(0) = trafo3x4[0] * v_src(0) + trafo3x4[1] * v_src(1) + trafo3x4[2]  * v_src(2) + trafo3x4[3];
-      v_dst(1) = trafo3x4[4] * v_src(0) + trafo3x4[5] * v_src(1) + trafo3x4[6]  * v_src(2) + trafo3x4[7];
-      v_dst(2) = trafo3x4[8] * v_src(0) + trafo3x4[9] * v_src(1) + trafo3x4[10] * v_src(2) + trafo3x4[11];
-    }
-  }
-  stl_get_size(stl);
-  calculate_normals(stl);
-}
-
-void stl_transform(stl_file *stl, const Eigen::Transform<double, 3, Eigen::Affine, Eigen::DontAlign>& t)
-{
-    if (stl->error)
-        return;
-
-    unsigned int vertices_count = 3 * (unsigned int)stl->stats.number_of_facets;
-    if (vertices_count == 0)
-        return;
-
-    Eigen::MatrixXf src_vertices(3, vertices_count);
-    stl_facet* facet_ptr = stl->facet_start;
-    unsigned int v_id = 0;
-    while (facet_ptr < stl->facet_start + stl->stats.number_of_facets)
-    {
-        for (int i = 0; i < 3; ++i)
-        {
-            ::memcpy((void*)src_vertices.col(v_id).data(), (const void*)&facet_ptr->vertex[i], 3 * sizeof(float));
-            ++v_id;
-        }
-        facet_ptr += 1;
-    }
-
-    Eigen::MatrixXf dst_vertices(3, vertices_count);
-    dst_vertices = t.cast<float>() * src_vertices.colwise().homogeneous();
-
-    facet_ptr = stl->facet_start;
-    v_id = 0;
-    while (facet_ptr < stl->facet_start + stl->stats.number_of_facets)
-    {
-        for (int i = 0; i < 3; ++i)
-        {
-            ::memcpy((void*)&facet_ptr->vertex[i], (const void*)dst_vertices.col(v_id).data(), 3 * sizeof(float));
-            ++v_id;
-        }
-        facet_ptr += 1;
-    }
-
-    stl_get_size(stl);
-    calculate_normals(stl);
-}
-
 void
 stl_rotate_x(stl_file *stl, float angle) {
   int i;
