@@ -982,10 +982,11 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
 
         size_t size_sum = 0;
         for (const auto &model : vendor->second) { size_sum += model.second.size(); }
-        if (size_sum == 0) { continue; }
 
-        // This vendor needs to be installed
-        install_bundles.emplace_back(vendor_rsrc.second);
+        if (size_sum > 0) {
+            // This vendor needs to be installed
+            install_bundles.emplace_back(vendor_rsrc.second);
+        }
     }
 
     // Decide whether to create snapshot based on run_reason and the reset profile checkbox
@@ -1011,9 +1012,26 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
     app_config->set_vendors(appconfig_vendors);
     app_config->set("version_check", page_update->version_check ? "1" : "0");
     app_config->set("preset_update", page_update->preset_update ? "1" : "0");
-    app_config->reset_selections();
-    preset_bundle->load_presets(*app_config);
 
+    std::string preferred_model;
+
+    // Figure out the default pre-selected printer based on the seletions in the picker.
+    // The default is the first selected printer model (one with at least 1 variant selected).
+    // The default is only applied by load_presets() if the user doesn't have a (visible) printer
+    // selected already.
+    const auto vendor_prusa = vendors.find("PrusaResearch");
+    const auto config_prusa = enabled_vendors.find("PrusaResearch");
+    if (vendor_prusa != vendors.end() && config_prusa != enabled_vendors.end()) {
+        for (const auto &model : vendor_prusa->second.models) {
+            const auto model_it = config_prusa->second.find(model.id);
+            if (model_it != config_prusa->second.end() && model_it->second.size() > 0) {
+                preferred_model = model.id;
+                break;
+            }
+        }
+    }
+
+    preset_bundle->load_presets(*app_config, preferred_model);
 
     if (page_custom->custom_wanted()) {
         page_firmware->apply_custom_config(*custom_config);
