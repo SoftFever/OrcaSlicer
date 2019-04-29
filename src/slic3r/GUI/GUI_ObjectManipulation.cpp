@@ -301,8 +301,8 @@ void ObjectManipulation::update_if_dirty()
     if (!m_dirty)
         return;
 
-    auto update_label = [](std::string &label_cache, const std::string &new_label, wxStaticText *widget) {
-        std::string new_label_localized = _(new_label) + ":";
+    auto update_label = [](wxString &label_cache, const std::string &new_label, wxStaticText *widget) {
+        wxString new_label_localized = _(new_label) + ":";
         if (label_cache != new_label_localized) {
             label_cache = new_label_localized;
             widget->SetLabel(new_label_localized);
@@ -420,6 +420,8 @@ void ObjectManipulation::change_rotation_value(int axis, double value)
 		transformation_type.set_local();
 	}
 
+    //FIXME if anisotropic scaling is required, and is_single_full_instance && m_world_coordinates, apply 90 degrees rotation of the rotation vector.
+
     selection.start_dragging();
 	selection.rotate(
 		(M_PI / 180.0) * (transformation_type.absolute() ? rotation : rotation - m_cache.rotation), 
@@ -490,6 +492,7 @@ void ObjectManipulation::do_scale(const Vec3d &scale) const
     TransformationType transformation_type(TransformationType::World_Relative_Joint);
     if (selection.is_single_full_instance() && ! m_world_coordinates)
         transformation_type.set_local();
+    //FIXME if anisotropic scaling is required, and is_single_full_instance && m_world_coordinates, apply 90 degrees rotation of the scaling vector.
     selection.start_dragging();
     selection.scale(scaling_factor * 0.01, transformation_type);
     wxGetApp().plater()->canvas3D()->do_scale();

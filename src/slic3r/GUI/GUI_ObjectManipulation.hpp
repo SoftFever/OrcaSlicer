@@ -28,9 +28,9 @@ class ObjectManipulation : public OG_Settings
         Vec3d size;
         Vec3d size_rounded;
 
-        std::string move_label_string;
-        std::string rotate_label_string;
-        std::string scale_label_string;
+        wxString move_label_string;
+        wxString rotate_label_string;
+        wxString scale_label_string;
 
         struct Instance
         {
@@ -55,9 +55,9 @@ class ObjectManipulation : public OG_Settings
             rotation = rotation_rounded = Vec3d(DBL_MAX, DBL_MAX, DBL_MAX);
             scale = scale_rounded = Vec3d(DBL_MAX, DBL_MAX, DBL_MAX);
             size = size_rounded = Vec3d(DBL_MAX, DBL_MAX, DBL_MAX);
-            move_label_string = "";
-            rotate_label_string = "";
-            scale_label_string = "";
+            move_label_string = wxString();
+            rotate_label_string = wxString();
+            scale_label_string = wxString();
             instance.reset();
         }
         bool is_valid() const { return position != Vec3d(DBL_MAX, DBL_MAX, DBL_MAX); }
