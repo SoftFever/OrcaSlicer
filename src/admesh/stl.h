@@ -214,7 +214,7 @@ inline void stl_transform(stl_file *stl, const Eigen::Transform<T, 3, Eigen::Aff
 	if (stl->error)
 		return;
 
-	const Eigen::Matrix<double, 3, 3, Eigen::DontAlign> r = t.matrix().block<3, 3>(0, 0);
+	const Eigen::Matrix<double, 3, 3, Eigen::DontAlign> r = t.matrix().template block<3, 3>(0, 0);
 	for (size_t i = 0; i < stl->stats.number_of_facets; ++i) {
 		stl_facet &f = stl->facet_start[i];
 		for (size_t j = 0; j < 3; ++j)
