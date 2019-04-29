@@ -438,8 +438,8 @@ void ObjectList::update_name_in_model(const wxDataViewItem& item) const
 
 void ObjectList::init_icons()
 {
-    m_bmp_modifiermesh      = ScalableBitmap(nullptr, "add_modifier");    // Add part 
-    m_bmp_solidmesh         = ScalableBitmap(nullptr, "add_part");        // Add modifier 
+    m_bmp_solidmesh         = ScalableBitmap(nullptr, "add_part");        // Add part 
+    m_bmp_modifiermesh      = ScalableBitmap(nullptr, "add_modifier");    // Add modifier 
     m_bmp_support_enforcer  = ScalableBitmap(nullptr, "support_enforcer");// Add support enforcer 
     m_bmp_support_blocker   = ScalableBitmap(nullptr, "support_blocker"); // Add support blocker  
 
@@ -455,6 +455,8 @@ void ObjectList::init_icons()
 
     // init icon for manifold warning
     m_bmp_manifold_warning  = ScalableBitmap(nullptr, "exclamation");
+    // Set warning bitmap for the model
+    m_objects_model->SetWarningBitmap(&m_bmp_manifold_warning.bmp());
 
     // init bitmap for "Split to sub-objects" context menu
     m_bmp_split             = ScalableBitmap(nullptr, "split_parts_SMALL");
@@ -468,8 +470,8 @@ void ObjectList::rescale_icons()
     m_bmp_vector.clear();
     m_bmp_vector.reserve(4); // bitmaps for different types of parts 
     for (ScalableBitmap* bitmap : std::vector<ScalableBitmap*> {
-                                    &m_bmp_modifiermesh,         // Add part
-                                    &m_bmp_solidmesh,             // Add modifier
+                                    &m_bmp_solidmesh,            // Add part
+                                    &m_bmp_modifiermesh,         // Add modifier
                                     &m_bmp_support_enforcer,     // Add support enforcer
                                     &m_bmp_support_blocker })    // Add support blocker                                                           
     {
@@ -480,6 +482,9 @@ void ObjectList::rescale_icons()
     m_objects_model->SetVolumeBitmaps(m_bmp_vector);
 
     m_bmp_manifold_warning.msw_rescale();
+    // Set warning bitmap for the model
+    m_objects_model->SetWarningBitmap(&m_bmp_manifold_warning.bmp());
+
     m_bmp_split.msw_rescale();
     m_bmp_cog.msw_rescale();
 
@@ -541,7 +546,8 @@ void ObjectList::paste_volumes_into_list(int obj_idx, const ModelVolumePtrs& vol
 
     for (const ModelVolume* volume : volumes)
     {
-        auto vol_item = m_objects_model->AddVolumeChild(object_item, volume->name, volume->type(),
+        const wxDataViewItem& vol_item = m_objects_model->AddVolumeChild(object_item, volume->name, volume->type(), 
+            volume->get_mesh_errors_count()>0 ,
             volume->config.has("extruder") ? volume->config.option<ConfigOptionInt>("extruder")->value : 0);
         auto opt_keys = volume->config.keys();
         if (!opt_keys.empty() && !((opt_keys.size() == 1) && (opt_keys[0] == "extruder")))
@@ -617,12 +623,13 @@ void ObjectList::OnContextMenu(wxDataViewEvent&)
 
     if (title == " ")
         show_context_menu();
-    else if (title == _("Name") && pt.x > 1.6f*wxGetApp().em_unit() && pt.x < 3.2f*wxGetApp().em_unit())
+    else if (title == _("Name"))
     {
         int obj_idx, vol_idx;
         get_selected_item_indexes(obj_idx, vol_idx, item);
-        
-        if (is_windows10() && get_mesh_errors_count(obj_idx, vol_idx) > 0)
+
+        if (is_windows10() && get_mesh_errors_count(obj_idx, vol_idx) > 0 && 
+            pt.x > 2*wxGetApp().em_unit() && pt.x < 4*wxGetApp().em_unit() )
             fix_through_netfabb();
     }
 
@@ -1374,21 +1381,23 @@ void ObjectList::load_subobject(ModelVolumeType type)
     int obj_idx = m_objects_model->GetIdByItem(item);
 
     if (obj_idx < 0) return;
-    wxArrayString part_names;
-    load_part((*m_objects)[obj_idx], part_names, type);
+
+    std::vector<std::pair<wxString, bool>> volumes_info;
+    load_part((*m_objects)[obj_idx], volumes_info, type);
+
 
     changed_object(obj_idx);
 
-    for (int i = 0; i < part_names.size(); ++i) {
-        const wxDataViewItem sel_item = m_objects_model->AddVolumeChild(item, part_names.Item(i), type);
-
-        if (i == part_names.size() - 1)
-            select_item(sel_item);
-    }
+    wxDataViewItem sel_item;
+    for (const auto& volume : volumes_info )
+        sel_item = m_objects_model->AddVolumeChild(item, volume.first, type, volume.second);
+        
+    if (sel_item)
+        select_item(sel_item);
 }
 
 void ObjectList::load_part( ModelObject* model_object,
-                            wxArrayString& part_names, 
+                            std::vector<std::pair<wxString, bool>> &volumes_info,
                             ModelVolumeType type)
 {
     wxWindow* parent = wxGetApp().tab_panel()->GetPage(0);
@@ -1424,7 +1433,7 @@ void ObjectList::load_part( ModelObject* model_object,
                 new_volume->set_type(type);
                 new_volume->name = boost::filesystem::path(input_file).filename().string();
 
-                part_names.Add(from_u8(new_volume->name));
+                volumes_info.push_back(std::make_pair(from_u8(new_volume->name), new_volume->get_mesh_errors_count()>0));
 
                 // set a default extruder value, since user can't add it manually
                 new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
@@ -1580,7 +1589,8 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
     changed_object(obj_idx);
 
     const auto object_item = m_objects_model->GetTopParent(GetSelection());
-    select_item(m_objects_model->AddVolumeChild(object_item, name, type));
+    select_item(m_objects_model->AddVolumeChild(object_item, name, type, 
+        new_volume->get_mesh_errors_count()>0));
 #ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
     selection_changed();
 #endif //no __WXOSX__ //__WXMSW__
@@ -1611,6 +1621,10 @@ void ObjectList::del_subobject_item(wxDataViewItem& item)
         return;
     else if (!del_subobject_from_object(obj_idx, idx, type))
         return;
+
+    // If last volume item with warning was deleted, unmark object item
+    if (type == itVolume && (*m_objects)[obj_idx]->get_mesh_errors_count() == 0)
+        m_objects_model->DeleteWarningIcon(m_objects_model->GetParent(item));
 
     m_objects_model->Delete(item);
 }
@@ -1718,18 +1732,18 @@ void ObjectList::split()
     else
         parent = item;
 
-    for (auto id = 0; id < model_object->volumes.size(); id++) {
-        const auto vol_item = m_objects_model->AddVolumeChild(parent, from_u8(model_object->volumes[id]->name),
-            model_object->volumes[id]->is_modifier() ?
-            ModelVolumeType::PARAMETER_MODIFIER : ModelVolumeType::MODEL_PART,
-            model_object->volumes[id]->config.has("extruder") ?
-            model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value : 0,
+    for (const ModelVolume* volume : model_object->volumes) {
+        const wxDataViewItem& vol_item = m_objects_model->AddVolumeChild(parent, from_u8(volume->name),
+            volume->is_modifier() ? ModelVolumeType::PARAMETER_MODIFIER : ModelVolumeType::MODEL_PART,
+            volume->get_mesh_errors_count()>0,
+            volume->config.has("extruder") ?
+            volume->config.option<ConfigOptionInt>("extruder")->value : 0,
             false);
         // add settings to the part, if it has those
-        auto opt_keys = model_object->volumes[id]->config.keys();
+        auto opt_keys = volume->config.keys();
         if ( !(opt_keys.size() == 1 && opt_keys[0] == "extruder") ) {
             select_item(m_objects_model->AddSettingsChild(vol_item));
-            /*Collapse*/Expand(vol_item);
+            Expand(vol_item);
         }
     }
 
@@ -1896,28 +1910,23 @@ void ObjectList::add_object_to_list(size_t obj_idx)
     const wxString& item_name = from_u8(model_object->name);
     const auto item = m_objects_model->Add(item_name,
                       !model_object->config.has("extruder") ? 0 :
-                      model_object->config.option<ConfigOptionInt>("extruder")->value);
-
-    // Add error icon if detected auto-repaire
-    if (get_mesh_errors_count(obj_idx) > 0) {
-        wxVariant variant;
-        variant << DataViewBitmapText(item_name, m_bmp_manifold_warning.bmp());
-        m_objects_model->SetValue(variant, item, 0);
-    }
+                      model_object->config.option<ConfigOptionInt>("extruder")->value,
+                      get_mesh_errors_count(obj_idx) > 0);
 
     // add volumes to the object
     if (model_object->volumes.size() > 1) {
-        for (auto id = 0; id < model_object->volumes.size(); id++) {
-            auto vol_item = m_objects_model->AddVolumeChild(item,
-                from_u8(model_object->volumes[id]->name),
-                model_object->volumes[id]->type(),
-                !model_object->volumes[id]->config.has("extruder") ? 0 :
-                model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value,
+        for (const ModelVolume* volume : model_object->volumes) {
+            const wxDataViewItem& vol_item = m_objects_model->AddVolumeChild(item,
+                from_u8(volume->name),
+                volume->type(),
+                volume->get_mesh_errors_count()>0,
+                !volume->config.has("extruder") ? 0 :
+                volume->config.option<ConfigOptionInt>("extruder")->value,
                 false);
-            auto opt_keys = model_object->volumes[id]->config.keys();
+            auto opt_keys = volume->config.keys();
             if (!opt_keys.empty() && !(opt_keys.size() == 1 && opt_keys[0] == "extruder")) {
                 select_item(m_objects_model->AddSettingsChild(vol_item));
-                /*Collapse*/Expand(vol_item);
+                Expand(vol_item);
             }
         }
         Expand(item);
@@ -1931,7 +1940,7 @@ void ObjectList::add_object_to_list(size_t obj_idx)
     auto opt_keys = model_object->config.keys();
     if (!opt_keys.empty() && !(opt_keys.size() == 1 && opt_keys[0] == "extruder")) {
         select_item(m_objects_model->AddSettingsChild(item));
-        /*Collapse*/Expand(item);
+        Expand(item);
     }
 
 #ifndef __WXOSX__ 
@@ -2732,11 +2741,15 @@ void ObjectList::update_item_error_icon(const int obj_idx, const int vol_idx) co
     if (!item)
         return;
 
-    if (get_mesh_errors_count(obj_idx, vol_idx) == 0) {
-        // delete Error_icon if all errors are fixed
-        wxVariant variant;
-        variant << DataViewBitmapText(from_u8((*m_objects)[obj_idx]->name), wxNullBitmap);
-        m_objects_model->SetValue(variant, item, 0);
+    if (get_mesh_errors_count(obj_idx, vol_idx) == 0)
+    {
+        // if whole object has no errors more,
+        if (get_mesh_errors_count(obj_idx) == 0)
+            // unmark all items in the object
+            m_objects_model->DeleteWarningIcon(vol_idx >= 0 ? m_objects_model->GetParent(item) : item, true);
+        else
+            // unmark fixed item only
+            m_objects_model->DeleteWarningIcon(item);
     }
 }
 

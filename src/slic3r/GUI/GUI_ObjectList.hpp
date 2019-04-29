@@ -216,7 +216,7 @@ public:
     void                update_opt_keys(t_config_option_keys& t_optopt_keys);
 
     void                load_subobject(ModelVolumeType type);
-    void                load_part(ModelObject* model_object, wxArrayString& part_names, ModelVolumeType type);
+    void                load_part(ModelObject* model_object, std::vector<std::pair<wxString, bool>> &volumes_info, ModelVolumeType type);
 	void                load_generic_subobject(const std::string& type_name, const ModelVolumeType type);
     void                del_object(const int obj_idx);
     void                del_subobject_item(wxDataViewItem& item);

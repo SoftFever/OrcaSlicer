@@ -1485,9 +1485,10 @@ stl_stats ModelObject::get_object_stl_stats() const
 
 int ModelObject::get_mesh_errors_count(const int vol_idx /*= -1*/) const
 {
-    const stl_stats& stats = vol_idx == -1 ?
-                             get_object_stl_stats() :
-                             this->volumes[vol_idx]->mesh.stl.stats;
+    if (vol_idx >= 0)
+        return this->volumes[vol_idx]->get_mesh_errors_count();
+
+    const stl_stats& stats = get_object_stl_stats();
 
     return  stats.degenerate_facets + stats.edges_fixed     + stats.facets_removed +
             stats.facets_added      + stats.facets_reversed + stats.backwards_edges;
@@ -1556,6 +1557,14 @@ void ModelVolume::center_geometry()
 void ModelVolume::calculate_convex_hull()
 {
     m_convex_hull = mesh.convex_hull_3d();
+}
+
+int ModelVolume::get_mesh_errors_count() const
+{
+    const stl_stats& stats = this->mesh.stl.stats;
+
+    return  stats.degenerate_facets + stats.edges_fixed     + stats.facets_removed +
+            stats.facets_added      + stats.facets_reversed + stats.backwards_edges;
 }
 
 const TriangleMesh& ModelVolume::get_convex_hull() const

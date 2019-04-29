@@ -21,7 +21,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     OG_Settings(parent, true)
 #ifndef __APPLE__
     , m_focused_option("")
-    , m_manifold_warning_bmp(create_scaled_bitmap(parent, "exclamation"))
+    , m_manifold_warning_bmp(ScalableBitmap(parent, "exclamation"))
 #endif // __APPLE__
 {
     m_og->set_name(_(L("Object Manipulation")));
@@ -367,8 +367,7 @@ void ObjectManipulation::emulate_kill_focus()
 
 void ObjectManipulation::update_manifold_warning_icon_state(const wxString& tooltip)
 {
-    m_fix_throught_netfab_bitmap->SetBitmap(tooltip.IsEmpty() ? wxNullBitmap : m_manifold_warning_bmp);
-
+    m_fix_throught_netfab_bitmap->SetBitmap(tooltip.IsEmpty() ? wxNullBitmap : m_manifold_warning_bmp.bmp());
     m_fix_throught_netfab_bitmap->SetToolTip(tooltip);
 }
 
@@ -557,6 +556,14 @@ void ObjectManipulation::on_fill_empty_value(const std::string& opt_key)
 		value = m_cache.size(opt_key_to_axis());
 
     m_og->set_value(opt_key, double_to_string(value));
+}
+
+void ObjectManipulation::msw_rescale()
+{
+    m_manifold_warning_bmp.msw_rescale();
+    m_fix_throught_netfab_bitmap->SetBitmap(m_manifold_warning_bmp.bmp());
+
+    get_og()->msw_rescale();
 }
 
 } //namespace GUI

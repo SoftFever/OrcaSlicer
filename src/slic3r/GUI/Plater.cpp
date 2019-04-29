@@ -896,8 +896,7 @@ void Sidebar::msw_rescale()
     p->frequently_changed_parameters->get_og(false)->msw_rescale();
 
     p->object_list->msw_rescale();
-
-    p->object_manipulation->get_og()->msw_rescale();
+    p->object_manipulation->msw_rescale();
     p->object_settings->msw_rescale();
 
     p->object_info->msw_rescale();
