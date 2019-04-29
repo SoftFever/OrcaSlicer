@@ -6,6 +6,7 @@
 #include "GUI_ObjectSettings.hpp"
 #include "GLCanvas3D.hpp"
 
+class wxBitmapComboBox;
 class wxStaticText;
 class LockButton;
 
