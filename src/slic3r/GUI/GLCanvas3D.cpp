@@ -5001,6 +5001,10 @@ bool GLCanvas3D::_travel_paths_by_tool(const GCodePreviewData& preview_data, con
     // creates a new volume for each tool
     for (Tool& tool : tools)
     {
+        // tool.value could be invalid (as it was with https://github.com/prusa3d/Slic3r/issues/2179), we better check
+        if (tool.value >= tool_colors.size())
+            continue;
+
         GLVolume* volume = new GLVolume(tool_colors.data() + tool.value * 4);
         if (volume == nullptr)
             return false;
@@ -5015,7 +5019,7 @@ bool GLCanvas3D::_travel_paths_by_tool(const GCodePreviewData& preview_data, con
     for (const GCodePreviewData::Travel::Polyline& polyline : preview_data.travel.polylines)
     {
         ToolsList::iterator tool = std::find(tools.begin(), tools.end(), Tool(polyline.extruder_id));
-        if (tool != tools.end())
+        if (tool != tools.end() && tool->volume != nullptr)
         {
             tool->volume->print_zs.push_back(unscale<double>(polyline.polyline.bounding_box().min(2)));
             tool->volume->offsets.push_back(tool->volume->indexed_vertex_array.quad_indices.size());
