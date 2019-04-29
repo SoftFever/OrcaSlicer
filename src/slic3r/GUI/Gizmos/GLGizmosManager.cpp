@@ -629,7 +629,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt, GLCanvas3D& canvas)
             case Scale:
             {
                 // Apply new temporary scale factors
-				TransformationType transformation_type(TransformationType::World_Relative_Joint);
+				TransformationType transformation_type(TransformationType::Local_Relative_Joint);
 				if (evt.AltDown())
 					transformation_type.set_independent();
 				selection.scale(get_scale(), transformation_type);
