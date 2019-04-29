@@ -127,6 +127,7 @@ public:
     void            persist_window_geometry(wxTopLevelWindow *window, bool default_maximized = false);
     void            update_ui_from_settings();
 
+    bool            switch_language();
     bool            select_language(wxArrayString & names, wxArrayLong & identifiers);
     bool            load_language();
     void            save_language();

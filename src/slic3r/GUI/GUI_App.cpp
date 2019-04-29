@@ -255,7 +255,7 @@ bool GUI_App::on_init_inner()
 
             CallAfter([this] {
                 if (!config_wizard_startup(app_conf_exists)) {
-                    // Only notify if there was not wizard so as not to bother too much ...
+                    // Only notify if there was no wizard so as not to bother too much ...
                     preset_updater->slic3r_update_notify();
                 }
                 preset_updater->sync(preset_bundle);
@@ -514,6 +514,21 @@ void GUI_App::import_model(wxWindow *parent, wxArrayString& input_files)
         dialog.GetPaths(input_files);
 }
 
+bool GUI_App::switch_language()
+{
+    wxArrayString names;
+    wxArrayLong identifiers;
+    get_installed_languages(names, identifiers);
+    if (select_language(names, identifiers)) {
+        save_language();
+        _3DScene::remove_all_canvases();
+        recreate_GUI();
+        return true;
+    } else {
+        return false;
+    }
+}
+
 // select language from the list of installed languages
 bool GUI_App::select_language(  wxArrayString & names,
                                 wxArrayLong & identifiers)
@@ -753,14 +768,7 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
             if ( dialog.ShowModal() == wxID_CANCEL)
                 return;
 
-            wxArrayString names;
-            wxArrayLong identifiers;
-            get_installed_languages(names, identifiers);
-            if (select_language(names, identifiers)) {
-                save_language();
-                _3DScene::remove_all_canvases();// remove all canvas before recreate GUI
-                recreate_GUI();
-            }
+            switch_language();
             break;
         }
         case ConfigMenuFlashFirmware:
