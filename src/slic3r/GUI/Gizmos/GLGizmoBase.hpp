@@ -23,7 +23,7 @@ namespace GUI {
 static const float DEFAULT_BASE_COLOR[3] = { 0.625f, 0.625f, 0.625f };
 static const float DEFAULT_DRAG_COLOR[3] = { 1.0f, 1.0f, 1.0f };
 static const float DEFAULT_HIGHLIGHT_COLOR[3] = { 1.0f, 0.38f, 0.0f };
-static const float AXES_COLOR[3][3] = { { 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f, 1.0f } };
+static const float AXES_COLOR[3][3] = { { 0.75f, 0.0f, 0.0f }, { 0.0f, 0.75f, 0.0f }, { 0.0f, 0.0f, 0.75f } };
 
 
 
