@@ -1664,16 +1664,16 @@ Vec3d SLAPrint::relative_correction() const
 {
     Vec3d corr(1., 1., 1.);
 
-    if(printer_config().relative_correction.values.size() == 2) {
+    if(printer_config().relative_correction.values.size() >= 2) {
         corr(X) = printer_config().relative_correction.values[0];
         corr(Y) = printer_config().relative_correction.values[0];
-        corr(Z) = printer_config().relative_correction.values[1];
-    }
+        corr(Z) = printer_config().relative_correction.values.back();
+    } 
 
-    if(material_config().material_correction.values.size() == 2) {
+    if(material_config().material_correction.values.size() >= 2) {
         corr(X) *= material_config().material_correction.values[0];
         corr(Y) *= material_config().material_correction.values[0];
-        corr(Z) *= material_config().material_correction.values[1];
+        corr(Z) *= material_config().material_correction.values.back();
     }
 
     return corr;
