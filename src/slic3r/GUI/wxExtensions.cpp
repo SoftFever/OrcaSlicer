@@ -2351,8 +2351,9 @@ void ModeButton::SetState(const bool state)
 
 void ModeButton::focus_button(const bool focus)
 {
-    wxFont font = GetFont();
-    const wxFont& new_font = focus ? font.Bold() : font.GetBaseFont();
+    const wxFont& new_font = focus ? 
+                             Slic3r::GUI::wxGetApp().bold_font() : 
+                             Slic3r::GUI::wxGetApp().normal_font();
 
     SetFont(new_font);
 
