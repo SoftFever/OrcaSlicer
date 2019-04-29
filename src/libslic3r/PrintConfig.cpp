@@ -2266,7 +2266,7 @@ void PrintConfigDef::init_sla_params()
     def->tooltip  = L("Printer scaling correction");
     def->min = 0;
     def->mode = comExpert;
-    def->default_value = new ConfigOptionFloats( { 1., 1., 1. } );
+    def->default_value = new ConfigOptionFloats( { 1., 1. } );
     
     def = this->add("absolute_correction", coFloat);
     def->label = L("Printer absolute correction");
@@ -2323,7 +2323,7 @@ void PrintConfigDef::init_sla_params()
     def->tooltip  = L("Correction for expansion");
     def->min = 0;
     def->mode = comExpert;
-    def->default_value = new ConfigOptionFloats( { 1. , 1., 1. } );
+    def->default_value = new ConfigOptionFloats( { 1. , 1. } );
 
     def = this->add("material_notes", coString);
     def->label = L("SLA print material notes");
