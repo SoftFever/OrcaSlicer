@@ -312,7 +312,7 @@ public:
     const Preset&   get_edited_preset() const   { return m_edited_preset; }
 
 	// used to update preset_choice from Tab
-	const std::deque<Preset>&	get_presets()	{ return m_presets; }
+	const std::deque<Preset>&	get_presets() const	{ return m_presets; }
 	int						get_idx_selected()	{ return m_idx_selected; }
 	static const std::string&	get_suffix_modified();
 
@@ -503,6 +503,8 @@ public:
     PrinterPresetCollection(Preset::Type type, const std::vector<std::string> &keys, const Slic3r::StaticPrintConfig &defaults, const std::string &default_name = "- default -") :
 		PresetCollection(type, keys, defaults, default_name) {}
     const Preset&   default_preset_for(const DynamicPrintConfig &config) const override;
+
+    const Preset*   find_by_model_id(const std::string &model_id) const;
 };
 
 } // namespace Slic3r

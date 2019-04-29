@@ -129,7 +129,7 @@ DPIFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAU
         event.Skip();
     });
 
-    wxGetApp().persist_window_geometry(this);
+    wxGetApp().persist_window_geometry(this, true);
 
     update_ui_from_settings();    // FIXME (?)
 }

@@ -1330,4 +1330,15 @@ const Preset& PrinterPresetCollection::default_preset_for(const DynamicPrintConf
 	return this->default_preset((opt_printer_technology == nullptr || opt_printer_technology->value == ptFFF) ? 0 : 1);
 }
 
+const Preset* PrinterPresetCollection::find_by_model_id(const std::string &model_id) const
+{
+    if (model_id.empty()) { return nullptr; }
+
+    const auto it = std::find_if(cbegin(), cend(), [&](const Preset &preset) {
+        return preset.config.opt_string("printer_model") == model_id;
+    });
+
+    return it != cend() ? &*it : nullptr;
+}
+
 } // namespace Slic3r
