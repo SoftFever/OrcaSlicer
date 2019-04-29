@@ -292,6 +292,7 @@ struct ConfigWizard::priv
     priv(ConfigWizard *q) : q(q) {}
 
     void load_pages(bool custom_setup);
+    void init_dialog_size();
 
     bool check_first_variant() const;
     void load_vendors();

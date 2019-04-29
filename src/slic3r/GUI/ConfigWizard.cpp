@@ -649,12 +649,6 @@ void PageTemperatures::apply_custom_config(DynamicPrintConfig &config)
 
 ConfigWizardIndex::ConfigWizardIndex(wxWindow *parent)
     : wxPanel(parent)
-    /* #ys_FIXME_delete_after_testing by VK
-    , bg(GUI::from_u8(Slic3r::var("Slic3r_192px_transparent.png")), wxBITMAP_TYPE_PNG)
-    , bullet_black(GUI::from_u8(Slic3r::var("bullet_black.png")), wxBITMAP_TYPE_PNG)
-    , bullet_blue(GUI::from_u8(Slic3r::var("bullet_blue.png")), wxBITMAP_TYPE_PNG)
-    , bullet_white(GUI::from_u8(Slic3r::var("bullet_white.png")), wxBITMAP_TYPE_PNG)
-    */
     , bg(ScalableBitmap(parent, "Slic3r_192px_transparent.png", 192))
     , bullet_black(ScalableBitmap(parent, "bullet_black.png"))
     , bullet_blue(ScalableBitmap(parent, "bullet_blue.png"))
@@ -675,9 +669,6 @@ ConfigWizardIndex::ConfigWizardIndex(wxWindow *parent)
     // In some cases it didn't work at all. And so wxStaticBitmap is used here instead,
     // because it has all the platform quirks figured out.
     auto *sizer = new wxBoxSizer(wxVERTICAL);
-    /* #ys_FIXME_delete_after_testing by VK
-    auto *logo = new wxStaticBitmap(this, wxID_ANY, bg);
-    */
     logo = new wxStaticBitmap(this, wxID_ANY, bg.bmp());
     sizer->AddStretchSpacer();
     sizer->Add(logo);
@@ -786,10 +777,6 @@ void ConfigWizardIndex::on_paint(wxPaintEvent & evt)
 
     wxPaintDC dc(this);
 
-    /* #ys_FIXME_delete_after_testing by VK
-    const auto bullet_w = bullet_black.GetSize().GetWidth();
-    const auto bullet_h = bullet_black.GetSize().GetHeight();
-    */
     const auto bullet_w = bullet_black.bmp().GetSize().GetWidth();
     const auto bullet_h = bullet_black.bmp().GetSize().GetHeight();
     const int yoff_icon = bullet_h < em_h ? (em_h - bullet_h) / 2 : 0;
@@ -804,12 +791,6 @@ void ConfigWizardIndex::on_paint(wxPaintEvent & evt)
         unsigned x = em_w/2 + item.indent * em_w;
 
         if (i == item_active || item_hover >= 0 && i == (size_t)item_hover) {
-            /*#ys_FIXME_delete_after_testing by VK
-            dc.DrawBitmap(bullet_blue,  x, y + yoff_icon, false);
-        }
-        else if (i < item_active)  { dc.DrawBitmap(bullet_black, x, y + yoff_icon, false); }
-        else if (i > item_active)  { dc.DrawBitmap(bullet_white, x, y + yoff_icon, false); }
-            */
             dc.DrawBitmap(bullet_blue.bmp(), x, y + yoff_icon, false);
         }
         else if (i < item_active)  { dc.DrawBitmap(bullet_black.bmp(), x, y + yoff_icon, false); }
@@ -848,6 +829,10 @@ void ConfigWizardIndex::on_mouse_move(wxMouseEvent &evt)
 
 void ConfigWizardIndex::msw_rescale()
 {
+    const wxSize size = GetTextExtent("m");
+    em_w = size.x;
+    em_h = size.y;
+
     bg.msw_rescale();
     SetMinSize(bg.bmp().GetSize());
     logo->SetBitmap(bg.bmp());
@@ -895,6 +880,29 @@ void ConfigWizard::priv::load_pages(bool custom_setup)
     index->go_to(former_active);   // Will restore the active item/page if possible
 
     q->Layout();
+}
+
+void ConfigWizard::priv::init_dialog_size()
+{
+    // Clamp the Wizard size based on screen dimensions
+
+    const auto idx = wxDisplay::GetFromWindow(q);
+    wxDisplay display(idx != wxNOT_FOUND ? idx : 0u);
+
+    const auto disp_rect = display.GetClientArea();
+    wxRect window_rect(
+        disp_rect.x + disp_rect.width / 20,
+        disp_rect.y + disp_rect.height / 20,
+        9*disp_rect.width / 10,
+        9*disp_rect.height / 10);
+
+    const int width_hint = index->GetSize().GetWidth() + page_fff->get_width() + 30 * em();    // XXX: magic constant, I found no better solution
+    if (width_hint < window_rect.width) {
+        window_rect.x += (window_rect.width - width_hint) / 2;
+        window_rect.width = width_hint;
+    }
+
+    q->SetSize(window_rect);
 }
 
 bool ConfigWizard::priv::check_first_variant() const
@@ -1125,25 +1133,7 @@ ConfigWizard::ConfigWizard(wxWindow *parent, RunReason reason)
     p->hscroll->SetScrollRate(30, 30);
 
     on_window_geometry(this, [this]() {
-        // Clamp the Wizard size based on screen dimensions
-
-        const auto idx = wxDisplay::GetFromWindow(this);
-        wxDisplay display(idx != wxNOT_FOUND ? idx : 0u);
-
-        const auto disp_rect = display.GetClientArea();
-        wxRect window_rect(
-            disp_rect.x + disp_rect.width / 20,
-            disp_rect.y + disp_rect.height / 20,
-            9*disp_rect.width / 10,
-            9*disp_rect.height / 10);
-
-        const int width_hint = p->index->GetSize().GetWidth() + p->page_fff->get_width() + 30 * p->em();    // XXX: magic constant, I found no better solution
-        if (width_hint < window_rect.width) {
-            window_rect.x += (window_rect.width - width_hint) / 2;
-            window_rect.width = width_hint;
-        }
-
-        SetSize(window_rect);
+        p->init_dialog_size();
     });
 
     p->btn_prev->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &) { this->p->index->go_prev(); });
@@ -1212,7 +1202,7 @@ void ConfigWizard::on_dpi_changed(const wxRect &suggested_rect)
     for (auto printer_picker: p->page_fff->printer_pickers)
         msw_buttons_rescale(this, em, printer_picker->get_button_indexes());
 
-    // FIXME VK SetSize(???)
+    p->init_dialog_size();
 
     Refresh();
 }
