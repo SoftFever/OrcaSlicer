@@ -2391,7 +2391,7 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                         m_mouse.ignore_left_up = true;
                         m_dirty = true;
                     }
-                    set_cursor(Standard);
+//                    set_cursor(Standard);
                 }
                 else if (keyCode == WXK_ALT)
                 {
@@ -2402,7 +2402,7 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                         m_mouse.ignore_left_up = true;
                         m_dirty = true;
                     }
-                    set_cursor(Standard);
+//                    set_cursor(Standard);
                 }
                 else if (keyCode == WXK_CONTROL)
                     m_dirty = true;
@@ -2414,7 +2414,7 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                     if (m_picking_enabled && (m_gizmos.get_current_type() != GLGizmosManager::SlaSupports))
                     {
                         m_mouse.ignore_left_up = false;
-                        set_cursor(Cross);
+//                        set_cursor(Cross);
                     }
                 }
                 else if (keyCode == WXK_ALT)
@@ -2422,7 +2422,7 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                     if (m_picking_enabled && (m_gizmos.get_current_type() != GLGizmosManager::SlaSupports))
                     {
                         m_mouse.ignore_left_up = false;
-                        set_cursor(Cross);
+//                        set_cursor(Cross);
                     }
                 }
                 else if (keyCode == WXK_CONTROL)

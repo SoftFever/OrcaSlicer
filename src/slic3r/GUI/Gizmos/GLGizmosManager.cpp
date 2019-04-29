@@ -861,14 +861,14 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt, GLCanvas3D& canvas)
             }
         }
 
-        if (processed)
-            canvas.set_cursor(GLCanvas3D::Standard);
+//        if (processed)
+//            canvas.set_cursor(GLCanvas3D::Standard);
     }
     else if (evt.GetEventType() == wxEVT_KEY_DOWN)
     {
         if ((m_current == SlaSupports) && ((keyCode == WXK_SHIFT) || (keyCode == WXK_ALT)) && reinterpret_cast<GLGizmoSlaSupports*>(get_current())->is_in_editing_mode())
         {
-            canvas.set_cursor(GLCanvas3D::Cross);
+//            canvas.set_cursor(GLCanvas3D::Cross);
             processed = true;
         }
     }
