@@ -218,8 +218,8 @@ inline void stl_transform(stl_file *stl, const Eigen::Transform<T, 3, Eigen::Aff
 	for (size_t i = 0; i < stl->stats.number_of_facets; ++i) {
 		stl_facet &f = stl->facet_start[i];
 		for (size_t j = 0; j < 3; ++j)
-			f.vertex[j] = (t * f.vertex[j].cast<T>()).cast<float>().eval();
-		f.normal = (r * f.normal.cast<T>()).cast<float>().eval();
+			f.vertex[j] = (t * f.vertex[j].template cast<T>()).template cast<float>().eval();
+		f.normal = (r * f.normal.template cast<T>()).template cast<float>().eval();
 	}
 
 	stl_get_size(stl);
@@ -234,8 +234,8 @@ inline void stl_transform(stl_file *stl, const Eigen::Matrix<T, 3, 3, Eigen::Don
 	for (size_t i = 0; i < stl->stats.number_of_facets; ++i) {
 		stl_facet &f = stl->facet_start[i];
 		for (size_t j = 0; j < 3; ++j)
-			f.vertex[j] = (m * f.vertex[j].cast<T>()).cast<float>().eval();
-		f.normal = (m * f.normal.cast<T>()).cast<float>().eval();
+			f.vertex[j] = (m * f.vertex[j].template cast<T>()).template cast<float>().eval();
+		f.normal = (m * f.normal.template cast<T>()).template cast<float>().eval();
 	}
 
 	stl_get_size(stl);
