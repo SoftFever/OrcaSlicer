@@ -120,7 +120,7 @@ ObjectList::ObjectList(wxWindow* parent) :
 #endif //__WXMSW__        
     });
 
-    Bind(wxEVT_CHAR, [this](wxKeyEvent& event) { key_event(event); }); // doesn't work on OSX
+//    Bind(wxEVT_CHAR, [this](wxKeyEvent& event) { key_event(event); }); // doesn't work on OSX
 
 #ifdef __WXMSW__
     GetMainWindow()->Bind(wxEVT_MOTION, [this](wxMouseEvent& event) {
@@ -142,8 +142,26 @@ ObjectList::ObjectList(wxWindow* parent) :
     Bind(wxCUSTOMEVT_LAST_VOLUME_IS_DELETED, [this](wxCommandEvent& e)   { last_volume_is_deleted(e.GetInt()); });
 
 #ifdef __WXOSX__
-    Bind(wxEVT_KEY_DOWN, &ObjectList::OnChar, this);
+//    Bind(wxEVT_KEY_DOWN, &ObjectList::OnChar, this);
 #endif //__WXOSX__
+
+    {
+        // Accelerators
+        wxAcceleratorEntry entries[6];
+        entries[0].Set(wxACCEL_CTRL, (int) 'C',    wxID_COPY);
+        entries[1].Set(wxACCEL_CTRL, (int) 'X',    wxID_CUT);
+        entries[2].Set(wxACCEL_CTRL, (int) 'V',    wxID_PASTE);
+        entries[3].Set(wxACCEL_CTRL, (int) 'A',    wxID_SELECTALL);
+        entries[4].Set(wxACCEL_NORMAL, WXK_DELETE, wxID_DELETE);
+        entries[5].Set(wxACCEL_NORMAL, WXK_BACK,   wxID_DELETE);
+        wxAcceleratorTable accel(6, entries);
+        SetAcceleratorTable(accel);
+
+        this->Bind(wxEVT_MENU, [this](wxCommandEvent &evt) { wxPostEvent((wxEvtHandler*)wxGetApp().plater()->canvas3D()->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_COPY)); }, wxID_COPY);
+        this->Bind(wxEVT_MENU, [this](wxCommandEvent &evt) { wxPostEvent((wxEvtHandler*)wxGetApp().plater()->canvas3D()->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_PASTE)); }, wxID_PASTE);
+        this->Bind(wxEVT_MENU, [this](wxCommandEvent &evt) { this->select_item_all_children(); }, wxID_SELECTALL);
+        this->Bind(wxEVT_MENU, [this](wxCommandEvent &evt) { this->remove(); }, wxID_DELETE);
+    }
 
     Bind(wxEVT_SIZE, ([this](wxSizeEvent &e) { this->EnsureVisible(this->GetCurrentItem()); e.Skip(); }));
 }
