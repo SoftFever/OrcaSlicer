@@ -94,7 +94,9 @@ public:
 
     GUI_App();
 
-    unsigned        get_colour_approx_luma(const wxColour &colour);
+    static unsigned get_colour_approx_luma(const wxColour &colour);
+    static bool     dark_mode();
+    static bool     dark_mode_menus();
     void            init_label_colours();
     void            update_label_colours_from_appconfig();
     void            init_fonts();

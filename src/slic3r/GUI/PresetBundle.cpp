@@ -191,7 +191,7 @@ void PresetBundle::setup_directories()
     }
 }
 
-void PresetBundle::load_presets(const AppConfig &config)
+void PresetBundle::load_presets(const AppConfig &config, const std::string &preferred_model_id)
 {
     // First load the vendor specific system presets.
     std::string errors_cummulative = this->load_system_presets();
@@ -234,7 +234,7 @@ void PresetBundle::load_presets(const AppConfig &config)
     if (! errors_cummulative.empty())
         throw std::runtime_error(errors_cummulative);
 
-    this->load_selections(config);
+    this->load_selections(config, preferred_model_id);
 }
 
 // Load system presets into this PresetBundle.
@@ -324,7 +324,7 @@ void PresetBundle::load_installed_printers(const AppConfig &config)
 
 // Load selections (current print, current filaments, current printer) from config.ini
 // This is done on application start up or after updates are applied.
-void PresetBundle::load_selections(const AppConfig &config)
+void PresetBundle::load_selections(const AppConfig &config, const std::string &preferred_model_id)
 {
 	// Update visibility of presets based on application vendor / model / variant configuration.
 	this->load_installed_printers(config);
@@ -336,11 +336,21 @@ void PresetBundle::load_selections(const AppConfig &config)
     std::string initial_sla_material_profile_name = remove_ini_suffix(config.get("presets", "sla_material"));
 	std::string initial_printer_profile_name      = remove_ini_suffix(config.get("presets", "printer"));
 
-	// Activate print / filament / printer profiles from the config.
-	// If the printer profile enumerated by the config are not visible, select an alternate preset.
+    // Activate print / filament / printer profiles from either the config,
+    // or from the preferred_model_id suggestion passed in by ConfigWizard.
+    // If the printer profile enumerated by the config are not visible, select an alternate preset.
     // Do not select alternate profiles for the print / filament profiles as those presets
     // will be selected by the following call of this->update_compatible(true).
-    printers.select_preset_by_name(initial_printer_profile_name, true);
+
+    const Preset *initial_printer = printers.find_preset(initial_printer_profile_name);
+    const Preset *preferred_printer = printers.find_by_model_id(preferred_model_id);
+
+    if (preferred_printer != nullptr && (initial_printer == nullptr || !initial_printer->is_visible)) {
+        printers.select_preset_by_name(preferred_printer->name, true);
+    } else {
+        printers.select_preset_by_name(initial_printer_profile_name, true);
+    }
+
     PrinterTechnology printer_technology = printers.get_selected_preset().printer_technology();
     if (printer_technology == ptFFF) {
         prints.select_preset_by_name_strict(initial_print_profile_name);
