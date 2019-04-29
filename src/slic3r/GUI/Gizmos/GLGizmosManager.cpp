@@ -270,7 +270,7 @@ void GLGizmosManager::update_data(GLCanvas3D& canvas)
     enable_grabber(Move, 2, !is_wipe_tower);
     enable_grabber(Rotate, 0, !is_wipe_tower);
     enable_grabber(Rotate, 1, !is_wipe_tower);
-    
+
     bool enable_scale_xyz = selection.is_single_full_instance() || selection.is_single_volume() || selection.is_single_modifier();
     for (int i = 0; i < 6; ++i)
     {

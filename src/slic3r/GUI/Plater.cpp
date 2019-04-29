@@ -1869,7 +1869,13 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
     Polyline bed; bed.points.reserve(bedpoints.size());
     for(auto& v : bedpoints) bed.append(Point::new_scale(v(0), v(1)));
 
-    arr::find_new_position(model, new_instances, min_obj_distance, bed);
+    arr::WipeTowerInfo wti = view3D->get_canvas3d()->get_wipe_tower_info();
+
+    arr::find_new_position(model, new_instances, min_obj_distance, bed, wti);
+
+    // it remains to move the wipe tower:
+    view3D->get_canvas3d()->arrange_wipe_tower(wti);
+
 #endif /* AUTOPLACEMENT_ON_LOAD */
 
     if (scaled_down) {
@@ -2126,6 +2132,8 @@ void Plater::priv::arrange()
 
     statusfn(0, arrangestr);
 
+    arr::WipeTowerInfo wti = view3D->get_canvas3d()->get_wipe_tower_info();
+
     try {
         arr::BedShapeHint hint;
 
@@ -2133,6 +2141,7 @@ void Plater::priv::arrange()
         hint.type = arr::BedShapeType::WHO_KNOWS;
 
         arr::arrange(model,
+                     wti,
                      min_obj_distance,
                      bed,
                      hint,
@@ -2143,6 +2152,9 @@ void Plater::priv::arrange()
         GUI::show_error(this->q, L("Could not arrange model objects! "
                                    "Some geometries may be invalid."));
     }
+
+    // it remains to move the wipe tower:
+    view3D->get_canvas3d()->arrange_wipe_tower(wti);
 
     statusfn(0, L("Arranging done."));
     statusbar()->set_range(prev_range);
@@ -2246,7 +2258,8 @@ void Plater::priv::sla_optimize_rotation() {
         oi->set_rotation(rt);
     }
 
-    arr::find_new_position(model, o->instances, coord_t(mindist/SCALING_FACTOR), bed);
+    arr::WipeTowerInfo wti; // useless in SLA context
+    arr::find_new_position(model, o->instances, coord_t(mindist/SCALING_FACTOR), bed, wti);
 
     // Correct the z offset of the object which was corrupted be the rotation
     o->ensure_on_bed();

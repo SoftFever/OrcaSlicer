@@ -709,9 +709,6 @@ int GLVolumeCollection::load_wipe_tower_preview(
     brim_mesh.translate(-brim_width, -brim_width, 0.f);
     mesh.merge(brim_mesh);
 
-    //mesh.rotate(rotation_angle, &origin_of_rotation); // rotates the box according to the config rotation setting
-    
-
     this->volumes.emplace_back(new GLVolume(color));
     GLVolume &v = *this->volumes.back();
     v.indexed_vertex_array.load_mesh(mesh, use_VBOs);

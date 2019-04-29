@@ -539,7 +539,7 @@ public:
 // 2D shape from top view.
 using ShapeData2D = std::vector<std::pair<Slic3r::ModelInstance*, Item>>;
 
-ShapeData2D projectModelFromTop(const Slic3r::Model &model) {
+ShapeData2D projectModelFromTop(const Slic3r::Model &model, const WipeTowerInfo& wti) {
     ShapeData2D ret;
 
     // Count all the items on the bin (all the object's instances)
@@ -595,6 +595,28 @@ ShapeData2D projectModelFromTop(const Slic3r::Model &model) {
         }
     }
 
+    // The wipe tower is a separate case (in case there is one), let's duplicate the code
+    if (wti.is_wipe_tower) {
+        Points pts;
+        pts.emplace_back(coord_t(scale_(0.)), coord_t(scale_(0.)));
+        pts.emplace_back(coord_t(scale_(wti.bb_size(0))), coord_t(scale_(0.)));
+        pts.emplace_back(coord_t(scale_(wti.bb_size(0))), coord_t(scale_(wti.bb_size(1))));
+        pts.emplace_back(coord_t(scale_(-0.)), coord_t(scale_(wti.bb_size(1))));
+        pts.emplace_back(coord_t(scale_(-0.)), coord_t(scale_(0.)));
+        Polygon p(std::move(pts));
+        ClipperLib::Path clpath = Slic3rMultiPoint_to_ClipperPath(p);
+        ClipperLib::Polygon pn;
+        pn.Contour = clpath;
+        // Efficient conversion to item.
+        Item item(std::move(pn));
+        item.rotation(wti.rotation),
+        item.translation({
+        ClipperLib::cInt(wti.pos(0)/SCALING_FACTOR),
+        ClipperLib::cInt(wti.pos(1)/SCALING_FACTOR)
+        });
+        ret.emplace_back(nullptr, item);
+    }
+
     return ret;
 }
 
@@ -603,7 +625,8 @@ ShapeData2D projectModelFromTop(const Slic3r::Model &model) {
 void applyResult(
         IndexedPackGroup::value_type& group,
         Coord batch_offset,
-        ShapeData2D& shapemap)
+        ShapeData2D& shapemap,
+        WipeTowerInfo& wti)
 {
     for(auto& r : group) {
         auto idx = r.first;     // get the original item index
@@ -612,18 +635,25 @@ void applyResult(
         // Get the model instance from the shapemap using the index
         ModelInstance *inst_ptr = shapemap[idx].first;
 
-        // Get the transformation data from the item object and scale it
-        // appropriately
-        auto off = item.translation();
-        Radians rot = item.rotation();
+            // Get the transformation data from the item object and scale it
+            // appropriately
+            auto off = item.translation();
+            Radians rot = item.rotation();
 
-        Vec3d foff(off.X*SCALING_FACTOR + batch_offset,
-                   off.Y*SCALING_FACTOR,
-                   inst_ptr->get_offset()(Z));
+            Vec3d foff(off.X*SCALING_FACTOR + batch_offset,
+                       off.Y*SCALING_FACTOR,
+                       inst_ptr ? inst_ptr->get_offset()(Z) : 0.);
 
-        // write the transformation data into the model instance
-        inst_ptr->set_rotation(Z, rot);
-        inst_ptr->set_offset(foff);
+        if (inst_ptr) {
+            // write the transformation data into the model instance
+            inst_ptr->set_rotation(Z, rot);
+            inst_ptr->set_offset(foff);
+        }
+        else { // this is the wipe tower - we will modify the struct with the info
+               // and leave it up to the called to actually move the wipe tower
+            wti.pos = Vec2d(foff(0), foff(1));
+            wti.rotation = rot;
+        }
     }
 }
 
@@ -709,6 +739,7 @@ BedShapeHint bedShape(const Polyline &bed) {
 // The final client function to arrange the Model. A progress indicator and
 // a stop predicate can be also be passed to control the process.
 bool arrange(Model &model,              // The model with the geometries
+             WipeTowerInfo& wti,        // Wipe tower info
              coord_t min_obj_distance,  // Has to be in scaled (clipper) measure
              const Polyline &bed,       // The bed geometry.
              BedShapeHint bedhint,      // Hint about the bed geometry type.
@@ -721,7 +752,7 @@ bool arrange(Model &model,              // The model with the geometries
     bool ret = true;
 
     // Get the 2D projected shapes with their 3D model instance pointers
-    auto shapemap = arr::projectModelFromTop(model);
+    auto shapemap = arr::projectModelFromTop(model, wti);
 
     // Copy the references for the shapes only as the arranger expects a
     // sequence of objects convertible to Item or ClipperPolygon
@@ -791,7 +822,7 @@ bool arrange(Model &model,              // The model with the geometries
     if(result.empty() || stopcondition()) return false;
 
     if(first_bin_only) {
-        applyResult(result.front(), 0, shapemap);
+        applyResult(result.front(), 0, shapemap, wti);
     } else {
 
         const auto STRIDE_PADDING = 1.2;
@@ -801,7 +832,7 @@ bool arrange(Model &model,              // The model with the geometries
         Coord batch_offset = 0;
 
         for(auto& group : result) {
-            applyResult(group, batch_offset, shapemap);
+            applyResult(group, batch_offset, shapemap, wti);
 
             // Only the first pack group can be placed onto the print bed. The
             // other objects which could not fit will be placed next to the
@@ -818,10 +849,11 @@ bool arrange(Model &model,              // The model with the geometries
 void find_new_position(const Model &model,
                        ModelInstancePtrs toadd,
                        coord_t min_obj_distance,
-                       const Polyline &bed)
+                       const Polyline &bed,
+                       WipeTowerInfo& wti)
 {
     // Get the 2D projected shapes with their 3D model instance pointers
-    auto shapemap = arr::projectModelFromTop(model);
+    auto shapemap = arr::projectModelFromTop(model, wti);
 
     // Copy the references for the shapes only as the arranger expects a
     // sequence of objects convertible to Item or ClipperPolygon
