@@ -244,7 +244,7 @@ wxString ObjectList::get_mesh_errors_list(const int obj_idx, const int vol_idx /
 
     for (const auto& error : error_msg)
         if (error.second > 0)
-            tooltip += wxString::Format(_("\t%d %s\n"), error.second, error.first);
+            tooltip += wxString::Format("\t%d %s\n", error.second, _(error.first));
 
     if (is_windows10())
         tooltip += _(L("Right button click the icon to fix STL through Netfabb"));
@@ -272,8 +272,14 @@ void ObjectList::set_tooltip_for_item(const wxPoint& pt)
 
     if (col->GetTitle() == " " && GetSelectedItemsCount()<2)
         GetMainWindow()->SetToolTip(_(L("Right button click the icon to change the object settings")));
-    else if (col->GetTitle() == _("Name") )
+    else if (col->GetTitle() == _("Name"))
     {
+#ifdef __WXMSW__
+        if (pt.x < 2 * wxGetApp().em_unit() || pt.x > 4 * wxGetApp().em_unit()) {
+            GetMainWindow()->SetToolTip(""); // hide tooltip
+            return;
+        }
+#endif //__WXMSW__
         int obj_idx, vol_idx;
         get_selected_item_indexes(obj_idx, vol_idx, item);
         GetMainWindow()->SetToolTip(get_mesh_errors_list(obj_idx, vol_idx));
