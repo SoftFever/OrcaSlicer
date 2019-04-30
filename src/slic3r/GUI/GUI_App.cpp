@@ -34,6 +34,7 @@
 
 #include "../Utils/PresetUpdater.hpp"
 #include "../Utils/PrintHost.hpp"
+#include "../Utils/MacDarkMode.hpp"
 #include "ConfigWizard.hpp"
 #include "slic3r/Config/Snapshot.hpp"
 #include "ConfigSnapshotDialog.hpp"
@@ -284,10 +285,24 @@ unsigned GUI_App::get_colour_approx_luma(const wxColour &colour)
         ));
 }
 
+bool GUI_App::dark_mode()
+{
+    const unsigned luma = get_colour_approx_luma(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+    return luma < 128;
+}
+
+bool GUI_App::dark_mode_menus()
+{
+#if __APPLE__
+    return mac_dark_mode();
+#else
+    return dark_mode();
+#endif
+}
+
 void GUI_App::init_label_colours()
 {
-    auto luma = get_colour_approx_luma(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
-    if (luma >= 128) {
+    if (dark_mode()) {
         m_color_label_modified = wxColour(252, 77, 1);
         m_color_label_sys = wxColour(26, 132, 57);
     }
@@ -451,7 +466,7 @@ void GUI_App::update_ui_from_settings()
     mainframe->update_ui_from_settings();
 }
 
-void GUI_App::persist_window_geometry(wxTopLevelWindow *window)
+void GUI_App::persist_window_geometry(wxTopLevelWindow *window, bool default_maximized)
 {
     const std::string name = into_u8(window->GetName());
 
@@ -460,7 +475,7 @@ void GUI_App::persist_window_geometry(wxTopLevelWindow *window)
         event.Skip();
     });
 
-    window_pos_restore(window, name);
+    window_pos_restore(window, name, default_maximized);
 
     on_window_geometry(window, [=]() {
         window_pos_sanitize(window);
@@ -663,7 +678,7 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
     Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Check(get_mode() == comAdvanced); }, config_id_base + ConfigMenuModeAdvanced);
     Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Check(get_mode() == comExpert); }, config_id_base + ConfigMenuModeExpert);
 
-    local_menu->AppendSubMenu(mode_menu, _(L("Mode")), _(L("Slic3r View Mode")));
+    local_menu->AppendSubMenu(mode_menu, _(L("Mode")), wxString::Format(_(L("%s View Mode")), SLIC3R_APP_NAME));
     local_menu->AppendSeparator();
     local_menu->Append(config_id_base + ConfigMenuLanguage, _(L("Change Application &Language")));
     local_menu->AppendSeparator();
@@ -868,15 +883,21 @@ void GUI_App::window_pos_save(wxTopLevelWindow* window, const std::string &name)
     app_config->save();
 }
 
-void GUI_App::window_pos_restore(wxTopLevelWindow* window, const std::string &name)
+void GUI_App::window_pos_restore(wxTopLevelWindow* window, const std::string &name, bool default_maximized)
 {
     if (name.empty()) { return; }
     const auto config_key = (boost::format("window_%1%") % name).str();
 
-    if (! app_config->has(config_key)) { return; }
+    if (! app_config->has(config_key)) {
+        window->Maximize(default_maximized);
+        return;
+    }
 
     auto metrics = WindowMetrics::deserialize(app_config->get(config_key));
-    if (! metrics) { return; }
+    if (! metrics) {
+        window->Maximize(default_maximized);
+        return;
+    }
 
     window->SetSize(metrics->get_rect());
     window->Maximize(metrics->get_maximized());

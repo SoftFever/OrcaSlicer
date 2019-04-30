@@ -248,20 +248,21 @@ RawBytes Raster::save(Raster::Compression comp)
 {
     assert(m_impl);
 
-    std::uint8_t *ptr = nullptr; size_t s = 0;
+    std::vector<std::uint8_t> data; size_t s = 0;
 
     switch(comp) {
     case Compression::PNG: {
-
         void *rawdata = tdefl_write_image_to_png_file_in_memory(
                     m_impl->buffer().data(),
                     int(resolution().width_px),
                     int(resolution().height_px), 1, &s);
 
         if(rawdata == nullptr) break;
-
-        ptr = static_cast<std::uint8_t*>(rawdata);
-
+        auto ptr = static_cast<std::uint8_t*>(rawdata);
+        
+        data.reserve(s); std::copy(ptr, ptr + s, std::back_inserter(data));
+        
+        MZ_FREE(rawdata);
         break;
     }
     case Compression::RAW: {
@@ -270,21 +271,19 @@ RawBytes Raster::save(Raster::Compression comp)
                 std::to_string(m_impl->resolution().height_px) + " " + "255 ";
 
         auto sz = m_impl->buffer().size()*sizeof(Impl::TBuffer::value_type);
-
         s = sz + header.size();
-        ptr = static_cast<std::uint8_t*>(MZ_MALLOC(s));
-
+        
+        data.reserve(s);
+        
         auto buff = reinterpret_cast<std::uint8_t*>(m_impl->buffer().data());
-        std::copy(buff, buff+sz, ptr + header.size());
+        std::copy(header.begin(), header.end(), std::back_inserter(data));
+        std::copy(buff, buff+sz, std::back_inserter(data));
+        
+        break;
     }
     }
 
-    return {ptr, s};
-}
-
-void RawBytes::MinzDeleter::operator()(uint8_t *rawptr)
-{
-    MZ_FREE(rawptr);
+    return {std::move(data)};
 }
 
 }

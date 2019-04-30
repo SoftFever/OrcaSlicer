@@ -15,18 +15,12 @@ class ExPolygon;
 // Raw byte buffer paired with its size. Suitable for compressed PNG data.
 class RawBytes {
 
-    class MinzDeleter {
-    public:
-        void operator()(std::uint8_t *rawptr);
-    };
-
     std::vector<std::uint8_t> m_buffer;
-
 public:
 
     RawBytes() = default;
-    RawBytes(std::uint8_t *rawptr, size_t s): m_buffer(rawptr, rawptr + s) { MinzDeleter()(rawptr); }
-
+    RawBytes(std::vector<std::uint8_t>&& data): m_buffer(std::move(data)) {}
+    
     size_t size() const { return m_buffer.size(); }
     const uint8_t * data() { return m_buffer.data(); }
 

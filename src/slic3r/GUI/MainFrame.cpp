@@ -129,7 +129,7 @@ DPIFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAU
         event.Skip();
     });
 
-    wxGetApp().persist_window_geometry(this);
+    wxGetApp().persist_window_geometry(this, true);
 
     update_ui_from_settings();    // FIXME (?)
 }
@@ -276,12 +276,26 @@ void MainFrame::on_dpi_changed(const wxRect &suggested_rect)
     for (auto tab : wxGetApp().tabs_list)
         tab->msw_rescale();
 
+    // Workarounds for correct Window rendering after rescale
+
+    /* Even if Window is maximized during moving, 
+     * first of all we should imitate Window resizing. So:
+     * 1. cancel maximization, if it was set
+     * 2. imitate resizing
+     * 3. set maximization, if it was set
+     */
+    const bool is_maximized = this->IsMaximized();
+    if (is_maximized)
+        this->Maximize(false);
+
     /* To correct window rendering (especially redraw of a status bar)
      * we should imitate window resizing.
      */
     const wxSize& sz = this->GetSize();
     this->SetSize(sz.x + 1, sz.y + 1);
     this->SetSize(sz);
+
+    this->Maximize(is_maximized);
 }
 
 void MainFrame::init_menubar()
@@ -360,7 +374,7 @@ void MainFrame::init_menubar()
         append_menu_item(fileMenu, wxID_ANY, _(L("&Repair STL file")) + dots, _(L("Automatically repair an STL file")),
             [this](wxCommandEvent&) { repair_stl(); }, "wrench");
         fileMenu->AppendSeparator();
-        append_menu_item(fileMenu, wxID_EXIT, _(L("&Quit")), _(L("Quit Slic3r")),
+        append_menu_item(fileMenu, wxID_EXIT, _(L("&Quit")), wxString::Format(_(L("Quit %s")), SLIC3R_APP_NAME),
             [this](wxCommandEvent&) { Close(false); });
 
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(m_plater != nullptr); }, item_open->GetId());
@@ -497,9 +511,11 @@ void MainFrame::init_menubar()
 //#            wxTheApp->check_version(1);
 //#        });
 //#        $versioncheck->Enable(wxTheApp->have_version_check);
-        append_menu_item(helpMenu, wxID_ANY, _(L("Slic3r &Website")), _(L("Open the Slic3r website in your browser")),
+        append_menu_item(helpMenu, wxID_ANY, wxString::Format(_(L("%s &Website")), SLIC3R_APP_NAME), 
+                                             wxString::Format(_(L("Open the %s website in your browser")), SLIC3R_APP_NAME),
             [this](wxCommandEvent&) { wxLaunchDefaultBrowser("http://slic3r.org/"); });
-        append_menu_item(helpMenu, wxID_ANY, _(L("Slic3r &Manual")), _(L("Open the Slic3r manual in your browser")),
+        append_menu_item(helpMenu, wxID_ANY, wxString::Format(_(L("%s &Manual")), SLIC3R_APP_NAME),
+                                             wxString::Format(_(L("Open the %s manual in your browser")), SLIC3R_APP_NAME),
             [this](wxCommandEvent&) { wxLaunchDefaultBrowser("http://manual.slic3r.org/"); });
         helpMenu->AppendSeparator();
         append_menu_item(helpMenu, wxID_ANY, _(L("System &Info")), _(L("Show system information")), 

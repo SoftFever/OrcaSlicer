@@ -436,6 +436,12 @@ SLAPrint::ApplyStatus SLAPrint::apply(const Model &model, const DynamicPrintConf
         if (new_objects)
             update_apply_status(false);
     }
+    
+    if(m_objects.empty()) {
+        m_printer.release();
+        m_printer_input.clear();
+        m_print_statistics.clear();
+    }
 
 #ifdef _DEBUG
     check_model_ids_equal(m_model, model);
@@ -668,8 +674,8 @@ void SLAPrint::process()
 
     // Slicing the model object. This method is oversimplified and needs to
     // be compared with the fff slicing algorithm for verification
-    auto slice_model = [this, ilhs, ilh](SLAPrintObject& po) {
-        TriangleMesh mesh = po.transformed_mesh();
+    auto slice_model = [this, ilhs, ilh, ilhd](SLAPrintObject& po) {
+        const TriangleMesh& mesh = po.transformed_mesh();
 
         // We need to prepare the slice index...
 
@@ -685,13 +691,15 @@ void SLAPrint::process()
         auto maxZs = coord_t(maxZ / SCALING_FACTOR);
 
         po.m_slice_index.clear();
-        po.m_slice_index.reserve(size_t(maxZs - (minZs + ilhs) / lhs) + 1);
-        po.m_slice_index.emplace_back(minZs + ilhs, float(minZ) + ilh / 2.f, ilh);
+        
+        size_t cap = size_t(1 + (maxZs - minZs - ilhs) / lhs);
+        po.m_slice_index.reserve(cap);
+        
+        po.m_slice_index.emplace_back(minZs + ilhs, minZ + ilhd / 2.0, ilh);
 
-        for(coord_t h = minZs + ilhs + lhs; h <= maxZs; h += lhs) {
-            po.m_slice_index.emplace_back(h, float(h*SCALING_FACTOR) - lh / 2.f, lh);
-        }
-
+        for(coord_t h = minZs + ilhs + lhs; h <= maxZs; h += lhs) 
+            po.m_slice_index.emplace_back(h, h*SCALING_FACTOR - lhd / 2.0, lh);
+       
         // Just get the first record that is form the model:
         auto slindex_it =
                 po.closest_slice_record(po.m_slice_index, float(bb3d.min(Z)));
@@ -704,11 +712,8 @@ void SLAPrint::process()
         po.m_model_height_levels.clear();
         po.m_model_height_levels.reserve(po.m_slice_index.size());
         for(auto it = slindex_it; it != po.m_slice_index.end(); ++it)
-        {
             po.m_model_height_levels.emplace_back(it->slice_level());
-        }
 
-        mesh.require_shared_vertices(); // TriangleMeshSlicer needs this
         TriangleMeshSlicer slicer(&mesh);
 
         po.m_model_slices.clear();
@@ -1169,8 +1174,9 @@ void SLAPrint::process()
             for(const SliceRecord& record : layer.slices()) {
                 const SLAPrintObject *po = record.print_obj();
 
-                const ExPolygons &rawmodelslices = record.get_slice(soModel);
-                const ExPolygons &modelslices = clpr_back_offs != 0 ? offset_ex(rawmodelslices, clpr_back_offs) : rawmodelslices;
+                // const ExPolygons &rawmodelslices = record.get_slice(soModel);
+                // const ExPolygons &modelslices = clpr_back_offs != 0 ? offset_ex(rawmodelslices, clpr_back_offs) : rawmodelslices;
+                const ExPolygons &modelslices = record.get_slice(soModel);
                 
                 bool is_lefth = record.print_obj()->is_left_handed();
                 if (!modelslices.empty()) {
@@ -1178,8 +1184,9 @@ void SLAPrint::process()
                     for(ClipperPolygon& p_tmp : v) model_polygons.emplace_back(std::move(p_tmp));
                 }
 
-                const ExPolygons &rawsupportslices = record.get_slice(soSupport);
-                const ExPolygons &supportslices = clpr_back_offs != 0 ? offset_ex(rawsupportslices, clpr_back_offs) : rawsupportslices;
+                // const ExPolygons &rawsupportslices = record.get_slice(soSupport);
+                // const ExPolygons &supportslices = clpr_back_offs != 0 ? offset_ex(rawsupportslices, clpr_back_offs) : rawsupportslices;
+                const ExPolygons &supportslices = record.get_slice(soSupport);
                 
                 if (!supportslices.empty()) {
                     ClipperPolygons v = get_all_polygons(supportslices, po->instances(), is_lefth);
@@ -1534,7 +1541,7 @@ SLAPrintObject::SLAPrintObject(SLAPrint *print, ModelObject *model_object):
     Inherited(print, model_object),
     m_stepmask(slaposCount, true),
     m_transformed_rmesh( [this](TriangleMesh& obj){
-            obj = m_model_object->raw_mesh(); obj.transform(m_trafo);
+            obj = m_model_object->raw_mesh(); obj.transform(m_trafo); obj.require_shared_vertices();
         })
 {
 }
@@ -1657,16 +1664,16 @@ Vec3d SLAPrint::relative_correction() const
 {
     Vec3d corr(1., 1., 1.);
 
-    if(printer_config().relative_correction.values.size() == 2) {
+    if(printer_config().relative_correction.values.size() >= 2) {
         corr(X) = printer_config().relative_correction.values[0];
         corr(Y) = printer_config().relative_correction.values[0];
-        corr(Z) = printer_config().relative_correction.values[1];
-    }
+        corr(Z) = printer_config().relative_correction.values.back();
+    } 
 
-    if(material_config().material_correction.values.size() == 2) {
+    if(material_config().material_correction.values.size() >= 2) {
         corr(X) *= material_config().material_correction.values[0];
         corr(Y) *= material_config().material_correction.values[0];
-        corr(Z) *= material_config().material_correction.values[1];
+        corr(Z) *= material_config().material_correction.values.back();
     }
 
     return corr;

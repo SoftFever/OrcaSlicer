@@ -213,7 +213,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("clip_multipart_objects", coBool);
     def->label = L("Clip multi-part objects");
-    def->tooltip = L("When printing multi-material objects, this settings will make slic3r "
+    def->tooltip = L("When printing multi-material objects, this settings will make Slic3r "
                    "to clip the overlapping object parts one by the other "
                    "(2nd part will be clipped by the 1st, 3rd part will be clipped by the 1st and 2nd etc).");
     def->mode = comExpert;
@@ -2266,7 +2266,7 @@ void PrintConfigDef::init_sla_params()
     def->tooltip  = L("Printer scaling correction");
     def->min = 0;
     def->mode = comExpert;
-    def->default_value = new ConfigOptionFloats( { 1., 1., 1. } );
+    def->default_value = new ConfigOptionFloats( { 1., 1. } );
     
     def = this->add("absolute_correction", coFloat);
     def->label = L("Printer absolute correction");
@@ -2323,7 +2323,7 @@ void PrintConfigDef::init_sla_params()
     def->tooltip  = L("Correction for expansion");
     def->min = 0;
     def->mode = comExpert;
-    def->default_value = new ConfigOptionFloats( { 1. , 1., 1. } );
+    def->default_value = new ConfigOptionFloats( { 1. , 1. } );
 
     def = this->add("material_notes", coString);
     def->label = L("SLA print material notes");
