@@ -9,6 +9,7 @@
 class wxStaticText;
 class LockButton;
 class wxStaticBitmap;
+class wxString;
 
 namespace Slic3r {
 namespace GUI {
@@ -111,7 +112,7 @@ public:
     void emulate_kill_focus();
 #endif // __APPLE__
 
-    void update_manifold_warning_icon_state(const wxString& tooltip);
+    void update_warning_icon_state(const wxString& tooltip);
     void msw_rescale();
 
 private:
