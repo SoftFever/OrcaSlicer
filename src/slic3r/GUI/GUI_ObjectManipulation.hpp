@@ -2,7 +2,7 @@
 #define slic3r_GUI_ObjectManipulation_hpp_
 
 #include <memory>
-#include <wx/string.h>
+#include <wx/wx.h>
 
 #include "GUI_ObjectSettings.hpp"
 #include "GLCanvas3D.hpp"

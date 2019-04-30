@@ -270,6 +270,11 @@ void ObjectList::set_tooltip_for_item(const wxPoint& pt)
     HitTest(pt, item, col);
     if (!item) return;
 
+    /* GetMainWindow() return window, associated with wxDataViewCtrl.
+     * And for this window we should to set tooltips.
+     * Just this->SetToolTip(tooltip) => has no effect.
+     */
+
     if (col->GetTitle() == " " && GetSelectedItemsCount()<2)
         GetMainWindow()->SetToolTip(_(L("Right button click the icon to change the object settings")));
     else if (col->GetTitle() == _("Name"))
