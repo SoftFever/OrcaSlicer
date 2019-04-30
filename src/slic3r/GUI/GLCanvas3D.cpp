@@ -2821,7 +2821,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             if (m_hover_volume_idxs.empty() && m_mouse.is_start_position_3D_defined())
             {
                 const Vec3d& orig = m_mouse.drag.start_position_3D;
-                m_camera.phi += (((float)pos(0) - (float)orig(0)) * TRACKBALLSIZE);
+                float sign = m_camera.inverted_phi ? -1.0f : 1.0f;
+                m_camera.phi += sign * ((float)pos(0) - (float)orig(0)) * TRACKBALLSIZE;
                 m_camera.set_theta(m_camera.get_theta() - ((float)pos(1) - (float)orig(1)) * TRACKBALLSIZE, wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA);
                 m_dirty = true;
             }
@@ -2880,6 +2881,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
             }
         }
+        else if (evt.LeftUp() && m_mouse.dragging)
+            // Flips X mouse deltas if bed is upside down
+            m_camera.inverted_phi = (m_camera.get_dir_up()(2) < 0.0);
         else if (evt.RightUp())
         {
             m_mouse.position = pos.cast<double>();
@@ -5257,6 +5261,10 @@ bool GLCanvas3D::_travel_paths_by_tool(const GCodePreviewData& preview_data, con
     // creates a new volume for each tool
     for (Tool& tool : tools)
     {
+        // tool.value could be invalid (as it was with https://github.com/prusa3d/Slic3r/issues/2179), we better check
+        if (tool.value >= tool_colors.size())
+            continue;
+
         GLVolume* volume = new GLVolume(tool_colors.data() + tool.value * 4);
         if (volume == nullptr)
             return false;
@@ -5271,7 +5279,7 @@ bool GLCanvas3D::_travel_paths_by_tool(const GCodePreviewData& preview_data, con
     for (const GCodePreviewData::Travel::Polyline& polyline : preview_data.travel.polylines)
     {
         ToolsList::iterator tool = std::find(tools.begin(), tools.end(), Tool(polyline.extruder_id));
-        if (tool != tools.end())
+        if (tool != tools.end() && tool->volume != nullptr)
         {
             tool->volume->print_zs.push_back(unscale<double>(polyline.polyline.bounding_box().min(2)));
             tool->volume->offsets.push_back(tool->volume->indexed_vertex_array.quad_indices.size());

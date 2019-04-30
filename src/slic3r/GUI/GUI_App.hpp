@@ -94,7 +94,9 @@ public:
 
     GUI_App();
 
-    unsigned        get_colour_approx_luma(const wxColour &colour);
+    static unsigned get_colour_approx_luma(const wxColour &colour);
+    static bool     dark_mode();
+    static bool     dark_mode_menus();
     void            init_label_colours();
     void            update_label_colours_from_appconfig();
     void            init_fonts();
@@ -122,7 +124,7 @@ public:
                                 const std::string& err);
 //     void            notify(/*message*/);
 
-    void            persist_window_geometry(wxTopLevelWindow *window);
+    void            persist_window_geometry(wxTopLevelWindow *window, bool default_maximized = false);
     void            update_ui_from_settings();
 
     bool            select_language(wxArrayString & names, wxArrayLong & identifiers);
@@ -174,7 +176,7 @@ public:
 private:
     bool            on_init_inner();
     void            window_pos_save(wxTopLevelWindow* window, const std::string &name);
-    void            window_pos_restore(wxTopLevelWindow* window, const std::string &name);
+    void            window_pos_restore(wxTopLevelWindow* window, const std::string &name, bool default_maximized = false);
     void            window_pos_sanitize(wxTopLevelWindow* window);
 };
 DECLARE_APP(GUI_App)

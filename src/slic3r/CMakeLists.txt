@@ -151,7 +151,10 @@ set(SLIC3R_GUI_SOURCES
 )
 
 if (APPLE)
-    list(APPEND SLIC3R_GUI_SOURCES Utils/RetinaHelperImpl.mm)
+    list(APPEND SLIC3R_GUI_SOURCES
+            Utils/RetinaHelperImpl.mm
+            Utils/MacDarkMode.mm
+        )
 endif ()
 
 add_library(libslic3r_gui STATIC ${SLIC3R_GUI_SOURCES})

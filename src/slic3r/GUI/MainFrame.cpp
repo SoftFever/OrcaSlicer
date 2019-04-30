@@ -129,7 +129,7 @@ DPIFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAU
         event.Skip();
     });
 
-    wxGetApp().persist_window_geometry(this);
+    wxGetApp().persist_window_geometry(this, true);
 
     update_ui_from_settings();    // FIXME (?)
 }
@@ -332,6 +332,7 @@ void MainFrame::init_menubar()
         wxMenu* export_menu = new wxMenu();
         wxMenuItem* item_export_gcode = append_menu_item(export_menu, wxID_ANY, _(L("Export &G-code")) + dots +"\tCtrl+G", _(L("Export current plate as G-code")),
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_gcode(); }, "export_gcode");
+        m_changeable_menu_items.push_back(item_export_gcode);
         export_menu->AppendSeparator();
         wxMenuItem* item_export_stl = append_menu_item(export_menu, wxID_ANY, _(L("Export plate as &STL")) + dots, _(L("Export current plate as STL")),
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_stl(); }, "export_plater");
@@ -444,8 +445,9 @@ void MainFrame::init_menubar()
         }
         append_menu_item(windowMenu, wxID_HIGHEST + 2, _(L("P&rint Settings Tab")) + "\tCtrl+2", _(L("Show the print settings")),
             [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 0); }, "cog");
-        append_menu_item(windowMenu, wxID_HIGHEST + 3, _(L("&Filament Settings Tab")) + "\tCtrl+3", _(L("Show the filament settings")),
-            [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 1); }, "spool.png");
+        wxMenuItem* item_material_tab = append_menu_item(windowMenu, wxID_HIGHEST + 3, _(L("&Filament Settings Tab")) + "\tCtrl+3", _(L("Show the filament settings")),
+            [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 1); }, "spool");
+        m_changeable_menu_items.push_back(item_material_tab);
         append_menu_item(windowMenu, wxID_HIGHEST + 4, _(L("Print&er Settings Tab")) + "\tCtrl+4", _(L("Show the printer settings")),
             [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 2); }, "printer");
         if (m_plater) {
@@ -554,6 +556,19 @@ void MainFrame::init_menubar()
         }, wxID_EXIT);
     }
 #endif
+
+    if (plater()->printer_technology() == ptSLA)
+        update_menubar();
+}
+
+void MainFrame::update_menubar()
+{
+    const bool is_fff = plater()->printer_technology() == ptFFF;
+
+    m_changeable_menu_items[miExport]       ->SetItemLabel((is_fff ? _(L("Export &G-code"))         : _(L("Export"))                    )   + dots + "\tCtrl+G");
+
+    m_changeable_menu_items[miMaterialTab]  ->SetItemLabel((is_fff ? _(L("&Filament Settings Tab")) : _(L("Mate&rial Settings Tab")))   + "\tCtrl+3");
+    m_changeable_menu_items[miMaterialTab]  ->SetBitmap(create_scaled_bitmap(this, is_fff ? "spool": "resin"));
 }
 
 // To perform the "Quck Slice", "Quick Slice and Save As", "Repeat last Quick Slice" and "Slice to SVG".

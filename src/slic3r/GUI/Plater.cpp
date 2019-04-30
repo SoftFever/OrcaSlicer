@@ -3747,6 +3747,9 @@ void Plater::set_printer_technology(PrinterTechnology printer_technology)
 
     p->label_btn_export = printer_technology == ptFFF ? L("Export G-code") : L("Export");
     p->label_btn_send   = printer_technology == ptFFF ? L("Send G-code")   : L("Send to printer");
+
+    if (wxGetApp().mainframe)
+        wxGetApp().mainframe->update_menubar();
 }
 
 void Plater::changed_object(int obj_idx)

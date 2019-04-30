@@ -1174,8 +1174,9 @@ void SLAPrint::process()
             for(const SliceRecord& record : layer.slices()) {
                 const SLAPrintObject *po = record.print_obj();
 
-                const ExPolygons &rawmodelslices = record.get_slice(soModel);
-                const ExPolygons &modelslices = clpr_back_offs != 0 ? offset_ex(rawmodelslices, clpr_back_offs) : rawmodelslices;
+                // const ExPolygons &rawmodelslices = record.get_slice(soModel);
+                // const ExPolygons &modelslices = clpr_back_offs != 0 ? offset_ex(rawmodelslices, clpr_back_offs) : rawmodelslices;
+                const ExPolygons &modelslices = record.get_slice(soModel);
                 
                 bool is_lefth = record.print_obj()->is_left_handed();
                 if (!modelslices.empty()) {
@@ -1183,8 +1184,9 @@ void SLAPrint::process()
                     for(ClipperPolygon& p_tmp : v) model_polygons.emplace_back(std::move(p_tmp));
                 }
 
-                const ExPolygons &rawsupportslices = record.get_slice(soSupport);
-                const ExPolygons &supportslices = clpr_back_offs != 0 ? offset_ex(rawsupportslices, clpr_back_offs) : rawsupportslices;
+                // const ExPolygons &rawsupportslices = record.get_slice(soSupport);
+                // const ExPolygons &supportslices = clpr_back_offs != 0 ? offset_ex(rawsupportslices, clpr_back_offs) : rawsupportslices;
+                const ExPolygons &supportslices = record.get_slice(soSupport);
                 
                 if (!supportslices.empty()) {
                     ClipperPolygons v = get_all_polygons(supportslices, po->instances(), is_lefth);
@@ -1662,16 +1664,16 @@ Vec3d SLAPrint::relative_correction() const
 {
     Vec3d corr(1., 1., 1.);
 
-    if(printer_config().relative_correction.values.size() == 2) {
+    if(printer_config().relative_correction.values.size() >= 2) {
         corr(X) = printer_config().relative_correction.values[0];
         corr(Y) = printer_config().relative_correction.values[0];
-        corr(Z) = printer_config().relative_correction.values[1];
-    }
+        corr(Z) = printer_config().relative_correction.values.back();
+    } 
 
-    if(material_config().material_correction.values.size() == 2) {
+    if(material_config().material_correction.values.size() >= 2) {
         corr(X) *= material_config().material_correction.values[0];
         corr(Y) *= material_config().material_correction.values[0];
-        corr(Z) *= material_config().material_correction.values[1];
+        corr(Z) *= material_config().material_correction.values.back();
     }
 
     return corr;

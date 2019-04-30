@@ -8,6 +8,7 @@
 
 #include "GUI_App.hpp"
 #include "PresetBundle.hpp"
+#include "Gizmos/GLGizmoBase.hpp"
 
 #include <GL/glew.h>
 
@@ -232,7 +233,7 @@ void Bed3D::Axes::render() const
     glsafe(::glEnable(GL_LIGHTING));
 
     // x axis
-    glsafe(::glColor3f(1.0f, 0.0f, 0.0f));
+    glsafe(::glColor3fv(AXES_COLOR[0]));
     glsafe(::glPushMatrix());
     glsafe(::glTranslated(origin(0), origin(1), origin(2)));
     glsafe(::glRotated(90.0, 0.0, 1.0, 0.0));
@@ -240,7 +241,7 @@ void Bed3D::Axes::render() const
     glsafe(::glPopMatrix());
 
     // y axis
-    glsafe(::glColor3f(0.0f, 1.0f, 0.0f));
+    glsafe(::glColor3fv(AXES_COLOR[1]));
     glsafe(::glPushMatrix());
     glsafe(::glTranslated(origin(0), origin(1), origin(2)));
     glsafe(::glRotated(-90.0, 1.0, 0.0, 0.0));
@@ -248,7 +249,7 @@ void Bed3D::Axes::render() const
     glsafe(::glPopMatrix());
 
     // z axis
-    glsafe(::glColor3f(0.0f, 0.0f, 1.0f));
+    glsafe(::glColor3fv(AXES_COLOR[2]));
     glsafe(::glPushMatrix());
     glsafe(::glTranslated(origin(0), origin(1), origin(2)));
     render_axis(length(2));
