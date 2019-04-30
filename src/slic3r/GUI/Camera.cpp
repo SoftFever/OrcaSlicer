@@ -25,6 +25,7 @@ Camera::Camera()
     , phi(45.0f)
 //    , distance(0.0f)
     , requires_zoom_to_bed(false)
+    , inverted_phi(false)
     , m_theta(45.0f)
     , m_target(Vec3d::Zero())
 {

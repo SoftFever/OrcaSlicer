@@ -466,7 +466,7 @@ void GUI_App::update_ui_from_settings()
     mainframe->update_ui_from_settings();
 }
 
-void GUI_App::persist_window_geometry(wxTopLevelWindow *window)
+void GUI_App::persist_window_geometry(wxTopLevelWindow *window, bool default_maximized)
 {
     const std::string name = into_u8(window->GetName());
 
@@ -475,7 +475,7 @@ void GUI_App::persist_window_geometry(wxTopLevelWindow *window)
         event.Skip();
     });
 
-    window_pos_restore(window, name);
+    window_pos_restore(window, name, default_maximized);
 
     on_window_geometry(window, [=]() {
         window_pos_sanitize(window);
@@ -883,15 +883,21 @@ void GUI_App::window_pos_save(wxTopLevelWindow* window, const std::string &name)
     app_config->save();
 }
 
-void GUI_App::window_pos_restore(wxTopLevelWindow* window, const std::string &name)
+void GUI_App::window_pos_restore(wxTopLevelWindow* window, const std::string &name, bool default_maximized)
 {
     if (name.empty()) { return; }
     const auto config_key = (boost::format("window_%1%") % name).str();
 
-    if (! app_config->has(config_key)) { return; }
+    if (! app_config->has(config_key)) {
+        window->Maximize(default_maximized);
+        return;
+    }
 
     auto metrics = WindowMetrics::deserialize(app_config->get(config_key));
-    if (! metrics) { return; }
+    if (! metrics) {
+        window->Maximize(default_maximized);
+        return;
+    }
 
     window->SetSize(metrics->get_rect());
     window->Maximize(metrics->get_maximized());
