@@ -2,6 +2,7 @@
 #define slic3r_GUI_ObjectManipulation_hpp_
 
 #include <memory>
+#include <wx/string.h>
 
 #include "GUI_ObjectSettings.hpp"
 #include "GLCanvas3D.hpp"
@@ -9,7 +10,6 @@
 class wxStaticText;
 class LockButton;
 class wxStaticBitmap;
-class wxString;
 
 namespace Slic3r {
 namespace GUI {
