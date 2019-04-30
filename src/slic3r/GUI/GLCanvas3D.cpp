@@ -3377,7 +3377,7 @@ bool GLCanvas3D::_init_toolbar()
 
     item.name = "layersediting";
 #if ENABLE_SVG_ICONS
-    item.icon_filename = "layers.svg";
+    item.icon_filename = "layers_white.svg";
 #endif // ENABLE_SVG_ICONS
     item.tooltip = GUI::L_str("Layers editing");
     item.sprite_id = 10;
