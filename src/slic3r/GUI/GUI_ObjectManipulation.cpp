@@ -420,8 +420,6 @@ void ObjectManipulation::change_rotation_value(int axis, double value)
 		transformation_type.set_local();
 	}
 
-    //FIXME if anisotropic scaling is required, and is_single_full_instance && m_world_coordinates, apply 90 degrees rotation of the rotation vector.
-
     selection.start_dragging();
 	selection.rotate(
 		(M_PI / 180.0) * (transformation_type.absolute() ? rotation : rotation - m_cache.rotation), 
@@ -482,17 +480,27 @@ void ObjectManipulation::do_scale(const Vec3d &scale) const
     Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
     Vec3d scaling_factor = scale;
 
-    if (m_uniform_scale || selection.requires_uniform_scale())
-    {
+    TransformationType transformation_type(TransformationType::World_Relative_Joint);
+    if (selection.is_single_full_instance()) {
+        if (m_world_coordinates) {
+            // Only a 90 degree rotation is allowed, therefore an axis aligned scaling will
+            // be still axis aligned after the instance rotation is applied.
+            const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
+            scaling_factor = (volume->get_instance_transformation().get_matrix(true, false, true, true) * scale).cwiseAbs();
+            // Absolute scaling shall not change.
+            assert(std::abs(scale.maxCoeff() - scaling_factor.maxCoeff()) < EPSILON);
+			assert(std::abs(scale.minCoeff() - scaling_factor.minCoeff()) < EPSILON);
+			assert(std::abs(scale.squaredNorm() - scaling_factor.squaredNorm()) < EPSILON);
+		} else
+            transformation_type.set_local();
+    }
+
+    if (m_uniform_scale || selection.requires_uniform_scale()) {
         int max_diff_axis;
         (scale - m_cache.scale).cwiseAbs().maxCoeff(&max_diff_axis);
         scaling_factor = scale(max_diff_axis) * Vec3d::Ones();
     }
 
-    TransformationType transformation_type(TransformationType::World_Relative_Joint);
-    if (selection.is_single_full_instance() && ! m_world_coordinates)
-        transformation_type.set_local();
-    //FIXME if anisotropic scaling is required, and is_single_full_instance && m_world_coordinates, apply 90 degrees rotation of the scaling vector.
     selection.start_dragging();
     selection.scale(scaling_factor * 0.01, transformation_type);
     wxGetApp().plater()->canvas3D()->do_scale();
