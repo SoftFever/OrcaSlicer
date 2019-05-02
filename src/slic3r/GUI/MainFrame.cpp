@@ -14,6 +14,7 @@
 
 #include "libslic3r/Print.hpp"
 #include "libslic3r/Polygon.hpp"
+#include "libslic3r/SLAPrint.hpp"
 
 #include "Tab.hpp"
 #include "PresetBundle.hpp"
@@ -205,12 +206,30 @@ void MainFrame::add_created_tab(Tab* panel)
 
 bool MainFrame::can_save() const
 {
-    return (m_plater != nullptr) ? !m_plater->model().objects.empty() : false;
+    return (m_plater != nullptr) && !m_plater->model().objects.empty();
 }
 
 bool MainFrame::can_export_model() const
 {
-    return (m_plater != nullptr) ? !m_plater->model().objects.empty() : false;
+    return (m_plater != nullptr) && !m_plater->model().objects.empty();
+}
+
+bool MainFrame::can_export_supports() const
+{
+    if ((m_plater == nullptr) || (m_plater->printer_technology() != ptSLA) || m_plater->model().objects.empty())
+        return false;
+
+    bool can_export = false;
+    const PrintObjects& objects = m_plater->sla_print().objects();
+    for (const SLAPrintObject* object : objects)
+    {
+        if (object->has_mesh(slaposBasePool) || object->has_mesh(slaposSupportTree))
+        {
+            can_export = true;
+            break;
+        }
+    }
+    return can_export;
 }
 
 bool MainFrame::can_export_gcode() const
@@ -243,17 +262,17 @@ bool MainFrame::can_change_view() const
 
 bool MainFrame::can_select() const
 {
-    return (m_plater != nullptr) ? !m_plater->model().objects.empty() : false;
+    return (m_plater != nullptr) && !m_plater->model().objects.empty();
 }
 
 bool MainFrame::can_delete() const
 {
-    return (m_plater != nullptr) ? !m_plater->is_selection_empty() : false;
+    return (m_plater != nullptr) && !m_plater->is_selection_empty();
 }
 
 bool MainFrame::can_delete_all() const
 {
-    return (m_plater != nullptr) ? !m_plater->model().objects.empty() : false;
+    return (m_plater != nullptr) && !m_plater->model().objects.empty();
 }
 
 void MainFrame::on_dpi_changed(const wxRect &suggested_rect)
@@ -346,6 +365,8 @@ void MainFrame::init_menubar()
         export_menu->AppendSeparator();
         wxMenuItem* item_export_stl = append_menu_item(export_menu, wxID_ANY, _(L("Export plate as &STL")) + dots, _(L("Export current plate as STL")),
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_stl(); }, menu_icon("export_plater"));
+        wxMenuItem* item_export_stl_sla = append_menu_item(export_menu, wxID_ANY, _(L("Export plate as STL including supports")) + dots, _(L("Export current plate as STL including supports")),
+            [this](wxCommandEvent&) { if (m_plater) m_plater->export_stl(true); }, menu_icon("export_plater"));
         wxMenuItem* item_export_amf = append_menu_item(export_menu, wxID_ANY, _(L("Export plate as &AMF")) + dots, _(L("Export current plate as AMF")),
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_amf(); }, menu_icon("export_plater"));
         export_menu->AppendSeparator();
@@ -389,13 +410,14 @@ void MainFrame::init_menubar()
             [this](wxCommandEvent&) { Close(false); });
 
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(m_plater != nullptr); }, item_open->GetId());
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable((m_plater != nullptr) && can_save()); }, item_save->GetId());
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable((m_plater != nullptr) && can_save()); }, item_save_as->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_save()); }, item_save->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_save()); }, item_save_as->GetId());
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(m_plater != nullptr); }, item_import_model->GetId());
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable((m_plater != nullptr) && can_export_gcode()); }, item_export_gcode->GetId());
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable((m_plater != nullptr) && can_export_model()); }, item_export_stl->GetId());
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable((m_plater != nullptr) && can_export_model()); }, item_export_amf->GetId());
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable((m_plater != nullptr) && can_slice()); }, m_menu_item_reslice_now->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_export_gcode()); }, item_export_gcode->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_export_model()); }, item_export_stl->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_export_supports()); }, item_export_stl_sla->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_export_model()); }, item_export_amf->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_slice()); }, m_menu_item_reslice_now->GetId());
     }
 
 #ifdef _MSC_VER

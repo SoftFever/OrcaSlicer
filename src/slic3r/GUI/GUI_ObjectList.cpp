@@ -1147,7 +1147,7 @@ void ObjectList::append_menu_item_fix_through_netfabb(wxMenu* menu)
 void ObjectList::append_menu_item_export_stl(wxMenu* menu) const 
 {
     append_menu_item(menu, wxID_ANY, _(L("Export as STL")) + dots, "",
-        [](wxCommandEvent&) { wxGetApp().plater()->export_stl(true); }, "", menu);
+        [](wxCommandEvent&) { wxGetApp().plater()->export_stl(false, true); }, "", menu);
     menu->AppendSeparator();
 }
 
