@@ -1456,28 +1456,28 @@ stl_stats ModelObject::get_object_stl_stats() const
     if (this->volumes.size() == 1)
         return this->volumes[0]->mesh.stl.stats;
 
-    stl_stats full_stats;
-
-    // initialise full_stats
-    full_stats.degenerate_facets= 0;
-    full_stats.edges_fixed      = 0;
-    full_stats.facets_removed   = 0;
-    full_stats.facets_added     = 0;
-    full_stats.facets_reversed  = 0;
-    full_stats.backwards_edges  = 0;
-    full_stats.normals_fixed    = 0;
+    stl_stats full_stats = this->volumes[0]->mesh.stl.stats;
 
     // fill full_stats from all objet's meshes
     for (ModelVolume* volume : this->volumes)
     {
+        if (volume->id() == this->volumes[0]->id())
+            continue;
+
         const stl_stats& stats = volume->mesh.stl.stats;
 
+        // initialize full_stats (for repaired errors)
         full_stats.degenerate_facets+= stats.degenerate_facets;
         full_stats.edges_fixed      += stats.edges_fixed;
         full_stats.facets_removed   += stats.facets_removed;
         full_stats.facets_added     += stats.facets_added;
         full_stats.facets_reversed  += stats.facets_reversed;
         full_stats.backwards_edges  += stats.backwards_edges;
+
+        // another used satistics value
+        if (volume->is_model_part())
+            full_stats.volume       += stats.volume;
+        full_stats.number_of_parts  += stats.number_of_parts;
     }
 
     return full_stats;
