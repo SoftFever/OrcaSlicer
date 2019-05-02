@@ -1897,7 +1897,7 @@ void ObjectList::part_selection_changed()
 
         if (item) {
             wxGetApp().obj_manipul()->get_og()->set_value("object_name", m_objects_model->GetName(item));
-            wxGetApp().obj_manipul()->update_warning_icon_state(/*get_mesh_errors_list(obj_idx, volume_id)*/);
+            wxGetApp().obj_manipul()->update_warning_icon_state(get_mesh_errors_list(obj_idx, volume_id));
         }
     }
 

@@ -111,7 +111,7 @@ public:
     void emulate_kill_focus();
 #endif // __APPLE__
 
-    void update_warning_icon_state(/*const wxString& tooltip*/);
+    void update_warning_icon_state(const wxString& tooltip);
     void msw_rescale();
 
 private:
