@@ -2,7 +2,6 @@
 #define slic3r_GUI_ObjectManipulation_hpp_
 
 #include <memory>
-#include <wx/wx.h>
 
 #include "GUI_ObjectSettings.hpp"
 #include "GLCanvas3D.hpp"
@@ -112,7 +111,7 @@ public:
     void emulate_kill_focus();
 #endif // __APPLE__
 
-    void update_warning_icon_state(const wxString& tooltip);
+    void update_warning_icon_state(/*const wxString& tooltip*/);
     void msw_rescale();
 
 private:
