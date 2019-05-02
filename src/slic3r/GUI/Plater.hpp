@@ -153,6 +153,7 @@ public:
     void select_all();
     void remove(size_t obj_idx);
     void reset();
+    void reset_with_confirm();
     void delete_object_from_model(size_t obj_idx);
     void remove_selected();
     void increase_instances(size_t num = 1);

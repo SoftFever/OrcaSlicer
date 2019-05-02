@@ -1447,7 +1447,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     // 3DScene/Toolbar:
     view3D_canvas->Bind(EVT_GLTOOLBAR_ADD, &priv::on_action_add, this);
     view3D_canvas->Bind(EVT_GLTOOLBAR_DELETE, [q](SimpleEvent&) { q->remove_selected(); });
-    view3D_canvas->Bind(EVT_GLTOOLBAR_DELETE_ALL, [this](SimpleEvent&) { reset(); });
+    view3D_canvas->Bind(EVT_GLTOOLBAR_DELETE_ALL, [q](SimpleEvent&) { q->reset_with_confirm(); });
     view3D_canvas->Bind(EVT_GLTOOLBAR_ARRANGE, [this](SimpleEvent&) { arrange(); });
     view3D_canvas->Bind(EVT_GLTOOLBAR_COPY, [q](SimpleEvent&) { q->copy_selection_to_clipboard(); });
     view3D_canvas->Bind(EVT_GLTOOLBAR_PASTE, [q](SimpleEvent&) { q->paste_from_clipboard(); });
@@ -3282,6 +3282,11 @@ void Plater::select_all() { p->select_all(); }
 
 void Plater::remove(size_t obj_idx) { p->remove(obj_idx); }
 void Plater::reset() { p->reset(); }
+void Plater::reset_with_confirm()
+{
+    if (wxMessageDialog((wxWindow*)this, _(L("All objects will be removed, continue ?")), _(L("Delete all")), wxYES_NO | wxYES_DEFAULT | wxCENTRE).ShowModal() == wxID_YES)
+        reset();
+}
 
 void Plater::delete_object_from_model(size_t obj_idx) { p->delete_object_from_model(obj_idx); }
 
