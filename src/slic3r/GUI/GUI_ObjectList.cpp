@@ -1000,13 +1000,7 @@ void ObjectList::get_freq_settings_choice(const wxString& bundle_name)
 {
     const std::vector<std::string>& options = get_options_for_bundle(bundle_name);
 
-    /* #ys_FIXME_delete_after_testing   ! Temporary workaround to avoid a crash:
-    * After a right click on an instance all items in the ObjectList are unselected,
-    * and as a result m_config == nullptr.
-    */
-    if (!m_config)
-        return;
-
+    assert(m_config);
     auto opt_keys = m_config->keys();
 
     const DynamicPrintConfig& from_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
@@ -2156,6 +2150,11 @@ void ObjectList::update_selections()
             if (m_objects_model->GetVolumeIdByItem(m_objects_model->GetParent(item)) == gl_vol->volume_idx())
                 return;
         }
+
+        // but if there is selected only one of several instances by context menu,
+        // then select this instance in ObjectList
+        if (selection.is_single_full_instance())
+            sels.Add(m_objects_model->GetItemByInstanceId(selection.get_object_idx(), selection.get_instance_idx()));
     }
     else if (selection.is_single_full_object() || selection.is_multiple_full_object())
     {
