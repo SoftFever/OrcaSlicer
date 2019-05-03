@@ -1011,8 +1011,10 @@ public:
     // What type? bool, int, string etc.
     ConfigOptionType                    type            = coNone;
     // Default value of this option. The default value object is owned by ConfigDef, it is released in its destructor.
-    Slic3r::clonable_ptr<const ConfigOption> default_value   = nullptr;
+    Slic3r::clonable_ptr<const ConfigOption> default_value;
     void set_default_value(const ConfigOption* ptr) { this->default_value = Slic3r::clonable_ptr<const ConfigOption>(ptr); }
+    template<typename T>
+    const T* get_default_value() const { return static_cast<const T*>(this->default_value.get()); }
 
     // Usually empty. 
     // Special values - "i_enum_open", "f_enum_open" to provide combo box for int or float selection,
