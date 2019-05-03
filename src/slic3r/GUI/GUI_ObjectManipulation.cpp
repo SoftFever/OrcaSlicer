@@ -21,9 +21,9 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     OG_Settings(parent, true)
 #ifndef __APPLE__
     , m_focused_option("")
-    , m_manifold_warning_bmp(ScalableBitmap(parent, "exclamation"))
 #endif // __APPLE__
 {
+    m_manifold_warning_bmp = ScalableBitmap(parent, "exclamation");
     m_og->set_name(_(L("Object Manipulation")));
     m_og->label_width = 12;//125;
     m_og->set_grid_vgap(5);
@@ -77,6 +77,9 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     def.gui_type = "legend";
     def.tooltip = L("Object name");
     def.width = 21;
+#ifdef __APPLE__
+    def.width = 19;
+#endif
     def.default_value = new ConfigOptionString{ " " };
     line.append_option(Option(def, "object_name"));
     m_og->append_line(line);

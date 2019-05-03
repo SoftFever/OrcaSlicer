@@ -724,7 +724,7 @@ Sidebar::Sidebar(Plater *parent)
 
     auto init_btn = [this](wxButton **btn, wxString label) {
         *btn = new wxButton(this, wxID_ANY, label, wxDefaultPosition, 
-                            wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
+                            wxDefaultSize, wxBU_EXACTFIT);
         (*btn)->SetFont(wxGetApp().bold_font());
     };
 
