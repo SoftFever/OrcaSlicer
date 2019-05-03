@@ -1748,7 +1748,7 @@ void GLCanvas3D::mirror_selection(Axis axis)
 {
     m_selection.mirror(axis);
     do_mirror();
-    wxGetApp().obj_manipul()->update_settings_value(m_selection);
+    wxGetApp().obj_manipul()->set_dirty();
 }
 
 // Reload the 3D scene of 
@@ -2091,7 +2091,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         // to force a reset of its cache
         auto manip = wxGetApp().obj_manipul();
         if (manip != nullptr)
-            manip->update_settings_value(m_selection);
+            manip->set_dirty();
     }
 
     // and force this canvas to be redrawn.
@@ -2726,7 +2726,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
             m_regenerate_volumes = false;
             m_selection.translate(cur_pos - m_mouse.drag.start_position_3D);
-            wxGetApp().obj_manipul()->update_settings_value(m_selection);
+            wxGetApp().obj_manipul()->set_dirty();
 
             m_dirty = true;
         }
@@ -2781,7 +2781,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         {
             m_regenerate_volumes = false;
             do_move();
-            wxGetApp().obj_manipul()->update_settings_value(m_selection);
+            wxGetApp().obj_manipul()->set_dirty();
             // Let the platter know that the dragging finished, so a delayed refresh
             // of the scene with the background processing data should be performed.
             post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
@@ -2793,7 +2793,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             {
                 m_selection.clear();
                 m_selection.set_mode(Selection::Instance);
-                wxGetApp().obj_manipul()->update_settings_value(m_selection);
+                wxGetApp().obj_manipul()->set_dirty();
                 m_gizmos.reset_all_states();
                 m_gizmos.update_data(*this);
                 post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
@@ -2817,7 +2817,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     m_gizmos.refresh_on_off_state(m_selection);
                     post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
                     m_gizmos.update_data(*this);
-                    wxGetApp().obj_manipul()->update_settings_value(m_selection);
+                    wxGetApp().obj_manipul()->set_dirty();
                     // forces a frame render to update the view before the context menu is shown
                     render();
 

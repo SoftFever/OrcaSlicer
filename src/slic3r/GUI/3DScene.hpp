@@ -397,6 +397,9 @@ public:
     bool                is_left_handed() const;
 
     const BoundingBoxf3& transformed_bounding_box() const;
+    // non-caching variant
+    BoundingBoxf3        transformed_convex_hull_bounding_box(const Transform3d &trafo) const;
+    // caching variant
     const BoundingBoxf3& transformed_convex_hull_bounding_box() const;
 
     bool                empty() const { return this->indexed_vertex_array.empty(); }

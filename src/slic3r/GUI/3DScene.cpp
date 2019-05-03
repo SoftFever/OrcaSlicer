@@ -362,17 +362,16 @@ const BoundingBoxf3& GLVolume::transformed_bounding_box() const
 
 const BoundingBoxf3& GLVolume::transformed_convex_hull_bounding_box() const
 {
-    if (m_transformed_convex_hull_bounding_box_dirty)
-    {
-        if ((m_convex_hull != nullptr) && (m_convex_hull->stl.stats.number_of_facets > 0))
-            m_transformed_convex_hull_bounding_box = m_convex_hull->transformed_bounding_box(world_matrix());
-        else
-            m_transformed_convex_hull_bounding_box = bounding_box.transformed(world_matrix());
-
-        m_transformed_convex_hull_bounding_box_dirty = false;
-    }
-
+	if (m_transformed_convex_hull_bounding_box_dirty)
+		m_transformed_convex_hull_bounding_box = this->transformed_convex_hull_bounding_box(world_matrix());
     return m_transformed_convex_hull_bounding_box;
+}
+
+BoundingBoxf3 GLVolume::transformed_convex_hull_bounding_box(const Transform3d &trafo) const
+{
+	return (m_convex_hull != nullptr && m_convex_hull->stl.stats.number_of_facets > 0) ? 
+		m_convex_hull->transformed_bounding_box(trafo) :
+		bounding_box.transformed(trafo);
 }
 
 void GLVolume::set_range(double min_z, double max_z)

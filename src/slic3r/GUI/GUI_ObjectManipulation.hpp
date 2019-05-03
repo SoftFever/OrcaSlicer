@@ -32,22 +32,6 @@ class ObjectManipulation : public OG_Settings
         wxString rotate_label_string;
         wxString scale_label_string;
 
-        struct Instance
-        {
-            int object_idx;
-            int instance_idx;
-            Vec3d box_size;
-
-            Instance() { reset(); }
-            void reset() { this->object_idx = -1; this->instance_idx = -1; this->box_size = Vec3d::Zero(); }
-            void set(int object_idx, int instance_idx, const Vec3d& box_size) { this->object_idx = object_idx; this->instance_idx = instance_idx; this->box_size = box_size; }
-            bool matches(int object_idx, int instance_idx) const { return (this->object_idx == object_idx) && (this->instance_idx == instance_idx); }
-            bool matches_object(int object_idx) const { return (this->object_idx == object_idx); }
-            bool matches_instance(int instance_idx) const { return (this->instance_idx == instance_idx); }
-        };
-
-        Instance instance;
-
         Cache() { reset(); }
         void reset()
         {
@@ -58,7 +42,6 @@ class ObjectManipulation : public OG_Settings
             move_label_string = wxString();
             rotate_label_string = wxString();
             scale_label_string = wxString();
-            instance.reset();
         }
         bool is_valid() const { return position != Vec3d(DBL_MAX, DBL_MAX, DBL_MAX); }
     };
@@ -99,8 +82,7 @@ public:
     bool        IsShown() override;
     void        UpdateAndShow(const bool show) override;
 
-    void        update_settings_value(const Selection& selection);
-
+    void        set_dirty() { m_dirty = true; }
 	// Called from the App to update the UI if dirty.
 	void		update_if_dirty();
 
@@ -120,6 +102,7 @@ public:
 
 private:
     void reset_settings_value();
+    void update_settings_value(const Selection& selection);
 
     // update size values after scale unit changing or "gizmos"
     void update_size_value(const Vec3d& size);
@@ -131,7 +114,7 @@ private:
     void change_rotation_value(int axis, double value);
     void change_scale_value(int axis, double value);
     void change_size_value(int axis, double value);
-    void do_scale(const Vec3d &scale) const;
+    void do_scale(int axis, const Vec3d &scale) const;
 
     void on_change(t_config_option_key opt_key, const boost::any& value);
     void on_fill_empty_value(const std::string& opt_key);
