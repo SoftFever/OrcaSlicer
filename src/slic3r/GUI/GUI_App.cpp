@@ -44,6 +44,10 @@
 #include "SysInfoDialog.hpp"
 #include "KBShortcutsDialog.hpp"
 
+#ifdef __WXMSW__
+#include <Shlobj.h>
+#endif // __WXMSW__
+
 namespace Slic3r {
 namespace GUI {
 
@@ -181,6 +185,10 @@ bool GUI_App::on_init_inner()
         app_config->load();
     app_config->set("version", SLIC3R_VERSION);
     app_config->save();
+
+#ifdef __WXMSW__
+    associate_3mf_files();
+#endif // __WXMSW__
 
     preset_updater = new PresetUpdater();
     Bind(EVT_SLIC3R_VERSION_ONLINE, [this](const wxCommandEvent &evt) {
@@ -946,6 +954,65 @@ void GUI_App::window_pos_sanitize(wxTopLevelWindow* window)
 //     //TODO use wxNotificationMessage ?
 // }
 
+
+#ifdef __WXMSW__
+void GUI_App::associate_3mf_files()
+{
+    // see as reference: https://stackoverflow.com/questions/20245262/c-program-needs-an-file-association
+
+    auto reg_set = [](HKEY hkeyHive, const wchar_t* pszVar, const wchar_t* pszValue)
+    {
+        wchar_t szValueCurrent[1000];
+        DWORD dwType;
+        DWORD dwSize = sizeof(szValueCurrent);
+
+        int iRC = ::RegGetValueW(hkeyHive, pszVar, nullptr, RRF_RT_ANY, &dwType, szValueCurrent, &dwSize);
+
+        bool bDidntExist = iRC == ERROR_FILE_NOT_FOUND;
+
+        if ((iRC != ERROR_SUCCESS) && !bDidntExist)
+            // an error occurred
+            return;
+
+        if (!bDidntExist)
+        {
+            if (dwType != REG_SZ)
+                // invalid type
+                return;
+
+            if (::wcscmp(szValueCurrent, pszValue) == 0)
+                // value already set
+                return;
+        }
+
+        DWORD dwDisposition;
+        HKEY hkey;
+        iRC = ::RegCreateKeyExW(hkeyHive, pszVar, 0, 0, 0, KEY_ALL_ACCESS, nullptr, &hkey, &dwDisposition);
+        if (iRC == ERROR_SUCCESS)
+            iRC = ::RegSetValueExW(hkey, L"", 0, REG_SZ, (BYTE*)pszValue, (::wcslen(pszValue) + 1) * sizeof(wchar_t));
+
+        RegCloseKey(hkey);
+    };
+
+    wchar_t app_path[MAX_PATH];
+    ::GetModuleFileNameW(nullptr, app_path, sizeof(app_path));
+
+    std::wstring prog_path = L"\"" + std::wstring(app_path) + L"\"";
+    std::wstring prog_id = L"Prusa.Slicer.1";
+    std::wstring prog_desc = L"PrusaSlicer";
+    std::wstring prog_command = prog_path + L" \"%1\"";
+    std::wstring reg_base = L"Software\\Classes";
+    std::wstring reg_extension = reg_base + L"\\.3mf";
+    std::wstring reg_prog_id = reg_base + L"\\" + prog_id;
+    std::wstring reg_prog_id_command = reg_prog_id + L"\\Shell\\Open\\Command";
+
+    reg_set(HKEY_CURRENT_USER, reg_extension.c_str(), prog_id.c_str());
+    reg_set(HKEY_CURRENT_USER, reg_prog_id.c_str(), prog_desc.c_str());
+    reg_set(HKEY_CURRENT_USER, reg_prog_id_command.c_str(), prog_command.c_str());
+
+    ::SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
+}
+#endif // __WXMSW__
 
 } // GUI
 } //Slic3r

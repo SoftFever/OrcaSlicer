@@ -178,6 +178,9 @@ private:
     void            window_pos_save(wxTopLevelWindow* window, const std::string &name);
     void            window_pos_restore(wxTopLevelWindow* window, const std::string &name, bool default_maximized = false);
     void            window_pos_sanitize(wxTopLevelWindow* window);
+#ifdef __WXMSW__
+    void associate_3mf_files();
+#endif // __WXMSW__
 };
 DECLARE_APP(GUI_App)
 
