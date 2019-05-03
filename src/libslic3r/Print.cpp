@@ -1211,17 +1211,15 @@ std::string Print::validate() const
             return L("The Spiral Vase option can only be used when printing single material objects.");
     }
 
-    if (m_config.single_extruder_multi_material) {
-        for (size_t i=1; i<m_config.nozzle_diameter.values.size(); ++i)
-            if (m_config.nozzle_diameter.values[i] != m_config.nozzle_diameter.values[i-1])
-                return L("All extruders must have the same diameter for single extruder multimaterial printer.");
-    }
-
     if (this->has_wipe_tower() && ! m_objects.empty()) {
         if (m_config.gcode_flavor != gcfRepRap && m_config.gcode_flavor != gcfRepetier && m_config.gcode_flavor != gcfMarlin)
             return L("The Wipe Tower is currently only supported for the Marlin, RepRap/Sprinter and Repetier G-code flavors.");
         if (! m_config.use_relative_e_distances)
             return L("The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1).");
+        
+        for (size_t i=1; i<m_config.nozzle_diameter.values.size(); ++i)
+            if (m_config.nozzle_diameter.values[i] != m_config.nozzle_diameter.values[i-1])
+                return L("All extruders must have the same diameter for the Wipe Tower.");
 
         if (m_objects.size() > 1) {
             bool                                has_custom_layering = false;
@@ -1730,7 +1728,6 @@ void Print::_make_brim()
 bool Print::has_wipe_tower() const
 {
     return 
-        m_config.single_extruder_multi_material.value && 
         ! m_config.spiral_vase.value &&
         m_config.wipe_tower.value && 
         m_config.nozzle_diameter.values.size() > 1;
@@ -1792,38 +1789,78 @@ void Print::_make_wipe_tower()
         }
     }
     this->throw_if_canceled();
+    
+    bool semm = m_config.single_extruder_multi_material.value;
+    float cooling_tube_retraction = 0.0;
+    float cooling_tube_length = 0.0;
+    float parking_pos_retraction = 0.0;
+    bool extra_loading_move = 0.0;
+    bool high_current_on_filament_swap = false;
+    
+    if (semm) {
+        cooling_tube_retraction = float(m_config.cooling_tube_retraction.value);
+        cooling_tube_length = float(m_config.cooling_tube_length.value);
+        parking_pos_retraction = float(m_config.parking_pos_retraction.value);
+        extra_loading_move = float(m_config.extra_loading_move.value);
+        high_current_on_filament_swap = m_config.high_current_on_filament_swap.value;
+    }
 
     // Initialize the wipe tower.
     WipeTowerPrusaMM wipe_tower(
         float(m_config.wipe_tower_x.value),     float(m_config.wipe_tower_y.value), 
         float(m_config.wipe_tower_width.value),
-        float(m_config.wipe_tower_rotation_angle.value), float(m_config.cooling_tube_retraction.value),
-        float(m_config.cooling_tube_length.value), float(m_config.parking_pos_retraction.value),
-        float(m_config.extra_loading_move.value), float(m_config.wipe_tower_bridging), 
-        m_config.high_current_on_filament_swap.value, m_config.gcode_flavor, wipe_volumes,
+        float(m_config.wipe_tower_rotation_angle.value), cooling_tube_retraction,
+        cooling_tube_length, parking_pos_retraction,
+        extra_loading_move, float(m_config.wipe_tower_bridging),
+        high_current_on_filament_swap, m_config.gcode_flavor, wipe_volumes,
         m_wipe_tower_data.tool_ordering.first_extruder());
 
     //wipe_tower.set_retract();
     //wipe_tower.set_zhop();
 
     // Set the extruder & material properties at the wipe tower object.
-    for (size_t i = 0; i < number_of_extruders; ++ i)
+    for (size_t i = 0; i < number_of_extruders; ++ i) {
+        float loading_speed = 0.0;
+        float loading_speed_start = 0.0;
+        float unloading_speed = 0.0;
+        float unloading_speed_start = 0.0;
+        float toolchange_delay = 0.0;
+        int cooling_moves = 0;
+        float cooling_initial_speed = 0.0;
+        float cooling_final_speed = 0.0;
+        float max_volumetric_speed = 0.f;
+        std::string ramming_parameters;
+        
+        if (semm) {
+            loading_speed = m_config.filament_loading_speed.get_at(i);
+            loading_speed_start = m_config.filament_loading_speed_start.get_at(i);
+            unloading_speed = m_config.filament_unloading_speed.get_at(i);
+            unloading_speed_start = m_config.filament_unloading_speed_start.get_at(i);
+            toolchange_delay = m_config.filament_toolchange_delay.get_at(i);
+            cooling_moves = m_config.filament_cooling_moves.get_at(i);
+            cooling_initial_speed = m_config.filament_cooling_initial_speed.get_at(i);
+            cooling_final_speed = m_config.filament_cooling_final_speed.get_at(i);
+            ramming_parameters = m_config.filament_ramming_parameters.get_at(i);
+            max_volumetric_speed = m_config.filament_max_volumetric_speed.get_at(i);
+        }
+    
         wipe_tower.set_extruder(
             i, 
             WipeTowerPrusaMM::parse_material(m_config.filament_type.get_at(i).c_str()),
             m_config.temperature.get_at(i),
             m_config.first_layer_temperature.get_at(i),
-            m_config.filament_loading_speed.get_at(i),
-            m_config.filament_loading_speed_start.get_at(i),
-            m_config.filament_unloading_speed.get_at(i),
-            m_config.filament_unloading_speed_start.get_at(i),
-            m_config.filament_toolchange_delay.get_at(i),
-            m_config.filament_cooling_moves.get_at(i),
-            m_config.filament_cooling_initial_speed.get_at(i),
-            m_config.filament_cooling_final_speed.get_at(i),
-            m_config.filament_ramming_parameters.get_at(i),
-            m_config.filament_max_volumetric_speed.get_at(i),
+            loading_speed,
+            loading_speed_start,
+            unloading_speed,
+            unloading_speed_start,
+            toolchange_delay,
+            cooling_moves,
+            cooling_initial_speed,
+            cooling_final_speed,
+            ramming_parameters,
+            max_volumetric_speed,
             m_config.nozzle_diameter.get_at(i));
+    }
 
     m_wipe_tower_data.priming = Slic3r::make_unique<WipeTower::ToolChangeResult>(
         wipe_tower.prime(this->skirt_first_layer_height(), m_wipe_tower_data.tool_ordering.all_extruders(), false));

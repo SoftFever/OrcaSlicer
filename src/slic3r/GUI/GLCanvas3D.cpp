@@ -2049,11 +2049,10 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             // Should the wipe tower be visualized ?
             unsigned int extruders_count = (unsigned int)dynamic_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"))->values.size();
 
-            bool semm = dynamic_cast<const ConfigOptionBool*>(m_config->option("single_extruder_multi_material"))->value;
             bool wt = dynamic_cast<const ConfigOptionBool*>(m_config->option("wipe_tower"))->value;
             bool co = dynamic_cast<const ConfigOptionBool*>(m_config->option("complete_objects"))->value;
 
-            if ((extruders_count > 1) && semm && wt && !co)
+            if ((extruders_count > 1) && wt && !co)
             {
                 // Height of a print (Show at least a slab)
                 double height = std::max(m_model->bounding_box().max(2), 10.0);
@@ -5466,7 +5465,7 @@ void GLCanvas3D::_load_fff_shells()
         double max_z = print->objects()[0]->model_object()->get_model()->bounding_box().max(2);
         const PrintConfig& config = print->config();
         unsigned int extruders_count = config.nozzle_diameter.size();
-        if ((extruders_count > 1) && config.single_extruder_multi_material && config.wipe_tower && !config.complete_objects) {
+        if ((extruders_count > 1) && config.wipe_tower && !config.complete_objects) {
             float depth = print->get_wipe_tower_depth();
 
             // Calculate wipe tower brim spacing.

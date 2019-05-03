@@ -857,19 +857,21 @@ void WipeTowerPrusaMM::toolchange_Unload(
     // Retraction:
     float old_x = writer.x();
     float turning_point = (!m_left_to_right ? xl : xr );
-    float total_retraction_distance = m_cooling_tube_retraction + m_cooling_tube_length/2.f - 15.f; // the 15mm is reserved for the first part after ramming
-    writer.suppress_preview()
-          .retract(15.f, m_filpar[m_current_tool].unloading_speed_start * 60.f) // feedrate 5000mm/min = 83mm/s
-          .retract(0.70f * total_retraction_distance, 1.0f * m_filpar[m_current_tool].unloading_speed * 60.f)
-          .retract(0.20f * total_retraction_distance, 0.5f * m_filpar[m_current_tool].unloading_speed * 60.f)
-          .retract(0.10f * total_retraction_distance, 0.3f * m_filpar[m_current_tool].unloading_speed * 60.f)
-          
-          /*.load_move_x_advanced(turning_point, -15.f, 83.f, 50.f) // this is done at fixed speed
-          .load_move_x_advanced(old_x,         -0.70f * total_retraction_distance, 1.0f * m_filpar[m_current_tool].unloading_speed)
-          .load_move_x_advanced(turning_point, -0.20f * total_retraction_distance, 0.5f * m_filpar[m_current_tool].unloading_speed)
-          .load_move_x_advanced(old_x,         -0.10f * total_retraction_distance, 0.3f * m_filpar[m_current_tool].unloading_speed)
-          .travel(old_x, writer.y()) // in case previous move was shortened to limit feedrate*/
-          .resume_preview();
+    if ((m_cooling_tube_retraction != 0 || m_cooling_tube_length != 0) && m_filpar[m_current_tool].unloading_speed_start != 0 && m_filpar[m_current_tool].unloading_speed != 0) {
+        float total_retraction_distance = m_cooling_tube_retraction + m_cooling_tube_length/2.f - 15.f; // the 15mm is reserved for the first part after ramming
+        writer.suppress_preview()
+              .retract(15.f, m_filpar[m_current_tool].unloading_speed_start * 60.f) // feedrate 5000mm/min = 83mm/s
+              .retract(0.70f * total_retraction_distance, 1.0f * m_filpar[m_current_tool].unloading_speed * 60.f)
+              .retract(0.20f * total_retraction_distance, 0.5f * m_filpar[m_current_tool].unloading_speed * 60.f)
+              .retract(0.10f * total_retraction_distance, 0.3f * m_filpar[m_current_tool].unloading_speed * 60.f)
+              
+              /*.load_move_x_advanced(turning_point, -15.f, 83.f, 50.f) // this is done at fixed speed
+              .load_move_x_advanced(old_x,         -0.70f * total_retraction_distance, 1.0f * m_filpar[m_current_tool].unloading_speed)
+              .load_move_x_advanced(turning_point, -0.20f * total_retraction_distance, 0.5f * m_filpar[m_current_tool].unloading_speed)
+              .load_move_x_advanced(old_x,         -0.10f * total_retraction_distance, 0.3f * m_filpar[m_current_tool].unloading_speed)
+              .travel(old_x, writer.y()) // in case previous move was shortened to limit feedrate*/
+              .resume_preview();
+    }
     if (new_temperature != 0 && (new_temperature != m_old_temperature || m_is_first_layer) ) { 	// Set the extruder temperature, but don't wait.
         // If the required temperature is the same as last time, don't emit the M104 again (if user adjusted the value, it would be reset)
         // However, always change temperatures on the first layer (this is to avoid issues with priming lines turned off).
@@ -920,7 +922,11 @@ void WipeTowerPrusaMM::toolchange_Change(
     if (m_current_tool < m_used_filament_length.size())
     	m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
 
+    writer.append("[end_filament_gcode]\n");
+    writer.append("[toolchange_gcode]\n");
 	writer.set_tool(new_tool);
+    writer.append("[start_filament_gcode]\n");
+
 	writer.flush_planner_queue();
 	m_current_tool = new_tool;
 }
@@ -928,32 +934,34 @@ void WipeTowerPrusaMM::toolchange_Change(
 void WipeTowerPrusaMM::toolchange_Load(
 	PrusaMultiMaterial::Writer &writer,
 	const box_coordinates  &cleaning_box)
-{	
-	float xl = cleaning_box.ld.x + m_perimeter_width * 0.75f;
-	float xr = cleaning_box.rd.x - m_perimeter_width * 0.75f;
-	float oldx = writer.x();	// the nozzle is in place to do the first wiping moves, we will remember the position
+{
+    if ((m_parking_pos_retraction != 0 || m_extra_loading_move != 0) && m_filpar[m_current_tool].loading_speed_start != 0 && m_filpar[m_current_tool].loading_speed != 0) {
+        float xl = cleaning_box.ld.x + m_perimeter_width * 0.75f;
+        float xr = cleaning_box.rd.x - m_perimeter_width * 0.75f;
+        float oldx = writer.x();	// the nozzle is in place to do the first wiping moves, we will remember the position
 
-    // Load the filament while moving left / right, so the excess material will not create a blob at a single position.
-    float turning_point = ( oldx-xl < xr-oldx ? xr : xl );
-    float edist = m_parking_pos_retraction+m_extra_loading_move;
+        // Load the filament while moving left / right, so the excess material will not create a blob at a single position.
+        float turning_point = ( oldx-xl < xr-oldx ? xr : xl );
+        float edist = m_parking_pos_retraction+m_extra_loading_move;
 
-    writer.append("; CP TOOLCHANGE LOAD\n")
-		  .suppress_preview()
-		  /*.load_move_x_advanced(turning_point, 0.2f * edist, 0.3f * m_filpar[m_current_tool].loading_speed)  // Acceleration
-		  .load_move_x_advanced(oldx,          0.5f * edist,        m_filpar[m_current_tool].loading_speed)  // Fast phase
-		  .load_move_x_advanced(turning_point, 0.2f * edist, 0.3f * m_filpar[m_current_tool].loading_speed)  // Slowing down
-		  .load_move_x_advanced(oldx,          0.1f * edist, 0.1f * m_filpar[m_current_tool].loading_speed)  // Super slow*/
+        writer.append("; CP TOOLCHANGE LOAD\n")
+              .suppress_preview()
+              /*.load_move_x_advanced(turning_point, 0.2f * edist, 0.3f * m_filpar[m_current_tool].loading_speed)  // Acceleration
+              .load_move_x_advanced(oldx,          0.5f * edist,        m_filpar[m_current_tool].loading_speed)  // Fast phase
+              .load_move_x_advanced(turning_point, 0.2f * edist, 0.3f * m_filpar[m_current_tool].loading_speed)  // Slowing down
+              .load_move_x_advanced(oldx,          0.1f * edist, 0.1f * m_filpar[m_current_tool].loading_speed)  // Super slow*/
 
-          .load(0.2f * edist, 60.f * m_filpar[m_current_tool].loading_speed_start)
-          .load_move_x_advanced(turning_point, 0.7f * edist,        m_filpar[m_current_tool].loading_speed)  // Fast phase
-		  .load_move_x_advanced(oldx,          0.1f * edist, 0.1f * m_filpar[m_current_tool].loading_speed)  // Super slow*/
+              .load(0.2f * edist, 60.f * m_filpar[m_current_tool].loading_speed_start)
+              .load_move_x_advanced(turning_point, 0.7f * edist,        m_filpar[m_current_tool].loading_speed)  // Fast phase
+              .load_move_x_advanced(oldx,          0.1f * edist, 0.1f * m_filpar[m_current_tool].loading_speed)  // Super slow*/
 
-          .travel(oldx, writer.y()) // in case last move was shortened to limit x feedrate
-		  .resume_preview();
+              .travel(oldx, writer.y()) // in case last move was shortened to limit x feedrate
+              .resume_preview();
 
-	// Reset the extruder current to the normal value.
-	if (m_set_extruder_trimpot)
-		writer.set_extruder_trimpot(550);
+        // Reset the extruder current to the normal value.
+        if (m_set_extruder_trimpot)
+            writer.set_extruder_trimpot(550);
+    }
 }
 
 // Wipe the newly loaded filament until the end of the assigned wipe area.

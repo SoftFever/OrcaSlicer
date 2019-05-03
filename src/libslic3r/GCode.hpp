@@ -99,13 +99,13 @@ public:
 
     std::string prime(GCode &gcodegen);
     void next_layer() { ++ m_layer_idx; m_tool_change_idx = 0; }
-    std::string tool_change(GCode &gcodegen, int extruder_id, bool finish_layer);
+    std::string tool_change(GCode &gcodegen, int extruder_id, bool finish_layer, float print_z);
     std::string finalize(GCode &gcodegen);
     std::vector<float> used_filament_length() const;
 
 private:
     WipeTowerIntegration& operator=(const WipeTowerIntegration&);
-    std::string append_tcr(GCode &gcodegen, const WipeTower::ToolChangeResult &tcr, int new_extruder_id) const;
+    std::string append_tcr(GCode &gcodegen, const WipeTower::ToolChangeResult &tcr, int new_extruder_id, float print_z) const;
 
     // Postprocesses gcode: rotates and moves all G1 extrusions and returns result
     std::string rotate_wipe_tower_moves(const std::string& gcode_original, const WipeTower::xy& start_pos, const WipeTower::xy& translation, float angle) const;
