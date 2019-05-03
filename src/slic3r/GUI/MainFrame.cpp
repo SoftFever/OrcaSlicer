@@ -320,7 +320,7 @@ void MainFrame::init_menubar()
 
     // File menu
     wxMenu* fileMenu = new wxMenu;
-    fileMenu->SetOwnerDrawn(true);
+    set_as_owner_drawn(fileMenu);
     {
         wxMenuItem* item_open = append_menu_item(fileMenu, wxID_ANY, _(L("&Open Project")) + dots + "\tCtrl+O", _(L("Open a project file")),
             [this](wxCommandEvent&) { if (m_plater) m_plater->load_project(); }, menu_icon("open"));
@@ -332,7 +332,7 @@ void MainFrame::init_menubar()
         fileMenu->AppendSeparator();
 
         wxMenu* import_menu = new wxMenu();
-        import_menu->SetOwnerDrawn(true);
+        set_as_owner_drawn(import_menu);
         wxMenuItem* item_import_model = append_menu_item(import_menu, wxID_ANY, _(L("Import STL/OBJ/AM&F/3MF")) + dots + "\tCtrl+I", _(L("Load a model")),
             [this](wxCommandEvent&) { if (m_plater) m_plater->add_model(); }, menu_icon("import_plater"));
         import_menu->AppendSeparator();
@@ -346,7 +346,7 @@ void MainFrame::init_menubar()
         append_submenu(fileMenu, import_menu, wxID_ANY, _(L("&Import")), "");
 
         wxMenu* export_menu = new wxMenu();
-        export_menu->SetOwnerDrawn(true);
+        set_as_owner_drawn(export_menu);
         wxMenuItem* item_export_gcode = append_menu_item(export_menu, wxID_ANY, _(L("Export &G-code")) + dots +"\tCtrl+G", _(L("Export current plate as G-code")),
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_gcode(); }, menu_icon("export_gcode"));
         m_changeable_menu_items.push_back(item_export_gcode);
@@ -440,10 +440,10 @@ void MainFrame::init_menubar()
 
     // Edit menu
     wxMenu* editMenu = nullptr;
-    editMenu->SetOwnerDrawn(true);
     if (m_plater != nullptr)
     {
         editMenu = new wxMenu();
+        set_as_owner_drawn(editMenu);
     #ifdef __APPLE__
         // Backspace sign
         wxString hotkey_delete = "\u232b";
@@ -474,7 +474,7 @@ void MainFrame::init_menubar()
 
     // Window menu
     auto windowMenu = new wxMenu();
-    windowMenu->SetOwnerDrawn(true);
+    set_as_owner_drawn(windowMenu);
     {
         size_t tab_offset = 0;
         if (m_plater) {

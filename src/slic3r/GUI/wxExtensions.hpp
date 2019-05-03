@@ -20,6 +20,7 @@ namespace Slic3r {
 	enum class ModelVolumeType : int;
 };
 
+void                set_as_owner_drawn(wxMenu* menu);
 const std::string&  get_menuitem_icon_name(const int item_id);
 void                update_menu_item_icons(wxMenuItem* item);
 void                msw_rescale_menu(wxMenu* menu);
@@ -972,10 +973,16 @@ class MenuWithSeparators : public wxMenu
 {
 public:
     MenuWithSeparators(const wxString& title, long style = 0)
-        : wxMenu(title, style) {}
+        : wxMenu(title, style)
+    {
+        set_as_owner_drawn(this);
+    }
 
     MenuWithSeparators(long style = 0)
-        : wxMenu(style) {}
+        : wxMenu(style)
+    {
+        set_as_owner_drawn(this);
+    }
 
     ~MenuWithSeparators() {}
 

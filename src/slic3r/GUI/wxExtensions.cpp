@@ -25,6 +25,14 @@ using Slic3r::GUI::from_u8;
 wxDEFINE_EVENT(wxCUSTOMEVT_TICKSCHANGED, wxEvent);
 wxDEFINE_EVENT(wxCUSTOMEVT_LAST_VOLUME_IS_DELETED, wxCommandEvent);
 
+void set_as_owner_drawn(wxMenu* menu)
+{
+#ifdef __WXMSW__
+    // this function is implemented only for MSW (in Prusa/wxWidgets fork)
+    menu->SetOwnerDrawn(true);
+#endif
+}
+
 std::map<int, std::string> menuitem_bitmaps;
 static std::string empty_str = "";
 
