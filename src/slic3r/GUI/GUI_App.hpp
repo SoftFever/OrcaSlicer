@@ -19,6 +19,7 @@ class wxMenuItem;
 class wxMenuBar;
 class wxTopLevelWindow;
 class wxNotebook;
+class wxLanguageInfo;
 
 namespace Slic3r {
 class AppConfig;
@@ -119,19 +120,16 @@ public:
     void            keyboard_shortcuts();
     void            load_project(wxWindow *parent, wxString& input_file);
     void            import_model(wxWindow *parent, wxArrayString& input_files);
-    static bool     catch_error(std::function<void()> cb,
-//                                 wxMessageDialog* message_dialog,
-                                const std::string& err);
-//     void            notify(/*message*/);
+    static bool     catch_error(std::function<void()> cb, const std::string& err);
 
     void            persist_window_geometry(wxTopLevelWindow *window, bool default_maximized = false);
     void            update_ui_from_settings();
 
     bool            switch_language();
-    bool            select_language(wxArrayString & names, wxArrayLong & identifiers);
+    bool            select_language();
     bool            load_language();
     void            save_language();
-    void            get_installed_languages(wxArrayString & names, wxArrayLong & identifiers);
+    std::vector<const wxLanguageInfo*> get_installed_languages();
 
     Tab*            get_tab(Preset::Type type);
     ConfigOptionMode get_mode();
