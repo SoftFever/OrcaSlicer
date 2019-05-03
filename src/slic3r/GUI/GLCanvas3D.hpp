@@ -303,6 +303,7 @@ class GLCanvas3D
         Vec2d position;
         Vec3d scene_position;
         Drag drag;
+        bool ignore_left_up;
 
         Mouse();
 
@@ -319,7 +320,6 @@ class GLCanvas3D
         }
     };
 
-private:
     struct SlaCap
     {
         struct Triangles
@@ -399,6 +399,23 @@ private:
         void render(const GLCanvas3D& canvas) const;
     };
 
+#if ENABLE_RENDER_STATISTICS
+    struct RenderStats
+    {
+        long long last_frame;
+
+        RenderStats() : last_frame(0) {}
+    };
+#endif // ENABLE_RENDER_STATISTICS
+
+public:
+    enum ECursorType : unsigned char
+    {
+        Standard,
+        Cross
+    };
+
+private:
     wxGLCanvas* m_canvas;
     wxGLContext* m_context;
 #if ENABLE_RETINA_GL
@@ -433,7 +450,7 @@ private:
     bool m_initialized;
     bool m_use_VBOs;
     bool m_apply_zoom_to_volumes_filter;
-    mutable int m_hover_volume_id;
+    mutable std::vector<int> m_hover_volume_idxs;
     bool m_warning_texture_enabled;
     bool m_legend_texture_enabled;
     bool m_picking_enabled;
@@ -443,6 +460,8 @@ private:
     bool m_regenerate_volumes;
     bool m_moving;
     bool m_tab_down;
+    ECursorType m_cursor_type;
+    GLSelectionRectangle m_rectangle_selection;
 
     // Following variable is obsolete and it should be safe to remove it.
     // I just don't want to do it now before a release (Lukas Matena 24.3.2019)
@@ -453,6 +472,10 @@ private:
     bool m_reload_delayed;
 
     GCodePreviewVolumeIndex m_gcode_preview_volume_index;
+
+#if ENABLE_RENDER_STATISTICS
+    RenderStats m_render_stats;
+#endif // ENABLE_RENDER_STATISTICS
 
 public:
     GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar& view_toolbar);
@@ -582,7 +605,7 @@ public:
     float get_view_toolbar_height() const { return m_view_toolbar.get_height(); }
 
     int get_move_volume_id() const { return m_mouse.drag.move_volume_idx; }
-    int get_hover_volume_id() const { return m_hover_volume_id; }
+    int get_first_hover_volume_idx() const { return m_hover_volume_idxs.empty() ? -1 : m_hover_volume_idxs.front(); }
 
     // Returns the view ray line, in world coordinate, at the given mouse position.
     Linef3 mouse_ray(const Point& mouse_pos);
@@ -594,6 +617,7 @@ public:
 
     double get_size_proportional_to_max_bed_size(double factor) const;
 
+    void set_cursor(ECursorType type);
     void msw_rescale();
 
 private:
@@ -612,6 +636,7 @@ private:
     void _refresh_if_shown_on_screen();
 
     void _picking_pass() const;
+    void _rectangular_selection_picking_pass() const;
     void _render_background() const;
     void _render_bed(float theta) const;
     void _render_axes() const;
@@ -689,6 +714,9 @@ private:
 #if !ENABLE_SVG_ICONS
     void _resize_toolbars() const;
 #endif // !ENABLE_SVG_ICONS
+
+    // updates the selection from the content of m_hover_volume_idxs
+    void _update_selection_from_hover();
 
     static std::vector<float> _parse_colors(const std::vector<std::string>& colors);
 

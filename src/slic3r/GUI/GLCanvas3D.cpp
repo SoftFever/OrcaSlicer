@@ -52,6 +52,9 @@
 #include <float.h>
 #include <algorithm>
 #include <cmath>
+#if ENABLE_RENDER_STATISTICS
+#include <chrono>
+#endif // ENABLE_RENDER_STATISTICS
 
 static const float TRACKBALLSIZE = 0.8f;
 static const float GROUND_Z = -0.02f;
@@ -672,6 +675,7 @@ GLCanvas3D::Mouse::Mouse()
     : dragging(false)
     , position(DBL_MAX, DBL_MAX)
     , scene_position(DBL_MAX, DBL_MAX, DBL_MAX)
+    , ignore_left_up(false)
 {
 }
 
@@ -1228,7 +1232,6 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar
     , m_initialized(false)
     , m_use_VBOs(false)
     , m_apply_zoom_to_volumes_filter(false)
-    , m_hover_volume_id(-1)
     , m_legend_texture_enabled(false)
     , m_picking_enabled(false)
     , m_moving_enabled(false)
@@ -1237,6 +1240,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D& bed, Camera& camera, GLToolbar
     , m_regenerate_volumes(true)
     , m_moving(false)
     , m_tab_down(false)
+    , m_cursor_type(Standard)
     , m_color_by("volume")
     , m_reload_delayed(false)
     , m_render_sla_auxiliaries(true)
@@ -1588,6 +1592,10 @@ void GLCanvas3D::render()
     if (!_set_current() || !_3DScene::init(m_canvas))
         return;
 
+#if ENABLE_RENDER_STATISTICS
+    auto start_time = std::chrono::high_resolution_clock::now();
+#endif // ENABLE_RENDER_STATISTICS
+
     if (m_bed.get_shape().empty())
     {
         // this happens at startup when no data is still saved under <>\AppData\Roaming\Slic3rPE
@@ -1617,8 +1625,15 @@ void GLCanvas3D::render()
 
     wxGetApp().imgui()->new_frame();
 
-    // picking pass
-    _picking_pass();
+    if (m_picking_enabled)
+    {
+        if (m_rectangle_selection.is_dragging())
+            // picking pass using rectangle selection
+            _rectangular_selection_picking_pass();
+        else
+            // regular picking pass
+            _picking_pass();
+    }
 
     // draw scene
     glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
@@ -1654,6 +1669,9 @@ void GLCanvas3D::render()
     _render_camera_target();
 #endif // ENABLE_SHOW_CAMERA_TARGET
 
+    if (m_picking_enabled && m_rectangle_selection.is_dragging())
+        m_rectangle_selection.render(*this);
+
     // draw overlays
     _render_gizmos_overlay();
     _render_warning_texture();
@@ -1666,9 +1684,26 @@ void GLCanvas3D::render()
     if ((m_layers_editing.last_object_id >= 0) && (m_layers_editing.object_max_z() > 0.0f))
         m_layers_editing.render_overlay(*this);
 
+#if ENABLE_RENDER_STATISTICS
+    ImGuiWrapper& imgui = *wxGetApp().imgui();
+    imgui.set_next_window_bg_alpha(0.5f);
+    imgui.begin(std::string("Render statistics"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+    imgui.text("Last frame: ");
+    ImGui::SameLine();
+    imgui.text(std::to_string(m_render_stats.last_frame));
+    ImGui::SameLine();
+    imgui.text(" ms");
+    imgui.end();
+#endif // ENABLE_RENDER_STATISTICS
+
     wxGetApp().imgui()->render();
 
     m_canvas->SwapBuffers();
+
+#if ENABLE_RENDER_STATISTICS
+    auto end_time = std::chrono::high_resolution_clock::now();
+    m_render_stats.last_frame = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+#endif // ENABLE_RENDER_STATISTICS
 }
 
 void GLCanvas3D::select_all()
@@ -2347,9 +2382,51 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                     // m_canvas->HandleAsNavigationKey(evt);   // XXX: Doesn't work in some cases / on Linux
                     post_event(SimpleEvent(EVT_GLCANVAS_TAB));
                 }
+                else if (keyCode == WXK_SHIFT)
+                {
+                    if (m_picking_enabled && m_rectangle_selection.is_dragging())
+                    {
+                        _update_selection_from_hover();
+                        m_rectangle_selection.stop_dragging();
+                        m_mouse.ignore_left_up = true;
+                        m_dirty = true;
+                    }
+//                    set_cursor(Standard);
+                }
+                else if (keyCode == WXK_ALT)
+                {
+                    if (m_picking_enabled && m_rectangle_selection.is_dragging())
+                    {
+                        _update_selection_from_hover();
+                        m_rectangle_selection.stop_dragging();
+                        m_mouse.ignore_left_up = true;
+                        m_dirty = true;
+                    }
+//                    set_cursor(Standard);
+                }
+                else if (keyCode == WXK_CONTROL)
+                    m_dirty = true;
             }
             else if (evt.GetEventType() == wxEVT_KEY_DOWN) {
                 m_tab_down = keyCode == WXK_TAB && !evt.HasAnyModifiers();
+                if (keyCode == WXK_SHIFT)
+                {
+                    if (m_picking_enabled && (m_gizmos.get_current_type() != GLGizmosManager::SlaSupports))
+                    {
+                        m_mouse.ignore_left_up = false;
+//                        set_cursor(Cross);
+                    }
+                }
+                else if (keyCode == WXK_ALT)
+                {
+                    if (m_picking_enabled && (m_gizmos.get_current_type() != GLGizmosManager::SlaSupports))
+                    {
+                        m_mouse.ignore_left_up = false;
+//                        set_cursor(Cross);
+                    }
+                }
+                else if (keyCode == WXK_CONTROL)
+                    m_dirty = true;
             }
         }
     }
@@ -2468,6 +2545,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_mouse.set_start_position_3D_as_invalid();
         m_mouse.set_start_position_2D_as_invalid();
         m_mouse.dragging = false;
+        m_mouse.ignore_left_up = false;
         m_dirty = true;
 
         if (m_canvas->HasCapture())
@@ -2566,7 +2644,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             if (top_level_wnd && top_level_wnd->IsActive())
                 m_canvas->SetFocus();
             m_mouse.position = pos.cast<double>();
-            // 1) forces a frame render to ensure that m_hover_volume_id is updated even when the user right clicks while
+            // 1) forces a frame render to ensure that m_hover_volume_idxs is updated even when the user right clicks while
             // the context menu is shown, ensuring it to disappear if the mouse is outside any volume and to
             // change the volume hover state if any is under the mouse 
             // 2) when switching between 3d view and preview the size of the canvas changes if the side panels are visible,
@@ -2606,26 +2684,35 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 m_dirty = true;
             }
         }
+        else if (evt.LeftDown() && (evt.ShiftDown() || evt.AltDown()) && m_picking_enabled)
+        {
+            if (m_gizmos.get_current_type() != GLGizmosManager::SlaSupports)
+            {
+                m_rectangle_selection.start_dragging(m_mouse.position, evt.ShiftDown() ? GLSelectionRectangle::Select : GLSelectionRectangle::Deselect);
+                m_dirty = true;
+            }
+        }
         else
         {
             // Select volume in this 3D canvas.
             // Don't deselect a volume if layer editing is enabled. We want the object to stay selected
             // during the scene manipulation.
 
-            if (m_picking_enabled && ((m_hover_volume_id != -1) || !is_layers_editing_enabled()))
+            if (m_picking_enabled && (!m_hover_volume_idxs.empty() || !is_layers_editing_enabled()))
             {
-                if (evt.LeftDown() && (m_hover_volume_id != -1))
+                if (evt.LeftDown() && !m_hover_volume_idxs.empty())
                 {
-                    bool already_selected = m_selection.contains_volume(m_hover_volume_id);
+                    int volume_idx = get_first_hover_volume_idx();
+                    bool already_selected = m_selection.contains_volume(volume_idx);
                     bool ctrl_down = evt.CmdDown();
 
                     Selection::IndicesList curr_idxs = m_selection.get_volume_idxs();
 
                     if (already_selected && ctrl_down)
-                        m_selection.remove(m_hover_volume_id);
+                        m_selection.remove(volume_idx);
                     else
                     {
-                        m_selection.add(m_hover_volume_id, !ctrl_down, true);
+                        m_selection.add(volume_idx, !ctrl_down, true);
                         m_mouse.drag.move_requires_threshold = !already_selected;
                         if (already_selected)
                             m_mouse.set_move_start_threshold_position_2D_as_invalid();
@@ -2633,6 +2720,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                             m_mouse.drag.move_start_threshold_position_2D = pos;
                     }
 
+                    // propagate event through callback
                     if (curr_idxs != m_selection.get_volume_idxs())
                     {
                         m_gizmos.refresh_on_off_state(m_selection);
@@ -2643,18 +2731,18 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 }
             }
 
-            // propagate event through callback
-            if (m_hover_volume_id != -1)
+            if (!m_hover_volume_idxs.empty())
             {
                 if (evt.LeftDown() && m_moving_enabled && (m_mouse.drag.move_volume_idx == -1))
                 {
                     // Only accept the initial position, if it is inside the volume bounding box.
-                    BoundingBoxf3 volume_bbox = m_volumes.volumes[m_hover_volume_id]->transformed_bounding_box();
+                    int volume_idx = get_first_hover_volume_idx();
+                    BoundingBoxf3 volume_bbox = m_volumes.volumes[volume_idx]->transformed_bounding_box();
                     volume_bbox.offset(1.0);
                     if (volume_bbox.contains(m_mouse.scene_position))
                     {
                         // The dragging operation is initiated.
-                        m_mouse.drag.move_volume_idx = m_hover_volume_id;
+                        m_mouse.drag.move_volume_idx = volume_idx;
                         m_selection.start_dragging();
                         m_mouse.drag.start_position_3D = m_mouse.scene_position;
                         m_moving = true;
@@ -2671,7 +2759,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
             Vec3d cur_pos = m_mouse.drag.start_position_3D;
             // we do not want to translate objects if the user just clicked on an object while pressing shift to remove it from the selection and then drag
-            if (m_selection.contains_volume(m_hover_volume_id))
+            if (m_selection.contains_volume(get_first_hover_volume_idx()))
             {
                 if (m_camera.get_theta() == 90.0f)
                 {
@@ -2709,9 +2797,13 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_regenerate_volumes = false;
             m_selection.translate(cur_pos - m_mouse.drag.start_position_3D);
             wxGetApp().obj_manipul()->update_settings_value(m_selection);
-
             m_dirty = true;
         }
+    }
+    else if (evt.Dragging() && evt.LeftIsDown() && m_picking_enabled && m_rectangle_selection.is_dragging())
+    {
+        m_rectangle_selection.dragging(pos.cast<double>());
+        m_dirty = true;
     }
     else if (evt.Dragging())
     {
@@ -2726,7 +2818,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         else if (evt.LeftIsDown())
         {
             // if dragging over blank area with left button, rotate
-            if ((m_hover_volume_id == -1) && m_mouse.is_start_position_3D_defined())
+            if (m_hover_volume_idxs.empty() && m_mouse.is_start_position_3D_defined())
             {
                 const Vec3d& orig = m_mouse.drag.start_position_3D;
                 float sign = m_camera.inverted_phi ? -1.0f : 1.0f;
@@ -2769,7 +2861,14 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // of the scene with the background processing data should be performed.
             post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
         }
-        else if (evt.LeftUp() && !m_mouse.dragging && (m_hover_volume_id == -1) && !is_layers_editing_enabled())
+        else if (evt.LeftUp() && m_picking_enabled && m_rectangle_selection.is_dragging())
+        {
+            if (evt.ShiftDown() || evt.AltDown())
+                _update_selection_from_hover();
+
+            m_rectangle_selection.stop_dragging();
+        }
+        else if (evt.LeftUp() && !m_mouse.ignore_left_up && !m_mouse.dragging && m_hover_volume_idxs.empty() && !is_layers_editing_enabled())
         {
             // deselect and propagate event through callback
             if (!evt.ShiftDown() && m_picking_enabled)
@@ -2788,18 +2887,18 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         else if (evt.RightUp())
         {
             m_mouse.position = pos.cast<double>();
-            // forces a frame render to ensure that m_hover_volume_id is updated even when the user right clicks while
+            // forces a frame render to ensure that m_hover_volume_idxs is updated even when the user right clicks while
             // the context menu is already shown
             render();
-            if (m_hover_volume_id != -1)
+            if (!m_hover_volume_idxs.empty())
             {
                 // if right clicking on volume, propagate event through callback (shows context menu)
-                if (m_volumes.volumes[m_hover_volume_id]->hover
-                    && !m_volumes.volumes[m_hover_volume_id]->is_wipe_tower // no context menu for the wipe tower
+                int volume_idx = get_first_hover_volume_idx();
+                if (!m_volumes.volumes[volume_idx]->is_wipe_tower // no context menu for the wipe tower
                     && m_gizmos.get_current_type() != GLGizmosManager::SlaSupports)  // disable context menu when the gizmo is open
                 {
                     // forces the selection of the volume
-                    m_selection.add(m_hover_volume_id);
+                    m_selection.add(volume_idx);
                     m_gizmos.refresh_on_off_state(m_selection);
                     post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
                     m_gizmos.update_data(*this);
@@ -3199,6 +3298,20 @@ double GLCanvas3D::get_size_proportional_to_max_bed_size(double factor) const
     return factor * m_bed.get_bounding_box().max_size();
 }
 
+void GLCanvas3D::set_cursor(ECursorType type)
+{
+    if ((m_canvas != nullptr) && (m_cursor_type != type))
+    {
+        switch (type)
+        {
+        case Standard: { m_canvas->SetCursor(*wxSTANDARD_CURSOR); break; }
+        case Cross: { m_canvas->SetCursor(*wxCROSS_CURSOR); break; }
+        }
+
+        m_cursor_type = type;
+    }
+}
+
 void GLCanvas3D::msw_rescale()
 {
     m_warning_texture.msw_rescale(*this);
@@ -3569,10 +3682,10 @@ void GLCanvas3D::_refresh_if_shown_on_screen()
 
 void GLCanvas3D::_picking_pass() const
 {
-    const Vec2d& pos = m_mouse.position;
-
-    if (m_picking_enabled && !m_mouse.dragging && (pos != Vec2d(DBL_MAX, DBL_MAX)))
+    if (m_picking_enabled && !m_mouse.dragging && (m_mouse.position != Vec2d(DBL_MAX, DBL_MAX)))
     {
+        m_hover_volume_idxs.clear();
+
         // Render the object for picking.
         // FIXME This cannot possibly work in a multi - sampled context as the color gets mangled by the anti - aliasing.
         // Better to use software ray - casting on a bounding - box hierarchy.
@@ -3603,25 +3716,96 @@ void GLCanvas3D::_picking_pass() const
 
         GLubyte color[4] = { 0, 0, 0, 0 };
         const Size& cnv_size = get_canvas_size();
-        bool inside = (0 <= pos(0)) && (pos(0) < cnv_size.get_width()) && (0 <= pos(1)) && (pos(1) < cnv_size.get_height());
+        bool inside = (0 <= m_mouse.position(0)) && (m_mouse.position(0) < cnv_size.get_width()) && (0 <= m_mouse.position(1)) && (m_mouse.position(1) < cnv_size.get_height());
         if (inside)
         {
-            glsafe(::glReadPixels(pos(0), cnv_size.get_height() - pos(1) - 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, (void*)color));
-            volume_id = color[0] + color[1] * 256 + color[2] * 256 * 256;
+            glsafe(::glReadPixels(m_mouse.position(0), cnv_size.get_height() - m_mouse.position(1) - 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, (void*)color));
+            volume_id = color[0] + (color[1] << 8) + (color[2] << 16);
         }
         if ((0 <= volume_id) && (volume_id < (int)m_volumes.volumes.size()))
         {
-            m_hover_volume_id = volume_id;
+            m_hover_volume_idxs.push_back(volume_id);
             m_gizmos.set_hover_id(-1);
         }
         else
-        {
-            m_hover_volume_id = -1;
             m_gizmos.set_hover_id(inside && volume_id <= GLGizmoBase::BASE_ID ? (GLGizmoBase::BASE_ID - volume_id) : -1);
-        }
 
         _update_volumes_hover_state();
     }
+}
+
+void GLCanvas3D::_rectangular_selection_picking_pass() const
+{
+    m_gizmos.set_hover_id(-1);
+
+    std::set<int> idxs;
+
+    if (m_picking_enabled)
+    {
+        if (m_multisample_allowed)
+            glsafe(::glDisable(GL_MULTISAMPLE));
+
+        glsafe(::glDisable(GL_BLEND));
+        glsafe(::glEnable(GL_DEPTH_TEST));
+
+        glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+
+        _render_volumes_for_picking();
+
+        if (m_multisample_allowed)
+            glsafe(::glEnable(GL_MULTISAMPLE));
+
+        int width = std::max((int)m_rectangle_selection.get_width(), 1);
+        int height = std::max((int)m_rectangle_selection.get_height(), 1);
+        int px_count = width * height;
+
+        int left = (int)m_rectangle_selection.get_left();
+        int top = get_canvas_size().get_height() - (int)m_rectangle_selection.get_top();
+        if ((left >= 0) && (top >= 0))
+        {
+#define USE_PARALLEL 1
+#if USE_PARALLEL
+            struct Pixel
+            {
+                std::array<GLubyte, 4> data;
+                int id() const { return data[0] + (data[1] << 8) + (data[2] << 16); }
+            };
+
+            std::vector<Pixel> frame(px_count);
+            glsafe(::glReadPixels(left, top, width, height, GL_RGBA, GL_UNSIGNED_BYTE, (void*)frame.data()));
+
+            tbb::spin_mutex mutex;
+            tbb::parallel_for(tbb::blocked_range<size_t>(0, frame.size(), (size_t)width),
+                [this, &frame, &idxs, &mutex](const tbb::blocked_range<size_t>& range) {
+                for (size_t i = range.begin(); i < range.end(); ++i)
+                {
+                    int volume_id = frame[i].id();
+                    if ((0 <= volume_id) && (volume_id < (int)m_volumes.volumes.size()))
+                    {
+                        mutex.lock();
+                        idxs.insert(volume_id);
+                        mutex.unlock();
+                    }
+                }
+            }
+            );
+#else
+            std::vector<GLubyte> frame(4 * px_count);
+            glsafe(::glReadPixels(left, top, width, height, GL_RGBA, GL_UNSIGNED_BYTE, (void*)frame.data()));
+
+            for (int i = 0; i < px_count; ++i)
+            {
+                int px_id = 4 * i;
+                int volume_id = frame[px_id] + (frame[px_id + 1] << 8) + (frame[px_id + 2] << 16);
+                if ((0 <= volume_id) && (volume_id < (int)m_volumes.volumes.size()))
+                    idxs.insert(volume_id);
+            }
+#endif // USE_PARALLEL
+        }
+    }
+
+    m_hover_volume_idxs.assign(idxs.begin(), idxs.end());
+    _update_volumes_hover_state();
 }
 
 void GLCanvas3D::_render_background() const
@@ -4109,24 +4293,93 @@ void GLCanvas3D::_update_volumes_hover_state() const
 {
     for (GLVolume* v : m_volumes.volumes)
     {
-        v->hover = false;
+        v->hover = GLVolume::HS_None;
     }
 
-    if (m_hover_volume_id == -1)
+    if (m_hover_volume_idxs.empty())
         return;
 
-    GLVolume* volume = m_volumes.volumes[m_hover_volume_id];
-    if (volume->is_modifier)
-        volume->hover = true;
-    else
-    {
-        int object_idx = volume->object_idx();
-        int instance_idx = volume->instance_idx();
+    bool ctrl_pressed = wxGetKeyState(WXK_CONTROL); // additive select/deselect
+    bool shift_pressed = wxGetKeyState(WXK_SHIFT);  // select by rectangle
+    bool alt_pressed = wxGetKeyState(WXK_ALT);      // deselect by rectangle
 
-        for (GLVolume* v : m_volumes.volumes)
+    if (alt_pressed && (shift_pressed || ctrl_pressed))
+    {
+        // illegal combinations of keys
+        m_hover_volume_idxs.clear();
+        return;
+    }
+
+    bool selection_modifiers_only = m_selection.is_empty() || m_selection.is_any_modifier();
+
+    bool hover_modifiers_only = true;
+    for (int i : m_hover_volume_idxs)
+    {
+        if (!m_volumes.volumes[i]->is_modifier)
         {
-            if ((v->object_idx() == object_idx) && (v->instance_idx() == instance_idx))
-                v->hover = true;
+            hover_modifiers_only = false;
+            break;
+        }
+    }
+
+    std::set<std::pair<int, int>> hover_instances;
+    for (int i : m_hover_volume_idxs)
+    {
+        const GLVolume& v = *m_volumes.volumes[i];
+        hover_instances.insert(std::make_pair(v.object_idx(), v.instance_idx()));
+    }
+
+    bool hover_from_single_instance = hover_instances.size() == 1;
+
+    if (hover_modifiers_only && !hover_from_single_instance)
+    {
+        // do not allow to select volumes from different instances
+        m_hover_volume_idxs.clear();
+        return;
+    }
+
+    for (int i : m_hover_volume_idxs)
+    {
+        GLVolume& volume = *m_volumes.volumes[i];
+        if (volume.hover != GLVolume::HS_None)
+            continue;
+
+        bool deselect = volume.selected && ((ctrl_pressed && !shift_pressed) || alt_pressed);
+        // (volume->is_modifier && !selection_modifiers_only && !is_ctrl_pressed) -> allows hovering on selected modifiers belonging to selection of type Instance
+        bool select = (!volume.selected || (volume.is_modifier && !selection_modifiers_only && !ctrl_pressed)) && !alt_pressed;
+
+        if (select || deselect)
+        {
+            bool as_volume =
+                volume.is_modifier && hover_from_single_instance && !ctrl_pressed &&
+                (
+                (!deselect) ||
+                (deselect && !m_selection.is_single_full_instance() && (volume.object_idx() == m_selection.get_object_idx()) && (volume.instance_idx() == m_selection.get_instance_idx()))
+                );
+
+            if (as_volume)
+            {
+                if (deselect)
+                    volume.hover = GLVolume::HS_Deselect;
+                else
+                    volume.hover = GLVolume::HS_Select;
+            }
+            else
+            {
+                int object_idx = volume.object_idx();
+                int instance_idx = volume.instance_idx();
+
+                for (GLVolume* v : m_volumes.volumes)
+                {
+                    if ((v->object_idx() == object_idx) && (v->instance_idx() == instance_idx))
+                    {
+                        if (deselect)
+                            v->hover = GLVolume::HS_Deselect;
+                        else
+                            v->hover = GLVolume::HS_Select;
+                    }
+                }
+            }
         }
     }
 }
@@ -5404,6 +5657,55 @@ void GLCanvas3D::_resize_toolbars() const
     }
 }
 #endif // !ENABLE_SVG_ICONS
+
+void GLCanvas3D::_update_selection_from_hover()
+{
+    bool ctrl_pressed = wxGetKeyState(WXK_CONTROL);
+
+    if (m_hover_volume_idxs.empty())
+    {
+        if (!ctrl_pressed && (m_rectangle_selection.get_state() == GLSelectionRectangle::Select))
+            m_selection.clear();
+
+        return;
+    }
+
+    GLSelectionRectangle::EState state = m_rectangle_selection.get_state();
+
+    bool hover_modifiers_only = true;
+    for (int i : m_hover_volume_idxs)
+    {
+        if (!m_volumes.volumes[i]->is_modifier)
+        {
+            hover_modifiers_only = false;
+            break;
+        }
+    }
+
+    if ((state == GLSelectionRectangle::Select) && !ctrl_pressed)
+        m_selection.clear();
+
+    for (int i : m_hover_volume_idxs)
+    {
+        if (state == GLSelectionRectangle::Select)
+        {
+            if (hover_modifiers_only)
+            {
+                const GLVolume& v = *m_volumes.volumes[i];
+                m_selection.add_volume(v.object_idx(), v.volume_idx(), v.instance_idx(), false);
+            }
+            else
+                m_selection.add(i, false);
+        }
+        else
+            m_selection.remove(i);
+    }
+
+    m_gizmos.refresh_on_off_state(m_selection);
+    m_gizmos.update_data(*this);
+    post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
+    m_dirty = true;
+}
 
 const Print* GLCanvas3D::fff_print() const
 {
