@@ -420,14 +420,21 @@ ObjectDataViewModel::~ObjectDataViewModel()
     m_bitmap_cache = nullptr;
 }
 
-wxDataViewItem ObjectDataViewModel::Add(const wxString &name, const int extruder)
+wxDataViewItem ObjectDataViewModel::Add(const wxString &name, 
+                                        const int extruder,
+                                        const bool has_errors/* = false*/)
 {
     const wxString extruder_str = extruder == 0 ? "default" : wxString::Format("%d", extruder);
 	auto root = new ObjectDataViewModelNode(name, extruder_str);
+    // Add error icon if detected auto-repaire
+    if (has_errors)
+        root->m_bmp = *m_warning_bmp;
+
 	m_objects.push_back(root);
 	// notify control
 	wxDataViewItem child((void*)root);
 	wxDataViewItem parent((void*)NULL);
+
 	ItemAdded(parent, child);
 	return child;
 }
@@ -435,6 +442,7 @@ wxDataViewItem ObjectDataViewModel::Add(const wxString &name, const int extruder
 wxDataViewItem ObjectDataViewModel::AddVolumeChild( const wxDataViewItem &parent_item,
                                                     const wxString &name,
                                                     const Slic3r::ModelVolumeType volume_type,
+                                                    const bool has_errors/* = false*/,
                                                     const int extruder/* = 0*/,
                                                     const bool create_frst_child/* = true*/)
 {
@@ -448,9 +456,14 @@ wxDataViewItem ObjectDataViewModel::AddVolumeChild( const wxDataViewItem &parent
     if (insert_position < 0 || root->GetNthChild(insert_position)->m_type != itInstanceRoot)
         insert_position = -1;
 
+    const bool obj_errors = root->m_bmp.IsOk();
+
     if (create_frst_child && root->m_volumes_cnt == 0)
     {
-		const auto node = new ObjectDataViewModelNode(root, root->m_name, *m_volume_bmps[0], extruder_str, 0);
+        const Slic3r::ModelVolumeType type = Slic3r::ModelVolumeType::MODEL_PART;
+        const auto node = new ObjectDataViewModelNode(root, root->m_name, GetVolumeIcon(type, obj_errors), extruder_str, 0);
+        node->m_volume_type = type;
+
         insert_position < 0 ? root->Append(node) : root->Insert(node, insert_position);
 		// notify control
 		const wxDataViewItem child((void*)node);
@@ -458,12 +471,15 @@ wxDataViewItem ObjectDataViewModel::AddVolumeChild( const wxDataViewItem &parent
 
         root->m_volumes_cnt++;
         if (insert_position > 0) insert_position++;
-
-        node->m_volume_type = volume_type;
 	}
 
-    const auto node = new ObjectDataViewModelNode(root, name, *m_volume_bmps[int(volume_type)], extruder_str, root->m_volumes_cnt);
+    const auto node = new ObjectDataViewModelNode(root, name, GetVolumeIcon(volume_type, has_errors), extruder_str, root->m_volumes_cnt);
     insert_position < 0 ? root->Append(node) : root->Insert(node, insert_position);
+
+    // if part with errors is added, but object wasn't marked, then mark it
+    if (!obj_errors && has_errors)
+        root->SetBitmap(*m_warning_bmp);
+
 	// notify control
 	const wxDataViewItem child((void*)node);
     ItemAdded(parent_item, child);
@@ -1228,12 +1244,58 @@ void ObjectDataViewModel::Rescale()
         node->msw_rescale();
 
         if (node->m_type & itVolume)
-            node->m_bmp = *m_volume_bmps[node->volume_type()];
+            node->m_bmp = GetVolumeIcon(node->m_volume_type, node->m_bmp.GetWidth() != node->m_bmp.GetHeight());
 
         if (node->m_type & itObject && node->m_bmp.IsOk())
-            node->m_bmp = create_scaled_bitmap(nullptr, "exclamation");
+            node->m_bmp = *m_warning_bmp;
 
         ItemChanged(item);
+    }
+}
+
+wxBitmap ObjectDataViewModel::GetVolumeIcon(const Slic3r::ModelVolumeType vol_type, const bool is_marked/* = false*/)
+{
+    if (!is_marked)
+        return *m_volume_bmps[static_cast<int>(vol_type)];
+
+    std::string scaled_bitmap_name = "warning" + std::to_string(static_cast<int>(vol_type));
+    scaled_bitmap_name += "-em" + std::to_string(Slic3r::GUI::wxGetApp().em_unit());
+
+    wxBitmap *bmp = m_bitmap_cache->find(scaled_bitmap_name);
+    if (bmp == nullptr) {
+        std::vector<wxBitmap> bmps;
+
+        bmps.emplace_back(*m_warning_bmp);
+        bmps.emplace_back(*m_volume_bmps[static_cast<int>(vol_type)]);
+
+        bmp = m_bitmap_cache->insert(scaled_bitmap_name, bmps);
+    }
+
+    return *bmp;
+}
+
+void ObjectDataViewModel::DeleteWarningIcon(const wxDataViewItem& item, const bool unmark_object/* = false*/)
+{
+    if (!item.IsOk())
+        return;
+
+    ObjectDataViewModelNode *node = (ObjectDataViewModelNode*)item.GetID();
+
+    if (!node->GetBitmap().IsOk() || !(node->GetType() & (itVolume | itObject)))
+        return;
+
+    if (node->GetType() & itVolume) {
+        node->SetBitmap(*m_volume_bmps[static_cast<int>(node->volume_type())]);
+        return;
+    }
+
+    node->SetBitmap(wxNullBitmap);
+    if (unmark_object)
+    {
+        wxDataViewItemArray children;
+        GetChildren(item, children);
+        for (const wxDataViewItem& child : children)
+            DeleteWarningIcon(child);
     }
 }
 
@@ -2379,11 +2441,7 @@ ModeSizer::ModeSizer(wxWindow *parent, int hgap/* = 10*/) :
 
     m_mode_btns.reserve(3);
     for (const auto& button : buttons) {
-//         int x, y;
-//         parent->GetTextExtent(button.first, &x, &y, nullptr, nullptr, &Slic3r::GUI::wxGetApp().bold_font());
-//         const wxSize size = wxSize(x + button.second.GetWidth() + Slic3r::GUI::wxGetApp().em_unit(), 
-//                                    y + Slic3r::GUI::wxGetApp().em_unit());
-        m_mode_btns.push_back(new ModeButton(parent, wxID_ANY, button.second, button.first/*, size*/));
+        m_mode_btns.push_back(new ModeButton(parent, wxID_ANY, button.second, button.first));
     }
 
     for (auto btn : m_mode_btns)
