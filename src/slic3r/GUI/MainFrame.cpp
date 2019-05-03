@@ -276,6 +276,10 @@ void MainFrame::on_dpi_changed(const wxRect &suggested_rect)
     for (auto tab : wxGetApp().tabs_list)
         tab->msw_rescale();
 
+    wxMenuBar* menu_bar = this->GetMenuBar();
+    for (size_t id = 0; id < menu_bar->GetMenuCount(); id++)
+        msw_rescale_menu(menu_bar->GetMenu(id));
+
     // Workarounds for correct Window rendering after rescale
 
     /* Even if Window is maximized during moving, 
@@ -316,6 +320,7 @@ void MainFrame::init_menubar()
 
     // File menu
     wxMenu* fileMenu = new wxMenu;
+    fileMenu->SetOwnerDrawn(true);
     {
         wxMenuItem* item_open = append_menu_item(fileMenu, wxID_ANY, _(L("&Open Project")) + dots + "\tCtrl+O", _(L("Open a project file")),
             [this](wxCommandEvent&) { if (m_plater) m_plater->load_project(); }, menu_icon("open"));
@@ -327,6 +332,7 @@ void MainFrame::init_menubar()
         fileMenu->AppendSeparator();
 
         wxMenu* import_menu = new wxMenu();
+        import_menu->SetOwnerDrawn(true);
         wxMenuItem* item_import_model = append_menu_item(import_menu, wxID_ANY, _(L("Import STL/OBJ/AM&F/3MF")) + dots + "\tCtrl+I", _(L("Load a model")),
             [this](wxCommandEvent&) { if (m_plater) m_plater->add_model(); }, menu_icon("import_plater"));
         import_menu->AppendSeparator();
@@ -340,6 +346,7 @@ void MainFrame::init_menubar()
         append_submenu(fileMenu, import_menu, wxID_ANY, _(L("&Import")), "");
 
         wxMenu* export_menu = new wxMenu();
+        export_menu->SetOwnerDrawn(true);
         wxMenuItem* item_export_gcode = append_menu_item(export_menu, wxID_ANY, _(L("Export &G-code")) + dots +"\tCtrl+G", _(L("Export current plate as G-code")),
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_gcode(); }, menu_icon("export_gcode"));
         m_changeable_menu_items.push_back(item_export_gcode);
@@ -389,6 +396,29 @@ void MainFrame::init_menubar()
             [this](wxCommandEvent&) { Close(false); });
 
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(m_plater != nullptr); }, item_open->GetId());
+//         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt)
+//         {
+//             wxMenuItem* item = dynamic_cast<wxMenu*>(evt.GetEventObject())->FindItem(evt.GetId());
+// 
+// //             static const wxBitmap enabled_bmp = item->GetBitmap();
+// //             static const wxBitmap disabled_bmp = enabled_bmp.IsOk() ? enabled_bmp.ConvertToImage().ConvertToGreyscale(0.5, 0.5, 0.5) : enabled_bmp;
+// 
+// //             bool enable = (m_plater != nullptr) && can_save();
+// //             evt.Enable(enable);
+// //             item->SetBitmap(enable ? enabled_bmp : disabled_bmp);
+// 
+//             bool enable = (m_plater != nullptr) && can_save();
+//             evt.Enable(enable);
+// 
+//             const std::string& icon_name = get_menuitem_icon_name(item->GetId());
+//             if (!icon_name.empty())
+//             {
+//                 const wxBitmap enabled_bmp = create_scaled_bitmap(nullptr, icon_name);
+//                 const wxBitmap disabled_bmp = enabled_bmp.IsOk() ? enabled_bmp.ConvertToImage().ConvertToGreyscale(0.5, 0.5, 0.5) : enabled_bmp;
+// 
+//                 item->SetBitmap(enable ? enabled_bmp : disabled_bmp);
+//             }
+//         }, item_save->GetId());
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable((m_plater != nullptr) && can_save()); }, item_save->GetId());
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable((m_plater != nullptr) && can_save()); }, item_save_as->GetId());
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(m_plater != nullptr); }, item_import_model->GetId());
@@ -410,6 +440,7 @@ void MainFrame::init_menubar()
 
     // Edit menu
     wxMenu* editMenu = nullptr;
+    editMenu->SetOwnerDrawn(true);
     if (m_plater != nullptr)
     {
         editMenu = new wxMenu();
@@ -443,6 +474,7 @@ void MainFrame::init_menubar()
 
     // Window menu
     auto windowMenu = new wxMenu();
+    windowMenu->SetOwnerDrawn(true);
     {
         size_t tab_offset = 0;
         if (m_plater) {

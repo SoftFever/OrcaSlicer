@@ -1329,6 +1329,8 @@ struct Plater::priv
     bool can_arrange() const;
     bool can_layers_editing() const;
 
+    void msw_rescale_object_menu();
+
 private:
     bool init_object_menu();
     bool init_common_menu(wxMenu* menu, const bool is_part = false);
@@ -2884,6 +2886,12 @@ bool Plater::priv::init_object_menu()
     return true;
 }
 
+void Plater::priv::msw_rescale_object_menu()
+{
+    for (MenuWithSeparators* menu : { &object_menu, &sla_object_menu, &part_menu })
+        msw_rescale_menu(dynamic_cast<wxMenu*>(menu));
+}
+
 bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/)
 {
     wxMenuItem* item_delete = nullptr;
@@ -3838,6 +3846,8 @@ void Plater::msw_rescale()
     p->view3D->get_canvas3d()->msw_rescale();
 
     p->sidebar->msw_rescale();
+
+    p->msw_rescale_object_menu();
 
     Layout();
     GetParent()->Layout();
