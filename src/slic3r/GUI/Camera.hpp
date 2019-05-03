@@ -22,6 +22,7 @@ struct Camera
     float phi;
 //    float distance;
     bool requires_zoom_to_bed;
+    bool inverted_phi;
 
 private:
     Vec3d m_target;

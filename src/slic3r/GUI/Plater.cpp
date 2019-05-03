@@ -1447,7 +1447,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     // 3DScene/Toolbar:
     view3D_canvas->Bind(EVT_GLTOOLBAR_ADD, &priv::on_action_add, this);
     view3D_canvas->Bind(EVT_GLTOOLBAR_DELETE, [q](SimpleEvent&) { q->remove_selected(); });
-    view3D_canvas->Bind(EVT_GLTOOLBAR_DELETE_ALL, [this](SimpleEvent&) { reset(); });
+    view3D_canvas->Bind(EVT_GLTOOLBAR_DELETE_ALL, [q](SimpleEvent&) { q->reset_with_confirm(); });
     view3D_canvas->Bind(EVT_GLTOOLBAR_ARRANGE, [this](SimpleEvent&) { arrange(); });
     view3D_canvas->Bind(EVT_GLTOOLBAR_COPY, [q](SimpleEvent&) { q->copy_selection_to_clipboard(); });
     view3D_canvas->Bind(EVT_GLTOOLBAR_PASTE, [q](SimpleEvent&) { q->paste_from_clipboard(); });
@@ -2925,7 +2925,7 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
             [this](wxCommandEvent&) { reload_from_disk(); });
 
         append_menu_item(menu, wxID_ANY, _(L("Export as STL")) + dots, _(L("Export the selected object as STL file")),
-            [this](wxCommandEvent&) { q->export_stl(true); });
+            [this](wxCommandEvent&) { q->export_stl(false, true); });
 
         menu->AppendSeparator();
     }
@@ -3283,6 +3283,11 @@ void Plater::select_all() { p->select_all(); }
 
 void Plater::remove(size_t obj_idx) { p->remove(obj_idx); }
 void Plater::reset() { p->reset(); }
+void Plater::reset_with_confirm()
+{
+    if (wxMessageDialog((wxWindow*)this, _(L("All objects will be removed, continue ?")), _(L("Delete all")), wxYES_NO | wxYES_DEFAULT | wxCENTRE).ShowModal() == wxID_YES)
+        reset();
+}
 
 void Plater::delete_object_from_model(size_t obj_idx) { p->delete_object_from_model(obj_idx); }
 
@@ -3432,7 +3437,7 @@ void Plater::export_gcode()
         p->export_gcode(std::move(output_path), PrintHostJob());
 }
 
-void Plater::export_stl(bool selection_only)
+void Plater::export_stl(bool extended, bool selection_only)
 {
     if (p->model.objects.empty()) { return; }
 
@@ -3467,7 +3472,64 @@ void Plater::export_stl(bool selection_only)
         }
     }
     else
+    {
         mesh = p->model.mesh();
+
+        if (extended && (p->printer_technology == ptSLA))
+        {
+            const PrintObjects& objects = p->sla_print.objects();
+            for (const SLAPrintObject* object : objects)
+            {
+                const ModelObject* model_object = object->model_object();
+                Transform3d mesh_trafo_inv = object->trafo().inverse();
+                bool is_left_handed = object->is_left_handed();
+
+                TriangleMesh pad_mesh;
+                bool has_pad_mesh = object->has_mesh(slaposBasePool);
+                if (has_pad_mesh)
+                {
+                    pad_mesh = object->get_mesh(slaposBasePool);
+                    pad_mesh.transform(mesh_trafo_inv);
+                }
+
+                TriangleMesh supports_mesh;
+                bool has_supports_mesh = object->has_mesh(slaposSupportTree);
+                if (has_supports_mesh)
+                {
+                    supports_mesh = object->get_mesh(slaposSupportTree);
+                    supports_mesh.transform(mesh_trafo_inv);
+                }
+
+                const std::vector<SLAPrintObject::Instance>& obj_instances = object->instances();
+                for (const SLAPrintObject::Instance& obj_instance : obj_instances)
+                {
+                    auto it = std::find_if(model_object->instances.begin(), model_object->instances.end(),
+                        [&obj_instance](const ModelInstance *mi) { return mi->id() == obj_instance.instance_id; });
+                    assert(it != model_object->instances.end());
+
+                    if (it != model_object->instances.end())
+                    {
+                        int instance_idx = it - model_object->instances.begin();
+                        const Transform3d& inst_transform = object->model_object()->instances[instance_idx]->get_transformation().get_matrix();
+
+                        if (has_pad_mesh)
+                        {
+                            TriangleMesh inst_pad_mesh = pad_mesh;
+                            inst_pad_mesh.transform(inst_transform, is_left_handed);
+                            mesh.merge(inst_pad_mesh);
+                        }
+
+                        if (has_supports_mesh)
+                        {
+                            TriangleMesh inst_supports_mesh = supports_mesh;
+                            inst_supports_mesh.transform(inst_transform, is_left_handed);
+                            mesh.merge(inst_supports_mesh);
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     Slic3r::store_stl(path_u8.c_str(), &mesh, true);
     p->statusbar()->set_status_text(wxString::Format(_(L("STL file exported to %s")), path));
@@ -3748,6 +3810,9 @@ void Plater::set_printer_technology(PrinterTechnology printer_technology)
 
     p->label_btn_export = printer_technology == ptFFF ? L("Export G-code") : L("Export");
     p->label_btn_send   = printer_technology == ptFFF ? L("Send G-code")   : L("Send to printer");
+
+    if (wxGetApp().mainframe)
+        wxGetApp().mainframe->update_menubar();
 }
 
 void Plater::changed_object(int obj_idx)

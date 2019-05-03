@@ -63,12 +63,23 @@ class MainFrame : public DPIFrame
 
     bool can_save() const;
     bool can_export_model() const;
+    bool can_export_supports() const;
     bool can_export_gcode() const;
     bool can_slice() const;
     bool can_change_view() const;
     bool can_select() const;
     bool can_delete() const;
     bool can_delete_all() const;
+
+    // MenuBar items changeable in respect to printer technology 
+    enum MenuItems
+    {                   //   FFF                  SLA
+        miExport = 0,   // Export G-code        Export
+        miMaterialTab,  // Filament Settings    Material Settings
+    };
+
+    // vector of a MenuBar items changeable in respect to printer technology 
+    std::vector<wxMenuItem*> m_changeable_menu_items;
 
 protected:
     virtual void on_dpi_changed(const wxRect &suggested_rect);
@@ -83,6 +94,7 @@ public:
     void        create_preset_tabs();
     void        add_created_tab(Tab* panel);
     void        init_menubar();
+    void        update_menubar();
 
     void        update_ui_from_settings();
     bool        is_loaded() const { return m_loaded; }

@@ -696,7 +696,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt, GLCanvas3D& canvas)
             gizmo_event(SLAGizmoEventType::LeftUp, mouse_pos, evt.ShiftDown(), evt.AltDown(), evt.ControlDown());
             processed = true;
         }
-        else if (evt.LeftUp() && (m_current == Flatten) && ((canvas.get_hover_volume_id() != -1) || grabber_contains_mouse()))
+        else if (evt.LeftUp() && (m_current == Flatten) && ((canvas.get_first_hover_volume_idx() != -1) || grabber_contains_mouse()))
         {
             // to avoid to loose the selection when user clicks an object while the Flatten gizmo is active
             processed = true;
@@ -846,13 +846,34 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt, GLCanvas3D& canvas)
 
     if (evt.GetEventType() == wxEVT_KEY_UP)
     {
-        if ((m_current == SlaSupports) && (keyCode == WXK_SHIFT) && gizmo_event(SLAGizmoEventType::ShiftUp))
-            // shift has been just released - SLA gizmo might want to close rectangular selection.
-            processed = true;
+        if (m_current == SlaSupports)
+        {
+            GLGizmoSlaSupports* gizmo = reinterpret_cast<GLGizmoSlaSupports*>(get_current());
 
-        if ((m_current == SlaSupports) && (keyCode == WXK_ALT) && gizmo_event(SLAGizmoEventType::AltUp))
-            // alt has been just released - SLA gizmo might want to close rectangular selection.
+            if (keyCode == WXK_SHIFT)
+            {
+                // shift has been just released - SLA gizmo might want to close rectangular selection.
+                if (gizmo_event(SLAGizmoEventType::ShiftUp) || (gizmo->is_in_editing_mode() && gizmo->is_selection_rectangle_dragging()))
+                    processed = true;
+            }
+            else if (keyCode == WXK_ALT)
+            {
+                // alt has been just released - SLA gizmo might want to close rectangular selection.
+                if (gizmo_event(SLAGizmoEventType::AltUp) || (gizmo->is_in_editing_mode() && gizmo->is_selection_rectangle_dragging()))
+                    processed = true;
+            }
+        }
+
+//        if (processed)
+//            canvas.set_cursor(GLCanvas3D::Standard);
+    }
+    else if (evt.GetEventType() == wxEVT_KEY_DOWN)
+    {
+        if ((m_current == SlaSupports) && ((keyCode == WXK_SHIFT) || (keyCode == WXK_ALT)) && reinterpret_cast<GLGizmoSlaSupports*>(get_current())->is_in_editing_mode())
+        {
+//            canvas.set_cursor(GLCanvas3D::Cross);
             processed = true;
+        }
     }
 
     if (processed)
