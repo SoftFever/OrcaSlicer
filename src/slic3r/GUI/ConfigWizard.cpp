@@ -499,7 +499,7 @@ PageFirmware::PageFirmware(ConfigWizard *parent)
     gcode_picker = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, choices);
     const auto &enum_values = gcode_opt.enum_values;
     auto needle = enum_values.cend();
-    if (gcode_opt.default_value != nullptr) {
+    if (gcode_opt.default_value) {
         needle = std::find(enum_values.cbegin(), enum_values.cend(), gcode_opt.default_value->serialize());
     }
     if (needle != enum_values.cend()) {
@@ -545,13 +545,13 @@ PageDiameters::PageDiameters(ConfigWizard *parent)
     spin_nozzle->SetDigits(2);
     spin_nozzle->SetIncrement(0.1);
     const auto &def_nozzle = *print_config_def.get("nozzle_diameter");
-    auto *default_nozzle = dynamic_cast<const ConfigOptionFloats*>(def_nozzle.default_value);
+    auto *default_nozzle = dynamic_cast<const ConfigOptionFloats*>(def_nozzle.default_value.get());
     spin_nozzle->SetValue(default_nozzle != nullptr && default_nozzle->size() > 0 ? default_nozzle->get_at(0) : 0.5);
 
     spin_filam->SetDigits(2);
     spin_filam->SetIncrement(0.25);
     const auto &def_filam = *print_config_def.get("filament_diameter");
-    auto *default_filam = dynamic_cast<const ConfigOptionFloats*>(def_filam.default_value);
+    auto *default_filam = dynamic_cast<const ConfigOptionFloats*>(def_filam.default_value.get());
     spin_filam->SetValue(default_filam != nullptr && default_filam->size() > 0 ? default_filam->get_at(0) : 3.0);
 
     append_text(_(L("Enter the diameter of your printer's hot end nozzle.")));
@@ -596,13 +596,13 @@ PageTemperatures::PageTemperatures(ConfigWizard *parent)
     spin_extr->SetIncrement(5.0);
     const auto &def_extr = *print_config_def.get("temperature");
     spin_extr->SetRange(def_extr.min, def_extr.max);
-    auto *default_extr = dynamic_cast<const ConfigOptionInts*>(def_extr.default_value);
+    auto *default_extr = dynamic_cast<const ConfigOptionInts*>(def_extr.default_value.get());
     spin_extr->SetValue(default_extr != nullptr && default_extr->size() > 0 ? default_extr->get_at(0) : 200);
 
     spin_bed->SetIncrement(5.0);
     const auto &def_bed = *print_config_def.get("bed_temperature");
     spin_bed->SetRange(def_bed.min, def_bed.max);
-    auto *default_bed = dynamic_cast<const ConfigOptionInts*>(def_bed.default_value);
+    auto *default_bed = dynamic_cast<const ConfigOptionInts*>(def_bed.default_value.get());
     spin_bed->SetValue(default_bed != nullptr && default_bed->size() > 0 ? default_bed->get_at(0) : 0);
 
     append_text(_(L("Enter the temperature needed for extruding your filament.")));

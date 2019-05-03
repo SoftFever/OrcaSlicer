@@ -90,7 +90,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     def.gui_type = "legend";
     def.tooltip = L("Object name");
     def.width = 21;
-    def.default_value = new ConfigOptionString{ " " };
+    def.set_default_value(new ConfigOptionString{ " " });
     m_og->append_single_option_line(Option(def, "object_name"));
 
     const int field_width = 5;
@@ -103,7 +103,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
 
 	for (const std::string axis : { "x", "y", "z" }) {
         const std::string label = boost::algorithm::to_upper_copy(axis);
-        def.default_value = new ConfigOptionString{ "   " + label };
+        def.set_default_value(new ConfigOptionString{ "   " + label });
         Option option = Option(def, axis + "_axis_legend");
         line.append_option(option);
     }
@@ -120,7 +120,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
         Line line = { _(option_name), "" };
         ConfigOptionDef def;
         def.type = coFloat;
-        def.default_value = new ConfigOptionFloat(0.0);
+        def.set_default_value(new ConfigOptionFloat(0.0));
         def.width = field_width/*50*/;
 
         // Add "uniform scaling" button in front of "Scale" option 

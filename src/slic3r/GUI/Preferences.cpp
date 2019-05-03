@@ -37,7 +37,7 @@ void PreferencesDialog::build()
 	def.type = coBool;
 	def.tooltip = L("If this is enabled, Slic3r will prompt the last output directory "
 					  "instead of the one containing the input files.");
-    def.default_value = new ConfigOptionBool{ app_config->has("remember_output_path") ? app_config->get("remember_output_path") == "1" : true };
+    def.set_default_value(new ConfigOptionBool{ app_config->has("remember_output_path") ? app_config->get("remember_output_path") == "1" : true });
     Option option(def, "remember_output_path");
 	m_optgroup->append_single_option_line(option);
 
@@ -45,7 +45,7 @@ void PreferencesDialog::build()
 	def.type = coBool;
 	def.tooltip = L("If this is enabled, Slic3r will auto-center objects "
 					  "around the print bed center.");
-	def.default_value = new ConfigOptionBool{ app_config->get("autocenter") == "1" };
+	def.set_default_value(new ConfigOptionBool{ app_config->get("autocenter") == "1" });
 	option = Option (def,"autocenter");
 	m_optgroup->append_single_option_line(option);
 
@@ -53,7 +53,7 @@ void PreferencesDialog::build()
 	def.type = coBool;
 	def.tooltip = L("If this is enabled, Slic3r will pre-process objects as soon "
 					  "as they\'re loaded in order to save time when exporting G-code.");
-	def.default_value = new ConfigOptionBool{ app_config->get("background_processing") == "1" };
+	def.set_default_value(new ConfigOptionBool{ app_config->get("background_processing") == "1" });
 	option = Option (def,"background_processing");
 	m_optgroup->append_single_option_line(option);
 
@@ -61,7 +61,7 @@ void PreferencesDialog::build()
 	def.label = L("Check for application updates");
 	def.type = coBool;
 	def.tooltip = L("If enabled, Slic3r checks for new versions of " SLIC3R_APP_NAME " online. When a new version becomes available a notification is displayed at the next application startup (never during program usage). This is only a notification mechanisms, no automatic installation is done.");
-	def.default_value = new ConfigOptionBool(app_config->get("version_check") == "1");
+	def.set_default_value(new ConfigOptionBool(app_config->get("version_check") == "1"));
 	option = Option (def, "version_check");
 	m_optgroup->append_single_option_line(option);
 
@@ -69,7 +69,7 @@ void PreferencesDialog::build()
 	def.label = L("Update built-in Presets automatically");
 	def.type = coBool;
 	def.tooltip = L("If enabled, Slic3r downloads updates of built-in system presets in the background. These updates are downloaded into a separate temporary location. When a new preset version becomes available it is offered at application startup.");
-	def.default_value = new ConfigOptionBool(app_config->get("preset_update") == "1");
+	def.set_default_value(new ConfigOptionBool(app_config->get("preset_update") == "1"));
 	option = Option (def, "preset_update");
 	m_optgroup->append_single_option_line(option);
 
@@ -77,7 +77,7 @@ void PreferencesDialog::build()
 	def.type = coBool;
 	def.tooltip = L("Suppress \" - default - \" presets in the Print / Filament / Printer "
 					  "selections once there are any other valid presets available.");
-	def.default_value = new ConfigOptionBool{ app_config->get("no_defaults") == "1" };
+	def.set_default_value(new ConfigOptionBool{ app_config->get("no_defaults") == "1" });
 	option = Option (def,"no_defaults");
 	m_optgroup->append_single_option_line(option);
 
@@ -85,7 +85,7 @@ void PreferencesDialog::build()
 	def.type = coBool;
 	def.tooltip = L("When checked, the print and filament presets are shown in the preset editor "
 					  "even if they are marked as incompatible with the active printer");
-	def.default_value = new ConfigOptionBool{ app_config->get("show_incompatible_presets") == "1" };
+	def.set_default_value(new ConfigOptionBool{ app_config->get("show_incompatible_presets") == "1" });
 	option = Option (def,"show_incompatible_presets");
 	m_optgroup->append_single_option_line(option);
 
@@ -95,7 +95,7 @@ void PreferencesDialog::build()
 	def.tooltip = L("If you have rendering issues caused by a buggy OpenGL 2.0 driver, "
 					  "you may try to check this checkbox. This will disable the layer height "
 					  "editing and anti aliasing, so it is likely better to upgrade your graphics driver.");
-	def.default_value = new ConfigOptionBool{ app_config->get("use_legacy_opengl") == "1" };
+	def.set_default_value(new ConfigOptionBool{ app_config->get("use_legacy_opengl") == "1" });
 	option = Option (def,"use_legacy_opengl");
 	m_optgroup->append_single_option_line(option);
 
@@ -104,7 +104,7 @@ void PreferencesDialog::build()
 	def.type = coBool;
 	def.tooltip = L("If enabled, the 3D scene will be rendered in Retina resolution. "
 	                "If you are experiencing 3D performance problems, disabling this option may help.");
-	def.default_value = new ConfigOptionBool{ app_config->get("use_retina_opengl") == "1" };
+	def.set_default_value(new ConfigOptionBool{ app_config->get("use_retina_opengl") == "1" });
 	option = Option (def, "use_retina_opengl");
 	m_optgroup->append_single_option_line(option);
 #endif
