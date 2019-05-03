@@ -10,6 +10,7 @@
 #include "Selection.hpp"
 
 #include <boost/algorithm/string.hpp>
+#include "slic3r/Utils/FixModelByWin10.hpp"
 
 namespace Slic3r
 {
@@ -66,6 +67,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     , m_focused_option("")
 #endif // __APPLE__
 {
+    m_manifold_warning_bmp = ScalableBitmap(parent, "exclamation");
     m_og->set_name(_(L("Object Manipulation")));
     m_og->label_width = 12;//125;
     m_og->set_grid_vgap(5);
@@ -86,17 +88,51 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     ConfigOptionDef def;
 
     // Objects(sub-objects) name
-    def.label = L("Name");
+//     def.label = L("Name");
+//     def.gui_type = "legend";
+//     def.tooltip = L("Object name");
+//     def.width = 21 * wxGetApp().em_unit();
+//     def.default_value = new ConfigOptionString{ " " };
+//     m_og->append_single_option_line(Option(def, "object_name"));
+
+    Line line = Line{ "Name", "Object name" };
+
+    auto manifold_warning_icon = [this](wxWindow* parent) {
+        m_fix_throught_netfab_bitmap = new wxStaticBitmap(parent, wxID_ANY, wxNullBitmap);
+        auto sizer = new wxBoxSizer(wxHORIZONTAL);
+        sizer->Add(m_fix_throught_netfab_bitmap);
+
+        if (is_windows10())
+            m_fix_throught_netfab_bitmap->Bind(wxEVT_CONTEXT_MENU, [this](wxCommandEvent &e)
+            {
+                // if object/sub-object has no errors
+                if (m_fix_throught_netfab_bitmap->GetBitmap().GetRefData() == wxNullBitmap.GetRefData())
+                    return;
+
+                wxGetApp().obj_list()->fix_through_netfabb();
+                update_warning_icon_state(wxGetApp().obj_list()->get_mesh_errors_list());
+            });
+
+        return sizer;
+    };
+
+    line.append_widget(manifold_warning_icon);
+    def.label = "";
     def.gui_type = "legend";
     def.tooltip = L("Object name");
+#ifdef __APPLE__
+    def.width = 19;
+#else
     def.width = 21;
+#endif
     def.set_default_value(new ConfigOptionString{ " " });
-    m_og->append_single_option_line(Option(def, "object_name"));
+    line.append_option(Option(def, "object_name"));
+    m_og->append_line(line);
 
     const int field_width = 5;
 
     // Legend for object modification
-    auto line = Line{ "", "" };
+    line = Line{ "", "" };
     def.label = "";
     def.type = coString;
     def.width = field_width/*50*/;
@@ -353,6 +389,12 @@ void ObjectManipulation::emulate_kill_focus()
 }
 #endif // __APPLE__
 
+void ObjectManipulation::update_warning_icon_state(const wxString& tooltip)
+{
+    m_fix_throught_netfab_bitmap->SetBitmap(tooltip.IsEmpty() ? wxNullBitmap : m_manifold_warning_bmp.bmp());
+    m_fix_throught_netfab_bitmap->SetToolTip(tooltip);
+}
+
 void ObjectManipulation::reset_settings_value()
 {
     m_new_position = Vec3d::Zero();
@@ -566,6 +608,14 @@ void ObjectManipulation::set_uniform_scaling(const bool new_value)
         }
     }
     m_uniform_scale = new_value;
+}
+
+void ObjectManipulation::msw_rescale()
+{
+    m_manifold_warning_bmp.msw_rescale();
+    m_fix_throught_netfab_bitmap->SetBitmap(m_manifold_warning_bmp.bmp());
+
+    get_og()->msw_rescale();
 }
 
 } //namespace GUI
