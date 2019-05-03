@@ -937,6 +937,13 @@ void ObjectList::get_freq_settings_choice(const wxString& bundle_name)
 {
     const std::vector<std::string>& options = get_options_for_bundle(bundle_name);
 
+    /* #ys_FIXME_delete_after_testing   ! Temporary workaround to avoid a crash:
+    * After a right click on an instance all items in the ObjectList are unselected,
+    * and as a result m_config == nullptr.
+    */
+    if (!m_config)
+        return;
+
     auto opt_keys = m_config->keys();
 
     const DynamicPrintConfig& from_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
@@ -966,6 +973,10 @@ void ObjectList::update_settings_item()
         const auto settings_item = m_objects_model->IsSettingsItem(item) ? item : m_objects_model->GetSettingsItem(item);
         select_item(settings_item ? settings_item :
             m_objects_model->AddSettingsChild(item));
+
+        // update object selection on Plater
+        if (!m_prevent_canvas_selection_update)
+            update_selections_on_canvas();
     }
     else {
         auto panel = wxGetApp().sidebar().scrolled_panel();
