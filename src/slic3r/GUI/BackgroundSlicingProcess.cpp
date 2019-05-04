@@ -28,6 +28,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/cstdio.hpp>
+#include "I18N.hpp"
 
 namespace Slic3r {
 
@@ -81,13 +82,14 @@ void BackgroundSlicingProcess::process_fff()
 	    	std::string export_path = m_fff_print->print_statistics().finalize_output_path(m_export_path);
 		    if (copy_file(m_temp_output_path, export_path) != 0)
 	    		throw std::runtime_error("Copying of the temporary G-code to the output G-code failed");
-	    	m_print->set_status(95, "Running post-processing scripts");
+	    	m_print->set_status(95, L("Running post-processing scripts"));
 	    	run_post_process_scripts(export_path, m_fff_print->config());
-	    	m_print->set_status(100, "G-code file exported to " + export_path);
+            // #ys_FIXME_localization  
+	    	m_print->set_status(100, L("G-code file exported to ") + export_path);
 	    } else if (! m_upload_job.empty()) {
 			prepare_upload();
 	    } else {
-	    	m_print->set_status(100, "Slicing complete");
+	    	m_print->set_status(100, L("Slicing complete"));
 	    }
 		this->set_step_done(bspsGCodeFinalize);
 	}
@@ -101,11 +103,12 @@ void BackgroundSlicingProcess::process_sla()
         if (! m_export_path.empty()) {
         	const std::string export_path = m_sla_print->print_statistics().finalize_output_path(m_export_path);
             m_sla_print->export_raster(export_path);
-            m_print->set_status(100, "Masked SLA file exported to " + export_path);
+            // #ys_FIXME_localization  
+            m_print->set_status(100, L("Masked SLA file exported to ") + export_path);
         } else if (! m_upload_job.empty()) {
             prepare_upload();
         } else {
-            m_print->set_status(100, "Slicing complete");
+            m_print->set_status(100, L("Slicing complete"));
         }
         this->set_step_done(bspsGCodeFinalize);
     }
@@ -394,7 +397,7 @@ void BackgroundSlicingProcess::prepare_upload()
 		/ boost::filesystem::unique_path("." SLIC3R_APP_KEY ".upload.%%%%-%%%%-%%%%-%%%%");
 
 	if (m_print == m_fff_print) {
-		m_print->set_status(95, "Running post-processing scripts");
+		m_print->set_status(95, L("Running post-processing scripts"));
 		if (copy_file(m_temp_output_path, source_path.string()) != 0) {
 			throw std::runtime_error("Copying of the temporary G-code to the output G-code failed");
 		}
@@ -405,7 +408,8 @@ void BackgroundSlicingProcess::prepare_upload()
         m_sla_print->export_raster(source_path.string(), m_upload_job.upload_data.upload_path.string());
 	}
 
-	m_print->set_status(100, (boost::format("Scheduling upload to `%1%`. See Window -> Print Host Upload Queue") % m_upload_job.printhost->get_host()).str());
+    // #ys_FIXME_localization  
+	m_print->set_status(100, (boost::format(L("Scheduling upload to `%1%`. See Window -> Print Host Upload Queue")) % m_upload_job.printhost->get_host()).str());
 
 	m_upload_job.upload_data.source_path = std::move(source_path);
 

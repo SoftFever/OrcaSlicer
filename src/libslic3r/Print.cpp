@@ -1473,7 +1473,7 @@ void Print::process()
     BOOST_LOG_TRIVIAL(info) << "Staring the slicing process." << log_memory_info();
     for (PrintObject *obj : m_objects)
         obj->make_perimeters();
-    this->set_status(70, "Infilling layers");
+    this->set_status(70, L("Infilling layers"));
     for (PrintObject *obj : m_objects)
         obj->infill();
     for (PrintObject *obj : m_objects)
@@ -1481,7 +1481,7 @@ void Print::process()
     if (this->set_started(psSkirt)) {
         m_skirt.clear();
         if (this->has_skirt()) {
-            this->set_status(88, "Generating skirt");
+            this->set_status(88, L("Generating skirt"));
             this->_make_skirt();
         }
         this->set_done(psSkirt);
@@ -1489,7 +1489,7 @@ void Print::process()
 	if (this->set_started(psBrim)) {
         m_brim.clear();
         if (m_config.brim_width > 0) {
-            this->set_status(88, "Generating brim");
+            this->set_status(88, L("Generating brim"));
             this->_make_brim();
         }
        this->set_done(psBrim);
@@ -1497,7 +1497,7 @@ void Print::process()
     if (this->set_started(psWipeTower)) {
         m_wipe_tower_data.clear();
         if (this->has_wipe_tower()) {
-            //this->set_status(95, "Generating wipe tower");
+            //this->set_status(95, L("Generating wipe tower"));
             this->_make_wipe_tower();
         }
        this->set_done(psWipeTower);
@@ -1514,7 +1514,8 @@ std::string Print::export_gcode(const std::string &path_template, GCodePreviewDa
     // output everything to a G-code file
     // The following call may die if the output_filename_format template substitution fails.
     std::string path = this->output_filepath(path_template);
-    std::string message = "Exporting G-code";
+    std::string message = L("Exporting G-code");
+    // #ys_FIXME_localization
     if (! path.empty() && preview_data == nullptr) {
         // Only show the path if preview_data is not set -> running from command line.
         message += " to ";

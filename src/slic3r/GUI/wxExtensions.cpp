@@ -346,6 +346,28 @@ wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name_in, con
 // ObjectDataViewModelNode
 // ----------------------------------------------------------------------------
 
+ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent, const ItemType type) :
+    m_parent(parent),
+    m_type(type),
+    m_extruder(wxEmptyString)
+{
+    if (type == itSettings) {
+        m_name = "Settings to modified";
+    }
+    else if (type == itInstanceRoot) {
+        m_name = _(L("Instances"));
+#ifdef __WXGTK__
+        m_container = true;
+#endif  //__WXGTK__
+    }
+    else if (type == itInstance) {
+        m_idx = parent->GetChildCount();
+        m_name = wxString::Format(_(L("Instance_%d")), m_idx + 1);
+
+        set_action_icon();
+    }
+}
+
 void ObjectDataViewModelNode::set_action_icon()
 {
     m_action_icon_name = m_type == itObject ? "advanced_plus" : 
@@ -384,7 +406,7 @@ bool ObjectDataViewModelNode::update_settings_digest(const std::vector<std::stri
     m_name = wxEmptyString;
 
     for (auto& cat : m_opt_categories)
-        m_name += cat + "; ";
+        m_name += _(cat) + "; ";
     if (!m_name.IsEmpty())
         m_name.erase(m_name.Length()-2, 2); // Delete last "; "
 
