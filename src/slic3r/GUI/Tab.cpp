@@ -1678,7 +1678,7 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 	}
 
 	auto printhost_browse = [=](wxWindow* parent) {
-        add_scaled_button(parent, &m_printhost_browse_btn, "browse", _(L(" Browse ")) + dots, wxBU_LEFT | wxBU_EXACTFIT);
+        add_scaled_button(parent, &m_printhost_browse_btn, "browse", _(L("Browse")) + " "+ dots, wxBU_LEFT | wxBU_EXACTFIT);
         ScalableButton* btn = m_printhost_browse_btn;
 		btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 
@@ -2057,7 +2057,7 @@ void TabPrinter::build_sla()
     optgroup->append_single_option_line("area_fill");
 
     optgroup = page->new_optgroup(_(L("Corrections")));
-    line = Line{ m_config->def()->get("relative_correction")->full_label, "" };
+    line = Line{ _(m_config->def()->get("relative_correction")->full_label), "" };
 //    std::vector<std::string> axes{ "X", "Y", "Z" };
     std::vector<std::string> axes{ "XY", "Z" };
     int id = 0;
@@ -3313,7 +3313,7 @@ void TabSLAMaterial::build()
 //    std::vector<std::string> axes{ "X", "Y", "Z" };
     std::vector<std::string> axes{ "XY", "Z" };
     for (auto& opt_key : corrections) {
-        auto line = Line{ m_config->def()->get(opt_key)->full_label, "" };
+        auto line = Line{ _(m_config->def()->get(opt_key)->full_label), "" };
         int id = 0;
         for (auto& axis : axes) {
             auto opt = optgroup->get_option(opt_key, id);

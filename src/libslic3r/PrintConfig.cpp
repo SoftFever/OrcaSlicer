@@ -92,9 +92,9 @@ void PrintConfigDef::init_common_params()
     def->set_default_value(new ConfigOptionString(""));
     
     def = this->add("printhost_cafile", coString);
-    def->label = "HTTPS CA File";
-    def->tooltip = "Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. "
-                   "If left blank, the default OS CA certificate repository is used.";
+    def->label = L("HTTPS CA File");
+    def->tooltip = L("Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. "
+                   "If left blank, the default OS CA certificate repository is used.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString(""));
 }
@@ -145,6 +145,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionString(""));
 
     def = this->add("bottom_solid_layers", coInt);
+    //TRN To be shown in Print Settings "Bottom solid layers"
     def->label = L("Bottom");
     def->category = L("Layers and Perimeters");
     def->tooltip = L("Number of solid layers to generate on bottom surfaces.");
@@ -913,10 +914,10 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionEnum<GCodeFlavor>(gcfRepRap));
 
     def = this->add("gcode_label_objects", coBool);
-    def->label = "Label objects";
-    def->tooltip = "Enable this to add comments into the G-Code labeling print moves with what object they belong to,"
+    def->label = L("Label objects");
+    def->tooltip = L("Enable this to add comments into the G-Code labeling print moves with what object they belong to,"
                    " which is useful for the Octoprint CancelObject plugin. This settings is NOT compatible with "
-                   "Single Extruder Multi Material setup and Wipe into Object / Wipe into Infill.";
+                   "Single Extruder Multi Material setup and Wipe into Object / Wipe into Infill.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(0));
 
@@ -2038,6 +2039,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloatOrPercent(15, false));
 
     def = this->add("top_solid_layers", coInt);
+    //TRN To be shown in Print Settings "Top solid layers"
     def->label = L("Top");
     def->category = L("Layers and Perimeters");
     def->tooltip = L("Number of solid layers to generate on top surfaces.");
@@ -2141,7 +2143,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("wipe_tower_rotation_angle", coFloat);
     def->label = L("Wipe tower rotation angle");
     def->tooltip = L("Wipe tower rotation angle with respect to x-axis ");
-    def->sidetext = L("degrees");
+    def->sidetext = L("°");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.));
 

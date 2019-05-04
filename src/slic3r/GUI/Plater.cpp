@@ -996,7 +996,7 @@ void Sidebar::show_info_sizer()
         p->object_info->manifold_warning_icon->SetToolTip(tooltip);
     } 
     else {
-        p->object_info->info_manifold->SetLabel(L("Yes"));
+        p->object_info->info_manifold->SetLabel(_(L("Yes")));
         p->object_info->showing_manifold_warning_icon = false;
         p->object_info->info_manifold->SetToolTip("");
         p->object_info->manifold_warning_icon->SetToolTip("");
@@ -2410,7 +2410,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation)
         // Background data is valid.
         if ((return_state & UPDATE_BACKGROUND_PROCESS_RESTART) != 0 ||
             (return_state & UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE) != 0 )
-            this->statusbar()->set_status_text(L("Ready to slice"));
+            this->statusbar()->set_status_text(_(L("Ready to slice")));
 
         sidebar->set_btn_label(ActionButtonType::abExport, _(label_btn_export));
         sidebar->set_btn_label(ActionButtonType::abSendGCode, _(label_btn_send));
@@ -2448,7 +2448,7 @@ bool Plater::priv::restart_background_process(unsigned int state)
         // The print is valid and it can be started.
         if (this->background_process.start()) {
             this->statusbar()->set_cancel_callback([this]() {
-                this->statusbar()->set_status_text(L("Cancelling"));
+                this->statusbar()->set_status_text(_(L("Cancelling")));
                 this->background_process.stop();
             });
             return true;
@@ -2672,7 +2672,7 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
         }
 
         this->statusbar()->set_progress(evt.status.percent);
-        this->statusbar()->set_status_text(_(L(evt.status.text)) + wxString::FromUTF8("…"));
+        this->statusbar()->set_status_text(_(evt.status.text) + wxString::FromUTF8("…"));
     }
     if (evt.status.flags & (PrintBase::SlicingStatus::RELOAD_SCENE || PrintBase::SlicingStatus::RELOAD_SLA_SUPPORT_POINTS)) {
         switch (this->printer_technology) {
@@ -2731,7 +2731,7 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
         this->statusbar()->set_status_text(message);
     }
 	if (canceled)
-		this->statusbar()->set_status_text(L("Cancelled"));
+		this->statusbar()->set_status_text(_(L("Cancelled")));
 
     this->sidebar->show_sliced_info_sizer(success);
 

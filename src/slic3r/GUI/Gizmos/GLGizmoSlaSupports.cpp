@@ -923,7 +923,7 @@ RENDER_AGAIN:
     // Following is rendered in both editing and non-editing mode:
     m_imgui->text("");
     if (m_clipping_plane_distance == 0.f)
-        m_imgui->text("Clipping of view: ");
+        m_imgui->text(_(L("Clipping of view:"))+ " ");
     else {
         if (m_imgui->button(_(L("Reset direction")))) {
             wxGetApp().CallAfter([this](){

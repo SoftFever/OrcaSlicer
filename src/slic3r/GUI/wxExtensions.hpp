@@ -219,28 +219,7 @@ public:
         set_action_icon();
     }
 
-    ObjectDataViewModelNode(ObjectDataViewModelNode* parent, 
-                            const ItemType type) :
-        m_parent(parent),
-        m_type(type),
-        m_extruder(wxEmptyString)
-	{
-        if (type == itSettings) {
-            m_name = "Settings to modified";
-        }
-        else if (type == itInstanceRoot) {
-            m_name = "Instances"; 
-#ifdef __WXGTK__
-            m_container = true;
-#endif  //__WXGTK__
-        }
-        else if (type == itInstance) {
-            m_idx = parent->GetChildCount();
-            m_name = wxString::Format("Instance_%d", m_idx+1);
-
-            set_action_icon();
-        }
-	}
+    ObjectDataViewModelNode(ObjectDataViewModelNode* parent, const ItemType type);
 
 	~ObjectDataViewModelNode()
 	{
