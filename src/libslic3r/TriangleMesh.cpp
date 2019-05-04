@@ -1847,116 +1847,101 @@ TriangleMesh make_cube(double x, double y, double z) {
 // Generate the mesh for a cylinder and return it, using 
 // the generated angle to calculate the top mesh triangles.
 // Default is 360 sides, angle fa is in radians.
-TriangleMesh make_cylinder(double r, double h, double fa) {
-    Pointf3s vertices;
-    std::vector<Vec3crd> facets;
+TriangleMesh make_cylinder(double r, double h, double fa)
+{
+	size_t n_steps    = (size_t)ceil(2. * PI / fa);
+	double angle_step = 2. * PI / n_steps;
+
+	Pointf3s				vertices;
+	std::vector<Vec3crd>	facets;
+	vertices.reserve(2 * n_steps + 2);
+	facets.reserve(4 * n_steps);
 
     // 2 special vertices, top and bottom center, rest are relative to this
     vertices.emplace_back(Vec3d(0.0, 0.0, 0.0));
     vertices.emplace_back(Vec3d(0.0, 0.0, h));
 
-    // adjust via rounding to get an even multiple for any provided angle.
-    double angle = (2*PI / floor(2*PI / fa));
-
     // for each line along the polygon approximating the top/bottom of the
     // circle, generate four points and four facets (2 for the wall, 2 for the
     // top and bottom.
     // Special case: Last line shares 2 vertices with the first line.
-    unsigned id = vertices.size() - 1;
-    vertices.emplace_back(Vec3d(sin(0) * r , cos(0) * r, 0));
-    vertices.emplace_back(Vec3d(sin(0) * r , cos(0) * r, h));
-    for (double i = 0; i < 2*PI; i+=angle) {
-        Vec2d p = Eigen::Rotation2Dd(i) * Eigen::Vector2d(0, r);
+	Vec2d p = Eigen::Rotation2Dd(0.) * Eigen::Vector2d(0, r);
+	vertices.emplace_back(Vec3d(p(0), p(1), 0.));
+	vertices.emplace_back(Vec3d(p(0), p(1), h));
+	for (size_t i = 1; i < n_steps; ++i) {
+        p = Eigen::Rotation2Dd(angle_step * i) * Eigen::Vector2d(0, r);
         vertices.emplace_back(Vec3d(p(0), p(1), 0.));
         vertices.emplace_back(Vec3d(p(0), p(1), h));
-        id = vertices.size() - 1;
+        int id = (int)vertices.size() - 1;
         facets.emplace_back(Vec3crd( 0, id - 1, id - 3)); // top
         facets.emplace_back(Vec3crd(id,      1, id - 2)); // bottom
-        facets.emplace_back(Vec3crd(id, id - 2, id - 3)); // upper-right of side
+		facets.emplace_back(Vec3crd(id, id - 2, id - 3)); // upper-right of side
         facets.emplace_back(Vec3crd(id, id - 3, id - 1)); // bottom-left of side
     }
     // Connect the last set of vertices with the first.
-    facets.emplace_back(Vec3crd( 2, 0, id - 1));
-    facets.emplace_back(Vec3crd( 1, 3,     id));
-    facets.emplace_back(Vec3crd(id, 3,      2));
-    facets.emplace_back(Vec3crd(id, 2, id - 1));
+	int id = (int)vertices.size() - 1;
+    facets.emplace_back(Vec3crd( 0, 2, id - 1));
+    facets.emplace_back(Vec3crd( 3, 1,     id));
+	facets.emplace_back(Vec3crd(id, 2,      3));
+    facets.emplace_back(Vec3crd(id, id - 1, 2));
     
-    TriangleMesh mesh(vertices, facets);
-    return mesh;
+	return TriangleMesh(std::move(vertices), std::move(facets));
 }
 
 // Generates mesh for a sphere centered about the origin, using the generated angle
 // to determine the granularity. 
 // Default angle is 1 degree.
-TriangleMesh make_sphere(double rho, double fa) {
-    Pointf3s vertices;
-    std::vector<Vec3crd> facets;
+//FIXME better to discretize an Icosahedron recursively http://www.songho.ca/opengl/gl_sphere.html
+TriangleMesh make_sphere(double radius, double fa)
+{
+	int   sectorCount = ceil(2. * M_PI / fa);
+	int   stackCount  = ceil(M_PI / fa);
+	float sectorStep  = 2. * M_PI / sectorCount;
+	float stackStep   = M_PI / stackCount;
 
-    // Algorithm: 
-    // Add points one-by-one to the sphere grid and form facets using relative coordinates.
-    // Sphere is composed effectively of a mesh of stacked circles.
+	Pointf3s vertices;
+	vertices.reserve((stackCount - 1) * sectorCount + 2);
+	for (int i = 0; i <= stackCount; ++ i) {
+		// from pi/2 to -pi/2
+		double stackAngle = 0.5 * M_PI - stackStep * i;
+		double xy = radius * cos(stackAngle);
+		double z  = radius * sin(stackAngle);
+		if (i == 0 || i == stackCount)
+			vertices.emplace_back(Vec3d(xy, 0., z));
+		else
+			for (int j = 0; j < sectorCount; ++ j) {
+				// from 0 to 2pi
+				double sectorAngle = sectorStep * j;
+				vertices.emplace_back(Vec3d(xy * cos(sectorAngle), xy * sin(sectorAngle), z));
+			}
+	}
 
-    // adjust via rounding to get an even multiple for any provided angle.
-    double angle = (2*PI / floor(2*PI / fa));
-
-    // Ring to be scaled to generate the steps of the sphere
-    std::vector<double> ring;
-    for (double i = 0; i < 2*PI; i+=angle) {
-        ring.emplace_back(i);
-    }
-    const size_t steps = ring.size(); 
-    const double increment = (double)(1.0 / (double)steps);
-
-    // special case: first ring connects to 0,0,0
-    // insert and form facets.
-    vertices.emplace_back(Vec3d(0.0, 0.0, -rho));
-    size_t id = vertices.size();
-    for (size_t i = 0; i < ring.size(); i++) {
-        // Fixed scaling 
-        const double z = -rho + increment*rho*2.0;
-        // radius of the circle for this step.
-        const double r = sqrt(abs(rho*rho - z*z));
-        Vec2d b = Eigen::Rotation2Dd(ring[i]) * Eigen::Vector2d(0, r);
-        vertices.emplace_back(Vec3d(b(0), b(1), z));
-        facets.emplace_back((i == 0) ? Vec3crd(1, 0, ring.size()) : Vec3crd(id, 0, id - 1));
-        ++ id;
-    }
-
-    // General case: insert and form facets for each step, joining it to the ring below it.
-    for (size_t s = 2; s < steps - 1; s++) {
-        const double z = -rho + increment*(double)s*2.0*rho;
-        const double r = sqrt(abs(rho*rho - z*z));
-
-        for (size_t i = 0; i < ring.size(); i++) {
-            Vec2d b = Eigen::Rotation2Dd(ring[i]) * Eigen::Vector2d(0, r);
-            vertices.emplace_back(Vec3d(b(0), b(1), z));
-            if (i == 0) {
-                // wrap around
-                facets.emplace_back(Vec3crd(id + ring.size() - 1 , id, id - 1)); 
-                facets.emplace_back(Vec3crd(id, id - ring.size(),  id - 1)); 
-            } else {
-                facets.emplace_back(Vec3crd(id , id - ring.size(), (id - 1) - ring.size())); 
-                facets.emplace_back(Vec3crd(id, id - 1 - ring.size() ,  id - 1)); 
-            }
-            id++;
-        } 
-    }
-
-
-    // special case: last ring connects to 0,0,rho*2.0
-    // only form facets.
-    vertices.emplace_back(Vec3d(0.0, 0.0, rho));
-    for (size_t i = 0; i < ring.size(); i++) {
-        if (i == 0) {
-            // third vertex is on the other side of the ring.
-            facets.emplace_back(Vec3crd(id, id - ring.size(),  id - 1));
-        } else {
-            facets.emplace_back(Vec3crd(id, id - ring.size() + i,  id - ring.size() + (i - 1)));
-        }
-    }
-    id++;
-    TriangleMesh mesh(vertices, facets);
-    return mesh;
+	std::vector<Vec3crd> facets;
+	facets.reserve(2 * (stackCount - 1) * sectorCount);
+	for (int i = 0; i < stackCount; ++ i) {
+		// Beginning of current stack.
+		int k1 = (i == 0) ? 0 : (1 + (i - 1) * sectorCount);
+		int k1_first = k1;
+		// Beginning of next stack.
+		int k2 = (i == 0) ? 1 : (k1 + sectorCount);
+		int k2_first = k2;
+		for (int j = 0; j < sectorCount; ++ j) {
+			// 2 triangles per sector excluding first and last stacks
+			int k1_next = k1;
+			int k2_next = k2;
+			if (i != 0) {
+				k1_next = (j + 1 == sectorCount) ? k1_first : (k1 + 1);
+				facets.emplace_back(Vec3crd(k1, k2, k1_next));
+			}
+			if (i + 1 != stackCount) {
+				k2_next = (j + 1 == sectorCount) ? k2_first : (k2 + 1);
+				facets.emplace_back(Vec3crd(k1_next, k2, k2_next));
+			}
+			k1 = k1_next;
+			k2 = k2_next;
+		}
+	}
+	return TriangleMesh(std::move(vertices), std::move(facets));
 }
 
 }
