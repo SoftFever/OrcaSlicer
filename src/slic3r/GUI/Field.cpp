@@ -260,8 +260,8 @@ void TextCtrl::BUILD() {
             e.Skip();
             temp->GetToolTip()->Enable(true);
 #endif // __WXGTK__
-            propagate_value();
             bEnterPressed = true;
+            propagate_value();
         }), temp->GetId());
     }
 

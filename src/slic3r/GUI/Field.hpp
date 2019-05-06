@@ -225,6 +225,9 @@ public:
         m_em_unit = em_unit(m_parent);
     }
 
+    bool get_enter_pressed() const { return bEnterPressed; }
+    void set_enter_pressed(bool pressed) { bEnterPressed = pressed; }
+
 protected:
 	RevertButton*			m_Undo_btn = nullptr;
 	// Bitmap and Tooltip text for m_Undo_btn. The wxButton will be updated only if the new wxBitmap pointer differs from the currently rendered one.

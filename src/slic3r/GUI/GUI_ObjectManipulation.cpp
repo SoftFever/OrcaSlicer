@@ -527,11 +527,21 @@ void ObjectManipulation::do_scale(int axis, const Vec3d &scale) const
 
 void ObjectManipulation::on_change(t_config_option_key opt_key, const boost::any& value)
 {
-    // needed to hide the visual hints in 3D scene
-    wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event(opt_key, false);
+    Field* field = m_og->get_field(opt_key);
+    bool enter_pressed = (field != nullptr) && field->get_enter_pressed();
+    if (!enter_pressed)
+    {
+        // if the change does not come from the user pressing the ENTER key
+        // we need to hide the visual hints in 3D scene
+        wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event(opt_key, false);
+
 #ifndef __APPLE__
-    m_focused_option = "";
+        m_focused_option = "";
 #endif // __APPLE__
+    }
+    else
+        // if the change comes from the user pressing the ENTER key, restore the key state
+        field->set_enter_pressed(false);
 
     if (!m_cache.is_valid())
         return;
