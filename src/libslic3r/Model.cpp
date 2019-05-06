@@ -1451,6 +1451,50 @@ std::string ModelObject::get_export_filename() const
     return ret;
 }
 
+stl_stats ModelObject::get_object_stl_stats() const
+{
+    if (this->volumes.size() == 1)
+        return this->volumes[0]->mesh.stl.stats;
+
+    stl_stats full_stats = this->volumes[0]->mesh.stl.stats;
+
+    // fill full_stats from all objet's meshes
+    for (ModelVolume* volume : this->volumes)
+    {
+        if (volume->id() == this->volumes[0]->id())
+            continue;
+
+        const stl_stats& stats = volume->mesh.stl.stats;
+
+        // initialize full_stats (for repaired errors)
+        full_stats.degenerate_facets    += stats.degenerate_facets;
+        full_stats.edges_fixed          += stats.edges_fixed;
+        full_stats.facets_removed       += stats.facets_removed;
+        full_stats.facets_added         += stats.facets_added;
+        full_stats.facets_reversed      += stats.facets_reversed;
+        full_stats.backwards_edges      += stats.backwards_edges;
+
+        // another used satistics value
+        if (volume->is_model_part()) {
+            full_stats.volume           += stats.volume;
+            full_stats.number_of_parts  += stats.number_of_parts;
+        }
+    }
+
+    return full_stats;
+}
+
+int ModelObject::get_mesh_errors_count(const int vol_idx /*= -1*/) const
+{
+    if (vol_idx >= 0)
+        return this->volumes[vol_idx]->get_mesh_errors_count();
+
+    const stl_stats& stats = get_object_stl_stats();
+
+    return  stats.degenerate_facets + stats.edges_fixed     + stats.facets_removed +
+            stats.facets_added      + stats.facets_reversed + stats.backwards_edges;
+}
+
 void ModelVolume::set_material_id(t_model_material_id material_id)
 {
     m_material_id = material_id;
@@ -1514,6 +1558,14 @@ void ModelVolume::center_geometry()
 void ModelVolume::calculate_convex_hull()
 {
     m_convex_hull = mesh.convex_hull_3d();
+}
+
+int ModelVolume::get_mesh_errors_count() const
+{
+    const stl_stats& stats = this->mesh.stl.stats;
+
+    return  stats.degenerate_facets + stats.edges_fixed     + stats.facets_removed +
+            stats.facets_added      + stats.facets_reversed + stats.backwards_edges;
 }
 
 const TriangleMesh& ModelVolume::get_convex_hull() const

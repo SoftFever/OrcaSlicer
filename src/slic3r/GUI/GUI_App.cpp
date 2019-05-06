@@ -311,12 +311,12 @@ bool GUI_App::dark_mode_menus()
 void GUI_App::init_label_colours()
 {
     if (dark_mode()) {
-        m_color_label_modified = wxColour(252, 77, 1);
-        m_color_label_sys = wxColour(26, 132, 57);
-    }
-    else {
         m_color_label_modified = wxColour(253, 111, 40);
         m_color_label_sys = wxColour(115, 220, 103);
+    }
+    else {
+        m_color_label_modified = wxColour(252, 77, 1);
+        m_color_label_sys = wxColour(26, 132, 57);
     }
     m_color_label_default = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
 }

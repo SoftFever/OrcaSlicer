@@ -261,7 +261,7 @@ void GLCanvas3D::LayersEditing::select_object(const Model &model, int object_id)
     // Maximum height of an object changes when the object gets rotated or scaled.
     // Changing maximum height of an object will invalidate the layer heigth editing profile.
     // m_model_object->raw_bounding_box() is cached, therefore it is cheap even if this method is called frequently.
-    float new_max_z = (m_model_object == nullptr) ? 0.f : m_model_object->raw_bounding_box().size().z();
+	float new_max_z = (model_object_new == nullptr) ? 0.f : model_object_new->raw_bounding_box().size().z();
 	if (m_model_object != model_object_new || this->last_object_id != object_id || m_object_max_z != new_max_z ||
         (model_object_new != nullptr && m_model_object->id() != model_object_new->id())) {
         m_layer_height_profile.clear();
@@ -795,7 +795,7 @@ bool GLCanvas3D::WarningTexture::_generate(const std::string& msg_utf8, const GL
     if (msg_utf8.empty())
         return false;
 
-    wxString msg = GUI::from_u8(msg_utf8);
+    wxString msg = _(msg_utf8);//GUI::from_u8(msg_utf8);
 
     wxMemoryDC memDC;
 

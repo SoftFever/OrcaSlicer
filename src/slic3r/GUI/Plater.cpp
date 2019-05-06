@@ -724,7 +724,7 @@ Sidebar::Sidebar(Plater *parent)
 
     auto init_btn = [this](wxButton **btn, wxString label) {
         *btn = new wxButton(this, wxID_ANY, label, wxDefaultPosition, 
-                            wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
+                            wxDefaultSize, wxBU_EXACTFIT);
         (*btn)->SetFont(wxGetApp().bold_font());
     };
 
@@ -896,8 +896,7 @@ void Sidebar::msw_rescale()
     p->frequently_changed_parameters->get_og(false)->msw_rescale();
 
     p->object_list->msw_rescale();
-
-    p->object_manipulation->get_og()->msw_rescale();
+    p->object_manipulation->msw_rescale();
     p->object_settings->msw_rescale();
 
     p->object_info->msw_rescale();
@@ -970,7 +969,7 @@ void Sidebar::show_info_sizer()
     p->object_info->info_size->SetLabel(wxString::Format("%.2f x %.2f x %.2f",size(0), size(1), size(2)));
     p->object_info->info_materials->SetLabel(wxString::Format("%d", static_cast<int>(model_object->materials_count())));
 
-    auto& stats = model_object->volumes.front()->mesh.stl.stats;
+    const auto& stats = model_object->get_object_stl_stats();//model_object->volumes.front()->mesh.stl.stats;
     p->object_info->info_volume->SetLabel(wxString::Format("%.2f", stats.volume));
     p->object_info->info_facets->SetLabel(wxString::Format(_(L("%d (%d shells)")), static_cast<int>(model_object->facets_count()), stats.number_of_parts));
 
@@ -990,7 +989,7 @@ void Sidebar::show_info_sizer()
         p->object_info->manifold_warning_icon->SetToolTip(tooltip);
     } 
     else {
-        p->object_info->info_manifold->SetLabel(L("Yes"));
+        p->object_info->info_manifold->SetLabel(_(L("Yes")));
         p->object_info->showing_manifold_warning_icon = false;
         p->object_info->info_manifold->SetToolTip("");
         p->object_info->manifold_warning_icon->SetToolTip("");
@@ -1328,6 +1327,7 @@ struct Plater::priv
     bool can_split_to_volumes() const;
     bool can_arrange() const;
     bool can_layers_editing() const;
+    bool can_fix_through_netfabb() const;
 
 private:
     bool init_object_menu();
@@ -2403,7 +2403,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation)
         // Background data is valid.
         if ((return_state & UPDATE_BACKGROUND_PROCESS_RESTART) != 0 ||
             (return_state & UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE) != 0 )
-            this->statusbar()->set_status_text(L("Ready to slice"));
+            this->statusbar()->set_status_text(_(L("Ready to slice")));
 
         sidebar->set_btn_label(ActionButtonType::abExport, _(label_btn_export));
         sidebar->set_btn_label(ActionButtonType::abSendGCode, _(label_btn_send));
@@ -2441,7 +2441,7 @@ bool Plater::priv::restart_background_process(unsigned int state)
         // The print is valid and it can be started.
         if (this->background_process.start()) {
             this->statusbar()->set_cancel_callback([this]() {
-                this->statusbar()->set_status_text(L("Cancelling"));
+                this->statusbar()->set_status_text(_(L("Cancelling")));
                 this->background_process.stop();
             });
             return true;
@@ -2665,7 +2665,7 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
         }
 
         this->statusbar()->set_progress(evt.status.percent);
-        this->statusbar()->set_status_text(_(L(evt.status.text)) + wxString::FromUTF8("…"));
+        this->statusbar()->set_status_text(_(evt.status.text) + wxString::FromUTF8("…"));
     }
     if (evt.status.flags & (PrintBase::SlicingStatus::RELOAD_SCENE || PrintBase::SlicingStatus::RELOAD_SLA_SUPPORT_POINTS)) {
         switch (this->printer_technology) {
@@ -2724,7 +2724,7 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
         this->statusbar()->set_status_text(message);
     }
 	if (canceled)
-		this->statusbar()->set_status_text(L("Cancelled"));
+		this->statusbar()->set_status_text(_(L("Cancelled")));
 
     this->sidebar->show_sliced_info_sizer(success);
 
@@ -2930,7 +2930,7 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
         menu->AppendSeparator();
     }
 
-    sidebar->obj_list()->append_menu_item_fix_through_netfabb(menu);
+    wxMenuItem* item_fix_through_netfabb = sidebar->obj_list()->append_menu_item_fix_through_netfabb(menu);
 
     wxMenu* mirror_menu = new wxMenu();
     if (mirror_menu == nullptr)
@@ -2950,6 +2950,8 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
     {
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_mirror()); }, item_mirror->GetId());
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_delete()); }, item_delete->GetId());
+        if (item_fix_through_netfabb)
+            q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_fix_through_netfabb()); }, item_fix_through_netfabb->GetId());
     }
 
     return true;
@@ -3117,6 +3119,15 @@ bool Plater::priv::can_delete() const
 bool Plater::priv::can_delete_all() const
 {
     return !model.objects.empty();
+}
+
+bool Plater::priv::can_fix_through_netfabb() const
+{
+    int obj_idx = get_selected_object_idx();
+    if (obj_idx < 0)
+        return false;
+
+    return model.objects[obj_idx]->get_mesh_errors_count() > 0;
 }
 
 bool Plater::priv::can_increase_instances() const

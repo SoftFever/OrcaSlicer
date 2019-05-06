@@ -518,7 +518,9 @@ void MainFrame::init_menubar()
         // The camera control accelerators are captured by GLCanvas3D::on_char().
 		wxMenuItem* item_iso = append_menu_item(viewMenu, wxID_ANY, _(L("Iso")) + sep + "&0", _(L("Iso View")), [this](wxCommandEvent&) { select_view("iso"); });
         viewMenu->AppendSeparator();
+        //TRN To be shown in the main menu View->Top 
 		wxMenuItem* item_top = append_menu_item(viewMenu, wxID_ANY, _(L("Top")) + sep + "&1", _(L("Top View")), [this](wxCommandEvent&) { select_view("top"); });
+		//TRN To be shown in the main menu View->Bottom 
 		wxMenuItem* item_bottom = append_menu_item(viewMenu, wxID_ANY, _(L("Bottom")) + sep + "&2", _(L("Bottom View")), [this](wxCommandEvent&) { select_view("bottom"); });
 		wxMenuItem* item_front = append_menu_item(viewMenu, wxID_ANY, _(L("Front")) + sep + "&3", _(L("Front View")), [this](wxCommandEvent&) { select_view("front"); });
 		wxMenuItem* item_rear = append_menu_item(viewMenu, wxID_ANY, _(L("Rear")) + sep + "&4", _(L("Rear View")), [this](wxCommandEvent&) { select_view("rear"); });
