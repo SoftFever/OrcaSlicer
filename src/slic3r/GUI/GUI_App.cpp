@@ -340,15 +340,19 @@ void GUI_App::init_fonts()
 #endif /*__WXMAC__*/
 }
 
-void GUI_App::update_fonts()
+void GUI_App::update_fonts(const MainFrame *main_frame)
 {
     /* Only normal and bold fonts are used for an application rescale,
      * because of under MSW small and normal fonts are the same.
      * To avoid same rescaling twice, just fill this values
      * from rescaled MainFrame
      */
-    m_normal_font   = mainframe->normal_font();
-    m_bold_font     = mainframe->normal_font().Bold();
+	if (main_frame == nullptr)
+		main_frame = this->mainframe;
+    m_normal_font   = main_frame->normal_font();
+    m_small_font    = m_normal_font;
+    m_bold_font     = main_frame->normal_font().Bold();
+    m_em_unit       = main_frame->em_unit();
 }
 
 void GUI_App::set_label_clr_modified(const wxColour& clr) {
@@ -773,14 +777,14 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
 // to notify the user whether he is aware that some preset changes will be lost.
 bool GUI_App::check_unsaved_changes()
 {
-    std::string dirty;
+    wxString dirty;
     PrinterTechnology printer_technology = preset_bundle->printers.get_edited_preset().printer_technology();
     for (Tab *tab : tabs_list)
         if (tab->supports_printer_technology(printer_technology) && tab->current_preset_is_dirty())
             if (dirty.empty())
-                dirty = tab->name();
+                dirty = _(tab->name());
             else
-                dirty += std::string(", ") + tab->name();
+                dirty += wxString(", ") + _(tab->name());
     if (dirty.empty())
         // No changes, the application may close or reload presets.
         return true;

@@ -59,13 +59,16 @@ public:
         : P(parent, id, title, pos, size, style, name)
     {
         m_scale_factor = (float)get_dpi_for_window(this) / (float)DPI_DEFAULT;
-        m_normal_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+        m_prev_scale_factor = m_scale_factor;
+		float scale_primary_display = (float)get_dpi_for_window(nullptr) / (float)DPI_DEFAULT;
+		m_normal_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+		if (std::abs(m_scale_factor - scale_primary_display) > 1e-6)
+			m_normal_font = m_normal_font.Scale(m_scale_factor / scale_primary_display);
+
         // An analog of em_unit value from GUI_App.
         m_em_unit = std::max<size_t>(10, 10 * m_scale_factor);
 
-        m_prev_scale_factor = m_scale_factor;
-
-        recalc_font();
+//        recalc_font();
 
         this->Bind(EVT_DPI_CHANGED, [this](const DpiChangedEvent &evt) {
             m_scale_factor = (float)evt.dpi / (float)DPI_DEFAULT;
@@ -107,7 +110,7 @@ public:
     float   prev_scale_factor() const   { return m_prev_scale_factor; }
 
     int     em_unit() const             { return m_em_unit; }
-    int     font_size() const           { return m_font_size; }
+//    int     font_size() const           { return m_font_size; }
     const wxFont& normal_font() const   { return m_normal_font; }
 
 protected:
@@ -116,19 +119,19 @@ protected:
 private:
     float m_scale_factor;
     int m_em_unit;
-    int m_font_size;
+//    int m_font_size;
 
     wxFont m_normal_font;
     float m_prev_scale_factor;
     bool  m_can_rescale{ true };
 
-    void recalc_font()
-    {
-        wxClientDC dc(this);
-        const auto metrics = dc.GetFontMetrics();
-        m_font_size = metrics.height;
+//    void recalc_font()
+//    {
+//        wxClientDC dc(this);
+//        const auto metrics = dc.GetFontMetrics();
+//        m_font_size = metrics.height;
 //         m_em_unit = metrics.averageWidth;
-    }
+//    }
 
     // check if new scale is differ from previous
     bool    is_new_scale_factor() const { return fabs(m_scale_factor - m_prev_scale_factor) > 0.001; }

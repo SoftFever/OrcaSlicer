@@ -42,6 +42,7 @@ Tab::Tab(wxNotebook* parent, const wxString& title, const char* name) :
 	m_parent(parent), m_title(title), m_name(name)
 {
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL, name);
+	this->SetFont(Slic3r::GUI::wxGetApp().normal_font());
     set_type();
 
 	m_compatible_printers.type			= Preset::TYPE_PRINTER;

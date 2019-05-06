@@ -299,9 +299,13 @@ int em_unit(wxWindow* win)
 {
     if (win)
     {
-        Slic3r::GUI::DPIDialog* dlg = dynamic_cast<Slic3r::GUI::DPIDialog*>(Slic3r::GUI::find_toplevel_parent(win));
+        wxTopLevelWindow *toplevel = Slic3r::GUI::find_toplevel_parent(win);
+        Slic3r::GUI::DPIDialog* dlg = dynamic_cast<Slic3r::GUI::DPIDialog*>(toplevel);
         if (dlg)
             return dlg->em_unit();
+        Slic3r::GUI::DPIFrame* frame = dynamic_cast<Slic3r::GUI::DPIFrame*>(toplevel);
+        if (frame)
+            return frame->em_unit();
     }
     
     return Slic3r::GUI::wxGetApp().em_unit();
