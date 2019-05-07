@@ -57,11 +57,6 @@ wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const
     auto *item = new wxMenuItem(menu, id, string, description);
     if (icon.IsOk()) {
         item->SetBitmap(icon);
-#ifndef __WXMSW__
-        wxImage imgGrey = icon.ConvertToImage().ConvertToGreyscale();
-        if (imgGrey.IsOk())
-            item->SetDisabledBitmap(wxBitmap(imgGrey));
-#endif /* __WXMSW__ */
     }
     menu->Append(item);
 
@@ -100,10 +95,6 @@ wxMenuItem* append_submenu(wxMenu* menu, wxMenu* sub_menu, int id, const wxStrin
         item->SetBitmap(create_scaled_bitmap(nullptr, icon));    // FIXME: pass window ptr
 #ifdef __WXMSW__
         msw_menuitem_bitmaps[id] = icon;
-#else /* __WXMSW__ */
-        wxImage imgGrey = icon.ConvertToImage().ConvertToGreyscale();
-        if (imgGrey.IsOk())
-            item->SetDisabledBitmap(wxBitmap(imgGrey));
 #endif /* __WXMSW__ */
     }
 
