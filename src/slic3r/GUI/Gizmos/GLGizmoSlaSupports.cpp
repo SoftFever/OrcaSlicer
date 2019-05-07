@@ -79,6 +79,8 @@ void GLGizmoSlaSupports::set_sla_support_data(ModelObject* model_object, const S
             m_parent.toggle_model_objects_visibility(false);
             m_parent.toggle_model_objects_visibility(true, m_model_object, m_active_instance);
         }
+        else
+            m_parent.toggle_model_objects_visibility(true, nullptr, -1);
     }
 }
 
