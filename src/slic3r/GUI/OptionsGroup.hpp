@@ -260,7 +260,7 @@ public:
 	void		back_to_initial_value(const std::string& opt_key) override;
 	void		back_to_sys_value(const std::string& opt_key) override;
 	void		back_to_config_value(const DynamicPrintConfig& config, const std::string& opt_key);
-    void		on_kill_focus(const std::string& opt_key) override;// { reload_config(); }
+    void		on_kill_focus(const std::string& opt_key) override;
 	void		reload_config();
     // return value shows visibility : false => all options are hidden
     void        Hide();

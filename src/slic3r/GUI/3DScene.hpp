@@ -283,6 +283,8 @@ public:
         int             volume_id;
         // Instance ID, which is equal to the index of the respective ModelInstance in ModelObject.instances array.
         int             instance_id;
+		bool operator==(const CompositeID &rhs) const { return object_id == rhs.object_id && volume_id == rhs.volume_id && instance_id == rhs.instance_id; }
+		bool operator!=(const CompositeID &rhs) const { return ! (*this == rhs); }
     };
     CompositeID         composite_id;
     // Fingerprint of the source geometry. For ModelVolumes, it is the ModelVolume::ID and ModelInstanceID, 
@@ -403,6 +405,9 @@ public:
     bool                is_left_handed() const;
 
     const BoundingBoxf3& transformed_bounding_box() const;
+    // non-caching variant
+    BoundingBoxf3        transformed_convex_hull_bounding_box(const Transform3d &trafo) const;
+    // caching variant
     const BoundingBoxf3& transformed_convex_hull_bounding_box() const;
 
     bool                empty() const { return this->indexed_vertex_array.empty(); }

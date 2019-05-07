@@ -49,7 +49,7 @@ LambdaObjectDialog::LambdaObjectDialog(wxWindow* parent,
 		};
 
 		def.type = coFloat;
-		def.default_value = new ConfigOptionFloat{ 1.0 };
+		def.set_default_value(new ConfigOptionFloat{ 1.0 });
 		def.label = L("Length");
 		Option option(def, "l");
 		optgroup->append_single_option_line(option);
@@ -75,7 +75,7 @@ LambdaObjectDialog::LambdaObjectDialog(wxWindow* parent,
 		};
 
 		def.type = coInt;
-		def.default_value = new ConfigOptionInt{ 1 };
+		def.set_default_value(new ConfigOptionInt{ 1 });
 		def.label = L("Radius");
 		auto option = Option(def, "cyl_r");
 		optgroup->append_single_option_line(option);
@@ -94,7 +94,7 @@ LambdaObjectDialog::LambdaObjectDialog(wxWindow* parent,
 		};
 
 		def.type = coFloat;
-		def.default_value = new ConfigOptionFloat{ 1.0 };
+		def.set_default_value(new ConfigOptionFloat{ 1.0 });
 		def.label = L("Rho");
 		auto option = Option(def, "sph_rho");
 		optgroup->append_single_option_line(option);
@@ -112,7 +112,7 @@ LambdaObjectDialog::LambdaObjectDialog(wxWindow* parent,
 		};
 
 		def.type = coFloat;
-		def.default_value = new ConfigOptionFloat{ 1.0 };
+		def.set_default_value(new ConfigOptionFloat{ 1.0 });
 		def.label = L("Height");
 		auto option = Option(def, "slab_h");
 		optgroup->append_single_option_line(option);

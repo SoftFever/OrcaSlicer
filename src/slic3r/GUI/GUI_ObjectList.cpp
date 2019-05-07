@@ -120,7 +120,7 @@ ObjectList::ObjectList(wxWindow* parent) :
 #endif //__WXMSW__        
     });
 
-    Bind(wxEVT_CHAR, [this](wxKeyEvent& event) { key_event(event); }); // doesn't work on OSX
+//    Bind(wxEVT_CHAR, [this](wxKeyEvent& event) { key_event(event); }); // doesn't work on OSX
 
 #ifdef __WXMSW__
     GetMainWindow()->Bind(wxEVT_MOTION, [this](wxMouseEvent& event) {
@@ -142,8 +142,26 @@ ObjectList::ObjectList(wxWindow* parent) :
     Bind(wxCUSTOMEVT_LAST_VOLUME_IS_DELETED, [this](wxCommandEvent& e)   { last_volume_is_deleted(e.GetInt()); });
 
 #ifdef __WXOSX__
-    Bind(wxEVT_KEY_DOWN, &ObjectList::OnChar, this);
+//    Bind(wxEVT_KEY_DOWN, &ObjectList::OnChar, this);
 #endif //__WXOSX__
+
+    {
+        // Accelerators
+        wxAcceleratorEntry entries[6];
+        entries[0].Set(wxACCEL_CTRL, (int) 'C',    wxID_COPY);
+        entries[1].Set(wxACCEL_CTRL, (int) 'X',    wxID_CUT);
+        entries[2].Set(wxACCEL_CTRL, (int) 'V',    wxID_PASTE);
+        entries[3].Set(wxACCEL_CTRL, (int) 'A',    wxID_SELECTALL);
+        entries[4].Set(wxACCEL_NORMAL, WXK_DELETE, wxID_DELETE);
+        entries[5].Set(wxACCEL_NORMAL, WXK_BACK,   wxID_DELETE);
+        wxAcceleratorTable accel(6, entries);
+        SetAcceleratorTable(accel);
+
+        this->Bind(wxEVT_MENU, [this](wxCommandEvent &evt) { wxPostEvent((wxEvtHandler*)wxGetApp().plater()->canvas3D()->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_COPY)); }, wxID_COPY);
+        this->Bind(wxEVT_MENU, [this](wxCommandEvent &evt) { wxPostEvent((wxEvtHandler*)wxGetApp().plater()->canvas3D()->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_PASTE)); }, wxID_PASTE);
+        this->Bind(wxEVT_MENU, [this](wxCommandEvent &evt) { this->select_item_all_children(); }, wxID_SELECTALL);
+        this->Bind(wxEVT_MENU, [this](wxCommandEvent &evt) { this->remove(); }, wxID_DELETE);
+    }
 
     Bind(wxEVT_SIZE, ([this](wxSizeEvent &e) { this->EnsureVisible(this->GetCurrentItem()); e.Skip(); }));
 }
@@ -1466,19 +1484,12 @@ Geometry::Transformation volume_to_bed_transformation(const Geometry::Transforma
 {
     Geometry::Transformation out;
 
-	// Is the angle close to a multiple of 90 degrees?
-	auto ninety_degrees = [](double a) { 
-		a = fmod(std::abs(a), 0.5 * PI);
-		if (a > 0.25 * PI)
-			a = 0.5 * PI - a;
-		return a < 0.001;
-	};
     if (instance_transformation.is_scaling_uniform()) {
         // No need to run the non-linear least squares fitting for uniform scaling.
         // Just set the inverse.
 		out.set_from_transform(instance_transformation.get_matrix(true).inverse());
     }
-	else if (ninety_degrees(instance_transformation.get_rotation().x()) && ninety_degrees(instance_transformation.get_rotation().y()) && ninety_degrees(instance_transformation.get_rotation().z()))
+	else if (Geometry::is_rotation_ninety_degrees(instance_transformation.get_rotation()))
 	{
 		// Anisotropic scaling, rotation by multiples of ninety degrees.
 		Eigen::Matrix3d instance_rotation_trafo =

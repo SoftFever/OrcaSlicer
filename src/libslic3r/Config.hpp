@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 #include "libslic3r.h"
+#include "clonable_ptr.hpp"
 #include "Point.hpp"
 
 #include <boost/format.hpp>
@@ -1010,7 +1011,10 @@ public:
     // What type? bool, int, string etc.
     ConfigOptionType                    type            = coNone;
     // Default value of this option. The default value object is owned by ConfigDef, it is released in its destructor.
-    const ConfigOption                 *default_value   = nullptr;
+    Slic3r::clonable_ptr<const ConfigOption> default_value;
+    void set_default_value(const ConfigOption* ptr) { this->default_value = Slic3r::clonable_ptr<const ConfigOption>(ptr); }
+    template<typename T>
+    const T* get_default_value() const { return static_cast<const T*>(this->default_value.get()); }
 
     // Usually empty. 
     // Special values - "i_enum_open", "f_enum_open" to provide combo box for int or float selection,
@@ -1099,12 +1103,6 @@ typedef std::map<t_config_option_key, ConfigOptionDef> t_optiondef_map;
 class ConfigDef
 {
 public:
-	~ConfigDef() { 
-		for (std::pair<const t_config_option_key, ConfigOptionDef> &def : this->options) 
-			delete def.second.default_value;
-        this->options.clear();
-	}
-
     t_optiondef_map         options;
 
     bool                    has(const t_config_option_key &opt_key) const { return this->options.count(opt_key) > 0; }

@@ -223,8 +223,8 @@ print_config_def()
                 (void)hv_stores( hv, "labels", newRV_noinc((SV*)av) );
             }
             
-            if (optdef->default_value != NULL)
-                (void)hv_stores( hv, "default", ConfigOption_to_SV(*optdef->default_value, *optdef) );
+            if (optdef->default_value)
+                (void)hv_stores( hv, "default", ConfigOption_to_SV(*optdef->default_value.get(), *optdef) );
             (void)hv_store( options_hv, opt_key.c_str(), opt_key.length(), newRV_noinc((SV*)hv), 0 );
         }
         

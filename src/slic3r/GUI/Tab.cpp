@@ -816,6 +816,19 @@ void Tab::load_key_value(const std::string& opt_key, const boost::any& value, bo
 	update();
 }
 
+static wxString support_combo_value_for_config(const DynamicPrintConfig &config, bool is_fff)
+{
+    const std::string support         = is_fff ? "support_material"                 : "supports_enable";
+    const std::string buildplate_only = is_fff ? "support_material_buildplate_only" : "support_buildplate_only";
+	return
+		! config.opt_bool(support) ?
+        	_("None") :
+			(is_fff && !config.opt_bool("support_material_auto")) ?
+				_("For support enforcers only") :
+                (config.opt_bool(buildplate_only) ? _("Support on build plate only") :
+				                                    _("Everywhere"));
+}
+
 void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 {
 	if (wxGetApp().plater() == nullptr) {
@@ -823,23 +836,17 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 	}
 
     const bool is_fff = supports_printer_technology(ptFFF);
-    ConfigOptionsGroup* og_freq_chng_params = wxGetApp().sidebar().og_freq_chng_params(is_fff);
+	ConfigOptionsGroup* og_freq_chng_params = wxGetApp().sidebar().og_freq_chng_params(is_fff);
     if (opt_key == "fill_density" || opt_key == "pad_enable")
 	{
         boost::any val = og_freq_chng_params->get_config_value(*m_config, opt_key);
         og_freq_chng_params->set_value(opt_key, val);
 	}
 
-	if ( is_fff && (opt_key == "support_material" || opt_key == "support_material_buildplate_only") || 
-        !is_fff && (opt_key == "supports_enable"  || opt_key == "support_buildplate_only"))
-	{
-        const std::string support         = is_fff ? "support_material"                 : "supports_enable";
-        const std::string buildplate_only = is_fff ? "support_material_buildplate_only" : "support_buildplate_only";
-        wxString new_selection = !m_config->opt_bool(support)         ? _("None") :
-                                  m_config->opt_bool(buildplate_only) ? _("Support on build plate only") :
-									                                    _("Everywhere");
-        og_freq_chng_params->set_value("support", new_selection);
-	}
+	if (is_fff ?
+			(opt_key == "support_material" || opt_key == "support_material_auto" || opt_key == "support_material_buildplate_only") :
+        	(opt_key == "supports_enable"  || opt_key == "support_buildplate_only"))
+		og_freq_chng_params->set_value("support", support_combo_value_for_config(*m_config, is_fff));
 
 	if (opt_key == "brim_width")
 	{
@@ -965,18 +972,11 @@ void Tab::update_preset_description_line()
 
 void Tab::update_frequently_changed_parameters()
 {
-    auto og_freq_chng_params = wxGetApp().sidebar().og_freq_chng_params(supports_printer_technology(ptFFF));
+	const bool is_fff = supports_printer_technology(ptFFF);
+	auto og_freq_chng_params = wxGetApp().sidebar().og_freq_chng_params(is_fff);
     if (!og_freq_chng_params) return;
 
-    const bool is_fff = supports_printer_technology(ptFFF);
-
-    const std::string support           = is_fff ? "support_material"                   : "supports_enable";
-    const std::string buildplate_only   = is_fff ? "support_material_buildplate_only"   : "support_buildplate_only";
-
-    wxString new_selection = !m_config->opt_bool(support)         ? _("None") :
-                              m_config->opt_bool(buildplate_only) ? _("Support on build plate only") :
-                                                                    _("Everywhere");
-    og_freq_chng_params->set_value("support", new_selection);
+	og_freq_chng_params->set_value("support", support_combo_value_for_config(*m_config, is_fff));
 
     const std::string updated_value_key = is_fff ? "fill_density" : "pad_enable";
 
@@ -1841,7 +1841,7 @@ void TabPrinter::build_fff()
 		optgroup = page->new_optgroup(_(L("Capabilities")));
 		ConfigOptionDef def;
 			def.type =  coInt,
-			def.default_value = new ConfigOptionInt(1); 
+			def.set_default_value(new ConfigOptionInt(1)); 
 			def.label = L("Extruders");
 			def.tooltip = L("Number of extruders of the printer.");
 			def.min = 1;
@@ -2149,13 +2149,13 @@ PageShp TabPrinter::build_kinematics_page()
 		def.gui_type = "legend";
         def.mode = comAdvanced;
 		def.tooltip = L("Values in this column are for Full Power mode");
-		def.default_value = new ConfigOptionString{ L("Full Power") };
+		def.set_default_value(new ConfigOptionString{ L("Full Power") });
 
 		auto option = Option(def, "full_power_legend");
 		line.append_option(option);
 
 		def.tooltip = L("Values in this column are for Silent mode");
-		def.default_value = new ConfigOptionString{ L("Silent") };
+		def.set_default_value(new ConfigOptionString{ L("Silent") });
 		option = Option(def, "silent_legend");
 		line.append_option(option);
 

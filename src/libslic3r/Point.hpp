@@ -40,6 +40,11 @@ typedef std::vector<Vec3crd>                            Points3;
 typedef std::vector<Vec2d>                              Pointfs;
 typedef std::vector<Vec3d>                              Pointf3s;
 
+typedef Eigen::Matrix<float,  2, 2, Eigen::DontAlign> Matrix2f;
+typedef Eigen::Matrix<double, 2, 2, Eigen::DontAlign> Matrix2d;
+typedef Eigen::Matrix<float,  3, 3, Eigen::DontAlign> Matrix3f;
+typedef Eigen::Matrix<double, 3, 3, Eigen::DontAlign> Matrix3d;
+
 typedef Eigen::Transform<float,  2, Eigen::Affine, Eigen::DontAlign> Transform2f;
 typedef Eigen::Transform<double, 2, Eigen::Affine, Eigen::DontAlign> Transform2d;
 typedef Eigen::Transform<float,  3, Eigen::Affine, Eigen::DontAlign> Transform3f;

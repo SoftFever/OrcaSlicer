@@ -590,7 +590,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt, GLCanvas3D& canvas)
                     // Rotate the object so the normal points downward:
                     selection.flattening_rotate(get_flattening_normal());
                     canvas.do_flatten();
-                    wxGetApp().obj_manipul()->update_settings_value(selection);
+                    wxGetApp().obj_manipul()->set_dirty();
                 }
 
                 canvas.set_as_dirty();
@@ -623,14 +623,17 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt, GLCanvas3D& canvas)
             {
                 // Apply new temporary offset
                 selection.translate(get_displacement());
-                wxGetApp().obj_manipul()->update_settings_value(selection);
+                wxGetApp().obj_manipul()->set_dirty();
                 break;
             }
             case Scale:
             {
                 // Apply new temporary scale factors
-                selection.scale(get_scale(), evt.AltDown());
-                wxGetApp().obj_manipul()->update_settings_value(selection);
+				TransformationType transformation_type(TransformationType::Local_Absolute_Joint);
+				if (evt.AltDown())
+					transformation_type.set_independent();
+				selection.scale(get_scale(), transformation_type);
+                wxGetApp().obj_manipul()->set_dirty();
                 break;
             }
             case Rotate:
@@ -640,7 +643,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt, GLCanvas3D& canvas)
                 if (evt.AltDown())
                     transformation_type.set_independent();
                 selection.rotate(get_rotation(), transformation_type);
-                wxGetApp().obj_manipul()->update_settings_value(selection);
+                wxGetApp().obj_manipul()->set_dirty();
                 break;
             }
             default:
@@ -677,7 +680,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt, GLCanvas3D& canvas)
             stop_dragging();
             update_data(canvas);
 
-            wxGetApp().obj_manipul()->update_settings_value(selection);
+            wxGetApp().obj_manipul()->set_dirty();
             // Let the platter know that the dragging finished, so a delayed refresh
             // of the scene with the background processing data should be performed.
             canvas.post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));

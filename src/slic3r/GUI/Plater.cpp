@@ -394,16 +394,27 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
                 }
                 new_conf.set_key_value("brim_width", new ConfigOptionFloat(new_val));
             }
-            else { //(opt_key == "support")
+            else {
+                assert(opt_key == "support");
                 const wxString& selection = boost::any_cast<wxString>(value);
+                PrinterTechnology printer_technology = wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology();
 
                 auto support_material = selection == _("None") ? false : true;
                 new_conf.set_key_value("support_material", new ConfigOptionBool(support_material));
 
-                if (selection == _("Everywhere"))
+                if (selection == _("Everywhere")) {
                     new_conf.set_key_value("support_material_buildplate_only", new ConfigOptionBool(false));
-                else if (selection == _("Support on build plate only"))
+                    if (printer_technology == ptFFF)
+                        new_conf.set_key_value("support_material_auto", new ConfigOptionBool(true));
+                } else if (selection == _("Support on build plate only")) {
                     new_conf.set_key_value("support_material_buildplate_only", new ConfigOptionBool(true));
+                    if (printer_technology == ptFFF)
+                        new_conf.set_key_value("support_material_auto", new ConfigOptionBool(true));
+                } else if (selection == _("For support enforcers only")) {
+                    assert(printer_technology == ptFFF);
+                    new_conf.set_key_value("support_material_buildplate_only", new ConfigOptionBool(false));
+                    new_conf.set_key_value("support_material_auto", new ConfigOptionBool(false));
+                }
             }
             tab_print->load_config(new_conf);
         }
@@ -421,12 +432,9 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
     support_def.tooltip = L("Select what kind of support do you need");
     support_def.enum_labels.push_back(L("None"));
     support_def.enum_labels.push_back(L("Support on build plate only"));
+    support_def.enum_labels.push_back(L("For support enforcers only"));
     support_def.enum_labels.push_back(L("Everywhere"));
-    std::string selection = !config->opt_bool("support_material") ?
-                            "None" : config->opt_bool("support_material_buildplate_only") ?
-                            "Support on build plate only" :
-                            "Everywhere";
-    support_def.default_value = new ConfigOptionStrings{ selection };
+    support_def.set_default_value(new ConfigOptionStrings{ "None" });
     Option option = Option(support_def, "support");
     option.opt.full_width = true;
     line.append_option(option);
@@ -447,7 +455,7 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
     def.type = coBool;
     def.tooltip = L("This flag enables the brim that will be printed around each object on the first layer.");
     def.gui_type = "";
-    def.default_value = new ConfigOptionBool{ m_brim_width > 0.0 ? true : false };
+    def.set_default_value(new ConfigOptionBool{ m_brim_width > 0.0 ? true : false });
     option = Option(def, "brim");
     option.opt.sidetext = "     ";
     line.append_option(option);
@@ -493,8 +501,9 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
             tab->set_value(opt_key, value);
             tab->update();
         }
-        else //(opt_key == "support")
+        else
         {
+            assert(opt_key == "support");
             DynamicPrintConfig new_conf = *config_sla;
             const wxString& selection = boost::any_cast<wxString>(value);
 
@@ -514,16 +523,14 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
 
     line = Line{ "", "" };
 
-    selection = !config_sla->opt_bool("supports_enable") ?
-                "None" : config_sla->opt_bool("support_buildplate_only") ?
-                "Support on build plate only" :
-                "Everywhere";
-    support_def.default_value = new ConfigOptionStrings{ selection };
-    option = Option(support_def, "support");
+    ConfigOptionDef support_def_sla = support_def;
+    support_def_sla.set_default_value(new ConfigOptionStrings{ "None" });
+    assert(support_def_sla.enum_labels[2] == L("For support enforcers only"));
+    support_def_sla.enum_labels.erase(support_def_sla.enum_labels.begin() + 2);
+    option = Option(support_def_sla, "support");
     option.opt.full_width = true;
     line.append_option(option);
     m_og_sla->append_line(line);
-
 
     line = Line{ "", "" };
 
@@ -1099,9 +1106,9 @@ void Sidebar::enable_buttons(bool enable)
     p->btn_send_gcode->Enable(enable);
 }
 
-void Sidebar::show_reslice(bool show)   const { p->btn_reslice->Show(show); }
-void Sidebar::show_export(bool show)    const { p->btn_export_gcode->Show(show); }
-void Sidebar::show_send(bool show)      const { p->btn_send_gcode->Show(show); }
+bool Sidebar::show_reslice(bool show)   const { return p->btn_reslice->Show(show); }
+bool Sidebar::show_export(bool show)    const { return p->btn_export_gcode->Show(show); }
+bool Sidebar::show_send(bool show)      const { return p->btn_send_gcode->Show(show); }
 
 bool Sidebar::is_multifilament()
 {
@@ -3194,17 +3201,18 @@ void Plater::priv::show_action_buttons(const bool is_ready_to_slice) const
     // when a background processing is ON, export_btn and/or send_btn are showing 
     if (wxGetApp().app_config->get("background_processing") == "1")
     {
-        sidebar->show_reslice(false);
-        sidebar->show_export(true);
-        sidebar->show_send(send_gcode_shown);
-    }
+        if (sidebar->show_reslice(false) |
+			sidebar->show_export(true) |
+			sidebar->show_send(send_gcode_shown))
+			sidebar->Layout();
+	}
     else
     {
-        sidebar->show_reslice(is_ready_to_slice);
-        sidebar->show_export(!is_ready_to_slice);
-        sidebar->show_send(send_gcode_shown && !is_ready_to_slice);
-    }
-    sidebar->Layout();
+		if (sidebar->show_reslice(is_ready_to_slice) |
+			sidebar->show_export(!is_ready_to_slice) |
+			sidebar->show_send(send_gcode_shown && !is_ready_to_slice))
+			sidebar->Layout();
+	}
 }
 
 void Sidebar::set_btn_label(const ActionButtonType btn_type, const wxString& label) const

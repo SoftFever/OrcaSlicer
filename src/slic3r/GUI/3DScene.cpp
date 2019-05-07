@@ -365,17 +365,16 @@ const BoundingBoxf3& GLVolume::transformed_bounding_box() const
 
 const BoundingBoxf3& GLVolume::transformed_convex_hull_bounding_box() const
 {
-    if (m_transformed_convex_hull_bounding_box_dirty)
-    {
-        if ((m_convex_hull != nullptr) && (m_convex_hull->stl.stats.number_of_facets > 0))
-            m_transformed_convex_hull_bounding_box = m_convex_hull->transformed_bounding_box(world_matrix());
-        else
-            m_transformed_convex_hull_bounding_box = bounding_box.transformed(world_matrix());
-
-        m_transformed_convex_hull_bounding_box_dirty = false;
-    }
-
+	if (m_transformed_convex_hull_bounding_box_dirty)
+		m_transformed_convex_hull_bounding_box = this->transformed_convex_hull_bounding_box(world_matrix());
     return m_transformed_convex_hull_bounding_box;
+}
+
+BoundingBoxf3 GLVolume::transformed_convex_hull_bounding_box(const Transform3d &trafo) const
+{
+	return (m_convex_hull != nullptr && m_convex_hull->stl.stats.number_of_facets > 0) ? 
+		m_convex_hull->transformed_bounding_box(trafo) :
+		bounding_box.transformed(trafo);
 }
 
 void GLVolume::set_range(double min_z, double max_z)
@@ -719,6 +718,8 @@ int GLVolumeCollection::load_wipe_tower_preview(
     v.bounding_box = v.indexed_vertex_array.bounding_box();
     v.indexed_vertex_array.finalize_geometry(use_VBOs);
 	v.composite_id = GLVolume::CompositeID(obj_idx, 0, 0);
+    v.geometry_id.first = 0;
+    v.geometry_id.second = wipe_tower_instance_id().id;
     v.is_wipe_tower = true;
     v.shader_outside_printer_detection_enabled = ! size_unknown;
     return int(this->volumes.size() - 1);
