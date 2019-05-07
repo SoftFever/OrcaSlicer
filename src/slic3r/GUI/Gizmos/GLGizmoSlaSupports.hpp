@@ -3,6 +3,7 @@
 
 #include "GLGizmoBase.hpp"
 #include "GLGizmos.hpp"
+#include "slic3r/GUI/GLSelectionRectangle.hpp"
 
 // There is an L function in igl that would be overridden by our localization macro - let's undefine it...
 #undef L
@@ -67,13 +68,16 @@ public:
     void delete_selected_points(bool force = false);
     ClippingPlane get_sla_clipping_plane() const;
 
+    bool is_in_editing_mode() const { return m_editing_mode; }
+    bool is_selection_rectangle_dragging() const { return m_selection_rectangle.is_dragging(); }
+
 private:
     bool on_init();
     void on_update(const UpdateData& data, const Selection& selection);
     virtual void on_render(const Selection& selection) const;
     virtual void on_render_for_picking(const Selection& selection) const;
 
-    void render_selection_rectangle() const;
+    //void render_selection_rectangle() const;
     void render_points(const Selection& selection, bool picking = false) const;
     void render_clipping_plane(const Selection& selection) const;
     bool is_mesh_update_necessary() const;
@@ -91,20 +95,12 @@ private:
     mutable Vec3d m_old_clipping_plane_normal;
     mutable Vec3d m_clipping_plane_normal = Vec3d::Zero();
 
-    enum SelectionRectangleStatus {
-        srOff = 0,
-        srSelect = 1,
-        srDeselect = 2
-    }m_selection_rectangle_status = srOff;
+    GLSelectionRectangle m_selection_rectangle;
 
-    Vec2d m_selection_rectangle_start_corner;
-    Vec2d m_selection_rectangle_end_corner;
     bool m_wait_for_up_event = false;
     bool m_unsaved_changes = false; // Are there unsaved changes in manual mode?
     bool m_selection_empty = true;
     EState m_old_state = Off; // to be able to see that the gizmo has just been closed (see on_set_state)
-    int m_canvas_width;
-    int m_canvas_height;
 
     mutable std::unique_ptr<TriangleMeshSlicer> m_tms;
     mutable std::unique_ptr<TriangleMeshSlicer> m_supports_tms;

@@ -176,6 +176,8 @@ private:
         {
             return level<T>(r1) < level<T>(r2);
         });
+        
+        if(it == cont.end()) return it;
 
         T diff = std::abs(level<T>(*it) - lvl);
 

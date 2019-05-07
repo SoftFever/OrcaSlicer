@@ -225,13 +225,21 @@ private:
 class GLVolume {
 public:
     static const float SELECTED_COLOR[4];
-    static const float HOVER_COLOR[4];
+    static const float HOVER_SELECT_COLOR[4];
+    static const float HOVER_DESELECT_COLOR[4];
     static const float OUTSIDE_COLOR[4];
     static const float SELECTED_OUTSIDE_COLOR[4];
     static const float DISABLED_COLOR[4];
     static const float MODEL_COLOR[4][4];
     static const float SLA_SUPPORT_COLOR[4];
     static const float SLA_PAD_COLOR[4];
+
+    enum EHoverState : unsigned char
+    {
+        HS_None,
+        HS_Select,
+        HS_Deselect
+    };
 
     GLVolume(float r = 1.f, float g = 1.f, float b = 1.f, float a = 1.f);
     GLVolume(const float *rgba) : GLVolume(rgba[0], rgba[1], rgba[2], rgba[3]) {}
@@ -296,8 +304,8 @@ public:
     bool                shader_outside_printer_detection_enabled;
     // Wheter or not this volume is outside print volume.
     bool                is_outside;
-    // Boolean: Is mouse over this object?
-    bool                hover;
+    // Is mouse or rectangle selection over this object to select/deselect it ?
+    EHoverState         hover;
     // Wheter or not this volume has been generated from a modifier
     bool                is_modifier;
     // Wheter or not this volume has been generated from the wipe tower

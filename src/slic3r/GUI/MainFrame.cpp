@@ -14,6 +14,7 @@
 
 #include "libslic3r/Print.hpp"
 #include "libslic3r/Polygon.hpp"
+#include "libslic3r/SLAPrint.hpp"
 
 #include "Tab.hpp"
 #include "PresetBundle.hpp"
@@ -35,6 +36,12 @@ MainFrame::MainFrame() :
 DPIFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, "mainframe"),
         m_printhost_queue_dlg(new PrintHostQueueDialog(this))
 {
+    // Fonts were created by the DPIFrame constructor for the monitor, on which the window opened.
+    wxGetApp().update_fonts(this);
+    this->SetFont(this->normal_font());
+    // initialize default width_unit according to the width of the one symbol ("m") of the currently active font of this window.
+    wxGetApp().set_em_unit(std::max<size_t>(10, GetTextExtent("m").x - 1));
+
     // Load the icon either from the exe, or from the ico file.
 #if _WIN32
     {
@@ -52,11 +59,6 @@ DPIFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAU
     m_statusbar->set_status_text(_(L("Version")) + " " +
 		SLIC3R_VERSION +
 		_(L(" - Remember to check for updates at http://github.com/prusa3d/slic3r/releases")));
-
-
-    // initialize default width_unit according to the width of the one symbol ("x") of the current system font
-    const wxSize size = GetTextExtent("m");
-    wxGetApp().set_em_unit(std::max<size_t>(10, size.x - 1));
 
     /* Load default preset bitmaps before a tabpanel initialization,
      * but after filling of an em_unit value 
@@ -140,6 +142,7 @@ void MainFrame::init_tabpanel()
     // wxNB_NOPAGETHEME: Disable Windows Vista theme for the Notebook background. The theme performance is terrible on Windows 10
     // with multiple high resolution displays connected.
     m_tabpanel = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
+    m_tabpanel->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 
     m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGED, [this](wxEvent&) {
         auto panel = m_tabpanel->GetCurrentPage();
@@ -205,12 +208,30 @@ void MainFrame::add_created_tab(Tab* panel)
 
 bool MainFrame::can_save() const
 {
-    return (m_plater != nullptr) ? !m_plater->model().objects.empty() : false;
+    return (m_plater != nullptr) && !m_plater->model().objects.empty();
 }
 
 bool MainFrame::can_export_model() const
 {
-    return (m_plater != nullptr) ? !m_plater->model().objects.empty() : false;
+    return (m_plater != nullptr) && !m_plater->model().objects.empty();
+}
+
+bool MainFrame::can_export_supports() const
+{
+    if ((m_plater == nullptr) || (m_plater->printer_technology() != ptSLA) || m_plater->model().objects.empty())
+        return false;
+
+    bool can_export = false;
+    const PrintObjects& objects = m_plater->sla_print().objects();
+    for (const SLAPrintObject* object : objects)
+    {
+        if (object->has_mesh(slaposBasePool) || object->has_mesh(slaposSupportTree))
+        {
+            can_export = true;
+            break;
+        }
+    }
+    return can_export;
 }
 
 bool MainFrame::can_export_gcode() const
@@ -243,26 +264,25 @@ bool MainFrame::can_change_view() const
 
 bool MainFrame::can_select() const
 {
-    return (m_plater != nullptr) ? !m_plater->model().objects.empty() : false;
+    return (m_plater != nullptr) && !m_plater->model().objects.empty();
 }
 
 bool MainFrame::can_delete() const
 {
-    return (m_plater != nullptr) ? !m_plater->is_selection_empty() : false;
+    return (m_plater != nullptr) && !m_plater->is_selection_empty();
 }
 
 bool MainFrame::can_delete_all() const
 {
-    return (m_plater != nullptr) ? !m_plater->model().objects.empty() : false;
+    return (m_plater != nullptr) && !m_plater->model().objects.empty();
 }
 
 void MainFrame::on_dpi_changed(const wxRect &suggested_rect)
 {
     wxGetApp().update_fonts();
-
-    // _strange_ workaround for correct em_unit calculation
-    const int new_em_unit = scale_factor() * 10;
-    wxGetApp().set_em_unit(std::max<size_t>(10, new_em_unit));
+    this->SetFont(this->normal_font());
+    // initialize default width_unit according to the width of the one symbol ("m") of the currently active font of this window.
+    wxGetApp().set_em_unit(std::max<size_t>(10, GetTextExtent("m").x - 1));
 
     /* Load default preset bitmaps before a tabpanel initialization,
      * but after filling of an em_unit value
@@ -353,6 +373,8 @@ void MainFrame::init_menubar()
         export_menu->AppendSeparator();
         wxMenuItem* item_export_stl = append_menu_item(export_menu, wxID_ANY, _(L("Export plate as &STL")) + dots, _(L("Export current plate as STL")),
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_stl(); }, menu_icon("export_plater"));
+        wxMenuItem* item_export_stl_sla = append_menu_item(export_menu, wxID_ANY, _(L("Export plate as STL including supports")) + dots, _(L("Export current plate as STL including supports")),
+            [this](wxCommandEvent&) { if (m_plater) m_plater->export_stl(true); }, menu_icon("export_plater"));
         wxMenuItem* item_export_amf = append_menu_item(export_menu, wxID_ANY, _(L("Export plate as &AMF")) + dots, _(L("Export current plate as AMF")),
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_amf(); }, menu_icon("export_plater"));
         export_menu->AppendSeparator();
@@ -422,10 +444,11 @@ void MainFrame::init_menubar()
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable((m_plater != nullptr) && can_save()); }, item_save->GetId());
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable((m_plater != nullptr) && can_save()); }, item_save_as->GetId());
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(m_plater != nullptr); }, item_import_model->GetId());
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable((m_plater != nullptr) && can_export_gcode()); }, item_export_gcode->GetId());
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable((m_plater != nullptr) && can_export_model()); }, item_export_stl->GetId());
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable((m_plater != nullptr) && can_export_model()); }, item_export_amf->GetId());
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable((m_plater != nullptr) && can_slice()); }, m_menu_item_reslice_now->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_export_gcode()); }, item_export_gcode->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_export_model()); }, item_export_stl->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_export_supports()); }, item_export_stl_sla->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_export_model()); }, item_export_amf->GetId());
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_slice()); }, m_menu_item_reslice_now->GetId());
     }
 
 #ifdef _MSC_VER
@@ -451,12 +474,12 @@ void MainFrame::init_menubar()
         wxString hotkey_delete = "Del";
     #endif
         wxMenuItem* item_select_all = append_menu_item(editMenu, wxID_ANY, _(L("&Select all")) + sep + GUI::shortkey_ctrl_prefix() + sep_space + "A", _(L("Selects all objects")),
-            [this](wxCommandEvent&) { m_plater->select_all(); }, "");
+            [this](wxCommandEvent&) { if (m_plater != nullptr) m_plater->select_all(); }, "");
         editMenu->AppendSeparator();
         wxMenuItem* item_delete_sel = append_menu_item(editMenu, wxID_ANY, _(L("&Delete selected")) + sep + hotkey_delete, _(L("Deletes the current selection")),
             [this](wxCommandEvent&) { m_plater->remove_selected(); }, menu_icon("remove_menu"));
         wxMenuItem* item_delete_all = append_menu_item(editMenu, wxID_ANY, _(L("Delete &all")) + sep + GUI::shortkey_ctrl_prefix() + sep_space + hotkey_delete, _(L("Deletes all objects")),
-            [this](wxCommandEvent&) { m_plater->reset(); }, menu_icon("delete_all_menu"));
+            [this](wxCommandEvent&) { m_plater->reset_with_confirm(); }, menu_icon("delete_all_menu"));
 
         editMenu->AppendSeparator();
 
@@ -528,7 +551,9 @@ void MainFrame::init_menubar()
         // The camera control accelerators are captured by GLCanvas3D::on_char().
 		wxMenuItem* item_iso = append_menu_item(viewMenu, wxID_ANY, _(L("Iso")) + sep + "&0", _(L("Iso View")), [this](wxCommandEvent&) { select_view("iso"); });
         viewMenu->AppendSeparator();
+        //TRN To be shown in the main menu View->Top 
 		wxMenuItem* item_top = append_menu_item(viewMenu, wxID_ANY, _(L("Top")) + sep + "&1", _(L("Top View")), [this](wxCommandEvent&) { select_view("top"); });
+		//TRN To be shown in the main menu View->Bottom 
 		wxMenuItem* item_bottom = append_menu_item(viewMenu, wxID_ANY, _(L("Bottom")) + sep + "&2", _(L("Bottom View")), [this](wxCommandEvent&) { select_view("bottom"); });
 		wxMenuItem* item_front = append_menu_item(viewMenu, wxID_ANY, _(L("Front")) + sep + "&3", _(L("Front View")), [this](wxCommandEvent&) { select_view("front"); });
 		wxMenuItem* item_rear = append_menu_item(viewMenu, wxID_ANY, _(L("Rear")) + sep + "&4", _(L("Rear View")), [this](wxCommandEvent&) { select_view("rear"); });

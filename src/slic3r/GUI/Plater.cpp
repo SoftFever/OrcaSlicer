@@ -724,7 +724,7 @@ Sidebar::Sidebar(Plater *parent)
 
     auto init_btn = [this](wxButton **btn, wxString label) {
         *btn = new wxButton(this, wxID_ANY, label, wxDefaultPosition, 
-                            wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
+                            wxDefaultSize, wxBU_EXACTFIT);
         (*btn)->SetFont(wxGetApp().bold_font());
     };
 
@@ -896,8 +896,7 @@ void Sidebar::msw_rescale()
     p->frequently_changed_parameters->get_og(false)->msw_rescale();
 
     p->object_list->msw_rescale();
-
-    p->object_manipulation->get_og()->msw_rescale();
+    p->object_manipulation->msw_rescale();
     p->object_settings->msw_rescale();
 
     p->object_info->msw_rescale();
@@ -970,7 +969,7 @@ void Sidebar::show_info_sizer()
     p->object_info->info_size->SetLabel(wxString::Format("%.2f x %.2f x %.2f",size(0), size(1), size(2)));
     p->object_info->info_materials->SetLabel(wxString::Format("%d", static_cast<int>(model_object->materials_count())));
 
-    auto& stats = model_object->volumes.front()->mesh.stl.stats;
+    const auto& stats = model_object->get_object_stl_stats();//model_object->volumes.front()->mesh.stl.stats;
     p->object_info->info_volume->SetLabel(wxString::Format("%.2f", stats.volume));
     p->object_info->info_facets->SetLabel(wxString::Format(_(L("%d (%d shells)")), static_cast<int>(model_object->facets_count()), stats.number_of_parts));
 
@@ -990,7 +989,7 @@ void Sidebar::show_info_sizer()
         p->object_info->manifold_warning_icon->SetToolTip(tooltip);
     } 
     else {
-        p->object_info->info_manifold->SetLabel(L("Yes"));
+        p->object_info->info_manifold->SetLabel(_(L("Yes")));
         p->object_info->showing_manifold_warning_icon = false;
         p->object_info->info_manifold->SetToolTip("");
         p->object_info->manifold_warning_icon->SetToolTip("");
@@ -1328,6 +1327,7 @@ struct Plater::priv
     bool can_split_to_volumes() const;
     bool can_arrange() const;
     bool can_layers_editing() const;
+    bool can_fix_through_netfabb() const;
 
     void msw_rescale_object_menu();
 
@@ -1379,6 +1379,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     , view_toolbar(GLToolbar::Radio)
 #endif // ENABLE_SVG_ICONS
 {
+	this->q->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+
     arranging = false;
     rotoptimizing = false;
     background_process.set_fff_print(&fff_print);
@@ -1449,7 +1451,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     // 3DScene/Toolbar:
     view3D_canvas->Bind(EVT_GLTOOLBAR_ADD, &priv::on_action_add, this);
     view3D_canvas->Bind(EVT_GLTOOLBAR_DELETE, [q](SimpleEvent&) { q->remove_selected(); });
-    view3D_canvas->Bind(EVT_GLTOOLBAR_DELETE_ALL, [this](SimpleEvent&) { reset(); });
+    view3D_canvas->Bind(EVT_GLTOOLBAR_DELETE_ALL, [q](SimpleEvent&) { q->reset_with_confirm(); });
     view3D_canvas->Bind(EVT_GLTOOLBAR_ARRANGE, [this](SimpleEvent&) { arrange(); });
     view3D_canvas->Bind(EVT_GLTOOLBAR_COPY, [q](SimpleEvent&) { q->copy_selection_to_clipboard(); });
     view3D_canvas->Bind(EVT_GLTOOLBAR_PASTE, [q](SimpleEvent&) { q->paste_from_clipboard(); });
@@ -2405,7 +2407,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation)
         // Background data is valid.
         if ((return_state & UPDATE_BACKGROUND_PROCESS_RESTART) != 0 ||
             (return_state & UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE) != 0 )
-            this->statusbar()->set_status_text(L("Ready to slice"));
+            this->statusbar()->set_status_text(_(L("Ready to slice")));
 
         sidebar->set_btn_label(ActionButtonType::abExport, _(label_btn_export));
         sidebar->set_btn_label(ActionButtonType::abSendGCode, _(label_btn_send));
@@ -2443,7 +2445,7 @@ bool Plater::priv::restart_background_process(unsigned int state)
         // The print is valid and it can be started.
         if (this->background_process.start()) {
             this->statusbar()->set_cancel_callback([this]() {
-                this->statusbar()->set_status_text(L("Cancelling"));
+                this->statusbar()->set_status_text(_(L("Cancelling")));
                 this->background_process.stop();
             });
             return true;
@@ -2667,7 +2669,7 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
         }
 
         this->statusbar()->set_progress(evt.status.percent);
-        this->statusbar()->set_status_text(_(L(evt.status.text)) + wxString::FromUTF8("…"));
+        this->statusbar()->set_status_text(_(evt.status.text) + wxString::FromUTF8("…"));
     }
     if (evt.status.flags & (PrintBase::SlicingStatus::RELOAD_SCENE || PrintBase::SlicingStatus::RELOAD_SLA_SUPPORT_POINTS)) {
         switch (this->printer_technology) {
@@ -2726,7 +2728,7 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
         this->statusbar()->set_status_text(message);
     }
 	if (canceled)
-		this->statusbar()->set_status_text(L("Cancelled"));
+		this->statusbar()->set_status_text(_(L("Cancelled")));
 
     this->sidebar->show_sliced_info_sizer(success);
 
@@ -2933,12 +2935,12 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
             [this](wxCommandEvent&) { reload_from_disk(); });
 
         append_menu_item(menu, wxID_ANY, _(L("Export as STL")) + dots, _(L("Export the selected object as STL file")),
-            [this](wxCommandEvent&) { q->export_stl(true); });
+            [this](wxCommandEvent&) { q->export_stl(false, true); });
 
         menu->AppendSeparator();
     }
 
-    sidebar->obj_list()->append_menu_item_fix_through_netfabb(menu);
+    wxMenuItem* item_fix_through_netfabb = sidebar->obj_list()->append_menu_item_fix_through_netfabb(menu);
 
     wxMenu* mirror_menu = new wxMenu();
     if (mirror_menu == nullptr)
@@ -2958,6 +2960,8 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
     {
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_mirror()); }, item_mirror->GetId());
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_delete()); }, item_delete->GetId());
+        if (item_fix_through_netfabb)
+            q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_fix_through_netfabb()); }, item_fix_through_netfabb->GetId());
     }
 
     return true;
@@ -3127,6 +3131,15 @@ bool Plater::priv::can_delete_all() const
     return !model.objects.empty();
 }
 
+bool Plater::priv::can_fix_through_netfabb() const
+{
+    int obj_idx = get_selected_object_idx();
+    if (obj_idx < 0)
+        return false;
+
+    return model.objects[obj_idx]->get_mesh_errors_count() > 0;
+}
+
 bool Plater::priv::can_increase_instances() const
 {
     if (arranging || rotoptimizing) {
@@ -3290,6 +3303,11 @@ void Plater::select_all() { p->select_all(); }
 
 void Plater::remove(size_t obj_idx) { p->remove(obj_idx); }
 void Plater::reset() { p->reset(); }
+void Plater::reset_with_confirm()
+{
+    if (wxMessageDialog((wxWindow*)this, _(L("All objects will be removed, continue ?")), _(L("Delete all")), wxYES_NO | wxYES_DEFAULT | wxCENTRE).ShowModal() == wxID_YES)
+        reset();
+}
 
 void Plater::delete_object_from_model(size_t obj_idx) { p->delete_object_from_model(obj_idx); }
 
@@ -3439,7 +3457,7 @@ void Plater::export_gcode()
         p->export_gcode(std::move(output_path), PrintHostJob());
 }
 
-void Plater::export_stl(bool selection_only)
+void Plater::export_stl(bool extended, bool selection_only)
 {
     if (p->model.objects.empty()) { return; }
 
@@ -3474,7 +3492,64 @@ void Plater::export_stl(bool selection_only)
         }
     }
     else
+    {
         mesh = p->model.mesh();
+
+        if (extended && (p->printer_technology == ptSLA))
+        {
+            const PrintObjects& objects = p->sla_print.objects();
+            for (const SLAPrintObject* object : objects)
+            {
+                const ModelObject* model_object = object->model_object();
+                Transform3d mesh_trafo_inv = object->trafo().inverse();
+                bool is_left_handed = object->is_left_handed();
+
+                TriangleMesh pad_mesh;
+                bool has_pad_mesh = object->has_mesh(slaposBasePool);
+                if (has_pad_mesh)
+                {
+                    pad_mesh = object->get_mesh(slaposBasePool);
+                    pad_mesh.transform(mesh_trafo_inv);
+                }
+
+                TriangleMesh supports_mesh;
+                bool has_supports_mesh = object->has_mesh(slaposSupportTree);
+                if (has_supports_mesh)
+                {
+                    supports_mesh = object->get_mesh(slaposSupportTree);
+                    supports_mesh.transform(mesh_trafo_inv);
+                }
+
+                const std::vector<SLAPrintObject::Instance>& obj_instances = object->instances();
+                for (const SLAPrintObject::Instance& obj_instance : obj_instances)
+                {
+                    auto it = std::find_if(model_object->instances.begin(), model_object->instances.end(),
+                        [&obj_instance](const ModelInstance *mi) { return mi->id() == obj_instance.instance_id; });
+                    assert(it != model_object->instances.end());
+
+                    if (it != model_object->instances.end())
+                    {
+                        int instance_idx = it - model_object->instances.begin();
+                        const Transform3d& inst_transform = object->model_object()->instances[instance_idx]->get_transformation().get_matrix();
+
+                        if (has_pad_mesh)
+                        {
+                            TriangleMesh inst_pad_mesh = pad_mesh;
+                            inst_pad_mesh.transform(inst_transform, is_left_handed);
+                            mesh.merge(inst_pad_mesh);
+                        }
+
+                        if (has_supports_mesh)
+                        {
+                            TriangleMesh inst_supports_mesh = supports_mesh;
+                            inst_supports_mesh.transform(inst_transform, is_left_handed);
+                            mesh.merge(inst_supports_mesh);
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     Slic3r::store_stl(path_u8.c_str(), &mesh, true);
     p->statusbar()->set_status_text(wxString::Format(_(L("STL file exported to %s")), path));

@@ -64,6 +64,7 @@ template<class F> typename F::FN winapi_get_function(const wchar_t *dll, const c
 }
 #endif
 
+// If called with nullptr, a DPI for the primary monitor is returned.
 int get_dpi_for_window(wxWindow *window)
 {
 #ifdef _WIN32
@@ -82,7 +83,8 @@ int get_dpi_for_window(wxWindow *window)
     static auto GetDpiForWindow_fn = winapi_get_function<GetDpiForWindow_t>(L"User32.dll", "GetDpiForWindow");
     static auto GetDpiForMonitor_fn = winapi_get_function<GetDpiForMonitor_t>(L"Shcore.dll", "GetDpiForMonitor");
 
-    const HWND hwnd = window->GetHandle();
+	// Desktop Window is the window of the primary monitor.
+	const HWND hwnd = (window == nullptr) ? ::GetDesktopWindow() : window->GetHandle();
 
     if (GetDpiForWindow_fn != nullptr) {
         // We're on Windows 10, we have per-screen DPI settings

@@ -100,7 +100,7 @@ void GLGizmoSlaSupports::on_render(const Selection& selection) const
     if (m_quadric != nullptr && selection.is_from_single_instance())
         render_points(selection, false);
 
-    render_selection_rectangle();
+    m_selection_rectangle.render(m_parent);
     render_clipping_plane(selection);
 
     glsafe(::glDisable(GL_BLEND));
@@ -239,52 +239,6 @@ void GLGizmoSlaSupports::render_clipping_plane(const Selection& selection) const
 	}
 }
 
-
-
-void GLGizmoSlaSupports::render_selection_rectangle() const
-{
-    if (m_selection_rectangle_status == srOff)
-        return;
-
-    glsafe(::glLineWidth(1.5f));
-    float render_color[3] = {0.f, 1.f, 0.f};
-    if (m_selection_rectangle_status == srDeselect) {
-        render_color[0] = 1.f;
-        render_color[1] = 0.3f;
-        render_color[2] = 0.3f;
-    }
-    glsafe(::glColor3fv(render_color));
-
-    glsafe(::glPushAttrib(GL_TRANSFORM_BIT));   // remember current MatrixMode
-
-    glsafe(::glMatrixMode(GL_MODELVIEW));       // cache modelview matrix and set to identity
-    glsafe(::glPushMatrix());
-    glsafe(::glLoadIdentity());
-
-    glsafe(::glMatrixMode(GL_PROJECTION));      // cache projection matrix and set to identity
-    glsafe(::glPushMatrix());
-    glsafe(::glLoadIdentity());
-
-    glsafe(::glOrtho(0.f, m_canvas_width, m_canvas_height, 0.f, -1.f, 1.f)); // set projection matrix so that world coords = window coords
-
-    // render the selection  rectangle (window coordinates):
-    glsafe(::glPushAttrib(GL_ENABLE_BIT));
-    glsafe(::glLineStipple(4, 0xAAAA));
-    glsafe(::glEnable(GL_LINE_STIPPLE));
-
-    ::glBegin(GL_LINE_LOOP);
-    ::glVertex3f((GLfloat)m_selection_rectangle_start_corner(0), (GLfloat)m_selection_rectangle_start_corner(1), (GLfloat)0.5f);
-    ::glVertex3f((GLfloat)m_selection_rectangle_end_corner(0), (GLfloat)m_selection_rectangle_start_corner(1), (GLfloat)0.5f);
-    ::glVertex3f((GLfloat)m_selection_rectangle_end_corner(0), (GLfloat)m_selection_rectangle_end_corner(1), (GLfloat)0.5f);
-    ::glVertex3f((GLfloat)m_selection_rectangle_start_corner(0), (GLfloat)m_selection_rectangle_end_corner(1), (GLfloat)0.5f);
-    glsafe(::glEnd());
-    glsafe(::glPopAttrib());
-
-    glsafe(::glPopMatrix());                // restore former projection matrix
-    glsafe(::glMatrixMode(GL_MODELVIEW));
-    glsafe(::glPopMatrix());                // restore former modelview matrix
-    glsafe(::glPopAttrib());                // restore former MatrixMode
-}
 
 void GLGizmoSlaSupports::on_render_for_picking(const Selection& selection) const
 {
@@ -513,11 +467,7 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         if (action == SLAGizmoEventType::LeftDown && (shift_down || alt_down || control_down)) {
             if (m_hover_id == -1) {
                 if (shift_down || alt_down) {
-                    m_selection_rectangle_status = shift_down ? srSelect : srDeselect;
-                    m_selection_rectangle_start_corner = mouse_position;
-                    m_selection_rectangle_end_corner = mouse_position;
-                    m_canvas_width = m_parent.get_canvas_size().get_width();
-                    m_canvas_height = m_parent.get_canvas_size().get_height();
+                    m_selection_rectangle.start_dragging(mouse_position, shift_down ? GLSelectionRectangle::Select : GLSelectionRectangle::Deselect);
                 }
             }
             else {
@@ -533,7 +483,7 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         }
 
         // left down without selection rectangle - place point on the mesh:
-        if (action == SLAGizmoEventType::LeftDown && m_selection_rectangle_status == srOff && !shift_down) {
+        if (action == SLAGizmoEventType::LeftDown && !m_selection_rectangle.is_dragging() && !shift_down) {
             // If any point is in hover state, this should initiate its move - return control back to GLCanvas:
             if (m_hover_id != -1)
                 return false;
@@ -558,38 +508,36 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         }
 
         // left up with selection rectangle - select points inside the rectangle:
-        if ((action == SLAGizmoEventType::LeftUp || action == SLAGizmoEventType::ShiftUp || action == SLAGizmoEventType::AltUp) && m_selection_rectangle_status != srOff) {
-            const Transform3d& instance_matrix = m_model_object->instances[m_active_instance]->get_transformation().get_matrix();
-            const Camera& camera = m_parent.get_camera();
-            const std::array<int, 4>& viewport = camera.get_viewport();
-            const Transform3d& modelview_matrix = camera.get_view_matrix();
-            const Transform3d& projection_matrix = camera.get_projection_matrix();
+        if ((action == SLAGizmoEventType::LeftUp || action == SLAGizmoEventType::ShiftUp || action == SLAGizmoEventType::AltUp) && m_selection_rectangle.is_dragging()) {
+            // Is this a selection or deselection rectangle?
+            GLSelectionRectangle::EState rectangle_status = m_selection_rectangle.get_state();
 
+            // First collect positions of all the points in world coordinates.
+            const Transform3d& instance_matrix = m_model_object->instances[m_active_instance]->get_transformation().get_matrix();
+            std::vector<Vec3d> points;
+            for (unsigned int i=0; i<m_editing_mode_cache.size(); ++i) {
+                const sla::SupportPoint &support_point = m_editing_mode_cache[i].support_point;
+                points.push_back(instance_matrix * support_point.pos.cast<double>());
+                points.back()(2) += m_z_shift;
+            }
+            // Now ask the rectangle which of the points are inside.
+            const Camera& camera = m_parent.get_camera();
+            std::vector<unsigned int> selected_idxs = m_selection_rectangle.stop_dragging(m_parent, points);
+
+            // we'll recover current look direction (in world coords) and transform it to model coords.
             const Selection& selection = m_parent.get_selection();
             const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
-
-            // bounding box created from the rectangle corners - will take care of order of the corners
-            BoundingBox rectangle(Points{Point(m_selection_rectangle_start_corner.cast<int>()), Point(m_selection_rectangle_end_corner.cast<int>())});
-
             const Transform3d& instance_matrix_no_translation_no_scaling = volume->get_instance_transformation().get_matrix(true,false,true);
-
-            // we'll recover current look direction from the modelview matrix (in world coords)...
             Vec3f direction_to_camera = camera.get_dir_forward().cast<float>();
-            // ...and transform it to model coords.
             Vec3f direction_to_camera_mesh = (instance_matrix_no_translation_no_scaling.inverse().cast<float>() * direction_to_camera).normalized().eval();
             Vec3f scaling = volume->get_instance_scaling_factor().cast<float>();
             direction_to_camera_mesh = Vec3f(direction_to_camera_mesh(0)*scaling(0), direction_to_camera_mesh(1)*scaling(1), direction_to_camera_mesh(2)*scaling(2));
 
-            // Iterate over all points, check if they're in the rectangle and if so, check that they are not obscured by the mesh:
-            for (unsigned int i=0; i<m_editing_mode_cache.size(); ++i) {
+            // Iterate over all points in the rectangle and check that they are neither clipped by the
+            // clipping plane nor obscured by the mesh.
+            for (const unsigned int i : selected_idxs) {
                 const sla::SupportPoint &support_point = m_editing_mode_cache[i].support_point;
-                Vec3f pos = instance_matrix.cast<float>() * support_point.pos;
-                pos(2) += m_z_shift;
-                  GLdouble out_x, out_y, out_z;
-                  ::gluProject((GLdouble)pos(0), (GLdouble)pos(1), (GLdouble)pos(2), (GLdouble*)modelview_matrix.data(), (GLdouble*)projection_matrix.data(), (GLint*)viewport.data(), &out_x, &out_y, &out_z);
-                  out_y = m_canvas_height - out_y;
-
-                if (rectangle.contains(Point(out_x, out_y)) && !is_point_clipped(support_point.pos.cast<double>())) {
+                if (!is_point_clipped(support_point.pos.cast<double>())) {
                     bool is_obscured = false;
                     // Cast a ray in the direction of the camera and look for intersection with the mesh:
                     std::vector<igl::Hit> hits;
@@ -627,14 +575,13 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                     }
 
                     if (!is_obscured) {
-                        if (m_selection_rectangle_status == srDeselect)
+                        if (rectangle_status == GLSelectionRectangle::Deselect)
                             unselect_point(i);
                         else
                             select_point(i);
                     }
                 }
             }
-            m_selection_rectangle_status = srOff;
             return true;
         }
 
@@ -652,9 +599,8 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                 return true; // point has been placed and the button not released yet
                              // this prevents GLCanvas from starting scene rotation
 
-            if (m_selection_rectangle_status != srOff)  {
-                m_selection_rectangle_end_corner = mouse_position;
-                m_selection_rectangle_status = shift_down ? srSelect : srDeselect;
+            if (m_selection_rectangle.is_dragging())  {
+                m_selection_rectangle.dragging(mouse_position);
                 return true;
             }
 
@@ -977,7 +923,7 @@ RENDER_AGAIN:
     // Following is rendered in both editing and non-editing mode:
     m_imgui->text("");
     if (m_clipping_plane_distance == 0.f)
-        m_imgui->text("Clipping of view: ");
+        m_imgui->text(_(L("Clipping of view:"))+ " ");
     else {
         if (m_imgui->button(_(L("Reset direction")))) {
             wxGetApp().CallAfter([this](){

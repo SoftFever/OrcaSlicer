@@ -8,6 +8,7 @@
 
 class wxStaticText;
 class LockButton;
+class wxStaticBitmap;
 
 namespace Slic3r {
 namespace GUI {
@@ -78,6 +79,9 @@ class ObjectManipulation : public OG_Settings
     bool            m_uniform_scale {true};
     LockButton*     m_lock_bnt{ nullptr };
 
+    ScalableBitmap  m_manifold_warning_bmp;
+    wxStaticBitmap* m_fix_throught_netfab_bitmap;
+
 #ifndef __APPLE__
     // Currently focused option name (empty if none)
     std::string     m_focused_option;
@@ -106,6 +110,9 @@ public:
     // bound to this class when changing selection in the objects list
     void emulate_kill_focus();
 #endif // __APPLE__
+
+    void update_warning_icon_state(const wxString& tooltip);
+    void msw_rescale();
 
 private:
     void reset_settings_value();

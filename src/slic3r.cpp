@@ -628,7 +628,7 @@ std::string CLI::output_filepath(const Model &model, IO::ExportFormat format) co
 {
     std::string ext;
     switch (format) {
-        case IO::AMF: ext = ".amf"; break;
+        case IO::AMF: ext = ".zip.amf"; break;
         case IO::OBJ: ext = ".obj"; break;
         case IO::STL: ext = ".stl"; break;
 		case IO::TMF: ext = ".3mf"; break;
