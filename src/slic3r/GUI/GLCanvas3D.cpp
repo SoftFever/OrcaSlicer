@@ -5581,7 +5581,7 @@ void GLCanvas3D::_update_sla_shells_outside_state()
 
     for (GLVolume* volume : m_volumes.volumes)
     {
-        volume->is_outside = ((print_volume.radius() > 0.0) && volume->is_sla_support()) ? !print_volume.contains(volume->bounding_box) : false;
+        volume->is_outside = ((print_volume.radius() > 0.0) && volume->is_sla_support()) ? !print_volume.contains(volume->transformed_convex_hull_bounding_box()) : false;
     }
 }
 
