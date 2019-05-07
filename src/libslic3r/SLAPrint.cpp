@@ -1053,8 +1053,6 @@ void SLAPrint::process()
         const double width              = m_printer_config.display_width.getFloat() / SCALING_FACTOR;
         const double height             = m_printer_config.display_height.getFloat() / SCALING_FACTOR;
         const double display_area       = width*height;
-        
-        const coord_t clpr_back_offs    = - coord_t(m_printer_config.absolute_correction.getFloat() / SCALING_FACTOR);
 
         // get polygons for all instances in the object
         auto get_all_polygons =
@@ -1138,7 +1136,7 @@ void SLAPrint::process()
         auto printlayerfn = [this,
                 // functions and read only vars
                 get_all_polygons, polyunion, polydiff, areafn,
-                area_fill, display_area, exp_time, init_exp_time, fast_tilt, slow_tilt, delta_fade_time, clpr_back_offs,
+                area_fill, display_area, exp_time, init_exp_time, fast_tilt, slow_tilt, delta_fade_time,
 
                 // write vars
                 &mutex, &models_volume, &supports_volume, &estim_time, &slow_layers,
@@ -1174,8 +1172,6 @@ void SLAPrint::process()
             for(const SliceRecord& record : layer.slices()) {
                 const SLAPrintObject *po = record.print_obj();
 
-                // const ExPolygons &rawmodelslices = record.get_slice(soModel);
-                // const ExPolygons &modelslices = clpr_back_offs != 0 ? offset_ex(rawmodelslices, clpr_back_offs) : rawmodelslices;
                 const ExPolygons &modelslices = record.get_slice(soModel);
                 
                 bool is_lefth = record.print_obj()->is_left_handed();
@@ -1184,8 +1180,6 @@ void SLAPrint::process()
                     for(ClipperPolygon& p_tmp : v) model_polygons.emplace_back(std::move(p_tmp));
                 }
 
-                // const ExPolygons &rawsupportslices = record.get_slice(soSupport);
-                // const ExPolygons &supportslices = clpr_back_offs != 0 ? offset_ex(rawsupportslices, clpr_back_offs) : rawsupportslices;
                 const ExPolygons &supportslices = record.get_slice(soSupport);
                 
                 if (!supportslices.empty()) {
