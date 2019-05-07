@@ -187,6 +187,8 @@ private:
     // is useful for absolute scaling of tilted objects in world coordinate space.
     mutable BoundingBoxf3 m_unscaled_instance_bounding_box;
     mutable bool m_unscaled_instance_bounding_box_dirty;
+    mutable BoundingBoxf3 m_scaled_instance_bounding_box;
+    mutable bool m_scaled_instance_bounding_box_dirty;
 
 #if ENABLE_RENDER_SELECTION_CENTER
     GLUquadricObj* m_quadric;
@@ -272,6 +274,7 @@ public:
     // Bounding box of a selection, with no instance scaling applied. This bounding box
     // is useful for absolute scaling of tilted objects in world coordinate space.
     const BoundingBoxf3& get_unscaled_instance_bounding_box() const;
+    const BoundingBoxf3& get_scaled_instance_bounding_box() const;
 
     void start_dragging();
 
@@ -311,7 +314,8 @@ private:
     void do_remove_object(unsigned int object_idx);
     void calc_bounding_box() const;
     void calc_unscaled_instance_bounding_box() const;
-    void set_bounding_boxes_dirty() { m_bounding_box_dirty = true; m_unscaled_instance_bounding_box_dirty = true; }
+    void calc_scaled_instance_bounding_box() const;
+    void set_bounding_boxes_dirty() { m_bounding_box_dirty = true; m_unscaled_instance_bounding_box_dirty = true; m_scaled_instance_bounding_box_dirty = true; }
     void render_selected_volumes() const;
     void render_synchronized_volumes() const;
     void render_bounding_box(const BoundingBoxf3& box, float* color) const;

@@ -37,8 +37,8 @@ static wxBitmapComboBox* create_word_local_combo(wxWindow *parent)
     temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
     temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
-    temp->Append(_(L("World")));
-    temp->Append(_(L("Local")));
+    temp->Append(_(L("World coordinates")));
+    temp->Append(_(L("Local coordinates")));
     temp->SetSelection(0);
     temp->SetValue(temp->GetString(0));
 
@@ -228,7 +228,7 @@ void ObjectManipulation::Show(const bool show)
 
 bool ObjectManipulation::IsShown()
 {
-    return m_og->get_grid_sizer()->IsShown(2);
+	return dynamic_cast<const wxStaticBoxSizer*>(m_og->sizer)->GetStaticBox()->IsShown(); //  m_og->get_grid_sizer()->IsShown(2);
 }
 
 void ObjectManipulation::UpdateAndShow(const bool show)
@@ -265,7 +265,7 @@ void ObjectManipulation::update_settings_value(const Selection& selection)
         if (m_world_coordinates) {
 			m_new_rotate_label_string = L("Rotate");
 			m_new_rotation = Vec3d::Zero();
-			m_new_size     = selection.get_bounding_box().size();
+			m_new_size     = selection.get_scaled_instance_bounding_box().size();
 			m_new_scale    = m_new_size.cwiseProduct(selection.get_unscaled_instance_bounding_box().size().cwiseInverse()) * 100.;
 		} else {
 			m_new_rotation = volume->get_instance_rotation() * (180. / M_PI);
@@ -399,7 +399,7 @@ void ObjectManipulation::reset_settings_value()
 {
     m_new_position = Vec3d::Zero();
     m_new_rotation = Vec3d::Zero();
-    m_new_scale = Vec3d::Ones();
+    m_new_scale = Vec3d::Ones() * 100.;
     m_new_size = Vec3d::Zero();
     m_new_enabled = false;
     // no need to set the dirty flag here as this method is called from update_settings_value(),
@@ -590,10 +590,11 @@ void ObjectManipulation::set_uniform_scaling(const bool new_value)
 			wxMessageDialog dlg(GUI::wxGetApp().mainframe,
                 _(L("The currently manipulated object is tilted (rotation angles are not multiples of 90°).\n"
                     "Non-uniform scaling of tilted objects is only possible in the World coordinate system,\n"
-                    "once the rotation is embedded into the object coordinates.\n"
+                    "once the rotation is embedded into the object coordinates.")) + "\n" +
+                _(L("This operation is irreversible.\n"
                     "Do you want to proceed?")),
                 SLIC3R_APP_NAME,
-                wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
+				wxYES_NO | wxCANCEL | wxCANCEL_DEFAULT | wxICON_QUESTION);
             if (dlg.ShowModal() != wxID_YES) {
                 // Enforce uniform scaling.
                 m_lock_bnt->SetLock(true);
