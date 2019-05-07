@@ -11,6 +11,7 @@
 #include "SupportMaterial.hpp"
 #include "GCode.hpp"
 #include "GCode/WipeTower.hpp"
+#include "GCode/PrintExtents.hpp"
 #include "Utils.hpp"
 
 //#include "PrintExport.hpp"
@@ -143,10 +144,7 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
         "use_relative_e_distances",
         "use_volumetric_e",
         "variable_layer_height",
-        "wipe",
-        "wipe_tower_x",
-        "wipe_tower_y",
-        "wipe_tower_rotation_angle"
+        "wipe"
     };
 
     static std::unordered_set<std::string> steps_ignore;
@@ -167,7 +165,10 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
             || opt_key == "skirt_height"
             || opt_key == "skirt_distance"
             || opt_key == "min_skirt_length"
-            || opt_key == "ooze_prevention") {
+            || opt_key == "ooze_prevention"
+            || opt_key == "wipe_tower_x"
+            || opt_key == "wipe_tower_y"
+            || opt_key == "wipe_tower_rotation_angle") {
             steps.emplace_back(psSkirt);
         } else if (opt_key == "brim_width") {
             steps.emplace_back(psBrim);
@@ -208,6 +209,7 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
             || opt_key == "extra_loading_move"
             || opt_key == "z_offset") {
             steps.emplace_back(psWipeTower);
+            steps.emplace_back(psSkirt);
         } else if (
                opt_key == "first_layer_extrusion_width" 
             || opt_key == "min_layer_height"
@@ -1186,6 +1188,8 @@ std::string Print::validate() const
             return L("The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1).");
         if (m_config.ooze_prevention)
             return L("Ooze prevention is currently not supported with the wipe tower enabled.");
+        if (m_config.use_volumetric_e)
+            return L("The Wipe Tower currently does not support volumetric E (use_volumetric_e=0).");
         
         if (m_objects.size() > 1) {
             bool                                has_custom_layering = false;
@@ -1502,6 +1506,14 @@ void Print::process()
         obj->infill();
     for (PrintObject *obj : m_objects)
         obj->generate_support_material();
+    if (this->set_started(psWipeTower)) {
+        m_wipe_tower_data.clear();
+        if (this->has_wipe_tower()) {
+            //this->set_status(95, L("Generating wipe tower"));
+            this->_make_wipe_tower();
+        }
+        this->set_done(psWipeTower);
+    }
     if (this->set_started(psSkirt)) {
         m_skirt.clear();
         if (this->has_skirt()) {
@@ -1517,14 +1529,6 @@ void Print::process()
             this->_make_brim();
         }
        this->set_done(psBrim);
-    }
-    if (this->set_started(psWipeTower)) {
-        m_wipe_tower_data.clear();
-        if (this->has_wipe_tower()) {
-            //this->set_status(95, L("Generating wipe tower"));
-            this->_make_wipe_tower();
-        }
-       this->set_done(psWipeTower);
     }
     BOOST_LOG_TRIVIAL(info) << "Slicing process finished." << log_memory_info();
 }
@@ -1601,6 +1605,11 @@ void Print::_make_skirt()
             append(points, copy_points);
         }
     }
+
+    // Include the wipe tower.
+    if (has_wipe_tower())
+        for (const Vec2d& point : get_wipe_tower_extrusions_points(*this, skirt_height_z))
+            points.push_back(Point(scale_(point.x()), scale_(point.y())));
 
     if (points.size() < 3)
         // At least three points required for a convex hull.
