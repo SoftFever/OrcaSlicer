@@ -25,62 +25,28 @@ using Slic3r::GUI::from_u8;
 wxDEFINE_EVENT(wxCUSTOMEVT_TICKSCHANGED, wxEvent);
 wxDEFINE_EVENT(wxCUSTOMEVT_LAST_VOLUME_IS_DELETED, wxCommandEvent);
 
-void set_as_owner_drawn(wxMenu* menu)
-{
 #ifdef __WXMSW__
-    // this function is implemented only for MSW (in Prusa/wxWidgets fork)
-    menu->SetOwnerDrawn(true);
-#endif
-}
-
-std::map<int, std::string> menuitem_bitmaps;
-static std::string empty_str = "";
-
-const std::string& get_menuitem_icon_name(const int item_id)
-{
-    const auto item = menuitem_bitmaps.find(item_id);
-    if (item == menuitem_bitmaps.end())
-        return empty_str;
-
-    return menuitem_bitmaps.at(item_id);
-}
-
-void update_menu_item_icons(wxMenuItem* item)
-{
-    const std::string& icon_name = get_menuitem_icon_name(item->GetId());
-    if (!icon_name.empty())
-    {
-        const wxBitmap& item_icon = create_scaled_bitmap(nullptr, icon_name);
-        if (item_icon.IsOk())
-        {
-            item->SetBitmap(item_icon);
-
-            wxImage imgGrey = item_icon.ConvertToImage().ConvertToGreyscale();
-            if (imgGrey.IsOk())
-                item->SetDisabledBitmap(wxBitmap(imgGrey));
-        }
-    }
-}
-
+static std::map<int, std::string> msw_menuitem_bitmaps;
 void msw_rescale_menu(wxMenu* menu)
 {
-    wxMenuItemList& items = menu->GetMenuItems();
-    for (auto item : items)
-    {
-        update_menu_item_icons(item);
-        item->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+	struct update_icons {
+		static void run(wxMenuItem* item) {
+			const auto it = msw_menuitem_bitmaps.find(item->GetId());
+			if (it != msw_menuitem_bitmaps.end()) {
+				const wxBitmap& item_icon = create_scaled_bitmap(nullptr, it->second);
+				if (item_icon.IsOk())
+					item->SetBitmap(item_icon);
+			}
+			if (item->IsSubMenu())
+				for (wxMenuItem *sub_item : item->GetSubMenu()->GetMenuItems())
+					update_icons::run(sub_item);
+		}
+	};
 
-        if (item->IsSubMenu())
-        {
-            wxMenuItemList& sub_items = item->GetSubMenu()->GetMenuItems();
-            for (auto sub_item : sub_items)
-            {
-                update_menu_item_icons(sub_item);
-                sub_item->SetFont(Slic3r::GUI::wxGetApp().normal_font());
-            }
-        }
-    }
+	for (wxMenuItem *item : menu->GetMenuItems())
+		update_icons::run(item);
 }
+#endif /* __WXMSW__ */
 
 wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const wxString& description,
     std::function<void(wxCommandEvent& event)> cb, const wxBitmap& icon, wxEvtHandler* event_handler)
@@ -88,16 +54,16 @@ wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const
     if (id == wxID_ANY)
         id = wxNewId();
 
-    wxMenuItem* item = menu->Append(id, string, description);
-//    item->SetBitmap(icon);
-
-    if (icon.IsOk()) 
-    {
+    auto *item = new wxMenuItem(menu, id, string, description);
+    if (icon.IsOk()) {
         item->SetBitmap(icon);
+#ifndef __WXMSW__
         wxImage imgGrey = icon.ConvertToImage().ConvertToGreyscale();
         if (imgGrey.IsOk())
             item->SetDisabledBitmap(wxBitmap(imgGrey));
+#endif /* __WXMSW__ */
     }
+    menu->Append(item);
 
 #ifdef __WXMSW__
     if (event_handler != nullptr && event_handler != menu)
@@ -116,8 +82,10 @@ wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const
         id = wxNewId();
 
     const wxBitmap& bmp = !icon.empty() ? create_scaled_bitmap(nullptr, icon) : wxNullBitmap;   // FIXME: pass window ptr
+#ifdef __WXMSW__    
     if (bmp.IsOk())
-        menuitem_bitmaps[id] = icon;
+        msw_menuitem_bitmaps[id] = icon;
+#endif /* __WXMSW__ */
 
     return append_menu_item(menu, id, string, description, cb, bmp, event_handler);
 }
@@ -128,8 +96,16 @@ wxMenuItem* append_submenu(wxMenu* menu, wxMenu* sub_menu, int id, const wxStrin
         id = wxNewId();
 
     wxMenuItem* item = new wxMenuItem(menu, id, string, description);
-    if (!icon.empty())
+    if (!icon.empty()) {
         item->SetBitmap(create_scaled_bitmap(nullptr, icon));    // FIXME: pass window ptr
+#ifdef __WXMSW__
+        msw_menuitem_bitmaps[id] = icon;
+#else /* __WXMSW__ */
+        wxImage imgGrey = icon.ConvertToImage().ConvertToGreyscale();
+        if (imgGrey.IsOk())
+            item->SetDisabledBitmap(wxBitmap(imgGrey));
+#endif /* __WXMSW__ */
+    }
 
     item->SetSubMenu(sub_menu);
     menu->Append(item);
