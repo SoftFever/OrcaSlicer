@@ -1514,13 +1514,15 @@ std::string Print::export_gcode(const std::string &path_template, GCodePreviewDa
     // output everything to a G-code file
     // The following call may die if the output_filename_format template substitution fails.
     std::string path = this->output_filepath(path_template);
-    std::string message = L("Exporting G-code");
+    std::string message;
     // #ys_FIXME_localization
     if (! path.empty() && preview_data == nullptr) {
         // Only show the path if preview_data is not set -> running from command line.
+        message = L("Exporting G-code");
         message += " to ";
         message += path;
-    }
+    } else
+        message = L("Generating G-code");
     this->set_status(90, message);
 
     // The following line may die for multiple reasons.
