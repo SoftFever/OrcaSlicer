@@ -2035,16 +2035,16 @@ void Plater::priv::remove(size_t obj_idx)
     // Delete object from Sidebar list
     sidebar->obj_list()->delete_object_from_list(obj_idx);
 
-    object_list_changed();
     update();
+    object_list_changed();
 }
 
 
 void Plater::priv::delete_object_from_model(size_t obj_idx)
 {
     model.delete_object(obj_idx);
-    object_list_changed();
     update();
+    object_list_changed();
 }
 
 void Plater::priv::reset()
@@ -2063,8 +2063,8 @@ void Plater::priv::reset()
 
     // Delete all objects from list on c++ side
     sidebar->obj_list()->delete_all_objects_from_list();
-    object_list_changed();
     update();
+    object_list_changed();
 
     // The hiding of the slicing results, if shown, is not taken care by the background process, so we do it here
     this->sidebar->show_sliced_info_sizer(false);
@@ -2557,8 +2557,8 @@ void Plater::priv::fix_through_netfabb(const int obj_idx, const int vol_idx/* = 
     if (obj_idx < 0)
         return;
     fix_model_by_win10_sdk_gui(*model.objects[obj_idx], vol_idx);
-    this->object_list_changed();
     this->update();
+    this->object_list_changed();
     this->schedule_background_process();
 }
 
