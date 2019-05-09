@@ -2125,7 +2125,7 @@ void TabPrinter::extruders_count_changed(size_t extruders_count)
 void TabPrinter::append_option_line(ConfigOptionsGroupShp optgroup, const std::string opt_key)
 {
 	auto option = optgroup->get_option(opt_key, 0);
-	auto line = Line{ option.opt.full_label, "" };
+	auto line = Line{ _(option.opt.full_label), "" };
 	line.append_option(option);
 	if (m_use_silent_mode)
 		line.append_option(optgroup->get_option(opt_key, 1));
@@ -3062,21 +3062,25 @@ void Tab::compatible_widget_reload(PresetDependencies &deps)
 
 void Tab::fill_icon_descriptions()
 {
-	m_icon_descriptions.push_back(t_icon_description(&m_bmp_value_lock, L("LOCKED LOCK;"
-		"indicates that the settings are the same as the system values for the current option group")));
+	m_icon_descriptions.push_back(t_icon_description(&m_bmp_value_lock, L("LOCKED LOCK") ";" 
+        // TRN Description for "LOCKED LOCK"
+		L("indicates that the settings are the same as the system values for the current option group")));
 
-	m_icon_descriptions.push_back(t_icon_description(&m_bmp_value_unlock, L("UNLOCKED LOCK;"
-		"indicates that some settings were changed and are not equal to the system values for "
+    m_icon_descriptions.push_back(t_icon_description(&m_bmp_value_unlock, L("UNLOCKED LOCK") ";"
+        // TRN Description for "UNLOCKED LOCK"
+		L("indicates that some settings were changed and are not equal to the system values for "
 		"the current option group.\n"
 		"Click the UNLOCKED LOCK icon to reset all settings for current option group to "
 		"the system values.")));
 
-	m_icon_descriptions.push_back(t_icon_description(&m_bmp_white_bullet, L("WHITE BULLET;"
-		"for the left button: \tindicates a non-system preset,\n"
+    m_icon_descriptions.push_back(t_icon_description(&m_bmp_white_bullet, L("WHITE BULLET") ";"
+        // TRN Description for "WHITE BULLET"
+        L("for the left button: \tindicates a non-system preset,\n"
 		"for the right button: \tindicates that the settings hasn't been modified.")));
 
-	m_icon_descriptions.push_back(t_icon_description(&m_bmp_value_revert, L("BACK ARROW;"
-		"indicates that the settings were changed and are not equal to the last saved preset for "
+    m_icon_descriptions.push_back(t_icon_description(&m_bmp_value_revert, L("BACK ARROW") ";"
+        // TRN Description for "BACK ARROW"
+        L("indicates that the settings were changed and are not equal to the last saved preset for "
 		"the current option group.\n"
 		"Click the BACK ARROW icon to reset all settings for the current option group to "
 		"the last saved preset.")));

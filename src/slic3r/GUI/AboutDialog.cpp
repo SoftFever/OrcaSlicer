@@ -89,21 +89,28 @@ AboutDialog::AboutDialog()
         int size[] = {fs,fs,fs,fs,fs,fs,fs};
         m_html->SetFonts(font.GetFaceName(), font.GetFaceName(), size);
         m_html->SetBorders(2);
+        const wxString copyright_str = _(L("Copyright"));
+        // TRN "Slic3r _is licensed under the_ License"
+        const wxString is_lecensed_str = _(L("is licensed under the"));
+        const wxString license_str = _(L("GNU Affero General Public License, version 3"));
+        const wxString contributors_str = _(L("Contributions by Henrik Brix Andersen, Nicolas Dandrimont, Mark Hindess, Petr Ledvina, Joseph Lenox, Y. Sapir, Mike Sheldrake, Vojtech Bubnik and numerous others."));
 		const auto text = wxString::Format(
             "<html>"
             "<body bgcolor= %s link= %s>"
             "<font color=%s>"
-            "Copyright &copy; 2016-2019 Prusa Research. <br />"
-            "Copyright &copy; 2011-2018 Alessandro Ranellucci. <br />"
-            "<a href=\"http://slic3r.org/\">Slic3r</a> is licensed under the "
-            "<a href=\"http://www.gnu.org/licenses/agpl-3.0.html\">GNU Affero General Public License, version 3</a>."
+            "%s &copy; 2016-2019 Prusa Research. <br />"
+            "%s &copy; 2011-2018 Alessandro Ranellucci. <br />"
+            "<a href=\"http://slic3r.org/\">Slic3r</a> %s "
+            "<a href=\"http://www.gnu.org/licenses/agpl-3.0.html\">%s</a>."
             "<br /><br />"
-            "Contributions by Henrik Brix Andersen, Nicolas Dandrimont, Mark Hindess, Petr Ledvina, Joseph Lenox, Y. Sapir, Mike Sheldrake, Vojtech Bubnik and numerous others. "
-            "Manual by Gary Hodgson. Inspired by the RepRap community. <br />"
-            "Slic3r logo designed by Corey Daniels, <a href=\"http://www.famfamfam.com/lab/icons/silk/\">Silk Icon Set</a> designed by Mark James. "
+            "%s"
             "</font>"
             "</body>"
-            "</html>", bgr_clr_str, text_clr_str, text_clr_str);
+            "</html>", bgr_clr_str, text_clr_str, text_clr_str,
+            copyright_str, copyright_str,
+            is_lecensed_str,
+            license_str,
+            contributors_str);
         m_html->SetPage(text);
         vsizer->Add(m_html, 1, wxEXPAND | wxBOTTOM, 10);
         m_html->Bind(wxEVT_HTML_LINK_CLICKED, &AboutDialog::onLinkClicked, this);
@@ -113,9 +120,6 @@ AboutDialog::AboutDialog()
     this->SetEscapeId(wxID_CLOSE);
     this->Bind(wxEVT_BUTTON, &AboutDialog::onCloseDialog, this, wxID_CLOSE);
     vsizer->Add(buttons, 0, wxEXPAND | wxRIGHT | wxBOTTOM, 3);
-    
-//     this->Bind(wxEVT_LEFT_DOWN, &AboutDialog::onCloseDialog, this);
-//     logo->Bind(wxEVT_LEFT_DOWN, &AboutDialog::onCloseDialog, this);
 
 	SetSizer(main_sizer);
 	main_sizer->SetSizeHints(this);
