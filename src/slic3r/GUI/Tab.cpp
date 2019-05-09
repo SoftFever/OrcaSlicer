@@ -2148,14 +2148,14 @@ PageShp TabPrinter::build_kinematics_page()
 		def.width = 15;
 		def.gui_type = "legend";
         def.mode = comAdvanced;
-		def.tooltip = L("Values in this column are for Full Power mode");
-		def.set_default_value(new ConfigOptionString{ _(L("Full Power")).ToUTF8().data() });
+		def.tooltip = L("Values in this column are for Normal mode");
+		def.set_default_value(new ConfigOptionString{ _(L("Normal")).ToUTF8().data() });
 
 		auto option = Option(def, "full_power_legend");
 		line.append_option(option);
 
-		def.tooltip = L("Values in this column are for Silent mode");
-		def.set_default_value(new ConfigOptionString{ _(L("Silent")).ToUTF8().data() });
+		def.tooltip = L("Values in this column are for Stealth mode");
+		def.set_default_value(new ConfigOptionString{ _(L("Stealth")).ToUTF8().data() });
 		option = Option(def, "silent_legend");
 		line.append_option(option);
 
