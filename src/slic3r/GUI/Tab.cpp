@@ -2125,7 +2125,7 @@ void TabPrinter::extruders_count_changed(size_t extruders_count)
 void TabPrinter::append_option_line(ConfigOptionsGroupShp optgroup, const std::string opt_key)
 {
 	auto option = optgroup->get_option(opt_key, 0);
-	auto line = Line{ option.opt.full_label, "" };
+	auto line = Line{ _(option.opt.full_label), "" };
 	line.append_option(option);
 	if (m_use_silent_mode)
 		line.append_option(optgroup->get_option(opt_key, 1));
