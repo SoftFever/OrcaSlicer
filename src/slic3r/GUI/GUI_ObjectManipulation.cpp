@@ -61,6 +61,37 @@ static wxBitmapComboBox* create_word_local_combo(wxWindow *parent)
 	return temp;
 }
 
+void msw_rescale_word_local_combo(wxBitmapComboBox* combo)
+{
+    const wxString selection = combo->GetString(combo->GetSelection());
+
+    /* To correct scaling (set new controll size) of a wxBitmapCombobox
+     * we need to refill control with new bitmaps. So, in our case :
+     * 1. clear control
+     * 2. add content
+     * 3. add scaled "empty" bitmap to the at least one item
+     */
+    combo->Clear();
+    wxSize size(wxDefaultSize);
+    size.SetWidth(15 * wxGetApp().em_unit());
+
+    // Set rescaled min height to correct layout
+    combo->SetMinSize(wxSize(-1, int(1.5f*combo->GetFont().GetPixelSize().y + 0.5f)));
+    // Set rescaled size
+    combo->SetSize(size);
+    
+    combo->Append(_(L("World coordinates")));
+    combo->Append(_(L("Local coordinates")));
+//     combo->SetSelection(0);
+//     combo->SetValue(combo->GetString(0));
+
+    wxBitmap empty_bmp(1, combo->GetFont().GetPixelSize().y + 2);
+    empty_bmp.SetWidth(0);
+    combo->SetItemBitmap(0, empty_bmp);
+
+    combo->SetValue(selection);
+}
+
 ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     OG_Settings(parent, true)
 #ifndef __APPLE__
@@ -621,6 +652,7 @@ void ObjectManipulation::set_uniform_scaling(const bool new_value)
 
 void ObjectManipulation::msw_rescale()
 {
+    msw_rescale_word_local_combo(m_word_local_combo);
     m_manifold_warning_bmp.msw_rescale();
     m_fix_throught_netfab_bitmap->SetBitmap(m_manifold_warning_bmp.bmp());
 
