@@ -750,7 +750,7 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
              */
             wxMessageDialog dialog(nullptr,
                 _(L("Switching the language will trigger application restart.\n"
-                    "You will lose all your unsaved data (content of the plater, modified presets).")) + "\n\n" +
+                    "You will lose content of the plater.")) + "\n\n" +
                 _(L("Do you want to proceed?")),
                 wxString(SLIC3R_APP_NAME) + " - " + _(L("Language selection")),
                 wxICON_QUESTION | wxOK | wxCANCEL);

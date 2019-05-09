@@ -1220,7 +1220,7 @@ std::string Print::validate() const
                 const SlicingParameters &slicing_params = object->slicing_parameters();
                 if (std::abs(slicing_params.first_print_layer_height - slicing_params0.first_print_layer_height) > EPSILON ||
                     std::abs(slicing_params.layer_height             - slicing_params0.layer_height            ) > EPSILON)
-                    return L("The Wipe Tower is only supported for multiple objects if they have equal layer heigths");
+                    return L("The Wipe Tower is only supported for multiple objects if they have equal layer heights");
                 if (slicing_params.raft_layers() != slicing_params0.raft_layers())
                     return L("The Wipe Tower is only supported for multiple objects if they are printed over an equal number of raft layers");
                 if (object->config().support_material_contact_distance != m_objects.front()->config().support_material_contact_distance)
@@ -1515,7 +1515,6 @@ std::string Print::export_gcode(const std::string &path_template, GCodePreviewDa
     // The following call may die if the output_filename_format template substitution fails.
     std::string path = this->output_filepath(path_template);
     std::string message;
-    // #ys_FIXME_localization
     if (! path.empty() && preview_data == nullptr) {
         // Only show the path if preview_data is not set -> running from command line.
         message = L("Exporting G-code");
