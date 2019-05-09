@@ -749,10 +749,10 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
              * and draw user's attention to the application restarting after a language change
              */
             wxMessageDialog dialog(nullptr,
-                _(L("Application will be restarted after language change.")) + "\n" +
-                _(L("3D-Scene will be cleaned.")) + "\n\n" +
-                _(L("Please, check your changes before.")),
-                _(L("Attention!")),
+                _(L("Switching the language will trigger application restart.\n"
+                    "You will lose all your unsaved data (content of the plater, modified presets).")) + "\n\n" +
+                _(L("Do you want to proceed?")),
+                wxString(SLIC3R_APP_NAME) + " - " + _(L("Language selection")),
                 wxICON_QUESTION | wxOK | wxCANCEL);
             if ( dialog.ShowModal() == wxID_CANCEL)
                 return;
