@@ -1081,7 +1081,7 @@ void Sidebar::show_sliced_info_sizer(const bool show)
                     info_text += wxString::Format("\n%s", ps.estimated_normal_print_time);
                 }
                 if (ps.estimated_silent_print_time != "N/A") {
-                    new_label += wxString::Format("\n    - %s", _(L("silent mode")));
+                    new_label += wxString::Format("\n    - %s", _(L("stealth mode")));
                     info_text += wxString::Format("\n%s", ps.estimated_silent_print_time);
                 }
                 p->sliced_info->SetTextAndShow(siEstimatedTime,  info_text,      new_label);

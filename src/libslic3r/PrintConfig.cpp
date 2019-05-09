@@ -1050,8 +1050,8 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(false));
 
 	def = this->add("silent_mode", coBool);
-	def->label = L("Supports silent mode");
-	def->tooltip = L("Set silent mode for the G-code flavor");
+	def->label = L("Supports stealth mode");
+	def->tooltip = L("The firmware supports stealth mode");
     def->mode = comExpert;
 	def->set_default_value(new ConfigOptionBool(true));
 
@@ -2430,7 +2430,7 @@ void PrintConfigDef::init_sla_params()
 
     def = this->add("support_pillar_connection_mode", coEnum);
     def->label = L("Support pillar connection mode");
-    def->tooltip = L("Controls the bridge type between two neigboring pillars."
+    def->tooltip = L("Controls the bridge type between two neighboring pillars."
                      " Can be zig-zag, cross (double zig-zag) or dynamic which"
                      " will automatically switch between the first two depending"
                      " on the distance of the two pillars.");
