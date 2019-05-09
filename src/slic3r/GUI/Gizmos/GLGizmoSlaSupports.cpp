@@ -994,7 +994,7 @@ bool GLGizmoSlaSupports::on_is_selectable() const
 
 std::string GLGizmoSlaSupports::on_get_name() const
 {
-    return L("SLA Support Points [L]");
+    return (_(L("SLA Support Points")) + " [L]").ToUTF8().data();
 }
 
 void GLGizmoSlaSupports::on_set_state()

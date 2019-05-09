@@ -455,7 +455,7 @@ bool GLGizmoRotate3D::on_init()
 
 std::string GLGizmoRotate3D::on_get_name() const
 {
-    return L("Rotate [R]");
+    return (_(L("Rotate")) + " [R]").ToUTF8().data();
 }
 
 void GLGizmoRotate3D::on_start_dragging(const Selection& selection)

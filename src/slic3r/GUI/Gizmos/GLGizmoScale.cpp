@@ -48,7 +48,7 @@ bool GLGizmoScale3D::on_init()
 
 std::string GLGizmoScale3D::on_get_name() const
 {
-    return L("Scale [S]");
+    return (_(L("Scale")) + " [S]").ToUTF8().data();
 }
 
 void GLGizmoScale3D::on_start_dragging(const Selection& selection)

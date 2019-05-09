@@ -685,11 +685,11 @@ Sidebar::Sidebar(Plater *parent)
     };
 
     p->combos_filament.push_back(nullptr);
-    init_combo(&p->combo_print,         _(L("Print settings")), Preset::TYPE_PRINT,         false);
-    init_combo(&p->combos_filament[0],  _(L("Filament")),       Preset::TYPE_FILAMENT,      true);
-    init_combo(&p->combo_sla_print,     _(L("SLA print")),      Preset::TYPE_SLA_PRINT,     false);
-    init_combo(&p->combo_sla_material,  _(L("SLA material")),   Preset::TYPE_SLA_MATERIAL,  false);
-    init_combo(&p->combo_printer,       _(L("Printer")),        Preset::TYPE_PRINTER,       false);
+    init_combo(&p->combo_print,         _(L("Print settings")),     Preset::TYPE_PRINT,         false);
+    init_combo(&p->combos_filament[0],  _(L("Filament")),           Preset::TYPE_FILAMENT,      true);
+    init_combo(&p->combo_sla_print,     _(L("SLA print settings")), Preset::TYPE_SLA_PRINT,     false);
+    init_combo(&p->combo_sla_material,  _(L("SLA material")),       Preset::TYPE_SLA_MATERIAL,  false);
+    init_combo(&p->combo_printer,       _(L("Printer")),            Preset::TYPE_PRINTER,       false);
 
     const int margin_5  = int(0.5*wxGetApp().em_unit());// 5;
     const int margin_10 = 10;//int(1.5*wxGetApp().em_unit());// 15;
@@ -3071,7 +3071,7 @@ void Plater::priv::init_view_toolbar()
 #if ENABLE_SVG_ICONS
     item.icon_filename = "editor.svg";
 #endif // ENABLE_SVG_ICONS
-    item.tooltip = GUI::L_str("3D editor view") + " [" + GUI::shortkey_ctrl_prefix() + "5]";
+    item.tooltip = _utf8(L("3D editor view")) + " [" + GUI::shortkey_ctrl_prefix() + "5]";
     item.sprite_id = 0;
     item.action_callback = [this]() { if (this->q != nullptr) wxPostEvent(this->q, SimpleEvent(EVT_GLVIEWTOOLBAR_3D)); };
     item.is_toggable = false;
@@ -3082,7 +3082,7 @@ void Plater::priv::init_view_toolbar()
 #if ENABLE_SVG_ICONS
     item.icon_filename = "preview.svg";
 #endif // ENABLE_SVG_ICONS
-    item.tooltip = GUI::L_str("Preview") + " [" + GUI::shortkey_ctrl_prefix() + "6]";
+    item.tooltip = _utf8(L("Preview")) + " [" + GUI::shortkey_ctrl_prefix() + "6]";
     item.sprite_id = 1;
     item.action_callback = [this]() { if (this->q != nullptr) wxPostEvent(this->q, SimpleEvent(EVT_GLVIEWTOOLBAR_PREVIEW)); };
     item.is_toggable = false;
