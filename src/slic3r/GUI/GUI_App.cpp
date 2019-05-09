@@ -798,8 +798,8 @@ bool GUI_App::check_unsaved_changes()
         return true;
     // Ask the user.
     wxMessageDialog dialog(mainframe,
-        _(L("You have unsaved changes ")) + dirty + _(L(". Discard changes and continue anyway?")),
-        _(L("Unsaved Presets")),
+        _(L("The following presets were modified: ")) + dirty + "\n" + _(L("Discard changes and continue anyway?")),
+        wxString(SLIC3R_APP_NAME) + " - " + _(L("Unsaved Presets")),
         wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
     return dialog.ShowModal() == wxID_YES;
 }
@@ -819,7 +819,7 @@ void GUI_App::load_current_presets()
 	this->plater()->set_printer_technology(printer_technology);
     for (Tab *tab : tabs_list)
 		if (tab->supports_printer_technology(printer_technology)) {
-			if (tab->name() == "printer")
+			if (tab->type() == Preset::TYPE_PRINTER)
 				static_cast<TabPrinter*>(tab)->update_pages();
 			tab->load_current_preset();
 		}

@@ -157,7 +157,7 @@ void Tab::create_preset_tab()
 	m_undo_to_sys_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent) { on_roll_back_value(true); }));
 	m_question_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent)
 	{
-		auto dlg = new ButtonsDescription(this, &m_icon_descriptions);
+		auto dlg = new ButtonsDescription(this, m_icon_descriptions);
 		if (dlg->ShowModal() == wxID_OK) {
 			// Colors for ui "decoration"
             for (Tab *tab : wxGetApp().tabs_list) {
@@ -3062,28 +3062,28 @@ void Tab::compatible_widget_reload(PresetDependencies &deps)
 
 void Tab::fill_icon_descriptions()
 {
-	m_icon_descriptions.push_back(t_icon_description(&m_bmp_value_lock, L("LOCKED LOCK") ";" 
+	m_icon_descriptions.emplace_back(&m_bmp_value_lock, L("LOCKED LOCK"),
         // TRN Description for "LOCKED LOCK"
-		L("indicates that the settings are the same as the system values for the current option group")));
+		L("indicates that the settings are the same as the system values for the current option group"));
 
-    m_icon_descriptions.push_back(t_icon_description(&m_bmp_value_unlock, L("UNLOCKED LOCK") ";"
+    m_icon_descriptions.emplace_back(&m_bmp_value_unlock, L("UNLOCKED LOCK"),
         // TRN Description for "UNLOCKED LOCK"
 		L("indicates that some settings were changed and are not equal to the system values for "
 		"the current option group.\n"
 		"Click the UNLOCKED LOCK icon to reset all settings for current option group to "
-		"the system values.")));
+		"the system values."));
 
-    m_icon_descriptions.push_back(t_icon_description(&m_bmp_white_bullet, L("WHITE BULLET") ";"
+    m_icon_descriptions.emplace_back(&m_bmp_white_bullet, L("WHITE BULLET"),
         // TRN Description for "WHITE BULLET"
         L("for the left button: \tindicates a non-system preset,\n"
-		"for the right button: \tindicates that the settings hasn't been modified.")));
+		"for the right button: \tindicates that the settings hasn't been modified."));
 
-    m_icon_descriptions.push_back(t_icon_description(&m_bmp_value_revert, L("BACK ARROW") ";"
+    m_icon_descriptions.emplace_back(&m_bmp_value_revert, L("BACK ARROW"),
         // TRN Description for "BACK ARROW"
         L("indicates that the settings were changed and are not equal to the last saved preset for "
 		"the current option group.\n"
 		"Click the BACK ARROW icon to reset all settings for the current option group to "
-		"the last saved preset.")));
+		"the last saved preset."));
 }
 
 void Tab::set_tooltips_text()

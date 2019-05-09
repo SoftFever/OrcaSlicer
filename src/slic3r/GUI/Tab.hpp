@@ -29,15 +29,13 @@
 #include <memory>
 
 #include "BedShapeDialog.hpp"
+#include "ButtonsDescription.hpp"
 #include "Event.hpp"
 #include "wxExtensions.hpp"
 
 namespace Slic3r {
 namespace GUI {
 
-
-typedef std::pair<ScalableBitmap*, std::string>				    t_icon_description;
-typedef std::vector<std::pair<ScalableBitmap*, std::string>>    t_icon_descriptions;
 
 // Single Tab page containing a{ vsizer } of{ optgroups }
 // package Slic3r::GUI::Tab::Page;
@@ -201,7 +199,7 @@ protected:
 	std::map<std::string, int>	m_options_list;
 	int							m_opt_status_value = 0;
 
-	t_icon_descriptions	m_icon_descriptions = {};
+	std::vector<ButtonsDescription::Entry>	m_icon_descriptions = {};
 
 	bool				m_is_modified_values{ false };
 	bool				m_is_nonsys_values{ true };

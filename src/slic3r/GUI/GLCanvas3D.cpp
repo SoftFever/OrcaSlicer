@@ -795,7 +795,7 @@ bool GLCanvas3D::WarningTexture::_generate(const std::string& msg_utf8, const GL
     if (msg_utf8.empty())
         return false;
 
-    wxString msg = _(msg_utf8);//GUI::from_u8(msg_utf8);
+    wxString msg = _(msg_utf8);
 
     wxMemoryDC memDC;
 

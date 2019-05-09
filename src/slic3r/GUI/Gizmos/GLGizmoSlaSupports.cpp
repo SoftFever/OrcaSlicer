@@ -1021,7 +1021,7 @@ void GLGizmoSlaSupports::on_set_state()
                 // on OSX with the wxMessageDialog being shown several times when clicked into.
                 if (m_model_object) {
                     if (m_unsaved_changes) {
-                        wxMessageDialog dlg(GUI::wxGetApp().mainframe, _(L("Do you want to save your manually edited support points ?\n")),
+                        wxMessageDialog dlg(GUI::wxGetApp().mainframe, _(L("Do you want to save your manually edited support points?")) + "\n",
                                             _(L("Save changes?")), wxICON_QUESTION | wxYES | wxNO);
                         if (dlg.ShowModal() == wxID_YES)
                             editing_mode_apply_changes();
@@ -1202,15 +1202,15 @@ SlaGizmoHelpDialog::SlaGizmoHelpDialog()
 : wxDialog(NULL, wxID_ANY, _(L("SLA gizmo keyboard shortcuts")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
 {
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
-    const std::string &ctrl = GUI::shortkey_ctrl_prefix();
-    const std::string &alt  = GUI::shortkey_alt_prefix();
+    const wxString ctrl = GUI::shortkey_ctrl_prefix();
+    const wxString alt  = GUI::shortkey_alt_prefix();
 
 
     // fonts
     const wxFont& font = wxGetApp().small_font();
     const wxFont& bold_font = wxGetApp().bold_font();
 
-    auto note_text = new wxStaticText(this, wxID_ANY, "Note: some shortcuts work in (non)editing mode only.");
+    auto note_text = new wxStaticText(this, wxID_ANY, _(L("Note: some shortcuts work in (non)editing mode only.")));
     note_text->SetFont(font);
 
     auto vsizer    = new wxBoxSizer(wxVERTICAL);
@@ -1227,22 +1227,22 @@ SlaGizmoHelpDialog::SlaGizmoHelpDialog()
     vsizer->Add(gridsizer);
     vsizer->AddSpacer(20);
 
-    std::vector<std::pair<std::string, wxString>> shortcuts;
-    shortcuts.push_back(std::make_pair("Left click",        _(L("Add point"))));
-    shortcuts.push_back(std::make_pair("Right click",       _(L("Remove point"))));
-    shortcuts.push_back(std::make_pair("Drag",              _(L("Move point"))));
-    shortcuts.push_back(std::make_pair(ctrl+"Left click",   _(L("Add point to selection"))));
-    shortcuts.push_back(std::make_pair(alt+"Left click",    _(L("Remove point from selection"))));
-    shortcuts.push_back(std::make_pair("Shift+drag",        _(L("Select by rectangle"))));
-    shortcuts.push_back(std::make_pair(alt+"drag",          _(L("Deselect by rectangle"))));
-    shortcuts.push_back(std::make_pair(ctrl+"A",            _(L("Select all points"))));
-    shortcuts.push_back(std::make_pair("Delete",            _(L("Remove selected points"))));
-    shortcuts.push_back(std::make_pair(ctrl+"mouse wheel",  _(L("Move clipping plane"))));
-    shortcuts.push_back(std::make_pair("R",                 _(L("Reset clipping plane"))));
-    shortcuts.push_back(std::make_pair("Enter",             _(L("Apply changes"))));
-    shortcuts.push_back(std::make_pair("Esc",               _(L("Discard changes"))));
-    shortcuts.push_back(std::make_pair("M",                 _(L("Switch to editing mode"))));
-    shortcuts.push_back(std::make_pair("A",                 _(L("Auto-generate points"))));
+    std::vector<std::pair<wxString, wxString>> shortcuts;
+    shortcuts.push_back(std::make_pair(_(L("Left click")),          _(L("Add point"))));
+    shortcuts.push_back(std::make_pair(_(L("Right click")),         _(L("Remove point"))));
+    shortcuts.push_back(std::make_pair(_(L("Drag")),                _(L("Move point"))));
+    shortcuts.push_back(std::make_pair(ctrl+_(L("Left click")),     _(L("Add point to selection"))));
+    shortcuts.push_back(std::make_pair(alt+_(L("Left click")),      _(L("Remove point from selection"))));
+    shortcuts.push_back(std::make_pair(wxString("Shift+")+_(L("Drag")), _(L("Select by rectangle"))));
+    shortcuts.push_back(std::make_pair(alt+_(L("Drag")),            _(L("Deselect by rectangle"))));
+    shortcuts.push_back(std::make_pair(ctrl+"A",                    _(L("Select all points"))));
+    shortcuts.push_back(std::make_pair("Delete",                    _(L("Remove selected points"))));
+    shortcuts.push_back(std::make_pair(ctrl+_(L("Mouse wheel")),    _(L("Move clipping plane"))));
+    shortcuts.push_back(std::make_pair("R",                         _(L("Reset clipping plane"))));
+    shortcuts.push_back(std::make_pair("Enter",                     _(L("Apply changes"))));
+    shortcuts.push_back(std::make_pair("Esc",                       _(L("Discard changes"))));
+    shortcuts.push_back(std::make_pair("M",                         _(L("Switch to editing mode"))));
+    shortcuts.push_back(std::make_pair("A",                         _(L("Auto-generate points"))));
 
     for (const auto& pair : shortcuts) {
         auto shortcut = new wxStaticText(this, wxID_ANY, pair.first);
