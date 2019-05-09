@@ -2594,7 +2594,7 @@ void PrintConfigDef::init_sla_params()
     def->category = L("Pad");
     def->tooltip = L("The slope of the pad wall relative to the bed plane. "
                      "90 degrees means straight walls.");
-    def->sidetext = L("degrees");
+    def->sidetext = L("°");
     def->min = 45;
     def->max = 90;
     def->mode = comAdvanced;
