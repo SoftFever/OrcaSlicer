@@ -404,7 +404,7 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent
     }
     else if (type == itInstance) {
         m_idx = parent->GetChildCount();
-        m_name = wxString::Format(_(L("Instance_%d")), m_idx + 1);
+        m_name = wxString::Format(_(L("Instance %d")), m_idx + 1);
 
         set_action_icon();
     }
@@ -464,6 +464,14 @@ void ObjectDataViewModelNode::msw_rescale()
 
     if (!m_opt_categories.empty())
         update_settings_digest_bitmaps();
+}
+
+void ObjectDataViewModelNode::SetIdx(const int& idx)
+{
+    m_idx = idx;
+    // update name if this node is instance
+    if (m_type == itInstance)
+        m_name = wxString::Format(_(L("Instance %d")), m_idx + 1);
 }
 
 // *****************************************************************************

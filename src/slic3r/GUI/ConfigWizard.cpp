@@ -291,7 +291,13 @@ void ConfigWizardPage::append_spacer(int space)
 // Wizard pages
 
 PageWelcome::PageWelcome(ConfigWizard *parent)
-    : ConfigWizardPage(parent, wxString::Format(_(L("Welcome to the %s %s")), SLIC3R_APP_NAME, ConfigWizard::name()), _(L("Welcome")))
+    : ConfigWizardPage(parent, wxString::Format(
+#ifdef __APPLE__
+            _(L("Welcome to the %s Configuration Assistant"))
+#else
+            _(L("Welcome to the %s Configuration Wizard"))
+#endif
+            , SLIC3R_APP_NAME), _(L("Welcome")))
     , cbox_reset(nullptr)
 {
     if (wizard_p()->run_reason == ConfigWizard::RR_DATA_EMPTY) {
@@ -488,7 +494,7 @@ PageFirmware::PageFirmware(ConfigWizard *parent)
     , gcode_picker(nullptr)
 {
     append_text(_(L("Choose the type of firmware used by your printer.")));
-    append_text(gcode_opt.tooltip);
+    append_text(_(gcode_opt.tooltip));
 
     wxArrayString choices;
     choices.Alloc(gcode_opt.enum_labels.size());
@@ -1175,12 +1181,12 @@ bool ConfigWizard::run(PresetBundle *preset_bundle, const PresetUpdater *updater
 const wxString& ConfigWizard::name(const bool from_menu/* = false*/)
 {
     // A different naming convention is used for the Wizard on Windows vs. OSX & GTK.
-#if WIN32
-    static const wxString config_wizard_name = L("Configuration Wizard");
-    static const wxString config_wizard_name_menu = L("Configuration &Wizard");
+#if __APPLE__
+    static const wxString config_wizard_name =  _(L("Configuration Assistant"));
+    static const wxString config_wizard_name_menu = _(L("Configuration &Assistant"));
 #else
-    static const wxString config_wizard_name =  L("Configuration Assistant");
-    static const wxString config_wizard_name_menu = L("Configuration &Assistant");
+    static const wxString config_wizard_name = _(L("Configuration Wizard"));
+    static const wxString config_wizard_name_menu = _(L("Configuration &Wizard"));
 #endif
     return from_menu ? config_wizard_name_menu : config_wizard_name;
 }

@@ -765,6 +765,7 @@ FirmwareDialog::FirmwareDialog(wxWindow *parent) :
 	auto *label_hex_picker = new wxStaticText(panel, wxID_ANY, _(L("Firmware image:")));
 	p->hex_picker = new wxFilePickerCtrl(panel, wxID_ANY, wxEmptyString, wxFileSelectorPromptStr,
 		"Hex files (*.hex)|*.hex|All files|*.*");
+	p->hex_picker->GetPickerCtrl()->SetLabelText(_(L("Browse")));
 
 	auto *label_port_picker = new wxStaticText(panel, wxID_ANY, _(L("Serial port:")));
 	p->port_picker = new wxComboBox(panel, wxID_ANY);

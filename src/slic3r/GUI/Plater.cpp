@@ -2101,7 +2101,7 @@ void Plater::priv::arrange()
         event.SetString(msg);
         wxQueueEvent(this->q, event.Clone()); */
         statusbar()->set_progress(count - st);
-        statusbar()->set_status_text(msg);
+        statusbar()->set_status_text(_(msg));
 
         // ok, this is dangerous, but we are protected by the flag
         // 'arranging' and the arrange button is also disabled.

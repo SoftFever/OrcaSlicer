@@ -312,15 +312,8 @@ public:
     const wxBitmap& GetBitmap() const               { return m_bmp; }
     const wxString& GetName() const                 { return m_name; }
     ItemType        GetType() const                 { return m_type; }
-
-	void SetIdx(const int& idx) {
-		m_idx = idx;
-        // update name if this node is instance
-        if (m_type == itInstance)
-            m_name = wxString::Format("Instance_%d", m_idx + 1);
-	}
-
-	int             GetIdx() const                   { return m_idx; }
+	void			SetIdx(const int& idx);
+	int             GetIdx() const                  { return m_idx; }
 
 	// use this function only for childrens
 	void AssignAllVal(ObjectDataViewModelNode& from_node)
