@@ -2741,7 +2741,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     // propagate event through callback
                     if (curr_idxs != m_selection.get_volume_idxs())
                     {
-                        m_gizmos.refresh_on_off_state(m_selection);
+                        if (m_selection.is_empty())
+                            m_gizmos.reset_all_states();
+                        else
+                            m_gizmos.refresh_on_off_state(m_selection);
+
                         m_gizmos.update_data(*this);
                         post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
                         m_dirty = true;
@@ -5719,7 +5723,11 @@ void GLCanvas3D::_update_selection_from_hover()
             m_selection.remove(i);
     }
 
-    m_gizmos.refresh_on_off_state(m_selection);
+    if (m_selection.is_empty())
+        m_gizmos.reset_all_states();
+    else
+        m_gizmos.refresh_on_off_state(m_selection);
+
     m_gizmos.update_data(*this);
     post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
     m_dirty = true;
