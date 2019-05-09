@@ -1019,7 +1019,7 @@ void StaticText::BUILD()
     if (m_opt.height >= 0) size.SetHeight(m_opt.height*m_em_unit);
     if (m_opt.width >= 0) size.SetWidth(m_opt.width*m_em_unit);
 
-    const wxString legend(m_opt.get_default_value<ConfigOptionString>()->value);
+    const wxString legend = wxString::FromUTF8(m_opt.get_default_value<ConfigOptionString>()->value.c_str());
     auto temp = new wxStaticText(m_parent, wxID_ANY, legend, wxDefaultPosition, size, wxST_ELLIPSIZE_MIDDLE);
 	temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 	temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
