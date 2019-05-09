@@ -39,6 +39,15 @@ FreqSettingsBundle FREQ_SETTINGS_BUNDLE_SLA =
     { L("Pad and Support")      , { "supports_enable", "pad_enable" } }
 };
 
+// Note: id accords to type of the sub-object (adding volume), so sequence of the menu items is important
+std::vector<std::pair<std::string, std::string>> ADD_VOLUME_MENU_ITEMS = { 
+//     menu_item Name            menu_item bitmap name
+    {L("Add part"),              "add_part" },           // ~ModelVolumeType::MODEL_PART
+    {L("Add modifier"),          "add_modifier"},        // ~ModelVolumeType::PARAMETER_MODIFIER
+    {L("Add support enforcer"),  "support_enforcer"},    // ~ModelVolumeType::SUPPORT_ENFORCER
+    {L("Add support blocker"),   "support_blocker"}      // ~ModelVolumeType::SUPPORT_BLOCKER
+};
+
 static PrinterTechnology printer_technology()
 {
     return wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology();
@@ -467,10 +476,10 @@ void ObjectList::update_name_in_model(const wxDataViewItem& item) const
 
 void ObjectList::init_icons()
 {
-    m_bmp_solidmesh         = ScalableBitmap(nullptr, "add_part");        // Add part 
-    m_bmp_modifiermesh      = ScalableBitmap(nullptr, "add_modifier");    // Add modifier 
-    m_bmp_support_enforcer  = ScalableBitmap(nullptr, "support_enforcer");// Add support enforcer 
-    m_bmp_support_blocker   = ScalableBitmap(nullptr, "support_blocker"); // Add support blocker  
+    m_bmp_solidmesh         = ScalableBitmap(nullptr, ADD_VOLUME_MENU_ITEMS[int(ModelVolumeType::MODEL_PART)        ].second);
+    m_bmp_modifiermesh      = ScalableBitmap(nullptr, ADD_VOLUME_MENU_ITEMS[int(ModelVolumeType::PARAMETER_MODIFIER)].second);
+    m_bmp_support_enforcer  = ScalableBitmap(nullptr, ADD_VOLUME_MENU_ITEMS[int(ModelVolumeType::SUPPORT_ENFORCER)  ].second);
+    m_bmp_support_blocker   = ScalableBitmap(nullptr, ADD_VOLUME_MENU_ITEMS[int(ModelVolumeType::SUPPORT_BLOCKER)   ].second); 
 
     m_bmp_vector.reserve(4); // bitmaps for different types of parts 
     m_bmp_vector.push_back(&m_bmp_solidmesh.bmp());         
@@ -487,19 +496,15 @@ void ObjectList::init_icons()
     // Set warning bitmap for the model
     m_objects_model->SetWarningBitmap(&m_bmp_manifold_warning.bmp());
 
-    // init bitmap for "Split to sub-objects" context menu
-    m_bmp_split             = ScalableBitmap(nullptr, "split_parts_SMALL");
-
     // init bitmap for "Add Settings" context menu
     m_bmp_cog               = ScalableBitmap(nullptr, "cog");
 }
 
-void ObjectList::rescale_icons()
+void ObjectList::msw_rescale_icons()
 {
     m_bmp_vector.clear();
     m_bmp_vector.reserve(4); // bitmaps for different types of parts 
-    for (ScalableBitmap* bitmap : std::vector<ScalableBitmap*> {
-                                    &m_bmp_solidmesh,            // Add part
+    for (ScalableBitmap* bitmap : { &m_bmp_solidmesh,            // Add part
                                     &m_bmp_modifiermesh,         // Add modifier
                                     &m_bmp_support_enforcer,     // Add support enforcer
                                     &m_bmp_support_blocker })    // Add support blocker                                                           
@@ -514,7 +519,6 @@ void ObjectList::rescale_icons()
     // Set warning bitmap for the model
     m_objects_model->SetWarningBitmap(&m_bmp_manifold_warning.bmp());
 
-    m_bmp_split.msw_rescale();
     m_bmp_cog.msw_rescale();
 
 
@@ -1061,72 +1065,62 @@ void ObjectList::update_settings_item()
     }
 }
 
-void ObjectList::append_menu_item_add_generic(wxMenuItem* menu, const ModelVolumeType type) {
+wxMenu* ObjectList::append_submenu_add_generic(wxMenu* menu, const ModelVolumeType type) {
     auto sub_menu = new wxMenu;
 
     if (wxGetApp().get_mode() == comExpert) {
     append_menu_item(sub_menu, wxID_ANY, _(L("Load")) + " " + dots, "",
-        [this, type](wxCommandEvent&) { load_subobject(type); }, "", menu->GetMenu());
+        [this, type](wxCommandEvent&) { load_subobject(type); }, "", menu);
     sub_menu->AppendSeparator();
     }
 
     for (auto& item : { L("Box"), L("Cylinder"), L("Sphere"), L("Slab") }) {
         append_menu_item(sub_menu, wxID_ANY, _(item), "",
-            [this, type, item](wxCommandEvent&) { load_generic_subobject(item, type); }, "", menu->GetMenu());
+            [this, type, item](wxCommandEvent&) { load_generic_subobject(item, type); }, "", menu);
     }
 
-    menu->SetSubMenu(sub_menu);
+    return sub_menu;
 }
 
 void ObjectList::append_menu_items_add_volume(wxMenu* menu)
 {
-    // Note: id accords to type of the sub-object, so sequence of the menu items is important
-    std::vector<std::string> menu_object_types_items = {L("Add part"),              // ~ModelVolumeType::MODEL_PART
-                                                        L("Add modifier"),          // ~ModelVolumeType::PARAMETER_MODIFIER
-                                                        L("Add support enforcer"),  // ~ModelVolumeType::SUPPORT_ENFORCER
-                                                        L("Add support blocker") }; // ~ModelVolumeType::SUPPORT_BLOCKER
-
     // Update "add" items(delete old & create new)  settings popupmenu
-    for (auto& item : menu_object_types_items){
-        const auto settings_id = menu->FindItem(_(item));
+    for (auto& item : ADD_VOLUME_MENU_ITEMS){
+        const auto settings_id = menu->FindItem(_(item.first));
         if (settings_id != wxNOT_FOUND)
             menu->Destroy(settings_id);
     }
 
     const ConfigOptionMode mode = wxGetApp().get_mode();
 
-    if (mode == comAdvanced)
-    {
-        append_menu_item(menu, wxID_ANY, _(L("Add part")), "",
-			[this](wxCommandEvent&) { load_subobject(ModelVolumeType::MODEL_PART); }, *m_bmp_vector[int(ModelVolumeType::MODEL_PART)]);
+    if (mode == comAdvanced) {
+        append_menu_item(menu, wxID_ANY, _(ADD_VOLUME_MENU_ITEMS[int(ModelVolumeType::MODEL_PART)].first), "",
+            [this](wxCommandEvent&) { load_subobject(ModelVolumeType::MODEL_PART); }, ADD_VOLUME_MENU_ITEMS[int(ModelVolumeType::MODEL_PART)].second);
     }
     if (mode == comSimple) {
-        append_menu_item(menu, wxID_ANY, _(L("Add support enforcer")), "",
+        append_menu_item(menu, wxID_ANY, _(ADD_VOLUME_MENU_ITEMS[int(ModelVolumeType::SUPPORT_ENFORCER)].first), "",
             [this](wxCommandEvent&) { load_generic_subobject(L("Box"), ModelVolumeType::SUPPORT_ENFORCER); },
-            *m_bmp_vector[int(ModelVolumeType::SUPPORT_ENFORCER)]);
-        append_menu_item(menu, wxID_ANY, _(L("Add support blocker")), "",
+            ADD_VOLUME_MENU_ITEMS[int(ModelVolumeType::SUPPORT_ENFORCER)].second);
+        append_menu_item(menu, wxID_ANY, _(ADD_VOLUME_MENU_ITEMS[int(ModelVolumeType::SUPPORT_BLOCKER)].first), "",
             [this](wxCommandEvent&) { load_generic_subobject(L("Box"), ModelVolumeType::SUPPORT_BLOCKER); },
-            *m_bmp_vector[int(ModelVolumeType::SUPPORT_BLOCKER)]);
+            ADD_VOLUME_MENU_ITEMS[int(ModelVolumeType::SUPPORT_BLOCKER)].second);
 
         return;
     }
     
-    for (int type = mode == comExpert ? 0 : 1 ; type < menu_object_types_items.size(); type++)
+    for (int type = mode == comExpert ? 0 : 1 ; type < ADD_VOLUME_MENU_ITEMS.size(); type++)
     {
-        auto& item = menu_object_types_items[type];
+        auto& item = ADD_VOLUME_MENU_ITEMS[type];
 
-        auto menu_item = new wxMenuItem(menu, wxID_ANY, _(item));
-        menu_item->SetBitmap(*m_bmp_vector[type]);
-        append_menu_item_add_generic(menu_item, ModelVolumeType(type));
-
-        menu->Append(menu_item);
+        wxMenu* sub_menu = append_submenu_add_generic(menu, ModelVolumeType(type));
+        append_submenu(menu, sub_menu, wxID_ANY, _(item.first), "", item.second);
     }
 }
 
 wxMenuItem* ObjectList::append_menu_item_split(wxMenu* menu) 
 {
     return append_menu_item(menu, wxID_ANY, _(L("Split to parts")), "",
-        [this](wxCommandEvent&) { split(); }, m_bmp_split.bmp(), menu);
+        [this](wxCommandEvent&) { split(); }, "split_parts_SMALL", menu);
 }
 
 wxMenuItem* ObjectList::append_menu_item_settings(wxMenu* menu_) 
@@ -2796,10 +2790,17 @@ void ObjectList::msw_rescale()
     GetColumn(2)->SetWidth( 2 * em);
 
     // rescale all icons, used by ObjectList
-    rescale_icons();
+    msw_rescale_icons();
 
-    // rescale/update existingitems with bitmaps
+    // rescale/update existing items with bitmaps
     m_objects_model->Rescale();
+
+    // rescale menus
+    for (MenuWithSeparators* menu : { &m_menu_object, 
+                                      &m_menu_part, 
+                                      &m_menu_sla_object, 
+                                      &m_menu_instance })
+        msw_rescale_menu(menu);
 
     Layout();
 }

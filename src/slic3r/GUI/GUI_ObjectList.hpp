@@ -114,7 +114,6 @@ class ObjectList : public wxDataViewCtrl
     ScalableBitmap	    m_bmp_support_blocker;
     ScalableBitmap	    m_bmp_manifold_warning;
     ScalableBitmap	    m_bmp_cog;
-    ScalableBitmap	    m_bmp_split;
 
     MenuWithSeparators  m_menu_object;
     MenuWithSeparators  m_menu_part;
@@ -173,7 +172,7 @@ public:
     void                update_extruder_values_for_items(const int max_extruder);
 
     void                init_icons();
-    void                rescale_icons();
+    void                msw_rescale_icons();
 
     // Get obj_idx and vol_idx values for the selected (by default) or an adjusted item
     void                get_selected_item_indexes(int& obj_idx, int& vol_idx, const wxDataViewItem& item = wxDataViewItem(0));
@@ -195,7 +194,7 @@ public:
     void                get_freq_settings_choice(const wxString& bundle_name);
     void                update_settings_item();
 
-    void                append_menu_item_add_generic(wxMenuItem* menu, const ModelVolumeType type);
+    wxMenu*             append_submenu_add_generic(wxMenu* menu, const ModelVolumeType type);
     void                append_menu_items_add_volume(wxMenu* menu);
     wxMenuItem*         append_menu_item_split(wxMenu* menu);
     wxMenuItem*         append_menu_item_settings(wxMenu* menu);
