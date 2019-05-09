@@ -1043,6 +1043,7 @@ void StaticText::msw_rescale()
     {
         wxStaticText* field = dynamic_cast<wxStaticText*>(window);
         field->SetSize(size);
+        field->SetMinSize(size);
     }
 }
 
