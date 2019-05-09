@@ -50,13 +50,18 @@ const std::array<unsigned, slaposCount>     OBJ_STEP_LEVELS =
     30,     // slaposSliceSupports,
 };
 
-const std::array<std::string, slaposCount> OBJ_STEP_LABELS =
+// Object step to status label. The labels are localized at the time of calling, thus supporting language switching.
+std::string OBJ_STEP_LABELS(size_t idx) 
 {
-    L("Slicing model"),                 // slaposObjectSlice,
-    L("Generating support points"),     // slaposSupportPoints,
-    L("Generating support tree"),       // slaposSupportTree,
-    L("Generating pad"),                // slaposBasePool,
-    L("Slicing supports"),              // slaposSliceSupports,
+    switch (idx) {
+    case slaposObjectSlice:     return L("Slicing model");
+    case slaposSupportPoints:   return L("Generating support points");
+    case slaposSupportTree:     return L("Generating support tree");
+    case slaposBasePool:        return L("Generating pad");
+    case slaposSliceSupports:   return L("Slicing supports");
+    default:;
+    }
+    assert(false); return "Out of bounds!";
 };
 
 // Should also add up to 100 (%)
@@ -66,10 +71,15 @@ const std::array<unsigned, slapsCount> PRINT_STEP_LEVELS =
     90,      // slapsRasterize
 };
 
-const std::array<std::string, slapsCount> PRINT_STEP_LABELS =
+// Print step to status label. The labels are localized at the time of calling, thus supporting language switching.
+std::string PRINT_STEP_LABELS(size_t idx)
 {
-    L("Merging slices and calculating statistics"),     // slapsStats
-    L("Rasterizing layers"),         // slapsRasterize
+    switch (idx) {
+    case slapsMergeSlicesAndEval:   return L("Merging slices and calculating statistics");
+    case slapsRasterize:            return L("Rasterizing layers");
+    default:;
+    }
+    assert(false); return "Out of bounds!";
 };
 
 }
@@ -128,7 +138,7 @@ static std::vector<SLAPrintObject::Instance> sla_instances(const ModelObject &mo
                 instances.emplace_back(
                     model_instance->id(),
                     Point::new_scale(model_instance->get_offset(X), model_instance->get_offset(Y)),
-					float(Geometry::rotation_diff_z(rotation0, model_instance->get_rotation())));
+                    float(Geometry::rotation_diff_z(rotation0, model_instance->get_rotation())));
             }
     }
     return instances;
@@ -705,7 +715,7 @@ void SLAPrint::process()
                 po.closest_slice_record(po.m_slice_index, float(bb3d.min(Z)));
 
         if(slindex_it == po.m_slice_index.end())
-			//TRN To be shown at the status bar on SLA slicing error.
+            //TRN To be shown at the status bar on SLA slicing error.
             throw std::runtime_error(L("Slicing had to be stopped "
                                        "due to an internal error."));
 
@@ -783,7 +793,7 @@ void SLAPrint::process()
                 double current = init + st * d;
                 if(std::round(m_report_status.status()) < std::round(current))
                     m_report_status(*this, current,
-                                    OBJ_STEP_LABELS[slaposSupportPoints]);
+                                    OBJ_STEP_LABELS(slaposSupportPoints));
 
             };
 
@@ -837,7 +847,7 @@ void SLAPrint::process()
             double current = init + st * d;
             if(std::round(m_report_status.status()) < std::round(current))
                 m_report_status(*this, current,
-                                OBJ_STEP_LABELS[slaposSupportTree]);
+                                OBJ_STEP_LABELS(slaposSupportTree));
 
         };
 
@@ -1347,7 +1357,7 @@ void SLAPrint::process()
                 double st = std::round(dstatus);
                 if(st > pst) {
                     m_report_status(*this, st,
-                                    PRINT_STEP_LABELS[slapsRasterize]);
+                                    PRINT_STEP_LABELS(slapsRasterize));
                     pst = st;
                 }
             }
@@ -1413,7 +1423,7 @@ void SLAPrint::process()
                 st += incr * ostepd;
 
                 if(po->m_stepmask[currentstep] && po->set_started(currentstep)) {
-                    m_report_status(*this, st, OBJ_STEP_LABELS[currentstep]);
+                    m_report_status(*this, st, OBJ_STEP_LABELS(currentstep));
                     pobj_program[currentstep](*po);
                     throw_if_canceled();
                     po->set_done(currentstep);
@@ -1440,7 +1450,7 @@ void SLAPrint::process()
 
         if(m_stepmask[currentstep] && set_started(currentstep))
         {
-            m_report_status(*this, st, PRINT_STEP_LABELS[currentstep]);
+            m_report_status(*this, st, PRINT_STEP_LABELS(currentstep));
             print_program[currentstep]();
             throw_if_canceled();
             set_done(currentstep);

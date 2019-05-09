@@ -619,7 +619,11 @@ void MainFrame::quick_slice(const int qs)
 //     {
     // validate configuration
     auto config = wxGetApp().preset_bundle->full_config();
-    config.validate();
+    auto valid = config.validate();
+    if (! valid.empty()) {
+        show_error(this, valid);
+        return;
+    }
 
     // select input file
     if (!(qs & qsReslice)) {
@@ -783,8 +787,8 @@ void MainFrame::export_config()
     auto config = wxGetApp().preset_bundle->full_config();
     // Validate the cummulative configuration.
     auto valid = config.validate();
-    if (!valid.empty()) {
-//         Slic3r::GUI::catch_error(this);
+    if (! valid.empty()) {
+        show_error(this, valid);
         return;
     }
     // Ask user for the file name for the config file.

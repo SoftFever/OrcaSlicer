@@ -14,7 +14,8 @@ namespace Slic3r {
 
 //! macro used to mark string used at localization, 
 //! return same string
-#define L(s) Slic3r::I18N::translate(s)
+#define L(s) (s)
+#define _(s) Slic3r::I18N::translate(s)
 
 static void assign_printer_technology_to_unknown(t_optiondef_map &options, PrinterTechnology printer_technology)
 {
@@ -1073,9 +1074,17 @@ void PrintConfigDef::init_fff_params()
 			std::string axis_upper = boost::to_upper_copy<std::string>(axis.name);
 			// Add the machine feedrate limits for XYZE axes. (M203)
 			def = this->add("machine_max_feedrate_" + axis.name, coFloats);
-			def->full_label = (boost::format(L("Maximum feedrate %1%")) % axis_upper).str();
+			def->full_label = (boost::format("Maximum feedrate %1%") % axis_upper).str();
+			L("Maximum feedrate x");
+			L("Maximum feedrate y");
+			L("Maximum feedrate z");
+			L("Maximum feedrate e");
 			def->category = L("Machine limits");
-			def->tooltip  = (boost::format(L("Maximum feedrate of the %1% axis")) % axis_upper).str();
+			def->tooltip  = (boost::format("Maximum feedrate of the %1% axis") % axis_upper).str();
+			L("Maximum feedrate of the x axis");
+			L("Maximum feedrate of the y axis");
+			L("Maximum feedrate of the z axis");
+			L("Maximum feedrate of the e axis");
 			def->sidetext = L("mm/s");
 			def->min = 0;
 			def->width = machine_limits_opt_width;
@@ -1083,9 +1092,13 @@ void PrintConfigDef::init_fff_params()
 			def->set_default_value(new ConfigOptionFloats(axis.max_feedrate));
 			// Add the machine acceleration limits for XYZE axes (M201)
 			def = this->add("machine_max_acceleration_" + axis.name, coFloats);
-			def->full_label = (boost::format(L("Maximum acceleration %1%")) % axis_upper).str();
+			def->full_label = (boost::format("Maximum acceleration %1%") % axis_upper).str();
+			L("Maximum acceleration x");
+			L("Maximum acceleration y");
+			L("Maximum acceleration z");
+			L("Maximum acceleration e");
 			def->category = L("Machine limits");
-			def->tooltip  = (boost::format(L("Maximum acceleration of the %1% axis")) % axis_upper).str();
+			def->tooltip  = (boost::format("Maximum acceleration of the %1% axis") % axis_upper).str();
 			def->sidetext = L("mm/s²");
 			def->min = 0;
 			def->width = machine_limits_opt_width;
@@ -1093,9 +1106,17 @@ void PrintConfigDef::init_fff_params()
 			def->set_default_value(new ConfigOptionFloats(axis.max_acceleration));
 			// Add the machine jerk limits for XYZE axes (M205)
 			def = this->add("machine_max_jerk_" + axis.name, coFloats);
-			def->full_label = (boost::format(L("Maximum jerk %1%")) % axis_upper).str();
+			def->full_label = (boost::format("Maximum jerk %1%") % axis_upper).str();
+			L("Maximum jerk x");
+			L("Maximum jerk y");
+			L("Maximum jerk z");
+			L("Maximum jerk e");
 			def->category = L("Machine limits");
-			def->tooltip  = (boost::format(L("Maximum jerk of the %1% axis")) % axis_upper).str();
+			def->tooltip  = (boost::format("Maximum jerk of the %1% axis") % axis_upper).str();
+			L("Maximum jerk of the x axis");
+			L("Maximum jerk of the y axis");
+			L("Maximum jerk of the z axis");
+			L("Maximum jerk of the e axis");
 			def->sidetext = L("mm/s");
 			def->min = 0;
 			def->width = machine_limits_opt_width;
@@ -1108,7 +1129,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("machine_min_extruding_rate", coFloats);
     def->full_label = L("Minimum feedrate when extruding");
     def->category = L("Machine limits");
-    def->tooltip = L("Minimum feedrate when extruding") + " (M205 S)";
+    def->tooltip = L("Minimum feedrate when extruding (M205 S)");
     def->sidetext = L("mm/s");
     def->min = 0;
 	def->width = machine_limits_opt_width;
@@ -1119,7 +1140,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("machine_min_travel_rate", coFloats);
     def->full_label = L("Minimum travel feedrate");
     def->category = L("Machine limits");
-    def->tooltip = L("Minimum travel feedrate") + " (M205 T)";
+    def->tooltip = L("Minimum travel feedrate (M205 T)");
     def->sidetext = L("mm/s");
     def->min = 0;
 	def->width = machine_limits_opt_width;
@@ -1130,7 +1151,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("machine_max_acceleration_extruding", coFloats);
     def->full_label = L("Maximum acceleration when extruding");
     def->category = L("Machine limits");
-    def->tooltip = L("Maximum acceleration when extruding") + " (M204 S)";
+    def->tooltip = L("Maximum acceleration when extruding (M204 S)");
     def->sidetext = L("mm/s²");
     def->min = 0;
 	def->width = machine_limits_opt_width;
@@ -1141,7 +1162,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("machine_max_acceleration_retracting", coFloats);
     def->full_label = L("Maximum acceleration when retracting");
     def->category = L("Machine limits");
-    def->tooltip = L("Maximum acceleration when retracting") + " (M204 T)";
+    def->tooltip = L("Maximum acceleration when retracting (M204 T)");
     def->sidetext = L("mm/s²");
     def->min = 0;
 	def->width = machine_limits_opt_width;
@@ -1829,8 +1850,8 @@ void PrintConfigDef::init_fff_params()
 //    def->min = 0;
     def->enum_values.push_back("0");
     def->enum_values.push_back("0.2");
-	def->enum_labels.push_back((boost::format("0 (%1%)") % L("soluble")).str());
-	def->enum_labels.push_back((boost::format("0.2 (%1%)") % L("detachable")).str());
+	def->enum_labels.push_back(L("0 (soluble)"));
+	def->enum_labels.push_back(L("0.2 (detachable)"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.2));
 
@@ -2736,6 +2757,7 @@ double PrintConfig::min_object_distance(const ConfigBase *config)
         : duplicate_distance;
 }
 
+//FIXME localize this function.
 std::string FullPrintConfig::validate()
 {
     // --layer-height
