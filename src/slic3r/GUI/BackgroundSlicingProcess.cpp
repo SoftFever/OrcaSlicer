@@ -102,7 +102,6 @@ void BackgroundSlicingProcess::process_sla()
         if (! m_export_path.empty()) {
         	const std::string export_path = m_sla_print->print_statistics().finalize_output_path(m_export_path);
             m_sla_print->export_raster(export_path);
-            // #ys_FIXME_localization  
             m_print->set_status(100, (boost::format(_(L("Masked SLA file exported to %1%")).ToUTF8().data()) % export_path).str());
         } else if (! m_upload_job.empty()) {
             prepare_upload();
@@ -407,7 +406,6 @@ void BackgroundSlicingProcess::prepare_upload()
         m_sla_print->export_raster(source_path.string(), m_upload_job.upload_data.upload_path.string());
 	}
 
-    // #ys_FIXME_localization  
 	m_print->set_status(100, (boost::format(_(L("Scheduling upload to `%1%`. See Window -> Print Host Upload Queue")).ToUTF8().data()) % m_upload_job.printhost->get_host()).str());
 
 	m_upload_job.upload_data.source_path = std::move(source_path);

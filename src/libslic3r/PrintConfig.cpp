@@ -2558,7 +2558,7 @@ void PrintConfigDef::init_sla_params()
     def->tooltip = L("Defines the pad cavity depth. Set to zero to disable the cavity. "
                      "Be careful when enabling this feature, as some resins may "
                      "produce an extreme suction effect inside the cavity, "
-                     "which makes pealing the print off the vat foil difficult.");
+                     "which makes peeling the print off the vat foil difficult.");
     def->category = L("Pad");
 //     def->tooltip = L("");
     def->sidetext = L("mm");
