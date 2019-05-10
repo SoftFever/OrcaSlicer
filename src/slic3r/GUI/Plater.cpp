@@ -1314,6 +1314,7 @@ struct Plater::priv
     void on_object_select(SimpleEvent&);
     void on_right_click(Vec2dEvent&);
     void on_wipetower_moved(Vec3dEvent&);
+    void on_wipetower_rotated(Vec3dEvent&);
     void on_update_geometry(Vec3dsEvent<2>&);
     void on_3dcanvas_mouse_dragging_finished(SimpleEvent&);
 
@@ -1448,6 +1449,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         { if (evt.data == 1) this->q->increase_instances(); else if (this->can_decrease_instances()) this->q->decrease_instances(); });
     view3D_canvas->Bind(EVT_GLCANVAS_INSTANCE_MOVED, [this](SimpleEvent&) { update(); });
     view3D_canvas->Bind(EVT_GLCANVAS_WIPETOWER_MOVED, &priv::on_wipetower_moved, this);
+    view3D_canvas->Bind(EVT_GLCANVAS_WIPETOWER_ROTATED, &priv::on_wipetower_rotated, this);
     view3D_canvas->Bind(EVT_GLCANVAS_INSTANCE_ROTATED, [this](SimpleEvent&) { update(); });
     view3D_canvas->Bind(EVT_GLCANVAS_INSTANCE_SCALED, [this](SimpleEvent&) { update(); });
     view3D_canvas->Bind(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, [this](Event<bool> &evt) { this->sidebar->enable_buttons(evt.data); });
@@ -1455,6 +1457,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     view3D_canvas->Bind(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, &priv::on_3dcanvas_mouse_dragging_finished, this);
     view3D_canvas->Bind(EVT_GLCANVAS_TAB, [this](SimpleEvent&) { select_next_view_3D(); });
     view3D_canvas->Bind(EVT_GLCANVAS_RESETGIZMOS, [this](SimpleEvent&) { reset_all_gizmos(); });
+
     // 3DScene/Toolbar:
     view3D_canvas->Bind(EVT_GLTOOLBAR_ADD, &priv::on_action_add, this);
     view3D_canvas->Bind(EVT_GLTOOLBAR_DELETE, [q](SimpleEvent&) { q->remove_selected(); });
@@ -1877,7 +1880,13 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
     Polyline bed; bed.points.reserve(bedpoints.size());
     for(auto& v : bedpoints) bed.append(Point::new_scale(v(0), v(1)));
 
-    arr::find_new_position(model, new_instances, min_obj_distance, bed);
+    arr::WipeTowerInfo wti = view3D->get_canvas3d()->get_wipe_tower_info();
+
+    arr::find_new_position(model, new_instances, min_obj_distance, bed, wti);
+
+    // it remains to move the wipe tower:
+    view3D->get_canvas3d()->arrange_wipe_tower(wti);
+
 #endif /* AUTOPLACEMENT_ON_LOAD */
 
     if (scaled_down) {
@@ -2134,6 +2143,8 @@ void Plater::priv::arrange()
 
     statusfn(0, arrangestr);
 
+    arr::WipeTowerInfo wti = view3D->get_canvas3d()->get_wipe_tower_info();
+
     try {
         arr::BedShapeHint hint;
 
@@ -2141,6 +2152,7 @@ void Plater::priv::arrange()
         hint.type = arr::BedShapeType::WHO_KNOWS;
 
         arr::arrange(model,
+                     wti,
                      min_obj_distance,
                      bed,
                      hint,
@@ -2151,6 +2163,9 @@ void Plater::priv::arrange()
         GUI::show_error(this->q, L("Could not arrange model objects! "
                                    "Some geometries may be invalid."));
     }
+
+    // it remains to move the wipe tower:
+    view3D->get_canvas3d()->arrange_wipe_tower(wti);
 
     statusfn(0, L("Arranging done."));
     statusbar()->set_range(prev_range);
@@ -2254,7 +2269,8 @@ void Plater::priv::sla_optimize_rotation() {
         oi->set_rotation(rt);
     }
 
-    arr::find_new_position(model, o->instances, coord_t(mindist/SCALING_FACTOR), bed);
+    arr::WipeTowerInfo wti; // useless in SLA context
+    arr::find_new_position(model, o->instances, coord_t(mindist/SCALING_FACTOR), bed, wti);
 
     // Correct the z offset of the object which was corrupted be the rotation
     o->ensure_on_bed();
@@ -2859,6 +2875,15 @@ void Plater::priv::on_wipetower_moved(Vec3dEvent &evt)
     DynamicPrintConfig cfg;
     cfg.opt<ConfigOptionFloat>("wipe_tower_x", true)->value = evt.data(0);
     cfg.opt<ConfigOptionFloat>("wipe_tower_y", true)->value = evt.data(1);
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->load_config(cfg);
+}
+
+void Plater::priv::on_wipetower_rotated(Vec3dEvent& evt)
+{
+    DynamicPrintConfig cfg;
+    cfg.opt<ConfigOptionFloat>("wipe_tower_x", true)->value = evt.data(0);
+    cfg.opt<ConfigOptionFloat>("wipe_tower_y", true)->value = evt.data(1);
+    cfg.opt<ConfigOptionFloat>("wipe_tower_rotation_angle", true)->value = Geometry::rad2deg(evt.data(2));
     wxGetApp().get_tab(Preset::TYPE_PRINT)->load_config(cfg);
 }
 
