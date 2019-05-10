@@ -58,9 +58,7 @@ protected:
 private:
     void render_grabbers_connection(unsigned int id_1, unsigned int id_2) const;
 
-    void do_scale_x(const UpdateData& data);
-    void do_scale_y(const UpdateData& data);
-    void do_scale_z(const UpdateData& data);
+    void do_scale_along_axis(Axis axis, const UpdateData& data);
     void do_scale_uniform(const UpdateData& data);
 
     double calc_ratio(const UpdateData& data) const;

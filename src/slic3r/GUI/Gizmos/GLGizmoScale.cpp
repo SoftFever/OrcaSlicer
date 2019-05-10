@@ -74,11 +74,11 @@ void GLGizmoScale3D::on_start_dragging(const Selection& selection)
 void GLGizmoScale3D::on_update(const UpdateData& data, const Selection& selection)
 {
     if ((m_hover_id == 0) || (m_hover_id == 1))
-        do_scale_x(data);
+        do_scale_along_axis(X, data);
     else if ((m_hover_id == 2) || (m_hover_id == 3))
-        do_scale_y(data);
+        do_scale_along_axis(Y, data);
     else if ((m_hover_id == 4) || (m_hover_id == 5))
-        do_scale_z(data);
+        do_scale_along_axis(Z, data);
     else if (m_hover_id >= 6)
         do_scale_uniform(data);
 }
@@ -306,50 +306,26 @@ void GLGizmoScale3D::render_grabbers_connection(unsigned int id_1, unsigned int 
     }
 }
 
-void GLGizmoScale3D::do_scale_x(const UpdateData& data)
+void GLGizmoScale3D::do_scale_along_axis(Axis axis, const UpdateData& data)
 {
     double ratio = calc_ratio(data);
     if (ratio > 0.0)
     {
-        m_scale(0) = m_starting.scale(0) * ratio;
+        m_scale(axis) = m_starting.scale(axis) * ratio;
         if (m_starting.ctrl_down)
         {
-            double local_offset = 0.5 * (m_scale(0) - m_starting.scale(0)) * m_starting.box.size()(0);
-            Vec3d local_offset_vec = Vec3d((m_hover_id == 0) ? -local_offset : local_offset, 0.0, 0.0);
-            m_offset = m_offsets_transform * local_offset_vec;
-        }
-        else
-            m_offset = Vec3d::Zero();
-    }
-}
+            double local_offset = 0.5 * (m_scale(axis) - m_starting.scale(axis)) * m_starting.box.size()(axis);
+            if (m_hover_id == 2 * axis)
+                local_offset *= -1.0;
 
-void GLGizmoScale3D::do_scale_y(const UpdateData& data)
-{
-    double ratio = calc_ratio(data);
-    if (ratio > 0.0)
-    {
-        m_scale(1) = m_starting.scale(1) * ratio;
-        if (m_starting.ctrl_down)
-        {
-            double local_offset = 0.5 * (m_scale(1) - m_starting.scale(1)) * m_starting.box.size()(1);
-            Vec3d local_offset_vec = Vec3d(0.0, (m_hover_id == 2) ? -local_offset : local_offset, 0.0);
-            m_offset = m_offsets_transform * local_offset_vec;
-        }
-        else
-            m_offset = Vec3d::Zero();
-    }
-}
+            Vec3d local_offset_vec;
+            switch (axis)
+            {
+            case X: { local_offset_vec = local_offset * Vec3d::UnitX(); break; }
+            case Y: { local_offset_vec = local_offset * Vec3d::UnitY(); break; }
+            case Z: { local_offset_vec = local_offset * Vec3d::UnitZ(); break; }
+            }
 
-void GLGizmoScale3D::do_scale_z(const UpdateData& data)
-{
-    double ratio = calc_ratio(data);
-    if (ratio > 0.0)
-    {
-        m_scale(2) = m_starting.scale(2) * ratio;
-        if (m_starting.ctrl_down)
-        {
-            double local_offset = 0.5 * (m_scale(2) - m_starting.scale(2)) * m_starting.box.size()(2);
-            Vec3d local_offset_vec = Vec3d(0.0, 0.0, (m_hover_id == 4) ? -local_offset : local_offset);
             m_offset = m_offsets_transform * local_offset_vec;
         }
         else
