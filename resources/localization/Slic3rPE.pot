@@ -2161,8 +2161,13 @@ msgid "Iso View"
 msgstr ""
 
 #. TRN To be shown in the main menu View->Top
+#: src/slic3r/GUI/MainFrame.cpp:527
+msgctxt "Layers"
+msgid "Top"
+msgstr ""
+
 #. TRN To be shown in Print Settings "Top solid layers"
-#: src/slic3r/GUI/MainFrame.cpp:527 src/libslic3r/PrintConfig.cpp:2068
+#: src/libslic3r/PrintConfig.cpp:2068
 msgid "Top"
 msgstr ""
 
@@ -2171,8 +2176,13 @@ msgid "Top View"
 msgstr ""
 
 #. TRN To be shown in the main menu View->Bottom
+#: src/slic3r/GUI/MainFrame.cpp:529
+msgid "Bottom"
+msgstr ""
+
 #. TRN To be shown in Print Settings "Bottom solid layers"
-#: src/slic3r/GUI/MainFrame.cpp:529 src/libslic3r/PrintConfig.cpp:150
+#: src/libslic3r/PrintConfig.cpp:150
+msgctxt "Layers"
 msgid "Bottom"
 msgstr ""
 
