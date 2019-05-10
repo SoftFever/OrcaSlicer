@@ -127,7 +127,10 @@ private:
 
 protected:
     void on_set_state() override;
-    void on_start_dragging(const Selection& selection) override;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    void on_start_dragging(const Selection& selection, const UpdateData::Keys& keys) override;
+//    void on_start_dragging(const Selection& selection) override;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     virtual void on_render_input_window(float x, float y, float bottom_limit, const Selection& selection) override;
 
     virtual std::string on_get_name() const;

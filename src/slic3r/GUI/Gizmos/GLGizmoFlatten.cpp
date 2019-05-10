@@ -37,7 +37,10 @@ bool GLGizmoFlatten::on_is_activable(const Selection& selection) const
     return selection.is_single_full_instance();
 }
 
-void GLGizmoFlatten::on_start_dragging(const Selection& selection)
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+void GLGizmoFlatten::on_start_dragging(const Selection& selection, const UpdateData::Keys& keys)
+//void GLGizmoFlatten::on_start_dragging(const Selection& selection)
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 {
     if (m_hover_id != -1)
     {

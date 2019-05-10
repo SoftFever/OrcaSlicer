@@ -51,7 +51,10 @@ std::string GLGizmoMove3D::on_get_name() const
     return (_(L("Move")) + " [M]").ToUTF8().data();
 }
 
-void GLGizmoMove3D::on_start_dragging(const Selection& selection)
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+void GLGizmoMove3D::on_start_dragging(const Selection& selection, const UpdateData::Keys& keys)
+//void GLGizmoMove3D::on_start_dragging(const Selection& selection)
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 {
     if (m_hover_id != -1)
     {
@@ -206,7 +209,10 @@ double GLGizmoMove3D::calc_projection(const UpdateData& data) const
         projection = inters_vec.dot(starting_vec.normalized());
     }
 
-    if (data.shift_down)
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    if (data.keys.shift)
+//    if (data.shift_down)
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         projection = m_snap_step * (double)std::round(projection / m_snap_step);
 
     return projection;

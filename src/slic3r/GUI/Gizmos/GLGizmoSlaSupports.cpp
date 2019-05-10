@@ -1046,7 +1046,10 @@ void GLGizmoSlaSupports::on_set_state()
 
 
 
-void GLGizmoSlaSupports::on_start_dragging(const Selection& selection)
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+void GLGizmoSlaSupports::on_start_dragging(const Selection& selection, const UpdateData::Keys& keys)
+//void GLGizmoSlaSupports::on_start_dragging(const Selection& selection)
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 {
     if (m_hover_id != -1) {
         select_point(NoPoints);

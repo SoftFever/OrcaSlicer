@@ -24,6 +24,9 @@ static const float DEFAULT_BASE_COLOR[3] = { 0.625f, 0.625f, 0.625f };
 static const float DEFAULT_DRAG_COLOR[3] = { 1.0f, 1.0f, 1.0f };
 static const float DEFAULT_HIGHLIGHT_COLOR[3] = { 1.0f, 0.38f, 0.0f };
 static const float AXES_COLOR[3][3] = { { 0.75f, 0.0f, 0.0f }, { 0.0f, 0.75f, 0.0f }, { 0.0f, 0.0f, 0.75f } };
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+static const float CONSTRAINED_COLOR[3] = { 0.5f, 0.5f, 0.5f };
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 
 
@@ -74,12 +77,32 @@ public:
 
     struct UpdateData
     {
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        struct Keys
+        {
+            bool shift;
+            bool ctrl;
+            bool alt;
+
+            Keys() { reset(); }
+            Keys(bool shift, bool ctrl, bool alt) : shift(shift), ctrl(ctrl), alt(alt) {}
+            void reset() { shift = false; ctrl = false; alt = false; }
+        };
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
         const Linef3 mouse_ray;
         const Point* mouse_pos;
-        bool shift_down;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        Keys keys;
+//        bool shift_down;
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-        UpdateData(const Linef3& mouse_ray, const Point* mouse_pos = nullptr, bool shift_down = false)
-            : mouse_ray(mouse_ray), mouse_pos(mouse_pos), shift_down(shift_down)
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        UpdateData(const Linef3& mouse_ray, const Point* mouse_pos = nullptr, const Keys& keys = Keys())
+            : mouse_ray(mouse_ray), mouse_pos(mouse_pos), keys(keys)
+//        UpdateData(const Linef3& mouse_ray, const Point* mouse_pos = nullptr, bool shift_down = false)
+//            : mouse_ray(mouse_ray), mouse_pos(mouse_pos), shift_down(shift_down)
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         {}
     };
 
@@ -139,8 +162,12 @@ public:
     void enable_grabber(unsigned int id);
     void disable_grabber(unsigned int id);
 
-    void start_dragging(const Selection& selection);
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    void start_dragging(const Selection& selection, const UpdateData::Keys& keys);
+//    void start_dragging(const Selection& selection);
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     void stop_dragging();
+
     bool is_dragging() const { return m_dragging; }
 
     void update(const UpdateData& data, const Selection& selection);
@@ -158,7 +185,10 @@ protected:
     virtual bool on_is_selectable() const { return true; }
     virtual void on_enable_grabber(unsigned int id) {}
     virtual void on_disable_grabber(unsigned int id) {}
-    virtual void on_start_dragging(const Selection& selection) {}
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    virtual void on_start_dragging(const Selection& selection, const UpdateData::Keys& keys) {}
+//    virtual void on_start_dragging(const Selection& selection) {}
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     virtual void on_stop_dragging() {}
     virtual void on_update(const UpdateData& data, const Selection& selection) = 0;
     virtual void on_render(const Selection& selection) const = 0;
