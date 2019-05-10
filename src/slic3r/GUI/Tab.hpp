@@ -312,7 +312,7 @@ class TabPrint : public Tab
     bool is_msg_dlg_already_exist {false};
 public:
 	TabPrint(wxNotebook* parent) : 
-		Tab(parent, _(L("Print Settings")), "print") {}
+		Tab(parent, _(L("Print Settings")), L("print")) {}
 	~TabPrint() {}
 
 	ogStaticText*	m_recommended_thin_wall_thickness_description_line;
@@ -330,7 +330,7 @@ class TabFilament : public Tab
 	ogStaticText*	m_cooling_description_line;
 public:
 	TabFilament(wxNotebook* parent) : 
-		Tab(parent, _(L("Filament Settings")), "filament") {}
+		Tab(parent, _(L("Filament Settings")), L("filament")) {}
 	~TabFilament() {}
 
 	void		build() override;
@@ -363,7 +363,7 @@ public:
 
     PrinterTechnology               m_printer_technology = ptFFF;
 
-	TabPrinter(wxNotebook* parent) : Tab(parent, _(L("Printer Settings")), "printer") {}
+	TabPrinter(wxNotebook* parent) : Tab(parent, _(L("Printer Settings")), L("printer")) {}
 	~TabPrinter() {}
 
 	void		build() override;
@@ -386,7 +386,7 @@ class TabSLAMaterial : public Tab
 {
 public:
     TabSLAMaterial(wxNotebook* parent) :
-		Tab(parent, _(L("Material Settings")), "sla_material") {}
+		Tab(parent, _(L("Material Settings")), L("sla_material")) {}
     ~TabSLAMaterial() {}
 
 	void		build() override;
@@ -400,7 +400,7 @@ class TabSLAPrint : public Tab
 {
 public:
     TabSLAPrint(wxNotebook* parent) :
-        Tab(parent, _(L("Print Settings")), "sla_print") {}
+        Tab(parent, _(L("Print Settings")), L("sla_print")) {}
     ~TabSLAPrint() {}
     void		build() override;
 	void		reload_config() override;

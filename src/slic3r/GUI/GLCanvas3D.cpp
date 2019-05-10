@@ -16,6 +16,7 @@
 #include "slic3r/GUI/GLShader.hpp"
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/PresetBundle.hpp"
+#include "slic3r/GUI/Tab.hpp"
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_ObjectManipulation.hpp"
@@ -716,13 +717,13 @@ void GLCanvas3D::WarningTexture::activate(WarningTexture::Warning warning, bool 
     std::string text;
     bool red_colored = false;
     switch (m_warnings.back()) {
-        case ObjectOutside      : text = L("Detected object outside print volume"); break;
-        case ToolpathOutside    : text = L("Detected toolpath outside print volume"); break;
-        case SlaSupportsOutside : text = L("Detected support outside print volume"); break;
+        case ObjectOutside      : text = L("An object outside the print area was detected"); break;
+        case ToolpathOutside    : text = L("A toolpath outside the print area was detected"); break;
+        case SlaSupportsOutside : text = L("SLA supports outside the print area were detected"); break;
         case SomethingNotShown  : text = L("Some objects are not visible when editing supports"); break;
         case ObjectClashed: {
-            text = L("Detected object outside print volume\n"
-                     "Resolve a clash to continue slicing/export process correctly"); 
+            text = L("An object outside the print area was detected\n"
+                     "Resolve the current problem to continue slicing");
             red_colored = true;
             break;
         }
@@ -1202,6 +1203,7 @@ wxDEFINE_EVENT(EVT_GLCANVAS_INSTANCE_MOVED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_INSTANCE_ROTATED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_INSTANCE_SCALED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_WIPETOWER_MOVED, Vec3dEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_WIPETOWER_ROTATED, Vec3dEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, Event<bool>);
 wxDEFINE_EVENT(EVT_GLCANVAS_UPDATE_GEOMETRY, Vec3dsEvent<2>);
 wxDEFINE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, SimpleEvent);
@@ -2073,6 +2075,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 	}
 
     m_gizmos.update_data(*this);
+    m_gizmos.refresh_on_off_state(m_selection);
 
     // Update the toolbar
 	if (update_object_list)
@@ -3115,6 +3118,10 @@ void GLCanvas3D::do_rotate()
     for (const GLVolume* v : m_volumes.volumes)
     {
         int object_idx = v->object_idx();
+        if (object_idx == 1000) { // the wipe tower
+            Vec3d offset = v->get_volume_offset();
+            post_event(Vec3dEvent(EVT_GLCANVAS_WIPETOWER_ROTATED, Vec3d(offset(0), offset(1), v->get_volume_rotation()(2))));
+        }
         if ((object_idx < 0) || ((int)m_model->objects.size() <= object_idx))
             continue;
 
@@ -3310,6 +3317,38 @@ void GLCanvas3D::update_ui_from_settings()
     }
 #endif
 }
+
+
+
+arr::WipeTowerInfo GLCanvas3D::get_wipe_tower_info() const
+{
+    arr::WipeTowerInfo wti;
+    for (const GLVolume* vol : m_volumes.volumes) {
+        if (vol->is_wipe_tower) {
+            wti.is_wipe_tower = true;
+            wti.pos = Vec2d(m_config->opt_float("wipe_tower_x"),
+                            m_config->opt_float("wipe_tower_y"));
+            wti.rotation = (M_PI/180.) * m_config->opt_float("wipe_tower_rotation_angle");
+            const BoundingBoxf3& bb = vol->bounding_box;
+            wti.bb_size = Vec2d(bb.size()(0), bb.size()(1));
+            break;
+        }
+    }
+    return wti;
+}
+
+
+void GLCanvas3D::arrange_wipe_tower(const arr::WipeTowerInfo& wti) const
+{
+    if (wti.is_wipe_tower) {
+        DynamicPrintConfig cfg;
+        cfg.opt<ConfigOptionFloat>("wipe_tower_x", true)->value = wti.pos(0);
+        cfg.opt<ConfigOptionFloat>("wipe_tower_y", true)->value = wti.pos(1);
+        cfg.opt<ConfigOptionFloat>("wipe_tower_rotation_angle", true)->value = (180./M_PI) * wti.rotation;
+        wxGetApp().get_tab(Preset::TYPE_PRINT)->load_config(cfg);
+    }
+}
+
 
 Linef3 GLCanvas3D::mouse_ray(const Point& mouse_pos)
 {
@@ -4313,6 +4352,7 @@ void GLCanvas3D::_render_selection_sidebar_hints() const
     if (m_use_VBOs)
         m_shader.stop_using();
 }
+
 
 void GLCanvas3D::_update_volumes_hover_state() const
 {

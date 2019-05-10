@@ -798,7 +798,7 @@ bool GUI_App::check_unsaved_changes()
         return true;
     // Ask the user.
     wxMessageDialog dialog(mainframe,
-        _(L("The following presets were modified: ")) + dirty + "\n" + _(L("Discard changes and continue anyway?")),
+        _(L("The following presets were modified")) + ": " + dirty + "\n" + _(L("Discard changes and continue anyway?")),
         wxString(SLIC3R_APP_NAME) + " - " + _(L("Unsaved Presets")),
         wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
     return dialog.ShowModal() == wxID_YES;

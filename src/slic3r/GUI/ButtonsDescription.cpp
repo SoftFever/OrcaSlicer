@@ -26,9 +26,9 @@ ButtonsDescription::ButtonsDescription(wxWindow* parent, const std::vector<Entry
 	{
 		auto icon = new wxStaticBitmap(this, wxID_ANY, entry.bitmap->bmp());
 		grid_sizer->Add(icon, -1, wxALIGN_CENTRE_VERTICAL);
-		auto description = new wxStaticText(this, wxID_ANY, _utf8(entry.symbol));
+		auto description = new wxStaticText(this, wxID_ANY, _(entry.symbol));
 		grid_sizer->Add(description, -1, wxALIGN_CENTRE_VERTICAL);
-		description = new wxStaticText(this, wxID_ANY, _utf8(entry.explanation));
+		description = new wxStaticText(this, wxID_ANY, _(entry.explanation));
 		grid_sizer->Add(description, -1, wxALIGN_CENTRE_VERTICAL | wxEXPAND);
 	}
 
