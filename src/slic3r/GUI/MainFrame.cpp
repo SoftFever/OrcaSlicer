@@ -546,7 +546,7 @@ void MainFrame::init_menubar()
     {
         append_menu_item(helpMenu, wxID_ANY, _(L("Prusa 3D &Drivers")), _(L("Open the Prusa3D drivers download page in your browser")), 
             [this](wxCommandEvent&) { wxLaunchDefaultBrowser("http://www.prusa3d.com/drivers/"); });
-        append_menu_item(helpMenu, wxID_ANY, _(L("Prusa Edition &Releases")), _(L("Open the Prusa Edition releases page in your browser")), 
+        append_menu_item(helpMenu, wxID_ANY, _(L("Software &Releases")), _(L("Open the software releases page in your browser")), 
             [this](wxCommandEvent&) { wxLaunchDefaultBrowser("http://github.com/prusa3d/slic3r/releases"); });
 //#        my $versioncheck = $self->_append_menu_item($helpMenu, "Check for &Updates...", "Check for new Slic3r versions", sub{
 //#            wxTheApp->check_version(1);
