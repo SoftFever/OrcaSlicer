@@ -917,7 +917,7 @@ void MainFrame::load_config(const DynamicPrintConfig& config)
 #if 0
 	for (auto tab : wxGetApp().tabs_list)
 		if (tab->supports_printer_technology(printer_technology)) {
-			if (tab->name() == "printer")
+			if (tab->type() == Slic3r::Preset::TYPE_PRINTER)
 				static_cast<TabPrinter*>(tab)->update_pages();
 			tab->load_config(config);
 		}

@@ -820,15 +820,15 @@ bool GUI_App::check_unsaved_changes()
     for (Tab *tab : tabs_list)
         if (tab->supports_printer_technology(printer_technology) && tab->current_preset_is_dirty())
             if (dirty.empty())
-                dirty = _(tab->name());
+                dirty = tab->title();
             else
-                dirty += wxString(", ") + _(tab->name());
+                dirty += wxString(", ") + tab->title();
     if (dirty.empty())
         // No changes, the application may close or reload presets.
         return true;
     // Ask the user.
     wxMessageDialog dialog(mainframe,
-        _(L("The following presets were modified")) + ": " + dirty + "\n" + _(L("Discard changes and continue anyway?")),
+        _(L("The presets on the following tabs were modified")) + ": " + dirty + "\n\n" + _(L("Discard changes and continue anyway?")),
         wxString(SLIC3R_APP_NAME) + " - " + _(L("Unsaved Presets")),
         wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
     return dialog.ShowModal() == wxID_YES;
