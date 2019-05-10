@@ -2075,6 +2075,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 	}
 
     m_gizmos.update_data(*this);
+    m_gizmos.refresh_on_off_state(m_selection);
 
     // Update the toolbar
 	if (update_object_list)

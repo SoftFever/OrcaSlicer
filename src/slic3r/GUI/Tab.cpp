@@ -2333,7 +2333,20 @@ void TabPrinter::update_pages()
     // set m_pages_(technology after changing) to m_pages
     // m_printer_technology will be set by Tab::load_current_preset()
     if (new_printer_technology == ptFFF)
-        m_pages_fff.empty() ? build_fff() : m_pages.swap(m_pages_fff);
+    {
+        if (m_pages_fff.empty())
+        {
+            build_fff();
+            if (m_extruders_count > 1)
+            {
+                m_preset_bundle->update_multi_material_filament_presets();
+                on_value_change("extruders_count", m_extruders_count);
+                wxGetApp().sidebar().update_objects_list_extruder_column(m_extruders_count);
+            }
+        }
+        else
+            m_pages.swap(m_pages_fff);
+    }
     else 
         m_pages_sla.empty() ? build_sla() : m_pages.swap(m_pages_sla);
 
