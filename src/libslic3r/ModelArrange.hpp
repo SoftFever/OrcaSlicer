@@ -40,6 +40,13 @@ struct BedShapeHint {
 
 BedShapeHint bedShape(const Polyline& bed);
 
+struct WipeTowerInfo {
+    bool is_wipe_tower = false;
+    Vec2d pos;
+    Vec2d bb_size;
+    double rotation;
+};
+
 /**
  * \brief Arranges the model objects on the screen.
  *
@@ -66,7 +73,9 @@ BedShapeHint bedShape(const Polyline& bed);
  * packed. The unsigned argument is the number of items remaining to pack.
  * \param stopcondition A predicate returning true if abort is needed.
  */
-bool arrange(Model &model, coord_t min_obj_distance,
+bool arrange(Model &model,
+             WipeTowerInfo& wipe_tower_info,
+             coord_t min_obj_distance,
              const Slic3r::Polyline& bed,
              BedShapeHint bedhint,
              bool first_bin_only,
@@ -78,7 +87,8 @@ bool arrange(Model &model, coord_t min_obj_distance,
 void find_new_position(const Model& model,
                        ModelInstancePtrs instances_to_add,
                        coord_t min_obj_distance,
-                       const Slic3r::Polyline& bed);
+                       const Slic3r::Polyline& bed,
+                       WipeTowerInfo& wti);
 
 }   // arr
 }   // Slic3r

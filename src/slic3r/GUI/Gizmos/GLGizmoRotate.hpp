@@ -102,7 +102,7 @@ protected:
             m_gizmos[i].set_hover_id((m_hover_id == i) ? 0 : -1);
         }
     }
-    virtual bool on_is_activable(const Selection& selection) const { return !selection.is_wipe_tower(); }
+    virtual bool on_is_activable(const Selection& selection) const { return true; }
     virtual void on_enable_grabber(unsigned int id)
     {
         if ((0 <= id) && (id < 3))

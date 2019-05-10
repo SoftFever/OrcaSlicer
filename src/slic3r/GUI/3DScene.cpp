@@ -716,12 +716,12 @@ int GLVolumeCollection::load_wipe_tower_preview(
     brim_mesh.translate(-brim_width, -brim_width, 0.f);
     mesh.merge(brim_mesh);
 
-    mesh.rotate(rotation_angle, &origin_of_rotation); // rotates the box according to the config rotation setting
-
     this->volumes.emplace_back(new GLVolume(color));
     GLVolume &v = *this->volumes.back();
     v.indexed_vertex_array.load_mesh(mesh, use_VBOs);
     v.set_volume_offset(Vec3d(pos_x, pos_y, 0.0));
+    v.set_volume_rotation(Vec3d(0., 0., (M_PI/180.) * rotation_angle));
+
     // finalize_geometry() clears the vertex arrays, therefore the bounding box has to be computed before finalize_geometry().
     v.bounding_box = v.indexed_vertex_array.bounding_box();
     v.indexed_vertex_array.finalize_geometry(use_VBOs);

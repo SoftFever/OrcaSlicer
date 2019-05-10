@@ -16,6 +16,7 @@
 #include "slic3r/GUI/GLShader.hpp"
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/PresetBundle.hpp"
+#include "slic3r/GUI/Tab.hpp"
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_ObjectManipulation.hpp"
@@ -1202,6 +1203,7 @@ wxDEFINE_EVENT(EVT_GLCANVAS_INSTANCE_MOVED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_INSTANCE_ROTATED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_INSTANCE_SCALED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_WIPETOWER_MOVED, Vec3dEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_WIPETOWER_ROTATED, Vec3dEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, Event<bool>);
 wxDEFINE_EVENT(EVT_GLCANVAS_UPDATE_GEOMETRY, Vec3dsEvent<2>);
 wxDEFINE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, SimpleEvent);
@@ -3116,6 +3118,10 @@ void GLCanvas3D::do_rotate()
     for (const GLVolume* v : m_volumes.volumes)
     {
         int object_idx = v->object_idx();
+        if (object_idx == 1000) { // the wipe tower
+            Vec3d offset = v->get_volume_offset();
+            post_event(Vec3dEvent(EVT_GLCANVAS_WIPETOWER_ROTATED, Vec3d(offset(0), offset(1), v->get_volume_rotation()(2))));
+        }
         if ((object_idx < 0) || ((int)m_model->objects.size() <= object_idx))
             continue;
 
@@ -3311,6 +3317,38 @@ void GLCanvas3D::update_ui_from_settings()
     }
 #endif
 }
+
+
+
+arr::WipeTowerInfo GLCanvas3D::get_wipe_tower_info() const
+{
+    arr::WipeTowerInfo wti;
+    for (const GLVolume* vol : m_volumes.volumes) {
+        if (vol->is_wipe_tower) {
+            wti.is_wipe_tower = true;
+            wti.pos = Vec2d(m_config->opt_float("wipe_tower_x"),
+                            m_config->opt_float("wipe_tower_y"));
+            wti.rotation = (M_PI/180.) * m_config->opt_float("wipe_tower_rotation_angle");
+            const BoundingBoxf3& bb = vol->bounding_box;
+            wti.bb_size = Vec2d(bb.size()(0), bb.size()(1));
+            break;
+        }
+    }
+    return wti;
+}
+
+
+void GLCanvas3D::arrange_wipe_tower(const arr::WipeTowerInfo& wti) const
+{
+    if (wti.is_wipe_tower) {
+        DynamicPrintConfig cfg;
+        cfg.opt<ConfigOptionFloat>("wipe_tower_x", true)->value = wti.pos(0);
+        cfg.opt<ConfigOptionFloat>("wipe_tower_y", true)->value = wti.pos(1);
+        cfg.opt<ConfigOptionFloat>("wipe_tower_rotation_angle", true)->value = (180./M_PI) * wti.rotation;
+        wxGetApp().get_tab(Preset::TYPE_PRINT)->load_config(cfg);
+    }
+}
+
 
 Linef3 GLCanvas3D::mouse_ray(const Point& mouse_pos)
 {
@@ -4314,6 +4352,7 @@ void GLCanvas3D::_render_selection_sidebar_hints() const
     if (m_use_VBOs)
         m_shader.stop_using();
 }
+
 
 void GLCanvas3D::_update_volumes_hover_state() const
 {
