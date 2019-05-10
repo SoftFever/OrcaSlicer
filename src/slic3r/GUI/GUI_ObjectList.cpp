@@ -354,7 +354,7 @@ DynamicPrintConfig& ObjectList::get_item_config(const wxDataViewItem& item) cons
 wxDataViewColumn* ObjectList::create_objects_list_extruder_column(int extruders_count)
 {
     wxArrayString choices;
-    choices.Add("default");
+    choices.Add(_(L("default")));
     for (int i = 1; i <= extruders_count; ++i)
         choices.Add(wxString::Format("%d", i));
     wxDataViewChoiceRenderer *c =
@@ -375,7 +375,7 @@ void ObjectList::update_extruder_values_for_items(const int max_extruder)
         wxString extruder;
         if (!object->config.has("extruder") ||
             object->config.option<ConfigOptionInt>("extruder")->value > max_extruder)
-            extruder = "default";
+            extruder = _(L("default"));
         else
             extruder = wxString::Format("%d", object->config.option<ConfigOptionInt>("extruder")->value);
 
@@ -387,7 +387,7 @@ void ObjectList::update_extruder_values_for_items(const int max_extruder)
                 if (!item) continue;
                 if (!object->volumes[id]->config.has("extruder") ||
                     object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value > max_extruder)
-                    extruder = "default";
+                    extruder = _(L("default"));
                 else
                     extruder = wxString::Format("%d", object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value); 
 
@@ -2852,7 +2852,7 @@ void ObjectList::show_multi_selection_menu()
 void ObjectList::extruder_selection()
 {
     wxArrayString choices;
-    choices.Add("default");
+    choices.Add(_(L("default")));
     for (int i = 1; i <= extruders_count(); ++i)
         choices.Add(wxString::Format("%d", i));
 
@@ -2862,7 +2862,7 @@ void ObjectList::extruder_selection()
     if (selected_extruder.IsEmpty())
         return;
 
-    const int extruder_num = selected_extruder == "default" ? 0 : atoi(selected_extruder.c_str());
+    const int extruder_num = selected_extruder == _(L("default")) ? 0 : atoi(selected_extruder.c_str());
 
 //          /* Another variant for an extruder selection */
 //     extruder_num = wxGetNumberFromUser(_(L("Attention!!! \n"
@@ -2894,7 +2894,7 @@ void ObjectList::set_extruder_for_selected_items(const int extruder) const
         else if (extruder > 0)
             config.set_key_value("extruder", new ConfigOptionInt(extruder));
 
-        const wxString extruder_str = extruder == 0 ? wxString ("default") : 
+        const wxString extruder_str = extruder == 0 ? wxString (_(L("default"))) : 
                                       wxString::Format("%d", config.option<ConfigOptionInt>("extruder")->value);
 
         auto const type = m_objects_model->GetItemType(item);

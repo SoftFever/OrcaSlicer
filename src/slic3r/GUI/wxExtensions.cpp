@@ -496,7 +496,7 @@ wxDataViewItem ObjectDataViewModel::Add(const wxString &name,
                                         const int extruder,
                                         const bool has_errors/* = false*/)
 {
-    const wxString extruder_str = extruder == 0 ? "default" : wxString::Format("%d", extruder);
+    const wxString extruder_str = extruder == 0 ? _(L("default")) : wxString::Format("%d", extruder);
 	auto root = new ObjectDataViewModelNode(name, extruder_str);
     // Add error icon if detected auto-repaire
     if (has_errors)
@@ -521,7 +521,7 @@ wxDataViewItem ObjectDataViewModel::AddVolumeChild( const wxDataViewItem &parent
 	ObjectDataViewModelNode *root = (ObjectDataViewModelNode*)parent_item.GetID();
 	if (!root) return wxDataViewItem(0);
 
-    wxString extruder_str = extruder == 0 ? "default" : wxString::Format("%d", extruder);
+    wxString extruder_str = extruder == 0 ? _(L("default")) : wxString::Format("%d", extruder);
 
     // because of istance_root is a last item of the object
     int insert_position = root->GetChildCount() - 1;
