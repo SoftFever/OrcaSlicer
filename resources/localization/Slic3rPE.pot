@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-10 11:46+0200\n"
+"POT-Creation-Date: 2019-05-10 13:25+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -567,28 +567,28 @@ msgstr ""
 msgid "Configuration &Wizard"
 msgstr ""
 
-#: src/slic3r/GUI/Field.cpp:93
+#: src/slic3r/GUI/Field.cpp:117
 msgid "default value"
 msgstr ""
 
-#: src/slic3r/GUI/Field.cpp:96
+#: src/slic3r/GUI/Field.cpp:120
 msgid "parameter name"
 msgstr ""
 
-#: src/slic3r/GUI/Field.cpp:124
+#: src/slic3r/GUI/Field.cpp:148
 #, possible-c-format
 msgid "%s doesn't support percentage"
 msgstr ""
 
-#: src/slic3r/GUI/Field.cpp:138 src/slic3r/GUI/Field.cpp:161
+#: src/slic3r/GUI/Field.cpp:162 src/slic3r/GUI/Field.cpp:185
 msgid "Invalid numeric input."
 msgstr ""
 
-#: src/slic3r/GUI/Field.cpp:143
+#: src/slic3r/GUI/Field.cpp:167
 msgid "Input value is out of range"
 msgstr ""
 
-#: src/slic3r/GUI/Field.cpp:169
+#: src/slic3r/GUI/Field.cpp:193
 #, possible-c-format
 msgid ""
 "Do you mean %d%% instead of %d %s?\n"
@@ -596,7 +596,7 @@ msgid ""
 "or NO if you are sure that %d %s is a correct value."
 msgstr ""
 
-#: src/slic3r/GUI/Field.cpp:172
+#: src/slic3r/GUI/Field.cpp:196
 msgid "Parameter validation"
 msgstr ""
 
@@ -723,71 +723,71 @@ msgstr ""
 msgid "Cancelling..."
 msgstr ""
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:719
-msgid "Detected object outside print volume"
-msgstr ""
-
 #: src/slic3r/GUI/GLCanvas3D.cpp:720
-msgid "Detected toolpath outside print volume"
+msgid "An object outside the print area was detected"
 msgstr ""
 
 #: src/slic3r/GUI/GLCanvas3D.cpp:721
-msgid "Detected support outside print volume"
+msgid "A toolpath outside the print area was detected"
 msgstr ""
 
 #: src/slic3r/GUI/GLCanvas3D.cpp:722
+msgid "SLA supports outside the print area were detected"
+msgstr ""
+
+#: src/slic3r/GUI/GLCanvas3D.cpp:723
 msgid "Some objects are not visible when editing supports"
 msgstr ""
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:724
+#: src/slic3r/GUI/GLCanvas3D.cpp:725
 msgid ""
-"Detected object outside print volume\n"
-"Resolve a clash to continue slicing/export process correctly"
+"An object outside the print area was detected\n"
+"Resolve the current problem to continue slicing"
 msgstr ""
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:3395
+#: src/slic3r/GUI/GLCanvas3D.cpp:3434
 msgid "Add..."
 msgstr ""
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:3405 src/slic3r/GUI/GUI_ObjectList.cpp:1269
-#: src/slic3r/GUI/Plater.cpp:2908 src/slic3r/GUI/Plater.cpp:2926
+#: src/slic3r/GUI/GLCanvas3D.cpp:3444 src/slic3r/GUI/GUI_ObjectList.cpp:1269
+#: src/slic3r/GUI/Plater.cpp:2933 src/slic3r/GUI/Plater.cpp:2951
 #: src/slic3r/GUI/Tab.cpp:2951
 msgid "Delete"
 msgstr ""
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:3416 src/slic3r/GUI/Plater.cpp:3316
+#: src/slic3r/GUI/GLCanvas3D.cpp:3455 src/slic3r/GUI/Plater.cpp:3341
 msgid "Delete all"
 msgstr ""
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:3427 src/slic3r/GUI/KBShortcutsDialog.cpp:135
+#: src/slic3r/GUI/GLCanvas3D.cpp:3466 src/slic3r/GUI/KBShortcutsDialog.cpp:135
 msgid "Arrange"
 msgstr ""
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:3441 src/slic3r/GUI/Tab.cpp:2892
+#: src/slic3r/GUI/GLCanvas3D.cpp:3480 src/slic3r/GUI/Tab.cpp:2892
 msgid "Copy"
 msgstr ""
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:3452
+#: src/slic3r/GUI/GLCanvas3D.cpp:3491
 msgid "Paste"
 msgstr ""
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:3466
+#: src/slic3r/GUI/GLCanvas3D.cpp:3505
 msgid "Add instance"
 msgstr ""
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:3478
+#: src/slic3r/GUI/GLCanvas3D.cpp:3517
 msgid "Remove instance"
 msgstr ""
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:3493
+#: src/slic3r/GUI/GLCanvas3D.cpp:3532
 msgid "Split to objects"
 msgstr ""
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:3505 src/slic3r/GUI/GUI_ObjectList.cpp:1122
+#: src/slic3r/GUI/GLCanvas3D.cpp:3544 src/slic3r/GUI/GUI_ObjectList.cpp:1122
 msgid "Split to parts"
 msgstr ""
 
-#: src/slic3r/GUI/GLCanvas3D.cpp:3520
+#: src/slic3r/GUI/GLCanvas3D.cpp:3559
 msgid "Layers editing"
 msgstr ""
 
@@ -1329,6 +1329,14 @@ msgstr ""
 msgid "Right button click the icon to change the object settings"
 msgstr ""
 
+#: src/slic3r/GUI/GUI_ObjectList.cpp:357 src/slic3r/GUI/GUI_ObjectList.cpp:378
+#: src/slic3r/GUI/GUI_ObjectList.cpp:390 src/slic3r/GUI/GUI_ObjectList.cpp:2855
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2865
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2897 src/slic3r/GUI/wxExtensions.cpp:499
+#: src/slic3r/GUI/wxExtensions.cpp:524
+msgid "default"
+msgstr ""
+
 #: src/slic3r/GUI/GUI_ObjectList.cpp:362 src/slic3r/GUI/Tab.cpp:1480
 #: src/libslic3r/PrintConfig.cpp:456
 msgid "Extruder"
@@ -1388,7 +1396,7 @@ msgstr ""
 msgid "Fix through the Netfabb"
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1231 src/slic3r/GUI/Plater.cpp:2944
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1231 src/slic3r/GUI/Plater.cpp:2969
 msgid "Export as STL"
 msgstr ""
 
@@ -1416,7 +1424,7 @@ msgstr ""
 msgid "You can't delete the last intance from object."
 msgstr ""
 
-#: src/slic3r/GUI/GUI_ObjectList.cpp:1742 src/slic3r/GUI/Plater.cpp:2290
+#: src/slic3r/GUI/GUI_ObjectList.cpp:1742 src/slic3r/GUI/Plater.cpp:2306
 msgid ""
 "The selected object couldn't be split because it contains only one part."
 msgstr ""
@@ -1701,7 +1709,7 @@ msgid "Load Config from .ini/amf/3mf/gcode"
 msgstr ""
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:108 src/slic3r/GUI/Plater.cpp:740
-#: src/slic3r/GUI/Plater.cpp:3839 src/libslic3r/PrintConfig.cpp:2990
+#: src/slic3r/GUI/Plater.cpp:3864 src/libslic3r/PrintConfig.cpp:2990
 msgid "Export G-code"
 msgstr ""
 
@@ -2349,7 +2357,7 @@ msgstr ""
 msgid "&Help"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:607 src/slic3r/GUI/Plater.cpp:3839
+#: src/slic3r/GUI/MainFrame.cpp:607 src/slic3r/GUI/Plater.cpp:3864
 msgid "Export"
 msgstr ""
 
@@ -2401,8 +2409,8 @@ msgstr ""
 msgid "Save zip file as:"
 msgstr ""
 
-#: src/slic3r/GUI/MainFrame.cpp:713 src/slic3r/GUI/Plater.cpp:2423
-#: src/slic3r/GUI/Plater.cpp:3633 src/slic3r/GUI/Tab.cpp:1160
+#: src/slic3r/GUI/MainFrame.cpp:713 src/slic3r/GUI/Plater.cpp:2439
+#: src/slic3r/GUI/Plater.cpp:3658 src/slic3r/GUI/Tab.cpp:1160
 #: src/slic3r/GUI/Tab.cpp:3454
 msgid "Slicing"
 msgstr ""
@@ -2568,12 +2576,12 @@ msgstr ""
 msgid "Printer"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:738 src/slic3r/GUI/Plater.cpp:3840
+#: src/slic3r/GUI/Plater.cpp:738 src/slic3r/GUI/Plater.cpp:3865
 msgid "Send to printer"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:741 src/slic3r/GUI/Plater.cpp:2423
-#: src/slic3r/GUI/Plater.cpp:3636
+#: src/slic3r/GUI/Plater.cpp:741 src/slic3r/GUI/Plater.cpp:2439
+#: src/slic3r/GUI/Plater.cpp:3661
 msgid "Slice now"
 msgstr ""
 
@@ -2630,286 +2638,286 @@ msgstr ""
 msgid "stealth mode"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:1601
+#: src/slic3r/GUI/Plater.cpp:1604
 msgid "Loading"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:1611
+#: src/slic3r/GUI/Plater.cpp:1614
 #, possible-c-format
 msgid "Processing input file %s\n"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:1669
+#: src/slic3r/GUI/Plater.cpp:1672
 msgid ""
 "This file contains several objects positioned at multiple heights. Instead "
 "of considering them as multiple objects, should I consider\n"
 "this file as a single object having multiple parts?\n"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:1672 src/slic3r/GUI/Plater.cpp:1780
+#: src/slic3r/GUI/Plater.cpp:1675 src/slic3r/GUI/Plater.cpp:1783
 msgid "Multi-part object detected"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:1723
+#: src/slic3r/GUI/Plater.cpp:1726
 msgid ""
 "This file cannot be loaded in a simple mode. Do you want to switch to an "
 "advanced mode?\n"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:1724
+#: src/slic3r/GUI/Plater.cpp:1727
 msgid "Detected advanced data"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:1757
+#: src/slic3r/GUI/Plater.cpp:1760
 #, possible-c-format
 msgid ""
 "You can't to add the object(s) from %s because of one or some of them "
 "is(are) multi-part"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:1777
+#: src/slic3r/GUI/Plater.cpp:1780
 msgid ""
 "Multiple objects were loaded for a multi-material printer.\n"
 "Instead of considering them as multiple objects, should I consider\n"
 "these files to represent a single object having multiple parts?\n"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:1793
+#: src/slic3r/GUI/Plater.cpp:1796
 msgid "Loaded"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:1885
+#: src/slic3r/GUI/Plater.cpp:1894
 msgid ""
 "Your object appears to be too large, so it was automatically scaled down to "
 "fit your print bed."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:1886
+#: src/slic3r/GUI/Plater.cpp:1895
 msgid "Object too large?"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:1936
+#: src/slic3r/GUI/Plater.cpp:1945
 msgid "Export STL file:"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:1943
+#: src/slic3r/GUI/Plater.cpp:1952
 msgid "Export AMF file:"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:1949
+#: src/slic3r/GUI/Plater.cpp:1958
 msgid "Save file as:"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2114
+#: src/slic3r/GUI/Plater.cpp:2123
 msgid "Arranging canceled"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2117
+#: src/slic3r/GUI/Plater.cpp:2126
 msgid "Arranging"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2151
+#: src/slic3r/GUI/Plater.cpp:2163
 msgid "Could not arrange model objects! Some geometries may be invalid."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2155
+#: src/slic3r/GUI/Plater.cpp:2170
 msgid "Arranging done."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2196
+#: src/slic3r/GUI/Plater.cpp:2211
 msgid "Orientation search canceled"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2201
+#: src/slic3r/GUI/Plater.cpp:2216
 msgid "Searching for optimal orientation"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2262
+#: src/slic3r/GUI/Plater.cpp:2278
 msgid "Orientation found."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2282
+#: src/slic3r/GUI/Plater.cpp:2298
 msgid ""
 "The selected object can't be split because it contains more than one volume/"
 "material."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2408
+#: src/slic3r/GUI/Plater.cpp:2424
 msgid "Invalid data"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2417
+#: src/slic3r/GUI/Plater.cpp:2433
 msgid "Ready to slice"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2455 src/slic3r/GUI/PrintHostDialogs.cpp:231
+#: src/slic3r/GUI/Plater.cpp:2471 src/slic3r/GUI/PrintHostDialogs.cpp:231
 msgid "Cancelling"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2472
+#: src/slic3r/GUI/Plater.cpp:2488
 msgid "Another export job is currently running."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2733
+#: src/slic3r/GUI/Plater.cpp:2749
 msgid "Export failed"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2738 src/slic3r/GUI/PrintHostDialogs.cpp:232
+#: src/slic3r/GUI/Plater.cpp:2754 src/slic3r/GUI/PrintHostDialogs.cpp:232
 msgid "Cancelled"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2824 src/slic3r/GUI/Plater.cpp:2836
-#: src/slic3r/GUI/Plater.cpp:2914
+#: src/slic3r/GUI/Plater.cpp:2840 src/slic3r/GUI/Plater.cpp:2852
+#: src/slic3r/GUI/Plater.cpp:2939
 msgid "Increase copies"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2908 src/slic3r/GUI/Plater.cpp:2926
+#: src/slic3r/GUI/Plater.cpp:2933 src/slic3r/GUI/Plater.cpp:2951
 msgid "Remove the selected object"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2914
+#: src/slic3r/GUI/Plater.cpp:2939
 msgid "Place one more copy of the selected object"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2916
+#: src/slic3r/GUI/Plater.cpp:2941
 msgid "Decrease copies"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2916
+#: src/slic3r/GUI/Plater.cpp:2941
 msgid "Remove one copy of the selected object"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2918
+#: src/slic3r/GUI/Plater.cpp:2943
 msgid "Set number of copies"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2918
+#: src/slic3r/GUI/Plater.cpp:2943
 msgid "Change the number of copies of the selected object"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2941
+#: src/slic3r/GUI/Plater.cpp:2966
 msgid "Reload from Disk"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2941
+#: src/slic3r/GUI/Plater.cpp:2966
 msgid "Reload the selected file from Disk"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2944
+#: src/slic3r/GUI/Plater.cpp:2969
 msgid "Export the selected object as STL file"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2956
+#: src/slic3r/GUI/Plater.cpp:2981
 msgid "Along X axis"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2956
+#: src/slic3r/GUI/Plater.cpp:2981
 msgid "Mirror the selected object along the X axis"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2958
+#: src/slic3r/GUI/Plater.cpp:2983
 msgid "Along Y axis"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2958
+#: src/slic3r/GUI/Plater.cpp:2983
 msgid "Mirror the selected object along the Y axis"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2960
+#: src/slic3r/GUI/Plater.cpp:2985
 msgid "Along Z axis"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2960
+#: src/slic3r/GUI/Plater.cpp:2985
 msgid "Mirror the selected object along the Z axis"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2963
+#: src/slic3r/GUI/Plater.cpp:2988
 msgid "Mirror"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2963
+#: src/slic3r/GUI/Plater.cpp:2988
 msgid "Mirror the selected object"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2983
+#: src/slic3r/GUI/Plater.cpp:3008
 msgid "To objects"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2983 src/slic3r/GUI/Plater.cpp:3005
+#: src/slic3r/GUI/Plater.cpp:3008 src/slic3r/GUI/Plater.cpp:3030
 msgid "Split the selected object into individual objects"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2985
+#: src/slic3r/GUI/Plater.cpp:3010
 msgid "To parts"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2985 src/slic3r/GUI/Plater.cpp:3025
+#: src/slic3r/GUI/Plater.cpp:3010 src/slic3r/GUI/Plater.cpp:3050
 msgid "Split the selected object into individual sub-parts"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2988 src/slic3r/GUI/Plater.cpp:3005
-#: src/slic3r/GUI/Plater.cpp:3025 src/libslic3r/PrintConfig.cpp:3108
+#: src/slic3r/GUI/Plater.cpp:3013 src/slic3r/GUI/Plater.cpp:3030
+#: src/slic3r/GUI/Plater.cpp:3050 src/libslic3r/PrintConfig.cpp:3108
 msgid "Split"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:2988
+#: src/slic3r/GUI/Plater.cpp:3013
 msgid "Split the selected object"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:3011
+#: src/slic3r/GUI/Plater.cpp:3036
 msgid "Optimize orientation"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:3011
+#: src/slic3r/GUI/Plater.cpp:3036
 msgid "Optimize the rotation of the object for better print results."
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:3074
+#: src/slic3r/GUI/Plater.cpp:3099
 msgid "3D editor view"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:3085 src/slic3r/GUI/Tab.cpp:2289
+#: src/slic3r/GUI/Plater.cpp:3110 src/slic3r/GUI/Tab.cpp:2289
 msgid "Preview"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:3316
+#: src/slic3r/GUI/Plater.cpp:3341
 msgid "All objects will be removed, continue ?"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:3451
+#: src/slic3r/GUI/Plater.cpp:3476
 msgid "Save G-code file as:"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:3451
+#: src/slic3r/GUI/Plater.cpp:3476
 msgid "Save SL1 file as:"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:3563
+#: src/slic3r/GUI/Plater.cpp:3588
 #, possible-c-format
 msgid "STL file exported to %s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:3579
+#: src/slic3r/GUI/Plater.cpp:3604
 #, possible-c-format
 msgid "AMF file exported to %s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:3582
+#: src/slic3r/GUI/Plater.cpp:3607
 #, possible-c-format
 msgid "Error exporting AMF file %s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:3608
+#: src/slic3r/GUI/Plater.cpp:3633
 #, possible-c-format
 msgid "3MF file exported to %s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:3611
+#: src/slic3r/GUI/Plater.cpp:3636
 #, possible-c-format
 msgid "Error exporting 3MF file %s"
 msgstr ""
 
-#: src/slic3r/GUI/Plater.cpp:3840
+#: src/slic3r/GUI/Plater.cpp:3865
 msgid "Send G-code"
 msgstr ""
 
