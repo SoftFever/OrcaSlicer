@@ -19,7 +19,7 @@ class wxMenuItem;
 class wxMenuBar;
 class wxTopLevelWindow;
 class wxNotebook;
-class wxLanguageInfo;
+struct wxLanguageInfo;
 
 namespace Slic3r {
 class AppConfig;
@@ -126,10 +126,9 @@ public:
     void            update_ui_from_settings();
 
     bool            switch_language();
-    bool            select_language();
+    // Load gettext translation files and activate them at the start of the application,
+    // based on the "translation_language" key stored in the application config.
     bool            load_language();
-    void            save_language();
-    std::vector<const wxLanguageInfo*> get_installed_languages();
 
     Tab*            get_tab(Preset::Type type);
     ConfigOptionMode get_mode();
@@ -177,8 +176,11 @@ private:
     void            window_pos_save(wxTopLevelWindow* window, const std::string &name);
     void            window_pos_restore(wxTopLevelWindow* window, const std::string &name, bool default_maximized = false);
     void            window_pos_sanitize(wxTopLevelWindow* window);
+    bool            select_language();
+    void            save_language();
+    std::vector<const wxLanguageInfo*> get_installed_languages();
 #ifdef __WXMSW__
-    void associate_3mf_files();
+    void            associate_3mf_files();
 #endif // __WXMSW__
 };
 DECLARE_APP(GUI_App)

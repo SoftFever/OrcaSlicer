@@ -1062,7 +1062,7 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
 // Public
 
 ConfigWizard::ConfigWizard(wxWindow *parent, RunReason reason)
-    : DPIDialog(parent, wxID_ANY, _(name().ToStdString()), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+    : DPIDialog(parent, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _(name().ToStdString()), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
     , p(new priv(this))
 {
     this->SetFont(wxGetApp().normal_font());

@@ -3612,7 +3612,8 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
         }
 
         // FIXME: calculate a tighter value for depth will improve z-fighting
-        float depth = 5.0f * (float)bbox.max_size();
+        // Set at least some minimum depth in case the bounding box is empty to avoid an OpenGL driver error.
+        float depth = std::max(1.f, 5.0f * (float)bbox.max_size());
         m_camera.apply_ortho_projection(-w2, w2, -h2, h2, -depth, depth);
 
         break;

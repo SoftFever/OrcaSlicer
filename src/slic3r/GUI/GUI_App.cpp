@@ -579,33 +579,47 @@ bool GUI_App::select_language()
     return false;
 }
 
-// load language saved at application config
+// Load gettext translation files and activate them at the start of the application,
+// based on the "translation_language" key stored in the application config.
 bool GUI_App::load_language()
 {
     wxString language = wxEmptyString;
     if (app_config->has("translation_language"))
         language = app_config->get("translation_language");
 
-    if (language.IsEmpty())
-        return false;
-
-    const auto langs = get_installed_languages();
-    for (const wxLanguageInfo *info : langs)
-    {
-        if (info->CanonicalName == language)
-        {
-            m_wxLocale = new wxLocale;
-            m_wxLocale->Init(info->Language);
-			m_wxLocale->AddCatalogLookupPathPrefix(from_u8(localization_dir()));
-            m_wxLocale->AddCatalog("Slic3rPE");
-			//FIXME This is a temporary workaround, the correct solution is to switch to "C" locale during file import / export only.
-            wxSetlocale(LC_NUMERIC, "C");
-			Preset::update_suffix_modified();
-			m_imgui->set_language(into_u8(info->CanonicalName));
-            return true;
+    if (language.IsEmpty()) {
+        int lang = wxLocale::GetSystemLanguage();
+        if (lang != wxLANGUAGE_UNKNOWN) {
+			const wxLanguageInfo *info = wxLocale::GetLanguageInfo(lang);
+            if (info != nullptr)
+                language = info->CanonicalName;
         }
     }
-    return false;
+
+    const wxLanguageInfo *info = nullptr;
+    if (! language.IsEmpty()) {
+        const auto langs = get_installed_languages();
+        for (const wxLanguageInfo *this_info : langs)
+            if (this_info->CanonicalName == language) {
+                info = this_info;
+                break;
+            }
+    }
+
+    m_wxLocale = new wxLocale;
+    if (info == nullptr) {
+        m_wxLocale->Init(wxLANGUAGE_DEFAULT);
+        m_imgui->set_language("en");
+    } else {
+        m_wxLocale->Init(info->Language);
+        m_wxLocale->AddCatalogLookupPathPrefix(from_u8(localization_dir()));
+        m_wxLocale->AddCatalog("Slic3rPE");
+        m_imgui->set_language(into_u8(info->CanonicalName));
+    }
+	//FIXME This is a temporary workaround, the correct solution is to switch to "C" locale during file import / export only.
+    wxSetlocale(LC_NUMERIC, "C");
+    Preset::update_suffix_modified();
+    return true;
 }
 
 // save language at application config
