@@ -422,6 +422,9 @@ public:
     void                release_geometry() { this->indexed_vertex_array.release_geometry(); }
 
     void                set_bounding_boxes_as_dirty() { m_transformed_bounding_box_dirty = true; m_transformed_convex_hull_bounding_box_dirty = true; }
+
+    bool                is_sla_support() const;
+    bool                is_sla_pad() const;
 };
 
 typedef std::vector<GLVolume*> GLVolumePtrs;

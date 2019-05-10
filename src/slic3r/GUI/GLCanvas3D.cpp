@@ -718,6 +718,7 @@ void GLCanvas3D::WarningTexture::activate(WarningTexture::Warning warning, bool 
     switch (m_warnings.back()) {
         case ObjectOutside      : text = L("Detected object outside print volume"); break;
         case ToolpathOutside    : text = L("Detected toolpath outside print volume"); break;
+        case SlaSupportsOutside : text = L("Detected support outside print volume"); break;
         case SomethingNotShown  : text = L("Some objects are not visible when editing supports"); break;
         case ObjectClashed: {
             text = L("Detected object outside print volume\n"
@@ -2157,13 +2158,13 @@ void GLCanvas3D::load_gcode_preview(const GCodePreviewData& preview_data, const 
                 m_volumes.volumes.erase(std::remove_if(m_volumes.volumes.begin(), m_volumes.volumes.end(),
                     [](const GLVolume* volume) { return volume->print_zs.empty(); }), m_volumes.volumes.end());
 
-                _load_shells_fff();
+                _load_fff_shells();
             }
             _update_toolpath_volumes_outside_state();
         }
         
         _update_gcode_volumes_visibility(preview_data);
-        _show_warning_texture_if_needed();
+        _show_warning_texture_if_needed(WarningTexture::ToolpathOutside);
 
         if (m_volumes.empty())
             reset_legend_texture();
@@ -2178,7 +2179,9 @@ void GLCanvas3D::load_sla_preview()
     if ((m_canvas != nullptr) && (print != nullptr))
     {
         _set_current();
-        _load_shells_sla();
+        _load_sla_shells();
+        _update_sla_shells_outside_state();
+        _show_warning_texture_if_needed(WarningTexture::SlaSupportsOutside);
     }
 }
 
@@ -2204,7 +2207,7 @@ void GLCanvas3D::load_preview(const std::vector<std::string>& str_tool_colors, c
     }
 
     _update_toolpath_volumes_outside_state();
-    _show_warning_texture_if_needed();
+    _show_warning_texture_if_needed(WarningTexture::ToolpathOutside);
     if (color_print_values.empty())
         reset_legend_texture();
     else {
@@ -5373,7 +5376,7 @@ void GLCanvas3D::_load_gcode_unretractions(const GCodePreviewData& preview_data)
     }
 }
 
-void GLCanvas3D::_load_shells_fff()
+void GLCanvas3D::_load_fff_shells()
 {
     size_t initial_volumes_count = m_volumes.volumes.size();
     m_gcode_preview_volume_index.first_volumes.emplace_back(GCodePreviewVolumeIndex::Shell, 0, (unsigned int)initial_volumes_count);
@@ -5422,7 +5425,7 @@ void GLCanvas3D::_load_shells_fff()
     }
 }
 
-void GLCanvas3D::_load_shells_sla()
+void GLCanvas3D::_load_sla_shells()
 {
     //FIXME use reload_scene
 #if 1
@@ -5431,13 +5434,13 @@ void GLCanvas3D::_load_shells_sla()
         // nothing to render, return
         return;
 
-    auto add_volume = [this](const SLAPrintObject &object, const SLAPrintObject::Instance& instance, 
-                             const TriangleMesh &mesh, const float color[4], bool outside_printer_detection_enabled) {
+    auto add_volume = [this](const SLAPrintObject &object, int volume_id, const SLAPrintObject::Instance& instance,
+        const TriangleMesh &mesh, const float color[4], bool outside_printer_detection_enabled) {
         m_volumes.volumes.emplace_back(new GLVolume(color));
         GLVolume& v = *m_volumes.volumes.back();
         v.indexed_vertex_array.load_mesh(mesh, m_use_VBOs);
 		v.shader_outside_printer_detection_enabled = outside_printer_detection_enabled;
-        v.composite_id.volume_id = -1;
+        v.composite_id.volume_id = volume_id;
         v.set_instance_offset(unscale(instance.shift(0), instance.shift(1), 0));
         v.set_instance_rotation(Vec3d(0.0, 0.0, (double)instance.rotation));
         v.set_instance_mirror(X, object.is_left_handed() ? -1. : 1.);
@@ -5448,15 +5451,14 @@ void GLCanvas3D::_load_shells_sla()
         if (obj->is_step_done(slaposSliceSupports)) {
             unsigned int initial_volumes_count = (unsigned int)m_volumes.volumes.size();
             for (const SLAPrintObject::Instance& instance : obj->instances()) {
-                add_volume(*obj, instance, obj->transformed_mesh(), GLVolume::MODEL_COLOR[0], true);
+                add_volume(*obj, 0, instance, obj->transformed_mesh(), GLVolume::MODEL_COLOR[0], true);
                 // Set the extruder_id and volume_id to achieve the same color as in the 3D scene when
                 // through the update_volumes_colors_by_extruder() call.
                 m_volumes.volumes.back()->extruder_id = obj->model_object()->volumes.front()->extruder_id();
-                m_volumes.volumes.back()->composite_id.volume_id = 0;
                 if (obj->is_step_done(slaposSupportTree) && obj->has_mesh(slaposSupportTree))
-                    add_volume(*obj, instance, obj->support_mesh(), GLVolume::SLA_SUPPORT_COLOR, true);
+                    add_volume(*obj, -int(slaposSupportTree), instance, obj->support_mesh(), GLVolume::SLA_SUPPORT_COLOR, true);
                 if (obj->is_step_done(slaposBasePool) && obj->has_mesh(slaposBasePool))
-                    add_volume(*obj, instance, obj->pad_mesh(), GLVolume::SLA_PAD_COLOR, true);
+                    add_volume(*obj, -int(slaposBasePool), instance, obj->pad_mesh(), GLVolume::SLA_PAD_COLOR, true);
             }
             double shift_z = obj->get_current_elevation();
             for (unsigned int i = initial_volumes_count; i < m_volumes.volumes.size(); ++ i) {
@@ -5558,10 +5560,35 @@ void GLCanvas3D::_update_toolpath_volumes_outside_state()
     }
 }
 
-void GLCanvas3D::_show_warning_texture_if_needed()
+void GLCanvas3D::_update_sla_shells_outside_state()
+{
+    // tolerance to avoid false detection at bed edges
+    static const double tolerance_x = 0.05;
+    static const double tolerance_y = 0.05;
+
+    BoundingBoxf3 print_volume;
+    if (m_config != nullptr)
+    {
+        const ConfigOptionPoints* opt = dynamic_cast<const ConfigOptionPoints*>(m_config->option("bed_shape"));
+        if (opt != nullptr)
+        {
+            BoundingBox bed_box_2D = get_extents(Polygon::new_scale(opt->values));
+            print_volume = BoundingBoxf3(Vec3d(unscale<double>(bed_box_2D.min(0)) - tolerance_x, unscale<double>(bed_box_2D.min(1)) - tolerance_y, 0.0), Vec3d(unscale<double>(bed_box_2D.max(0)) + tolerance_x, unscale<double>(bed_box_2D.max(1)) + tolerance_y, m_config->opt_float("max_print_height")));
+            // Allow the objects to protrude below the print bed
+            print_volume.min(2) = -1e10;
+        }
+    }
+
+    for (GLVolume* volume : m_volumes.volumes)
+    {
+        volume->is_outside = ((print_volume.radius() > 0.0) && volume->is_sla_support()) ? !print_volume.contains(volume->transformed_convex_hull_bounding_box()) : false;
+    }
+}
+
+void GLCanvas3D::_show_warning_texture_if_needed(WarningTexture::Warning warning)
 {
     _set_current();
-    _set_warning_texture(WarningTexture::ToolpathOutside, _is_any_volume_outside());
+    _set_warning_texture(warning, _is_any_volume_outside());
 }
 
 std::vector<float> GLCanvas3D::_parse_colors(const std::vector<std::string>& colors)

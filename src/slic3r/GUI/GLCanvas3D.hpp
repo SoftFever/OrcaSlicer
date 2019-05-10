@@ -344,6 +344,7 @@ class GLCanvas3D
         enum Warning {
             ObjectOutside,
             ToolpathOutside,
+            SlaSupportsOutside,
             SomethingNotShown,
             ObjectClashed
         };
@@ -695,13 +696,14 @@ private:
     // generates gcode unretractions geometry
     void _load_gcode_unretractions(const GCodePreviewData& preview_data);
     // generates objects and wipe tower geometry
-    void _load_shells_fff();
+    void _load_fff_shells();
     // generates objects geometry for sla
-    void _load_shells_sla();
+    void _load_sla_shells();
     // sets gcode geometry visibility according to user selection
     void _update_gcode_volumes_visibility(const GCodePreviewData& preview_data);
     void _update_toolpath_volumes_outside_state();
-    void _show_warning_texture_if_needed();
+    void _update_sla_shells_outside_state();
+    void _show_warning_texture_if_needed(WarningTexture::Warning warning);
 
     // generates the legend texture in dependence of the current shown view type
     void _generate_legend_texture(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);

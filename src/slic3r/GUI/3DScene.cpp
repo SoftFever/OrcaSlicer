@@ -290,7 +290,12 @@ void GLVolume::set_render_color(const float* rgba, unsigned int size)
 void GLVolume::set_render_color()
 {
     if (force_native_color)
-        set_render_color(color, 4);
+    {
+        if (is_outside && shader_outside_printer_detection_enabled)
+            set_render_color(OUTSIDE_COLOR, 4);
+        else
+            set_render_color(color, 4);
+    }
     else {
         if (hover == HS_Select)
             set_render_color(HOVER_SELECT_COLOR, 4);
@@ -553,6 +558,9 @@ void GLVolume::render_legacy() const
     if (this->is_left_handed())
         glFrontFace(GL_CCW);
 }
+
+bool GLVolume::is_sla_support() const { return this->composite_id.volume_id == -int(slaposSupportTree); }
+bool GLVolume::is_sla_pad() const { return this->composite_id.volume_id == -int(slaposBasePool); }
 
 std::vector<int> GLVolumeCollection::load_object(
     const ModelObject       *model_object,
