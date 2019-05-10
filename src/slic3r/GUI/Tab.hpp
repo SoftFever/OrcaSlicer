@@ -228,12 +228,14 @@ public:
     int                 m_update_cnt = 0;
 
 public:
-	Tab(wxNotebook* parent, const wxString& title, const char* name); 
-	~Tab() {}
+// 	Tab(wxNotebook* parent, const wxString& title, const char* name); 
+    Tab(wxNotebook* parent, const wxString& title, Preset::Type type);
+    ~Tab() {}
 
 	wxWindow*	parent() const { return m_parent; }
 	wxString	title()	 const { return m_title; }
-	std::string	name()	 const { return m_name; }
+// 	std::string	name()	 const { return m_name; }
+	std::string	name()	 const { return m_presets->name(); }
     Preset::Type type()  const { return m_type; }
     bool complited()     const { return m_complited; }
     virtual bool supports_printer_technology(const PrinterTechnology tech) = 0;
@@ -312,7 +314,8 @@ class TabPrint : public Tab
     bool is_msg_dlg_already_exist {false};
 public:
 	TabPrint(wxNotebook* parent) : 
-		Tab(parent, _(L("Print Settings")), L("print")) {}
+// 		Tab(parent, _(L("Print Settings")), L("print")) {}
+        Tab(parent, _(L("Print Settings")), Slic3r::Preset::TYPE_PRINT) {}
 	~TabPrint() {}
 
 	ogStaticText*	m_recommended_thin_wall_thickness_description_line;
@@ -330,7 +333,8 @@ class TabFilament : public Tab
 	ogStaticText*	m_cooling_description_line;
 public:
 	TabFilament(wxNotebook* parent) : 
-		Tab(parent, _(L("Filament Settings")), L("filament")) {}
+// 		Tab(parent, _(L("Filament Settings")), L("filament")) {}
+		Tab(parent, _(L("Filament Settings")), Slic3r::Preset::TYPE_FILAMENT) {}
 	~TabFilament() {}
 
 	void		build() override;
@@ -363,7 +367,9 @@ public:
 
     PrinterTechnology               m_printer_technology = ptFFF;
 
-	TabPrinter(wxNotebook* parent) : Tab(parent, _(L("Printer Settings")), L("printer")) {}
+// 	TabPrinter(wxNotebook* parent) : Tab(parent, _(L("Printer Settings")), L("printer")) {}
+    TabPrinter(wxNotebook* parent) : 
+        Tab(parent, _(L("Printer Settings")), Slic3r::Preset::TYPE_PRINTER) {}
 	~TabPrinter() {}
 
 	void		build() override;
@@ -386,7 +392,8 @@ class TabSLAMaterial : public Tab
 {
 public:
     TabSLAMaterial(wxNotebook* parent) :
-		Tab(parent, _(L("Material Settings")), L("sla_material")) {}
+// 		Tab(parent, _(L("Material Settings")), L("sla_material")) {}
+		Tab(parent, _(L("Material Settings")), Slic3r::Preset::TYPE_SLA_MATERIAL) {}
     ~TabSLAMaterial() {}
 
 	void		build() override;
@@ -400,7 +407,8 @@ class TabSLAPrint : public Tab
 {
 public:
     TabSLAPrint(wxNotebook* parent) :
-        Tab(parent, _(L("Print Settings")), L("sla_print")) {}
+//         Tab(parent, _(L("Print Settings")), L("sla_print")) {}
+        Tab(parent, _(L("Print Settings")), Slic3r::Preset::TYPE_SLA_PRINT) {}
     ~TabSLAPrint() {}
     void		build() override;
 	void		reload_config() override;

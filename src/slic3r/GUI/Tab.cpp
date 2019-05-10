@@ -38,12 +38,13 @@ namespace GUI {
 wxDEFINE_EVENT(EVT_TAB_VALUE_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_TAB_PRESETS_CHANGED, SimpleEvent);
 
-Tab::Tab(wxNotebook* parent, const wxString& title, const char* name) : 
-	m_parent(parent), m_title(title), m_name(name)
+// Tab::Tab(wxNotebook* parent, const wxString& title, const char* name) : 
+// 	m_parent(parent), m_title(title), m_name(name)
+Tab::Tab(wxNotebook* parent, const wxString& title, Preset::Type type) :
+	m_parent(parent), m_title(title), m_type(type)
 {
-	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL, name);
+	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL/*, name*/);
 	this->SetFont(Slic3r::GUI::wxGetApp().normal_font());
-    set_type();
 
 	m_compatible_printers.type			= Preset::TYPE_PRINTER;
 	m_compatible_printers.key_list		= "compatible_printers";
@@ -463,7 +464,8 @@ void Tab::update_changed_ui()
 //	Thaw();
 
 	wxTheApp->CallAfter([this]() {
-		update_changed_tree_ui();
+        if (parent()) //To avoid a crash, parent should be exist for a moment of a tree updating
+		    update_changed_tree_ui();
 	});
 }
 
