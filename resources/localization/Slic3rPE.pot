@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-10 11:50+0200\n"
+"POT-Creation-Date: 2019-05-10 13:25+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1327,6 +1327,14 @@ msgstr ""
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:306
 msgid "Right button click the icon to change the object settings"
+msgstr ""
+
+#: src/slic3r/GUI/GUI_ObjectList.cpp:357 src/slic3r/GUI/GUI_ObjectList.cpp:378
+#: src/slic3r/GUI/GUI_ObjectList.cpp:390 src/slic3r/GUI/GUI_ObjectList.cpp:2855
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2865
+#: src/slic3r/GUI/GUI_ObjectList.cpp:2897 src/slic3r/GUI/wxExtensions.cpp:499
+#: src/slic3r/GUI/wxExtensions.cpp:524
+msgid "default"
 msgstr ""
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:362 src/slic3r/GUI/Tab.cpp:1480
