@@ -716,12 +716,12 @@ void GLCanvas3D::WarningTexture::activate(WarningTexture::Warning warning, bool 
     std::string text;
     bool red_colored = false;
     switch (m_warnings.back()) {
-        case ObjectOutside      : text = L("Detected object outside print volume"); break;
-        case ToolpathOutside    : text = L("Detected toolpath outside print volume"); break;
+        case ObjectOutside      : text = L("An object outside the print area was detected"); break;
+        case ToolpathOutside    : text = L("A toolpath outside the print area was detected"); break;
         case SomethingNotShown  : text = L("Some objects are not visible when editing supports"); break;
         case ObjectClashed: {
-            text = L("Detected object outside print volume\n"
-                     "Resolve a clash to continue slicing/export process correctly"); 
+            text = L("An object outside the print area was detected\n"
+                     "Resolve the current problem to continue slicing");
             red_colored = true;
             break;
         }
