@@ -52,10 +52,7 @@ public:
 protected:
     virtual bool on_init();
     virtual std::string on_get_name() const { return ""; }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    virtual void on_start_dragging(const Selection& selection, const UpdateData::Keys& keys);
-//    virtual void on_start_dragging(const Selection& selection);
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    virtual void on_start_dragging(const Selection& selection);
     virtual void on_update(const UpdateData& data, const Selection& selection);
     virtual void on_render(const Selection& selection) const;
     virtual void on_render_for_picking(const Selection& selection) const;
@@ -116,10 +113,7 @@ protected:
         if ((0 <= id) && (id < 3))
             m_gizmos[id].disable_grabber(0);
     }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    virtual void on_start_dragging(const Selection& selection, const UpdateData::Keys& keys);
-//    virtual void on_start_dragging(const Selection& selection);
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    virtual void on_start_dragging(const Selection& selection);
     virtual void on_stop_dragging();
     virtual void on_update(const UpdateData& data, const Selection& selection)
     {

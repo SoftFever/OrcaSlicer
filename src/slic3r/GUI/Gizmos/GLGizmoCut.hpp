@@ -34,10 +34,7 @@ protected:
     virtual std::string on_get_name() const;
     virtual void on_set_state();
     virtual bool on_is_activable(const Selection& selection) const;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    virtual void on_start_dragging(const Selection& selection, const UpdateData::Keys& keys);
-//    virtual void on_start_dragging(const Selection& selection);
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    virtual void on_start_dragging(const Selection& selection);
     virtual void on_update(const UpdateData& data, const Selection& selection);
     virtual void on_render(const Selection& selection) const;
     virtual void on_render_for_picking(const Selection& selection) const;

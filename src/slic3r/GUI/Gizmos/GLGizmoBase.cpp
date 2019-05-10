@@ -185,10 +185,7 @@ void GLGizmoBase::disable_grabber(unsigned int id)
     on_disable_grabber(id);
 }
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-void GLGizmoBase::start_dragging(const Selection& selection, const UpdateData::Keys& keys)
-//void GLGizmoBase::start_dragging(const Selection& selection)
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+void GLGizmoBase::start_dragging(const Selection& selection)
 {
     m_dragging = true;
 
@@ -197,10 +194,7 @@ void GLGizmoBase::start_dragging(const Selection& selection, const UpdateData::K
         m_grabbers[i].dragging = (m_hover_id == i);
     }
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    on_start_dragging(selection, keys);
-//    on_start_dragging(selection);
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    on_start_dragging(selection);
 }
 
 void GLGizmoBase::stop_dragging()

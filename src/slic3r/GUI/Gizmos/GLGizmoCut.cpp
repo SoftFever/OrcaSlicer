@@ -101,10 +101,7 @@ bool GLGizmoCut::on_is_activable(const Selection& selection) const
     return selection.is_single_full_instance() && !selection.is_wipe_tower();
 }
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-void GLGizmoCut::on_start_dragging(const Selection& selection, const UpdateData::Keys& keys)
-//void GLGizmoCut::on_start_dragging(const Selection& selection)
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+void GLGizmoCut::on_start_dragging(const Selection& selection)
 {
     if (m_hover_id == -1) { return; }
 
