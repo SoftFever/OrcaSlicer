@@ -323,7 +323,7 @@ PagePrinters::PagePrinters(ConfigWizard *parent, wxString title, wxString shortn
         COL_SIZE = 200,
     };
 
-    bool check_first_variant = wizard_p()->check_first_variant();
+    bool check_first_variant = technology == T_FFF && wizard_p()->check_first_variant();
 
     AppConfig &appconfig_vendors = this->wizard_p()->appconfig_vendors;
 
