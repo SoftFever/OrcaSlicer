@@ -3,6 +3,8 @@
 #include "GUI_ObjectManipulation.hpp"
 #include "I18N.hpp"
 
+#include <algorithm>
+#include <iterator>
 #include <exception>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
@@ -21,6 +23,7 @@
 #include <wx/sysopt.h>
 #include <wx/msgdlg.h>
 #include <wx/log.h>
+#include <wx/intl.h>
 
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Model.hpp"
@@ -255,7 +258,7 @@ bool GUI_App::on_init_inner()
 
             CallAfter([this] {
                 if (!config_wizard_startup(app_conf_exists)) {
-                    // Only notify if there was not wizard so as not to bother too much ...
+                    // Only notify if there was no wizard so as not to bother too much ...
                     preset_updater->slic3r_update_notify();
                 }
                 preset_updater->sync(preset_bundle);
@@ -518,66 +521,105 @@ void GUI_App::import_model(wxWindow *parent, wxArrayString& input_files)
         dialog.GetPaths(input_files);
 }
 
-// select language from the list of installed languages
-bool GUI_App::select_language(  wxArrayString & names,
-                                wxArrayLong & identifiers)
+bool GUI_App::switch_language()
 {
-    wxCHECK_MSG(names.Count() == identifiers.Count(), false,
-        _(L("Array of language names and identifiers should have the same size.")));
-    int init_selection = 0;
-    long current_language = m_wxLocale ? m_wxLocale->GetLanguage() : wxLANGUAGE_UNKNOWN;
-    for (auto lang : identifiers) {
-        if (lang == current_language)
-            break;
-        ++init_selection;
+    if (select_language()) {
+        save_language();
+        _3DScene::remove_all_canvases();
+        recreate_GUI();
+        return true;
+    } else {
+        return false;
     }
-    if (init_selection == identifiers.size())
-        init_selection = 0;
-    long index = wxGetSingleChoiceIndex(_(L("Select the language")), _(L("Language")),
-        names, init_selection);
-    if (index != -1)
-    {
-        m_wxLocale = new wxLocale;
-        m_wxLocale->Init(identifiers[index]);
+}
+
+// select language from the list of installed languages
+bool GUI_App::select_language()
+{
+    const auto langs = get_installed_languages();
+    wxArrayString names;
+    names.Alloc(langs.size());
+
+    int init_selection = -1;
+    const auto current_language = m_wxLocale ? m_wxLocale->GetLanguage() : wxLocale::GetSystemLanguage();
+
+    for (size_t i = 0; i < langs.size(); i++) {
+        const auto lang = langs[i]->Language;
+        const bool is_english = lang >= wxLANGUAGE_ENGLISH && lang <= wxLANGUAGE_ENGLISH_ZIMBABWE;
+
+        if (lang == current_language || (current_language == wxLANGUAGE_UNKNOWN && is_english)) {
+            init_selection = i;
+        }
+
+        names.Add(langs[i]->Description);
+    }
+
+    const long index = wxGetSingleChoiceIndex(
+        _(L("Select the language")),
+        _(L("Language")), names, init_selection >= 0 ? init_selection : 0);
+
+    if (index != -1) {
+        const wxLanguageInfo *lang = langs[index];
+        if (lang->Language == current_language) {
+            // There was no change
+            return false;
+        }
+
+        m_wxLocale = new wxLocale;    // FIXME: leak?
+        m_wxLocale->Init(lang->Language);
 		m_wxLocale->AddCatalogLookupPathPrefix(from_u8(localization_dir()));
         m_wxLocale->AddCatalog("Slic3rPE");
 		//FIXME This is a temporary workaround, the correct solution is to switch to "C" locale during file import / export only.
 		wxSetlocale(LC_NUMERIC, "C");
         Preset::update_suffix_modified();
-		m_imgui->set_language(m_wxLocale->GetCanonicalName().ToUTF8().data());
+        m_imgui->set_language(into_u8(lang->CanonicalName));
         return true;
     }
+
     return false;
 }
 
-// load language saved at application config
+// Load gettext translation files and activate them at the start of the application,
+// based on the "translation_language" key stored in the application config.
 bool GUI_App::load_language()
 {
     wxString language = wxEmptyString;
     if (app_config->has("translation_language"))
         language = app_config->get("translation_language");
 
-    if (language.IsEmpty())
-        return false;
-    wxArrayString	names;
-    wxArrayLong		identifiers;
-    get_installed_languages(names, identifiers);
-    for (size_t i = 0; i < identifiers.Count(); i++)
-    {
-        if (wxLocale::GetLanguageCanonicalName(identifiers[i]) == language)
-        {
-            m_wxLocale = new wxLocale;
-            m_wxLocale->Init(identifiers[i]);
-			m_wxLocale->AddCatalogLookupPathPrefix(from_u8(localization_dir()));
-            m_wxLocale->AddCatalog("Slic3rPE");
-			//FIXME This is a temporary workaround, the correct solution is to switch to "C" locale during file import / export only.
-            wxSetlocale(LC_NUMERIC, "C");
-			Preset::update_suffix_modified();
-			m_imgui->set_language(m_wxLocale->GetCanonicalName().ToUTF8().data());
-            return true;
+    if (language.IsEmpty()) {
+        int lang = wxLocale::GetSystemLanguage();
+        if (lang != wxLANGUAGE_UNKNOWN) {
+			const wxLanguageInfo *info = wxLocale::GetLanguageInfo(lang);
+            if (info != nullptr)
+                language = info->CanonicalName;
         }
     }
-    return false;
+
+    const wxLanguageInfo *info = nullptr;
+    if (! language.IsEmpty()) {
+        const auto langs = get_installed_languages();
+        for (const wxLanguageInfo *this_info : langs)
+            if (this_info->CanonicalName == language) {
+                info = this_info;
+                break;
+            }
+    }
+
+    m_wxLocale = new wxLocale;
+    if (info == nullptr) {
+        m_wxLocale->Init(wxLANGUAGE_DEFAULT);
+        m_imgui->set_language("en");
+    } else {
+        m_wxLocale->Init(info->Language);
+        m_wxLocale->AddCatalogLookupPathPrefix(from_u8(localization_dir()));
+        m_wxLocale->AddCatalog("Slic3rPE");
+        m_imgui->set_language(into_u8(info->CanonicalName));
+    }
+	//FIXME This is a temporary workaround, the correct solution is to switch to "C" locale during file import / export only.
+    wxSetlocale(LC_NUMERIC, "C");
+    Preset::update_suffix_modified();
+    return true;
 }
 
 // save language at application config
@@ -591,36 +633,31 @@ void GUI_App::save_language()
     app_config->save();
 }
 
-// get list of installed languages 
-void GUI_App::get_installed_languages(wxArrayString & names, wxArrayLong & identifiers)
+// Get a list of installed languages
+std::vector<const wxLanguageInfo*> GUI_App::get_installed_languages()
 {
-    names.Clear();
-    identifiers.Clear();
+    std::vector<const wxLanguageInfo*> res;
 
 	wxDir dir(from_u8(localization_dir()));
     wxString filename;
     const wxLanguageInfo * langinfo;
     wxString name = wxLocale::GetLanguageName(wxLANGUAGE_DEFAULT);
-    if (!name.IsEmpty())
-    {
-        names.Add(_(L("Default")));
-        identifiers.Add(wxLANGUAGE_DEFAULT);
+    if (!name.IsEmpty()) {
+        res.push_back(wxLocale::GetLanguageInfo(wxLANGUAGE_DEFAULT));
     }
-    for (bool cont = dir.GetFirst(&filename, wxEmptyString, wxDIR_DIRS);
-        cont; cont = dir.GetNext(&filename))
-    {
+
+    for (bool cont = dir.GetFirst(&filename, wxEmptyString, wxDIR_DIRS); cont; cont = dir.GetNext(&filename)) {
         langinfo = wxLocale::FindLanguageInfo(filename);
-        if (langinfo != NULL)
-        {
+        if (langinfo != NULL) {
             auto full_file_name = dir.GetName() + wxFileName::GetPathSeparator() +
                 filename + wxFileName::GetPathSeparator() + "Slic3rPE" + wxT(".mo");
-            if (wxFileExists(full_file_name))
-            {
-                names.Add(langinfo->Description);
-                identifiers.Add(langinfo->Language);
+            if (wxFileExists(full_file_name)) {
+                res.push_back(langinfo);
             }
         }
     }
+
+    return res;
 }
 
 Tab* GUI_App::get_tab(Preset::Type type)
@@ -757,14 +794,7 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
             if ( dialog.ShowModal() == wxID_CANCEL)
                 return;
 
-            wxArrayString names;
-            wxArrayLong identifiers;
-            get_installed_languages(names, identifiers);
-            if (select_language(names, identifiers)) {
-                save_language();
-                _3DScene::remove_all_canvases();// remove all canvas before recreate GUI
-                recreate_GUI();
-            }
+            switch_language();
             break;
         }
         case ConfigMenuFlashFirmware:
@@ -790,15 +820,15 @@ bool GUI_App::check_unsaved_changes()
     for (Tab *tab : tabs_list)
         if (tab->supports_printer_technology(printer_technology) && tab->current_preset_is_dirty())
             if (dirty.empty())
-                dirty = _(tab->name());
+                dirty = tab->title();
             else
-                dirty += wxString(", ") + _(tab->name());
+                dirty += wxString(", ") + tab->title();
     if (dirty.empty())
         // No changes, the application may close or reload presets.
         return true;
     // Ask the user.
     wxMessageDialog dialog(mainframe,
-        _(L("The following presets were modified")) + ": " + dirty + "\n" + _(L("Discard changes and continue anyway?")),
+        _(L("The presets on the following tabs were modified")) + ": " + dirty + "\n\n" + _(L("Discard changes and continue anyway?")),
         wxString(SLIC3R_APP_NAME) + " - " + _(L("Unsaved Presets")),
         wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
     return dialog.ShowModal() == wxID_YES;

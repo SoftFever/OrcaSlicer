@@ -554,10 +554,10 @@ void MainFrame::init_menubar()
 //#        $versioncheck->Enable(wxTheApp->have_version_check);
         append_menu_item(helpMenu, wxID_ANY, wxString::Format(_(L("%s &Website")), SLIC3R_APP_NAME), 
                                              wxString::Format(_(L("Open the %s website in your browser")), SLIC3R_APP_NAME),
-            [this](wxCommandEvent&) { wxLaunchDefaultBrowser("http://slic3r.org/"); });
-        append_menu_item(helpMenu, wxID_ANY, wxString::Format(_(L("%s &Manual")), SLIC3R_APP_NAME),
-                                             wxString::Format(_(L("Open the %s manual in your browser")), SLIC3R_APP_NAME),
-            [this](wxCommandEvent&) { wxLaunchDefaultBrowser("http://manual.slic3r.org/"); });
+            [this](wxCommandEvent&) { wxLaunchDefaultBrowser("https://www.prusa3d.com/slic3r-prusa-edition/"); });
+//        append_menu_item(helpMenu, wxID_ANY, wxString::Format(_(L("%s &Manual")), SLIC3R_APP_NAME),
+//                                             wxString::Format(_(L("Open the %s manual in your browser")), SLIC3R_APP_NAME),
+//            [this](wxCommandEvent&) { wxLaunchDefaultBrowser("http://manual.slic3r.org/"); });
         helpMenu->AppendSeparator();
         append_menu_item(helpMenu, wxID_ANY, _(L("System &Info")), _(L("Show system information")), 
             [this](wxCommandEvent&) { wxGetApp().system_info(); });
@@ -917,7 +917,7 @@ void MainFrame::load_config(const DynamicPrintConfig& config)
 #if 0
 	for (auto tab : wxGetApp().tabs_list)
 		if (tab->supports_printer_technology(printer_technology)) {
-			if (tab->name() == "printer")
+			if (tab->type() == Slic3r::Preset::TYPE_PRINTER)
 				static_cast<TabPrinter*>(tab)->update_pages();
 			tab->load_config(config);
 		}
