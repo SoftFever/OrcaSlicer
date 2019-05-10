@@ -58,7 +58,8 @@ void GLGizmoScale3D::on_start_dragging(const Selection& selection)
     if (m_hover_id != -1)
     {
         m_starting.drag_position = m_grabbers[m_hover_id].center;
-        m_starting.box = (wxGetKeyState(WXK_CONTROL) && (m_hover_id < 6)) ? m_box : selection.get_bounding_box();
+        m_starting.ctrl_down = wxGetKeyState(WXK_CONTROL);
+        m_starting.box = (m_starting.ctrl_down && (m_hover_id < 6)) ? m_box : selection.get_bounding_box();
 
         const Vec3d& center = m_starting.box.center();
         m_starting.pivots[0] = m_transform * Vec3d(m_starting.box.max(0), center(1), center(2));
@@ -161,7 +162,7 @@ void GLGizmoScale3D::on_render(const Selection& selection) const
     Vec3d offset_y = m_offsets_transform * Vec3d(0.0, (double)Offset, 0.0);
     Vec3d offset_z = m_offsets_transform * Vec3d(0.0, 0.0, (double)Offset);
 
-    bool ctrl_down = wxGetKeyState(WXK_CONTROL);
+    bool ctrl_down = (m_dragging && m_starting.ctrl_down) || (!m_dragging && wxGetKeyState(WXK_CONTROL));
 
     // x axis
     m_grabbers[0].center = m_transform * Vec3d(m_box.min(0), center(1), center(2)) - offset_x;
@@ -311,7 +312,7 @@ void GLGizmoScale3D::do_scale_x(const UpdateData& data)
     if (ratio > 0.0)
     {
         m_scale(0) = m_starting.scale(0) * ratio;
-        if (wxGetKeyState(WXK_CONTROL))
+        if (m_starting.ctrl_down)
         {
             double local_offset = 0.5 * (m_scale(0) - m_starting.scale(0)) * m_starting.box.size()(0);
             Vec3d local_offset_vec = Vec3d((m_hover_id == 0) ? -local_offset : local_offset, 0.0, 0.0);
@@ -328,7 +329,7 @@ void GLGizmoScale3D::do_scale_y(const UpdateData& data)
     if (ratio > 0.0)
     {
         m_scale(1) = m_starting.scale(1) * ratio;
-        if (wxGetKeyState(WXK_CONTROL))
+        if (m_starting.ctrl_down)
         {
             double local_offset = 0.5 * (m_scale(1) - m_starting.scale(1)) * m_starting.box.size()(1);
             Vec3d local_offset_vec = Vec3d(0.0, (m_hover_id == 2) ? -local_offset : local_offset, 0.0);
@@ -345,7 +346,7 @@ void GLGizmoScale3D::do_scale_z(const UpdateData& data)
     if (ratio > 0.0)
     {
         m_scale(2) = m_starting.scale(2) * ratio;
-        if (wxGetKeyState(WXK_CONTROL))
+        if (m_starting.ctrl_down)
         {
             double local_offset = 0.5 * (m_scale(2) - m_starting.scale(2)) * m_starting.box.size()(2);
             Vec3d local_offset_vec = Vec3d(0.0, 0.0, (m_hover_id == 4) ? -local_offset : local_offset);
@@ -367,7 +368,7 @@ double GLGizmoScale3D::calc_ratio(const UpdateData& data) const
 {
     double ratio = 0.0;
 
-    Vec3d pivot = (wxGetKeyState(WXK_CONTROL) && (m_hover_id < 6)) ? m_starting.pivots[m_hover_id] : m_starting.box.center();
+    Vec3d pivot = (m_starting.ctrl_down && (m_hover_id < 6)) ? m_starting.pivots[m_hover_id] : m_starting.box.center();
 
     Vec3d starting_vec = m_starting.drag_position - pivot;
     double len_starting_vec = starting_vec.norm();
