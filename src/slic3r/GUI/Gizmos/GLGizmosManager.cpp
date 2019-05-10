@@ -267,7 +267,6 @@ void GLGizmosManager::update_data(GLCanvas3D& canvas)
 
     bool is_wipe_tower = selection.is_wipe_tower();
     enable_grabber(Move, 2, !is_wipe_tower);
-    enable_grabber(Move, 2, !is_wipe_tower);
     enable_grabber(Rotate, 0, !is_wipe_tower);
     enable_grabber(Rotate, 1, !is_wipe_tower);
 
