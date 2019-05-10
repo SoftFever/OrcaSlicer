@@ -361,7 +361,10 @@ void GLGizmoScale3D::do_scale_uniform(const UpdateData& data)
 {
     double ratio = calc_ratio(data);
     if (ratio > 0.0)
+    {
         m_scale = m_starting.scale * ratio;
+        m_offset = Vec3d::Zero();
+    }
 }
 
 double GLGizmoScale3D::calc_ratio(const UpdateData& data) const
