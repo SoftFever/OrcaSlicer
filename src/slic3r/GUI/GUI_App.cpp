@@ -44,6 +44,10 @@
 #include "SysInfoDialog.hpp"
 #include "KBShortcutsDialog.hpp"
 
+#ifdef __WXMSW__
+#include <Shlobj.h>
+#endif // __WXMSW__
+
 namespace Slic3r {
 namespace GUI {
 
@@ -182,6 +186,10 @@ bool GUI_App::on_init_inner()
     app_config->set("version", SLIC3R_VERSION);
     app_config->save();
 
+#ifdef __WXMSW__
+    associate_3mf_files();
+#endif // __WXMSW__
+
     preset_updater = new PresetUpdater();
     Bind(EVT_SLIC3R_VERSION_ONLINE, [this](const wxCommandEvent &evt) {
         app_config->set("version_online", into_u8(evt.GetString()));
@@ -303,12 +311,12 @@ bool GUI_App::dark_mode_menus()
 void GUI_App::init_label_colours()
 {
     if (dark_mode()) {
-        m_color_label_modified = wxColour(252, 77, 1);
-        m_color_label_sys = wxColour(26, 132, 57);
-    }
-    else {
         m_color_label_modified = wxColour(253, 111, 40);
         m_color_label_sys = wxColour(115, 220, 103);
+    }
+    else {
+        m_color_label_modified = wxColour(252, 77, 1);
+        m_color_label_sys = wxColour(26, 132, 57);
     }
     m_color_label_default = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
 }
@@ -340,15 +348,19 @@ void GUI_App::init_fonts()
 #endif /*__WXMAC__*/
 }
 
-void GUI_App::update_fonts()
+void GUI_App::update_fonts(const MainFrame *main_frame)
 {
     /* Only normal and bold fonts are used for an application rescale,
      * because of under MSW small and normal fonts are the same.
      * To avoid same rescaling twice, just fill this values
      * from rescaled MainFrame
      */
-    m_normal_font   = mainframe->normal_font();
-    m_bold_font     = mainframe->normal_font().Bold();
+	if (main_frame == nullptr)
+		main_frame = this->mainframe;
+    m_normal_font   = main_frame->normal_font();
+    m_small_font    = m_normal_font;
+    m_bold_font     = main_frame->normal_font().Bold();
+    m_em_unit       = main_frame->em_unit();
 }
 
 void GUI_App::set_label_clr_modified(const wxColour& clr) {
@@ -737,10 +749,10 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
              * and draw user's attention to the application restarting after a language change
              */
             wxMessageDialog dialog(nullptr,
-                _(L("Application will be restarted after language change.")) + "\n" +
-                _(L("3D-Scene will be cleaned.")) + "\n\n" +
-                _(L("Please, check your changes before.")),
-                _(L("Attention!")),
+                _(L("Switching the language will trigger application restart.\n"
+                    "You will lose content of the plater.")) + "\n\n" +
+                _(L("Do you want to proceed?")),
+                wxString(SLIC3R_APP_NAME) + " - " + _(L("Language selection")),
                 wxICON_QUESTION | wxOK | wxCANCEL);
             if ( dialog.ShowModal() == wxID_CANCEL)
                 return;
@@ -773,21 +785,21 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
 // to notify the user whether he is aware that some preset changes will be lost.
 bool GUI_App::check_unsaved_changes()
 {
-    std::string dirty;
+    wxString dirty;
     PrinterTechnology printer_technology = preset_bundle->printers.get_edited_preset().printer_technology();
     for (Tab *tab : tabs_list)
         if (tab->supports_printer_technology(printer_technology) && tab->current_preset_is_dirty())
             if (dirty.empty())
-                dirty = tab->name();
+                dirty = _(tab->name());
             else
-                dirty += std::string(", ") + tab->name();
+                dirty += wxString(", ") + _(tab->name());
     if (dirty.empty())
         // No changes, the application may close or reload presets.
         return true;
     // Ask the user.
     wxMessageDialog dialog(mainframe,
-        _(L("You have unsaved changes ")) + dirty + _(L(". Discard changes and continue anyway?")),
-        _(L("Unsaved Presets")),
+        _(L("The following presets were modified: ")) + dirty + "\n" + _(L("Discard changes and continue anyway?")),
+        wxString(SLIC3R_APP_NAME) + " - " + _(L("Unsaved Presets")),
         wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
     return dialog.ShowModal() == wxID_YES;
 }
@@ -807,7 +819,7 @@ void GUI_App::load_current_presets()
 	this->plater()->set_printer_technology(printer_technology);
     for (Tab *tab : tabs_list)
 		if (tab->supports_printer_technology(printer_technology)) {
-			if (tab->name() == "printer")
+			if (tab->type() == Preset::TYPE_PRINTER)
 				static_cast<TabPrinter*>(tab)->update_pages();
 			tab->load_current_preset();
 		}
@@ -946,6 +958,65 @@ void GUI_App::window_pos_sanitize(wxTopLevelWindow* window)
 //     //TODO use wxNotificationMessage ?
 // }
 
+
+#ifdef __WXMSW__
+void GUI_App::associate_3mf_files()
+{
+    // see as reference: https://stackoverflow.com/questions/20245262/c-program-needs-an-file-association
+
+    auto reg_set = [](HKEY hkeyHive, const wchar_t* pszVar, const wchar_t* pszValue)
+    {
+        wchar_t szValueCurrent[1000];
+        DWORD dwType;
+        DWORD dwSize = sizeof(szValueCurrent);
+
+        int iRC = ::RegGetValueW(hkeyHive, pszVar, nullptr, RRF_RT_ANY, &dwType, szValueCurrent, &dwSize);
+
+        bool bDidntExist = iRC == ERROR_FILE_NOT_FOUND;
+
+        if ((iRC != ERROR_SUCCESS) && !bDidntExist)
+            // an error occurred
+            return;
+
+        if (!bDidntExist)
+        {
+            if (dwType != REG_SZ)
+                // invalid type
+                return;
+
+            if (::wcscmp(szValueCurrent, pszValue) == 0)
+                // value already set
+                return;
+        }
+
+        DWORD dwDisposition;
+        HKEY hkey;
+        iRC = ::RegCreateKeyExW(hkeyHive, pszVar, 0, 0, 0, KEY_ALL_ACCESS, nullptr, &hkey, &dwDisposition);
+        if (iRC == ERROR_SUCCESS)
+            iRC = ::RegSetValueExW(hkey, L"", 0, REG_SZ, (BYTE*)pszValue, (::wcslen(pszValue) + 1) * sizeof(wchar_t));
+
+        RegCloseKey(hkey);
+    };
+
+    wchar_t app_path[MAX_PATH];
+    ::GetModuleFileNameW(nullptr, app_path, sizeof(app_path));
+
+    std::wstring prog_path = L"\"" + std::wstring(app_path) + L"\"";
+    std::wstring prog_id = L"Prusa.Slicer.1";
+    std::wstring prog_desc = L"PrusaSlicer";
+    std::wstring prog_command = prog_path + L" \"%1\"";
+    std::wstring reg_base = L"Software\\Classes";
+    std::wstring reg_extension = reg_base + L"\\.3mf";
+    std::wstring reg_prog_id = reg_base + L"\\" + prog_id;
+    std::wstring reg_prog_id_command = reg_prog_id + L"\\Shell\\Open\\Command";
+
+    reg_set(HKEY_CURRENT_USER, reg_extension.c_str(), prog_id.c_str());
+    reg_set(HKEY_CURRENT_USER, reg_prog_id.c_str(), prog_desc.c_str());
+    reg_set(HKEY_CURRENT_USER, reg_prog_id_command.c_str(), prog_command.c_str());
+
+    ::SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
+}
+#endif // __WXMSW__
 
 } // GUI
 } //Slic3r

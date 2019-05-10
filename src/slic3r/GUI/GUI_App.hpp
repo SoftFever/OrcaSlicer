@@ -100,7 +100,7 @@ public:
     void            init_label_colours();
     void            update_label_colours_from_appconfig();
     void            init_fonts();
-    void            update_fonts();
+	void            update_fonts(const MainFrame *main_frame = nullptr);
     void            set_label_clr_modified(const wxColour& clr);
     void            set_label_clr_sys(const wxColour& clr);
 
@@ -178,6 +178,9 @@ private:
     void            window_pos_save(wxTopLevelWindow* window, const std::string &name);
     void            window_pos_restore(wxTopLevelWindow* window, const std::string &name, bool default_maximized = false);
     void            window_pos_sanitize(wxTopLevelWindow* window);
+#ifdef __WXMSW__
+    void associate_3mf_files();
+#endif // __WXMSW__
 };
 DECLARE_APP(GUI_App)
 

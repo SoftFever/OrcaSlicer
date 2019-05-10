@@ -567,8 +567,13 @@ ShapeData2D projectModelFromTop(const Slic3r::Model &model) {
                 Transform3d trafo_instance = Geometry::assemble_transform(Vec3d::Zero(), rotation, finst->get_scaling_factor(), finst->get_mirror());
                 Polygon p = objptr->convex_hull_2d(trafo_instance);
 				assert(! p.points.empty());
-				p.reverse();
-				assert(! p.is_counter_clockwise());
+
+                // this may happen for malformed models, see: https://github.com/prusa3d/Slic3r/issues/2209
+                if (p.points.empty())
+                    continue;
+
+                p.reverse();
+                assert(!p.is_counter_clockwise());
                 p.append(p.first_point());
                 clpath = Slic3rMultiPoint_to_ClipperPath(p);
             }

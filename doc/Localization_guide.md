@@ -36,7 +36,7 @@ Each string resource in Slic3rPE available for translation needs to be explicitl
 ```C++
 auto msg = L("This message to be localized")
 ```
-To get translated text use one of needed macro/function (`_(s)`, `_CHB(s)` or `L_str(s)` ).
+To get translated text use one of needed macro/function (`_(s)` or `_CHB(s)` ).
 If you add new file resource, add it to the list of files containing macro `L()`
 
 ### Scenario 4. How do I use GNUgettext to localize my own application taking Slic3rPE as an example

@@ -48,7 +48,7 @@ bool GLGizmoMove3D::on_init()
 
 std::string GLGizmoMove3D::on_get_name() const
 {
-    return L("Move [M]");
+    return (_(L("Move")) + " [M]").ToUTF8().data();
 }
 
 void GLGizmoMove3D::on_start_dragging(const Selection& selection)

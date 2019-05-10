@@ -269,6 +269,21 @@ extern Eigen::Quaterniond rotation_xyz_diff(const Vec3d &rot_xyz_from, const Vec
 // This should only be called if it is known, that the two rotations only differ in rotation around the Z axis.
 extern double rotation_diff_z(const Vec3d &rot_xyz_from, const Vec3d &rot_xyz_to);
 
+// Is the angle close to a multiple of 90 degrees?
+inline bool is_rotation_ninety_degrees(double a)
+{
+    a = fmod(std::abs(a), 0.5 * M_PI);
+    if (a > 0.25 * PI)
+        a = 0.5 * PI - a;
+    return a < 0.001;
+}
+
+// Is the angle close to a multiple of 90 degrees?
+inline bool is_rotation_ninety_degrees(const Vec3d &rotation)
+{
+    return is_rotation_ninety_degrees(rotation.x()) && is_rotation_ninety_degrees(rotation.y()) && is_rotation_ninety_degrees(rotation.z());
+}
+
 } }
 
 #endif

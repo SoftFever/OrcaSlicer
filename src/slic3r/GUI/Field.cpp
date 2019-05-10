@@ -15,19 +15,7 @@ namespace Slic3r { namespace GUI {
 
 wxString double_to_string(double const value, const int max_precision /*= 4*/)
 {
-	if (value - int(value) == 0)
-		return wxString::Format(_T("%i"), int(value));
-
-    int precision = max_precision;
-    for (size_t p = 1; p < max_precision; p++)
-	{
-		double cur_val = pow(10, p)*value;
-		if (cur_val - int(cur_val) == 0) {
-			precision = p;
-			break;
-		}
-	}
-	return wxNumberFormatter::ToString(value, precision, wxNumberFormatter::Style_None);
+	return wxNumberFormatter::ToString(value, max_precision, wxNumberFormatter::Style_NoTrailingZeroes);
 }
 
 void Field::PostInitialize()
@@ -215,7 +203,7 @@ void TextCtrl::BUILD() {
 	case coFloatOrPercent:
 	{
 		text_value = double_to_string(m_opt.default_value->getFloat());
-		if (static_cast<const ConfigOptionFloatOrPercent*>(m_opt.default_value)->percent)
+		if (m_opt.get_default_value<ConfigOptionFloatOrPercent>()->percent)
 			text_value += "%";
 		break;
 	}
@@ -230,19 +218,19 @@ void TextCtrl::BUILD() {
 	case coFloat:
 	{
 		double val = m_opt.type == coFloats ?
-			static_cast<const ConfigOptionFloats*>(m_opt.default_value)->get_at(m_opt_idx) :
+			m_opt.get_default_value<ConfigOptionFloats>()->get_at(m_opt_idx) :
 			m_opt.type == coFloat ? 
 				m_opt.default_value->getFloat() :
-				static_cast<const ConfigOptionPercents*>(m_opt.default_value)->get_at(m_opt_idx);
+				m_opt.get_default_value<ConfigOptionPercents>()->get_at(m_opt_idx);
 		text_value = double_to_string(val);
 		break;
 	}
 	case coString:			
-		text_value = static_cast<const ConfigOptionString*>(m_opt.default_value)->value;
+		text_value = m_opt.get_default_value<ConfigOptionString>()->value;
 		break;
 	case coStrings:
 	{
-		const ConfigOptionStrings *vec = static_cast<const ConfigOptionStrings*>(m_opt.default_value);
+		const ConfigOptionStrings *vec = m_opt.get_default_value<ConfigOptionStrings>();
 		if (vec == nullptr || vec->empty()) break; //for the case of empty default value
 		text_value = vec->get_at(m_opt_idx);
 		break;
@@ -272,8 +260,8 @@ void TextCtrl::BUILD() {
             e.Skip();
             temp->GetToolTip()->Enable(true);
 #endif // __WXGTK__
-            propagate_value();
             bEnterPressed = true;
+            propagate_value();
         }), temp->GetId());
     }
 
@@ -385,8 +373,8 @@ void CheckBox::BUILD() {
 
 	bool check_value =	m_opt.type == coBool ? 
 						m_opt.default_value->getBool() : m_opt.type == coBools ? 
-						static_cast<const ConfigOptionBools*>(m_opt.default_value)->get_at(m_opt_idx) : 
-    					false;
+							m_opt.get_default_value<ConfigOptionBools>()->get_at(m_opt_idx) : 
+    						false;
 
 	// Set Label as a string of at least one space simbol to correct system scaling of a CheckBox 
 	auto temp = new wxCheckBox(m_parent, wxID_ANY, wxString(" "), wxDefaultPosition, size); 
@@ -439,7 +427,7 @@ void SpinCtrl::BUILD() {
 		break;
 	case coInts:
 	{
-		const ConfigOptionInts *vec = static_cast<const ConfigOptionInts*>(m_opt.default_value);
+		const ConfigOptionInts *vec = m_opt.get_default_value<ConfigOptionInts>();
 		if (vec == nullptr || vec->empty()) break;
 		for (size_t id = 0; id < vec->size(); ++id)
 		{
@@ -641,7 +629,7 @@ void Choice::set_selection()
 		break;
 	}
 	case coEnum:{
-		int id_value = static_cast<const ConfigOptionEnum<SeamPosition>*>(m_opt.default_value)->value; //!!
+		int id_value = m_opt.get_default_value<ConfigOptionEnum<SeamPosition>>()->value; //!!
         field->SetSelection(id_value);
 		break;
 	}
@@ -661,7 +649,7 @@ void Choice::set_selection()
 		break;
 	}
 	case coStrings:{
-		text_value = static_cast<const ConfigOptionStrings*>(m_opt.default_value)->get_at(m_opt_idx);
+		text_value = m_opt.get_default_value<ConfigOptionStrings>()->get_at(m_opt_idx);
 
 		size_t idx = 0;
 		for (auto el : m_opt.enum_values)
@@ -898,7 +886,7 @@ void ColourPicker::BUILD()
     if (m_opt.width >= 0) size.SetWidth(m_opt.width*m_em_unit);
 
 	// Validate the color
-	wxString clr_str(static_cast<const ConfigOptionStrings*>(m_opt.default_value)->get_at(m_opt_idx));
+	wxString clr_str(m_opt.get_default_value<ConfigOptionStrings>()->get_at(m_opt_idx));
 	wxColour clr(clr_str);
 	if (! clr.IsOk()) {
 		clr = wxTransparentColour;
@@ -932,7 +920,7 @@ void PointCtrl::BUILD()
 
     const wxSize field_size(4 * m_em_unit, -1);
 
-	auto default_pt = static_cast<const ConfigOptionPoints*>(m_opt.default_value)->values.at(0);
+	auto default_pt = m_opt.get_default_value<ConfigOptionPoints>()->values.at(0);
 	double val = default_pt(0);
 	wxString X = val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2, wxNumberFormatter::Style_None);
 	val = default_pt(1);
@@ -1031,7 +1019,7 @@ void StaticText::BUILD()
     if (m_opt.height >= 0) size.SetHeight(m_opt.height*m_em_unit);
     if (m_opt.width >= 0) size.SetWidth(m_opt.width*m_em_unit);
 
-    const wxString legend(static_cast<const ConfigOptionString*>(m_opt.default_value)->value);
+    const wxString legend = wxString::FromUTF8(m_opt.get_default_value<ConfigOptionString>()->value.c_str());
     auto temp = new wxStaticText(m_parent, wxID_ANY, legend, wxDefaultPosition, size, wxST_ELLIPSIZE_MIDDLE);
 	temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 	temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
@@ -1055,6 +1043,7 @@ void StaticText::msw_rescale()
     {
         wxStaticText* field = dynamic_cast<wxStaticText*>(window);
         field->SetSize(size);
+        field->SetMinSize(size);
     }
 }
 
@@ -1066,7 +1055,7 @@ void SliderCtrl::BUILD()
 
 	auto temp = new wxBoxSizer(wxHORIZONTAL);
 
-	auto def_val = static_cast<const ConfigOptionInt*>(m_opt.default_value)->value;
+	auto def_val = m_opt.get_default_value<ConfigOptionInt>()->value;
 	auto min = m_opt.min == INT_MIN ? 0 : m_opt.min;
 	auto max = m_opt.max == INT_MAX ? 100 : m_opt.max;
 

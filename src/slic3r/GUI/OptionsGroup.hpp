@@ -1,17 +1,14 @@
 #ifndef slic3r_OptionsGroup_hpp_
 #define slic3r_OptionsGroup_hpp_
 
-//#include <wx/wx.h>
 #include <wx/stattext.h>
 #include <wx/settings.h>
-//#include <wx/window.h>
 
 #include <map>
 #include <functional>
 
 #include "libslic3r/Config.hpp"
 #include "libslic3r/PrintConfig.hpp"
-// #include "libslic3r/libslic3r.h"
 
 #include "Field.hpp"
 #include "GUI_App.hpp"
@@ -260,7 +257,7 @@ public:
 	void		back_to_initial_value(const std::string& opt_key) override;
 	void		back_to_sys_value(const std::string& opt_key) override;
 	void		back_to_config_value(const DynamicPrintConfig& config, const std::string& opt_key);
-    void		on_kill_focus(const std::string& opt_key) override;// { reload_config(); }
+    void		on_kill_focus(const std::string& opt_key) override;
 	void		reload_config();
     // return value shows visibility : false => all options are hidden
     void        Hide();

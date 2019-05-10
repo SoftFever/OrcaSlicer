@@ -12,9 +12,9 @@
 namespace Slic3r {
 namespace GUI {
 
-ButtonsDescription::ButtonsDescription(wxWindow* parent, t_icon_descriptions* icon_descriptions) :
+ButtonsDescription::ButtonsDescription(wxWindow* parent, const std::vector<Entry> &entries) :
 	wxDialog(parent, wxID_ANY, _(L("Buttons And Text Colors Description")), wxDefaultPosition, wxDefaultSize),
-	m_icon_descriptions(icon_descriptions)
+	m_entries(entries)
 {
 	auto grid_sizer = new wxFlexGridSizer(3, 20, 20);
 
@@ -22,18 +22,13 @@ ButtonsDescription::ButtonsDescription(wxWindow* parent, t_icon_descriptions* ic
 	main_sizer->Add(grid_sizer, 0, wxEXPAND | wxALL, 20);
 
 	// Icon description
-	for (auto pair : *m_icon_descriptions)
+	for (const Entry &entry : m_entries)
 	{
-		auto icon = new wxStaticBitmap(this, wxID_ANY, /***/pair.first->bmp());
+		auto icon = new wxStaticBitmap(this, wxID_ANY, entry.bitmap->bmp());
 		grid_sizer->Add(icon, -1, wxALIGN_CENTRE_VERTICAL);
-
-		std::istringstream f(pair.second);
-		std::string s;
-		getline(f, s, ';');
-		auto description = new wxStaticText(this, wxID_ANY, _(s));
+		auto description = new wxStaticText(this, wxID_ANY, _utf8(entry.symbol));
 		grid_sizer->Add(description, -1, wxALIGN_CENTRE_VERTICAL);
-		getline(f, s, ';');
-		description = new wxStaticText(this, wxID_ANY, _(s));
+		description = new wxStaticText(this, wxID_ANY, _utf8(entry.explanation));
 		grid_sizer->Add(description, -1, wxALIGN_CENTRE_VERTICAL | wxEXPAND);
 	}
 

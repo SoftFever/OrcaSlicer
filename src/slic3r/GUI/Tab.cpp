@@ -42,6 +42,7 @@ Tab::Tab(wxNotebook* parent, const wxString& title, const char* name) :
 	m_parent(parent), m_title(title), m_name(name)
 {
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL, name);
+	this->SetFont(Slic3r::GUI::wxGetApp().normal_font());
     set_type();
 
 	m_compatible_printers.type			= Preset::TYPE_PRINTER;
@@ -156,7 +157,7 @@ void Tab::create_preset_tab()
 	m_undo_to_sys_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent) { on_roll_back_value(true); }));
 	m_question_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent)
 	{
-		auto dlg = new ButtonsDescription(this, &m_icon_descriptions);
+		auto dlg = new ButtonsDescription(this, m_icon_descriptions);
 		if (dlg->ShowModal() == wxID_OK) {
 			// Colors for ui "decoration"
             for (Tab *tab : wxGetApp().tabs_list) {
@@ -815,6 +816,19 @@ void Tab::load_key_value(const std::string& opt_key, const boost::any& value, bo
 	update();
 }
 
+static wxString support_combo_value_for_config(const DynamicPrintConfig &config, bool is_fff)
+{
+    const std::string support         = is_fff ? "support_material"                 : "supports_enable";
+    const std::string buildplate_only = is_fff ? "support_material_buildplate_only" : "support_buildplate_only";
+	return
+		! config.opt_bool(support) ?
+        	_("None") :
+			(is_fff && !config.opt_bool("support_material_auto")) ?
+				_("For support enforcers only") :
+                (config.opt_bool(buildplate_only) ? _("Support on build plate only") :
+				                                    _("Everywhere"));
+}
+
 void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 {
 	if (wxGetApp().plater() == nullptr) {
@@ -822,23 +836,17 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 	}
 
     const bool is_fff = supports_printer_technology(ptFFF);
-    ConfigOptionsGroup* og_freq_chng_params = wxGetApp().sidebar().og_freq_chng_params(is_fff);
+	ConfigOptionsGroup* og_freq_chng_params = wxGetApp().sidebar().og_freq_chng_params(is_fff);
     if (opt_key == "fill_density" || opt_key == "pad_enable")
 	{
         boost::any val = og_freq_chng_params->get_config_value(*m_config, opt_key);
         og_freq_chng_params->set_value(opt_key, val);
 	}
 
-	if ( is_fff && (opt_key == "support_material" || opt_key == "support_material_buildplate_only") || 
-        !is_fff && (opt_key == "supports_enable"  || opt_key == "support_buildplate_only"))
-	{
-        const std::string support         = is_fff ? "support_material"                 : "supports_enable";
-        const std::string buildplate_only = is_fff ? "support_material_buildplate_only" : "support_buildplate_only";
-        wxString new_selection = !m_config->opt_bool(support)         ? _("None") :
-                                  m_config->opt_bool(buildplate_only) ? _("Support on build plate only") :
-									                                    _("Everywhere");
-        og_freq_chng_params->set_value("support", new_selection);
-	}
+	if (is_fff ?
+			(opt_key == "support_material" || opt_key == "support_material_auto" || opt_key == "support_material_buildplate_only") :
+        	(opt_key == "supports_enable"  || opt_key == "support_buildplate_only"))
+		og_freq_chng_params->set_value("support", support_combo_value_for_config(*m_config, is_fff));
 
 	if (opt_key == "brim_width")
 	{
@@ -964,18 +972,11 @@ void Tab::update_preset_description_line()
 
 void Tab::update_frequently_changed_parameters()
 {
-    auto og_freq_chng_params = wxGetApp().sidebar().og_freq_chng_params(supports_printer_technology(ptFFF));
+	const bool is_fff = supports_printer_technology(ptFFF);
+	auto og_freq_chng_params = wxGetApp().sidebar().og_freq_chng_params(is_fff);
     if (!og_freq_chng_params) return;
 
-    const bool is_fff = supports_printer_technology(ptFFF);
-
-    const std::string support           = is_fff ? "support_material"                   : "supports_enable";
-    const std::string buildplate_only   = is_fff ? "support_material_buildplate_only"   : "support_buildplate_only";
-
-    wxString new_selection = !m_config->opt_bool(support)         ? _("None") :
-                              m_config->opt_bool(buildplate_only) ? _("Support on build plate only") :
-                                                                    _("Everywhere");
-    og_freq_chng_params->set_value("support", new_selection);
+	og_freq_chng_params->set_value("support", support_combo_value_for_config(*m_config, is_fff));
 
     const std::string updated_value_key = is_fff ? "fill_density" : "pad_enable";
 
@@ -1678,7 +1679,7 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 	}
 
 	auto printhost_browse = [=](wxWindow* parent) {
-        add_scaled_button(parent, &m_printhost_browse_btn, "browse", _(L(" Browse ")) + dots, wxBU_LEFT | wxBU_EXACTFIT);
+        add_scaled_button(parent, &m_printhost_browse_btn, "browse", _(L("Browse")) + " "+ dots, wxBU_LEFT | wxBU_EXACTFIT);
         ScalableButton* btn = m_printhost_browse_btn;
 		btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 
@@ -1840,7 +1841,7 @@ void TabPrinter::build_fff()
 		optgroup = page->new_optgroup(_(L("Capabilities")));
 		ConfigOptionDef def;
 			def.type =  coInt,
-			def.default_value = new ConfigOptionInt(1); 
+			def.set_default_value(new ConfigOptionInt(1)); 
 			def.label = L("Extruders");
 			def.tooltip = L("Number of extruders of the printer.");
 			def.min = 1;
@@ -2057,7 +2058,7 @@ void TabPrinter::build_sla()
     optgroup->append_single_option_line("area_fill");
 
     optgroup = page->new_optgroup(_(L("Corrections")));
-    line = Line{ m_config->def()->get("relative_correction")->full_label, "" };
+    line = Line{ _(m_config->def()->get("relative_correction")->full_label), "" };
 //    std::vector<std::string> axes{ "X", "Y", "Z" };
     std::vector<std::string> axes{ "XY", "Z" };
     int id = 0;
@@ -2124,7 +2125,7 @@ void TabPrinter::extruders_count_changed(size_t extruders_count)
 void TabPrinter::append_option_line(ConfigOptionsGroupShp optgroup, const std::string opt_key)
 {
 	auto option = optgroup->get_option(opt_key, 0);
-	auto line = Line{ option.opt.full_label, "" };
+	auto line = Line{ _(option.opt.full_label), "" };
 	line.append_option(option);
 	if (m_use_silent_mode)
 		line.append_option(optgroup->get_option(opt_key, 1));
@@ -2147,14 +2148,14 @@ PageShp TabPrinter::build_kinematics_page()
 		def.width = 15;
 		def.gui_type = "legend";
         def.mode = comAdvanced;
-		def.tooltip = L("Values in this column are for Full Power mode");
-		def.default_value = new ConfigOptionString{ L("Full Power") };
+		def.tooltip = L("Values in this column are for Normal mode");
+		def.set_default_value(new ConfigOptionString{ _(L("Normal")).ToUTF8().data() });
 
 		auto option = Option(def, "full_power_legend");
 		line.append_option(option);
 
-		def.tooltip = L("Values in this column are for Silent mode");
-		def.default_value = new ConfigOptionString{ L("Silent") };
+		def.tooltip = L("Values in this column are for Stealth mode");
+		def.set_default_value(new ConfigOptionString{ _(L("Stealth")).ToUTF8().data() });
 		option = Option(def, "silent_legend");
 		line.append_option(option);
 
@@ -3061,24 +3062,28 @@ void Tab::compatible_widget_reload(PresetDependencies &deps)
 
 void Tab::fill_icon_descriptions()
 {
-	m_icon_descriptions.push_back(t_icon_description(&m_bmp_value_lock, L("LOCKED LOCK;"
-		"indicates that the settings are the same as the system values for the current option group")));
+	m_icon_descriptions.emplace_back(&m_bmp_value_lock, L("LOCKED LOCK"),
+        // TRN Description for "LOCKED LOCK"
+		L("indicates that the settings are the same as the system values for the current option group"));
 
-	m_icon_descriptions.push_back(t_icon_description(&m_bmp_value_unlock, L("UNLOCKED LOCK;"
-		"indicates that some settings were changed and are not equal to the system values for "
+    m_icon_descriptions.emplace_back(&m_bmp_value_unlock, L("UNLOCKED LOCK"),
+        // TRN Description for "UNLOCKED LOCK"
+		L("indicates that some settings were changed and are not equal to the system values for "
 		"the current option group.\n"
 		"Click the UNLOCKED LOCK icon to reset all settings for current option group to "
-		"the system values.")));
+		"the system values."));
 
-	m_icon_descriptions.push_back(t_icon_description(&m_bmp_white_bullet, L("WHITE BULLET;"
-		"for the left button: \tindicates a non-system preset,\n"
-		"for the right button: \tindicates that the settings hasn't been modified.")));
+    m_icon_descriptions.emplace_back(&m_bmp_white_bullet, L("WHITE BULLET"),
+        // TRN Description for "WHITE BULLET"
+        L("for the left button: \tindicates a non-system preset,\n"
+		"for the right button: \tindicates that the settings hasn't been modified."));
 
-	m_icon_descriptions.push_back(t_icon_description(&m_bmp_value_revert, L("BACK ARROW;"
-		"indicates that the settings were changed and are not equal to the last saved preset for "
+    m_icon_descriptions.emplace_back(&m_bmp_value_revert, L("BACK ARROW"),
+        // TRN Description for "BACK ARROW"
+        L("indicates that the settings were changed and are not equal to the last saved preset for "
 		"the current option group.\n"
 		"Click the BACK ARROW icon to reset all settings for the current option group to "
-		"the last saved preset.")));
+		"the last saved preset."));
 }
 
 void Tab::set_tooltips_text()
@@ -3313,7 +3318,7 @@ void TabSLAMaterial::build()
 //    std::vector<std::string> axes{ "X", "Y", "Z" };
     std::vector<std::string> axes{ "XY", "Z" };
     for (auto& opt_key : corrections) {
-        auto line = Line{ m_config->def()->get(opt_key)->full_label, "" };
+        auto line = Line{ _(m_config->def()->get(opt_key)->full_label), "" };
         int id = 0;
         for (auto& axis : axes) {
             auto opt = optgroup->get_option(opt_key, id);

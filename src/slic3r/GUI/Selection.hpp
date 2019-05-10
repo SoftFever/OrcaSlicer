@@ -183,6 +183,12 @@ private:
     Clipboard m_clipboard;
     mutable BoundingBoxf3 m_bounding_box;
     mutable bool m_bounding_box_dirty;
+    // Bounding box of a selection, with no instance scaling applied. This bounding box
+    // is useful for absolute scaling of tilted objects in world coordinate space.
+    mutable BoundingBoxf3 m_unscaled_instance_bounding_box;
+    mutable bool m_unscaled_instance_bounding_box_dirty;
+    mutable BoundingBoxf3 m_scaled_instance_bounding_box;
+    mutable bool m_scaled_instance_bounding_box_dirty;
 
 #if ENABLE_RENDER_SELECTION_CENTER
     GLUquadricObj* m_quadric;
@@ -224,6 +230,8 @@ public:
 
     void add_all();
 
+    // Update the selection based on the new instance IDs.
+	void instances_changed(const std::vector<size_t> &instance_ids_selected);
     // Update the selection based on the map from old indices to new indices after m_volumes changed.
     // If the current selection is by instance, this call may select newly added volumes, if they belong to already selected instances.
     void volumes_changed(const std::vector<size_t> &map_volume_old_to_new);
@@ -245,7 +253,7 @@ public:
     bool is_from_single_instance() const { return get_instance_idx() != -1; }
     bool is_from_single_object() const;
 
-    bool contains_volume(unsigned int volume_idx) const { return std::find(m_list.begin(), m_list.end(), volume_idx) != m_list.end(); }
+    bool contains_volume(unsigned int volume_idx) const { return m_list.find(volume_idx) != m_list.end(); }
     bool requires_uniform_scale() const;
 
     // Returns the the object id if the selection is from a single object, otherwise is -1
@@ -263,13 +271,17 @@ public:
 
     unsigned int volumes_count() const { return (unsigned int)m_list.size(); }
     const BoundingBoxf3& get_bounding_box() const;
+    // Bounding box of a selection, with no instance scaling applied. This bounding box
+    // is useful for absolute scaling of tilted objects in world coordinate space.
+    const BoundingBoxf3& get_unscaled_instance_bounding_box() const;
+    const BoundingBoxf3& get_scaled_instance_bounding_box() const;
 
     void start_dragging();
 
     void translate(const Vec3d& displacement, bool local = false);
     void rotate(const Vec3d& rotation, TransformationType transformation_type);
     void flattening_rotate(const Vec3d& normal);
-    void scale(const Vec3d& scale, bool local);
+    void scale(const Vec3d& scale, TransformationType transformation_type);
     void mirror(Axis axis);
 
     void translate(unsigned int object_idx, const Vec3d& displacement);
@@ -301,6 +313,9 @@ private:
     void do_remove_instance(unsigned int object_idx, unsigned int instance_idx);
     void do_remove_object(unsigned int object_idx);
     void calc_bounding_box() const;
+    void calc_unscaled_instance_bounding_box() const;
+    void calc_scaled_instance_bounding_box() const;
+    void set_bounding_boxes_dirty() { m_bounding_box_dirty = true; m_unscaled_instance_bounding_box_dirty = true; m_scaled_instance_bounding_box_dirty = true; }
     void render_selected_volumes() const;
     void render_synchronized_volumes() const;
     void render_bounding_box(const BoundingBoxf3& box, float* color) const;

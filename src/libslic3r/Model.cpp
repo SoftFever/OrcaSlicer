@@ -24,6 +24,19 @@ unsigned int Model::s_auto_extruder_id = 1;
 
 size_t ModelBase::s_last_id = 0;
 
+// Unique object / instance ID for the wipe tower.
+ModelID wipe_tower_object_id()
+{
+    static ModelBase mine;
+    return mine.id();
+}
+
+ModelID wipe_tower_instance_id()
+{
+    static ModelBase mine;
+    return mine.id();
+}
+
 Model& Model::assign_copy(const Model &rhs)
 {
     this->copy_id(rhs);
@@ -1320,6 +1333,58 @@ void ModelObject::repair()
         v->mesh.repair();
 }
 
+// Support for non-uniform scaling of instances. If an instance is rotated by angles, which are not multiples of ninety degrees,
+// then the scaling in world coordinate system is not representable by the Geometry::Transformation structure.
+// This situation is solved by baking in the instance transformation into the mesh vertices.
+// Rotation and mirroring is being baked in. In case the instance scaling was non-uniform, it is baked in as well.
+void ModelObject::bake_xy_rotation_into_meshes(size_t instance_idx)
+{
+    assert(instance_idx < this->instances.size());
+
+	const Geometry::Transformation reference_trafo = this->instances[instance_idx]->get_transformation();
+    if (Geometry::is_rotation_ninety_degrees(reference_trafo.get_rotation()))
+        // nothing to do, scaling in the world coordinate space is possible in the representation of Geometry::Transformation.
+        return;
+
+    bool   left_handed        = reference_trafo.is_left_handed();
+    bool   has_mirrorring     = ! reference_trafo.get_mirror().isApprox(Vec3d(1., 1., 1.));
+    bool   uniform_scaling    = std::abs(reference_trafo.get_scaling_factor().x() - reference_trafo.get_scaling_factor().y()) < EPSILON &&
+                                std::abs(reference_trafo.get_scaling_factor().x() - reference_trafo.get_scaling_factor().z()) < EPSILON;
+    double new_scaling_factor = uniform_scaling ? reference_trafo.get_scaling_factor().x() : 1.;
+
+    // Adjust the instances.
+    for (size_t i = 0; i < this->instances.size(); ++ i) {
+        ModelInstance &model_instance = *this->instances[i];
+        model_instance.set_rotation(Vec3d(0., 0., Geometry::rotation_diff_z(reference_trafo.get_rotation(), model_instance.get_rotation())));
+        model_instance.set_scaling_factor(Vec3d(new_scaling_factor, new_scaling_factor, new_scaling_factor));
+        model_instance.set_mirror(Vec3d(1., 1., 1.));
+    }
+
+    // Adjust the meshes.
+    // Transformation to be applied to the meshes.
+    Eigen::Matrix3d    mesh_trafo_3x3           = reference_trafo.get_matrix(true, false, uniform_scaling, ! has_mirrorring).matrix().block<3, 3>(0, 0);
+	Transform3d volume_offset_correction = this->instances[instance_idx]->get_transformation().get_matrix().inverse() * reference_trafo.get_matrix();
+    for (ModelVolume *model_volume : this->volumes) {
+        const Geometry::Transformation volume_trafo = model_volume->get_transformation();
+        bool   volume_left_handed        = volume_trafo.is_left_handed();
+        bool   volume_has_mirrorring     = ! volume_trafo.get_mirror().isApprox(Vec3d(1., 1., 1.));
+        bool   volume_uniform_scaling    = std::abs(volume_trafo.get_scaling_factor().x() - volume_trafo.get_scaling_factor().y()) < EPSILON &&
+                                           std::abs(volume_trafo.get_scaling_factor().x() - volume_trafo.get_scaling_factor().z()) < EPSILON;
+        double volume_new_scaling_factor = volume_uniform_scaling ? volume_trafo.get_scaling_factor().x() : 1.;
+        // Transform the mesh.
+		Matrix3d volume_trafo_3x3 = volume_trafo.get_matrix(true, false, volume_uniform_scaling, !volume_has_mirrorring).matrix().block<3, 3>(0, 0);
+		model_volume->transform_mesh(mesh_trafo_3x3 * volume_trafo_3x3, left_handed != volume_left_handed);
+        // Reset the rotation, scaling and mirroring.
+        model_volume->set_rotation(Vec3d(0., 0., 0.));
+        model_volume->set_scaling_factor(Vec3d(volume_new_scaling_factor, volume_new_scaling_factor, volume_new_scaling_factor));
+        model_volume->set_mirror(Vec3d(1., 1., 1.));
+        // Move the reference point of the volume to compensate for the change of the instance trafo.
+        model_volume->set_offset(volume_offset_correction * volume_trafo.get_offset());
+    }
+
+    this->invalidate_bounding_box();
+}
+
 double ModelObject::get_min_z() const
 {
     if (instances.empty())
@@ -1451,6 +1516,50 @@ std::string ModelObject::get_export_filename() const
     return ret;
 }
 
+stl_stats ModelObject::get_object_stl_stats() const
+{
+    if (this->volumes.size() == 1)
+        return this->volumes[0]->mesh.stl.stats;
+
+    stl_stats full_stats = this->volumes[0]->mesh.stl.stats;
+
+    // fill full_stats from all objet's meshes
+    for (ModelVolume* volume : this->volumes)
+    {
+        if (volume->id() == this->volumes[0]->id())
+            continue;
+
+        const stl_stats& stats = volume->mesh.stl.stats;
+
+        // initialize full_stats (for repaired errors)
+        full_stats.degenerate_facets    += stats.degenerate_facets;
+        full_stats.edges_fixed          += stats.edges_fixed;
+        full_stats.facets_removed       += stats.facets_removed;
+        full_stats.facets_added         += stats.facets_added;
+        full_stats.facets_reversed      += stats.facets_reversed;
+        full_stats.backwards_edges      += stats.backwards_edges;
+
+        // another used satistics value
+        if (volume->is_model_part()) {
+            full_stats.volume           += stats.volume;
+            full_stats.number_of_parts  += stats.number_of_parts;
+        }
+    }
+
+    return full_stats;
+}
+
+int ModelObject::get_mesh_errors_count(const int vol_idx /*= -1*/) const
+{
+    if (vol_idx >= 0)
+        return this->volumes[vol_idx]->get_mesh_errors_count();
+
+    const stl_stats& stats = get_object_stl_stats();
+
+    return  stats.degenerate_facets + stats.edges_fixed     + stats.facets_removed +
+            stats.facets_added      + stats.facets_reversed + stats.backwards_edges;
+}
+
 void ModelVolume::set_material_id(t_model_material_id material_id)
 {
     m_material_id = material_id;
@@ -1514,6 +1623,14 @@ void ModelVolume::center_geometry()
 void ModelVolume::calculate_convex_hull()
 {
     m_convex_hull = mesh.convex_hull_3d();
+}
+
+int ModelVolume::get_mesh_errors_count() const
+{
+    const stl_stats& stats = this->mesh.stl.stats;
+
+    return  stats.degenerate_facets + stats.edges_fixed     + stats.facets_removed +
+            stats.facets_added      + stats.facets_reversed + stats.backwards_edges;
 }
 
 const TriangleMesh& ModelVolume::get_convex_hull() const
@@ -1654,6 +1771,22 @@ void ModelVolume::scale_geometry(const Vec3d& versor)
 {
     mesh.scale(versor);
     m_convex_hull.scale(versor);
+}
+
+void ModelVolume::transform_mesh(const Transform3d &mesh_trafo, bool fix_left_handed)
+{
+    this->mesh.transform(mesh_trafo, fix_left_handed);
+    this->m_convex_hull.transform(mesh_trafo, fix_left_handed);
+    // Let the rest of the application know that the geometry changed, so the meshes have to be reloaded.
+    this->set_new_unique_id();
+}
+
+void ModelVolume::transform_mesh(const Matrix3d &matrix, bool fix_left_handed)
+{
+	this->mesh.transform(matrix, fix_left_handed);
+	this->m_convex_hull.transform(matrix, fix_left_handed);
+    // Let the rest of the application know that the geometry changed, so the meshes have to be reloaded.
+    this->set_new_unique_id();
 }
 
 void ModelInstance::transform_mesh(TriangleMesh* mesh, bool dont_translate) const

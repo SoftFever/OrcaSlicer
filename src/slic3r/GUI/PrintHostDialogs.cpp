@@ -145,12 +145,12 @@ PrintHostQueueDialog::PrintHostQueueDialog(wxWindow *parent)
 
     job_list = new wxDataViewListCtrl(this, wxID_ANY);
     // Note: Keep these in sync with Column
-    job_list->AppendTextColumn("ID", wxDATAVIEW_CELL_INERT);
-    job_list->AppendProgressColumn("Progress", wxDATAVIEW_CELL_INERT);
-    job_list->AppendTextColumn("Status", wxDATAVIEW_CELL_INERT);
-    job_list->AppendTextColumn("Host", wxDATAVIEW_CELL_INERT);
-    job_list->AppendTextColumn("Filename", wxDATAVIEW_CELL_INERT);
-    job_list->AppendTextColumn("error_message", wxDATAVIEW_CELL_INERT, -1, wxALIGN_CENTER, wxDATAVIEW_COL_HIDDEN);
+    job_list->AppendTextColumn(_(L("ID")), wxDATAVIEW_CELL_INERT);
+    job_list->AppendProgressColumn(_(L("Progress")), wxDATAVIEW_CELL_INERT);
+    job_list->AppendTextColumn(_(L("Status")), wxDATAVIEW_CELL_INERT);
+    job_list->AppendTextColumn(_(L("Host")), wxDATAVIEW_CELL_INERT);
+    job_list->AppendTextColumn(_(L("Filename")), wxDATAVIEW_CELL_INERT);
+    job_list->AppendTextColumn(_(L("Error Message")), wxDATAVIEW_CELL_INERT, -1, wxALIGN_CENTER, wxDATAVIEW_COL_HIDDEN);
 
     auto *btnsizer = new wxBoxSizer(wxHORIZONTAL);
     btn_cancel = new wxButton(this, wxID_DELETE, _(L("Cancel selected")));

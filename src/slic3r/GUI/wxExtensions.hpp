@@ -20,7 +20,13 @@ namespace Slic3r {
 	enum class ModelVolumeType : int;
 };
 
-wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const wxString& description, 
+#ifdef __WXMSW__
+void                msw_rescale_menu(wxMenu* menu);
+#else /* __WXMSW__ */
+inline void         msw_rescale_menu(wxMenu* /* menu */) {}
+#endif /* __WXMSW__ */
+
+wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const wxString& description,
     std::function<void(wxCommandEvent& event)> cb, const wxBitmap& icon, wxEvtHandler* event_handler = nullptr);
 wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const wxString& description,
     std::function<void(wxCommandEvent& event)> cb, const std::string& icon = "", wxEvtHandler* event_handler = nullptr);
@@ -219,28 +225,7 @@ public:
         set_action_icon();
     }
 
-    ObjectDataViewModelNode(ObjectDataViewModelNode* parent, 
-                            const ItemType type) :
-        m_parent(parent),
-        m_type(type),
-        m_extruder(wxEmptyString)
-	{
-        if (type == itSettings) {
-            m_name = "Settings to modified";
-        }
-        else if (type == itInstanceRoot) {
-            m_name = "Instances"; 
-#ifdef __WXGTK__
-            m_container = true;
-#endif  //__WXGTK__
-        }
-        else if (type == itInstance) {
-            m_idx = parent->GetChildCount();
-            m_name = wxString::Format("Instance_%d", m_idx+1);
-
-            set_action_icon();
-        }
-	}
+    ObjectDataViewModelNode(ObjectDataViewModelNode* parent, const ItemType type);
 
 	~ObjectDataViewModelNode()
 	{
@@ -323,25 +308,12 @@ public:
 		return false;
 	}
 
-	void SetBitmap(const wxBitmap &icon)
-	{
-		m_bmp = icon;
-	}
-
-    ItemType GetType() const {
-        return m_type;
-    }
-
-	void SetIdx(const int& idx) {
-		m_idx = idx;
-        // update name if this node is instance
-        if (m_type == itInstance)
-            m_name = wxString::Format("Instance_%d", m_idx + 1);
-	}
-
-	int GetIdx() const {
-		return m_idx;
-	}
+	void            SetBitmap(const wxBitmap &icon) { m_bmp = icon; }
+    const wxBitmap& GetBitmap() const               { return m_bmp; }
+    const wxString& GetName() const                 { return m_name; }
+    ItemType        GetType() const                 { return m_type; }
+	void			SetIdx(const int& idx);
+	int             GetIdx() const                  { return m_idx; }
 
 	// use this function only for childrens
 	void AssignAllVal(ObjectDataViewModelNode& from_node)
@@ -374,10 +346,10 @@ public:
 	// Set action icons for node
     void set_action_icon();
 
-    void    update_settings_digest_bitmaps();
-	bool    update_settings_digest(const std::vector<std::string>& categories);
-    int     volume_type() const { return int(m_volume_type); }
-    void    msw_rescale();
+    void        update_settings_digest_bitmaps();
+	bool        update_settings_digest(const std::vector<std::string>& categories);
+    int         volume_type() const { return int(m_volume_type); }
+    void        msw_rescale();
 private:
     friend class ObjectDataViewModel;
 };
@@ -393,6 +365,7 @@ class ObjectDataViewModel :public wxDataViewModel
 {
 	std::vector<ObjectDataViewModelNode*>       m_objects;
     std::vector<wxBitmap*>                      m_volume_bmps;
+    wxBitmap*                                   m_warning_bmp;
 
     wxDataViewCtrl*                             m_ctrl{ nullptr };
 
@@ -400,10 +373,13 @@ public:
     ObjectDataViewModel();
     ~ObjectDataViewModel();
 
-	wxDataViewItem Add(const wxString &name, const int extruder);
+	wxDataViewItem Add( const wxString &name, 
+                        const int extruder,
+                        const bool has_errors = false);
     wxDataViewItem AddVolumeChild(  const wxDataViewItem &parent_item,
                                     const wxString &name,
                                     const Slic3r::ModelVolumeType volume_type,
+                                    const bool has_errors = false,
                                     const int extruder = 0,
                                     const bool create_frst_child = true);
     wxDataViewItem AddSettingsChild(const wxDataViewItem &parent_item);
@@ -475,11 +451,16 @@ public:
                                     const std::vector<std::string>& categories);
 
     void    SetVolumeBitmaps(const std::vector<wxBitmap*>& volume_bmps) { m_volume_bmps = volume_bmps; }
+    void    SetWarningBitmap(wxBitmap* bitmap)                          { m_warning_bmp = bitmap; }
     void    SetVolumeType(const wxDataViewItem &item, const Slic3r::ModelVolumeType type);
 
     void    SetAssociatedControl(wxDataViewCtrl* ctrl) { m_ctrl = ctrl; }
     // Rescale bitmaps for existing Items
     void    Rescale();
+
+    wxBitmap    GetVolumeIcon(const Slic3r::ModelVolumeType vol_type, 
+                              const bool is_marked = false);
+    void        DeleteWarningIcon(const wxDataViewItem& item, const bool unmark_object = false);
 };
 
 // ----------------------------------------------------------------------------

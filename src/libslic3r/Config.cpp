@@ -280,7 +280,7 @@ std::ostream& ConfigDef::print_cli_help(std::ostream& out, bool show_defaults, s
             
             // right: option description
             std::string descr = def.tooltip;
-            if (show_defaults && def.default_value != nullptr && def.type != coBool
+            if (show_defaults && def.default_value && def.type != coBool
                 && (def.type != coString || !def.default_value->serialize().empty())) {
                 descr += " (";
                 if (!def.sidetext.empty()) {
@@ -627,7 +627,7 @@ ConfigOption* DynamicConfig::optptr(const t_config_option_key &opt_key, bool cre
         // Let the parent decide what to do if the opt_key is not defined by this->def().
         return nullptr;
     ConfigOption *opt = nullptr;
-    if (optdef->default_value != nullptr) {
+    if (optdef->default_value) {
         opt = (optdef->default_value->type() == coEnum) ?
             // Special case: For a DynamicConfig, convert a templated enum to a generic enum.
             new ConfigOptionEnumGeneric(optdef->enum_keys_map, optdef->default_value->getInt()) :
@@ -783,8 +783,8 @@ void StaticConfig::set_defaults()
         for (const std::string &key : this->keys()) {
             const ConfigOptionDef   *def = defs->get(key);
             ConfigOption            *opt = this->option(key);
-            if (def != nullptr && opt != nullptr && def->default_value != nullptr)
-                opt->set(def->default_value);
+            if (def != nullptr && opt != nullptr && def->default_value)
+                opt->set(def->default_value.get());
         }
     }
 }

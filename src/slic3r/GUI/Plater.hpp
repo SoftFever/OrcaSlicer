@@ -103,9 +103,9 @@ public:
     void                    show_sliced_info_sizer(const bool show);
     void                    enable_buttons(bool enable);
     void                    set_btn_label(const ActionButtonType btn_type, const wxString& label) const;
-    void                    show_reslice(bool show) const;
-    void                    show_export(bool show) const;
-    void                    show_send(bool show) const;
+    bool                    show_reslice(bool show) const;
+	bool                    show_export(bool show) const;
+	bool                    show_send(bool show) const;
     bool                    is_multifilament();
     void                    update_mode();
 
@@ -153,6 +153,7 @@ public:
     void select_all();
     void remove(size_t obj_idx);
     void reset();
+    void reset_with_confirm();
     void delete_object_from_model(size_t obj_idx);
     void remove_selected();
     void increase_instances(size_t num = 1);
@@ -163,7 +164,7 @@ public:
     void cut(size_t obj_idx, size_t instance_idx, coordf_t z, bool keep_upper = true, bool keep_lower = true, bool rotate_lower = false);
 
     void export_gcode();
-    void export_stl(bool selection_only = false);
+    void export_stl(bool extended = false, bool selection_only = false);
     void export_amf();
     void export_3mf(const boost::filesystem::path& output_path = boost::filesystem::path());
     void reslice();

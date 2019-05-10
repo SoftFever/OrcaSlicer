@@ -394,16 +394,27 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
                 }
                 new_conf.set_key_value("brim_width", new ConfigOptionFloat(new_val));
             }
-            else { //(opt_key == "support")
+            else {
+                assert(opt_key == "support");
                 const wxString& selection = boost::any_cast<wxString>(value);
+                PrinterTechnology printer_technology = wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology();
 
                 auto support_material = selection == _("None") ? false : true;
                 new_conf.set_key_value("support_material", new ConfigOptionBool(support_material));
 
-                if (selection == _("Everywhere"))
+                if (selection == _("Everywhere")) {
                     new_conf.set_key_value("support_material_buildplate_only", new ConfigOptionBool(false));
-                else if (selection == _("Support on build plate only"))
+                    if (printer_technology == ptFFF)
+                        new_conf.set_key_value("support_material_auto", new ConfigOptionBool(true));
+                } else if (selection == _("Support on build plate only")) {
                     new_conf.set_key_value("support_material_buildplate_only", new ConfigOptionBool(true));
+                    if (printer_technology == ptFFF)
+                        new_conf.set_key_value("support_material_auto", new ConfigOptionBool(true));
+                } else if (selection == _("For support enforcers only")) {
+                    assert(printer_technology == ptFFF);
+                    new_conf.set_key_value("support_material_buildplate_only", new ConfigOptionBool(false));
+                    new_conf.set_key_value("support_material_auto", new ConfigOptionBool(false));
+                }
             }
             tab_print->load_config(new_conf);
         }
@@ -421,12 +432,9 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
     support_def.tooltip = L("Select what kind of support do you need");
     support_def.enum_labels.push_back(L("None"));
     support_def.enum_labels.push_back(L("Support on build plate only"));
+    support_def.enum_labels.push_back(L("For support enforcers only"));
     support_def.enum_labels.push_back(L("Everywhere"));
-    std::string selection = !config->opt_bool("support_material") ?
-                            "None" : config->opt_bool("support_material_buildplate_only") ?
-                            "Support on build plate only" :
-                            "Everywhere";
-    support_def.default_value = new ConfigOptionStrings{ selection };
+    support_def.set_default_value(new ConfigOptionStrings{ "None" });
     Option option = Option(support_def, "support");
     option.opt.full_width = true;
     line.append_option(option);
@@ -447,7 +455,7 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
     def.type = coBool;
     def.tooltip = L("This flag enables the brim that will be printed around each object on the first layer.");
     def.gui_type = "";
-    def.default_value = new ConfigOptionBool{ m_brim_width > 0.0 ? true : false };
+    def.set_default_value(new ConfigOptionBool{ m_brim_width > 0.0 ? true : false });
     option = Option(def, "brim");
     option.opt.sidetext = "     ";
     line.append_option(option);
@@ -493,8 +501,9 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
             tab->set_value(opt_key, value);
             tab->update();
         }
-        else //(opt_key == "support")
+        else
         {
+            assert(opt_key == "support");
             DynamicPrintConfig new_conf = *config_sla;
             const wxString& selection = boost::any_cast<wxString>(value);
 
@@ -514,16 +523,14 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
 
     line = Line{ "", "" };
 
-    selection = !config_sla->opt_bool("supports_enable") ?
-                "None" : config_sla->opt_bool("support_buildplate_only") ?
-                "Support on build plate only" :
-                "Everywhere";
-    support_def.default_value = new ConfigOptionStrings{ selection };
-    option = Option(support_def, "support");
+    ConfigOptionDef support_def_sla = support_def;
+    support_def_sla.set_default_value(new ConfigOptionStrings{ "None" });
+    assert(support_def_sla.enum_labels[2] == L("For support enforcers only"));
+    support_def_sla.enum_labels.erase(support_def_sla.enum_labels.begin() + 2);
+    option = Option(support_def_sla, "support");
     option.opt.full_width = true;
     line.append_option(option);
     m_og_sla->append_line(line);
-
 
     line = Line{ "", "" };
 
@@ -678,11 +685,11 @@ Sidebar::Sidebar(Plater *parent)
     };
 
     p->combos_filament.push_back(nullptr);
-    init_combo(&p->combo_print,         _(L("Print settings")), Preset::TYPE_PRINT,         false);
-    init_combo(&p->combos_filament[0],  _(L("Filament")),       Preset::TYPE_FILAMENT,      true);
-    init_combo(&p->combo_sla_print,     _(L("SLA print")),      Preset::TYPE_SLA_PRINT,     false);
-    init_combo(&p->combo_sla_material,  _(L("SLA material")),   Preset::TYPE_SLA_MATERIAL,  false);
-    init_combo(&p->combo_printer,       _(L("Printer")),        Preset::TYPE_PRINTER,       false);
+    init_combo(&p->combo_print,         _(L("Print settings")),     Preset::TYPE_PRINT,         false);
+    init_combo(&p->combos_filament[0],  _(L("Filament")),           Preset::TYPE_FILAMENT,      true);
+    init_combo(&p->combo_sla_print,     _(L("SLA print settings")), Preset::TYPE_SLA_PRINT,     false);
+    init_combo(&p->combo_sla_material,  _(L("SLA material")),       Preset::TYPE_SLA_MATERIAL,  false);
+    init_combo(&p->combo_printer,       _(L("Printer")),            Preset::TYPE_PRINTER,       false);
 
     const int margin_5  = int(0.5*wxGetApp().em_unit());// 5;
     const int margin_10 = 10;//int(1.5*wxGetApp().em_unit());// 15;
@@ -724,7 +731,7 @@ Sidebar::Sidebar(Plater *parent)
 
     auto init_btn = [this](wxButton **btn, wxString label) {
         *btn = new wxButton(this, wxID_ANY, label, wxDefaultPosition, 
-                            wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
+                            wxDefaultSize, wxBU_EXACTFIT);
         (*btn)->SetFont(wxGetApp().bold_font());
     };
 
@@ -896,8 +903,7 @@ void Sidebar::msw_rescale()
     p->frequently_changed_parameters->get_og(false)->msw_rescale();
 
     p->object_list->msw_rescale();
-
-    p->object_manipulation->get_og()->msw_rescale();
+    p->object_manipulation->msw_rescale();
     p->object_settings->msw_rescale();
 
     p->object_info->msw_rescale();
@@ -970,7 +976,7 @@ void Sidebar::show_info_sizer()
     p->object_info->info_size->SetLabel(wxString::Format("%.2f x %.2f x %.2f",size(0), size(1), size(2)));
     p->object_info->info_materials->SetLabel(wxString::Format("%d", static_cast<int>(model_object->materials_count())));
 
-    auto& stats = model_object->volumes.front()->mesh.stl.stats;
+    const auto& stats = model_object->get_object_stl_stats();//model_object->volumes.front()->mesh.stl.stats;
     p->object_info->info_volume->SetLabel(wxString::Format("%.2f", stats.volume));
     p->object_info->info_facets->SetLabel(wxString::Format(_(L("%d (%d shells)")), static_cast<int>(model_object->facets_count()), stats.number_of_parts));
 
@@ -990,7 +996,7 @@ void Sidebar::show_info_sizer()
         p->object_info->manifold_warning_icon->SetToolTip(tooltip);
     } 
     else {
-        p->object_info->info_manifold->SetLabel(L("Yes"));
+        p->object_info->info_manifold->SetLabel(_(L("Yes")));
         p->object_info->showing_manifold_warning_icon = false;
         p->object_info->info_manifold->SetToolTip("");
         p->object_info->manifold_warning_icon->SetToolTip("");
@@ -1075,7 +1081,7 @@ void Sidebar::show_sliced_info_sizer(const bool show)
                     info_text += wxString::Format("\n%s", ps.estimated_normal_print_time);
                 }
                 if (ps.estimated_silent_print_time != "N/A") {
-                    new_label += wxString::Format("\n    - %s", _(L("silent mode")));
+                    new_label += wxString::Format("\n    - %s", _(L("stealth mode")));
                     info_text += wxString::Format("\n%s", ps.estimated_silent_print_time);
                 }
                 p->sliced_info->SetTextAndShow(siEstimatedTime,  info_text,      new_label);
@@ -1100,9 +1106,9 @@ void Sidebar::enable_buttons(bool enable)
     p->btn_send_gcode->Enable(enable);
 }
 
-void Sidebar::show_reslice(bool show)   const { p->btn_reslice->Show(show); }
-void Sidebar::show_export(bool show)    const { p->btn_export_gcode->Show(show); }
-void Sidebar::show_send(bool show)      const { p->btn_send_gcode->Show(show); }
+bool Sidebar::show_reslice(bool show)   const { return p->btn_reslice->Show(show); }
+bool Sidebar::show_export(bool show)    const { return p->btn_export_gcode->Show(show); }
+bool Sidebar::show_send(bool show)      const { return p->btn_send_gcode->Show(show); }
 
 bool Sidebar::is_multifilament()
 {
@@ -1328,6 +1334,9 @@ struct Plater::priv
     bool can_split_to_volumes() const;
     bool can_arrange() const;
     bool can_layers_editing() const;
+    bool can_fix_through_netfabb() const;
+
+    void msw_rescale_object_menu();
 
 private:
     bool init_object_menu();
@@ -1377,6 +1386,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     , view_toolbar(GLToolbar::Radio)
 #endif // ENABLE_SVG_ICONS
 {
+	this->q->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+
     arranging = false;
     rotoptimizing = false;
     background_process.set_fff_print(&fff_print);
@@ -1447,7 +1458,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     // 3DScene/Toolbar:
     view3D_canvas->Bind(EVT_GLTOOLBAR_ADD, &priv::on_action_add, this);
     view3D_canvas->Bind(EVT_GLTOOLBAR_DELETE, [q](SimpleEvent&) { q->remove_selected(); });
-    view3D_canvas->Bind(EVT_GLTOOLBAR_DELETE_ALL, [this](SimpleEvent&) { reset(); });
+    view3D_canvas->Bind(EVT_GLTOOLBAR_DELETE_ALL, [q](SimpleEvent&) { q->reset_with_confirm(); });
     view3D_canvas->Bind(EVT_GLTOOLBAR_ARRANGE, [this](SimpleEvent&) { arrange(); });
     view3D_canvas->Bind(EVT_GLTOOLBAR_COPY, [q](SimpleEvent&) { q->copy_selection_to_clipboard(); });
     view3D_canvas->Bind(EVT_GLTOOLBAR_PASTE, [q](SimpleEvent&) { q->paste_from_clipboard(); });
@@ -2024,16 +2035,16 @@ void Plater::priv::remove(size_t obj_idx)
     // Delete object from Sidebar list
     sidebar->obj_list()->delete_object_from_list(obj_idx);
 
-    object_list_changed();
     update();
+    object_list_changed();
 }
 
 
 void Plater::priv::delete_object_from_model(size_t obj_idx)
 {
     model.delete_object(obj_idx);
-    object_list_changed();
     update();
+    object_list_changed();
 }
 
 void Plater::priv::reset()
@@ -2052,8 +2063,8 @@ void Plater::priv::reset()
 
     // Delete all objects from list on c++ side
     sidebar->obj_list()->delete_all_objects_from_list();
-    object_list_changed();
     update();
+    object_list_changed();
 
     // The hiding of the slicing results, if shown, is not taken care by the background process, so we do it here
     this->sidebar->show_sliced_info_sizer(false);
@@ -2090,7 +2101,7 @@ void Plater::priv::arrange()
         event.SetString(msg);
         wxQueueEvent(this->q, event.Clone()); */
         statusbar()->set_progress(count - st);
-        statusbar()->set_status_text(msg);
+        statusbar()->set_status_text(_(msg));
 
         // ok, this is dangerous, but we are protected by the flag
         // 'arranging' and the arrange button is also disabled.
@@ -2403,7 +2414,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation)
         // Background data is valid.
         if ((return_state & UPDATE_BACKGROUND_PROCESS_RESTART) != 0 ||
             (return_state & UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE) != 0 )
-            this->statusbar()->set_status_text(L("Ready to slice"));
+            this->statusbar()->set_status_text(_(L("Ready to slice")));
 
         sidebar->set_btn_label(ActionButtonType::abExport, _(label_btn_export));
         sidebar->set_btn_label(ActionButtonType::abSendGCode, _(label_btn_send));
@@ -2441,7 +2452,7 @@ bool Plater::priv::restart_background_process(unsigned int state)
         // The print is valid and it can be started.
         if (this->background_process.start()) {
             this->statusbar()->set_cancel_callback([this]() {
-                this->statusbar()->set_status_text(L("Cancelling"));
+                this->statusbar()->set_status_text(_(L("Cancelling")));
                 this->background_process.stop();
             });
             return true;
@@ -2546,8 +2557,8 @@ void Plater::priv::fix_through_netfabb(const int obj_idx, const int vol_idx/* = 
     if (obj_idx < 0)
         return;
     fix_model_by_win10_sdk_gui(*model.objects[obj_idx], vol_idx);
-    this->object_list_changed();
     this->update();
+    this->object_list_changed();
     this->schedule_background_process();
 }
 
@@ -2665,7 +2676,7 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
         }
 
         this->statusbar()->set_progress(evt.status.percent);
-        this->statusbar()->set_status_text(_(L(evt.status.text)) + wxString::FromUTF8("…"));
+        this->statusbar()->set_status_text(_(evt.status.text) + wxString::FromUTF8("…"));
     }
     if (evt.status.flags & (PrintBase::SlicingStatus::RELOAD_SCENE || PrintBase::SlicingStatus::RELOAD_SLA_SUPPORT_POINTS)) {
         switch (this->printer_technology) {
@@ -2724,7 +2735,7 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
         this->statusbar()->set_status_text(message);
     }
 	if (canceled)
-		this->statusbar()->set_status_text(L("Cancelled"));
+		this->statusbar()->set_status_text(_(L("Cancelled")));
 
     this->sidebar->show_sliced_info_sizer(success);
 
@@ -2884,6 +2895,12 @@ bool Plater::priv::init_object_menu()
     return true;
 }
 
+void Plater::priv::msw_rescale_object_menu()
+{
+    for (MenuWithSeparators* menu : { &object_menu, &sla_object_menu, &part_menu })
+        msw_rescale_menu(dynamic_cast<wxMenu*>(menu));
+}
+
 bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/)
 {
     wxMenuItem* item_delete = nullptr;
@@ -2925,12 +2942,12 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
             [this](wxCommandEvent&) { reload_from_disk(); });
 
         append_menu_item(menu, wxID_ANY, _(L("Export as STL")) + dots, _(L("Export the selected object as STL file")),
-            [this](wxCommandEvent&) { q->export_stl(true); });
+            [this](wxCommandEvent&) { q->export_stl(false, true); });
 
         menu->AppendSeparator();
     }
 
-    sidebar->obj_list()->append_menu_item_fix_through_netfabb(menu);
+    wxMenuItem* item_fix_through_netfabb = sidebar->obj_list()->append_menu_item_fix_through_netfabb(menu);
 
     wxMenu* mirror_menu = new wxMenu();
     if (mirror_menu == nullptr)
@@ -2950,6 +2967,8 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
     {
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_mirror()); }, item_mirror->GetId());
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_delete()); }, item_delete->GetId());
+        if (item_fix_through_netfabb)
+            q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_fix_through_netfabb()); }, item_fix_through_netfabb->GetId());
     }
 
     return true;
@@ -3052,7 +3071,7 @@ void Plater::priv::init_view_toolbar()
 #if ENABLE_SVG_ICONS
     item.icon_filename = "editor.svg";
 #endif // ENABLE_SVG_ICONS
-    item.tooltip = GUI::L_str("3D editor view") + " [" + GUI::shortkey_ctrl_prefix() + "5]";
+    item.tooltip = _utf8(L("3D editor view")) + " [" + GUI::shortkey_ctrl_prefix() + "5]";
     item.sprite_id = 0;
     item.action_callback = [this]() { if (this->q != nullptr) wxPostEvent(this->q, SimpleEvent(EVT_GLVIEWTOOLBAR_3D)); };
     item.is_toggable = false;
@@ -3063,7 +3082,7 @@ void Plater::priv::init_view_toolbar()
 #if ENABLE_SVG_ICONS
     item.icon_filename = "preview.svg";
 #endif // ENABLE_SVG_ICONS
-    item.tooltip = GUI::L_str("Preview") + " [" + GUI::shortkey_ctrl_prefix() + "6]";
+    item.tooltip = _utf8(L("Preview")) + " [" + GUI::shortkey_ctrl_prefix() + "6]";
     item.sprite_id = 1;
     item.action_callback = [this]() { if (this->q != nullptr) wxPostEvent(this->q, SimpleEvent(EVT_GLVIEWTOOLBAR_PREVIEW)); };
     item.is_toggable = false;
@@ -3117,6 +3136,15 @@ bool Plater::priv::can_delete() const
 bool Plater::priv::can_delete_all() const
 {
     return !model.objects.empty();
+}
+
+bool Plater::priv::can_fix_through_netfabb() const
+{
+    int obj_idx = get_selected_object_idx();
+    if (obj_idx < 0)
+        return false;
+
+    return model.objects[obj_idx]->get_mesh_errors_count() > 0;
 }
 
 bool Plater::priv::can_increase_instances() const
@@ -3173,17 +3201,18 @@ void Plater::priv::show_action_buttons(const bool is_ready_to_slice) const
     // when a background processing is ON, export_btn and/or send_btn are showing 
     if (wxGetApp().app_config->get("background_processing") == "1")
     {
-        sidebar->show_reslice(false);
-        sidebar->show_export(true);
-        sidebar->show_send(send_gcode_shown);
-    }
+        if (sidebar->show_reslice(false) |
+			sidebar->show_export(true) |
+			sidebar->show_send(send_gcode_shown))
+			sidebar->Layout();
+	}
     else
     {
-        sidebar->show_reslice(is_ready_to_slice);
-        sidebar->show_export(!is_ready_to_slice);
-        sidebar->show_send(send_gcode_shown && !is_ready_to_slice);
-    }
-    sidebar->Layout();
+		if (sidebar->show_reslice(is_ready_to_slice) |
+			sidebar->show_export(!is_ready_to_slice) |
+			sidebar->show_send(send_gcode_shown && !is_ready_to_slice))
+			sidebar->Layout();
+	}
 }
 
 void Sidebar::set_btn_label(const ActionButtonType btn_type, const wxString& label) const
@@ -3282,6 +3311,11 @@ void Plater::select_all() { p->select_all(); }
 
 void Plater::remove(size_t obj_idx) { p->remove(obj_idx); }
 void Plater::reset() { p->reset(); }
+void Plater::reset_with_confirm()
+{
+    if (wxMessageDialog((wxWindow*)this, _(L("All objects will be removed, continue ?")), _(L("Delete all")), wxYES_NO | wxYES_DEFAULT | wxCENTRE).ShowModal() == wxID_YES)
+        reset();
+}
 
 void Plater::delete_object_from_model(size_t obj_idx) { p->delete_object_from_model(obj_idx); }
 
@@ -3431,7 +3465,7 @@ void Plater::export_gcode()
         p->export_gcode(std::move(output_path), PrintHostJob());
 }
 
-void Plater::export_stl(bool selection_only)
+void Plater::export_stl(bool extended, bool selection_only)
 {
     if (p->model.objects.empty()) { return; }
 
@@ -3466,7 +3500,64 @@ void Plater::export_stl(bool selection_only)
         }
     }
     else
+    {
         mesh = p->model.mesh();
+
+        if (extended && (p->printer_technology == ptSLA))
+        {
+            const PrintObjects& objects = p->sla_print.objects();
+            for (const SLAPrintObject* object : objects)
+            {
+                const ModelObject* model_object = object->model_object();
+                Transform3d mesh_trafo_inv = object->trafo().inverse();
+                bool is_left_handed = object->is_left_handed();
+
+                TriangleMesh pad_mesh;
+                bool has_pad_mesh = object->has_mesh(slaposBasePool);
+                if (has_pad_mesh)
+                {
+                    pad_mesh = object->get_mesh(slaposBasePool);
+                    pad_mesh.transform(mesh_trafo_inv);
+                }
+
+                TriangleMesh supports_mesh;
+                bool has_supports_mesh = object->has_mesh(slaposSupportTree);
+                if (has_supports_mesh)
+                {
+                    supports_mesh = object->get_mesh(slaposSupportTree);
+                    supports_mesh.transform(mesh_trafo_inv);
+                }
+
+                const std::vector<SLAPrintObject::Instance>& obj_instances = object->instances();
+                for (const SLAPrintObject::Instance& obj_instance : obj_instances)
+                {
+                    auto it = std::find_if(model_object->instances.begin(), model_object->instances.end(),
+                        [&obj_instance](const ModelInstance *mi) { return mi->id() == obj_instance.instance_id; });
+                    assert(it != model_object->instances.end());
+
+                    if (it != model_object->instances.end())
+                    {
+                        int instance_idx = it - model_object->instances.begin();
+                        const Transform3d& inst_transform = object->model_object()->instances[instance_idx]->get_transformation().get_matrix();
+
+                        if (has_pad_mesh)
+                        {
+                            TriangleMesh inst_pad_mesh = pad_mesh;
+                            inst_pad_mesh.transform(inst_transform, is_left_handed);
+                            mesh.merge(inst_pad_mesh);
+                        }
+
+                        if (has_supports_mesh)
+                        {
+                            TriangleMesh inst_supports_mesh = supports_mesh;
+                            inst_supports_mesh.transform(inst_transform, is_left_handed);
+                            mesh.merge(inst_supports_mesh);
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     Slic3r::store_stl(path_u8.c_str(), &mesh, true);
     p->statusbar()->set_status_text(wxString::Format(_(L("STL file exported to %s")), path));
@@ -3838,6 +3929,8 @@ void Plater::msw_rescale()
     p->view3D->get_canvas3d()->msw_rescale();
 
     p->sidebar->msw_rescale();
+
+    p->msw_rescale_object_menu();
 
     Layout();
     GetParent()->Layout();

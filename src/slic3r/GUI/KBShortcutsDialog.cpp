@@ -48,9 +48,9 @@ KBShortcutsDialog::KBShortcutsDialog()
     m_head_bitmaps.reserve(m_full_shortcuts.size());
     const wxSize topic_size = wxSize(10 * wxGetApp().em_unit(), -1);
 
-    for (auto& sc : m_full_shortcuts)
+    for (auto& shortcut : m_full_shortcuts)
     {
-        auto sizer = sc.second.second == szLeft ? l_sizer : r_sizer;
+        auto sizer = shortcut.second.second == szLeft ? l_sizer : r_sizer;
         wxBoxSizer* hsizer = new wxBoxSizer(wxHORIZONTAL);
         sizer->Add(hsizer, 0, wxEXPAND | wxTOP | wxBOTTOM, 10);
 
@@ -59,7 +59,7 @@ KBShortcutsDialog::KBShortcutsDialog()
         hsizer->Add(m_head_bitmaps.back(), 0, wxEXPAND | wxLEFT | wxRIGHT, 15);
 
         // head
-        wxStaticText* head = new wxStaticText(panel, wxID_ANY, sc.first, wxDefaultPosition, topic_size);
+        wxStaticText* head = new wxStaticText(panel, wxID_ANY, shortcut.first, wxDefaultPosition, topic_size);
         head->SetFont(head_font);
         hsizer->Add(head, 0, wxALIGN_CENTER_VERTICAL);
 
@@ -68,7 +68,7 @@ KBShortcutsDialog::KBShortcutsDialog()
         auto grid_sizer = new wxFlexGridSizer(2, 5, 15);
         sizer->Add(grid_sizer, 0, wxEXPAND | wxLEFT| wxRIGHT, 15);
 
-        for (auto pair : sc.second.first)
+        for (auto pair : shortcut.second.first)
         {
             auto shortcut = new wxStaticText(panel, wxID_ANY, _(pair.first));
             shortcut->SetFont(bold_font);
@@ -109,10 +109,10 @@ void KBShortcutsDialog::fill_shortcuts()
     main_shortcuts.push_back(Shortcut(ctrl+"S"          ,L("Save project (3MF)")));
     main_shortcuts.push_back(Shortcut(ctrl+alt+"L"      ,L("Load Config from .ini/amf/3mf/gcode and merge")));
     main_shortcuts.push_back(Shortcut(ctrl+"R"          ,L("(Re)slice")));
-    main_shortcuts.push_back(Shortcut(ctrl+"U"          ,L("Quick slice")));
-    main_shortcuts.push_back(Shortcut(ctrl+"Shift+U"    ,L("Repeat last quick slice")));
+//    main_shortcuts.push_back(Shortcut(ctrl+"U"          ,L("Quick slice")));
+//    main_shortcuts.push_back(Shortcut(ctrl+"Shift+U"    ,L("Repeat last quick slice")));
     main_shortcuts.push_back(Shortcut(ctrl+"1"          ,L("Select Plater Tab")));
-    main_shortcuts.push_back(Shortcut(ctrl+alt+"U"      ,L("Quick slice and Save as")));
+//    main_shortcuts.push_back(Shortcut(ctrl+alt+"U"      ,L("Quick slice and Save as")));
     main_shortcuts.push_back(Shortcut(ctrl+"2"          ,L("Select Print Settings Tab")));
     main_shortcuts.push_back(Shortcut(ctrl+"3"          ,L("Select Filament Settings Tab")));
     main_shortcuts.push_back(Shortcut(ctrl+"4"          ,L("Select Printer Settings Tab")));
@@ -120,11 +120,11 @@ void KBShortcutsDialog::fill_shortcuts()
     main_shortcuts.push_back(Shortcut(ctrl+"6"          ,L("Switch to Preview")));
     main_shortcuts.push_back(Shortcut(ctrl+"P"          ,L("Preferences")));
     main_shortcuts.push_back(Shortcut(ctrl+"J"          ,L("Print host upload queue")));
-    main_shortcuts.push_back(Shortcut("0-6"             ,L("Camera view ")));
-    main_shortcuts.push_back(Shortcut("+"               ,L("Add Instance to selected object ")));
-    main_shortcuts.push_back(Shortcut("-"               ,L("Remove Instance from selected object")));
+    main_shortcuts.push_back(Shortcut("0-6"             ,L("Camera view")));
+    main_shortcuts.push_back(Shortcut("+"               ,L("Add Instance of the selected object")));
+    main_shortcuts.push_back(Shortcut("-"               ,L("Remove Instance of the selected object")));
     main_shortcuts.push_back(Shortcut("?"               ,L("Show keyboard shortcuts list")));
-    main_shortcuts.push_back(Shortcut(ctrl+"LeftMouse"  ,L("Select multiple object/Move multiple object")));
+    main_shortcuts.push_back(Shortcut(ctrl/*+"LeftMouse"*/,L("Press to select multiple object or move multiple object with mouse")));
 
     m_full_shortcuts.push_back(std::make_pair(_(L("Main Shortcuts")), std::make_pair(main_shortcuts, szLeft)));
 

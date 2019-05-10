@@ -29,7 +29,7 @@ bool GLGizmoFlatten::on_init()
 
 std::string GLGizmoFlatten::on_get_name() const
 {
-    return L("Place on face [F]");
+    return (_(L("Place on face")) + " [F]").ToUTF8().data();
 }
 
 bool GLGizmoFlatten::on_is_activable(const Selection& selection) const

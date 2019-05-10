@@ -9,14 +9,22 @@ class ScalableBitmap;
 namespace Slic3r {
 namespace GUI {
 
-using t_icon_descriptions = std::vector<std::pair<ScalableBitmap*, std::string>>;
-
 class ButtonsDescription : public wxDialog
 {
-	t_icon_descriptions* m_icon_descriptions;
 public:
-	ButtonsDescription(wxWindow* parent, t_icon_descriptions* icon_descriptions);
+	struct Entry {
+		Entry(ScalableBitmap *bitmap, const std::string &symbol, const std::string &explanation) : bitmap(bitmap), symbol(symbol), explanation(explanation) {}
+
+		ScalableBitmap *bitmap;
+		std::string     symbol;
+		std::string   	explanation;
+	};
+
+	ButtonsDescription(wxWindow* parent, const std::vector<Entry> &entries);
 	~ButtonsDescription() {}
+
+private:
+	std::vector<Entry> m_entries;
 };
 
 } // GUI

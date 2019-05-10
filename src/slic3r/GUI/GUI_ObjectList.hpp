@@ -114,7 +114,6 @@ class ObjectList : public wxDataViewCtrl
     ScalableBitmap	    m_bmp_support_blocker;
     ScalableBitmap	    m_bmp_manifold_warning;
     ScalableBitmap	    m_bmp_cog;
-    ScalableBitmap	    m_bmp_split;
 
     MenuWithSeparators  m_menu_object;
     MenuWithSeparators  m_menu_part;
@@ -173,8 +172,18 @@ public:
     void                update_extruder_values_for_items(const int max_extruder);
 
     void                init_icons();
-    void                rescale_icons();
+    void                msw_rescale_icons();
 
+    // Get obj_idx and vol_idx values for the selected (by default) or an adjusted item
+    void                get_selected_item_indexes(int& obj_idx, int& vol_idx, const wxDataViewItem& item = wxDataViewItem(0));
+    // Get count of errors in the mesh
+    int                 get_mesh_errors_count(const int obj_idx, const int vol_idx = -1) const;
+    /* Get list of errors in the mesh. Return value is a string, used for the tooltip
+     * Function without parameters is for a call from Manipulation panel, 
+     * when we don't know parameters of selected item 
+     */
+    wxString            get_mesh_errors_list(const int obj_idx, const int vol_idx = -1) const;
+    wxString            get_mesh_errors_list();
     void                set_tooltip_for_item(const wxPoint& pt);
 
     void                selection_changed();
@@ -185,14 +194,14 @@ public:
     void                get_freq_settings_choice(const wxString& bundle_name);
     void                update_settings_item();
 
-    void                append_menu_item_add_generic(wxMenuItem* menu, const ModelVolumeType type);
+    wxMenu*             append_submenu_add_generic(wxMenu* menu, const ModelVolumeType type);
     void                append_menu_items_add_volume(wxMenu* menu);
     wxMenuItem*         append_menu_item_split(wxMenu* menu);
     wxMenuItem*         append_menu_item_settings(wxMenu* menu);
     wxMenuItem*         append_menu_item_change_type(wxMenu* menu);
     wxMenuItem*         append_menu_item_instance_to_object(wxMenu* menu);
     void                append_menu_items_osx(wxMenu* menu);
-    void                append_menu_item_fix_through_netfabb(wxMenu* menu);
+    wxMenuItem*         append_menu_item_fix_through_netfabb(wxMenu* menu);
     void                append_menu_item_export_stl(wxMenu* menu) const ;
     void                append_menu_item_change_extruder(wxMenu* menu) const;
     void                append_menu_item_delete(wxMenu* menu);
@@ -206,7 +215,7 @@ public:
     void                update_opt_keys(t_config_option_keys& t_optopt_keys);
 
     void                load_subobject(ModelVolumeType type);
-    void                load_part(ModelObject* model_object, wxArrayString& part_names, ModelVolumeType type);
+    void                load_part(ModelObject* model_object, std::vector<std::pair<wxString, bool>> &volumes_info, ModelVolumeType type);
 	void                load_generic_subobject(const std::string& type_name, const ModelVolumeType type);
     void                del_object(const int obj_idx);
     void                del_subobject_item(wxDataViewItem& item);
@@ -280,7 +289,7 @@ public:
     void instances_to_separated_objects(const int obj_idx);
     void split_instances();
     void rename_item();
-    void fix_through_netfabb() const;
+    void fix_through_netfabb();
     void update_item_error_icon(const int obj_idx, int vol_idx) const ;
 
     void paste_volumes_into_list(int obj_idx, const ModelVolumePtrs& volumes);
