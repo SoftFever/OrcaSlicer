@@ -104,6 +104,7 @@ const std::string& shortkey_alt_prefix()
 bool config_wizard_startup(bool app_config_exists)
 {
     if (!app_config_exists || wxGetApp().preset_bundle->printers.size() <= 1) {
+    	wxGetApp().switch_language();
 		config_wizard(ConfigWizard::RR_DATA_EMPTY);
 		return true;
 	} else if (get_app_config()->legacy_datadir()) {
