@@ -223,7 +223,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("colorprint_heights", coFloats);
     def->label = L("Colorprint height");
-    def->tooltip = L("Heights at which a filament change is to occur. ");
+    def->tooltip = L("Heights at which a filament change is to occur.");
     def->set_default_value(new ConfigOptionFloats { });
 
     def = this->add("compatible_printers", coStrings);
@@ -282,7 +282,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("cooling_tube_retraction", coFloat);
     def->label = L("Cooling tube position");
-    def->tooltip = L("Distance of the center-point of the cooling tube from the extruder tip ");
+    def->tooltip = L("Distance of the center-point of the cooling tube from the extruder tip.");
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
@@ -290,7 +290,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("cooling_tube_length", coFloat);
     def->label = L("Cooling tube length");
-    def->tooltip = L("Length of the cooling tube to limit space for cooling moves inside it ");
+    def->tooltip = L("Length of the cooling tube to limit space for cooling moves inside it.");
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
@@ -574,7 +574,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("filament_loading_speed", coFloats);
     def->label = L("Loading speed");
-    def->tooltip = L("Speed used for loading the filament on the wipe tower. ");
+    def->tooltip = L("Speed used for loading the filament on the wipe tower.");
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comExpert;
@@ -582,7 +582,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("filament_loading_speed_start", coFloats);
     def->label = L("Loading speed at the start");
-    def->tooltip = L("Speed used at the very beginning of loading phase. ");
+    def->tooltip = L("Speed used at the very beginning of loading phase.");
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comExpert;
@@ -591,7 +591,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("filament_unloading_speed", coFloats);
     def->label = L("Unloading speed");
     def->tooltip = L("Speed used for unloading the filament on the wipe tower (does not affect "
-                      " initial part of unloading just after ramming). ");
+                      " initial part of unloading just after ramming).");
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comExpert;
@@ -599,7 +599,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("filament_unloading_speed_start", coFloats);
     def->label = L("Unloading speed at the start");
-    def->tooltip = L("Speed used for unloading the tip of the filament immediately after ramming. ");
+    def->tooltip = L("Speed used for unloading the tip of the filament immediately after ramming.");
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comExpert;
@@ -609,7 +609,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Delay after unloading");
     def->tooltip = L("Time to wait after the filament is unloaded. "
                    "May help to get reliable toolchanges with flexible materials "
-                   "that may need more time to shrink to original dimensions. ");
+                   "that may need more time to shrink to original dimensions.");
     def->sidetext = L("s");
     def->min = 0;
     def->mode = comExpert;
@@ -618,7 +618,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("filament_cooling_moves", coInts);
     def->label = L("Number of cooling moves");
     def->tooltip = L("Filament is cooled by being moved back and forth in the "
-                   "cooling tubes. Specify desired number of these moves ");
+                   "cooling tubes. Specify desired number of these moves.");
     def->max = 0;
     def->max = 20;
     def->mode = comExpert;
@@ -626,7 +626,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("filament_cooling_initial_speed", coFloats);
     def->label = L("Speed of the first cooling move");
-    def->tooltip = L("Cooling moves are gradually accelerating beginning at this speed. ");
+    def->tooltip = L("Cooling moves are gradually accelerating beginning at this speed.");
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comExpert;
@@ -645,7 +645,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("filament_cooling_final_speed", coFloats);
     def->label = L("Speed of the last cooling move");
-    def->tooltip = L("Cooling moves are gradually accelerating towards this speed. ");
+    def->tooltip = L("Cooling moves are gradually accelerating towards this speed.");
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comExpert;
@@ -661,7 +661,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("filament_ramming_parameters", coStrings);
     def->label = L("Ramming parameters");
-    def->tooltip = L("This string is edited by RammingDialog and contains ramming specific parameters ");
+    def->tooltip = L("This string is edited by RammingDialog and contains ramming specific parameters.");
     def->mode = comExpert;
     def->set_default_value(new ConfigOptionStrings { "120 100 6.6 6.8 7.2 7.6 7.9 8.2 8.7 9.4 9.9 10.0|"
 	   " 0.05 6.6 0.45 6.8 0.95 7.8 1.45 8.3 1.95 9.7 2.45 10 2.95 7.6 3.45 7.6 3.95 7.6 4.45 7.6 4.95 7.6" });
@@ -1336,7 +1336,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("parking_pos_retraction", coFloat);
     def->label = L("Filament parking position");
     def->tooltip = L("Distance of the extruder tip from the position where the filament is parked "
-                      "when unloaded. This should match the value in printer firmware. ");
+                      "when unloaded. This should match the value in printer firmware.");
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
@@ -1346,7 +1346,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Extra loading distance");
     def->tooltip = L("When set to zero, the distance the filament is moved from parking position during load "
                       "is exactly the same as it was moved back during unload. When positive, it is loaded further, "
-                      " if negative, the loading move is shorter than unloading. ");
+                      " if negative, the loading move is shorter than unloading.");
     def->sidetext = L("mm");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(-2.f));
@@ -2131,13 +2131,13 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Purging volumes - load/unload volumes");
     def->tooltip = L("This vector saves required volumes to change from/to each tool used on the "
                      "wipe tower. These values are used to simplify creation of the full purging "
-                     "volumes below. ");
+                     "volumes below.");
     def->set_default_value(new ConfigOptionFloats { 70.f, 70.f, 70.f, 70.f, 70.f, 70.f, 70.f, 70.f, 70.f, 70.f  });
 
     def = this->add("wiping_volumes_matrix", coFloats);
     def->label = L("Purging volumes - matrix");
     def->tooltip = L("This matrix describes volumes (in cubic milimetres) required to purge the"
-                     " new filament on the wipe tower for any given pair of tools. ");
+                     " new filament on the wipe tower for any given pair of tools.");
     def->set_default_value(new ConfigOptionFloats {   0.f, 140.f, 140.f, 140.f, 140.f,
                                                     140.f,   0.f, 140.f, 140.f, 140.f,
                                                     140.f, 140.f,   0.f, 140.f, 140.f,
@@ -2167,7 +2167,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("wipe_tower_rotation_angle", coFloat);
     def->label = L("Wipe tower rotation angle");
-    def->tooltip = L("Wipe tower rotation angle with respect to x-axis ");
+    def->tooltip = L("Wipe tower rotation angle with respect to x-axis.");
     def->sidetext = L("°");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.));
@@ -2190,7 +2190,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("wipe_tower_bridging", coFloat);
     def->label = L("Maximal bridging distance");
-    def->tooltip = L("Maximal distance between supports on sparse infill sections. ");
+    def->tooltip = L("Maximal distance between supports on sparse infill sections.");
     def->sidetext = L("mm");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(10.));
