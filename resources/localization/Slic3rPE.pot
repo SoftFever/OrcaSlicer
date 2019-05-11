@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-11 23:18+0200\n"
+"POT-Creation-Date: 2019-05-11 23:33+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1589,6 +1589,10 @@ msgstr ""
 msgid "Additional Settings"
 msgstr ""
 
+#: src/slic3r/GUI/GUI_ObjectSettings.cpp:83
+msgid "Remove parameter"
+msgstr ""
+
 #: src/slic3r/GUI/GUI_Preview.cpp:209
 msgid "View"
 msgstr ""
@@ -2275,11 +2279,11 @@ msgid "Open the Prusa3D drivers download page in your browser"
 msgstr ""
 
 #: src/slic3r/GUI/MainFrame.cpp:549
-msgid "Prusa Edition &Releases"
+msgid "Software &Releases"
 msgstr ""
 
 #: src/slic3r/GUI/MainFrame.cpp:549
-msgid "Open the Prusa Edition releases page in your browser"
+msgid "Open the software releases page in your browser"
 msgstr ""
 
 #: src/slic3r/GUI/MainFrame.cpp:555
