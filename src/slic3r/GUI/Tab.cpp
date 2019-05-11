@@ -2346,11 +2346,12 @@ void TabPrinter::update_pages()
             {
                 m_preset_bundle->update_multi_material_filament_presets();
                 on_value_change("extruders_count", m_extruders_count);
-                wxGetApp().sidebar().update_objects_list_extruder_column(m_extruders_count);
             }
         }
         else
             m_pages.swap(m_pages_fff);
+
+         wxGetApp().sidebar().update_objects_list_extruder_column(m_extruders_count);
     }
     else 
         m_pages_sla.empty() ? build_sla() : m_pages.swap(m_pages_sla);
