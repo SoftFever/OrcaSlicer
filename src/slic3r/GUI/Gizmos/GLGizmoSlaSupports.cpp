@@ -839,7 +839,7 @@ RENDER_AGAIN:
 
         wxString text = _(L("Head diameter")) + ": ";
         m_imgui->text(text);
-        float slider_left = m_imgui->get_style_scaling() * (m_imgui->calc_text_size(text)).x + m_imgui->scaled(1.f);
+        float slider_left = m_imgui->calc_text_size(text).x + m_imgui->scaled(1.f);
         ImGui::SameLine(/*m_imgui->scaled(6.66f)*/slider_left);
         ImGui::PushItemWidth(/*m_imgui->scaled(8.33f)*/m_imgui->scaled(15.f) - slider_left);
 
@@ -880,7 +880,7 @@ RENDER_AGAIN:
     else { // not in editing mode:
         wxString text1 = _(L("Minimal points distance")) + ": ";
         wxString text2 = _(L("Support points density")) + ": ";
-        float sliders_left = m_imgui->get_style_scaling() * std::max(m_imgui->calc_text_size(text1).x, m_imgui->calc_text_size(text2).x) + m_imgui->scaled(1.f);
+        float sliders_left = std::max(m_imgui->calc_text_size(text1).x, m_imgui->calc_text_size(text2).x) + m_imgui->scaled(1.f);
         m_imgui->text(text1);
         ImGui::SameLine(/*m_imgui->scaled(9.44f)*/sliders_left);
         ImGui::PushItemWidth(/*m_imgui->scaled(5.55f)*/m_imgui->scaled(15.f)-sliders_left);
@@ -933,7 +933,7 @@ RENDER_AGAIN:
     m_imgui->text("");
     wxString text1 = _(L("Clipping of view"))+ ": ";
     wxString text2 = _(L("Reset direction"));
-    float slider_left = m_imgui->get_style_scaling() * std::max(m_imgui->calc_text_size(text1).x, m_imgui->calc_text_size(text2).x) + m_imgui->scaled(1.5f);
+    float slider_left = std::max(m_imgui->calc_text_size(text1).x, m_imgui->calc_text_size(text2).x) + m_imgui->scaled(1.5f);
     if (m_clipping_plane_distance == 0.f)
         m_imgui->text(text1);
     else {
