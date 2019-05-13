@@ -18,7 +18,7 @@ KBShortcutsDialog::KBShortcutsDialog()
 	auto main_sizer = new wxBoxSizer(wxVERTICAL);
 
     // logo
-    m_logo_bmp = ScalableBitmap(this, "Slic3r_32px.png", 32);
+    m_logo_bmp = ScalableBitmap(this, "PrusaSlicer_32px.png", 32);
 
     // fonts
     const wxFont& font = wxGetApp().normal_font();

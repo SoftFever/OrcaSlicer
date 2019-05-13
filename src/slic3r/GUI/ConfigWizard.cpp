@@ -653,7 +653,7 @@ void PageTemperatures::apply_custom_config(DynamicPrintConfig &config)
 
 ConfigWizardIndex::ConfigWizardIndex(wxWindow *parent)
     : wxPanel(parent)
-    , bg(ScalableBitmap(parent, "Slic3r_192px_transparent.png", 192))
+    , bg(ScalableBitmap(parent, "PrusaSlicer_192px_transparent.png", 192))
     , bullet_black(ScalableBitmap(parent, "bullet_black.png"))
     , bullet_blue(ScalableBitmap(parent, "bullet_blue.png"))
     , bullet_white(ScalableBitmap(parent, "bullet_white.png"))
@@ -1062,7 +1062,7 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
 // Public
 
 ConfigWizard::ConfigWizard(wxWindow *parent, RunReason reason)
-    : DPIDialog(parent, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _(name().ToStdString()), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+    : DPIDialog(parent, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + name(), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
     , p(new priv(this))
 {
     this->SetFont(wxGetApp().normal_font());

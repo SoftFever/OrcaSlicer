@@ -7,7 +7,7 @@
   <key>CFBundleGetInfoString</key>
   <string>@SLIC3R_APP_NAME@ Copyright (C) 2011-2019 Alessandro Ranellucci, (C) 2016-2019 Prusa Reseach</string>
   <key>CFBundleIconFile</key>
-  <string>Slic3r.icns</string>
+  <string>PrusaSlicer.icns</string>
   <key>CFBundleName</key>
   <string>@SLIC3R_APP_KEY@</string>
   <key>CFBundleShortVersionString</key>
@@ -48,7 +48,7 @@
           <string>OBJ</string>
         </array>
         <key>CFBundleTypeIconFile</key>
-        <string>Slic3r.icns</string>
+        <string>PrusaSlicer.icns</string>
         <key>CFBundleTypeName</key>
         <string>STL</string>
         <key>CFBundleTypeRole</key>
@@ -65,7 +65,7 @@
           <string>AMF</string>
         </array>
         <key>CFBundleTypeIconFile</key>
-        <string>Slic3r.icns</string>
+        <string>PrusaSlicer.icns</string>
         <key>CFBundleTypeName</key>
         <string>AMF</string>
         <key>CFBundleTypeRole</key>
@@ -82,7 +82,7 @@
           <string>3MF</string>
         </array>
         <key>CFBundleTypeIconFile</key>
-        <string>Slic3r.icns</string>
+        <string>PrusaSlicer.icns</string>
         <key>CFBundleTypeName</key>
         <string>3MF</string>
         <key>CFBundleTypeRole</key>

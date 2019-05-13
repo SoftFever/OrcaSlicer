@@ -1,15 +1,17 @@
 
-![Slic3rPE logo](/resources/icons/Slic3r.png?raw=true)
+![PrusaSlicer logo](/resources/icons/PrusaSlicer.png?raw=true)
 
-# Slic3r Prusa Edition
+# PrusaSlicer
 
-Prebuilt Windows, OSX and Linux binaries are available through the [git releases page](https://github.com/prusa3d/Slic3r/releases).
+Prebuilt Windows, OSX and Linux binaries are available through the [git releases page](https://github.com/prusa3d/PrusaSlicer/releases).
 
-Slic3r takes 3D models (STL, OBJ, AMF) and converts them into G-code
+PrusaSlicer takes 3D models (STL, OBJ, AMF) and converts them into G-code
 instructions for FFF printers or PNG layers for mSLA 3D printers. It's
 compatible with any modern printer based on the RepRap toolchain, including all
 those based on the Marlin, Prusa, Sprinter and Repetier firmware. It also works
 with Mach3, LinuxCNC and Machinekit controllers.
+
+PrusaSlicer is based on [Slic3r](https://github.com/Slic3r/Slic3r) by Alessandro Ranelucci and the RepRap community.
 
 See the [project homepage](https://www.prusa3d.com/slic3r-prusa-edition/) and
 the [documentation directory](doc/) for more information.
@@ -18,12 +20,12 @@ the [documentation directory](doc/) for more information.
 
 All user facing code is written in C++, and some legacy code as well as unit
 tests are written in Perl. Perl is not required for either development or use
-of Slic3r.
+of PrusaSlicer.
 
 The slicing core is the `libslic3r` library, which can be built and used in a standalone way.
 The command line interface is a thin wrapper over `libslic3r`.
 
-### What are Slic3r's main features?
+### What are PrusaSlicer's main features?
 
 Key features are:
 
@@ -46,7 +48,7 @@ Other major features are:
 * several infill patterns including honeycomb, spirals, Hilbert curves
 * support material, raft, brim, skirt
 * **standby temperature** and automatic wiping for multi-extruder printing
-* [customizable **G-code macros**](https://github.com/prusa3d/Slic3r/wiki/Slic3r-Prusa-Edition-Macro-Language) and output filename with variable placeholders
+* [customizable **G-code macros**](https://github.com/prusa3d/PrusaSlicer/wiki/Slic3r-Prusa-Edition-Macro-Language) and output filename with variable placeholders
 * support for **post-processing scripts**
 * **cooling logic** controlling fan speed and dynamic print speed
 
@@ -61,18 +63,14 @@ these documentation pages:
 ### Can I help?
 
 Sure! You can do the following to find things that are available to help with:
-* Add an [issue](https://github.com/prusa3d/Slic3r/issues) to the github tracker if it isn't already present.
-* Look at [issues labeled "volunteer needed"](https://github.com/prusa3d/Slic3r/issues?utf8=%E2%9C%93&q=is%3Aopen+is%3Aissue+label%3A%22volunteer+needed%22)
+* Add an [issue](https://github.com/prusa3d/PrusaSlicer/issues) to the github tracker if it isn't already present.
+* Look at [issues labeled "volunteer needed"](https://github.com/prusa3d/PrusaSlicer/issues?utf8=%E2%9C%93&q=is%3Aopen+is%3Aissue+label%3A%22volunteer+needed%22)
 
-### What's Slic3r license?
+### What's PrusaSlicer license?
 
-Slic3r PE is licensed under the _GNU Affero General Public License, version 3_.
-The Prusa Edition is originally based on Slic3r by Alessandro Ranellucci.
+PrusaSlicer is licensed under the _GNU Affero General Public License, version 3_.
+The PrusaSlicer is originally based on Slic3r by Alessandro Ranellucci.
 
-The [Silk icon set](http://www.famfamfam.com/lab/icons/silk/) used in Slic3r is
-licensed under the _Creative Commons Attribution 3.0 License_.
-The author of the Silk icon set is Mark James.
+### How can I use PrusaSlicer from the command line?
 
-### How can I use Slic3r PE from the command line?
-
-Please refer to the [Command Line Interface](https://github.com/prusa3d/Slic3r/wiki/Command-Line-Interface) wiki page.
+Please refer to the [Command Line Interface](https://github.com/prusa3d/PrusaSlicer/wiki/Command-Line-Interface) wiki page.

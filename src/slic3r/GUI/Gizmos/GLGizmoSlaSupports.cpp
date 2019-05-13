@@ -837,7 +837,7 @@ RENDER_AGAIN:
         if (m_new_point_head_diameter > diameter_upper_cap)
             m_new_point_head_diameter = diameter_upper_cap;
 
-        m_imgui->text(_(L("Head diameter: ")));
+        m_imgui->text(_(L("Head diameter")) + ": ");
         ImGui::SameLine(m_imgui->scaled(6.66f));
         ImGui::PushItemWidth(m_imgui->scaled(8.33f));
         if (ImGui::SliderFloat("", &m_new_point_head_diameter, 0.1f, diameter_upper_cap, "%.1f")) {
@@ -876,7 +876,7 @@ RENDER_AGAIN:
     }
     else { // not in editing mode:
         ImGui::PushItemWidth(m_imgui->scaled(5.55f));
-        m_imgui->text(_(L("Minimal points distance: ")));
+        m_imgui->text(_(L("Minimal points distance")) + ": ");
         ImGui::SameLine(m_imgui->scaled(9.44f));
 
         std::vector<const ConfigOption*> opts = get_config_options({"support_points_density_relative", "support_points_minimal_distance"});
@@ -887,7 +887,7 @@ RENDER_AGAIN:
         if (value_changed)
             m_model_object->config.opt<ConfigOptionFloat>("support_points_minimal_distance", true)->value = minimal_point_distance;
 
-        m_imgui->text(_(L("Support points density: ")));
+        m_imgui->text(_(L("Support points density")) + ": ");
         ImGui::SameLine(m_imgui->scaled(9.44f));
         if (ImGui::SliderFloat(" ", &density, 0.f, 200.f, "%.f %%")) {
             value_changed = true;
@@ -925,7 +925,7 @@ RENDER_AGAIN:
     // Following is rendered in both editing and non-editing mode:
     m_imgui->text("");
     if (m_clipping_plane_distance == 0.f)
-        m_imgui->text(_(L("Clipping of view:"))+ " ");
+        m_imgui->text(_(L("Clipping of view"))+ ": ");
     else {
         if (m_imgui->button(_(L("Reset direction")))) {
             wxGetApp().CallAfter([this](){

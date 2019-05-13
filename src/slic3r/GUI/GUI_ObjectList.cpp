@@ -1208,8 +1208,6 @@ wxMenuItem* ObjectList::append_menu_item_instance_to_object(wxMenu* menu, wxWind
 
 void ObjectList::append_menu_items_osx(wxMenu* menu)
 {
-    append_menu_item_delete(menu);
-    
     append_menu_item(menu, wxID_ANY, _(L("Rename")), "",
         [this](wxCommandEvent&) { rename_item(); }, "", menu);
     
@@ -1324,9 +1322,6 @@ void ObjectList::create_part_popupmenu(wxMenu *menu)
 
 void ObjectList::create_instance_popupmenu(wxMenu*menu)
 {
-#ifdef __WXOSX__  
-    append_menu_item_delete(menu);
-#endif // __WXOSX__
     m_menu_item_split_instances = append_menu_item_instance_to_object(menu, wxGetApp().plater());
 
     /* New behavior logic:
@@ -1437,7 +1432,7 @@ void ObjectList::load_part( ModelObject* model_object,
             model = Model::read_from_file(input_file);
         }
         catch (std::exception &e) {
-            auto msg = _(L("Error! ")) + input_file + " : " + e.what() + ".";
+            auto msg = _(L("Error!")) + " " + input_file + " : " + e.what() + ".";
             show_error(parent, msg);
             exit(1);
         }
@@ -2544,7 +2539,7 @@ void ObjectList::change_part_type()
 
     const wxString names[] = { _(L("Part")), _(L("Modifier")), _(L("Support Enforcer")), _(L("Support Blocker")) };
     
-    auto new_type = ModelVolumeType(wxGetSingleChoiceIndex(_(L("Type")) + ":", _(L("Select type of part")), wxArrayString(4, names), int(type)));
+    auto new_type = ModelVolumeType(wxGetSingleChoiceIndex(_(L("Type:")), _(L("Select type of part")), wxArrayString(4, names), int(type)));
 
 	if (new_type == type || new_type == ModelVolumeType::INVALID)
         return;
@@ -2833,10 +2828,6 @@ void ObjectList::show_multi_selection_menu()
             return;
 
     wxMenu* menu = new wxMenu();
-
-#ifdef __WXOSX__
-    append_menu_item_delete(menu);
-#endif //__WXOSX__
 
     if (extruders_count() > 1)
         append_menu_item(menu, wxID_ANY, _(L("Set extruder for selected items")),

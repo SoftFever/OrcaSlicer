@@ -33,7 +33,7 @@ namespace Slic3r {
 namespace GUI {
 
 MainFrame::MainFrame() :
-DPIFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, "mainframe"),
+DPIFrame(NULL, wxID_ANY, wxString(SLIC3R_BUILD) + " " + _(L("based on Slic3r")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, "mainframe"),
         m_printhost_queue_dlg(new PrintHostQueueDialog(this))
 {
     // Fonts were created by the DPIFrame constructor for the monitor, on which the window opened.
@@ -50,7 +50,7 @@ DPIFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAU
         SetIcon(wxIcon(szExeFileName, wxBITMAP_TYPE_ICO));
     }
 #else
-    SetIcon(wxIcon(Slic3r::var("Slic3r_128px.png"), wxBITMAP_TYPE_PNG));
+    SetIcon(wxIcon(Slic3r::var("PrusaSlicer_128px.png"), wxBITMAP_TYPE_PNG));
 #endif // _WIN32
 
 	// initialize status bar
@@ -58,7 +58,7 @@ DPIFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAU
 	m_statusbar->embed(this);
     m_statusbar->set_status_text(_(L("Version")) + " " +
 		SLIC3R_VERSION +
-		_(L(" - Remember to check for updates at http://github.com/prusa3d/slic3r/releases")));
+		_(L(" - Remember to check for updates at http://github.com/prusa3d/PrusaSlicer/releases")));
 
     /* Load default preset bitmaps before a tabpanel initialization,
      * but after filling of an em_unit value 
@@ -541,7 +541,7 @@ void MainFrame::init_menubar()
     {
         append_menu_item(helpMenu, wxID_ANY, _(L("Prusa 3D &Drivers")), _(L("Open the Prusa3D drivers download page in your browser")), 
             [this](wxCommandEvent&) { wxLaunchDefaultBrowser("http://www.prusa3d.com/drivers/"); });
-        append_menu_item(helpMenu, wxID_ANY, _(L("Prusa Edition &Releases")), _(L("Open the Prusa Edition releases page in your browser")), 
+        append_menu_item(helpMenu, wxID_ANY, _(L("Software &Releases")), _(L("Open the software releases page in your browser")), 
             [this](wxCommandEvent&) { wxLaunchDefaultBrowser("http://github.com/prusa3d/slic3r/releases"); });
 //#        my $versioncheck = $self->_append_menu_item($helpMenu, "Check for &Updates...", "Check for new Slic3r versions", sub{
 //#            wxTheApp->check_version(1);
@@ -678,7 +678,7 @@ void MainFrame::quick_slice(const int qs)
     } 
     else if (qs & qsSaveAs) {
         // The following line may die if the output_filename_format template substitution fails.
-        auto dlg = new wxFileDialog(this, _(L("Save ")) + (qs & qsExportSVG ? _(L("SVG")) : _(L("G-code"))) + _(L(" file as:")),
+        auto dlg = new wxFileDialog(this, wxString::Format(_(L("Save %s file as:")) , qs & qsExportSVG ? _(L("SVG")) : _(L("G-code")) ),
             wxGetApp().app_config->get_last_output_dir(get_dir_name(output_file)), get_base_name(input_file), 
             qs & qsExportSVG ? file_wildcards(FT_SVG) : file_wildcards(FT_GCODE),
             wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
@@ -705,7 +705,9 @@ void MainFrame::quick_slice(const int qs)
     }
 
     // show processbar dialog
-    m_progress_dialog = new wxProgressDialog(_(L("Slicing")) + dots, _(L("Processing ")) + input_file_basename + "…",
+    m_progress_dialog = new wxProgressDialog(_(L("Slicing")) + dots, 
+    // TRN "Processing input_file_basename"
+                                             wxString::Format(_(L("Processing %s")), input_file_basename + dots),
         100, this, 4);
     m_progress_dialog->Pulse();
     {

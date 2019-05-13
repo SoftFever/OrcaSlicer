@@ -80,6 +80,7 @@ void ObjectSettings::update_settings_list()
 			auto opt_key = (line.get_options())[0].opt_id;  //we assume that we have one option per line
 
 			auto btn = new ScalableButton(parent, wxID_ANY, m_bmp_delete);
+            btn->SetToolTip(_(L("Remove parameter")));
 
 			btn->Bind(wxEVT_BUTTON, [opt_key, config, this](wxEvent &event) {
 				config->erase(opt_key);

@@ -330,7 +330,7 @@ void BedShapePanel::load_stl()
 		model = Model::read_from_file(file_name);
 	}
 	catch (std::exception &e) {
-		auto msg = _(L("Error! ")) + file_name + " : " + e.what() + ".";
+		auto msg = _(L("Error!")) + " " + file_name + " : " + e.what() + ".";
 		show_error(this, msg);
 		exit(1);
 	}
