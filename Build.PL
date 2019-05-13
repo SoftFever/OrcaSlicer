@@ -3,7 +3,7 @@
 print "This script is currently used for installing Perl dependenices for running\n";
 print "the libslic3r unit / integration tests through Perl prove.\n";
 print "If you don't plan to run the unit / integration tests, you don't need to\n";
-print "install these dependencies to build and run Slic3r.\n";
+print "install these dependencies to build and run PrusaSlicer.\n";
 
 use strict;
 use warnings;
@@ -122,7 +122,7 @@ EOF
 }
 
 print "\n";
-print "In the next step, you need to build the Slic3r C++ library.\n";
+print "In the next step, you need to build the PrusaSlicer C++ library.\n";
 print "1) Create a build directory and change to it\n";
 print "2) run cmake .. -DCMAKE_BUILD_TYPE=Release\n";
 print "3) run make\n";
