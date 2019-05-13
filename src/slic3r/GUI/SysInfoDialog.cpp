@@ -24,7 +24,7 @@ std::string get_main_info(bool format_as_html)
     if (!format_as_html)
         out << b_start << SLIC3R_APP_NAME << b_end << line_end;
     out << b_start << "Version:   "             << b_end << SLIC3R_VERSION << line_end;
-    out << b_start << "Build:     "             << b_end << SLIC3R_BUILD << line_end;
+    out << b_start << "Build:     "             << b_end << SLIC3R_BUILD_ID << line_end;
     out << line_end;
     out << b_start << "Operating System:    "   << b_end << wxPlatformInfo::Get().GetOperatingSystemFamilyName() << line_end;
     out << b_start << "System Architecture: "   << b_end << wxPlatformInfo::Get().GetArchName() << line_end;
