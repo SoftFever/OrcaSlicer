@@ -127,9 +127,14 @@ VendorProfile VendorProfile::from_ini(const ptree &tree, const boost::filesystem
         res.config_version = std::move(*config_version);
     }
 
-    auto config_update_url = vendor_section.find("config_update_url");
+    const auto config_update_url = vendor_section.find("config_update_url");
     if (config_update_url != vendor_section.not_found()) {
         res.config_update_url = config_update_url->second.data();
+    }
+
+    const auto changelog_url = vendor_section.find("changelog_url");
+    if (changelog_url != vendor_section.not_found()) {
+        res.changelog_url = changelog_url->second.data();
     }
 
     if (! load_all) {

@@ -1,5 +1,8 @@
 #include "UpdateDialogs.hpp"
 
+#include <cstring>
+#include <boost/format.hpp>
+
 #include <wx/settings.h>
 #include <wx/sizer.h>
 #include <wx/event.h>
@@ -21,7 +24,11 @@ namespace Slic3r {
 namespace GUI {
 
 
-static const std::string CONFIG_UPDATE_WIKI_URL("https://github.com/prusa3d/Slic3r/wiki/Slic3r-PE-1.40-configuration-update");
+static const char* URL_CHANGELOG = "http://files.prusa3d.com/file/?type=slicerstable&lng=%1%";
+static const char* URL_DOWNLOAD = "https://www.prusa3d.com/downloads&lng=%1%";
+static const char* URL_DEV = "https://github.com/prusa3d/PrusaSlicer/releases/tag/version_%1%";
+
+static const std::string CONFIG_UPDATE_WIKI_URL("https://github.com/prusa3d/PrusaSlicer/wiki/Slic3r-PE-1.40-configuration-update");
 
 
 // MsgUpdateSlic3r
@@ -31,15 +38,8 @@ MsgUpdateSlic3r::MsgUpdateSlic3r(const Semver &ver_current, const Semver &ver_on
 	ver_current(ver_current),
 	ver_online(ver_online)
 {
-	const auto url = wxString::Format("https://github.com/prusa3d/Slic3r/releases/tag/version_%s", ver_online.to_string());
-	auto *link = new wxHyperlinkCtrl(this, wxID_ANY, url, url);
-
-	auto *text = new wxStaticText(this, wxID_ANY, _(L("To download, follow the link below.")));
-	const auto link_width = link->GetSize().GetWidth();
-	const int content_width = CONTENT_WIDTH * wxGetApp().em_unit();
-	text->Wrap(content_width > link_width ? content_width : link_width);
-	content_sizer->Add(text);
-	content_sizer->AddSpacer(VERT_SPACING);
+	const auto version = Semver::parse(SLIC3R_VERSION);
+	const bool dev_version = version->prerelease() != nullptr;
 
 	auto *versions = new wxFlexGridSizer(2, 0, VERT_SPACING);
 	versions->Add(new wxStaticText(this, wxID_ANY, _(L("Current version:"))));
@@ -49,7 +49,25 @@ MsgUpdateSlic3r::MsgUpdateSlic3r(const Semver &ver_current, const Semver &ver_on
 	content_sizer->Add(versions);
 	content_sizer->AddSpacer(VERT_SPACING);
 
-	content_sizer->Add(link);
+	if (dev_version) {
+		const std::string url = (boost::format(URL_DEV) % ver_online.to_string()).str();
+		const wxString url_wx = from_u8(url);
+		auto *link = new wxHyperlinkCtrl(this, wxID_ANY, _(L("Changelog && Download")), url_wx);
+		content_sizer->Add(link);
+	} else {
+		const auto lang_code = wxGetApp().current_language_code().ToStdString();
+
+		const std::string url_log = (boost::format(URL_CHANGELOG) % lang_code).str();
+		const wxString url_log_wx = from_u8(url_log);
+		auto *link_log = new wxHyperlinkCtrl(this, wxID_ANY, _(L("Open changelog page")), url_log_wx);
+		content_sizer->Add(link_log);
+
+		const std::string url_dw = (boost::format(URL_DOWNLOAD) % lang_code).str();
+		const wxString url_dw_wx = from_u8(url_dw);
+		auto *link_dw = new wxHyperlinkCtrl(this, wxID_ANY, _(L("Open download page")), url_dw_wx);
+		content_sizer->Add(link_dw);
+	}
+
 	content_sizer->AddSpacer(2*VERT_SPACING);
 
 	cbox = new wxCheckBox(this, wxID_ANY, _(L("Don't notify about new releases any more")));
@@ -69,7 +87,7 @@ bool MsgUpdateSlic3r::disable_version_check() const
 
 // MsgUpdateConfig
 
-MsgUpdateConfig::MsgUpdateConfig(const std::unordered_map<std::string, std::string> &updates) :
+MsgUpdateConfig::MsgUpdateConfig(const std::vector<Update> &updates) :
 	MsgDialog(nullptr, _(L("Configuration update")), _(L("Configuration update is available")), wxID_NONE)
 {
 	auto *text = new wxStaticText(this, wxID_ANY, _(L(
@@ -82,12 +100,31 @@ MsgUpdateConfig::MsgUpdateConfig(const std::unordered_map<std::string, std::stri
 	content_sizer->Add(text);
 	content_sizer->AddSpacer(VERT_SPACING);
 
-	auto *versions = new wxFlexGridSizer(2, 0, VERT_SPACING);
+	const auto lang_code = wxGetApp().current_language_code().ToStdString();
+
+	auto *versions = new wxBoxSizer(wxVERTICAL);
 	for (const auto &update : updates) {
-		auto *text_vendor = new wxStaticText(this, wxID_ANY, update.first);
+		auto *flex = new wxFlexGridSizer(2, 0, VERT_SPACING);
+
+		auto *text_vendor = new wxStaticText(this, wxID_ANY, update.vendor);
 		text_vendor->SetFont(boldfont);
-		versions->Add(text_vendor);
-		versions->Add(new wxStaticText(this, wxID_ANY, update.second));
+		flex->Add(text_vendor);
+		flex->Add(new wxStaticText(this, wxID_ANY, update.version.to_string()));
+
+		if (! update.comment.empty()) {
+			flex->Add(new wxStaticText(this, wxID_ANY, _(L("Comment:"))), 0, wxALIGN_RIGHT);
+			flex->Add(new wxStaticText(this, wxID_ANY, from_u8(update.comment)));
+		}
+
+		versions->Add(flex);
+
+		if (! update.changelog_url.empty()) {
+			auto *line = new wxBoxSizer(wxHORIZONTAL);
+			auto changelog_url = (boost::format(update.changelog_url) % lang_code).str();
+			line->AddSpacer(3*VERT_SPACING);
+			line->Add(new wxHyperlinkCtrl(this, wxID_ANY, _(L("Open changelog page")), changelog_url));
+			versions->Add(line);
+		}
 	}
 
 	content_sizer->Add(versions);

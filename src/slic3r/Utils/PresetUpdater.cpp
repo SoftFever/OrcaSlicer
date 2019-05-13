@@ -50,14 +50,16 @@ struct Update
 	fs::path source;
 	fs::path target;
 	Version version;
+	std::string vendor;
+	std::string changelog_url;
 
-	Update(fs::path &&source, fs::path &&target, const Version &version) :
-		source(std::move(source)),
-		target(std::move(target)),
-		version(version)
+	Update(fs::path &&source, fs::path &&target, const Version &version, std::string vendor, std::string changelog_url)
+		: source(std::move(source))
+		, target(std::move(target))
+		, version(version)
+		, vendor(std::move(vendor))
+		, changelog_url(std::move(changelog_url))
 	{}
-
-	std::string name() const { return source.stem().string(); }
 
 	friend std::ostream& operator<<(std::ostream& os , const Update &self) {
 		os << "Update(" << self.source.string() << " -> " << self.target.string() << ')';
@@ -69,13 +71,13 @@ struct Incompat
 {
 	fs::path bundle;
 	Version version;
+	std::string vendor;
 
-	Incompat(fs::path &&bundle, const Version &version) :
-		bundle(std::move(bundle)),
-		version(version)
+	Incompat(fs::path &&bundle, const Version &version, std::string vendor)
+		: bundle(std::move(bundle))
+		, version(version)
+		, vendor(std::move(vendor))
 	{}
-
-	std::string name() const { return bundle.stem().string(); }
 
 	friend std::ostream& operator<<(std::ostream& os , const Incompat &self) {
 		os << "Incompat(" << self.bundle.string() << ')';
@@ -351,7 +353,7 @@ Updates PresetUpdater::priv::get_config_updates() const
 		}
 
 		// Perform a basic load and check the version
-		const auto vp = VendorProfile::from_ini(bundle_path, false);
+		auto vp = VendorProfile::from_ini(bundle_path, false);
 
 		// Getting a recommended version from the latest index, wich may have been downloaded
 		// from the internet, or installed / updated from the installation resources.
@@ -376,7 +378,7 @@ Updates PresetUpdater::priv::get_config_updates() const
 
 		if (ver_current_found && !ver_current->is_current_slic3r_supported()) {
 			BOOST_LOG_TRIVIAL(warning) << "Current Slic3r incompatible with installed bundle: " << bundle_path.string();
-			updates.incompats.emplace_back(std::move(bundle_path), *ver_current);
+			updates.incompats.emplace_back(std::move(bundle_path), *ver_current, vp.name);
 		} else if (recommended->config_version > vp.config_version) {
 			// Config bundle update situation
 
@@ -406,12 +408,12 @@ Updates PresetUpdater::priv::get_config_updates() const
 			auto new_vp = VendorProfile::from_ini(path_src, false);
 			bool found = false;
 			if (new_vp.config_version == recommended->config_version) {
-				updates.updates.emplace_back(std::move(path_src), std::move(bundle_path), *recommended);
+				updates.updates.emplace_back(std::move(path_src), std::move(bundle_path), *recommended, vp.name, vp.changelog_url);
 				found = true;
 			} else if (! path_in_rsrc.empty() && fs::exists(path_in_rsrc)) {
 				new_vp = VendorProfile::from_ini(path_in_rsrc, false);
 				if (new_vp.config_version == recommended->config_version) {
-					updates.updates.emplace_back(std::move(path_in_rsrc), std::move(bundle_path), *recommended);
+					updates.updates.emplace_back(std::move(path_in_rsrc), std::move(bundle_path), *recommended, vp.name, vp.changelog_url);
 					found = true;
 				}
 			}
@@ -560,6 +562,7 @@ void PresetUpdater::slic3r_update_notify()
 				p->enabled_version_check = false;
 			}
 		}
+
 		app_config->set("version_online_seen", ver_online_str);
 	}
 }
@@ -574,8 +577,6 @@ bool PresetUpdater::config_update() const
 
 		std::unordered_map<std::string, wxString> incompats_map;
 		for (const auto &incompat : updates.incompats) {
-			auto vendor = incompat.name();
-
 			const auto min_slic3r = incompat.version.min_slic3r_version;
 			const auto max_slic3r = incompat.version.max_slic3r_version;
 			wxString restrictions;
@@ -590,7 +591,7 @@ bool PresetUpdater::config_update() const
 				restrictions = wxString::Format(_(L("requires max. %s")), max_slic3r.to_string());
 			}
 
-			incompats_map.emplace(std::make_pair(std::move(vendor), std::move(restrictions)));
+			incompats_map.emplace(std::make_pair(incompat.vendor, std::move(restrictions)));
 		}
 
 		p->had_config_update = true;   // This needs to be done before a dialog is shown because of OnIdle() + CallAfter() in Perl
@@ -613,19 +614,15 @@ bool PresetUpdater::config_update() const
 	else if (updates.updates.size() > 0) {
 		BOOST_LOG_TRIVIAL(info) << boost::format("Update of %1% bundles available. Asking for confirmation ...") % updates.updates.size();
 
-		std::unordered_map<std::string, std::string> updates_map;
+		std::vector<GUI::MsgUpdateConfig::Update> updates_msg;
 		for (const auto &update : updates.updates) {
-			auto vendor = update.name();
-			auto ver_str = update.version.config_version.to_string();
-			if (! update.version.comment.empty()) {
-				ver_str += std::string(" (") + update.version.comment + ")";
-			}
-			updates_map.emplace(std::make_pair(std::move(vendor), std::move(ver_str)));
+			std::string changelog_url = update.version.config_version.prerelease() == nullptr ? update.changelog_url : std::string();
+			updates_msg.emplace_back(update.vendor, update.version.config_version, update.version.comment, std::move(changelog_url));
 		}
 
 		p->had_config_update = true;   // Ditto, see above
 
-		GUI::MsgUpdateConfig dlg(std::move(updates_map));
+		GUI::MsgUpdateConfig dlg(updates_msg);
 
 		const auto res = dlg.ShowModal();
 		if (res == wxID_OK) {
@@ -655,7 +652,7 @@ void PresetUpdater::install_bundles_rsrc(std::vector<std::string> bundles, bool 
 	for (const auto &bundle : bundles) {
 		auto path_in_rsrc = p->rsrc_path / bundle;
 		auto path_in_vendors = p->vendor_path / bundle;
-		updates.updates.emplace_back(std::move(path_in_rsrc), std::move(path_in_vendors), Version());
+		updates.updates.emplace_back(std::move(path_in_rsrc), std::move(path_in_vendors), Version(), "", "");
 	}
 
 	p->perform_updates(std::move(updates), snapshot);
