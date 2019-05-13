@@ -157,7 +157,7 @@ bool GUI_App::on_init_inner()
     wxCHECK_MSG(wxDirExists(resources_dir), false,
         wxString::Format("Resources path does not exist or is not a directory: %s", resources_dir));
 
-    SetAppName(SLIC3R_APP_KEY "-beta");
+    SetAppName(SLIC3R_APP_KEY);
     SetAppDisplayName(SLIC3R_APP_NAME);
 
 // Enable this to get the default Win32 COMCTRL32 behavior of static boxes.
@@ -650,7 +650,7 @@ std::vector<const wxLanguageInfo*> GUI_App::get_installed_languages()
         langinfo = wxLocale::FindLanguageInfo(filename);
         if (langinfo != NULL) {
             auto full_file_name = dir.GetName() + wxFileName::GetPathSeparator() +
-                filename + wxFileName::GetPathSeparator() + "Slic3rPE" + wxT(".mo");
+                filename + wxFileName::GetPathSeparator() + SLIC3R_APP_KEY + wxT(".mo");
             if (wxFileExists(full_file_name)) {
                 res.push_back(langinfo);
             }

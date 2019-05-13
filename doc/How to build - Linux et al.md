@@ -1,13 +1,13 @@
 
-# Building Slic3r PE on UNIX/Linux
+# Building PrusaSlicer on UNIX/Linux
 
-Slic3r PE uses the CMake build system and requires several dependencies.
+PrusaSlicer uses the CMake build system and requires several dependencies.
 The dependencies can be listed in `deps/deps-linux.cmake`, although they don't necessarily need to be as recent
 as the versions listed - generally versions available on conservative Linux distros such as Debian stable or CentOS should suffice.
 
 Perl is not required any more.
 
-In a typical situation, one would open a command line, go to the Slic3r sources, create a directory called `build` or similar,
+In a typical situation, one would open a command line, go to the PrusaSlicer sources, create a directory called `build` or similar,
 `cd` into it and call:
 
     cmake ..
@@ -19,13 +19,13 @@ Additional CMake flags may be applicable as explained below.
 
 ### Dependency resolution
 
-By default Slic3r looks for dependencies the default way CMake looks for them, i.e. in default system locations.
-On Linux this will typically make Slic3r depend on dynamically loaded libraries from the system, however, Slic3r can be told
+By default PrusaSlicer looks for dependencies the default way CMake looks for them, i.e. in default system locations.
+On Linux this will typically make PrusaSlicer depend on dynamically loaded libraries from the system, however, PrusaSlicer can be told
 to specifically look for static libraries with the `SLIC3R_STATIC` flag passed to cmake:
 
     cmake .. -DSLIC3R_STATIC=1
 
-Additionally, Slic3r can be built in a static manner mostly independent of the system libraries with a dependencies bundle
+Additionally, PrusaSlicer can be built in a static manner mostly independent of the system libraries with a dependencies bundle
 created using CMake script in the `deps` directory (these are not interconnected with the rest of the CMake scripts).
 
 Note: We say _mostly independent_ because it's still expected the system will provide some transitive dependencies, such as GTK for wxWidgets.
@@ -37,7 +37,7 @@ To do this, go to the `deps` directory, create a `build` subdirectory (or the li
 where the target destdir is a directory of your choosing where the dependencies will be installed.
 You can also omit the `DESTDIR` option to use the default, in that case the `destdir` will be created inside the `build` directory where `cmake` is run.
 
-To pass the destdir path to the top-level Slic3r CMake script, use the `CMAKE_PREFIX_PATH` option along with turning on `SLIC3R_STATIC`:
+To pass the destdir path to the top-level PrusaSlicer CMake script, use the `CMAKE_PREFIX_PATH` option along with turning on `SLIC3R_STATIC`:
 
     cmake .. -DSLIC3R_STATIC=1 -DCMAKE_PREFIX_PATH=<path to destdir>/usr/local
 
@@ -48,24 +48,24 @@ This is because wxWidgets hardcode the installation path.
 
 ### wxWidgets version
 
-By default, Slic3r PE looks for wxWidgets 3.1, this is because the 3.1 version has
+By default, PrusaSlicer looks for wxWidgets 3.1, this is because the 3.1 version has
 a number of bugfixes and improvements not found in 3.0. However, it can also be built with wxWidgets 3.0.
 This is done by passing this option to CMake:
 
     -DSLIC3R_WX_STABLE=1
 
-Note that Slic3r PE is tested with wxWidgets 3.0 somewhat sporadically and so there may be bugs in bleeding edge releases.
+Note that PrusaSlicer is tested with wxWidgets 3.0 somewhat sporadically and so there may be bugs in bleeding edge releases.
 
 ### Build variant
 
-By default Slic3r builds the release variant.
+By default PrusaSlicer builds the release variant.
 To create a debug build, use the following CMake flag:
 
     -DCMAKE_BUILD_TYPE=Debug
 
 ### Enabling address sanitizer
 
-If you're using GCC/Clang compiler, it is possible to build Slic3r with the built-in address sanitizer enabled to help detect memory-corruption issues.
+If you're using GCC/Clang compiler, it is possible to build PrusaSlicer with the built-in address sanitizer enabled to help detect memory-corruption issues.
 To enable it, simply use the following CMake flag:
 
     -DSLIC3R_ASAN=1
@@ -74,12 +74,12 @@ This requires GCC>4.8 or Clang>3.1.
 
 ### Installation
 
-At runtime, Slic3r needs a way to access its resource files. By default, it looks for a `resources` directory relative to its binary.
+At runtime, PrusaSlicer needs a way to access its resource files. By default, it looks for a `resources` directory relative to its binary.
 
-If you instead want Slic3r installed in a structure according to the File System Hierarchy Standard, use the `SLIC3R_FHS` flag
+If you instead want PrusaSlicer installed in a structure according to the File System Hierarchy Standard, use the `SLIC3R_FHS` flag
 
     cmake .. -DSLIC3R_FHS=1
 
-This will make Slic3r look for a fixed-location `share/slic3r-prusa3d` directory instead (note that the location becomes hardcoded).
+This will make PrusaSlicer look for a fixed-location `share/slic3r-prusa3d` directory instead (note that the location becomes hardcoded).
 
-You can then use the `make install` target to install Slic3r.
+You can then use the `make install` target to install PrusaSlicer.

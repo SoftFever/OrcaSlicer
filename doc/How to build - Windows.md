@@ -1,7 +1,7 @@
 
-# Building Slic3r PE on Microsoft Windows
+# Building PrusaSlicer on Microsoft Windows
 
-The currently supported way of building Slic3r PE on Windows is with CMake and MS Visual Studio 2013.
+The currently supported way of building PrusaSlicer on Windows is with CMake and MS Visual Studio 2013.
 You can use the free [Visual Studio 2013 Community Edition](https://www.visualstudio.com/vs/older-downloads/).
 CMake installer can be downloaded from [the official website](https://cmake.org/download/).
 
@@ -11,7 +11,7 @@ _Note:_ Thanks to [**@supermerill**](https://github.com/supermerill) for testing
 
 ### Dependencies
 
-On Windows Slic3r is built against statically built libraries.
+On Windows PrusaSlicer is built against statically built libraries.
 We provide a prebuilt package of all the needed dependencies. This package only works on Visual Studio 2013, so if you are using a newer version of Visual Studio, you need to compile the dependencies yourself as per [below](#building-the-dependencies-package-yourself).
 The package comes in a several variants:
 
@@ -26,14 +26,14 @@ If you're unsure where to unpack the package, unpack it into `C:\local\` (but it
 
 Alternatively you can also compile the dependencies yourself, see below.
 
-### Building Slic3r PE with Visual Studio
+### Building PrusaSlicer with Visual Studio
 
-First obtain the Slic3r PE sources via either git or by extracting the source archive.
+First obtain the PrusaSlicer sources via either git or by extracting the source archive.
 
 Then you will need to note down the so-called 'prefix path' to the dependencies, this is the location of the dependencies packages + `\usr\local` appended.
 For example on 64 bits this would be `C:\local\destdir-64\usr\local`. The prefix path will need to be passed to CMake.
 
-When ready, open the relevant Visual Studio command line and `cd` into the directory with Slic3r sources.
+When ready, open the relevant Visual Studio command line and `cd` into the directory with PrusaSlicer sources.
 Use these commands to prepare Visual Studio solution file:
 
     mkdir build
@@ -51,9 +51,9 @@ Note that you won't be able to build a _Debug_ variant against a _Release_-only 
 
 #### Installing using the `INSTALL` project
 
-Slic3r PE can be run from the Visual Studio or from Visual Studio's build directory (`src\Release` or `src\Debug`),
+PrusaSlicer can be run from the Visual Studio or from Visual Studio's build directory (`src\Release` or `src\Debug`),
 but for longer-term usage you might want to install somewhere using the `INSTALL` project.
-By default, this installs into `C:\Program Files\Slic3r`.
+By default, this installs into `C:\Program Files\PrusaSlicer`.
 To customize the install path, use the `-DCMAKE_INSTALL_PREFIX=<path of your choice>` when invoking `cmake`.
 
 ### Building from the command line
@@ -75,10 +75,10 @@ To install, use `msbuild /P:Configuration=Release INSTALL.vcxproj` , `ninja inst
 
 ### Building the dependencies package yourself
 
-The dependencies package is built using CMake scripts inside the `deps` subdirectory of Slic3r PE sources.
+The dependencies package is built using CMake scripts inside the `deps` subdirectory of PrusaSlicer sources.
 (This is intentionally not interconnected with the CMake scripts in the rest of the sources.)
 
-Open the preferred Visual Studio command line (64 or 32 bit variant) and `cd` into the directory with Slic3r sources.
+Open the preferred Visual Studio command line (64 or 32 bit variant) and `cd` into the directory with PrusaSlicer sources.
 Then `cd` into the `deps` directory and use these commands to build:
 
     mkdir build
