@@ -45,7 +45,8 @@ void    edit_tooltip(wxString& tooltip);
 void    msw_buttons_rescale(wxDialog* dlg, const int em_unit, const std::vector<int>& btn_ids);
 int     em_unit(wxWindow* win);
 
-wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name, const int px_cnt = 16, const bool is_horizontal = false);
+wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name, 
+    const int px_cnt = 16, const bool is_horizontal = false, const bool grayscale = false);
 
 class wxCheckListBoxComboPopup : public wxCheckListBox, public wxComboPopup
 {
