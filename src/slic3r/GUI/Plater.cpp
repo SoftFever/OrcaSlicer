@@ -1336,6 +1336,8 @@ struct Plater::priv
     bool can_arrange() const;
     bool can_layers_editing() const;
     bool can_fix_through_netfabb() const;
+    bool can_set_instance_to_object() const;
+    bool can_mirror() const;
 
     void msw_rescale_object_menu();
 
@@ -1347,10 +1349,8 @@ private:
     bool complit_init_part_menu();
     void init_view_toolbar();
 
-    bool can_set_instance_to_object() const;
     bool can_split() const;
     bool layers_height_allowed() const;
-    bool can_mirror() const;
 
     void update_fff_scene();
     void update_sla_scene();
@@ -2928,39 +2928,31 @@ void Plater::priv::msw_rescale_object_menu()
 
 bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/)
 {
-    wxMenuItem* item_delete = nullptr;
     if (is_part) {
-        item_delete = append_menu_item(menu, wxID_ANY, _(L("Delete")) + "\tDel", _(L("Remove the selected object")),
-            [this](wxCommandEvent&) { q->remove_selected(); }, "delete");
+        append_menu_item(menu, wxID_ANY, _(L("Delete")) + "\tDel", _(L("Remove the selected object")),
+            [this](wxCommandEvent&) { q->remove_selected();         }, "delete",            nullptr, [this]() { return can_delete(); }, q);
 
         sidebar->obj_list()->append_menu_item_export_stl(menu);
     }
     else {
         wxMenuItem* item_increase = append_menu_item(menu, wxID_ANY, _(L("Increase copies")) + "\t+", _(L("Place one more copy of the selected object")),
-            [this](wxCommandEvent&) { q->increase_instances(); }, "add_copies");
+            [this](wxCommandEvent&) { q->increase_instances();      }, "add_copies",        nullptr, [this]() { return can_increase_instances(); }, q);
         wxMenuItem* item_decrease = append_menu_item(menu, wxID_ANY, _(L("Decrease copies")) + "\t-", _(L("Remove one copy of the selected object")),
-            [this](wxCommandEvent&) { q->decrease_instances(); }, "remove_copies");
+            [this](wxCommandEvent&) { q->decrease_instances();      }, "remove_copies",     nullptr, [this]() { return can_decrease_instances(); }, q);
         wxMenuItem* item_set_number_of_copies = append_menu_item(menu, wxID_ANY, _(L("Set number of copies")) + dots, _(L("Change the number of copies of the selected object")),
-            [this](wxCommandEvent&) { q->set_number_of_copies(); }, "number_of_copies");
+            [this](wxCommandEvent&) { q->set_number_of_copies();    }, "number_of_copies",  nullptr, [this]() { return can_increase_instances(); }, q);
+
 
         items_increase.push_back(item_increase);
         items_decrease.push_back(item_decrease);
         items_set_number_of_copies.push_back(item_set_number_of_copies);
 
         // Delete menu was moved to be after +/- instace to make it more difficult to be selected by mistake.
-        item_delete = append_menu_item(menu, wxID_ANY, _(L("Delete")) + "\tDel", _(L("Remove the selected object")),
-            [this](wxCommandEvent&) { q->remove_selected(); }, "delete");
+        append_menu_item(menu, wxID_ANY, _(L("Delete")) + "\tDel", _(L("Remove the selected object")),
+            [this](wxCommandEvent&) { q->remove_selected(); }, "delete",            nullptr, [this]() { return can_delete(); }, q);
 
         menu->AppendSeparator();
-        wxMenuItem* item_instance_to_object = sidebar->obj_list()->append_menu_item_instance_to_object(menu);
-
-        if (q != nullptr)
-        {
-            q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_increase_instances()); }, item_increase->GetId());
-            q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_decrease_instances()); }, item_decrease->GetId());
-            q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_increase_instances()); }, item_set_number_of_copies->GetId());
-            q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_set_instance_to_object()); }, item_instance_to_object->GetId());
-        }
+        sidebar->obj_list()->append_menu_item_instance_to_object(menu, q);
         menu->AppendSeparator();
 
         append_menu_item(menu, wxID_ANY, _(L("Reload from Disk")), _(L("Reload the selected file from Disk")),
@@ -2972,7 +2964,7 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
         menu->AppendSeparator();
     }
 
-    wxMenuItem* item_fix_through_netfabb = sidebar->obj_list()->append_menu_item_fix_through_netfabb(menu);
+    sidebar->obj_list()->append_menu_item_fix_through_netfabb(menu);
 
     wxMenu* mirror_menu = new wxMenu();
     if (mirror_menu == nullptr)
@@ -2985,16 +2977,8 @@ bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/
     append_menu_item(mirror_menu, wxID_ANY, _(L("Along Z axis")), _(L("Mirror the selected object along the Z axis")),
         [this](wxCommandEvent&) { mirror(Z); }, "mark_Z", menu);
 
-    wxMenuItem* item_mirror = append_submenu(menu, mirror_menu, wxID_ANY, _(L("Mirror")), _(L("Mirror the selected object")));
-
-    // ui updates needs to be bound to the parent panel
-    if (q != nullptr)
-    {
-        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_mirror()); }, item_mirror->GetId());
-        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_delete()); }, item_delete->GetId());
-        if (item_fix_through_netfabb)
-            q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_fix_through_netfabb()); }, item_fix_through_netfabb->GetId());
-    }
+    append_submenu(menu, mirror_menu, wxID_ANY, _(L("Mirror")), _(L("Mirror the selected object")), "",
+        [this]() { return can_mirror(); }, q);
 
     return true;
 }
@@ -3005,30 +2989,24 @@ bool Plater::priv::complit_init_object_menu()
     if (split_menu == nullptr)
         return false;
 
-    wxMenuItem* item_split_objects = append_menu_item(split_menu, wxID_ANY, _(L("To objects")), _(L("Split the selected object into individual objects")),
-        [this](wxCommandEvent&) { split_object(); }, "split_object_SMALL", &object_menu);
-    wxMenuItem* item_split_volumes = append_menu_item(split_menu, wxID_ANY, _(L("To parts")), _(L("Split the selected object into individual sub-parts")),
-        [this](wxCommandEvent&) { split_volume(); }, "split_parts_SMALL", &object_menu);
+    append_menu_item(split_menu, wxID_ANY, _(L("To objects")), _(L("Split the selected object into individual objects")),
+        [this](wxCommandEvent&) { split_object(); }, "split_object_SMALL",  &object_menu, [this]() { return can_split(); }, q);
+    append_menu_item(split_menu, wxID_ANY, _(L("To parts")), _(L("Split the selected object into individual sub-parts")),
+        [this](wxCommandEvent&) { split_volume(); }, "split_parts_SMALL",   &object_menu, [this]() { return can_split(); }, q);
 
-    wxMenuItem* item_split = append_submenu(&object_menu, split_menu, wxID_ANY, _(L("Split")), _(L("Split the selected object"))/*, "shape_ungroup.png"*/);
+    append_submenu(&object_menu, split_menu, wxID_ANY, _(L("Split")), _(L("Split the selected object")), "", 
+        [this]() { return can_split() && wxGetApp().get_mode() > comSimple; }, q);
     object_menu.AppendSeparator();
 
     // "Add (volumes)" popupmenu will be added later in append_menu_items_add_volume()
 
-    // ui updates needs to be binded to the parent panel
-    if (q != nullptr)
-    {
-        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split()); }, item_split->GetId());
-        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split()); }, item_split_objects->GetId());
-        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split() && wxGetApp().get_mode() > comSimple); }, item_split_volumes->GetId());
-    }
     return true;
 }
 
 bool Plater::priv::complit_init_sla_object_menu()
 {
-    wxMenuItem* item_split = append_menu_item(&sla_object_menu, wxID_ANY, _(L("Split")), _(L("Split the selected object into individual objects")),
-        [this](wxCommandEvent&) { split_object(); }, "split_object_SMALL");
+    append_menu_item(&sla_object_menu, wxID_ANY, _(L("Split")), _(L("Split the selected object into individual objects")),
+        [this](wxCommandEvent&) { split_object(); }, "split_object_SMALL", nullptr, [this]() { return can_split(); }, q);
 
     sla_object_menu.AppendSeparator();
 
@@ -3036,30 +3014,18 @@ bool Plater::priv::complit_init_sla_object_menu()
     append_menu_item(&sla_object_menu, wxID_ANY, _(L("Optimize orientation")), _(L("Optimize the rotation of the object for better print results.")),
         [this](wxCommandEvent&) { sla_optimize_rotation(); });
 
-    // ui updates needs to be binded to the parent panel
-    if (q != nullptr)
-    {
-        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split()); }, item_split->GetId());
-    }
-
     return true;
 }
 
 bool Plater::priv::complit_init_part_menu()
 {
-    wxMenuItem* item_split = append_menu_item(&part_menu, wxID_ANY, _(L("Split")), _(L("Split the selected object into individual sub-parts")),
-        [this](wxCommandEvent&) { split_volume(); }, "split_parts_SMALL");
+    append_menu_item(&part_menu, wxID_ANY, _(L("Split")), _(L("Split the selected object into individual sub-parts")),
+        [this](wxCommandEvent&) { split_volume(); }, "split_parts_SMALL", nullptr, [this]() { return can_split(); }, q);
 
     part_menu.AppendSeparator();
 
     auto obj_list = sidebar->obj_list();
     obj_list->append_menu_item_change_type(&part_menu);
-
-    // ui updates needs to be binded to the parent panel
-    if (q != nullptr)
-    {
-        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split()); },  item_split->GetId());
-    }
 
     return true;
 }
@@ -3965,6 +3931,8 @@ bool Plater::can_delete() const { return p->can_delete(); }
 bool Plater::can_delete_all() const { return p->can_delete_all(); }
 bool Plater::can_increase_instances() const { return p->can_increase_instances(); }
 bool Plater::can_decrease_instances() const { return p->can_decrease_instances(); }
+bool Plater::can_set_instance_to_object() const { return p->can_set_instance_to_object(); }
+bool Plater::can_fix_through_netfabb() const { return p->can_fix_through_netfabb(); }
 bool Plater::can_split_to_objects() const { return p->can_split_to_objects(); }
 bool Plater::can_split_to_volumes() const { return p->can_split_to_volumes(); }
 bool Plater::can_arrange() const { return p->can_arrange(); }

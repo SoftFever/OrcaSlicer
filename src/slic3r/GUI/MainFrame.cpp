@@ -341,18 +341,22 @@ void MainFrame::init_menubar()
     // File menu
     wxMenu* fileMenu = new wxMenu;
     {
-        wxMenuItem* item_open = append_menu_item(fileMenu, wxID_ANY, _(L("&Open Project")) + dots + "\tCtrl+O", _(L("Open a project file")),
-            [this](wxCommandEvent&) { if (m_plater) m_plater->load_project(); }, menu_icon("open"));
-        wxMenuItem* item_save = append_menu_item(fileMenu, wxID_ANY, _(L("&Save Project")) + "\tCtrl+S", _(L("Save current project file")),
-            [this](wxCommandEvent&) { if (m_plater) m_plater->export_3mf(into_path(m_plater->get_project_filename())); }, menu_icon("save"));
-        wxMenuItem* item_save_as = append_menu_item(fileMenu, wxID_ANY, _(L("Save Project &as")) + dots + "\tCtrl+Alt+S", _(L("Save current project file as")),
-            [this](wxCommandEvent&) { if (m_plater) m_plater->export_3mf(); }, menu_icon("save"));
+        append_menu_item(fileMenu, wxID_ANY, _(L("&Open Project")) + dots + "\tCtrl+O", _(L("Open a project file")),
+            [this](wxCommandEvent&) { if (m_plater) m_plater->load_project(); }, menu_icon("open"), nullptr,
+            [this](){return m_plater != nullptr; }, this);
+        append_menu_item(fileMenu, wxID_ANY, _(L("&Save Project")) + "\tCtrl+S", _(L("Save current project file")),
+            [this](wxCommandEvent&) { if (m_plater) m_plater->export_3mf(into_path(m_plater->get_project_filename())); }, menu_icon("save"), nullptr,
+            [this](){return m_plater != nullptr && can_save(); }, this);
+        append_menu_item(fileMenu, wxID_ANY, _(L("Save Project &as")) + dots + "\tCtrl+Alt+S", _(L("Save current project file as")),
+            [this](wxCommandEvent&) { if (m_plater) m_plater->export_3mf(); }, menu_icon("save"), nullptr,
+            [this](){return m_plater != nullptr && can_save(); }, this);
 
         fileMenu->AppendSeparator();
 
         wxMenu* import_menu = new wxMenu();
-        wxMenuItem* item_import_model = append_menu_item(import_menu, wxID_ANY, _(L("Import STL/OBJ/AM&F/3MF")) + dots + "\tCtrl+I", _(L("Load a model")),
-            [this](wxCommandEvent&) { if (m_plater) m_plater->add_model(); }, menu_icon("import_plater"));
+        append_menu_item(import_menu, wxID_ANY, _(L("Import STL/OBJ/AM&F/3MF")) + dots + "\tCtrl+I", _(L("Load a model")),
+            [this](wxCommandEvent&) { if (m_plater) m_plater->add_model(); }, menu_icon("import_plater"), nullptr,
+            [this](){return m_plater != nullptr; }, this);
         import_menu->AppendSeparator();
         append_menu_item(import_menu, wxID_ANY, _(L("Import &Config")) + dots + "\tCtrl+L", _(L("Load exported configuration file")),
             [this](wxCommandEvent&) { load_config_file(); }, menu_icon("import_config"));
@@ -365,15 +369,19 @@ void MainFrame::init_menubar()
 
         wxMenu* export_menu = new wxMenu();
         wxMenuItem* item_export_gcode = append_menu_item(export_menu, wxID_ANY, _(L("Export &G-code")) + dots +"\tCtrl+G", _(L("Export current plate as G-code")),
-            [this](wxCommandEvent&) { if (m_plater) m_plater->export_gcode(); }, menu_icon("export_gcode"));
+            [this](wxCommandEvent&) { if (m_plater) m_plater->export_gcode(); }, menu_icon("export_gcode"), nullptr,
+            [this](){return can_export_gcode(); }, this);
         m_changeable_menu_items.push_back(item_export_gcode);
         export_menu->AppendSeparator();
-        wxMenuItem* item_export_stl = append_menu_item(export_menu, wxID_ANY, _(L("Export plate as &STL")) + dots, _(L("Export current plate as STL")),
-            [this](wxCommandEvent&) { if (m_plater) m_plater->export_stl(); }, menu_icon("export_plater"));
-        wxMenuItem* item_export_stl_sla = append_menu_item(export_menu, wxID_ANY, _(L("Export plate as STL including supports")) + dots, _(L("Export current plate as STL including supports")),
-            [this](wxCommandEvent&) { if (m_plater) m_plater->export_stl(true); }, menu_icon("export_plater"));
-        wxMenuItem* item_export_amf = append_menu_item(export_menu, wxID_ANY, _(L("Export plate as &AMF")) + dots, _(L("Export current plate as AMF")),
-            [this](wxCommandEvent&) { if (m_plater) m_plater->export_amf(); }, menu_icon("export_plater"));
+        append_menu_item(export_menu, wxID_ANY, _(L("Export plate as &STL")) + dots, _(L("Export current plate as STL")),
+            [this](wxCommandEvent&) { if (m_plater) m_plater->export_stl(); }, menu_icon("export_plater"), nullptr,
+            [this](){return can_export_model(); }, this);
+        append_menu_item(export_menu, wxID_ANY, _(L("Export plate as STL including supports")) + dots, _(L("Export current plate as STL including supports")),
+            [this](wxCommandEvent&) { if (m_plater) m_plater->export_stl(true); }, menu_icon("export_plater"), nullptr,
+            [this](){return can_export_supports(); }, this);
+        append_menu_item(export_menu, wxID_ANY, _(L("Export plate as &AMF")) + dots, _(L("Export current plate as AMF")),
+            [this](wxCommandEvent&) { if (m_plater) m_plater->export_amf(); }, menu_icon("export_plater"), nullptr,
+            [this](){return can_export_model(); }, this);
         export_menu->AppendSeparator();
         append_menu_item(export_menu, wxID_ANY, _(L("Export &Config")) +dots +"\tCtrl+E", _(L("Export current configuration to file")),
             [this](wxCommandEvent&) { export_config(); }, menu_icon("export_config"));
@@ -413,16 +421,6 @@ void MainFrame::init_menubar()
         fileMenu->AppendSeparator();
         append_menu_item(fileMenu, wxID_EXIT, _(L("&Quit")), wxString::Format(_(L("Quit %s")), SLIC3R_APP_NAME),
             [this](wxCommandEvent&) { Close(false); });
-
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(m_plater != nullptr); }, item_open->GetId());
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable((m_plater != nullptr) && can_save()); }, item_save->GetId());
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable((m_plater != nullptr) && can_save()); }, item_save_as->GetId());
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(m_plater != nullptr); }, item_import_model->GetId());
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_export_gcode()); }, item_export_gcode->GetId());
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_export_model()); }, item_export_stl->GetId());
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_export_supports()); }, item_export_stl_sla->GetId());
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_export_model()); }, item_export_amf->GetId());
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_slice()); }, m_menu_item_reslice_now->GetId());
     }
 
 #ifdef _MSC_VER
@@ -446,26 +444,25 @@ void MainFrame::init_menubar()
     #else
         wxString hotkey_delete = "Del";
     #endif
-        wxMenuItem* item_select_all = append_menu_item(editMenu, wxID_ANY, _(L("&Select all")) + sep + GUI::shortkey_ctrl_prefix() + sep_space + "A", _(L("Selects all objects")),
-            [this](wxCommandEvent&) { if (m_plater != nullptr) m_plater->select_all(); }, "");
+        append_menu_item(editMenu, wxID_ANY, _(L("&Select all")) + sep + GUI::shortkey_ctrl_prefix() + sep_space + "A",
+            _(L("Selects all objects")), [this](wxCommandEvent&) { if (m_plater != nullptr) m_plater->select_all(); },
+            "", nullptr, [this](){return can_select(); }, this);
         editMenu->AppendSeparator();
-        wxMenuItem* item_delete_sel = append_menu_item(editMenu, wxID_ANY, _(L("&Delete selected")) + sep + hotkey_delete, _(L("Deletes the current selection")),
-            [this](wxCommandEvent&) { m_plater->remove_selected(); }, menu_icon("remove_menu"));
-        wxMenuItem* item_delete_all = append_menu_item(editMenu, wxID_ANY, _(L("Delete &all")) + sep + GUI::shortkey_ctrl_prefix() + sep_space + hotkey_delete, _(L("Deletes all objects")),
-            [this](wxCommandEvent&) { m_plater->reset_with_confirm(); }, menu_icon("delete_all_menu"));
+        append_menu_item(editMenu, wxID_ANY, _(L("&Delete selected")) + sep + hotkey_delete,
+            _(L("Deletes the current selection")),[this](wxCommandEvent&) { m_plater->remove_selected(); },
+            menu_icon("remove_menu"), nullptr, [this](){return can_delete(); }, this);
+        append_menu_item(editMenu, wxID_ANY, _(L("Delete &all")) + sep + GUI::shortkey_ctrl_prefix() + sep_space + hotkey_delete,
+            _(L("Deletes all objects")), [this](wxCommandEvent&) { m_plater->reset_with_confirm(); },
+            menu_icon("delete_all_menu"), nullptr, [this](){return can_delete_all(); }, this);
 
         editMenu->AppendSeparator();
 
-        wxMenuItem* item_copy = append_menu_item(editMenu, wxID_ANY, _(L("&Copy")) + sep + GUI::shortkey_ctrl_prefix() + sep_space + "C", _(L("Copy selection to clipboard")),
-            [this](wxCommandEvent&) { m_plater->copy_selection_to_clipboard(); }, menu_icon("copy_menu"));
-        wxMenuItem* item_paste = append_menu_item(editMenu, wxID_ANY, _(L("&Paste")) + sep + GUI::shortkey_ctrl_prefix() + sep_space + "V", _(L("Paste clipboard")),
-            [this](wxCommandEvent&) { m_plater->paste_from_clipboard(); }, menu_icon("paste_menu"));
-
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_select()); }, item_select_all->GetId());
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_delete()); }, item_delete_sel->GetId());
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_delete_all()); }, item_delete_all->GetId());
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(m_plater->can_copy()); }, item_copy->GetId());
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(m_plater->can_paste()); }, item_paste->GetId());
+        append_menu_item(editMenu, wxID_ANY, _(L("&Copy")) + sep + GUI::shortkey_ctrl_prefix() + sep_space + "C",
+            _(L("Copy selection to clipboard")), [this](wxCommandEvent&) { m_plater->copy_selection_to_clipboard(); },
+            menu_icon("copy_menu"), nullptr, [this](){return m_plater->can_copy(); }, this);
+        append_menu_item(editMenu, wxID_ANY, _(L("&Paste")) + sep + GUI::shortkey_ctrl_prefix() + sep_space + "V",
+            _(L("Paste clipboard")), [this](wxCommandEvent&) { m_plater->paste_from_clipboard(); },
+            menu_icon("paste_menu"), nullptr, [this](){return m_plater->can_paste(); }, this);
     }
 
     // Window menu
@@ -489,13 +486,12 @@ void MainFrame::init_menubar()
             [this, tab_offset](wxCommandEvent&) { select_tab(tab_offset + 2); }, menu_icon("printer"));
         if (m_plater) {
             windowMenu->AppendSeparator();
-            wxMenuItem* item_3d = append_menu_item(windowMenu, wxID_HIGHEST + 5, _(L("3&D")) + "\tCtrl+5", _(L("Show the 3D editing view")),
-                [this](wxCommandEvent&) { m_plater->select_view_3D("3D"); }, menu_icon("editor_menu"));
-            wxMenuItem* item_preview = append_menu_item(windowMenu, wxID_HIGHEST + 6, _(L("Pre&view")) + "\tCtrl+6", _(L("Show the 3D slices preview")),
-                [this](wxCommandEvent&) { m_plater->select_view_3D("Preview"); }, menu_icon("preview_menu"));
-
-            Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_change_view()); }, item_3d->GetId());
-            Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_change_view()); }, item_preview->GetId());
+            append_menu_item(windowMenu, wxID_HIGHEST + 5, _(L("3&D")) + "\tCtrl+5", _(L("Show the 3D editing view")),
+                [this](wxCommandEvent&) { m_plater->select_view_3D("3D"); }, menu_icon("editor_menu"), nullptr,
+                [this](){return can_change_view(); }, this);
+            append_menu_item(windowMenu, wxID_HIGHEST + 6, _(L("Pre&view")) + "\tCtrl+6", _(L("Show the 3D slices preview")),
+                [this](wxCommandEvent&) { m_plater->select_view_3D("Preview"); }, menu_icon("preview_menu"), nullptr,
+                [this](){return can_change_view(); }, this);
         }
 
 #if _WIN32
@@ -521,24 +517,23 @@ void MainFrame::init_menubar()
     if (m_plater) {
         viewMenu = new wxMenu();
         // The camera control accelerators are captured by GLCanvas3D::on_char().
-		wxMenuItem* item_iso = append_menu_item(viewMenu, wxID_ANY, _(L("Iso")) + sep + "&0", _(L("Iso View")), [this](wxCommandEvent&) { select_view("iso"); });
+        append_menu_item(viewMenu, wxID_ANY, _(L("Iso")) + sep + "&0", _(L("Iso View")),[this](wxCommandEvent&) { select_view("iso"); }, 
+            "", nullptr, [this](){return can_change_view(); }, this);
         viewMenu->AppendSeparator();
         //TRN To be shown in the main menu View->Top 
-		wxMenuItem* item_top = append_menu_item(viewMenu, wxID_ANY, _(L("Top")) + sep + "&1", _(L("Top View")), [this](wxCommandEvent&) { select_view("top"); });
+        append_menu_item(viewMenu, wxID_ANY, _(L("Top")) + sep + "&1", _(L("Top View")), [this](wxCommandEvent&) { select_view("top"); },
+            "", nullptr, [this](){return can_change_view(); }, this);
 		//TRN To be shown in the main menu View->Bottom 
-		wxMenuItem* item_bottom = append_menu_item(viewMenu, wxID_ANY, _(L("Bottom")) + sep + "&2", _(L("Bottom View")), [this](wxCommandEvent&) { select_view("bottom"); });
-		wxMenuItem* item_front = append_menu_item(viewMenu, wxID_ANY, _(L("Front")) + sep + "&3", _(L("Front View")), [this](wxCommandEvent&) { select_view("front"); });
-		wxMenuItem* item_rear = append_menu_item(viewMenu, wxID_ANY, _(L("Rear")) + sep + "&4", _(L("Rear View")), [this](wxCommandEvent&) { select_view("rear"); });
-		wxMenuItem* item_left = append_menu_item(viewMenu, wxID_ANY, _(L("Left")) + sep + "&5", _(L("Left View")), [this](wxCommandEvent&) { select_view("left"); });
-		wxMenuItem* item_right = append_menu_item(viewMenu, wxID_ANY, _(L("Right")) + sep + "&6", _(L("Right View")), [this](wxCommandEvent&) { select_view("right"); });
-
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_change_view()); }, item_iso->GetId());
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_change_view()); }, item_top->GetId());
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_change_view()); }, item_bottom->GetId());
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_change_view()); }, item_front->GetId());
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_change_view()); }, item_rear->GetId());
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_change_view()); }, item_left->GetId());
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_change_view()); }, item_right->GetId());
+        append_menu_item(viewMenu, wxID_ANY, _(L("Bottom")) + sep + "&2", _(L("Bottom View")), [this](wxCommandEvent&) { select_view("bottom"); },
+            "", nullptr, [this](){return can_change_view(); }, this);
+        append_menu_item(viewMenu, wxID_ANY, _(L("Front")) + sep + "&3", _(L("Front View")), [this](wxCommandEvent&) { select_view("front"); },
+            "", nullptr, [this](){return can_change_view(); }, this);
+        append_menu_item(viewMenu, wxID_ANY, _(L("Rear")) + sep + "&4", _(L("Rear View")), [this](wxCommandEvent&) { select_view("rear"); },
+            "", nullptr, [this](){return can_change_view(); }, this);
+        append_menu_item(viewMenu, wxID_ANY, _(L("Left")) + sep + "&5", _(L("Left View")), [this](wxCommandEvent&) { select_view("left"); },
+            "", nullptr, [this](){return can_change_view(); }, this);
+        append_menu_item(viewMenu, wxID_ANY, _(L("Right")) + sep + "&6", _(L("Right View")), [this](wxCommandEvent&) { select_view("right"); },
+            "", nullptr, [this](){return can_change_view(); }, this);
     }
 
     // Help menu
