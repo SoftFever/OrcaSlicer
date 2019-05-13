@@ -125,7 +125,6 @@ if (SLIC3R_GUI)
 
     if (MSVC)
         target_link_libraries(PrusaSlicer user32.lib Setupapi.lib OpenGL32.Lib GlU32.Lib)
-        set_target_properties(PrusaSlicer PROPERTIES OUTPUT_NAME "PrusaSlicer" PDB_NAME "libPrusaSlicer")
     elseif (MINGW)
         target_link_libraries(PrusaSlicer -lopengl32)
     elseif (APPLE)
@@ -141,12 +140,12 @@ if (MSVC)
     add_executable(PrusaSlicer_app_gui WIN32 PrusaSlicer_app_msvc.cpp ${CMAKE_CURRENT_BINARY_DIR}/PrusaSlicer.rc)
     target_compile_definitions(PrusaSlicer_app_gui PRIVATE -DSLIC3R_WRAPPER_NOCONSOLE)
     add_dependencies(PrusaSlicer_app_gui PrusaSlicer)
-    set_target_properties(PrusaSlicer_app_gui PROPERTIES OUTPUT_NAME "PrusaSlicer")
+    set_target_properties(PrusaSlicer_app_gui PROPERTIES OUTPUT_NAME "prusa-slicer")
 
     add_executable(PrusaSlicer_app_console PrusaSlicer_app_msvc.cpp ${CMAKE_CURRENT_BINARY_DIR}/PrusaSlicer.rc)
     target_compile_definitions(PrusaSlicer_app_console PRIVATE -DSLIC3R_WRAPPER_CONSOLE)
     add_dependencies(PrusaSlicer_app_console PrusaSlicer)
-    set_target_properties(PrusaSlicer_app_console PROPERTIES OUTPUT_NAME "PrusaSlicer-console")
+    set_target_properties(PrusaSlicer_app_console PROPERTIES OUTPUT_NAME "prusa-slicer-console")
 endif ()
 
 # Link the resources dir to where Slic3r GUI expects it

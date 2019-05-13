@@ -48,10 +48,10 @@ public:
 	    wc.lpfnWndProc   = OpenGLVersionCheck::supports_opengl2_wndproc;
 	    wc.hInstance     = (HINSTANCE)GetModuleHandle(nullptr);
 	    wc.hbrBackground = (HBRUSH)(COLOR_BACKGROUND);
-	    wc.lpszClassName = L"slic3r_opengl_version_check";
+	    wc.lpszClassName = L"PrusaSlicer_opengl_version_check";
 	    wc.style = CS_OWNDC;
 	    if (RegisterClass(&wc)) {
-			HWND hwnd = CreateWindowW(wc.lpszClassName, L"slic3r_opengl_version_check", WS_OVERLAPPEDWINDOW, 0, 0, 640, 480, 0, 0, wc.hInstance, (LPVOID)this);
+			HWND hwnd = CreateWindowW(wc.lpszClassName, L"PrusaSlicer_opengl_version_check", WS_OVERLAPPEDWINDOW, 0, 0, 640, 480, 0, 0, wc.hInstance, (LPVOID)this);
 			if (hwnd) {
 				message_pump_exit = false;
 			    while (GetMessage(&msg, NULL, 0, 0 ) > 0 && ! message_pump_exit)
@@ -271,11 +271,11 @@ int wmain(int argc, wchar_t **argv)
 
 	wchar_t path_to_slic3r[MAX_PATH + 1] = { 0 };
 	wcscpy(path_to_slic3r, path_to_exe);
-	wcscat(path_to_slic3r, L"slic3r.dll");
+	wcscat(path_to_slic3r, L"PrusaSlicer.dll");
 //	printf("Loading Slic3r library: %S\n", path_to_slic3r);
 	HINSTANCE hInstance_Slic3r = LoadLibraryExW(path_to_slic3r, nullptr, 0);
 	if (hInstance_Slic3r == nullptr) {
-		printf("slic3r.dll was not loaded\n");
+		printf("PrusaSlicer.dll was not loaded\n");
 		return -1;
 	}
 
@@ -289,7 +289,7 @@ int wmain(int argc, wchar_t **argv)
 #endif
 		);
 	if (slic3r_main == nullptr) {
-		printf("could not locate the function slic3r_main in slic3r.dll\n");
+		printf("could not locate the function slic3r_main in PrusaSlicer.dll\n");
 		return -1;
 	}
 	// argc minus the trailing nullptr of the argv
