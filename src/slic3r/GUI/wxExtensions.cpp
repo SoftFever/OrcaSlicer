@@ -2491,7 +2491,6 @@ ModeButton::ModeButton( wxWindow *          parent,
                         const wxString&     mode        /* = wxEmptyString*/,
                         const wxSize&       size        /* = wxDefaultSize*/,
                         const wxPoint&      pos         /* = wxDefaultPosition*/) :
-//     wxButton(parent, id, mode, pos, wxDefaultSize/*size*/, wxBU_EXACTFIT | wxNO_BORDER),
     ScalableButton(parent, id, icon_name, mode, size, pos)
 {
     m_tt_focused = wxString::Format(_(L("Switch to the %s mode")), mode);
@@ -2548,7 +2547,14 @@ ModeSizer::ModeSizer(wxWindow *parent, int hgap/* = 10*/) :
 
     m_mode_btns.reserve(3);
     for (const auto& button : buttons) {
-        m_mode_btns.push_back(new ModeButton(parent, wxID_ANY, button.second, button.first));
+#ifdef __WXOSX__
+        wxSize sz = parent->GetTextExtent(button.first);
+        // set default width for ModeButtons to correct rendering on OnFocus under OSX
+        sz.y += 2 * em_unit(parent);
+        m_mode_btns.push_back(new ModeButton(parent, wxID_ANY, button.second, button.first, sz));
+#else
+        m_mode_btns.push_back(new ModeButton(parent, wxID_ANY, button.second, button.first));;
+#endif // __WXOSX__
     }
 
     for (auto btn : m_mode_btns)
