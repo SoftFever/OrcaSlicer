@@ -86,7 +86,7 @@ protected:
 
 public:
     MainFrame();
-    ~MainFrame() {}
+    ~MainFrame();
 
     Plater*     plater() { return m_plater; }
 
@@ -121,7 +121,7 @@ public:
     Plater*             m_plater { nullptr };
     wxNotebook*         m_tabpanel { nullptr };
     wxProgressDialog*   m_progress_dialog { nullptr };
-    ProgressStatusBar*  m_statusbar { nullptr };
+    std::unique_ptr<ProgressStatusBar>  m_statusbar;
 };
 
 } // GUI

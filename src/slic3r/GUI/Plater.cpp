@@ -5,6 +5,8 @@
 #include <vector>
 #include <string>
 #include <regex>
+#include <future>
+
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/optional.hpp>
@@ -1219,8 +1221,107 @@ struct Plater::priv
     wxString project_filename;
 
     BackgroundSlicingProcess    background_process;
-    bool                        arranging;
-    bool                        rotoptimizing;
+    
+    class Job: public wxEvtHandler {
+        int m_range = 100;
+        std::future<void> m_ftr;
+        priv *m_plater = nullptr;
+        std::atomic<bool> m_running {false}, m_canceled {false};
+        
+        void run() { 
+            m_running.store(true); process(); m_running.store(false); 
+            
+            // ensure to call the last status to finalize the job
+            update_status(status_range(), "");
+        }
+        
+    protected:
+        
+        // status range for a particular job
+        virtual int status_range() const { return 100; }
+        
+        void update_status(int st, const wxString& msg = "") { 
+            auto evt = new wxThreadEvent(); evt->SetInt(st); evt->SetString(msg);
+            wxQueueEvent(this, evt); 
+        }
+        
+        priv& plater() { return *m_plater; }
+        bool was_canceled() const { return m_canceled.load(); }
+        
+    public:
+        
+        Job(priv *_plater): m_plater(_plater) {
+            Bind(wxEVT_THREAD, [this](const wxThreadEvent& evt){
+                auto msg = evt.GetString();
+                if(! msg.empty()) plater().statusbar()->set_status_text(msg);
+                
+                if(! m_range) return;
+                
+                plater().statusbar()->set_progress(evt.GetInt());
+                if(evt.GetInt() == status_range()) {
+                    
+                    // set back the original range and cancel callback
+                    plater().statusbar()->set_range(m_range);
+                    plater().statusbar()->set_cancel_callback();
+                    wxEndBusyCursor();
+                    
+                    // Do a full refresh of scene tree, including regenerating
+                    // all the GLVolumes. FIXME The update function shall just
+                    // reload the modified matrices.
+                    if(! was_canceled()) plater().update(true);
+                    
+                    // dont do finalization again for the same process
+                    m_range = 0;
+                }
+            });
+        }
+        
+        virtual void process() = 0;
+        
+        void start() {  // only if not running
+            if(! m_running.load()) {
+                m_range = plater().statusbar()->get_range();
+                m_canceled.store(false);
+                plater().statusbar()->set_range(status_range());
+                plater().statusbar()->set_cancel_callback( [this](){ 
+                    m_canceled.store(true);
+                });
+                wxBeginBusyCursor();
+                m_ftr = std::async(std::launch::async, &Job::run, this);
+            }
+        }
+        
+        bool join(int timeout_ms = 0) { 
+            if(!m_ftr.valid()) return true;
+            
+            if(timeout_ms <= 0) 
+                m_ftr.wait();
+            else if(m_ftr.wait_for(std::chrono::milliseconds(timeout_ms)) == 
+                    std::future_status::timeout) 
+                return false;
+            
+            return true;
+        }
+        
+        bool is_running() const { return m_running.load(); }
+        void cancel() { m_canceled.store(true); }
+    };
+    
+    class ArrangeJob: public Job {
+        int count = 0;
+    public:
+        using Job::Job;
+        int status_range() const override { return count; }
+        void set_count(int c) { count = c; }
+        void process() override;
+    } arrange_job {this};
+    
+    class RotoptimizeJob: public Job {
+    public:
+        using Job::Job;
+        void process() override;
+    } rotoptimize_job {this};
+    
     bool                        delayed_scene_refresh;
     std::string                 delayed_error_message;
 
@@ -1389,8 +1490,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 {
 	this->q->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 
-    arranging = false;
-    rotoptimizing = false;
     background_process.set_fff_print(&fff_print);
 	background_process.set_sla_print(&sla_print);
     background_process.set_gcode_preview_data(&gcode_preview_data);
@@ -1564,7 +1663,7 @@ void Plater::priv::update_ui_from_settings()
 
 ProgressStatusBar* Plater::priv::statusbar()
 {
-    return main_frame->m_statusbar;
+    return main_frame->m_statusbar.get();
 }
 
 std::string Plater::priv::get_config(const std::string &key) const
@@ -2089,46 +2188,37 @@ void Plater::priv::mirror(Axis axis)
 
 void Plater::priv::arrange()
 {
-    if (arranging) { return; }
-    arranging = true;
-    Slic3r::ScopeGuard arranging_guard([this]() { arranging = false; });
+    if(!arrange_job.is_running()) {
+        int count = 0;
+        for(auto obj : model.objects) count += int(obj->instances.size());
+        arrange_job.set_count(count);
+        arrange_job.start();
+    }
+}
 
-    wxBusyCursor wait;
+// This method will find an optimal orientation for the currently selected item
+// Very similar in nature to the arrange method above...
+void Plater::priv::sla_optimize_rotation() {
+    
+    rotoptimize_job.start();
+}
 
-    this->background_process.stop();
-
-    unsigned count = 0;
-    for(auto obj : model.objects) count += obj->instances.size();
-
-    auto prev_range = statusbar()->get_range();
-    statusbar()->set_range(count);
-
-    auto statusfn = [this, count] (unsigned st, const std::string& msg) {
-        /* // In case we would run the arrange asynchronously
-        wxCommandEvent event(EVT_PROGRESS_BAR);
-        event.SetInt(st);
-        event.SetString(msg);
-        wxQueueEvent(this->q, event.Clone()); */
-        statusbar()->set_progress(count - st);
-        statusbar()->set_status_text(_(msg));
-
-        // ok, this is dangerous, but we are protected by the flag
-        // 'arranging' and the arrange button is also disabled.
-        // This call is needed for the cancel button to work.
-        wxYieldIfNeeded();
-    };
-
-    statusbar()->set_cancel_callback([this, statusfn](){
-        arranging = false;
-        statusfn(0, L("Arranging canceled"));
-    });
+void Plater::priv::ArrangeJob::process() {
+    
+    // TODO: we should decide whether to allow arrange when the search is
+    // running we should probably disable explicit slicing and background
+    // processing
 
     static const std::string arrangestr = L("Arranging");
+    
+    auto& config = plater().config;
+    auto& view3D = plater().view3D;
+    auto& model  = plater().model;
 
     // FIXME: I don't know how to obtain the minimum distance, it depends
     // on printer technology. I guess the following should work but it crashes.
     double dist = 6; //PrintConfig::min_object_distance(config);
-    if(printer_technology == ptFFF) {
+    if(plater().printer_technology == ptFFF) {
         dist = PrintConfig::min_object_distance(config);
     }
 
@@ -2141,7 +2231,7 @@ void Plater::priv::arrange()
     Polyline bed; bed.points.reserve(bedpoints.size());
     for(auto& v : bedpoints) bed.append(Point::new_scale(v(0), v(1)));
 
-    statusfn(0, arrangestr);
+    update_status(0, arrangestr);
 
     arr::WipeTowerInfo wti = view3D->get_canvas3d()->get_wipe_tower_info();
 
@@ -2157,67 +2247,34 @@ void Plater::priv::arrange()
                      bed,
                      hint,
                      false, // create many piles not just one pile
-                     [statusfn](unsigned st) { statusfn(st, arrangestr); },
-                     [this] () { return !arranging; });
+                     [this](unsigned st) { if(st > 0) update_status(count - int(st), arrangestr); },
+                     [this] () { return was_canceled(); });
     } catch(std::exception& /*e*/) {
-        GUI::show_error(this->q, L("Could not arrange model objects! "
-                                   "Some geometries may be invalid."));
+        GUI::show_error(plater().q, L("Could not arrange model objects! "
+                                      "Some geometries may be invalid."));
     }
+    
+    update_status(count, was_canceled() ? L("Arranging canceled.") : L("Arranging done."));
 
     // it remains to move the wipe tower:
-    view3D->get_canvas3d()->arrange_wipe_tower(wti);
-
-    statusfn(0, L("Arranging done."));
-    statusbar()->set_range(prev_range);
-    statusbar()->set_cancel_callback(); // remove cancel button
-
-    // Do a full refresh of scene tree, including regenerating all the GLVolumes.
-    //FIXME The update function shall just reload the modified matrices.
-    update(true);
+    view3D->get_canvas3d()->arrange_wipe_tower(wti);   
 }
 
-// This method will find an optimal orientation for the currently selected item
-// Very similar in nature to the arrange method above...
-void Plater::priv::sla_optimize_rotation() {
+void Plater::priv::RotoptimizeJob::process()
+{
 
-    // TODO: we should decide whether to allow arrange when the search is
-    // running we should probably disable explicit slicing and background
-    // processing
-
-    if (rotoptimizing) { return; }
-    rotoptimizing = true;
-    Slic3r::ScopeGuard rotoptimizing_guard([this]() { rotoptimizing = false; });
-
-    int obj_idx = get_selected_object_idx();
+    int obj_idx = plater().get_selected_object_idx();
     if (obj_idx < 0) { return; }
 
-    ModelObject * o = model.objects[size_t(obj_idx)];
-
-    background_process.stop();
-
-    auto prev_range = statusbar()->get_range();
-    statusbar()->set_range(100);
-
-    auto stfn = [this] (unsigned st, const std::string& msg) {
-        statusbar()->set_progress(int(st));
-        statusbar()->set_status_text(msg);
-
-        // could be problematic, but we need the cancel button.
-        wxYieldIfNeeded();
-    };
-
-    statusbar()->set_cancel_callback([this, stfn](){
-        rotoptimizing = false;
-        stfn(0, L("Orientation search canceled"));
-    });
-
+    ModelObject * o = plater().model.objects[size_t(obj_idx)];
+    
     auto r = sla::find_best_rotation(
                 *o, .005f,
-                [stfn](unsigned s) { stfn(s, L("Searching for optimal orientation")); },
-                [this](){ return !rotoptimizing; }
+                [this](unsigned s) { if(s < 100) update_status(int(s), L("Searching for optimal orientation")); },
+                [this](){ return was_canceled(); }
     );
 
-    const auto *bed_shape_opt = config->opt<ConfigOptionPoints>("bed_shape");
+    const auto *bed_shape_opt = plater().config->opt<ConfigOptionPoints>("bed_shape");
     assert(bed_shape_opt);
 
     auto& bedpoints = bed_shape_opt->values;
@@ -2227,7 +2284,7 @@ void Plater::priv::sla_optimize_rotation() {
     double mindist = 6.0; // FIXME
     double offs = mindist / 2.0 - EPSILON;
 
-    if(rotoptimizing) // wasn't canceled
+    if(! was_canceled()) // wasn't canceled
     for(ModelInstance * oi : o->instances) {
         oi->set_rotation({r[X], r[Y], r[Z]});
 
@@ -2267,19 +2324,18 @@ void Plater::priv::sla_optimize_rotation() {
 
         Vec3d rt = oi->get_rotation(); rt(Z) += r;
         oi->set_rotation(rt);
+
+        arr::WipeTowerInfo wti; // useless in SLA context
+        arr::find_new_position(plater().model, o->instances, 
+                               coord_t(mindist/SCALING_FACTOR), bed, wti);
+    
+        // Correct the z offset of the object which was corrupted be the rotation
+        o->ensure_on_bed();
+    
+        update_status(100, L("Orientation found."));
+    } else {
+        update_status(100, L("Orientation search canceled."));
     }
-
-    arr::WipeTowerInfo wti; // useless in SLA context
-    arr::find_new_position(model, o->instances, coord_t(mindist/SCALING_FACTOR), bed, wti);
-
-    // Correct the z offset of the object which was corrupted be the rotation
-    o->ensure_on_bed();
-
-    stfn(0, L("Orientation found."));
-    statusbar()->set_range(prev_range);
-    statusbar()->set_cancel_callback();
-
-    update(true);
 }
 
 void Plater::priv::split_object()
@@ -2455,7 +2511,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation)
 // Restart background processing thread based on a bitmask of UpdateBackgroundProcessReturnState.
 bool Plater::priv::restart_background_process(unsigned int state)
 {
-    if (arranging || rotoptimizing) {
+    if (arrange_job.is_running() || rotoptimize_job.is_running()) {
         // Avoid a race condition
         return false;
     }
@@ -2686,7 +2742,7 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
 void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
 {
     if (evt.status.percent >= -1) {
-        if (arranging || rotoptimizing) {
+        if (arrange_job.is_running() || rotoptimize_job.is_running()) {
             // Avoid a race condition
             return;
         }
@@ -3140,7 +3196,7 @@ bool Plater::priv::can_fix_through_netfabb() const
 
 bool Plater::priv::can_increase_instances() const
 {
-    if (arranging || rotoptimizing) {
+    if (arrange_job.is_running() || rotoptimize_job.is_running()) {
         return false;
     }
 
@@ -3150,7 +3206,7 @@ bool Plater::priv::can_increase_instances() const
 
 bool Plater::priv::can_decrease_instances() const
 {
-    if (arranging || rotoptimizing) {
+    if (arrange_job.is_running() || rotoptimize_job.is_running()) {
         return false;
     }
 
@@ -3170,7 +3226,7 @@ bool Plater::priv::can_split_to_volumes() const
 
 bool Plater::priv::can_arrange() const
 {
-    return !model.objects.empty() && !arranging;
+    return !model.objects.empty() && !arrange_job.is_running();
 }
 
 bool Plater::priv::can_layers_editing() const
@@ -3291,6 +3347,21 @@ void Plater::load_files(const std::vector<std::string>& input_files, bool load_m
 }
 
 void Plater::update() { p->update(); }
+
+void Plater::stop_jobs()
+{
+    static const int ABORT_WAIT_MAX_MS = 10000;
+    bool aborted = false;
+    
+    p->rotoptimize_job.cancel();
+    aborted = p->rotoptimize_job.join(ABORT_WAIT_MAX_MS);
+        
+    p->arrange_job.cancel();
+    aborted &= p->arrange_job.join(ABORT_WAIT_MAX_MS);
+    
+    if(!aborted) 
+        BOOST_LOG_TRIVIAL(error) << "Could not abort an optimization job!";
+}
 
 void Plater::update_ui_from_settings() { p->update_ui_from_settings(); }
 

@@ -54,7 +54,7 @@ DPIFrame(NULL, wxID_ANY, wxString(SLIC3R_BUILD_ID) + " " + _(L("based on Slic3r"
 #endif // _WIN32
 
 	// initialize status bar
-	m_statusbar = new ProgressStatusBar(this);
+	m_statusbar.reset(new ProgressStatusBar(this));
 	m_statusbar->embed(this);
     m_statusbar->set_status_text(_(L("Version")) + " " +
 		SLIC3R_VERSION +
@@ -107,6 +107,8 @@ DPIFrame(NULL, wxID_ANY, wxString(SLIC3R_BUILD_ID) + " " + _(L("based on Slic3r"
         // Also the application closes much faster without these unnecessary screen refreshes.
         // In addition, there were some crashes due to the Paint events sent to already destructed windows.
         this->Show(false);
+        
+        if(m_plater) m_plater->stop_jobs();
 
         // Save the slic3r.ini.Usually the ini file is saved from "on idle" callback,
         // but in rare cases it may not have been called yet.
@@ -135,6 +137,8 @@ DPIFrame(NULL, wxID_ANY, wxString(SLIC3R_BUILD_ID) + " " + _(L("based on Slic3r"
 
     update_ui_from_settings();    // FIXME (?)
 }
+
+MainFrame::~MainFrame() {}
 
 
 void MainFrame::init_tabpanel()
