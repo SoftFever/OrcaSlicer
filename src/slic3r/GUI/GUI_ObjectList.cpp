@@ -1120,7 +1120,8 @@ void ObjectList::append_menu_items_add_volume(wxMenu* menu)
 wxMenuItem* ObjectList::append_menu_item_split(wxMenu* menu) 
 {
     return append_menu_item(menu, wxID_ANY, _(L("Split to parts")), "",
-        [this](wxCommandEvent&) { split(); }, "split_parts_SMALL", menu);
+        [this](wxCommandEvent&) { split(); }, "split_parts_SMALL", menu, 
+        [this]() { return is_splittable(); }, wxGetApp().plater());
 }
 
 wxMenuItem* ObjectList::append_menu_item_settings(wxMenu* menu_) 
@@ -1199,10 +1200,10 @@ wxMenuItem* ObjectList::append_menu_item_change_type(wxMenu* menu)
 
 }
 
-wxMenuItem* ObjectList::append_menu_item_instance_to_object(wxMenu* menu)
+wxMenuItem* ObjectList::append_menu_item_instance_to_object(wxMenu* menu, wxWindow* parent)
 {
     return append_menu_item(menu, wxID_ANY, _(L("Set as a Separated Object")), "",
-        [this](wxCommandEvent&) { split_instances(); }, "", menu);
+        [this](wxCommandEvent&) { split_instances(); }, "", menu, [](){return wxGetApp().plater()->can_set_instance_to_object(); }, parent);
 }
 
 void ObjectList::append_menu_items_osx(wxMenu* menu)
@@ -1217,8 +1218,10 @@ wxMenuItem* ObjectList::append_menu_item_fix_through_netfabb(wxMenu* menu)
 {
     if (!is_windows10())
         return nullptr;
+    Plater* plater = wxGetApp().plater();
     wxMenuItem* menu_item = append_menu_item(menu, wxID_ANY, _(L("Fix through the Netfabb")), "",
-        [this](wxCommandEvent&) { fix_through_netfabb(); }, "", menu);
+        [this](wxCommandEvent&) { fix_through_netfabb(); }, "", menu, 
+        [plater]() {return plater->can_fix_through_netfabb(); }, plater);
     menu->AppendSeparator();
 
     return menu_item;
@@ -1284,9 +1287,6 @@ void ObjectList::create_object_popupmenu(wxMenu *menu)
     // rest of a object_menu will be added later in:
     // - append_menu_items_add_volume() -> for "Add (volumes)"
     // - append_menu_item_settings() -> for "Add (settings)"
-
-    wxGetApp().plater()->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) {
-        evt.Enable(is_splittable()); }, m_menu_item_split->GetId());
 }
 
 void ObjectList::create_sla_object_popupmenu(wxMenu *menu)
@@ -1318,14 +1318,11 @@ void ObjectList::create_part_popupmenu(wxMenu *menu)
 
     // rest of a object_sla_menu will be added later in:
     // - append_menu_item_settings() -> for "Add (settings)"
-
-    wxGetApp().plater()->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) {
-            evt.Enable(is_splittable()); }, m_menu_item_split_part->GetId());
 }
 
 void ObjectList::create_instance_popupmenu(wxMenu*menu)
 {
-    m_menu_item_split_instances = append_menu_item_instance_to_object(menu);
+    m_menu_item_split_instances = append_menu_item_instance_to_object(menu, wxGetApp().plater());
 
     /* New behavior logic:
      * 1. Split Object to several separated object, if ALL instances are selected

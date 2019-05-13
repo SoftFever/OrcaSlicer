@@ -25,8 +25,9 @@ using Slic3r::GUI::from_u8;
 wxDEFINE_EVENT(wxCUSTOMEVT_TICKSCHANGED, wxEvent);
 wxDEFINE_EVENT(wxCUSTOMEVT_LAST_VOLUME_IS_DELETED, wxCommandEvent);
 
-#ifdef __WXMSW__
+#ifndef __WXGTK__// msw_menuitem_bitmaps is used for MSW and OSX
 static std::map<int, std::string> msw_menuitem_bitmaps;
+#ifdef __WXMSW__
 void msw_rescale_menu(wxMenu* menu)
 {
 	struct update_icons {
@@ -47,9 +48,27 @@ void msw_rescale_menu(wxMenu* menu)
 		update_icons::run(item);
 }
 #endif /* __WXMSW__ */
+#endif /* no __WXGTK__ */
+
+void enable_menu_item(wxUpdateUIEvent& evt, std::function<bool()> const cb_condition, wxMenuItem* item)
+{
+    const bool enable = cb_condition();
+    evt.Enable(enable);
+
+#ifdef __WXOSX__
+    const auto it = msw_menuitem_bitmaps.find(item->GetId());
+    if (it != msw_menuitem_bitmaps.end())
+    {
+        const wxBitmap& item_icon = create_scaled_bitmap(nullptr, it->second, 16, false, !enable);
+        if (item_icon.IsOk())
+            item->SetBitmap(item_icon);
+    }
+#endif // __WXOSX__
+}
 
 wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const wxString& description,
-    std::function<void(wxCommandEvent& event)> cb, const wxBitmap& icon, wxEvtHandler* event_handler)
+    std::function<void(wxCommandEvent& event)> cb, const wxBitmap& icon, wxEvtHandler* event_handler,
+    std::function<bool()> const cb_condition, wxWindow* parent)
 {
     if (id == wxID_ANY)
         id = wxNewId();
@@ -67,25 +86,33 @@ wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const
 #endif // __WXMSW__
         menu->Bind(wxEVT_MENU, cb, id);
 
+    if (parent) {
+        parent->Bind(wxEVT_UPDATE_UI, [cb_condition, item](wxUpdateUIEvent& evt) {
+            enable_menu_item(evt, cb_condition, item); }, id);
+    }
+
     return item;
 }
 
 wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const wxString& description,
-    std::function<void(wxCommandEvent& event)> cb, const std::string& icon, wxEvtHandler* event_handler)
+    std::function<void(wxCommandEvent& event)> cb, const std::string& icon, wxEvtHandler* event_handler,
+    std::function<bool()> const cb_condition, wxWindow* parent)
 {
     if (id == wxID_ANY)
         id = wxNewId();
 
     const wxBitmap& bmp = !icon.empty() ? create_scaled_bitmap(nullptr, icon) : wxNullBitmap;   // FIXME: pass window ptr
-#ifdef __WXMSW__    
+//#ifdef __WXMSW__
+#ifndef __WXGTK__
     if (bmp.IsOk())
         msw_menuitem_bitmaps[id] = icon;
 #endif /* __WXMSW__ */
 
-    return append_menu_item(menu, id, string, description, cb, bmp, event_handler);
+    return append_menu_item(menu, id, string, description, cb, bmp, event_handler, cb_condition, parent);
 }
 
-wxMenuItem* append_submenu(wxMenu* menu, wxMenu* sub_menu, int id, const wxString& string, const wxString& description, const std::string& icon)
+wxMenuItem* append_submenu(wxMenu* menu, wxMenu* sub_menu, int id, const wxString& string, const wxString& description, const std::string& icon,
+    std::function<bool()> const cb_condition, wxWindow* parent)
 {
     if (id == wxID_ANY)
         id = wxNewId();
@@ -93,13 +120,19 @@ wxMenuItem* append_submenu(wxMenu* menu, wxMenu* sub_menu, int id, const wxStrin
     wxMenuItem* item = new wxMenuItem(menu, id, string, description);
     if (!icon.empty()) {
         item->SetBitmap(create_scaled_bitmap(nullptr, icon));    // FIXME: pass window ptr
-#ifdef __WXMSW__
+//#ifdef __WXMSW__
+#ifndef __WXGTK__
         msw_menuitem_bitmaps[id] = icon;
 #endif /* __WXMSW__ */
     }
 
     item->SetSubMenu(sub_menu);
     menu->Append(item);
+
+    if (parent) {
+        parent->Bind(wxEVT_UPDATE_UI, [cb_condition, item](wxUpdateUIEvent& evt) {
+            enable_menu_item(evt, cb_condition, item); }, id);
+    }
 
     return item;
 }
@@ -350,7 +383,8 @@ int em_unit(wxWindow* win)
 }
 
 // If an icon has horizontal orientation (width > height) call this function with is_horizontal = true
-wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name_in, const int px_cnt/* = 16*/, const bool is_horizontal /* = false*/)
+wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name_in, 
+    const int px_cnt/* = 16*/, const bool is_horizontal /* = false*/, const bool grayscale/* = false*/)
 {
     static Slic3r::GUI::BitmapCache cache;
 
@@ -370,9 +404,9 @@ wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name_in, con
     boost::replace_last(bmp_name, ".png", "");
 
     // Try loading an SVG first, then PNG if SVG is not found:
-    wxBitmap *bmp = cache.load_svg(bmp_name, width, height, scale_factor);
+    wxBitmap *bmp = cache.load_svg(bmp_name, width, height, scale_factor, grayscale);
     if (bmp == nullptr) {
-        bmp = cache.load_png(bmp_name, width, height);
+        bmp = cache.load_png(bmp_name, width, height, grayscale);
     }
 
     if (bmp == nullptr) {
@@ -2456,7 +2490,6 @@ ModeButton::ModeButton( wxWindow *          parent,
                         const wxString&     mode        /* = wxEmptyString*/,
                         const wxSize&       size        /* = wxDefaultSize*/,
                         const wxPoint&      pos         /* = wxDefaultPosition*/) :
-//     wxButton(parent, id, mode, pos, wxDefaultSize/*size*/, wxBU_EXACTFIT | wxNO_BORDER),
     ScalableButton(parent, id, icon_name, mode, size, pos)
 {
     m_tt_focused = wxString::Format(_(L("Switch to the %s mode")), mode);
@@ -2513,7 +2546,14 @@ ModeSizer::ModeSizer(wxWindow *parent, int hgap/* = 10*/) :
 
     m_mode_btns.reserve(3);
     for (const auto& button : buttons) {
-        m_mode_btns.push_back(new ModeButton(parent, wxID_ANY, button.second, button.first));
+#ifdef __WXOSX__
+        wxSize sz = parent->GetTextExtent(button.first);
+        // set default width for ModeButtons to correct rendering on OnFocus under OSX
+        sz.x += 2 * em_unit(parent);
+        m_mode_btns.push_back(new ModeButton(parent, wxID_ANY, button.second, button.first, sz));
+#else
+        m_mode_btns.push_back(new ModeButton(parent, wxID_ANY, button.second, button.first));;
+#endif // __WXOSX__
     }
 
     for (auto btn : m_mode_btns)

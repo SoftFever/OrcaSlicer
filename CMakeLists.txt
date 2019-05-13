@@ -59,7 +59,8 @@ if (MSVC)
     endif ()
     # /bigobj (Increase Number of Sections in .Obj file)
     # error C3859: virtual memory range for PCH exceeded; please recompile with a command line option of '-Zm90' or greater
-    add_compile_options(-bigobj -Zm316)
+    # Generate symbols at every build target, even for the release.
+    add_compile_options(-bigobj -Zm316 /Zi)
 endif ()
 
 # Display and check CMAKE_PREFIX_PATH

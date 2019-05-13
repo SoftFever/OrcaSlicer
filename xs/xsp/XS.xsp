@@ -20,7 +20,7 @@ VERSION()
 SV*
 BUILD()
     CODE:
-        RETVAL = newSVpv(SLIC3R_BUILD, 0);
+        RETVAL = newSVpv(SLIC3R_BUILD_ID, 0);
     OUTPUT: RETVAL
 
 SV*

@@ -174,7 +174,7 @@ wxBitmap* BitmapCache::insert(const std::string &bitmap_key, const wxBitmap *beg
 #endif
 }
 
-wxBitmap* BitmapCache::insert_raw_rgba(const std::string &bitmap_key, unsigned width, unsigned height, const unsigned char *raw_data, float scale /* = 1.0f */)
+wxBitmap* BitmapCache::insert_raw_rgba(const std::string &bitmap_key, unsigned width, unsigned height, const unsigned char *raw_data, float scale /* = 1.0f */, const bool grayscale/* = false*/)
 {
     wxImage image(width, height);
     image.InitAlpha();
@@ -187,14 +187,20 @@ wxBitmap* BitmapCache::insert_raw_rgba(const std::string &bitmap_key, unsigned w
         *rgb   ++ = *raw_data ++;
         *alpha ++ = *raw_data ++;
     }
+
+    if (grayscale)
+        image.ConvertToGreyscale(m_gs, m_gs, m_gs);
+
     return this->insert(bitmap_key, wxImage_to_wxBitmap_with_alpha(std::move(image), scale));
 }
 
-wxBitmap* BitmapCache::load_png(const std::string &bitmap_name, unsigned int width, unsigned int height)
+wxBitmap* BitmapCache::load_png(const std::string &bitmap_name, unsigned int width, unsigned int height, 
+    const bool grayscale/* = false*/)
 {
     std::string bitmap_key = bitmap_name + ( height !=0 ? 
                                            "-h" + std::to_string(height) : 
-                                           "-w" + std::to_string(width));
+                                           "-w" + std::to_string(width))
+                                         + (grayscale ? "-gs" : "");
 
     auto it = m_map.find(bitmap_key);
     if (it != m_map.end())
@@ -213,15 +219,20 @@ wxBitmap* BitmapCache::load_png(const std::string &bitmap_name, unsigned int wid
     if (height != 0 && width != 0)
         image.Rescale(width, height, wxIMAGE_QUALITY_BILINEAR);
 
+    if (grayscale)
+        image.ConvertToGreyscale(m_gs, m_gs, m_gs);
+
     return this->insert(bitmap_key, wxImage_to_wxBitmap_with_alpha(std::move(image)));
 }
 
-wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_width, unsigned target_height, float scale /* = 1.0f */)
+wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_width, unsigned target_height, 
+    float scale /* = 1.0f */, const bool grayscale/* = false*/)
 {
     std::string bitmap_key = bitmap_name + ( target_height !=0 ? 
                                            "-h" + std::to_string(target_height) : 
                                            "-w" + std::to_string(target_width))
-                                         + (scale != 1.0f ? "-s" + std::to_string(scale) : "");
+                                         + (scale != 1.0f ? "-s" + std::to_string(scale) : "")
+                                         + (grayscale ? "-gs" : "");
 
     target_height != 0 ? target_height *= scale : target_width *= scale;
 
@@ -256,7 +267,7 @@ wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_
     ::nsvgDeleteRasterizer(rast);
     ::nsvgDelete(image);
 
-    return this->insert_raw_rgba(bitmap_key, width, height, data.data(), scale);
+    return this->insert_raw_rgba(bitmap_key, width, height, data.data(), scale, grayscale);
 }
 
 wxBitmap BitmapCache::mksolid(size_t width, size_t height, unsigned char r, unsigned char g, unsigned char b, unsigned char transparency)

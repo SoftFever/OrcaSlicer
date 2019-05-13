@@ -27,12 +27,15 @@ inline void         msw_rescale_menu(wxMenu* /* menu */) {}
 #endif /* __WXMSW__ */
 
 wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const wxString& description,
-    std::function<void(wxCommandEvent& event)> cb, const wxBitmap& icon, wxEvtHandler* event_handler = nullptr);
+    std::function<void(wxCommandEvent& event)> cb, const wxBitmap& icon, wxEvtHandler* event_handler = nullptr,
+    std::function<bool()> const cb_condition = []() { return true;}, wxWindow* parent = nullptr);
 wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const wxString& description,
-    std::function<void(wxCommandEvent& event)> cb, const std::string& icon = "", wxEvtHandler* event_handler = nullptr);
+    std::function<void(wxCommandEvent& event)> cb, const std::string& icon = "", wxEvtHandler* event_handler = nullptr,
+    std::function<bool()> const cb_condition = []() { return true; }, wxWindow* parent = nullptr);
 
 wxMenuItem* append_submenu(wxMenu* menu, wxMenu* sub_menu, int id, const wxString& string, const wxString& description, 
-    const std::string& icon = "");
+    const std::string& icon = "",
+    std::function<bool()> const cb_condition = []() { return true; }, wxWindow* parent = nullptr);
 
 wxMenuItem* append_menu_radio_item(wxMenu* menu, int id, const wxString& string, const wxString& description, 
     std::function<void(wxCommandEvent& event)> cb, wxEvtHandler* event_handler);
@@ -42,7 +45,8 @@ void    edit_tooltip(wxString& tooltip);
 void    msw_buttons_rescale(wxDialog* dlg, const int em_unit, const std::vector<int>& btn_ids);
 int     em_unit(wxWindow* win);
 
-wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name, const int px_cnt = 16, const bool is_horizontal = false);
+wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name, 
+    const int px_cnt = 16, const bool is_horizontal = false, const bool grayscale = false);
 
 class wxCheckListBoxComboPopup : public wxCheckListBox, public wxComboPopup
 {
