@@ -22,4 +22,4 @@ PRODUCTVERSION @SLIC3R_RC_VERSION@
  }
 }
 2 ICON "@SLIC3R_RESOURCES_DIR@/icons/PrusaSlicer.ico"
-1 24 "slic3r.manifest" 
+1 24 "PrusaSlicer.manifest" 

@@ -39,7 +39,7 @@
 #include "libslic3r/Format/OBJ.hpp"
 #include "libslic3r/Utils.hpp"
 
-#include "slic3r.hpp"
+#include "PrusaSlicer.hpp"
 
 #ifdef SLIC3R_GUI
     #include "slic3r/GUI/GUI.hpp"
