@@ -2549,7 +2549,7 @@ ModeSizer::ModeSizer(wxWindow *parent, int hgap/* = 10*/) :
 #ifdef __WXOSX__
         wxSize sz = parent->GetTextExtent(button.first);
         // set default width for ModeButtons to correct rendering on OnFocus under OSX
-        sz.y += 2 * em_unit(parent);
+        sz.x += 2 * em_unit(parent);
         m_mode_btns.push_back(new ModeButton(parent, wxID_ANY, button.second, button.first, sz));
 #else
         m_mode_btns.push_back(new ModeButton(parent, wxID_ANY, button.second, button.first));;
