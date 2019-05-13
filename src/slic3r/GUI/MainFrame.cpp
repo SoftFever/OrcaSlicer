@@ -33,7 +33,7 @@ namespace Slic3r {
 namespace GUI {
 
 MainFrame::MainFrame() :
-DPIFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, "mainframe"),
+DPIFrame(NULL, wxID_ANY, wxString(SLIC3R_BUILD) + " " + _(L("based on Slic3r")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, "mainframe"),
         m_printhost_queue_dlg(new PrintHostQueueDialog(this))
 {
     // Fonts were created by the DPIFrame constructor for the monitor, on which the window opened.

@@ -568,7 +568,7 @@ bool GUI_App::select_language()
         m_wxLocale = new wxLocale;    // FIXME: leak?
         m_wxLocale->Init(lang->Language);
 		m_wxLocale->AddCatalogLookupPathPrefix(from_u8(localization_dir()));
-        m_wxLocale->AddCatalog("Slic3rPE");
+        m_wxLocale->AddCatalog(SLIC3R_APP_KEY);
 		//FIXME This is a temporary workaround, the correct solution is to switch to "C" locale during file import / export only.
 		wxSetlocale(LC_NUMERIC, "C");
         Preset::update_suffix_modified();
@@ -613,7 +613,7 @@ bool GUI_App::load_language()
     } else {
         m_wxLocale->Init(info->Language);
         m_wxLocale->AddCatalogLookupPathPrefix(from_u8(localization_dir()));
-        m_wxLocale->AddCatalog("Slic3rPE");
+        m_wxLocale->AddCatalog(SLIC3R_APP_KEY);
         m_imgui->set_language(into_u8(info->CanonicalName));
     }
 	//FIXME This is a temporary workaround, the correct solution is to switch to "C" locale during file import / export only.

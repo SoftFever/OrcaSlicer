@@ -54,7 +54,7 @@ SysInfoDialog::SysInfoDialog()
 	main_sizer->Add(hsizer, 1, wxEXPAND | wxALL, 10);
 
     // logo
-    m_logo_bmp = ScalableBitmap(this, "Slic3r_192px.png", 192);
+    m_logo_bmp = ScalableBitmap(this, "PrusaSlicer_192px.png", 192);
     m_logo = new wxStaticBitmap(this, wxID_ANY, m_logo_bmp.bmp());
 	hsizer->Add(m_logo, 0, wxALIGN_CENTER_VERTICAL);
     
