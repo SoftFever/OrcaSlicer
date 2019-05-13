@@ -25,8 +25,9 @@ using Slic3r::GUI::from_u8;
 wxDEFINE_EVENT(wxCUSTOMEVT_TICKSCHANGED, wxEvent);
 wxDEFINE_EVENT(wxCUSTOMEVT_LAST_VOLUME_IS_DELETED, wxCommandEvent);
 
-#ifdef __WXMSW__
+#ifndef __WXGTK__// msw_menuitem_bitmaps is used for MSW and OSX
 static std::map<int, std::string> msw_menuitem_bitmaps;
+#ifdef __WXMSW__
 void msw_rescale_menu(wxMenu* menu)
 {
 	struct update_icons {
@@ -47,9 +48,29 @@ void msw_rescale_menu(wxMenu* menu)
 		update_icons::run(item);
 }
 #endif /* __WXMSW__ */
+#endif /* no __WXGTK__ */
+
+void enable_menu_item(wxUpdateUIEvent& evt, std::function<bool()> const cb_condition, wxMenuItem* item)
+{
+    const bool enable = cb_condition();
+    evt.Enable(enable);
+
+#ifdef __WXOSX__
+    const auto it = msw_menuitem_bitmaps.find(item->GetId());
+    if (it != msw_menuitem_bitmaps.end())
+    {
+        const wxBitmap& item_icon = create_scaled_bitmap(nullptr, it->second);
+        if (item_icon.IsOk()) {
+            double g = 0.6;
+            item->SetBitmap(enable ? item_icon : item_icon.ConvertToImage().ConvertToGreyscale(g, g, g));
+        }
+    }
+#endif // __WXOSX__
+}
 
 wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const wxString& description,
-    std::function<void(wxCommandEvent& event)> cb, const wxBitmap& icon, wxEvtHandler* event_handler)
+    std::function<void(wxCommandEvent& event)> cb, const wxBitmap& icon, wxEvtHandler* event_handler,
+    std::function<bool()> const cb_condition, wxWindow* parent)
 {
     if (id == wxID_ANY)
         id = wxNewId();
@@ -67,25 +88,33 @@ wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const
 #endif // __WXMSW__
         menu->Bind(wxEVT_MENU, cb, id);
 
+    if (parent) {
+        parent->Bind(wxEVT_UPDATE_UI, [cb_condition, item](wxUpdateUIEvent& evt) {
+            enable_menu_item(evt, cb_condition, item); }, id);
+    }
+
     return item;
 }
 
 wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const wxString& description,
-    std::function<void(wxCommandEvent& event)> cb, const std::string& icon, wxEvtHandler* event_handler)
+    std::function<void(wxCommandEvent& event)> cb, const std::string& icon, wxEvtHandler* event_handler,
+    std::function<bool()> const cb_condition, wxWindow* parent)
 {
     if (id == wxID_ANY)
         id = wxNewId();
 
     const wxBitmap& bmp = !icon.empty() ? create_scaled_bitmap(nullptr, icon) : wxNullBitmap;   // FIXME: pass window ptr
-#ifdef __WXMSW__    
+//#ifdef __WXMSW__
+#ifndef __WXGTK__
     if (bmp.IsOk())
         msw_menuitem_bitmaps[id] = icon;
 #endif /* __WXMSW__ */
 
-    return append_menu_item(menu, id, string, description, cb, bmp, event_handler);
+    return append_menu_item(menu, id, string, description, cb, bmp, event_handler, cb_condition, parent);
 }
 
-wxMenuItem* append_submenu(wxMenu* menu, wxMenu* sub_menu, int id, const wxString& string, const wxString& description, const std::string& icon)
+wxMenuItem* append_submenu(wxMenu* menu, wxMenu* sub_menu, int id, const wxString& string, const wxString& description, const std::string& icon,
+    std::function<bool()> const cb_condition, wxWindow* parent)
 {
     if (id == wxID_ANY)
         id = wxNewId();
@@ -93,13 +122,19 @@ wxMenuItem* append_submenu(wxMenu* menu, wxMenu* sub_menu, int id, const wxStrin
     wxMenuItem* item = new wxMenuItem(menu, id, string, description);
     if (!icon.empty()) {
         item->SetBitmap(create_scaled_bitmap(nullptr, icon));    // FIXME: pass window ptr
-#ifdef __WXMSW__
+//#ifdef __WXMSW__
+#ifndef __WXGTK__
         msw_menuitem_bitmaps[id] = icon;
 #endif /* __WXMSW__ */
     }
 
     item->SetSubMenu(sub_menu);
     menu->Append(item);
+
+    if (parent) {
+        parent->Bind(wxEVT_UPDATE_UI, [cb_condition, item](wxUpdateUIEvent& evt) {
+            enable_menu_item(evt, cb_condition, item); }, id);
+    }
 
     return item;
 }
