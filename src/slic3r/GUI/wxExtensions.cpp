@@ -61,8 +61,8 @@ void enable_menu_item(wxUpdateUIEvent& evt, std::function<bool()> const cb_condi
     {
         const wxBitmap& item_icon = create_scaled_bitmap(nullptr, it->second);
         if (item_icon.IsOk()) {
-            static const wxBitmap disabled_icon = item_icon.ConvertToImage().ConvertToGreyscale(0.5, 0.5, 0.5);
-            item->SetBitmap(enable ? item_icon : disabled_icon);
+            double g = 0.6;
+            item->SetBitmap(enable ? item_icon : item_icon.ConvertToImage().ConvertToGreyscale(g, g, g));
         }
     }
 #endif // __WXOSX__
