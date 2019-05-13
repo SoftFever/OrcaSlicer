@@ -1440,7 +1440,7 @@ void ObjectList::load_part( ModelObject* model_object,
             model = Model::read_from_file(input_file);
         }
         catch (std::exception &e) {
-            auto msg = _(L("Error! ")) + input_file + " : " + e.what() + ".";
+            auto msg = _(L("Error!")) + " " + input_file + " : " + e.what() + ".";
             show_error(parent, msg);
             exit(1);
         }
