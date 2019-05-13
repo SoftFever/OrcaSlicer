@@ -59,11 +59,9 @@ void enable_menu_item(wxUpdateUIEvent& evt, std::function<bool()> const cb_condi
     const auto it = msw_menuitem_bitmaps.find(item->GetId());
     if (it != msw_menuitem_bitmaps.end())
     {
-        const wxBitmap& item_icon = create_scaled_bitmap(nullptr, it->second);
-        if (item_icon.IsOk()) {
-            double g = 0.6;
-            item->SetBitmap(enable ? item_icon : item_icon.ConvertToImage().ConvertToGreyscale(g, g, g));
-        }
+        const wxBitmap& item_icon = create_scaled_bitmap(nullptr, it->second, 16, false, !enable);
+        if (item_icon.IsOk())
+            item->SetBitmap(item_icon);
     }
 #endif // __WXOSX__
 }
@@ -385,7 +383,8 @@ int em_unit(wxWindow* win)
 }
 
 // If an icon has horizontal orientation (width > height) call this function with is_horizontal = true
-wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name_in, const int px_cnt/* = 16*/, const bool is_horizontal /* = false*/)
+wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name_in, 
+    const int px_cnt/* = 16*/, const bool is_horizontal /* = false*/, const bool grayscale/* = false*/)
 {
     static Slic3r::GUI::BitmapCache cache;
 
@@ -405,9 +404,9 @@ wxBitmap create_scaled_bitmap(wxWindow *win, const std::string& bmp_name_in, con
     boost::replace_last(bmp_name, ".png", "");
 
     // Try loading an SVG first, then PNG if SVG is not found:
-    wxBitmap *bmp = cache.load_svg(bmp_name, width, height, scale_factor);
+    wxBitmap *bmp = cache.load_svg(bmp_name, width, height, scale_factor, grayscale);
     if (bmp == nullptr) {
-        bmp = cache.load_png(bmp_name, width, height);
+        bmp = cache.load_png(bmp_name, width, height, grayscale);
     }
 
     if (bmp == nullptr) {
