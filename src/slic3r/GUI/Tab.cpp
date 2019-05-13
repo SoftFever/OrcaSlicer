@@ -129,7 +129,8 @@ void Tab::create_preset_tab()
 
     add_scaled_button(panel, &m_btn_hide_incompatible_presets, m_bmp_hide_incompatible_presets.name());
 
-	m_btn_save_preset->SetToolTip(_(L("Save current ")) + m_title);
+    // TRN "Save current Settings"
+	m_btn_save_preset->SetToolTip(wxString::Format(_(L("Save current %s")),m_title));
 	m_btn_delete_preset->SetToolTip(_(L("Delete this preset")));
 	m_btn_delete_preset->Disable();
 
@@ -916,13 +917,13 @@ void Tab::update_preset_description_line()
 	wxString description_line = preset.is_default ?
 		_(L("It's a default preset.")) : preset.is_system ?
 		_(L("It's a system preset.")) : 
-		_(L("Current preset is inherited from ")) + (parent == nullptr ? 
-													"default preset." : 
-													":\n\t" + parent->name);
+		wxString::Format(_(L("Current preset is inherited from %s")), (parent == nullptr ? 
+													_(L("default preset"))+"." : 
+													":\n\t" + parent->name));
 	
 	if (preset.is_default || preset.is_system)
-		description_line += "\n\t" + _(L("It can't be deleted or modified. ")) + 
-							"\n\t" + _(L("Any modifications should be saved as a new preset inherited from this one. ")) + 
+		description_line += "\n\t" + _(L("It can't be deleted or modified.")) + 
+							"\n\t" + _(L("Any modifications should be saved as a new preset inherited from this one.")) + 
 							"\n\t" + _(L("To do that please specify a new name for the preset."));
 	
 	if (parent && parent->vendor)
@@ -1356,10 +1357,10 @@ void TabPrint::update()
 					correct_100p_fill = true;
 			}
 			// get fill_pattern name from enum_labels for using this one at dialog_msg
-			str_fill_pattern = m_config->def()->get("fill_pattern")->enum_labels[fill_pattern];
+			str_fill_pattern = _utf8(m_config->def()->get("fill_pattern")->enum_labels[fill_pattern]);
 			if (!correct_100p_fill) {
-				wxString msg_text = _(L("The ")) + str_fill_pattern + _(L(" infill pattern is not supposed to work at 100% density.\n"
-					"\nShall I switch to rectilinear fill pattern?"));
+				wxString msg_text = GUI::from_u8((boost::format(_utf8(L("The %1% infill pattern is not supposed to work at 100%% density.\n\n"
+					                                           "Shall I switch to rectilinear fill pattern?"))) % str_fill_pattern).str());
 				auto dialog = new wxMessageDialog(parent(), msg_text, _(L("Infill")), wxICON_WARNING | wxYES | wxNO);
 				DynamicPrintConfig new_conf = *m_config;
 				if (dialog->ShowModal() == wxID_YES) {
@@ -1450,6 +1451,7 @@ void TabPrint::update()
 
 	m_recommended_thin_wall_thickness_description_line->SetText(
 		from_u8(PresetHints::recommended_thin_wall_thickness(*m_preset_bundle)));
+    Layout();
 
 //	Thaw();
     m_update_cnt--;
@@ -1478,7 +1480,7 @@ void TabFilament::build()
 		optgroup->append_single_option_line("filament_density");
 		optgroup->append_single_option_line("filament_cost");
 
-		optgroup = page->new_optgroup(_(L("Temperature ")) + wxString("°C", wxConvUTF8));
+		optgroup = page->new_optgroup(_(L("Temperature")) + wxString(" °C", wxConvUTF8));
 		Line line = { _(L("Extruder")), "" };
 		line.append_option(optgroup->get_option("first_layer_temperature"));
 		line.append_option(optgroup->get_option("temperature"));
@@ -1632,6 +1634,7 @@ void TabFilament::update()
 	m_cooling_description_line->SetText(text);
 	text = from_u8(PresetHints::maximum_volumetric_flow_description(*m_preset_bundle));
 	m_volumetric_speed_description_line->SetText(text);
+    Layout();
 
 	bool cooling = m_config->opt_bool("cooling", 0);
 	bool fan_always_on = cooling || m_config->opt_bool("fan_always_on", 0);
@@ -1737,7 +1740,7 @@ void TabPrinter::build_printhost(ConfigOptionsGroup *optgroup)
 		Line cafile_line = optgroup->create_single_option_line("printhost_cafile");
 
 		auto printhost_cafile_browse = [this, optgroup] (wxWindow* parent) {
-			auto btn = new wxButton(parent, wxID_ANY, _(L(" Browse "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+			auto btn = new wxButton(parent, wxID_ANY, " " + _(L("Browse"))+" " +dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
 			btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 			btn->SetBitmap(create_scaled_bitmap(this, "browse"));
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -1818,7 +1821,7 @@ void TabPrinter::build_fff()
         Line line = optgroup->create_single_option_line("bed_shape");//{ _(L("Bed shape")), "" };
 		line.widget = [this](wxWindow* parent) {
             ScalableButton* btn;
-            add_scaled_button(parent, &btn, "printer_white", _(L(" Set ")) + dots, wxBU_LEFT | wxBU_EXACTFIT);
+            add_scaled_button(parent, &btn, "printer_white",  " " + _(L("Set")) + " " + dots, wxBU_LEFT | wxBU_EXACTFIT);
             btn->SetFont(wxGetApp().normal_font());
 
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -2019,7 +2022,7 @@ void TabPrinter::build_sla()
     Line line = optgroup->create_single_option_line("bed_shape");//{ _(L("Bed shape")), "" };
     line.widget = [this](wxWindow* parent) {
         ScalableButton* btn;
-        add_scaled_button(parent, &btn, "printer_white", _(L(" Set ")) + dots, wxBU_LEFT | wxBU_EXACTFIT);
+        add_scaled_button(parent, &btn, "printer_white", " " + _(L("Set")) + " " + dots, wxBU_LEFT | wxBU_EXACTFIT);
         btn->SetFont(wxGetApp().normal_font());
 
 
@@ -2343,11 +2346,12 @@ void TabPrinter::update_pages()
             {
                 m_preset_bundle->update_multi_material_filament_presets();
                 on_value_change("extruders_count", m_extruders_count);
-                wxGetApp().sidebar().update_objects_list_extruder_column(m_extruders_count);
             }
         }
         else
             m_pages.swap(m_pages_fff);
+
+         wxGetApp().sidebar().update_objects_list_extruder_column(m_extruders_count);
     }
     else 
         m_pages_sla.empty() ? build_sla() : m_pages.swap(m_pages_sla);
@@ -2770,8 +2774,8 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
 	std::string   type_name  = presets->name();
 	wxString      tab        = "          ";
 	wxString      name       = old_preset.is_default ?
-		wxString::Format(_(L("Default preset (%s)")), _(type_name)) :                       //_(L("Default ")) + type_name + _(L(" preset")) :                
-		wxString::Format(_(L("Preset (%s)")), _(type_name)) + "\n" + tab + old_preset.name; //type_name + _(L(" preset\n")) + tab + old_preset.name;
+		wxString::Format(_(L("Default preset (%s)")), _(type_name)) :
+		wxString::Format(_(L("Preset (%s)")), _(type_name)) + "\n" + tab + old_preset.name;
 
 	// Collect descriptions of the dirty options.
 	wxString changes;
@@ -2888,11 +2892,10 @@ void Tab::save_preset(std::string name /*= ""*/)
 
 	if (name.empty()) {
 		const Preset &preset = m_presets->get_selected_preset();
-		auto default_name = preset.is_default ? "Untitled" : preset.name;
-		if (preset.is_system) {
-			default_name += " - ";
-			default_name += _(L("Copy")).ToUTF8().data();
-		}
+        auto default_name = preset.is_default ? "Untitled" :
+                            preset.is_system ? (boost::format(_utf8(L("%1% - Copy"))) % preset.name).str() : 
+	                        preset.name;
+
  		bool have_extention = boost::iends_with(default_name, ".ini");
 		if (have_extention) {
 			size_t len = default_name.length()-4;
@@ -2948,10 +2951,12 @@ void Tab::delete_preset()
 {
 	auto current_preset = m_presets->get_selected_preset();
 	// Don't let the user delete the ' - default - ' configuration.
-	wxString action = current_preset.is_external ? _(L("remove")) : _(L("delete"));
-	wxString msg = _(L("Are you sure you want to ")) + action + _(L(" the selected preset?"));
-	action = current_preset.is_external ? _(L("Remove")) : _(L("Delete"));
-	wxString title = action + _(L(" Preset"));
+    std::string action = current_preset.is_external ? _utf8(L("remove")) : _utf8(L("delete"));
+    // TRN  remove/delete
+    const wxString msg = from_u8((boost::format(_utf8(L("Are you sure you want to %1% the selected preset?"))) % action).str());
+	action = current_preset.is_external ? _utf8(L("Remove")) : _utf8(L("Delete"));
+	// TRN  Remove/Delete
+    wxString title = from_u8((boost::format(_utf8(L("%1% Preset"))) % action).str());  //action + _(L(" Preset"));
 	if (current_preset.is_default ||
 		wxID_YES != wxMessageDialog(parent(), msg, title, wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION).ShowModal())
 		return;
@@ -3001,7 +3006,7 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
 {
 	deps.checkbox = new wxCheckBox(parent, wxID_ANY, _(L("All")));
 	deps.checkbox->SetFont(Slic3r::GUI::wxGetApp().normal_font());
-    add_scaled_button(parent, &deps.btn, "printer_white", _(L(" Set ")) + dots, wxBU_LEFT | wxBU_EXACTFIT);
+    add_scaled_button(parent, &deps.btn, "printer_white", wxString::Format(" %s %s", _(L("Set")), dots), wxBU_LEFT | wxBU_EXACTFIT);
     deps.btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 
 	auto sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -3256,7 +3261,8 @@ ConfigOptionsGroupShp Page::new_optgroup(const wxString& title, int noncommon_la
 
 void SavePresetWindow::build(const wxString& title, const std::string& default_name, std::vector<std::string> &values)
 {
-	auto text = new wxStaticText(this, wxID_ANY, _(L("Save ")) + title + _(L(" as:")), 
+    // TRN Preset
+	auto text = new wxStaticText(this, wxID_ANY, wxString::Format(_(L("Save %s as:")), title), 
 									wxDefaultPosition, wxDefaultSize);
 	m_combo = new wxComboBox(this, wxID_ANY, from_u8(default_name), 
 							wxDefaultPosition, wxDefaultSize, 0, 0, wxTE_PROCESS_ENTER);

@@ -189,7 +189,7 @@ struct FirmwareDialog::priv
 
 	template<class ...Args> void queue_error(const wxString &format, Args... args) {
 		queue_message(format, args...);
-		queue_event(AE_STATUS, _(L("Flashing failed: ")) + wxString::Format(format, args...));
+		queue_event(AE_STATUS, _(L("Flashing failed")) +": "+ wxString::Format(format, args...));
 		avrdude->cancel();
 	}
 

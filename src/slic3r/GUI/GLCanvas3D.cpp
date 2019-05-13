@@ -1691,11 +1691,11 @@ void GLCanvas3D::render()
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     imgui.set_next_window_bg_alpha(0.5f);
     imgui.begin(std::string("Render statistics"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
-    imgui.text("Last frame: ");
+    imgui.text(_(L("Last frame")) +": ");
     ImGui::SameLine();
     imgui.text(std::to_string(m_render_stats.last_frame));
     ImGui::SameLine();
-    imgui.text(" ms");
+    imgui.text(" "+_(L("ms")));
     imgui.end();
 #endif // ENABLE_RENDER_STATISTICS
 
