@@ -545,16 +545,16 @@ void MainFrame::init_menubar()
     auto helpMenu = new wxMenu();
     {
         append_menu_item(helpMenu, wxID_ANY, _(L("Prusa 3D &Drivers")), _(L("Open the Prusa3D drivers download page in your browser")), 
-            [this](wxCommandEvent&) { wxLaunchDefaultBrowser("http://www.prusa3d.com/drivers/"); });
+            [this](wxCommandEvent&) { wxGetApp().open_web_page_localized("https://www.prusa3d.com/downloads"); }); 
         append_menu_item(helpMenu, wxID_ANY, _(L("Software &Releases")), _(L("Open the software releases page in your browser")), 
-            [this](wxCommandEvent&) { wxLaunchDefaultBrowser("http://github.com/prusa3d/slic3r/releases"); });
+            [this](wxCommandEvent&) { wxLaunchDefaultBrowser("http://github.com/prusa3d/PrusaSlicer/releases"); });
 //#        my $versioncheck = $self->_append_menu_item($helpMenu, "Check for &Updates...", "Check for new Slic3r versions", sub{
 //#            wxTheApp->check_version(1);
 //#        });
 //#        $versioncheck->Enable(wxTheApp->have_version_check);
         append_menu_item(helpMenu, wxID_ANY, wxString::Format(_(L("%s &Website")), SLIC3R_APP_NAME), 
                                              wxString::Format(_(L("Open the %s website in your browser")), SLIC3R_APP_NAME),
-            [this](wxCommandEvent&) { wxLaunchDefaultBrowser("https://www.prusa3d.com/slic3r-prusa-edition/"); });
+            [this](wxCommandEvent&) { wxGetApp().open_web_page_localized("https://www.prusa3d.com/slicerweb"); });
 //        append_menu_item(helpMenu, wxID_ANY, wxString::Format(_(L("%s &Manual")), SLIC3R_APP_NAME),
 //                                             wxString::Format(_(L("Open the %s manual in your browser")), SLIC3R_APP_NAME),
 //            [this](wxCommandEvent&) { wxLaunchDefaultBrowser("http://manual.slic3r.org/"); });

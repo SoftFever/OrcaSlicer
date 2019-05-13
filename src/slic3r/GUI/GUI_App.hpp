@@ -171,6 +171,8 @@ public:
 
     PrintHostJobQueue& printhost_job_queue() { return *m_printhost_job_queue.get(); }
 
+    void            open_web_page_localized(const std::string &http_address);
+
 private:
     bool            on_init_inner();
     void            window_pos_save(wxTopLevelWindow* window, const std::string &name);
