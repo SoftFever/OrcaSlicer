@@ -2507,7 +2507,7 @@ ModeSizer::ModeSizer(wxWindow *parent, int hgap/* = 10*/) :
 
     std::vector < std::pair < wxString, std::string >> buttons = {
         {_(L("Simple")),    "mode_simple_sq.png"},
-        {_(L("Advanced")),  "mode_middle_sq.png"},
+        {_(L("Advanced")),  "mode_advanced_sq.png"},
         {_(L("Expert")),    "mode_expert_sq.png"}
     };
 

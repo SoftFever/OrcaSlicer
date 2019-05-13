@@ -33,7 +33,7 @@ namespace Slic3r {
 namespace GUI {
 
 MainFrame::MainFrame() :
-DPIFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, "mainframe"),
+DPIFrame(NULL, wxID_ANY, wxString(SLIC3R_BUILD) + " " + _(L("based on Slic3r")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, "mainframe"),
         m_printhost_queue_dlg(new PrintHostQueueDialog(this))
 {
     // Fonts were created by the DPIFrame constructor for the monitor, on which the window opened.
@@ -50,7 +50,7 @@ DPIFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAU
         SetIcon(wxIcon(szExeFileName, wxBITMAP_TYPE_ICO));
     }
 #else
-    SetIcon(wxIcon(Slic3r::var("Slic3r_128px.png"), wxBITMAP_TYPE_PNG));
+    SetIcon(wxIcon(Slic3r::var("PrusaSlicer_128px.png"), wxBITMAP_TYPE_PNG));
 #endif // _WIN32
 
 	// initialize status bar
@@ -58,7 +58,7 @@ DPIFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAU
 	m_statusbar->embed(this);
     m_statusbar->set_status_text(_(L("Version")) + " " +
 		SLIC3R_VERSION +
-		_(L(" - Remember to check for updates at http://github.com/prusa3d/slic3r/releases")));
+		_(L(" - Remember to check for updates at http://github.com/prusa3d/PrusaSlicer/releases")));
 
     /* Load default preset bitmaps before a tabpanel initialization,
      * but after filling of an em_unit value 

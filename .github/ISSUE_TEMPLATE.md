@@ -1,7 +1,7 @@
 ### Version
-_Version of Slic3r Prusa Edition used goes here_
+_Version of PrusaSlicer used goes here_
 
-_Use `About->About Slic3r` for release versions_
+_Use `About->About PrusaSlicer` for release versions_
 
 _For -dev versions, use `git describe --tag` or get the hash value for the version you downloaded or `git rev-parse HEAD`_
 
@@ -18,9 +18,9 @@ _What 3D printer brand / version are you printing on, is it a stock model or did
   * _If this is a command-line slicing issue, include the options used_
 * _Expected Results_
 * _Actual Results_
-  * _Screenshots from __*Slic3r*__ preview are preferred_
+  * _Screenshots from __*PrusaSlicer*__ preview are preferred_
 
 _Is this a new feature request?_
 
 #### Project File (.3MF) where problem occurs
-_Upload a Slic3r PE Project File (.3MF) (`Plater -> Export plate as 3MF` for Slic3r PE 1.41.2 and older, `File -> Save` / `Save Project` for Slic3r PE 1.42.0-alpha and newer)_
+_Upload a PrusaSlicer Project File (.3MF) (`Plater -> Export plate as 3MF` for Slic3r PE 1.41.2 and older, `File -> Save` / `Save Project` for PrusaSlicer, Slic3r PE 1.42.0-alpha and newer)_

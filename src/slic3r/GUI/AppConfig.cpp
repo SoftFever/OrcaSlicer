@@ -263,7 +263,7 @@ void AppConfig::reset_selections()
 
 std::string AppConfig::config_path()
 {
-	return (boost::filesystem::path(Slic3r::data_dir()) / "slic3r.ini").make_preferred().string();
+	return (boost::filesystem::path(Slic3r::data_dir()) / (SLIC3R_APP_KEY ".ini")).make_preferred().string();
 }
 
 std::string AppConfig::version_check_url() const

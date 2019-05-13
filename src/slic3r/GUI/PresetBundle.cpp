@@ -418,7 +418,7 @@ void PresetBundle::load_compatible_bitmaps(wxWindow *window)
     *m_bitmapCompatible     = create_scaled_bitmap(nullptr, "flag_green");
     *m_bitmapIncompatible   = create_scaled_bitmap(nullptr, "flag_red");
     *m_bitmapLock           = create_scaled_bitmap(nullptr, "lock_closed");
-    *m_bitmapLockOpen       = create_scaled_bitmap(nullptr, "sys_unlock.png");
+    *m_bitmapLockOpen       = create_scaled_bitmap(nullptr, "lock_open");
 
     prints       .set_bitmap_compatible(m_bitmapCompatible);
     filaments    .set_bitmap_compatible(m_bitmapCompatible);
