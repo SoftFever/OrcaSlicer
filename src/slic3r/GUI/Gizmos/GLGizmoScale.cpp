@@ -124,6 +124,8 @@ void GLGizmoScale3D::on_render(const Selection& selection) const
 
     m_box.reset();
     m_transform = Transform3d::Identity();
+    // Transforms grabbers' offsets to world refefence system 
+    Transform3d offsets_transform = Transform3d::Identity();
     m_offsets_transform = Transform3d::Identity();
     Vec3d angles = Vec3d::Zero();
 
@@ -143,7 +145,8 @@ void GLGizmoScale3D::on_render(const Selection& selection) const
         // gets angles from first selected volume
         angles = v->get_instance_rotation();
         // consider rotation+mirror only components of the transform for offsets
-        m_offsets_transform = Geometry::assemble_transform(Vec3d::Zero(), angles, Vec3d::Ones(), v->get_instance_mirror());
+        offsets_transform = Geometry::assemble_transform(Vec3d::Zero(), angles, Vec3d::Ones(), v->get_instance_mirror());
+        m_offsets_transform = offsets_transform;
     }
     else if (single_volume)
     {
@@ -152,15 +155,16 @@ void GLGizmoScale3D::on_render(const Selection& selection) const
         m_transform = v->world_matrix();
         angles = Geometry::extract_euler_angles(m_transform);
         // consider rotation+mirror only components of the transform for offsets
-        m_offsets_transform = Geometry::assemble_transform(Vec3d::Zero(), angles, Vec3d::Ones(), v->get_instance_mirror());
+        offsets_transform = Geometry::assemble_transform(Vec3d::Zero(), angles, Vec3d::Ones(), v->get_instance_mirror());
+        m_offsets_transform = Geometry::assemble_transform(Vec3d::Zero(), v->get_volume_rotation(), Vec3d::Ones(), v->get_volume_mirror());
     }
     else
         m_box = selection.get_bounding_box();
 
     const Vec3d& center = m_box.center();
-    Vec3d offset_x = m_offsets_transform * Vec3d((double)Offset, 0.0, 0.0);
-    Vec3d offset_y = m_offsets_transform * Vec3d(0.0, (double)Offset, 0.0);
-    Vec3d offset_z = m_offsets_transform * Vec3d(0.0, 0.0, (double)Offset);
+    Vec3d offset_x = offsets_transform * Vec3d((double)Offset, 0.0, 0.0);
+    Vec3d offset_y = offsets_transform * Vec3d(0.0, (double)Offset, 0.0);
+    Vec3d offset_z = offsets_transform * Vec3d(0.0, 0.0, (double)Offset);
 
     bool ctrl_down = (m_dragging && m_starting.ctrl_down) || (!m_dragging && wxGetKeyState(WXK_CONTROL));
 

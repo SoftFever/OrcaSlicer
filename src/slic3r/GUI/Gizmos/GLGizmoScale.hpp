@@ -24,6 +24,7 @@ class GLGizmoScale3D : public GLGizmoBase
 
     mutable BoundingBoxf3 m_box;
     mutable Transform3d m_transform;
+    // Transforms grabbers offsets to the proper reference system (world for instances, instance for volumes)
     mutable Transform3d m_offsets_transform;
     Vec3d m_scale;
     Vec3d m_offset;
