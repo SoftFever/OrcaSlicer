@@ -1216,8 +1216,6 @@ struct Plater::priv
     GLToolbar view_toolbar;
     Preview *preview;
 
-    wxString project_filename;
-
     BackgroundSlicingProcess    background_process;
     bool                        arranging;
     bool                        rotoptimizing;
@@ -1342,6 +1340,9 @@ struct Plater::priv
 
     void msw_rescale_object_menu();
 
+    const wxString& get_project_filename() const;
+    void set_project_filename(const wxString& filename);
+
 private:
     bool init_object_menu();
     bool init_common_menu(wxMenu* menu, const bool is_part = false);
@@ -1355,6 +1356,8 @@ private:
 
     void update_fff_scene();
     void update_sla_scene();
+
+    wxString m_project_filename;
 };
 
 const std::regex Plater::priv::pattern_bundle(".*[.](amf|amf[.]xml|zip[.]amf|3mf|prusa)", std::regex::icase);
@@ -1381,12 +1384,12 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         }))
     , sidebar(new Sidebar(q))
     , delayed_scene_refresh(false)
-    , project_filename(wxEmptyString)
 #if ENABLE_SVG_ICONS
     , view_toolbar(GLToolbar::Radio, "View")
 #else
     , view_toolbar(GLToolbar::Radio)
 #endif // ENABLE_SVG_ICONS
+    , m_project_filename(wxEmptyString)
 {
 	this->q->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 
@@ -1930,13 +1933,20 @@ wxString Plater::priv::get_export_file(GUI::FileType file_type)
     int obj_idx = selection.get_object_idx();
 
     fs::path output_file;
-    // first try to get the file name from the current selection
-    if ((0 <= obj_idx) && (obj_idx < (int)this->model.objects.size()))
-        output_file = this->model.objects[obj_idx]->get_export_filename();
+    if (file_type == FT_3MF)
+        // for 3mf take the path from the project filename, if any
+        output_file = into_path(get_project_filename());
 
     if (output_file.empty())
-        // Find the file name of the first printable object.
-        output_file = this->model.propose_export_file_name_and_path();
+    {
+        // first try to get the file name from the current selection
+        if ((0 <= obj_idx) && (obj_idx < (int)this->model.objects.size()))
+            output_file = this->model.objects[obj_idx]->get_export_filename();
+
+        if (output_file.empty())
+            // Find the file name of the first printable object.
+            output_file = this->model.propose_export_file_name_and_path();
+    }
 
     wxString dlg_title;
     switch (file_type) {
@@ -2064,7 +2074,7 @@ void Plater::priv::delete_object_from_model(size_t obj_idx)
 
 void Plater::priv::reset()
 {
-    project_filename.Clear();
+    set_project_filename(wxEmptyString);
 
     // Prevent toolpaths preview from rendering while we modify the Print object
     preview->set_enabled(false);
@@ -2932,6 +2942,17 @@ void Plater::priv::msw_rescale_object_menu()
         msw_rescale_menu(dynamic_cast<wxMenu*>(menu));
 }
 
+const wxString& Plater::priv::get_project_filename() const
+{
+    return m_project_filename;
+}
+
+void Plater::priv::set_project_filename(const wxString& filename)
+{
+    m_project_filename = filename;
+    wxGetApp().mainframe->update_title();
+}
+
 bool Plater::priv::init_common_menu(wxMenu* menu, const bool is_part/* = false*/)
 {
     if (is_part) {
@@ -3243,6 +3264,7 @@ SLAPrint&       Plater::sla_print()         { return p->sla_print; }
 
 void Plater::new_project()
 {
+    wxPostEvent(p->view3D->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_DELETE_ALL));
 }
 
 void Plater::load_project()
@@ -3254,7 +3276,7 @@ void Plater::load_project()
         return;
 
     p->reset();
-    p->project_filename = input_file;
+    p->set_project_filename(input_file);
 
     std::vector<fs::path> input_paths;
     input_paths.push_back(into_path(input_file));
@@ -3608,7 +3630,9 @@ void Plater::export_3mf(const boost::filesystem::path& output_path)
     if (Slic3r::store_3mf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr)) {
         // Success
         p->statusbar()->set_status_text(wxString::Format(_(L("3MF file exported to %s")), path));
-    } else {
+        p->set_project_filename(path);
+    }
+    else {
         // Failure
         p->statusbar()->set_status_text(wxString::Format(_(L("Error exporting 3MF file %s")), path));
     }
@@ -3801,7 +3825,7 @@ void Plater::on_activate()
 
 const wxString& Plater::get_project_filename() const
 {
-    return p->project_filename;
+    return p->get_project_filename();
 }
 
 bool Plater::is_export_gcode_scheduled() const

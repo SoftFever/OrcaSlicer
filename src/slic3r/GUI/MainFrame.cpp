@@ -33,8 +33,8 @@ namespace Slic3r {
 namespace GUI {
 
 MainFrame::MainFrame() :
-DPIFrame(NULL, wxID_ANY, wxString(SLIC3R_BUILD_ID) + " " + _(L("based on Slic3r")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, "mainframe"),
-        m_printhost_queue_dlg(new PrintHostQueueDialog(this))
+DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, "mainframe"),
+    m_printhost_queue_dlg(new PrintHostQueueDialog(this))
 {
     // Fonts were created by the DPIFrame constructor for the monitor, on which the window opened.
     wxGetApp().update_fonts(this);
@@ -95,6 +95,8 @@ DPIFrame(NULL, wxID_ANY, wxString(SLIC3R_BUILD_ID) + " " + _(L("based on Slic3r"
 #endif
     Layout();
 
+    update_title();
+
     // declare events
     Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& event) {
         if (event.CanVeto() && !wxGetApp().check_unsaved_changes()) {
@@ -136,6 +138,19 @@ DPIFrame(NULL, wxID_ANY, wxString(SLIC3R_BUILD_ID) + " " + _(L("based on Slic3r"
     update_ui_from_settings();    // FIXME (?)
 }
 
+void MainFrame::update_title()
+{
+    wxString title = wxEmptyString;
+    if (m_plater != nullptr)
+    {
+        wxString project = from_path(into_path(m_plater->get_project_filename()).filename());
+        if (!project.empty())
+            title += (project + " - ");
+    }
+    title += (wxString(SLIC3R_BUILD_ID) + " " + _(L("based on Slic3r")));
+
+    SetTitle(title);
+}
 
 void MainFrame::init_tabpanel()
 {
@@ -204,6 +219,11 @@ void MainFrame::add_created_tab(Tab* panel)
 
     if (panel->supports_printer_technology(printer_tech))
         m_tabpanel->AddPage(panel, panel->title());
+}
+
+bool MainFrame::can_start_new_project() const
+{
+    return (m_plater != nullptr) && !m_plater->model().objects.empty();
 }
 
 bool MainFrame::can_save() const
@@ -282,6 +302,11 @@ bool MainFrame::can_delete_all() const
     return (m_plater != nullptr) && !m_plater->model().objects.empty();
 }
 
+bool MainFrame::can_reslice() const
+{
+    return (m_plater != nullptr) && !m_plater->model().objects.empty();
+}
+
 void MainFrame::on_dpi_changed(const wxRect &suggested_rect)
 {
     wxGetApp().update_fonts();
@@ -347,7 +372,8 @@ void MainFrame::init_menubar()
     wxMenu* fileMenu = new wxMenu;
     {
         append_menu_item(fileMenu, wxID_ANY, _(L("&New Project")) + "\tCtrl+N", _(L("Start a new project")),
-            [this](wxCommandEvent&) { if (m_plater) m_plater->new_project(); }, "");
+            [this](wxCommandEvent&) { if (m_plater) m_plater->new_project(); }, "", nullptr,
+            [this](){return m_plater != nullptr && can_start_new_project(); }, this);
         append_menu_item(fileMenu, wxID_ANY, _(L("&Open Project")) + dots + "\tCtrl+O", _(L("Open a project file")),
             [this](wxCommandEvent&) { if (m_plater) m_plater->load_project(); }, menu_icon("open"), nullptr,
             [this](){return m_plater != nullptr; }, this);
@@ -421,7 +447,8 @@ void MainFrame::init_menubar()
         fileMenu->AppendSeparator();
 #endif
         m_menu_item_reslice_now = append_menu_item(fileMenu, wxID_ANY, _(L("(Re)Slice No&w")) + "\tCtrl+R", _(L("Start new slicing process")),
-            [this](wxCommandEvent&) { reslice_now(); }, menu_icon("re_slice"));
+            [this](wxCommandEvent&) { reslice_now(); }, menu_icon("re_slice"), nullptr,
+            [this](){return m_plater != nullptr && can_reslice(); }, this);
         fileMenu->AppendSeparator();
         append_menu_item(fileMenu, wxID_ANY, _(L("&Repair STL file")) + dots, _(L("Automatically repair an STL file")),
             [this](wxCommandEvent&) { repair_stl(); }, menu_icon("wrench"));
@@ -1037,7 +1064,6 @@ std::string MainFrame::get_dir_name(const wxString &full_name) const
 {
     return boost::filesystem::path(full_name.wx_str()).parent_path().string();
 }
-
 
 } // GUI
 } // Slic3r
