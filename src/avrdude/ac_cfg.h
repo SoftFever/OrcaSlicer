@@ -172,7 +172,7 @@
 #define PACKAGE "avrdude-slic3r"
 
 /* Define to the address where bug reports for this package should be sent. */
-#define PACKAGE_BUGREPORT "https://github.com/prusa3d/Slic3r/issues"
+#define PACKAGE_BUGREPORT "https://github.com/prusa3d/PrusaSlicer/issues"
 
 /* Define to the full name of this package. */
 #define PACKAGE_NAME "avrdude-slic3r"
@@ -184,7 +184,7 @@
 #define PACKAGE_TARNAME "avrdude-slic3r"
 
 /* Define to the home page for this package. */
-#define PACKAGE_URL "https://github.com/prusa3d/Slic3r"
+#define PACKAGE_URL "https://github.com/prusa3d/PrusaSlicer"
 
 /* Define to the version of this package. */
 #define PACKAGE_VERSION "6.3-20160220"

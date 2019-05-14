@@ -108,7 +108,7 @@ stl_fix_normal_directions(stl_file *stl) {
 
   if (stl->error) return;
 
-  // this may happen for malformed models, see: https://github.com/prusa3d/Slic3r/issues/2209
+  // this may happen for malformed models, see: https://github.com/prusa3d/PrusaSlicer/issues/2209
   if (stl->stats.number_of_facets == 0) return;
 
   /* Initialize linked list. */

@@ -1737,7 +1737,7 @@ void Print::_make_wipe_tower()
     // Check whether there are any layers in m_tool_ordering, which are marked with has_wipe_tower,
     // they print neither object, nor support. These layers are above the raft and below the object, and they
     // shall be added to the support layers to be printed.
-    // see https://github.com/prusa3d/Slic3r/issues/607
+    // see https://github.com/prusa3d/PrusaSlicer/issues/607
     {
         size_t idx_begin = size_t(-1);
         size_t idx_end   = m_wipe_tower_data.tool_ordering.layer_tools().size();

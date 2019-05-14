@@ -55,7 +55,7 @@ void AppConfig::set_defaults()
         set("preset_update", "1");
 
     // Use OpenGL 1.1 even if OpenGL 2.0 is available. This is mainly to support some buggy Intel HD Graphics drivers.
-    // https://github.com/prusa3d/Slic3r/issues/233
+    // github.com/prusa3d/PrusaSlicer/issues/233
     if (get("use_legacy_opengl").empty())
         set("use_legacy_opengl", "0");
 

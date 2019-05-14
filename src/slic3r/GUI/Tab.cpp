@@ -2826,7 +2826,7 @@ void Tab::OnTreeSelChange(wxTreeEvent& event)
 	if (m_disable_tree_sel_changed_event)         
         return;
 
-// There is a bug related to Ubuntu overlay scrollbars, see https://github.com/prusa3d/Slic3r/issues/898 and https://github.com/prusa3d/Slic3r/issues/952.
+// There is a bug related to Ubuntu overlay scrollbars, see https://github.com/prusa3d/PrusaSlicer/issues/898 and https://github.com/prusa3d/PrusaSlicer/issues/952.
 // The issue apparently manifests when Show()ing a window with overlay scrollbars while the UI is frozen. For this reason,
 // we will Thaw the UI prematurely on Linux. This means destroing the no_updates object prematurely.
 #ifdef __linux__	

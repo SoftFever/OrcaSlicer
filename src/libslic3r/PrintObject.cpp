@@ -2259,7 +2259,7 @@ void PrintObject::discover_horizontal_shells()
                     // when spacing is added in Fill.pm
                     {
                         //FIXME Vojtech: Disable this and you will be sorry.
-                        // https://github.com/prusa3d/Slic3r/issues/26 bottom
+                        // https://github.com/prusa3d/PrusaSlicer/issues/26 bottom
                         float margin = 3.f * layerm->flow(frSolidInfill).scaled_width(); // require at least this size
                         // we use a higher miterLimit here to handle areas with acute angles
                         // in those cases, the default miterLimit would cut the corner and we'd

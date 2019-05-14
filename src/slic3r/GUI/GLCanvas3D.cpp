@@ -5324,7 +5324,7 @@ bool GLCanvas3D::_travel_paths_by_tool(const GCodePreviewData& preview_data, con
     // creates a new volume for each tool
     for (Tool& tool : tools)
     {
-        // tool.value could be invalid (as it was with https://github.com/prusa3d/Slic3r/issues/2179), we better check
+        // tool.value could be invalid (as it was with https://github.com/prusa3d/PrusaSlicer/issues/2179), we better check
         if (tool.value >= tool_colors.size())
             continue;
 
