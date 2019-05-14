@@ -410,17 +410,17 @@ void ConfigOptionsGroup::back_to_config_value(const DynamicPrintConfig& config, 
 		auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(config.option("nozzle_diameter"));
 		value = int(nozzle_diameter->values.size());
 	}
-	else if (m_opt_map.find(opt_key) != m_opt_map.end())
+    else if (m_opt_map.find(opt_key) == m_opt_map.end() || opt_key == "bed_shape") {
+        value = get_config_value(config, opt_key);
+        change_opt_value(*m_config, opt_key, value);
+        return;
+    }
+	else
 	{
 		auto opt_id = m_opt_map.find(opt_key)->first;
 		std::string opt_short_key = m_opt_map.at(opt_id).first;
 		int opt_index = m_opt_map.at(opt_id).second;
 		value = get_config_value(config, opt_short_key, opt_index);
-	}
-	else{
-		value = get_config_value(config, opt_key);
-		change_opt_value(*m_config, opt_key, value);
-		return;
 	}
 
 	set_value(opt_key, value);
