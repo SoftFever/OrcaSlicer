@@ -1,4 +1,4 @@
-// Patched in Slic3r: These two were missing:
+// Patched in PrusaSlicer: These two were missing:
 #define png_write_eXIf wx_png_write_eXIf
 #define png_handle_eXIf wx_png_handle_eXIf
 

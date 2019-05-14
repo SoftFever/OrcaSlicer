@@ -44,8 +44,8 @@ Note that if you're building a 32-bit variant, you will need to change the `"Vis
 
 Conversely, if you're using Visual Studio version other than 2013, the version number will need to be changed accordingly.
 
-If `cmake` has finished without errors, go to the build directory and open the `Slic3r.sln` solution file in Visual Studio.
-Before building, make sure you're building the right project (use one of those starting with `slic3r_app_...`) and that you're building
+If `cmake` has finished without errors, go to the build directory and open the `PrusaSlicer.sln` solution file in Visual Studio.
+Before building, make sure you're building the right project (use one of those starting with `PrusaSlicer_app_...`) and that you're building
 with the right configuration, i.e. _Release_ vs. _Debug_. When unsure, choose _Release_.
 Note that you won't be able to build a _Debug_ variant against a _Release_-only dependencies package.
 

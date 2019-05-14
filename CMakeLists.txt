@@ -1,4 +1,4 @@
-project(Slic3r)
+project(PrusaSlicer)
 cmake_minimum_required(VERSION 3.2)
 
 include("version.inc")
@@ -22,11 +22,11 @@ else()
 	endif()
 endif()
 
-option(SLIC3R_STATIC 			"Compile Slic3r with static libraries (Boost, TBB, glew)" ${SLIC3R_STATIC_INITIAL})
-option(SLIC3R_GUI    			"Compile Slic3r with GUI components (OpenGL, wxWidgets)" 1)
-option(SLIC3R_FHS               "Assume Slic3r is to be installed in a FHS directory structure" 0)
+option(SLIC3R_STATIC 			"Compile PrusaSlicer with static libraries (Boost, TBB, glew)" ${SLIC3R_STATIC_INITIAL})
+option(SLIC3R_GUI    			"Compile PrusaSlicer with GUI components (OpenGL, wxWidgets)" 1)
+option(SLIC3R_FHS               "Assume PrusaSlicer is to be installed in a FHS directory structure" 0)
 option(SLIC3R_WX_STABLE         "Build against wxWidgets stable (3.0) as oppsed to dev (3.1) on Linux" 0)
-option(SLIC3R_PROFILE 			"Compile Slic3r with an invasive Shiny profiler" 0)
+option(SLIC3R_PROFILE 			"Compile PrusaSlicer with an invasive Shiny profiler" 0)
 option(SLIC3R_PCH               "Use precompiled headers" 1)
 option(SLIC3R_MSVC_COMPILE_PARALLEL "Compile on Visual Studio in parallel" 1)
 option(SLIC3R_MSVC_PDB          "Generate PDB files on MSVC in Release mode" 1)
@@ -59,7 +59,8 @@ if (MSVC)
     endif ()
     # /bigobj (Increase Number of Sections in .Obj file)
     # error C3859: virtual memory range for PCH exceeded; please recompile with a command line option of '-Zm90' or greater
-    add_compile_options(-bigobj -Zm316)
+    # Generate symbols at every build target, even for the release.
+    add_compile_options(-bigobj -Zm316 /Zi)
 endif ()
 
 # Display and check CMAKE_PREFIX_PATH
@@ -207,13 +208,13 @@ endif()
 add_definitions(-DwxUSE_UNICODE -D_UNICODE -DUNICODE -DWXINTL_NO_GETTEXT_MACRO)
 
 if (SLIC3R_PROFILE)
-    message("Slic3r will be built with a Shiny invasive profiler")
+    message("PrusaSlicer will be built with a Shiny invasive profiler")
     add_definitions(-DSLIC3R_PROFILE)
 endif ()
 
 # Disable optimization even with debugging on.
 if (0)
-    message(STATUS "Perl compiled without optimization. Disabling optimization for the Slic3r build.")
+    message(STATUS "Perl compiled without optimization. Disabling optimization for the PrusaSlicer build.")
     message("Old CMAKE_CXX_FLAGS_RELEASE: ${CMAKE_CXX_FLAGS_RELEASE}")
     message("Old CMAKE_CXX_FLAGS_RELWITHDEBINFO: ${CMAKE_CXX_FLAGS_RELEASE}")
     message("Old CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS_RELEASE}")
@@ -336,9 +337,9 @@ add_custom_target(pot
     COMMENT "Generate pot file from strings in the source tree"
 )
 
-# libslic3r, Slic3r GUI and the slic3r executable.
+# libslic3r, PrusaSlicer GUI and the PrusaSlicer executable.
 add_subdirectory(src)
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT slic3r_app_console)
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT PrusaSlicer_app_console)
 
 # Perl bindings, currently only used for the unit / integration tests of libslic3r.
 # Also runs the unit / integration tests.
@@ -360,7 +361,7 @@ endif()
 if (WIN32)
     install(DIRECTORY "${SLIC3R_RESOURCES_DIR}/" DESTINATION "${CMAKE_INSTALL_PREFIX}/resources")
 else ()
-    set(SLIC3R_FHS_RESOURCES "${CMAKE_INSTALL_FULL_DATAROOTDIR}/slic3r-prusa3d")
+    set(SLIC3R_FHS_RESOURCES "${CMAKE_INSTALL_FULL_DATAROOTDIR}/PrusaSlicer")
     install(DIRECTORY "${SLIC3R_RESOURCES_DIR}/" DESTINATION "${SLIC3R_FHS_RESOURCES}")
 endif ()
 configure_file(${LIBDIR}/platform/unix/fhs.hpp.in ${LIBDIR_BIN}/platform/unix/fhs.hpp)

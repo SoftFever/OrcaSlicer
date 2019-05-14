@@ -1,12 +1,12 @@
 #
-# This CMake project downloads, configures and builds Slic3r PE dependencies on Unix and Windows.
+# This CMake project downloads, configures and builds PrusaSlicer dependencies on Unix and Windows.
 #
 # When using this script, it's recommended to perform an out-of-source build using CMake.
 #
 # All the dependencies are installed in a `destdir` directory in the root of the build directory,
 # in a traditional Unix-style prefix structure. The destdir can be used directly by CMake
-# when building Slic3r - to do this, set the CMAKE_PREFIX_PATH to ${destdir}/usr/local.
-# Warning: On UNIX/Linux, you also need to set -DSLIC3R_STATIC=1 when building Slic3r.
+# when building PrusaSlicer - to do this, set the CMAKE_PREFIX_PATH to ${destdir}/usr/local.
+# Warning: On UNIX/Linux, you also need to set -DSLIC3R_STATIC=1 when building PrusaSlicer.
 #
 # For better clarity of console output, it's recommended to _not_ use a parallelized build
 # for the top-level command, ie. use `make -j 1` or `ninja -j 1` to force single-threaded top-level
@@ -20,7 +20,7 @@
 # therefore, unfortunatelly, the installation cannot be copied/moved elsewhere without re-installing wxWidgets.
 #
 
-project(Slic3r-deps)
+project(PrusaSlicer-deps)
 cmake_minimum_required(VERSION 3.2)
 
 include(ExternalProject)
@@ -36,8 +36,8 @@ set(DESTDIR "${CMAKE_CURRENT_BINARY_DIR}/destdir" CACHE PATH "Destination direct
 option(DEP_DEBUG "Build debug variants (only applicable on Windows)" ON)
 option(DEP_WX_STABLE "Build against wxWidgets stable 3.0 as opposed to default 3.1 (Linux only)" OFF)
 
-message(STATUS "Slic3r deps DESTDIR: ${DESTDIR}")
-message(STATUS "Slic3r deps debug build: ${DEP_DEBUG}")
+message(STATUS "PrusaSlicer deps DESTDIR: ${DESTDIR}")
+message(STATUS "PrusaSlicer deps debug build: ${DEP_DEBUG}")
 
 if (MSVC)
     if ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "8")
