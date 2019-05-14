@@ -129,12 +129,15 @@ void ObjectSettings::update_settings_list()
                 optgroup->m_on_change = [](const t_config_option_key& opt_id, const boost::any& value) {
                                         wxGetApp().obj_list()->changed_object(); };
 
+                const bool is_extriders_cat = cat.first == "Extruders";
                 for (auto& opt : cat.second)
                 {
                     if (opt == "extruder")
                         continue;
                     Option option = optgroup->get_option(opt);
                     option.opt.width = 12;
+                    if (is_extriders_cat)
+                        option.opt.max = wxGetApp().extruders_cnt();
                     optgroup->append_single_option_line(option);
                 }
                 optgroup->reload_config();
