@@ -1222,11 +1222,22 @@ struct Plater::priv
 
     BackgroundSlicingProcess    background_process;
     
+    // A class to handle UI jobs like arranging and optimizing rotation.
+    // These are not instant jobs, the user has to be informed about their
+    // state in the status progress indicator. On the other hand they are 
+    // separated from the background slicing process. Ideally, these jobs should
+    // run when the background process is not running.
+    //
+    // TODO: A mechanism would be useful for blocking the plater interactions:
+    // objects would be frozen for the user. In case of arrange, an animation
+    // could be shown, or with the optimize orientations, partial results
+    // could be displayed.
     class Job: public wxEvtHandler {
         int m_range = 100;
         std::future<void> m_ftr;
         priv *m_plater = nullptr;
         std::atomic<bool> m_running {false}, m_canceled {false};
+        bool m_stop_slicing = false;
         
         void run() { 
             m_running.store(true); process(); m_running.store(false); 
@@ -1240,6 +1251,7 @@ struct Plater::priv
         // status range for a particular job
         virtual int status_range() const { return 100; }
         
+        // status update, to be used from the work thread (process() method)
         void update_status(int st, const wxString& msg = "") { 
             auto evt = new wxThreadEvent(); evt->SetInt(st); evt->SetString(msg);
             wxQueueEvent(this, evt); 
@@ -1250,7 +1262,9 @@ struct Plater::priv
         
     public:
         
-        Job(priv *_plater): m_plater(_plater) {
+        Job(priv *_plater, bool stop_slicing = false): 
+            m_plater(_plater), m_stop_slicing(stop_slicing)
+        {
             Bind(wxEVT_THREAD, [this](const wxThreadEvent& evt){
                 auto msg = evt.GetString();
                 if(! msg.empty()) plater().statusbar()->set_status_text(msg);
@@ -1278,19 +1292,39 @@ struct Plater::priv
         
         virtual void process() = 0;
         
-        void start() {  // only if not running
+        void start() {  // Start the job. No effect if the job is already running
             if(! m_running.load()) {
+                
+                if(m_stop_slicing) plater().background_process.stop();
+                
+                // Save the current status indicatior range and push the new one
                 m_range = plater().statusbar()->get_range();
-                m_canceled.store(false);
                 plater().statusbar()->set_range(status_range());
+                
+                // init cancellation flag and set the cancel callback
+                m_canceled.store(false);
                 plater().statusbar()->set_cancel_callback( [this](){ 
                     m_canceled.store(true);
                 });
+                
+                // Changing cursor to busy
                 wxBeginBusyCursor();
-                m_ftr = std::async(std::launch::async, &Job::run, this);
+                
+                try {   // Execute the job
+                    m_ftr = std::async(std::launch::async, &Job::run, this);
+                } catch(std::exception& ) { 
+                    update_status(status_range(), 
+                    _(L("ERROR: not enough resources to execute a new job.")));
+                }
+                
+                // The state changes will be undone when the process hits the
+                // last status value, in the status update handler (see ctor)
             }
         }
         
+        // To wait for the running job and join the threads. False is returned
+        // if the timeout has been reached and the job is still running. Call
+        // cancel() before this fn if you want to explicitly end the job.
         bool join(int timeout_ms = 0) { 
             if(!m_ftr.valid()) return true;
             
@@ -3676,6 +3710,9 @@ void Plater::export_3mf(const boost::filesystem::path& output_path)
 
 void Plater::reslice()
 {
+    // Stop arrange and (or) optimize rotation tasks.
+    this->stop_jobs();
+    
     //FIXME Don't reslice if export of G-code or sending to OctoPrint is running.
     // bitmask of UpdateBackgroundProcessReturnState
     unsigned int state = this->p->update_background_process(true);
