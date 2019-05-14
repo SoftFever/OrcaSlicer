@@ -93,6 +93,7 @@ AboutDialog::AboutDialog()
         // TRN "Slic3r _is licensed under the_ License"
         const wxString is_lecensed_str = _(L("is licensed under the"));
         const wxString license_str = _(L("GNU Affero General Public License, version 3"));
+        const wxString based_on_str = _(L("PrusaSlicer is based on Slic3r by Alessandro Ranellucci and the RepRap community."));
         const wxString contributors_str = _(L("Contributions by Henrik Brix Andersen, Nicolas Dandrimont, Mark Hindess, Petr Ledvina, Joseph Lenox, Y. Sapir, Mike Sheldrake, Vojtech Bubnik and numerous others."));
 		const auto text = wxString::Format(
             "<html>"
@@ -104,12 +105,15 @@ AboutDialog::AboutDialog()
             "<a href=\"http://www.gnu.org/licenses/agpl-3.0.html\">%s</a>."
             "<br /><br />"
             "%s"
+            "<br /><br />"
+            "%s"
             "</font>"
             "</body>"
             "</html>", bgr_clr_str, text_clr_str, text_clr_str,
             copyright_str, copyright_str,
             is_lecensed_str,
             license_str,
+            based_on_str,
             contributors_str);
         m_html->SetPage(text);
         vsizer->Add(m_html, 1, wxEXPAND | wxBOTTOM, 10);
