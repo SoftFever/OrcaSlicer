@@ -590,6 +590,22 @@ void PageDiameters::apply_custom_config(DynamicPrintConfig &config)
     config.set_key_value("nozzle_diameter", opt_nozzle);
     auto *opt_filam = new ConfigOptionFloats(1, spin_filam->GetValue());
     config.set_key_value("filament_diameter", opt_filam);
+
+    auto set_extrusion_width = [&config, opt_nozzle](const char *key, double dmr) {
+        char buf[64];
+        sprintf(buf, "%.2lf", dmr * opt_nozzle->values.front() / 0.4);
+		config.set_key_value(key, new ConfigOptionFloatOrPercent(atof(buf), false));
+	};
+
+    set_extrusion_width("support_material_extrusion_width",   0.35);
+	set_extrusion_width("top_infill_extrusion_width",		  0.40);
+	set_extrusion_width("first_layer_extrusion_width",		  0.42);
+
+	set_extrusion_width("extrusion_width",					  0.45);
+	set_extrusion_width("perimeter_extrusion_width",		  0.45);
+	set_extrusion_width("external_perimeter_extrusion_width", 0.45);
+	set_extrusion_width("infill_extrusion_width",			  0.45);
+	set_extrusion_width("solid_infill_extrusion_width",       0.45);
 }
 
 PageTemperatures::PageTemperatures(ConfigWizard *parent)

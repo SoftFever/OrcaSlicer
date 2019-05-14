@@ -680,7 +680,7 @@ void PrintConfigDef::init_fff_params()
                    "and do multiple measurements along the filament, then compute the average.");
     def->sidetext = L("mm");
     def->min = 0;
-    def->set_default_value(new ConfigOptionFloats { 3. });
+    def->set_default_value(new ConfigOptionFloats { 1.75 });
 
     def = this->add("filament_density", coFloats);
     def->label = L("Density");
@@ -1286,7 +1286,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Nozzle diameter");
     def->tooltip = L("This is the diameter of your extruder nozzle (for example: 0.5, 0.35 etc.)");
     def->sidetext = L("mm");
-    def->set_default_value(new ConfigOptionFloats { 0.5 });
+    def->set_default_value(new ConfigOptionFloats { 0.4 });
 
     def = this->add("host_type", coEnum);
     def->label = L("Host Type");
