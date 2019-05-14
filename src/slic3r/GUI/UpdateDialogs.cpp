@@ -2,6 +2,7 @@
 
 #include <cstring>
 #include <boost/format.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 
 #include <wx/settings.h>
 #include <wx/sizer.h>
@@ -39,7 +40,7 @@ MsgUpdateSlic3r::MsgUpdateSlic3r(const Semver &ver_current, const Semver &ver_on
 	ver_online(ver_online)
 {
 	const auto version = Semver::parse(SLIC3R_VERSION);
-	const bool dev_version = version->prerelease() != nullptr;
+	const bool dev_version = version->prerelease() != nullptr || boost::algorithm::ends_with(SLIC3R_BUILD_ID, "UNKNOWN");
 
 	auto *versions = new wxFlexGridSizer(2, 0, VERT_SPACING);
 	versions->Add(new wxStaticText(this, wxID_ANY, _(L("Current version:"))));
