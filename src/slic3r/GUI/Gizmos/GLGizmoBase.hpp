@@ -24,6 +24,7 @@ static const float DEFAULT_BASE_COLOR[3] = { 0.625f, 0.625f, 0.625f };
 static const float DEFAULT_DRAG_COLOR[3] = { 1.0f, 1.0f, 1.0f };
 static const float DEFAULT_HIGHLIGHT_COLOR[3] = { 1.0f, 0.38f, 0.0f };
 static const float AXES_COLOR[3][3] = { { 0.75f, 0.0f, 0.0f }, { 0.0f, 0.75f, 0.0f }, { 0.0f, 0.0f, 0.75f } };
+static const float CONSTRAINED_COLOR[3] = { 0.5f, 0.5f, 0.5f };
 
 
 
@@ -76,10 +77,9 @@ public:
     {
         const Linef3 mouse_ray;
         const Point* mouse_pos;
-        bool shift_down;
 
-        UpdateData(const Linef3& mouse_ray, const Point* mouse_pos = nullptr, bool shift_down = false)
-            : mouse_ray(mouse_ray), mouse_pos(mouse_pos), shift_down(shift_down)
+        UpdateData(const Linef3& mouse_ray, const Point* mouse_pos = nullptr)
+            : mouse_ray(mouse_ray), mouse_pos(mouse_pos)
         {}
     };
 
@@ -141,6 +141,7 @@ public:
 
     void start_dragging(const Selection& selection);
     void stop_dragging();
+
     bool is_dragging() const { return m_dragging; }
 
     void update(const UpdateData& data, const Selection& selection);

@@ -11,15 +11,25 @@ class GLGizmoScale3D : public GLGizmoBase
 {
     static const float Offset;
 
+    struct StartingData
+    {
+        Vec3d scale;
+        Vec3d drag_position;
+        BoundingBoxf3 box;
+        Vec3d pivots[6];
+        bool ctrl_down;
+
+        StartingData() : scale(Vec3d::Ones()), drag_position(Vec3d::Zero()), ctrl_down(false) { for (int i = 0; i < 5; ++i) { pivots[i] = Vec3d::Zero(); } }
+    };
+
     mutable BoundingBoxf3 m_box;
-
+    mutable Transform3d m_transform;
+    // Transforms grabbers offsets to the proper reference system (world for instances, instance for volumes)
+    mutable Transform3d m_offsets_transform;
     Vec3d m_scale;
-
+    Vec3d m_offset;
     double m_snap_step;
-
-    Vec3d m_starting_scale;
-    Vec3d m_starting_drag_position;
-    BoundingBoxf3 m_starting_box;
+    StartingData m_starting;
 
 public:
 #if ENABLE_SVG_ICONS
@@ -32,7 +42,9 @@ public:
     void set_snap_step(double step) { m_snap_step = step; }
 
     const Vec3d& get_scale() const { return m_scale; }
-    void set_scale(const Vec3d& scale) { m_starting_scale = scale; m_scale = scale; }
+    void set_scale(const Vec3d& scale) { m_starting.scale = scale; m_scale = scale; }
+
+    const Vec3d& get_offset() const { return m_offset; }
 
 protected:
     virtual bool on_init();
@@ -47,9 +59,7 @@ protected:
 private:
     void render_grabbers_connection(unsigned int id_1, unsigned int id_2) const;
 
-    void do_scale_x(const UpdateData& data);
-    void do_scale_y(const UpdateData& data);
-    void do_scale_z(const UpdateData& data);
+    void do_scale_along_axis(Axis axis, const UpdateData& data);
     void do_scale_uniform(const UpdateData& data);
 
     double calc_ratio(const UpdateData& data) const;

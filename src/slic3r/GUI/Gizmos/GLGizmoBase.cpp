@@ -16,7 +16,7 @@
 namespace Slic3r {
 namespace GUI {
 
-    const float GLGizmoBase::Grabber::SizeFactor = 0.05f;
+const float GLGizmoBase::Grabber::SizeFactor = 0.05f;
 const float GLGizmoBase::Grabber::MinHalfSize = 1.5f;
 const float GLGizmoBase::Grabber::DraggingScaleFactor = 1.25f;
 
