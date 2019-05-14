@@ -1,4 +1,8 @@
 min_slic3r_version = 1.42.0-alpha6
+0.8.0-beta4 Updated SLA profiles
+0.8.0-beta3 Updated SLA profiles
+0.8.0-beta2 Updated SLA profiles
+0.8.0-beta1 Updated SLA profiles
 0.8.0-beta Updated SLA profiles
 0.8.0-alpha9 Updated SLA and FFF profiles
 0.8.0-alpha8 Updated SLA profiles
@@ -10,6 +14,7 @@ min_slic3r_version = 1.42.0-alpha
 0.4.0-alpha3 Update of SLA profiles
 0.4.0-alpha2 First SLA profiles
 min_slic3r_version = 1.41.3-alpha
+0.4.5 Enabled remaining time support for MK2/S/MMU1
 0.4.4 Changelog: https://github.com/prusa3d/Slic3r-settings/blob/master/live/PrusaResearch/changelog.txt
 0.4.3 Changelog: https://github.com/prusa3d/Slic3r-settings/blob/master/live/PrusaResearch/changelog.txt
 0.4.2 Changelog: https://github.com/prusa3d/Slic3r-settings/blob/master/live/PrusaResearch/changelog.txt
