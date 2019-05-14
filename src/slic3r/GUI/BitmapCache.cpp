@@ -189,7 +189,7 @@ wxBitmap* BitmapCache::insert_raw_rgba(const std::string &bitmap_key, unsigned w
     }
 
     if (grayscale)
-        image.ConvertToGreyscale(m_gs, m_gs, m_gs);
+        image = image.ConvertToGreyscale(m_gs, m_gs, m_gs);
 
     return this->insert(bitmap_key, wxImage_to_wxBitmap_with_alpha(std::move(image), scale));
 }
@@ -220,7 +220,7 @@ wxBitmap* BitmapCache::load_png(const std::string &bitmap_name, unsigned int wid
         image.Rescale(width, height, wxIMAGE_QUALITY_BILINEAR);
 
     if (grayscale)
-        image.ConvertToGreyscale(m_gs, m_gs, m_gs);
+        image = image.ConvertToGreyscale(m_gs, m_gs, m_gs);
 
     return this->insert(bitmap_key, wxImage_to_wxBitmap_with_alpha(std::move(image)));
 }
