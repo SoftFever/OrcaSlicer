@@ -38,7 +38,9 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
 {
     // Fonts were created by the DPIFrame constructor for the monitor, on which the window opened.
     wxGetApp().update_fonts(this);
+#ifndef __WXOSX__ // Don't call SetFont under OSX to avoid name cutting in ObjectList 
     this->SetFont(this->normal_font());
+#endif
     // initialize default width_unit according to the width of the one symbol ("m") of the currently active font of this window.
     wxGetApp().set_em_unit(std::max<size_t>(10, GetTextExtent("m").x - 1));
 
@@ -157,7 +159,9 @@ void MainFrame::init_tabpanel()
     // wxNB_NOPAGETHEME: Disable Windows Vista theme for the Notebook background. The theme performance is terrible on Windows 10
     // with multiple high resolution displays connected.
     m_tabpanel = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
+#ifndef __WXOSX__ // Don't call SetFont under OSX to avoid name cutting in ObjectList
     m_tabpanel->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+#endif
 
     m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGED, [this](wxEvent&) {
         auto panel = m_tabpanel->GetCurrentPage();
