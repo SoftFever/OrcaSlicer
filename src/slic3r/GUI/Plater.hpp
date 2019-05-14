@@ -134,6 +134,7 @@ public:
     const SLAPrint& sla_print() const;
     SLAPrint& sla_print();
 
+    void new_project();
     void load_project();
     void add_model();
     void extract_config_from_project();

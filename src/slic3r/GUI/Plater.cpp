@@ -3235,6 +3235,10 @@ Print&          Plater::fff_print()         { return p->fff_print; }
 const SLAPrint& Plater::sla_print() const   { return p->sla_print; }
 SLAPrint&       Plater::sla_print()         { return p->sla_print; }
 
+void Plater::new_project()
+{
+}
+
 void Plater::load_project()
 {
     wxString input_file;
