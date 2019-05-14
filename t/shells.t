@@ -148,8 +148,8 @@ use Slic3r::Test;
     $config->set('solid_infill_speed', 99);
     $config->set('top_solid_infill_speed', 99);
     $config->set('bridge_speed', 99);
-    $config->set('filament_diameter', 3.0);
-    $config->set('nozzle_diameter', 0.5);
+    $config->set('filament_diameter', [ 3.0 ]);
+    $config->set('nozzle_diameter', [ 0.5 ]);
 
     my $print = Slic3r::Test::init_print('sloping_hole', config => $config);
     my %solid_layers = ();  # Z => 1
