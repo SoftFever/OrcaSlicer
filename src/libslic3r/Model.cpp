@@ -1521,7 +1521,8 @@ stl_stats ModelObject::get_object_stl_stats() const
     if (this->volumes.size() == 1)
         return this->volumes[0]->mesh.stl.stats;
 
-    stl_stats full_stats = this->volumes[0]->mesh.stl.stats;
+    stl_stats full_stats;
+    memset(&full_stats, 0, sizeof(stl_stats));
 
     // fill full_stats from all objet's meshes
     for (ModelVolume* volume : this->volumes)

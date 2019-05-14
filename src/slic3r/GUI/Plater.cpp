@@ -2057,10 +2057,9 @@ void Plater::priv::remove(size_t obj_idx)
         view3D->enable_layers_editing(false);
 
     model.delete_object(obj_idx);
-    // Delete object from Sidebar list
-    sidebar->obj_list()->delete_object_from_list(obj_idx);
-
     update();
+    // Delete object from Sidebar list. Do it after update, so that the GLScene selection is updated with the modified model.
+    sidebar->obj_list()->delete_object_from_list(obj_idx);
     object_list_changed();
 }
 
@@ -2085,10 +2084,9 @@ void Plater::priv::reset()
     // Stop and reset the Print content.
     this->background_process.reset();
     model.clear_objects();
-
-    // Delete all objects from list on c++ side
-    sidebar->obj_list()->delete_all_objects_from_list();
     update();
+    // Delete object from Sidebar list. Do it after update, so that the GLScene selection is updated with the modified model.
+    sidebar->obj_list()->delete_all_objects_from_list();
     object_list_changed();
 
     // The hiding of the slicing results, if shown, is not taken care by the background process, so we do it here
@@ -3392,13 +3390,13 @@ void Plater::decrease_instances(size_t num)
     if (model_object->instances.size() > num) {
         for (size_t i = 0; i < num; ++ i)
             model_object->delete_last_instance();
+        p->update();
+        // Delete object from Sidebar list. Do it after update, so that the GLScene selection is updated with the modified model.
         sidebar().obj_list()->decrease_object_instances(obj_idx, num);
     }
     else {
         remove(obj_idx);
     }
-
-    p->update();
 
     if (!model_object->instances.empty())
         p->get_selection().add_instance(obj_idx, (int)model_object->instances.size() - 1);
