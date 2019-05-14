@@ -555,6 +555,7 @@ public:
     void render();
 
     void select_all();
+    void deselect_all();
     void delete_selected();
     void ensure_on_bed(unsigned int object_idx);
 

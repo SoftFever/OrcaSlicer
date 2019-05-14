@@ -68,6 +68,7 @@ class MainFrame : public DPIFrame
     bool can_slice() const;
     bool can_change_view() const;
     bool can_select() const;
+    bool can_deselect() const;
     bool can_delete() const;
     bool can_delete_all() const;
 

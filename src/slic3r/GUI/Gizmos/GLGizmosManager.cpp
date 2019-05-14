@@ -790,10 +790,13 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt, GLCanvas3D& canvas)
         // key ESC
         case WXK_ESCAPE:
         {
-            if ((m_current != SlaSupports) || !gizmo_event(SLAGizmoEventType::DiscardChanges))
-                reset_all_states();
+            if (m_current != Undefined)
+            {
+                if ((m_current != SlaSupports) || !gizmo_event(SLAGizmoEventType::DiscardChanges))
+                    reset_all_states();
 
-            processed = true;
+                processed = true;
+            }
             break;
         }
         case WXK_RETURN:

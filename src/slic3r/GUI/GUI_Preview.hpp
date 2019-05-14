@@ -47,6 +47,7 @@ public:
 
     void select_view(const std::string& direction);
     void select_all();
+    void deselect_all();
     void delete_selected();
     void mirror_selection(Axis axis);
 

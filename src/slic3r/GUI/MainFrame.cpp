@@ -267,6 +267,11 @@ bool MainFrame::can_select() const
     return (m_plater != nullptr) && !m_plater->model().objects.empty();
 }
 
+bool MainFrame::can_deselect() const
+{
+    return (m_plater != nullptr) && !m_plater->is_selection_empty();
+}
+
 bool MainFrame::can_delete() const
 {
     return (m_plater != nullptr) && !m_plater->is_selection_empty();
@@ -449,6 +454,11 @@ void MainFrame::init_menubar()
         append_menu_item(editMenu, wxID_ANY, _(L("&Select all")) + sep + GUI::shortkey_ctrl_prefix() + sep_space + "A",
             _(L("Selects all objects")), [this](wxCommandEvent&) { if (m_plater != nullptr) m_plater->select_all(); },
             "", nullptr, [this](){return can_select(); }, this);
+#if !DISABLE_DESELECT_ALL_MENU_ITEM
+        append_menu_item(editMenu, wxID_ANY, _(L("D&eselect all")) + sep + GUI::shortkey_ctrl_prefix() + sep + "Esc",
+            _(L("Deselects all objects")), [this](wxCommandEvent&) { if (m_plater != nullptr) m_plater->deselect_all(); },
+            "", nullptr, [this](){return can_deselect(); }, this);
+#endif // !DISABLE_DESELECT_ALL_MENU_ITEM
         editMenu->AppendSeparator();
         append_menu_item(editMenu, wxID_ANY, _(L("&Delete selected")) + sep + hotkey_delete,
             _(L("Deletes the current selection")),[this](wxCommandEvent&) { m_plater->remove_selected(); },
@@ -458,7 +468,6 @@ void MainFrame::init_menubar()
             menu_icon("delete_all_menu"), nullptr, [this](){return can_delete_all(); }, this);
 
         editMenu->AppendSeparator();
-
         append_menu_item(editMenu, wxID_ANY, _(L("&Copy")) + sep + GUI::shortkey_ctrl_prefix() + sep_space + "C",
             _(L("Copy selection to clipboard")), [this](wxCommandEvent&) { m_plater->copy_selection_to_clipboard(); },
             menu_icon("copy_menu"), nullptr, [this](){return m_plater->can_copy(); }, this);

@@ -1715,6 +1715,16 @@ void GLCanvas3D::select_all()
     m_dirty = true;
 }
 
+void GLCanvas3D::deselect_all()
+{
+    m_selection.clear();
+    m_selection.set_mode(Selection::Instance);
+    wxGetApp().obj_manipul()->set_dirty();
+    m_gizmos.reset_all_states();
+    m_gizmos.update_data(*this);
+    post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
+}
+
 void GLCanvas3D::delete_selected()
 {
     m_selection.erase();
@@ -2359,7 +2369,8 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
                   post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE));
                   break;
 
-		case '0': { select_view("iso"); break; }
+        case WXK_ESCAPE: { deselect_all(); break; }
+        case '0': { select_view("iso"); break; }
         case '1': { select_view("top"); break; }
         case '2': { select_view("bottom"); break; }
         case '3': { select_view("front"); break; }
@@ -2379,11 +2390,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case 'o': { set_camera_zoom(-1.0f); break; }
         case 'Z':
         case 'z': { m_selection.is_empty() ? zoom_to_volumes() : zoom_to_selection(); break; }
-        default:
-        {
-            evt.Skip();
-            break;
-        }
+        default:  { evt.Skip(); break; }
         }
     }
 }
@@ -2900,14 +2907,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         {
             // deselect and propagate event through callback
             if (!evt.ShiftDown() && m_picking_enabled)
-            {
-                m_selection.clear();
-                m_selection.set_mode(Selection::Instance);
-                wxGetApp().obj_manipul()->set_dirty();
-                m_gizmos.reset_all_states();
-                m_gizmos.update_data(*this);
-                post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
-            }
+                deselect_all();
         }
         else if (evt.LeftUp() && m_mouse.dragging)
             // Flips X mouse deltas if bed is upside down

@@ -99,6 +99,12 @@ void View3D::select_all()
         m_canvas->select_all();
 }
 
+void View3D::deselect_all()
+{
+    if (m_canvas != nullptr)
+        m_canvas->deselect_all();
+}
+
 void View3D::delete_selected()
 {
     if (m_canvas != nullptr)

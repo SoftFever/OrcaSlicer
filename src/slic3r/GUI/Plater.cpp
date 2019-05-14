@@ -1261,6 +1261,7 @@ struct Plater::priv
     void object_list_changed();
 
     void select_all();
+    void deselect_all();
     void remove(size_t obj_idx);
     void delete_object_from_model(size_t obj_idx);
     void reset();
@@ -2030,6 +2031,11 @@ void Plater::priv::select_all()
 {
     view3D->select_all();
     this->sidebar->obj_list()->update_selections();
+}
+
+void Plater::priv::deselect_all()
+{
+    view3D->deselect_all();
 }
 
 void Plater::priv::remove(size_t obj_idx)
@@ -3303,6 +3309,7 @@ void Plater::select_view(const std::string& direction) { p->select_view(directio
 void Plater::select_view_3D(const std::string& name) { p->select_view_3D(name); }
 
 void Plater::select_all() { p->select_all(); }
+void Plater::deselect_all() { p->deselect_all(); }
 
 void Plater::remove(size_t obj_idx) { p->remove(obj_idx); }
 void Plater::reset() { p->reset(); }
