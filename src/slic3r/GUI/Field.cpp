@@ -608,7 +608,11 @@ void Choice::BUILD() {
     if (m_is_editable) {
         temp->Bind(wxEVT_KILL_FOCUS, ([this](wxEvent& e) {
             e.Skip();
-            if (m_opt.type == coStrings) return;
+            if (m_opt.type == coStrings) {
+                on_change_field();
+                return;
+            }
+
             double old_val = !m_value.empty() ? boost::any_cast<double>(m_value) : -99999;
             if (is_defined_input_value<wxBitmapComboBox>(window, m_opt.type)) {
                 if (fabs(old_val - boost::any_cast<double>(get_value())) <= 0.0001)
