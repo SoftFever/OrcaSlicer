@@ -46,7 +46,6 @@ KBShortcutsDialog::KBShortcutsDialog()
     main_grid_sizer->Add(r_sizer, 0);
 
     m_head_bitmaps.reserve(m_full_shortcuts.size());
-    const wxSize topic_size = wxSize(10 * wxGetApp().em_unit(), -1);
 
     for (auto& shortcut : m_full_shortcuts)
     {
@@ -59,7 +58,7 @@ KBShortcutsDialog::KBShortcutsDialog()
         hsizer->Add(m_head_bitmaps.back(), 0, wxEXPAND | wxLEFT | wxRIGHT, 15);
 
         // head
-        wxStaticText* head = new wxStaticText(panel, wxID_ANY, shortcut.first, wxDefaultPosition, topic_size);
+        wxStaticText* head = new wxStaticText(panel, wxID_ANY, shortcut.first);
         head->SetFont(head_font);
         hsizer->Add(head, 0, wxALIGN_CENTER_VERTICAL);
 

@@ -524,8 +524,7 @@ void ConfigOptionsGroup::msw_rescale()
             {
                 auto label = dynamic_cast<wxStaticText*>(label_item->GetWindow());
                 if (label != nullptr) {
-                    const int label_height = int(1.5f*label->GetFont().GetPixelSize().y + 0.5f);
-                    label->SetMinSize(wxSize(label_width*em, /*-1*/label_height));
+                    label->SetMinSize(wxSize(label_width*em, -1));
                 }
             }
             else if (label_item->IsSizer()) // case when we have near_label_widget
@@ -535,8 +534,7 @@ void ConfigOptionsGroup::msw_rescale()
                 {
                     auto label = dynamic_cast<wxStaticText*>(l_item->GetWindow());
                     if (label != nullptr) {
-                        const int label_height = int(1.5f*label->GetFont().GetPixelSize().y + 0.5f);
-                        label->SetMinSize(wxSize(label_width*em, /*-1*/label_height));
+                        label->SetMinSize(wxSize(label_width*em, -1));
                     }
                 }
             }
