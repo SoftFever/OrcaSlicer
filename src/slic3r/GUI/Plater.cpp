@@ -2948,14 +2948,15 @@ const wxString& Plater::priv::get_project_filename() const
 
 void Plater::priv::set_project_filename(const wxString& filename)
 {
-    wxString copy = filename;
+    std::string copy = into_u8(filename);
     if (boost::algorithm::iends_with(copy, ".zip.amf"))
         // we remove the .zip part of the extension
         copy = boost::ireplace_last_copy(copy, ".zip.", ".");
 
     // we force 3mf extension
-    boost::filesystem::path full_path = into_path(copy);
-    full_path.replace_extension("3mf");
+    boost::filesystem::path full_path(copy);
+    if (!full_path.empty())
+        full_path.replace_extension("3mf");
 
     m_project_filename = from_path(full_path);
     wxGetApp().mainframe->update_title();
