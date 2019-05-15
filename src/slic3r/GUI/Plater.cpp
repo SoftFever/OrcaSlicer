@@ -2965,7 +2965,7 @@ void Plater::priv::msw_rescale_object_menu()
 
 wxString Plater::priv::get_project_filename(const wxString& extension) const
 {
-    return m_project_filename.empty() ? wxEmptyString : m_project_filename + extension;
+    return m_project_filename.empty() ? "" : m_project_filename + extension;
 }
 
 void Plater::priv::set_project_filename(const wxString& filename)
