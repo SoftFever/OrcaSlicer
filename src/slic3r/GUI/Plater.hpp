@@ -184,7 +184,9 @@ public:
 
     void update_object_menu();
 
-    const wxString& get_project_filename() const;
+    wxString get_project_filename(const wxString& extension = wxEmptyString) const;
+    void set_project_filename(const wxString& filename);
+
     bool is_export_gcode_scheduled() const;
 
     int get_selected_object_idx();
