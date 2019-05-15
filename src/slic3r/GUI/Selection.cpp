@@ -522,6 +522,10 @@ void Selection::rotate(const Vec3d& rotation, TransformationType transformation_
             //FIXME this does not work for absolute rotations (transformation_type.absolute() is true)
             rotation.cwiseAbs().maxCoeff(&rot_axis_max);
 
+//            if ( single instance or single volume )
+                // Rotate around center , if only a single object or volume
+//                transformation_type.set_independent();
+
             // For generic rotation, we want to rotate the first volume in selection, and then to synchronize the other volumes with it.
             std::vector<int> object_instance_first(m_model->objects.size(), -1);
             auto rotate_instance = [this, &rotation, &object_instance_first, rot_axis_max, transformation_type](GLVolume &volume, int i) {
@@ -542,8 +546,8 @@ void Selection::rotate(const Vec3d& rotation, TransformationType transformation_
                         transformation_type.absolute() ? rotation : rotation + m_cache.volumes_data[i].get_instance_rotation();
                     if (rot_axis_max == 2 && transformation_type.joint()) {
                         // Only allow rotation of multiple instances as a single rigid body when rotating around the Z axis.
-                        Vec3d offset = Geometry::assemble_transform(Vec3d::Zero(), Vec3d(0.0, 0.0, new_rotation(2) - m_cache.volumes_data[i].get_instance_rotation()(2))) * (m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center);
-                        volume.set_instance_offset(m_cache.dragging_center + offset);
+						double z_diff = Geometry::rotation_diff_z(m_cache.volumes_data[i].get_instance_rotation(), new_rotation);
+                        volume.set_instance_offset(m_cache.dragging_center + Eigen::AngleAxisd(z_diff, Vec3d::UnitZ()) * (m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center));
                     }
                     volume.set_instance_rotation(new_rotation);
                     object_instance_first[volume.object_idx()] = i;
