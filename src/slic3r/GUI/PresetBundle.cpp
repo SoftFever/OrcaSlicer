@@ -344,40 +344,29 @@ void PresetBundle::load_selections(const AppConfig &config, const std::string &p
 
     const Preset *initial_printer = printers.find_preset(initial_printer_profile_name);
     const Preset *preferred_printer = printers.find_by_model_id(preferred_model_id);
+    printers.select_preset_by_name(
+        (preferred_printer != nullptr && (initial_printer == nullptr || !initial_printer->is_visible)) ? 
+            preferred_printer->name : 
+            initial_printer_profile_name,
+        true);
 
-    if (preferred_printer != nullptr && (initial_printer == nullptr || !initial_printer->is_visible)) {
-        printers.select_preset_by_name(preferred_printer->name, true);
-    } else {
-        printers.select_preset_by_name(initial_printer_profile_name, true);
-    }
+    // Selects the profile, leaves it to -1 if the initial profile name is empty or if it was not found.
+    prints.select_preset_by_name_strict(initial_print_profile_name);
+    filaments.select_preset_by_name_strict(initial_filament_profile_name);
+	sla_prints.select_preset_by_name_strict(initial_sla_print_profile_name);
+    sla_materials.select_preset_by_name_strict(initial_sla_material_profile_name);
 
-    PrinterTechnology printer_technology = printers.get_selected_preset().printer_technology();
-    if (printer_technology == ptFFF) {
-        prints.select_preset_by_name_strict(initial_print_profile_name);
-        filaments.select_preset_by_name_strict(initial_filament_profile_name);
-        sla_prints.select_preset_by_name(initial_sla_material_profile_name, true);
-        sla_materials.select_preset_by_name(initial_sla_material_profile_name, true);
-    } else {
-        prints.select_preset_by_name(initial_print_profile_name, true);
-        filaments.select_preset_by_name(initial_filament_profile_name, true);
-        sla_prints.select_preset_by_name_strict(initial_sla_material_profile_name);
-        sla_materials.select_preset_by_name_strict(initial_sla_material_profile_name);
-    }
-
-    if (printers.get_selected_preset().printer_technology() == ptFFF) {
-        // Load the names of the other filament profiles selected for a multi-material printer.
-        auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(printers.get_selected_preset().config.option("nozzle_diameter"));
-        size_t  num_extruders = nozzle_diameter->values.size();
-        this->filament_presets = { initial_filament_profile_name };
-        for (unsigned int i = 1; i < (unsigned int)num_extruders; ++i) {
-            char name[64];
-            sprintf(name, "filament_%d", i);
-            if (!config.has("presets", name))
-                break;
-            this->filament_presets.emplace_back(remove_ini_suffix(config.get("presets", name)));
-        }
-        // Do not define the missing filaments, so that the update_compatible() will use the preferred filaments.
-        this->filament_presets.resize(num_extruders, "");
+    // Load the names of the other filament profiles selected for a multi-material printer.
+    // Load it even if the current printer technology is SLA.
+    // The possibly excessive filament names will be later removed with this->update_multi_material_filament_presets()
+    // once the FFF technology gets selected.
+    this->filament_presets = { filaments.get_selected_preset_name() };
+    for (unsigned int i = 1; i < 1000; ++ i) {
+        char name[64];
+        sprintf(name, "filament_%d", i);
+        if (! config.has("presets", name))
+            break;
+        this->filament_presets.emplace_back(remove_ini_suffix(config.get("presets", name)));
     }
 
     // Update visibility of presets based on their compatibility with the active printer.

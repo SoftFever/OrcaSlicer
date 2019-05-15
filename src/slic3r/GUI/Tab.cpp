@@ -285,9 +285,10 @@ void Tab::add_scaled_bitmap(wxWindow* parent,
 void Tab::load_initial_data()
 {
 	m_config = &m_presets->get_edited_preset().config;
-	m_bmp_non_system = m_presets->get_selected_preset_parent() ? &m_bmp_value_unlock : &m_bmp_white_bullet;
-	m_ttg_non_system = m_presets->get_selected_preset_parent() ? &m_ttg_value_unlock : &m_ttg_white_bullet_ns;
-	m_tt_non_system = m_presets->get_selected_preset_parent() ? &m_tt_value_unlock : &m_ttg_white_bullet_ns;
+	bool has_parent = m_presets->get_selected_preset_parent() != nullptr;
+	m_bmp_non_system = has_parent ? &m_bmp_value_unlock : &m_bmp_white_bullet;
+	m_ttg_non_system = has_parent ? &m_ttg_value_unlock : &m_ttg_white_bullet_ns;
+	m_tt_non_system  = has_parent ? &m_tt_value_unlock  : &m_ttg_white_bullet_ns;
 }
 
 Slic3r::GUI::PageShp Tab::add_options_page(const wxString& title, const std::string& icon, bool is_extruder_pages /*= false*/)

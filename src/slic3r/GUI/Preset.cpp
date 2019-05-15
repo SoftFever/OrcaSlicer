@@ -820,6 +820,9 @@ void PresetCollection::load_bitmap_add(wxWindow *window, const std::string &file
 
 const Preset* PresetCollection::get_selected_preset_parent() const
 {
+    if (this->get_selected_idx() == -1)
+        // This preset collection has no preset activated yet. Only the get_edited_preset() is valid.
+        return nullptr;
     const std::string &inherits = this->get_edited_preset().inherits();
     if (inherits.empty())
 		return this->get_selected_preset().is_system ? &this->get_selected_preset() : nullptr; 
