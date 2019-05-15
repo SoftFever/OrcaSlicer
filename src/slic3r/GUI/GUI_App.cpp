@@ -58,13 +58,14 @@ namespace GUI {
 wxString file_wildcards(FileType file_type, const std::string &custom_extension)
 {
     static const std::string defaults[FT_SIZE] = {
-        /* FT_STL */   "STL files (*.stl)|*.stl;*.STL",
-        /* FT_OBJ */   "OBJ files (*.obj)|*.obj;*.OBJ",
-        /* FT_AMF */   "AMF files (*.amf)|*.zip.amf;*.amf;*.AMF;*.xml;*.XML",
-        /* FT_3MF */   "3MF files (*.3mf)|*.3mf;*.3MF;",
-        /* FT_PRUSA */ "Prusa Control files (*.prusa)|*.prusa;*.PRUSA",
-        /* FT_GCODE */ "G-code files (*.gcode, *.gco, *.g, *.ngc)|*.gcode;*.GCODE;*.gco;*.GCO;*.g;*.G;*.ngc;*.NGC",
-        /* FT_MODEL */ "Known files (*.stl, *.obj, *.amf, *.xml, *.3mf, *.prusa)|*.stl;*.STL;*.obj;*.OBJ;*.amf;*.AMF;*.xml;*.XML;*.3mf;*.3MF;*.prusa;*.PRUSA",
+        /* FT_STL */     "STL files (*.stl)|*.stl;*.STL",
+        /* FT_OBJ */     "OBJ files (*.obj)|*.obj;*.OBJ",
+        /* FT_AMF */     "AMF files (*.amf)|*.zip.amf;*.amf;*.AMF;*.xml;*.XML",
+        /* FT_3MF */     "3MF files (*.3mf)|*.3mf;*.3MF;",
+        /* FT_PRUSA */   "Prusa Control files (*.prusa)|*.prusa;*.PRUSA",
+        /* FT_GCODE */   "G-code files (*.gcode, *.gco, *.g, *.ngc)|*.gcode;*.GCODE;*.gco;*.GCO;*.g;*.G;*.ngc;*.NGC",
+        /* FT_MODEL */   "Known files (*.stl, *.obj, *.amf, *.xml, *.3mf, *.prusa)|*.stl;*.STL;*.obj;*.OBJ;*.amf;*.AMF;*.xml;*.XML;*.3mf;*.3MF;*.prusa;*.PRUSA",
+        /* FT_PROJECT */ "Project files (*.3mf, *.amf)|*.3mf;*.3MF;*.amf;*.AMF",
 
         /* FT_INI */   "INI files (*.ini)|*.ini;*.INI",
         /* FT_SVG */   "SVG files (*.svg)|*.svg;*.SVG",
@@ -501,9 +502,9 @@ void GUI_App::load_project(wxWindow *parent, wxString& input_file)
 {
     input_file.Clear();
     wxFileDialog dialog(parent ? parent : GetTopWindow(),
-        _(L("Choose one file (3MF):")),
+        _(L("Choose one file (3MF/AMF):")),
         app_config->get_last_dir(), "",
-        file_wildcards(FT_3MF), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+        file_wildcards(FT_PROJECT), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 
     if (dialog.ShowModal() == wxID_OK)
         input_file = dialog.GetPath();
