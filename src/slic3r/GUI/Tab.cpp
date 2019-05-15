@@ -178,7 +178,7 @@ void Tab::create_preset_tab()
     // Sizer with buttons for mode changing
     m_mode_sizer = new ModeSizer(panel);
 
-    const float scale_factor = wxGetApp().em_unit()*0.1;// GetContentScaleFactor();
+    const float scale_factor = /*wxGetApp().*/em_unit(this)*0.1;// GetContentScaleFactor();
 	m_hsizer = new wxBoxSizer(wxHORIZONTAL);
 	sizer->Add(m_hsizer, 0, wxEXPAND | wxBOTTOM, 3);
 	m_hsizer->Add(m_presets_choice, 0, wxLEFT | wxRIGHT | wxTOP | wxALIGN_CENTER_VERTICAL, 3);
@@ -212,7 +212,8 @@ void Tab::create_preset_tab()
     m_treectrl = new wxTreeCtrl(panel, wxID_ANY, wxDefaultPosition, wxSize(20 * m_em_unit, -1),
 		wxTR_NO_BUTTONS | wxTR_HIDE_ROOT | wxTR_SINGLE | wxTR_NO_LINES | wxBORDER_SUNKEN | wxWANTS_CHARS);
 	m_left_sizer->Add(m_treectrl, 1, wxEXPAND);
-    m_icons = new wxImageList(int(16 * scale_factor), int(16 * scale_factor), true, 1);
+    const int img_sz = int(16 * scale_factor + 0.5f);
+    m_icons = new wxImageList(img_sz, img_sz, true, 1);
 	// Index of the last icon inserted into $self->{icons}.
 	m_icon_count = -1;
 	m_treectrl->AssignImageList(m_icons);

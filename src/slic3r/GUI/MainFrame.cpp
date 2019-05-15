@@ -42,7 +42,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
     this->SetFont(this->normal_font());
 #endif
     // initialize default width_unit according to the width of the one symbol ("m") of the currently active font of this window.
-    wxGetApp().set_em_unit(std::max<size_t>(10, GetTextExtent("m").x - 1));
+//     wxGetApp().set_em_unit(std::max<size_t>(10, GetTextExtent("m").x - 1));
 
     // Load the icon either from the exe, or from the ico file.
 #if _WIN32
@@ -316,7 +316,7 @@ void MainFrame::on_dpi_changed(const wxRect &suggested_rect)
     wxGetApp().update_fonts();
     this->SetFont(this->normal_font());
     // initialize default width_unit according to the width of the one symbol ("m") of the currently active font of this window.
-    wxGetApp().set_em_unit(std::max<size_t>(10, GetTextExtent("m").x - 1));
+//     wxGetApp().set_em_unit(std::max<size_t>(10, GetTextExtent("m").x - 1));
 
     /* Load default preset bitmaps before a tabpanel initialization,
      * but after filling of an em_unit value
