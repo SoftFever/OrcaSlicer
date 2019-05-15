@@ -579,7 +579,7 @@ void ObjectList::paste_volumes_into_list(int obj_idx, const ModelVolumePtrs& vol
 
     for (const ModelVolume* volume : volumes)
     {
-        const wxDataViewItem& vol_item = m_objects_model->AddVolumeChild(object_item, volume->name, volume->type(), 
+        const wxDataViewItem& vol_item = m_objects_model->AddVolumeChild(object_item, wxString::FromUTF8(volume->name.c_str()), volume->type(), 
             volume->get_mesh_errors_count()>0 ,
             volume->config.has("extruder") ? volume->config.option<ConfigOptionInt>("extruder")->value : 0);
         auto opt_keys = volume->config.keys();
