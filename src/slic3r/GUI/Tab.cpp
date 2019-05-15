@@ -3287,27 +3287,27 @@ void SavePresetWindow::accept()
 {
 	m_chosen_name = normalize_utf8_nfc(m_combo->GetValue().ToUTF8());
 	if (!m_chosen_name.empty()) {
-		const char* unusable_symbols = "<>:/\\|?*\"";
+		const char* unusable_symbols = "<>[]:/\\|?*\"";
 		bool is_unusable_symbol = false;
-		bool is_unusable_postfix = false;
-		const std::string unusable_postfix = PresetCollection::get_suffix_modified();//"(modified)";
+		bool is_unusable_suffix = false;
+		const std::string unusable_suffix = PresetCollection::get_suffix_modified();//"(modified)";
 		for (size_t i = 0; i < std::strlen(unusable_symbols); i++) {
 			if (m_chosen_name.find_first_of(unusable_symbols[i]) != std::string::npos) {
 				is_unusable_symbol = true;
 				break;
 			}
 		}
-		if (m_chosen_name.find(unusable_postfix) != std::string::npos)
-			is_unusable_postfix = true;
+		if (m_chosen_name.find(unusable_suffix) != std::string::npos)
+			is_unusable_suffix = true;
 
 		if (is_unusable_symbol) {
 			show_error(this,_(L("The supplied name is not valid;")) + "\n" +
-							_(L("the following characters are not allowed:")) + " <>:/\\|?*\"");
+							_(L("the following characters are not allowed:")) + " " + unusable_symbols);
 		}
-		else if (is_unusable_postfix) {
+		else if (is_unusable_suffix) {
 			show_error(this,_(L("The supplied name is not valid;")) + "\n" +
-							_(L("the following postfix are not allowed:")) + "\n\t" + //unusable_postfix);
-							wxString::FromUTF8(unusable_postfix.c_str()));
+							_(L("the following suffix is not allowed:")) + "\n\t" +
+							wxString::FromUTF8(unusable_suffix.c_str()));
 		}
 		else if (m_chosen_name == "- default -") {
 			show_error(this, _(L("The supplied name is not available.")));
