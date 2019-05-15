@@ -1171,7 +1171,26 @@ bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &fi
         }
     }
 
+    // FIXME: when drag and drop is done on a .3mf or a .amf file we should clear the plater for consistence with the open project command
+    // (the following call to plater->load_files() will load the config data, if present)
+
     plater->load_files(paths);
+
+    // because right now the plater is not cleared, we set the project file (from the latest imported .3mf or .amf file)
+    // only if not set yet
+    if (plater->get_project_filename().empty())
+    {
+        for (std::vector<fs::path>::const_reverse_iterator it = paths.rbegin(); it != paths.rend(); ++it)
+        {
+            std::string filename = (*it).filename().string();
+            if (boost::algorithm::iends_with(filename, ".3mf") || boost::algorithm::iends_with(filename, ".amf"))
+            {
+                plater->set_project_filename(from_path(*it));
+                break;
+            }
+        }
+    }
+
     return true;
 }
 
@@ -1341,7 +1360,9 @@ struct Plater::priv
 
     void msw_rescale_object_menu();
 
-    const wxString& get_project_filename() const;
+    // returns the path to project file with the given extension (none if extension == wxEmptyString)
+    // extension should contain the leading dot, i.e.: ".3mf"
+    wxString get_project_filename(const wxString& extension = wxEmptyString) const;
     void set_project_filename(const wxString& filename);
 
 private:
@@ -1358,6 +1379,7 @@ private:
     void update_fff_scene();
     void update_sla_scene();
 
+    // path to project file stored with no extension
     wxString m_project_filename;
 };
 
@@ -1936,7 +1958,7 @@ wxString Plater::priv::get_export_file(GUI::FileType file_type)
     fs::path output_file;
     if (file_type == FT_3MF)
         // for 3mf take the path from the project filename, if any
-        output_file = into_path(get_project_filename());
+        output_file = into_path(get_project_filename(".3mf"));
 
     if (output_file.empty())
     {
@@ -2941,22 +2963,19 @@ void Plater::priv::msw_rescale_object_menu()
         msw_rescale_menu(dynamic_cast<wxMenu*>(menu));
 }
 
-const wxString& Plater::priv::get_project_filename() const
+wxString Plater::priv::get_project_filename(const wxString& extension) const
 {
-    return m_project_filename;
+    return m_project_filename.empty() ? wxEmptyString : m_project_filename + extension;
 }
 
 void Plater::priv::set_project_filename(const wxString& filename)
 {
-    std::string copy = into_u8(filename);
-    if (boost::algorithm::iends_with(copy, ".zip.amf"))
-        // we remove the .zip part of the extension
-        copy = boost::ireplace_last_copy(copy, ".zip.", ".");
-
-    // we force 3mf extension
-    boost::filesystem::path full_path(copy);
-    if (!full_path.empty())
-        full_path.replace_extension("3mf");
+    boost::filesystem::path full_path = into_path(filename);
+    // remove extension
+    while (full_path.has_extension())
+    {
+        full_path.replace_extension("");
+    }
 
     m_project_filename = from_path(full_path);
     wxGetApp().mainframe->update_title();
@@ -3473,8 +3492,9 @@ void Plater::export_gcode()
 		unsigned int state = this->p->update_restart_background_process(false, false);
 		if (state & priv::UPDATE_BACKGROUND_PROCESS_INVALID)
 			return;
-		default_output_file = this->p->background_process.current_print()->output_filepath("");
-    } catch (const std::exception &ex) {
+        default_output_file = this->p->background_process.current_print()->output_filepath(into_path(get_project_filename()).string());
+    }
+    catch (const std::exception &ex) {
         show_error(this, ex.what());
         return;
     }
@@ -3717,8 +3737,9 @@ void Plater::send_gcode()
 		unsigned int state = this->p->update_restart_background_process(false, false);
 		if (state & priv::UPDATE_BACKGROUND_PROCESS_INVALID)
 			return;
-		default_output_file = this->p->background_process.current_print()->output_filepath("");
-    } catch (const std::exception &ex) {
+        default_output_file = this->p->background_process.current_print()->output_filepath(into_path(get_project_filename(".3mf")).string());
+    }
+    catch (const std::exception &ex) {
         show_error(this, ex.what());
         return;
     }
@@ -3832,9 +3853,14 @@ void Plater::on_activate()
 	}
 }
 
-const wxString& Plater::get_project_filename() const
+wxString Plater::get_project_filename(const wxString& extension) const
 {
-    return p->get_project_filename();
+    return p->get_project_filename(extension);
+}
+
+void Plater::set_project_filename(const wxString& filename)
+{
+    return p->set_project_filename(filename);
 }
 
 bool Plater::is_export_gcode_scheduled() const
