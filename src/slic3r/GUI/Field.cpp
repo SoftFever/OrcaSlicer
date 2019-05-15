@@ -520,8 +520,14 @@ void SpinCtrl::BUILD() {
 
         // Forcibly set the input value for SpinControl, since the value 
 	    // inserted from the clipboard is not updated under OSX
-        if (tmp_value > -9999)
-            dynamic_cast<wxSpinCtrl*>(window)->SetValue(tmp_value);
+        if (tmp_value > -9999) {
+            wxSpinCtrl* spin = dynamic_cast<wxSpinCtrl*>(window);
+            spin->SetValue(tmp_value);
+
+            // But in SetValue() is executed m_text_ctrl->SelectAll(), so
+            // discard this selection and set insertion point to the end of string
+            spin->GetText()->SetInsertionPointEnd();
+        }
 #endif
 	}), temp->GetId());
 	
