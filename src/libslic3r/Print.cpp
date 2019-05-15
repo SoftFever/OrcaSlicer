@@ -1310,7 +1310,7 @@ std::string Print::validate() const
             }
             
             // validate first_layer_height
-            double first_layer_height = object->config().get_abs_value(L("first_layer_height"));
+            double first_layer_height = object->config().get_abs_value("first_layer_height");
             double first_layer_min_nozzle_diameter;
             if (object->config().raft_layers > 0) {
                 // if we have raft layers, only support material extruder is used on first layer
