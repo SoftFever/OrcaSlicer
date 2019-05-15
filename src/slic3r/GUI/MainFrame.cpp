@@ -145,7 +145,7 @@ void MainFrame::update_title()
     wxString title = wxEmptyString;
     if (m_plater != nullptr)
     {
-        wxString project = from_path(into_path(m_plater->get_project_filename()).filename());
+        wxString project = from_path(into_path(m_plater->get_project_filename()).stem());
         if (!project.empty())
             title += (project + " - ");
     }

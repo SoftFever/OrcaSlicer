@@ -40,6 +40,7 @@ enum FileType
     FT_PRUSA,
     FT_GCODE,
     FT_MODEL,
+    FT_PROJECT,
 
     FT_INI,
     FT_SVG,
