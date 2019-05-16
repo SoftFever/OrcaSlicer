@@ -1871,9 +1871,9 @@ void DoubleSlider::draw_action_icon(wxDC& dc, const wxPoint pt_beg, const wxPoin
 {
     const int tick = m_selection == ssLower ? m_lower_value : m_higher_value;
 
-    wxBitmap& icon = m_is_action_icon_focesed ? m_bmp_add_tick_off.bmp() : m_bmp_add_tick_on.bmp();
+    wxBitmap* icon = m_is_action_icon_focesed ? &m_bmp_add_tick_off.bmp() : &m_bmp_add_tick_on.bmp();
     if (m_ticks.find(tick) != m_ticks.end())
-        icon = m_is_action_icon_focesed ? m_bmp_del_tick_off.bmp() : m_bmp_del_tick_on.bmp();
+        icon = m_is_action_icon_focesed ? &m_bmp_del_tick_off.bmp() : &m_bmp_del_tick_on.bmp();
 
     wxCoord x_draw, y_draw;
     is_horizontal() ? x_draw = pt_beg.x - 0.5*m_tick_icon_dim : y_draw = pt_beg.y - 0.5*m_tick_icon_dim;
@@ -1882,7 +1882,7 @@ void DoubleSlider::draw_action_icon(wxDC& dc, const wxPoint pt_beg, const wxPoin
     else
         is_horizontal() ? y_draw = pt_beg.y - m_tick_icon_dim-2 : x_draw = pt_end.x + 3;
 
-    dc.DrawBitmap(icon, x_draw, y_draw);
+    dc.DrawBitmap(*icon, x_draw, y_draw);
 
     //update rect of the tick action icon
     m_rect_tick_action = wxRect(x_draw, y_draw, m_tick_icon_dim, m_tick_icon_dim);
