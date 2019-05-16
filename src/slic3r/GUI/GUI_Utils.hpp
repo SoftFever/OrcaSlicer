@@ -66,7 +66,7 @@ public:
 			m_normal_font = m_normal_font.Scale(m_scale_factor / scale_primary_display);
 
         // initialize default width_unit according to the width of the one symbol ("m") of the currently active font of this window.
-        m_em_unit = std::max<size_t>(10, this->GetTextExtent("m").x - 1/*10 * m_scale_factor*/);
+        m_em_unit = std::max<size_t>(10, this->GetTextExtent("m").x - 1);
 
 //        recalc_font();
 
