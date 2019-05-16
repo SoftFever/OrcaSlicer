@@ -65,8 +65,8 @@ public:
 		if (std::abs(m_scale_factor - scale_primary_display) > 1e-6)
 			m_normal_font = m_normal_font.Scale(m_scale_factor / scale_primary_display);
 
-        // An analog of em_unit value from GUI_App.
-        m_em_unit = std::max<size_t>(10, 10 * m_scale_factor);
+        // initialize default width_unit according to the width of the one symbol ("m") of the currently active font of this window.
+        m_em_unit = std::max<size_t>(10, this->GetTextExtent("m").x - 1);
 
 //        recalc_font();
 
