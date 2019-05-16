@@ -442,14 +442,12 @@ void GUI_App::system_info()
 {
     SysInfoDialog dlg;
     dlg.ShowModal();
-    dlg.Destroy();
 }
 
 void GUI_App::keyboard_shortcuts()
 {
     KBShortcutsDialog dlg;
     dlg.ShowModal();
-    dlg.Destroy();
 }
 
 // static method accepting a wxWindow object as first parameter

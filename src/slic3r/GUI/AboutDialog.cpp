@@ -163,7 +163,6 @@ void AboutDialog::onLinkClicked(wxHtmlLinkEvent &event)
 void AboutDialog::onCloseDialog(wxEvent &)
 {
     this->EndModal(wxID_CLOSE);
-    this->Close();
 }
 
 } // namespace GUI

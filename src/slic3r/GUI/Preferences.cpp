@@ -136,7 +136,6 @@ void PreferencesDialog::accept()
 	}
 
 	EndModal(wxID_OK);
-	Close();  // needed on Linux
 
 	// Nothify the UI to update itself from the ini file.
     wxGetApp().update_ui_from_settings();
