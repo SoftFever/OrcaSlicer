@@ -1323,7 +1323,7 @@ void PrintConfigDef::init_fff_params()
                    "[input_filename_base].");
     def->full_width = true;
     def->mode = comExpert;
-    def->set_default_value(new ConfigOptionString("[input_filename_base]"));
+    def->set_default_value(new ConfigOptionString("[input_filename_base].gcode"));
 
     def = this->add("overhangs", coBool);
     def->label = L("Detect bridging perimeters");
